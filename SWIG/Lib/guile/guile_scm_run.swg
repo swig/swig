@@ -22,8 +22,8 @@ typedef struct swig_guile_clientdata {
   SCM goops_class;
 } swig_guile_clientdata;
 
-#define SWIG_scm2str(s) SWIG_scm2newstr(s, NULL)
-
+#define SWIG_scm2str(s) \
+  SWIG_Guile_scm2newstr(s, NULL)
 #define SWIG_malloc(size) \
   SCM_MUST_MALLOC(size)
 #define SWIG_free(mem) \
@@ -40,7 +40,7 @@ typedef struct swig_guile_clientdata {
 #ifdef SWIG_NOINCLUDE
 
 /* Interface helper function */
-SWIGIMPORT(char *) SWIG_scm2newstr(SCM str, size_t *len);
+SWIGIMPORT(char *) SWIG_Guile_scm2newstr(SCM str, size_t *len);
 
 /* Register SWIG smobs with Guile.  */
 SWIGIMPORT(void) SWIG_Guile_Init();
@@ -57,12 +57,18 @@ SWIGIMPORT(int) SWIG_Guile_GetArgs(SCM *dest, SCM rest, int reqargs, int optargs
 /* Propagate client data to equivalent types */
 SWIGIMPORT(void) 
 SWIG_Guile_PropagateClientData(swig_type_info *type);
-
+/* Make a pointer object non-collectable */
+SWIGIMPORT(void)
+SWIG_Guile_MarkPointerNoncollectable(SCM s);
+/* Mark a pointer object destroyed */
+SWIGIMPORT(void)
+SWIG_Guile_MarkPointerDestroyed(SCM s);
+       
 #else
 
 SWIGRUNTIME(char *) 
-SWIG_scm2newstr(SCM str, size_t *len) {
-#define FUNC_NAME "swig_scm2newstr"
+SWIG_Guile_scm2newstr(SCM str, size_t *len) {
+#define FUNC_NAME "SWIG_Guile_scm2newstr"
   char *ret;
   size_t l;
 
@@ -78,7 +84,8 @@ SWIG_scm2newstr(SCM str, size_t *len) {
 }
 
 static scm_t_bits swig_tag = 0;
-static scm_t_bits swig_collected_tag = 0;
+static scm_t_bits swig_collectable_tag = 0;
+static scm_t_bits swig_destroyed_tag = 0;
 static SCM swig_make_func = SCM_EOL;
 static SCM swig_keyword = SCM_EOL;
 static SCM swig_symbol = SCM_EOL;
@@ -93,7 +100,7 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
   SCM smob;
   swig_guile_clientdata *cdata = (swig_guile_clientdata *) type->clientdata;
   if (owner)
-    SCM_NEWSMOB2(smob, swig_collected_tag, ptr, (void *) type);
+    SCM_NEWSMOB2(smob, swig_collectable_tag, ptr, (void *) type);
   else
     SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
 
@@ -124,7 +131,8 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   if (SCM_NULLP(smob)) {
     *result = NULL;
     return 0;
-  } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collected_tag, smob)) {
+  } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
+    /* we do not accept smobs representing destroyed pointers */
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return 1;
     if (type) {
@@ -155,16 +163,44 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
   return result;
 }
 
+/* Mark a pointer object non-collectable */
+SWIGRUNTIME(void)
+SWIG_Guile_MarkPointerNoncollectable(SCM s)
+{
+  SCM smob = SWIG_Guile_GetSmob(s);
+  if (!SCM_NULLP(smob)) {
+    if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
+      SCM_SET_CELL_TYPE(smob, swig_tag);
+    }
+    else scm_wrong_type_arg(NULL, 0, s);
+  }
+}
+
+/* Mark a pointer object destroyed */
+SWIGIMPORT(void)
+SWIG_Guile_MarkPointerDestroyed(SCM s)
+{
+  SCM smob = SWIG_Guile_GetSmob(s);
+  if (!SCM_NULLP(smob)) {
+    if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)) {
+      SCM_SET_CELL_TYPE(smob, swig_destroyed_tag);
+    }
+    else scm_wrong_type_arg(NULL, 0, s);
+  }
+}
+
 /* Init */
 
 static int
-print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
+print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, const char *attribute)
 {
   swig_type_info *type;
   
   type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
-    scm_puts((char *) "#<swig ", port);
+    scm_puts((char *) "#<", port);
+    scm_puts(attribute, port);
+    scm_puts("swig ", port);
     if (type->str != NULL)
       scm_puts(type->str, port);
     else 
@@ -179,32 +215,29 @@ print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
   }
 }
 
+  
 static int
-print_collected_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
+print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  swig_type_info *type;
+  return print_swig_aux(swig_smob, port, pstate, "");
+}
 
-  type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
-  if (type) {
-    scm_puts((char *) "#<collected swig ", port);
-    if (type->str != NULL)
-      scm_puts(type->str, port);
-    else 
-      scm_puts(type->name, port);
-    scm_puts((char *) " ", port);
-    scm_intprint((long) SCM_CELL_WORD_1(swig_smob), 16, port);
-    scm_puts((char *) ">", port);
-    /* non-zero means success */
-    return 1;
-  } else {
-    return 0;
-  }
+static int
+print_collectable_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
+{
+  return print_swig_aux(swig_smob, port, pstate, "collectable ");
+}
+
+static int
+print_destroyed_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
+{
+  return print_swig_aux(swig_smob, port, pstate, "destroyed ");
 }
 
 static SCM
 equalp_swig (SCM A, SCM B)
 {
-  if (SCM_CAR(A) == SCM_CAR(B) && SCM_CELL_WORD_1(A) == SCM_CELL_WORD_1(B) 
+  if (SCM_CELL_WORD_0(A) == SCM_CELL_WORD_0(B) && SCM_CELL_WORD_1(A) == SCM_CELL_WORD_1(B) 
       && SCM_CELL_WORD_2(A) == SCM_CELL_WORD_2(B))
     return SCM_BOOL_T;
   else return SCM_BOOL_F;
@@ -230,16 +263,22 @@ SWIG_Guile_Init ()
     scm_set_smob_equalp(swig_tag, equalp_swig);
   }
 
-  if (!swig_collected_tag) {
-    swig_collected_tag = scm_make_smob_type((char*)"collected swig", 0);
-    scm_set_smob_print(swig_collected_tag, print_collected_swig);
-    scm_set_smob_equalp(swig_collected_tag, equalp_swig);
-    scm_set_smob_free(swig_collected_tag, free_swig);
+  if (!swig_collectable_tag) {
+    swig_collectable_tag = scm_make_smob_type((char*)"collectable swig", 0);
+    scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
+    scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
+    scm_set_smob_free(swig_collectable_tag, free_swig);
+  }
+
+  if (!swig_destroyed_tag) {
+    swig_destroyed_tag = scm_make_smob_type((char*)"destroyed swig", 0);
+    scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
+    scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
   }
       
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
-  swig_keyword = scm_permanent_object(scm_c_make_keyword("init-smob"));
+  swig_keyword = scm_permanent_object(scm_c_make_keyword((char*) "init-smob"));
   swig_symbol = scm_permanent_object(scm_str2symbol("swig-smob"));
 }
 

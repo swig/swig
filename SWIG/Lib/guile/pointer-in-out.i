@@ -1,6 +1,6 @@
 /* pointer-in-out.i --- Guile typemaps for passing -*- c -*- pointers indirectly 
 
-   Copyright (C) 2001 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
+   Copyright (C) 2001, 2003 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
 
    $Header$
 */
@@ -17,6 +17,15 @@
        The address of a variable containing this pointer will be
        passed to the function.
 
+   func(int **INPUT_CONSUMED)
+
+       Likewise, but mark the pointer object as not garbage
+       collectable.
+
+   func(int **INPUT_DESTROYED)
+
+       Likewise, but mark the pointer object as destroyed.
+       
    func(int **OUTPUT)
 
        Scheme wrapper will take no arguments.  The address of an int *
@@ -24,6 +33,10 @@
        expected to modify the variable; its value is wrapped and
        becomes an extra return value.  (See the documentation on how
        to deal with multiple values.)
+   
+   func(int **OUTPUT_NONCOLLECTABLE)
+
+       Likewise, but make the pointer object not garbage collectable.
    
    func(int **BOTH)
    func(int **INOUT)
@@ -42,11 +55,33 @@
     $1 = &temp;
 }
 
-%typemap(in, numinputs=0) PTRTYPE *OUTPUT(PTRTYPE temp) 
+%typemap(in, doc="$NAME is of type <" #SCM_TYPE "> and is consumed by the function") PTRTYPE *INPUT_CONSUMED(PTRTYPE temp)
+{
+    if (SWIG_ConvertPtr($input, (void **) &temp, $*descriptor, 0)) {
+	scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+    }
+    SWIG_Guile_MarkPointerNoncollectable($input);
+    $1 = &temp;
+}
+
+%typemap(in, doc="$NAME is of type <" #SCM_TYPE "> and is consumed by the function") PTRTYPE *INPUT_DESTROYED(PTRTYPE temp)
+{
+    if (SWIG_ConvertPtr($input, (void **) &temp, $*descriptor, 0)) {
+	scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+    }
+    SWIG_Guile_MarkPointerDestroyed($input);
+    $1 = &temp;
+}
+
+%typemap(in, numinputs=0) PTRTYPE *OUTPUT(PTRTYPE temp),
+                          PTRTYPE *OUTPUT_NONCOLLECTABLE(PTRTYPE temp)
      "$1 = &temp;";
 
 %typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT
      "SWIG_APPEND_VALUE(SWIG_NewPointerObj(*$1, $*descriptor, 1));"; 
+
+%typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT_NONCOLLECTABLE
+     "SWIG_APPEND_VALUE(SWIG_NewPointerObj(*$1, $*descriptor, 0));"; 
 
 %typemap(in) PTRTYPE *BOTH = PTRTYPE *INPUT;
 %typemap(argout) PTRTYPE *BOTH = PTRTYPE *OUTPUT;

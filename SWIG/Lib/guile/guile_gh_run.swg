@@ -25,6 +25,10 @@ extern "C" {
   SWIG_Guile_MustGetPtr(s, type, argnum, FUNC_NAME)
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_Guile_MakePtr((void*)ptr, type)
+
+/* Ignore object-ownership changes in gh mode */
+#define SWIG_Guile_MarkPointerNoncollectable(s) (s)
+#define SWIG_Guile_MarkPointerDestroyed(s) (s)
   
 #if defined(SWIG_NOINCLUDE)
 #	define SWIGSTATIC

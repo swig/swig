@@ -3,31 +3,6 @@
 
    $Header$  */
 
-/* (11/24/2001) Note to Matthias:
-
-   I've replaced all of the documentation related typemaps (indoc, varindoc, outdoc, argoutdoc, ...)
-   with a typemap parameter of "doc".  For example:
-
-   %typemap(in, doc="<integer>") int {
-      ...
-   }
-
-   This is somewhat more sane to handle when multi-argument typemaps are used.  For example:
-
-   %typemap(in, doc="<buffer>") (char *data, int len) {
-       ...
-   }
-
-   See guile.cxx for details of how the typemap parameters actually get accessed.
-
-   Also, it's no longer necessary to specify typemaps for 'const' qualifiers.  They
-   now get matched against non-const versions.
-
-   Feel free to delete this comment after you've read it.
-
-                         --- Dave
-*/
-
 /* Pointers */
 
 %typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
@@ -78,6 +53,23 @@
 
 %typemap(varout) SWIGTYPE & {
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
+}
+
+
+/* Change of object ownership, and interaction of destructor-like functions and the
+   garbage-collector */
+
+%typemap(in, doc="$NAME is of type <$type> and gets destroyed by the function") SWIGTYPE *DESTROYED {
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+}
+
+%typemap(freearg) SWIGTYPE *DESTROYED {
+  SWIG_Guile_MarkPointerDestroyed($input);
+}
+
+%typemap(in, doc="$NAME is of type <$type> and is consumed by the function") SWIGTYPE *CONSUMED {
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+  SWIG_Guile_MarkPointerNoncollectable($input);
 }
 
 /* Pass-by-value */
