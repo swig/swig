@@ -1,7 +1,7 @@
 # You can make the package from CVS by something like:
 # tar -cvzf swig-1.3.11cvs.tar.gz SWIG-1.3.11cvs && rpm -tb swig-1.3.11cvs.tar.gz
 
-%define ver          1.3.11cvs
+%define ver          1.3.13
 %define rel          1
 %define prefix       /usr
 %define home_page    http://swig.sourceforge.net/
