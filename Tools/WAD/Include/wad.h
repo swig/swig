@@ -40,6 +40,10 @@ extern void *wad_malloc(int nbytes);
 extern void  wad_release_memory();
 extern char *wad_strdup(const char *c);
 
+/* I/O */
+
+extern void wad_printf(const char *fmt, ...);
+
 /* Memory segments */
 typedef struct WadSegment {
   char              *base;                  /* Base address for symbol lookup */
@@ -57,17 +61,15 @@ extern WadSegment *wad_segment_find(void *vaddr);
 /* Object file handling */
 typedef struct WadObjectFile {
   struct WadFile   *file;           /* File data (private)       */
-  int               refcnt;         /* Reference count           */
   void             *ptr;            /* Pointer to data           */
   int               len;            /* Length of data            */
   int               type;           /* Type of the object file   */
-  char              path[MAX_PATH]; /* Path name of this object  */
+  char             *path;           /* Path name of this object  */
+  struct WadObjectFile *next;
 } WadObjectFile;
 
-extern void            wad_object_init();
+extern void            wad_object_reset();
 extern WadObjectFile  *wad_object_load(const char *path);
-extern void            wad_object_release(WadObjectFile *);
-extern void            wad_object_cleanup();
 
 /* Symbol table information */
   

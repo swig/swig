@@ -28,7 +28,7 @@ static void
 stack_unwind(unsigned long *sp, unsigned long *pc, unsigned long *fp) {
 
   if (wad_debug_mode & DEBUG_UNWIND) {
-    printf("::: stack unwind :  pc = %x, sp = %x, fp = %x\n", *pc, *sp, *fp);
+    wad_printf("::: stack unwind :  pc = %x, sp = %x, fp = %x\n", *pc, *sp, *fp);
   }
 #ifdef WAD_SOLARIS
   *pc = *((unsigned long *) *sp+15);         /* %i7 - Return address  */
@@ -80,7 +80,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   /* Read the segments */
 
   if (wad_segment_read() < 0) {
-    printf("WAD: Unable to read segment map\n");
+    wad_printf("WAD: Unable to read segment map\n");
     return 0;
   }
 
@@ -88,7 +88,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   tmpnam(framefile);
   ffile = open(framefile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
   if (ffile < 0) {
-    printf("can't open %s\n", framefile);
+    wad_printf("can't open %s\n", framefile);
     return 0;
   }
 
@@ -156,7 +156,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       if (symname) {
 	symsize = strlen(symname)+1;
 	
-	/*	printf("C++: '%s' ---> '%s'\n", symname, wad_cplus_demangle(&wsym));*/
+	/*	wad_printf("C++: '%s' ---> '%s'\n", symname, wad_cplus_demangle(&wsym));*/
 	
 	/* Try to gather some debugging information about this symbol */
 	if (wad_debug_info(wo,&wsym, p_pc - (unsigned long) ws->base - value, &wd)) {
@@ -171,9 +171,9 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	  /*
 	  if (wd.nargs >=0) {
 	    int i;
-	    printf("%s\n",symname);
+	    wad_printf("%s\n",symname);
 	    for (i = 0; i < wd.nargs; i++) {
-	      printf("  [%d] = '%s', %d, %d\n", i, wd.parms[i].name, wd.parms[i].type, wd.parms[i].value);
+	      wad_printf("  [%d] = '%s', %d, %d\n", i, wd.parms[i].name, wd.parms[i].type, wd.parms[i].value);
 	    }
 	  }
 	  */
@@ -188,7 +188,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 	int i;
 	long *lsp = (long *) p_lastsp;
 	for (i = 0; i < 16; i++) {
-	  /*	  printf("regs[%d] = 0x%x\n", lsp[i]); */
+	  /*	  wad_printf("regs[%d] = 0x%x\n", lsp[i]); */
 	  frame.regs[i] = lsp[i];
 	}
       }
@@ -255,8 +255,6 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       }
       write(ffile,frame.data, pad);
       lastsize = frame.size;
-      if (wo)
-	wad_object_release(wo);
     }
   }
 

@@ -76,12 +76,12 @@ void wad_init() {
   }
 
   if (wad_debug_mode & DEBUG_INIT) {
-    printf("WAD: initializing\n");
+    wad_printf("WAD: initializing\n");
   }
 
   if (!init) {
     wad_signal_init();
-    wad_object_init();
+    wad_object_reset();
   }
   init = 1;
 }

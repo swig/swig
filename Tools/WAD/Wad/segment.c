@@ -60,7 +60,7 @@ wad_segment_read() {
       lasts = s;
     }
     if (wad_debug_mode & DEBUG_SEGMENT) {
-      printf("wad_segment: read : %08x-%08x, base=%x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->base, s->mappath);
+      wad_printf("wad_segment: read : %08x-%08x, base=%x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->base, s->mappath);
     }
   }
   close(fs);
@@ -90,7 +90,7 @@ wad_segment_find(void *vaddr) {
     }
     if ((addr >= s->vaddr) && (addr < (s->vaddr + s->size))) {
       if (wad_debug_mode & DEBUG_SEGMENT) {
-	printf("wad_segment: %08x --> %08x-%08x in %s\n", vaddr, s->vaddr, ((char *) s->vaddr) + s->size, s->mappath);
+	wad_printf("wad_segment: %08x --> %08x-%08x in %s\n", vaddr, s->vaddr, ((char *) s->vaddr) + s->size, s->mappath);
       }
       return ls;
     }
