@@ -17,7 +17,7 @@ struct Module {
   Module          *next;
   Module(const char *n, ModuleFactory f) {
     fac = f;
-    name = new char[strlen(n)];
+    name = new char[strlen(n)+1];
     strcpy(name, n);
     next = 0;
   }
