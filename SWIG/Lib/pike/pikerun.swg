@@ -43,7 +43,8 @@ SWIG_ConvertPtr(struct object *obj, void **ptr, swig_type_info *ty, int flags) {
         pr = (struct program *) ty->clientdata;
         storage = get_storage(obj, pr);
         if (storage) {
-            *ptr = (void *) storage;
+            *ptr = ((swig_object_wrapper *) storage)->self;
+	    return 0;
         }
     }
     return -1;
