@@ -222,7 +222,13 @@ class OCAML : public Language {
 	}
 
 	if( !modfile ) {
+	    int i;
+
 	    modfile = Copy(module);
+
+	    for( i = 0; (Char(modfile))[i] > ' '; i++ );
+	    (Char(modfile))[i] = 0;
+	    modfile = NewString(Char(modfile));
 	    Printf(modfile, ".ml");
 	}
 
