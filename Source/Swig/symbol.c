@@ -1059,7 +1059,9 @@ Swig_symbol_cscope(String_or_char *name, Symtab *symtab) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_remove()
  *
- * Remove a symbol 
+ * Remove a symbol. If the symbol is an overloaded function and the symbol removed
+ * is not the last in the list of overloaded functions, then the overloaded
+ * names (sym:overname attribute) are changed to start from zero, eg __SWIG_0.
  * ----------------------------------------------------------------------------- */
 
 void
@@ -1068,6 +1070,7 @@ Swig_symbol_remove(Node *n) {
   String  *symname;
   Node    *symprev;
   Node    *symnext;
+  Node    *fixovername = 0;
   symtab  = Getattr(n,"sym:symtab");        /* Get symbol table object */
   symtab  = Getattr(symtab,"symtab");       /* Get actual hash table of symbols */
   symname = Getattr(n,"sym:name");
@@ -1078,6 +1081,7 @@ Swig_symbol_remove(Node *n) {
   if (symprev) {
     if (symnext) {
       Setattr(symprev,"sym:nextSibling",symnext);
+      fixovername = symprev; /* fix as symbol to remove is somewhere in the middle of the linked list */
     } else {
       Delattr(symprev,"sym:nextSibling");
     }
@@ -1085,6 +1089,7 @@ Swig_symbol_remove(Node *n) {
     /* If no previous symbol, see if there is a next symbol */
     if (symnext) {
       Setattr(symtab,symname,symnext);
+      fixovername = symnext; /* fix as symbol to remove is at head of linked list */
     } else {
       Delattr(symtab,symname);
     }
@@ -1103,34 +1108,29 @@ Swig_symbol_remove(Node *n) {
   Delattr(n,"sym:overname");
   Delattr(n,"csym:previousSibling");
   Delattr(n,"sym:overloaded");
-  return;
+  n = 0;
 
-#if 0
-  symtab  = Getattr(n,"sym:symtab");        /* Get symbol table object */
-  symtab  = Getattr(symtab,"csymtab");       /* Get actual hash table of symbols */
-  symprev = Getattr(n,"csym:previousSibling");
-  symnext = Getattr(n,"csym:nextSibling");
+  if (fixovername) {
+    Node *nn = fixovername;
+    Node *head = fixovername;
+    int pn = 0;
 
-  /* If previous symbol, just fix the links */
-  if (symprev) {
-    if (symnext) {
-      Setattr(symprev,"csym:nextSibling",symnext);
-    } else {
-      Delattr(symprev,"csym:nextSibling");
+    /* find head of linked list */
+    while (nn) {
+      head = nn;
+      nn = Getattr(nn, "sym:previousSibling");
     }
-  } else {
-    /* If no previous symbol, see if there is a next symbol */
-    if (symnext) {
-      Setattr(symtab,Getattr(n,"name"),symnext);
-    } else {
-      Delattr(symtab,Getattr(n,"name"));
+
+    /* adjust all the sym:overname strings to start from 0 and increment by one */
+    nn = head;
+    while (nn) {
+      assert(Getattr(nn,"sym:overname"));
+      Delattr(nn,"sym:overname");
+      Setattr(nn,"sym:overname", NewStringf("__SWIG_%d", pn));
+      pn++;
+      nn = Getattr(nn,"sym:nextSibling");
     }
   }
-
-  Delattr(n,"sym:symtab");
-  Delattr(n,"csym:previousSibling");
-  Delattr(n,"csym:nextSibling");
-#endif
 }
 
 /* -----------------------------------------------------------------------------
