@@ -40,7 +40,6 @@ Swig_overload_rank(Node *n) {
   int         nnodes = 0;
   Node *o = Getattr(n,"sym:overloaded");
   Node *c;
-  String *storage;
 
   if (!o) return 0;
 
