@@ -25,10 +25,10 @@ CORE:
        This is one of the last remaining "hard" problems in the SWIG
        core, but it is important that we solve it.  
 
-****   Better modularization of language modules and a minor redesign
+[DONE] Better modularization of language modules and a minor redesign
        of the very high-level API.   Issues:
 
-        -  Language modules should be created by a factory function
+       -  Language modules should be created by a factory function
            with C linkage.  For example:
 
               Language *PYTHON_init() {
