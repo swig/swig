@@ -2,10 +2,10 @@
 ;; by SWIG.
 
 ;; All generic methods must be included first
-(include "example_generic")
+(include "example-generic")
 
 ;; After generic are defined, can include TinyCLOS code
-(include "example_clos")
+(include "example-clos")
 
 ;; ----- Object creation -----
 

@@ -85,9 +85,9 @@ public:
       (display "----------------\n")
       (display "
   ;; ALL generic methods must be included first
-  (include \"example_generic\")
+  (include \"example-generic\")
   ;; After generic methods are defined, can include TinyCLOS code
-  (include \"example_clos\")
+  (include \"example-clos\")
 
   (define A-CIRCLE-SHAPE (make <example:Circle> %radius))
   (-get-x- %shapeObject)

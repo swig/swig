@@ -652,13 +652,13 @@ CHICKW(quasiquote);
 extern "C" {
 #endif
 /* Chicken initialization function */
-SWIGEXPORT(void) $module_swig_init(int, C_word, C_word) C_noret;
+SWIGEXPORT(void) $realmodule_swig_init(int, C_word, C_word) C_noret;
 /* Tag functions */
-SWIGEXPORT(int) $module_swig_num_types (void);
-SWIGEXPORT(const char*) $module_swig_type_name (int);
-SWIGEXPORT(void*) $module_swig_type_ptr  (int);
-SWIGEXPORT(const char*) $module_swig_type_str  (int);
-SWIGEXPORT(void)  $module_swig_type_tag  (int, C_word);
+SWIGEXPORT(int) $realmodule_swig_num_types (void);
+SWIGEXPORT(const char*) $realmodule_swig_type_name (int);
+SWIGEXPORT(void*) $realmodule_swig_type_ptr  (int);
+SWIGEXPORT(const char*) $realmodule_swig_type_str  (int);
+SWIGEXPORT(void)  $realmodule_swig_type_tag  (int, C_word);
 #ifdef __cplusplus
 }
 #endif
@@ -667,7 +667,7 @@ SWIGEXPORT(void)  $module_swig_type_tag  (int, C_word);
 %insert(init) %{
 /* CHICKEN initialization function */
 SWIGEXPORT(void)
-$module_swig_init(int argc, C_word closure, C_word continuation) {
+$realmodule_swig_init(int argc, C_word closure, C_word continuation) {
   static int       typeinit = 0;
   int       i;
 
@@ -686,29 +686,29 @@ $module_swig_init(int argc, C_word closure, C_word continuation) {
 /* Tag functions */
 
 SWIGEXPORT(int)
-$module_swig_num_types (void)
+$realmodule_swig_num_types (void)
 {
   int i; 
   for (i=0; swig_types_initial[i]; i++); 
   return i;
 }
 SWIGEXPORT(const char*)
-$module_swig_type_name (int index)
+$realmodule_swig_type_name (int index)
 {
   return swig_types[index]->name;
 }
 SWIGEXPORT(void*)
-$module_swig_type_ptr  (int index)
+$realmodule_swig_type_ptr  (int index)
 {
   return (void*) (swig_types[index]);
 }
 SWIGEXPORT(const char*)
-$module_swig_type_str  (int index)
+$realmodule_swig_type_str  (int index)
 {
   return swig_types[index]->str;
 }
 SWIGEXPORT(void)
-$module_swig_type_tag  (int index, C_word tag)
+$realmodule_swig_type_tag  (int index, C_word tag)
 {
   swig_chicken_clientdata *data = 
     (swig_chicken_clientdata*) malloc (sizeof (swig_chicken_clientdata));
@@ -720,17 +720,17 @@ $module_swig_type_tag  (int index, C_word tag)
 
 %insert(chicken) %{
 (declare 
- (foreign-declare "C_extern int   $module_swig_num_types (void);")
- (foreign-declare "C_extern char* $module_swig_type_name (int);")
- (foreign-declare "C_extern void* $module_swig_type_ptr (int);")
- (foreign-declare "C_extern char* $module_swig_type_str (int);")
- (foreign-declare "C_extern void  $module_swig_type_tag (int, C_word);"))
+ (foreign-declare "C_extern int   $realmodule_swig_num_types (void);")
+ (foreign-declare "C_extern char* $realmodule_swig_type_name (int);")
+ (foreign-declare "C_extern void* $realmodule_swig_type_ptr (int);")
+ (foreign-declare "C_extern char* $realmodule_swig_type_str (int);")
+ (foreign-declare "C_extern void  $realmodule_swig_type_tag (int, C_word);"))
 (define-record swig-$module-tag class name ptr str)
 (define-record-printer (swig-$module-tag tag out)
  (fprintf out "#<c++ ~S>(~A)" (swig-$module-tag-str tag) 
   (swig-$module-tag-ptr tag)))
 (define swig-$module-tag-num 
- ((foreign-lambda int "$module_swig_num_types")))
+ ((foreign-lambda int "$realmodule_swig_num_types")))
 (define swig-$module-tags (make-vector swig-$module-tag-num #f))
 (letrec
  ((gen
@@ -745,13 +745,13 @@ $module_swig_type_tag  (int index, C_word tag)
        (make-swig-$module-tag 
 	1000 
 	((foreign-lambda
-	  c-string "$module_swig_type_name" int) index)
+	  c-string "$realmodule_swig_type_name" int) index)
 	((foreign-lambda
-	  c-pointer "$module_swig_type_ptr" int) index)
+	  c-pointer "$realmodule_swig_type_ptr" int) index)
 	((foreign-lambda
-	  c-string "$module_swig_type_str" int) index))))
+	  c-string "$realmodule_swig_type_str" int) index))))
      (vector-set! swig-$module-tags index tag)
-     ((foreign-lambda void "$module_swig_type_tag"
+     ((foreign-lambda void "$realmodule_swig_type_tag"
        int scheme-object) index tag)))
    indices)))
 %}

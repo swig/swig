@@ -42,7 +42,7 @@ module:: $(CHICKSRCS) $(SRCS) $(CXXSRCS)
 clean::
 	$(MAKE) -f $(TOP)/Makefile chicken_clean
 	rm -f $(CHICKGEN)
-	rm -f example.scm example_generic.scm example_clos.scm
+	rm -f example.scm example-generic.scm example-clos.scm
 	rm -f $(TARGET)
 
 check:: all

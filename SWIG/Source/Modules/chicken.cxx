@@ -50,6 +50,7 @@ CHICKEN Options (available with -chicken)\n\
 static String        *prefix=0;
 static int           noprefix=0;
 static String        *module=0;
+static String        *realmodule=0;
 static char          *chicken_path=(char*)"chicken";
 static int           clos = 1;
 static int           generic = 1;
@@ -203,6 +204,10 @@ CHICKEN::main(int argc, char *argv[])
 int
 CHICKEN::top(Node *n)
 {
+  String *chicken_filename;
+  String *clos_filename;
+  String *generic_filename;
+
   if (!CPlusPlus) {
     clos = 0;
     generic = 0;
@@ -223,6 +228,9 @@ CHICKEN::top(Node *n)
   f_init = NewString("");
   f_header = NewString("");
   f_wrappers = NewString("");
+  chicken_filename = NewString("");
+  clos_filename = NewString("");
+  generic_filename = NewString("");
     
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("header",f_header);
@@ -239,7 +247,9 @@ CHICKEN::top(Node *n)
   }
     
   /* Set module name */
-  module = Copy(Getattr(n,"name"));
+  realmodule = Copy(Getattr(n,"name"));
+  module = Copy(realmodule);
+  namify(module);
     
   /* Set prefix.  If a prefix has been specified make sure it ends
      in a '-' */
@@ -255,11 +265,9 @@ CHICKEN::top(Node *n)
     }
   }
     
-  char  filen[256];
-
-  sprintf(filen,"%s%s.scm", Swig_file_dirname(outfile), Char(module));
-  if ((f_scm = NewFile(filen,"w")) == 0) {
-    Printf(stderr,"Unable to open %s\n", filen);
+  Printf(chicken_filename,"%s%s.scm", Swig_file_dirname(outfile), module);
+  if ((f_scm = NewFile(chicken_filename,"w")) == 0) {
+    Printf(stderr,"Unable to open %s\n", chicken_filename);
     SWIG_exit(EXIT_FAILURE);
   }
   f_scm_stubs = NewString("");
@@ -274,15 +282,15 @@ CHICKEN::top(Node *n)
   Printv(f_scm,"(cond-expand ((or chicken-compile-shared shared)) (else (declare (unit ", module, "))))\n\n", NIL);
 #ifdef JONAH_IS_CRAZY
   Printv(f_scm,"(declare \n",
-	 tab4, "(foreign-declare \"void* ", module, 
+	 tab4, "(foreign-declare \"void* ", realmodule, 
 	 "_swig_get_type(char*);\"))\n", NIL);
 #endif
 #ifndef INIT_BINDING
   Printv(f_scm,"(declare \n",
 	 tab4, "(hide swig-init)\n",
-	 tab4, "(foreign-declare \"C_extern void ", module, 
+	 tab4, "(foreign-declare \"C_extern void ", realmodule, 
 	 "_swig_init(int,C_word,C_word) C_noret;\"))\n", NIL);
-  Printv(f_scm,"(define swig-init (##core#primitive \"", module,
+  Printv(f_scm,"(define swig-init (##core#primitive \"", realmodule,
 	 "_swig_init\"))\n", NIL);
   Printv(f_scm,"(swig-init)\n\n", NIL);
 #endif
@@ -300,10 +308,10 @@ CHICKEN::top(Node *n)
 
 
   if (generic) {
-    sprintf(filen,"%s%s_generic.scm", Swig_file_dirname(outfile), 
-	    Char(module));
-    if ((f_generic = NewFile(filen,"w")) == 0) {
-      Printf(stderr,"Unable to open %s\n", filen);
+    Printf(generic_filename,"%s%s-generic.scm", 
+	   Swig_file_dirname(outfile), module);
+    if ((f_generic = NewFile(generic_filename,"w")) == 0) {
+      Printf(stderr,"Unable to open %s\n", generic_filename);
       SWIG_exit (EXIT_FAILURE);
     }
 
@@ -317,10 +325,9 @@ CHICKEN::top(Node *n)
   }
 
   if (clos) {
-    sprintf(filen,"%s%s_clos.scm", Swig_file_dirname(outfile), 
-	    Char(module));
-    if ((f_clos = NewFile(filen,"w")) == 0) {
-      Printf(stderr,"Unable to open %s\n", filen);
+    Printf(clos_filename,"%s%s-clos.scm", Swig_file_dirname(outfile), module);
+    if ((f_clos = NewFile(clos_filename,"w")) == 0) {
+      Printf(stderr,"Unable to open %s\n", clos_filename);
       SWIG_exit (EXIT_FAILURE);
     }
 
@@ -334,7 +341,7 @@ CHICKEN::top(Node *n)
     Printf (f_clos, "(declare (uses extras))\n");
   }
 
-  Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
+  Printf(f_header,"#define SWIG_name    \"%s\"\n", realmodule);
 
   Printf(f_wrappers,"#ifdef __cplusplus\n");
   Printf(f_wrappers,"extern \"C\" {\n");
@@ -345,7 +352,7 @@ CHICKEN::top(Node *n)
 	 "#ifdef __cplusplus\n",
 	 "extern \"C\"\n",
 	 "#endif\n",
-	 "SWIGEXPORT(void *) ", module, "_swig_get_type (char *type) {\n",
+	 "SWIGEXPORT(void *) ", realmodule, "_swig_get_type (char *type) {\n",
 	 "int i;\n",
 	 "for (i = 0; swig_types_initial[i]; i++) {\n",
 	 "if (strcmp (type, swig_types[i]->name) == 0) ",
@@ -367,7 +374,7 @@ CHICKEN::top(Node *n)
   {
     String *tmp = NewString("");
     String *tmp2 = NewString("swig-init");
-    Printv(tmp, module, "_swig_init", NIL);
+    Printv(tmp, realmodule, "_swig_init", NIL);
     addMethod(tmp, tmp2, tmp);
     Delete(tmp);
     Delete(tmp2);
@@ -391,6 +398,10 @@ CHICKEN::top(Node *n)
   sprintf(buftmp, "%d", num_methods);
   Replaceall(f_init_helper, "$nummethods", buftmp);
   Replaceall(f_init_helper, "$symsize", f_sym_size);
+
+  Delete(chicken_filename);
+  Delete(clos_filename);
+  Delete(generic_filename);
 
   Printv(f_scm, f_scm_stubs, "\n",NIL);
   Close(f_scm);
@@ -439,6 +450,7 @@ CHICKEN::insertDirective(Node *n)
 {
   String *code = Getattr(n,"code");
   Replaceall(code, "$module", module);
+  Replaceall(code, "$realmodule", realmodule);
   return Language::insertDirective(n);
 }
 
@@ -509,7 +521,7 @@ CHICKEN::functionWrapper(Node *n)
   num_arguments = emit_num_arguments(l);
   num_required  = emit_num_required(l);
 
-  Append(wname, module);
+  Append(wname, realmodule);
   Append(wname, Swig_name_wrapper(iname));
   if (overname) {
     Append(wname, overname);
@@ -813,7 +825,7 @@ CHICKEN::functionWrapper(Node *n)
     Printv(f_scm, "(declare (foreign-declare \"C_extern ", 
 	   declfunc, " C_noret;\"))\n", NIL);	  
     Printv(f_scm, "(define ", prefix, scmname, 
-	   " (##core#primitive \"", module, "_wrap_", iname, 
+	   " (##core#primitive \"", realmodule, "_wrap_", iname, 
 	   "\"))\n\n", NIL);	  
 #endif
   }
@@ -927,7 +939,7 @@ CHICKEN::variableWrapper(Node *n)  {
   num_required  = emit_num_required(l);
 
   // evaluation function names
-  Append(wname, module);
+  Append(wname, realmodule);
   Append(wname, Swig_name_wrapper(iname));
   if (overname) {
     Append(wname, overname);
@@ -1093,7 +1105,7 @@ CHICKEN::variableWrapper(Node *n)  {
 	   wname, "(int,C_word,C_word,C_word)"
 	   " C_noret;\"))\n", NIL);
     Printv(f_scm, "(define ", prefix,  scmname, 
-	   " (##core#primitive \"", module, "_wrap_", iname, 
+	   " (##core#primitive \"", realmodule, "_wrap_", iname, 
 	   "\"))\n\n", NIL);	  
 #endif
 
@@ -1169,7 +1181,7 @@ CHICKEN::constantWrapper(Node *n)
     if (!addSymbol(iname,n)) return SWIG_ERROR;
   }
 
-  Append(wname, module);
+  Append(wname, realmodule);
   Append(wname, Swig_name_wrapper(iname));
   if (overname) {
     Append(wname, overname);
@@ -1281,7 +1293,7 @@ CHICKEN::constantWrapper(Node *n)
 	   "C_word value)"
 	   " C_noret;\"))\n", NIL);	  
     Printv(f_scm, "(define ", prefix, scmname, 
-	   " (##core#primitive \"", module, "_wrap_", iname, 
+	   " (##core#primitive \"", realmodule, "_wrap_", iname, 
 	   "\"))\n\n", NIL);	  
 #endif
 
@@ -1350,7 +1362,7 @@ CHICKEN::classHandler(Node *n)
 	 tab4,"(make-swig-",prefix,"tag ",
 	 "1000 \"_p_",Getattr(n,"sym:name"),"\"\n",
 	 tab8,"((foreign-lambda* c-pointer ()\n",
-	 tab8, tab4, "\"return (",module,
+	 tab8, tab4, "\"return (",realmodule,
 	 "_swig_get_type (\\\"_p_",Getattr(n,"sym:name"),"\\\"));\"))\n",
 	 tab8, "\"",Getattr(n,"sym:name")," *\"))\n", NIL);
 #endif
@@ -1707,7 +1719,7 @@ CHICKEN::dispatchFunction(Node *n)
   String  *scmname = NewString(iname);
 
   namify(scmname);
-  Append(wname, module);
+  Append(wname, realmodule);
   Append(wname, Swig_name_wrapper(iname));
 
 #ifndef BINDING
@@ -1749,9 +1761,9 @@ CHICKEN::dispatchFunction(Node *n)
   /* Create a binding for this function */
 #ifdef BINDING
   Printv(f_scm, "(declare (foreign-declare \"C_extern ", 
-	 module, wname, "(int, C_word, C_word, C_word) C_noret;\"))\n", NIL);	  
+	 realmodule, wname, "(int, C_word, C_word, C_word) C_noret;\"))\n", NIL);	  
   Printv(f_scm, "(define swig-", prefix, scmname, 
-	 "-prim (##core#primitive \"", module, "_wrap_", iname, 
+	 "-prim (##core#primitive \"", realmodule, "_wrap_", iname, 
 	 "\"))\n", NIL);	  
   Printv(f_scm, "(define (", prefix, scmname, 
 	 " . args) (swig-", prefix, scmname, "-prim args))\n\n", NIL);	  
