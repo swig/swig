@@ -14,10 +14,10 @@
 //#define SWIG_STD_DEFAULT_INSTANTIATION
 
 // 
-// Use the following macro to enable the generation of the comparison
+// Use the following macro to disable the generation of the comparison
 // methods, ie, ==, !=, <=, >=, <,>, whenever is needed.
 //
-#define SWIG_STD_EXTEND_COMPARISON
+//#define SWIG_STD_NOEXTEND_COMPARISON
 
 
 //
@@ -112,14 +112,21 @@ namespace swigpy {
   /*
     Traits that provides the from method
   */
-  template <class Type> struct traits_from {
-    typedef Type value_type;
-    static PyObject *from(value_type *val, int owner = 0) {
-      return SWIG_NewPointerObj(val, type_info<value_type>(), owner);
+  template <class Type> struct traits_from_ptr {
+    static PyObject *from(Type *val, int owner = 0) {
+      return SWIG_NewPointerObj(val, type_info<Type>(), owner);
     }
+  };
 
-    static PyObject *from(const value_type& val) {
-      return traits_from<Type>::from(new value_type(val), 1);
+  template <class Type> struct traits_from {
+    static PyObject *from(const Type& val) {
+      return traits_from_ptr<Type>::from(new Type(val), 1);
+    }
+  };
+
+  template <class Type> struct traits_from<Type *> {
+    static PyObject *from(Type* val) {
+      return traits_from_ptr<Type>::from(val, 0);
     }
   };
 
@@ -129,8 +136,8 @@ namespace swigpy {
   }
 
   template <class Type>
-  inline PyObject *from(Type* val, int owner = 0) {
-    return traits_from<Type>::from(val, owner);
+  inline PyObject *from_ptr(Type* val, int owner) {
+    return traits_from_ptr<Type>::from(val, owner);
   }
 
   /*
@@ -138,11 +145,10 @@ namespace swigpy {
   */
   template <class Type>
   struct traits_asptr {   
-    typedef Type value_type;
-    static int asptr(PyObject *obj, value_type **val) {
-      value_type *p;
-      int res = (SWIG_ConvertPtr(obj, (void**)&p, 
-				 type_info<value_type>(), 0) != -1) ? 1 : 0;
+    static int asptr(PyObject *obj, Type **val) {
+      Type *p;
+      int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) != -1) 
+	? SWIG_OLDOBJ : 0;
       if (res) {
 	if (val) *val = p;
       } else {
@@ -174,25 +180,45 @@ namespace swigpy {
   template <class Type> 
   struct traits_asval
   {
-    typedef Type value_type;
-    static bool asval(PyObject *obj, value_type *val) {
+    static bool asval(PyObject *obj, Type *val) {
       if (val) {
-	value_type *p = 0;
+	Type *p = 0;
 	int res = asptr(obj, &p);
 	if (res && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
-	  *((noconst_type*)(val)) = *p;
+	  *(const_cast<noconst_type*>(val)) = *p;
 	  if (res == SWIG_NEWOBJ) delete p;
 	  return true;
 	} else {
 	  return false;
 	}
       } else {
-	return asptr(obj, (value_type **)(0));
+	return asptr(obj, (Type **)(0));
       }
     }
   };
 
+
+  template <class Type> struct traits_asval<Type*>
+  {
+    static bool asval(PyObject *obj, Type **val) {
+      if (val) {
+	Type *p = 0;
+	int res = asptr(obj, &p);
+	if (res) {
+	  typedef typename noconst_traits<Type*>::noconst_type noconst_type;
+	  *(const_cast<noconst_type*>(val)) = p;
+	  return true;
+	} else {
+	  return false;
+	}
+      } else {
+	return asptr(obj, (Type **)(0));
+      }
+    }
+  };
+
+  
   template <class Type>
   inline bool asval(PyObject *obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
@@ -206,9 +232,8 @@ namespace swigpy {
   template <class Type> 
   struct traits_as<Type, value_category>
   {
-    typedef Type value_type;
-    static value_type as(PyObject *obj, bool throw_error) {
-      value_type v;
+    static Type as(PyObject *obj, bool throw_error) {
+      Type v;
       if (!obj || !asval(obj, &v)) {
 	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
@@ -225,13 +250,12 @@ namespace swigpy {
   template <class Type> 
   struct traits_as<Type, pointer_category>
   {
-    typedef Type value_type;
-    static value_type as(PyObject *obj, bool throw_error) {
-      value_type *v = 0;
+    static Type as(PyObject *obj, bool throw_error) {
+      Type *v = 0;
       int res = (obj ? asptr(obj, &v) : 0) && v;
       if (res) {
 	if (res == SWIG_NEWOBJ) {
-	  value_type r(*v);
+	  Type r(*v);
 	  delete v;
 	  return r;
 	} else {
@@ -239,7 +263,7 @@ namespace swigpy {
 	}
       } else {
 	// Uninitialized return value, no Type() constructor required.
-	static value_type *v_def = (Type*) malloc(sizeof(Type));
+	static Type *v_def = (Type*) malloc(sizeof(Type));
 	std::string msg = "a value of type '";
 	msg += swigpy::type_name<Type>();
 	msg += "' is expected";
@@ -265,18 +289,16 @@ namespace swigpy {
   template <class Type> 
   struct traits_check<Type, value_category>
   {
-    typedef Type value_type;
     static bool check(PyObject *obj) {
-      return obj && asval(obj, (value_type *)(0));
+      return obj && asval(obj, (Type *)(0));
     }
   };
 
   template <class Type> 
   struct traits_check<Type, pointer_category>
   {
-    typedef Type value_type;
     static bool check(PyObject *obj) {
-      return obj && asptr(obj, (value_type **)(0));
+      return obj && asptr(obj, (Type **)(0));
     }
   };
 
@@ -321,6 +343,7 @@ namespace swigpy {
   }
 }
 %enddef
+
 
 /*
   Generate the traits for a 'primitive' type, such as 'double',
@@ -436,7 +459,7 @@ namespace swigpy {
 %std_order_methods(__VA_ARGS__ )
 %enddef
 
-#ifdef SWIG_STD_EXTEND_COMPARISON
+#if !defined(SWIG_STD_NOEXTEND_COMPARISON)
 %define %std_extcomp(Class,T)
   %evalif(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
   %evalif(SWIG_OrderType(T), %std_order_methods(std::Class<T >))

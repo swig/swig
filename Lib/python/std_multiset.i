@@ -108,6 +108,6 @@ namespace std {
   %std_definst(multiset, __VA_ARGS__);
 %enddef
 
-#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+#if !defined(SWIG_STD_NOEXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_multiset_ptypen);
 #endif
