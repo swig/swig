@@ -810,9 +810,42 @@ map_directive   : MAP ID LPAREN parms RPAREN LBRACE map_element RBRACE {
                    $$ = new_node("map", $1.filename, $1.line);
                    Setattr($$,ATTR_NAME,$2.text);
 		   Setattr($$,ATTR_PARMS,$4);
-                   if ($7) {
-		     Setattr($$,ATTR_CHILD,$7);
-		     setparent($$,$7);
+
+		   /* Uh.  Okay, this is a little nasty.  We're going to take the
+		      children and split them into rules and locals */
+
+		   {
+		     DOHHash *rules;
+		     DOHHash *children = 0;
+		     DOHHash *node, *nnode, *pnode;
+		     rules = NewHash();
+
+		     node = $7;
+		     children = node;
+		     pnode = 0;
+		     while (node) {
+		       nnode = Getattr(node,"next");
+		       if (Cmp(Getattr(node,"tag"),"maprule") == 0) {
+			 Setattr(rules,Getattr(node,"name"),Getattr(node,"code"));
+			 if (pnode) {
+			   if (nnode) 
+			     Setattr(pnode,"next",nnode);
+			   else
+			     Delattr(pnode,"next");
+			 } else {
+			   children = nnode;
+			 }
+			 Delete(node);
+		       } else {
+			 pnode = node;
+		       }
+		       node = nnode;
+		     }
+		     Setattr($$,"rules",rules);
+		     if (children) {
+		       Setattr($$,ATTR_CHILD,children);
+		       setparent($$,children);
+		     }
 		   }
                 }
                 ;
@@ -827,7 +860,7 @@ map_element     :  variable_decl map_element {
                     }
                     Setattr(o2,ATTR_NEXT,$2);
                 }
-               |   function_decl map_element {
+               |  function_decl map_element {
                     DOH *o, *o2;
                     $$ = $1;
 		    o = $1;
@@ -839,7 +872,7 @@ map_element     :  variable_decl map_element {
                 }
                 | STRING COLON LBRACE {
                     DOH *text = LParse_skip_balanced('{','}');
-                    $$ = new_node("mapelement",$1.filename, $1.line);
+                    $$ = new_node("maprule",$1.filename, $1.line);
 		    Setattr($$,ATTR_NAME,$1.text);
 		    Setattr($$,"code",text);
 		    $1.text = $$;
@@ -847,6 +880,16 @@ map_element     :  variable_decl map_element {
 		  $$ = $1.text;
 		  if ($5)
 		    Setattr($$,ATTR_NEXT,$5);
+		}
+                | STRING COLON STRING SEMI {
+                    $$ = new_node("maprule",$1.filename, $1.line);
+		    Setattr($$,ATTR_NAME,$1.text);
+		    Setattr($$,"code",$3.text);
+		    $1.text = $$;
+		} map_element {
+		  $$ = $1.text;
+		  if ($6)
+		    Setattr($$,ATTR_NEXT,$6);
 		}
                 | empty {
                     $$ = 0;

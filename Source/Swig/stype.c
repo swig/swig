@@ -424,12 +424,13 @@ DOHString *SwigType_prefix(DOHString *t) {
  * Returns the number of dimensions of an array.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_array_ndim(DOHString_or_char *id) {
+int SwigType_array_ndim(DOHString_or_char *t) {
   int ndim = 0;
-  char *c = Char(id);
+  char *c = Char(t);
 
-  while (c && SwigType_isarray(c)) {
+  while (c && (strncmp(c,"a(",2) == 0)) {
     c = strchr(c,'.');
+    c++;
     ndim++;
   }
   return ndim;
@@ -441,15 +442,50 @@ int SwigType_array_ndim(DOHString_or_char *id) {
  * Get the value of the nth dimension.
  * ----------------------------------------------------------------------------- */
 
-DOHString *SwigType_array_getdim(DOHString_or_char *id, int n) {
+DOHString *SwigType_array_getdim(DOHString_or_char *t, int n) {
 
-  char *c = Char(id);
-  while (c && SwigType_isarray(c) && (n > 0)) {
+  char *c = Char(t);
+  while (c && (strncmp(c,"a(",2) == 0) && (n > 0)) {
     c = strchr(c,'.');
+    c++;
     n--;
   }
   if (n == 0) return SwigType_parm(c);
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_array_setdim()
+ *
+ * Replace the nth dimension of an array to a new value.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_array_setdim(DOHString_or_char *t, int n, DOHString_or_char *rep) {
+  DOHString *result = 0;
+  char temp;
+  char *start;
+  char *c = Char(t);
+
+  start = c;
+  if (strncmp(c,"a(",2)) abort;
+
+  while (c && (strncmp(c,"a(",2) == 0) && (n > 0)) {
+    c = strchr(c,'.');
+    c++;
+    n--;
+  }
+  if (n == 0) {
+    temp = *c;
+    *c = 0;
+    result = NewString(start);
+    Printf(result,"a(%s)",rep);
+    *c = temp;
+    c = strchr(c,'.');
+    Append(result,c);
+  }
+  Clear(t);
+  Append(t,result);
+  Delete(result);
 }
 
 /* -----------------------------------------------------------------------------
