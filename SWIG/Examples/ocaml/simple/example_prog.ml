@@ -7,13 +7,13 @@ open Example
 exception NoReturn
 
 let single_int x = 
-  match x with [ C_int a ] -> a | _ -> raise NoReturn
+  match x with C_int a -> a | _ -> raise NoReturn
 let get_float x = 
   match x with C_float f -> f | C_double f -> f | _ -> raise NoReturn
 
 let x = 42
 let y = 105
-let g = single_int (_gcd [ C_int x ; C_int y ])
+let g = single_int (_gcd (C_list [ C_int x ; C_int y ]))
 let _ = Printf.printf "The gcd of %d and %d is %d\n" x y g
 
 (* Manipulate the Foo global variable *)
