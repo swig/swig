@@ -38,7 +38,7 @@ typedef  DOH     Symtab;
        for backwards compatibility with older modules --- */
 
 /* --- The ordering of type values is used to determine type-promotion 
-   in the parser.  Do not change */
+       in the parser.  Do not change */
 
 /* Numeric types */
 
@@ -300,8 +300,8 @@ extern void appendChild(Node *node, Node *child);
 
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);
-extern void Swig_dump_tags(DOH *obj, DOH *root);
-extern void Swig_dump_tree(DOH *obj);
+extern void Swig_dump_tags(File *obj, Node *root);
+extern void Swig_dump_tree(File *obj);
 extern void Swig_dump_rules();
 
 /* -- Wrapper function Object */
@@ -471,6 +471,7 @@ extern void   Swig_except_clear();
 #define Getnext(x)         Getattr(x,"nextSibling")
 
 #endif
+
 
 
 
