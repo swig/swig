@@ -28,9 +28,9 @@ LIBOBJS = void.@OBJEXT@ fio.@OBJEXT@ memory.@OBJEXT@ base.@OBJEXT@ file.@OBJEXT@
 
 LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
-LIBHEADERS = $(srcdir)/Include/doh.h
+LIBHEADERS = $(srcdir)/doh.h
 LIB      = libdoh.a
-INCLUDES = -I$(srcdir)/Include
+INCLUDES = -I$(srcdir)
 CFLAGS   = @CFLAGS@
 SHELL  = /bin/sh
 

@@ -23,7 +23,7 @@ INCLUDES = -I$(srcdir)/../Include               \
            -I$(srcdir)/.                        \
            -I$(srcdir)/../Swig                  \
            -I$(srcdir)/../Preprocessor          \
-           -I$(srcdir)/../DOH/Include		\
+           -I$(srcdir)/../DOH		\
 	   -I../Include				\
 	   -I.
 

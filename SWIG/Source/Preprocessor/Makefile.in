@@ -15,7 +15,7 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDES      = -I$(srcdir)/. -I$(srcdir)/../Swig -I$(srcdir)/../DOH/Include -I$(srcdir)/../Include
+INCLUDES      = -I$(srcdir)/. -I$(srcdir)/../Swig -I$(srcdir)/../DOH -I$(srcdir)/../Include
 TARGET        = libcpp.a
 
 .c.@OBJEXT@:
