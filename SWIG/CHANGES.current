@@ -1,5 +1,19 @@
 Version 1.3.18 (In progress)
 ============================
+
+12/11/2002: cheetah (William Fulton)
+            Various build modifications and bug fixes:
+            - Simplification of version string. Use autoconf's PACKAGE_VERSION instead.
+            - Build time removed from SWIG version.
+            - Using standard autoconf config header generation.
+            - Updated old autoconf macros as reported by autoupdate.
+            - Removed $prefix in autoconf from search paths as autoconf won't expand them.
+            - Subtle bug fix where 'make prefix=/somewhere; make clean; make prefix=/somwhere/else'
+              produced an executable using the incorrect library directories.
+            - Added -ldflags commandline option for MzScheme, Ocaml, Pike and PHP.
+            - Fixed reporting of compiler used when using -version commandline option.
+            - SWIG web address added to -version commandline option.
+
 12/11/2002: beazley
             Minor fix to Tcl dynamic cast typemaps. Reported by 
             Kristopher Blom.
