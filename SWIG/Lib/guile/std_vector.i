@@ -5,10 +5,16 @@
 //
 // Guile implementation
 
+
+// This should be factored out somewhere
+%{
+SCM SWIG_bool2scm(bool b) {
+    int i = b ? 1 : 0;
+    return gh_bool2scm(i);
+}
+%}
+
 %include exception.i
-
-// containers
-
 
 %exception std::vector::ref {
     try {
@@ -74,8 +80,8 @@ namespace std {
             if (gh_vector_p($input)) {
                 unsigned long size = gh_vector_length($input);
                 $1 = std::vector<T >(size);
-                for (unsigned int i=0; i<size; i++) {
-                    SCM o = gh_vector_ref($input,gh_long2scm(i));
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(i));
                     (($1_type &)$1)[i] =
                         *((T*) SWIG_MustGetPtr(o,$descriptor(T *),$argnum));
                 }
@@ -100,11 +106,11 @@ namespace std {
         %typemap(in) const vector<T>& (std::vector<T> temp),
                      const vector<T>* (std::vector<T> temp) {
             if (gh_vector_p($input)) {
-                unsigned int size = gh_vector_length($input);
+                unsigned long size = gh_vector_length($input);
                 temp = std::vector<T >(size);
                 $1 = &temp;
-                for (unsigned int i=0; i<size; i++) {
-                    SCM o = gh_vector_ref($input,gh_long2scm(i));
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(i));
                     temp[i] = *((T*) SWIG_MustGetPtr(o,
                                                      $descriptor(T *),
                                                      $argnum));
@@ -175,24 +181,32 @@ namespace std {
 
 
     // specializations for built-ins
-    %define specialize_stl_vector(T,HOST,CONVERT_FROM,CONVERT_TO)
+    %define specialize_stl_vector(T,CHECK,CONVERT_FROM,CONVERT_TO)
     template<> class vector<T> {
         %typemap(in) vector<T> {
             if (gh_vector_p($input)) {
                 unsigned long size = gh_vector_length($input);
                 $1 = std::vector<T >(size);
-                HOST* data = CONVERT_FROM($input,NULL);
-                std::copy(data,data+size,$1.begin());
-                free(data);
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(i));
+                    if (CHECK(o))
+                        (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
+                    else
+                        scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+                }
             } else if (gh_null_p($input)) {
                 $1 = std::vector<T >();
             } else if (gh_pair_p($input)) {
                 SCM v = gh_list_to_vector($input);
                 unsigned long size = gh_vector_length(v);
                 $1 = std::vector<T >(size);
-                HOST* data = CONVERT_FROM(v,NULL);
-                std::copy(data,data+size,$1.begin());
-                free(data);
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref(v,gh_ulong2scm(i));
+                    if (CHECK(o))
+                        (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
+                    else
+                        scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+                }
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
@@ -204,9 +218,13 @@ namespace std {
                 unsigned long size = gh_vector_length($input);
                 temp = std::vector<T >(size);
                 $1 = &temp;
-                HOST* data = CONVERT_FROM($input,NULL);
-                std::copy(data,data+size,temp.begin());
-                free(data);
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(i));
+                    if (CHECK(o))
+                        temp[i] = (T)(CONVERT_FROM(o));
+                    else
+                        scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+                }
             } else if (gh_null_p($input)) {
                 temp = std::vector<T >();
                 $1 = &temp;
@@ -215,18 +233,23 @@ namespace std {
                 unsigned long size = gh_vector_length(v);
                 temp = std::vector<T >(size);
                 $1 = &temp;
-                HOST* data = CONVERT_FROM(v,NULL);
-                std::copy(data,data+size,temp.begin());
-                free(data);
+                for (unsigned long i=0; i<size; i++) {
+                    SCM o = gh_vector_ref(v,gh_ulong2scm(i));
+                    if (CHECK(o))
+                        temp[i] = (T)(CONVERT_FROM(o));
+                    else
+                        scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+                }
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
         %typemap(out) vector<T> {
-            HOST* data = new HOST[$1.size()];
-            std::copy($1.begin(),$1.end(),data);
-            $result = CONVERT_TO(data,$1.size());
-            delete [] data;
+            $result = gh_make_vector(gh_long2scm($1.size()),SCM_UNSPECIFIED);
+            for (unsigned int i=0; i<$1.size(); i++) {
+                SCM x = CONVERT_TO(($1_type &)$1)[i];
+                gh_vector_set_x($result,gh_long2scm(i),x);
+            }
         }
       public:
         vector(unsigned int size = 0);
@@ -266,14 +289,15 @@ namespace std {
     };
     %enddef
 
-    specialize_stl_vector(int,long,gh_scm2longs,gh_longs2ivect);
-    specialize_stl_vector(long,long,gh_scm2longs,gh_longs2ivect);
-    specialize_stl_vector(short,short,gh_scm2shorts,gh_shorts2svect);
-    specialize_stl_vector(unsigned int,long,gh_scm2longs,gh_longs2ivect);
-    specialize_stl_vector(unsigned long,long,gh_scm2longs,gh_longs2ivect);
-    specialize_stl_vector(unsigned short,short,gh_scm2shorts,gh_shorts2svect);
-    specialize_stl_vector(float,float,gh_scm2floats,gh_floats2fvect);
-    specialize_stl_vector(double,double,gh_scm2doubles,gh_doubles2scm);
+    specialize_stl_vector(bool,gh_boolean_p,gh_scm2bool,SWIG_bool2scm);
+    specialize_stl_vector(int,gh_number_p,gh_scm2long,gh_long2scm);
+    specialize_stl_vector(long,gh_number_p,gh_scm2long,gh_long2scm);
+    specialize_stl_vector(short,gh_number_p,gh_scm2long,gh_long2scm);
+    specialize_stl_vector(unsigned int,gh_number_p,gh_scm2ulong,gh_ulong2scm);
+    specialize_stl_vector(unsigned long,gh_number_p,gh_scm2ulong,gh_ulong2scm);
+    specialize_stl_vector(unsigned short,gh_number_p,gh_scm2ulong,gh_ulong2scm);
+    specialize_stl_vector(float,gh_number_p,gh_scm2double,gh_double2scm);
+    specialize_stl_vector(double,gh_number_p,gh_scm2double,gh_double2scm);
 
 }
 
