@@ -1191,6 +1191,7 @@ int yylex(void) {
 	} else {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
 	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
+	  if (strcmp(yytext,"%gencode") == 0) return (GENCODE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
 	  if (strcmp(yytext,"%namewarn") == 0) return (NAMEWARN);

@@ -560,7 +560,7 @@ static void patch_template_code(String *s) {
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES
 %token NONID DSTAR
@@ -584,7 +584,7 @@ static void patch_template_code(String *s) {
 /* SWIG directives */
 %type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive include_directive inline_directive ;
-%type <node>     insert_directive module_directive name_directive native_directive ;
+%type <node>     insert_directive gencode_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive typemap_directive ;
 %type <node>     types_directive template_directive endtemplate_directive ;
 
@@ -688,6 +688,7 @@ swig_directive : addmethods_directive { $$ = $1; }
                | include_directive { $$ = $1; }
                | inline_directive { $$ = $1; }
                | insert_directive { $$ = $1; }
+               | gencode_directive { $$ = $1; }
                | module_directive { $$ = $1; }
                | name_directive { $$ = $1; }
                | native_directive { $$ = $1; }
@@ -960,6 +961,20 @@ insert_directive : HBLOCK {
 	       }
                ;
 
+/* ------------------------------------------------------------
+ * %gencode %{ ... %}
+ * ------------------------------------------------------------ */
+
+gencode_directive : GENCODE HBLOCK {
+                   $$ = new_node("insert");
+                   Setattr($$,"code",$2);
+                   Setattr($$,"generated","1");
+                }
+                ;
+           
+
+
+      
 /* ------------------------------------------------------------
     %module modname
     %module "modname"
@@ -1856,7 +1871,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		  if ($3.rparms) {
 		     String  *macrocode = NewString("");
 		     Printf(macrocode, "%%_template_%s(__name,%s,%s)\n", $6,$3.rparms,$3.sparms);
-		     Printf(macrocode,"%%{\n");
+		     Printf(macrocode,"%%gencode %%{\n");
 		     Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
 		     Printf(macrocode,"%%}\n");
 		     Printf(macrocode,"class __name ");
@@ -1873,6 +1888,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     /* Include a reverse typedef to associate templated version with renamed version */
 		     Printf(macrocode,"%%endtemplate;\n");
 		     Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
+		     Printf(macrocode,"%%types(%s< %s > *);\n", $6, $3.sparms);
+
 		     /*		     Printf(stdout,"%s\n", macrocode); */
 		     Seek(macrocode,0, SEEK_SET);
 		     Setline(macrocode,$1-4);
