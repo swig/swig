@@ -1,12 +1,7 @@
-baseclass.pm
 example.pm
-foo.pm
-bar.pm
-spam.pm
-bar.plg
 *_wrap.c
 *_wrap.cxx
-*.dll
+example.dll
 example.dsw
 example.ncb
 example.opt

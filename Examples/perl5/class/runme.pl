@@ -1,4 +1,4 @@
-# file: example.pl
+# file: runme.pl
 
 # This file illustrates the low-level C++ interface
 # created by SWIG.  In this case, all of our C++ classes
