@@ -1083,11 +1083,11 @@ extern "C" int yylex(void) {
 	    if (strcmp(yytext,"friend") == 0) return(FRIEND);
 	    if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
 	    if (strcmp(yytext,"operator") == 0) {
-	      String *s = NewString("");
+	      String *s = NewString("operator");
 	      int c;
 	      int state = 0;
 	      while (c = nextchar()) {
-		if ((c == '(') && state) {
+		if (((c == '(') || (c == ';')) && state) {
 		  retract(1);
 		  break;
 		}
