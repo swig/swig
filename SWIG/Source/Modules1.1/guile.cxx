@@ -1,9 +1,11 @@
-/*******************************************************************************
+#define TTN_NEW_CODE // WARNING! this is still unstable
+
+/******************************************************************************
  * Simplified Wrapper and Interface Generator  (SWIG)
- * 
+ *
  * Author : David Beazley
  *
- * Department of Computer Science        
+ * Department of Computer Science
  * University of Chicago
  * 1100 E 58th Street
  * Chicago, IL  60637
@@ -11,7 +13,7 @@
  *
  * Please read the file LICENSE for the copyright and terms by which SWIG
  * can be used and distributed.
- *******************************************************************************/
+ *****************************************************************************/
 
 static char cvsroot[] = "$Header$";
 
@@ -28,7 +30,26 @@ static char cvsroot[] = "$Header$";
 
 static char *guile_usage = "\
 Guile Options (available with -guile)\n\
-     None available. \n\n";     
+     -module name    - Set base name of module\n\
+     -prefix name    - Set a prefix to be appended to all name\n\
+     -package name   - Set the path of the module\n\
+\n\
+  The module option does not create a guile module with a separate name\n\
+  space.  It specifies the name of the initialization function and is \n\
+  called a module here so that it is compadible with the rest of SWIG.\n\
+\n";
+
+// ---------------------------------------------------------------------
+// GUILE ()
+// ---------------------------------------------------------------------
+
+GUILE::GUILE ()
+{
+  prefix = NULL;
+  module = NULL;
+  package = "swig";
+  guile_path = "guile";
+}
 
 // ---------------------------------------------------------------------
 // GUILE::parse_args(int argc, char *argv[])
@@ -36,31 +57,72 @@ Guile Options (available with -guile)\n\
 // Parse arguments.
 // ---------------------------------------------------------------------
 
-void GUILE::parse_args(int argc, char *argv[]) {
-
+void
+GUILE::parse_args (int argc, char *argv[])
+{
   int i;
-  
-  sprintf(LibDir,"%s",guile_path);
+
+  sprintf (LibDir, "%s", guile_path);
 
   // Look for certain command line options
-
-  // Look for additional command line options.
-  for (i = 1; i < argc; i++) {  
-      if (argv[i]) {
-          if (strcmp(argv[i],"-help") == 0) {
-            fputs(guile_usage,stderr);
-            SWIG_exit(0);
-          }
+  for (i = 1; i < argc; i++) {
+    if (argv[i]) {
+      if (strcmp (argv[i], "-help") == 0) {
+	fputs (guile_usage, stderr);
+	SWIG_exit (0);
       }
+      else if (strcmp (argv[i], "-prefix") == 0) {
+	if (argv[i + 1]) {
+	  prefix = new char[strlen(argv[i + 1]) + 2];
+	  strcpy(prefix, argv[i + 1]);
+	  Swig_mark_arg (i);
+	  Swig_mark_arg (i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
+      }
+      else if (strcmp (argv[i], "-package") == 0) {
+	if (argv[i + 1]) {
+	  package = new char[strlen (argv[i + 1]) + 2];
+	  strcpy(package, argv [i + 1]);
+	  Swig_mark_arg (i);
+	  Swig_mark_arg (i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
+	}
+      }
+      else if (strcmp(argv[i],"-module") == 0) {
+	if (argv[i + 1]) {
+	  set_module (argv[i + 1], 0);
+	  Swig_mark_arg (i);
+	  Swig_mark_arg (i + 1);
+	  ++i;
+	} else {
+	  Swig_arg_error();
+	}
+      }
+    }
   }
+
+  // If a prefix has been specified make sure it ends in a '_'
+
+  if (prefix) {
+    if (prefix[strlen (prefix)] != '_') {
+      prefix[strlen (prefix) + 1] = 0;
+      prefix[strlen (prefix)] = '_';
+    }
+  } else
+    prefix = "gswig_";
+
   // Add a symbol for this module
 
-  Preprocessor_define((void *) "SWIGGUILE",0);
+  Preprocessor_define ((void *) "SWIGGUILE",0);
 
   // Set name of typemaps
 
   typemap_lang = "guile";
-
 }
 
 // --------------------------------------------------------------------
@@ -69,17 +131,17 @@ void GUILE::parse_args(int argc, char *argv[]) {
 // Parse the input file
 // --------------------------------------------------------------------
 
-void GUILE::parse()
+void
+GUILE::parse ()
 {
-
-  printf("Generating wrappers for Guile\n");
+  printf ("Generating wrappers for Guile\n");
 
   // Print out GUILE specific headers
-  
+
   headers();
-  
+
   // Run the parser
-  
+
   yyparse();
 
 }
@@ -93,13 +155,19 @@ void GUILE::parse()
 //
 //----------------------------------------------------------------------
 
-void GUILE::set_module(char *mod_name, char **) {
+void
+GUILE::set_module (char *mod_name, char **)
+{
+  if (Verbose)
+    printf ("%s;mod_name=\"%s\"\n", __PRETTY_FUNCTION__, mod_name);
 
-  if (module) return;
-  
-  module = new char[strlen(mod_name)+1];
-  strcpy(module,mod_name);
+  if (module) {
+    printf ("module already set (%s), returning\n", module);
+    return;
+  }
 
+  module = new char [strlen (mod_name) + 1];
+  strcpy (module, mod_name);
 }
 
 // ---------------------------------------------------------------------
@@ -110,8 +178,14 @@ void GUILE::set_module(char *mod_name, char **) {
 //
 //----------------------------------------------------------------------
 
-void GUILE::set_init(char *iname) {
-  set_module(iname,0);
+void
+GUILE::set_init (char *iname)
+{
+  abort ();                             // for now -ttn
+  if (Verbose)
+    printf ("%s;iname=\"%s\"\n", __PRETTY_FUNCTION__, iname);
+
+  set_module (iname, 0);
 }
 
 // ---------------------------------------------------------------------
@@ -120,35 +194,41 @@ void GUILE::set_init(char *iname) {
 // Generate the appropriate header files for GUILE interface.
 // ----------------------------------------------------------------------
 
-void GUILE::headers(void)
+void
+GUILE::headers (void)
 {
+  if (Verbose) {
+    printf ("%s\n", __PRETTY_FUNCTION__);
+    fprintf (f_header, "/* %s */\n", __PRETTY_FUNCTION__);
+  }
 
-  emit_banner(f_header);
+  emit_banner (f_header);
 
-  fprintf(f_header,"/* Implementation : GUILE */\n\n");
-  fprintf(f_header,"#define SWIGGUILE\n");
-  fprintf(f_header,"#include <stdio.h>\n");
-  fprintf(f_header,"#include <string.h>\n");
-  fprintf(f_header,"#include <stdlib.h>\n");
+  fprintf (f_header, "/* Implementation : GUILE */\n\n");
+  fprintf (f_header, "#define SWIGGUILE\n");
+  fprintf (f_header, "#include <stdio.h>\n");
+  fprintf (f_header, "#include <string.h>\n");
+  fprintf (f_header, "#include <stdlib.h>\n");
 
   // Write out hex conversion functions
 
   if (!NoInclude) {
-      if (insert_file("guile.swg", f_header) == -1) {
-          fprintf(stderr,"SWIG : Fatal error.  Unable to locate 'guile.swg' in SWIG library.\n");
-          SWIG_exit(1);
-      }
-      emit_hex(f_header);
+    if (insert_file ("guile.swg", f_header) == -1) {
+      fprintf (stderr, "SWIG : Fatal error.  ");
+      fprintf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
+      SWIG_exit (1);
+    }
+    emit_hex (f_header);
   } else {
-    fprintf(f_header,"#ifdef __cplusplus\n");
-    fprintf(f_header,"extern \"C\" {\n");
-    fprintf(f_header,"#endif\n");
-    fprintf(f_header,"extern void SWIG_MakePtr(char *, void *, char *);\n");
-    fprintf(f_header,"extern void SWIG_RegisterMapping(char *, char *, void *(*)(void *));\n");
-    fprintf(f_header,"extern char *SWIG_GetPtr(char *, void **, char *);\n");
-    fprintf(f_header,"#ifdef __cplusplus\n");
-    fprintf(f_header,"}\n");
-    fprintf(f_header,"#endif\n");
+    fprintf (f_header, "#ifdef __cplusplus\n");
+    fprintf (f_header, "extern \"C\" {\n");
+    fprintf (f_header, "#endif\n");
+    fprintf (f_header, "extern void SWIG_MakePtr(char *, void *, char *);\n");
+    fprintf (f_header, "extern void SWIG_RegisterMapping(char *, char *, void *(*)(void *));\n");
+    fprintf (f_header, "extern char *SWIG_GetPtr(char *, void **, char *);\n");
+    fprintf (f_header, "#ifdef __cplusplus\n");
+    fprintf (f_header, "}\n");
+    fprintf (f_header, "#endif\n");
   }
 }
 
@@ -158,18 +238,27 @@ void GUILE::headers(void)
 // Output initialization code that registers functions with the
 // interface.
 // ---------------------------------------------------------------------
-void GUILE::initialize()
+void
+GUILE::initialize (void)
 {
-
   int i;
-        
-  if (!module) {
-    fprintf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit(1);
+
+  if (Verbose) {
+    printf ("%s\n", __PRETTY_FUNCTION__);
+    fprintf (f_header, "/* %s */\n", __PRETTY_FUNCTION__);
   }
-  
-  fprintf(f_header,"#define SWIG_init    %s\n\n", module);
-  fprintf(f_init,"void %s() {\n", module);
+
+#ifdef OLD_STYLE_WILL_GO_AWAY
+  if (InitNames) {
+    i = 0;
+    while (InitNames[i]) {
+      fprintf(f_init,"\t %s();\n",InitNames[i]);
+      i++;
+    }
+  }
+#endif /* OLD_STYLE_WILL_GO_AWAY */
+
+  fprintf (f_init, "static void\nSWIG_init (void)\n{\n");
 }
 
 // ---------------------------------------------------------------------
@@ -178,12 +267,41 @@ void GUILE::initialize()
 // Wrap things up.  Close initialization function.
 // ---------------------------------------------------------------------
 
-void GUILE::close(void)
+void
+GUILE::close (void)
 {
+  String module_name;
+  String module_func;
 
-  emit_ptr_equivalence(f_init);
-  fprintf(f_init,"}\n");
+  if (Verbose) {
+    printf ("%s\n", __PRETTY_FUNCTION__);
+    fprintf (f_init, "/* %s */\n", __PRETTY_FUNCTION__);
+  }
 
+  emit_ptr_equivalence (f_init);
+  fprintf (f_init, "}\n\n");
+
+  module_name = "";
+  module_name << package << " " << module;
+
+  // First turn any '_' into spaces
+  module_name.replace ("_", " ");
+
+  // Now strip the extra space.
+  module_name.strip();
+
+  // Build the module function name.
+  module_func = "";
+  module_func << module_name;
+  module_func.replace (" ", "_");
+  module_func.replace ("-", "_");
+  "scm_" >> module_func;
+  module_func << "_module";
+
+  fprintf (f_init, "void %s(void)\n{\n", module_func.get());
+  fprintf (f_init, "    scm_register_module_xxx(\"%s\",SWIG_init);\n",
+           module_name.get());
+  fprintf (f_init, "}\n");
 }
 
 // ----------------------------------------------------------------------
@@ -194,18 +312,64 @@ void GUILE::close(void)
 // in create_function().
 // ----------------------------------------------------------------------
 
-void GUILE::get_pointer(char *iname, int parm, DataType *t) {
+void
+GUILE::get_pointer (char *iname, int parm, DataType *t,
+		    WrapperFunction &f)
+{
+  if (Verbose)
+    printf ("%s;iname=\"%s\";parm=%d;t=%p\n",
+	    __PRETTY_FUNCTION__, iname, parm, t);
 
   // Pointers are read as hex-strings with encoded type information
-  fprintf(f_wrappers,"\t _tempc = gh_scm2newstr(s_%d, &_len);\n",parm);
-  fprintf(f_wrappers,"\t if (SWIG_GetPtr(_tempc, (void **) &_arg%d,",parm);
-  if (t->type == T_VOID) fprintf(f_wrappers,"(char *) 0)) {\n");
-  else 
-    fprintf(f_wrappers,"\"%s\")) {\n", t->print_mangle());
+  f.code << tab4 << "_tempc = gh_scm2newstr (s_" << parm << ", &_len);\n";
+  f.code << tab4 << "if (SWIG_GetPtr (_tempc, (void **) &_arg" << parm;
+  if (t->type == T_VOID)
+    f.code << ", (char *) 0)) {\n";
+  else
+    f.code << ", \"" << t->print_mangle() << "\")) {\n";
 
+#ifdef TTN_NEW_CODE
+  f.code << tab4 << "}\n";
+#else /* !TTN_NEW_CODE */
 
-//    fprintf(f_wrappers,"\t\t gscm_error(\"Type error in argument %d of %s. Expected %s.\", s_%d);\n", parm+1,iname,t->print_mangle(),parm);
-    fprintf(f_wrappers,"\t}\n");
+  // Now emit code according to the level of strictness desired
+
+  switch(TypeStrict) {
+  case 0: // No type checking
+    f.code << tab4 << "}\n";
+    break;
+  case 1: // Warning message only
+    f.code << tab8
+	   << "fprintf(stderr,\"Warning : type mismatch in argument "
+           << parm+1
+	   << " of "
+	   << iname
+	   << ". Expected "
+	   << t->print_mangle()
+	   << ", received %%s\\n\", _tempc);\n"
+           << tab4 << "}\n";
+    break;
+  case 2: // Super strict mode.
+    f.code << tab8
+	   << "GSWIG_ASSERT(0,\"Type error in argument "
+           << parm+1
+	   << " of "
+	   << iname
+	   << ". Expected "
+	   << t->print_mangle()
+	   << ".  Received %s\", s_"
+	   << parm
+	   << ");\n"
+	   << tab4 << "}\n";
+    break;
+
+  default :
+    fprintf(stderr,"Unknown strictness level\n");
+    break;
+  }
+#endif /* !TTN_NEW_CODE */
+
+  f.code << tab4 << "free(_tempc);\n";
 }
 
 // ----------------------------------------------------------------------
@@ -215,430 +379,449 @@ void GUILE::get_pointer(char *iname, int parm, DataType *t) {
 // Create a function declaration and register it with the interpreter.
 // ----------------------------------------------------------------------
 
-void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
+void
+GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 {
-
   Parm *p;
-  int   pcount;
-  int   reqargs;
-  char  wname[256];
-  char  source[64];
-  char  target[64];
+  String proc_name;
+  String source;
+  String target;
+  String argnum;
+  String arg;
   char  *tm;
+  WrapperFunction f;
   String cleanup;
   int need_len = 0;
   int need_tempc = 0;
 
-  // Make a wrapper name for this
+  String outarg;
+  int have_build = 0;
+  String build;
 
-  strcpy(wname,iname);
-  make_wrap_name(wname);
+  if (Verbose)
+    printf ("%s;name=\"%s\";iname=\"%s\",d=%p,l=%p\n",
+	    __PRETTY_FUNCTION__, name, iname, d, l);
+
+  // Make a wrapper name for this
+  char * wname = name_wrapper (iname, prefix);
+
+  // Build the name for scheme.
+  proc_name = "";
+  proc_name << iname;
+  proc_name.replace ("_", "-");
 
   // Now write the wrapper function itself....this is pretty ugly
 
-  fprintf(f_wrappers,"SCM _wrap_gscm_%s(",wname);
+  f.def << "static SCM\n" << wname <<" (";
 
   int i = 0;
-  p = l->get_first();
-  while (p != 0) {
-    if (p->t->is_pointer)
-      need_len = 1;
-    if ((p->t->type != T_CHAR) && (p->t->is_pointer))
-      need_tempc = 1;
-
-    if ((p->t->type != T_VOID) || (p->t->is_pointer))
-      fprintf(f_wrappers,"SCM s_%d", i);
-    if ((p = l->get_next()))
-       fprintf(f_wrappers,", ");
-    i++;
+  for (p = l->get_first(); p != 0; ++i, p = l->get_next()) {
+    if (p->ignore)
+      continue;
+    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+      if (i > 0)
+        f.def << ", ";
+      f.def << "SCM s_" << i;
+    }
   }
-  fprintf(f_wrappers,")\n{\n");
+
+  f.def << ")\n{";
 
   // Declare return variable and arguments
 
-  pcount = emit_args(d,l,f_wrappers);
-  
-  // Now declare a few helper variables here
-  if (d->is_pointer && (d->type != T_CHAR) && 
-      !typemap_lookup("out","guile",d,name,"_result","scmresult"))
-    fprintf(f_wrappers,"  char _ptemp[128];\n");
-  if (need_tempc)
-    fprintf(f_wrappers,"  char *_tempc;\n");
-  if (need_len)
-    fprintf(f_wrappers,"  int _len;\n");
-  fprintf(f_wrappers,"  SCM scmresult;  /* fun1 */\n");
+  int pcount = emit_args (d, l, f);
+  int numargs = 0;
+  int numopt = 0;
 
-  // Now write code to extract the parameters(this is super ugly)
+  f.add_local ("int",    "_len");
+  f.add_local ("char *", "_tempc");
+  f.add_local ("SCM",    "gswig_result");
+
+  // Now write code to extract the parameters (this is super ugly)
 
   i = 0;
-  p = l->get_first();
-  reqargs = pcount - l->numopt();
-  while (p != 0) {
+  int j = 0;
+  for (i = 0; i < pcount; ++i) {
+    Parm &p = (*l)[i];
+
     // Produce names of source and target
-    sprintf(source,"s_%d",i);
-    sprintf(target,"_arg%d",i);
+    source = "";
+    target = "";
+    argnum = "";
+    arg    = "";
 
-    if (i >= reqargs)
-      fprintf(f_wrappers,"  if (!SCM_UNBNDP(s_%d)) {\n", i);
+    source << "s_" << i;
+    target << "_arg" << i;
+    argnum << i;
+    arg << p.name;
 
-    if ((tm = typemap_lookup("in","guile",p->t,p->name,source,target))) {
-      // Yep.  Use it instead of the default
-      fprintf(f_wrappers,"%s\n", tm);
-    } else {
-      if (!p->t->is_pointer) {
-        switch(p->t->type) {
-
-          // Signed Integers
-          
-        case T_INT :
-        case T_SINT :
-        case T_SHORT:
-        case T_SSHORT:
-        case T_LONG:
-        case T_SLONG:
-        case T_SCHAR:
-          fprintf(f_wrappers,"\t _arg%d = %s gh_scm2long(s_%d);\n",i, p->t->print_cast(), i);
-          break;
-          
-          // Unsigned Integers
-          
-        case T_UINT:
-        case T_USHORT:
-        case T_ULONG:
-        case T_UCHAR:
-          fprintf(f_wrappers,"\t _arg%d = %s gh_scm2ulong(s_%d);\n", i, p->t->print_cast(), i);
-          break;
-          
-          // A single character
-          
-        case T_CHAR :
-          fprintf(f_wrappers,"\t _arg%d = %s gh_scm2char(s_%d);\n", i, p->t->print_cast(), i);
-          break;
-          
-          // Floating point
-          
-        case T_DOUBLE :
-        case T_FLOAT:
-          fprintf(f_wrappers,"\t _arg%d = %s gh_scm2double(s_%d);\n", i, p->t->print_cast(), i);
-          break;
-          
-          // Void.. Do nothing.
-          
-        case T_VOID :
-          break;
-          
-          // This is some sort of user-defined call by value type.   We're
-          // going to try and wing it here....
-          
-        case T_USER:
-          
-          // User defined type not allowed by value.
-          
-        default :
-          fprintf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",
-                  input_file, line_number, p->t->print_type());
-          break;
-        }
-      } else {
-        
-        // Argument is a pointer type.   Special case is for char *
-        // since that is usually a string.
-        
-        if ((p->t->type == T_CHAR) && (p->t->is_pointer == 1)) {
-          fprintf(f_wrappers,"\t _arg%d = gh_scm2newstr(s_%d, &_len);\n",i,i);
-        } else {
-          
-          // Have a generic pointer type here.    
-          
-          get_pointer(iname, i, p->t);
-        }
+    // If this parameter is not being ignored, then check if there is
+    // an input type map.
+    if (p.ignore)
+      f.code << "// " << p.name << " ignored...\n";
+    else {
+      ++numargs;
+      if ((tm = typemap_lookup ("in", typemap_lang,
+                                p.t, p.name, source, target, &f))) {
+	// Yep.  Use it instead of the default
+	f.code << tm << "\n";
+	f.code.replace ("$argnum", argnum);
+	f.code.replace ("$arg",    arg);
+	f.code.replace ("$name",   proc_name);
       }
+      else {
+	if (p.t->is_pointer)
+	  // Argument is a pointer type.   Special case is for char *
+	  // since that is usually a string.
+	  get_pointer (iname, i, p.t, f);
+      }
+      ++j;
     }
-    if ((tm = typemap_lookup("check","guile",p->t,p->name,source,target))) {
+
+    // Check if there are any constraints.
+
+    if ((tm = typemap_lookup ("check", typemap_lang,
+                              p.t, p.name, source, target, &f))) {
       // Yep.  Use it instead of the default
-      fprintf(f_wrappers,"%s\n",tm);
+      f.code << tm << "\n";
+      f.code.replace ("$argnum", argnum);
+      f.code.replace ("$arg",    arg);
+      f.code.replace ("$name",   proc_name);
     }
-    if ((tm = typemap_lookup("freearg","guile",p->t,p->name,target,"scmresult"))) {
+
+    // Pass output arguments back to the caller.
+
+    if ((tm = typemap_lookup ("argout", typemap_lang,
+                              p.t, p.name, source, target, &f))) {
+      // Yep.  Use it instead of the default
+      outarg << tm << "\n";
+      outarg.replace ("$argnum", argnum);
+      outarg.replace ("$arg",    arg);
+      outarg.replace ("$name",   proc_name);
+    }
+
+    // Free up any memory allocated for the arguments.
+
+    if ((tm = typemap_lookup ("freearg", typemap_lang,
+                              p.t, p.name, source, target, &f))) {
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
+      cleanup.replace ("$argnum", argnum);
+      cleanup.replace ("$arg",    arg);
+      cleanup.replace ("$name",   proc_name);
     }
-
-    if (i >= reqargs)
-      fprintf(f_wrappers,"  }\n");
-
-    p = l->get_next();
-    i++;
   }
 
   // Now write code to make the function call
 
-  fprintf(f_wrappers,"\t SCM_DEFER_INTS;\n");
-  emit_func_call(name,d,l,f_wrappers);
+  f.code << tab4 << "gh_defer_ints();\n";
+  emit_func_call (name, d, l, f);
+  f.code << tab4 << "gh_allow_ints();\n";
 
-  fprintf(f_wrappers,"\t SCM_ALLOW_INTS;\n");
   // Now have return value, figure out what to do with it.
 
   if ((d->type != T_VOID) || (d->is_pointer)) {
-    if ((tm = typemap_lookup("out","guile",d,name,"_result","scmresult"))) {
+    if ((tm = typemap_lookup ("out", typemap_lang,
+                              d, name, "_result", "gswig_result", &f))) {
       // Yep.  Use it instead of the default
-      fprintf(f_wrappers,"%s\n",tm);
+      f.code << tm << "\n";
+      f.code.replace ("$argnum", argnum);
+      f.code.replace ("$arg",    arg);
+      f.code.replace ("$name",   proc_name);
     } else {
-      if (!d->is_pointer) {
-        switch(d->type) {
-        case T_INT:  case T_SINT:
-        case T_SHORT: case T_SSHORT:
-        case T_LONG: case T_SLONG:
-        case T_SCHAR:
-          fprintf(f_wrappers,"\t scmresult = gh_long2scm((long) _result);\n");
-          break;
-        case T_UINT:
-        case T_USHORT:
-        case T_ULONG:
-        case T_UCHAR:
-          fprintf(f_wrappers,"\t scmresult = gh_ulong2scm((unsigned long) _result);\n");
-          break;
-        case T_DOUBLE :
-        case T_FLOAT:
-          fprintf(f_wrappers,"\t scmresult = gh_double2scm((double) _result);\n");
-          break;
-        case T_CHAR :
-          fprintf(f_wrappers,"\t scmresult = gh_char2scm(_result);\n");
-          break;
-        default:
-          fprintf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-                  input_file, line_number, d->print_type(), name);
-          break;
-        }
-      } else {
-        
+      if (d->is_pointer) {
         // Is a pointer return type
-        
-        if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
-          fprintf(f_wrappers,"\t scmresult = gh_str02scm(_result);\n");
-        } else {
-          
-          // Is an ordinary pointer type.
-          
-          fprintf(f_wrappers,"\t  SWIG_MakePtr(_ptemp, _result,\"%s\");\n",
-                  d->print_mangle());
-          fprintf(f_wrappers,"\t scmresult = gh_str02scm(_ptemp);\n");
-        }
+
+        f.add_local ("char", "_ptemp[128]");
+        f.code << tab4
+               << "SWIG_MakePtr (_ptemp, _result,\""
+               << d->print_mangle()
+               << "\");\n";
+        f.code << tab4
+               << "gswig_result = gh_str02scm (_ptemp);\n";
       }
     }
-  } else {
-    /* Some void type.   Need to return something.  I'll return 1 */
-    fprintf(f_wrappers,"\t scmresult = gh_int2scm(1);\n");
+  }
+  else {
+    // Some void type.
+    f.code << tab4 << "gswig_result = GH_UNSPECIFIED;\n";
   }
 
+  // Dump the argument output code
+  f.code << outarg;
+
   // Dump the argument cleanup code
-  fprintf(f_wrappers,"%s\n",cleanup.get());
+  f.code << cleanup;
 
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup("newfree","guile",d,iname,"_result",""))) {
-      fprintf(f_wrappers,"%s\n",tm);
+    if ((tm = typemap_lookup ("newfree", typemap_lang,
+                              d, iname, "_result", "", &f))) {
+      f.code << tm << "\n";
+      f.code.replace ("$argnum", argnum);
+      f.code.replace ("$arg",    arg);
+      f.code.replace ("$name",   proc_name);
     }
   }
 
-  if ((tm = typemap_lookup("ret","guile",d,name,"_result",""))) {
+  // Free any memory allocated by the function being wrapped..
+
+  if ((tm = typemap_lookup ("ret", typemap_lang,
+                            d, name, "_result", "", &f))) {
     // Yep.  Use it instead of the default
-    fprintf(f_wrappers,"%s\n",tm);
+    f.code << tm << "\n";
+    f.code.replace ("$argnum", argnum);
+    f.code.replace ("$arg",    arg);
+    f.code.replace ("$name",   proc_name);
   }
-  
+
   // Wrap things up (in a manner of speaking)
-  
-  fprintf(f_wrappers,"\t return scmresult;\n");
-  fprintf(f_wrappers,"}\n");
+
+  f.code << tab4 << "return gswig_result;\n";
+  f.code << "}\n";
+
+  f.print (f_wrappers);
 
   // Now register the function
-  fprintf(f_init,"\t gh_new_procedure(\"%s\", _wrap_gscm_%s, %d, %d, 0);\n", 
-          iname, wname, reqargs, pcount-reqargs);
+  fprintf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
+           proc_name.get(), wname, numargs-numopt, numopt);
 }
 
 // -----------------------------------------------------------------------
 // GUILE::link_variable(char *name, char *iname, DataType *d)
 //
 // Create a link to a C variable.
-// This creates a single function _wrap_gscm_var_varname().
+// This creates a single function _wrap_gswig_var_varname().
 // This function takes a single optional argument.   If supplied, it means
-// we are setting this variable to some value.  If ommitted, it means we are
+// we are setting this variable to some value.  If omitted, it means we are
 // simply evaluating this variable.  Either way, we return the variables
 // value.
 // -----------------------------------------------------------------------
 
-void GUILE::link_variable(char *name, char *iname, DataType *t)
+void
+GUILE::link_variable (char *name, char *iname, DataType *t)
 {
-
+  String proc_name;
   char  var_name[256];
   char  *tm;
-  char  *tm2 = typemap_lookup("varout","guile",t,name,name,"scmresult");
+  char  *tm2 = typemap_lookup ("varout", "guile", t, name, name, "scmresult");
+
+  if (Verbose)
+    printf ("%s;name=\"%s\";iname=\"%s\";t=%p\n",
+	    __PRETTY_FUNCTION__, name, iname, t);
 
   // evaluation function names
 
-  sprintf(var_name,"_wrap_gscm_var_%s",iname);
+  sprintf (var_name, "_wrap_%svar_%s", prefix, iname);
+
+  // Build the name for scheme.
+  proc_name = "";
+  proc_name << iname;
+  proc_name.replace ("_", "-");
 
   if ((t->type != T_USER) || (t->is_pointer)) {
 
-    fprintf(f_wrappers,"SCM %s(SCM s_0) {\n", var_name);
+    fprintf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
-    if (!(Status & STAT_READONLY) && (t->is_pointer)) {
-      fprintf(f_wrappers,"\t char *_temp;\n");
-      fprintf(f_wrappers,"\t int  _len;\n");
+    if ((t->type == T_CHAR) || (t->is_pointer)){
+      fprintf (f_wrappers, "\t char *_temp, _ptemp[128];\n");
+      fprintf (f_wrappers, "\t int  _len;\n");
     }
-
-    if (tm2) {
-      fprintf(f_wrappers,"\t char _ptemp[128];\n");
-    }
-    fprintf(f_wrappers,"\t SCM scmresult; /* fun2 */\n");
+    fprintf (f_wrappers, "\t SCM gswig_result;\n");
 
     // Check for a setting of the variable value
 
-    fprintf(f_wrappers,"\t if (s_0 != GH_NOT_PASSED) {\n");
-    
-    // Yup. Extract the type from s_0 and set variable value 
+    fprintf (f_wrappers, "\t if (s_0 != GH_NOT_PASSED) {\n");
+
+    // Yup. Extract the type from s_0 and set variable value
     if (Status & STAT_READONLY) {
-//      fprintf(f_wrappers,"\t\t gscm_error(\"Unable to set %s. Variable is read only.\", s_0);\n", iname);
+      fprintf (f_wrappers, "\t\t GSWIG_ASSERT(0,\"Unable to set %s.  "
+               "Variable is read only.\", s_0);\n", iname);
     } else {
-      if ((tm = typemap_lookup("varin","guile",t,name,"s_0",name))) {
+      if ((tm = typemap_lookup ("varin", typemap_lang,
+                                t, name, "s_0", name))) {
         // Yep.  Use it instead of the default
-        fprintf(f_wrappers,"%s\n",tm);
+        fprintf (f_wrappers, "%s\n", tm);
       } else {
         if (!t->is_pointer) {
 
           switch(t->type) {
             // Signed Integer
-            
+
           case T_INT:  case T_SINT:
           case T_SHORT: case T_SSHORT:
           case T_LONG: case T_SLONG:
           case T_SCHAR:
-            fprintf(f_wrappers,"\t\t %s = %s gh_scm2long(s_0);\n",name, t->print_cast());
+            fprintf (f_wrappers, "\t\t %s = %s gh_scm2long(s_0);\n",
+                     name, t->print_cast());
             break;
-            
+
             // Unsigned integer
-            
+
           case T_UINT:
           case T_USHORT:
           case T_ULONG:
           case T_UCHAR:
-            fprintf(f_wrappers,"\t\t %s = %s gh_scm2ulong(s_0);\n",name, t->print_cast());
+            fprintf (f_wrappers, "\t\t %s = %s gh_scm2ulong(s_0);\n",
+                     name, t->print_cast());
             break;
-            
+
             // Floating point
-            
+
           case T_FLOAT:
           case T_DOUBLE:
-            fprintf(f_wrappers,"\t\t %s = %s gh_scm2double(s_0);\n",name, t->print_cast());
+            fprintf (f_wrappers, "\t\t %s = %s gh_scm2double(s_0);\n",
+                     name, t->print_cast());
             break;
-            
+
             // Character value
-            
+
           case T_CHAR:
-            fprintf(f_wrappers,"\t\t %s = gh_scm2char(s_0);\n", name);
+            fprintf (f_wrappers, "\t\t %s = gh_scm2char(s_0);\n", name);
             break;
-            
-            // Unknown value 
-            
+
+            // Unknown value
+
           default:
-            fprintf(stderr,"Line %d.  Error, unsupported data-type.\n", line_number);
+            fprintf (stderr, "Line %d.  Error, unsupported data-type.\n",
+                     line_number);
             break;
           }
         } else {
-          
+
           // Have some sort of pointer type here, Process it differently
-          
+
           if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-            fprintf(f_wrappers,"\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
-            fprintf(f_wrappers,"\t\t if (%s) { free(%s);}\n", name,name);
-            fprintf(f_wrappers,"\t\t %s = (char *) malloc((_len+1)*sizeof(char));\n",name);
-            fprintf(f_wrappers,"\t\t strncpy(%s,_temp,_len);\n",name);
-            fprintf(f_wrappers,"\t\t %s[_len] = 0;\n", name);
+            fprintf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
+            fprintf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
+            fprintf (f_wrappers, "\t\t %s = (char *) "
+                     "malloc((_len+1)*sizeof(char));\n", name);
+            fprintf (f_wrappers, "\t\t strncpy(%s,_temp,_len);\n", name);
+            fprintf (f_wrappers, "\t\t %s[_len] = 0;\n", name);
           } else {
             // Set the value of a pointer
-            fprintf(f_wrappers,"\t\t _temp = gh_scm2newstr(s_0,&_len);\n");
-            fprintf(f_wrappers,"\t if (SWIG_GetPtr(_temp, (void **) &%s,",name);
-            if (t->type == T_VOID) fprintf(f_wrappers,"(char *) 0)) {\n");
-            else 
-              fprintf(f_wrappers,"\"%s\")) {\n", t->print_mangle());
-            
+            fprintf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0,&_len);\n");
+            fprintf (f_wrappers, "\t if (SWIG_GetPtr(_temp, (void **) &%s,",
+                     name);
+            if (t->type == T_VOID)
+              fprintf (f_wrappers, "(char *) 0)) {\n");
+            else
+              fprintf (f_wrappers, "\"%s\")) {\n", t->print_mangle());
+
+#ifdef TTN_NEW_CODE
+            fprintf (f_wrappers, "\t}\n");
+#else /* !TTN_NEW_CODE */
+
             // Now emit code according to the level of strictness desired
-            
-              
-//            fprintf(f_wrappers,"\t\t gscm_error(\"Type error in variable %s. Expected %s.\", s_0);\n", name,t->print_mangle());
+
+            switch(TypeStrict) {
+            case 0: // No type checking
               fprintf(f_wrappers,"\t}\n");
+              break;
+            case 1: // Warning message only
+              fprintf(f_wrappers,
+                      "\t fprintf(stderr,\"Warning : type mismatch "
+		      "in variable %s. Expected %s, received %%s\\n\", "
+		      "_temp);\n", name, t->print_mangle());
+              fprintf(f_wrappers,"\t }\n");
+              break;
+            case 2: // Super strict mode.
+
+	      fprintf(f_wrappers,"\t\t GSWIG_ASSERT(0,\"Type error in "
+		      "variable %s. Expected %s.\", s_0);\n",
+		      name,t->print_mangle());
+              fprintf(f_wrappers,"\t}\n");
+              break;
+
+            default :
+              fprintf(stderr,"Unknown strictness level\n");
+              break;
+            }
+#endif /* !TTN_NEW_CODE */
+
           }
         }
       }
     }
-    fprintf(f_wrappers,"\t}\n");
+    fprintf (f_wrappers, "\t}\n");
 
-    // Now return the value of the variable (regardless of evaluating or setting)
+    // Now return the value of the variable (regardless
+    // of evaluating or setting)
 
-    if (tm2) {
+    if ((tm = typemap_lookup ("varout", typemap_lang,
+                              t, name, name, "gswig_result"))) {
       // Yep.  Use it instead of the default
-      fprintf(f_wrappers,"%s\n",tm);
+      fprintf (f_wrappers, "%s\n", tm);
     } else {
       if (!t->is_pointer) {
         /* Return variable by value */
-        
+
         switch(t->type) {
-          
+
           // Signed Integer
-          
+
         case T_INT: case T_SINT:
         case T_SHORT: case T_SSHORT:
         case T_LONG: case T_SLONG:
         case T_SCHAR:
-          fprintf(f_wrappers,"\t scmresult = gh_long2scm((long) %s);\n", name);
+          fprintf (f_wrappers,
+                   "\t gswig_result = gh_long2scm((long) %s);\n",
+                   name);
           break;
-          
+
           // Unsigned integer
-          
+
         case T_UINT:
         case T_USHORT:
         case T_ULONG:
         case T_UCHAR:
-          fprintf(f_wrappers,"\t scmresult = gh_ulong2scm((unsigned long) %s);\n",name);
+          fprintf (f_wrappers,
+                   "\t gswig_result = gh_ulong2scm((unsigned long) %s);\n",
+                   name);
           break;
-          
+
           // Floats
-          
+
         case T_DOUBLE:
         case T_FLOAT:
-          fprintf(f_wrappers,"\t scmresult = gh_double2scm((double) %s);\n", name);
+          fprintf (f_wrappers,
+                   "\t gswig_result = gh_double2scm((double) %s);\n",
+                   name);
           break;
         case T_CHAR:
-          fprintf(f_wrappers,"\t scmresult = gh_char2scm(%s);\n",name);
+          fprintf (f_wrappers, "\t gswig_result = gh_char2scm(%s);\n", name);
           break;
         default :
           /* Unknown type */
           break;
         }
       } else {
-        
+
         // Is a pointer return type
-        
+
         if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-          fprintf(f_wrappers,"\t scmresult = gh_str02scm(%s);\n",name);
+          fprintf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
         } else {
           // Is an ordinary pointer type.
-          fprintf(f_wrappers,"\t  SWIG_MakePtr(_ptemp, %s,\"%s\");\n",name,
-                  t->print_mangle());
-          fprintf(f_wrappers,"\t scmresult = gh_str02scm(_ptemp);\n");
+          fprintf (f_wrappers, "\t  SWIG_MakePtr(_ptemp, %s,\"%s\");\n",
+                   name, t->print_mangle());
+          fprintf (f_wrappers, "\t gswig_result = gh_str02scm(_ptemp);\n");
         }
       }
     }
-    fprintf(f_wrappers,"\t return scmresult;\n");
-    fprintf(f_wrappers,"}\n");
-    
+    fprintf (f_wrappers, "\t return gswig_result;\n");
+    fprintf (f_wrappers, "}\n");
+
     // Now add symbol to the Guile interpreter
-    
-    fprintf(f_init,"\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",iname, var_name);
-    
+
+    fprintf (f_init, "\t gh_new_procedure(\"%s\", %s, 0, 1, 0);\n",
+             proc_name.get(), var_name);
+
   } else {
-    fprintf(stderr,"%s : Line %d. ** Warning. Unable to link with type %s (ignored).\n",
-            input_file, line_number, t->print_type());
+    fprintf (stderr, "%s : Line %d. ** Warning. Unable to link with "
+             " type %s (ignored).\n",
+             input_file, line_number, t->print_type());
   }
 }
 
@@ -649,126 +832,207 @@ void GUILE::link_variable(char *name, char *iname, DataType *t)
 // I'm going to fake out SWIG and create a variable instead.
 // ------------------------------------------------------------------------
 
-void GUILE::declare_const(char *name, char *, DataType *type, char *value) {
-
+void
+GUILE::declare_const (char *name, char *, DataType *type, char *value)
+{
   int OldStatus = Status;      // Save old status flags
+  String proc_name;
   char   var_name[256];
+  String rvalue;
+  char   *tm;
 
   Status = STAT_READONLY;      // Enable readonly mode.
 
   // Make a static variable;
 
-  sprintf(var_name,"_wrap_const_%s",name);
+  sprintf (var_name, "_wrap_const_%s", name);
+
+  // Build the name for scheme.
+  proc_name = "";
+  proc_name = name;
+  proc_name.replace ("_", "-");
 
   if ((type->type == T_USER) && (!type->is_pointer)) {
-    fprintf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
+    fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
+             input_file, line_number);
     return;
   }
 
-  // Create variable and assign it a value
+  // See if there's a typemap
 
-  fprintf(f_header,"static %s %s = ", type->print_type(), var_name);
-  if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
-    fprintf(f_header,"\"%s\";\n", value);
-  } else {
-    fprintf(f_header,"%s;\n", value);
+  rvalue = value;
+  if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+    rvalue << "\"";
+    "\"" >> rvalue;
   }
+  if ((type->type == T_CHAR) && (type->is_pointer == 0)) {
+    rvalue << "'";
+    "'" >> rvalue;
+  }
+  if ((tm = typemap_lookup ("const", typemap_lang, type, name,
+                            rvalue.get(), name))) {
+    // Yep.  Use it instead of the default
+    fprintf (f_init, "%s\n", tm);
+  } else {
+    // Create variable and assign it a value
 
-  // Now create a variable declaration
+    fprintf (f_header, "static %s %s = ", type->print_type(), var_name);
+    if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
+      fprintf (f_header, "\"%s\";\n", value);
+    } else {
+      fprintf (f_header, "%s;\n", value);
+    }
 
-  link_variable(var_name, name, type);
-  Status = OldStatus;
+    // Now create a variable declaration
+
+    link_variable (var_name, name, type);
+    Status = OldStatus;
+  }
 }
 
 // ----------------------------------------------------------------------
-// GUILE::usage_var(char *iname, DataType *t, char **s)
+// GUILE::usage_var(char *iname, DataType *t, String &usage)
 //
 // Produces a usage string for a Guile variable.
 // ----------------------------------------------------------------------
 
-void GUILE::usage_var(char *iname, DataType *t, char **s) {
-
+void
+GUILE::usage_var (char *iname, DataType *t, String &usage)
+{
   char temp[1024], *c;
 
-  sprintf(temp,"(%s)", iname);
-  c = temp + strlen(temp);
+  if (Verbose)
+    printf ("%s;iname=\"%s\";t=%p\n", __PRETTY_FUNCTION__, iname, t);
 
+  usage << "(" << iname << " [value])";
   if (!((t->type != T_USER) || (t->is_pointer))) {
-    sprintf(c," - unsupported");
+    usage << " - unsupported";
   }
-
-  if (*s == 0) 
-    *s = new char[strlen(temp)+1];
-  strcpy(*s,temp);
 }
 
 // ---------------------------------------------------------------------------
-// GUILE::usage_func(char *iname, DataType *t, ParmList *l, char **s)
-// 
+// GUILE::usage_func(char *iname, DataType *t, ParmList *l, String &usage)
+//
 // Produces a usage string for a function in Guile
 // ---------------------------------------------------------------------------
 
-void GUILE::usage_func(char *iname, DataType *, ParmList *l,
-                        char **s) {
-
+void
+GUILE::usage_func (char *iname, DataType *d, ParmList *l, String &usage)
+{
   char temp[1024];
   char *c;
   int  i;
-  Parm  *p;
+  Parm *p;
 
-  sprintf(temp,"(%s ", iname);
-  c = temp + strlen(temp);
-  
-  /* Now go through and print parameters */
+  // Print the function name.
 
-  p = l->get_first();
-  while (p != 0) {
-    
-    /* If parameter has been named, use that.   Otherwise, just print a type  */
+  usage << "(" << iname;
+
+  // Now go through and print parameters
+
+  for (p = l->get_first(); p != 0; p = l->get_next()) {
+
+    if (p->ignore)
+      continue;
+
+    // Print the type.  If the parameter has been named, use that as well.
 
     if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-      if (strlen(p->name) > 0) {
-        sprintf(c,"%s ",p->name);
-        c += strlen(p->name)+1;
+
+      // Print the type.
+      usage << " <" << p->t->name;
+      if (p->t->is_pointer) {
+	for (int j = 0; j < (p->t->is_pointer - p->t->implicit_ptr); j++) {
+	  usage << "*";
+	}
       }
-      else {
-        sprintf(c,"%s",p->t->name);
-        c += strlen(p->t->name);
-        if (p->t->is_pointer) {
-          for (i = 0; i < (p->t->is_pointer-p->t->implicit_ptr); i++) {
-            sprintf(c,"*");
-            c++;
-          }
-        }
+      usage << ">";
+
+      // Print the name if it exists.
+      if (strlen (p->name) > 0) {
+        usage << " " << p->name;
       }
     }
-      p = l->get_next();
-      if (p != 0) {
-        sprintf(c," ");
-        c++;
-      }
   }
-  sprintf(c,")");
-  if (*s == 0) 
-    *s = new char[strlen(temp)+1];
-  strcpy(*s,temp);
+  usage << ")";
+}
+
+
+// ---------------------------------------------------------------------------
+// GUILE::usage_returns(char *iname, DataType *t, ParmList *l, String &usage)
+//
+// Produces a usage string for a function in Guile
+// ---------------------------------------------------------------------------
+
+void
+GUILE::usage_returns (char *iname, DataType *d, ParmList *l, String &usage)
+{
+  Parm *p;
+  String param;
+  int have_param = 0, j;
+
+  usage = "returns ";
+  param = "";
+
+  // go through and see if any are output.
+
+  for (p = l->get_first(); p != 0; p = l->get_next()) {
+
+    if (strcmp (p->name,"BOTH") && strcmp (p->name,"OUTPUT"))
+      continue;
+
+    // Print the type.  If the parameter has been named, use that as well.
+
+    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+      ++have_param;
+
+      // Print the type.
+      param << " $" << p->t->name;
+      if (p->t->is_pointer) {
+	for (j = 0; j < (p->t->is_pointer - p->t->implicit_ptr - 1); j++) {
+	  param << "*";
+	}
+      }
+      param << "# ";
+    }
+  }
+
+  // See if we stick on the function return type.
+  if (d->type != T_VOID || have_param == 0) {
+    ++have_param;
+    if (d->type == T_VOID)
+      " unspecified " >> param;
+    else {
+      "# " >> param;
+      d->print_type() >> param;
+      " $" >> param;
+    }
+  }
+
+  // Kill extra white space.
+  param.strip();
+  param.replace ("$",  "<");
+  param.replace ("#",  ">");
+  param.replace ("><", "> <");
+
+  // If there are multiple return values put them in a list.
+  if (have_param > 1) {
+    "(" >> param;
+    param << ")";
+  }
+
+  usage << param;
 }
 
 
 // ----------------------------------------------------------------------
-// GUILE::usage_const(char *iname, DataType *type, char *value, char **s)
+// GUILE::usage_const(char *iname, DataType *type, char *value, String &usage)
 //
 // Produces a usage string for a Guile constant
 // ----------------------------------------------------------------------
 
-void GUILE::usage_const(char *iname, DataType *, char *value, char **s) {
-
-  char temp[1024];
-
-  sprintf(temp,"(%s %s)", iname, value);
-
-  if (*s == 0) 
-    *s = new char[strlen(temp)+1];
-  strcpy(*s,temp);
-
+void
+GUILE::usage_const (char *iname, DataType *, char *value, String &usage)
+{
+  usage << "(" << iname << " " << value << ")";
 }
