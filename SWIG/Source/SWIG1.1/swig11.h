@@ -71,165 +71,6 @@ extern  int       IsVirtual;
 #define  tab4   "    "
 #define  tab8   "        "
 
-/************************************************************************
- * class DataType
- *
- * Defines the basic datatypes supported by the translator.
- *
- ************************************************************************/
-
-#define    T_INT       1
-#define    T_SHORT     2
-#define    T_LONG      3
-#define    T_UINT      4
-#define    T_USHORT    5
-#define    T_ULONG     6
-#define    T_UCHAR     7
-#define    T_SCHAR     8
-#define    T_BOOL      9
-#define    T_DOUBLE    10
-#define    T_FLOAT     11
-#define    T_CHAR      12
-#define    T_USER      13
-#define    T_VOID      14
-#define    T_SYMBOL    98
-#define    T_ERROR     99
-
-// These types are now obsolete, but defined for backwards compatibility
-
-#define    T_SINT      90
-#define    T_SSHORT    91
-#define    T_SLONG     92
-
-// Class for storing data types
-
-#define MAX_NAME 96
-
-typedef struct DataType {
-  int         type;          // SWIG Type code
-  char        name[MAX_NAME];      // Name of type
-  char        is_pointer;    // Is this a pointer?
-  char        implicit_ptr;  // Implicit ptr
-  char        is_reference;  // A C++ reference type
-  char        status;        // Is this datatype read-only?
-  char        *_qualifier;    // A qualifier string (ie. const).
-  char        *_arraystr;     // String containing array part
-  int         id;            // type identifier (unique for every type).
-
-  // Temporary: catches accidental use.
-  DataType() { abort(); }
-  DataType(DataType *) { abort(); }
-  DataType(int type) { abort();}
-  ~DataType() { abort(); }
-} DataType;
-
-extern DataType *NewDataType(int type);
-extern DataType *CopyDataType(DataType *type);
-extern void      DelDataType(DataType *type);
-
-extern char     *DataType_qualifier(DataType *);
-extern void      DataType_set_qualifier(DataType *, char *q);
-extern char     *DataType_arraystr(DataType *);
-extern void      DataType_set_arraystr(DataType *, char *a);
-
-extern void      DataType_primitive(DataType *);
-extern char     *DataType_print_type(DataType *);
-extern char     *DataType_print_full(DataType *);
-extern char     *DataType_print_cast(DataType *);
-extern char     *DataType_print_mangle(DataType *);
-extern char     *DataType_print_real(DataType *, char *local);
-extern char     *DataType_print_arraycast(DataType *);
-extern char     *DataType_print_mangle_default(DataType *);
-extern void      DataType_set_mangle(char *(*m)(DataType *));
-extern int       DataType_array_dimensions(DataType *);
-extern char     *DataType_get_dimension(DataType *, int);
-
-/* Typedef support */
-extern void      DataType_typedef_add(DataType *, char *name, int mode);
-extern void      DataType_typedef_resolve(DataType *, int level);
-extern void      DataType_typedef_replace(DataType *);
-extern int       DataType_is_typedef(char *name);
-extern void      DataType_updatestatus(DataType *, int newstatus);
-extern void      DataType_init_typedef();
-extern void      DataType_merge_scope(DOHHash *h);
-extern void      DataType_new_scope(DOHHash *h);
-extern void     *DataType_collapse_scope(char *name);
-extern void      DataType_remember(DataType *);
-extern void      DataType_record_base(char *derived, char *base);
-
-#define STAT_REPLACETYPE   2
-
-/************************************************************************
- * class Parm
- *
- * Structure for holding information about function parameters
- *
- *      CALL_VALUE  -->  Call by value even though function parameter
- *                       is a pointer.
- *                          ex :   foo(&_arg0);
- *      CALL_REF    -->  Call by reference even though function parameter
- *                       is by value
- *                          ex :   foo(*_arg0);
- *
- ************************************************************************/
-
-#define CALL_VALUE      0x01
-#define CALL_REFERENCE  0x02
-#define CALL_OUTPUT     0x04
-
-typedef struct Parm {
-  DataType   *t;                // Datatype of this parameter
-  int        call_type;         // Call type (value or reference or value)
-  char       *name;             // Name of parameter (optional)
-  char       *defvalue;         // Default value (as a string)
-  int        ignore;            // Ignore flag
-  char       *objc_separator;   // Parameter separator for Objective-C
-
-  // Note: This is temporary
-  Parm(DataType *type, char *n) { abort(); }
-  Parm(Parm *p) { abort(); }
-  ~Parm() {abort();}
-} Parm;
-
-extern Parm *NewParm(DataType *type, char *n);
-extern Parm *CopyParm(Parm *p);
-extern void  DelParm(Parm *p);
-
-// -------------------------------------------------------------
-// class ParmList
-//
-// This class is used for manipulating parameter lists in
-// function and type declarations.
-// -------------------------------------------------------------
-
-#define MAXPARMS   16
-
-typedef struct ParmList {
-  int     maxparms;               // Max parms possible in current list
-  Parm  **parms;                  // Pointer to parms array
-  int     current_parm;           // Internal state for get_first,get_next
-  int     nparms;                 // Number of parms in list
-
-  // Note: This is temporary
-  ParmList() { abort(); }
-  ParmList(ParmList *l) { abort(); }
-  ~ParmList() { abort(); }
-} ParmList;
-
-extern ParmList *NewParmList();
-extern ParmList *CopyParmList(ParmList *);
-extern void      DelParmList(ParmList *);
-extern Parm     *ParmList_get(ParmList *l, int pos);
-extern void      ParmList_append(ParmList *, Parm *);
-extern void      ParmList_insert(ParmList *, Parm *, int);
-extern void      ParmList_del(ParmList *, int);
-extern int       ParmList_numopt(ParmList *);
-extern int       ParmList_numarg(ParmList *);
-extern Parm     *ParmList_first(ParmList *);
-extern Parm     *ParmList_next(ParmList *);
-extern void      ParmList_print_types(ParmList*,DOHFile *f);
-extern void      ParmList_print_args(ParmList *, DOHFile *f);
-
 // Modes for different types of inheritance
 
 #define INHERIT_FUNC       0x1
@@ -381,9 +222,8 @@ public:
 extern  void  emit_extern_var(char *, DataType *, int, FILE *);
 extern  void  emit_extern_func(char *, DataType *, ParmList *, int, FILE *);
 extern  void  emit_func_call(char *, DataType *, ParmList *, FILE *);
-
 extern  void  emit_set_get(char *, char *, DataType *);
-extern  void  emit_ptr_equivalence(FILE *);
+
 extern  int   SWIG_main(int, char **, Language *);
 
 // Some functions for emitting some C++ helper code
@@ -444,6 +284,7 @@ extern void    typemap_copy(char *op, char *lang, DataType *stype, char *sname, 
 extern char   *typemap_check(char *op, char *lang, DataType *type, char *pname);
 extern void    typemap_apply(DataType *tm_type, char *tmname, DataType *type, char *pname);
 extern void    typemap_clear_apply(DataType *type, char *pname);
+extern int     check_numopt(ParmList *);
 
 
 // -----------------------------------------------------------------------

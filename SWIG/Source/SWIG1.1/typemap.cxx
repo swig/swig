@@ -310,15 +310,17 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
     Parm *p;
     p = ParmList_first(tm->args);
     while (p) {
-      if (p->name) {
-	//	printf("    %s %s\n", p->t->print_type(),p->name);
+      DataType *pt = Parm_Gettype(p);
+      char     *pn = Parm_Getname(p);
+      if (pn) {
+	//	printf("    %s %s\n", pt,pn);
       } else {
 	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
       }
       // If a call by reference thingy, fix that
       if (p->call_type & CALL_REFERENCE) {
-	p->t->is_pointer--;
+	pt->is_pointer--;
 	p->call_type = 0;
       }
       p = ParmList_next(tm->args);
@@ -487,8 +489,10 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
   
   p = ParmList_first(l);
   while (p) {
-    if (p->name) {
-      if (strlen(p->name) > 0) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
+    if (pn) {
+      if (strlen(pn) > 0) {
 	DOHString *str;
 	DataType *tt;
 
@@ -496,24 +500,24 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	// If the user gave us $type as the name of the local variable, we'll use
 	// the passed datatype instead
 
-	if (strcmp(p->t->name,"$type")==0 || strcmp(p->t->name,"$basetype")==0) {
+	if (strcmp(pn,"$type")==0 || strcmp(pt->name,"$basetype")==0) {
 	  tt = t;
 	} else {
-	  tt = p->t;
+	  tt = pt;
 	}
         
 	// Have a real parameter here
         if (DataType_arraystr(tt)) {
 	  tt->is_pointer--;
-	  Printf(str,"%s%s",p->name, DataType_arraystr(tt));
+	  Printf(str,"%s%s",pn, DataType_arraystr(tt));
 	} 
         else {
-	  Printf(str,"%s",p->name);
+	  Printf(str,"%s",pn);
 	}
 
 	// Substitute parameter names
 	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
-        if (strcmp(p->t->name,"$basetype")==0) {
+        if (strcmp(pt->name,"$basetype")==0) {
           // use $basetype
           char temp_ip = tt->is_pointer;
           char temp_ip1 = tt->implicit_ptr;
@@ -528,7 +532,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 
 	if (DataType_arraystr(tt)) tt->is_pointer++;
 	// Substitute 
-	Replace(s,p->name,new_name,DOH_REPLACE_ID);
+	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
     }
     p = ParmList_next(l);
@@ -1113,3 +1117,36 @@ typemap_initialize() {
   typemap_hash = NewHash();
   application_hash = NewHash();
 }
+
+
+// ------------------------------------------------------------------
+// int check_numopt()
+//
+// Gets the number of optional arguments for a ParmList. 
+// ------------------------------------------------------------------
+
+int check_numopt(ParmList *l) {
+  int  n = 0;
+  int  state = 0;
+
+  for (int i = 0; i < l->nparms; i++) {
+    DataType *pt = Parm_Gettype(l->parms[i]);
+    char *pn = Parm_Getname(l->parms[i]);
+    if (Parm_Getvalue(l->parms[i])) {
+      n++;
+      state = 1;
+    } else if (typemap_check((char*)"default",typemap_lang,pt,pn)) {
+      n++;
+      state = 1;
+    } else if (typemap_check((char*)"ignore",typemap_lang,pt,pn)) {
+      n++;
+    } else {
+      if (state) {
+	fprintf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
+      }
+    }
+  }
+  return n;
+}
+
+

@@ -14,10 +14,10 @@ RANLIB   = @RANLIB@
 
 TARGET   = libswig11.a
 
-OBJS     = parser.o main.o scanner.o types.o parms.o \
+OBJS     = parser.o main.o scanner.o \
            emit.o cplus.o lang.o sstring.o typemap.o
 
-SRCS     = main.cxx scanner.cxx types.cxx parms.cxx \
+SRCS     = main.cxx scanner.cxx \
            emit.cxx cplus.cxx lang.cxx \
            sstring.cxx typemap.cxx
 

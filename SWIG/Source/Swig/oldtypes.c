@@ -2,6 +2,8 @@
  * types.cxx
  *
  *     This file contains code for SWIG1.1 type objects.
+ *
+ * !!! This file is deprecated and is being replaced !!!
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -14,11 +16,9 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "internal.h"
+#include "swig.h"
 
-extern "C" {
-#include "doh.h"
-}
+int type_id = 0;
 
 /* Create a data type only from the type code (used to form constants) */
 
@@ -198,7 +198,7 @@ void DataType_primitive(DataType *t) {
 char *DataType_print_type(DataType *ty) {
   static char    result[8][256];
   static int    ri = 0;
-
+  int i;
   DataType *t = ty;
   
   if (ty->status & STAT_REPLACETYPE) {
@@ -207,7 +207,7 @@ char *DataType_print_type(DataType *ty) {
   }
   ri = ri % 8;
   sprintf(result[ri],"%s ", t->name);
-  for (int i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
+  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
     strcat(result[ri],"*");
 
   if (ty->status & STAT_REPLACETYPE) {
@@ -435,6 +435,7 @@ char *DataType_get_dimension(DataType *t, int n) {
 /* --------------------------------------------------------------------
  * typedef support.  This needs to be scoped.
  * -------------------------------------------------------------------- */
+#define MAXSCOPE 16
 
 static DOHHash *typedef_hash[MAXSCOPE];
 static int      scope = 0;             /* Current scope */
@@ -458,7 +459,7 @@ void DataType_init_typedef() {
 }
 
 /* --------------------------------------------------------------------
- * void DataType_typedef_add()
+ * int DataType_typedef_add()
  *
  * Adds this datatype to the typedef hash table.  mode is an optional
  * flag that can be used to only add the symbol as a typedef, but not
@@ -467,7 +468,7 @@ void DataType_init_typedef() {
  * arrays, and enums.
  * --------------------------------------------------------------------*/
 
-void DataType_typedef_add(DataType *t,char *tname, int mode) {
+int DataType_typedef_add(DataType *t,char *tname, int mode) {
   char     *name1, *name2;
   DataType *nt, *t1;
   void typeeq_addtypedef(char *name, char *eqname, DataType *);
@@ -477,9 +478,7 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
    * that shadow global ones.*/
 
   if (Getattr(typedef_hash[scope],tname)) {
-    fprintf(stderr,"%s : Line %d. Warning. Datatype %s already defined (2nd definition ignored).\n",
-	    input_file, line_number, tname);
-      return;
+    return -1;
   }
 
   /* Make a new datatype that we will place in our hash table */
@@ -507,6 +506,7 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
   }
   /* Call into the target language with this typedef */
   /*  lang->add_typedef(t,tname); */
+  return 0;
 }
 
 /* --------------------------------------------------------------------
@@ -737,12 +737,12 @@ void *DataType_collapse_scope(char *prefix) {
  * cast is an extension needed to properly handle multiple inheritance
  * -------------------------------------------------------------- */
 
-struct EqEntry {
+typedef struct EqEntry {
   char     *name;
   char     *cast;
   DataType *type;
-  EqEntry  *next;
-};
+  struct EqEntry  *next;
+} EqEntry;
 
 static DOHHash *typeeq_hash = 0;
 static int  te_init = 0;
@@ -764,7 +764,7 @@ void typeeq_init() {
  * Cast is an optional name for a pointer casting function.
  * -------------------------------------------------------------- */
 
-void typeeq_add(char *name, char *eqname, char *cast = 0, DataType *type = 0) {
+void typeeq_add(char *name, char *eqname, char *cast, DataType *type) {
   EqEntry *e1,*e2;
 
   if (!te_init) typeeq_init();
@@ -850,7 +850,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
 }
 
 /* ----------------------------------------------------------------
- * void emit_ptr_equivalence(FILE *f)
+ * void emit_ptr_equivalence()
  *
  * Dump out the pointer equivalence table to file.
  *
@@ -858,7 +858,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
  * to support proper type-casting (needed for multiple inheritance)
  * ---------------------------------------------------------------- */
 
-void emit_ptr_equivalence(FILE *f) {
+void emit_ptr_equivalence(DOHFile *tablef, DOHFile *initf) {
 
   EqEntry      *e1,*e2;
   DOH          *k;
@@ -884,11 +884,11 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
     while (e2) {
       if (e2->cast) 
 	Printv(ttable,
-	       tab4, "{ \"", e1->name, "\",\"", e2->name, "\"," , e2->cast , "},\n",
+	       "    { \"", e1->name, "\",\"", e2->name, "\"," , e2->cast , "},\n",
 	       0);
       else
 	Printv(ttable,
-	       tab4, "{ \"", e1->name, "\",\"", e2->name, "\",0},\n",
+	       "    { \"", e1->name, "\",\"", e2->name, "\",0},\n",
 	       0);
 
       e2 = e2->next;
@@ -896,22 +896,22 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
     k = Nextkey(typeeq_hash);
   }
   Printf(ttable,"{0,0,0}};\n");
-  fprintf(f_wrappers,"%s\n", Char(ttable));
-  fprintf(f,"{\n");
-  fprintf(f,"   int i;\n");
-  fprintf(f,"   for (i = 0; _swig_mapping[i].n1; i++)\n");
-  fprintf(f,"        SWIG_RegisterMapping(_swig_mapping[i].n1,_swig_mapping[i].n2,_swig_mapping[i].pcnv);\n");
-  fprintf(f,"}\n");
+  Printf(tablef,"%s\n", Char(ttable));
+  Printf(initf,"{\n");
+  Printf(initf,"   int i;\n");
+  Printf(initf,"   for (i = 0; _swig_mapping[i].n1; i++)\n");
+  Printf(initf,"        SWIG_RegisterMapping(_swig_mapping[i].n1,_swig_mapping[i].n2,_swig_mapping[i].pcnv);\n");
+  Printf(initf,"}\n");
   Delete(ttable);
 }
 
 /* ------------------------------------------------------------------------------
- * typeeq_derived(char *n1, char *n2, char *cast=)
+ * typeeq_derived(char *n1, char *n2, char *cast)
  *
  * Adds a one-way mapping between datatypes.
  * ------------------------------------------------------------------------------ */
 
-void typeeq_derived(char *n1, char *n2, char *cast=0) {
+void typeeq_derived(char *n1, char *n2, char *cast) {
   DataType   *t,*t1;
   char       *name, *name2;
 
@@ -936,7 +936,7 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
  * Adds a single type equivalence
  * ------------------------------------------------------------------------------ */
 
-void typeeq_mangle(char *n1, char *n2, char *cast=0) {
+void typeeq_mangle(char *n1, char *n2, char *cast) {
   DataType   *t,*t1;
   char      *name, *name2;
 
@@ -948,7 +948,7 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   strcpy(t1->name,n2);
   name = DataType_print_mangle(t);
   name2 = DataType_print_mangle(t1);
-  typeeq_add(name,name2,cast);
+  typeeq_add(name,name2,cast,0);
   DelDataType(t);
   DelDataType(t1);
 }
@@ -963,18 +963,18 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   
 void typeeq_standard(void) {
   
-  typeeq_mangle((char*)"int", (char*)"signed int");
-  typeeq_mangle((char*)"int", (char*)"unsigned int");
-  typeeq_mangle((char*)"signed int", (char*)"int");
-  typeeq_mangle((char*)"unsigned int", (char*)"int");
-  typeeq_mangle((char*)"short",(char*)"signed short");
-  typeeq_mangle((char*)"signed short",(char*)"short");
-  typeeq_mangle((char*)"short",(char*)"unsigned short");
-  typeeq_mangle((char*)"unsigned short",(char*)"short");
-  typeeq_mangle((char*)"long",(char*)"signed long");
-  typeeq_mangle((char*)"signed long",(char*)"long");
-  typeeq_mangle((char*)"long",(char*)"unsigned long");
-  typeeq_mangle((char*)"unsigned long",(char*)"long");
+  typeeq_mangle((char*)"int", (char*)"signed int",0);
+  typeeq_mangle((char*)"int", (char*)"unsigned int",0);
+  typeeq_mangle((char*)"signed int", (char*)"int",0);
+  typeeq_mangle((char*)"unsigned int", (char*)"int",0);
+  typeeq_mangle((char*)"short",(char*)"signed short",0);
+  typeeq_mangle((char*)"signed short",(char*)"short",0);
+  typeeq_mangle((char*)"short",(char*)"unsigned short",0);
+  typeeq_mangle((char*)"unsigned short",(char*)"short",0);
+  typeeq_mangle((char*)"long",(char*)"signed long",0);
+  typeeq_mangle((char*)"signed long",(char*)"long",0);
+  typeeq_mangle((char*)"long",(char*)"unsigned long",0);
+  typeeq_mangle((char*)"unsigned long",(char*)"long",0);
 
 }
 
@@ -1086,7 +1086,7 @@ void DataType_remember(DataType *ty) {
 }
 
 void
-emit_type_table() {
+emit_type_table(DOHFile *out) {
   DOH *key;
   DOHString *types, *table;
   int i = 0;
@@ -1097,9 +1097,9 @@ emit_type_table() {
   types = NewString("");
   Printf(table,"static _swig_type_info *_swig_types_initial[] = {\n");
   key = Firstkey(remembered);
-  fprintf(f_runtime,"/* ---- TYPES TABLE (BEGIN) ---- */\n");
+  Printf(out,"/* ---- TYPES TABLE (BEGIN) ---- */\n");
   while (key) {
-    fprintf(f_runtime,"#define  SWIGTYPE%s _swig_types[%d] \n", Char(key), i);
+    Printf(out,"#define  SWIGTYPE%s _swig_types[%d] \n", key, i);
     Printv(types,"static _swig_type_info _swigt_", Char(key), "[] = {", 0);
     Printv(types,"{\"", Char(key), "\",0},", 0);
     Printv(types, "{\"", Char(key), "\",0},", 0);
@@ -1110,10 +1110,11 @@ emit_type_table() {
   }
 
   Printf(table, "0\n};\n");
-  fprintf(f_wrappers,"%s\n", Char(types));
-  fprintf(f_wrappers,"%s\n", Char(table));
-  fprintf(f_runtime,"static _swig_type_info *_swig_types[%d];\n", i+1);
-  fprintf(f_runtime,"/* ---- TYPES TABLE (END) ---- */\n\n");
+  Printf(out,"static _swig_type_info *_swig_types[%d];\n", i+1);
+
+  Printf(out,"%s\n", types);
+  Printf(out,"%s\n", table);
+  Printf(out,"/* ---- TYPES TABLE (END) ---- */\n\n");
   Delete(types);
   Delete(table);
 }

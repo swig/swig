@@ -380,7 +380,6 @@ void TCL8::initialize()
 
 void TCL8::close(void)
 {
-  extern void emit_type_table();
   Printv(cmd_info, tab4, "{0, 0, 0}\n", "};\n",0);
 
   Printv(var_info, tab4, "{0,0,0,0}\n", "};\n",0);
@@ -400,7 +399,7 @@ void TCL8::close(void)
 
   // Dump the pointer equivalency table
 
-  emit_type_table();
+  emit_type_table(f_runtime);
 
   //  emit_ptr_equivalence(f_init);
 
@@ -494,7 +493,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Print out variables for storing arguments.
 
   pcount = emit_args(d, l, f);
-  numopt = ParmList_numopt(l);
+  numopt = check_numopt(l);
 
   // Create a local variable for holding the interpreter result value
 
@@ -509,6 +508,9 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   j = 0;
   p = ParmList_first(l);
   while (p != 0) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
+    char     *pv = Parm_Getvalue(p);
     // Produce string representations of the source and target arguments
     sprintf(source,"objv[%d]",j+1);
     sprintf(target,"_arg%d",i);
@@ -520,7 +522,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
       if (j == (pcount-numopt)) 
 	Putc('|',argstr);
 
-      if ((tm = typemap_lookup((char*)"in",(char*)"tcl8",p->t,p->name,source,target,f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"tcl8",pt,pn,source,target,f))) {
 	Putc('o',argstr);
 	Printf(args,",0");
 
@@ -529,11 +531,11 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
 	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
       } else {
-	if (!p->t->is_pointer) {
+	if (!pt->is_pointer) {
 	
 	  // Extract a parameter by value.
 	
-	  switch(p->t->type) {
+	  switch(pt->type) {
 	    
 	    // Signed Integers
 	  
@@ -600,7 +602,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	  default :
 	    Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
-		    input_file, line_number, DataType_print_type(p->t));
+		    input_file, line_number, DataType_print_type(pt));
 	    break;
 	  }
 	} else {
@@ -608,13 +610,13 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // Function argument is some sort of pointer
 	  // Look for a string.   Otherwise, just pull off a pointer.
 	  
-	  if ((p->t->type == T_CHAR) && (p->t->is_pointer == 1)) {
+	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
 	    Putc('s',argstr);
 	    Printf(args,",&%s",target);
 	  } else {
-	    DataType_remember(p->t);
+	    DataType_remember(pt);
 	    Putc('p',argstr);
-	    Printv(args, ",&", target, ", SWIGTYPE", DataType_print_mangle(p->t), 0);
+	    Printv(args, ",&", target, ", SWIGTYPE", DataType_print_mangle(pt), 0);
 	  }
 	}
       }
@@ -622,7 +624,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
 
     // Check to see if there was any sort of a constaint typemap
-    if ((tm = typemap_lookup((char*)"check",(char*)"tcl8",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"tcl8",pt,pn,source,target))) {
       // Yep.  Use it instead of the default
       Printf(incode,"%s\n", tm);
       Replace(incode,"$argnum",argnum, DOH_REPLACE_ANY);
@@ -630,14 +632,14 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
 
     // Check if there was any cleanup code (save it for later)
-    if ((tm = typemap_lookup((char*)"freearg",(char*)"tcl8",p->t,p->name,target,(char*)"tcl_result"))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"tcl8",pt,pn,target,(char*)"tcl_result"))) {
       // Yep.  Use it instead of the default
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source,DOH_REPLACE_ANY);
     }
     // Look for output arguments
-    if ((tm = typemap_lookup((char*)"argout",(char*)"tcl8",p->t,p->name,target,(char*)"tcl_result"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"tcl8",pt,pn,target,(char*)"tcl_result"))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -1139,24 +1141,27 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
   /* Now go through and print parameters */
   i = 0;
   pcount = l->nparms;
-  numopt = ParmList_numopt(l);
+  numopt = check_numopt(l);
   p = ParmList_first(l);
   while (p != 0) {
 
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
+
     // Only print an argument if not ignored
 
-    if (!typemap_check((char*)"ignore",(char*)"tcl8",p->t,p->name)) {
+    if (!typemap_check((char*)"ignore",(char*)"tcl8",pt,pn)) {
       if (i >= (pcount-numopt))
 	Putc('?',temp);
 
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	if (strlen(p->name) > 0) {
-	  Printf(temp,p->name);
+      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+	if (strlen(pn) > 0) {
+	  Printf(temp,pn);
 	}
 	else {
-	  Printf(temp,"{ %s }", DataType_print_type(p->t));
+	  Printf(temp,"{ %s }", DataType_print_type(pt));
 	}
       }
       if (i >= (pcount-numopt))

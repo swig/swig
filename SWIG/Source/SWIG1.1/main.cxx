@@ -56,7 +56,6 @@ extern "C" {
     char      *Config = 0;
     int        NoInclude = 0;
     char      *typemap_lang = 0;                // Typemap name
-    int        type_id = 0;                     // Type identifier
     int        error_count = 0;                 // Error count
     int        Verbose = 0;
 

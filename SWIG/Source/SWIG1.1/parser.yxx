@@ -939,7 +939,7 @@ statement      : INCLUDE STRING LBRACE {
                    skip_brace();
 		   p = $7;
 		   while (p) {
-		     typemap_register($5,$3,p->p->t,p->p->name,Char(CCode),p->args);
+		     typemap_register($5,$3,Parm_Gettype(p->p),Parm_Getname(p->p),Char(CCode),p->args);
 		     p = p->next;
                    }
 		   delete $3;
@@ -957,7 +957,7 @@ statement      : INCLUDE STRING LBRACE {
 		   skip_brace();
 		   p = $5;
 		   while (p) {
-		     typemap_register($3,typemap_lang,p->p->t,p->p->name,Char(CCode),p->args);
+		     typemap_register($3,typemap_lang,Parm_Gettype(p->p),Parm_Getname(p->p),Char(CCode),p->args);
 		     p = p->next;
 		   }
 		 }
@@ -970,7 +970,7 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $7;
 		 while (p) {
-                   typemap_clear($5,$3,p->p->t,p->p->name);
+                   typemap_clear($5,$3,Parm_Gettype(p->p),Parm_Getname(p->p));
 		   p = p->next;
 		 }
 		 delete $3;
@@ -987,7 +987,7 @@ statement      : INCLUDE STRING LBRACE {
 		   TMParm *p;
 		   p = $5;
 		   while (p) {
-		     typemap_clear($3,typemap_lang,p->p->t,p->p->name);
+		     typemap_clear($3,typemap_lang,Parm_Gettype(p->p),Parm_Getname(p->p));
 		     p = p->next;
 		   }
 		 }
@@ -1000,7 +1000,7 @@ statement      : INCLUDE STRING LBRACE {
                    TMParm *p;
 		   p = $7;
 		   while (p) {
-		     typemap_copy($5,$3,$9->p->t,$9->p->name,p->p->t,p->p->name);
+		     typemap_copy($5,$3,Parm_Gettype($9->p),Parm_Getname($9->p),Parm_Gettype(p->p),Parm_Getname(p->p));
 		     p = p->next;
 		   }
 		   delete $3;
@@ -1020,7 +1020,7 @@ statement      : INCLUDE STRING LBRACE {
                    TMParm *p;
 		   p = $5;
 		   while (p) {
-		     typemap_copy($3,typemap_lang,$7->p->t,$7->p->name,p->p->t,p->p->name);
+		     typemap_copy($3,typemap_lang,Parm_Gettype($7->p),Parm_Getname($7->p),Parm_Gettype(p->p),Parm_Getname(p->p));
 		     p = p->next;
 		   }
 		 }
@@ -1036,7 +1036,7 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $4;
 		 while(p) {
-		   typemap_apply($2->p->t,$2->p->name,p->p->t,p->p->name);
+		   typemap_apply(Parm_Gettype($2->p),Parm_Getname($2->p),Parm_Gettype(p->p),Parm_Getname(p->p));
 		   p = p->next;
 		 }
 		 delete $4;
@@ -1047,7 +1047,7 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $2;
 		 while (p) {
-		   typemap_clear_apply(p->p->t, p->p->name);
+		   typemap_clear_apply(Parm_Gettype(p->p), Parm_Getname(p->p));
 		   p = p->next;
 		 }
                }
@@ -1333,7 +1333,8 @@ func_end       : cpp_const LBRACE { skip_brace(); }
    ------------------------------------------------------------------------------ */
 
 parms          : parm ptail {
-                 if (($1->t->type != T_VOID) || ($1->t->is_pointer))
+                  DataType *pt = Parm_Gettype($1);
+                 if ((pt->type != T_VOID) || (pt->is_pointer))
 		   ParmList_insert($2,$1,0);
 		 $$ = $2;
 		 DelParm($1);
@@ -1351,7 +1352,7 @@ ptail          : COMMA parm ptail {
 
 parm           : parm_type {
                   $$ = $1;
-		  if (typemap_check((char *)"ignore",typemap_lang,$$->t,$$->name))
+		  if (typemap_check((char *)"ignore",typemap_lang,Parm_Gettype($$),Parm_Getname($$)))
 		    $$->ignore = 1;
                }
                | parm_specifier_list parm_type {
@@ -1361,11 +1362,12 @@ parm           : parm_type {
 		     fprintf(stderr,"%s : Line %d. Error. Can't use %%val with an array.\n", input_file, line_number);
 		     FatalError();
 		  }
-		  if (!$$->t->is_pointer) {
+		  DataType *pt = Parm_Gettype($$);
+		  if (!pt->is_pointer) {
 		     fprintf(stderr,"%s : Line %d. Error. Can't use %%val or %%out with a non-pointer argument.\n", input_file, line_number);
 		     FatalError();
 		  } else {
-		    $$->t->is_pointer--;
+		    pt->is_pointer--;
 		  }
 		}
 
@@ -1377,10 +1379,10 @@ parm_type      : type pname {
 		    } 
 		    $$ = NewParm($1,$2);
 		    $$->call_type = 0;
-		    $$->defvalue = DefArg;
+		    Parm_Setvalue($$,DefArg);
 		    if (($1->type == T_USER) && !($1->is_pointer)) {
 		      $$->call_type = CALL_REFERENCE;
-		      $$->t->is_pointer++;
+		      Parm_Gettype($$)->is_pointer++;
 		    }
 		    DelDataType($1);
 		    delete $2;
@@ -1388,13 +1390,13 @@ parm_type      : type pname {
 
                 | type stars pname {
 		   $$ = NewParm($1,$3);
-		   $$->t->is_pointer += $2;
+		   Parm_Gettype($$)->is_pointer+=$2;
 		   $$->call_type = 0;
-		   $$->defvalue = DefArg;
+		   Parm_Setvalue($$,DefArg);
 		   if (InArray) {
-		     $$->t->is_pointer++;
+		     Parm_Gettype($$)->is_pointer++;
 		     // Add array string to the type
-		     DataType_set_arraystr($$->t, Char(ArrayString));
+		     DataType_set_arraystr(Parm_Gettype($$), Char(ArrayString));
 		    }
 		   DelDataType($1);
 		   delete $3;
@@ -1402,10 +1404,11 @@ parm_type      : type pname {
 
                 | type AND pname {
 		  $$ = NewParm($1,$3);
-		  $$->t->is_reference = 1;
+		  DataType *pt = Parm_Gettype($$);
+		  pt->is_reference = 1;
 		  $$->call_type = 0;
-		  $$->t->is_pointer++;
-		  $$->defvalue = DefArg;
+		  pt->is_pointer++;
+		  Parm_Setvalue($$,DefArg);
 		  if (!CPlusPlus) {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
@@ -1416,9 +1419,10 @@ parm_type      : type pname {
                   fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
 		  $$ = NewParm($1,$4);
-		  $$->t->type = T_ERROR;
-		  $$->name = copy_string($4);
-		  strcpy($$->t->name,"<function ptr>");
+		  DataType *pt = Parm_Gettype($$);
+		  pt->type = T_ERROR;
+		  Parm_Setname($$,$4);
+		  strcpy(pt->name,"<function ptr>");
 		  DelDataType($1);
 		  delete $4;
 		  DelParmList($7);
@@ -1426,9 +1430,10 @@ parm_type      : type pname {
                 | PERIOD PERIOD PERIOD {
                   fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewDataType(T_INT),(char *) "varargs");
-		  $$->t->type = T_ERROR;
-		  $$->name = copy_string((char*)"varargs");
-		  strcpy($$->t->name,"<varargs>");
+		  DataType *pt = Parm_Gettype($$);
+		  pt->type = T_ERROR;
+		  Parm_Setname($$,(char*)"varargs");
+		  strcpy(pt->name,"<varargs>");
 		  FatalError();
 		}
 		;
@@ -1437,9 +1442,9 @@ pname          : ID def_args {
                     $$ = $1; 
                     InArray = 0;
 		    if ($2.type == T_CHAR)
-		      DefArg = copy_string(ConstChar);
+		      DefArg = Swig_copy_string(ConstChar);
 		    else
-		      DefArg = copy_string($2.id);
+		      DefArg = Swig_copy_string($2.id);
                     if ($2.id) delete $2.id;
                 }
                | ID array {
@@ -1596,7 +1601,7 @@ type           : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-		  DataType_set_qualifier($$,"const");
+		  DataType_set_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
                   $$ = NewDataType(0);
@@ -1666,7 +1671,7 @@ strict_type    : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-		  DataType_set_qualifier($$,"const");
+		  DataType_set_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
                   $$ = NewDataType(0);
@@ -3147,7 +3152,7 @@ objc_ret_type  : LPAREN type RPAREN {
                ;
 
 objc_arg_type  : LPAREN parm RPAREN { 
-                  $$ = CopyDataType($2->t);
+                  $$ = CopyDataType(Parm_Gettype($2));
 		  DelParm($2);
                  }
                | empty { 
@@ -3160,7 +3165,7 @@ objc_arg_type  : LPAREN parm RPAREN {
  
 objc_args      : objc_args objc_separator objc_arg_type ID { 
                    Parm *p= NewParm($3,$4);
-		   p->objc_separator = $2;
+		   /*		   p->objc_separator = $2; */
                    $$ = $1;
 	           ParmList_append($$,p);
                }
@@ -3258,11 +3263,12 @@ typemap_parm   : type typemap_name {
                 | type stars typemap_name {
 		  $$ = new TMParm;
 		   $$->p = NewParm($1,$3);
-		   $$->p->t->is_pointer += $2;
+		   DataType *pt = Parm_Gettype($$->p);
+		   pt->is_pointer += $2;
 		   $$->p->call_type = 0;
 		   if (InArray) {
-		     $$->p->t->is_pointer++;
-		     DataType_set_arraystr($$->p->t,Char(ArrayString));
+		     pt->is_pointer++;
+		     DataType_set_arraystr(pt,Char(ArrayString));
 		    }
 		   $$->args = tm_parm;
 		   DelDataType($1);
@@ -3272,9 +3278,10 @@ typemap_parm   : type typemap_name {
                 | type AND typemap_name {
                   $$ = new TMParm;
 		  $$->p = NewParm($1,$3);
-		  $$->p->t->is_reference = 1;
+		  DataType *pt = Parm_Gettype($$->p);
+		  pt->is_reference = 1;
 		  $$->p->call_type = 0;
-		  $$->p->t->is_pointer++;
+		  pt->is_pointer++;
 		  if (!CPlusPlus) {
 			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
@@ -3287,9 +3294,10 @@ typemap_parm   : type typemap_name {
 		  FatalError();
                   $$ = new TMParm;
 		  $$->p = NewParm($1,$4);
-		  $$->p->t->type = T_ERROR;
-		  $$->p->name = copy_string($4);
-		  strcpy($$->p->t->name,"<function ptr>");
+		  DataType *pt = Parm_Gettype($$->p);
+		  pt->type = T_ERROR;
+		  Parm_Setname($$->p,$4);
+		  strcpy(pt->name,"<function ptr>");
 		  $$->args = tm_parm;
 		  DelDataType($1);
 		  delete $4;

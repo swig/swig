@@ -598,7 +598,7 @@ void PERL5::close(void)
 
   Printf(f_header,"%s\n", magic);
   
-  emit_ptr_equivalence(f_init);
+  emit_ptr_equivalence(f_wrappers,f_init);
 
   Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
   Printf(f_init,"\t XSRETURN(1);\n");
@@ -762,7 +762,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   Printv(f->code, tab4, "cv = cv;\n", 0);
 
   pcount = emit_args(d, l, f);
-  numopt = ParmList_numopt(l);
+  numopt = check_numopt(l);
 
   Wrapper_add_local(f,"argvi","int argvi = 0");
 
@@ -780,6 +780,10 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   j = 0;
   p = ParmList_first(l);
   while (p != 0) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
+    char     *pv = Parm_Getvalue(p);
+
     // Produce string representation of source and target arguments
     sprintf(source,"ST(%d)",j);
     sprintf(target,"_arg%d",i);
@@ -795,17 +799,17 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Printf(f->code,"    if (items > %d) {\n", j);
 
       // See if there is a type-map
-      if ((tm = typemap_lookup((char*)"in",(char*)"perl5",p->t,p->name,source,target,f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"perl5",pt,pn,source,target,f))) {
 	Printf(f->code,"%s\n",tm);
 	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
 	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
       } else {
 
-	if (!p->t->is_pointer) {
+	if (!pt->is_pointer) {
 	  
 	  // Extract a parameter by "value"
 	  
-	  switch(p->t->type) {
+	  switch(pt->type) {
 	    
 	    // Integers
 	    
@@ -821,7 +825,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  case T_USHORT:
 	  case T_ULONG:
 	  case T_UCHAR:
-	    Printf(f->code,"    _arg%d = %sSvIV(ST(%d));\n", i, DataType_print_cast(p->t),j);
+	    Printf(f->code,"    _arg%d = %sSvIV(ST(%d));\n", i, DataType_print_cast(pt),j);
 	    break;
 	  case T_CHAR :
 
@@ -833,7 +837,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  case T_DOUBLE :
 	  case T_FLOAT :
-	    Printf(f->code,"    _arg%d = %s SvNV(ST(%d));\n", i, DataType_print_cast(p->t), j);
+	    Printf(f->code,"    _arg%d = %s SvNV(ST(%d));\n", i, DataType_print_cast(pt), j);
 	    break;
 	  
 	  // Void.. Do nothing.
@@ -849,7 +853,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Unsupported data type
 	    
 	  default :
-	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(p->t));
+	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(pt));
 	    break;
 	  }
 	} else {
@@ -857,7 +861,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // Argument is a pointer type.   Special case is for char *
 	  // since that is usually a string.
 	  
-	  if ((p->t->type == T_CHAR) && (p->t->is_pointer == 1)) {
+	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
 	    Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { _arg%d = 0; }\n", j, i);
 	    Printf(f->code,"    else { _arg%d = (char *) SvPV(ST(%d),PL_na); }\n", i,j);
 	  } else {
@@ -866,7 +870,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // typed pointer.
 	    
 	    sprintf(temp,"argument %d", i+1);
-	    get_pointer(iname,temp,source,target, p->t, f->code, (char*)"XSRETURN(1)");
+	    get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
 	  }
 	}
       }
@@ -881,19 +885,19 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
 
     // Check if there is any constraint code
-    if ((tm = typemap_lookup((char*)"check",(char*)"perl5",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"perl5",pt,pn,source,target))) {
       Printf(f->code,"%s\n", tm);
       Replace(f->code,"$argnum",argnum, DOH_REPLACE_ANY);
     }
     need_save = 0;
 
-    if ((tm = typemap_lookup((char*)"freearg",(char*)"perl5",p->t,p->name,target,temp))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"perl5",pt,pn,target,temp))) {
       Printf(cleanup,"%s\n", tm);
       Replace(cleanup,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",temp,DOH_REPLACE_ANY);
       need_save = 1;
     }
-    if ((tm = typemap_lookup((char*)"argout",(char*)"perl5",p->t,p->name,target,(char*)"ST(argvi)"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"perl5",pt,pn,target,(char*)"ST(argvi)"))) {
       DOHString *tempstr = NewString(tm);
       Replace(tempstr,"$argnum",argnum, DOH_REPLACE_ANY);
       Replace(tempstr,"$arg",temp, DOH_REPLACE_ANY);
@@ -1052,15 +1056,16 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     Parm *p = ParmList_first(l);
     int i = 0;
     while(p) {
-
+      DataType *pt = Parm_Gettype(p);
+      char     *pn = Parm_Getname(p);
       if (!p->ignore) {
 	// Look up the datatype name here
 	char sourceNtarget[256];
 	sprintf(sourceNtarget,"$args[%d]",i);
 
-	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget))) {
+	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",pt,(char*)"",sourceNtarget,sourceNtarget))) {
 	  Printf(func,"%s\n", tm);
-	} else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
+	} else if ((Getattr(classes,pt->name)) && (pt->is_pointer <= 1)) {
 	  if (i >= (pcount - numopt))
 	    Printf(func,"    if (scalar(@args) >= %d) {\n    ", i);
 	  Printf(func,"    $args[%d] = tied(%%{$args[%d]});\n", i, i);
@@ -1530,14 +1535,16 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
   p = ParmList_first(l);
   i = 0;
   while (p != 0) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
     if (!p->ignore) {
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	if (strlen(p->name) > 0) {
-	  Printf(temp,"%s",p->name);
+      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+	if (strlen(pn) > 0) {
+	  Printf(temp,"%s",pn);
 	} else {
-	  Printf(temp,"%s",DataType_print_type(p->t));
+	  Printf(temp,"%s",DataType_print_type(pt));
 	}
       }
       i++;
@@ -1639,7 +1646,6 @@ static char fullclassname[1024] = "";
 void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
 
   char temp[256];
-  extern void typeeq_addtypedef(char *, char *, DataType *);
 
   // Register this with the default class handler
 
@@ -1885,18 +1891,19 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 
   p = ParmList_first(l);
   pcount = l->nparms;
-  numopt = ParmList_numopt(l);
+  numopt = check_numopt(l);
   i = 1;
   while(p) {
+    DataType *pt = Parm_Gettype(p);
     if (!p->ignore) {
       char sourceNtarget[512];
       sprintf(sourceNtarget, "$args[%d]", i);
 
-      if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget))) {
+      if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",pt,(char*)"",sourceNtarget,sourceNtarget))) {
 	Printf(func,"%s\n",tm);
       }
       // Look up the datatype name here
-      else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
+      else if ((Getattr(classes,pt->name)) && (pt->is_pointer <= 1)) {
 	// Yep.   This smells alot like an object, patch up the arguments
 
 	if (i >= (pcount - numopt))
@@ -2091,10 +2098,10 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     p = ParmList_first(l);
     i = 0;
     while(p) {
-      
+      DataType *pt = Parm_Gettype(p);
       // Look up the datatype name here
       
-      if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
+      if ((Getattr(classes,pt->name)) && (pt->is_pointer <= 1)) {
 	
 	// Yep.   This smells alot like an object, patch up the arguments
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
