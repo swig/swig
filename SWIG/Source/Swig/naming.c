@@ -370,6 +370,43 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   return rn;
 }
 
+void
+Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
+  String *key;
+  String *bprefix;
+  String *dprefix;
+  char *cbprefix;
+  int   plen;
+
+  if (!namehash) return;
+  
+  bprefix = NewStringf("%s::",base);
+  dprefix = NewStringf("%s::",derived);
+  cbprefix = Char(bprefix);
+  plen = strlen(cbprefix);
+  for (key = Firstkey(namehash); key; key = Nextkey(namehash)) {
+    char *k = Char(key);
+    if (strncmp(k,cbprefix,plen) == 0) {
+      Hash *n, *newh;
+      String *nkey, *okey;
+      
+      nkey = NewStringf("%s%s",dprefix,k+plen);
+      n = Getattr(namehash,key);
+      newh = Getattr(namehash,nkey);
+      if (!newh) {
+	newh = NewHash();
+	Setattr(namehash,nkey,newh);
+      }
+      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
+	String *ovalue = Getattr(n,okey);
+	if (!Getattr(newh,okey)) {
+	  Setattr(newh,okey,Copy(ovalue));
+	}
+      }
+    }
+  }
+}
+
 
 
 
