@@ -1139,7 +1139,7 @@ public:
     if (shadow) {
       t = Getattr(n,"type");
       symname = Getattr(n,"sym:name");
-      if (SwigType_isconst(t)) {
+      if (SwigType_isconst(t) && !Getattr(n, "value")) {
 	Printf(f_shadow,"%s%s = %s.%s.%s\n", tab4, symname, module, global_name, Swig_name_member(class_name,symname));      
       }
     }

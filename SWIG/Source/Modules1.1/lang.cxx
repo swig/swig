@@ -1099,24 +1099,43 @@ Language::membervariableHandler(Node *n) {
 int 
 Language::staticmembervariableHandler(Node *n)
 {
-  Swig_require(&n,"*name","*sym:name","*type",NULL);
-
-  String *name    = Getattr(n,"name");
-  String *symname = Getattr(n,"sym:name");
-  String *cname, *mrename;
-
-  /* Create the variable name */
-  mrename = Swig_name_member(ClassPrefix, symname);
-  cname = NewStringf("%s::%s", ClassName,name);
-
-  Setattr(n,"sym:name",mrename);
-  Setattr(n,"name", cname);
+  Swig_require(&n,"*name","*sym:name","*type", "?value", NULL);
+  String *value = Getattr(n,"value");
+  if (!value) {
+    String *name    = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *cname, *mrename;
+    
+    /* Create the variable name */
+    mrename = Swig_name_member(ClassPrefix, symname);
+    cname = NewStringf("%s::%s", ClassName,name);
+    
+    Setattr(n,"sym:name",mrename);
+    Setattr(n,"name", cname);
+    
+    /* Wrap as an ordinary global variable */
+    variableWrapper(n);
+    
+    Delete(mrename);
+    Delete(cname);
+  } else {
+    String *name    = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *cname   = NewStringf("%s::%s", ClassName,name);
+    String* value   = SwigType_namestr(cname);
+    Setattr(n, "value", value);
+    
+    SwigType *t1    = SwigType_typedef_resolve_all(Getattr(n,"type"));
+    SwigType *t2    = SwigType_strip_qualifiers(t1);
+    Setattr(n, "type", t2);
+    Delete(t1);
+    Delete(t2);
+    
+    
+    memberconstantHandler(n);
+    Delete(cname);
+  }  
   
-  /* Wrap as an ordinary global variable */
-  variableWrapper(n);
-
-  Delete(mrename);
-  Delete(cname);
   Swig_restore(&n);
   return SWIG_OK;
 }
