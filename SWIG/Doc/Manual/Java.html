@@ -3225,7 +3225,7 @@ JNIEXPORT jobject JNICALL Java_jnifn(...) {
 </pre></blockquote>
 
 <b><tt>$javainput, $jnicall and $owner</tt></b><br>
-The $javainput special variable is used in "javaout" typemaps and $jnicall and $owner are used in "javain" typemaps.
+The $javainput special variable is used in "javain" typemaps and $jnicall and $owner are used in "javaout" typemaps.
 $jnicall is analogous to $action in %exception. It is replaced by the call to the native method in the intermediary JNI class.
 $owner is replaced by either <tt>true</tt> if %newobject has been used, otherwise <tt>false</tt>.
 $javainput is analogous to the $input special variable. It is replaced by the parameter name.
