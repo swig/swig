@@ -224,8 +224,13 @@ static void add_symbols(Node *n) {
     decl = Getattr(n,"decl");
     if (!SwigType_isfunction(decl)) {
       symname = make_name(Getattr(n,"name"),0);
-      wrn = name_warning(symname,0);
-      Swig_features_get(features_hash, Namespaceprefix, Getattr(n,"name"), 0, n);
+      if (!symname) {
+	symname = Getattr(n,"unnamed");
+      }
+      if (symname) {
+	wrn = name_warning(symname,0);
+	Swig_features_get(features_hash, Namespaceprefix, Getattr(n,"name"), 0, n);
+      }
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
@@ -250,46 +255,27 @@ static void add_symbols(Node *n) {
       if ((wrn) && (strlen(wrn))) {
 	Printf(stderr,"%s:%d. NameWarning. %s\n", Getfile(n), Getline(n), wrn);
       }
-      c = Swig_symbol_add(symname,n);
-      if (c != n) {
-	String *e = NewString("");
-	Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
-	if (Cmp(symname,Getattr(n,"name"))) {
-	  Printf(e," (Renamed from '%s')", Getattr(n,"name"));
+      if (Strcmp(nodeType(n),"enum")) {
+	c = Swig_symbol_add(symname,n);
+	if (c != n) {
+	  String *e = NewString("");
+	  Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
+	  if (Cmp(symname,Getattr(n,"name"))) {
+	    Printf(e," (Renamed from '%s')", Getattr(n,"name"));
+	  }
+	  Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
+	  if (Cmp(symname,Getattr(c,"name"))) {
+	    Printf(e," (Renamed from '%s')", Getattr(c,"name"));
+	  }
+	  Printf(stderr,"%s\n",e);
+	  Setattr(n,"error",e);
 	}
-	Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
-	if (Cmp(symname,Getattr(c,"name"))) {
-	  Printf(e," (Renamed from '%s')", Getattr(c,"name"));
-	}
-	Printf(stderr,"%s\n",e);
-	Setattr(n,"error",e);
+      } else {
+	Setattr(n,"sym:name", symname);
       }
     }
     n = nextSibling(n);
   }
-}
-
-/* Add a declaration to the tag-space */
-static void add_tag(Node *n) {
-  String *symname = make_name(Getattr(n,"name"),0);
-  Node *c;
-  if (!symname) {
-    symname = Getattr(n,"unnamed");
-  }
-  if (!symname) return;
-  if (Cmp(symname,"$ignore") == 0) {
-    Setattr(n,"error",NewString("ignored"));
-    return;
-  }
-  c = Swig_symbol_add_tag(symname, n);
-  if (c != n) {
-    String *e = NewString("");
-    Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(n),Getline(n),symname);
-    Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(c),Getline(c), symname);
-    Printf(stderr,"%s",e);
-    Setattr(n,"error",e);
-  }
-  Swig_features_get(features_hash, 0, Getattr(n,"name"), 0, n);
 }
 
 /* Addmethods merge.  This function is used to handle the %addmethods directive
@@ -1711,7 +1697,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                   $$ = new_node("enum");
 		  Setattr($$,"name",$3);
 		  appendChild($$,$5);
-		  add_tag($$);           /* Add to tag space */
+		  add_symbols($$);           /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
 	       }
 
@@ -1757,8 +1743,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		     Setattr(n,"code",Copy(scanner_ccode));
 		   }
 		 }
+		 add_symbols($$);        /* Add enum to tag space */
 		 set_nextSibling($$,n);
-		 add_tag($$);           /* Add enum to tag space */
 		 add_symbols($5);       /* Add to id space */
 	         add_symbols(n);
 	       }
@@ -1801,8 +1787,9 @@ cpp_class_decl  :
 		       String *base;
 		       String *n = Getitem($4,i);
 		       /* Try to figure out where this symbol is */
-		       s = Swig_symbol_lookup_tag(n);
-		       if (s) {
+		       /*		       s = Swig_symbol_lookup_tag(n); */
+		       s = Swig_symbol_lookup(n);
+		       if (s && (Strcmp(nodeType(s),"class") == 0)) {
 			 String *q = Swig_symbol_qualified(s);
 			 if (q) {
 			   base = NewStringf("%s::%s", q, n);
@@ -1836,6 +1823,7 @@ cpp_class_decl  :
 		 Setattr($$,"name",$3);
 		 Setattr($$,"kind",$2);
 		 Setattr($$,"baselist",$4);
+		 Setattr($$,"allows_typedef","1");
 
 		 /* Check for pure-abstract class */
 		 if (pure_abstract($7)) {
@@ -1890,7 +1878,7 @@ cpp_class_decl  :
 		   appendChild($$,dump_nested(name));
 		 }
 		 yyrename = NewString(class_rename);
-		 add_tag($$);
+		 add_symbols($$);
 		 if ($9)
 		   add_symbols($9);
 
@@ -1924,7 +1912,7 @@ cpp_class_decl  :
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
-	       
+	       Setattr($$,"allows_typedef","1");
 	       /* Check for pure-abstract class */
 	       if (pure_abstract($5)) {
 		 SetInt($$,"abstract",1);
@@ -1993,7 +1981,7 @@ cpp_class_decl  :
 		 yyrename = NewString(class_rename);
 	       }
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-	       add_tag($$);
+	       add_symbols($$);
 	       add_symbols(n);
               }
              ;

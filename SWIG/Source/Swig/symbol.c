@@ -53,14 +53,30 @@ static char cvsroot[] = "$Header$";
  * However, if a third declaration "foo(int)" was made, it would generate a 
  * conflict (due to having a declarator that matches a previous entry).
  *
- * Tag space:
+ * Structure and classes:
  *
  * C/C++ symbol tables are normally managed in a few different spaces.  The
  * most visible namespace is reserved for functions, variables, typedef, enum values
- * and such.  A separate tag-space is reserved for 'struct name', 'class name',
- * 'union name', and 'enum name' declarations.   Each symbol table contains
- * separate spaces for both normal symbols and tags.
+ * and such.  In C, a separate tag-space is reserved for 'struct name', 'class name',
+ * and 'union name' declarations.   In SWIG, a single namespace is used for everything
+ * this means that certain incompatibilities will arise with some C programs. For instance:
+ *
+ *        struct Foo {
+ *             ...
+ *        }
+ *
+ *        int Foo();       // Error. Name clash.  Works in C though 
  * 
+ * Due to the unified namespace for structures, special handling is performed for
+ * the following:
+ *
+ *        typedef struct Foo {
+ *
+ *        } Foo;
+ * 
+ * In this case, the symbol table contains an entry for the structure itself.  The
+ * typedef is left out of the symbol table.
+ *
  * Symbol table structure:
  *
  * Symbol tables themselves are a special kind of node that is organized just like
@@ -88,6 +104,7 @@ static char cvsroot[] = "$Header$";
      
 static Hash *current = 0;         /* This current symbol table */
 static Hash *current_symtab = 0;  /* Current symbol table node */
+static Hash *symtabs = 0;         /* Hash of all symbol tables by fully-qualified name */
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_new()
@@ -101,6 +118,10 @@ Swig_symbol_init() {
   current_symtab = NewHash();
   set_nodeType(current_symtab,"sym:symboltable");
   Setattr(current_symtab,"symtab",current);
+
+  /* Set the global scope */
+  symtabs = NewHash();
+  Setattr(symtabs,"",current_symtab);
 }
 
 /* -----------------------------------------------------------------------------
@@ -110,8 +131,14 @@ Swig_symbol_init() {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_symbol_setscopename(String_or_char *name) {
+Swig_symbol_setscopename(const String_or_char *name) {
+  String *qname;
+  assert(!Getattr(current_symtab,"name"));
   Setattr(current_symtab,"name",name);
+  qname = Swig_symbol_qualifiedscopename(current_symtab);
+
+  /* Save a reference to this scope */
+  Setattr(symtabs,qname,current_symtab);
 }
 
 /* -----------------------------------------------------------------------------
@@ -123,6 +150,19 @@ Swig_symbol_setscopename(String_or_char *name) {
 String *
 Swig_symbol_getscopename() {
   return Getattr(current_symtab,"name");
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_getscope()
+ *
+ * Given a fully qualified name, this function returns a scope 
+ * ----------------------------------------------------------------------------- */
+
+Symtab *
+Swig_symbol_getscope(const String_or_char *name) {
+  if (!symtabs) return 0;
+  if (Strcmp(name,"::") == 0) name = "";
+  return Getattr(symtabs,name);
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -238,13 +278,52 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   Hash *c, *cn, *cl;
   SwigType *decl, *ndecl;
   String   *cstorage, *nstorage;
-
+  int      nt = 0, ct = 0;
   /* See if the symbol already exists in the table */
   c = Getattr(current,symname);
   if (c) {
-    /* Yes. It does.  We *only* support overloaded functions */
+    /* There is a symbol table conflict.  There are a few cases to consider here:
+        (1) A conflict between a class/enum and a typedef declaration is okay.
+            In this case, the symbol table entry is set to the class/enum declaration
+            itself, not the typedef.   
+
+        (2) Otherwise, overloading is only allowed for functions
+    */
+    if (Getattr(n,"allows_typedef")) nt = 1;
+    if (Getattr(c,"allows_typedef")) ct = 1;
+    if (nt || ct) {
+      Node *td, *other;
+      String *s;
+      /* At least one of the nodes allows typedef overloading.  Make sure that
+         both don't--this would be a conflict */
+
+      if (nt && ct) return c;
+
+      /* Figure out which node allows the typedef */
+      if (nt) {
+	td = n;
+	other = c;
+      } else {
+	td = c;
+	other = n;
+      }
+      /* Make sure the other node is a typedef */
+      s = Getattr(other,"storage");
+      if (!s || (Strcmp(s,"typedef"))) return c;  /* No.  This is a conflict */
+      
+      /* Hmmm.  This appears to be okay.  Make sure the symbol table refers to the allow_type node */
+      
+      if (td != c) {
+	Setattr(current,symname, td);
+	Setattr(td,"sym:symtab", current_symtab);
+	Setattr(td,"sym:name", symname);
+      }
+      return n;
+    }
+     
     decl = Getattr(c,"decl");
     ndecl = Getattr(n,"decl");
+
 
     if (Cmp(nodeType(n),nodeType(c))) return c;
     if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
@@ -264,9 +343,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     if (Cmp(nstorage,"typedef") == 0) {
       return c;
     }
-
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
-
     cn = c;
     while (cn) {
       decl = Getattr(cn,"decl");
@@ -292,32 +369,6 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   Setattr(n,"sym:symtab",current_symtab);
   Setattr(n,"sym:name",symname);
   Setattr(current,symname,n);
-  return n;
-}
-
-/* ----------------------------------------------------------------------------- 
- * Swig_symbol_add_tag()
- *
- * Adds a node to the tag space.
- * ----------------------------------------------------------------------------- */
-
-Node *
-Swig_symbol_add_tag(String_or_char *symname, Node *n) {
-  Hash *tag;
-  Node *c;
-  tag = Getattr(current_symtab,"tags");
-  if (!tag) {
-    tag = NewHash();
-    Setattr(current_symtab,"tags",tag);
-  }
-  c = Getattr(tag,symname);
-  if (c) {
-    return c;
-  }
-  /* No conflict.  Just add it there */
-  Setattr(n,"sym:symtab",current_symtab);
-  Setattr(n,"sym:name",symname);
-  Setattr(tag,symname,n);
   return n;
 }
 
@@ -348,28 +399,6 @@ Swig_symbol_lookup_local(String_or_char *name) {
   Hash *s;
   s = Getattr(current,name);
   if (s) return s;
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_symbol_lookup_tag()
- *
- * Look up a symbol in the symbol table
- * ----------------------------------------------------------------------------- */
-
-Node *
-Swig_symbol_lookup_tag(String_or_char *name) {
-  Hash *h, *t;
-  Hash *s;
-  h = current_symtab;
-  while (h) {
-    t = Getattr(h,"tags");
-    if (t) {
-      s = Getattr(t,name);
-      if (s) return s;
-    }
-    h = parentNode(h);
-  }
   return 0;
 }
 
