@@ -17,6 +17,8 @@ char cvsroot_cwrap_c[] = "$Header$";
 
 #include "swig.h"
 
+extern int    cparse_cplusplus;
+
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
     SwigType *t = Getattr(p,"type");
@@ -136,6 +138,8 @@ Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
  *
  * Emit all of the local variables for a list of parameters.  Returns the
  * number of parameters.
+ * Default values for the local variables are only emitted if the compact default
+ * argument behaviour is required.
  * ----------------------------------------------------------------------------- */
 int Swig_cargs(Wrapper *w, ParmList *p) {
   int   i;
@@ -147,15 +151,22 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   SwigType *altty;
   String  *type;
   int      tycode;
+  int      compactdefargs = ParmList_is_compactdefargs(p);
 
   i = 0;
+
   while (p != 0) {
     lname  = Swig_cparm_name(p,i);
     pt     = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
       pname  = Getattr(p,"name");
-/*      pvalue = Getattr(p,"value");*/
-      pvalue = 0;
+
+      /* default values only emitted if in compact default args mode */
+      if (compactdefargs)
+        pvalue = Getattr(p,"value");
+      else
+        pvalue = 0;
+
       type  = Getattr(p,"type");
       altty = SwigType_alttype(type,0);
       tycode = SwigType_type(type);
@@ -683,11 +694,12 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
       String *body;
-      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str_defaultargs(p));
+      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(p) : ParmList_str(p);
+      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
       body = SwigType_str(type,tmp);
-      Delete(tmp);
       Printv(body,code,"\n",NIL);
       Setattr(n,"wrap:code",body);
+      Delete(tmp);
       Delete(body);
     }
 
@@ -844,12 +856,13 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 
     /* See if there is any code that we need to emit */
     if (!defaultargs && code) {
-      String *body, *tmp;
-      tmp = NewStringf("%s(%s)", mangled, ParmList_str_defaultargs(parms));
+      String *body;
+      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
+      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
       body = SwigType_str(type,tmp);
-      Delete(tmp);
       Printv(body,code,"\n",NIL);
       Setattr(n,"wrap:code",body);
+      Delete(tmp);
       Delete(body);
     }
 
@@ -942,7 +955,8 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
     mangled = Swig_name_mangle(membername);
     code = Getattr(n,"code");
     if (code) {
-      String *s = NewStringf("void %s(%s)", mangled, ParmList_str(p));
+      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(p) : ParmList_str(p);
+      String *s = NewStringf("void %s(%s)", mangled, parmstring);
       Printv(s,code,"\n",NIL);
       Setattr(n,"wrap:code",s);
       Delete(s);
@@ -1011,7 +1025,8 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   if (flags & CWRAP_EXTEND) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *s = NewStringf("void %s(%s)", mangled, ParmList_str(parms));
+      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
+      String *s = NewStringf("void %s(%s)", mangled, parmstring);
       Printv(s,code,"\n",NIL);
       Setattr(n,"wrap:code",s);
       Delete(s);
@@ -1068,7 +1083,8 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   if (flags & CWRAP_EXTEND) {
     String *code = Getattr(n,"code");
     if (code) {
-      String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(parms));
+      String *parmstring = cparse_cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
+      String *tmp = NewStringf("%s(%s)", mangled, parmstring);
       String *s = SwigType_str(ty,tmp);
       Delete(tmp);
       Printv(s,code,"\n",NIL);

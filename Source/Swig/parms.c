@@ -48,6 +48,7 @@ Parm *CopyParm(Parm *p) {
   String   *ignore;
   String   *alttype;
   String   *byname;
+  String   *compactdefargs;
 
   Parm *np = NewHash();
   t = Getattr(p,"type");
@@ -57,6 +58,7 @@ Parm *CopyParm(Parm *p) {
   ignore = Getattr(p,"ignore");
   alttype = Getattr(p,"alttype");
   byname = Getattr(p, "arg:byname");
+  compactdefargs = Getattr(p, "compactdefargs");
 
   if (t) 
     Setattr(np,"type",Copy(t));
@@ -72,6 +74,8 @@ Parm *CopyParm(Parm *p) {
     Setattr(np,"alttype", Copy(alttype));
   if (byname)
     Setattr(np, "arg:byname", Copy(byname));
+  if (compactdefargs)
+    Setattr(np, "compactdefargs", Copy(compactdefargs));
       
   Setfile(np,Getfile(p));
   Setline(np,Getline(p));
@@ -218,5 +222,29 @@ String *ParmList_protostr(ParmList *p) {
   return out;
 }
 
+/* ---------------------------------------------------------------------
+ * ParmList_is_compactdefargs()
+ *
+ * Returns 1 if the parameter list passed in is marked for compact argument
+ * handling (by the "compactdefargs" attribute). Otherwise returns 0.
+ * ---------------------------------------------------------------------- */
+
+int ParmList_is_compactdefargs(ParmList *p) {
+  int compactdefargs = 0;
+  
+  if (p) {
+    compactdefargs = Getattr(p,"compactdefargs") ? 1 : 0;
+
+    /* The "compactdefargs" attribute should only be set on the first parameter in the list.
+     * However, sometimes an extra parameter is inserted at the beginning of the parameter list,
+     * so we check the 2nd parameter too. */
+    if (!compactdefargs) {
+      Parm *nextparm = nextSibling(p);
+      compactdefargs = (nextparm && Getattr(nextparm,"compactdefargs")) ? 1 : 0;
+    }
+  }
+
+  return compactdefargs;
+}
 
 

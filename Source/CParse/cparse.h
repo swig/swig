@@ -44,6 +44,7 @@ extern int       yylex();
 extern SwigType *Swig_cparse_type(String *);
 extern Node     *Swig_cparse(File *);
 extern Hash     *Swig_cparse_features();
+extern void      SWIG_cparse_set_compact_default_args(int defargs);
 
 /* util.c */
 extern void      Swig_cparse_replace_descriptor(String *s);
