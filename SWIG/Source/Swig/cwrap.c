@@ -472,6 +472,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   }
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
+  Setattr(p,"hidden","1");
   set_nextSibling(p,parms);
   Delete(type);
   

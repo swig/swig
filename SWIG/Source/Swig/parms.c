@@ -176,6 +176,10 @@ String *ParmList_protostr(ParmList *p) {
 
   out = NewString("");
   while(p) {
+    if (Getattr(p,"hidden")) {
+      p = nextSibling(p);
+      continue;
+    }
     t = Getattr(p,"type");
     Printf(out,"%s", SwigType_str(t,0));
     p = nextSibling(p);

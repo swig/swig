@@ -1120,6 +1120,11 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Delete(locals);  
   }
 
+  if (checkAttribute(tm,"type","SWIGTYPE")) {
+    sprintf(temp,"%s:SWIGTYPE", Char(op));
+    Setattr(node,tmop_name(temp),"1");
+  }
+
   /* Attach kwargs */
   kw = Getattr(tm,"kwargs");
   while (kw) {
@@ -1127,6 +1132,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Setattr(node,tmop_name(temp), Copy(Getattr(kw,"value")));
     kw = nextSibling(kw);
   }
+
   /* Look for warnings */
   {
     String *w;
@@ -1136,6 +1142,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
       Swig_warning(0,Getfile(node),Getline(node),"%s\n", w);
     }
   }
+
   /* Look for code fragments */
   {
     String *f;
@@ -1224,6 +1231,10 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       lname = Getattr(p,"lname");
 
       typemap_replace_vars(s,locals, type,pname,lname,i+1);
+      if (checkAttribute(tm,"type","SWIGTYPE")) {
+	sprintf(temp,"%s:SWIGTYPE", Char(op));
+	Setattr(p,tmop_name(temp),"1");
+      }
       p = nextSibling(p);
     }
     

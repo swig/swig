@@ -123,11 +123,17 @@ Swig_overload_rank(Node *n) {
 	      t1 = Getattr(p1,"ltype");
 	      if (!t1) {
 		t1 = SwigType_ltype(Getattr(p1,"type"));
+		if (Getattr(p1,"tmap:typecheck:SWIGTYPE")) {
+		  SwigType_add_pointer(t1);
+		}
 		Setattr(p1,"ltype",t1);
 	      }
 	      t2 = Getattr(p2,"ltype");
 	      if (!t2) {
 		t2 = SwigType_ltype(Getattr(p2,"type"));
+		if (Getattr(p2,"tmap:typecheck:SWIGTYPE")) {
+		  SwigType_add_pointer(t2);
+		}
 		Setattr(p2,"ltype",t2);
 	      }
 	      if (Strcmp(t1,t2) != 0) {
