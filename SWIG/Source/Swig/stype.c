@@ -634,7 +634,7 @@ SwigType *SwigType_default(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_str(SwigType *s, String_or_char *id)
+SwigType_str(SwigType *s, const String_or_char *id)
 {
   String *result;
   String *element = 0, *nextelement;
@@ -720,7 +720,7 @@ SwigType_str(SwigType *s, String_or_char *id)
  * -------------------------------------------------------------------- */
 
 String *
-SwigType_lstr(SwigType *s, String_or_char *id)
+SwigType_lstr(SwigType *s, const String_or_char *id)
 {
   String *result;
   String *element = 0, *nextelement;
@@ -871,7 +871,7 @@ SwigType_ltype(SwigType *s) {
  * datatype printed by str().
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(SwigType *s, String_or_char *name) {
+String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   String *result, *cast;
   String *element = 0, *nextelement;
   SwigType *td;
@@ -971,7 +971,7 @@ String *SwigType_rcaststr(SwigType *s, String_or_char *name) {
  * Casts a variable from the real type to the local datatype.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_lcaststr(SwigType *s, String_or_char *name) {
+String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   String *result;
 
   result = NewString("");
