@@ -1,4 +1,4 @@
-# file: example1.tcl
+# file: runme.tcl
 
 # This file illustrates the high level C++ interface.
 # In this case C++ classes work kind of like Tk widgets

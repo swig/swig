@@ -1,4 +1,4 @@
-# file: example.tcl
+# file: runme.tcl
 
 # This file illustrates the manipulation of C++ references in Tcl
 

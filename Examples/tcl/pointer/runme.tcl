@@ -1,4 +1,4 @@
-# file: example.tcl
+# file: runme.tcl
 
 catch { load ./example[info sharedlibextension] example}
 
