@@ -37,6 +37,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+        default_constructor \
 	constant_pointers \
 	cpp_enum \
 	cpp_static \
@@ -90,7 +91,7 @@ check: all
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
-	TARGET="$(TARGETPREFIX)$*$(TRAGETSUFFIX)" INTERFACE="$*.i" \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
