@@ -54,9 +54,13 @@ namespace std {
         $result = rb_str_new2($1->c_str());
     }
 
-    %typemap(directorin) string, const string &, string & "$1_name.c_str()";
+    %typemap(directorin) string, const string &, string & {
+      $input = rb_str_new2($1_name.c_str());
+    }  
 
-    %typemap(directorin) string *, const string * "$1_name->c_str()";
+    %typemap(directorin) string *, const string * {
+      $input = rb_str_new2($1_name->c_str());
+    }
     
     %typemap(directorout) string {
         if (TYPE($input) == T_STRING)
