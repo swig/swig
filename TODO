@@ -1,6 +1,6 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.16    (Late September, 2002)
+Release: SWIG-1.3.18    (Late Feb??? 2003)
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -274,7 +274,9 @@ Ruby
 Java
 ----
 
-[DONE] Consider using typemaps for proxy class code generation.
+**     Vararg typemaps
+**     $javaconst(1) option for enums - so that no JNI call is necessary to 
+       get the value of the enum.
 
 PHP
 ---
