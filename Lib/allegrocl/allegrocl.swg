@@ -14,7 +14,7 @@
   
 (defun identifier-convert-null (id &key type)
   (declare (ignore type))
-  (intern id))
+  (read-from-string id))
 
 (defun identifier-convert-lispify (cname &key type)
   (assert (stringp cname))
@@ -42,7 +42,7 @@
          else
               (push char res)
               (setf lastcase :other)))
-    (intern (coerce (nreverse res) 'string))))
+    (read-from-string (coerce (nreverse res) 'string))))
 
 (defmacro swig-defconstant (string value)
   (let ((symbol (funcall *swig-identifier-converter* string :type :constant)))
@@ -57,7 +57,11 @@
 	 (ff:def-foreign-call (,symbol ,name) ,@rest)
 	 (export (quote ,symbol))))))
 
-
+(defmacro swig-def-foreign-type (name &rest rest)
+  (let ((symbol (funcall *swig-identifier-converter* name :type :type)))
+    `(eval-when (compile load eval)
+       (ff:def-foreign-type ,symbol ,@rest)
+       (export (quote ,symbol)))))
 
 ) ;; eval-when
 %}
