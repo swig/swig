@@ -27,7 +27,8 @@ Active Developers:
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
  Mark Rose (mrose@stm.lbl.gov)                          (Directors)
- 
+ Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
+
 Major contributors include:
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Richard Palmer (richard@magicality.org)                (PHP)
