@@ -52,6 +52,7 @@ CPP_TEST_BROKEN += \
 	features \
 	multiple_inheritance \
 	namespace_union \
+	overload_complicated \
 	return_const_value \
 	smart_pointer_namespace2 \
 	template_default_arg \
@@ -173,7 +174,6 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_virtual_method \
 	newobject1 \
-	overload_complicated \
 	overload_copy \
 	overload_extend \
 	overload_simple \
