@@ -445,7 +445,9 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   DOH    *rn = 0;
   Hash   *n;
   char   *ncdecl = 0;
+  const char *dcolon = "::";
 
+  
   if (!features) return;
 
   if ((decl) && (SwigType_isqualifier(decl))) {

@@ -58,6 +58,7 @@ static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
        String  *ModuleName = 0;
 static String  *Classprefix = 0;  
+static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static int      templatemode = 0;
 static int      templatenum = 0;
@@ -121,8 +122,8 @@ static void
 rename_add(char *name, SwigType *decl, char *newname) {
   String *nname;
   if (!rename_hash) rename_hash = NewHash();
-  if (Classprefix) {
-    nname = NewStringf("%s::%s",Classprefix, name);
+  if (Namespaceprefix) {
+    nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
@@ -134,8 +135,8 @@ static void
 namewarn_add(char *name, SwigType *decl, char *warning) {
   String *nname;
   if (!namewarn_hash) namewarn_hash = NewHash();
-  if (Classprefix) {
-    nname = NewStringf("%s::%s",Classprefix, name);
+  if (Namespaceprefix) {
+    nname = NewStringf("%s::%s",Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
@@ -158,6 +159,11 @@ static String *make_name(String *name,SwigType *decl) {
   String *origname = name;
   int     destructor = 0;
 
+  /*  if (Namespaceprefix) {
+    Printf(stdout,"%s%s\n", Namespaceprefix,name);
+  }
+  */
+
   if (name && (*(Char(name)) == '~')) {
     destructor = 1;
   }
@@ -173,9 +179,9 @@ static String *make_name(String *name,SwigType *decl) {
   /* Check to see if the name is in the hash */
   if (!rename_hash) return origname;
   if (!destructor) {
-    rn = Swig_name_object_get(rename_hash, Classprefix, name, decl);
+    rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
   } else {
-    rn = Swig_name_object_get(rename_hash, Classprefix, Char(name)+1,decl);
+    rn = Swig_name_object_get(rename_hash, Namespaceprefix, Char(name)+1,decl);
   }
   if (!rn) return name;
   if (destructor) {
@@ -198,7 +204,7 @@ static String *name_warning(String *name,SwigType *decl) {
 
   /* Check to see if the name is in the hash */
   if (!namewarn_hash) return 0;
-  rn = Swig_name_object_get(namewarn_hash, Classprefix,name,decl);
+  rn = Swig_name_object_get(namewarn_hash, Namespaceprefix,name,decl);
   if (!rn) return 0;
   return rn;
 }
@@ -219,13 +225,13 @@ static void add_symbols(Node *n) {
     if (!SwigType_isfunction(decl)) {
       symname = make_name(Getattr(n,"name"),0);
       wrn = name_warning(symname,0);
-      Swig_features_get(features_hash, Classprefix, Getattr(n,"name"), 0, n);
+      Swig_features_get(features_hash, Namespaceprefix, Getattr(n,"name"), 0, n);
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
       symname = make_name(Getattr(n,"name"),fun);
       wrn = name_warning(symname,fun);
-      Swig_features_get(features_hash,Classprefix,Getattr(n,"name"),fun,n);
+      Swig_features_get(features_hash,Namespaceprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
       Delete(fun);
     }
@@ -597,7 +603,8 @@ static void patch_template_type(String *s) {
 %token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
-%token USING NAMESPACE
+%token USING
+%token <node> NAMESPACE
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
@@ -774,6 +781,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 		 current_class = cls;
 	       }
 	       Classprefix = NewString($2);
+	       Namespaceprefix= Swig_symbol_qualifiedscopename(0);
 	     } cpp_members RBRACE {
                $$ = new_node("addmethods");
 	       Setattr($$,"name",$2);
@@ -799,6 +807,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 	       current_class = 0;
 	       Delete(Classprefix);
 	       Classprefix = 0;
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       prev_symtab = 0;
 	       $$ = 0;
 	     }
@@ -1216,7 +1225,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
+		 if (Namespaceprefix) name = NewStringf("%s::%s", Namespaceprefix, $5.id);
 		 else name = NewString($5.id);
 		 val = $7 ? Copy($7) : 0;
 		 if ($5.parms) {
@@ -1259,7 +1268,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 if (Classprefix) name = NewStringf("%s::%s", $7.id);
+		 if (Namespaceprefix) name = NewStringf("%s::%s", Namespaceprefix, $7.id);
 		 else name = NewString($7.id);
 		 val = NewString($5);
 		 if ($7.parms) {
@@ -1298,7 +1307,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		String *name;
 		String *fname = NewStringf("feature:%s",$3);
 		if (!features_hash) features_hash = NewHash();
-		if (Classprefix) name = NewStringf("%s::", Classprefix);
+		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
 		else name = NewString("");
 		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : 0));
 		Delete(name);
@@ -1320,7 +1329,7 @@ varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEM
 		 String *name;
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
-		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
+		 if (Namespaceprefix) name = NewStringf("%s::%s", Namespaceprefix, $5.id);
 		 else name = NewString($5.id);
 		 val = $3;
 		 if ($5.parms) {
@@ -1783,10 +1792,28 @@ cpp_class_decl  :
 		   Classprefix = NewString($3);
 		   /* Deal with renaming */
 		   if ($4) {
+		     String *derived;
 		     int i;
+		     if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix, $3);
+		     else derived = NewString($3);
 		     for (i = 0; i < Len($4); i++) {
+		       Node *s;
+		       String *base;
 		       String *n = Getitem($4,i);
-		       rename_inherit(n,$3);
+		       /* Try to figure out where this symbol is */
+		       s = Swig_symbol_lookup_tag(n);
+		       if (s) {
+			 String *q = Swig_symbol_qualified(s);
+			 if (q) {
+			   base = NewStringf("%s::%s", q, n);
+			 } else {
+			   base = NewString(n);
+			 }
+		       } else {
+			 base = NewString(n);
+		       }
+		       rename_inherit(base,derived);
+		       Delete(base);
 		     }
 		   }
 
@@ -1797,6 +1824,7 @@ cpp_class_decl  :
 		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   start_line = line_number;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
@@ -1863,11 +1891,12 @@ cpp_class_decl  :
 		 }
 		 yyrename = NewString(class_rename);
 		 add_tag($$);
-
 		 if ($9)
 		   add_symbols($9);
 
 		 Classprefix = 0;
+		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -1883,6 +1912,7 @@ cpp_class_decl  :
 	       start_line = line_number;
 	       inclass = 1;
 	       Classprefix = NewString("");
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
              } cpp_members RBRACE declarator c_decl_tail {
 	       String *unnamed;
 	       Node *n, *p, *pp = 0;
@@ -1962,6 +1992,7 @@ cpp_class_decl  :
 	       if (class_rename) {
 		 yyrename = NewString(class_rename);
 	       }
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       add_tag($$);
 	       add_symbols(n);
               }
@@ -2104,14 +2135,55 @@ cpp_using_decl : USING idcolon SEMI {
              }
              ;
 
-cpp_namespace_decl : NAMESPACE idcolon LBRACE interface RBRACE {
-                $$ = $4;
-		set_nodeType($$,"namespace");
-		Setattr($$,"name",$2);
+cpp_namespace_decl : NAMESPACE idcolon LBRACE { 
+                Hash *h;
+                $1 = Swig_symbol_current();
+		h = Swig_symbol_lookup($2);
+		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
+		  Swig_symbol_setscope(Getattr(h,"symtab"));
+		} else {
+		  Swig_symbol_newscope();
+		  Swig_symbol_setscopename($2);
+		}
+		Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+             } interface RBRACE {
+                Node *n = $5;
+		set_nodeType(n,"namespace");
+		Setattr(n,"name",$2);
+                Setattr(n,"symtab", Swig_symbol_popscope());
+		Swig_symbol_setscope($1);
+		$$ = n;
+		Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		if (!Swig_symbol_lookup($2)) {
+		  add_symbols($$);
+		}
              } 
-             | NAMESPACE LBRACE interface RBRACE {
-	       $$ = $3;
+             | NAMESPACE LBRACE {
+	       Hash *h;
+	       $1 = Swig_symbol_current();
+	       h = Swig_symbol_lookup("");
+	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
+		 Swig_symbol_setscope(Getattr(h,"symtab"));
+	       } else {
+		 Swig_symbol_newscope();
+		 Swig_symbol_setscopename("__unnamed__");
+	       }
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+             } interface RBRACE {
+	       $$ = $4;
 	       set_nodeType($$,"namespace");
+	       Setattr($$,"unnamed","1");
+	       Setattr($$,"symtab", Swig_symbol_popscope());
+	       Swig_symbol_setscope($1);
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+	       if (!Swig_symbol_lookup("__unnamed__")) {
+		 add_symbols($$);
+	       }
+             }
+             | NAMESPACE idcolon EQUAL idcolon SEMI {
+	       $$ = new_node("namespace");
+	       Setattr($$,"name",$2);
+	       Setattr($$,"alias",$4);
              }
              ;
 
@@ -2467,13 +2539,25 @@ def_args       : EQUAL definetype {
                      fully qualified name.  Needed for C++ enums and other features */
 		  n = Swig_symbol_lookup($2.val);
 		  if (n) {
-		    $$.val = NewStringf("%s%s", Swig_symbol_qualified(n),$2.val);
+		    String *q = Swig_symbol_qualified(n);
+		    if (q) {
+		      $$.val = NewStringf("%s::%s", q,$2.val);
+		      Delete(q);
+		    } else {
+		      $$.val = NewString($2.val);
+		    }
 		  }
                }
                | EQUAL AND idcolon {
 		 Node *n = Swig_symbol_lookup($3);
 		 if (n) {
-		   $$.val = NewStringf("&%s%s", Swig_symbol_qualified(n),$3);
+		   String *q = Swig_symbol_qualified(n);
+		   if (q) {
+		     $$.val = NewStringf("&%s::%s", q,$3);
+		     Delete(q);
+		   } else {
+		     $$.val = NewStringf("&%s", $3);
+		   }
 		 } else {
 		   $$.val = NewStringf("&%s",$3);
 		 }

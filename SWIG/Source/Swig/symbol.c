@@ -141,12 +141,16 @@ Swig_symbol_qualifiedscopename(Symtab *symtab) {
   if (parent) {
     result = Swig_symbol_qualifiedscopename(parent);
   }
-  if (!result) {
-    result = NewString("");
-  }
   name = Getattr(symtab,"name");
   if (name) {
-    Printf(result,"%s::",name);
+    if (!result) {
+      result = NewString("");
+    }
+    if (Len(result)) {
+      Printf(result,"::%s",name);
+    } else {
+      Printf(result,"%s",name);
+    }
   }
   return result;
 }
@@ -338,7 +342,6 @@ Swig_symbol_lookup(String_or_char *name) {
   }
   return 0;
 }
-
 
 Node *
 Swig_symbol_lookup_local(String_or_char *name) {
