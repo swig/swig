@@ -319,7 +319,6 @@ extern String     *ParmList_protostr(ParmList *);
 
 extern void appendChild(Node *node, Node *child);
 extern void deleteNode(Node *node);
-
 extern int  Swig_require(Node **node, ...);
 extern int  Swig_save(Node **node,...);
 extern void Swig_restore(Node **node);
@@ -399,24 +398,28 @@ extern String    *Swig_wrapped_var_deref(SwigType *t, String_or_char *name);
 extern String    *Swig_wrapped_var_assign(SwigType *t, String_or_char *name);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
+
 extern String    *Swig_cfunction_call(String_or_char *name, ParmList *parms);
-extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms);
+extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self);
 extern String    *Swig_cconstructor_call(String_or_char *name);
 extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms);
 extern String    *Swig_cdestructor_call();
 extern String    *Swig_cppdestructor_call();
-extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type);
-extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t);
+extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self);
+extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t, String_or_char *self);
 
 /* --- Transformations --- */
 
-extern int        Swig_MethodToFunction(Node *n, String *classname, int added);
-extern int        Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int added);
-extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int added);
-extern int        Swig_MembersetToFunction(Node *n, String *classname, int added);
-extern int        Swig_MembergetToFunction(Node *n, String *classname, int added);
+extern int        Swig_MethodToFunction(Node *n, String *classname, int flags);
+extern int        Swig_ConstructorToFunction(Node *n, String *classname, int cplus, int flags);
+extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
+extern int        Swig_MembersetToFunction(Node *n, String *classname, int flags);
+extern int        Swig_MembergetToFunction(Node *n, String *classname, int flags);
 extern int        Swig_VargetToFunction(Node *n);
 extern int        Swig_VarsetToFunction(Node *n);
+
+#define  CWRAP_EXTEND             0x01
+#define  CWRAP_SMART_POINTER      0x02
 
 /* --- Legacy Typemap API (somewhat simplified, ha!) --- */
 
@@ -440,12 +443,6 @@ extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
 extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f);
-
-/* --- Legacy %except directive API --- */
-
-extern void   Swig_except_register(String_or_char *code);
-extern String *Swig_except_lookup();
-extern void   Swig_except_clear();
 
 #endif
 

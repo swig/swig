@@ -1261,36 +1261,4 @@ void Swig_typemap_debug() {
   }
   Printf(stdout,"-----------------------------------------------------------------------------\n");
 }
- 
 
-/* -----------------------------------------------------------------------------
- * %except directive support.
- *
- * These functions technically don't really have anything to do with typemaps
- * except that they have the same scoping rules.  Therefore, it's easy enough to 
- * just use the hash table structure of the typemap code.
- * ----------------------------------------------------------------------------- */
-
-void Swig_except_register(String_or_char *code) {
-  String *s = NewString(code);
-  Setattr(typemaps[tm_scope],"*except*",s);
-  Delete(s);
-}
-
-String *Swig_except_lookup() {
-  String *s;
-  int ts = tm_scope;
-  while (ts >= 0) {
-    s = Getattr(typemaps[tm_scope],"*except*");
-    if (s) {
-      s = Copy(s);
-      return s;
-    }
-    ts--;
-  }
-  return 0;
-}
-
-void Swig_except_clear() {
-  Delattr(typemaps[tm_scope],"*except*");
-}

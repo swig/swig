@@ -1118,27 +1118,24 @@ echo_directive : ECHO HBLOCK {
 
 except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_balanced('{','}');
-		    if (strcmp($3,typemap_lang) == 0) {
-		      $$ = new_node("except");
-		      Setattr($$,"code",Copy(scanner_ccode));
-		    } else {
-		      $$ = 0;
-		    }
-		    free($3);
+		    $$ = 0;
+		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
 	       }
 
                | EXCEPT LBRACE {
                     skip_balanced('{','}');
-		    $$ = new_node("except");
-		    Setattr($$,"code",Copy(scanner_ccode));
+		    $$ = 0;
+		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
                }
 
                | EXCEPT LPAREN ID RPAREN SEMI {
-		 $$ = new_node("except");
+		 $$ = 0;
+		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
                }
 
                | EXCEPT SEMI {
-		 $$ = new_node("except");
+		 $$ = 0;
+		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.");
 	       }
                ;
 
