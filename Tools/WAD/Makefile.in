@@ -1,17 +1,16 @@
 # Generated automatically from Makefile.in by configure.
-# Generated automatically from Makefile.in by configure.
 
 
 # Location of your Python installation
-PYINCLUDE = -I/usr/local/include/python1.5 -I/usr/local/lib/python1.5/config
+PYINCLUDE = @PYINCLUDE@
 
 # Location of your Tcl installation
-TCLINCLUDE = -I/usr/local/include
+TCLINCLUDE = @TCLINCLUDE@
 
 # Location of your Perl installation
-PERLINCLUDE = -I/usr/lib/perl5/5.00503/i386-linux/CORE
+PERLINCLUDE = @PERL5EXT@
 
-all: wad python tcl perl
+all: wad @MAKEPYTHON@ @MAKETCL@ @MAKEPERL@
 	
 
 wad:
