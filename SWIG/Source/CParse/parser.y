@@ -297,10 +297,15 @@ static String *name_warning(String *name,SwigType *decl) {
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
 
+extern void cparse_normalize_void(Node *);
 
 static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
+
+  if (inclass) {
+    cparse_normalize_void(n);
+  }
 
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
