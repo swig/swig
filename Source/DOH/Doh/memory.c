@@ -13,7 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 #ifndef DOH_POOL_SIZE
 #define DOH_POOL_SIZE         65536

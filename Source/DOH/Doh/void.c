@@ -13,7 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 /* -----------------------------------------------------------------------------
  * void.c
@@ -40,14 +40,15 @@ static DohObjInfo DohVoidType = {
   0,                /* doh_str */
   Void_data,        /* doh_data */
   0,                /* doh_dump */
+  0,                /* doh_load */
   0,                /* doh_len */
   0,                /* doh_hash    */
   0,                /* doh_cmp */
   0,                /* doh_mapping */
   0,                /* doh_sequence */
   0,                /* doh_file  */
-  0,                /* reserved2 */
-  0,                /* reserved3 */
+  0,                /* doh_string */
+  0,                /* doh_callable */
   0,                /* reserved4 */
   0,                /* reserved5 */
   0,                /* reserved6 */

@@ -21,7 +21,7 @@
  * General purpose structure for keeping a list of reference counted Swig objects.
  *******************************************************************************/
 
-#include "doh.h"
+#include "dohint.h"
 
 typedef struct List {
     DOHCOMMON;
@@ -60,22 +60,20 @@ static DohSequenceMethods ListSeqMethods = {
 static DohObjInfo ListType = {
     "List",          /* objname */
     sizeof(List),    /* List size */
-    DelList,         /* sm_del */
-    CopyList,        /* sm_copy */
-    List_clear,      /* sm_clear */
-    List_str,        /* sm_str */
+    DelList,         /* doh_del */
+    CopyList,        /* doh_copy */
+    List_clear,      /* doh_clear */
+    List_str,        /* doh_str */
     0,               /* doh_data */
     List_dump,       /* doh_dump */
-    List_len,        /* sm_len */
-    0,               /* sm_hash    */
+    0,               /* doh_load */
+    List_len,        /* doh_len */
+    0,               /* doh_hash    */
     0,               /* doh_cmp */
     0,               /* doh_mapping */
     &ListSeqMethods, /* doh_sequence */
-    0,
-    0,
-    0,
-    0,
-    0,
+    0,               /* doh_string */
+    0,               /* doh_callable */
 };
 
 DohObjInfo *List_type() {
