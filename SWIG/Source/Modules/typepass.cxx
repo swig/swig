@@ -259,8 +259,8 @@ class TypePass : public Dispatcher {
       if ((Strcmp(nodeType(nn),"template") == 0) ||
 	  (Getattr(nn,"feature:ignore")) ||
 	  (Getattr(nn,"error")) ||
-	  ((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn)) ||
-	  (checkAttribute(nn,"storage","friend"))) {
+	  // (checkAttribute(nn,"storage","friend")) ||
+	  ((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn))) {
 	/* Remove from overloaded list */
 	Node *ps = Getattr(nn,"sym:previousSibling");
 	Node *ns = Getattr(nn,"sym:nextSibling");
