@@ -38,25 +38,25 @@ CPP_TEST_CASES = \
 	cpp_enum \
 	cpp_static \
 	virtual_destructor \
-	cplusplus-throw \
-	pointer-reference \
+	cplusplus_throw \
+	pointer_reference \
 	casts \
-	template-whitespace \
-	anonymous-arg \
-	static-array-member \
-	pointer-cxx
-#	long-long
+	template_whitespace \
+	anonymous_arg \
+	static_array_member \
+	pointer_cxx
+#	long_long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES = \
 	defines \
 	sizeof_pointer \
 	unions \
-	macro-2 \
-	const-const \
-	char-constant \
+	macro_2 \
+	const_const \
+	char_constant \
 	name \
-	preproc-1
+	preproc_1
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) $(C_TEST_CASES:=.ctest)
 ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) $(C_TEST_CASES:=.clean)
