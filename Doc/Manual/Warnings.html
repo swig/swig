@@ -423,7 +423,9 @@ example.i(4): Syntax error in input.
 <li>465. Unable to handle type <em>type</em>.
 <li>466. Unsupported variable type <em>type</em>.
 <li>467. Overloaded <em>declaration</em> not supported (no type checking rule for '<em>type</em>')
-<li>468. No 'throw' typemap defined for exception type 'type'.
+<li>468. No 'throw' typemap defined for exception type <em>type</em>
+<li>469. No or improper directorin typemap defined for <em>type</em>
+<li>470. Unable to use return type <em>type</em> in director method
 </ul>
 
 <H3><a name="Warnings_nn14"></a>14.8.5 Code generation (500-599)</H3>
@@ -469,6 +471,8 @@ example.i(4): Syntax error in input.
 <li>820. No javadirectorout typemap defined for <em>type</em>  (Java).
 <li>821. 
 <li>822. Covariant return types not supported in Java. Proxy method will return <em>basetype</em>  (Java).
+<li>823. No javaconstruct typemap defined for <em>type</em>  (Java).
+<li>824. Missing JNI descriptor in directorin typemap defined for <em>type</em> (Java).
 </ul>
 
 <ul>
@@ -485,6 +489,9 @@ example.i(4): Syntax error in input.
 <li>840. 
 <li>841. 
 <li>842. Covariant return types not supported in C#. Proxy method will return <em>basetype</em>  (C#).
+<li>843. No csconstruct typemap defined for <em>type</em>  (C#).
+<li>844. C# exception may not be thrown - no $excode or excode attribute in <em>typemap</em> typemap. (C#).
+<li>845. Unmanaged code contains a call to a SWIG_CSharpSetPendingException method and C# code does not handle pending exceptions via the canthrow attribute. (C#).
 </ul>
 
 <H3><a name="Warnings_nn16"></a>14.8.7 User defined (900-999)</H3>
