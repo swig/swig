@@ -1000,8 +1000,9 @@ extern "C" int yylex(void) {
     case NUM_LONG:
     case NUM_UNSIGNED:
       yylval.str = NewString(yytext);
+      return(l);
       break;
-
+      
     case ID:
 
 	if (yytext[0] != '%') {
