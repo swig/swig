@@ -155,8 +155,6 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
   if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY], CTYPE[] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
-%typemap(directorin,descriptor=JNIDESC) CTYPE[ANY], CTYPE[]
-%{$input = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(out) CTYPE[ANY]
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(out) CTYPE[] 
@@ -172,9 +170,6 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(javaout) CTYPE[ANY], CTYPE[] {
     return $jnicall;
   }
-
-%typemap(javadirectorin) CTYPE[ANY], CTYPE[] "$jniinput"
-%typemap(javadirectorout) CTYPE[ANY], CTYPE[] "$javacall"
 
 %enddef
 
