@@ -1147,7 +1147,7 @@ extern "C" int yylex(void) {
 	  
 	  // Ignored keywords
 	  
-	  if (strcmp(yytext,"volatile") == 0) return(yylex());
+	  if (strcmp(yytext,"volatile") == 0) return(VOLATILE);
 	  
 	  // SWIG directives
 	} else {

@@ -489,7 +489,7 @@ static Node *dump_nested(char *parent) {
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
-%token CONST STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
 %token NAME RENAME ADDMETHODS PRAGMA
 %token ENUM
@@ -544,7 +544,8 @@ static Node *dump_nested(char *parent) {
 %type <dtype>    expr;
 %type <id>       ename ;
 %type <id>       template_decl;
-%type <id>       type_qualifier;
+%type <str>      type_qualifier;
+%type <id>       type_qualifier_raw;
 %type <id>       idstring;
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
@@ -2231,7 +2232,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 pointer    : STAR type_qualifier pointer { 
                $$ = $3;  
                SwigType_add_pointer($$);
-	       SwigType_add_qualifier($$,$2);
+	       SwigType_push($$,$2);
            }
            | STAR pointer {
 	     $$ = $2;
@@ -2240,7 +2241,7 @@ pointer    : STAR type_qualifier pointer {
            | STAR type_qualifier { 
 	     	$$ = NewString("");	
 		SwigType_add_pointer($$);
-		SwigType_add_qualifier($$,$2);
+	        SwigType_push($$,$2);
            }
            | STAR {
 	      $$ = NewString("");
@@ -2248,16 +2249,26 @@ pointer    : STAR type_qualifier pointer {
 	      }
            ;
 
-type_qualifier : CONST { $$ = "const"; }
-               | CONST type_qualifier { $$ = "const"; }
+type_qualifier : type_qualifier_raw { 
+                  $$ = NewString("");
+	          SwigType_add_qualifier($$,$1);
+               }
+               | type_qualifier_raw type_qualifier { 
+                  $$ = $2; 
+                  SwigType_add_qualifier($$,$1);
+               }
                ;
- 
+
+type_qualifier_raw :  CONST { $$ = "const"; }
+                   |  VOLATILE { $$ = "volatile"; }
+                   ;
+
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
 type           : type_qualifier type_right {
                    $$ = $2;
-		   SwigType_add_qualifier($$,$1);
+	           SwigType_push($$,$1);
                }
                | type_right { $$ = $1; }
                ;
@@ -2285,7 +2296,7 @@ type_right     : TYPE_INT { $$ = $1; }
                | TYPE_RAW { $$ = $1; }
                | type_right type_qualifier {
 		  $$ = $1;
-		  SwigType_add_qualifier($$,$2);
+	          SwigType_push($$,$2);
      	       }
 
                | idcolon template_decl { 
@@ -2469,7 +2480,7 @@ expr           :  NUM_INT { $$ = $1; }
 
 cast_type      : type_qualifier cast_type_right {
                    $$ = $2;
-		   SwigType_add_qualifier($$,$1);
+	           SwigType_push($$,$1);
                }
                | cast_type_right { $$ = $1; }
                ;
@@ -2497,7 +2508,7 @@ cast_type_right: TYPE_INT { $$ = $1; }
                | TYPE_RAW { $$ = $1; }
                | cast_type_right type_qualifier {
 		  $$ = $1;
-		  SwigType_add_qualifier($$,$2);
+	          SwigType_push($$,$2);
      	       }
                ;
 

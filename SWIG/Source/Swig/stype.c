@@ -206,8 +206,57 @@ SwigType_add_reference(SwigType *t) {
 void
 SwigType_add_qualifier(SwigType *t, String *qual) {
   char temp[256];
-  sprintf(temp,"q(%s).",Char(qual));
-  Insert(t,0,temp);
+  if (!SwigType_isqualifier(t)) {
+    sprintf(temp,"q(%s).",Char(qual));
+    Insert(t,0,temp);
+  } else {
+    /* Already has a qualifier on it.   We are going to generate a 
+       canonical qualifier string */
+    String *qt;
+    char   *c, *qc;
+    String *newq;
+    
+    qt = SwigType_pop(t);          /* Rip off the old qualifier */
+    /* See if the added qualifier is already there */
+    if (strstr(Char(qt),Char(qual))) {
+      /* Already added this qualifier */
+      SwigType_push(t,qt);
+      Delete(qt);
+      return;
+    }
+    /* We need to add the qualifier to the qualifier list */
+    /* To do this, we keep the qualifiers in alphabetical order */
+    newq = NewString("q(");
+    qc = Char(qual);
+    c = Char(qt)+2;
+    c = strtok(c," ).");
+    while (c) {
+      if (!strlen(c)) {
+	c = strtok(NULL," ).");
+	continue;
+      }
+      if (qc) {
+	if (strcmp(c,qc) < 0) {
+	  Printf(newq,"%s",c);
+	} else {
+	  Printf(newq,"%s %s", qc,c);
+	  qc = 0;
+	}
+      } else {
+	Printf(newq,"%s",c);
+      }
+      c = strtok(NULL," ).");
+      if (c) Putc(' ',newq);
+    }
+    if (qc) {
+      Printf(newq," %s",qc);
+    }
+    Putc(')',newq);
+    Putc('.',newq);
+    SwigType_push(t,newq);
+    Delete(newq);
+    Delete(qt);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -492,8 +541,13 @@ int SwigType_isconst(SwigType *t) {
   char *c;
   if (!t) return 0;
   c = Char(t);
-  if (strncmp(c,"q(const)",8) == 0) {
-    return 1;
+  if (strncmp(c,"q(",2) == 0) {
+    String *q = SwigType_parm(t);
+    if (strstr(Char(q),"const")) {
+      Delete(q);
+      return 1;
+    }
+    Delete(q);
   }
   
   /* Hmmm. Might be const through a typedef */
