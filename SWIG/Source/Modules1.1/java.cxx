@@ -87,7 +87,7 @@ String *JAVA::is_shadow(SwigType *t) {
     Node *n = classLookup(t);
     if (n) {
       if (!Getattr(n,"java:addedtypemaps")) addclasstypemaps(n);
-      return Getattr(n,"sym:name");
+      return Getattr(n,"java:proxy");
     }
   }
   return 0;
@@ -1662,6 +1662,8 @@ void JAVA::addclasstypemaps(Node *n) {
   String *tdname = Getattr(n,"tdname");
   
   name = tdname ? tdname : name;
+
+  Setattr(n,"java:proxy", shadowclassname);
 
   /* Apply typemaps for handling pointers and references for all known classes/structs/unions. Also for 
    * arrays of these. This is a workaround because SWIG does not have a default SWIGTYPE * or SWIGTYPE &. */

@@ -34,6 +34,8 @@ public :
 	virtual int  destructorHandler(Node *n);
 
 	virtual int  classHandler(Node *n);
+	virtual int  classDeclaration(Node *n);
+
 #ifdef DEPRECATED
 	virtual int  classforwardDeclaration(Node *n);
 	virtual int  typedefHandler(Node *);

@@ -123,15 +123,18 @@ static String *this_shadow_multinherit = 0;
 static int	  class_renamed = 0;
 static int	  shadow	= 0;
 
-/* Test to see if a type corresponds to something wrapped with a shadow class */
-
-
+/* Test to see if a type corresponds to something wrapped with a shadow class. */
+  
 String *PHP4::is_shadow(SwigType *t) {
+  String *r = 0;
   Node *n = classLookup(t);
   if (n) {
-    return Getattr(n,"sym:name");
+    r = Getattr(n,"php:proxy");   // Set by classDeclaration()
+    if (!r) {
+      r = Getattr(n,"sym:name");      // Not seen by classDeclaration yet, but this is the name
+    }
   }
-  return 0;
+  return r;
 }
 
 #ifdef DEPRECATED
@@ -1351,6 +1354,12 @@ PHP4::emit_shadow_classdef() {
 
 	if(this_shadow_extra_code)
 		Printv(shadow_classdef, this_shadow_extra_code, NULL);
+}
+
+int PHP4::classDeclaration(Node *n) {
+  String *symname = Getattr(n,"sym:name");
+  Setattr(n,"php:proxy",symname);
+  return Language::classDeclaration(n);
 }
 
 int PHP4::classHandler(Node *n) {
