@@ -65,7 +65,7 @@ or you can use the %apply directive :
       res = SWIG_NEWOBJ;
     }
     if (!$1) {
-      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      SWIG_null_ref("$basetype");
     }
     if (SWIG_arg_fail($argnum)) SWIG_fail;
   }
@@ -79,10 +79,10 @@ or you can use the %apply directive :
   %typemap(in,fragment=asptr_frag) Type *INPUT(int res = 0) {  
     res = asptr_meth($input, &$1);
     if (!res) {
-      SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+      SWIG_type_error("$basetype", $input);
     } else {
       if (!$1) {
-	SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+	SWIG_null_ref("$basetype");
       }
     }    
     if (SWIG_arg_fail($argnum)) SWIG_fail;
@@ -91,10 +91,10 @@ or you can use the %apply directive :
   %typemap(in,fragment=asptr_frag) Type &INPUT(int res = 0) {  
     res = asptr_meth($input, &$1);
     if (!res) {
-      SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+      SWIG_type_error("$basetype", $input);
     } else {
       if (!$1) {
-	SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+	SWIG_null_ref("$basetype");
       }      
     }    
     if (SWIG_arg_fail($argnum)) SWIG_fail;
