@@ -35,4 +35,6 @@ struct StructWithEnums {
    }
  };
 
+ enum {Hi, Hello } hi;
+
 %}

@@ -41,14 +41,7 @@
 %include "pyptrtypes.swg"
 %include "pyprimtypes.swg"
 %include "pymisctypes.swg"
-
-/* ------------------------------------------------------------
- *  Enums 
- * ------------------------------------------------------------ */
-%apply int { enum SWIGTYPE };
-/* this doesn't work now, you need to redefined it for each enum. */
-%apply const int& { const enum SWIGTYPE& };
-
+%include "pyenum.swg"
 
 /* ------------------------------------------------------------
  *  Overloaded operator support
