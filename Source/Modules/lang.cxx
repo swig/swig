@@ -404,11 +404,16 @@ int Language::constantDirective(Node *n) {
     if (!value) {
       value = Copy(name);
     } else {
-      if (checkAttribute(n,"type","char")) {
+      /*      if (checkAttribute(n,"type","char")) {
 	value = NewString(value);
       } else {
 	value = NewStringf("%(escape)s", value);
       }
+      */
+      Setattr(n,"rawvalue",value);
+      value = NewStringf("%(escape)s", value);
+      if (!Len(value)) Append(value,"\\0");
+      /*      Printf(stdout,"'%s' = '%s'\n", name, value); */
     }
     Setattr(n,"value", value);
     this->constantWrapper(n);
