@@ -998,7 +998,6 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       if (!classes) classes = NewHash();
 	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($3);
-	       /*	       Printf(stdout,"clsname = '%s'\n",clsname);*/
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
@@ -1959,8 +1958,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 			/* Merge in addmethods for this class */
 			
-			/* !!! This may be broken.  We may have to
-			   add the addmethods at the beginning of
+			/* !!! This may be broken.  We may have to  add the addmethods at the beginning of
 			   the class */
 			
 			if (extendhash) {
@@ -1973,14 +1971,26 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  }
 			  am = Getattr(extendhash,clsname);
 			  if (am) {
+			    Symtab *st = Swig_symbol_current();
+			    Swig_symbol_setscope(Getattr($$,"symtab"));
+			    /*			    Printf(stdout,"%s: %s %x %x\n", Getattr($$,"name"), clsname, Swig_symbol_current(), Getattr($$,"symtab")); */
 			    merge_extensions(am);
+			    Swig_symbol_setscope(st);
 			    appendChild($$,am);
 			    Delattr(extendhash,clsname);
 			  }
 			}
 			/* Add to classes hash */
 			if (!classes) classes = NewHash();
-			Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
+
+			{
+			  if (Namespaceprefix) {
+			    String *temp = NewStringf("%s::%s", Namespaceprefix, Getattr($$,"name"));
+			    Setattr(classes,temp,$$);
+			  } else {
+			    Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
+			  }
+			}
 		      }
 		    }
 		    if ($$ && nspace) {
