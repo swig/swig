@@ -465,7 +465,6 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   /* Get number of arguments */
   int numarg = emit_num_arguments(l);
   int numreq = emit_num_required(l);
-  int numopt = numarg - numreq;
 
   int start = 0;
   int use_self = 0;
@@ -496,7 +495,6 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
 
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
 
     /* Produce string representation of source and target arguments */
@@ -598,13 +596,36 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
-      tm = ruby_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"result",(char*)"vresult");
+      tm = Swig_typemap_lookup((char*)"out",t,name,(char*)"result",(char*)"result",(char*)"vresult",0);
       if (tm) {
 	Printv(f->code, tm, 0);
 	Delete(tm);
       } else {
-	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
-		input_file,line_number,SwigType_str(t,0));
+	int add_pointer = 0;
+	int type_code;
+	RClass *cls;
+	if (SwigType_type(t) == T_USER) {
+	  add_pointer=1;
+	  SwigType_add_pointer(t);
+	}
+	type_code = SwigType_type(t);
+	cls = RCLASS(classes, SwigType_base(t));
+	if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
+	  const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
+	  Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", result);\n",0);
+	} else {
+	  if (add_pointer) SwigType_del_pointer(t);
+	  add_pointer = 0;
+	  String *v = NewString("");
+	  if (to_VALUE(t,"result",v)) {
+	    Printv(f->code,"vresult = ",v, ";\n", 0);
+	  } else {
+	    Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
+		   input_file,line_number,SwigType_str(t,0));
+	  }
+	  Delete(v);
+	}
+	if (add_pointer) SwigType_del_pointer(t);
       }
     }
   }
@@ -617,7 +638,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
   /* Look for any remaining cleanup.  This processes the %new directive */
   if (NewObject) {
-    tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"result",(char*)"");
+    tm = Swig_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"result",(char*)"",f);
     if (tm) {
       Printv(f->code,tm, 0);
       Delete(tm);
@@ -630,7 +651,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
 
   /* Special processing on return value. */
-  tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"result",(char*)"");
+  tm = Swig_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"result",(char*)"",0);
   if (tm) {
     Printv(f->code,tm, 0);
     Delete(tm);
@@ -691,15 +712,38 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     source = name;
   }
 
-  tm = ruby_typemap_lookup((char*)"varout",t,name,name,source,(char*)"_val");
+  tm = Swig_typemap_lookup((char*)"varout",t,name,name,source,(char*)"_val",0);
   if (!tm)
-    tm = ruby_typemap_lookup((char*)"out",t,name,name,source,(char*)"_val");
+    tm = Swig_typemap_lookup((char*)"out",t,name,name,source,(char*)"_val",0);
   if (tm) {
     Printv(getf->code,tm, 0);
     Delete(tm);
   } else {
-    Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	    input_file,line_number,SwigType_str(t,0));
+    int add_pointer = 0;
+    int type_code;
+    RClass *cls;
+    if (SwigType_type(t) == T_USER) {
+      add_pointer=1;
+      SwigType_add_pointer(t);
+    }
+    type_code = SwigType_type(t);
+    cls = RCLASS(classes, SwigType_base(t));
+    if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
+      const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
+      Printv(getf->code, "vresult = Wrap_", cls->cname, "(", vname, ",", source, ");\n",0);
+    } else {
+      if (add_pointer) SwigType_del_pointer(t);
+      add_pointer = 0;
+      String *v = NewString("");
+      if (to_VALUE(t,source,v)) {
+	Printv(getf->code,"_val = ",v, ";\n", 0);
+      } else {
+	Printf(stderr,"%s : Line %d. Unable to link with variable type %s\n",
+	       input_file,line_number,SwigType_str(t,0));
+      }
+      Delete(v);
+    }
+    if (add_pointer) SwigType_del_pointer(t);
   }
   Printv(getf->code, tab4, "return _val;\n}\n", 0);
   Wrapper_print(getf,f_wrappers);
@@ -723,15 +767,37 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
       target = name;
     }
 
-    tm = ruby_typemap_lookup((char*)"varin",t,name,name,(char*)"_val",target);
+    tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"_val",target,0);
     if (!tm)
-      tm = ruby_typemap_lookup((char*)"in",t,name,name,(char*)"_val",target);
+      tm = Swig_typemap_lookup((char*)"in",t,name,name,(char*)"_val",target,0);
     if (tm) {
       Printv(setf->code,tm,0);
       Delete(tm);
     } else {
-      Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	      input_file,line_number,SwigType_str(t,0));
+      int add_pointer = 0;
+      int type_code;
+
+      if (SwigType_type(t) == T_USER)
+	add_pointer = 1;
+      if (add_pointer)
+	SwigType_add_pointer(t);
+      type_code = SwigType_type(t);
+      
+      RClass *cls = RCLASS(classes, SwigType_base(t));
+      
+      if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
+	Printf(setf->code,"Get_%s(%s,%s);\n", cls->cname, "_val", target);
+	if (add_pointer) SwigType_del_pointer(t);
+      } else {
+	if (add_pointer) SwigType_del_pointer(t);
+	String *v = NewString("");
+	if (from_VALUE(t,"_val",target,v)) {
+	  Printf(setf->code,"%s\n", v);
+	} else {
+	  Printf(stderr,"%s:%d.  Unable to link with variable type %s\n", input_file, line_number, SwigType_str(t,0));
+	}
+	Delete(v);
+      }
     }
     if (SwigType_type(t) == T_USER) {
       Printv(setf->code, name, " = *temp;\n",0);
@@ -830,7 +896,7 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
   if (current == CLASS_CONST)
     iname = klass->strip(iname);
 
-  tm = ruby_typemap_lookup((char*)"const",type,name,name,value,iname);
+  tm = Swig_typemap_lookup((char*)"const",type,name,name,value,iname,0);
   if (tm) {
     Replace(tm,"$value",value, DOH_REPLACE_ANY);
     if (current == CLASS_CONST) {
@@ -842,11 +908,28 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
     }
     Delete(tm);
   } else {
-    Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
-	    input_file, line_number, SwigType_str(type,0), value);
+    String *v = NewString("");
+    if (to_VALUE(type, value, v, 1)) {
+      String *s = NewString("");
+      Printv(s, "rb_define_const($module, \"", iname, "\", ", v, ");\n", 0);
+      validate_const_name(iname);
+      if (current == CLASS_CONST) {
+	Replace(s,"$module", klass->vname, DOH_REPLACE_ANY);
+	Printv(klass->init, s, 0);
+      } else {
+	Replace(s,"$module", modvar, DOH_REPLACE_ANY);
+	Printf(f_init,"%s",s);
+      }
+      Delete(s);
+    } else {
+      Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
+	     input_file, line_number, SwigType_str(type,0), value);
+    }
+    Delete(v);
   }
 }
 
+#ifdef OLD
 /* ---------------------------------------------------------------------
  * RUBY::ruby_typemap_lookup(char *op, SwigType *type, char *pname, char *source, char *target, WrapperFunction *f = 0)
  *
@@ -891,12 +974,9 @@ String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pnam
   if (!s) s = NewString("");
   Clear(s);
 
-  /*  if ((strcmp("out", op) == 0 || strcmp("in", op) == 0)
-      && Cmp(SwigType_base(type), "VALUE") == 0) {
-    Printf(s,"$target = $source;\n");
-    } else */ if (strcmp("out", op) == 0
-	     && (type_code == T_POINTER || type_code == T_REFERENCE)
-	     && cls) {
+  if (strcmp("out", op) == 0
+      && (type_code == T_POINTER || type_code == T_REFERENCE)
+      && cls) {
     const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
     Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);\n",0);
   } else if (strcmp("in", op)==0
@@ -926,13 +1006,6 @@ String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pnam
 	if (to_VALUE(type, (char*)"$source", v))
 	  Printv(s, "$target = ", v, ";\n", 0);
 	Delete(v);
-      } else if (strcmp("const", op) == 0) {
-	String *v = NewString("");
-	if (to_VALUE(type, (char*)"$value", v, 1)) {
-	  Printv(s, "rb_define_const($module, \"$target\", ", v, ");\n", 0);
-	  validate_const_name(target);
-	}
-	Delete(v);
       }
     }
   }
@@ -954,6 +1027,7 @@ String *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pnam
   return s;
 }
 
+#endif
 
 static void
 convert_pointer(char *src, SwigType *t, String *f) {
