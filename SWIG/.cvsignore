@@ -5,3 +5,4 @@ swig
 configure
 swig.spec
 autom4te.cache
+.gdbinit
