@@ -61,6 +61,8 @@ ISRCS      = $(INTERFACE:.i=_wrap.c)
 CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
              -L/usr/local/lib -lg++ -lstdc++ -lgcc
 
+# Solaris workshop 5.0 
+# CPP_DLLIBS = -L/opt/SUNWspro/lib -lCrun
 
 # Symbols used for using shared libraries
 SO=		@SO@
@@ -73,7 +75,7 @@ CXXSHARED=      @LDSHARED@
 
 CXXSHARED=      @CXX@ -shared
 
-OBJS      = $(SRCS:.c=.o)
+OBJS      = $(SRCS:.c=.o) $(CXXSRCS:.cxx=.o)
 IOBJS     = $(ISRCS:.c=.o)
 
 ##################################################################
@@ -99,7 +101,7 @@ tclsh: $(SRCS)
 
 tclsh_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
-	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
@@ -114,7 +116,7 @@ wish: $(SRCS)
 
 wish_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
-	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
@@ -132,7 +134,7 @@ tcl:  $(SRCS)
 
 tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
@@ -161,7 +163,7 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -183,7 +185,7 @@ perl5_static: $(SRCS)
 
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+	$(CXX) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
 
 
 ##################################################################
@@ -209,7 +211,7 @@ python: $(SRCS)
 
 python_cpp: $(SRCS)
 	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 # -----------------------------------------------------------------
@@ -230,7 +232,7 @@ python_static: $(SRCS)
 
 python_static_cpp: $(SRCS)
 	$(SWIG) -c++ -python -lembed.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 
@@ -270,7 +272,7 @@ guile: $(SRCS)
 guile_cpp: $(SRCS)
 	$(SWIG) -c++ -guile $(SWIGOPT) $(INTERFACE)
 	$(libtool) compile                                              \
-                $(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS)        \
+                $(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS)        \
                         $(INCLUDE) $(GUILE_INCLUDE)
 	$(libtool) link                                                 \
                 $(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS)     \
@@ -289,7 +291,7 @@ guile_static: $(SRCS)
 
 guile_static_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
 
 
@@ -318,7 +320,7 @@ java: $(SRCS)
 
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
@@ -358,7 +360,7 @@ ruby: $(SRCS)
 
 ruby_cpp: $(SRCS)
 	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
@@ -378,7 +380,7 @@ ruby_static: $(SRCS)
 
 ruby_static_cpp: $(SRCS)
 	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
 
