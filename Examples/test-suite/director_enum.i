@@ -7,6 +7,7 @@
 %warnfilter(801) EnumDirector::Foo::ciao; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::Foo::aufwiedersehen; /* Ruby, wrong constant name */
 %warnfilter(801) EnumDirector::Foo::adios; /* Ruby, wrong constant name */
+%warnfilter(470) EnumDirector::Foo; /* Thread/reentrant unsafe wrapping, consider returning by value instead. */
 
 
 
@@ -32,10 +33,10 @@ namespace EnumDirector {
     virtual Hello say_hello(Hello){ return hello;}
     virtual Hello say_hi(A *a){ return hi;}
     virtual Bye say_bye(Bye b){ return b;}
-    virtual Hello say_hi_ref(const Hello & h){ return h;}
+    virtual const Hello & say_hi_ref(const Hello & h){ return h;}
 
     Hello ping(Hello h){ return say_hi(h);}
-    Hello ping_ref(const Hello &h){ return say_hi_ref(h);}
+    const Hello & ping_ref(const Hello &h){ return say_hi_ref(h);}
     Bye ping_member_enum(Bye b){ return say_bye(b);}
 
   };
