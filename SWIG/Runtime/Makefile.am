@@ -105,7 +105,7 @@ libguile.c: $(GUILE_RUNTIME)
 # ----------------------------------------------------------------------
 
 RUBY_INCLUDE = @RUBYINCLUDE@
-RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg
+RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg $(SWIGLIB)/ruby/rubydef.swg
 RUBY_DLNK    = @RUBYDYNAMICLINKING@
 RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 
