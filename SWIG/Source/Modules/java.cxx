@@ -743,6 +743,7 @@ class JAVA : public Language {
     /* Look to see if there is any newfree cleanup code */
     if (Getattr(n,"feature:new")) {
       if ((tm = Swig_typemap_lookup_new("newfree",n,"result",0))) {
+        addThrows(n, "tmap:newfree", n);
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
       }
@@ -1398,6 +1399,7 @@ class JAVA : public Language {
 
         // Use typemaps to transform type used in Java proxy wrapper (in proxy class) to type used in JNI function (in intermediary class)
         if ((tm = Getattr(p,"tmap:javain"))) {
+          addThrows(n, "tmap:javain", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$javainput", arg);
           Printv(imcall, tm, NIL);
@@ -1420,22 +1422,23 @@ class JAVA : public Language {
 
     Printf(imcall, ")");
     Printf(function_code, ")");
-    generateThrowsClause(n, function_code);
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
+      addThrows(n, "tmap:javaout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
       Replaceall(tm, "$jnicall", imcall);
-      Printf(function_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
           "No javaout typemap defined for %s\n", SwigType_str(t,0));
     }
 
+    generateThrowsClause(n, function_code);
+    Printf(function_code, " %s\n\n", tm ? tm : empty_string);
     Printv(proxy_class_code, function_code, NIL);
 
     Delete(function_code);
@@ -1506,6 +1509,7 @@ class JAVA : public Language {
 
         // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in JNI function (in intermediary class)
         if ((tm = Getattr(p,"tmap:javain"))) {
+          addThrows(n, "tmap:javain", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$javainput", arg);
           Printv(imcall, tm, NIL);
@@ -1704,6 +1708,7 @@ class JAVA : public Language {
 
       // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in JNI function (in intermediary class)
       if ((tm = Getattr(p,"tmap:javain"))) {
+        addThrows(n, "tmap:javain", p);
         substituteClassname(pt, tm);
         Replaceall(tm, "$javainput", arg);
         Printv(imcall, tm, NIL);
@@ -1725,22 +1730,23 @@ class JAVA : public Language {
 
     Printf(imcall, ")");
     Printf(function_code, ")");
-    generateThrowsClause(n, function_code);
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
+      addThrows(n, "tmap:javaout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
         Replaceall(tm,"$owner","false");
       substituteClassname(t, tm);
       Replaceall(tm, "$jnicall", imcall);
-      Printf(function_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
           "No javaout typemap defined for %s\n", SwigType_str(t,0));
     }
 
+    generateThrowsClause(n, function_code);
+    Printf(function_code, " %s\n\n", tm ? tm : empty_string);
     Printv(module_class_code, function_code, NIL);
 
     Delete(function_code);
