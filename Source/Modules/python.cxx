@@ -438,6 +438,10 @@ public:
     if (NoInclude)
       Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
+    if (directorsEnabled()) {
+      Printf(f_runtime,"#define SWIG_DIRECTORS\n");
+    }
+
   /* Set module name */
     module = Copy(Getattr(n,"name"));
     mainmodule = Getattr(n,"name");
