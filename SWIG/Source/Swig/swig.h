@@ -68,7 +68,11 @@ extern String  *Swig_include(const String_or_char *name);
 extern int      Swig_insert_file(const String_or_char *name, File *outfile);
 extern int      Swig_bytes_read();
 
-#define  SWIG_FILE_DELIMETER   "/"
+#ifdef MACSWIG
+#  define SWIG_FILE_DELIMETER  ":"
+#else
+#  define  SWIG_FILE_DELIMETER "/"
+#endif
 
 /* --- Command line parsing --- */
 

@@ -9,6 +9,23 @@
 
 #include <ctype.h>
 
+#ifdef NO_STRDUP
+/* not standard ANSI - CodeWarrior does not implement it */
+char* strdup(const char* str);
+
+#include <string.h>
+#include <stdlib.h>
+
+char* strdup(const char* str) {
+  char* out = 0;
+  /* it will cause a leak, I know. */
+  out = (char*) calloc(strlen(str)+1,sizeof(char));
+  if (out)
+    strcpy(out,str);
+  return out;
+}
+#endif
+
 #include "mod11.h"
 #include "java.h"
 
@@ -102,6 +119,7 @@ void JAVA::SwigToJavaType(SwigType *t, String_or_char *pname, String* java_type,
 
   if(jtype) {
     Printf(java_type, jtype);
+    free(jtype);
   }
   else {
     /* Map type here */
@@ -155,6 +173,7 @@ void JAVA::SwigToJNIType(SwigType *t, String_or_char *pname, String* jni_type) {
 
   if(jtype) {
     Printf(jni_type, jtype);
+    free(jtype);
   }
   else {
     /* Map type here */

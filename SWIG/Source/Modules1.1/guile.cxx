@@ -25,7 +25,9 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "guile.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 static char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
@@ -154,7 +156,7 @@ GUILE::parse_args (int argc, char *argv[])
       }
       else if (strcmp (argv[i], "-procdoc") == 0) {
 	if (argv[i + 1]) {
-	  procdoc = NewFile(argv[i + 1], "w");
+	  procdoc = NewFile(argv[i + 1], (char *) "w");
 	  Swig_mark_arg (i);
           Swig_mark_arg (i + 1);
 	  i++;

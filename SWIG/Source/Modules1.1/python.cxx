@@ -13,7 +13,9 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "python.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 static  String       *const_code = 0;
 static  String       *shadow_methods = 0;
@@ -1521,6 +1523,6 @@ void
 PYTHON::add_typedef(SwigType *t, char *name) {
   if (!shadow) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)),"");
+    cpp_class_decl(name,Char(is_shadow(t)), (char *) "");
   }
 }

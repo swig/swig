@@ -14,7 +14,9 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "ruby.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 #include <ctype.h>
 #include <string.h>
@@ -751,7 +753,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
       SwigType_add_pointer(t);
       Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0), "temp",0);
       SwigType_del_pointer(t);
-      target = "temp";
+      target = (char *) "temp";
     } else {
       target = name;
     }

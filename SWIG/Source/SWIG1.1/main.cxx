@@ -15,7 +15,9 @@
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 #include <time.h>
 #include <stdlib.h>
@@ -119,10 +121,6 @@ char  filename[256];
 char  output_dir[512];
 char  fn_runtime[256];
 
-#ifdef MACSWIG
-FILE  *swig_log;
-#endif
-
 char *SwigLib;
 static int     freeze = 0;
 
@@ -153,10 +151,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   /* Initialize the SWIG core */
   Swig_init();
-
-#ifdef MACSWIG
-  try {
-#endif
 
   // Initialize the preprocessor
   Preprocessor_init();
@@ -190,13 +184,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
 
-  sprintf(temp,"%s/config", LibDir);
+  sprintf(temp,"%s%sconfig", LibDir, SWIG_FILE_DELIMETER);
   Swig_add_directory((DOH *) temp);
-  Swig_add_directory((DOH *) "./swig_lib/config");
+  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib" SWIG_FILE_DELIMETER "config");
   Swig_add_directory((DOH *) LibDir);
-  Swig_add_directory((DOH *) "./swig_lib");
+  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib");
   sprintf(InitName,"init_wrap");
-
+  
   libfiles = NewList();
 
   // Get options
@@ -294,7 +288,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Add language dependent directory to the search path
   {
     DOH *rl = NewString("");
-    Printf(rl,"%s/%s", SwigLib,LibDir);
+    Printf(rl,"%s%s%s", SwigLib, SWIG_FILE_DELIMETER, LibDir);
     Swig_add_directory(rl);
   }
 
@@ -360,8 +354,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       // Try to identify the output directory
       char *cc = outfile_name;
       char *lastc = outfile_name;
+      const char *delim = SWIG_FILE_DELIMETER;
       while (*cc) {
-	if (*cc == '/') lastc = cc+1;
+	if (*cc == *delim) lastc = cc+1;
 	cc++;
       }
       cc = outfile_name;
@@ -375,7 +370,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       // Patch up the input filename
       cc = infilename + strlen(infilename);
       while (cc != infilename) {
-	if (*cc == '/') {
+	if (*cc == *delim) {
 	  cc++;
 	  break;
 	}

@@ -28,9 +28,6 @@ extern "C" {
 
 #ifdef MACSWIG
 #define Status Swig_Status
-#undef stderr
-#define stderr swig_log
-extern  FILE   *swig_log;
 #endif
 
 #define PLAIN_VIRTUAL   1

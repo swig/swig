@@ -19,7 +19,9 @@ static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
 #include "perl5.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
@@ -1863,7 +1865,7 @@ PERL5::add_typedef(SwigType *t, char *name) {
 
   if (!blessed) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)),"");
+    cpp_class_decl(name,Char(is_shadow(t)), (char *) "");
   }
 }
 

@@ -14,7 +14,9 @@ static char cvsroot[] = "$Header$";
 #include "mod11.h"
 #include "tcl8.h"
 #include <ctype.h>
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\

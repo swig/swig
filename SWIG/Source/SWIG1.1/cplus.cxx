@@ -428,7 +428,7 @@ public:
     update_local_type(t);
     /* Check to see if it's read-only */
     if (SwigType_isarray(t) || SwigType_isconst(t)) {
-      if (!(Swig_typemap_search("memberin",t,name)))
+      if (!(Swig_typemap_search((char *) "memberin",t,name)))
 	Status = Status | STAT_READONLY;
     }
 
@@ -833,7 +833,7 @@ void cplus_set_class(char *name) {
     current_class = new CPP_class(name,0);
     localtypes = current_class->local;
   }
-};
+}
 
 // This function closes a class open with cplus_set_class() 
 
@@ -2005,7 +2005,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       } else if (!mode) {
 	/* Check for a member in typemap here */
 	String *target = NewStringf("%s->%s", Swig_cparm_name(0,0),mname);
-	char *tm = Swig_typemap_lookup("memberin",type,mname,Swig_cparm_name(0,1),target,0);
+	char *tm = Swig_typemap_lookup((char *) "memberin",type,mname,Swig_cparm_name(0,1),target,0);
 	if (!tm)
 	  emit_set_action(Swig_cmemberset_call(mname,type));
 	else
@@ -2048,7 +2048,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 void cplus_register_type(char *tname) {
   if (current_class)
     add_local_type(tname, current_class->classname);
-};
+}
 
 // -----------------------------------------------------------------------------
 // void cplus_register_scope(void *h) 
