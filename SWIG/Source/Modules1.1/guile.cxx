@@ -73,6 +73,7 @@ GUILE::GUILE ()
   before_return = NULL;
   exported_symbols = NewString("");
   scmtext = NewString("");
+  Swig_register_filebyname("scheme", scmtext);
 }
 
 // ---------------------------------------------------------------------
@@ -1069,12 +1070,6 @@ void GUILE::pragma(char *lang, char *cmd, char *value)
       if (before_return)
 	Delete(before_return);
       before_return = value ? NewString(value) : NULL;
-    }
-    else if (strcmp(cmd, (char*)"scheme")==0) {
-      /* insert scheme text */
-      if (scmstub && value) {
-	Printf(scmtext, "%s\n", value);
-      }
     }
   }
 }

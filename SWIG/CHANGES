@@ -15,8 +15,13 @@ Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
 7/30/2001: mkoeppe
-	   Partial merge from the CVS trunk.  The Source/DOH directory
-	   and most of the Source/Swig directory is up-to-date now.
+	   * Partial merge from the CVS trunk.  The Source/DOH directory
+	     and most of the Source/Swig directory is up-to-date now.
+	   * [Guile] %scheme is now a macro for %insert("scheme").  
+	     New syntax:  %scheme "FILENAME"; 
+	     New syntax:  %scheme %{ SCHEME-CODE %}
+	     New macros %multiple_values, %values_as_list,
+	     %values_as_vector. 
 
 7/29/2001: beazley
            %readonly and %readwrite have been turned into SWIG pragmas.
