@@ -1,5 +1,6 @@
 (* This example was mostly lifted from the guile example directory *)
 
+open Swig
 open Example
 
 let y = "\205\177"
