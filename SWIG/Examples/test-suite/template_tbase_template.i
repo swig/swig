@@ -37,10 +37,10 @@
     return Class<AF, RF>();
   }
 
-  template class traits <Double, Double>;
+%}
+%{
   template class Function <Double, Double>;
-  template class Class <Double, Double>;
- 
+  template class Class <Double, Double>; 
 %}
  
 %template(traits_dd) traits <Double, Double>;
