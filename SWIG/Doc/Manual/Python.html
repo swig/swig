@@ -1456,6 +1456,32 @@ However, the matching of <tt>typedef</tt> only occurs in one direction.  If you
 defined a typemap for <tt>Integer</tt>, it is not applied to arguments of
 type <tt>int</tt>.
 
+<p>
+Typemaps can also be defined for groups of consecutive arguments.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) (char *str, int len) {
+    $1 = PyString_AsString($input);
+    $2 = PyString_Size($input);
+};
+
+int count(char c, char *str, int len);
+</pre>
+</blockquote>
+
+When a multi-argument typemap is defined, the arguments are handled as a single
+Python object.  This allows the function to be used like this (notice how the length
+parameter is ommitted):
+
+<blockquote>
+<pre>
+>>> example.count('e','Hello World')
+1
+>>>
+</pre>
+</blockquote>
+
 <h3>Python typemaps</h3>
 
 The previous section illustrated an "in" typemap for converting Python objects to C.
@@ -1600,7 +1626,7 @@ properly assigned.
 
 <tt>$symname</tt>
 <blockquote>
- The Python name of the wrapper function being created.
+The Python name of the wrapper function being created.
 </blockquote>
 
 <h3> Useful Functions</h3>
@@ -1698,6 +1724,11 @@ int       PyFile_Check(PyObject *);
 write me
 </pre>
 </blockquote>
+
+<h3>Typemap Examples</h3>
+
+This section includes several examples of writing typemaps.  For even more examples, you
+might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in the SWIG library.
 
 
 
@@ -1978,104 +2009,6 @@ array using the <tt>ANY</tt> keyword as follows :<p>
 
 <p>
 During code generation, <tt>$dim0</tt> will be filled in with the real array dimension.  <p>
-
-<h3> Standard  typemaps</h3>
-
-The following typemaps show how to convert a few common kinds of
-objects between Python and C (and to give a better idea of how
-typemaps work)<p>
-
-<b>Integer conversion</b>
-
-<blockquote>
-<pre>
-%typemap(in) int, short, long {
-   if (!PyInt_Check($input)) {
-       PyErr_SetString(PyExc_TypeError, "not an integer");
-       return NULL;
-   }
-   $1 = ($1_ltype) PyInt_AsLong($input);
-}
-</pre>
-</blockquote>
-
-<p>
-<blockquote>
-<pre>
-%typemap(out) int, short, long {
-   $result = PyInt_FromLong((long) $1);
-}
-</pre>
-</blockquote>
-
-<b>Floating point conversion</b>
-
-<blockquote>
-<pre>
-%typemap(in) float, double {
-   if (!PyFloat_Check($input)) {
-       PyErr_SetString(PyExc_TypeError, "not a float");
-       return NULL;
-   }
-   $1 = ($1_ltype) PyFloat_AsDouble($input);
-}
-</pre>
-</blockquote>
-
-<p>
-<blockquote>
-<pre>
-%typemap(out) float, double {
-   $result = PyFloat_FromDouble((double) $1);
-}
-</pre>
-</blockquote>
-
-<b>String Conversion</b>
-
-<blockquote>
-<pre>
-%typemap(in) char * {
-   if (!PyString_Check($input)) {
-       PyErr_SetString(PyExc_TypeError, "not a string");
-       return NULL;
-   }
-   $1 = PyString_AsString($input);
-}
-</pre>
-</blockquote>
-
-<p>
-<blockquote>
-<pre>
-%typemap(out) char * {
-   $result = PyString_FromString($1);
-}
-</pre>
-</blockquote>
-
-<b>File Conversion</b>
-
-<blockquote>
-<pre>
-%typemap(in) FILE * {
-   if (!PyFile_Check($input)) {
-       PyErr_SetString(PyExc_TypeError, "not a file");
-       return NULL;
-   }
-   $1 = PyFile_AsFile($input);
-}
-</pre>
-</blockquote>
-
-<p>
-<blockquote>
-<pre>
-%typemap(out) FILE * {
-   $result = PyFile_FromFile($1);
-}
-</pre>
-</blockquote>
 
 <h3> Pointer handling</h3>
 
