@@ -1162,8 +1162,9 @@ Preprocessor_parse(String *s)
       }
       /* %#cpp -  an embedded C preprocessor directive (we strip off the %)  */
       else if (c == '#') {
+	add_chunk(ns,chunk,allow);
   	Putc(c,chunk);
-  	state = 0;
+  	state = 107;
       } else if (isidentifier(c)) {
   	Clear(decl);
   	Putc('%',decl);
@@ -1192,6 +1193,22 @@ Preprocessor_parse(String *s)
       } else {
   	state = 105;
       }
+      break;
+      
+    case 107:
+      Putc(c,chunk);
+      if (c == '\n') {
+	addline(ns,chunk,allow);
+	Clear(chunk);
+	state = 0;
+      } else if (c == '\\') {
+	state = 108;
+      }
+      break;
+
+    case 108:
+      Putc(c,chunk);
+      state = 107;
       break;
 
     case 110:
