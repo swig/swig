@@ -58,6 +58,7 @@ public:
       {
 	String *outfile = Getattr(n,"outfile");
 	Replaceall(outfile,"_wrap.cxx", ".lisp");
+	Replaceall(outfile,"_wrap.c", ".lisp");
 	out = NewFile(outfile,"w");
 	if (!out) 
 	  {
