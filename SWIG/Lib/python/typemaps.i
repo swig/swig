@@ -32,9 +32,11 @@ you would use a real value instead.
          int            *INPUT
          short          *INPUT
          long           *INPUT
+	 long long      *INPUT
          unsigned int   *INPUT
          unsigned short *INPUT
          unsigned long  *INPUT
+         unsigned long long *INPUT
          unsigned char  *INPUT
          bool           *INPUT
          float          *INPUT
@@ -75,9 +77,11 @@ INPUT_TYPEMAP(double, PyFloat_AsDouble);
 INPUT_TYPEMAP(int, PyInt_AsLong);
 INPUT_TYPEMAP(short, PyInt_AsLong);
 INPUT_TYPEMAP(long, PyInt_AsLong);
+INPUT_TYPEMAP(long long, PyLong_AsLongLong);
 INPUT_TYPEMAP(unsigned int, PyInt_AsLong);
 INPUT_TYPEMAP(unsigned short, PyInt_AsLong);
 INPUT_TYPEMAP(unsigned long, PyInt_AsLong);
+INPUT_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
 INPUT_TYPEMAP(unsigned char, PyInt_AsLong);
 INPUT_TYPEMAP(signed char, PyInt_AsLong);
 INPUT_TYPEMAP(bool, PyInt_AsLong);
@@ -97,9 +101,11 @@ multiple output values, they are returned in the form of a Python tuple.
          int            *OUTPUT
          short          *OUTPUT
          long           *OUTPUT
+         long long      *OUTPUT
          unsigned int   *OUTPUT
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
+         unsigned long long *OUTPUT
          unsigned char  *OUTPUT
          bool           *OUTPUT
          float          *OUTPUT
@@ -149,9 +155,11 @@ output values.
 OUTPUT_TYPEMAP(int, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(short, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(long, PyInt_FromLong, (long));
+OUTPUT_TYPEMAP(long long, PyLong_FromLongLong, (long long));
 OUTPUT_TYPEMAP(unsigned int, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(unsigned short, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(unsigned long, PyInt_FromLong, (long));
+OUTPUT_TYPEMAP(unsigned long long, PyLong_FromUnsignedLongLong, (unsigned long long));
 OUTPUT_TYPEMAP(unsigned char, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(signed char, PyInt_FromLong, (long));
 OUTPUT_TYPEMAP(bool, PyInt_FromLong, (long));
@@ -173,9 +181,11 @@ returned in the form of a Python tuple.
          int            *INOUT
          short          *INOUT
          long           *INOUT
+         long long      *INOUT
          unsigned int   *INOUT
          unsigned short *INOUT
          unsigned long  *INOUT
+         unsigned long long *INOUT
          unsigned char  *INOUT
          bool           *INOUT
          float          *INOUT
@@ -214,9 +224,11 @@ phased out in future releases.
 %typemap(in) int *INOUT = int *INPUT;
 %typemap(in) short *INOUT = short *INPUT;
 %typemap(in) long *INOUT = long *INPUT;
+%typemap(in) long long *INOUT = long long *INPUT;
 %typemap(in) unsigned *INOUT = unsigned *INPUT;
 %typemap(in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned long long *INOUT = unsigned long long *INPUT;
 %typemap(in) unsigned char *INOUT = unsigned char *INPUT;
 %typemap(in) bool *INOUT = bool *INPUT;
 %typemap(in) float *INOUT = float *INPUT;
@@ -225,9 +237,11 @@ phased out in future releases.
 %typemap(in) int &INOUT = int &INPUT;
 %typemap(in) short &INOUT = short &INPUT;
 %typemap(in) long &INOUT = long &INPUT;
+%typemap(in) long long &INOUT = long long &INPUT;
 %typemap(in) unsigned &INOUT = unsigned &INPUT;
 %typemap(in) unsigned short &INOUT = unsigned short &INPUT;
 %typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned long long &INOUT = unsigned long long &INPUT;
 %typemap(in) unsigned char &INOUT = unsigned char &INPUT;
 %typemap(in) bool &INOUT = bool &INPUT;
 %typemap(in) float &INOUT = float &INPUT;
@@ -236,9 +250,11 @@ phased out in future releases.
 %typemap(argout) int *INOUT = int *OUTPUT;
 %typemap(argout) short *INOUT = short *OUTPUT;
 %typemap(argout) long *INOUT = long *OUTPUT;
+%typemap(argout) long long *INOUT = long long *OUTPUT;
 %typemap(argout) unsigned *INOUT = unsigned *OUTPUT;
 %typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
 %typemap(argout) bool *INOUT = bool *OUTPUT;
 %typemap(argout) float *INOUT = float *OUTPUT;
@@ -247,9 +263,11 @@ phased out in future releases.
 %typemap(argout) int &INOUT = int &OUTPUT;
 %typemap(argout) short &INOUT = short &OUTPUT;
 %typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) long long &INOUT = long long &OUTPUT;
 %typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
 %typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
 %typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned long long &INOUT = unsigned long long &OUTPUT;
 %typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
 %typemap(argout) bool &INOUT = bool &OUTPUT;
 %typemap(argout) float &INOUT = float &OUTPUT;
@@ -262,9 +280,11 @@ phased out in future releases.
 %typemap(typecheck) signed char *INOUT = signed char;
 %typemap(typecheck) unsigned char *INOUT = unsigned char;
 %typemap(typecheck) unsigned long *INOUT = unsigned long;
+%typemap(typecheck) unsigned long long *INOUT = unsigned long long;
 %typemap(typecheck) unsigned short *INOUT = unsigned short;
 %typemap(typecheck) unsigned int *INOUT = unsigned int;
 %typemap(typecheck) long *INOUT = long;
+%typemap(typecheck) long long *INOUT = long long;
 %typemap(typecheck) short *INOUT = short;
 %typemap(typecheck) int *INOUT = int;
 %typemap(typecheck) float *INOUT = float;
@@ -274,9 +294,11 @@ phased out in future releases.
 %typemap(typecheck) signed char &INOUT = signed char;
 %typemap(typecheck) unsigned char &INOUT = unsigned char;
 %typemap(typecheck) unsigned long &INOUT = unsigned long;
+%typemap(typecheck) unsigned long long &INOUT = unsigned long long;
 %typemap(typecheck) unsigned short &INOUT = unsigned short;
 %typemap(typecheck) unsigned int &INOUT = unsigned int;
 %typemap(typecheck) long &INOUT = long;
+%typemap(typecheck) long long &INOUT = long long;
 %typemap(typecheck) short &INOUT = short;
 %typemap(typecheck) int &INOUT = int;
 %typemap(typecheck) float &INOUT = float;
