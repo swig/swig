@@ -332,6 +332,7 @@ String_write(DOH *so, void *buffer, int len) {
   int    newlen;
   String *s = (String *) ObjData(so);
   s->hashkey = -1;
+  if (s->sp > s->len) s->sp = s->len;
   newlen = s->sp + len+1;
   if (newlen > s->maxsize) {
     s->str = (char *) DohRealloc(s->str,newlen);
@@ -599,6 +600,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
       memmove(t,s,(str->str + str->len) - s + 1);
     }
     str->len += expand;
+    if (str->sp >= str->len) str->sp += expand;  /* Fix the end of file pointer */
     return rcount;
   }
   /* The string is expanding as a result of the replacement */
@@ -687,6 +689,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
     }
     c = str->str;
     str->str = ns;
+    if (str->sp >= str->len) str->sp += expand;
     str->len += expand;
     str->maxsize = newsize;
     DohFree(c);
