@@ -59,6 +59,10 @@ enum {
   SWIG_BARF1_BAD_ARGUMENT_TYPE /* 1 arg */,
   SWIG_BARF1_ARGUMENT_NULL /* 1 arg */
 };
+
+struct swig_chicken_clientdata {
+  C_word clos_class;
+};
   
 static char *
 SWIG_Chicken_MakeString(C_word str) {
