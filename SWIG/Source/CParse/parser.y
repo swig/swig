@@ -2882,7 +2882,23 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
 		 add_symbols($$);
+              }
+               | storage_class COPERATOR type AND LPAREN parms RPAREN cpp_vend {
+		 SwigType *decl;
+                 $$ = new_node("cdecl");
+                 Setattr($$,"type",$3);
+		 Setattr($$,"name",$2);
+		 decl = NewString("");
+		 SwigType_add_reference(decl);
+		 SwigType_add_function(decl,$6);
+		 if ($8.qualifier) {
+		   SwigType_push(decl,$8.qualifier);
+		 }
+		 Setattr($$,"decl",decl);
+		 Setattr($$,"parms",$6);
+		 add_symbols($$);
 	       }
+
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
 		String *t = NewString("");
 		$$ = new_node("cdecl");
@@ -3857,6 +3873,9 @@ expr           :  exprnum { $$ = $1; }
 		     Delete(ns);
 		   }
 		 }
+		 if (SwigType_istemplate($$.val)) {
+		   $$.val = SwigType_namestr($$.val);
+		 }
                }
 
 /* grouping */
@@ -3952,6 +3971,9 @@ exprcompound   : expr PLUS expr {
 	       }
                | type LPAREN {
                  skip_balanced('(',')');
+		 if (SwigType_istemplate($1)) {
+		   $1 = SwigType_namestr($1);
+		 }
 		 $$.val = NewStringf("%s%s",$1,scanner_ccode);
 		 Clear(scanner_ccode);
 		 $$.type = T_INT;

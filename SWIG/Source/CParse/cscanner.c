@@ -1147,9 +1147,11 @@ int yylex(void) {
 	      }
 	      Chop(s);
 	      yylval.str = s;
+	      while(Replaceall(s,"[ ", "["));
 	      if (isconversion && !rename_active) {
 		char *t = Char(s) + 9;
-		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0))) {
+		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0) 
+		      || (strcmp(t,"new[]") == 0) || (strcmp(t,"delete[]") == 0))) {
 		  /*		  retract(strlen(t));*/
 		  retract(count);
 		  return COPERATOR;
