@@ -548,15 +548,29 @@ public:
 
     if (!allow_kwargs || Getattr(n,"sym:overloaded")) {
       if (!varargs) {
-	Printv(f->def,
-	       "static PyObject *", wname,
-	       "(PyObject *self, PyObject *args) {",
-	       NIL);
+        if (CPlusPlus) {
+	  Printv(f->def,
+	         "static PyObject *", wname,
+	         "(PyObject *, PyObject *args) {",
+	         NIL);
+        } else {
+	  Printv(f->def,
+	         "static PyObject *", wname,
+	         "(PyObject *self, PyObject *args) {",
+	         NIL);
+        }
       } else {
-	Printv(f->def,
-	       "static PyObject *", wname, "__varargs__", 
-	       "(PyObject *self, PyObject *args, PyObject *varargs) {",
-	       NIL);
+        if (CPlusPlus) {
+	  Printv(f->def,
+	         "static PyObject *", wname, "__varargs__", 
+	         "(PyObject *, PyObject *args, PyObject *varargs) {",
+	         NIL);
+        } else {
+	  Printv(f->def,
+	         "static PyObject *", wname, "__varargs__", 
+	         "(PyObject *self, PyObject *args, PyObject *varargs) {",
+	         NIL);
+        }
       }
       if (allow_kwargs) {
 	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number,
@@ -569,10 +583,17 @@ public:
 		     "Can't wrap varargs with keyword arguments enabled\n");
 	varargs = 0;
       }
-      Printv(f->def,
-	     "static PyObject *", wname,
-	     "(PyObject *, PyObject *args, PyObject *kwargs) {",
-	     NIL);
+      if (CPlusPlus) {
+        Printv(f->def,
+               "static PyObject *", wname,
+               "(PyObject *, PyObject *args, PyObject *kwargs) {",
+               NIL);
+      } else {
+        Printv(f->def,
+               "static PyObject *", wname,
+               "(PyObject *self, PyObject *args, PyObject *kwargs) {",
+               NIL);
+      }
     }
     if (!allow_kwargs) {
       Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
@@ -1776,14 +1797,25 @@ public:
       {
 	SwigType  *ct = NewStringf("p.%s", real_classname);
 	SwigType_remember(ct);
-	Printv(f_wrappers,
-	       "static PyObject * ", class_name, "_swigregister(PyObject *self, PyObject *args) {\n",
-	       tab4, "PyObject *obj;\n",
-	       tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
-	       tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
-	       tab4, "Py_INCREF(obj);\n",
-	       tab4, "return Py_BuildValue((char *)\"\");\n",
-	       "}\n",NIL);
+        if (CPlusPlus) {
+	  Printv(f_wrappers,
+	         "static PyObject * ", class_name, "_swigregister(PyObject *, PyObject *args) {\n",
+	         tab4, "PyObject *obj;\n",
+	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
+  	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
+  	         tab4, "Py_INCREF(obj);\n",
+	         tab4, "return Py_BuildValue((char *)\"\");\n",
+	         "}\n",NIL);
+        } else {
+	  Printv(f_wrappers,
+	         "static PyObject * ", class_name, "_swigregister(PyObject *self, PyObject *args) {\n",
+	         tab4, "PyObject *obj;\n",
+	         tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
+  	         tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
+  	         tab4, "Py_INCREF(obj);\n",
+	         tab4, "return Py_BuildValue((char *)\"\");\n",
+	         "}\n",NIL);
+        }
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
 	Delete(cname);
