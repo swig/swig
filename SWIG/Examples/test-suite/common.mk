@@ -39,7 +39,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
-	cpp_typedef \
 	add_link \
 	anonymous_arg \
 	arrays_global \
@@ -51,6 +50,7 @@ CPP_TEST_CASES += \
 	cpp_enum_scope \
 	cpp_nodefault \
 	cpp_static \
+	cpp_typedef \
 	cplusplus_throw \
 	default_constructor \
 	explicit \
@@ -64,6 +64,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	template \
+	template_classes \
 	template_inherit \
 	template_whitespace \
 	typename \

@@ -23,6 +23,24 @@ public:
         return b;
     }
 };
+
+// Test that the correct types are used for typedef struct declarations
+typedef struct {
+} UnnamedStruct;
+
+typedef struct NamedStruct {
+} TypedefNamedStruct;
+
+typedef TypedefNamedStruct DoubleTypedef;
+
+class Test {
+public:
+    UnnamedStruct test1(UnnamedStruct a) {return a;};
+    struct NamedStruct test2(struct NamedStruct a) {return a;};
+    TypedefNamedStruct test3(TypedefNamedStruct a) {return a;};
+    DoubleTypedef test4(DoubleTypedef a) {return a;};
+};
+
 %}
         
 
