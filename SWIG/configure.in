@@ -133,6 +133,7 @@ then
 	esac
 fi
 AC_MSG_RESULT($CXXSHARED)
+
 #
 AC_MSG_CHECKING(TRYLINKINGWITHCXX)
 if test -z "$TRYLINKINGWITHCXX"
@@ -140,6 +141,10 @@ then
 	case $ac_sys_system/$ac_sys_release in
         # cygwin uses dllwrap to create shared libraries
         CYGWIN*) TRYLINKINGWITHCXX="# Not for CYGWIN: CXXSHARED=      $CXX -shared ";;
+	SunOS/5*) if test "$GCC" = yes;
+             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
+             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
+             fi;;
         *)       TRYLINKINGWITHCXX="CXXSHARED=      $CXX -shared ";;
         esac
 fi
