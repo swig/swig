@@ -374,7 +374,7 @@ install-m4:
 # TARGETS: uninstall & friends
 #####################################################################
 
-uninstall: uninstall-main uninstall-lib uninstall-runtime uninstall-m4
+uninstall: uninstall-main uninstall-lib uninstall-m4
 	@echo "Uninstall complete"
 
 uninstall-main:
