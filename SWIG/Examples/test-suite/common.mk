@@ -279,6 +279,7 @@ CPP_TEST_CASES += \
 	valuewrapper_default \
 	varargs \
 	virtual_destructor \
+	virtual_poly \
 	voidtest \
 	wrapmacro
 
