@@ -138,6 +138,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
   Hash   *macro = 0, *symbols = 0, *m1;
   List   *arglist = 0;
   int c, line;
+  int    varargs = 0;
 
   assert(cpp);
   assert(str);
@@ -197,10 +198,20 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
     argname = NewString("");
     while ((c = Getc(argstr)) != EOF) {
       if (c == ',') {
-	Append(arglist,argname);
+	/* Check for varargs */
+	if (Strstr(argname,".")) {
+	  if (Strcmp(argname,"...") != 0) {
+	    Swig_error(Getfile(str),Getline(str),"Illegal macro argument name '%s'\n", argname);
+	  } else {
+	    Append(arglist,"__VA_ARGS__");
+	    varargs = 1;
+	  }
+	} else {
+	  Append(arglist,argname);
+	}
 	Delete(argname);
 	argname = NewString("");
-      } else if (isidchar(c)) {
+      } else if (isidchar(c) || (c == '.')) {
 	Putc(c,argname);
       } else if (!isspace(c)) {
 	Swig_error(Getfile(str),Getline(str),"Illegal character in macro argument name\n");
@@ -208,7 +219,17 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
       }
     }
     if (Len(argname)) {
-      Append(arglist,argname);
+      /* Check for varargs */
+      if (Strstr(argname,".")) {
+	if (Strcmp(argname,"...") != 0) {
+	  Swig_error(Getfile(str),Getline(str),"Illegal macro argument name '%s'\n", argname);
+	} else {
+	  Append(arglist,"__VA_ARGS__");
+	  varargs = 1;
+	}
+      } else {
+	Append(arglist,argname);
+      }
       Delete(argname);
     }
   }
@@ -288,6 +309,9 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
   if (arglist) {
     Setattr(macro,"args",arglist);
     Delete(arglist);
+    if (varargs) {
+      Setattr(macro,"varargs","1");
+    }
   }
   Setattr(macro,"value",macrovalue);
   Delete(macrovalue);
@@ -446,6 +470,7 @@ expand_macro(String_or_char *name, List *args)
   DOH *symbols, *ns, *macro, *margs, *mvalue, *temp, *tempa, *e;
   DOH *Preprocessor_replace(DOH *);
   int i, l;
+  int isvarargs = 0;
 
   symbols = Getattr(cpp,"symbols");
   if (!symbols) return 0;
@@ -474,11 +499,34 @@ expand_macro(String_or_char *name, List *args)
   assert(mvalue);
   margs = Getattr(macro,"args");
 
+  if (Getattr(macro,"varargs")) {
+    isvarargs = 1;
+    /* Variable length argument macro.  We need to collect all of the extra arguments into a single argument */
+    if (Len(args) >= (Len(margs)-1)) {
+      int i;
+      int vi, na;
+      String *vararg = NewString("");
+      vi = Len(margs)-1;
+      na = Len(args);
+      for (i = vi; i < na; i++) {
+	Append(vararg,Getitem(args,i));
+	if ((i+1) < na) {
+	  Append(vararg,",");
+	}
+      }
+      /* Remove arguments */
+      for (i = vi; i < na; i++) {
+	Delitem(args,vi);
+      }
+      Append(args,vararg);
+      Delete(vararg);
+    }
+  }
   /* If there are arguments, see if they match what we were given */
   if ((margs) && (Len(margs) != Len(args))) {
-    if (Len(margs) > 1)
-      Swig_error(Getfile(args),Getline(args),"Macro '%s' expects %d arguments\n", name, Len(margs));
-    else if (Len(margs) == 1)
+    if (Len(margs) > (1+isvarargs))
+      Swig_error(Getfile(args),Getline(args),"Macro '%s' expects %d arguments\n", name, Len(margs)-isvarargs);
+    else if (Len(margs) == (1+isvarargs))
       Swig_error(Getfile(args),Getline(args),"Macro '%s' expects 1 argument\n", name);
     else
       Swig_error(Getfile(args),Getline(args),"Macro '%s' expects no arguments\n", name);
@@ -533,6 +581,27 @@ expand_macro(String_or_char *name, List *args)
 	  rep = tempa;
 	}
 	Replace(ns,temp,rep, DOH_REPLACE_ANY);
+      }
+      if (isvarargs) {
+	if ((Strcmp(aname,"__VA_ARGS__") == 0) && (Len(arg) == 0)) {
+	  /* Zero length __VA_ARGS__ macro argument.   We search for commas that might appear before and nuke them */
+	  char *a, *s, *t;
+	  s = Char(ns);
+	  a = strstr(s,"__VA_ARGS__");
+	  while (a) {
+	    t = a-1;
+	    if (*t == '\002') {
+	      t--;
+	      while (t >= s) {
+		if (isspace(*t)) t--;
+		else if (*t == ',') {
+		  *t = ' ';
+		} else break;
+	      }
+	    }
+	    a = strstr(a+11,"__VA_ARGS__");
+	  }
+	}
       }
       Replace(ns, aname, arg, DOH_REPLACE_ID);
     }
