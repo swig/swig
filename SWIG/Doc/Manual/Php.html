@@ -12,16 +12,16 @@
 <p>
 <ul>
 <li> <a href="#n1">Preliminaries</a>
-<li> <a href="#n2">Building PHP Extensions</a>
+<li> <a href="#n2">Building PHP4 Extensions</a>
 <li> <a href="#n3">Building a loadable extension</a>
-<li> <a href="#n4">Building extension into php</a>
-<li> <a href="#n5">Modules and classes </a> (TODO)
-<li> <a href="#n6">Basic PHP4 interface</a> (TODO)
-<li> <a href="#n7">Simple Example</a> (TODO)
+<li> <a href="#n5">Basic PHP4 interface</a> 
+<li> <a href="#n6">Simple Example</a> (TODO)
+<li> <a href="#n7">Constructors and Destructors</a> 
 <li> <a href="#n8">Arrays and other objects</a> (TODO)
 <li> <a href="#n9">Remapping datatypes with typemaps</a> (TODO)
 <li> <a href="#n10">Constants</a>
 <li> <a href="#n11">PHP4 Pragmas</a>
+<li> <a href="#n12">Building extensions into PHP</a>
 </ul>
 
 In this chapter, we discuss SWIG's support of PHP4. The PHP4 module is 
@@ -71,6 +71,14 @@ the '-phpfull' command line switch to select the second build method.
 
 To build a dynamic module for PHP, you have two options.  You can use the
 <tt>phpize</tt> utility, or you can do it manually.
+<p>
+To build manually, use a compile string similar to this (different for each
+OS):
+<blockquote><pre>
+	cc -I.. $(PHPINC) -fpic -c example_wrap.c
+	cc -shared example_wrap.o -o libexample.so
+</pre></blockquote>
+<p>
 To build with phpize, after you have run swig you will need
 to run the 'phpize' command (installed as part of php) in the same
 directory. This re-creates the php build environment in that directory. It also
@@ -93,12 +101,6 @@ to enable the extension. Then run make, which builds the extension.
 The extension object file will be left in the modules sub directory, you can
 move it to wherever it is convenient to call from your php script. 
 <p>
-To build manually, use a compile string similar to this (different for each
-OS):
-<blockquote><pre>
-	cc -I.. $(PHPINC) -fpic -c example_wrap.c
-	cc -shared example_wrap.o -o libexample.so
-</pre></blockquote>
 <p>
 To test the extension from a PHP script, you need to load it first. You do
 this by putting the line,
@@ -111,67 +113,128 @@ attempts to do the <tt>dl()</tt> call for you:
 	include("example.php");
 </pre></blockquote>
 
-<a name="n4"></a><h3>Building extension into php</h3>
+A more complicated method which builds the module directly into the <tt>php</tt>
+executable is described <a href="n12">below</a>.
 
-This method, selected with the '-phpfull' command line switch, involves
-rebuilding the entire php source tree. Whilst more complicated to build,
-it does mean that the extension is then available without having to load it 
-in each script. 
+<a name="n5"></a><h3>Basic PHP4 interface</h3>
+
+<a name=""></a><h3>Functions</h3>
+C functions are converted into PHP functions. Default/optional arguments are
+also allowed. An interface file like this :<p>
 <p>
-After running swig with the -phpfull switch, you will be left with a shockingly
-similiar set of files to the previous build process. However you will then need
-to move these files to a subdirectory within the php source tree, this subdirectory you will need to create under the ext directory, with the name of the extension ( e.g mkdir php-4.0.6/ext/modulename .)
+<blockquote><pre>%module default
+int foo(int a);
+double bar(double, double b = 3.0);
+...
+
+</pre></blockquote>
+Will be accessed in PHP like this :<p>
 <p>
-After moving the files into this directory, you will need to run the 'buildall'
-script in the php source directory. This rebuilds the configure command
-and includes the extra command line arguments from the module you have added. 
+<blockquote><pre>
+dl("default.so"); $a = foo(2);
+$b = bar(3.5, -1.5);
+$c = bar(3.5);		# Use default argument for 2nd parameter
+
+</pre></blockquote>
+
+<a name=""></a><h3> Global Variables</h3>
+Global variables are difficult for PHP to handle, unlike Perl, their is no
+'magic' way to intercept modifications made to variables, so changes in a PHP
+variable will not be reflected in its C equivalent. To get around the problem, 
+two extra function are generated, <tt>Swig_sync_c()</tt> and <tt>Swig_sync_php()</tt>. These functions are called at the start and end of every function call, 
+ensuring changes made in PHP are updated in C ( and vice versa. ) Because this 
+is handled for you, you can modify the variables in PHP as normal, e.g.
+<p><p>
+<blockquote><pre>%module example;
+...
+double seki = 2;
+...
+int example_func(void);
+
+</pre></blockquote>
+is accessed as follow :<p>
 <p>
-Before running the generated configure file, you may need to edit the <tt>
-Makefile.in</tt>. This contains the names of the source files to compile (
-just the wrapper file by default) and any additional libraries needed to
-link in. If their are extra C files to complile you will need to add them
-to the Makefile, or add the names of libraries if they are needed.
+<blockquote><pre>
+dl("example.so");
+print $seki;
+$seki = $seki * 2;	# Does not affect C variable, still equal to 2
+example_func();		# Syncs C variable to PHP Variable, now both 4
+<pre></blockquote>
+SWIG supports global variables of all C datatypes including pointers and complex
+objects.<p>
+
+<a name=""></a><h3> Pointers </h3>
+Pointers to C/C++ objects are represented as character strings such as the
+following :<p><p>
+<blockquote><pre>
+_523d3f4_Circle_p
+</pre></blockquote>
+
+A NULL pointer is represented by the string "NULL". You can also explicitly
+create a NULL pointer consisting of te value 0 and a type  such as :
+
+<p><p><blockquote><pre>
+_0_Circle_p
+</pre></blockquote>
+
+In theory you should never need to see these strings in your PHP script.
+
+<a name=""></a><h3> Structures and C++ classes</h3>
+For structures and classes, SWIG produces accessor fuction for each member function and data. For example :<p>
 <p>
-You then need to run the configure command and pass the necessary command
-line arguments to enable your module ( by default this is --enable-modulename,
-but this can be changed by editing the config.m4 file in the modules directory
-before running the buildall script. In addition, extra tests can be added to
-the config.m4 file to ensure the correct libraries and header files are 
-installed.)
-<p>
-Once configure has completed, you can run make to build php. If this all
-compiles correctly, you should end up with a php executable/library
-which contains your new module. You can test it with a php script which
-does not have the 'dl' command as used above.
+<blockquote><pre>%module vector
+
+class Vector {
+public:
+	double x,y,z;
+	Vector();
+	~Vector();
+	double magnitude();
+};
+
+</pre></blockquote>
+This gets turned into the following collection of PHP functions :<p>
+<blockquote><pre>
+Vector_x_set($obj);
+Vector_x_get($obj);
+Vector_y_set($obj);
+Vector_y_get($obj);
+Vector_z_set($obj);
+Vector_z_get($obj);
+new_Vector();
+delete_Vector($obj);
+Vector_magnitude($obj);
+
+</pre></blockquote>
+To use the class, simply use these functions. However, SWIG also has a mechanism
+for creating shadow classes that hides these functions and uses an object 
+oriented interface instead - see <a href="n7">below</a>
 
 <a name="n10"></a><h3> Constants</h3>
 
 These work in much the same way as in C/C++, constants can be defined by using
-either the normal C pre-processor declarations, or the '%constant' SWIG 
-directive.  These will then be available from your PHP script as a variable,
-however you do not need to put the dollar sign before the constant name. 
-For example, with a swig file like this,
+either the normal C pre-processor declarations, or the <tt>%constant</tt> SWIG 
+directive.  These will then be available from your PHP script as a PHP constant,
+(e.g. no dollar sign is needed to access them. ) For example, with a swig file like this,
 <p>
 <blockquote><pre>
 %module example
 
 #define PI 3.14159
 
-%constant int E  = 2.84
+%constant int E  = 2.71828
 
 </pre>
 </blockquote>
 <p>
 you can access from in your php script like this,
 <blockquote><pre>
-&lt;?
-dl("example.so");	# If extension built as shared object, load it now.
+dl("libexample.so");
 
-echo "Pi = ", PI, "\n";
+echo "PI = " . PI . "\n";
 
-echo "E = ", E, "\n";
+echo "E = " . E . "\n";
 
-?&gt;
 </pre>
 </blockquote>
 
@@ -183,7 +246,7 @@ set to the constants name. For example,
 <blockquote><pre>
 %module example
 
-#define EASY_TO_MISPELL	1
+#define EASY_TO_MISPELL	0
 
 </pre>
 </blockquote>
@@ -191,8 +254,7 @@ accessed incorrectly in PHP,
 <p>
 <blockquote>
 <pre>
-&lt;?
-dl("example.so");	#  If extension built as shared object, load it now.
+dl("libexample.so");
 
 if(EASY_TO_MISPEL) {
 	....
@@ -200,15 +262,15 @@ if(EASY_TO_MISPEL) {
 	....
 }
 
-?&gt;
 </pre>
 </blockquote>
 <p>
 
 will issue a warning about the undeclared constant, but will then evalute
-it and turn it into a string ('EASY_TO_MISPEL'), which will cause the if test to evalute to true rather than false. This is a feature.
+it and turn it into a string ('EASY_TO_MISPEL'), which evaluates to true,
+rather than the value of the constant which would be false. This is a feature.
 <p>
-The second oddity is that although constants are case sensitive (by default),
+The second 'feature' is that although constants are case sensitive (by default),
 you cannot declare a constant twice with alternative cases. E.g.,
 <p>
 <blockquote>
@@ -224,12 +286,10 @@ accessed from PHP,
 <p>
 <pre>
 <blockquote>
-&lt;?
-dl("example.so");	#  If extension built as shared object, load it now.
+dl("libexample.so");
 
 echo TEST, Test;
 
-?&gt;
 </blockquote>
 </pre>
 <p>
@@ -241,8 +301,89 @@ constant was declared with first.
 So, in the example above, the TEST constant was declared first, and will be stored under the hash element 'test'. The 'Test' constant will also map to the same hash element 'test', but will not overwrite it. When called from the script, the TEST constant will again be mapped to the hash element 'test' so the constant will be retrieved. The case will then be checked, and will match up, so the value ('Hello') will be returned. When 'Test' is evaulated, it will also map to the same hash element 'test'. The same constant will be retrieved, this time though the case check will fail as 'Test' != 'TEST'. So PHP will assume that Test is a undeclared constant, and as explained above, will return it as a string set to the constant name ('Test'). Hence the script above will print 'Hello Test'. If
 they were declared non-case sensitive, the output would be 'Hello Hello', as
 both point to the same value, without the case test taking place.
+( Apologies, this paragraph needs rewritting to make some sense. )
 </pre>
 </blockquote>
+
+<a name="n7"></a><h3> Shadow classes</h3>
+
+To avoid having to call the various accessor function to get at structures or
+class members, we can turn C structs and C++ classes into PHP classes that
+can be be used directly in PHP scripts as objects and object methods. This is done by writing additional PHP code that builds PHP classes on top of the low-level SWIG interface. These PHP classes "shadow" an underlying C/C++ class.
+
+To have SWIG create shadow classes, use the <tt>-shadow</tt> option :
+<p><p><blockquote><pre>% swig -php4 -shadow tbc.i
+</pre></blockquote>
+<p>
+This will produce the same files as before except that the <tt>.php</tt> file
+will now contain significantly more support PHP code. 
+
+.... ( example on the way ) ....
+
+For the most part, the code is the same except that we can now access members of
+complex data structures using <tt>-&gt;</tt> instead of the low level access or
+functions like before. 
+
+.... ( more examples on the way ) ....
+
+<a name=""></a><h3>Constructors and Destructers</h3>
+
+Constructors are used in PHP as in C++, they are called when the object is
+created and any arguments are passed to them. However, function overloading
+is not allowed in PHP so only one constructor can be used. This creates a
+problem when copying objects, as we cannot avoid creating a whole new one
+when all we want is to make it point to the same value as the original. This
+is currently worked around by doing the following,
+<ul>
+<li>Create the new PHP object
+<li>Delete the PHP objects pointer to the C object
+<li>Set the PHP object's pointer to the same as the original PHP object's pointer.
+</ul>
+This is rather convoluted and hopefully will be improved upon in a later
+release.
+<p><p>
+
+Destructors do not exist in PHP, as PHP expects to handle all memory allocation
+and cleaning up for you. This can create problems with
+wrapped code as memory allocated by the C library may not be freed. However, the function 'register_shutdown_function' can be used to call a function or a 
+object method at the end of a request. In shadow classes this method is used to call a '_destroy' method which then calls the objects destructor to free the
+memory or perform any other cleanup needed. However, you cannot use print/echo
+with the shutdown_function as the request has already been completed.
+It also means that objects are all freed at the end of a script, not when
+they each go out of scope.
+
+<a name=""></a><h3>Static Member Variables</h3>
+
+Class variables are not supported in PHP, however class functions are, using
+'::' syntax. Static member variables are therefore accessed using a class 
+function with the same name, which returns the current value of the class variable. For example
+
+<blockquote><pre>
+%module example
+
+class Ko {
+	static int threats;
+	...
+};
+
+</pre></blockquote>
+<p>
+would be accessed in PHP as,
+<blockquote><pre>
+dl("libexample.so");
+
+echo "Currently their has been " . Ko::threats() . " threats\n";
+
+</pre></blockquote>
+
+To set the static member variable, pass the value as the argument to the class function, e.g.
+<blockquote><pre>
+
+Ko::threats(10);
+
+echo "Their has now been " . Ko::threats() . " threats\n";
+
+</pre></blockquote>
 
 <a name="n10"></a><h3>PHP4 Pragmas</h3>
 
@@ -251,7 +392,6 @@ There are a few pragmas understood by the PHP4 module.  The first,
 second, <b>code</b> adds literal code to the generated PHP module.  The third,
 <b>phpinfo</b> inserts code to the function called when PHP's phpinfo()
 function is called.
-
 
 <blockquote><pre>
 	/* example.i */
@@ -273,8 +413,38 @@ function is called.
 	%include "example.h"
 </pre></blockquote>
 
+<a name="n12"></a><h3>Building extensions into php</h3>
 
-
+This method, selected with the <tt>-phpfull</tt> command line switch, involves
+rebuilding the entire php source tree. Whilst more complicated to build,
+it does mean that the extension is then available without having to load it 
+in each script. 
+<p>
+After running swig with the -phpfull switch, you will be left with a shockingly
+similiar set of files to the previous build process. However you will then need
+to move these files to a subdirectory within the php source tree, this subdirectory you will need to create under the ext directory, with the name of the extension ( e.g mkdir php-4.0.6/ext/modulename .)
+<p>
+After moving the files into this directory, you will need to run the 'buildall'
+script in the php source directory. This rebuilds the configure script 
+and includes the extra command line arguments from the module you have added. 
+<p>
+Before running the generated configure file, you may need to edit the <tt>
+Makefile.in</tt>. This contains the names of the source files to compile (
+just the wrapper file by default) and any additional libraries needed to
+link in. If their are extra C files to compile you will need to add them
+to the Makefile, or add the names of libraries if they are needed.
+<p>
+You then need to run the configure command and pass the necessary command
+line arguments to enable your module ( by default this is --enable-modulename,
+but this can be changed by editing the config.m4 file in the modules directory
+before running the buildall script. In addition, extra tests can be added to
+the config.m4 file to ensure the correct libraries and header files are 
+installed.)
+<p>
+Once configure has completed, you can run make to build php. If this all
+compiles correctly, you should end up with a php executable/library
+which contains your new module. You can test it with a php script which
+does not have the 'dl' command as used above.
 <a name="h5"></a><h3>To be furthered...</h3>
 </body>
 </html>
