@@ -1035,7 +1035,7 @@ a simple <tt>char *</tt> string.   Returns NULL if not found.
 </blockquote>
 
 <p>
-<b><tt>int *Setattr(Hash *h, String_or_char *key, Object_or_char *val)</tt></b>
+<b><tt>int Setattr(Hash *h, String_or_char *key, Object_or_char *val)</tt></b>
 <blockquote>
 Stores <tt>val</tt> in <tt>h</tt>. <tt>key</tt> may be a string or
 a simple <tt>char *</tt>. If <tt>val</tt> is not a standard
@@ -1047,7 +1047,7 @@ of <tt>val</tt>.   Returns 1 if this operation replaced an existing hash entry,
 </blockquote>
 
 <p>
-<b><tt>int *Delattr(Hash *h, String_or_char *key)</tt></b>
+<b><tt>int Delattr(Hash *h, String_or_char *key)</tt></b>
 <blockquote>
 Deletes the hash item referenced by <tt>key</tt>.  Decreases the
 reference count on the corresponding object (if any).  Returns 1
