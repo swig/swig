@@ -86,7 +86,7 @@ SWIG_ConvertPtr(VALUE obj, swig_type_info *ty)
 
   /* Grab the pointer */
   if (NIL_P(obj))
-    ptr = NULL;
+    return 0;
   else
     Data_Get_Struct(obj, void, ptr);
   
