@@ -103,7 +103,7 @@ namespace std {
         bool empty() const;
         void clear();
         %rename(add) push_back;
-        void push_back(int x);
+        void push_back(T x);
         %extend {
             T get(int i) {
                 int size = int(self->size());
