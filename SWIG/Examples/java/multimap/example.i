@@ -64,13 +64,12 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(javain) (char *str, int len) "$javainput"
 
-%typemap(in) (char *str, int len) (jstring js) %{
-  int index=0;
-
+%typemap(in) (char *str, int len) (jstring js) {
+  int index = 0;
   js = (jstring) (*jenv)->GetObjectArrayElement(jenv, $input, index);
   $1 = (char *) (*jenv)->GetStringUTFChars(jenv, js, 0);
   $2 = (*jenv)->GetStringUTFLength(jenv, js);
-%}
+}
 
 /* Return the mutated string as a modified element in the array. */
 %typemap(argout) (char *str, int len) {
