@@ -953,12 +953,12 @@ array dimension as follows :<p>
 
 <blockquote><pre>
 %typemap(memberin) char [ANY] {
-	strncpy($target,$source,$dim0);
+	strncpy($target,$source,$1_dim0);
 }
 
 </pre></blockquote>
 
-When code is generated, <tt>$dim0</tt> gets filled in with the real
+When code is generated, <tt>$1_dim0</tt> gets filled in with the real
 array dimension.<p>
 
 <h3> Turning Perl references into C pointers</h3>

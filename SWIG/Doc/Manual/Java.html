@@ -1232,11 +1232,11 @@ It should be noted that the <tt>[LEN]</tt> array size is attached to the typemap
 <p>
 <blockquote><pre>
 %typemap(memberin) int [ANY] {
-  memcpy($1,$input,sizeof(int)*$dim0);
+  memcpy($1,$input,sizeof(int)*$1_dim0);
 }
 </pre></blockquote>
 <p>
-During code generation, <tt>$dim0</tt> will be filled in with the real array dimension.  <p>
+During code generation, <tt>$1_dim0</tt> will be filled in with the real array dimension.  <p>
 
 <a name="n129"></a><h3> Pointer handling</h3>
 Unlike other language modules, the Java SWIG pointer library has not been written. The consequence of this is that there is no access to the SWIG runtime type checker which is used by the pointer library. 
