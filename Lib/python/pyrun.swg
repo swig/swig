@@ -168,14 +168,32 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
 static void
 SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
-  const char *otype = (obj ? obj->ob_type->tp_name : 0);
   if (type) {
-    if (otype) {
-      PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
-		   type, otype);
+    if (!PyCObject_Check(obj)) {
+      const char *otype = (obj ? obj->ob_type->tp_name : 0); 
+      if (otype) {
+	PyObject *str = PyObject_Str(obj);
+	const char *cstr = str ? PyString_AsString(str) : 0;
+	if (cstr) {
+	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
+		       type, otype, cstr);
+	} else {
+	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
+		       type, otype);
+	}
+	Py_DECREF(str);
+	return;
+      }
     } else {
-      PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
-    }
+      const char *otype = (char *) PyCObject_GetDesc(obj);
+      if (otype) {
+	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'PyCObject(%s)' is received",
+		     type, otype);
+	return;
+      }
+    }   
+    PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
+
   } else {
     PyErr_Format(PyExc_TypeError, "unexpected type is received");
   }
