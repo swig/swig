@@ -20,99 +20,31 @@
 // Python specific implementation.   This file is included
 // by the file ../pointer.i
 
+
 %{
 #include <ctype.h>
 
-/* Pointer library specific types */
+/* Types used by the library */
+static swig_type_info *SWIG_POINTER_int_p = 0;
+static swig_type_info *SWIG_POINTER_short_p =0;
+static swig_type_info *SWIG_POINTER_long_p = 0;
+static swig_type_info *SWIG_POINTER_float_p = 0;
+static swig_type_info *SWIG_POINTER_double_p = 0;
+static swig_type_info *SWIG_POINTER_char_p = 0;
+static swig_type_info *SWIG_POINTER_char_pp = 0;
+%}
 
-static swig_type_info _swig_pointer_int_p[] = {{"_p_int",0},{"_p_int",0},{0}};
-static swig_type_info _swig_pointer_short_p[] = {{"_p_short",0},{"_p_short",0},{0}};
-static swig_type_info _swig_pointer_long_p[] = {{"_p_long",0},{"_p_long",0},{0}};
-static swig_type_info _swig_pointer_float_p[] = {{"_p_float",0},{"_p_float",0},{0}};
-static swig_type_info _swig_pointer_double_p[] = {{"_p_double",0},{"_p_double",0},{0}};
-static swig_type_info _swig_pointer_char_p[] = {{"_p_char",0},{"_p_char",0},{0}};
-static swig_type_info _swig_pointer_char_pp[] = {{"_pp_char",0},{"_pp_char",0},{0}};
+%init %{
+  SWIG_POINTER_int_p = SWIG_TypeQuery("int *");
+  SWIG_POINTER_short_p = SWIG_TypeQuery("short *");
+  SWIG_POINTER_long_p = SWIG_TypeQuery("long *");
+  SWIG_POINTER_float_p = SWIG_TypeQuery("float *");
+  SWIG_POINTER_double_p = SWIG_TypeQuery("double *");
+  SWIG_POINTER_char_p = SWIG_TypeQuery("char *");
+  SWIG_POINTER_char_pp = SWIG_TypeQuery("char **");
+%}
 
-static swig_type_info *_swig_pointer_types[] = {
-   _swig_pointer_int_p,
-   _swig_pointer_short_p,
-   _swig_pointer_long_p,
-   _swig_pointer_float_p,
-   _swig_pointer_double_p,
-   _swig_pointer_char_p,
-   _swig_pointer_char_pp,
-   0
-};
-
-#define SWIG_POINTER_int_p     _swig_pointer_types[0]
-#define SWIG_POINTER_short_p   _swig_pointer_types[1]
-#define SWIG_POINTER_long_p    _swig_pointer_types[2]
-#define SWIG_POINTER_float_p   _swig_pointer_types[3]
-#define SWIG_POINTER_double_p  _swig_pointer_types[4]
-#define SWIG_POINTER_char_p    _swig_pointer_types[5]
-#define SWIG_POINTER_char_pp   _swig_pointer_types[6]
-
-/*------------------------------------------------------------------
-  ptrcast(value,type)
-
-  Constructs a new pointer value.   Value may either be a string
-  or an integer. Type is a string corresponding to either the
-  C datatype or mangled datatype.
-
-  ptrcast(0,"Vector *")
-               or
-  ptrcast(0,"Vector_p")   
-  ------------------------------------------------------------------ */
-
-static VALUE ptrcast(VALUE _PTRVALUE, char *type) {
-
-  char *r,*s;
-  void *ptr;
-  VALUE obj;
-  char *typestr,*c;
-  swig_type_info   temptype;
-
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr = (char *) malloc(strlen(type)+2);
-  
-  /* Go through and munge the typestring */
-  
-  r = typestr;
-  *(r++) = '_';
-  c = type;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-        *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  /* Check to see what kind of object _PTRVALUE is */
-  switch (TYPE(_PTRVALUE)) {
-  case T_FIXNUM:
-  case T_BIGNUM:
-    ptr = (void *) NUM2LONG(_PTRVALUE);
-    /* Received a numerical value. Make a pointer out of it */
-    temptype.name = typestr;
-    obj = SWIG_NewPointerObj(ptr,&temptype);
-    obj = rb_str_new2(r);
-    break;
-  default:
-    /* Now extract the pointer value */
-    ptr = SWIG_ConvertPtr(_PTRVALUE,0);
-    temptype.name=typestr;
-    obj = SWIG_NewPointerObj(ptr,&temptype);
-  }
-  if (!obj) 
-    rb_raise(rb_eTypeError,"Type error in ptrcast. Argument is not a valid pointer value.");
-  return obj;
-}
+%{
 
 /*------------------------------------------------------------------
   ptrvalue(ptr,type = 0)
@@ -406,61 +338,6 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
 }
 
 /*------------------------------------------------------------------
-  ptrmap(type1,type2)
-
-  Allows a mapping between type1 and type2. (Like a typedef)
-  ------------------------------------------------------------------ */
-static void ptrmap(char *type1, char *type2) {
-  char *typestr1,*typestr2,*c,*r;
-
-  /* Produce a "mangled" version of the type string.  */
-  typestr1 = (char *) malloc(strlen(type1)+2);
-  
-  /* Go through and munge the typestring */
-  r = typestr1;
-  *(r++) = '_';
-  c = type1;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  typestr2 = (char *) malloc(strlen(type2)+2);
-
-  /* Go through and munge the typestring */
-  
-  r = typestr2;
-  *(r++) = '_';
-  c = type2;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  /* Currently unsupported */
-  /*
-  SWIG_RegisterMapping(typestr1,typestr2,0);
-  SWIG_RegisterMapping(typestr2,typestr1,0);
-  */
-}
-
-/*------------------------------------------------------------------
   ptrfree(ptr)
 
   Destroys a pointer value
@@ -506,27 +383,6 @@ VALUE ptrfree(VALUE _PTRVALUE) {
 %typemap(ruby,ret) int ptrset {
   if ($source == -1) return Qnil;
 }
-
-VALUE ptrcast(VALUE ptr, char *type); 
-// Casts a pointer ptr to a new datatype given by the string type.
-// type may be either the SWIG generated representation of a datatype
-// or the C representation.  For example :
-// 
-//    ptrcast(ptr,"double_p");   # Ruby representation
-//    ptrcast(ptr,"double *");    # C representation
-//
-// A new pointer value is returned.   ptr may also be an integer
-// value in which case the value will be used to set the pointer
-// value.  For example :
-//
-//    a = ptrcast(0,"Vector_p");
-//
-// Will create a NULL pointer of type "Vector_p"
-//
-// The casting operation is sensitive to formatting.  As a result,
-// "double *" is different than "double*".  As a result of thumb,
-// there should always be exactly one space between the C datatype
-// and any pointer specifiers (*).
 
 VALUE ptrvalue(VALUE ptr, int index = 0, char *type = 0);
 // Returns the value that a pointer is pointing to (ie. dereferencing).
@@ -600,35 +456,6 @@ VALUE ptradd(VALUE ptr, int offset);
 // For all other datatypes (including all complex datatypes), the
 // offset corresponds to bytes.  This function does not perform any
 // bounds checking and negative offsets are perfectly legal.  
-
-void      ptrmap(char *type1, char *type2);
-// This is a rarely used function that performs essentially the same
-// operation as a C typedef.  To manage datatypes at run-time, SWIG
-// modules manage an internal symbol table of type mappings.  This
-// table keeps track of which types are equivalent to each other.  The
-// ptrmap() function provides a mechanism for scripts to add symbols
-// to this table.  For example :
-//
-//    ptrmap("double_p","Real_p");
-//
-// would make the types "doublePtr" and "RealPtr" equivalent to each
-// other.  Pointers of either type could now be used interchangably.
-//
-// Normally this function is not needed, but it can be used to
-// circumvent SWIG's normal type-checking behavior or to work around
-// weird type-handling problems.
-
-    
-%init %{
-  {
-    int i;
-    for (i = 0; _swig_pointer_types[i]; i++) {
-      _swig_pointer_types[i] = SWIG_TypeRegister(_swig_pointer_types[i]);
-      SWIG_define_class(_swig_pointer_types[i]);
-    }
-  }
-
-  %}
     
 
 

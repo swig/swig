@@ -17,15 +17,12 @@ manipulating a variety of C/C++ pointer values.  In particular,
 you can create various kinds of objects and dereference common
 pointer types.  This is done through a common set of functions:
 
-    ptrcast      - Casts a pointer to a new type
     ptrvalue     - Dereferences a pointer 
     ptrset       - Set the value of an object referenced by 
                    a pointer.
     ptrcreate    - Create a new object and return a pointer.
     ptrfree      - Free the memory allocated by ptrcreate.
     ptradd       - Increment/decrement a pointer value.
-    ptrmap       - Make two datatypes equivalent to each other.
-                   (Is a runtime equivalent of typedef).
 
 When creating, dereferencing, or setting the value of pointer
 variable, only the common C datatypes of int, short, long, float,
@@ -47,6 +44,10 @@ you may achieve better performance by writing customized
 "helper" functions if you're making lots of calls to these
 functions in inner loops or other intensive operations.
 %}
+
+// Record the types that supported by the library
+
+%types(int *, short *, long *, float *, double *, char *, char **, void *);
 
 // This library is a pretty hideous mess of language dependent code.
 // Grab the implementation from the appropriate libray

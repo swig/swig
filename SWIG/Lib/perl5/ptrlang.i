@@ -8,75 +8,37 @@
 // by the file ../pointer.i
 
 %{
+#include <ctype.h>
 
-#ifdef WIN32
+/* Types used by the library */
+static swig_type_info *SWIG_POINTER_int_p = 0;
+static swig_type_info *SWIG_POINTER_short_p =0;
+static swig_type_info *SWIG_POINTER_long_p = 0;
+static swig_type_info *SWIG_POINTER_float_p = 0;
+static swig_type_info *SWIG_POINTER_double_p = 0;
+static swig_type_info *SWIG_POINTER_char_p = 0;
+static swig_type_info *SWIG_POINTER_char_pp = 0;
+static swig_type_info *SWIG_POINTER_void_p = 0;
+%}
+
+%init %{
+  SWIG_POINTER_int_p = SWIG_TypeQuery("int *");
+  SWIG_POINTER_short_p = SWIG_TypeQuery("short *");
+  SWIG_POINTER_long_p = SWIG_TypeQuery("long *");
+  SWIG_POINTER_float_p = SWIG_TypeQuery("float *");
+  SWIG_POINTER_double_p = SWIG_TypeQuery("double *");
+  SWIG_POINTER_char_p = SWIG_TypeQuery("char *");
+  SWIG_POINTER_char_pp = SWIG_TypeQuery("char **");
+  SWIG_POINTER_void_p = SWIG_TypeQuery("void *");
+%}
+
+%{
+
+/* #ifdef WIN32
 #undef isspace
 #define isspace(c) (c == ' ')
 #endif
-
-/*------------------------------------------------------------------
-  ptrcast(value,type)
-
-  Constructs a new pointer value.   Value may either be a string
-  or an integer. Type is a string corresponding to either the
-  C datatype or mangled datatype.
-
-  ptrcast(0,"Vector *")
-               or
-  ptrcast(0,"Vector_p")   
-  ------------------------------------------------------------------ */
-#ifdef PERL_OBJECT
-static SV *_ptrcast(CPerlObj *pPerl, SV *_PTRVALUE, char *type) {
-#define ptrcast(a,b)  _ptrcast(pPerl,a,b)
-#else
-static SV *_ptrcast(SV *_PTRVALUE, char *type) {
-#define ptrcast(a,b)  _ptrcast(a,b)
-#endif
-  char *r,*s;
-  void *ptr;
-  SV *obj;
-  char *typestr,*c;
-
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr = (char *) malloc(strlen(type)+20);
-
-  /* Go through and munge the typestring */
-  
-  r = typestr;
-  c = type;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	strcpy(r,"Ptr");
-	r+=3;
-      } else *(r++) = *c;
-    } 
-    c++;
-  }
-  *(r++) = 0;
-    
-  /* Check to see if the input value is an integer */
-  if (SvIOK(_PTRVALUE)) {
-    ptr = (void *) SvIV(_PTRVALUE);
-    /* Received a numerical value. Make a pointer out of it */
-    obj = sv_newmortal();
-    sv_setref_pv(obj,typestr,ptr);
-  } else if (sv_isobject(_PTRVALUE)) {
-    /* Have a real pointer value now.  Try to strip out the pointer value */
-    /* Now extract the pointer value */
-    if (!SWIG_GetPtr(_PTRVALUE,&ptr,0)) {
-      obj = sv_newmortal();
-      sv_setref_pv(obj,typestr,ptr);
-    }
-  } else {
-    croak("ptrcast(). Not a reference.");
-  }
-  free(typestr);
-  return obj;
-}
-
-
+*/
 
 /*------------------------------------------------------------------
   ptrvalue(ptr,type = 0)
@@ -98,8 +60,7 @@ static SV *_ptrvalue(SV *_PTRVALUE, int index, char *type) {
   void     *ptr;
   SV       *obj = 0;
 
-
-  if (SWIG_GetPtr(_PTRVALUE,&ptr,0)) {
+  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0) < 0) {
     croak("Type error it ptrvalue. Argument is not a valid pointer value.");
   } else {
     /* If no datatype was passed, try a few common datatypes first */
@@ -107,19 +68,19 @@ static SV *_ptrvalue(SV *_PTRVALUE, int index, char *type) {
 
       /* No datatype was passed.   Type to figure out if it's a common one */
       
-      if (!SWIG_GetPtr(_PTRVALUE,&ptr,"intPtr")) {
+      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
 	type = "int";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"doublePtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
 	type = "double";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"shortPtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
 	type = "short";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"longPtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
 	type = "long";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"floatPtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
 	type = "float";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"charPtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
 	type = "char";
-      } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"charPtrPtr")) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp) >= 0) {
 	type = "char *";
       } else {
 	type = "unknown";
@@ -182,35 +143,34 @@ static SV *_ptrcreate(char *type, SV *value, int numelements) {
   void     *ptr;
   SV       *obj;
   int       sz;
-  char     *cast;
-  char      temp[40];
+  swig_type_info *cast = 0;
 
   /* Check the type string against a variety of possibilities */
 
   if (strcmp(type,"int") == 0) {
     sz = sizeof(int)*numelements;
-    cast = "intPtr";
+    cast = SWIG_POINTER_int_p;
   } else if (strcmp(type,"short") == 0) {
     sz = sizeof(short)*numelements;
-    cast = "shortPtr";
+    cast = SWIG_POINTER_short_p;
   } else if (strcmp(type,"long") == 0) {
     sz = sizeof(long)*numelements;
-    cast = "longPtr";
+    cast = SWIG_POINTER_long_p;
   } else if (strcmp(type,"double") == 0) {
     sz = sizeof(double)*numelements;
-    cast = "doublePtr";
+    cast = SWIG_POINTER_double_p;
   } else if (strcmp(type,"float") == 0) {
     sz = sizeof(float)*numelements;
-    cast = "floatPtr";
+    cast = SWIG_POINTER_float_p;
   } else if (strcmp(type,"char") == 0) {
     sz = sizeof(char)*numelements;
-    cast = "charPtr";
+    cast = SWIG_POINTER_char_p;
   } else if (strcmp(type,"char *") == 0) {
     sz = sizeof(char *)*(numelements+1);
-    cast = "charPtrPtr";
+    cast = SWIG_POINTER_char_pp;
   } else if (strcmp(type,"void") == 0) {
     sz = numelements;
-    cast = "voidPtr";
+    cast = SWIG_POINTER_void_p;	
   } else {
     croak("Unable to create unknown datatype."); 
     return 0;
@@ -284,9 +244,9 @@ static SV *_ptrcreate(char *type, SV *value, int numelements) {
   } 
   /* Create the pointer value */
   
-  SWIG_MakePtr(temp,ptr,cast);
+
   obj = sv_newmortal();
-  sv_setref_pv(obj,cast,ptr);
+  SWIG_MakePtr(obj,ptr,cast);
   return obj;
 }
 
@@ -307,36 +267,32 @@ static void _ptrset(SV *_PTRVALUE, SV *value, int index, char *type) {
   void     *ptr;
   SV       *obj;
 
-  if (SWIG_GetPtr(_PTRVALUE,&ptr,0)) {
-    croak("Type error in ptrset. Argument is not a valid pointer value.");
-    return;
-  }
 
-  /* If no datatype was passed, try a few common datatypes first */
-
-  if (!type) {
-
-    /* No datatype was passed.   Type to figure out if it's a common one */
-
-    if (!SWIG_GetPtr(_PTRVALUE,&ptr,"intPtr")) {
-      type = "int";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"doublePtr")) {
-      type = "double";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"shortPtr")) {
-      type = "short";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"longPtr")) {
-      type = "long";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"floatPtr")) {
-      type = "float";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"charPtr")) {
-      type = "char";
-    } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"charPtrPtr")) {
-      type = "char *";
-    } else {
-      type = "unknown";
+  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0) < 0) {
+    croak("Type error it ptrvalue. Argument is not a valid pointer value.");
+  } else {
+    /* If no datatype was passed, try a few common datatypes first */
+    if (!type) {
+      /* No datatype was passed.   Type to figure out if it's a common one */
+      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
+	type = "int";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
+	type = "double";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
+	type = "short";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
+	type = "long";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
+	type = "float";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
+	type = "char";
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp) >= 0) {
+	type = "char *";
+      } else {
+	type = "unknown";
+      }
     }
   }
-
   if (!ptr) {
     croak("Unable to set NULL pointer.");
     return;
@@ -389,91 +345,34 @@ static SV *_ptradd(SV *_PTRVALUE, int offset) {
 
   void *ptr,*junk;
   SV   *obj;
-  char *type;
+  swig_type_info *type;
+  char *tname;
 
   /* Try to handle a few common datatypes first */
 
-  if (!SWIG_GetPtr(_PTRVALUE,&ptr,"intPtr")) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
     ptr = (void *) (((int *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"doublePtr")) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
     ptr = (void *) (((double *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"shortPtr")) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
     ptr = (void *) (((short *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"longPtr")) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
     ptr = (void *) (((long *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"floatPtr")) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
     ptr = (void *) (((float *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,"charPtr")) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
     ptr = (void *) (((char *) ptr) + offset);
-  } else if (!SWIG_GetPtr(_PTRVALUE,&ptr,0)) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0) >= 0) {
     ptr = (void *) (((char *) ptr) + offset);
   } else {
     croak("Type error in ptradd. Argument is not a valid pointer value.");
     return 0;
   }
-  type = SWIG_GetPtr(_PTRVALUE,&junk,"INVALID POINTER");
+  printf("ptradd = %x\n", ptr);
+  tname = HvNAME(SvSTASH(SvRV(_PTRVALUE)));
   obj = sv_newmortal();
-  sv_setref_pv(obj,type,ptr);
+  sv_setref_pv(obj,tname,ptr);
   return obj;
-}
-
-/*------------------------------------------------------------------
-  ptrmap(type1,type2)
-
-  Allows a mapping between type1 and type2. (Like a typedef)
-  ------------------------------------------------------------------ */
-
-#ifdef PERL_OBJECT
-static void _ptrmap(CPerlObj *pPerl,char *type1, char *type2) {
-#define ptrmap(a,b) _ptrmap(pPerl,a,b)
-#else
-static void _ptrmap(char *type1, char *type2) {
-#define ptrmap(a,b) _ptrmap(a,b)
-#endif
-  char *typestr1,*typestr2,*c,*r;
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr1 = (char *) malloc(strlen(type1)+20);
-
-
-  /* Go through and munge the typestring */
-  
-  r = typestr1;
-  *(r++) = '_';
-  c = type1;
-
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	strcpy(r,"Ptr");
-	r+=3;
-      }
-      else *(r++) = *c;
-    } 
-    c++;
-  }
-  *(r++) = 0;
-
-  typestr2 = (char *) malloc(strlen(type2)+20);
-
-  /* Go through and munge the typestring */
-  
-  r = typestr2;
-  *(r++) = '_';
-  c = type2;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	strcpy(r,"Ptr");
-	r+=3;
-      }
-      else *(r++) = *c;
-    }
-    c++;
-  }
-  *(r++) = 0;
-  SWIG_RegisterMapping(typestr1,typestr2,0);
-  SWIG_RegisterMapping(typestr2,typestr1,0);
 }
 
 /*------------------------------------------------------------------
@@ -491,13 +390,13 @@ void _ptrfree(SV *_PTRVALUE) {
 
   void *ptr, *junk;
 
-  if (SWIG_GetPtr(_PTRVALUE,&ptr,0)) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0) < 0) {
     croak("Type error in ptrfree. Argument is not a valid pointer value.");
     return;
   }
 
   /* Check to see if this pointer is a char ** */
-  if (!SWIG_GetPtr(_PTRVALUE,&junk,"charPtrPtr")) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&junk,SWIG_POINTER_char_pp) >= 0) {
     char **c = (char **) ptr;
     if (c) {
       int i = 0;
@@ -530,27 +429,6 @@ void _ptrfree(SV *_PTRVALUE) {
 %typemap(perl5,ret) int ptrset {
   if ($source == -1) return NULL;
 }
-
-SV *ptrcast(SV *ptr, char *type);
-// Casts a pointer ptr to a new datatype given by the string type.
-// type may be either the SWIG generated representation of a datatype
-// or the C representation.  For example :
-// 
-//    ptrcast($ptr,"doublePtr");   # Perl5 representation
-//    ptrcast($ptr,"double *");    # C representation
-//
-// A new pointer value is returned.   ptr may also be an integer
-// value in which case the value will be used to set the pointer
-// value.  For example :
-//
-//    $a = ptrcast(0,"VectorPtr");
-//
-// Will create a NULL pointer of type "VectorPtr"
-//
-// The casting operation is sensitive to formatting.  As a result,
-// "double *" is different than "double*".  As a result of thumb,
-// there should always be exactly one space between the C datatype
-// and any pointer specifiers (*).
 
 SV *ptrvalue(SV *ptr, int index = 0, char *type = 0);
 // Returns the value that a pointer is pointing to (ie. dereferencing).
@@ -628,23 +506,6 @@ SV *ptradd(SV *ptr, int offset);
 // For all other datatypes (including all complex datatypes), the
 // offset corresponds to bytes.  This function does not perform any
 // bounds checking and negative offsets are perfectly legal.  
-
-void      ptrmap(char *type1, char *type2);
-// This is a rarely used function that performs essentially the same
-// operation as a C typedef.  To manage datatypes at run-time, SWIG
-// modules manage an internal symbol table of type mappings.  This
-// table keeps track of which types are equivalent to each other.  The
-// ptrmap() function provides a mechanism for scripts to add symbols
-// to this table.  For example :
-//
-//    ptrmap("doublePtr","RealPtr");
-//
-// would make the types "doublePtr" and "RealPtr" equivalent to each
-// other.  Pointers of either type could now be used interchangably.
-//
-// Normally this function is not needed, but it can be used to
-// circumvent SWIG's normal type-checking behavior or to work around
-// weird type-handling problems.
 
 
 

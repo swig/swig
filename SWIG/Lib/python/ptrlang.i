@@ -34,68 +34,6 @@ static swig_type_info *SWIG_POINTER_char_pp = 0;
 %{
 
 /*------------------------------------------------------------------
-  ptrcast(value,type)
-
-  Constructs a new pointer value.   Value may either be a string
-  or an integer. Type is a string corresponding to either the
-  C datatype or mangled datatype.
-
-  ptrcast(0,"Vector *")
-               or
-  ptrcast(0,"Vector_p")   
-  ------------------------------------------------------------------ */
-
-static PyObject *ptrcast(PyObject *_PTRVALUE, char *type) {
-
-  char *r,*s;
-  void *ptr;
-  PyObject *obj;
-  char *typestr,*c;
-  swig_type_info   temptype;
-
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr = (char *) malloc(strlen(type)+2);
-  
-  /* Go through and munge the typestring */
-  
-  r = typestr;
-  *(r++) = '_';
-  c = type;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-        *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  /* Check to see what kind of object _PTRVALUE is */
-  if (PyInt_Check(_PTRVALUE)) {
-    ptr = (void *) PyInt_AsLong(_PTRVALUE);
-    /* Received a numerical value. Make a pointer out of it */
-    temptype.name = typestr;
-    obj = SWIG_NewPointerObj(ptr,&temptype);
-    obj = PyString_FromString(r);
-  } else {
-    /* Now extract the pointer value */
-    if (!SWIG_ConvertPtr(_PTRVALUE,&ptr,0,0)) {
-      temptype.name=typestr;
-      obj = SWIG_NewPointerObj(ptr,&temptype);
-    } else {
-      obj = NULL;
-    }
-  }
-  if (!obj) 
-    PyErr_SetString(PyExc_TypeError,"Type error in ptrcast. Argument is not a valid pointer value.");
-  return obj;
-}
-
-/*------------------------------------------------------------------
   ptrvalue(ptr,type = 0)
 
   Attempts to dereference a pointer value.  If type is given, it 
@@ -399,61 +337,6 @@ static PyObject *ptradd(PyObject *_PTRVALUE, int offset) {
 }
 
 /*------------------------------------------------------------------
-  ptrmap(type1,type2)
-
-  Allows a mapping between type1 and type2. (Like a typedef)
-  ------------------------------------------------------------------ */
-static void ptrmap(char *type1, char *type2) {
-  char *typestr1,*typestr2,*c,*r;
-
-  /* Produce a "mangled" version of the type string.  */
-  typestr1 = (char *) malloc(strlen(type1)+2);
-  
-  /* Go through and munge the typestring */
-  r = typestr1;
-  *(r++) = '_';
-  c = type1;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  typestr2 = (char *) malloc(strlen(type2)+2);
-
-  /* Go through and munge the typestring */
-  
-  r = typestr2;
-  *(r++) = '_';
-  c = type2;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  /* Currently unsupported */
-  /*
-  SWIG_RegisterMapping(typestr1,typestr2,0);
-  SWIG_RegisterMapping(typestr2,typestr1,0);
-  */
-}
-
-/*------------------------------------------------------------------
   ptrfree(ptr)
 
   Destroys a pointer value
@@ -503,27 +386,6 @@ PyObject *ptrfree(PyObject *_PTRVALUE) {
 %typemap(python,ret) int ptrset {
   if ($source == -1) return NULL;
 }
-
-PyObject *ptrcast(PyObject *ptr, char *type); 
-// Casts a pointer ptr to a new datatype given by the string type.
-// type may be either the SWIG generated representation of a datatype
-// or the C representation.  For example :
-// 
-//    ptrcast(ptr,"double_p");   # Python representation
-//    ptrcast(ptr,"double *");    # C representation
-//
-// A new pointer value is returned.   ptr may also be an integer
-// value in which case the value will be used to set the pointer
-// value.  For example :
-//
-//    a = ptrcast(0,"Vector_p");
-//
-// Will create a NULL pointer of type "Vector_p"
-//
-// The casting operation is sensitive to formatting.  As a result,
-// "double *" is different than "double*".  As a result of thumb,
-// there should always be exactly one space between the C datatype
-// and any pointer specifiers (*).
 
 PyObject *ptrvalue(PyObject *ptr, int index = 0, char *type = 0);
 // Returns the value that a pointer is pointing to (ie. dereferencing).
@@ -597,23 +459,6 @@ PyObject *ptradd(PyObject *ptr, int offset);
 // For all other datatypes (including all complex datatypes), the
 // offset corresponds to bytes.  This function does not perform any
 // bounds checking and negative offsets are perfectly legal.  
-
-void      ptrmap(char *type1, char *type2);
-// This is a rarely used function that performs essentially the same
-// operation as a C typedef.  To manage datatypes at run-time, SWIG
-// modules manage an internal symbol table of type mappings.  This
-// table keeps track of which types are equivalent to each other.  The
-// ptrmap() function provides a mechanism for scripts to add symbols
-// to this table.  For example :
-//
-//    ptrmap("double_p","Real_p");
-//
-// would make the types "doublePtr" and "RealPtr" equivalent to each
-// other.  Pointers of either type could now be used interchangably.
-//
-// Normally this function is not needed, but it can be used to
-// circumvent SWIG's normal type-checking behavior or to work around
-// weird type-handling problems.
     
 
 

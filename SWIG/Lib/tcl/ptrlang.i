@@ -34,70 +34,6 @@ static swig_type_info *SWIG_POINTER_char_pp = 0;
 %{
 
 /*------------------------------------------------------------------
-  ptrcast(value,type)
-
-  Constructs a new pointer value.   Value may either be a string
-  or an integer. Type is a string corresponding to either the
-  C datatype or mangled datatype.
-
-  ptrcast(0,"Vector *")
-               or
-  ptrcast(0,"Vector_p")   
-  ------------------------------------------------------------------ */
-
-static int ptrcast(Tcl_Interp *interp, char *ptrvalue, char *type) {
-
-  char *r,*s;
-  void *ptr;
-  char *typestr,*c;
-  int   pv;
-  int   error = 0;
-  swig_type_info sinfo;
-
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr = (char *) malloc(strlen(type)+2);
-
-  /* Go through and munge the typestring */
-  r = typestr;
-  *(r++) = '_';
-  c = type;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-        *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  sinfo.name = typestr;
-  /* Check to see what kind of object ptrvalue is */
-  if (Tcl_GetInt(interp,ptrvalue,&pv) == TCL_OK) {
-    ptr = (void *) pv;
-    /* Received a numerical value. Make a pointer out of it */
-    Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,&sinfo));
-  } else {
-    /* Have a string.  Try to get the real pointer value */
-    if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0) == TCL_OK) {
-      Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,&sinfo));
-    } else {
-      error = 1;
-    }
-  }
-  free(typestr);
-  if (error) {
-    Tcl_SetResult(interp,"Type error in ptrcast. Argument is not a valid pointer value.",TCL_VOLATILE);
-   return TCL_ERROR;
-  }
-  return TCL_OK;
-}
-
-/*------------------------------------------------------------------
   ptrvalue(ptr,type = 0)
 
   Attempts to dereference a pointer value.  If type is given, it 
@@ -425,65 +361,6 @@ static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
   return TCL_OK;
 }
 
-
-/*------------------------------------------------------------------
-  ptrmap(type1,type2)
-
-  Allows a mapping between type1 and type2. (Like a typedef)
-  ------------------------------------------------------------------ */
-
-static void ptrmap(char *type1, char *type2) {
-
-  char *typestr1,*typestr2,*c,*r;
-
-  /* Produce a "mangled" version of the type string.  */
-
-  typestr1 = (char *) malloc(strlen(type1)+2);
-  
-  /* Go through and munge the typestring */
-  
-  r = typestr1;
-  *(r++) = '_';
-  c = type1;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  
-  typestr2 = (char *) malloc(strlen(type2)+2);
-
-  /* Go through and munge the typestring */
-  
-  r = typestr2;
-  *(r++) = '_';
-  c = type2;
-  while (*c) {
-    if (!isspace(*c)) {
-      if ((*c == '*') || (*c == '&')) {
-	*(r++) = 'p';
-      }
-      else *(r++) = *c;
-    } else {
-      *(r++) = '_';
-    }
-    c++;
-  }
-  *(r++) = 0;
-  /* Currently unsupported
-  SWIG_RegisterMapping(typestr1,typestr2,0);
-  SWIG_RegisterMapping(typestr2,typestr1,0);
-  */
-  fprintf(stdout,"SWIG: ptrmap currently unimplemented.\n");
-}
-
 /*------------------------------------------------------------------
   ptrfree(ptr)
 
@@ -530,28 +407,6 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
 %typemap(tcl8,ignore) Tcl_Interp * {
   $target = interp;
 }
-
-int ptrcast(Tcl_Interp *interp, char *ptr, char *type); 
-// Casts a pointer ptr to a new datatype given by the string type.
-// type may be either the SWIG generated representation of a datatype
-// or the C representation.  For example :
-// 
-//    ptrcast $ptr double_p        # Tcl representation
-//    ptrcast $ptr "double *"      # C representation
-//
-// A new pointer value is returned.   ptr may also be an integer
-// value in which case the value will be used to set the pointer
-// value.  For example :
-//
-//    set a [ptrcast 0 Vector_p]
-//
-// Will create a NULL pointer of type "Vector_p"
-//
-// The casting operation is sensitive to formatting.  As a result,
-// "double *" is different than "double*".  As a result of thumb,
-// there should always be exactly one space between the C datatype
-// and any pointer specifiers (*).
-
 
 int ptrvalue(Tcl_Interp *interp, char *ptr, int index = 0, char *type = 0);
 // Returns the value that a pointer is pointing to (ie. dereferencing).
@@ -627,26 +482,6 @@ int ptradd(Tcl_Interp *interp, char *ptr, int offset);
 // offset corresponds to bytes.  This function does not perform any
 // bounds checking and negative offsets are perfectly legal.  
 
-void      ptrmap(char *type1, char *type2);
-// This is a rarely used function that performs essentially the same
-// operation as a C typedef.  To manage datatypes at run-time, SWIG
-// modules manage an internal symbol table of type mappings.  This
-// table keeps track of which types are equivalent to each other.  The
-// ptrmap() function provides a mechanism for scripts to add symbols
-// to this table.  For example :
-//
-//    ptrmap double_p Real_p
-//
-// would make the types "double_p" and "Real_p" equivalent to each
-// other.  Pointers of either type could now be used interchangably.
-//
-// Normally this function is not needed, but it can be used to
-// circumvent SWIG's normal type-checking behavior or to work around
-// weird type-handling bugs.
-
-// Clear the ignore typemap
-//%typemap(tcl,ignore) Tcl_Interp *;
-//%typemap(tcl8,ignore) Tcl_Interp *;
     
   
 
