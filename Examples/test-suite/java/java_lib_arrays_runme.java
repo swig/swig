@@ -40,6 +40,13 @@ public class java_lib_arrays_runme {
     array_struct[0].setDouble_field(222.333);
     array_struct[1].setDouble_field(444.555);
 
+    AnotherStruct[] another_struct={new AnotherStruct(), new AnotherStruct()};
+    another_struct[0].setSimple(array_struct[0]);
+    another_struct[1].setSimple(array_struct[1]);
+
+    if (another_struct[0].getSimple().getDouble_field() != 222.333) throw new RuntimeException("AnotherStruct[0] failed");
+    if (another_struct[1].getSimple().getDouble_field() != 444.555) throw new RuntimeException("AnotherStruct[1] failed");
+
     // Now set the array members and check that they have been set correctly
     as.setArray_c(array_c);
     check_string(array_c, as.getArray_c());
@@ -87,63 +94,55 @@ public class java_lib_arrays_runme {
   // Functions to check that the array values were set correctly
   public static void check_string(String original, String checking) {
     if (!checking.equals(original)) {
-      System.err.println("Runtime test failed. checking = [" + checking + "]");
-      System.exit(1);
+      throw new RuntimeException("Runtime test failed. checking = [" + checking + "]");
     }
   }
   public static void check_byte_array(byte[] original, byte[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_short_array(short[] original, short[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_int_array(int[] original, int[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_long_array(long[] original, long[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_float_array(float[] original, float[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_double_array(double[] original, double[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i] != original[i]) {
-        System.err.println("Runtime test failed. checking[" + i + "]=" + checking[i]);
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "]=" + checking[i]);
       }
     }
   }
   public static void check_struct_array(SimpleStruct[] original, SimpleStruct[] checking) {
     for (int i=0; i<original.length; i++) {
       if (checking[i].getDouble_field() != original[i].getDouble_field()) {
-        System.err.println("Runtime test failed. checking[" + i + "].double_field=" + checking[i].getDouble_field());
-        System.exit(1);
+        throw new RuntimeException("Runtime test failed. checking[" + i + "].double_field=" + checking[i].getDouble_field());
       }
     }
   }
