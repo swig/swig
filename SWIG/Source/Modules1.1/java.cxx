@@ -497,7 +497,6 @@ void JAVA::headers(void)
   Printf(f_header,"/* Implementation : Java */\n\n");
 
   // Include header file code fragment into the output
-  // if (file::include("java.swg",f_header) == -1) {
   if (Swig_insert_file("java.swg",f_header) == -1) {
     Printf(stderr,"Fatal Error. Unable to locate 'java.swg'.\n");
     SWIG_exit (EXIT_FAILURE);
@@ -522,11 +521,12 @@ void JAVA::initialize()
 
   if(package) {
     String *s = NewString(package);
-    Replace(s,".","_", DOH_REPLACE_ANY);
     char *jniname = makeValidJniName(Char(s));
     Clear(s);
-    Printf(s, "%s_", jniname);
+    Printv(s, jniname, 0);
     free(jniname);
+    Replace(s,".","_", DOH_REPLACE_ANY);
+    Append(s, "_");
     c_pkgstr = Swig_copy_string(Char(s));
     Delete(s);
 
@@ -1619,7 +1619,10 @@ DelWrapper(f);
         break;
       case T_REFERENCE:
       case T_POINTER:
-        Printf(nativecall, "), false");
+        if (NewObject) // %new indicating Java must take responsibility for memory ownership
+          Printf(nativecall, "), true");
+        else
+          Printf(nativecall, "), false");
         break;
       default:
         Printf(stderr, "Internal Error: unknown shadow type: %s\n", SwigType_str(t,0));
