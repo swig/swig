@@ -10,7 +10,8 @@ class check {
   }
 
   function classname($string,$object) {
-    if (! $string==($classname=get_class($object))) check::fail("Object: $object is of class %s not class %s",$classname,$string);
+    if (! $string==($classname=get_class($object))) return check::fail("Object: $object is of class %s not class %s",$classname,$string);
+    return TRUE;
   }
 
   function classmethods($classname,$methods) {
@@ -26,7 +27,7 @@ class check {
     if ($missing) $message[]="does not have these methods:\n  ".join(",",$missing);
     if ($extra) $message[]="does have these extra methods:\n  ".join(",",$extra);
     if ($message) {
-      check::fail("Class %s %s\nFull class list:\n  %s\n",$classname,join("\nbut ",$message),join("\n  ",get_class_methods($classname)));
+      return check::fail("Class %s %s\nFull class list:\n  %s\n",$classname,join("\nbut ",$message),join("\n  ",get_class_methods($classname)));
     }
     return TRUE;
   }
@@ -36,7 +37,17 @@ class check {
     if (is_object($b)) $a=get_class($b);
     $parent=get_parent_class($a);
 
-    if ($parent!=$b) check::fail("Class $a parent not actually $b but $parent");
+    if ($parent!=$b) return check::fail("Class $a parent not actually $b but $parent");
+    return TRUE;
+  }
+
+  function functions($functions) {
+    if (! is_array($functions)) $functions=array($functions);
+    $missing=array();
+    foreach ($functions as $func) if (! function_exists($func)) $missing[]=$func;
+    if ($missing) return check::fail("Functions missing: %s",join(",",$missing));
+    return TRUE;
+    
   }
 
   function equal($a,$b,$message) {
