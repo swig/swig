@@ -209,7 +209,7 @@ void emit_action(Node *n, Wrapper *f) {
     Replaceall(tm,"$action", action);
     Printv(f->code,tm,"\n", 0);
   } else {
-    Printv(f->code, action, 0);
+    Printv(f->code, action, "\n",0);
   }
 }
 

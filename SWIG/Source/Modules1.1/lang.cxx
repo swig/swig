@@ -238,12 +238,15 @@ int Language::top(Node *n) {
 
 int Language::addmethodsDirective(Node *n) {
   int oldam = AddMethods;
+  int oldmode = cplus_mode;
   Node *c;
   AddMethods = 1;
+  cplus_mode = CPLUS_PUBLIC;
   for (c = firstChild(n); c; c = nextSibling(c)) {
     emit_one(c);
   }
   AddMethods = oldam;
+  cplus_mode = oldmode;
   return SWIG_OK;
 }
 

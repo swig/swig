@@ -723,7 +723,7 @@ PYTHON::classHandler(Node *n) {
 	     tab4, "if (!PyArg_ParseTuple(args,(char*)\"O\", &obj)) return NULL;\n",
 	     tab4, "SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", obj);\n",
 	     tab4, "Py_INCREF(obj);\n",
-	     tab4, "return Py_BuildValue(\"\");\n",
+	     tab4, "return Py_BuildValue((char *)\"\");\n",
 	     "}\n",0);
       String *cname = NewStringf("%s_swigregister", class_name);
       add_method(Char(cname), Char(cname), 0);
