@@ -85,6 +85,7 @@ static DohFileMethods StringFileMethods = {
 
 static DohStringMethods StringStringMethods = {
   String_replace,
+  String_chop,
 };
 
 static DohObjInfo StringType = {
