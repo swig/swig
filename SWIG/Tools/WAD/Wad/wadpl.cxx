@@ -32,7 +32,7 @@ static int  global_signo = 0;
 
 static void returnfunc(void) {
   SV     *s;
-  s = perl_eval_pv("libwadpl::wad_handler_traceback(0)", 0);
+  s = perl_eval_pv((char*)"libwadpl::wad_handler_traceback(0)", 0);
   croak("%s\n%s",SvPV(s,PL_na),message);
   return;
 }
@@ -57,14 +57,16 @@ static void handler(int signo, WadFrame *frame, char *ret) {
 
   switch(signo) {
   case SIGSEGV:
-    type = "Segmentation fault.";
+    type = (char*)"Segmentation fault.";
     break;
   case SIGBUS:
-    type = "Bus error.";
+    type = (char*)"Bus error.";
     break;
   case SIGABRT:
-    type = "Abort.";
+    type = (char*)"Abort.";
     break;
+  case SIGFPE:
+    type = (char*)"Math.";
   default:
     break;
   }

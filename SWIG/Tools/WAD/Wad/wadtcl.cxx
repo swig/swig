@@ -34,13 +34,13 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   strcpy(message,"[ C stack trace ]\n\n");
   switch(signo) {
   case SIGSEGV:
-    type = "Segmentation fault.";
+    type = (char*)"Segmentation fault.";
     break;
   case SIGBUS:
-    type = "Bus error.";
+    type = (char*)"Bus error.";
     break;
   case SIGABRT:
-    type = "Abort.";
+    type = (char*)"Abort.";
     break;
   default:
     break;

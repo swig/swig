@@ -123,6 +123,10 @@ WAD_DEBUG_RETURN        -  Display information about WAD return points.
 WAD_DEBUG_SYMBOL_SEARCH -  Display all symbols in the symbol table that are
                            searched.
 
+WAD_DEBUG_UNWIND        -  Display information about stack unwinding.
+
+WAD_DEBUG_SIGNAL        -  Display information about signal handling.
+
 WAD_DEBUG_INIT          -  Print initialization information.
 
 WAD_NOSTACK             -  Do NOT use an alternative signal handling stack.

@@ -1,0 +1,19 @@
+#######################################################################
+# WAD Test makefile
+#
+# Build some WAD test programs.
+#######################################################################
+
+CC= @CC@
+CCSHARED = @CCSHARED@
+LDSHARED = @LDSHARED@
+RPATH    = @RPATH@
+
+PYINCLUDE = @PYINCLUDE@
+TCLINCLUDE = @TCLINCLUDE@
+PERLINCLUDE = @PERL5EXT@
+INCLUDE = -I../Include 
+
+test:
+	$(CC) -g -DNEED_MAIN debug.c $(INCLUDE) -L.. $(RPATH).. -lwad -o debug
+

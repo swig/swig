@@ -11,11 +11,10 @@ TCLINCLUDE = @TCLINCLUDE@
 PERLINCLUDE = @PERL5EXT@
 
 all: wad @MAKEPYTHON@ @MAKETCL@ @MAKEPERL@
-	
 
 wad:
 	@cd Wad; $(MAKE) wad
-	
+
 python:
 	@cd Wad; $(MAKE) SINCLUDE='$(PYINCLUDE)' python
 
@@ -25,4 +24,8 @@ tcl:
 perl:
 	@cd Wad; $(MAKE) SINCLUDE='$(PERLINCLUDE)' perl
 
-	
+
+clean:
+	@cd Wad; $(MAKE) clean
+	rm *.so
+

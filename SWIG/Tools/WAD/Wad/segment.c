@@ -47,7 +47,7 @@
 
 WadSegment *
 wad_segment_read() {
-  FILE       *fs;
+  int         fs;
   int         dz;
   int         offset = 0;
   int         i;
@@ -59,7 +59,7 @@ wad_segment_read() {
 
   /* Try to load the virtual address map */
   fs = segment_open();
-  if (!fs) return 0;
+  if (fs < 0) return 0;
   nsegments = 0;
   while (1) {
     n = segment_read(fs,&ws);
@@ -67,7 +67,7 @@ wad_segment_read() {
     nsegments++;
   }
   nsegments+=3;
-  fclose(fs);
+  close(fs);
 
   dz = open("/dev/zero", O_RDWR, 0644);
   if (dz < 0) {
@@ -110,7 +110,7 @@ wad_segment_read() {
   s->offset = 0;
   s->mapname[0] =0;
   s->mappath[0] = 0;
-  fclose(fs);
+  close(fs);
   return segments;
 }
 
