@@ -686,11 +686,13 @@ Node *Swig_cparse(File *f) {
 }
 
  SwigType *Swig_cparse_type(String *s) {
+   String *ns;
    extern void scanner_file(File *);
    extern int yyparse();
    extern void scanner_next_token(int);
-   Seek(s,0,SEEK_SET);
-   scanner_file(s);
+   ns = NewStringf("%s;",s);
+   Seek(ns,0,SEEK_SET);
+   scanner_file(ns);
    top = 0;
    scanner_next_token(TYPEPARSE);
    yyparse();
@@ -882,10 +884,8 @@ program        :  interface {
 		   check_extensions();
 	           top = $1;
                }
-               | TYPEPARSE type abstract_declarator {
-		 SwigType_push($2, $3.type);
-		 Delete($3.type);
-		 top = $2;
+               | TYPEPARSE parm SEMI {
+                 top = Getattr($2,"type");
                }
                | TYPEPARSE error {
                  top = 0;

@@ -538,6 +538,8 @@ Doc/Manual/Typemaps.html for complete details.\n");
   /* Replace $descriptor() macros */
 
   if (code) {
+    Setfile(code,Getfile(n));
+    Setline(code,Getline(n));
     Swig_cparse_replace_descriptor(code);
   }
 

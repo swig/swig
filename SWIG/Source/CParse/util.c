@@ -35,7 +35,9 @@ void Swig_cparse_replace_descriptor(String *s) {
       if (*c == '(') level++;
       if (*c == ')') {
 	level--;
-	if (level == 0) break;
+	if (level == 0) {
+	  break;
+	}
       }
       *d = *c;
       d++;
@@ -43,8 +45,10 @@ void Swig_cparse_replace_descriptor(String *s) {
     }
     *d = 0;
     arg = NewString(tmp+12);
-    DohIncref(arg);
     t = Swig_cparse_type(arg);
+    Delete(arg);
+    arg = 0;
+
     if (t) {
       String *mangle;
       String *descriptor;
@@ -52,16 +56,16 @@ void Swig_cparse_replace_descriptor(String *s) {
       mangle = SwigType_manglestr(t);
       descriptor = NewStringf("SWIGTYPE%s",mangle);
       SwigType_remember(t);
-      
       *d = ')';
       d++;
       *d = 0;
       Replace(s,tmp,descriptor,DOH_REPLACE_ANY);
       Delete(mangle);
       Delete(descriptor);
+    } else {
+      Swig_error(Getfile(s),Getline(s),"Bad $descriptor() macro.\n");
+      break;
     }
-    Delete(arg);
-    arg = 0;
   }
 }
  
