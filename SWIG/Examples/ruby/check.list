@@ -1,0 +1,21 @@
+# see top-level Makefile.in
+class
+constants
+enum
+funcptr
+funcptr2
+functor
+hashargs
+import
+template
+mpointer
+multimap
+operator
+overloading
+pointer
+reference
+simple
+std_vector
+template
+value
+variables

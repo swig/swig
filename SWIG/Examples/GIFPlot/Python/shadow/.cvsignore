@@ -1,0 +1,6 @@
+gifplot.py
+gifplot.pyc
+gifplot_wrap.c
+*.so
+*.dll
+*.gif

@@ -1,0 +1,20 @@
+The Debian Package swig1.3
+--------------------------
+
+This is SWIG 1.3 (Simplified Wrapper and Interface Generator)
+packaged for Debian GNU/Linux.
+
+SWIG 1.3 is not fully compatible with SWIG 1.1. It is a re-development
+effort of SWIG 1.1 (which was written in C++) in ANSI C.  The 1.3
+series is in "alpha" state.  Release 1.3a5 was rather stable, and it
+should be used for new projects rather than the ancient release
+1.1p5.  See the file `NEW' for information on the new features of the
+1.3 series.
+
+This Debian package derives from the release 1.3a5 and corresponds to
+the "mkoeppe-1-3-a5-patches" branch of the SWIG CVS repository.  It
+fixes several bugs and enhances several language backends.  See the
+top of the file `CHANGES' for details.
+
+
+Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>, Mon, 28 May 2001 15:08:55 +0200

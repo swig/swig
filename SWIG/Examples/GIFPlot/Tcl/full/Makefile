@@ -5,19 +5,20 @@ SRCS       =
 TARGET     = gifplot
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot
-INCLUDE    = -I../../Include
+INCLUDES   = -I../../Include
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tcl
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='mytclsh' INTERFACE='$(INTERFACE)' tclsh
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mytclsh  .~* core *.gif
+	$(MAKE) -f $(TOP)/Makefile tcl_clean
+	rm -f *.gif
 
 check: all

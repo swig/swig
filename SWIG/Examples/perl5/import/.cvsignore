@@ -1,0 +1,14 @@
+baseclass.pm
+example.pm
+foo.pm
+bar.pm
+spam.pm
+*_wrap.c
+*_wrap.cxx
+example.dll
+example.dsw
+example.ncb
+example.opt
+example.plg
+Release
+Debug

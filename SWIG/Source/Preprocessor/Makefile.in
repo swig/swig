@@ -6,7 +6,7 @@ srcdir = @srcdir@
 VPATH  = @srcdir@
 
 SRCS          = expr.c cpp.c
-OBJS          = expr.o cpp.o
+OBJS          = expr.@OBJEXT@ cpp.@OBJEXT@
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
@@ -15,11 +15,11 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../Swig -I$(srcdir)/../DOH/Include
+INCLUDES      = -I$(srcdir)/. -I$(srcdir)/../Swig -I$(srcdir)/../DOH/Include -I$(srcdir)/../Include
 TARGET        = libcpp.a
 
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
+.c.@OBJEXT@:
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $*.@OBJEXT@ $<
 
 all: $(TARGET)
 
@@ -28,4 +28,4 @@ $(TARGET): $(OBJS)
 	$(RANLIB) $(TARGET)
 
 clean:
-	rm -f *.o *~ core *.so *.a *_wrap.*
+	rm -f *.@OBJEXT@ *~ core *.so *.a *_wrap.*

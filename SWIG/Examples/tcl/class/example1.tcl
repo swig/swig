@@ -22,11 +22,11 @@ puts "\nA total of $Shape_nshapes shapes were created"
 # ----- Member data access -----
 
 # Set the location of the object
+# Note: the base class must be used since that's where x and y
+# were declared.
 
 Shape_x_set $c 20
 Shape_y_set $c 30
-
-# Now use the same functions in the base class
 Shape_x_set $s -10
 Shape_y_set $s 5
 
@@ -68,7 +68,4 @@ delete_Shape $s
 
 puts "$Shape_nshapes shapes remain"
 puts "Goodbye"
-
-
-
 

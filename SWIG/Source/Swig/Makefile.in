@@ -5,10 +5,10 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-SRCS          = map.c wrapfunc.c naming.c tree.c stype.c scanner.c include.c getopt.c misc.c \
-		parms.c cwrap.c typemap.c module.c main.c
-OBJS          = map.o wrapfunc.o naming.o tree.o stype.o scanner.o include.o getopt.o misc.o \
-		parms.o cwrap.o typemap.o module.o main.o
+SRCS          = wrapfunc.c naming.c tree.c stype.c typesys.c scanner.c include.c getopt.c misc.c \
+		parms.c cwrap.c typemap.c warn.c symbol.c error.c fragment.c
+OBJS          = wrapfunc.@OBJEXT@ naming.@OBJEXT@ tree.@OBJEXT@ stype.@OBJEXT@ typesys.@OBJEXT@ scanner.@OBJEXT@ include.@OBJEXT@ getopt.@OBJEXT@ misc.@OBJEXT@ \
+		parms.@OBJEXT@ cwrap.@OBJEXT@ typemap.@OBJEXT@ warn.@OBJEXT@ symbol.@OBJEXT@ error.@OBJEXT@ fragment.@OBJEXT@
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
@@ -17,11 +17,11 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Include
+INCLUDES      = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Include
 TARGET        = libswig.a
 
-.c.o:
-	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
+.c.@OBJEXT@:
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $*.@OBJEXT@ $<
 
 all: $(TARGET)
 
@@ -30,4 +30,4 @@ $(TARGET): $(OBJS)
 	$(RANLIB) $(TARGET)
 
 clean:
-	rm -f *.o *~ core *.so *.a *_wrap.*
+	rm -f *.@OBJEXT@ *~ core *.so *.a *_wrap.*

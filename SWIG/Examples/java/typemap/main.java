@@ -1,4 +1,3 @@
-import example;
 
 public class main {
 
@@ -6,7 +5,7 @@ public class main {
     try {
 	System.loadLibrary("example");
     } catch (UnsatisfiedLinkError e) {
-      System.err.println("Cannot load the example native code.\nMake sure your LD_LIBRARY_PATH contains \'.\'\n" + e);
+      System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
     }
   }

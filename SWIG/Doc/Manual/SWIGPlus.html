@@ -1,0 +1,3408 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and C++</title>
+</head>
+
+<body bgcolor="#ffffff">
+<a name="n1"></a><H1>5 SWIG and C++</H1>
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">Comments on C++ Wrapping</a>
+<li><a href="#n3">Approach</a>
+<li><a href="#n4">Supported C++ features</a>
+<li><a href="#n5">Command line options and compilation</a>
+<li><a href="#n6">Simple C++ wrapping</a>
+<ul>
+<li><a href="#n7">Constructors and destructors</a>
+<li><a href="#n8">Copy constructors</a>
+<li><a href="#n9">Member functions</a>
+<li><a href="#n10">Static members</a>
+<li><a href="#n11">Member functions and default arguments</a>
+<li><a href="#n12">Member data</a>
+</ul>
+<li><a href="#n13">Protection</a>
+<li><a href="#n14">Enums and constants</a>
+<li><a href="#n15">Friends</a>
+<li><a href="#n16">References and pointers</a>
+<li><a href="#n17">Pass and return by value</a>
+<li><a href="#n18">Inheritance</a>
+<li><a href="#n19">A brief discussion of multiple inheritance, pointers,  and type checking</a>
+<li><a href="#n20">Renaming</a>
+<li><a href="#n21">Wrapping Overloaded Functions and Methods</a>
+<ul>
+<li><a href="#n22">Dispatch function generation</a>
+<li><a href="#n23">Ambiguity in Overloading</a>
+<li><a href="#n24">Ambiguity resolution and renaming</a>
+<li><a href="#n25">Comments on overloading</a>
+</ul>
+<li><a href="#n26">Wrapping overloaded operators</a>
+<li><a href="#n27">Class extension</a>
+<li><a href="#n28">Templates</a>
+<li><a href="#n29">Namespaces</a>
+<li><a href="#n30">Exception specifiers</a>
+<li><a href="#n31">Pointers to Members</a>
+<li><a href="#n32">Smart pointers and operator-&gt;()</a>
+<li><a href="#n33">Using declarations and inheritance</a>
+<li><a href="#n34">Partial class definitions</a>
+<li><a href="#n35">A brief rant about const-correctness</a>
+<li><a href="#n36">Proxy classes</a>
+<li><a href="#n37">Where to go for more information</a>
+</ul>
+<!-- INDEX -->
+
+
+
+This chapter describes SWIG's support for wrapping C++.  As a prerequisite,
+you should first read the chapter <a href="SWIG.html">SWIG Basics</a> to see
+how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
+wrapping and that material will be useful in understanding this chapter.
+
+<a name="n2"></a><H2>5.1 Comments on C++ Wrapping</H2>
+
+
+Because of its complexity and the fact that C++ can be
+difficult to integrate with itself let alone other languages, SWIG 
+only provides support for a subset of C++ features.   Fortunately, 
+this is now a rather large subset.  
+
+<p>
+In part, the problem with C++ wrapping is that there is no
+semantically obvious (or automatic ) way to map many of its advanced
+features into other languages.  As a simple example, consider the
+problem of wrapping C++ multiple inheritance to a target language with
+no such support.  Similarly, the use of overloaded operators and
+overloaded functions can be problematic when no such capability exists
+in a target language.
+
+<p>
+A more subtle issue with C++ has to do with the way that some C++
+programmers think about programming libraries.  In the world of SWIG,
+you are really trying to create binary-level software components for
+use in other languages.  In order for this to work, a "component" has
+to contain real executable instructions and there has to be some kind
+of binary linking mechanism for accessing its functionality.  In
+contrast, C++ has increasingly relied upon generic programming and
+templates for much of its functionality.
+Although templates are a powerful feature, they are largely orthogonal
+to the whole notion of binary components and libraries.  For example,
+an STL <tt>vector</tt> does not define any kind of binary object for
+which SWIG can just create a wrapper.  To further complicate matters,
+these libraries often utilize a lot of behind the scenes magic in
+which the semantics of seemingly basic operations (e.g., pointer
+dereferencing, procedure call, etc.) can be changed in dramatic and
+sometimes non-obvious ways.  Although this "magic" may present few
+problems in a C++-only universe, it greatly complicates the problem of
+crossing language boundaries and provides many opportunities to shoot
+yourself in the foot.  You will just have to be careful.
+
+<a name="n3"></a><H2>5.2 Approach</H2>
+
+
+To wrap C++, SWIG uses a layered approach to code generation.  
+At the lowest level, SWIG generates a collection of procedural ANSI-C style
+wrappers.   These wrappers take care of basic type conversion,
+type checking, error handling, and other low-level details of the C++ binding.
+These wrappers are also sufficient to bind C++ into any target language
+that supports built-in procedures.   In some sense, you might view this
+layer of wrapping as providing a C library interface to C++.
+Optionally, SWIG can also generate proxy classes 
+that provide a natural OO interface to the underlying code.  These proxies
+are built on top of the low-level procedural wrappers and are typically
+written in the target language itself.  For instance, in Python, a real
+Python class is used to provide a wrapper around the underlying C++ object.
+
+<p>
+It is important to emphasize that SWIG takes a deliberately
+conservative and non-intrusive approach to C++ wrapping. SWIG does not
+encapsulate C++ classes inside special C++ adaptor or proxy classes,
+it does not rely upon templates, nor does it use C++ inheritance when
+generating wrappers.  The last thing that most C++ programs need is
+even more compiler magic.  Therefore, SWIG tries to maintain a very
+strict and clean separation between the implementation of your C++
+application and the resulting wrapper code. You might say that SWIG
+has been written to follow the principle of least surprise--it does
+not play sneaky tricks with the C++ type system, it doesn't mess with
+your class hierarchies, and it doesn't introduce new semantics.
+Although this approach might not provide the most seamless integration
+with C++, it is safe, simple, portable, and debuggable.
+
+<p>
+Most of this chapter focuses on the low-level procedural interface to
+C++ that is used as the foundation for all language modules.  Keep in
+mind that most target languages also provide a high-level OO interface via
+proxy classes.  A few general details about proxies can be found at the end of
+this chapter.  However, more detailed coverage can be found in the documentation
+for each target language.
+
+<a name="n4"></a><H2>5.3 Supported C++ features</H2>
+
+
+SWIG's currently supports the following C++ features :<p>
+<p>
+<ul>
+<li>Classes.
+<li>Constructors and destructors
+<li>Virtual functions
+<li>Public inheritance (including multiple inheritance)
+<li>Static functions
+<li>Function and method overloading.
+<li>Operator overloading for many standard operators
+<li>References
+<li>Templates (including specialization and member templates).
+<li>Pointers to members
+<li>Namespaces
+</ul>
+
+<p>
+The following C++ features are not currently supported :<p>
+
+<p>
+<ul>
+<li>Nested classes
+<li>Overloaded versions of certain operators (new, delete, etc.)
+</ul>
+
+<p>
+SWIG's C++ support is an ongoing project so some of these limitations may be lifted
+in future releases.  However, we make no promises.  Also, submitting a bug report is a very
+good way to get problems fixed (wink).
+
+<a name="n5"></a><H2>5.4 Command line options and compilation</H2>
+
+
+<p>
+When wrapping C++ code, it is critical that SWIG be called with the
+`<tt>-c++</tt>' option. This changes the way a number of critical
+features such as memory management are handled. It
+also enables the recognition of C++ keywords. Without the <tt>-c++</tt>
+flag, SWIG will either issue a warning or a large number of syntax
+errors if it encounters C++ code in an interface file.<p>
+
+<P>
+When compiling and linking the resulting wrapper file,  it is normal
+to use the C++ compiler.  For example:
+
+<blockquote>
+<pre>
+$ swig -c++ -tcl example.i
+$ c++ -c example_wrap.cxx 
+$ c++ example_wrap.o $(OBJS) -o example.so
+</pre>
+</blockquote>
+
+Unfortunately, the process varies slightly on each machine.  Make sure
+you refer to the documentation on each target language for further
+details.  The SWIG Wiki also has further details.
+
+<a name="n6"></a><H2>5.5 Simple C++ wrapping</H2>
+
+
+The following code shows a SWIG interface file for a simple C++
+class.<p>
+
+<p>
+<blockquote><pre>%module list
+%{
+#include "list.h"
+%}
+
+// Very simple C++ example for linked list
+
+class List {
+public:
+  List();
+  ~List();
+  int  search(char *value);
+  void insert(char *);
+  void remove(char *);
+  char *get(int n);
+  int  length;
+static void print(List *l);
+};
+</pre></blockquote>
+
+<a name="n7"></a><H3>5.5.1 Constructors and destructors</H3>
+
+
+C++ constructors and destructors are translated into accessor
+functions such as the following :<p>
+
+<p>
+<blockquote><pre>List * new_List(void) {
+	return new List;
+}
+void delete_List(List *l) {
+	delete l;
+}
+
+</pre></blockquote>
+If a C++ class does not define any public constructors or
+destructors, SWIG will automatically create a default constructor or 
+destructor.   However, there are a few rules that define this behavior:
+
+<ul>
+<li>A default constructor is not created if a class already defines a constructor with arguments.
+
+<p>
+<li>Default constructors are not generated for classes with pure virtual methods or for classes that
+inherit from an abstract class, but don't provide definitions for all of the pure methods.
+
+<p>
+<li>A default constructor is not created unless all bases classes support a 
+default constructor. 
+
+<p>
+<li>Default constructors and destructors are not created if a class
+defines constructors or destructors in a <tt>private</tt> or <tt>protected</tt> section.
+
+<p>
+<li>Default constructors and destructors are not created if any base
+class defines a private default constructor or a private destructor.
+</ul>
+
+SWIG should never generate a constructor or destructor for a class in which
+it is illegal to do so.   However, if it is necessary to disable the
+default constructor/destructor creation, the <tt>%nodefault</tt> directive
+can be used:
+
+<blockquote>
+<pre>
+%nodefault;   // Disable creation of constructor/destructor
+class Foo {
+...
+};
+%makedefault;
+</pre>
+</blockquote>
+
+<tt>%nodefault</tt> can also take a class name.  For example:
+
+<blockquote>
+<pre>
+%nodefault Foo;     // Disable for class Foo only.
+</pre>
+</blockquote>
+
+<b>Compatibility Note:</b> The generation of default
+constructors/destructors was made the default behavior in SWIG
+1.3.7. This may break certain older modules, but the old behavior can
+be easily restored using <tt>%nodefault</tt> or the
+<tt>-nodefault</tt> command line option.  Furthermore, in order for
+SWIG to properly generate (or not generate) default constructors, it
+must be able to gather information from both the <tt>private</tt> and
+<tt>protected</tt> sections (specifically, it needs to know if a private or
+protected constructor/destructor is defined).   In older versions of
+SWIG, it was fairly common to simply remove or comment out
+the private and protected sections of a class due to parser limitations.
+However, this removal may now cause SWIG to erroneously generate constructors
+for classes that define a constructor in those sections.  Consider restoring
+those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
+
+<a name="n8"></a><H3>5.5.2 Copy constructors</H3>
+
+
+If a class defines more than one constructor, its behavior depends on the capabilities of the
+target language.  If overloading is supported, the copy constructor is accessible using
+the normal constructor function.  For example, if you have this:
+
+<blockquote>
+<pre>
+class List {
+public:
+    List();    
+    List(const List &);      // Copy constructor
+    ...
+};
+</pre>
+</blockquote>
+
+then the copy constructor can be used as follows:
+
+<blockquote>
+<pre>
+x = new_List()               # Create a list
+y = new_List(x)              # Copy list x
+</pre>
+</blockquote>
+
+If the target language does not support overloading, then the copy constructor is available
+through a special function like this:
+
+<blockquote>
+<pre>
+List *copy_List(List *f) {
+    return new List(*f);
+}
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> For a class <tt>X</tt>, SWIG only treats a constructor as
+a copy constructor if it can be applied to an object of type
+<tt>X</tt> or <tt>X *</tt>.  If more than one copy constructor is
+defined, only the first definition that appears is used as the copy
+constructor--other definitions will result in a name-clash.
+Constructors such as <tt>X(const X &)</tt>, <tt>X(X &)</tt>, and
+<tt>X(X *)</tt> are handled as copy constructors in SWIG.
+
+<p>
+<b>Note:</b> SWIG does <em>not</em> generate a copy constructor
+wrapper unless one is explicitly declared in the class.  This differs
+from the treatment of default constructors and destructors.
+
+<p>
+<b>Compatibility note:</b> Special support for copy constructors was
+not added until SWIG-1.3.12.  In previous versions, copy constructors
+could be wrapped, but they had to be renamed.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    Foo();
+  %name(CopyFoo) Foo(const Foo &);
+    ...
+};
+</pre>
+</blockquote>
+
+For backwards compatibility, SWIG does not perform any special
+copy-constructor handling if the constructor has been manually
+renamed.  For instance, in the above example, the name of the
+constructor is set to <tt>new_CopyFoo()</tt>.   This is the same as in 
+older versions.
+
+<a name="n9"></a><H3>5.5.3 Member functions</H3>
+
+
+All member functions are roughly translated into accessor functions like this :<p>
+<p>
+<blockquote><pre>int List_search(List *obj, char *value) {
+	return obj-&gt;search(value);
+}
+
+</pre></blockquote>
+
+This translation is the same even if the member function has been
+declared as <tt>virtual</tt>.
+
+<p>
+It should be noted that SWIG does not <em>actually</em> create a C accessor
+function in the code it generates.  Instead, member access such as
+<tt>obj-&gt;search(value)</tt> is directly inlined into the generated
+wrapper functions.  However, the name and calling convention of the
+wrappers match the accessor function prototype described above.
+
+<a name="n10"></a><H3>5.5.4 Static members</H3>
+
+
+Static member functions are called directly without making any special
+transformations. For example, the static member function
+<tt>print(List *l)</tt> directly invokes <tt>List::print(List *l)</tt>
+in the generated wrapper code.
+
+<p>
+Usually, static members are accessed as functions with names in which the class name has been
+prepended with an underscore. For example, <tt>List_print</tt>.
+
+<a name="n11"></a><H3>5.5.5 Member functions and default arguments</H3>
+
+
+SWIG allows member functions to accept default arguments.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    void bar(int x, int y = 3);
+};
+</pre>
+</blockquote>
+
+However, the implementation restricts the use of default arguments to values
+that are public.   The following example illustrates a very subtle semantic
+incompatibility between SWIG and C++:
+
+<blockquote>
+<pre>
+class Foo {
+private:
+   int  spam;
+public:
+   void bar(int x, int y = spam);   // Illegal in SWIG. Private default value
+};
+</pre>
+</blockquote>
+
+When this occurs, you will get a couple of warning messages like this:
+
+<blockquote>
+<pre>
+example.i:15. Warning 'spam' is private in this context.
+example.i:15. Warning. Can't set default argument (ignored)
+</pre>
+</blockquote>
+
+This incompatibility arises because default values in C++ are
+evaluated in the same scope as the member function whereas SWIG
+evaluates them in the scope of a wrapper function (meaning that the
+values have to be public).  The full set of arguments
+are needed in the wrappers in order to support a number of advanced
+customization features and the use of default arguments in ANSI C
+(which is not part of the ANSI standard).
+
+<p>
+There are several somewhat clumsy ways to work around this problem
+(which are not discussed here). However, a simpler solution may be to
+reconsider your design--is it really <em>that</em> critical to make
+the default argument private?
+
+<a name="n12"></a><H3>5.5.6 Member data</H3>
+
+
+Member data is handled in exactly the same manner as for C
+structures. A pair of accessor functions are created. For example
+:<p>
+
+<p>
+<blockquote><pre>int List_length_get(List *obj) {
+	return obj-&gt;length;
+}
+int List_length_set(List *obj, int value) {
+	obj-&gt;length = value;
+	return value;
+}
+
+</pre></blockquote>
+
+A read-only member can be created using the <tt>%immutable</tt> and
+<tt>%mutable</tt> directives. For example, we probably wouldn't want
+the user to change the length of a list so we could do the following
+to make the value available, but read-only.<p>
+
+<p>
+<blockquote><pre>class List {
+public:
+...
+%immutable;
+	int length;
+%mutable;
+...
+};
+</pre></blockquote>
+
+Alternatively, you can specify an immutable member in advance like this:
+
+<blockquote>
+<pre>
+%immutable List::length;
+...
+class List {
+   ...
+   int length;         // Immutable by above directive
+   ...
+};
+</pre>
+</blockquote>
+
+Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-only members.
+
+<p>
+There are some subtle issues when wrapping data members that are
+themselves classes.  For instance, if you had another class like this,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    List items;
+    ...
+</pre>
+</blockquote>
+
+then access to the <tt>items</tt> member actually uses pointers. For example:
+
+<blockquote>
+<pre>
+List *Foo_items_get(Foo *self) {
+    return &self->items;
+}
+void Foo_items_set(Foo *self, List *value) {
+    self->items = *value;
+}
+</pre>
+</blockquote>
+
+More information about this can be found in the "Structure data
+members" section of the <a href="SWIG.html">SWIG Basics</a> chapter. 
+
+<p>
+<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
+<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
+generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
+<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
+
+<p>
+<b>Compatibility note:</b> Prior to SWIG-1.3.12, all members of unknown type were
+wrapped into accessor functions using pointers.  For example, if you had a structure
+like this
+
+<blockquote>
+<pre>
+struct Foo {
+   size_t  len;
+};
+</pre>
+</blockquote>
+
+and nothing was known about <tt>size_t</tt>, then accessors would be
+written to work with <tt>size_t *</tt>.  Starting in SWIG-1.3.12, this
+behavior has been modified.  Specifically, pointers will <em>only</em>
+be used if SWIG knows that a datatype corresponds to a structure or
+class.  Therefore, the above code would be wrapped into accessors
+involving <tt>size_t</tt>.  This change is subtle, but it smooths over
+a few problems related to structure wrapping and some of SWIG's
+customization features.
+
+<a name="n13"></a><H2>5.6 Protection</H2>
+
+
+SWIG can only wrap class members that are declared public. Anything
+specified in a private or protected section will simply be ignored (although
+the internal code generator sometimes looks at the contents of the private and protected
+sections so that it can properly generate code for default constructors and destructors). 
+
+<p>
+By default, members of a class definition are assumed to be private
+until you explicitly give a `<tt>public:</tt>' declaration (This is
+the same convention used by C++).<p>
+
+<p>
+A subtle access problem relates to default values of member functions.  Specifically,
+default values must be public.   Please go back to the section on default arguments for further details.
+
+<a name="n14"></a><H2>5.7 Enums and constants</H2>
+
+
+Enumerations and constants placed in a class definition are mapped
+into constants with the classname as a prefix. For example :<p>
+<p>
+<blockquote><pre>class Swig {
+public:
+	enum {ALE, LAGER, PORTER, STOUT};
+};
+
+</pre></blockquote>
+Generates the following set of constants in the target scripting language :<p>
+<p>
+<blockquote><pre>Swig_ALE = Swig::ALE
+Swig_LAGER = Swig::LAGER
+Swig_PORTER = Swig::PORTER
+Swig_STOUT = Swig::STOUT
+
+</pre></blockquote>
+
+Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
+
+<a name="n15"></a><H2>5.8 Friends</H2>
+
+
+Friend declarations are ignored by SWIG.   For example, if you have this code:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     ...
+     friend void blah(Foo *f);
+     ...
+};
+</pre>
+</blockquote>
+
+then the <tt>friend</tt> declaration does not result in any wrapper code.   On the other hand,
+a declaration of the function itself will work fine.  For instance:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    ...
+    friend void blah(Foo *f);       // Ignored
+    ...
+};
+
+void blah(Foo *f);       // Generates wrappers
+</pre>
+</blockquote>
+
+Unlike normal member functions or static member functions, a friend
+declaration does not define a method that operates on an instance of
+an object nor does it define a declaration in the scope of the class.  
+Therefore, it would make no sense for SWIG to create wrappers as such.
+
+<a name="n16"></a><H2>5.9 References and pointers</H2>
+
+
+C++ references are supported, but SWIG transforms them back into pointers. For example,
+a declaration like this :<p>
+<p>
+<blockquote><pre>class Foo {
+public:
+	double bar(double &amp;a);
+}
+</pre></blockquote>
+<p>
+is accessed using a function similar to this:<p>
+<p>
+<blockquote><pre>double Foo_bar(Foo *obj, double *a) {
+	obj-&gt;bar(*a);
+}
+</pre></blockquote>
+
+As a special case, most language modules pass <tt>const</tt> references to primitive datatypes (<tt>int</tt>, <tt>short</tt>,
+<tt>float</tt>, etc.) by value instead of pointers.  For example, if you have a function like this,
+
+<blockquote>
+<pre>
+void foo(const int &x);
+</pre>
+</blockquote>
+
+it is called from a script as follows:
+
+<blockquote>
+<pre>
+foo(3)              # Notice pass by value
+</pre>
+</blockquote>
+
+Functions that return a reference are remapped to return a pointer instead.
+For example:
+
+<blockquote><pre>
+class Bar {
+public:
+     Foo &spam();
+};
+</pre>
+</blockquote>
+
+Generates code like this:
+
+<blockquote>
+<pre>
+Foo *Bar_spam(Bar *obj) {
+   Foo &result = obj->spam();
+   return &result;
+}
+</pre>
+</blockquote>
+
+However, functions that return <tt>const</tt> references to primitive datatypes (<tt>int</tt>, <tt>short</tt>, etc.) normally
+return the result as a value rather than a pointer.  For example, a function like this,
+
+<blockquote>
+<pre>
+const int &bar();
+</pre>
+</blockquote>
+
+will return integers such as 37 or 42 in the target scripting language rather than a pointer to an integer.
+
+<P>
+Don't return references to objects allocated as local variables on the
+stack.  SWIG doesn't make a copy of the objects so this will probably
+cause your program to crash.
+
+<p>
+<b>Note:</b> The special treatment for references to primitive datatypes is necessary to provide
+more seamless integration with more advanced C++ wrapping applications---especially related to 
+templates and the STL.  This was first added in SWIG-1.3.12.
+
+<a name="n17"></a><H2>5.10 Pass and return by value</H2>
+
+
+Occasionally, a C++ program will pass and return class objects by value.  For example, a function
+like this might appear:
+
+<blockquote>
+<pre>
+Vector cross_product(Vector a, Vector b);
+</pre>
+</blockquote>
+
+If no information is supplied about <tt>Vector</tt>, SWIG creates a wrapper function similar to the
+following:
+
+<blockquote>
+<pre>
+Vector *wrap_cross_product(Vector *a, Vector *b) {
+   Vector x = *a;
+   Vector y = *b;
+   Vector r = cross_product(x,y);
+   return new Vector(r);
+}</pre>
+</blockquote>
+
+In order for the wrapper code to compile, <tt>Vector</tt> must define a copy constructor and a 
+default constructor.
+
+<p>
+If <tt>Vector</tt> is defined as class in the interface, but it does
+not support a default constructor, SWIG changes the wrapper code by
+encapsulating the arguments inside a special C++ template wrapper
+class.  This produces a wrapper that looks like this:
+
+<blockquote>
+<pre>
+Vector cross_product(Vector *a, Vector *b) {
+   SwigValueWrapper&lt;Vector&gt; x = *a;
+   SwigValueWrapper&lt;Vector&gt; y = *b;
+   SwigValueWrapper&lt;Vector&gt; r = cross_product(x,y);
+   return new Vector(r);
+}
+</pre>
+</blockquote>
+
+This transformation is a little sneaky, but it provides support for
+pass-by-value even when a class does not provide a default constructor
+and it makes it possible to properly support a number of SWIG's
+customization options.  The definition of <tt>SwigValueWrapper</tt>
+can be found by reading the SWIG wrapper code. This class is really nothing more than a thin
+wrapper around a pointer. 
+
+<p>
+<b>Note:</b> this transformation has no effect on typemaps
+or any other part of SWIG---it should be transparent except that you
+may see this code when reading the SWIG output file.
+
+<p>
+<b>
+Note: </b>This template transformation is new in SWIG-1.3.11 and may be refined in
+future SWIG releases.  In practice, it is only necessary to do this for
+classes that don't define a default constructor.  
+
+<p>
+<b>Note:</b> The use of this template only occurs when objects are passed or returned by value.
+It is not used for C++ pointers or references.
+
+<p>
+<b>Note:</b> The performance of pass-by-value is especially bad for large objects and should be avoided
+if possible (consider using references instead).
+
+<a name="n18"></a><H2>5.11 Inheritance</H2>
+
+
+SWIG supports C++ public inheritance of classes and allows both
+single and multiple inheritance. The SWIG type-checker knows about the
+relationship between base and derived classes and allows pointers
+to any object of a derived class to be used in functions of a base
+class. The type-checker properly casts pointer values and is safe to
+use with multiple inheritance.
+
+<p> SWIG does not support private or protected inheritance (it is
+parsed, but it has no effect on the generated code).  Note: private
+and protected inheritance do not define an "isa" relationship between
+classes so it would have no effect on type-checking anyways.
+
+<p>
+The following example shows how SWIG handles inheritance. For clarity,
+the full C++ code has been omitted.<p>
+
+<p>
+<blockquote><pre>// shapes.i
+%module shapes
+%{
+#include "shapes.h"
+%}
+
+class Shape {
+public:
+        double x,y;
+	virtual double area() = 0;
+	virtual double perimeter() = 0;
+	void    set_location(double x, double y);
+};
+class Circle : public Shape {
+public:
+	Circle(double radius);
+	~Circle();
+	double area();
+	double perimeter();
+};
+class Square : public Shape {
+public:
+	Square(double size);
+	~Square();
+	double area();
+	double perimeter();
+}
+</pre></blockquote>
+
+<p>
+When wrapped into Python, we can now perform the following operations
+:<p>
+
+<p>
+<blockquote><pre>$ python
+&gt;&gt;&gt; import shapes
+&gt;&gt;&gt; circle = shapes.new_Circle(7)
+&gt;&gt;&gt; square = shapes.new_Square(10)
+&gt;&gt;&gt; print shapes.Circle_area(circle)
+153.93804004599999757
+&gt;&gt;&gt; print shapes.Shape_area(circle)
+153.93804004599999757
+&gt;&gt;&gt; print shapes.Shape_area(square)
+100.00000000000000000
+&gt;&gt;&gt; shapes.Shape_set_location(square,2,-3)
+&gt;&gt;&gt; print shapes.Shape_perimeter(square)
+40.00000000000000000
+&gt;&gt;&gt;
+</pre></blockquote>
+
+In this example,  Circle and Square objects have been created.  Member
+functions can be invoked on each object by making calls to
+<tt>Circle_area</tt>, <tt>Square_area</tt>, and so on. However, the same
+results can be accomplished by simply using the <tt>Shape_area</tt>
+function on either object.<p>
+
+<p>
+One important point concerning inheritance is that the low-level
+accessor functions are only generated for classes in which they are
+actually declared.  For instance, in the above example, the method
+<tt>set_location()</tt> is only accessible as
+<tt>Shape_set_location()</tt> and not as
+<tt>Circle_set_location()</tt> or <tt>Square_set_location()</tt>.  Of
+course, the <tt>Shape_set_location()</tt> function will accept any
+kind of object derived from Shape.  Similarly, accessor functions for
+the attributes <tt>x</tt> and <tt>y</tt> are generated as
+<tt>Shape_x_get()</tt>, <tt>Shape_x_set()</tt>,
+<tt>Shape_y_get()</tt>, and <tt>Shape_y_set()</tt>.  Functions such as
+<tt>Circle_x_get()</tt> are not available--instead you should use
+<tt>Shape_x_get()</tt>.
+
+<p>
+Although the low-level C-like interface is functional, most language
+modules also produce a higher level OO interface using proxy classes.
+This approach is described later and can be used to provide a more natural C++ interface.
+
+<p>
+<b>Note:</b>  For the best results, SWIG requires all
+base classes to be defined in an interface.  Otherwise, you may get an
+warning message like this:
+
+<blockquote>
+<pre>
+example:18. Nothing known about class 'Foo'. Ignored.
+</pre>
+</blockquote>
+
+If any base class is undefined, SWIG still generates correct type
+relationships.  For instance, a function accepting a <tt>Foo *</tt>
+will accept any object derived from <tt>Foo</tt> regardless of whether
+or not SWIG actually wrapped the <tt>Foo</tt> class.  If you really
+don't want to generate wrappers for the base class, but you want to
+silence the warning, you might consider using the <tt>%import</tt>
+directive to include the file that defines <tt>Foo</tt>.
+<tt>%import</tt> simply gathers type information, but doesn't generate
+wrappers.  Alternatively, you could just define <tt>Foo</tt> as an empty class
+in the SWIG interface.
+
+<p>
+<b>Note:</b> <tt>typedef</tt>-names <em>can</em> be used as base classes.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+...
+};
+
+typedef Foo FooObj;
+class Bar : public FooObj {     // Ok.  Base class is Foo
+...
+};
+</pre>
+</blockquote>
+
+Similarly, <tt>typedef</tt> allows unnamed structures to be used as base classes. For example:
+
+<blockquote>
+<pre>
+typedef struct {
+   ...
+} Foo;
+
+class Bar : public Foo {    // Ok. 
+...
+};
+</pre>
+</blockquote>
+
+<p>
+<b>Compatibility Note:</b> Starting in version 1.3.7, SWIG only
+generates low-level accessor wrappers for the declarations that are
+actually defined in each class.  This differs from SWIG1.1 which used
+to inherit all of the declarations defined in base classes and
+regenerate specialized accessor functions such as
+<tt>Circle_x_get()</tt>, <tt>Square_x_get()</tt>,
+<tt>Circle_set_location()</tt>, and <tt>Square_set_location()</tt>.
+This behavior resulted in huge amounts of replicated code for large
+class hierarchies and made it awkward to build applications spread
+across multiple modules (since accessor functions are duplicated in
+every single module).   It is also unnecessary to have such wrappers
+when advanced features like proxy classes are used.  Future versions
+of SWIG may apply further optimizations such as not regenerating 
+wrapper functions for virtual members that are already defined in a base class.
+
+<a name="n19"></a><H2>5.12 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
+
+
+When a target scripting language refers to a C++ object, it normally
+uses a tagged pointer object that contains both the value of the
+pointer and a type string.  For example, in Tcl, a C++ pointer might
+be encoded as a string like this:
+
+<blockquote>
+<pre>
+_808fea88_p_Circle
+</pre>
+</blockquote>
+
+A somewhat common question is whether or not the type-tag could be safely
+removed from the pointer.  For instance, to get better performance, could you
+strip all type tags and just use simple integers instead?
+
+<p>
+In general, the answer to this question is no.  In the wrappers, all
+pointers are converted into a common data representation in the target
+language.  Typically this is the equivalent of casting a pointer to <tt>void *</tt>.
+This means that any C++ type information associated with the pointer is
+lost in the conversion.
+
+<p>
+The problem with losing type information is that it is needed to
+properly support many advanced C++ features--especially multiple
+inheritance.  For example, suppose you had code like this:
+
+<blockquote>
+<pre>
+class A {
+public:
+   int x;
+};
+
+class B {
+public:
+   int y;
+};
+
+class C : public A, public B {
+};
+
+int A_function(A *a) {
+   return a->x;
+}
+
+int B_function(B *b) {
+   return b->y;
+}
+</pre>
+</blockquote>
+
+Now, consider the following code that uses <tt>void *</tt>.
+
+<blockquote>
+<pre>
+C *c = new C();
+void *p = (void *) c;
+...
+int x = A_function((A *) p);
+int y = B_function((B *) p);
+</pre>
+</blockquote>
+
+In this code, both <tt>A_function()</tt> and <tt>B_function()</tt> may
+legally accept an object of type <tt>C *</tt> (via inheritance).
+However, one of the functions will always return the wrong result when
+used as shown. The reason for this is that even though <tt>p</tt>
+points to an object of type <tt>C</tt>, the casting operation doesn't
+work like you would expect.  Internally, this has to do with the data
+representation of <tt>C</tt>. With multiple inheritance, the data from
+each base class is stacked together.  For example:
+
+<blockquote>
+<pre>
+             ------------    &lt;--- (C *),  (A *)
+            |     A      |
+            |------------|   &lt;--- (B *)
+            |     B      |
+             ------------   
+</pre>
+</blockquote>
+
+Because of this stacking, a pointer of type <tt>C *</tt> may change
+value when it is converted to a <tt>A *</tt> or <tt>B *</tt>.
+However, this adjustment does <em>not</em> occur if you are converting from a
+<tt>void *</tt>.
+
+<p>
+The use of type tags marks all pointers with the real type of the
+underlying object.  This extra information is then used by SWIG
+generated wrappers to correctly cast pointer values under inheritance
+(avoiding the above problem). 
+
+<p>
+One might be inclined to fix this problem using some variation of
+<tt>dynamic_cast&lt;&gt;</tt>.  The only problem is that it doesn't
+work with <tt>void</tt> pointers, it requires RTTI support, and it
+only works with polymorphic classes (i.e., classes that define one or
+more virtual functions).
+
+<p>
+The bottom line: learn to live with type-tagged pointers.
+
+<a name="n20"></a><H2>5.13 Renaming</H2>
+
+
+C++ member functions and data can be renamed with the <tt>%name</tt>
+directive. The <tt>%name</tt> directive only replaces the member
+function name. For example :<p>
+
+<p>
+<blockquote><pre>class List {
+public:
+  List();
+%name(ListSize) List(int maxsize);
+  ~List();
+  int  search(char *value); 
+%name(find)    void insert(char *); 
+%name(delete)  void remove(char *); 
+  char *get(int n);
+  int  length;
+static void print(List *l);
+};
+
+</pre></blockquote>
+
+This will create the functions <tt>List_find</tt>,
+<tt>List_delete</tt>, and a function named <tt>new_ListSize</tt> for
+the overloaded constructor.<p>
+<p>
+The <tt>%name </tt>directive can be applied to all members including
+constructors, destructors, static functions, data members, and
+enumeration values.<p>
+<p>
+The class name prefix can also be changed by specifying <p>
+<p>
+<blockquote><pre>%name(newname) class List {
+...
+}
+</pre></blockquote>
+
+Although the <tt>%name()</tt> directive can be used to help deal with
+overloaded methods, it really doesn't work very well because it
+requires a lot of additional markup in your interface.  Keep reading
+for a better solution.
+
+<a name="n21"></a><H2>5.14 Wrapping Overloaded Functions and Methods</H2>
+
+
+In many language modules, SWIG provides partial support for overloaded functions, methods, and
+constructors.  For example, if you supply SWIG with overloaded functions like this:
+
+<blockquote>
+<pre>
+void foo(int x) {
+   printf("x is %d\n", x);
+}
+void foo(char *x) {
+   printf("x is '%s'\n", x);
+}
+</pre>
+</blockquote>
+
+The function is used in a completely natural way.  For example:
+
+<blockquote>
+<pre>
+>>> foo(3)
+x is 3
+>>> foo("hello")
+x is 'hello'
+>>>
+</pre>
+</blockquote>
+
+Overloading works in a similar manner for methods and constructors.  For example if you have
+this code,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     Foo();
+     Foo(const Foo &);   // Copy constructor
+     void bar(int x);
+     void bar(char *s, int y);
+};
+</pre>
+</blockquote>
+
+it might be used like this
+
+<blockquote>
+<pre>
+>>> f = Foo()          # Create a Foo
+>>> f.bar(3)
+>>> g = Foo(f)         # Copy Foo
+>>> f.bar("hello",2)
+</pre>
+</blockquote>
+
+<a name="n22"></a><H3>5.14.1 Dispatch function generation</H3>
+
+
+The implementation of overloaded functions and methods is somewhat
+complicated due to the dynamic nature of scripting languages.  Unlike
+C++, which binds overloaded methods at compile time, SWIG must
+determine the proper function as a runtime check.    This check is
+further complicated by the typeless nature of certain scripting languages. For instance,
+in Tcl, all types are simply strings.  Therefore, if you have two overloaded functions
+like this,
+
+<blockquote>
+<pre>
+void foo(char *x);
+void foo(int x);
+</pre>
+</blockquote>
+
+the order in which the arguments are checked plays a rather critical role.
+
+<p>
+To implement overloading, SWIG generates a dispatch function that checks the
+number of passed arguments and their types.  To create this function, SWIG
+first examines all of the overloaded methods and ranks them according
+to the following rules:
+
+<ol>
+<li><b>Number of required arguments.</b> Methods are sorted by increasing number of
+required arguments.
+<p>
+<li><b>Argument type precedence.</b>  All C++ datatypes are assigned a numeric type precedence value
+(which is determined by the language module).  
+
+<blockquote>
+<pre>
+Type              Precedence
+----------------  ----------
+TYPE *            0     (High)
+void *            20
+Integers          40
+Floating point    60
+char              80
+Strings           100   (Low)
+</pre>
+</blockquote>
+Using these precedence values, overloaded methods with the same number of required arguments are sorted in increased
+order of precedence values.
+</ol>
+
+<p>
+This may sound very confusing, but an example will help.  Consider the following collection of
+overloaded methods:
+
+<blockquote>
+<pre>
+void foo(double);
+void foo(int);
+void foo(Bar *);
+void foo();
+void foo(int x, int y, int z, int w);
+void foo(int x, int y, int z = 3);
+void foo(double x, double y);
+void foo(double x, Bar *z);
+</pre>
+</blockquote>
+
+The first rule simply ranks the functions by required argument count.
+This would produce the following list:
+
+<blockquote>
+<pre>
+rank
+-----
+[0]   foo()
+[1]   foo(double);
+[2]   foo(int);
+[3]   foo(Bar *);
+[4]   foo(int x, int y, int z = 3);
+[5]   foo(double x, double y)
+[6]   foo(double x, Bar *z)
+[7]   foo(int x, int y, int z, int w);
+</pre>
+</blockquote>
+
+The second rule, simply refines the ranking by looking at argument type precedence values.
+
+<blockquote>
+<pre>
+rank
+-----
+[0]   foo()
+[1]   foo(Bar *);
+[2]   foo(int);
+[3]   foo(double);
+[4]   foo(int x, int y, int z = 3);
+[5]   foo(double x, Bar *z)
+[6]   foo(double x, double y)
+[7]   foo(int x, int y, int z, int w);
+</pre>
+</blockquote>
+
+Finally, to generate the dispatch function, the arguments passed to an overloaded method are simply
+checked in the same order as they appear in this ranking.
+
+<p>
+If you're still confused, don't worry about it---SWIG is probably doing the right thing.
+
+<a name="n23"></a><H3>5.14.2 Ambiguity in Overloading</H3>
+
+
+Regrettably, SWIG is not able to support every possible use of valid C++ overloading.  Consider
+the following example:
+
+<blockquote>
+<pre>
+void foo(int x);
+void foo(long x);
+</pre>
+</blockquote>
+
+In C++, this is perfectly legal.  However, in a scripting language, there is generally only one kind of integer
+object.  Therefore, which one of these functions do you pick?   Clearly, there is no way to truly make a distinction 
+just by looking at the value of the integer itself (<tt>int</tt> and <tt>long</tt> may even be the same precision).   
+Therefore, when SWIG encounters this situation, it may generate a warning message like this:
+
+<blockquote>
+<pre>
+example.i:4: Warning(509): Overloaded foo(long) is shadowed by foo(int) at example.i:3.
+</pre>
+</blockquote>
+
+This means that the second overloaded function will be inaccessible
+from the scripting interface---SWIG does not know how to disambiguate
+it from an earlier method.
+
+<p>
+Ambiguity problems are known to arise in the following situations:
+
+<ul>
+<li>Integer conversions.   Datatypes such as <tt>int</tt>, <tt>long</tt>, and <tt>short</tt>. Shown above.
+
+<p>
+<li>Floating point conversion.  <tt>float</tt> and <tt>double</tt> can not be disambiguated.
+
+<p>
+<li>Pointers and references. For example, <tt>Foo *</tt> and <tt>Foo &</tt>.
+
+<p>
+<li>Pointers and arrays.  For example, <tt>Foo *</tt> and <tt>Foo [4]</tt>.
+
+<p>
+<li>Pointers and instances.  For example, <tt>Foo</tt> and <tt>Foo *</tt>.  Note: SWIG converts all
+instances to pointers.
+
+<p>
+<li>Qualifiers.  For example, <tt>const Foo *</tt> and <tt>Foo *</tt>.
+
+<p>
+<li>Default vs. non default arguments.   For example, <tt>foo(int a, int b)</tt> and <tt>foo(int a, int b = 3)</tt>.
+</ul>
+
+When an ambiguity arises, methods are checked in the same order as they appear in the interface file.
+Therefore, earlier methods will shadow methods that appear later.  
+
+<p>
+When wrapping an overloaded function, there is a chance that you will get an error message like this:
+
+<blockquote>
+<pre>
+example.i:3: Warning(467): Overloaded foo(int) not supported (no type checking rule for 'int').
+</pre>
+</blockquote>
+
+This error means that the target language module supports overloading,
+but for some reason there is no type-checking rule that can be used to
+generate a working dispatch function.  The resulting behavior is then
+undefined.  You should report this as a bug to
+<tt>swig-dev@cs.uchicago.edu</tt>.
+
+<p>
+If you get an error message such as the following,
+
+<blockquote>
+<pre>
+foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
+foo.i:5. Previous declaration is Spam::foo(int )
+foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *,Spam *,int )
+foo.i:5. Previous declaration is Spam::foo(int )
+</pre>
+</blockquote>
+
+it means that the target language module has not yet implemented support for overloaded
+functions and methods.  The only way to fix the problem is to read the next section.
+
+<a name="n24"></a><H3>5.14.3 Ambiguity resolution and renaming</H3>
+
+
+If an ambiguity in overload resolution occurs or if a module doesn't
+allow overloading, there are a few strategies for dealing with the
+problem.  First, you can tell SWIG to ignore one of the methods.  This
+is easy---simply use the <tt>%ignore</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%ignore foo(long);
+
+void foo(int);
+void foo(long);       // Ignored.  Oh well.
+</pre>
+</blockquote>
+
+The other alternative is to rename one of the methods.  This can be
+done using <tt>%rename</tt>.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_long) foo(long);
+
+void foo(int);
+void foo(long);       // Accessed as foo_long()
+</pre>
+</blockquote>
+
+The <tt>%ignore</tt> and <tt>%rename</tt> directives are both rather powerful
+in their ability to match declarations.    When used in their simple form, they apply to
+both global functions and methods.  For example:
+
+<blockquote>
+<pre>
+/* Forward renaming declarations */
+%rename(foo_i) foo(int); 
+%rename(foo_d) foo(double);
+...
+void foo(int);           // Becomes 'foo_i'
+void foo(char *c);       // Stays 'foo' (not renamed)
+
+class Spam {
+public:
+   void foo(int);      // Becomes 'foo_i'
+   void foo(double);   // Becomes 'foo_d'
+   ...
+};
+</pre>
+</blockquote>
+
+If you only want the renaming to apply to a certain scope, the C++ scope resolution operator (::) can be used.
+For example:
+
+<blockquote>
+<pre>
+%rename(foo_i) ::foo(int);      // Only rename foo(int) in the global scope.
+                                // (will not rename class members)
+
+%rename(foo_i) Spam::foo(int);  // Only rename foo(int) in class Spam
+</pre>
+</blockquote>
+
+When a renaming operator is applied to a class as in <tt>Spam::foo(int)</tt>, it is applied to
+that class and all derived classes.   This can be used to apply a consistent renaming across
+an entire class hierarchy with only a few declarations.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_i) Spam::foo(int);
+%rename(foo_d) Spam::foo(double);
+
+class Spam {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+   ...
+};
+
+class Bar : public Spam {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+...
+};
+
+class Grok : public Bar {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+...
+};
+</pre>
+</blockquote>
+
+It is also possible to include <tt>%rename</tt> specifications in the
+class definition itself. For example:
+
+<blockquote>
+<pre>
+class Spam {
+   %rename(foo_i) foo(int);
+   %rename(foo_d) foo(double);
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+   ...
+};
+
+class Bar : public Spam {
+public:
+   virtual void foo(int);      // Renamed to foo_i
+   virtual void foo(double);   // Renamed to foo_d
+...
+};
+</pre>
+</blockquote>
+
+In this case, the <tt>%rename</tt> directives still get applied across the entire 
+inheritance hierarchy, but it's no longer necessary to explicitly specify the
+class prefix <tt>Spam::</tt>. 
+
+<p>
+A special form of <tt>%rename</tt> can be used to apply a renaming just to class
+members (of all classes):
+
+<blockquote>
+<pre>
+%rename(foo_i) *::foo(int);   // Only rename foo(int) if it appears in a class.
+</pre>
+</blockquote>
+
+Note: the <tt>*::</tt> syntax is non-standard C++, but the '*' is meant to be a
+wildcard that matches any class name (we couldn't think of a better
+alternative so if you have a better idea, send email to
+swig-dev@cs.uchicago.edu).
+
+<p>
+Although this discussion has primarily focused on <tt>%rename</tt> all of the same rules
+also apply to <tt>%ignore</tt>.  For example:
+
+<blockquote>
+<pre>
+%ignore foo(double);          // Ignore all foo(double)
+%ignore Spam::foo;            // Ignore foo in class Spam
+%ignore Spam::foo(double);    // Ignore foo(double) in class Spam
+%ignore *::foo(double);       // Ignore foo(double) in all classes
+</pre>
+</blockquote>
+
+When applied to a base class, <tt>%ignore</tt> forces all definitions in derived clases
+to disappear. For example, <tt>%ignore Spam::foo(double)</tt> will eliminate <tt>foo(double)</tt> in
+<tt>Spam</tt> and all classes derived from <tt>Spam</tt>.
+
+<p>
+<b>Notes on %rename and %ignore:</b>
+
+<ul>
+<li>Since, the <tt>%rename</tt> declaration is used to declare a renaming in advance, it can be
+placed at the start of an interface file.  This makes it possible to apply a consistent name
+resolution without having to modify header files. For example:
+
+<blockquote>
+<pre>
+%module foo
+
+/* Rename these overloaded functions */
+%rename(foo_i) foo(int); 
+%rename(foo_d) foo(double);
+
+%include "header.h"
+</pre>
+</blockquote>
+
+<p>
+<li>The scope qualifier (::) can also be used on simple names.  For example:
+<blockquote>
+<pre>
+%rename(bar) ::foo;       // Rename foo to bar in global scope only
+%rename(bar) Spam::foo;   // Rename foo to bar in class Spam only
+%rename(bar) *::foo;      // Rename foo in classes only
+</pre>
+</blockquote>
+
+<p>
+<li>Name matching tries to find the most specific match that is
+defined.  A qualified name such as <tt>Spam::foo</tt> always has
+higher precedence than an unqualified name <tt>foo</tt>.
+<tt>Spam::foo</tt> has higher precedence than <tt>*::foo</tt> and
+<tt>*::foo</tt> has higher precedence than <tt>foo</tt>.  A
+parameterized name has higher precedence than an unparameterized name
+within the same scope level.  However, an unparameterized name with a
+scope qualifier has higher precedence than a parameterized name in
+global scope (e.g., a renaming of <tt>Spam::foo</tt> takes precedence
+over a renaming of <tt>foo(int)</tt>).
+
+<p>
+<li>
+The order in which <tt>%rename</tt> directives are defined does not matter
+as long as they appear before the declarations to be renamed.  Thus, there is no difference
+between saying:
+
+<blockquote>
+<pre>
+%rename(bar) foo;
+%rename(foo_i) Spam::foo(int);
+%rename(Foo) Spam::foo;
+</pre>
+</blockquote>
+
+and this
+
+<blockquote>
+<pre>
+%rename(Foo) Spam::foo;
+%rename(bar) foo;
+%rename(foo_i) Spam::foo(int);
+</pre>
+</blockquote>
+
+(the declarations are not stored in a linked list and order has no
+importance).  Of course, a repeated <tt>%rename</tt> directive will
+change the setting for a previous <tt>%rename</tt> directive if exactly the 
+same name, scope,  and parameters are supplied.
+
+<p>
+<li>For multiple inheritance where renaming rules are defined for multiple base classes,
+the first renaming rule found on a depth-first traversal of the class hierarchy 
+is used.
+
+<p>
+<li>The name matching rules strictly follow member qualification rules.
+For example, if you have a class like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   ...
+   void bar();
+   ...
+};
+</pre>
+</blockquote>
+
+the declaration <tt>%rename(name) Foo::bar()</tt> only applies to the unqualified member <tt>bar()</tt>.
+However, an often overlooked C++ feature is that classes can define two different overloaded members
+that differ only in their qualifiers, like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+   ...
+   void bar();         // Unqualified member
+   void bar() const;   // Qualified member (OK)
+   ...
+};
+</pre>
+</blockquote>
+
+In this case, the renaming operator would only apply to the first
+method.  If you wanted to rename the qualified member function, use
+<tt>%rename(name) Foo::bar() const</tt> instead.  Similarly, if you
+merely wanted to ignore one of the declarations, use <tt>%ignore</tt>
+with the full qualification.  For example, the following directive
+would tell SWIG to ignore the <tt>const</tt> version of <tt>bar()</tt>
+above:
+
+<blockquote>
+<pre>
+%ignore Foo::bar() const;   // Ignore bar() const, but leave other bar() alone
+</pre>
+</blockquote>
+</ul>
+
+<a name="n25"></a><H3>5.14.4 Comments on overloading</H3>
+
+
+Support for overloaded methods was first added in SWIG-1.3.14.   The implementation
+is somewhat unusual when compared to similar tools.  For instance, the order in which
+declarations appear is largely irrelevant in SWIG.   Furthermore, SWIG does not rely
+upon trial execution or exception handling to figure out which method to invoke. 
+
+<p>
+Internally, the overloading mechanism is completely configurable by the target language
+module.  Therefore, the degree of overloading support may vary from language to language. 
+As a general rule, statically typed languages like Java are able to provide more support
+than dynamically typed languages like Perl, Python, Ruby, and Tcl.
+
+<a name="n26"></a><H2>5.15 Wrapping overloaded operators</H2>
+
+
+Starting in SWIG-1.3.10, C++ overloaded operator declarations can be wrapped. 
+For example, consider a class like this:
+
+<blockquote>
+<pre>
+class Complex {
+private:
+  double rpart, ipart;
+public:
+  Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
+  Complex(const Complex &c) : rpart(c.rpart), ipart(c.ipart) { }
+  Complex &operator=(const Complex &c) {
+    rpart = c.rpart;
+    ipart = c.ipart;
+    return *this;
+  }
+  Complex operator+(const Complex &c) const {
+    return Complex(rpart+c.rpart, ipart+c.ipart);
+  }
+  Complex operator-(const Complex &c) const {
+    return Complex(rpart-c.rpart, ipart-c.ipart);
+  }
+  Complex operator*(const Complex &c) const {
+    return Complex(rpart*c.rpart - ipart*c.ipart,
+		   rpart*c.ipart + c.rpart*ipart);
+  }
+  Complex operator-() const {
+    return Complex(-rpart, -ipart);
+  }
+  double re() const { return rpart; }
+  double im() const { return ipart; }
+};
+</pre>
+</blockquote>
+
+When operator declarations appear, they are handled in
+<em>exactly</em> the same manner as regular methods.  However, the
+names of these methods are set to strings like "<tt>operator +</tt>"
+or "<tt>operator -</tt>".  The problem with these names is that they
+are illegal identifiers in most scripting languages.  For instance,
+you can't just create a method called "<tt>operator +</tt>" in
+Python--there won't be any way to call it.
+
+<p>
+Some language modules already know how to automatically handle certain
+operators (mapping them into operators in the target language).
+However, the underlying implementation of this is really managed in a
+very general way using the <tt>%rename</tt> directive.  For example,
+in Python a declaration similar to this is used:
+
+<blockquote>
+<pre>
+%rename(__add__) Complex::operator+;
+</pre>
+</blockquote>
+
+This binds the + operator to a method called <tt>__add__</tt> (which
+is conveniently the same name used to implement the Python + operator). 
+Internally, the generated wrapper code for a wrapped operator will look
+something like this pseudocode:
+
+<blockquote>
+<pre>
+_wrap_Complex___add__(args) {
+   ... get args ...
+   obj->operator+(args);
+   ...
+}
+</pre>
+</blockquote>
+
+When used in the target language, it may now be possible to use the overloaded
+operator normally. For example:
+
+<blockquote>
+<pre>
+>>> a = Complex(3,4)
+>>> b = Complex(5,2)
+>>> c = a + b           # Invokes __add__ method
+</pre>
+</blockquote>
+
+It is important to realize that there is nothing magical happening
+here.  The <tt>%rename</tt> directive really only picks a valid method
+name.  If you wrote this:
+
+<blockquote>
+<pre>
+%rename(add) operator+;
+</pre>
+</blockquote>
+
+The resulting scripting interface might work like this:
+
+<blockquote>
+<pre>
+a = Complex(3,4)
+b = Complex(5,2)
+c = a.add(b)      # Call a.operator+(b)
+</pre>
+</blockquote>
+
+All of the techniques described to deal with overloaded functions also
+apply to operators.  For example:
+
+<blockquote>
+<pre>
+%ignore Complex::operator=;             // Ignore = in class Complex
+%ignore *::operator=;                   // Ignore = in all classes
+%ignore operator=;                      // Ignore = everywhere.
+
+%rename(__sub__) Complex::operator-; 
+%rename(__neg__) Complex::operator-();  // Unary - 
+</pre>
+</blockquote>
+
+The last part of this example illustrates how multiple definitions of
+the <tt>operator-</tt> method might be handled.
+
+<p>
+Handling operators in this manner is mostly straightforward.  However, there are a few subtle
+issues to keep in mind:
+
+<ul>
+<li>In C++, it is fairly common to define different versions of the operators to account for
+different types.  For example, a class might also include a friend function like this:
+
+<blockquote>
+<pre>
+class Complex {
+public:
+  friend Complex operator+(Complex &, double);
+};
+Complex operator+(Complex &, double);
+</pre>
+</blockquote>
+
+SWIG simply ignores all <tt>friend</tt> declarations.  Furthermore, it
+doesn't know how to associate the associated <tt>operator+</tt> with
+the class (because it's not a member of the class).
+
+<p>
+It's still possible to make a wrapper for this operator, but you'll
+have to handle it like a normal function. For example:
+
+<blockquote>
+<pre>
+%rename(add_complex_double) operator+(Complex &, double);
+</pre>
+</blockquote>
+
+<p>
+<li>Certain operators are ignored by default. For instance, <tt>new</tt> and <tt>delete</tt> operators
+are ignored as well as conversion operators.
+
+<p>
+<li>The semantics of certain C++ operators may not match those in the target language.
+</ul>
+
+<a name="n27"></a><H2>5.16 Class extension</H2>
+
+
+New methods can be added to a class using the <tt>%extend</tt>
+directive. This directive is primarily used in conjunction with proxy
+classes to add additional functionality to an existing class. For
+example :<p>
+<p>
+<blockquote><pre>%module vector
+%{
+#include "vector.h"
+%}
+
+class Vector {
+public:
+	double x,y,z;
+	Vector();
+	~Vector();
+	... bunch of C++ methods ...
+	%extend {
+		char *__str__() {
+			static char temp[256];
+			sprintf(temp,"[ %g, %g, %g ]", v-&gt;x,v-&gt;y,v-&gt;z);
+			return &amp;temp[0];
+		}
+	}
+};
+</pre></blockquote>
+<p>
+
+This code adds a<tt> __str__</tt> method to our class for producing a
+string representation of the object. In Python, such a method would
+allow us to print the value of an object using the <tt>print</tt>
+command. <p>
+
+<p>
+<blockquote><pre>&gt;&gt;&gt;
+&gt;&gt;&gt; v = Vector();
+&gt;&gt;&gt; v.x = 3
+&gt;&gt;&gt; v.y = 4
+&gt;&gt;&gt; v.z = 0
+&gt;&gt;&gt; print(v)
+[ 3.0, 4.0, 0.0 ]
+&gt;&gt;&gt;
+
+</pre></blockquote>
+
+The<tt> %extend</tt> directive follows all of the same conventions
+as its use with C structures. Please refer to the <a href="SWIG.html">SWIG Basics</a>
+chapter for further details.
+
+<p>
+<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
+name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
+be used to extend a structure with more than just methods, a more suitable
+directive name has been chosen.
+
+<a name="n28"></a><H2>5.17 Templates</H2>
+
+
+In all versions of SWIG, template type names may appear anywhere a type
+is expected in an interface file.  For example:
+
+<blockquote>
+<pre>
+void foo(vector&lt;int&gt; *a, int n);
+void bar(list&lt;int,100&gt; *x);
+</pre>
+</blockquote>
+
+There are some restrictions on the use of non-type arguments.  Specifically,
+they have to be simple literals and not expressions.  For example:
+
+<blockquote>
+<pre>
+void bar(list&lt;int,100&gt; *x);    // OK
+void bar(list&lt;int,2*50&gt; *x);   // Illegal
+</pre>
+</blockquote>
+
+The type system is smart enough to figure out clever games
+you might try to play with <tt>typedef</tt>.  For instance, consider this code:
+
+<blockquote>
+<pre>
+typedef int Integer;
+void foo(vector&lt;int&gt; *x, vector&lt;Integer&gt; *y);
+</pre>
+</blockquote>
+
+In this case, <tt>vector&lt;Integer&gt;</tt> is exactly the same type
+as <tt>vector&lt;int&gt;</tt>.  The wrapper for <tt>foo()</tt> will
+accept either variant.
+
+<p>
+Starting with SWIG-1.3.7, simple C++ template declarations can also be
+wrapped.  SWIG-1.3.12 greatly expands upon the earlier implementation. Before discussing this any further, there are a few things
+you need to know about template wrapping.  First, a bare C++ template
+does not define any sort of runnable object-code for which SWIG can
+normally create a wrapper.  Therefore, in order to wrap a template,
+you need to give SWIG information about a particular template
+instantiation (e.g., <tt>vector&lt;int&gt;</tt>,
+<tt>array&lt;double&gt;</tt>, etc.).  Second, an instantiation name
+such as <tt>vector&lt;int&gt;</tt> is generally not a valid identifier
+name in most target languages.  Thus, you will need to give the
+template instantiation a more suitable name such as <tt>intvector</tt>
+when creating a wrapper.
+
+<p>
+To illustrate, consider the following template definition:
+
+<p>
+<blockquote><pre>
+template&lt;class T&gt; class List {
+private:
+    T *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max) {
+      data = new T [max];
+      nitems = 0;
+      maxitems = max;
+    }
+    ~List() {
+      delete [] data;
+    };
+    void append(T obj) {
+      if (nitems &lt; maxitems) {
+        data[nitems++] = obj;
+      }
+    }
+    int length() {
+      return nitems;
+    }
+    T get(int n) {
+      return data[n];
+    }
+};
+</pre></blockquote>
+
+By itself, this template declaration is useless--SWIG simply ignores it
+because it doesn't know how to generate any code until unless a definition of
+<tt>T</tt> is provided.
+
+<p>
+One way to create wrappers for a specific template instantiation is to simply
+provide an expanded version of the class directly like this:
+
+<blockquote>
+<pre>
+%rename(intList) List&lt;int&gt;;       // Rename to a suitable identifier
+class List&lt;int&gt; {
+private:
+    int *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max);
+    ~List();
+    void append(int obj);
+    int length();
+    int get(int n);
+};
+</pre>
+</blockquote>
+
+
+The <tt>%rename</tt> directive is needed to give the template class an appropriate identifier
+name in the target language (most languages would not recognize C++ template syntax as a valid
+class name).  The rest of the code is the same as what would appear in a normal
+class definition.
+
+<p>
+Since manual expansion of templates gets old in a hurry, the <tt>%template</tt> directive can
+be used to create instantiations of a template class.  Semantically, <tt>%template</tt> is
+simply a shortcut---it expands template code in exactly the same way as shown above.  Here
+are some examples:
+
+<blockquote>
+<pre>
+/* Instantiate a few different versions of the template */
+%template(intList) List&lt;int&gt;;
+%template(doubleList) List&lt;double&gt;;
+</pre>
+</blockquote>
+
+The argument to <tt>%template()</tt> is the name of the instantiation
+in the target language.  The name you choose should not conflict with
+any other declarations in the interface file with one exception---it
+is okay for the template name to match that of a typedef declaration.
+For example:
+
+<blockquote>
+<pre>
+%template(intList) List&lt;int&gt;;
+...
+typedef List&lt;int&gt; intList;    // OK
+</pre>
+</blockquote>
+
+SWIG can also generate wrappers for function templates using a similar technique.
+For example:
+
+<blockquote>
+<pre>
+// Function template
+template&lt;class T&gt; T max(T a, T b) { return a > b ? a : b; }
+
+// Make some different versions of this function
+%template(maxint) max&lt;int&gt;;
+%template(maxdouble) max&lt;double&gt;;
+</pre>
+</blockquote>
+
+In this case, <tt>maxint</tt> and <tt>maxdouble</tt> become unique names for specific 
+instantiations of the function.
+
+<p>
+The number of arguments supplied to <tt>%template</tt> should match that in the
+original template definition.  Template default arguments are supported.  For example:
+
+<blockquote>
+<pre>
+template vector&lt;typename T, int max=100&gt; class vector {
+...
+};
+
+%template(intvec) vector&lt;int&gt;;           // OK
+%template(vec1000) vector&lt;int,1000&gt;;     // OK
+</pre>
+</blockquote>
+
+<p>
+The <tt>%template</tt> directive should not be used to wrap the same
+template instantiation more than once in the same scope.  This will
+generate an error.  For example:
+
+<blockquote>
+<pre>
+%template(intList) List&lt;int&gt;;
+%template(Listint) List&lt;int&gt;;    // Error.   Template already wrapped.
+</pre>
+</blockquote>
+
+<p>
+This error is caused because the template expansion results in two
+identical classes with the same name.  This generates a symbol table
+conflict.  Besides, it probably more efficient to only wrap a specific
+instantiation only once in order to reduce the potential for code
+bloat.
+
+<p>
+Since the type system knows how to handle <tt>typedef</tt>, it is
+generally not necessary to instantiate different versions of a template
+for typenames that are equivalent.  For instance, consider this code:
+
+<blockquote>
+<pre>
+%template(intList) vector&lt;int&gt;;
+typedef int Integer;
+...
+void foo(vector&lt;Integer&gt; *x);
+</pre>
+</blockquote>
+
+In this case, <tt>vector&lt;Integer&gt;</tt> is exactly the same type as
+<tt>vector&lt;int&gt;</tt>.  Any use of <tt>Vector&lt;Integer&gt;</tt> is mapped back to the 
+instantiation of <tt>vector&lt;int&gt;</tt> created earlier.  Therefore, it is
+not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
+redundant and will simply result in code bloat).
+
+<p>
+When a template is instantiated using <tt>%template</tt>, information
+about that class is saved by SWIG and used elsewhere in the program.
+For example, if you wrote code like this,
+
+<blockquote>
+<pre>
+...
+%template(intList) List&lt;int&gt;;
+...
+class UltraList : public List&lt;int&gt; {
+   ...
+};
+</pre>
+</blockquote>
+
+then SWIG knows that <tt>List&lt;int&gt;</tt> was already wrapped as a class called 
+<tt>intList</tt> and arranges to handle the inheritance correctly.    If, on the other hand,
+nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message similar to this:
+
+<blockquote>
+<pre>
+example.h:42. Nothing known about class 'List&lt;int &gt;' (ignored). 
+example.h:42. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
+</pre>
+</blockquote>
+
+<p>
+If a template class inherits from another template class, you need to
+make sure that base classes are instantiated before derived classes.
+For example:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class Foo {
+...
+};
+
+template&lt;class T&gt; class Bar : public Foo&lt;T&gt; {
+...
+};
+
+// Instantiate base classes first 
+%template(intFoo) Foo&lt;int&gt;;
+%template(doubleFoo) Foo&lt;double&gt;;
+
+// Now instantiate derived classes
+%template(intBar) Bar&lt;int&gt;;
+%template(doubleBar) Bar&lt;double&gt;;
+</pre>
+</blockquote>
+
+The order is important since SWIG uses the instantiation names to
+properly set up the inheritance hierarchy in the resulting wrapper
+code (and base classes need to be wrapped before derived classes).
+Don't worry--if you get the order wrong, SWIG should generate an warning message.
+
+<P>
+Occassionally, you may need to tell SWIG about base classes that are defined by templates,
+but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
+instantiate templates for this purpose, you must do it manually.  To do this, simply
+use <tt>%template</tt> with no name.  For example:
+
+<blockquote>
+<pre>
+// Instantiate traits&lt;double,double&gt;, but don't wrap it.
+%template() traits&lt;double,double&gt;;
+</pre>
+</blockquote>
+
+<p>
+If you have to instantiate a lot of different classes for many different types,
+you might consider writing a SWIG macro.  For example:
+
+<blockquote>
+<pre>
+%define TEMPLATE_WRAP(T,prefix) 
+%template(prefix ## Foo) Foo&lt;T&gt;;
+%template(prefix ## Bar) Bar&lt;T&gt;;
+...
+%enddef
+
+TEMPLATE_WRAP(int, int)
+TEMPLATE_WRAP(double, double)
+TEMPLATE_WRAP(char *, String)
+...
+</pre>
+</blockquote>
+
+<p>
+The SWIG template mechanism <em>does</em> support specialization. For instance, if you define
+a class like this,
+
+<blockquote>
+<pre>
+template&lt;&gt; class List&lt;int&gt; {
+private:
+    int *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max);
+    ~List();
+    void append(int obj);
+    int length();
+    int get(int n);
+};
+</pre>
+</blockquote>
+
+then SWIG will use this code whenever the user expands <tt>List&lt;int&gt;</tt>.   In practice,
+this may have very little effect on the underlying wrapper code since
+specialization is often used to provide slightly modified method bodies (which
+are ignored by SWIG).  However, special SWIG
+directives such as <tt>%typemap</tt>, <tt>%extend</tt>, and so forth can be attached
+to a specialization to provide customization for specific types.
+
+<p>
+Partial template specialization is partially supported by SWIG.   For example, this
+code defines a template that is applied when the template argument is a pointer.
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class List&lt;T*&gt; {
+private:
+    T *data;
+    int nitems;
+    int maxitems;
+public:
+    List(int max);
+    ~List();
+    void append(int obj);
+    int length();
+    T get(int n);
+};
+</pre>
+</blockquote>
+
+SWIG should be able to handle most simple uses of partial specialization.  However, it may fail
+to match templates properly in more complicated cases.  For example, if you have this code,
+
+<blockquote>
+<pre>
+template&lt;class T1, class T2&gt; class Foo&lt;T1, T2 *&gt; { };
+</pre>
+</blockquote>
+
+SWIG isn't able to match it properly for instantiations like <tt>Foo&lt;int *, int *&gt;</tt>.
+This problem is not due to parsing, but due to the fact that SWIG does not currently implement all
+of the C++ argument deduction rules.
+
+<p>
+Member function templates are supported.  The underlying principle is the same
+as for normal templates--SWIG can't create a wrapper unless you provide
+more information about types.  For example, a class with a member template might
+look like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+};
+</pre>
+</blockquote>
+
+To expand the template, simply use <tt>%template</tt> inside the class.
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+     %template(barint)    bar&lt;int&gt;;
+     %template(bardouble) bar&lt;double&gt;;
+};
+</pre>
+</blockquote>
+
+Or, if you want to leave the original class definition alone, just do this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+};
+...
+%extend Foo {
+     %template(barint)    bar&lt;int&gt;;
+     %template(bardouble) bar&lt;double&gt;;
+};
+</pre>
+</blockquote>
+
+Note: because of the way that templates are handled, the <tt>%template</tt> directive
+must always appear <em>after</em> the definition of the template to be expanded.
+
+<p>
+When used with members, the <tt>%template</tt> directive may be placed in another
+template class.  Here is a slightly perverse example:
+
+<blockquote>
+<pre>
+// A template
+template&lt;class T&gt; class Foo {
+public:
+     // A member template
+     template&lt;class S&gt; T bar(S x, S y) { ... };
+     ...
+};
+
+// Expand a few member templates
+%extend Foo {
+     %template(bari) bar&lt;int&gt;;
+     %template(bard) bar&lt;double&gt;;
+};
+
+// Create some wrappers for the template
+%template(Fooi) Foo&lt;int&gt;;
+%template(Food) Foo&lt;double&gt;;
+</pre>
+</blockquote>
+Miraculously, you will find that each expansion of <tt>Foo</tt> has member
+functions <tt>bari()</tt> and <tt>bard()</tt> added.
+
+<p>
+A common use of member templates is to define constructors for copies and conversions. For example:
+
+<blockquote>
+<pre>
+template&lt;class T1, class T2&gt; struct pair {
+   T1 first;
+   T2 second;
+   pair() : first(T1()), second(T2()) { }
+   pair(const T1 &x, const T2 &y) : first(x), second(y) { }
+   template&lt;class U1, class U2&gt; pair(const pair&lt;U1,U2&gt; &x) : first(x.first),second(x.second) { }
+};
+</pre>
+</blockquote>
+
+This declaration is perfectly acceptable to SWIG, but the constructor template will be ignored
+unless you explicitly expand it.  To do that, you could expand a few versions of the constructor
+in the template class itself.  For example:
+
+<blockquote>
+<pre>
+%extend pair {
+   %template(pair) pair&lt;T1,T2&gt;;        // Generate default copy constructor
+};
+</pre>
+</blockquote>
+
+When using <tt>%extend</tt> in this manner, notice how you can still use the template parameters in
+the original template definition. 
+
+<p>
+Alternatively, you could expand the constructor template in selected instantiations. For example:
+
+<blockquote>
+<pre>
+// Instantiate a few versions
+%template(pairii) pair&lt;int,int&gt;;
+%template(pairdd) pair&lt;double,double&gt;;
+
+// Create a conversion constructor from int to double
+%extend pair&lt;double,double&gt; {
+   %template(pairdd_from_pairii) pair&lt;int,int&gt;;   // Conversion constructor
+};
+</pre>
+</blockquote>
+
+Admittedly, this isn't very pretty or automatic.  However, it's probably
+better than nothing--well, maybe.
+
+<p>
+If all of this isn't quite enough and you really want to make
+someone's head explode, SWIG directives such as
+<tt>%rename</tt>, <tt>%extend</tt>, and <tt>%typemap</tt> can be
+included directly in template definitions.  For example:
+
+<p>
+<blockquote><pre>// File : list.h
+template&lt;class T&gt; class List {
+   ...
+public:
+    %rename(__getitem__) get(int);
+    List(int max);
+    ~List();
+    ...
+    T get(int index);
+    %extend {
+        char *__str__() {
+            /* Make a string representation */
+            ...
+        }
+    }
+};
+</pre></blockquote>
+
+In this example, the extra SWIG directives are propagated to <em>every</em> template 
+instantiation.  
+
+<p>
+It is also possible to separate these declarations from the template class.  For example:
+
+<blockquote>
+<pre>
+%rename(__getitem__) List::get;
+%extend List {
+    char *__str__() {
+        /* Make a string representation */
+        ...
+    }
+    /* Make a copy */
+    T *__copy__() {
+       return new List&lt;T&gt;(*self);
+    }
+};
+
+...
+template&lt;class T&gt; class List {
+   ...
+   public:
+   List() { };
+   ...
+};
+</pre>
+</blockquote>
+
+<p>
+When <tt>%extend</tt> is decoupled from the class definition, it is
+legal to use the same template parameters as provided in the class definition.
+These are replaced when the template is expanded.
+In addition, the <tt>%extend</tt> directive can be used to add
+additional methods to a specific instantiation. For example:
+
+<blockquote>
+<pre>
+%template(intList) List&lt;int&gt;;
+
+%extend List&lt;int&gt; {
+    void blah() {
+          printf("Hey, I'm an List&lt;int&gt;!\n");
+    }
+};
+</pre>
+</blockquote>
+
+<p>
+Needless to say, SWIG's template support provides plenty of
+opportunities to break the universe.  That said, an important final
+point is that <b>SWIG does not perform extensive error checking of
+templates!</b> Specifically, SWIG does not perform type checking nor
+does it check to see if the actual contents of the template
+declaration make any sense.  Since the C++ compiler will hopefully
+check this when it compiles the resulting wrapper file, there is no
+practical reason for SWIG to duplicate this functionality (besides,
+none of the SWIG developers are masochistic enough to want to
+implement this right now).
+
+<p>
+Finally, there are a few limitations in SWIG's current support for templates:
+
+<ul>
+<p>
+<li>SWIG does not support overloaded versions of a template.  Some C++ programs might
+do this to define overloaded functions.  For example:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; void foo(T x) { };
+template&lt;class T&gt; void foo(T x, T y) { };     // Error. foo already defined.
+</pre>
+</blockquote>
+
+This will generate a name conflict error message in SWIG. To silence the error message, use <tt>%ignore</tt>:
+
+<blockquote>
+<pre>
+%ignore foo(T,T);
+</pre>
+</blockquote>
+
+In this case, <tt>%template</tt> will only work with the first definition.  To create a
+wrapper for the second definition, just do it manually:
+
+<blockquote>
+<pre>
+%name(foo2int) void foo&lt;int&gt;(int x, int y);
+</pre>
+</blockquote>
+
+</ul>
+
+<p>
+<b>Compatibility Note</b>:  The first implementation of template support relied heavily on
+macro expansion in the preprocessor.  Templates have been more tightly integrated into 
+the parser and type system in SWIG-1.3.12 and the preprocessor is no longer used. Code
+that relied on preprocessing features in template expansion will no longer work.  However,
+SWIG still allows the # operator to be used to generate a string from a template argument.
+
+<p>
+<b>Compatibility Note</b>: In earlier versions of SWIG, the <tt>%template</tt> directive
+introduced a new class name.  This name could then be used with other directives.  For example:
+
+<blockquote>
+<pre>
+%template(vectori) vector&lt;int&gt;;
+%extend vectori {
+    void somemethod() { }
+};
+</pre>
+</blockquote>
+
+This behavior is no longer supported.  Instead, you should use the original template name
+as the class name.  For example:
+
+<blockquote>
+<pre>
+%template(vectori) vector&lt;int&gt;;
+%extend vector&lt;int&gt; {
+    void somemethod() { }
+};
+</pre>
+</blockquote>
+
+Similar changes apply to typemaps and other customization features.
+
+<a name="n29"></a><H2>5.18 Namespaces</H2>
+
+
+Support for C++ namespaces is a relatively late addition to SWIG,
+first appearing in SWIG-1.3.12.  Before describing the implementation,
+it is worth nothing that the semantics of C++ namespaces is extremely
+non-trivial--especially with regard to the C++ type system and class
+machinery.  At a most basic level, namespaces are sometimes used to 
+encapsulate common functionality.  For example:
+
+<blockquote>
+<pre>
+namespace math {
+   double sin(double);
+   double cos(double);
+
+   class Complex {
+      double im,re;
+   public:
+      ...
+   };
+   ...
+};
+</pre>
+</blockquote>
+
+Members of the namespace are accessed in C++ by prepending the namespace prefix
+to names. For example:
+
+<blockquote>
+<pre>
+double x = math::sin(1.0);
+double magitude(math::Complex *c);
+math::Complex c;
+...
+</pre>
+</blockquote>
+
+At this level, namespaces are relatively easy to manage.  However, things start to get 
+very ugly when you throw in the other ways a namespace can be used.  For example,
+selective symbols can be exported from a namespace with <tt>using</tt>.
+
+<blockquote>
+<pre>
+using math::Complex;
+double magnitude(Complex *c);       // Namespace prefix stripped
+</pre>
+</blockquote>
+
+Similarly, the contents of an entire namespace can be made available like this:
+
+<blockquote>
+<pre>
+using namespace math;
+double x = sin(1.0);
+double magnitude(Complex *c);
+</pre>
+</blockquote>
+
+Alternatively, a namespace can be aliased:
+
+<blockquote>
+<pre>
+namespace M = math;
+double x = M::sin(1.0);
+double magnitude(M::Complex *c);
+</pre>
+</blockquote>
+
+Using combinations of these features, it is possible to write head-exploding code like this:
+
+<blockquote>
+<pre>
+namespace A {
+  class Foo {
+  };
+}
+
+namespace B {
+   namespace C {
+      using namespace A;
+   }
+   typedef C::Foo FooClass;
+}
+
+namespace BIGB = B;
+
+namespace D {
+   using BIGB::FooClass;
+   class Bar : public FooClass {
+   }
+};
+
+class Spam : public D::Bar {
+};
+
+void evil(A::Foo *a, B::FooClass *b, B::C::Foo *c, BIGB::FooClass *d,
+          BIGB::C::Foo *e, D::FooClass *f);
+
+</pre>
+</blockquote>
+
+Given the possibility for such perversion, it's hard to imagine how
+every C++ programmer might want such code wrapped into the target
+language.  Clearly this code defines three different classes.  However, one
+of those classes is accessible under at least six different class names!
+
+<p>
+SWIG fully supports C++ namespaces in its internal type system and
+class handling code.  If you feed SWIG the above code, it will be
+parsed correctly, it will generate compilable wrapper code, and it
+will produce a working scripting language module.  However, the
+default wrapping behavior is to flatten namespaces in the target
+language.  This means that the contents of all namespaces are merged
+together in the resulting scripting language module.  For example, if
+you have code like this,
+
+<blockquote>
+<pre>
+%module foo
+namespace foo {
+   void bar(int);
+   void spam();
+}
+
+namespace bar {
+   void blah();
+}
+
+</pre>
+</blockquote>
+
+then SWIG simply creates three wrapper functions <tt>bar()</tt>,
+<tt>spam()</tt>, and <tt>blah()</tt> in the target language.  SWIG
+does not prepend the names with a namespace prefix nor are the
+functions packaged in any kind of nested scope.
+
+<p>
+There is some rationale for taking this approach.  Since C++
+namespaces are often used to define modules in C++, there is a natural
+correlation between the likely contents of a SWIG module and the contents of
+a namespace.  For instance, it would not be unreasonable to assume
+that a programmer might make a separate extension module for each C++
+namespace.  In this case, it would be redundant to prepend everything
+with an additional namespace prefix when the module itself already
+serves as a namespace in the target language.   Or put another way, if 
+you want SWIG to keep namespaces separate, simply wrap each namespace with its
+own SWIG interface.
+
+<p>
+Because namespaces are flattened, it is possible for symbols defined in different
+namespaces to generate a name conflict in the target language. For example:
+
+<blockquote>
+<pre>
+namespace A {
+   void foo(int);
+}
+namespace B {
+   void foo(double);
+}
+</pre>
+</blockquote>
+
+When this conflict occurs, you will get an error message that resembles this:
+
+<blockquote>
+<pre>
+example.i:26. Error. 'foo' is multiply defined in the generated module.
+example.i:23. Previous declaration of 'foo'
+</pre>
+</blockquote>
+
+To resolve this error, simply use <tt>%rename</tt> to disambiguate the declarations.  For example:
+
+<blockquote>
+<pre>
+%rename(B_foo) B::foo;
+...
+namespace A {
+   void foo(int);
+}
+namespace B {
+   void foo(double);     // Gets renamed to B_foo
+}
+</pre>
+</blockquote>
+
+Similarly, <tt>%ignore</tt> can be used to ignore declarations.
+
+<p>
+<tt>using</tt> declarations do not have any effect on the generated wrapper
+code. They are ignored by SWIG language modules and they do not result in any
+code.  However, these declarations <em>are</em> used by the internal type
+system to track type-names. Therefore, if you have code like this:
+
+<blockquote>
+<pre>
+namespace A {
+   typedef int Integer;
+}
+using namespace A;
+void foo(Integer x);
+</pre>
+</blockquote>
+
+SWIG knows that <tt>Integer</tt> is the same as <tt>A::Integer</tt> which
+is the same as <tt>int</tt>.  
+
+<P>
+Namespaces may be combined with templates.  If necessary, the
+<tt>%template</tt> directive can be used to expand a template defined
+in a different namespace.  For example:
+
+<blockquote>
+<pre>
+namespace foo {
+    template&lt;typename T&gt; max(T a, T b) { return a &gt; b ? a : b; }
+}
+
+using foo::max;
+
+%template(maxint)   max&lt;int&gt;            // Okay.
+%template(maxfloat) foo::max&lt;float&gt;;    // Okay (qualified name).
+
+namespace bar {
+    using namespace foo;
+    %template(maxdouble)  max&lt;double&gt;;    // Okay.
+}
+</pre>
+</blockquote>
+
+The combination of namespaces and other SWIG directives may introduce subtle scope-related problems. 
+The key thing to keep in mind is that all SWIG generated wrappers are produced
+in the <em>global</em> namespace.   Symbols from other namespaces are always accessed using fully
+qualified names---names are never imported into the global space unless the interface happens to
+do so with a <tt>using</tt> declaration.  In almost all cases, SWIG adjusts typenames and symbols
+to be fully qualified.  However, this is not done in code fragments such as function bodies,
+typemaps, exception handlers, and so forth.  For example, consider the following:
+
+<blockquote>
+<pre>
+namespace foo {
+    typedef int Integer;
+    class bar {
+    public:
+       ...
+    };
+}
+
+%extend foo::bar {
+   Integer add(Integer x, Integer y) {
+       Integer r = x + y;        // Error. Integer not defined in this scope
+       return r;
+   }
+};
+</pre>
+</blockquote>
+
+In this case, SWIG correctly resolves the added method parameters and return type to
+<tt>foo::Integer</tt>.  However, since function bodies aren't parsed and such code is
+emitted in the global namespace, this code produces a compiler error about <tt>Integer</tt>. 
+To fix the problem, make sure you use fully qualified names.  For example:
+
+<blockquote>
+<pre>
+%extend foo::bar {
+   Integer add(Integer x, Integer y) {
+       foo::Integer r = x + y;        // Ok.
+       return r;
+   }
+};
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> SWIG does <em>not</em> propagate <tt>using</tt> declarations to
+the resulting wrapper code.   If these declarations appear in an interface,
+they should <em>also</em> appear in any header files that might have been 
+included in a <tt>%{ ... %}</tt> section.  In other words, don't insert extra
+<tt>using</tt> declarations into a SWIG interface unless they also appear
+in the underlying C++ code.
+
+<p>
+<b>Note:</b> Code inclusion directives such as <tt>%{ ... %}</tt> or
+<tt>%inline %{ ... %}</tt> should not be placed inside a namespace declaration.  
+The code emitted by these directives will not be enclosed in a namespace and
+you may get very strange results.  If you need to use namespaces with
+these directives, consider the following:
+
+<blockquote>
+<pre>
+// Good version
+%inline %{
+namespace foo {
+     void bar(int) { ... }
+     ...
+}
+%}
+
+// Bad version.  Emitted code not placed in namespace.
+namespace foo {
+%inline %{
+     void bar(int) { ... }   /* I'm bad */
+     ...
+%}
+}
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> When the <tt>%extend</tt> directive is used inside a namespace, the namespace name is
+included in the generated functions. For example, if you have code like this,
+
+<blockquote>
+<pre>
+namespace foo {
+   class bar {
+   public:
+        %extend {
+           int blah(int x);
+        };
+   };
+}
+</pre>
+</blockquote>
+
+the added method <tt>blah()</tt> is mapped to a function <tt>int foo_bar_blah(foo::bar *self, int x)</tt>.
+This function resides in the global namespace.
+
+<p>
+<b>Note:</b> Although namespaces are flattened in the target language, the SWIG generated wrapper
+code observes the same namespace conventions as used in the input file.  Thus, if there are no symbol
+conflicts in the input, there will be no conflicts in the generated code. 
+
+<p>
+<b>Note:</b> Namespaces have a subtle effect on the wrapping of conversion operators.  For
+instance, suppose you had an interface like this:
+
+<blockquote>
+<pre>
+namespace foo {
+   class bar;
+   class spam {
+   public;
+        ...
+        operator bar();      // Conversion of spam -> bar
+        ...
+   };
+}
+</pre>
+</blockquote>
+
+To wrap the conversion function, you might be inclined to write this:
+
+<blockquote>
+<pre>
+%rename(tofoo) foo::spam::operator bar();
+</pre>
+</blockquote>
+
+The only problem is that it doesn't work.   The reason it doesn't work is that
+<tt>bar</tt> is not defined in the global scope.  Therefore, to make it work, do this
+instead:
+
+<blockquote>
+<pre>
+%rename(tofoo) foo::spam::operator <b>foo::</b>bar();
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> The flattening of namespaces is only intended to serve as
+a basic namespace implementation.  Since namespaces are a new addition
+to SWIG, none of the target language modules are currently programmed
+with any namespace awareness.   In the future, language modules may or may not provide
+more advanced namespace support.
+
+
+<a name="n30"></a><H2>5.19 Exception specifiers</H2>
+
+
+When C++ programs utilize exceptions, exceptional behavior is sometimes specified as
+part of a function or method declaration.  For example:
+
+<blockquote>
+<pre>
+class Error { };
+
+class Foo {
+public:
+    ...
+    void blah() throw(Error);
+    ...
+};
+</pre>
+</blockquote>
+
+If an exception specification is used, SWIG automatically generates wrapper code for catching the
+indicated exception and converting it into an error in the target language.   In certain language
+modules, wrapped exception classes themselves can be used to catch errors.  For example, in Python, you can
+write code like this:
+
+<blockquote>
+<pre>
+f = Foo()
+try:
+    f.blah()
+except Error,e:
+     # e is a wrapped instance of "Error"
+</pre>
+</blockquote>
+
+Obviously, the exact details of how exceptions are handled depend on the target language module.
+
+<p>
+Since exception specifiers are sometimes only used sparingly, this alone may not be enough to
+properly handle C++ exceptions. To do that, a different set of special SWIG directives are used.
+Consult the "<a href="Customization.html">Customization features</a>" chapter for details.
+
+<a name="n31"></a><H2>5.20 Pointers to Members</H2>
+
+
+Starting with SWIG1.3.7, there is limited parsing support for pointers to C++ class members.
+For example:
+
+<blockquote>
+<pre>
+double do_op(Object *o, double (Object::*callback)(double,double));
+extern double (Object::*fooptr)(double,double);
+%constant double (Object::*FOO)(double,double) = &Object::foo;
+</pre>
+</blockquote>
+
+Although these kinds of pointers can be parsed and represented by the
+SWIG type system, few language modules know how to handle them due to
+implementation differences from standard C pointers.  Readers are
+<em>strongly</em> advised to consult an advanced text such as the "The
+Annotated C++ Manual" for specific details.
+
+<p>
+When pointers to members are supported, the pointer value might appear as a special
+string like this:
+
+<blockquote>
+<pre>
+&gt;&gt;&gt; print example.FOO
+_ff0d54a800000000_m_Object__f_double_double__double
+&gt;&gt;&gt;
+</pre>
+</blockquote>
+
+In this case, the hexadecimal digits represent the entire value of the
+pointer which is usually the contents of a small C++ structure on most
+machines.
+
+<p>
+SWIG's type-checking mechanism is also more limited when working with
+member pointers.  Normally SWIG tries to keep track of inheritance
+when checking types.  However, no such support is currently provided
+for member pointers.
+
+<a name="n32"></a><H2>5.21 Smart pointers and operator-&gt;()</H2>
+
+
+In some C++ programs, objects are often encapsulated by smart-pointers
+or proxy classes.   This is sometimes done to implement automatic memory management (reference counting) or
+persistence. Typically a smart-pointer is defined by a template class where
+the <tt>-&gt;</tt> operator has been overloaded.  This class is then wrapped
+around some other class.  For example:
+
+<blockquote>
+<pre>
+// Smart-pointer class
+template&lt;class T&gt; class SmartPtr {
+    T *pointee;
+public:
+    ...
+    T *operator-&gt;() {
+        return pointee;
+    }
+    ...
+};
+
+// Ordinary class
+class Foo_Impl {
+public:
+    int x;
+    virtual void bar();
+    ...
+};
+
+// Smart-pointer wrapper
+typedef SmartPtr&lt;Foo_Impl&gt; Foo;
+
+// Create smart pointer Foo
+Foo make_Foo() {
+    return SmartPtr(new Foo_Impl());
+}
+
+// Do something with smart pointer Foo
+void do_something(Foo f) {
+    printf("x = %d\n", f-&gt;x);
+    f-&gt;bar();
+}
+</pre>
+</blockquote>
+
+A key feature of this approach is that by defining
+<tt>operator-&gt;</tt> the methods and attributes of the object
+wrapped by a smart pointer are transparently accessible.  For example,
+expressions such as these (from the previous example),
+
+<blockquote>
+<pre>
+f->x
+f->bar()
+</pre>
+</blockquote>
+
+are transparently mapped to the following
+
+<blockquote>
+<pre>
+(f.operator->())->x;
+(f.operator->())->bar();
+</pre>
+</blockquote>
+
+When generating wrappers, SWIG tries to emulate this functionality to
+the extent that it is possible.  To do this, whenever
+<tt>operator->()</tt> is encountered in a class, SWIG looks at its
+returned type and uses it to generate wrappers for accessing
+attributes of the underlying object.  For example, wrapping the above
+code produces wrappers like this:
+
+<blockquote>
+<pre>
+int Foo_x_get(Foo *f) {
+   return (*f)->x;
+}
+void Foo_x_set(Foo *f, int value) {
+   (*f)->x = value;
+}
+void Foo_bar(Foo *f) {
+   (*f)->bar();
+}
+</pre>
+</blockquote>
+
+These wrappers take a smart-pointer instance as an argument, but
+dereference it in a way to gain access to the object returned by
+<tt>operator-&gt;()</tt>.  You should carefully compare these wrappers
+to those in the first part of this chapter (they are slightly
+different).
+
+<p>
+The end result is that access looks very similar to C++.  For
+example, you could do this in Python:
+
+<blockquote>
+<pre>
+>>> f = make_Foo()
+>>> print f.x
+0
+>>> f.bar()
+>>>
+</pre>
+</blockquote>
+
+When generating wrappers through a smart-pointer, SWIG tries to
+generate wrappers for all methods and attributes that might be
+accessible through <tt>operator->()</tt>.  This includes any methods
+that might be accessible through inheritance.   However, there are a number of restrictions:
+
+<ul>
+<li>Only member variables and methods are wrapped through a smart pointer.  Static members, enumerations,
+constructors, and destructors are not wrapped.
+
+<P>
+<li>If the smart-pointer class and the underlying object both define a method or
+variable of the same name, then the smart-pointer version has precedence.   For
+example, if you have this code
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    int x;
+};
+
+class Bar {
+public:
+    int x;       
+    Foo *operator->();
+};
+</pre>
+</blockquote>
+
+then the wrapper for <tt>Bar::x</tt> accesses the <tt>x</tt> defined in <tt>Bar</tt>, and 
+not the <tt>x</tt> defined in <tt>Foo</tt>.
+</ul>
+
+If your intent is to only expose the smart-pointer class in the interface, it is not necessary to wrap both
+the smart-pointer class and the class for the underlying object.  However, you must still tell SWIG about both
+classes if you want the technique described in this section to work.   To only generate wrappers for the
+smart-pointer class, you can use the %ignore directive.  For example:
+
+<blockquote>
+<pre>
+%ignore Foo;
+class Foo {       // Ignored
+};
+
+class Bar {
+public:
+   Foo *operator->();
+   ...
+};
+</pre>
+</blockquote>
+
+Alternatively, you can import the definition of <tt>Foo</tt> from a separate file using
+<tt>%import</tt>.
+ 
+<p>
+<b>Note:</b> When a class defines <tt>operator->()</tt>, the operator itself is wrapped
+as a method <tt>__deref__()</tt>.  For example:
+
+<blockquote>
+<pre>
+f = Foo()               # Smart-pointer
+p = f.__deref__()       # Raw pointer from operator->
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> To disable the smart-pointer behavior, use <tt>%ignore</tt> to ignore
+<tt>operator->()</tt>.  For example:
+
+<blockquote>
+<pre>
+%ignore Bar::operator->;
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> Smart pointer support was first added in SWIG-1.3.14.
+
+
+<a name="n33"></a><H2>5.22 Using declarations and inheritance</H2>
+
+
+<tt>using</tt> declarations are sometimes used to adjust access to members of
+base classes.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+      int  blah(int x);
+};
+
+class Bar {
+public:
+      double blah(double x);
+};
+
+class FooBar : public Foo, public Bar {
+public:
+      using Foo::blah;  
+      using Bar::blah;
+      char *blah(const char *x);
+};
+</pre>
+</blockquote>
+
+In this example, the <tt>using</tt> declarations make different
+versions of the overloaded <tt>blah()</tt> method accessible from the
+derived class.  For example:
+
+<blockquote>
+<pre>
+FooBar *f;
+f->blah(3);         // Ok. Invokes Foo::blah(int)
+f->blah(3.5);       // Ok. Invokes Bar::blah(double)
+f->blah("hello");   // Ok. Invokes FooBar::blah(const char *);
+</pre>
+</blockquote>
+
+SWIG emulates the same functionality when creating wrappers.  For example, if
+you wrap this code in Python, the module works just like you would expect:
+
+<blockquote>
+<pre>
+>>> import example
+>>> f = example.FooBar()
+>>> f.blah(3)
+>>> f.blah(3.5)
+>>> f.blah("hello")
+</pre>
+</blockquote>
+
+<tt>using</tt> declarations can also be used to change access when applicable.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+protected:
+    int x;
+    int blah(int x);
+};
+
+class Bar : public Foo {
+public:
+    using Foo::x;       // Make x public
+    using Foo::blah;    // Make blah public
+};
+</pre>
+</blockquote>
+
+This also works in SWIG---the exposed declarations will be wrapped normally.
+
+<p>
+When <tt>using</tt> declarations are used as shown in these examples, declarations
+from the base classes are copied into the derived class and wrapped normally.  When
+copied, the declarations retain any properties that might have been attached using
+<tt>%rename</tt>, <tt>%ignore</tt>, or <tt>%feature</tt>.  Thus, if a method is
+ignored in a base class, it will also be ignored by a <tt>using</tt> declaration.
+
+<p>
+Because a <tt>using</tt> declaration does not provide fine-grained
+control over the declarations that get imported, it may be difficult
+to manage such declarations in applications that make heavy use of
+SWIG customization features.  If you can't get <tt>using</tt> to work
+correctly, you can always change the interface to the following:
+
+<blockquote>
+<pre>
+
+class FooBar : public Foo, public Bar {
+public:
+#ifndef SWIG
+      using Foo::blah;  
+      using Bar::blah;
+#else
+      int blah(int x);         // explicitly tell SWIG about other declarations
+      double blah(double x);
+#endif
+
+      char *blah(const char *x);
+};
+</pre>
+</blockquote>
+
+<b>Notes:</b>
+
+<ul>
+<li>If a derived class redefines a method defined in a base class, then a <tt>using</tt> declaration
+won't cause a conflict.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+       int blah(int );
+       double blah(double);
+};
+
+class Bar : public Foo {
+public:
+       using Foo::blah;    // Only imports blah(double);
+       int blah(int);
+};
+</pre>
+</blockquote>
+
+<li>Resolving ambiguity in overloading may prevent declarations from being
+imported by <tt>using</tt>.  For example:
+
+<blockquote>
+<pre>
+%rename(blah_long) Foo::blah(long);
+class Foo {
+public:
+     int blah(int);
+     long blah(long);  // Renamed to blah_long
+};
+
+class Bar : public Foo {
+public:
+     using Foo::blah;     // Only imports blah(int)
+     double blah(double x);
+};
+</pre>
+</blockquote>
+</ul>
+
+<a name="n34"></a><H2>5.23 Partial class definitions</H2>
+
+
+Since SWIG is still limited in its support of C++, it may be necessary
+to use partial class information in an interface file.  However, since
+SWIG does not need the entire class specification to work, conditional
+compilation can be used to comment out problematic parts.  For example, if you had a nested
+class definition, you might do this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+#ifndef SWIG
+   class Bar {
+   public:
+     ...
+   };
+#endif
+   Foo();
+  ~Foo();
+   ...
+};
+</pre>
+</blockquote>
+
+<p>
+Also, as a rule of thumb, SWIG should not be used on raw C++ source
+files. 
+
+<a name="n35"></a><H2>5.24 A brief rant about const-correctness</H2>
+
+
+A common issue when working with C++ programs is dealing with all
+possible ways in which the <tt>const</tt> qualifier (or lack thereof)
+will break your program, all programs linked against your program, and
+all programs linked against those programs.  
+
+<p>
+Although SWIG knows how to correctly deal with <tt>const</tt> in its
+internal type system and it knows how to generate wrappers that are
+free of const-related warnings, SWIG does not make any attempt to preserve 
+const-correctness in the target language.  Thus, it is possible to
+pass <tt>const</tt> qualified objects to non-const methods and functions.
+For example, consider the following code in C++:
+
+<blockquote>
+<pre>
+const Object * foo();
+void bar(Object *);
+
+...
+// C++ code
+void blah() {
+   bar(foo());         // Error: bar discards const
+};
+</pre>
+</blockquote>
+
+Now, consider the behavior when wrapped into a Python module:
+
+<blockquote>
+<pre>
+>>> bar(foo())         # Okay
+>>> 
+</pre>
+</blockquote>
+
+Although this is clearly a violation of the C++ type-system, fixing
+the problem doesn't seem to be worth the added implementation
+complexity that would be required to support it in the SWIG run-time type
+system.  There are no plans to change this in future releases
+(although we'll never rule anything out entirely).
+
+<p>
+The bottom line is that this particular issue does not appear to be a problem
+for most SWIG projects.    Of course, you might want to consider
+using another tool if maintaining constness is the most important part
+of your project.
+
+<a name="n36"></a><H2>5.25 Proxy classes</H2>
+
+
+Write me.
+
+<a name="n37"></a><H2>5.26 Where to go for more information</H2>
+
+
+If you're wrapping serious C++ code, you might want to pick up a copy
+of "The Annotated C++ Reference Manual" by Ellis and Stroustrup.  This
+is the reference document we use to guide a lot of SWIG's C++ support.
+
+<p><hr>
+
+<address>SWIG 1.3 - Last Modified : May 12, 2002</address>
+</body>
+</html>

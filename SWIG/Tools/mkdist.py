@@ -19,11 +19,11 @@ os.system("rm -rf "+dirname)
 # Do a CVS export on the directory name
 
 print "Checking out SWIG"
-os.system("cvs export -D now -d "+dirname+ " SWIG")
+os.system("cvs export -D now -r rel-1-3 -d "+dirname+ " SWIG")
 
 # Now clean the source directory
 
-SOURCES = ['DOH','Swig','Preprocessor','SWIG1.1','Modules1.1', 'Modules', 'Include']
+SOURCES = ['DOH','Swig','Preprocessor','CParse','Modules1.1', 'Modules', 'Include']
 
 srcs = [ ]
 for d in SOURCES:
@@ -58,10 +58,9 @@ f = open(dirname+"/configure.in","w")
 f.write(s)
 f.close()
 
-# Clean the documentation directory
+# Remove the debian directory -- it's not official
 
-print "Cleaning the Doc directory"
-os.system("rm -rf "+dirname+"/Doc/*")
+os.system("rm -Rf "+dirname+"/debian");
 
 # Blow away all .cvsignore files
 
@@ -73,8 +72,17 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 os.system("cd "+dirname+"; autoconf")
 os.system("cd "+dirname+"/Source/DOH; autoconf")
 os.system("cd "+dirname+"/Tools; autoconf")
-os.system("cd "+dirname+"/Source/SWIG1.1; bison -y -d parser.yxx; mv y.tab.c parser.cxx; mv y.tab.h parser.h")
+os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
+os.system("cd "+dirname+"/Tools/WAD; autoconf")
+os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
+# Remove autoconf files
+os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;");
+
+# Build documentation
+os.system("cd "+dirname+"/Doc/Manual; python maketoc.py; rm *.bak")
+
+# Build the tar-ball
 os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
 os.system("gzip "+string.lower(dirname)+".tar")
 

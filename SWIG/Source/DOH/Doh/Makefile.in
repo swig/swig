@@ -24,21 +24,21 @@ DOHOPT  =
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
-LIBOBJS = void.o fio.o memory.o base.o file.o list.o hash.o string.o
+LIBOBJS = void.@OBJEXT@ fio.@OBJEXT@ memory.@OBJEXT@ base.@OBJEXT@ file.@OBJEXT@ list.@OBJEXT@ hash.@OBJEXT@ string.@OBJEXT@
 
 LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
 LIBHEADERS = $(srcdir)/../Include/doh.h
 LIB      = libdoh.a
-INCLUDE  = -I$(srcdir)/../Include
+INCLUDES = -I$(srcdir)/../Include
 CFLAGS   = @CFLAGS@
 SHELL  = /bin/sh
 
 #
-# Rules for creation of a .o file from .c
+# Rules for creation of a .@OBJEXT@ file from .c
 .SUFFIXES: .c
-.c.o:
-	$(CC) $(DOHOPT) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
+.c.@OBJEXT@:
+	$(CC) $(DOHOPT) $(INCLUDES) $(CFLAGS) -c -o $*.@OBJEXT@ $<
 
 all: $(LIB)
 
@@ -49,6 +49,6 @@ $(LIB): $(LIBOBJS)
 	cp -f $(LIB) ..
 
 clean::
-	rm -f *.o $(LIB) ../$(LIB)
+	rm -f *.@OBJEXT@ $(LIB) ../$(LIB)
 nuke::
-	rm -f Makefile *~ #* core a.out
+	rm -f Makefile *~

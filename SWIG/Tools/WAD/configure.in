@@ -7,7 +7,7 @@ dnl   to nothing) and `test -z "$VAR"' or `test -n "$VAR"' as the
 dnl   case may be.  --ttn, 2000/08/04 12:11:26
 
 AC_INIT(Include/wad.h)
-AC_PREREQ(2.0)
+AC_PREREQ(2.53)
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)

@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_file_c[] = "$Header$";
 
 #include "dohint.h"
 
@@ -41,6 +41,7 @@ DelFile(DOH *fo) {
     }
 #endif
   }
+  DohFree(f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -118,12 +119,12 @@ File_tell(DOH *fo) {
 
 static int 
 File_putc(DOH *fo, int ch) {
-  char c;
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     return fputc(ch,f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
+    char c;
     c = (char) ch;
     return write(f->fd,&c,1);
 #endif
@@ -137,12 +138,12 @@ File_putc(DOH *fo, int ch) {
 
 static int 
 File_getc(DOH *fo) {
-  char c;
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     return fgetc(f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
+    char c;
     if (read(f->fd,&c,1) < 0) return EOF;
     return c;
 #endif
@@ -169,6 +170,28 @@ File_ungetc(DOH *fo, int ch) {
   return -1;
 }
 
+/* -----------------------------------------------------------------------------
+ * File_close()
+ *
+ * Close the file
+ * ----------------------------------------------------------------------------- */
+
+static int
+File_close(DOH *fo) {
+  int ret = 0;
+  DohFile *f = (DohFile *) ObjData(fo);
+  if (f->filep) {
+    ret = fclose(f->filep);
+    f->filep = 0;
+  } else if (f->fd) {
+#ifdef DOH_INTFILE
+    ret = close(f->fd);
+    f->fd = 0;
+#endif
+  }
+  return ret;
+}
+
 static DohFileMethods FileFileMethods = {
   File_read, 
   File_write,
@@ -177,7 +200,7 @@ static DohFileMethods FileFileMethods = {
   File_ungetc,
   File_seek,
   File_tell,
-  0,              /* close */
+  File_close,           /* close */
 };
 
 static DohObjInfo DohFileType = {
@@ -209,19 +232,12 @@ static DohObjInfo DohFileType = {
  * Create a new file from a given filename and mode.
  * ----------------------------------------------------------------------------- */
 
-static int init = 0;
-
 DOH *
-NewFile(DOH *fn, char *mode)
+DohNewFile(DOH *fn, const char *mode)
 {
   DohFile *f;
   FILE *file;
   char *filename;
-
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
 
   filename = Char(fn);
   file = fopen(filename,mode);
@@ -235,7 +251,7 @@ NewFile(DOH *fn, char *mode)
   f->filep = file;
   f->fd = 0;
   f->closeondel = 1;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -245,20 +261,15 @@ NewFile(DOH *fn, char *mode)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewFileFromFile(FILE *file) 
+DohNewFileFromFile(FILE *file) 
 {
   DohFile *f;
-
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
   f = (DohFile *) DohMalloc(sizeof(DohFile));
   if (!f) return 0;
   f->filep = file;
   f->fd = 0;
   f->closeondel = 0;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -268,17 +279,13 @@ NewFileFromFile(FILE *file)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewFileFromFd(int fd)
+DohNewFileFromFd(int fd)
 {
   DohFile *f;
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
   f = (DohFile *) DohMalloc(sizeof(DohFile));
   if (!f) return 0;
   f->filep = 0;
   f->fd = fd;
   f->closeondel = 0;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }

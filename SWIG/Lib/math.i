@@ -1,21 +1,10 @@
-//
-// $Header$
-//
-// math.i
-// Dave Beazley
-// March 24, 1996
-// SWIG file for floating point operations
-//
-/* Revision history
- * $Log$
- * Revision 1.1  2000/01/11 21:15:48  beazley
- * Added files
+/*
+ * $Header$
  *
- * Revision 1.1.1.1  1999/02/28 02:00:53  beazley
- * Swig1.1
- *
- * Revision 1.1  1996/05/22 17:27:01  beazley
- * Initial revision
+ * math.i
+ * Dave Beazley
+ * March 24, 1996
+ * SWIG file for floating point operations
  *
  */
 
@@ -23,20 +12,6 @@
 %{
 #include <math.h>
 %}
-
-%section "SWIG Math Module",after,info,nosort,pre,chop_left=3,chop_bottom=0,chop_top=0,chop_right=0,skip=1
-
-%text %{
-%include math.i
-
-This module provides access to the C math library and contains most
-of the functions in <math.h>.  Most scripting languages already provide
-math support, but in certain cases, this module can provide more
-direct access.
-%}
-
-%subsection "Functions"
-
 
 extern double	cos(double x);
 /* Cosine of x */
@@ -94,8 +69,6 @@ extern double	floor(double x);
 
 extern double	fmod(double x, double y);
 /* Floating-point remainder of x/y, with the same sign as x. */
-
-%subsection "Mathematical constants",noinfo
 
 #define M_E		2.7182818284590452354
 #define M_LOG2E		1.4426950408889634074

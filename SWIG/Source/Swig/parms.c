@@ -14,7 +14,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_parms_c[] = "$Header$";
 
 #include "swig.h"
 
@@ -42,27 +42,36 @@ Parm *NewParm(SwigType *type, String_or_char *n) {
 
 Parm *CopyParm(Parm *p) {
   SwigType *t;
-  char     *name;
-  char     *lname;
-  char     *value;
-  int       ignore;
+  String   *name;
+  String   *lname;
+  String   *value;
+  String   *ignore;
+  String   *alttype;
 
   Parm *np = NewHash();
   t = Getattr(p,"type");
-  name = GetChar(p,"name");
-  lname = GetChar(p,"lname");
-  value = GetChar(p,"value");
-  ignore = GetInt(p,"ignore");
+  name = Getattr(p,"name");
+  lname = Getattr(p,"lname");
+  value = Getattr(p,"value");
+  ignore = Getattr(p,"ignore");
+  alttype = Getattr(p,"alttype");
 
-  Setattr(np,"type",Copy(t));
+  if (t) 
+    Setattr(np,"type",Copy(t));
   if (name)
-    Setattr(np,"name",name);
+    Setattr(np,"name",Copy(name));
   if (lname)
-    Setattr(np,"lname", lname);
+    Setattr(np,"lname", Copy(lname));
   if (value)
-    Setattr(np,"value", value);
+    Setattr(np,"value", Copy(value));
   if (ignore)
-    SetInt(np,"ignore", ignore);
+    Setattr(np,"ignore", Copy(ignore));
+  if (alttype) 
+    Setattr(np,"alttype", Copy(alttype));
+      
+  Setfile(np,Getfile(p));
+  Setline(np,Getline(p));
+
   return np;
 }
 
@@ -81,12 +90,12 @@ CopyParmList(ParmList *p) {
   while (p) {
     np = CopyParm(p);
     if (pp) {
-      Setnext(pp,np);
+      set_nextSibling(pp,np);
     } else {
       fp = np;
     }
     pp = np;
-    p = Getnext(p);
+    p = nextSibling(p);
   }
   return fp;
 }
@@ -98,10 +107,27 @@ CopyParmList(ParmList *p) {
 int ParmList_numarg(ParmList *p) {
   int  n = 0;
   while (p) {
-    if (!Getignore(p)) n++;
-    p = Getnext(p);
+    if (!Getattr(p,"ignore")) n++;
+    p = nextSibling(p);
   }
   return n;
+}
+
+/* -----------------------------------------------------------------------------
+ * int ParmList_numrequired().  Return number of required arguments
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_numrequired(ParmList *p) {
+  int i = 0;
+  while (p) {
+    SwigType *t = Getattr(p,"type");
+    String   *value = Getattr(p,"value");
+    if (value) return i;
+    if (!(SwigType_type(t) == T_VOID)) i++;
+    else break;
+    p = nextSibling(p);
+  }
+  return i;
 }
 
 /* -----------------------------------------------------------------------------
@@ -112,7 +138,7 @@ int ParmList_len(ParmList *p) {
   int i = 0;
   while (p) {
     i++;
-    p = Getnext(p);
+    p = nextSibling(p);
   }
   return i;
 }
@@ -129,13 +155,13 @@ String *ParmList_str(ParmList *p) {
 
   out = NewString("");
   while(p) {
-    t = Gettype(p);
-    Printf(out,"%s", SwigType_str(t,Getname(p)));
-    p = Getnext(p);
+    t = Getattr(p,"type");
+    Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
+    p = nextSibling(p);
     if (p)
       Printf(out,",");
   }
-  return Swig_temp_result(out);
+  return out;
 }
 
 /* ---------------------------------------------------------------------
@@ -150,13 +176,17 @@ String *ParmList_protostr(ParmList *p) {
 
   out = NewString("");
   while(p) {
-    t = Gettype(p);
+    if (Getattr(p,"hidden")) {
+      p = nextSibling(p);
+      continue;
+    }
+    t = Getattr(p,"type");
     Printf(out,"%s", SwigType_str(t,0));
-    p = Getnext(p);
+    p = nextSibling(p);
     if (p)
       Printf(out,",");
   }
-  return Swig_temp_result(out);
+  return out;
 }
 
 

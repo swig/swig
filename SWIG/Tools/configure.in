@@ -1,6 +1,49 @@
 AC_INIT(ltmain.sh)
+AC_PREREQ(2.53)
 
-AC_OUTPUT_COMMANDS([$srcdir/ltconfig --enable-dlopen $srcdir/ltmain.sh],
-                   [srcdir=$srcdir])
+##-----------------------------------------------------------------------------
+## libtool configuration
+## (bug reports to ttn)
+
+## The command "libtoolize --copy --force" is used to create files:
+##   config.guess
+##   config.sub
+##   ltmain.sh
+## The following lines make libtoolize place them in this directory
+## rather than in the parent (where it finds install-sh).  But this
+## means at configure time, install-sh actually does need to be in
+## this directory, so we copy it from the parent, *before* the decl.
+## (The alternative is to check into cvs and consequently distribute
+## another copy of install-sh, but that way lies madness.)
+
+cp ${srcdir}/../install-sh ${srcdir}
+chmod +x ${srcdir}/install-sh
+AC_CONFIG_AUX_DIR(.)
+
+## Apparently libtool configuration (now) assumes libtool is installed
+## in the top builddir, congruent w/ automake expectations.  Because we
+## don't use automake, we need to set this variable manaully.  Because
+## we don't install libtool in the top builddir, we must use an absolute
+## path instead of the relative path ".".  See footnote in info node
+## "(libtool)AC_PROG_LIBTOOL".
+##
+## Actually, at this time we hardcode makefile var LIBTOOL to DTRT, so
+## it's ok to subvert the top_builddir requirement (and desirable, to
+## flush out bugs faster).  The following lines can be commented in should
+## we change our minds in the future.
+
+##+ top_builddir="`pwd`"      # libtool is here, not in parent dir
+##+ AC_SUBST(top_builddir)
+
+## These two configure libtool, including dlopen facilities, by adding
+## --{enable,disable}-{shared,static} options and setting var LIBTOOL,
+## which uses top_builddir (see above).  Note that at this time, this
+## var is completely ignored; we set LIBTOOL directly in the Makefiles.
+
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
+
+## libtool configuration ends here
+##-----------------------------------------------------------------------------
 
 AC_OUTPUT()

@@ -109,14 +109,14 @@ For example:
 
 <blockquote>
 <pre>
-example.Circle_x_set(c,15)    # Set member data
+example.Shape_x_set(c,15)    # Set member data
 x = example.Shape_x_get(c)    # Get member data
 </pre>
 </blockquote>
 
-Note: when accessing member data, the name of the base class or the derived class can be
-used in the function name as shown above.  Of course, it would probably be more
-proper to just use the base class version such as <tt>Shape_x_get()</tt>
+Note: when accessing member data, the name of the class in which
+the member data was must be used.  In this case, <tt>Shape_x_get()</tt>
+and <tt>Shape_x_set()</tt> are used since 'x' was defined in Shape.
 
 <p>
 <li>To invoke a member function, you simply do this
@@ -164,13 +164,14 @@ example.cvar.Shapes_nshapes = 13   # Set a static data member
 <h2>General Comments</h2>
 
 <ul>
-<li>This low-level interface is not the only way to handle C++ code.  Shadow classes
-provide a much higher-level interface.
+<li>This low-level interface is not the only way to handle C++ code.
+Shadow classes provide a much higher-level interface.
 
 <p>
-<li>SWIG *does* know how to properly perform upcasting of objects in an inheritance
-hierarchy (including multiple inheritance).  Therefore it is perfectly safe to pass
-an object of a derived class to any function involving a base class.
+<li>SWIG *does* know how to properly perform upcasting of objects in
+an inheritance hierarchy (including multiple inheritance).  Therefore
+it is perfectly safe to pass an object of a derived class to any
+function involving a base class.
 
 <p>
 <li>A wide variety of C++ features are not currently supported by SWIG.  Here is the
@@ -205,28 +206,6 @@ to write a helper function. For example:
 
 <p>
 <li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
-
-<p>
-<li>Templates.  Not supported at all. SWIG throws out anything that looks like a template.
-You can work around the problem by aliasing a template class behind a typedef however. 
-For example:
-
-<blockquote>
-<pre>
-%{
-typedef vector<int> IntVector;
-%}
-
-class IntVector {
-public:
-    ... methods ...
-};
-</pre>
-</blockquote>
-</ul>
-<p>
-<li>There is no guarantee that an extremely complex C++ application will be able to compile
-as a Python extension.  Sorry.
 
 <p>
 <li>Dave's snide remark: Like a large bottle of strong Tequilla, it's better to

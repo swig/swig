@@ -10,8 +10,6 @@ exec_prefix= @exec_prefix@
 INCLUDE_DIR = $(prefix)/include
 LIB_DIR = $(exec_prefix)/lib
 
-DOHOPT = 
-
 # Installer
 
 INSTALL        = ./install-sh -c
@@ -19,7 +17,7 @@ INSTALL_DATA   = ${INSTALL} -m 644
 INSTALL_PROGRAM= ${INSTALL} -m 755
 
 all:
-	cd Doh; $(MAKE) DOHOPT='$(DOHOPT)'
+	cd Doh; $(MAKE)
 
 install:
 	@echo "Installing $(LIB_DIR)/libdoh.a..."

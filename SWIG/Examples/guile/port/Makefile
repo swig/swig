@@ -1,4 +1,3 @@
-CC     = gcc
 SRCS   = port.c
 TARGET = port
 IFILE  = port.i
@@ -10,11 +9,10 @@ all::
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
 		IFILE=$(IFILE)			\
-		CC=$(CC)			\
 		MODULE=$(MODULE)		\
 	  sub-all
 
 clean::
-	rm -f $(TARGET) *_wrap* *~ .~* core test.out
+	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
 
 check: all

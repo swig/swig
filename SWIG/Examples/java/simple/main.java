@@ -1,4 +1,3 @@
-import example;
 
 public class main {
 
@@ -6,27 +5,28 @@ public class main {
     try {
 	System.loadLibrary("example");
     } catch (UnsatisfiedLinkError e) {
-      System.err.println("Cannot load the example native code.\nMake sure your LD_LIBRARY_PATH contains \'.\'\n" + e);
+      System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
     }
   }
 
   public static void main(String argv[]) {
-    System.out.println(example.get_time());
-
-    System.out.println("My Variable = " + example.get_My_variable());
-
-    for(int i=0; i<14; i++) {
-      System.out.println("" + i + " factorial is " + example.fact(i));
-    }
-
-    for(int i=1; i<100; i++) {
-      for(int j=1; j<100; j++) {
-        int n = example.mod(i, j);
-        example.set_My_variable(example.get_My_variable() + n);
-      }
-    }
-
-    System.out.println("My_variable = " + example.get_My_variable());
+    // Call our gcd() function
+    
+    int x = 42;
+    int y = 105;
+    int g = example.gcd(x,y);
+    System.out.println("The gcd of " + x + " and " + y + " is " + g);
+    
+    // Manipulate the Foo global variable
+    
+    // Output its current value
+    System.out.println("Foo = " + example.getFoo());
+    
+    // Change its value
+    example.setFoo(3.1415926);
+    
+    // See if the change took effect
+    System.out.println("Foo = " + example.getFoo());
   }
 }

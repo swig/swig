@@ -19,18 +19,23 @@
 #       if defined(_MSC_VER)
 #               if defined(STATIC_LINKED)
 #                       define SWIGEXPORT(a) a
+#                       define SWIGIMPORT(a) extern a
 #               else
 #                       define SWIGEXPORT(a) __declspec(dllexport) a
+#                       define SWIGIMPORT(a) extern a
 #               endif
 #       else
 #               if defined(__BORLANDC__)
 #                       define SWIGEXPORT(a) a _export
+#                       define SWIGIMPORT(a) a _export
 #               else
 #                       define SWIGEXPORT(a) a
+#                       define SWIGIMPORT(a) a
+#               endif
 #       endif
-#endif
 #else
 #       define SWIGEXPORT(a) a
+#       define SWIGIMPORT(a) a
 #endif
 
 #ifdef SWIG_GLOBAL
@@ -43,18 +48,29 @@
 extern "C" {
 #endif
 
+typedef void *(*swig_converter_func)(void *);
+typedef struct swig_type_info *(*swig_dycast_func)(void **);
+
 typedef struct swig_type_info {
-  char  *name;                 
-  void *(*converter)(void *);
-  char  *str;
+  const char             *name;                 
+  swig_converter_func     converter;
+  const char             *str;
+  void                   *clientdata;	
+  swig_dycast_func        dcast;
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
 } swig_type_info;
 
 #ifdef SWIG_NOINCLUDE
-SWIGEXPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
-SWIGEXPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
-SWIGEXPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
+
+SWIGIMPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
+SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
+SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
+SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
+
 #else
 
 static swig_type_info *swig_type_list = 0;
@@ -69,6 +85,7 @@ SWIG_TypeRegister(swig_type_info *ti)
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
+      if (tc->clientdata) ti->clientdata = tc->clientdata;	
       head = tc;
       next = tc->next;
       goto l1;
@@ -104,7 +121,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
-  while (s) {
+  do {
     if (strcmp(s->name,c) == 0) {
       if (s == ty->next) return s;
       /* Move s to the top of the linked list */
@@ -119,11 +136,11 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       return s;
     }
     s = s->next;
-  }
+  } while (s && (s != ty->next));
   return 0;
 }
 
-/* Cast a pointer (needed for C++ inheritance */
+/* Cast a pointer up an inheritance hierarchy */
 SWIGRUNTIME(void *) 
 SWIG_TypeCast(swig_type_info *ty, void *ptr) 
 {
@@ -131,8 +148,27 @@ SWIG_TypeCast(swig_type_info *ty, void *ptr)
   return (*ty->converter)(ptr);
 }
 
+/* Dynamic pointer casting. Down an inheritance hierarchy */
+SWIGRUNTIME(swig_type_info *) 
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
+{
+  swig_type_info *lastty = ty;
+  if (!ty || !ty->dcast) return ty;
+  while (ty && (ty->dcast)) {
+     ty = (*ty->dcast)(ptr);
+     if (ty) lastty = ty;
+  }
+  return lastty;
+}
+
+/* Return the name associated with this type */
+SWIGRUNTIME(const char *)
+SWIG_TypeName(const swig_type_info *ty) {
+  return ty->name;
+}
+
 /* Search for a swig_type_info structure */
-SWIGRUNTIME(void *)
+SWIGRUNTIME(swig_type_info *)
 SWIG_TypeQuery(const char *name) {
   swig_type_info *ty = swig_type_list;
   while (ty) {
@@ -143,11 +179,28 @@ SWIG_TypeQuery(const char *name) {
   return 0;
 }
 
+/* Set the clientdata field for a type */
+SWIGRUNTIME(void)
+SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
+  swig_type_info *tc, *equiv;
+  if (ti->clientdata == clientdata) return;
+  ti->clientdata = clientdata;
+  equiv = ti->next;
+  while (equiv) {
+    if (!equiv->converter) {
+      tc = swig_type_list;
+      while (tc) {
+	if ((strcmp(tc->name, equiv->name) == 0))
+	  SWIG_TypeClientData(tc,clientdata);
+	tc = tc->prev;
+      }
+    }
+    equiv = equiv->next;
+  }
+}
 #endif
 
 #ifdef __cplusplus
 }
+
 #endif
-
-
-

@@ -11,34 +11,33 @@
   #endif
   #include <stdio.h>
   #include <errno.h>
+  #include <unistd.h>
 %}
 
-/* Feed FILE * arguments from file ports */
+/* Feed temporary FILE * arguments from file ports */
 
-%typemap(guile, in) FILE *
+%typemap(in, doc="$NAME is a port") FILE *
 {
-  if(!(SCM_FPORTP($source)))
-    scm_wrong_type_arg("$name", $argnum, $source);
+  if(!(SCM_FPORTP($input)))
+    scm_wrong_type_arg("$name", $argnum, $input);
   else {
     int fd;
-    if (SCM_OUTPUT_PORT_P($source))
-      scm_force_output($source);
-    fd=dup(SCM_FPORT_FDES($source));
+    if (SCM_OUTPUT_PORT_P($input))
+      scm_force_output($input);
+    fd=dup(SCM_FPORT_FDES($input));
     if(fd==-1) 
       scm_misc_error("$name", strerror(errno), SCM_EOL);
-    $target=fdopen(fd,
-		   SCM_OUTPUT_PORT_P($source)
-		   ? (SCM_INPUT_PORT_P($source)
+    $1=fdopen(fd,
+		   SCM_OUTPUT_PORT_P($input)
+		   ? (SCM_INPUT_PORT_P($input)
 		      ? "rw" : "w")
 		   : "r");
-    if($target==NULL)
+    if($1==NULL)
       scm_misc_error("$name", strerror(errno), SCM_EOL);
   }
 }
 
-%typemap(guile, indoc) FILE * "($arg <port>)";
-
-%typemap(guile, freearg) FILE* {
-  fclose($target);
+%typemap(freearg) FILE* {
+  fclose($1);
 }
 

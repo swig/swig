@@ -9,7 +9,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_list_c[] = "$Header$";
 
 #include "dohint.h"
 
@@ -21,6 +21,8 @@ typedef struct List {
     int          line;
     DOH        **items;
 } List;
+
+extern DohObjInfo DohListType;
 
 /* Doubles amount of memory in a list */
 static 
@@ -52,7 +54,7 @@ CopyList(DOH *lo) {
     nl->file = l->file;
     if (nl->file) Incref(nl->file);
     nl->line = l->line;
-    return DohObjMalloc(DOHTYPE_LIST, nl);
+    return DohObjMalloc(&DohListType, nl);
 }
 
 /* -----------------------------------------------------------------------------
@@ -261,27 +263,8 @@ List_dump(DOH *lo, DOH *out) {
   return nsent;
 }
 
-
-/* -----------------------------------------------------------------------------
- * List_sort()
- * ----------------------------------------------------------------------------- */
-
-
-static int  objcmp(const void *s1, const void *s2) {
-  DOH **so1, **so2;
-  so1 = (DOH **) s1;
-  so2 = (DOH **) s2;
-  return Cmp(*so1,*so2);
-}
-
-void
-List_sort(DOH *lo, int opt) {
-  List *l = (List *) ObjData(lo);
-  qsort(l->items,l->nitems,sizeof(DOH *),objcmp);
-}
-
-
-void List_setfile(DOH *lo, DOH *file) {
+static void 
+List_setfile(DOH *lo, DOH *file) {
   DOH *fo;
   List *l = (List *) ObjData(lo);
 
@@ -294,17 +277,19 @@ void List_setfile(DOH *lo, DOH *file) {
   l->file = fo;
 }
 
-DOH *List_getfile(DOH *lo) {
+static DOH *
+List_getfile(DOH *lo) {
   List *l = (List *) ObjData(lo);
   return l->file;
 }
 
-void List_setline(DOH *lo, int line) {
+static void 
+List_setline(DOH *lo, int line) {
   List *l = (List *) ObjData(lo);
   l->line = line;
 }
 
-int List_getline(DOH *lo) {
+static int List_getline(DOH *lo) {
   List *l = (List *) ObjData(lo);
   return l->line;
 }
@@ -316,10 +301,9 @@ static DohListMethods ListListMethods = {
   List_insert,
   List_first,
   List_next,
-  List_sort
 };
 
-static DohObjInfo ListType = {
+DohObjInfo DohListType = {
     "List",          /* objname */
     DelList,         /* doh_del */
     CopyList,        /* doh_copy */
@@ -351,14 +335,9 @@ static DohObjInfo ListType = {
 #define MAXLISTITEMS 8
 
 DOH *
-NewList() {
+DohNewList() {
     List *l;
     int   i;
-    static int init = 0;
-    if (!init) {
-      DohRegisterType(DOHTYPE_LIST, &ListType);
-      init = 1;
-    }
     l = (List *) DohMalloc(sizeof(List));
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
@@ -369,5 +348,6 @@ NewList() {
     l->iter = 0;
     l->file = 0;
     l->line = 0;
-    return DohObjMalloc(DOHTYPE_LIST,l);
+    return DohObjMalloc(&DohListType,l);
 }
+

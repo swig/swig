@@ -1,8 +1,5 @@
-This directory contains papers and information about WAD.
+Papers about WAD can be obtained at:
 
-python.html           - WAD paper from Python9.
-usenix2001.tex        - USENIX 2001 Technical conference submission.
-                        This paper was accepted, but the text has not yet
-                        been updated to final copy.
-WADTalk.pdf           - Slides from the WAD Talk at Python9.
+   http://systems.cs.uchicago.edu/wad
+
 

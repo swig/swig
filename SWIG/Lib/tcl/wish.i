@@ -7,6 +7,12 @@
 //
 /* Revision History
  * $Log$
+ * Revision 1.2  2002/11/30 22:01:08  beazley
+ * The great merge
+ *
+ * Revision 1.1.2.1  2001/06/20 11:47:29  mkoeppe
+ * Portability fixes
+ *
  * Revision 1.1  2000/01/11 21:15:54  beazley
  * Added files
  *
@@ -122,7 +128,7 @@ int Tcl_AppInit(Tcl_Interp *interp)
      */
 
 #if TCL_MAJOR_VERSION >= 8 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION >= 5
-   Tcl_SetVar(interp,"tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
+   Tcl_SetVar(interp, (char *) "tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
 #else
    tcl_RcFileName = SWIG_RcFileName;
 #endif
@@ -131,7 +137,7 @@ int Tcl_AppInit(Tcl_Interp *interp)
 
 #ifdef MAC_TCL
 #ifdef SWIG_RcRsrcName
-    Tcl_SetVar(interp,"tcl_rcRsrcName",SWIG_RcRsrcName,TCL_GLOBAL_ONLY);
+    Tcl_SetVar(interp, (char *) "tcl_rcRsrcName",SWIG_RcRsrcName,TCL_GLOBAL_ONLY);
 #endif
 #endif
     return TCL_OK;

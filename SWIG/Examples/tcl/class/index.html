@@ -120,14 +120,13 @@ For example:
 
 <blockquote>
 <pre>
-Circle_x_set $c 15       ;# Set member data
+Shape_x_set $c 15        ;# Set member data
 set x [Shape_x_get $c]   ;# Get member data
 </pre>
 </blockquote>
 
-Note: when accessing member data, the name of the base class or the derived class can be
-used in the function name as shown above.  Of course, it would probably be more
-proper to just use the base class version such as <tt>Shape_x_get</tt>
+Note: when accessing member data, the name of the base class must
+be used such as <tt>Shape_x_get</tt>
 
 <p>
 <li>To invoke a member function, you simply do this
@@ -269,28 +268,6 @@ to write a helper function. For example:
 
 <p>
 <li>Namespaces.  Not supported at all. Won't be supported until SWIG2.0 (if at all).
-
-<p>
-<li>Templates.  Not supported at all. SWIG throws out anything that looks like a template.
-You can work around the problem by aliasing a template class behind a typedef however. 
-For example:
-
-<blockquote>
-<pre>
-%{
-typedef vector<int> IntVector;
-%}
-
-class IntVector {
-public:
-    ... methods ...
-};
-</pre>
-</blockquote>
-</ul>
-<p>
-<li>There is no guarantee that an extremely complex C++ application will be able to compile
-as a Python extension.  Sorry.
 
 </ul>
 

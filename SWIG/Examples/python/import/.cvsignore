@@ -1,0 +1,13 @@
+bar.py
+base.py
+foo.py
+spam.py
+*_wrap.c
+*_wrap.cxx
+*.dll
+*.dsw
+*.ncb
+*.opt
+*.plg
+Release
+Debug

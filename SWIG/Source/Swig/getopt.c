@@ -18,7 +18,7 @@
  *       Should have cleaner error handling in general.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_getopt_c[] = "$Header$";
 
 #include "swig.h"
 

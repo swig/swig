@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_expr_c[] = "$Header$";
 
 #include "preprocessor.h"
 
@@ -19,6 +19,7 @@ static SwigScanner *scan = 0;
 typedef struct {
   int       op;
   long      value;
+  String   *svalue;
 } exprval;
 
 #define  EXPR_TOP      1
@@ -66,95 +67,122 @@ static void reduce_op() {
     sp = 0;
     return;
   }
-  switch(stack[sp-1].value) {
-  case SWIG_TOKEN_STAR:
-    stack[sp-2].value = stack[sp-2].value * stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_EQUALTO:
-    stack[sp-2].value = stack[sp-2].value == stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_NOTEQUAL:
-    stack[sp-2].value = stack[sp-2].value != stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_PLUS:
-    stack[sp-2].value = stack[sp-2].value + stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_MINUS:
-    stack[sp-2].value = stack[sp-2].value - stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_AND:
-    stack[sp-2].value = stack[sp-2].value & stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_LAND:
-    stack[sp-2].value = stack[sp-2].value && stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_OR:
-    stack[sp-2].value = stack[sp-2].value | stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_LOR:
-    stack[sp-2].value = stack[sp-2].value || stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_XOR:
-    stack[sp-2].value = stack[sp-2].value ^ stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_LESSTHAN:
-    stack[sp-2].value = stack[sp-2].value < stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_GREATERTHAN:
-    stack[sp-2].value = stack[sp-2].value > stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_LTEQUAL:
-    stack[sp-2].value = stack[sp-2].value <= stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_GTEQUAL:
-    stack[sp-2].value = stack[sp-2].value >= stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_NOT:
-    stack[sp-1].value = ~stack[sp].value;
-    sp--;
-    break;
-  case SWIG_TOKEN_LNOT:
-    stack[sp-1].value = !stack[sp].value;
-    sp--;
-    break;
-  case EXPR_UMINUS:
-    stack[sp-1].value = -stack[sp].value;
-    sp--;
-    break;
-  case SWIG_TOKEN_SLASH:
-    stack[sp-2].value = stack[sp-2].value / stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_PERCENT:
-    stack[sp-2].value = stack[sp-2].value % stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_LSHIFT:
-    stack[sp-2].value = stack[sp-2].value << stack[sp].value;
-    sp -= 2;
-    break;
-  case SWIG_TOKEN_RSHIFT:
-    stack[sp-2].value = stack[sp-2].value >> stack[sp].value;
-    sp -= 2;
-    break;
-  default:
-    errmsg = "Syntax error";
-    sp = 0;
-    break;
+  if (stack[sp-2].svalue || stack[sp].svalue) {
+    /* A string expression */
+    if (!(stack[sp-2].svalue && stack[sp].svalue)) {
+      errmsg = "Can't mix strings and integers in expression";
+      sp = 0;
+      return;
+    }
+    switch(stack[sp-1].value) {
+    case SWIG_TOKEN_EQUALTO:
+      stack[sp-2].value = (Strcmp(stack[sp-2].svalue,stack[sp].svalue) == 0);
+      Delete(stack[sp-2].svalue);
+      Delete(stack[sp].svalue);
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_NOTEQUAL:
+      stack[sp-2].value = (Strcmp(stack[sp-2].svalue,stack[sp].svalue) != 0);
+      Delete(stack[sp-2].svalue);
+      Delete(stack[sp].svalue);
+      sp -= 2;
+      break;
+    default:
+      errmsg = "Syntax error";
+      sp = 0;
+      break;
+    }
+  } else {
+    switch(stack[sp-1].value) {
+    case SWIG_TOKEN_STAR:
+      stack[sp-2].value = stack[sp-2].value * stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_EQUALTO:
+      stack[sp-2].value = stack[sp-2].value == stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_NOTEQUAL:
+      stack[sp-2].value = stack[sp-2].value != stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_PLUS:
+      stack[sp-2].value = stack[sp-2].value + stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_MINUS:
+      stack[sp-2].value = stack[sp-2].value - stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_AND:
+      stack[sp-2].value = stack[sp-2].value & stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_LAND:
+      stack[sp-2].value = stack[sp-2].value && stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_OR:
+      stack[sp-2].value = stack[sp-2].value | stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_LOR:
+      stack[sp-2].value = stack[sp-2].value || stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_XOR:
+      stack[sp-2].value = stack[sp-2].value ^ stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_LESSTHAN:
+      stack[sp-2].value = stack[sp-2].value < stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_GREATERTHAN:
+      stack[sp-2].value = stack[sp-2].value > stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_LTEQUAL:
+      stack[sp-2].value = stack[sp-2].value <= stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_GTEQUAL:
+      stack[sp-2].value = stack[sp-2].value >= stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_NOT:
+      stack[sp-1].value = ~stack[sp].value;
+      sp--;
+      break;
+    case SWIG_TOKEN_LNOT:
+      stack[sp-1].value = !stack[sp].value;
+      sp--;
+      break;
+    case EXPR_UMINUS:
+      stack[sp-1].value = -stack[sp].value;
+      sp--;
+      break;
+    case SWIG_TOKEN_SLASH:
+      stack[sp-2].value = stack[sp-2].value / stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_PERCENT:
+      stack[sp-2].value = stack[sp-2].value % stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_LSHIFT:
+      stack[sp-2].value = stack[sp-2].value << stack[sp].value;
+      sp -= 2;
+      break;
+    case SWIG_TOKEN_RSHIFT:
+      stack[sp-2].value = stack[sp-2].value >> stack[sp].value;
+      sp -= 2;
+      break;
+    default:
+      errmsg = "Syntax error";
+      sp = 0;
+      break;
+    }
   }
   stack[sp].op = EXPR_VALUE;
 }
@@ -187,6 +215,7 @@ Preprocessor_expr(DOH *s, int *error) {
   assert(scan);
 
   Seek(s,0,SEEK_SET);
+  /*  Printf(stdout,"evaluating : '%s'\n", s); */
   *error = 0;
   SwigScanner_clear(scan);
   SwigScanner_push(scan,s);
@@ -208,7 +237,10 @@ Preprocessor_expr(DOH *s, int *error) {
       }
       if ((token == SWIG_TOKEN_INT) || (token == SWIG_TOKEN_UINT) || (token == SWIG_TOKEN_LONG) || (token == SWIG_TOKEN_ULONG)) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
-	stack[sp].value = (long) atol(Char(SwigScanner_text(scan)));
+	char *c = Char(SwigScanner_text(scan));
+	stack[sp].value = (long) strtol(c,0,0);
+	stack[sp].svalue = 0;
+	/*	  stack[sp].value = (long) atol(Char(SwigScanner_text(scan))); */
 	stack[sp].op = EXPR_VALUE;
       } else if (token == SWIG_TOKEN_PLUS) { }
        else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_LNOT) || (token==SWIG_TOKEN_NOT)) {
@@ -216,12 +248,21 @@ Preprocessor_expr(DOH *s, int *error) {
 	stack[sp].value = token;
 	stack[sp++].op = EXPR_OP;
 	stack[sp].op = EXPR_TOP;
+	stack[sp].svalue = 0;
       } else if ((token == SWIG_TOKEN_LPAREN)) {
 	stack[sp++].op = EXPR_GROUP;
 	stack[sp].op = EXPR_TOP;
 	stack[sp].value = 0;
-      } else if (token == SWIG_TOKEN_ENDLINE) { }
-      else goto syntax_error;
+	stack[sp].svalue = 0;
+      } else if (token == SWIG_TOKEN_ENDLINE) { 
+      } else if ((token == SWIG_TOKEN_STRING)) {
+	stack[sp].svalue = NewString(SwigScanner_text(scan));
+	stack[sp].op = EXPR_VALUE;
+      } else if ((token == SWIG_TOKEN_ID)) {
+	stack[sp].value = 0;
+	stack[sp].svalue = 0;
+	stack[sp].op = EXPR_VALUE;
+      } else goto syntax_error;
       break;
     case EXPR_VALUE:
       /* A value is on the stack.   We may reduce or evaluate depending on what the next token is */
@@ -302,6 +343,7 @@ Preprocessor_expr(DOH *s, int *error) {
 	break;
       }
       break;
+
     default:
       fprintf(stderr,"Internal error in expression evaluator.\n");
       abort();

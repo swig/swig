@@ -10,7 +10,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_fio_c[] = "$Header$";
 
 #include "dohint.h"
 
@@ -265,7 +265,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
 	  /* Is a DOH object. */
- 	  if (DohIsString(doh) && (ObjType(doh) == DOHTYPE_STRING)) {
+ 	  if (DohIsString(doh)) {
 	    Sval = doh;
 	  } else {
 	    Sval = Str(doh);
@@ -411,7 +411,7 @@ int DohPrintv(DOHFile *f, ...) {
   va_start(ap,f);
   while(1) {
     obj = va_arg(ap,void *);
-    if (!obj) break;
+    if ((!obj) || (obj == DohNone)) break;
     if (DohCheck(obj)) {
       ret += DohDump(obj,f);
     } else {
@@ -459,12 +459,12 @@ DohCopyto(DOH *in, DOH *out) {
 /* -----------------------------------------------------------------------------
  * DohSplit()
  *
- * Split an input stream into a list of strings delimeted by characters in a 
- * string.  Optionally accepts a maximum number of splits to perform.
+ * Split an input stream into a list of strings delimited by the specified
+ * character.  Optionally accepts a maximum number of splits to perform.
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohSplit(DOH *in, char *chs, int nsplits) {
+DohSplit(DOH *in, char ch, int nsplits) {
   DOH *list;
   DOH *str;
   int c;
@@ -479,17 +479,18 @@ DohSplit(DOH *in, char *chs, int nsplits) {
     str = NewString("");
     do {
       c = Getc(in);
-    } while ((c != EOF) && (c == *chs));
+    } while ((c != EOF) && (c == ch));
     if (c != EOF) {
       Putc(c,str);
       while (1) {
 	c = Getc(in);
-	if ((c == EOF) || ((c == *chs) && (nsplits != 0))) break;
+	if ((c == EOF) || ((c == ch) && (nsplits != 0))) break;
 	Putc(c,str);
       }
       nsplits--;
     }
     Append(list,str);
+    Delete(str);
     if (c == EOF) break;
   }
   return list;

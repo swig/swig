@@ -11,7 +11,7 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-static char cvsroot[] = "$Header$";
+char cvsroot_include_c[] = "$Header$";
 
 #include "swig.h"
 
@@ -19,7 +19,6 @@ static char cvsroot[] = "$Header$";
 
 static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
-static int        bytes_read = 0;         /* Bytes read */
 static String    *swiglib = 0;            /* Location of SWIG library */
 static String    *lang_config = 0;        /* Language configuration file */
 
@@ -178,7 +177,6 @@ Swig_read_file(FILE *f) {
  * Opens a file and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
-static int readbytes = 0;
 String *
 Swig_include(const String_or_char *name) {
   FILE         *f;
@@ -187,18 +185,11 @@ Swig_include(const String_or_char *name) {
   f = Swig_open(name);
   if (!f) return 0;
   str = Swig_read_file(f);
-  bytes_read = bytes_read + Len(str);
   fclose(f);
   Seek(str,0,SEEK_SET);
   Setfile(str,lastpath);
   Setline(str,1);
-  readbytes += Len(str);
   return str;
-}
-
-int
-Swig_bytes_read() {
-  return readbytes;
 }
 
 /* -----------------------------------------------------------------------------
@@ -249,4 +240,82 @@ Swig_filebyname(const String_or_char *filename) {
   return Getattr(named_files,filename);
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_file_suffix()
+ *
+ * Returns the suffix of a file
+ * ----------------------------------------------------------------------------- */
 
+char *
+Swig_file_suffix(const String_or_char *filename) {
+  char *d;
+  char *c = Char(filename);
+  if (strlen(c)) {
+    d = c + Len(filename) - 1;
+    while (d != c) {
+      if (*d == '.') return d;
+      d--;
+    }
+    return c+Len(filename);  
+  }
+  return c;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_file_basename()
+ *
+ * Returns the filename with no suffix attached.
+ * ----------------------------------------------------------------------------- */
+
+char *
+Swig_file_basename(const String_or_char *filename)
+{
+  static char tmp[1024];
+  char *c;
+  strcpy(tmp,Char(filename));
+  c = Swig_file_suffix(tmp);
+  *c = 0;
+  return tmp;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_file_filename()
+ *
+ * Return the file with any leading path stripped off
+ * ----------------------------------------------------------------------------- */
+char *
+Swig_file_filename(const String_or_char *filename)
+{
+  static char tmp[1024];
+  const char *delim = SWIG_FILE_DELIMETER;
+  char *c;
+
+  strcpy(tmp,Char(filename));
+  if ((c=strrchr(tmp,*delim))) return c+1;
+  else return tmp;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_file_dirname()
+ *
+ * Return the name of the directory associated with a file
+ * ----------------------------------------------------------------------------- */
+char *
+Swig_file_dirname(const String_or_char *filename)
+{
+  static char tmp[1024];
+  const char *delim = SWIG_FILE_DELIMETER;
+  char *c;
+  strcpy(tmp,Char(filename));
+  if (!strstr(tmp,delim)) {
+    return "";
+  }
+  c = tmp + strlen(tmp) -1;
+  while (*c != *delim) c--;
+  *(++c) = 0;
+  return tmp;
+}
+      
+    
+    
+  

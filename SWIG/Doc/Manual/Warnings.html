@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Warning Messages</title>
+</head>
+
+<body bgcolor="#ffffff">
+<a name="n1"></a><H1>11 Warning Messages</H1>
+<!-- INDEX -->
+<ul>
+<li><a href="#n2">Introduction</a>
+<li><a href="#n3">Warning message suppression</a>
+<li><a href="#n4">Enabling additional warnings</a>
+<li><a href="#n5">Issuing a warning message</a>
+<li><a href="#n6">Commentary</a>
+<li><a href="#n7">Warning number reference</a>
+<ul>
+<li><a href="#n8">Deprecated features (100-199)</a>
+<li><a href="#n9">Preprocessor (200-299)</a>
+<li><a href="#n10">C/C++ Parser (300-399)</a>
+<li><a href="#n11">Types and typemaps (400-499) </a>
+<li><a href="#n12">Code generation (500-599)</a>
+<li><a href="#n13">Language module specific (800-899) </a>
+<li><a href="#n14">User defined (900-999)</a>
+</ul>
+<li><a href="#n15">History</a>
+</ul>
+<!-- INDEX -->
+
+
+
+<a name="n2"></a><H2>11.1 Introduction</H2>
+
+
+During compilation, SWIG may generate a variety of warning messages.  For example:
+
+<blockquote>
+<pre>
+example.i:16: Warning(501): Overloaded declaration ignored.  bar(double)
+example.i:15: Warning(501): Previous declaration is bar(int)
+</pre>
+</blockquote>
+
+Typically, warning messages indicate non-fatal problems with the input
+where the generated wrapper code will probably compile, but it may not
+work like you expect.
+
+<a name="n3"></a><H2>11.2 Warning message suppression</H2>
+
+
+All warning messages have a numeric code that is shown in the warning message itself.
+To suppress the printing of a warning message, a number of techniques can be used.
+First, you can run SWIG with the <tt>-w</tt> command line option. For example:
+
+<blockquote>
+<pre>
+% swig -python -w501 example.i
+% swig -python -w501,505,401 example.i
+</pre>
+</blockquote>
+
+Alternatively, warnings can be suppressed by inserting a special preprocessor pragma
+into the input file:
+
+<blockquote>
+<pre>
+%module example
+#pragma SWIG nowarn=501
+#pragma SWIG nowarn=501,505,401
+</pre>
+</blockquote>
+
+Finally, code-generation warnings can be disabled on a declaration by declaration basis using
+the <tt>%warnfilter</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%module example
+%warnfilter(501) foo;
+...
+int foo(int);
+int foo(double);              // Silently ignored.
+</pre>
+</blockquote>
+
+The <tt>%warnfilter</tt> directive has the same semantics as other declaration modifiers like 
+<tt>%rename</tt>, <tt>%ignore</tt>, and <tt>%feature</tt>.  For example, if you wanted to
+suppress a warning for a method in a class hierarchy, you could do this:
+
+<blockquote>
+<pre>
+%warnfilter(501) Object::foo;
+class Object {
+public:
+   int foo(int);
+   int foo(double);      // Silently ignored
+   ...
+};
+
+class Derived : public Object {
+public:
+   int foo(int);
+   int foo(double);      // Silently ignored
+   ...
+};
+</pre>
+</blockquote>
+
+Warnings can be suppressed for an entire class by supplying a class name.  For example:
+
+<blockquote>
+<pre>
+%warnfilter(501) Object;
+
+class Object {
+public:
+   ...                      // All 501 warnings ignored in class
+};
+</pre>
+</blockquote>
+
+There is no option to suppress all SWIG warning messages.  The warning messages are there
+for a reason---to tell you that something may be <em>broken</em> in
+your interface.  Ignore the warning messages at your own peril.
+
+<a name="n4"></a><H2>11.3 Enabling additional warnings</H2>
+
+
+Some warning messages are disabled by default and are generated only
+to provide additional diagnostics.  All warning messages can be
+enabled using the <tt>-Wall</tt> option. For example:
+
+<blockquote>
+<pre>
+% swig -Wall -python example.i
+</pre>
+</blockquote>
+
+When <tt>-Wall</tt> is used, all other warning filters are disabled.
+
+<p>
+To selectively turn on extra warning messages, you can use the directives and options in the
+previous section--simply add a "+" to all warning numbers.  For example:
+
+<blockquote>
+<pre>
+% swig -w+309,+452 example.i
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+#pragma SWIG nowarn=+309,+452
+</pre>
+</blockquote>
+
+or
+
+<blockquote>
+<pre>
+%warnfilter(+309,+452) foo;
+</pre>
+</blockquote>
+
+Note: selective enabling of warnings with <tt>%warnfilter</tt> overrides any global settings you might have
+made using <tt>-w</tt> or <tt>#pragma</tt>.
+
+<a name="n5"></a><H2>11.4 Issuing a warning message</H2>
+
+
+Warning messages can be issued from an interface file using a number of directives.  The
+<tt>%warn</tt> directive is the most simple:
+
+<blockquote>
+<pre>
+%warn "750:This is your last warning!"
+</pre>
+</blockquote>
+
+All warning messages are optionally prefixed by the warning number to use.  If you are generating
+your own warnings, make sure you don't use numbers defined in the table at the end of this section.
+
+<p>
+The <tt>%ignorewarn</tt> directive is the same as <tt>%ignore</tt> except that it issues a
+warning message whenever a matching declaration is found. For example:
+
+<blockquote>
+<pre>
+%ignorewarn("362:operator= ignored") operator=;
+</pre>
+</blockquote>
+
+Warning messages can be associated with typemaps using the
+<tt>warning</tt> attribute of a typemap declaration. For example:
+
+<blockquote>
+<pre>
+%typemap(in, warning="751:You are really going to regret this") blah * {
+   ...
+}
+</pre>
+</blockquote>
+
+In this case, the warning message will be printed whenever the typemap is actually used.
+
+<a name="n6"></a><H2>11.5 Commentary</H2>
+
+
+The ability to suppress warning messages is really only provided for
+advanced users and is not recommended in normal use.  There are no
+plans to provide symbolic names or options that identify specific
+types or groups of warning messages---the numbers must be used
+explicitly.
+
+<p>
+Certain types of SWIG problems are errors.  These usually arise due to
+parsing errors (bad syntax) or semantic problems for which there is
+no obvious recovery.  There is no mechanism for suppressing error
+messages or handling errors as warnings---you must make changes to
+the input file to fix the problem.
+
+<a name="n7"></a><H2>11.6 Warning number reference</H2>
+
+
+<a name="n8"></a><H3>11.6.1 Deprecated features (100-199)</H3>
+
+
+<ul>
+<li>101. Deprecated <tt>%extern</tt> directive.
+<li>102. Deprecated <tt>%val</tt> directive.
+<li>103. Deprecated <tt>%out</tt> directive.
+<li>104. Deprecated <tt>%disabledoc</tt> directive.
+<li>105. Deprecated <tt>%enabledoc</tt> directive.
+<li>106. Deprecated <tt>%doconly</tt> directive.
+<li>107. Deprecated <tt>%style</tt> directive.
+<li>108. Deprecated <tt>%localstyle</tt> directive.
+<li>109. Deprecated <tt>%title</tt> directive.
+<li>110. Deprecated <tt>%section</tt> directive.
+<li>111. Deprecated <tt>%subsection</tt> directive.
+<li>112. Deprecated <tt>%subsubsection</tt> directive.
+<li>113. Deprecated <tt>%addmethods</tt> directive.
+<li>114. Deprecated <tt>%readonly</tt> directive.
+<li>115. Deprecated <tt>%readwrite</tt> directive.
+<li>116. Deprecated <tt>%except</tt> directive.
+<li>117. Deprecated <tt>%new</tt> directive.
+<li>118. Deprecated <tt>%typemap(except)</tt>.
+</ul>
+
+<a name="n9"></a><H3>11.6.2 Preprocessor (200-299)</H3>
+
+
+<ul>
+<li>201. Unable to find 'filename'.
+<li>202. Could not evaluate 'expr'.
+</ul>
+
+<a name="n10"></a><H3>11.6.3 C/C++ Parser (300-399)</H3>
+
+
+<ul>
+<li>301. <tt>class</tt> keyword used, but not in C++ mode.
+<li>302. Identifier '<em>name</em>' redeclared (ignored).
+<li>303. <tt>%extend</tt> defined for an undeclared class '<em>name</em>'.
+<li>304. Unsupported constant value (ignored).
+<li>305. Bad constant value (ignored).
+<li>306. '<em>identifier</em>' is private in this context.
+<li>307. Can't set default argument value (ignored)
+<li>308. Namespace alias '<em>name</em>' not allowed here. Assuming '<em>name</em>'
+<li>309. [private | protected] inheritance ignored.
+<li>310. Template '<em>name</em>' was already wrapped as '<em>name</em>' (ignored)
+<li>311. Template partial specialization not supported.
+<li>312. Nested classes not currently supported (ignored).
+<li>313. Unrecognized extern type "<em>name</em>" (ignored).
+<li>314. '<em>identifier</em>' is a <em>lang</em> keyword.
+<li>315. Nothing known about '<em>identifier</em>'.
+<li>316. Repeated %module directive.
+<li>317. Specialization of non-template '<em>name</em>'.
+<li>318. Instantiation of template <em>name</em> is ambiguous. Using <em>templ</em> at <em>file</em>:<em>line</em>
+<li>319. No access specifier given for base class <em>name</em> (ignored).
+
+<li>350. operator new ignored.
+<li>351. operator delete ignored.
+<li>352. operator+ ignored.
+<li>353. operator- ignored.
+<li>354. operator* ignored.
+<li>355. operator/ ignored.
+<li>356. operator% ignored.
+<li>357. operator^ ignored.
+<li>358. operator&amp; ignored.
+<li>359. operator| ignored.
+<li>360. operator~ ignored.
+<li>361. operator! ignored.
+<li>362. operator= ignored.
+<li>363. operator&lt; ignored.
+<li>364. operator&gt; ignored.
+<li>365. operator+= ignored.
+<li>366. operator-= ignored.
+<li>367. operator*= ignored.
+<li>368. operator/= ignored.
+<li>369. operator%= ignored.
+<li>370. operator^= ignored.
+<li>371. operator&= ignored.
+<li>372. operator|= ignored.
+<li>373. operator&lt;&lt; ignored.
+<li>374. operator&gt;&gt;ignored.
+<li>375. operator&lt;&lt;= ignored.
+<li>376. operator&gt;&gt;= ignored.
+<li>377. operator== ignored.
+<li>378. operator!= ignored.
+<li>379. operator&lt;= ignored.
+<li>380. operator&gt;= ignored.
+<li>381. operator&amp;&amp; ignored.
+<li>382. operator|| ignored.
+<li>383. operator++ ignored.
+<li>384. operator-- ignored.
+<li>385. operator, ignored.
+<li>386. operator-&lt;* ignored.
+<li>387. operator-&lt; ignored.
+<li>388. operator() ignored.
+<li>389. operator[] ignored.
+<li>390. operator+ ignored (unary).
+<li>391. operator- ignored (unary).
+<li>392. operator* ignored (unary).
+<li>393. operator&amp; ignored (unary).
+<li>394. operator new[] ignored.
+<li>395. operator delete[] ignored.
+</ul>
+
+<a name="n11"></a><H3>11.6.4 Types and typemaps (400-499) </H3>
+
+
+<ul>
+<li>401. Nothing known about class 'name'. Ignored.
+<li>402. Base class 'name' is incomplete.
+<li>403. Class 'name' might be abstract.
+<li>450. Deprecated typemap feature ($source/$target).
+<li>451. Setting const char * variable may leak memory.
+<li>452. Reserved
+<li>453. Can't apply (pattern). No typemaps are defined.
+<li>460. Unable to use type <em>type</em> as a function argument.
+<li>461. Unable to use return type <em>type</em> in function <em>name</em>.
+<li>462. Unable to set variable of type <em>type</em>.
+<li>463. Unable to read variable of type <em>type</em>.
+<li>464. Unsupported constant value.
+<li>465. Unable to handle type <em>type</em>.
+<li>466. Unsupported variable type <em>type</em>.
+<li>467. Overloaded <em>declaration</em> not supported (no type checking rule for '<em>type</em>')
+<li>468. No 'throw' typemap defined for exception type 'type'.
+</ul>
+
+<a name="n12"></a><H3>11.6.5 Code generation (500-599)</H3>
+
+
+<ul>
+<li>501. Overloaded declaration ignored. <em>decl</em>
+<li>502. Overloaded constructor ignored. <em>decl</em>
+<li>503. Can't wrap '<em>identifier</em>' unless renamed to a valid identifier.
+<li>504. Function <em>name</em> must have a return type.
+<li>505. Variable length arguments discarded.
+<li>506. Can't wrap varargs with keyword arguments enabled.
+<li>507. Adding native function <em>name</em> not supported (ignored).
+<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator->() at <em>file:line</em>.
+<li>509. Overloaded <em>declaration</em> is shadowed by <em>declaration</em> at <em>file</em>:<em>line</em>.
+<li>510. Friend function '<em>name</em>' ignored.
+<li>511. Can't use keyword arguments with overloaded functions.
+<li>512. Overloaded <em>declaration</em> const ignored. Non-const method at <em>file</em>:<em>line</em> used.
+<li>513. Can't generate wrappers for unnamed struct/class.
+</ul>
+
+<a name="n13"></a><H3>11.6.6 Language module specific (800-899) </H3>
+
+
+<ul>
+<li>801. Wrong name (corrected to '<em>name</em>').  (Ruby).
+<li>810. No jni typemap defined for <em>type</em>  (Java).
+<li>811. No jtype typemap defined for <em>type</em>  (Java).
+<li>812. No jstype typemap defined for <em>type</em>  (Java).
+<li>813. Warning for <em>classname</em>: Base <em>baseclass</em> ignored. Multiple inheritance is not supported in Java.   (Java).
+<li>814. No javagetcptr typemap defined for <em>type</em>  (Java).
+<li>815. No javafinalize typemap defined for <em>type</em>  (Java).
+<li>816. No javaptrconstructormodifier typemap defined for <em>type</em>  (Java).
+<li>817. No javaout typemap defined for <em>type</em>  (Java).
+<li>818. No javain typemap defined for <em>type</em>  (Java).
+</ul>
+
+<a name="n14"></a><H3>11.6.7 User defined (900-999)</H3>
+
+
+These numbers can be used by your own application.
+
+<a name="n15"></a><H2>11.7 History</H2>
+
+
+The ability to control warning messages was first added to SWIG-1.3.12.
+
+<p><hr>
+<address>SWIG 1.3 - Last Modified : Sep 6, 2002</address>
+</body>
+</html>

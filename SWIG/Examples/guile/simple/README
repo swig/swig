@@ -2,7 +2,7 @@ A very simple example.
 
 To run it, start the program 'my-guile' and type:
 
-	(load 'example.scm)
+	(load "example.scm")
 
 Alternatively, you can use the shell command:
 

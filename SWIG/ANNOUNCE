@@ -1,54 +1,45 @@
+*** ANNOUNCE: SWIG 1.3.16 ***
 
-*** ANNOUNCE : SWIG1.3 (Alpha 5) ***
+http://www.swig.org
 
-September 22, 2000
+October 14, 2002
 
-Overview
---------
-We're pleased to announce the next installment of the SWIG1.3
-redevelopment effort.  This release represents a reasonably stable
-snapshot of the CVS repository that has undergone extensive testing
-and debugging.  However, this release also represents work in progress
-so there may be obscure bugs and problems that we haven't found yet.
-Please send us your feedback.
+We're pleased to announce SWIG 1.3.16, the latest installment in the
+SWIG development effort.  SWIG-1.3.16 is mostly a bug-fix release to
+SWIG-1.3.15. 
+
+What is SWIG?
+-------------
+SWIG is a software development tool that reads C/C++ header files and
+generates the wrapper code needed to make C and C++ code accessible
+from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
+Guile, Mzscheme, and Ocaml.  Major applications of SWIG include
+generation of scripting language extension modules, rapid prototyping,
+testing, and user interface development for large C/C++ systems. 
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://download.sourceforge.net/swig/swig1.3a5.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.16.tar.gz
 
-What's new?
------------
-On the surface, this release still looks a lot like SWIG1.1p5 except
-that a lot of bugs have been fixed and the language modules tend to
-generate smaller and more efficient wrappers. New modules have also
-been added to support Ruby and Mzscheme. In addition, Python, Perl,
-and Guile support has been enhanced to support new releases such as
-Python1.6 and Perl5.6.
+Within the next day, a Windows version will also be made available at
 
-Under the hood, you will find that this release is an almost complete
-reimplementation of SWIG's internals.  In fact the only code that
-still remains from SWIG1.1 is the C/C++ parser and the language
-modules (all of which have undergone significant changes as well).  As
-a result, a lot of minor improvements can be found throughout the
-system and things that used to cause problems may now work (for
-instance, pointers to functions are now supported).  In addition, this
-release incorporates a number of feature requests that have been made
-on the mailing list.
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.16.zip
 
-What's broken?
---------------
-As this is a work in progress, a number of features are still missing
-or incomplete.  The documentation system is still missing and won't be
-reimplemented for some time.  The Java module is also temporarily out
-of service for this release.  In addition, C++ programmers who make
-extensive use of typemaps may encounter a few strange problems
-(although SWIG will generate warning messages).
+Release numbers
+---------------
+With SWIG1.3, we are adopting an odd/even version numbering scheme for
+SWIG.  Odd version numbers (1.3, 1.5, 1.7, etc...) are considered to
+be development releases.  Even numbers (1.4,1.6,1.8) are stable
+releases.  The current 1.3 effort is working to produce a stable 2.0
+release.  A stable 2.0 release will not be made until it can
+accompanied by fully updated documentation.  In the meantime, we will
+continue to make periodic 1.3.x releases.
 
 We need your help!
 ------------------
-Even if you are perfectly happy with SWIG1.1, we can use your
+Even if you are perfectly happy with SWIG1.1, we can still use your
 feedback.  First, we like to know about compilation problems and other
 issues concerning the building of SWIG.  Second, if SWIG1.3 is unable
 to compile your old interface files, we would like to get information
@@ -56,18 +47,28 @@ about the features you are using.  This information will help us find
 bugs in the SWIG1.3 release, develop techniques for supporting
 backwards compatibility, and write documentation that addresses
 specific issues related to migrating from SWIG1.1 to SWIG1.3.
-Finally, we are still looking for volunteers to work on aspects of
-SWIG development.  Please send email to beazley@cs.uchicago.edu for
-details.
+
+We are also looking for volunteers who would like to work on various
+aspects of SWIG development.  SWIG is an unfunded project that would
+not exist without volunteers.  We are also looking for the developers
+of other SWIG language modules.  If you have developed a SWIG module
+and would like to see it incorporated into the new release, please
+contact us to obtain SWIG-CVS access.  We are also more than willing
+to help port your module from SWIG1.1 to SWIG1.3.  Please send email
+to beazley@cs.uchicago.edu for further information.
 
 Please report problems with this release to swig-dev@cs.uchicago.edu.
 
 --- The SWIG Developers
 
-David Beazley 
-Thien-Thi Nguyen
-Matthias Köppe
-Masaki Fukushima
-Harco de Hilster
-Loic Dachary
-Oleg Tolmatcev
+
+
+
+
+
+
+
+
+
+
+

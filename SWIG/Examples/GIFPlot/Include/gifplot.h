@@ -18,6 +18,10 @@
 
 #ifndef GIFPLOT_H
 
+#ifdef SWIG
+%pragma no_default
+#endif
+
 /* Pixel is 8-bits */
 
 typedef unsigned char Pixel;
@@ -125,9 +129,9 @@ extern void      delete_PixMap(PixMap *pm);
 extern void      PixMap_set(PixMap *pm, int x, int y, int pix);
 extern void      FrameBuffer_drawpixmap(FrameBuffer *f, PixMap *pm, int x, int y, int fgcolor, int bgcolor);
 
-#define   TRANSPARENT  0
-#define   FOREGROUND   1
-#define   BACKGROUND   2
+#define   GIFPLOT_TRANSPARENT  0
+#define   GIFPLOT_FOREGROUND   1
+#define   GIFPLOT_BACKGROUND   2
 
 /* ------------------------------------------------------------------------
    Plot2D

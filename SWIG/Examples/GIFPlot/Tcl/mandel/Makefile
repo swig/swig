@@ -5,19 +5,20 @@ SRCS       =
 TARGET     = gifplot
 INTERFACE  = mandel.i
 LIBS       = -L../.. -lgifplot
-INCLUDE    = -I../../Include
+INCLUDES   = -I../../Include
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' tcl
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
+	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='mywish' INTERFACE='$(INTERFACE)' wish
 
 clean::
-	rm -f *_wrap* *.o *~ *.so mywish  .~* core *.gif
+	$(MAKE) -f $(TOP)/Makefile tcl_clean
+	rm -f *.gif
 
 check: all

@@ -8,8 +8,6 @@
 // errors in a language-independent manner.
 
 #ifdef AUTODOC
-%section "Constraint Library",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
-
 %text %{
 %include constraints.i
 
@@ -82,7 +80,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            POSITIVE,
                 Number            POSITIVE
 {
-  if ($target <= 0) {
+  if ($1 <= 0) {
     SWIG_exception(SWIG_ValueError,"Expected a positive value.");
   }
 }
@@ -101,7 +99,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            NEGATIVE,
                 Number            NEGATIVE
 {
-  if ($target >= 0) {
+  if ($1 >= 0) {
     SWIG_exception(SWIG_ValueError,"Expected a negative value.");
   }
 }
@@ -120,7 +118,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            NONZERO,
                 Number            NONZERO
 {
-  if ($target == 0) {
+  if ($1 == 0) {
     SWIG_exception(SWIG_ValueError,"Expected a nonzero value.");
   }
 }
@@ -139,7 +137,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            NONNEGATIVE,
                 Number            NONNEGATIVE
 {
-  if ($target < 0) {
+  if ($1 < 0) {
     SWIG_exception(SWIG_ValueError,"Expected a non-negative value.");
   }
 }
@@ -158,7 +156,7 @@ If you have used typedef to change type-names, you can also do this :
                 double            NONPOSITIVE,
                 Number            NONPOSITIVE
 {
-  if ($target > 0) {
+  if ($1 > 0) {
     SWIG_exception(SWIG_ValueError,"Expected a non-positive value.");
   }
 }
@@ -168,7 +166,7 @@ If you have used typedef to change type-names, you can also do this :
 %typemap(check) void *            NONNULL,
                 Pointer           NONNULL
 {
-  if (!$target) {
+  if (!$1) {
     SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
   }
 }
@@ -179,7 +177,7 @@ If you have used typedef to change type-names, you can also do this :
                 Pointer           ALIGN8
 {
    long tmp;
-   tmp = (long) $target;
+   tmp = (long) $1;
    if (tmp & 7) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 8-byte aligned.");
    }
@@ -189,7 +187,7 @@ If you have used typedef to change type-names, you can also do this :
                 Pointer           ALIGN4
 {
    long tmp;
-   tmp = (long) $target;
+   tmp = (long) $1;
    if (tmp & 3) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 4-byte aligned.");
    }
@@ -199,7 +197,7 @@ If you have used typedef to change type-names, you can also do this :
                 Pointer           ALIGN2
 {
    long tmp;
-   tmp = (long) $target;
+   tmp = (long) $1;
    if (tmp & 1) {
      SWIG_exception(SWIG_ValueError,"Pointer must be 2-byte aligned.");
    }

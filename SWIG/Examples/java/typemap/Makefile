@@ -1,17 +1,18 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 SRCS       = 
-TARGET     = libexample
+TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = 
+SWIGOPT    = -noproxy
 
 all::	java
 
 java::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java
+	javac *.java
 
 clean::
-	rm -f *_wrap* *.o core *~ *.so *.class example.java
+	$(MAKE) -f $(TOP)/Makefile java_clean
 
 check: all
