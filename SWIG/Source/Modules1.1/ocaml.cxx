@@ -98,6 +98,9 @@ static Hash *seen_deleters = NULL;    /* A delete function is in here if we
 					 custom_operations block on new */
 static Hash *seen_types = NULL;       /* Types we have emitted so far. */
 static Hash *seen_classes = NULL;     /* Classes emitted so far. */
+static Hash *seen_names = NULL;       /* The list of seen names */
+static Hash *seen_methods = NULL;     /* Seen methods */
+static Hash *seen_wrappers = NULL;    /* Seen wrappers */
 
 static char *simple_types[][2] = {
     { "_bool", "bool" },
@@ -282,6 +285,10 @@ class OCAML : public Language {
 	seen_types = NewHash();
 	seen_deleters = NewHash();
 	seen_classes = NewHash();
+	seen_names = NewHash();
+	seen_wrappers = NewHash();
+	seen_methods = NewHash();
+    
 	
 	int i;
 	
@@ -537,6 +544,20 @@ class OCAML : public Language {
 // True if the word is a keyword in ocaml
 //-----------------------------------------------------------------------
 
+    String *uniqueify(Hash *h,char *word) {
+	int x = 1;
+	String *out = NewString(word);
+    
+	while( Getattr(h,out) ) {
+	    Delete( out );
+	    out = NewString( "" );
+	    Printf( out, "%s_%d", word, x );
+	    x++;
+	}
+
+	return out;
+    }
+
     int banned_word(char *word) {
 	char *keywords[] = { "type", "class", "object", "true", "false",
 			     "val", "function", "fun", "let", "rec",
@@ -632,8 +653,8 @@ class OCAML : public Language {
 
     /* Output a method version of this function */
     void print_method( Node *n ) {
-	String *ml_function_name = get_ml_function_name(n);
-	String *ml_method_name = get_ml_method_name(n);
+	String *ml_function_name = Getattr(n,"funcname");
+	String *ml_method_name = Getattr(n,"methodname");
 
 	SwigType *dcaml = process_type(Getattr(n,"type"));
 
@@ -718,12 +739,7 @@ class OCAML : public Language {
 
     int functionWrapper(Node *n) {
 	// ML function name
-	String *ml_function_name;
-
 	SwigType *d = Getattr(n,"type");
-
-	if( !d ) return SWIG_OK;
-
 	SwigType *dcaml = process_type(d);
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
@@ -747,11 +763,19 @@ class OCAML : public Language {
 	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
 	    in_vwrap = VWRAP_GET;
 
-	ml_function_name = get_ml_function_name(n);
+	// Make a function name
+	String *ml_function_name = uniqueify(seen_names,
+					     Char(get_ml_function_name(n)));
+	Setattr(seen_names,ml_function_name,ml_function_name);
 
-	// Make a wrapper name for this
-	String *wrap_name = get_wrapper_name(n);
+	// Make a wrapper name
+	String *wrap_name = uniqueify(seen_wrappers,
+				      Char(get_wrapper_name(n)));
+	Setattr(seen_wrappers,wrap_name,wrap_name);
+
+	// Set the symbol name
 	Setattr(n,"sym:name",Char(wrap_name));
+	Setattr(n,"funcname",Char(ml_function_name));
     
 	print_unseen_type( dcaml );
 
@@ -863,7 +887,23 @@ class OCAML : public Language {
 
 	if( classmode ) {
 	    if( !in_constructor ) {
+		String *method_name = NewString("");
+		String *method = get_ml_method_name(n);
+
+		Printf(method_name,"%s::%s", classname, method);
+
+		method_name = uniqueify(seen_methods,Char(method_name));
+		char *str = strstr(Char(method_name),"::");
+		str += 2;
+
+		Delete(method);
+		method = NewString(str);
+
+		Setattr(n,"methodname",method);
+		Setattr(seen_methods,method_name,method_name);
+
 		print_method( n );
+		Delete(method);
 	    }
 	}
 
@@ -1288,7 +1328,7 @@ class OCAML : public Language {
 	} else {
 	    rv = Language::classHandler(n);
 	}
-    
+
 	return rv;
     }
 
