@@ -16,6 +16,42 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+06/29/2002: beazley
+            Experimental support for smart-pointers.  When a class defines
+            operator->() like this
+
+               class Foo {
+                  ...
+                  Bar *operator->();
+                  ...
+               };
+
+            SWIG locates class Bar and tries to wrap its member variables and
+            methods as part of Foo.  For example, if part was defined like this:
+
+               class Bar {
+               public:
+                    int x;
+                    int spam();
+               };
+
+            You could do this (in the target language):
+
+              f = Foo()
+              f.x = 4            # Accesses Bar::x
+              f.spam()           # Accesses Bar::spam
+
+            The primary use of this feature is to emulate the behavior of C++
+            smart-pointers---which allow attributes to accessed transparently
+            through operator->.
+
+            This feature is supported automatically in SWIG---no special directives
+            are needed.   To disable this behavior.  Use %ignore to ignore 
+            operator->.
+            *** NEW FEATURE ***
+
+06/26/2002: beazley
+            Deprecated the %except directive.   %exception should be used instead.
 
 06/25/2002: beazley
             Major cleanup of the modules directory.  Eliminated most
