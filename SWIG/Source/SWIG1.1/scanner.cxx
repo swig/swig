@@ -470,6 +470,8 @@ int yylook(void) {
 	    yylen = 0;
 	  }
 
+	  else if ((isalpha(c)) || (c == '_') || (c == '$')) state = 7;
+
 	  /* Look for single character symbols */
 
 	  else if (c == '(') return (LPAREN);
@@ -525,7 +527,7 @@ int yylook(void) {
 	    yylen = 0;
 	  }
 	  else if (isdigit(c)) state = 8;  // A numerical value
-	  else if ((isalpha(c)) || (c == '_') || (c == '$')) state = 7;
+
 	  else state = 99;
 	  break;
 	case 1:  /*  Comment block */
@@ -935,98 +937,98 @@ extern "C" int yylex(void) {
 
       case ID:
 
-	/* Look for keywords now */
-
-	if (strcmp(yytext,"int") == 0) {
-	  yylval.type = NewSwigType(T_INT);
-	  return(TYPE_INT);
-	}
-	if (strcmp(yytext,"double") == 0) {
-	  yylval.type = NewSwigType(T_DOUBLE);
-	  return(TYPE_DOUBLE);
-	}
-	if (strcmp(yytext,"void") == 0) {
-	  yylval.type = NewSwigType(T_VOID);
-	  return(TYPE_VOID);
-	}
-	if (strcmp(yytext,"char") == 0) {
-	  yylval.type = NewSwigType(T_CHAR);
-	  return(TYPE_CHAR);
-	}
-	if (strcmp(yytext,"short") == 0) {
-	  yylval.type = NewSwigType(T_SHORT);
-	  return(TYPE_SHORT);
-	}
-	if (strcmp(yytext,"long") == 0) {
-	  yylval.type = NewSwigType(T_LONG);
-	  return(TYPE_LONG);
-	}
-	if (strcmp(yytext,"float") == 0) {
-	  yylval.type = NewSwigType(T_FLOAT);
-	  return(TYPE_FLOAT);
-	}
-	if (strcmp(yytext,"signed") == 0) {
-	  yylval.type = NewSwigType(T_INT);
-	  return(TYPE_SIGNED);
-	}
-	if (strcmp(yytext,"unsigned") == 0) {
-	  yylval.type = NewSwigType(T_UINT);
-	  return(TYPE_UNSIGNED);
-	}
-	if (strcmp(yytext,"bool") == 0) {
-	  yylval.type = NewSwigType(T_BOOL);
-	  return(TYPE_BOOL);
-	}
-	// C++ keywords
-
-	if (CPlusPlus) {
-	  if (strcmp(yytext,"class") == 0) return(CLASS);
-	  if (strcmp(yytext,"private") == 0) return(PRIVATE);
-	  if (strcmp(yytext,"public") == 0) return(PUBLIC);
-	  if (strcmp(yytext,"protected") == 0) return(PROTECTED);
-	  if (strcmp(yytext,"friend") == 0) return(FRIEND);
-	  if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
-	  if (strcmp(yytext,"operator") == 0) return(OPERATOR);
-	  if (strcmp(yytext,"throw") == 0) return(THROW);
-	  if (strcmp(yytext,"inline") == 0) return(yylex());
-	  if (strcmp(yytext,"mutable") == 0) return(yylex());
-	  if (strcmp(yytext,"template") == 0) return(TEMPLATE);
-	}
-
-	// Objective-C keywords
-        if ((ObjC) && (yytext[0] == '@')) {
-	  if (strcmp(yytext,"@interface") == 0) return (OC_INTERFACE);
-	  if (strcmp(yytext,"@end") == 0) return (OC_END);
-	  if (strcmp(yytext,"@public") == 0) return (OC_PUBLIC);
-	  if (strcmp(yytext,"@private") == 0) return (OC_PRIVATE);
-	  if (strcmp(yytext,"@protected") == 0) return (OC_PROTECTED);
-	  if (strcmp(yytext,"@class") == 0) return(OC_CLASS);
-	  if (strcmp(yytext,"@implementation") == 0) return(OC_IMPLEMENT);
-          if (strcmp(yytext,"@protocol") == 0) return(OC_PROTOCOL);
-	}
-
-	// Misc keywords
-
-	if (strcmp(yytext,"extern") == 0) return(EXTERN);
-	if (strcmp(yytext,"const") == 0) return(CONST);
-	if (strcmp(yytext,"static") == 0) return(STATIC);
-	if (strcmp(yytext,"struct") == 0) return(STRUCT);
-	if (strcmp(yytext,"union") == 0) return(UNION);
-	if (strcmp(yytext,"enum") == 0) return(ENUM);
-	if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
-
-	if (strcmp(yytext,"typedef") == 0) {
-	  yylval.ivalue = 0;
-	  return(TYPEDEF);
-	}
-
-	// Ignored keywords
-
-	if (strcmp(yytext,"volatile") == 0) return(yylex());
-
-	// SWIG directives
-
-	if (yytext[0] == '%') {
+	if (yytext[0] != '%') {
+	  /* Look for keywords now */
+	  
+	  if (strcmp(yytext,"int") == 0) {
+	    yylval.type = NewSwigType(T_INT);
+	    return(TYPE_INT);
+	  }
+	  if (strcmp(yytext,"double") == 0) {
+	    yylval.type = NewSwigType(T_DOUBLE);
+	    return(TYPE_DOUBLE);
+	  }
+	  if (strcmp(yytext,"void") == 0) {
+	    yylval.type = NewSwigType(T_VOID);
+	    return(TYPE_VOID);
+	  }
+	  if (strcmp(yytext,"char") == 0) {
+	    yylval.type = NewSwigType(T_CHAR);
+	    return(TYPE_CHAR);
+	  }
+	  if (strcmp(yytext,"short") == 0) {
+	    yylval.type = NewSwigType(T_SHORT);
+	    return(TYPE_SHORT);
+	  }
+	  if (strcmp(yytext,"long") == 0) {
+	    yylval.type = NewSwigType(T_LONG);
+	    return(TYPE_LONG);
+	  }
+	  if (strcmp(yytext,"float") == 0) {
+	    yylval.type = NewSwigType(T_FLOAT);
+	    return(TYPE_FLOAT);
+	  }
+	  if (strcmp(yytext,"signed") == 0) {
+	    yylval.type = NewSwigType(T_INT);
+	    return(TYPE_SIGNED);
+	  }
+	  if (strcmp(yytext,"unsigned") == 0) {
+	    yylval.type = NewSwigType(T_UINT);
+	    return(TYPE_UNSIGNED);
+	  }
+	  if (strcmp(yytext,"bool") == 0) {
+	    yylval.type = NewSwigType(T_BOOL);
+	    return(TYPE_BOOL);
+	  }
+	  // C++ keywords
+	  
+	  if (CPlusPlus) {
+	    if (strcmp(yytext,"class") == 0) return(CLASS);
+	    if (strcmp(yytext,"private") == 0) return(PRIVATE);
+	    if (strcmp(yytext,"public") == 0) return(PUBLIC);
+	    if (strcmp(yytext,"protected") == 0) return(PROTECTED);
+	    if (strcmp(yytext,"friend") == 0) return(FRIEND);
+	    if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
+	    if (strcmp(yytext,"operator") == 0) return(OPERATOR);
+	    if (strcmp(yytext,"throw") == 0) return(THROW);
+	    if (strcmp(yytext,"inline") == 0) return(yylex());
+	    if (strcmp(yytext,"mutable") == 0) return(yylex());
+	    if (strcmp(yytext,"template") == 0) return(TEMPLATE);
+	  }
+	  
+	  // Objective-C keywords
+	  if ((ObjC) && (yytext[0] == '@')) {
+	    if (strcmp(yytext,"@interface") == 0) return (OC_INTERFACE);
+	    if (strcmp(yytext,"@end") == 0) return (OC_END);
+	    if (strcmp(yytext,"@public") == 0) return (OC_PUBLIC);
+	    if (strcmp(yytext,"@private") == 0) return (OC_PRIVATE);
+	    if (strcmp(yytext,"@protected") == 0) return (OC_PROTECTED);
+	    if (strcmp(yytext,"@class") == 0) return(OC_CLASS);
+	    if (strcmp(yytext,"@implementation") == 0) return(OC_IMPLEMENT);
+	    if (strcmp(yytext,"@protocol") == 0) return(OC_PROTOCOL);
+	  }
+	  
+	  // Misc keywords
+	  
+	  if (strcmp(yytext,"extern") == 0) return(EXTERN);
+	  if (strcmp(yytext,"const") == 0) return(CONST);
+	  if (strcmp(yytext,"static") == 0) return(STATIC);
+	  if (strcmp(yytext,"struct") == 0) return(STRUCT);
+	  if (strcmp(yytext,"union") == 0) return(UNION);
+	  if (strcmp(yytext,"enum") == 0) return(ENUM);
+	  if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
+	  
+	  if (strcmp(yytext,"typedef") == 0) {
+	    yylval.ivalue = 0;
+	    return(TYPEDEF);
+	  }
+	  
+	  // Ignored keywords
+	  
+	  if (strcmp(yytext,"volatile") == 0) return(yylex());
+	  
+	  // SWIG directives
+	} else {
 	  if (strcmp(yytext,"%module") == 0) return(MODULE);
 	  if (strcmp(yytext,"%init") == 0)  return(INIT);
 	  if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
@@ -1072,8 +1074,6 @@ extern "C" int yylex(void) {
 	    yylval.ivalue = 1;
 	    return(TYPEDEF);
 	  }
-	  if (strcmp(yytext,"%alpha") == 0) return(ALPHA_MODE);
-	  if (strcmp(yytext,"%raw") == 0) return(RAW_MODE);
 	  if (strcmp(yytext,"%text") == 0) return(TEXT);
 	  if (strcmp(yytext,"%native") == 0) return(NATIVE);
 	  if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);

@@ -481,19 +481,17 @@ static void dump_nested(char *parent) {
 %token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
-%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE DEFINE PERIOD
+%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
 %token READONLY READWRITE NAME RENAME ADDMETHODS PRAGMA
-%token CVALUE COUT
-%token ENUM ENDDEF MACRO
+%token ENUM
 %token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND OPERATOR THROW TEMPLATE
 %token NATIVE INLINE
-%token RAW_MODE ALPHA_MODE TEXT DOC_DISABLE DOC_ENABLE STYLE LOCALSTYLE
+%token TEXT DOC_DISABLE DOC_ENABLE STYLE LOCALSTYLE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR DOCONLY
 %token <ivalue> TITLE SECTION SUBSECTION SUBSUBSECTION
 %token LESSTHAN GREATERTHAN
-%token <id> USERDIRECTIVE
 
 /* Objective C tokens */
 
@@ -1252,11 +1250,6 @@ statement      : INCLUDE STRING LBRACE {
 
                | LOCALSTYLE stylelist {
 	       }
-
-/* User defined directive */
-               | user_directive{ }
-               ;
-
 
 /* Dcumentation disable/enable */
 
@@ -3274,18 +3267,6 @@ typemap_args    : LPAREN parms RPAREN {
                   tm_parm = 0;
                 }
                 ;
-
-/* User defined directive */
-
-user_directive : USERDIRECTIVE LPAREN parms RPAREN uservalue { }
-               | USERDIRECTIVE uservalue { }
-               ;
-
-uservalue      : ID SEMI { }
-               | STRING SEMI { }
-               | LBRACE RBRACE { }
-               ;
-
 
 
 /* Parsing of expressions, but only for throw away code */
