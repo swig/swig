@@ -82,34 +82,36 @@ class Allocate : public Dispatcher {
 	c = nextSibling(c);
 	continue;
       }
-      if (mode == PUBLIC) {
-	if (Strcmp(nodeType(c),"cdecl") == 0) {
-	  if (!Getattr(c,"feature:ignore")) {
-	    String *storage = Getattr(c,"storage");
-	    if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
-	      String *name = Getattr(c,"name");
-	      String *symname = Getattr(c,"sym:name");
-	      Node   *e    = Swig_symbol_clookup_local(name,0);
-	      if (e && !Getattr(e,"feature:ignore") && (Strcmp(symname, Getattr(e,"sym:name")) == 0)) {
-		Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->() at %s:%d\n",
-			     name, Getfile(c),Getline(c));
-	      } else {
-		/* Make sure node with same name doesn't already exist */
-		int k;
-		int match = 0;
-		for (k = 0; k < Len(methods); k++) {
-		  e = Getitem(methods,k);
-		  if (Strcmp(symname,Getattr(e,"sym:name")) == 0) {
-		    match = 1;
-		    break;
-		  }
+      if (Strcmp(nodeType(c),"cdecl") == 0) {
+	if (!Getattr(c,"feature:ignore")) {
+	  String *storage = Getattr(c,"storage");
+	  if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
+	    String *name = Getattr(c,"name");
+	    String *symname = Getattr(c,"sym:name");
+	    Node   *e    = Swig_symbol_clookup_local(name,0);
+	    if (e && !Getattr(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
+	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->() at %s:%d\n",
+			   name, Getfile(c),Getline(c));
+	    } else {
+	      /* Make sure node with same name doesn't already exist */
+	      int k;
+	      int match = 0;
+	      for (k = 0; k < Len(methods); k++) {
+		e = Getitem(methods,k);
+		if (Cmp(symname,Getattr(e,"sym:name")) == 0) {
+		  match = 1;
+		  break;
 		}
-		if (!match) {
-		  Node *cc = c;
-		  while (cc) {
-		    Append(methods,cc);
-		    cc = Getattr(cc,"sym:nextSibling");
-		  }
+		if ((!symname  || (!Getattr(e,"sym:name"))) && (Cmp(name,Getattr(e,"name")) == 0)) {
+		  match = 1;
+		  break;
+		}
+	      }
+	      if (!match) {
+		Node *cc = c;
+		while (cc) {
+		  Append(methods,cc);
+		  cc = Getattr(cc,"sym:nextSibling");
 		}
 	      }
 	    }
@@ -130,6 +132,17 @@ class Allocate : public Dispatcher {
       int k;
       for (k = 0; k < Len(bases); k++) {
 	smart_pointer_methods(Getitem(bases,k),methods);
+      }
+    }
+    /* Remove protected/private members */
+    {
+      for (int i = 0; i < Len(methods); ) {
+	Node *n = Getitem(methods,i);
+	if (checkAttribute(n,"access","protected") || checkAttribute(n,"access","private")) {
+	  Delitem(methods,i);
+	  continue;
+	}
+	i++;
       }
     }
     return methods;
