@@ -157,9 +157,8 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
 
 /* think of this as a c++ template<> or a scheme macro */
 #define SWIG_TypeCheck_Template(comparison, ty) \
-  do { \
+  if (ty) { \
     swig_cast_info *iter; \
-    if (!ty) return 0; \
     iter = ty->cast; \
     while (iter) { \
       if (comparison) { \
@@ -178,7 +177,7 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
       } \
       iter = iter->next; \
     } \
-  } while(0); \
+  } \
   return 0
 
 /*

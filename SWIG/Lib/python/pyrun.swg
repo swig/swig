@@ -110,7 +110,7 @@ PySwigObject_oct(PySwigObject *v)
   char buf[100];
   unsigned long x = (unsigned long)v->ptr;
   if (x == 0)
-    strcpy(buf, "0");
+    strncpy(buf, "0",sizeof(buf));
   else
     PyOS_snprintf(buf, sizeof(buf), "0%lo", x);
   return PyString_FromString(buf);
@@ -392,11 +392,14 @@ PySwigPacked_FromDataAndDesc(void *ptr, size_t size, const char *desc)
     return NULL;
   } else {
     void *pack = malloc(size);
-    memcpy(pack, ptr, size);
-    self->pack = pack;
-    self->desc = desc;
-    self->size = size;
-    return (PyObject *) self;
+    if (pack) {
+      memcpy(pack, ptr, size);
+      self->pack = pack;
+      self->desc = desc;
+      self->size = size;
+      return (PyObject *) self;
+    }
+    return NULL;
   }
 }
 

@@ -137,11 +137,14 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
   swig_varlinkobject *v = (swig_varlinkobject *) p;
   swig_globalvar *gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
   if (gv) {
-    gv->name = (char *) malloc(strlen(name)+1);
-    strcpy(gv->name,name);
-    gv->get_attr = get_attr;
-    gv->set_attr = set_attr;
-    gv->next = v->vars;
+    size_t size = strlen(name)+1;
+    gv->name = (char *)malloc(size);
+    if (gv->name) {
+      strncpy(gv->name,name,size);
+      gv->get_attr = get_attr;
+      gv->set_attr = set_attr;
+      gv->next = v->vars;
+    }
   }
   v->vars = gv;
 }
@@ -155,7 +158,7 @@ SWIGINTERN void
 SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   PyObject *obj = 0;
   size_t i;
-  for (i = 0; constants[i].type; i++) {
+  for (i = 0; constants[i].type; ++i) {
     switch(constants[i].type) {
     case SWIG_PY_INT:
       obj = PyInt_FromLong(constants[i].lvalue);
@@ -204,7 +207,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
       int j;
       swig_const_info *ci = 0;
       char *name = c + 10;
-      for (j = 0; const_table[j].type; j++) {
+      for (j = 0; const_table[j].type; ++j) {
 	if (strncmp(const_table[j].name, name, 
 		    strlen(const_table[j].name)) == 0) {
 	  ci = &(const_table[j]);
@@ -217,14 +220,16 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	size_t ldoc = (c - methods[i].ml_doc);
 	size_t lptr = strlen(ty->name)+2*sizeof(void*)+2;
 	char *ndoc = (char*)malloc(ldoc + lptr + 10);
-	char *buff = ndoc;
-	void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue: (void *)(ci->lvalue);
-	strncpy(buff, methods[i].ml_doc, ldoc);
-	buff += ldoc;
-	strncpy(buff, "swig_ptr: ", 10);
-	buff += 10;
-	SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
-	methods[i].ml_doc = ndoc;
+	if (ndoc) {
+	  char *buff = ndoc;
+	  void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue: (void *)(ci->lvalue);
+	  strncpy(buff, methods[i].ml_doc, ldoc);
+	  buff += ldoc;
+	  strncpy(buff, "swig_ptr: ", 10);
+	  buff += 10;
+	  SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
+	  methods[i].ml_doc = ndoc;
+	}
       }
     }
   }

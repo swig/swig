@@ -6,7 +6,8 @@
 %{
   namespace swig {
     template <class PySeq, class T> 
-    void assign(const PySeq& pyseq, std::set<T>* seq) {
+    static inline void 
+    assign(const PySeq& pyseq, std::set<T>* seq) {
 #ifdef SWIG_STD_NOINSERT_TEMPLATE_STL
       typedef typename PySeq::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
