@@ -403,27 +403,29 @@
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
 	 signed char, unsigned char,
-	 long long, unsigned long long 
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+	const unsigned int &, const unsigned short &, const unsigned long &,
+	const long long &, const unsigned long long & 
 {
   $1 = PyInt_Check($input) ? 1 : 0;
 }
 
 %typecheck(20)
-	float, double
+	float, double,
+	const float &, const double &
 {
   $1 = PyFloat_Check($input) ? 1 : 0;
 }
 
 %typecheck(30) char {
-  
-
 }
 
 %typecheck(31) char * {
   $1 = PyString_Check($input) ? 1 : 0;
 }
 
-%typecheck(0) SWIGTYPE * {
+%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
   if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
     $1 = 0;
@@ -432,6 +434,27 @@
     $1 = 1;
   }
 }
+
+%typecheck(0) SWIGTYPE {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(1) void * {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, 0, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = 1;
+  }
+}
+
 
 /* ------------------------------------------------------------
  * Overloaded operator support
