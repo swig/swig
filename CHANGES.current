@@ -1,6 +1,99 @@
 Version 1.3.23 (working version)
 =================================
-11/15/04:   mmatus
+
+11/21/04: mmatus
+	    - [Python] Adding the PySwigObject to be used for carrying
+	      the instance C/C++ pointers. This is used instead of
+	      string and PyCObjects.
+
+	      The new PySwigObject is even safer than PyCObject, and
+	      more friendly than plain strings:
+
+	      now you can do
+
+	        print a.this
+		<Swig Object at _00691608_p_A>
+
+		print str(a.this)
+		_00691608_p_A
+
+		print long(a.this)
+		135686400
+
+		print "%s 0x%x" % (a.this, a.this)
+		_00691608_p_A 0x8166900
+
+	      the last one is very useful when debugging the C/C++
+	      side, since is the pointer value you will usually get
+	      from the debugger.
+
+	      Also, if you have some old code that uses the string
+	      representation "_00691608_p_A", you can use it now again
+	      using 'str(ptr)', or by calling 'str = PyObject_Str(obj)'
+	      in the C/C++ side.
+ 
+	      This change is mainly for nostalgic swig users that miss
+	      the string representation, but also allows to say again
+
+	        if a.this == b.this:
+		  return "a is b"
+
+	      and well, since the change were really simple, maybe in
+	      the future we will be able to do
+   
+		next = a.this + 1
+
+	      or add native python iteration over native C/C++ arrays,
+	      ie, no need to create/copy new tuples when returning and
+	      array or vector.
+
+	      Also, a PySwigPacked object was adding to carry a member
+	      method pointer, but this is probably a temporal solution
+	      until a more general object for methods is added.
+
+	      Be aware that to simplify maintaining and compatibility
+	      with other tools, the old string and PyCObjects
+	      representation could disappear very soon, and the
+	      SWIG_COBJECTS_TYPES or SWIG_NO_OBJECT_TYPES macros will
+	      have no effect at compilation time. Still, the three
+	      mechanisms are present in the code just for testing,
+	      debugging and comparison purposes.
+	      
+11/21/04: mmatus
+
+	    - [Python] Adding back support for using the swig runtime code
+	      inside the user code. We just allow the user to include
+	      the minimal code needed to implement the runtime
+	      mechanism statically, just as in done in the swig
+	      modules.
+	      
+	      To use the swig runtime code, for example with python,
+	      the user needs include the following:
+ 
+               #include <Python.h>         // or using your favorite language
+               #include <swigrun.swg>
+               #include <python/pyrun.swg> // or using your favorite language
+               #include <runtime.swg>
+
+	      the files swigrun.swg, pyrun.swg and runtime.swg can 
+	      be checked out by using swig -co, or they can simply 
+	      be found by adding the swig lib directory to the
+	      compiler include directory list, for example
+
+	       SWIGLIB=`swig -swiglib`
+	       c++ -I${SWIGLIB} ..
+
+	      of better, using the CPPFLAGS, but that depends on your
+	      environment.
+	       
+	      This change can be ported to the other languages too,
+	      you just need to isolate the needed runtime code in
+	      a single file like 'pyrun.swg', and provide the 
+	      SWIG_Runtime_GetTypeList() method. Look at the
+	      Lib/python/pyrun.swg file and the Examples/python/swigrun
+	      example.
+
+11/15/04: mmatus
 	    - Fix mixed_types.i + gcc-3.4, ie, arrays + references +
 	      typedefs
 
