@@ -91,8 +91,10 @@ class Allocate : public Dispatcher {
 	       (checkAttribute(temp, "name", name)) &&
 	       (checkAttribute(temp, "type", type)) &&
 	       (!Strcmp(local_decl, base_decl)) ) {
-	    Setattr(c, "Tiger: defined_in_base", "1");
-	    Setattr(c, "feature:ignore", "1");
+            // Indicate a virtual method in the derived class, that is, not the virtual method definition in a base class
+	    Setattr(c, "virtual:derived", "1"); 
+            if (virtual_elimination_mode)
+	      Setattr(c, "feature:ignore", "1");
 	    Delete(base_decl);
 	    Delete(local_decl);
 	    return 1;
@@ -111,6 +113,7 @@ class Allocate : public Dispatcher {
     return 0;
   }
 
+  // function not used
   /* Checks if a class has the same virtual functions as the bases have */
   int class_is_defined_in_bases(Node *n) {
     Node *c, *bases; /* bases is the closest ancestors of class n */
@@ -470,9 +473,8 @@ public:
 
     if (inclass) {
       /* check whether the member node n is defined in class node inclass's bases */
-      if (virtual_elimination_mode)
-	if (checkAttribute(n, "storage", "virtual"))
-	  class_member_is_defined_in_bases(n, inclass);
+      if (checkAttribute(n, "storage", "virtual"))
+	class_member_is_defined_in_bases(n, inclass);
 
       String *name = Getattr(n,"name");
       if (cplus_mode != PUBLIC) {
