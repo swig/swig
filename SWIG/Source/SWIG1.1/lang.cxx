@@ -218,10 +218,12 @@ static void cplus_inherit_types(Node *cls, String *clsname) {
     base_default_constructor &= GetInt(bclass,"default_constructor");
 
     SwigType_inherit(clsname,bname);
-    String *btype = Copy(bname);
-    SwigType_add_pointer(btype);
-    SwigType_remember(btype);
-    Delete(btype);
+    if (!ImportMode) {
+      String *btype = Copy(bname);
+      SwigType_add_pointer(btype);
+      SwigType_remember(btype);
+      Delete(btype);
+    }
     if (scopes)
       SwigType_merge_scope(scopes);
     cplus_inherit_types(bclass,clsname);
