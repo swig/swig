@@ -552,12 +552,10 @@ Doc/Manual/Typemaps.html for complete details.\n");
     }
   }
 
-  /*
   if (Strcmp(method,"except") == 0) {
     Swig_warning(WARN_DEPRECATED_EXCEPT_TM, Getfile(n), Getline(n),
 		 "%%typemap(except) is deprecated. Use the %%exception directive.\n");
   }
-  */
 
   if (Strcmp(method,"in") == 0) {
     Hash *k;
