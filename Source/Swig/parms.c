@@ -67,45 +67,54 @@ Parm *CopyParm(Parm *p) {
 }
 
 /* ------------------------------------------------------------------
- * NewParmList()
- * ------------------------------------------------------------------ */
-
-ParmList *NewParmList() {
-  return NewList();
-}
-
-/* ------------------------------------------------------------------
  * CopyParmList()
  * ------------------------------------------------------------------ */
 
 ParmList *
-CopyParmList(ParmList *l) {
-  ParmList *nl;
-  int i, len;
+CopyParmList(ParmList *p) {
+  Parm *np;
+  Parm *pp = 0;
+  Parm *fp = 0;
 
-  nl = NewList();
-  len = Len(l);
-  for (i = 0; i < len; i++) {
-    Parm *p = Getitem(l,i);
-    Append(nl, CopyParm(p));
+  if (!p) return 0;
+
+  while (p) {
+    np = CopyParm(p);
+    if (pp) {
+      Setnext(pp,np);
+    } else {
+      fp = np;
+    }
+    pp = np;
+    p = Getnext(p);
   }
-  return nl;
+  return fp;
 }
 
 /* ------------------------------------------------------------------
  * int ParmList_numarg()
  * ------------------------------------------------------------------ */
 
-int ParmList_numarg(ParmList *l) {
+int ParmList_numarg(ParmList *p) {
   int  n = 0;
-  Parm *p;
-
-  p = Firstitem(l);
   while (p) {
     if (!Getignore(p)) n++;
-    p = Nextitem(l);
+    p = Getnext(p);
   }
   return n;
+}
+
+/* -----------------------------------------------------------------------------
+ * int ParmList_len()
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_len(ParmList *p) {
+  int i = 0;
+  while (p) {
+    i++;
+    p = Getnext(p);
+  }
+  return i;
 }
 
 /* ---------------------------------------------------------------------
@@ -114,18 +123,16 @@ int ParmList_numarg(ParmList *l) {
  * Generates a string of parameters
  * ---------------------------------------------------------------------- */
 
-char *ParmList_str(ParmList *l) {
+char *ParmList_str(ParmList *p) {
   static DOHString *out = 0;
-  Parm *p;
   DataType *t;
 
   if (!out) out = NewString("");
   Clear(out);
-  p = Firstitem(l);
   while(p) {
     t = Gettype(p);
     Printf(out,"%s", DataType_str(t,Getname(p)));
-    p = Nextitem(l);
+    p = Getnext(p);
     if (p)
       Printf(out,",");
   }
@@ -138,18 +145,16 @@ char *ParmList_str(ParmList *l) {
  * Generate a prototype string.
  * ---------------------------------------------------------------------- */
 
-char *ParmList_protostr(ParmList *l) {
+char *ParmList_protostr(ParmList *p) {
   static DOHString *out = 0;
-  Parm     *p;
   DataType *t;
 
   if (!out) out = NewString("");
   Clear(out);
-  p = Firstitem(l);
   while(p) {
     t = Gettype(p);
     Printf(out,"%s", DataType_str(t,0));
-    p = Nextitem(l);
+    p = Getnext(p);
     if (p)
       Printf(out,",");
   }

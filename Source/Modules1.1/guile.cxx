@@ -436,7 +436,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   int i = 0;
   int first_arg = 1;
-  for (p = Firstitem(l); p != 0; ++i, p = Nextitem(l)) {
+  for (p = l; p != 0; ++i, p = Getnext(p)) {
     DataType *pt = Gettype(p);
 
     if (Getignore(p))
@@ -467,7 +467,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   int j = 0;
-  p = Firstitem(l);
+  p = l;
   for (i = 0; i < pcount; ++i) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
@@ -520,7 +520,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
     }
-    p = Nextitem(l);
+    p = Getnext(p);
   }
 
   // Now write code to make the function call
@@ -819,7 +819,7 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // Now go through and print parameters
 
-  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+  for (p = l; p != 0; p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 
@@ -869,7 +869,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // go through and see if any are output.
 
-  for (p = Firstitem(l); p != 0; p = Nextitem(l)) {
+  for (p = l; p != 0; p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 

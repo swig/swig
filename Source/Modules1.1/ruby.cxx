@@ -441,11 +441,11 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   int numreq = 0;
   int numoptreal = 0;
-  Parm *p = Firstitem(l);
-  for (i = 0; i < start; i++) p = Nextitem(l);
-  for (i = start; p; i++, p = Nextitem(l)) {
+  Parm *p = l;
+  for (i = 0; i < start; i++) p = Getnext(p);
+  for (i = start; p; i++, p = Getnext(p)) {
     if (!Getignore(p)) {
-      if (i >= Len(l) - numopt) numoptreal++;
+      if (i >= ParmList_len(l) - numopt) numoptreal++;
       else numreq++;
     }
   }
@@ -457,9 +457,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     Printv(f->def, "int argc, VALUE *argv, VALUE self",0);
   } else {
     Printv(f->def, "VALUE self", 0);
-    p = Firstitem(l);
-    for (i = 0; i < start; i++) p = Nextitem(l);
-    for (i = start; p; i++, p = Nextitem(l)) {
+    p = l;
+    for (i = 0; i < start; i++) p = Getnext(p);
+    for (i = start; p; i++, p = Getnext(p)) {
       if (!Getignore(p)) {
 	Printf(f->def,", VALUE varg%d", i);
       }
@@ -469,9 +469,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Emit all of the local variables for holding arguments.
   if (vararg) {
-    p = Firstitem(l);
-    for (i = 0; i < start; i++) p = Nextitem(l);
-    for (i = start; p; i++, p = Nextitem(l)) {
+    p = l;
+    for (i = 0; i < start; i++) p = Getnext(p);
+    for (i = start; p; i++, p = Getnext(p)) {
       if (!Getignore(p)) {
 	char s[256];
 	sprintf(s,"varg%d",i);
@@ -501,9 +501,9 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Emit count to check the number of arguments
   if (vararg) {
     Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
-    p = Firstitem(l);
-    for (i = 0; i < start; i++) p = Nextitem(l);
-    for (i = start; p; i++, p = Nextitem(l)) {
+    p = l;
+    for (i = 0; i < start; i++) p = Getnext(p);
+    for (i = start; p; i++, p = Getnext(p)) {
       if (!Getignore(p)) {
 	Printf(f->code,", &varg%d", i);
       }
@@ -515,8 +515,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // to get arguments
   int j = 0;                // Total number of non-optional arguments
 
-  p = Firstitem(l);
-  for (i = 0; i < pcount ; i++, p = Nextitem(l)) {
+  p = l;
+  for (i = 0; i < pcount ; i++, p = Getnext(p)) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
 

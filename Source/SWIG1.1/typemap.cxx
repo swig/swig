@@ -308,8 +308,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   /* Just a sanity check to make sure args look okay. */
   
   if (args) {
-    Parm *p;
-    p = Firstitem(tm->args);
+    Parm *p = tm->args;
     while (p) {
       char     *pn = Getname(p);
       if (pn) {
@@ -318,7 +317,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
       }
-      p = Nextitem(tm->args);
+      p = Getnext(p);
     }
   }
 }
@@ -481,7 +480,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
   Parm *p;
   char *new_name;
   
-  p = Firstitem(l);
+  p = l;
   while (p) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
@@ -529,7 +528,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
     }
-    p = Nextitem(l);
+    p = Getnext(l);
   }
   /* If the original datatype was an array. We're going to go through and substitute
      it's array dimensions */
@@ -1122,12 +1121,12 @@ typemap_initialize() {
  * Gets the number of optional arguments for a ParmList. 
  * ------------------------------------------------------------------ */
 
-int check_numopt(ParmList *l) {
+int check_numopt(ParmList *p) {
   int  n = 0;
+  int  i = 0;
   int  state = 0;
 
-  for (int i = 0; i < Len(l); i++) {
-    Parm *p = Getitem(l,i);
+  for (;p; p = Getnext(p),i++) {
     DataType *pt = Gettype(p);
     char *pn = Getname(p);
     if (Getvalue(p)) {
@@ -1156,80 +1155,58 @@ int check_numopt(ParmList *l) {
  * of hash table objects containing all of the matches.
  * ----------------------------------------------------------------------------- */
 
-static void extend(ParmList *l, ParmList *e) {
-  Parm *p;
-  if (!(l && e)) return;
-  p = Firstitem(e);
-  while (p) {
-    Append(l,CopyParm(p));
-    p = Nextitem(e);
-  }
-}
-
 DOHList *
 typemap_match_parms(ParmList *l) {
   
   DOHList *tl;
   DOHHash *tm;
   Parm    *p;
-  ParmList *nl;
 
   char    *s;
-
   tl = NewList();
 
-  p = Firstitem(l);
+  p = l;
   while (p) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
     ParmList *vars = 0;
 
     tm = NewHash();
-    vars = NewList();
 
     /* Look up all of the argument related typemaps */
     /* "in"      */
     if ((s = typemap_lookup((char*)"in",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"in",s);
-      extend(vars,last_args);
     }
 
     /* "ignore"  */
     if ((s = typemap_lookup((char*)"ignore",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"ignore",s);
-      extend(vars,last_args);
     }
 
     /* "argout"  */
     if ((s = typemap_lookup((char*)"argout",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"argout",s);
-      extend(vars,last_args);
     }
 
     /* "default" */
     if ((s = typemap_lookup((char*)"default",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"default",s);
-      extend(vars,last_args);
     }
 
     /* "check"   */
     if ((s = typemap_lookup((char*)"check",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"check",s);
-      extend(vars,last_args);
     }
 
     /* "arginit" */
     if ((s = typemap_lookup((char*)"arginit",typemap_lang,pt,pn,(char *)"$source",(char *)"$target",0))) {
       Setattr(tm,"arginit",s);
-      extend(vars,last_args);
     }
-
     Setattr(tm,"locals", vars);
-
     Append(tl,tm);
-    Delete(vars);
     Delete(tm);
-    p = Nextitem(l);
+    p = Getnext(p);
   }
   return tl;
 }

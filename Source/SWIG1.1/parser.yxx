@@ -1435,18 +1435,21 @@ func_end       : cpp_const LBRACE { skip_brace(); }
 
 parms          : parm ptail {
                   DataType *pt = Gettype($1);
-		  if (DataType_type(pt) != T_VOID)
-		    Insert($2,0,$1);
-		 $$ = $2;
+		  if (DataType_type(pt) != T_VOID) {
+		    Setnext($1,$2);
+		    $$ = $1;
+		  } else {
+		    $$ = $2;
+		  }
 		}
-               | empty { $$ = NewParmList(); }
+               | empty { $$ = 0; }
                ;
 
 ptail          : COMMA parm ptail {
-	         Insert($3,0,$2);
-		 $$ = $3;
+                 Setnext($2,$3);
+		 $$ = $2;
                 }
-               | empty { $$ = NewParmList(); }
+               | empty { $$ = 0; }
                ;
 
 parm           : parm_type {
@@ -3230,10 +3233,20 @@ objc_args      : objc_args objc_separator objc_arg_type ID {
                    Parm *p= NewParm($3,$4);
 		   /*		   p->objc_separator = $2; */
                    $$ = $1;
-	           Append($$,p);
+		   if (!$$) {
+		     $$ = p;
+		   } else {
+		     Parm *np, *pp;
+		     np = $$;
+		     while(np) {
+		       pp = np;
+		       np = Getnext(np);
+		     }
+		     Setnext(pp,p);
+		   }
                }
                | empty { 
-                 $$ = NewParmList();
+                 $$ = 0;
                }
                ;
 

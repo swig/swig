@@ -679,8 +679,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   j = 0;
   numopt = check_numopt(l);        // Get number of optional arguments
   if (numopt) have_defarg = 1;
-  p = Firstitem(l);
 
+  p = l;
   Printf(kwargs,"{ ");
   while (p != 0) {
     DataType *pt = Gettype(p);
@@ -835,7 +835,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
       have_output++;
     } 
-    p = Nextitem(l);
+    p = Getnext(p);
     i++;
   }
 
@@ -1364,7 +1364,7 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
   // You probably don't need to change this
 
   i = 0;
-  p = Firstitem(l);
+  p = l;
   while (p != 0) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
@@ -1379,13 +1379,13 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
 	  Printf(temp,"%s", DataType_str(pt,0));
 	}
       }
-      p = Nextitem(l);
+      p = Getnext(p);
       if (p != 0) {
 	if (!Getignore(p))
 	  Putc(',',temp);
       }
     } else {
-      p = Nextitem(l);
+      p = Getnext(p);
       if (p) {
 	if ((!Getignore(p)) && (i > 0))
 	  Putc(',',temp);

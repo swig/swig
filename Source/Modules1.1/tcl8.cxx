@@ -505,7 +505,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   j = 0;
-  p = Firstitem(l);
+  p = l;
   while (p != 0) {
     DataType *pt = Gettype(p);
     char     *pn = Getname(p);
@@ -641,7 +641,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     }
     i++;
-    p = Nextitem(l);   // Get next parameter and continue
+    p = Getnext(p);   // Get next parameter and continue
   }
   Printf(argstr,":%s\"",usage);
   Printv(f->code,
@@ -1107,9 +1107,9 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
   
   /* Now go through and print parameters */
   i = 0;
-  pcount = Len(l);
+  pcount = ParmList_len(l);
   numopt = check_numopt(l);
-  p = Firstitem(l);
+  p = l;
   while (p != 0) {
 
     DataType *pt = Gettype(p);
@@ -1135,7 +1135,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
       Putc(' ',temp);
       i++;
     }
-    p = Nextitem(l);
+    p = Getnext(p);
   }
   return Char(temp);
 }
