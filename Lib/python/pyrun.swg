@@ -129,11 +129,11 @@ PySwigObject_compare(PySwigObject *v, PySwigObject *w)
 {
   int c = strcmp(v->desc, w->desc);
   if (c) {
-    return c;
+    return (c > 0) ? 1 : -1;
   } else {
     void *i = v->ptr;
     void *j = w->ptr;
-    return (i < j) ? -1 : (i > j) ? 1 : 0;
+    return (i < j) ? -1 : ((i > j) ? 1 : 0);
   }
 }
 
@@ -310,11 +310,11 @@ PySwigPacked_compare(PySwigPacked *v, PySwigPacked *w)
 {
   int c = strcmp(v->desc, w->desc);
   if (c) {
-    return c;
+    return (c > 0) ? 1 : -1;
   } else {
     size_t i = v->size;
     size_t j = w->size;
-    int s = (i < j) ? -1 : (i > j) ? 1 : 0;
+    int s = (i < j) ? -1 : ((i > j) ? 1 : 0);
     return s ? s : strncmp((char *)v->pack, (char *)w->pack, 2*v->size);
   }
 }
