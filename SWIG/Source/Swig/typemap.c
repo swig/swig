@@ -1090,9 +1090,11 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   locals = Getattr(tm,"locals");
   if (locals) locals = CopyParmList(locals);
 
-  if (SwigType_istemplate(pname)) {
-    cname = SwigType_namestr(pname);
-    pname = cname;
+  if (pname) {
+    if (SwigType_istemplate(pname)) {
+      cname = SwigType_namestr(pname);
+      pname = cname;
+    }
   }
   if (SwigType_istemplate((char*)lname)) {
     clname = SwigType_namestr((char *)lname);

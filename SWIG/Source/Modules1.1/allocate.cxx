@@ -135,6 +135,18 @@ class Allocate : public Dispatcher {
     return methods;
   }
 
+  void mark_exception_classes(ParmList *p) {
+    while(p) {
+      SwigType *ty = Getattr(p,"type");
+      SwigType *t = SwigType_typedef_resolve_all(ty);
+      Node *c = Swig_symbol_clookup(t,0);
+      if (c) {
+	Setattr(c,"cplus:exceptionclass","1");
+      }
+      p = nextSibling(p);
+    }
+  }
+
 public:
   virtual int top(Node *n) {
     cplus_mode = PUBLIC;
@@ -262,6 +274,8 @@ public:
   }
 
   virtual int cDeclaration(Node *n) {
+    
+    mark_exception_classes(Getattr(n,"throws"));
 
     if (inclass) {
       String *name = Getattr(n,"name");
@@ -320,6 +334,8 @@ public:
   virtual int constructorDeclaration(Node *n) {
     if (!inclass) return SWIG_OK;
     Parm   *parms = Getattr(n,"parms");
+
+    mark_exception_classes(Getattr(n,"throws"));
     if (!extendmode) {
 	if (!ParmList_numrequired(parms)) {
 	    /* Class does define a default constructor */
