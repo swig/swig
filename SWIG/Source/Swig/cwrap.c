@@ -658,7 +658,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	 * otherwise, just create a normal instance.
          */
 	/* arty: arg1 != Py_None => tmp_none_comparison */
-	Printv(action, "if (",tmp_none_comparison,") /* subclassed */\n",
+	Printv(action, "if (",tmp_none_comparison,") {/* subclassed */\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_director_call(directorname, parms)),
 		       "} else {\n",
 	               Swig_cresult(type, "result", Swig_cppconstructor_nodirector_call(classname, parms)),
