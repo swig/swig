@@ -438,8 +438,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int first_arg = 1;
   for (p = ParmList_first(l); p != 0; ++i, p = ParmList_next(l)) {
     DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
-    if (p->ignore)
+
+    if (Parm_Getignore(p))
       continue;
     if ((pt->type != T_VOID) || (pt->is_pointer)) {
       if (!first_arg)
@@ -480,7 +480,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Handle parameter types.
 
-    if (p->ignore)
+    if (Parm_Getignore(p))
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
@@ -621,7 +621,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   DOHString *proc_name;
   char  var_name[256];
   char  *tm;
-  char  *tm2 = typemap_lookup ((char*)"varout", (char*)"guile", t, name, name, (char*)"scmresult");
+
 
   // evaluation function names
 
@@ -810,7 +810,7 @@ GUILE::usage_var (char *iname, DataType *t, DOHString *usage)
 void
 GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 {
-  int  i;
+
   Parm *p;
 
   // Print the function name.
@@ -823,7 +823,7 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
 
-    if (p->ignore)
+    if (Parm_Getignore(p))
       continue;
 
     // Print the type.  If the parameter has been named, use that as well.

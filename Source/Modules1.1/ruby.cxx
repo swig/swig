@@ -429,7 +429,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Get number of arguments
   int numarg = ParmList_numarg(l);
   int numopt = check_numopt(l);
-  int numignore = l->nparms - numarg;
+
   int start = 0;
   int use_self = 0;
   switch (current) {
@@ -444,7 +444,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int numreq = 0;
   int numoptreal = 0;
   for (i = start; i < l->nparms; i++) {
-    if (!ParmList_get(l,i)->ignore) {
+    if (!Parm_Getignore(ParmList_get(l,i))) {
       if (i >= l->nparms - numopt) numoptreal++;
       else numreq++;
     }
@@ -458,7 +458,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   } else {
     Printv(f->def, "VALUE self", 0);
     for (i = start; i < l->nparms; i++) {
-      if (!ParmList_get(l,i)->ignore) {
+      if (!Parm_Getignore(ParmList_get(l,i))) {
 	Printf(f->def,", VALUE varg%d", i);
       }
     }
@@ -468,7 +468,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Emit all of the local variables for holding arguments.
   if (vararg) {
     for (i = start; i < l->nparms; i++) {
-      if (!ParmList_get(l,i)->ignore) {
+      if (!Parm_Getignore(ParmList_get(l,i))) {
 	char s[256];
 	sprintf(s,"varg%d",i);
 	Wrapper_add_localv(f,s,"VALUE",s,0);
@@ -498,7 +498,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   if (vararg) {
     Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
     for (i = start; i < l->nparms; i++) {
-      if (!ParmList_get(l,i)->ignore) {
+      if (!Parm_Getignore(ParmList_get(l,i))) {
 	Printf(f->code,", &varg%d", i);
       }
     }
@@ -523,7 +523,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
     sprintf(target,"%s", Parm_Getlname(p));
 
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
 	Printf(f->code,"    if (argc > %d) {\n", j -  start);
@@ -934,9 +934,9 @@ int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
   Clear(str);
   if (type->is_pointer == 0) {
     switch(type->type) {
-    case T_INT:case T_SINT:
-    case T_SHORT: case T_SSHORT:
-    case T_LONG: case T_SLONG:
+    case T_INT:
+    case T_SHORT:
+    case T_LONG:
     case T_SCHAR:
       Printv(str, "INT2NUM(", value, ")", 0);
       break;
@@ -985,13 +985,13 @@ int RUBY::from_VALUE(DataType *type, char *value, DOHString *str) {
   Clear(str);
   if (type->is_pointer == 0) {
     switch(type->type) {
-    case T_INT:case T_SINT:
+    case T_INT:
       Printv(str, "NUM2INT(", value, ")", 0);
       break;
-    case T_LONG: case T_SLONG:
+    case T_LONG:
       Printv(str, "NUM2LONG(", value, ")", 0);
       break;
-    case T_SHORT: case T_SSHORT:
+    case T_SHORT:
       Printv(str, "NUM2SHRT(", value, ")", 0);
       break;
     case T_UINT:
