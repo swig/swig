@@ -14,10 +14,11 @@
 //#define SWIG_STD_DEFAULT_INSTANTIATION
 
 // 
-// Use the following macro to disable the generation of the comparison
-// methods, ie, ==, !=, <=, >=, <,>, whenever is needed.
+// Use the following macro to enable the generation of the
+// comparison methods, ie, ==, !=, <=, >=, <,>, whenever is needed,
+// for the primitive types (int,double, etc.)
 //
-//#define SWIG_STD_NOEXTEND_COMPARISON
+//#define SWIG_STD_EXTEND_COMPARISON
 
 
 //
@@ -459,7 +460,7 @@ namespace swigpy {
 %std_order_methods(__VA_ARGS__ )
 %enddef
 
-#if !defined(SWIG_STD_NOEXTEND_COMPARISON)
+#if defined(SWIG_STD_EXTEND_COMPARISON)
 %define %std_extcomp(Class,T)
   %evalif(SWIG_EqualType(T), %std_equal_methods(std::Class<T >))
   %evalif(SWIG_OrderType(T), %std_order_methods(std::Class<T >))

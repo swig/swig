@@ -160,6 +160,6 @@ namespace std {
 	  SWIG_arg(%std_extequal_list(__VA_ARGS__)));
 %enddef
 
-#if !defined(SWIG_STD_NOEXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_list_ptypen);
 #endif
