@@ -1,6 +1,12 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/15/2005: wsfulton
+            [Java] Patch from Scott Michel for directors. Modifications to the typemaps
+            giving users fine control over memory ownership and lifetime of director classes.
+            Director classes no longer live forever by default as they are now collectable
+            by the GC.
+
 03/15/2005: wuzzeb (John Lenz)
 	    [Chicken] Add support for adding finalizers garbage collected objects.
 	    Functions that return new objects should be marked with %newobject and
