@@ -55,8 +55,95 @@ match_stab_symbol(char *symbol, char *stabtext, int slen) {
  * ----------------------------------------------------------------------------- */
 
 static void
-scan_function(Stab *s, int ns, WadDebug *debug) {
+scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
+  int i;
+  unsigned long offset;
+  offset = f->pc - f->sym_base;
 
+  for (i = 0; i < ns; i++,s++) {
+    if (wad_debug_mode & DEBUG_STABS) {
+      wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
+	     stabstr+s->n_strx);
+      
+    }
+    
+    if ((s->n_type == N_UNDF) || (s->n_type == N_SO) || (s->n_type == N_FUN) ||
+	(s->n_type == N_OBJ)) return;
+
+    if (s->n_type == N_SLINE) {
+      if (s->n_value < offset) {
+	f->loc_line = s->n_desc;
+      }
+    } else if ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) {
+      /* Parameter counting */
+      char *pname;
+      char *c;
+      int   len;
+      WadLocal *arg;
+      pname = stabstr+s->n_strx;
+      c = strchr(pname,':');
+      if (c) {
+	len = (c-pname);
+      } else {
+	len = strlen(pname);
+      }
+
+      /* Check if the argument was already used */
+      /* In this case, the first stab simply identifies an argument.  The second
+         one identifies its location for the debugger */
+
+      if (f->debug_args) {
+	/* Need to do some fix up for linux here */
+	WadLocal *a = f->debug_args;
+	while (a) {
+	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
+	    /* We already saw this argument.  Given a choice between a register and a stack
+               argument.  We will choose the stack version */
+	    
+	    if (a->loc == PARM_STACK) {
+	      break;
+	    }
+	    /* Go ahead and use the new argument */
+	    if (s->n_type == N_RSYM) {
+	      a->loc = PARM_REGISTER;
+	      a->reg = s->n_value;
+	    } else {
+	      a->loc = PARM_STACK;
+	      a->stack = s->n_value;
+	    }
+	    break;
+	  }
+	  a = a->next;
+	}
+	if (a) continue; /* We got an argument match.  Just skip to the next stab */
+      }
+
+      arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
+      arg->name = (char *) wad_malloc(len+1);
+      strncpy(arg->name, pname, len);
+      arg->name[len] = 0;
+      if (s->n_type == N_RSYM) {
+	arg->loc = PARM_REGISTER;
+	arg->reg = s->n_value;
+	arg->stack = 0;
+      } else {
+	arg->loc = PARM_STACK;
+	arg->line = s->n_desc;
+	arg->stack = s->n_value;
+      }
+      arg->type = 0;
+      arg->next = 0;
+      if (f->debug_args) {
+	f->debug_lastarg->next = arg;
+	f->debug_lastarg = arg;
+      } else {
+	f->debug_args = arg;
+	f->debug_lastarg = arg;
+	f->debug_nargs= 0;
+      }
+      f->debug_nargs++;
+    }
+  }
 }
 
 /* Given a stabs data segment (obtained somehow), this function tries to
@@ -74,43 +161,44 @@ scan_function(Stab *s, int ns, WadDebug *debug) {
  */
 
 int
-wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned long offset, WadDebug *debug) {
+wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   Stab *s;
   int   ns;
   int   infunc;
   int   slen;
   int   i;
+  int   found = 0;
   char  *file, *lastfile = 0;
   int   chk = 0;
   WadLocal *arg;
 
+  char   srcfile[MAX_PATH];
+  char   objfile[MAX_PATH];
+  
+  if (!f->sym_name) return 0;
+
   s = (Stab *) sp;            /* Stabs data      */
   ns = size/sizeof(Stab);     /* number of stabs */
 
-  slen = strlen(wsym->name);
-
-  /* Reset the debug information section */
-  debug->found = 0;
-  debug->srcfile[0] = 0;
-  debug->objfile[0] = 0;
-  debug->line_number = -1;
-  debug->nargs = 0;
-  debug->args = 0;
-  debug->lastarg = 0;
+  slen = strlen(f->sym_name);
+  srcfile[0] = 0;
+  objfile[0] = 0;
 
   for (i = 0; i < ns; i++, s++) {
+    /*
     if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
     }
+    */
     if ((s->n_type == N_UNDF)) { /* && (s->n_desc >= 0)) { */
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */
 
-      if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, wsym, offset,debug)) return 1;
+      if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, f)) return 1;
 
-      /* On solaris, each stabs section seem to increment the stab string pointer.  On Linux,
+      /* On solaris, each stabs section seems to increment the stab string pointer.  On Linux,
          the linker seems to do a certain amount of optimization that results in a single
          string table. */
 
@@ -119,112 +207,48 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
 #endif
       i += s->n_desc;
       s += s->n_desc;
-      debug->objfile[0] = 0;
-      debug->srcfile[0] = 0;
-      debug->line_number = -1;
-      debug->found = 0;
+      objfile[0] = 0;
+      srcfile[0] = 0;
       continue;
     } else if (s->n_type == N_SO) {
-      if (debug->found) return 1;    /* New file and we already found what we wanted */
       /* Source file specification */
       /* Look for directory */
       file = stabstr+s->n_strx;
       if (strlen(file) && (file[strlen(file)-1] == '/')) {
-	strcpy(debug->srcfile,file);
+	strcpy(srcfile,file);
       } else {
-	strcat(debug->srcfile,file);
+	strcat(srcfile,file);
       }
-      debug->objfile[0] = 0;
+      objfile[0] = 0;
+      /* If we have a file match, we might be looking for a local symbol.   If so,
+         we'll go ahead and set the srcfile field of the frame */
+
       /* We're going to check for a file match. Maybe we're looking for a local symbol */
-      if (wsym->file && strcmp(wsym->file,file) == 0) {
-	debug->found = 1;
+      if (f->sym_file && strcmp(f->sym_file,file) == 0) {
+	found = 1;
       }
       lastfile = file;
     } else if (s->n_type == N_OBJ) {
       /* Object file specifier */
-      if (debug->objfile[0]) {
-	strcat(debug->objfile,"/");
+      if (objfile[0]) {
+	strcat(objfile,"/");
       }
-      strcat(debug->objfile,stabstr+s->n_strx);
+      strcat(objfile,stabstr+s->n_strx);
     } else if (s->n_type == N_FUN) {
-      if (match_stab_symbol(wsym->name, stabstr+s->n_strx, slen)) {
-	if (!wsym->file || (strcmp(wsym->file,lastfile) == 0)) {
-	  infunc = 1;
-	  debug->found = 1;
-	  debug->nargs = 0;
-	} else {
-	  infunc = 0;
+      if (match_stab_symbol(f->sym_name, stabstr+s->n_strx, slen)) {
+	if (!f->sym_file || (strcmp(f->sym_file,lastfile) == 0)) {
+	  /* Go find debugging information for the function */
+	  scan_function(s+1, stabstr, ns -i - 1, f);
+	  f->loc_srcfile = wad_strdup(srcfile);
+	  f->loc_objfile = wad_strdup(objfile);
+	  return 1;
 	}
-      } else {
-	infunc = 0;
       }
-    } else if (debug->found && (s->n_type == N_SLINE) && (infunc)) {
-      /* Line number location */
-      if (s->n_value < offset) {
-	debug->line_number = s->n_desc;
-      } else return 1;
-    } else if (debug->found && ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) && (infunc)) {
-      /* Parameter counting */
-      char *pname;
-      char *c;
-      int   len;
-      pname = stabstr+s->n_strx;
-      c = strchr(pname,':');
-      if (c) {
-	len = (c-pname);
-      } else {
-	len = strlen(pname);
-      }
-
-      /* Check if the argument was already used */
-      /* In this case, the first stab simply identifies an argument.  The second
-         one identifies its location for the debugger */
-
-      if (debug->args) {
-	/* Need to do some fix up for linux here */
-	WadLocal *a = debug->args;
-	while (a) {
-	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
-	    /* We already saw this argument.  Given a choice between a register and a stack
-               argument.  We will choose the stack version */
-	    if (a->loc == PARM_STACK) {
-	      break;
-	    }
-	    /* Go ahead and use the new argument */
-	    if (s->n_type == 0x40)
-	      a->loc = PARM_REGISTER;
-	    else
-	      a->loc = PARM_STACK;
-	    a->position = s->n_value;
-	    break;
-	  }
-	  a = a->next;
-	}
-	if (a) continue; /* We got an argument match.  Just skip to the next stab */
-      }
-
-      arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
-      arg->name = (char *) wad_malloc(len+1);
-      strncpy(arg->name, pname, len);
-      arg->name[len] = 0;
-      if (s->n_type == 0x40)
-	arg->loc = PARM_REGISTER;
-      else
-	arg->loc = PARM_STACK;
-
-      arg->position = s->n_value;
-      arg->type = 0;
-      arg->next = 0;
-      if (debug->args) {
-	debug->lastarg->next = arg;
-	debug->lastarg = arg;
-      } else {
-	debug->args = arg;
-	debug->lastarg = arg;
-      }
-      debug->nargs++;
     }
   }
-  if (debug->found) return 1;
-  return 0;
+  if (found) {
+    f->loc_srcfile = wad_strdup(srcfile);
+    f->loc_objfile = wad_strdup(objfile);
+  }
+  return found;
 }

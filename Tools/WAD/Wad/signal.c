@@ -180,7 +180,6 @@ static void nonlocalret() {
 
 void wad_restore_i386_registers(WadFrame *f, int nlevels) {
   WadFrame *lastf = f;
-  char     *fd = (char *) f;
   int       localsize = 0;
   unsigned char     *pc;
   unsigned long     *saved;
@@ -226,8 +225,7 @@ void wad_restore_i386_registers(WadFrame *f, int nlevels) {
 	else break;
       }
     }
-    fd += f->size;
-    f = (WadFrame *) fd;
+    f = f->next;
   }
 }
 
@@ -260,6 +258,12 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   wad_nlr_func = 0;
 
   context = (ucontext_t *) vcontext;
+
+  /* Read the segments */
+  if (wad_segment_read() < 0) {
+    wad_printf("WAD: Unable to read segment map\n");
+    return;
+  }
  
   if (wad_debug_mode & DEBUG_SIGNAL) {
     printf("WAD: siginfo = %x, context = %x\n", si, vcontext);
@@ -303,6 +307,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   p_fp = (unsigned long) (*fp);
   /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
 #endif
+#ifdef WAD_SOLARIS
+  p_fp = (unsigned long) *(((long *) p_sp) + 14);
+#endif
   /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);*/
 
   
@@ -316,62 +323,50 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   }
   wad_stacked_signal++;
   frame = wad_stack_trace(p_pc, p_sp, p_fp);
-  origframe =frame;
+
   if (!frame) {
-    /* We're really hosed here */
-    wad_stacked_signal--;
+    /* We're really hosed.  Not possible to generate a stack trace */
+    printf("WAD: Unable to generate stack trace.\n");
+    printf("WAD: Maybe the call stack has been corrupted by buffer overflow.\n");
+    wad_signal_clear();
     return;
+    /*    exit(1); */
   }
+
+  {
+    WadFrame *f = frame;
+    while (f) {
+      wad_find_object(f);
+      wad_find_symbol(f);
+      wad_find_debug(f);
+      wad_build_vars(f);
+      f = f->next;
+    }
+  }
+
   wad_heap_overflow = 0;
   if (sig == SIGSEGV) {
     if (addr >= current_brk) wad_heap_overflow = 1;
   }
-
-
-  if (wad_debug_mode & DEBUG_STACK) {
-    /* Walk the exception frames and try to find a return point */
-    while (frame) {
-      int i;
-      WadLocal *p;
-      /* Print out detailed stack trace information */
-      printf("::: Stack frame - 0x%08x :::\n", frame);
-      printf("    sp           = %x\n", frame->sp);
-      printf("    fp           = %x\n", frame->fp);
-      printf("    size         = %x\n", frame->stack_size);
-      printf("    pc           = %x (base = %x)\n", frame->pc, frame->sym_base);
-      printf("    symbol       = '%s'\n", frame->symbol ? frame->symbol : "?");
-      printf("    srcfile      = '%s'\n", frame->srcfile ? frame->srcfile : "");
-      printf("    objfile      = '%s'\n", frame->objfile ? frame->objfile : "");
-      printf("    numargs      = %d\n", frame->nargs);
-      printf("    arguments [\n");
-      p = frame->args;
-      i = 0;
-      while (p) {
-	printf("        arg[%d] : name = '%s', loc = %d, type = %d, value = %d\n", i, p->name, p->loc, p->type, p->position);
-	p = p->next;
-	i++;
-      }
-      printf("    ]\n");
-      frame = frame->next;
-    }
-    frame = origframe;
-  }
+  wad_stack_debug(frame);
 
   /* Walk the exception frames and try to find a return point */
+  origframe = frame;
   while (frame) {
-    WadReturnFunc *wr = wad_check_return(frame->symbol);
+    WadReturnFunc *wr = wad_check_return(frame->sym_name);
     if (wr) {
       found = 1;
       wad_nlr_value = wr->value;
       retname = wr->name;
     }
-    frame = frame->next;
     if (found) {
       frame->last = 1;   /* Cut off top of the stack trace */
       break;
     }
+    frame = frame->next;
     nlevels++;
   }
+  
 
   if (found) {
     wad_nlr_levels = nlevels - 1;
@@ -382,12 +377,13 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     wad_nlr_levels = 0;
   }
 
+
   if (sig_callback) {
     (*sig_callback)(sig,origframe,retname);
   } else {
     /* No signal handler defined.  Go invoke the default */
+
     wad_default_callback(sig, origframe,retname);
-    wad_release_trace();
   }
 
   if (wad_debug_mode & DEBUG_HOLD) while(1);
@@ -464,4 +460,14 @@ void wad_signal_init() {
   printf("WAD: Couldn't install signal handler!\n");
 }
 
+/* -----------------------------------------------------------------------------
+ * clear signals 
+ * ----------------------------------------------------------------------------- */
 
+void wad_signal_clear() {
+  signal(SIGSEGV, SIG_DFL);
+  signal(SIGBUS, SIG_DFL);
+  signal(SIGILL, SIG_DFL);
+  signal(SIGFPE, SIG_DFL);
+  signal(SIGABRT, SIG_DFL);  
+}

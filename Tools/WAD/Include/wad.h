@@ -33,7 +33,7 @@ extern "C" {
 #define MAX_PATH 1024
 #endif
 
-/* --- Low level memory management --- */
+/* --- Low level memory management functions --- */
 
 extern int   wad_memory_init();
 extern void *wad_malloc(int nbytes);
@@ -59,8 +59,9 @@ typedef struct WadSegment {
 
 extern int         wad_segment_read();
 extern WadSegment *wad_segment_find(void *vaddr);
+extern int         wad_segment_valid(void *vaddr);
 
-/* --- Object file handling --- */
+/* --- Object files --- */
 typedef struct WadObjectFile {
   void             *ptr;            /* Pointer to data           */
   int               len;            /* Length of data            */
@@ -72,89 +73,101 @@ typedef struct WadObjectFile {
 extern void            wad_object_reset();
 extern WadObjectFile  *wad_object_load(const char *path);
 
-/* --- Symbol table information --- */
-  
-typedef struct WadSymbol {
-  char *name;               /* Symbol table name    */
-  char *file;               /* Source file (if any) */
-  int   type;               /* Symbol type          */
-  int   bind;               /* Symbol bind          */
-  unsigned long value;      /* Symbol value         */
-} WadSymbol;
-
-#define WS_LOCAL     1
-#define WS_GLOBAL    2
-
-extern char *wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, WadSymbol *ws);
+#define SYM_LOCAL     1
+#define SYM_GLOBAL    2
 
 /* Signal handling */
 extern void wad_init();
 extern void wad_signalhandler(int, siginfo_t *, void *);
 extern void wad_signal_init();
+extern void wad_signal_clear();
 extern void wad_set_return(const char *name, long value);
 extern void wad_set_return_value(long value);
 extern void wad_set_return_func(void (*f)(void));
 
-extern int  wad_elf_check(WadObjectFile *wo);
-extern void wad_elf_debug(WadObjectFile *wo);
-
 typedef struct WadLocal {
   char              *name;       /* Name of the local */
+  void              *ptr;        /* Pointer to data   */
+  int                size;       /* Size of the data  */
+  int                type;       /* Data type         */
   int                loc;        /* Location: register or stack */
-  int                type;       /* Argument type               */
-  unsigned long      position;   /* Position on the stack       */
+  int                stack;      /* location on the stack       */
+  int                reg;        /* Register number             */
+  int                line;       /* Line number where defined   */
   struct WadLocal   *next;
 } WadLocal;
-
-/* Debugging information */
-typedef struct WadDebug {
-  int         found;               /* Whether or not debugging information was found */
-  char        srcfile[1024];       /* Source file */
-  char        objfile[1024];       /* Object file */
-  int         line_number;         /* Line number */
-  int         nargs;               /* Number of function arguments */
-  WadLocal   *args;                /* Arguments */
-  WadLocal   *lastarg;
-} WadDebug;
 
 #define PARM_REGISTER 1
 #define PARM_STACK    2
 
-extern int wad_search_stab(void *stab, int size, char *stabstr, WadSymbol *symbol, unsigned long offset, WadDebug *wd);
-extern int wad_debug_info(WadObjectFile *wo, WadSymbol *wsym, unsigned long offset, WadDebug *wd);
+/* Type codes for local variables */
+
+#define TYPE_UNKNOWN      0
+#define TYPE_INT32        1
+#define TYPE_INT16        2
+#define TYPE_INT8         3
+#define TYPE_INT64        4
+#define TYPE_UINT32       5
+#define TYPE_UINT16       6
+#define TYPE_UINT8        7
+#define TYPE_UINT64       8
+#define TYPE_FLOAT        9
+#define TYPE_DOUBLE      10
+#define TYPE_POINTER     11
 
 /* Data structure containing information about each stack frame */
 
 typedef struct WadFrame {
-  long             frameno;       /* Frame number */
-  long             pc;            /* Real PC */
-  long             sp;            /* Real SP */
-  long             fp;            /* Real FP */
-  char            *psp;           /* Pointer to where the actual stack data is stored */
-  int              stack_size;    /* Stack frame size */
-  char            *symbol;        /* Symbol name */
-  long             sym_base;      /* Symbol base address        */
-  char            *objfile;       /* Object file */
-  char            *srcfile;       /* Source file */
-  int              line_number;   /* Source line */
-  int              nargs;         /* Number of arguments */
-  WadLocal        *args;          /* Function arguments */
-  WadLocal        *lastarg;       /* Last argument */
-  int              nlocals;       /* Number of locals */
+  long               frameno;       /* Frame number */
+  struct WadFrame   *next;          /* Next frame up the stack */
+  struct WadFrame   *prev;          /* Previous frame down the stack */
+
+  /* Stack context information */
+  long               pc;            /* Real PC */
+  long               sp;            /* Real SP */
+  long               fp;            /* Real FP */
+  char              *stack;         /* Pointer to where a copy of the stack frame is stored */
+  int                stack_size;    /* Stack frame size (fp-sp) */
+
+  /* Loading information.  Contains information from /proc as well as a pointer to
+     the executable or shared library in which the PC is located */
+
+  WadSegment        *segment;       /* Memory segment corresponding to PC */
+  WadObjectFile     *object;        /* Object file corresponding to PC */
+
+  /* Symbol table information for PC */
+
+  char            *sym_name;        /* Symbol name          */
+  char            *sym_file;        /* Source file (if any) */
+  unsigned long    sym_base;        /* Symbol base address  */
+  unsigned long    sym_size;        /* Symbol size          */
+  int              sym_type;        /* Symbol type          */
+  int              sym_bind;        /* Symbol binding       */
+
+  /* Location information */
+  char            *loc_objfile;     /* Object filename */
+  char            *loc_srcfile;     /* Source filename */
+  int              loc_line;        /* Source line */
+
+  /* Debugging information */
+  int              debug_nargs;     /* Number of arguments */
+  WadLocal        *debug_args;      /* Arguments           */
+  WadLocal        *debug_lastarg;   /* Last argument       */
+
   int              last;          /* Last frame flag */
-  struct WadFrame *next;  /* Next frame up the stack */
-  struct WadFrame *prev;  /* Previous frame down the stack */
 } WadFrame;
 
 extern WadFrame *wad_stack_trace(unsigned long, unsigned long, unsigned long);
-extern char *wad_strip_dir(char *);
-extern void  wad_default_callback(int signo, WadFrame *frame, char *ret);
-extern void wad_set_callback(void (*h)(int, WadFrame *, char *));
-extern char *wad_load_source(char *, int line);
-extern void wad_release_source();
-extern void wad_release_trace();
-extern long wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error);
-extern long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error);
+extern void      wad_stack_debug(WadFrame *f);
+
+extern char   *wad_strip_dir(char *);
+extern void    wad_default_callback(int signo, WadFrame *frame, char *ret);
+extern void    wad_set_callback(void (*h)(int, WadFrame *, char *));
+extern char   *wad_load_source(char *, int line);
+extern void    wad_release_source();
+extern void    wad_release_trace();
+extern long    wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error);
+extern long    wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error);
 
 extern char *wad_arg_string(WadFrame *f);
 
@@ -165,6 +178,14 @@ typedef struct {
 
 extern void wad_set_returns(WadReturnFunc *rf);
 extern WadReturnFunc *wad_check_return(const char *name);
+
+extern int wad_search_stab(void *stab, int size, char *stabstr, WadFrame *f);
+
+extern void wad_find_object(WadFrame *f);
+extern void wad_find_symbol(WadFrame *f);
+extern void wad_find_debug(WadFrame *f);
+extern void wad_build_vars(WadFrame *f);
+extern char *wad_format_var(WadLocal *l);
 
 /* --- Debugging Interface --- */
 
@@ -186,7 +207,17 @@ extern WadReturnFunc *wad_check_return(const char *name);
 extern int wad_debug_mode;
 extern int wad_heap_overflow;
 
+#ifdef WAD_LINUX
+#define   WAD_LITTLE_ENDIAN
+#endif
+#ifdef WAD_SOLARIS
+#define   WAD_BIG_ENDIAN
+#endif
+
 #ifdef __cplusplus
 }
 #endif
+
+
+
 

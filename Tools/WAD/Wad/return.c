@@ -38,6 +38,7 @@ void wad_set_returns(WadReturnFunc *rf) {
 
 WadReturnFunc *wad_check_return(const char *name) {
   int i;
+  if (!name) return 0;
   for (i = 0; i < num_return; i++) {
     if (strcmp(name,return_points[i].name) == 0) {
       if (wad_debug_mode & DEBUG_RETURN) {

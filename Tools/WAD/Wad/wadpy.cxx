@@ -100,10 +100,11 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   int  len = 0;
   PyObject *type;
   char *name;
-  char *fd;
   WadFrame *f;
   WadFrame *fline = 0;
 
+
+  printf("python handler.\n");
   if (!ret) {
     wad_default_callback(signo, frame, ret);
     return;
@@ -130,34 +131,32 @@ static void handler(int signo, WadFrame *frame, char *ret) {
     type = PyExc_RuntimeError;
     break;
   }
-  fd = (char *) frame;
-  f = (WadFrame *) fd;
 
+  f = frame;
   /* Find the last exception frame */
   while (!f->last) {
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
+    f= f->next;
   }
+  printf("f = %x\n", f);
   /* Now work backwards */
-  fd = fd - f->lastsize;
-  f = (WadFrame *) fd;
-  while (1) {
+  f = f->prev;
+  while (f) {
     sprintf(temp,"#%-3d 0x%08x in ", f->frameno, f->pc);
     strcat(message,temp);
-    strcat(message,*(fd + f->sym_off) ? fd+f->sym_off : "?");
+    strcat(message, f->sym_name ? f->sym_name : "?");
     strcat(message,"(");
     strcat(message,wad_arg_string(f));
     strcat(message,")");
-    if (strlen(SRCFILE(f))) {
+    if (f->loc_srcfile && strlen(f->loc_srcfile)) {
       strcat(message," in '");
-      strcat(message, wad_strip_dir(SRCFILE(f)));
+      strcat(message, wad_strip_dir(f->loc_srcfile));
       strcat(message,"'");
-      if (f->line_number > 0) {
-	sprintf(temp,", line %d", f->line_number);
+      if (f->loc_line > 0) {
+	sprintf(temp,", line %d", f->loc_line);
 	strcat(message,temp);
 	{
 	  int fd;
-	  fd = open(SRCFILE(f), O_RDONLY);
+	  fd = open(f->loc_srcfile, O_RDONLY);
 	  if (fd > 0) {
 	    fline = f;
 	  } 
@@ -165,34 +164,32 @@ static void handler(int signo, WadFrame *frame, char *ret) {
 	}
       }
     } else {
-      if (strlen(fd+f->obj_off)) {
+      if (f->loc_objfile && strlen(f->loc_objfile)) {
 	strcat(message," from '");
-	strcat(message, wad_strip_dir(OBJFILE(f)));
+	strcat(message, wad_strip_dir(f->loc_objfile));
 	strcat(message,"'");
       }
     }
     strcat(message,"\n");
-    if (!f->lastsize) break;
-    fd = fd - f->lastsize;
-    f = (WadFrame *) fd;
+    f = f->prev;
   }
   if (fline) {
     int first;
     int last;
     char *line, *c;
     int i;
-    first = fline->line_number - 2;
-    last  = fline->line_number + 2;
+    first = fline->loc_line - 2;
+    last  = fline->loc_line + 2;
     if (first < 1) first = 1;
     
-    line = wad_load_source(SRCFILE(fline),first);
+    line = wad_load_source(fline->loc_srcfile,first);
     if (line) {
       strcat(message,"\n");
-      strcat(message, SRCFILE(fline));
-      sprintf(temp,", line %d\n\n", fline->line_number);
+      strcat(message, fline->loc_srcfile);
+      sprintf(temp,", line %d\n\n", fline->loc_line);
       strcat(message, temp);
       for (i = first; i <= last; i++) {
-	if (i == fline->line_number) strcat(message," => ");
+	if (i == fline->loc_line) strcat(message," => ");
 	else                         strcat(message,"    ");
 	c = strchr(line,'\n');
 	if (c) {
@@ -222,7 +219,6 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   back. */
 
   PyErr_SetString(type, message);
-  wad_release_trace();
 }
 
 static void pywadinit() {
