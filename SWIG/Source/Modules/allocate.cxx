@@ -370,6 +370,7 @@ class Allocate : public Dispatcher {
 	Setattr(c,"feature:exceptionclass","1");
       }
       p = nextSibling(p);
+      Delete(t);
     }
   }
 
@@ -615,7 +616,7 @@ public:
 		if (SwigType_check_decl(type,"p.")) {
 		  /* Need to check if type is a const pointer */
 		  int isconst = 0;
-		  SwigType_pop(type);
+		  Delete(SwigType_pop(type));
 		  if (SwigType_isconst(type)) {
 		    isconst = 1;
 		    Setattr(inclass,"allocate:smartpointerconst","1");
@@ -623,7 +624,6 @@ public:
 		  List *methods = smart_pointer_methods(sc,0,isconst);
 		  Setattr(inclass,"allocate:smartpointer",methods);
 		  Setattr(inclass,"allocate:smartpointerbase",base);
-		  break;
 		} else {
 		  /* Hmmm.  The return value is not a pointer.  If the type is a value
 		     or reference.  We're going to chase it to see if another operator->()
@@ -632,20 +632,17 @@ public:
 		  if ((SwigType_check_decl(type,"")) || (SwigType_check_decl(type,"r."))) {
 		    Node *nn = Swig_symbol_clookup((char*)"operator ->", Getattr(sc,"symtab"));
 		    if (nn) {
+		      Delete(base);
+		      Delete(type);
 		      sn = nn;
 		      continue;
-		    } else {
-		      break;
 		    }
-		  } else {
-		    break;
 		  }
 		}
-	      } else {
-		break;
 	      }
-	    } else {
-	      break;
+	      Delete(base);
+	      Delete(type);
+	      break;		  
 	    }
 	  }
 	}
