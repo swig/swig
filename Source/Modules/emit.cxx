@@ -402,7 +402,7 @@ void emit_action(Node *n, Wrapper *f) {
     Printf(eaction,"try {\n");
   }
 
-  Printv(eaction, action, "\n",NIL);
+  Printv(eaction, action, NIL);
 
   if (throws) {
     Printf(eaction,"}\n");
@@ -415,9 +415,9 @@ void emit_action(Node *n, Wrapper *f) {
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
 		     "No 'throw' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep,"type"),0));
+        Printf(eaction,"catch(...) { throw; }\n");
       }
     }
-    Printf(eaction,"catch(...) { throw; }\n");
   }
 
   /* Look for except typemap (Deprecated) */
