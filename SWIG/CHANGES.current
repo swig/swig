@@ -1,11 +1,17 @@
 Version 1.3.23 (November 6, 2004)
 =================================
 
-11/04/2004: wsfulton
-            [C#] Typemaps for std::vector added into std_vector.i. The proxy classes
-            generated are modelled on the .NET ArrayList class. This isn't quite
-            ready for general consumption yet, but will work with vectors of primitive
-            types and some classes.
+12/05/2004: wsfulton
+            Patch #982753 from Fabrice Salvaire: Adds dependencies generation for
+            constructing makefiles. New command line options -MF -MD -MMD to work
+            with the current options -M and -MM. These options are named the same
+            and work the same as in gcc.
+
+12/05/2004: wsfulton
+            %ignore/%rename changes for methods with default arguments to mirror
+            %feature behaviour. See previous entry.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
 
 11/04/2004: wsfulton
             %feature improvements for fine tuning when wrapping methods with
@@ -43,6 +49,16 @@ Version 1.3.23 (November 6, 2004)
            to new default arguments wrapping approach.
 
                       *** POTENTIAL INCOMPATIBILITY ***
+
+           If you previously had a %feature and didn't specify the default arguments,
+           you will have to add them in now or you can obtain the original behaviour
+           by using %feature("compactdefaultargs").
+
+11/04/2004: wsfulton
+            [C#] Typemaps for std::vector added into std_vector.i. The proxy classes
+            generated are modelled on the .NET ArrayList class. This isn't quite
+            ready for general consumption yet, but will work with vectors of primitive
+            types and some classes.
 
 10/3/2004: wuzzeb (John Lenz)
             [GUILE] The -scm interface is now the default.  The old GH interface can
