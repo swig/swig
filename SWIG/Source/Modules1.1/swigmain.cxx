@@ -27,7 +27,7 @@ static char cvsroot[] = "$Header$";
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
-#include "mod11.h"
+#include "swig11.h"
 #include "tcl8.h"
 #include "python.h"
 

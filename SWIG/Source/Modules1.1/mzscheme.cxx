@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
  * Definitions for adding functions to Mzscheme 101
  ***********************************************************************/
 
-#include "mod11.h"
+#include "swig11.h"
 #include "mzscheme.h"
 
 static char *mzscheme_usage = (char*)"\
@@ -71,16 +71,6 @@ MZSCHEME::parse_args (int argc, char *argv[])
 	  Swig_arg_error();
 	}
       }
-      else if (strcmp (argv[i], "-module") == 0) {
-	if (argv[i + 1]) {
-	  set_module (argv[i + 1]);
-	  Swig_mark_arg (i);
-	  Swig_mark_arg (i + 1);
-	  ++i;
-	} else {
-	  Swig_arg_error();
-	}
-      }
     }
   }
 
@@ -97,81 +87,22 @@ MZSCHEME::parse_args (int argc, char *argv[])
   // Add a symbol for this module
 
   Preprocessor_define ((void *) "SWIGMZSCHEME",0);
-
-  // Set name of typemaps
-
-  typemap_lang = (char*)"mzscheme";
 }
 
 // --------------------------------------------------------------------
-// MZSCHEME::parse()
+// MZSCHEME::initialize()
 //
-// Parse the input file
-// --------------------------------------------------------------------
+// Output initialization code that registers functions with the
+// interface.
+// ---------------------------------------------------------------------
 
 void
-MZSCHEME::parse ()
+MZSCHEME::initialize (String *modname)
 {
   init_func_def = NewString("");
   printf ("Generating wrappers for Mzscheme\n");
-
   init_func_def = NewString("");
 
-  // Print out MZSCHEME specific headers
-
-  headers();
-
-  // Run the parser
-
-  yyparse();
-
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::set_module(char *mod_name)
-//
-// Sets the module name.
-// Does nothing if it's already set (so it can be overridden as a command
-// line option).
-//
-//----------------------------------------------------------------------
-
-void
-MZSCHEME::set_module (char *mod_name)
-{
-  if (module) {
-    printf ("module already set (%s), returning\n", module);
-    return;
-  }
-
-  module = new char [strlen (mod_name) + 1];
-  strcpy (module, mod_name);
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::set_init(char *iname)
-//
-// Sets the initialization function name.
-// Does nothing if it's already set
-//
-//----------------------------------------------------------------------
-
-void
-MZSCHEME::set_init (char *iname)
-{
-  abort ();                             // for now -ttn
-  set_module (iname);
-}
-
-// ---------------------------------------------------------------------
-// MZSCHEME::headers(void)
-//
-// Generate the appropriate header files for MZSCHEME interface.
-// ----------------------------------------------------------------------
-
-void
-MZSCHEME::headers (void)
-{
   Swig_banner (f_header);
 
   Printf (f_header, "/* Implementation : MZSCHEME */\n\n");
@@ -188,18 +119,12 @@ MZSCHEME::headers (void)
       SWIG_exit (1);
     }
   }
-}
 
-// --------------------------------------------------------------------
-// MZSCHEME::initialize()
-//
-// Output initialization code that registers functions with the
-// interface.
-// ---------------------------------------------------------------------
+  if (!module) {
+    module = new char[Len(modname)+1];
+    strcpy(module, Char(modname));
+  }
 
-void
-MZSCHEME::initialize (void)
-{
   Printf (f_init, "static void\nSWIG_init (void)\n{\n");
 }
 
@@ -305,7 +230,6 @@ MZSCHEME::function(DOH *node)
   Printv(f, "static Scheme_Object *",  wname, " (", 0);
   Printv(f, "int argc, Scheme_Object **argv", 0);
   Printv(f, ")\n{\n", 0);
-  Printf(f, "$locals\n");
 
   // Declare return variable and arguments
   // number of parameters
@@ -538,7 +462,7 @@ MZSCHEME::variable (DOH *node)
     //        Printf (f_wrappers, "\t\t GSWIG_ASSERT(0,\"Unable to set %s.  "
     //                 "Variable is read only.\", argv[0]);\n", iname);
     //      }
-    if (Status & STAT_READONLY) {
+    if (ReadOnly) {
       Printf (f_wrappers, "\t\t scheme_signal_error(\"Unable to set %s.  "
 	      "Variable is read only.\");\n", iname);
     }
@@ -607,9 +531,9 @@ MZSCHEME::variable (DOH *node)
 	   "), env);\n",0);
 
   } else {
-    Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
+    Printf (stderr, "%s:%d. ** Warning. Unable to link with "
 	    " type %s (ignored).\n",
-	    input_file, line_number, SwigType_manglestr(t));
+	    Getfile(node), Getline(node), SwigType_manglestr(t));
   }
   Delete(proc_name);
   Delete(argnum);
@@ -631,7 +555,7 @@ MZSCHEME::constant(DOH *node)
   SwigType *type;
   char   *value;
 
-  int OldStatus = Status;      // Save old status flags
+  int OldStatus = ReadOnly;      // Save old status flags
   char   var_name[256];
   String *proc_name = NewString("");
   String *rvalue = NewString("");
@@ -642,7 +566,7 @@ MZSCHEME::constant(DOH *node)
   type = Getattr(node,"type");
   value = GetChar(node,"value");
 
-  Status = STAT_READONLY;      // Enable readonly mode.
+  ReadOnly = 1;
 
   // Make a static variable;
 
@@ -653,8 +577,8 @@ MZSCHEME::constant(DOH *node)
   Replace(proc_name, "_", "-", DOH_REPLACE_ANY);
 
   if ((SwigType_type(type) == T_USER) && (!SwigType_ispointer(type))) {
-    fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
-	     input_file, line_number);
+    fprintf (stderr, "%s:%d.  Unsupported constant value.\n",
+	     Getfile(node), Getline(node));
     return;
   }
 
@@ -692,7 +616,7 @@ MZSCHEME::constant(DOH *node)
     Setattr(nnode,"name",var_name);
     variable (nnode);
     Delete(nnode);
-    Status = OldStatus;
+    ReadOnly = OldStatus;
   }
   Delete(proc_name);
   Delete(rvalue);

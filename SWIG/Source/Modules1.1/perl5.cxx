@@ -17,7 +17,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "mod11.h"
+#include "swig11.h"
 #include "perl5.h"
 
 static char *usage = (char*)"\
@@ -29,7 +29,6 @@ Perl5 Options (available with -perl5)\n\
      -shadow         - Create shadow classes.\n\
      -compat         - Compatibility mode.\n\n";
 
-static String *import_file = 0;
 static String *smodule = 0;
 static int     compat = 0;
 
@@ -109,17 +108,6 @@ PERL5::parse_args(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-	  } else if (strcmp(argv[i],"-module") == 0) {
-	    if (argv[i+1]) {
-	      module = NewString(argv[i+1]);
-	      Append(cmodule,module);
-	      Replace(cmodule,":","_",DOH_REPLACE_ANY);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
 	  } else if (strcmp(argv[i],"-exportall") == 0) {
 	      export_all = 1;
 	      Swig_mark_arg(i);
@@ -140,14 +128,15 @@ PERL5::parse_args(int argc, char *argv[]) {
 
   Preprocessor_define((void *) "SWIGPERL 1", 0);
   Preprocessor_define((void *) "SWIGPERL5 1", 0);
-  typemap_lang = (char*)"perl5";
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::parse()
+ * PERL5::initialize()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::parse() {
+PERL5::initialize(String *modname)
+{
+  char filen[256];
 
   classes = NewHash();
   symbols = NewHash();
@@ -175,55 +164,19 @@ PERL5::parse() {
     Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
     SWIG_exit (EXIT_FAILURE);
   }
-  yyparse();
-}
 
-
-/* -----------------------------------------------------------------------------
- * PERL5::set_module()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::set_module(char *mod_name) {
-  if (import_file) {
-    if (!(Cmp(import_file,input_file+strlen(input_file)-Len(import_file)))) {
-      if (blessed) {
-	Printf(f_pm,"require %s;\n", mod_name);
-      }
-      Delete(import_file);
-      import_file = 0;
-    }
-  }
-
-  if (module) return;
-
-  module = NewString(mod_name);
+  if (!module) module = NewString(modname);
 
   /* Create a C module name and put it in 'cmodule' */
-
   Clear(cmodule);
   Append(cmodule,module);
   Replace(cmodule,":","_",DOH_REPLACE_ANY);
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::initialize()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::initialize()
-{
-  char filen[256];
-
-  if (!module){
-    Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
 
   if (!package) {
     package = NewString(module);
   }
 
   /* If we're in blessed mode, change the package name to "packagec" */
-
   if (blessed) {
     realpackage = package;
     package = interface ? interface : NewStringf("%sc",package);
@@ -328,9 +281,10 @@ PERL5::initialize()
  * PERL5::import()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::import(char *filename) {
-  if (import_file) Delete(import_file);
-  import_file = NewString(filename);
+PERL5::import(String *modname) {
+  if (blessed) {
+    Printf(f_pm,"require %s;\n", modname);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -487,7 +441,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
  * PERL5::create_command()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::create_command(char *cname, char *iname) {
+PERL5::create_command(String *cname, String *iname) {
   Printf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(cname));
   if (export_all) {
     Printf(exported,"%s ",iname);
@@ -522,7 +476,6 @@ PERL5::function(DOH *node)
   outarg  = NewString("");
 
   Printv(f, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
-  Printf(f, "$locals\n");
 
   pcount = emit_args(node, f);
   numopt = check_numopt(l);
@@ -600,7 +553,7 @@ PERL5::function(DOH *node)
 	  break;
 
 	default :
-	  Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+	  Printf(stderr,"%s:%d. Unable to use type %s as a function argument.\n",Getfile(node), Getline(node), SwigType_str(pt,0));
 	  break;
 	}
       }
@@ -696,7 +649,7 @@ PERL5::function(DOH *node)
 	break;
 
       default :
-	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
+	Printf(stderr,"%s:%d. Unable to use return type %s in function %s.\n", Getfile(node), Getline(node), SwigType_str(d,0), name);
 	break;
       }
     }
@@ -878,9 +831,8 @@ void PERL5::variable(DOH *node) {
 
   /* Create a Perl function for setting the variable value */
 
-  if (!(Status & STAT_READONLY)) {
+  if (!ReadOnly) {
     Printf(setf,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
-    Printf(setf,"$locals\n");
     Printv(setf,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
@@ -961,7 +913,7 @@ void PERL5::variable(DOH *node) {
 	break;
 
       default :
-	Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, SwigType_str(t,0));
+	Printf(stderr,"%s:%d.  Unable to link with datatype %s (ignored).\n", Getfile(node), Getline(node), SwigType_str(t,0));
 	return;
       }
     }
@@ -974,7 +926,6 @@ void PERL5::variable(DOH *node) {
   /* Now write a function to evaluate the variable */
 
   Printf(getf,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
-  Printf(getf,"$locals\n");
   Printv(getf,
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "mg = mg;\n",
@@ -1059,7 +1010,7 @@ void PERL5::variable(DOH *node) {
   Printf(magic,"%s", getf);
 
   /* Now add symbol to the PERL interpreter */
-  if ((Status & STAT_READONLY) || (!setable)) {
+  if ((ReadOnly) || (!setable)) {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\",MAGIC_CAST MAGIC_CLASS swig_magic_readonly, MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
   } else {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\", MAGIC_CAST MAGIC_CLASS ", set_name, ", MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
@@ -1211,7 +1162,7 @@ PERL5::constant(DOH *node)
       break;
 
     default:
-      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+      Printf(stderr,"%s:%d. Unsupported constant value.\n", Getfile(node), Getline(node));
       break;
     }
   }
@@ -1335,9 +1286,14 @@ PERL5::nativefunction(DOH *node) {
  * PERL5::cpp_open_class()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
+PERL5::cpp_open_class(DOH *node) {
 
-  this->Language::cpp_open_class(classname, rname, ctype, strip);
+  this->Language::cpp_open_class(node);
+  
+  char *classname = GetChar(node,"name");
+  char *rname = GetChar(node,"scriptname");
+  char *ctype = GetChar(node,"classtype");
+
   if (blessed) {
     have_constructor = 0;
     have_destructor = 0;
@@ -1373,7 +1329,11 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     member_keys = NewString("");
 
     /* Add some symbols to the hash tables */
-    cpp_class_decl(Char(classname),Char(fullclassname),Char(ctype));
+    Hash *nnode = NewHash();
+    Setattr(nnode,"name", classname);
+    Setattr(nnode,"scriptname", fullclassname);
+    Setattr(nnode,"classtype", ctype);
+    cpp_class_decl(nnode);
   }
 }
 
@@ -1736,7 +1696,7 @@ PERL5::cpp_constructor(DOH *node) {
       return;
     }
     Setattr(symbols,cname, cname);
-    if ((Cmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
+    if ((Cmp(realname,class_name) == 0)) {
 
       /* Emit a blessed constructor  */
 
@@ -1851,25 +1811,26 @@ PERL5::cpp_staticfunction(DOH *node) {
  * PERL5::cpp_inherit()
  * ------------------------------------------------------------------------------ */
 void
-PERL5::cpp_inherit(char **baseclass, int) {
+PERL5::cpp_inherit(List *bases, int) {
+  String *base;
   char *bc;
-  int  i = 0, have_first = 0;
+  int   have_first = 0;
   if (!blessed) {
-    this->Language::cpp_inherit(baseclass);
+    this->Language::cpp_inherit(bases);
     return;
   }
 
   /* Inherit variables and constants from base classes, but not
      functions (since Perl can handle that okay). */
 
-  this->Language::cpp_inherit(baseclass, INHERIT_CONST | INHERIT_VAR);
+  this->Language::cpp_inherit(bases, INHERIT_CONST | INHERIT_VAR);
 
   /* Now tell the Perl5 module that we're inheriting from base classes */
 
   base_class = NewString("");
-  while (baseclass[i]) {
+  for (base = Firstitem(bases); base; base = Nextitem(bases)) {
     /* See if this is a class we know about */
-    String *b = NewString(baseclass[i]);
+    String *b = NewString(base);
     bc = Char(is_shadow(b));
     Delete(b);
     if (bc) {
@@ -1877,7 +1838,6 @@ PERL5::cpp_inherit(char **baseclass, int) {
       Printf(base_class,bc);
       have_first = 1;
     }
-    i++;
   }
   if (!have_first) {
     Delete(base_class);
@@ -1923,15 +1883,18 @@ PERL5::cpp_constant(DOH *node) {
  * PERL5::cpp_class_decl()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::cpp_class_decl(char *name, char *rename, char *type) {
+PERL5::cpp_class_decl(DOH *node) {
+  String *name = Getname(node);
+  String *rename = Getattr(node,"scriptname");
+  String *ctype = Getattr(node,"classtype");
   String *stype;
   if (blessed) {
     stype = NewString(name);
     SwigType_add_pointer(stype);
     Setattr(classes,stype,rename);
     Delete(stype);
-    if (strlen(type) > 0) {
-      stype = NewStringf("%s %s",type,name);
+    if (Len(ctype) > 0) {
+      stype = NewStringf("%s %s",ctype,name);
       SwigType_add_pointer(stype);
       Setattr(classes,stype,rename);
       Delete(stype);
@@ -1943,11 +1906,15 @@ PERL5::cpp_class_decl(char *name, char *rename, char *type) {
  * PERL5::add_typedef()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::add_typedef(SwigType *t, char *name) {
+PERL5::add_typedef(SwigType *t, String *name) {
 
   if (!blessed) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)),"");
+    DOH *node = NewHash();
+    Setattr(node,"name",name);
+    Setattr(node,"scriptname", is_shadow(t));
+    Setattr(node,"classtype","");
+    cpp_class_decl(node);
   }
 }
 
@@ -1961,28 +1928,26 @@ PERL5::add_typedef(SwigType *t, char *name) {
  * %pragma(perl5) include="file.pl"          # Includes a file in the .pm file
  * ----------------------------------------------------------------------------- */
 
-void PERL5::pragma(char *lang, char *code, char *value) {
-  if (strcmp(lang,"perl5") == 0) {
-    if (strcmp(code,"code") == 0) {
-      /* Dump the value string into the .pm file */
-      if (value) {
-	Printf(pragma_include, "%s\n", value);
-      }
-    } else if (strcmp(code,"include") == 0) {
-      /* Include a file into the .pm file */
-      if (value) {
-	FILE *f = Swig_open(value);
-	if (!f) {
-	  Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
-	} else {
-	  char buffer[4096];
-	  while (fgets(buffer,4095,f)) {
-	    Printf(pragma_include,"%s",buffer);
-	  }
+void PERL5::pragma(DOH *node) {
+  String *name = Getattr(node,"name");
+  String *value = Getattr(node,"value");
+  if (Cmp(name,"code") == 0) {
+    /* Dump the value string into the .pm file */
+    if (value) {
+      Printf(pragma_include, "%s\n", value);
+    }
+  } else if (Cmp(name,"include") == 0) {
+    /* Include a file into the .pm file */
+    if (value) {
+      FILE *f = Swig_open(value);
+      if (!f) {
+	Printf(stderr,"%s:%d. Unable to locate file %s\n", Getfile(node), Getline(node),value);
+      } else {
+	char buffer[4096];
+	while (fgets(buffer,4095,f)) {
+	  Printf(pragma_include,"%s",buffer);
 	}
       }
-    } else {
-      Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
     }
   }
 }
