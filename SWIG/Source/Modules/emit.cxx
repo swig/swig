@@ -386,7 +386,6 @@ void emit_action(Node *n, Wrapper *f) {
   String *tm;
   String *action;
   String *wrap;
-  Parm   *p;
   SwigType *rt;
   ParmList *throws = Getattr(n,"throws");
 
