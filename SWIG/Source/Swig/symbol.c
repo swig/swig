@@ -624,7 +624,10 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n,"sym:symtab",current_symtab);
     Setattr(n,"sym:name",symname);
+    /* Printf(stdout,"%s %x\n", Getattr(n,"sym:overname"), current_symtab); */
+    assert(!Getattr(n,"sym:overname"));
     Setattr(n,"sym:overname", NewStringf("__SWIG_%d", pn));
+    /*Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
     Setattr(cl,"sym:nextSibling",n);
     Setattr(n,"sym:previousSibling",cl);
     Setattr(cl,"sym:overloaded",c);
@@ -635,7 +638,9 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   /* No conflict.  Just add it */
   Setattr(n,"sym:symtab",current_symtab);
   Setattr(n,"sym:name",symname);
+  /* Printf(stdout,"%s\n", Getattr(n,"sym:overname")); */
   Setattr(n,"sym:overname", NewStringf("__SWIG_%d", pn));
+  /* Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
   Setattr(current,symname,n);
   return n;
 }
@@ -1004,9 +1009,48 @@ Swig_symbol_remove(Node *n) {
       Delattr(symtab,symname);
     }
   }
+  if (symnext) {
+    if (symprev) {
+      Setattr(symnext,"sym:previousSibling",symprev);
+    } else {
+      Delattr(symnext,"sym:previousSibling");
+    }
+  }
   Delattr(n,"sym:symtab");
   Delattr(n,"sym:previousSibling");
   Delattr(n,"sym:nextSibling");
+  Delattr(n,"csym:nextSibling");
+  Delattr(n,"sym:overname");
+  Delattr(n,"csym:previousSibling");
+  Delattr(n,"sym:overloaded");
+  return;
+
+
+  symtab  = Getattr(n,"sym:symtab");        /* Get symbol table object */
+  symtab  = Getattr(symtab,"csymtab");       /* Get actual hash table of symbols */
+  symprev = Getattr(n,"csym:previousSibling");
+  symnext = Getattr(n,"csym:nextSibling");
+
+  /* If previous symbol, just fix the links */
+  if (symprev) {
+    if (symnext) {
+      Setattr(symprev,"csym:nextSibling",symnext);
+    } else {
+      Delattr(symprev,"csym:nextSibling");
+    }
+  } else {
+    /* If no previous symbol, see if there is a next symbol */
+    if (symnext) {
+      Setattr(symtab,Getattr(n,"name"),symnext);
+    } else {
+      Delattr(symtab,Getattr(n,"name"));
+    }
+  }
+
+  Delattr(n,"sym:symtab");
+  Delattr(n,"csym:previousSibling");
+  Delattr(n,"csym:nextSibling");
+
 }
 
 /* -----------------------------------------------------------------------------
