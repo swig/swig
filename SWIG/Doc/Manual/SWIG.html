@@ -150,13 +150,18 @@ command line, it overrides the name specified with the
 <tt>%module</tt> directive.
 
 <p>
-Everything in the <tt>%{ ... %}</tt> block is simply copied to the
-resulting output file.  The enclosed text is not parsed or interpreted
-by SWIG.  Although the use of a <tt>%{,%}</tt> block is optional, most
-interface files have one to include header files and other supporting
-C declarations.  The <tt>%{...%}</tt> syntax and
-semantics in SWIG is analogous to that of the declarations section used
-in input files to parser generation tools such as yacc or bison.
+Everything in the <tt>%{ ... %}</tt> block is simply copied verbatim
+to the resulting wrapper file created by SWIG.  This section is almost
+always used to include header files and other declarations that are
+required to make the generated wrapper code compile.  It is important
+to emphasize that just because you include a declaration in a SWIG
+input file, that declaration does <em>not</em> automatically appear in
+the generated wrapper code---therefore you need to make sure you
+include the proper header files in the <tt>%{ ... %}</tt> section.  It
+should be noted that the text enclosed in <tt>%{ ... %}</tt> is not
+parsed or interpreted by SWIG.  The <tt>%{...%}</tt> syntax and
+semantics in SWIG is analogous to that of the declarations section
+used in input files to parser generation tools such as yacc or bison.
 
 <a name="n4"></a><H3>4.1.2 SWIG Output</H3>
 
