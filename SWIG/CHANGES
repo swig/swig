@@ -17,6 +17,32 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/9/2001: beazley
+           SWIG now generates wrappers that properly disambiguate
+           overloaded methods that only vary in constness.  For
+           example:
+
+               class Foo {
+                  ...
+                  void blah();
+                  void blah() const;
+                  ...
+               };
+
+           To handle this, the %rename directive can be used normally.
+           
+               %rename(blah_const) blah() const;
+
+           In the resulting wrapper code, method calls like this
+           are now generated:
+
+               (obj)->blah()               // Non-const version
+               ((Foo const *)obj)->blah()  // const version
+
+           This should force the right method to be invoked.
+           Admittedly, this is probably obscure, but we might
+           as well get it right.
+
 10/8/2001: beazley
            The preprocessor now ignores '\r' in the input.
            This should fix the following bug:
