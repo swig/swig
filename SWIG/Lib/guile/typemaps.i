@@ -82,7 +82,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype($1);
+  resultptr = new $1_ltype(($1_ltype &) $1);
   $result =  SWIG_Guile_MakePtr (resultptr, $&1_descriptor);
 } 
 #else

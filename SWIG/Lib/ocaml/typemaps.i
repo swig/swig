@@ -62,7 +62,7 @@
 }
 
 %typemap(ocaml,out) SWIGTYPE {
-    $&1_type temp = new $type( $1 );
+    $&1_type temp = new $type(($1_ltype &) $1 );
     $result = SWIG_MakePtr ((void *)temp, $descriptor, 
 			    "$delete_fn" );
 }

@@ -58,6 +58,22 @@
 
 #endif
 
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result =  SWIG_MakePtr (resultptr, $&1_descriptor);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_MakePtr(resultptr, $&1_descriptor);
+}
+#endif
+
 /* Arrays */
 
 %typemap(in) SWIGTYPE[] {

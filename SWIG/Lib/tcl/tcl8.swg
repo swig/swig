@@ -158,7 +158,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype($1);
+  resultptr = new $1_ltype(($1_ltype &) $1);
   Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor,0));
 }
 #else

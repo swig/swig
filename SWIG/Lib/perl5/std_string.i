@@ -28,17 +28,23 @@ namespace std {
     %typemap(typecheck) const string & = char *;
 
     %typemap(in) string {
-        if (!SvOK((SV*) $input)) 
+        if (!SvOK((SV*) $input)) {
             $1 = std::string();
-        else 
-            $1 = std::string((char *) SvPV($input, PL_na));
+        } else {
+            STRLEN len;
+            char  *ptr = SvPV($input,len);
+            $1 = std::string(ptr,len);
+        }
     }
 
-    %typemap(in) const string & (std::string temp) {
-        if (!SvOK((SV*) $input)) 
+    %typemap(in) string *INPUT(std::string temp), const string & (std::string temp) {
+        if (!SvOK((SV*) $input)) {
             temp = std::string();
-        else 
-            temp = std::string((char *) SvPV($input, PL_na));
+        } else {
+            STRLEN len;
+            char *ptr = SvPV($input,len);
+            temp.assign(ptr,len);
+        }
         $1 = &temp;
     }
 

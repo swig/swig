@@ -394,7 +394,7 @@ $1 = &temp; %}
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{$&1_ltype $1ptr = new $1_ltype($1);
+%{$&1_ltype $1ptr = new $1_ltype(($1_ltype &)$1);
   *($&1_ltype*)&$result = $1ptr; %}
 #else
 {

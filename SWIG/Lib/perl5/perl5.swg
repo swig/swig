@@ -133,7 +133,7 @@
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 {
-  $&1_ltype resultobj = new $1_ltype($1);
+  $&1_ltype resultobj = new $1_ltype(($1_ltype &)$1);
   ST(argvi) = sv_newmortal();
   SWIG_MakePtr(ST(argvi++), (void *) resultobj, $&1_descriptor,0);
 }
