@@ -60,8 +60,6 @@ static int check_implemented(Node *n) {
 
 class Allocate : public Dispatcher {
   Node  *inclass;
-  enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
-  AccessMode cplus_mode;
   int extendmode;
 
   /* Checks if a virtual function is the same as inherited from the bases */
@@ -368,6 +366,10 @@ class Allocate : public Dispatcher {
   }
 
 public:
+  Allocate() :
+    inclass(NULL),
+    extendmode(0) {}
+
   virtual int top(Node *n) {
     cplus_mode = PUBLIC;
     inclass = 0;

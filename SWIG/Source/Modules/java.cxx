@@ -19,11 +19,6 @@ char cvsroot_java_cxx[] = "$Header$";
 /* Hash type used for JNI upcall data */
 typedef DOH UpcallData;
 
-// temporary hack start
-#define CPLUS_PUBLIC     0
-extern int cplus_mode;
-// temporary hack end
-
 class JAVA : public Language {
   static const char *usage;
   const  String *empty_string;
@@ -1060,7 +1055,7 @@ class JAVA : public Language {
   virtual int enumDeclaration(Node *n) {
 
     if (!ImportMode) {
-      if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+      if (getCurrentClass() && (cplus_mode != PUBLIC)) return SWIG_NOWRAP;
 
       enum_code = NewString("");
       String *symname = Getattr(n,"sym:name");
@@ -1177,7 +1172,7 @@ class JAVA : public Language {
    * ---------------------------------------------------------------------- */
 
   virtual int enumvalueDeclaration(Node *n) {
-    if (getCurrentClass() && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+    if (getCurrentClass() && (cplus_mode != PUBLIC)) return SWIG_NOWRAP;
 
     Swig_require("enumvalueDeclaration",n,"*name", "?value",NIL);
     String *symname = Getattr(n,"sym:name");
