@@ -1410,7 +1410,7 @@ cpp_class_decl  :
 		 char *name = $3;
 		 if ($9) {
 		   SwigType *decltype = Getattr($9,"decl");
-		   if (strcmp($1,"typedef") == 0) {
+		   if (Cmp($1,"typedef") == 0) {
 		     if (!decltype || !Len(decltype)) {
 		       name = Char(Getname($9));
 		       Setattr($$,"tdname",name);
