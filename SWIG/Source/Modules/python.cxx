@@ -1475,7 +1475,7 @@ public:
     }
     int assignable = is_assignable(n);
 
-    if ((shadow) && assignable) {
+    if ((shadow) && !assignable) {
       if (!in_class) {
 	Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
       }
