@@ -1,7 +1,9 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-CHICKGEN   = csi.o precsi.o oexample.o example_wrap.cxx
-SRCS       = $(CHICKGEN) example.cxx
+CHICKSRCS  = precsi.c oexample.c
+SRCS       =
+CXXSRCS    = example_wrap.cxx example.cxx
+CHICKGEN   = $(CHICKSRCS) csi.c example_wrap.cxx
 TARGET     = class
 INCLUDE    =
 SWIGOPT    = 
@@ -9,9 +11,6 @@ CFLAGS     =
 
 all:: $(TARGET) example_generic.scm example_clos.scm
 
-.c.o:
-	$(MAKE) -f $(TOP)/Makefile CFLAGS='$$(CHICKEN_CFLAGS) $(CFLAGS)' TARGET='$@' \
-		INCLUDE='$(INCLUDE)' INTERFACE='$<' compile
 csi.c:
 	$(MAKE) -f $(TOP)/Makefile TARGET='csi.c' \
 		INTERFACE='precsi' chicken_csi
@@ -28,14 +27,21 @@ oexample.c: example.scm
 	$(MAKE) -f $(TOP)/Makefile TARGET='oexample.c' \
 		INTERFACE='$<' chicken
 
-$(TARGET): $(SRCS)
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+$(TARGET): csi.c $(CHICKSRCS) $(SRCS) $(CXXSRCS)
+	$(MAKE) -f $(TOP)/Makefile \
+		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
 		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' \
-		INTERFACE='$(INTERFACE)' chicken_cpp_static
+		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_static
+
+module:: $(CHICKSRCS) $(SRCS) $(CXXSRCS)
+	$(MAKE) -f $(TOP)/Makefile \
+		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
+		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='module' \
+		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_module
 
 clean::
-	rm -f *_wrap* *.o core *~ *.so *.stackdump STACKTRACE
-	rm -f $(CHICKGEN) csi.c precsi.c oexample.c
+	$(MAKE) -f $(TOP)/Makefile chicken_clean
+	rm -f $(CHICKGEN)
 	rm -f example.scm example_generic.scm example_clos.scm
 	rm -f $(TARGET)
 
