@@ -141,7 +141,7 @@ GUILE::parse_args (int argc, char *argv[])
   // Make sure `prefix' ends in an underscore
 
   orig_len = strlen (prefix);
-  if (prefix[orig_len] != '_') {
+  if (prefix[orig_len - 1] != '_') {
     prefix[1 + orig_len] = 0;
     prefix[orig_len] = '_';
   }
