@@ -371,7 +371,7 @@ class Allocate : public Dispatcher {
       }
       Node *c = Swig_symbol_clookup(t,0);
       if (c) {
-	Setattr(c,"cplus:exceptionclass","1");
+	Setattr(c,"feature:exceptionclass","1");
       }
       p = nextSibling(p);
     }

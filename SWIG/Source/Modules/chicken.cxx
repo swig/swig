@@ -1178,7 +1178,7 @@ CHICKEN::classHandler(Node *n)
   /* Create new strings for building up a wrapper function */
   have_constructor = 0;
       
-  if (Getattr(n,"cplus:exceptionclass")) {
+  if (Getattr(n,"feature:exceptionclass")) {
     classic = 1;
   }
 
