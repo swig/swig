@@ -668,6 +668,24 @@ expand_macro(String_or_char *name, List *args)
 }
 
 /* -----------------------------------------------------------------------------
+ * evaluate_args()
+ *
+ * Evaluate the arguments of a macro 
+ * ----------------------------------------------------------------------------- */
+
+List *evaluate_args(List *x) {
+  String *a,*na;
+  String *Preprocessor_replace(String *);
+
+  List *nl = NewList();
+  
+  for (a = Firstitem(x); a; a = Nextitem(x)) {
+    Append(nl,Preprocessor_replace(a));
+  }
+  return nl;
+}
+
+/* -----------------------------------------------------------------------------
  * DOH *Preprocessor_replace(DOH *s)
  *
  * Performs a macro substitution on a string s.  Returns a new string with
@@ -784,6 +802,12 @@ Preprocessor_replace(DOH *s)
 	  } else {
 	    args = 0;
 	  }
+	  if (args) {
+	    List *nargs = evaluate_args(args);
+	    Delete(args);
+	    args = nargs;
+	  }
+
 	  e = expand_macro(id,args);
 	  if (e) {
 	    Printf(ns,"%s",e);
