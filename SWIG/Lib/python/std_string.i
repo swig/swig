@@ -16,56 +16,38 @@
 #include <string>
 %}
 
-/* defining the std::string as/from/check methods */
 
-%fragment("SWIG_TryStdString","header",
-	  fragment="SWIG_AsCharPtrAndSize") %{
+/* defining the std::string as/from methods */
+
+%fragment(SWIG_AsVal_frag(std::string),"header",
+	  fragment="SWIG_AsCharPtrAndSize") {
 SWIGSTATICINLINE(int)
-SWIG_TryStdString(PyObject* obj, char*& buf, size_t& size) {
-  SWIG_AsCharPtrAndSize(obj, &buf, &size);
-  if (PyErr_Occurred() || !buf) {
-    if (PyErr_Occurred()) PyErr_Clear();
-    return 0;
-  }
-  return 1;
-}
-%}
-
-%fragment("SWIG_CheckStdString","header",
-	  fragment="SWIG_TryStdString") %{
-SWIGSTATICINLINE(int)
-SWIG_CheckStdString(PyObject* obj) {
+  SWIG_AsVal_meth(std::string)(PyObject* obj, std::string *val)
+{
   char* buf = 0 ; size_t size = 0;
-  return SWIG_TryStdString(obj, buf, size);
-}
-%}
-
-
-%fragment("SWIG_AsStdString","header",
-	  fragment="SWIG_TryStdString") %{
-SWIGSTATICINLINE(std::string)
-SWIG_AsStdString(PyObject* obj) {
-  char* buf = 0 ; size_t size = 0;
-  if (SWIG_TryStdString(obj, buf, size)) {
-    return std::string(buf, size);
+  if (SWIG_AsCharPtrAndSize(obj, &buf, &size)) {
+    if (buf) {
+      if (val) val->assign(buf, size);
+      return 1;
+    }
   } else {
+    PyErr_Clear();
+  }  
+  if (val) {
     PyErr_SetString(PyExc_TypeError,"a string is expected");
-    return std::string();
   }
+  return 0;
 }
-%}
+}
 
-%fragment("SWIG_FromStdString","header",
-	  fragment="SWIG_FromCharArray") %{
+%fragment(SWIG_From_frag(std::string),"header",
+	  fragment="SWIG_FromCharArray") {
 SWIGSTATICINLINE(PyObject*)
-SWIG_FromStdString(const std::string& s) {
+  SWIG_From_meth(std::string)(const std::string& s) {
   return SWIG_FromCharArray(s.data(), s.size());
 }
-%}
+}
+
+%typemap_primitive(SWIG_CCode(STRING),  std::string);
 
 /* declaring the typemaps */
-
-%typemap_asfromcheck(std::string, STRING,
-		     SWIG_AsStdString,
-		     SWIG_FromStdString,
-		     SWIG_CheckStdString);

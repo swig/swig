@@ -3,23 +3,21 @@
 
 %include "complex_common.i"
 
-
 %{
 #include <complex> 
 %}
 
 /* defining the complex as/from converters */
 
-%swig_cplxdbl_conv(std::complex<double>, StdCplxDbl,
-		   std::complex<double>, std::real, std::imag)
+%swig_cplxdbl_convn(std::complex<double>, 
+		    std::complex<double>, std::real, std::imag)
 
-%swig_cplxflt_conv(std::complex<float>, StdCplxFlt,
-		   std::complex<float>, std::real, std::imag)
+%swig_cplxflt_convn(std::complex<float>, 
+		    std::complex<float>, std::real, std::imag)
 
-/* declaring the typemaps */
 
-%typemap_stype(std::complex<double>, CPLXDBL, StdCplxDbl);
-%typemap_stype(std::complex<float>,  CPLXFLT, StdCplxFlt);
+%typemap_primitive(SWIG_CCode(CPLXDBL), std::complex<double>);
+%typemap_primitive(SWIG_CCode(CPLXFLT), std::complex<float>);
 
 
 #endif //SWIG_STD_COMPLEX_I_

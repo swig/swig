@@ -4,7 +4,7 @@
 
 /* Pointers, references, and arrays */
 
-%typemap(in) SWIGTYPE *, SWIGTYPE [] 
+%typemap(in) SWIGTYPE *, SWIGTYPE []
   "if ((SWIG_ConvertPtr($input,(void **)(&$1),$1_descriptor,
              SWIG_POINTER_EXCEPTION | $disown)) == -1) SWIG_fail;";
 

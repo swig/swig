@@ -16,7 +16,7 @@ SWIG_AsArgcArgv(PyObject* input,
     int list = PyList_Check(input);
     if (list || PyTuple_Check(input)) {
       *argc = list ? PyList_Size(input) : PyTuple_Size(input);
-      argv = swig_new_array(char*, *argc + 1);
+      argv = swig_new_array(*argc + 1, char*);
       *owner = 1;
       for (; i < *argc; ++i) {
 	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);

@@ -19,37 +19,8 @@
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
 
-%{
-/* Auxiliar swig  macros */
+%include "pymacros.swg"
 
-#ifdef __cplusplus
-#define SWIGSTATICINLINE(a) static inline a
-#define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) (new type[(size)])
-#define swig_delete_array(cptr) delete[] cptr
-#define swig_const_cast(type,a) const_cast<type>(a)
-#define swig_static_cast(type,a) static_cast<type>(a)
-#define swig_reinterpret_cast(type,a) reinterpret_cast<type>(a)
-
-#ifdef HAVE_NUMERIC_CAST
-#define swig_numeric_cast(type,a) numeric_cast<type>(a)
-#else
-#define swig_numeric_cast(type,a) static_cast<type>(a)
-#endif
-
-#else /* C case */
-
-#define SWIGSTATICINLINE(a) static a
-#define SWIGSTATIC(a) static a
-#define swig_new_array(type, size) ((type*) malloc((size)*sizeof(type)))
-#define swig_delete_array(cptr) free((char*)cptr)
-#define swig_const_cast(type,a) (type)(a)
-#define swig_static_cast(type,a) (type)(a)
-#define swig_reinterpret_cast(type,a) (type)(a)
-#define swig_numeric_cast(type,a) (type)(a)
-
-#endif /* __cplusplus */
-%}
 
 /* -----------------------------------------------------------------------------
  *  SWIGTYPE typemaps
@@ -110,3 +81,4 @@ SWIGEXPORT(void) SWIG_init(void) {
   }
   SWIG_InstallConstants(d,swig_const_table);
 %}
+

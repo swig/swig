@@ -8,6 +8,7 @@
  *  ISO C99:  7.3 Complex arithmetic <complex.h>
  */
 
+%fragment("<complex.h>","header")
 %{
 #include <complex.h>
 %}
@@ -25,15 +26,12 @@
 /* C complex constructor */
 #define CCplxConst(r, i) ((r) + I*(i))
 
-%swig_cplxflt_conv(float_complex, CCplxFlt, 
-		   CCplxConst, creal, cimag);
-
-%swig_cplxdbl_conv(double_complex, CCplxDbl, 
-		   CCplxConst, creal, cimag);
+%swig_cplxflt_convn(float_complex, CCplxConst, creal, cimag);
+%swig_cplxdbl_convn(double_complex, CCplxConst, creal, cimag);
 
 /* declaring the typemaps */
-%typemap_stype(float_complex,  CPLXFLT, CCplxFlt);
-%typemap_stype(double_complex, CPLXDBL, CCplxDbl);
+%typemap_primitive(SWIG_TYPECHECK_CPLXFLT, float_complex);
+%typemap_primitive(SWIG_TYPECHECK_CPLXDBL, double_complex);
 
 %apply double_complex { complex };
 

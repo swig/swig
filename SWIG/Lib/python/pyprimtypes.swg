@@ -8,357 +8,577 @@
   methods. In the other cases, some extra work is needed.
 */
 
-/*
-  no wrapped found needed here... yet,
-  and we define the names  SWIG for consistency
- */ 
 
-%{
-#define SWIG_FromSignedChar     PyInt_FromLong
-#define SWIG_FromUnsignedChar   PyInt_FromLong
-#define SWIG_FromShort         PyInt_FromLong
-#define SWIG_FromUnsignedShort  PyInt_FromLong
-#define SWIG_FromInt           PyInt_FromLong
-#define SWIG_FromLong          PyInt_FromLong
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
-#define SWIG_FromFloat         PyFloat_FromDouble
-#define SWIG_FromDouble        PyFloat_FromDouble
-%}
+%insert(header) {
+SWIG_define(SWIG_From_meth(signed char),    PyInt_FromLong);
+SWIG_define(SWIG_From_meth(unsigned char),  PyInt_FromLong);
+SWIG_define(SWIG_From_meth(short),          PyInt_FromLong);
+SWIG_define(SWIG_From_meth(unsigned short), PyInt_FromLong);
+SWIG_define(SWIG_From_meth(int),            PyInt_FromLong);
+SWIG_define(SWIG_From_meth(long),           PyInt_FromLong);
+SWIG_define(SWIG_From_meth(float),          PyFloat_FromDouble);
+SWIG_define(SWIG_From_meth(double),         PyFloat_FromDouble);
+SWIG_define(SWIG_From_meth(float),          PyFloat_FromDouble);
+SWIG_define(SWIG_From_meth(double),         PyFloat_FromDouble);
+}
 
 %fragment("<limits.h>","header") %{
 #include <limits.h>
 %}
 
-%fragment("SWIG_AsUnsignedLong","header") %{
-SWIGSTATICINLINE(unsigned long)
-SWIG_AsUnsignedLong(PyObject * obj) 
+%fragment(SWIG_AsVal_frag(unsigned long),"header") {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(unsigned long)(PyObject * obj, unsigned long *val) 
 {
   if (PyLong_Check(obj)) {
-    return PyLong_AsUnsignedLong(obj);
-  } else {
-    long i = PyInt_AsLong(obj);
-    if ( !PyErr_Occurred() && (i < 0)) {
-      PyErr_SetString(PyExc_TypeError, "negative value for unsigned type");
-    }
-    return i;
+    if (val) *val = PyLong_AsUnsignedLong(obj);
+    return 1;
+  } 
+  if (PyInt_Check(obj)) {
+    long v = PyInt_AsLong(obj);
+    if (v >= 0) {
+      if (val) *val = v;
+      return 1;
+    }   
   }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a unsigned long is expected");
+  }
+  return 0;
 }
-%}
+}
 
 %fragment("SWIG_CheckLongInRange","header",
-	  fragment="<limits.h>") %{
-SWIGSTATICINLINE(long)
-SWIG_CheckLongInRange(long value, const char* type,
-		      long min_value, long max_value)
+	  fragment="<limits.h>") {
+SWIGSTATICINLINE(int)
+  SWIG_CheckLongInRange(long value, long min_value, long max_value,
+			const char *errmsg)
 {
-  if (!PyErr_Occurred()) {
-    if (value < min_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is less than '%s' minimum %ld", 
-			    value, type, min_value);
-      
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
-    } else if (value > max_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is greater than '%s' maximum %ld", 
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
+  if (value < min_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError, 
+		   "value %ld is less than '%s' minimum %ld", 
+		   value, errmsg, min_value);
     }
+    return 0;    
+  } else if (value > max_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError,
+		   "value %ld is greater than '%s' maximum %ld", 
+		   value, errmsg, max_value);
+    }
+    return 0;
   }
-  return value;
+  return 1;
 }
-%}
+}
 
 %fragment("SWIG_CheckUnsignedLongInRange","header",
-	  fragment="<limits.h>") %{
-SWIGSTATICINLINE(unsigned long)
-SWIG_CheckUnsignedLongInRange(unsigned long value, const char* type,
-			      unsigned long max_value) 
+	  fragment="<limits.h>") {
+SWIGSTATICINLINE(int)
+  SWIG_CheckUnsignedLongInRange(unsigned long value,
+				unsigned long max_value,
+				const char *errmsg) 
 {
-  if (!PyErr_Occurred()) {
-    if (value > max_value) {     
-      PyObject *err =
-	PyString_FromFormat("value %ld is greater than '%s' minimum %ld",
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
+  if (value > max_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError,
+		   "value %ld is greater than '%s' minimum %ld",
+		   value, errmsg, max_value);
     }
+    return 0;
   }
-  return value;
+  return 1;
+ }
 }
-%}
 
 
-%fragment("SWIG_AsDouble","header") %{
-SWIGSTATICINLINE(double)
-SWIG_AsDouble(PyObject *obj)
+%fragment(SWIG_AsVal_frag(double),"header") {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(double)(PyObject *obj, double *val)
 {
-  double val = (PyFloat_Check(obj)) ? PyFloat_AsDouble(obj) :
-#if HAVE_LONG_LONG
-    ((PyInt_Check(obj)) ? PyInt_AsLong(obj) : PyLong_AsLongLong(obj));
-#else
-    ((PyInt_Check(obj)) ? PyInt_AsLong(obj) : PyLong_AsLong(obj));
-#endif
-  if (PyErr_Occurred()) {
-    PyErr_Clear();
+  if (PyFloat_Check(obj)) {
+    if (val) *val = PyFloat_AsDouble(obj);
+    return 1;
+  }  
+  if (PyLong_Check(obj)) {
+    if (val) *val = PyLong_AsDouble(obj);
+    return 1;
+  }
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return 1;
+  }
+  if (val) {
     PyErr_SetString(PyExc_TypeError, "a double is expected");
   }
-  return val;
+  return 0;
 }
-%}
+}
 
-%fragment("SWIG_AsLong","header") %{
-SWIGSTATICINLINE(long)
-SWIG_AsLong(PyObject * obj)
+%fragment(SWIG_AsVal_frag(long),"header") {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(long)(PyObject * obj, long* val)
 {
-  return PyInt_Check(obj) ? PyInt_AsLong(obj) : PyLong_AsLong(obj);
+  if (PyLong_Check(obj)) {
+    if (val) *val = PyLong_AsLong(obj);
+    return 1;
+  }
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return 1;
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a long is expected");
+  }
+  return 0;
+ }
 }
-%}
 
-%fragment("SWIG_FromLongLong","header",
-	  fragment="<limits.h>") %{
+
+%fragment(SWIG_From_frag(long long),"header",
+	  fragment="<limits.h>") {
 SWIGSTATICINLINE(PyObject* )
-SWIG_FromLongLong(long long value)
+  SWIG_From_meth(long long)(long long value)
 {
   return (value > LONG_MAX) ?
     PyLong_FromLongLong(value)
-    : PyInt_FromLong(swig_numeric_cast(long,value)); 
+    : PyInt_FromLong(swig_numeric_cast(value,long)); 
 }
-%}
+}
 
-%fragment("SWIG_FromUnsignedLongLong","header",
-	  fragment="<limits.h>") %{
+
+%fragment(SWIG_From_frag(unsigned long long),"header",
+	  fragment="<limits.h>") {
 SWIGSTATICINLINE(PyObject* )
-SWIG_FromUnsignedLongLong(unsigned long long value)
+  SWIG_From_meth(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
     PyLong_FromUnsignedLongLong(value) : 
-    PyInt_FromLong(swig_numeric_cast(long, value)); 
+    PyInt_FromLong(swig_numeric_cast(value,long)); 
 }
-%}
+}
 
-%fragment("SWIG_AsLongLong","header") %{
-SWIGSTATICINLINE(long long)
-SWIG_AsLongLong(PyObject *obj)
+%fragment(SWIG_AsVal_frag(long long),"header") {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(long long)(PyObject *obj, long long *val)
 {
-  return PyInt_Check(obj) ? 
-    PyInt_AsLong(obj) : PyLong_AsLongLong(obj);
+  if (PyLong_Check(obj)) {
+    if (val) *val = PyLong_AsLongLong(obj);
+    return 1;
+  }
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return 1;
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a long long is expected");
+  }
+  return 0;
 }
-%}
+}
 
-%fragment("SWIG_AsUnsignedLongLong","header",
-	  fragment="SWIG_AsUnsignedLong") %{
-SWIGSTATICINLINE(unsigned long long)
-SWIG_AsUnsignedLongLong(PyObject *obj)
+%fragment(SWIG_AsVal_frag(unsigned long long),"header",
+	  fragment=SWIG_AsVal_frag(unsigned long)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
-  return PyLong_Check(obj) ?
-    PyLong_AsUnsignedLongLong(obj) : SWIG_AsUnsignedLong(obj);
+  if (PyLong_Check(obj)) {
+    if (val) *val = PyLong_AsUnsignedLongLong(obj);
+    return 1;
+  }
+  unsigned long v;
+  if (SWIG_AsVal_meth(unsigned long)(obj,&v)) {
+    if (val) *val = v;
+    return 1;
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a long long is expected");
+  }  
+  return 0;
 }
-%}
+}
 
-%fragment("SWIG_FromUnsignedLong","header") %{
+%fragment(SWIG_From_frag(unsigned long),"header") {
 SWIGSTATICINLINE(PyObject* )
-SWIG_FromUnsignedLong(unsigned long value)
+  SWIG_From_meth(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
     PyLong_FromUnsignedLong(value) 
-    : PyInt_FromLong(swig_numeric_cast(long,value)); 
+    : PyInt_FromLong(swig_numeric_cast(value,long)); 
 }
-%}
+}
 
-%fragment("SWIG_AsSignedChar","header",
+%fragment(SWIG_AsVal_frag(signed char),"header",
 	  fragment="SWIG_CheckLongInRange",
-	  fragment="SWIG_AsLong") %{
-SWIGSTATICINLINE(signed char)
-SWIG_AsSignedChar(PyObject *obj)
-{ 
-  return swig_numeric_cast(signed char,
-    SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			  "signed char", SCHAR_MIN, SCHAR_MAX));
+	  fragment=SWIG_AsVal_frag(long)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(signed char)(PyObject *obj, signed char *val)
+{
+  const char* errmsg = val ? "signed char" : 0;
+  long v;
+  if (SWIG_AsVal_meth(long)(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, SCHAR_MIN, SCHAR_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, signed char);
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }  
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a signed char is expected");
+  }
+  return 0;    
 }
-%}
+}
 
-%fragment("SWIG_AsShort","header",
+%fragment(SWIG_AsVal_frag(short),"header",
 	  fragment="SWIG_CheckLongInRange",
-	  fragment="SWIG_AsLong") %{
-SWIGSTATICINLINE(short)
-SWIG_AsShort(PyObject *obj)
+	  fragment=SWIG_AsVal_frag(long)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(short)(PyObject *obj, short *val)
 { 
-  return swig_numeric_cast(short,
-    SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			  "short", SHRT_MIN, SHRT_MAX));
+  const char* errmsg = val ? "short" : 0;
+  long v;
+  if (SWIG_AsVal_meth(long)(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, SHRT_MIN, SHRT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, short);
+      return 1;
+    } else {
+      return 0;
+    }    
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a short is expected");
+  }
+  return 0;    
 }
-%}
+}
 
 /* need range checks */
 
-%fragment("SWIG_AsInt","header",
+%fragment(SWIG_AsVal_frag(int),"header",
 	  fragment="SWIG_CheckLongInRange",
-	  fragment="SWIG_AsLong") %{
-#if INT_MAX != LONG_MAX
+	  fragment=SWIG_AsVal_frag(long)) {
+%#if INT_MAX != LONG_MAX
 SWIGSTATICINLINE(int)
-SWIG_AsInt(PyObject *obj)
+SWIG_AsVal_meth(int)(PyObject *obj, int *val)
 { 
-  return swig_numeric_cast(int,
-    SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			  "int", INT_MIN, INT_MAX));
-}
-#else
-#define SWIG_AsInt SWIG_AsLong
-#endif
-%}
-%fragment("SWIG_AsUnsignedInt","header",
-	  fragment="SWIG_CheckUnsignedLongInRange",
-	  fragment="SWIG_AsUnsignedLong") %{
-#if UINT_MAX != ULONG_MAX
-SWIGSTATICINLINE(unsigned int)
-SWIG_AsUnsignedInt(PyObject *obj)
-{ 
-  return swig_numeric_cast(unsigned int,
-    SWIG_CheckUnsignedLongInRange(SWIG_AsUnsignedLong(obj),
-				  "unsigned int", UINT_MAX));
-}
-#else
-#define SWIG_AsUnsignedInt SWIG_AsUnsignedLong
-#endif
-%}
-
-%fragment("SWIG_FromUnsignedInt","header",
-	  fragment="SWIG_FromUnsignedLong") %{
-#if UINT_MAX < LONG_MAX
-#define SWIG_FromUnsignedInt    SWIG_FromLong
-#else
-#define SWIG_FromUnsignedInt    SWIG_FromUnsignedLong
-#endif
-%}
-
-
-%fragment("SWIG_AsUnsignedChar","header",
-	  fragment="SWIG_CheckUnsignedLongInRange",
-	  fragment="SWIG_AsUnsignedLong") %{
-SWIGSTATICINLINE(unsigned char)
-SWIG_AsUnsignedChar(PyObject *obj)
-{ 
-  return swig_numeric_cast(unsigned char,
-    SWIG_CheckUnsignedLongInRange(SWIG_AsUnsignedLong(obj),
-				  "unsigned char", UCHAR_MAX));
-}
-%}
-
-%fragment("SWIG_AsUnsignedShort","header",
-	  fragment="SWIG_CheckUnsignedLongInRange",
-	  fragment="SWIG_AsUnsignedLong") %{
-SWIGSTATICINLINE(unsigned short )
-SWIG_AsUnsignedShort(PyObject *obj)
-{ 
-  return swig_numeric_cast(unsigned short,
-    SWIG_CheckUnsignedLongInRange(SWIG_AsUnsignedLong(obj),
-				  "unsigned short", USHRT_MAX));
-}
-%}
-
-
-%fragment("SWIG_FloatCast","header") %{
-#include <float.h>
-
-SWIGSTATIC(float)
-SWIG_FloatCast(double value)
-{
-  float f = 0;
-  if (!PyErr_Occurred()) {
-    if (value < FLT_MIN) {
-      PyObject *err = 
-        PyString_FromFormat("value %g is less than float minimum %g", 
-			    value, FLT_MIN);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
-    } else if (value > FLT_MAX) {
-      PyObject *err = 
-        PyString_FromFormat("value %g is greater than float maximum %g", 
-			    value, FLT_MAX);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_DECREF(err);
+  const char* errmsg = val ? "int" : 0;
+  long v;
+  if (SWIG_AsVal_meth(long)(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, INT_MIN,INT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, int);
+      return 1;
     } else {
-      f = swig_numeric_cast(float, value);
+      return 0;
     }
+  } else {
+    PyErr_Clear();
   }
-  return f;
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a int is expected");
+  }
+  return 0;    
 }
-%}
-
-%fragment("SWIG_AsFloat","header",
-	  fragment="SWIG_FloatCast",
-	  fragment="SWIG_AsDouble") %{
-SWIGSTATICINLINE(float)
-SWIG_AsFloat(PyObject *obj)
+%#else
+SWIGSTATICINLINE(int)
+SWIG_AsVal_meth(int)(PyObject *obj, int *val)
 {
-  return SWIG_FloatCast(SWIG_AsDouble(obj));
+  return SWIG_AsVal_meth(long)(obj,(long*)val);
 }
-%}
+%#endif
+}
 
-%fragment("SWIG_FromChar","header") %{
+%fragment(SWIG_AsVal_frag(unsigned int),"header",
+	  fragment="SWIG_CheckUnsignedLongInRange",
+	  fragment=SWIG_AsVal_frag(unsigned long)) {
+%#if UINT_MAX != ULONG_MAX
+SWIGSTATICINLINE(int)
+SWIG_AsVal_meth(unsigned int)(PyObject *obj, unsigned int *val)
+{ 
+  const char* errmsg = val ? "unsigned int" : 0;
+  unsigned long v;
+  if (SWIG_AsVal_meth(unsigned long)(obj, &v)) {
+    if (SWIG_CheckUnsignedLongInRange(v, INT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, unsigned int);
+      return 1;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a unsigned int is expected");
+  }
+  return 0;    
+}
+%#else
+SWIGSTATICINLINE(unsigned int)
+  SWIG_AsVal_meth(unsigned int)(PyObject *obj, unsigned int *val)
+{
+  return SWIG_AsVal_meth(unsigned long)(obj,(unsigned long *)val);
+}
+%#endif
+}
+
+%fragment(SWIG_From_frag(unsigned int),"header",
+	  fragment=SWIG_From_frag(long),
+	  fragment=SWIG_From_frag(unsigned long)) {
+%#if UINT_MAX < LONG_MAX
+SWIG_define(SWIG_From_meth(unsigned int),   SWIG_From_meth(long));
+%#else
+SWIG_define(SWIG_From_meth(unsigned int),   SWIG_From_meth(unsigned long));
+%#endif
+}
+
+%fragment(SWIG_AsVal_frag(unsigned char),"header",
+	  fragment=SWIG_AsVal_frag(unsigned long),
+	  fragment="SWIG_CheckUnsignedLongInRange") {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(unsigned char)(PyObject *obj, unsigned char *val)
+{ 
+  const char* errmsg = val ? "unsigned char" : 0;
+  unsigned long v;
+  if (SWIG_AsVal_meth(unsigned long)(obj, &v)) {
+    if (SWIG_CheckUnsignedLongInRange(v, UCHAR_MAX,errmsg)) {
+      if (val) *val = swig_numeric_cast(v, unsigned char);
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a unsigned char is expected");
+  }
+  return 0;
+}
+}
+
+%fragment(SWIG_AsVal_frag(unsigned short),"header",
+	  fragment="SWIG_CheckUnsignedLongInRange",
+	  fragment=SWIG_AsVal_frag(unsigned long)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(unsigned short)(PyObject *obj, unsigned short *val)
+{ 
+  const char* errmsg = val ? "unsigned short" : 0;
+  unsigned long v;
+  if (SWIG_AsVal_meth(unsigned long)(obj, &v)) {
+    if (SWIG_CheckUnsignedLongInRange(v, USHRT_MAX, errmsg)) {
+      if (val) *val = swig_numeric_cast(v, unsigned short);
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a unsigned short is expected");
+  }
+  return 0;
+}
+}
+
+
+%fragment("SWIG_CheckDoubleInRange","header") {
+%#include <float.h>
+
+SWIGSTATIC(int)
+ SWIG_CheckDoubleInRange(double value, double min_value, 
+			 double max_value, const char* errmsg)
+{
+  if (value < min_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError, 
+		   "value %g is less than %s minimum %g", 
+		   value, errmsg, min_value);
+    }
+    return 0;
+  } else if (value > max_value) {
+    if (errmsg) {
+      PyErr_Format(PyExc_OverflowError, 
+		   "value %g is greater than %s maximum %g", 
+		   value, errmsg, max_value);
+    }
+    return 0;
+  }
+  return 1;
+}
+}
+
+%fragment(SWIG_AsVal_frag(float),"header",
+	  fragment="SWIG_CheckDoubleInRange",
+	  fragment=SWIG_AsVal_frag(double)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(float)(PyObject *obj, float *val)
+{
+  const char* errmsg = val ? "float" : 0;
+  double v;
+  if (SWIG_AsVal_meth(double)(obj, &v)) {
+    if (SWIG_CheckDoubleInRange(v, FLT_MIN, FLT_MAX, errmsg)) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    PyErr_Clear();
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a float is expected");
+  }
+  return 0;
+}
+}
+
+%fragment(SWIG_From_frag(char),"header") {
 SWIGSTATICINLINE(PyObject*)
-SWIG_FromChar(char c) 
+  SWIG_From_meth(char)(char c) 
 { 
   return PyString_FromStringAndSize(&c,1);
 }
-%}
+}
 
-%fragment("SWIG_FromBool","header") %{
+%fragment(SWIG_AsVal_frag(char),"header",
+	  fragment="SWIG_AsCharArray",
+	  fragment="SWIG_CheckLongInRange",
+	  fragment=SWIG_AsVal_frag(long)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(char)(PyObject *obj, char *val)
+{
+  const char* errmsg = val ? "char" : 0;
+  long v;
+  if (SWIG_AsVal_meth(long)(obj, &v)) {
+    if (SWIG_CheckLongInRange(v, CHAR_MIN,CHAR_MAX, errmsg)) {
+      if (val) *val = v;
+      return 1;
+    } else {
+      return 0;
+    }    
+  } else {
+    PyErr_Clear();
+    return SWIG_AsCharArray(obj, val, 1);
+  }
+ }
+}
+
+%fragment(SWIG_From_frag(bool),"header") {
 SWIGSTATICINLINE(PyObject*)
-SWIG_FromBool(bool value)
+  SWIG_From_meth(bool)(bool value)
 {
   PyObject *obj = value ? Py_True : Py_False;
   Py_INCREF(obj);
   return obj;
 }
-%}
+}
 
-%fragment("SWIG_AsBool","header") %{
-SWIGSTATICINLINE(bool)
-SWIG_AsBool(PyObject *obj)
+%fragment(SWIG_AsVal_frag(bool),"header",
+	  fragment=SWIG_AsVal_frag(int)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal_meth(bool)(PyObject *obj, bool *val)
 {
-  return PyObject_IsTrue(obj) ? true : false;
-}
-%}
-
-%fragment("SWIG_AsChar","header",
-	  fragment="SWIG_AsCharArray",
-	  fragment="SWIG_CheckLongInRange",
-	  fragment="SWIG_AsLong") %{
-SWIGSTATICINLINE(char)
-SWIG_AsChar(PyObject *obj)
-{ 
-  char c = 0;
-  if (PyInt_Check(obj) || PyLong_Check(obj)) {
-    c = swig_numeric_cast(char,
-      SWIG_CheckLongInRange(SWIG_AsLong(obj),
-			    "char", CHAR_MIN, CHAR_MAX));
-  } else {  
-    SWIG_AsCharArray(obj, &c, 1);
-    if (PyErr_Occurred()) {
-      PyErr_Clear();
-      PyErr_SetString(PyExc_TypeError, "a char is expected");
-    }
+  /*  if (val) *val = PyObject_IsTrue(obj); return 1; */
+  if (obj == Py_True) {
+    if (val) *val = true;
+    return 1;
   }
-  return c;
+  if (obj == Py_False) {
+    if (val) *val = false;
+    return 1;
+  }
+  int res;
+  if (SWIG_AsVal_meth(int)(obj, &res)) {    
+    if (val) *val = (bool)res;
+    return 1;
+  }
+  if (val) {
+    PyErr_SetString(PyExc_TypeError, "a float is expected");
+  }
+  return 0;
 }
-%}
+}
 
-%typemap_stype(bool,               BOOL,    Bool);
-%typemap_stype(signed char,        INT8,    SignedChar);
-%typemap_stype(unsigned char,      UINT8,   UnsignedChar);
-%typemap_stype(short,              INT16,   Short);
-%typemap_stype(unsigned short,     UINT16,  UnsignedShort);
-%typemap_stype(int,                INT32,   Int);
-%typemap_stype(unsigned int,       UINT32,  UnsignedInt);
-%typemap_stype(long,               INT64,   Long);
-%typemap_stype(unsigned long,      UINT64,  UnsignedLong);
-%typemap_stype(long long,          INT128,  LongLong);
-%typemap_stype(unsigned long long, UINT128, UnsignedLongLong);
-%typemap_stype(float,              FLOAT,   Float);
-%typemap_stype(double,             DOUBLE,  Double);
-%typemap_stype(char,               CHAR,    Char);
+
+/* ------------------------------------------------------------
+ * typemap for primitive type with no pointer representation 
+ * ------------------------------------------------------------ */
+
+%define %typemap_primitive(Code, ...)
+%typemap_asvalfromn(SWIG_arg(Code), __VA_ARGS__);
+%enddef
+ 
+%typemap_primitive(SWIG_CCode(BOOL),    bool);
+%typemap_primitive(SWIG_CCode(INT8),    signed char);
+%typemap_primitive(SWIG_CCode(UINT8),   unsigned char);
+%typemap_primitive(SWIG_CCode(INT16),   short);
+%typemap_primitive(SWIG_CCode(UINT16),  unsigned short);
+%typemap_primitive(SWIG_CCode(INT32),   int);
+%typemap_primitive(SWIG_CCode(UINT32),  unsigned int);
+%typemap_primitive(SWIG_CCode(INT64),   long);
+%typemap_primitive(SWIG_CCode(UINT64),  unsigned long);
+%typemap_primitive(SWIG_CCode(INT128),  long long);
+%typemap_primitive(SWIG_CCode(UINT128), unsigned long long);
+%typemap_primitive(SWIG_CCode(FLOAT),   float);
+%typemap_primitive(SWIG_CCode(DOUBLE),  double);
+%typemap_primitive(SWIG_CCode(CHAR),    char);
+
+
+/* ------------------------------------------------------------
+ * Primitive Type Macros
+ * ------------------------------------------------------------ */
+
+/* useful macros to derive typemap declarations from primitive types */
+
+%define _apply_macro(macro, arg, ...)
+#if #__VA_ARGS__ != ""
+  macro(__VA_ARGS__,arg);
+#else
+  macro(arg);
+#endif
+%enddef
+
+/* Apply macro to the order types */
+%define %apply_otypes(Macro,...)
+_apply_macro(Macro, signed char        , __VA_ARGS__);
+_apply_macro(Macro, unsigned char      , __VA_ARGS__);
+_apply_macro(Macro, short              , __VA_ARGS__);
+_apply_macro(Macro, unsigned short     , __VA_ARGS__);
+_apply_macro(Macro, int                , __VA_ARGS__);
+_apply_macro(Macro, unsigned int       , __VA_ARGS__);
+_apply_macro(Macro, long               , __VA_ARGS__);
+_apply_macro(Macro, unsigned long      , __VA_ARGS__);
+_apply_macro(Macro, long long          , __VA_ARGS__);
+_apply_macro(Macro, unsigned long long , __VA_ARGS__);
+_apply_macro(Macro, float              , __VA_ARGS__);
+_apply_macro(Macro, double             , __VA_ARGS__);
+_apply_macro(Macro, char               , __VA_ARGS__);
+%enddef
+
+/* apply the Macro(Type) to all the C types  */
+%define %apply_ctypes(Macro,...)
+%apply_otypes(Macro, __VA_ARGS__)
+_apply_macro(Macro, bool, __VA_ARGS__);
+%enddef
+
+/* apply the Macro(Type) to all the C++ types  */
+%define %apply_cpptypes(Macro,...)
+%apply_otypes(Macro, __VA_ARGS__)
+_apply_macro(Macro, bool, __VA_ARGS__);
+_apply_macro(Macro, std::string, __VA_ARGS__);
+_apply_macro(Macro, std::complex<float>, __VA_ARGS__);
+_apply_macro(Macro, std::complex<double>, __VA_ARGS__);
+%enddef
+
+/* apply the Macro2(Type1, Type2) to all the C++ types  */
+%define %apply_cpptypes_2(Macro2)
+%apply_cpptypes(%apply_cpptypes, Macro2)
+%enddef
+
