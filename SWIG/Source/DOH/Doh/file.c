@@ -119,12 +119,12 @@ File_tell(DOH *fo) {
 
 static int 
 File_putc(DOH *fo, int ch) {
-  char c;
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     return fputc(ch,f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
+    char c;
     c = (char) ch;
     return write(f->fd,&c,1);
 #endif
@@ -138,12 +138,12 @@ File_putc(DOH *fo, int ch) {
 
 static int 
 File_getc(DOH *fo) {
-  char c;
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     return fgetc(f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
+    char c;
     if (read(f->fd,&c,1) < 0) return EOF;
     return c;
 #endif

@@ -18,7 +18,7 @@ XML Options (available with -xml)\n\
 
 #include "swigmod.h"
 
-static Node *view_top = 0;
+//static Node *view_top = 0;
 static File *out = 0;
       
 class XML 

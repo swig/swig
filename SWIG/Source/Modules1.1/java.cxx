@@ -1287,8 +1287,8 @@ class JAVA : public Language {
     String    *nativecall = NewString("");
     String    *shadowrettype = NewString("");
     String    *user_arrays = NewString("");
-    int       num_arguments = 0;
-    int       num_required = 0;
+    //int       num_arguments = 0;
+    //int       num_required = 0;
 
     if(!proxy_flag) return;
 
@@ -1443,8 +1443,8 @@ class JAVA : public Language {
     Parm      *p;
     int       i;
     String    *user_arrays = NewString("");
-    int       num_arguments = 0;
-    int       num_required = 0;
+    //int       num_arguments = 0;
+    //int       num_required = 0;
 
     Language::constructorHandler(n);
 

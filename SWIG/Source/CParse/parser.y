@@ -4067,7 +4067,6 @@ expr           :  exprnum { $$ = $1; }
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
-		   String *ns;
 		   if (Getattr(n,"access")) {
 		     if (cplus_mode == CPLUS_PUBLIC) {
 		       Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
@@ -4075,20 +4074,7 @@ expr           :  exprnum { $$ = $1; }
 		     }
 
 		   }
-		   /*
-		   ns = Swig_symbol_qualified(n);
-		   if (ns && Len(ns)) {
-		     Insert($$.val,0,"::");
-		     Insert($$.val,0,ns);
-		     Delete(ns);
-		   }
-		   */
 		 }
-		 /*
-		 if (SwigType_istemplate($$.val)) {
-		   $$.val = SwigType_namestr($$.val);
-		 }
-		 */
                }
 
 /* grouping */

@@ -410,7 +410,6 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
-	String *tmp = NewString("");
 	String *dispatch = Swig_overload_dispatch(n,"return %s(clientData, interp, objc, objv);",&maxargs);
 	
 	/* Generate a dispatch wrapper for all overloaded functions */

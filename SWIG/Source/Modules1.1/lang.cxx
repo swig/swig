@@ -1120,7 +1120,6 @@ Language::staticmembervariableHandler(Node *n)
     Delete(cname);
   } else {
     String *name    = Getattr(n,"name");
-    String *symname = Getattr(n,"sym:name");
     String *cname   = NewStringf("%s::%s", ClassName,name);
     String* value   = SwigType_namestr(cname);
     Setattr(n, "value", value);
@@ -1130,7 +1129,6 @@ Language::staticmembervariableHandler(Node *n)
     Setattr(n, "type", t2);
     Delete(t1);
     Delete(t2);
-    
     
     memberconstantHandler(n);
     Delete(cname);

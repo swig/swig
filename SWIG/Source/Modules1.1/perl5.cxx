@@ -666,7 +666,6 @@ public:
     } else if (!Getattr(n,"sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs, ii;
-      String *tmp = NewString("");
       String *dispatch = Swig_overload_dispatch(n,"(*PL_markstack_ptr++);SWIG_CALLXS(%s); return;",&maxargs);
 	
       /* Generate a dispatch wrapper for all overloaded functions */
@@ -1259,7 +1258,7 @@ public:
 	  DohSetInt(operators,"operator_assignment",1);
 	  have_operators = 1;
 	} else {
-	  fprintf(stderr,"Unknown operator: %s\n", symname);
+	  Printf(stderr,"Unknown operator: %s\n", symname);
 	}
 	//      fprintf(stderr,"Found member_func operator: %s\n", symname);
       }

@@ -248,15 +248,9 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  {
 	      Parm *rp = nextSibling(p);
 	      while (rp) {
-		String *qrvalue;
 		String *rvalue = Getattr(rp,"value");
 		if (rvalue) {
 		  Replace(rvalue,name,value, DOH_REPLACE_ID);
-		  /*
-		  qrvalue = Swig_symbol_type_qualify(rvalue,0);
-		  Setattr(rp,"value",qrvalue);
-		  Delete(qrvalue); */
-		  /*		  Printf(stdout,"qrvalue = %s\n", qrvalue); */
 		}
 		rp = nextSibling(rp);
 	      }

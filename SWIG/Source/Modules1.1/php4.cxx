@@ -140,16 +140,16 @@ SwigPHP_emit_resource_registrations() {
   if (key) Printf(s_oinit,"\n// Register resource destructors for pointer types\n");
   while (key) if (1 /* is pointer type*/) {
     Node *class_node;
-    if (class_node=Getattr(zend_types,key)) {
+    if ((class_node=Getattr(zend_types,key))) {
       // Write out destructor function header
       Printf(s_wrappers,"//NEW Destructor style\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",key);
 
       // write out body
-      if (class_node!=NOTCLASS) {
+      if ((class_node!=NOTCLASS)) {
         classname = Getattr(class_node,"name");
         if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
         // Do we have a known destructor for this type?
-        if (destructor = Getattr(class_node,"destructor")) {
+        if ((destructor = Getattr(class_node,"destructor"))) {
           Printf(s_wrappers,"// has destructor: %s\n",destructor);
           Printf(s_wrappers,"%s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
         } else {
@@ -1372,10 +1372,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-    SwigType *t = Getattr(n, "classtype");
+    //SwigType *t = Getattr(n, "classtype");
     if(class_name) free(class_name);
     class_name = Swig_copy_string(GetChar(n, "name"));
-    String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
+    // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if(shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -1968,7 +1968,7 @@ void typetrace(SwigType *ty, String *mangled, String *clientdata) {
     zend_types=NewHash();
   }
   // we want to know if the type which reduced to this has a constructor
-  if (class_node=maininstance->classLookup(ty)) {
+  if ((class_node=maininstance->classLookup(ty))) {
     if (! Getattr(zend_types,mangled)) {
       // OK it may have been set before by a different SwigType but it would
       // have had the same underlying class node I think

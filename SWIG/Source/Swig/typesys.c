@@ -251,7 +251,7 @@ SwigType_inherit_scope(Typetab *scope) {
 
 void
 SwigType_scope_alias(String *aliasname, Typetab *ttab) {
-  String *s,*q;
+  String *q;
   /*  Printf(stdout,"alias: '%s' '%x'\n", aliasname, ttab);*/
   q = SwigType_scope_name(current_scope);
   if (Len(q)) {
