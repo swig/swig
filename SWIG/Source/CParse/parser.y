@@ -1849,14 +1849,12 @@ module_directive: MODULE options idstring {
    ------------------------------------------------------------ */
 
 name_directive : NAME LPAREN idstring RPAREN {
-                 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, 
-			      "%%name is deprecated. Use %%rename instead (see docs).\n");
+                 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, "%%name is deprecated.  Use %%rename instead.\n");
                  yyrename = NewString($3);
 		 $$ = 0;
                }
                | NAME LPAREN RPAREN {
-		 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, 
-			      "%%name is deprecated. Use %%rename instead (see docs).\n");
+		 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, "%%name is deprecated.  Use %%rename instead.\n");
 		 $$ = 0;
 		 Swig_error(cparse_file,cparse_line,"Missing argument to %%name directive.\n");
 	       }
@@ -2711,6 +2709,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 Setattr(n,"unnamed",unnamed);
 
                  if (unnamedinstance) {
+		   Setattr($$,"type",NewString("enum "));
 		   Setattr($$,"unnamedinstance","1");
 		   Setattr(n,"unnamedinstance","1");
                  }
