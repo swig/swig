@@ -267,6 +267,7 @@ C_TEST_CASES += \
 	preproc_3 \
 	preproc_4 \
 	preproc_5 \
+	preproc_6 \
 	ret_by_value \
 	sizeof_pointer \
 	sneaky1 \
