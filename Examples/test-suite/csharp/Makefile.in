@@ -1,6 +1,6 @@
 #######################################################################
 # $Header$
-# Makefile for csharp test-suite
+# Makefile for C# test-suite
 #######################################################################
 
 LANGUAGE     = csharp
@@ -20,17 +20,17 @@ SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE) -package $*
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup) \
-	(cd $*; $(swig_and_compile_cpp); ); \
+	(cd $* && $(swig_and_compile_cpp); ) && \
 	$(run_testcase)
 
 %.ctest:
 	$(setup) \
-	(cd $*; $(swig_and_compile_c); ); \
+	(cd $* && $(swig_and_compile_c); ) && \
 	$(run_testcase)
 
 %.multicpptest: 
 	$(setup) \
-	(cd $*; $(swig_and_compile_multi_cpp); ); \
+	(cd $* && $(swig_and_compile_multi_cpp); ) && \
 	$(run_testcase)
 
 # Makes a directory for the testcase if it does not exist
@@ -44,18 +44,18 @@ setup = \
 		mkdir $*;						  \
 	fi;
 
-# Compiles csharp files then runs the testcase. A testcase is only run if
+# Compiles C# files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.cs appended after the testcase name.
-# Note CSharp uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
+# Note C# uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
-	  $*$(CSHARPPATHSEPARATOR)*.cs' csharp_compile; \
+	  $*$(CSHARPPATHSEPARATOR)*.cs' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(INTERPRETER) $*_runme.exe; ) \
 	else ( \
-	  cd $*; \
+	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -t:module -out:$*.netmodule' \
 	  CSHARPSRCS='*.cs' csharp_compile; ); \

@@ -15,7 +15,7 @@ C_TEST_CASES =
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 		ocamlc -c $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$*\.cmo $(srcdir)/$*\_runme.cmo $(srcdir)/$*\_wrap.o ; \
+		ocamlc swig.cmo -custom -g -cc '$(CXX)' -o runme $(srcdir)/$*\.cmo $(srcdir)/$*\_runme.cmo $(srcdir)/$*\_wrap.o  && \
 		./runme) ; \
 	fi ; 
 
@@ -44,7 +44,7 @@ include $(srcdir)/../common.mk
 %.cpptest:
 	echo $@ >> testing
 	$(setup) \
-	($(swig_and_compile_cpp); ) ; \
+	($(swig_and_compile_cpp); )  && \
 	$(run_testcase) \
 	if [ -f $(@:%.cpptest=%_wrap.o) ] ; then \
 		echo $@ >> success ; \
@@ -53,7 +53,7 @@ include $(srcdir)/../common.mk
 %.ctest:
 	echo $@ >> testing
 	$(setup) \
-	($(swig_and_compile_c); ) ; \
+	($(swig_and_compile_c); )  && \
 	$(run_testcase) \
 	if [ -f $(@:%.ctest=%_wrap.o) ] ; then \
 		echo $@ >> success ; \
@@ -62,7 +62,7 @@ include $(srcdir)/../common.mk
 %.multicpptest:
 	echo $@ >> testing
 	$(setup) \
-	($(swig_and_compile_multi_cpp); ) ; \
+	($(swig_and_compile_multi_cpp); )  && \
 	$(run_testcase) \
 	if [ -f $(@:%.multicpptest=%_a_wrap.o) ] ; then \
 		echo $@ >> success ; \
