@@ -26,11 +26,10 @@ char cvsroot_ocaml_cxx[] = "$Header$";
 
 #include <ctype.h>
 
-static const char *usage = (char*)
-    ("\n"
-     "Ocaml Options (available with -ocaml)\n"
-     "-prefix name    - Set a prefix to be appended to all names\n"
-     "\n");
+static const char *usage = (char*)"\
+Ocaml Options (available with -ocaml)\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
+\n";
 
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
@@ -475,12 +474,12 @@ public:
 	Printv(mlfile,module,".ml",NIL);
 	Printv(mlifile,module,".mli",NIL);
     
-	String *mlfilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlfile);
+	String *mlfilen = NewStringf("%s%s", SWIG_output_directory(),mlfile);
 	if ((f_mlout = NewFile(mlfilen,"w")) == 0) {
 	    Printf(stderr,"Unable to open %s\n", mlfilen);
 	    SWIG_exit (EXIT_FAILURE);
 	}
-	String *mlifilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlifile);
+	String *mlifilen = NewStringf("%s%s", SWIG_output_directory(),mlifile);
 	if ((f_mliout = NewFile(mlifilen,"w")) == 0) {
 	    Printf(stderr,"Unable to open %s\n", mlifilen);
 	    SWIG_exit (EXIT_FAILURE);

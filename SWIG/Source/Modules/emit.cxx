@@ -346,6 +346,7 @@ void emit_mark_varargs(ParmList *l) {
   }
 }
 
+#if 0
 /* -----------------------------------------------------------------------------
  * replace_args()
  * ----------------------------------------------------------------------------- */
@@ -360,6 +361,7 @@ void replace_args(Parm *p, String *s) {
     p = nextSibling(p);
   }
 }
+#endif
 
 /* replace_contract_args.  This function replaces argument names in contract
    specifications.   Used in conjunction with the %contract directive. */

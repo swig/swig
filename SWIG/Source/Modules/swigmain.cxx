@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
 	    Printf(stderr,"Target Language Options:\n");
 	    for (int j = 0; modules[j].name; j++) {
 	      if (modules[j].help) {
-		Printf(stderr,"     %-15s - Generate %s wrappers.\n", modules[j].name, modules[j].help);
+		Printf(stderr,"     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
 	      }
 	    }
 	    Swig_mark_arg(i);

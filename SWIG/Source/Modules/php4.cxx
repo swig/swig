@@ -27,15 +27,15 @@ char cvsroot_php4_cxx[] = "$Header$";
 static const char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -cppext		 - cpp file extension (default to .cpp)\n\
+     -cppext         - cpp file extension (default to .cpp)\n\
      -noproxy        - Don't generate proxy classes.\n\
-     -dlname name	 - Set module prefix.\n\
-     -make		     - Create simple makefile.\n\
-     -phpfull	     - Create full make files.\n\
-     -withincs libs	 - With -phpfull writes needed incs in config.m4\n\
-     -withlibs libs	 - With -phpfull writes needed libs in config.m4\n\n\
-     -withc libs	 - With -phpfull makes extra c files in Makefile.in\n\
-     -withcxx libs	 - With -phpfull makes extra c++ files in Makefile.in\n\
+     -dlname <name>  - Set module prefix to <name>\n\
+     -make           - Create simple makefile\n\
+     -phpfull        - Create full make files\n\
+     -withincs <libs>- With -phpfull writes needed incs in config.m4\n\
+     -withlibs <libs>- With -phpfull writes needed libs in config.m4\n\
+     -withc <libs>   - With -phpfull makes extra c files in Makefile.in\n\
+     -withcxx <libs> - With -phpfull makes extra c++ files in Makefile.in\n\
 \n";
 
 static int constructors=0;
@@ -48,7 +48,6 @@ static String *withlibs = 0;
 static String *withincs = 0;
 static String *withc = 0;
 static String *withcxx = 0;
-static String *outfile = 0;
 
 //static char	*package = 0;	// Name of the package
 static char *shadow_classname;
@@ -358,7 +357,7 @@ public:
     Close(f_make);
   }
   
-  void create_extra_files(void) {
+  void create_extra_files(String *outfile) {
     File *f_extra;
     
     static String *configm4=0;
@@ -366,13 +365,13 @@ public:
     static String *credits=0;
     
     configm4=NewString("");
-    Printv(configm4, Swig_file_dirname(outfile), "config.m4", NIL);
+    Printv(configm4, SWIG_output_directory(), "config.m4", NIL);
     
     makefilein=NewString("");
-    Printv(makefilein, Swig_file_dirname(outfile), "Makefile.in", NIL);
+    Printv(makefilein, SWIG_output_directory(), "Makefile.in", NIL);
     
     credits=NewString("");
-    Printv(credits, Swig_file_dirname(outfile), "CREDITS", NIL);
+    Printv(credits, SWIG_output_directory(), "CREDITS", NIL);
     
     // are we a --with- or --enable-
     int with=(withincs || withlibs)?1:0;
@@ -566,7 +565,7 @@ public:
     String *s_type;
     
     /* Initialize all of the output files */
-    outfile = Getattr(n,"outfile");
+    String *outfile = Getattr(n,"outfile");
     
     /* main output file */
     f_runtime = NewFile(outfile,"w");
@@ -623,7 +622,7 @@ public:
     
     /* PHP module file */
     filen = NewString("");
-    Printv(filen, Swig_file_dirname(outfile), module, ".php", NIL);
+    Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
     
     f_phpcode = NewFile(filen, "w");
@@ -676,7 +675,7 @@ public:
     
     /* Create the .h file too */
     filen = NewString("");
-    Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", NIL);
+    Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
     f_h = NewFile(filen, "w");
     if (!f_h) {
       Printf(stderr,"Unable to open %s\n", filen);
@@ -879,7 +878,7 @@ public:
     Printf(f_phpcode, "%s\n%s\n?>\n", pragma_incl, pragma_code);
     Close(f_phpcode); 
     
-    create_extra_files();
+    create_extra_files(outfile);
     
     if(!gen_extra && gen_make)
       create_simple_make();
