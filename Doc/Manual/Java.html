@@ -533,7 +533,7 @@ Enumerations are wrapped as final static integers in Java and are also initialis
 
 <blockquote>
 <pre>
-enum Beverage { ALE, LAGER, STOUT, PILSNER };
+enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
 </pre>
 </blockquote>
 
@@ -545,6 +545,33 @@ public class example {
   public final static int ALE = exampleJNI.get_ALE();
   public final static int LAGER = exampleJNI.get_LAGER();
   public final static int STOUT = exampleJNI.get_STOUT();
+  public final static int PILSNER = exampleJNI.get_PILSNER();
+}
+</pre></blockquote>
+
+The <tt>%javaconst(flag)</tt> directive introduced in the previous section on constants can also be used with enums,
+thereby also allowing enum values to be used in Java switch statements. 
+As is the case for constants, the default is <tt>%javaconst(0)</tt> as not all C values will compile as Java code.
+However, it is recommended to add in a <tt>%javaconst(1)</tt> directive into your 
+interface file as it is only on very rare occasions that this will produce code that won't compile under Java.
+Example usage:
+
+<blockquote>
+<pre>
+%javaconst(1);
+%javaconst(0) PILSNER;
+enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
+</pre>
+</blockquote>
+
+generates:
+
+<blockquote><pre>
+public class example {
+  // enums and constants
+  public final static int ALE = 0;
+  public final static int LAGER = 10;
+  public final static int STOUT = LAGER+1;
   public final static int PILSNER = exampleJNI.get_PILSNER();
 }
 </pre></blockquote>
