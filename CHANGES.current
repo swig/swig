@@ -1,6 +1,22 @@
 Version 1.3.20 (In progress)
 ============================
 
+06/27/2003: cheetah (William Fulton)
+            [Java, C#] The throws attribute for adding exception classes to the throws
+            clause also now works with the following typemaps: 
+            newfree
+            javain, javaout (Java)
+            csin, csout (C#)
+
+            For example, the 'AnException' will be added to the throws clause in the
+            proxy function:
+
+            %typemap(javaout, throws="AnException") int {
+                int returnValue=$jnicall;
+                if (returnValue==0) throw new AnException("Value must not be zero");
+                return returnValue;
+            }
+
 06/25/2003: mrose (Mark Rose)
             [Python] Director typemap marshalling checks for null pointers when
 	    walking the parameter list instead of relying soley on the parameter
