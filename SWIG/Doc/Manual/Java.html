@@ -20,7 +20,6 @@
 
 This chapter describes SWIG's support of Java. Java is one of the latest modules to be added to SWIG. The other SWIG modules are primarily scripting languages. Using Java has the advantage over scripting languages of being type safe.  The 100% Pure Java effort is a commendable concept however, in the real world programmers either need to re-use their existing code or in some situations want to take advantage of Java but are forced into using some native (C/C++) code.  With this Java extension to SWIG it is very easy to plumb in existing C/C++ code for access from Java, as SWIG writes the Java Native Interface (JNI) code for you. It is different to using the 'javah' tool as SWIG will wrap existing C/C++ code, whereas javah takes Java functions and creates C/C++ function prototypes.
 <p>
-<b> WARNING: </b> This chapter has not been rewritten to take account of the deprecation of the $source and $target typemaps.
 
 <a name="n1"></a><h2>Preliminaries</h2>
 SWIG 1.1 works with JDK 1.1 and higher. Given the choice, you should use the latest version of Sun's JDK. The SWIG Java module is known to work on Solaris, the various flavours of Windows including cygwin and Linux using Sun's JDK. It is also known to work on vxWorks using their PJava 3.1. The Kaffe JVM is known to give a few problems and at the time of writing was not a fully fledged JVM with full JNI support. The best way to determine whether your combination of operating system and JDK will work is to test the examples and test-suite that comes with SWIG. Run the <tt>make check</tt> from the SWIG root directory after installing SWIG. <p>
@@ -271,21 +270,15 @@ will be wrapped with the following Java:
 <blockquote><pre>
 public class example  {
 ... maybe some other functions ...
-  public final static int RED;
   public final static native int get_RED();
-  public final static int BLUE;
   public final static native int get_BLUE();
-  public final static int GREEN;
   public final static native int get_GREEN();
-  static {
-  // Initialise Java constants from c/c++ enums
-    RED = get_RED();
-    BLUE = get_BLUE();
-    GREEN = get_GREEN();
-  }
+  // enums and constants
+  public final static int RED = get_RED();
+  public final static int BLUE = get_BLUE();
+  public final static int GREEN = get_GREEN();
 }
 </pre></blockquote>
-Note that the Java final static variables are initialised through a static block.<p>
 
 <a name="n112"></a><h3> Constants</h3>
 C/C++ constants (from a #define) are wrapped by public final static Java variables. These constants are given the same name as the corresponding C constant. For example, the following C:<p>
@@ -540,7 +533,7 @@ Shadow classes turn out to be so useful that they are used almost all of the tim
 The directory Examples/java has a number of examples. Looking at these is a good way to learn how the SWIG Java extension works. The Examples/index.html in the parent direcory contains the SWIG Examples Documentation and is a useful starting point. The following sections also describe plenty of examples.
 
 <a name="n6"></a><h2>Exception handling </h2>
-The SWIG <tt>%except</tt> directive can be used to create a user-definable exception handler which can be used to convert errors in your C/C++ program into Java exceptions.  The chapter on exception handling contains more details, but suppose you have a C++ class like the following:<p>
+The SWIG <tt>%exception</tt> directive can be used to create a user-definable exception handler which can be used to convert errors in your C/C++ program into Java exceptions.  The chapter on exception handling contains more details, but suppose you have a C++ class like the following:<p>
 <blockquote><pre>
 class RangeError {};   // Used for an exception
 
@@ -585,35 +578,29 @@ class DoubleArray {
 The functions associated with this class can throw a C++ range exception for an out-of-bounds array access.   We can catch the C++ exception and rethrow it as a Java exception by specifying the following in an interface file :<p>
 <p>
 <blockquote><pre>
-// Exception handler (intended for JNI calls that have a non void return)
-%except(java) {
+%exception {
   try {
-    $function
+    $action
   }
   catch (RangeError) {
     jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
     jenv-&gt;ThrowNew(clazz, "Range error");
-    return NULL;
-  }
-}
-
-// This overrides anything in the %except(java) typemap
-// Used for JNI calls that return void
-%typemap(except) void {
-  try {
-    $function
-  }
-  catch (RangeError) {
-    jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
-    jenv-&gt;ThrowNew(clazz, "Range error");
-    return;
+    return $null;
   }
 }
 </pre></blockquote>
 
-What the above does is define swig exception handlers for two types of functions; namely those that are have a void return and those that do not. Both are needed to cover all types of JNI functions. The code excerpts above are inserted into all the JNI functions. The $function call is expanded into the actual function call, for example the <tt>setitem</tt> call. Note that the above uses the C++ JNI calling syntax as opposed to the C calling syntax and so will not compile as C; the JCALL macros in javahead.swg could be used as a means to write JNI calls for both C and C++ compilation. The ThrowNew() JNI function must take a class derived from java.lang.Exception. The %except typemap above could be tailored to individual needs.
+What the above does is define swig exception handlers for two types of functions; namely those that are have a void return and those that do not. Both are needed to cover all types of JNI functions. The code excerpts above are inserted into all the JNI functions. The $action call is replaced by the C/C++ code being executed by the wrapper, for example the <tt>setitem</tt> call. Another special variable, $null, is useful for typemaps that will be used in JNI functions returning all return types. See the section on
+<a href="#n124">Typemap variables</a> for further explanation.
+<p>
+
+
+The above uses the C++ JNI calling syntax as opposed to the C calling syntax and so will not compile as C.
+It is however possible to write JNI calls in <a href="#n126">typemaps for both C and C++ compilation</a>. 
+The <tt>ThrowNew()</tt> JNI function must take a class derived from java.lang.Exception. The %exception typemap above could be tailored to individual needs.
 <p>
 When the C++ class throws a RangeError exception, our wrapper functions will catch it, turn it into a Java exception, and allow a graceful death as opposed to having some sort of mysterious JVM crash. Since SWIG's exception handling is user-definable, we are not limited to C++ exception handling. Please see the chapter on exception handling for more details and using the <tt>exception.i</tt> library for writing language-independent exception handlers.<p>
+See the chapter on "<a href="Exceptions.html">Exception Handling</a>" for further examples on exceptions and how %exception can be targeted for use in a particular function.
 <p>
 If we use the following code:
 
@@ -777,14 +764,14 @@ A typemap is mechanism by which SWIG's processing of a particular C datatype can
 %module example
 
 %typemap(in) int {
-  $target = $source;
-  printf("Received an integer : %d\n",  $target);
+  $1 = $input;
+  printf("Received an integer : %d\n",  $1);
 }
 
 extern int fact(int n);
 </pre></blockquote>
 <p>
-Typemaps require a method name, datatype, and conversion code.  The "in" method in this example refers to an input argument of a function. The datatype `int' tells SWIG that we are remapping integers.  The supplied code is used to convert from a <tt>jint</tt> to the corresponding C datatype, <tt>int</tt>.  Within the supporting C code, the variable <tt>$source</tt> contains the source data (the JNI jint in this case) and <tt>$target</tt> contains the destination of a conversion.  <p>
+Typemaps require a method name, datatype, and conversion code.  The "in" method in this example refers to an input argument of a function. The datatype `int' tells SWIG that we are remapping integers.  The supplied code is used to convert from a <tt>jint</tt> to the corresponding C datatype, <tt>int</tt>.  Within the supporting C code, the variable <tt>$input</tt> contains the Java data (the JNI jint in this case) and <tt>$1</tt> contains the destination of a conversion.  <p>
 <p>
 When this example is compiled into a Java module, it can be used as follows:<p>
 <p>
@@ -918,20 +905,16 @@ is released afterwards</td>
 If a %typemap(in) is written, a %typemap(freearg) and %typemap(argout) may also need to be written. This is because some types have a default 'freearg' and/or 'argout' typemap which may need overriding. The 'freearg' typemap sometimes releases memory allocated by the 'in' typemap. The 'argout' typemap sometimes sets values in function parameters which are passed by reference in Java.</li>
 
 <a name="n124"></a><h3> Typemap variables</h3>
-The standard SWIG typemap variables as listed elsewhere in this documentation are available for use within the C code used in a typemap, for example:
-<p>
-<tt>$source</tt>	Source value of a conversion<br>
-<tt>$target</tt>	Target of conversion (where the result should be stored)<br>
-<tt>$type</tt>	    C datatype being remapped<br>
-<tt>$value</tt>	    Value of a constant (const typemap only)<br>
-<tt>$dim0</tt>      Array dimension 0 in array typemaps<br>
+The standard SWIG special variables are available for use within typemaps as described in the <a href=Typemaps.html>Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>,<tt>$result</tt> etc.
 
 <p>
-The Java module requires a few additional variable substitutions:
+The Java module uses a few additional special variables:
 <p>
-<tt>$javaclassname</tt>   Only in jstype typemaps. Similar to $1_basetype, except for unions/structs/classes. Here the type name is used if it has been wrapped by SWIG otherwise a Java long is used. Used primarily to get the Java classname of a wrapped union/struct/class.<br>
+<b><tt>$javaclassname</tt></b><br>
+Only in jstype typemaps. $javaclassname is similar to $1_basetype, except when applied to unions/structs/classes. Here the type name is used if it has been wrapped by SWIG otherwise a Java long is used. Used primarily to get the Java classname of a wrapped union/struct/class. For example, $javaclassname is replaced by 'Foo' when the type is 'struct Foo'.<p>
 
-<tt>$null </tt> Used in input typemaps to return early from JNI functions that have either void or a non-void return type. Example:
+<b><tt>$null </tt></b><br>
+Used in input typemaps to return early from JNI functions that have either void or a non-void return type. Example:
 
 <blockquote><pre>
 %typemap(check) int * %{ 
@@ -1027,26 +1010,26 @@ A common problem in many C programs is the processing of command line arguments,
 /* This tells SWIG to treat char ** as a special case when used as a parameter in a function call */
 %typemap(in) char** (jint size) {
     int i = 0;
-    size = (*jenv)-&gt;GetArrayLength(jenv, $source);
-    $target = (char **) malloc((size+1)*sizeof(char *));
+    size = (*jenv)-&gt;GetArrayLength(jenv, $input);
+    $1 = (char **) malloc((size+1)*sizeof(char *));
     /* make a copy of each string */
     for (i = 0; i&lt;size; i++) {
-        jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $source, i);
+        jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
         const char* c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $target[i] = malloc(strlen((c_string)+1)*sizeof(const char*));
-        strcpy($target[i], c_string);
+        $1[i] = malloc(strlen((c_string)+1)*sizeof(const char*));
+        strcpy($1[i], c_string);
         (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
         (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
     }
-    $target[i] = 0;
+    $1[i] = 0;
 }
 
 /* This cleans up the memory we malloc'd before the function call */
 %typemap(freearg) char** {
     int i;
     for (i=0; i&lt;size-1; i++)
-      free($target[i]);
-    free($target);
+      free($1[i]);
+    free($1);
 }
 
 /* This allows a C function to return a char ** as a Java String array */
@@ -1056,7 +1039,7 @@ A common problem in many C programs is the processing of command line arguments,
     jstring temp_string;
     const jclass clazz = (*jenv)-&gt;FindClass(jenv, "java/lang/String");
 
-    while ($source[len]) len++;    
+    while ($1[len]) len++;    
     jresult = (*jenv)-&gt;NewObjectArray(jenv, len, clazz, NULL);
     /* exception checking omitted */
 
@@ -1067,11 +1050,12 @@ A common problem in many C programs is the processing of command line arguments,
     }
 }
 
-/* This tells SWIG what Java type to use */
-%typemap(jtype) char** "String[]"
-
 /* This tells SWIG what the matching JNI type for the Java type is */
 %typemap(jni) char** "jobjectArray"
+
+/* This tells SWIG what Java type to use */
+%typemap(jtype) char** "String[]"
+%typemap(jstype) char** "String[]"
 
 /* Now a few test functions */
 %inline %{
@@ -1136,7 +1120,9 @@ argv[3] = Goat
 Our type-mapping makes the Java interface to these functions more natural and easy to use.     <p>
 
 <a name="n127"></a><h3> Using typemaps to return arguments</h3>
-A common problem in some C programs is that values may be returned in arguments rather than in the return value of a function. The typemaps.i file defines INPUT, OUTPUT and INOUT typemaps which can be used to solve this problem. This library file uses an array as a means of moving data to and from Java when wrapping a c function that takes pointers as parameters. Here we outline an alternative approach to using arrays for c pointers. In this approach we are able to use a Java class myDouble instead of double[] arrays where the c pointer double* is required. 
+A common problem in some C programs is that values may be returned in arguments rather than in the return value of a function. The typemaps.i file defines INPUT, OUTPUT and INOUT typemaps which can be used to solve some instances of this problem. This library file uses an array as a means of moving data to and from Java when wrapping a c function that takes pointers as parameters. <p>
+
+Now we are going to outline an alternative approach to using arrays for C pointers. The INOUT typemap uses a double[] array for receiving and returning the double* parameters. In this approach we are able to use a Java class myDouble instead of double[] arrays where the c pointer double* is required. 
 <blockquote><pre>
 /* Returns a status value and two values in out1 and out2 */
 int spam(double a, double b, double *out1, double *out2);
@@ -1172,14 +1158,15 @@ allow the calling function to read the double* value after returning from the fu
 %typemap(in) double *OutValue {
     jclass clazz = jenv-&gt;FindClass("MyDouble");
     jfieldID fid = jenv-&gt;GetFieldID(clazz, "_cPtr", "J");
-    jlong cPtr = jenv-&gt;GetLongField($source, fid);
+    jlong cPtr = jenv-&gt;GetLongField($input, fid);
     MyDouble* pMyDouble;
     *(MyDouble*)&pMyDouble = *(MyDouble*)&cPtr;
-    $target = &pMyDouble-&gt;value;
+    $1 = &pMyDouble-&gt;value;
 }
 
 /* This tells SWIG what Java type to use */
 %typemap(jtype) double* OutValue "MyDouble"
+%typemap(jstype) double* OutValue "MyDouble"
 
 /* This tells SWIG what the matching JNI type for the Java type is */
 %typemap(jni) double* OutValue "jobject"
@@ -1237,8 +1224,8 @@ By default, the Java module supplies the memberin typemap in the Lib/java/java_a
 <p>
 <blockquote><pre>
 %typemap(memberin) int[LEN] {
-  /* Copy at most LEN characters into $target */
-  memcpy($target,$source,sizeof(int)*LEN);
+  /* Copy at most LEN characters into $1 */
+  memcpy($1,$input,sizeof(int)*LEN);
 }
 </pre></blockquote>
 
@@ -1248,7 +1235,7 @@ It should be noted that the <tt>[LEN]</tt> array size is attached to the typemap
 <p>
 <blockquote><pre>
 %typemap(memberin) int [ANY] {
-  memcpy($target,$source,sizeof(int)*$dim0);
+  memcpy($1,$input,sizeof(int)*$dim0);
 }
 </pre></blockquote>
 <p>
