@@ -186,7 +186,7 @@ MZSCHEME::headers (void)
   fprintf (f_header, "#include <string.h>\n");
   fprintf (f_header, "#include <stdlib.h>\n");
 
-  // Write out hex conversion functions
+  // insert mzscheme.swg
 
   if (!NoInclude) {
     if (Swig_insert_file ("mzscheme.swg", f_header) == -1) {
@@ -194,18 +194,6 @@ MZSCHEME::headers (void)
       fprintf (stderr, "Unable to locate 'mzscheme.swg' in SWIG library.\n");
       SWIG_exit (1);
     }
-    // <DB> I Removed a call to emit_hex() here.  The pointer
-    // type-checking code should be included into guile.swg instead </DB>
-  } else {
-    fprintf (f_header, "#ifdef __cplusplus\n");
-    fprintf (f_header, "extern \"C\" {\n");
-    fprintf (f_header, "#endif\n");
-    fprintf (f_header, "extern void SWIG_MakePtr(char *, void *, char *);\n");
-    fprintf (f_header, "extern void SWIG_RegisterMapping(char *, char *, void *(*)(void *));\n");
-    fprintf (f_header, "extern char *SWIG_GetPtr(char *, void **, char *);\n");
-    fprintf (f_header, "#ifdef __cplusplus\n");
-    fprintf (f_header, "}\n");
-    fprintf (f_header, "#endif\n");
   }
 }
 
@@ -243,7 +231,6 @@ MZSCHEME::initialize (void)
 void
 MZSCHEME::close (void)
 {
-  //  emit_ptr_equivalence (f_init);
   fprintf (f_init, "}\n\n");
 
   fprintf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
@@ -266,19 +253,9 @@ void
 MZSCHEME::get_pointer (char *iname, int parm, DataType *t,
 		       WrapperFunction &f)
 {
-  // Pointers are read as hex-strings with encoded type information
-  f.code << tab4 << "_tempc = SCHEME_STR_VAL(argv[" << parm << "]);\n";
-//  f.code << tab4 << "_len = SCHEME_STRLEN_VAL(argv[" << parm << "]);\n";
-  f.code << tab4 << "if (SWIG_GetPtr (_tempc, (void **) &_arg" << parm;
-  if (t->type == T_VOID)
-    f.code << ", (char *) 0)) {\n";
-  else
-    f.code << ", \"" << t->print_mangle() << "\")) {\n";
-
-  f.code << tab8 << "scheme_signal_error(\"couldn't get pointer\");\n";
-
-  f.code << tab4 << "}\n";
-  //  f.code << tab4 << "free(_tempc);\n";
+  f.code << tab4 << "_arg" << parm << " = (" << t->print_type()
+	 << ") swig_get_c_pointer(argv["
+	 << parm << "], \"" << t->print_mangle() << "\");\n";
 }
 
 // ----------------------------------------------------------------------
@@ -359,8 +336,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numopt = 0;
 
   // adds local variables : type name
-  f.add_local ("int",    "_len");
   f.add_local ("char *", "_tempc");
+  f.add_local ("int",    "_len");
   f.add_local ("Scheme_Object *", "swig_result");
 
   // Now write code to extract the parameters (this is super ugly)
@@ -392,8 +369,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 	mreplace (f.code, argnum, arg, proc_name);
       }
       // no typemap found
-      // assume it's a pointer string and try to put it's pointer value
-      // in _tempc
+      // assume it's a Scheme_Object containing the C pointer
       else if (p.t->is_pointer) {
         get_pointer (iname, i, p.t, f);
       }
@@ -435,23 +411,24 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (d->type == T_VOID)
-    f.code << tab4 << "swig_result = scheme_void;\n";
+  if (d->type == T_VOID) {
+    if(!argout_set)
+      f.code << tab4 << "swig_result = scheme_void;\n";
+  }
+
   else if ((tm = typemap_lookup ("out", typemap_lang,
                                  d, name, "_result", "swig_result", &f))) {
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
   }
-  // no typemap found and not void then put a pointer string in _ptemp
-  // convert it to a Scheme string and return it.
+  // no typemap found and not void then create a Scheme_Object holding
+  // the C pointer and return it
   else if (d->is_pointer) {
-    f.add_local ("char", "_ptemp[128]");
     f.code << tab4
-           << "SWIG_MakePtr (_ptemp, _result,\""
-           << d->print_mangle()
-           << "\");\n";
-    f.code << tab4
-           << "swig_result = scheme_make_string(_ptemp);\n";
+	   << "swig_result = swig_make_c_pointer("
+	   << "_result, \""
+	   << d->print_mangle()
+	   << "\");\n";
   }
   else {
     throw_unhandled_mzscheme_type_error (d);
@@ -486,12 +463,12 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   if(argout_set) {
     if(d->type == T_VOID) {
       f.add_local("int", "_lenv", "0");
-      f.add_local("Scheme_Object", "*_values[MAXVALUES]");
-      f.code << tab4 << "swig_result = scheme_values(_lenv, _values);";
+      f.add_local("Scheme_Object *", "_values[MAXVALUES]");
+      f.code << tab4 << "swig_result = scheme_values(_lenv, _values);\n";
     }
     else {
       f.add_local("int", "_lenv", "1");
-      f.add_local("Scheme_Object", "*_values[MAXVALUES]");
+      f.add_local("Scheme_Object *", "_values[MAXVALUES]");
       f.code << tab4 << "_values[0] = swig_result;\n";
       f.code << tab4 << "swig_result = scheme_values(_lenv, _values);\n";
     }
@@ -579,20 +556,10 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
         fprintf (f_wrappers, "\t\t %s = (char *) "
                  "malloc((_len+1)*sizeof(char));\n", name);
         fprintf (f_wrappers, "\t\t strncpy(%s,_temp,_len);\n", name);
-        fprintf (f_wrappers, "\t\t %s[_len] = 0;\n", name);
       } else {
         // Set the value of a pointer
-        fprintf (f_wrappers, "\t\t _temp = SCHEME_STR_VAL(argv[0]);\n");
-//        fprintf (f_wrappers, "\t\t _len = SCHEME_STRLEN_VAL(argv[0]);\n");
-        fprintf (f_wrappers, "\t\t if (SWIG_GetPtr(_temp, (void **) &%s,",
-                 name);
-        if (t->type == T_VOID)
-          fprintf (f_wrappers, "(char *) 0)) {\n");
-        else
-          fprintf (f_wrappers, "\"%s\")) {\n", t->print_mangle());
-
-	fprintf(f_wrappers, "\t\t\t scheme_signal_error(\"couldn't get pointer\");\n");
-        fprintf (f_wrappers, "\t\t}\n");
+	fprintf(f_wrappers, "\t\t%s = swig_get_c_pointer(argv[0], \"%s\");\n",
+		name, t->print_mangle());
       }
     }
     else {
@@ -612,9 +579,8 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
         fprintf (f_wrappers, "\t swig_result = scheme_make_string(%s);\n", name);
       } else {
         // Is an ordinary pointer type.
-        fprintf (f_wrappers, "\t SWIG_MakePtr(_ptemp, %s,\"%s\");\n",
-                 name, t->print_mangle());
-        fprintf (f_wrappers, "\t swig_result = scheme_make_string(_ptemp);\n");
+	fprintf(f_wrappers, "\tswig_result = swig_make_c_pointer(%s, \"%s\");\n",
+		name, t->print_mangle());
       }
     }
     else {
@@ -704,7 +670,7 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
 // ----------------------------------------------------------------------
 // MZSCHEME::usage_var(char *iname, DataType *t, String &usage)
 //
-// Produces a usage string for a Guile variable.
+// Produces a usage string for a MzScheme variable.
 // ----------------------------------------------------------------------
 
 void
@@ -721,7 +687,7 @@ MZSCHEME::usage_var (char *iname, DataType *t, String &usage)
 // ---------------------------------------------------------------------------
 // MZSCHEME::usage_func(char *iname, DataType *t, ParmList *l, String &usage)
 //
-// Produces a usage string for a function in Guile
+// Produces a usage string for a function in MzScheme
 // ---------------------------------------------------------------------------
 
 void
@@ -769,7 +735,7 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, String &usage)
 // ---------------------------------------------------------------------------
 // MZSCHEME::usage_returns(char *iname, DataType *t, ParmList *l, String &usage)
 //
-// Produces a usage string for a function in Guile
+// Produces a usage string for a function in MzScheme
 // ---------------------------------------------------------------------------
 
 void
@@ -836,7 +802,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, String &usage)
 // ----------------------------------------------------------------------
 // MZSCHEME::usage_const(char *iname, DataType *type, char *value, String &usage)
 //
-// Produces a usage string for a Guile constant
+// Produces a usage string for a MzScheme constant
 // ----------------------------------------------------------------------
 
 void
