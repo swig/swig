@@ -408,7 +408,7 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
   $target = interp;
 }
 
-int ptrvalue(Tcl_Interp *interp, char *ptr, int index = 0, char *type = 0);
+int ptrvalue(Tcl_Interp *interp, char *ptr, int index = 0, const char *type = 0);
 // Returns the value that a pointer is pointing to (ie. dereferencing).
 // The type is automatically inferred by the pointer type--thus, an
 // integer pointer will return an integer, a double will return a double,
@@ -421,7 +421,7 @@ int ptrvalue(Tcl_Interp *interp, char *ptr, int index = 0, char *type = 0);
 //    ptrvalue $a 10          #  Returns the value a[10]
 //    ptrvalue $a 10 double   #  Returns a[10] assuming a is a double *
 
-int ptrset(Tcl_Interp *interp, char *ptr, char *value, int index = 0, char *type = 0);
+int ptrset(Tcl_Interp *interp, char *ptr, char *value, int index = 0, const char *type = 0);
 // Sets the value pointed to by a pointer.  The type is automatically
 // inferred from the pointer type so this function will work for
 // integers, floats, doubles, etc...  The index and type fields are
