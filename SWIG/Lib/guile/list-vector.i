@@ -60,67 +60,44 @@
 
   /* input */
      
-     /* Passing data is a little complicated here; just remember:
-	IGNORE typemaps come first, then IN, then CHECK.  But if
-	IGNORE is given, IN won't be used for this type.
-
-	We need to "ignore" one of the parameters because there shall
-	be only one argument on the Scheme side.  Here we only
-	initialize the array length to 0 but save its address for a
-	later change.  */
+     /* We make use of the new multi-dispatch typemaps here. */
      
-     %typemap(ignore) int VECTORLENINPUT (int *vector_length)
-     {		      
-       $1 = 0;
-       vector_length = &$1;
-     }
-
-     %typemap(ignore) int LISTLENINPUT (int *list_length)   
-     {		      
-       $1 = 0;
-       list_length = &$1;
-     }
-
-     /* All the work is done in IN. */
-
-     %typemap(in) C_TYPE *VECTORINPUT,
-		  const C_TYPE *VECTORINPUT
+     %typemap(in, doc="($arg <vector of <" #SCM_TYPE ">>)")
+       (int VECTORLENINPUT, C_TYPE *VECTORINPUT)
      {
        SCM_VALIDATE_VECTOR($argnum, $input);
-       *vector_length = gh_vector_length($input);
-       if (*vector_length > 0) {
+       $1 = gh_vector_length($input);
+       if ($1 > 0) {
 	 int i;
-	 $1 = SWIG_malloc(sizeof(C_TYPE)
-			       * (*vector_length));
-	 for (i = 0; i<*vector_length; i++) {
+	 $2 = SWIG_malloc(sizeof(C_TYPE) * $1);
+	 for (i = 0; i<$1; i++) {
 	   SCM elt = gh_vector_ref($input, gh_int2scm(i));
-	   $1[i] = SCM_TO_C(elt);
+	   $2[i] = SCM_TO_C(elt);
 	 }
        }
-       else $1 = NULL;
+       else $2 = NULL;
      }
 	 
-     %typemap(in) C_TYPE *LISTINPUT,
-		  const C_TYPE *LISTINPUT
+     %typemap(in, doc="($arg <list of <" #SCM_TYPE ">>)")
+       (int LISTLENINPUT, C_TYPE *LISTINPUT)
      {
        SCM_VALIDATE_LIST($argnum, $input);
-       *list_length = gh_length($input);
-       if (*list_length > 0) {
+       $1 = gh_length($input);
+       if ($1 > 0) {
 	 int i;
 	 SCM rest;
-	 $1 = SWIG_malloc(sizeof(C_TYPE)
-			       * (*list_length));
+	 $2 = SWIG_malloc(sizeof(C_TYPE) * $1);
 	 for (i = 0, rest = $input;
-	      i<*list_length;
+	      i<$1;
 	      i++, rest = gh_cdr(rest)) {
 	   SCM elt = gh_car(rest);
-	   $1[i] = SCM_TO_C(elt);
+	   $2[i] = SCM_TO_C(elt);
 	 }
        }
-       else $1 = NULL;
+       else $2 = NULL;
      }
 
-     /* Don't check for NULL pointers (override checks). */
+     /* Do not check for NULL pointers (override checks). */
 
      %typemap(check) C_TYPE *VECTORINPUT, 
 		     const C_TYPE *VECTORINPUT,
@@ -136,69 +113,50 @@
 		       const C_TYPE *LISTINPUT
        {if ($1!=NULL) SWIG_free($1);}
 
-     /* On the Scheme side, the argument is a vector or a list, so say
-	so in the arglist documentation. */
-
-     %typemap(indoc) C_TYPE *VECTORINPUT,
-		     const C_TYPE *VECTORINPUT 
-       "($arg <vector of <SCM_TYPE>>)";
-
-     %typemap(indoc) C_TYPE *LISTINPUT,
-		     const C_TYPE *LISTINPUT 
-       "($arg <list of <SCM_TYPE>>)";
-
   /* output */
 
-     /* First we make a temporary variable ARRAYLENTEMP, use its
-        address as the ...LENOUTPUT argument for the C function and
-        "ignore" the ...LENOUTPUT argument for Scheme.  */
+     /* First we make temporary variables ARRAYLENTEMP and ARRAYTEMP,
+	whose addresses we pass to the C function.  We ignore both
+	arguments for Scheme. */
 
-     %typemap(ignore) int *VECTORLENOUTPUT (int arraylentemp),
-		      int *LISTLENOUTPUT   (int arraylentemp)
-       "$1 = &arraylentemp;";
-
-     /* We also need to ignore the ...OUTPUT argument. */
-
-     %typemap(ignore) C_TYPE **VECTOROUTPUT (C_TYPE *arraytemp),
-		      C_TYPE **LISTOUTPUT   (C_TYPE *arraytemp)
-       "$1 = &arraytemp;";
+     %typemap(ignore) (int *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
+                        (int arraylentemp, C_TYPE *arraytemp),
+                      (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
+                        (int arraylentemp, C_TYPE *arraytemp)
+     %{
+       $1 = &arraylentemp;
+       $2 = &arraytemp;
+     %}
 
      /* In the ARGOUT typemaps, we convert the array into a vector or
         a list and append it to the results. */
 
-     %typemap(argout) C_TYPE **VECTOROUTPUT
+     %typemap(argout, doc="($arg <vector of <" #SCM_TYPE ">>)") 
+          (int *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
      {
        int i;
-       SCM res = gh_make_vector(gh_int2scm(arraylentemp),
+       SCM res = gh_make_vector(gh_int2scm(*$1),
 				SCM_BOOL_F);
-       for (i = 0; i<arraylentemp; i++) {
-	 SCM elt = C_TO_SCM((*$1)[i]);
+       for (i = 0; i<*$1; i++) {
+	 SCM elt = C_TO_SCM((*$2)[i]);
 	 gh_vector_set_x(res, gh_int2scm(i), elt);
        }
-       if ((*$1)!=NULL) free(*$1);
+       if (*$2!=NULL) free(*$2);
        SWIG_APPEND_VALUE(res);
      }
 
-     %typemap(argout) C_TYPE **LISTOUTPUT
+     %typemap(argout, doc="($arg <list of <" #SCM_TYPE ">>)")
+          (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
      {
        int i;
        SCM res = SCM_EOL;
-       for (i = arraylentemp - 1; i>=0; i--) {
-	 SCM elt = C_TO_SCM((*$1)[i]);
+       for (i = (*$1) - 1; i>=0; i--) {
+	 SCM elt = C_TO_SCM((*$2)[i]);
 	 res = gh_cons(elt, res);
        }
-       if ((*$1)!=NULL) free(*$1);
+       if (*$2!=NULL) free(*$2);
        SWIG_APPEND_VALUE(res);
      }
-
-     /* We return a vector or a list, so say so in the procedure
-        documentation. */
-
-     %typemap(argoutdoc) C_TYPE **VECTOROUTPUT 
-       "($arg <vector of <SCM_TYPE>>)";
-
-     %typemap(argoutdoc) C_TYPE **LISTOUTPUT
-       "($arg <list of <SCM_TYPE>>)";
 
 %enddef
 

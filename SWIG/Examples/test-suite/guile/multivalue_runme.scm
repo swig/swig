@@ -6,11 +6,11 @@
 (dynamic-call "scm_init_test_module" (dynamic-link "./libmultivalue.so"))
 
 (let ((quotient/remainder (divide-l 37 5)))
-  (if (not (equal? quotient/remainder) '(7 2))
+  (if (not (equal? quotient/remainder '(7 2)))
       (exit 1)))
 
 (let ((quotient-remainder-vector (divide-v 41 7)))
-  (if (not (equal? quotient/remainder) #(5 6))
+  (if (not (equal? quotient-remainder-vector #(5 6)))
       (exit 1)))
 
 (call-with-values (lambda ()

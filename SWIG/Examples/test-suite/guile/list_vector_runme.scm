@@ -4,7 +4,7 @@
 (dynamic-call "scm_init_test_module" (dynamic-link "./liblist_vector.so"))
 
 (if (and (= (sum-list '(1 3 4 6 7)) 21)
-	 (= (sum-vector #(2 4 6 7 9) 28))
+	 (= (sum-vector #(2 4 6 7 9)) 28)
 	 (equal? (one-to-seven-list) '(1 2 3 4 5 6 7))
 	 (equal? (one-to-seven-vector) #(1 2 3 4 5 6 7)))
     (exit 0)

@@ -17,6 +17,10 @@ tree (maybe).
 Work in progress
 ================
 
+12/17/2001:mkoeppe
+	   [Guile]: Rewrote list-vector.i using multi-dispatch
+	   typemaps. 
+
 12/16/2001:mkoeppe
 	   [Guile]: Fixed macros %values_as_list, %values_as_vector,
 	   %multiple_values to use the proper %pragma syntax.  New
