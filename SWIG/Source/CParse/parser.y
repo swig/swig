@@ -1202,6 +1202,9 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 if (Classprefix) name = NewStringf("%s::%s", $5.id);
 		 else name = NewString($5.id);
 		 val = $7 ? NewString($7) : 0;
+		 if ($5.parms) {
+		   Setmeta(val,"parms",$5.parms);
+		 }
 		 t = $5.type;
 		 if (!Len(t)) t = 0;
 		 if (t) {
@@ -1241,6 +1244,9 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 if (Classprefix) name = NewStringf("%s::%s", $7.id);
 		 else name = NewString($7.id);
 		 val = NewString($5);
+		 if ($7.parms) {
+		   Setmeta(val,"parms",$7.parms);
+		 }
 		 t = $7.type;
 		 if (!Len(t)) t = 0;
 		 if (t) {
