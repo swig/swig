@@ -33,6 +33,14 @@ public:
   virtual double perimeter(void);
 };
 
+typedef Square TSquare;
+class CFoo
+{
+public:
+    static Square MakeSquare(void) {return Square(4.0);};
+    static TSquare MakeTSquare(void) {return Square(4.0);};
+};
+
 
 
 
