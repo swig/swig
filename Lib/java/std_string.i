@@ -41,6 +41,16 @@ class string;
   $1 =  std::string($1_pstr);
   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
+%typemap(directorout) string 
+%{if(!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+    return $null;
+  } 
+  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+  if (!$1_pstr) return $null;
+  $1 =  std::string($1_pstr);
+  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+
 %typemap(directorin,descriptor="Ljava/lang/String;") string 
 %{ $input = jenv->NewStringUTF($1.c_str()); %}
 
@@ -75,6 +85,18 @@ class string;
   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
   if (!$1_pstr) return $null;
   std::string $1_str($1_pstr);
+  $1 = &$1_str;
+  jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+
+%typemap(directorout,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain 'const string' or 'string' return type instead.") const string &
+%{if(!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::string");
+    return $null;
+  }
+  const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+  if (!$1_pstr) return $null;
+  /* possible thread/reentrant code problem */
+  static std::string $1_str($1_pstr);
   $1 = &$1_str;
   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
@@ -144,6 +166,25 @@ class wstring;
   jenv->ReleaseStringChars($input, $1_pstr);
  %}
 
+%typemap(directorout) wstring
+%{if(!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
+    return $null;
+  }
+  const jchar *$1_pstr = jenv->GetStringChars($input, 0);
+  if (!$1_pstr) return $null;
+  jsize $1_len = jenv->GetStringLength($input);
+  if ($1_len) {
+    wchar_t *conv_buf = new wchar_t[$1_len];
+    for (jsize i = 0; i < $1_len; ++i) {
+       conv_buf[i] = $1_pstr[i];
+    }
+    $1 =  std::wstring(conv_buf, $1_len);
+    delete [] conv_buf;
+  }
+  jenv->ReleaseStringChars($input, $1_pstr);
+ %}
+
 %typemap(directorin,descriptor="Ljava/lang/String;") wstring 
 %{jsize $1_len = $1.length();
   jchar *conv_buf = new jchar[$1_len];
@@ -175,7 +216,27 @@ class wstring;
 %typemap(javadirectorin) const wstring & "$jniinput"
 %typemap(javadirectorout) const wstring & "$javacall"
 
-%typemap(in) const wstring & 
+%typemap(directorout,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain 'const wstring' or 'wstring' return type instead.") const wstring &
+%{if(!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
+    return $null;
+  }
+  const jchar *$1_pstr = jenv->GetStringChars($input, 0);
+  if (!$1_pstr) return $null;
+  jsize $1_len = jenv->GetStringLength($input);
+  static std::wstring $1_str;
+  if ($1_len) {
+    wchar_t *conv_buf = new wchar_t[$1_len];
+    for (jsize i = 0; i < $1_len; ++i) {
+       conv_buf[i] = $1_pstr[i];
+    }
+    $1_str = std::wstring(conv_buf, $1_len);
+    delete [] conv_buf;
+  }
+  $1 = &$1_str;
+  jenv->ReleaseStringChars($input, $1_pstr); %}
+
+%typemap(directorout) const wstring & 
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
     return $null;
