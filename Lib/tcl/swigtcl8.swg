@@ -47,6 +47,16 @@ typedef struct _swig_type_info {
   struct _swig_type_info  *prev;
 } _swig_type_info;
 
+#ifdef SWIG_NOINCLUDE
+SWIGEXPORT(_swig_type_info *) SWIG_TypeRegister(_swig_type_info *);
+SWIGEXPORT(_swig_type_info *) SWIG_TypeCheck(char *c, _swig_type_info *);
+SWIGEXPORT(int) SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, _swig_type_info *);
+SWIGEXPORT(int) SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, _swig_type_info *);
+SWIGEXPORT(void) SWIG_MakePtr(char *, void *, _swig_type_info *);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, _swig_type_info *);
+SWIGEXPORT(int) SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
+
+#else
 static _swig_type_info *swig_types = 0;
 
 /* Register type mappings with the type-checker */
@@ -284,6 +294,8 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
     return TCL_ERROR;
   }
 }
+
+#endif
 
 /* Structure for command table */
 typedef struct {
