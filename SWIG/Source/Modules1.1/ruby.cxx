@@ -105,7 +105,7 @@ static int current;
 enum {
   NO_CPP,
   MEMBER_FUNC,
-  CONSTRUCTOR_NEW,
+  CONSTRUCTOR_ALLOCATE,
   CONSTRUCTOR_INITIALIZE,
   DESTRUCTOR,
   MEMBER_VAR,
@@ -384,10 +384,10 @@ RUBY::create_command(Node *n, char *iname) {
       Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NULL);
     }
     break;
-  case CONSTRUCTOR_NEW:
+  case CONSTRUCTOR_ALLOCATE:
     Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
 	   ", \"new\", ", wname, ", -1);\n", NULL);
-    Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
+    Replace(klass->init,"$allocator", s, DOH_REPLACE_ANY);
     break;
   case CONSTRUCTOR_INITIALIZE:
     Printv(s, tab4, "rb_define_method(", klass->vname,
@@ -627,7 +627,7 @@ RUBY::functionWrapper(Node *n) {
   String *wname = Swig_name_wrapper(iname);
   
   /* Emit arguments */
-  if (current != CONSTRUCTOR_NEW) {
+  if (current != CONSTRUCTOR_ALLOCATE) {
     emit_args(t,l,f);
   }
 
@@ -648,7 +648,7 @@ RUBY::functionWrapper(Node *n) {
   /* Now write the wrapper function itself */
   Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NULL);
 
-  if (current != CONSTRUCTOR_NEW) {
+  if (current != CONSTRUCTOR_ALLOCATE) {
     if (!varargs) {
       Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
     } else {
@@ -659,7 +659,7 @@ RUBY::functionWrapper(Node *n) {
 
   /* Now walk the function parameter list and generate code */
   /* to get arguments */
-  if (current != CONSTRUCTOR_NEW) {
+  if (current != CONSTRUCTOR_ALLOCATE) {
     marshalInputArgs(l, numarg, numreq, start, f);
   }
 
@@ -673,7 +673,7 @@ RUBY::functionWrapper(Node *n) {
   insertArgOutputCode(l, outarg, need_result);
 
   /* Now write code to make the function call */
-  if (current != CONSTRUCTOR_NEW) {
+  if (current != CONSTRUCTOR_ALLOCATE) {
     emit_action(n, f);
   }
 
@@ -681,7 +681,7 @@ RUBY::functionWrapper(Node *n) {
   if (NewObject || (Getattr(n,"feature:new"))) newobj = 1;
 
   /* Return value if necessary */
-  if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_NEW && current != CONSTRUCTOR_INITIALIZE) {
+  if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_ALLOCATE && current != CONSTRUCTOR_INITIALIZE) {
     need_result = 1;
     if (Getattr(n, "feature:predicate")) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NULL);
@@ -701,7 +701,7 @@ RUBY::functionWrapper(Node *n) {
   }
 
   /* Extra code needed for new and initialize methods */  
-  if (current == CONSTRUCTOR_NEW) {
+  if (current == CONSTRUCTOR_ALLOCATE) {
     need_result = 1;
     Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(t)));
     Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
@@ -714,7 +714,7 @@ RUBY::functionWrapper(Node *n) {
   Printv(f->code,outarg,NULL);
 
   /* Dump the argument cleanup code */
-  if (current != CONSTRUCTOR_NEW)
+  if (current != CONSTRUCTOR_ALLOCATE)
     Printv(f->code,cleanup,NULL);
 
   /* Look for any remaining cleanup.  This processes the %new directive */
@@ -735,7 +735,7 @@ RUBY::functionWrapper(Node *n) {
 
   /* Wrap things up (in a manner of speaking) */
   if (need_result) {
-    if (current == CONSTRUCTOR_NEW) {
+    if (current == CONSTRUCTOR_ALLOCATE) {
       Printv(f->code, tab4, "return vresult;\n}\n", NULL);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->code, tab4, "return self;\n}\n", NULL);
@@ -1010,7 +1010,7 @@ RUBY::classHandler(Node *n) {
     Delete(tt);    
   }
 
-  Printv(klass->init, "$constructor",NULL);
+  Printv(klass->init, "$allocator",NULL);
   Printv(klass->init, "$initializer",NULL);
 
   Printv(klass->header,
@@ -1086,7 +1086,7 @@ RUBY::classHandler(Node *n) {
   String *s = NewString("");
   Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
 	 "), \"new\");\n", NULL);
-  Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
+  Replace(klass->init,"$allocator", s, DOH_REPLACE_ANY);
   Replace(klass->init,"$initializer", "", DOH_REPLACE_ANY);
   Replace(klass->init,"$super", "rb_cObject", DOH_REPLACE_ANY);
 
@@ -1130,14 +1130,12 @@ int
 RUBY::constructorHandler(Node *n) {
   if (!klass->constructor_defined) {
     /* First wrap the new singleton method */
-    current = CONSTRUCTOR_NEW;
-    // Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "alloc_%c");
+    current = CONSTRUCTOR_ALLOCATE;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
     Language::constructorHandler(n);
     
     /* Now do the instance initialize method */
     current = CONSTRUCTOR_INITIALIZE;
-    // Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_initialize");
     Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
     Language::constructorHandler(n);
     
