@@ -1058,7 +1058,7 @@ CHICKEN::membervariableHandler(Node *n)
 
   if (!Getattr(n,"feature:immutable")) {
       if (closclassname) {
-          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))\n");
+          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))\n", NIL);
       } else {
           Printv(closcode, " ':swig-set ", chickenPrimitiveName(setfunc), ")\n", NIL);
       }

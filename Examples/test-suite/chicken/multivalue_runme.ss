@@ -1,3 +1,4 @@
 ;; this doesn't work yet :(
-;;(include "../schemerunme/multivalue.scm")
+(load-library 'multivalue "multivalue.so")
+(include "../schemerunme/multivalue.scm")
 (exit 0)
