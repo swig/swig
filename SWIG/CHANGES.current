@@ -1,6 +1,49 @@
 Version 1.3.22 (in progress)
 ==================================
 
+01/21/2004: sunshine (Eric Sunshine)
+            Revived the NextStep port of SWIG.
+
+            Fixed fatal problem in DohStrstr() caused by difference in strstr()
+            implementation which made %apply become entirely dysfunctional.  On
+            NextStep, strstr("foo","") evaluates to NULL; whereas, on modern
+            platforms, it evaluates to "foo".  %apply relies extensively upon
+            strstr("foo","") evaluating to non-NULL, therefore it failed
+            catastrophically when faced with NextStep's strstr().
+
+            Added `bool' check to configure.in since NextStep's C++ compiler
+            does not supply this type.  swig.h now fakes up `bool' if needed.
+
+            Worked around NextStep C++ compiler bug in which C++ code is
+            disallowed inside extern "C" functions.  This problem affected all
+            language modules, since they publish hook functions of the form:
+                extern "C" Language *swig_foo(void) { return new FOO(); }
+            Fixed by creating a C++ wrapper:
+                static Language *new_swig_foo() { return new FOO(); }
+                extern "C" Language *swig_foo(void) { return new_swig_foo(); }
+
+            Ensured that Swig_copy_string() is used in place of strdup() since
+            NextStep does not supply strdup().
+
+            Fixed detection of Ruby library name and location in configure.in.
+            Problem 1: Assumed that library always resided in Ruby's "archdir",
+            which was correct for Ruby 1.6.x, but which is incorrect for Ruby
+            1.8.x, in which case the library normally resides in Ruby's
+            "libdir".  Problem 2: Assumed that the library could always be
+            linked via "-l"+RUBY_INSTALL_NAME (where RUBY_INSTALL_NAME
+            typically is "ruby"), however this failed for platforms, such as
+            NextStep, which do not support shared libraries.  In this case, the
+            static library name in 1.8.x is libruby-static.a, thus
+            -lruby-static is required.  The new logic works correctly for
+            static and shared libraries for 1.6.x and 1.8.x.
+
+            Fixed detection of Perl CFLAGS in configure.in for NextStep.
+            Detection code extracted CFLAGS from Perl's %Config hash but
+            neglected to add a newline to the value before passing it through
+            `sed'.  NextStep's ancient `sed' discards input which is not
+            terminated with a newline, thus Perl CFLAGS always evaluated to the
+            empty string.
+
 01/16/2004: cheetah (William Fulton)
             Tidy up in the exception handling code that is generated when
             C++ exception specifications are wrapped with the throws typemap.
