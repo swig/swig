@@ -122,9 +122,9 @@ namespace std {
                 $1 = std::vector<T>();
                 for (i = 0; i < nitems; i++) {
                     if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
-                                         $descriptor(T),0)) != 0) {
+                                         $descriptor(T *),0)) != 0) {
                         char message[] = 
-                            "list of type $descriptor(T) expected";
+                            "list of " #T " expected";
                         Tcl_SetResult(interp, message, TCL_VOLATILE);
                         return TCL_ERROR;
                     }
@@ -151,9 +151,9 @@ namespace std {
                 w = std::vector<T>();
                 for (i = 0; i < nitems; i++) {
                     if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
-                                         $descriptor(T),0)) != 0) {
+                                         $descriptor(T *),0)) != 0) {
                         char message[] = 
-                            "list of type $descriptor(T) expected";
+                            "list of " #T " expected";
                         Tcl_SetResult(interp, message, TCL_VOLATILE);
                         return TCL_ERROR;
                     }
@@ -168,7 +168,7 @@ namespace std {
                 T* ptr = new T((($1_type &)$1)[i]);
                 Tcl_ListObjAppendElement(interp, $result, \
                                          SWIG_NewPointerObj(ptr, 
-                                                            $descriptor(T), 
+                                                            $descriptor(T *), 
                                                             0));
             }
         }
@@ -195,7 +195,7 @@ namespace std {
                 //check the first value to see if it is of correct type
                     else if ((SWIG_ConvertPtr(listobjv[i],
                                               (void **) &temp, 
-                                              $descriptor(T),0)) != 0)
+                                              $descriptor(T *),0)) != 0)
                         $1 = 0;
                     else
                         $1 = 1;
@@ -225,7 +225,7 @@ namespace std {
                 //check the first value to see if it is of correct type
                     else if ((SWIG_ConvertPtr(listobjv[i],
                                               (void **) &temp,
-                                              $descriptor(T),0)) != 0)
+                                              $descriptor(T *),0)) != 0)
                         $1 = 0;
                     else
                         $1 = 1;
