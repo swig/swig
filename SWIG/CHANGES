@@ -16,6 +16,71 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+04/07/2002: beazley
+            The %template directive is now namespace aware.   This allows
+            code like this:
+
+                namespace foo {
+                    template<typename T> max(T a, T b) { return a > b ? a : b; }
+                }
+
+                using namespace foo;
+                %template(maxint) max<int>;            // Ok
+
+                namespace bar {
+                   using foo::max;
+                   %template(maxdouble) max<double>;   // Ok
+                }
+
+            Caveat: the template name supplied to %template must be defined in the
+            same scope in which the %template directive appears.   This code is
+            illegal:
+
+                %template(maxint) foo::max<int>;
+
+04/07/2002: beazley
+            Minor enhancement to preprocessor.   The preprocessor can now perform
+            string comparison.   For example:
+
+               #define A "hello"
+               ...
+               #if A == "hello"
+               ...
+               #endif
+
+            The primary use of this is in SWIG macros.  For example:
+
+              %define FOO(x) 
+              #if #x == "int"
+              /* Special handling for int */
+              ...
+              #endif
+              %enddef
+
+            Normal users can probably safely ignore this feature.  However, it may
+            be used in parts of the SWIG library.
+
+04/07/2002: beazley
+            Further refinement of default constructor/destructor wrapper generation.
+            SWIG is now much more aware of pure virtual methods. For instance:
+
+              class A {             /* Abstract */
+              public:
+                 virtual void method1() = 0;
+                 virtual void method2() = 0;
+              };
+              class B : public A {  /* Abstract */
+              public:
+                 virtual void method1() { };
+              };
+
+              class C : public B {  /* Ok */
+              public:
+                 virtual void method2() { };
+              };
+
+            In this case, SWIG will only generate default constructors for C.
+            Even though B looks fine, it's missing a required method and is abstract.
 
 04/04/2002: beazley
             Subtle change to structure data member access.  If you

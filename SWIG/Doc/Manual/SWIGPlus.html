@@ -2010,6 +2010,29 @@ void foo(Integer x);
 SWIG knows that <tt>Integer</tt> is the same as <tt>A::Integer</tt> which
 is the same as <tt>int</tt>.  
 
+<P>
+Namespaces may be combined with templates.  However, when you use the <tt>%template</tt> directive, the
+template in question must be available in the same scope in which the <tt>%template</tt> directive appears.
+Furthermore, the template name may not be qualified. For example:
+
+<blockquote>
+<pre>
+namespace foo {
+    template<typename T> max(T a, T b) { return a > b ? a : b; }
+}
+
+using foo::max;
+
+%template(maxint)   max<int>;             // Okay.
+%template(maxfloat) foo::max<float>;      // Error.   Qualified name
+
+namespace bar {
+    using namespace foo;
+    %template(maxdouble)  max<double>;    // Okay.
+}
+</pre>
+</blockquote>
+
 <p>
 <b>Note:</b> SWIG does <em>not</em> propagate <tt>using</tt> declarations to
 the resulting wrapper code.   If these declarations appear in an interface,
