@@ -155,11 +155,13 @@ namespace jafar {
   namespace jmath {
     class EulerT3D {
     public:
+      static void hello(){}
+      
       template<class VecFrame, class Vec, class VecRes>
-      static inline void toFrame(const VecFrame& frame_, const Vec&v_,VecRes& vRes){}
+      static void toFrame(const VecFrame& frame_, const Vec&v_,VecRes& vRes){}
     };
   }
 }
 %}
 
-%template(EulerT3D_toFrame) jafar::jmath::EulerT3D::toFrame<int,int,int>;
+%template(toFrame) jafar::jmath::EulerT3D::toFrame<int,int,int>;
