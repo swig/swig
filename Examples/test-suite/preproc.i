@@ -270,9 +270,17 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 #define three THREE(42)
 
 
+#if defined(one)
+/* hello */
+#else
+/* chiao */
+#endif;
+
+#ifdef SWIGRUBY
+%rename(ddefined) defined;
+#endif
 %inline %{
-int endif = 0;
-int define = 0;
-/* this is not working */
-/* int defined = 0; */
+const int endif = 1;
+const int define = 1;
+const int defined = 1; 
 %}

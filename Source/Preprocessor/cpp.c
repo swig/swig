@@ -27,7 +27,6 @@ static int       ignore_missing = 0;
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       imported_depth = 0;	 /* Depth of %imported files */
 static int       single_include = 1;     /* Only include each file once */
-static int       replace_defined = 1;
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 
@@ -834,31 +833,33 @@ Preprocessor_replace(DOH *s)
 	/* We found the end of a valid identifier */
 	Ungetc(c,s);
 	/* See if this is the special "defined" macro */
-	if (replace_defined && Cmp(id,"defined") == 0) {
-	  DOH *args;
+	if (Cmp(id,"defined") == 0) {
+	  DOH *args = 0;
 	  /* See whether or not a paranthesis has been used */
 	  skip_whitespace(s,0);
 	  c = Getc(s);
 	  if (c == '(') {
 	    Seek(s,-1,SEEK_CUR);
 	    args = find_args(s);
-	  } else {
-	    DOH *arg = 0;
+	  } else if (isidchar(c)) {
+	    DOH *arg = NewString("");
 	    args = NewList();
-	    arg = NewString("");
-	    if (isidchar(c)) Putc(c,arg);
-	    while ((c = Getc(s)) != EOF) {
+	    Putc(c,arg);
+	    while (((c = Getc(s)) != EOF)) {
 	      if (!isidchar(c)) {
 		Seek(s,-1,SEEK_CUR);
 		break;
 	      }
 	      Putc(c,arg);
 	    }
-	    Append(args,arg);
+	    if (Len(arg)) Append(args,arg);
 	    Delete(arg);
+	  } else {
+	    Seek(s,-1,SEEK_CUR);
 	  }
 	  if ((!args) || (!Len(args))) {
-	    Swig_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
+	    /* This is not a defined() macro. */
+	    Printf(ns,"%s",id);
 	    state = 0;
 	    break;
 	  }
