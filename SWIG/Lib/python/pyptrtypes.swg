@@ -5,9 +5,9 @@
 
 /* in */
 
-%define PYPTR_IN_TYPEMAP(asptr_meth,pyfrag,...)
-  %typemap(in,fragment=pyfrag) __VA_ARGS__ {
-    __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
+%define PYPTR_IN_TYPEMAP(asptr_meth,pyfrag,Type...)
+  %typemap(in,fragment=pyfrag) Type {
+    Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred())
@@ -19,8 +19,8 @@
     $1 = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-  %typemap(in,fragment=pyfrag) const __VA_ARGS__ & (int res = 0) {
-    __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
+  %typemap(in,fragment=pyfrag) const Type & (int res = 0) {
+    Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred())
@@ -32,15 +32,15 @@
     $1 = ptr;
   }
 
-  %typemap(freearg) const __VA_ARGS__ & 
+  %typemap(freearg) const Type & 
     "if (res$argnum == SWIG_NEWOBJ) delete $1;";
 %enddef
 
 /* varin */
 
-%define PYPTR_VARIN_TYPEMAP(asptr_meth,pyfrag,...)
-  %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
-    __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
+%define PYPTR_VARIN_TYPEMAP(asptr_meth,pyfrag,Type...)
+  %typemap(varin,fragment=pyfrag) Type {
+    Type *ptr = (Type *)0;
     int res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred()) 
@@ -59,9 +59,9 @@
 
 /* directorout */
 
-%define PYPTR_DIRECTOROUT_TYPEMAP(asptr_meth,pyfrag,...)
-  %typemap(directorargout,fragment=pyfrag) __VA_ARGS__ *DIRECTOROUT ($*1_ltype temp) {
-  __VA_ARGS__ *ptr = 0;
+%define PYPTR_DIRECTOROUT_TYPEMAP(asptr_meth,pyfrag,Type...)
+  %typemap(directorargout,fragment=pyfrag) Type *DIRECTOROUT ($*1_ltype temp) {
+    Type *ptr = 0;
     int res = asptr_meth($input, &ptr);
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
@@ -69,46 +69,52 @@
     $result = &temp;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-  %typemap(directorout,fragment=pyfrag) __VA_ARGS__ {
-    __VA_ARGS__ *ptr = 0;
+  %typemap(directorout,fragment=pyfrag) Type {
+    Type *ptr = 0;
     int res = asptr_meth($input, &ptr);
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
     $result = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
-%typemap(directorout,fragment=pyfrag,warning="470:Using thread unsafe wrapping, consider using a lvalue return type.") const __VA_ARGS__& {
-    __VA_ARGS__ *ptr = 0;
+%typemap(directorout,fragment=pyfrag,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {
+    Type *ptr = 0;
     int res = asptr_meth($input, &ptr);
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
-    static  $*1_ltype temp = *ptr;
-    $result = &temp;
-    if (res == SWIG_NEWOBJ) delete ptr;
+    $result = ptr;
+    if (res == SWIG_NEWOBJ) {
+      /* Possible thread/reentrant problem here! */
+      static $*ltype temp = *ptr;
+      $result = &temp;
+      delete ptr;
+    } else {
+      $result = ptr;
+    }
   }
-  %typemap(directorout,fragment=pyfrag) __VA_ARGS__ &DIRECTOROUT = __VA_ARGS__
+  %typemap(directorout,fragment=pyfrag) Type &DIRECTOROUT = Type
 %enddef
 
 /* typecheck */
 
-%define PYPTR_TYPECHECK_TYPEMAP(check,asptr_meth,pyfrag,...)
+%define PYPTR_TYPECHECK_TYPEMAP(check,asptr_meth,pyfrag,Type...)
 %typemap(typecheck,precedence=check,fragment=pyfrag) 
-   __VA_ARGS__, const __VA_ARGS__&
-   "$1 = asptr_meth($input, (__VA_ARGS__**)(0));";
+   Type, const Type&
+   "$1 = asptr_meth($input, (Type**)(0));";
 %enddef
 
 /*
   typemap definition for types with AsPtr/From methods
  */
 
-%define %typemap_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, ...)
-  %fragment(SWIG_AsVal_frag(__VA_ARGS__),"header",
-	    fragment=SWIG_AsPtr_frag(__VA_ARGS__)) %{
+%define %typemap_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
+  %fragment(SWIG_AsVal_frag(Type),"header",
+	    fragment=SWIG_AsPtr_frag(Type)) %{
   SWIGINTERNSHORT int
-    SWIG_AsVal(__VA_ARGS__)(PyObject* obj, __VA_ARGS__ *val)
+    SWIG_AsVal(Type)(PyObject* obj, Type *val)
     {
-      __VA_ARGS__ *v = (__VA_ARGS__ *)0;
-      int res = SWIG_AsPtr(__VA_ARGS__)(obj, &v);
+      Type *v = (Type *)0;
+      int res = SWIG_AsPtr(Type)(obj, &v);
       if (!res || !v) return 0;  
       if (val) {
 	*val = *v;
@@ -117,37 +123,37 @@
       return 1;
     }
   %}
-  %fragment(SWIG_As_frag(__VA_ARGS__),"header",
-	    fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{
-  SWIGINTERNSHORT __VA_ARGS__
-    SWIG_As(__VA_ARGS__)(PyObject* obj)
+  %fragment(SWIG_As_frag(Type),"header",
+	    fragment=SWIG_AsVal_frag(Type)) %{
+  SWIGINTERNSHORT Type
+    SWIG_As(Type)(PyObject* obj)
     {
-      __VA_ARGS__ v;
-      SWIG_AsVal(__VA_ARGS__)(obj, &v);
+      Type v;
+      SWIG_AsVal(Type)(obj, &v);
       return v;
     }
   %}
-  PYPTR_IN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), __VA_ARGS__);
-  PYPTR_VARIN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), __VA_ARGS__);
-  PYPTR_DIRECTOROUT_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), __VA_ARGS__);
+  PYPTR_IN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
+  PYPTR_VARIN_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
+  PYPTR_DIRECTOROUT_TYPEMAP(SWIG_arg(AsPtrMeth), SWIG_arg(AsPtrFrag), Type);
   PYPTR_TYPECHECK_TYPEMAP(SWIG_arg(CheckCode), SWIG_arg(AsPtrMeth), 
-			  SWIG_arg(AsPtrFrag), __VA_ARGS__);
-  %typemap_from(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+			  SWIG_arg(AsPtrFrag), Type);
+  %typemap_from(SWIG_arg(FromMeth), SWIG_arg(FromFrag), Type);
 
   PYPTR_INPUT_TYPEMAP(SWIG_arg(CheckCode),SWIG_arg(AsPtrMeth),
-		      SWIG_arg(AsPtrFrag),__VA_ARGS__);
-  PYPTR_INOUT_TYPEMAP(__VA_ARGS__);
+		      SWIG_arg(AsPtrFrag),Type);
+  PYPTR_INOUT_TYPEMAP(Type);
 %enddef
 
 /*
   typemap for simple swig types with only AsPtr/From methods
 */
 
-%define %typemap_asptrfromn(CheckCode, ...)
+%define %typemap_asptrfromn(CheckCode, Type...)
 %typemap_asptrfrom(SWIG_arg(CheckCode),
-		   SWIG_arg(SWIG_AsPtr(__VA_ARGS__)), 
-		   SWIG_arg(SWIG_From(__VA_ARGS__)), 
-		   SWIG_arg(SWIG_AsPtr_frag(__VA_ARGS__)), 
-		   SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
-		   __VA_ARGS__);
+		   SWIG_arg(SWIG_AsPtr(Type)), 
+		   SWIG_arg(SWIG_From(Type)), 
+		   SWIG_arg(SWIG_AsPtr_frag(Type)), 
+		   SWIG_arg(SWIG_From_frag(Type)), 
+		   Type);
 %enddef
