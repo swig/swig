@@ -14,6 +14,7 @@ namespace test2 {
 
 namespace test3 {
    using test::max;
+   using test::vector;
 }
 
 using namespace test2;
