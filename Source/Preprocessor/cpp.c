@@ -78,11 +78,15 @@ copy_location(DOH *s1, DOH *s2) {
 
 static String *cpp_include(String_or_char *fn) {
   String *s;
-  if (single_include) {
-    if (Getattr(included_files,fn)) return 0;
-    Setattr(included_files,fn,fn);
-  }
   s = Swig_include(fn);
+  if (single_include) {
+    String *file = Getfile(s);
+    if (Getattr(included_files,file)) {
+      Delete(s);
+      return 0;
+    }
+    Setattr(included_files,file,file);
+  }
   if (!s) {
     Seek(fn,0,SEEK_SET);
     if (ignore_missing) {

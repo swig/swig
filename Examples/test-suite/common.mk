@@ -56,8 +56,7 @@ CPP_TEST_BROKEN += \
 	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
-C_TEST_BROKEN += \
-	inctest.i 
+C_TEST_BROKEN +=
 
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
@@ -276,6 +275,7 @@ C_TEST_CASES += \
 	defines \
 	enums \
 	function_typedef \
+	inctest.i \
 	lib_carrays \
 	lib_cdata \
 	lib_cmalloc \

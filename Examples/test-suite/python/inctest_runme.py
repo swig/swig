@@ -1,5 +1,6 @@
 import inctest
 
+error = 0
 try:
   a = inctest.A()
 except:
