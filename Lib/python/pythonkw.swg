@@ -1,8 +1,13 @@
 #ifndef __python_pythonkw_swg__
 #define __python_pythonkw_swg__
 
-/* Warnings for Python keywords */
 #define PYTHONKW(x) %namewarn("314:" #x " is a python keyword")  #x
+#define PYTHONBN(x) %namewarn("321:" #x " conflicts with a built-in name in python")  "::"#x
+
+/*
+  Warnings for Python keywords 
+  http://www.fnorb.org/docs/1.2/Fnorb-Guide/node62.html
+*/
 
 PYTHONKW(and);
 PYTHONKW(assert);
@@ -34,23 +39,75 @@ PYTHONKW(try);
 PYTHONKW(while);
 PYTHONKW(yield);
 
-#undef PYTHONKW
+/*
+  built-in functions
+  http://www.zvon.org/other/python/doc21/lib/built-in-funcs.html
+ */ 
 
-#define PYTHONBN(x) %namewarn("321:" #x " conflicts with a built-in name in python")  "::"#x
-
-/* recurrent built-in functions */
-PYTHONBN(close);
+PYTHONBN(abs);
+PYTHONBN(apply);
+PYTHONBN(buffer);
+PYTHONBN(callable);
+PYTHONBN(chr);
+PYTHONBN(cmp);
+PYTHONBN(coerce);
+PYTHONBN(compile);
+PYTHONBN(complex);
+PYTHONBN(delattr);
+PYTHONBN(dir);
+PYTHONBN(divmod);
+PYTHONBN(eval);
+PYTHONBN(execfile);
+PYTHONBN(filter);
 PYTHONBN(float);
-PYTHONBN(int);
+PYTHONBN(getattr);
+PYTHONBN(globals);
+PYTHONBN(hasattr);
+PYTHONBN(hash);
+PYTHONBN(hex);
+PYTHONBN(id);
 PYTHONBN(input);
+PYTHONBN(int);
+PYTHONBN(intern);
+PYTHONBN(isinstance);
+PYTHONBN(issubclass);
+PYTHONBN(len);
+PYTHONBN(list);
+PYTHONBN(locals);
+PYTHONBN(long);
+PYTHONBN(map);
+PYTHONBN(max);
+PYTHONBN(min);
+PYTHONBN(oct);
 PYTHONBN(open);
+PYTHONBN(ord);
+PYTHONBN(pow);
 PYTHONBN(range);
+PYTHONBN(raw_input);
+PYTHONBN(reduce);
+PYTHONBN(reload);
+PYTHONBN(repr);
+PYTHONBN(round);
+PYTHONBN(setattr);
+PYTHONBN(slice);
+PYTHONBN(str);
+PYTHONBN(tuple);
 PYTHONBN(type);
+PYTHONBN(vars);
+PYTHONBN(xrange);
+PYTHONBN(zip);
 
-/* Boolean type */
+
+/* 
+   built-in names
+   boolean type and None
+*/
 PYTHONBN(True);
 PYTHONBN(False);
+PYTHONBN(None);
+
 
 #undef PYTHONBN
+#undef PYTHONKW
 
 #endif //__python_pythonkw_swg__
