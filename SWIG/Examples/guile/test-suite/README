@@ -5,3 +5,14 @@ whether test works.  The tests are kept here when the bug is fixed --
 so we can make sure that the bug (or related bugs) don't creep back
 into SWIG.
 
+This is an honest test suite.  It also contains tests for things that
+are *known* to fail in the current version of SWIG.  They are here in
+order to remind the maintainers to fix those problems in the next
+versions. 
+
+The following tests currently fail; please don't report them as bugs!
+
+ * macro-2: SWIG FAILED
+ * char-constant: RUN TEST FAILED
+ * template-whitespace: SWIG FAILED
+

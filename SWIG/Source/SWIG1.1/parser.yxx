@@ -1562,11 +1562,16 @@ pname          : ID def_args {
                          InArray = $1;
                          DefArg = 0;
                }
-               | empty { $$ = (char *) malloc(1);
-	                 $$[0] = 0;
-                         InArray = 0;
-                         DefArg = 0;
-               }
+	       | def_args {
+	            $$ = (char *) malloc(1);
+	            $$[0] = 0;
+                    InArray = 0;
+		    if ($1.type == T_CHAR)
+		      DefArg = Swig_copy_string(Char(ConstChar));
+		    else
+		      DefArg = Swig_copy_string($1.id);
+                    if ($1.id) free($1.id);
+	       }
                ;
 
 def_args       : EQUAL definetype { $$ = $2; }
@@ -2461,6 +2466,21 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 /* Static Member data */
 
               | STATIC type declaration {
+		char *iname;
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  add_pointers($2,$3.is_pointer);
+		  iname = make_name($3.id);
+		  if (iname == $3.id) iname = 0;
+		  cplus_static_var($3.id,iname,$2);
+		  if (Active_type) Delete(Active_type);
+		  Active_type = Copy($2);
+		}
+		scanner_clear_start();
+		Delete($2);
+	      } cpp_tail { }
+
+	      | STATIC type declaration array {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {

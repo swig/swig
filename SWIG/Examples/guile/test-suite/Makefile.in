@@ -1,5 +1,5 @@
 top_srcdir	= @top_srcdir@
-SWIG		= ../$(top_srcdir)/swig@release_suffix@
+SWIG		= $(top_srcdir)/swig@release_suffix@
 CC		= @CC@
 CXX		= @CXX@
 CFLAGS		= @CFLAGS@
@@ -14,7 +14,9 @@ all::   macro-2.test \
 	casts.cplusplusruntest \
 	import.cplusplusruntest \
 	name.runtest \
-	template-whitespace.cplusplustest
+	template-whitespace.cplusplustest \
+	anonymous-arg.cplusplustest \
+	static-array-member.cplusplustest
 
 .SUFFIXES: .i .test .cplusplustest .runtest .cplusplusruntest
 
