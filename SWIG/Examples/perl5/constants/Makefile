@@ -1,9 +1,9 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SRCS       = 
+SRCS       =
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = 
+SWIGOPT    =
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' perl5
@@ -15,3 +15,4 @@ static::
 clean::
 	rm -f *_wrap* *.o core *~ *.so *.pm myperl
 
+check: all

@@ -15,4 +15,4 @@ static::
 clean::
 	rm -f *_wrap* *.o *~ *.so myruby .~* core
 
-
+check: all

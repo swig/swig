@@ -15,3 +15,4 @@ static::
 clean::
 	rm -f *_wrap* *.o core *~ *.so *.pm myperl
 
+check: all

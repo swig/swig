@@ -17,3 +17,4 @@ all::
 clean::
 	rm -f matrix *_wrap* *~ .~* core
 
+check: all
