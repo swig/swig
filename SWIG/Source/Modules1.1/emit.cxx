@@ -42,7 +42,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("default",l,f);
   Swig_typemap_attach_parms("arginit",l,f);
 
-  /* Apply the arginit, default, and arginit typemaps */
+  /* Apply the arginit, default, and ignore typemaps */
 
   p = l;
   while (p) {
@@ -165,6 +165,22 @@ int emit_num_required(ParmList *parms) {
   /* Might want an error message if any arguments that follow don't have defaults */
   return nargs;
 }
+
+/* -----------------------------------------------------------------------------
+ * replace_args()
+ * ----------------------------------------------------------------------------- */
+
+static
+void replace_args(Parm *p, String *s) {
+  int i;
+  while (p) {
+    String *n = Getattr(p,"name");
+    if (n) {
+      Replace(s,n,Getattr(p,"lname"), DOH_REPLACE_ID);
+    }
+    p = nextSibling(p);
+  }
+}
  
 /* -----------------------------------------------------------------------------
  * int emit_action()
@@ -176,6 +192,7 @@ void emit_action(Node *n, Wrapper *f) {
   String *tm;
   String *action;
   String *wrap;
+  Parm   *p;
 
   /* Emit wrapper code (if any) */
   wrap = Getattr(n,"wrap:code");
@@ -187,6 +204,14 @@ void emit_action(Node *n, Wrapper *f) {
   }
   action = Getattr(n,"wrap:action");
   assert(action);
+
+  /* Preassert -- EXPERIMENTAL */
+  tm = Getattr(n,"feature:preassert");
+  if (tm) {
+    p = Getattr(n,"parms");
+    replace_args(p,tm);
+    Printv(f->code,tm,"\n",0);
+  }
 
   /* Exception handling code */
 
@@ -210,6 +235,13 @@ void emit_action(Node *n, Wrapper *f) {
     Printv(f->code,tm,"\n", 0);
   } else {
     Printv(f->code, action, "\n",0);
+  }
+  /* Postassert - EXPERIMENTAL */
+  tm = Getattr(n,"feature:postassert");
+  if (tm) {
+    p = Getattr(n,"parms");
+    replace_args(p,tm);
+    Printv(f->code,tm,"\n",0);
   }
 }
 
