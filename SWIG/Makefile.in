@@ -322,20 +322,20 @@ lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
 install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
-	@cd $(srcdir)/Lib; for i in *.i *.swg; \
-	    do \
-	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i"; \
-            $(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/$$i; \
+	@for file in $(srcdir)/Lib/*.i $(srcdir)/Lib/*.swg ; do \
+	    i=`basename $$file` ;				\
+	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
+            $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
 	@for lang in $(lib-languages);				\
 	    do							\
+	    echo "Installing language specific files for $$lang"; \
 	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
 	    $(MKINSTDIRS) $$dst;				\
-	    ( cd $(srcdir)/Lib/$$lang &&			\
-	      doti="`ls *.i 2>/dev/null`";			\
-	      dotswg="`ls *.swg 2>/dev/null`";			\
-	      if [ -f extra-install.list ]; then		\
-		  extra="`sed '/^#/d' extra-install.list`";	\
+	     (doti="`cd $(srcdir)/Lib/$$lang && ls *.i 2>/dev/null`";	\
+	      dotswg="`cd $(srcdir)/Lib/$$lang && ls *.swg 2>/dev/null`"; \
+	      if [ -f $(srcdir)/Lib/$$lang/extra-install.list ]; then	\
+		  extra="`sed '/^#/d' $(srcdir)/Lib/$$lang/extra-install.list`";	\
 	      fi;						\
 	      files="`echo $$doti $$dotswg $$extra`";		\
 	      if [ x"$$files" = x ]; then			\
@@ -343,10 +343,10 @@ install-lib:
 	      else for file in $$doti $$dotswg $$extra;		\
 		  do						\
 		  echo "Installing $$dst/$$file";		\
-		  $(INSTALL_DATA) $$file $$dst/$$file;	\
+		  $(INSTALL_DATA) $(srcdir)/Lib/$$lang/$$file $$dst/$$file; \
 		  done;						\
-	      fi );						\
-	    done
+	      fi) ; 						\
+	done
 
 
 install-m4:
