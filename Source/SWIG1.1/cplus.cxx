@@ -1477,7 +1477,6 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
   		            int mode) {
 
   Wrapper *w;
-  char    *code = 0;
   char     iname[512];
   char     fullname[512];
   DOHString *key;
@@ -1491,7 +1490,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     strcpy(fullname, classname);
   }
 
-  w = Swig_cmethod_wrapper(fullname, mname, type, l, code);
+  w = Swig_cmethod_wrapper(fullname, mname, type, l, ccode);
 
   if (!classrename) classrename = classname;
   if (!mrename) mrename = mname;
@@ -1511,7 +1510,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
   }
 
   if (!prev_wrap) {
-    if (mode && code) {
+    if (mode && ccode) {
       /* Produce an actual C wrapper */
       Wrapper_print(w,f_wrappers);
     } else if (!mode) {
