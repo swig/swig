@@ -1,6 +1,10 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/18/2004: wsfulton
+            [Java] JVM link failure on some systems fixed when using std_vector.i.
+            Also adds default vector constructor for use from Java.
+
 05/17/2004: mkoeppe (Matthias Koeppe)
 
 	    [Guile] New runtime functions SWIG_PointerAddress,
