@@ -1,6 +1,7 @@
 (* Plot a 3D Function *)
 
 (* Use the wrapped GIFPlot library *)
+open Swig
 open Gifplot
 open Int32
 

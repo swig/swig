@@ -1,6 +1,7 @@
 (* Draw some simple shapes *)
 
 (* Use the wrapped GIFPlot library *)
+open Swig
 open Simple
 open Int32
 
