@@ -16,7 +16,7 @@ The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as 
 PINVOKE is part of the ECMA/ISO C# specification.
 
 <p>
-The C# module is one of the more recently added language modules to SWIG and consequently hasn't quite the same level of maturity as other modules.
+The C# module is one of the more recently added language modules to SWIG and consequently is missing some functionality available in some other SWIG modules.
 The C# module is very similar to the Java module, so until some documentation has been written,
 please use the <a href="Java.html">Java documentation</a> as a guide to using SWIG with C#.
 The rest of this chapter should be read in conjunction with the Java documentation as it lists the main differences.
@@ -111,12 +111,12 @@ as specified in the <tt>%module</tt> directive or <tt>-module</tt> command line 
 The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
 
 <p>
-The directory <tt>Examples/csharp</tt> has a number of examples. 
-If your SWIG installation went well and your C# compiler was detected, Unix users should be able to type <tt>make</tt> in each example directory, 
-then <tt>ilrun runme</tt> (Portable.NET C# compiler) or <tt>mono runme</tt> (Mono C# compiler).
-Some project files will be added soon for use with the Microsoft .NET C# compiler on Windows.
-Windows users can also get the examples working, however, 
-a <a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> environment is needed for automatic configuration of the example makefiles.
+The directory <tt>Examples/csharp</tt> has a number of simple examples. 
+Visual Studio .NET 2003 solution and project files are available for compiling with the Microsoft .NET C# compiler on Windows.
+If your SWIG installation went well on a Unix environment and your C# compiler was detected, you should be able to type <tt>make</tt> in each example directory, 
+then <tt>ilrun runme</tt> (Portable.NET C# compiler) or <tt>mono runme</tt> (Mono C# compiler) to run the examples.
+Windows users can also get the examples working using a
+<a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
 </body>
