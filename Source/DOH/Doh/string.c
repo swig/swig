@@ -177,16 +177,20 @@ add(String *s, const char *newstr) {
 /* Add a single character to s */
 void
 String_addchar(String *s, char c) {
+  register char *tc;
+  register int   len = s->len;
+  register int   maxsize = s->maxsize;
   s->hashkey = -1;
-  if ((s->len+1) > (s->maxsize-1)) {
-    s->str = (char *) DohRealloc(s->str,2*s->maxsize);
+  if (len > (maxsize-2)) {
+    s->str = (char *) DohRealloc(s->str,2*maxsize);
     assert(s->str);
-    s->maxsize *= 2;
+    s->maxsize = 2*maxsize;
   }
-  s->str[s->len] = c;
-  if (s->sp >= s->len) {
-    s->sp = s->len+1;
-    s->str[s->len+1] = 0;
+  tc = s->str;
+  tc[len] = c;
+  if (s->sp >= len) {
+    s->sp = len+1;
+    tc[len+1] = 0;
     if (c == '\n') s->line++;
   }
   s->len++;
@@ -360,11 +364,17 @@ String_seek(DOH *so, long offset, int whence) {
 
   inc = (nsp > s->sp) ? 1 : -1;
 
-  while (s->sp != nsp) {
-    prev = s->sp + inc;
-    if (prev>=0 && prev<=s->len && s->str[prev] == '\n')
-      s->line += inc;
-    s->sp += inc;
+  {
+    register int sp = s->sp;
+    register char *tc = s->str;
+    register int len = s->len;
+    while (sp != nsp) {
+      prev = sp + inc;
+      if (prev>=0 && prev<=len && tc[prev] == '\n')
+	s->line += inc;
+      sp+=inc;
+    }
+    s->sp = sp;
   }
   assert (s->sp >= 0);
   return 0;
@@ -386,13 +396,12 @@ String_tell(DOH *so) {
 int
 String_putc(DOH *so, int ch) {
   String *s = (String *) ObjData(so);
-  s->hashkey = -1;
   if (s->sp >= s->len) {
     String_addchar(s,(char) ch);
   } else {
-    s->str[s->sp] = (char) ch;
-    s->sp++;
-  if (ch == '\n') s->line++;
+    s->hashkey = -1;
+    s->str[s->sp++] = (char) ch;
+    if (ch == '\n') s->line++;
   }
   return ch;
 }
