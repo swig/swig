@@ -97,6 +97,9 @@ int name_mangle(String *r) {
       case '.':
 	*c = 'f';
 	break;
+      case '?':
+	*c = 'q';
+	break;
       default:
 	*c = '_';
 	break;
