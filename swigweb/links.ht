@@ -48,6 +48,7 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 
 <a href="http://cens.ioc.ee/projects/f2py2e">f2py</a>. An interface generator for binding Fortran and Python.<br>
 
+<a href="http://www.boost.org/libs/python/doc/index.html">Boost Python Library</a>. Includes a powerful interface generator for wrapping C++ classes with a Python interface.
 </ul>
 
 <h3> Other interesting links</h3>
