@@ -659,8 +659,8 @@ public:
     getf = NewWrapper();
     setf = NewWrapper();
 
-  /* If this is our first call, add the globals variable to the
-     Python dictionary. */
+   /* If this is our first call, add the globals variable to the
+      Python dictionary. */
 
     if (!have_globals) {
       Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
@@ -668,6 +668,10 @@ public:
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
       }
+    }
+
+    if ((shadow) && (SwigType_isconst(t))) {
+      Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
     }
 
     wname = Swig_name_wrapper(iname);
