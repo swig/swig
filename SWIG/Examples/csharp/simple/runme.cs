@@ -14,12 +14,12 @@ public class runme
         // Manipulate the Foo global variable
 
         // Output its current value
-        Console.WriteLine("Foo = " + example.getFoo());
+        Console.WriteLine("Foo = " + example.Foo);
 
         // Change its value
-        example.setFoo(3.1415926);
+        example.Foo = 3.1415926;
 
         // See if the change took effect
-        Console.WriteLine("Foo = " + example.getFoo());
+        Console.WriteLine("Foo = " + example.Foo);
     }
 }
