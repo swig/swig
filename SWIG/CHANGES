@@ -3,6 +3,29 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 9/3/00  : beazley
+          Experimental optimization to code generation for virtual member 
+          functions.  If you have two classes like this:
+
+                 class A() {
+                   virtual void foo();
+                 }
+
+                 class B() : public A {
+                   virtual void foo();
+                 }
+
+          Swig will generate a single wrapper function like this
+
+                A_foo(A *a) {
+                    a->foo();
+                }
+
+          and use it as the implementation of both A_foo() and B_foo().
+          This optimization only takes place if both methods are declared
+          as virtual and both take identical parameters.
+          *** EXPERIMENTAL FEATURE ***
+              
+9/3/00  : beazley
           Restored the "memberin" typemap for setting structure members.
           Unlike the old version, the new version is expanded inline in the
           wrapper function allowing access to scripting language
