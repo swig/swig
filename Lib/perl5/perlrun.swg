@@ -170,6 +170,21 @@ extern "C" {
 #  define SWIG_MAYBE_PERL_OBJECT
 #endif
 
+/* load the swig_runtime_list_handle variable from the interpreter */
+static void SWIG_Perl_LookupTypePointer() {
+  SV *pointer;
+
+  /* first check if pointer already created */
+  pointer = get_sv("swig_runtime_data::type_pointer", FALSE);
+  if (pointer && SvOK(pointer)) {
+    swig_type_list_handle = INT2PTR(swig_type_info **, SvIV(pointer));
+  } else {
+    /* create a new pointer */
+    pointer = get_sv("swig_runtime_data::type_pointer", TRUE);
+    sv_setiv(pointer, PTR2IV(swig_type_list_handle));
+  }
+}
+
 #ifdef SWIG_NOINCLUDE
 
 SWIGIMPORT(int)               SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *, void **, swig_type_info *, int flags);

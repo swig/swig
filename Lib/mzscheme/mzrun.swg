@@ -33,34 +33,50 @@ extern "C" {
 #define MAXVALUES 6
 #define swig_make_boolean(b) (b ? scheme_true : scheme_false)
 
-#ifdef SWIG_NOINCLUDE
-
-SWIGIMPORT(void) SWIG_MzScheme_Init();
-/* If there is a type-mismatch, return nonzero; on success, return 0.  */
-SWIGIMPORT(int) SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags);
-/* If there is a type-mismatch, signal a wrong-type-arg error for the given argument number. */
-SWIGIMPORT(void *) SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
-                                            int argnum, int flags, const char *func_name,
-                                            int argc, Scheme_Object **argv);
-SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner);
-SWIGIMPORT(void *) SWIG_MzScheme_Malloc(size_t size, const char *func_name);
-SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_PackageValues(int num, Scheme_Object **values);
-SWIGIMPORT(Scheme_Object *)
-SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename, 
-				 int num_fields, char** field_names);
-
-#else
-
 struct swig_mz_proxy {
   Scheme_Type mztype;
   swig_type_info *type;
   void *object;
 };
 
-static Scheme_Type swig_type;
-static int swig_mz_initialized = 0;
+/* The interpreter will store a pointer to this structure in a global
+   variable called swig-runtime-data-type-pointer.  The instance of this
+   struct is only used if no other module has yet been loaded */
+struct swig_mzscheme_runtime_data {
+  swig_type_info **handle;
+  Scheme_Type type;
+};
+static struct swig_mzscheme_runtime_data swig_mzscheme_runtime_data;
 
-static void mz_free_swig(void *p, void *data) {
+static Scheme_Type swig_type;
+
+static void 
+SWIG_MzScheme_LookupTypePointer(Scheme_Env *env) {
+  Scheme_Object *pointer, *symbol;
+  struct swig_mzscheme_runtime_data *data;
+
+  /* first check if pointer already created */
+  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer");
+  pointer = scheme_lookup_global(symbol, env);
+  if (pointer && SCHEME_CPTRP(pointer)) {
+      data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
+      swig_type_list_handle = data->handle;
+      swig_type = data->type;
+  } else {
+    /* create a new type for wrapped pointer values */
+    swig_type = scheme_make_type((char *)"swig");
+    swig_mzscheme_runtime_data.handle = swig_type_list_handle;
+    swig_mzscheme_runtime_data.type = swig_type;
+    
+    /* create a new pointer */
+    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data, "swig_mzscheme_runtime_data");
+    scheme_add_global_symbol(symbol, pointer, env);
+  }
+}
+
+
+static void 
+mz_free_swig(void *p, void *data) {
   struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) p;
   if (SCHEME_NULLP((Scheme_Object*)p) || SCHEME_TYPE((Scheme_Object*)p) != swig_type)
     return;
@@ -71,7 +87,7 @@ static void mz_free_swig(void *p, void *data) {
   }
 }
 
-SWIGRUNTIME(Scheme_Object *)
+static Scheme_Object *
 SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
   struct swig_mz_proxy *new_proxy;
   new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
@@ -84,7 +100,7 @@ SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
   return (Scheme_Object *) new_proxy;
 }
 
-SWIGRUNTIME(int) 
+static int
 SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
   swig_type_info *cast;
 
@@ -109,7 +125,7 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
   return 1;
 }
 
-SWIGRUNTIME(void *) 
+static inline void *
 SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
                          int argnum, int flags, const char *func_name,
                          int argc, Scheme_Object **argv) {
@@ -120,15 +136,7 @@ SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type,
   return result;
 }
 
-SWIGRUNTIME(void)
-SWIG_MzScheme_Init() {
-  if (!swig_mz_initialized) {
-    swig_type = scheme_make_type((char *)"swig");
-    swig_mz_initialized = 1;
-  }
-}
-
-SWIGRUNTIME(void *) 
+static inline void *
 SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   void *p = malloc(size);
   if (p == NULL) {
@@ -136,7 +144,7 @@ SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   } else return p;
 }
 
-SWIGIMPORT(Scheme_Object *) 
+static inline Scheme_Object *
 SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
     /* ignore first value if void */
     if (num > 0 && SCHEME_VOIDP(values[0]))
@@ -152,7 +160,7 @@ SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
 #endif
 
 /* Function to create a new struct. */
-SWIGRUNTIME(Scheme_Object *)
+static Scheme_Object *
 SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename, 
 				 int num_fields, char** field_names)
 {
@@ -185,8 +193,6 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
     return new_type;
 }
     
-#endif
-
 #ifdef __cplusplus
 }
 #endif
