@@ -124,6 +124,8 @@ DohObjMalloc(DohObjInfo *type, void *data) {
   obj->refcount = 1;
   obj->flag_intern = 0;
   obj->flag_marked = 0;
+  obj->flag_user = 0;
+  obj->flag_usermark = 0;
   return (DOH *) obj;
 }
 
