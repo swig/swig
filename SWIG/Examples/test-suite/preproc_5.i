@@ -34,3 +34,15 @@
 %constant int d = xcat(xcat(1,2),3);
 
 
+#define C1\
+"hello"
+
+#define C2
+#define C3 C2
+
+#define ALONG_\
+NAME 42
+
+#define C4"Hello"
+
+
