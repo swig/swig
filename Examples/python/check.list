@@ -4,6 +4,7 @@ class
 constants
 contract
 enum
+exception
 exceptshadow
 extend
 funcattr
@@ -11,7 +12,8 @@ funcptr
 funcptr2
 functor
 import
-template
+import_template
+#libffi
 mpointer
 multimap
 operator
@@ -20,6 +22,8 @@ reference
 shadow
 simple
 smartptr
+std_vector
 template
 value
+varargs
 variables
