@@ -184,9 +184,11 @@ static char *make_name(char *name,String *decl) {
   
 
   if (Classprefix) {
-    tname = NewStringf("%s::%s",Classprefix,name);
-    n = Getattr(rename_hash,tname);
-    Delete(tname);
+    if (Len(Classprefix)) {
+      tname = NewStringf("%s::%s",Classprefix,name);
+      n = Getattr(rename_hash,tname);
+      Delete(tname);
+    }
     if (!n) {
       tname = NewStringf("*::%s",name);
       n = Getattr(rename_hash,tname);
@@ -1409,7 +1411,9 @@ cpp_class_decl  :
 	       Swig_symbol_newscope();
 	       start_line = line_number;
 	       inclass = 1;
+	       Classprefix = NewString("");
              } cpp_members RBRACE declarator c_decl_tail {
+	       Classprefix = 0;
 	       inclass = 0;
 	       String *unnamed = make_unnamed();
 	       $$ = new_node("class");
