@@ -1,5 +1,3 @@
-# Generated automatically from Makefile.in by configure.
-
 CC          = @CC@
 AR          = @AR@
 RANLIB      = @RANLIB@
@@ -11,13 +9,19 @@ CCSHARED    = @CCSHARED@
 LDSHARED    = @LDSHARED@
 INCLUDE     = -I. -I../DOH/Include
 
-SRCS = scanner.c include.c getopt.c misc.c
-OBJS = scanner.o include.o getopt.o misc.o
+SRCS = scanner.c include.c getopt.c misc.c super.c
+OBJS = scanner.o include.o getopt.o misc.o super.o
 
 .c.o: 
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
 all:	$(OBJS)
+
+supertest: super.c
+	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DSUPER_TEST -c \
+		-o supertest.o super.c
+	$(CC) supertest.o -ldoh -o supertest
+
 
 clean:
 	rm -f *.o *~ core *.so *.a

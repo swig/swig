@@ -39,6 +39,11 @@ extern DOH  *Swig_include(DOH *name);
 
 #define  SWIG_FILE_DELIMETER   "/"
 
+/* --- Super Strings --- */
+
+extern DOH *NewSuper(char *s, DOH *filename, int firstline);
+extern int SuperString_check(DOH *s);
+
 /* --- Command line parsing --- */
 
 extern void  Swig_init_args(int argc, char **argv);
