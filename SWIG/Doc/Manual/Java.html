@@ -85,7 +85,7 @@
 <ul>
 <li><a href="#n55">C/C++ helper functions</a>
 <li><a href="#n56">Class extension with %extend</a>
-<li><a href="#n57">Exception handling with %exception</a>
+<li><a href="#n57">Exception handling with %exception and %javaexception</a>
 <li><a href="#n58">Method access with %javamethodmodifiers</a>
 </ul>
 <li><a href="#n59">Tips and techniques</a>
@@ -101,6 +101,7 @@
 <li><a href="#n66">Sixty four bit JVMs</a>
 <li><a href="#n67">What is a typemap?</a>
 <li><a href="#n68">Typemaps for mapping C/C++ types to Java types</a>
+<li><a href="#n681">Additional Java typemap attributes</a>
 <li><a href="#n69">Java special variables</a>
 <li><a href="#n70">Typemaps for both C and C++ compilation</a>
 <li><a href="#n71">Java code typemaps</a>
@@ -109,6 +110,7 @@
 <li><a href="#n73">Typemap Examples</a>
 <ul>
 <li><a href="#n74">Simpler Java enums for enums without initializers</a>
+<li><a href="#n741">Handling C++ exception specifications as Java exceptions</a>
 <li><a href="#n75">Converting Java String arrays to char ** </a>
 <li><a href="#n76">Expanding a Java object to multiple arguments</a>
 <li><a href="#n77">Using typemaps to return arguments</a>
@@ -2896,12 +2898,13 @@ Vector(2,3,4)
 in any way---the extensions only show up in the Java interface.
 
 <a name="exception_handling"></a>
-<a name="n57"></a><H3>17.6.3 Exception handling with %exception</H3>
+<a name="n57"></a><H3>17.6.3 Exception handling with %exception and %javaexception</H3>
 
 
 If a C or C++ function throws an error, you may want to convert that error into a Java
 exception. To do this, you can use the <tt>%exception</tt> directive.  The <tt>%exception</tt> directive
 simply lets you rewrite part of the generated wrapper code to include an error check.
+It is detailed in full in the <a href="Customization.html#exception">Exception handling with %exception</a> section.
 
 <p>
 In C, a function often indicates an error by returning a status code (a negative number
@@ -2980,13 +2983,51 @@ We can catch the C++ exception and rethrow it as a Java exception like this:<p>
    }
 }
 
-class Base {
+class FooClass {
 public:
-     Foo *getitem(int index);      // Exception handler added
+     FooClass *getitem(int index);      // Might throw std::out_of_range exception
      ...
 };
 </pre>
 </blockquote>
+
+In the example above, <tt>java.lang.Exception</tt> is a checked exception class and so ought to be declared in the throws clause of <tt>getitem</tt>.
+Classes can be specified for adding to the throws clause using <tt>%javaexception(classes)</tt> instead of <tt>%exception</tt>,
+where <tt>classes</tt> is a string containing one or more comma separated Java classes.
+The <tt>%nojavaexception</tt> feature is the equivalent to <tt>%noexception</tt> and clears previously declared exception handlers.
+
+<blockquote>
+<pre>
+%javaexception("java.lang.Exception") getitem {
+  try {
+     $action
+  } catch (std::out_of_range &e) {
+    jclass clazz = jenv->FindClass("java/lang/Exception");
+    jenv->ThrowNew(clazz, "Range error");
+    return $null;
+   }
+}
+
+class FooClass {
+public:
+     FooClass *getitem(int index);      // Might throw std::out_of_range exception
+     ...
+};
+</pre>
+</blockquote>
+
+The generated proxy method now generates a throws clause containing <tt>java.lang.Exception</tt>:
+
+<blockquote>
+<pre>
+public class FooClass {
+  ...
+  public FooClass getitem(int index) throws java.lang.Exception { ... }
+  ...
+}
+</pre>
+</blockquote>
+
 
 The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also visa versa.
 It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#typemaps_for_c_and_c++">Typemaps for both C and C++ compilation</a> section. 
@@ -2994,6 +3035,7 @@ It is however possible to write JNI calls which will compile under both C and C+
 <p>
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html">SWIG Library</a> chapter.
+The typemap example <a href="#exception_typemap">Handling C++ exception specifications as Java exceptions</a> provides further exception handling capabilities.
 
 <a name="method_access"></a>
 <a name="n58"></a><H3>17.6.4 Method access with %javamethodmodifiers</H3>
@@ -3857,6 +3899,31 @@ These are listed below:
 
 </table>
 
+<a name="typemap_attributes"></a>
+<a name="n681"></a><H3>17.8.5 Java typemap attributes</H3>
+There is an additional typemap attribute that the Java module supports.
+This is the 'throws' attribute.
+The throws attribute is optional and specified after the typemap name and contains one or more comma separated classes for adding to the throws clause for any methods that use that typemap.
+It is analogous to the <a href="#exception_handling">%javaexception</a> feature's throws attribute.
+
+<blockquote>
+<pre>
+%typemap(typemapname, throws="ExceptionClass1, ExceptionClass2") type { ... }
+</pre>
+</blockquote>
+
+The attribute is necessary for supporting Java checked exceptions and can be added to just about any typemap.
+The list of typemaps include all the C/C++ (JNI) typemaps in the "<a href="Typemaps.html">Typemaps</a>" chapter and the
+Java specific typemaps listed in <a href="#typemaps_c_to_java_types">the previous section</a>, barring
+the "jni", "jtype" and "jstype" typemaps as they could never contain code to throw an exception.
+
+<p/>
+
+The throws clause is generated for the proxy method as well as the JNI method in the JNI intermediary class.
+If a method uses more than one typemap and each of those typemaps have classes specified in the throws clause,
+the union of the exception classes is added to the throws clause ensuring there are no duplicate classes.
+See the <a href="#nan_exception_typemap">NaN exception example</a> for further usage.
+
 <a name="special_variables"></a>
 <a name="n69"></a><H3>17.8.5 Java special variables</H3>
 
@@ -4396,7 +4463,7 @@ public static void setHair(HairType h) {
 
 public static HairType getHair() {
   return HairType.class.getEnumConstants()[exampleJNI.getHair()];
-}
+}/
 </pre>
 </blockquote>
 
@@ -4412,6 +4479,214 @@ These typemaps can often be used as the default for wrapping enums as in many ca
 In fact a good strategy is to always use these typemaps and to specifically handle enums with initializers using %apply.
 This would be done by using the original versions of these typemaps in "enums.swg" under another typemap name for applying using %apply.
 
+
+<a name="exception_typemap"></a>
+<a name="n741"></a><H3>17.9.2 Handling C++ exception specifications as Java exceptions</H3>
+
+This example demonstrates various ways in which C++ exceptions can be tailored and converted into Java exceptions.
+Let's consider a simple file class <tt>SimpleFile</tt> and an exception class <tt>FileException</tt> which it may throw on error:
+
+<blockquote>
+<pre>
+%include "std_string.i" // for std::string typemaps
+#include &lt;string&gt;
+
+class FileException {
+  std::string message;
+public:
+  FileException(const std::string& msg) : message(msg) {}
+  std::string what() {
+    return message;
+  }
+};
+
+class SimpleFile {
+  std::string filename;
+public:
+  SimpleFile(const std::string& filename) : filename(filename) {}
+  void open() throw(FileException) {
+  ...
+  }
+};
+</pre>
+</blockquote>
+
+As the <tt>open</tt> method has a C++ exception specification, SWIG will parse this and know that the method can throw an exception.
+The <a href="Typemaps.html#throws_typemap">"throws" typemap</a> is then used when SWIG encounters an exception specification.
+The default generic "throws" typemap looks like this:
+
+<blockquote>
+<pre>
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+  return $null;
+%}
+</pre>
+</blockquote>
+
+Basically SWIG will generate a C++ try catch block and the body of the "throws" typemap constitutes the catch block.
+The above typemap calls a SWIG supplied method which throws a <tt>java.lang.RuntimeException</tt>.
+This exception class is a runtime exception and therefore not a checked exception.
+If, however, we wanted to throw a checked exception, say <tt>java.io.IOException</tt>, then we could use the following typemap:
+
+<blockquote>
+<pre>
+%typemap(throws, throws="java.io.IOException") FileException {
+  jclass excep = jenv->FindClass("java/io/IOException");
+  if (excep)
+    jenv->ThrowNew(excep, $1.what().c_str());
+  return $null;
+}
+</pre>
+</blockquote>
+
+Note that this typemap uses the 'throws' <a href="#typemap_attributes">typemap attribute</a> to ensure a throws clause is generated.
+The generated proxy method then specifies the checked exception by containing <tt>java.io.IOException</tt> in the throws clause:
+
+<blockquote>
+<pre>
+public class SimpleFile {
+  ...
+  public void open() throws java.io.IOException { ... }
+}
+</pre>
+</blockquote>
+
+Lastly, if you don't want to map your C++ exception into one of the standard Java exceptions, the C++ class can be wrapped and turned into a custom Java exception class.
+If we go back to our example, the first thing we must do is get SWIG to wrap <tt>FileException</tt> and ensure that it derives from <tt>java.lang.Exception</tt>.
+Additionally, we might want to override the <tt>java.lang.Exception.getMessage()</tt> method.
+The typemaps to use then are as follows:
+
+<blockquote>
+<pre>
+%typemap(javabase) FileException "java.lang.Exception";
+%typemap(javacode) FileException %{
+  public String getMessage() {
+    return what();
+  }
+%}
+</pre>
+</blockquote>
+
+This generates:
+<blockquote>
+<pre>
+public class FileException extends java.lang.Exception {
+  ...
+  public String getMessage() {
+    return what();
+  }
+
+  public FileException(String msg) { ... }
+
+  public String what() {
+    return exampleJNI.FileException_what(swigCPtr);
+  }
+}
+</pre>
+</blockquote>
+
+We could alternatively have used <tt>%rename</tt> to rename <tt>what()</tt> into <tt>getMessage()</tt>.
+
+
+<a name="nan_exception_typemap"></a>
+<a name="n75"></a><H3>17.9.2 NaN Exception - exception handling for a particular type</H3>
+A Java exception can be thrown from any Java or JNI code.
+Therefore, as most typemaps contain either Java or JNI code, just about any typemap could throw an exception.
+The following example demonstrates exception handling on a type by type basis by checking for 'Not a number' (NaN) whenever a parameter of type <tt>float</tt> is wrapped.
+<p>
+Consider the following C++ code:
+
+<blockquote>
+<pre>
+bool calculate(float first, float second);
+</pre>
+</blockquote>
+
+To validate every <tt>float</tt> being passed to C++, we could preceed the code being wrapped by the following typemap which throws a runtime exception whenever the <tt>float</tt> is 'Not a Number':
+
+<blockquote>
+<pre>
+%module example
+%typemap(javain) float "$module.CheckForNaN($javainput)"
+%pragma(java) modulecode=%{
+  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  static protected float CheckForNaN(float num) {
+    if (Float.isNaN(num))
+      throw new RuntimeException("Not a number");
+    return num;
+  }
+%}
+</pre>
+</blockquote>
+
+Note that the <tt>CheckForNaN</tt> support method has been added to the module class using the <tt>modulecode</tt> pragma.
+The following shows the generated code of interest:
+
+<blockquote>
+<pre>
+public class example {
+  ...
+
+  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  static protected float CheckForNaN(float num) {
+    if (Float.isNaN(num))
+      throw new RuntimeException("Not a number");
+    return num;
+  }
+
+  public static boolean calculate(float first, float second) {
+    return exampleJNI.calculate(example.CheckForNaN(first), example.CheckForNaN(second));
+  }
+}
+</pre>
+</blockquote>
+
+Note that the "javain" typemap is used for every occurrence of a <tt>float</tt> being used as an input.
+Of course, we could have targetted the typemap at a particular parameter by using <tt>float first</tt>, say, instead of just <tt>float</tt>.
+If we decide that what we actually want is a checked exception instead of a runtime exception, we can change this easily enough.
+The proxy method that uses <tt>float</tt> as an input, must then add the exception class to the throws clause.
+SWIG can handle this as it supports the 'throws' <a href="#typemap_attributes">typemap attribute</a> for specifying classes for the throws clause.
+Thus we can modify the pragma and the typemap for the throws clause:
+
+<blockquote>
+<pre>
+%typemap(javain, throws="java.lang.Exception") float "$module.CheckForNaN($javainput)"
+%pragma(java) modulecode=%{
+  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  static protected float CheckForNaN(float num) throws java.lang.Exception {
+    if (Float.isNaN(num))
+      throw new RuntimeException("Not a number");
+    return num;
+  }
+%}
+</pre>
+</blockquote>
+
+The <tt>calculate</tt> method now has a throws clause and even though the typemap is used twice for both <tt>float first</tt> and <tt>float second</tt>,
+the throws clause contains a single instance of <tt>java.lang.Exception</tt>:
+
+<blockquote>
+<pre>
+public class example {
+  ...
+
+  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  static protected float CheckForNaN(float num) throws java.lang.Exception {
+    if (Float.isNaN(num))
+      throw new RuntimeException("Not a number");
+    return num;
+  }
+
+  public static boolean calculate(float first, float second) throws java.lang.Exception {
+    return exampleJNI.calculate(example.CheckForNaN(first), example.CheckForNaN(second));
+  }
+}
+</pre>
+</blockquote>
+
+If we were a martyr to the JNI cause, we could replace the succinct code within the "javain" typemap with a few pages of JNI code.
+If we had, we would have put it in the "in" typemap which, like all JNI and Java typemaps, also supports the 'throws' attribute.
 
 <a name="converting_java_string_arrays"></a>
 <a name="n75"></a><H3>17.9.2 Converting Java String arrays to char ** </H3>
