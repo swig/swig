@@ -202,6 +202,8 @@ extern void      wad_stack_debug(WadFrame *f);
 
 extern char   *wad_strip_dir(char *);
 extern void    wad_default_callback(int signo, WadFrame *frame, char *ret);
+extern void    wad_dump_trace(int fd, int signo, WadFrame *frame, char *ret);
+
 extern void    wad_set_callback(void (*h)(int, WadFrame *, char *));
 extern char   *wad_load_source(char *, int line);
 extern void    wad_release_source();

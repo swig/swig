@@ -1,3 +1,9 @@
+WAD 0.2  - June 24, 2001
+   
+   -   Minor changes.  Added the wadtrace file
+
+   -   Put everything under the LGPL.
+
 WAD 0.1  - March 23, 2001
 
    -   Extensive changes to WAD core.  WAD now builds an exception

@@ -329,7 +329,8 @@ The scripts debug.py, debug.tcl, debug.pl can be used to test these extensions.
 
 No official documentation exists at this time.  However, the Papers
 directory contains two conference papers that describe WAD's design
-and high-level operation.  Slides from the Python9 talk are also included.
+and high-level operation.  Slides from the Python9 talk are also
+included.
 
 9. To-Do
 
@@ -369,4 +370,4 @@ ways to contribute.  Here is the short to-do list:
 Please contact me if you are interested in working on any of these projects.
 
 Dave Beazley (beazley@cs.uchicago.edu)
-March 23, 2001
+June 24, 2001
