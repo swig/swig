@@ -1,6 +1,24 @@
 Version 1.3.22 (in progress)
 ==================================
 
+08/26/2004: wsfulton
+            [Perl] Applied #932333 from Ikegami Tsutomu. Fixes long long *OUTPUT
+            and unsigned long long *OUTPUT typemaps in typemaps.i.
+
+08/26/2004: wsfulton
+            Applied patch #857344 from Art Yerkes. Workaround for autoconf bug when
+            running 'make install'.
+
+08/26/2004: wsfulton
+            [Perl] Part of patch #982753 applied. This implements a %perlcode directive.
+            It allows one to add Perl code to the generated .pm file. Works the same 
+            as %pythoncode.
+
+08/26/2004: wsfulton
+            [Java] Fix for directors when wrapping virtual methods with exception
+            specifications that were not simple types. Previously code was generated that
+            didn't compile, for example when the exception specification was a pointer.
+
 08/25/2004: wsfulton
             [C#] Typemap fix for methods that return char *. The CLR would incorrectly
             delete the memory pointed to by char *. Also applied the same correction to
@@ -59,7 +77,6 @@ Version 1.3.22 (in progress)
             [allegrocl] Additional case mode fixes.  Also, make sure
 	    foreign types are exported.
 
-	
 07/24/2004: mkoeppe 
 	    [Guile] In -scm mode, SWIG modules now exchange their pointer type
 	    information via the Guile interpreter.  It is no longer necessary to build a
