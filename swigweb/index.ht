@@ -40,6 +40,9 @@ an abundance of spare time.
 <h3>News</h3>
 
 <p>
+<b>2002/04/03</b> Robert Tolbert has contributed <a href="swigdoc.pdf">PDF</a> and <a href="swigdoc.ps">postscript</a> versions of the SWIG-1.3.11 documentation.  Check it out.
+
+<p>
 <b>2002/02/01</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.11.tar.gz">SWIG-1.3.11</a> has been released.   This is a bug-fix release for SWIG-1.3.10.  The release also
 includes substantial improvements to the Java and PHP modules.
 See the <a href="download.html">download</a> page for release notes and versions for Windows and Macintosh.  
