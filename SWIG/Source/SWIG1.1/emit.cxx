@@ -54,7 +54,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
     if (tm) {
       Printv(f->code,tm,"\n",0);
     }
-    // Check for ignore or default typemaps
+    /* Check for ignore or default typemaps */
     tm = typemap_lookup((char*)"default",typemap_lang,pt,pname,(char*)"",lname,f);
     if (tm) {
       Printv(f->code,tm,"\n",0);
