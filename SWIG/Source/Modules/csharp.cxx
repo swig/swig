@@ -696,6 +696,9 @@ class CSHARP : public Language {
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
+    /* Contract macro modification */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
     if(!is_void_return)
       Replaceall(f->code,"$null","0");
     else
