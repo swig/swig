@@ -21,14 +21,11 @@ public:
   }
 protected:
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY) \
-  || defined(SWIGJAVA) || defined(SWIGOCAML)
   virtual std::string ping() = 0;
-#else
-  virtual std::string ping() { return "";};
-#endif
 
   void hellom() {}
+
+  virtual void used() {}  
 };
 
 class Bar : public Foo 
@@ -45,6 +42,8 @@ public:
 
   int hello;
 
+  using Foo::used;
+  
 protected:
   std::string ping() { 
     return "Bar::ping();"; 
