@@ -1983,8 +1983,8 @@ class JAVA : public Language {
     String    *tm;
     Parm      *p;
     int       i;
-    Node     *parentNode = parentNode(n);
-    bool      feature_director = (parentNode && Swig_directorclass(n));
+    String    *function_code = NewString("");
+    bool      feature_director = (parentNode(n) && Swig_directorclass(n));
 
     Language::constructorHandler(n);
 
@@ -1999,8 +1999,8 @@ class JAVA : public Language {
 
       const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
-      Printf(proxy_class_code, "  %s %s(", methodmods, proxy_class_name);
-      Printv(imcall, "this(", imclass_name, ".", mangled_overname, "(", NIL);
+      Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
+      Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -2010,7 +2010,6 @@ class JAVA : public Language {
       emit_mark_varargs(l);
 
       int gencomma = 0;
-      int ctor_arg_cnt = 0;
 
       /* Output each parameter */
       for (i = 0, p=l; p; i++) {
@@ -2057,22 +2056,26 @@ class JAVA : public Language {
 
         /* Add parameter to proxy function */
         if(gencomma)
-          Printf(proxy_class_code, ", ");
-        Printf(proxy_class_code, "%s %s", param_type, arg);
+          Printf(function_code, ", ");
+        Printf(function_code, "%s %s", param_type, arg);
         ++gencomma;
-        ctor_arg_cnt++;
 
         Delete(arg);
         Delete(param_type);
         p = Getattr(p,"tmap:in:next");
       }
 
-      Printf(imcall, "), true);\n");
+      Printf(imcall, ")");
 
-      Printf(proxy_class_code, ")");
-      generateThrowsClause(n, proxy_class_code);
-      Printf(proxy_class_code, " {\n");
-      Printf(proxy_class_code, "    %s", imcall);
+      Printf(function_code, ")");
+      generateThrowsClause(n, function_code);
+      if (feature_director) {
+        Printv(function_code, " ", typemapLookup("javaconstruct_director", Getattr(n,"name"), WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF), NIL);
+      } else {
+        Printv(function_code, " ", typemapLookup("javaconstruct", Getattr(n,"name"), WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF), NIL);
+      }
+      Printf(function_code, "\n");
+      Replaceall(function_code, "$imcall", imcall);
 
       /* Add director connection call if this class has directors. */
 
@@ -2081,7 +2084,7 @@ class JAVA : public Language {
         String *norm_name = SwigType_namestr(Getattr(n, "name"));
 
         String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
-        Printv(proxy_class_code, "    ", imclass_name, ".", swig_director_connect, "(this, swigCPtr);\n", NIL);
+//        Printv(function_code, "    ", imclass_name, ".", swig_director_connect, "(this, swigCPtr);\n", NIL);
 
         if (!emitted_connect) {
           String  *swig_director_connect_jni = makeValidJniName(swig_director_connect);
@@ -2113,9 +2116,9 @@ class JAVA : public Language {
         Delete(swig_director_connect);
       }
 
-      Printf(proxy_class_code, "  }\n\n");
+      Printv(proxy_class_code, function_code, "\n", NIL);
 
-      if(!ctor_arg_cnt)  // We must have a default constructor
+      if(!gencomma)  // We must have a default constructor
         have_default_constructor_flag = true;
 
       Delete(overloaded_name);
