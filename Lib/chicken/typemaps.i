@@ -125,7 +125,7 @@ output values, in reverse order.
 
 %define INOUT_TYPEMAP(type_, from_scheme, to_scheme, checker, convtype, storage_)
 
-%typemap(in) type_ *INPUT(type_ temp), type_ &INPUT(type_ temp)
+%typemap(in) type_ *INPUT($*1_ltype temp), type_ &INPUT($*1_ltype temp)
 %{  if (!checker ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'type_'");
   }
@@ -135,7 +135,7 @@ output values, in reverse order.
 %typemap(typecheck) type_ *INPUT = type_;
 %typemap(typecheck) type_ &INPUT = type_;
 
-%typemap(in, numinputs=0) type_ *OUTPUT(type_ temp), type_ &OUTPUT(type_ temp)
+%typemap(in, numinputs=0) type_ *OUTPUT($*1_ltype temp), type_ &OUTPUT($*1_ltype temp)
 "  $1 = &temp;"
 
 #if "storage_" == "0"

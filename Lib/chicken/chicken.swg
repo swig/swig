@@ -46,7 +46,7 @@
 
 /* Const primitive references.  Passed by value */
 
-%typemap(in) const type_ & (type_ temp)
+%typemap(in) const type_ & ($*1_ltype temp)
 %{  if (!checker ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'type_'");
   }
@@ -118,10 +118,10 @@
 
 #if ("type_" == "char") || ("type_" == "unsigned char") || ("type_" == "signed char")
 %typemap(constcode) type_
-"static const type_ $result = '$value';"
+"static const $1_type $result = '$value';"
 #else
 %typemap(constcode) type_
-"static const type_ $result = $value;"
+"static const $1_type $result = $value;"
 #endif
 
 %enddef
