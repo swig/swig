@@ -279,6 +279,7 @@ extern void       Swig_banner(File *f);
 extern DOH       *Swig_temp_result(DOH *x);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
+extern void       Swig_init();
 
 /* --- C Wrappers --- */
 extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
