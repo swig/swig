@@ -127,7 +127,7 @@ libswigrb_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(RUB
 libswigrb_la_CFLAGS     = $(RUBY_INCLUDE) $(RUBY_CFLAGS)
 
 librb.c: $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
-	../swig -ruby -runtime -I../Lib -o librb.c swigrun.i	
+	../swig -ruby -runtime -I../Lib -I../Lib/ruby -o librb.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # PHP4 run-time library
@@ -143,7 +143,7 @@ libswigphp4_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PHP
 libswigphp4_la_CFLAGS   = $(PHP4_INCLUDE)
 
 libphp4.c: $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
-	../swig -php -runtime -I../Lib -o libphp4.c swigrun.i	
+	../swig -php -runtime -I../Lib -I../Lib/php4 -o libphp4.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Pike run-time library
@@ -175,7 +175,7 @@ libswigchicken_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(C
 libswigchicken_la_CFLAGS  = $(CHICKEN_INCLUDE)
 
 libchicken.c: $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
-	../swig -chicken -runtime -I../Lib -o libchicken.c swigrun.i	
+	../swig -chicken -runtime -I../Lib -I../Lib/chicken -o libchicken.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # The following do not use Libtool
@@ -200,7 +200,7 @@ all-local:
 endif
 
 .libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
-	../swig -mzscheme -runtime -I../Lib -o libmz.c swigrun.i	
+	../swig -mzscheme -runtime -I../Lib -I../Lib/mzscheme -o libmz.c swigrun.i	
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
 	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
