@@ -74,29 +74,18 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 ****   Typemap environments.  Stay tuned.
 
+****   Implement option to print dependencies.
+
+****   Implement "throw" typemaps for all of the target languages.
+
 [DONE] If a wrapper can't be generated to a function/method for some
        reason, provide a flag that prevents that function/method from
        appearing the dispatch function.
 
        If a language module sets the "error" attribute of a node, it is
        not included in the dispatch function.
-
-***    Virtual function optimization.  If you have two classes like this:
-
-          class Foo {
-          public:
-                virtual int blah(int);
-          };
-
-          class Bar : public Foo {
-          public:
-                virtual int blah(int);
-          };
-
-       Then SWIG ought to be able to reuse the wrapper for Foo::blah as
-       Bar::blah.   This should result in much smaller extension modules.
  
-***    Investigate the enhancement of exception handling to match against exceptions
+[DONE] Investigate the enhancement of exception handling to match against exceptions
        specified with throw specifiers.
 
 ***    Rewrite declaration annotation to better unify %rename and related
@@ -118,6 +107,22 @@ defer  ready to go.  The primary obstacle lies in the target language
        members as well as stored in a container (i.e., an array of pointers).
 
        [ Partially finished for Tcl/Python. ]
+
+
+**     Virtual function optimization.  If you have two classes like this:
+
+          class Foo {
+          public:
+                virtual int blah(int);
+          };
+
+          class Bar : public Foo {
+          public:
+                virtual int blah(int);
+          };
+
+       Then SWIG ought to be able to reuse the wrapper for Foo::blah as
+       Bar::blah.   This should result in much smaller extension modules.
 
 **     Restoration of the documentation system.
 
