@@ -14,6 +14,9 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/03/2001: cheetah (william fulton)
+           * Distribution fixes: autoconf no longer needed to install SWIG.
+
 8/02/2001: beazley
            Removed two undocumented parsing features.  SWIG no longer
            supports out-of-class static function or variable

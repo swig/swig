@@ -788,23 +788,23 @@ AC_SUBST(release_suffix)
 # not an issue in non-CVS releases--the mkdist.py script creates all
 # of the configure scripts before making a tar-ball. -- beazley 2000/03/01
 
-if test ! -r $srcdir/Source/DOH/configure; then
-	(cd $srcdir/Source/DOH ; autoconf)
-fi
+# All these have been commented out as it turned out that the mkdist.py 
+# script was not creating all of the configure files in subdirectories.
+# This required autoconf to be installed on user's machines when installing
+# SWIG - not a good requirement. Developers should run the autogen.sh instead.
+# Do not uncomment else the same problem may arise again. - William Fulton 2001/08/03.
 
-#if test -d $srcdir/Source/SWILL/SWILL; then
-#  if test ! -r $srcdir/Source/SWILL/configure; then
-#  	(cd $srcdir/Source/SWILL ; autoconf)
-#  fi
+#if test ! -r $srcdir/Source/DOH/configure; then
+#	(cd $srcdir/Source/DOH ; autoconf)
 #fi
 
-if test ! -r $srcdir/Tools/configure ; then
-	(cd $srcdir/Tools ; autoconf)
-fi
+#if test ! -r $srcdir/Tools/configure ; then
+#	(cd $srcdir/Tools ; autoconf)
+#fi
 
-if test ! -r $srcdir/Examples/GIFPlot/configure ; then
-	(cd $srcdir/Examples/GIFPlot ; autoconf)
-fi
+#if test ! -r $srcdir/Examples/GIFPlot/configure ; then
+#	(cd $srcdir/Examples/GIFPlot ; autoconf)
+#fi
 
 #
 #AC_OUTPUT_COMMANDS(test -f Examples/install-sh || cp install-sh Examples)
