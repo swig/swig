@@ -127,12 +127,17 @@ class TypePass : public Dispatcher {
 				if (Strcmp(nodeType(bcls),"classforward") != 0) {
 				  Swig_error(Getfile(bname),Getline(bname),"'%s' is not a class. \n",bname);
 				} else {
-				    clsforward = 1;
+				  Swig_warning(WARN_TYPE_INCOMPLETE,Getfile(bname),Getline(bname),"Base class '%s' is incomplete.\n", bname);
+				  clsforward = 1;
 				}
 				bcls = 0;
 			    } else {
+			      if (Getattr(bcls,"typepass:visit")) {
 				if (!ilist) ilist = NewList();
 				Append(ilist,bcls);
+			      } else {
+				Swig_error(Getfile(bname),Getline(bname),"class '%s' must be defined before it is used as a base class.\n", bname);
+			      }
 			    }
 			}
 			break;
@@ -151,7 +156,9 @@ class TypePass : public Dispatcher {
 		    }
 		}
 	    }
-	    if (ilist) Setattr(cls,"bases",ilist);
+	    if (ilist) {
+	      Setattr(cls,"bases",ilist);
+	    }
 	}
 	if (!ilist) return;
 	int len = Len(ilist);
@@ -255,6 +262,8 @@ public:
 	} else {
 	  SwigType_new_scope(0);
 	}
+
+	Setattr(n,"typepass:visit","1");
 
 	/* Need to set up a typedef if unnamed */
 	if (unnamed && tdname && (Cmp(storage,"typedef") == 0)) {

@@ -2068,8 +2068,10 @@ cpp_class_decl  :
 		       } else {
 			 base = NewString(n);
 		       }
-		       rename_inherit(base,derived);
-		       Delete(base);
+		       if (base) {
+			 rename_inherit(base,derived);
+			 Delete(base);
+		       }
 		     }
 		   }
 		   if (SwigType_istemplate($3)) {

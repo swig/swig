@@ -112,6 +112,8 @@
 /* -- Type system and typemaps -- */
 
 #define WARN_TYPE_UNDEFINED_CLASS     401
+#define WARN_TYPE_INCOMPLETE          402
+
 #define WARN_TYPEMAP_SOURCETARGET     450
 #define WARN_TYPEMAP_CHARLEAK         451
 #define WARN_TYPEMAP_SWIGTYPE         452
