@@ -34,6 +34,7 @@ struct SpeedClass {
 
   const colour myColour2;
   speedtd1 mySpeedtd1;
+  SpeedClass() : myColour2(red) { }
 };
 
 SpeedClass::speed              speedTest1(SpeedClass::speed s) { return s; }
