@@ -471,6 +471,7 @@ PERL5::functionWrapper(Node *n)
   String *cleanup, *outarg;
   int    num_saved = 0;
   int    num_arguments, num_required;
+  int    varargs = 0;
 
   f       = NewWrapper();
   cleanup = NewString("");
@@ -483,13 +484,18 @@ PERL5::functionWrapper(Node *n)
 
   num_arguments = emit_num_arguments(l);
   num_required  = emit_num_required(l);
+  varargs       = emit_isvarargs(l);
 
   Wrapper_add_local(f,"argvi","int argvi = 0");
 
   /* Check the number of arguments */
-
-  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", num_required, num_arguments);
+  if (!varargs) {
+    Printf(f->code,"    if ((items < %d) || (items > %d)) {\n", num_required, num_arguments);
+  } else {
+    Printf(f->code,"    if (items < %d) {\n", num_required);
+  }
   Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(iname,d,l));
+  Printf(f->code,"}\n");
 
   /* Write code to extract parameters. */
   i = 0;

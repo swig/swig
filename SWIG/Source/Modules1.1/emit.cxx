@@ -112,6 +112,40 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("argout",l,f);
   Swig_typemap_attach_parms("check",l,f);
   Swig_typemap_attach_parms("freearg",l,f);
+
+  /* Check for variable length arguments with no input typemap.
+     If no input is defined, we set this to ignore and print a
+     message.
+   */
+  {
+    Parm *p = l;
+    Parm *lp = 0;
+    while (p) {
+      if (Getattr(p,"tmap:in")) {
+	lp = p;
+	p = Getattr(p,"tmap:in:next");
+	continue;
+      }
+      if (SwigType_isvarargs(Getattr(p,"type"))) {
+	Printf(stderr,"%s:%d. Warning. Variable length arguments discarded.\n", input_file, line_number);
+	Setattr(p,"tmap:ignore","");
+      }
+      lp = 0;
+      p = nextSibling(p);
+    }
+    
+    /* Check if last input argument is variable length argument */
+    if (lp) {
+      p = lp;
+      while (p) {
+	if (SwigType_isvarargs(Getattr(p,"type"))) {
+	  Setattr(l,"emit:varargs",lp);
+	  break;
+	}
+	p = nextSibling(p);
+      }
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -139,6 +173,10 @@ int emit_num_arguments(ParmList *parms) {
 	p = nextSibling(p);
       }
     }
+  }
+  if (parms && (p = Getattr(parms,"emit:varargs"))) {
+    if (Len(p) ==  1)
+      nargs--;
   }
   return nargs;
 }
@@ -171,7 +209,24 @@ int emit_num_required(ParmList *parms) {
     }
   }
   /* Might want an error message if any arguments that follow don't have defaults */
+  if (parms && (p = Getattr(parms,"emit:varargs"))) {
+    if (Len(p) ==  1)
+      nargs--;
+  }
   return nargs;
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_isvarargs()
+ *
+ * Checks if a function is a varargs function
+ * ----------------------------------------------------------------------------- */
+
+int
+emit_isvarargs(ParmList *p) {
+  if (!p) return 0;
+  if (Getattr(p,"emit:varargs")) return 1;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -211,7 +266,9 @@ void emit_action(Node *n, Wrapper *f) {
       Printv(f_code,wrap,NULL);
     }
   }
-  action = Getattr(n,"wrap:action");
+  action = Getattr(n,"feature:action");
+  if (!action)
+    action = Getattr(n,"wrap:action");
   assert(action);
 
   /* Get the return type */

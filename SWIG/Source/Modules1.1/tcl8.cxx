@@ -201,6 +201,8 @@ TCL8::functionWrapper(Node *n) {
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              num_arguments = 0;
   int              num_required = 0;
+  int              varargs = 0;
+
   char             source[64];
 
   incode  = NewString("");
@@ -222,7 +224,8 @@ TCL8::functionWrapper(Node *n) {
 
   /* Get number of require and total arguments */
   num_arguments = emit_num_arguments(parms);
-  num_required = emit_num_required(parms);
+  num_required  = emit_num_required(parms);
+  varargs       = emit_isvarargs(parms);
 
   /* Unmarshal parameters */
 
@@ -274,7 +277,23 @@ TCL8::functionWrapper(Node *n) {
     p = nextSibling(p);
   }
 
-  Printf(argstr,":%s\"",usage_string(Char(iname),type,parms));
+  if (!varargs) {
+    Putc(':',argstr);
+  } else {
+    Putc(';',argstr);
+    /* If variable length arguments we need to emit the in typemap here */
+    if (p && (tm = Getattr(p,"tmap:in"))) {
+      SwigType *ln = Getattr(p,"lname");
+      sprintf(source,"objv[%d]", i+1);
+      Printf(incode, "if (objc > %d) ", num_arguments);
+      Replaceall(tm,"$input",source);
+      Printv(incode,tm,NULL);
+      Printf(incode,"\n");
+    }
+  }
+
+  Printf(argstr,"%s\"",usage_string(Char(iname),type,parms));
+
   Printv(f->code,
 	 "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
 	 NULL);
@@ -559,7 +578,6 @@ TCL8::nativeWrapper(Node *n) {
 
 int
 TCL8::classHandler(Node *n) {
-  //cpp_open_class(char *classname, char *rename, char *ctype, int strip)
   
   have_constructor = 0;
   have_destructor = 0;

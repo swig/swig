@@ -860,6 +860,8 @@ SwigType *SwigType_default(SwigType *t) {
     def = NewString("m(CLASS).SWIGTYPE");
   } else if (SwigType_isenum(r)) {
     def = NewString("enum SWIGTYPE");
+  } else if (SwigType_isvarargs(r)) {
+    def = NewString("v(...)");
   } else {
     def = NewString("SWIGTYPE");
   }
@@ -1613,6 +1615,8 @@ int SwigType_type(SwigType *t)
   if (strcmp(c,"long long") == 0) return T_LONGLONG;
   if (strcmp(c,"unsigned long long") == 0) return T_ULONGLONG;
   if (strncmp(c,"enum ",5) == 0) return T_INT;
+
+  if (strcmp(c,"v(...)") == 0) return T_VARARGS;
   /* Hmmm. Unknown type */
   if (SwigType_istypedef(t)) {
     int r;

@@ -61,6 +61,10 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
     break;
   case T_VOID:
     break;
+  case T_VARARGS:
+    Printf(decl,"void *%s = 0", name);
+    break;
+
   default:
     if (value)
       Printf(decl,"%s = %s", SwigType_lstr(t,name), value);
@@ -129,7 +133,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   while (p != 0) {
     lname  = Swig_cparm_name(p,i);
     pt     = Getattr(p,"type");
-    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+    if ((SwigType_type(pt) != T_VOID)) {
       pname  = Getattr(p,"name");
       pvalue = Getattr(p,"value");
       altty = Getattr(p,"alttype");
@@ -214,7 +218,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
     String *pname;
     pt = Getattr(p,"type");
 
-    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+    if ((SwigType_type(pt) != T_VOID)) {
       if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
@@ -253,7 +257,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
-    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+    if ((SwigType_type(pt) != T_VOID)) {
       if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
@@ -306,7 +310,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
-    if ((SwigType_type(pt) != T_VOID) && (!SwigType_isvarargs(pt))) {
+    if ((SwigType_type(pt) != T_VOID)) {
       if (comma) Printf(func,",");
       pname = Swig_cparm_name(p,i);
       Printf(func,"%s", SwigType_rcaststr(pt, pname));

@@ -76,6 +76,7 @@ typedef  DOH     SwigType;
 #define   T_ARRAY      36
 #define   T_FUNCTION   37
 #define   T_MPOINTER   38
+#define   T_VARARGS    39
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
