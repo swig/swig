@@ -362,7 +362,7 @@ void emit_action(Node *n, Wrapper *f) {
     tm = Getattr(n,"feature:except");
     if (tm) tm = Copy(tm);
   }
-  if (tm) {
+  if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {
     Replaceall(tm,"$name",Getattr(n,"name"));
     Replaceall(tm,"$symname", Getattr(n,"sym:name"));
     Replaceall(tm,"$function", action);
