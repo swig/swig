@@ -12,6 +12,9 @@ enum types {Oak, Fir, Cedar,};
 void chop(enum types type) {}
 void test(int x = Oak + Fir + Cedar) {}
 };
-enum Tree::types chop(enum Tree::types type) { return type; }
+#ifndef __SUNPRO_CC
+enum 
+#endif
+Tree::types chop(enum Tree::types type) { return type; }
  
 %}                                                      
