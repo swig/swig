@@ -14,7 +14,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
@@ -160,17 +160,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Check for SWIG_LIB environment variable
 
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
-#ifdef _WIN32
+#if defined(_WIN32)
       char buf[MAX_PATH];
       char *p;
       if (GetModuleFileName(0, buf, MAX_PATH) == 0
 	  || (p = strrchr(buf, '\\')) == 0) {
-	sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
+       Printf(stderr, "Warning: Could not determine SWIG library location. Assuming " SWIG_LIB "\n");
+       sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
       } else {
        strcpy(p+1, "Lib");
        strcpy(LibDir, buf);
       }
 #else
+       Printf(stderr, "Warning: SWIG_LIB environment variable not set. Assuming " SWIG_LIB "\n");
        sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
 #endif                                        
   } else {
