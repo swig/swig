@@ -18,4 +18,4 @@ echo "Making the test"
 make $swigtest
 echo "Building ${thetest}_top"
 gcc -c -g $cppopt -I$OCAMLINC ${thetest}_wrap.c
-ocamlmktop -cclib -g -custom ${thetest}_wrap.o ${thetest}.cmo -o ${thetest}_top
+ocamlmktop -cclib -g -custom ${thetest}_wrap.o ${thetest}.cmo -o ${thetest}_top -cclib -lstdc++
