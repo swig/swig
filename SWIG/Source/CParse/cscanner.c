@@ -565,8 +565,12 @@ int yylook(void) {
 	  else if (c == '=') return (EQUAL);
 	  else if (c == '+') return (PLUS);
           else if (c == '-') return (MINUS);
-	  else if (c == '&') return (AND);
-	  else if (c == '|') return (OR);
+	  else if (c == '&') {
+	    state = 300;
+	  } 
+	  else if (c == '|') {
+	    state = 301;
+	  }
 	  else if (c == '^') return (XOR);
           else if (c == '<') state = 60;
 	  else if (c == '>') state = 61;
@@ -612,6 +616,21 @@ int yylook(void) {
 	    return(SLASH);
 	  }
 	  break;
+	case 300: /* & or && */
+	  if ((c = nextchar()) == 0) return(AND);
+	  if (c == '&') return(LAND);
+	  else {
+	    retract(1);
+	    return(AND);
+	  }
+
+	case 301: /* | or || */
+	  if ((c = nextchar()) == 0) return(OR);
+	  if (c == '|') return(LOR);
+	  else {
+	    retract(1);
+	    return(OR);
+	  }
 	case 10:  /* C++ style comment */
 	  if ((c = nextchar()) == 0) {
 	    cparse_error(input_file,-1, "Unterminated comment detected.\n");

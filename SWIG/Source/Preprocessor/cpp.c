@@ -831,6 +831,7 @@ Preprocessor_parse(File *s)
 
   state = 0;
   while ((c = Getc(s)) != EOF) {
+    if (c == '\r') continue;  /* Lyle Johnson */
     switch(state) {
     case 0:        /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */

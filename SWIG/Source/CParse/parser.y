@@ -571,6 +571,8 @@ Node *Swig_cparse(File *f) {
 %token <str> OPERATOR
 %token <str> COPERATOR
 
+%left  LOR
+%left  LAND
 %left  OR
 %left  XOR
 %left  AND
@@ -788,8 +790,14 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		     Settype($$,NewSwigType($4.type));
 		     Setvalue($$,$4.val);
 		     Setstorage($$,"%constant");
+		     add_symbols($$);
+		   } else {
+		     if ($4.type == T_ERROR) {
+		       cparse_error(input_file,line_number,"Unsupported constant value\n");
+		     }
+		     $$ = 0;
 		   }
-		   add_symbols($$);
+
 	       }
 
                | CONSTANT type declarator def_args SEMI {
@@ -804,8 +812,13 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   Settype($$,$2);
 		   Setvalue($$,$4.val);
 		   Setstorage($$,"%constant");
-		 } 
-		 add_symbols($$);
+		   add_symbols($$);
+		 } else {
+		     if ($4.type == T_ERROR) {
+		       cparse_error(input_file,line_number,"Unsupported constant value\n");
+		     }
+		   $$ = 0;
+		 }
                }
                ;
 
@@ -2685,6 +2698,14 @@ expr           :  NUM_INT { $$ = $1; }
 		 $$.val = NewStringf("%s>>%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
+               | expr LAND expr {
+		 $$.val = NewStringf("%s&&%s",$1.val,$3.val);
+		 $$.type = T_ERROR;
+	       }
+               | expr LOR expr {
+		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
+		 $$.type = T_ERROR;
+	       }
                |  MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
 		 $$.type = $2.type;
@@ -2692,6 +2713,10 @@ expr           :  NUM_INT { $$ = $1; }
                |  NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
 		 $$.type = $2.type;
+	       }
+               | LNOT expr {
+                 $$.val = NewStringf("!%s",$2.val);
+		 $$.type = T_ERROR;
 	       }
                |  LPAREN expr RPAREN {
 		 $$.val = NewStringf("(%s)",$2.val);
