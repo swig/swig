@@ -192,6 +192,9 @@ PHP4::main(int argc, char *argv[]) {
 	    } else if(strcmp(argv[i], "-make") == 0) {
 		gen_make = 1;
 		Swig_mark_arg(i);
+	    } else if(strcmp(argv[i], "-nosync") == 0) {
+		no_sync = 1;
+		Swig_mark_arg(i);
 	    } else if(strcmp(argv[i], "-help") == 0) {
 	        fputs(usage, stderr);
 	    }
@@ -2050,8 +2053,10 @@ int PHP4::constructorHandler(Node *n) {
 				   "\"_destroy\"));\n", 0);
 
 		/* Store new values in PHP */
-		Printv(nativecall, tab4,
+		if(!no_sync) {
+			Printv(nativecall, tab4,
 				   "$this->_sync_php();\n", 0);
+		}
 
 		Printf(shadow_code, "%s", nativecall);
 		Printf(shadow_code, "  }\n\n");
