@@ -53,7 +53,7 @@ static DOH *find_key(char *c) {
     if (d < 0) r = r->left;
     else r = r->right;
   }
-  fprintf(stderr,"Interning '%s'\n", c);
+  /*  fprintf(stderr,"Interning '%s'\n", c);*/
   r = (KeyValue *) DohMalloc(sizeof(KeyValue));
   r->cstr = (char *) DohMalloc(strlen(c)+1);
   strcpy(r->cstr,c);
