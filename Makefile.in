@@ -37,6 +37,8 @@ swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH
 experiment: Swig Preprocessor LParse Experiment Swim SWILL DOH
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Experiment/libexp.a \
+	$(SOURCE)/Xmlparse/libxmlparse.a \
+	$(SOURCE)/Expat/libexpat.a \
 	$(SOURCE)/LParse/liblparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
