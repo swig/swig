@@ -54,7 +54,6 @@ static const char *ocaml_path = "ocaml";
 static int const_enum;           /* Is this constant an enum label */
 static int classmode;            /* Are we in a class definition */
 static int error_count;          /* Number of errors encountered */
-static int ReadOnly;             /* Is this variable read-only */
 static int objects = 0;		 /* Use objects. */
 static int onlyobjects = 0;	 /* Do not export functions that back
 				    methods. */
@@ -72,6 +71,7 @@ String *modfile_cmd = NULL;      /* Command-line specified .ml output file */
 /* C(++) output */
 static String *f_init = NULL;
 static String *f_header = NULL;
+static String *f_init_fn = NULL;
 static String *f_runtime = NULL;
 static String *f_wrappers = NULL;
 
@@ -112,6 +112,8 @@ static char *simple_types[][2] = {
     { "_unsigned_int", "int32" },
     { "_unsigned_short", "int" },
     { "_unsigned_char", "char" }, 
+    { "_long_long", "int64" },
+    { "_unisgned_long_long", "int64" },
     { NULL, NULL }
 };
 
@@ -208,10 +210,10 @@ class OCAML : public Language {
 	assert(Getattr(n,"name"));
 	set_module(Char(Getattr(n,"name")));
 
-	if( !modfile ) modfile = NewString(Char(module));
-	Printf(modfile, ".ml");
-
-	if( !modfile ) modfile = modfile_cmd;
+	if( modfile_cmd ) {
+	    if( modfile ) Delete( modfile );
+	    modfile = Copy(modfile_cmd);
+	}
 
 	if( !modfile ) {
 	    modfile = Copy(module);
@@ -221,7 +223,11 @@ class OCAML : public Language {
 	mliout = 0;
 	processInterface( modfile, n );
 
-	Printf(modfile,"i"); // Append 'i' to make .mli
+	String *tmp = NewString(Char(modfile));
+	Delete(modfile);
+	modfile = NewString("");
+	Printf(modfile,"%si", tmp); // Append 'i' to make .mli
+	Delete(tmp);
 
 	mliout = 1;
 	return processInterface( modfile, n );
@@ -292,6 +298,7 @@ class OCAML : public Language {
 
 	    f_init = NewString("");
 	    f_header = NewString("");
+	    f_init_fn = NewString("");
 	    f_wrappers = NewString("");
 	    f_modclass = NewString("");
 
@@ -313,6 +320,7 @@ class OCAML : public Language {
 	    Swig_register_filebyname("header",f_header);
 	    Swig_register_filebyname("wrapper",f_wrappers);
 	    Swig_register_filebyname("runtime",f_runtime);
+	    Swig_register_filebyname("init",f_init_fn);
 
 	    Printf(f_runtime, 
 		   "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
@@ -321,9 +329,18 @@ class OCAML : public Language {
 	    if (NoInclude) {
 		Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
 	    }
+	    
+	    Printf( f_init_fn,
+		    "value _wrapper_init_fn(value v) {\n"
+		    "  CAMLparam1(v);\n");
 
 	    Language::top(n);
 
+	    Printf( f_init_fn,
+		    "\n"
+		    "  CAMLreturn(Val_unit);\n"
+		    "}\n\n" );
+	    
 	    Printf(f_pvariant_def,"]\n");
 
 	    if( !mliout ) {
@@ -387,11 +404,20 @@ class OCAML : public Language {
 	    Dump(f_header,f_runtime);
 
 	    Dump(f_wrappers,f_runtime);
+	    Dump(f_init_fn,f_runtime);
 	    Wrapper_pretty_print(f_init,f_runtime);
+
+	    // Init function support in module
+	    if( !mliout )
+		Printf(f_module_file,
+		       "external _wrapper_init_fn : unit -> unit = "
+		       "\"_wrapper_init_fn\"\n"
+		       "let _ = _wrapper_init_fn ()\n");
 
 	    Delete(f_header);
 	    Delete(f_wrappers);
 	    Delete(f_init);
+	    Delete(f_init_fn);
 
 	    if( !mliout ) 
 		Close(f_runtime);
@@ -929,42 +955,40 @@ class OCAML : public Language {
 	String *vname_final = uniqueify(vname);
 	
 	// Write out signature for module file
-	if(ReadOnly) {
+	if(Getattr(n,"feature:immutable") || const_enum) {
 	    if( mliout )
-		Printf( f_module, " val %s : %s\n", 
+		Printf( f_module, "  val %s : %s\n", 
 			vname_final, mangled_tcaml );
 	    else {
 		Printf( f_module, "  external _%s : unit -> %s = \"%s\"\n", 
 			vname_final, mangled_tcaml, var_name );
 		
-		Printf( f_module, " let %s = _%s ()\n", 
+		Printf( f_module, "  let %s = _%s ()\n", 
 			name_no_get,
 			vname_final );
 	    }
 	} else {
 	    if( !onlyobjects || !classmode || !mliout ) {
-		Printf( f_module, "  external %s : %s -> %s = \"%s\"\n", 
-			vname, 
-			strstr( var_name, "_set") ? mangled_tcaml : "unit",
-			mangled_tcaml,
-			var_name );
+		Printf( f_module, 
+			"  external %s_set : %s -> %s = \"%s\"\n"
+			"  external %s_get : unit -> %s = \"%s\"\n",
+			vname_final, mangled_tcaml, mangled_tcaml, var_name,
+			vname_final, mangled_tcaml, var_name );
 	    }
 	    
 	    if( classmode ) {
 		if( mliout ) {
-		    if( strstr( var_name, "_set" ) )
-			Printf( f_modclass, "  method %s : %s -> unit\n",
-				vname_class, mangled_tcaml );
-		    else
-			Printf( f_modclass, "  method %s : %s\n", 
-				vname_class, mangled_tcaml );
+		    Printf( f_modclass, 
+			    "  method %s_set : %s -> %s\n"
+			    "  method %s_get : unit -> %s\n",
+			    vname_class, mangled_tcaml, mangled_tcaml,
+			    vname_class, mangled_tcaml );
 		} else {
-		    if( strstr( var_name, "_set" ) )
-			Printf( f_modclass, "  method %s = %s\n",
-				vname_class, vname );
-		    else
-			Printf( f_modclass, "  method %s = %s ()\n", 
-				vname_class, vname );
+		    Printf( f_modclass, 
+			    "  method %s_set = %s_set\n"
+			    "  method %s_get = %s_get\n",
+			    vname_class, vname_final,
+			    vname_class, vname_final );
 		}
 	    }
 	    
@@ -1007,6 +1031,59 @@ class OCAML : public Language {
 	return SWIG_OK;
     }
 
+    /* Benedikt Grundmann inspired --> Enum wrap styles */
+
+    int enumvalueDeclaration(Node *n) {
+	String *value = Getattr(n,"value");
+	String *name  = Getattr(n,"name");
+	String *tmpValue;
+  
+	if (value)
+	    tmpValue = NewString(value);
+	else
+	    tmpValue = NewString(name);
+	Setattr(n, "value", tmpValue);
+
+	// Explanation: Do everything as usual, but dump f_pvariant_value
+	// into this string, so we can retrieve it.  This is to avoid some
+	// duplication of logic above. 
+
+	if(f_pvariant_value) { 
+	    Delete(f_pvariant_value);
+	    f_pvariant_value = NULL;
+	}
+
+	const_enum = 1;
+	Language::enumvalueDeclaration(n); // Output 
+	const_enum = 0;
+
+	if(f_pvariant_value) {
+	    int suffix_digit = 1;
+	    String *output_name = Copy(Getattr(n,"name"));
+	    while( Getattr(seen_labels,output_name) ) {
+		Delete(output_name);
+		output_name = NewString("");
+		Printf(output_name,"%s_%d",Getattr(n,"name"),suffix_digit);
+		suffix_digit++;
+	    }
+
+	    // Never output overlapping names
+	    Setattr(seen_labels,output_name,output_name);
+
+	    // Implementation only
+	    if( !mliout ) {
+		Printf(f_pvariant_to_int,"| `%s -> %s\n", 
+		       Getattr(n,"name"), f_pvariant_value);
+		Printf(f_pvariant_from_int,"if _v_ == %s then `%s else\n", 
+		       f_pvariant_value, Getattr(n,"name"));
+	    }
+	    // Both
+	    Printf(f_pvariant_def,"| `%s\n", Getattr(n,"name"));
+	}
+
+	return SWIG_OK;
+    }
+
 // -----------------------------------------------------------------------
 // constantWrapper()
 // ------------------------------------------------------------------------
@@ -1017,15 +1094,12 @@ class OCAML : public Language {
 	SwigType *type  = Getattr(n,"type");
 	String   *value = Getattr(n,"value");
 
-	int OldReadOnly = ReadOnly;      // Save old status flags
 	String *var_name = NewString("");
 	String *rvalue = NewString("");
 	String *temp = NewString("");
 	String *tm;
 
 	print_unseen_type( type );
-
-	ReadOnly = 1;     // Enable readonly mode.
 
 	// Make a static variable;
 
@@ -1079,132 +1153,13 @@ class OCAML : public Language {
 		Setattr(n,"name",var_name);
 		Setattr(n,"sym:name",iname);
 		Setattr(n,"type", type);
+		Setattr(n,"feature:immutable","true");
 		variableWrapper(n);
 		Delete(n);
 	    }
-	    ReadOnly = OldReadOnly;
 	}
 	Delete(rvalue);
 	Delete(temp);
-	return SWIG_OK;
-    }
-
-    int classHandler(Node *n) {
-	int rv = 0;
-	String *name = Getattr(n,"name");
-
-	if( name && objects ) {
-	    classmode = 1;
-    
-	    Delete(classname);
-	    classname = NewString(Char(Getattr(n,"name")));
-	    lcase(Char(classname));
-	
-	    if( mliout )
-		Printf(f_modclass,"class %s : _p_%s -> object\n", 
-		       classname, Getattr(n,"name"));
-	    else
-		Printf(f_modclass,"class %s (c_self : _p_%s) = object\n",
-		       classname, Getattr(n,"name"));
-	
-	    DOH *baseclass_list = Getattr(n,"bases");
-	    Printf(f_modclass,"(* Start superclasses *)\n" );
-	
-	    int i;
-	
-	    for( i = 0; i < Len(baseclass_list); i++ ) {
-		SwigType *baseclass = Getitem(baseclass_list,i);
-		String *basename = Copy(Getattr(baseclass,"name"));
-		lcase(Char(basename));
-		Printf(f_modclass,"(* %s is a superclass *)\n", basename);
-		String *seen = Getattr(seen_classes,basename);
-
-		if( seen ) {
-		    if( mliout ) 
-			Printf( f_modclass, 
-				"  inherit %s\n" );
-		    else
-			Printf( f_modclass, 
-				"  inherit %s (Obj.magic c_self)\n",
-				seen );
-		}
-
-		baseclass = nextSibling(baseclass);
-	    }
-	    Printf(f_modclass,"(* End superclasses *)\n" );
-	
-	    rv = Language::classHandler(n);
-
-	    if( !mliout )
-		Printf(f_modclass,
-		       "  method _self_ : _p_void = (Obj.magic c_self)\n");
-	    else
-		Printf(f_modclass,
-		       "  method _self_ : _p_void\n" );
-
-	    Printf(f_modclass,"end\n");
-	    
-	    classmode = 0;
-	
-	    String *cln = NewString(Char(classname));
-	    Setattr(seen_classes,cln,cln);
-	} else {
-	    rv = Language::classHandler(n);
-	}
-    
-	return rv;
-    }
-
-    /* Benedikt Grundmann inspired --> Enum wrap styles */
-
-    int enumvalueDeclaration(Node *n) {
-	String *value = Getattr(n,"value");
-	String *name  = Getattr(n,"name");
-	String *tmpValue;
-  
-	if (value)
-	    tmpValue = NewString(value);
-	else
-	    tmpValue = NewString(name);
-	Setattr(n, "value", tmpValue);
-
-	// Explanation: Do everything as usual, but dump f_pvariant_value
-	// into this string, so we can retrieve it.  This is to avoid some
-	// duplication of logic above. 
-
-	if(f_pvariant_value) { 
-	    Delete(f_pvariant_value);
-	    f_pvariant_value = NULL;
-	}
-
-	const_enum = 1;
-	Language::enumvalueDeclaration(n); // Output 
-	const_enum = 0;
-
-	if(f_pvariant_value) {
-	    int suffix_digit = 1;
-	    String *output_name = Copy(Getattr(n,"name"));
-	    while( Getattr(seen_labels,output_name) ) {
-		Delete(output_name);
-		output_name = NewString("");
-		Printf(output_name,"%s_%d",Getattr(n,"name"),suffix_digit);
-		suffix_digit++;
-	    }
-
-	    // Never output overlapping names
-	    Setattr(seen_labels,output_name,output_name);
-
-	    // Implementation only
-	    if( !mliout ) {
-		Printf(f_pvariant_to_int,"| `%s -> %s\n", 
-		       Getattr(n,"name"), f_pvariant_value);
-		Printf(f_pvariant_from_int,"if _v_ == %s then `%s else\n", 
-		       f_pvariant_value, Getattr(n,"name"));
-	    }
-	    // Both
-	    Printf(f_pvariant_def,"| `%s\n", Getattr(n,"name"));
-	}
-
 	return SWIG_OK;
     }
 
