@@ -88,13 +88,13 @@ static VALUE ptrvalue(VALUE _PTRVALUE, int index, char *type) {
   }
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
-    obj = LONG2NUM((long) *(((int *) ptr) + index));
+    obj = INT2NUM((long) *(((int *) ptr) + index));
   } else if (strcmp(type,"double") == 0) {
     obj = rb_float_new((double) *(((double *) ptr)+index));
   } else if (strcmp(type,"short") == 0) {
-    obj = LONG2NUM((long) *(((short *) ptr)+index));
+    obj = INT2NUM((long) *(((short *) ptr)+index));
   } else if (strcmp(type,"long") == 0) {
-    obj = LONG2NUM((long) *(((long *) ptr)+index));
+    obj = INT2NUM((long) *(((long *) ptr)+index));
   } else if (strcmp(type,"float") == 0) {
     obj = rb_float_new((double) *(((float *) ptr)+index));
   } else if (strcmp(type,"char") == 0) {
