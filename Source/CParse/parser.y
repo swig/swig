@@ -73,6 +73,10 @@ static int      extendmode   = 0;
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
 
+/* Called by the parser (yyparse) when an error is found.*/
+void yyerror (const char *e) {
+}
+
 static Node *new_node(const String_or_char *tag) {
   Node *n = NewHash();
   set_nodeType(n,tag);
@@ -4772,10 +4776,6 @@ stringnum      : string {
 empty          :   ;
 
 %%
-
-/* Called by the parser (yyparse) when an error is found.*/
-void yyerror (const char *e) {
-}
 
 SwigType *Swig_cparse_type(String *s) {
    String *ns;
