@@ -146,15 +146,11 @@ extern "C" {
 #ifdef PERL_OBJECT
 #  define SWIG_MakePtr(sv, ptr, type, flags) \
      SWIG_Perl_MakePtr(pPerl, sv, ptr, type, flags)
-#  define SWIG_TypeCheckRV(rv, ty) \
-     SWIG_Perl_TypeCheckRV(pPerl, rv, ty)
 #  define SWIG_SetError(str) \
      SWIG_Perl_SetError(pPerl, str)
 #else
 #  define SWIG_MakePtr(sv, ptr, type, flags) \
      SWIG_Perl_MakePtr(sv, ptr, type, flags)
-#  define SWIG_TypeCheckRV(rv, ty) \
-     SWIG_Perl_TypeCheckRV(rv, ty)
 #  define SWIG_SetError(str) \
      SWIG_Perl_SetError(str)
 #  define SWIG_SetErrorSV(str) \
@@ -230,9 +226,9 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
       if (SvMAGICAL(tsv)) {
         mg = mg_find(tsv,'P');
         if (mg) {
-          SV *rsv = mg->mg_obj;
-          if (sv_isobject(rsv)) {
-            tmp = SvIV((SV*)SvRV(rsv));
+          sv = mg->mg_obj;
+          if (sv_isobject(sv)) {
+            tmp = SvIV((SV*)SvRV(sv));
           }
         }
       } else {
@@ -261,7 +257,8 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   }
   if (_t) {
     /* Now see if the types match */
-    tc = SWIG_TypeCheckRV(sv,_t);
+    char *_c = HvNAME(SvSTASH(SvRV(sv)));
+    tc = SWIG_TypeCheck(_c,_t);
     if (!tc) {
       *ptr = voidptr;
       return -1;
