@@ -583,7 +583,7 @@ public:
 
   virtual int constantWrapper(Node *n) {
 
-    Swig_require(&n, "*sym:name", "type", "value", NIL);
+    Swig_require("constantWrapper",n, "*sym:name", "type", "value", NIL);
     
     String *symname = Getattr(n, "sym:name");
     SwigType *type  = Getattr(n, "type");
@@ -609,7 +609,7 @@ public:
 		   "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
     }
 
-    Swig_restore(&n);
+    Swig_restore(n);
     
     return SWIG_OK;
   }
