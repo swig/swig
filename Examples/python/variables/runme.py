@@ -16,7 +16,6 @@ example.cvar.cvar   =  "S"
 example.cvar.fvar   =  3.14159
 example.cvar.dvar   =  2.1828
 example.cvar.strvar =  "Hello World"
-example.cvar.cstrvar = "Goodbye"
 example.cvar.iptrvar= example.new_int(37)
 example.cvar.ptptr  = example.new_Point(37,42)
 example.cvar.name   = "Bill"

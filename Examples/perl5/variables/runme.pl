@@ -16,7 +16,6 @@ $example::cvar   =  "S";
 $example::fvar   =  3.14159;
 $example::dvar   =  2.1828;
 $example::strvar =  "Hello World";
-$example::cstrvar = "Goodbye";
 $example::iptrvar= example::new_int(37);
 $example::ptptr  = example::new_Point(37,42);
 $example::name   = "Bill";

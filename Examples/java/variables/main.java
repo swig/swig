@@ -28,7 +28,6 @@ public class main {
     example.setFvar((float)3.14159);
     example.setDvar(2.1828);
     example.setStrvar("Hello World");
-    example.setCstrvar("Goodbye");
     example.setIptrvar(example.new_int(37));
     example.setPtptr(example.new_Point(37,42));
     example.setName("Bill");

@@ -16,7 +16,6 @@ set cvar    "S"
 set fvar    3.14159
 set dvar    2.1828
 set strvar  "Hello World"
-set cstrvar "Goodbye"
 set iptrvar [new_int 37]
 set ptptr [new_Point 37 42]
 set name    "Bill"
