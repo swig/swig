@@ -412,7 +412,7 @@ DOH *DohFirst(DOH *obj) {
       if (b->objinfo->doh_mapping->doh_firstkey) {
 	return DohGetattr(obj,(b->objinfo->doh_mapping->doh_firstkey)(obj));
       }
-    }
+    } 
     if (DohCheck(obj)) {
       DohError(DOH_UNSUPPORTED,"No firstkey method defined for type '%s'\n", b->objinfo->objname);
     } else {
@@ -592,6 +592,40 @@ void DohInsertitem(DOH *obj, int index, DOH *value) {
   } else {
     DohError(DOH_UNKNOWN,"Unknown object %x passed to DohInsertitem\n",obj);
   }
+}
+
+/* Delete an item from an object */
+DOH *DohFirstitem(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  DohError(DOH_CALLS,"DohFirstitem %x\n");
+  if (DohIsSequence(obj)) {
+    if (b->objinfo->doh_sequence->doh_firstitem) {
+      return (b->objinfo->doh_sequence->doh_firstitem)(obj);
+    }
+  }
+  if (DohCheck(obj)) {
+    DohError(DOH_UNSUPPORTED,"No firstitem method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    DohError(DOH_UNKNOWN,"Unknown object %x passed to DohFirstitem\n",obj);
+  }
+  return 0;
+}
+
+/* Delete an item from an object */
+DOH *DohNextitem(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  DohError(DOH_CALLS,"DohNextitem %x\n");
+  if (DohIsSequence(obj)) {
+    if (b->objinfo->doh_sequence->doh_nextitem) {
+      return (b->objinfo->doh_sequence->doh_nextitem)(obj);
+    }
+  }
+  if (DohCheck(obj)) {
+    DohError(DOH_UNSUPPORTED,"No nextitem method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    DohError(DOH_UNKNOWN,"Unknown object %x passed to DohNextitem\n",obj);
+  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------

@@ -51,8 +51,8 @@ typedef struct {
   int       (*doh_setitem)(DOH *obj, int index, DOH *value);
   int       (*doh_delitem)(DOH *obj, int index);
   int       (*doh_insitem)(DOH *obj, int index, DOH *value);
-  DOH      *(*doh_first)(DOH *obj);
-  DOH      *(*doh_next)(DOH *obj);
+  DOH      *(*doh_firstitem)(DOH *obj);
+  DOH      *(*doh_nextitem)(DOH *obj);
 } DohSequenceMethods;
 
 /* File methods */
@@ -136,6 +136,8 @@ extern DOH    *DohFirst(DOH *obj);
 extern DOH    *DohNext(DOH *obj);
 extern DOH    *DohFirstkey(DOH *obj);
 extern DOH    *DohNextkey(DOH *obj);
+extern DOH    *DohFirstitem(DOH *obj);
+extern DOH    *DohNextitem(DOH *obj);
 extern void   *DohData(DOH *obj);
 extern int     DohGetline(DOH *obj);
 extern void    DohSetline(DOH *obj, int line);
@@ -203,6 +205,8 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 #define vPrintf            DohvPrintf
 #define GetInt             DohGetInt
 #define GetDouble          DohGetDouble
+#define Firstitem          DohFirstitem
+#define Nextitem           DohNextitem
 
 /* #define Scanf              DohScanf
    #define vScanf             DohvScanf*/
