@@ -26,7 +26,6 @@
 class GUILE : public Language
 {
 private:
-  char   *guile_path;
   char   *prefix;
   char   *module;
   char   *package;
