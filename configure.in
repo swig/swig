@@ -1141,13 +1141,13 @@ AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path        Set location 
 AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path       Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
 
 if test -z "$CSHARPBIN" ; then
-  AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun)
+  AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun mono)
 else
   CSHARPCILINTERPRETER="$CSHARPBIN"
 fi
 
 if test -z "$CSHARPCOMPILERBIN" ; then
-  AC_CHECK_PROGS(CSHARPCOMPILER, cscc msc csc)
+  AC_CHECK_PROGS(CSHARPCOMPILER, cscc mcs csc)
 else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
 fi
