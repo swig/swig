@@ -64,17 +64,17 @@ typedef struct swig_const_info {
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGEXPORT(int)               SWIG_Python_ConvertPtr(PyObject *, void **, swig_type_info *, int);
-SWIGEXPORT(PyObject *)        SWIG_Python_NewPointerObj(void *, swig_type_info *,int own);
-SWIGEXPORT(void *)	      SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
+SWIGIMPORT(int)               SWIG_Python_ConvertPtr(PyObject *, void **, swig_type_info *, int);
+SWIGIMPORT(PyObject *)        SWIG_Python_NewPointerObj(void *, swig_type_info *,int own);
+SWIGIMPORT(void *)            SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
+SWIGIMPORT(PyObject *)        SWIG_Python_newvarlink(void);
+SWIGIMPORT(void)              SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
+SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
+SWIGIMPORT(char *)            SWIG_Python_PackData(char *c, void *, int);
+SWIGIMPORT(char *)            SWIG_Python_UnpackData(char *c, void *, int);
+SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, int sz, swig_type_info *);
+SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
 
-SWIGEXPORT(PyObject *)        SWIG_Python_newvarlink(void);
-SWIGEXPORT(void)              SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGEXPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
-SWIGEXPORT(char *)            SWIG_Python_PackData(char *c, void *, int);
-SWIGEXPORT(char *)            SWIG_Python_UnpackData(char *c, void *, int);
-SWIGEXPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, int sz, swig_type_info *);
-SWIGEXPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
 #else
 
 /* -----------------------------------------------------------------------------
@@ -169,8 +169,7 @@ SWIG_Python_newvarlink(void) {
 }
 
 SWIGRUNTIME(void)
-SWIG_Python_addvarlink(PyObject *p, char *name,
-	   PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
+SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;
   v= (swig_varlinkobject *) p;
@@ -293,9 +292,9 @@ cobject:
   }
 
   if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
-      PyObject *zero = PyInt_FromLong(0);
-      PyObject_SetAttrString(pyobj,(char*)"thisown",zero);
-      Py_DECREF(zero);
+    PyObject *zero = PyInt_FromLong(0);
+    PyObject_SetAttrString(pyobj,(char*)"thisown",zero);
+    Py_DECREF(zero);
   }
   return 0;
 
@@ -315,8 +314,7 @@ type_error:
 
 /* Convert a pointer value, signal an exception on a type mismatch */
 SWIGRUNTIME(void *)
-SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
-{
+SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags) {
   void *result;
   SWIG_Python_ConvertPtr(obj, &result, ty, flags | SWIG_POINTER_EXCEPTION);
   return result;
