@@ -29,7 +29,10 @@
           eval(const traits<Hola>::value_type& e) const; 
     
     }; 
-    const traits<Hola>::value_type& B::eval(const traits<Hola>::value_type& e) const {}
+    const traits<Hola>::value_type&
+    B::eval(const traits<Hola>::value_type& e) const {
+      return e;
+    }
   } 
  
 %} 
