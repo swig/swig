@@ -970,6 +970,7 @@ void JAVA::emit_shadow_classdef() {
   if(*shadow_baseclass) {
     sprintf(bigbuf, "extends %s", shadow_baseclass);
     shadow_classdef.replace("%BASECLASS%", bigbuf);
+    shadow_classdef << "  public " << shadow_classname << "(java.lang.Long obj) {\n" << tab4 << "_self = obj.longValue();\n  }\n\n";
   } else {
     shadow_classdef.replace("%BASECLASS%", "");
 
@@ -1019,7 +1020,8 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   char *javarettype = JavaTypeFromTypemap("jtype", typemap_lang, t, iname);
   if(!javarettype) javarettype = SwigTcToJavaType(t, 1, 0);
   char *shadowrettype = JavaTypeFromTypemap("jstype", typemap_lang, t, iname);
-  if(!shadowrettype && t->type == T_USER) {
+fprintf(stderr, "%s: %d\n", (char *) t->name, t->is_pointer);
+  if(!shadowrettype && t->type == T_USER && t->is_pointer <= 1) {
     shadowrettype = GetChar(shadow_classes,t->name);
   }
 
@@ -1045,7 +1047,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       arg << i;
     }
 
-      if(p->t->type == T_USER && Getattr(shadow_classes,p->t->name)) {
+      if(p->t->type == T_USER && p->t->is_pointer <= 1 && Getattr(shadow_classes,p->t->name)) {
         nativecall << ", " << arg << "._self";
       } else nativecall << ", " << arg;
 
@@ -1053,7 +1055,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       if(!jtype) jtype = SwigTcToJavaType(p->t, 0, 0);
 
       char *jstype = JavaTypeFromTypemap("jstype", typemap_lang, p->t, p->name);
-      if(!jstype && p->t->type == T_USER) {
+      if(!jstype && p->t->type == T_USER && p->t->is_pointer <= 1) {
 	    jstype = GetChar(shadow_classes,p->t->name);
       }
 
@@ -1065,7 +1067,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
 
-  if((t->type != T_VOID || t->is_pointer) && shadowrettype) 
+  if((t->type != T_VOID) && shadowrettype) 
     nativecall << "))";
 
   nativecall << ");\n";
@@ -1087,7 +1089,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   char *javarettype = JavaTypeFromTypemap("jtype", typemap_lang, t, iname);
   if(!javarettype) javarettype = SwigTcToJavaType(t, 1, 0);
   char *shadowrettype = JavaTypeFromTypemap("jstype", typemap_lang, t, iname);
-  if(!shadowrettype && t->type == T_USER) {
+  if(!shadowrettype && t->type == T_USER && t->is_pointer <= 1) {
     shadowrettype = GetChar(shadow_classes,t->name);
   }
 
@@ -1116,7 +1118,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
 
     if(gencomma) nativecall << ", ";
 
-    if(p->t->type == T_USER && Getattr(shadow_classes,p->t->name)) {
+    if(p->t->type == T_USER && p->t->is_pointer <= 1 && Getattr(shadow_classes,p->t->name)) {
       nativecall << arg << "._self";
     } else nativecall << arg;
 
@@ -1126,7 +1128,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
     if(!jtype) jtype = SwigTcToJavaType(p->t, 0, 0);
 
     char *jstype = JavaTypeFromTypemap("jstype", typemap_lang, p->t, p->name);
-    if(!jstype && p->t->type == T_USER) {
+    if(!jstype && p->t->type == T_USER && p->t->is_pointer <= 1) {
 	  jstype = GetChar(shadow_classes, p->t->name);
     }
 
@@ -1188,7 +1190,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
       // Add to java function header
       fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, (char *) arg);
 
-      if(p->t->type == T_USER && Getattr(shadow_classes,p->t->name)) {
+      if(p->t->type == T_USER && p->t->is_pointer <= 1 && Getattr(shadow_classes,p->t->name)) {
         nativecall << arg << "._self";
       } else nativecall << arg;
 
@@ -1218,12 +1220,14 @@ void JAVA::cpp_destructor(char *name, char *newname) {
 
   if(finalize) {
     fprintf(f_shadow, "  protected void finalize() {\n");
-    fprintf(f_shadow, "    _delete();\n");
+    fprintf(f_shadow, "    if(_selfown) {\n");
+    fprintf(f_shadow, "      _delete();\n");
+    fprintf(f_shadow, "    }\n");
     fprintf(f_shadow, "  };\n\n");
   }
 
   fprintf(f_shadow, "  public void _delete() {\n");
-  fprintf(f_shadow, "    if(_self != 0 && _selfown && %s.class == _selfClass()) {\n", shadow_classname);
+  fprintf(f_shadow, "    if(_self != 0 && %s.class == _selfClass()) {\n", shadow_classname);
   fprintf(f_shadow, "\t%s.%s(_self);\n", module, name_destroy(realname));
   fprintf(f_shadow, "\t_self = 0;\n");
   fprintf(f_shadow, "    }\n");
