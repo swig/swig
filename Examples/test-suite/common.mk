@@ -109,6 +109,7 @@ CPP_TEST_CASES += \
 	destructor_reprotected \
 	director_abstract \
 	director_basic \
+	director_constructor \
 	director_detect \
 	director_default \
 	director_enum \
