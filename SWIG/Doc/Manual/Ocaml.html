@@ -23,20 +23,35 @@
 <ul>
 <li><a href="#n11">The generated module</a>
 <li><a href="#n12">Enums</a>
-<li><a href="#n13">C++ Classes</a>
+<li><a href="#n13">Arrays</a>
 <ul>
-<li><a href="#n14">STL vector and string Example</a>
-<li><a href="#n15">C++ Class Example</a>
-<li><a href="#n16">Compiling the example</a>
-<li><a href="#n17">Sample Session</a>
+<li><a href="#n14">Simple types of bounded arrays</a>
+<li><a href="#n15">Complex and unbounded arrays</a>
+<li><a href="#n16">Using an object</a>
+<li><a href="#n17">Example typemap for a function taking float * and int</a>
 </ul>
-<li><a href="#n18">Director Classes</a>
-<li><a href="#n19">Exceptions</a>
+<li><a href="#n18">C++ Classes</a>
+<ul>
+<li><a href="#n19">STL vector and string Example</a>
+<li><a href="#n20">C++ Class Example</a>
+<li><a href="#n21">Compiling the example</a>
+<li><a href="#n22">Sample Session</a>
+</ul>
+<li><a href="#n23">Director Classes</a>
+<ul>
+<li><a href="#n24">Director Introduction</a>
+<li><a href="#n25">Overriding Methods in Ocaml</a>
+<li><a href="#n26">Director Usage Example</a>
+<li><a href="#n27">Creating director objects</a>
+<li><a href="#n28">Typemaps for directors, <tt>inv, outv, argoutv</tt></a>
+<li><a href="#n29"><tt>inv</tt> typemap</a>
+<li><a href="#n30"><tt>outv</tt> typemap</a>
+<li><a href="#n31"><tt>argoutv</tt> typemap</a>
+</ul>
+<li><a href="#n32">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
-
-
 
                 This chapter describes SWIG's
 support of Ocaml.  Ocaml     is a relatively recent addition to the ML family,
@@ -52,6 +67,11 @@ way with Ocaml, by  providing   the necessary,   but repetetive  glue code
 which creates and uses Ocaml values  to communicate   with C and C++ code.
  In addition, SWIG also produces the needed Ocaml source   that binds
 variants, functions,  classes, etc.
+
+<p>
+If you're not familiar with the Objective Caml language, you can visit
+<a href="http://www.ocaml.org/">The Ocaml Website</a>.
+</p>
 
 <a name="n2"></a><H2>16.1 Preliminaries</H2>
 
@@ -338,6 +358,8 @@ Special signatures should be inserted here.
 interface to your C code.  Special caml code, as well as any initialization
 which should run when the module is loaded may be inserted here.
 </td></tr>   
+<tr><td>"classtemplate"</td><td>The "classtemplate" place is special because
+it describes the output SWIG will generate for class definitions.
 </table>
                
 <a name="n12"></a><H3>16.2.2 Enums</H3>
@@ -395,8 +417,108 @@ val x : Enum_test.c_obj = C_enum `a
   </blockquote>
        
 <p> </p>
-   
-<a name="n13"></a><H3>16.2.3 C++ Classes</H3>
+
+<a name="n13"></a><H3>16.2.3 Arrays</H3>
+
+
+<a name="n14"></a><H4>16.2.3.1 Simple types of bounded arrays</H4>
+
+
+<p>
+SWIG has support for array types, but you generally will need to provide
+a typemap to handle them.  You can currently roll your own, or expand
+some of the macros provided (but not included by default) with the SWIG
+distribution.
+
+<p>
+By including "carray.i", you will get access to some macros that help you
+create typemaps for array types fairly easily. 
+</p>
+
+<p>
+<tt>%make_simple_array_typemap</tt> is the easiest way to get access to
+arrays of simple types with known bounds in your code, but this only works
+for arrays whose bounds are completely specified.
+</p>
+
+<a name="n15"></a><H4>16.2.3.2 Complex and unbounded arrays</H4>
+
+
+<p>
+Unfortunately, unbounded arrays and pointers can't be handled in a
+completely general way by SWIG, because the end-condition of such an
+array can't be predicted.  In some cases, it will be by consent
+(e.g. an array of four or more chars), sometimes by explicit length
+(char *buffer, int len), and sometimes by sentinel value (0,-1,etc.).
+SWIG can't predict which of these methods will be used in the array,
+so you have to specify it for yourself in the form of a typemap.
+</p>
+
+<a name="n16"></a><H4>16.2.3.3 Using an object</H4>
+
+
+<p>
+It's possible to use C++ to your advantage by creating a simple object that
+provides access to your array.  This may be more desirable in some cases,
+since the object can provide bounds checking, etc., that prevents crashes.
+</p>
+
+<p>
+Consider writing an object when the ending condition of your array is complex,
+such as using a required centinel, etc.
+</p>
+
+<a name="n17"></a><H4>16.2.3.4 Example typemap for a function taking float * and int</H4>
+
+
+<p>
+This is a simple example <tt>in</tt> typemap for an array of float, where the
+length of the array is specified as an extra parameter.  Other such typemaps
+will work similarly.  In the example, the function printfloats is called with
+a float array, and specified length.  The actual length reported in the len
+argument is the length of the array passed from ocaml, making passing an array
+into this type of function convenient.
+</p>
+
+<table border="1" bgcolor="#dddddd"><tr><th><center>tarray.i</center></th></tr>
+<tr><td><pre>
+%module tarray
+%{
+#include <stdio.h>
+
+void printfloats( float *tab, int len ) {
+	int i;
+
+	for( i = 0; i < len; i++ ) {
+		printf( "%f ", tab[i] );
+	}
+
+	printf( "\n" );  
+}
+%}
+
+%typemap(in) (float *tab, int len) {
+    int i;
+    /* $*1_type */
+    $2 = caml_array_len($input);
+    $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
+    for( i = 0; i < $2; i++ ) {
+        $1[i] = caml_double_val(caml_array_nth($input,i));
+    }
+}
+
+void printfloats( float *tab, int len );
+</pre></td></tr>
+<tr><th>Sample Run</th></tr>
+<tr><td><pre>
+# open Tarray ;;
+# _printfloats (C_array [| C_double 1.0 ; C_double 3.0 ; C_double 5.6666 |]) ;;
+1.000000 3.000000 5.666600
+- : Tarray.c_obj = C_void
+</pre></td></tr></table>
+
+
+<a name="n18"></a><H3>16.2.4 C++ Classes</H3>
 
 
 C++ classes, along with structs and unions are represented by C_obj
@@ -431,7 +553,8 @@ Note that this string belongs to the wrapper object, and not
 the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 <p>
-<a name="n14"></a><H4>16.2.3.1 STL vector and string Example</H4>
+
+<a name="n19"></a><H4>16.2.4.1 STL vector and string Example</H4>
 
 
 Standard typemaps are now provided for STL vector and string.  More are in
@@ -450,7 +573,7 @@ length.  Instead, use multiple returns, as in the argout_ref example.
 %include stl.i
 
 namespace std {
-        %template(StringVector) std::vector<string>;
+        %template(StringVector) std::vector &lt; string &gt;;
 };
 
 %include example.h
@@ -494,7 +617,7 @@ C_list
 # 
 </pre></blockquote>
 
-<a name="n15"></a><H4>16.2.3.2 C++ Class Example</H4>
+<a name="n20"></a><H4>16.2.4.2 C++ Class Example</H4>
 
 
 Here's a simple example using Trolltech's Qt Library:
@@ -521,7 +644,7 @@ public:
 };
 </pre></td></tr></table><p>
 
-<a name="n16"></a><H4>16.2.3.3 Compiling the example</H4>
+<a name="n21"></a><H4>16.2.4.3 Compiling the example</H4>
 
 
 <blockquote><pre>
@@ -534,7 +657,7 @@ bash-2.05a$ ocamlc -c qt.ml
 bash-2.05a$ ocamlmktop -custom qt_wrap.o qt.cmo -o qt_top -cclib -L$QTPATH/lib -cclib -lqt
 </pre></blockquote>
 
-<a name="n17"></a><H4>16.2.3.4 Sample Session</H4>
+<a name="n22"></a><H4>16.2.4.4 Sample Session</H4>
 
 
 <blockquote><pre>
@@ -578,7 +701,10 @@ val hello : Qt.c_obj = C_obj <fun>
 In either case, assuming you have a working installation of QT, you will
 see a window containing the string "hi" in a button.  
 
-<a name="n18"></a><H3>16.2.4 Director Classes</H3>
+<a name="n23"></a><H3>16.2.5 Director Classes</H3>
+
+
+<a name="n24"></a><H4>16.2.5.1 Director Introduction</H4>
 
 
 Director classes are classes which allow Ocaml code to override the public
@@ -599,6 +725,10 @@ class foo {
   ...
 };
 </p></blockquote></pre>
+
+<a name="n25"></a><H4>16.2.5.2 Overriding Methods in Ocaml</H4>
+
+
 <p>
 Because the Ocaml language module treats C++ method calls as calls to a
 certain function, all you need to do is to define the function that will
@@ -619,6 +749,10 @@ invoked from Ocaml, allowing any method definitions to override the C++ ones.
 In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 <p>
+
+<a name="n26"></a><H4>16.2.5.3 Director Usage Example</H4>
+
+
 <table border="1" bgcolor="#dddddd"><tr><th><center>example_prog.ml</center>
 </th></tr>
 <tr><td><pre>
@@ -661,8 +795,8 @@ to rely on other methods from your own object, that you also have overrides
 for, you'll need to call them yourself, rather than relying on the normal
 method interface, because the underlying code won't call you back a second
 time.  This mechanism prevents infinite recursion on method calls, and allows
-the cathall case at the end of the example code to succeed in calling a method
-of the underlying object.
+the catchall case at the end of the example code to succeed in calling a
+method of the underlying object.
 <p>
 In the example, the draw_shape_coverage function plots the indicated number
 of points as either covered (<tt>x</tt>) or uncovered (<tt> </tt>) between
@@ -673,6 +807,9 @@ a tricky shape implementation, such as a boolean combination, to be expressed
 in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 <p>
+<a name="n27"></a><H4>16.2.5.4 Creating director objects</H4>
+
+
 The definition of the actual object triangle can be described this way:
 <pre><blockquote><p>
 let triangle =
@@ -701,7 +838,57 @@ is an option ref that will have its value extracted before becoming the
 consequently trigger an exception when any method is called on the object
 after that point (the actual raise is from an inner function used by
 new_derived_object, and throws NotObject).
-<a name="n19"></a><H3>16.2.5 Exceptions</H3>
+
+<a name="n28"></a><H4>16.2.5.5 Typemaps for directors, <tt>inv, outv, argoutv</tt></H4>
+
+
+<p>
+Special typemaps exist for use with directors, the <tt>inv, outv, argoutv</tt>
+are used in place of <tt>in, out, argout</tt> typemaps, except that their
+direction is reversed.  They provide for you to provide argout values, as
+well as a function return value in the same way you provide function arguments,
+and to receive arguments the same way you normally receive function returns.
+</P>
+<a name="n29"></a><H4>16.2.5.6 <tt>inv</tt> typemap</H4>
+
+
+<p>
+The <tt>inv</tt> typemap is used when you will receive arguments from a call
+made by C++ code to you, therefore, values will be translated from C++ to
+ocaml.  You must provide some valid C_obj value.  This is the value your ocaml
+code receives when you are called.  In general, a simple <tt>inv</tt> typemap
+can use the same body as a simple <tt>out</tt> typemap.
+</p>
+
+<a name="n30"></a><H4>16.2.5.7 <tt>outv</tt> typemap</H4>
+
+
+<p>
+The <tt>outv</tt> typemap is used when you will send an argument from your
+code back to the C++ caller.  That is; outv specifies a function return
+conversion.  You can usually use the same body as an <tt>in</tt> typemap
+for the same type, except when there are special requirements for object
+ownership, etc.
+</p>
+
+<a name="n31"></a><H4>16.2.5.8 <tt>argoutv</tt> typemap</H4>
+
+
+<p>
+C++ allows function arguments which are by pointer (*) and by reference (&)
+to receive a value from the called function, as well as sending one there.
+Sometimes, this is the main purpose of the argument given.  <tt>argoutv</tt>
+typemaps allow your caml code to emulate this by specifying additional return
+values to be put into the output parameters.  The SWIG ocaml module is a bit
+loose in order to make code eaiser to write.  In this case, your return to
+the caller must be a list containing the normal function return first, followed
+by any argout values in order.  These argout values will be taken from the
+list and assigned to the values to be returned to C++ through argoutv typemaps.
+In the event that you don't specify all of the necessary values, integral
+values will read zero, and struct or object returns have undefined results.
+</p>
+
+<a name="n32"></a><H3>16.2.6 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
