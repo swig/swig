@@ -46,7 +46,7 @@ parser.o: parser.cxx
 	$(CXX) $(INCLUDE) $(CFLAGS) $< -c -o parser.o
 
 parser.cxx: $(PARSER)
-	$(YACC) @YFLAGS@ $<
+	$(YACC) @YFLAGS@ $(PARSER)
 	@cp y.tab.h parser.h
 	@cp y.tab.c parser.cxx
 
