@@ -366,27 +366,26 @@ SwigType_attach_symtab(Symtab *sym) {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_print_scope(Typetab *t) {
-  String *key;
   Hash   *ttab;
-  String *tkey;
+  Iterator  i,j;
 
-  for (tkey = Firstkey(scopes); tkey; tkey = Nextkey(scopes)) {
-    t = Getattr(scopes,tkey);
-    ttab = Getattr(t,"typetab");
+  for (i = First(scopes); i.key; i = Next(i)) {
+    t = i.item;
+    ttab = Getattr(i.item,"typetab");
     
-    Printf(stdout,"Type scope '%s' (%x)\n", tkey, t);
+    Printf(stdout,"Type scope '%s' (%x)\n", i.key, i.item);
     {
-      List *inherit = Getattr(t,"inherit");
+      List *inherit = Getattr(i.item,"inherit");
       if (inherit) {
-	Typetab *it;
-	for (it = Firstitem(inherit); it; it = Nextitem(inherit)) {
-	  Printf(stdout,"    Inherits from '%s' (%x)\n", Getattr(it,"qname"), it);
+	Iterator j;
+	for (j = First(inherit); j.item; j = Next(j)) {
+	  Printf(stdout,"    Inherits from '%s' (%x)\n", Getattr(j.item,"qname"), j.item);
 	}
       }
     }
     Printf(stdout,"-------------------------------------------------------------\n");
-    for (key = Firstkey(ttab); key; key = Nextkey(ttab)) {
-      Printf(stdout,"%40s -> %s\n", key, Getattr(ttab,key));
+    for (j = First(ttab); j.key; j = Next(j)) {
+      Printf(stdout,"%40s -> %s\n", j.key, j.item);
     }
   }
 }
@@ -860,14 +859,15 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	/* Template.  We need to qualify template parameters as well as the template itself */
 	String *tprefix, *qprefix;
 	String *tsuffix;
+	Iterator pi;
 	Parm   *p;
 	List *parms = SwigType_parmlist(e);
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
 	Printv(qprefix,"<(",NIL);
-	p = Firstitem(parms);
-	while (p) {
+	pi = First(parms);
+	while ((p = pi.item)) {
 	  String *qt = SwigType_typedef_qualified(p);
 	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) { */
 	    /* No change in value.  It is entirely possible that the parameter is an integer value.
@@ -911,8 +911,8 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	    Append(qprefix,qt);
 	  }
 	  Delete(qt);
-	  p= Nextitem(parms);
-	  if (p) {
+	  pi= Next(pi);
+	  if (pi.item) {
 	    Append(qprefix,",");
 	  }
 	}
@@ -933,14 +933,14 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
     } else if (SwigType_isfunction(e)) {
       List *parms = SwigType_parmlist(e);
       String *s = NewString("f(");
-      String *p;
-      p = Firstitem(parms);
-      while (p) {
-	String *pq = SwigType_typedef_qualified(p);
+      Iterator pi;
+      pi = First(parms);
+      while (pi.item) {
+	String *pq = SwigType_typedef_qualified(pi.item);
 	Append(s,pq);
 	Delete(pq);
-	p = Nextitem(parms);
-	if (p) {
+	pi = Next(pi);
+	if (pi.item) {
 	  Append(s,",");
 	}
       }
@@ -1350,26 +1350,26 @@ List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
   Setattr(ch, ms, "1");
   mh = Getattr(r_mangled,ms);
   if (mh) {
-    String *key;
-    key = Firstkey(mh);
-    while (key) {
+    Iterator ki;
+    ki = First(mh);
+    while (ki.key) {
       Hash *rh;
-      if (Getattr(ch,key)) {
-	key = Nextkey(mh);
+      if (Getattr(ch,ki.key)) {
+	ki = Next(ki);
 	continue;
       }
-      Setattr(ch,key,"1");
-      rh = Getattr(r_resolved,key);
+      Setattr(ch,ki.key,"1");
+      rh = Getattr(r_resolved,ki.key);
       if (rh) {
-	String *rkey;
-	rkey = Firstkey(rh);
-	while (rkey) {
-	  Setattr(h,rkey,"1");
-	  SwigType_equivalent_mangle(rkey,ch,h);
-	  rkey = Nextkey(rh);
+	Iterator rk;
+	rk = First(rh);
+	while (rk.key) {
+	  Setattr(h,rk.key,"1");
+	  SwigType_equivalent_mangle(rk.key,ch,h);
+	  rk = Next(rk);
 	}
       }
-      key = Nextkey(mh);
+      ki = Next(ki);
     }
   }
  check_exit:
@@ -1404,24 +1404,24 @@ String *SwigType_clientdata_collect(String *ms, Hash *checked) {
   Setattr(ch, ms, "1");
   mh = Getattr(r_mangled,ms);
   if (mh) {
-    String *key;
-    key = Firstkey(mh);
-    while (key) {
+    Iterator ki;
+    ki = First(mh);
+    while (ki.key) {
       Hash *rh;
-      Setattr(ch,key,"1");
-      clientdata = Getattr(r_clientdata,key);
+      Setattr(ch,ki.key,"1");
+      clientdata = Getattr(r_clientdata,ki.key);
       if (clientdata) goto check_exit;
-      rh = Getattr(r_resolved,key);
+      rh = Getattr(r_resolved,ki.key);
       if (rh) {
-	String *rkey;
-	rkey = Firstkey(rh);
-	while (rkey) {
-	  clientdata = SwigType_clientdata_collect(rkey,ch);
+	Iterator rk;
+	rk = First(rh);
+	while (rk.key) {
+	  clientdata = SwigType_clientdata_collect(rk.key,ch);
 	  if (clientdata) goto check_exit;
-	  rkey = Nextkey(rh);
+	  rk = Next(rk);
 	}
       }
-      key = Nextkey(mh);
+      ki = Next(ki);
     }
   }
  check_exit:
@@ -1515,48 +1515,49 @@ SwigType_issubtype(SwigType *t1, SwigType *t2) {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_inherit_equiv(File *out) {
-  String *rkey, *bkey, *ckey;
+  String *ckey;
   String *prefix, *base;
   Hash   *sub;
   Hash   *rh;
   List   *rlist;
+  Iterator rk, bk, ck;
 
   if (!conversions) conversions = NewHash();
   if (!subclass) subclass = NewHash();
 
-  rkey = Firstkey(r_resolved);
-  while (rkey) {
+  rk = First(r_resolved);
+  while (rk.key) {
     /* rkey is a fully qualified type.  We strip all of the type constructors off of it just to get the base */
-    base = SwigType_base(rkey);
+    base = SwigType_base(rk.key);
     /* Check to see whether the base is recorded in the subclass table */
     sub = Getattr(subclass,base);
     Delete(base);
     if (!sub) {
-      rkey = Nextkey(r_resolved);
+      rk = Next(rk);
       continue;
     }
 
     /* This type has subclasses.  We now need to walk through these subtypes and generate pointer converion functions */
 
-    rh = Getattr(r_resolved, rkey);
+    rh = Getattr(r_resolved, rk.key);
     rlist = NewList();
-    for (ckey = Firstkey(rh); ckey; ckey = Nextkey(rh)) {
-      Append(rlist,ckey);
+    for (ck = First(rh); ck.key; ck = Next(ck)) {
+      Append(rlist,ck.key);
     }
-    /*    Printf(stdout,"rkey = '%s'\n", rkey);
+    /*    Printf(stdout,"rk.key = '%s'\n", rk.key);
 	  Printf(stdout,"rh = %x '%s'\n", rh,rh); */
 
-    bkey = Firstkey(sub);
-    while (bkey) {
-      prefix= SwigType_prefix(rkey);
-      Append(prefix,bkey);
+    bk = First(sub);
+    while (bk.key) {
+      prefix= SwigType_prefix(rk.key);
+      Append(prefix,bk.key);
       /*      Printf(stdout,"set %x = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       Setattr(rh,SwigType_manglestr(prefix),prefix);
-      ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rkey));
+      ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rk.key));
       if (!Getattr(conversions,ckey)) {
-	String *convname = NewStringf("%sTo%s", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
+	String *convname = NewStringf("%sTo%s", SwigType_manglestr(prefix), SwigType_manglestr(rk.key));
 	Printf(out,"static void *%s(void *x) {\n", convname);
-	Printf(out,"    return (void *)((%s) %s ((%s) x));\n", SwigType_lstr(rkey,0), Getattr(sub,bkey), SwigType_lstr(prefix,0));
+	Printf(out,"    return (void *)((%s) %s ((%s) x));\n", SwigType_lstr(rk.key,0), Getattr(sub,bk.key), SwigType_lstr(prefix,0));
 	Printf(out,"}\n");
 	Setattr(conversions,ckey,convname);
 	Delete(ckey);	
@@ -1565,39 +1566,40 @@ void SwigType_inherit_equiv(File *out) {
 	{
 	  Hash *r = Getattr(r_resolved, prefix);
 	  if (r) {
-	    String *rrkey = Firstkey(r);
-	    while (rrkey) {
-	      String *rlkey;
+	    Iterator rrk;
+	    rrk=First(r);
+	    while (rrk.key) {
+	      Iterator rlk;
 	      String *rkeymangle;
 
 	      /* Make sure this name equivalence is not due to inheritance */
-	      if (Cmp(prefix, Getattr(r,rrkey)) == 0) {
-		rkeymangle = SwigType_manglestr(rkey);
-		ckey = NewStringf("%s+%s", rrkey, rkeymangle);
+	      if (Cmp(prefix, Getattr(r,rrk.key)) == 0) {
+		rkeymangle = SwigType_manglestr(rk.key);
+		ckey = NewStringf("%s+%s", rrk.key, rkeymangle);
 		if (!Getattr(conversions, ckey)) {
 		  Setattr(conversions, ckey, convname);
 		}
 		Delete(ckey);
-		for (rlkey = Firstitem(rlist); rlkey; rlkey = Nextitem(rlist)) {
-		  ckey = NewStringf("%s+%s", rrkey, rlkey);
+		for (rlk = First(rlist); rlk.item; rlk = Next(rlk)) {
+		  ckey = NewStringf("%s+%s", rrk.key, rlk.item);
 		  Setattr(conversions, ckey, convname);
 		  Delete(ckey);
 		}
 		Delete(rkeymangle);
 		/* This is needed to pick up other alternative names for the same type.
                    Needed to make templates work */
-	        Setattr(rh,rrkey,Getattr(r,rrkey));   
+	        Setattr(rh,rrk.key,rrk.item);   
 	      }
-	      rrkey = Nextkey(r);
+	      rrk = Next(rrk);
 	    }
 	  }
 	}
 	Delete(convname);
       }
       Delete(prefix);
-      bkey = Nextkey(sub);
+      bk = Next(bk);
     }
-    rkey = Nextkey(r_resolved);
+    rk = Next(rk);
   }
 }
 
@@ -1609,7 +1611,7 @@ void SwigType_inherit_equiv(File *out) {
 
 void
 SwigType_emit_type_table(File *f_forward, File *f_table) {
-  DOH *key;
+  Iterator ki;
   String *types, *table;
   int i = 0;
 
@@ -1643,36 +1645,37 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   table = NewString("");
   types = NewString("");
   Printf(table,"static swig_type_info *swig_types_initial[] = {\n");
-  key = Firstkey(r_mangled);
+
+  ki = First(r_mangled);
   Printf(f_forward,"\n/* -------- TYPES TABLE (BEGIN) -------- */\n\n");
-  while (key) {
+  while (ki.key) {
     List *el;
-    String *en;
+    Iterator ei;
     String *cd;
 
-    Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", key, i);
-    Printv(types,"static swig_type_info _swigt_", key, "[] = {", NIL);
+    Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", ki.key, i);
+    Printv(types,"static swig_type_info _swigt_", ki.key, "[] = {", NIL);
     
-    cd = SwigType_clientdata_collect(key,0);
+    cd = SwigType_clientdata_collect(ki.key,0);
     if (!cd) cd = "0";
-    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\", ", cd, "},", NIL);
-    el = SwigType_equivalent_mangle(key,0,0);
-    for (en = Firstitem(el); en; en = Nextitem(el)) {
+    Printv(types,"{\"", ki.key, "\", 0, \"", SwigType_str(Getattr(r_ltype,ki.key),0),"\", ", cd, "},", NIL);
+    el = SwigType_equivalent_mangle(ki.key,0,0);
+    for (ei = First(el); ei.item; ei = Next(ei)) {
       String *ckey;
       String *conv;
-      ckey = NewStringf("%s+%s", en, key);
+      ckey = NewStringf("%s+%s", ei.item, ki.key);
       conv = Getattr(conversions,ckey);
       if (conv) {
-	Printf(types,"{\"%s\", %s},", en, conv);
+	Printf(types,"{\"%s\", %s},", ei.item, conv);
       } else {
-	Printf(types,"{\"%s\"},", en);
+	Printf(types,"{\"%s\"},", ei.item);
       }
       Delete(ckey);
     }
     Delete(el);
     Printf(types,"{0}};\n");
-    Printv(table, "_swigt_", key, ", \n", NIL);
-    key = Nextkey(r_mangled);
+    Printv(table, "_swigt_", ki.key, ", \n", NIL);
+    ki = Next(ki);
     i++;
   }
 

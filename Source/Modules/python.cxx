@@ -1781,16 +1781,17 @@ public:
       String *base_class = NewString("");
       List *baselist = Getattr(n,"bases");
       if (baselist && Len(baselist)) {
-	Node *base = Firstitem(baselist);
-	while (base) {
-	  String *bname = Getattr(base, "python:proxy");
+	Iterator b;
+	b = First(baselist);
+	while (b.item) {
+	  String *bname = Getattr(b.item, "python:proxy");
 	  if (!bname) {
-	    base = Nextitem(baselist);
+	    b = Next(b);
 	    continue;
 	  }
 	  Printv(base_class,bname,NIL);
-	  base = Nextitem(baselist);
-	  if (base) {
+	  b = Next(b);
+	  if (b.item) {
 	    Putc(',',base_class);
 	  }
 	}
@@ -2149,10 +2150,12 @@ public:
     List *clist = DohSplit(temp,'\n',-1);
     Delete(temp);
     int   initial = 0;
-    String *s;
-
-  /* Get the initial indentation */
-    for (s = Firstitem(clist); s; s = Nextitem(clist)) {
+    String *s = 0;
+    Iterator si;
+    /* Get the initial indentation */
+    
+    for (si = First(clist); si.item; si = Next(si)) {
+      s = si.item;
       if (Len(s)) {
 	char *c = Char(s);
 	while (*c) {
@@ -2166,7 +2169,8 @@ public:
 	}
       }
     }
-    while (s) {
+    while (si.item) {
+      s = si.item;
       if (Len(s) > initial) {
 	char *c = Char(s);
 	c += initial;
@@ -2174,7 +2178,7 @@ public:
       } else {
 	Printv(out,"\n",NIL);
       }
-      s = Nextitem(clist);
+      si = Next(si);
     }
     Delete(clist);
     return out;

@@ -70,13 +70,14 @@ static void print_indent(int l) {
 
 void
 Swig_print_node(Node *obj) {
-  String *k;
+  Iterator ki;
   Node   *cobj;
   
   print_indent(0);
   Printf(stdout,"+++ %s ----------------------------------------\n", nodeType(obj));
-  k = Firstkey(obj);
-  while (k) {
+  ki = First(obj);
+  while (ki.key) {
+    String *k = ki.key;
     if ((Cmp(k,"nodeType") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
 	(Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) ||
 	(Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
@@ -99,7 +100,7 @@ Swig_print_node(Node *obj) {
 	Printf(stdout,"%-12s - 0x%x\n", k, Getattr(obj,k));
       }
     }
-    k = Nextkey(obj);
+    ki = Next(ki);
   }
   cobj = firstChild(obj);
   if (cobj) {
@@ -187,13 +188,11 @@ deleteNode(Node *n) {
 
 Node *
 copyNode(Node *n) {
-  String *key;
-  DOH *v;
+  Iterator ki;
   Node *c = NewHash();
-  for (key = Firstkey(n); key; key = Nextkey(n)) {
-    v = Getattr(n,key);
-    if (DohIsString(v)) {
-      Setattr(c,key,Copy(v));
+  for (ki = First(n); ki.key; ki = Next(ki)) {
+    if (DohIsString(ki.item)) {
+      Setattr(c,ki.key,Copy(ki.item));
     }
   }
   Setfile(c,Getfile(n));
@@ -336,11 +335,11 @@ Swig_save(const char *ns, Node *n, ...) {
 
 void 
 Swig_restore(Node *n) {
-  String *key;
   char  temp[512];
   int   len;
   List  *l;
   String *ns;
+  Iterator ki;
 
   ns = Getattr(n,"view");
   assert(ns);
@@ -351,15 +350,15 @@ Swig_restore(Node *n) {
   strcat(temp,":");
   len = strlen(temp);
 
-  for (key = Firstkey(n); key; key = Nextkey(n)) {
-    if (Strncmp(temp,key,len) == 0) {
-      Append(l,key);
+  for (ki = First(n); ki.key; ki = Next(ki)) {
+    if (Strncmp(temp,ki.key,len) == 0) {
+      Append(l,ki.key);
     }
   }
-  for (key = Firstitem(l); key; key = Nextitem(l)) {
-    DOH *obj = Getattr(n,key);
-    Setattr(n,Char(key)+len,obj);
-    Delattr(n,key);
+  for (ki = First(l); ki.item; ki = Next(ki)) {
+    DOH *obj = Getattr(n,ki.item);
+    Setattr(n,Char(ki.item)+len,obj);
+    Delattr(n,ki.item);
   }
   Delete(l);
 }

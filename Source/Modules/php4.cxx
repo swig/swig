@@ -143,15 +143,17 @@ static const char *php_header =
 void
 SwigPHP_emit_resource_registrations() {
   DOH *key;
+  Iterator ki;
   String *destructor=0;
   String *classname=0;
   String *shadow_classname=0;
 
   if (!zend_types) return;
-  key = Firstkey(zend_types);
 
-  if (key) Printf(s_oinit,"\n/* Register resource destructors for pointer types */\n");
-  while (key) if (1 /* is pointer type*/) {
+  ki = First(zend_types);
+  if (ki.key) Printf(s_oinit,"\n/* Register resource destructors for pointer types */\n");
+  while (ki.key) if (1 /* is pointer type*/) {
+    key = ki.key;
     Node *class_node;
     if ((class_node=Getattr(zend_types,key))) {
       // Write out destructor function header
@@ -187,7 +189,7 @@ SwigPHP_emit_resource_registrations() {
       Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n",
            key,key);
     }
-    key = Nextkey(zend_types);
+    ki = Next(ki);
   }
 }
 
@@ -1458,24 +1460,23 @@ public:
 
       if(baselist) {
         int class_count = 0;
-	Node *base = Firstitem(baselist);
+	Iterator base = First(baselist);
+	while(base.item && Getattr(base.item,"feature:ignore")) base = Next(base);
 
-	while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
-
-	if (base && is_shadow(Getattr(base, "name"))) {
+	if (base.item && is_shadow(Getattr(base.item, "name"))) {
 	  class_count++;
-	  Printf(this_shadow_baseclass, "%s", Getattr(base, "name"));
+	  Printf(this_shadow_baseclass, "%s", Getattr(base.item, "name"));
 	}
 
-	if (base) for(base = Nextitem(baselist); base; base = Nextitem(baselist)) {
-	  if (Getattr(base,"feature:ignore")) continue;
-	  if(is_shadow(Getattr(base, "name"))) {
+	if (base.item) for(base = Next(base); base.item; base = Next(base)) {
+	  if (Getattr(base.item,"feature:ignore")) continue;
+	  if(is_shadow(Getattr(base.item, "name"))) {
 	    class_count++;
-	    Printf(this_shadow_multinherit, "%s ", Getattr(base, "name"));
+	    Printf(this_shadow_multinherit, "%s ", Getattr(base.item, "name"));
 	  }
 	}
 
-	if(class_count > 1) Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
+	if(class_count > 1) Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base.item, this_shadow_multinherit);
       }
 
       /* Write out class init code */
@@ -1493,7 +1494,8 @@ public:
       String	  *s_propget=NewString("");
       String	  *s_propset=NewString("");
       List *baselist = Getattr(n, "bases");
-      Node *base = NULL;
+      Iterator ki, base;
+
 
       // If no constructor was generated (abstract class) we had better
       // generate a constructor that raises an error about instantiating
@@ -1526,20 +1528,22 @@ public:
       Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
 
-      if (baselist) base=Firstitem(baselist);
-      else base=NULL;
-      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
-      key = Firstkey(shadow_set_vars);
+
+      if (baselist) base=First(baselist);
+      else base.item = NULL;
+      while(base.item && Getattr(base.item,"feature:ignore")) base = Next(base);
+      ki = First(shadow_set_vars);
+      key = ki.key;
 
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
-      if (key || ! base) { // or if we are base class and set it ourselves
+      if (key || ! base.item) { // or if we are base class and set it ourselves
         Printf(s_propset,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
                "  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
-        if (base) {
+        if (base.item) {
           Printf(s_propset,"  /* No extra properties for subclass %s */\n",shadow_classname);
         } else {
           Printf(s_propset,"  /* No properties for base class %s */\n",shadow_classname);
@@ -1547,27 +1551,28 @@ public:
       }
 
       scount=0;
-      while (key) {
+      while (ki.key) {
+	key = ki.key;
         if (scount++) Printf(s_propset," else");
         Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n"
                           "    return _wrap_%s(property_reference, value);\n"
                           "  }",Getattr(shadow_set_vars,key),key);
 
-        key=Nextkey(shadow_set_vars);
+        ki=Next(ki);
       }
 
       if (scount) Printf(s_propset," else");
 
       // If there is a base class then chain it's handler else set directly
       // try each base class handler, else set directly...
-      if (base) {
+      if (base.item) {
         Printf(s_propset,  "  {\n    /* chain to base class */\n");
-        while(base) {
+        while(base.item) {
           Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
-               GetChar(base, "sym:name"));
+               GetChar(base.item, "sym:name"));
 
-          base=Nextitem(baselist);
-	  while (base && Getattr(base,"feature:ignore")) base=Nextitem(baselist);
+          base=Next(base);
+	  while (base.item && Getattr(base.item,"feature:ignore")) base=Next(base);
       }
         Printf(s_propset,"  }\n");
       }
@@ -1597,20 +1602,22 @@ public:
       Printf(s_header,"static int _propget_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propget,"static int _propget_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
 
-      if (baselist) base=Firstitem(baselist); 
-      else base=NULL;
-      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
-      key = Firstkey(shadow_get_vars);
+      if (baselist) base=First(baselist); 
+      else base.item=NULL;
+      while(base.item && Getattr(base.item,"feature:ignore")) base = Next(base);
+      ki = First(shadow_get_vars);
+
+      key = ki.key;
 
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
-      if (key || !base ) { // or if we are base class...
+      if (key || !base.item ) { // or if we are base class...
         Printf(s_propget,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
                "  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
-        if (base) {
+        if (base.item) {
           Printf(s_propget,"  /* No extra properties for subclass %s */\n",shadow_classname);
         } else {
           Printf(s_propget,"  /* No properties for base class %s */\n",shadow_classname);
@@ -1618,27 +1625,28 @@ public:
       }
 
       gcount=0;
-      while (key) {
+      while (ki.key) {
+	key = ki.key;
         if (gcount++) Printf(s_propget," else");
         Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n"
                           "    *value=_wrap_%s(property_reference);\n"
                           "    return SUCCESS;\n"
                           "  }",Getattr(shadow_get_vars,key),key);
 
-        key=Nextkey(shadow_get_vars);
+        ki=Next(ki);
       }
 
       if (gcount) Printf(s_propget," else");
 
       // If there is a base class then chain it's handler else return null
-      if (base) {
+      if (base.item) {
         Printf(s_propget,  "  {\n    /* chain to base class */\n");
-        while(base) {
+        while(base.item) {
           Printf(s_propget,"    if (_propget_%s(property_reference,  value)==SUCCESS) return SUCCESS;\n",
-               GetChar(base, "sym:name"));
+               GetChar(base.item, "sym:name"));
 
-          base=Nextitem(baselist);
-	  while (base && Getattr(base,"feature:ignore")) base=Nextitem(baselist);
+          base=Next(base);
+	  while (base.item && Getattr(base.item,"feature:ignore")) base=Next(base);
         }
         Printf(s_propget,"  }\n");
       }
@@ -1651,13 +1659,13 @@ public:
       Printv(s_wrappers,s_propget,s_propset,NIL);
 
       // Save class in class table
-      if (baselist) base=Firstitem(baselist);
-      else base=NULL;
-      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
+      if (baselist) base=First(baselist);
+      else base.item=NULL;
+      while(base.item && Getattr(base.item,"feature:ignore")) base = Next(base);
 
-      if (base) {
+      if (base.item) {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
-          shadow_classname,shadow_classname,GetChar(base, "sym:name"), shadow_classname);
+          shadow_classname,shadow_classname,GetChar(base.item, "sym:name"), shadow_classname);
       } else {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,NULL,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
           shadow_classname,shadow_classname, shadow_classname);

@@ -261,7 +261,7 @@ int Contracts::InheritAssertAppend(Node *n, Node *bases) {
 }
 
 int Contracts::AssertModify(Node *n, int flag) {
-  String   *str_assert, *expr, *tag_sync;
+  String   *str_assert, *expr = 0, *tag_sync;
   List     *list_assert;
   
   if (flag == 1) {       /* preassert */
@@ -286,7 +286,10 @@ int Contracts::AssertModify(Node *n, int flag) {
   
   /* build up new assertion */
   str_assert = NewString("");
-  for (expr = Firstitem(list_assert); expr; expr = Nextitem(list_assert)) {
+  Iterator ei;
+
+  for (ei = First(list_assert); ei.item; ei = Next(ei)) {
+    expr = ei.item;
     if (Len(expr)) {
       /* All sync staff are not complete and only experimental */
       if (Strstr(expr, SWIG_BEFORE)) {       /* before sync assertion */
@@ -324,7 +327,6 @@ int Contracts::AssertModify(Node *n, int flag) {
   
   Delete(str_assert);
   Delete(list_assert);
-  Delete(expr);
   return SWIG_OK;
 }
 

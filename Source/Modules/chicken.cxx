@@ -1369,18 +1369,18 @@ CHICKEN::classHandler(Node *n)
     String *base_class = NewString("<");
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
-      Node *base = Firstitem(baselist);
-      while (base) {
-	String *bname = Copy(Getattr(base, "chicken:proxy"));
+      Iterator base = First(baselist);
+      while (base.item) {
+	String *bname = Copy(Getattr(base.item, "chicken:proxy"));
 	if (!bname) {
-	  base = Nextitem(baselist);
+	  base = Next(base);
 	  continue;
 	}
 	namify(bname);
 	Printv(base_class,bname,NIL);
 	Delete(bname);
-	base = Nextitem(baselist);
-	if (base) {
+	base = Next(base);
+	if (base.item) {
 	  Printf(base_class, "> <");
 	}
       }
@@ -1879,12 +1879,12 @@ CHICKEN::chickenCode(String *code, const String *indent) {
   List *clist = DohSplit(temp,'\n',-1);
   Delete(temp);
   int   initial = 0;
-  String *s;
+  Iterator s;
 
   /* Get the initial indentation */
-  for (s = Firstitem(clist); s; s = Nextitem(clist)) {
-    if (Len(s)) {
-      char *c = Char(s);
+  for (s = First(clist); s.item; s = Next(s)) {
+    if (Len(s.item)) {
+      char *c = Char(s.item);
       while (*c) {
 	if (!isspace(*c)) break;
 	initial++;
@@ -1896,15 +1896,15 @@ CHICKEN::chickenCode(String *code, const String *indent) {
       }
     }
   }
-  while (s) {
-    if (Len(s) > initial) {
-      char *c = Char(s);
+  while (s.item) {
+    if (Len(s.item) > initial) {
+      char *c = Char(s.item);
       c += initial;
       Printv(out,indent,c,"\n",NIL);
     } else {
       Printv(out,"\n",NIL);
     }
-    s = Nextitem(clist);
+    s = Next(s);
   }
   Delete(clist);
   return out;
@@ -1939,11 +1939,11 @@ CHICKEN::recurseSearch(const char *typemap, char *argname, Node *n)
   /* recurse through base classes */
   List *baselist = Getattr(n,"bases");
   if (baselist && Len(baselist)) {
-    Node *base = Firstitem(baselist);
-    while (base) {
-      tm = recurseSearch(typemap, argname, base);
+    Iterator base = First(baselist);
+    while (base.item) {
+      tm = recurseSearch(typemap, argname, base.item);
       if (tm) break;
-      base = Nextitem(baselist);
+      base = Next(base);
     }
   }
   return tm;

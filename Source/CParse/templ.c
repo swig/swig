@@ -361,11 +361,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   {
     List *bases = Getattr(n,"baselist");
     if (bases) {
-      String *b;
-      for (b = Firstitem(bases); b; b = Nextitem(bases)) {
-	String *qn = Swig_symbol_type_qualify(b,0);
-	Clear(b);
-	Append(b,qn);
+      Iterator b;
+      for (b = First(bases); b.item; b = Next(b)) {
+	String *qn = Swig_symbol_type_qualify(b.item,0);
+	Clear(b.item);
+	Append(b.item,qn);
       }
     }
   }
@@ -473,12 +473,13 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
       char   tmp[32];
       int    i;
       List   *partials;
-      String *s, *ss;
+      String *ss;
+      Iterator pi;
 
       partials = Getattr(templ,"partials");
       if (partials) {
-	for (s = Firstitem(partials); s; s= Nextitem(partials)) {
-	  ss = Copy(s);
+	for (pi = First(partials); pi.item; pi = Next(pi)) {
+	  ss = Copy(pi.item);
 	  p = parms;
 	  i = 1;
 	  while (p) {
@@ -497,10 +498,10 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
 	    p = nextSibling(p);
 	  }
 	  if (template_debug) {
-	    Printf(stdout,"    searching: '%s' (partial specialization - %s)\n", ss, s);
+	    Printf(stdout,"    searching: '%s' (partial specialization - %s)\n", ss, pi.item);
 	  }
 	  if ((Strcmp(ss,tname) == 0) || (Strcmp(ss,rname) == 0)) {
-	    Append(mpartials,s);
+	    Append(mpartials,pi.item);
 	  }
 	  Delete(ss);
 	}

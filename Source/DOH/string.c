@@ -874,8 +874,6 @@ static DohListMethods StringListMethods = {
   String_delitem,         /* doh_delitem */
   String_insert,          /* doh_insitem */
   String_delslice,        /* doh_delslice */
-  0,                      /* doh_first   */
-  0,                      /* doh_next    */
 };
 
 static DohFileMethods StringFileMethods = {
@@ -905,6 +903,8 @@ DohObjInfo DohStringType = {
     String_len,        /* doh_len */
     String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
+    0,               /* doh_first    */
+    0,               /* doh_next     */
     String_setfile,    /* doh_setfile */
     String_getfile,    /* doh_getfile */
     String_setline,    /* doh_setline */

@@ -315,16 +315,16 @@ public:
 
   /* Patch the type table to reflect the names used by shadow classes */
     if (blessed) {
-      Node     *cls;
-      for (cls = Firstitem(classlist); cls; cls = Nextitem(classlist)) {
-	if (Getattr(cls,"perl5:proxy")) {
-	  SwigType *type = Copy(Getattr(cls,"classtype"));
+      Iterator  cls;
+      for (cls = First(classlist); cls.item; cls = Next(cls)) {
+	if (Getattr(cls.item,"perl5:proxy")) {
+	  SwigType *type = Copy(Getattr(cls.item,"classtype"));
 
 	  if (!type) continue;   /* If unnamed class, no type will be found */
 
 	  SwigType_add_pointer(type);
 	  String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
-	  String *rep = NewStringf("\"%s\"", Getattr(cls,"perl5:proxy"));
+	  String *rep = NewStringf("\"%s\"", Getattr(cls.item,"perl5:proxy"));
 	  Replaceall(type_table,mangle,rep);
 	  Delete(mangle);
 	  Delete(rep);
@@ -1139,9 +1139,9 @@ public:
 
       if (have_operators) {
 	Printf(pm, "use overload\n");
-	DOH *key;
-	for (key = Firstkey(operators); key; key = Nextkey(operators)) {
-	  char *name = Char(key);
+	Iterator ki;
+	for (ki = First(operators); ki.key; ki = Next(ki)) {
+	  char *name = Char(ki.key);
 	  //	    fprintf(stderr,"found name: <%s>\n", name);
 	  if (strstr(name, "operator_equal_to")) {
 	    Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",NIL);
@@ -1162,15 +1162,16 @@ public:
       /* Handle inheritance */
       List *baselist = Getattr(n,"bases");
       if (baselist && Len(baselist)) {
-	Node *base = Firstitem(baselist);
-	while (base) {
-	  String *bname = Getattr(base, "perl5:proxy");
+	Iterator b;
+	b = First(baselist);
+	while (b.item) {
+	  String *bname = Getattr(b.item, "perl5:proxy");
 	  if (!bname) {
-	    base = Nextitem(baselist);
+	    b = Next(b);
 	    continue;
 	  }
 	  Printv(pm," ", bname, NIL);
-	  base = Nextitem(baselist);
+	  b = Next(b);
 	}
       }
       Printf(pm, " );\n");

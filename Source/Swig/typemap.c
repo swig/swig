@@ -397,15 +397,14 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
 
     if (sm) {
       /* Got a typemap.  Need to only merge attributes for methods that match our signature */
-      String *key;
-
+      Iterator ki;
       match = 1;
-      for (key = Firstkey(sm); key; key = Nextkey(sm)) {
+      for (ki = First(sm); ki.key; ki = Next(ki)) {
 	/* Check for a signature match with the source signature */
-	if ((count_args(key) == narg) && (Strstr(key,ssig))) {
+	if ((count_args(ki.key) == narg) && (Strstr(ki.key,ssig))) {
 	  String *oldm;
 	  /* A typemap we have to copy */
-	  String *nkey = Copy(key);
+	  String *nkey = Copy(ki.key);
 	  Replace(nkey,ssig,dsig,DOH_REPLACE_ANY);
 
 	  /* Make sure the typemap doesn't already exist in the target map */
@@ -415,7 +414,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	    String *code;
 	    ParmList *locals;
 	    ParmList *kwargs;
-	    Hash *sm1 = Getattr(sm,key);
+	    Hash *sm1 = ki.item;
 
 	    code = Getattr(sm1,"code");
 	    locals = Getattr(sm1,"locals");
@@ -474,14 +473,15 @@ Swig_typemap_clear_apply(Parm *parms) {
   }
   if (tm) {
     /* Clear typemaps that match our signature */
-    String *key, *key2;
-    for (key = Firstkey(tm); key; key = Nextkey(tm)) {
-      if (Strncmp(key,"tmap:",5) == 0) {
-	int na = count_args(key);
-	if ((na == narg) && Strstr(key,tsig)) {
-	  Hash *h = Getattr(tm,key);
-	  for (key2 = Firstkey(h); key2; key2 = Nextkey(h)) {
-	    Delattr(h,key2);
+    Iterator ki, ki2;
+
+    for (ki = First(tm); ki.key; ki = Next(ki)) {
+      if (Strncmp(ki.key,"tmap:",5) == 0) {
+	int na = count_args(ki.key);
+	if ((na == narg) && Strstr(ki.key,tsig)) {
+	  Hash *h = ki.item;
+	  for (ki2 = First(h); ki2.key; ki2 = Next(ki2)) {
+	    Delattr(h,ki2.key);
 	  }
 	}
       }
@@ -1427,8 +1427,8 @@ static List *split_embedded(String *s) {
     }
     if (*c == '(') level++;
     if (*c == ')') level--;
-    if (isspace(*c) && leading) start++; 
-    if (!isspace(*c)) leading = 0;
+    if (isspace((int)*c) && leading) start++; 
+    if (!isspace((int)*c)) leading = 0;
     c++;
   }
   return args;
@@ -1449,7 +1449,7 @@ static void split_var(String *s, String **name, String **value) {
   *name = NewStringWithSize(c,eq-c);
   
   /* Look for $n variables */
-  if (isdigit(*(c))) {
+  if (isdigit((int)*(c))) {
     /* Parse the value as a type */
     String *v;
     Parm *p;
@@ -1552,9 +1552,9 @@ void replace_embedded_typemap(String *s, Wrapper *f) {
 	      if (!Getattr(first,attr)) {
 		/* Should be no more matches.  Hack??? */
 		/* Replace all of the remaining variables */
-		String *key;
-		for (key = Firstkey(vars); key; key = Nextkey(vars)) {
-		  Replace(tm,key,Getattr(vars,key), DOH_REPLACE_ANY);
+		Iterator ki;
+		for (ki = First(vars); ki.key; ki = Next(ki)) {
+		  Replace(tm,ki.key,ki.item, DOH_REPLACE_ANY);
 		}
 		/* Do the replacement */
 		Replace(s,tmp,tm, DOH_REPLACE_ANY);

@@ -518,8 +518,8 @@ class JAVA : public Language {
     Printf(f_wrappers,"#endif\n");
 
     // Output a Java type wrapper class for each SWIG type
-    for (String *swig_type = Firstkey(swig_types_hash); swig_type; swig_type = Nextkey(swig_types_hash)) {
-      emitTypeWrapperClass(swig_type, Getattr(swig_types_hash, swig_type));
+    for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+      emitTypeWrapperClass(swig_type.key, swig_type.item);
     }
 
     /* Close all of the files */
@@ -602,17 +602,18 @@ class JAVA : public Language {
     UpcallData       *udata;
     String           *methodno;
     Hash             *new_udata;
-    
+    Iterator          ui;
+
     /* Do we know about this director class already? */
     if ((udata = Getattr(dmethods_table, director_class)) != NULL)
       return Getattr(udata, "methodoff");
 
     /* Clearly not, so make sure we don't already know about the Java
        method and field descriptor signature */
-    for (udata = Firstitem(dmethods_seq); udata != NULL; udata = Nextitem(dmethods_seq)) {
-      if (!Cmp(Getattr(udata, "method"), method) && !Cmp(Getattr(udata, "fdesc"), signature)) {
-        Setattr(dmethods_table, director_class, udata);
-        return Getattr(udata, "methodoff");
+    for (ui = First(dmethods_seq); ui.item; ui = Next(ui)) {
+      if (!Cmp(Getattr(ui.item, "method"), method) && !Cmp(Getattr(ui.item, "fdesc"), signature)) {
+        Setattr(dmethods_table, director_class, ui.item);
+        return Getattr(ui.item, "methodoff");
       }
     }
 
@@ -1472,16 +1473,16 @@ class JAVA : public Language {
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
     if (baselist) {
-      Node *base = Firstitem(baselist);
-      c_baseclassname = Getattr(base,"name");
+      Iterator base = First(baselist);
+      c_baseclassname = Getattr(base.item,"name");
       baseclass = Copy(getProxyName(c_baseclassname));
       if (baseclass){
-        c_baseclass = SwigType_namestr(Getattr(base,"name"));
+        c_baseclass = SwigType_namestr(Getattr(base.item,"name"));
       }
-      base = Nextitem(baselist);
-      if (base) {
+      base = Next(base);
+      if (base.item) {
         Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, Getattr(base,"name"));
+            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, Getattr(base.item,"name"));
       }
     }
 
@@ -2422,8 +2423,8 @@ class JAVA : public Language {
 
       // Add the exception classes to the node throws list, but don't duplicate if already in list
       if (temp_classes_list && Len(temp_classes_list) > 0) {
-        for (String *cls = Firstitem(temp_classes_list); cls; cls = Nextitem(temp_classes_list)) {
-          String *exception_class = NewString(cls);
+        for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
+          String *exception_class = NewString(cls.item);
           Replaceall(exception_class," ","");  // remove spaces
           Replaceall(exception_class,"\t",""); // remove tabs
           if (Len(exception_class) > 0) {
@@ -2433,8 +2434,8 @@ class JAVA : public Language {
 
             // Don't duplicate the Java exception class in the throws clause
             bool found_flag = false;
-            for (String *item = Firstitem(throws_list); item; item = Nextitem(throws_list)) {
-              if (Strcmp(item, exception_class) == 0)
+            for (Iterator item = First(throws_list); item.item; item = Next(item)) {
+              if (Strcmp(item.item, exception_class) == 0)
                 found_flag = true;
             }
             if (!found_flag)
@@ -2456,10 +2457,10 @@ class JAVA : public Language {
     // Add the throws clause into code
     List *throws_list = Getattr(n,"java:throwslist");
     if (throws_list) {
-      String *cls = Firstitem(throws_list);
-      Printf(code, " throws %s", cls);
-      while ( (cls = Nextitem(throws_list)) )
-        Printf(code, ", %s", cls);
+      Iterator cls = First(throws_list);
+      Printf(code, " throws %s", cls.item);
+      while ( (cls = Next(cls)).item)
+        Printf(code, ", %s", cls.item);
     }
   }
 
@@ -2506,6 +2507,7 @@ class JAVA : public Language {
       Wrapper *w = NewWrapper();
       String *jni_imclass_name = makeValidJniName(imclass_name);
       UpcallData *udata;
+      Iterator    ui;
 
       Printf(f_runtime, "static jclass __SWIG_jclass_%s = NULL;\n", imclass_name);
       Printf(f_runtime, "static jmethodID __SWIG_director_methids[%d];\n", n_dmethods);
@@ -2517,11 +2519,11 @@ class JAVA : public Language {
       Printf(w->code, "  const char *signature;\n");
       Printf(w->code, "} methods[%d] = {\n", n_dmethods);
 
-      udata = Firstitem(dmethods_seq);
-      while ( udata) {
-        Printf(w->code, "  { \"%s\", \"%s\" }", Getattr(udata, "method"), Getattr(udata, "fdesc"));
-        udata = Nextitem(dmethods_seq);
-        if (udata)
+      ui = First(dmethods_seq);
+      while ( ui.item) {
+        Printf(w->code, "  { \"%s\", \"%s\" }", Getattr(ui.item, "method"), Getattr(ui.item, "fdesc"));
+        ui = Next(ui);
+        if (ui.item)
           Putc(',', w->code);
         Putc('\n', w->code);
       }

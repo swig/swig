@@ -87,10 +87,12 @@ static Node *new_node(const String_or_char *tag) {
 static Node *copy_node(Node *n) {
   Node *nn;
   String *key;
+  Iterator k;
   nn = NewHash();
   Setfile(nn,Getfile(n));
   Setline(nn,Getline(n));
-  for (key = Firstkey(n); key; key = Nextkey(n)) {
+  for (k = First(n); k.key; k = Next(k)) {
+    key = k.key;
     if ((Strcmp(key,"nextSibling") == 0) ||
 	(Strcmp(key,"previousSibling") == 0) ||
 	(Strcmp(key,"parentNode") == 0) ||
@@ -102,7 +104,7 @@ static Node *copy_node(Node *n) {
     if ((Strcmp(key,"sym:name") == 0) || 
 	(Strcmp(key,"sym:weak") == 0) ||
 	(Strcmp(key,"sym:typename") == 0)) {
-      Setattr(nn,key, Copy(Getattr(n,key)));
+      Setattr(nn,key, Copy(k.item));
       continue;
     }
     if (Strcmp(key,"sym:symtab") == 0) {
@@ -115,7 +117,7 @@ static Node *copy_node(Node *n) {
     /* If children.  We copy them recursively using this function */
     if (Strcmp(key,"firstChild") == 0) {
       /* Copy children */
-      Node *cn = Getattr(n,key);
+      Node *cn = k.item;
       while (cn) {
 	appendChild(nn,copy_node(cn));
 	cn = nextSibling(cn);
@@ -135,11 +137,11 @@ static Node *copy_node(Node *n) {
       continue;
     }
     if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0))  {
-      Setattr(nn,key,CopyParmList(Getattr(n,key)));
+      Setattr(nn,key,CopyParmList(k.item));
       continue;
     }
     /* Looks okay.  Just copy the data using Copy */
-    Setattr(nn, key, Copy(Getattr(n,key)));
+    Setattr(nn, key, Copy(k.item));
   }
   return nn;
 }
@@ -527,12 +529,12 @@ static void merge_extensions(Node *cls, Node *am) {
    extensions for templates */
  
  static void check_extensions() {
-   String *key;
+   Iterator ki;
+
    if (!extendhash) return;
-   for (key = Firstkey(extendhash); key; key = Nextkey(extendhash)) {
-     Node *n = Getattr(extendhash,key);
-     if (!Strstr(key,"<")) {
-       Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(n), Getline(n), "%%extend defined for an undeclared class %s.\n", key);
+   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
+     if (!Strstr(ki.key,"<")) {
+       Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
      }
    }
  }
@@ -1851,6 +1853,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    if (ns) {
 		      List *scopes;
 		      String *sname;
+		      Iterator si;
 		      String *name = NewString(prefix);
 		      scopes = NewList();
 		      while (name) {
@@ -1861,9 +1864,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			Delete(name);
 			name = tprefix;
 		      }
-		      for (sname = Firstitem(scopes); sname; sname = Nextitem(scopes)) {
+		      for (si = First(scopes); si.item; si = Next(si)) {
 			Node *ns1,*ns2;
-
+			sname = si.item;
 			ns1 = Swig_symbol_clookup(sname,0);
 			assert(ns1);
 			if (Strcmp(nodeType(ns1),"namespace") == 0) {
@@ -1987,9 +1990,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  if (baselist) {
 			    List *bases = make_inherit_list(Getattr($$,"name"),baselist);
 			    if (bases) {
-			      Node *s;
-			      for (s = Firstitem(bases); s; s = Nextitem(bases)) {
-				Symtab *st = Getattr(s,"symtab");
+			      Iterator s;
+			      for (s = First(bases); s.item; s = Next(s)) {
+				Symtab *st = Getattr(s.item,"symtab");
 				if (st) {
 				  Swig_symbol_inherit(st);
 				}
@@ -2342,9 +2345,9 @@ cpp_class_decl  :
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
 		   if (bases) {
-		     Node *s;
-		     for (s = Firstitem(bases); s; s = Nextitem(bases)) {
-		       Symtab *st = Getattr(s,"symtab");
+		     Iterator s;
+		     for (s = First(bases); s.item; s = Next(s)) {
+		       Symtab *st = Getattr(s.item,"symtab");
 		       if (st) {
 			 Swig_symbol_inherit(st); 
 		       }
@@ -2714,16 +2717,16 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    }
 			    /* Patch argument names with typedef */
 			    {
-			      SwigType *tt;
+			      Iterator tt;
 			      List *tparms = SwigType_parmlist(fname);
 			      ffname = SwigType_templateprefix(fname);
 			      Append(ffname,"<(");
-			      for (tt = Firstitem(tparms); tt; ) {
-				SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
+			      for (tt = First(tparms); tt.item; ) {
+				SwigType *ttr = Swig_symbol_typedef_reduce(tt.item,0);
 				ttr = Swig_symbol_type_qualify(ttr,0);
 				Append(ffname,ttr);
-				tt = Nextitem(tparms);
-				if (tt) Putc(',',ffname);
+				tt = Next(tt);
+				if (tt.item) Putc(',',ffname);
 			      }
 			      Append(ffname,")>");
 			    }
@@ -2747,16 +2750,16 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  /* This needs to be rewritten */
 			  List *tparms;
 			  String *fname;
-			  SwigType *tt;
+			  Iterator tt;
 			  fname = SwigType_templateprefix(tname);
 			  tparms = SwigType_parmlist(tname);
 			  Append(fname,"<(");
-			  for (tt = Firstitem(tparms); tt; ) {
-			    SwigType *ttr = Swig_symbol_typedef_reduce(tt,0);
+			  for (tt = First(tparms); tt.item; ) {
+			    SwigType *ttr = Swig_symbol_typedef_reduce(tt.item,0);
 			    ttr = Swig_symbol_type_qualify(ttr,0);
 			    Append(fname,ttr);
-			    tt = Nextitem(tparms);
-			    if (tt) Putc(',',fname);
+			    tt = Next(tt);
+			    if (tt.item) Putc(',',fname);
 			  }
 			  Append(fname,")>");
 			  Swig_symbol_cadd(fname,$$);

@@ -642,9 +642,9 @@ public:
     /* Handle inheritance */
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist) > 0) {
-      Node *base = Firstitem(baselist);
-      while (base) {
-        String *basename = Getattr(base,"name");
+      Iterator base = First(baselist);
+      while (base.item) {
+        String *basename = Getattr(base.item,"name");
         SwigType *basetype = NewString(basename);
         SwigType_add_pointer(basetype);
         SwigType_remember(basetype);
@@ -652,7 +652,7 @@ public:
         Printf(f_classInit, "low_inherit((struct program *) SWIGTYPE%s->clientdata, 0, 0, 0, 0, 0);\n", basemangle);
 	Delete(basemangle);
 	Delete(basetype);
-        base = Nextitem(baselist);
+        base = Next(base);
       }
     } else {
       Printf(f_classInit, "ADD_STORAGE(swig_object_wrapper);\n");
@@ -729,19 +729,19 @@ public:
 
   void membervariableAccessors(List *membervariables) {
     String *name;
-    Node *n;
+    Iterator i;
     bool need_setter;
     String *funcname;
     
     /* If at least one of them is mutable, we need a setter */
     need_setter = false;
-    n = Firstitem(membervariables);
-    while (n) {
-      if (!Getattr(n, "feature:immutable")) {
+    i = First(membervariables);
+    while (i.item) {
+      if (!Getattr(i.item, "feature:immutable")) {
         need_setter = true;
 	break;
       }
-      n = Nextitem(membervariables);
+      i = Next(i);
     }
     
     /* Create a function to set the values of the (mutable) variables */
@@ -752,10 +752,10 @@ public:
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
       
-      n = Firstitem(membervariables);
-      while (n) {
-	if (!Getattr(n, "feature:immutable")) {
-	  name = Getattr(n, "name");
+      i = First(membervariables);
+      while (i.item) {
+	if (!Getattr(i.item, "feature:immutable")) {
+	  name = Getattr(i.item, "name");
 	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
 	  Printf(wrapper->code, "%s(args);\n", funcname);
@@ -763,7 +763,7 @@ public:
 	  Printf(wrapper->code, "}\n");
 	  Delete(funcname);
 	}
-	n = Nextitem(membervariables);
+	i = Next(i);
       }
 
       /* Close the function */
@@ -775,7 +775,7 @@ public:
       
       /* Register it with Pike */
       String *description = NewString("tStr tFloat, tVoid");
-      add_method(Firstitem(membervariables), "`->=", wname, description);
+      add_method(First(membervariables).item, "`->=", wname, description);
       Delete(description);
 
       /* Clean up */
@@ -791,16 +791,16 @@ public:
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
     Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
 
-    n = Firstitem(membervariables);
-    while (n) {
-      name = Getattr(n, "name");
+    i = First(membervariables);
+    while (i.item) {
+      name = Getattr(i.item, "name");
       funcname = Swig_name_wrapper(Swig_name_get(Swig_name_member(getClassPrefix(), name)));
       Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
       Printf(wrapper->code, "%s(args);\n", funcname);
       Printf(wrapper->code, "return;\n");
       Printf(wrapper->code, "}\n");
       Delete(funcname);
-      n = Nextitem(membervariables);
+      i = Next(i);
     }
 
     /* Close the function */
@@ -812,7 +812,7 @@ public:
     
     /* Register it with Pike */
     String *description = NewString("tStr, tMix");
-    add_method(Firstitem(membervariables), "`->", wname, description);
+    add_method(First(membervariables).item, "`->", wname, description);
     Delete(description);
     
     /* Clean up */

@@ -517,9 +517,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   if (Verbose) {
     printf ("LibDir: %s\n", LibDir);
     List *sp = Swig_search_path();
-    String *s;
-    for (s = Firstitem(sp); s; s = Nextitem(sp)) {
-      Printf(stdout,"   %s\n", s);
+    Iterator s;
+    for (s = First(sp); s.item; s = Next(s)) {
+      Printf(stdout,"   %s\n", s.item);
     }
   }
 
@@ -648,9 +648,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (classes) {
 	Printf(stdout,"Classes\n");
 	Printf(stdout,"------------\n");
-	String *key;
-	for (key = Firstkey(classes); key; key = Nextkey(classes)) {
-	  Printf(stdout,"%s\n", key);
+	Iterator ki;
+	for (ki = First(classes); ki.key; ki = Next(ki)) {
+	  Printf(stdout,"%s\n", ki.key);
 	}
       }	       
     }
