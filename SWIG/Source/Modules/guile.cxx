@@ -1022,7 +1022,7 @@ public:
       else {
 	/* Read/write variables become a procedure with setter. */
         if (use_scm_interface) {
-          Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (swig_guile_proc %s);\n",
+          Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (swig_guile_proc) %s);\n",
                 proc_name, var_name);
           Printf(f_init, "scm_c_define");
         } else {
