@@ -867,7 +867,7 @@ namespace std {
                     std::copy(v.begin(),v.end(),self->begin()+i);
                 } else {
                     self->erase(self->begin()+i,self->begin()+j);
-                    if (i+1 <= self->size())
+                    if (i+1 <= int(self->size()))
                         self->insert(self->begin()+i,v.begin(),v.end());
                     else
                         self->insert(self->end(),v.begin(),v.end());
