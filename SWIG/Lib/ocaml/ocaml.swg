@@ -47,8 +47,12 @@ extern "C" {
 	if (dest_type != source_type) {
 	    /* We have a type mismatch.  Will have to look through our type
 	       mapping table to figure out whether or not we can accept this
-	       datatype.  */
-	    if( !dest_type || !source_type ) {
+	       datatype. 
+	       --
+	       Ignore typechecks for void *.  Allow any conversion. */
+	    if( !dest_type || !source_type || 
+		!strcmp(dest_type->name,"_p_void") ||
+		!strcmp(source_type->name,"_p_void") ) {
 		*ptr = source;
 		return 0;
 	    } else {
