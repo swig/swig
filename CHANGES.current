@@ -1,5 +1,26 @@
 Version 1.3.20 (In progress)
 ============================
+12/14/2003: beazley
+            Weakened warning message related to constructor names so that an
+            unusual nested-class wrapping technique would work again (apparently
+            it worked in some older SWIG releases).   For example:
+
+               class Scope {
+                   class ClassA;
+                   class ClassB;
+               };
+               class Scope::ClassA {
+               ...
+               };
+               class Scope::ClassB {
+               ...
+               }
+
+            Note:  There is still some odd interaction with the SWIG symbol
+            table/type system that will need to be looked at in a future release.
+            Reported by Gustavo Niemeyer.
+
+
 12/11/2003: cheetah (William Fulton)
             [Java] Protected class methods are wrapped as protected Java methods 
             when using the dirprot director feature. This can be changed using
