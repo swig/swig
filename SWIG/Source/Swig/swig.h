@@ -226,6 +226,8 @@ extern void        SwigType_reset_scopes();
 extern void        SwigType_set_scope_name(String_or_char *name);
 extern void        SwigType_merge_scope(Hash *scope);
 extern Hash       *SwigType_pop_scope();
+extern void        SwigType_push_scope(Hash *h);
+extern void        SwigType_print_scope();
 extern SwigType   *SwigType_typedef_resolve(SwigType *t);
 extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
 extern SwigType   *SwigType_typedef_qualified(SwigType *t);

@@ -1316,6 +1316,7 @@ void SwigType_set_scope_name(String_or_char *name) {
   int i;
   init_scopes();
   scopenames[scope_level] = NewString(Char(name));
+  Setmeta(scopes[scope_level],"scopename", scopenames[scope_level]);
   key = NewString("");
   for (i = 1; i <= scope_level; i++) {
     Append(key,scopenames[scope_level]);
@@ -1358,6 +1359,37 @@ Hash *SwigType_pop_scope() {
   return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_push_scope()
+ *
+ * Push a scope back onto the type stack.
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_push_scope(Hash *h) {
+  Hash *s;
+  init_scopes();
+  scope_level++;
+  scopenames[scope_level] = Getmeta(h,"scopename");
+  scopes[scope_level] = h;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_print_scope()
+ *
+ * Debugging function for printing out current scope
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_print_scope() {
+  String *key;
+  init_scopes();
+  Printf(stdout,"Type scope (%d) = %s\n", scope_level, scopenames[scope_level]);
+  Printf(stdout,"-------------------------------------------------------------\n");
+  for (key = Firstkey(scopes[scope_level]); key; key = Nextkey(scopes[scope_level])) {
+    Printf(stdout,"%40s -> %s\n", key, Getattr(scopes[scope_level],key));
+  }
+}
+
 /* ----------------------------------------------------------------------------- 
  * SwigType_typedef_resolve()
  *
@@ -1373,8 +1405,14 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   init_scopes();
   base = SwigType_base(t);
-
   level = scope_level;
+
+  if (Strncmp(base,"::",2) == 0) {
+    level = 0;
+    Delitem(base,0);
+    Delitem(base,0);
+  }
+
   while (level >= 0) {
     /* See if we know about this type */
     type = Getattr(scopes[level],base);
@@ -1477,6 +1515,11 @@ int SwigType_istypedef(SwigType *t) {
   init_scopes();
   base = SwigType_base(t);
   level = scope_level;
+  if (Strncmp(base,"::",2) == 0) {
+    level = 0;
+    Delitem(base,0);
+    Delitem(base,0);
+  }
   while (level >= 0) {
     /* See if we know about this type */
     type = Getattr(scopes[level],base);

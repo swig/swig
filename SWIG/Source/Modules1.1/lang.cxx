@@ -264,32 +264,6 @@ void swig_pragma(char *lang, char *name, char *value) {
   }
 }
 
-/* generate C++ inheritance type-relationships */
-static void cplus_inherit_types(Node *cls, String *clsname, int import) {
-  List *ilist = Getattr(cls,"bases");
-
-  if (!ilist) return;
-  int len = Len(ilist);
-  int i;
-  for (i = 0; i < len; i++) {
-    Node *n = Getitem(ilist,i);
-    Node *bname = Getattr(n,"name");
-    Node *bclass = n; /* Getattr(n,"class"); */
-    Hash *scopes = Getattr(bclass,"typescope");
-    SwigType_inherit(clsname,bname);
-    if (!import) {
-      String *btype = Copy(bname);
-      SwigType_add_pointer(btype);
-      SwigType_remember(btype);
-      Delete(btype);
-    }
-    if (scopes) {
-      SwigType_merge_scope(scopes);
-    }
-    cplus_inherit_types(bclass,clsname,import);
-  }
-}
-
 /* ----------------------------------------------------------------------
  * Language::top()   - Top of parsing tree 
  * ---------------------------------------------------------------------- */
@@ -597,7 +571,6 @@ int Language::cDeclaration(Node *n) {
     SwigType *t = Copy(type);
     if (t) {
       SwigType_push(t,decl);
-      SwigType_typedef(t,name);
       Setattr(n,"type",t);
       typedefHandler(n);
     }
@@ -1106,11 +1079,6 @@ int Language::enumDeclaration(Node *n) {
   if (!ImportMode) {
     emit_children(n);
   }
-  if (name) {
-    SwigType *t = NewStringf("enum %s", name);
-    SwigType_typedef(t,name);
-    Delete(t);
-  }
   return SWIG_OK;
 }
 
@@ -1204,12 +1172,10 @@ int Language::classDeclaration(Node *n) {
     cplus_mode = CPLUS_PUBLIC;
   }
   classforwardDeclaration(n);
-  SwigType_new_scope();
-  if (name) SwigType_set_scope_name(name);
 
-  /* Need to set up a typedef if an unnamed */
-  if (unnamed && tdname && (Cmp(storage,"typedef") == 0)) {
-    SwigType_typedef(unnamed,tdname);
+  Hash *ts = Getattr(n,"typescope");
+  if (ts) {
+    SwigType_push_scope(ts);
   }
   
   ClassName = NewString(classname);
@@ -1226,19 +1192,14 @@ int Language::classDeclaration(Node *n) {
 
   Abstract = GetInt(n,"abstract");
 
-  /* Inherit type definitions into the class */
-  if (CPlusPlus && name) {
-    cplus_inherit_types(n,name,ImportMode);
-  }
-
   /* Call classHandler() here */
   if (!ImportMode) 
     classHandler(n);
   else
     Language::classHandler(n);
 
-  Hash *ts = SwigType_pop_scope();
-  Setattr(n,"typescope",ts);
+  if (ts) SwigType_pop_scope();
+
   InClass = 0;
   CurrentClass = 0;
   Delete(ClassType);     ClassType = 0;
