@@ -224,8 +224,8 @@ struct ConstMethods {
       return(x+p);
     }
 
-    typedef struct pointf { 
+    typedef struct Pointf { 
       double		x,y; 
-    } pointf;
+    } Pointf;
   }
 %}
