@@ -1,5 +1,16 @@
 Version 1.3.20 (In progress)
 ============================
+09/12/2003: cheetah (William Fulton)
+            [C#] - Typemaps added for std::string and const std::string &.
+                 - New delegate for creating a C# string given a char *. It
+                   can be used by calling SWIG_csharp_string_callback as shown
+                   in the std::string 'out' typemap. Useful if the return type is
+                   mapped to a C# string and the calling function is responsible 
+                   for cleaning up memory as the C# garbage collector doesn't
+                   free the memory created in C/C++ and then returned as a C# string.
+                 - The exception delegates have moved into an inner class in the
+                   intermediate class, thereby freeing up the static constructor.
+
 09/11/2003: beazley
             (Internals)
             Major refactoring of iteration over lists and hashes.  The
