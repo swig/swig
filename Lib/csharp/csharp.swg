@@ -341,6 +341,7 @@ $1 = &temp; %}
 
 // Macro used by the $excode special variable
 %define SWIGEXCODE "\n    if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
+%define SWIGEXCODE2 "\n      if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
 
 %typemap(csout, excode=SWIGEXCODE) bool,               const bool &               {
     bool ret = $imcall;$excode
@@ -426,53 +427,112 @@ $1 = &temp; %}
 
 
 /* Properties */
-%typemap(csvarin) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(csvarin, excode=SWIGEXCODE2) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
     set {
-      $imcall;
+      $imcall;$excode
     } %}
 
-%typemap(csvarin) char *, char[ANY], char[] %{
+%typemap(csvarin, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     set {
-      $imcall;
-    } %}
-%typemap(csvarout) bool,               const bool &,
-                   char,               const char &,
-                   signed char,        const signed char &,
-                   unsigned char,      const unsigned char &,
-                   short,              const short &,
-                   unsigned short,     const unsigned short &,
-                   int,                const int &,
-                   unsigned int,       const unsigned int &,
-                   long,               const long &,
-                   unsigned long,      const unsigned long &,
-                   long long,          const long long &,
-                   unsigned long long, const unsigned long long &,
-                   float,              const float &,
-                   double,             const double & %{
-    get {
-      return $imcall;
+      $imcall;$excode
     } %}
 
-%typemap(csvarout) char *, char[ANY], char[] %{
+%typemap(csvarout, excode=SWIGEXCODE2) bool,               const bool &               %{
     get {
-      return $imcall;
+      bool ret = $imcall;$excode
+      return ret;
     } %}
-%typemap(csvarout) void %{
+%typemap(csvarout, excode=SWIGEXCODE2) char,               const char &               %{
     get {
-      $imcall;
+      char ret = $imcall;$excode
+      return ret;
     } %}
-%typemap(csvarout) SWIGTYPE %{
+%typemap(csvarout, excode=SWIGEXCODE2) signed char,        const signed char &        %{
     get {
-      return new $&csclassname($imcall, true);
+      sbyte ret = $imcall;$excode
+      return ret;
     } %}
-%typemap(csvarout) SWIGTYPE & %{
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned char,      const unsigned char &      %{
     get {
-      return new $csclassname($imcall, $owner);
+      byte ret = $imcall;$excode
+      return ret;
     } %}
-%typemap(csvarout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(csvarout, excode=SWIGEXCODE2) short,              const short &              %{
+    get {
+      short ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned short,     const unsigned short &     %{
+    get {
+      ushort ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) int,                const int &                %{
+    get {
+      int ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned int,       const unsigned int &       %{
+    get {
+      uint ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) long,               const long &               %{
+    get {
+      int ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned long,      const unsigned long &      %{
+    get {
+      uint ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) long long,          const long long &          %{
+    get {
+      long ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned long long, const unsigned long long & %{
+    get {
+      ulong ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) float,              const float &              %{
+    get {
+      float ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) double,             const double &             %{
+    get {
+      double ret = $imcall;$excode
+      return ret;
+    } %}
+
+
+%typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
+    get {
+      string ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) void %{
+    get {
+      $imcall;$excode
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE %{
+    get {
+      $&csclassname ret = new $&csclassname($imcall, true);$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE & %{
+    get {
+      $csclassname ret = new $csclassname($imcall, $owner);$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
     get {
       IntPtr cPtr = $imcall;
-      return (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);
+      $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+      return ret;
     } %}
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
@@ -610,13 +670,14 @@ using System.Runtime.InteropServices;
     string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
     return ret;
   }
-%typemap(csvarin) char *, char[ANY], char[] %{
+%typemap(csvarin, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     set {
-      new $modulePINVOKE.SwigStringMarshal($imcall).ptr;
+      new $modulePINVOKE.SwigStringMarshal($imcall).ptr;$excode
     } %}
-%typemap(csvarout) char *, char[ANY], char[] %{
+%typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     get {
-      return System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);
+      string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
+      return ret;
     } %}
 */
 

@@ -40,13 +40,14 @@ class string;
     return ret;
   }
 
-%typemap(csvarin) string %{
+%typemap(csvarin, excode=SWIGEXCODE2) string %{
     set {
-      $imcall;
+      $imcall;$excode
     } %}
-%typemap(csvarout) string %{
+%typemap(csvarout, excode=SWIGEXCODE2) string %{
     get {
-      return $imcall;
+      string ret = $imcall;$excode
+      return ret;
     } %}
 
 %typemap(typecheck) string = char *;
@@ -76,13 +77,14 @@ class string;
     return ret;
   }
 
-%typemap(csvarin) const string & %{
+%typemap(csvarin, excode=SWIGEXCODE2) const string & %{
     set {
-      $imcall;
+      $imcall;$excode
     } %}
-%typemap(csvarout) const string & %{
+%typemap(csvarout, excode=SWIGEXCODE2) const string & %{
     get {
-      return $imcall;
+      string ret = $imcall;$excode
+      return ret;
     } %}
 
 %typemap(typecheck) const string & = char *;
