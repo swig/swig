@@ -396,6 +396,9 @@ public:
       }
     }
 
+    /* Set comparison with none for ConstructorToFunction */
+    SetNoneComparison( NewString( "$arg != Py_None" ) );
+
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
     String *outfile_h = Getattr(n, "outfile_h");

@@ -46,7 +46,7 @@
 </ul>
 <li><a href="#n32">Cross language polymorphism (experimental)</a>
 <ul>
-<li><a href="#n33">Command line options</a>
+<li><a href="#n33">Enabling directors</a>
 <li><a href="#n34">Director classes</a>
 <li><a href="#n35">Ownership and object destruction</a>
 <li><a href="#n36">Exception unrolling</a>
@@ -1911,6 +1911,7 @@ function or through an instance (see the earlier section).
 
 <a name="n32"></a><H2>19.5 Cross language polymorphism (experimental)</H2>
 
+
 Proxy classes provide a more natural, object-oriented way to access
 extension classes. As described above, each proxy instance has an
 associated C++ instance, and method calls to the proxy are passed to the
@@ -1937,6 +1938,7 @@ proxy classes, director classes, and C wrapper functions takes care of
 all the cross-language method routing transparently.
 
 <a name="n33"></a><H3>19.5.1 Enabling directors</H3>
+
 
 The director feature is disabled by default.  To use directors you
 must make two changes to the interface file.  First, add the "directors"
@@ -2001,6 +2003,7 @@ public:
 </blockquote>
 
 <a name="n34"></a><H3>19.5.2 Director classes</H3>
+
 
 For each class that has directors enabled, SWIG generates a new class
 that derives from both the class in question and a special
@@ -2074,6 +2077,7 @@ calls through Python.
 
 <a name="n35"></a><H3>19.5.3 Ownership and object destruction</H3>
 
+
 Memory management issues are slightly more complicated with directors
 than for proxy classes alone. Python instances hold a pointer to the
 associated C++ director object, and the director in turn holds a pointer
@@ -2133,6 +2137,7 @@ references to the Foo objects remain in Python.
 
 <a name="n36"></a><H3>19.5.4 Exception unrolling</H3>
 
+
 With directors routing method calls to Python, and proxies routing them
 to C++, the handling of exceptions is an important concern. By default, the
 directors ignore exceptions that occur during method calls that are
@@ -2184,6 +2189,7 @@ exception as soon as the C wrapper function returns.
 
 <a name="n37"></a><H3>19.5.5 Overhead and code bloat</H3>
 
+
 Enabling directors for a class will generate a new director method for
 every virtual method in the class' inheritance chain. This alone can
 generate a lot of code bloat for large hierarchies. Method arguments
@@ -2212,6 +2218,7 @@ directive) for only those methods that are likely to be extended in
 Python.
 
 <a name="n38"></a><H3>19.5.6 Typemaps</H3>
+
 
 Typemaps for input and output of most of the basic types from director
 classes have been written. These are roughly the reverse of the usual
