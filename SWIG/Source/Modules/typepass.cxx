@@ -73,6 +73,16 @@ class TypePass : public Dispatcher {
     while (p) {
       SwigType *ty = Getattr(p,"type");
       normalize_type(ty);
+
+      /* This is a check for a function type */
+      {
+	SwigType *qty = SwigType_typedef_resolve_all(ty);
+	if (SwigType_isfunction(qty)) {
+	  SwigType_add_pointer(ty);
+	}
+	Delete(qty);
+      }
+
       String *value = Getattr(p,"value");
       if (value) {
 	Node *n = Swig_symbol_clookup(value,0);
