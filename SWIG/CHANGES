@@ -58,7 +58,7 @@ Version 1.3.12 (In Progress)
               %{
               static swig_type_info *
               Node_dynamic_cast(void **ptr) {
-                 Node **nptr;
+                 Node **nptr = (Node **) ptr;
                  Element *e = dynamic_cast<Element *>(*nptr);
                  if (e) {
                     *ptr = (void *) e;
