@@ -1,10 +1,5 @@
-// file: main.java
-
-// This file illustrates the high level C++ interface
-// created by SWIG.  The java class gets mapped onto the c++ class
-// and behaves as if it is a java class.
-
-import example;
+// This example illustrates how C++ classes can be used from Java using SWIG.
+// The Java class gets mapped onto the C++ class and behaves as if it is a Java class.
 
 public class main {
   static {

@@ -103,11 +103,10 @@ When building a dynamic module, the name of the output file is important. If the
 <p>
 
 <a name="n104"></a><h3> Using your module</h3>
-To use your module in Java, simply use Java's <tt>import</tt> command and <tt>System.loadLibrary</tt> method in a Java class:<p>
+To use your module in Java, simply use Java's <tt>System.loadLibrary</tt> method in a Java class:<p>
 <p>
 <blockquote><pre>
 // main.java
-import example;
 
 public class main {
   static {
@@ -1081,7 +1080,6 @@ Note that the 'C' JNI calling convention is used. Checking for any thrown except
 <p>
 <blockquote><pre>
 // File main.java
-import example;
 
 public class main {
 
@@ -1181,7 +1179,6 @@ Note that the C++ JNI calling convention has been used this time and so must be 
 What the typemaps do are make the named double* function parameters use our new MyDouble wrapper structure. The 'in' typemap takes this structure, gets the C++ pointer to it, is then able to get the 'double value' member variable to pass to the C++ <tt>spam</tt> function. In Java, when the function returns, we use the SWIG created <tt>getValue()</tt> function to get the output value. The following Java program demonstrates this:
 <blockquote><pre>
 // File: main.java
-import example.*;
 
 public class main {
 
@@ -1271,11 +1268,10 @@ public:
 %}
 </pre></blockquote>
 <p>
-The SWIG generated class in file Simple.java looks like the following:<p>
+The SWIG generated class in file Simple.java looks something like the following:<p>
 <p>
 <blockquote><pre>
 // File Simple.java
-import example;
 
 public class Simple {
   protected long _cPtr;
@@ -1648,7 +1644,6 @@ The Shape shadow class becomes an abstract Java class with the pure virtual func
 
 <blockquote><pre>
 // File Shape.java
-import example;
 
 public abstract class Shape {
   protected long _cPtr;
@@ -1692,7 +1687,6 @@ The Circle class extends Shape mirroring the C++ class inheritance hierarchy.
 
 <blockquote><pre>
 // File Circle.java
-import example;
 
 public class Circle extends Shape {
   public Circle(long cPointer, boolean cMemoryOwn) {

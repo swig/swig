@@ -1,8 +1,4 @@
-// file: main.java
-
-// This file illustrates an example of how C++ templates can be used from Java.
-
-import example;
+// This example illustrates how C++ templates can be used from Java.
 
 public class main {
   static {

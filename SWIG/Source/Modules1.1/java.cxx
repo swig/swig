@@ -1154,8 +1154,6 @@ int JAVA::classHandler(Node *n) {
     
     if(*package)
       Printf(f_shadow, "package %s;\n\n", package);
-    else 
-      Printf(f_shadow, "import %s;\n", module);
     
     Clear(shadow_classdef);
     Clear(shadow_code);

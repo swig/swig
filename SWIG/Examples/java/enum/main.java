@@ -1,4 +1,3 @@
-import example;
 
 public class main {
   static {

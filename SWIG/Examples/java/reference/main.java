@@ -1,8 +1,4 @@
-// file: main.java
-
-// This file illustrates the manipulation of C++ references in Java.
-
-import example;
+// This example illustrates the manipulation of C++ references in Java.
 
 public class main {
   static {

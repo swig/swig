@@ -1,6 +1,3 @@
-// file: main.java
-
-import example;
 
 public class main {
 

@@ -1,8 +1,5 @@
-// file: main.java
+// This example illustrates global variable access from Java.
 
-// This file illustrates global variable access from Java.
-
-import example;
 import java.lang.reflect.*;
 
 public class main {
