@@ -1,6 +1,17 @@
 Version 1.3.22 (in progress)
 ==================================
 
+08/25/2004: wsfulton
+            [C#] Typemap fix for methods that return char *. The CLR would incorrectly
+            delete the memory pointed to by char *. Also applied the same correction to
+            the char array typemaps.
+
+08/24/2004: wsfulton
+            Fixes for -fmicrosoft error/warning message display: 
+            - End of file (EOF) warning messages not displaying in correct format
+            - Some messages containing a file path were displaying a double backslash
+              instead of a single backslash
+
 08/23/2004: wsfulton
             Applied patch #1011604 submitted by Charles Schwieters. Fix for 64 bit tcl
             interpreters.
