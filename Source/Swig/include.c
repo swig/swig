@@ -31,7 +31,7 @@ void
 Swig_add_directory(const DOHString_or_char *dirname) {
   if (!directories) directories = NewList();
   assert(directories);
-  if (!String_check(dirname)) {
+  if (!DohIsString(dirname)) {
     dirname = NewString((char *) dirname);
     assert(dirname);
   }
