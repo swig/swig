@@ -195,7 +195,7 @@ public:
   CPP_member() {
     signature = 0;
     is_static = 0;
-    is_virtual = 0;
+    is_virtual = NOT_VIRTUAL;
     base = 0;
     code = 0;
     file = 0;
