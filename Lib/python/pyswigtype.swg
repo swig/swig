@@ -221,14 +221,25 @@
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &
+{
+  void *ptr = 0;
+  if (SWIG_ConvertPtr($input, &ptr, $descriptor, 0) == -1) {
+    $1 = 0;
+    PyErr_Clear();
+  } else {
+    $1 = (ptr != 0);
+  }
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE 
 {
-  void *ptr;
+  void *ptr = 0;
   if (SWIG_ConvertPtr($input, &ptr, $&descriptor, 0) == -1) {
     $1 = 0;
     PyErr_Clear();
   } else {
-    $1 = 1;
+    $1 = (ptr != 0);
   }
 }
 
