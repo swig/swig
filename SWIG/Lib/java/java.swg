@@ -248,6 +248,8 @@
 %typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
+%typemap(out) void ""
+
 /* primitive types by reference */
 %typemap(in) const bool & (bool temp),
              const char & (char temp), 
