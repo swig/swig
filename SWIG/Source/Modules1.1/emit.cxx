@@ -133,9 +133,6 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       if (tm && checkAttribute(p,"tmap:in:numinputs","0")) {
 	Replaceall(tm,"$target", Getattr(p,"lname"));
 	Printv(f->code,tm,"\n",NIL);
-	Setattr(p,"tmap:ignore",tm);
-	np = Getattr(p,"tmap:in:next");
-	Setattr(p,"tmap:ignore:next", np);
 	while (p && (p != np)) {
 	  Setattr(p,"ignore","1");
 	  p = nextSibling(p);
@@ -156,12 +153,16 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *p = l;
     Parm *npin, *npfreearg;
     while (p) {
-      npin = 0;
+      npin = Getattr(p,"tmap:in:next");
+      
+      /*
       if (Getattr(p,"tmap:ignore")) {
 	npin = Getattr(p,"tmap:ignore:next");
       } else if (Getattr(p,"tmap:in")) {
 	npin = Getattr(p,"tmap:in:next");
       }
+      */
+
       if (Getattr(p,"tmap:freearg")) {
 	npfreearg = Getattr(p,"tmap:freearg:next");
 	if (npin != npfreearg) {
@@ -184,14 +185,14 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *p = l;
     Parm *lp = 0;
     while (p) {
-      if (Getattr(p,"tmap:in")) {
+      if (!checkAttribute(p,"tmap:in:numinputs","0")) {
 	lp = p;
 	p = Getattr(p,"tmap:in:next");
 	continue;
       }
       if (SwigType_isvarargs(Getattr(p,"type"))) {
 	Swig_warning(WARN_LANG_VARARGS,input_file,line_number,"Variable length arguments discarded.\n");
-	Setattr(p,"tmap:ignore","");
+	Setattr(p,"tmap:in","");
       }
       lp = 0;
       p = nextSibling(p);
