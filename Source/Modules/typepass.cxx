@@ -394,7 +394,6 @@ public:
     normalize = NewList();
 
     if (name) {
-
       if (SwigType_istemplate(name)) {
 	// We need to fully resolve the name to make templates work correctly */
 	Node *cn;
@@ -436,6 +435,11 @@ public:
 
     if (nsname) {
       nname = NewStringf("%s::%s", nsname, name);
+      String *tdname = Getattr(n,"tdname");
+      if (tdname) {
+	tdname = NewStringf("%s::%s", nsname, tdname);
+	Setattr(n,"tdname",tdname);
+      }
     } 
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n,"symtab"));
