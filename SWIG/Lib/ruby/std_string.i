@@ -74,4 +74,9 @@ namespace std {
         }
     }
 
+    %typemap(throws) string, const string &
+        "rb_raise(rb_eRuntimeError, $1.c_str());";
+
+    %typemap(throws) string *, const string *
+        "rb_raise(rb_eRuntimeError, $1->c_str());";
 }
