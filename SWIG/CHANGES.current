@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+10/31/2003: cheetah (William Fulton)
+            [C#] Fix since introducing the exception and std::string delegates.
+            The fix overcomes linker errors when using more than one SWIG module.
+            Problem reported by Andreas Schörk.
+
 10/31/2003: beazley
             Incorporated patch: [ 823302 ] Incr Tcl support.
             Contributed by Alexey Dyachenko.
