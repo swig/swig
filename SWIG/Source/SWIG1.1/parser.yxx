@@ -1023,6 +1023,7 @@ constant_directive : CONSTANT ID EQUAL definetype SEMI {
 		   create_constant($3.id,$2,$4.id);
 		 } 
                }
+
                ;
 
 /* -----------------------------------------------------------------------------
@@ -1311,6 +1312,19 @@ parm_type      : type parameter_declarator {
 		  }
 		  Delete(l);
 		}
+
+                | type abstract_declarator LPAREN parameter_declarator RPAREN LPAREN parms RPAREN def_args {
+		  List *l = typelist($7);
+		  SwigType_push($1,$2);
+                  SwigType_add_function($1,l);
+		  SwigType_push($1,$4.type);
+		  $$ = NewParm($1,$4.id);
+		  if ($9.id) {
+		    Setvalue($$,$9.id);
+		  }
+		  Delete(l);
+		}
+
                 | PERIOD PERIOD PERIOD {
                   Printf(stderr,"%s:%d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs");
