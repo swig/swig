@@ -433,7 +433,9 @@ static void add_symbols(Node *n) {
     } else {
       Node *c;
       if ((wrn) && (Len(wrn))) {
+	SWIG_WARN_NODE_BEGIN(n);
 	Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
+	SWIG_WARN_NODE_END(n);
       }
       c = Swig_symbol_add(symname,n);
 
