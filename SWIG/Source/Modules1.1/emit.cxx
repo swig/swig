@@ -34,8 +34,12 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   /* Emit function arguments */
   Swig_cargs(f, l);
 
-  if (rt && (SwigType_type(rt) != T_VOID))
-    Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+  if (rt && (SwigType_type(rt) != T_VOID)) {
+    /* Declare the return type, but not if its user defined and we're in C++ mode */
+    if ((SwigType_type(rt) != T_USER) || (!CPlusPlus)) {
+      Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+    }
+  }
   
   /* Attach typemaps to parameters */
   Swig_typemap_attach_parms("ignore",l,f);
@@ -193,6 +197,7 @@ void emit_action(Node *n, Wrapper *f) {
   String *action;
   String *wrap;
   Parm   *p;
+  SwigType *rt;
 
   /* Emit wrapper code (if any) */
   wrap = Getattr(n,"wrap:code");
@@ -204,6 +209,19 @@ void emit_action(Node *n, Wrapper *f) {
   }
   action = Getattr(n,"wrap:action");
   assert(action);
+
+  /* Get the return type */
+
+  rt = Getattr(n,"type");
+  if (rt && (SwigType_type(rt) != T_VOID)) {
+    /* Declare the return type, but not if its user defined and we're in C++ mode */
+    if ((SwigType_type(rt) == T_USER) && (CPlusPlus)) {
+      String *s = SwigType_lstr(rt,0);
+      Insert(action,0," ");
+      Insert(action,0,s);
+      Delete(s);
+    }
+  }
 
   /* Preassert -- EXPERIMENTAL */
   tm = Getattr(n,"feature:preassert");
