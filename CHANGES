@@ -294,7 +294,7 @@ Version 1.3 Alpha 4 (not yet released)
           Cleaned up some of the I/O handling.  SWIG no longer generates
           any temporary files such as _wrap.wrap, _wrap.ii, _wrap.init.
           Instead, these "files" are kept around in memory as strings
-          (although this is transparent to language moduels).
+          (although this is transparent to language modules).
 
 8/4/00  : ttn
 	  Added Makefile target "check" and variants.
