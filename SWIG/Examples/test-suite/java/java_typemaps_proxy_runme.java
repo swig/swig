@@ -51,7 +51,7 @@ public class java_typemaps_proxy_runme {
     // Check the %javamethodmodifiers feature
     try {
 
-      Method methodmodifiertest = nullFarewell.getClass().getDeclaredMethod("methodmodifiertest", null);
+      Method methodmodifiertest = nullFarewell.getClass().getDeclaredMethod("methodmodifiertest", (java.lang.Class[])null);
       if ( !Modifier.isPrivate(methodmodifiertest.getModifiers()) )
         throw new RuntimeException("NS::Farewell::methodmodifiertest not private" );
 

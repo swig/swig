@@ -52,11 +52,11 @@ public class director_protected_runme {
 
     try {
 
-      Method method = b.getClass().getDeclaredMethod("ping", null);
+      Method method = b.getClass().getDeclaredMethod("ping", (java.lang.Class[])null);
       if ( !Modifier.isProtected(method.getModifiers()) )
         throw new RuntimeException("Bar::ping should be protected" );
 
-      method = f.getClass().getDeclaredMethod("ping", null);
+      method = f.getClass().getDeclaredMethod("ping", (java.lang.Class[])null);
       if ( !Modifier.isProtected(method.getModifiers()) )
         throw new RuntimeException("Foo::ping should be protected" );
 
