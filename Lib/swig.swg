@@ -307,6 +307,7 @@ template<class T> class SwigValueWrapper {
     T *tt;
 public:
     inline SwigValueWrapper() : tt(0) { }
+    inline SwigValueWrapper(const T& t) : tt(new T(t)) { }
     inline ~SwigValueWrapper() { if (tt) delete tt; } 
     inline SwigValueWrapper& operator=(const T& t) { tt = new T(t); return *this; }
     inline operator T&() const { return *tt; }
