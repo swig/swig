@@ -328,13 +328,13 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
   if (!robj || (robj == Py_None)) return robj;
   if (type->clientdata) {
     PyObject *inst;
-    PyObject *args = Py_BuildValue("(O)", robj);
+    PyObject *args = Py_BuildValue((char*)"(O)", robj);
     Py_DECREF(robj);
     inst = PyObject_CallObject((PyObject *) type->clientdata, args);
     Py_DECREF(args);
     if (own) {
       PyObject *n = PyInt_FromLong(1);
-      PyObject_SetAttrString(inst,"thisown",n);
+      PyObject_SetAttrString(inst,(char*)"thisown",n);
       Py_DECREF(n);
     }
     robj = inst;
@@ -352,11 +352,11 @@ SWIG_MakeShadow(PyObject *robj, swig_type_info *type, int own) {
     inst->in_dict = PyDict_New();
     inst->in_class = (PyClassObject *) type->clientdata;
     Py_INCREF(inst->in_class);
-    PyObject_SetAttrString((PyObject *)inst,"this",robj);
+    PyObject_SetAttrString((PyObject *)inst,(char*)"this",robj);
     Py_DECREF(robj);
     if (own) {
       PyObject *n = PyInt_FromLong(1);
-      PyObject_SetAttrString((PyObject *)inst,"thisown",n);
+      PyObject_SetAttrString((PyObject *)inst,(char*)"thisown",n);
       Py_DECREF(n);
     }
     robj = (PyObject *) inst;
