@@ -842,7 +842,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      Printf(f_header,"static %s %s = %s;\n", SwigType_lstr(type,0), var_name, value);
+      Printf(f_header,"static %s = %s;\n", SwigType_lstr(type,var_name), value);
       Printf(f_header,"static char *%s_char;\n", var_name);
       if (CPlusPlus)
 	Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) Len(SwigType_manglestr(type))+ 20);
