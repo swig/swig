@@ -1318,6 +1318,7 @@ or
 void foo(Bar *b);
 void foo(Bar &b);
 </pre>
+</blockquote>
 
 If declarations such as these appear, you will get a warning message like this:
 
@@ -1661,7 +1662,7 @@ class Foo(object):
 
 This class merely holds a pointer to the underlying C++ object (<tt>.this</tt>) and dispatches methods and 
 member variable access to that object using the low-level accessor functions.   From a user's point of
-view, it works normally:
+view, it makes the class work normally:
 
 <blockquote>
 <pre>
@@ -1671,9 +1672,201 @@ view, it works normally:
 </pre>
 </blockquote>
 
-<h3>Python 2.2 and classic classes</h2>
+The fact that the class has been wrapped by a real Python class offers certain advantages.  For instance,
+you can attach new Python methods to the class and you can even inherit from it (something not supported
+by Python built-in types until Python 2.2).
 
 <h3>Memory management</h3>
+
+Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
+flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
+the Python interpreter will destroy the underlying C++ object when the proxy class is 
+garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
+of the Proxy class has no effect on the C++ object.
+
+<P>
+When an object is created by a constructor or returned by value, Python automatically assumes
+ownership.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    Foo();
+    Foo bar();
+};
+</pre>
+</blockquote>
+
+In Python:
+
+<blockquote>
+<pre>
+>>> f = Foo()
+>>> f.thisown
+1
+>>> g = f.bar()
+>>> g.thisown
+1
+</pre>
+</blockquote>
+
+On the other hand, when pointers are returned to Python, there is often no way to know where
+they came from.  Therefore, the ownership is set to zero.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    ...
+    Foo *spam();
+    ...
+};
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+>>> f = Foo()
+>>> s = f.spam()
+>>> print s.thisown
+0
+>>>
+</pre>
+</blockquote>
+
+This behavior is especially important for classes that act as
+containers.  For example, if a method returns a pointer to an object
+that is contained inside another object, you definitely don't want
+Python to assume ownership and destroy it!
+
+<p>
+Related to containers, ownership issues can arise whenever an object is assigned to a member
+or global variable.  For example, consider this interface:
+
+<blockquote>
+<pre>
+%module example
+
+struct Foo {
+    int  value;
+    Foo  *next;
+};
+
+Foo *head = 0;
+</pre>
+</blockquote>
+
+When wrapped in Python, careful observation will reveal that ownership changes whenever an object
+is assigned to a global variable.  For example:
+
+<blockquote>
+<pre>
+>>> f = example.Foo()
+>>> f.thisown
+1
+>>> example.cvar.head = f           
+>>> f.thisown
+0
+>>>
+</pre>
+</blockquote>
+In this case, C is now holding a reference to the object---probably don't want Python to destroy it.
+Similarly, this occurs for members.  For example:
+
+<blockquote>
+<pre>
+>>> f = example.Foo()
+>>> g = example.Foo()
+>>> f.thisown
+1
+>>> g.thisown
+1
+>>> f.next = g
+>>> g.thisown
+0
+>>>
+</pre>
+</blockquote>
+
+<p>
+For the most part, memory management issues remain hidden.  However,
+there are occasionally situations where you might have to manually
+change the ownership of an object.  For instance, consider code like this:
+
+<blockquote>
+<pre>
+class Node * {
+   Object *value;
+public:
+   void set_value(Object *v) { value = v; }
+   ...
+};
+</pre>
+</blockquote>
+
+Now, consider the following Python code:
+
+<blockquote>
+<pre>
+>>> v = Object()           # Create an object
+>>> n = Node()             # Create a node
+>>> n.set_value(v)         # Set value
+>>> v.thisown
+1
+>>> del v
+</pre>
+</blockquote>
+
+In this case, the object <tt>n</tt> is holding a reference to
+<tt>v</tt> internally.  However, SWIG has no way to know that this
+has occurred.  Therefore, Python still thinks that it has ownership of the
+object.  Should the proxy object be destroyed, then the C++ destructor
+will be invoked and <tt>n</tt> will be holding a stale-pointer.  If
+you're lucky, you will only get a segmentation fault.
+
+<p>
+To work around this, it is always possible to flip the ownership flag. For example,
+
+<blockquote>
+<pre>
+>>> v.thisown = 0
+</pre>
+</blockquote>
+
+It is also possible to deal with situations like this using
+typemaps--an advanced topic discussed later.
+
+<h3>Python 2.2 and classic classes</h2>
+
+SWIG makes every attempt to preserve backwards compatibility with
+older versions of Python to the extent that it is possible.  However,
+in Python-2.2, an entirely new type of class system was introduced.
+This new-style class system offers many enhancements including static
+member functions, properties (managed attributes), and class methods.
+Details about all of these changes can be found on <a
+href="//www.python.org">www.python.org</a> and is not repeated here.
+
+<p>
+To address differences between Python versions, SWIG currently emits
+dual-mode proxy class wrappers.  In Python-2.2 and newer releases,
+these wrappers encapsulate C++ objects in new-style classes that take
+advantage of new features (static methods and properties).  However,
+if these very same wrappers are imported into an older version of Python, 
+old-style classes are used instead.
+
+<p>
+This dual-nature of the wrapper code means that you can create extension
+modules with SWIG and those modules will work with all versions of Python
+ranging from Python-1.4 to the very latest release.  Moreover, the wrappers take
+advantage of Python-2.2 features when available.
+
+<P>
+For the most part, the interface presented to users is the same regardless
+of what version of Python is used.  The only incompatibility lies in the handling
+of static member functions.  In Python-2.2, they can be accessed via the
+class itself.  In Python-2.1 and earlier, they have to be accessed as a global
+function or through an instance (see the earlier section).
 
 <a name="n26"></a><H2>18.4 Common customization features</H2>
 
