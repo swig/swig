@@ -47,6 +47,7 @@ CPP_TEST_BROKEN = \
 	namespace_nested \
 	template_default_arg \
 	template_extend_overload \
+	template_extend_overload_2 \
 	template_specialization_defarg \
 	template_specialization_enum \
 	using_namespace
