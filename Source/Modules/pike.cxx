@@ -9,6 +9,8 @@ char cvsroot_pike_cxx[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
+#include <ctype.h> // for isalnum()
+
 static const char *usage = (char *)"\
 Pike Options (available with -pike)\n\
      -ldflags        - Print runtime libraries to link with\n\
@@ -154,6 +156,28 @@ public:
   }
   
   /* ------------------------------------------------------------
+   * validIdentifier()
+   * ------------------------------------------------------------ */
+
+  virtual int validIdentifier(String *s) {
+    char *c = Char(s);
+    const char *c0 = c;
+    const char *c1 = c0 + 1;
+    while (*c) {
+      if (*c == '`' && c == c0) {
+	c++; continue;
+      }
+      if ((*c == '+' || *c == '-' || *c == '*' || *c == '/') && c == c1) {
+	c++; continue;
+      }
+      if (!(isalnum(*c) || (*c == '_')))
+	return 0;
+      c++;
+    }
+    return 1;
+  }
+  
+  /* ------------------------------------------------------------
    * importDirective()
    * ------------------------------------------------------------ */
 
@@ -266,7 +290,7 @@ public:
 	Delete(lstr);
       } else {      
 	/* Look for an input typemap */
-	sprintf(source, "sp[%d-args]", i-start+offset);
+	sprintf(source, "Pike_sp[%d-args]", i-start+offset);
 	if ((tm = Getattr(p,"tmap:in"))) {
           Replaceall(tm, "$source", source);
 	  Replaceall(tm, "$target", ln);
@@ -432,7 +456,7 @@ public:
 
     int maxargs;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n,"return %s(self,args);",&maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "%s(args); return;", &maxargs);
 	
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -440,28 +464,36 @@ public:
     String  *symname = Getattr(n,"sym:name");
     String  *wname   = Swig_name_wrapper(symname);
 
-    Printv(f->def,	
-           "struct object *", wname,
-	   "(struct object *self, struct object *args) {",
-	   NULL);
-
+    Printf(f->def, "static void %s(INT32 args) {", wname);
     
-    Wrapper_add_local(f,"argc","INT32 argc");
-    Printf(tmp,"struct object *argv[%d]", maxargs+1);
-    Wrapper_add_local(f,"argv",tmp);
-    Wrapper_add_local(f,"ii","INT32 ii");
-    Printf(f->code,"argc = sizeof(args);\n");
-    Printf(f->code,"for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n",maxargs);
-    Printf(f->code,"argv[ii] = array_index(args,&argv[ii],ii);\n");
-    Printf(f->code,"}\n");
+    Wrapper_add_local(f, "argc", "INT32 argc");
+    Printf(tmp, "struct svalue argv[%d]", maxargs);
+    Wrapper_add_local(f, "argv", tmp);
+    Wrapper_add_local(f, "ii", "INT32 ii");
     
-    Replaceall(dispatch,"$args","self,args");
-    Printv(f->code,dispatch,"\n",NIL);
-    Printf(f->code,"No matching function for overloaded '%s'\n", symname);
-    Printf(f->code,"return NULL;\n");
-    Printv(f->code,"}\n",NIL);
-    Wrapper_print(f,f_wrappers);
-    add_method(n,symname,wname,0);
+    Printf(f->code, "argc = args;\n");
+    Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
+    Printf(f->code, "argv[ii] = Pike_sp[ii-args];\n");
+    Printf(f->code, "}\n");
+    
+    Replaceall(dispatch, "$args", "self, args");
+    Printv(f->code, dispatch, "\n", NIL);
+    Printf(f->code, "Pike_error(\"No matching function for overloaded '%s'.\");\n", symname);
+    Printv(f->code, "}\n", NIL);
+    
+    Wrapper_print(f, f_wrappers);
+    
+    String *description = NewString("");
+    Printf(description, "tAny,");
+    if (current == CONSTRUCTOR || current == DESTRUCTOR) {
+      Printf(description, " tVoid");
+    } else {
+      String *pd = Getattr(n, "tmap:out:pikedesc");
+      if (pd)
+	Printf(description, " %s", pd);
+    }
+    add_method(n, symname, wname, description);
+    Delete(description);
 
     DelWrapper(f);
     Delete(dispatch);
@@ -747,7 +779,7 @@ public:
       String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
-      Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
+      Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
       
       n = Firstitem(membervariables);
       while (n) {
@@ -786,7 +818,7 @@ public:
     String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
-    Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
+    Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
 
     n = Firstitem(membervariables);
     while (n) {
@@ -881,8 +913,3 @@ extern "C" Language *
 swig_pike(void) {
   return new PIKE();
 }
-
-
-
-
-
