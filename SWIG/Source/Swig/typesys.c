@@ -828,6 +828,12 @@ SwigType_isclass(SwigType *t) {
     if (resolved_scope) {
       isclass = 1;
     }
+    /* Hmmm. Not a class.  If a template, it might be uninstantiated */
+    if (SwigType_istemplate(qtys)) {
+      String *tp = SwigType_templateprefix(qtys);
+      isclass = SwigType_isclass(tp);
+      Delete(tp);
+    }
   }
   Delete(qty);
   Delete(qtys);

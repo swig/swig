@@ -41,10 +41,6 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
     if (!CPlusPlus || (CPlusPlus && !SwigType_isclass(rt))) {
       Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
     } else {
-      /*      String *s = NewStringf("SwigValueWrapper< %s > result", SwigType_lstr(rt,0));
-      Wrapper_add_local(f,"result", s);
-      Delete(s); */
-      
       SwigType *vt = 0;
       vt = cplus_value_type(rt);
       if (!vt) {

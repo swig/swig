@@ -260,6 +260,11 @@ SwigType *cplus_value_type(SwigType *t) {
 	return s;
       }
     }
+    if (SwigType_issimple(td) && SwigType_istemplate(td)) {
+      String *s = NewStringf("SwigValueWrapper< %s >",t);
+      Delete(td);
+      return s;
+    }
     Delete(td);
   }
   return 0;
