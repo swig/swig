@@ -954,7 +954,12 @@ Language::globalfunctionHandler(Node *n) {
     /* Check for callback mode */
     String *cb = Getattr(n,"feature:callback");
     if (cb) {
-      String   *cbname = NewStringf(cb,symname);
+      String *cbname = Getattr(n,"feature:callback:name");
+      if (!cbname) {
+	cbname = NewStringf(cb,symname);
+	Setattr(n,"feature:callback:name",cbname);
+      }
+      
       callbackfunctionHandler(n);
       if (Cmp(cbname, symname) == 0) {
 	Delete(cbname);
@@ -983,14 +988,20 @@ Language::callbackfunctionHandler(Node *n) {
   String *name    = Getattr(n,"name");
   String *parms   = Getattr(n,"parms");
   String *cb      = Getattr(n,"feature:callback");
-  String  *cbname = NewStringf(cb,symname);
+  String *cbname  = Getattr(n,"feature:callback:name");
+  String *calltype= NewStringf("(%s (*)(%s))(%s)", SwigType_str(type,0), ParmList_str(parms), SwigType_namestr(name));
   SwigType *cbty = Copy(type);
   SwigType_add_function(cbty,parms); 
   SwigType_add_pointer(cbty);
 
+  if (!cbname) {
+    cbname = NewStringf(cb,symname);
+    Setattr(n,"feature:callback:name",cbname);
+  }
+
   Setattr(n,"sym:name", cbname);
   Setattr(n,"type", cbty);
-  Setattr(n,"value", name);
+  Setattr(n,"value", calltype);
 
   constantWrapper(n);
   Delete(cbname);
@@ -1015,7 +1026,7 @@ Language::memberfunctionHandler(Node *n) {
   SwigType *type    = Getattr(n,"type");
   String   *value   = Getattr(n,"value");
   ParmList *parms   = Getattr(n,"parms");
-  String   *cb;
+  String   *cb      = Getattr(n,"feature:callback");
 
   if (Cmp(storage,"virtual") == 0) {
     if (Cmp(value,"0") == 0) {
@@ -1026,23 +1037,27 @@ Language::memberfunctionHandler(Node *n) {
   } else {
     IsVirtual = 0;
   }
-  cb = Getattr(n,"feature:callback");
   if (cb) {
-    Node   *cb = NewHash();
-    String *cbname = NewStringf(cb,symname);
-    String *cbvalue;
+    Node   *cbn = NewHash();
+    String *cbname = Getattr(n,"feature:callback:name");
+    if (!cbname) {
+      cbname = NewStringf(cb,symname);
+    }
+
     SwigType *cbty = Copy(type);
     SwigType_add_function(cbty,parms); 
     SwigType_add_memberpointer(cbty,ClassName);
-    cbvalue = NewStringf("&%s::%s",ClassName,name);
-    Setattr(cb,"sym:name", cbname);
-    Setattr(cb,"type", cbty);
-    Setattr(cb,"value", cbvalue);
-    Setattr(cb,"name", name);
+    String *cbvalue = NewStringf("&%s::%s",ClassName,name);
+    Setattr(cbn,"sym:name", cbname);
+    Setattr(cbn,"type", cbty);
+    Setattr(cbn,"value", cbvalue);
+    Setattr(cbn,"name", name);
 
-    memberconstantHandler(n);
+    memberconstantHandler(cbn);
+    Setattr(n,"feature:callback:name",Swig_name_member(ClassPrefix, cbname));
 
     Delete(cb);
+    Delete(cbn);
     Delete(cbvalue);
     Delete(cbty);
     Delete(cbname);
@@ -1078,6 +1093,7 @@ Language::staticmemberfunctionHandler(Node *n) {
   SwigType *type    = Getattr(n,"type");
   ParmList *parms   = Getattr(n,"parms");
   String   *code    = Getattr(n,"code");
+  String   *cb      = Getattr(n,"feature:callback");
   String   *cname, *mrename;
 
   if (!Extend) {
@@ -1104,7 +1120,13 @@ Language::staticmemberfunctionHandler(Node *n) {
     Delete(tmp);
     Delete(wrap);
   }
+  if (cb) {
+    String *cbname = NewStringf(cb,symname);
+    Setattr(n,"feature:callback:name", Swig_name_member(ClassPrefix, cbname));
+    Setattr(n,"feature:callback:staticname", name);
+  }
   Delattr(n,"storage");
+  
   globalfunctionHandler(n);
 
   Delete(cname);
