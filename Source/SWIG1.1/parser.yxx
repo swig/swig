@@ -1796,7 +1796,10 @@ edecl          :  ID {
 		   temp_typeptr = new DataType($4.type);
 // Use enum name instead of value
 // OLD		   create_constant($1, temp_typeptr, $4.id);
-                   create_constant($1, temp_typeptr, $1);
+	           if ($4.type == T_CHAR) 
+	               create_constant($1,temp_typeptr, $4.id);
+		   else
+		     create_constant($1, temp_typeptr, $1);
 		   delete temp_typeptr;
   	           scanner_ignore_typedef();
                  }
@@ -1817,7 +1820,7 @@ etype            : expr {
                 }
                 | CHARCONST {
                    $$.id = $1;
-		   $$.type = T_CHAR;
+		   $$.type = T_INT;
 		 }
                 ;	       
 
