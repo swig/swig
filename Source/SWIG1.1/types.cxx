@@ -347,7 +347,7 @@ char *DataType::print_mangle_default() {
   }
   //  if (d) c = d+1;
   for (; *c; c++) {
-      if ((*c == ' ') || (*c == ':')) result[ri] << '_';
+      if ((*c == ' ') || (*c == ':') || (*c == '<') || (*c == '>')) result[ri] << '_';
       else result[ri] << *c;
     }
     if ((is_pointer-implicit_ptr)) result[ri] << '_';
