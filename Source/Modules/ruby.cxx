@@ -1247,6 +1247,33 @@ public:
     Replaceall(klass->header,"$freeproto", "");
   }
   
+  void baseClassHandler(Node *n) {
+    Node *c;
+    for (c = firstChild(n); c; c = nextSibling(c)) {
+      char *tag = Char(nodeType(c));
+      if (!tag) {
+        Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree node!\n");
+        return;
+      }
+      // emit_one(c);
+    }
+  }
+
+  void copyBaseClassMembers(Node *n) {
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist) > 0) {
+      /* Skip the first base class */
+      Node *base = Firstitem(baselist);
+      
+      /* Loop over remaining base classes */
+      base = Nextitem(baselist);
+      while (base) {
+        baseClassHandler(base);
+        base = Nextitem(baselist);
+      }
+    }
+  }
+
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
@@ -1288,6 +1315,8 @@ public:
 	   "$freeproto",
 	   NIL);
 
+    copyBaseClassMembers(n);
+    
     Language::classHandler(n);
 
     handleBaseClasses(n);
