@@ -66,7 +66,7 @@ private:
 %include "std_string.i"
 
 %feature("director") Quux;
-//SWIG_DIRECTOR_OWNED(Quux)
+SWIG_DIRECTOR_OWNED(Quux)
 
 class Quux {
 public:
