@@ -171,3 +171,4 @@ namespace vfncs {
 
 }
 
+swig_type_info *SWIG_TypeQuery(const char* name);
