@@ -1314,7 +1314,8 @@ Preprocessor_parse(String *s)
       } else if (Cmp(id,"line") == 0) {
       } else if (Cmp(id,"include") == 0) {
   	if (((include_all) || (import_all)) && (allow)) {
-  	  DOH *s1, *s2, *fn;
+  	  String *s1, *s2, *fn;
+	  char *dirname;
   	  Seek(value,0,SEEK_SET);
   	  fn = get_filename(value);
 	  s1 = cpp_include(fn);
@@ -1323,9 +1324,20 @@ Preprocessor_parse(String *s)
 	      Printf(ns,"%%includefile \"%s\" [\n", Swig_last_file());
 	    else if (import_all) 
 	      Printf(ns,"%%importfile \"%s\" [\n", Swig_last_file());
+
+	    /* See if the filename has a directory component */
+	    dirname = Swig_file_dirname(Swig_last_file);
+	    if (!strlen(dirname)) dirname = 0;
+	    if (dirname) {
+	      dirname[strlen(dirname)-1] = 0;   /* Kill trailing directory delimeter */
+	      Swig_push_directory(dirname);
+	    }
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
   	    Printf(ns,"\n]\n");
+	    if (dirname) {
+	      Swig_pop_directory();
+	    }
 	    Delete(s2);
   	  }
 	  Delete(s1);
@@ -1429,6 +1441,7 @@ Preprocessor_parse(String *s)
   	    fn = get_filename(s);
 	    s1 = cpp_include(fn);
 	    if (s1) {
+	      char *dirname;
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
   	      Printf(ns,"%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
@@ -1436,7 +1449,16 @@ Preprocessor_parse(String *s)
 		Preprocessor_define("WRAPEXTERN 1", 0);
 		Preprocessor_define("SWIGIMPORT 1", 0);
 	      }
+	      dirname = Swig_file_dirname(Swig_last_file());
+	      if (!strlen(dirname)) dirname = 0;
+	      if (dirname) {
+		dirname[strlen(dirname)-1] = 0;   /* Kill trailing directory delimeter */
+		Swig_push_directory(dirname);
+	      }
   	      s2 = Preprocessor_parse(s1);
+	      if (dirname) {
+		Swig_pop_directory();
+	      }
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_undef("SWIGIMPORT");
 		Preprocessor_undef("WRAPEXTERN");
