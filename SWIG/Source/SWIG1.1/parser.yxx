@@ -259,7 +259,7 @@ static Node *dump_nested(char *parent) {
     // Remove SWIG directive %constant which may be left in the SWIG created typedefs
     char* code_ptr = Char(n->code);
     while (code_ptr) {
-      code_ptr = strstr(code_ptr, "\%constant");
+      code_ptr = strstr(code_ptr, "%constant");
       if (code_ptr) {
         char* directive_end_pos = strstr(code_ptr, ";");
         if (directive_end_pos) { 
