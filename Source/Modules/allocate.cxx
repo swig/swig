@@ -127,6 +127,7 @@ class Allocate : public Dispatcher {
 	Node *nn = Getitem(abstract,i);
 	String *name = Getattr(nn,"name");
 	String *base_decl = Getattr(nn,"decl");
+	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
 	int implemented = 0;
 	Node *dn = Swig_symbol_clookup(name,0);
@@ -136,15 +137,18 @@ class Allocate : public Dispatcher {
 	assert(dn != 0);   // Assertion of doom
 	while (dn && !implemented) {
 	  String *local_decl = Getattr(dn,"decl");
+	  if (local_decl) local_decl = SwigType_typedef_resolve_all(local_decl);
 	  if (local_decl && !Strcmp(local_decl, base_decl)) {
 	    if (Getattr(dn,"abstract")) return 1;
 	    implemented++;
 	  }
+	  Delete(local_decl);
 	  dn = Getattr(dn,"csym:nextSibling");
 	}
 	if (!implemented && (Getattr(nn,"abstract"))) {
 	  return 1;
 	}
+	Delete(base_decl);
 	/*
 	if (dn && (Getattr(dn,"abstract"))) {
 	  return 1;
