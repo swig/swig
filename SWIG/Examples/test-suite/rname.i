@@ -14,6 +14,10 @@
 
 %rename(foo_u) *::foo(unsigned);
 
+/* Rename classes in a class hierarchy */
+%rename (RenamedBase) Base;
+%rename (RenamedDerived) Derived;
+
 %inline %{
 class Bar {
 public:
@@ -27,5 +31,18 @@ char *foo(int)      { return (char *) "foo-int"; }
 char *foo(double)   { return (char *) "foo-double"; }
 char *foo(short)    { return (char *) "foo-short"; }
 char *foo(unsigned) { return (char *) "foo-unsigned"; }
+
+class Base {
+public: 
+  Base(){}; 
+  virtual ~Base(){};
+};
+class Derived : public Base {
+public:
+  Derived(){}
+  ~Derived(){}
+  void fn(Derived derived, Base* basePtr, Base& baseRef){} // test renamed classes in a function
+};
+
 
 %}
