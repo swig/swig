@@ -1,5 +1,24 @@
 Version 1.3.20 (In progress)
 ============================
+05/01/2003: beazley
+            Fixed problem with return by value, const, and private constructors.
+            For example:
+
+                class B {
+                private:
+                   B();
+                public:
+                   B(const B&);
+                };
+
+                class A {
+                   ...
+                   const B returnB() const;
+                   ...
+                };
+
+            Problem and patch suggestion reported by Bill Hoffman.
+
 04/29/2003: cheetah (William Fulton)
             Build changes:
             - Single autoconf invocation - autoconf in the Tools directory has gone.
