@@ -1,9 +1,9 @@
 /* ----------------------------------------------------------------------------- 
  * object.c
  *
- *     This file provides access to raw object files and executables.
- *     All memory management is done through mmap() to avoid the
- *     use of malloc()/free()
+ *     This file provides access to raw object files, executables, and
+ *     library files.  Memory management is handled through mmap() to
+ *     avoid the use of heap/stack space.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -12,24 +12,122 @@
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
-#include <sys/mman.h>
 #include <ar.h>
-#include <string.h>
-#include <ctype.h>
+
+
+/* Maximum number of files that can be loaded at once */
+   
+#define WAD_MAX_FILE         32
+
+typedef struct WadFile {
+  int     refcnt; 
+  void   *addr;
+  int     size;
+  char    path[MAX_PATH];
+} WadFile;
+
+static WadFile      wad_files[WAD_MAX_FILE];    /* Array of file objects */
+
+/* private function to manage the loading of raw files into memory */
+
+static WadFile *
+load_file(const char *path) {
+  int i;
+  int fd;
+  WadFile *firstfree = 0;
+  WadFile *firstreplace = 0;
+  WadFile *wf = wad_files;
+
+  if (wad_debug_mode & DEBUG_FILE) {
+    printf("wad: Loading file     '%s' ... ", path);
+  }
+  /* Walk through the file list to see if we already know about the file */
+  for (i = 0; i < WAD_MAX_FILE; i++, wf++) {
+    if (strcmp(wf->path, path) == 0) {
+      wf->refcnt++;
+      if (wad_debug_mode & DEBUG_FILE) {
+	printf("cached.\n");
+      }
+      return wf;
+    }
+    if (wf->refcnt <= 0) {
+      if (wf->path[0] == 0) firstfree = wf;
+      else firstreplace = wf;
+    }
+  }
+  
+  if (!firstfree && !firstreplace) {
+    if (wad_debug_mode & DEBUG_FILE) printf("out of memory!\n");
+    return 0;  /* Out of space */
+  }
+
+  if (!firstfree) firstfree = firstreplace;
+
+  fd = open(path, O_RDONLY);
+  if (fd < 0) {
+    if (wad_debug_mode & DEBUG_FILE) printf("not found!\n");
+    return 0;       /* Doesn't exist. Oh well */
+  }
+  if (wad_debug_mode & DEBUG_FILE) printf("loaded.\n");
+  /* If already mapped, unmap the file */
+  if (firstfree->addr) {
+    if (wad_debug_mode & DEBUG_FILE) 
+      printf("wad: Unloading file '%s'\n", firstfree->path);
+    munmap(firstfree->addr,firstfree->size);
+  }
+
+  firstfree->refcnt = 1;  
+  strncpy(firstfree->path,path,MAX_PATH);
+
+  /* Get file length */
+  firstfree->size = lseek(fd,0,SEEK_END);
+  lseek(fd,0,SEEK_SET);
+  
+  /* Try to mmap the file */
+  firstfree->addr = mmap(NULL,firstfree->size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
+  close(fd);
+  if (firstfree->addr == MAP_FAILED) {
+    if (wad_debug_mode & DEBUG_FILE) printf("wad: Couldn't mmap '%s'\n", path);
+    firstfree->refcnt = 0;
+    firstfree->path[0] = 0;
+    firstfree->addr = 0;
+    firstfree->size = 0;
+    return 0;
+  }
+  return firstfree;
+}
+
+static void
+release_file(WadFile *f) {
+  if (wad_debug_mode & DEBUG_FILE) printf("wad: Releasing file   '%s'\n", f->path);
+  f->refcnt--;
+}
+
+#define WAD_MAX_OBJECT       32
 
 static WadObjectFile wad_objects[WAD_MAX_OBJECT];   /* Object file descriptor table */
-static int       wad_obj_free[WAD_MAX_OBJECT];  /* Free object stack */
-static int       wad_obj_nfree = 0;             /* Num free object descriptors */
-static int       wad_obj_init = 0;              /* Initialized? */
+static int           wad_obj_free[WAD_MAX_OBJECT];  /* Free object stack */
+static int           wad_obj_nfree = 0;             /* Num free object descriptors */
 
-/* Initialize internal memory management */
-static void
-init_object() {
+
+/* -----------------------------------------------------------------------------
+ * wad_object_init()
+ *
+ * Initialize the object file system
+ * ----------------------------------------------------------------------------- */
+
+void wad_object_init() {
   int i;
-  if (wad_obj_init) return;
+
+  for (i = 0; i < WAD_MAX_FILE; i++) {
+    wad_files[i].refcnt = 0;
+    wad_files[i].addr = 0;
+    wad_files[i].size = 0;
+    wad_files[i].path[0] = 0;
+  }
+
+  wad_obj_nfree = 0;
   for (i = 0; i < WAD_MAX_OBJECT; i++) {
-    wad_objects[i].mptr = 0;
-    wad_objects[i].mlen = 0;
     wad_objects[i].ptr = 0;
     wad_objects[i].len = 0;
     wad_objects[i].refcnt = 0;
@@ -37,8 +135,31 @@ init_object() {
     wad_obj_free[i] = i;
     wad_obj_nfree++;
   }
-  wad_obj_init = 1;
 } 
+
+/* -----------------------------------------------------------------------------
+ * wad_object_cleanup()
+ *
+ * Release all files loaded during the debugging
+ * ----------------------------------------------------------------------------- */
+
+void
+wad_object_cleanup() {
+  int i;
+  WadFile *f = wad_files;
+  if (wad_debug_mode & DEBUG_OBJECT) {
+    printf("wad: Releasing all files.\n");
+  }
+  for (i = 0; i < WAD_MAX_FILE; i++, f++) {
+    if (f->addr) {
+      munmap(f->addr, f->size);
+    }
+    f->addr = 0;
+    f->size = 0;
+    f->path[0] = 0;
+    f->refcnt = 0;
+  }
+}
 
 /* -----------------------------------------------------------------------------
  * wad_object_release()
@@ -50,13 +171,14 @@ void
 wad_object_release(WadObjectFile *wo) {
   int n;
   if (!wo) return;
+
   wo->refcnt--;
   if (wo->refcnt > 0) return;
-  if (wo->mptr) {
-    munmap(wo->mptr, wo->mlen);
+  if (wad_debug_mode & DEBUG_OBJECT) {
+    printf("wad: Releasing object '%s'\n", wo->path);
   }
-  wo->mptr = 0;
-  wo->mlen = 0;
+  release_file(wo->file);
+  wo->file = 0;
   wo->ptr = 0;
   wo->len = 0;
   wo->path[0] = 0;
@@ -74,13 +196,13 @@ wad_object_release(WadObjectFile *wo) {
 WadObjectFile *
 wad_object_load(const char *path) {
   WadObjectFile *wo;
-  int nf;
-  int fd;
+  WadFile *wf;
   int i;
-  if (!wad_obj_init) init_object();
+  WadObjectFile  *wad_arobject_load(const char *path, const char *name);
 
-  /*  printf("loading '%s'\n", path); */
-
+  if (wad_debug_mode & DEBUG_OBJECT) {
+    printf("wad: Loading object   '%s'\n", path);
+  }
   /* See if the path has already been loaded */
   for (i = 0; i < WAD_MAX_OBJECT; i++) {
     if (strcmp(wad_objects[i].path,path) == 0) {
@@ -90,7 +212,8 @@ wad_object_load(const char *path) {
     }
   }
   if (wad_obj_nfree == 0) {
-    printf("wad_object_load: No more space!\n");
+    if (wad_debug_mode & DEBUG_OBJECT)
+      printf("wad: No more space in wad_object_load()\n");
     return 0;
   }
 
@@ -117,32 +240,17 @@ wad_object_load(const char *path) {
       }
     }
   }
+  wf = load_file(path);
+  if (!wf) return 0;
 
-  /* Try to open the requested pathname */
-  fd = open(path, O_RDONLY);
-  if (fd < 0) return 0;       /* Doesn't exist */
-
-  nf = wad_obj_free[wad_obj_nfree-1];
-  wo = wad_objects + nf;
+  wo = wad_objects + wad_obj_free[wad_obj_nfree-1];
   wad_obj_nfree--;
 
+  wo->file = wf;
   wo->refcnt = 1;
   strncpy(wo->path,path, MAX_PATH);
-  wo->mlen = lseek(fd,0,SEEK_END);    /* Get length of the file */
-  lseek(fd,0,SEEK_SET);
-  
-  /* Try to mmap the file */
-  wo->mptr = mmap(NULL,wo->mlen, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
-  if (wo->mptr == MAP_FAILED) {
-    perror("Whoa. Can't mmap.");
-    wo->mptr = 0;
-    wad_object_release(wo);
-    close(fd);
-    return 0;
-  }
-  close(fd);
-  wo->ptr = wo->mptr;
-  wo->len = wo->mlen;
+  wo->ptr = wf->addr;
+  wo->len = wf->size;
   return wo;
 }
 
@@ -155,6 +263,7 @@ wad_object_load(const char *path) {
 WadObjectFile *
 wad_arobject_load(const char *arpath, const char *robjname) {
   WadObjectFile *wo;
+  WadFile       *wf;
   int nf;
   int fd;
   int i;
@@ -170,16 +279,12 @@ wad_arobject_load(const char *arpath, const char *robjname) {
   strcpy(objname,robjname);
   strcat(objname,"/");
   sobjname = strlen(objname);
-  if (!wad_obj_init) init_object();
 
-  if (wad_obj_nfree == 0) {
-    printf("wad_object_load: No more space!\n");
-    return 0;
-  }
+  wf = load_file(arpath);
+  if (!wf) return 0;          /* Doesn't exit */
 
-  /* Try to open the requested archive name */
-  fd = open(arpath, O_RDONLY);
-  if (fd < 0) return 0;       /* Doesn't exist */
+  arptr = (char *) wf->addr;
+  arlen = wf->size;
 
   nf = wad_obj_free[wad_obj_nfree-1];
   wo = wad_objects + nf;
@@ -187,28 +292,17 @@ wad_arobject_load(const char *arpath, const char *robjname) {
   wo->refcnt = 1;
   wo->ptr = 0;
 
-  arlen = lseek(fd,0,SEEK_END);    /* Get length of the file */
-  lseek(fd,0,SEEK_SET);
-  
-  /* Try to mmap the file */
-  arptr = (char *) mmap(NULL,arlen, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
-  if (arptr == MAP_FAILED) {
-    perror("Whoa. Can't mmap.");
-    close(fd);
-    return 0;
-  }
-
   /* Now take a look at the archive */
   if (strncmp(arptr,ARMAG,SARMAG) == 0) {
     /* printf("Got an archive\n"); */
   } else {
-    printf("Not an archive file\n");
-    goto fatal_error;
+    /* Not an archive file */
+    release_file(wf);
+    return 0;
   }
 
   /* Search the archive for the request member */
   strtab = 0;
-
   offset = SARMAG;
   while (offset < arlen) {
     char mname[MAX_PATH];
@@ -226,8 +320,9 @@ wad_arobject_load(const char *arpath, const char *robjname) {
       /* Must be in the string offset table */
       soff = atoi(ah->ar_name+1);
       if (!strtab) {
-	printf("Whoa. No string offset table\n"); 
-	goto fatal_error;
+	/* No offset table */
+	release_file(wf);
+	return 0;
       }
       e = strchr(strtab+soff,'\n');
       if (e) {
@@ -241,30 +336,21 @@ wad_arobject_load(const char *arpath, const char *robjname) {
       strncpy(mname,ah->ar_name,16);
       mname[16] = 0;
     }
-    
-    /*    printf("ar_name = '%s', ar_size = '%0.10s'\n", mname, ah->ar_size); */
     /* Compare the names */
     if (strncmp(mname,objname,sobjname) == 0) {
-      /* Leave the archive mapped in memory, but set a pointer to the member
-         name */
-
-      wo->mptr = (void *) arptr;
-      wo->mlen = arlen;
+      /* Found the archive */
+      
+      wo = wad_objects + wad_obj_free[wad_obj_nfree-1];
+      wad_obj_nfree--;
+      wo->file = wf;
+      wo->refcnt = 1;
       wo->ptr = (void *) (arptr + offset);
       wo->len = msize;
-      close(fd);
       return wo;
-      break;
     }
-
     offset += msize;
   }
-  
- fatal_error:
-  munmap(arptr,arlen);
-  close(fd);
-  wad_object_release(wo);
+  release_file(wf);
   return 0;
-  
 }
 

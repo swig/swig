@@ -9,12 +9,11 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
-
 #include "wad.h"
-#include <sys/ucontext.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <dlfcn.h>
+
+/* Signal handling stack */
+#define STACK_SIZE 4*SIGSTKSZ
+char wad_sig_stack[STACK_SIZE];
 
 /* Data structures for containing information about non-local returns */
 
@@ -109,6 +108,8 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   char      *framedata;
   char      *retname = 0;
 
+  wad_object_init();
+
   context = (ucontext_t *) vcontext;
 
   /* Get some information about the current context */
@@ -165,6 +166,10 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     wad_default_callback(sig, origframe,retname);
   }
 
+  if (wad_debug_mode & DEBUG_HOLD) while(1);
+
+  wad_object_cleanup();
+
   /* If we found a function to which we should return, we jump to
      an alternative piece of code that unwinds the stack and 
      initiates a non-local return. */
@@ -175,4 +180,36 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     return;
   }
   exit(1);
+}
+
+
+/* -----------------------------------------------------------------------------
+ * wad_signal_init()
+ *
+ * Reset the signal handler.
+ * ----------------------------------------------------------------------------- */
+
+void wad_signal_init() {
+  struct sigaction newvec;
+  static stack_t  sigstk;
+  /* Set up an alternative stack */
+  sigstk.ss_sp = (char *) wad_sig_stack;
+  sigstk.ss_size = STACK_SIZE;
+  sigstk.ss_flags = 0;
+  if (sigaltstack(&sigstk, (stack_t*)0) < 0) {
+    perror("sigaltstack");
+  }
+  sigemptyset(&newvec.sa_mask);
+  sigaddset(&newvec.sa_mask, SIGSEGV);
+  sigaddset(&newvec.sa_mask, SIGBUS);
+  sigaddset(&newvec.sa_mask, SIGABRT);
+  sigaddset(&newvec.sa_mask, SIGILL);
+  sigaddset(&newvec.sa_mask, SIGFPE);
+  newvec.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
+  newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
+  sigaction(SIGSEGV, &newvec, NULL);
+  sigaction(SIGBUS, &newvec, NULL);
+  sigaction(SIGABRT, &newvec, NULL);
+  sigaction(SIGFPE, &newvec, NULL);
+  sigaction(SIGILL, &newvec, NULL);
 }
