@@ -167,7 +167,12 @@ public:
       Swig_register_filebyname("shadow",f_shadow);
       Swig_register_filebyname("python",f_shadow);
 
-      Printf(f_shadow,"# This file was created automatically by SWIG.\n");
+      Printv(f_shadow,
+	     "# This file was created automatically by SWIG.\n",
+	     "# Don't modify this file, modify the SWIG interface instead.\n",
+	     "# This file is compatible with both classic and new-style classes.\n",
+	     NULL);
+
       Printf(f_shadow,"import %s\n", module);
 
       // Python-2.2 object hack
@@ -176,8 +181,11 @@ public:
 	     "import types\n",
 	     "try:\n",
 	     "    _object = types.ObjectType\n",
+	     "    _newclass = 1\n",
 	     "except AttributeError:\n",
 	     "    class _object: pass\n",
+             "    _newclass = 0\n",
+	     "\n\n",
 	     NULL);
 
       // Include some information in the code
@@ -818,8 +826,8 @@ public:
       }
       Printf(f_shadow,":\n");
 
-      Printv(f_shadow,tab4,"__setmethods__ = {}\n",NULL);
-      Printf(f_shadow,"%sfor _s in [%s]: __setmethods__.update(_s.__setmethods__)\n",tab4,base_class);
+      Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NULL);
+      Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
 
       Printv(f_shadow,
 	     tab4, "def __setattr__(self,name,value):\n",
@@ -830,16 +838,16 @@ public:
 	     tab8, tab8, "del value.thisown\n",
 	     tab8, tab8, "return\n",
 	     //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
-	     tab8, "method = ", class_name, ".__setmethods__.get(name,None)\n",
+	     tab8, "method = ", class_name, ".__swig_setmethods__.get(name,None)\n",
 	     tab8, "if method: return method(self,value)\n",
 	     tab8, "self.__dict__[name] = value\n\n",
 	     NULL);
 
-      Printv(f_shadow,tab4,"__getmethods__ = {}\n",NULL);
-      Printf(f_shadow,"%sfor _s in [%s]: __getmethods__.update(_s.__getmethods__)\n",tab4,base_class);
+      Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NULL);
+      Printf(f_shadow,"%sfor _s in [%s]: __swig_getmethods__.update(_s.__swig_getmethods__)\n",tab4,base_class);
 
       Printv(f_shadow, tab4, "def __getattr__(self,name):\n",
-	     tab8, "method = ", class_name, ".__getmethods__.get(name,None)\n",
+	     tab8, "method = ", class_name, ".__swig_getmethods__.get(name,None)\n",
 	     tab8, "if method: return method(self)\n",
 	     tab8, "raise AttributeError,name\n\n",
 	     NULL);
@@ -929,6 +937,22 @@ public:
 	}
       }
     }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   * ------------------------------------------------------------ */
+  
+  virtual int staticmemberfunctionHandler(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    Language::staticmemberfunctionHandler(n);
+    if (shadow) {
+      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(class_name, symname), "\n",  NULL);
+      Printv(f_shadow, tab4, "if _newclass:",  symname, " = staticmethod(", module, ".",
+	     Swig_name_member(class_name, symname), ")\n", NULL);
+    }
+
     return SWIG_OK;
   }
 
@@ -1027,10 +1051,21 @@ public:
     shadow = oldshadow;
 
     if (shadow) {
+      int immutable = 0;
       if (!Getattr(n,"feature:immutable")) {
-	Printv(f_shadow, tab4, "__setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
+	Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NULL);
+      } else {
+	immutable = 1;
       }
-      Printv(f_shadow, tab4, "__getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
+      Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
+      if (immutable) {
+	Printv(f_shadow,tab4,"if _newclass:", symname," = property(", module, ".", 
+	       Swig_name_get(Swig_name_member(class_name,symname)),")\n", NULL);
+      } else {
+	Printv(f_shadow,tab4,"if _newclass:", symname," = property(", 
+	       module, ".", Swig_name_get(Swig_name_member(class_name,symname)),",",
+	       module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NULL);
+      }
     }
     return SWIG_OK;
   }
