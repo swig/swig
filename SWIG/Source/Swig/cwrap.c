@@ -175,6 +175,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
   case T_VOID:
     break;
   case T_REFERENCE:
+    Printf(fcall,"{\n");
     Printf(fcall,"%s = ", SwigType_str(t,"_result_ref"));
     break;
   case T_USER:
@@ -200,6 +201,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
 
   if (SwigType_type(t) == T_REFERENCE) {
     Printf(fcall,"%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
+    Printf(fcall,"}\n");
   }
   return fcall;
 }

@@ -462,7 +462,7 @@ public:
 
     Printf(parse_args,":%s\"", iname);
     Printv(parse_args,
-	   arglist, ")) return NULL;\n",
+	   arglist, ")) goto fail;\n",
 	   NIL);
 
     /* Now piece together the first part of the wrapper function */
@@ -553,16 +553,23 @@ public:
       Printf(f->code,"%s\n",tm);
     }
 
-    Printf(f->code,"    return resultobj;\n}\n");
+    Printf(f->code,"    return resultobj;\n");
 
-  /* Substitute the cleanup code */
+    /* Error handling code */
+
+    Printf(f->code,"fail:\n");
+    Printv(f->code,cleanup,NIL);
+    Printf(f->code,"return NULL;\n");
+    Printf(f->code,"}\n");
+
+    /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
     /* Substitute the function name */
     Replaceall(f->code,"$symname",iname);
     Replaceall(f->code,"$result","resultobj");
 
-  /* Dump the function out */
+    /* Dump the function out */
     Wrapper_print(f,f_wrappers);
 
     /* If varargs.  Need to emit a varargs stub */
