@@ -362,11 +362,11 @@ class JAVA : public Language {
     if(Len(package)) {
       String *jniname = makeValidJniName(package);
       Printv(jnipackage, jniname, NIL);
-      Printv(package_path, jniname, NIL);
       Delete(jniname);
       Replaceall(jnipackage,".","_");
-      Replaceall(package_path, ".", "/");
       Append(jnipackage, "_");
+      Printv(package_path, package, NIL);
+      Replaceall(package_path, ".", "/");
     }
     String *jniname = makeValidJniName(imclass_name);
     Printf(wrapper_name, "Java_%s%s_%%f", Char(jnipackage), jniname);
@@ -711,7 +711,7 @@ class JAVA : public Language {
 
     /* Do we have to emit the director hair version of the code? */
 
-    feature_director = (parent && Swig_directorclass(n));
+    feature_director = (parent && Swig_directorclass(n) && Cmp(Getattr(n, "feature:nodirector"), "1"));
 
     if (member_func_flag
         && isVirtual
@@ -766,13 +766,16 @@ class JAVA : public Language {
     // Make a wrapper name for this function
     String *jniname = makeValidJniName(overloaded_name);
     String *wname = Swig_name_wrapper(jniname);
+
     Delete(jniname);
 
     /* Attach the non-standard typemaps to the parameter list. */
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
-    if (director_method)
+    if (director_method) {
       Setattr(n, "tmap:inv", Swig_typemap_lookup_new("inv", n, "", 0));
+      Swig_typemap_attach_parms("directorin", l, 0);
+    }
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("jni",n,"",0))) {
@@ -805,7 +808,7 @@ class JAVA : public Language {
     Printv(f->code,"    (void)jcls;\n",NIL);
 
     /* Add the class's java object, when applicable */
-    if (member_func_flag && !(static_flag || feature_extend || constructor || destructor)) {
+    if (proxy_flag && member_func_flag && !(static_flag || feature_extend || constructor || destructor)) {
       Printf(f->def, ", jobject jself");
       Printf(imclass_class_code, "%s self", proxy_class_name);
       Append(f->code,"    (void)jself;\n");
@@ -896,7 +899,7 @@ class JAVA : public Language {
         Append(director_uargs, arg);
 
         if (i > 0) {
-          out_tm = Swig_typemap_lookup_new("directorin", p, "", 0);
+          out_tm = Getattr(p, "tmap:directorin");
           if (out_tm) {
             String *darg = NewStringf("darg%d", director_tmp++);
             String *darg_init = NULL;
@@ -1908,7 +1911,7 @@ class JAVA : public Language {
     String    *tm;
     Parm      *p;
     int       i;
-    bool      feature_director = (Cmp(Getattr(n, "feature:director"), "1") == 0);
+    bool      feature_director = (parentNode(n) && Swig_directorclass(n));
 
     Language::constructorHandler(n);
 
@@ -2557,10 +2560,8 @@ class JAVA : public Language {
     if (Len(package_path) > 0) {
       Replaceall(mod_desc, "$packagepath", package_path);
     } else {
-      String *empty_str = NewString("");
-
-      Replaceall(mod_desc, "$packagepath/", empty_str);
-      Replaceall(mod_desc, "$packagepath", empty_str);
+      Replaceall(mod_desc, "$packagepath/", empty_string);
+      Replaceall(mod_desc, "$packagepath", empty_string);
     }
 
     Replaceall(mod_desc, "$javaclassname", SwigType_base(classname));
@@ -2594,6 +2595,7 @@ class JAVA : public Language {
     String     *return_type = Copy(type);
     String     *tm;
     Parm       *p;
+    Parm       *retpm;
     int         i, num_arguments, num_required;
     Wrapper    *w = NewWrapper();
     ParmList   *l = Getattr(n, "parms");
@@ -2676,7 +2678,8 @@ class JAVA : public Language {
 
     /* Get the JNI field descriptor for this return type */
 
-    if ((jniret_type = Swig_typemap_lookup_new("jni", n, "", 0)) != NULL) {
+    retpm = NewParm(return_type, empty_str);
+    if ((jniret_type = Swig_typemap_lookup_new("jni", retpm, "", 0)) != NULL) {
       String *jdesc;
       Parm *tp = NewParm(jniret_type, empty_str);
 
@@ -2705,6 +2708,7 @@ class JAVA : public Language {
           "No jni typemap defined for %s\n", SwigType_str(type,0));
       output_director = false;
     }
+    Delete(retpm);
 
     /* header declaration */
     {
@@ -3063,14 +3067,8 @@ class JAVA : public Language {
 
   int classDirectorInit(Node *n) {
     String *declaration = Swig_director_declaration(n);
-    String *internal_classname;
     String *classname = Getattr(n, "sym:name");
     String *director_classname = NewStringf("__DIRECTOR__%s", classname);
-
-    if (Len(package_path) > 0)
-      internal_classname = NewStringf("%s/%s", package_path, classname);
-    else
-      internal_classname = NewStringf("%s", classname);
 
     Delete(none_comparison);
     none_comparison = NewString("");            // not used
@@ -3090,7 +3088,6 @@ class JAVA : public Language {
 
     Printf(f_directors, "%s::~%s() { /* NOP */ }\n\n", director_classname, director_classname);
 
-    Delete(internal_classname);
     Delete(director_classname);
  
     return Language::classDirectorInit(n);
@@ -3137,6 +3134,23 @@ class JAVA : public Language {
   {
     /* NOP */
     return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * abstractClassTest()
+   *
+   * Make sure that the constructors are always generated for director-based
+   * classes derived from abstract classes, since Java always allocates the
+   * director-based class.
+   * ----------------------------------------------------------------------------- */
+
+  virtual int JAVA::abstractClassTest(Node *n)
+  {
+    if (!Language::abstractClassTest(n))
+      return 0;
+    else if (!Cmp(Getattr(n, "feature:director"), "1"))
+      return 0;
+    return 1;
   }
 };   /* class JAVA */
 
