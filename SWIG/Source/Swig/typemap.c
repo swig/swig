@@ -385,13 +385,15 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
       for (key = Firstkey(sm); key; key = Nextkey(sm)) {
 	/* Check for a signature match with the source signature */
 	if ((count_args(key) == narg) && (Strstr(key,ssig))) {
-
+	  String *oldm;
 	  /* A typemap we have to copy */
 	  String *nkey = Copy(key);
 	  Replace(nkey,ssig,dsig,DOH_REPLACE_ANY);
 
 	  /* Make sure the typemap doesn't already exist in the target map */
-	  if (!Getattr(tm,nkey)) {
+	  
+	  oldm = Getattr(tm,nkey);
+	  if (!oldm || (!Getattr(tm,"code"))) {
 	    String *code;
 	    ParmList *locals;
 	    ParmList *kwargs;
