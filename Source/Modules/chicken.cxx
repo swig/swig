@@ -1339,6 +1339,7 @@ CHICKEN::validIdentifier(String *s)
       Printf(stderr, "*** Unable to open 'chickenrun.swg'\n");
       s = NewString("");
     }
+    return s;
   }
 
   String *CHICKEN::defaultExternalRuntimeFilename() {
