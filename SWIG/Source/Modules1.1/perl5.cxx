@@ -1352,7 +1352,7 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     member_keys = NewString("");
 
     /* Add some symbols to the hash tables */
-    cpp_class_decl(Char(classname),Char(fullclassname),Char(ctype));
+    cpp_class_decl(Char(classname),Char(class_name),Char(ctype));
   }
 }
 
@@ -1846,15 +1846,22 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
 void
 PERL5::cpp_class_decl(char *name, char *rename, char *type) {
   String *stype;
+  String *fullname;
+
   if (blessed) {
     stype = NewString(name);
     SwigType_add_pointer(stype);
-    Setattr(classes,stype,rename);
+    if ((!compat) && (!strchr(rename,':'))) {
+      fullname = NewStringf("%s::%s",realpackage,rename);
+    } else {
+      fullname = NewString(rename);
+    }
+    Setattr(classes,stype,fullname);
     Delete(stype);
     if (strlen(type) > 0) {
       stype = NewStringf("%s %s",type,name);
       SwigType_add_pointer(stype);
-      Setattr(classes,stype,rename);
+      Setattr(classes,stype,fullname);
       Delete(stype);
     }
   }
