@@ -1164,16 +1164,16 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   SwigType *type;
   SwigType *mtype = 0;
   String   *pname;
-  Hash     *tm;
+  Hash     *tm = 0;
   String   *s = 0;
   String   *sdef = 0;
   ParmList *locals;
   ParmList *kw;
   char     temp[256];
-  String   *symname;
+  String   *symname, *qsn;
   String   *cname = 0;
   String   *clname = 0;
-
+  Symtab   *st;
   /* special case, we need to check for 'ref' call 
      and set the defaul code 'sdef' */
   if (Cmp(op,"newfree") == 0) { 
@@ -1184,7 +1184,26 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (!type) return sdef;
 
   pname = Getattr(node,"name");
-  tm = Swig_typemap_search(op,type,pname,&mtype);
+  st = Getattr(node,"sym:symtab");
+  qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
+  if (qsn && Len(qsn)) {
+    /* look qualified names first, such as
+       
+         int *Foo::foo(int bar)   ->  Foo::foo
+                                  ->  *::foo
+                                  ->  Foo::*
+    */
+    String *qname = NewStringf("%s::%s",qsn,pname);
+    tm = Swig_typemap_search(op,type,qname,&mtype);
+    Delete(qname);
+  }
+  Delete(qsn);
+  
+  /* look now for simple name, such as
+       
+       int *Foo::foo(int bar)   ->  foo
+  */
+  if (!tm) tm = Swig_typemap_search(op,type,pname,&mtype);
   if (!tm) return sdef;
 
   s = Getattr(tm,"code");
