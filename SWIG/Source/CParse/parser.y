@@ -536,6 +536,10 @@ static void patch_template_code(String *s) {
     String     *op;
     Hash       *kwargs;
   } tmap;
+  struct {
+    String     *type;
+    String     *us;
+  } ptype;
   SwigType     *type;
   String       *str;
   Parm         *p;
@@ -607,7 +611,7 @@ static void patch_template_code(String *s) {
 %type <p>        typemap_parm tm_list tm_tail;
 %type <id>       cpptype access_specifier;
 %type <node>     base_specifier
-%type <type>     type rawtype type_right opt_signed opt_unsigned cast_type cast_type_right;
+%type <type>     type rawtype type_right cast_type cast_type_right;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
 %type <dtype>    expr;
@@ -619,7 +623,7 @@ static void patch_template_code(String *s) {
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
 %type <loc>      includetype;
-%type <type>     pointer;
+%type <type>     pointer primitive_type;
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
@@ -628,6 +632,7 @@ static void patch_template_code(String *s) {
 %type <tmplstr>  template_parms;
 %type <ivalue>   cpp_vend;
 %type <ivalue>   rename_namewarn;
+%type <ptype>    type_specifier primitive_type_list ;
 
 %%
 
@@ -1712,6 +1717,9 @@ cpp_class_decl  :
 		       if (!decltype || !Len(decltype)) {
 			 name = Char(Getattr($9,"name"));
 			 Setattr($$,"tdname",name);
+			 if (!Getattr(classes,name)) {
+			   Setattr(classes,name,$$);
+			 }
 			 Setattr($$,"decl",decltype);
 		       }
 		     }
@@ -2694,24 +2702,11 @@ rawtype       : type_qualifier type_right {
                | type_right { $$ = $1; }
                ;
 
-type_right     : TYPE_INT { $$ = $1; }
-               | TYPE_SHORT opt_int { $$ = $1; }
-               | TYPE_LONG opt_int { $$ = $1; }
-	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long");  }
-               | TYPE_CHAR { $$ = $1; }
+type_right     : primitive_type { $$ = $1;
+/* Printf(stdout,"primitive = '%s'\n", $$);*/
+                }
                | TYPE_BOOL { $$ = $1; }
-               | TYPE_FLOAT { $$ = $1; }
-               | TYPE_DOUBLE { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
-               | TYPE_SIGNED opt_signed {
-		   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
-               | TYPE_UNSIGNED opt_unsigned {
-                   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
-/*               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }  */
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | ENUM ID { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
@@ -2761,28 +2756,108 @@ type_right     : TYPE_INT { $$ = $1; }
                }
                ;
 
-/* Optional signed types */
-
-opt_signed     : empty                       { $$ = 0; }
-               | TYPE_INT                    { $$ = $1; }
-               | TYPE_SHORT opt_int          { $$ = $1; }
-               | TYPE_LONG opt_int           { $$ = $1; }
-	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long"); }
-               | TYPE_CHAR                   { $$ = NewString("signed char"); }
+primitive_type : primitive_type_list {
+		 if (!$1.type) $1.type = NewString("int");
+		 if ($1.us) {
+		   $$ = NewStringf("%s %s", $1.us, $1.type);
+		   Delete($1.us);
+                   Delete($1.type);
+		 } else {
+                   $$ = $1.type;
+		 }
+		 if (Cmp($$,"signed int") == 0) {
+		   Delete($$);
+		   $$ = NewString("int");
+                 } else if (Cmp($$,"signed long") == 0) {
+		   Delete($$);
+                   $$ = NewString("long");
+                 } else if (Cmp($$,"signed short") == 0) {
+		   Delete($$);
+		   $$ = NewString("short");
+		 } else if (Cmp($$,"signed long long") == 0) {
+		   Delete($$);
+		   $$ = NewString("long long");
+		 }
+               }
                ;
 
-/* Optional unsigned types */
+primitive_type_list : type_specifier { 
+                 $$ = $1;
+               }
+               | type_specifier primitive_type_list {
+                    if ($1.us && $2.us) {
+		      Printf(stderr,"%s:%d. Extra %s specifier.\n", input_file, line_number, $2.us);
+		    }
+                    $$ = $2;
+                    if ($1.us) $$.us = $1.us;
+		    if ($1.type) {
+		      if (!$2.type) $$.type = $1.type;
+		      else {
+			int err = 0;
+			if ((Cmp($1.type,"long") == 0)) {
+			  if ((Cmp($2.type,"long") == 0) || (Cmp($2.type,"double") == 0)) {
+			    $$.type = NewStringf("long %s", $2.type);
+			  } else if (Cmp($2.type,"int") == 0) {
+			    $$.type = $1.type;
+			  } else {
+			    err = 1;
+			  }
+			} else if ((Cmp($1.type,"short")) == 0) {
+			  if (Cmp($2.type,"int") == 0) {
+			    $$.type = $1.type;
+			  } else {
+			    err = 1;
+			  }
+			} else if (Cmp($1.type,"int") == 0) {
+			  $$.type = $2.type;
+			} else if (Cmp($1.type,"double") == 0) {
+			  if (Cmp($2.type,"long") == 0) {
+			    $$.type = NewString("long double");
+			  } else {
+			    err = 1;
+			  }
+			}
+			if (err) {
+			  Printf(stderr,"%s:%d. Extra %s specifier.\n", input_file, line_number, $1.type);
+			}
+		      }
+		    }
+               }
+               ; 
 
-opt_unsigned   : empty                       { $$ = 0; }
-               | TYPE_INT                    { $$ = NewString("unsigned int"); }
-               | TYPE_SHORT opt_int          { $$ = NewString("unsigned short"); }
-               | TYPE_LONG opt_int           { $$ = NewString("unsigned long"); }
-	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("unsigned long long"); }
-               | TYPE_CHAR                   { $$ = NewString("unsigned char"); }
-               ;
 
-opt_int        : TYPE_INT { }
-               | empty { }
+type_specifier : TYPE_INT { 
+		    $$.type = NewString("int");
+                    $$.us = 0;
+               }
+               | TYPE_SHORT { 
+                    $$.type = NewString("short");
+                    $$.us = 0;
+                }
+               | TYPE_LONG { 
+                    $$.type = NewString("long");
+                    $$.us = 0;
+                }
+               | TYPE_CHAR { 
+                    $$.type = NewString("char");
+                    $$.us = 0;
+                }
+               | TYPE_FLOAT { 
+                    $$.type = NewString("float");
+                    $$.us = 0;
+                }
+               | TYPE_DOUBLE { 
+                    $$.type = NewString("double");
+                    $$.us = 0;
+                }
+               | TYPE_SIGNED { 
+                    $$.us = NewString("signed");
+                    $$.type = 0;
+                }
+               | TYPE_UNSIGNED { 
+                    $$.us = NewString("unsigned");
+                    $$.type = 0;
+                }
                ;
 
 definetype     : { scanner_check_typedef(); } expr {
@@ -2956,23 +3031,9 @@ cast_type      : type_qualifier cast_type_right {
                | cast_type_right { $$ = $1; }
                ;
 
-cast_type_right: TYPE_INT { $$ = $1; }
-               | TYPE_SHORT opt_int { $$ = $1; }
-               | TYPE_LONG opt_int { $$ = $1; }
-	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long");  }
-               | TYPE_CHAR { $$ = $1; }
+cast_type_right:  primitive_type { $$ = $1; }
                | TYPE_BOOL { $$ = $1; }
-               | TYPE_FLOAT { $$ = $1; }
-               | TYPE_DOUBLE { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
-               | TYPE_SIGNED opt_signed {
-		   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
-               | TYPE_UNSIGNED opt_unsigned {
-                   if ($2) $$ = $2;
-		   else $$ = $1;
-	       }
                | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | ENUM ID { $$ = NewStringf("enum %s", $2); }
