@@ -107,6 +107,7 @@ check-aliveness:
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	@$(skip-ruby) || ./$(TARGET) -ruby -help
 	@$(skip-ocaml) || ./$(TARGET) -ocaml -help
+	@($skip-php4) || ./$(TARGET) -php4 -help
 
 TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
 PERL5_EXAMPLES = class constants constants2 funcptr import multimap pointer reference shadow simple value variables
@@ -116,10 +117,11 @@ GUILE_EXAMPLES = constants matrix simple port multimap multivalue
 MZSCHEME_EXAMPLES = multimap simple
 RUBY_EXAMPLES = class constants enum funcptr funcptr2 functor import import_template mpointer multimap operator overloading pointer reference simple template value variables
 OCAML_EXAMPLES = simple
+PHP4_EXAMPLES = class constants enum funcptr pointer reference shadow simple sync value variables
 
 check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 		check-java-examples check-guile-examples check-mzscheme-examples \
-		check-ruby-examples check-ocaml-examples
+		check-ruby-examples check-ocaml-examples check-php4-examples
 
 check-tcl-examples:
 	@if $(skip-tcl); then			\
@@ -214,7 +216,7 @@ check-ruby-examples:
 
 check-ocaml-examples:
 	@if $(skip-ocaml); then			\
-	  echo skipping Ruby $(CHECK_CLEAN);		\
+	  echo skipping ocaml $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(OCAML_EXAMPLES); do		\
@@ -225,9 +227,22 @@ check-ocaml-examples:
 	  test $$passed = true;			\
 	fi
 
+check-php4-examples:
+	@if $(skip-php4); then			\
+	  echo skipping php4 $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(PHP4_EXAMPLES); do		\
+	    echo $(CHECK_CLEAN)ing Examples/php4/$$a;	\
+	    (cd Examples/php4/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
 check-test-suite: check-tcl-test-suite check-perl5-test-suite check-python-test-suite \
 		check-java-test-suite check-guile-test-suite check-mzscheme-test-suite \
-		check-ruby-test-suite check-ocaml-test-suite
+		check-ruby-test-suite check-ocaml-test-suite check-php4-test-suite
 
 check-tcl-test-suite:
 	@if $(skip-tcl); then			\
@@ -309,6 +324,16 @@ check-ocaml-test-suite:
 	  test $$passed = true;			\
 	fi
 
+check-php4-test-suite:
+	@if $(skip-php4); then			\
+	  echo skipping php4 test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/php4 && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
 TCL_GIFPLOT_EXAMPLES = full mandel simple
 PERL_GIFPLOT_EXAMPLES = full shadow simple
 PYTHON_GIFPLOT_EXAMPLES = full shadow simple
@@ -316,8 +341,9 @@ JAVA_GIFPLOT_EXAMPLES = full shadow simple
 GUILE_GIFPLOT_EXAMPLES = full simple
 RUBY_GIFPLOT_EXAMPLES = full shadow simple
 OCAML_GIFPLOT_EXAMPLES = full simple
+PHP4_GIFPLOT_EXAMPLES = full simple
 
-check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot check-ocaml-gifplot
+check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot check-ocaml-gifplot check-php4-gifplot
 
 gifplot-library:
 	@echo $(CHECK_CLEAN)ing Examples/GIFPlot/Lib
@@ -414,6 +440,19 @@ check-ocaml-gifplot: gifplot-library
 	  test $$passed = true;			\
 	fi
 
+check-php4-gifplot: gifplot-library
+	@if $(skip-php4); then			\
+	  echo skipping php4 $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(PHP4_GIFPLOT_EXAMPLES); do	\
+	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/php4/$$a;	\
+	    (cd Examples/GIFPlot/php4/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
 check: check-aliveness check-examples check-gifplot-examples check-test-suite
 
 #####################################################################
@@ -472,6 +511,9 @@ clean-mzscheme-examples:
 clean-ruby-examples:
 	@$(MAKE) -k -s check-ruby-examples CHECK_CLEAN=clean
 
+clean-php4-examples:
+	@$(MAKE) -k -s check-php4-examples CHECK_CLEAN=clean
+
 
 clean-tcl-test-suite:
 	@$(MAKE) -k -s check-tcl-test-suite CHECK_CLEAN=clean
@@ -493,6 +535,9 @@ clean-mzscheme-test-suite:
 
 clean-ruby-test-suite:
 	@$(MAKE) -k -s check-ruby-test-suite CHECK_CLEAN=clean
+
+clean-php4-test-suite:
+	@$(MAKE) -k -s check-php4-test-suite CHECK_CLEAN=clean
 
 
 
