@@ -5,6 +5,9 @@
 
 %module imports_a
 
+%warnfilter(801) A::MemberEnum; /* Ruby, wrong constant name */
+%warnfilter(801) GlobalEnum; /* Ruby, wrong constant name */
+
 %{ 
   #include "imports_a.h" 
 %} 
