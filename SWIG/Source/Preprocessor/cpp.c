@@ -33,7 +33,7 @@ static void cpp_error(DOHString *file, int line, char *fmt, ...) {
   if (silent_errors) return;
   va_start(ap,fmt);
   if (line > 0) {
-    Printf(stderr,"%s:%d ", file, line);
+    Printf(stderr,"%s:%d. ", file, line);
   } else {
     Printf(stderr,"%s:EOF ",file);
   }
