@@ -1,5 +1,6 @@
 %module using_namespace
 
+%warnfilter(802, 813) Hi<hello::Hello, hi::hi0>; // Ruby, Java multiple inheritance
 
 %inline %{
   namespace hello
