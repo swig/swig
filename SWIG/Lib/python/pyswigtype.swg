@@ -19,13 +19,15 @@
    if (SWIG_arg_fail($argnum)) SWIG_fail;";
 
 /* Additional check for null references */
-%typemap(in) SWIGTYPE & 
-  "SWIG_Python_ConvertPtr($input, (void **)&$1, $descriptor, SWIG_POINTER_EXCEPTION | $disown);
+%typemap(in) SWIGTYPE & {  
+  SWIG_Python_ConvertPtr($input, (void **)&$1, $descriptor, SWIG_POINTER_EXCEPTION | $disown);
    if (SWIG_arg_fail($argnum)) SWIG_fail;
    if ($1 == NULL) {
-     SWIG_null_ref(SWIG_TypePrettyName($descriptor));
+     SWIG_null_ref("$basetype");
    }
-   if (SWIG_arg_fail($argnum)) SWIG_fail;";
+   if (SWIG_arg_fail($argnum)) SWIG_fail;
+}
+
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE  {
@@ -33,7 +35,7 @@
   SWIG_Python_ConvertPtr($input, (void **)&argp, $&descriptor, SWIG_POINTER_EXCEPTION);
    if (SWIG_arg_fail($argnum)) SWIG_fail;
    if (argp == NULL) {
-     SWIG_null_ref(SWIG_TypePrettyName($&descriptor));
+     SWIG_null_ref("$basetype");
    }
    if (SWIG_arg_fail($argnum)) SWIG_fail;
    $1 = *argp;
@@ -41,12 +43,13 @@
 
 
 /* Pointer to a class member */
-%typemap(in) SWIGTYPE (CLASS::*) 
-  "if ((SWIG_ConvertPacked($input,(void *)(&$1),sizeof($type),$descriptor,0)) == -1) {
-     SWIG_type_error(SWIG_TypePrettyName($descriptor),$input);
+%typemap(in) SWIGTYPE (CLASS::*) {  
+  if ((SWIG_ConvertPacked($input,(void *)(&$1),sizeof($type),$descriptor,0)) == -1) {
+     SWIG_type_error("$basetype",$input);
    }
-   if (SWIG_arg_fail($argnum)) SWIG_fail;
-  ";
+  if (SWIG_arg_fail($argnum)) SWIG_fail;
+}
+
 
 
 /* -----------------------------------------------------------------------------

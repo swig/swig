@@ -11,9 +11,9 @@
     int res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred())
-	SWIG_type_error(SWIG_TypePrettyName($&1_descriptor), $input);
+	SWIG_type_error("$basetype", $input);
     } else if (!ptr) {
-      SWIG_null_ref(SWIG_TypePrettyName($&1_descriptor));
+      SWIG_null_ref("$basetype");
     }
     if (SWIG_arg_fail($argnum)) SWIG_fail;
     $1 = *ptr;
@@ -24,9 +24,9 @@
     res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred())
-	SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+	SWIG_type_error("$basetype", $input);
     } else if (!ptr) {
-      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      SWIG_null_ref("$basetype");
     }
     if (SWIG_arg_fail($argnum)) SWIG_fail;
     $1 = ptr;
@@ -44,11 +44,11 @@
     int res = asptr_meth($input, &ptr);
     if (!res) {
       if (!PyErr_Occurred()) 
-	SWIG_type_error(SWIG_TypePrettyName($1_descriptor), $input);
+	SWIG_type_error("$basetype", $input);
       SWIG_append_msg(" C/C++ variable '$name'");
       return 1;
     } else if (!ptr) {
-      SWIG_null_ref(SWIG_TypePrettyName($1_descriptor));
+      SWIG_null_ref("$basetype");
       SWIG_append_msg(" C/C++ variable '$name'");
       return 1;
     }
