@@ -51,7 +51,7 @@ CParse: Source/Include/swigconfig.h
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
 
-.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor DOH 
+.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor DOH runtime
 
 # Config file must be generated at make time, rather than at configure
 # time because it paths need to be substituted.
@@ -61,14 +61,14 @@ Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.s
 
 ####
 
-skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
-skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
-skip-python	= [ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
-skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
-skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
-skip-mzscheme	= [ -z "@MZC@" ]
-skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
-skip-php4	= [ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
+skip-tcl	= @[ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
+skip-perl	= @[ -z "@PERL@" -o -z "@PERL5EXT@" ]
+skip-python	= @[ -z "@PYINCLUDE@" -o -z "@PYLIB@" ]
+skip-java	= @[ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
+skip-guile	= @[ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
+skip-mzscheme	= @[ -z "@MZC@" ]
+skip-ruby	= @[ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
+skip-php4	= @[ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
 
 #####################################################################
 # Runtime libraries
