@@ -809,7 +809,8 @@ String *SwigType_prefix(SwigType *t) {
  * Results in "Foo"
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_templateprefix(SwigType *t) {
+String *
+SwigType_templateprefix(SwigType *t) {
   char *c;
   String *r;
   String *s = NewString(t);
@@ -837,7 +838,8 @@ SwigType *SwigType_templateprefix(SwigType *t) {
  * returns "::bar"
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_templatesuffix(SwigType *t) {
+String *
+SwigType_templatesuffix(SwigType *t) {
   char *c;
   c = Char(t);
   while (*c) {
@@ -862,9 +864,9 @@ SwigType *SwigType_templatesuffix(SwigType *t) {
  * Returns the template part
  * ----------------------------------------------------------------------------- */
 
-SwigType *
+String *
 SwigType_templateargs(SwigType *t) {
-    String *result = NewString("");
+  String *result = NewString("");
   char *c;
   c = Char(t);
   while (*c) {

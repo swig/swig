@@ -1029,6 +1029,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
                clsname = make_class_name($3);
 	       Setattr($$,"name",clsname);
+
 	       if (current_class) {
 		 /* We add the extension to the previously defined class */
 		 appendChild($$,$6);
@@ -1044,6 +1045,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		   Setattr(extendhash,clsname,$$);
 		 }
 	       }
+
 	       current_class = 0;
 	       Delete(Classprefix);
 	       Delete(clsname);
@@ -1772,6 +1774,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                   Parm *p, *tp;
 		  Node *n;
 		  Node *nspace = 0, *nspace_inner = 0;
+		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  $$ = 0;
@@ -1915,6 +1918,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      }
 		      Delattr($$,"templatetype");
 		      Setattr($$,"template",n);
+		      tnode = $$;
 		      Setfile($$,cparse_file);
 		      Setline($$,cparse_line);
 		      Delete(temparms);
@@ -1953,8 +1957,14 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			   the class */
 			
 			if (extendhash) {
-			  String *clsname = Getattr($$,"name");
-			  Node *am = Getattr(extendhash,clsname);
+			  String *clsname;
+			  Node *am;
+			  if (Namespaceprefix) {
+			    clsname = NewStringf("%s::%s", Namespaceprefix, Getattr($$,"name"));
+			  } else {
+			    clsname = Getattr($$,"name");
+			  }
+			  am = Getattr(extendhash,clsname);
 			  if (am) {
 			    merge_extensions(am);
 			    appendChild($$,am);

@@ -893,6 +893,7 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 
   result = NewString("");
   elements = SwigType_split(t);
+
   len = Len(elements);
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
