@@ -1585,6 +1585,47 @@ class JAVA : public Language {
       if (*Char(destruct))
         Printv(proxy_class_def, "\n  ", "public void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
+
+    /* Insert declaration for directordisconnect/directordisconnect_derived typemap, if this class has directors enabled */
+    if (Swig_directorclass(n)) {
+      const String *disconn_tm = NULL;
+      Node *disconn_attr = NewHash();
+      String *disconn_methodname = NULL;
+
+      if (derived) {
+	disconn_tm = typemapLookup("directordisconnect_derived", typemap_lookup_type, WARN_NONE, disconn_attr);
+	disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect_derived:methodname");
+      } else {
+	disconn_tm = typemapLookup("directordisconnect", typemap_lookup_type, WARN_NONE, disconn_attr);
+	disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
+      }
+
+      if (*Char(disconn_tm)) {
+	if (disconn_methodname != NULL) {
+	  String *disconn_call = Copy(disconn_tm);
+	  String *disconn_destruct = Copy(destruct_methodname);
+	  Append(disconn_destruct, "()");
+	  Replaceall(disconn_call, "$jnicall", disconn_destruct);
+	  Printv(proxy_class_def,
+		 "\n",
+		 "  protected void ", disconn_methodname, "() ",
+		 disconn_call,
+		 "\n",
+		 NIL);
+	  Delete(disconn_call);
+	  Delete(disconn_destruct);
+	} else {
+	  Swig_error(input_file, line_number,
+	      "No directordisconnect%s method name for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+	}
+      } else {
+	Swig_error(input_file, line_number,
+	    "No directordisconnect%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
+
+      Delete(disconn_attr);
+    }
+
     Delete(attributes);
     Delete(destruct);
 
@@ -1593,14 +1634,6 @@ class JAVA : public Language {
         typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
         "\n",
         NIL);
-
-    /* Insert declaration for swig_director_connect(), if this class has directors enabled */
-    if (Swig_directorclass(n)) {
-      Printf(proxy_class_def, "  protected void swigDirectorDisconnect() {\n");
-      Printf(proxy_class_def, "    swigCMemOwn = false;\n");
-      Printf(proxy_class_def, "    %s();\n", destruct_methodname);
-      Printf(proxy_class_def, "  }\n\n");
-    }
 
     // Substitute various strings into the above template
     Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
@@ -2752,8 +2785,8 @@ class JAVA : public Language {
    * --------------------------------------------------------------- */
 
   String *canonicalizeJNIDescriptor(String *descriptor_in, SwigType *type) {
-
-    String *pkg_path = Swig_typemap_lookup_new("javapackage", type, "", 0);
+    Parm   *tp = NewParm(type, "");
+    String *pkg_path = Swig_typemap_lookup_new("javapackage", tp, "", 0);
 
     if (pkg_path && Len(pkg_path) != 0) {
       Replaceall(pkg_path, ".", "/");
@@ -2773,6 +2806,7 @@ class JAVA : public Language {
 
     if (pkg_path != package_path)
       Delete(pkg_path);
+    Delete(tp);
 
     return descriptor_out;
   }
@@ -3424,6 +3458,52 @@ class JAVA : public Language {
     return Language::classDirectorInit(n);
   }
 
+  /* ----------------------------------------------------------------------
+   * classDirectorDestructor()
+   * ---------------------------------------------------------------------- */
+
+  int classDirectorDestructor(Node *n) {
+    Node *current_class = getCurrentClass();
+    String *full_classname = Getattr(current_class, "name");
+    String *classname= Swig_class_name(current_class);
+    Wrapper *w = NewWrapper();
+
+    if (Getattr(n,"throw")) {
+      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
+      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+    } else {
+      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
+      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+    }
+
+    /* Ensure that correct directordisconnect/_derived typemap's method name is called
+     * here: */
+
+    const String *disconn_tm = NULL;
+    Node *disconn_attr = NewHash();
+    String *disconn_methodname = NULL;
+
+    if (Getattr(current_class, "bases") != NULL) {
+      disconn_tm = typemapLookup("directordisconnect_derived", full_classname, WARN_NONE, disconn_attr);
+      disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect_derived:methodname");
+    } else {
+      disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
+      disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
+    }
+
+    Printv(w->code,
+	   "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n",
+	   "}\n",
+	   NIL);
+
+    Wrapper_print(w, f_directors);
+
+    DelWrapper(w);
+    Delete(disconn_attr);
+    Delete(classname);
+    return SWIG_OK;
+  }
+
   /* ------------------------------------------------------------
    * classDirectorEnd()
    * ------------------------------------------------------------ */
@@ -3486,6 +3566,7 @@ class JAVA : public Language {
       Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
       Printf(w->code, "  if (methods[i].base_methid == NULL) {\n");
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
+      Printf(w->code, "    if (methods[i].base_methid == NULL) return;\n");
       Printf(w->code, "  }\n");
       Printf(w->code, "  swig_override[i] = false;\n");
       Printf(w->code, "  if (derived) {\n");
