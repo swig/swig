@@ -364,7 +364,7 @@ uninstall: uninstall-main uninstall-lib uninstall-m4
 	@echo "Uninstall complete"
 
 uninstall-main:
-	@echo "Uninstalling $(BIN_DIR)/$(TARGET)"
+	@echo "Uninstalling $(DESTDIR)$(BIN_DIR)/$(TARGET)"
 	rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 uninstall-lib:
@@ -372,8 +372,8 @@ uninstall-lib:
 	rm -rf $(DESTDIR)$(SWIG_LIB)/
 
 uninstall-m4:
-	@echo "Uninstalling $(M4_INSTALL_DIR)/swig.m4"
-	rm -f $(M4_INSTALL_DIR)/swig.m4
+	@echo "Uninstalling $(DESTDIR)$(M4_INSTALL_DIR)/swig.m4"
+	rm -f $(DESTDIR)$(M4_INSTALL_DIR)/swig.m4
 
 ############################################################################
 # DIST and other maintenance
