@@ -1564,7 +1564,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     String  *macrocode = NewString("");
 		     Printf(macrocode, "%%_template_%s(__name,%s)\n", $6,$3);
 		     Printf(macrocode,"%%{\n");
-		     Printf(macrocode,"typedef %s<%s> __name;\n", $6,$3);
+		     Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3);
 		     Printf(macrocode,"%%}\n");
 
 		     Printf(macrocode,"class __name ");
@@ -1579,7 +1579,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Replace(CCode,$6,"__name", DOH_REPLACE_ID);
 		     Printf(macrocode," %s;\n", CCode);
 		     /* Include a reverse typedef to associate templated version with renamed version */
-		     Printf(macrocode,"typedef __name %s<%s>;\n", $6,$3);
+		     Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3);
 		     /*		     Printf(stdout,"%s\n", macrocode); */
 		     Seek(macrocode,0, SEEK_SET);
 		     Setline(macrocode,$1-4);
