@@ -265,7 +265,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
 	  /* Is a DOH object. */
- 	  if (DohIsString(doh)) {
+ 	  if (DohIsString(doh) && (ObjType(doh) == DOHTYPE_STRING)) {
 	    Sval = doh;
 	  } else {
 	    Sval = Str(doh);
