@@ -357,13 +357,12 @@ void Language::moduleDirective(Node *n) {
 void Language::nativeDirective(Node *n) {
   
   if (!ImportMode) {
-    String *name = Getname(n);
-    String *sname = Getattr(n,"scriptname");
+    String *name = Getattr(n,"cname");
+    String *symname = Getsymname(n);
     SwigType *type = Gettype(n);
-    SwigType *decl = Getdecl(n);
     Parm    *parms = Getparms(n);
     
-    /* need to implement */
+    lang->add_native(Char(name),Char(symname),type,parms);
   }
 }
 

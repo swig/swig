@@ -804,8 +804,9 @@ name_directive : NAME LPAREN idstring RPAREN {
 
 native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
                  $$ = new_node("native");
-		 Setname($$,$6);
-		 Setattr($$,"scriptname",$3);
+		 Setname($$,$3);
+		 Setattr($$,"cname",$6);
+	         add_symbols($$);
 	       }
                | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
 		 if (!SwigType_isfunction($7.type)) {
@@ -816,11 +817,13 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		     /* Need check for function here */
 		     SwigType_push($6,$7.type);
 		     $$ = new_node("native");
-		     Setname($$,$7.id);
+	             Setname($$,$3);
+		     Setattr($$,"cname",$7.id);
 		     Settype($$,$6);
 		     Setparms($$,$7.parms);
 		     Setdecl($$,$7.type);
 		 }
+	         add_symbols($$);
 	       }
                ;
 
