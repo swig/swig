@@ -153,19 +153,43 @@ examples that illustrate different topics.
 <H2><a name="Preface_nn9"></a>1.8 Backwards Compatibility</H2>
 
 
+<p>
 If you are a previous user of SWIG, don't expect recent versions of
 SWIG to provide backwards compatibility.  In fact, backwards
 compatibility issues may arise even between successive 1.3.x releases.
-Although these incompatibilities are regretable, SWIG-1.3 is an active
+Although these incompatibilities are regrettable, SWIG-1.3 is an active
 development project.  The primary goal of this effort is to make SWIG
 better---a process that would simply be impossible if the developers
 are constantly bogged down with backwards compatibility issues.
+</p>
 
 <p>
 On a positive note, a few incompatibilities are a small price to pay
 for the large number of new features that have been
 added---namespaces, templates, smart pointers, overloaded methods,
 operators, and more.
+</p>
+
+
+<p>
+If you need to work with different versions of SWIG and backwards
+compatibility is an issue, you can use the SWIG_VERSION preprocessor
+symbol which holds the version of SWIG being executed.
+SWIG_VERSION is a hexadecimal integer such as 0x010311 (corresponding to SWIG-1.3.11).
+This can be used in an interface file to define different typemaps, take
+advantage of different features etc:
+</p>
+
+<blockquote><pre>
+#if SWIG_VERSION &gt;= 0x010311
+/* Use some fancy new feature */
+#endif
+</pre></blockquote>
+
+<p>
+Note: The version symbol is not defined in the generated SWIG
+wrapper file. The SWIG preprocessor has defined SWIG_VERSION since SWIG-1.3.11.
+</p>
 
 <H2><a name="Preface_nn10"></a>1.9 Credits</H2>
 
