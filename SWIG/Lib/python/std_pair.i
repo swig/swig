@@ -119,9 +119,11 @@ namespace std {
     typedef U* second_type;
     
     %traits_swigtype(T);
+    %traits_swigtype(U);
       
     %fragment(SWIG_Traits_frag(std::pair<T,U* >), "header",
 	      fragment=SWIG_Traits_frag(T),
+	      fragment=SWIG_Traits_frag(U),
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T,U* > > {
@@ -149,16 +151,18 @@ namespace std {
     typedef T* fisrt_type;
     typedef U second_type;
     
+    %traits_swigtype(T);
     %traits_swigtype(U);
       
     %fragment(SWIG_Traits_frag(std::pair<T*,U >), "header",
+	      fragment=SWIG_Traits_frag(T),
 	      fragment=SWIG_Traits_frag(U),
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T*,U > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::pair<" #T *"," #U " >";
+	    return "std::pair<" #T " *," #U " >";
 	  }
 	};
       }
@@ -179,14 +183,19 @@ namespace std {
   template <class T, class U > struct pair<T*, U*> {
     typedef T* fisrt_type;
     typedef U* second_type;
+
+    %traits_swigtype(T);
+    %traits_swigtype(U);
       
     %fragment(SWIG_Traits_frag(std::pair<T*,U* >), "header",
+	      fragment=SWIG_Traits_frag(T),
+	      fragment=SWIG_Traits_frag(U),
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T*,U* > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::pair<" #T *"," #U " * >";
+	    return "std::pair<" #T " *," #U " * >";
 	  }
 	};
       }
@@ -211,6 +220,6 @@ namespace std {
   %std_definst_2(pair, __VA_ARGS__);
 %enddef
 
-#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+#if !defined(SWIG_STD_NOEXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes_2(%std_pair_ptypen);
 #endif

@@ -140,6 +140,6 @@ namespace std {
   %std_definst_2(multimap, __VA_ARGS__);
 %enddef
 
-#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+#if !defined(SWIG_STD_NOEXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes_2(%std_multimap_ptypen);
 #endif
