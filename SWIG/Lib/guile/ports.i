@@ -1,5 +1,5 @@
 /* ports.i --- Guile typemaps for handling ports -*- c -*-
-   Copyright (C) 2000 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
+   Copyright (C) 2000, 2004 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
 
    $Header$
 */
@@ -14,11 +14,19 @@
   #include <unistd.h>
 %}
 
-/* Feed temporary FILE * arguments from file ports */
+/* This typemap for FILE * accepts
+   (1) FILE * pointer objects,
+   (2) Scheme file ports.  In this case, it creates a temporary C stream
+       which reads or writes from a dup'ed file descriptor.
+ */
 
-%typemap(in, doc="$NAME is a port") FILE *
+%typemap(in, doc="$NAME is a file port or a FILE * pointer") FILE *
+  ( int closep )
 {
-  if(!(SCM_FPORTP($input)))
+  if (SWIG_ConvertPtr($input, (void**) &($1), $1_descriptor, 0) == 0) {
+    closep = 0;
+  }
+  else if(!(SCM_FPORTP($input)))
     scm_wrong_type_arg("$name", $argnum, $input);
   else {
     int fd;
@@ -30,14 +38,16 @@
     $1=fdopen(fd,
 		   SCM_OUTPUT_PORT_P($input)
 		   ? (SCM_INPUT_PORT_P($input)
-		      ? "rw" : "w")
+		      ? "r+" : "w")
 		   : "r");
     if($1==NULL)
       scm_misc_error("$name", strerror(errno), SCM_EOL);
+    closep = 1;
   }
 }
 
-%typemap(freearg) FILE* {
-  fclose($1);
+%typemap(freearg) FILE*  {
+  if (closep$argnum)
+    fclose($1);
 }
 
