@@ -82,7 +82,8 @@ static  String   *var_stubs = 0;          /* Variable stubs */
 static  String   *member_keys = 0;        /* Keys for all member data */
 static  String   *exported = 0;           /* Exported symbols */
 static  String   *pragma_include = 0;
-
+static  Hash     *operators = 0;
+static  int       have_operators = 0;
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 static DOH *is_shadow(SwigType *t) {
@@ -1389,8 +1390,10 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
   this->Language::cpp_open_class(classname, rname, ctype, strip);
   if (blessed) {
     have_constructor = 0;
+    have_operators = 0;
     have_destructor = 0;
     have_data_members = 0;
+    operators = NewHash();
 
     Delete(class_name);     class_name = 0;
     Delete(class_type);     class_type =0;
@@ -1438,6 +1441,24 @@ PERL5::cpp_close_class() {
 	   "\npackage ", fullclassname, ";\n",
 	   0);
 
+    if (have_operators) {
+	Printf(pm, "use overload\n");
+	DOH *key;
+	for (key = Firstkey(operators); key; key = Nextkey(operators)) {
+	    char *name = Char(key);
+//	    fprintf(stderr,"found name: <%s>\n", name);
+	    if (strstr(name, "operator_equal_to")) {
+		Printv(pm, tab4, "\"==\" => sub { $_[0]->operator_equal_to($_[1])},\n",0);
+	    } else if (strstr(name, "operator_not_equal_to")) {
+		Printv(pm, tab4, "\"!=\" => sub { $_[0]->operator_not_equal_to($_[1])},\n",0);
+	    } else if (strstr(name, "operator_assignment")) {
+		Printv(pm, tab4, "\"=\" => sub { $_[0]->operator_assignment($_[1])},\n",0);
+	    } else {
+		fprintf(stderr,"Unknown operator: %s\n", name);
+	    }
+	}
+	Printv(pm, tab4, "\"fallback\" => 1;\n",0);	    
+    }
     /* If we are inheriting from a base class, set that up */
 
     Printv(pm, "@ISA = qw( ",realpackage, 0);
@@ -1550,6 +1571,7 @@ PERL5::cpp_close_class() {
 #endif
 
     }
+    Delete(operators);     operators = 0;
   }
 }
 
@@ -1583,6 +1605,22 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     else
       realname = iname;
   
+  if (strstr(realname, "operator") == realname) {
+      if (strstr(realname, "operator_equal_to")) {
+	  DohSetInt(operators,"operator_equal_to",1);
+	  have_operators = 1;
+      } else if (strstr(realname, "operator_not_equal_to")) {
+	  DohSetInt(operators,"operator_not_equal_to",1);
+	  have_operators = 1;
+      } else if (strstr(realname, "operator_assignment")) {
+	  DohSetInt(operators,"operator_assignment",1);
+	  have_operators = 1;
+      } else {
+	  fprintf(stderr,"Unknown operator: %s\n", realname);
+      }
+//      fprintf(stderr,"Found member_func operator: %s\n", realname);
+  }
+
     Printf(cname,"%s::%s",class_name,realname);
     Printv(func,
       "sub ", realname, " {\n",
