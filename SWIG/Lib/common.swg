@@ -25,13 +25,7 @@
 #  define SWIGEXPORT(a) a
 #endif
 
-#define SWIGIMPORT(a) a
-
-#ifdef SWIG_GLOBAL
-#  define SWIGRUNTIME(a) SWIGEXPORT(a)
-#else
-#  define SWIGRUNTIME(a) static a
-#endif
+#define SWIGRUNTIME(x) static x
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,27 +44,11 @@ typedef struct swig_type_info {
   struct swig_type_info  *prev;
 } swig_type_info;
 
-#ifdef SWIG_NOINCLUDE
-
-SWIGIMPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
-SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
-SWIGIMPORT(void *)           SWIG_TypeCast(swig_type_info *, void *);
-SWIGIMPORT(swig_type_info *) SWIG_TypeDynamicCast(swig_type_info *, void **);
-SWIGIMPORT(const char *)     SWIG_TypeName(const swig_type_info *);
-SWIGIMPORT(const char *)     SWIG_TypePrettyName(const swig_type_info *);
-SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
-SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
-SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
-SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
-SWIGIMPORT(void)             SWIG_PropagateClientData(swig_type_info *type);
-
-#else
-
 static swig_type_info *swig_type_list = 0;
 static swig_type_info **swig_type_list_handle = &swig_type_list;
 
 /* Register a type mapping with the type-checking */
-SWIGRUNTIME(swig_type_info *)
+static swig_type_info *
 SWIG_TypeRegister(swig_type_info *ti) {
   swig_type_info *tc, *head, *ret, *next;
   /* Check to see if this type has already been registered */
@@ -110,7 +88,7 @@ SWIG_TypeRegister(swig_type_info *ti) {
 }
 
 /* Check the typename */
-SWIGRUNTIME(swig_type_info *) 
+static swig_type_info *
 SWIG_TypeCheck(char *c, swig_type_info *ty) {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
@@ -136,14 +114,14 @@ SWIG_TypeCheck(char *c, swig_type_info *ty) {
 }
 
 /* Cast a pointer up an inheritance hierarchy */
-SWIGRUNTIME(void *) 
+static inline void *
 SWIG_TypeCast(swig_type_info *ty, void *ptr) {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
 }
 
 /* Dynamic pointer casting. Down an inheritance hierarchy */
-SWIGRUNTIME(swig_type_info *) 
+static swig_type_info *
 SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
   swig_type_info *lastty = ty;
   if (!ty || !ty->dcast) return ty;
@@ -155,7 +133,7 @@ SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
 }
 
 /* Return the name associated with this type */
-SWIGRUNTIME(const char *)
+static inline const char *
 SWIG_TypeName(const swig_type_info *ty) {
   return ty->name;
 }
@@ -163,7 +141,7 @@ SWIG_TypeName(const swig_type_info *ty) {
 /* Return the pretty name associated with this type,
    that is an unmangled type name in a form presentable to the user.
 */
-SWIGRUNTIME(const char *)
+static const char *
 SWIG_TypePrettyName(const swig_type_info *type) {
   /* The "str" field contains the equivalent pretty names of the
      type, separated by vertical-bar characters.  We choose
@@ -218,7 +196,7 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
   
 
 /* Search for a swig_type_info structure */
-SWIGRUNTIME(swig_type_info *)
+static swig_type_info *
 SWIG_TypeQuery(const char *name) {
   swig_type_info *ty = *swig_type_list_handle;
   while (ty) {
@@ -230,7 +208,7 @@ SWIG_TypeQuery(const char *name) {
 }
 
 /* Set the clientdata field for a type */
-SWIGRUNTIME(void)
+static void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_type_info *tc, *equiv;
   if (ti->clientdata == clientdata) return;
@@ -250,7 +228,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 }
 
 /* Pack binary data into a string */
-SWIGRUNTIME(char *)
+static char *
 SWIG_PackData(char *c, void *ptr, size_t sz) {
   static char hex[17] = "0123456789abcdef";
   unsigned char *u = (unsigned char *) ptr;
@@ -265,7 +243,7 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
 }
 
 /* Unpack binary data from a string */
-SWIGRUNTIME(char *)
+static char *
 SWIG_UnpackData(char *c, void *ptr, size_t sz) {
   register unsigned char uu = 0;
   register int d;
@@ -292,7 +270,7 @@ SWIG_UnpackData(char *c, void *ptr, size_t sz) {
 * of equivalent types.  It is like calling
 * SWIG_TypeClientData(type, clientdata) a second time.
 */
-SWIGRUNTIME(void) 
+static void
 SWIG_PropagateClientData(swig_type_info *type) {
   swig_type_info *equiv = type->next;
   swig_type_info *tc;
@@ -309,8 +287,6 @@ SWIG_PropagateClientData(swig_type_info *type) {
     equiv = equiv->next;
   }
 }
-
-#endif
 
 #ifdef __cplusplus
 }

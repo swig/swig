@@ -1,3 +1,28 @@
+/* Common SWIG API */
+#define SWIG_ConvertPtr(obj, pp, type, flags) \
+  SWIG_Ruby_ConvertPtr(obj, pp, type, flags)
+#define SWIG_NewPointerObj(p, type, flags) \
+  SWIG_Ruby_NewPointerObj(p, type, flags)
+#define SWIG_MustGetPtr(p, type, argnum, flags) \
+  SWIG_Ruby_MustGetPtr(p, type, argnum, flags)
+
+/* Ruby-specific SWIG API */
+
+#define SWIG_InitRuntime() \
+  SWIG_Ruby_InitRuntime()
+#define SWIG_define_class(ty) \
+  SWIG_Ruby_define_class(ty)
+#define SWIG_NewClassInstance(value, ty) \
+  SWIG_Ruby_NewClassInstance(value, ty)
+#define SWIG_MangleStr(value) \
+  SWIG_Ruby_MangleStr(value)
+#define SWIG_CheckConvert(value, ty) \
+  SWIG_Ruby_CheckConvert(value, ty)
+#define SWIG_NewPackedObj(ptr, sz, ty) \
+  SWIG_Ruby_NewPackedObj(ptr, sz, ty)
+#define SWIG_ConvertPacked(obj, ptr, sz, ty, flags) \
+  SWIG_Ruby_ConvertPacked(obj, ptr, sz, ty, flags)
+
 /* rubydef.swg */
 #ifdef __cplusplus
 extern "C" {
@@ -8,7 +33,7 @@ static VALUE _cSWIG_Pointer = Qnil;
 static VALUE swig_runtime_data_type_pointer = Qnil;
 
 /* Initialize Ruby runtime support */
-SWIGRUNTIME(void)
+static void
 SWIG_Ruby_InitRuntime(void)
 {
     VALUE pointer;
@@ -17,7 +42,6 @@ SWIG_Ruby_InitRuntime(void)
         _mSWIG = rb_define_module("SWIG");
     }
     
-#ifdef SWIG_DISABLE_RUNTIME
     /* first check if pointer already created */
     pointer = rb_gv_get("$swig_runtime_data_type_pointer");
     if (pointer != Qnil) {
@@ -29,11 +53,10 @@ SWIG_Ruby_InitRuntime(void)
       swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, swig_type_list_handle);
       rb_define_readonly_variable("$swig_runtime_data_type_pointer", &swig_runtime_data_type_pointer);
     }
-#endif
 }
 
 /* Define Ruby class for C type */
-SWIGRUNTIME(void)
+static void
 SWIG_Ruby_define_class(swig_type_info *type)
 {
     VALUE klass;
@@ -48,7 +71,7 @@ SWIG_Ruby_define_class(swig_type_info *type)
 }
 
 /* Create a new pointer object */
-SWIGRUNTIME(VALUE)
+static VALUE
 SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int own)
 {
     char *klass_name;
@@ -74,7 +97,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int own)
 }
 
 /* Create a new class instance (always owned) */
-SWIGRUNTIME(VALUE)
+static VALUE
 SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 {
     VALUE obj;
@@ -85,7 +108,7 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 }
 
 /* Get type mangle from class name */
-SWIGRUNTIME(char *)
+static char *
 SWIG_Ruby_MangleStr(VALUE obj)
 {
   VALUE stype = rb_iv_get(obj, "__swigtype__");
@@ -93,7 +116,7 @@ SWIG_Ruby_MangleStr(VALUE obj)
 }
 
 /* Convert a pointer value */
-SWIGRUNTIME(int)
+static int
 SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 {
   char *c;
@@ -135,7 +158,7 @@ SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 }
 
 /* Convert a pointer value, signal an exception on a type mismatch */
-SWIGRUNTIME(void *)
+static inline void *
 SWIG_Ruby_MustGetPtr(VALUE obj, swig_type_info *ty, int argnum, int flags)
 {
   void *result;
@@ -144,7 +167,7 @@ SWIG_Ruby_MustGetPtr(VALUE obj, swig_type_info *ty, int argnum, int flags)
 }
 
 /* Check convert */
-SWIGRUNTIME(int)
+static inline int
 SWIG_Ruby_CheckConvert(VALUE obj, swig_type_info *ty)
 {
   char *c = SWIG_MangleStr(obj);
@@ -153,7 +176,7 @@ SWIG_Ruby_CheckConvert(VALUE obj, swig_type_info *ty)
   return SWIG_TypeCheck(c,ty) != 0;
 }
 
-SWIGRUNTIME(VALUE)
+static VALUE
 SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
@@ -165,7 +188,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
 }
 
 /* Convert a packed value value */
-SWIGRUNTIME(void)
+static void
 SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c;

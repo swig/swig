@@ -279,10 +279,6 @@ public:
 	    Swig_insert_file("director.swg", f_directors_h);
 	}
     
-	if (NoInclude) {
-	    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-	}
-
 	/* Produce the enum_to_int and int_to_enum functions */
     
 	Printf(f_enumtypes_type,"type c_enum_type = [ \n  `unknown\n" );

@@ -48,7 +48,7 @@ static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) {};
 
 /* This one makes old swig style string pointers but the php module doesn't
    use these any more.  This is just left here for old times sake and may go */
-SWIGRUNTIME(void)
+static void
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   static char hex[17] = "0123456789abcdef";
   unsigned long p, s;
@@ -72,7 +72,7 @@ SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   }
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
    char data[512];
 
@@ -82,7 +82,7 @@ SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
 
 #define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d, SWIG_module_entry TSRMLS_CC)
 
-SWIGRUNTIME(void)
+static void
 SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject, zend_module_entry* module_entry TSRMLS_DC) {
   swig_object_wrapper *value=NULL;
   /* No need to call SWIG_MakePtr here! */
@@ -102,7 +102,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
 /* This old-style routine converts an old string-pointer c into a real pointer
    ptr calling making appropriate casting functions according to ty
    We don't use this any more */
-SWIGRUNTIME(int)
+static int
 SWIG_ConvertPtr_(char *c, void **ptr, swig_type_info *ty) {
    register int d;
    unsigned long p;
@@ -159,7 +159,7 @@ type_error:
    SWIG_ZTS_ConvertResourcePtr which gets the type name from the resource
    and the registered zend destructors for which we have one per type each
    with the type name hard wired in. */
-SWIGRUNTIME(int)
+static int
 SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **ptr, swig_type_info *ty TSRMLS_DC) {
   swig_type_info *tc;
 
@@ -184,7 +184,7 @@ SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **p
 /* This function fills ptr with a pointer of type ty by extracting the pointer
    and type info from the resource in z.  z must be a resource
    It uses SWIG_ZTS_ConvertResourceData to do the real work. */
-SWIGRUNTIME(int)
+static int
 SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
   swig_object_wrapper *value;
   void *p;
@@ -208,7 +208,7 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
 /* We allow passing of a STRING or RESOURCE pointing to the object
    or an OBJECT whose _cPtr is a string or resource pointing to the object
    STRING pointers are very depracated */
-SWIGRUNTIME(int)
+static int
 SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
    char *c;
    zval *val;

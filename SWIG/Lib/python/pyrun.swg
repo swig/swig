@@ -12,37 +12,6 @@
 extern "C" {
 #endif
 
-
-#ifdef SWIG_NOINCLUDE
-
-/* -----------------------------------------------------------------------------
- * SWIG extern declarations
- * ----------------------------------------------------------------------------- */
-
-
-SWIGIMPORT(int)         SWIG_Python_ConvertPtr(PyObject *, void **, swig_type_info *, int);
-SWIGIMPORT(PyObject *)  SWIG_Python_NewPointerObj(void *, swig_type_info *,int own);
-SWIGIMPORT(void *)      SWIG_Python_MustGetPtr(PyObject *, swig_type_info *, int, int);
-SWIGIMPORT(PyObject *)  SWIG_Python_newvarlink(void);
-SWIGIMPORT(void)        SWIG_Python_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-SWIGIMPORT(int)         SWIG_Python_ConvertPacked(PyObject *, void *, size_t sz, swig_type_info *, int);
-SWIGIMPORT(PyObject *)  SWIG_Python_NewPackedObj(void *, size_t sz, swig_type_info *);
-SWIGIMPORT(void)        SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
-SWIGIMPORT(char *)      SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz);
-SWIGIMPORT(void)        SWIG_Python_FixMethods(PyMethodDef *methods,
-		       			     swig_const_info *const_table,
-		       			     swig_type_info **types,
-		       			     swig_type_info **types_initial);
-
-SWIGIMPORT(int)         SWIG_Python_AddErrMesg(const char* mesg, int infront);
-SWIGIMPORT(int)         SWIG_Python_ArgFail(int argnum);
-SWIGIMPORT(void)        SWIG_Python_TypeError(const char *type, PyObject *obj);
-SWIGIMPORT(void)        SWIG_Python_NullRef(const char *type);
-
-SWIGRUNTIME(void)       SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle);
-
-#else /* SWIG_NOINCLUDE */
-
 /* -----------------------------------------------------------------------------
  * global variable support code.
  * ----------------------------------------------------------------------------- */
@@ -166,7 +135,7 @@ static PyTypeObject varlinktype = {
 };
 
 /* Create a variable linking object for use later */
-SWIGRUNTIME(PyObject *)
+static PyObject *
 SWIG_Python_newvarlink(void) {
   swig_varlinkobject *result = 0;
   result = PyMem_NEW(swig_varlinkobject,1);
@@ -178,7 +147,7 @@ SWIG_Python_newvarlink(void) {
   return ((PyObject*) result);
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
   swig_varlinkobject *v;
   swig_globalvar *gv;
@@ -196,7 +165,7 @@ SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int
  * errors manipulation
  * ----------------------------------------------------------------------------- */
 
-SWIGRUNTIME(void)
+static void
 SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
   const char *otype = (obj ? obj->ob_type->tp_name : 0);
@@ -212,7 +181,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
   }
 }
 
-SWIGRUNTIME(void)
+static inline void
 SWIG_Python_NullRef(const char *type)
 {
   if (type) {
@@ -222,7 +191,7 @@ SWIG_Python_NullRef(const char *type)
   }
 }
 
-SWIGRUNTIME(int)
+static int
 SWIG_Python_AddErrMesg(const char* mesg, int infront)
 {
   if (PyErr_Occurred()) {
@@ -247,7 +216,7 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
   }
 }
 
-SWIGRUNTIME(int)
+static int
 SWIG_Python_ArgFail(int argnum)
 {
   if (PyErr_Occurred()) {
@@ -266,7 +235,7 @@ SWIG_Python_ArgFail(int argnum)
  * ----------------------------------------------------------------------------- */
 
 /* Convert a pointer value */
-SWIGRUNTIME(int)
+static int
 SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c = 0;
@@ -376,7 +345,7 @@ type_error:
 }
 
 /* Convert a pointer value, signal an exception on a type mismatch */
-SWIGRUNTIME(void *)
+static inline void *
 SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags) {
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
@@ -390,7 +359,7 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 }
 
 /* Convert a packed value value */
-SWIGRUNTIME(int)
+static int
 SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c = 0;
@@ -420,7 +389,7 @@ type_error:
 }
 
 /* Create a new pointer string */
-SWIGRUNTIME(char *)
+static char *
 SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz) {
   char *r = buff;
   if ((2*sizeof(void *) + 2) > bsz) return 0;
@@ -433,7 +402,7 @@ SWIG_Python_PointerStr(char *buff, void *ptr, const char *name, size_t bsz) {
   
 
 /* Create a new pointer object */
-SWIGRUNTIME(PyObject *)
+static PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
   PyObject *robj;
   if (!ptr) {
@@ -466,7 +435,7 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int own) {
   return robj;
 }
 
-SWIGRUNTIME(PyObject *)
+static PyObject *
 SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
@@ -483,7 +452,7 @@ SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
  * ----------------------------------------------------------------------------- */
 
 /* Install Constants */
-SWIGRUNTIME(void)
+static void
 SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   int i;
   PyObject *obj;
@@ -521,7 +490,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
 }
 
 /* Fix SwigMethods to carry the callback ptrs when needed */
-SWIGRUNTIME(void)
+static void
 SWIG_Python_FixMethods(PyMethodDef *methods,
 		       swig_const_info *const_table,
 		       swig_type_info **types,
@@ -563,7 +532,7 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 /* -----------------------------------------------------------------------------
  * Lookup type pointer 
  * ----------------------------------------------------------------------------- */
-SWIGRUNTIME(void)
+static void
 SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
   PyObject *module, *pointer;
   void *type_pointer;
@@ -582,9 +551,6 @@ SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
     }
   }
 }
-
-#endif /* SWIG_NOINCLUDE */
-
 
 #ifdef __cplusplus
 }

@@ -3,7 +3,6 @@
    file. */
 
 /* Include headers */
-%runtime "precommon.swg"
 %runtime "common.swg"
 %runtime "mzrun.swg"
 

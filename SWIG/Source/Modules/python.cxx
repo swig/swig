@@ -221,8 +221,6 @@ public:
     Swig_banner(f_runtime);
 
     Printf(f_runtime,"#define SWIGPYTHON\n");
-    if (NoInclude)
-      Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");

@@ -1016,10 +1016,6 @@ MODULA3 ():
 
     Swig_banner (f_runtime);    // Print the SWIG banner message
 
-    if (NoInclude) {
-      Printf (f_runtime, "#define SWIG_NOINCLUDE\n");
-    }
-
     String *wrapper_name = NewString ("");
 
     Printf (wrapper_name, "Modula3_%%f", m3raw_name);

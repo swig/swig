@@ -5,7 +5,6 @@
 
 #define SWIGGUILE_SCM
 
-%runtime "precommon.swg"
 %runtime "common.swg"
 
 %runtime "guile_scm_run.swg"

@@ -214,10 +214,6 @@ public:
 
     Swig_banner(f_runtime);
   
-    if (NoInclude) {
-      Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
-    }
-
     module = Copy(Getattr(n,"name"));
 
   /* If we're in blessed mode, change the package name to "packagec" */

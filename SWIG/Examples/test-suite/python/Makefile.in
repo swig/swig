@@ -42,7 +42,7 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-LIBS       = -L. -l_$*_runtime
+LIBS       = -L.
 
 # Rules for the different types of tests
 %.cpptest: 

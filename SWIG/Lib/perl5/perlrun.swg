@@ -185,19 +185,7 @@ static void SWIG_Perl_LookupTypePointer() {
   }
 }
 
-#ifdef SWIG_NOINCLUDE
-
-SWIGIMPORT(int)               SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *, void **, swig_type_info *, int flags);
-SWIGIMPORT(void)              SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *, void *, swig_type_info *, int flags);
-SWIGIMPORT(SV *)              SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *, swig_type_info *, int flags);
-SWIGIMPORT(void)              SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *, void *, int, swig_type_info *);
-SWIGIMPORT(int)               SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *, void *, int, swig_type_info *, int flags);
-SWIGIMPORT(swig_type_info *)  SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty);
-SWIGIMPORT(SV *)              SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT char *);
-
-#else
-
-SWIGRUNTIME(swig_type_info *)
+static swig_type_info *
 SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
@@ -224,7 +212,7 @@ SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
 
 /* Function for getting a pointer value */
 
-SWIGRUNTIME(int) 
+static int
 SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
   swig_type_info *tc;
   void *voidptr = (void *)0;
@@ -285,7 +273,7 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   return 0;
 }
 
-SWIGRUNTIME(void)
+static void
 SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
   if (ptr && (flags & SWIG_SHADOW)) {
     SV *self;
@@ -314,14 +302,14 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
   }
 }
 
-SWIGRUNTIME(SV *)
+static inline SV *
 SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
   return result;
 }
 
-SWIGRUNTIME(void)
+static void
   SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
@@ -333,7 +321,7 @@ SWIGRUNTIME(void)
 }
 
 /* Convert a packed value value */
-SWIGRUNTIME(int)
+static int
 SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c = 0;
@@ -351,25 +339,23 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
   return 0;
 }
 
-SWIGRUNTIME(void)
+static inline void
 SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT const char *error) {
   if (error) sv_setpv(perl_get_sv("@", TRUE), error);
 }
 
-SWIGRUNTIME(void)
+static inline void
 SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT SV *error) {
   if (error) sv_setsv(perl_get_sv("@", TRUE), error);
 }
 
-SWIGRUNTIME(void)
+static inline void
 SWIG_Perl_SetErrorf(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   sv_vsetpvfn(perl_get_sv("@", TRUE), fmt, strlen(fmt), &args, Null(SV**), 0, Null(bool*));
   va_end(args);
 }
-
-#endif
 
 /* Macros for low-level exception handling */
 #define SWIG_fail       goto fail

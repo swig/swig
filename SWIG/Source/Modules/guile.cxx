@@ -359,10 +359,6 @@ public:
     
     /* Write out directives and declarations */
     
-    if (NoInclude) {
-      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-    }
-    
     module = Swig_copy_string(Char(Getattr(n,"name")));
     
     if (CPlusPlus) {

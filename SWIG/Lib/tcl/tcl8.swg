@@ -4,25 +4,6 @@
  * Tcl8 configuration module.
  * ----------------------------------------------------------------------------- */
 
-%runtime "precommon.swg"
-%insert(runtime) %{
-
-#ifndef SWIG_ALLOW_RUNTIME
-/* -----------------------------------------------------------------------------
- * Disable runtime library use, everything is used as static
- * ----------------------------------------------------------------------------- */
-#ifndef SWIG_DISABLE_RUNTIME
-#define SWIG_DISABLE_RUNTIME
-#endif
-#ifdef SWIG_GLOBAL
-#undef SWIG_GLOBAL
-#endif
-#ifdef SWIG_NOINCLUDE
-#undef SWIG_NOINCLUDE
-#endif
-#endif /* SWIG_ALLOW_RUNTIME */
-
-%}
 %runtime "common.swg"
 %runtime "swigtcl8.swg"
 
@@ -664,9 +645,7 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
     Tcl_Eval(interp, "namespace eval " SWIG_namespace " { }");
 #endif
     if (!_init) {
-#ifdef SWIG_DISABLE_RUNTIME
        SWIG_Tcl_LookupTypePointer(interp);
-#endif
        for (i = 0; swig_types_initial[i]; i++) {
           swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
        }

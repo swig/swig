@@ -30,15 +30,8 @@ typedef struct swig_object_wrapper {
 #define SWIG_ConvertPtr SWIG_Pike_ConvertPtr
 #define SWIG_NewPointerObj SWIG_Pike_NewPointerObj
 
-#ifdef SWIG_NOINCLUDE
-
-SWIGEXPORT(int)               SWIG_Pike_ConvertPtr(struct object *, void **, swig_type_info *, int);
-SWIGEXPORT(struct object *)   SWIG_Pike_NewPointerObj(void *, swig_type_info *, int);
-
-#else
-
 /* Convert a pointer value */
-SWIGRUNTIME(int)
+static int
 SWIG_Pike_ConvertPtr(struct object *obj, void **ptr, swig_type_info *ty, int flags) {
     char *storage;
     struct program *pr;
@@ -54,9 +47,7 @@ SWIG_Pike_ConvertPtr(struct object *obj, void **ptr, swig_type_info *ty, int fla
 }
 
 /* Create a new pointer object */
-SWIGRUNTIME(struct object *)
+static struct object *
 SWIG_Pike_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     return 0;
 }
-
-#endif

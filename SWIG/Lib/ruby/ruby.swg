@@ -5,38 +5,8 @@
  * ---------------------------------------------------------------------- */
 
 %runtime "rubyhead.swg"
-%runtime "precommon.swg"
-%insert(runtime) %{
-
-#ifndef SWIG_ALLOW_RUNTIME
-/* -----------------------------------------------------------------------------
- * Disable runtime library use, everything is used as static
- * ----------------------------------------------------------------------------- */
-#ifndef SWIG_DISABLE_RUNTIME
-#define SWIG_DISABLE_RUNTIME
-#endif
-#ifdef SWIG_GLOBAL
-#undef SWIG_GLOBAL
-#endif
-#ifdef SWIG_NOINCLUDE
-#undef SWIG_NOINCLUDE
-#endif
-#endif /* SWIG_ALLOW_RUNTIME */
-
-%}
 %runtime "common.swg"
-
-%insert(runtime) %{
-#ifdef SWIG_NOINCLUDE
-%}
-%runtime "rubydec.swg"
-%insert(runtime) %{
-#else
-%}
 %runtime "rubydef.swg"
-%insert(runtime) %{
-#endif
-%}
 
 #define %alias %feature("alias")
 #define %freefunc %feature("freefunc")

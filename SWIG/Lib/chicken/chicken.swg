@@ -10,7 +10,6 @@
 #include "chicken.h"
 %}
 
-%insert(runtime) "precommon.swg"
 %insert(runtime) "common.swg";          // Common type-checking code
 %insert(runtime) "chickenrun.swg";      // CHICKEN run-time code
 
