@@ -46,7 +46,7 @@
 
 #ifdef SWIGPYTHON
 %{
-static void _SWIG_exception(int code, char *msg) {
+static void _SWIG_exception(int code, const char *msg) {
   switch(code) {
   case SWIG_MemoryError:
     PyErr_SetString(PyExc_MemoryError,msg);
@@ -194,7 +194,7 @@ static void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 
 #ifdef SWIGRUBY
 %{
-static void _SWIG_exception(int code, char *msg) {
+static void _SWIG_exception(int code, const char *msg) {
     switch (code) {
         case SWIG_MemoryError:
             rb_raise(rb_eNoMemError, msg);
