@@ -15,6 +15,9 @@
 /* Size of signal stack */
 #define STACK_SIZE 4*SIGSTKSZ
 
+/* Debugging flag */
+int    wad_debug_mode = 0;
+
 /* Make the alternate signal stack part of the wad data segment as 
    opposed to putting it on the process heap */
 
@@ -25,6 +28,13 @@ void wad_init() {
   struct sigaction newvec;
   static int init = 0;
   static stack_t  sigstk;
+
+  if (getenv("WAD_DEBUG_SEGMENT")) {
+    wad_debug_mode |= DEBUG_SEGMENT;
+  }
+  if (getenv("WAD_DEBUG_SYMBOL")) {
+    wad_debug_mode |= DEBUG_SYMBOL;
+  }
 
   if (!init) {
     /* Set up an alternative stack */

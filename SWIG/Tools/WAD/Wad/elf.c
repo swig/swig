@@ -31,7 +31,7 @@
  * ----------------------------------------------------------------------------- */
 
 int
-wad_elf_check(WadObject *wo) {
+wad_elf_check(WadObjectFile *wo) {
   int t;
 
   if (strncmp((char *)wo->ptr,ELFMAG, SELFMAG) != 0)
@@ -48,7 +48,7 @@ wad_elf_check(WadObject *wo) {
  * ----------------------------------------------------------------------------- */
 
 int
-wad_elf_phdrcnt(WadObject *wo) {
+wad_elf_phdrcnt(WadObjectFile *wo) {
   Elf32_Ehdr *eh;
   
   eh = (Elf32_Ehdr *) wo->ptr;
@@ -62,7 +62,7 @@ wad_elf_phdrcnt(WadObject *wo) {
  * ----------------------------------------------------------------------------- */
 
 void *
-wad_elf_phdrpos(WadObject *wo) {
+wad_elf_phdrpos(WadObjectFile *wo) {
   Elf32_Ehdr *eh;
   char *c;
   eh = (Elf32_Ehdr *) wo->ptr;
@@ -77,7 +77,7 @@ wad_elf_phdrpos(WadObject *wo) {
  * ----------------------------------------------------------------------------- */
 
 int
-wad_elf_shdrcnt(WadObject *wo) {
+wad_elf_shdrcnt(WadObjectFile *wo) {
   Elf32_Ehdr *eh;
   
   eh = (Elf32_Ehdr *) wo->ptr;
@@ -92,7 +92,7 @@ wad_elf_shdrcnt(WadObject *wo) {
  * ----------------------------------------------------------------------------- */
 
 void *
-wad_elf_shdrpos(WadObject *wo) {
+wad_elf_shdrpos(WadObjectFile *wo) {
   Elf32_Ehdr *eh;
   char *c;
   eh = (Elf32_Ehdr *) wo->ptr;
@@ -106,7 +106,7 @@ wad_elf_shdrpos(WadObject *wo) {
  * Get a specific section number
  * ----------------------------------------------------------------------------- */
 
-void *wad_elf_section_header(WadObject *wo, int sn) {
+void *wad_elf_section_header(WadObjectFile *wo, int sn) {
   Elf32_Ehdr *eh;
   char  *r;
 
@@ -123,7 +123,7 @@ void *wad_elf_section_header(WadObject *wo, int sn) {
  * Get section data
  * ----------------------------------------------------------------------------- */
 
-void *wad_elf_section_data(WadObject *wo, int sn) {
+void *wad_elf_section_data(WadObjectFile *wo, int sn) {
   Elf32_Shdr *sh;
   char *r;
 
@@ -139,7 +139,7 @@ void *wad_elf_section_data(WadObject *wo, int sn) {
  * Return section size
  * ----------------------------------------------------------------------------- */
 
-int wad_elf_section_size(WadObject *wo, int sn) {
+int wad_elf_section_size(WadObjectFile *wo, int sn) {
   Elf32_Shdr *sh;
 
   sh = (Elf32_Shdr *) wad_elf_section_header(wo,sn);
@@ -153,7 +153,7 @@ int wad_elf_section_size(WadObject *wo, int sn) {
  * Returns the name of an ELF section 
  * ----------------------------------------------------------------------------- */
 
-char *wad_elf_section_name(WadObject *wo, int sn) {
+char *wad_elf_section_name(WadObjectFile *wo, int sn) {
   Elf32_Ehdr *eh;
   Elf32_Shdr *sh;
   char    *sectionstr;
@@ -179,7 +179,7 @@ char *wad_elf_section_name(WadObject *wo, int sn) {
  * ----------------------------------------------------------------------------- */
 
 int
-wad_elf_section_byname(WadObject *wo, char *name) {
+wad_elf_section_byname(WadObjectFile *wo, char *name) {
   int i;
   char *sn;
   int n;
@@ -203,7 +203,7 @@ wad_elf_section_byname(WadObject *wo, char *name) {
 
 
 char *
-wad_elf_find_symbol(WadObject *wo, void *ptr, unsigned long base, unsigned long *value) {
+wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, unsigned long *value) {
   int nsymtab;
   int nstrtab;
   int symtab_size;
@@ -270,7 +270,7 @@ wad_elf_find_symbol(WadObject *wo, void *ptr, unsigned long base, unsigned long 
  * ----------------------------------------------------------------------------- */
 
 WadDebug *
-wad_elf_debug_info(WadObject *wo, char *symbol, unsigned long offset) {
+wad_elf_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
   int nstab, nstabstr, nstabindex, nstabindexstr, nstabexcl, nstabexclstr;
 
   void *stab;
@@ -323,7 +323,7 @@ wad_elf_debug_info(WadObject *wo, char *symbol, unsigned long offset) {
     stabstr = (char *) wad_elf_section_data(wo, nstabindexstr);
     wd = wad_search_stab(stab,stabsize,stabstr, symbol, offset);
     if (wd) {
-      WadObject *wo1;
+      WadObjectFile *wo1;
       /* Hmmm. Might be in a different file */
       char objfile[MAX_PATH];
       strcpy(objfile, wd->objfile);
@@ -348,7 +348,7 @@ wad_elf_debug_info(WadObject *wo, char *symbol, unsigned long offset) {
  * ----------------------------------------------------------------------------- */
 
 void
-wad_elf_debug(WadObject *wo) {
+wad_elf_debug(WadObjectFile *wo) {
   int i;
   printf("ELF Debug : obj = %x (%s)\n", wo, wo->path);
   printf("   phdrcnt      = %d\n", wad_elf_phdrcnt(wo));
@@ -370,11 +370,11 @@ wad_elf_debug(WadObject *wo) {
  * ----------------------------------------------------------------------------- */
  
 char *
-wad_find_symbol(WadObject *wo, void *ptr, unsigned base, unsigned long *value) {
+wad_find_symbol(WadObjectFile *wo, void *ptr, unsigned base, unsigned long *value) {
    return wad_elf_find_symbol(wo,ptr,base,value);
 }
 
 WadDebug *
-wad_debug_info(WadObject *wo, char *symbol, unsigned long offset) {
+wad_debug_info(WadObjectFile *wo, char *symbol, unsigned long offset) {
   return wad_elf_debug_info(wo,symbol,offset);
 }

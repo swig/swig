@@ -17,7 +17,7 @@
 #include <string.h>
 #include <ctype.h>
 
-static WadObject wad_objects[WAD_MAX_OBJECT];   /* Object file descriptor table */
+static WadObjectFile wad_objects[WAD_MAX_OBJECT];   /* Object file descriptor table */
 static int       wad_obj_free[WAD_MAX_OBJECT];  /* Free object stack */
 static int       wad_obj_nfree = 0;             /* Num free object descriptors */
 static int       wad_obj_init = 0;              /* Initialized? */
@@ -47,7 +47,7 @@ init_object() {
  * ----------------------------------------------------------------------------- */
 
 void
-wad_object_release(WadObject *wo) {
+wad_object_release(WadObjectFile *wo) {
   int n;
   if (!wo) return;
   wo->refcnt--;
@@ -71,9 +71,9 @@ wad_object_release(WadObject *wo) {
  * not exist or if there are no more object descriptor slots
  * ----------------------------------------------------------------------------- */
 
-WadObject *
+WadObjectFile *
 wad_object_load(const char *path) {
-  WadObject *wo;
+  WadObjectFile *wo;
   int nf;
   int fd;
   int i;
@@ -152,9 +152,9 @@ wad_object_load(const char *path) {
  * Load an archive file object into memory using mmap.
  * ----------------------------------------------------------------------------- */
 
-WadObject *
+WadObjectFile *
 wad_arobject_load(const char *arpath, const char *robjname) {
-  WadObject *wo;
+  WadObjectFile *wo;
   int nf;
   int fd;
   int i;
