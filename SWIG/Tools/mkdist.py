@@ -75,6 +75,10 @@ os.system("cd "+dirname+"/Tools; autoconf")
 os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
 os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
+# Build documentation
+os.system("cd "+dirname+"/Doc/Manual; python maketoc.py; rm *.bak")
+
+# Build the tar-ball
 os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
 os.system("gzip "+string.lower(dirname)+".tar")
 
