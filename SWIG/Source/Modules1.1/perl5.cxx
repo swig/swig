@@ -214,7 +214,7 @@ PERL5::parse() {
   // Run the parser
   
   yyparse();
-  fputs(vinit.get(),f_wrappers);
+
 }
 
 
@@ -508,6 +508,7 @@ void PERL5::close(void)
   vinit << tab4 << "XSRETURN(1);\n"
         << "}\n";
 
+  fputs(vinit.get(),f_wrappers);
   fprintf(f_pm,"package %s;\n", package);	
 
   if (!is_static) {
