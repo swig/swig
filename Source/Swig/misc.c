@@ -81,7 +81,7 @@ String *Swig_string_escape(String *s) {
     } else if (c == ' ') {
       Putc(c,ns);
     } else if (!isgraph(c)) {
-      Printf(ns,"\\0%o", c);
+      Printf(ns,"\\%o", c);
     } else {
       Putc(c,ns);
     }

@@ -446,8 +446,9 @@ static void get_escape() {
 	yylen--;
 	return;
       }
-      if (c == '0') {
+      if (isdigit(c)) {
 	state = 10;
+	result = (c-'0');
       }
       else if (c == 'x') {
 	state = 20;
@@ -761,7 +762,7 @@ int yylook(void) {
 	  if (( c = nextchar()) == 0) return 0;
 	  if (c == '*') {
 	    return DSTAR;
-	  } if (c == '~') {
+	  } else if (c == '~') {
 	    return DCNOT;
 	  } else {
 	    retract(1);
@@ -997,6 +998,7 @@ void scanner_ignore_typedef() {
 }
 
 void scanner_last_id(int x) {
+  /*  printf("Setting last_id = %d\n", x); */
   last_id = x;
 }
 
@@ -1028,14 +1030,18 @@ int yylex(void) {
       next_token = 0;
       return l;
     }
+    /*    Printf(stdout,"%d\n", last_id);*/
     l = yylook();
-
 
     if (l == NONID) {
       last_id = 1;
     } else {
       last_id = 0;
     }
+    /*
+    yytext[yylen]= 0;
+    Printf(stdout,"%d  '%s' %d\n", l, yytext, last_id);
+    */
 
     /* We got some sort of non-white space object.  We set the start_line
        variable unless it has already been set */
