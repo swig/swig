@@ -70,9 +70,10 @@ namespace std {
 
     %template(string) basic_string<char>;
     %template(wstring) basic_string<wchar_t>;
+    typedef basic_string<char> string;
+    typedef basic_string<wchar_t> wstring;
 
     /* Overloading check */
-#if 0
     %typemap(in) string {
         if (caml_ptr_check($input))
             $1 = std::string((char *)caml_ptr_val($input,0));
@@ -89,16 +90,26 @@ namespace std {
         }
     }
 
+    %typemap(in) string & (std::string temp) {
+        if (caml_ptr_check($input)) {
+            temp = std::string((char *)caml_ptr_val($input,0));
+            $1 = &temp;
+        } else {
+            SWIG_exception(SWIG_TypeError, "string expected");
+        }
+    }
+
+    %typemap(argout) string & {
+	caml_list_append(swig_result,caml_val_string_len($1->c_str(),
+							 $1->size()));
+    }
+
     %typemap(out) string {
-        $result = caml_val_ptr((char *)$1.c_str(),0);
+        $result = caml_val_string_len($1.c_str(),$1.size());
     }
 
     %typemap(out) const string & {
-        $result = caml_val_ptr((char *)$1->c_str(),0);
+        $result = caml_val_string_len($1.c_str(),$1.size());
     }
-#endif
-
-    typedef basic_string<char> string;
-    typedef basic_string<wchar_t> wstring;
 }
 

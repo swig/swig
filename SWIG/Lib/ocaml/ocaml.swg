@@ -30,6 +30,11 @@ extern "C" {
     SWIG_Cast (void *source, swig_type_info *source_type,
 	       void **ptr, swig_type_info *dest_type)
     {
+#ifdef TYPE_CAST_VERBOSE
+	fprintf( stderr, "Trying to cast %s to %s\n", 
+		 source_type ? source_type->str : "<none>",
+		 dest_type ? dest_type->str : "<none>" );
+#endif
 	if (dest_type != source_type) {
 	    /* We have a type mismatch.  Will have to look through our type
 	       mapping table to figure out whether or not we can accept this
@@ -40,6 +45,10 @@ extern "C" {
 	    } else {
 		swig_type_info *tc = 
 		    SWIG_TypeCheck( (char *)source_type->name, dest_type );
+#ifdef TYPE_CAST_VERBOSE
+		fprintf( stderr, "Typecheck -> %s\n",
+			 tc ? tc->str : "<none>" );
+#endif
 		if( tc ) {
 		    *ptr = SWIG_TypeCast( tc, source );
 		    return 0;
@@ -56,10 +65,9 @@ extern "C" {
     SWIGSTATIC int
     SWIG_GetPtr(void *inptr, void **outptr, 
 		swig_type_info *intype, swig_type_info *outtype) {
-	CAMLparam0();
 	if (intype) {
-	    return !SWIG_Cast(inptr, intype,
-			      outptr, outtype);
+	    return SWIG_Cast(inptr, intype,
+			     outptr, outtype) == -1;
 	} else {
 	    *outptr = inptr;
 	    return 0;
@@ -295,7 +303,7 @@ extern "C" {
 	CAMLreturn(vv);
     }
 
-    SWIGSTATIC value caml_val_string( char *p ) {
+    SWIGSTATIC value caml_val_string( const char *p ) {
 	CAMLparam0();
 	CAMLlocal1(vv);
 	if( !p ) CAMLreturn(caml_val_ptr( (void *)p, 0 ));
@@ -304,7 +312,7 @@ extern "C" {
 	CAMLreturn(vv);
     }
 
-    SWIGSTATIC value caml_val_string_len( char *p, int len ) {
+    SWIGSTATIC value caml_val_string_len( const char *p, int len ) {
 	CAMLparam0();
 	CAMLlocal1(vv);
 	if( !p || len < 0 ) CAMLreturn(caml_val_ptr( (void *)p, 0 ));
@@ -387,7 +395,7 @@ extern "C" {
     }
 
     SWIGSTATIC int caml_ptr_val_internal( value v, void **out, 
-				      swig_type_info *descriptor ) {
+					  swig_type_info *descriptor ) {
 	CAMLparam1(v);
 	void *outptr = NULL;
         swig_type_info *outdescr = NULL;

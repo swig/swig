@@ -53,7 +53,8 @@ namespace std {
 	T operator [] ( int f );
 	vector <T> &operator = ( vector <T> &other );
 	%extend {
-	    void set( int i, T x ) {
+	    void set( int i, const T &x ) {
+		self->resize(i+1);
 		(*self)[i] = x;
 	    }
 	};

@@ -13,6 +13,9 @@
 /* Include headers */
 %insert(runtime) "ocamldec.swg"
 
+/* Type registration */
+%insert(init) "typeregister.swg"
+
 /*#ifndef SWIG_NOINCLUDE*/
 %insert(runtime) "ocaml.swg"
 /*#endif*/

@@ -33,6 +33,9 @@ extern "C" {
 
 #define __OCAML__SWIG__MAXVALUES 6
 
+    static swig_type_info *swig_types[];
+    static swig_type_info *swig_types_initial[];
+
     SWIGSTATIC int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);
     
@@ -65,8 +68,8 @@ extern "C" {
 
     static value caml_val_ptr( void *p, swig_type_info *descriptor );
 
-    static value caml_val_string( char *str );
-    static value caml_val_string_len( char *str, int len );
+    static value caml_val_string( const char *str );
+    static value caml_val_string_len( const char *str, int len );
 
     static long caml_long_val( value v );
     static double caml_double_val( value v );
