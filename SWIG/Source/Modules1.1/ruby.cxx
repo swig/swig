@@ -781,7 +781,7 @@ RUBY::variableWrapper(Node *n) {
   setf = NewWrapper();
 
   /* create getter */
-  getfname = NewString(Swig_name_get(name));
+  getfname = NewString(Swig_name_get(iname));
   Printv(getf->def, "static VALUE\n", getfname, "(", NULL);
   Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
@@ -804,7 +804,7 @@ RUBY::variableWrapper(Node *n) {
     setfname = NewString("NULL");
   } else {
     /* create setter */
-    setfname = NewString(Swig_name_set(name));
+    setfname = NewString(Swig_name_set(iname));
     Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", NULL);
     Printf(setf->def, "VALUE _val) {");
     

@@ -1051,6 +1051,8 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   ParmList *kw;
   char     temp[256];
   String   *symname;
+  String   *cname = 0;
+  String   *clname = 0;
 
   type  = Getattr(node,"type");
   if (!type) return 0;
@@ -1070,6 +1072,14 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   locals = Getattr(tm,"locals");
   if (locals) locals = CopyParmList(locals);
 
+  if (SwigType_istemplate(pname)) {
+    cname = SwigType_namestr(pname);
+    pname = cname;
+  }
+  if (SwigType_istemplate((char*)lname)) {
+    clname = SwigType_namestr((char *)lname);
+    lname = clname;
+  }
   typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
 
   if (locals && f) {
@@ -1108,7 +1118,8 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
       Swig_warning(0,Getfile(node),Getline(node),"%s\n", w);
     }
   }
-
+  if (cname) Delete(cname);
+  if (clname) Delete(clname);
   return s;
 }
 

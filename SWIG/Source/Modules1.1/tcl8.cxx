@@ -405,8 +405,8 @@ TCL8::functionWrapper(Node *n) {
 int
 TCL8::variableWrapper(Node *n) {
 
-  char *name  = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
+  String *name  = Getattr(n,"name");
+  String *iname = Getattr(n,"sym:name");
   SwigType *t = Getattr(n,"type");
 
   String *setname = 0;
@@ -486,7 +486,6 @@ TCL8::variableWrapper(Node *n) {
   } else {
     Printv(var_tab, "(swig_variable_func) ", setname, "},\n",NULL);
   }
-  
   Delete(setname);
   Delete(getname);
   return SWIG_OK;

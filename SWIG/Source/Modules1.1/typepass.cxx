@@ -450,7 +450,6 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int cDeclaration(Node *n) {
-
 	/* Search for var args */
 	if (Getattr(n,"feature:varargs")) {
 	    ParmList *v = Getattr(n,"feature:varargs");
@@ -494,7 +493,7 @@ public:
 	      Replaceall(t,"class ","");
 	    }
 	    SwigType_typedef(t,name);
-	}
+	} 
 	/* If namespaces are active.  We need to patch the name with a namespace prefix */
 	if (nsname && !inclass) {
 	    String *name = Getattr(n,"name");
@@ -593,7 +592,7 @@ public:
     if (Strcmp(value,name) == 0) {
       String *new_value;
       if ((nsname) || (inclass)) {
-	new_value = NewStringf("%s::%s", Swig_symbol_qualified(n), value);
+	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
       }

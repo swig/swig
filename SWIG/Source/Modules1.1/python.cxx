@@ -524,7 +524,7 @@ PYTHON::functionWrapper(Node *n) {
 int
 PYTHON::variableWrapper(Node *n) {
 
-  String *name  = SwigType_namestr(Getattr(n,"name"));
+  String *name  = Getattr(n,"name");
   String *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
 
@@ -549,7 +549,7 @@ PYTHON::variableWrapper(Node *n) {
     }
   }
 
-  wname = Swig_name_wrapper(name);
+  wname = Swig_name_wrapper(iname);
 
     /* Create a function for setting the value of the variable */
 
@@ -599,7 +599,6 @@ PYTHON::variableWrapper(Node *n) {
 
   DelWrapper(setf);
   DelWrapper(getf);
-  Delete(name);
   return SWIG_OK;
 }
 

@@ -700,7 +700,6 @@ PERL5::functionWrapper(Node *n)
 
 int PERL5::variableWrapper(Node *n)
 {
-
   char *name  = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
@@ -814,7 +813,7 @@ int PERL5::variableWrapper(Node *n)
     }
   }
   if (export_all)
-    Printf(exported,"$%s ", name);
+    Printf(exported,"$%s ", iname);
 
   DelWrapper(setf);
   DelWrapper(getf);
