@@ -86,8 +86,9 @@ SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
   if (NIL_P(obj)) {
     *ptr = 0;
     return 0;
-  } else
+  } else {
     Data_Get_Struct(obj, void, *ptr);
+  }
   
   /* Do type-checking if type info was provided */
   if (ty) {

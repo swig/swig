@@ -122,6 +122,7 @@ private:
   File *f_wrappers;
   File *f_init;
   bool use_kw;
+  bool useGlobalModule;
 
   // Wrap modes
   enum {
@@ -157,6 +158,7 @@ public:
     f_wrappers = 0;
     f_init = 0;
     use_kw = false;
+    useGlobalModule = false;
   }
   
   /* ---------------------------------------------------------------------
@@ -337,7 +339,8 @@ public:
 
     Printv(f_init, tab4, "SWIG_InitRuntime();\n", NIL);
 
-    defineRubyModule();
+    if (!useGlobalModule)
+      defineRubyModule();
 
     Printv(f_init,
 	   "\n",
@@ -498,11 +501,23 @@ public:
       Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
 	     ", \"", iname, "\", ", wname, ", -1);\n", NIL);
       break;
-    default:
-      Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
-	     iname, "\", ", wname, ", -1);\n",NIL);
-      Printv(f_init,s,NIL);
+    case NO_CPP:
+      if (!useGlobalModule) {
+        Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
+               iname, "\", ", wname, ", -1);\n",NIL);
+        Printv(f_init,s,NIL);
+      } else {
+        Printv(s, tab4, "rb_define_global_function(\"",
+               iname, "\", ", wname, ", -1);\n",NIL);
+        Printv(f_init,s,NIL);
+      }
       break;
+    case DESTRUCTOR:
+    case CLASS_CONST:
+    case STATIC_VAR:
+      assert(false); // Should not have gotten here for these types
+    default:
+      assert(false);
     }
     
     defineAliases(n, iname);
@@ -1059,15 +1074,29 @@ public:
     default:
       /* C global variable */
       /* wrapped in Ruby module attribute */
-      Printv(s,
-	     tab4, "rb_define_singleton_method(", modvar, ", \"",
-	     iname, "\", ", getfname, ", 0);\n",
-	     NIL);
-      if (!Getattr(n,"feature:immutable")) {
-	Printv(s,
-	       tab4, "rb_define_singleton_method(", modvar, ", \"",
-	       iname, "=\", ", setfname, ", 1);\n",
-	       NIL);
+      assert(current == NO_CPP);
+      if (!useGlobalModule) {
+        Printv(s,
+               tab4, "rb_define_singleton_method(", modvar, ", \"",
+               iname, "\", ", getfname, ", 0);\n",
+               NIL);
+        if (!Getattr(n,"feature:immutable")) {
+          Printv(s,
+                 tab4, "rb_define_singleton_method(", modvar, ", \"",
+                 iname, "=\", ", setfname, ", 1);\n",
+                 NIL);
+        }
+      } else {
+        Printv(s,
+               tab4, "rb_define_global_method(\"",
+               iname, "\", ", getfname, ", 0);\n",
+               NIL);
+        if (!Getattr(n,"feature:immutable")) {
+          Printv(s,
+                 tab4, "rb_define_global_method(\"",
+                 iname, "=\", ", setfname, ", 1);\n",
+                 NIL);
+        }
       }
       Printv(f_init,s,NIL);
       Delete(s);
@@ -1141,7 +1170,11 @@ public:
 	Replaceall(tm, "$module", klass->vname);
 	Printv(klass->init, tm, "\n", NIL);
       } else {
-	Replaceall(tm,"$module", modvar);
+        if (!useGlobalModule) {
+          Replaceall(tm, "$module", modvar);
+        } else {
+          Replaceall(tm, "$module", "rb_cObject");
+        }
 	Printf(f_init, "%s\n", tm);
       }
     } else {
@@ -1304,8 +1337,13 @@ public:
     Printv(klass->type, Getattr(n,"classtype"), NIL);
     Printv(klass->header, "\nswig_class c", valid_name, ";\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
-    Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
-	   ", \"", klass->name, "\", $super);\n", NIL);
+    if (!useGlobalModule) {
+      Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
+             ", \"", klass->name, "\", $super);\n", NIL);
+    } else {
+      Printv(klass->init, klass->vname, " = rb_define_class_under(\"",
+             klass->name, "\", $super);\n", NIL);
+    }
 
     SwigType *tt = NewString(name);
     SwigType_add_pointer(tt);
