@@ -62,11 +62,12 @@ best  way to determine    whether your system will work is to compile the
 examples  and test-suite  which  come with SWIG.  You can do this by running
 <tt>make  check</tt> from  the  SWIG root directory after installing SWIG.
  The Ocaml  module has been  tested using the system's dynamic linking  (the
-usual -lxxx  against libxxx.so,  but not using the explicit dynamic linking
-provided by  the Dl package  <a
- href="http://www.ocaml-programming.de/packages/documentation/dl/"> http://www.ocaml-programming.de/packages/documentation/dl/ 
-      </a>, although I suspect that it will work without a problem.  If anyone
-would like to evaluate this support, I will share the results here.
+usual -lxxx  against libxxx.so, as well as with Gerd Stolpmann's 
+<a
+ href="http://www.ocaml-programming.de/packages/documentation/dl/">Dl package 
+</a>.  The ocaml_dynamic and ocaml_dynamic_cpp targets in the
+file Examples/Makefile illustrate how to compile and link SWIG modules that
+will be loaded dynamically.  This has only been tested on Linux so far.
 
 <a name="n3"></a><H3>16.1.1 Running SWIG</H3>
 

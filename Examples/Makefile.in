@@ -508,6 +508,8 @@ mzscheme_clean:
 ##################################################################
 
 OCC=@OCAMLC@
+OCAMLDLGEN=@OCAMLDLGEN@
+OCAMLFIND=@OCAMLFIND@
 NOLINK ?= false
 
 ocaml_static: $(SRCS)
@@ -522,9 +524,25 @@ ocaml_static: $(SRCS)
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
 
+ocaml_dynamic: $(SRCS)
+	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
+	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
+	$(CXXSHARED) $(CCSHARED) $(CFLAGS) -o $(INTERFACE:%.i=%@SO@) \
+		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(LIBS)
+	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > \
+		$(INTERFACE:%.i=%_dynamic.ml)
+	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
+	rm $(INTERFACE:%.i=%.mli)
+	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
+		$(OCC) -c $(PROGFILE)
+	$(NOLINK) || $(OCAMLFIND) \
+		$(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
+		-package dl -linkpkg \
+		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
+
 ocaml_static_cpp: $(SRCS)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) \
-		$(INTERFACE)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
@@ -535,7 +553,29 @@ ocaml_static_cpp: $(SRCS)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
-		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 
+		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
+		-cclib "$(LIBS)" -cc '$(CXX)' 
+
+ocaml_dynamic_cpp: $(SRCS)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
+	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
+	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
+		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS) -ccopt -fPIC
+	$(CXXSHARED) $(CXXFLAGS) -o $(INTERFACE:%.i=%@SO@) \
+		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
+		$(CPP_DLLIBS) $(LIBS)
+	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > \
+		$(INTERFACE:%.i=%_dynamic.ml)
+	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
+	rm $(INTERFACE:%.i=%.mli)
+	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
+		$(OCC) -c $(PROGFILE)
+	$(NOLINK) || $(OCAMLFIND) \
+		$(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom \
+		-o $(TARGET) \
+		-package dl -linkpkg \
+		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
 
 ocaml_static_multi_cpp: $(SRCS)
 	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
