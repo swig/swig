@@ -3,7 +3,7 @@
 class Bar : public Base {
  public:
   Bar() { }
-  ~Bar();
+  ~Bar() { }
   virtual void A() { 
     printf("I'm Bar::A\n");
   }

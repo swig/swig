@@ -13,12 +13,15 @@ a separate C++ class.
      bar.i      -  Bar class derived from Base
      spam.i     -  Spam class derived from Bar
 
-Each module used %import to refer to another module.  For
+Each module uses %import to refer to another module.  For
 example, the 'foo.i' module uses '%import base.i' to get
 definitions for its base class.
 
-If everything is okay, all of the modules will load correctly and
-type checking will work correctly.
+If everything is okay, all of the modules will load properly and
+type checking will work correctly. Caveat: Some compilers, for example
+gcc-3.2.x, generate broken vtables with the inline methods in this test.
+This is not a SWIG problem and can usually be solved with non-inlined
+destructors compiled into separate shared objects/DLLs.
 
 Unix:
 -----
