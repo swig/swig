@@ -81,6 +81,7 @@ static  int       have_operators = 0;
 DOH *PERL5::is_shadow(SwigType *t) {
   Node *n;
   n = classLookup(t);
+  /*  Printf(stdout,"'%s' --> '%x'\n", t, n); */
   if (n) {
     if (!Getattr(n,"perl5:proxy")) {
       setclassname(n);

@@ -100,6 +100,9 @@ static Node *copy_node(Node *n) {
       Setattr(nn,key, Copy(Getattr(n,key)));
       continue;
     }
+    if (Strcmp(key,"sym:symtab") == 0) {
+      Setattr(nn,"sym:needs_symtab", "1");
+    }
     /* We don't copy any other symbol table attributes */
     if (Strncmp(key,"sym:",4) == 0) {
       continue;
@@ -363,10 +366,14 @@ static void add_symbols(Node *n) {
 void add_symbols_copy(Node *n) {
   String *name;
   String *symname;
+  int    oldmode = cplus_mode;
   while (n) {
     add_oldname = Getattr(n,"sym:name");
-    if (add_oldname) {
-      DohIncref(add_oldname);
+    if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
+      if (add_oldname) {
+	DohIncref(add_oldname);
+      }
+      Delattr(n,"sym:needs_symtab");
       Delattr(n,"sym:name");
       add_only_one = 1;
       add_symbols(n);
@@ -381,13 +388,26 @@ void add_symbols_copy(Node *n) {
 	Setattr(n,"symtab", Swig_symbol_popscope());
 	Delattr(n,"requires_symtab");
       }
-      Delete(add_oldname);
+      if (add_oldname) {
+	Delete(add_oldname);
+      }
       add_oldname = 0;
     } else {
 	add_symbols_copy(firstChild(n));
     }
+    if (Strcmp(nodeType(n),"access") == 0) {
+      String *kind = Getattr(n,"kind");
+      if (Strcmp(kind,"public") == 0) {
+	cplus_mode = CPLUS_PUBLIC;
+      } else if (Strcmp(kind,"private") == 0) {
+	cplus_mode = CPLUS_PRIVATE;
+      } else if (Strcmp(kind,"protected") == 0) {
+	cplus_mode = CPLUS_PROTECTED;
+      }
+    }
     n = nextSibling(n);
   }
+  cplus_mode = oldmode;
 }
 
 /* Extension merge.  This function is used to handle the %extend directive
@@ -2269,6 +2289,12 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Setattr($$,"templateparms", $3);
 			  Setattr($$,"sym:typename","1");
 			  add_symbols($$);
+			  /* We also place a fully parameterized version in the symbol table */
+			  {
+			    String *fname = NewString(Getattr($$,"name"));
+			    SwigType_add_template(fname,$3);
+			    Swig_symbol_cadd(fname,$$);
+			  }
 		      } else {
 			  if (($3) && ($5)) {
 			    Swig_warning(WARN_PARSE_TEMPLATE_PARTIAL,cparse_file, cparse_line,"Template partial specialization not supported.\n");
@@ -2334,6 +2360,11 @@ template_parms  : rawparms {
 /* Namespace support */
 
 cpp_using_decl : USING idcolon SEMI {
+                  $$ = new_node("using");
+		  Setattr($$,"uname",$2);
+		  Setattr($$,"name", Swig_scopename_base($2));
+		  add_symbols($$);
+		  /*			  
                   Node *n = Swig_symbol_clookup($2,0);
                   if (!n) {
 		    Swig_warning(WARN_PARSE_USING_UNDEF, cparse_file, cparse_line, "Nothing known about '%s'.\n", $2);
@@ -2348,6 +2379,7 @@ cpp_using_decl : USING idcolon SEMI {
 		    Setattr($$,"node", n);
 		    add_symbols($$);
 		  }
+		  */
              }
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);

@@ -270,6 +270,7 @@ extern Symtab   *Swig_symbol_getscope(const String_or_char *symname);
 extern Symtab   *Swig_symbol_current();
 extern Symtab   *Swig_symbol_popscope();
 extern Node     *Swig_symbol_add(String_or_char *symname, Node *node);
+extern void      Swig_symbol_cadd(String_or_char *symname, Node *node);
 extern Node     *Swig_symbol_clookup(String_or_char *symname, Symtab *tab);
 extern Symtab   *Swig_symbol_cscope(String_or_char *symname, Symtab *tab);
 extern Node     *Swig_symbol_clookup_local(String_or_char *symname, Symtab *tab);

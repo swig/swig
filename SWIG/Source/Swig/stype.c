@@ -1075,7 +1075,7 @@ SwigType_namestr(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_str(DOH *s, DOH *id)
+ * SwigType_str()
  *
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
@@ -1130,8 +1130,9 @@ SwigType_str(SwigType *s, const String_or_char *id)
       }
       Delete(q);
     }
-    else if (SwigType_isreference(element)) Insert(result,0,"&");
-    else if (SwigType_isarray(element)) {
+    else if (SwigType_isreference(element)) {
+      Insert(result,0,"&");
+    }  else if (SwigType_isarray(element)) {
       DOH *size;
       Append(result,"[");
       size = SwigType_parm(element);

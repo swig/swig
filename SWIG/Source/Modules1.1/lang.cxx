@@ -1225,7 +1225,7 @@ int Language::classDeclaration(Node *n) {
 
     if (!validIdentifier(symname)) {
       Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n",
-		   symname);
+		   SwigType_namestr(symname));
       return SWIG_NOWRAP;
     }
 

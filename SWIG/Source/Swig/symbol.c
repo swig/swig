@@ -12,6 +12,7 @@
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
+#include "swigwarn.h"
 
 /* -----------------------------------------------------------------------------
  * Synopsis
@@ -331,29 +332,16 @@ void Swig_symbol_inherit(Symtab *s) {
   Append(inherit,s);
 }
 
-/* ----------------------------------------------------------------------------- 
- * Swig_symbol_add()
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_cadd()
  *
- * Adds a node to the symbol table.  Returns the node itself if successfully
- * added.  Otherwise, it returns the symbol table entry of the conflicting node.
- *
- * Also places the symbol in a behind-the-scenes C symbol table.  This is needed
- * for namespace support, type resolution, and other issues.
+ * Adds a node to the C symbol table only.
  * ----------------------------------------------------------------------------- */
 
-Node *
-Swig_symbol_add(String_or_char *symname, Node *n) {
-  Hash *c, *cn, *cl;
-  SwigType *decl, *ndecl;
-  String   *cstorage, *nstorage;
-  int      nt = 0, ct = 0;
-  
-  /* See if the node has a name.  If so, we place in the C symbol table for this
-     scope. We don't worry about overloading here---the primary purpose of this
-     is to record information for type/name resolution for later. Conflicts
-     in C namespaces are errors, but these will be caught by the C++ compiler
-     when compiling the wrapper code */
+void
+Swig_symbol_cadd(String_or_char *name, Node *n) {
 
+  Node *cn;
   /* There are a few options for weak symbols.  A "weak" symbol 
      is any symbol that can be replaced by another symbol in the C symbol
      table.  An example would be a forward class declaration.  A forward
@@ -370,6 +358,69 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      stays in the C symbol table (so that it can be expanded using %template).
    */
 
+  cn = Getattr(ccurrent,name);
+  if (cn && (Getattr(cn,"sym:typename"))) {
+    /* The node in the C symbol table is a typename.  Do nothing */
+  } else if (cn && (Getattr(cn,"sym:weak"))) {
+    /* The node in the symbol table is weak. Replace it */
+    Setattr(ccurrent,name, n);
+  } else if (cn && (Getattr(n,"sym:weak"))) {
+    /* The node being added is weak.  Don't worry about it */
+  } else if (cn && (Getattr(n,"sym:typename"))) {
+    /* The node being added is a typename.  We definitely add it */
+    Setattr(ccurrent,name,n);
+  } else if (!cn) {
+    /* No conflict. Add the symbol */
+    Setattr(ccurrent,name,n);
+  }
+}
+
+/* ----------------------------------------------------------------------------- 
+ * Swig_symbol_add()
+ *
+ * Adds a node to the symbol table.  Returns the node itself if successfully
+ * added.  Otherwise, it returns the symbol table entry of the conflicting node.
+ *
+ * Also places the symbol in a behind-the-scenes C symbol table.  This is needed
+ * for namespace support, type resolution, and other issues.
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Swig_symbol_add(String_or_char *symname, Node *n) {
+  Hash *c, *cn, *cl;
+  SwigType *decl, *ndecl;
+  String   *cstorage, *nstorage;
+  int      nt = 0, ct = 0;
+  String   *name;
+
+  /* See if the node has a name.  If so, we place in the C symbol table for this
+     scope. We don't worry about overloading here---the primary purpose of this
+     is to record information for type/name resolution for later. Conflicts
+     in C namespaces are errors, but these will be caught by the C++ compiler
+     when compiling the wrapper code */
+
+  
+  /* There are a few options for weak symbols.  A "weak" symbol 
+     is any symbol that can be replaced by another symbol in the C symbol
+     table.  An example would be a forward class declaration.  A forward
+     class sits in the symbol table until a real class declaration comes along.
+
+     Certain symbols are marked as "sym:typename".  These are important 
+     symbols related to the C++ type-system and take precedence in the C
+     symbol table.  An example might be code like this:
+
+            template<class T> T foo(T x);
+            int foo(int);
+
+     In this case, the template is marked with "sym:typename" so that it
+     stays in the C symbol table (so that it can be expanded using %template).
+   */
+
+  name = Getattr(n,"name");
+  if (name) {
+    Swig_symbol_cadd(name,n);
+  }
+#ifdef OLD
   {
     String *name = Getattr(n,"name");
     if (name) {
@@ -390,7 +441,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
       }
     }
   }
-
+#endif
   /* No symbol name defined.  We return. */
   if (!symname) {
     Setattr(n,"sym:symtab",current_symtab);
@@ -674,7 +725,11 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   }
   /* Check if s is a 'using' node */
   while (Strcmp(nodeType(s),"using") == 0) {
-    s = Getattr(s,"node");
+    s = Swig_symbol_clookup(Getattr(s,"uname"), Getattr(s,"sym:symtab"));
+    if (!s) {
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,"uname"));
+    }
+    /* s = Getattr(s,"node"); */
   }
   return s;
 }

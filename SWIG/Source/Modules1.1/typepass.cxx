@@ -557,12 +557,23 @@ public:
 	    }
 	    return SWIG_OK;
 	} else {
+	  Node *ns;
 	    /* using id */
+
+	  if (Getattr(n,"sym:symtab")) {
+	    ns = Swig_symbol_clookup(Getattr(n,"uname"), Getattr(n,"sym:symtab"));
+	  } else {
+	    ns = 0;
+	  }
+	  if (!ns) {
+	    if (!Getattr(n,"access") || ((Strcmp(Getattr(n,"access"),"public") == 0))) {
+	      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "tp: Nothing known about '%s'.\n", Getattr(n,"uname"));	    
+	    }
+	  } else {
 
 	    /* Only a single symbol is being used.  There are only a few symbols that
 	       we actually care about.  These are typedef, class declarations, and enum */
 
-	    Node *ns = Getattr(n,"node");
 	    String *ntype = nodeType(ns);
 	    if (Strcmp(ntype,"cdecl") == 0) {
 		String *storage = Getattr(ns,"storage");
@@ -584,6 +595,7 @@ public:
 	    } else if (Strcmp(ntype,"enum") == 0) {
 		SwigType_typedef_using(Getattr(n,"uname"));	
 	    }
+	  }
 	}
 	return SWIG_OK;
     }

@@ -129,6 +129,17 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
     Setattr(n,"sym:name",name);
     Append(cpatchlist,Getattr(n,"code"));
+  } else if (Strcmp(nodeType(n),"using") == 0) {
+    String *uname = Getattr(n,"uname");
+    if (uname) {
+      if (Strstr(uname,"<")) {
+	Append(patchlist, uname);
+      }
+    }
+    if (Getattr(n,"namespace")) {
+      /* Namespace link.   This is nasty.  Is other namespace defined? */
+
+    }
   } else {
     /* Look for obvious parameters */
     Node *cn;
@@ -195,6 +206,18 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       }
       assert(value);
       
+      /* Need to patch default arguments */
+      {
+	Parm *rp = nextSibling(p);
+	while (rp) {
+	  String *rvalue = Getattr(rp,"value");
+	  if (rvalue) {
+	    Replace(rvalue,name,value, DOH_REPLACE_ID);
+	  }
+	  rp = nextSibling(rp);
+	}
+      }
+
       /*      Printf(stdout,"value = %s\n", value);
       Printf(stdout,"tydef = %s\n", tydef);
       Printf(stdout,"name  = %s\n", name); */
