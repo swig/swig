@@ -865,7 +865,7 @@ Swig_cmemberset_wrapper(String_or_char *classname,
 
   lt = Swig_clocal_type(type);
   ty = Swig_wrapped_var_type(type);
-  p = NewParm(ty,"value");
+  p = NewParm(ty,membername);
 
   set_nextSibling(l,p);
   
