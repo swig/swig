@@ -204,4 +204,20 @@ This testcase tests operators for defines
 
 
 
+#ifdef __cplusplus
+		   
+#define %mangle(...) #@__VA_ARGS__
+#define %mangle_str(...) ##@__VA_ARGS__
 
+%define my_func(...)
+inline const char* mangle ## #@__VA_ARGS__ () {
+  return %mangle_str(__VA_ARGS__);
+}
+%enddef
+
+%inline {
+  my_func(class Int) ;
+  my_func(std::pair<double, std::complex< double > >*) ;
+}
+
+#endif
