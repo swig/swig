@@ -50,6 +50,16 @@ The password to the cvs account is 'cvs'.
 </pre>
 </p>
 
+<p>
+<li>To build the system, follow these steps
+<p>
+<pre>
+% cd SWIG
+% ./autogen.sh
+% ./configure --prefix=/some/directory
+% make
+% make install
+</pre>
 </ol>
 
 <b>Note:</b> The CVS repository is read-only so the system will not 

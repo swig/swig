@@ -25,6 +25,17 @@ noncommercial use.
 </ul>
 
 <p>
+<h3>SWIG-2.0 project</h3>
+
+Essays related to the future of SWIG development and the ongoing
+development work.
+
+<ul>
+<li> <a href="article_cpp.html">"Thoughts on the insanity of C++ Parsing"</a>.  David Beazley, August 12, 2002.
+<li> <a href="future.html">"SWIG-1.3.12, SWIG-2.0, and Beyond"</a>.  David Beazley, June 2, 2002.
+</ul>
+
+<p>
 <h3>News</h3>
 
 <p>

@@ -7,36 +7,14 @@ SWIG Documentation, Presentations, and Papers
 <H3>SWIG1.3</h3>
 <ul>
 
-<li> <a href="Doc1.3/index.html">Development Documentation</a> for SWIG1.3.13.
+<li> <a href="Doc1.3/index.html">Development Documentation</a> for SWIG1.3.14.
 <li> Also available in <a href="swigdoc.pdf">PDF</a> and <a href="swigdoc.ps">postscript</a> (SWIG-1.3.11).
 </ul>
 
 <h3>SWIG1.1</h3>
 <ul>
 <li> <a href="Doc1.1/HTML/Contents.html">Online Users Manual</a>.
-<p>
-<li> The latest version of the <a href="Doc1.1/PDF/SWIGManual.pdf">User Manual</a> (318 pages, Adobe PDF).
-<ul>
-<li> <a href="Doc1.1/PDF/Preface.pdf">Preface</a> (PDF)
-<li> <a href="Doc1.1/PDF/Introduction.pdf">Introduction</a> (PDF)
-<li> <a href="Doc1.1/PDF/Scripting.pdf">Scripting languages</a> (PDF)
-<li> <a href="Doc1.1/PDF/SWIG.pdf">SWIG Basics</a> (PDF)
-<li> <a href="Doc1.1/PDF/Library.pdf">Multiple files and the SWIG library</a> (PDF)
-<li> <a href="Doc1.1/PDF/Documentation.pdf">Documentation system.</a> (PDF)
-<li> <a href="Doc1.1/PDF/Typemaps.pdf">Pointers, constraints, and typemaps</a> (PDF)
-<li> <a href="Doc1.1/PDF/Exceptions.pdf">Exception handling</a> (PDF)
-<li> <a href="Doc1.1/PDF/Perl5.pdf">Perl 5</a> (PDF)
-<li> <a href="Doc1.1/PDF/Python.pdf">Python</a> (PDF)
-<li> <a href="Doc1.1/PDF/Tcl.pdf">Tcl</a> (PDF)
-<li> <a href="Doc1.1/PDF/Advanced.pdf">Advanced topics</a> (PDF)
-<li> <a href="Doc1.1/PDF/Extending.pdf">Extending SWIG</a> (PDF)
-</ul>
-
-<p>
-<li> SWIG <a href="Doc1.1/PDF/Reference.pdf">Reference Manual</a> (PDF).
-<p>
-<li> Postscript versions of the documentation are available on the SWIG
-<a href="ftp://ftp.swig.org/pub">FTP</a> site.
+<li> Also available in <a href="Doc1.1/PDF/SWIGManual.pdf">PDF</a> (318 pages).
 </ul>
 
 <h3> Online Papers about SWIG </h3>
