@@ -12,7 +12,7 @@
  * The cstype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
 /* Primitive types */
-%typemap(ctype) bool,               const bool &               "bool"
+%typemap(ctype) bool,               const bool &               "unsigned int"
 %typemap(ctype) char,               const char &               "char"
 %typemap(ctype) signed char,        const signed char &        "signed char"
 %typemap(ctype) unsigned char,      const unsigned char &      "unsigned short"
