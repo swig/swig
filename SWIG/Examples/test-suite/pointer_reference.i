@@ -8,8 +8,9 @@
 
 #ifdef SWIGGUILE
 /* A silly testing typemap for feeding a doubly indirect integer */
-%typemap(in) int *&XYZZY (int temp1, int *temp2)
-  "temp1 = gh_scm2int($input); temp2 = &temp1; $1 = &temp2;";
+%typemap(in) int *&XYZZY (int temp1, int *temp2) {
+   temp1 = gh_scm2int($input); temp2 = &temp1; $1 = &temp2;
+};
 #endif
 
 %inline %{

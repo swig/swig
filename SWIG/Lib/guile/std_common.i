@@ -5,22 +5,17 @@
 //
 // Guile implementation
 
+#define SWIG_bool2scm(b) gh_bool2scm(b ? 1 : 0)
+#define SWIG_string2scm(s) gh_str02scm(s.c_str())
+
 %{
 #include <string>
 
-SCM SWIG_bool2scm(bool b) {
-    int i = b ? 1 : 0;
-    return gh_bool2scm(i);
-}
-std::string SWIG_scm2string(SCM x) {
+inline std::string SWIG_scm2string(SCM x) {
     char* temp;
-    std::string s;
-    temp = gh_scm2newstr(x, NULL);
-    s = std::string(temp);
-    if (temp) scm_must_free(temp);
+    temp = SWIG_scm2str(x);
+    std::string s(temp);
+    if (temp) SWIG_free(temp);
     return s;
-}
-SCM SWIG_string2scm(const std::string& s) {
-    return gh_str02scm(s.c_str());
 }
 %}

@@ -36,6 +36,7 @@ Major contributors include:
  Loic Dachary                                           (Perl5)
  Masaki Fukushima                                       (Ruby)
  James Michael DuPont(mdupont777@yahoo.com)             (C#/PNet Support with the original code from Neil Cawse)
+ John Lenz						(Guile updates)
  
 Past contributors include:
  Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran

@@ -338,6 +338,36 @@ guile_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
+#------------------------------------------------------------------
+# Build a dynamically loaded module with passive linkage and the scm interface
+#------------------------------------------------------------------
+guile_scm: $(SRCS)
+	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
+
+guile_scm_cpp: $(SRCS)
+	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build a dynamically loadable module with passive linkage using the scm interface, 
+# linked against SWIG runtime lib
+# -----------------------------------------------------------------
+
+GUILE_SCM_RUNTIME=-L$(RUNTIMEDIR) -lswigguilescm@release_suffix@
+
+guile_scm_multi: $(SRCS)
+	$(SWIG) -c -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(GUILE_SCM_RUNTIME) $(LIBS) -o lib$(TARGET)$(SO)
+
+guile_scm_multi_cpp: $(SRCS)
+	$(SWIG) -c -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(GUILE_SCM_RUNTIME) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
+
 # -----------------------------------------------------------------
 # Build a dynamically loadable module with passive linkage
 # -----------------------------------------------------------------

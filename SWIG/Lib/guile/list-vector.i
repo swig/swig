@@ -66,7 +66,7 @@
        $1 = gh_vector_length($input);
        if ($1 > 0) {
 	 $1_ltype i;
-	 $2 = SWIG_malloc(sizeof(C_TYPE) * $1);
+	 $2 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE) * $1);
 	 for (i = 0; i<$1; i++) {
 	   SCM swig_scm_value = gh_vector_ref($input, gh_int2scm(i));
 	   $2[i] = SCM_TO_C_EXPR;
@@ -84,7 +84,7 @@
        if ($1 > 0) {
 	 $1_ltype i;
 	 SCM rest;
-	 $2 = SWIG_malloc(sizeof(C_TYPE) * $1);
+	 $2 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE) * $1);
 	 for (i = 0, rest = $input;
 	      i<$1;
 	      i++, rest = gh_cdr(rest)) {
@@ -278,7 +278,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
        *_global_vector_length = gh_vector_length($input);
        if (*_global_vector_length > 0) {
 	 int i;
-	 $1 = SWIG_malloc(sizeof(C_TYPE)
+	 $1 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE)
 			       * (*_global_vector_length));
 	 for (i = 0; i<*_global_vector_length; i++) {
 	   SCM swig_scm_value = gh_vector_ref($input, gh_int2scm(i));
@@ -297,7 +297,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
        if (*_global_list_length > 0) {
 	 int i;
 	 SCM rest;
-	 $1 = SWIG_malloc(sizeof(C_TYPE)
+	 $1 = (C_TYPE *) SWIG_malloc(sizeof(C_TYPE)
 			       * (*_global_list_length));
 	 for (i = 0, rest = $input;
 	      i<*_global_list_length;

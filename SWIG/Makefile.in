@@ -39,6 +39,7 @@ skip-perl	= test -n "@SKIP_PERL5@"
 skip-python	= test -n "@SKIP_PYTHON@"
 skip-java	= test -n "@SKIP_JAVA@"
 skip-guile	= test -n "@SKIP_GUILE@"
+skip-guilescm   = test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php4	= test -n "@SKIP_PHP4@"
@@ -116,6 +117,7 @@ check-test-suite:				\
 	check-python-test-suite			\
 	check-java-test-suite			\
 	check-guile-test-suite			\
+	check-guilescm-test-suite		\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\

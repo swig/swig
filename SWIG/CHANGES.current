@@ -1,5 +1,35 @@
 Version 1.3.20 (In progress)
 ============================
+
+06/03/2003: mkoeppe
+	    [Guile] Applied Guile module updates contributed by 
+	    John Lenz <jelenz@students.wisc.edu>. 
+
+	    - SWIG currently uses Guile's gh_ API, which is marked as
+	      deprecated in Guile 1.6 and will be removed in Guile
+	      1.9.  This change introduces a command-line flag "-scm"
+	      which causes SWIG to generate wrappers that use Guile's
+	      SCM API instead; this requires Guile >= 1.6.
+	    
+	    - The Lib/guile directory has been reorganized to
+              standardize names across language modules: guiledec.swg
+              and guile.swg have been moved into guile_gh_run.swg,
+              guile.i has been moved to guile_gh.swg, guile_scm.swg
+              and guile_scm_run.swg which contain the SCM API stuff
+              have been added
+
+	    - ghinterface.i, which contains the defines from the gh_
+              functions to the scm_functions has been added
+
+	    - The API for dealing with pointer objects is now
+	      SWIG_ConvertPtr, SWIG_MustGetPtr, SWIG_NewPointerObj.
+
+            - Added varin and varout typemaps for SWIGTYPE [] and SWIGTYPE &
+
+            - Garbage collection has been added.
+
+            *** NEW FEATURE [Guile] ***
+	    	
 05/29/2003: beazley
             Refinement to default typemap matching and arrays.  When an
             array is declared like this:
