@@ -690,7 +690,7 @@ DOH *SwigType_fromstring(DOH *string)
    int i;
 
    assert(DohIsString(string));
-   components = SwigType_split(string);
+   components = StringType_split(string);
    if (Len(components) < 1)
       return NULL;
   
@@ -742,9 +742,9 @@ DOH *SwigType_fromstring(DOH *string)
       rv = SwigType_newint(INT_WIDTH, 0, 0, 0, 0);
    else if (startswith(Data(component), "struct ") == 0)
       rv = SwigType_newstruct(Data(component) + 7, NULL, 0, 0);
-   else if (SwigType_isstruct(component))
+   else if (StringType_isstruct(component))
    {
-      DOH *struct_members = SwigType_split_struct(component);
+      DOH *struct_members = StringType_split_struct(component);
       DOH *body = NewList();
       char name[100] = "";
       int j;
@@ -767,20 +767,20 @@ DOH *SwigType_fromstring(DOH *string)
    for (i = Len(components)-2; i >= 0; i--)
    {
       component = Getitem(components, i);
-      if (SwigType_ispointer(component))
+      if (StringType_ispointer(component))
 	 rv = SwigType_newpointer(0, 0, rv);
-      else if (SwigType_isreference(component))
+      else if (StringType_isreference(component))
 	 /* Do nothing yet */;
-      else if (SwigType_isarray(component))
+      else if (StringType_isarray(component))
       {
 	 char *size = strdup(Data(component));
 	 size[strlen(size) - 1] = 0;
 	 rv = SwigType_newarray(NewString(size+1), rv);
 	 free(size);
       }
-      else if (SwigType_isfunction(component))
+      else if (StringType_isfunction(component))
       {
-	 DOH *parms = SwigType_split_parms(component);
+	 DOH *parms = StringType_split_parms(component);
 	 DOH *args = NewList();
 	 int j;
 	 
@@ -791,7 +791,7 @@ DOH *SwigType_fromstring(DOH *string)
 	 Delete(parms);
 	 Delete(args);
       }
-      else if (SwigType_isqualifier(component))
+      else if (StringType_isqualifier(component))
       {
 	 int t = SwigType_gettype(rv);
 	 DOH *n = SwigType_getname(rv);
