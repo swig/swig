@@ -682,7 +682,8 @@ int RUBY::functionWrapper(Node *n) {
   Printv(f->code,outarg,0);
 
   /* Dump the argument cleanup code */
-  Printv(f->code,cleanup,0);
+  if (current != CONSTRUCTOR_NEW)
+    Printv(f->code,cleanup,0);
 
   /* Look for any remaining cleanup.  This processes the %new directive */
   if (newobj) {
@@ -931,7 +932,8 @@ int RUBY::classHandler(Node *n) {
 	 ", \"", klass->name, "\", $super);\n", 0);
 
   {
-    SwigType *tt = NewString(klass->name);
+    // SwigType *tt = NewString(klass->name);
+    SwigType *tt = NewString(cname);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
     Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", SwigType_manglestr(tt), valid_name);
@@ -972,8 +974,13 @@ int RUBY::classHandler(Node *n) {
     Printf(klass->init, "c%s.mark = 0;\n", klass->name);
   }
 
-  if (klass->destructor_defined) {
-    Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->cname);
+  String *freefunc = Getattr(n, "feature:freefunc");
+  if (freefunc) {
+    Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+  } else {
+    if (klass->destructor_defined) {
+      Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->cname);
+    }
   }
   Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
 
