@@ -39,11 +39,13 @@
 #define SWIGRUNTIME(a) static a
 #endif
 
-typedef void *(*swig_converter_func)(void *);
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef void *(*swig_converter_func)(void *);
 
 typedef struct swig_type_info {
   const char             *name;                 

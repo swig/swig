@@ -187,7 +187,7 @@ XS(SWIG_init) {
 
     /* Install commands */
     for (i = 0; swig_commands[i].name; i++) {
-      newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, __FILE__);
+      newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, (char*)__FILE__);
     }
 
     /* Install variables */

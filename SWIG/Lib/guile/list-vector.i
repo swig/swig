@@ -73,14 +73,14 @@
      
      %typemap(ignore) int VECTORLENINPUT (int *vector_length)
      {		      
-       $target = 0;
-       vector_length = &$target;
+       $1 = 0;
+       vector_length = &$1;
      }
 
      %typemap(ignore) int LISTLENINPUT (int *list_length)   
      {		      
-       $target = 0;
-       list_length = &$target;
+       $1 = 0;
+       list_length = &$1;
      }
 
      /* All the work is done in IN. */
@@ -88,38 +88,38 @@
      %typemap(in) C_TYPE *VECTORINPUT,
 		  const C_TYPE *VECTORINPUT
      {
-       SCM_VALIDATE_VECTOR($argnum, $source);
-       *vector_length = gh_vector_length($source);
+       SCM_VALIDATE_VECTOR($argnum, $input);
+       *vector_length = gh_vector_length($input);
        if (*vector_length > 0) {
 	 int i;
-	 $target = SWIG_malloc(sizeof(C_TYPE)
+	 $1 = SWIG_malloc(sizeof(C_TYPE)
 			       * (*vector_length));
 	 for (i = 0; i<*vector_length; i++) {
-	   SCM elt = gh_vector_ref($source, gh_int2scm(i));
-	   $target[i] = SCM_TO_C(elt);
+	   SCM elt = gh_vector_ref($input, gh_int2scm(i));
+	   $1[i] = SCM_TO_C(elt);
 	 }
        }
-       else $target = NULL;
+       else $1 = NULL;
      }
 	 
      %typemap(in) C_TYPE *LISTINPUT,
 		  const C_TYPE *LISTINPUT
      {
-       SCM_VALIDATE_LIST($argnum, $source);
-       *list_length = gh_length($source);
+       SCM_VALIDATE_LIST($argnum, $input);
+       *list_length = gh_length($input);
        if (*list_length > 0) {
 	 int i;
 	 SCM rest;
-	 $target = SWIG_malloc(sizeof(C_TYPE)
+	 $1 = SWIG_malloc(sizeof(C_TYPE)
 			       * (*list_length));
-	 for (i = 0, rest = $source;
+	 for (i = 0, rest = $input;
 	      i<*list_length;
 	      i++, rest = gh_cdr(rest)) {
 	   SCM elt = gh_car(rest);
-	   $target[i] = SCM_TO_C(elt);
+	   $1[i] = SCM_TO_C(elt);
 	 }
        }
-       else $target = NULL;
+       else $1 = NULL;
      }
 
      /* Don't check for NULL pointers (override checks). */
@@ -136,7 +136,7 @@
 		       const C_TYPE *VECTORINPUT,
 		       C_TYPE *LISTINPUT, 
 		       const C_TYPE *LISTINPUT
-       {if ($target!=NULL) SWIG_free($target);}
+       {if ($1!=NULL) SWIG_free($1);}
 
      /* On the Scheme side, the argument is a vector or a list, so say
 	so in the arglist documentation. */
@@ -157,13 +157,13 @@
 
      %typemap(ignore) int *VECTORLENOUTPUT (int arraylentemp),
 		      int *LISTLENOUTPUT   (int arraylentemp)
-       "$target = &arraylentemp;";
+       "$1 = &arraylentemp;";
 
      /* We also need to ignore the ...OUTPUT argument. */
 
      %typemap(ignore) C_TYPE **VECTOROUTPUT (C_TYPE *arraytemp),
 		      C_TYPE **LISTOUTPUT   (C_TYPE *arraytemp)
-       "$target = &arraytemp;";
+       "$1 = &arraytemp;";
 
      /* In the ARGOUT typemaps, we convert the array into a vector or
         a list and append it to the results. */
@@ -174,10 +174,10 @@
        SCM res = gh_make_vector(gh_int2scm(arraylentemp),
 				SCM_BOOL_F);
        for (i = 0; i<arraylentemp; i++) {
-	 SCM elt = C_TO_SCM((*$target)[i]);
+	 SCM elt = C_TO_SCM((*$result)[i]);
 	 gh_vector_set_x(res, gh_int2scm(i), elt);
        }
-       if ((*$target)!=NULL) free(*$target);
+       if ((*$result)!=NULL) free(*$result);
        SWIG_APPEND_VALUE(res);
      }
 
@@ -186,10 +186,10 @@
        int i;
        SCM res = SCM_EOL;
        for (i = arraylentemp - 1; i>=0; i--) {
-	 SCM elt = C_TO_SCM((*$target)[i]);
+	 SCM elt = C_TO_SCM((*$result)[i]);
 	 res = gh_cons(elt, res);
        }
-       if ((*$target)!=NULL) free(*$target);
+       if ((*$result)!=NULL) free(*$result);
        SWIG_APPEND_VALUE(res);
      }
 

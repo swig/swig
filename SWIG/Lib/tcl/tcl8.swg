@@ -148,7 +148,7 @@
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
-    return "Type error. expected an integer";
+    return (char*) "Type error. expected an integer";
   }
   $1 = ($1_type) temp;
 }
@@ -156,7 +156,7 @@
 %typemap(varin) double, float {
   double temp;
   if (Tcl_GetDoubleFromObj(interp, $input, &temp) != TCL_OK) {
-    return "Type error. expected a double.";
+    return (char*) "Type error. expected a double.";
   }
   $1 = ($1_type) temp;
 }
@@ -192,7 +192,7 @@
 %typemap(varin) SWIGTYPE * {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
-    return "Type error. Expected $1_ltype";
+    return (char*)"Type error. Expected $1_ltype";
   }
   $1 = ($1_type) temp;
 }
@@ -200,7 +200,7 @@
 %typemap(varin) SWIGTYPE & {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
-    return "Type error. Expected $1_ltype";
+    return (char*)"Type error. Expected $1_ltype";
   }
   $1 = *(($&1_type) temp);
 }
@@ -208,7 +208,7 @@
 %typemap(varin) SWIGTYPE {
   void *temp;
   if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor) != TCL_OK) {
-    return "Type error. Expected $&1_ltype";
+    return (char*)"Type error. Expected $&1_ltype";
   }
   $1 = *(($&1_type) temp);
 }
@@ -287,12 +287,12 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
     static int added_types = 0;
     if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS
-    if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+    if (Tcl_InitStubs(interp, (char*)"8.1", 0) == NULL) {
       return TCL_ERROR;
     }
 #endif
 
-    Tcl_PkgProvide(interp, SWIG_name, SWIG_version);
+    Tcl_PkgProvide(interp, (char*)SWIG_name, (char*)SWIG_version);
 
 #ifdef SWIG_namespace
     Tcl_Eval(interp, "namespace eval " SWIG_namespace " { }");

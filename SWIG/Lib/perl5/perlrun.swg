@@ -31,9 +31,21 @@ extern "C" {
 }
 #endif
 
+/* Note: SwigMagicFuncHack is a typedef used to get the C++
+   compiler to just shut up already */
+
 #ifdef PERL_OBJECT
 #define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
 typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef int (CPerlObj::*SwigMagicFuncHack)(SV *, MAGIC *);
+#ifdef __cplusplus
+}
+#endif
+
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
 #define SWIGCLASS_STATIC
 #else
@@ -42,9 +54,27 @@ typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
 #ifndef MULTIPLICITY
 #define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
 typedef int (*SwigMagicFunc)(SV *, MAGIC *);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef int (*SwigMagicFuncHack)(SV *, MAGIC *);
+#ifdef __cplusplus
+}
+#endif
+
+
 #else
 #define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
 typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 #endif
 
@@ -169,31 +199,6 @@ _SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
 
 #endif
 
-/* Magic variable code */
-#ifndef PERL_OBJECT
-#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-  #ifndef MULTIPLICITY 
-       static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int \
-(*get)(SV *,MAGIC *)) { 
-  #else 
-       static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*,\
- SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) { 
-  #endif 
-#else
-#define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
-#endif
-  MAGIC *mg;
-  sv_magic(sv,sv,'U',(char *) name,strlen(name));
-  mg = mg_find(sv,'U');
-  mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
-  mg->mg_virtual->svt_get = get;
-  mg->mg_virtual->svt_set = set;
-  mg->mg_virtual->svt_len = 0;
-  mg->mg_virtual->svt_clear = 0;
-  mg->mg_virtual->svt_free = 0;
-}
-
 typedef XS(SwigPerlWrapper);
 typedef SwigPerlWrapper *SwigPerlWrapperPtr;
 
@@ -202,13 +207,6 @@ typedef struct {
   const char         *name;
   SwigPerlWrapperPtr  wrapper;
 } swig_command_info;
-
-/* Structure for variable table */
-typedef struct {
-  const char   *name;
-  SwigMagicFunc   set;
-  SwigMagicFunc   get;
-} swig_variable_info;
 
 /* Information for constant table */
 
@@ -232,6 +230,37 @@ typedef struct swig_constant_info {
 }
 #endif
 
+/* Structure for variable table */
+typedef struct {
+  const char   *name;
+  SwigMagicFunc   set;
+  SwigMagicFunc   get;
+} swig_variable_info;
+
+/* Magic variable code */
+#ifndef PERL_OBJECT
+#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
+  #ifndef MULTIPLICITY 
+       static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int \
+(*get)(SV *,MAGIC *)) { 
+  #else 
+       static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*,\
+ SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) { 
+  #endif 
+#else
+#define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
+static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
+#endif
+  MAGIC *mg;
+  sv_magic(sv,sv,'U',(char *) name,strlen(name));
+  mg = mg_find(sv,'U');
+  mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
+  mg->mg_virtual->svt_get = (SwigMagicFuncHack) get;
+  mg->mg_virtual->svt_set = (SwigMagicFuncHack) set;
+  mg->mg_virtual->svt_len = 0;
+  mg->mg_virtual->svt_clear = 0;
+  mg->mg_virtual->svt_free = 0;
+}
 
 
 
