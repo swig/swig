@@ -6,6 +6,25 @@
 // Ruby implementation
 
 
+// These should be factored out somewhere
+%{
+#define SWIG_FLOAT_P(x) ((TYPE(x) == T_FLOAT) || FIXNUM_P(x))
+
+bool SWIG_BOOL_P(VALUE) {
+    // dummy test, RTEST should take care of everything
+    return true;
+}
+bool SWIG_RB2BOOL(VALUE x) {
+    return RTEST(x);
+}
+VALUE SWIG_BOOL2RB(bool b) {
+    return b ? Qtrue : Qfalse;
+}
+double SWIG_NUM2DBL(VALUE x) {
+    return (FIXNUM_P(x) ? FIX2INT(x) : NUM2DBL(x));
+}
+%}
+
 %include exception.i
 
 // containers
@@ -63,12 +82,6 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
-
-#define SWIG_FLOAT_P(x) ((TYPE(x) == T_FLOAT) || FIXNUM_P(x))
-
-double SWIG_NUM2DBL(VALUE x) {
-    return (FIXNUM_P(x) ? FIX2INT(x) : NUM2DBL(x));
-}
 %}
 
 // exported class
@@ -173,7 +186,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     if (CHECK(o))
-                        (($1_type &)$1)[i] = T(CONVERT_FROM(o));
+                        (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
                     else
                         rb_raise(rb_eTypeError,
                                  "wrong argument type"
@@ -194,7 +207,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     if (CHECK(o))
-                        temp[i] = T(CONVERT_FROM(o));
+                        temp[i] = (T)(CONVERT_FROM(o));
                     else
                         rb_raise(rb_eTypeError,
                                  "wrong argument type"
@@ -251,6 +264,7 @@ namespace std {
     };
     %enddef
 
+    specialize_std_vector(bool,SWIG_BOOL_P,SWIG_RB2BOOL,SWIG_BOOL2RB);
     specialize_std_vector(int,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(short,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(long,FIXNUM_P,FIX2INT,INT2NUM);

@@ -123,6 +123,7 @@ namespace std {
     };
     %enddef
 
+    specialize_std_vector(bool);
     specialize_std_vector(int);
     specialize_std_vector(short);
     specialize_std_vector(long);

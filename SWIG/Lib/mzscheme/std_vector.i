@@ -188,7 +188,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
                     if (CHECK(o))
-                        (($1_type &)$1)[i] = CONVERT_FROM(o);
+                        (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
@@ -203,7 +203,7 @@ namespace std {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
                     if (CHECK(head))
-                        $1.push_back(CONVERT_FROM(head));
+                        $1.push_back((T)(CONVERT_FROM(head)));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
@@ -223,7 +223,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
                     if (CHECK(o))
-                        temp[i] = CONVERT_FROM(o);
+                        temp[i] = (T)(CONVERT_FROM(o));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
@@ -240,7 +240,7 @@ namespace std {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
                     if (CHECK(head))
-                        temp.push_back(CONVERT_FROM(head));
+                        temp.push_back((T)(CONVERT_FROM(head)));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<" #T ">", 
                                           $argnum, argc, argv);
@@ -293,6 +293,8 @@ namespace std {
     };
     %enddef
 
+    specialize_std_vector(bool,SCHEME_BOOLP,SCHEME_TRUEP,\
+                          swig_make_boolean);
     specialize_std_vector(int,SCHEME_INTP,SCHEME_INT_VAL,\
                           scheme_make_integer_value);
     specialize_std_vector(short,SCHEME_INTP,SCHEME_INT_VAL,\

@@ -6,6 +6,19 @@
 // Python implementation
 
 
+// These should be factored out somewhere
+%{
+PyObject* SwigInt_FromBool(bool b) {
+    return PyInt_FromLong(b ? 1L : 0L);
+}
+double SwigNumber_Check(PyObject* o) {
+    return PyFloat_Check(o) || PyInt_Check(o);
+}
+double SwigNumber_AsDouble(PyObject* o) {
+    return (PyFloat_Check(o) ? PyFloat_AsDouble(o) : double(PyInt_AsLong(o)));
+}
+%}
+
 %include exception.i
 
 // containers
@@ -73,14 +86,6 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
-
-double SwigNumber_Check(PyObject* o) {
-    return PyFloat_Check(o) || PyInt_Check(o);
-}
-
-double SwigNumber_AsDouble(PyObject* o) {
-    return (PyFloat_Check(o) ? PyFloat_AsDouble(o) : double(PyInt_AsLong(o)));
-}
 %}
 
 // exported class
@@ -399,7 +404,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
                     if (CHECK(o)) {
-                        (($1_type &)$1)[i] = T(CONVERT_FROM(o));
+                        (($1_type &)$1)[i] = (T)(CONVERT_FROM(o));
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
@@ -429,7 +434,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
                     if (CHECK(o)) {
-                        temp[i] = T(CONVERT_FROM(o));
+                        temp[i] = (T)(CONVERT_FROM(o));
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
@@ -531,6 +536,7 @@ namespace std {
     };
     %enddef
 
+    specialize_std_vector(bool,PyInt_Check,PyInt_AsLong,SwigInt_FromBool);
     specialize_std_vector(int,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(short,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(long,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
