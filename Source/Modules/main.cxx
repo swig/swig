@@ -71,6 +71,7 @@ static char *usage = (char*)"\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
+     -compact        - Compile in compact mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -wn             - Suppress warning number n\n\
@@ -188,7 +189,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
-  extern  void Swig_contracts(Node *n);
+  extern void Swig_contracts(Node *n);
   extern void Swig_browser(Node *n, int);
   extern void Swig_default_allocators(Node *n);
   extern void Swig_process_types(Node *n);
@@ -281,6 +282,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 		     (strcmp(argv[i],"-v") == 0)) {
 	      Verbose = 1;
 	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-compact") == 0) {
+	    Wrapper_compact_print_mode_set(1);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
 	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
@@ -390,6 +394,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    dump_classes = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
+	    //fputs("Help.\n",stderr);
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
 	    help = 1;
