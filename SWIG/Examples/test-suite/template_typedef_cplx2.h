@@ -66,8 +66,8 @@ namespace vfncs {
   {    
     typedef double argument_type;
     typedef double result_type;
-    static const char* const arg_type = "double";
-    static const char* const res_type = "double";
+    static const char* const arg_type;
+    static const char* const res_type;
   };
 
   template<>
@@ -76,8 +76,8 @@ namespace vfncs {
     
     typedef Complex argument_type;
     typedef Complex result_type;
-    static const char* const arg_type = "complex";
-    static const char* const res_type = "complex";
+    static const char* const arg_type;
+    static const char* const res_type;
   };
 
   template<>
@@ -85,8 +85,8 @@ namespace vfncs {
   {
     typedef double argument_type;
     typedef Complex result_type;
-    static const char* const arg_type = "double";
-    static const char* const res_type = "complex";
+    static const char* const arg_type;
+    static const char* const res_type;
   };
 
   template<>
@@ -94,8 +94,8 @@ namespace vfncs {
   {
     typedef double argument_type;
     typedef Complex result_type;
-    static const char* const arg_type = "double";
-    static const char* const res_type = "complex";
+    static const char* const arg_type;
+    static const char* const res_type;
   };
 
   template <class AF, class RF, class AG, class RG>
@@ -109,7 +109,26 @@ namespace vfncs {
       ArithUnaryFunction<typename arith_traits< AF, AG >::argument_type,
       typename arith_traits< RF, RG >::result_type>();
   }
-}
+
+#ifndef SWIG
+
+// Initialize these static class members
+
+const char* const arith_traits< double, double >::arg_type = "double";
+const char* const arith_traits< double, double >::res_type = "double";
+
+const char* const arith_traits< Complex, Complex >::arg_type = "complex";
+const char* const arith_traits< Complex, Complex >::res_type = "complex";
+
+const char* const arith_traits< Complex, double >::arg_type = "double";
+const char* const arith_traits< Complex, double >::res_type = "complex";
+
+const char* const arith_traits< double, Complex >::arg_type = "double";
+const char* const arith_traits< double, Complex >::res_type = "complex";
+
+#endif
+
+} // end namespace vfncs
 
 #ifdef SWIG
 
