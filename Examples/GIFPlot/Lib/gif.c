@@ -1,13 +1,77 @@
-/* ----------------------------------------------------------------------------- 
- * gif.c
- *
- *     GIF encoding with broken compression algorithm to avoid LZW.
+
+/**********************************************************************
+ * GIFPlot 0.0
  * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- * Copyright (C) 1995-1996
+ * Dave Beazley
+ * 
+ * Department of Computer Science        Theoretical Division (T-11)        
+ * University of Utah                    Los Alamos National Laboratory     
+ * Salt Lake City, Utah 84112            Los Alamos, New Mexico  87545      
+ * beazley@cs.utah.edu                   beazley@lanl.gov                   
  *
- * See the file LICENSE for information on usage and redistribution.	
- * ----------------------------------------------------------------------------- */
+ * Copyright (c) 1996
+ * The Regents of the University of California and the University of Utah
+ * All Rights Reserved
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that 
+ * (1) The above copyright notice and the following two paragraphs
+ * appear in all copies of the source code and (2) redistributions
+ * including binaries reproduces these notices in the supporting
+ * documentation.   Substantial modifications to this software may be
+ * copyrighted by their authors and need not follow the licensing terms
+ * described here, provided that the new terms are clearly indicated in
+ * all files where they apply.
+ * 
+ * IN NO EVENT SHALL THE AUTHOR, THE UNIVERSITY OF CALIFORNIA, THE 
+ * UNIVERSITY OF UTAH OR DISTRIBUTORS OF THIS SOFTWARE BE LIABLE TO ANY
+ * PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+ * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION,
+ * EVEN IF THE AUTHORS OR ANY OF THE ABOVE PARTIES HAVE BEEN ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * THE AUTHOR, THE UNIVERSITY OF CALIFORNIA, AND THE UNIVERSITY OF UTAH
+ * SPECIFICALLY DISCLAIM ANY WARRANTIES,INCLUDING, BUT NOT LIMITED TO, 
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND 
+ * THE AUTHORS AND DISTRIBUTORS HAVE NO OBLIGATION TO PROVIDE MAINTENANCE,
+ * SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ **************************************************************************/
+
+/*******************************************************************
+ * Creates a GIF format file.  
+ *
+ * Dave Beazley (T-11)
+ * August 11, 1995
+ *
+ * Rather than writing directly to files, this module fills out
+ * output buffer.
+ * 
+ * Note : To save memory, this routine uses approximately 50K of the
+ * output buffer as temporary storage (for hash tables and compression codes).
+ * The remainder of the output buffer is used to store the final image.
+ * This feature allows GIF images to be created with no additional
+ * memory overhead.
+ *
+ * -- Revision History 
+ * $Log$
+ * Revision 1.2  2003/09/01 16:23:31  beazley
+ * Restored the 'mojo'.
+ *
+ * Revision 1.2  1996/09/25 22:39:30  dmb
+ * Fixed prototypes and use of void pointers for compatibility with the Cray T3D
+ *
+ * Revision 1.1  1996/09/10 17:44:00  dmb
+ * Initial revision
+ *
+ * Revision 1.2  1995/08/31 14:46:07  beazley
+ * Minor changes to support comments and a few bug fixes.
+ *
+ *
+ ******************************************************************/
+
 
 /*
  * xvgifwr.c  -  handles writing of GIF files.  based on flgife.c and
@@ -21,6 +85,8 @@
  *       GIF files (in the interests of speed, or something)
  *
  */
+
+
 
 /*****************************************************************
  * Portions of this code Copyright (C) 1989 by Michael Mauldin.
@@ -344,14 +410,44 @@ static void compress(init_bits, data, len)
     }
     len--;
 
-    /* Uncompressed GIF */
-    output_GIF(ent);
-    code_count++;
-    if (code_count >= ClearCode-2) {
-      output_GIF(ClearCode);
-      code_count = 0;
+    fcode = (long) ( ( (long) c << maxbits) + ent);
+       i = (((int) c << hshift) ^ ent);    /* xor hashing */
+
+    if ( HashTabOf (i) == fcode ) {
+      ent = CodeTabOf (i);
+      continue;
     }
+
+    if ( (long)HashTabOf (i) < 0 )      /* empty slot */
+      goto nomatch;
+
+    disp = hsize_reg - i;           /* secondary hash (after G. Knott) */
+    if ( i == 0 )
+      disp = 1;
+
+probe:
+    if ( (i -= disp) < 0 )
+      i += hsize_reg;
+
+    if ( HashTabOf (i) == fcode ) {
+      ent = CodeTabOf (i);
+      continue;
+    }
+
+    if ( (long)HashTabOf (i) >= 0 ) 
+      goto probe;
+
+nomatch:
+    output_GIF(ent);
+    out_count++;
     ent = c;
+
+    if ( free_ent < maxmaxcode ) {
+      CodeTabOf (i) = free_ent++; /* code -> hashtable */
+      HashTabOf (i) = fcode;
+    }
+    else
+      cl_block();
 
   }
   /* Put out the final code */
