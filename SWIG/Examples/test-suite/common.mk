@@ -63,6 +63,7 @@ C_TEST_CASES += \
 	arrays \
         arrayptr \
 	defines \
+	defineop \
 	sizeof_pointer \
 	unions \
 	macro_2 \
