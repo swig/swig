@@ -1,6 +1,10 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/22/2005: wsfulton
+            Enum casting fixes. Visual C++ didn't like the C type casting SWIG produced
+            when wrapping C++ enum references, as reported by Admire Kandawasvika.
+
 03/21/2005: wsfulton
             [Perl] SF #1124490. Fix Perl macro clashes when using Visual Studio's STL string,
             so now projects can #include <string>.
