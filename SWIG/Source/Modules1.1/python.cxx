@@ -41,6 +41,7 @@ static  String       *methods;
 static  String       *class_name;
 static  String       *shadow_indent = 0;
 static  int           in_class = 0;
+static  int           classic = 0;
 
 /* C++ Support + Shadow Classes */
 
@@ -54,6 +55,7 @@ Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -interface name - Set the lib name\n\
      -keyword        - Use keyword arguments\n\
+     -classic        - Use classic classes only\n\
      -noproxy        - Don't generate proxy classes. \n\n";
 
 class PYTHON : public Language {
@@ -96,6 +98,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-classic") == 0) {
+	  classic = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
@@ -178,16 +183,18 @@ public:
 
       // Python-2.2 object hack
 
-      Printv(f_shadow,
-	     "import types\n",
-	     "try:\n",
-	     "    _object = types.ObjectType\n",
-	     "    _newclass = 1\n",
-	     "except AttributeError:\n",
-	     "    class _object: pass\n",
-             "    _newclass = 0\n",
-	     "\n\n",
-	     NULL);
+      if (!classic) {
+	Printv(f_shadow,
+	       "import types\n",
+	       "try:\n",
+	       "    _object = types.ObjectType\n",
+	       "    _newclass = 1\n",
+	       "except AttributeError:\n",
+	       "    class _object: pass\n",
+	       "    _newclass = 0\n",
+	       "\n\n",
+	       NULL);
+      }
 
       // Include some information in the code
       Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
@@ -805,13 +812,16 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
+    int oldclassic = classic;
 
     if (shadow) {
-      
+
       /* Create new strings for building up a wrapper function */
       have_constructor = 0;
       have_repr = 0;
       
+      if (Getattr(n,"feature:classic")) classic = 1;
+
       shadow_indent = (String *) tab4;
       
       class_name = Getattr(n,"sym:name");
@@ -841,7 +851,9 @@ public:
       if (Len(base_class)) {
 	Printf(f_shadow,"(%s)", base_class);
       } else {
-	Printf(f_shadow,"(_object)");
+	if (!classic) {
+	  Printf(f_shadow,"(_object)");
+	}
       }
       Printf(f_shadow,":\n");
 
@@ -924,9 +936,9 @@ public:
       Printf(f_shadow,"%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
     }
+    classic = oldclassic;
     return SWIG_OK;
   }
-
 
   /* ------------------------------------------------------------
    * memberfunctionHandler()
@@ -974,10 +986,11 @@ public:
     Language::staticmemberfunctionHandler(n);
     if (shadow) {
       Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(class_name, symname), "\n",  NULL);
-      Printv(f_shadow, tab4, "if _newclass:",  symname, " = staticmethod(", module, ".",
-	     Swig_name_member(class_name, symname), ")\n", NULL);
+      if (!classic) {
+	Printv(f_shadow, tab4, "if _newclass:",  symname, " = staticmethod(", module, ".",
+	       Swig_name_member(class_name, symname), ")\n", NULL);
+      }
     }
-
     return SWIG_OK;
   }
 
@@ -1011,11 +1024,6 @@ public:
 	    Printv(f_shadow,
 		   tab8, "self.thisown = 1\n",
 		   NULL);
-	    
-	    /*	       tab8,"try: self.this = this.this; this.thisown=0\n",
-		       tab8,"except AttributeError: self.this = this\n",NULL); */
-	    
-	    /*	Printv(f_shadow, tab8, "self.thisown = 1\n", NULL); */
 	  }
 	  have_constructor = 1;
 	} else {
@@ -1085,13 +1093,16 @@ public:
 	immutable = 1;
       }
       Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NULL);
-      if (immutable) {
-	Printv(f_shadow,tab4,"if _newclass:", symname," = property(", module, ".", 
-	       Swig_name_get(Swig_name_member(class_name,symname)),")\n", NULL);
-      } else {
-	Printv(f_shadow,tab4,"if _newclass:", symname," = property(", 
-	       module, ".", Swig_name_get(Swig_name_member(class_name,symname)),",",
-	       module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NULL);
+
+      if (!classic) {
+	if (immutable) {
+	  Printv(f_shadow,tab4,"if _newclass:", symname," = property(", module, ".", 
+		 Swig_name_get(Swig_name_member(class_name,symname)),")\n", NULL);
+	} else {
+	  Printv(f_shadow,tab4,"if _newclass:", symname," = property(", 
+		 module, ".", Swig_name_get(Swig_name_member(class_name,symname)),",",
+		 module, ".", Swig_name_set(Swig_name_member(class_name,symname)),")\n", NULL);
+	}
       }
     }
     return SWIG_OK;
