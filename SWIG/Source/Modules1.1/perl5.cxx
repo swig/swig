@@ -848,6 +848,8 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
   char  val_name[256];
   Wrapper  *getf, *setf;
   char  *tm;
+  int   setable = 1;
+
   sprintf(set_name,"_wrap_set_%s",iname);
   sprintf(val_name,"_wrap_val_%s",iname);
 
@@ -908,13 +910,34 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 		 0);
 	else
 	  Printv(setf->code,
-		 tab4, "if (", name, ") free(", name, ");\n",
+		 tab4, "if (", name, ") free((char*)", name, ");\n",
 		 tab4, name, " = (char *) malloc(strlen(_a)+1);\n",
 		 0);
-	Printv(setf->code,"strcpy(", name, ",_a);\n", 0);
+	Printv(setf->code,"strcpy((char*)", name, ",_a);\n", 0);
 	break;
 
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
+      case T_ARRAY:
+	  {
+	    SwigType *aop;
+	    SwigType *ta = Copy(t);
+	    aop = SwigType_pop(ta);
+	    if (SwigType_type(ta) == T_CHAR) {
+	      String *dim = SwigType_array_getdim(aop,0);
+	      if (dim && Len(dim)) {
+		Printf(setf->code, "strncpy(%s,(char*) SvPV(sv,PL_na), %s);\n", name,dim);
+		setable = 1;
+	      } else {
+		setable = 0;
+	      }
+	    }  else {
+	      setable = 0;
+	    }
+	    Delete(ta);
+	    Delete(aop);
+	  }
+	  break;
+
+      case T_POINTER: case T_REFERENCE:
 	Wrapper_add_local(setf,"_temp","void *_temp");
 	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
 	Printv(setf->code,tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", 0);
@@ -983,7 +1006,22 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
       Printv(getf->code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
       break;
 
-    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+    case T_ARRAY:
+	  {
+	    SwigType *aop;
+	    SwigType *ta = Copy(t);
+	    aop = SwigType_pop(ta);
+	    if (SwigType_type(ta) == T_CHAR) {
+	      Printv(getf->code, "sv_setpv((SV*)sv, ", name, ");\n", 0);
+	      Delete(ta);
+	      Delete(aop);
+	      break;
+	    } 
+	    Delete(ta);
+	    Delete(aop);
+	  }
+	  /* No break here is intentional */
+    case T_POINTER: case T_REFERENCE:
       Printv(getf->code,
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
@@ -1003,7 +1041,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
   Wrapper_print(getf,magic);
   
   /* Now add symbol to the PERL interpreter */
-  if (Status & STAT_READONLY) {
+  if ((Status & STAT_READONLY) || (!setable)) {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\",MAGIC_CAST MAGIC_CLASS swig_magic_readonly, MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
   } else {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\", MAGIC_CAST MAGIC_CLASS ", set_name, ", MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
