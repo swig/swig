@@ -5,6 +5,11 @@
 
 %module kind
 
+%warnfilter(801) foo;  /* Ruby, wrong class name */
+%warnfilter(801) bar;  /* Ruby, wrong class name */
+%warnfilter(801) uni;  /* Ruby, wrong class name */
+%warnfilter(801) test; /* Ruby, wrong class name */
+
 %inline %{
 
 class foo {};

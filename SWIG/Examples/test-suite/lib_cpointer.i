@@ -1,4 +1,7 @@
 %module lib_cpointer
+
+%warnfilter(801) doublep; /* Ruby, wrong class name */
+
 %include "cpointer.i"
 
 %pointer_functions(int,intp);

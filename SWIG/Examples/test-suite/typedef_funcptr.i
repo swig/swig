@@ -1,6 +1,10 @@
 // Tests typedef through function pointers
 
 %module typedef_funcptr
+
+%warnfilter(801) addf; /* Ruby, wrong constant name */
+%warnfilter(801) subf; /* Ruby, wrong constant name */
+
 %{
 int addf(int x, int y) {
    return x+y;

@@ -2,6 +2,8 @@
 
 %module ret_by_value
 
+%warnfilter(801) test; /* Ruby, wrong class name */
+
 %inline %{
 
 typedef struct {

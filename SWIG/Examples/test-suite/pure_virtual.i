@@ -7,6 +7,8 @@
 
 %module pure_virtual
 
+%warnfilter(802) E; /* Ruby, multiple inheritance */
+
 %nodefault C;
 %nodefault E;
 

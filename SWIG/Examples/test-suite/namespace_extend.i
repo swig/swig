@@ -1,5 +1,7 @@
 %module namespace_extend
 
+%warnfilter(801) bar; /* Ruby, wrong class name */
+
 %{
 namespace foo {
    class bar {

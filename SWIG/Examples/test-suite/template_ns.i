@@ -3,6 +3,9 @@
 
 %module template_ns
 
+%warnfilter(801) std::pair<int, int>;       /* Ruby, wrong class name */
+%warnfilter(801) std::pair<double, double>; /* Ruby, wrong class name */
+
 %ignore std::pair::pair();
 
 %inline %{
@@ -30,9 +33,3 @@ struct pair {
 
 %template(pairii) std::pair<int,int>;
 %template(pairdd) std::pair<double,double>;
-
-
-
-
-
-

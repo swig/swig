@@ -2,6 +2,11 @@
 
 %module namespace_template
 
+%warnfilter(801) vector<int>;            /* Ruby, wrong class name */
+%warnfilter(801) test2::vector<short>;   /* Ruby, wrong class name */
+%warnfilter(801) test3::vector<long>;    /* Ruby, wrong class name */
+%warnfilter(801) vector<test4::Integer>; /* Ruby, wrong class name */
+
 %{
 namespace test {
    template<typename T> T max(T a, T b) { return (a > b) ? a : b; }

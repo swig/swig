@@ -1,4 +1,7 @@
 %module template_base_template
+
+%warnfilter(801) traits<double, double>; /* Ruby, wrong class name */
+
 %inline %{
   template <class ArgType, class ResType>
   struct traits

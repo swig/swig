@@ -3,8 +3,8 @@
 
 %module default_constructor
 
-%warnfilter(813) EB; /* Java multiple inheritance */
-%warnfilter(813) AD; /* Java multiple inheritance */
+%warnfilter(802, 813) EB; /* Ruby, Java multiple inheritance */
+%warnfilter(802, 813) AD; /* Ruby, Java multiple inheritance */
 
 %inline %{
 

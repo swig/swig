@@ -1,4 +1,7 @@
 %module template_tbase_template
+
+%warnfilter(801) traits<Double, Double>; /* Ruby, wrong class name */
+
 %inline %{
   typedef double Double;
 
@@ -38,8 +41,3 @@
 %template(Function_dd) Function <Double, Double>;
 %template(Class_dd) Class <Double, Double>;
 %template(make_Class_dd) make_Class<Double,Double>;
-
-
-
-
-

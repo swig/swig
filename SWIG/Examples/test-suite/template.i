@@ -1,6 +1,10 @@
 /* File : example.i */
 %module example
 
+%warnfilter(801) vector<int>;         /* Ruby, wrong class name */
+%warnfilter(801) vector<double>;      /* Ruby, wrong class name */
+%warnfilter(801) vector<int (*)[10]>; /* Ruby, wrong class name */
+
 /* Let's just grab the original header file here */
 
 %inline %{
