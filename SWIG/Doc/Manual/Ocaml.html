@@ -14,16 +14,22 @@
 <li><a href="#n3">Running SWIG</a>
 <li><a href="#n4">Getting the right header files</a>
 <li><a href="#n5">Compiling the code</a>
-<li><a href="#n6">Current thoughts on best practice for Ocaml</a>
-<li><a href="#n7">Using your module</a>
-<li><a href="#n8">Compilation problems and compiling with C++</a>
+<li><a href="#n6">The camlp4 module</a>
+<li><a href="#n7">Current thoughts on best practice for Ocaml</a>
+<li><a href="#n8">Using your module</a>
+<li><a href="#n9">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="#n9">The low-level Ocaml/C interface</a>
+<li><a href="#n10">The low-level Ocaml/C interface</a>
 <ul>
-<li><a href="#n10">The generated module</a>
-<li><a href="#n11">Enums</a>
-<li><a href="#n12">C++ Classes</a>
-<li><a href="#n13">Exceptions</a>
+<li><a href="#n11">The generated module</a>
+<li><a href="#n12">Enums</a>
+<li><a href="#n13">C++ Classes</a>
+<ul>
+<li><a href="#n14">C++ Class Example</a>
+<li><a href="#n15">Compiling the example</a>
+<li><a href="#n16">Sample Session</a>
+</ul>
+<li><a href="#n17">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -110,7 +116,60 @@ null pointers.
   <pre>% cp example_wrap.cxx example_wrap.cxx.c<br>% ocamlc -c ... -ccopt -xc++ example_wrap.cxx.c<br>% ...<br></pre>
             </blockquote>
 
-<a name="n6"></a><H3>16.1.4 Current thoughts on best practice for Ocaml</H3>
+<a name="n6"></a><H3>16.1.4 The camlp4 module</H3>
+
+
+The camlp4 module (swig.ml -&gt; swig.cmo) contains a simple rewriter which
+makes C++ code blend more seamlessly with objective caml code.  It's use is
+optional.  The source file is included in the Lib/ocaml directory of the 
+SWIG source distribution.
+<p>
+The basic principle of the module is to recognize certain non-caml expressions
+and convert them for use with C++ code as interfaced by SWIG.  The camlp4
+module is written to work with generated SWIG interfaces, and probably isn't
+great to use with anything else.
+<p>
+Here are the main rewriting rules:
+<p>
+<table border="1">
+<tr><th>Input</th><th>Rewritten to</th></tr>
+<tr><td>f'( ... ) as in<br> atoi'("0") or<br> _exit'(0)</td>
+<td>f(C_list [ ... ]) as in<br> atoi (C_list [ C_string "0" ]) or<br> _exit (C_list [ C_int 0 ])</td></tr>
+<tr><td>object -> "method" ( ... )</td><td>(invoke object) "method" (C_list [ ... ])</td></tr>
+<tr><td>
+object <i>'binop</i> argument as in<br>
+a '+= b</td>
+<td>
+(invoke object) "+=" argument as in<br>
+(invoke a) "+=" b<td></tr>
+<tr><th colspan=2>Note that because camlp4 always recognizes &lt;&lt; 
+and &gt;&gt;, they are replaced by lsl and lsr in operator names.
+<tr><td>
+<i>'unop</i> object as in</br>
+'! a
+</td><td>
+(invoke a) "!" C_void</td></tr>
+<tr><td>
+<b>Smart pointer access like this</b>
+object '-> "method" ( args )
+</td><td>
+(invoke (invoke object "->" C_void))
+</td></tr>
+<tr><td>
+<b>Invoke syntax</b>
+object . '( ... )
+</td><td>
+(invoke object) "()" (C_list [ ... ])
+</td></tr>
+<tr><td>
+<b>Array syntax</b>
+object '[ 10 ]
+</td><td>
+(invoke object) "[]" (C_int 10)
+</td></tr>
+</table>
+
+<a name="n7"></a><H3>16.1.5 Current thoughts on best practice for Ocaml</H3>
 
 
             Because the VC compiler (cl) needs link options specified
@@ -123,10 +182,8 @@ null pointers.
 <p> Let's say you have ocaml sources foo.ml and bar.ml and interface frob.i;
      </p>
                  
-<p> </p>
-                 
 <blockquote><pre>
-swig -c++ -objects frob.i
+swig -ocaml -c++ frob.i
 ocamlc -custom -c frob.mli
 ocamlc -custom -c frob.ml
 cp frob_wrap.cxx frob_wrap.c
@@ -146,7 +203,7 @@ link /OUT:big_program.exe \
     $(OCAMLLIB)/ocamlrun.lib $(FROBLIB)/lib/frob.lib
 </pre></blockquote>
                    
-<a name="n7"></a><H3>16.1.5 Using your module</H3>
+<a name="n8"></a><H3>16.1.6 Using your module</H3>
 
 
                    You can test-drive your module by building a
@@ -156,7 +213,7 @@ toplevel ocaml interpreter.  Consult the ocaml manual for details.
       option to build your functions into the primitive list. This
       option is not needed when you build native code.
 
-<a name="n8"></a><H3>15.1.6 Compilation problems and compiling with C++</H3>
+<a name="n9"></a><H3>16.1.7 Compilation problems and compiling with C++</H3>
 
 
                    As mentioned above, .cxx files need special
@@ -165,7 +222,7 @@ that uses <tt>class</tt> as a non-keyword, and C code that is too
 liberal with pointer types may not compile under the C++ compiler.
 Most code meant to be compiled as C++ will not have problems.
 
-<a name="n9"></a><H2>15.2 The low-level Ocaml/C interface</H2>
+<a name="n10"></a><H2>16.2 The low-level Ocaml/C interface</H2>
 
 
          In order to provide access to overloaded functions, and
@@ -222,7 +279,7 @@ appropriate    C value and returns a c_obj representing it.</li>
         Because of this style, a typemap can return any kind of value it
 wants    from  a function. &nbsp;This enables out typemaps and inout typemaps
 to  work  well.  &nbsp;The one thing to remember about outputting values
-is that  you  must append them to the return list with swig_result = caml_list_append(swig_result,v).<[p>
+is that  you  must append them to the return list with swig_result = caml_list_append(swig_result,v).<p>
 
 &nbsp;This function will return a new list that has your element
     appended.  Upon return to caml space, the fnhelper function
@@ -252,7 +309,7 @@ is that  you  must append them to the return list with swig_result = caml_list_a
     value items pass through directly, but you must make your own type
     signature for a function that uses value in this way.
 
-<a name="n10"></a><H3>15.2.1 The generated module</H3>
+<a name="n11"></a><H3>16.2.1 The generated module</H3>
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ocaml
@@ -260,9 +317,27 @@ module to be generated.  If you specified `<tt>%module example</tt>',
 then your Ocaml code will be accessible in the module Example.  The
 module name is always capitalized as is the ocaml convention.  Note
 that you must not use any Ocaml keyword to name your module.  Remember
-that the keywords are not the same as the C++ ones.  <br>
-                  
-<a name="n11"></a><H3>15.2.2 Enums</H3>
+that the keywords are not the same as the C++ ones.  <p>
+
+You can introduce extra code into the output wherever you like with SWIG.
+These are the places you can introduce code:
+<table border="1">
+<tr><td>"header"</td><td>This code is inserted near the beginning of the 
+C wrapper file, before any function definitions.</td></tr>
+<tr><td>"wrapper"</td><td>This code is inserted in the function definition
+section.</td></tr>
+<tr><td>"runtime"</td><td>This code is inserted near the end of the C wrapper
+file.</td></tr>
+<tr><td>"mli"</td><td>This code is inserted into the caml interface file.
+Special signatures should be inserted here.
+</td></tr>
+<tr><td>"ml"</td><td>This code is inserted in the caml code defining the 
+interface to your C code.  Special caml code, as well as any initialization
+which should run when the module is loaded may be inserted here.
+</td></tr>   
+</table>
+               
+<a name="n12"></a><H3>16.2.2 Enums</H3>
 
 
 SWIG will wrap enumerations as polymorphic variants in the output
@@ -318,7 +393,7 @@ val x : Enum_test.c_obj = C_enum `a
        
 <p> </p>
    
-<a name="n12"></a><H3>15.2.3 C++ Classes</H3>
+<a name="n13"></a><H3>16.2.3 C++ Classes</H3>
 
 
 C++ classes, along with structs and unions are represented by C_obj
@@ -337,12 +412,107 @@ object's address</td></tr>
 <tr><td>":methods"</td><td>Returns a list of strings containing the names of
 the methods this object contains</td></tr>
 <tr><td>":classof"</td><td>Returns the name of the class this object belongs 
-to.</td></tr></table>
+to.</td></tr>
+<tr><td>":parents"</td><td>Returns a list of all direct parent classes which
+have been wrapped by SWIG.</td></tr>
+<tr><td>"::[parent-class]"</td><td>Returns a view of the object as the
+indicated parent class.  This is mainly used internally by the SWIG module,
+but may be useful to client programs.</td></tr>
+<tr><td>"[member-variable]"</td><td>Each member variable is wrapped as a
+method with an optional parameter.  
+Called with one argument, the member variable is set to the value of the 
+argument.  With zero arguments, the value is returned.
+</td></tr>
+</table>
 Note that this string belongs to the wrapper object, and not
 the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 <p>
-<a name="n13"></a><H3>15.2.4 Exceptions</H3>
+<a name="n14"></a><H4>16.2.3.1 C++ Class Example</H4>
+
+
+Here's a simple example using Trolltech's Qt Library:
+
+<table border="1" bgcolor="#dddddd"><tr><th><center>qt.i</center></th></tr>
+<tr><td><pre>
+%module qt
+%{
+#include &lt;qapplication.h&gt;
+#include &lt;qpushbutton.h&gt;
+%}
+class QApplication {
+public:
+        QApplication( int argc, char **argv );
+        void setMainWidget( QWidget *widget );
+        void exec();
+};
+
+class QPushButton {
+public:
+        QPushButton( char *str, QWidget *w );
+        void resize( int x, int y );
+        void show();
+};
+</pre></td></tr></table><p>
+
+<a name="n15"></a><H4>16.2.3.2 Compiling the example</H4>
+
+
+<blockquote><pre>
+bash-2.05a$ QTPATH=/your/qt/path
+bash-2.05a$ swig -ocaml -c++ -I$QTPATH/include  qt.i
+bash-2.05a$ mv qt_wrap.cxx qt_wrap.c
+bash-2.05a$ ocamlc -c -ccopt -xc++ -ccopt -g -g -ccopt -I$QTPATH/include qt_wrap.c 
+bash-2.05a$ ocamlc -c qt.mli
+bash-2.05a$ ocamlc -c qt.ml
+bash-2.05a$ ocamlmktop -custom qt_wrap.o qt.cmo -o qt_top -cclib -L$QTPATH/lib -cclib -lqt
+</pre></blockquote>
+
+<a name="n16"></a><H4>16.2.3.3 Sample Session</H4>
+
+
+<blockquote><pre>
+bash-2.05a$ ./qt_top 
+        Objective Caml version 3.06
+
+# open Qt ;;
+# let a = new_QApplication (C_list [ C_int 0; C_int 0 ]) ;;
+val a : Qt.c_obj = C_obj <fun>
+# let hello = new_QPushButton (C_list [ C_string "hi" ; C_int 0 ]) ;;
+val hello : Qt.c_obj = C_obj <fun>
+# (invoke hello) "resize" (C_list [ C_int 100 ; C_int 30 ]) ;;
+- : Qt.c_obj = C_void
+# (invoke hello) "show" C_void ;;
+- : Qt.c_obj = C_void
+# (invoke a) "exec" C_void ;;
+</pre></blockquote><p>
+
+Or with the camlp4 module:
+
+<blockquote><pre>
+bash-2.05a$ ./qt_top 
+        Objective Caml version 3.06
+
+# #load "camlp4o.cma" ;;
+        Camlp4 Parsing version 3.06
+
+# #load "./swig.cmo" ;;
+# open Qt ;;
+# let a = new_QApplication '(0,0) ;;
+val a : Qt.c_obj = C_obj <fun>
+# let hello = new_QPushButton '("hi",0) ;;
+val hello : Qt.c_obj = C_obj <fun>
+# hello -> "resize" (100,30) ;;
+- : Qt.c_obj = C_void
+# hello -> "show" () ;;
+- : Qt.c_obj = C_void
+# a -> "exec" () ;;
+</pre></blockquote><p>
+
+In either case, assuming you have a working installation of QT, you will
+see a window containing the string "hi" in a button.  
+
+<a name="n17"></a><H3>16.2.4 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
