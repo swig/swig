@@ -1975,8 +1975,18 @@ int Language::validIdentifier(String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Language::usingDeclaration(Node *n) {
-  if (cplus_mode == CPLUS_PUBLIC) {
-    emit_children(n);
+  const char* access = 0;
+  if ((cplus_mode == CPLUS_PUBLIC)) {
+    Node* np = Copy(n);    
+    Node *c;
+    for (c = firstChild(np); c; c = nextSibling(c)) {
+      Setattr(c, "access", "public");
+      /* it seems for some cases this is needed, like A* A::boo() */
+      if (CurrentClass) 
+	Setattr(c, "parentNode", CurrentClass);
+      emit_one(c);
+    }
+    Delete(np);
   }
   return SWIG_OK;
 }
