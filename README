@@ -16,13 +16,12 @@ SWIG release.  The guilty parties working on this are:
  Harco de Hilster (Harco.de.Hilster@ATComputing.nl)     (Java)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
- Matthias Köppe (mkoeppe@saturn.Math.Uni-Magdeburg.DE)  (Guile)
- Oleg Tolmatcev (o.t@altavista.net)                     (Mzscheme)
+ Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
 
 Past contributors (currently incomplete):
 
 Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran Kovuk, Gary Holt,
-David Fletcher.
+David Fletcher, Oleg Tolmatcev.
 
 ***********************************************************************
 *****       IMPORTANT NOTICE -- READ THIS NOW (OR ELSE)           *****
