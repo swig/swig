@@ -512,6 +512,7 @@ SwigType_ltype(SwigType *s) {
   List *elements;
   int nelements, i;
   int firstarray = 1;
+  int notypeconv = 0;
 
   result = NewString("");
   tc = Copy(s);
@@ -535,6 +536,10 @@ SwigType_ltype(SwigType *s) {
   /* Now, walk the type list and start emitting */
   for (i = 0; i < nelements; i++) {
     element = Getitem(elements,i);
+    /* when we see a function, we need to preserve the following types */
+    if (SwigType_isfunction(element)) {
+      notypeconv = 1;
+    }
     if (SwigType_isqualifier(element)) {
       /* Do nothing. Ignore */
     } else if (SwigType_ispointer(element)) {
@@ -544,13 +549,25 @@ SwigType_ltype(SwigType *s) {
       Append(result,element);
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
-      Append(result,"p.");
+      if (notypeconv) {
+	Append(result,element);
+      } else {
+	Append(result,"p.");
+      }
       firstarray = 0;
     } else if (SwigType_isarray(element) && firstarray) {
-      Append(result,"p.");
+      if (notypeconv) {
+	Append(result,element);
+      } else {
+	Append(result,"p.");
+      }
       firstarray = 0;
     } else if (SwigType_isenum(element)) {
-      Append(result,"int");
+      if (notypeconv) {
+	Append(result,element);
+      } else {
+	Append(result,"int");
+      }
     } else {
       Append(result,element);
     }
