@@ -1328,7 +1328,7 @@ AC_SUBST(CHICKENLIB)
 AC_SUBST(CHICKENSHAREDLIB)
 
 #----------------------------------------------------------------
-# Look for csharp
+# Look for C#
 #----------------------------------------------------------------
 
 AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path     Set location of CIL interpreter for CSharp],[CSHARPBIN="$withval"], [CSHARPBIN=])
@@ -1337,7 +1337,7 @@ AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of 
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
-    AC_CHECK_PROGS(CSHARPCOMPILER, mcs.bat cscc csc);;
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs cscc);;
   *)AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc);;
   esac
 else
@@ -1363,12 +1363,7 @@ if test -z "$CSHARPBIN" ; then
         fi
       fi
 
-      # mono interpreter (ver 0.26 doesn't seem to work on Windows platforms)
-      case $host in
-      *-*-cygwin* | *-*-mingw*)
-        ;;
-      *)AC_CHECK_PROGS(CSHARPCILINTERPRETER, mint);;
-      esac
+      AC_CHECK_PROGS(CSHARPCILINTERPRETER, mint)
     else 
       if test "csc" = "$CSHARPCOMPILER"; then
           CSHARPPATHSEPARATOR="\\\\"
