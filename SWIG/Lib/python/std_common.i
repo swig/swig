@@ -190,7 +190,7 @@ namespace swigpy {
       value_type *v = 0;
       int res = obj ? asptr(obj, &v) : 0;
       if (res) {
-	if (res > 1) {
+	if (res == SWIG_NEWPTR) {
 	  value_type r(*v);
 	  delete v;
 	  return r;
