@@ -283,7 +283,7 @@ List *SwigType_split(SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_pop()
  *
- * Pop off the first type-constructor object and update the type
+ * Pop off the first type-constructor object and updates the type
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_pop(SwigType *t)
@@ -457,6 +457,14 @@ int SwigType_isconst(SwigType *t) {
   char *c;
   c = Char(t);
   if (strncmp(c,"q(const)",8) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+int SwigType_isenum(SwigType *t) {
+  char *c = Char(t);
+  if (strncmp(c,"enum ",5) == 0) {
     return 1;
   }
   return 0;
@@ -727,19 +735,26 @@ SwigType_lstr(SwigType *s, const String_or_char *id)
   List *elements;
   int nelements, i;
   int firstarray = 1;
-  SwigType  *td;
-
+  SwigType  *td, *rs, *tc = 0;
   if (id) {
     result = NewString(Char(id));
   } else {
     result = NewString("");
   }
-
-  td = SwigType_typedef_resolve(s);
+  if (SwigType_isconst(s)) {
+    tc = Copy(s);
+    Delete(SwigType_pop(tc));
+    rs = tc;
+  } else {
+    rs = s;
+  }
+  td = SwigType_typedef_resolve(rs);
   if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
       elements = SwigType_split(td);
+  } else if (td && SwigType_isenum(td)) {
+    elements = SwigType_split("int");
   } else {
-    elements = SwigType_split(s);
+    elements = SwigType_split(rs);
   }
   if (td) Delete(td);
   nelements = Len(elements);
@@ -804,6 +819,7 @@ SwigType_lstr(SwigType *s, const String_or_char *id)
     element = nextelement;
   }
   Delete(elements);
+  if (tc) Delete(tc);
   return Swig_temp_result(result);
 }
 
@@ -818,17 +834,28 @@ SwigType *
 SwigType_ltype(SwigType *s) {
   String *result;
   String *element, *nextelement;
-  SwigType *td;
+  SwigType *td, *rs, *tc = 0;
   List *elements;
   int nelements, i;
   int firstarray = 1;
 
   result = NewString("");
-  td = SwigType_typedef_resolve(s);
+
+  if (SwigType_isconst(s)) {
+    tc = Copy(s);
+    Delete(SwigType_pop(tc));
+    rs = tc;
+  } else {
+    rs = s;
+  }
+
+  td = SwigType_typedef_resolve(rs);
   if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
       elements = SwigType_split(td);
+  } else if (td && SwigType_isenum(td)) {
+    elements = SwigType_split("int");
   } else {
-    elements = SwigType_split(s);
+    elements = SwigType_split(rs);
   }
   if (td) Delete(td);
   nelements = Len(elements);
@@ -861,6 +888,7 @@ SwigType_ltype(SwigType *s) {
     element = nextelement;
   }
   Delete(elements);
+  if (tc) Delete(tc);
   return result;
 }
 
@@ -874,18 +902,30 @@ SwigType_ltype(SwigType *s) {
 String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   String *result, *cast;
   String *element = 0, *nextelement;
-  SwigType *td;
+  SwigType *td, *rs, *tc = 0;
   List *elements;
   int      nelements, i;
   int      clear = 1;
   int      firstarray = 1;
 
   result = NewString("");
-  td = SwigType_typedef_resolve(s);
-  if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
-      elements = SwigType_split(td);
+
+  if (SwigType_isconst(s)) {
+    tc = Copy(s);
+    Delete(SwigType_pop(tc));
+    rs = tc;
   } else {
-    elements = SwigType_split(s);
+    rs = s;
+  }
+
+  td = SwigType_typedef_resolve(rs);
+  if ((td) && (SwigType_isconst(td) || SwigType_isarray(td))) {
+    elements = SwigType_split(td);
+  } else if (td && SwigType_isenum(td)) {
+    elements = SwigType_split(rs);
+    clear = 0;
+  } else {
+    elements = SwigType_split(rs);
   }
   if (td) Delete(td);
   nelements = Len(elements);
@@ -961,6 +1001,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     Append(cast,name);
   }
   Delete(result);
+  Delete(tc);
   return Swig_temp_result(cast);
 }
 
