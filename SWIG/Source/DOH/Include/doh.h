@@ -84,7 +84,7 @@ typedef struct {
 
 /* Callable */
 typedef struct {
-  DOH     (*doh_call)(DOH *obj, DOH *args);                 /* Callable */
+  DOH    *(*doh_call)(DOH *obj, DOH *args);                 /* Callable */
 } DohCallableMethods;
   
 
@@ -200,11 +200,10 @@ extern int     DohUngetc(int ch, DOH *obj);
 extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
 extern int     DohPrintf(DOH *obj, char *format, ...);
 extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
-/* extern int     DohScanf(DOH *obj, char *format, ...);
-   extern int     DohvScanf(DOH *obj, char *format, va_list ap); */
-
 extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
 extern DOH    *DohReadline(DOH *in);
+
+extern DOH    *DohCall(DOH *obj, DOH *args);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
@@ -258,7 +257,7 @@ extern DOH    *DohReadline(DOH *in);
 #define Replace            DohReplace
 #define NewScope           DohNewScope
 #define DelScope           DohDelScope
-
+#define Call               DohCall
 #endif
 
 /* -----------------------------------------------------------------------------

@@ -91,33 +91,6 @@ static DOH *find_internal(DOH *co) {
   c = (char *) co;
   n = NewString(c);
   return n;
-
-  if (doh_debug_level) {
-    DohError(DOH_CONVERSION,"Unknown object '%s' being treated as 'char *'.\n", c);
-  }
-  r = root;
-  s = 0;
-  while (r) {
-    s = r;
-    /*    printf("checking %s\n", r->cstr); */
-    d = strcmp(r->cstr,c);
-    if (d == 0) return r->sstr;
-    if (d < 0) r = r->left;
-    else r = r->right;
-  }
-  r = (StringNode *) DohMalloc(sizeof(StringNode));
-  r->cstr = (char *) DohMalloc(strlen(c)+1);
-  strcpy(r->cstr,c);
-  r->sstr = NewString(c);
-  Incref(r->sstr);
-  r->left = 0;
-  r->right = 0;
-  if (!s) { root = r; }
-  else {
-    if (d < 0) s->left = r;
-    else s->right = r;
-  }
-  return r->sstr;
 }
 
 /* Destroy an object */
@@ -840,6 +813,21 @@ int DohReplace(DOH *src, DOH *token, DOH *rep, int flags) {
     DohError(DOH_UNSUPPORTED, "No replace method defined for type '%s'\n", b->objinfo->objname);
   } else {
     DohError(DOH_UNKNOWN,"Unknown object %x passed to Replace\n", b);
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Callable methods
+ * ----------------------------------------------------------------------------- */
+
+DOH *DohCall(DOH *obj, DOH *args) {
+  DohBase *b = (DohBase *) obj; 
+  DohError(DOH_CALLS,"DohCall %x\n",obj);
+  if (DohCheck(b)) {
+    if ((b->objinfo->doh_callable) && (b->objinfo->doh_callable->doh_call)) {
+	  return (b->objinfo->doh_callable->doh_call)(b,args);
+    }
   }
   return 0;
 }
