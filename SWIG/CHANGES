@@ -16,6 +16,60 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+11/23/2001:beazley
+           All Python-related %pragma operations have been eliminated.
+           Most of these were written for older SWIG versions in order to
+           compensate for limitations in earlier releases.  In an effort
+           to reduce the amount of code-clutter and potential for errors,
+           it is easier to simply eliminate the pragmas and to start over
+           (if needed).  To be honest, I'm not even sure the pragmas
+           worked in 1.3.9 and recent releases.
+
+           Note: If you need to insert code into the shadow class file
+           created by SWIG, simply use the %shadow directive like this:
+
+              %shadow %{
+              def some_python_code():         
+                  print "blah!"
+              %}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+11/22/2001:beazley
+           Sweeping changes to the way in which the Python module handles
+           shadow classes.   In early implementations, shadow classes were
+           merely Python wrappers around typed pointer objects. However, 
+           some users actually wanted to receive the shadow class object in C.
+           To accomodate this, the dereferencing of the "this" pointer in
+           a shadow class was moved to C as described in CHANGES [8/8/99].
+           However, the process of returning pointers to Python was still
+           somewhat problematic.  Specifically, shadow classes never worked
+           in situations such as these:
+
+             -   Use of any kind of output typemap ('out' or 'argout')
+             -   Global variables (broken as far as I can tell).
+
+           In the past, some users have dealt with this by manually trying
+           to create shadow class objects themselves from C/C++.  However,
+           this was difficult because the C wrappers don't really know how
+           to get access to the corresponding Python class.
+
+           The Python module has now been modified to automatically attach
+           shadow class objects to pointers when they are returned to 
+           Python.   This process occurs in the function SWIG_NewPointerObj()
+           so the process is completely transparent to users.    As a result,
+           shadow classes are now more seamlessly integrated with typemaps
+           and other features of SWIG.
+
+           This change may introduce a number of incompatibilities.  The
+           SWIG_NewPointerObj() now takes an extra parameter "own" to 
+           indicate object ownership.   This can be used to return a pointer
+           to Python that Python should destroy.   In addition, older code
+           that tries to manually construct shadow class objects or which
+           expects bare pointers may break---such pointers may already be
+           encapsulated by a shadow class.
+           *** POTENTIAL INCOMPATIBILITY ***
+
 11/20/2001:beazley
            Modified the %insert directive to accept single braces { ... }.
            For example:
