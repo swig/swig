@@ -145,18 +145,20 @@ appendChild(Node *node, Node *chd) {
  * Swig_require()
  * ----------------------------------------------------------------------------- */
 
-
-static List  *attr_stack = 0;
-static int    stackp = 0;
-#define MAX_SWIG_STACK 64
+#define MAX_SWIG_STACK 256
+static Hash    *attr_stack[MAX_SWIG_STACK];
+static Node   **nodeptr_stack[MAX_SWIG_STACK];
+static Node    *node_stack[MAX_SWIG_STACK];
+static int      stackp = 0;
 
 int 
-Swig_require(Node *n, ...) {
+Swig_require(Node **nptr, ...) {
   va_list ap;
   char *name;
   DOH *obj;
   DOH *frame = 0;
-  va_start(ap, n);
+  Node *n = *nptr;
+  va_start(ap, nptr);
   name = va_arg(ap, char *);
   while (name) {
     int newref = 0;
@@ -177,32 +179,67 @@ Swig_require(Node *n, ...) {
     }
     if (!obj) obj = DohNone;
     if (newref) {
-      if (!attr_stack) {
-	int i;
-	attr_stack = NewList();
-	for (i = 0; i < MAX_SWIG_STACK; i++)
-	  Append(attr_stack,NewHash());
+      if (!attr_stack[stackp]) {
+	attr_stack[stackp]= NewHash();
       }
-      if (!frame) {
-	frame = Getitem(attr_stack,stackp);
+      frame = attr_stack[stackp];
+      if (Setattr(frame,name,obj)) {
+	Printf(stderr,"Swig_require('%s'): Warning, attribute '%s' was already saved.\n", nodeType(n), name);
       }
-      Setattr(frame,name,obj);
     } 
     name = va_arg(ap, char *);
   }
   va_end(ap);
-  if (frame) stackp++;
+  if (frame) {
+    /* This is a sanity check to make sure no one is saving data, but not restoring it */
+    if (stackp > 0) {
+      /* Note: this relies on the system stack growing down. Probably need to check */
+      if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) {
+	Printf(stderr,
+"Swig_require('%s'): Fatal memory management error.  If you are seeing this\n\
+message. It means that the target language module is not managing its memory\n\
+correctly.  A handler for '%s' probably forgot to call Swig_restore().\n\
+Please report this problem to swig-dev@cs.uchicago.edu.\n", nodeType(n), nodeType(node_stack[stackp-1]));
+	assert(0);
+      }
+    }
+    nodeptr_stack[stackp] = nptr;
+    node_stack[stackp] = n;
+    stackp++;
+  }
   return 1;
 }
 
 
 int 
-Swig_save(Node *n, ...) {
+Swig_save(Node **nptr, ...) {
   va_list ap;
   char *name;
   DOH *obj;
-  DOH *frame = Getitem(attr_stack,stackp-1);
-  va_start(ap, n);
+  DOH *frame;
+  Node *n = *nptr;
+
+  if ((stackp > 0) && (nodeptr_stack[stackp-1] == nptr)) {
+      frame = attr_stack[stackp-1];
+  } else {
+    if (stackp > 0) {
+      /* Note: this relies on the system stack growing down. Probably need to check */
+      if ((((char *) nptr) >= ((char *) nodeptr_stack[stackp-1])) && (n != node_stack[stackp-1])) {
+	Printf(stderr,
+"Swig_save('%s'): Fatal memory management error.  If you are seeing this\n\
+message. It means that the target language module is not managing its memory\n\
+correctly.  A handler for '%s' probably forgot to call Swig_restore().\n\
+Please report this problem to swig-dev@cs.uchicago.edu.\n", nodeType(n), nodeType(node_stack[stackp-1]));
+	assert(0);
+      }
+    }
+    attr_stack[stackp] = NewHash();
+    nodeptr_stack[stackp] = nptr;
+    node_stack[stackp] = n;
+    frame = attr_stack[stackp];
+    stackp++;
+  }
+  va_start(ap, nptr);
   name = va_arg(ap, char *);
   while (name) {
     if (*name == '*') {
@@ -214,20 +251,33 @@ Swig_save(Node *n, ...) {
     if (!obj) {
       obj = DohNone;
     }
-    Setattr(frame,name,obj);
+    if (Setattr(frame,name,obj)) {
+      Printf(stderr,"Swig_save('%s'): Warning, attribute '%s' was already saved.\n", nodeType(n), name);
+    }
     name = va_arg(ap, char *);
   }
   va_end(ap);
   return 1;
 }
 
-
 void 
-Swig_restore(Node *n) {
+Swig_restore(Node **nptr) {
   String *key;
   Hash   *frame;
-  assert(attr_stack && (stackp > 0));
-  frame = Getitem(attr_stack,stackp-1);
+  Node   *n = *nptr;
+  assert(stackp > 0);
+  if (!(nptr==nodeptr_stack[stackp-1])) {
+	Printf(stderr,
+"Swig_restore('%s'): Fatal memory management error.  If you are seeing this\n\
+message. It means that the target language module is not managing its memory\n\
+correctly.  A handler for '%s' probably forgot to call Swig_restore().\n\
+Please report this problem to swig-dev@cs.uchicago.edu.\n", nodeType(n), nodeType(node_stack[stackp-1]));
+    assert(0);
+  }
+  stackp--;
+  frame = attr_stack[stackp];
+  nodeptr_stack[stackp] = 0;
+  node_stack[stackp] = 0;
   for (key = Firstkey(frame); key; key = Nextkey(frame)) {
     DOH *obj = Getattr(frame,key);
     if (obj != DohNone) {
@@ -237,5 +287,4 @@ Swig_restore(Node *n) {
     }
     Delattr(frame,key);
   }
-  stackp--;
 }

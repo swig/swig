@@ -292,9 +292,9 @@ extern String     *ParmList_protostr(ParmList *);
 
 extern void appendChild(Node *node, Node *child);
 
-extern int  Swig_require(Node *node, ...);
-extern int  Swig_save(Node *node,...);
-extern void Swig_restore(Node *node);
+extern int  Swig_require(Node **node, ...);
+extern int  Swig_save(Node **node,...);
+extern void Swig_restore(Node **node);
 
 /* Debugging of parse trees */
 extern void Swig_debug_emit(int);
@@ -367,11 +367,11 @@ extern int        Swig_VarsetToFunction(Node *n);
 /* --- Legacy Typemap API (somewhat simplified, ha!) --- */
 
 extern     void   Swig_typemap_init();
-extern     void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs);
-extern     int    Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *parms);
-extern     void   Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms);
-extern     void   Swig_typemap_apply_multi(ParmList *src, ParmList *dest);
-extern     void   Swig_typemap_clear_apply_multi(ParmList *parms);
+extern     void   Swig_typemap_register(const String_or_char *op, ParmList *pattern, String_or_char *code, ParmList *locals, ParmList *kwargs);
+extern     int    Swig_typemap_copy(const String_or_char *op, ParmList *srcpattern, ParmList *pattern);
+extern     void   Swig_typemap_clear(const String_or_char *op, ParmList *pattern);
+extern     void   Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
+extern     void   Swig_typemap_clear_apply(ParmList *pattern);
 extern     void   Swig_typemap_debug();
 
 extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);

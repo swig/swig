@@ -93,13 +93,13 @@ Swig_typemap_pop_scope() {
 }
 
 /* ----------------------------------------------------------------------------- 
- * Swig_typemap_register_multi()
+ * Swig_typemap_register()
  *
  * Add a new multi-valued typemap
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs) {
+Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -171,7 +171,7 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
     /* Make an entirely new operator key */
     String *newop = NewStringf("%s-%s+%s:",op,type,pname);
     /* Now reregister on the remaining arguments */
-    Swig_typemap_register_multi(newop,np,code,locals,kwargs);
+    Swig_typemap_register(newop,np,code,locals,kwargs);
     
     /*    Setattr(tm2,newop,newop); */
     Delete(newop);
@@ -216,7 +216,7 @@ Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *parms) {
+Swig_typemap_copy(const String_or_char *op, ParmList *srcparms, ParmList *parms) {
   Hash *tm = 0;
   String *tmop;
   Parm *p;
@@ -250,7 +250,7 @@ Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *
     Delete(tmops);
     if (!p && tm) {
       /* Got some kind of match */
-      Swig_typemap_register_multi(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"),Getattr(tm,"kwargs"));
+      Swig_typemap_register(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"),Getattr(tm,"kwargs"));
       return 0;
     }
     ts--;
@@ -261,13 +261,13 @@ Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_clear_multi()
+ * Swig_typemap_clear()
  *
  * Delete a multi-valued typemap
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
+Swig_typemap_clear(const String_or_char *op, ParmList *parms) {
   SwigType *type;
   String   *name;
   Parm     *p;
@@ -298,7 +298,7 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_apply_multi()
+ * Swig_typemap_apply()
  *
  * Multi-argument %apply directive.  This is pretty horrible so I sure hope
  * it works.
@@ -317,7 +317,7 @@ int count_args(String *s) {
 }
 
 void 
-Swig_typemap_apply_multi(ParmList *src, ParmList *dest) {
+Swig_typemap_apply(ParmList *src, ParmList *dest) {
   String *ssig, *dsig;
   Parm   *p, *np, *lastp, *dp, *lastdp = 0;
   int     narg = 0;
@@ -400,7 +400,7 @@ Swig_typemap_apply_multi(ParmList *src, ParmList *dest) {
 	      Replace(nkey,dsig,"", DOH_REPLACE_ANY);
 	      Replace(nkey,"tmap:","", DOH_REPLACE_ANY);
 
-	      Swig_typemap_register_multi(nkey,dest,code,locals,kwargs);
+	      Swig_typemap_register(nkey,dest,code,locals,kwargs);
 	    }
 	  }
 	  Delete(nkey);
@@ -419,7 +419,7 @@ Swig_typemap_apply_multi(ParmList *src, ParmList *dest) {
 
 /* Multi-argument %clear directive */
 void
-Swig_typemap_clear_apply_multi(Parm *parms) {
+Swig_typemap_clear_apply(Parm *parms) {
   String *tsig;
   Parm   *p, *np, *lastp;
   int     narg = 0;

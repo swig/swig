@@ -256,35 +256,18 @@ int Language::addmethodsDirective(Node *n) {
 
 int Language::applyDirective(Node *n) {
 
-  SwigType *type  = Getattr(n,"type");
-  String   *name  = Getattr(n,"name");
-  Parm     *p     = Getattr(n,"parms");
-  Parm     *mtype = Getattr(n,"multitype");
-
-  if (type) {
-    mtype = NewParm(type,name);
-  }
-  while (p) {
-    SwigType *ptype = Getattr(p,"type");
-    String   *pname = Getattr(p,"name");
-    Parm     *pmulti= Getattr(p,"multitype");
-    if (ptype) {
-      pmulti = NewParm(ptype,pname);
-    }
-
-    if (ParmList_len(pmulti) != ParmList_len(mtype)) {
+  Parm     *pattern = Getattr(n,"pattern");
+  Node     *c = firstChild(n);
+  while (c) {
+    Parm   *apattern = Getattr(n,"pattern");
+    if (ParmList_len(pattern) != ParmList_len(apattern)) {
       Printf(stderr,"%s:%d. Can't apply (%s) to (%s).  Number of arguments don't match.\n",
-	     input_file, line_number, ParmList_str(mtype), ParmList_str(pmulti));
+	     input_file, line_number, ParmList_str(pattern), ParmList_str(apattern));
     } else {
-      Swig_typemap_apply_multi(mtype,pmulti);
+      Swig_typemap_apply(pattern,apattern);
     }
-    if (ptype) {
-      Delete(pmulti);
-    }
-    p = nextSibling(p);
-
+    c = nextSibling(c);
   }
-  if (type) Delete(mtype);
   return SWIG_OK;
 }
 
@@ -293,20 +276,10 @@ int Language::applyDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::clearDirective(Node *n) {
-  Parm *p;
-  for (p = Getattr(n,"parms"); p; p = nextSibling(p)) {
-    SwigType *type = Getattr(p,"type");
-    String   *name = Getattr(p,"name");
-    ParmList *multi = 0;
-    if (type) {
-      multi = NewParm(type,name);
-    } else {
-      multi = Getattr(p,"multitype");
-    }
-    if (multi) {
-      Swig_typemap_clear_apply_multi(multi);
-    }
-    if (type) Delete(multi);
+  Node *p;
+  for (p = firstChild(n); p; p = nextSibling(p)) {
+    ParmList *pattern = Getattr(p,"pattern");
+    Swig_typemap_clear_apply(pattern);
   }
   return SWIG_OK;
 }
@@ -317,7 +290,7 @@ int Language::clearDirective(Node *n) {
 
 int Language::constantDirective(Node *n) {
   if (!ImportMode) {
-    Swig_require(n,"name", "?value",0);
+    Swig_require(&n,"name", "?value",0);
     String *name = Getattr(n,"name");
     String *value = Getattr(n,"value");
     if (!value) {
@@ -327,7 +300,7 @@ int Language::constantDirective(Node *n) {
     }
     Setattr(n,"value", value);
     this->constantWrapper(n);
-    Swig_restore(n);
+    Swig_restore(&n);
     return SWIG_OK;
   }
   return SWIG_NOWRAP;
@@ -439,7 +412,6 @@ int Language::nativeDirective(Node *n) {
     String *symname = Getattr(n,"sym:name");
     SwigType *type = Getattr(n,"type");
     Parm    *parms = Getattr(n,"parms");
-    
     lang->add_native(Char(name),Char(symname),type,parms);
     return SWIG_OK;
   } else {
@@ -488,20 +460,12 @@ int Language::typemapDirective(Node *n) {
   Parm   *kwargs = Getattr(n,"kwargs");
   Node   *items  = firstChild(n);
   while (items) {
-    SwigType *type      = Getattr(items,"type");
-    String   *name      = Getattr(items,"name");
+    Parm     *pattern   = Getattr(items,"pattern");
     Parm     *parms     = Getattr(items,"parms");
-    Parm     *multitype = Getattr(items,"multitype");
-    if (type) {
-      multitype = NewParm(type,name);
-    }
     if (code) {
-      Swig_typemap_register_multi(method,multitype,code,parms,kwargs);
+      Swig_typemap_register(method,pattern,code,parms,kwargs);
     } else {
-      Swig_typemap_clear_multi(method,multitype);
-    }
-    if (type) {
-      Delete(multitype);
+      Swig_typemap_clear(method,pattern);
     }
     items = nextSibling(items);
   }
@@ -513,36 +477,22 @@ int Language::typemapDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::typemapcopyDirective(Node *n) {
-  String *method = Getattr(n,"method");
-  String *name   = Getattr(n,"name");
-  String *type   = Getattr(n,"type");
-  Parm   *mtype  = Getattr(n,"multitype");
+  String *method  = Getattr(n,"method");
+  Parm   *pattern = Getattr(n,"pattern");
   Node *items    = firstChild(n);
   int   nsrc = 0;
-
-  if (type) {
-    mtype = NewParm(type,name);
-  }
-  nsrc = ParmList_len(mtype);
+  nsrc = ParmList_len(pattern);
   while (items) {
-    SwigType *newtype   = Getattr(items,"type");
-    String   *newname   = Getattr(items,"name");
-    ParmList *newmtype  = Getattr(items,"multitype");
-
-    if (newtype) {
-      newmtype = NewParm(newtype,newname);
-    }
-    if (nsrc != ParmList_len(newmtype)) {
+    ParmList *npattern = Getattr(items,"pattern");
+    if (nsrc != ParmList_len(npattern)) {
       Printf(stderr,"%s:%d. Can't copy typemap. Number of types differ.\n", input_file, line_number);      
     } else {
-      if (Swig_typemap_copy_multi(method,mtype,newmtype) < 0) {
+      if (Swig_typemap_copy(method,pattern,npattern) < 0) {
 	Printf(stderr,"%s:%d. Can't copy typemap.\n", input_file, line_number);
       }
     }
-    if (newtype) Delete(newmtype);
     items = nextSibling(items);
   }
-  if (type) Delete(mtype);
   return SWIG_OK;
 }
 
@@ -722,7 +672,7 @@ Language::functionDeclaration(Node *n) {
 int
 Language::globalfunctionDeclaration(Node *n) {
 
-  Swig_require(n,"name","sym:name","type","?parms",0);
+  Swig_require(&n,"name","sym:name","type","?parms",0);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -731,7 +681,7 @@ Language::globalfunctionDeclaration(Node *n) {
   ParmList *parms   = Getattr(n,"parms");
 
   if (Cmp(storage,"static") == 0) {
-    Swig_restore(n);
+    Swig_restore(&n);
     return SWIG_NOWRAP;   /* Can't wrap static functions */
   } else {
     /* Check for callback mode */
@@ -742,7 +692,7 @@ Language::globalfunctionDeclaration(Node *n) {
 
       if (Cmp(cbname, symname) == 0) {
 	Delete(cbname);
-	Swig_restore(n);
+	Swig_restore(&n);
 	return SWIG_NOWRAP;
       }
       Delete(cbname);
@@ -751,7 +701,7 @@ Language::globalfunctionDeclaration(Node *n) {
     Setattr(n,"wrap:action", Swig_cresult(type,"result", Swig_cfunction_call(name,parms)));
     functionWrapper(n);
   }
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -761,7 +711,7 @@ Language::globalfunctionDeclaration(Node *n) {
 
 int 
 Language::callbackfunctionDeclaration(Node *n) {
-  Swig_require(n,"name","*sym:name","*type","?value",0);
+  Swig_require(&n,"name","*sym:name","*type","?value",0);
   String *symname = Getattr(n,"sym:name");
   String *type    = Getattr(n,"type");
   String *name    = Getattr(n,"name");
@@ -780,7 +730,7 @@ Language::callbackfunctionDeclaration(Node *n) {
   Delete(cbname);
   Delete(cbty);
 
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -791,7 +741,7 @@ Language::callbackfunctionDeclaration(Node *n) {
 int
 Language::memberfunctionDeclaration(Node *n) {
 
-  Swig_require(n,"*name","*sym:name","*type","?parms","?value",0);
+  Swig_require(&n,"*name","*sym:name","*type","?parms","?value",0);
 
   String *storage   = Getattr(n,"storage");
   String   *name    = Getattr(n,"name");
@@ -829,7 +779,7 @@ Language::memberfunctionDeclaration(Node *n) {
     Delete(cbty);
     Delete(cbname);
     if (Cmp(cbname,symname) == 0) {
-      Swig_restore(n);
+      Swig_restore(&n);
       return SWIG_NOWRAP;
     }
   }
@@ -843,7 +793,7 @@ Language::memberfunctionDeclaration(Node *n) {
 
   /*  DelWrapper(w);*/
   Delete(fname);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -854,8 +804,8 @@ Language::memberfunctionDeclaration(Node *n) {
 int
 Language::staticmemberfunctionDeclaration(Node *n) {
 
-  Swig_require(n,"*name","*sym:name","*type",0);
-  Swig_save(n,"storage",0);
+  Swig_require(&n,"*name","*sym:name","*type",0);
+  Swig_save(&n,"storage",0);
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
   SwigType *type    = Getattr(n,"type");
@@ -887,7 +837,7 @@ Language::staticmemberfunctionDeclaration(Node *n) {
 
   Delete(cname);
   Delete(mrename);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -929,8 +879,8 @@ Language::globalvariableDeclaration(Node *n) {
 int
 Language::membervariableDeclaration(Node *n) {
 
-  Swig_require(n,"*name","*sym:name","*type",0);
-  Swig_save(n,"parms",0);
+  Swig_require(&n,"*name","*sym:name","*type",0);
+  Swig_save(&n,"parms",0);
 
   String   *name    = Getattr(n,"name");
   String   *symname = Getattr(n,"sym:name");
@@ -1024,7 +974,7 @@ Language::membervariableDeclaration(Node *n) {
     ActionFunc = 0;
 #endif
   }
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1035,7 +985,7 @@ Language::membervariableDeclaration(Node *n) {
 int 
 Language::staticmembervariableDeclaration(Node *n)
 {
-  Swig_require(n,"*name","*sym:name","*type",0);
+  Swig_require(&n,"*name","*sym:name","*type",0);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
@@ -1053,7 +1003,7 @@ Language::staticmembervariableDeclaration(Node *n)
 
   Delete(mrename);
   Delete(cname);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1098,7 +1048,7 @@ int Language::enumDeclaration(Node *n) {
 int Language::enumvalueDeclaration(Node *n) {
   if (InClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-  Swig_require(n,"name", "?value",0);
+  Swig_require(&n,"name", "?value",0);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
   if (value)
@@ -1111,7 +1061,7 @@ int Language::enumvalueDeclaration(Node *n) {
   } else {
     memberconstantDeclaration(n);
   }
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1121,7 +1071,7 @@ int Language::enumvalueDeclaration(Node *n) {
 
 int Language::memberconstantDeclaration(Node *n) {
 
-  Swig_require(n,"*name","*sym:name","*value",0);
+  Swig_require(&n,"*name","*sym:name","*value",0);
 
   String *name    = Getattr(n,"name");
   String *symname = Getattr(n,"sym:name");
@@ -1143,7 +1093,7 @@ int Language::memberconstantDeclaration(Node *n) {
   constantWrapper(n);
   Delete(mrename);
   Delete(new_value);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1329,7 +1279,7 @@ int Language::constructorDeclaration(Node *n) {
 
 int 
 Language::publicconstructorDeclaration(Node *n) {
-  Swig_require(n,"?name","*sym:name","?type","?parms",0);
+  Swig_require(&n,"?name","*sym:name","?type","?parms",0);
   String *symname = Getattr(n,"sym:name");
   String *mrename;
 
@@ -1339,7 +1289,7 @@ Language::publicconstructorDeclaration(Node *n) {
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1376,8 +1326,8 @@ int Language::destructorDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::publicdestructorDeclaration(Node *n) {
-  Swig_require(n,"?name","*sym:name",0);
-  Swig_save(n,"type","parms",0);
+  Swig_require(&n,"?name","*sym:name",0);
+  Swig_save(&n,"type","parms",0);
 
   String *symname = Getattr(n,"sym:name");
   String *mrename;
@@ -1390,7 +1340,7 @@ int Language::publicdestructorDeclaration(Node *n) {
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1524,7 +1474,7 @@ int Language::constantWrapper(Node *n) {
  * Language::variableWrapper()
  * ---------------------------------------------------------------------- */
 int Language::variableWrapper(Node *n) {
-  Swig_require(n,"*name","*sym:name","*type","?parms",0);
+  Swig_require(&n,"*name","*sym:name","*type","?parms",0);
   String *symname    = Getattr(n,"sym:name");
   SwigType *type  = Getattr(n,"type");
   String *name   = Getattr(n,"name");
@@ -1555,7 +1505,7 @@ int Language::variableWrapper(Node *n) {
   Swig_VargetToFunction(n);
   Setattr(n,"sym:name", Swig_name_get(symname));
   functionWrapper(n);
-  Swig_restore(n);
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
