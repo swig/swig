@@ -395,29 +395,6 @@ void TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
   else 
     f << "SWIGTYPE" << t->print_mangle() << ")) == TCL_ERROR) { return TCL_ERROR; }\n";
 
-  // Now emit code according to the level of strictness desired
-#ifdef OLD
-  switch(TypeStrict) {
-  case 0: // No type checking
-    f << tab4 << "}\n";
-    break;
-  case 1: // Warning message only
-    f << tab8 << "fprintf(stderr,\"Warning : type mismatch in " << srcname 
-      << " of " << iname << ". Expected " << t->print_mangle() 
-      << ", received %s\\n\", rettype);\n"
-      << tab4 << "}\n";
-  case 2: // Super strict mode.
-    f << tab8 << "Tcl_SetResult(interp, \"Type error in " << srcname << " of " << iname
-      << ". Expected " << t->print_mangle() << ", received \", TCL_STATIC);\n"
-      << tab8 << "Tcl_AppendElement(interp, rettype);\n"
-      << tab8 << ret << ";\n"
-      << tab4 << "}\n";
-    break;
-  default :
-    fprintf(stderr,"Unknown strictness level\n");
-    break;
-  }
-#endif
 }
 
 
