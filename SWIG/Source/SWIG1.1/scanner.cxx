@@ -279,64 +279,78 @@ void start_inline(char *text, int line) {
 void yycomment(char *, int, int) {
 }
 
-/**************************************************************
- * void skip_brace(void)
- *
- * Found a {.
- * Skip all characters until we find a matching closed }.
- *
- * This function is used to skip over inlined C code and other
- * garbage found in interface files.
- ***************************************************************/
 
-void skip_brace(void) {
+/* -----------------------------------------------------------------------------
+ * skip_balanced()
+ *
+ * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
+ * (...).  Ignores symbols inside comments or strings.
+ * ----------------------------------------------------------------------------- */
 
-  char c;
-  Clear(CCode);
-  Putc('{',CCode);
-  while (num_brace > last_brace) {
-    if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s:%d. Missing '}'. Reached end of input.\n",
-	      input_file, line_number);
-      FatalError();
-      return;
+void
+skip_balanced(int startchar, int endchar) {
+    char c;
+    int  num_levels = 1;
+    int  l;
+    int  state = 0;
+    char temp[2] = {0,0};
+
+    Clear(CCode);
+    Putc(startchar,CCode);
+    temp[0] = (char) startchar;
+    while (num_levels > 0) {
+	if ((c = nextchar()) == 0) {
+	  Printf(stderr,"%s:%d. Missing '%c'. Reached end of input.\n",
+		 input_file, line_number,endchar);
+	  FatalError();
+	  return;
+	}
+	Putc(c,CCode);
+	switch(state) {
+	case 0:
+	    if (c == startchar) num_levels++;
+	    else if (c == endchar) num_levels--;
+	    else if (c == '/') state = 10;
+	    else if (c == '\"') state = 20;
+	    else if (c == '\'') state = 30;
+	    break;
+	case 10:
+	    if (c == '/') state = 11;
+	    else if (c == '*') state = 12;
+	    else state = 0;
+	    break;
+	case 11:
+	    if (c == '\n') state = 0;
+	    else state = 11;
+	    break;
+	case 12:
+	    if (c == '*') state = 13;
+	    break;
+	case 13:
+	    if (c == '*') state = 13;
+	    else if (c == '/') state = 0;
+	    else state = 12;
+	    break;
+	case 20:
+	    if (c == '\"') state = 0;
+	    else if (c == '\\') state = 21;
+	    break;
+	case 21:
+	    state = 20;
+	    break;
+	case 30:
+	    if (c == '\'') state = 0;
+	    else if (c == '\\') state = 31;
+	    break;
+	case 31:
+	    state = 30;
+	    break;
+	default:
+	    break;
+	}
+	yylen = 0;
     }
-    Putc(c,CCode);
-    if (c == '{') num_brace++;
-    if (c == '}') num_brace--;
-    yylen = 0;
-  }
-}
-
-
-/**************************************************************
- * void skip_template(void)
- *
- * Found a <.
- * Skip all characters until we find a matching closed >.
- *
- * This function is used to skip over C++ templated types
- * and objective-C protocols.
- ***************************************************************/
-
-void skip_template(void) {
-
-  char c;
-  Clear(CCode);
-  Putc('<',CCode);
-  int  num_lt = 1;
-  while (num_lt > 0) {
-    if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s:%d. Missing '>'. Reached end of input.\n",
-	      input_file, line_number);
-      FatalError();
-      return;
-    }
-    Putc(c,CCode);
-    if (c == '<') num_lt++;
-    if (c == '>') num_lt--;
-    yylen = 0;
-  }
+    return;
 }
 
 /**************************************************************

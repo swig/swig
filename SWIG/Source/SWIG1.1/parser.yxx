@@ -39,9 +39,8 @@ extern void  yyerror (const char *s);
 
 extern int  line_number;
 extern int  start_line;
-extern void skip_brace(void);
+extern void skip_balanced(int startchar, int endchar);
 extern void skip_decl(void);
-extern void skip_template(void);
 extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
 extern void start_inline(char *, int);
@@ -845,7 +844,7 @@ echo_directive : ECHO HBLOCK {
    ------------------------------------------------------------ */
 
 except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
-                    skip_brace();
+                    skip_balanced('{','}');
 		    if (strcmp($3,typemap_lang) == 0) {
 		      Swig_except_register(CCode);
 		    }
@@ -853,7 +852,7 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
 	       }
 
                | EXCEPT LBRACE {
-                    skip_brace();
+                    skip_balanced('{','}');
 		    Swig_except_register(CCode);
                }
 
@@ -1115,7 +1114,7 @@ rename_directive : RENAME ID idstring SEMI {
 
 typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   TMParm *p;
-                   skip_brace();
+                   skip_balanced('{','}');
 		   if ($3) {
 		     p = $5;
 		     while (p) {
@@ -1250,7 +1249,7 @@ varfunc_tail   : SEMI { Clear(CCode); }
 		 Clear(CCode);
 		 c_varfunc_decl(Active_extern, Active_type, $2.id,$2.type,$2.parms);
 	       } varfunc_tail { }
-               | LBRACE { skip_brace(); }
+               | LBRACE { skip_balanced('{','}'); }
               ;
 
 initializer   : def_args { $$ = $1; }
@@ -1442,7 +1441,7 @@ cpp_varfunc_decl:  cpp_storage_class type declarator initializer {
 		 }
 
                 | cpp_storage_class type declarator cpp_const LBRACE { 
-		  skip_brace();
+		  skip_balanced('{','}');
 		  cplus_varfunc_decl($1,$2,$3.id,$3.type,$3.parms,0);
 		}
 
@@ -1458,7 +1457,7 @@ cpp_varfunc_decl:  cpp_storage_class type declarator initializer {
 		    Delete($2.parms);
 		 }
                 | type declarator cpp_const LBRACE { 
-		  skip_brace();
+		  skip_balanced('{','}');
 		  cplus_varfunc_decl(0,$1,$2.id,$2.type,$2.parms,0);
 		}
                 ;
@@ -1595,7 +1594,7 @@ cpp_swig_directives: pragma_directive
 
 /* A struct sname { } id;  declaration */
 
-cpp_nested : cpptype ID LBRACE { start_line = line_number; skip_brace();
+cpp_nested : cpptype ID LBRACE { start_line = line_number; skip_balanced('{','}');
 	      } nested_decl SEMI {
 
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -1622,7 +1621,7 @@ cpp_nested : cpptype ID LBRACE { start_line = line_number; skip_brace();
               ;
 
 /* An unnamed structure definition */
-cpp_unnamed : cpptype LBRACE { start_line = line_number; skip_brace();
+cpp_unnamed : cpptype LBRACE { start_line = line_number; skip_balanced('{','}');
               } declarator SEMI {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($1,"class") == 0) {
@@ -1662,12 +1661,12 @@ nested_decl   : declarator { $$ = $1;}
 cpp_end        : cpp_const SEMI {
 	            Clear(CCode);
                }
-               | cpp_const LBRACE { skip_brace(); }
+               | cpp_const LBRACE { skip_balanced('{','}'); }
                ;
 
 cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
                | cpp_const EQUAL definetype SEMI { Clear(CCode); $$ = 1; }
-               | cpp_const LBRACE { skip_brace(); $$ = 0; }
+               | cpp_const LBRACE { skip_balanced('{','}'); $$ = 0; }
                ;
 
 cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
@@ -1763,7 +1762,7 @@ def_args       : EQUAL definetype {
 		 $$.type = T_USER;
 	       }
                | EQUAL LBRACE {
-		 skip_brace();
+		 skip_balanced('{','}');
 		 $$.val = 0;
 		 $$.rawval = 0;
                  $$.type = T_INT;
@@ -2333,7 +2332,7 @@ cpp_const      : CONST {}
 /* Constructor initializer */
 
 ctor_end       : cpp_const ctor_initializer SEMI { Clear(CCode); }
-               | cpp_const ctor_initializer LBRACE { skip_brace(); }
+               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); }
                ;
 
 ctor_initializer : COLON mem_initializer_list
@@ -2353,7 +2352,7 @@ expr_list      : expr { }
                ;
 
 template_decl : LESSTHAN { 
-                     skip_template();
+                     skip_balanced('<','>');
 	             Replace(CCode,"\n"," ", DOH_REPLACE_ANY);
                      Replace(CCode,"\t"," ", DOH_REPLACE_ANY);
 	             Replace(CCode,"  "," ", DOH_REPLACE_ANY);
