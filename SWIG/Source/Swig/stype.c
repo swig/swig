@@ -1176,6 +1176,10 @@ SwigType_str(SwigType *s, const String_or_char *id)
     }
     else if (SwigType_isreference(element)) {
       Insert(result,0,"&");
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
     }  else if (SwigType_isarray(element)) {
       DOH *size;
       Append(result,"[");
@@ -1380,11 +1384,15 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       }
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
-      Insert(result,0,"&");
-      isreference = 1;
+	Insert(result,0,"&");
+	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	  Insert(result,0,"(");
+	  Append(result,")");
+	}
+	isreference = 1;
     } else if (SwigType_isarray(element)) {
       DOH *size;
-      if (firstarray) {
+      if (firstarray && !isreference) {
 	Append(result,"(*)");
 	firstarray = 0;
       } else {
