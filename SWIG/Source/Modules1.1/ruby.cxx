@@ -657,10 +657,9 @@ public:
     }
 
     /* Determine the name of the SWIG wrapper function */
-    char wname[256];
-    strcpy(wname, Char(Swig_name_wrapper(symname)));
+    String *wname = Swig_name_wrapper(symname);
     if (overname && current != CONSTRUCTOR_ALLOCATE) {
-      strcat(wname, Char(overname));
+      Append(wname,overname);
     }
   
     /* Emit arguments */
