@@ -308,7 +308,8 @@ PYTHON::functionWrapper(Node *n) {
     }
   } else {
     if (varargs) {
-      Printf(stderr,"%s:%d.  Can't wrap varargs with keyword arguments enabled\n", input_file, line_number);
+      Swig_warning(WARN_LANG_VARARGS_KEYWORD, input_file, line_number,
+		   "Can't wrap varargs with keyword arguments enabled\n");
       varargs = 0;
     }
     Printv(f->def,
@@ -373,7 +374,8 @@ PYTHON::functionWrapper(Node *n) {
       p = Getattr(p,"tmap:in:next");
       continue;
     } else {
-      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
+		   "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
       break;
     }
     p = nextSibling(p);
@@ -455,7 +457,8 @@ PYTHON::functionWrapper(Node *n) {
     }
     Printf(f->code,"%s\n", tm);
   } else {
-    Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		 "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
   }
 
   /* Output argument output code */
@@ -574,7 +577,8 @@ PYTHON::variableWrapper(Node *n) {
       Printf(setf->code,"%s\n",tm);
       Delete(tm);
     } else {
-      Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
+      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+		   "Unable to set variable of type %s.\n", SwigType_str(t,0));
     }
     Printf(setf->code,"    return 0;\n");
   } else {
@@ -598,7 +602,8 @@ PYTHON::variableWrapper(Node *n) {
     Replaceall(tm,"$result","pyobj");
     Printf(getf->code,"%s\n", tm);
   } else {
-    Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
+    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
+		 "Unable to link with type %s\n", SwigType_str(t,0));
   }
     
   Printf(getf->code,"    return pyobj;\n}\n");
@@ -647,7 +652,8 @@ PYTHON::constantWrapper(Node *n) {
     have_tm = 1;
   }
   if (!have_tm) {
-    Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		 "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {

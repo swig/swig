@@ -527,7 +527,8 @@ PERL5::functionWrapper(Node *n)
       Printf(f->code,"%s\n",tm);
       p = Getattr(p,"tmap:in:next");
     } else {
-      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
+		   "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
       p = nextSibling(p);
     }
     if (i >= num_required) {
@@ -608,7 +609,8 @@ PERL5::functionWrapper(Node *n)
     Replaceall(tm,"$result", "ST(argvi)");
     Printf(f->code, "%s\n", tm);
   } else {
-    Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		 "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
   }
 
   /* If there were any output args, take care of them. */
@@ -759,7 +761,8 @@ int PERL5::variableWrapper(Node *n)
       Replaceall(tm,"$input","sv");
       Printf(setf->code,"%s\n", tm);
     } else {
-      Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, SwigType_str(t,0));
+      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+		   "Unable to link with datatype %s (ignored).\n", SwigType_str(t,0));
       return SWIG_NOWRAP;
     }
     Printf(setf->code,"    return 1;\n}\n");
@@ -781,7 +784,8 @@ int PERL5::variableWrapper(Node *n)
     Replaceall(tm,"$source",name);
     Printf(getf->code,"%s\n", tm);
   } else {
-    Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, SwigType_str(t,0));
+    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
+		 "Unable to link with datatype %s (ignored).\n", SwigType_str(t,0));
     return SWIG_NOWRAP;
   }
   Printf(getf->code,"    return 1;\n}\n");
@@ -874,7 +878,8 @@ PERL5::constantWrapper(Node *n)
     Replaceall(tm,"$value",value);
     Printf(f_init, "%s\n", tm);
   } else {
-    Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number,
+		 "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
 
@@ -1419,7 +1424,6 @@ PERL5::classforwardDeclaration(Node *n) {
   actualpackage = import_file ? import_file : realpackage;
 
   if (!symname) {
-    Printf(stdout,"%s\n", name);
     assert(symname);
   }
 

@@ -231,15 +231,18 @@ static String *make_name(String *name,SwigType *decl) {
   if (!destructor) {
     rn = Swig_name_object_get(rename_hash, Namespaceprefix, name, decl);
   } else {
-    rn = Swig_name_object_get(rename_hash, Namespaceprefix, Char(name)+1,decl);
+    /*    rn = Swig_name_object_get(rename_hash, Namespaceprefix, Char(name)+1,decl); */
+    rn = Swig_name_object_get(rename_hash, Namespaceprefix, name,decl);
   }
   if (!rn) {
     if (add_oldname) return Copy(add_oldname);
     return name;
   }
   if (destructor) {
-    String *s = NewStringf("~%s", rn);
-    return s;
+    if (Strcmp(rn,"$ignore") != 0) {
+      String *s = NewStringf("~%s", rn);
+      return s;
+    }
   }
   return Copy(rn);
 }
@@ -311,7 +314,7 @@ static void add_symbols(Node *n) {
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
       Setattr(n,"feature:ignore","1");
-      Setattr(n,"error",NewString("ignored"));
+      /*      Setattr(n,"error",NewString("ignored")); */
       if (strlen(c)) {
 	Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
       }
@@ -820,7 +823,6 @@ declaration    : swig_directive { $$ = $1; }
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { $$ = 0; }
-               | c_destructor_decl { $$ = 0; }
                ;
 
 
@@ -1783,7 +1785,7 @@ warn_directive : WARN string {
 		  $$ = 0;
                }
                | WARN LPAREN NUM_INT RPAREN SEMI {
-                 Swig_warnfilter(atoi(Char($3.val)),0);
+                 Swig_warnfilter($3.val,0);
 		 $$ = new_node("warn");
 		 Setattr($$,"num",$3.val);
 		 Setattr($$,"value","0");
@@ -1795,7 +1797,7 @@ warn_directive : WARN string {
    ------------------------------------------------------------ */
 
 nowarn_directive : NOWARN LPAREN NUM_INT RPAREN SEMI {
-                 Swig_warnfilter(atoi(Char($3.val)),1);
+                 Swig_warnfilter($3.val,1);
 		 $$ = new_node("warn");
 		 Setattr($$,"num",$3.val);
 		 Setattr($$,"value","1");
@@ -1967,10 +1969,6 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                ;
 
 c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
-                }
-                ;
-
-c_destructor_decl : storage_class type DCNOT ID LPAREN RPAREN cpp_end { 
                 }
                 ;
 
@@ -2897,7 +2895,7 @@ def_args       : EQUAL definetype {
 		   String *q = Swig_symbol_qualified(n);
 		   if (Getattr(n,"access")) {
 		     Swig_warning(WARN_PARSE_PRIVATE, input_file, line_number,"'%s' is private in this context.\n", $3);
-		     Swig_warning(WARN_PARSE_BAD_DEFAULT, input_file, line_number,"Can't set default argument (ignored)\n");
+		     Swig_warning(WARN_PARSE_BAD_DEFAULT, input_file, line_number,"Can't set default argument value (ignored)\n");
 		     $$.val = 0;
 		   } else {
 		     if (q) {
@@ -3070,6 +3068,13 @@ direct_declarator : idcolon {
 		 $$.type = 0;
 		 $$.parms = 0;
 		 $$.have_parms = 0;
+                  }
+
+                  | NOT idcolon {
+                  $$.id = Char(NewStringf("~%s",$2));
+                  $$.type = 0;
+                  $$.parms = 0;
+                  $$.have_parms = 0;
                   }
 
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
@@ -3793,6 +3798,9 @@ idcolontail    : DCOLON idtemplate idcolontail {
                }
                | DCOLON OPERATOR {
                    $$ = NewStringf("::%s",$2);
+               }
+               | DCNOT idtemplate {
+		 $$ = NewStringf("::~%s",$2);
                }
                ;
 

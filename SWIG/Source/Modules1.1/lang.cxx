@@ -176,10 +176,11 @@ int Dispatcher::typemapcopyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typesDirective(Node *n) { return defaultHandler(n); }
 
 int Dispatcher::warnDirective(Node *n) {
-  int wnum,value;
-  wnum = GetInt(n,"num");
+  String *wlist;
+  int value;
+  wlist = Getattr(n,"num");
   value = GetInt(n,"value");
-  Swig_warnfilter(wnum,value);
+  Swig_warnfilter(wlist,value);
   return SWIG_OK;
 }
 
@@ -215,6 +216,8 @@ int Language::emit_one(Node *n) {
     int ret;
     Symtab *symtab = 0;
   
+    if (Getattr(n,"feature:ignore")) return SWIG_OK;
+
     line_number = Getline(n);
     input_file = Char(Getfile(n));
     symtab = Getattr(n,"symtab");
@@ -647,7 +650,7 @@ int Language::cDeclaration(Node *n) {
     }
 
     if (symname && !validIdentifier(symname)) {
-	Swig_warning(WARN_LANG_IDENTIFIER,input_file, line_number, "Can't wrap %s unless renamed to a valid identifier.\n",
+	Swig_warning(WARN_LANG_IDENTIFIER,input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n",
 		     symname);
 	return SWIG_NOWRAP;
     }
@@ -1276,13 +1279,13 @@ int Language::classHandler(Node *n) {
 
     cplus_mode = CPLUS_PUBLIC;
     if (!ImportMode && GenerateDefault) {
-	if (!Getattr(n,"has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
+	if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
 	    /* Note: will need to change this to support different kinds of classes */
 	  if (!Abstract) {
 	    constructorHandler(CurrentClass);
 	  }
 	}
-	if (!Getattr(n,"has_destructor") && (Getattr(n,"allocate:default_destructor"))) {
+	if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) && (Getattr(n,"allocate:default_destructor"))) {
 	    destructorHandler(CurrentClass);
 	}
     }

@@ -273,8 +273,8 @@ TCL8::functionWrapper(Node *n) {
       p = Getattr(p,"tmap:in:next");
       continue;
     } else {
-      Printf(stderr,"%s:%d: Unable to use type %s as a function argument.\n",
-	     input_file, line_number, SwigType_str(pt,0));
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
+		   "Unable to use type %s as a function argument.\n", SwigType_str(pt,0));
     }
     p = nextSibling(p);
   }
@@ -351,8 +351,8 @@ TCL8::functionWrapper(Node *n) {
     Replaceall(tm,"$result", "Tcl_GetObjResult(interp)");
     Printf(f->code,"%s\n", tm);
   } else {
-    Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-	   input_file, line_number, SwigType_str(type,0), name);
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		 "Unable to use return type %s in function %s.\n", SwigType_str(type,0), name);
   }
 
   /* Dump output argument code */
@@ -433,7 +433,8 @@ TCL8::variableWrapper(Node *n) {
     Printf(getf->code,"}\n");
     Wrapper_print(getf,f_wrappers);
   } else {
-    Printf(stderr,"%s:%d. Can't link to variable of type %s\n", input_file, line_number, SwigType_str(t,0));
+    Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, 
+		 "Can't link to variable of type %s\n", SwigType_str(t,0));
     DelWrapper(getf);
     return SWIG_NOWRAP;
   }
@@ -460,7 +461,8 @@ TCL8::variableWrapper(Node *n) {
       Printf(setf->code,"}\n");
       if (setf) Wrapper_print(setf,f_wrappers);  
     } else {
-      Printf(stderr,"%s:%d. Warning. Variable %s will be read-only without a varin typemap.\n", input_file, line_number, name);
+      Swig_warning(WARN_TYPEMAP_VARIN_UNDEF,input_file, line_number,
+		   "Variable %s will be read-only without a varin typemap.\n", name);
       readonly = 1;
     }
     DelWrapper(setf);
@@ -518,7 +520,8 @@ TCL8::constantWrapper(Node *n) {
     Replaceall(tm,"$value",value);
     Printf(f_init, "%s\n", tm);
   } else {
-    Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+    Swig_warning(WARN_TYPEMAP_CONST_UNDEF,
+		 input_file, line_number, "Unsupported constant value.\n");
     return SWIG_NOWRAP;
   }
   return SWIG_OK;

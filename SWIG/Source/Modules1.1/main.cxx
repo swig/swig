@@ -190,9 +190,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Initialize the SWIG core */
   Swig_init();
   
-  /* Inhibit a few warning messages */
-  Swig_warnfilter(WARN_PARSE_PRIVATE_INHERIT,1);
-  Swig_warnfilter(WARN_PP_EVALUATION,1);
+  /* Suppress warning messages for private inheritance and preprocessor evaluation */
+  Swig_warnfilter("202,309",1);
 
   // Initialize the preprocessor
   Preprocessor_init();
@@ -336,15 +335,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	    Swig_warnall();
 	  } else if (strncmp(argv[i],"-w",2) == 0) {
-	    char *c;
-	    char *t = argv[i]+2;
-	    c = strtok(t,",");
-	    while (c) {
-	      int wn = atoi(c);
-	      Swig_warnfilter(wn,1);
-	      c = strtok(NULL,",");
-	    }
 	    Swig_mark_arg(i);
+	    Swig_warnfilter(argv[i]+2,1);
 	  } else if (strcmp(argv[i],"-dump_tags") == 0) {
 	    dump_tags = 1;
 	    Swig_mark_arg(i);

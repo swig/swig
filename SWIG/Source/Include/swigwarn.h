@@ -110,6 +110,13 @@
 #define WARN_TYPE_UNDEFINED_CLASS     401
 #define WARN_TYPEMAP_SOURCETARGET     450
 #define WARN_TYPEMAP_CHARLEAK         451
+#define WARN_TYPEMAP_SWIGTYPE         452
+
+#define WARN_TYPEMAP_IN_UNDEF         460
+#define WARN_TYPEMAP_OUT_UNDEF        461
+#define WARN_TYPEMAP_VARIN_UNDEF      462
+#define WARN_TYPEMAP_VAROUT_UNDEF     463
+#define WARN_TYPEMAP_CONST_UNDEF      464
 
 /* -- General code generation -- */
 
@@ -118,13 +125,14 @@
 #define WARN_LANG_IDENTIFIER          503
 #define WARN_LANG_RETURN_TYPE         504
 #define WARN_LANG_VARARGS             505 
+#define WARN_LANG_VARARGS_KEYWORD     506
 
 /* -- Reserved (600-799) -- */
 
 /* -- Language module specific warnings (800 - 999) -- */
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
-   add an entry */
+   add an entry here */
 
 #endif
 

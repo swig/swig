@@ -16,7 +16,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#define MAXWARN 10000
+#define MAXWARN 1000
 
 static int silence = 0;            /* Silent operation */
 static char filter[MAXWARN] = { 0 };
@@ -115,9 +115,20 @@ Swig_error_silent(int s) {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_warnfilter(int wnum, int allow) {
-  assert((wnum > 0) && (wnum < MAXWARN));
-  filter[wnum] = allow;
+Swig_warnfilter(const String_or_char *wlist, int allow) {
+  char *c;
+  int  wnum;
+  String *s = NewString(wlist);
+  c = Char(s);
+  c = strtok(c,",");
+  while (c) {
+    wnum = atoi(c);
+    if ((wnum > 0) && (wnum < MAXWARN)) {
+      filter[wnum] = allow;
+    }
+    c = strtok(NULL,",");
+  }
+  Delete(s);
 }
 
 void

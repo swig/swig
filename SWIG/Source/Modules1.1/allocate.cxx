@@ -159,8 +159,6 @@ public:
     }
 
     /* Only care about default behavior.  Remove temporary values */
-    Delattr(n,"allocate:has_constructor");
-    Delattr(n,"allocate:has_destructor");
     Setattr(n,"allocate:visit","1");
     inclass = 0;
     return SWIG_OK;
@@ -220,7 +218,6 @@ public:
 
   virtual int destructorDeclaration(Node *n) {
     if (!inclass) return SWIG_OK;
-
     Setattr(inclass,"allocate:has_destructor","1");
     if (cplus_mode == PUBLIC) {
       Setattr(inclass,"allocate:default_destructor","1");
