@@ -361,17 +361,17 @@ PYTHON::function(DOH *node) {
   strcpy(wname,Char(Swig_name_wrapper(iname)));
 
   if (!use_kw) {
-    Printv(f->def,
+    Printv(f,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args) {",
 	   0);
   } else {
-    Printv(f->def,
+    Printv(f,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
 	   0);
   }
-
+  Printf(f,"$locals\n");
   Wrapper_add_local(f,"resultobj", "PyObject *resultobj");
 
   /* Get the function usage string for later use */
@@ -538,7 +538,8 @@ PYTHON::function(DOH *node) {
 
   Printf(kwargs," NULL }");
   if (use_kw) {
-    Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", 0);
+    Wrapper_add_localv(f,"kwnames","char *kwnames[] = ", kwargs, ";\n", 0);
+    /*    Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", 0); */
   }
 
   Printf(parse_args,":%s\"", iname);
@@ -547,45 +548,45 @@ PYTHON::function(DOH *node) {
 	 0);
 
   /* Now slap the whole first part of the wrapper function together */
-  Printv(f->code, parse_args, get_pointers, check, 0);
+  Printv(f, parse_args, get_pointers, check, 0);
 
   /* Emit the function call */
   emit_func_call(node,f);
 
   /* Return the function value */
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"resultobj",0))) {
-    Printf(f->code,"%s\n", tm);
+    Printf(f,"%s\n", tm);
   } else {
     switch(SwigType_type(d)) {
     case T_INT: case T_UINT: case T_BOOL:
     case T_SHORT: case T_USHORT:
     case T_LONG : case T_ULONG:
     case T_SCHAR: case T_UCHAR :
-      Printf(f->code,"    resultobj = PyInt_FromLong((long)result);\n");
+      Printf(f,"    resultobj = PyInt_FromLong((long)result);\n");
       break;
     case T_DOUBLE :
     case T_FLOAT :
-      Printf(f->code,"    resultobj = PyFloat_FromDouble(result);\n");
+      Printf(f,"    resultobj = PyFloat_FromDouble(result);\n");
       break;
     case T_CHAR :
-      Printf(f->code,"    resultobj = Py_BuildValue(\"c\",result);\n");
+      Printf(f,"    resultobj = Py_BuildValue(\"c\",result);\n");
       break;
     case T_USER :
       SwigType_add_pointer(d);
       SwigType_remember(d);
-      Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n",0);
+      Printv(f,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n",0);
       SwigType_del_pointer(d);
       break;
     case T_STRING:
-      Printf(f->code,"    resultobj = Py_BuildValue(\"s\",result);\n");
+      Printf(f,"    resultobj = Py_BuildValue(\"s\",result);\n");
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(d);
-      Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
+      Printv(f, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
       break;
     case T_VOID:
-      Printf(f->code,"    Py_INCREF(Py_None);\n");
-      Printf(f->code,"    resultobj = Py_None;\n");
+      Printf(f,"    Py_INCREF(Py_None);\n");
+      Printf(f,"    resultobj = Py_None;\n");
       break;
     default :
       Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
@@ -594,33 +595,33 @@ PYTHON::function(DOH *node) {
   }
 
   /* Output argument output code */
-  Printv(f->code,outarg,0);
+  Printv(f,outarg,0);
 
   /* Output cleanup code */
-  Printv(f->code,cleanup,0);
+  Printv(f,cleanup,0);
 
   /* Look to see if there is any newfree cleanup code */
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
-      Printf(f->code,"%s\n",tm);
+      Printf(f,"%s\n",tm);
     }
   }
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"",0))) {
-    Printf(f->code,"%s\n",tm);
+    Printf(f,"%s\n",tm);
   }
 
-  Printf(f->code,"    return resultobj;\n}\n");
+  Printf(f,"    return resultobj;\n}\n");
 
   /* Substitute the cleanup code */
-  Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replace(f,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   /* Substitute the function name */
-  Replace(f->code,"$name",iname, DOH_REPLACE_ANY);
+  Replace(f,"$name",iname, DOH_REPLACE_ANY);
 
   /* Dump the function out */
-  Wrapper_print(f,f_wrappers);
+  Printf(f_wrappers,"%s",f);
 
   /* Now register the function with the interpreter.   */
   add_method(iname, wname, use_kw);
@@ -674,7 +675,7 @@ PYTHON::function(DOH *node) {
   Delete(outarg);
   Delete(check);
   Delete(kwargs);
-  DelWrapper(f);
+  Delete(f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -711,11 +712,12 @@ PYTHON::variable(DOH *node) {
 
     /* Create a function for setting the value of the variable */
 
-    Printf(setf->def,"static int %s_set(PyObject *val) {", wname);
+    Printf(setf,"static int %s_set(PyObject *val) {\n", wname);
+    Printf(setf,"$locals\n");
     if (!(Status & STAT_READONLY)) {
       if ((tm = Swig_typemap_lookup((char*)"varin",t,name,(char*)"val",name,0))) {
-	Printf(setf->code,"%s\n",tm);
-	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
+	Printf(setf,"%s\n",tm);
+	Replace(setf,"$name",iname, DOH_REPLACE_ANY);
       } else {
 	switch(SwigType_type(t)) {
 
@@ -723,7 +725,7 @@ PYTHON::variable(DOH *node) {
 	case T_UINT: case T_USHORT: case T_ULONG:
 	case T_SCHAR: case T_UCHAR: case T_BOOL:
 	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0),"tval",0);
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "tval = (", SwigType_lstr(t,0), ") PyInt_AsLong(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -736,7 +738,7 @@ PYTHON::variable(DOH *node) {
 
 	case T_FLOAT: case T_DOUBLE:
 	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0), "tval",0);
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "tval = (", SwigType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -749,7 +751,7 @@ PYTHON::variable(DOH *node) {
 
 	case T_CHAR:
 	  Wrapper_add_local(setf,"tval","char * tval");
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "tval = (char *) PyString_AsString(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -763,14 +765,14 @@ PYTHON::variable(DOH *node) {
 	case T_USER:
 	  SwigType_add_pointer(t);
 	  Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0),"temp",0);
-	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	  Printv(setf->code, tab4, name, " = *temp;\n", 0);
+	  get_pointer((char*)"val",(char*)"temp",t,setf,(char*)"1");
+	  Printv(setf, tab4, name, " = *temp;\n", 0);
 	  SwigType_del_pointer(t);
 	  break;
 
 	case T_STRING:
 	  Wrapper_add_local(setf,"tval","char * tval");
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "tval = (char *) PyString_AsString(val);\n",
 		 tab4, "if (PyErr_Occurred()) {\n",
 		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -780,13 +782,13 @@ PYTHON::variable(DOH *node) {
 		 0);
 
 	  if (CPlusPlus) {
-	    Printv(setf->code,
+	    Printv(setf,
 		   tab4, "if (", name, ") delete [] ", name, ";\n",
 		   tab4, name, " = new char[strlen(tval)+1];\n",
 		   tab4, "strcpy((char *)", name, ",tval);\n",
 		   0);
 	  } else {
-	    Printv(setf->code,
+	    Printv(setf,
 		   tab4, "if (", name, ") free((char*)", name, ");\n",
 		   tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
 		   tab4, "strcpy((char *)", name, ",tval);\n",
@@ -803,12 +805,12 @@ PYTHON::variable(DOH *node) {
 	    if (SwigType_type(ta) == T_CHAR) {
 	      String *dim = SwigType_array_getdim(aop,0);
 	      if (dim && Len(dim)) {
-		Printf(setf->code, "strncpy(%s,PyString_AsString(val), %s);\n", name,dim);
+		Printf(setf, "strncpy(%s,PyString_AsString(val), %s);\n", name,dim);
 		setable = 1;
 	      }
 	    }
 	    if (!setable) {
-	      Printv(setf->code,
+	      Printv(setf,
 		     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 		     " is read-only.\");\n",
 		     tab4, "return 1;\n",
@@ -821,50 +823,51 @@ PYTHON::variable(DOH *node) {
 
 	case T_POINTER: case T_REFERENCE:
 	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,0), "temp",0);
-	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	  Printv(setf->code,tab4, name, " = temp;\n", 0);
+	  get_pointer((char*)"val",(char*)"temp",t,setf,(char*)"1");
+	  Printv(setf,tab4, name, " = temp;\n", 0);
 	  break;
 
 	default:
 	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
 	}
       }
-      Printf(setf->code,"    return 0;\n");
+      Printf(setf,"    return 0;\n");
     } else {
       /* Is a readonly variable.  Issue an error */
-      Printv(setf->code,
+      Printv(setf,
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
 	     tab4, "return 1;\n",
 	     0);
     }
 
-    Printf(setf->code,"}\n");
-    Wrapper_print(setf,f_wrappers);
+    Printf(setf,"}\n");
+    Printf(f_wrappers,"%s", setf);
 
     /* Create a function for getting the value of a variable */
-    Printf(getf->def,"static PyObject *%s_get() {", wname);
+    Printf(getf,"static PyObject *%s_get() {\n", wname);
+    Printf(getf,"$locals\n");
     Wrapper_add_local(getf,"pyobj", "PyObject *pyobj");
     if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name,(char*)"pyobj",0))) {
-      Printf(getf->code,"%s\n",tm);
-      Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Printf(getf,"%s\n",tm);
+      Replace(getf,"$name",iname, DOH_REPLACE_ANY);
     } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,(char*)"pyobj",0))) {
-      Printf(getf->code,"%s\n",tm);
-      Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Printf(getf,"%s\n",tm);
+      Replace(getf,"$name",iname, DOH_REPLACE_ANY);
     } else {
       switch(SwigType_type(t)) {
       case T_INT: case T_UINT:
       case T_SHORT: case T_USHORT:
       case T_LONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR: case T_BOOL:
-	Printv(getf->code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
+	Printv(getf, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
 	break;
       case T_FLOAT: case T_DOUBLE:
-	Printv(getf->code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
+	Printv(getf, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
 	break;
       case T_CHAR:
 	Wrapper_add_local(getf,"ptemp","char ptemp[2]");
-	Printv(getf->code,
+	Printv(getf,
 	       tab4, "ptemp[0] = ", name, ";\n",
 	       tab4, "ptemp[1] = 0;\n",
 	       tab4, "pyobj = PyString_FromString(ptemp);\n",
@@ -873,14 +876,14 @@ PYTHON::variable(DOH *node) {
       case T_USER:
 	SwigType_add_pointer(t);
 	SwigType_remember(t);
-	Printv(getf->code,
+	Printv(getf,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
 	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
 	SwigType_del_pointer(t);
 	break;
       case T_STRING:
-	Printv(getf->code,
+	Printv(getf,
 	       tab4, "if (", name, ")\n",
 	       tab8, "pyobj = PyString_FromString(", name, ");\n",
 	       tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
@@ -889,7 +892,7 @@ PYTHON::variable(DOH *node) {
 
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
 	SwigType_remember(t);
-	Printv(getf->code,
+	Printv(getf,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
 	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
@@ -901,8 +904,8 @@ PYTHON::variable(DOH *node) {
       }
     }
 
-    Printf(getf->code,"    return pyobj;\n}\n");
-    Wrapper_print(getf,f_wrappers);
+    Printf(getf,"    return pyobj;\n}\n");
+    Printf(f_wrappers,"%s", getf);
 
     /* Now add this to the variable linking mechanism */
 
@@ -917,8 +920,8 @@ PYTHON::variable(DOH *node) {
 	       0);
       }
     }
-    DelWrapper(setf);
-    DelWrapper(getf);
+    Delete(setf);
+    Delete(getf);
 }
 
 /* -----------------------------------------------------------------------------

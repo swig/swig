@@ -189,7 +189,6 @@ public:
   char           *base;                  // Base class where this was defined
   int            inherited;              // Was this member inherited?
   CPP_member     *next;                  // Next member (for building linked lists)
-  int            id;                     // type id when created
   String        *signature;
 
   CPP_member() {
@@ -231,7 +230,6 @@ public:
     line = line_number;
     file = input_file;
     signature = NewStringf("%s(%s)", n, ParmList_str(l));
-    id = cpp_id;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -317,7 +315,6 @@ public:
     next = 0;
     line = line_number;
     file = input_file;
-    id = 0;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -369,7 +366,6 @@ public:
     inherited = 0;
     line = line_number;
     file = input_file;
-    id = 0;
     if (AddMethods) {
       if (strlen(Char(CCode)))
 	code = Swig_copy_string(Char(CCode));
@@ -425,11 +421,6 @@ public:
     new_method = AddMethods;
     line = line_number;
     file = input_file;
-    if (Inherit_mode) {
-      id = cpp_id;
-    } else {
-      id = 0;
-    }
     code = 0;
     inherited = 0;
   }
@@ -513,10 +504,6 @@ public:
     next = 0;
     line = line_number;
     file = input_file;
-    if (Inherit_mode)
-      id = cpp_id;
-    else
-      id = 0;
     code = 0;
     inherited = 0;
   }
@@ -652,7 +639,6 @@ public:
     m = members;
     while (m) {
       inherit_base_class = m->base;
-      cpp_id = m->id;
       m->inherit(mode);
       m = m->next;
     }
@@ -668,7 +654,6 @@ public:
     abstract = is_abstract;
     /*    Printf(stdout,"class %s. Abstract = %d\n", classname, is_abstract); */
     while (m) {
-      cpp_id = m->id;
       m->emit();
       m = m->next;
     }
@@ -1580,7 +1565,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     bc = classname;
   }
   
-     /*  Printf(key,"%s+%s",Wrapper_Getname(w), ParmList_protostr(l));*/
+     /*  Printf(key,"%s+%s",Getname(w), ParmList_protostr(l));*/
   Printf(key,"%s+%s", Swig_name_member(bc,mrename), ParmList_protostr(l));
   /*  Printf(stdout,"virtual = %d, bc = %s, mkey = %s\n", IsVirtual, bc, key); */
 
@@ -1593,13 +1578,14 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
   if (!prev_wrap) {
     if (mode && ccode) {
       /* Produce an actual C wrapper */
-      Wrapper_print(w,f_wrappers);
+      Printf(f_wrappers,"%s",w);
     } else if (!mode) {
       /* Nah. Just produce a string that does the work for us */
-      emit_set_action(Swig_cmethod_call(mname, Wrapper_Getparms(w)));
+      emit_set_action(Swig_cmethod_call(mname, Getparms(w)));
     }
-    new_create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
-    DelWrapper(w);
+    Setattr(w,"scriptname",iname);
+    lang->function(w);
+    Delete(w);
   } else {
     lang->create_command(prev_wrap, iname);
   }
@@ -1704,9 +1690,10 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	  new_create_function(cname,iname, type, l);
 	} else {
 	  Wrapper *w = Swig_cfunction_wrapper(cname, type, l, ccode);
-	  Wrapper_print(w,f_wrappers);	  
-	  new_create_function(cname,iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
-	  DelWrapper(w);
+	  Printf(f_wrappers,"%s", w);
+	  Setattr(w,"scriptname",iname);
+	  lang->function(w);
+	  Delete(w);
 	}
       }
     } else {
@@ -1770,19 +1757,20 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     } else {
       w = Swig_cdestructor_wrapper(fclassname, ccode);
     }
+    Setattr(w,"scriptname",iname);
     if (mode && ccode) {
-      Wrapper_print(w,f_wrappers);
-      new_create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+      Printf(f_wrappers,"%s",w);
+      lang->function(w);
     } else if (mode) {
-      new_create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+      lang->function(w);
     } else {
       if (CPlusPlus) 
 	emit_set_action(Swig_cppdestructor_call());
       else
 	emit_set_action(Swig_cdestructor_call());
-      new_create_function(cname, iname, Wrapper_Gettype(w), Wrapper_Getparms(w));      
+      lang->function(w);
     }
-    DelWrapper(w);
+    Delete(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -1828,7 +1816,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     } else {
       w = Swig_cconstructor_wrapper(fclassname, l, ccode);
     }
-    
+    Setattr(w,"scriptname",iname);
     if (!mode) {
       if (CPlusPlus) {
 	emit_set_action(Swig_cppconstructor_call(fclassname, l));
@@ -1837,11 +1825,11 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       }
     } else {
       if (ccode) {
-	Wrapper_print(w,f_wrappers);
+	Printf(f_wrappers,"%s", w);
       }
     }
-    new_create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
-    DelWrapper(w);
+    lang->function(w);
+    Delete(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -1922,20 +1910,20 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
     sprintf(fclassname,"%s%s", classtype, classname);
     w = Swig_cmemberget_wrapper(fclassname,mname,type,ccode);
-    
+    Setattr(w,"scriptname",iname);
     // Only generate code if already existing wrapper doesn't exist
     if (!prev_wrap) {
       if ((mode) && (ccode)) {
-	Wrapper_print(w,f_wrappers);
+	Printf(f_wrappers,"%s", w);
       } else if (!mode) {
 	emit_set_action(Swig_cmemberget_call(mname, type));
       }
-      new_create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+      lang->function(w);
     } else {
       // Already wrapped this function.  Just patch it up
       lang->create_command(prev_wrap,iname);
     }
-    DelWrapper(w);
+    Delete(w);
 }
 
 // -----------------------------------------------------------------------------
@@ -2024,11 +2012,12 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     sprintf(fclassname,"%s%s",classtype,classname);
     w = Swig_cmemberset_wrapper(fclassname,mname,type,ccode);
 
+    Setattr(w,"scriptname",iname);
     // Only generate code if already existing wrapper doesn't exist
 
     if (!prev_wrap) {
       if ((mode) && (ccode)) {
-	Wrapper_print(w,f_wrappers);
+	Printf(f_wrappers,"%s",w);
       } else if (!mode) {
 	/* Check for a member in typemap here */
 	String *target = NewStringf("%s->%s", Swig_cparm_name(0,0),mname);
@@ -2039,11 +2028,11 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	  emit_set_action(tm);
 	Delete(target);
       }
-      new_create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+      lang->function(w);
     } else {
       lang->create_command(prev_wrap,iname);
     } 
-    DelWrapper(w);
+    Delete(w);
 }
 
 // -----------------------------------------------------------------------------

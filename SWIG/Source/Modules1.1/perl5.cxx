@@ -521,7 +521,8 @@ PERL5::function(DOH *node)
   cleanup = NewString("");
   outarg  = NewString("");
 
-  Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
+  Printv(f, "XS(", Swig_name_wrapper(iname), ") {\n", 0);
+  Printf(f, "$locals\n");
 
   pcount = emit_args(node, f);
   numopt = check_numopt(l);
@@ -530,8 +531,8 @@ PERL5::function(DOH *node)
 
   /* Check the number of arguments */
 
-  Printf(f->code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, ParmList_numarg(l));
-  Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(iname,d,l));
+  Printf(f,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, ParmList_numarg(l));
+  Printf(f,"        croak(\"Usage: %s\");\n", usage_func(iname,d,l));
 
   /* Write code to extract parameters. */
   i = 0;
@@ -549,12 +550,12 @@ PERL5::function(DOH *node)
     if (!Getignore(p)) {
       /* Check for optional argument */
       if (j>= (pcount-numopt))
-	Printf(f->code,"    if (items > %d) {\n", j);
+	Printf(f,"    if (items > %d) {\n", j);
 
       if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
-	Printf(f->code,"%s\n",tm);
-	Replace(f->code,"$argnum",argnum,DOH_REPLACE_ANY);
-	Replace(f->code,"$arg",source,DOH_REPLACE_ANY);
+	Printf(f,"%s\n",tm);
+	Replace(f,"$argnum",argnum,DOH_REPLACE_ANY);
+	Replace(f,"$arg",source,DOH_REPLACE_ANY);
       } else {
 	switch(SwigType_type(pt)) {
 	case T_BOOL:
@@ -566,16 +567,16 @@ PERL5::function(DOH *node)
 	case T_USHORT:
 	case T_ULONG:
 	case T_UCHAR:
-	  Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),j);
+	  Printf(f,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),j);
 	  break;
 	case T_CHAR :
 
-	  Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
+	  Printf(f,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
 	  break;
 
 	case T_DOUBLE :
 	case T_FLOAT :
-	  Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), j);
+	  Printf(f,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), j);
 	  break;
 
 	case T_VOID :
@@ -584,18 +585,18 @@ PERL5::function(DOH *node)
 	case T_USER:
 	  SwigType_add_pointer(pt);
 	  sprintf(temp,"argument %d", i+1);
-	  get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
+	  get_pointer(iname, temp, source, target, pt, f, (char *)"XSRETURN(1)");
 	  SwigType_del_pointer(pt);
 	  break;
 
 	case T_STRING:
-	  Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", j, target);
-	  Printf(f->code,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,j);
+	  Printf(f,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", j, target);
+	  Printf(f,"    else { %s = (char *) SvPV(ST(%d),PL_na); }\n", target,j);
 	  break;
 
 	case T_POINTER: case T_ARRAY: case T_REFERENCE:
 	  sprintf(temp,"argument %d", i+1);
-	  get_pointer(iname,temp,source,target, pt, f->code, (char*)"XSRETURN(1)");
+	  get_pointer(iname,temp,source,target, pt, f, (char*)"XSRETURN(1)");
 	  break;
 
 	default :
@@ -606,7 +607,7 @@ PERL5::function(DOH *node)
       /* The source is going to be an array of saved values. */
       sprintf(temp,"_saved[%d]",num_saved);
       if (j>= (pcount-numopt))
-	Printf(f->code,"    } \n");
+	Printf(f,"    } \n");
       j++;
     } else {
       temp[0] = 0;
@@ -614,8 +615,8 @@ PERL5::function(DOH *node)
 
     /* Check if there is any constraint code */
     if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
-      Printf(f->code,"%s\n", tm);
-      Replace(f->code,"$argnum",argnum, DOH_REPLACE_ANY);
+      Printf(f,"%s\n", tm);
+      Replace(f,"$argnum",argnum, DOH_REPLACE_ANY);
     }
     need_save = 0;
 
@@ -636,7 +637,7 @@ PERL5::function(DOH *node)
     /* If we need a saved variable, we need to emit to emit some code for that
        This only applies if the argument actually existed (not ignore) */
     if ((need_save) && (!Getignore(p))) {
-      Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
+      Printv(f, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
     i++;
@@ -653,24 +654,24 @@ PERL5::function(DOH *node)
   emit_func_call(node,f);
 
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"ST(argvi)",0))) {
-    Printf(f->code, "%s\n", tm);
+    Printf(f, "%s\n", tm);
   } else {
     if (SwigType_type(d) != T_VOID) {
-      Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
+      Printf(f,"    ST(argvi) = sv_newmortal();\n");
       switch (SwigType_type(d)) {
       case T_INT: case T_BOOL: case T_UINT:
       case T_SHORT: case T_USHORT:
       case T_LONG : case T_ULONG:
       case T_SCHAR: case T_UCHAR :
-	Printf(f->code,"    sv_setiv(ST(argvi++),(IV) result);\n");
+	Printf(f,"    sv_setiv(ST(argvi++),(IV) result);\n");
 	break;
       case T_DOUBLE :
       case T_FLOAT :
-	Printf(f->code,"    sv_setnv(ST(argvi++), (double) result);\n");
+	Printf(f,"    sv_setnv(ST(argvi++), (double) result);\n");
 	break;
       case T_CHAR :
 	Wrapper_add_local(f,"_ctemp", "char ctemp[2]");
-	Printv(f->code,
+	Printv(f,
 	       tab4, "ctemp[0] = result;\n",
 	       tab4, "ctemp[1] = 0;\n",
 	       tab4, "sv_setpv((SV*)ST(argvi++),ctemp);\n",
@@ -680,18 +681,18 @@ PERL5::function(DOH *node)
       case T_USER:
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
-	Printv(f->code,
+	Printv(f,
 	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
 	SwigType_del_pointer(d);
 	break;
 
       case T_STRING:
-	Printf(f->code,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
+	Printf(f,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
 	break;
 
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
 	SwigType_remember(d);
-	Printv(f->code, tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
+	Printv(f, tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
 	break;
 
       default :
@@ -703,35 +704,35 @@ PERL5::function(DOH *node)
 
   /* If there were any output args, take care of them. */
 
-  Printv(f->code,outarg,0);
+  Printv(f,outarg,0);
 
   /* If there was any cleanup, do that. */
 
-  Printv(f->code,cleanup,0);
+  Printv(f,cleanup,0);
 
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
-      Printf(f->code,"%s\n",tm);
+      Printf(f,"%s\n",tm);
     }
   }
 
   if ((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char*)"result",(char*)"",0))) {
-    Printf(f->code,"%s\n", tm);
+    Printf(f,"%s\n", tm);
   }
 
-  Printf(f->code,"    XSRETURN(argvi);\n}\n");
+  Printf(f,"    XSRETURN(argvi);\n}\n");
 
   /* Add the dXSARGS last */
 
   Wrapper_add_local(f,"dXSARGS","dXSARGS");
 
   /* Substitute the cleanup code */
-  Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f->code,"$name",iname,DOH_REPLACE_ANY);
+  Replace(f,"$cleanup",cleanup,DOH_REPLACE_ANY);
+  Replace(f,"$name",iname,DOH_REPLACE_ANY);
 
   /* Dump the wrapper function */
 
-  Wrapper_print(f,f_wrappers);
+  Printf(f_wrappers,"%s", f);
 
   /* Now register the function */
 
@@ -844,7 +845,7 @@ PERL5::function(DOH *node)
   }
   Delete(cleanup);
   Delete(outarg);
-  DelWrapper(f);
+  Delete(f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -878,57 +879,58 @@ void PERL5::variable(DOH *node) {
   /* Create a Perl function for setting the variable value */
 
   if (!(Status & STAT_READONLY)) {
-    Printf(setf->def,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
-    Printv(setf->code,
+    Printf(setf,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
+    Printf(setf,"$locals\n");
+    Printv(setf,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
 	   0);
 
     /* Check for a few typemaps */
     if ((tm = Swig_typemap_lookup((char*)"varin",t,(char*)"",(char*)"sv",name,0))) {
-      Printf(setf->code,"%s\n", tm);
+      Printf(setf,"%s\n", tm);
     } else if ((tm = Swig_typemap_lookup((char*)"in",t,(char*)"",(char*)"sv",name,0))) {
-      Printf(setf->code,"%s\n", tm);
+      Printf(setf,"%s\n", tm);
     } else {
       switch(SwigType_type(t)) {
       case T_INT : case T_BOOL: case T_UINT:
       case T_SHORT : case T_USHORT:
       case T_LONG : case T_ULONG:
       case T_UCHAR: case T_SCHAR:
-	Printv(setf->code,tab4, name, " = (", SwigType_str(t,0), ") SvIV(sv);\n", 0);
+	Printv(setf,tab4, name, " = (", SwigType_str(t,0), ") SvIV(sv);\n", 0);
 	break;
       case T_DOUBLE :
       case T_FLOAT :
-	Printv(setf->code, tab4, name, " = (", SwigType_str(t,0), ") SvNV(sv);\n", 0);
+	Printv(setf, tab4, name, " = (", SwigType_str(t,0), ") SvNV(sv);\n", 0);
 	break;
       case T_CHAR :
-	Printv(setf->code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
+	Printv(setf, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
 	break;
 
       case T_USER:
 
 	SwigType_add_pointer(t);
 	Wrapper_add_local(setf,"_temp", "void *_temp");
-	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	Printv(setf->code, tab4, name, " = *((", SwigType_str(t,0), ") _temp);\n", 0);
+	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf, (char*)"return(1)");
+	Printv(setf, tab4, name, " = *((", SwigType_str(t,0), ") _temp);\n", 0);
 	SwigType_del_pointer(t);
 	break;
 
       case T_STRING:
 	Wrapper_add_local(setf,"_a","char *_a");
-	Printf(setf->code,"    _a = (char *) SvPV(sv,PL_na);\n");
+	Printf(setf,"    _a = (char *) SvPV(sv,PL_na);\n");
 
 	if (CPlusPlus)
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "if (", name, ") delete [] ", name, ";\n",
 		 tab4, name, " = new char[strlen(_a)+1];\n",
 		 0);
 	else
-	  Printv(setf->code,
+	  Printv(setf,
 		 tab4, "if (", name, ") free((char*)", name, ");\n",
 		 tab4, name, " = (char *) malloc(strlen(_a)+1);\n",
 		 0);
-	Printv(setf->code,"strcpy((char*)", name, ",_a);\n", 0);
+	Printv(setf,"strcpy((char*)", name, ",_a);\n", 0);
 	break;
 
       case T_ARRAY:
@@ -939,7 +941,7 @@ void PERL5::variable(DOH *node) {
 	    if (SwigType_type(ta) == T_CHAR) {
 	      String *dim = SwigType_array_getdim(aop,0);
 	      if (dim && Len(dim)) {
-		Printf(setf->code, "strncpy(%s,(char*) SvPV(sv,PL_na), %s);\n", name,dim);
+		Printf(setf, "strncpy(%s,(char*) SvPV(sv,PL_na), %s);\n", name,dim);
 		setable = 1;
 	      } else {
 		setable = 0;
@@ -954,8 +956,8 @@ void PERL5::variable(DOH *node) {
 
       case T_POINTER: case T_REFERENCE:
 	Wrapper_add_local(setf,"_temp","void *_temp");
-	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	Printv(setf->code,tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", 0);
+	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf, (char*)"return(1)");
+	Printv(setf,tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", 0);
 	break;
 
       default :
@@ -963,24 +965,25 @@ void PERL5::variable(DOH *node) {
 	return;
       }
     }
-    Printf(setf->code,"    return 1;\n}\n");
-    Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
-    Wrapper_print(setf,magic);
+    Printf(setf,"    return 1;\n}\n");
+    Replace(setf,"$name",iname, DOH_REPLACE_ANY);
+    Printf(magic,"%s", setf);
 
   }
 
   /* Now write a function to evaluate the variable */
 
-  Printf(getf->def,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
-  Printv(getf->code,
+  Printf(getf,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
+  Printf(getf,"$locals\n");
+  Printv(getf,
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "mg = mg;\n",
 	 0);
 
   if ((tm = Swig_typemap_lookup((char*)"varout",t,(char*)"",name, (char*)"sv",0))) {
-    Printf(getf->code,"%s\n", tm);
+    Printf(getf,"%s\n", tm);
   } else  if ((tm = Swig_typemap_lookup((char*)"out",t,(char*)"",name,(char*)"sv",0))) {
-    Printf(getf->code,"%s\n", tm);
+    Printf(getf,"%s\n", tm);
   } else {
     switch(SwigType_type(t)) {
 
@@ -988,17 +991,17 @@ void PERL5::variable(DOH *node) {
     case T_SHORT : case T_USHORT:
     case T_LONG : case T_ULONG:
     case T_UCHAR: case T_SCHAR:
-      Printv(getf->code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
+      Printv(getf,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
       Printv(vinit, tab4, "sv_setiv(sv,(IV)", name, ");\n",0);
       break;
     case T_DOUBLE :
     case T_FLOAT :
-      Printv(getf->code, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
+      Printv(getf, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
       Printv(vinit, tab4, "sv_setnv(sv,(double)", name, ");\n",0);
       break;
     case T_CHAR :
       Wrapper_add_local(getf,"_ptemp","char _ptemp[2]");
-      Printv(getf->code,
+      Printv(getf,
 	     tab4, "_ptemp[0] = ", name, ";\n",
 	     tab4, "_ptemp[1] = 0;\n",
 	     tab4, "sv_setpv((SV*) sv, _ptemp);\n",
@@ -1006,7 +1009,7 @@ void PERL5::variable(DOH *node) {
       break;
     case T_USER:
       SwigType_add_pointer(t);
-      Printv(getf->code,
+      Printv(getf,
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
 	     0);
@@ -1018,7 +1021,7 @@ void PERL5::variable(DOH *node) {
       break;
 
     case T_STRING:
-      Printv(getf->code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
+      Printv(getf, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
       break;
 
     case T_ARRAY:
@@ -1027,7 +1030,7 @@ void PERL5::variable(DOH *node) {
 	    SwigType *ta = Copy(t);
 	    aop = SwigType_pop(ta);
 	    if (SwigType_type(ta) == T_CHAR) {
-	      Printv(getf->code, "sv_setpv((SV*)sv, ", name, ");\n", 0);
+	      Printv(getf, "sv_setpv((SV*)sv, ", name, ");\n", 0);
 	      Delete(ta);
 	      Delete(aop);
 	      break;
@@ -1037,7 +1040,7 @@ void PERL5::variable(DOH *node) {
 	  }
 	  /* No break here is intentional */
     case T_POINTER: case T_REFERENCE:
-      Printv(getf->code,
+      Printv(getf,
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
 	     0);
@@ -1050,10 +1053,10 @@ void PERL5::variable(DOH *node) {
       break;
     }
   }
-  Printf(getf->code,"    return 1;\n}\n");
+  Printf(getf,"    return 1;\n}\n");
 
-  Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
-  Wrapper_print(getf,magic);
+  Replace(getf,"$name",iname, DOH_REPLACE_ANY);
+  Printf(magic,"%s", getf);
 
   /* Now add symbol to the PERL interpreter */
   if ((Status & STAT_READONLY) || (!setable)) {
@@ -1082,8 +1085,8 @@ void PERL5::variable(DOH *node) {
     if (export_all)
       Printf(exported,"$%s ", name);
   }
-  DelWrapper(setf);
-  DelWrapper(getf);
+  Delete(setf);
+  Delete(getf);
 }
 
 /* -----------------------------------------------------------------------------
