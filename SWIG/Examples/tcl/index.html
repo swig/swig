@@ -1,0 +1,62 @@
+<html>
+<head>
+<title>SWIG:Examples:tcl</title>
+</head>
+
+<body bgcolor="#ffffff">
+<H1>SWIG Tcl Examples</H1>
+
+<tt>$Header$</tt><br>
+
+<p>
+The following examples illustrate the use of SWIG with Tcl.
+
+<ul>
+<li><a href="simple/index.html">simple</a>.  A minimal example showing how SWIG can
+be used to wrap a C function and a global variable.
+<li><a href="constants/index.html">constants</a>.  This shows how preprocessor macros and
+certain C declarations are turned into constants.
+</ul>
+
+<h2>Compilation Issues</h2>
+
+<ul>
+<li>To create a Tcl extension, SWIG is run with the following options:
+
+<blockquote>
+<pre>
+% swig -tcl interface.i
+</pre>
+</blockquote>
+
+<li>The compilation of examples is done using the file <tt>Example/Makefile</tt>.  This
+makefile performs a manual module compilation which is platform specific.  Typically,
+the steps look like this (Linux):
+
+<blockquote>
+<pre>
+unix % swig -tcl interface.i
+unix % gcc -fpic -c interface_wrap.c -I/usr/local/include
+unix % gcc -shared interface_wrap.o $(OBJS) -o interface.so
+unix % tclsh8.3
+% load ./interface.so
+% blah ...
+</pre>
+</blockquote>
+</ul>
+
+<h2>Compatibility</h2>
+
+The examples have been extensively tested on the following platforms:
+
+<ul>
+<li>Linux
+<li>Solaris
+</ul>
+
+Your mileage may vary.  If you experience a problem, please let us know by 
+sending a message to <a href="mailto:swig-dev@cs.uchicago.edu">swig-dev@cs.uchicago.edu</a>.
+</body>
+</html>
+
+

@@ -1,24 +1,24 @@
-#!/home/sci/local/bin/python
-#
-# Python test script.   This also illustrates the use of get/set
-# for C variables.
+# file: example.py
 
-from example import *
-print get_time()
-print "My Variable = ", cvar.My_variable
-for i in range(0,14):
-    n = fact(i)
-    print i, "factorial is ", n
+import example 
 
-for i in range(1,250):
-    for j in range(1,250):
-        n = mod(i,j)
-        cvar.My_variable = cvar.My_variable + n
+# Call our gcd() function
 
-print "My_variable = ", cvar.My_variable
+x = 42
+y = 105
+g = example.gcd(x,y)
+print "The gcd of %d and %d is %d" % (x,y,g)
 
+# Manipulate the Foo global variable
 
+# Output its current value
+print "Foo = ", example.cvar.Foo
 
+# Change its value
+example.cvar.Foo = 3.1415926
+
+# See if the change took effect
+print "Foo = ", example.cvar.Foo
 
 
 
