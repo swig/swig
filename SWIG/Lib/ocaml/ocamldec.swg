@@ -34,7 +34,7 @@ extern "C" {
 #define __OCAML__SWIG__MAXVALUES 6
 
     SWIGSTATIC value
-    SWIG_MakePtr(void *c_pointer, swig_type_info *type, void *delete_fn);
+    SWIG_MakePtr(void *c_pointer, swig_type_info *type, char *delete_fn);
     
     SWIGSTATIC int
     SWIG_GetPtr(value v, void **result, swig_type_info *type);

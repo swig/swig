@@ -8,16 +8,22 @@ extern "C" {
 
 struct custom_block_contents {
     swig_type_info *type;
-    value (*delete_fn)(value);
     void *object;
+    char *delete_fn;
 };
 
 static void generic_delete_fn( value v ) {
     CAMLparam1(v);
+    CAMLlocal1(x);
     struct custom_block_contents *new_proxy;
 
     new_proxy = (struct custom_block_contents *)(Data_custom_val(v));
-    if( new_proxy->delete_fn ) new_proxy->delete_fn( v );
+    value *deleter = NULL;
+    if( new_proxy->delete_fn ) 
+	deleter = caml_named_value(new_proxy->delete_fn);
+    if( *deleter ) 
+	x = callback( *deleter, v );
+    free( new_proxy->delete_fn );
     CAMLreturn0;
 }
 
@@ -37,7 +43,7 @@ static value _wrap_delete_void( value v ) {
 
 SWIGSTATIC value
 SWIG_MakePtr(void *c_pointer, swig_type_info *type, 
-	     void *delete_fn) {
+	     char *delete_fn) {
     CAMLparam0();
     CAMLlocal1(v);
     struct custom_block_contents *new_proxy;
@@ -45,7 +51,7 @@ SWIG_MakePtr(void *c_pointer, swig_type_info *type,
     v = alloc_custom(&makeptr_custom_ops,
 		     sizeof( struct custom_block_contents ),0,1);
     new_proxy = (struct custom_block_contents *)(Data_custom_val(v));
-    new_proxy->delete_fn = (value (*)(value)) delete_fn;
+    new_proxy->delete_fn = strdup( delete_fn );
     new_proxy->type = type;
     new_proxy->object = (void *) c_pointer;
     CAMLreturn(v);

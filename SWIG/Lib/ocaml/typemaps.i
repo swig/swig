@@ -34,7 +34,7 @@
 %typemap(ocaml,out) SWIGTYPE * {
     extern value $delete_fn( value );
     $result = SWIG_MakePtr ((void *)$1, 
-			    $descriptor, (void *)$delete_fn);
+			    $descriptor, "$delete_fn");
 }
 
 %typemap(ocaml,varin) SWIGTYPE * {
@@ -62,10 +62,9 @@
 }
 
 %typemap(ocaml,out) SWIGTYPE {
-    extern value $delete_fn( value );
     $&1_type temp = new $type( $1 );
     $result = SWIG_MakePtr ((void *)temp, $descriptor, 
-			    (void *)$delete_fn );
+			    "$delete_fn" );
 }
 
 #else
@@ -75,10 +74,9 @@
 }
 
 %typemap(ocaml,out) SWIGTYPE {
-    extern value $delete_fn( value );
     void *temp = calloc(1,sizeof($ltype));
     memcpy(temp,(char *)&$1,sizeof($ltype));
-    $result = SWIG_MakePtr ((void *)temp, $descriptor, (void *)$delete_fn);
+    $result = SWIG_MakePtr ((void *)temp, $descriptor, "$delete_fn");
 }
 
 #endif

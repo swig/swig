@@ -382,6 +382,19 @@ class OCAML : public Language {
 	        "caml_named_value(nm);\n"
 	        "  return callback(*int_to_en_cb,Val_int(v));\n"
 	        "}\n" );
+	Printf( f_wrappers,
+		"#ifdef __cplusplus\n"
+		"extern \"C\"\n"
+		"#endif\n"
+		"value _%s_set_delete_fn( value v, value f ) {\n"
+		"  CAMLparam1(v,f);\n"
+		"  struct custom_block_contents *new_proxy = \n"
+		"    (struct custom_block_contents *)(Data_custom_val(v));\n"
+		"  if( new_proxy->delete_fn )\n"
+		"    free(new_proxy->delete_fn);\n"
+		"  new_proxy->delete_fn = strdup(String_val(f));\n"
+		"  CAMLreturn(Val_unit);\n"
+		"}\n" );
 	
 	Printf( f_init_fn,
 		"#ifdef __cplusplus\n"
@@ -423,11 +436,19 @@ class OCAML : public Language {
 	Wrapper_pretty_print(f_init,f_runtime);
 	
 	// Init function support in module
-	if( !mliout )
+	if( !mliout ) {
 	    Printf(f_module_file,
 		   "external _wrapper_init_fn : unit -> unit = "
 		   "\"_wrapper_init_fn\"\n"
+		   "let _ = Callback.register \"_wrap_delete_void\" "
+		   "  (fun x -> ())\n"
 		   "let _ = _wrapper_init_fn ()\n");
+	}
+
+	Printf(f_module_file,
+	       "external set_delete_fn : 'a -> string -> unit = "
+	       "\"_%s_set_delete_fn\"\n",
+	       module);
 	
 	Delete(f_header);
 	Delete(f_wrappers);
@@ -1440,6 +1461,10 @@ class OCAML : public Language {
 
 	Printf(f->code, "\tCAMLreturn(swig_result);\n");
 	Printv(f->code, "}\n",0);
+
+	if( in_destructor && !mliout )
+	    Printf( f_module,"let _ = Callback.register \"%s\" %s\n",
+		    wrap_name, ml_function_name );
 
 	// If curried, create bytecode version
 
