@@ -392,11 +392,17 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	break;
 	
       case T_USER:
-	SwigType_add_pointer(pt);
-	SwigType_remember(pt);
-	Putc('p',argstr);
-	Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
-	SwigType_del_pointer(pt);
+	{
+	  SwigType_add_pointer(pt);
+	  SwigType_remember(pt);
+	  char argp[20];
+	  sprintf(argp,"argp%d", i);
+	  Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp),0);
+	  Putc('p',argstr);
+	  Printv(args, ",&", argp, ", SWIGTYPE", SwigType_manglestr(pt), 0);
+	  SwigType_del_pointer(pt);
+	  Printf(incode,"%s = *%s;\n", target, argp);
+	}
 	break;
 	
       case T_STRING:
@@ -508,11 +514,18 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	/* Okay. We're returning malloced memory at this point.
 	   Probably dangerous, but safe programming is for wimps. */
+
+	if (CPlusPlus) {
+	  Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(d,0));
+	} else {
+	  Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(d,0), SwigType_str(d,0));
+	  Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(d,0));
+	}
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
-	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
+	Wrapper_add_local(f,"resultobj", SwigType_lstr(d,"resultobj"));
+	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) resultobj,SWIGTYPE",
 	       SwigType_manglestr(d), "));\n", 0);
-
 	SwigType_del_pointer(d);
 	break;
 
@@ -619,13 +632,13 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
     Printv(get->def, "static char *", getname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
     SwigType *lt = Swig_clocal_type(t);
-    if ((tc != T_USER) && (!isarray))
+    if (!isarray)
       SwigType_add_pointer(lt);
     Wrapper_add_localv(get,"addr",SwigType_lstr(lt,"addr"),0);
     Wrapper_add_localv(set,"addr",SwigType_lstr(lt,"addr"),0);
     Printv(set->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
     Printv(get->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
-    if ((tc != T_USER) && (!isarray))
+    if (!isarray)
       SwigType_del_pointer(lt);
     Delete(lt);
     Wrapper_add_local(set, "value", "char *value");

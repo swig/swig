@@ -53,7 +53,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
 
   decl = NewString("");
   switch(SwigType_type(t)) {
-  case T_USER:
+    /*  case T_USER:
     SwigType_add_pointer(t);
     if (value) 
       Printf(decl,"%s = (%s) &%s", SwigType_lstr(t,name), SwigType_lstr(t,0), value);
@@ -61,6 +61,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
       Printf(decl,"%s", SwigType_lstr(t,name));
     SwigType_del_pointer(t);
     break;
+    */
   case T_REFERENCE:
     if (value) 
       Printf(decl,"%s = (%s) &%s", SwigType_lstr(t,name), SwigType_lstr(t,0), value);
@@ -89,11 +90,12 @@ SwigType *
 Swig_clocal_type(SwigType *t) {
   SwigType *ty;
   switch(SwigType_type(t)) {
-  case T_USER:
+    /*  case T_USER:
     SwigType_add_pointer(t);
     ty = SwigType_ltype(t);
     SwigType_del_pointer(t);
     break;
+    */
   default:
     ty = SwigType_ltype(t);
     break;
@@ -108,7 +110,7 @@ Swig_clocal_type(SwigType *t) {
  * This function only converts user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-SwigType *
+String *
 Swig_wrapped_var_type(SwigType *t) {
   SwigType *ty;
   ty = Copy(t);
@@ -122,6 +124,24 @@ Swig_wrapped_var_type(SwigType *t) {
   return ty;
 }
 
+String *
+Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
+  if (SwigType_type(t) == T_USER) {
+    return NewStringf("*%s",name);
+  } else {
+    return SwigType_rcaststr(t,name);
+  }
+}
+
+String *
+Swig_wrapped_var_assign(SwigType *t, String_or_char *name) {
+  if (SwigType_type(t) == T_USER) {
+    return NewStringf("&%s",name);
+  } else {
+    return SwigType_lcaststr(t,name);
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_clocal_deref()
  *
@@ -132,9 +152,10 @@ Swig_wrapped_var_type(SwigType *t) {
 String *
 Swig_clocal_deref(SwigType *t, String_or_char *name) {
   switch(SwigType_type(t)) {
-    case T_USER:
+    /*    case T_USER:
     return NewStringf("*%s", name);
     break;
+    */
   case T_VOID:
     return NewString("");
     break;
@@ -156,9 +177,9 @@ Swig_clocal_assign(SwigType *t, String_or_char *name) {
   case T_VOID:
     return NewString("");
     break;
-  case T_USER:
+    /*  case T_USER:
     return NewStringf("&%s", name);
-    break;
+    break; */
   default:
     return SwigType_lcaststr(t,name);
     break;
@@ -214,6 +235,7 @@ void Swig_cresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char 
   switch(SwigType_type(t)) {
   case T_VOID:
     break;
+    /*
   case T_USER:
     SwigType_add_pointer(t);
     Printf(fcall,"%s = (%s) malloc(sizeof(", name, SwigType_lstr(t,0));
@@ -221,6 +243,7 @@ void Swig_cresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_char 
     Printf(fcall, "%s));\n", SwigType_str(t,0));
     Printf(fcall, "*(%s) = ", name);
     break;
+    */
   case T_REFERENCE:
     Printf(fcall,"%s = ", SwigType_str(t,"_result_ref"));
     break;
@@ -268,7 +291,8 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
   switch(SwigType_type(t)) {
   case T_VOID:
     break;
-  case T_USER:
+
+    /*  case T_USER:
     {
       SwigType *temp = Copy(t);
       while (SwigType_isconst(temp)) {
@@ -278,6 +302,7 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
       Delete(temp);
     }
     break;
+    */
   case T_REFERENCE:
     Printf(fcall, "%s = ", SwigType_str(t,"_result_ref"));
     break;
@@ -290,9 +315,11 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
   Printv(fcall, decl, 0);
   
   switch(SwigType_type(t)) {
-  case T_USER:
+
+    /*  case T_USER:
     Printf(fcall,");\n");
     break;
+    */
   case T_REFERENCE:
     Printf(fcall,";\n");
     Printf(fcall, "%s = (%s) &_result_ref;\n", name, SwigType_lstr(t,0));
@@ -500,7 +527,12 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type) {
   /*  Printf(func,"(%s->%s = ", Swig_cparm_name(0,0), name);
   Printf(func,"%s)", Swig_clocal_deref(type, (pname = Swig_cparm_name(0,1))));
   */
-  Printf(func,"%s->%s = %s",Swig_cparm_name(0,0),name, Swig_clocal_deref(type, Swig_cparm_name(0,1)));
+  if (SwigType_type(type) != T_ARRAY) {
+    Printf(func,"if (%s) %s->%s = %s",Swig_cparm_name(0,0), Swig_cparm_name(0,0),name, Swig_wrapped_var_deref(type, Swig_cparm_name(0,1)));
+  } else {
+    /*    Printf(func,"if (%s) memmove(%s->%s, %s, sizeof(%s))", Swig_cparm_name(0,0), Swig_cparm_name(0,0), name, Swig_wrapped_var_deref(type, Swig_cparm_name(0,1)),
+	  SwigType_str(type,0)); */
+  }
   return(func);
 }
 
@@ -519,7 +551,7 @@ Swig_cmemberget_call(String_or_char *name, SwigType *t) {
   DOH *func;
 
   func = NewString("");
-  Printf(func,"%s (%s->%s)", Swig_clocal_assign(t,""),Swig_cparm_name(0,0), name);
+  Printf(func,"%s (%s->%s)", Swig_wrapped_var_assign(t,""),Swig_cparm_name(0,0), name);
   return func;
 }
 
@@ -854,6 +886,7 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   SwigType *t;
   SwigType *lt;
   SwigType *ty;
+  int       isarray = 0;
 
   w = NewWrapper();
 
@@ -876,8 +909,14 @@ Swig_cmemberset_wrapper(String_or_char *classname,
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"self->%s = %s;\n", membername, Swig_clocal_deref(lt,"value"));
-    Printf(w->code,"return %s self->%s;\n", Swig_clocal_assign(lt,""), membername);
+    if (SwigType_type(type) != T_ARRAY) {
+      Printf(w->code,"if (self)\n");
+      Printf(w->code,"self->%s = %s;\n", membername, Swig_wrapped_var_deref(lt,"value"));
+    } else {
+      /*      Printf(w->code,"if (self)\n");
+	      Printf(w->code,"memmove(self->%s, %s, sizeof(%s));\n", membername, Swig_wrapped_var_deref(lt,"value"), SwigType_str(type,0));*/
+    }
+    Printf(w->code,"return;\n");
   } else {
     Printv(w->code, code, "\n", 0);
   }
@@ -922,14 +961,14 @@ Swig_cmemberget_wrapper(String_or_char *classname,
   l = p;
   Delete(t);
 
-  lt = Swig_clocal_type(type);
+  lt = Swig_wrapped_var_type(type);
   tmp = NewStringf("%s(%s)", Wrapper_Getname(w), ParmList_str(l));
   Printf(w->def,"%s {", SwigType_str(lt,tmp));
   Delete(tmp);
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"return %s self->%s;", Swig_clocal_assign(lt,""), membername);
+    Printf(w->code,"return %s self->%s;", Swig_wrapped_var_assign(lt,""), membername);
   } else {
     Printv(w->code, code, "\n", 0);
   }
@@ -975,7 +1014,7 @@ Swig_cvarset_wrapper(String_or_char *varname,
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"%s = %s;\n", varname, Swig_clocal_deref(type,"value"));
+    Printf(w->code,"%s = %s;\n", varname, Swig_wrapped_var_deref(type,"value"));
   } else {
     Printv(w->code, code, "\n", 0);
     Replace(w->code,"$target",varname, DOH_REPLACE_ANY);
@@ -1014,7 +1053,7 @@ Swig_cvarget_wrapper(String_or_char *varname,
   /* Set the name of the function */
   Wrapper_Setname(w, Swig_name_get(varname));
 
-  lt = Swig_clocal_type(type);
+  lt = Swig_wrapped_var_type(type);
 
   tmp = NewStringf("%s(%s)", Wrapper_Getname(w), ParmList_str(l));
   Printf(w->def,"%s {", SwigType_str(lt,tmp));
@@ -1022,7 +1061,7 @@ Swig_cvarget_wrapper(String_or_char *varname,
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    Printf(w->code,"return %s;", Swig_clocal_assign(type,varname));
+    Printf(w->code,"return %s;", Swig_wrapped_var_assign(type,varname));
   } else {
     Printv(w->code, code, "\n", 0);
   }

@@ -786,7 +786,15 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
         case T_VOID:
           break;
         case T_USER:
-          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt,0), "*)*(void**)&", source, ";\n", 0);
+	  {
+	    char argp[20];
+	    sprintf(argp,"argp%d",i);
+	    SwigType_add_pointer(pt);
+	    Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp), 0);
+	    SwigType_del_pointer(pt);
+	    Printv(f->code, tab4, argp, " = (", SwigType_lstr(pt,0), "*)*(void**)&", source, ";\n", 0);
+	    Printf(f->code, "%s = *%s;\n", target, argp);
+	  }
           break;
         case T_POINTER:
         case T_REFERENCE:
@@ -950,7 +958,18 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
         case T_VOID:
           break;
         case T_USER:
-          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), "**)&jresult = result;\n", 0);
+	  
+	  if (CPlusPlus) {
+	    Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(t,0));
+	  } else {
+	    Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(t,0), SwigType_str(t,0));
+	    Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(t,0));
+	  }
+	  SwigType_add_pointer(t);
+	  SwigType_remember(t);
+	  Wrapper_add_local(f,"resultobj", SwigType_lstr(t,"resultobj"));
+	  SwigType_del_pointer(t);
+          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), "**)&jresult = resultobj;\n", 0);
           break;
         case T_POINTER:
         case T_REFERENCE:

@@ -99,7 +99,7 @@ Swig_typemap_pop_scope() {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals) {
+Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals, ParmList *kwargs) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -144,6 +144,7 @@ Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *
     Setattr(tm2,"pname", NewString(pname));
   }
   Setattr(tm2,"locals", CopyParmList(locals));
+  Setattr(tm2,"kwargs", CopyParmList(kwargs));
 }
 
 
@@ -154,7 +155,7 @@ Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals) {
+Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -226,7 +227,7 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
     /* Make an entirely new operator key */
     String *newop = NewStringf("%s-%s+%s:",op,type,pname);
     /* Now reregister on the remaining arguments */
-    Swig_typemap_register_multi(newop,np,code,locals);
+    Swig_typemap_register_multi(newop,np,code,locals,kwargs);
     
     /*    Setattr(tm2,newop,newop); */
     Delete(newop);
@@ -238,6 +239,7 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
       Setattr(tm2,"pname", NewString(pname));
     }
     Setattr(tm2,"locals", CopyParmList(locals));
+    Setattr(tm2,"kwargs", CopyParmList(kwargs));
   }
 }
 
@@ -288,7 +290,7 @@ Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sna
     if (tm) {
       tm1 = Getattr(tm,tmop);
       if (tm1) {
-	Swig_typemap_register(op,ttype,tname, Getattr(tm1,"code"), Getattr(tm1,"locals"));
+	Swig_typemap_register(op,ttype,tname, Getattr(tm1,"code"), Getattr(tm1,"locals"), Getattr(tm1,"kwargs"));
 	return 0;
       }
     }
@@ -332,7 +334,7 @@ Swig_typemap_copy_multi(const String_or_char *op, ParmList *srcparms, ParmList *
     Delete(tmops);
     if (!p && tm) {
       /* Got some kind of match */
-      Swig_typemap_register_multi(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"));
+      Swig_typemap_register_multi(op,parms, Getattr(tm,"code"), Getattr(tm,"locals"),Getattr(tm,"kwargs"));
       return 0;
     }
     ts--;
@@ -357,6 +359,7 @@ Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *nam
     if (tm) {
       Delattr(tm,"code");
       Delattr(tm,"locals");
+      Delattr(tm,"kwargs");
     }
   }
 }
@@ -393,6 +396,7 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
     if (tm) {
       Delattr(tm,"code");
       Delattr(tm,"locals");
+      Delattr(tm,"kwargs");
     }
   }
   Delete(newop);
@@ -553,13 +557,15 @@ Swig_typemap_apply_multi(ParmList *src, ParmList *dest) {
 	  if (!Getattr(tm,nkey)) {
 	    String *code;
 	    ParmList *locals;
+	    ParmList *kwargs;
 	    Hash *sm1 = Getattr(sm,key);
 	    code = Getattr(sm1,"code");
 	    locals = Getattr(sm1,"locals");
+	    kwargs = Getattr(sm1,"kwargs");
 	    if (code) {
 	      Replace(nkey,dsig,"", DOH_REPLACE_ANY);
 	      Replace(nkey,"tmap:","", DOH_REPLACE_ANY);
-	      Swig_typemap_register_multi(nkey,dest,code,locals);
+	      Swig_typemap_register_multi(nkey,dest,code,locals,kwargs);
 	    }
 	  }
 	  Delete(nkey);
@@ -1175,6 +1181,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   ParmList *locals;
   int   argnum = 0;
   char  temp[256];
+  Parm  *kw;
 
   p = parms;
   while (p) {
@@ -1192,7 +1199,6 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     }
 
     s = Copy(s);
-
     locals = Getattr(tm,"locals");
     if (locals) locals = CopyParmList(locals);
     firstp = p;
@@ -1224,6 +1230,13 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     sprintf(temp,"%s:next",Char(op));
     Setattr(firstp,tmop_name(temp),p);
     Delete(locals);
+
+    /* Attach kwargs */
+    kw = Getattr(tm,"kwargs");
+    while (kw) {
+      Setattr(firstp,tmop_name(Getattr(kw,"name")), Getattr(kw,"value"));
+      kw = nextSibling(kw);
+    }
   }
 }
 

@@ -310,7 +310,7 @@ void Language::clearDirective(Node *n) {
     SwigType *type = Getattr(p,"type");
     String   *name = Getattr(p,"name");
     if (type) {
-      Swig_typemap_clear_apply(Getattr(p,"type"),Getattr(p,"name"));
+      Swig_typemap_clear_apply(type,name);
     } else {
       ParmList *multi = Getattr(p,"multitype");
       if (multi) {
@@ -468,6 +468,7 @@ void Language::typemapDirective(Node *n) {
   /* %typemap directive */
   String *method = Getattr(n,"method");
   String *code   = Getattr(n,"code");
+  Parm   *kwargs = Getattr(n,"kwargs");
   Node   *items  = firstChild(n);
   while (items) {
     SwigType *type      = Getattr(items,"type");
@@ -476,14 +477,14 @@ void Language::typemapDirective(Node *n) {
     Parm     *multitype = Getattr(items,"multitype");
     if (type) {
       if (code) {
-	Swig_typemap_register(method,type,name,code,parms);
+	Swig_typemap_register(method,type,name,code,parms,kwargs);
       } else {
 	Swig_typemap_clear(method,type,name);
       }
     } else {
       /* Multitype  */
       if (code) {
-	Swig_typemap_register_multi(method,multitype,code,parms);
+	Swig_typemap_register_multi(method,multitype,code,parms,kwargs);
       } else {
 	/* Delete a multitype */
 	Swig_typemap_clear_multi(method,multitype);
@@ -522,7 +523,6 @@ void Language::typemapcopyDirective(Node *n) {
     /* Multitype */
     while (items) {
       ParmList *newmtype  = Getattr(items,"multitype");
-      String   *newname  = Getattr(items,"name");
       if (newmtype) {
 	if (Swig_typemap_copy_multi(method,mtype,newmtype) < 0) {
 	  Printf(stderr,"%s:%d. Can't copy typemap.\n", input_file, line_number);
@@ -1329,7 +1329,7 @@ void Language::cpp_variable(char *name, char *iname, SwigType *t) {
       String *tm = Swig_typemap_lookup((char *) "memberin",t,name,target,Swig_cparm_name(0,1),target,0);
       if (!tm) {
 	if (SwigType_isarray(t)) {
-	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);
+	  /*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
 	  make_wrapper = 0;
 	}
 	emit_set_action(Swig_cmemberset_call(name,t));

@@ -309,26 +309,6 @@ PYTHON::add_method(char *name, char *function, int kw) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::get_pointer()
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::get_pointer(char *src, char *dest, SwigType *t, String *f, char *ret) {
-  SwigType *lt;
-  SwigType_remember(t);
-  Printv(f,tab4, "if ((SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
-
-  lt = Swig_clocal_type(t);
-  if (Cmp(lt,"p.void") == 0) {
-    Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
-  }
-  /*  if (SwigType_type(t) == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);*/
-  else {
-    Printv(f,"SWIGTYPE", SwigType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
-  }
-  Delete(lt);
-}
-
-/* -----------------------------------------------------------------------------
  * PYTHON::create_command()
  * ----------------------------------------------------------------------------- */
 void
@@ -344,7 +324,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm    *p;
   int     i;
   char    wname[256];
-  char    source[64], target[64];
+  char    source[64];
   char    *usage = 0;
   Wrapper *f;
   String *parse_args;
@@ -417,7 +397,6 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
-    String   *pv = Getattr(p,"value");
     String   *ln = Getattr(p,"lname");
 
     sprintf(source,"obj%d",i);
@@ -435,121 +414,29 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     /* Look for an input typemap */
     if ((tm = Getattr(p,"tmap:in"))) {
       /*      Printf(stdout,":::\n%s\n:::\n",tm); */
-      Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
-      Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
-      Replace(tm,"$input", source, DOH_REPLACE_ANY);
-      Setattr(p,"emit:input", source);   /* Save the location of the object */
-      Putc('O',parse_args);
-      Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
-      Printf(arglist,"&%s",source);
-      if (i >= num_required)
-	Printv(get_pointers, "if (", source, ")\n", 0);
-      Printv(get_pointers,tm,"\n", 0);
+      String *parse = Getattr(p,"tmap:parse");
+      if (!parse) {
+	Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
+	Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
+	Replace(tm,"$input", source, DOH_REPLACE_ANY);
+	Setattr(p,"emit:input", source);   /* Save the location of the object */
+	Putc('O',parse_args);
+	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
+	Printf(arglist,"&%s",source);
+	if (i >= num_required)
+	  Printv(get_pointers, "if (", source, ")\n", 0);
+	Printv(get_pointers,tm,"\n", 0);
+      } else {
+	Printf(parse_args,"%s",parse);
+	Printf(arglist,"&%s", ln);
+	if (Len(tm))
+	  Printv(get_pointers,tm, "\n", 0);
+      }
       p = Getattr(p,"tmap:in:next");
       continue;
     } else {
-      int noarg = 0;
-      switch(SwigType_type(pt)) {
-      case T_INT : case T_UINT:
-	Putc('i',parse_args);
-	break;
-      case T_SHORT: case T_USHORT:
-	Putc('h',parse_args);
-	break;
-      case T_LONG : case T_ULONG:
-	Putc('l',parse_args);
-	break;
-      case T_SCHAR : case T_UCHAR :
-	Putc('b',parse_args);
-	break;
-      case T_CHAR:
-	Putc('c',parse_args);
-	break;
-      case T_FLOAT :
-	Putc('f',parse_args);
-	break;
-      case T_DOUBLE:
-	Putc('d',parse_args);
-	break;
-	
-      case T_BOOL:
-	{
-	  char tempb[128];
-	  char tempval[128];
-	  if (pv) {
-	    sprintf(tempval, "(int) %s", Char(pv));
-	  }
-	  sprintf(tempb,"tempbool%d",i);
-	  Putc('i',parse_args);
-	  if (!pv)
-	    Wrapper_add_localv(f,tempb,"int",tempb,0);
-	  else
-	    Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	  Printv(get_pointers, tab4, target, " = (", SwigType_lstr(pt,0), ") ", tempb, ";\n", 0);
-	  Printf(arglist,"&%s",tempb);
-	  noarg = 1;
-	}
-	break;
-	
-      case T_VOID :
-	noarg = 1;
-	break;
-	
-      case T_USER:
-	
-	Putc('O',parse_args);
-	sprintf(source,"argo%d", i);
-	sprintf(target,Char(ln));
-	
-	Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	Printf(arglist,"&%s",source);
-	SwigType_add_pointer(pt);
-	get_pointer(source, target, pt, get_pointers, (char*)"NULL");
-	SwigType_del_pointer(pt);
-	noarg = 1;
-	break;
-	
-      case T_STRING:
-	Putc('s',parse_args);
-	Printf(arglist,"&%s", ln);
-	noarg = 1;
-	break;
-	
-      case T_POINTER: case T_ARRAY: case T_REFERENCE:
-	
-	/* Have some sort of pointer variable.  Create a temporary local
-	   variable for the string and read the pointer value into it. */
-	
-	Putc('O',parse_args);
-	sprintf(source,"argo%d", i);
-	sprintf(target,"%s",Char(ln));
-	
-	Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
-	Printf(arglist,"&%s",source);
-	get_pointer(source, target, pt, get_pointers, (char*)"NULL");
-	noarg = 1;
-	break;
-	
-      case T_MPOINTER:
-	/* Pointer to a member.  Ugh! */
-	Putc('O',parse_args);
-	sprintf(source,"arg0%d", i);
-	sprintf(target,"%s",Char(ln));
-	Wrapper_add_localv(f,source,"PyObject *", source, "=0",0);
-	Printf(arglist,"&%s",source);
-	Printv(get_pointers, "if ((SWIG_ConvertPacked(", source, ", (void *) &", target, ", sizeof(", SwigType_str(pt,0),"),",
-	       "SWIGTYPE", SwigType_manglestr(pt), ",1)) == -1) return NULL;\n", 0);
-	SwigType_remember(pt);
-	noarg = 1;
-	break;
-	
-      default :
-	Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
-	break;
-      }
-      
-      if (!noarg)
-	Printf(arglist,"&%s",Getattr(p,"lname"));
+      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+      break;
     }
     p = nextSibling(p);
   }
@@ -607,54 +494,15 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   /* Emit the function call */
   emit_func_call(name,d,l,f);
 
-
   /* This part below still needs cleanup */
 
   /* Return the function value */
   if ((tm = Swig_typemap_lookup((char*)"out",d,iname,(char *)"result",(char*)"result",(char*)"resultobj",0))) {
+    Replace(tm,"$result", "resultobj", DOH_REPLACE_ANY);
     Printf(f->code,"%s\n", tm);
     Delete(tm);
   } else {
-    switch(SwigType_type(d)) {
-    case T_INT: case T_UINT: case T_BOOL:
-    case T_SHORT: case T_USHORT:
-    case T_LONG : case T_ULONG:
-    case T_SCHAR: case T_UCHAR :
-      Printf(f->code,"    resultobj = PyInt_FromLong((long)result);\n");
-      break;
-    case T_DOUBLE :
-    case T_FLOAT :
-      Printf(f->code,"    resultobj = PyFloat_FromDouble(result);\n");
-      break;
-    case T_CHAR :
-      Printf(f->code,"    resultobj = Py_BuildValue(\"c\",result);\n");
-      break;
-    case T_USER :
-      SwigType_add_pointer(d);
-      SwigType_remember(d);
-      Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", SwigType_manglestr(d), ");\n",0);
-      SwigType_del_pointer(d);
-      break;
-    case T_STRING:
-      Printf(f->code,"    resultobj = PyString_FromString(result);\n");
-      break;
-    case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      SwigType_remember(d);
-      Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
-      break;
-    case T_MPOINTER:
-      SwigType_remember(d);
-      Printv(f->code, tab4, "resultobj = SWIG_NewPackedObj((void *) &result, sizeof(", SwigType_str(d,0), "), SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
-      break;
-
-    case T_VOID:
-      Printf(f->code,"    Py_INCREF(Py_None);\n");
-      Printf(f->code,"    resultobj = Py_None;\n");
-      break;
-    default :
-      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
-      break;
-    }
+    Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(d,0), name);
   }
 
   /* Output argument output code */
@@ -717,7 +565,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	/*  If the output of this object has been remapped in any way, we're
 	    going to return it as a bare object */
 
-	if (!Swig_typemap_search((char*)"out",d,iname)) {
+	/*	if (!Swig_typemap_search((char*)"out",d,iname)) { */
 
 	  /* If there are output arguments, we are going to return the value
              unchanged.  Otherwise, emit some shadow class conversion code. */
@@ -729,7 +577,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	    else
 	      Printf(func,"\n");
 	  }
-	}
+	  /*	}*/
       }
       Printv(func, tab4, "return val\n\n", 0);
     }
@@ -772,132 +620,15 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 
     /* Create a function for setting the value of the variable */
 
-    Printf(setf->def,"static int %s_set(PyObject *val) {", wname);
+    Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
     if (!ReadOnly) {
-      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"val",name,0))) {
+      if ((tm = Swig_typemap_lookup((char*)"varin",t,name,name,(char*)"_val",name,0))) {
 	Printf(setf->code,"%s\n",tm);
 	Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
+	Replace(setf->code,"$input","_val", DOH_REPLACE_ANY);
 	Delete(tm);
       } else {
-	switch(SwigType_type(t)) {
-
-	case T_INT: case T_SHORT: case T_LONG :
-	case T_UINT: case T_USHORT: case T_ULONG:
-	case T_SCHAR: case T_UCHAR: case T_BOOL:
-	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0),"tval",0);
-	  Printv(setf->code,
-		 tab4, "tval = (", SwigType_lstr(t,0), ") PyInt_AsLong(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = tval;\n",
-		 0);
-	  break;
-
-	case T_FLOAT: case T_DOUBLE:
-	  Wrapper_add_localv(setf,"tval",SwigType_lstr(t,0), "tval",0);
-	  Printv(setf->code,
-		 tab4, "tval = (", SwigType_lstr(t,0), ") PyFloat_AsDouble(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = tval;\n",
-		 0);
-	  break;
-
-	case T_CHAR:
-	  Wrapper_add_local(setf,"tval","char * tval");
-	  Printv(setf->code,
-		 tab4, "tval = (char *) PyString_AsString(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 tab4, name, " = *tval;\n",
-		 0);
-	  break;
-
-	case T_USER:
-	  SwigType_add_pointer(t);
-	  Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0),"temp",0);
-	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	  Printv(setf->code, tab4, name, " = *temp;\n", 0);
-	  SwigType_del_pointer(t);
-	  break;
-
-	case T_STRING:
-	  Wrapper_add_local(setf,"tval","char * tval");
-	  Printv(setf->code,
-		 tab4, "tval = (char *) PyString_AsString(val);\n",
-		 tab4, "if (PyErr_Occurred()) {\n",
-		 tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
-		 iname, "'(", SwigType_str(t,0), ")\");\n",
-		 tab8, "return 1; \n",
-		 tab4, "}\n",
-		 0);
-
-	  if (CPlusPlus) {
-	    Printv(setf->code,
-		   tab4, "if (", name, ") delete [] ", name, ";\n",
-		   tab4, name, " = new char[strlen(tval)+1];\n",
-		   tab4, "strcpy((char *)", name, ",tval);\n",
-		   0);
-	  } else {
-	    Printv(setf->code,
-		   tab4, "if (", name, ") free((char*)", name, ");\n",
-		   tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
-		   tab4, "strcpy((char *)", name, ",tval);\n",
-		   0);
-	  }
-	  break;
-
-	case T_ARRAY:
-	  {
-	    int setable = 0;
-	    SwigType *aop;
-	    SwigType *ta = Copy(t);
-	    aop = SwigType_pop(ta);
-	    if (SwigType_type(ta) == T_CHAR) {
-	      String *dim = SwigType_array_getdim(aop,0);
-	      if (dim && Len(dim)) {
-		Printf(setf->code, "strncpy(%s,PyString_AsString(val), %s);\n", name,dim);
-		setable = 1;
-	      }
-	    }
-	    if (!setable) {
-	      Printv(setf->code,
-		     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
-		     " is read-only.\");\n",
-		     tab4, "return 1;\n",
-		     0);
-	    }
-	    Delete(ta);
-	    Delete(aop);
-	  }
-	  break;
-
-	case T_POINTER: case T_REFERENCE:
-	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,"temp"),0);
-	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
-	  Printv(setf->code,tab4, name, " = temp;\n", 0);
-	  break;
-
-	case T_MPOINTER:
-	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,"temp"), 0);	  
-	  Printv(setf->code, "if ((SWIG_ConvertPacked(val,(void *) &temp, sizeof(", SwigType_str(t,0),"),",
-		 "SWIGTYPE", SwigType_manglestr(t), ",1)) == -1) return 1;\n", 0);
-	  Printv(setf->code,tab4, name, " = temp;\n", 0);
-	  SwigType_remember(t);
-	  break;
-
-	default:
-	  Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
-	}
+	Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, SwigType_str(t,0));
       }
       Printf(setf->code,"    return 0;\n");
     } else {
@@ -918,85 +649,15 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
     if ((tm = Swig_typemap_lookup((char*)"varout",t,name,name, name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Replace(getf->code,"$result","pyobj",DOH_REPLACE_ANY);
       Delete(tm);
     } else if ((tm = Swig_typemap_lookup((char*)"out",t,name,name,name,(char*)"pyobj",0))) {
       Printf(getf->code,"%s\n",tm);
       Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
+      Replace(getf->code,"$result","pyobj",DOH_REPLACE_ANY);
       Delete(tm);
     } else {
-      switch(SwigType_type(t)) {
-      case T_INT: case T_UINT:
-      case T_SHORT: case T_USHORT:
-      case T_LONG: case T_ULONG:
-      case T_SCHAR: case T_UCHAR: case T_BOOL:
-	Printv(getf->code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
-	break;
-      case T_FLOAT: case T_DOUBLE:
-	Printv(getf->code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
-	break;
-      case T_CHAR:
-	Wrapper_add_local(getf,"ptemp","char ptemp[2]");
-	Printv(getf->code,
-	       tab4, "ptemp[0] = ", name, ";\n",
-	       tab4, "ptemp[1] = 0;\n",
-	       tab4, "pyobj = PyString_FromString(ptemp);\n",
-	       0);
-	break;
-      case T_USER:
-	SwigType_add_pointer(t);
-	SwigType_remember(t);
-	Printv(getf->code,
-	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
-	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
-	       0);
-	SwigType_del_pointer(t);
-	break;
-      case T_STRING:
-	Printv(getf->code,
-	       tab4, "if (", name, ")\n",
-	       tab8, "pyobj = PyString_FromString(", name, ");\n",
-	       tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
-	       0);
-	break;
-
-      case T_POINTER: case T_REFERENCE:
-	SwigType_remember(t);
-	Printv(getf->code,
-	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
-	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
-	       0);
-	break;
-      case T_MPOINTER:
-	SwigType_remember(t);
-	Printv(getf->code,
-	       tab4, "pyobj = SWIG_NewPackedObj((void *) &",name,
-	       ", sizeof(", SwigType_str(t,0), "),",
-	       "SWIGTYPE", SwigType_manglestr(t), ");\n",
-	       0);
-	break;
-      case T_ARRAY:
-	{
-	  SwigType_remember(t);
-	  SwigType *ta = Copy(t);
-	  SwigType *aop = SwigType_pop(ta);
-	  if (SwigType_type(ta) == T_CHAR) {
-	    Printv(getf->code,
-		   tab4, "pyobj = PyString_FromString(", name, ");\n",
-		   0);
-	  } else {
-	    Printv(getf->code,
-		   tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
-		   ", SWIGTYPE", SwigType_manglestr(t), ");\n",
-		   0);
-	  }
-	  Delete(ta);
-	  Delete(aop);
-	}
-	break;
-      default:
-	Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
-	break;
-      }
+      Printf(stderr,"Unable to link with type %s\n", SwigType_str(t,0));
     }
 
     Printf(getf->code,"    return pyobj;\n}\n");
@@ -1026,47 +687,24 @@ void
 PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
   String  *tm;
 
-  if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,value,name,0))) {
-    Printf(const_code,"%s\n", tm);
+  /* Special hook for member pointer */
+  if (SwigType_type(type) == T_MPOINTER) {
+    String *wname = Swig_name_wrapper(iname);
+    Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
+    value = Char(wname);
+  }
+  if ((tm = Swig_typemap_lookup((char*)"consttab",type,name,name,value,name,0))) {
+    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
+    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+    Printf(const_code,"%s,\n", tm);
     Delete(tm);
+  } else if ((tm = Swig_typemap_lookup((char *)"constcode", type, name, name, value, name, 0))) {
+    Replace(tm,"$name", iname, DOH_REPLACE_ANY);
+    Replace(tm,"$value",value, DOH_REPLACE_ANY);
+    Printf(f_init, "%s\n", tm);
   } else {
-    switch(SwigType_type(type)) {
-    case T_INT: case T_UINT: case T_BOOL:
-    case T_SHORT: case T_USHORT:
-    case T_LONG: case T_ULONG:
-    case T_SCHAR: case T_UCHAR:
-      Printv(const_code, tab4, "{ SWIG_PY_INT,   (char*)\"", iname, "\", (long) ", value, ", 0, 0, 0},\n", 0);
-      break;
-    case T_DOUBLE:
-    case T_FLOAT:
-      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   (char*)\"", iname, "\", 0, (double) ", value, ", 0,0},\n", 0);
-      break;
-    case T_CHAR :
-      Printf(const_code,"    { SWIG_PY_STRING, (char*)\"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
-      break;
-    case T_STRING:
-      Printf(const_code,"    { SWIG_PY_STRING, (char*)\"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
-      break;
-    case T_POINTER: case T_ARRAY: case T_REFERENCE:
-      SwigType_remember(type);
-      Printv(const_code, tab4, "{ SWIG_PY_POINTER, (char*)\"", iname, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
-      break;
-    case T_MPOINTER: {
-      String *wname = Copy(Swig_name_wrapper(iname));
-      SwigType_remember(type);
-      Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
-      Printv(f_init, tab4, "PyDict_SetItemString(d, (char*)\"", iname, "\", SWIG_NewPackedObj((void *) &", wname,
-	     ", sizeof(", SwigType_str(type,0), "), SWIGTYPE", SwigType_manglestr(type), "));\n", 0);
-    }
-      break;
-      
-
-      
-    default:
-      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
-      return;
-      break;
-    }
+    Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+    return;
   }
   if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
     Printv(vars,iname, " = ", module, ".", iname, "\n", 0);
@@ -1076,6 +714,7 @@ PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
 /* -----------------------------------------------------------------------------
  * PYTHON::usage_func() - Make string showing how to call a function
  * ----------------------------------------------------------------------------- */
+
 char *
 PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
   static String *temp = 0;
@@ -1095,12 +734,10 @@ PYTHON::usage_func(char *iname, SwigType *, ParmList *l) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if (SwigType_type(pt) != T_VOID) {
-	if (Len(pn) > 0) {
-	  Printf(temp,"%s",pn);
-	} else {
-	  Printf(temp,"%s", SwigType_str(pt,0));
-	}
+      if (Len(pn) > 0) {
+	Printf(temp,"%s",pn);
+      } else {
+	Printf(temp,"%s", SwigType_str(pt,0));
       }
       p = nextSibling(p);
       if (p != 0) {
@@ -1147,7 +784,8 @@ PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
       SwigType_add_pointer(stype);
       Setattr(hash,stype,importname);
       Delete(stype);
-      /*      Printf(stdout,"cpp_class_decl: %s %s %s\n", name,importname,type); */
+      Setattr(hash,name,importname);  /* Added */
+      /* Printf(stdout,"cpp_class_decl: %s %s %s\n", name,importname,type); */
       /* Add full name of datatype to the hash table */
       if (strlen(type) > 0) {
 	stype = NewStringf("%s %s", type, name);
@@ -1372,7 +1010,7 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 
       /* Check to see if the return type is an object */
       if (is_shadow(t)) {
-	if (!Swig_typemap_search((char*)"out",t,Swig_name_member(class_name,realname))) {
+	/*	if (!Swig_typemap_search((char*)"out",t,Swig_name_member(class_name,realname))) { */
 	  if (!have_output) {
 	    Printv(pyclass, tab8, "if val: val = ", is_shadow(t), "Ptr(val) ", 0);
 	    if (((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject)) {
@@ -1381,7 +1019,7 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 	      Printf(pyclass,"\n");
 	    }
 	  }
-	}
+	  /*      }*/
       }
       Printv(pyclass, tab8, "return val\n", 0);
     }
@@ -1597,6 +1235,7 @@ PYTHON::cpp_variable(char *name, char *iname, SwigType *t) {
     have_setattr = 1;
     realname = iname ? iname : name;
 
+    /*    Printf(stdout,"%s %s\n", t, is_shadow(t)); */
     /* Figure out if we've seen this datatype before */
     if (is_shadow(t)) inhash = 1;
 
@@ -1641,3 +1280,5 @@ PYTHON::add_typedef(SwigType *t, char *name) {
     cpp_class_decl(name,Char(is_shadow(t)), (char *) "");
   }
 }
+
+

@@ -832,7 +832,6 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 {
   DOHString *proc_name;
   char  var_name[256];
-  char  *tm;
   Wrapper *f;
 
   f = NewWrapper();
@@ -953,7 +952,6 @@ GUILE::declare_const (char *name, char *iname, SwigType *type, char *value)
   DOHString *proc_name;
   char   var_name[256];
   DOHString *rvalue;
-  char   *tm;
   Wrapper *f;
   SwigType *nctype;
 

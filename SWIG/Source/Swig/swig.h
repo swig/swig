@@ -414,8 +414,8 @@ extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
 /* --- Legacy Typemap API (somewhat simplified) --- */
 
 extern void   Swig_typemap_init();
-extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
-extern void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals);
+extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals, ParmList *kwargs);
+extern void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs);
 
 extern int    Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname,
 				SwigType *ttype, String_or_char *tname);

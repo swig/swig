@@ -793,11 +793,11 @@ SwigType_array_type(SwigType *ty) {
  * down to its most primitive form--resolving all typedefs and removing operators.
  *
  * Rules:
- *     Pointers:      p.SWIGPOINTER
- *     References:    r.SWIGREFERENCE
- *     Arrays:        a().SWIGARRAY
+ *     Pointers:      p.SWIGTYPE
+ *     References:    r.SWIGTYPE
+ *     Arrays:        a().SWIGTYPE
  *     Types:         SWIGTYPE
- *     MemberPointer: m(SWIGMEMBER).SWIGPOINTER
+ *     MemberPointer: m(CLASS).SWIGTYPE
  *     Enums:         enum SWIGENUM
  * ----------------------------------------------------------------------------- */
 
@@ -824,15 +824,15 @@ SwigType *SwigType_default(SwigType *t) {
     } while (SwigType_isqualifier(r));
   }
   if (SwigType_ispointer(r)) {
-    def = NewString("p.SWIGPOINTER");
+    def = NewString("p.SWIGTYPE");
   } else if (SwigType_isreference(r)) {
-    def = NewString("r.SWIGREFERENCE");
+    def = NewString("r.SWIGTYPE");
   } else if (SwigType_isarray(r)) {
-    def = NewString("a().SWIGARRAY");
+    def = NewString("a().SWIGTYPE");
   } else if (SwigType_ismemberpointer(r)) {
-    def = NewString("m(SWIGMEMBER).SWIGPOINTER");
+    def = NewString("m(CLASS).SWIGTYPE");
   } else if (SwigType_isenum(r)) {
-    def = NewString("enum SWIGENUM");
+    def = NewString("enum SWIGTYPE");
   } else {
     def = NewString("SWIGTYPE");
   }

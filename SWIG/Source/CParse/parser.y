@@ -539,6 +539,10 @@ Node *Swig_cparse(File *f) {
     String     *rparms;
     String     *sparms;
   } tmplstr;
+  struct {
+    String     *op;
+    Hash       *kwargs;
+  } tmap;
   SwigType     *type;
   String       *str;
   Parm         *p;
@@ -600,6 +604,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
+%type <node>     kwargs;
 
 /* Misc */
 %type <dtype>    initializer;
@@ -624,7 +629,7 @@ Node *Swig_cparse(File *f) {
 %type <type>     pointer;
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
-%type <id>       typemap_type;
+%type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail;
 %type <id>       string;
 %type <tmplstr>  template_parms;
@@ -1131,10 +1136,13 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
                    Parm *p;
                    skip_balanced('{','}');
 		   $$ = 0;
-		   if ($3) {
+		   if ($3.op) {
 		     $$ = new_node("typemap");
-		     Setattr($$,"method",$3);
+		     Setattr($$,"method",$3.op);
 		     Setattr($$,"code",NewString(scanner_ccode));
+		     if ($3.kwargs) {
+		       Setattr($$,"kwargs", $3.kwargs);
+		     }
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
@@ -1151,10 +1159,13 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
                | TYPEMAP LPAREN typemap_type RPAREN tm_list string {
 		   Parm *p;
 		   $$ = 0;
-		   if ($3) {
+		   if ($3.op) {
 		     $$ = new_node("typemap");
-		     Setattr($$,"method",$3);
+		     Setattr($$,"method",$3.op);
 		     Setattr($$,"code",NewString($6));
+		     if ($3.kwargs) {
+		       Setattr($$,"kwargs", $3.kwargs);
+		     }
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
@@ -1171,9 +1182,9 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
 		 Parm *p;
 		 $$ = 0;
-		 if ($3) {
+		 if ($3.op) {
 		   $$ = new_node("typemap");
-		   Setattr($$,"method",$3);
+		   Setattr($$,"method",$3.op);
 		   p = $5;
 		   while (p) {
 		     Node *n = new_node("typemapitem");
@@ -1188,9 +1199,9 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
                    Parm *p;
 		   $$ = 0;
-		   if ($3) {
+		   if ($3.op) {
 		     $$ = new_node("typemapcopy");
-		     Setattr($$,"method",$3);
+		     Setattr($$,"method",$3.op);
 		     Setattr($$,"type",Getattr($7,"type"));
 		     Setattr($$,"multitype",Getattr($7,"multitype"));
 		     Setattr($$,"name",Getattr($7,"name"));
@@ -1210,14 +1221,54 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 
 /* typemap method type (lang,method) or (method) */
 
-typemap_type   : ID COMMA tm_method {
-                 if (strcmp($1,typemap_lang) == 0) {
-		   $$ = $3;
+typemap_type   : kwargs {
+		 Hash *p;
+		 String *name;
+		 p = nextSibling($1);
+		 if (p && (!Getattr(p,"value"))) {
+		   /* two argument typemap form */
+		   name = Getattr($1,"name");
+		   if (!name || (Strcmp(name,typemap_lang))) {
+		     $$.op = 0;
+		     $$.kwargs = 0;
+		   } else {
+		     $$.op = Getattr(p,"name");
+		     $$.kwargs = nextSibling(p);
+		   }
 		 } else {
-		   $$ = 0;
+		   /* one-argument typemap-form */
+		   $$.op = Getattr($1,"name");
+		   $$.kwargs = p;
+		 }
+                }
+		 /*
+ ID COMMA tm_method {
+                 if (strcmp($1,typemap_lang) == 0) {
+		   $$.op = $3;
+		   $$.kwargs = 0;
+		 } else {
+		   $$.op = 0;
+		   $$.kwargs = 0;
 		 }
                }
-               | tm_method { $$ = $1; }
+               | tm_method { 
+                   $$.op = $1;
+                   $$.kwargs = 0;
+                }
+               | ID COMMA tm_method COLON kwargs {
+                 if (strcmp($1,typemap_lang) == 0) {
+		   $$.op = $3;
+		   $$.kwargs = $5;
+		 } else {
+		   $$.op = 0;
+                   $$.kwargs = 0;
+		 }
+               }
+               | tm_method COLON kwargs {
+		 $$.op = $1;
+                 $$.kwargs = $3;
+		 }  */
+
                ;
 
 tm_method      : ID { $$ = $1;  }
@@ -2949,6 +3000,29 @@ string         : string STRING {
                }
                | STRING { $$ = $1;}
                ; 
+
+/* Keyword arguments */
+kwargs         : idstring EQUAL string {
+		 $$ = NewHash();
+		 Setattr($$,"name",$1);
+		 Setattr($$,"value",$3);
+               }
+               | idstring EQUAL string COMMA kwargs {
+		 $$ = NewHash();
+		 Setattr($$,"name",$1);
+		 Setattr($$,"value",$3);
+		 set_nextSibling($$,$5);
+               }
+               | idstring {
+                 $$ = NewHash();
+                 Setattr($$,"name",$1);
+	       }
+               | idstring COMMA kwargs {
+                 $$ = NewHash();
+                 Setattr($$,"name",$1);
+                 set_nextSibling($$,$3);
+               }
+               ;
 
 empty          :   ;
 

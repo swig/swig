@@ -23,8 +23,6 @@
 
 class PYTHON : public Language {
 protected:
-  void    get_pointer(char *src, char *dest, SwigType *t, String *f, char *ret);
-
   void add_method(char *name, char *function, int kw);
   char *usage_func(char *, SwigType *, ParmList *);
   void emitAddPragmas(String *output, char* name, char* spacing);

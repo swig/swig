@@ -54,7 +54,8 @@ Parm *CopyParm(Parm *p) {
   value = GetChar(p,"value");
   ignore = GetInt(p,"ignore");
 
-  Setattr(np,"type",Copy(t));
+  if (t) 
+    Setattr(np,"type",Copy(t));
   if (name)
     Setattr(np,"name",name);
   if (lname)

@@ -273,7 +273,6 @@ MZSCHEME::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     }
 
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
 
     // Produce names of source and target

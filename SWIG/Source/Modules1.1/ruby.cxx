@@ -606,24 +606,39 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 	RClass *cls;
 	if (SwigType_type(t) == T_USER) {
 	  add_pointer=1;
+	  if (CPlusPlus) {
+	    Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(t,0));
+	  } else {
+	    Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(t,0), SwigType_str(t,0));
+	    Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(t,0));
+	  }
 	  SwigType_add_pointer(t);
+	  Wrapper_add_local(f,"resultobj", SwigType_lstr(t,"resultobj"));
 	}
 	type_code = SwigType_type(t);
 	cls = RCLASS(classes, SwigType_base(t));
 	if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
 	  const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
-	  Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", result,", 
-		 (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
+	  if (!add_pointer) {
+	    Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", result,", 
+		   (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
+	  } else {
+
+	    Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", resultobj,", 
+		   (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
+	  }
 	} else {
-	  if (add_pointer) SwigType_del_pointer(t);
-	  add_pointer = 0;
+	  if (add_pointer) {
+	    SwigType_del_pointer(t);
+	  }
 	  String *v = NewString("");
-	  if (to_VALUE(t,"result",v)) {
+	  if (to_VALUE(t, add_pointer ? "resultobj" : "result",v)) {
 	    Printv(f->code,"vresult = ",v, ";\n", 0);
 	  } else {
 	    Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
 		   input_file,line_number,SwigType_str(t,0));
 	  }
+	  add_pointer = 0;
 	  Delete(v);
 	}
 	if (add_pointer) SwigType_del_pointer(t);
@@ -1189,9 +1204,11 @@ int RUBY::from_VALUE(SwigType *type, char *value, char *target, String *str) {
     get_pointer(value, target, type, str);
     break;
   case T_USER:
-    SwigType_add_pointer(type);
-    get_pointer(value, target, type, str);
-    SwigType_del_pointer(type);
+    {
+      SwigType_add_pointer(type);
+      get_pointer(value, target, type, str);
+      SwigType_del_pointer(type);
+    }
     break;
   default:
     break;

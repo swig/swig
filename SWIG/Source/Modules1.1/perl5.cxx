@@ -621,11 +621,17 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	break;
 	
       case T_USER:
-	SwigType_add_pointer(pt);
-	sprintf(temp,"argument %d", i+1);
-	get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
-	SwigType_del_pointer(pt);
-	break;
+	{
+	  char argp[20];
+	  sprintf(argp,"argp%d",i+1);
+	  SwigType_add_pointer(pt);
+	  Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp),0);
+	  sprintf(temp,"argument %d", i+1);
+	  get_pointer(iname, temp, source, argp, pt, f->code, (char *)"XSRETURN(1)");
+	  Printf(f->code,"%s = *%s;\n", target, argp);
+	  SwigType_del_pointer(pt);
+	  break;
+	}
 	
       case T_STRING:
 	Printf(f->code,"    if (! SvOK((SV*) ST(%d))) { %s = 0; }\n", i, target);
@@ -730,10 +736,19 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	break;
 
       case T_USER:
+
+	if (CPlusPlus) {
+	  Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(d,0));
+	} else {
+	  Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(d,0), SwigType_str(d,0));
+	  Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(d,0));
+	}
+
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
+	Wrapper_add_local(f,"resultobj", SwigType_lstr(d,"resultobj"));
 	Printv(f->code,
-	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
+	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) resultobj, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
 	SwigType_del_pointer(d);
 	break;
 
@@ -1993,6 +2008,7 @@ PERL5::cpp_class_decl(char *name, char *rename, char *type) {
       fullname = NewString(rename);
     }
     Setattr(classes,stype,fullname);
+    Setattr(classes,name,fullname);
     Delete(stype);
     if (strlen(type) > 0) {
       stype = NewStringf("%s %s",type,name);
