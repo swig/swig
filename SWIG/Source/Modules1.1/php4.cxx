@@ -7,6 +7,10 @@
  *
  * Portions copyright Sun Microsystems (c) 2001
  * Tim Hockin <thockin@sun.com>
+ *
+ * Portions copyright Ananova Ltd (c) 2002
+ * Sam Liddicott <sam@ananova.com>
+ *
  */
 
 static char cvsroot[] = "$Header$";
@@ -1574,7 +1578,7 @@ int PHP4::constructorHandler(Node *n) {
 			}
 
 			if(is_shadow(pt)) {
-				Printv(nativecall, "$", arg, "->getCPtr()", NULL);
+				Printv(nativecall, "($", arg, ")?$", arg, "->getCPtr():\"NULL\"", NULL);
 			} else 
 				Printv(nativecall, "$", arg, NULL);
 
