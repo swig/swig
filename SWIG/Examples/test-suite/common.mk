@@ -83,6 +83,7 @@ C_TEST_CASES += \
 	nested \
 	preproc_1 \
 	preproc_2 \
+	ret_by_value \
 	sizeof_pointer \
 	sneaky1 \
 	typemap_subst \
