@@ -9,7 +9,11 @@
 
 <b>Thien-Thi Nguyen <br>
 ttn@glug.org <br>
-(with much help from others) <br>
+
+<p>
+David M. Beazley <br>
+beazley@cs.uchicago.edu </br>
+
 </b>
 </center>
 
@@ -201,7 +205,217 @@ which uses the callbacks registered by <tt>SWIG_main()</tt> above.
 <h2>2. DOH</h2>
 </a>
 
-[TODO]
+DOH is a collection of low-level objects such as strings, lists, and
+hash tables upon which the rest of SWIG is built.  The name 'DOH'
+unofficially stands for "Dave's Object Hack", but it's also a good
+expletive to use when things don't work (as in "SWIG core
+dumped---DOH!").
+
+<h3>2.1  Motivation and Background</h3>
+
+The development of DOH is influenced heavily by the problems
+encountered during earlier attempts to create a C++ based version of
+SWIG2.0.  In each of these attempts (over a 3 year period), the
+resulting system always ended up growing into a collossal nightmare of
+large inheritance hierarchies and dozens of specialized classes for
+different types of objects (functions, variables, constants, etc.).
+The end result was that the system was tremendously complicated,
+difficult to understand, difficult to maintain, and fairly inflexible
+in the grand scheme of things.
+
+<p>
+DOH takes a different approach to tackling the complexity problem.
+First, rather than going overboard with dozens of types and class
+definitions, DOH only defines a handful of simple yet very useful
+objects that are easy to remember.  Second, DOH uses dynamic
+typing---one of the features that make scripting languages so useful
+and which make it possible to accomplish things with much less code.
+Finally, DOH utilizes a few coding tricks that allow it to perform
+a limited form of function overloading for certain C datatypes (more
+on that a little later). 
+
+<p>
+The key point to using DOH is that instead of thinking about code in
+terms of highly specialized C data structures, just about everything
+ends up being represented in terms of a just a few datatypes. For
+example, structures are replaced by DOH hash tables whereas arrays are
+replaced by DOH lists.  At first, this is probably a little strange to
+most C/C++ programmers, but in the long run in makes the system
+extremely flexible and highly extensible.  Also, in terms of coding,
+many of the newly DOH-based subsystems are less than half the size (in
+lines of code) of the earlier C++ implementation.
+
+<h3>2.2 Basic Types</h3>
+
+The following built-in types are currently provided by DOH:
+
+<ul>
+<li><b>String</b>.  A string of characters with automatic memory
+management and high-level operations such as string replacement.  In addition,
+strings support file I/O operations that make it possible to use them just
+about anyplace a file can be used.
+
+<p>
+<li><b>List</b>. A list of arbitrary DOH objects (of possibly mixed types). 
+
+<p>
+<li><b>Hash</b>. A hash table that maps a set of string keys to a set of arbitrary
+DOH objects.  The DOH version of an associative array for all of you Perl fans.
+
+<p>
+<li><b>File</b>. A DOH wrapper around the C FILE * structure.  This is provided
+since other objects sometimes want to behave like files (strings for instance).
+
+<p>
+<li><b>Void</b>. A DOH wrapper around an arbitrary C pointer.  This can be used
+if you want to place arbitrary C data structures in DOH lists and hash tables.
+</ul>
+
+Due to dynamic typing, all of the objects in DOH are represented by pointers
+of type <tt>DOH *</tt>.  Furthermore, all objects are completely
+opaque--that means that the only way to access the internals of an
+object is through a well-defined public API.   For convenience, the following
+symbolic names are sometimes used to improve readability:
+
+<ul>
+<Li><tt>DOHString *</tt>.  A String object.
+<li><tt>DOHList *</tt>. A list object.
+<li><tt>DOHHash *</tt>. A hash object.
+<li><tt>DOHFile *</tt>. A file object.
+<li><tt>DOHVoid *</tt>. A void object.
+<li><tt>DOHString_or_char *</tt>. A DOH String object or a raw C "char *".
+</ul>
+
+It should be stressed that all of these names are merely symbolic aliases to the
+type <tt>DOH *</tt> and that no compile-time type checking is performed (of course,
+a runtime error may occur if you screw up).
+
+<h3>2.3 Creating, Copying, and Destroying Objects </h2>
+
+The following functions can be used to create new DOH objects
+
+<ul>
+<Li><tt>NewString(DOHString_or_char *value)</tt><br>
+Create a new string object with contents initially
+set to value.  value can be either a C string or a DOH string object.
+
+<p>
+<li><tt>NewStringf(char *fmt, ...)</tt><br>
+Create a new string object with contents initially set to
+a formatted string.  Think of this as being sprintf() combined with an object constructor.
+
+<p>
+<li><tt>NewList()</tt><br>
+Create a new list object that is initially empty.
+
+<p>
+<Li><tt>NewHash()</tt><br>
+Create a new hash object that is initially empty.
+
+<p>
+<li><tt>NewFile(DOHString_or_char *filename, char *mode)</tt><br>
+Open a file and return a file object.  This is a
+wrapper around the C <tt>fopen()</tt> library call.
+
+<p>
+<li><tt>NewFileFromFile(FILE *f)</tt><br>
+Create a new file object given an already opened <tt>FILE *</tt> object.
+
+<p>
+<li><tt>NewVoid(void *obj, void (*del)(void *))</tt><br>
+Create a new DOH object that is a wrapper around an
+arbitrary C pointer.  <tt>del</tt> is an optional destructor function that will be called when the object
+is destroyed.
+
+</ul>
+
+Any object can be copied using the <tt>Copy()</tt> function. For example:
+
+<blockquote>
+<pre>
+DOH *a, *b, *c, *d;
+a = NewString("Hello World");
+b = NewList();
+c = Copy(a);         /* Copy the string a */
+d = Copy(b);         /* Copy the list b */
+</pre>
+</blockquote>
+
+Copies of lists and hash tables are shallow.  That is, their contents are only copied by reference.
+
+<p>
+Objects can be deleted using the <tt>Delete()</tt> function. For example:
+
+<blockquote>
+<pre>
+DOH *a = NewString("Hello World");
+...
+Delete(a);              /* Destroy a */
+</pre>
+</blockquote>
+
+All objects are referenced counted and given a reference count of 1 when initially created.  The
+<tt>Delete()</tt> function only destroys an object when the reference count reaches zero.  When
+an object is placed in a list or hash table, it's reference count is automatically increased. For example:
+
+<blockquote>
+<pre>
+DOH *a, *b;
+a = NewString("Hello World");
+b = NewList();
+Append(b,a);         /* Increases refcnt of a to 2 */
+Delete(a);           /* Decreases refcnt of a to 1 */
+Delete(b);           /* Destroys b, and destroys a */
+</pre>
+</blockquote>
+
+Should it ever be necessary to manually increase the reference count of an object, the DohIncref() function
+can be used:
+
+<blockquote>
+<pre>
+DOH *a = NewString("Hello");
+DohIncref(a);
+</pre>
+</blockquote>
+
+<h3>2.4 A Word About Mutability and Copying</h3>
+
+All DOH objects are mutable regardless of their current reference
+count.  For example, if you create a string and then create a 1000
+references to it (in lists and hash tables), changes to the string
+will be reflected in all of the references.  Therefore, if you need to
+make any kind of local change, you should first make a copy using the
+Copy() function.  Caveat:  when copying lists and hash tables, elements
+are copied by reference.
+
+<h3>2.5 Strings</h3>
+
+The DOH String type is perhaps the most flexible object.  First, it supports a variety of string-oriented
+operations.  Second, it supports many of the same operations as lists.  Finally, strings provide file I/O
+operations that allow them to be used interchangably with DOH file objects.
+
+[ TODO ]
+
+<h3>2.6 Lists</h3>
+
+[ TODO ]
+
+<h3>2.7 Hash tables </h3>
+
+[ TODO ]
+
+<h3>2.8 Files </h3>
+
+[ TODO ]
+
+<h3>2.9 Void objects </h3>
+
+[ TODO ]
+
+<h3>2.10 Utility functions </h3>
+
+[ TODO ]
 
 <a name="3" href="#i3">
 <h2>3. Types and Typemaps</h2>
