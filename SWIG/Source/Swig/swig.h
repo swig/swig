@@ -375,6 +375,13 @@ extern void       Swig_warn(const char *filename, int line, const char *msg);
 
 #define WARNING(msg) Swig_warn(__FILE__,__LINE__,msg)
 
+extern void       Swig_warning(int num, const String_or_char *filename, int line, const char *fmt, ...);
+extern void       Swig_error(const String_or_char *filename, int line, const char *fmt, ...);
+extern int        Swig_numerrors(void);
+extern void       Swig_error_silent(int s);
+extern void       Swig_warnfilter(int w, int val);
+extern void       Swig_warnall(void);
+
 /* --- C Wrappers --- */
 extern String    *Swig_cparm_name(Parm *p, int i);
 extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);

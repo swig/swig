@@ -125,7 +125,7 @@ class TypePass : public Dispatcher {
 				    } 
 				}
 				if (Strcmp(nodeType(bcls),"classforward") != 0) {
-				    Printf(stderr,"%s:%d. '%s' is not a class. \n", Getfile(bname),Getline(bname), bname);
+				  Swig_error(Getfile(bname),Getline(bname),"'%s' is not a class. \n",bname);
 				} else {
 				    clsforward = 1;
 				}
@@ -140,9 +140,9 @@ class TypePass : public Dispatcher {
 		    if (!bcls) {
 			if (!clsforward) {
 			    if (!Getmeta(bname,"already_warned")) {
-				Printf(stderr,"%s:%d. Nothing known about class '%s'. Ignored.\n", Getfile(bname),Getline(bname), bname);
+				Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname),Getline(bname),"Nothing known about class '%s'. Ignored.\n", SwigType_namestr(bname));
 				if (Strchr(bname,'<')) {
-				    Printf(stderr,"%s:%d. Maybe you forgot to instantiate '%s' using %%template.\n", Getfile(bname), Getline(bname), bname);
+				    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
 				}
 				Setmeta(bname,"already_warned","1");
 			    }
@@ -354,12 +354,6 @@ public:
 	String *alias = Getattr(n,"alias");
 	List   *olist = normalize;
 	normalize = NewList();    
-	/*
-	if (!warn) {
-	    Printf(stderr,"%s:%d. Warning. C++ namespace support is experimental and under development.\n", Getfile(n), Getline(n));
-	    warn = 1;
-	}
-	*/
 	if (alias) {
 	    Typetab *ts = Getattr(n,"typescope");
 	    if (!ts) {

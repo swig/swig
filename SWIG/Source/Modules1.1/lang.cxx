@@ -23,8 +23,8 @@ static int      InClass = 0;          /* Parsing C++ or not */
 static String  *ClassName = 0;        /* This is the real name of the current class */
 static String  *ClassPrefix = 0;      /* Class prefix */
 static String  *ClassType = 0;        /* Fully qualified type name to use */
-int      Abstract = 0;
-int      ImportMode = 0;
+int             Abstract = 0;
+int             ImportMode = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
@@ -32,8 +32,6 @@ static String  *ActionFunc = 0;
 static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
 static Hash    *ClassHash = 0;
-static int      IgnoreOverloadedConstructors = 0;
-static int      IgnoreOverloaded = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -134,6 +132,8 @@ int Dispatcher::emit_one(Node *n) {
 	return typemapitemDirective(n);
     } else if (strcmp(tag,"types") == 0) {
 	return typesDirective(n);
+    } else if (strcmp(tag,"warn") == 0) {
+      return warnDirective(n);
     } else {
 	Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
     }
@@ -174,6 +174,15 @@ int Dispatcher::typemapDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapitemDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typemapcopyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::typesDirective(Node *n) { return defaultHandler(n); }
+
+int Dispatcher::warnDirective(Node *n) {
+  int wnum,value;
+  wnum = GetInt(n,"num");
+  value = GetInt(n,"value");
+  Swig_warnfilter(wnum,value);
+  return SWIG_OK;
+}
+
 int Dispatcher::cDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::externDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::enumDeclaration(Node *n) { return defaultHandler(n); }
@@ -274,8 +283,7 @@ void swig_pragma(char *lang, char *name, char *value) {
 	    String *nvalue = NewString(value);
 	    char *s = strchr(Char(nvalue),':');
 	    if (!s) {
-		Printf(stderr,"%s:%d. Bad value for attributefunction. Expected \"fmtget:fmtset\".\n",
-		       input_file, line_number);
+		Swig_error(input_file, line_number, "Bad value for attributefunction. Expected \"fmtget:fmtset\".\n");
 	    } else {
 		*s = 0;
 		AttributeFunctionGet = NewString(Char(nvalue));
@@ -285,11 +293,6 @@ void swig_pragma(char *lang, char *name, char *value) {
 	} else if (strcmp(name,"noattributefunction") == 0) {
 	    AttributeFunctionGet = 0;
 	    AttributeFunctionSet = 0;
-	} else if (strcmp(name,"ignore_overloaded_constructors") == 0) {
-	    IgnoreOverloadedConstructors = 1;
-	} else if (strcmp(name,"ignore_overloaded") == 0) {
-	    IgnoreOverloadedConstructors = 1;
-	    IgnoreOverloaded = 1;
 	}
     }
 }
@@ -331,8 +334,8 @@ int Language::applyDirective(Node *n) {
     while (c) {
 	Parm   *apattern = Getattr(c,"pattern");
 	if (ParmList_len(pattern) != ParmList_len(apattern)) {
-	    Printf(stderr,"%s:%d. Can't apply (%s) to (%s).  Number of arguments don't match.\n",
-		   input_file, line_number, ParmList_str(pattern), ParmList_str(apattern));
+	    Swig_error(input_file, line_number, "Can't apply (%s) to (%s).  Number of arguments don't match.\n",
+		       ParmList_str(pattern), ParmList_str(apattern));
 	} else {
 	    Swig_typemap_apply(pattern,apattern);
 	}
@@ -435,7 +438,7 @@ int Language::insertDirective(Node *n) {
 	if (f) {
 	    Printf(f,"%s\n",code);
 	} else {
-	    Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, section);
+	    Swig_error(input_file,line_number,"Unknown target '%s' for %%insert directive.\n", section);
 	}
 	return SWIG_OK;
     } else {
@@ -516,14 +519,14 @@ int Language::typemapDirective(Node *n) {
 
 
     if (Strstr(code,"$source") || (Strstr(code,"$target"))) {
-	Printf(stderr,"%s:%d.  Warning.  Deprecated typemap feature ($source/$target).\n", Getfile(n), Getline(n));
+	Swig_warning(WARN_TYPEMAP_SOURCETARGET,Getfile(n),Getline(n),"Deprecated typemap feature ($source/$target).\n");
 	if (!namewarn) {
-	    Printf(stderr,
-		   "swig:  The use of $source and $target in a typemap declaration is deprecated.\n\
-swig:  For typemaps related to argument input (in,ignore,default,arginit,check), replace\n\
-swig:  $source by $input and $target by $1.   For typemaps related to return values (out,\n\
-swig:  argout,ret,except), replace $source by $1 and $target by $result.  See the file\n\
-swig:  Doc/Manual/Typemaps.html for complete details.\n");
+	    Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n),
+		   "The use of $source and $target in a typemap declaration is deprecated.\n\
+  For typemaps related to argument input (in,ignore,default,arginit,check), replace\n\
+  $source by $input and $target by $1.   For typemaps related to return values (out,\n\
+  argout,ret,except), replace $source by $1 and $target by $result.  See the file\n\
+  Doc/Manual/Typemaps.html for complete details.\n");
 	    namewarn = 1;
 	}
     }
@@ -554,10 +557,10 @@ int Language::typemapcopyDirective(Node *n) {
     while (items) {
 	ParmList *npattern = Getattr(items,"pattern");
 	if (nsrc != ParmList_len(npattern)) {
-	    Printf(stderr,"%s:%d. Can't copy typemap. Number of types differ.\n", input_file, line_number);      
+	    Swig_error(input_file,line_number,"Can't copy typemap. Number of types differ.\n");
 	} else {
 	    if (Swig_typemap_copy(method,pattern,npattern) < 0) {
-		Printf(stderr,"%s:%d. Can't copy typemap.\n", input_file, line_number);
+		Swig_error(input_file, line_number, "Can't copy typemap.\n");
 	    }
 	}
 	items = nextSibling(items);
@@ -616,42 +619,36 @@ int Language::cDeclaration(Node *n) {
     /* Overloaded symbol check */
     over = Swig_symbol_isoverloaded(n);
     if (over && (over != n)) {
-	if (!IgnoreOverloaded) {
-	    SwigType *tc = Copy(decl);
-	    SwigType *td = SwigType_pop_function(tc);
-	    String   *oname;
-	    String   *cname;
-	    int       warn = 1;
-	    if (CurrentClass) {
-		oname = NewStringf("%s::%s",ClassName,name);
-		cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
-	    } else {
-		oname = NewString(name);
-		cname = NewString(Getattr(over,"name"));
-	    }
+      SwigType *tc = Copy(decl);
+      SwigType *td = SwigType_pop_function(tc);
+      String   *oname;
+      String   *cname;
+      if (CurrentClass) {
+	oname = NewStringf("%s::%s",ClassName,name);
+	cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
+      } else {
+	oname = NewString(name);
+	cname = NewString(Getattr(over,"name"));
+      }
       
-	    SwigType *tc2 = Copy(Getattr(over,"decl"));
-	    SwigType *td2 = SwigType_pop_function(tc2);
-
-	    if (warn) {
-		Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
-		       input_file,line_number, SwigType_str(td,oname));
-	
-		Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(td2,cname));
-	    }
-	    Delete(tc2);
-	    Delete(td2);
-	    Delete(tc);
-	    Delete(td);
-	    Delete(oname);
-	    Delete(cname);
-	    return SWIG_NOWRAP;
-	}
+      SwigType *tc2 = Copy(Getattr(over,"decl"));
+      SwigType *td2 = SwigType_pop_function(tc2);
+      
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td,oname));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over),"Previous declaration is %s\n", SwigType_str(td2,cname));
+      
+      Delete(tc2);
+      Delete(td2);
+      Delete(tc);
+      Delete(td);
+      Delete(oname);
+      Delete(cname);
+      return SWIG_NOWRAP;
     }
 
     if (symname && !validIdentifier(symname)) {
-	Printf(stderr,"%s:%d. Warning. Can't wrap %s unless renamed to a valid identifier.\n",
-	       input_file, line_number, symname);
+	Swig_warning(WARN_LANG_IDENTIFIER,input_file, line_number, "Can't wrap %s unless renamed to a valid identifier.\n",
+		     symname);
 	return SWIG_NOWRAP;
     }
 
@@ -1208,8 +1205,8 @@ int Language::classDeclaration(Node *n) {
     /*    Printf(stdout,"sym:name = %s\n", symname); */
 
     if (!validIdentifier(symname)) {
-      Printf(stderr,"%s:%d. Warning. Can't wrap class %s unless renamed to a valid identifier.\n",
-	     input_file, line_number, symname);
+      Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n",
+		   symname);
       return SWIG_NOWRAP;
     }
 
@@ -1337,23 +1334,23 @@ int Language::constructorDeclaration(Node *n) {
 	  } else {
 	    if (Getattr(over,"copy_constructor")) over = Getattr(over,"sym:nextSibling");
 	    if (over != n) {
-	      if (!IgnoreOverloadedConstructors) {
-		String *oname = NewStringf("%s::%s", ClassName, name);
-		String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
-		SwigType *decl = Getattr(n,"decl");
-		Printf(stderr,"%s:%d. Overloaded constructor ignored.  %s\n", input_file,line_number, SwigType_str(decl,oname));
-		Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over),SwigType_str(Getattr(over,"decl"),cname));
-		Delete(oname);
-		Delete(cname);
-	      }
+	      String *oname = NewStringf("%s::%s", ClassName, name);
+	      String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
+	      SwigType *decl = Getattr(n,"decl");
+	      Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
+			   "Overloaded constructor ignored.  %s\n", SwigType_str(decl,oname));
+	      Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, Getfile(over), Getline(over),
+			   "Previous declaration is %s\n", SwigType_str(Getattr(over,"decl"),cname));
+	      Delete(oname);
+	      Delete(cname);
 	    } else {
 	      constructorHandler(n);
 	    }
 	  }
 	} else {
 	  if (name && (Cmp(name,ClassName))) {
-	    Printf(stderr,"%s:%d.  Function %s must have a return type.\n", 
-		   input_file, line_number, name);
+	    Swig_warning(WARN_LANG_RETURN_TYPE, input_file,line_number,"Function %s must have a return type.\n", 
+			 name);
 	    return SWIG_NOWRAP;
 	  }
 	  constructorHandler(n);
@@ -1608,10 +1605,9 @@ int
 Language::addSymbol(String *s, Node *n) {
     Node *c = Getattr(symbols,s);
     if (c && (c != n)) {
-	Printf(stderr,"%s:%d. Error. '%s' is multiply defined in the generated module.\n", 
-	       input_file, line_number, s);
-	Printf(stderr,"%s:%d. Previous declaration of '%s'\n", Getfile(c), Getline(c), s);
-	return 0;
+      Swig_error(input_file, line_number, "Error. '%s' is multiply defined in the generated module.\n", s);
+      Swig_error(Getfile(c),Getline(c), "Previous declaration of '%s'\n", s);
+      return 0;
     }
     Setattr(symbols,s,n);
     return 1;

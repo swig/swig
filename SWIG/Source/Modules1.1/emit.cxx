@@ -131,7 +131,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
 	continue;
       }
       if (SwigType_isvarargs(Getattr(p,"type"))) {
-	Printf(stderr,"%s:%d. Warning. Variable length arguments discarded.\n", input_file, line_number);
+	Swig_warning(WARN_LANG_VARARGS,input_file,line_number,"Variable length arguments discarded.\n");
 	Setattr(p,"tmap:ignore","");
       }
       lp = 0;
@@ -219,8 +219,7 @@ int emit_num_required(ParmList *parms) {
       p = Getattr(p,"tmap:ignore:next");
     } else {
       if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
-	Printf(stderr,"%s:%d. Error. Non-optional argument '%s' follows an optional argument.\n",
-	       Getfile(p),Getline(p),Getattr(p,"name"));
+	Swig_error(Getfile(p),Getline(p),"Error. Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
       }
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");

@@ -45,29 +45,8 @@ static  int    comment_start;
 static  int    scan_init  = 0;
 static  int    num_brace = 0;
 static  int    last_brace = 0;
-extern  int    Error;
 static  int    last_id = 0;
 static  int    rename_active = 0;
-
-static int       fatal_errors = 0;         
-
-/* Handle an error */
-void cparse_error(String *file, int line, char *fmt, ...) {
-  va_list ap;
-  va_start(ap,fmt);
-  if (line > 0) {
-    Printf(stderr,"%s:%d. ", file, line);
-  } else {
-    Printf(stderr,"%s:EOF ",file);
-  }
-  vPrintf(stderr,fmt,ap);
-  va_end(ap);
-  fatal_errors++;
-}
-
-int CParse_errors(void) {
-  return fatal_errors;
-}
 
 /* ----------------------------------------------------------------------
  * locator()
@@ -297,70 +276,63 @@ skip_balanced(int startchar, int endchar) {
     int  num_levels = 1;
     int  state = 0;
     char temp[2] = {0,0};
+    int  start_line = line_number;
 
     Clear(scanner_ccode);
     Putc(startchar,scanner_ccode);
     temp[0] = (char) startchar;
     while (num_levels > 0) {
-	if ((c = nextchar()) == 0) {
-	  cparse_error(input_file, line_number, "Missing '%c'. Reached end of input.\n", endchar);
+      c = nextchar();
+      if (c == 0) {
+	  Swig_error(input_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
 	  return;
-	}
-	Putc(c,scanner_ccode);
-	switch(state) {
-	case 0:
-	    if (c == startchar) num_levels++;
-	    else if (c == endchar) num_levels--;
+      }
+      Putc(c,scanner_ccode);
+      switch(state) {
+      case 0:
+	if (c == startchar) num_levels++;
+	else if (c == endchar) num_levels--;
 	    else if (c == '/') state = 10;
-	    else if (c == '\"') state = 20;
-	    else if (c == '\'') state = 30;
-	    break;
-	case 10:
-	    if (c == '/') state = 11;
-	    else if (c == '*') state = 12;
-	    else state = 0;
-	    break;
-	case 11:
-	    if (c == '\n') state = 0;
-	    else state = 11;
-	    break;
-	case 12:
-	    if (c == '*') state = 13;
-	    break;
-	case 13:
-	    if (c == '*') state = 13;
-	    else if (c == '/') state = 0;
-	    else state = 12;
-	    break;
-	case 20:
-	    if (c == '\"') state = 0;
-	    else if (c == '\\') state = 21;
-	    break;
-	case 21:
-	    state = 20;
-	    break;
-	case 30:
-	    if (c == '\'') state = 0;
-	    else if (c == '\\') state = 31;
-	    break;
-	case 31:
-	    state = 30;
-	    break;
-	default:
-	    break;
-	}
-	yylen = 0;
+	else if (c == '\"') state = 20;
+	else if (c == '\'') state = 30;
+	break;
+      case 10:
+	if (c == '/') state = 11;
+	else if (c == '*') state = 12;
+	else state = 0;
+	break;
+      case 11:
+	if (c == '\n') state = 0;
+	else state = 11;
+	break;
+      case 12:
+	if (c == '*') state = 13;
+	break;
+      case 13:
+	if (c == '*') state = 13;
+	else if (c == '/') state = 0;
+	else state = 12;
+	break;
+      case 20:
+	if (c == '\"') state = 0;
+	else if (c == '\\') state = 21;
+	break;
+      case 21:
+	state = 20;
+	break;
+      case 30:
+	if (c == '\'') state = 0;
+	else if (c == '\\') state = 31;
+	break;
+      case 31:
+	state = 30;
+	break;
+      default:
+	break;
+      }
+      yylen = 0;
     }
-    
-    /* Sick hack alert.  We look for type-escapes and replace them here */
-    /* might not need.
-    if (strchr(Char(scanner_ccode),'`')) {
-      String *ns = Copy(scanner_ccode);
-      Clear(scanner_ccode);
-      Printf(scanner_ccode,"%(typecode)s",ns);
-      Delete(ns);
-    }
-    */
+    if (endchar == '}') num_brace--;
     return;
 }
 
@@ -381,7 +353,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      cparse_error(input_file,line_number,"Missing semicolon. Reached end of input.\n");
+      Swig_error(input_file,line_number,"Missing semicolon. Reached end of input.\n");
       return;
     }
     if (c == '{') {
@@ -395,7 +367,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	cparse_error(input_file,line_number,"Missing '}'. Reached end of input.\n");
+	Swig_error(input_file,line_number,"Missing '}'. Reached end of input.\n");
 	return;
       }
       if (c == '{') num_brace++;
@@ -549,8 +521,7 @@ int yylook(void) {
 	  else if (c == '}') {
 	    num_brace--;
 	    if (num_brace < 0) {
-	      Printf(stderr,"%s:%d. Error. Extraneous '}' (Ignored)\n",
-		      input_file, line_number);
+	      Swig_error(input_file, line_number, "Syntax error. Extraneous '}'\n");
 	      state = 0;
 	      num_brace = 0;
 	    } else {
@@ -635,7 +606,7 @@ int yylook(void) {
 	  }
 	case 10:  /* C++ style comment */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1, "Unterminated comment detected.\n");
+	    Swig_error(input_file,-1, "Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '\n') {
@@ -653,7 +624,7 @@ int yylook(void) {
 
 	case 12: /* C style comment block */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1,"Unterminated comment detected.\n");
+	    Swig_error(input_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -666,7 +637,7 @@ int yylook(void) {
 	  break;
 	case 13: /* Still in C style comment */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1,"Unterminated comment detected.\n");
+	    Swig_error(input_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -697,7 +668,7 @@ int yylook(void) {
 
 	case 2: /* Processing a string */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1, "Unterminated string detected.\n");
+	    Swig_error(input_file,-1, "Unterminated string detected.\n");
 	    return 0;
 	  }
 	  if (c == '\"') {
@@ -729,7 +700,7 @@ int yylook(void) {
 	    start_line = line_number;
 	  } else if ((isalpha(c)) || (c == '_')) state = 7;
 	  else if (c == '}') {
-	    cparse_error(input_file,line_number, "Misplaced %%}.\n");
+	    Swig_error(input_file,line_number, "Misplaced %%}.\n");
 	    return 0;
 	  } else {
 	    retract(1);
@@ -739,7 +710,7 @@ int yylook(void) {
 
 	case 40: /* Process an include block */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1, "Unterminated include block detected.\n");
+	    Swig_error(input_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  yylen = 0;
@@ -752,7 +723,7 @@ int yylook(void) {
 	  break;
 	case 41: /* Still processing include block */
 	  if ((c = nextchar()) == 0) {
-	    cparse_error(input_file,-1, "Unterminated include block detected.\n");
+	    Swig_error(input_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  if (c == '}') {
@@ -974,7 +945,7 @@ int yylook(void) {
 	    yytext[yylen-1] = 0;
 	    yylval.str = NewString(yytext+1);
 	    if (yylen == 2) {
-	      Printf(stderr,"%s:%d. Empty character constant\n", input_file,line_number);
+	      Swig_error(input_file, line_number, "Empty character constant\n");
 	    }
 	    return(CHARCONST);
 	  }
@@ -998,11 +969,8 @@ int yylook(void) {
 	  break;
 
 	default:
-	  if (!Error) {
-	    cparse_error(input_file, line_number, "Illegal character '%c'=%d.\n",c,c);
-	  }
+	  Swig_error(input_file, line_number, "Illegal character '%c'=%d.\n",c,c);
 	  state = 0;
-  	  Error = 1;
 	  return(ILLEGAL);
 	}
     }
@@ -1192,7 +1160,7 @@ int yylex(void) {
 	    }
 	  } else {
 	    if (strcmp(yytext,"class") == 0) {
-	      Printf(stderr,"%s:%d. Warning: class keyword used, but not in C++ mode.\n",input_file,line_number);
+	      Swig_warning(WARN_PARSE_CLASS_KEYWORD,input_file,line_number, "class keyword used, but not in C++ mode.\n");
 	    }
 	  }
 	  
@@ -1244,11 +1212,11 @@ int yylex(void) {
 	  }
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
 	  if (strcmp(yytext,"%val") == 0) {
-	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
+	    Swig_warning(WARN_DEPRECATED_VAL, input_file, line_number, "%%val directive deprecated (ignored).\n");
 	    return (yylex());
 	  }
 	  if (strcmp(yytext,"%out") == 0) {
-	    Printf(stderr,"%s:%d %%out directive deprecated (ignored).\n", input_file, line_number);
+	    Swig_warning(WARN_DEPRECATED_OUT, input_file, line_number, "%%out directive deprecated (ignored).\n");
 	    return(yylex());
 	  }
 	  if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
@@ -1272,6 +1240,8 @@ int yylex(void) {
 	  if (strcmp(yytext,"%parms") == 0) return(PARMS);
 	  if (strcmp(yytext,"%varargs") == 0) return(VARARGS);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
+	  if (strcmp(yytext,"%warn") == 0) return(WARN);
+	  if (strcmp(yytext,"%nowarn") == 0) return(NOWARN);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

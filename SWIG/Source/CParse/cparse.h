@@ -1,4 +1,5 @@
 #include "swig.h"
+#include "swigwarn.h"
 #include "swigver.h"
 
 extern  char     *input_file;

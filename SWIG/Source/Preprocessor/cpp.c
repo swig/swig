@@ -25,29 +25,7 @@ static int       include_all = 0;        /* Follow all includes */
 static int       ignore_missing = 0; 
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
-static int       silent_errors = 0;
-static int       fatal_errors = 0;         
 static Hash     *included_files = 0;
-
-/* Handle an error */
-
-static void cpp_error(String *file, int line, char *fmt, ...) {
-  va_list ap;
-  if (silent_errors) return;
-  va_start(ap,fmt);
-  if (line > 0) {
-    Printf(stderr,"%s:%d. ", file, line);
-  } else {
-    Printf(stderr,"%s:EOF ",file);
-  }
-  vPrintf(stderr,fmt,ap);
-  va_end(ap);
-  fatal_errors++;
-}
-
-int Preprocessor_errors(void) {
-  return fatal_errors;
-}
 
 /* Test a character to see if it starts an identifier */
 static int
@@ -106,10 +84,11 @@ static String *cpp_include(String_or_char *fn) {
   s = Swig_include(fn);
   if (!s) {
     Seek(fn,0,SEEK_SET);
-    cpp_error(Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
     if (ignore_missing) {
-      fatal_errors--;
-    } 
+      Swig_warning(WARN_PP_MISSING_FILE,Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
+    } else {
+      Swig_error(Getfile(fn),Getline(fn),"Unable to find '%s'\n", fn);
+    }
   } else {
     Seek(s,0,SEEK_SET);
   }
@@ -190,7 +169,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
 	else Putc(c,argstr);
       }
       if (c != ')') {
-	cpp_error(Getfile(str),Getline(str), "Missing \')\' in macro parameters\n");
+	Swig_error(Getfile(str),Getline(str), "Missing \')\' in macro parameters\n");
 	goto macro_error;
       }
       break;
@@ -199,7 +178,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
     } else if (isspace(c)) {
       break;
     } else {
-      cpp_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
+      Swig_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
       goto macro_error;
     }
   }
@@ -224,7 +203,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
       } else if (isidchar(c)) {
 	Putc(c,argname);
       } else if (!isspace(c)) {
-	cpp_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
+	Swig_error(Getfile(str),Getline(str),"Illegal character in macro argument name\n");
 	goto macro_error;
       }
     }
@@ -320,7 +299,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
   symbols = Getattr(cpp,"symbols");
   if ((m1 = Getattr(symbols,macroname))) {
     if (Cmp(Getattr(m1,"value"),macrovalue))
-      cpp_error(Getfile(str),Getline(str),"Macro '%s' redefined. Previous definition in \'%s\', Line %d\n", macroname, Getfile(m1), Getline(m1));
+      Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined. Previous definition in \'%s\', Line %d\n", macroname, Getfile(m1), Getline(m1));
   }
   Setattr(symbols,macroname,macro);
   Delete(str);
@@ -419,7 +398,7 @@ find_args(String *s)
     c = Getc(s);
   }
  unterm:
-  cpp_error(Getfile(args),Getline(args),"Unterminated macro call.\n");
+  Swig_error(Getfile(args),Getline(args),"Unterminated macro call.\n");
   return args;
 }
 
@@ -498,11 +477,11 @@ expand_macro(String_or_char *name, List *args)
   /* If there are arguments, see if they match what we were given */
   if ((margs) && (Len(margs) != Len(args))) {
     if (Len(margs) > 1)
-      cpp_error(Getfile(args),Getline(args),"Macro '%s' expects %d arguments\n", name, Len(margs));
+      Swig_error(Getfile(args),Getline(args),"Macro '%s' expects %d arguments\n", name, Len(margs));
     else if (Len(margs) == 1)
-      cpp_error(Getfile(args),Getline(args),"Macro '%s' expects 1 argument\n", name);
+      Swig_error(Getfile(args),Getline(args),"Macro '%s' expects 1 argument\n", name);
     else
-      cpp_error(Getfile(args),Getline(args),"Macro '%s' expects no arguments\n", name);
+      Swig_error(Getfile(args),Getline(args),"Macro '%s' expects no arguments\n", name);
     return 0;
   }
 
@@ -663,8 +642,8 @@ Preprocessor_replace(DOH *s)
 	    Append(args,arg);
 	    Delete(arg);
 	  }
-	  if (!args) {
-	    cpp_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
+	  if ((!args) || (!Len(args))) {
+	    Swig_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
 	    state = 0;
 	    break;
 	  }
@@ -746,13 +725,13 @@ Preprocessor_replace(DOH *s)
   if (state == 1) {
     /* See if this is the special "defined" macro */
     if (Cmp(id,"defined") == 0) {
-      cpp_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
+      Swig_error(Getfile(id),Getline(id),"No arguments given to defined()\n");
     } else if ((m = Getattr(symbols,id))) {
 	DOH *e;
 	/* Yes.  There is a macro here */
 	/* See if the macro expects arguments */
 	if (Getattr(m,"args")) {
-	  cpp_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
+	  Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
 	}
 	e = expand_macro(id,0);
 	Printf(ns,"%s",e);
@@ -895,12 +874,12 @@ Preprocessor_parse(String *s)
       else if (c == '\"') {
 	start_line = Getline(s);
 	if (skip_tochar(s,'\"',chunk) < 0) {
-	  cpp_error(Getfile(s),-1,"Unterminated string constant starting at line %d\n",start_line);
+	  Swig_error(Getfile(s),-1,"Unterminated string constant starting at line %d\n",start_line);
 	}
       } else if (c == '\'') {
 	start_line = Getline(s);
 	if (skip_tochar(s,'\'',chunk) < 0) {
-	  cpp_error(Getfile(s),-1,"Unterminated character constant starting at line %d\n",start_line);
+	  Swig_error(Getfile(s),-1,"Unterminated character constant starting at line %d\n",start_line);
 	}
       }
       else if (c == '/') state = 30;  /* Comment */
@@ -1046,9 +1025,9 @@ Preprocessor_parse(String *s)
 	  if ((m) && !(Getattr(m,"args"))) {
 	    v = Copy(Getattr(m,"value"));
 	    if (Len(v)) {
-	      silent_errors = 1;
+	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);
-	      silent_errors = 0;
+	      Swig_error_silent(0);
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
@@ -1085,7 +1064,7 @@ Preprocessor_parse(String *s)
 	}
       } else if (Cmp(id,"else") == 0) {
 	if (level <= 0) {
-	  cpp_error(Getfile(s),Getline(id),"Misplaced #else.\n");
+	  Swig_error(Getfile(s),Getline(id),"Misplaced #else.\n");
 	} else {
 	  cond_lines[level-1] = Getline(id);
 	  if (allow) {
@@ -1098,7 +1077,7 @@ Preprocessor_parse(String *s)
       } else if (Cmp(id,"endif") == 0) {
 	level--;
 	if (level < 0) {
-	  cpp_error(Getfile(id),Getline(id),"Extraneous #endif ignored.\n");
+	  Swig_error(Getfile(id),Getline(id),"Extraneous #endif.\n");
 	  level = 0;
 	} else {
 	  if (level < start_level) {
@@ -1117,7 +1096,7 @@ Preprocessor_parse(String *s)
   	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET);
-	    /*	    cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
+	    Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
   	    allow = 0;
   	  } else {
   	    if (val == 0)
@@ -1127,7 +1106,7 @@ Preprocessor_parse(String *s)
   	}
       } else if (Cmp(id,"elif") == 0) {
   	if (level == 0) {
-  	  cpp_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
+  	  Swig_error(Getfile(s),Getline(id),"Misplaced #elif.\n");
   	} else {
   	  cond_lines[level-1] = Getline(id);
   	  if (allow) {
@@ -1139,7 +1118,7 @@ Preprocessor_parse(String *s)
   	    val = Preprocessor_expr(sval,&e);
   	    if (e) {
   	      Seek(value,0,SEEK_SET);
-  	      /*      cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);  */
+  	      Swig_warning(WARN_PP_EVALUATION,Getfile(value),Getline(value),"Could not evaluate '%s'\n", value);
   	      allow = 0;
   	    } else {
   	      if (val)
@@ -1158,12 +1137,12 @@ Preprocessor_parse(String *s)
 	  s1 = cpp_include(fn);
 	  if (s1) {
 	    if (include_all) 
-	      Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file());
+	      Printf(ns,"%%includefile \"%s\" [\n", Swig_last_file());
 	    else if (import_all) 
-	      Printf(ns,"%%importfile \"%s\" {\n", Swig_last_file());
+	      Printf(ns,"%%importfile \"%s\" [\n", Swig_last_file());
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
-  	    Printf(ns,"\n}\n");
+  	    Printf(ns,"\n]\n");
 	    Delete(s2);
   	  }
 	  Delete(s1);
@@ -1171,7 +1150,7 @@ Preprocessor_parse(String *s)
   	}
       } else if (Cmp(id,"pragma") == 0) {
       } else if (Cmp(id,"level") == 0) {
-	cpp_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
+	Swig_error(Getfile(s),Getline(id),"cpp debug: level = %d, startlevel = %d\n", level, start_level);
       }
       for (i = 0; i < cpp_lines; i++)
   	Putc('\n',ns);
@@ -1250,7 +1229,7 @@ Preprocessor_parse(String *s)
   	    DOH *s1, *s2, *fn;
 
 	    if (Cmp(decl,"%extern") == 0) {
-	      Printf(stderr,"%s:%d. %%extern is deprecated. Use %%import instead.\n",Getfile(s),Getline(s));
+	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
 	      Clear(decl);
 	      Printf(decl,"%%import");
 	    }
@@ -1259,7 +1238,7 @@ Preprocessor_parse(String *s)
 	    if (s1) {
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
-  	      Printf(ns,"%sfile \"%s\" {\n", decl, Swig_last_file());
+  	      Printf(ns,"%sfile \"%s\" [\n", decl, Swig_last_file());
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_define("WRAPEXTERN 1", 0);
 		Preprocessor_define("SWIGIMPORT 1", 0);
@@ -1270,7 +1249,7 @@ Preprocessor_parse(String *s)
 		Preprocessor_undef("WRAPEXTERN");
 	      }
   	      addline(ns,s2,allow);
-  	      Printf(ns,"\n}\n");
+  	      Printf(ns,"\n]\n");
 	      Delete(s2);
 	      Delete(s1);
   	    }
@@ -1331,18 +1310,18 @@ Preprocessor_parse(String *s)
     }
   }
   while (level > 0) {
-    cpp_error(Getfile(s),-1,"Missing #endif for conditional starting on line %d\n", cond_lines[level-1]);
+    Swig_error(Getfile(s),-1,"Missing #endif for conditional starting on line %d\n", cond_lines[level-1]);
     level--;
   }
   if (state == 150) {
     Seek(value,0,SEEK_SET);
-    cpp_error(Getfile(s),-1,"Missing %%enddef for macro starting on line %d\n",Getline(value));
+    Swig_error(Getfile(s),-1,"Missing %%enddef for macro starting on line %d\n",Getline(value));
   }
   if ((state >= 105) && (state < 107)) {
-    cpp_error(Getfile(s),-1,"Unterminated %%{ ... %%} block starting on line %d\n", start_line);
+    Swig_error(Getfile(s),-1,"Unterminated %%{ ... %%} block starting on line %d\n", start_line);
   }
   if ((state >= 30) && (state < 40)) {
-    cpp_error(Getfile(s),-1,"Unterminated comment starting on line %d\n", start_line);
+    Swig_error(Getfile(s),-1,"Unterminated comment starting on line %d\n", start_line);
   }
   add_chunk(ns,chunk,allow);
   copy_location(s,chunk);

@@ -25,6 +25,8 @@ extern "C" {
 extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 }
 
+#include "swigwarn.h"
+
 #define NOT_VIRTUAL     0
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
@@ -77,6 +79,7 @@ class Dispatcher {
   virtual int typemapitemDirective(Node *n);
   virtual int typemapcopyDirective(Node *n);
   virtual int typesDirective(Node *n);
+  virtual int warnDirective(Node *n);
 
   /* C/C++ parsing */
   

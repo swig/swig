@@ -1055,7 +1055,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     sprintf(temp,"%s:warning", Char(op));
     w = Getattr(node,tmop_name(temp));
     if (w) {
-      Printf(stderr,"%s:%d. Typemap warning. %s\n", Getfile(node), Getline(node), w);
+      Swig_warning(0,Getfile(node),Getline(node),"%s\n", w);
     }
   }
 
@@ -1163,7 +1163,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       sprintf(temp,"%s:warning", Char(op));
       w = Getattr(firstp,tmop_name(temp));
       if (w) {
-	Printf(stderr,"%s:%d. Typemap warning. %s\n", Getfile(firstp), Getline(firstp), w);
+	Swig_warning(0,Getfile(firstp), Getline(firstp), "%s\n", w);
       }
     }
   }

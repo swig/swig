@@ -24,6 +24,8 @@ static char cvsroot[] = "$Header$";
 #include "swigconfig.h"
 #endif
 
+#include "swigwarn.h"
+
 extern "C" {
 #include "preprocessor.h"
 }
@@ -73,6 +75,8 @@ static char *usage = (char*)"\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
+     -Wall           - Enable all warning messages\n\
+     -wn             - Suppress warning number n\n\
      -help           - This output.\n\n";
 
 // -----------------------------------------------------------------------------
@@ -186,6 +190,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Initialize the SWIG core */
   Swig_init();
   
+  /* Inhibit a few warning messages */
+  Swig_warnfilter(WARN_PARSE_PRIVATE_INHERIT,1);
+  Swig_warnfilter(WARN_PP_EVALUATION,1);
+
   // Initialize the preprocessor
   Preprocessor_init();
 
@@ -324,6 +332,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    } else {
 	      Swig_arg_error();
 	    }
+	  } else if (strcmp(argv[i],"-Wall") == 0) {
+	    Swig_mark_arg(i);
+	    Swig_warnall();
+	  } else if (strncmp(argv[i],"-w",2) == 0) {
+	    char *c;
+	    char *t = argv[i]+2;
+	    c = strtok(t,",");
+	    while (c) {
+	      int wn = atoi(c);
+	      Swig_warnfilter(wn,1);
+	      c = strtok(NULL,",");
+	    }
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dump_tags") == 0) {
 	    dump_tags = 1;
 	    Swig_mark_arg(i);
@@ -438,7 +459,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       Seek(fs,0,SEEK_SET);
       cpps = Preprocessor_parse(fs);
-      if (Preprocessor_errors()) {
+      if (Swig_numerrors()) {
 	SWIG_exit(EXIT_FAILURE);
       }
       if (cpp_only) {
