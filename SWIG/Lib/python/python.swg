@@ -220,10 +220,12 @@ SWIG_TypeRegister(_swig_type_info *ti) {
 SWIGSTATICRUNTIME(_swig_type_info *) 
 SWIG_TypeCheck(char *c, _swig_type_info *ty) {
   _swig_type_info *s, *temp2;
+  char *sn;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element is always just the name */
   while (s) {
-    if (strcmp(s->name,c) == 0) {
+    sn = s->name;
+    if ((c == sn) || ((*c == *sn) && (strcmp(sn,c) == 0))) {
       if (s == ty->next) return s;
       /* Move s to the top of the linked list */
       s->prev->next = s->next;
@@ -248,15 +250,29 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty) {
   register int d;
   _swig_type_info *tc;
   char  *c;
-  
+  static PyObject *SWIG_this = 0;
+
   if (!obj || (obj == Py_None)) {
     *ptr = 0;
     return 0;
   }
-  if (!PyString_Check(obj)) {
-    obj = PyObject_GetAttrString(obj,"this");
-    if ((!obj) || !(PyString_Check(obj))) return -1;
-  }
+  if (!(PyCObject_Check(obj))) {
+    if (!SWIG_this)
+      SWIG_this = PyString_InternFromString("this");
+    obj = PyObject_GetAttr(obj,SWIG_this);
+    if ((!obj) || !(PyCObject_Check(obj))) goto type_error;
+  } 
+  *ptr = PyCObject_AsVoidPtr(obj);
+  c = (char *) PyCObject_GetDesc(obj);
+  goto cobject;
+
+#ifdef SWIG_STRING_TYPES
+  if (!(PyString_Check(obj))) {
+    if (!SWIG_this)
+      SWIG_this = PyString_InternFromString("this");
+    obj = PyObject_GetAttr(obj,SWIG_this);
+    if ((!obj) || !(PyString_Check(obj))) goto type_error;
+  } 
   c = PyString_AsString(obj);
   p = 0;
   /* Pointer values must start with leading underscore */
@@ -276,20 +292,30 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty) {
     c++;
   }
   *ptr = (void *) p;
+#endif
+
+cobject:
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
-    if (!tc) {
-      char *temp = (char *) malloc(64+strlen(ty->name));
-      sprintf(temp,"Type error. Expected %s", ty->name);
-      PyErr_SetString(PyExc_TypeError, temp);
-      free((char *) temp);
-      return -1;
-    }
+    if (!tc) goto type_error;
     if (tc->converter) {
       *ptr = (*tc->converter)((void *) p);
     }
   }
   return 0;
+
+type_error:
+  {
+    if (ty) {
+      char *temp = (char *) malloc(64+strlen(ty->name));
+      sprintf(temp,"Type error. Expected %s", ty->name);
+      PyErr_SetString(PyExc_TypeError, temp);
+      free((char *) temp);
+    } else {
+      PyErr_SetString(PyExc_TypeError,"Expected a pointer");
+    }
+    return -1;
+  }
 }
 
 /* Take a pointer and convert it to a string */
@@ -324,8 +350,9 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
     Py_INCREF(Py_None);
     return Py_None;
   }
-  SWIG_MakePtr(result,ptr,type);
-  robj = PyString_FromString(result);
+  /*  SWIG_MakePtr(result,ptr,type);
+      robj = PyString_FromString(result);*/
+  robj = PyCObject_FromVoidPtrAndDesc((void *) ptr, type->name, NULL);
   return robj;
 }
 
