@@ -595,17 +595,21 @@ SWIGEXPORT(void)
 $realmodule_swig_init(int argc, C_word closure, C_word continuation) {
   static int       typeinit = 0;
   int       i;
+  C_word sym;
+  C_word tmp;
+  C_word *a;
+  C_word ret;
 
   if (!typeinit) {
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }
     typeinit = 1;
-    swig_init_helper (continuation);
+    ret = C_SCHEME_TRUE;
+  } else {
+    ret = C_SCHEME_FALSE;
   }
-  else {
-    C_kontinue (continuation, C_SCHEME_FALSE);
-  }
-}
+  
+  a = C_alloc(2*$nummethods$symsize);
 
 %}

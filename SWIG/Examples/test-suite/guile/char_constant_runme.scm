@@ -2,8 +2,4 @@
 ;; Guile modules (namespaces) but simply put all the bindings into the
 ;; current module.  That's enough for such a simple test.
 (dynamic-call "scm_init_char_constant_module" (dynamic-link "./libchar_constant.so"))
-
-(if (and (char? (CHAR-CONSTANT))
-	 (string? (STRING-CONSTANT)))
-    (exit 0)
-    (exit 1))
+(load "../schemerunme/char_constant.scm")

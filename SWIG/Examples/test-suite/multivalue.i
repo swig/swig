@@ -1,6 +1,6 @@
 /* -*- c -*- */
 
-%module test
+%module multivalue
 
 #ifdef SWIGGUILE
 

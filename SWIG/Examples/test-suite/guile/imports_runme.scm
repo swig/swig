@@ -8,12 +8,4 @@
 ;; current module.  That's enough for such a simple test.
 (dynamic-call "scm_init_imports_a_module" (dynamic-link "./libimports_a.so"))
 (dynamic-call "scm_init_imports_b_module" (dynamic-link "./libimports_b.so"))
-
-(define x (new-B))
-
-;; This fails in 1.3a5 because the SWIG runtime code does not know
-;; that x (an instance of class B) can be passed to methods of class A. 
-
-(A-hello x)				
-
-(exit 0)
+(load "../schemerunme/imports.scm")

@@ -55,7 +55,6 @@ static int           num_methods = 0;
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
 static  File         *f_wrappers = 0;
-static  File         *f_init_helper = 0;
 static  File         *f_sym_size = 0;
 static  File         *f_init = 0;
 static  File         *f_scm = 0;
@@ -220,7 +219,6 @@ CHICKEN::top(Node *n)
     SWIG_exit(EXIT_FAILURE);
   }
   f_sym_size = NewString("");
-  f_init_helper = NewString("\n");
   f_init = NewString("");
   f_header = NewString("");
   f_wrappers = NewString("");
@@ -232,7 +230,6 @@ CHICKEN::top(Node *n)
   Swig_register_filebyname("header",f_header);
   Swig_register_filebyname("wrapper",f_wrappers);
   Swig_register_filebyname("runtime",f_runtime);
-  Swig_register_filebyname("init_helper",f_init_helper);
   Swig_register_filebyname("init",f_init);
     
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
@@ -331,14 +328,6 @@ CHICKEN::top(Node *n)
   Printf(f_wrappers,"extern \"C\" {\n");
   Printf(f_wrappers,"#endif\n\n");
 
-  Printf(f_init_helper, 
-	 "static void swig_init_helper (C_word continuation) C_noret;\n");
-  Printf(f_init_helper, 
-	 "static void swig_init_helper (C_word continuation) {\n");
-  Printf(f_init_helper, "C_word sym;\n");
-  Printf(f_init_helper, "C_word tmp;\n");
-  Printf(f_init_helper, "C_word *a = C_alloc (2*$nummethods$symsize);\n");
-
 #ifdef INIT_BINDING
   {
     String *tmp = NewString("");
@@ -361,12 +350,13 @@ CHICKEN::top(Node *n)
   Printf(f_wrappers,"}\n");
   Printf(f_wrappers,"#endif\n");
 
-  Printf(f_init_helper, "C_kontinue (continuation, C_SCHEME_TRUE);\n");
-  Printf(f_init_helper, "}\n");
+  Printf(f_init, "C_kontinue (continuation, ret);\n");
+  Printf(f_init, "}\n\n");
+
   char buftmp[20];
   sprintf(buftmp, "%d", num_methods);
-  Replaceall(f_init_helper, "$nummethods", buftmp);
-  Replaceall(f_init_helper, "$symsize", f_sym_size);
+  Replaceall(f_init, "$nummethods", buftmp);
+  Replaceall(f_init, "$symsize", f_sym_size);
 
   Delete(chicken_filename);
   Delete(clos_filename);
@@ -392,12 +382,10 @@ CHICKEN::top(Node *n)
   /* Close all of the files */
   Dump(f_header,f_runtime);
   Dump(f_wrappers,f_runtime);
-  Wrapper_pretty_print(f_init_helper,f_runtime);
   Wrapper_pretty_print(f_init,f_runtime);
   Delete(f_header);
   Delete(f_wrappers);
   Delete(f_sym_size);
-  Delete(f_init_helper);
   Delete(f_init);
   Close(f_runtime);
   Delete(f_runtime);
@@ -550,10 +538,10 @@ CHICKEN::functionWrapper(Node *n)
 	Delete(cn);
       }
       else {
-	Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
+	/*Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
 		     "Unable to find \"%%typemap(clos_in) %s *\" "
 		     "or typemaps for any superclasses.\n", 
-		     SwigType_str(pb,0));
+		     SwigType_str(pb,0));*/
       }
     }
     if (!gotwrap) {
@@ -746,10 +734,10 @@ CHICKEN::functionWrapper(Node *n)
       closparam = Copy(tm);
     }
     else {
-      Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
+      /*Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
 		   "Unable to find \"%%typemap(clos_out) %s *\" "
 		   "or typemaps for any superclasses.\n", 
-		   SwigType_str(pb,0));
+		   SwigType_str(pb,0));*/
     }
   }
 
@@ -1680,9 +1668,9 @@ CHICKEN::addMethod(String *, String *scheme_name, String *function)
 
   /* add symbol to Chicken internal symbol table */
   Printf(f_sym_size, "+C_SIZEOF_INTERNED_SYMBOL(%d)", Len(sym));    
-  Printf(f_init_helper, "sym = C_intern (&a, %d, \"%s\");\n", 
+  Printf(f_init, "sym = C_intern (&a, %d, \"%s\");\n", 
 	 Len(sym), sym);
-  Printv(f_init_helper, 
+  Printv(f_init, 
 	 "C_mutate ((C_word*)sym+1, (*a=C_CLOSURE_TYPE|1, a[1]=(C_word)", 
 	 function, ", tmp=(C_word)a, a+=2, tmp));\n", NIL);
   num_methods++;
