@@ -299,7 +299,6 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  } else {
 	    valuestr = SwigType_namestr(value);
 	  }
-	  /*	  Printf(stdout,"valuestr = '%s'\n", valuestr); */
 	  assert(value);
 	  /* Need to patch default arguments */
 	  {
@@ -381,6 +380,52 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_cparse_template_defargs()
+ *
+ * Apply default arg from generic template default args 
+ * ----------------------------------------------------------------------------- */
+
+
+void
+Swig_cparse_template_defargs(Parm *parms, Parm *targs) {
+  if (Len(parms) < Len(targs)) {
+    Parm *lp = parms;
+    Parm *p = lp;
+    Parm *tp = targs;
+    while(p && tp) {
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+      if (p) lp = p;
+    }
+    while (tp) {
+      String *value = Getattr(tp,"value");
+      if (value) {
+	Parm *cp;
+	Parm *ta = targs;
+	Parm *p = parms;
+	SwigType *nt  = Swig_symbol_typedef_reduce(value,0);
+	while(p && ta) {
+	  String *name = Getattr(ta,"name");
+	  String *value = Getattr(p,"value");
+	  if (!value) value = Getattr(p,"type");
+	  Replace(nt, name, value, DOH_REPLACE_ID);
+	  p = nextSibling(p);
+	  ta = nextSibling(ta);
+	}
+	cp = NewParm(Swig_symbol_type_qualify(nt,0),0);
+	set_nextSibling(lp,cp);
+	lp = cp;
+	tp = nextSibling(tp);
+	Delete(nt);
+      } else {
+	tp = 0;
+      }
+    }
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
  * template_locate()
  *
  * Search for a template that matches name with given parameters.
@@ -394,17 +439,30 @@ template_locate(String *name, Parm *tparms) {
   List   *mpartials = 0;
   Parm   *p;
   Parm   *parms;
+  Parm   *targs;
 
   tname = NewString(name);
   parms = CopyParmList(tparms);
 
+  /* Search for generic template */
+  templ = Swig_symbol_clookup_local(name,0);
+
+  /* Add default values from generic template */
+  if (templ) {
+    targs = Getattr(templ,"templateparms");
+    Swig_cparse_template_defargs(parms, targs);
+  }
+  
+
+  /* reduce the typedef */
   p = parms;
   while (p) {
     SwigType *ty = Getattr(p,"type");
     if (ty) {
-      SwigType *nt = Swig_symbol_typedef_reduce(ty,0);
-      nt = Swig_symbol_type_qualify(nt,0);
+      SwigType *rt = Swig_symbol_typedef_reduce(ty,0);
+      SwigType *nt = Swig_symbol_type_qualify(rt,0);
       Setattr(p,"type",nt);
+      Delete(rt);
     }
     p = nextSibling(p);
   }
@@ -436,10 +494,7 @@ template_locate(String *name, Parm *tparms) {
 	  return 0;        /* Found a match, but it's not a template of any kind. */
       }
   }
-
-  /* Search for generic template */
-  templ = Swig_symbol_clookup_local(name,0);
-
+  
   /* Search for partial specialization. 
      Example: template<typename T> class name<T *> { ... } */
 

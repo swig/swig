@@ -57,6 +57,16 @@ static int      dirprot_mode  = 0;
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
 
+#define SWIG_WARN_NODE_BEGIN(Node) \
+ { \
+  String *wrn = Getattr(Node,"feature:warnfilter"); \
+  if (wrn) Swig_warnfilter(wrn,1) 
+
+#define SWIG_WARN_NODE_END(Node) \
+  if (wrn) Swig_warnfilter(wrn,0); \
+ }
+
+ 
 /* Called by the parser (yyparse) when an error is found.*/
 static void yyerror (const char *e) {
   (void)e;
@@ -407,6 +417,7 @@ static void add_symbols(Node *n) {
             Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
           }
           Printf(ec,".");
+	  SWIG_WARN_NODE_BEGIN(n);
           if (redefined) {
             Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
             Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
@@ -414,6 +425,7 @@ static void add_symbols(Node *n) {
             Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
             Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
           }
+	  SWIG_WARN_NODE_END(n);
           Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
                  Getfile(c),Getline(c),ec);
           Setattr(n,"error",e);
@@ -559,8 +571,10 @@ static void merge_extensions(Node *cls, Node *am) {
 	String *ec = NewString("");
 	Printf(ec,"Identifier '%s' redefined by %%extend (ignored),",symname);
 	Printf(en,"%%extend definition of '%s'.",symname);
+	SWIG_WARN_NODE_BEGIN(n);
 	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym),Getline(csym),"%s\n",ec);
 	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
+	SWIG_WARN_NODE_END(n);
 	Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(csym),Getline(csym),ec, 
 	       Getfile(n),Getline(n),en);
 	Setattr(csym,"error",e);
@@ -583,7 +597,9 @@ static void merge_extensions(Node *cls, Node *am) {
    if (!extendhash) return;
    for (ki = First(extendhash); ki.key; ki = Next(ki)) {
      if (!Strstr(ki.key,"<")) {
+       SWIG_WARN_NODE_BEGIN(ki.item);
        Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
+       SWIG_WARN_NODE_END(ki.item);
      }
    }
  }
@@ -2004,6 +2020,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
+		  
 		  $$ = 0;
 
 		  tscope = Swig_symbol_current();          /* Get the current scope */
@@ -2024,8 +2041,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			Swig_error(cparse_file,cparse_line,"'%s' is not defined as namespace.\n", prefix);
 			ns = 0;
 		      } else {
-			/*			Swig_symbol_setscope(Getattr(ns,"symtab"));
-						Namespaceprefix = Swig_symbol_qualifiedscopename(0); */
+			/* Swig_symbol_setscope(Getattr(ns,"symtab"));
+			   Namespaceprefix = Swig_symbol_qualifiedscopename(0); */
 		      }
 		    }
 
@@ -2084,14 +2101,22 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
 		  while (p) {
-		    if (!Getattr(p,"value")) {
+		    SwigType *value = Getattr(p,"value");
+		    if (!value) {
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
-			ty = Swig_symbol_type_qualify(ty,0);
-			/*			ty = Swig_symbol_typedef_reduce(ty,0); */
+			SwigType *rty = Swig_symbol_typedef_reduce(ty,0); 
+			ty = Swig_symbol_type_qualify(rty,0);
 			Setattr(p,"type",ty);
+			Delete(rty);
 		      }
+		    } else {
+		      SwigType *rty = Swig_symbol_typedef_reduce(value,0); 
+		      value = Swig_symbol_type_qualify(rty,0);
+		      Setattr(p,"value",value);
+		      Delete(rty);
 		    }
+		    
 		    p = nextSibling(p);
 		  }
 
@@ -2295,8 +2320,10 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($4));
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (ignored).\n", $2);
-		     $$ = 0;
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (using extern \"C\").\n", $2);
+		    $$ = new_node("extern");
+		    Setattr($$,"name","C");
+		    appendChild($$,firstChild($4));
 		  }
                 }
                 ;
@@ -2851,7 +2878,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  String *tbase = SwigType_templateprefix(tname);
 			  tempn = Swig_symbol_clookup_local(tbase,0);
 			  if (!tempn || (Strcmp(nodeType(tempn),"template") != 0)) {
+			    SWIG_WARN_NODE_BEGIN(tempn);
 			    Swig_warning(WARN_PARSE_TEMPLATE_SP_UNDEF, Getfile($$),Getline($$),"Specialization of non-template '%s'.\n", tbase);
+			    SWIG_WARN_NODE_END(tempn);
 			    tempn = 0;
 			    error = 1;
 			  }
@@ -2980,11 +3009,13 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      ffname = SwigType_templateprefix(fname);
 			      Append(ffname,"<(");
 			      for (tt = First(tparms); tt.item; ) {
-				SwigType *ttr = Swig_symbol_typedef_reduce(tt.item,0);
-				ttr = Swig_symbol_type_qualify(ttr,0);
+				SwigType *rtt = Swig_symbol_typedef_reduce(tt.item,0);
+				SwigType *ttr = Swig_symbol_type_qualify(rtt,0);
 				Append(ffname,ttr);
 				tt = Next(tt);
 				if (tt.item) Putc(',',ffname);
+				Delete(rtt);
+				Delete(ttr);
 			      }
 			      Append(ffname,")>");
 			    }
@@ -3006,18 +3037,22 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			} else {
 			  /* Need to resolve exact specialization name */
 			  /* This needs to be rewritten */
-			  List *tparms;
+			  ParmList *tparms;
 			  String *fname;
-			  Iterator tt;
+			  Parm *p;
 			  fname = SwigType_templateprefix(tname);
-			  tparms = SwigType_parmlist(tname);
+			  tparms = SwigType_function_parms(tname);
+			  /* add default args from generic template */
+			  Swig_cparse_template_defargs(tparms, Getattr(tempn,"templateparms"));
 			  Append(fname,"<(");
-			  for (tt = First(tparms); tt.item; ) {
-			    SwigType *ttr = Swig_symbol_typedef_reduce(tt.item,0);
+			  p = tparms;
+			  while (p){
+			    SwigType *type = Getattr(p,"type");
+			    SwigType *ttr = Swig_symbol_typedef_reduce(type ? type : Getattr(p,"value") ,0);
 			    ttr = Swig_symbol_type_qualify(ttr,0);
 			    Append(fname,ttr);
-			    tt = Next(tt);
-			    if (tt.item) Putc(',',fname);
+			    p = nextSibling(p);
+			    if (p) Putc(',',fname);
 			  }
 			  Append(fname,")>");
 			  Swig_symbol_cadd(fname,$$);
@@ -3599,8 +3634,8 @@ storage_class  : EXTERN { $$ = "extern"; }
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
 		   } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (ignored).\n", $2);
-		     $$ = 0;
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (using extern \"C\").\n", $2);
+		     $$ = "externc";
 		   }
                }
                | STATIC { $$ = "static"; }

@@ -55,6 +55,7 @@ extern int       need_redefined_warn(Node* a, Node* b, int InClass);
 
 
 /* templ.c */
+extern void     Swig_cparse_template_defargs(Parm *parms, Parm *targs);
 extern int       Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
 extern Node     *Swig_cparse_template_locate(String *name, ParmList *tparms);
 extern void      Swig_cparse_debug_templates(int);
