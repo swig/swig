@@ -1,8 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 SWIGOPT    = -c
-#If your system requires linking with the runtime libraries then set the directory location here
-RUNTIMEDIR = /usr/local/lib
+RUNTIMEDIR = $(TOP)/../Runtime/.libs
  
 all::
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
