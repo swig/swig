@@ -17,11 +17,53 @@ tree (maybe).
 Version 1.3.11 (Work in progress)
 =================================
 
+01/05/2002: cheetah (william fulton)
+           [Java] Casting fix for when function return type is a pointer as 
+           reported by Gary Pennington 2002-01-05. The upper 32bits of the 
+           64 bit jlong will have contained junk for 32bit pointers.
+
+01/05/2002: cheetah (william fulton)
+           [Java] Better pointer handling in Java is possible as the 
+           INPUT, OUTPUT and INOUT typemaps have been added into typemaps.i.
+
+01/05/2002: cheetah (william fulton)
+           [Java] $null can be used in input typemaps to return early from JNI 
+           functions that have either void or a non-void return type. Example:
+
+             %typemap(check) int * %{ 
+               if (error) {
+                 SWIG_exception(SWIG_IndexError, "Array element error");
+                 return $null;
+               }
+             %}
+
+           If the typemap gets put into a function with void as return, $null 
+           will expand to nothing:
+
+             void jni_fn(...) {
+                 if (error) {
+                   SWIG_exception(SWIG_IndexError, "Array element error");
+                   return ;
+                 }
+               ...
+             }
+
+           otherwise $null expands to zero, where javareturntype is either a 
+           pointer or a primitive type:
+
+             javareturntype jni_fn(...) {
+                 if (error) {
+                   SWIG_exception(SWIG_IndexError, "Array element error");
+                   return 0;
+                 }
+               ...
+             }
+
 01/02/2002: cheetah (william fulton)
            [Java] The Java module incorrectly used argout typemaps for 
            strings and arrays. This is now corrected and the code now resides
-           in the freearg typemap. This would have forced some user written 
-           typemaps to do the same, and these typemaps will also need moving 
+           in the freearg typemap. This may require some user written 
+           typemaps to be modified too. These typemaps will also need moving 
            from argout to freearg, unless they are truly argout typemaps.
            *** POTENTIAL INCOMPATIBILITY ***
 
