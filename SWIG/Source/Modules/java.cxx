@@ -3503,7 +3503,7 @@ class JAVA : public Language {
       for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
         UpcallData       *udata = Getitem(dmethods_seq, i);
 
-        Printf(w->def, "{ \"%s\", \"%s\" }", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+        Printf(w->def, "{ \"%s\", \"%s\", NULL }", Getattr(udata, "method"), Getattr(udata, "fdesc"));
         if (i != curr_class_dmethod - 1)
           Putc(',', w->def);
         Putc('\n', w->def);
