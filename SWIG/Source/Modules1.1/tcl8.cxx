@@ -284,6 +284,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Wrapper         *f;
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              numopt= 0;
+  int              numin = 0;
 
   incode  = NewString("");
   cleanup = NewString("");
@@ -316,10 +317,12 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     sprintf(target,"%s", Char(Getattr(p,"lname")));
     sprintf(argnum,"%d",j+1);
 
+    if (numin) numin--;
     /* See if this argument is being ignored */
-    if (!Getattr(p,"ignore")) {
+    if (!numin && !Getattr(p,"ignore")) {
       if (j == (pcount-numopt)) Putc('|',argstr);
-      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
+      /*      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) { */
+      if ((tm = Swig_typemap_lookup_multi((char *)"in",p,source,f,&numin))) {
 	Putc('o',argstr);
 	Printf(args,",0");
 	Printf(incode,"%s\n", tm);

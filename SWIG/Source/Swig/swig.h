@@ -413,14 +413,19 @@ extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
 
 extern void   Swig_typemap_init();
 extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
+extern void   Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals);
+
 extern void   Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname,
 				SwigType *ttype, String_or_char *tname);
 extern void   Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name);
+extern void   Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms);
 extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_debug();
 extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
+extern Hash  *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch);
 extern char  *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
+extern char  *Swig_typemap_lookup_multi(const String_or_char *op, ParmList *parms, String_or_char *source, Wrapper *f, int *nmatch);
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 

@@ -761,10 +761,11 @@ addmethods_directive : ADDMETHODS ID LBRACE {
    %apply
    ------------------------------------------------------------ */
 
-apply_directive : APPLY parm LBRACE parms RBRACE {
+apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
                     $$ = new_node("apply");
                     Setattr($$,"name",Getattr($2,"name"));
    		    Setattr($$,"type",Getattr($2,"type"));
+		    Setattr($$,"multitype", Getattr($2,"multitype"));
 		    Setattr($$,"parms",$4);
                };
 
@@ -1138,6 +1139,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     while (p) {
 		       Node *n = new_node("typemapitem");
 		       Setattr(n,"type",Getattr(p,"type"));
+		       Setattr(n,"multitype",Getattr(p,"multitype"));
 		       Setattr(n,"name",Getattr(p,"name"));
 		       Setattr(n,"parms",Getattr(p,"parms"));
 		       appendChild($$,n);
@@ -1157,6 +1159,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     while (p) {
 		       Node *n = new_node("typemapitem");
 		       Setattr(n,"type",Getattr(p,"type"));
+		       Setattr(n,"multitype",Getattr(p,"multitype"));
 		       Setattr(n,"name",Getattr(p,"name"));
 		       Setattr(n,"parms",Getattr(p,"parms"));
 		       appendChild($$,n);
@@ -1175,6 +1178,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   while (p) {
 		     Node *n = new_node("typemapitem");
 		     Setattr(n,"type",Getattr(p,"type"));
+		     Setattr(n,"multitype",Getattr(p,"multitype"));
 		     Setattr(n,"name",Getattr(p,"name"));
 		     appendChild($$,n);
 		     p = nextSibling(p);
@@ -1188,13 +1192,15 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     $$ = new_node("typemapcopy");
 		     Setattr($$,"method",$3);
 		     Setattr($$,"type",Getattr($7,"type"));
+		     Setattr($$,"multitype",Getattr($7,"multitype"));
 		     Setattr($$,"name",Getattr($7,"name"));
 
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"newtype", Getattr(p,"type"));
-		       Setattr(n,"newname", Getattr(p,"name"));
+		       Setattr(n,"type", Getattr(p,"type"));
+		       Setattr(n,"multitype",Getattr(p,"multitype"));
+		       Setattr(n,"name", Getattr(p,"name"));
 		       appendChild($$,n);
 		       p = nextSibling(p);
 		     }
@@ -1236,7 +1242,16 @@ typemap_parm   : type typemap_parameter_declarator {
 		  $$ = NewParm($1,$2.id);
 		  Setattr($$,"parms",$2.parms);
                 }
-		;
+               | LPAREN parms RPAREN {
+                  $$ = NewHash();
+		  Setattr($$,"multitype",$2);
+               }
+               | LPAREN parms RPAREN LPAREN parms RPAREN {
+		 $$ = NewHash();
+                 Setattr($$,"multitype",$2);
+		 Setattr($$,"parms",$5);
+               }
+               ;
 
 /* ------------------------------------------------------------
    %types(parmlist); 

@@ -261,11 +261,15 @@ void Language::addmethodsDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 void Language::applyDirective(Node *n) {
-  SwigType *type = Getattr(n,"type");
-  String   *name = Getattr(n,"name");
-  Parm     *p    = Getattr(n,"parms");
+
+  SwigType *type  = Getattr(n,"type");
+  String   *name  = Getattr(n,"name");
+  Parm     *p     = Getattr(n,"parms");
+  Parm     *mtype = Getattr(n,"multitype");
   while (p) {
-    Swig_typemap_apply(type,name,Getattr(p,"type"),Getattr(p,"name"));
+    if (type) {
+      Swig_typemap_apply(type,name,Getattr(p,"type"),Getattr(p,"name"));
+    }
     p = nextSibling(p);
   }
 }
@@ -428,16 +432,27 @@ void Language::pragmaDirective(Node *n) {
 void Language::typemapDirective(Node *n) {
   /* %typemap directive */
   String *method = Getattr(n,"method");
-  String *code = Getattr(n,"code");
-  Node   *items = firstChild(n);
+  String *code   = Getattr(n,"code");
+  Node   *items  = firstChild(n);
   while (items) {
-    SwigType *type = Getattr(items,"type");
-    String   *name = Getattr(items,"name");
-    Parm     *parms = Getattr(items,"parms");
-    if (code) {
-      Swig_typemap_register(method,type,name,code,parms);
+    SwigType *type      = Getattr(items,"type");
+    String   *name      = Getattr(items,"name");
+    Parm     *parms     = Getattr(items,"parms");
+    Parm     *multitype = Getattr(items,"multitype");
+    if (type) {
+      if (code) {
+	Swig_typemap_register(method,type,name,code,parms);
+      } else {
+	Swig_typemap_clear(method,type,name);
+      }
     } else {
-      Swig_typemap_clear(method,type,name);
+      /* Multitype  */
+      if (code) {
+	Swig_typemap_register_multi(method,multitype,code,parms);
+      } else {
+	/* Delete a multitype */
+	Swig_typemap_clear_multi(method,multitype);
+      }
     }
     items = nextSibling(items);
   }
@@ -451,12 +466,34 @@ void Language::typemapcopyDirective(Node *n) {
   String *method = Getattr(n,"method");
   String *name   = Getattr(n,"name");
   String *type   = Getattr(n,"type");
-  Node *items = firstChild(n);
-  while (items) {
-    SwigType *newtype = Getattr(items,"newtype");
-    String   *newname = Getattr(items,"newname");
-    Swig_typemap_copy(method,type,name,newtype,newname);
-    items = nextSibling(items);
+  Parm   *mtype  = Getattr(n,"multitype");
+  Node *items    = firstChild(n);
+
+  if (type) {
+    while (items) {
+      SwigType *newtype  = Getattr(items,"type");
+      String   *newname  = Getattr(items,"name");
+      if (newtype) {
+	Swig_typemap_copy(method,type,name,newtype,newname);
+      } else {
+	Printf(stderr,"%s:%d. Can't copy %s to a multi-valued typemap\n", input_file, line_number,
+	       SwigType_str(type,name));
+      }
+      items = nextSibling(items);
+    }
+  } else {
+    /* Multitype */
+    while (items) {
+      SwigType *newmtype  = Getattr(items,"multitype");
+      String   *newname  = Getattr(items,"name");
+      if (newmtype) {
+	Printf(stderr,"%s:%d. Multi-valued typemap copy not implemented.\n", input_file, line_number);
+      } else {
+	Printf(stderr,"%s:%d. Can't copy (%s) to a single-valued typemap\n", input_file, line_number,
+	       ParmList_str(mtype));
+      }
+      items = nextSibling(items);
+    }
   }
 }
 

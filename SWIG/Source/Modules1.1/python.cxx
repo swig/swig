@@ -357,6 +357,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   String *kwargs;
   char     *tm;
   int      numopt = 0;
+  int      numin = 0;
 
   f = NewWrapper();
   parse_args = NewString("");
@@ -413,7 +414,8 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     sprintf(target,Char(Getattr(p,"lname")));
     sprintf(argnum,"%d",j+1);
 
-    if (!Getattr(p,"ignore")) {
+    if (numin) numin--;
+    if (!numin && !Getattr(p,"ignore")) {
       Putc(',',arglist);
       if (j == pcount-numopt) Putc('|',parse_args);   /* Optional argument separator */
       if (Len(pn)) {
@@ -421,8 +423,20 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       } else {
 	Printf(kwargs,"\"arg%d\",", j+1);
       }
+      /*
+      {
+	char *m;
+	int   nmatch = 0;
+	m = Swig_typemap_lookup_multi((char *) "in", p, source, f, &nmatch);
+	if (m) {
+	  Printf(stdout,"nmatch = %d\n", nmatch);
+	  Printf(stdout,"%s\n\n", m);
+	}
+      }
+      */
 
-      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
+      /*      if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {*/
+      if ((tm = Swig_typemap_lookup_multi((char *)"in",p,source,f,&numin))) {
 	Putc('O',parse_args);
 	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
 	Printf(arglist,"&%s",source);
@@ -539,6 +553,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       }
       j++;
     }
+
     /* Check if there was any constraint code */
     if ((tm = Swig_typemap_lookup((char*)"check",pt,pn,source,target,0))) {
       Printf(check,"%s\n",tm);
