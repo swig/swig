@@ -1,6 +1,12 @@
 Version 1.3.23 (working version)
 =================================
 
+12/05/2004: wsfulton
+            [Java] Director mods contributed by Scott Michel. New typemaps
+            directordisconnect and directordisconnect_derived for the 
+            swigDirectorDisconnect() method. Also fix to get the javapackage
+            typemap working again.
+
 12/05/2004: mmatus
 	    - Finishing the fixes for templates + default template
 	      args + specializations.
