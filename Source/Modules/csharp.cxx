@@ -462,29 +462,6 @@ class CSHARP : public Language {
       if (!addSymbol(Getattr(n,"sym:name"),n)) return SWIG_ERROR;
     }
 
-    /* 
-     * Generate the proxy class properties for public member variables.
-     * Not for enums and constants.
-     */
-    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      // Capitalize the first letter in the variable in the getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
-
-      String *getter_setter_name = NewString("");
-      if(!getter_flag)
-        Printf(getter_setter_name,"set");
-      else 
-        Printf(getter_setter_name,"get");
-      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
-      Printf(getter_setter_name, "%s", Char(variable_name)+1);
-
-      Setattr(n,"proxyfuncname", getter_setter_name);
-      Setattr(n,"imfuncname", symname);
-
-      proxyClassFunctionHandler(n);
-      Delete(getter_setter_name);
-    }
-
     /*
        The rest of this function deals with generating the intermediary class wrapper function (that wraps
        a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a 
@@ -716,6 +693,7 @@ class CSHARP : public Language {
     /* See if there is any return cleanup code */
     if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+        canThrow(n, "ret", n);
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
       }
@@ -735,7 +713,12 @@ class CSHARP : public Language {
     Replaceall(f->code,"$cleanup",cleanup);
 
     /* Contract macro modification */
-    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+    if (Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ") > 0) {
+      Setattr(n,"csharp:canthrow","1");
+    }
+
+    /* Exception macro modification */
+    Replaceall(f->code, "SWIG_exception(", "SWIG_exception($null, ");
 
     if(!is_void_return)
       Replaceall(f->code,"$null","0");
@@ -767,6 +750,29 @@ class CSHARP : public Language {
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
+    }
+
+    /* 
+     * Generate the proxy class properties for public member variables.
+     * Not for enums and constants.
+     */
+    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable in the getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+      if(!getter_flag)
+        Printf(getter_setter_name,"set");
+      else 
+        Printf(getter_setter_name,"get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name)+1);
+
+      Setattr(n,"proxyfuncname", getter_setter_name);
+      Setattr(n,"imfuncname", symname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
     }
 
     Delete(c_return_type);
@@ -1490,6 +1496,7 @@ class CSHARP : public Language {
     String    *proxy_function_name = Getattr(n,"proxyfuncname");
     String    *tm;
     Parm      *p;
+    Parm      *last_parm = 0;
     int       i;
     String    *imcall = NewString("");
     String    *return_type = NewString("");
@@ -1572,6 +1579,7 @@ class CSHARP : public Language {
       {
         SwigType *pt = Getattr(p,"type");
         String   *param_type = NewString("");
+        last_parm = p;
 
         /* Get the C# parameter type */
         if ((tm = Getattr(p,"tmap:cstype"))) {
@@ -1585,11 +1593,10 @@ class CSHARP : public Language {
         if (gencomma)
           Printf(imcall, ", ");
 
-        String *arg = variable_wrapper_flag ? NewString("value") : makeParameterName(n, p, i);
+        String *arg = makeParameterName(n, p, i, setter_flag);
 
         // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          canThrow(n, "csin", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
           Printv(imcall, tm, NIL);
@@ -1615,7 +1622,6 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      canThrow(n, "csout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
@@ -1628,23 +1634,21 @@ class CSHARP : public Language {
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
-
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
       if(setter_flag) {
         // Setter method
-        if ((tm = Swig_typemap_lookup_new("csvarin",n,"",0))) {
-          if (Getattr(n,"feature:new"))
-            Replaceall(tm,"$owner","true");
-          else
-            Replaceall(tm,"$owner","false");
-          substituteClassname(t, tm);
+        Swig_typemap_attach_parms("csvarin", l, NULL);
+        p = last_parm; // (last parameter is the only parameter for properties)
+        SwigType *pt = Getattr(p,"type");
+        if ((tm = Getattr(p,"tmap:csvarin"))) {
+          substituteClassname(pt, tm);
           Replaceall(tm, "$imcall", imcall);
+          excodeSubstitute(n, tm, "csvarin", p);
           Printf(proxy_class_code, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
-              "No csvarin typemap defined for %s\n", SwigType_str(t,0));
+              "No csvarin typemap defined for %s\n", SwigType_str(pt,0));
         }
       } else {
         // Getter method
@@ -1655,6 +1659,7 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","false");
           substituteClassname(t, tm);
           Replaceall(tm, "$imcall", imcall);
+          excodeSubstitute(n, tm, "csvarout", n);
           Printf(proxy_class_code, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
@@ -1663,6 +1668,7 @@ class CSHARP : public Language {
       }
     } else {
       // Normal function call
+      Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
       Printv(proxy_class_code, function_code, NIL);
     }
 
@@ -1738,11 +1744,10 @@ class CSHARP : public Language {
         if (gencomma)
           Printf(imcall, ", ");
 
-        String *arg = makeParameterName(n, p, i);
+        String *arg = makeParameterName(n, p, i, false);
 
         // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
         if ((tm = Getattr(p,"tmap:csin"))) {
-          canThrow(n, "csin", p);
           substituteClassname(pt, tm);
           Replaceall(tm, "$csinput", arg);
           Printv(imcall, tm, NIL);
@@ -1901,6 +1906,7 @@ class CSHARP : public Language {
     ParmList  *l = Getattr(n,"parms");
     String    *tm;
     Parm      *p;
+    Parm      *last_parm = 0;
     int       i;
     String    *imcall = NewString("");
     String    *return_type = NewString("");
@@ -1967,6 +1973,7 @@ class CSHARP : public Language {
 
       SwigType *pt = Getattr(p,"type");
       String   *param_type = NewString("");
+      last_parm = p;
 
       /* Get the C# parameter type */
       if ((tm = Getattr(p,"tmap:cstype"))) {
@@ -1980,11 +1987,10 @@ class CSHARP : public Language {
       if (gencomma)
         Printf(imcall, ", ");
 
-      String *arg = makeParameterName(n, p, i);
+      String *arg = makeParameterName(n, p, i, setter_flag);
 
       // Use typemaps to transform type used in C# wrapper function (in proxy class) to type used in PInvoke function (in intermediary class)
       if ((tm = Getattr(p,"tmap:csin"))) {
-        canThrow(n, "csin", p);
         substituteClassname(pt, tm);
         Replaceall(tm, "$csinput", arg);
         Printv(imcall, tm, NIL);
@@ -2009,7 +2015,6 @@ class CSHARP : public Language {
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("csout",n,"",0))) {
-      canThrow(n, "csout", n);
       if (Getattr(n,"feature:new"))
         Replaceall(tm,"$owner","true");
       else
@@ -2022,23 +2027,21 @@ class CSHARP : public Language {
           "No csout typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
-
     if (proxy_flag && global_variable_flag) {
       // Properties
       if(setter_flag) {
         // Setter method
-        if ((tm = Swig_typemap_lookup_new("csvarin",n,"",0))) {
-          if (Getattr(n,"feature:new"))
-            Replaceall(tm,"$owner","true");
-          else
-            Replaceall(tm,"$owner","false");
-          substituteClassname(t, tm);
+        Swig_typemap_attach_parms("csvarin", l, NULL);
+        p = last_parm; // (last parameter is the only parameter for properties)
+        SwigType *pt = Getattr(p,"type");
+        if ((tm = Getattr(p,"tmap:csvarin"))) {
+          substituteClassname(pt, tm);
           Replaceall(tm, "$imcall", imcall);
+          excodeSubstitute(n, tm, "csvarin", p);
           Printf(module_class_code, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
-              "No csvarin typemap defined for %s\n", SwigType_str(t,0));
+              "No csvarin typemap defined for %s\n", SwigType_str(pt,0));
         }
       } else {
         // Getter method
@@ -2049,6 +2052,7 @@ class CSHARP : public Language {
             Replaceall(tm,"$owner","false");
           substituteClassname(t, tm);
           Replaceall(tm, "$imcall", imcall);
+          excodeSubstitute(n, tm, "csvarout", n);
           Printf(module_class_code, "%s", tm);
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, 
@@ -2057,6 +2061,7 @@ class CSHARP : public Language {
       }
     } else {
       // Normal function call
+      Printf(function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
       Printv(module_class_code, function_code, NIL);
     }
 
@@ -2239,22 +2244,29 @@ class CSHARP : public Language {
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
+   *   setter  - set this flag when wrapping member variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
 
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
+  String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) {
 
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    String   *pn = Getattr(p,"name");
-    int count = 0;
-    ParmList *plist = Getattr(n,"parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist,"name")) == 0))
-        count++;
-      plist = nextSibling(plist);
+    String *arg = 0;
+    String *pn = Getattr(p,"name");
+    if (setter) {
+      // Note that in C# property setter names must always be called 'value'
+      arg = NewString("value");
+    } else {
+      // Use C parameter name unless it is a duplicate or an empty parameter name
+      int count = 0;
+      ParmList *plist = Getattr(n,"parms");
+      while (plist) {
+        if ((Cmp(pn, Getattr(plist,"name")) == 0))
+          count++;
+        plist = nextSibling(plist);
+      }
+      arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(pn);
     }
-    String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
 
     return arg;
   }
@@ -2347,10 +2359,8 @@ class CSHARP : public Language {
   void canThrow(Node *n, const String *typemap, Node *parameter) {
     String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
     String *canthrow = Getattr(parameter,canthrow_attribute);
-    if (canthrow) {
-      if (!Getattr(n,"csharp:canthrow"))
-        Setattr(n,"csharp:canthrow", "1");
-    }
+    if (canthrow)
+      Setattr(n,"csharp:canthrow", "1");
     Delete(canthrow_attribute);
   }
 
