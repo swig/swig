@@ -414,6 +414,7 @@ void emit_action(Node *n, Wrapper *f) {
   Printv(eaction, action, NIL);
 
   if (throws) {
+    int unknown_catch = 0;
     Printf(eaction,"}\n");
     for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
@@ -423,9 +424,13 @@ void emit_action(Node *n, Wrapper *f) {
 	Printf(eaction,"}\n");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
-		     "No 'throw' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep,"type"),0));
-        Printf(eaction,"catch(...) { throw; }\n");
+		     "No 'throw' typemap defined for exception type '%s'\n", 
+		     SwigType_str(Getattr(ep,"type"),0));
+	unknown_catch = 1;
       }
+    }
+    if (unknown_catch) {
+      Printf(eaction,"catch(...) { throw; }\n");
     }
   }
 
