@@ -6,13 +6,13 @@
     {
     };
 
-    struct Object
+    struct AbstractBaseClass
     {
       virtual bool write(Engine& archive) const = 0;
     };    
 
     typedef Engine PersEngine;
-    typedef Object PersClassBase;      
+    typedef AbstractBaseClass PersClassBase;      
 
     
     class A : public PersClassBase
