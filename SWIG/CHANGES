@@ -17,7 +17,97 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
-10/25/2001: beazley
+11/04/2001:beazley
+           %typemap directive can now accept nearly arbitrary keyword parameters.
+           For example:
+
+              %typemap(in,parse="i",doc="integer") int "...";
+
+           The purpose of the keyword parameters is to supply code generation
+           hints to the target language module.   The intepretation of the
+           parameters is language specific.
+           *** NEW FEATURE ***
+
+11/04/2001:beazley
+           Slight semantic change to internal call/return by value handling.
+           In previous versions of SWIG, call-by-value was translated
+           into pointers.  For example:
+
+               double dot_product(Vector a, Vector b);
+
+           turned into this:
+
+               double wrap_dot_product(Vector *a, Vector *b) {
+                  return dot_product(*a,*b);
+               }
+
+           This translation was normally performed by the SWIG core, outside
+           of the control of language modules.  However, a side effect
+           of this was a lot of bizarre typemap behavior.   For example,
+           if you did something like this:
+
+                %typemap(in) int32 {
+                    ...
+                }
+
+           You would find that int32 was transformed into a pointer everywhere!
+           (needless to say, such behavior is unexpected and quite awkward to
+           deal with).  To make matters worse, if a typedef was also used,
+           the pointer behavior suddenly disappeared.
+
+           To fix this, the pointer transformation is now pushed to the
+           language modules.   This produces wrappers that look roughly
+           like this:
+
+               double wrap_dot_product(Vector *a, Vector *b) {
+                  Vector arg1 = *a;
+                  Vector arg2 = *b;
+                  return dot_product(arg1,arg2);
+               }
+
+           This change also makes it easy to define typemaps for
+           arbitrary undefined types.  For example, you can this (and it
+           will work regardless what int32 is):
+
+               %typemap(in) int32 {
+                  $1 = (int32) PyInt_AsLong($input);
+               }
+
+           *** POTENTIAL IMCOMPATIBILITY ***
+           This change may break call/return by value code generation in
+           some language modules.
+
+11/03/2001:beazley
+           Changed the name of the default typemaps to the following:
+
+               %typemap() SWIGTYPE  { 
+                   ... an object ...
+               }
+               %typemap() SWIGTYPE * {
+                   ... a pointer ...
+               }
+               %typemap() SWIGTYPE & {
+                   ... a reference ...
+               }
+               %typemap() SWIGTYPE [] {
+                   ... an array ...
+               }
+               %typemap() enum SWIGTYPE {
+                  ... an enum value ...
+               }
+               %typemap() SWIGTYPE (CLASS::*) {
+                   ... pointer to member ...
+               }
+
+
+           These types are used as the default for all types that don't match
+           anything else.  See CHANGES log entry for 8/27/2000 for the
+           old behavior.  The role of these types is also described in 
+           Doc/Manual/Typemaps.html
+
+           *** POTENTIAL INCOMPATIBILITY ***
+          
+10/25/2001:beazley
            Modified Guile and Mzscheme modules to support
            multi-argument typemaps.
 
