@@ -25,11 +25,12 @@
 <li><a href="#n12">Enums</a>
 <li><a href="#n13">C++ Classes</a>
 <ul>
-<li><a href="#n14">C++ Class Example</a>
-<li><a href="#n15">Compiling the example</a>
-<li><a href="#n16">Sample Session</a>
+<li><a href="#n14">STL vector and string Example</a>
+<li><a href="#n15">C++ Class Example</a>
+<li><a href="#n16">Compiling the example</a>
+<li><a href="#n17">Sample Session</a>
 </ul>
-<li><a href="#n17">Exceptions</a>
+<li><a href="#n18">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -428,7 +429,70 @@ Note that this string belongs to the wrapper object, and not
 the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 <p>
-<a name="n14"></a><H4>16.2.3.1 C++ Class Example</H4>
+<a name="n14"></a><H4>16.2.3.1 STL vector and string Example</H4>
+
+
+Standard typemaps are now provided for STL vector and string.  More are in
+the works.  STL strings are passed just like normal strings, and returned
+as strings.  STL string references don't mutate the original string, (which
+might be surprising), because Ocaml strings are mutable but have fixed
+length.  Instead, use multiple returns, as in the argout_ref example.
+
+<table border="1" bgcolor="#dddddd"><tr><th><center>example.i</center></th></tr>
+<tr><td><pre>
+%module example
+%{
+#include "example.h"
+%}
+
+%include stl.i
+
+namespace std {
+        %template(StringVector) std::vector<string>;
+};
+
+%include example.h
+</pre></td></tr>
+<tr><td><font size="-1"><i>This example is in Examples/ocaml/stl
+</i></font></td></tr>
+</table><p>
+
+Since there's a makefile in that directory, the example is easy to build.<p>
+Here's a sample transcript of an interactive session using a string vector
+after making a toplevel like this:
+<pre>ocamlmktop -custom -cclib -g -ccopt -g -g \
+   example_wrap.o example.cmo -o example_top -cclib -lstdc++
+</pre><p>
+<blockquote><pre>
+bash-2.05a$ ./example_top 
+        Objective Caml version 3.06
+
+# open Example ;;
+# let x = new_StringVector C_void ;;
+val x : Example.c_obj = C_obj <fun>
+# (invoke x) ":methods" C_void ;;
+- : Example.c_obj =
+C_list
+ [C_string "nop"; C_string "size"; C_string "empty"; C_string "clear";
+  C_string "push_back"; C_string "[]"; C_string "="; C_string "set";
+  C_string "~"; C_string "&"; C_string ":parents"; C_string ":classof";
+  C_string ":methods"]
+# (invoke x) "push_back" (C_string "foo") ;;
+- : Example.c_obj = C_void
+# (invoke x) "push_back" (C_string "bar") ;;
+- : Example.c_obj = C_void
+# (invoke x) "push_back" (C_string "baz") ;;
+- : Example.c_obj = C_void
+# (invoke x) "[]" (C_int 1) ;;
+- : Example.c_obj = C_string "bar"
+# (invoke x) "set" (C_list [ C_int 1 ; C_string "spam" ]) ;;
+- : Example.c_obj = C_void
+# (invoke x) "[]" (C_int 1) ;;
+- : Example.c_obj = C_string "spam"
+# 
+</pre></blockquote>
+
+<a name="n15"></a><H4>16.2.3.2 C++ Class Example</H4>
 
 
 Here's a simple example using Trolltech's Qt Library:
@@ -455,7 +519,7 @@ public:
 };
 </pre></td></tr></table><p>
 
-<a name="n15"></a><H4>16.2.3.2 Compiling the example</H4>
+<a name="n16"></a><H4>16.2.3.3 Compiling the example</H4>
 
 
 <blockquote><pre>
@@ -468,7 +532,7 @@ bash-2.05a$ ocamlc -c qt.ml
 bash-2.05a$ ocamlmktop -custom qt_wrap.o qt.cmo -o qt_top -cclib -L$QTPATH/lib -cclib -lqt
 </pre></blockquote>
 
-<a name="n16"></a><H4>16.2.3.3 Sample Session</H4>
+<a name="n17"></a><H4>16.2.3.4 Sample Session</H4>
 
 
 <blockquote><pre>
@@ -512,7 +576,7 @@ val hello : Qt.c_obj = C_obj <fun>
 In either case, assuming you have a working installation of QT, you will
 see a window containing the string "hi" in a button.  
 
-<a name="n17"></a><H3>16.2.4 Exceptions</H3>
+<a name="n18"></a><H3>16.2.4 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple

@@ -205,18 +205,18 @@ public:
 
     Printv(mlfile,module,".ml",NIL);
     Printv(mlifile,module,".mli",NIL);
-
-	String *mlfilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlfile);
-	if ((f_mlout = NewFile(mlfilen,"w")) == 0) {
-		Printf(stderr,"Unable to open %s\n", mlfilen);
-		SWIG_exit (EXIT_FAILURE);
-	}
-	String *mlifilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlifile);
-	if ((f_mliout = NewFile(mlifilen,"w")) == 0) {
-		Printf(stderr,"Unable to open %s\n", mlifilen);
-		SWIG_exit (EXIT_FAILURE);
-	}
-
+    
+    String *mlfilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlfile);
+    if ((f_mlout = NewFile(mlfilen,"w")) == 0) {
+      Printf(stderr,"Unable to open %s\n", mlfilen);
+      SWIG_exit (EXIT_FAILURE);
+    }
+    String *mlifilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlifile);
+    if ((f_mliout = NewFile(mlifilen,"w")) == 0) {
+      Printf(stderr,"Unable to open %s\n", mlifilen);
+      SWIG_exit (EXIT_FAILURE);
+    }
+    
     Language::top(n);
 
     Printf( f_enum_to_int, 
@@ -231,6 +231,18 @@ public:
 	    module );
     Printf( f_mlibody,
 	    "val int_to_enum : c_enum_type -> int -> c_obj\n" );
+    Printf( f_wrappers,
+	    "#ifdef __cplusplus\n"
+	    "extern \"C\"\n"
+	    "#endif\n"
+	    "void f_%s_init() {\n"
+	    "%s"
+	    "}\n",
+	    module, init_func_def );
+    Printf( f_mlbody,
+	    "external f_init : unit -> unit = \"f_%s_init\"\n"
+	    "let _ = f_init ()\n",
+	    module, module );
     Printf( f_enumtypes_type, "]\n" );
     Printf( f_enumtypes_value, "]\n" );
 
@@ -266,11 +278,6 @@ public:
     return SWIG_OK;
   }
   
-  /* ------------------------------------------------------------
-   * functionWrapper()
-   * Create a function declaration and register it with the interpreter.
-   * ------------------------------------------------------------ */
-
   void throw_unhandled_ocaml_type_error (SwigType *d)
   {
     Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number,
@@ -285,6 +292,10 @@ public:
     return SwigType_ispointer(SwigType_typedef_resolve_all(t));
   }
 
+  /*
+   * Delete one reference from a given type.
+   */
+
   void oc_SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
   if (strncmp(c,"q(",2) == 0) {
@@ -298,11 +309,20 @@ public:
   Replace(t,"r.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
   }
 
+  /* 
+   * Return true iff T is a reference type 
+   */
+
   int
   is_a_reference (SwigType *t)
   {
     return SwigType_isreference(SwigType_typedef_resolve_all(t));
   }
+
+  /* ------------------------------------------------------------
+   * functionWrapper()
+   * Create a function declaration and register it with the interpreter.
+   * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
     char *iname = GetChar(n,"sym:name");
@@ -673,14 +693,12 @@ public:
     if (!iname || !addSymbol(iname,n)) return SWIG_ERROR;
 	
     f = NewWrapper();
-	
+
     // evaluation function names
-	
     strcpy(var_name, Char(Swig_name_wrapper(iname)));
 	
     // Build the name for scheme.
-    Printv(proc_name, iname,NIL);
-    //Replaceall(proc_name, "_", "-");
+    Printv(proc_name, iname, NIL);
 	
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 	    
