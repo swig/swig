@@ -41,7 +41,7 @@ static String     *destructor_action = 0;
 static String     *version = (String *) "0.0";
 
 static String     *class_name = 0;
-static String     *real_classname = 0;
+
 
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
@@ -579,20 +579,24 @@ TCL8::nativeWrapper(Node *n) {
 int
 TCL8::classHandler(Node *n) {
   
+  String     *mangled_classname = 0;
+  String     *real_classname = 0;
+
   have_constructor = 0;
   have_destructor = 0;
   destructor_action = 0;
 
   class_name = Getattr(n,"sym:name");
   real_classname = Getattr(n,"name");
+  mangled_classname = Swig_name_mangle(real_classname);
 
   attr_tab = NewString("");
   Printf(attr_tab, "static swig_attribute swig_");
-  Printv(attr_tab, real_classname, "_attributes[] = {\n", NULL);
+  Printv(attr_tab, mangled_classname, "_attributes[] = {\n", NULL);
   
   methods_tab = NewStringf("");
   Printf(methods_tab,"static swig_method swig_");
-  Printv(methods_tab, real_classname, "_methods[] = {\n", NULL);
+  Printv(methods_tab, mangled_classname, "_methods[] = {\n", NULL);
 
   /* Generate normal wrappers */
   Language::classHandler(n);
@@ -604,7 +608,7 @@ TCL8::classHandler(Node *n) {
   SwigType_remember(t);
 
   // Register the class structure with the type checker
-  Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), real_classname);
+  Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname);
   if (have_destructor) {
     Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NULL);
     if (destructor_action) {
@@ -634,21 +638,24 @@ TCL8::classHandler(Node *n) {
     Node *base = Firstitem(baselist);
     while (base) {
       String *bname = Getattr(base, "name");
+
       if (!bname) {
 	base = Nextitem(baselist);
 	continue;
       }
-      Printv(f_wrappers,"extern swig_class _wrap_class_", bname, ";\n", NULL);
-      Printf(base_class,"&_wrap_class_%s",bname);
+      String *bmangle = Swig_name_mangle(bname);
+      Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NULL);
+      Printf(base_class,"&_wrap_class_%s",bmangle);
       base = Nextitem(baselist);
       Putc(',',base_class);
+      Delete(bmangle);
     }
   }
 
-  Printv(f_wrappers,"static swig_class *swig_",real_classname,"_bases[] = {", base_class,"0};\n", NULL);
+  Printv(f_wrappers,"static swig_class *swig_",mangled_classname,"_bases[] = {", base_class,"0};\n", NULL);
   Delete(base_class);
 
-  Printv(f_wrappers, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
+  Printv(f_wrappers, "swig_class _wrap_class_", mangled_classname, " = { \"", class_name,
 	 "\", &SWIGTYPE", SwigType_manglestr(t), ",",NULL);
   
   if (have_constructor) {
@@ -661,9 +668,10 @@ TCL8::classHandler(Node *n) {
   } else {
     Printf(f_wrappers,",0");
   }
-  Printv(f_wrappers, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", NULL);
-  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", real_classname, "},\n", NULL);
+  Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname,"_bases };\n", NULL);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NULL);
   Delete(t);
+  Delete(mangled_classname);
   return SWIG_OK;
 }
 
