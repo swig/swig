@@ -1,5 +1,10 @@
 %module preproc_5
 
+%warnfilter(801) a;	// Ruby, wrong constant name
+%warnfilter(801) b;	// Ruby, wrong constant name
+%warnfilter(801) c;	// Ruby, wrong constant name
+%warnfilter(801) d;	// Ruby, wrong constant name
+
 // Various preprocessor bits of nastiness.
 
 
