@@ -13,6 +13,7 @@ char cvsroot_misc_c[] = "$Header$";
 
 #include "swig.h"
 #include <ctype.h>
+#include <limits.h>
 
 /* -----------------------------------------------------------------------------
  * Swig_copy_string()
@@ -80,6 +81,7 @@ String *Swig_string_escape(String *s) {
     } else if (c == ' ') {
       Putc(c,ns);
     } else if (!isgraph(c)) {
+      if (c < 0) c += UCHAR_MAX +1;
       Printf(ns,"\\%o", c);
     } else {
       Putc(c,ns);

@@ -11,5 +11,5 @@
 
 #define ESC_CONST  '\1'
 #define NULL_CONST '\0'
-
+#define SPECIALCHAR 'á'
 
