@@ -58,6 +58,7 @@ extern  int       error_count;
 extern  char     *copy_string(char *);
 extern  char      output_dir[512];                  // Output directory
 extern  int       Verbose;
+extern  int       IsVirtual;
 
 #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit(1); }
 
@@ -168,17 +169,25 @@ static void       record_base(char *derived, char *base);
 #define CALL_REFERENCE  0x02
 #define CALL_OUTPUT     0x04
 
-struct Parm {
+typedef class Parm {
+ public:
   DataType   *t;                // Datatype of this parameter
   int        call_type;         // Call type (value or reference or value)
   char       *name;             // Name of parameter (optional)
   char       *defvalue;         // Default value (as a string)
   int        ignore;            // Ignore flag
   char       *objc_separator;   // Parameter separator for Objective-C
-  Parm(DataType *type, char *n);
-  Parm(Parm *p);
-  ~Parm();
-};
+
+ private:
+  // Note: This should uncover and remaining uses of these functions
+  Parm(DataType *type, char *n) { abort(); }
+  Parm(Parm *p) { abort(); }
+  ~Parm() {abort();}
+} Parm;
+
+extern Parm *NewParm(DataType *type, char *n);
+extern Parm *CopyParm(Parm *p);
+extern void  DelParm(Parm *p);
 
 // -------------------------------------------------------------
 // class ParmList
@@ -189,33 +198,32 @@ struct Parm {
 
 #define MAXPARMS   16
 
-class ParmList {
-private:
-  int   maxparms;                 // Max parms possible in current list
+typedef class ParmList {
+ public:
+  int     maxparms;               // Max parms possible in current list
   Parm  **parms;                  // Pointer to parms array
-  void  moreparms();              // Increase number of stored parms
-  int    current_parm;            // Internal state for get_first,get_next
-public:
-  int   nparms;                   // Number of parms in list
-  void  append(Parm *p);          // Append a parameter to the end
-  void  insert(Parm *p, int pos); // Insert a parameter into the list
-  void  del(int pos);             // Delete a parameter at position pos
-  int   numopt();                 // Get number of optional arguments
-  int   numarg();                 // Get number of active arguments
-  Parm *get(int pos);             // Get the parameter at position pos
-  Parm &operator[](int);          // An alias for get().
-  ParmList();
-  ParmList(ParmList *l);
-  ~ParmList();
+  int     current_parm;           // Internal state for get_first,get_next
+  int     nparms;                 // Number of parms in list
+ private:
+  // Note: This is here to force any use of these to fail miserably.
+  ParmList() { abort(); }
+  ParmList(ParmList *l) { abort(); }
+  ~ParmList() { abort(); }
+} ParmList;
 
-  // Keep this for backwards compatibility
-
-  Parm  *get_first();              // Get first parameter from list
-  Parm  *get_next();               // Get next parameter from list
-
-  void   print_types(void *f);     // Print list of datatypes
-  void   print_args(FILE *f);      // Print argument list
-};
+extern ParmList *NewParmList();
+extern ParmList *CopyParmList(ParmList *);
+extern void      DelParmList(ParmList *);
+extern Parm     *ParmList_get(ParmList *l, int pos);
+extern void      ParmList_append(ParmList *, Parm *);
+extern void      ParmList_insert(ParmList *, Parm *, int);
+extern void      ParmList_del(ParmList *, int);
+extern int       ParmList_numopt(ParmList *);
+extern int       ParmList_numarg(ParmList *);
+extern Parm     *ParmList_first(ParmList *);
+extern Parm     *ParmList_next(ParmList *);
+extern void      ParmList_print_types(ParmList*,DOHFile *f);
+extern void      ParmList_print_args(ParmList *, DOHFile *f);
 
 // Modes for different types of inheritance
 

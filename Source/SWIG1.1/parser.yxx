@@ -609,7 +609,7 @@ statement      : INCLUDE STRING LBRACE {
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
 		  delete $2;
-		  delete $5;
+	          DelParmList($5);
 		} stail { } 
                
 /* A function declaration with code after it */
@@ -620,7 +620,7 @@ statement      : INCLUDE STRING LBRACE {
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
 		  delete $2;
-		  delete $5;
+	          DelParmList($5);
 		};
 
 /* A function declared without any return datatype */
@@ -646,7 +646,7 @@ statement      : INCLUDE STRING LBRACE {
 		    }
 		  }
 		  delete $2;
-		  delete $5;
+	          DelParmList($5);
 		};
 
 /* A function with an explicit inline directive. Not safe to use inside a %inline block */
@@ -667,7 +667,7 @@ statement      : INCLUDE STRING LBRACE {
 		      create_function(0, $3.id, $2, $5);
 		    }
 		  delete $2;
-		  delete $5;
+		  DelParmList($5);
 		};
 
 /* A static function declaration (ignored) */
@@ -675,7 +675,7 @@ statement      : INCLUDE STRING LBRACE {
                 | STATIC type declaration LPAREN parms RPAREN cpp_const {
 		  Active_static = 1;
 		  delete $2;
-		  delete $5;
+		  DelParmList($5);
 		} stail {
 		  Active_static = 0;
 		 }
@@ -750,7 +750,7 @@ statement      : INCLUDE STRING LBRACE {
 		   }
 		 }
 		 delete $6;
-		 delete $9;
+		 DelParmList($9);
 	       }
 
 /* %title directive */
@@ -1002,7 +1002,7 @@ statement      : INCLUDE STRING LBRACE {
 		   }
 		   delete $3;
 		   delete $5;
-		   delete $9->p;
+		   DelParm($9->p);
 		   delete $9;
 	       }
 
@@ -1022,7 +1022,7 @@ statement      : INCLUDE STRING LBRACE {
 		   }
 		 }
 		 delete $3;
-		 delete $7->p;
+		 DelParm($7->p);
 		 delete $7;
 	       }
 /* -----------------------------------------------------------------
@@ -1037,7 +1037,7 @@ statement      : INCLUDE STRING LBRACE {
 		   p = p->next;
 		 }
 		 delete $4;
-		 delete $2->args;
+		 DelParmList($2->args);
 		 delete $2;
                }
 	       | CLEAR tm_list SEMI {
@@ -1165,7 +1165,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   cplus_register_type($5);
 		 delete $2;
 		 delete $5;
-		 delete $8;
+		 DelParmList($8);
 	       }
 
 /* A typedef involving function pointers again */
@@ -1187,7 +1187,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   cplus_register_type($6);
 		 delete $2;
 		 delete $6;
-		 delete $9;
+		 DelParmList($9);
 	       }
 
 /* A typedef involving arrays */
@@ -1296,7 +1296,7 @@ stail          : SEMI { }
 		 temp_typeptr->is_reference = $2.is_reference;
 		 create_function(Active_extern, $2.id, temp_typeptr, $4);
 		 delete temp_typeptr;
-		 delete $4;
+		 DelParmList($4);
 	       } stail { }
               ;
 
@@ -1325,19 +1325,19 @@ func_end       : cpp_const LBRACE { skip_brace(); }
 
 parms          : parm ptail {
                  if (($1->t->type != T_VOID) || ($1->t->is_pointer))
-		   $2->insert($1,0);
+		   ParmList_insert($2,$1,0);
 		 $$ = $2;
-		 delete $1;
+		 DelParm($1);
 		}
-               | empty { $$ = new ParmList;}
+               | empty { $$ = NewParmList(); }
                ;
 
 ptail          : COMMA parm ptail {
-		 $3->insert($2,0);
+		 ParmList_insert($3,$2,0);
 		 $$ = $3;
-		 delete $2;
+		 DelParm($2);
                 }
-               | empty { $$ = new ParmList;}
+               | empty { $$ = NewParmList(); }
                ;
 
 parm           : parm_type {
@@ -1366,7 +1366,7 @@ parm_type      : type pname {
 		      // Add array string to the type
 		      $1->arraystr = copy_string(Char(ArrayString));
 		    } 
-		    $$ = new Parm($1,$2);
+		    $$ = NewParm($1,$2);
 		    $$->call_type = 0;
 		    $$->defvalue = DefArg;
 		    if (($1->type == T_USER) && !($1->is_pointer)) {
@@ -1378,7 +1378,7 @@ parm_type      : type pname {
                  }
 
                 | type stars pname {
-		   $$ = new Parm($1,$3);
+		   $$ = NewParm($1,$3);
 		   $$->t->is_pointer += $2;
 		   $$->call_type = 0;
 		   $$->defvalue = DefArg;
@@ -1392,7 +1392,7 @@ parm_type      : type pname {
 		}
 
                 | type AND pname {
-		  $$ = new Parm($1,$3);
+		  $$ = NewParm($1,$3);
 		  $$->t->is_reference = 1;
 		  $$->call_type = 0;
 		  $$->t->is_pointer++;
@@ -1406,17 +1406,17 @@ parm_type      : type pname {
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
                   fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
-		  $$ = new Parm($1,$4);
+		  $$ = NewParm($1,$4);
 		  $$->t->type = T_ERROR;
 		  $$->name = copy_string($4);
 		  strcpy($$->t->name,"<function ptr>");
 		  delete $1;
 		  delete $4;
-		  delete $7;
+		  DelParmList($7);
 		}
                 | PERIOD PERIOD PERIOD {
                   fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
-		  $$ = new Parm(new DataType(T_INT),(char *) "varargs");
+		  $$ = NewParm(new DataType(T_INT),(char *) "varargs");
 		  $$->t->type = T_ERROR;
 		  $$->name = copy_string((char*)"varargs");
 		  strcpy($$->t->name,"<varargs>");
@@ -2207,7 +2207,7 @@ cpp_other    :/* A dummy class name */
 		}
 		create_function($1, temp_name, $2, $7);
 		delete $2;
-		delete $7;
+		DelParmList($7);
 	      }
  
 /* A static C++ member data */
@@ -2293,7 +2293,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		}
 		scanner_clear_start();
 		delete $1;
-		delete $4;
+	        DelParmList($4);
               }
  
 /* Virtual member function */
@@ -2310,7 +2310,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 	       }
 	       scanner_clear_start();
 	       delete $2;
-	       delete $5;
+	       DelParmList($5);
 	     }
 
 /* Possibly a constructor */
@@ -2323,7 +2323,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_constructor($1,iname, $3);
 		}
 		scanner_clear_start();
-		delete $3;
+		DelParmList($3);
 	      }
 
 /* A destructor (hopefully) */
@@ -2337,6 +2337,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_destructor($2,iname);
 		}
 		scanner_clear_start();
+		DelParmList($4);
 	      }
 
 /* A virtual destructor */
@@ -2455,7 +2456,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		}
 		scanner_clear_start();
 		delete $2;
-		delete $5;
+		DelParmList($5);
 	      }
 /* Turn on public: mode */
 
@@ -2828,7 +2829,7 @@ cpptype        : CLASS { $$ = (char*)"class"; }
                ;
 
 cpp_const      : CONST {} 
-               | THROW LPAREN parms RPAREN { delete $3;}
+               | THROW LPAREN parms RPAREN { DelParmList($3);}
                | empty {}
                ;
 
@@ -3094,7 +3095,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
 		   scanner_clear_start();
 		   delete $2;
 		   delete $3;
-		   delete $4;
+		   DelParmList($4);
 		 }
                }
                | PLUS objc_ret_type ID objc_args objc_end { 
@@ -3112,7 +3113,7 @@ objc_method    : MINUS objc_ret_type ID objc_args objc_end {
                  scanner_clear_start();
                  delete $2;
                  delete $3;
-                 delete $4;
+                 DelParmList($4);
                }
                ;
 
@@ -3137,7 +3138,7 @@ objc_ret_type  : LPAREN type RPAREN {
 
 objc_arg_type  : LPAREN parm RPAREN { 
                   $$ = new DataType($2->t);
-                  delete $2;
+		  DelParm($2);
                  }
                | empty { 
                   $$ = new DataType(T_VOID);
@@ -3148,13 +3149,13 @@ objc_arg_type  : LPAREN parm RPAREN {
                ;
  
 objc_args      : objc_args objc_separator objc_arg_type ID { 
-                   Parm *p= new Parm($3,$4);
+                   Parm *p= NewParm($3,$4);
 		   p->objc_separator = $2;
                    $$ = $1;
-                   $$->append(p);
+	           ParmList_append($$,p);
                }
                | empty { 
-                 $$ = new ParmList;
+                 $$ = NewParmList();
                }
                ;
 
@@ -3237,7 +3238,7 @@ typemap_parm   : type typemap_name {
 		      $1->arraystr = copy_string(Char(ArrayString));
 		    }
 		    $$ = new TMParm;
-                    $$->p = new Parm($1,$2);
+                    $$->p = NewParm($1,$2);
 		    $$->p->call_type = 0;
 		    $$->args = tm_parm;
 		    delete $1;
@@ -3246,7 +3247,7 @@ typemap_parm   : type typemap_name {
 
                 | type stars typemap_name {
 		  $$ = new TMParm;
-		   $$->p = new Parm($1,$3);
+		   $$->p = NewParm($1,$3);
 		   $$->p->t->is_pointer += $2;
 		   $$->p->call_type = 0;
 		   if (InArray) {
@@ -3260,7 +3261,7 @@ typemap_parm   : type typemap_name {
 
                 | type AND typemap_name {
                   $$ = new TMParm;
-		  $$->p = new Parm($1,$3);
+		  $$->p = NewParm($1,$3);
 		  $$->p->t->is_reference = 1;
 		  $$->p->call_type = 0;
 		  $$->p->t->is_pointer++;
@@ -3275,14 +3276,14 @@ typemap_parm   : type typemap_name {
                   fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
                   $$ = new TMParm;
-		  $$->p = new Parm($1,$4);
+		  $$->p = NewParm($1,$4);
 		  $$->p->t->type = T_ERROR;
 		  $$->p->name = copy_string($4);
 		  strcpy($$->p->t->name,"<function ptr>");
 		  $$->args = tm_parm;
 		  delete $1;
 		  delete $4;
-		  delete $7;
+		  DelParmList($7);
 		}
 		;
 

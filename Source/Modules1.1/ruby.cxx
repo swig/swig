@@ -426,8 +426,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
   // Get number of arguments
-  int numarg = l->numarg();
-  int numopt = l->numopt();
+  int numarg = ParmList_numarg(l);
+  int numopt = ParmList_numopt(l);
   int numignore = l->nparms - numarg;
   int start = 0;
   int use_self = 0;
@@ -443,7 +443,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int numreq = 0;
   int numoptreal = 0;
   for (i = start; i < l->nparms; i++) {
-    if (!l->get(i)->ignore) {
+    if (!ParmList_get(l,i)->ignore) {
       if (i >= l->nparms - numopt) numoptreal++;
       else numreq++;
     }
@@ -457,7 +457,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   } else {
     Printv(f->def, "VALUE self", 0);
     for (i = start; i < l->nparms; i++) {
-      if (!l->get(i)->ignore) {
+      if (!ParmList_get(l,i)->ignore) {
 	Printf(f->def,", VALUE varg%d", i);
       }
     }
@@ -467,7 +467,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // Emit all of the local variables for holding arguments.
   if (vararg) {
     for (i = start; i < l->nparms; i++) {
-      if (!l->get(i)->ignore) {
+      if (!ParmList_get(l,i)->ignore) {
 	char s[256];
 	sprintf(s,"varg%d",i);
 	Wrapper_add_localv(f,s,"VALUE",s,0);
@@ -497,7 +497,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   if (vararg) {
     Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
     for (i = start; i < l->nparms; i++) {
-      if (!l->get(i)->ignore) {
+      if (!ParmList_get(l,i)->ignore) {
 	Printf(f->code,", &varg%d", i);
       }
     }
@@ -509,7 +509,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   int j = 0;                // Total number of non-optional arguments
 
   for (i = 0; i < pcount ; i++) {
-    Parm &p = (*l)[i];         // Get the ith argument
+    Parm *p = ParmList_get(l,i);
 
     // Produce string representation of source and target arguments
     int selfp = (use_self && i == 0);
@@ -520,7 +520,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
     sprintf(target,"_arg%d",i);
 
-    if (!p.ignore) {
+    if (!p->ignore) {
       char *tab = (char*)tab4;
       if (j >= (pcount-numopt)) { // Check if parsing an optional argument
 	Printf(f->code,"    if (argc > %d) {\n", j -  start);
@@ -528,7 +528,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       }
 
       // Get typemap for this argument
-      tm = ruby_typemap_lookup((char*)"in",p.t,p.name,source,target,f);
+      tm = ruby_typemap_lookup((char*)"in",p->t,p->name,source,target,f);
       if (tm) {
 	DOHString *s = NewString(tm);
 	indent(s,tab);
@@ -537,7 +537,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
-		input_file,line_number, p.t->print_type());
+		input_file,line_number, p->t->print_type());
       }
       if (j >= (pcount-numopt))
 	Printv(f->code, tab4, "} \n");
@@ -545,7 +545,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check to see if there was any sort of a constaint typemap
-    tm = ruby_typemap_lookup((char*)"check",p.t,p.name,source,target);
+    tm = ruby_typemap_lookup((char*)"check",p->t,p->name,source,target);
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
@@ -555,7 +555,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check if there was any cleanup code (save it for later)
-    tm = ruby_typemap_lookup((char*)"freearg",p.t,p.name,target,source);
+    tm = ruby_typemap_lookup((char*)"freearg",p->t,p->name,target,source);
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
@@ -564,7 +564,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       Delete(s);
     }
 
-    tm = ruby_typemap_lookup((char*)"argout",p.t,p.name,target,(char*)"vresult");
+    tm = ruby_typemap_lookup((char*)"argout",p->t,p->name,target,(char*)"vresult");
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);

@@ -427,7 +427,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   int i = 0;
   int first_arg = 1;
-  for (p = l->get_first(); p != 0; ++i, p = l->get_next()) {
+  for (p = ParmList_first(l); p != 0; ++i, p = ParmList_next(l)) {
     if (p->ignore)
       continue;
     if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
@@ -457,29 +457,29 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   i = 0;
   int j = 0;
   for (i = 0; i < pcount; ++i) {
-    Parm &p = (*l)[i];
+    Parm *p = ParmList_get(l,i);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
     sprintf(target,"_arg%d",i);
     sprintf(argnum,"%d",i);
-    strcpy(arg,p.name);
+    strcpy(arg,p->name);
 
     // Handle parameter types.
 
-    if (p.ignore)
-      Printv(f->code, "/* ", p.name, " ignored... */\n", 0);
+    if (p->ignore)
+      Printv(f->code, "/* ", p->name, " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
-                                p.t, p.name, source, target, f))) {
+                                p->t, p->name, source, target, f))) {
 	Printv(f->code,tm,"\n",0);
         mreplace (f->code, argnum, arg, proc_name);
       }
-      else if (p.t->is_pointer)
-        get_pointer (iname, i, p.t, f, proc_name, numargs);
+      else if (p->t->is_pointer)
+        get_pointer (iname, i, p->t, f, proc_name, numargs);
       else {
-        throw_unhandled_guile_type_error (p.t);
+        throw_unhandled_guile_type_error (p->t);
       }
       ++j;
     }
@@ -487,7 +487,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Check if there are any constraints.
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
-                              p.t, p.name, source, target, f))) {
+                              p->t, p->name, source, target, f))) {
       Printv(f->code,tm,"\n",0);
       mreplace (f->code, argnum, arg, proc_name);
     }
@@ -495,7 +495,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Pass output arguments back to the caller.
 
     if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
-                              p.t, p.name, source, target, f))) {
+                              p->t, p->name, source, target, f))) {
       Printv(outarg,tm,"\n",0);
       mreplace (outarg, argnum, arg, proc_name);
     }
@@ -503,7 +503,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Free up any memory allocated for the arguments.
 
     if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
-                              p.t, p.name, source, target, f))) {
+                              p->t, p->name, source, target, f))) {
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
     }
@@ -806,7 +806,7 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // Now go through and print parameters
 
-  for (p = l->get_first(); p != 0; p = l->get_next()) {
+  for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
 
     if (p->ignore)
       continue;
@@ -853,7 +853,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
   // go through and see if any are output.
 
-  for (p = l->get_first(); p != 0; p = l->get_next()) {
+  for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
 
     if (strcmp (p->name,"BOTH") && strcmp (p->name,"OUTPUT"))
       continue;

@@ -21,243 +21,245 @@ extern "C" {
 }
 
 // ------------------------------------------------------------------------
-// Parm::Parm(DataType *type, char *n)
+// NewParm()
 //
 // Create a new parameter from datatype 'type' and name 'n'.
 // Copies will be made of type and n, unless they aren't specified.
 // ------------------------------------------------------------------------
 
-Parm::Parm(DataType *type, char *n) {
+Parm *NewParm(DataType *type, char *n) {
+  Parm *p = (Parm *) malloc(sizeof(Parm));
   if (type) {
-    t = new DataType(type);
+    p->t = new DataType(type);
   } else {
-    t = 0;
+    p->t = 0;
   }
-  name = copy_string(n);
-  call_type = 0;
-  defvalue = 0;
-  ignore = 0;
-  objc_separator = 0;
+  p->name = copy_string(n);
+  p->call_type = 0;
+  p->defvalue = 0;
+  p->ignore = 0;
+  p->objc_separator = 0;
+  return p;
 }
 
 // ------------------------------------------------------------------------
-// Parm::Parm(Parm *p)
+// CopyParm(Parm *p)
 //
 // Make a copy of a parameter
 // ------------------------------------------------------------------------
 
-Parm::Parm(Parm *p) {
-  if (p->t) t = new DataType(p->t);
-  name = copy_string(p->name);
-  call_type = p->call_type;
-  defvalue = copy_string(p->defvalue);
-  ignore = p->ignore;
-  objc_separator = copy_string(p->objc_separator);
+Parm *CopyParm(Parm *p) {
+  Parm *np = (Parm *) malloc(sizeof(Parm));
+  if (p->t) np->t = new DataType(p->t);
+  np->name = copy_string(p->name);
+  np->call_type = p->call_type;
+  np->defvalue = copy_string(p->defvalue);
+  np->ignore = p->ignore;
+  np->objc_separator = copy_string(p->objc_separator);
+  return np;
 }
 
 // ------------------------------------------------------------------------
-// Parm::~Parm()
+// DelParm()
 //
 // Destroy a parameter
 // ------------------------------------------------------------------------
 
-Parm::~Parm() {
-  if (t) delete t;
-  if (name) delete name;
-  if (defvalue) delete defvalue;
-  if (objc_separator) delete objc_separator;
+void DelParm(Parm *p) {
+  if (p->t) delete p->t;
+  if (p->name) delete p->name;
+  if (p->defvalue) delete p->defvalue;
+  if (p->objc_separator) delete p->objc_separator;
+  free(p);
 }
 
-/********************************************************************
- class ParmList
-
- These functions are used to manipulate lists of parameters
- ********************************************************************/
-
 // ------------------------------------------------------------------
-// ParmList::ParmList()
+// NewParmList()
 //
 // Create a new (empty) parameter list
 // ------------------------------------------------------------------
 
-ParmList::ParmList() {
-
-  nparms = 0;
-  maxparms = MAXPARMS;
-  parms = new Parm *[maxparms];     // Create an array of parms
-  for (int i = 0; i < MAXPARMS; i++)
-    parms[i] = (Parm *) 0;
+ParmList *NewParmList() {
+  int i;
+  ParmList *l = (ParmList *) malloc(sizeof(ParmList));
+  l->nparms = 0;
+  l->maxparms = MAXPARMS;
+  l->parms = (Parm **) malloc(MAXPARMS*sizeof(Parm *));
+  for (i = 0; i < MAXPARMS; i++) {
+    l->parms[i] = 0;
+  }
+  return l;
 }
 
 // ------------------------------------------------------------------
-// ParmList::ParmList(ParmList *l)
+// CopyParmList()
 //
 // Make a copy of parameter list
 // ------------------------------------------------------------------
 
-ParmList::ParmList(ParmList *l) {
+ParmList *
+CopyParmList(ParmList *l) {
+  ParmList *nl;
   int i;
 
+
   if (l) {
-    nparms = l->nparms;
-    maxparms = l->maxparms;
-    parms = new Parm *[maxparms];
+    nl = (ParmList *) malloc(sizeof(ParmList));    
+    nl->nparms = l->nparms;
+    nl->maxparms = l->maxparms;
+    nl->parms = (Parm **) malloc(l->maxparms*sizeof(Parm*));
   
-    for (i = 0; i < maxparms; i++) {
+    for (i = 0; i < l->maxparms; i++) {
       if (l->parms[i])
-	parms[i] = new Parm(l->parms[i]);
+	nl->parms[i] = CopyParm(l->parms[i]);
       else
-	parms[i] = 0;
+	nl->parms[i] = 0;
     }
-
+    return nl;
   } else {
-    nparms = 0;
-    maxparms = MAXPARMS;
-    parms = new Parm *[maxparms];     // Create an array of parms
-
-    for (i = 0; i < MAXPARMS; i++)
-      parms[i] = (Parm *) 0;
+    return NewParmList();
   }
 }
 
 // ------------------------------------------------------------------
-// ParmList::~ParmList()
+// DelParmList()
 //
 // Delete a parameter list
 // ------------------------------------------------------------------
   
-ParmList::~ParmList() {
-  for (int i = 0; i < maxparms; i++) {
-    if (parms[i]) delete parms[i];
+void DelParmList(ParmList *l) {
+  int i;
+  for (i = 0; i < l->maxparms; i++) {
+    if (l->parms[i]) DelParm(l->parms[i]);
   }
+  free(l->parms);
+  free(l);
 }
 
 
 // ------------------------------------------------------------------
-// void ParmList::moreparms()               (PRIVATE)
+// moreparms()               (PRIVATE)
 //
 // Doubles the amount of parameter memory available.  
 // ------------------------------------------------------------------
 
-void ParmList::moreparms() {
+static void moreparms(ParmList *l) {
   Parm  **newparms;
   int     i;
 
-  newparms = new Parm *[maxparms*2];
-  for (i = 0; i < 2*maxparms; i++)
+  newparms = (Parm **) malloc(2*l->maxparms*sizeof(Parm *));
+  for (i = 0; i < 2*l->maxparms; i++)
     newparms[i] = (Parm *) 0;
-  for (i = 0; i < maxparms; i++) {
-    newparms[i] = parms[i];
+  for (i = 0; i < l->maxparms; i++) {
+    newparms[i] = l->parms[i];
   }
-  maxparms = 2*maxparms;
-  delete parms;
-  parms = newparms;
+  l->maxparms = 2*l->maxparms;
+  free(l->parms);
+  l->parms = newparms;
 }
 
 // ------------------------------------------------------------------
-// void ParmList::append(Parm *p)
+// void ParmList_append(ParmList *l, Parm *p)
 //
 // Add a new parameter to the end of a parameter list
 // ------------------------------------------------------------------
 
-void ParmList::append(Parm *p) {
+void ParmList_append(ParmList *l, Parm *p) {
 
-  if (nparms == maxparms) moreparms();
+  if (l->nparms == l->maxparms) moreparms(l);
 
   // Add parm onto the end 
 
-  parms[nparms] = new Parm(p);
-  nparms++;
+  l->parms[l->nparms] = CopyParm(p);
+  l->nparms++;
 }
 
 // ------------------------------------------------------------------
-// void ParmList::insert(Parm *p, int pos)
+// void ParmList_insert()
 //
 // Inserts a parameter at position pos.   Parameters are inserted
 // *before* any existing parameter at position pos.
 // ------------------------------------------------------------------
 
-void ParmList::insert(Parm *p, int pos) {
+void ParmList_insert(ParmList *l, Parm *p, int pos) {
 
   // If pos is out of range, we'd better fix it
 
   if (pos < 0) pos = 0;
-  if (pos > nparms) pos = nparms;
+  if (pos > l->nparms) pos = l->nparms;
 
   // If insertion is going to need more memory, take care of that now
 
-  if (nparms >= maxparms) moreparms();
+  if (l->nparms >= l->maxparms) moreparms(l);
 
   // Now shift all of the existing parms to the right
 
-  for (int i = nparms; i > pos; i--) {
-    parms[i] = parms[i-1];
+  for (int i = l->nparms; i > pos; i--) {
+    l->parms[i] = l->parms[i-1];
   }
 
   // Set new parameter
   
-  parms[pos] = new Parm(p);
-  nparms++;
+  l->parms[pos] = CopyParm(p);
+  l->nparms++;
 
 }
   
 // ------------------------------------------------------------------
-// void ParmList::del(int pos)
+// void ParmList_del()
 //
 // Deletes the parameter at position pos.
 // ------------------------------------------------------------------
 
-void ParmList::del(int pos) {
+void ParmList_del(ParmList *l, int pos) {
 
-  if (nparms <= 0) return;
+  if (l->nparms <= 0) return;
   if (pos < 0) pos = 0;
-  if (pos >= nparms) pos = nparms-1;
+  if (pos >= l->nparms) pos = l->nparms-1;
 
   // Delete the parameter (if it exists)
 
-  if (parms[pos]) delete parms[pos];
+  if (l->parms[pos]) DelParm(l->parms[pos]);
 
   // Now slide all of the parameters to the left
 
-  for (int i = pos; i < nparms-1; i++) {
-    parms[i] = parms[i+1];
+  for (int i = pos; i < l->nparms-1; i++) {
+    l->parms[i] = l->parms[i+1];
   }
-  nparms--;
+  l->nparms--;
 
 }
 
 // ------------------------------------------------------------------
-// Parm *ParmList::get(int pos)
+// Parm *ParmList_get(ParmList *l, int pos)
 //
 // Gets the parameter at location pos.  Returns 0 if invalid
 // position.
 // ------------------------------------------------------------------
 
-Parm *ParmList::get(int pos) {
+Parm *ParmList_get(ParmList *l, int pos) {
 
-  if ((pos < 0) || (pos >= nparms)) return 0;
-  return parms[pos];
+  if ((pos < 0) || (pos >= l->nparms)) return 0;
+  return l->parms[pos];
 }
 
 // ------------------------------------------------------------------
-// int ParmList::numopt()
+// int ParmList_numopt()
 //
 // Gets the number of optional arguments. 
 // ------------------------------------------------------------------
-int ParmList::numopt() {
+int ParmList_numopt(ParmList *l) {
   int  n = 0;
   int  state = 0;
 
-  for (int i = 0; i < nparms; i++) {
-    if (parms[i]->defvalue) {
+  for (int i = 0; i < l->nparms; i++) {
+    if (l->parms[i]->defvalue) {
       n++;
       state = 1;
-    } else if (typemap_check((char*)"default",typemap_lang,parms[i]->t,parms[i]->name)) {
+    } else if (typemap_check((char*)"default",typemap_lang,l->parms[i]->t,l->parms[i]->name)) {
       n++;
       state = 1;
-    } else if (typemap_check((char*)"ignore",typemap_lang,parms[i]->t,parms[i]->name)) {
-      n++;
-    } else if (typemap_check((char*)"build",typemap_lang,parms[i]->t,parms[i]->name)) {
+    } else if (typemap_check((char*)"ignore",typemap_lang,l->parms[i]->t,l->parms[i]->name)) {
       n++;
     } else {
       if (state) {
@@ -273,58 +275,41 @@ int ParmList::numopt() {
 //
 // Gets the number of arguments
 // ------------------------------------------------------------------
-int ParmList::numarg() {
+int ParmList_numarg(ParmList *l) {
   int  n = 0;
 
-  for (int i = 0; i < nparms; i++) {
-    if (!parms[i]->ignore)
+  for (int i = 0; i < l->nparms; i++) {
+    if (!l->parms[i]->ignore)
       n++;
   } 
   return n;
 }
 
-// ------------------------------------------------------------------
-// Parm &ParmList::operator[](int n)
-//
-// Returns parameter n in the parameter list.   May generate
-// an error if that parameter is out of range.
-// ------------------------------------------------------------------
-
-Parm &ParmList::operator[](int n) {
-  
-  if ((n < 0) || (n >= nparms)) {
-    fprintf(stderr,"ParmList : Fatal error.  subscript out of range in ParmList.operator[]\n");
-    SWIG_exit(1);
-  }
-
-  return *parms[n];
-}
-
 // ---------------------------------------------------------------------
-// Parm * ParmList::get_first()
+// Parm * ParmList_first()
 //
 // Returns the first item on a parameter list.
 // ---------------------------------------------------------------------
 
-Parm *ParmList::get_first() {
-  current_parm = 0;
-  if (nparms > 0) return parms[current_parm++];
+Parm *ParmList_first(ParmList *l) {
+  l->current_parm = 0;
+  if (l->nparms > 0) return l->parms[l->current_parm++];
   else return (Parm *) 0;
 }
 
 // ----------------------------------------------------------------------
-// Parm *ParmList::get_next()
+// Parm *ParmList_next()
 //
 // Returns the next item on the parameter list.
 // ----------------------------------------------------------------------
 
-Parm * ParmList::get_next() {
-  if (current_parm >= nparms) return 0;
-  else return parms[current_parm++];
+Parm * ParmList_next(ParmList *l) {
+  if (l->current_parm >= l->nparms) return 0;
+  else return l->parms[l->current_parm++];
 }
 
 // ---------------------------------------------------------------------
-// void ParmList::print_types(DOHFile *f)
+// void ParmList_print_types(DOHFile *f)
 //
 // Prints a comma separated list of all of the parameter types.
 // This is for generating valid C prototypes.   Has to do some
@@ -332,63 +317,64 @@ Parm * ParmList::get_next() {
 // variable has been set.
 // ----------------------------------------------------------------------
 
-void ParmList::print_types(DOHFile *f) {
+void ParmList_print_types(ParmList *l, DOHFile *f) {
 
   int   is_pointer;
   int   pn;
   pn = 0;
-  while(pn < nparms) {
-    is_pointer = parms[pn]->t->is_pointer;
-    if (parms[pn]->t->is_reference) {
-      if (parms[pn]->t->is_pointer) {
-	parms[pn]->t->is_pointer--;
-	Printf(f,"%s&", parms[pn]->t->print_real());
-	parms[pn]->t->is_pointer++;
+  while(pn < l->nparms) {
+    is_pointer = l->parms[pn]->t->is_pointer;
+    if (l->parms[pn]->t->is_reference) {
+      if (l->parms[pn]->t->is_pointer) {
+	l->parms[pn]->t->is_pointer--;
+	Printf(f,"%s&", l->parms[pn]->t->print_real());
+	l->parms[pn]->t->is_pointer++;
       } else {
-	Printf(f,"%s&", parms[pn]->t->print_real());
+	Printf(f,"%s&", l->parms[pn]->t->print_real());
       }
     } else {
-      if (parms[pn]->call_type & CALL_VALUE) parms[pn]->t->is_pointer++;
-      if (parms[pn]->call_type & CALL_REFERENCE) parms[pn]->t->is_pointer--;
-      Printf(f,"%s", parms[pn]->t->print_real());
-      parms[pn]->t->is_pointer = is_pointer;
+      if (l->parms[pn]->call_type & CALL_VALUE) l->parms[pn]->t->is_pointer++;
+      if (l->parms[pn]->call_type & CALL_REFERENCE) l->parms[pn]->t->is_pointer--;
+      Printf(f,"%s", l->parms[pn]->t->print_real());
+      l->parms[pn]->t->is_pointer = is_pointer;
     }
     pn++;
-    if (pn < nparms)
+    if (pn < l->nparms)
       Printf(f,",");
   }
 }
 
 // ---------------------------------------------------------------------
-// void ParmList::print_args(FILE *f)
+// void ParmList_print_args()
 //
 // Prints a comma separated list of all of the parameter arguments.
 // ----------------------------------------------------------------------
 
-void ParmList::print_args(FILE *f) {
+void ParmList_print_args(ParmList *l, DOHFile *f) {
 
   int   is_pointer;
   int   pn;
   pn = 0;
-  while(pn < nparms) {
-    is_pointer = parms[pn]->t->is_pointer;
-    if (parms[pn]->t->is_reference) {
-      if (parms[pn]->t->is_pointer) {
-	parms[pn]->t->is_pointer--;
-	fprintf(f,"%s&", parms[pn]->t->print_full());
-	parms[pn]->t->is_pointer++;
+  while(pn < l->nparms) {
+    is_pointer = l->parms[pn]->t->is_pointer;
+    if (l->parms[pn]->t->is_reference) {
+      if (l->parms[pn]->t->is_pointer) {
+	l->parms[pn]->t->is_pointer--;
+	Printf(f,"%s&", l->parms[pn]->t->print_full());
+	l->parms[pn]->t->is_pointer++;
       } else {
-	fprintf(f,"%s&", parms[pn]->t->print_full());
+	Printf(f,"%s&", l->parms[pn]->t->print_full());
       }
     } else {
-      if (parms[pn]->call_type & CALL_VALUE) parms[pn]->t->is_pointer++;
-      if (parms[pn]->call_type & CALL_REFERENCE) parms[pn]->t->is_pointer--;
-      fprintf(f,"%s", parms[pn]->t->print_full());
-      parms[pn]->t->is_pointer = is_pointer;
+      if (l->parms[pn]->call_type & CALL_VALUE) l->parms[pn]->t->is_pointer++;
+      if (l->parms[pn]->call_type & CALL_REFERENCE) l->parms[pn]->t->is_pointer--;
+      Printf(f,"%s", l->parms[pn]->t->print_full());
+      l->parms[pn]->t->is_pointer = is_pointer;
     }
-    fprintf(f,"%s",parms[pn]->name);
+    Printf(f,"%s",l->parms[pn]->name);
     pn++;
-    if (pn < nparms)
-      fprintf(f,",");
+    if (pn < l->nparms)
+      Printf(f,",");
   }
 }
+

@@ -494,7 +494,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Print out variables for storing arguments.
 
   pcount = emit_args(d, l, f);
-  numopt = l->numopt();
+  numopt = ParmList_numopt(l);
 
   // Create a local variable for holding the interpreter result value
 
@@ -507,7 +507,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   j = 0;
-  p = l->get_first();
+  p = ParmList_first(l);
   while (p != 0) {
     // Produce string representations of the source and target arguments
     sprintf(source,"objv[%d]",j+1);
@@ -643,7 +643,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     }
     i++;
-    p = l->get_next();   // Get next parameter and continue
+    p = ParmList_next(l);   // Get next parameter and continue
   }
   Printf(argstr,":%s\"",usage);
   Printv(f->code,
@@ -1139,8 +1139,8 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
   /* Now go through and print parameters */
   i = 0;
   pcount = l->nparms;
-  numopt = l->numopt();
-  p = l->get_first();
+  numopt = ParmList_numopt(l);
+  p = ParmList_first(l);
   while (p != 0) {
 
     // Only print an argument if not ignored
@@ -1164,7 +1164,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
       Putc(' ',temp);
       i++;
     }
-    p = l->get_next();
+    p = ParmList_next(l);
   }
   return Char(temp);
 }
