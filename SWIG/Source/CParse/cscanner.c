@@ -1137,6 +1137,7 @@ int yylex(void) {
 	    if (strcmp(yytext,"inline") == 0) return(yylex());
 	    if (strcmp(yytext,"mutable") == 0) return(yylex());
 	    if (strcmp(yytext,"explicit") == 0) return(yylex());
+	    if (strcmp(yytext,"typename") == 0) return (TYPENAME);
 	    if (strcmp(yytext,"template") == 0) {
 	      yylval.ivalue = line_number;
 	      return(TEMPLATE);

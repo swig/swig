@@ -557,7 +557,7 @@ Node *Swig_cparse(File *f) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN ADDMETHODS PRAGMA
 %token ENUM
-%token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
@@ -601,12 +601,12 @@ Node *Swig_cparse(File *f) {
 /* Misc */
 %type <dtype>    initializer;
 %type <id>       storage_class;
-%type <pl>       parms  ptail;
+%type <pl>       parms  ptail rawparms;
 %type <p>        parm;
 %type <p>        typemap_parm tm_list tm_tail;
-%type <id>       cpptype access_specifier tm_method;
+%type <id>       cpptype access_specifier;
 %type <node>     base_specifier
-%type <type>     type type_right opt_signed opt_unsigned cast_type cast_type_right;
+%type <type>     type rawtype type_right opt_signed opt_unsigned cast_type cast_type_right;
 %type <bases>    base_list inherit;
 %type <dtype>    definetype def_args etype;
 %type <dtype>    expr;
@@ -760,10 +760,8 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 
 apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
                     $$ = new_node("apply");
-                    Setattr($$,"name",Getattr($2,"name"));
-   		    Setattr($$,"type",Getattr($2,"type"));
-		    Setattr($$,"multitype", Getattr($2,"multitype"));
-		    Setattr($$,"parms",$4);
+                    Setattr($$,"pattern",Getattr($2,"pattern"));
+		    appendChild($$,$4);
                };
 
 /* ------------------------------------------------------------
@@ -772,7 +770,7 @@ apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
 
 clear_directive : CLEAR tm_list SEMI {
 		 $$ = new_node("clear");
-		 Setattr($$,"parms",$2);
+		 appendChild($$,$2);
                }
                ;
 
@@ -1135,6 +1133,8 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     if ($3.kwargs) {
 		       Setattr($$,"kwargs", $3.kwargs);
 		     }
+		     appendChild($$,$5);
+		     /*
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
@@ -1145,6 +1145,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       appendChild($$,n);
 		       p = nextSibling(p);
 		     }
+		     */
                    }
 	       }
 
@@ -1158,6 +1159,8 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     if ($3.kwargs) {
 		       Setattr($$,"kwargs", $3.kwargs);
 		     }
+		     appendChild($$,$5);
+		     /*
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
@@ -1168,6 +1171,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       appendChild($$,n);
                        p = nextSibling(p);
 		     }
+		     */
 		   }
 	       }
 
@@ -1177,7 +1181,8 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		 if ($3.op) {
 		   $$ = new_node("typemap");
 		   Setattr($$,"method",$3.op);
-		   p = $5;
+		   appendChild($$,$5);
+		   /*		   p = $5;
 		   while (p) {
 		     Node *n = new_node("typemapitem");
 		     Setattr(n,"type",Getattr(p,"type"));
@@ -1185,7 +1190,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     Setattr(n,"name",Getattr(p,"name"));
 		     appendChild($$,n);
 		     p = nextSibling(p);
-		   }
+		     }*/
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
@@ -1194,10 +1199,9 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   if ($3.op) {
 		     $$ = new_node("typemapcopy");
 		     Setattr($$,"method",$3.op);
-		     Setattr($$,"type",Getattr($7,"type"));
-		     Setattr($$,"multitype",Getattr($7,"multitype"));
-		     Setattr($$,"name",Getattr($7,"name"));
-
+		     Setattr($$,"pattern", Getattr($7,"pattern"));
+		     appendChild($$,$5);
+		     /*
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
@@ -1207,6 +1211,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       appendChild($$,n);
 		       p = nextSibling(p);
 		     }
+		     */
 		   }
 	       }
                ;
@@ -1233,38 +1238,6 @@ typemap_type   : kwargs {
 		   $$.kwargs = p;
 		 }
                 }
-		 /*
- ID COMMA tm_method {
-                 if (strcmp($1,typemap_lang) == 0) {
-		   $$.op = $3;
-		   $$.kwargs = 0;
-		 } else {
-		   $$.op = 0;
-		   $$.kwargs = 0;
-		 }
-               }
-               | tm_method { 
-                   $$.op = $1;
-                   $$.kwargs = 0;
-                }
-               | ID COMMA tm_method COLON kwargs {
-                 if (strcmp($1,typemap_lang) == 0) {
-		   $$.op = $3;
-		   $$.kwargs = $5;
-		 } else {
-		   $$.op = 0;
-                   $$.kwargs = 0;
-		 }
-               }
-               | tm_method COLON kwargs {
-		 $$.op = $1;
-                 $$.kwargs = $3;
-		 }  */
-
-               ;
-
-tm_method      : ID { $$ = $1;  }
-               | CONST { $$ = Swig_copy_string((char*)"const"); }
                ;
 
 tm_list        : typemap_parm tm_tail {
@@ -1282,16 +1255,21 @@ tm_tail        : COMMA typemap_parm tm_tail {
 
 typemap_parm   : type typemap_parameter_declarator {
 		  SwigType_push($1,$2.type);
-		  $$ = NewParm($1,$2.id);
-		  Setattr($$,"parms",$2.parms);
+		  $$ = new_node("typemapitem");
+		  Setattr($$,"pattern",NewParm($1,$2.id));
+		  Setattr($$,"parms", $2.parms);
+		  /*		  $$ = NewParm($1,$2.id);
+				  Setattr($$,"parms",$2.parms); */
                 }
                | LPAREN parms RPAREN {
-                  $$ = NewHash();
-		  Setattr($$,"multitype",$2);
+                  $$ = new_node("typemapitem");
+		  Setattr($$,"pattern",$2);
+		  /*		  Setattr($$,"multitype",$2); */
                }
                | LPAREN parms RPAREN LPAREN parms RPAREN {
-		 $$ = NewHash();
-                 Setattr($$,"multitype",$2);
+		 $$ = new_node("typemapitem");
+		 Setattr($$,"pattern", $2);
+		 /*                 Setattr($$,"multitype",$2); */
 		 Setattr($$,"parms",$5);
                }
                ;
@@ -1541,7 +1519,7 @@ cpp_declaration : cpp_class_decl { $$ = $1; }
 cpp_class_decl  :
 
 /* A simple class/struct/union definition */
-                storage_class cpptype ID inherit LBRACE {
+                storage_class cpptype idcolon inherit LBRACE {
                    class_rename = make_name($3,0);
 		   
 		   Classprefix = NewString($3);
@@ -1733,7 +1711,7 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    class Name;
    ------------------------------------------------------------ */
 
-cpp_forward_class_decl : storage_class cpptype ID template_decl SEMI {
+cpp_forward_class_decl : storage_class cpptype idcolon template_decl SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"name",NewStringf("%s%s",$3,$4));
@@ -1807,7 +1785,7 @@ cpp_temp_end    : SEMI { }
                 | LBRACE { skip_balanced('{','}') }
                 ;
 
-template_parms  : parms {
+template_parms  : rawparms {
 		   /* Rip out the parameter names */
 		  Parm *p = $1;
 		  $$.rparms = NewString("");
@@ -1818,26 +1796,27 @@ template_parms  : parms {
 		    if (!name) {
 		      /* Hmmm. Maybe it's a 'class T' parameter */
 		      char *type = Char(Getattr(p,"type"));
-		      if (strncmp(type,"class ",6) == 0) {
-			Printf($$.rparms,"%s",type+6);
-			Printf($$.sparms,"__swig%s",type+6);
-		       } else {
+		      if ((strncmp(type,"class ",6) == 0) || (strncmp(type,"typename ", 9) == 0)) {
+			char *t = strchr(type,' ');
+			Printf($$.rparms,"%s",t+1);
+			Printf($$.sparms,"__swig%s",t+1);
+		      } else {
 			 Printf(stderr,"%s:%d. Missing template parameter name\n", input_file,line_number);
 			 $$.rparms = 0;
 			 $$.sparms = 0;
 			 break;
-		       }
-		     } else {
-		       Printf($$.rparms,"%s", Getattr(p,"name"));
-		       Printf($$.sparms,"__swig%s",Getattr(p,"name"));
-		     }
-		     p = nextSibling(p);
-		     if (p) {
-		       Putc(',',$$.rparms);
-		       Putc(',',$$.sparms);
-		     }
-		   }
-                }
+		      }
+		    } else {
+		      Printf($$.rparms,"%s", Getattr(p,"name"));
+		      Printf($$.sparms,"__swig%s",Getattr(p,"name"));
+		    }
+		    p = nextSibling(p);
+		    if (p) {
+		      Putc(',',$$.rparms);
+		      Putc(',',$$.sparms);
+		    }
+		  }
+                 }
                 ;
 
 cpp_members  : cpp_member cpp_members {
@@ -2106,7 +2085,18 @@ storage_class  : EXTERN { $$ = "extern"; }
    Function parameter lists
    ------------------------------------------------------------------------------ */
 
-parms          : parm ptail {
+parms          : rawparms {
+                 Parm *p;
+		 $$ = $1;
+		 p = $1;
+                 while (p) {
+		   Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
+		   p = nextSibling(p);
+                 }
+               }
+    	       ;
+
+rawparms          : parm ptail {
 		  if (1) { 
 		    set_nextSibling($1,$2);
 		    $$ = $1;
@@ -2125,7 +2115,7 @@ ptail          : COMMA parm ptail {
                ;
 
 
-parm           : type parameter_declarator {
+parm           : rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParm($1,$2.id);
 		   if ($2.defarg)
@@ -2560,7 +2550,13 @@ type_qualifier_raw :  CONST { $$ = "const"; }
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
-type           : type_qualifier type_right {
+type            : rawtype {
+                   $$ = $1;
+                   Replace($$,"typename ","", DOH_REPLACE_ANY);
+                }
+                ;
+
+rawtype       : type_qualifier type_right {
                    $$ = $2;
 	           SwigType_push($$,$1);
                }
@@ -2584,7 +2580,7 @@ type_right     : TYPE_INT { $$ = $1; }
                    if ($2) $$ = $2;
 		   else $$ = $1;
 	       }
-               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }
+/*               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }  */
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | ENUM ID { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
@@ -2604,6 +2600,18 @@ type_right     : TYPE_INT { $$ = $1; }
 		   }
 		   if (!$$) {
 		     $$ = NewStringf("%s%s",$1,$2); 
+		   }
+               }
+               | cpptype idcolon template_decl { 
+  		   $$ = 0;
+		   if (templatetypes) {
+		     SwigType *ty = Getattr(templatetypes,$2);
+		     if (ty) {
+		       $$ = NewStringf("%s %s%s",$1, ty,$3);
+		     }
+		   }
+		   if (!$$) {
+		     $$ = NewStringf("%s %s%s",$1, $2,$3); 
 		   }
                }
                ;
@@ -2879,6 +2887,7 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
 cpptype        : CLASS { $$ = (char*)"class"; }
                | STRUCT { $$ = (char*)"struct"; }
                | UNION {$$ = (char*)"union"; }
+               | TYPENAME { $$ = (char *)"typename"; }
                ;
 
 opt_virtual    : VIRTUAL
@@ -2942,8 +2951,14 @@ idstring       : ID { $$ = $1; }
                ;
 
 idcolon        : ID idcolontail { 
-                   $$ = NewStringf("%s%s", $1, $2);
-		   Delete($2);
+                  $$ = 0;
+                  if (templatetypes) {
+		    SwigType *ty = Getattr(templatetypes,$1);
+		    if (ty)
+		      $$ = NewStringf("%s%s", ty,$2);
+                  }
+		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
+      	          Delete($2);
                }
                | NONID DCOLON ID idcolontail { 
 		 $$ = NewStringf("::%s%s",$3,$4);
