@@ -1,5 +1,27 @@
 Version 1.3.18 (In progress)
 ============================
+03/17/2003: beazley
+            Fixed a subtle problem with passing arguments of type function.  For
+            example:
+
+               int foo(int x(int, int));
+
+            or
+
+               typedef int binop_t(int, int);
+               int foo(binop_t x);
+
+            In old versions, this would produce code that wouldn't compile.  Now,
+            SWIG merely adds an extra pointer, making these declarations the same
+            as:
+
+               int foo(int (*x)(int, int));
+
+               typedef int binop_t(int, int);
+               int foo(binop_t *x);
+
+            Reported by Garth Bushell.
+
 03/17/2003: mrose (Mark Rose)
             Fixed the return statement for director base class calls that have no
             return value.
