@@ -994,10 +994,14 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
-static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *t, ParmList *declaratorparms, String *qualifier) {
+static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
   String *fname;
   String *name;
   String *fixname;
+  SwigType *t = Copy(type);
+
+  /* Printf(stdout, "single_new_feature: [%s] [%s] [%s] [%s] [%s] [%s]\n", featurename, val, declaratorid, t, ParmList_str_defaultargs(declaratorparms), qualifier); */
+
   if (!features_hash) features_hash = NewHash();
   fname = NewStringf("feature:%s",featurename);
   if (declaratorid) {
@@ -1010,9 +1014,7 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
   } else {
    name = fixname;
   }
-  if (declaratorparms) {
-   Setmeta(val,"parms",declaratorparms);
-  }
+
   if (declaratorparms) Setmeta(val,"parms",declaratorparms);
   if (!Len(t)) t = 0;
   if (t) {
@@ -1039,6 +1041,38 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
   Delete(name);
 }
 
+/* Add a new feature to the Hash. Additional features are added if the feature has a parameter list (declaratorparms)
+ * and one or more of the parameters have a default argument. An extra feature is added for each defaulted parameter,
+ * simulating the equivalent overloaded method. */
+static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
+
+  ParmList *declparms = declaratorparms;
+
+  /* Add the feature */
+  single_new_feature(featurename, val, featureattribs, declaratorid, type, declaratorparms, qualifier);
+
+  /* Add extra features if there are default parameters in the parameter list */
+  if (type) {
+    while (declparms) {
+      if (ParmList_has_defaultargs(declparms)) {
+
+        /* Create a parameter list for the new feature by copying all
+           but the last (defaulted) parameter */
+        ParmList* newparms = ParmList_copy_all_except_last_parm(declparms);
+
+        /* Create new declaration - with the last parameter removed */
+        SwigType *newtype = Copy(type);
+        Delete(SwigType_pop_function(newtype)); /* remove the old parameter list from newtype */
+        SwigType_add_function(newtype,newparms);
+
+        single_new_feature(featurename, Copy(val), featureattribs, declaratorid, newtype, newparms, qualifier);
+        declparms = newparms;
+      } else {
+        declparms = 0;
+      }
+    }
+  }
+}
 
 /* check if a function declaration is a plain C object */
 static int is_cfunction(Node *n) {
@@ -1054,10 +1088,12 @@ static int is_cfunction(Node *n) {
  * The additional functions form a linked list of nodes with the head being the original Node n. */
 static void default_arguments(Node *n) {
   Node *function = n;
+#ifdef MARCELO
   String *fname = 0;
   String *oname = 0;
   SwigType *fdecl = 0;
   int ignore = 0;
+#endif
 
   /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
     (one wrapped method per function irrespective of number of default arguments) */
@@ -1073,6 +1109,7 @@ static void default_arguments(Node *n) {
     }
   }
 
+#ifdef MARCELO
   if (function) {
     fdecl = Getattr(function,"decl");
     /* try to see if we need to ignore this method */
@@ -1082,44 +1119,24 @@ static void default_arguments(Node *n) {
       ignore = 1;
     }
   }
+#endif
 
   while (function) {
-    /* Look for parameters with default arguments */
-    ParmList *p = Getattr(function,"parms");
-    int default_args = 0;
-    while (p) {
-      if (Getattr(p, "value")) {
-        default_args = 1;
-        break;
-      }
-      p = nextSibling(p);
-    }
-    if (default_args) {
-      ParmList* newparms = 0;
+    ParmList *parms = Getattr(function,"parms");
+    if (ParmList_has_defaultargs(parms)) {
+
       /* Create a parameter list for the new function by copying all
          but the last (defaulted) parameter */
-      {
-        ParmList *p = Getattr(function,"parms");
-        Parm *newparm = 0;
-        Parm *pp = 0;
-        Parm *fp = 0;
-        while (nextSibling(p)) {
-          newparm = CopyParm(p);
-          if (pp) {
-            set_nextSibling(pp,newparm);
-          } else {
-            fp = newparm;
-          }
-          pp = newparm;
-          p = nextSibling(p);
-        }
-        newparms = fp;
-      }
+      ParmList* newparms = ParmList_copy_all_except_last_parm(parms);
 
       /* Create new function and add to symbol table */
       {
         Node *new_function = new_node(Copy(nodeType(function)));
+#ifdef MARCELO
         SwigType *decl = Copy(fdecl);
+#else
+        SwigType *decl = Copy(Getattr(function,"decl"));
+#endif
         int constqualifier = SwigType_isconst(decl);
 
         Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
@@ -1127,7 +1144,11 @@ static void default_arguments(Node *n) {
         if (constqualifier)
           SwigType_add_qualifier(decl,"const");
 
+#ifdef MARCELO
         Setattr(new_function,"name",fname);
+#else
+        Setattr(new_function,"name",Getattr(function,"name"));
+#endif
         Setattr(new_function,"code",Copy(Getattr(function,"code")));
         Setattr(new_function,"decl", decl);
         Setattr(new_function,"parms",newparms);
@@ -1149,11 +1170,13 @@ static void default_arguments(Node *n) {
           if (symtypename) Setattr(new_function,"sym:typename",Copy(symtypename));
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
         }
-	
+
+#ifdef MARCELO
 	/* apply the original function features */
 	Swig_features_get(Swig_cparse_features(),Namespaceprefix,fname,fdecl,new_function);
 	if (ignore) Setattr(new_function,"feature:ignore","1");
-	
+#endif
+
         add_symbols(new_function);
         /* mark added functions as ones with overloaded parameters and point to the parsed method */
         Setattr(new_function,"defaultargs", n);
