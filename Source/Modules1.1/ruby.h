@@ -82,7 +82,7 @@ class RUBY : public Language {
  private:
   virtual char *make_wrapper_name(char *cname);
   virtual char *validate_const_name(char *name);
-  virtual char *ruby_typemap_lookup(char *, DataType *, char *, char *, char *, WrapperFunction * = 0);
+  virtual char *ruby_typemap_lookup(char *, DataType *, char *, char *, char *, Wrapper * = 0);
   virtual int to_VALUE(DataType *, char *, DOHString *, int = 0);
   virtual int from_VALUE(DataType *, char *, DOHString *);
  public:

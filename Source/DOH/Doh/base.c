@@ -34,7 +34,11 @@ DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
 
-  if (!DohCheck(b)) return;
+  if (!obj) return;
+  if (!DohCheck(b)) {
+    fprintf(stderr,"DOH: Fatal error. Attempt to delete a non-doh object.\n");
+    abort();
+  }
   if (b->flag_intern) return;
   b->refcount--;
   if (b->refcount <= 0) {

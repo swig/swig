@@ -26,7 +26,7 @@
 class MZSCHEME : public Language
 {
 private:
-  void   get_pointer(DOHString_or_char *name, int parm, DataType *t, WrapperFunction &f);
+  void   get_pointer(DOHString_or_char *name, int parm, DataType *t, Wrapper *f);
   void   usage_var(char *, DataType *, DOHString *usage);
   void   usage_func(char *, DataType *, ParmList *, DOHString *usage);
   void   usage_returns(char *, DataType *, ParmList *, DOHString *usage);

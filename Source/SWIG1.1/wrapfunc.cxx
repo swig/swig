@@ -33,17 +33,23 @@ extern "C" {
 #include "doh.h"
 }
 
-WrapperFunction::WrapperFunction() {
-  h = NewHash();
-  localh = NewHash();
-  def = NewString("");
-  locals = NewString("");
-  code = NewString("");
+Wrapper *NewWrapper() {
+  Wrapper *w = (Wrapper *) malloc(sizeof(Wrapper));
+  w->h = NewHash();
+  w->localh = NewHash();
+  w->def = NewString("");
+  w->locals = NewString("");
+  w->code = NewString("");
+  return w;
 }
 
-WrapperFunction::~WrapperFunction() {
-  Delete(h);
-  Delete(localh);
+void DelWrapper(Wrapper *w) {
+  Delete(w->h);
+  Delete(w->localh);
+  Delete(w->def);
+  Delete(w->locals);
+  Delete(w->code);
+  free(w);
 }
 
 // -------------------------------------------------------------------
@@ -68,20 +74,20 @@ static char *isolate_type_name(char *tname) {
 // Print out a wrapper function.
 // -------------------------------------------------------------------
 
-void WrapperFunction::print(DOHFile *f) {
+void Wrapper_print(Wrapper *w, DOHFile *f) {
   DOHString *s;
   DOH  *key;
   
-  key = Firstkey(localh);
+  key = Firstkey(w->localh);
   while (key) {
-    s = Getattr(localh,key);
+    s = Getattr(w->localh,key);
     Delitem(s,DOH_END);
-    Printv(locals,tab4,s,";\n",0);
-    key = Nextkey(localh);
+    Printv(w->locals,tab4,s,";\n",0);
+    key = Nextkey(w->localh);
   }
-  Printf(f,"%s\n",def);
-  Printf(f,"%s",locals);
-  Printf(f,"%s\n",code);
+  Printf(f,"%s\n",w->def);
+  Printf(f,"%s",w->locals);
+  Printf(f,"%s\n",w->code);
 }
 
 // -------------------------------------------------------------------
@@ -90,12 +96,11 @@ void WrapperFunction::print(DOHFile *f) {
 // Maintains a hash table to prevent double adding.
 // -------------------------------------------------------------------
 
-void WrapperFunction::add_local(char *type, char *name, char *defarg) {
+void Wrapper_add_local(Wrapper *w, char *type, char *name, char *defarg) {
   char *stored_type;
-  char *new_type;
+  char new_type[256];
   char temp[256],*c,*t;
 
-  new_type = new char[strlen(type)+1];
   strcpy(new_type,type);
 
   // Figure out what the name of this variable is
@@ -107,24 +112,24 @@ void WrapperFunction::add_local(char *type, char *name, char *defarg) {
     c++;
   }
   *t = 0;
-  if (Getattr(h,temp)) {
+  if (Getattr(w->h,temp)) {
     // Check to see if a type mismatch has occurred
-    stored_type = GetChar(h,temp);
+    stored_type = GetChar(w->h,temp);
     if (strcmp(type,stored_type) != 0) 
       fprintf(stderr,"Error. Type %s conflicts with previously declared type of %s\n",
 	      type, stored_type);
     return;    
   } else {
-    SetChar(h,temp,new_type);
+    SetChar(w->h,temp,new_type);
   }
 
   // See if any wrappers have been generated with this type 
 
   char *tname = isolate_type_name(type);
-  DOHString *lstr = Getattr(localh,tname);
+  DOHString *lstr = Getattr(w->localh,tname);
   if (!lstr) {
     lstr = NewStringf("%s ", tname);
-    Setattr(localh,tname,lstr);
+    Setattr(w->localh,tname,lstr);
   }
   
   // Successful, write some wrapper code
@@ -138,28 +143,29 @@ void WrapperFunction::add_local(char *type, char *name, char *defarg) {
 
 
 // -------------------------------------------------------------------
-// char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
+// Wrapper_new_local()
 //
 // A safe way to add a new local variable.  type and name are used as
 // a starting point, but a new local variable will be created if these
 // are already in use.
 // -------------------------------------------------------------------
 
-char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
-  char *new_type;
+char *Wrapper_new_local(Wrapper *w, char *type, char *name, char *defarg) {
+  char new_type[256];
   static DOHString *new_name = 0;
   char *c;
-  new_type = new char[strlen(type)+1];
+  strcpy(new_type,type);
 
   if (!new_name) new_name = NewString("");
-  strcpy(new_type,type);
+ 
+ strcpy(new_type,type);
   Clear(new_name);
   c = name;
   for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
     Putc(*c,new_name);
 
   // Try to add a new local variable
-  if (Getattr(h,new_name)) {
+  if (Getattr(w->h,new_name)) {
     // Local variable already exists, try to generate a new name
     int i = 0;
     Clear(new_name);
@@ -170,7 +176,7 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
     for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
       Putc(*c,new_name);
     Printf(new_name,"%d",i);
-    while (Getattr(h,new_name)) {
+    while (Getattr(w->h,new_name)) {
       i++;
       c = name;
       Clear(new_name);
@@ -178,16 +184,16 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
 	Putc(*c,new_name);
       Printf(new_name,"%d",i);
     }
-    Setattr(h,new_name,new_type);
+    Setattr(w->h,new_name,new_type);
   } else {
-    Setattr(h,new_name,new_type);
+    Setattr(w->h,new_name,new_type);
   }
   Printf(new_name,"%s",c);
   // Successful, write some wrapper code
   if (!defarg)
-    Printv(locals,tab4,type, " ", new_name, ";\n");
+    Printv(w->locals,tab4,type, " ", new_name, ";\n");
   else
-    Printv(locals,tab4,type, " ", new_name, " = ", defarg, ";\n");
+    Printv(w->locals,tab4,type, " ", new_name, " = ", defarg, ";\n");
 
   // Need to strip off the array symbols now
 
@@ -196,14 +202,4 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
     c++;
   *c = 0;
   return Char(new_name);
-}
-
-// ------------------------------------------------------------------
-// static WrapperFunction::del_type(void *obj)
-//
-// Callback function used when cleaning up the hash table.
-// ------------------------------------------------------------------
-
-void WrapperFunction::del_type(void *obj) {
-  delete (char *) obj;
 }

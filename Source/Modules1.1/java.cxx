@@ -538,7 +538,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   javaParameterSignature = NewString("");
 
   // A new wrapper function object
-  WrapperFunction  f;
+  Wrapper *f = NewWrapper();
 
   if(!classdef_emitted) emit_classdef();
 
@@ -560,7 +560,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   }
 
   if(t->type != T_VOID || t->is_pointer) {
-	 f.add_local(jnirettype, (char*)"_jresult", (char*)"0");
+	 Wrapper_add_local(f,jnirettype, (char*)"_jresult", (char*)"0");
   }
 
   Printf(f_java, "  %s ", method_modifiers);
@@ -577,8 +577,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     Delete(member_name);
   }
 
-  if(!jnic) Printf(f.def,"extern \"C\"\n");
-  Printv(f.def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
+  if(!jnic) Printf(f->def,"extern \"C\"\n");
+  Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
 
   // Emit all of the local variables for holding arguments.
   int pcount = emit_args(t,l,f);
@@ -621,24 +621,24 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       gencomma = 1;
 
       // Add to Jni function header
-      Printv(f.def, ", ", jnitype, " ", source, 0);
+      Printv(f->def, ", ", jnitype, " ", source, 0);
   
       // Get typemap for this argument
-      tm = typemap_lookup((char*)"in",typemap_lang,p->t,p->name,source,target,&f);
+      tm = typemap_lookup((char*)"in",typemap_lang,p->t,p->name,source,target,f);
       if (tm) {
-	Printf(f.code,"%s\n", tm);
-	Replace(f.code,"$arg",source, DOH_REPLACE_ANY);
+	Printf(f->code,"%s\n", tm);
+	Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
       } else {
         if(!p->t->is_pointer)
-	  Printv(f.code, tab4, target, " = ", p->t->print_cast(), source, ";\n", 0);
+	  Printv(f->code, tab4, target, " = ", p->t->print_cast(), source, ";\n", 0);
         else if((p->t->type == T_VOID && p->t->is_pointer == 1) ||
 	        (p->t->type == T_USER && p->t->is_pointer == 1)) {
             p->t->is_pointer++;
-	    Printv(f.code, tab4, target, " = *", p->t->print_cast(), "&", source, ";\n", 0);
+	    Printv(f->code, tab4, target, " = *", p->t->print_cast(), "&", source, ";\n", 0);
             p->t->is_pointer--;
         } else {
           if(p->t->type == T_CHAR && p->t->is_pointer == 1) {
-	    Printv(f.code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
+	    Printv(f->code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
           } else {
             char *scalarType = SwigTcToJniScalarType(p->t);
             char *cptrtype = p->t->print_type();
@@ -654,20 +654,20 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    DOHString *basic_jniptrtype = NewStringf("%s*",basic_jnitype);
             DOHString *source_length = NewStringf("%s%s)", JNICALL((char*)"GetArrayLength"), source);
 
-            target_copy = Swig_copy_string(f.new_local(Char(basic_jniptrtype), target, NULL));
-            target_length = Swig_copy_string(f.new_local((char*)"jsize", target, Char(source_length)));
-            if(local_i == NULL) local_i = Swig_copy_string(f.new_local((char*)"int", (char*)"i", NULL));
+            target_copy = Swig_copy_string(Wrapper_new_local(f,Char(basic_jniptrtype), target, NULL));
+            target_length = Swig_copy_string(Wrapper_new_local(f,(char*)"jsize", target, Char(source_length)));
+            if(local_i == NULL) local_i = Swig_copy_string(Wrapper_new_local(f,(char*)"int", (char*)"i", NULL));
 	    
 	    DOHString *scalarFunc = NewStringf("Get%sArrayElements",scalarType);
 
-	    Printv(f.code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
-	    Printv(f.code, tab4, target, " = ", p->t->print_cast(), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
-	    Printv(f.code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
+	    Printv(f->code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
+	    Printv(f->code, tab4, target, " = ", p->t->print_cast(), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
+	    Printv(f->code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
 	    if(p->t->is_pointer > 1) {
-	      Printv(f.code, tab8, target, "[i] = *", p->t->print_cast(), "&", target_copy, "[i];\n", 0);
+	      Printv(f->code, tab8, target, "[i] = *", p->t->print_cast(), "&", target_copy, "[i];\n", 0);
 	    } else {
               p->t->is_pointer--;
-	      Printv(f.code, tab8, target, "[i] = ", p->t->print_cast(), target_copy, "[i];\n", 0); 
+	      Printv(f->code, tab8, target, "[i] = ", p->t->print_cast(), target_copy, "[i];\n", 0); 
 	      p->t->is_pointer++;
 	    }
 	    Delete(scalarFunc);
@@ -680,8 +680,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     // Check to see if there was any sort of a constaint typemap
     if ((tm = typemap_lookup((char*)"check",typemap_lang,p->t,p->name,source,target))) {
       // Yep.  Use it instead of the default
-      Printf(f.code,"%s\n", tm);
-      Replace(f.code,"$arg",source, DOH_REPLACE_ANY);
+      Printf(f->code,"%s\n", tm);
+      Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
     }
 
     // Check if there was any cleanup code (save it for later)
@@ -738,7 +738,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     Printf(body,")");
     Printf(f_shadow, "%s;\n  }\n\n",body);
   }
-  Printf(f.def,") {");
+  Printf(f->def,") {");
 
   // Now write code to make the function call
 
@@ -749,27 +749,27 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 
   if((t->type != T_VOID || t->is_pointer) && !native_func) {
     if ((tm = typemap_lookup((char*)"out",typemap_lang,t,iname,(char*)"_result",(char*)"_jresult"))) {
-      Printf(f.code,"%s\n", tm);
+      Printf(f->code,"%s\n", tm);
     } else {
       if(t->is_pointer == 0 && t->type == T_USER) { /* return by value */
 	    t->is_pointer=2;
-	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer=0;
       } else if(t->is_pointer == 0 && t->type != T_USER) {
-	Printv(f.code, tab4, "_jresult = (", jnirettype, ") _result;\n", 0);
+	Printv(f->code, tab4, "_jresult = (", jnirettype, ") _result;\n", 0);
       } else if((t->type == T_VOID && t->is_pointer == 1) ||
 	        (t->type == T_USER && t->is_pointer == 1)) {
 	    t->is_pointer++;
-	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
       } else {
         if(t->type == T_CHAR && t->is_pointer == 1) {
-	  Printv(f.code, tab4, "if(_result != NULL)\n", 0);
-          Printv(f.code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "_result);\n", 0);
+	  Printv(f->code, tab4, "if(_result != NULL)\n", 0);
+          Printv(f->code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "_result);\n", 0);
         } else {
 	  Printf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,t->print_type());
 	    t->is_pointer++;
-	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
         }
       }
@@ -777,37 +777,37 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   }
 
   // Dump argument output code;
-  Printv(f.code, outarg, 0);
+  Printv(f->code, outarg, 0);
 
   // Dump the argument cleanup code
-  Printv(f.code,cleanup, 0);
+  Printv(f->code,cleanup, 0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
     if ((tm = typemap_lookup((char*)"newfree",typemap_lang,t,iname,(char*)"_result",(char*)""))) {
-      Printf(f.code,"%s\n", tm);
+      Printf(f->code,"%s\n", tm);
     }
   }
 
   if((t->type != T_VOID || t->is_pointer) && !native_func) {
     if ((tm = typemap_lookup((char*)"ret",typemap_lang,t,iname,(char*)"_result",(char*)"_jresult", NULL))) {
-      Printf(f.code,"%s\n", tm);
+      Printf(f->code,"%s\n", tm);
     }
   }
 
   // Wrap things up (in a manner of speaking)
   if(t->type != T_VOID || t->is_pointer)
-    Printv(f.code, tab4, "return _jresult;\n", 0);
-  Printf(f.code, "}\n");
+    Printv(f->code, tab4, "return _jresult;\n", 0);
+  Printf(f->code, "}\n");
 
   // Substitute the cleanup code (some exception handlers like to have this)
-  Replace(f.code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
  
   // Emit the function
   
   if(!native_func)
-	f.print(f_wrappers);
+	Wrapper_print(f,f_wrappers);
   
   
  // If registerNatives is active, store the table entry for this method
@@ -819,6 +819,12 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	   0);
 	   
   }
+
+  Delete(cleanup);
+  Delete(outarg);
+  Delete(body);
+  Delete(javaParameterSignature);
+  DelWrapper(f);
 }
 
 // -----------------------------------------------------------------------

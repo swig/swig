@@ -413,27 +413,27 @@ extern "C" {
 }
 
 // -----------------------------------------------------------------------
-//  Class for Creating Wrapper Functions
+//  Structure for Creating Wrapper Functions
 // -----------------------------------------------------------------------
 
-class WrapperFunction {
-private:
+typedef struct Wrapper {
   void    *h;
   void    *localh;
-public:
-  WrapperFunction();
-  ~WrapperFunction();
-  void    *def;               /* Migration code */
+  void    *def;               
   void    *locals;
   void    *code;
-  void    print(void *f);
-  void    add_local(char *type, char *name, char *defvalue = 0);
-  char   *new_local(char *type, char *name, char *defvalue = 0);
-static    void    del_type(void *obj);
-};
+} Wrapper;
 
-extern  int   emit_args(DataType *, ParmList *, WrapperFunction &f);
-extern  void  emit_func_call(char *, DataType *, ParmList *, WrapperFunction &f);
+extern Wrapper *NewWrapper();
+extern void     DelWrapper(Wrapper *w);
+extern void     Wrapper_print(Wrapper *w, void *f);
+extern void     Wrapper_add_local(Wrapper *w, char *type, char *name, char *defvalue = 0);
+extern char    *Wrapper_new_local(Wrapper *w, char *type, char *name, char *defvalue = 0);
+
+// Misc
+
+extern  int   emit_args(DataType *, ParmList *, Wrapper *f);
+extern  void  emit_func_call(char *, DataType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);
 
 // -----------------------------------------------------------------------
@@ -444,7 +444,7 @@ extern void    typemap_register(char *op, char *lang, DataType *type, char *pnam
 extern void    typemap_register(char *op, char *lang, char *type, char *pname, char *code,ParmList *l = 0);
 extern void    typemap_register_default(char *op, char *lang, int type, int ptr, char *arraystr, char *code, ParmList *l = 0);
 extern char   *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *source, char *target,
-                              WrapperFunction *f = 0);
+                              Wrapper *f = 0);
 extern void    typemap_clear(char *op, char *lang, DataType *type, char *pname);
 extern void    typemap_copy(char *op, char *lang, DataType *stype, char *sname, DataType *ttype, char *tname);
 extern char   *typemap_check(char *op, char *lang, DataType *type, char *pname);
@@ -459,11 +459,5 @@ extern void    typemap_clear_apply(DataType *type, char *pname);
 extern void    fragment_register(char *op, char *lang, char *code);
 extern char   *fragment_lookup(char *op, char *lang, int age);
 extern void    fragment_clear(char *op, char *lang);
-
-
-extern  void  emit_ptr_equivalence(WrapperFunction &);
-
-
-
 
 
