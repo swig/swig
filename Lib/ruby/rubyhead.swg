@@ -71,7 +71,8 @@
 #endif
 
 typedef struct {
-  VALUE  klass;
+  VALUE klass;
+  VALUE mImpl;
   void  (*mark)(void *);
   void  (*destroy)(void *);
 } swig_class;
