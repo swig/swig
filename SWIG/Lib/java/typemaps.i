@@ -62,34 +62,27 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
         void f(char *input);
 */
 
-%define INPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JNIDESC)
-%typemap(jni) CTYPE *INPUT "JNITYPE"
-%typemap(jtype) CTYPE *INPUT "JTYPE"
-%typemap(jstype) CTYPE *INPUT "JTYPE"
-%typemap(javain) CTYPE *INPUT "$javainput"
-%typemap(javadirectorin) CTYPE *INPUT "$jniinput"
-%typemap(javadirectorout) CTYPE *INPUT "$javacall"
+%define INPUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JNIDESC)
+%typemap(jni) TYPE *INPUT, TYPE &INPUT "JNITYPE"
+%typemap(jtype) TYPE *INPUT, TYPE &INPUT "JTYPE"
+%typemap(jstype) TYPE *INPUT, TYPE &INPUT "JTYPE"
+%typemap(javain) TYPE *INPUT, TYPE &INPUT "$javainput"
+%typemap(javadirectorin) TYPE *INPUT, TYPE &INPUT "$jniinput"
+%typemap(javadirectorout) TYPE *INPUT, TYPE &INPUT "$javacall"
 
-%typemap(jni) CTYPE &INPUT "JNITYPE"
-%typemap(jtype) CTYPE &INPUT "JTYPE"
-%typemap(jstype) CTYPE &INPUT "JTYPE"
-%typemap(javain) CTYPE &INPUT "$javainput"
-%typemap(javadirectorin) CTYPE *INPUT "$jniinput"
-%typemap(javadirectorout) CTYPE *INPUT "$javacall"
-
-%typemap(in) CTYPE *INPUT, CTYPE &INPUT
+%typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
 %typemap(directorin,descriptor=JNIDESC) CYTPE &INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) &$1; %}
 
-%typemap(directorin,descriptor=JNIDESC) CTYPE *INPUT
+%typemap(directorin,descriptor=JNIDESC) TYPE *INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) $1; %}
 
-%typemap(freearg) CTYPE *INPUT, CTYPE &INPUT ""
+%typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
-%typemap(typecheck) CTYPE *INPUT = CTYPE;
-%typemap(typecheck) CTYPE &INPUT = CTYPE;
+%typemap(typecheck) TYPE *INPUT = TYPE;
+%typemap(typecheck) TYPE &INPUT = TYPE;
 %enddef
 
 INPUT_TYPEMAP(bool, jboolean, boolean, "Z");
@@ -190,8 +183,8 @@ or you can use the %apply directive :
 The Java output of the function would be the function return value and the 
 value in the single element array. In Java you would use it like this:
 
-    double[] intptr = {0};
-    double fraction = modulename.modf(5,intptr);
+    double[] ptr = {0.0};
+    double fraction = modulename.modf(5.0,ptr);
 
 There are no char *OUTPUT typemaps, however you can apply the signed char * typemaps instead:
         %include "typemaps.i"
@@ -202,22 +195,15 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 /* Java BigInteger[] */
 %typecheck(SWIG_TYPECHECK_INT128_ARRAY) SWIGBIGINTEGERARRAY ""
 
-%define OUTPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
-%typemap(jni) CTYPE *OUTPUT %{JNITYPE##Array%}
-%typemap(jtype) CTYPE *OUTPUT "JTYPE[]"
-%typemap(jstype) CTYPE *OUTPUT "JTYPE[]"
-%typemap(javain) CTYPE *OUTPUT "$javainput"
-%typemap(javadirectorin) CTYPE *OUTPUT "$jniinput"
-%typemap(javadirectorout) CTYPE *OUTPUT "$javacall"
+%define OUTPUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
+%typemap(jni) TYPE *OUTPUT, TYPE &OUTPUT %{JNITYPE##Array%}
+%typemap(jtype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
+%typemap(jstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
+%typemap(javain) TYPE *OUTPUT, TYPE &OUTPUT "$javainput"
+%typemap(javadirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$jniinput"
+%typemap(javadirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$javacall"
 
-%typemap(jni) CTYPE &OUTPUT %{JNITYPE##Array%}
-%typemap(jtype) CTYPE &OUTPUT "JTYPE[]"
-%typemap(jstype) CTYPE &OUTPUT "JTYPE[]"
-%typemap(javain) CTYPE &OUTPUT "$javainput"
-%typemap(javadirectorin) CTYPE &OUTPUT "$jniinput"
-%typemap(javadirectorout) CTYPE &OUTPUT "$javacall"
-
-%typemap(in) CTYPE *OUTPUT($*1_ltype temp), CTYPE &OUTPUT($*1_ltype temp)
+%typemap(in) TYPE *OUTPUT($*1_ltype temp), TYPE &OUTPUT($*1_ltype temp)
 {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
@@ -230,24 +216,24 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   $1 = &temp; 
 }
 
-%typemap(directorin,descriptor=JNIDESC) CTYPE &OUTPUT
+%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT
 %{ *(($&1_ltype) $input = &$1; %}
 
-%typemap(directorin,descriptor=JNIDESC) CTYPE *OUTPUT
+%typemap(directorin,descriptor=JNIDESC) TYPE *OUTPUT
 %{
-#error "Need to provide OUT directorin typemap, CTYPE array length is unknown"
+#error "Need to provide OUT directorin typemap, TYPE array length is unknown"
 %}
 
-%typemap(freearg) CTYPE *OUTPUT, CTYPE &OUTPUT ""
+%typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
-%typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT 
 {
   JNITYPE jvalue = (JNITYPE)temp$argnum;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
-%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
 OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Ljava/lang/Boolean;", jbooleanArray);
@@ -333,7 +319,7 @@ input value - the input must be an array with a minimum of one element.
 The element in the array is the input and the output is the element in 
 the array.
 
-       double x[] = {5};
+       double x[] = {5.0};
        neg(x);
 
 The implementation of the OUTPUT and INOUT typemaps is different to other 
@@ -346,22 +332,15 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
         void f(char *inout);
 */
 
-%define INOUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
-%typemap(jni) CTYPE *INOUT %{JNITYPE##Array%}
-%typemap(jtype) CTYPE *INOUT "JTYPE[]"
-%typemap(jstype) CTYPE *INOUT "JTYPE[]"
-%typemap(javain) CTYPE *INOUT "$javainput"
-%typemap(javadirectorin) CTYPE *INOUT "$jniinput"
-%typemap(javadirectorout) CTYPE *INOUT "$javacall"
+%define INOUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
+%typemap(jni) TYPE *INOUT, TYPE &INOUT %{JNITYPE##Array%}
+%typemap(jtype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
+%typemap(jstype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
+%typemap(javain) TYPE *INOUT, TYPE &INOUT "$javainput"
+%typemap(javadirectorin) TYPE *INOUT, TYPE &INOUT "$jniinput"
+%typemap(javadirectorout) TYPE *INOUT, TYPE &INOUT "$javacall"
 
-%typemap(jni) CTYPE &INOUT %{JNITYPE##Array%}
-%typemap(jtype) CTYPE &INOUT "JTYPE[]"
-%typemap(jstype) CTYPE &INOUT "JTYPE[]"
-%typemap(javain) CTYPE &INOUT "$javainput"
-%typemap(javadirectorin) CTYPE &INOUT "$jniinput"
-%typemap(javadirectorout) CTYPE &INOUT "$javacall"
-
-%typemap(in) CTYPE *INOUT, CTYPE &INOUT {
+%typemap(in) TYPE *INOUT, TYPE &INOUT {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
@@ -373,21 +352,21 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
   $1 = ($1_ltype) JCALL2(Get##JAVATYPE##ArrayElements, jenv, $input, 0); 
 }
 
-%typemap(directorin,descriptor=JNIDESC) CTYPE &INOUT
+%typemap(directorin,descriptor=JNIDESC) TYPE &INOUT
 %{ *(($&1_ltype)&$input) = &$1; %}
 
-%typemap(directorin,descriptor=JNIDESC) CTYPE *INOUT, CTYPE &INOUT
+%typemap(directorin,descriptor=JNIDESC) TYPE *INOUT, TYPE &INOUT
 {
-#error "Need to provide INOUT directorin typemap, CTYPE array length is unknown"
+#error "Need to provide INOUT directorin typemap, TYPE array length is unknown"
 }
 
-%typemap(freearg) CTYPE *INOUT, CTYPE &INOUT ""
+%typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 
-%typemap(argout) CTYPE *INOUT, CTYPE &INOUT
+%typemap(argout) TYPE *INOUT, TYPE &INOUT
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
-%typemap(typecheck) CTYPE *INOUT = TYPECHECKTYPE;
-%typemap(typecheck) CTYPE &INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
 INOUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Ljava/lang/Boolean;", jbooleanArray); 
