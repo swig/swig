@@ -421,6 +421,141 @@ operations that allow them to be used interchangably with DOH file objects.
 <h2>3. Types and Typemaps</h2>
 </a>
 
+Revised: Dave Beazley (7/22/00)
+
+<p>
+The representation and manipulation of types is currently in the
+process of being reorganized and (hopefully) simplified.  The
+following list describes the current set of functions that are used to
+manipulate datatypes.  These are functions are different than in
+SWIG1.1 and may change names in the SWIG1.3 release.
+
+<ul>
+<li><tt>DataType_str(DataType *t, char *name)</tt>.<br>
+ This function produces the exact string 
+representation of the datatype <tt>t</tt>.  <tt>name</tt> is an optional parameter that 
+specifies a declaration name.   This is used when dealing with more complicated datatypes
+such as arrays and pointers to functions where the output might look something like
+"<tt>int (*name)(int, double)</tt>".
+
+<p>
+<li><tt>DataType_lstr(DataType *t, char *name)</tt>.<br>
+This function produces a string
+representation of a datatype that can be safely be assigned a value (i.e., can be used as the
+"lvalue" of an expression).   To do this, qualifiers such as "const", arrays, and references
+are stripped away or converted into pointers.  For example:
+
+<blockquote>
+<pre>
+Original Datatype              lstr()
+------------------             --------
+const char *a                  char *a
+double a[20]                   double *a
+double a[20][30]               double *a
+double &a                      double *a
+</pre>
+</blockquote>
+
+The intent of the lstr() function is to produce local variables inside wrapper functions--all
+of which must be reassignable types since they are the targets of conversions from a scripting
+representation. 
+
+<p>
+<li><tt>DataType_caststr(DataType *t, char *name)</tt>.
+<br>  This function produces a string
+that casts a type produced by the <tt>lstr()</tt> function to the type produced by the
+<tt>str()</tt> function.  You might view it as the inverse of lstr().   This function only produces
+output when it needs to (when str() and lstr() produce different results).  Furthermore, an optional
+name can be supplied when the cast is to be applied to a specific name.   Examples:
+
+<blockquote>
+<pre>
+Original Datatype             caststr()
+------------------            ---------
+char *a                       
+const char *a                 (const char *) name
+double a[20]                  (double *) name
+double a[20][30]              (double (*)[30]) name
+double &a                     (double &) *name
+</pre>
+</blockquote>
+
+<p>
+<li><tt>DataType_manglestr(DataType *t)</tt>. <br>
+Produces a type-string that is used to identify this datatype in the target scripting language.
+Usually this string looks something like "<tt>_double_pp</tt>" although the target language
+may redefine the output for its own purposes.  Normally this function strips all qualifiers,
+references, and arrays---producing a mangled version of the type produced by the <tt>lstr()</tt> function.
+</ul>
+
+
+
+The following example illustrates the intended use of the above functions when creating wrapper
+functions using shorthand pseudocode.   Suppose you had a function like this:
+
+<blockquote>
+<pre>
+int foo(int a, double b[20][30], const char *c, double &amp;d);
+</pre>
+</blockquote>
+
+Here's how a wrapper function would be generated using the type generation functions above:
+
+<blockquote>
+<pre>
+wrapper_foo() {
+   lstr("int","result")
+   lstr("int","arg0")
+   lstr("double [20][30]", "arg1")
+   lstr("const char *", "arg2")
+   lstr("double &amp;", "arg3")
+   ...
+   get arguments
+   ...
+   result = (lstr("int"))  foo(caststr("int","arg0"),
+                               caststr("double [20][30]","arg1"),
+                               caststr("const char *", "arg2"),
+                               caststr("double &amp;", "arg3"))
+   ...
+}
+</pre>
+</blockquote>
+
+Here's how it would look with the corresponding output filled in:
+<blockquote>
+<pre>
+wrapper_foo() {
+   int      result;
+   int      arg0;
+   double  *arg1;
+   char    *arg2;
+   double  *arg3;
+   ...
+   get arguments
+   ...
+   result = (int) foo(arg0,
+                      (double (*)[30]) arg1,
+                      (const char *) arg2,
+                      (double &amp;) *arg3);
+   ...
+}
+</pre>
+</blockquote>
+
+
+<b>Notes:</b>
+
+<ul>
+<li>For convenience, the string generation functions return a
+"<tt>char *</tt>" that points to statically allocated memory living
+inside the type library.  Therefore, it is never necessary (and it's
+an error) to free the pointer returned by the functions.  Also, if you
+need to save the result, you should make a copy of it.  However, with
+that said, it is probably worth nothing that these functions do cache
+the last 8 results.  Therefore, it's fairly safe to make a handful of
+repeated calls without making any copies.
+</ul>
+
 [TODO]
 
 <a name="4" href="#i4">
