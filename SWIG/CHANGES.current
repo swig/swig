@@ -1,6 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
 
+11/03/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Fix #782052.  The --with-chickencfg configure
+	    option was not accepted.
+
 11/02/2003: mkoeppe (Matthias Koeppe)
 	    [Guile] Merge new set of GOOPS changes by John Lenz.
 	    GOOPS objects are now manipulated directly by the C code.
