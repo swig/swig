@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Contract Checking</title>
+</head>
+
+<body bgcolor="#ffffff">
+<H1>Contracts</H1>
+<!-- INDEX -->
+<!-- INDEX -->
+
+A common problem that arises when wrapping C libraries is that of maintaining
+reliability and checking for errors.  The fact of the matter is that many
+C programs are notorious for not providing error checks.  Not only that, 
+when you expose the internals of an application as a library, it
+often becomes possible to crash it simply by providing bad inputs or
+using it in a way that wasn't intended.
+
+<p>
+This chapter describes SWIG's support for software contracts.  In the context
+of SWIG, a contract can be viewed as a constraint that is attached
+to a declaration.  For example, you can easily attach argument checking rules,
+check the output values of a function and more. 
+When one of the rules is violated by a script, a runtime exception is 
+generated rather than having the program continue to execute.
+
+<H2>The %contract directive</H2>
+
+Contracts are added to a declaration using the %contract directive.  Here
+is a simple example:
+
+<blockquote>
+<pre>
+%contract sqrt(double x) {
+require:
+    x >= 0;
+ensure:
+    sqrt >= 0;
+}
+
+...
+double sqrt(double);
+</pre>
+</blockquote>
+
+In this case, a contract is being added to the <tt>sqrt()</tt> function.
+The <tt>%contract</tt> directive must always appear before the declaration
+in question.  Within the contract there are two sections, both of which
+are optional.  The <tt>require:</tt>
+section specifies conditions that must hold before the function is called.  
+Typically, this is used to check argument values.   The <tt>ensure:</tt> section
+specifies conditions that must hold after the function is called.  This is
+often used to check return values or the state of the program.  In both
+cases, the conditions that must hold must be specified as boolean expressions.
+
+<p>
+In the above example, we're simply making sure that sqrt() returns a non-negative
+number (if it didn't, then it would be broken in some way).
+
+<p>
+Once a contract has been specified, it modifies the behavior of the
+resulting module.  For example:
+
+<blockquote>
+<pre>
+>>> example.sqrt(2)
+1.4142135623730951
+>>> example.sqrt(-2)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+RuntimeError: Require assertion violation, in function sqrt( arg1>=0)
+>>>
+</pre>
+</blockquote>
+
+<h2>%contract and classes</h2>
+
+<h2>Constant aggregation and %aggregate_check</h2>
+
+
+<h2>Notes</h2>
+
+Contract support was implemented by Songyan (Tiger) Feng and first appeared
+in SWIG-1.3.20.
+
+<p><hr>
+
+<address>SWIG 1.3 - Last Modified : November 12, 2003</address>
+</body>
+</html>
