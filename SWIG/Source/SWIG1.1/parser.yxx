@@ -570,6 +570,7 @@ end_class(SwigType *endtype, char *endname) {
   } ilist;
   struct Define {
     String *val;
+    String *rawval;
     int     type;
   } dtype;
   struct {
@@ -1734,29 +1735,39 @@ def_args       : EQUAL definetype {
                }
                | EQUAL AND ID {
 		 $$.val = NewStringf("&%s",$3);
+		 $$.rawval = 0;
 		 $$.type = T_USER;
 	       }
                | EQUAL LBRACE {
 		 skip_brace();
 		 $$.val = 0;
+		 $$.rawval = 0;
                  $$.type = T_INT;
 	       }
-               | COLON NUM_INT { /* bit field specifier. Ignored */ }
-               | empty {$$.val = 0; $$.type = T_INT;}
+               | COLON NUM_INT { 
+		 $$.val = 0;
+		 $$.rawval = 0;
+		 $$.type = 0;
+	       }
+               | empty {
+                 $$.val = 0;
+                 $$.rawval = 0;
+                 $$.type = T_INT;
+               }
                ;
 
 parameter_declarator : declarator def_args {
                  $$ = $1;
-		 $$.defarg = $2.val;
+		 $$.defarg = $2.rawval ? $2.rawval : $2.val;
             }
             | abstract_declarator def_args {
               $$ = $1;
-              $$.defarg = $2.val;
+	      $$.defarg = $2.rawval ? $2.rawval : $2.val;
             }
             | def_args {
    	      $$.type = 0;
               $$.id = 0;
-	      $$.defarg = $1.val;
+	      $$.defarg = $1.rawval ? $1.rawval : $1.val;
             }
             ;
 
@@ -2067,14 +2078,17 @@ opt_int        : TYPE_INT { }
 
 definetype     : { scanner_check_typedef(); } expr {
                    $$ = $2;
+		   $$.rawval = 0;
 		   scanner_ignore_typedef();
                 }
                 | STRING {
                    $$.val = NewString($1);
+		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
 		}
                 | CHARCONST {
                    $$.val = NewString($1);
+		   $$.rawval = NewStringf("\'%(escape)s\'",$$.val);
 		   $$.type = T_CHAR;
 		 }
                 ;
