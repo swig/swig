@@ -6,7 +6,8 @@ $Header$
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         Java, Ruby, PHP, Ocaml, C#, Modula-3 and CHICKEN.
+         Java, Ruby, PHP, Ocaml, C#, Modula-3, CHICKEN, and Allegro
+	 Common Lisp.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -28,6 +29,7 @@ Active Developers:
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
  Mark Rose (mrose@stm.lbl.gov)                          (Directors)
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
+ Ahmon Dancy (dancy@franz.com)				(Allegro CL)
 
 Major contributors include:
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
