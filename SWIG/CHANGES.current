@@ -1,6 +1,29 @@
 Version 1.3.16 (In progress)
 ==================================
 09/15/2002: beazley
+            Deprecation of the "ignore" typemap.   The "ignore" typemap has
+            been deprecated in favor of a generalization of the "in" typemap.
+            To ignore an argument, use something like this instead:
+
+                %typemap(in,numinputs=0) int *output (int temp) {
+                     $1 = &temp;
+                }
+
+            This change fixes a number of subtle bugs related to the interaction
+            of the "in" and "ignore" typemaps (which were supposed to be
+            mutually exclusive).  
+
+            The use of the numinputs argument is reserved for future expansion.
+            Currently, values >1 will generate an error.  However, future
+            releases of SWIG may utilize that to support multi-input typemaps.
+
+            %typemap(ignore) still works, but generates a warning message and is
+            translated to %typemap(in,numinputs=0).
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            *** NEW FEATURE ***
+                     
+09/15/2002: beazley
             Fixed segmentation fault for unnamed structures.  For example:
 
                typedef struct {
