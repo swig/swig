@@ -34,7 +34,7 @@ SWIGINTERN int
   } else {
     double d;    
     if (SWIG_AsVal(double)(o, &d)) {
-      if (val) *val = Constructor(d, 0);
+      if (val) *val = Constructor(d, 0.0);
       return 1;
     } else {
       PyErr_Clear();
@@ -73,7 +73,7 @@ SWIGINTERN int
     double re;    
     if (SWIG_AsVal(double)(o, &re)) {
       if (SWIG_CheckDoubleInRange(re, -FLT_MAX, FLT_MAX, errmsg)) {
-	if (val) *val = Constructor(SWIG_numeric_cast(re,float), 0);      
+	if (val) *val = Constructor(SWIG_numeric_cast(re,float), 0.0);      
 	return 1;
       } else {
 	return 0;

@@ -140,7 +140,7 @@ namespace swig
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
-	sprintf(msg,"in sequence element %d ", _index);
+	PyOS_snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!PyErr_Occurred()) {
 	  SWIG_type_error(swig::type_name<T>(), item);
 	}
@@ -335,7 +335,7 @@ namespace swig
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
-	    sprintf(msg,"in sequence element %d", i);
+	    PyOS_snprintf(msg, sizeof(msg), "in sequence element %d", i);
 	    SWIG_type_error(swig::type_name<value_type>(), item);
 	    SWIG_append_errmsg(msg);
 	  }
@@ -540,7 +540,7 @@ namespace swig
 %{
   namespace swig {
     template <class PySeq, class Seq> 
-    inline void
+    static inline void
     assign(const PySeq& pyseq, Seq* seq) {
 #ifdef SWIG_STD_NOASSIGN_STL
       typedef typename PySeq::value_type value_type;
