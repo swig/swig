@@ -1074,10 +1074,14 @@ Language::membervariableHandler(Node *n) {
 
   /* If not a smart-pointer access or added method. We clear
      feature:except.   There is no way C++ or C would throw
-     an exception merely for accessing a member data 
+     an exception merely for accessing a member data.
+
+     Caveat:  Some compilers seem to route attribute access through
+     methods which can generate exceptions.  The feature:allowexcept
+     allows this. 
   */
 
-  if (!(Extend | SmartPointer)) {
+  if (!(Extend | SmartPointer) && (!Getattr(n,"feature:allowexcept"))) {
     Delattr(n,"feature:except");
   }
 
