@@ -1453,12 +1453,15 @@ PYTHON::cpp_inherit(char **baseclass,int) {
 
   /* Now tell the Python module that we're inheriting from a base class */
   while (baseclass[i]) {
-    bc = GetChar(hash,baseclass[i]);
+    String *bs = NewString(baseclass[i]);
+    SwigType_add_pointer(bs);
+    bc = GetChar(hash,bs);
     if (bc) {
       if (first_base) Putc(',',base_class);
       Printv(base_class,bc,0);
       first_base = 1;
     }
+    Delete(bs);
     i++;
   }
   if (!first_base) {
