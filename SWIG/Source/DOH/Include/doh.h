@@ -192,6 +192,11 @@ extern int     DohIsFile(const DOH *obj);
 extern DOHString   *NewString(const DOH *c);
 extern DOHString   *NewStringf(const DOH *fmt, ...);
 
+extern int Strcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
+extern int Strncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);
+extern char *Strstr(const DOHString_or_char *s1, const DOHString_or_char *s2);
+extern char *Strchr(const DOHString_or_char *s1, int ch);
+
 /* String replacement flags */
 
 #define   DOH_REPLACE_ANY         0x01
