@@ -219,6 +219,13 @@ SIMPLE_MAP(char *, SCHEME_STRINGP, SCHEME_STR_VAL,
 SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
 	   scheme_make_string_without_copying, string);
 
+/* For MzScheme 30x:  Use these typemaps if you are not going to use
+   UTF8 encodings in your C code. 
+ SIMPLE_MAP(char *,SCHEME_BYTE_STRINGP, SCHEME_BYTE_STR_VAL,
+ 	   scheme_make_byte_string_without_copying,bytestring);
+ SIMPLE_MAP(const char *,SCHEME_BYTE_STRINGP, SCHEME_BYTE_STR_VAL,
+ 	   scheme_make_byte_string_without_copying,bytestring);
+*/
 
 /* Const primitive references.  Passed by value */
 

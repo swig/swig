@@ -38,6 +38,34 @@ extern "C" {
 #define MAXVALUES 6
 #define swig_make_boolean(b) (b ? scheme_true : scheme_false)
 
+/* ----------------------------------------------------------------------- 
+ * mzscheme 30X support code
+ * Contributed by Hans Oesterholt
+ * ----------------------------------------------------------------------- */
+
+#ifndef SCHEME_STR_VAL
+#define MZSCHEME30X 1
+#endif
+
+#ifdef MZSCHEME30X 
+/* 
+ * This is MZSCHEME 299.100 or higher (30x).  From version 299.100 of
+ * mzscheme upwards, strings are in unicode. These functions convert
+ * to and from utf8 encodings of these strings.  NB! strlen(s) will be
+ * the size in bytes of the string, not the actual length.
+ */
+#define SCHEME_STR_VAL(obj)  	       SCHEME_BYTE_STR_VAL(scheme_char_string_to_byte_string(obj))
+#define SCHEME_STRLEN_VAL(obj)         SCHEME_BYTE_STRLEN_VAL(scheme_char_string_to_byte_string(obj))
+#define SCHEME_STRINGP(obj)            SCHEME_CHAR_STRINGP(obj)
+#define scheme_make_string(s)          scheme_make_utf8_string(s)
+#define scheme_make_sized_string(s,l)  scheme_make_sized_utf8_string(s,l)
+#define scheme_make_sized_offset_string(s,d,l) \
+                   scheme_make_sized_offset_utf8_string(s,d,l)
+#endif
+/* ----------------------------------------------------------------------- 
+ * End of mzscheme 30X support code 
+ * ----------------------------------------------------------------------- */
+  
 struct swig_mz_proxy {
   Scheme_Type mztype;
   swig_type_info *type;
@@ -152,7 +180,11 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
                                        num_fields,
                                        0 /* auto_fields */,
                                        NULL /* auto_val */,
-                                       NULL /* properties */);
+                                       NULL /* properties */
+#ifdef MZSCHEME30X
+				       ,NULL /* Guard */
+#endif
+				       );
     struct_names = scheme_make_struct_names(scheme_intern_symbol(basename),
                                             scheme_build_list(num_fields,a),
                                             0 /*flags*/, &count_out);
@@ -210,7 +242,12 @@ SWIG_MzScheme_SetModule(Scheme_Env *env, swig_module_info *module) {
     swig_mzscheme_runtime_data.type = swig_type;
     
     /* create a new pointer */
+#ifndef MZSCHEME30X
     pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data, "swig_mzscheme_runtime_data");
+#else
+    pointer = scheme_make_cptr((void *) &swig_mzscheme_runtime_data,
+			       scheme_make_byte_string("swig_mzscheme_runtime_data"));
+#endif
     scheme_add_global_symbol(symbol, pointer, env);
   }
 }
