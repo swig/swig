@@ -341,9 +341,7 @@ class CSHARP : public Language {
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
       else
-    {
-        /*        Printf(f_module, "%s\n\n", javaTypemapLookup("javamoduleimports", module_class_name, WARN_NONE));*/
-    }
+        Printf(f_module, "%s\n\n", javaTypemapLookup("javamoduleimports", module_class_name, WARN_NONE));
 
       if (Len(module_class_modifiers) > 0)
         Printf(f_module, "%s ", module_class_modifiers);
