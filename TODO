@@ -1,6 +1,6 @@
 SWIG TO-DO    
 
-Release: SWIG-1.3.15    (Late August, 2002)
+Release: SWIG-1.3.16    (Late September, 2002)
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -8,7 +8,7 @@ Release: SWIG-1.3.15    (Late August, 2002)
 **      = Will implement if time. 
 *       = Implement if bored (or deemed necessary).
 
-defer   = Implement in 1.3.16
+defer   = Implement in 1.3.17
 
 CORE:
 
@@ -27,70 +27,46 @@ defer  ready to go.  The primary obstacle lies in the target language
        This is one of the last remaining "hard" problems in the SWIG
        core, but it is important that we solve it.  
 
-[DONE] Refinement of the overloading dispatch rules.  If you have two
-       classes like this:
-
-           class Foo {
-           };
-
-           class Bar : public Foo {
-           };
-
-       and two overloaded methods:
-
-           void spam(Foo *f);
-           void spam(Bar *b);
-
-       SWIG should make sure that the derived class version is checked
-       first. 
-
-[DONE] Refinement of using directives.  For example:
-
-          namespace foo {
-             int blah(int);
-          }
-
-          namespace bar {
-             double blah(double);
-          }
-
-          using foo::blah;
-          using bar::blah;
-
-       Currently, SWIG reports an error (redefined symbol).  Instead, it should be
-       silent.   
-
-       It's not entirely clear what should happen in terms of overloading.  Currently,
-       the two functions can't be combined into an overloaded method (they are
-       in separate namespaces and the functions don't quite combine like that).
-       
-       One could generate wrappers for the using declarations.  However, this
-       could generate a conflict (if both the namespace and non-namespace version
-       are wrapped).
-
-[DONE] Modify exception handling code not to apply to attribute access.  Should
-       reduce the amount of wrapper code substantially when a global exception
-       handler is used.
-
 ****   Typemap environments.  Stay tuned.
 
-[DONE] Implement option to print dependencies.
+****   Merge "in" and "ignore" typemaps into a single "in" typemap.
+       This would solve a variety of subtle problems with multiple
+       argument typemaps and other typemap code.   I propose to merge
+       the typemaps by making "ignore" a typemap attribute.
+       For example:
 
-****   Implement "throw" typemaps for all of the target languages.
+           %typemap(in,ignore="1") int *OUTPUT (int temp) {
+                $1 = &temp;
+           }
 
-[DONE] If a wrapper can't be generated to a function/method for some
-       reason, provide a flag that prevents that function/method from
-       appearing the dispatch function.
+       This merging makes a lot of sense because "in" and "ignore"
+       typemaps both deal with input argument handling and they are
+       meant to be mutually exclusive of each other.   By unifying
+       into a single typemap, you fix the mutual exclusion problem
+       (since there is only one typemap).  I also think it makes
+       more sense to think of an "ignored" argument as a input value
+       property.
 
-       If a language module sets the "error" attribute of a node, it is
-       not included in the dispatch function.
- 
-[DONE] Investigate the enhancement of exception handling to match against exceptions
-       specified with throw specifiers.
+       Update: Matthias proposes a generalization in which the
+       number of input arguments could be specified.  For example:
+
+           %typemap(in,numinputs="0") int *OUTPUT (int temp) {
+                $1 = &temp;
+           }
+
+       This seems to be a better solution.
+
+
+****   Implement "throws" typemaps for all of the target languages.
+       Partly implemented for Tcl, Perl, Python, Ruby, Java.
 
 ***    Add attributes to the %feature directive. Something like:
 
        %feature("except", throws="OutOfMemoryException") 
+
+***    Implement $fail special variable substitution in wrappers. Used
+       to properly transfer control out of a wrapper function while
+       reclaiming resources.
 
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
@@ -119,9 +95,10 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        [ Partially finished for Tcl/Python. ]
 
-
-***    Modify smart pointer handling to properly handle inheritance.  For
+[DONE] Modify smart pointer handling to properly handle inheritance.  For
        example:
+
+            %ignore Foo;
 
             class Foo {
             public:
@@ -161,12 +138,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        using a template type, but that type hasn't been instantiated using
        %template.
 
-[DONE] Fix build problems on 64-bit platforms.   We need to replace
-       NULL by (char *) NULL in most modules.
-
-       Defined NIL as (char *) NULL.  Used that in most modules--especially
-       with functions like Printv().
-
 *      Fix template partial specialization matching rules.   SWIG does not
        implement the proper C++ type deduction rules, but it does handle
        the most common cases.   This is likely to be hard and implementing
@@ -174,7 +145,6 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 Build
 -----
-[DONE] Fix Python Windows examples.
 
 ****   Upgrade libtool to a more recent version.  Might fix linking on OS-X
        but should definitely help on Cygwin.
@@ -198,13 +168,11 @@ Library
 
 All language modules
 --------------------
-[DONE] Convert use of char * to String *.   Suggest using Replaceall()
-       instead of Replace(..., DOH_REPLACE_ANY);
 
 Python
 ------
 
-****   Ability to wrap certain classes as Python built-in types.
+***    Ability to wrap certain classes as Python built-in types.
 
 Perl
 ----
@@ -313,13 +281,6 @@ PHP
 *      Work out how classes without even inherited constructors should
        interact with the php "new <class>" notation.
        See: abstract_inherit_wrap.cpptest
-
-[DONE] Work out when we can but shouldn't dispose of objects because the
-       creator will.  See %newobject in the docs.  Works automatically for
-       constructors and return-by-value.
-
-[DONE] Got class properties to work, and global vars to work both ways 
-       with _set and _get accessors
 
 **     Look at pass by point and passby ref,
        Make sometype** to be auto allocated

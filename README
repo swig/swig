@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.15 (September 9, 2002)
+Version: 1.3.16 (October 14, 2002)
 
 $Header$
 
@@ -26,13 +26,13 @@ working on this are:
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (Macintosh, STL wrapping)
  Sam Liddicott (saml@liddicott.com)                     (PHP)
  Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
+ Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
 
 Major contributors include:
  Shibukawa Yoshiki                                      (Japanese Translation)
  Marcelo Matus                                          (Evil C++ testing)
  Loic Dachary                                           (Perl5)
  Masaki Fukushima                                       (Ruby)
- Thien-Thi Nguyen                                       (Testing/Misc)
 
 Past contributors include:
  Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
@@ -78,7 +78,7 @@ The most notable changes since SWIG1.1 include the following:
 
    - Parsing support for almost all C/C++ datatypes.
 
-   - A full C preprocessor with macro expansion. 
+   - A full C preprocessor with macro expansion.
      Includes C99 variadic macro support.
 
    - Java, Ruby, MzScheme, PHP4, OCAML, Pike, and XML modules added.
@@ -132,10 +132,10 @@ well advised to read this.
 
 Windows Installation
 ====================
-Please see the Doc/Manual/Windows.html file for instructions on installing 
-SWIG on Windows and running the examples. The Windows distribution is 
+Please see the Doc/Manual/Windows.html file for instructions on installing
+SWIG on Windows and running the examples. The Windows distribution is
 called swigwin and includes a prebuilt SWIG executable, swig.exe, included in
-the same directory as this README file. Otherwise it is exactly the same as 
+the same directory as this README file. Otherwise it is exactly the same as
 the main SWIG distribution. There is no need to download anything else.
 
 Unix Installation
@@ -160,12 +160,12 @@ if you do this.
 
 The file INSTALL details more about using configure. Also try
 
-     % ./configure --help. 
+     % ./configure --help.
 
-The configure script will attempt to locate various packages on your 
-machine, including Tcl, Perl5, Python and other target languages that SWIG 
-uses.  Don't panic if you get 'not found' messages--SWIG does not need these 
-packages to compile or run.   The configure script is actually looking for 
+The configure script will attempt to locate various packages on your
+machine, including Tcl, Perl5, Python and other target languages that SWIG
+uses.  Don't panic if you get 'not found' messages--SWIG does not need these
+packages to compile or run.   The configure script is actually looking for
 these packages so that you can try out the SWIG examples contained
 in the 'Examples' directory without having to hack Makefiles.
 
@@ -194,16 +194,16 @@ many parts of the implementation including obscure corner cases. If some
 of these tests fail or generate warning messages, there is no reason for
 alarm---the test may be related to some new SWIG feature or a difficult bug
 that we're trying to resolve.  Chances are that SWIG will work just fine
-for you.  
+for you.
 
 Note: SWIG's support for C++ is sufficiently advanced that certain
 tests may fail on older C++ compilers (for instance if your compiler
-does not support member templates).   These errors are harmless if you 
+does not support member templates).   These errors are harmless if you
 don't intend to use these features in your own programs.
 
 Note: The test-suite currently contains more than 170 tests.  If you
 have many different target languages installed and a slow machine, it
-might take more than an hour to run the test-suite. 
+might take more than an hour to run the test-suite.
 
 Examples
 ========
