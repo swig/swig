@@ -1,7 +1,54 @@
-SWIG Mailing List
+SWIG Mailing Lists
 
 <p><img src="images/mail.png">
 
-<p>
-A mailman mailing list is available at the University of Chicago for discussion of SWIG
-related topics.   You can subscribe to the list and view archives by clicking <a href="http://mailman.cs.uchicago.edu/mailman/listinfo/swig">here</a>.
+<p/>
+
+There are a number of mailing lists available. Please use them for any queries related to the use or development of SWIG.
+
+<p/>
+<b>Important</b>. The mailing lists are set with a very high level of spam rejection, meaning occasionally some SWIG user's email postings will be discarded. Emails classified as spam are quietly discarded, so please check the archives if you are unsure as whether your email was successfully posted. The mailing lists are also subscriber only lists, so you must subscribe to the relevant list in order to post to that list.
+
+<p/>
+To subscribe to any of the mailing lists or view the archives, use the links on the left column.
+<p/>
+
+<table BORDER="1">
+<tr>
+<td><font size="+1">List</font></td>
+<td><font size="+1">Purpose</font></td>
+</tr>
+
+<tr>
+<td>
+<a href="http://www.cs.uchicago.edu/mailman/listinfo/swig">swig</a>
+</td>
+<td>
+General discussion and queries about SWIG.
+</td>
+</tr>
+
+<tr>
+<td>
+<a href="http://www.cs.uchicago.edu/mailman/listinfo/swig-dev">swig-dev</a>
+</td>
+<td>
+SWIG Development discussion list. This mailing list used to contain the CVS commits, but these are now on the swig-cvs mailing list.
+</td>
+</tr>
+
+<tr>
+<td>
+<a href="http://lists.sourceforge.net/lists/listinfo/swig-cvs">swig-cvs</a>
+</td>
+<td>
+SWIG CVS list. CVS commits are mailed to this list.
+</td>
+</tr>
+
+</table>
+
+<ul>
+</ul>
+
+<p/>
