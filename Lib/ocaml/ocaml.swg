@@ -590,3 +590,8 @@ extern "C" {
 }
 #endif
 #undef value
+
+
+/* ocaml keywords */
+/* please test and activate */
+//%include "ocamlkw.swg"
