@@ -67,7 +67,7 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       }
       i++;
     }
-    p = Getnext(p);
+    p = nextSibling(p);
   }
   return(i);
 }
@@ -196,7 +196,7 @@ int check_numopt(ParmList *p) {
   int  i = 0;
   int  state = 0;
 
-  for (;p; p = Getnext(p),i++) {
+  for (;p; p = nextSibling(p),i++) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
     if (Getvalue(p)) {

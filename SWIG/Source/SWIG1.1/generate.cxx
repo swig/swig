@@ -45,6 +45,7 @@ static int     cplus_mode;
 static int     InClass = 0;
 static char   *Callback = 0;
 static Hash   *symbols = 0;
+int            Overloaded = 0;
 
 extern int     line_number;
 extern char   *input_file;
@@ -89,7 +90,7 @@ static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
      Append(l,Gettype(p));
-     p = Getnext(p);
+     p = nextSibling(p);
    }
    return l;
  }
@@ -397,6 +398,53 @@ end_class(SwigType *endtype, char *endname) {
   cplus_mode = CPLUS_PUBLIC;
 }
 
+/* -----------------------------------------------------------------------
+   overloaded_name()
+ 
+   Given a function definition, this function tries to come up with a
+   unique overloaded function name.
+   ----------------------------------------------------------------------- */
+
+String *
+overloaded_name(Node *n) {
+  String *sname = Getattr(n,"$symname");
+  Parm *parms, *p;
+  String *temp;
+  if (!sname) return 0;
+  parms = Getparms(n);
+
+  /* Generate a simplified mangled name */
+
+  temp = NewStringf("%s_",sname);
+  p = parms;
+  while(p) {
+    SwigType *ty = Gettype(p);
+    String   *base = SwigType_base(ty);
+    char     *c = Char(base);
+    if (strchr(c,' ')) c = strchr(c,' ') + 1;
+    Putc(*c,temp);
+    p = nextSibling(p);
+  }
+  
+  /* Now see if the symbol is in the symbol table */
+  if (Swig_symbol_lookup_local(temp)) {
+    int i = 1;
+    String *temp2 = temp;
+    while (1) {
+      temp = NewStringf("%s_%d",temp2,i);
+      if (!Swig_symbol_lookup_local(temp)) break;
+      i++;
+    }
+    Delete(temp2);
+  }
+  Node *nn = NewHash();
+  Swig_symbol_add(temp,nn);
+  
+  /*  Printf(stdout,"%s --> %s\n", symname, temp);*/
+
+  return temp;
+}
+
 /* ----------------------------------------------------------------------
    generate()
  
@@ -407,11 +455,11 @@ void generate(Node *top) {
   Node *n = top;
   String *err;
   while (n) {
-    char *tag = GetChar(n,"tag");
+    char *tag = Char(nodeType(n));
     if (!tag) goto g_error;
     
     if ((err = Geterror(n))) {
-      n = Getnext(n);
+      n = nextSibling(n);
       continue;
     }
 
@@ -425,7 +473,7 @@ void generate(Node *top) {
     if (strcmp(tag,"top") == 0) {
 
       /* top-level parse-tree node */
-      generate(Getchild(n));
+      generate(firstChild(n));
 
 
       /* ============================================================
@@ -442,7 +490,7 @@ void generate(Node *top) {
 	cplus_mode = CPLUS_PUBLIC;
 	InClass = 1;
 	cplus_set_class(Char(Getname(n)));
-	generate(Getchild(n));
+	generate(firstChild(n));
 	InClass = 0;
 	cplus_unset_class();
 	AddMethods = oldam;
@@ -450,7 +498,7 @@ void generate(Node *top) {
       } else {                  /* Inside a class */
 
 	AddMethods = 1;
-	generate(Getchild(n));
+	generate(firstChild(n));
 	AddMethods = oldam;
 
       }
@@ -463,7 +511,7 @@ void generate(Node *top) {
 	Parm     *p    = Getparms(n);
 	while (p) {
 	  Swig_typemap_apply(type,name,Gettype(p),Getname(p));
-	  p = Getnext(p);
+	  p = nextSibling(p);
 	}
 
     } else if (strcmp(tag,"clear") == 0) {
@@ -501,7 +549,7 @@ void generate(Node *top) {
       if (Cmp(kind,"import") == 0) {
 	ImportMode = IMPORT_MODE;
       }
-      generate(Getchild(n));
+      generate(firstChild(n));
       if (Cmp(kind,"import") == 0) {
 	if (ImportMode & IMPORT_MODULE) {
 	  lang->import_end();
@@ -571,7 +619,7 @@ void generate(Node *top) {
       /* %new directive */
 
       NewObject = 1;
-      generate(Getchild(n));
+      generate(firstChild(n));
       NewObject = 0;
 
     } else if (strcmp(tag,"pragma") == 0) {
@@ -594,7 +642,7 @@ void generate(Node *top) {
       /* %typemap directive */
       String *method = Getattr(n,"method");
       String *code = Getattr(n,"code");
-      Node   *items = Getchild(n);
+      Node   *items = firstChild(n);
       while (items) {
 	SwigType *type = Gettype(items);
 	String   *name = Getname(items);
@@ -604,7 +652,7 @@ void generate(Node *top) {
 	} else {
 	  /* Typemap deletion disabled */
 	}
-	items = Getnext(items);
+	items = nextSibling(items);
       }
 
     } else if (strcmp(tag,"typemapcopy") == 0) {
@@ -612,12 +660,12 @@ void generate(Node *top) {
       String *method = Getattr(n,"method");
       String *name   = Getname(n);
       String *type   = Gettype(n);
-      Node *items = Getchild(n);
+      Node *items = firstChild(n);
       while (items) {
 	SwigType *newtype = Getattr(items,"newtype");
 	String   *newname = Getattr(items,"newname");
 	Swig_typemap_copy(method,type,name,newtype,newname);
-	items = Getnext(items);
+	items = nextSibling(items);
       }
     } else if (strcmp(tag,"types") == 0) {
 
@@ -627,7 +675,7 @@ void generate(Node *top) {
       while (parms) {
 	SwigType *t = Gettype(parms);
 	SwigType_remember(t);
-	parms = Getnext(parms);
+	parms = nextSibling(parms);
       }
 
       /* ============================================================
@@ -637,7 +685,7 @@ void generate(Node *top) {
     } else if (strcmp(tag,"extern") == 0) {
 
       /* extern "C" declaration */
-      generate(Getchild(n));
+      generate(firstChild(n));
 
     } else if (strcmp(tag,"cdecl") == 0) {
       String *storage = Getattr(n,"storage");
@@ -660,9 +708,21 @@ void generate(Node *top) {
       } else if (storage && ((Cmp(storage,"friend") == 0))) {
 	/* nothing */
       } else {
+	Node *over;
 	Clear(CCode);
 	if (code) {
 	  Append(CCode,code);
+	}
+	over = Swig_symbol_isoverloaded(n);
+	if (over) {
+	  if (over != n) {
+	    symname = Char(overloaded_name(n));
+	    Printf(stderr,"%s:%d. Warning. Overloaded function '%s' renamed to '%s'\n",
+		   input_file,line_number, name,symname);
+	  }
+	  Overloaded = 1;
+	} else {
+	  Overloaded = 0;
 	}
 	if (!InClass) {
 	  /* A normal C declaration */
@@ -678,7 +738,7 @@ void generate(Node *top) {
 
       /* enum declaration */
       String *name = Getname(n);
-      generate(Getchild(n));
+      generate(firstChild(n));
       if (name) {
 	cplus_register_type(Char(name));
 	SwigType *t = NewStringf("enum %s", name);
@@ -706,7 +766,7 @@ void generate(Node *top) {
       SwigType *tddecl = Getattr(n,"decl");
       
       start_class(Char(kind), name ? Char(name) : (char *) "",bases);
-      generate(Getchild(n));
+      generate(firstChild(n));
       end_class(tddecl,Char(tdname));
 
     } else if (strcmp(tag,"forwardclass") == 0) {
@@ -724,6 +784,18 @@ void generate(Node *top) {
       String *code  = Getattr(n,"code");
 
       if (cplus_mode == CPLUS_PUBLIC) {
+	Node *over;
+	over = Swig_symbol_isoverloaded(n);
+	if (over) {
+	  if (over != n) {
+	    symname = Char(overloaded_name(n));
+	    Printf(stderr,"%s:%d. Warning. Overloaded constructor '%s' renamed to '%s'\n",
+		   input_file,line_number, name,symname);
+	  }
+	  Overloaded = 1;
+	} else {
+	  Overloaded = 0;
+	}
 	char *iname = make_name(Char(name));
 	if (iname == name) iname = 0;
 	if (Cmp(name,iname) == 0) iname = 0;
@@ -761,7 +833,7 @@ void generate(Node *top) {
     } else {
       Printf(stderr,"%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
     }
-    n = Getnext(n);
+    n = nextSibling(n);
   }
   return;
  g_error:

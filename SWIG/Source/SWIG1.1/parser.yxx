@@ -58,15 +58,10 @@ static int      unnamed = 0;  /* Unnamed datatype counter */
 
 static Node *new_node(const String_or_char *tag) {
   Node *n = NewHash();
-  Settag(n,tag);
+  set_nodeType(n,tag);
   Setfile(n,input_file);
   Setline(n,line_number);
   return n;
-}
-
-/* Append one or more children to a node */
-static void append_child(Node *n, Node *c) {
-  Swig_node_append_child(n,c);
 }
 
 /* -----------------------------------------------------------------------------
@@ -94,7 +89,7 @@ static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
      Append(l,Gettype(p));
-     p = Getnext(p);
+     p = nextSibling(p);
    }
    return l;
  }
@@ -133,13 +128,13 @@ static String *make_unnamed() {
 static void add_symbols(Node *n) {
   while (n) {
     if (Getattr(n,"$symname")) {
-      n = Getnext(n);
+      n = nextSibling(n);
       continue;
     }
     char *symname = make_name(GetChar(n,"name"));
     String *storage = Getstorage(n);
     if (!symname) {
-      n = Getnext(n);
+      n = nextSibling(n);
       continue;
     }
     Node *c = Swig_symbol_add(symname,n);
@@ -156,7 +151,7 @@ static void add_symbols(Node *n) {
       Printf(stderr,"%s\n",e);
       Seterror(n,e);
     }
-    n = Getnext(n);
+    n = nextSibling(n);
   }
 }
 
@@ -233,7 +228,7 @@ static Node *dump_nested(char *parent) {
     Settype(retx,n->type);
     Setattr(retx,"nested",parent);
     if (ret) {
-      Setnext(retx,ret);
+      set_nextSibling(retx,ret);
     }
     ret = retx;
 
@@ -277,7 +272,7 @@ static Node *dump_nested(char *parent) {
     Node *head;
     head = new_node("insert");
     Setattr(head,"code",NewStringf("\n%s\n",n->code));
-    Setnext(head,ret);
+    set_nextSibling(head,ret);
     ret = head;
 
     // Dump the code to the scanner
@@ -420,7 +415,7 @@ program        :  interface {
                ;
 
 interface      : interface declaration {  
-                   append_child($1,$2);
+                   appendChild($1,$2);
                    Error = 0; 
                    $$ = $1;
                }
@@ -482,7 +477,7 @@ addmethods_directive : ADDMETHODS ID LBRACE {
 	     } cpp_members RBRACE {
                $$ = new_node("addmethods");
 	       Setname($$,$2);
-	       append_child($$,$5);
+	       appendChild($$,$5);
 	     }
              ;
 
@@ -616,7 +611,7 @@ include_directive: includetype string LBRACE {
 		     $$ = new_node("include");
 		     Setattr($$,"kind",$1.type);
 		     Setname($$,$2);
-		     append_child($$,Getchild($5));
+		     appendChild($$,firstChild($5));
                }
                ;
 
@@ -730,7 +725,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 
 new_directive : NEW declaration {
                  $$ = new_node("new");
-		 append_child($$,$2);
+		 appendChild($$,$2);
                }
                ;
 
@@ -798,7 +793,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       Setattr(n,"type",Gettype(p->p));
 		       Setattr(n,"name",Getname(p->p));
 		       Setattr(n,"parms",p->args);
-		       append_child($$,n);
+		       appendChild($$,n);
 		       p = p->next;
 		     }
                    }
@@ -817,7 +812,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       Setattr(n,"type",Gettype(p->p));
 		       Setattr(n,"name",Getname(p->p));
 		       Setattr(n,"parms",p->args);
-		       append_child($$,n);
+		       appendChild($$,n);
 		       p = p->next;
 		     }
 		   }
@@ -834,7 +829,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     Node *n = new_node("typemapitem");
 		     Setattr(n,"type",Gettype(p->p));
 		     Setattr(n,"name",Getname(p->p));
-		     append_child($$,n);
+		     appendChild($$,n);
 		     p = p->next;
 		   }
 		 }
@@ -853,7 +848,7 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       Node *n = new_node("typemapitem");
 		       Setattr(n,"newtype", Gettype(p->p));
 		       Setattr(n,"newname", Getname(p->p));
-		       append_child($$,n);
+		       appendChild($$,n);
 		       p = p->next;
 		     }
 		   }
@@ -952,7 +947,7 @@ c_declaration   : c_decl { $$ = $1; }
                 | EXTERN string LBRACE interface RBRACE { 
                    $$ = new_node("extern");
 		   Setname($$,$2);
-		   append_child($$,Getchild($4));
+		   appendChild($$,firstChild($4));
                 }
                 ;
 
@@ -973,13 +968,13 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		       Setattr($$,"code",Copy(CCode));
 		     }
 		   } else {
-		     Setnext($$,$5);
+		     set_nextSibling($$,$5);
 		     /* Inherit attributes */
 		     Node *n = $5;
 		     while (n) {
 		       Settype(n,$2);
 		       Setattr(n,"storage",$1);
-		       n = Getnext(n);
+		       n = nextSibling(n);
 		     }
 		   }
 		   add_symbols($$);
@@ -1001,7 +996,7 @@ c_decl_tail    : SEMI {
 		 if (!$4) {
 		   if (Len(CCode)) Setattr($$,"code",Copy(CCode));
 		 } else {
-		   Setnext($$,$4);
+		   set_nextSibling($$,$4);
 		 }
 	       }
                | LBRACE { 
@@ -1024,7 +1019,7 @@ initializer   : def_args { $$ = $1; }
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                   $$ = new_node("enum");
 		  Setname($$,$3);
-		  append_child($$,$5);
+		  appendChild($$,$5);
 		  add_tag($$);           /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
 	       }
@@ -1041,7 +1036,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   unnamed = make_unnamed();
 		   ty = 0;
 		 }
-		 append_child($$,$5);
+		 appendChild($$,$5);
 		 n = new_node("cdecl");
 		 Settype(n,ty);
 		 Setname(n,$7.id);
@@ -1050,18 +1045,18 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 Setparms(n,$7.parms);
 		 Setattr(n,"unnamed",unnamed);
 		 if ($8) {
-		   Setnext(n,$8);
+		   set_nextSibling(n,$8);
 		   Node *p = $8;
 		   while (p) {
 		     Settype(p,ty);
 		     Setattr(p,"unnamed",unnamed);
 		     Setattr(p,"storage",$1);
-		     p = Getnext(p);
+		     p = nextSibling(p);
 		   }
 		 } else {
 		   if (Len(CCode)) Setattr(n,"code",Copy(CCode));
 		 }
-		 Setnext($$,n);
+		 set_nextSibling($$,n);
 		 add_tag($$);           /* Add enum to tag space */
 		 add_symbols($5);       /* Add to id space */
 	       }
@@ -1099,10 +1094,10 @@ cpp_class_decl  :
 	       Swig_symbol_setscopename($3);
 	       Setattr($$,"symtab",Swig_symbol_popscope());
 	       yyrename = NewString(class_rename);
-	       append_child($$,$7);
+	       appendChild($$,$7);
 	       Node *p = $9;
 	       if (p) {
-		 Setnext($$,p);
+		 set_nextSibling($$,p);
 	       }
 	       SwigType *ty;
 	       if (CPlusPlus) {
@@ -1113,7 +1108,7 @@ cpp_class_decl  :
 	       while (p) {
 		 Setattr(p,"storage",$1);
 		 Settype(p,ty);
-		 p = Getnext(p);
+		 p = nextSibling(p);
 	       }
 	       /* Dump nested classes */
 	       {
@@ -1128,7 +1123,7 @@ cpp_class_decl  :
 		     }
 		   }
 		 }
-		 append_child($$,dump_nested(name));
+		 appendChild($$,dump_nested(name));
 	       }
 	       add_tag($$);
 	       if ($9)
@@ -1153,7 +1148,7 @@ cpp_class_decl  :
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
-	       append_child($$,$5);
+	       appendChild($$,$5);
 	       Node *n = new_node("cdecl");
 	       Setname(n,$7.id);
 	       Setattr(n,"unnamed",unnamed);
@@ -1161,17 +1156,17 @@ cpp_class_decl  :
 	       Setdecl(n,$7.type);
 	       Setparms(n,$7.parms);
 	       Setattr(n,"storage",$1);
-	       Setnext($$,n);
+	       set_nextSibling($$,n);
 	       Node *p, *pp = 0;
 	       if ($8) {
-		 Setnext(n,$8);
+		 set_nextSibling(n,$8);
 		 Node *p = $8;
 		 while (p) {
 		   pp = p;
 		   Setattr(p,"unnamed",unnamed);
 		   Settype(p,unnamed);
 		   Setattr(p,"storage",$1);
-		   p = Getnext(p);
+		   p = nextSibling(p);
 		 }
 	       }
 	       {
@@ -1187,7 +1182,7 @@ cpp_class_decl  :
 		     Swig_symbol_setscopename((char*)"<unnamed>");
 		   }
 		 }
-		 append_child($$,dump_nested(name));
+		 appendChild($$,dump_nested(name));
 	       }
 	       /* Pop the scope */
 	       Setattr($$,"symtab",Swig_symbol_popscope());
@@ -1205,7 +1200,7 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
                         Setname($$,$1.id);
                         Setdecl($$,$1.type);
                         Setparms($$,$1.parms);
-			Setnext($$,$2);
+			set_nextSibling($$,$2);
                     }
                     ;
 /* ------------------------------------------------------------
@@ -1301,7 +1296,7 @@ template_parms  : parms {
 		     } else {
 		       Printf($$,"%s", Getname(p));
 		     }
-		     p = Getnext(p);
+		     p = nextSibling(p);
 		     if (p) Putc(',',$$);
 		   }
                 }
@@ -1327,17 +1322,17 @@ cpp_members  : cpp_member cpp_members {
 		   Node *pp =0;
 		   while (p) {
 		     pp = p;
-		     p = Getnext(p);
+		     p = nextSibling(p);
 		   }
-		   Setnext(pp,$2);
+		   set_nextSibling(pp,$2);
 		 } else {
 		   $$ = $2;
 		 }
              }
              | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
 	       $$ = new_node("addmethods");
-	       append_child($$,$3);
-	       Setnext($$,$5);
+	       appendChild($$,$3);
+	       set_nextSibling($$,$5);
 	     }
              | empty { $$ = 0;}
 	     | error {
@@ -1537,7 +1532,7 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 /* New mode */
              | NEW cpp_member {
 	       $$ = new_node("new");
-	       Setnext($$,$2);
+	       set_nextSibling($$,$2);
              }
              ;
 
@@ -1580,7 +1575,7 @@ storage_class  : EXTERN { $$ = "extern"; }
 parms          : parm ptail {
                   SwigType *pt = Gettype($1);
 		  if (1) { //(SwigType_type(pt) != T_VOID) {
-		    Setnext($1,$2);
+		    set_nextSibling($1,$2);
 		    $$ = $1;
 		  } else {
 		    $$ = $2;
@@ -1590,7 +1585,7 @@ parms          : parm ptail {
                ;
 
 ptail          : COMMA parm ptail {
-                 Setnext($2,$3);
+                 set_nextSibling($2,$3);
 		 $$ = $2;
                 }
                | empty { $$ = 0; }
@@ -2085,10 +2080,10 @@ ename          :  ID { $$ = $1; }
 enumlist       :  enumlist COMMA edecl { 
                    Node *n = Getattr($1,"_last");
 		   if (!n) {
-		     Setnext($1,$3);
+		     set_nextSibling($1,$3);
 		     Setattr($1,"_last",$3);
 		   } else {
-		     Setnext(n,$3);
+		     set_nextSibling(n,$3);
 		     Setattr($1,"_last",$3);
 		   }
 		   $$ = $1;

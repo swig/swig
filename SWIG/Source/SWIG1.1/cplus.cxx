@@ -167,7 +167,7 @@ static void update_parms(ParmList *p) {
 	Setvalue(p,s);
       }
     }
-    p = Getnext(p);
+    p = nextSibling(p);
   }
 }
 
