@@ -102,8 +102,13 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-dnone") == 0) {
-	    Printf(stderr,"swig: Warning. -dnone option deprecated.\n");
+	  } else if ((strcmp(argv[i],"-dnone") == 0) ||
+		     (strcmp(argv[i],"-dhtml") == 0) ||
+		     (strcmp(argv[i],"-dlatex") == 0) ||
+		     (strcmp(argv[i],"-dascii") == 0) ||
+		     (strcmp(argv[i],"-stat") == 0))
+	    {
+	    Printf(stderr,"swig: Warning. %s option deprecated.\n",argv[i]);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
