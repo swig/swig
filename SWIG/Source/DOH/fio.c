@@ -497,6 +497,36 @@ DohSplit(DOH *in, char ch, int nsplits) {
 }
 
 /* -----------------------------------------------------------------------------
+ * DohSplitLines()
+ *
+ * Split an input stream into a list of strings delimited by newline characters.
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+DohSplitLines(DOH *in) {
+  DOH *list;
+  DOH *str;
+  int  c = 0;
+
+  list = NewList();
+
+  if (DohIsString(in)) {
+    Seek(in,0,SEEK_SET);
+  }
+
+  while (c != EOF) {
+    str = NewString("");
+    while ((c = Getc(in)) != '\n' && c != EOF) {
+      Putc(c, str);
+    }
+    Append(list,str);
+    Delete(str);
+  }
+  return list;
+}
+
+
+/* -----------------------------------------------------------------------------
  * DohReadline()
  *
  * Read a single input line and return it as a string.
