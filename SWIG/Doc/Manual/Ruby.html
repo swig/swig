@@ -1858,7 +1858,7 @@ public:
   int size();
   T operator[](int);
 
-  %addmethods {
+  %extend {
     void __setitem__(int index, T value) {
       (*self)[index]=value;
     }
@@ -1868,7 +1868,7 @@ public:
 %template(StringVector) vector &lt;string&gt;;
 %template(IntVector) vector &lt;int&gt;;
 
-%addmethods IntVector {
+%extend IntVector {
   void each () {
     IntVector::iterator i1 = self-&gt;begin();
     IntVector::iterator i1end = self-&gt;end();
@@ -1876,7 +1876,7 @@ public:
       rb_yield(INT2NUM(*i1));
   }
 }
-%addmethods StringVector {
+%extend StringVector {
   void each () {
     StringVector::iterator i1 = self-&gt;begin();
     StringVector::iterator i1end = self-&gt;end();
@@ -1935,7 +1935,7 @@ of a C++ class object:
 class CPP_Object;
 %template(CPP_ObjectPtrVector)  vector&lt;CPP_Object*&gt;;
 
-%addmethods CPP_ObjectPtrVector {
+%extend CPP_ObjectPtrVector {
   void each () {
     CPP_ObjectPtrVector::iterator i1 = self-&gt;begin();
     CPP_ObjectPtrVector::iterator i1end = self-&gt;end();
@@ -2116,7 +2116,7 @@ It's a fairly common practice in the Ruby built-ins and standard library to
 provide aliases for method names. For example, <em>Array#size</em> is an
 alias for <em>Array#length</em>. If you'd like to provide an alias for one
 of your class' instance methods, one approach is to use SWIG's
-<tt>%addmethods</tt> directive to add a new method of the aliased name
+<tt>%extend</tt> directive to add a new method of the aliased name
 that calls the original function. For example:<p>
 
 <blockquote>
@@ -2130,7 +2130,7 @@ public:
   size_t length() const;
 };
 
-%addmethods MyArray {
+%extend MyArray {
   // MyArray#size is an alias for MyArray#length
   size_t size() const {
     return self->length();

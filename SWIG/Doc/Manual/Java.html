@@ -1515,7 +1515,7 @@ struct Globals {
 %}
 
 // Alternative way to wrap global functions into a structure
-%addmethods Globals { static Vector sub2(Vector a, Vector b) { return global_subv(a, b); }
+%extend Globals { static Vector sub2(Vector a, Vector b) { return global_subv(a, b); }
 </pre></blockquote>
 The dummy class consists entirely of static member functions. Note that <i>static</I> takes on the C++ meaning of static even when used in C code. Also take note of the two different ways that <tt>global_subv</tt> can be wrapped into <tt>Globals</tt>. Access to the global function <tt>global_subv</tt> is then much neater:
 
@@ -1906,7 +1906,7 @@ It is possible to derive a Java class from a shadow class (i.e. a C++ class) wit
 The SWIG documentation feature is not currently present in the 1.3 versions of SWIG. However a limited form of JavaDoc documentation can be implemented by placing JavaDoc comments in the <b>shadowcode</b> pragma. Just put your JavaDoc comment in a <b>shadowcode</b> pragma before the function to which you want it to apply.
 
 <h4> Tips for using the shadow pragmas</h4>
-Note that an out of scope warning is issued if any of the <b>shadow</b> pragmas are used outside of the class/struct/union definition. This requires one of these pragmas to be placed within the definition of the class/struct/union. It may seem that the original C/C++ code has to be modified when using the <tt>%include</tt> pragma. A technique to avoid this is to place the pragma within the <tt>%addmethods</tt> directive. For example:
+Note that an out of scope warning is issued if any of the <b>shadow</b> pragmas are used outside of the class/struct/union definition. This requires one of these pragmas to be placed within the definition of the class/struct/union. It may seem that the original C/C++ code has to be modified when using the <tt>%include</tt> pragma. A technique to avoid this is to place the pragma within the <tt>%extend</tt> directive. For example:
 <blockquote><pre>
 %module example
 %{
@@ -1915,7 +1915,7 @@ Note that an out of scope warning is issued if any of the <b>shadow</b> pragmas 
 %include "MyClass.h"
 
 // Use a shadow pragma without modifying the original code in MyClass.h
-%addmethods MyClass{
+%extend MyClass{
 %pragma(java) shadowcode="/* Some extra shadow code for MyClass */"
 }
 </pre></blockquote>

@@ -8,15 +8,15 @@
 
 This chapter describes SWIG's support for wrapping C++.  As a prerequisite,
 you should first read the chapter <a href="SWIG.html">SWIG Basics</a> to see
-how SWIG wraps ANSI C.  Support for C++ is mostly an extension of ANSI C
+how SWIG wraps ANSI C.  Support for C++ builds upon ANSI C
 wrapping and that material will be useful in understanding this chapter.
 
 <h2>Comments on C++ Wrapping</h2>
 
-Because of its sheer complexity, and the fact that C++ can be
+Because of its complexity and the fact that C++ can be
 difficult to integrate with itself let alone other languages, SWIG 
 only provides support for a subset of C++ features.   Fortunately, 
-it is a large subset.
+this is an increasingly large subset.
 
 <p>
 In part, the problem with C++ wrapping is that there is no
@@ -30,41 +30,41 @@ in a target language.
 <p>
 A more subtle issue with C++ has to do with the way that some C++
 programmers think about programming libraries.  In the world of SWIG,
-what you are really trying to do is to create binary-level software
-components for use in other languages.  In order for this to work, a
-"component" has to contain real executable instructions and there has
-to be some kind of binary linking mechanism for accessing its
-functionality.  In contrast, C++ has increasingly relied upon generic
-programming and templates for much of its functionality.  Although
-templates are a powerful feature, they are largely orthogonal to the
-whole notion of binary components and libraries.  For example, an STL
-<tt>vector</tt> does not define any kind of binary object for which
-SWIG can just create a wrapper.  To further complicate matters, these
-libraries often utilize a lot of behind the scenes magic in which the
-semantics of seemingly basic operations (e.g., pointer dereferencing,
-procedure call, etc.) can be changed in dramatic and sometimes
-non-obvious ways.  Although this "magic" may present few problems in a
-C++-only universe, it greatly complicates the problem of crossing
-language boundaries and provides many opportunities to shoot yourself
-in the foot.  You will have to be careful.
+you are really trying to create binary-level software components for
+use in other languages.  In order for this to work, a "component" has
+to contain real executable instructions and there has to be some kind
+of binary linking mechanism for accessing its functionality.  In
+contrast, C++ has increasingly relied upon generic programming and
+templates (i.e., glorified macros) for much of its functionality.
+Although templates are a powerful feature, they are largely orthogonal
+to the whole notion of binary components and libraries.  For example,
+an STL <tt>vector</tt> does not define any kind of binary object for
+which SWIG can just create a wrapper.  To further complicate matters,
+these libraries often utilize a lot of behind the scenes magic in
+which the semantics of seemingly basic operations (e.g., pointer
+dereferencing, procedure call, etc.) can be changed in dramatic and
+sometimes non-obvious ways.  Although this "magic" may present few
+problems in a C++-only universe, it greatly complicates the problem of
+crossing language boundaries and provides many opportunities to shoot
+yourself in the foot.  You will have to be careful.
 
 <p>
 To wrap C++, SWIG takes a deliberately conservative, low-level, and
 non-intrusive approach.  For one, SWIG generates all of its C++
 wrappers so that they have standard ANSI C linkage.  This low-level
 interface is then used as a basis for building the resulting scripting
-language module (which may or may not utilize OO features).  Second, SWIG does not encapsulate C++ classes inside
-special adaptor or proxy classes, it does not rely upon additional
-template magic, nor does it use C++ inheritance.  The last thing that
-most C++ programs need is even more compiler magic.  Therefore, SWIG
-tries to maintain a very strict and clean separation between the
-implementation of your C++ application and the resulting wrapper
-code. You might say that SWIG has been written to follow the principle
-of least surprise--it does not play sneaky tricks with the C++ type
-system, it doesn't mess with your class hierarchies, and it doesn't
-introduce new semantics.  Although this approach might not provide the
-most seamless integration with C++, it is safe, simple, portable, and
-debuggable.
+language module (which may or may not utilize OO features).  Second,
+SWIG does not encapsulate C++ classes inside special adaptor or proxy
+classes, it does not rely upon additional template magic, nor does it
+use C++ inheritance.  The last thing that most C++ programs need is
+even more compiler magic.  Therefore, SWIG tries to maintain a very
+strict and clean separation between the implementation of your C++
+application and the resulting wrapper code. You might say that SWIG
+has been written to follow the principle of least surprise--it does
+not play sneaky tricks with the C++ type system, it doesn't mess with
+your class hierarchies, and it doesn't introduce new semantics.  
+Although this approach might not provide the most seamless integration
+with C++, it is safe, simple, portable, and debuggable.
 
 <h2>Supported C++ features</h2>
 
@@ -89,9 +89,10 @@ The following C++ features are not currently supported :<p>
 
 <p>
 <ul>
-<li>Automated function and method overloading
+<li>Automatic function and method overloading (requires renaming)
 <li>Nested classes
 <li>Overloaded versions of certain operators (new, delete, etc.)
+<li>Template partial specialization.
 </ul>
 
 <p>
@@ -194,14 +195,14 @@ must be able to gather information from both the <tt>private</tt> and
 <tt>protected</tt> sections (specifically, it needs to know if a private or
 protected constructor/destructor is defined).   In older versions of
 SWIG, it was fairly common to simply remove or comment out
-the private and protected sections of a class due to parsing limitations.
+the private and protected sections of a class due to parser limitations.
 However, this removal may now cause SWIG to erroneously generate constructors
 for classes that define a constructor in those sections.  Consider restoring
 those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <h3>Copy constructors</h3>
 
-If a class defines more than one constructor, SWIG ordinarily generates a name clash (see the
+If a class defines more than one constructor, SWIG will complain about a name clash (see the
 section on overloading).   However, a copy constructor is handled as a special case. 
 If a class defines a copy constructor like this,
 
@@ -226,24 +227,29 @@ List *copy_List(List *f) {
 </pre>
 </blockquote>
 
-Depending on the target language module, this function may be further incorporated 
-into object wrapping.  However, if not, the copy function will simply be available as
-an ordinary procedure.
+Depending on the target language module, this function may be further
+incorporated into object wrapping (wrapped a special method for object
+copying for instance).  However, if not, the above copy function will 
+be made available as an ordinary procedure.
 
 <p>
-<b>Note:</b>  For a class <tt>X</tt>, SWIG only treats a constructor as a copy constructor if it can be applied to
-an object of type <tt>X</tt> or <tt>X *</tt>.  If more than one copy constructor is defined, only the first definition
-that appears is used as the copy constructor--other definitions will result in a name-clash.
-Constructors such as <tt>X(const X &)</tt>, <tt>X(X &)</tt>, and <tt>X(X *)</tt> are handled as
-copy constructors in SWIG.
+<b>Note:</b> For a class <tt>X</tt>, SWIG only treats a constructor as
+a copy constructor if it can be applied to an object of type
+<tt>X</tt> or <tt>X *</tt>.  If more than one copy constructor is
+defined, only the first definition that appears is used as the copy
+constructor--other definitions will result in a name-clash.
+Constructors such as <tt>X(const X &)</tt>, <tt>X(X &)</tt>, and
+<tt>X(X *)</tt> are handled as copy constructors in SWIG.
 
 <p>
-<b>Note:</b> SWIG does <em>not</em> generate a copy constructor wrapper unless one is explicitly
-declared in the class.   This differs from the treatment of default constructors and destructors.
+<b>Note:</b> SWIG does <em>not</em> generate a copy constructor
+wrapper unless one is explicitly declared in the class.  This differs
+from the treatment of default constructors and destructors.
 
 <p>
-<b>Compatibility note:</b>  Special support for copy constructors was not added until SWIG-1.3.12.  In previous
-versions, copy constructors could be wrapped, but they had to be renamed.  For example:
+<b>Compatibility note:</b> Special support for copy constructors was
+not added until SWIG-1.3.12.  In previous versions, copy constructors
+could be wrapped, but they had to be renamed.  For example:
 
 <blockquote>
 <pre>
@@ -276,7 +282,7 @@ This translation is the same even if the member function has been
 declared as <tt>virtual</tt>.
 
 <p>
-It should be noted that SWIG does not actually create a C accessor
+It should be noted that SWIG does not <em>actually</em> create a C accessor
 function in the code it generates.  Instead, member access such as
 <tt>obj-&gt;search(value)</tt> is directly inlined into the generated
 wrapper functions.  However, the name and calling convention of the
@@ -292,6 +298,56 @@ in the generated wrapper code.
 <p>
 Usually, static members are accessed as functions with names in which the class name has been
 prepended with an underscore. For example, <tt>List_print</tt>.
+
+<h3>Member functions and default arguments</h3>
+
+SWIG allows member functions to accept default arguments.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    void bar(int x, int y = 3);
+};
+</pre>
+</blockquote>
+
+However, the implementation restricts the use of default arguments to values
+that are public.   The following example illustrates a very subtle semantic
+incompatibility between SWIG and C++:
+
+<blockquote>
+<pre>
+class Foo {
+private:
+   int  spam;
+public:
+   void bar(int x, int y = spam);   // Illegal in SWIG. Private default value
+};
+</pre>
+</blockquote>
+
+When this occurs, you will get a couple of warning messages like this:
+
+<blockquote>
+<pre>
+example.i:15. Warning 'spam' is private in this context.
+example.i:15. Warning. Can't set default argument (ignored)
+</pre>
+</blockquote>
+
+This incompatibility arises because default values in C++ are
+evaluated in the same scope as the member function whereas SWIG
+evaluates them in the scope of a wrapper function (meaning that the
+values have to be publically accessible).  The full set of arguments
+are needed in the wrappers in order to support a number of advanced
+customization features and the use of default arguments in ANSI C
+(which is not part of the ANSI standard).
+
+<p>
+There are several somewhat clumsy ways to work around this problem.
+However, a simpler solution may be to reconsider your design--is it
+really <em>that</em> critical to make the default argument private?
 
 <h3> Member data</h3>
 
@@ -326,7 +382,7 @@ public:
 };
 </pre></blockquote>
 
-Alternatively, you can specify an immutable member as follows:
+Alternatively, you can specify an immutable member in advance like this:
 
 <blockquote>
 <pre>
@@ -343,8 +399,8 @@ class List {
 Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-only members.
 
 <p>
-There are some subtle issues when wrapping data members that are themselves classes.  For instance, if you had another
-class like this,
+There are some subtle issues when wrapping data members that are
+themselves classes.  For instance, if you had another class like this,
 
 <blockquote>
 <pre>
@@ -355,7 +411,7 @@ public:
 </pre>
 </blockquote>
 
-then access to the <tt>items</tt> member actually works with pointers. For example:
+then access to the <tt>items</tt> member actually uses pointers. For example:
 
 <blockquote>
 <pre>
@@ -369,13 +425,35 @@ void Foo_items_set(Foo *self, List *value) {
 </blockquote>
 
 More information about this can be found in the "Structure data
-members" section of the <a href="SWIG.html">SWIG Basics</a> chapter.
+members" section of the <a href="SWIG.html">SWIG Basics</a> chapter. 
 
 <p>
 <b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
 <tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
 generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
 <tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
+
+<p>
+<b>Compatibility note:</b> Prior to SWIG-1.3.12, all members of unknown type were
+wrapped into accessor functions using pointers.  For example, if you had a structure
+like this
+
+<blockquote>
+<pre>
+struct Foo {
+   size_t  len;
+};
+</pre>
+</blockquote>
+
+and nothing was known about <tt>size_t</tt>, then accessors would be
+written to work with <tt>size_t *</tt>.  Starting in SWIG-1.3.12, this
+behavior has been modified.  Specifically, pointers will <em>only</em>
+be used if SWIG knows that a datatype corresponds to a structure or
+class.  Therefore, the above code would be wrapped into accessors
+involving <tt>size_t</tt>.  This change is subtle, but it smooths over
+a few problems related to structure wrapping and some of SWIG's
+customization features.
 
 <h2>Protection</h2>
 
@@ -388,6 +466,9 @@ sections so that it can properly generate code for default constructors and dest
 By default, members of a class definition are assumed to be private
 until you explicitly give a `<tt>public:</tt>' declaration (This is
 the same convention used by C++).<p>
+
+<p>
+<b>ADD: Protection and default values</b>
 
 <h2>Enums and constants</h2>
 
@@ -1320,7 +1401,7 @@ the first renaming rule found on a depth-first traversal of the class hierarchy
 is used.
 
 <p>
-<li>The name matching rules are applied to both qualified and non-qualified members.
+<li>The name matching rules are strictly follow member qualification rules.
 For example, if you have a class like this:
 
 <blockquote>
@@ -1328,13 +1409,13 @@ For example, if you have a class like this:
 class Foo {
 public:
    ...
-   void bar() const;
+   void bar();
    ...
 };
 </pre>
 </blockquote>
 
-the declaration <tt>%rename(name) Foo::bar()</tt> applies to the qualified member <tt>bar() const</tt>.
+the declaration <tt>%rename(name) Foo::bar()</tt> only applies to the unqualified member <tt>bar()</tt>.
 However, an often overlooked C++ feature is that classes can define two different overloaded members
 that differ only in their qualifiers, like this:
 
@@ -1350,18 +1431,25 @@ public:
 </pre>
 </blockquote>
 
-Even when renaming is used, this still generates an error (both
-<tt>bar()</tt> methods will be renamed to the same thing).  However,
-if you want to silence the errors, <tt>%rename</tt> and
-<tt>%ignore</tt> can be further specialized with qualifiers. For
-example, the following directive would tell SWIG to ignore the
-<tt>const</tt> version of <tt>bar()</tt> above:
+In this case, the renaming operator would only apply to the first
+method.  If you wanted to rename the qualified member function, use
+<tt>%rename(name) Foo::bar() const</tt> instead.  Similarly, if you
+merely wanted to ignore one of the declarations, use <tt>%ignore</tt>
+with the full qualification.  For example, the following directive
+would tell SWIG to ignore the <tt>const</tt> version of <tt>bar()</tt>
+above:
 
 <blockquote>
 <pre>
 %ignore Foo::bar() const;   // Ignore bar() const, but leave other bar() alone
 </pre>
 </blockquote>
+
+<li>SWIG handles overloaded constructors as a special case. If a class
+defines a copy constructor, it is wrapped into a different accessor
+function than an ordinary constructor.  See the section on constructors and destructors
+for details.
+ 
 </ul>
 
 <h2>Wrapping overloaded operators</h2>
@@ -1448,8 +1536,9 @@ operator normally. For example:
 </pre>
 </blockquote>
 
-It is important to realize that there is nothing magical happening here.  The <tt>%rename</tt> directive
-really only picks a valid method name.   If you wrote this:
+It is important to realize that there is nothing magical happening
+here.  The <tt>%rename</tt> directive really only picks a valid method
+name.  If you wrote this:
 
 <blockquote>
 <pre>
@@ -1467,8 +1556,8 @@ c = a.add(b)      # Call a.operator+(b)
 </pre>
 </blockquote>
 
-All of the techniques described to deal with overloaded functions also apply to operators.
-For example:
+All of the techniques described to deal with overloaded functions also
+apply to operators.  For example:
 
 <blockquote>
 <pre>
@@ -1481,8 +1570,8 @@ For example:
 </pre>
 </blockquote>
 
-The last part of this example illustrates how multiple definitions of the <tt>operator-</tt> method
-might be handled.
+The last part of this example illustrates how multiple definitions of
+the <tt>operator-</tt> method might be handled.
 
 <p>
 Handling operators in this manner is mostly straightforward.  However, there are a few subtle
@@ -1502,12 +1591,13 @@ Complex operator+(Complex &, double);
 </pre>
 </blockquote>
 
-SWIG simply ignores all <tt>friend</tt> declarations.   Furthermore, it doesn't know how to associate the
-associated <tt>operator+</tt> with the class (because it's not a member of the class).
+SWIG simply ignores all <tt>friend</tt> declarations.  Furthermore, it
+doesn't know how to associate the associated <tt>operator+</tt> with
+the class (because it's not a member of the class).
 
 <p>
-It's still possible to make a wrapper for this operator, but you'll have to handle it like a normal
-function. For example:
+It's still possible to make a wrapper for this operator, but you'll
+have to handle it like a normal function. For example:
 
 <blockquote>
 <pre>
@@ -1525,7 +1615,7 @@ are ignored as well as conversion operators.
 
 <h2>Adding new methods</h2>
 
-New methods can be added to a class using the <tt>%addmethods</tt>
+New methods can be added to a class using the <tt>%extend</tt>
 directive. This directive is primarily used in conjunction with shadow
 classes to add additional functionality to an existing class. For
 example :<p>
@@ -1541,7 +1631,7 @@ public:
 	Vector();
 	~Vector();
 	... bunch of C++ methods ...
-	%addmethods {
+	%extend {
 		char *__str__() {
 			static char temp[256];
 			sprintf(temp,"[ %g, %g, %g ]", v-&gt;x,v-&gt;y,v-&gt;z);
@@ -1569,8 +1659,14 @@ command. <p>
 
 </pre></blockquote>
 
-The<tt> %addmethods</tt> directive follows all of the same conventions
+The<tt> %extend</tt> directive follows all of the same conventions
 as its use with C structures.<p>
+
+<p>
+<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
+name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
+be used to extend a structure with more than just methods, a more suitable
+directive name has been chosen.
 
 <h2>Templates</h2>
 
@@ -1580,11 +1676,37 @@ is expected in an interface file.  For example:
 <blockquote>
 <pre>
 void foo(vector&lt;int&gt; *a, int n);
+void bar(list&lt;int,100&gt; *x);
 </pre>
 </blockquote>
 
+There are some restrictions on the use of non-type arguments.  Specifically,
+they have to be simple literals and not expressions.  For example:
+
+<blockquote>
+<pre>
+void bar(list&lt;int,100&gt; *x);    // OK
+void bar(list&lt;int,2*50&gt; *x);   // Illegal
+</pre>
+</blockquote>
+
+The type system is smart enough to figure out clever games
+you might try to play with <tt>typedef</tt>.  For instance, consider this code:
+
+<blockquote>
+<pre>
+typedef int Integer;
+void foo(vector&lt;int&gt; *x, vector&lt;Integer&gt; *y);
+</pre>
+</blockquote>
+
+In this case, <tt>vector&lt;Integer&gt;</tt> is exactly the same type
+as <tt>vector&lt;int&gt;</tt>.  The wrapper for <tt>foo()</tt> will
+accept either variant.
+
+<p>
 Starting with SWIG-1.3.7, simple C++ template declarations can also be
-wrapped.  Before discussing this any further, there are a few things
+wrapped.  SWIG-1.3.12 greatly expands upon the earlier implementation. Before discussing this any further, there are a few things
 you need to know about template wrapping.  First, a bare C++ template
 does not define any sort of runnable object-code for which SWIG can
 normally create a wrapper.  Therefore, in order to wrap a template,
@@ -1708,24 +1830,63 @@ In this case, <tt>maxint</tt> and <tt>maxdouble</tt> become unique names for spe
 instantiations of the function.
 
 <p>
-The <tt>%template</tt> directive should not be used to wrap the same template instantiation more than
-once in the same scope.  This will generate an error.  For example:
+The number of arguments supplied to <tt>%template</tt> should match that in the
+original template definition.  Template default arguments are supported.  For example:
 
 <blockquote>
 <pre>
-%template(intList) List<int>;
-%template(Listint) List<int>;    // Error.   Template already wrapped.
+template vector&lt;typename T, int max=100&gt; class vector {
+...
+};
+
+%template(intvec) vector&lt;int&gt;;           // OK
+%template(vec1000) vector&lt;int,1000&gt;;     // OK
 </pre>
 </blockquote>
 
 <p>
-This error is caused because the template expansion results in two identical classes with the same
-name.  This generates a symbol table conflict.  Besides, it probably more efficient to only wrap
-a specific instantiation only once in order to reduce the potential for code bloat.
+The <tt>%template</tt> directive should not be used to wrap the same
+template instantiation more than once in the same scope.  This will
+generate an error.  For example:
+
+<blockquote>
+<pre>
+%template(intList) List&lt;int&gt;;
+%template(Listint) List&lt;int&gt;;    // Error.   Template already wrapped.
+</pre>
+</blockquote>
 
 <p>
-When a template is instantiated using <tt>%template</tt>, information about that class is
-saved by SWIG and used elsewhere in the program.  For example, if you wrote code like this,
+This error is caused because the template expansion results in two
+identical classes with the same name.  This generates a symbol table
+conflict.  Besides, it probably more efficient to only wrap a specific
+instantiation only once in order to reduce the potential for code
+bloat.
+
+<p>
+Since the type system knows how to handle <tt>typedef</tt>, it is
+generally not necessary to instantiate different versions of a template
+for typenames that are equivalent.  For instance, consider this code:
+
+<blockquote>
+<pre>
+%template(intList) vector&lt;int&gt;;
+typedef int Integer;
+...
+void foo(vector&lt;Integer&gt; *x);
+</pre>
+</blockquote>
+
+In this case, <tt>vector&lt;Integer&gt;</tt> is exactly the same type as
+<tt>vector&lt;int&gt;</tt>.  Any use of <tt>Vector&lt;Integer&gt;</tt> is mapped back to the 
+instantiation of <tt>vector&lt;int&gt;</tt> created earlier.  Therefore, it is
+not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
+redundant and will simply result in code bloat).
+
+<p>
+When a template is instantiated using <tt>%template</tt>, information
+about that class is saved by SWIG and used elsewhere in the program.
+For example, if you wrote code like this,
 
 <blockquote>
 <pre>
@@ -1799,50 +1960,6 @@ TEMPLATE_WRAP(char *, String)
 </blockquote>
 
 <p>
-If your goal is to make someone's head explode more than usual, SWIG
-directives such as <tt>%rename</tt> and <tt>%addmethods</tt> can be
-included directly in template definitions.  For example:
-
-<p>
-<blockquote><pre>// File : list.h
-template&lt;class T&gt; class List {
-   ...
-public:
-    %rename(__getitem__) get(int);
-    List(int max);
-    ~List();
-    ...
-    T get(int index);
-    %addmethods {
-        char *__str__() {
-            /* Make a string representation */
-            ...
-        }
-    }
-};
-</pre></blockquote>
-
-In this example, the extra SWIG directives are propagated to <em>every</em> template 
-instantiation.  
-
-<p>
-In addition, the <tt>%addmethods</tt> directive can be used to add
-additional methods to a specific instantiation. For example:
-
-<blockquote>
-<pre>
-%template(intList) List&lt;int&gt;;
-
-%addmethods List&lt;int&gt; {
-    void blah() {
-          printf("Hey, I'm an List&lt;int&gt;!\n");
-    }
-};
-</pre>
-</blockquote>
-
-
-<p>
 The SWIG template mechanism <em>does</em> support specialization. For instance, if you define
 a class like this,
 
@@ -1864,17 +1981,171 @@ public:
 </blockquote>
 
 then SWIG will use this code whenever the user expands <tt>List&lt;int&gt;</tt>.   In practice,
-this may have very little effect on the underlying wrapper code.  However, special SWIG
-directives such as <tt>%typemap</tt>, <tt>%addmethods</tt>, and so forth can be attached
+this may have very little effect on the underlying wrapper code since
+specialization is often used to provide slightly modified method bodies (which
+are ignored by SWIG).  However, special SWIG
+directives such as <tt>%typemap</tt>, <tt>%extend</tt>, and so forth can be attached
 to a specialization to provide customization for specific types.
 
 <p>
 Partial template specialization is not currently supported by SWIG.
 
 <p>
+Member function templates are supported.  The underlying principle is the same
+as for normal templates--SWIG can't create a wrapper unless you provide
+more information about types.  For example, a class with a member template might
+look like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+};
+</pre>
+</blockquote>
+
+To expand the template, simply use <tt>%template</tt> inside the class.
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+     %template(barint)    bar&lt;int&gt;;
+     %template(bardouble) bar&lt;double&gt;;
+};
+</pre>
+</blockquote>
+
+Or, if you want to leave the original class definition alone, just do this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+};
+...
+%extend Foo {
+     %template(barint)    bar&lt;int&gt;;
+     %template(bardouble) bar&lt;double&gt;;
+};
+</pre>
+</blockquote>
+
+Note: because of the way that templates are handled, the <tt>%template</tt> directive
+must always appear <em>after</em> the definition of the template to be expanded.
+
+<p>
+When used with members, the <tt>%template</tt> directive may be placed in another
+template class.  Here is a slightly perverse example:
+
+<blockquote>
+<pre>
+// A template
+template&lt;class T&gt; class Foo {
+public:
+     // A member template
+     template&lt;class S&gt; T bar(S x, S y) { ... };
+     ...
+};
+
+// Expand a few member templates
+%extend Foo {
+     %template(bari) bar&lt;int&gt;;
+     %template(bard) bar&lt;double&gt;;
+};
+
+// Create some wrappers for the template
+%template(Fooi) Foo&lt;int&gt;;
+%template(Food) Foo&lt;double&gt;;
+</pre>
+</blockquote>
+Miraculously, you will find that each expansion of <tt>Foo</tt> has member
+functions <tt>bari()</tt> and <tt>bard()</tt> added.
+
+<p>
+If the last example wasn't quite enough and you really want to make
+someone's head explode, SWIG directives such as
+<tt>%rename</tt>, <tt>%extend</tt>, and <tt>%typemap</tt> can be
+included directly in template definitions.  For example:
+
+<p>
+<blockquote><pre>// File : list.h
+template&lt;class T&gt; class List {
+   ...
+public:
+    %rename(__getitem__) get(int);
+    List(int max);
+    ~List();
+    ...
+    T get(int index);
+    %extend {
+        char *__str__() {
+            /* Make a string representation */
+            ...
+        }
+    }
+};
+</pre></blockquote>
+
+In this example, the extra SWIG directives are propagated to <em>every</em> template 
+instantiation.  
+
+<p>
+It is also possible to separate these declarations from the template class.  For example:
+
+<blockquote>
+<pre>
+%rename(__getitem__) List::get;
+%extend List {
+    char *__str__() {
+        /* Make a string representation */
+        ...
+    }
+    /* Make a copy */
+    T *__copy__() {
+       return new List&lt;T&gt;(*self);
+    }
+};
+
+...
+template&lt;class T&gt; class List {
+   ...
+   public:
+   List() { };
+   ...
+};
+</pre>
+</blockquote>
+
+<p>
+When <tt>%extend</tt> is decoupled from the class definition, it is
+legal to use the same template parameters as provided in the class definition.
+These are replaced when the template is expanded.
+In addition, the <tt>%extend</tt> directive can be used to add
+additional methods to a specific instantiation. For example:
+
+<blockquote>
+<pre>
+%template(intList) List&lt;int&gt;;
+
+%extend List&lt;int&gt; {
+    void blah() {
+          printf("Hey, I'm an List&lt;int&gt;!\n");
+    }
+};
+</pre>
+</blockquote>
+
+<p>
 Needless to say, SWIG's template support provides plenty of
 opportunities to break the universe.  That said, an important final
-point is that <b>SWIG performs no extensive error checking of
+point is that <b>SWIG does not perform extensive error checking of
 templates!</b> Specifically, SWIG does not perform type checking nor
 does it check to see if the actual contents of the template
 declaration make any sense.  Since the C++ compiler will hopefully
@@ -1888,19 +2159,36 @@ Finally, there are a few limitations in SWIG's current support for templates:
 
 <ul>
 <p>
-<li>Class templates may not be defined as the argument of another template.   If you are
-doing this on purpose, we're all really impressed, but please stop.
+<li>SWIG does not support overloaded versions of a template.  Some C++ programs might
+do this to define overloaded functions.  For example:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; void foo(T x) { };
+template&lt;class T&gt; void foo(T x, T y) { };     // Error. foo already defined.
+</pre>
+</blockquote>
+
+This will generate a name conflict error message in SWIG. To silence the error message, use <tt>%ignore</tt>:
+
+<blockquote>
+<pre>
+%ignore foo(T,T);
+</pre>
+</blockquote>
+
+In this case, <tt>%template</tt> will only work with the first definition.  To create a
+wrapper for the second definition, just do it manually:
+
+<blockquote>
+<pre>
+%name(foo2int) void foo&lt;int&gt;(int x, int y);
+</pre>
+</blockquote>
 
 <p>
-<li>Member templates aren't supported.  
-
-<p>
-<li>Template support in SWIG is still somewhat immature.  Although
-the current implementation is probably enough to handle simple stuff,
-wrapping something like the STL might be rough going.  If you
-succeed at this, we'd definitely like to know about it!  If you tried
-and failed, we would also like to get feedback so that we can try to
-address the problems you encountered.
+<li>Class templates may not be defined within the body of another template class. If you are
+doing this on purpose, we're all really impressed, but please stop. 
 
 </ul>
 
@@ -1908,7 +2196,8 @@ address the problems you encountered.
 <b>Compatibility Note</b>:  The first implementation of template support relied heavily on
 macro expansion in the preprocessor.  Templates have been more tightly integrated into 
 the parser and type system in SWIG-1.3.12 and the preprocessor is no longer used. Code
-that relied on preprocessing features in template expansion will no longer work.
+that relied on preprocessing features in template expansion will no longer work.  However,
+SWIG still allows the # operator to be used to generate a string from a template argument.
 
 <h2>Namespaces</h2>
 
@@ -2157,7 +2446,7 @@ namespace foo {
     };
 }
 
-%addmethods foo::bar {
+%extend foo::bar {
    Integer add(Integer x, Integer y) {
        Integer r = x + y;        // Error. Integer not defined in this scope
        return r;
@@ -2173,7 +2462,7 @@ To fix the problem, make sure you use fully qualified names.  For example:
 
 <blockquote>
 <pre>
-%addmethods foo::bar {
+%extend foo::bar {
    Integer add(Integer x, Integer y) {
        foo::Integer r = x + y;        // Ok.
        return r;
@@ -2359,7 +2648,7 @@ is the reference document we use to guide a lot of SWIG's C++ support.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : April 7, 2002</address>
+<address>SWIG 1.3 - Last Modified : April 23, 2002</address>
 </body>
 </html>
 

@@ -921,6 +921,796 @@ The rest of this chapter describes some of the internal data structures and
 various code generation tasks in more detail.
 
 
+<h2>Basic Data Structures</h2>
+
+Most of SWIG is constructed using three basic data structures:
+strings, hashes, and lists.  These data structures are dynamic like
+similar structures found in many scripting languages.  For instance,
+you can have containers (lists and hash tables) of mixed types and
+certain operations are polymorphic.
+
+<p>
+When describing the low-level API, the following type name conventions are
+used:
+
+<ul>
+<li><tt>String</tt>.  A string object.
+<li><tt>Hash</tt>. A hash object.
+<li><tt>List</tt>. A list object.
+<li><tt>String_or_char</tt>. A string object or a <tt>char *</tt>.
+<li><tt>Object_or_char</tt>. An object or a <tt>char *</tt>.
+<li><tt>Object</tt>.  Any object (string, hash, list, etc.)
+</ul>
+
+In most cases, other typenames are simply aliases for one of these 
+primitive types.   Specifically:
+
+<blockquote>
+<pre>
+typedef String SwigType;
+typedef Hash   Parm;
+typedef Hash   ParmList;
+typedef Hash   Node;
+typedef Hash   Symtab;
+typedef Hash   Typetab;
+</pre>
+</blockquote>
+
+<h3>Strings</h3>
+
+<p>
+<b><tt>String *NewString(const String_or_char *val)</tt></b>
+<blockquote>
+Creates a new string with initial value <tt>val</tt>. <tt>val</tt> may
+be a <tt>char *</tt> or another <tt>String</tt> object.   If you want
+to create an empty string, use "" for val.
+</blockquote>
+
+<p>
+<b><tt>String *NewStringf(const char *fmt, ...)</tt></b>
+<blockquote>
+Creates a new string whose initial value is set according to a C <tt>printf</tt> style
+format string in <tt>fmt</tt>.   Additional arguments follow depending
+on <tt>fmt</tt>.
+</blockquote>
+
+<p>
+<b><tt>String *Copy(String *s)</tt></b>
+<blockquote>
+Make a copy of the string <tt>s</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Delete(String *s)</tt></b>
+<blockquote>
+Deletes <tt>s</tt>.
+</blockquote>
+
+<p>
+<b><tt>int Len(String_or_char *s)</tt></b>
+<blockquote>
+Returns the length of the string.
+</blockquote>
+
+<p>
+<b><tt>char *Char(String_or_char *s)</tt></b>
+<blockquote>
+Returns a pointer to the first character in the string.
+</blockquote>
+
+<p>
+<b><tt>void Append(String *s, String_or_char *t)</tt></b>
+<blockquote>
+Appends <tt>t</tt> to the end of <tt>s</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Insert(String *s, int pos, String_or_char *t)</tt></b>
+<blockquote>
+Inserts <tt>t</tt> into <tt>s</tt> at position <tt>pos</tt>.  The contents
+of <tt>s</tt> are shifted accordingly.    The special value <tt>DOH_END</tt>
+can be used for <tt>pos</tt> to indicate insertion at the end of the string (appending).
+</blockquote>
+
+<p>
+<b><tt>int Strcmp(const String_or_char *s, const String_or_char *t)</tt></b>
+<blockquote>
+Compare strings <tt>s</tt> and <tt>t</tt>.   Same as the C <tt>strcmp()</tt>
+function.
+</blockquote>
+
+<p>
+<b><tt>int Strncmp(const String_or_char *s, const String_or_char *t, int len)</tt></b>
+<blockquote>
+Compare the first <tt>len</tt> characters of strings <tt>s</tt> and <tt>t</tt>.   Same as the C <tt>strncmp()</tt>
+function.
+</blockquote>
+
+<p>
+<b><tt>char *Strstr(const String_or_char *s, const String_or_char *pat)</tt></b>
+<blockquote>
+Returns a pointer to the first occurrence of <tt>pat</tt> in <tt>s</tt>.
+Same as the C <tt>strstr()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>char *Strchr(const String_or_char *s, char ch)</tt></b>
+<blockquote>
+Returns a pointer to the first occurrence of character <tt>ch</tt> in <tt>s</tt>.
+Same as the C <tt>strchr()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>void Chop(String *s)</tt></b>
+<blockquote>
+Chops trailing whitespace off the end of <tt>s</tt>.
+</blockquote>
+
+<p>
+<b><tt>int Replace(String *s, const String_or_char *pat, const String_or_char *rep, int flags)</tt></b>
+<blockquote>
+Replaces the pattern <tt>pat</tt> with <tt>rep</tt> in string <tt>s</tt>.  
+<tt>flags</tt> is a combination of the following flags:
+<blockquote>
+<pre>
+DOH_REPLACE_ANY       - Replace all occurrences
+DOH_REPLACE_ID        - Valid C identifiers only
+DOH_REPLACE_NOQUOTE   - Don't replace in quoted strings
+DOH_REPLACE_FIRST     - Replace first occurrence only.
+</pre>
+</blockquote>
+
+Returns the number of replacements made (if any).
+</blockquote>
+
+
+<h3>Hashes</h3>
+
+<p>
+<b><tt>Hash *NewHash()</tt></b>
+<blockquote>
+Creates a new empty hash table.
+</blockquote>
+
+<p>
+<b><tt>Hash *Copy(Hash *h)</tt></b>
+<blockquote>
+Make a shallow copy of the hash <tt>h</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Delete(Hash *h)</tt></b>
+<blockquote>
+Deletes <tt>h</tt>.
+</blockquote>
+
+<p>
+<b><tt>int Len(Hash *h)</tt></b>
+<blockquote>
+Returns the number of items in <tt>h</tt>.
+</blockquote>
+
+<p>
+<b><tt>Object *Getattr(Hash *h, String_or_char *key)</tt></b>
+<blockquote>
+Gets an object from <tt>h</tt>.  <tt>key</tt> may be a string or
+a simple <tt>char *</tt> string.   Returns NULL if not found.
+</blockquote>
+
+<p>
+<b><tt>int *Setattr(Hash *h, String_or_char *key, Object_or_char *val)</tt></b>
+<blockquote>
+Stores <tt>val</tt> in <tt>h</tt>. <tt>key</tt> may be a string or
+a simple <tt>char *</tt>. If <tt>val</tt> is not a standard
+object (String, Hash, or List) it is assumed to be a <tt>char *</tt> in which
+case it is used to construct a <tt>String</tt> that is stored in the hash.
+If <tt>val</tt> is NULL, the object is deleted. Increases the reference count
+of <tt>val</tt>.   Returns 1 if this operation replaced an existing hash entry,
+0 otherwise.
+</blockquote>
+
+<p>
+<b><tt>int *Delattr(Hash *h, String_or_char *key)</tt></b>
+<blockquote>
+Deletes the hash item referenced by <tt>key</tt>.  Decreases the
+reference count on the corresponding object (if any).  Returns 1
+if an object was removed, 0 otherwise.
+</blockquote>
+
+<p>
+<b><tt>String *Firstkey(Hash *h)</tt></b>
+<blockquote>
+Returns the first hash table key or NULL if the hash is empty. Used
+for iteration.
+</blockquote>
+
+<p>
+<b><tt>String *Nextkey(Hash *h)</tt></b>
+<blockquote>
+Returns the next hash table key or NULL if the end of the hash has been
+reached.  Used for iteration.
+</blockquote>
+
+<p>
+<b><tt>List *Keys(Hash *h)</tt></b>
+<blockquote>
+Returns the list of hash table keys.
+</blockquote>
+
+
+<h3>Lists</h3>
+
+<p>
+<b><tt>List *NewList()</tt></b>
+<blockquote>
+Creates a new empty list.
+</blockquote>
+
+<p>
+<b><tt>List *Copy(List *x)</tt></b>
+<blockquote>
+Make a shallow copy of the List <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Delete(List *x)</tt></b>
+<blockquote>
+Deletes <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>int Len(List *x)</tt></b>
+<blockquote>
+Returns the number of items in <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>Object *Getitem(List *x, int n)</tt></b>
+<blockquote>
+Returns an object from <tt>x</tt> with index <tt>n</tt>.  If <tt>n</tt> is
+beyond the end of the list, the last item is returned. If <tt>n</tt> is
+negative, the first item is returned.
+</blockquote>
+
+<p>
+<b><tt>int *Setitem(List *x, int n, Object_or_char *val)</tt></b>
+<blockquote>
+Stores <tt>val</tt> in <tt>x</tt>. 
+If <tt>val</tt> is not a standard
+object (String, Hash, or List) it is assumed to be a <tt>char *</tt> in which
+case it is used to construct a <tt>String</tt> that is stored in the list.
+<tt>n</tt> must be in range.  Otherwise, an assertion will be raised.
+</blockquote>
+
+<p>
+<b><tt>int *Delitem(List *x, int n)</tt></b>
+<blockquote>
+Deletes item <tt>n</tt> from the list, shifting items down if necessary.  
+To delete the last item in the list, use the special value <tt>DOH_END</tt>
+for <tt>n</tt>.
+</blockquote>
+
+<p>
+<b><tt>Object *Firstitem(List *x)</tt></b>
+<blockquote>
+Returns the first item in <tt>x</tt> or NULL if the list is empty.
+</blockquote>
+
+<p>
+<b><tt>Object *Nextitem(List *x)</tt></b>
+<blockquote>
+Returns the next item in <tt>x</tt> or NULL if the end of the list has been
+reached.  Used for iteration.
+</blockquote>
+
+<p>
+<b><tt>void Append(List *x, Object_or_char *t)</tt></b>
+<blockquote>
+Appends <tt>t</tt> to the end of <tt>x</tt>.  If <tt>t</tt> is not
+a standard object, it is assumed to be a <tt>char *</tt> and is
+used to create a String object.
+</blockquote>
+
+<p>
+<b><tt>void Insert(String *s, int pos, Object_or_char *t)</tt></b>
+<blockquote>
+Inserts <tt>t</tt> into <tt>s</tt> at position <tt>pos</tt>.  The contents
+of <tt>s</tt> are shifted accordingly.    The special value <tt>DOH_END</tt>
+can be used for <tt>pos</tt> to indicate insertion at the end of the list (appending).
+If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
+and is used to create a String object.
+</blockquote>
+
+<h3>Common operations</h3>
+
+The following operations are applicable to all datatypes.
+
+<p>
+<b><tt>Object *Copy(Object *x)</tt></b>
+<blockquote>
+Make a copy of the object <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Delete(Object *x)</tt></b>
+<blockquote>
+Deletes <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Setfile(Object *x, String_or_char *f)</tt></b>
+<blockquote>
+Sets the filename associated with <tt>x</tt>.  Used to track
+objects and report errors.
+</blockquote>
+
+<p>
+<b><tt>String *Getfile(Object *x)</tt></b>
+<blockquote>
+Gets the filename associated with <tt>x</tt>.
+</blockquote>
+
+<p>
+<b><tt>void Setline(Object *x, int n)</tt></b>
+<blockquote>
+Sets the line number associated with <tt>x</tt>.  Used to track
+objects and report errors.
+</blockquote>
+
+<p>
+<b><tt>int Getline(Object *x)</tt></b>
+<blockquote>
+Gets the line number associated with <tt>x</tt>.
+</blockquote>
+
+<h2>I/O</h2>
+
+Special I/O functions are used for all internal I/O.  These operations
+work on C <tt>FILE *</tt> objects, special File objects, and String objects.
+
+<p>
+<b><tt>int Printf(String_or_FILE *f, const char *fmt, ...)</tt></b>
+<blockquote>
+Formatted I/O.   Same as the C <tt>fprintf()</tt> function except that output
+can also be directed to a string object.  Note:  the <tt>%s</tt> format 
+specifier works with both strings and <tt>char *</tt>.  All other format
+operators have the same meaning.
+</blockquote>
+
+<p>
+<b><tt>int Printv(String_or_FILE *f, String_or_char *arg1,..., NULL)</tt></b>
+<blockquote>
+Prints a variable number of strings arguments to the output.  The last
+argument to this function must be NULL.   The other arguments can either
+be <tt>char *</tt> or string objects.
+</blockquote>
+
+<p>
+<b><tt>int Putc(int ch, String_or_FILE *f)</tt></b>
+<blockquote>
+Same as the C <tt>fputc()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>int Write(String_or_FILE *f, void *buf, int len)</tt></b>
+<blockquote>
+Same as the C <tt>write()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>int Read(String_or_FILE *f, void *buf, int maxlen)</tt></b>
+<blockquote>
+Same as the C <tt>read()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>int Getc(String_or_FILE *f)</tt></b>
+<blockquote>
+Same as the C <tt>fgetc()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>int Ungetc(int ch, String_or_FILE *f)</tt></b>
+<blockquote>
+Same as the C <tt>ungetc()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>int Seek(String_or_FILE *f, int offset, int whence)</tt></b>
+<blockquote>
+Same as the C <tt>seek()</tt> function.  <tt>offset</tt> is the number
+of bytes.  <tt>whence</tt> is one of <tt>SEEK_SET</tt>,<tt>SEEK_CUR</tt>,
+or <tt>SEEK_END</tt>..
+</blockquote>
+
+<p>
+<b><tt>long Tell(String_or_FILE *f)</tt></b>
+<blockquote>
+Same as the C <tt>tell()</tt> function.
+</blockquote>
+
+<p>
+<b><tt>File *NewFile(const char *filename, const char *mode)</tt></b>
+<blockquote>
+Create a File object using the <tt>fopen()</tt> library call.  This
+file differs from <tt>FILE *</tt> in that it can be placed in the standard
+SWIG containers (lists, hashes, etc.). 
+</blockquote>
+
+<p>
+<b><tt>File *NewFileFromFile(FILE *f)</tt></b>
+<blockquote>
+Create a File object wrapper around an existing <tt>FILE</tt> object.
+</blockquote>
+
+<p>
+<b><tt>int Close(String_or_FILE *f)</tt></b>
+<blockquote>
+Closes a file.  Has no effect on strings.
+</blockquote>
+
+The use of the above I/O functions and strings play a critical role in SWIG.   It is
+common to see small code fragments of code generated kind of like this:
+
+<blockquote>
+<pre>
+/* Print into a string */
+String *s = NewString("");
+Printf(s,"Hello\n");
+for (i = 0; i < 10; i++) {
+    Printf(s,"%d\n", i);
+}
+...
+/* Print string into a file */
+Printf(f, "%s\n", s);
+</pre>
+</blockquote>
+
+Similarly, the preprocessor and parser all operate on string-files.
+
+<h2>Type system</h2>
+
+SWIG implements the complete C++ type system including typedef, inheritance,
+pointers, references, and pointers to members.   A detailed discussion of
+type theory is impossible here.   However, let's cover the highlights.
+
+<h3>String encoding of types</h3>
+
+<p>
+All types in SWIG consist of a base datatype and a collection of type
+operators that are applied to the base.   A base datatype is almost
+always some kind of primitive type such as <tt>int</tt> or <tt>double</tt>.
+The operators consist of things like pointers, references, arrays, and so forth.
+Internally, types are represented as strings that are constructed in a very
+precise manner.  Here are some examples:
+
+<blockquote>
+<pre>
+C datatype                     SWIG encoding (strings)
+-----------------------------  --------------------------
+int                            "int"
+int *                          "p.int"
+const int *                    "p.q(const).int"
+int (*x)(int,double)           "p.f(int,double).int"
+int [20][30]                   "a(20).a(30).int"
+int (F::*)(int)                "m(F).f(int).int"
+vector&lt;int&gt; *                  "p.vector&lt;(int)&gt;"
+</pre>
+</blockquote>
+
+Reading the SWIG encoding is often easier than figuring out the C code---just
+read it from left to right.  For a type of "p.f(int,double).int" is
+a "pointer to a function(int,double) that returns int".  
+
+<p>
+The following operator encodings are used in type strings:
+
+<blockquote>
+<pre>
+Operator              Meaning
+-------------------   -------------------------------
+p.                    Pointer to
+a(n).                 Array of dimension n
+r.                    C++ reference
+m(class).             Member pointer to class
+f(args).              Function.
+q(qlist).             Qualifiers
+</pre>
+</blockquote>
+
+In addition, type names may be parameterized by templates.  This is
+represented by enclosing the template parameters in <tt>&lt;(
+... )&gt;</tt>.  Variable length arguments are represented by the
+special base type of <tt>v(...)</tt>.
+
+<p>
+If you want to experiment with type encodings, the raw type strings can
+be inserted into an interface file using backticks `` wherever a type
+is expected.  For instance, here is
+an extremely perverted example:
+
+<blockquote>
+<pre>
+`p.a(10).p.f(int,p.f(int).int)` foo(int, int (*x)(int));
+</pre>
+</blockquote>
+
+This corresponds to the immediately obvious C declaration:
+
+<blockquote>
+<pre>
+(*(*foo(int,int (*)(int)))[10])(int,int (*)(int));
+</pre>
+</blockquote>
+
+Aside from the potential use of this declaration on a C programming quiz,
+it motivates the use of the special SWIG encoding of types.   The SWIG
+encoding is much easier to work with because types can be easily examined,
+modified, and constructed using simple string operations (comparison,
+substrings, concatenation, etc.).   For example, in the parser, a declaration
+like this
+
+<blockquote>
+<pre>
+int *a[30];
+</pre>
+</blockquote>
+
+is processed in a few pieces.  In this case, you have the base type
+"<tt>int</tt>" and the declarator of type "<tt>a(30).p.</tt>".  To
+make the final type, the two parts are just joined together using
+string concatenation.
+
+<h3>Type construction</h3>
+
+The following functions are used to construct types.  You should use
+these functions instead of trying to build the type strings yourself.
+
+<p>
+<b><tt>void SwigType_add_pointer(SwigType *ty)</tt></b>
+<blockquote>
+Adds a pointer to <tt>ty</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_del_pointer(SwigType *ty)</tt></b>
+<blockquote>
+Removes a single pointer from <tt>ty</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_reference(SwigType *ty)</tt></b>
+<blockquote>
+Adds a reference to <tt>ty</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_array(SwigType *ty, String_or_char *dim)</tt></b>
+<blockquote>
+Adds an array with dimension <tt>dim</tt> to <tt>ty</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_qualifier(SwigType *ty, String_or_char *q)</tt></b>
+<blockquote>
+Adds a type qualifier <tt>q</tt> to <tt>ty</tt>.  <tt>q</tt> is typically
+<tt>"const"</tt> or <tt>"volatile"</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_memberpointer(SwigType *ty, String_or_char *cls)</tt></b>
+<blockquote>
+Adds a pointer to a member of class <tt>cls</tt> to <tt>ty</tt>.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_function(SwigType *ty, ParmList *p)</tt></b>
+<blockquote>
+Adds a function to <tt>ty</tt>.  <tt>p</tt> is a linked-list of parameter
+nodes as generated by the parser. See the section on parameter lists
+for details about the representation.
+</blockquote>
+
+<p>
+<b><tt>SwigType *SwigType_pop(SwigType *ty)</tt></b>
+<blockquote>
+Removes the last type constructor from <tt>ty</tt> and returns it.
+<tt>ty</tt> is modified.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_push(SwigType *ty, SwigType *op)</tt></b>
+<blockquote>
+Pushes the type operators in <tt>op</tt> onto type <tt>ty</tt>.  The
+opposite of <tt>SwigType_pop()</tt>.
+</blockquote>
+
+<p>
+<b><tt>SwigType *SwigType_pop_arrays(SwigType *ty)</tt></b>
+<blockquote>
+Removes all leading array operators from <tt>ty</tt> and returns them. 
+<tt>ty</tt> is modified.   For example, if <tt>ty</tt> is <tt>"a(20).a(10).p.int"</tt>,
+then this function would return <tt>"a(20).a(10)."</tt> and modify <tt>ty</tt>
+so that it has the value <tt>"p.int"</tt>.
+</blockquote>
+
+<p>
+<b><tt>SwigType *SwigType_pop_function(SwigType *ty)</tt></b>
+<blockquote>
+Removes a function operator from <tt>ty</tt> including any qualification.
+<tt>ty</tt> is modified.   For example, if <tt>ty</tt> is <tt>"f(int).int"</tt>,
+then this function would return <tt>"f(int)."</tt> and modify <tt>ty</tt>
+so that it has the value <tt>"int"</tt>.
+</blockquote>
+
+<p>
+<b><tt>SwigType *SwigType_base(SwigType *ty)</tt></b>
+<blockquote>
+Returns the base type of a type.  For example, if <tt>ty</tt> is
+<tt>"p.a(20).int"</tt>, this function would return <tt>"int"</tt>.
+<tt>ty</tt> is unmodified.
+</blockquote>
+
+<p>
+<b><tt>SwigType *SwigType_prefix(SwigType *ty)</tt></b>
+<blockquote>
+Returns the prefix of a type. For example, if <tt>ty</tt> is
+<tt>"p.a(20).int"</tt>, this function would return <tt>"p.a(20)."</tt>.
+<tt>ty</tt> is unmodified.
+</blockquote>
+
+<h3>Type tests</h3>
+
+The following functions can be used to test properties of a datatype.
+
+<p>
+<b><tt>int SwigType_ispointer(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a standard pointer.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_ismemberpointer(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a member pointer.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isreference(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a C++ reference.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isarray(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is an array.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isfunction(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a function.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isqualifier(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a qualifier.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_issimple(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a simple type.  No operators applied.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isconst(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a const type.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_isvarargs(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a varargs type.
+</blockquote>
+
+<p>
+<b><tt>int SwigType_istemplate(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> is a templatized type. 
+</blockquote>
+
+<h3>Typedef and inheritance</h3>
+
+The behavior of <tt>typedef</tt> declaration is to introduce a type alias.
+For instance, <tt>typedef int Integer</tt> makes the identifier 
+<tt>Integer</tt> an alias for <tt>int</tt>.  The treatment of typedef in
+SWIG is somewhat complicated due to the pattern matching rules that get applied
+in typemaps and the fact that SWIG prefers to generate wrapper code
+that closely matches the input to simplify debugging (a user will see the
+typedef names used in their program instead of the low-level primitive C
+datatypes).
+
+<p>
+To handle <tt>typedef</tt>, SWIG builds a collection of trees containing typedef relations. For example,
+
+<blockquote>
+<pre>
+typedef int Integer;
+typedef Integer *IntegerPtr;
+typedef int Number;
+typedef int Size;
+</pre>
+</blockquote>
+
+produces two trees like this:
+
+<blockquote>
+<pre>
+                 int               p.Integer
+               ^  ^  ^                 ^ 
+              /   |   \                |
+             /    |    \               |
+        Integer  Size   Number    IntegerPtr
+</pre>
+</blockquote>
+
+To resolve a single typedef relationship, the following function is used:
+
+<p>
+<b><tt>SwigType *SwigType_typedef_resolve(SwigType *ty)</tt></b>
+<blockquote>
+Checks if <tt>ty</tt> can be reduced to a new type via typedef.  If so,
+returns the new type.  If not, returns NULL.
+</blockquote>
+
+Typedefs are only resolved in simple typenames that appear in a type.
+For example, the type base name and in function parameters.   When 
+resolving types, the process starts in the leaf nodes and moves up
+the tree towards the root.   Here are a few examples that show how it works:
+
+<blockquote>
+<pre>
+Original type            After typedef_resolve()
+------------------------ -----------------------
+Integer                  int
+a(30).Integer            int
+p.IntegerPtr             p.p.Integer
+p.p.Integer              p.p.int
+</pre>
+</blockquote>
+
+For complicated types, the process can be quite involved.  Here is the
+reduction of a function pointer:
+
+<blockquote>
+<pre>
+p.f(Integer, p.IntegerPtr, Size).Integer          : Start
+p.f(Integer, p.IntegerPtr, Size).int
+p.f(int, p.IntegerPtr, Size).int
+p.f(int, p.p.Integer, Size).int
+p.f(int, p.p.int, Size).int
+p.f(int, p.p.int, int).int                        : End
+</pre>
+</blockquote>
+
+Two types are equivalent if their full type reductions are the same.
+The following function will fully reduce a datatype:
+
+<p>
+<b><tt>SwigType *SwigType_typedef_resolve_all(SwigType *ty)</tt></b>
+<blockquote>
+Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
+will consist only of primitive typenames.
+</blockquote>
+
+<h3>Output functions</h3>
+
+<h3>
+
 <h2>Guide to parse tree nodes</h2>
 
 This section describes the different parse tree nodes and their attributes.
@@ -1107,9 +1897,9 @@ Top of the parse tree.
 </blockquote>
 
 <p>
-<b>addmethods</b>
+<b>extend</b>
 <blockquote>
-%addmethods directive.
+%extend directive.
 
 <pre>
 "name"          - Module name

@@ -2441,7 +2441,7 @@ convert_float_array(PyObject *input, int size) {
 
 <h2>Typemaps and C++</h2>
 
-Starting in SWIG-1.3.12, typemap declarations can be placed inside C++ class and namespaces.
+Starting in SWIG-1.3.12, typemap declarations can be placed inside C++ classes and namespaces.
 When typemaps are used in this manner, they apply to type definitions in the manner that you
 might expect.  For example:
 
@@ -2463,7 +2463,7 @@ void spam(Integer y);                      // Foo::Integer typemap is *not* appl
 </blockquote>
 
 It should be stressed that typemaps defined in a namespace or class take effect from the point of definition
-to the <em>end of the input file!</em>.  The only advantage to defining a typemap in this manner is that
+to the <em>end of the input file!</em>  The only advantage to defining a typemap in this manner is that
 the typemap will carry some information about the scope in which it is defined.   This leads to very nice
 behavior for library writers. For example:
 
@@ -2487,9 +2487,6 @@ void spam(S::string *s);                   // Still gets the typemap
 </pre>
 </blockquote>
 
-
-<b>Note:</b> Dave would rather not discuss the details of how this was actually implemented.
-
 <h2>Where to go for more information?</h2>
 
 The
@@ -2503,6 +2500,6 @@ for how to define typemaps of your own.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : April 4, 2002</address>
+<address>SWIG 1.3 - Last Modified : April 24, 2002</address>
 </body>
 </html>

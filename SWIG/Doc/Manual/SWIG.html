@@ -1386,6 +1386,14 @@ used in Tcl as follows :<p>
 Although the ANSI C standard does not allow default arguments, default
 arguments specified in a SWIG interface work with both C and C++.
 
+<p>
+<b>Note:</b> There is a subtle semantic issue concerning the use 
+of default arguments and the SWIG generated wrapper code.  When default
+arguments are used, the default values are emitted into the wrappers and the
+function is invoked with a full set of arguments.  This behavior is not
+100% compatible with all uses of default arguments in C++.  Please refer to
+the C++ chapter for further details.
+
 <h3>Pointers to functions and callbacks</h3>
 
 Occasionally, a C library may include functions that expect to receive
@@ -1820,7 +1828,7 @@ attaching functions to structures. These functions normally operate
 on an instance of the structure (or object).  Although there is a
 natural mapping of C++ to such a scheme, there is no direct mechanism
 for utilizing it with C code. However, SWIG provides a special
-<tt>%addmethods</tt> directive that makes it possible to attach
+<tt>%extend</tt> directive that makes it possible to attach
 methods to C structures for purposes of building an object oriented
 interface. Suppose you have a C header file with
 the following declaration :<p>
@@ -1843,7 +1851,7 @@ You can make a <tt>Vector</tt> look alot like a class by writing a SWIG interfac
 %}
 
 %include vector.h            // Just grab original C header file
-%addmethods Vector {         // Attach these functions to struct Vector
+%extend Vector {             // Attach these functions to struct Vector
 	Vector(double x, double y, double z) {
 		Vector *v;
 		v = (Vector *v) malloc(sizeof(Vector));
@@ -1878,7 +1886,7 @@ this :<p>
 </pre></blockquote>
 <p>
 
-The <tt>%addmethods</tt> directive can also be used inside the definition
+The <tt>%extend</tt> directive can also be used inside the definition
 of the Vector structure. For example:<p>
 
 <blockquote><pre>// file : vector.i
@@ -1889,7 +1897,7 @@ of the Vector structure. For example:<p>
 
 typedef struct {
 	double x,y,z;
-	%addmethods {
+	%extend {
 		Vector(double x, double y, double z) { ... }
 		~Vector() { ... }
 		...
@@ -1898,7 +1906,7 @@ typedef struct {
 </pre></blockquote>
 
 <p>
-Finally, <tt>%addmethods</tt> can be used to access externally written
+Finally, <tt>%extend</tt> can be used to access externally written
 functions provided they follow the naming convention used in this
 example :<p>
 
@@ -1931,7 +1939,7 @@ double Vector_magnitude(Vector *v) {
 
 typedef struct {
 	double x,y,z;
-	%addmethods {
+	%extend {
                 Vector(int,int,int); // This calls new_Vector()
                ~Vector();            // This calls delete_Vector()
 		double magnitude();  // This will call Vector_magnitude()
@@ -1941,7 +1949,7 @@ typedef struct {
 </pre>
 </blockquote>
 
-A little known feature of the <tt>%addmethods</tt> directive is that
+A little known feature of the <tt>%extend</tt> directive is that
 it can also be used to add synthesized attributes or to modify the
 behavior of existing data attributes.  For example, suppose you wanted
 to make <tt>magnitude</tt> a read-only attribute of <tt>Vector</tt>
@@ -1950,7 +1958,7 @@ instead of a method.  To do this, you might write some code like this:
 <blockquote>
 <pre>
 // Add a new attribute to Vector
-%addmethods Vector {
+%extend Vector {
     const double magnitude;
 }
 // Now supply the implementation of the Vector_magnitude_get function
@@ -1986,7 +1994,7 @@ as follows to change this:
 <blockquote>
 <pre>
 struct Person {
-    %addmethods {
+    %extend {
        char *name;
     }
 ...
@@ -2004,10 +2012,16 @@ void Person_name_set(Person *p, char *val) {
 </pre>
 </blockquote>
 
-Finally, it should be stressed that even though <tt>%addmethods</tt>
+Finally, it should be stressed that even though <tt>%extend</tt>
 can be used to add new data members, these new members can not require
 the allocation of additional storage in the object (e.g., their values must
 be entirely synthesized from existing attributes of the structure).
+
+<p>
+<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
+name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
+be used to extend a structure with more than just methods, a more suitable
+directive name has been chosen.
 
 <h3> Nested structures</h3>
 
@@ -2123,7 +2137,7 @@ _wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp,
 </pre>
 </blockquote>
 
-The only exception to this rule are methods defined with <tt>%addmethods</tt>.  In this
+The only exception to this rule are methods defined with <tt>%extend</tt>.  In this
 case, the added code is contained in a separate function.
 
 <p>
@@ -2471,7 +2485,7 @@ file.  For example:
 
 <blockquote>
 <pre>
-%addmethods Foo {
+%extend Foo {
    void bar() {
       #ifdef DEBUG
        printf("I'm in bar\n");
@@ -2486,7 +2500,7 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 
 <blockquote>
 <pre>
-%addmethods Foo {
+%extend Foo {
    void bar() {
       %#ifdef DEBUG
        printf("I'm in bar\n");
@@ -2708,6 +2722,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : April 4, 2002</address>
+<address>SWIG 1.3 - Last Modified : April 23, 2002</address>
 </body>
 </html>
