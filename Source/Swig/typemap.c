@@ -1193,9 +1193,11 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     String *value = Copy(Getattr(kw,"value"));
     String *type = Getattr(kw,"type");
     if (type) {
-      String *mangle = Swig_string_mangle(type);
+      SwigType *rtype = SwigType_typedef_resolve_all(type);
+      String *mangle = Swig_string_mangle(rtype);
       Printf(value,"%s",mangle);
       Delete(mangle);
+      Delete(rtype);
     }
     sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
     Setattr(node,tmop_name(temp), value);

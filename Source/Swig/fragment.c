@@ -38,9 +38,11 @@ Swig_fragment_register(Node* fragment) {
     String *name = Copy(Getattr(fragment,"value"));
     String *type = Getattr(fragment,"type");
     if (type) {
-      String *mangle = Swig_string_mangle(type);
+      SwigType *rtype = SwigType_typedef_resolve_all(type);
+      String *mangle = Swig_string_mangle(rtype);
       Printf(name,"%s",mangle);
       Delete(mangle);
+      Delete(rtype);
     }
     if (debug) Printf(stdout,"register fragment %s %s\n",name,type);
     if (!fragments) {
