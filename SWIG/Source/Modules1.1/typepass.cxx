@@ -531,7 +531,30 @@ public:
 	    SwigType_typedef(t,name);
 	    Delete(t);
 	}
+	emit_children(n);
 	return SWIG_OK;
+    }
+
+    /* ------------------------------------------------------------
+     * enumvalueDeclaration()
+     * ------------------------------------------------------------ */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    String *name = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    String *value = Getattr(n,"value");
+    if (!value) value = name;
+    if (Strcmp(value,name) == 0) {
+      String *new_value;
+      if ((nsname) || (inclass)) {
+	new_value = NewStringf("%s::%s", Swig_symbol_qualified(n), value);
+      } else {
+	new_value = NewString(value);
+      }
+      Setattr(n,"value",new_value);
+      Delete(new_value);
+    }
+    return SWIG_OK;
     }
 
     /* ------------------------------------------------------------

@@ -184,9 +184,9 @@ public:
   /* Miscellaneous */
 
   virtual int  validIdentifier(String *s);        /* valid identifier? */
-  virtual int  addSymbol(String *s, Node *n);     /* Add symbol        */
-  virtual Node *symbolLookup(String *s);          /* Symbol lookup     */
-  virtual Node *classLookup(SwigType *s);         /* Class lookup      */
+  virtual  int  addSymbol(String *s, Node *n);     /* Add symbol        */
+  virtual  Node *symbolLookup(String *s);          /* Symbol lookup     */
+  virtual  Node *classLookup(SwigType *s);         /* Class lookup      */
 
   /* ----------------------------------------------------------------------
    !! Deprecated interface.   These functions are going away as soon

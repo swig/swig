@@ -91,17 +91,6 @@ Swig_wrapped_var_type(SwigType *t) {
   if (SwigType_isclass(t)) {
     SwigType_add_pointer(ty);
   }
-
-#ifdef OLD
-  switch(SwigType_type(t)) {
-  case T_USER:
-    SwigType_add_pointer(ty);
-    break;
-  default:
-    break;
-  }
-#endif
-
   return ty;
 }
 
@@ -112,14 +101,6 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
   } else {
     return SwigType_rcaststr(t,name);
   }
-#ifdef OLD
-  if (SwigType_type(t) == T_USER) {
-    return NewStringf("*%s",name);
-  } else {
-    return SwigType_rcaststr(t,name);
-  }
-#endif
-
 }
 
 String *
@@ -129,14 +110,6 @@ Swig_wrapped_var_assign(SwigType *t, String_or_char *name) {
   } else {
     return SwigType_lcaststr(t,name);
   }
-
-#ifdef OLD
-  if (SwigType_type(t) == T_USER) {
-    return NewStringf("&%s",name);
-  } else {
-    return SwigType_lcaststr(t,name);
-  }
-#endif
 }
 
 /* -----------------------------------------------------------------------------

@@ -277,6 +277,7 @@ static int  add_only_one = 0;
 static void add_symbols(Node *n) {
   String *decl;
   char *wrn = 0;
+
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
     Swig_symbol_add(0, n);       /* Add to C symbol table */
@@ -2523,15 +2524,14 @@ cpp_members  : cpp_member cpp_members {
 		     $$ = $2;
 		   }
              }
-             | EXTEND LBRACE cpp_members RBRACE cpp_members {
-		 if (cplus_mode == CPLUS_PUBLIC) {
-		     $$ = new_node("extend");
-		     appendChild($$,$3);
-		     set_nextSibling($$,$5);
-		 } else {
+             | EXTEND LBRACE { 
+                  if (cplus_mode != CPLUS_PUBLIC) {
 		     Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
-		     $$ = 0;
-		 }
+		  }
+             } cpp_members RBRACE cpp_members {
+	       $$ = new_node("extend");
+	       appendChild($$,$4);
+	       set_nextSibling($$,$6);
 	     }
              | empty { $$ = 0;}
 	     | error {

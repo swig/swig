@@ -16,6 +16,8 @@
 
 static char cvsroot[] = "$Header$";
 
+extern SwigType *cplus_value_type(SwigType *t);
+
 /* -----------------------------------------------------------------------------
  * emit_args()
  *
@@ -28,17 +30,25 @@ static char cvsroot[] = "$Header$";
 
 void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
-  extern SwigType *cplus_value_type(SwigType *t);
-
   Parm *p;
   String *tm;
 
   /* Emit function arguments */
   Swig_cargs(f, l);
 
+  /* Handle return type */
   if (rt && (SwigType_type(rt) != T_VOID)) {
-    SwigType *vt = 0;
-    if (CPlusPlus) {
+    if (!CPlusPlus || (CPlusPlus && !SwigType_isclass(rt))) {
+      Wrapper_add_local(f,"result", SwigType_lstr(rt,"result"));
+    } else {
+      String *s = NewStringf("SwigValueWrapper< %s > result", SwigType_lstr(rt,0));
+      Wrapper_add_local(f,"result", s);
+      Delete(s);
+    }
+  }
+  
+#ifdef OLD
+  if (CPlusPlus) {
       vt = cplus_value_type(rt);
     }
     if (!vt) {
@@ -47,7 +57,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       Wrapper_add_local(f,"result", SwigType_lstr(vt,"result"));
       Delete(vt);
     }
-  }
+#endif
   
   /* Attach typemaps to parameters */
   Swig_typemap_attach_parms("ignore",l,f);
@@ -295,17 +305,21 @@ void emit_action(Node *n, Wrapper *f) {
   /* Get the return type */
 
   rt = Getattr(n,"type");
-  if (rt && (SwigType_type(rt) != T_VOID)) {
-    /* Declare the return type, but not if its user defined and we're in C++ mode */
-    /*
-    if ((SwigType_type(rt) == T_USER) && (CPlusPlus)) {
-      String *s = SwigType_lstr(rt,0);
-      Insert(action,0," ");
-      Insert(action,0,s);
-      Delete(s);
+#ifdef OLD
+  if (CPlusPlus && SwigType_isclass(rt)) {
+    SwigType *vt = cplus_value_type(rt);
+    String *s;
+    if (vt) {
+      s = SwigType_lstr(vt,0);
+    } else {
+      s = SwigType_lstr(rt,0);
     }
-    */
+    Insert(action,0," ");
+    Insert(action,0,s);
+    Delete(s);
+    Delete(vt);
   }
+#endif
 
   /* Preassert -- EXPERIMENTAL */
   tm = Getattr(n,"feature:preassert");

@@ -222,14 +222,19 @@ int Language::emit_one(Node *n) {
 
     line_number = Getline(n);
     input_file = Char(Getfile(n));
+
+    /*
     symtab = Getattr(n,"symtab");
     if (symtab) {
 	symtab = Swig_symbol_setscope(symtab);
     }
+    */
     ret = Dispatcher::emit_one(n);
+    /*
     if (symtab) {
 	Swig_symbol_setscope(symtab);
     }
+    */
     return ret;
 }
 
@@ -1173,12 +1178,14 @@ int Language::memberconstantHandler(Node *n) {
     String *new_value;
 
     mrename = Swig_name_member(ClassPrefix, symname);
-
+    /*  Fixed by namespace-enum patch
     if ((!value) || (Cmp(value,name) == 0)) {
 	new_value = NewStringf("%s::%s",ClassName,name);
     } else {
 	new_value = NewString(value);
     }
+    */
+    new_value = Copy(value);
     Setattr(n,"sym:name", mrename);
     Setattr(n,"value", new_value);
     Setattr(n,"name", NewStringf("%s::%s", ClassName,name));
@@ -1230,15 +1237,6 @@ int Language::classDeclaration(Node *n) {
     } else {
 	cplus_mode = CPLUS_PUBLIC;
     }
-  
-    classforwardDeclaration(n);
-
-    /*
-      Hash *ts = Getattr(n,"typescope");
-      if (ts) {
-      SwigType_push_scope(ts);
-      }
-    */
 
     ClassName = NewString(classname);
     ClassPrefix = NewString(iname);
@@ -1263,10 +1261,6 @@ int Language::classDeclaration(Node *n) {
 	classHandler(n);
     else
 	Language::classHandler(n);
-
-    /*
-      if (ts) SwigType_pop_scope();
-    */
 
     InClass = 0;
     CurrentClass = 0;
