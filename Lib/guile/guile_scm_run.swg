@@ -209,12 +209,9 @@ print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate, const char *at
   type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
     scm_puts((char *) "#<", port);
-    scm_puts(attribute, port);
-    scm_puts("swig-pointer ", port);
-    if (type->str != NULL)
-      scm_puts(type->str, port);
-    else 
-      scm_puts(type->name, port);
+    scm_puts((char *) attribute, port);
+    scm_puts((char *) "swig-pointer ", port);
+    scm_puts((char *) SWIG_TypePrettyName(type), port);
     scm_puts((char *) " ", port);
     scm_intprint((long) SCM_CELL_WORD_1(swig_smob), 16, port);
     scm_puts((char *) ">", port);
