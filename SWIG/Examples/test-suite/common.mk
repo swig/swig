@@ -244,6 +244,7 @@ C_TEST_CASES += \
 	defineop \
 	defines \
 	enum \
+	function_typedef \
 	lib_carrays \
 	lib_cdata \
 	lib_cmalloc \
