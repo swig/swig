@@ -405,13 +405,13 @@ $1 = &temp; %}
 #endif
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE & %{ $1 = ($1_ltype)*(void**)&$input; %}
+%typemap(in) SWIGTYPE *, SWIGTYPE & %{ $1 = *($&1_ltype)&$input; %}
 %typemap(out) SWIGTYPE *, SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
 
 /* Default array handling */
-%typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)*(void**)&$input; %}
-%typemap(out) SWIGTYPE [] %{ ($1_ltype)*(void**)&$result = $1; %} 
+%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
+%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
@@ -530,7 +530,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     return $null;
   }
   for (i=0; i<sz; i++) {
-    $1[i] = **($1_ltype*)&jarr[i];
+    $1[i] = **($&1_ltype)&jarr[i];
   }
 }
 
@@ -539,7 +539,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   int i;
   for (i=0; i<sz$argnum; i++) {
     jarr$argnum[i] = 0;
-    *($1_ltype*)&jarr$argnum[i] = &$1[i];
+    *($&1_ltype)&jarr$argnum[i] = &$1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
@@ -558,7 +558,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   }
   for (i=0; i<$1_dim0; i++) {
     arr[i] = 0;
-    *($1_ltype*)&arr[i] = &$1[i];
+    *($&1_ltype)&arr[i] = &$1[i];
   }
   JCALL3(ReleaseLongArrayElements, jenv, $result, arr, 0);
 }
