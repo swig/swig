@@ -1762,8 +1762,7 @@ Language::constructorHandler(Node *n) {
 
   mrename = Swig_name_construct(symname);
   if (CPlusPlus) patch_parms(parms);
-  Swig_ConstructorToFunction(n,ClassType,none_comparison,
-			     CPlusPlus,Getattr(n,"template") ? 0 :Extend);
+  Swig_ConstructorToFunction(n, ClassType, none_comparison, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2155,6 +2154,6 @@ String * Language::getClassType() const {
     return ClassType;
 }
 
-void Language::SetNoneComparison( String *nc ) {
+void Language::setSubclassInstanceCheck(String *nc) {
     none_comparison = nc;
 }

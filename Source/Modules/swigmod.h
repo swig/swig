@@ -208,7 +208,7 @@ public:
   int directorsEnabled() const;
 
   /* Set none comparison string */
-  void SetNoneComparison( String *s );
+  void setSubclassInstanceCheck(String *s);
 
  protected:
   /* Patch C++ pass-by-value */
