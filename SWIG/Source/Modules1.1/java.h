@@ -36,7 +36,6 @@ public :
   void emit_classdef();
   void emit_shadow_classdef();
   char *JNICALL(DOHString_or_char *func);
-  char *SwigToJavaArrayType(SwigType *t);
   char *makeValidJniName(const char *name);
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();

@@ -90,31 +90,7 @@ static SwigType *get_array_type(SwigType *t) {
   return ta;
 }
 
-char *JAVA::SwigToJavaArrayType(SwigType *t) {
-  switch(SwigType_type(t)) {
-    case T_CHAR: return (char*)"Byte";
-    case T_SCHAR: return (char*)"Byte";
-    case T_UCHAR: return (char*)"Short";
-    case T_SHORT: return (char*)"Short";
-    case T_USHORT: return (char*)"Int";
-    case T_INT: return (char*)"Int";
-    case T_UINT: return (char*)"Long";
-    case T_LONG: return (char*)"Int";
-    case T_ULONG: return (char*)"Long";
-    case T_FLOAT: return (char*)"Float";
-    case T_DOUBLE: return (char*)"Double";
-    case T_BOOL: return (char*)"Boolean";
-    case T_STRING:	return (char*)"String";
-    case T_POINTER:
-    case T_REFERENCE:
-    case T_ARRAY:
-    case T_VOID:
-    case T_USER:
-    default : return (char*)"Long"; // Treat as a pointer
-  }
-}
-
-/* JavaMethodSignature still needs updating for changes from SWIG1.3a3 to SWIG1.3a5 */
+/* JavaMethodSignature still needs updating for changes from SWIG1.3a3 to SWIG1.3a5 and for current version */
 char *JAVA::JavaMethodSignature(SwigType *t, int ret, int inShadow) {
   if(SwigType_ispointer(t) == 1) {
 	  switch(SwigType_type(t)) {
@@ -505,7 +481,7 @@ int JAVA::functionWrapper(Node *n) {
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");
-  char      source[256], target[256];
+  char      source[256];
   String    *tm;
   Parm      *p;
   Parm      *jnip;
@@ -612,13 +588,11 @@ int JAVA::functionWrapper(Node *n) {
     }
 
     SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
     String   *ln = Getattr(p,"lname");
     String   *javaparamtype = NewString("");
     String   *jni_param_type = NewString("");
 
-    sprintf(target,"%s", Char(ln));
-    sprintf(source,"j%s", target);
+    sprintf(source,"j%s", Char(ln));
 
     if (useRegisterNatives) {
       Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), 0);
@@ -643,107 +617,27 @@ int JAVA::functionWrapper(Node *n) {
     }
 
     /* Add to java function header */
-      if(gencomma) Printf(f_java, ", ");
-      Printf(f_java, "%s %s", javaparamtype, source);
+    if(gencomma) Printf(f_java, ", ");
+    Printf(f_java, "%s %s", javaparamtype, source);
 
-      gencomma = 1;
+    gencomma = 1;
 
-      // Add to Jni function header
-      Printv(f->def, ", ", jni_param_type, " ", source, 0);
+    // Add to Jni function header
+    Printv(f->def, ", ", jni_param_type, " ", source, 0);
 
-      // Get typemap for this argument
-      if ((tm = Getattr(p,"tmap:in"))) {
-        Replaceall(tm,"$source",source); /* deprecated */
-        Replaceall(tm,"$target",ln); /* deprecated */
-        Replaceall(tm,"$input", source);
-        Replaceall(tm,"$arg",source);
-        Setattr(p,"emit:input", source);
-        Printf(f->code,"%s\n", tm);
-        p = Getattr(p,"tmap:in:next");
-      } else {
-        switch(SwigType_type(pt)) {
-        case T_BOOL:
-        case T_CHAR:
-        case T_SCHAR:
-        case T_UCHAR:
-        case T_SHORT:
-        case T_USHORT:
-        case T_INT:
-        case T_UINT:
-        case T_LONG:
-        case T_ULONG:
-        case T_FLOAT:
-        case T_DOUBLE:
-          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt,0), ") ", source, ";\n", 0);
-          break;
-        case T_STRING:
-          Printv(f->code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
-          break;
-        case T_VOID:
-          break;
-        case T_USER:
-	  {
-	    char argp[20];
-	    sprintf(argp,"argp%d",i);
-	    SwigType_add_pointer(pt);
-	    Wrapper_add_localv(f,argp, SwigType_lstr(pt,argp), 0);
-	    SwigType_del_pointer(pt);
-	    Printv(f->code, tab4, argp, " = (", SwigType_lstr(pt,0), "*)*(void**)&", source, ";\n", 0);
-	    Printf(f->code, "%s = *%s;\n", target, argp);
-	  }
-          break;
-        case T_POINTER:
-        case T_REFERENCE:
-          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt,0), ")*(void**)&", source, ";\n", 0);
-          break;
-        case T_ARRAY:
-          {
-          SwigType *array_type = get_array_type(pt);
-          char *java_array_type = SwigToJavaArrayType(array_type);
-          String *ctype = SwigType_lstr(array_type, 0);
-
-          // Get basic jni type (eg remove Array from jintArray). Maybe have a special typemap to get basic jni type of jni arrays... Deal with later.
-          String *basic_jniptrtype = NewStringf("%s*", jni_param_type);
-          Replaceall(basic_jniptrtype,"Array","");
-
-          String *source_length = NewStringf("%s%s)", JNICALL((char*)"GetArrayLength"), source);
-          String *c_array = NewStringf("%s_carray", source);
-          String *array_len = NewStringf("%s_len", source);
-          String *get_array_func = NewStringf("Get%sArrayElements", java_array_type);
-
-          Wrapper_add_localv(f, "i", "int", "i", 0); // Only gets added once if called more than once
-          Wrapper_add_localv(f, c_array, basic_jniptrtype, c_array, 0);
-          Wrapper_add_localv(f, array_len, "jsize", array_len, "= ", source_length, 0);
-
-          Printv(f->code, tab4, c_array, " = ", JNICALL(get_array_func), source, ", 0);\n", 0);
-          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt, 0), ") malloc(", array_len, " * sizeof(", ctype, "));\n", 0);
-          Printv(f->code, tab4, "for(i=0; i<", array_len, "; i++)\n", 0);
-
-            switch(SwigType_type(array_type)) {
-            case T_USER:
-              Printv(f->code, tab8, target, "[i] = **(", ctype, "**)&", c_array, "[i];\n", 0);
-              break;
-            case T_POINTER:
-              Printv(f->code, tab8, target, "[i] = *(", ctype, "*)&", c_array, "[i];\n", 0);
-              break;
-            default:
-              Printv(f->code, tab8, target, "[i] = (", ctype, ")", c_array, "[i];\n", 0);
-            break;
-            }
-
-          Delete(basic_jniptrtype);
-          Delete(source_length);
-          Delete(c_array);
-          Delete(array_len);
-          Delete(get_array_func);
-          }
-          break;
-        default:
-          Printf(stderr,"%s : Line %d. Error: Unknown typecode for type %s\n", input_file,line_number,SwigType_str(pt,0));
-          break;
-        }
-        p = nextSibling(p);
-      }
+    // Get typemap for this argument
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replaceall(tm,"$source",source); /* deprecated */
+      Replaceall(tm,"$target",ln); /* deprecated */
+      Replaceall(tm,"$arg",source); /* deprecated? */
+      Replaceall(tm,"$input", source);
+      Setattr(p,"emit:input", source);
+      Printf(f->code,"%s\n", tm);
+      p = Getattr(p,"tmap:in:next");
+    } else {
+      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+      p = nextSibling(p);
+    }
     Delete(javaparamtype);
     Delete(jni_param_type);
   }
@@ -751,8 +645,8 @@ int JAVA::functionWrapper(Node *n) {
   /* Insert constraint checking code */
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
-      Replaceall(tm,"$target",target); /* deprecated */
-      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
+      Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(f->code,tm,"\n",0);
       p = Getattr(p,"tmap:check:next");
@@ -762,101 +656,30 @@ int JAVA::functionWrapper(Node *n) {
   }
   
   /* Insert cleanup code */
-  for (i = 0, p=l, jnip=l, jtypep=l; i < num_arguments; i++) {
-    
+  for (p = l; p;) {
     while (Getattr(p,"tmap:ignore")) {
       p = Getattr(p,"tmap:ignore:next");
     }
-
-    SwigType *pt = Getattr(p,"type");
-    String   *pn = Getattr(p,"name");
-    String   *ln = Getattr(p,"lname");
-    String   *javaparamtype = NewString("");
-    String   *jni_param_type = NewString("");
-
-    // Produce string representation of source and target arguments
-    sprintf(target,"%s", Char(ln));
-    sprintf(source,"j%s", target);
-
-    /* Get the jni types of the parameter */
-    if ((tm = Getattr(jnip,"tmap:jni"))) {
-      jnip = Getattr(jnip,"tmap:jni:next");
-      Printv(jni_param_type, tm, 0);
-    } else {
-      jnip = nextSibling(jnip);
-      Printf(stderr, "No jni typemap defined for %s\n", SwigType_str(pt,0));
-    }
-
-    /* Get the java types of the parameter */
-    if ((tm = Getattr(jtypep,"tmap:jtype"))) {
-      jtypep = Getattr(jtypep,"tmap:jtype:next");
-      Printv(javaparamtype, tm, 0);
-    } else {
-      jtypep = nextSibling(jtypep);
-      Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(pt,0));
-    }
-
     if ((tm = Getattr(p,"tmap:freearg"))) {
-      Replaceall(tm,"$source",source); /* deprecated */
-      Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
+      Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(cleanup,tm,"\n",0);
       p = Getattr(p,"tmap:freearg:next");
     } else {
-        switch(SwigType_type(pt)) {
-        case T_BOOL:
-        case T_CHAR:
-        case T_SCHAR:
-        case T_UCHAR:
-        case T_SHORT:
-        case T_USHORT:
-        case T_INT:
-        case T_UINT:
-        case T_LONG:
-        case T_ULONG:
-        case T_FLOAT:
-        case T_DOUBLE:
-          // nothing to do
-          break;
-        case T_STRING:
-          Printv(outarg, tab4, "if(", target,") ", JNICALL((char*)"ReleaseStringUTFChars"), source, ", ", target, ");\n", 0);
-          break;
-        case T_VOID:
-        case T_USER:
-        case T_POINTER:
-        case T_REFERENCE:
-          // nothing to do
-          break;
-        case T_ARRAY:
-          {
-          SwigType *array_type = get_array_type(pt);
-          char *java_array_type = SwigToJavaArrayType(array_type);
-
-          String *c_array = NewStringf("%s_carray", source);
-          String *release_array_func = NewStringf("Release%sArrayElements", java_array_type);
-
-          Printv(outarg, tab4, JNICALL(release_array_func), source, ", ", c_array, ", 0);\n", 0);
-          Printv(outarg, tab4, "free(", target, ");\n", 0);
-
-          Delete(c_array);
-          Delete(release_array_func);
-          }
-          break;
-        default:
-          break;
-        }
       p = nextSibling(p);
     }
-    Delete(javaparamtype);
-    Delete(jni_param_type);
   }
 
   /* Insert argument output code */
   for (p = l; p;) {
+    while (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    }
     if ((tm = Getattr(p,"tmap:argout"))) {
-      Replaceall(tm,"$source",source); /* deprecated */
-      Replaceall(tm,"$target",target); /* deprecated */
-      Replaceall(tm,"$arg",source);
+      Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
+      Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
+      Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
       Replaceall(tm,"$result","jresult");
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(outarg,tm,"\n",0);
@@ -875,116 +698,14 @@ int JAVA::functionWrapper(Node *n) {
 
   /* Return value if necessary  */
   if((SwigType_type(t) != T_VOID) && !native_func) {
-  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-    Replaceall(tm,"$source", "result"); /* deprecated */
-    Replaceall(tm,"$target", "jresult"); /* deprecated */
-    Replaceall(tm,"$result","jresult");
-    Printf(f->code,"%s\n", tm);
-  } else {
-        switch(SwigType_type(t)) {
-        case T_BOOL:
-        case T_CHAR:
-        case T_SCHAR:
-        case T_UCHAR:
-        case T_SHORT:
-        case T_USHORT:
-        case T_INT:
-        case T_UINT:
-        case T_LONG:
-        case T_ULONG:
-        case T_FLOAT:
-        case T_DOUBLE:
-          Printv(f->code, tab4, "jresult = (", jnirettype, ") result;\n", 0);
-          break;
-        case T_STRING:
-          Printv(f->code, tab4, "if(result != NULL)\n", 0);
-          Printv(f->code, tab8, "jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "result);\n", 0);
-          break;
-        case T_VOID:
-          break;
-        case T_USER:
-	  
-	  if (CPlusPlus) {
-	    Printf(f->code,"resultobj = new %s(result);\n", SwigType_lstr(t,0));
-	  } else {
-	    Printf(f->code,"resultobj = (%s *) malloc(sizeof(%s));\n", SwigType_lstr(t,0), SwigType_str(t,0));
-	    Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(t,0));
-	  }
-	  SwigType_add_pointer(t);
-//	  SwigType_remember(t);
-	  Wrapper_add_local(f,"resultobj", SwigType_lstr(t,"resultobj"));
-	  SwigType_del_pointer(t);
-          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), "**)&jresult = resultobj;\n", 0);
-          break;
-        case T_POINTER:
-        case T_REFERENCE:
-          SwigType_add_pointer(t);
-          // Nasty casting. This has proved to cover all pointer cases so far including a pointer to an array.
-          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), ")&jresult = result;\n", 0);
-          SwigType_del_pointer(t);
-          break;
-        case T_ARRAY:
-            {
-            // Handle return values that are one dimension arrays 
-            // Todo: What about void pointers?
-            // Todo: Check on array size - check user has passed correct size in
-
-            const int dim_no = 0; // Dimension number (0 == 1st ) - currently only 1 supported
-            String *jnitype_ptr = NewString("");
-            String *jnicall_new = NewString("");
-            String *jnicall_get = NewString("");
-            String *jnicall_release = NewString("");
-            String *jni_array_type = NewString("");
-            SwigType *array_type = get_array_type(t);
-            char *java_array_type = SwigToJavaArrayType(array_type);
-
-            // Get basic jni type (eg remove Array from jintArray). Maybe have a special typemap to get basic jni type of jni arrays... Deal with later.
-            Printf(jni_array_type, "%s", jnirettype);
-            Replaceall(jni_array_type,"Array","");
-            Printf(jnitype_ptr, "%s*", jni_array_type);
-
-            Wrapper_add_localv(f, "jnitype_ptr", jnitype_ptr, "jnitype_ptr", "= 0", 0);
-            Wrapper_add_localv(f, "k", "int", "k", 0);
-
-            // Create a java array for return to Java subsystem, eg for int array
-            // String jresult = (*jenv)->NewIntArray(jenv, array_size); 
-            Printv(jnicall_new, "New", java_array_type, "Array", 0);
-            Printv(f->code, tab4, "jresult = ", JNICALL((char*)jnicall_new), SwigType_array_getdim(t, dim_no), ");\n", 0);
-
-            // Get the c memory pointer to the java array, eg for int array
-            // jnitype_ptr = (*jenv)->GetIntArrayElements(jenv, jresult, 0);
-            Printv(jnicall_get, "Get", java_array_type, "ArrayElements", 0);
-            Printv(f->code, tab4, "jnitype_ptr = ", JNICALL((char*)jnicall_get), "jresult, 0);\n", 0);
-
-            // Populate the java array from the c array
-            Printv(f->code, tab4, "for (k=0; k<", SwigType_array_getdim(t, dim_no), "; k++)\n", 0);
-            switch(SwigType_type(array_type)) {
-            case T_USER:
-                Printv(f->code, tab8, "*(", SwigType_lstr(array_type, 0), "**)&jnitype_ptr[k] = &result[k];\n", 0);
-              break;
-            case T_POINTER:
-                Printv(f->code, tab8, "*(", SwigType_lstr(array_type, 0), "*)&jnitype_ptr[k] = result[k];\n", 0);
-              break;
-            default:
-                Printv(f->code, tab8, "jnitype_ptr[k] = (", jni_array_type, ")result[k];\n", 0);
-            break;
-            }
-            // Release reference to the array so that it may be garbage collected in the future
-            // (*jenv)->ReleaseIntArrayElements(jenv, jresult, _arg00, 0);
-            Printv(jnicall_release, "Release", java_array_type, "ArrayElements", 0);
-            Printv(f->code, tab4, JNICALL((char*)jnicall_release), "jresult, ", "jnitype_ptr", ", 0);\n", 0);
-            Delete(jnitype_ptr);
-            Delete(jnicall_new);
-            Delete(jnicall_get);
-            Delete(jnicall_release);
-            Delete(jni_array_type);
-            }
-          break;
-        default:
-          Printf(stderr,"%s : Line %d. Error: Unknown typecode for type %s\n", input_file,line_number,SwigType_str(t,0));
-          break;
-        }
-      }
+    if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+      Replaceall(tm,"$source", "result"); /* deprecated */
+      Replaceall(tm,"$target", "jresult"); /* deprecated */
+      Replaceall(tm,"$result","jresult");
+      Printf(f->code,"%s\n", tm);
+    } else {
+      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(t,0), name);
+    }
   }
 
   /* Output argument output code */
@@ -1620,7 +1341,7 @@ DelWrapper(f);
         Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
-      /* Produce string representation of source and target arguments */
+      /* Create a name for the parameter */
       if(pn && *(Char(pn)))
         strcpy(arg,Char(pn));
       else {
@@ -1750,7 +1471,7 @@ int JAVA::constructorHandler(Node *n) {
       String   *pn = Getattr(p,"name");
       String   *javaparamtype = NewString("");
   
-      /* Produce string representation of source and target arguments */
+      /* Create a name for the parameter */
       if(pn && *(Char(pn)))
         strcpy(arg,Char(pn));
       else {
