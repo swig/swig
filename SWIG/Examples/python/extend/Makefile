@@ -5,7 +5,6 @@ TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
 SWIGOPT    = 
-SWIGLIB    = SWIG_LIB=/b/mrose/projects/swig/SWIG/Lib
 
 all::
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
