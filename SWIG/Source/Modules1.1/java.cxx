@@ -1020,7 +1020,6 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   char *javarettype = JavaTypeFromTypemap("jtype", typemap_lang, t, iname);
   if(!javarettype) javarettype = SwigTcToJavaType(t, 1, 0);
   char *shadowrettype = JavaTypeFromTypemap("jstype", typemap_lang, t, iname);
-fprintf(stderr, "%s: %d\n", (char *) t->name, t->is_pointer);
   if(!shadowrettype && t->type == T_USER && t->is_pointer <= 1) {
     shadowrettype = GetChar(shadow_classes,t->name);
   }
