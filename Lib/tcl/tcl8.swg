@@ -462,7 +462,11 @@
  * ANSI C typemaps 
  * ------------------------------------------------------------ */
 
+%types(size_t);
 %apply unsigned long { size_t };
+
+%types(ptrdiff_t);
+%apply long { ptrdiff_t };
 
 
 /* ------------------------------------------------------------
