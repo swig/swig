@@ -120,7 +120,7 @@ SWIGRUNTIME PyObject *
 PySwigObject_hex(PySwigObject *v)
 {
   char buf[100];
-  PyOS_snprintf(buf, sizeof(buf), "0x%lx", (unsigned long)v->ptr);
+  PyOS_snprintf(buf, sizeof(buf), "%p", v->ptr);
   return PyString_FromString(buf);
 }
 

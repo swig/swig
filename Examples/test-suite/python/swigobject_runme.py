@@ -11,10 +11,12 @@ if a1.this != a2.this:
   
 
 lthis = long(a.this)
-xstr1 = "%x" % (lthis,)
+xstr1 = "0x%x" % (lthis,)
 xstr2 = pointer_str(a)
 
+print hex(lthis)
 if xstr1 != xstr2:
+  print  xstr1, xstr2
   raise RuntimeError
 
 s = str(a.this)
