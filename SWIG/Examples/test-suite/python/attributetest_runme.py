@@ -6,6 +6,7 @@ if aa.a != 1:
   raise RuntimeError
 aa.a = 3
 if aa.a != 3:
+  print aa.a
   raise RuntimeError
 
 

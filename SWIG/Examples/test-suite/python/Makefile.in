@@ -9,6 +9,18 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+CPP_TEST_CASES += \
+	argcargvtest \
+	attributetest \
+	complextest \
+	director_stl \
+	implicittest \
+	lib_std_vectora \
+	std_containers
+
+C_TEST_CASES += \
+	complextest
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here

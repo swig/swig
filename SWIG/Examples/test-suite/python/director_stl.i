@@ -4,6 +4,15 @@
 %include "std_pair.i"
 %include "std_vector.i"
 
+#ifndef SWIG_STD_DEFAULT_INSTANTIATION
+%template() std::vector<double>;
+%template() std::vector<int>;
+%template() std::vector<std::string>;
+%template() std::pair<std::string, int>;
+%template() std::pair<int,double>;
+%template() std::pair<double,int>;
+#endif
+
 %feature("director") Foo;
 
 %feature("director:except") {

@@ -319,6 +319,6 @@ if error:
 #
 #
 t2 = p.vtest(t)
-if "%s" % (t2,) !=  "%s" % (t,):
+if t.var_namet !=  t2.var_namet:
   raise RuntimeError, "bad SWIGTYPE* typemap"
   
