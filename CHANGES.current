@@ -1,6 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
 
+06/24/2003: mkoeppe (Matthias Koeppe)
+	    [Chicken] Don't emit calls to "C_check_for_interrupt",
+	    which may result in an endless loop.  Patch by felix@proxima-mt.de.
+
 06/20/2003: cheetah (William Fulton)
             [C#] Finalizers now use destructor syntax as the override which was used in 
             the Finalize method is not in the ECMA standards, spotted by the MS compiler.
