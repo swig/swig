@@ -1109,9 +1109,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   if((DataType_Gettypecode(t) != T_VOID) && shadowrettype) 
     Printf(nativecall, "))");
   
-/* HdH
   Printf(nativecall,");\n");
-*/
 
   Printf(f_shadow, ") {\n");
   Printf(f_shadow, "\t%s\n", nativecall);
@@ -1230,24 +1228,25 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
       sprintf(arg,"arg%d",i);
     }
 
-      char *jtype = JavaTypeFromTypemap("jtype", typemap_lang, p->t, p->name);
-      if(!jtype) jtype = SwigTcToJavaType(p->t, 0, 0);
-      char *jstype = JavaTypeFromTypemap("jstype", typemap_lang, p->t, p->name);
-      if(!jstype && p->t->type == T_USER && p->t->is_pointer <= 1) {
-	jstype = GetChar(shadow_classes,p->t->name);
-      }
+    char *jtype = JavaTypeFromTypemap((char*)"jtype", typemap_lang, pt, pn);
+    if(!jtype) jtype = SwigTcToJavaType(pt, 0, 0);
 
-      // Add to java function header
-      Printf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
+    char *jstype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, pt, pn);
+    if(!jstype && (DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1) {
+	  jstype = GetChar(shadow_classes, pt->name);
+    }
 
-      if((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1 && Getattr(shadow_classes,pt->name)) {
+    // Add to java function header
+    Printf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
+
+    if((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1 && Getattr(shadow_classes,pt->name)) {
 	Printv(nativecall,arg, "._self", 0);
-      } else Printv(nativecall, arg, 0);
+    } else Printv(nativecall, arg, 0);
 
-      if(i != pcount-1) {
-        Printf(nativecall, ", ");
-        Printf(f_shadow, ", ");
-      }
+    if(i != pcount-1) {
+      Printf(nativecall, ", ");
+      Printf(f_shadow, ", ");
+    }
   }
 
 
