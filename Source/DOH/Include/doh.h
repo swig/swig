@@ -174,11 +174,13 @@ extern int     DohGetc(DOH *obj);
 extern int     DohPutc(int ch, DOH *obj);
 extern int     DohUngetc(int ch, DOH *obj);
 
+extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
 extern int     DohPrintf(DOH *obj, char *format, ...);
 extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 /* extern int     DohScanf(DOH *obj, char *format, ...);
    extern int     DohvScanf(DOH *obj, char *format, va_list ap); */
 
+extern DOH    *DohReadline(DOH *in);
 /* Macros to invoke the above functions.  Includes the location of
    the caller to simplify debugging if something goes wrong */
 
@@ -226,6 +228,7 @@ extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 #define SetDouble          DohSetDouble
 #define Firstitem          DohFirstitem
 #define Nextitem           DohNextitem
+#define Readline           DohReadline
 
 /* #define Scanf              DohScanf
    #define vScanf             DohvScanf*/
@@ -270,7 +273,7 @@ extern void   String_replace(DOH *s, DOH *token, DOH *rep, int flags);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOH *NewFile(char *file, char *mode);
+extern DOH *NewFile(DOH *file, char *mode);
 extern DOH *NewFileFromFile(FILE *f);
 extern DOH *NewFileFromFd(int fd);
 extern int  DohCopyto(DOH *input, DOH *output);

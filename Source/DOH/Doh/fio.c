@@ -36,6 +36,34 @@ static int Writen(DOH *out, void *buffer, int len) {
 }
 
 /* -----------------------------------------------------------------------------
+ * void DohEncoding(char *name, DOH *(*fn)(DOH *s))
+ *
+ * Register a printf encoding method. 
+ * ----------------------------------------------------------------------------- */
+
+static DOH *encodings = 0;
+void DohEncoding(char *name, DOH *(*fn)(DOH *s)) 
+{
+  if (!encodings) encodings = NewHash();
+  Setattr(encodings,(void *) name, NewVoid((void *)fn,0));
+}
+
+static DOH *encode(char *name,  DOH *s) {
+  DOH *handle, *ns;
+  DOH *(*fn)(DOH *);
+  long  pos;
+  if (!encodings || !(handle = Getattr(encodings,name))) {
+    return Copy(s);
+  }
+  pos = Tell(s);
+  Seek(s,0,SEEK_SET);
+  fn = (DOH *(*)(DOH *)) Data(handle);
+  ns = (*fn)(s);
+  Seek(s,pos,SEEK_SET);
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
  * DohvPrintf(DOH *so, char *format, va_list ap)
  *
  * printf
@@ -60,6 +88,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   void  *pvalue;
   char  *stemp;
   int   nbytes = 0;
+  char  encoder[128], *ec;
 
   while (*p) {
     switch(state) {
@@ -72,6 +101,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	widthval = 0;
 	precval = 0;
 	*(fmt++) = *p;
+	encoder[0] = 0;
 	state = 10;
       }
       break;
@@ -98,6 +128,9 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	fmt = newformat;
 	nbytes++;
 	state = 0;
+      } else if (*p == '(') {
+	ec = encoder;
+	state = 60;
       } else {
 	*(fmt++) = *p;
       }
@@ -193,6 +226,17 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	*(fmt++) = *p;
       }
       break;
+
+      /* Got an encoding header */
+    case 60:
+      if (*p == ')') {
+	*ec = 0;
+	state = 10;
+      } else {
+	*ec = *p;
+	ec++;
+      }
+      break;
     case 100:
       /* Got a formatting code */
       if (widthval < precval) maxwidth = precval;
@@ -200,6 +244,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
       if ((*p == 's') || (*p == 'S')) {       /* Null-Terminated string */
 	DOH    *doh;
 	DOH    *Sval;
+	DOH    *enc = 0;
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
 	  /* Is a DOH object. */
@@ -208,7 +253,12 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  } else {
 	    Sval = Str(doh);
 	  }
-	  maxwidth = maxwidth+strlen(newformat)+Len(Sval);
+	  if (strlen(encoder)) {
+	    enc = encode(encoder,Sval);
+	    maxwidth = maxwidth+strlen(newformat)+Len(enc);
+	  } else {
+	    maxwidth = maxwidth+strlen(newformat)+Len(Sval);
+	  }
 	  *(fmt++) = 's';
 	  *fmt = 0;
 	  if ((maxwidth + 1) < OBUFLEN) {
@@ -216,11 +266,16 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  } else {
 	    stemp = (char *) DohMalloc(maxwidth+1);
 	  }
-	  nbytes+=sprintf(stemp,newformat,Data(Sval));
+	  if (enc) {
+	    nbytes+=sprintf(stemp,newformat,Data(enc));
+	  } else {
+	    nbytes+=sprintf(stemp,newformat,Data(Sval));
+	  }
 	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
 	  if ((DOH *) Sval != doh) {
 	    Delete(Sval);
 	  }
+	  if (enc) Delete(enc);
 	  if (*p == 'S') {
 	    Delete(doh);
 	  }
@@ -228,6 +283,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	    DohFree(stemp);
 	  }
 	} else {
+	  if (!doh) doh = "";
 	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
 	  *(fmt++) = 's';
 	  *fmt = 0;
@@ -365,3 +421,18 @@ DOH *DohSplit(DOH *in, char *chs, int nsplits) {
   }
   return list;
 }
+
+/* Read a single line of text */
+
+DOH *DohReadline(DOH *in) {
+  char c;
+  DOH *s = NewString("");
+  while (1) {
+    if (Read(in,&c,1) < 0) return s;
+    if (c == '\n') return s;
+    if (c == '\r') continue;
+    Putc(c,s);
+  }
+}
+
+  
