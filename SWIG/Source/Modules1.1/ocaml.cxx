@@ -753,7 +753,6 @@ class OCAML : public Language {
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	Wrapper *f = NewWrapper();
-	String *sizetuple = NewString("");
 	String *source = NewString("");
 	String *target = NewString("");
 	String *arg = NewString("");
@@ -1242,8 +1241,6 @@ class OCAML : public Language {
 	Setattr(n,"sym:name",Char(wrap_name));
     
 	in_destructor = 1;
-	
-	String *ml_delete_func = get_ml_function_name(n);
 	
 	Setattr( seen_deleters, name, wrap_name );
 
