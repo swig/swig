@@ -544,6 +544,13 @@ AC_SUBST(GUILELINK)
 #----------------------------------------------------------------
 
 # FIXME: Calling autoconf manually like this is wrong. --ttn, 2000/02/25
+# These commands are only intended for use in a development environment.
+# When one makes a fresh CVS checkout, no 'configure' scripts exist. This
+# Makes the CONFIG_SUBDIRS macro fail below. To fix this, one needs to
+# generate the configure script by calling autoconf manually.  This is
+# not an issue in non-CVS releases--the mkdist.py script creates all
+# of the configure scripts before making a tar-ball. -- beazley 2000/03/01
+
 if test ! -r $srcdir/Source/DOH/configure; then
 	(cd $srcdir/Source/DOH ; autoconf)
 fi
