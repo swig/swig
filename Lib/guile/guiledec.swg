@@ -45,6 +45,13 @@ GSWIG_scm2str (SCM s)
   return gh_scm2newstr (s, &len);
 }
 
+static char
+GSWIG_scm2char (SCM s)
+{
+  if (SCM_CHARP(s)) return SCM_CHAR(s);
+  scm_wrong_type_arg(NULL, 0, s);
+}
+
 typedef struct SwigPtrType SwigPtrType;
 
 typedef struct _swig_type_info {
