@@ -1,32 +1,56 @@
 Version 1.3.20 (In progress)
 ============================
 12/11/2003: mmatus (Marcelo Matus)
-	    
-	    "All keywords" warning support, through the -DSWIG_ALLKW
-	    option.
 
-            This option allows you to include all the known keywords
-	    for all the supported languages, and can be used as:
+	    This fix some recurring reports about keywords not been
+	    properly identified and warned, and it solves the problem
+	    of how to add a test file to the test-suite such that it
+	    doesn't use any keyword of all the supported languages
+	    (and doing it without compiling the test for all the
+	    supported languages, thing that is not always possible,
+	    and without requiring you to know all the supported
+	    language keywords, thing that is always impossible).
 
-                 swig -DSWIG_ALLKW ....
-	    
-	    This will help to the process of adding a test-suite file
-	    that can be compiled in all the swig supported languages,
-	    and it will be also helpful for users who want to create
-	    multi-language libraries.
-	    
-	    These are the changes (mostly addition of files):
+	    So these are the changes globally speaking:
 
-	    - For the language that already has some sort of keyword
-	      list warning, move them to an external file kw.swg file:
+	    - Uniform the definition of the keyword warnings through
+	      the supported languages: all the languages has now a
+	      separate file that defines the keywords or bad names:
+
+		  python/pythonkw.swg
+		  chicken/chickenkw.swg
+                  ....
+
+	    - Added keyword list for most of the languages that didn't
+	      have one (using the new separated file).
+		    	    
+	    - Added the "All keywords" warning support: -Wallkw option.
+
+              This option allows you to include all the known keywords
+	      for all the supported languages, and can be used as:
+
+                 swig -Wallkw ....
 	    
-	         move keywords from  python.swg -> pythonkw.swg
-	         move keywords from  chicken.swg -> chickenkw.swg
+	      This will help to the process of adding a test-suite
+	      file that can be compiled in all the swig supported
+	      languages, and it will be also helpful for users who
+	      want to create multi-language libraries.
+	    
+	    And these are the detailed changes (mostly file addition):
+
+	    - For the languages that already have some sort of keyword
+	      warning list, move it to an external languagekw.swg
+	      file, ie:
+	    
+	         move keywords from python.swg -> pythonkw.swg
+	         move keywords from chicken.swg -> chickenkw.swg
+	         move keywords from tcl8.swg -> tclkw.swg
  
-              and include pythonkw.swg from python.swg, and etc.
+              and re-include languagekw.swg from language.swg.
 	    
-	    - For the language that has no keyword list, and for the
-	      ones that I could find a list, add the kw.swg file, ie:
+	    - For the language that didn't have a keyword list, and
+	      for the ones that I could find a list, add the
+	      languagekw.swg file, ie:
 
                  csharp/csharpkw.swg
                  java/javakw.swg
@@ -35,58 +59,64 @@ Version 1.3.20 (In progress)
 		 ruby/rubykw.swg
 
 
-              add a line in java.swg to include javakw.swg, and so on
-	      for all the other languages, but now it is commented!!!,
-	      like in java.swg:
+              also add a line in language.swg to include
+	      languagekw.swg, but now it is commented!!!, like in
+	      java.swg:
 
                   /* java keywords */
                   /* please test and activate */
                   //%include "javakw.swg"
 
 	      ie, there will be no change in how swig runs normally
-	      until the language mantainer test and uncomment that line.
+	      until the language maintainer test and uncomment that
+	      line.
 	      
-	      So, please check each kw.swg file (I left the link
-	      source of the keyword list), and after testing, allow
-	      its inclusion.
+	      So, please check each languagekw.swg file (I left the
+	      link to the keyword list source for checking), and after
+	      testing, uncomment the %include line.
 
-	    - Added the file allkw.swg, which includes all the kw.swg
-              files.
+	    - Added the file allkw.swg, which includes all the
+              languagekw.swg files.
 
-	      For the languages that has no kw.swg file right now, and
-	      if they need one, add it into the language directory,
-	      and add a line into allkw.swg to include it from here.
-
-	    - Includes allkw.swg at the end of swig.swg if the option
-              SWIG_ALLKW is defined. The old -lallkw.swg option
-              couldn't be used since it include the file after it
-              would be needed.
+	      For the languages that has no languagekw.swg file right
+	      now, and if they need one, add the file into the
+	      language directory, and add the corresponding include
+	      line into the allkw.swg file.
 	      
+	    - Added the -Wallkw that includes the allkw.swg file.
+	      Note that the old -lallkw.swg option couldn't be used
+	      since it include the file after it would be needed.
 
-	    Maybe there is a better name for the option, and been a
-	    defined, it looks kind of ugly. Maybe is better to
-	    translate it into a command line option... any ideas?.
-	    
-	    In any way, the ideal situation will be that this option
-	    is added to the default rules in the related test-suite
-	    Makefiles, so, when creating a new test, swig will always
-	    warn you if you are using a bad name, considering all
-	    the language where it needs to run.
+
+	    Hopefully, the -Wallkw option will be added to the default
+	    rules in the related test-suite Makefiles, so, when
+	    creating a new test, or adding a new swig library file
+	    (like _std_deque.i), swig will warn you if you are using a
+	    bad name, considering all the language where it needs to
+	    run.
 	    
 	    Right now you can test it by using:
 
-             make check-python-test-suite SWIG="swig -DSWIG_ALLKW"
+               make check-python-test-suite SWIG="swig -Wallkw"
 
-	    or using your favorite target language.
+	    or using your favorite target language, it doesn't matter.
 
-	    And yes, there are several examples that are using some
-	    reserved keyword, specially from csharp.
+	    And yes, there are several examples that are using
+	    reserved keywords, specially from csharp.
           
-	    Remember: the keyword warnings are not included by default
-	    in any of language that before didn't define its own
-	    keyword list. To enable them as the default behaviour,
-	    the inclusion of the kw.swg file has to be uncommented at
-	    each language.swg file.
+	    *** Remember ****: the new keyword warning lists are not
+	    included by default in any of language that before didn't
+	    have one. To enable the keyword warnings as the default
+	    behavior, the inclusion of the languagekw.swg file has to
+	    be uncommented at each language.swg file.
+
+	    So, all the language maintainers, please check the
+	    keywords list, and remember that you can also add bad
+	    member names too, like *::clone or *::cget (see an example
+	    in the tcl8/tclkw.swg file).
+
+	    **** And don't add any new test file without checking it
+	    with the -Wallkw option!! (that includes me) *****.
 	  
 
 12/11/2003: cheetah (William Fulton)
