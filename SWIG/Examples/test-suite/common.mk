@@ -51,7 +51,8 @@ CPP_TEST_CASES += \
 	pure_virtual \
 	static_const_member \
 	explicit \
-	const_const_2
+	const_const_2 \
+	name_cxx
 #	long_long
 
 # C test cases. (Can be run individually using make testcase.ctest.)
