@@ -45,6 +45,7 @@ extern "C" {
   Language *swig_php(void);
   Language *swig_ocaml(void);
   Language *swig_pike(void);
+  Language *swig_sexp(void);
   Language *swig_xml(void);
 }
 
@@ -70,6 +71,7 @@ swig_module  modules[] = {
   {"-pike",      swig_pike,      "Pike"},
   {"-python",    swig_python,    "Python"},
   {"-ruby",      swig_ruby,      "Ruby"},
+  {"-sexp",      swig_sexp,      "Lisp S-Expressions"},
   {"-tcl",       swig_tcl,       "Tcl"},
   {"-tcl8",      swig_tcl, 0},
   {"-xml",       swig_xml,       "XML"},
