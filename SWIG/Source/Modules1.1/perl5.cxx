@@ -459,8 +459,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n)  {
-    char *name = GetChar(n,"name");
-    char *iname = GetChar(n,"sym:name");
+    String *name = Getattr(n,"name");
+    String *iname = Getattr(n,"sym:name");
     SwigType *d = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
     
@@ -498,7 +498,7 @@ public:
     } else {
       Printf(f->code,"    if (items < %d) {\n", num_required);
     }
-    Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(iname,d,l));
+    Printf(f->code,"        croak(\"Usage: %s\");\n", usage_func(Char(iname),d,l));
     Printf(f->code,"}\n");
 
     /* Write code to extract parameters. */
@@ -724,17 +724,14 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int variableWrapper(Node *n) {
-    char *name  = GetChar(n,"name");
-    char *iname = GetChar(n,"sym:name");
-    SwigType *t = Getattr(n,"type");
-
-    char  set_name[256];
-    char  val_name[256];
+    String *name  = Getattr(n,"name");
+    String *iname = Getattr(n,"sym:name");
+    SwigType *t   = Getattr(n,"type");
     Wrapper  *getf, *setf;
     String  *tm;
 
-    sprintf(set_name,"_wrap_set_%s",iname);
-    sprintf(val_name,"_wrap_val_%s",iname);
+    String *set_name = NewStringf("_wrap_set_%s", iname);
+    String *val_name = NewStringf("_wrap_val_%s", iname);
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
 
@@ -841,6 +838,8 @@ public:
 
     DelWrapper(setf);
     DelWrapper(getf);
+    Delete(set_name);
+    Delete(val_name);
     return SWIG_OK;
   }
 
@@ -849,8 +848,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constantWrapper(Node *n) {
-    char *name      = GetChar(n,"name");
-    char *iname     = GetChar(n,"sym:name");
+    String *name      = Getattr(n,"name");
+    String *iname     = Getattr(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
     String   *value = Getattr(n,"value");
     String   *tm;
@@ -1181,7 +1180,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
-    char *symname = GetChar(n,"sym:name");
+    String   *symname = Getattr(n,"sym:name");
     SwigType *t   = Getattr(n,"type");
 
     String  *func;
@@ -1197,14 +1196,14 @@ public:
       /* Now emit a Perl wrapper function around our member function, we might need
 	 to patch up some arguments along the way */
   
-      if (strstr(symname, "operator") == symname) {
-	if (strstr(symname, "operator_equal_to")) {
+      if (Strstr(symname, "operator") == symname) {
+	if (Strstr(symname, "operator_equal_to")) {
 	  DohSetInt(operators,"operator_equal_to",1);
 	  have_operators = 1;
-	} else if (strstr(symname, "operator_not_equal_to")) {
+	} else if (Strstr(symname, "operator_not_equal_to")) {
 	  DohSetInt(operators,"operator_not_equal_to",1);
 	  have_operators = 1;
-	} else if (strstr(symname, "operator_assignment")) {
+	} else if (Strstr(symname, "operator_assignment")) {
 	  DohSetInt(operators,"operator_assignment",1);
 	  have_operators = 1;
 	} else {
@@ -1288,7 +1287,7 @@ public:
 
   virtual int membervariableHandler(Node *n) {
 
-    char *symname = GetChar(n,"sym:name");
+    String   *symname = Getattr(n,"sym:name");
     SwigType *t  = Getattr(n,"type");
 
     /* Emit a pair of get/set functions for the variable */
@@ -1329,7 +1328,7 @@ public:
 
   virtual int constructorHandler(Node *n) {
 
-    char *symname = GetChar(n,"sym:name");
+    String *symname = Getattr(n,"sym:name");
 
     member_func = 1;
     Language::constructorHandler(n);
@@ -1368,7 +1367,7 @@ public:
    * ------------------------------------------------------------ */
   
   virtual int destructorHandler(Node *n) {
-    char *symname = GetChar(n,"sym:name");
+    String *symname = Getattr(n,"sym:name");
     member_func = 1;
     Language::destructorHandler(n);
     if (blessed) {
@@ -1460,7 +1459,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    char *symname = GetChar(n,"sym:name");
+    String *symname = Getattr(n,"sym:name");
     int   oldblessed = blessed;
     
     /* Create a normal constant */

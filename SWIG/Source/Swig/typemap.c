@@ -1125,6 +1125,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     Setattr(node,tmop_name(temp), Copy(Getattr(kw,"value")));
     kw = nextSibling(kw);
   }
+  /* Look for warnings */
   {
     String *w;
     sprintf(temp,"%s:warning", Char(op));
@@ -1133,6 +1134,24 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
       Swig_warning(0,Getfile(node),Getline(node),"%s\n", w);
     }
   }
+  /* Look for code fragments */
+  {
+    String *f;
+    sprintf(temp,"%s:fragment", Char(op));
+    f = Getattr(node,tmop_name(temp));
+    if (f) {
+      char  *c, *tok;
+      String *t = Copy(f);
+      c = Char(t);
+      tok = strtok(c,",");
+      while (tok) {
+	Swig_fragment_emit(tok);
+	tok = strtok(NULL,",");
+      }
+      Delete(t);
+    }
+  }
+    
   if (cname) Delete(cname);
   if (clname) Delete(clname);
   return s;
@@ -1240,6 +1259,23 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       w = Getattr(firstp,tmop_name(temp));
       if (w) {
 	Swig_warning(0,Getfile(firstp), Getline(firstp), "%s\n", w);
+      }
+    }
+    /* Look for code fragments */
+    {
+      String *f;
+      sprintf(temp,"%s:fragment", Char(op));
+      f = Getattr(firstp,tmop_name(temp));
+      if (f) {
+	char  *c, *tok;
+	String *t = Copy(f);
+	c = Char(t);
+	tok = strtok(c,",");
+	while (tok) {
+	  Swig_fragment_emit(tok);
+	  tok = strtok(NULL,",");
+	}
+	Delete(t);
       }
     }
   }

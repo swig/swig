@@ -492,10 +492,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constantWrapper(Node *n) {
-    char *name      = GetChar(n,"name");
-    char *iname     = GetChar(n,"sym:name");
-    SwigType *type  = Getattr(n,"type");
-    String   *value = Getattr(n,"value");
+    String *name      = Getattr(n,"name");
+    String *iname     = Getattr(n,"sym:name");
+    SwigType *type    = Getattr(n,"type");
+    String   *value   = Getattr(n,"value");
     String *tm;
 
     if (!addSymbol(iname,n)) return SWIG_ERROR;
@@ -647,11 +647,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
-    char *name = GetChar(n,"name");
-    char *iname = GetChar(n,"sym:name");
+    String *name  = Getattr(n,"name");
+    String *iname = GetChar(n,"sym:name");
 
-    char *realname;
-    String  *rname;
+    String  *realname, *rname;
 
     Language::memberfunctionHandler(n);
 
@@ -668,7 +667,7 @@ public:
 
   virtual int membervariableHandler(Node *n) {
     String   *symname = Getattr(n,"sym:name");
-    String *rname;
+    String   *rname;
     
     Language::membervariableHandler(n);
     Printv(attr_tab, tab4, "{ \"-", symname, "\",", NULL);

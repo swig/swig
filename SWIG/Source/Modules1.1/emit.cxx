@@ -313,6 +313,23 @@ void emit_action(Node *n, Wrapper *f) {
   Parm   *p;
   SwigType *rt;
 
+  /* Look for fragments */
+  {
+    String *f;
+    f = Getattr(n,"feature:fragment");
+    if (f) {
+      char  *c, *tok;
+      String *t = Copy(f);
+      c = Char(t);
+      tok = strtok(c,",");
+      while (tok) {
+	Swig_fragment_emit(tok);
+	tok = strtok(NULL,",");
+      }
+      Delete(t);
+    }
+  }
+
   /* Emit wrapper code (if any) */
   wrap = Getattr(n,"wrap:code");
   if (wrap) {

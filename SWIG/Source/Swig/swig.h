@@ -444,6 +444,11 @@ extern Hash  *Swig_typemap_pop_scope();
 
 extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f);
 
+/* --- Code fragment support --- */
+
+extern  void  Swig_fragment_register(String *name, String *section, String *code);
+extern  void  Swig_fragment_emit(String *name);
+  
 #endif
 
 

@@ -118,6 +118,8 @@ int Dispatcher::emit_one(Node *n) {
     ret = clearDirective(n);
   } else if (strcmp(tag,"constant") == 0) {
     ret = constantDirective(n);
+  } else if (strcmp(tag,"fragment") == 0) {
+    ret = fragmentDirective(n);
   } else if (strcmp(tag,"import") == 0) {
     ret = importDirective(n);
   } else if (strcmp(tag,"include") == 0) {
@@ -172,6 +174,7 @@ int Dispatcher::extendDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::applyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::clearDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::constantDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::fragmentDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::importDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::includeDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::insertDirective(Node *n) { return defaultHandler(n); }
@@ -391,6 +394,18 @@ int Language::constantDirective(Node *n) {
     return SWIG_OK;
   }
   return SWIG_NOWRAP;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::fragmentDirective()
+ * ---------------------------------------------------------------------- */
+
+int Language::fragmentDirective(Node *n) {
+  String *name = Getattr(n,"name");
+  String *code = Getattr(n,"code");
+  String *section = Getattr(n,"section");
+  Swig_fragment_register(name,section,code);
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------

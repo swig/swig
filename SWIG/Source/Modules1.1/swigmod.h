@@ -64,6 +64,7 @@ class Dispatcher {
   virtual int clearDirective(Node *n);
   virtual int constantDirective(Node *n);
   virtual int extendDirective(Node *n);
+  virtual int fragmentDirective(Node *n);
   virtual int importDirective(Node *n);
   virtual int includeDirective(Node *n);
   virtual int insertDirective(Node *n);
@@ -121,6 +122,7 @@ public:
   virtual int clearDirective(Node *n);
   virtual int constantDirective(Node *n);
   virtual int extendDirective(Node *n);
+  virtual int fragmentDirective(Node *n);
   virtual int importDirective(Node *n);
   virtual int includeDirective(Node *n);
   virtual int insertDirective(Node *n);
