@@ -54,6 +54,7 @@ static int	gen_make = 0;
 static File	  *f_runtime = 0;
 static File	  *f_h = 0;
 static File	  *f_phpcode = 0;
+static String	  *phpfilename =0;
 
 static String	  *s_header;
 static String	  *s_wrappers;
@@ -404,6 +405,9 @@ public:
                      ".cxx.slo:\n"
                      "	$(CXX_SHARED_COMPILE)\n\n");
 
+      Printf(f_extra,"\n# make it easy to test module\n"
+                     "testmodule:\n"
+                     "	php -q -d extension_dir=modules %s\n\n",Swig_file_filename(phpfilename));
       Close(f_extra);
       
       /* Now config.m4 */
@@ -478,7 +482,7 @@ public:
 	       "    else\n"
 	       "      AC_MSG_RESULT(Library files $LIBNAME found in $LIBDIR)\n"
 	       "      PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBDIR, %(upper)s_SHARED_LIBADD)\n"
-	       "    fi\n",module);
+	       "    fi\n",module,module);
 	Printf(f_extra,"  done\n\n");
       }
       
@@ -486,7 +490,7 @@ public:
 	Printf(f_extra,"  for HNAME in $HNAMES ; do\n");
 	Printf(f_extra,"    INCDIR=\"\"\n");
 	// For each path element to try...
-	Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include /usr/local/include /usr/include; do\n",module,module);
+	Printf(f_extra,"    for i in $PHP_%(upper)s $PHP_%(upper)s/include $PHP_%(upper)s/includes $PHP_%(upper)s/inc $PHP_%(upper)s/incs /usr/local/include /usr/include; do\n",module,module,module,module,module);
 	// Try and find header files
 	Printf(f_extra,"      if test \"$HNAME\" != \"\" -a -r $i/$HNAME ; then\n"
 	       "        INCDIR=\"$i\"\n"
@@ -609,6 +613,7 @@ public:
     /* PHP module file */
     filen = NewString("");
     Printv(filen, Swig_file_dirname(outfile), module, ".php", NIL);
+    phpfilename = NewString(filen);
     
     f_phpcode = NewFile(filen, "w");
     if (!f_phpcode) {
