@@ -282,6 +282,7 @@ static void add_symbols(Node *n) {
       } else {
 	Setattr(n,"access", "protected");
       }
+      if (add_only_one) break;
       n = nextSibling(n);
     }
     return;
@@ -364,19 +365,38 @@ static void add_symbols(Node *n) {
 
 void add_symbols_copy(Node *n) {
   String *name;
-  int    oldmode = cplus_mode;
   int    emode = 0;
 
   while (n) {
+
+    if (Strcmp(nodeType(n),"access") == 0) {
+      String *kind = Getattr(n,"kind");
+      if (Strcmp(kind,"public") == 0) {
+	cplus_mode = CPLUS_PUBLIC;
+      } else if (Strcmp(kind,"private") == 0) {
+	cplus_mode = CPLUS_PRIVATE;
+      } else if (Strcmp(kind,"protected") == 0) {
+	cplus_mode = CPLUS_PROTECTED;
+      }
+      n = nextSibling(n);
+      continue;
+    }
+
     add_oldname = Getattr(n,"sym:name");
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
       if (add_oldname) {
 	DohIncref(add_oldname);
+	/* If already renamed, we used that name */
+	if (Strcmp(add_oldname, Getattr(n,"name")) != 0) {
+	  yyrename = add_oldname;
+	}
       }
       Delattr(n,"sym:needs_symtab");
       Delattr(n,"sym:name");
+
       add_only_one = 1;
       add_symbols(n);
+
       if (Getattr(n,"partialargs")) {
 	Swig_symbol_cadd(Getattr(n,"partialargs"),n);
       }
@@ -395,7 +415,6 @@ void add_symbols_copy(Node *n) {
 	  cplus_mode = CPLUS_PUBLIC;
 	}
       }
-
       if (Strcmp(nodeType(n),"extend") == 0) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
@@ -426,19 +445,8 @@ void add_symbols_copy(Node *n) {
 	cplus_mode = emode;
       }
     }
-    if (Strcmp(nodeType(n),"access") == 0) {
-      String *kind = Getattr(n,"kind");
-      if (Strcmp(kind,"public") == 0) {
-	cplus_mode = CPLUS_PUBLIC;
-      } else if (Strcmp(kind,"private") == 0) {
-	cplus_mode = CPLUS_PRIVATE;
-      } else if (Strcmp(kind,"protected") == 0) {
-	cplus_mode = CPLUS_PROTECTED;
-      }
-    }
     n = nextSibling(n);
   }
-  cplus_mode = oldmode;
 }
 
 /* Extension merge.  This function is used to handle the %extend directive
