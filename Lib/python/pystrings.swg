@@ -4,7 +4,7 @@
  * ------------------------------------------------------------ */
 
 %types(char *);
-%fragment("SWIG_AsCharPtrAndSize","header") %{
+%fragment("SWIG_AsCharPtrAndSize","header") {
 /* returns SWIG_OLDOBJ if the input is a raw char*, SWIG_PYSTR if is a PyString */
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
@@ -33,10 +33,10 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
   }
   return 0;
 }
-%}
+}
 
 %fragment("SWIG_AsCharPtr","header",
-	  fragment="SWIG_AsCharPtrAndSize") %{
+	  fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERNSHORT int
 SWIG_AsCharPtr(PyObject *obj, char **val)
 {
@@ -50,9 +50,9 @@ SWIG_AsCharPtr(PyObject *obj, char **val)
   }
   return 0;
 }
-%}
+}
 
-%fragment("SWIG_FromCharPtr","header") %{
+%fragment("SWIG_FromCharPtr","header") {
 SWIGINTERN PyObject *
 SWIG_FromCharPtr(const char* cptr)
 { 
@@ -72,10 +72,10 @@ SWIG_FromCharPtr(const char* cptr)
   Py_INCREF(Py_None);
   return Py_None;
 }
-%}
+}
 
 %fragment("SWIG_AsNewCharPtr","header",
-	  fragment="SWIG_AsCharPtrAndSize") %{
+	  fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsNewCharPtr(PyObject *obj, char **val)
 {
@@ -101,10 +101,10 @@ SWIG_AsNewCharPtr(PyObject *obj, char **val)
   }
   return 0;
 }
-%}
+}
 
 %fragment("SWIG_AsCharArray","header",
-	  fragment="SWIG_AsCharPtrAndSize") %{
+	  fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
 { 
@@ -132,7 +132,7 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
   }
   return 0;
 }
-%}
+}
 
 %fragment("SWIG_FromCharArray","header") {
 SWIGINTERNSHORT PyObject *

@@ -24,7 +24,7 @@
 
 %fragment("PySequence_Base","header")
 %{
-namespace swigpy {
+namespace swig {
   inline size_t
   check_index(ptrdiff_t i, size_t size, bool insert = false) {
     if ( i < 0 ) {
@@ -72,8 +72,8 @@ namespace swigpy {
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) { 
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::check_index(i, size);
-    typename Sequence::size_type jj = swigpy::slice_index(j, size);
+    typename Sequence::size_type ii = swig::check_index(i, size);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
     
     if (jj > ii) {
       typename Sequence::const_iterator vb = self->begin();
@@ -90,8 +90,8 @@ namespace swigpy {
   inline void
   setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::check_index(i, size, true);
-    typename Sequence::size_type jj = swigpy::slice_index(j, size);
+    typename Sequence::size_type ii = swig::check_index(i, size, true);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
     if (jj < ii) jj = ii;
     typename Sequence::iterator sb = self->begin();
     typename InputSeq::const_iterator vmid = v.begin();
@@ -104,8 +104,8 @@ namespace swigpy {
   inline void
   delslice(Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swigpy::check_index(i, size, true);
-    typename Sequence::size_type jj = swigpy::slice_index(j, size);
+    typename Sequence::size_type ii = swig::check_index(i, size, true);
+    typename Sequence::size_type jj = swig::slice_index(j, size);
     if (jj > ii) {
       typename Sequence::iterator sb = self->begin();
       typename Sequence::iterator se = self->begin();
@@ -123,7 +123,7 @@ namespace swigpy {
 	  fragment="PyObject_var")
 %{
 #include <iterator>
-namespace swigpy
+namespace swig
 {
   template <class T> 
   struct PySequence_Ref
@@ -135,14 +135,14 @@ namespace swigpy
 
     operator T () const 
     {
-      swigpy::PyObject_var item = PySequence_GetItem(_seq, _index);
+      swig::PyObject_var item = PySequence_GetItem(_seq, _index);
       try {
-	return swigpy::as<T>(item, true);
+	return swig::as<T>(item, true);
       } catch (std::exception& e) {
 	char msg[1024];
 	sprintf(msg,"in sequence element %d", _index);
 	if (!PyErr_Occurred()) {
-	  SWIG_type_error(swigpy::type_name<T>(), item);
+	  SWIG_type_error(swig::type_name<T>(), item);
 	}
 	SWIG_append_errmsg(msg);
 	throw;
@@ -151,7 +151,7 @@ namespace swigpy
     
     PySequence_Ref& operator=(const T& v) 
     {
-      PySequence_SetItem(_seq, _index, swigpy::from<T>(v));
+      PySequence_SetItem(_seq, _index, swig::from<T>(v));
       return *this;
     }
     
@@ -330,12 +330,12 @@ namespace swigpy
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
-	swigpy::PyObject_var item = PySequence_GetItem(_seq, i);
-	if (!swigpy::check<value_type>(item)) {
+	swig::PyObject_var item = PySequence_GetItem(_seq, i);
+	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
 	    sprintf(msg,"in sequence element %d", i);
-	    SWIG_type_error(swigpy::type_name<value_type>(), item);
+	    SWIG_type_error(swig::type_name<value_type>(), item);
 	    SWIG_append_errmsg(msg);
 	  }
 	  return 0;
@@ -355,7 +355,7 @@ namespace swigpy
 /**** The python container methods  ****/
 
 
-%define %pycontainer_methods(Container)
+%define %swig_container_methods(Container...)
   // __getitem__ is required to raise an IndexError for for-loops to work
   // other methods which can raise are made to throw an IndexError as well
   %exception __getitem__ {
@@ -463,8 +463,8 @@ namespace swigpy
   }
 %enddef
 
-%define %pysequence_methods_common(Sequence)
-  %pycontainer_methods(SWIG_arg(Sequence))
+%define %swig_sequence_methods_common(Sequence...)
+  %swig_container_methods(SWIG_arg(Sequence))
   %fragment("PySequence_Base");
 
   %extend {
@@ -477,32 +477,32 @@ namespace swigpy
     }
 
     Sequence* __getslice__(difference_type i, difference_type j) {
-      return swigpy::getslice(self, i, j);
+      return swig::getslice(self, i, j);
     }
 
     void __setslice__(difference_type i, difference_type j, const Sequence& v) {
-      swigpy::setslice(self, i, j, v);
+      swig::setslice(self, i, j, v);
     }
 
     void __delslice__(difference_type i, difference_type j) {
-      swigpy::delslice(self, i, j);
+      swig::delslice(self, i, j);
     }
 
     void __delitem__(difference_type i) {
-      self->erase(swigpy::getpos(self,i));
+      self->erase(swig::getpos(self,i));
     }
   }
 %enddef
 
-%define %pysequence_methods(Sequence)
-  %pysequence_methods_common(SWIG_arg(Sequence))
+%define %swig_sequence_methods(Sequence...)
+  %swig_sequence_methods_common(SWIG_arg(Sequence))
   %extend {
     const value_type& __getitem__(difference_type i) const {
-      return *(swigpy::cgetpos(self, i));
+      return *(swig::cgetpos(self, i));
     }
 
     void __setitem__(difference_type i, const value_type& x) {
-      *(swigpy::getpos(self,i)) = x;
+      *(swig::getpos(self,i)) = x;
     }
 
     void append(const value_type& x) {
@@ -511,15 +511,15 @@ namespace swigpy
  }
 %enddef
 
-%define %pysequence_methods_val(Sequence)
-  %pysequence_methods_common(SWIG_arg(Sequence))
+%define %swig_sequence_methods_val(Sequence...)
+  %swig_sequence_methods_common(SWIG_arg(Sequence))
   %extend {
     value_type __getitem__(difference_type i)  {
-      return *(swigpy::cgetpos(self, i));
+      return *(swig::cgetpos(self, i));
     }
 
     void __setitem__(difference_type i, value_type x) {
-      *(swigpy::getpos(self,i)) = x;
+      *(swig::getpos(self,i)) = x;
     }
 
     void append(value_type x) {
@@ -529,112 +529,93 @@ namespace swigpy
 %enddef
 
 
-%define %pydict_methods(Dict)
-  %pycontainer_methods(SWIG_arg(Dict))
+//
+// Common fragments
+//
 
-  %extend {
-    mapped_type __getitem__(const key_type& key) const {
-      Dict::const_iterator i = self->find(key);
-      if (i != self->end())
-	return i->second;
-      else
-	throw std::out_of_range("key not found");
-    }
-    
-    void __setitem__(const key_type& key, const mapped_type& x) {
-      self->insert(Dict::value_type(key,x));
-    }
-    
-    void __delitem__(const key_type& key) {
-      Dict::iterator i = self->find(key);
-      if (i != self->end())
-	self->erase(i);
-      else
-	throw std::out_of_range("key not found");
-    }
-    
-    bool has_key(const key_type& key) const {
-      Dict::const_iterator i = self->find(key);
-      return i != self->end();
-    }
-    
-    PyObject* keys() {
-      Dict::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+%fragment("StdSequenceTraits","header",
+	  fragment="StdTraits",fragment="PyObject_var",
+	  fragment="PySequence_Cont")
+%{
+  namespace swig {
+    template <class PySeq, class Seq> 
+    inline void
+    assign(const PySeq& pyseq, Seq* seq) {
+#ifdef SWIG_STD_NOASSIGN_STL
+      typedef typename PySeq::value_type value_type;
+      typename PySeq::const_iterator it = pyseq.begin();
+      for (;it != pyseq.end(); ++it) {
+	seq->insert(seq->end(),(value_type)(*it));
       }
-      PyObject* keyList = PyList_New(pysize);
-      Dict::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
-	PyList_SetItem(keyList, j, swigpy::from(i->first));
-      }
-      return keyList;
-    }
-    
-    PyObject* values() {
-      Dict::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
-      }
-      PyObject* valList = PyTuple_New(pysize);
-      Dict::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(valList, j, swigpy::from(i->second));
-      }
-      return valList;
-    }
-    
-    PyObject* items() {
-      Dict::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
-      }    
-      PyObject* itemList = PyTuple_New(pysize);
-      Dict::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(itemList, j, swigpy::from(*i));
-      }
-      return itemList;
-    }
-    
-    // Python 2.2 methods
-    bool __contains__(const key_type& key) {
-      return self->find(key) != self->end();
+#else
+      seq->assign(pyseq.begin(), pyseq.end());
+#endif
     }
 
-    PyObject* __iter__() {
-      Dict::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
-	PyErr_SetString(PyExc_OverflowError,
-			"map size not valid in python");
-	Py_INCREF(Py_None);
-	return Py_None;
+    template <class Seq, class T = typename Seq::value_type >
+    struct traits_asptr_stdseq {
+      typedef Seq sequence;
+      typedef T value_type;
+		    
+      static int asptr(PyObject *obj, sequence **seq) {
+	if (PySequence_Check(obj)) {
+	  try {
+	    PySequence_Cont<value_type> pyseq(obj);
+	    if (seq) {
+	      sequence *pseq = new sequence();
+	      assign(pyseq, pseq);
+	      *seq = pseq;
+	      return SWIG_NEWOBJ;
+	    } else {
+	      return pyseq.check();
+	    }
+	  } catch (std::exception& e) {
+	    if (seq) {
+	      if (!PyErr_Occurred())
+		PyErr_SetString(PyExc_TypeError, e.what());
+	    }
+	    return 0;
+	  }
+	} else {
+	  sequence *p;
+	  if (SWIG_ConvertPtr(obj,(void**)&p,
+			      swig::type_info<sequence>(),0) != -1) {
+	    if (seq) *seq = p;
+	    return 1;
+	  }
+	}
+	if (seq) {
+	  PyErr_Format(PyExc_TypeError, "a %s is expected", 
+		       swig::type_name<sequence>());
+	}
+	return 0;	  
       }
-      PyObject* keyTuple = PyTuple_New(pysize);
-      Dict::const_iterator i = self->begin();
-      for (int j = 0; j < pysize; ++i, ++j) {
-	PyTuple_SetItem(keyTuple, j, swigpy::from(i->first));
+    };
+
+    template <class Seq, class T = typename Seq::value_type >
+    struct traits_from_stdseq {
+      typedef Seq sequence;
+      typedef T value_type;
+      typedef typename Seq::size_type size_type;
+      typedef typename sequence::const_iterator const_iterator;
+
+      static PyObject *from(const sequence& seq) {
+	size_type size = seq.size();
+	if (size <= (size_type)INT_MAX) {
+	  PyObject *obj = PyTuple_New((int)size);
+	  int i = 0;
+	  for (const_iterator it = seq.begin();
+	       it != seq.end(); ++it, ++i) {
+	    PyTuple_SetItem(obj,i,swig::from<value_type>(*it));
+	  }
+	  return obj;
+	} else {
+	  PyErr_SetString(PyExc_OverflowError,
+			  "sequence size not valid in python");
+	  Py_INCREF(Py_None);
+	  return Py_None;
+	}
       }
-%#if PY_VERSION_HEX >= 0x02020000
-      PyObject* iter = PyObject_GetIter(keyTuple);
-      Py_DECREF(keyTuple);
-      return iter;
-%#else
-      return keyTuple;
-%#endif
-    }
+    };
   }
-%enddef
+%}

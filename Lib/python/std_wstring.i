@@ -1,4 +1,9 @@
-%include <wchar.i>
+//
+// std::wstring
+//
+
+
+%include <pywstrings.swg>
 %include <std_basic_string.i>
 
 /* wide strings */

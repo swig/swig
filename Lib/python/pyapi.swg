@@ -1,3 +1,7 @@
+/* -----------------------------------------------------------------------------
+ * SWIG API. Portion that goes into the runtime
+ * ----------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,9 +22,6 @@ extern "C" {
 #endif /* __cplusplus */
 #endif
 
-/* -----------------------------------------------------------------------------
- * SWIG API.
- * ----------------------------------------------------------------------------- */
     
 /* Common SWIG API */
 #define SWIG_ConvertPtr(obj, pp, type, flags)    SWIG_Python_ConvertPtr(obj, pp, type, flags)
@@ -33,27 +34,6 @@ extern "C" {
 #define SWIG_ConvertPacked(obj, ptr, sz, ty, flags)   SWIG_Python_ConvertPacked(obj, ptr, sz, ty, flags)
 #define SWIG_NewPackedObj(ptr, sz, type)              SWIG_Python_NewPackedObj(ptr, sz, type)
 #define SWIG_InstallConstants(d, constants)           SWIG_Python_InstallConstants(d, constants)
-
-/* Internal C/C++ API */
-#ifdef __cplusplus
-#define SWIG_new_array(size,Type) (new Type[(size)])
-#define SWIG_delete(cptr) delete cptr
-#define SWIG_delete_array(cptr) delete[] cptr
-#define SWIG_const_cast(a,Type) const_cast<Type >(a)
-#define SWIG_static_cast(a,Type) static_cast<Type >(a)
-#define SWIG_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
-#define SWIG_new_copy(ptr,Type) (new Type(*ptr))
-#define SWIG_numeric_cast(a,Type) static_cast<Type >(a)
-#else /* C case */
-#define SWIG_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
-#define SWIG_delete(cptr) free((char*)cptr)
-#define SWIG_delete_array(cptr) free((char*)cptr)
-#define SWIG_const_cast(a,Type) (Type)(a)
-#define SWIG_static_cast(a,Type) (Type)(a)
-#define SWIG_reinterpret_cast(a,Type) (Type)(a)
-#define SWIG_numeric_cast(a,Type) (Type)(a)
-#define SWIG_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
-#endif /* __cplusplus */
 
 /*
   Exception handling in wrappers
@@ -118,5 +98,4 @@ typedef struct swig_const_info {
 #ifdef __cplusplus
 }
 #endif
-
 

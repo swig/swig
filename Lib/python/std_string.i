@@ -1,16 +1,7 @@
 //
-// SWIG typemaps for std::string
-// Luigi Ballabio
-// Apr 8, 2002
+// std::string
 //
-// Python implementation
 
-// ------------------------------------------------------------------------
-// std::string is typemapped by value
-// This can prevent exporting methods which return a string
-// in order for the user to modify it.
-// However, I think I'll wait until someone asks for it...
-// ------------------------------------------------------------------------
 
 %include <pystrings.swg>
 %include <std_basic_string.i>

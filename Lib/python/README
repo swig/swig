@@ -1,0 +1,80 @@
+/* -----------------------------------------------------------------------------
+ *  Basic files
+ * ----------------------------------------------------------------------------- */
+
+python.swg		Main language file, it just includes what is needed.
+pyuserdir.swg		User visible directives (%pythonnondynamic, etc)
+pymacros.swg		Internal macros used for typemaps
+pyfragments.swg		Allow the user to overload the default fragments
+pyopers.swg		Python operations (+=, *=, etc)
+pythonkw.swg		Python keywords and special names
+pyinit.swg		Python Init method
+
+/* -----------------------------------------------------------------------------
+ *  The runtime part
+ * ----------------------------------------------------------------------------- */
+
+pyruntime.swg		Main runtime file definition
+pyapi.swg		SWIG/Pyton API declarations
+pyrun.swg		Python run-time code 
+
+/* -----------------------------------------------------------------------------
+ *  Internal typemap specializations
+ * ----------------------------------------------------------------------------- */
+pyswigtype.swg		SWIGTYPE
+pyvoid.swg		void *
+pyobject.swg		PyObject
+pystrbase.swg		String base
+pystrings.swg		Char strings (char *)
+pywstrings.swg		Wchar Strings (wchar_t *)
+pyprimtypes.swg		Primitive types (shot,int,double,etc)
+pymisctypes.swg		Miscellaneos types (size_t, ptrdiff_t, etc)
+pyenum.swg		enum especializations
+pycomplex.swg		PyComplex and helper for C/C++ complex types
+pydocs.swg		Typemaps documentation
+
+/* -----------------------------------------------------------------------------
+ *  Special types or user helpers 
+ * ----------------------------------------------------------------------------- */
+
+file.i			FILE C type
+wchar.i			wchar_t C type
+ccomplex.i		complex C type
+cstring.i		Various forms of C character string handling
+argcargv.i		Handler for (int argc, char **argv)
+attribute.i		Convert a pair of set/get methods into a "native" python attribute
+implicit.i		Allow the use of implicit C++ constructors
+
+/* -----------------------------------------------------------------------------
+ *  C++ STD + STL
+ * ----------------------------------------------------------------------------- */
+
+pycontainer.swg		python container iterators
+std_common.i		general common code 
+std_container.i		general container code 
+std_basic_string.i	basic string
+std_char_traits.i	char traits
+std_complex.i		complex
+std_deque.i		deque	
+std_except.i		exceptions
+std_ios.i		ios
+std_iostream.i		istream/ostream
+std_list.i		list
+std_map.i		map
+std_multimap.i		multimap
+std_multiset.i		multiset
+std_pair.i		pair
+std_set.i		set
+std_streambuf.i		streambuf
+std_string.i		string
+std_vector.i		vector
+std_vectora.i		vector + allocator
+std_wstring.i		wstring
+
+/* -----------------------------------------------------------------------------
+ *  Backward compatibility
+ * ----------------------------------------------------------------------------- */
+embed15.i		embedding the Python interpreter in something else
+embed.i			embedding the Python interpreter in something else
+defarg.swg		for processing default arguments with shadow classes
+typemaps.i		old in/out typemaps

@@ -53,8 +53,7 @@ SWIGINTERN int
 %define %swig_cplxflt_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
 	  fragment="SWIG_CheckDoubleInRange",
-          fragment=SWIG_AsVal_frag(float))
-%{
+          fragment=SWIG_AsVal_frag(float)) {
 SWIGINTERN int
   SWIG_AsVal(Type)(PyObject *o, Type *val)
 {
@@ -88,7 +87,8 @@ SWIGINTERN int
   }
   return 0;
 }
-%}
+}
+
 %swig_fromcplx_conv(Type, Real, Imag);
 %enddef
 

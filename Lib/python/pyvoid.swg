@@ -4,8 +4,17 @@
 
 /* in */
 
-%typemap(in) void * 
-  "if ((SWIG_ConvertPtr($input,&$1,0,SWIG_POINTER_EXCEPTION | $disown)) == -1) {SWIG_arg_fail($argnum);SWIG_fail;}";
+%typemap(in) void * {
+  if ((SWIG_ConvertPtr($input,SWIG_reinterpret_cast(&$1,void **),0,SWIG_POINTER_EXCEPTION|$disown))== -1) { 
+    SWIG_arg_fail($argnum);SWIG_fail;
+  }
+}
+
+%typemap(in) const void *& ($basetype temp) {
+  SWIG_ConvertPtr($input,SWIG_reinterpret_cast(&temp,void **),0,SWIG_POINTER_EXCEPTION|$disown);
+  if (SWIG_arg_fail($argnum)) SWIG_fail;
+  $1 = &temp;
+}
 
 
 /* out */
@@ -16,7 +25,7 @@
 
 %typemap(varin) void * {
   void * temp;
-  if ((SWIG_ConvertPtr($input, &temp, 0,
+  if ((SWIG_ConvertPtr($input, SWIG_static_cast(&temp,void **), 0,
 		       SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
     SWIG_append_errmsg("C/C++ variable '$name'");
     return 1;
@@ -30,10 +39,12 @@
 
 /* directorout */
 
-%typemap(directorout) void * 
-  "if ((SWIG_ConvertPtr($input,(void **)(&$result),
+%typemap(directorout) void * {
+  if ((SWIG_ConvertPtr($input,(void **)(&$result),
 	 	       0, SWIG_POINTER_EXCEPTION | $disown )) == -1)
-     throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
+    throw Swig::DirectorTypeMismatchException("Pointer conversion failed.");
+}
+
 
 
 /* typecheck */
