@@ -472,15 +472,18 @@ extern "C" {
   extern FILE *Swig_open(const void *filename);
 }
 
+
 // -----------------------------------------------------------------------
 //  Class for Creating Wrapper Functions
 // -----------------------------------------------------------------------
 
 class WrapperFunction {
 private:
-  Hash    h;
-  Hash    localh;
+  void    *h;
+  void    *localh;
 public:
+  WrapperFunction();
+  ~WrapperFunction();
   String  def;
   String  locals;
   String  code;

@@ -17,6 +17,10 @@ static char cvsroot[] = "$Header$";
 #include "internal.h"
 #include <ctype.h>
 
+extern "C" {
+#include "swig.h"
+}
+
 // -----------------------------------------------------------------
 // void Language::set_init(char *iname)
 //
@@ -148,19 +152,19 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
   if (AddMethods) {
     char *bc = cplus_base_class(name);         // Get base class name of this method
     if (bc)
-      strcpy(cname, name_member(name,bc));
+      strcpy(cname, Swig_name_member(bc,name));
     else
-      strcpy(cname, name_member(name,ClassName));
+      strcpy(cname, Swig_name_member(ClassName,name));
   } else {
-    strcpy(cname, name_member(name,ClassName));
+    strcpy(cname, Swig_name_member(ClassName,name));
   }
 
   // Create the actual function name
 
   if (iname) {
-    strcpy(new_name, name_member(iname, prefix));
+    strcpy(new_name, Swig_name_member(prefix,iname));
   } else {
-    strcpy(new_name, name_member(name,prefix));
+    strcpy(new_name, Swig_name_member(prefix,name));
   }
 
   // Now do a symbol table lookup on it :
@@ -202,9 +206,9 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
     prefix = ClassName;
 
   if (iname)
-    cname = name_construct(iname);
+    cname = Swig_name_construct(iname);
   else
-    cname = name_construct(prefix);
+    cname = Swig_name_construct(prefix);
 
   // Add this function to the SWIG symbol table
 
@@ -236,9 +240,9 @@ void Language::cpp_destructor(char *name, char *iname) {
   char *cname;
 
   if (ClassRename) 
-    cname = name_destroy(ClassRename);
+    cname = Swig_name_destroy(ClassRename);
   else
-    cname = name_destroy(ClassName);
+    cname = Swig_name_destroy(ClassName);
 
   // Add this function to the SWIG symbol table
 
@@ -314,9 +318,9 @@ void Language::cpp_variable(char *name, char *iname, DataType *t) {
   }
 
   if (iname)
-    cname = name_get(name_member(iname,prefix));
+    cname = Swig_name_get(Swig_name_member(prefix,iname));
   else
-    cname = name_get(name_member(name,prefix));
+    cname = Swig_name_get(Swig_name_member(prefix,name));
 
   // Check the symbol table
 
@@ -369,7 +373,7 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
   else
     mname = name;
 
-  cname = name_member(mname,prefix);
+  cname = Swig_name_member(prefix,mname);
 
   // Now do a symbol table lookup on it :
 
@@ -418,9 +422,9 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
   // Set the constant name
 
   if (iname)
-    cname = name_member(iname,prefix);
+    cname = Swig_name_member(prefix,iname);
   else
-    cname = name_member(name,prefix);
+    cname = Swig_name_member(prefix,name);
 
   // Now do a symbol table lookup on it :
 
@@ -478,9 +482,9 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
   // Create the variable name
   
   if (iname) 
-    cname = name_member(iname,prefix);
+    cname = Swig_name_member(prefix,iname);
   else
-    cname = name_member(name,prefix);
+    cname = Swig_name_member(prefix,name);
 
   // Now do a symbol table lookup on it :
 

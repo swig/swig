@@ -13,6 +13,10 @@
  * ----------------------------------------------------------------------------- */
 
 #include "internal.h"
+extern "C" {
+#include "swig.h"
+}
+
 
 static char cvsroot[] = "$Header$";
 
@@ -442,11 +446,11 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       if ((t->type == T_USER) && (!t->is_pointer)) {
 	t->is_pointer++;
 	fprintf(f_header,"static %s %s(%s val) {\n",
-		t->print_type(), name_set(name), t->print_type());
+		t->print_type(), Swig_name_set(name), t->print_type());
 	t->is_pointer--;
       } else {
 	fprintf(f_header,"static %s %s(%s val) {\n",
-		t->print_type(), name_set(name), t->print_type());
+		t->print_type(), Swig_name_set(name), t->print_type());
       }
 
       if ((t->type != T_VOID) || (t->is_pointer)) {
@@ -498,8 +502,8 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       p->name[0] = 0;
       l->append(p);
 
-      new_name = name_set(name);
-      new_iname = name_set(iname);
+      new_name = Swig_name_set(name);
+      new_iname = Swig_name_set(iname);
 
       if ((t->type == T_USER) && (!t->is_pointer)) {
 	t->is_pointer++;
@@ -517,12 +521,12 @@ void emit_set_get(char *name, char *iname, DataType *t) {
     if ((t->type == T_USER) && (!t->is_pointer)) {
       t->is_pointer++;
       fprintf(f_header,"static %s %s() { \n",
-	      t->print_type(), name_get(name));
+	      t->print_type(), Swig_name_get(name));
       fprintf(f_header,"\t return (%s) &%s;\n", t->print_type(), name);
       t->is_pointer--;
     } else {
       fprintf(f_header,"static %s %s() { \n",
-	      t->print_type(), name_get(name));
+	      t->print_type(), Swig_name_get(name));
       fprintf(f_header,"\t return (%s) %s;\n", t->print_type(), name);
     }
 
@@ -532,8 +536,8 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
     l = new ParmList;
 
-    new_name = name_get(name);
-    new_iname = name_get(iname);
+    new_name = Swig_name_get(name);
+    new_iname = Swig_name_get(iname);
 
     if ((t->type == T_USER) && (!t->is_pointer)) {
       t->is_pointer++;

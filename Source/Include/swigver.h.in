@@ -1,5 +1,10 @@
 
 /* SWIG version information */
 
+#ifndef SWIG_VERSION
 #define SWIG_VERSION "@SWIG_VERSION@"
+#endif
+
+#ifndef SWIG_SPIN
 #define SWIG_SPIN "@SWIG_SPIN@"
+#endif

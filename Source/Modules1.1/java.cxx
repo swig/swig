@@ -441,10 +441,10 @@ void JAVA::initialize()
   sprintf(bigbuf, "Java_%s%s", c_pkgstr, module);
   c_pkgstr = copy_string(bigbuf);
   sprintf(bigbuf, "%s_%%f", c_pkgstr);
-  name_register((char*)"wrapper", copy_string(bigbuf));
-  name_register((char*)"set", (char*)"set_%v");
-  name_register((char*)"get", (char*)"get_%v");
-  name_register((char*)"member", (char*)"%c_%f"); 
+  Swig_name_register("wrapper", copy_string(bigbuf));
+  Swig_name_register("set", "set_%v");
+  Swig_name_register("get", "get_%v");
+  Swig_name_register("member", "%c_%m"); 
  
   // Generate the java class
   sprintf(bigbuf, "%s.java", module);
@@ -524,7 +524,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   // Make a wrapper name for this function
   
   char *jniname = makeValidJniName(iname);
-  char *wname = name_wrapper(jniname,package);
+  char *wname = Swig_name_wrapper(jniname);
   free(jniname);
 
   char *jnirettype = JavaTypeFromTypemap((char*)"jni", typemap_lang, t, iname);
@@ -546,7 +546,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   fprintf(f_java, "native %s %s(", javarettype, iname);
   if(shadow && member_func) {
     String member_name = "";
-    if(strcmp(iname, name_set(name_member(shadow_name, shadow_classname))) == 0)
+    if(strcmp(iname, Swig_name_set(Swig_name_member(shadow_classname, shadow_name))) == 0)
 	member_name << "set";
     else member_name << "get";
     member_name << (char) toupper((int) *shadow_name);
@@ -1032,7 +1032,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       nativecall << "new " << shadowrettype << "(new Long(";
     }
   }
-  nativecall << module << "." << name_member(iname, shadow_classname) << "(_self";
+  nativecall << module << "." << Swig_name_member(shadow_classname,iname) << "(_self";
 
   int pcount = l->nparms;
 
@@ -1100,7 +1100,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
       nativecall << "new " << shadowrettype << "(new Long(";
     }
   }
-  nativecall << module << "." << name_member(iname, shadow_classname) << "(";
+  nativecall << module << "." << Swig_name_member(shadow_classname,iname) << "(";
 
   int pcount = l->nparms;
   int gencomma = 0;
@@ -1162,9 +1162,9 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
 
   nativecall << "    if(_self == 0 && " << shadow_classname << ".class == _selfClass()) {\n";
   if (iname != NULL)
-      nativecall << tab8 << " _self = "  << module << "." << name_construct(iname) << "(";
+      nativecall << tab8 << " _self = "  << module << "." << Swig_name_construct(iname) << "(";
   else
-      nativecall << tab8 << " _self = "  << module << "." << name_construct(shadow_classname) << "(";
+      nativecall << tab8 << " _self = "  << module << "." << Swig_name_construct(shadow_classname) << "(";
 
   int pcount = l->nparms;
   if(pcount == 0)  // We must have a default constructor
@@ -1227,7 +1227,7 @@ void JAVA::cpp_destructor(char *name, char *newname) {
 
   fprintf(f_shadow, "  public void _delete() {\n");
   fprintf(f_shadow, "    if(_self != 0 && %s.class == _selfClass()) {\n", shadow_classname);
-  fprintf(f_shadow, "\t%s.%s(_self);\n", module, name_destroy(realname));
+  fprintf(f_shadow, "\t%s.%s(_self);\n", module, Swig_name_destroy(realname));
   fprintf(f_shadow, "\t_self = 0;\n");
   fprintf(f_shadow, "    }\n");
   fprintf(f_shadow, "  }\n\n");

@@ -22,10 +22,6 @@
 
 #include "doh.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* --- File interface --- */
 
 extern void        Swig_add_directory(const DOHString_or_char *dirname);
@@ -143,52 +139,6 @@ extern int         StringType_isstruct(DOHString *t);
 extern int         StringType_isqualifier(DOHString *t);
 extern DOHString  *StringType_base(DOHString *t);
 
-/* --- NEW Type system --- */
-
-   /* constructors */
-DOH *SwigType_fromstring(DOH *string);
-DOH *SwigType_new(int type, DOH *tag, DOH *contents, DOH *parent, int width);
-
-DOH *SwigType_integer(int width);
-DOH *SwigType_unsigned(int width);
-DOH *SwigType_character(int width);
-DOH *SwigType_float(int width);
-DOH *SwigType_void();
-DOH *SwigType_name(DOH *tag);
-DOH *SwigType_enum(DOH *tag, DOH *contents);
-DOH *SwigType_struct(DOH *tag, DOH *contents);
-DOH *SwigType_union(DOH *tag, DOH *contents);
-
-DOH *SwigType_array(DOH *size, DOH *parent);
-DOH *SwigType_function(DOH *parameters, DOH *parent);
-DOH *SwigType_pointer(DOH *parent);
-DOH *SwigType_qualifier(DOH *tag, DOH *parent);
-
-   /* accessors -- return information about the outermost
-      constructor. */
-int SwigType_get_type(DOH *t);
-int SwigType_get_width(DOH *t);
-DOH *SwigType_get_tag(DOH *t);
-DOH *SwigType_get_contents(DOH *t);
-
-   /* Type constants (returned from SwigType_gettype) */
-
-#define SWIGTYPE_INTEGER 0
-#define SWIGTYPE_UNSIGNED 1
-#define SWIGTYPE_CHARACTER 2
-#define SWIGTYPE_FLOAT 3
-#define SWIGTYPE_VOID 4
-#define SWIGTYPE_NAME 5
-#define SWIGTYPE_ENUM 6
-#define SWIGTYPE_STRUCT 7
-#define SWIGTYPE_UNION 8
-#define SWIGTYPE_CLASS 9
-#define SWIGTYPE_ARRAY 10
-#define SWIGTYPE_FUNCTION 11
-#define SWIGTYPE_POINTER 12
-#define SWIGTYPE_REFERENCE 13
-#define SWIGTYPE_QUALIFIER 14
-
 /* --- Parse tree support --- */
 
 typedef struct {
@@ -202,7 +152,7 @@ extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
 extern int  Swig_emit(DOH *obj, void *clientdata);
 
-  /* -- Wrapper function Object */
+/* -- Wrapper function Object */
 
 typedef struct {
   DOHHash   *localh;
@@ -217,13 +167,20 @@ extern void         SwigWrapper_print(SwigWrapper *w, DOHFile *f);
 extern int          SwigWrapper_add_local(SwigWrapper *w, DOHString_or_char *decl, DOHString_or_char *name);
 extern int          SwigWrapper_check_local(SwigWrapper *w, DOHString_or_char *name);
 
+/* --- Naming functions --- */
+
+extern void        Swig_name_register(DOHString_or_char *method, DOHString_or_char *format);
+extern char       *Swig_name_mangle(DOHString_or_char *s);
+extern char       *Swig_name_wrapper(DOHString_or_char *fname);
+extern char       *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname);
+extern char       *Swig_name_get(DOHString_or_char *vname);
+extern char       *Swig_name_set(DOHString_or_char *vname);
+extern char       *Swig_name_construct(DOHString_or_char *classname);
+extern char       *Swig_name_destroy(DOHString_or_char *classname);
+
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
 extern void  Swig_banner(DOHFile *f);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

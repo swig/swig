@@ -29,6 +29,20 @@ static char cvsroot[] = "$Header$";
 #include "internal.h"
 #include <ctype.h>
 
+extern "C" {
+#include "doh.h"
+}
+
+WrapperFunction::WrapperFunction() {
+  h = NewHash();
+  localh = NewHash();
+}
+
+WrapperFunction::~WrapperFunction() {
+  Delete(h);
+  Delete(localh);
+}
+
 // -------------------------------------------------------------------
 // isolate the type name.  This is a hack (sorry).
 // -------------------------------------------------------------------
@@ -52,12 +66,15 @@ static char *isolate_type_name(char *tname) {
 
 void WrapperFunction::print(FILE *f) {
   String *s;
-  s = (String *) localh.first();
-  while (s) {
+  DOH  *key;
+  
+  key = Firstkey(localh);
+  while (key) {
+    s = (String *) GetVoid(localh,key);
     char *c = s->get();
     c[strlen(c)-1] = 0;
     locals << tab4 << c << ";\n";
-    s = (String *) localh.next();
+    key = Nextkey(localh);
   }
   fprintf(f,"%s\n",def.get());
   fprintf(f,"%s",locals.get());
@@ -70,12 +87,14 @@ void WrapperFunction::print(FILE *f) {
 
 void WrapperFunction::print(String &f) {
   String *s;
-  s = (String *) localh.first();
-  while (s) {
+  DOH *key;
+  key = Firstkey(localh);
+  while (key) {
+    s = (String *) GetVoid(localh,key);
     char *c = s->get();
     c[strlen(c)-1] = 0;
     locals << tab4 << c << ";\n";
-    s = (String *) localh.next();
+    key = Nextkey(localh);
   }
 
   f << def << "\n"
@@ -106,23 +125,25 @@ void WrapperFunction::add_local(char *type, char *name, char *defarg) {
     c++;
   }
   *t = 0;
-  if (h.add(temp,new_type,WrapperFunction::del_type) == -1) {
+  if (Getattr(h,temp)) {
     // Check to see if a type mismatch has occurred
-    stored_type = (char *) h.lookup(temp);
+    stored_type = GetChar(h,temp);
     if (strcmp(type,stored_type) != 0) 
       fprintf(stderr,"Error. Type %s conflicts with previously declared type of %s\n",
 	      type, stored_type);
     return;    
+  } else {
+    SetChar(h,temp,new_type);
   }
 
   // See if any wrappers have been generated with this type 
 
   char *tname = isolate_type_name(type);
-  String *lstr = (String *)localh.lookup(tname);
+  String *lstr = (String *) GetVoid(localh,tname);
   if (!lstr) {
     lstr = new String;
     *(lstr) << tname << " ";
-    localh.add(tname, (void *) lstr);
+    SetVoid(localh,tname,lstr);
   }
   
   // Successful, write some wrapper code
@@ -158,7 +179,7 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
     new_name << *c;
 
   // Try to add a new local variable
-  if (h.add(new_name,new_type,WrapperFunction::del_type) == -1) {
+  if (Getattr(h,new_name.get())) {
     // Local variable already exists, try to generate a new name
     int i = 0;
     new_name = "";
@@ -169,7 +190,7 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
     for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
       new_name << *c;
     new_name << i;
-    while (h.add(new_name,new_type,WrapperFunction::del_type) == -1) {
+    while (Getattr(h,new_name.get())) {
       i++;
       c = name;
       new_name = "";
@@ -177,6 +198,9 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
 	new_name << *c;
       new_name << i;
     }
+    Setattr(h,new_name.get(),new_type);
+  } else {
+    Setattr(h,new_name.get(),new_type);
   }
   new_name << c;
   // Successful, write some wrapper code
