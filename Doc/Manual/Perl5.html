@@ -1815,7 +1815,7 @@ reference to be used as a char ** datatype.<p>
 	$1 = (char **) malloc((len+2)*sizeof(char *));
 	for (i = 0; i &lt;= len; i++) {
 	    tv = av_fetch(tempav, i, 0);	
-	    $1[i] = (char *) SvPV(*tv,na);
+	    $1[i] = (char *) SvPV(*tv,PL_na);
         }
 	$1[i] = NULL;
 };
