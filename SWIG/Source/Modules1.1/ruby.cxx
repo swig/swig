@@ -84,7 +84,7 @@ class RClass {
     Clear(vname);
     Printf(vname,"c%s.klass",name);
     Clear(prefix);
-    Printv(prefix,(rn ? rn : cn), "_", 0);
+    Printv(prefix,(rn ? rn : cn), "_", NULL);
   }
 
   char *strip(char *s) {
@@ -280,19 +280,19 @@ int RUBY::top(Node *n) {
 	 "int i;\n",
 	 other_init,
 	 "\n",
-	 0);
+	 NULL);
 
-  Printv(f_init, tab4, "SWIG_InitRuntime();\n", 0);
+  Printv(f_init, tab4, "SWIG_InitRuntime();\n", NULL);
   
   Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	 0);
+	 NULL);
   Printv(f_init,
 	 "\n",
 	 "for (i = 0; swig_types_initial[i]; i++) {\n",
 	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
 	 "SWIG_define_class(swig_types[i]);\n",
 	 "}\n",
-	 0);
+	 NULL);
   Printf(f_init,"\n");
   klass = new RClass();
 
@@ -399,17 +399,17 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
   switch (current) {
   case MEMBER_FUNC:
     Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	   iname, "\", ", wname, ", ", argcs, ");\n", 0);
+	   iname, "\", ", wname, ", ", argcs, ");\n", NULL);
 
     break;
   case CONSTRUCTOR_NEW:
     Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
-	   ", \"new\", ", wname, ", -1);\n", 0);
+	   ", \"new\", ", wname, ", -1);\n", NULL);
     Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
     break;
   case CONSTRUCTOR_INITIALIZE:
     Printv(s, tab4, "rb_define_method(", klass->vname,
-	   ", \"initialize\", ", wname, ", ", argcs, ");\n", 0);
+	   ", \"initialize\", ", wname, ", ", argcs, ");\n", NULL);
     Replace(klass->init,"$initializer", s, DOH_REPLACE_ANY);
     break;
   case MEMBER_VAR:
@@ -417,16 +417,16 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
     Replace(temp,"_set", "=", DOH_REPLACE_ANY);
     Replace(temp,"_get", "", DOH_REPLACE_ANY);
     Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	   temp, "\", ", wname, ", ", argcs, ");\n", 0);
+	   temp, "\", ", wname, ", ", argcs, ");\n", NULL);
     break;
   case STATIC_FUNC:
     Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
-	   ", \"", iname, "\", ", wname, ", ", argcs, ");\n", 0);
+	   ", \"", iname, "\", ", wname, ", ", argcs, ");\n", NULL);
     break;
   default:
     Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
-	   iname, "\", ", wname, ", ", argcs, ");\n",0);
-    Printv(f_init,s,0);
+	   iname, "\", ", wname, ", ", argcs, ");\n",NULL);
+    Printv(f_init,s,NULL);
     break;
   }
   Delete(s);
@@ -502,7 +502,7 @@ void RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f) {
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",0);
+      Printv(f->code,tm,"\n",NULL);
       p = Getattr(p,"tmap:check:next");
     } else {
       p = nextSibling(p);
@@ -523,7 +523,7 @@ void RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
   for (Parm *p = l; p; ) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      Printv(cleanup,tm,"\n",0);
+      Printv(cleanup,tm,"\n",NULL);
       p = Getattr(p,"tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -549,7 +549,7 @@ void RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
       Replace(tm,"$result","vresult",DOH_REPLACE_ANY);
       Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-      Printv(outarg,tm,"\n",0);
+      Printv(outarg,tm,"\n",NULL);
       need_result = 1;
       p = Getattr(p,"tmap:argout:next");
     } else {
@@ -618,7 +618,7 @@ int RUBY::functionWrapper(Node *n) {
   /* Generate wrapper safe for all argument list sizes */
   
   /* Now write the wrapper function itself */
-  Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", 0);
+  Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NULL);
 
   if (current != CONSTRUCTOR_NEW) {
     Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
@@ -652,7 +652,7 @@ int RUBY::functionWrapper(Node *n) {
   if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_NEW && current != CONSTRUCTOR_INITIALIZE) {
     need_result = 1;
     if (predicate) {
-      Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
+      Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NULL);
     } else {
       tm = Swig_typemap_lookup_new("out",n,"result",0);
       if (tm) {
@@ -660,7 +660,7 @@ int RUBY::functionWrapper(Node *n) {
 	Replaceall(tm,"$source","result");
 	Replaceall(tm,"$target","vresult");
 	Replaceall(tm,"$owner", newobj ? "1" : "0");
-        Printv(f->code, tm, "\n", 0);
+        Printv(f->code, tm, "\n", NULL);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
 	       input_file,line_number,SwigType_str(t,0));
@@ -679,45 +679,45 @@ int RUBY::functionWrapper(Node *n) {
   }
 
   /* Dump argument output code; */
-  Printv(f->code,outarg,0);
+  Printv(f->code,outarg,NULL);
 
   /* Dump the argument cleanup code */
   if (current != CONSTRUCTOR_NEW)
-    Printv(f->code,cleanup,0);
+    Printv(f->code,cleanup,NULL);
 
   /* Look for any remaining cleanup.  This processes the %new directive */
   if (newobj) {
     tm = Swig_typemap_lookup_new("newfree",n,"result",0);
     if (tm) {
       Replaceall(tm,"$source","result");
-      Printv(f->code,tm, "\n",0);
+      Printv(f->code,tm, "\n",NULL);
     }
   }
 
   /* free pragma */
   if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname)) {
-    Printv(f->code, tab4, "DATA_PTR(self) = 0;\n", 0);
+    Printv(f->code, tab4, "DATA_PTR(self) = 0;\n", NULL);
   }
 
   /* Special processing on return value. */
   tm = Swig_typemap_lookup_new("ret",n,"result",0);
   if (tm) {
     Replaceall(tm,"$source","result");
-    Printv(f->code,tm, 0);
+    Printv(f->code,tm, NULL);
   }
 
   /* Wrap things up (in a manner of speaking) */
   if (need_result) {
     if (current == CONSTRUCTOR_NEW) {
-      Printv(f->code, tab4, "return vresult;\n}\n", 0);
+      Printv(f->code, tab4, "return vresult;\n}\n", NULL);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
-      Printv(f->code, tab4, "return self;\n}\n", 0);
+      Printv(f->code, tab4, "return self;\n}\n", NULL);
     } else {
       Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
-      Printv(f->code, tab4, "return vresult;\n}\n", 0);
+      Printv(f->code, tab4, "return vresult;\n}\n", NULL);
     }
   } else {
-    Printv(f->code, tab4, "return Qnil;\n}\n", 0);
+    Printv(f->code, tab4, "return Qnil;\n}\n", NULL);
   }
 
   /* Substitute the cleanup code */
@@ -754,7 +754,7 @@ int RUBY::variableWrapper(Node *n) {
 
   /* create getter */
   getfname = NewString(Swig_name_get(name));
-  Printv(getf->def, "static VALUE\n", getfname, "(", 0);
+  Printv(getf->def, "static VALUE\n", getfname, "(", NULL);
   Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
   Wrapper_add_local(getf,"_val","VALUE _val");
@@ -764,12 +764,12 @@ int RUBY::variableWrapper(Node *n) {
     Replaceall(tm,"$result","_val");
     Replaceall(tm,"$target","_val");
     Replaceall(tm,"$source",name);
-    Printv(getf->code,tm, 0);
+    Printv(getf->code,tm, NULL);
   } else {
     Printf(stderr,"%s : Line %d. Unable to link with variable type %s\n",
 	   input_file,line_number,SwigType_str(t,0));
   }
-  Printv(getf->code, tab4, "return _val;\n}\n", 0);
+  Printv(getf->code, tab4, "return _val;\n}\n", NULL);
   Wrapper_print(getf,f_wrappers);
 
   if (ReadOnly) {
@@ -777,7 +777,7 @@ int RUBY::variableWrapper(Node *n) {
   } else {
     /* create setter */
     setfname = NewString(Swig_name_set(name));
-    Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
+    Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", NULL);
     Printf(setf->def, "VALUE _val) {");
     
     tm = Swig_typemap_lookup_new("varin",n,name,0);
@@ -785,11 +785,11 @@ int RUBY::variableWrapper(Node *n) {
       Replaceall(tm,"$input","_val");
       Replaceall(tm,"$source","_val");
       Replaceall(tm,"$target",name);
-      Printv(setf->code,tm,"\n",0);
+      Printv(setf->code,tm,"\n",NULL);
     } else {
       Printf(stderr,"%s:%d.  Unable to link with variable type %s\n", input_file, line_number, SwigType_str(t,0));
     }
-    Printv(setf->code, tab4, "return _val;\n",0);
+    Printv(setf->code, tab4, "return _val;\n",NULL);
     Printf(setf->code,"}\n");
     Wrapper_print(setf,f_wrappers);
   }
@@ -809,14 +809,14 @@ int RUBY::variableWrapper(Node *n) {
     Printv(s,
 	   tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	   klass->strip(iname), "\", ", getfname, ", 0);\n",
-	   0);
+	   NULL);
     if (!ReadOnly) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	     klass->strip(iname), "=\", ", setfname, ", 1);\n",
-	     0);
+	     NULL);
     }
-    Printv(klass->init,s,0);
+    Printv(klass->init,s,NULL);
     break;
   default:
     /* C global variable */
@@ -824,14 +824,14 @@ int RUBY::variableWrapper(Node *n) {
     Printv(s,
 	   tab4, "rb_define_singleton_method(", modvar, ", \"",
 	   iname, "\", ", getfname, ", 0);\n",
-	   0);
+	   NULL);
     if (!ReadOnly) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", modvar, ", \"",
 	     iname, "=\", ", setfname, ", 1);\n",
-	     0);
+	     NULL);
     }
-    Printv(f_init,s,0);
+    Printv(f_init,s,NULL);
     Delete(s);
     break;
   }
@@ -892,7 +892,7 @@ int RUBY::constantWrapper(Node *n) {
     Replaceall(tm,"$value",value);
     if (current == CLASS_CONST) {
       Replaceall(tm,"$module", klass->vname);
-      Printv(klass->init, tm, "\n", 0);
+      Printv(klass->init, tm, "\n", NULL);
     } else {
       Replaceall(tm,"$module", modvar);
       Printf(f_init,"%s\n", tm);
@@ -925,11 +925,11 @@ int RUBY::classHandler(Node *n) {
   klass->set_name(cname,rename,Char(valid_name));
 
   Clear(klass->type);
-  Printv(klass->type, Getattr(n,"classtype"), 0);
-  Printv(klass->header, "\nswig_class c", valid_name, ";\n", 0);
-  Printv(klass->init, "\n", tab4, 0);
+  Printv(klass->type, Getattr(n,"classtype"), NULL);
+  Printv(klass->header, "\nswig_class c", valid_name, ";\n", NULL);
+  Printv(klass->init, "\n", tab4, NULL);
   Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
-	 ", \"", klass->name, "\", $super);\n", 0);
+	 ", \"", klass->name, "\", $super);\n", NULL);
 
   {
     // SwigType *tt = NewString(klass->name);
@@ -941,13 +941,13 @@ int RUBY::classHandler(Node *n) {
   }
 
   Replace(klass->includes,"$class", klass->vname, DOH_REPLACE_ANY);
-  Printv(klass->init, klass->includes,0);
-  Printv(klass->init, "$constructor",0);
-  Printv(klass->init, "$initializer",0);
+  Printv(klass->init, klass->includes,NULL);
+  Printv(klass->init, "$constructor",NULL);
+  Printv(klass->init, "$initializer",NULL);
 
   Printv(klass->header,
 	 "$freeproto",
-	 0);
+	 NULL);
 
   Language::classHandler(n);
 
@@ -958,7 +958,7 @@ int RUBY::classHandler(Node *n) {
     while (base) {
       RClass *super = RCLASS(classes, Getattr(base,"name"));
       if (super) {
-        Printv(f_wrappers,"extern swig_class c", super->name, ";\n", 0);
+        Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
 	Replaceall(klass->init,"$super",super->vname);
 	break;
       }
@@ -984,19 +984,19 @@ int RUBY::classHandler(Node *n) {
   }
   Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
 
-  Printv(f_header, klass->header,0);
+  Printv(f_header, klass->header,NULL);
 
   Replace(klass->aliases,"$class", klass->vname, DOH_REPLACE_ANY);
-  Printv(klass->init, klass->aliases,0);
+  Printv(klass->init, klass->aliases,NULL);
 
   String *s = NewString("");
   Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
-	 "), \"new\");\n", 0);
+	 "), \"new\");\n", NULL);
   Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
   Replace(klass->init,"$initializer", "", DOH_REPLACE_ANY);
   Replace(klass->init,"$super", "rb_cObject", DOH_REPLACE_ANY);
 
-  Printv(f_init,klass->init,0);
+  Printv(f_init,klass->init,NULL);
   klass = 0;
   return SWIG_OK;
 }
@@ -1066,13 +1066,13 @@ int RUBY::destructorHandler(Node *n) {
   String *freeproto = NewString("");
   String *freebody = NewString("");
   
-  Printv(freefunc, "free_", klass->cname, 0);
-  Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
+  Printv(freefunc, "free_", klass->cname, NULL);
+  Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", NULL);
   Printv(freebody, "static void\n",
 	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
-  	 tab4, 0);
+  	 tab4, NULL);
   if (AddMethods) {
-    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
+    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL);
   } else {
     /* When no addmethods mode, swig emits no destroy function. */
     if (CPlusPlus)
@@ -1080,10 +1080,10 @@ int RUBY::destructorHandler(Node *n) {
     else
       Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
   }
-  Printv(freebody, ";\n}\n", 0);
+  Printv(freebody, ";\n}\n", NULL);
   
   Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
-  Printv(f_wrappers, freebody, 0);
+  Printv(f_wrappers, freebody, NULL);
   
   klass->destructor_defined = 1;
   current = NO_CPP;
