@@ -40,6 +40,9 @@ public class java_typemaps_proxy_runme {
     // Make sure the modified version works with and without null objects.
     Greeting.ciao(null);
     Greeting.ciao(greet);
+
+    // Create a NULL pointer for Farewell using the constructor with changed modifiers
+    Farewell nullFarewell = new Farewell(0, false);
   }
 }
 

@@ -37,6 +37,9 @@ public class java_typemaps_typewrapper_runme {
     // Make sure the modified version works with and without null objects.
     java_typemaps_typewrapper.solong(null);
     java_typemaps_typewrapper.solong(bye);
+
+    // Create a NULL pointer for Farewell using the constructor with changed modifiers
+    SWIGTYPE_p_Farewell nullFarewell = new SWIGTYPE_p_Farewell(0, false);
   }
 }
 

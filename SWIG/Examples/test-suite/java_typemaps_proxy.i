@@ -38,6 +38,9 @@ import java.lang.*; // for Exception
 // get rid of the finalize method for Farewell
 %typemap(javafinalize) Farewell "";
 
+// Make the pointer constructor public
+%typemap(javaptrconstructormodifiers) Farewell "public";
+
 
 %inline %{
 class Greeting {

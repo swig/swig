@@ -42,6 +42,9 @@ import java.lang.*; // for Exception
   }
 %}
 
+// Make the pointer constructor public
+%typemap(javaptrconstructormodifiers) Farewell * "public";
+
 
 %{
 class Greeting {};
