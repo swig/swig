@@ -268,13 +268,9 @@ CPP_TEST_CASES += \
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
-	arrayptr \
 	arrays \
 	char_constant \
 	const_const \
-	cpp_macro_noarg \
-	defineop \
-	defines \
 	enums \
 	function_typedef \
 	inctest \
@@ -285,17 +281,11 @@ C_TEST_CASES += \
 	lib_cpointer \
 	lib_math \
 	long_long \
-	macro_2 \
 	name \
 	nested \
 	newobject2 \
 	overload_extendc \
-	preproc_1 \
-	preproc_2 \
-	preproc_3 \
-	preproc_4 \
-	preproc_5 \
-	preproc_6 \
+	preproc \
 	ret_by_value \
 	sizeof_pointer \
 	sneaky1 \

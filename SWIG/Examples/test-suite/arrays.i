@@ -49,3 +49,11 @@ int getintfrompointer(int* intptr) {
 
 %}
 
+// This tests wrapping of function that involves pointer to array
+
+
+%inline %{
+void array_pointer_func(int (*x)[10]) {}
+%}
+
+
