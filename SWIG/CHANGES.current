@@ -1,6 +1,129 @@
 Version 1.3.23 (in progress)
 ==================================
 
+04/11/2004: wsfulton
+            Changes to the way default arguments are wrapped. Previously a single
+            method was generated for each method that had default arguments. If
+            a method had 5 arguments, say, of which 1 had a default argument
+            then the call to the wrapped method would pass 5 arguments. The default
+            value was copied into the wrapper method and used if the scripting
+            language passed just 4 arguments. However, this was flawed as the
+            default argument sometimes does not have global access, for example
+            SWIG would generate code that couldn't compile when wrapping:
+
+              class Tricky {
+              public:
+                void foo(int val = privatevalue);
+                void bar(int val = Tricky::getDefault());
+              private:
+                static int getDefault();
+                enum { privatevalue = 200 };
+              };
+
+            Also bugs in resolving symbols generated code that wouldn't compile, for example
+            (probably fixable though):
+
+              namespace Space {
+                class Klass {
+                };
+                Klass constructorcall(const Klass& k = Klass());
+              }
+
+            The approach also does not work for statically typed languages (C# and Java)
+            as these languages do not allow methods to have variable number of arguments.
+            Although C# has a mechanism to pass a variable number of arguments they
+            must be of the same type and are more like varargs.
+
+            The new approach solves the above problems and wraps methods with default
+            arguments as if the method was overloaded. So SWIG will now treat
+
+              void foo(int val=0);
+
+            as if it had parsed:
+
+              void foo(int);
+              void foo();
+
+            The code generated is then exactly the same as if SWIG had parsed the two
+            overloaded methods. The scripting languages count the arguments passed and call
+            the appropriate method, just like overloaded methods. C# and Java are now able
+            to properly wrap methods with default arguments by generating extra methods,
+            again as if the method was overloaded, so for:
+
+              void bar(string s="hello", double d=10.0, int i=0);
+
+            the following proxy methods are generated:
+
+              void bar(string s, double d, int i);
+              void bar(string s, double d);
+              void bar(string s);
+              void bar();
+
+            The new approach comes with a couple of minor knock on effects.
+
+            1) SWIG support for default arguments for C (not C++) code no longer works.
+            Previously you could have this interface:
+
+              %{
+              void foo(int val);
+              %}
+              void foo(int val=0);
+
+            and call the wrapped method from a scripting language and pass no arguments
+            whereupon the default of 0 was used. You can get the same behaviour for C
+            code by using the "default" typemap:
+
+              %typemap(default) int val "$1 = 0;";
+              %{
+              void foo(int val);
+              %}
+              void foo(int val);
+
+            or you could of course compile your code as C++ if you want C++ features :) :
+
+              %{
+              void foo(int val=0);
+              %}
+              void foo(int val=0);
+
+            A couple of SWIG's libraries used this C extension and these have been modified
+            to use the "default" typemap. The "default" typemap is thus unchanged (and still
+            is not and is not fully supported by C# and Java, and is likely to remain so).
+
+
+            2) All features (%feature, %rename, %ignore etc) no longer work as if the method
+            with default arguments is just one method. For example, previously
+
+              %ignore foo(int);
+
+            would have ignored the method completely. Now it will only ignore foo(int) but
+            not the extra foo() method. Instead use:
+
+              %ignore foo;
+
+            to ignore them all. or
+
+              %ignore foo(int);
+              %ignore foo();
+
+            This of course allows one to fine tune the wrapping, for example one could use:
+
+              %rename(fooint) foo(int);
+              %rename(foodefaults) foo();
+              void foo(int val=0);
+
+            and call them from any language like so:
+
+              fooint(200)
+              foodefaults()
+
+            or for example ignore the extra overloaded method, so the defaults cannot be used:
+
+              %ignore foo();
+              void foo(int val=0);
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
 10/2/2004: mmatus
 	   [Python]
 	   - More cleaning up and uniformation on the Python Lib
@@ -170,6 +293,7 @@ Version 1.3.23 (in progress)
 	      to override the default ones.
 
 
+>>>>>>> 1.292
 09/10/2004: wsfulton
             Patch from Bill Clarke which fixes spurious preprocessor bug which
             shows on Solaris and gcc, eg:
