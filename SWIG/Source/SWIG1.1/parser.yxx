@@ -252,8 +252,12 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-    if (Cmp(symname,"$ignore") == 0) {
+    if (strncmp(Char(symname),"$ignore",7) == 0) {
       Seterror(n,NewString("ignored"));
+      char *c = Char(symname)+7;
+      if (strlen(c)) {
+	Printf(stderr,"%s:%d. %s\n", Getfile(n),Getline(n),c+1);
+      }
     } else {
       Node *c = Swig_symbol_add(symname,n);
       if (c != n) {
