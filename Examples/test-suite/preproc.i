@@ -1,6 +1,7 @@
 %module preproc
 
 %warnfilter(801) one; /* Ruby, wrong constant name */
+%warnfilter(801) two; /* Ruby, wrong constant name */
 %warnfilter(801) three; /* Ruby, wrong constant name */
 %warnfilter(801) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
 %warnfilter(801) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
