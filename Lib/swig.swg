@@ -186,6 +186,16 @@ namespace std {
   else $1[0] = 0;
 }
 
+%typemap(memberin) char [] {
+  if ($input) strcpy($1,$input);
+  else $1[0] = 0;
+}
+
+%typemap(globalin) char [] {
+  if ($input) strcpy($1,$input);
+  else $1[0] = 0;
+}
+
 /* memberin typemap for arrays.   */
 
 %typemap(memberin) SWIGTYPE [ANY] {
