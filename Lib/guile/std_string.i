@@ -27,9 +27,9 @@ namespace std {
 
     %typemap(in) string (char* tempptr) {
         if (gh_string_p($input)) {
-            tempptr = gh_scm2newstr($input, NULL);
+            tempptr = SWIG_scm2str($input);
             $1 = std::string(tempptr);
-            if (tempptr) scm_must_free(tempptr);
+            if (tempptr) SWIG_free(tempptr);
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");
         }
@@ -38,9 +38,9 @@ namespace std {
     %typemap(in) const string & (std::string temp,
                                  char* tempptr) {
         if (gh_string_p($input)) {
-            tempptr = gh_scm2newstr($input, NULL);
+            tempptr = SWIG_scm2str($input);
             temp = std::string(tempptr);
-            if (tempptr) scm_must_free(tempptr);
+            if (tempptr) SWIG_free(tempptr);
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "string expected");

@@ -1,13 +1,4 @@
-/* SWIG Configuration File for Guile. -*-c-*-
-   This file is parsed by SWIG before reading any other interface
-   file. */
-
-/* Include headers */
-%insert(runtime) "guiledec.swg"
-
-#ifndef SWIG_NOINCLUDE
-%insert(runtime) "guile.swg"
-#endif
+/* SWIG Configuration File for Guile. -*-c-*-*/
 
 /* Macro for inserting Scheme code into the stub */
 #define %scheme	    %insert("scheme")
@@ -32,20 +23,6 @@
   %pragma(guile) return_multi_doc = "Returns $num_values values: $values."
 %enddef
 
-/* The following definitions are supposed to provide a common API for
-   the supported Scheme dialects, so that typemaps may be shared.  I
-   also plan to adopt Guile's high-level interface (GH) for this
-   purpose. */
-#define SWIG_malloc(size) \
-  SCM_MUST_MALLOC(size)
-#define SWIG_free(mem) \
-  scm_must_free(mem)
-#define SWIG_GetPtr(s, result, type) \
-  SWIG_Guile_GetPtr(s, result, type)
-#define SWIG_MustGetPtr(s, type, argnum) \
-  SWIG_Guile_MustGetPtr(s, type, argnum, FUNC_NAME)
-#define SWIG_MakePtr(ptr, type) \
-  SWIG_Guile_MakePtr(ptr, type)
+#define GUILE_APPEND_RESULT SWIG_APPEND_VALUE
 
-/* Read in standard typemaps. */
 %include "typemaps.i"

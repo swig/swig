@@ -74,20 +74,20 @@ namespace std {
                         SWIG_exception(SWIG_TypeError,"alist expected");
                     key = gh_car(entry);
                     val = gh_cdr(entry);
-                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum);
-                    if (SWIG_GetPtr(val,(void**) &x,
-                                    $descriptor(T *)) != 0) {
+                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
+                    if (SWIG_ConvertPtr(val,(void**) &x,
+                                    $descriptor(T *), 0) != 0) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
                         val = gh_car(val);
-                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum);
+                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     (($1_type &)$1)[*k] = *x;
                     alist = gh_cdr(alist);
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const map<K,T>& (std::map<K,T> temp,
@@ -110,19 +110,19 @@ namespace std {
                         SWIG_exception(SWIG_TypeError,"alist expected");
                     key = gh_car(entry);
                     val = gh_cdr(entry);
-                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum);
-                    if (SWIG_GetPtr(val,(void**) &x,
-                                    $descriptor(T *)) != 0) {
+                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
+                    if (SWIG_ConvertPtr(val,(void**) &x,
+                                    $descriptor(T *), 0) != 0) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
                         val = gh_car(val);
-                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum);
+                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     temp[*k] = *x;
                     alist = gh_cdr(alist);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) map<K,T> {
@@ -131,8 +131,8 @@ namespace std {
                                                   i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
-                SCM k = SWIG_MakePtr(key,$descriptor(K *));
-                SCM x = SWIG_MakePtr(val,$descriptor(T *));
+                SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
+                SCM x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
                 SCM entry = gh_cons(k,x);
                 alist = gh_cons(entry,alist);
             }
@@ -151,17 +151,17 @@ namespace std {
                 if (gh_pair_p(head)) {
                     SCM key = gh_car(head);
                     SCM val = gh_cdr(head);
-                    if (SWIG_GetPtr(key,(void**) &k,
-                                    $descriptor(K *)) != 0) {
+                    if (SWIG_ConvertPtr(key,(void**) &k,
+                                    $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
-                        if (SWIG_GetPtr(val,(void**) &x,
-                                        $descriptor(T *)) == 0) {
+                        if (SWIG_ConvertPtr(val,(void**) &x,
+                                        $descriptor(T *), 0) == 0) {
                             $1 = 1;
                         } else if (gh_pair_p(val)) {
                             val = gh_car(val);
-                            if (SWIG_GetPtr(val,(void**) &x,
-                                            $descriptor(T *)) == 0)
+                            if (SWIG_ConvertPtr(val,(void**) &x,
+                                            $descriptor(T *), 0) == 0)
                                 $1 = 1;
                             else
                                 $1 = 0;
@@ -175,8 +175,8 @@ namespace std {
             } else {
                 /* wrapped map? */
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $&1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $&1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -196,17 +196,17 @@ namespace std {
                 if (gh_pair_p(head)) {
                     SCM key = gh_car(head);
                     SCM val = gh_cdr(head);
-                    if (SWIG_GetPtr(key,(void**) &k,
-                                    $descriptor(K *)) != 0) {
+                    if (SWIG_ConvertPtr(key,(void**) &k,
+                                    $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
-                        if (SWIG_GetPtr(val,(void**) &x,
-                                        $descriptor(T *)) == 0) {
+                        if (SWIG_ConvertPtr(val,(void**) &x,
+                                        $descriptor(T *), 0) == 0) {
                             $1 = 1;
                         } else if (gh_pair_p(val)) {
                             val = gh_car(val);
-                            if (SWIG_GetPtr(val,(void**) &x,
-                                            $descriptor(T *)) == 0)
+                            if (SWIG_ConvertPtr(val,(void**) &x,
+                                            $descriptor(T *), 0) == 0)
                                 $1 = 1;
                             else
                                 $1 = 0;
@@ -220,8 +220,8 @@ namespace std {
             } else {
                 /* wrapped map? */
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -268,7 +268,7 @@ namespace std {
                 for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
                                                       i!=$1.rend(); ++i) {
                     K* key = new K(i->first);
-                    SCM k = SWIG_MakePtr(key,$descriptor(K *));
+                    SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = gh_cons(k,result);
                 }
                 return result;
@@ -299,19 +299,19 @@ namespace std {
                     if (!CHECK(key))
                         SWIG_exception(SWIG_TypeError,
                                        "map<" #K "," #T "> expected");
-                    if (SWIG_GetPtr(val,(void**) &x,
-                                    $descriptor(T *)) != 0) {
+                    if (SWIG_ConvertPtr(val,(void**) &x,
+                                    $descriptor(T *), 0) != 0) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
                         val = gh_car(val);
-                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum);
+                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     (($1_type &)$1)[CONVERT_FROM(key)] = *x;
                     alist = gh_cdr(alist);
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const map<K,T>& (std::map<K,T> temp,
@@ -336,18 +336,18 @@ namespace std {
                     if (!CHECK(key))
                         SWIG_exception(SWIG_TypeError,
                                        "map<" #K "," #T "> expected");
-                    if (SWIG_GetPtr(val,(void**) &x,
-                                    $descriptor(T *)) != 0) {
+                    if (SWIG_ConvertPtr(val,(void**) &x,
+                                    $descriptor(T *), 0) != 0) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
                         val = gh_car(val);
-                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum);
+                        x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
                     temp[CONVERT_FROM(key)] = *x;
                     alist = gh_cdr(alist);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) map<K,T> {
@@ -356,7 +356,7 @@ namespace std {
                                                   i!=$1.rend(); ++i) {
                 T* val = new T(i->second);
                 SCM k = CONVERT_TO(i->first);
-                SCM x = SWIG_MakePtr(val,$descriptor(T *));
+                SCM x = SWIG_NewPointerObj(val,$descriptor(T *), 1);
                 SCM entry = gh_cons(k,x);
                 alist = gh_cons(entry,alist);
             }
@@ -377,13 +377,13 @@ namespace std {
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
-                        if (SWIG_GetPtr(val,(void**) &x,
-                                        $descriptor(T *)) == 0) {
+                        if (SWIG_ConvertPtr(val,(void**) &x,
+                                        $descriptor(T *), 0) == 0) {
                             $1 = 1;
                         } else if (gh_pair_p(val)) {
                             val = gh_car(val);
-                            if (SWIG_GetPtr(val,(void**) &x,
-                                            $descriptor(T *)) == 0)
+                            if (SWIG_ConvertPtr(val,(void**) &x,
+                                            $descriptor(T *), 0) == 0)
                                 $1 = 1;
                             else
                                 $1 = 0;
@@ -397,8 +397,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $&1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $&1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -420,13 +420,13 @@ namespace std {
                     if (!CHECK(key)) {
                         $1 = 0;
                     } else {
-                        if (SWIG_GetPtr(val,(void**) &x,
-                                        $descriptor(T *)) == 0) {
+                        if (SWIG_ConvertPtr(val,(void**) &x,
+                                        $descriptor(T *), 0) == 0) {
                             $1 = 1;
                         } else if (gh_pair_p(val)) {
                             val = gh_car(val);
-                            if (SWIG_GetPtr(val,(void**) &x,
-                                            $descriptor(T *)) == 0)
+                            if (SWIG_ConvertPtr(val,(void**) &x,
+                                            $descriptor(T *), 0) == 0)
                                 $1 = 1;
                             else
                                 $1 = 0;
@@ -440,8 +440,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -512,7 +512,7 @@ namespace std {
                         SWIG_exception(SWIG_TypeError,"alist expected");
                     key = gh_car(entry);
                     val = gh_cdr(entry);
-                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum);
+                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (!CHECK(val)) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
@@ -526,7 +526,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const map<K,T>& (std::map<K,T> temp,
@@ -548,7 +548,7 @@ namespace std {
                         SWIG_exception(SWIG_TypeError,"alist expected");
                     key = gh_car(entry);
                     val = gh_cdr(entry);
-                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum);
+                    k = (K*) SWIG_MustGetPtr(key,$descriptor(K *),$argnum, 0);
                     if (!CHECK(val)) {
                         if (!gh_pair_p(val))
                             SWIG_exception(SWIG_TypeError,"alist expected");
@@ -561,7 +561,7 @@ namespace std {
                     alist = gh_cdr(alist);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) map<K,T> {
@@ -569,7 +569,7 @@ namespace std {
             for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
                                                   i!=$1.rend(); ++i) {
                 K* key = new K(i->first);
-                SCM k = SWIG_MakePtr(key,$descriptor(K *));
+                SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                 SCM x = CONVERT_TO(i->second);
                 SCM entry = gh_cons(k,x);
                 alist = gh_cons(entry,alist);
@@ -588,8 +588,8 @@ namespace std {
                 if (gh_pair_p(head)) {
                     SCM key = gh_car(head);
                     SCM val = gh_cdr(head);
-                    if (SWIG_GetPtr(val,(void **) &k,
-                                    $descriptor(K *)) != 0) {
+                    if (SWIG_ConvertPtr(val,(void **) &k,
+                                    $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
                         if (CHECK(val)) {
@@ -610,8 +610,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $&1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $&1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -630,8 +630,8 @@ namespace std {
                 if (gh_pair_p(head)) {
                     SCM key = gh_car(head);
                     SCM val = gh_cdr(head);
-                    if (SWIG_GetPtr(val,(void **) &k,
-                                    $descriptor(K *)) != 0) {
+                    if (SWIG_ConvertPtr(val,(void **) &k,
+                                    $descriptor(K *), 0) != 0) {
                         $1 = 0;
                     } else {
                         if (CHECK(val)) {
@@ -652,8 +652,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -700,7 +700,7 @@ namespace std {
                 for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
                                                       i!=$1.rend(); ++i) {
                     K* key = new K(i->first);
-                    SCM k = SWIG_MakePtr(key,$descriptor(K *));
+                    SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = gh_cons(k,result);
                 }
                 return result;
@@ -742,7 +742,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const map<K,T>& (std::map<K,T> temp,
@@ -778,7 +778,7 @@ namespace std {
                     alist = gh_cdr(alist);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) map<K,T> {
@@ -824,8 +824,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $&1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $&1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -864,8 +864,8 @@ namespace std {
             } else {
                 // wrapped map?
                 std::map<K,T >* m;
-                if (SWIG_GetPtr($input,(void **) &m,
-                                $1_descriptor) == 0)
+                if (SWIG_ConvertPtr($input,(void **) &m,
+                                $1_descriptor, 0) == 0)
                     $1 = 1;
                 else
                     $1 = 0;

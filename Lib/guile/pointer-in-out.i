@@ -36,7 +36,7 @@
 
 %typemap(in, doc="$NAME is of type <" #SCM_TYPE ">") PTRTYPE *INPUT(PTRTYPE temp)
 {
-    if (SWIG_Guile_GetPtr($input, (void **) &temp, $*descriptor)) {
+    if (SWIG_ConvertPtr($input, (void **) &temp, $*descriptor, 0)) {
 	scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
     }
     $1 = &temp;
@@ -46,7 +46,7 @@
      "$1 = &temp;";
 
 %typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT
-     "SWIG_APPEND_VALUE(SWIG_Guile_MakePtr(*$1, $*descriptor));"; 
+     "SWIG_APPEND_VALUE(SWIG_NewPointerObj(*$1, $*descriptor, 1));"; 
 
 %typemap(in) PTRTYPE *BOTH = PTRTYPE *INPUT;
 %typemap(argout) PTRTYPE *BOTH = PTRTYPE *OUTPUT;
@@ -57,12 +57,12 @@
    SCM_TYPE to the standard pointer typemaps */
 
 %typemap(in, doc="$NAME is of type <" #SCM_TYPE ">") PTRTYPE {
-  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor))
+  if (SWIG_ConvertPtr($input, (void **) &$1, $descriptor, 0))
     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
 %typemap(out, doc="<" #SCM_TYPE ">") PTRTYPE {
-    $result = SWIG_Guile_MakePtr ($1, $descriptor);
+    $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
 }
 
 %enddef

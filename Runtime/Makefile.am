@@ -21,7 +21,7 @@ if !SKIP_PYTHON
 lib_LTLIBRARIES += libswigpy.la
 endif
 if !SKIP_GUILE
-lib_LTLIBRARIES += libswigguile.la
+lib_LTLIBRARIES += libswigguile.la libswigguilescm.la
 endif
 if !SKIP_RUBY
 lib_LTLIBRARIES += libswigrb.la
@@ -87,15 +87,23 @@ libpy.c: $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
 # ----------------------------------------------------------------------
 
 GUILE_INCLUDE = @GUILEINCLUDE@
-GUILE_RUNTIME = $(SWIGLIB)/guile/guiledec.swg $(SWIGLIB)/guile/guile.swg
+GUILE_GH_RUNTIME = $(SWIGLIB)/guile/guile_gh_run.swg
+GUILE_SCM_RUNTIME = $(SWIGLIB)/guile/guile_scm_run.swg
 GUILE_DLNK    = 
 
-libswigguile_la_SOURCES = libguile.c
+libswigguile_la_SOURCES = libguile_gh.c
 libswigguile_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
 libswigguile_la_CFLAGS  = -DSWIG_GLOBAL $(GUILE_INCLUDE)
 
-libguile.c: $(GUILE_RUNTIME)
-	cat $(GUILE_RUNTIME) > libguile.c
+libguile_gh.c: $(GUILE_GH_RUNTIME)
+	cat $(GUILE_GH_RUNTIME) > libguile_gh.c
+
+libswigguilescm_la_SOURCES = libguile_scm.c
+libswigguilescm_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(GUILE_DLNK)
+libswigguilescm_la_CFLAGS = -DSWIG_GLOBAL $(GUILE_INCLUDE)
+
+libguile_scm.c: $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME)
+	cat $(SWIG_TYPECHECK) $(GUILE_SCM_RUNTIME) > libguile_scm.c
 
 # ----------------------------------------------------------------------
 # Ruby run-time library
