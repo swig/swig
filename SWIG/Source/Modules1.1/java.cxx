@@ -466,12 +466,17 @@ void JAVA::emit_classdef() {
 
 int JAVA::nativeWrapper(Node *n) {
 
-  Swig_save(&n,"name",NULL);
-  Setattr(n,"name", Getattr(n,"wrap:name"));
-  native_func = 1;
-  functionWrapper(n);
-  Swig_restore(&n);
-  native_func = 0;
+  if (Getattr(n,"type")) {
+    Swig_save(&n,"name",NULL);
+    Setattr(n,"name", Getattr(n,"wrap:name"));
+    native_func = 1;
+    functionWrapper(n);
+    Swig_restore(&n);
+    native_func = 0;
+  } else {
+    Printf(stderr,"%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n,"wrap:name"));
+  }
+
   return SWIG_OK;
 }
 
