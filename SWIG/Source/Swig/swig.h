@@ -158,6 +158,7 @@ extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_AT           45
 #define   SWIG_TOKEN_DOLLAR       46
 #define   SWIG_TOKEN_CODEBLOCK    47
+#define   SWIG_TOKEN_RSTRING      48
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
