@@ -36,6 +36,15 @@ class string;
     return $imcall;
   }
 
+%typemap(csvarin) string %{
+    set {
+      $imcall;
+    } %}
+%typemap(csvarout) string %{
+    get {
+      return $imcall;
+    } %}
+
 %typemap(typecheck) string = char *;
 
 %typemap(throws) string %{
@@ -57,6 +66,15 @@ class string;
 %typemap(csout) const string & {
     return $imcall;
   }
+
+%typemap(csvarin) const string & %{
+    set {
+      $imcall;
+    } %}
+%typemap(csvarout) const string & %{
+    get {
+      return $imcall;
+    } %}
 
 %typemap(typecheck) const string & = char *;
 
