@@ -654,15 +654,10 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 }
 
 
-/* Some ANSI C typemaps */
-
-%apply long { size_t };
-
-
 /* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
 /* The javain typemap is used for converting function parameter types from the type 
- * used in the proxy or type wrapper class to the type used in the JNI class. */
+ * used in the proxy, module or type wrapper class to the type used in the JNI class. */
 %typemap(javain) bool,               const bool &,
                  char,               const char &,
                  signed char,        const signed char &,
@@ -695,12 +690,11 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
                  float[ANY],
                  double[ANY]
     "$javainput"
-%typemap(javain) void "" /* is this one necessary ? */
 %typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
 %typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
 
 /* The javaout typemap is used for converting function return types from the return type
- * used in the JNI class to the type returned by the proxy or type wrapper class. */
+ * used in the JNI class to the type returned by the proxy, module or type wrapper class. */
 %typemap(javaout) bool,               const bool &,
                   char,               const char &,
                   signed char,        const signed char &,
@@ -717,7 +711,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
                   double,             const double &,
                   char *,
                   enum SWIGTYPE {
-    return $jnicall;
+    return $nativemethod;
   }
 %typemap(javaout) bool[ANY],
                   char[ANY],
@@ -733,16 +727,16 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 /*                unsigned long long[ANY], */
                   float[ANY],
                   double[ANY] {
-    return $jnicall;
+    return $nativemethod;
   }
 %typemap(javaout) void {
-    $jnicall;
+    $nativemethod;
   }
 %typemap(javaout) SWIGTYPE {
-    return new $&javaclassname($jnicall, true);
+    return new $&javaclassname($nativemethod, true);
   }
 %typemap(javaout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
-    return new $javaclassname($jnicall, $owner);
+    return new $javaclassname($nativemethod, $owner);
   }
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
@@ -771,4 +765,8 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 %javamethodmodifiers "public";
 
+
+/* Some ANSI C typemaps */
+
+%apply long { size_t };
 

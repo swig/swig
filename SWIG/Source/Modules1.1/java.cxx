@@ -1351,7 +1351,7 @@ class JAVA : public Language {
       else
         Replaceall(tm,"$owner","false");
       substituteJavaclassname(t, tm);
-      Replaceall(tm, "$jnicall", nativecall);
+      Replaceall(tm, "$nativemethod", nativecall);
       Printf(shadow_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
@@ -1648,7 +1648,7 @@ class JAVA : public Language {
       else
         Replaceall(tm,"$owner","false");
       substituteJavaclassname(t, tm);
-      Replaceall(tm, "$jnicall", nativecall);
+      Replaceall(tm, "$nativemethod", nativecall);
       Printf(module_class_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
