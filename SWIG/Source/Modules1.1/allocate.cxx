@@ -60,6 +60,47 @@ class Allocate : public Dispatcher {
     return 0;
   }
 
+  /* Grab methods used by smart pointers */
+
+  List *smart_pointer_methods(Node *cls, List *methods) {
+    if (!methods) {
+      methods = NewList();
+    }
+    
+    Node *c = firstChild(cls);
+    String *kind = Getattr(cls,"kind");
+    int mode;
+    if (Strcmp(kind,"class") == 0) mode = PRIVATE;
+    else mode = PUBLIC;
+    
+    while (c) {
+      if (Getattr(c,"error") || Getattr(c,"feature:ignore")) {
+	c = nextSibling(c);
+	continue;
+      }
+      if (mode == PUBLIC) {
+	if (Strcmp(nodeType(c),"cdecl") == 0) {
+	  if (!Getattr(c,"feature:ignore")) {
+	    String *storage = Getattr(c,"storage");
+	    if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
+	      Node *cc = copyNode(c);
+	      Setattr(cc,"parms", CopyParmList(Getattr(c,"parms")));
+	      Append(methods,cc);
+	    }
+	  }
+	}
+      }
+
+      if (Strcmp(nodeType(c),"access") == 0) {
+	kind = Getattr(c,"kind");
+	if (Strcmp(kind,"public") == 0) mode = PUBLIC;
+	else mode = PRIVATE;
+      }
+      c = nextSibling(c);
+    }
+    return methods;
+  }
+
 public:
   virtual int top(Node *n) {
     cplus_mode = PUBLIC;
@@ -196,7 +237,15 @@ public:
       } else {
 	/* Look for smart pointer operator */
 	if (Strcmp(name,"operator ->") == 0) {
-	  Setattr(inclass,"allocate:smartpointer",n);
+	  /* Look for version with no parameters */
+	  if (!Getattr(n,"parms")) {
+	    SwigType *type = Getattr(n,"type");
+	    Node *sc = Swig_symbol_clookup(type,0);
+	    if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
+	      List *methods = smart_pointer_methods(sc,0);
+	      Setattr(inclass,"allocate:smartpointer",methods);
+	    }
+	  }
 	}
       }
     }

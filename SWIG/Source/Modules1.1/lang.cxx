@@ -1269,39 +1269,15 @@ int Language::classHandler(Node *n) {
 
   /* Look for smart pointer handling */
   if (Getattr(n,"allocate:smartpointer")) {
-    Node *sp = Getattr(n,"allocate:smartpointer");
-    SwigType *ty = Getattr(sp,"type");
-    
-    /* Need to search for return type */
-    Node *sc = Swig_symbol_clookup(ty,0);
-    if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
-      /*      Printf(stdout,"smart-pointer : '%s'\n", Getattr(sc,"name")); */
-
-      /* This is just sick.  We turn on smart-pointer mode and walk through
-         the children of the other class--emitting them as if they were
-         our own methods.    We only care about cdecl's.   Extensions are
-         ignored.
-       */
-
-      SmartPointer = CWRAP_SMART_POINTER;
-      Node *c = firstChild(sc);
-      String *kind = Getattr(sc,"kind");
-      if (Strcmp(kind,"class") == 0) cplus_mode = CPLUS_PRIVATE;
-      else cplus_mode = CPLUS_PUBLIC;
-      while (c) {
-	String *nt = nodeType(c);
-	if (Strcmp(nt,"cdecl") == 0) {
-	  if (cplus_mode == CPLUS_PUBLIC) {
-	    /*	    Printf(stdout,"    %s\n", Getattr(c,"name"));*/
-	    emit_one(c);
-	  }
-	} else if (Strcmp(nt,"access") == 0) {
-	  emit_one(c);
-	}
-	c = nextSibling(c);
-      }
-      SmartPointer = 0;
+    List *methods = Getattr(n,"allocate:smartpointer");
+    cplus_mode = CPLUS_PUBLIC;
+    SmartPointer = CWRAP_SMART_POINTER;
+    Node *c;
+    for (c = Firstitem(methods); c; c= Nextitem(methods)) {
+      /*      Swig_print_node(c); */
+      emit_one(c);
     }
+    SmartPointer = 0;
   }
 
   cplus_mode = CPLUS_PUBLIC;
