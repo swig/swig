@@ -533,7 +533,7 @@ SWIGINTERNSHORT PyObject*
 	  fragment="SWIG_AsWCharArray",
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
-#include <wchar.h>
+%#include <wchar.h>
 SWIGINTERN int
   SWIG_AsVal(wchar_t)(PyObject *obj, wchar_t *val)
 {
