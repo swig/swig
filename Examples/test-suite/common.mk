@@ -45,12 +45,10 @@ LIBPREFIX  = lib
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
-	derived_nested \
 	multiple_inheritance \
 	namespace_union \
 	overload_complicated \
-	smart_pointer_namespace2 \
-	using_namespace
+	smart_pointer_namespace2
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_BROKEN += \
@@ -112,6 +110,7 @@ CPP_TEST_CASES += \
 	default_ref \
 	defvalue_constructor \
 	derived_byvalue \
+	derived_nested \
 	destructor_reprotected \
 	director_abstract \
 	director_basic \
@@ -283,6 +282,7 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_extend \
 	using_inherit \
+	using_namespace \
 	using_pointers \
 	using_private \
 	using_protected \
