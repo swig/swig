@@ -68,20 +68,22 @@
 /* directorout */
 
 %define PYVAL_DIRECTOROUT_TYPEMAP(as_meth,pyfrag,Type...)
-  %typemap(directorargout,fragment=pyfrag) Type *DIRECTOROUT {  
-    *$result = SWIG_static_cast(SWIG_arg(as_meth($input)),$type);
-     if (PyErr_Occurred()) 
-       throw Swig::DirectorTypeMismatchException("Error converting Python object using as_meth");
+  %typemap(directorargout,fragment=pyfrag) Type *DIRECTOROUT {
+    if ($input) *$result = SWIG_static_cast(SWIG_arg(as_meth($input)),$type);
+    if (!$input || PyErr_Occurred()) 
+      throw Swig::DirectorTypeMismatchException("Error converting Python object using as_meth");
   }
   %typemap(directorout,fragment=pyfrag) Type {
-    $result = SWIG_static_cast(SWIG_arg(as_meth($input)),$type);
-    if (PyErr_Occurred()) 
+    if ($input) $result = SWIG_static_cast(SWIG_arg(as_meth($input)),$type);
+    if (!$input || PyErr_Occurred())
       throw Swig::DirectorTypeMismatchException("Error converting Python object using as_meth");
   }
   %typemap(directorout,fragment=pyfrag,warning="470:Using thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {  
-    static $basetype temp = SWIG_static_cast(SWIG_arg(as_meth($input)),$basetype);
-    $result = &temp;
-    if (PyErr_Occurred()) 
+    if ($input) {
+      static $basetype temp = SWIG_static_cast(SWIG_arg(as_meth($input)),$basetype);
+      $result = &temp;
+    }
+    if (!$input || PyErr_Occurred()) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using as_meth");
   }
   %typemap(directorout,fragment=pyfrag) Type &DIRECTOROUT = Type

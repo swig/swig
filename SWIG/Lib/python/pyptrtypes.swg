@@ -62,7 +62,7 @@
 %define PYPTR_DIRECTOROUT_TYPEMAP(asptr_meth,pyfrag,Type...)
   %typemap(directorargout,fragment=pyfrag) Type *DIRECTOROUT ($*1_ltype temp) {
     Type *ptr = 0;
-    int res = asptr_meth($input, &ptr);
+    int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
     temp = *ptr;
@@ -71,7 +71,7 @@
   }
   %typemap(directorout,fragment=pyfrag) Type {
     Type *ptr = 0;
-    int res = asptr_meth($input, &ptr);
+    int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
     $result = *ptr;
@@ -79,7 +79,7 @@
   }
 %typemap(directorout,fragment=pyfrag,warning="470:Possible thread/reentrant unsafe wrapping, consider using a plain '"#Type"' return type instead.") const Type& {
     Type *ptr = 0;
-    int res = asptr_meth($input, &ptr);
+    int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
       throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
     $result = ptr;
