@@ -1,0 +1,41 @@
+#######################################################################
+# Makefile for php4 test-suite
+#######################################################################
+
+LANGUAGE   = php4
+SCRIPTSUFFIX = _runme.php3
+
+include ../common.mk
+
+# Overridden variables here
+SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup) \
+	($(swig_and_compile_cpp); ); \
+	$(run_testcase)
+
+%.ctest:
+	$(setup) \
+	($(swig_and_compile_c); ); \
+	$(run_testcase)
+
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
+
+# Runs the testcase. A testcase is only run if
+# a file is found which has _runme.php3 appended after the testcase name.
+run_testcase = \
+	if [ -f $*\_runme.php3 ]; then ( \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH perl $*\_runme.php3;) \
+	fi;
+
+# Clean: remove the generated .pm file
+%.clean:
+	@rm -f $*.php3;
+
+clean:
+	@rm -f *_wrap* *.o *~ *.so *.php3 .~* core
