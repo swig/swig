@@ -23,12 +23,12 @@ char cvsroot_modula3_cxx[] =
      It's not a good concept to use functions of superclasses for specific services.
      E.g. For SWIG this means: Generating accessor functions for member variables
      is the most common but no general task to be processed in membervariableHandler.
-     Better provide a service functions which generates accessor function code
+     Better provide a service function which generates accessor function code
      and equip this service function with all parameters needed for input (parse node)
      and output (generated code).
    - How can I make globalvariableHandler not to generate
      interface functions to two accessor functions
-     (that don't exist)
+     (that don't exist) ?
    - How can I generate a typemap that turns every C reference argument into
      its Modula 3 counterpart, that is
        void test(Complex &z);
@@ -3292,6 +3292,7 @@ MODULA3 ():
     String *rawcall = NewString ("");
     String *reccall = NewString ("");
     String *local_variables = NewString ("");
+    String *local_constants = NewString ("");
     String *incheck = NewString ("");
     String *outcheck = NewString ("");
     String *setup = NewString ("");
@@ -3316,6 +3317,7 @@ MODULA3 ():
 
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms ("m3wrapargvar", l, NULL);
+    Swig_typemap_attach_parms ("m3wrapargconst", l, NULL);
     Swig_typemap_attach_parms ("m3wrapargraw", l, NULL);
     Swig_typemap_attach_parms ("m3wrapargdir", l, NULL);
     Swig_typemap_attach_parms ("m3wrapinmode", l, NULL);
@@ -3426,6 +3428,26 @@ MODULA3 ():
         Printf (local_variables, "%s: %s;\n", result_name, result_m3wraptype);
       } else {
         Append (local_variables, return_variables);
+      }
+    }
+
+    /* Declare local constants e.g. for storing argument names. */
+    {
+      Parm *p = l;
+      while (p != NIL) {
+
+        String *arg = Getattr (p, "autoname");
+
+        String *tm = Getattr (p, "tmap:m3wrapargconst");
+        if (tm != NIL) {
+          addImports (m3wrap_impl.import, "m3wrapargconst", p);
+          Replaceall (tm, "$input", arg);
+          Printv (local_constants, tm, "\n", NIL);
+          p = Getattr (p, "tmap:m3wrapargconst:next");
+        } else {
+          p = nextSibling (p);
+        }
+
       }
     }
 
@@ -3722,9 +3744,10 @@ MODULA3 ():
         exc_handler = NewStringf ("%s%s", body, cleanup);
       }
 
-      Printf (function_code, " =\n%s%sBEGIN\n%s%sEND %s;\n\n",
-              hasContent (local_variables) ? "VAR\n" : "",
-              local_variables, exc_handler, outarg, func_name);
+      Printf (function_code, " =\n%s%s%s%sBEGIN\n%s%sEND %s;\n\n",
+              hasContent (local_constants) ? "CONST\n" : "", local_constants,
+              hasContent (local_variables) ? "VAR\n"   : "", local_variables,
+              exc_handler, outarg, func_name);
 
       Delete (exc_handler);
       Delete (body);
@@ -3771,6 +3794,7 @@ MODULA3 ():
     Delete (arguments);
     Delete (return_variables);
     Delete (local_variables);
+    Delete (local_constants);
     Delete (outarg);
     Delete (incheck);
     Delete (outcheck);
