@@ -59,7 +59,8 @@ This chapter describes SWIG's support of Ruby.
 <li> <a href="#n8">Advanced Topics</a>
 <ul>
 <li> <a href="#n80">Creating Multi-Module Pacakges</a>
-<li> <a href="#n81">Predicate Methods</a>
+<li> <a href="#n81">Defining Aliases</a>
+<li> <a href="#n82">Predicate Methods</a>
 </ul>
 </ul>
 
@@ -2110,30 +2111,90 @@ module is initialized before the <tt>Circle</tt> module; otherwise, the <tt>Circ
 module initialization will fail when it tries to define the <tt>Circle</tt> class
 as a subclass of <tt>Shape</tt>.
 
-<a name="n81"></a><h3>Predicate Methods</h3>
+<a name="n81"></a><h3>Defining Aliases</h3>
+It's a fairly common practice in the Ruby built-ins and standard library to
+provide aliases for method names. For example, <em>Array#size</em> is an
+alias for <em>Array#length</em>. If you'd like to provide an alias for one
+of your class' instance methods, one approach is to use SWIG's
+<tt>%addmethods</tt> directive to add a new method of the aliased name
+that calls the original function. For example:<p>
+
+<blockquote>
+<pre>
+class MyArray {
+public:
+  // Construct an empty array
+  MyArray();
+  
+  // Return the size of this array
+  size_t length() const;
+};
+
+%addmethods MyArray {
+  // MyArray#size is an alias for MyArray#length
+  size_t size() const {
+    return self->length();
+  }
+}
+</pre>
+</blockquote>
+
+A better solution is to instead use the <tt>%alias</tt> directive (unique to
+SWIG's Ruby module). The previous example could then be rewritten as:<p>
+
+<blockquote>
+<pre>
+// MyArray#size is an alias for MyArray#length
+%alias MyArray::length "size";
+
+class MyArray {
+public:
+  // Construct an empty array
+  MyArray();
+  
+  // Return the size of this array
+  size_t length() const;
+};
+</pre>
+</blockquote>
+
+From an end-user's standpoint, there's no functional difference between these
+two approaches; i.e. they should get the same result from calling either
+<em>MyArray#size</em> or <em>MyArray#length</em>. However, when the <tt>%alias</tt>
+directive is used, SWIG doesn't need to generate all of the wrapper code that's
+usually associated with added methods like our <em>MyArray::size()</em> example.<p>
+
+Note that the <tt>%alias</tt> directive is implemented using SWIG's'
+"features" mechanism and so the same name matching rules used for other
+kinds of features apply (see the chapter on <a href="Exceptions.html">"Exceptions,
+Features and other Customizations"</a>) for more details).
+
+<a name="n82"></a><h3>Predicate Methods</h3>
 Predicate methods in Ruby are those which return either <tt>true</tt> or
-<tt>false</tt>. By convention, these methods end in a question mark; some
+<tt>false</tt>. By convention, these methods' names end in a question mark; some
 examples from built-in Ruby classes include <em>Array#empty?</em> (which
 returns <tt>true</tt> for an array containing no elements) and
-<em>Object#instance_of?</em> (which returns true if the object is an instance
+<em>Object#instance_of?</em> (which returns <tt>true</tt> if the object is an instance
 of the specified class). For consistency with Ruby conventions you would
 also want your interface's predicate methods' names to end in a question
-mark and return <tt>true</tt> or <tt>false</tt>, but if you try to use SWIG's
-<tt>%rename</tt> directive, e.g.<p>
+mark and return <tt>true</tt> or <tt>false</tt>.<p>
+
+One cumbersome solution to this problem is to rename the method (using
+SWIG's <tt>%rename</tt> directive) and provide a custom typemap that converts
+the function's actual return type to Ruby's <tt>true</tt> or <tt>false</tt>.
+For example:
 
 <blockquote>
 <pre>
 %rename("is_it_safe?") is_it_safe();
 
+%typemap(out) int is_it_safe "$result = ($1 != 0) ? Qtrue : Qfalse;";
+
 int is_it_safe();
 </pre>
 </blockquote>
 
-you'll get a warning message that "safe?" can't be wrapped unless it's renamed
-to a valid identifier. Even if the name weren't an issue, the wrapped function
-would (without a typemap) return a Ruby <tt>Fixnum</tt> instead of a boolean value.<p>
-
-The solution is to use the <tt>%predicate</tt> directive (unique to SWIG's Ruby module)
+A better solution is to instead use the <tt>%predicate</tt> directive (unique to SWIG's Ruby module)
 to designate certain methods as predicate methods. For the previous example, this would
 look like:<p>
 
