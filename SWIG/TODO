@@ -16,7 +16,9 @@
        in type handling and internal data structures may have broken
        a variety of things.
 
-* for 1.3a5 release
+* for 1.3a6 release
+
+** [mkoeppe] Merge Guile and MzScheme from the "mkoeppe-1-3-a5-patches" branch
 
 * for 1.3b1 release
 
