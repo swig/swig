@@ -440,6 +440,7 @@ $1 = &temp; %}
       swigCMemOwn = false;
     }
     swigCPtr = IntPtr.Zero;
+    GC.SuppressFinalize(this);
   }
 
 %typemap(csdestruct_derived) SWIGTYPE {
@@ -448,6 +449,7 @@ $1 = &temp; %}
       swigCMemOwn = false;
     }
     swigCPtr = IntPtr.Zero;
+    GC.SuppressFinalize(this);
     base.Dispose();
   }
 
