@@ -49,14 +49,14 @@
 #define SWIG_new_copy(ptr,Type...) (new Type(*ptr))
 #define SWIG_numeric_cast(a,Type...) static_cast<Type >(a)
 #else /* C case */
-#define SWIG_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define SWIG_new_array(size,Type...) ((Type*) malloc((size)*sizeof(Type)))
 #define SWIG_delete(cptr) free((char*)cptr)
 #define SWIG_delete_array(cptr) free((char*)cptr)
-#define SWIG_const_cast(a,Type) (Type)(a)
-#define SWIG_static_cast(a,Type) (Type)(a)
-#define SWIG_reinterpret_cast(a,Type) (Type)(a)
-#define SWIG_numeric_cast(a,Type) (Type)(a)
-#define SWIG_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
+#define SWIG_const_cast(a,Type...) (Type)(a)
+#define SWIG_static_cast(a,Type...) (Type)(a)
+#define SWIG_reinterpret_cast(a,Type...) (Type)(a)
+#define SWIG_numeric_cast(a,Type...) (Type)(a)
+#define SWIG_new_copy(ptr,Type...)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
 #endif /* __cplusplus */
 
 
