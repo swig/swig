@@ -28,12 +28,13 @@
 
 */
 
-%define %malloc(TYPE,...)
-#if #__VA_ARGS__ != ""
-%name(malloc_##__VA_ARGS__)
+%define %malloc(TYPE,NAME...)
+#if #NAME != ""
+%rename(malloc_##NAME) ::malloc(int nbytes);
 #else
-%name(malloc_##TYPE)
+%rename(malloc_##TYPE) ::malloc(int nbytes);
 #endif
+
 #if #TYPE != "void"
 %typemap(default) int nbytes "$1 = (int) sizeof(TYPE);"
 #endif
@@ -41,11 +42,11 @@ TYPE *malloc(int nbytes);
 %typemap(default) int nbytes;
 %enddef
 
-%define %calloc(TYPE,...)
-#if #__VA_ARGS__ != ""
-%name(calloc_##__VA_ARGS__)
+%define %calloc(TYPE,NAME...)
+#if #NAME != ""
+%rename(calloc_##NAME) ::calloc(int nobj, int sz);
 #else
-%name(calloc_##TYPE)
+%rename(calloc_##TYPE) ::calloc(int nobj, int sz);
 #endif
 #if #TYPE != "void"
 %typemap(default) int sz "$1 = (int) sizeof(TYPE);"
@@ -58,10 +59,10 @@ TYPE *calloc(int nobj, int sz);
 %typemap(default) int nobj;
 %enddef
 
-%define %realloc(TYPE,...)
+%define %realloc(TYPE,NAME...)
 %insert("header") {
-#if #__VA_ARGS__ != ""
-TYPE *realloc_##__VA_ARGS__(TYPE *ptr, int nitems)
+#if #NAME != ""
+TYPE *realloc_##NAME(TYPE *ptr, int nitems)
 #else
 TYPE *realloc_##TYPE(TYPE *ptr, int nitems)
 #endif
@@ -73,36 +74,37 @@ return (TYPE *) realloc(ptr, nitems);
 #endif
 }
 }
-#if #__VA_ARGS__ != ""
-TYPE *realloc_##__VA_ARGS__(TYPE *ptr, int nitems);
+#if #NAME != ""
+TYPE *realloc_##NAME(TYPE *ptr, int nitems);
 #else
 TYPE *realloc_##TYPE(TYPE *ptr, int nitems);
 #endif
 %enddef
 
-%define %free(TYPE,...)
-#if #__VA_ARGS__ != ""
-%name(free_##__VA_ARGS__) void free(TYPE *ptr);
+%define %free(TYPE,NAME...)
+#if #NAME != ""
+%rename(free_##NAME) ::free(TYPE *ptr);
 #else
-%name(free_##TYPE)        void free(TYPE *ptr);
+%rename(free_##TYPE) ::free(TYPE *ptr);
 #endif
+void free(TYPE *ptr);
 %enddef
 
-%define %sizeof(TYPE,...)
-#if #__VA_ARGS__ != ""
-%constant int sizeof_##__VA_ARGS__ = sizeof(TYPE);
+%define %sizeof(TYPE,NAME...)
+#if #NAME != ""
+%constant int sizeof_##NAME = sizeof(TYPE);
 #else
 %constant int sizeof_##TYPE = sizeof(TYPE);
 #endif
 %enddef
 
-%define %allocators(TYPE,...)
-%malloc(TYPE,__VA_ARGS__)
-%calloc(TYPE,__VA_ARGS__)
-%realloc(TYPE,__VA_ARGS__)
-%free(TYPE,__VA_ARGS__)
+%define %allocators(TYPE,NAME...)
+%malloc(TYPE,NAME)
+%calloc(TYPE,NAME)
+%realloc(TYPE,NAME)
+%free(TYPE,NAME)
 #if #TYPE != "void"
-%sizeof(TYPE,__VA_ARGS__)
+%sizeof(TYPE,NAME)
 #endif
 %enddef
 

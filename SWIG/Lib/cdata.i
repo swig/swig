@@ -56,13 +56,13 @@ typedef struct SWIGCDATA {
  * Convert raw C data to a binary string.
  * ----------------------------------------------------------------------------- */
 
-%define %cdata(TYPE,...)
+%define %cdata(TYPE,NAME...)
 
 %insert("header") {
-#if #__VA_ARGS__ == ""
+#if #NAME == ""
 static SWIGCDATA cdata_##TYPE(TYPE *ptr, int nelements) {
 #else
-static SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements) {
+static SWIGCDATA cdata_##NAME(TYPE *ptr, int nelements) {
 #endif
    SWIGCDATA d;
    d.data = (char *) ptr;
@@ -77,16 +77,17 @@ static SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements) {
 
 %typemap(default) int nelements "$1 = 1;"
 
-#if #__VA_ARGS__ == ""
+#if #NAME == ""
 SWIGCDATA cdata_##TYPE(TYPE *ptr, int nelements);
 #else
-SWIGCDATA cdata_##__VA_ARGS__(TYPE *ptr, int nelements);
+SWIGCDATA cdata_##NAME(TYPE *ptr, int nelements);
 #endif
 %enddef
 
 %typemap(default) int nelements;
 
-%name(cdata)
+%rename(cdata) ::cdata_void(void *ptr, int nelements);
+
 %cdata(void);
 
 /* Memory move function */
