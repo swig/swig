@@ -41,7 +41,6 @@ static File	  *f_runtime = 0;
 static File	  *f_h = 0;
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
-static File	  *f_vinit = 0;
 static File	  *f_phpmod = 0;
 
 static String	  *s_header;
@@ -73,6 +72,7 @@ static int	have_default_constructor = 0;
 static int	native_func = 0;	// Set to 1 when wrapping a native function
 static int	enum_flag = 0; // Set to 1 when wrapping an enum
 static int	static_flag = 0; // Set to 1 when wrapping a static functions or member variables
+static int	const_flag = 0; // Set to 1 when wrapping a const member variables
 static int	variable_wrapper_flag = 0; // Set to 1 when wrapping a member variable/enum/const
 static int	wrapping_member = 0;
 static int 	nofinalize = 0;	// for generating destructors
@@ -561,8 +561,6 @@ PHP4::top(Node *n) {
   Printf(s_init,"    return SUCCESS;\n");
   Printf(s_init,"}\n");
 
-  /* Emit all of the code */
-  Language::top(n);
 
   /* finish our init section */
   Printf(s_cinit, "/* end cinit subsection */\n");
@@ -575,7 +573,12 @@ PHP4::top(Node *n) {
 
   Printf(s_oinit, "/* end oinit subsection */\n");
   Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
-  Printf(s_init, "%s\n%s\n%s\n", s_cinit, s_vinit, s_oinit);
+  Printf(s_init, "%s\n", s_cinit); 
+
+  /* Emit all of the code */
+  Language::top(n);
+  
+  Printf(s_init, "%s\n%s\n", s_vinit, s_oinit);
   Delete(s_cinit);
   Delete(s_vinit);
 
@@ -898,6 +901,7 @@ PHP4::functionWrapper(Node *n) {
   for (i=0,p = l; p;i++) {
     if ((tm = Getattr(p,"tmap:argout"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","return_value",DOH_REPLACE_ANY);
       Replace(tm,"$result","return_value",DOH_REPLACE_ANY);
       String *in = Getattr(p,"emit:input");
@@ -924,6 +928,9 @@ PHP4::functionWrapper(Node *n) {
   emit_action(n,f);
 
   if((tm = Swig_typemap_lookup((char*)"out",d,iname,(char*)"result",(char*)"result",(char*)"return_value",0))) {
+    Replaceall(tm, "$input", "result");
+    Replaceall(tm, "$source", "result");
+    Replaceall(tm, "$target", "return_value");
     Printf(f->code, "%s\n", tm);
   } else {
     if(SwigType_type(d) != T_VOID) {
@@ -1126,10 +1133,10 @@ PHP4::variableWrapper(Node *n) {
 	break;
   case T_POINTER:
   case T_REFERENCE:
-	Printf(f_vinit, "{\n\tzval *z_var;\n");
-	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tSWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n", name,SwigType_manglestr(t));
-	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit, "{\n\tzval *z_var;\n");
+	Printf(s_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
+	Printf(s_vinit, "\tSWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n", name,SwigType_manglestr(t));
+	Printf(s_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
 	Printf(s_vinit,
 	    "{\n"
 	    "    zval *z_var;\n"
@@ -1607,7 +1614,7 @@ int PHP4::classHandler(Node *n) {
 			}
 			base = Nextitem(baselist);
 			if(base) {
-				Printf(stderr, "Error: %s inherits from multiple base classes. Multiple inheritance is not supported by SWIG. Or PHP.\n", shadow_classname);
+				Printf(stderr, "Error: %s inherits from multiple base classes. Multiple inheritance is not supported by PHP4.\n", shadow_classname);
 			}
 		} else { // XXX Must be base class ?
 		  /* Write out class init code */
@@ -1742,7 +1749,18 @@ PHP4::membervariableHandler(Node *n) {
 }
 
 int PHP4::staticmemberfunctionHandler(Node *n) {
-	;
+
+	Language::staticmemberfunctionHandler(n);
+
+	if(shadow) {
+		String *symname = Getattr(n, "sym:name");
+		String *php_function_name = Swig_name_member(shadow_classname, symname);
+		static_flag = 1;
+		cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), php_function_name);
+		static_flag = 0;
+	}
+
+	return SWIG_OK;
 }
 
 int PHP4::staticmembervariableHandler(Node *n) {
@@ -1766,6 +1784,9 @@ int PHP4::staticmembervariableHandler(Node *n) {
    * would be available in php as Example::ncount() 
    */
 	static_flag = 1;
+	if(ReadOnly) {
+		const_flag = 1;
+	}
 	cpp_func(iname, d, 0, iname);
 	static_flag = 0;
 
@@ -1781,12 +1802,13 @@ int PHP4::staticmembervariableHandler(Node *n) {
 	Printf(f->code, "int argcount;\n\n");
 
 	Printf(f->code, "argcount = ZEND_NUM_ARGS();\n");
-	Printf(f->code, "if(argcount > 1) WRONG_PARAM_COUNT;\n\n");
-	Printf(f->code, "if(argcount) {\n");
+	Printf(f->code, "if(argcount > %d) WRONG_PARAM_COUNT;\n\n", (const_flag? 0 : 1));
+	if(!const_flag) {
+	  Printf(f->code, "if(argcount) {\n");
 
-	Printf(f->code, "if(zend_get_parameters_array_ex(argcount, args) != SUCCESS) WRONG_PARAM_COUNT;\n");
+	  Printf(f->code, "if(zend_get_parameters_array_ex(argcount, args) != SUCCESS) WRONG_PARAM_COUNT;\n");
 
-	switch(SwigType_type(d)) {
+	  switch(SwigType_type(d)) {
 		case T_BOOL:
 		case T_INT:
 		case T_SHORT:
@@ -1825,7 +1847,9 @@ int PHP4::staticmembervariableHandler(Node *n) {
 			break;
 		}
 		
-	Printf(f->code, "}\n\n");
+	  Printf(f->code, "}\n\n");
+	
+	} /* end of const_flag */
 
 	switch(SwigType_type(d)) {
 		case T_BOOL:
@@ -1860,6 +1884,8 @@ int PHP4::staticmembervariableHandler(Node *n) {
 
 
 	Printf(f->code, "}\n");
+
+	const_flag = 0;
 
 	Wrapper_print(f, s_wrappers);
 
@@ -2098,18 +2124,20 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+1);
 
 	Printf(shadow_code, "function %s(", iname);
-	if(static_flag)
+	if(static_flag && !const_flag)
 		Printf(shadow_code, "$val = 0");
 
 	if((SwigType_type(t) != T_VOID) && !is_shadow(t)) {
-		if(static_flag)
+		if(static_flag && !const_flag)
 			Printf(nativecall, "if($val) {\n");
 		Printf(nativecall, "    return ");
 		Printv(nativecall, package, "::", php_function_name, "(", 0);
-		if(static_flag)
+		if(!const_flag) {
+		  if(static_flag)
 			Printf(nativecall, "$val");
-		else 
+		  else 
 			Printv(nativecall, "$this->_cPtr", 0);
+		}
 	} else if(SwigType_type(t) == T_VOID) {
 		Printv(nativecall, package, "::", php_function_name, "(", 0);
 		Printv(nativecall, "$this->_cPtr", 0);
@@ -2198,7 +2226,7 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	 }
 	} else {
 		Printf(nativecall,");\n");
-		if(static_flag) {
+		if(static_flag && !const_flag) {
 		  Printf(nativecall, "    } else {\n");
 		  Printv(nativecall, "    return ", package, "::",
 			 php_function_name, "();\n",0);
