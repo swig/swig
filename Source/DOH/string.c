@@ -113,23 +113,27 @@ String_cmp(DOH *so1, DOH *so2)
 {
   String * s1 = (String *) ObjData(so1);
   String * s2 = (String *) ObjData(so2);
-  register int len = s1->len;
   register char *c1 = s1->str;
   register char *c2 = s2->str;
-#if 1
-  /* this should be faster */
-  if (len != s2->len) {
-    return (len < s2->len) ? -1 : 1;
-  } else {  
-    return strncmp(c1, c2, len);
-  }
+#if 0
+  /* this should be faster ? */
+  return strcmp(c1, c2);
 #else
-  register char *ce  = c1 + len;
-  if (len != s2->len) return (len < s2->len ) ? -1 : 1;
-  for (; c1 != ce ; ++c1, ++c2) {
-    if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
+  register int len1 = s1->len;
+  register int len2 = s2->len;
+  if (len1 < len2) {
+    register char *ce  = c1 + len1;
+    for (; c1 != ce ; ++c1, ++c2) {
+      if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
+    }
+    return -1;
+  } else {
+    register char *ce  = c2 + len2;
+    for (; c2 != ce ; ++c1, ++c2) {
+      if (*c1 != *c2) return ((*c1 < *c2) ? -1 : 1);
+    }
+    return (len1 == len2) ? 0 : 1;
   }
-  return 0;
 #endif
 }
 
