@@ -441,9 +441,8 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   char             target[64];
   char             argnum[32];
   WrapperFunction  f;
-  String           incode, cleanup, outarg, build;
+  String           incode, cleanup, outarg;
   int              numopt= 0;
-  int              have_build = 0;
   String           argstr;
   String           args;
 
@@ -597,13 +596,6 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
       j++;
     }
 
-    // Check to see if there is any sort of "build" typemap (highly complicated)
-
-    if ((tm = typemap_lookup((char*)"build",(char*)"tcl8",p->t,p->name,source,target))) {
-      build << tm << "\n";
-      have_build = 1;
-    }
-
     // Check to see if there was any sort of a constaint typemap
     if ((tm = typemap_lookup((char*)"check",(char*)"tcl8",p->t,p->name,source,target))) {
       // Yep.  Use it instead of the default
@@ -633,28 +625,6 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   f.code << tab4 << "if (SWIG_GetArgs(interp, objc, objv," << argstr << args << ") == TCL_ERROR) return TCL_ERROR;\n";
 
   f.code << incode;
-
-  // If there was a "build" typemap, we need to go in and perform a serious hack
-  
-  if (have_build) {
-    char temp1[32];
-    char temp2[256];
-    l->sub_parmnames(build);            // Replace all parameter names
-    j = 1;
-    for (i = 0; i < l->nparms; i++) {
-      p = l->get(i);
-      if (strlen(p->name) > 0) {
-	sprintf(temp1,"_in_%s", p->name);
-      } else {
-	sprintf(temp1,"_in_arg%d", i);
-      }
-      sprintf(temp2,"argv[%d]",j);
-      build.replaceid(temp1,temp2);
-      if (!p->ignore) 
-	j++;
-    }
-    f.code << build;
-  }
 
   // Now write code to make the function call
 
