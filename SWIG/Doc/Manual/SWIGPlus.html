@@ -767,7 +767,8 @@ Members declared as <tt>const</tt> are wrapped as read-only members and do not c
 <H2><a name="SWIGPlus_nn17"></a>6.9 Friends</H2>
 
 
-Friend declarations are ignored by SWIG.   For example, if you have this code:
+Friend declarations are not longer ignored by SWIG. For example, if
+you have this code:
 
 <blockquote>
 <pre>
@@ -780,26 +781,41 @@ public:
 </pre>
 </blockquote>
 
-then the <tt>friend</tt> declaration does not result in any wrapper code.   On the other hand,
-a declaration of the function itself will work fine.  For instance:
+then the <tt>friend</tt> declaration does result in a wrapper code
+equivalent to one generated for the following declaration
 
 <blockquote>
 <pre>
 class Foo {
 public:
     ...
-    friend void blah(Foo *f);       // Ignored
-    ...
 };
 
-void blah(Foo *f);       // Generates wrappers
+void blah(Foo *f);    
 </pre>
 </blockquote>
 
-Unlike normal member functions or static member functions, a friend
-declaration does not define a method that operates on an instance of
-an object nor does it define a declaration in the scope of the class.  
-Therefore, it would make no sense for SWIG to create wrappers as such.
+A friend declaration, as in C++, is understood to be in the same scope
+where the class is declared, hence, you can do
+
+<blockquote>
+<pre>
+
+%ignore bar::blah(Foo *f);
+
+namespace bar {
+
+  class Foo {
+  public:
+     ...
+     friend void blah(Foo *f);
+     ...
+  };
+}
+</pre>
+</blockquote>
+
+and a wrapper for the method 'blah' will not be generated.
 
 <H2><a name="SWIGPlus_nn18"></a>6.10 References and pointers</H2>
 
@@ -879,11 +895,14 @@ Don't return references to objects allocated as local variables on the
 stack.  SWIG doesn't make a copy of the objects so this will probably
 cause your program to crash.
 
+
+
 <p>
 <b>Note:</b> The special treatment for references to primitive datatypes is necessary to provide
 more seamless integration with more advanced C++ wrapping applications---especially related to 
 templates and the STL.  This was first added in SWIG-1.3.12.
 </p>
+
 
 <H2><a name="SWIGPlus_nn19"></a>6.11 Pass and return by value</H2>
 
@@ -1134,9 +1153,12 @@ This behavior resulted in huge amounts of replicated code for large
 class hierarchies and made it awkward to build applications spread
 across multiple modules (since accessor functions are duplicated in
 every single module).   It is also unnecessary to have such wrappers
-when advanced features like proxy classes are used.  Future versions
-of SWIG may apply further optimizations such as not regenerating 
-wrapper functions for virtual members that are already defined in a base class.
+when advanced features like proxy classes are used.  
+
+<b>Note:</b> Further optimizations are enabled when using the
+<tt>-fvirtual</tt> option, which avoids the regenerating of wrapper
+functions for virtual members that are already defined in a base
+class.
 </p>
 
 <H2><a name="SWIGPlus_nn21"></a>6.13 A brief discussion of multiple inheritance, pointers,  and type checking</H2>
@@ -2140,7 +2162,7 @@ public:
 	%extend {
 		char *__str__() {
 			static char temp[256];
-			sprintf(temp,"[ %g, %g, %g ]", v-&gt;x,v-&gt;y,v-&gt;z);
+			sprintf(temp,"[ %g, %g, %g ]", self-&gt;x,self-&gt;y,self-&gt;z);
 			return &amp;temp[0];
 		}
 	}
@@ -2604,6 +2626,23 @@ public:
 </pre>
 </blockquote>
 
+or simply
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     template&lt;class T&gt; void bar(T x, T y) { ... };
+     ...
+};
+...
+
+%template(barint)    Foo::bar&lt;int&gt;;
+%template(bardouble) Foo::bar&lt;double&gt;;
+</pre>
+</blockquote>
+
+
 Note: because of the way that templates are handled, the <tt>%template</tt> directive
 must always appear <em>after</em> the definition of the template to be expanded.
 
@@ -2637,7 +2676,8 @@ Miraculously, you will find that each expansion of <tt>Foo</tt> has member
 functions <tt>bari()</tt> and <tt>bard()</tt> added.
 
 <p>
-A common use of member templates is to define constructors for copies and conversions. For example:
+A common use of member templates is to define constructors for copies
+and conversions. For example:
 </p>
 
 <blockquote>
@@ -3422,8 +3462,8 @@ accessible through <tt>operator-&gt;()</tt>.  This includes any methods
 that might be accessible through inheritance.   However, there are a number of restrictions:
 
 <ul>
-<li>Only member variables and methods are wrapped through a smart pointer.  Static members, enumerations,
-constructors, and destructors are not wrapped.
+<li>Member variables and methods are wrapped through a smart
+pointer. Enumerations, constructors, and destructors are not wrapped.
 </li>
 
 <li>If the smart-pointer class and the underlying object both define a method or

@@ -239,8 +239,8 @@ using comands like this (shown for Linux):
 
 <blockquote><pre>
 $ swig -python example.i
-$ gcc -c example.c
-$ gcc -c example_wrap.c -I/usr/local/include/python2.0
+$ gcc -c -fPIC example.c
+$ gcc -c -fPIC example_wrap.c -I/usr/local/include/python2.0
 $ gcc -shared example.o example_wrap.o -o _example.so
 </pre></blockquote>
 
@@ -1502,6 +1502,8 @@ public:
   Complex(double r = 0, double i = 0) : rpart(r), ipart(i) { }
   Complex(const Complex &amp;c) : rpart(c.rpart), ipart(c.ipart) { }
   Complex &amp;operator=(const Complex &amp;c);
+
+  Complex operator+=(const Complex &amp;c) const;
   Complex operator+(const Complex &amp;c) const;
   Complex operator-(const Complex &amp;c) const;
   Complex operator*(const Complex &amp;c) const;
@@ -1524,6 +1526,12 @@ When wrapped, it works like you expect:
 10.0
 &gt;&gt;&gt; e.im()
 12.0
+&gt;&gt;&gt; c += d
+&gt;&gt;&gt; c.re()
+10.0
+&gt;&gt;&gt; c.im()
+12.0
+
 </pre>
 </blockquote>
 
@@ -1541,15 +1549,12 @@ friend Complex operator+(double, const Complex &amp;c);
 </pre>
 </blockquote>
 
-then SWIG doesn't know what to do with the friend function--in fact,
-it simply ignores it and issues a warning.   You can still wrap the operator,
+then SWIG ignores it and issues a warning.   You can still wrap the operator,
 but you may have to encapsulate it in a special function.  For example:
 
 <blockquote>
 <pre>
 %rename(Complex_add_dc) operator+(double, const Complex &amp;);
-...
-Complex operator+(double, const Complex &amp;c);
 </pre>
 </blockquote>
 
@@ -2376,29 +2381,67 @@ Python.
 Typemaps for input and output of most of the basic types from director
 classes have been written. These are roughly the reverse of the usual
 input and output typemaps used by the wrapper code. The typemap
-operation names are 'directorin', 'directorout', and 'directorargout'. The director code does
-not use any of the other kinds of typemaps yet. It is not clear at this
-point which kinds are appropriate and need to be supported. 
+operation names are 'directorin', 'directorout', and 'directorargout'.
+The director code does not use any of the other kinds of typemaps
+yet. It is not clear at this point which kinds are appropriate and
+need to be supported.
+</p>
+
+
+<H3><a name="Python_nn39"></a>26.5.7 Miscellaneous</H3>
+
+<p>
+Director typemaps for STL classes are in place, and hence you should
+be able to use std::vector, std::string, etc., as any other raw type.
 </p>
 
 <p>
-Typemaps for STL classes are under construction. So far there is support
-for std::string, std::vector, and std::complex, although there's no
-guarantee these are fully functional yet. 
-</p>
+<b>Note:</b> The director typemaps for return types based in const
+references, such as 
 
-<H3><a name="Python_nn39"></a>26.5.7 Miscellaneous</H3>
+<blockquote>
+<pre>
+class Foo {
+&hellip;
+    virtual const int& bar();
+&hellip;
+};
+</pre>
+</blockquote>
+
+will work only for simple call scenarios. Usually the resulting code
+is neither thread or reentrant safe. Hence, the user is adviced to
+avoid returning const reference in director methods. For example,
+the user could modify the method interface to use a lvalue return
+types, when possible, i.e.
+
+<blockquote>
+<pre>
+class Foo {
+&hellip;
+    virtual int bar();
+&hellip;
+};
+</pre>
+</blockquote>
+
+If that is not possible, the user should avoid to enable the
+director feature for reentrant, recursive or threaded member
+methods that return const references.
+
+</p>
 
 
 <H2><a name="Python_nn40"></a>26.6 Common customization features</H2>
 
 
-The last section presented the absolute basics of C/C++ wrapping. If you do nothing
-but feed SWIG a header file, you will get an interface that mimics the behavior
-described.  However, sometimes this isn't enough to produce a nice module.  Certain
-types of functionality might be missing or the interface to certain functions might
-be awkward.  This section describes some common SWIG features that are used
-to improve your the interface to an extension module.
+The last section presented the absolute basics of C/C++ wrapping. If
+you do nothing but feed SWIG a header file, you will get an interface
+that mimics the behavior described.  However, sometimes this isn't
+enough to produce a nice module.  Certain types of functionality might
+be missing or the interface to certain functions might be awkward.
+This section describes some common SWIG features that are used to
+improve your the interface to an extension module.
 
 <H3><a name="Python_nn41"></a>26.6.1 C/C++ helper functions</H3>
 
@@ -3220,21 +3263,22 @@ like this:
 </pre>
 </blockquote>
 
-A detailed list of available methods can be found in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
-However, the best source of typemap information (and examples) is probably the Python module
-itself.  In fact, all of SWIG's default type handling is defined by typemaps.  You can view
-these typemaps by looking at the <tt>python.swg</tt> file in the SWIG library.  Just issue
-these commands:
+A detailed list of available methods can be found in the "<a
+href="Typemaps.html#Typemaps">Typemaps</a>" chapter.  
 
-<blockquote>
-<pre>
-$ swig -python -co python.swg
-'python.swg' checked out from the SWIG library.
-$ cat python.swg
-</pre>
-</blockquote>
+However, the best source of typemap information (and examples) is
+probably the Python module itself.  In fact, all of SWIG's default
+type handling is defined by typemaps.  You can view these typemaps by
+looking at the files in the SWIG library. Just take into account that
+in the latest versions of swig (1.3.22+), the library files are not
+very pristine clear for the casual reader, as they used to be. The
+extensive use of macros and other ugly techniques in the latest
+version produce a very powerful and consistent python typemap library,
+but at the cost of simplicity and pedagogic value.
 
-Additional typemap examples can also be found in the <tt>typemaps.i</tt> file.
+To learn how to write a simple or your first typemap, you better take
+a look at the SWIG library version 1.3.20 or so.
+
 
 <H3><a name="Python_nn56"></a>26.8.3 Typemap variables</H3>
 
