@@ -1,6 +1,37 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/15/2005: wsfulton
+            Disabled typemap search changes for now (see entry 19/12/2004). It breaks
+            old typemaps, lengthens the execution time by about 25% and introduces
+            inconsistencies.
+
+02/15/2005: wsfulton
+            swig -help follows other software by printing to stdout instead of stderr now.
+            Behaviour reported by Torsten Landschoff.
+
+02/15/2005: wsfulton
+            [Ruby] Fix for the less commonly used ordering of %include and #include, so
+            that the generated code compiles. Bug reported by reported by Max Bowsher.
+              %include foo.h
+              %{
+              #include foo.h
+              %} 
+
+02/15/2005: wsfulton
+            [C#, Java] SWIG_exception macro will now return from unmanaged code / native code
+            as soon as it is called. Fixes possible JVM crashes and other code unexpectedly
+            being executed. Note SWIG_exception is only occasionally used by SWIG library
+            writers, and is best avoided by SWIG users.
+
+02/15/2005: wsfulton
+            [C#, Java] Typemaps can now be targeted at global variable names
+            and static member variable names. Previously the typemaps for 
+            the setters were ignored, for example:
+
+              %typemap(in) int globalint "..."
+              int globalint;
+
 02/13/2005: mkoeppe (Matthias Koeppe)
 	    [Guile] Add %typecheck for SWIGTYPE, add %typecheck for ptrdiff_t, fix
 	    typemaps for size_t.
@@ -60,9 +91,7 @@ Version 1.3.25 (In progress)
 01/11/2005: wsfulton
             [C#] New typemap called 'csconstruct'. The code in this typemaps was previously hard
             coded and could not be customised by a user. This typemap contains the code that is
-            generated into a proxy class's constructor. The proxy class now contains a method
-            called swigSetup() which does a lot of the initialisation work. This is necessary for
-            a future change to fix the translation of C++ exceptions into C# exceptions.
+            generated into a proxy class's constructor.
 
             [Java] New typemap called 'javaconstruct'. The code in this typemaps was previously hard
             coded and could not be customised by a user. This typemap contains the code that is
@@ -74,36 +103,37 @@ Version 1.3.25 (In progress)
             and thereby giving the user almost complete control over the generated code along with the
             new typemaps above.
 
-Dec/19: mmatus
-	- Fix typemap search, now the "out" typemap search is done as follows
+19/12/2004: mmatus
+            [Disabled, see entry 02/15/2004]
+            - Fix typemap search, now the "out" typemap search is done as follows
 
-	     int *Foo::foo(int bar)   ->  int *Foo::foo(int bar)
-	                              ->  int *Foo::foo
-	                              ->  int *foo(int bar)
-	                              ->  int *foo
-	                              ->  int *
+                 int *Foo::foo(int bar)   ->  int *Foo::foo(int bar)
+                                          ->  int *Foo::foo
+                                          ->  int *foo(int bar)
+                                          ->  int *foo
+                                          ->  int *
 
-           then, now you can be more specific, and define
+               then, now you can be more specific, and define
 
-	  /* apply only for  'Foo::foo' method */
-          %typemap(out) int * Foo::foo(int *bar) ...; 
+              /* apply only for  'Foo::foo' method */
+              %typemap(out) int * Foo::foo(int *bar) ...; 
 
-	  /* apply for all 'foo' functions/methods */
-          %typemap(out) int * foo(int *bar) ...; 
+              /* apply for all 'foo' functions/methods */
+              %typemap(out) int * foo(int *bar) ...; 
 
-          %inline {
-            struct Foo {
-	       int *foo(int *bar);
-            };
-          }
+              %inline {
+                struct Foo {
+                   int *foo(int *bar);
+                };
+              }
 	  
 
-Dec/15: mmatus
-	- More fixes for templates and template default args.
-	  See template_default.i for scary cases that now are 
-	  supported, besides the already ugly STL/std cases.
-	  
-	- Cosmetics and more use of 'const' where it was implicit.
-	- Other fixes for OSS, which is now working again with 1.3.25.
+15/12/2004: mmatus
+            - More fixes for templates and template default args.
+              See template_default.i for scary cases that now are 
+              supported, besides the already ugly STL/std cases.
+              
+            - Cosmetics and more use of 'const' where it was implicit.
+            - Other fixes for OSS, which is now working again with 1.3.25.
 	
 	  
