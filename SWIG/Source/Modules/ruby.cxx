@@ -15,10 +15,6 @@ char cvsroot_ruby_cxx[] = "$Header$";
 #include "swigmod.h"
 #define SWIG_PROTECTED_TARGET_METHODS 1
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 #include <string.h>
 #include <limits.h> /* for INT_MAX */
@@ -2357,9 +2353,11 @@ public:
  * swig_ruby()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_ruby(void) {
+static Language * new_swig_ruby() {
   return new RUBY();
+}
+extern "C" Language * swig_ruby(void) {
+  return new_swig_ruby();
 }
 
 

@@ -24,6 +24,16 @@
 extern "C" {
 #endif
 
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
+
+#if defined(__cplusplus) && !defined(HAVE_BOOL)
+typedef int bool;
+#define true ((bool)1)
+#define false ((bool)0)
+#endif
+
 #include "doh.h"
 
 /* Status codes */

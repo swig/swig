@@ -20,10 +20,6 @@ char cvsroot_ocaml_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 
 static const char *usage = (char*)
@@ -1898,8 +1894,10 @@ public:
  * swig_ocaml()    - Instantiate module
  * ------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_ocaml(void) {
+static Language * new_swig_ocaml() {
     return new OCAML();
+}
+extern "C" Language * swig_ocaml(void) {
+    return new_swig_ocaml();
 }
 

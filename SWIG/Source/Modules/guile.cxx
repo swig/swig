@@ -30,9 +30,6 @@ char cvsroot_guile_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
@@ -1766,7 +1763,9 @@ public:
  * swig_guile()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_guile(void) {
+static Language * new_swig_guile() {
   return new GUILE();
+}
+extern "C" Language * swig_guile(void) {
+  return new_swig_guile();
 }

@@ -25,10 +25,6 @@ char cvsroot_mzscheme_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 
 static const char *usage = (char*)"\
@@ -690,9 +686,11 @@ public:
  * swig_mzscheme()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_mzscheme(void) {
+static Language * new_swig_mzscheme() {
   return new MZSCHEME();
+}
+extern "C" Language * swig_mzscheme(void) {
+  return new_swig_mzscheme();
 }
 
 

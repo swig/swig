@@ -20,9 +20,6 @@ char cvsroot_main_cxx[] = "$Header$";
 #endif
 
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 
 #include "swigwarn.h"
 #include "cparse.h"

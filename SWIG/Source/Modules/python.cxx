@@ -13,10 +13,6 @@ char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
-
 #include <ctype.h>
 
 #define PYSHADOW_MEMBER  0x2
@@ -2187,7 +2183,9 @@ public:
  * swig_python()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_python(void) {
+static Language * new_swig_python() {
   return new PYTHON();
+}
+extern "C" Language * swig_python(void) {
+  return new_swig_python();
 }

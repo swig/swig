@@ -14,9 +14,6 @@ char cvsroot_java_cxx[] = "$Header$";
 
 #include <limits.h> // for INT_MAX
 #include "swigmod.h"
-#ifndef MACSWIG
-#include "swigconfig.h"
-#endif
 #include <ctype.h>
 
 /* Hash type used for JNI upcall data */
@@ -3281,9 +3278,11 @@ class JAVA : public Language {
  * swig_java()    - Instantiate module
  * ----------------------------------------------------------------------------- */
 
-extern "C" Language *
-swig_java(void) {
+static Language * new_swig_java() {
   return new JAVA();
+}
+extern "C" Language * swig_java(void) {
+  return new_swig_java();
 }
 
 /* -----------------------------------------------------------------------------
