@@ -598,14 +598,18 @@ PYTHON::constantWrapper(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::add_native()
+ * PYTHON::nativeWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PYTHON::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-  add_method(name, funcname,0);
+
+int
+PYTHON::nativeWrapper(Node *n) {
+  char *name     = GetChar(n,"sym:name");
+  char *wrapname = GetChar(n,"wrap:name");
+  add_method(name, wrapname,0);
   if (shadow) {
     Printv(f_shadow_stubs, name, " = ", module, ".", name, "\n\n", 0);
   }
+  return SWIG_OK;
 }
 
 /* C++ Support + Shadow Classes */

@@ -32,6 +32,7 @@ public :
   virtual int functionWrapper(Node *);
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
+  virtual int nativeWrapper(Node *);
 
   virtual int membervariableHandler(Node *);
   virtual int memberconstantHandler(Node *);
@@ -42,7 +43,6 @@ public :
   virtual int classforwardDeclaration(Node *);
 
   virtual int insertDirective(Node *);
-  virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void import_start(char *);
   virtual void import_end();
 

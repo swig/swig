@@ -1112,7 +1112,8 @@ PHP4::usage_func(char *iname, SwigType *, ParmList *l) {
 	;
 }
 */
-void 
-PHP4::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-	;
+int
+PHP4::nativeWrapper(Node *) {
+
+  return SWIG_OK;
 }

@@ -21,6 +21,7 @@ class RUBY : public Language {
   virtual int functionWrapper(Node *);
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
+  virtual int nativeWrapper(Node *);
 
   virtual int staticmemberfunctionHandler(Node *);
   virtual int staticmembervariableHandler(Node *);
@@ -33,8 +34,6 @@ class RUBY : public Language {
   virtual int classforwardDeclaration(Node *);
 
   virtual void set_module(char *);          /* Deprecated */
-
-  virtual void add_native(char *, char *, SwigType *, ParmList *);
 
   virtual void create_command(char *, char *, int);   /* Deprecated */
 

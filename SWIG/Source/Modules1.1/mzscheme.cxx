@@ -188,14 +188,6 @@ MZSCHEME::set_module (char *mod_name)
 // ----------------------------------------------------------------------
 
 static void
-mreplace (String *s, String *argnum, String *arg, String *proc_name)
-{
-  Replace(s, "$argnum", argnum, DOH_REPLACE_ANY);
-  Replace(s, "$arg", arg, DOH_REPLACE_ANY);
-  Replace(s, "$name", proc_name, DOH_REPLACE_ANY);
-}
-
-static void
 throw_unhandled_mzscheme_type_error (SwigType *d)
 {
   Printf (stderr, "%s : Line %d. Unable to handle type %s.\n", input_file, line_number, SwigType_str(d,0));
@@ -212,7 +204,6 @@ is_a_pointer (SwigType *t)
 
 int
 MZSCHEME::functionWrapper(Node *n) {
-  char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *d = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");

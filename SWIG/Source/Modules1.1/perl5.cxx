@@ -902,17 +902,19 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::add_native()
+ * PERL5::nativeWrapper()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-  /*  Printf(f_init,"\t newXS((char *) \"%s::%s\", %s, file);\n", package,name, funcname); */
+int
+PERL5::nativeWrapper(Node *n) {
+  String *name = Getattr(n,"sym:name");
+  String *funcname = Getattr(n,"wrap:name");
   Printf(command_tab,"{\"%s::%s\", %s},\n", package,name,funcname);
   if (export_all)
     Printf(exported,"%s ",name);
   if (blessed) {
     Printv(func_stubs,"*", name, " = *", package, "::", name, ";\n", 0);
   }
+  return SWIG_OK;
 }
 
 /****************************************************************************
@@ -1393,16 +1395,17 @@ PERL5::classforwardDeclaration(Node *n) {
 
 
 /* -----------------------------------------------------------------------------
- * PERL5::add_typedef()
+ * PERL5::typedefHandler()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::add_typedef(SwigType *t, char *name) {
-
-  if (!blessed) return;
+int
+PERL5::typedefHandler(Node *n) {
+  SwigType *t = Getattr(n,"type");
+  String   *name = Getattr(n,"name");
+  if (!blessed) return SWIG_OK;
   if (is_shadow(t)) {
     Setattr(classes,NewString(name), is_shadow(t));
-    /*    cpp_class_decl(name,Char(is_shadow(t)), (char *) ""); */
   }
+  return SWIG_OK;
 }
 
 

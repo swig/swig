@@ -9,23 +9,6 @@
 
 #include <ctype.h>
 
-#ifdef NO_STRDUP
-/* not standard ANSI - CodeWarrior does not implement it */
-char* strdup(const char* str);
-
-#include <string.h>
-#include <stdlib.h>
-
-char* strdup(const char* str) {
-  char* out = 0;
-  /* it will cause a leak, I know. */
-  out = (char*) calloc(strlen(str)+1,sizeof(char));
-  if (out)
-    strcpy(out,str);
-  return out;
-}
-#endif
-
 #include "mod11.h"
 #include "java.h"
 
@@ -92,6 +75,8 @@ static String *module_method_modifiers = 0; //native method modifiers overridden
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
+
+/* DB 12/4/01: I think this function may be broken for pass-by-value */
 static String *is_shadow(SwigType *t) {
   String *r;
   SwigType *lt = SwigType_ltype(t);
@@ -306,7 +291,7 @@ char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, St
   while(*tm && (isspace(*tm) || *tm == '{')) tm++;
   while(*tm && *tm != '}') *c++ = *tm++;
   *c='\0';
-  return strdup(bigbuf);
+  return Swig_copy_string(bigbuf);
 }
 
 char *JAVA::makeValidJniName(const char *name) {
@@ -321,7 +306,7 @@ char *JAVA::makeValidJniName(const char *name) {
   }
   *b = '\0';
 
-  return strdup(bigbuf);
+  return Swig_copy_string(bigbuf);
 }
 
 // !! this approach fails for functions without arguments
@@ -331,7 +316,7 @@ char *JAVA::JNICALL(String_or_char *func) {
   else
 	sprintf(bigbuf, "jenv->%s(", Char(func));
 
-  return strdup(bigbuf);
+  return Swig_copy_string(bigbuf);
 }
 
 void JAVA::writeRegisterNatives()
@@ -642,16 +627,15 @@ void JAVA::emit_classdef() {
 void JAVA::create_command(char *cname, char *iname) {
 }
 
-void JAVA::add_native(char *name, char *iname, SwigType *t, ParmList *l) {
+int JAVA::nativeWrapper(Node *n) {
+
+  Swig_save(&n,"name");
+  Setattr(n,"name", Getattr(n,"wrap:name"));
   native_func = 1;
-  Node *n = NewHash();
-  Setattr(n,"name",name);
-  Setattr(n,"sym:name",iname);
-  Setattr(n,"type",t);
-  Setattr(n,"parms",l);
   functionWrapper(n);
-  Delete(n);
+  Swig_restore(&n);
   native_func = 0;
+  return SWIG_OK;
 }
 
 // ----------------------------------------------------------------------
@@ -1321,60 +1305,15 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   Delete(strvalue);
 }
 
-void JAVA::add_typedef(SwigType *t, char *name) {
-  if(!shadow) return;
+int JAVA::typedefHandler(Node *n) {
+  SwigType *t = Getattr(n,"type");
+  String   *name = Getattr(n,"name");
+  if(!shadow) return SWIG_OK;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)), (char*) "");
+    /* DB: This may be broken */
+    Setattr(shadow_classes,name,is_shadow(t));
   }
-}
-
-void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
-
-  this->Language::cpp_open_class(classname,rename,ctype,strip);
-
-  if(!shadow) return;
-
-  if(rename)
-    shadow_classname = Swig_copy_string(rename);
-  else shadow_classname = Swig_copy_string(classname);
-
-  if (strcmp(shadow_classname, module) == 0) {
-    Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
-    SWIG_exit(1);
-  }
-
-  Setattr(shadow_classes,classname, shadow_classname);
-  if(ctype && strcmp(ctype, "struct") == 0) {
-    sprintf(bigbuf, "struct %s", classname);
-    Setattr(shadow_classes, bigbuf, shadow_classname);
-  }
-
-  sprintf(bigbuf, "%s.java", shadow_classname);
-  if(!(f_shadow = fopen(bigbuf, "w"))) {
-    Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
-  }
-
-  emit_banner(f_shadow);
-
-  if(*package)
-    Printf(f_shadow, "package %s;\n\n", package);
-  else 
-    Printf(f_shadow, "import %s;\n", module);
-
-  Clear(shadow_classdef);
-  Clear(shadow_code);
-
-  abstract_class_flag = 0;
-  have_default_constructor = 0;
-  shadow_enum_code = NewString("");
-  this_shadow_baseclass =  NewString("");
-  this_shadow_extra_code = NewString("");
-  this_shadow_interfaces = NewString("");
-  this_shadow_import = NewString("");
-  this_shadow_class_modifiers = NewString("");
-
-  if(all_shadow_interfaces)
-    Printv(this_shadow_interfaces, all_shadow_interfaces, 0);
+  return SWIG_OK;
 }
 
 void JAVA::emit_shadow_classdef() {
@@ -1476,33 +1415,98 @@ void JAVA::emit_shadow_classdef() {
     Printv(shadow_classdef, this_shadow_extra_code, 0);
 }
 
-void JAVA::cpp_close_class() {
-  this->Language::cpp_close_class();
-  if(!shadow) return;
+int JAVA::classHandler(Node *n) {
 
-  emit_shadow_classdef();
+  if (shadow) {
+    char *classname = GetChar(n,"name");
+    char *rename = GetChar(n,"sym:name");
+    char *ctype  = GetChar(n,"kind");
+    
+    shadow_classname = Swig_copy_string(rename);
+    
+    if (strcmp(shadow_classname, module) == 0) {
+      Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
+      SWIG_exit(1);
+    }
+    
+    Setattr(shadow_classes,classname, shadow_classname);
+    if(ctype && strcmp(ctype, "struct") == 0) {
+      sprintf(bigbuf, "struct %s", classname);
+      Setattr(shadow_classes, bigbuf, shadow_classname);
+    }
+    
+    sprintf(bigbuf, "%s.java", shadow_classname);
+    if(!(f_shadow = fopen(bigbuf, "w"))) {
+      Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
+    }
+    
+    emit_banner(f_shadow);
+    
+    if(*package)
+      Printf(f_shadow, "package %s;\n\n", package);
+    else 
+      Printf(f_shadow, "import %s;\n", module);
+    
+    Clear(shadow_classdef);
+    Clear(shadow_code);
+    
+    abstract_class_flag = 0;
+    have_default_constructor = 0;
+    shadow_enum_code = NewString("");
+    this_shadow_baseclass =  NewString("");
+    this_shadow_extra_code = NewString("");
+    this_shadow_interfaces = NewString("");
+    this_shadow_import = NewString("");
+    this_shadow_class_modifiers = NewString("");
+    if(all_shadow_interfaces)
+      Printv(this_shadow_interfaces, all_shadow_interfaces, 0);
+  }
+  Language::classHandler(n);
 
-  Printv(f_shadow, shadow_classdef, shadow_code, 0);
+  if (shadow) {
 
-  // Write the enum initialisation code in a static block.
-  // These are all the enums defined within the c++ class.
-  if (strlen(Char(shadow_enum_code)) != 0 )
-    Printv(f_shadow, "  static {\n  // Initialise java constants from c++ enums\n", shadow_enum_code, "  }\n",0);
+    /* Deal with inheritance */
+    List *baselist = Getattr(n,"bases");
+    if (baselist) {
+      Node *base = Firstitem(baselist);
 
-  Printf(f_shadow, "}\n");
-  fclose(f_shadow);
-  f_shadow = NULL;
+      /* DB: This might be broken.  What happens when the base-class was renamed? */
 
-  free(shadow_classname);
-  shadow_classname = NULL;
+      if (is_shadow(Getattr(base,"name"))) {
+	Printf(this_shadow_baseclass,"%s",Getattr(base,"name"));
+      }
+      base = Nextitem(baselist);
+      if (base) {
+	Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
+      }
+    }
 
-  Delete(shadow_enum_code); shadow_enum_code = NULL;
-  Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
-  Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
-  Delete(this_shadow_interfaces); this_shadow_interfaces = NULL;
-  Delete(this_shadow_import); this_shadow_import = NULL;
-  Delete(this_shadow_class_modifiers); this_shadow_class_modifiers = NULL;
+    emit_shadow_classdef();
+
+    Printv(f_shadow, shadow_classdef, shadow_code, 0);
+
+    // Write the enum initialisation code in a static block.
+    // These are all the enums defined within the c++ class.
+    if (strlen(Char(shadow_enum_code)) != 0 )
+      Printv(f_shadow, "  static {\n  // Initialise java constants from c++ enums\n", shadow_enum_code, "  }\n",0);
+
+    Printf(f_shadow, "}\n");
+    fclose(f_shadow);
+    f_shadow = NULL;
+    
+    free(shadow_classname);
+    shadow_classname = NULL;
+    
+    Delete(shadow_enum_code); shadow_enum_code = NULL;
+    Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
+    Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
+    Delete(this_shadow_interfaces); this_shadow_interfaces = NULL;
+    Delete(this_shadow_import); this_shadow_import = NULL;
+    Delete(this_shadow_class_modifiers); this_shadow_class_modifiers = NULL;
+  }
+  return SWIG_OK;
 }
+
 
 int JAVA::memberfunctionHandler(Node *n) {
   char *name = GetChar(n,"name");
@@ -1779,7 +1783,11 @@ int JAVA::destructorHandler(Node *n) {
   return SWIG_OK;
 }
 
-void JAVA::cpp_class_decl(char *name, char *rename, char *type) {
+int JAVA::classforwardDeclaration(Node *n) {
+  String *name = Getattr(n,"name");
+  String *rename = Getattr(n,"sym:name");
+  String *type   = Getattr(n,"kind");
+
   String *stype;
 /* Register the class as one for which there will be a java shadow class */
   if (shadow) {
@@ -1787,35 +1795,14 @@ void JAVA::cpp_class_decl(char *name, char *rename, char *type) {
     SwigType_add_pointer(stype);
     Setattr(shadow_classes,stype,rename);
     Delete(stype);
-    if (strlen(type) > 0) {
+    if (Len(type) > 0) {
       stype = NewStringf("%s %s",type,name);
       SwigType_add_pointer(stype);
       Setattr(shadow_classes,stype,rename);
       Delete(stype);
     }
   }
-}
-
-void JAVA::cpp_inherit(char **baseclass, int) {
-  this->Language::cpp_inherit(baseclass, 0);
-  if(!shadow) return;
-
-  int i = 0;
-  while(baseclass[i]) i++;
-
-  if(i > 1)
-    Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
-
-  i=0;
-  char *bc;
-  if (baseclass[i]) {
-    /* See if this is a class we know about */
-    String *b = NewString(baseclass[i]);
-    bc = Char(is_shadow(b));
-    if (bc && this_shadow_baseclass)
-      Printf(this_shadow_baseclass, "%s", bc);
-    Delete(b);
-  }
+  return SWIG_OK;
 }
 
 int JAVA::membervariableHandler(Node *n) {
@@ -1848,13 +1835,6 @@ int JAVA::memberconstantHandler(Node *n) {
   Language::memberconstantHandler(n);
   wrapping_member = 0;
   return SWIG_OK;
-}
-
-
-void JAVA::import_start(char *modulename) {
-}
-
-void JAVA::import_end() {
 }
 
 

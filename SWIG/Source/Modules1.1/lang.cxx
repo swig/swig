@@ -397,12 +397,7 @@ int Language::moduleDirective(Node *n) {
 int Language::nativeDirective(Node *n) {
   
   if (!ImportMode) {
-    String *name = Getattr(n,"cname");
-    String *symname = Getattr(n,"sym:name");
-    SwigType *type = Getattr(n,"type");
-    Parm    *parms = Getattr(n,"parms");
-    lang->add_native(Char(name),Char(symname),type,parms);
-    return SWIG_OK;
+    return nativeWrapper(n);
   } else {
     return SWIG_NOWRAP;
   }
@@ -517,12 +512,15 @@ int Language::cDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
   if (Cmp(storage,"typedef") == 0) {
+    Swig_save(&n,"type",0);
     SwigType *t = Copy(type);
     if (t) {
       SwigType_push(t,decl);
       SwigType_typedef(t,name);
-      lang->add_typedef(t,Char(name));
+      Setattr(n,"type",t);
+      typedefHandler(n);
     }
+    Swig_restore(&n);
     return SWIG_OK;
   } else if (Cmp(storage,"friend") == 0) {
     return SWIG_NOWRAP;
@@ -1026,7 +1024,6 @@ int Language::enumDeclaration(Node *n) {
     SwigType *t = NewStringf("enum %s", name);
     SwigType_typedef(t,name);
     Delete(t);
-    lang->add_typedef(t,Char(name));
   }
   return SWIG_OK;
 }
@@ -1088,6 +1085,14 @@ int Language::memberconstantHandler(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
+ * Language::typedefHandler() 
+ * ---------------------------------------------------------------------- */
+
+int Language::typedefHandler(Node *) {
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
  * Language::classDeclaration()
  * ---------------------------------------------------------------------- */
 
@@ -1129,9 +1134,11 @@ int Language::classDeclaration(Node *n) {
     ClassType = NewStringf("%s %s", kind, classname);
   }
   Setattr(n,"classtype", ClassType);
-  if (!ImportMode) {
-    this->cpp_open_class(classname,iname,Char(kind),strip);
-  }
+
+  //  if (!ImportMode) {
+  //    this->cpp_open_class(classname,iname,Char(kind),strip);
+  //  }
+
   InClass = 1;
   CurrentClass = n;
 
@@ -1159,8 +1166,8 @@ int Language::classDeclaration(Node *n) {
       baselist[i] = Char(Getattr(Getitem(bases,i),"name"));
     }
     baselist[i] = 0;
-    lang->cpp_inherit(baselist,i);
-    lang->cpp_close_class();
+    //    lang->cpp_inherit(baselist,i);
+    //    lang->cpp_close_class();
   }
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
@@ -1203,11 +1210,6 @@ int Language::classHandler(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classforwardDeclaration(Node *n) {
-  String *kind = Getattr(n,"kind");
-  String *name = Getattr(n,"name");
-  String *symname = Getattr(n,"sym:name");
-  if (!symname) symname = name;
-  lang->cpp_class_decl(Char(name),Char(symname),Char(kind));
   return SWIG_OK;
 }
 
@@ -1359,53 +1361,6 @@ int Language::accessDeclaration(Node *n) {
     cplus_mode = CPLUS_PROTECTED;
   }
   return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------
- * Language::add_native()
- * ----------------------------------------------------------------- */
-
-void
-Language::add_native(char *, char *iname, SwigType *, ParmList *) {
-  Printf(stderr,"%s:%d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
-}
-
-/* -----------------------------------------------------------------------------
- * Language::cpp_open_class()
- * ----------------------------------------------------------------------------- */
-
-void Language::cpp_open_class(char *classname, char *classrename, char *ctype, int strip) {
-}
-
-/* -----------------------------------------------------------------------------
- * Language::cpp_close_class()
- * ----------------------------------------------------------------------------- */
-
-void Language::cpp_close_class() {
-  /* Doesn't really do anything  */
-}
-
-/* ----------------------------------------------------------------------------- 
- * Language::cpp_inherit()
- * ----------------------------------------------------------------------------- */
-
-void Language::cpp_inherit(char **baseclass, int mode) {
-}
-
-/* -----------------------------------------------------------------------------
- * Language::cpp_class_decl()
- * ----------------------------------------------------------------------------- */
-
-void Language::cpp_class_decl(char *, char *, char *) {
-  /* Does nothing by default */
-}
-
-/* -----------------------------------------------------------------------------
- * Language::add_typedef()
- * ----------------------------------------------------------------------------- */
-
-void Language::add_typedef(SwigType *, char *) {
-  /* Does nothing by default */
 }
 
 /* -----------------------------------------------------------------------------

@@ -329,11 +329,13 @@ void RUBY::set_module(char *mod_name) {
 }
 
 /* --------------------------------------------------------------------------
- * RUBY::add_native()
+ * RUBY::nativeWrapper()
  * -------------------------------------------------------------------------- */
-void
-RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+int
+RUBY::nativeWrapper(Node *n) {
+  String *funcname = Getattr(n,"wrap:name");
   Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
+  return SWIG_NOWRAP;
 }
 
 /* ---------------------------------------------------------------------

@@ -536,12 +536,15 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::add_native()
+ * TCL8::nativeWrapper()
  * ----------------------------------------------------------------------------- */
 
-void
-TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+int
+TCL8::nativeWrapper(Node *n) {
+  String *name = Getattr(n,"sym:name");
+  String *funcname = Getattr(n,"wrap:name");
   Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", (swig_wrapper_func) %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------

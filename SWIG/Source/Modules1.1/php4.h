@@ -20,7 +20,7 @@ public :
 	virtual int functionWrapper(Node *n);
 	virtual int variableWrapper(Node *n);
 	virtual int constantWrapper(Node *n);
-	virtual void add_native(char *, char *, SwigType *, ParmList *);
+	virtual int nativeWrapper(Node *n);
 	virtual void create_command(char *, char *);
 
 	// Modular Support

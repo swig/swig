@@ -28,6 +28,7 @@ public :
   virtual int functionWrapper(Node *);
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
+  virtual int nativeWrapper(Node *);
 
   virtual int staticmemberfunctionHandler(Node *);
   virtual int staticmembervariableHandler(Node *);
@@ -40,9 +41,8 @@ public :
   virtual int classforwardDeclaration(Node *n);
   virtual int classHandler(Node *n);
 
-  virtual void add_native(char *, char *, SwigType *, ParmList *);
+  virtual int typedefHandler(Node *);
 
-  virtual  void add_typedef(SwigType *t, char *name);
   virtual void pragma(char *, char *, char *);
   virtual void import_start(char *filename);
   virtual void import_end();

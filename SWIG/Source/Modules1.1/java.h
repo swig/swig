@@ -14,7 +14,7 @@ public :
   virtual int functionWrapper(Node *);
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
-
+  virtual int nativeWrapper(Node *);
 
   virtual int staticmemberfunctionHandler(Node *);
   virtual int staticmembervariableHandler(Node *);
@@ -24,21 +24,14 @@ public :
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
 
-  virtual void add_native(char *, char *, SwigType *, ParmList *);
+  virtual int classHandler(Node *);
+  virtual int classforwardDeclaration(Node *);
+  virtual int typedefHandler(Node *);
 
-  virtual void set_module(char *);
-  virtual void create_command(char *, char *);
+  virtual void set_module(char *);                 /* Deprecated */
+  virtual void create_command(char *, char *);     /* Deprecated */
 
   virtual void pragma(char *lang, char *code, char *value);
-  virtual void add_typedef(SwigType *t, char *name);
-  virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
-  virtual void cpp_close_class();
-
-  virtual void cpp_class_decl(char *name, char *rename, char *type);
-  virtual void cpp_inherit(char **baseclass, int);
-
-  virtual void import_start(char *modulename);
-  virtual void import_end();
 
   /* Java Module methods */
   void emit_classdef();

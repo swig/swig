@@ -472,7 +472,6 @@ GUILE::write_doc(const String *proc_name,
 
 int
 GUILE::functionWrapper(Node *n) {
-  char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *d = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");

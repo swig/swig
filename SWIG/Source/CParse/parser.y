@@ -956,7 +956,7 @@ name_directive : NAME LPAREN idstring RPAREN {
 native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
                  $$ = new_node("native");
 		 Setattr($$,"name",$3);
-		 Setattr($$,"cname",$6);
+		 Setattr($$,"wrap:name",$6);
 	         add_symbols($$);
 	       }
                | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
@@ -969,7 +969,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		     SwigType_push($6,$7.type);
 		     $$ = new_node("native");
 	             Setattr($$,"name",$3);
-		     Setattr($$,"cname",$7.id);
+		     Setattr($$,"wrap:name",$7.id);
 		     Setattr($$,"type",$6);
 		     Setattr($$,"parms",$7.parms);
 		     Setattr($$,"decl",$7.type);
@@ -1195,6 +1195,7 @@ stringbracesemi : stringbrace { $$ = $1; }
                 | HBLOCK { $$ = $1; }                
                 | SEMI { $$ = 0; }
                 ;
+
  
 /* ------------------------------------------------------------
    %typemap(method) type { ... }

@@ -116,12 +116,16 @@ public:
   virtual int membervariableHandler(Node *n);
   virtual int staticmembervariableHandler(Node *n);
 
-  /* Miscellaneous handlers */
+  /* C++ handlers */
 
   virtual int memberconstantHandler(Node *n);
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
   virtual int classHandler(Node *n);
+
+  /* Miscellaneous */
+
+  virtual int typedefHandler(Node *n);
 
   /* Low-level code generation */
 
@@ -130,31 +134,23 @@ public:
   virtual int functionWrapper(Node *n);
   virtual int nativeWrapper(Node *n);
 
+  /* Miscellaneous */
+
+  virtual int  validIdentifier(String *s);        /* valid identifier? */
+
   /* ----------------------------------------------------------------------
-   !! Deprecated interface.   It is only provided for backwards
-   !! compatibility with old language modules.  Use the functions above
-   !! instead
+   !! Deprecated interface.   These functions are going away as soon
+   !! we get around to it.
    * ----------------------------------------------------------------------*/
-
-  virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
-  virtual void add_typedef(SwigType *t, char *name);
-
-  virtual void cpp_open_class(char *name, char *rename, char *ctype, int strip);
-  virtual void cpp_close_class();
-  virtual void cpp_inherit(char **baseclass, int mode = 0);
 
   // Pragma directive
 
   virtual void pragma(char *, char *, char *);
 
-  // Declaration of a class, but not a full definition
-  virtual void cpp_class_decl(char *, char *, char *);
-
   // Import directive
 
   virtual void import_start(char *modulename);    /* Import a new module */
   virtual void import_end();                      /* Done with import    */
-  virtual int  validIdentifier(String *s);        /* valid identifier? */
 
   // Attributes
 
