@@ -146,3 +146,16 @@ String *Swig_string_mangle(String *s) {
   }
   return t;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_init()
+ *
+ * Initialize the SWIG core
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_init() {
+  DohEncoding("escape", Swig_string_escape);
+  Swig_typemap_init();
+
+}
