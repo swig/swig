@@ -2,7 +2,7 @@ New Features and Important Changes, v1.3
 
 Author(s) :  David Beazley
 
-June 2, 2002
+March 21, 2003
 
 1. Introduction
 ---------------
@@ -246,6 +246,13 @@ and it is simpler to implement than the old string based approach.
 
 6.9 %feature directive.
 
+6.10 Ocaml module added.
+
+6.11 XML module added.
+
+6.12 CHICKEN module added.
+
+6.13 C# module added.
 
 
 
