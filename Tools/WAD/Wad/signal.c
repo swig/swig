@@ -308,7 +308,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   p_sp = (unsigned long) (*sp);
 #ifdef WAD_LINUX
   p_fp = (unsigned long) (*fp);
-  /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
+  /* printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
 #endif
 #ifdef WAD_SOLARIS
   p_fp = (unsigned long) *(((long *) p_sp) + 14);

@@ -85,7 +85,7 @@ wad_segment_find(void *vaddr) {
   s = segments;
   ls = segments;
   while (s) {
-    if (strcmp(s->mapname,ls->mapname)) {
+    if (strcmp(s->mapname,ls->mapname) || (!strlen(ls->mapname))) {
       ls = s;    /* First segment for a given name */
     }
     if ((addr >= s->vaddr) && (addr < (s->vaddr + s->size))) {

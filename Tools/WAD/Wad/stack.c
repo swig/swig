@@ -104,7 +104,6 @@ stack_unwind(unsigned long *pc, unsigned long *sp, unsigned long *fp) {
   f->fp = fake_fp;
   f->segment = wad_segment_find((void *) *pc);
   f->stack_size = fake_fp - *sp;
-  
   /* Make a copy of the call stack */
   f->stack = (char *) wad_malloc(f->stack_size);
   memcpy(f->stack,(void *) *sp, f->stack_size);
