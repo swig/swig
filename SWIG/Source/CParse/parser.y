@@ -140,7 +140,9 @@ static Node *copy_node(Node *n) {
     }
     if ((Strcmp(key,"parms") == 0) || (Strcmp(key,"pattern") == 0) || (Strcmp(key,"throws") == 0)
 	|| (Strcmp(key,"kwargs") == 0)) {
-      Setattr(nn,key,CopyParmList(k.item));
+      ParmList *pl = CopyParmList(k.item);
+      Setattr(nn,key,pl);
+      Delete(pl);
       continue;
     }
     /* Looks okay.  Just copy the data using Copy */
@@ -1073,6 +1075,7 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
      } else {
        Swig_feature_set(features_hash, name, decl, fname, val, featureattribs);
      }
+     Delete(decl);
    } else if (SwigType_ispointer(t)) {
      String *nname = NewStringf("*%s",name);
      Swig_feature_set(features_hash,nname,0,fname,val, featureattribs);
@@ -1177,7 +1180,9 @@ static void default_arguments(Node *n) {
 
         {
           Node *throws = Getattr(function,"throws");
-          if (throws) Setattr(new_function,"throws",CopyParmList(throws));
+	  ParmList *pl = CopyParmList(throws);
+          if (throws) Setattr(new_function,"throws",pl);
+	  Delete(pl);
         }
 
         /* copy specific attributes for global (or in a namespace) template functions - these are not templated class methods */
@@ -1968,6 +1973,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 			namewarn_add(Char(fixname),decl,$3);
 		      }
 		    }
+		    Delete(decl);
 		  } else if (SwigType_ispointer(t)) {
 		    String *nname = NewStringf("*%s",fixname);
 		    if ($1) {
@@ -2116,6 +2122,7 @@ varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEM
 		     } else {
 		       Swig_feature_set(features_hash, name, decl, "feature:varargs", val, 0);
 		     }
+		     Delete(decl);
 		   } else if (SwigType_ispointer(t)) {
 		     String *nname = NewStringf("*%s",name);
 		     Swig_feature_set(features_hash,nname,0,"feature:varargs",val, 0);
@@ -3258,6 +3265,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      p1 = nextSibling(p1);
 			    }
 			    Setattr($$,"templateparms",tp);
+			    Delete(tp);
 			  }
 #if 0
 			  /* Patch the parameter list */
@@ -3277,6 +3285,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      p1 = nextSibling(p1);
 			    }
 			    Setattr($$,"templateparms",tp);
+			    Delete(tp);
 			  } else {
 			    Setattr($$,"templateparms",$3);
 			  }
@@ -3859,6 +3868,15 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
 		}
 	      }
+/*
+              | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
+              } SEMI {
+	        $$ = 0;
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
+		}
+	      }
+*/
               ;
 
 nested_decl   : declarator { $$ = $1;}
