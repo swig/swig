@@ -766,12 +766,30 @@ int PERL5::variableWrapper(Node *n)
   Replaceall(getf->code,"$symname",iname);
   Wrapper_print(getf,magic);
 
+  String *tt = Getattr(n,"tmap:varout:type");
+  if (tt) {
+    String *tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(t));
+    if (Replaceall(tt,"$1_descriptor", tm)) {
+      SwigType_remember(t);
+    }
+    Delete(tm);
+    SwigType *st = Copy(t);
+    SwigType_add_pointer(st);
+    tm = NewStringf("&SWIGTYPE%s", SwigType_manglestr(st));
+    if (Replaceall(tt,"$&1_descriptor", tm)) {
+      SwigType_remember(st);
+    }
+    Delete(tm);
+    Delete(st);
+  } else {
+    tt = (String *) "0";
+  }
   /* Now add symbol to the PERL interpreter */
   if (ReadOnly) {
-    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name, " },\n",0);
+    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", val_name,",", tt, " },\n",0);
 
   } else {
-    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, " },\n",0);
+    Printv(variable_tab, tab4, "{ \"", package, "::", iname, "\", MAGIC_CLASS ", set_name, ", MAGIC_CLASS ", val_name, ",", tt, " },\n",0);
   }
 
   /* If we're blessed, try to figure out what to do with the variable
