@@ -239,7 +239,7 @@ namespace std {
         %typemap(out) vector<T> {
             $result = gh_make_vector(gh_long2scm($1.size()),SCM_UNSPECIFIED);
             for (unsigned int i=0; i<$1.size(); i++) {
-                SCM x = CONVERT_TO(($1_type &)$1)[i];
+                SCM x = CONVERT_TO((($1_type &)$1)[i]);
                 gh_vector_set_x($result,gh_long2scm(i),x);
             }
         }

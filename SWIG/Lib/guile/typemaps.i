@@ -270,7 +270,7 @@ typedef unsigned long SCM;
  * ------------------------------------------------------------ */
 
 %typemap(in) (char *STRING, int LENGTH) {
-    int temp;
+    size_t temp;
     $1 = ($1_ltype) gh_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;
 }
