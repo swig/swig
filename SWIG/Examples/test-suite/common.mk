@@ -140,6 +140,7 @@ CPP_TEST_CASES += \
 	features \
 	friends \
 	global_ns_arg \
+	global_vars \
 	grouping \
 	ignore_parameter \
 	import_nomodule \
