@@ -1411,6 +1411,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
  *
  *   $TYPEMAP(in, $1=int x, $input=y, ...)
  *
+ * Note: this was added as an experiment and could be removed
  * ----------------------------------------------------------------------------- */
 
 /* Splits the arguments of an embedded typemap */
