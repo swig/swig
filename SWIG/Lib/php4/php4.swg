@@ -100,36 +100,40 @@
 	ZVAL_STRING(return_value,$1, 1);
 }
 
-/* Typemap for in/argout references */
-/*
-%typemap(in) int * ($*1_ltype intr), unsigned int * ($*1_ltype intr), unsigned short * ($*1_ltype intr), short * ($*1_ltype intr), unsigned short * ($*1_ltype intr), long * ($*1_ltype intr), unsigned long * ($*1_ltype intr), signed char * ($*1_ltype intr), unsigned char * ($*1_ltype intr), bool * ($*1_ltype intr), enum SWIGTYPE * ($*1_ltype intr) %{
-  convert_to_long_ex($input);
-  intr = ($*1_ltype) (*$input)->value.lval;
-  $1 = &intr;
+/* Typemap for in/argout references
+   NOTE: we don't choose to use these for arrays yet, maybe later */
+%typemap(in) int * ($*1_ltype intr, int force), unsigned int * ($*1_ltype intr, int force), unsigned short * ($*1_ltype intr, int force), short * ($*1_ltype intr, int force), unsigned short * ($*1_ltype intr, int force), long * ($*1_ltype intr, int force), unsigned long * ($*1_ltype intr, int force), signed char * ($*1_ltype intr, int force), unsigned char * ($*1_ltype intr, int force), bool * ($*1_ltype intr, int force), enum SWIGTYPE * ($*1_ltype intr, int force),
+             int & ($*1_ltype intr, int force), unsigned int & ($*1_ltype intr, int force), unsigned short & ($*1_ltype intr, int force), short & ($*1_ltype intr, int force), unsigned short & ($*1_ltype intr, int force), long & ($*1_ltype intr, int force), unsigned long & ($*1_ltype intr, int force), signed char & ($*1_ltype intr, int force), unsigned char & ($*1_ltype intr, int force), bool & ($*1_ltype intr, int force), enum SWIGTYPE & ($*1_ltype intr, int force) %{
+  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+    // So... we didn't get a ref or ptr, but can it be 
+    // reasonably co-erced into what we were 
+    // looking for a ref of or ptr to?
+    if ((*$input)->type==IS_STRING ||
+        (*$input)->type==IS_LONG ||
+        (*$input)->type==IS_DOUBLE) {
+      convert_to_long_ex($input);
+      intr = ($*1_ltype) (*$input)->value.lval;
+      $1 = &intr;
+      // have to passback arg$arg too
+      force=1;
+    } else {  // wasn't a pre/ref/thing, OR anything like an int thing
+      force=0;
+      zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or at least something looking vaguely like a number hopefully passed by reference", $argnum-argbase, $1_descriptor->name);
+    }
+  } else force=0;
 %}
 
-%typemap(in) int & ($*1_ltype intr), unsigned int & ($*1_ltype intr), unsigned short & ($*1_ltype intr), short & ($*1_ltype intr), unsigned short & ($*1_ltype intr), long & ($*1_ltype intr), unsigned long & ($*1_ltype intr), signed char & ($*1_ltype intr), unsigned char & ($*1_ltype intr), bool & ($*1_ltype intr), enum SWIGTYPE & ($*1_ltype intr) %{
-  convert_to_long_ex($input);
-  intr = ($*1_ltype) (*$input)->value.lval;
-  $1 = &intr;
-%}
-
-%typemap(argout) int *, unsigned int *, unsigned short *, short *, unsigned short *, long *, unsigned long *, signed char *, unsigned char *, bool *, enum SWIGTYPE *  %{
-  if(! PZVAL_IS_REF(*$arg)) {
-    zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
-  } else {
-    ZVAL_LONG(*$arg,intr$argnum);
+%typemap(argout) int *, unsigned int *, unsigned short *, short *, unsigned short *, long *, unsigned long *, signed char *, unsigned char *, bool *, enum SWIGTYPE *,
+                 int &, unsigned int &, unsigned short &, short &, unsigned short &, long &, unsigned long &, signed char &, unsigned char &, bool &, enum SWIGTYPE & %{
+  if (force$argnum) {  // pass back arg$argnum through params ($arg) if we can
+    if(! PZVAL_IS_REF(*$arg)) {
+      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+    } else {
+      ZVAL_LONG(*$arg,intr$argnum);
+    }
   }
 %}
 
-%typemap(argout) int &, unsigned int &, unsigned short &, short &, unsigned short &, long &, unsigned long &, signed char &, unsigned char &, bool &, enum SWIGTYPE & %{
-  if(! PZVAL_IS_REF(*$arg)) {
-    zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
-  } else {
-    ZVAL_LONG(*$arg,intr$argnum);
-  }
-%}
-*/
 /* Global variables - add the variable to PHP */
 
 %typemap(varinit) char *

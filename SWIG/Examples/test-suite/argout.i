@@ -4,6 +4,9 @@
 
 %module argout
 
+%include cpointer.i
+%pointer_functions(int,intp);
+
 %inline %{
 // returns old value
 int incp(int *value) {
