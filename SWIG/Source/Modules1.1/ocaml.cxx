@@ -223,8 +223,8 @@ public:
 	    "let enum_to_int x v =\n"
 	    "  match v with C_enum y -> (\n"
 	    "  match (x : c_enum_type) with\n"
-	    "   `unknown -> (match (y : c_enum_tag) with `int x -> C_int x\n"
-	    " | _ -> raise (Failure \"Unknown enum with label\"))\n" );
+	    "   `unknown -> (match (y : c_enum_tag) with `int x -> C_int x)\n"
+	    );
 
     Printf( f_int_to_enum,
 	    "let int_to_enum x y =\n"
@@ -238,12 +238,6 @@ public:
     }
 
     /* Produce the enum_to_int and int_to_enum functions */
-    Printf( f_wrappers,
-	    "#ifdef __cplusplus\n"
-	    "extern \"C\"\n"
-	    "#endif\n"
-	    "value _delete_any_%s( value v, value f ) {\n"
-	    "}\n", module );
     
     Printf(f_enumtypes_type,"type c_enum_type = [ \n  `unknown\n" );
     Printf(f_enumtypes_value,"type c_enum_tag = [ \n  `int of int\n" );
