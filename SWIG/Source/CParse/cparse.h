@@ -49,6 +49,9 @@ extern void      Swig_cparse_replace_descriptor(String *s);
 extern void      cparse_normalize_void(Node *);
 extern int       need_protected(Node *n, int dirprot_mode);
 extern Parm     *Swig_cparse_parm(String *s);
+extern int       need_name_warning(Node *n);
+extern int       need_redefined_warn(Node* a, Node* b, int InClass);
+
 
 /* templ.c */
 extern int       Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
