@@ -185,11 +185,19 @@ public:
   }
 
   virtual int cDeclaration(Node *n) {
-    /* Look for a private assignment operator */
-    if (inclass && (cplus_mode != PUBLIC)) {
+
+    if (inclass) {
       String *name = Getattr(n,"name");
-      if (Strcmp(name,"operator =") == 0) {
-	Setattr(inclass,"allocate:noassign","1");
+      if (cplus_mode != PUBLIC) {
+	/* Look for a private assignment operator */
+	if (Strcmp(name,"operator =") == 0) {
+	  Setattr(inclass,"allocate:noassign","1");
+	}
+      } else {
+	/* Look for smart pointer operator */
+	if (Strcmp(name,"operator ->") == 0) {
+	  Setattr(inclass,"allocate:smartpointer",n);
+	}
       }
     }
     return SWIG_OK;

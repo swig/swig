@@ -32,6 +32,7 @@ static int      cplus_mode = 0;
 static Node    *CurrentClass = 0;
 int             line_number = 0;
 char           *input_file = 0;
+int             SmartPointer = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
@@ -117,8 +118,6 @@ int Dispatcher::emit_one(Node *n) {
     ret = clearDirective(n);
   } else if (strcmp(tag,"constant") == 0) {
     ret = constantDirective(n);
-  } else if (strcmp(tag,"except") == 0) {
-    ret = exceptDirective(n);
   } else if (strcmp(tag,"import") == 0) {
     ret = importDirective(n);
   } else if (strcmp(tag,"include") == 0) {
@@ -173,7 +172,6 @@ int Dispatcher::extendDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::applyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::clearDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::constantDirective(Node *n) { return defaultHandler(n); }
-int Dispatcher::exceptDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::importDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::includeDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::insertDirective(Node *n) { return defaultHandler(n); }
@@ -329,7 +327,7 @@ int Language::top(Node *n) {
 int Language::extendDirective(Node *n) {
   int oldam = Extend;
   int oldmode = cplus_mode;
-  Extend = 1;
+  Extend = CWRAP_EXTEND;
   cplus_mode = CPLUS_PUBLIC;
 
   emit_children(n);
@@ -394,21 +392,6 @@ int Language::constantDirective(Node *n) {
   }
   return SWIG_NOWRAP;
 }
-
-/* ----------------------------------------------------------------------
- * Language::exceptDirective()
- * ---------------------------------------------------------------------- */
-
-int Language::exceptDirective(Node *n) {
-  String *code = Getattr(n,"code");
-  if (code) {
-    Swig_except_register(code);
-  } else {
-    Swig_except_clear();
-  }
-  return SWIG_OK;
-}
-
 
 /* ----------------------------------------------------------------------
  * Language::importDirective()
@@ -888,7 +871,7 @@ Language::memberfunctionHandler(Node *n) {
 
   String *fname = Swig_name_member(ClassPrefix, symname);
   /* Transformation */
-  Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend);
+  Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer);
   Setattr(n,"sym:name",fname);
   functionWrapper(n);
 
@@ -952,8 +935,10 @@ Language::variableHandler(Node *n) {
     globalvariableHandler(n);
   } else {
     String *storage = Getattr(n,"storage");
-    if (Cmp(storage,"static") == 0) {
-      staticmembervariableHandler(n);
+    if ((Cmp(storage,"static") == 0)) {
+      if (!SmartPointer) {
+	staticmembervariableHandler(n);
+      } 
     } else {
       membervariableHandler(n);
     }
@@ -1004,7 +989,7 @@ Language::membervariableHandler(Node *n) {
 	target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
-      Swig_MembersetToFunction(n,ClassType,Extend);
+      Swig_MembersetToFunction(n,ClassType,Extend | SmartPointer);
       if (!Extend) {
 	/* Check for a member in typemap here */
 
@@ -1037,7 +1022,7 @@ Language::membervariableHandler(Node *n) {
     }
     /* Emit get function */
     {
-      Swig_MembergetToFunction(n,ClassType,Extend);
+      Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer);
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }
@@ -1281,6 +1266,43 @@ int Language::classHandler(Node *n) {
 
   /* Emit all of the class members */
   emit_children(n);
+
+  /* Look for smart pointer handling */
+  if (Getattr(n,"allocate:smartpointer")) {
+    Node *sp = Getattr(n,"allocate:smartpointer");
+    SwigType *ty = Getattr(sp,"type");
+    
+    /* Need to search for return type */
+    Node *sc = Swig_symbol_clookup(ty,0);
+    if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
+      /*      Printf(stdout,"smart-pointer : '%s'\n", Getattr(sc,"name")); */
+
+      /* This is just sick.  We turn on smart-pointer mode and walk through
+         the children of the other class--emitting them as if they were
+         our own methods.    We only care about cdecl's.   Extensions are
+         ignored.
+       */
+
+      SmartPointer = CWRAP_SMART_POINTER;
+      Node *c = firstChild(sc);
+      String *kind = Getattr(sc,"kind");
+      if (Strcmp(kind,"class") == 0) cplus_mode = CPLUS_PRIVATE;
+      else cplus_mode = CPLUS_PUBLIC;
+      while (c) {
+	String *nt = nodeType(c);
+	if (Strcmp(nt,"cdecl") == 0) {
+	  if (cplus_mode == CPLUS_PUBLIC) {
+	    /*	    Printf(stdout,"    %s\n", Getattr(c,"name"));*/
+	    emit_one(c);
+	  }
+	} else if (Strcmp(nt,"access") == 0) {
+	  emit_one(c);
+	}
+	c = nextSibling(c);
+      }
+      SmartPointer = 0;
+    }
+  }
 
   cplus_mode = CPLUS_PUBLIC;
   if (!ImportMode && (GenerateDefault && !Getattr(n,"feature:nodefault"))) {

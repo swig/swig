@@ -363,11 +363,6 @@ void emit_action(Node *n, Wrapper *f) {
     tm = Getattr(n,"feature:except");
     if (tm) tm = Copy(tm);
   }
-
-  /* Look for global exception (deprecated) */
-  if (!tm) {
-    tm = Swig_except_lookup();
-  }
   if (tm) {
     Replaceall(tm,"$name",Getattr(n,"name"));
     Replaceall(tm,"$symname", Getattr(n,"sym:name"));
