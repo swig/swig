@@ -176,6 +176,10 @@ Swig_open(const String_or_char *name) {
       Delete(spath);
   }
   if (f) {
+#if defined(_WIN32) /* Note not on Cygwin else filename is displayed with double '/' */
+    Replaceall(filename,"\\\\","\\"); /* remove double '\' in case any already present */
+    Replaceall(filename,"\\","\\\\");
+#endif
     Delete(lastpath);
     lastpath = Copy(filename);
   }
