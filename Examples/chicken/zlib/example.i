@@ -33,15 +33,11 @@
   $1 = (char *) malloc (*$2);
 %}
 
-/* Return the mutated string as a new object.  Notice the if MANY construct ... they must be at column 0. */
-%typemap(chicken,argout,fragment="list_output_helper",chicken_words="0") (Bytef *dest, uLongf *destLen) 
+/* Return the mutated string as a new object. */
+%typemap(chicken,argout) (Bytef *dest, uLongf *destLen) 
 (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
-/*if MANY*/
-  $result = list_output_helper (&known_space, $result, C_string (&scmstr, *$2, $1));
-/*else*/
-  $result = C_string (&scmstr, *$2, $1);
-/*endif*/
+  SWIG_APPEND_VALUE(C_string (&scmstr, *$2, $1));
   free ($1);
 %}
 
@@ -54,14 +50,10 @@
 "$1 = &len;";
 
 /* Return a sized string as a new object. */
-%typemap(chicken,argout,fragment="list_output_helper",chicken_words="0")
+%typemap(chicken,argout)
 (void *outstr, uLongf *destLen) (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING (*$2));
-/*if MANY*/
-  $result = list_output_helper (&known_space, $result, C_string (&scmstr, *$2, $1));
-/*else*/
-  $result = C_string (&scmstr, *$2, $1);
-/*endif*/
+  SWIG_APPEND_VALUE(C_string (&scmstr, *$2, $1));
 %}
 
 %inline %{

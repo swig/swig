@@ -119,8 +119,6 @@ output values, in reverse order.
 // Author: Robin Dunn
 //----------------------------------------------------------------------
 
-%include "fragments.i"
-
 // Simple types
 
 %define INOUT_TYPEMAP(type_, from_scheme, to_scheme, checker, convtype, storage_)
@@ -140,29 +138,26 @@ output values, in reverse order.
 
 #if "storage_" == "0"
 
-%typemap(argout,fragment="list_output_helper",chicken_words="storage_") 
-  type_ *OUTPUT, type_ &OUTPUT 
-%{ if ($1 == NULL) {
+%typemap(argout) type_ *OUTPUT, type_ &OUTPUT 
+%{ 
+  if ($1 == NULL) {
     swig_barf (SWIG_BARF1_ARGUMENT_NULL, "Argument #$argnum must be non-null");
   }
-/*if ONE*/
-  $result = to_scheme (convtype (*$1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (convtype (*$1)));
-/*endif*/ %}
+  SWIG_APPEND_VALUE(to_scheme (convtype (*$1)));
+%}
 
 #else
 
-%typemap(argout,fragment="list_output_helper",chicken_words="storage_") 
-  type_ *OUTPUT, type_ &OUTPUT 
-%{if ($1 == NULL) {
-    swig_barf (SWIG_BARF1_ARGUMENT_NULL, "Variable '$1' must be non-null");
+%typemap(argout) type_ *OUTPUT, type_ &OUTPUT 
+%{
+  {
+    C_word *known_space = C_alloc(storage_);
+    if ($1 == NULL) {
+      swig_barf (SWIG_BARF1_ARGUMENT_NULL, "Variable '$1' must be non-null");
+    }
+    SWIG_APPEND_VALUE(to_scheme (&known_space, convtype (*$1)));
   }
-/*if ONE*/
-  $result = to_scheme (&known_space, convtype (*$1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (&known_space, convtype (*$1)));
-/*endif*/ %}
+%}
 
 #endif
 
@@ -171,18 +166,18 @@ output values, in reverse order.
 INOUT_TYPEMAP(int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-INOUT_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+INOUT_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLOWNUM);
+INOUT_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(unsigned short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-INOUT_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+INOUT_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
 INOUT_TYPEMAP(bool, C_truep, C_mk_bool, C_swig_is_bool, (bool), 0);
-INOUT_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-INOUT_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+INOUT_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 
 // INOUT
 // Mappings for an argument that is both an input and output

@@ -35,8 +35,6 @@
 
 /* --- Primitive types --- */
 
-%include "fragments.i"
-
 %define SIMPLE_TYPEMAP(type_, from_scheme, to_scheme, checker, convtype, storage_)
 
 %typemap(in) type_ 
@@ -63,55 +61,45 @@
 
 #if "storage_" == "0"
 
-%typemap(out, fragment="list_output_helper",chicken_words="storage_") type_ 
-%{/*if ONE*/
+%typemap(out) type_ 
+%{
   $result = to_scheme (convtype ($1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (convtype ($1)));
-/*endif*/ %}
+%}
 
 /* References to primitive types.  Return by value */
 
-%typemap(out, fragment="list_output_helper",chicken_words="storage_") const type_ &
-%{/*if ONE*/
+%typemap(out) const type_ &
+%{
   $result = to_scheme (convtype (*$1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (convtype (*$1)));
-/*endif*/ %}
+%}
 
 /* --- Variable output --- */
-%typemap(varout, fragment="list_output_helper",chicken_words="storage_") type_ 
-%{/*if ONE*/
+%typemap(varout) type_ 
+%{
   $result = to_scheme (convtype ($varname));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (convtype ($varname)));
-/*endif*/ %}
+%}
 
 #else
 
-%typemap(out, fragment="list_output_helper",chicken_words="storage_") type_ 
-%{/*if ONE*/
-  $result = to_scheme (&known_space, convtype ($1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (&known_space, convtype ($1)));
-/*endif*/ %}
+%typemap(out) type_ 
+%{
+  C_word *space = C_alloc(storage_);
+  $result = to_scheme (&space, convtype ($1));
+%}
 
 /* References to primitive types.  Return by value */
 
-%typemap(out, fragment="list_output_helper",chicken_words="storage_") const type_ &
-%{/*if ONE*/
+%typemap(out) const type_ &
+%{
   $result = to_scheme (convtype (*$1));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (convtype (*$1)));
-/*endif*/ %}
+%}
 
 /* --- Variable output --- */
-%typemap(varout, fragment="list_output_helper",chicken_words="storage_") type_ 
-%{/*if ONE*/
-  $result = to_scheme (&known_space, convtype ($varname));
-/*else*/
-  $result = list_output_helper (&known_space, $result, to_scheme (&known_space, convtype ($varname)));
-/*endif*/ %}
+%typemap(varout) type_ 
+%{
+  C_word *space = C_alloc(storage_);
+  $result = to_scheme (&space, convtype ($varname));
+%}
 
 #endif
 
@@ -130,18 +118,18 @@
 SIMPLE_TYPEMAP(int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-SIMPLE_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+SIMPLE_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(unsigned int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(unsigned short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-SIMPLE_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-SIMPLE_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+SIMPLE_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 SIMPLE_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
 SIMPLE_TYPEMAP(bool, C_truep, C_mk_bool, C_swig_is_bool, (bool), 0);
-SIMPLE_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
-SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
+SIMPLE_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
 
 /* --- Input arguments --- */
 
@@ -155,38 +143,122 @@ SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double),
    if (!C_swig_is_string ($input)) {
      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'char *'");
    }
-   $1 = ($ltype) swig_make_string ($input);
+   $1 = ($ltype) SWIG_MakeString ($input);
  }
 }
 
 %typemap(freearg) char * "if ($1 != NULL) { free ($1); }"
 
 /* Pointers, references, and arrays */
-%typemap(in) SWIGTYPE *, 
-             SWIGTYPE [] 
-       "swig_convert_ptr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION);"
-
-/* Additional check for null references */
-%typemap(in) SWIGTYPE & 
-"swig_convert_ptr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION);
- if ($1 == NULL) swig_barf (SWIG_BARF1_ARGUMENT_NULL, \"null reference\");"
+%typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &  {
+   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+}
 
 /* Void pointer.  Accepts any kind of pointer */
-%typemap(in) void * "swig_convert_ptr($input,(void **) &$1, 0, SWIG_POINTER_EXCEPTION);"
+%typemap(in) void * {
+  $1 = SWIG_MustGetPtr($input, NULL, $argnum, 0);
+}
 
-/* Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&1_ltype argp) "swig_convert_ptr($input,(void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION);
-$1 = *argp; ";
+%typemap(varin) SWIGTYPE * {
+  $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0);
+}
 
-/* Pointer to a class member */
-%typemap(in) SWIGTYPE (CLASS::*) "swig_convert_packed($input, (void *) &$1, sizeof($1_type), $1_descriptor,SWIG_POINTER_EXCEPTION);";
+%typemap(varin) SWIGTYPE & {
+  $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
+}
 
+%typemap(varin) SWIGTYPE [] {
+  SWIG_Chicken_Barf(SWIG_BARF1_BAD_ARGUMENT_TYPE, "Type error");
+}
+
+%typemap(varin) SWIGTYPE [ANY] {
+  void *temp;
+  int ii;
+  $1_basetype *b = 0;
+  temp = SWIG_MustGetPtr($input, $1_descriptor, 1, 0);
+  b = ($1_basetype *) $1;
+  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
+}
+
+%typemap(varin) void * {
+  $1 = SWIG_MustGetPtr($input, NULL, 1, 0);
+}
+
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
+}
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
+  $result = SWIG_NewPointerObj ($1, ty, $owner);
+}
+    
+%typemap(varout) SWIGTYPE *, SWIGTYPE [] {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  $result = SWIG_NewPointerObj ($varname, $descriptor, 0);
+}
+
+%typemap(varout) SWIGTYPE & {
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  $result = SWIG_NewPointerObj((void *) &$varname, $1_descriptor, 0);
+}
+
+/* Pass-by-value */
+
+%typemap(in) SWIGTYPE($&1_ltype argp) {
+  argp = ($&1_ltype)SWIG_MustGetPtr($input, $&1_descriptor, $argnum, 0);
+  $1 = *argp;
+}
+
+%typemap(varin) SWIGTYPE {
+  $&1_ltype argp;
+  argp = ($&1_ltype)SWIG_MustGetPtr($input, $&1_descriptor, 1, 0);
+  $1 = *argp;
+}
+
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 1);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_NewPointerObj(resultptr, $&1_descriptor, 1);
+}
+#endif
+
+%typemap(varout) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  resultptr = new $1_ltype(($1_ltype&) $1);
+  $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 0);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_NewPointerObj(resultptr, $&1_descriptor, 0);
+}
+#endif
 
 /* --- Output values --- */
 
 /* Strings */
 
-%typemap(out,fragment="list_output_helper",chicken_words="0") 
+%typemap(out) 
   char *
 { char *s = (char*) $1;
   if ($1 == NULL) {
@@ -195,15 +267,11 @@ $1 = *argp; ";
   else {
     int string_len = strlen ($1);
     C_word *string_space = C_alloc (C_SIZEOF_STRING (string_len));
-/*if ONE*/
     $result = C_string (&string_space, string_len, s);
-/*else*/
-    $result = list_output_helper (&known_space, $result, C_string (&string_space, string_len, s));
-/*endif*/ 
   }
 }
 
-%typemap(varout,fragment="list_output_helper",chicken_words="0") 
+%typemap(varout) 
   char *
 { char *s = (char*) $varname;
   if ($varname == NULL) {
@@ -212,43 +280,19 @@ $1 = *argp; ";
   else {
     int string_len = strlen ($varname);
     C_word *string_space = C_alloc (C_SIZEOF_STRING (string_len));
-/*if ONE*/
     $result = C_string (&string_space, string_len, s);
-/*else*/
-    $result = list_output_helper (&known_space, $result, C_string (&string_space, string_len, s));
-/*endif*/ 
   }
 }
 
-/* Pointers, references, and arrays */
-
-%typemap(out,chicken_words="SWIG_ALLOCSZ_POINTER($typename)") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-"$result = swig_new_pointer_obj((void *) $1, &known_space, $1_descriptor);";
-
-/* Dynamic casts */
-
-%typemap(out,chicken_words="SWIG_ALLOCSZ_POINTER($typename)") SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
-   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
-   $result = swig_new_pointer_obj((void *) $1, &known_space, ty);
-}
-
-/* Member pointer */
-
-%typemap(out,chicken_words="SWIG_ALLOCSZ_PACKED_OBJ(sizeof($1_type),$typename)") SWIGTYPE (CLASS::*) "$result = swig_new_packed_obj((void *) &$1, &known_space, sizeof($1_type), $1_descriptor);";
-
 /* Void */
-%typemap(out,chicken_words="void") void
+%typemap(out) void
 %{
-/*if ONE*/
 $result = C_SCHEME_UNDEFINED;
-/*else*/
-  /* void return value, no need to be in $result */
-/*endif*/ 
 %}
 
 /* Special typemap for character array return values */
 
-%typemap(out,fragment="list_output_helper",chicken_words="0") 
+%typemap(out) 
   char [ANY], const char [ANY] 
 %{ if ($1 == NULL) {
   $result = C_SCHEME_FALSE;
@@ -256,30 +300,10 @@ $result = C_SCHEME_UNDEFINED;
  else {
    const int string_len = strlen ($1);
    C_word *string_space = C_alloc (C_SIZEOF_STRING (string_len));
-/*if ONE*/
    $result = C_string (&string_space, string_len, $1);
-/*else*/
-   $result = list_output_helper (&known_space, $result, C_string (&string_space, string_len, $1));
-/*endif*/
  } %}
 
 /* Primitive types--return by value */
-
-%typemap(out,chicken_words="SWIG_ALLOCSZ_POINTER($typename)") SWIGTYPE 
-#ifdef __cplusplus
-{
-  $&1_ltype resultptr;
-  resultptr = new $1_ltype(($1_ltype &) $1);
-  $result = swig_new_pointer_obj((void *) resultptr, &known_space, $&1_descriptor);
-}
-#else
-{
-  $&1_ltype resultptr;
-  resultptr = ($&1_ltype) malloc(sizeof($1_type));
-  memmove(resultptr, &$1, sizeof($1_type));
-  $result = swig_new_pointer_obj((void *) resultptr, &known_space, $&1_descriptor);
-}
-#endif
 
 /* --- Variable input --- */
 
@@ -364,54 +388,7 @@ $result = C_SCHEME_UNDEFINED;
   }
 }
 
-%typemap(varin) SWIGTYPE * {
-  if ($input == C_SCHEME_FALSE) {
-    $1 = NULL;
-  }
-  else {
-    void *temp;
-    swig_convert_ptr($input,(void **) &temp, $1_descriptor, SWIG_POINTER_EXCEPTION);
-    $1 = ($1_ltype) temp;
-  }
-}
-
-%typemap(varin) SWIGTYPE & {
-  void *temp;
-  swig_convert_ptr($input,(void **) &temp, $1_descriptor, SWIG_POINTER_EXCEPTION);
-  if (temp == NULL) {
-    swig_barf (SWIG_BARF1_ARGUMENT_NULL, "$name is a null reference");
-    return 1;
-  }
-  $1 = ($1_ltype) temp;
-}
-
-%typemap(varin) void * {
-  void * temp;
-  swig_convert_ptr($input,(void **) &temp, 0, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN);
-  $1 = ($1_ltype) temp;
-}
-
-%typemap(varin) SWIGTYPE (CLASS::*) {
-  char      temp[sizeof($1_type)];
-  swig_convert_packed($input,(void *) temp, sizeof($1_type), $1_descriptor, SWIG_POINTER_EXCEPTION);
-  memmove((void *) &$1,temp,sizeof($1_type));
-}
-
-%typemap(varin) SWIGTYPE {
-  $&1_ltype temp;
-  swig_convert_ptr($input, (void **) &temp, $&1_descriptor, SWIG_POINTER_EXCEPTION);
-  $1 = *(($&1_type) temp);
-}
-
 /* --- Variable output --- */
-
-/* Pointers, references, and arrays */
-%typemap(varout,chicken_words="SWIG_ALLOCSZ_POINTER($typename)") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-"$result = swig_new_pointer_obj((void *) $varname, &known_space, $1_descriptor);";
-
-/* Member pointer */
-%typemap(varout,chicken_words="SWIG_ALLOCSZ_PACKED_OBJ(sizeof($1_type),$typename)") SWIGTYPE (CLASS::*) 
-"$result = swig_new_packed_obj((void *) &$varname, sizeof($1_type), &known_space, $1_descriptor);";
 
 /* Void */
 %typemap(varout) void "$result = C_SCHEME_UNDEFINED;";
@@ -422,13 +399,12 @@ $result = C_SCHEME_UNDEFINED;
     $result = NULL;
   }
   else if (C_swig_is_string ($varname)) {
-    $result = swig_make_string ($varname);
+    $result = SWIG_MakeString ($varname);
   }
   else {
      swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'string'");    
   } %}
 
-%typemap(varout,chicken_words="SWIG_ALLOCSZ_POINTER($typename)") SWIGTYPE "$result = swig_new_pointer_obj((void *) &$varname, &known_space, $&1_descriptor);";
 
 /* --- Constants --- */
 
@@ -530,29 +506,12 @@ $result = C_SCHEME_UNDEFINED;
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
-  if (swig_convert_ptr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
-  void *ptr;
-  if (swig_convert_ptr($input, (void **) &ptr, $&1_descriptor, 0) == -1) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
+  $1 = !SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
-  if (swig_convert_ptr($input, (void **) &ptr, 0, 0) == -1) {
-    $1 = 0;
-  } else {
-    $1 = 1;
-  }
+  $1 = !SWIG_ConvertPtr($input, &ptr, 0, 0);
 }
 
 /* ------------------------------------------------------------
@@ -619,20 +578,12 @@ $result = C_SCHEME_UNDEFINED;
 %typemap("clos_in") SIMPLE_CLOS_OBJECT * "(slot-ref $input (quote this))"
 %typemap("clos_out") SIMPLE_CLOS_OBJECT * "(make $class (quote this) $1)"
 
-/* VERBATIM CODE INSERTIONS */
-
 %insert(header) %{
 #ifdef __cplusplus
 extern "C" {
 #endif
 /* Chicken initialization function */
 SWIGEXPORT(void) $realmodule_swig_init(int, C_word, C_word) C_noret;
-/* Tag functions */
-SWIGEXPORT(int) $realmodule_swig_num_types (void);
-SWIGEXPORT(const char*) $realmodule_swig_type_name (int);
-SWIGEXPORT(void*) $realmodule_swig_type_ptr  (int);
-SWIGEXPORT(const char*) $realmodule_swig_type_str  (int);
-SWIGEXPORT(void)  $realmodule_swig_type_tag  (int, C_word);
 #ifdef __cplusplus
 }
 #endif
@@ -657,75 +608,4 @@ $realmodule_swig_init(int argc, C_word closure, C_word continuation) {
   }
 }
 
-/* Tag functions */
-
-SWIGEXPORT(int)
-$realmodule_swig_num_types (void)
-{
-  int i; 
-  for (i=0; swig_types_initial[i]; i++); 
-  return i;
-}
-SWIGEXPORT(const char*)
-$realmodule_swig_type_name (int index)
-{
-  return swig_types[index]->name;
-}
-SWIGEXPORT(void*)
-$realmodule_swig_type_ptr  (int index)
-{
-  return (void*) (swig_types[index]);
-}
-SWIGEXPORT(const char*)
-$realmodule_swig_type_str  (int index)
-{
-  return swig_types[index]->str;
-}
-SWIGEXPORT(void)
-$realmodule_swig_type_tag  (int index, C_word tag)
-{
-  swig_chicken_clientdata *data = 
-    (swig_chicken_clientdata*) malloc (sizeof (swig_chicken_clientdata));
-  C_mutate (&(data->tag), tag);
-  data->literal_frame = C_register_lf (&(data->tag), 1);
-  SWIG_TypeClientData (swig_types[index], (void*) data);
-}
-%}
-
-%insert(chicken) %{
-(declare 
- (foreign-declare "C_extern int   $realmodule_swig_num_types (void);")
- (foreign-declare "C_extern char* $realmodule_swig_type_name (int);")
- (foreign-declare "C_extern void* $realmodule_swig_type_ptr (int);")
- (foreign-declare "C_extern char* $realmodule_swig_type_str (int);")
- (foreign-declare "C_extern void  $realmodule_swig_type_tag (int, C_word);"))
-(define-record swig-$module-tag class name ptr str)
-(define-record-printer (swig-$module-tag tag out)
- (fprintf out "#<c++ ~S>(~A)" (swig-$module-tag-str tag) 
-  (swig-$module-tag-ptr tag)))
-(define swig-$module-tag-num 
- ((foreign-lambda int "$realmodule_swig_num_types")))
-(define swig-$module-tags (make-vector swig-$module-tag-num #f))
-(letrec
- ((gen
-   (lambda (l i)
-    (if (= i 0) (cons 0 l) (gen (cons i l) (- i 1))))))
- (let ((indices (if (<= swig-$module-tag-num 0) (quote ())
-		 (gen (quote ()) (- swig-$module-tag-num 1)))))
-  (for-each 
-   (lambda (index)
-    (let 
-     ((tag
-       (make-swig-$module-tag 
-	1000 
-	((foreign-lambda
-	  c-string "$realmodule_swig_type_name" int) index)
-	((foreign-lambda
-	  c-pointer "$realmodule_swig_type_ptr" int) index)
-	((foreign-lambda
-	  c-string "$realmodule_swig_type_str" int) index))))
-     (vector-set! swig-$module-tags index tag)
-     ((foreign-lambda void "$realmodule_swig_type_tag"
-       int scheme-object) index tag)))
-   indices)))
 %}

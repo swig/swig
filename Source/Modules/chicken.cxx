@@ -123,7 +123,6 @@ protected:
      for output typemaps or Getattr(parm, "name") for an input
      parameter, and 'n' may be a class definition or anything else. */
   String* recurseSearch(const char *typemap, char *argname, Node *n);
-  void    selectOutOneOrMany(String *tm, int is_many);
 };
 
 /* -----------------------------------------------------------------------
@@ -277,11 +276,6 @@ CHICKEN::top(Node *n)
 	 ";; Don't modify this file, modify the SWIG interface instead.\n",
 	 NIL);
   Printv(f_scm,"(cond-expand ((or chicken-compile-shared shared)) (else (declare (unit ", module, "))))\n\n", NIL);
-#ifdef JONAH_IS_CRAZY
-  Printv(f_scm,"(declare \n",
-	 tab4, "(foreign-declare \"void* ", realmodule, 
-	 "_swig_get_type(char*);\"))\n", NIL);
-#endif
 #ifndef INIT_BINDING
   Printv(f_scm,"(declare \n",
 	 tab4, "(hide swig-init)\n",
@@ -290,13 +284,6 @@ CHICKEN::top(Node *n)
   Printv(f_scm,"(define swig-init (##core#primitive \"", realmodule,
 	 "_swig_init\"))\n", NIL);
   Printv(f_scm,"(swig-init)\n\n", NIL);
-#endif
-#ifdef JONAH_IS_CRAZY
-  Printv(f_scm,"(define-record swig-",prefix,"tag class name ptr str)\n",
-	 "(define-record-printer (swig-",prefix,"tag tag out)\n",
-	 tab4, "(fprintf out \"#<tag ~S>(~A)\" (swig-",prefix,
-	 "tag-str tag)\n",
-	 tab8, "(swig-",prefix,"tag-ptr tag)))\n", NIL);
 #endif
 
   // Include some information in the code
@@ -344,21 +331,6 @@ CHICKEN::top(Node *n)
   Printf(f_wrappers,"extern \"C\" {\n");
   Printf(f_wrappers,"#endif\n\n");
 
-#ifdef JONAH_IS_CRAZY
-  Printv(f_init_helper, 
-	 "#ifdef __cplusplus\n",
-	 "extern \"C\"\n",
-	 "#endif\n",
-	 "SWIGEXPORT(void *) ", realmodule, "_swig_get_type (char *type) {\n",
-	 "int i;\n",
-	 "for (i = 0; swig_types_initial[i]; i++) {\n",
-	 "if (strcmp (type, swig_types[i]->name) == 0) ",
-	 "return swig_types[i];\n",
-	 "}\n",
-	 "return NULL;\n",
-	 "}\n\n",
-	 NIL);
-#endif
   Printf(f_init_helper, 
 	 "static void swig_init_helper (C_word continuation) C_noret;\n");
   Printf(f_init_helper, 
@@ -466,13 +438,10 @@ CHICKEN::functionWrapper(Node *n)
   char    source[64];
   Wrapper *f;
   String *mangle = NewString("");
-  String *known_alloca;
-  String *known_alloca_plus;
   String *get_pointers;
   String *cleanup;
   String *outarg;
   String *tm;
-  String *am;
   String *overname = 0;
   String *declfunc = 0;
   String *scmname;
@@ -493,8 +462,6 @@ CHICKEN::functionWrapper(Node *n)
 
   f = NewWrapper();
   wname        = NewString("");
-  known_alloca   = NewString("");
-  known_alloca_plus   = NewString("");
   get_pointers = NewString("");
   cleanup      = NewString("");
   outarg       = NewString("");
@@ -506,6 +473,8 @@ CHICKEN::functionWrapper(Node *n)
 
   /* Local vars */
   Wrapper_add_local(f,"resultobj", "C_word resultobj");
+  Wrapper_add_local(f,"resultobjlast", "C_word resultobjlast");
+  Wrapper_add_local(f,"gswig_list_p", "int gswig_list_p = 0");
 
   /* Write code to extract function parameters. */
   emit_args(d, l, f);
@@ -538,64 +507,6 @@ CHICKEN::functionWrapper(Node *n)
 	 "void ", wname,
 	 "(int,C_word,C_word",
 	 NIL);
-
-  /* Calculate fixed alloca code */
-  int result_list_len = 0;
-  int has_void_return = 0;
-  int will_alloca = 0;
-  for (p = l; p;) {
-    if ((tm = Getattr(p,"tmap:argout:chicken_words"))) {
-      Replaceall(tm,"$typename", mangle);
-      if (strcmp(Char(tm), "void") == 0) continue;
-      if (strcmp(Char(tm), "0") != 0) will_alloca = 1;
-      if (result_list_len) {
-	Printf(known_alloca_plus, " + ");
-      } else {
-	Printf(known_alloca,    "%s /*%s*/", tm, Getattr(p,"lname"));
-      }
-      Printf(known_alloca_plus, "3+%s /*%s*/", tm, Getattr(p,"lname"));
-      result_list_len++;
-      p = Getattr(p,"tmap:argout:next");	
-    } else {
-      p = nextSibling(p);
-    }
-  }
-  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-    if ((am = Getattr(n,"tmap:out:chicken_words"))) {
-      Replaceall(am,"$typename", mangle);
-      if (strcmp(Char(am), "void") == 0) {
-	has_void_return = 1;
-      }
-      else {
-	if (strcmp(Char(am), "0") != 0) will_alloca = 1;
-	if (result_list_len) {
-	  Printf(known_alloca_plus, " + ");
-	} else {
-	  Printf(known_alloca,    "%s /*result*/", am);
-	}
-	Printf(known_alloca_plus, "3+%s /*result*/", am);
-	result_list_len++;
-      }
-    }
-  }
-
-  /* Generate known_space code */
-  if (result_list_len > 1 || (will_alloca && result_list_len == 1)) {
-    if (result_list_len == 1) {
-      Wrapper_add_local(f,"known_space", "C_word *known_space");
-      Printf(f->code, "    known_space = C_alloc (%s);\n",
-	      known_alloca);
-    }
-    else {
-      Wrapper_add_local(f,"known_space", "C_word *known_space");
-      Printf(f->code, "    /* allocate space for fixed-size scheme objects "
-	      "used for output */\n");
-      Printf(f->code, "    known_space = C_alloc (%s); "
-	      "/* The '3' in 3+... is to alloc a C_pair "
-	      "in the Scheme list 'resultobj' */ \n",
-	      known_alloca_plus);
-    }
-  }
 
   /* Generate code for argument marshalling */
   for (i = 0, p=l; i < num_arguments; i++) {
@@ -715,15 +626,11 @@ CHICKEN::functionWrapper(Node *n)
     }
   }
 
-  /* Want outputs done in reverse order */
-  List *l_out = NewList();
+  /* Emit the function call */
+  emit_action(n,f);
 
   /* Return the function value */
-  if (has_void_return && result_list_len == 1) {
-    /* do absolutely nothing since result will be initted elsewhere
-       by one argout */
-  }
-  else if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+  if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
     Replaceall(tm,"$source", "result");
     Replaceall(tm,"$target", "resultobj");
     Replaceall(tm,"$result", "resultobj");
@@ -732,8 +639,7 @@ CHICKEN::functionWrapper(Node *n)
     } else {
       Replaceall(tm,"$owner","0");
     }
-    selectOutOneOrMany(tm, result_list_len > 1);
-    Append(l_out, tm);
+    Printf(f->code, "%s", tm);
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		 "Unable to use return type %s in function %s.\n", 
@@ -747,24 +653,11 @@ CHICKEN::functionWrapper(Node *n)
       Replaceall(tm,"$target","resultobj");
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
-      selectOutOneOrMany(tm, result_list_len > 1);
-      Append(l_out, tm);
+      Printf(f->code, "%s", tm);
       p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
     }
-  }
-
-  /* Emit the function call */
-  emit_action(n,f);
-
-  /* Output argument output code */
-  int i_out;
-  if (result_list_len > 1) {
-    Printv(f->code, "resultobj = C_SCHEME_UNDEFINED;\n", NIL);
-  }
-  for (i_out = Len(l_out); i_out > 0; ) {
-    Printv(f->code, (String *) Getitem(l_out, --i_out), "\n", NIL);
   }
 
   /* Output cleanup code */
@@ -871,9 +764,6 @@ CHICKEN::functionWrapper(Node *n)
   Delete(closparam);
 
   Delete(wname);
-  Delete(l_out);
-  Delete(known_alloca);
-  Delete(known_alloca_plus);
   Delete(get_pointers);
   Delete(cleanup);
   Delete(outarg);
@@ -898,11 +788,9 @@ CHICKEN::variableWrapper(Node *n)  {
   String *wname = NewString("");
   String *mangle = NewString("");
   String *tm;
-  String *am;
   String *tm2 = NewString("");;
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
-  String *known_alloca   = NewString("");
   Wrapper *f;    
   String *overname = 0;
   String *scmname;
@@ -1026,19 +914,7 @@ CHICKEN::variableWrapper(Node *n)  {
     // Now return the value of the variable - regardless
     // of evaluating or setting.
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-      /* Calculate fixed alloca code */
-      if ((am = Getattr(n,"tmap:varout:chicken_words"))) {
-	Replaceall(am,"$typename", mangle);
-	if (strcmp(Char(am), "0") != 0) {
-	  Wrapper_add_local(f,"known_space", "C_word *known_space");
 
-	  Printf(f->code, 
-		  "    known_space = C_alloc (%s);\n",
-		  am);
-	}
-      }
-
-      selectOutOneOrMany(tm, 0);
       Replaceall(tm,"$source",name);
       Replaceall(tm,"$varname",name);
       Replaceall(tm,"$target","resultobj");
@@ -1119,7 +995,6 @@ CHICKEN::variableWrapper(Node *n)  {
   }
 
   Delete(wname);
-  Delete(known_alloca);
   Delete(proc_name);
   Delete(argnum);
   Delete(arg);
@@ -1150,12 +1025,10 @@ CHICKEN::constantWrapper(Node *n)
   String *wname = NewString("");
   String *mangle = NewString("");
   String *tm;
-  String *am;
   String *tm2 = NewString("");
   String *source = NewString("");
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
-  String *known_alloca   = NewString("");
   Wrapper *f;    
   String *overname = 0;
   String *scmname;
@@ -1242,19 +1115,7 @@ CHICKEN::constantWrapper(Node *n)
 
     // Return the value of the variable
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-      /* Calculate fixed alloca code */
-      if ((am = Getattr(n,"tmap:varout:chicken_words"))) {
-	Replaceall(am,"$typename", mangle);
-	if (strcmp(Char(am), "0") != 0) {
-	  Wrapper_add_local(f,"known_space", "C_word *known_space");
 
-	  Printf(f->code, 
-		  "    known_space = C_alloc (%s);\n",
-		  am);
-	}
-      }
-
-      selectOutOneOrMany(tm, 0);
       Replaceall(tm,"$source",source);
       Replaceall(tm,"$varname",source);
       Replaceall(tm,"$target","resultobj");
@@ -1298,7 +1159,6 @@ CHICKEN::constantWrapper(Node *n)
   }
 
   Delete(wname);
-  Delete(known_alloca);
   Delete(proc_name);
   Delete(argnum);
   Delete(arg);
@@ -2012,62 +1872,3 @@ CHICKEN::namify(String *scmname)
     while (changedcase);
   }
 }
-
-void
-CHICKEN::selectOutOneOrMany(String *tm, int is_many)
-{
-  char *s = Char(tm);
-  const char IFMANY[] = "/*if MANY*/";
-  const char IFONE[] = "/*if ONE*/";
-  const char ELSE[] = "/*else*/";
-  const char ENDIF[] = "/*endif*/";
-  enum { NONE, ONE, MANY } mode = NONE;
-
-  while (s) {
-    int displayline = 1;
-
-    /* set nextline */
-    char * nextline = strstr(s, "\n");
-    if (nextline) nextline += strlen("\n");
-    
-    /* set displayline if necessary */
-    if (is_many && mode == ONE) displayline = 0;
-    if (!is_many && mode == MANY) displayline = 0;
-
-    /* which control line are we on? */
-    if (strncmp(s, IFMANY, sizeof(IFMANY) - 1) == 0) {
-      mode = MANY;
-      displayline = 0;
-    }
-    else if (strncmp(s, IFONE, sizeof(IFONE) - 1) == 0) {
-      mode = ONE;
-      displayline = 0;
-    }
-    else if (strncmp(s, ELSE, sizeof(ELSE) - 1) == 0) {
-      if (mode == ONE) mode = MANY;
-      else if (mode == MANY) mode = ONE;
-      displayline = 0;
-    }
-    else if (strncmp (s, ENDIF, sizeof(ENDIF) - 1) == 0) {
-      mode = NONE;
-      displayline = 0;
-    }
-
-    /* display line */
-    if (displayline) {
-      /* advance to next line */
-      s = nextline;
-    }
-    /* or don't display line */
-    else {
-      if (!nextline) {
-	memset(s, ' ', strlen(s)); /* truncate this (last) line */
-	s = 0;
-      }
-      else {
-	memset(s, ' ', nextline - s); /* remove this line */
-	s = nextline;
-      }
-    }
-  };
-};

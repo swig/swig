@@ -54,13 +54,9 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  Notice the if MANY construct ... they must be at column 0. */
 
-%typemap(chicken,argout,fragment="list_output_helper",chicken_words="0") (char *str, int len) (C_word *scmstr) 
+%typemap(chicken,argout) (char *str, int len) (C_word *scmstr) 
 %{  scmstr = C_alloc (C_SIZEOF_STRING ($2));
-/*if MANY*/
-  $result = list_output_helper (&known_space, $result, C_string (&scmstr, $2, $1));
-/*else*/
-  $result = C_string (&scmstr, $2, $1);
-/*endif*/
+  SWIG_APPEND_VALUE(C_string (&scmstr, $2, $1));
   free ($1);
 %}
 

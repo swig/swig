@@ -1,6 +1,20 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/02/2004: wuzzeb (John Lenz)
+	    [Chicken] Fix bug 782468.
+	    To fix this bug, the runtime code has been rewritten, and
+	    pointers are now represented as a C_SWIG_POINTER_TYPE.
+
+	    Chicken version > 1.40 is now required!
+
+	    * Typemap incompatibility:  typemaps no longer use chicken_words.
+	      If a typemap needs some space, it should just call C_alloc
+
+	    * argout typemaps no longer use the /* if ONE */ construct to
+	      build an output list.  A SWIG_APPEND_VALUE macro, exactly like
+	      guile and mzscheme is now used.
+
 04/25/2004: mkoeppe (Matthias Koeppe)
 	    [Guile] In the generated GOOPS code, don't create methods
 	    that would not specialize any arguments; simply re-export
