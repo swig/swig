@@ -881,6 +881,12 @@ CHICKEN::constantWrapper(Node *n)
     /* Now register the variable with the interpreter.   */
     addMethod(scmname, wname);
 
+    if (!in_class) {
+      String *clos_name = chickenNameMapping(scmname, (char *)"");
+      Printv(closcode, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+      Delete(clos_name);
+    }
+
   } else {
     Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
 		 "Unsupported variable type %s (ignored).\n", 
