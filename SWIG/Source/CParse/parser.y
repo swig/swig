@@ -3184,13 +3184,15 @@ template_decl : LESSTHAN {
                      String *s;
                      skip_balanced('<','>');
 		     s = Copy(scanner_ccode);
-		     canonical_template(s);
 		     if (templatetypes) {
 		       String *key;
 		       for (key = Firstkey(templatetypes); key; key = Nextkey(templatetypes)) {
-			 Replace(s,key,Getattr(templatetypes,key), DOH_REPLACE_ID);
+			 String *t = SwigType_str(Getattr(templatetypes,key),0);
+			 Replace(s,key,t, DOH_REPLACE_ID);
+			 Delete(t);
 		       }
 		     }
+		     canonical_template(s);
 		     $$ = Char(s);
                  }
                | empty { $$ = (char*)"";  }
