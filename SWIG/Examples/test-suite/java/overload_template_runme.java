@@ -96,6 +96,7 @@ public class overload_template_runme {
     overload_template.xyz_int();
     overload_template.xyz_double();
 
+
     // a bit of everything
     if (overload_template.overload("hi") != 0)
       throw new RuntimeException ("overload()");
@@ -124,6 +125,35 @@ public class overload_template_runme {
 
     if (overload_template.overload() != 50)
       throw new RuntimeException ("overload(const char *)");
+
+
+    // everything put in a namespace
+    if (overload_template.nsoverload("hi") != 1000)
+      throw new RuntimeException ("nsoverload()");
+
+    if (overload_template.nsoverload(1) != 1010)
+      throw new RuntimeException ("nsoverload(int t)");
+
+    if (overload_template.nsoverload(1, 1) != 1020)
+      throw new RuntimeException ("nsoverload(int t, const int &)");
+
+    if (overload_template.nsoverload(1, "hello") != 1030)
+      throw new RuntimeException ("nsoverload(int t, const char *)");
+
+    if (overload_template.nsoverload(k) != 1010)
+      throw new RuntimeException ("nsoverload(Klass t)");
+
+    if (overload_template.nsoverload(k, k) != 1020)
+      throw new RuntimeException ("nsoverload(Klass t, const Klass &)");
+
+    if (overload_template.nsoverload(k, "hello") != 1030)
+      throw new RuntimeException ("nsoverload(Klass t, const char *)");
+
+    if (overload_template.nsoverload(10.0, "hi") != 1040)
+      throw new RuntimeException ("nsoverload(double t, const char *)");
+
+    if (overload_template.nsoverload() != 1050)
+      throw new RuntimeException ("nsoverload(const char *)");
 
   }
 }
