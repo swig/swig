@@ -970,9 +970,9 @@ statement      : INCLUDE STRING LBRACE {
 
                | MODULE ID initlist {
 		   if ($3.count)
-		     lang->set_module($2,$3.names);
+		     lang->set_module($2);
 		   else
-		     lang->set_module($2,0);
+		     lang->set_module($2);
 		   module_init = 1;
 		   init_language();
 		 for (i = 0; i < $3.count; i++)

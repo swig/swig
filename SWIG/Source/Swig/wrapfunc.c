@@ -74,7 +74,27 @@ Wrapper_pretty_print(String *str, File *f) {
   Seek(str,0, SEEK_SET);
   Clear(ts);
   while ((c = Getc(str)) != EOF) {
-    if (c == '{') {
+    if (c == '\"') {
+      Putc(c,ts);
+      while ((c = Getc(str)) != EOF) {
+	if (c == '\\') {
+	  Putc(c,ts);
+	  c = Getc(str);
+	}
+	Putc(c,ts);
+	if (c == '\"') break;
+      }
+    } else if (c == '\'') {
+      Putc(c,ts);
+      while ((c = Getc(str)) != EOF) {
+	if (c == '\\') {
+	  Putc(c,ts);
+	  c = Getc(str);
+	}
+	Putc(c,ts);
+	if (c == '\'') break;
+      }
+    } else if (c == '{') {
       Putc(c,ts);
       Putc('\n',ts);
       for (i = 0; i < level; i++) 
