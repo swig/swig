@@ -2,6 +2,16 @@ Version 1.3.17 (In progress)
 ============================
 
 11/07/2002: mkoeppe
+	    Added an experimental new module that dumps SWIG's parse
+	    tree as (Common) Lisp s-expressions.  The module is
+	    invoked with SWIG's -sexp command-line switch.  The output
+	    can be read into Common Lisp.  There is (prototype)
+	    example Lisp code that generates Foreign Function Interface
+	    definitions for use with Kevin Rosenberg's UFFI.
+
+	    *** EXPERIMENTAL NEW FEATURE ***
+
+11/07/2002: mkoeppe
 	    Removed duplicate declaration of "cpp_template_decl" in
 	    parser.y; bison 1.75 complained.
 
