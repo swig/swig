@@ -15,33 +15,33 @@
 
 #include <string.h>
 
-#if defined(_WIN32) || defined(__WIN32__)
-#       if defined(_MSC_VER)
-#               if defined(STATIC_LINKED)
-#                       define SWIGEXPORT(a) a
-#                       define SWIGIMPORT(a) extern a
-#               else
-#                       define SWIGEXPORT(a) __declspec(dllexport) a
-#                       define SWIGIMPORT(a) extern a
-#               endif
-#       else
-#               if defined(__BORLANDC__)
-#                       define SWIGEXPORT(a) a _export
-#                       define SWIGIMPORT(a) a _export
-#               else
-#                       define SWIGEXPORT(a) a
-#                       define SWIGIMPORT(a) a
-#               endif
-#       endif
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#  if defined(_MSC_VER) || defined(__GNUC__)
+#    if defined(STATIC_LINKED)
+#      define SWIGEXPORT(a) a
+#      define SWIGIMPORT(a) extern a
+#    else
+#      define SWIGEXPORT(a) __declspec(dllexport) a
+#      define SWIGIMPORT(a) extern a
+#    endif
+#  else
+#    if defined(__BORLANDC__)
+#      define SWIGEXPORT(a) a _export
+#      define SWIGIMPORT(a) a _export
+#    else
+#      define SWIGEXPORT(a) a
+#      define SWIGIMPORT(a) a
+#    endif
+#  endif
 #else
-#       define SWIGEXPORT(a) a
-#       define SWIGIMPORT(a) a
+#  define SWIGEXPORT(a) a
+#  define SWIGIMPORT(a) a
 #endif
 
 #ifdef SWIG_GLOBAL
-#define SWIGRUNTIME(a) SWIGEXPORT(a)
+#  define SWIGRUNTIME(a) SWIGEXPORT(a)
 #else
-#define SWIGRUNTIME(a) static a
+#  define SWIGRUNTIME(a) static a
 #endif
 
 #ifdef __cplusplus
@@ -52,10 +52,10 @@ typedef void *(*swig_converter_func)(void *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
 
 typedef struct swig_type_info {
-  const char             *name;                 
+  const char             *name;
   swig_converter_func     converter;
   const char             *str;
-  void                   *clientdata;	
+  void                   *clientdata;
   swig_dycast_func        dcast;
   struct swig_type_info  *next;
   struct swig_type_info  *prev;
@@ -77,15 +77,14 @@ static swig_type_info *swig_type_list = 0;
 
 /* Register a type mapping with the type-checking */
 SWIGRUNTIME(swig_type_info *)
-SWIG_TypeRegister(swig_type_info *ti)
-{
+SWIG_TypeRegister(swig_type_info *ti) {
   swig_type_info *tc, *head, *ret, *next;
   /* Check to see if this type has already been registered */
   tc = swig_type_list;
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
-      if (tc->clientdata) ti->clientdata = tc->clientdata;	
+      if (tc->clientdata) ti->clientdata = tc->clientdata;
       head = tc;
       next = tc->next;
       goto l1;
@@ -100,7 +99,7 @@ SWIG_TypeRegister(swig_type_info *ti)
   swig_type_list = ti;
 
   /* Build linked lists */
- l1:
+  l1:
   ret = head;
   tc = ti + 1;
   /* Patch up the rest of the links */
@@ -110,15 +109,14 @@ SWIG_TypeRegister(swig_type_info *ti)
     head = tc;
     tc++;
   }
-  if (next) next->prev = head;  /**/
+  if (next) next->prev = head;
   head->next = next;
   return ret;
 }
 
 /* Check the typename */
 SWIGRUNTIME(swig_type_info *) 
-SWIG_TypeCheck(char *c, swig_type_info *ty)
-{
+SWIG_TypeCheck(char *c, swig_type_info *ty) {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
@@ -128,13 +126,13 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       /* Move s to the top of the linked list */
       s->prev->next = s->next;
       if (s->next) {
-	s->next->prev = s->prev;
+        s->next->prev = s->prev;
       }
       /* Insert s as second element in the list */
       s->next = ty->next;
       if (ty->next) ty->next->prev = s;
       ty->next = s;
-      s->prev = ty;  /**/
+      s->prev = ty;
       return s;
     }
     s = s->next;
@@ -144,21 +142,19 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
 
 /* Cast a pointer up an inheritance hierarchy */
 SWIGRUNTIME(void *) 
-SWIG_TypeCast(swig_type_info *ty, void *ptr) 
-{
+SWIG_TypeCast(swig_type_info *ty, void *ptr) {
   if ((!ty) || (!ty->converter)) return ptr;
   return (*ty->converter)(ptr);
 }
 
 /* Dynamic pointer casting. Down an inheritance hierarchy */
 SWIGRUNTIME(swig_type_info *) 
-SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
-{
+SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
   swig_type_info *lastty = ty;
   if (!ty || !ty->dcast) return ty;
   while (ty && (ty->dcast)) {
-     ty = (*ty->dcast)(ptr);
-     if (ty) lastty = ty;
+    ty = (*ty->dcast)(ptr);
+    if (ty) lastty = ty;
   }
   return lastty;
 }
@@ -192,9 +188,9 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
     if (!equiv->converter) {
       tc = swig_type_list;
       while (tc) {
-	if ((strcmp(tc->name, equiv->name) == 0))
-	  SWIG_TypeClientData(tc,clientdata);
-	tc = tc->prev;
+        if ((strcmp(tc->name, equiv->name) == 0))
+          SWIG_TypeClientData(tc,clientdata);
+        tc = tc->prev;
       }
     }
     equiv = equiv->next;
@@ -204,5 +200,4 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
 #ifdef __cplusplus
 }
-
 #endif
