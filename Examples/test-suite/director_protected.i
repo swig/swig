@@ -35,10 +35,14 @@ public:
     return "Bar::pong();" + Foo::pong();
   }
 
+  int hello;
+
 protected:
   std::string ping() { 
     return "Bar::ping();"; 
   };
+  
+  int hi;
 };
  
  

@@ -701,6 +701,7 @@ int Language::cDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode == CPLUS_PROTECTED) &&
       (!directors ||
        !director_protected_mode ||
+       Cmp(storage,"virtual") ||
        !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
   
   if (Cmp(storage,"typedef") == 0) {
