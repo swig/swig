@@ -71,7 +71,9 @@ static char *usage = (char*)"\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
-     -compact        - Compile in compact mode\n\
+     -fcompact       - Compile in compact mode\n\
+     -fvirtual       - Compile in virtual elimination mode\n\
+     -small          - Compile in virtual elimination & compact mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
      -wn             - Suppress warning number n\n\
@@ -165,6 +167,7 @@ void SWIG_config_cppext(const char *ext) {
 extern  "C" Node *Swig_cparse(File *);
 extern  "C" void  Swig_cparse_cplusplus(int);
 extern  "C" void  Swig_cparse_debug_templates(int);
+extern  void Wrapper_virtual_elimination_mode_set(int);
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
@@ -262,6 +265,30 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   
   libfiles = NewList();
 
+  /* Check for SWIG_FEATURES environment variable */
+  if (c = getenv("SWIG_FEATURES")) {
+    while (*c!='\0') {
+      while ((*c)==' ') {
+	c++;
+      }
+      i = 0;
+      while ((*c!='\0') && (*c!=' ')) {
+	temp[i] = *c;
+	c++; i++;
+      }
+      temp[i]='\0';
+      
+      if (strcmp(temp, "-fcompact") == 0) {
+	Wrapper_compact_print_mode_set(1);
+      } else if (strcmp(temp, "-fvirtual") == 0) {
+	Wrapper_virtual_elimination_mode_set(1);
+      } else if (strcmp(temp, "-small") == 0) {
+	Wrapper_compact_print_mode_set(1);
+	Wrapper_virtual_elimination_mode_set(1);
+      }
+    }
+  }
+  
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -282,14 +309,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 		     (strcmp(argv[i],"-v") == 0)) {
 	      Verbose = 1;
 	      Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-compact") == 0) {
-	    Wrapper_compact_print_mode_set(1);
-	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
 	      Preprocessor_define((DOH *) "__cplusplus 1", 0);
 	      Swig_cparse_cplusplus(1);
 	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-fcompact") == 0) {
+	    Wrapper_compact_print_mode_set(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-fvirtual") == 0) {
+	    Wrapper_virtual_elimination_mode_set(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-small") == 0) {
+	    Wrapper_compact_print_mode_set(1);
+	    Wrapper_virtual_elimination_mode_set(1);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
 	      Preprocessor_define((DOH *) "SWIG_NOINCLUDE 1", 0);
