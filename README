@@ -1,12 +1,12 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.21 (January 11, 2003)
+Version: 1.3.21 (January 11, 2004)
 
 $Header$
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         Java, Ruby, PHP, Ocaml, C# and CHICKEN.
+         Java, Ruby, PHP, Ocaml, C#, Modula-3 and CHICKEN.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
