@@ -320,6 +320,13 @@ void RUBY::initialize() {
   Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
 	 "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
 	 0);
+  Printv(f_init,
+	 "\n",
+	 "for (i = 0; swig_types_initial[i]; i++) {\n",
+	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
+	 "SWIG_define_class(swig_types[i]);\n",
+	 "}\n",
+	 0);
   Printf(f_init,"\n");
   klass = new RClass();
 }
@@ -333,13 +340,6 @@ void RUBY::initialize() {
 
 void RUBY::close(void) {
   /* Finish off our init function */
-  Printv(f_init,
-	 "\n",
-	 "for (i = 0; swig_types_initial[i]; i++) {\n",
-	 "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
-	 "SWIG_define_class(swig_types[i]);\n",
-	 "}\n",
-	 0);
   Printf(f_init,"}\n");
   SwigType_emit_type_table(f_header,f_wrappers);
 }
