@@ -20,6 +20,11 @@ extern "C" {
 #define SWIG_PY_POINTER 4
 #define SWIG_PY_BINARY  5
 
+/* Flags for pointer conversion */
+
+#define SWIG_POINTER_EXCEPTION     0x1
+#define SWIG_POINTER_DISOWN        0x2
+
 /* Constant information structure */
 typedef struct swig_const_info {
     int type;
@@ -194,6 +199,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   char  *c;
   static PyObject *SWIG_this = 0;
   int    newref = 0;
+  PyObject  *pyobj = 0;
 
   if (!obj) return 0;
   if (obj == Py_None) {
@@ -204,6 +210,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
+    pyobj = obj;
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
     if (!obj) goto type_error;
@@ -211,7 +218,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
       Py_DECREF(obj);
       goto type_error;
     }
-  } 
+  }  
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   if (newref) Py_DECREF(obj);
@@ -220,6 +227,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   if (!(PyString_Check(obj))) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
+    pyobj = obj;
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
     if (!obj) goto type_error;
@@ -254,10 +262,16 @@ cobject:
     if (!tc) goto type_error;
     *ptr = SWIG_TypeCast(tc,(void*) *ptr);
   }
+
+  if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
+      PyObject *zero = PyInt_FromLong(0);
+      PyObject_SetAttrString(pyobj,"thisown",zero);
+      Py_DECREF(zero);
+  }
   return 0;
 
 type_error:
-  if (flags) {
+  if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty) {
       char *temp = (char *) malloc(64+strlen(ty->name));
       sprintf(temp,"Type error. Expected %s", ty->name);
