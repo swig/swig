@@ -233,7 +233,9 @@ namespace std {
 %define SWIG_TYPECHECK_INTEGER       70    %enddef
 %define SWIG_TYPECHECK_FLOAT         80    %enddef
 %define SWIG_TYPECHECK_DOUBLE        90    %enddef
-%define SWIG_TYPECHECK_COMPLEX      100    %enddef
+%define SWIG_TYPECHECK_CPLXFLT       95    %enddef
+%define SWIG_TYPECHECK_CPLXDBL      100    %enddef
+%define SWIG_TYPECHECK_COMPLEX      105    %enddef
 %define SWIG_TYPECHECK_UNICHAR      110    %enddef
 %define SWIG_TYPECHECK_UNISTRING    120    %enddef
 %define SWIG_TYPECHECK_CHAR         130    %enddef
