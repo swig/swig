@@ -2,11 +2,14 @@
 
 %feature("director") Foo;
 
+%rename(Hallo) EnumDirector::Hello;
+
 %inline %{
+namespace EnumDirector {
   class A;
 
   enum Hello {
-    hi, hello
+    hi, hello, yo, awright
   };
 
   class Foo {
@@ -14,15 +17,17 @@
     virtual ~Foo() {}
     virtual Hello say_hi(Hello h){ return h;}
     virtual Hello say_hello(Hello){ return hello;}
-
     virtual Hello say_hi(A *a){ return hi;}
-  };
 
-  
+    Hello ping(Hello h){ return say_hi(h);}
+  };
+}
 %}
+
 %feature("director");
 
 %inline %{
+namespace EnumDirector {
 enum FType{ SA = -1, NA=0, EA=1};
 
 struct A{
@@ -39,10 +44,12 @@ struct B : public A{
         : A(a, b, c) 
     {}    
 };
+}
 %}
 
 
 %inline %{
+namespace EnumDirector {
 struct A2{
     A2(const FType c = NA) {}    
 
@@ -54,6 +61,6 @@ struct A2{
 struct B2 : public A2{
     B2(const FType c) : A2(c) {}
 };
-
+}
  
 %}
