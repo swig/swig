@@ -157,10 +157,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   add_directory("./swig_lib/config");
   add_directory(LibDir);
   add_directory("./swig_lib");
-  SWIG_add_directory(temp);
-  SWIG_add_directory("./swig_lib/config");
-  SWIG_add_directory(LibDir);
-  SWIG_add_directory("./swig_lib");
+  SWIG_add_directory((DOH *) temp);
+  SWIG_add_directory((DOH *) "./swig_lib/config");
+  SWIG_add_directory((DOH *) LibDir);
+  SWIG_add_directory((DOH *) "./swig_lib");
   sprintf(InitName,"init_wrap");
 #endif
 
@@ -192,6 +192,9 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	    } else {
 	      arg_error();
 	    }
+	  } else if (strcmp(argv[i],"-E") == 0) {
+	    cpp_only = 1;
+	    mark_arg(i);
 	  } else if ((strcmp(argv[i],"-verbose") == 0) || (strcmp(argv[i],"-v") == 0)) {
 	      Verbose = 1;
 	      mark_arg(i);
@@ -281,7 +284,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   }
 
   while (includecount > 0) {
-    SWIG_add_directory(includefiles[includecount]);
+    SWIG_add_directory((DOH *) includefiles[includecount]);
     add_directory(includefiles[--includecount]);
   }
     
@@ -433,42 +436,35 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
     {
       DOH *cpps;
+      FILE *f;
       DOH *ds = SWIG_include(input_file);
       Seek(ds,0,SEEK_SET);
-      
+      cpps = SWIG_cpp_parse(ds);
+      if (cpp_only) {
+	Printf(stdout,"%s", cpps);
+	SWIG_exit(0);
+      }
+      f = fopen(fn_cpp,"w");
+      fwrite(Char(cpps),1, Len(cpps), f);
+      fclose(f);
     }
     
-    if ((f_input = fopen(input_file,"r")) == 0) {
-      // Okay. File wasn't found right away.  Let's see if we can
-      // extract it from the SWIG library instead.
-      if ((checkout_file(input_file,input_file)) == -1) {
-	fprintf(stderr,"Unable to open %s\n", input_file);
-	SWIG_exit(0);
-      } else {
-	// Successfully checked out a file from the library, print a warning and
-        // continue
-	checkout = 1;
-	fprintf(stderr,"%s checked out from the SWIG library.\n",input_file);
-	if ((f_input = fopen(input_file,"r")) == 0) {
-	  fprintf(stderr,"Unable to open %s\n", input_file);
-	  SWIG_exit(0);
-	}
-      }
+    if ((f_input = fopen(fn_cpp,"r")) == 0) {
+      fprintf(stderr,"Unable to open %s\n", fn_cpp);
+      SWIG_exit(0);
     }
     
     // Add to the include list
-    
     add_iname(infilename);
 
     // Initialize the scanner
-    
     LEX_in = f_input;
     scanner_file(LEX_in);
 
-    printf("fn_cpp = %s\n", fn_cpp);
-    printf("fn_header = %s\n", fn_header);
-    printf("fn_wrapper = %s\n", fn_wrapper);
-    printf("fn_init = %s\n", fn_init);
+    //printf("fn_cpp = %s\n", fn_cpp);
+    //printf("fn_header = %s\n", fn_header);
+    //printf("fn_wrapper = %s\n", fn_wrapper);
+    //printf("fn_init = %s\n", fn_init);
 
     if ((f_runtime = fopen(fn_runtime,"w")) == 0) {
       fprintf(stderr,"Unable to open %s\n", fn_runtime);
@@ -561,6 +557,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     
     // Remove temporary files
     
+    remove(fn_cpp);
     remove(fn_header);
     remove(fn_wrapper);
     remove(fn_init);
