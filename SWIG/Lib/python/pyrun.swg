@@ -344,12 +344,14 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
     Py_DECREF(robj);
     inst = PyObject_CallObject((PyObject *) type->clientdata, args);
     Py_DECREF(args);
-    if (own) {
-      PyObject *n = PyInt_FromLong(1);
-      PyObject_SetAttrString(inst,(char*)"thisown",n);
-      Py_DECREF(n);
+    if (inst) {
+      if (own) {
+	PyObject *n = PyInt_FromLong(1);
+	PyObject_SetAttrString(inst,(char*)"thisown",n);
+	Py_DECREF(n);
+      }
+      robj = inst;
     }
-    robj = inst;
   }
   return robj;
 }
