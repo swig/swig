@@ -1,8 +1,7 @@
 # Draw some simple shapes
 puts "Drawing some basic shapes"
 
-catch { load ./simple.so simple}
-catch { load ./simple.dll simple}  ;# Windows
+catch { load ./simple[info sharedlibextension] simple}
 
 set cmap [new_ColorMap]
 set f    [new_FrameBuffer 400 400]

@@ -2,8 +2,7 @@
 
 # This file illustrates the manipulation of C++ references in Tcl
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # ----- Object creation -----
 

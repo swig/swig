@@ -2,17 +2,10 @@
 # Test various properties of classes defined in separate modules
 
 puts "Testing the %import directive"
-catch { load ./base.so base}
-catch { load ./base.dll base}    ;# Windows
-
-catch { load ./foo.so foo}
-catch { load ./foo.dll foo}    ;# Windows
-
-catch { load ./bar.so bar}
-catch { load ./bar.dll bar}    ;# Windows
-
-catch { load ./spam.so spam}
-catch { load ./spam.dll spam}    ;# Windows
+catch { load ./base[info sharedlibextension] base}
+catch { load ./foo[info sharedlibextension] foo}
+catch { load ./bar[info sharedlibextension] bar}
+catch { load ./spam[info sharedlibextension] spam}
 
 # Create some objects
 

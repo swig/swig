@@ -4,8 +4,7 @@
 # created by SWIG.  In this case, all of our C++ classes
 # get converted into function calls.
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # ----- Object creation -----
 

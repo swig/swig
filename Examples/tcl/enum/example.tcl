@@ -1,8 +1,6 @@
 # file: example.tcl
 
-
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # ----- Object creation -----
 

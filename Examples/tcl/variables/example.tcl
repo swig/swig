@@ -1,7 +1,6 @@
 # file: example.tcl
 
-catch { load ./example.so example}     ;# Unix
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # Try to set the values of some global variables
 

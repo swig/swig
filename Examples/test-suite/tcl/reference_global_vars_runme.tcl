@@ -1,11 +1,5 @@
-if { [ string match $tcl_platform(platform) "windows" ] == 1 } {
-    if [ catch { load ./reference_global_vars.dll reference_global_vars} err_msg ] {
-        puts stderr "Could not load dll:\n$err_msg"
-    }
-} else {
-    if [ catch { load ./reference_global_vars.so reference_global_vars} err_msg ] {
-        puts stderr "Could not load shared object:\n$err_msg"
-    }
+if [ catch { load ./reference_global_vars[info sharedlibextension] reference_global_vars} err_msg ] {
+	puts stderr "Could not load shared object:\n$err_msg"
 }
 
 # const class reference variable

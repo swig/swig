@@ -1,7 +1,6 @@
 # file: example.tcl
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 puts "ICONST  = $ICONST (should be 42)"
 puts "FCONST  = $FCONST (should be 2.1828)"

@@ -1,14 +1,8 @@
 # Primitive ref testcase.  Tests to make sure references to 
 # primitive types are passed by value
 
-if { [ string match $tcl_platform(platform) "windows" ] == 1 } {
-    if [ catch { load ./primitive_ref.dll primitive_ref} err_msg ] {
-        puts stderr "Could not load dll:\n$err_msg"
-    }
-} else {
-    if [ catch { load ./primitive_ref.so primitive_ref} err_msg ] {
-        puts stderr "Could not load shared object:\n$err_msg"
-    }
+if [ catch { load ./primitive_ref[info sharedlibextension] primitive_ref} err_msg ] {
+	puts stderr "Could not load shared object:\n$err_msg"
 }
 
 if { [ref_int 3] != 3 } { puts stderr "ref_int failed" }

@@ -1,7 +1,6 @@
 # file: example.tcl
 
-catch { load ./example.so example}
-catch { load ./example.dll example}    ;# Windows
+catch { load ./example[info sharedlibextension] example}
 
 # First create some objects using the pointer library.
 puts "Testing the pointer library"
