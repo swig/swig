@@ -51,12 +51,16 @@ This chapter describes SWIG's support of Ruby.
 <li> <a href="#n612">Pointer handling</a>
 <li> <a href="#n614">Adding native Ruby functions to a SWIG module</a>
 </ul>
-<li> <a href="#n7">Operator overloading </a>
+<li> <a href="#n7">Operator overloading</a>
 <ul>
 <li> <a href="#n70">An example (putting everything together)</a>
 <li> <a href="#n72">Expanding the example</a>
 </ul>
-
+<li> <a href="#n8">Advanced Topics</a>
+<ul>
+<li> <a href="#n80">Creating Multi-Module Pacakges</a>
+<li> <a href="#n81">Predicate Methods</a>
+</ul>
 </ul>
 
 <hr>
@@ -1960,8 +1964,153 @@ Also note that the call to <tt>Data_Wrap_Struct()</tt> sets the <tt>free</tt> pa
 for <tt>CPP_Object</tt> to <tt>NULL</tt>.  That is done because C++, owns the object and thus
 should free it, not Ruby.
 
-<h2>Advanced Stuff</h2>
-<h3>Predicate Methods</h3>
+<a name="n8"></a><h2>Advanced Topics</h2>
+<a name="n80"></a><h3>Creating Multi-Module Packages</h3>
+The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basic
+mechanics of creating multi-module extensions with SWIG, and in particular
+the considerations for sharing runtime type information amongst the different
+modules. The main thing to keep in mind is that all of the individual modules'
+wrapper files need to be compiled into the same shared library because some
+global data is shared between the modules.<p>
+
+As an example, consider one module's interface file (<tt>shape.i</tt>) that defines our base class:
+<blockquote>
+<pre>
+%module shape
+
+class Shape {
+protected:
+    double xpos;
+    double ypos;
+protected:
+    Shape(double x, double y);
+public:
+    double getX() const;
+    double getY() const;
+};
+</pre>
+</blockquote>
+We also have a separate interface file (<tt>circle.i</tt>) that defines a derived class:
+<blockquote>
+<pre>
+%module circle
+
+// Import the base class definition from Shape module
+%import shape.i
+
+class Circle : public Shape {
+protected:
+    double radius;
+public:
+    Circle(double x, double y, double r);
+    double getRadius() const;
+};
+</pre>
+</blockquote>
+Both of these modules should be compiled with SWIG's <tt>-c</tt> option so that
+the runtime library code is omitted from the wrapper files:<p>
+<blockquote>
+<pre>
+$ <b>swig -c++ -ruby -c shape.i</b>
+$ <b>swig -c++ -ruby -c circle.i</b>
+</pre>
+</blockquote>
+Because these two wrapper files now share some global data related to the types
+(specifically, <tt>circle_wrap.cxx</tt> contains references to variables defined
+in <tt>shape_wrap.cxx</tt>) it is easiest if these two files are compiled
+into the same shared library. One straightforward way to handle this is to
+create a third "container" interface whose sole purpose is to load and initialize
+the extensions it contains, e.g.<p>
+<blockquote>
+<pre>
+%module shapescontainer
+
+%{
+extern "C" void Init_shape();
+extern "C" void Init_circle();
+%}
+
+%init {
+    Init_shape();
+    Init_circle();
+}
+</pre>
+</blockquote>
+This module should also be compiled with SWIG's <tt>-c</tt> option:
+<blockquote>
+<pre>
+$ <b>swig -c++ -ruby -c shapescontainer.i</b>
+</pre>
+</blockquote>
+Finally, to build these into a dynamically loadable extension for Ruby, prepare
+an <tt>extconf.rb</tt> script using this template:<p>
+<blockquote>
+<pre>
+require 'mkmf'
+
+# Since the SWIG runtime support library for Ruby (libswigrb.so)
+# depends on the Ruby library, make sure it's in the list
+# of libraries.
+$libs = append_library($libs, Config::CONFIG['RUBY_SO_NAME'])
+
+# Now add the SWIG runtime support library
+have_library('swigrb', 'SWIG_InitRuntime')
+
+# Create the makefile
+create_makefile('shapescontainer')
+</pre>
+</blockquote>
+Run this script to create a <tt>Makefile</tt> and then type <tt>make</tt> to
+build the shared library:<p>
+<blockquote>
+<pre>
+$ <b>ruby extconf.rb</b>
+checking for SWIG_InitRuntime() in -lswigrb... yes
+creating Makefile
+
+$ <b>make</b>
+g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
+        -I. -I/usr/local/include    -c circle_wrap.cpp
+g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
+        -I. -I/usr/local/include    -c shapescontainer_wrap.cpp
+g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
+        -I. -I/usr/local/include    -c shape_wrap.cpp
+dllwrap --target=cygwin --as=as --dlltool-name=dlltool --driver-name=gcc \
+        --export-all -s --def=shapescontainer.def \
+        -L/usr/local/lib/ruby/1.7/i386-cygwin -L/usr/local/lib \
+        -o shapescontainer.so circle_wrap.o shapescontainer_wrap.o shape_wrap.o \
+        -L. -lcygwin-ruby17 -lswigrb -lcygwin-ruby17
+</pre>
+</blockquote>
+Note that depending on your installation, the outputs may be slightly different;
+these outputs are those for a Cygwin-based development environment. The end result
+should be a shared library (here, <tt>shapescontainer.so</tt>) containing the extension
+module code. You can test this interactively in IRB to confirm that the the
+<tt>Shape</tt> and <tt>Circle</tt> modules were properly loaded and initialized:<p>
+<blockquote>
+<pre>
+$ <b>irb</b>
+irb(main):001:0> <b>require 'shapescontainer'</b>
+true
+irb(main):002:0> <b>c = Circle::Circle.new(5, 5, 20)</b>
+#&lt;Circle::Circle:0xa097208&gt;
+irb(main):003:0> <b>c.kind_of? Shape::Shape</b>
+true
+irb(main):003:0> <b>c.getX()</b>
+5.0
+</pre>
+</blockquote>
+You can experiment with variations on this approach to see what works best for
+your situation. For example, to avoid creating a "dummy" module like our
+"shapescontainer" you could instead insert module initialization code into
+one of the existing modules' initialization functions using SWIG's <tt>%init</tt>
+directive. The trick with this is to be sure that the modules are initialized in
+the proper order. For the previous example, we want to ensure that the <tt>Shape</tt>
+module is initialized before the <tt>Circle</tt> module; otherwise, the <tt>Circle</tt>
+module initialization will fail when it tries to define the <tt>Circle</tt> class
+as a subclass of <tt>Shape</tt>.
+
+<a name="n81"></a><h3>Predicate Methods</h3>
 Predicate methods in Ruby are those which return either <tt>true</tt> or
 <tt>false</tt>. By convention, these methods end in a question mark; some
 examples from built-in Ruby classes include <em>Array#empty?</em> (which

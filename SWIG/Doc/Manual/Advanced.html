@@ -42,7 +42,7 @@ public:
 %module b
 
 // Here is a derived class
-%extern a.i                 // Gets definition of base class
+%import a.i                 // Gets definition of base class
 
 class b : public a {
 public:
@@ -50,18 +50,19 @@ public:
 };
 
 </pre></blockquote>
-When compiled into two separate modules, the code does not work properly. In fact, you get a type error such as the following :<p>
+When compiled into two separate modules, the code does not work properly. In fact, you get a type error such as the following:<p>
 <p>
-<blockquote><pre>[beazley@guinness shadow]$ python
+<blockquote><pre>
+[beazley@guinness shadow]$ <b>python</b>
 Python 1.4 (Jan 16 1997)  [GCC 2.7.2]
 Copyright 1991-1995 Stichting Mathematisch Centrum, Amsterdam
-&gt;&gt;&gt; from a import *
-&gt;&gt;&gt; from b import *
-&gt;&gt;&gt; # Create a new "b"
-&gt;&gt;&gt; b = new_b()
-&gt;&gt;&gt; # Call a function in the base class
+&gt;&gt;&gt; <b>from a import *</b>
+&gt;&gt;&gt; <b>from b import *</b>
+&gt;&gt;&gt; <b># Create a new "b"</b>
+&gt;&gt;&gt; <b>b = new_b()</b>
+&gt;&gt;&gt; <b># Call a function in the base class</b>
 ...
-&gt;&gt;&gt; a_foo(b,3)
+&gt;&gt;&gt; <b>a_foo(b,3)</b>
 Traceback (innermost last):
   File "&lt;stdin&gt;", line 1, in ?
 TypeError: Type error in argument 1 of a_foo. Expected _a_p.
@@ -75,44 +76,49 @@ The type information listed shows the acceptable values for various C datatypes.
 <p>
 Unfortunately, this problem is inherent in the method by which SWIG makes modules.  When we made the "a" module, we had no idea what derived classes might be used at a later time. However, it's impossible to produce the proper type information until after we know all of the derived classes.   A nice problem to be sure, but one that can be fixed by making all modules share a single copy of the SWIG run-time library.<p>
 <a name="n6"></a><h3> The SWIG runtime library</h3>
-To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules.    This requires the use of the SWIG runtime library which is optionally built during SWIG installation.  To use the runtime libraries, follow these steps :<p>
+To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules. This requires the use of the SWIG runtime library which is optionally built during SWIG installation.  To use the runtime libraries, follow these steps:<p>
 <p>
-1.  Build the SWIG run-time libraries.  The <tt>SWIG1.1/Runtime</tt> directory contains a makefile for doing this.   If successfully built, you will end up with 6 files that are usually installed in <tt>/usr/local/lib</tt>.<p>
+1.  Build the SWIG run-time libraries.  The <tt>SWIG/Runtime</tt> directory contains a makefile for doing this. If successfully built, you will end up with 8 files that are usually installed in <tt>/usr/local/lib</tt>.<p>
 <p>
-<blockquote><pre>libswigtcl.a                 # Tcl library (static)
-libswigtcl.so                # Tcl library (shared)
+<blockquote><pre>
 libswigpl.a                  # Perl library (static)
 libswigpl.so                 # Perl library (shared)
 libswigpy.a                  # Python library (static)
 libswigpy.so                 # Python library (shared)
+libswigtcl8.a                # Tcl 8.x library (static)
+libswigtcl8.so               # Tcl 8.x library (shared)
+libswigrb.a                  # Ruby library (static)
+libswigrb.so                 # Ruby library (shared)
 </pre></blockquote>
 <p>
 Note that certain libraries may be missing due to missing packages or unsupported features (like dynamic loading) on your machine.<p>
 <p>
 2.   Compile all SWIG modules using the <tt>-c</tt> option.   For example :<p>
 <p>
-<blockquote><pre>% swig -c -python a.i
-% swig -c -python b.i
-
+<blockquote><pre>
+% <b>swig -c -python a.i</b>
+% <b>swig -c -python b.i</b>
 </pre></blockquote>
 The <tt>-c</tt> option tells SWIG to omit runtime support.  It's now up to you to provide it separately--which we will do using our libraries.<p>
 <p>
 3.   Build SWIG modules by linking against the appropriate runtime libraries.<p>
 <p>
-<blockquote><pre>% swig -c -python a.i
-% swig -c -python b.i
-% gcc -c a_wrap.c b_wrap.c -I/usr/local/include
-% ld -shared a_wrap.o b_wrap.o -lswigpy  -o a.so
+<blockquote><pre>
+% <b>swig -c -python a.i</b>
+% <b>swig -c -python b.i</b>
+% <b>gcc -c a_wrap.c b_wrap.c -I/usr/local/include</b>
+% <b>ld -shared a_wrap.o b_wrap.o -lswigpy  -o a.so</b>
 
 </pre></blockquote>
 or if building a new executable (static linking)<p>
 <p>
-<blockquote><pre>% swig -c -tcl -ltclsh.i a.i
-% gcc a_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -lm -o mytclsh
+<blockquote><pre>
+% <b>swig -c -tcl -ltclsh.i a.i</b>
+% <b>gcc a_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -lm -o mytclsh</b>
 
 </pre></blockquote>
 <p>
-When completed you should now end up with a collection of modules like this :<p>
+When completed you should now end up with a collection of modules like this:<p>
 <center><img src="ch11.3.png"></center><p>
 <p>
 <p>
@@ -133,55 +139,50 @@ void *__embedfunc(void *);
 
 </pre></blockquote>
 <p>
-Now, run SWIG and compile as follows :<p>
+Now, run SWIG and compile as follows:<p>
 <p>
-<blockquote><pre>% swig -c -tcl mytclsh.i
-% gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -ldl -lm \
-      -o tclsh
-
+<blockquote><pre>
+% <b>swig -c -tcl mytclsh.i</b>
+% <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl -ldl -lm \
+      -o tclsh</b>
 </pre></blockquote>
-This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library.   The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.    <p>
+This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library. The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.<p>
 <p>
 To make new dynamically loadable SWIG modules, simply compile as follows :<p>
 <p>
-<blockquote><pre>% swig -c -tcl example.i
-% gcc -c example_wrap.c -I/usr/local/include
-% ld -shared example_wrap.o -o example.so
-
+<blockquote><pre>
+% <b>swig -c -tcl example.i</b>
+% <b>gcc -c example_wrap.c -I/usr/local/include</b>
+% <b>ld -shared example_wrap.o -o example.so</b>
 </pre></blockquote>
 Linking against the <tt>swigtcl</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded.<p>
 <p>
 2.  Using shared library versions of the runtime library<p>
 <p>
-If supported on your machine, the runtime libraries will be built as shared libraries (indicated by a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix).   To compile using the runtime libraries, you link process should look something like this :<p>
+If supported on your machine, the runtime libraries will be built as shared libraries (indicated by a <tt>.so</tt>, <tt>.sl</tt>, or .<tt>dll</tt> suffix). To compile using the runtime libraries, you link process should look something like this:<p>
 <blockquote><pre>
-% ld -shared swigtcl_wrap.o -o libswigtcl.so             # Irix
-% gcc -shared swigtcl_wrap.o -o libswigtcl.so            # Linux
-% ld -G swigtcl_wrap.o -o libswigtcl.so                  # Solaris
+% <b>ld -shared swigtcl_wrap.o -o libswigtcl.so</b>             # Irix
+% <b>gcc -shared swigtcl_wrap.o -o libswigtcl.so</b>            # Linux
+% <b>ld -G swigtcl_wrap.o -o libswigtcl.so</b>                  # Solaris
 </pre></blockquote>
-In order for the <tt>libswigtcl.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it.  Typically this is a system library directory (ie. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).   <p>
+In order for the <tt>libswigtcl.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it. Typically this is a system library directory (ie. <tt>/usr/local/lib</tt> or <tt>/usr/lib</tt>).<p>
 <p>
-When running with the shared libary version, you may get error messages such as the following <p>
+When running with the shared libary version, you may get error messages such as the following:<p>
 <p>
-<blockquote><pre>Unable to locate libswigtcl.so 
-
+<blockquote><pre>Unable to locate libswigtcl.so</pre></blockquote>
+This indicates that the loader was unable to find the shared libary at run-time. To find shared libaries, the loader looks through a collection of predetermined paths. If the <tt>libswigtcl.so</tt> file is not in any of these directories, it results in an error. On most machines, you can change the loader search path by changing the Unix environment variable <tt>LD_LIBRARY_PATH</tt>, e.g.<p>
+<p>
+<blockquote><pre>% <b>setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib</b></pre></blockquote>
+A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker (see the man page). For example:<p>
+<p>
+<blockquote><pre>% <b>ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
+       -L/home/beazley/packages/lib -lswigtcl.so -o example.so</b>
 </pre></blockquote>
-This indicates that the loader was unable to find the shared libary at run-time.     To find shared libaries, the loader looks through a collection of predetermined paths.  If the <tt>libswigtcl.so</tt> file is not in any of these directories, it results in an error.   On most machines, you can change the loader search path by changing the Unix environment variable <tt>LD_LIBRARY_PATH</tt>.   For example :<p>
+The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.<p>
 <p>
-<blockquote><pre>% setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib
-
-</pre></blockquote>
-A somewhat better approach is to link your module with the proper path encoded.  This is typically done using the `-rpath' or `-R' option to your linker (see the man page).  For example :<p>
-<p>
-<blockquote><pre>% ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
-       -L/home/beazley/packages/lib -lswigtcl.so -o example.so
-
-</pre></blockquote>
-The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.  <p>
-<p>
-If all else fails, pull up the man pages for your linker and start playing around.   <p>
+If all else fails, pull up the man pages for your linker and start playing around.<p>
 <a name="n2"></a><h2> Dynamic Loading of C++ modules</h2>
-Dynamic loading of C++ modules presents a special problem for many systems.   This is because C++ modules often need additional supporting code for proper initialization and operation.   Static constructors are also a bit of a problem.<p>
+Dynamic loading of C++ modules presents a special problem for many systems. This is because C++ modules often need additional supporting code for proper initialization and operation. Static constructors are also a bit of a problem.<p>
 <p>
 While the process of building C++ modules is, by no means, and exact science, here are a few rules of thumb to follow :<p>
 <p>
@@ -190,7 +191,7 @@ While the process of building C++ modules is, by no means, and exact science, he
 <li>Try linking your module with the C++ compiler using a command like `c++ -shared'.  This often solves alot of problems.
 <li>Sometimes it is necessary to link against special libraries.  For example, modules compiled with g++ often need to be linked against the <tt>libgcc.a</tt>, <tt>libg++.a</tt>, and <tt>libstdc++.a</tt> libraries.
 <li>Read the compiler and linker man pages over and over until you have them memorized (this may not help in some cases however).
-<li>Search articles on Usenet, particularly in <tt>comp.lang.tcl</tt>, <tt>comp.lang.perl</tt>, and <tt>comp.lang.python</tt>.    Building C++ modules is a common problem.
+<li>Search articles on Usenet, particularly in <tt>comp.lang.tcl</tt>, <tt>comp.lang.perl</tt>, <tt>comp.lang.python</tt> and <tt>comp.lang.ruby</tt>. Building C++ modules is a common problem.
 </ul>
 <p>
 The SWIG distribution contains some additional documentation about C++ modules in the Doc directory as well.<p>

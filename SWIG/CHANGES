@@ -17,6 +17,16 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 
+03/26/2002: ljohnson (Lyle Johnson)
+            [Ruby] Made a few minor edits to the "Advanced Topics"
+            chapter of the SWIG manual and added a new major section
+            about how to create multi-module Ruby packages with SWIG.
+
+03/26/2002: ljohnson (Lyle Johnson)
+            [Ruby] Removed all of the old Ruby pragmas. If any of this
+            functionality is truly missed we can resurrect it, preferably
+            with some kind of feature-based directive.
+            
 03/25/2002: ljohnson (Lyle Johnson)
             [Ruby] Fixed SWIG exception library support for Ruby, which
             has apparently been broken for some time. Luckily, no one seems
