@@ -411,12 +411,14 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     
     // Now write some code to set the variable
     *setattr << tab8 << "if name == \"" << realname << "\" :\n";
-    if (inhash) {
-      *setattr << tab8 << tab4 << module << "." << name_set(name_member(realname,class_name)) << "(self,value.this)\n";
+    if (Status & STAT_READONLY) {
+      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n";
     } else {
+      if (inhash)
+	*setattr << tab8 << tab4 << "value.thisown = 0\n";
       *setattr << tab8 << tab4 << module << "." << name_set(name_member(realname,class_name)) << "(self,value)\n";
+      *setattr << tab8 << tab4 << "return\n";
     }
-    *setattr << tab8 << tab4 << "return\n";
     
     // Write some code to get the variable
     *getattr << tab8 << "if name == \"" << realname << "\" : \n";
