@@ -1240,9 +1240,9 @@ varfunc_tail   : SEMI { Clear(CCode); }
               ;
 
 initializer   : def_args { $$ = $1; }
-              | CONST { $$.val = 0; }
-              | THROW LPAREN parms RPAREN { $$.val = 0; }
-              | CONST THROW LPAREN parms RPAREN { $$.val = 0; }
+              | CONST def_args { $$ = $2; }
+              | THROW LPAREN parms RPAREN def_args { $$ = $5; }
+              | CONST THROW LPAREN parms RPAREN def_args { $$ = $6; }
               ;
 
 /* ------------------------------------------------------------
