@@ -782,7 +782,6 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   while (p != 0) {
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
-    char     *pv = Parm_Getvalue(p);
 
     // Produce string representation of source and target arguments
     sprintf(source,"ST(%d)",j);
@@ -791,7 +790,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     // Check to see if this argument is being ignored
 
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       
       // If there are optional arguments, check for this
 
@@ -817,9 +816,6 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  case T_INT :
 	  case T_SHORT :
 	  case T_LONG :
-	  case T_SINT :
-	  case T_SSHORT:
-	  case T_SLONG:
 	  case T_SCHAR:
 	  case T_UINT:
 	  case T_USHORT:
@@ -850,6 +846,12 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	  case T_USER:
 	    
+	    pt->is_pointer++;
+	    sprintf(temp,"argument %d", i+1);
+	    get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
+	    pt->is_pointer--;
+	    break;
+
 	    // Unsupported data type
 	    
 	  default :
@@ -907,7 +909,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
     // If we needed a saved variable, we need to emit to emit some code for that
     // This only applies if the argument actually existed (not ignore)
-    if ((need_save) && (!p->ignore)) {
+    if ((need_save) && (!Parm_Getignore(p))) {
       Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
@@ -936,9 +938,9 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       // Function returns a "value"
       Printf(f->code,"    ST(argvi) = sv_newmortal();\n");
       switch(d->type) {
-      case T_INT: case T_BOOL: case T_SINT: case T_UINT:
-      case T_SHORT: case T_SSHORT: case T_USHORT:
-      case T_LONG : case T_SLONG : case T_ULONG:
+      case T_INT: case T_BOOL: case T_UINT:
+      case T_SHORT: case T_USHORT:
+      case T_LONG : case T_ULONG:
       case T_SCHAR: case T_UCHAR :
 	Printf(f->code,"    sv_setiv(ST(argvi++),(IV) result);\n");
 	break;
@@ -1057,8 +1059,8 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     int i = 0;
     while(p) {
       DataType *pt = Parm_Gettype(p);
-      char     *pn = Parm_Getname(p);
-      if (!p->ignore) {
+
+      if (!Parm_Getignore(p)) {
 	// Look up the datatype name here
 	char sourceNtarget[256];
 	sprintf(sourceNtarget,"$args[%d]",i);
@@ -1184,9 +1186,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	// Set the value to something 
 	
 	switch(t->type) {
-	case T_INT : case T_BOOL: case T_SINT : case T_UINT:
-	case T_SHORT : case T_SSHORT : case T_USHORT:
-	case T_LONG : case T_SLONG : case T_ULONG:
+	case T_INT : case T_BOOL: case T_UINT:
+	case T_SHORT : case T_USHORT:
+	case T_LONG : case T_ULONG:
 	case T_UCHAR: case T_SCHAR:
 	  Printv(setf->code,tab4, name, " = (", DataType_str(t,0), ") SvIV(sv);\n", 0);
 	  break;
@@ -1263,9 +1265,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   } else {
     if (!t->is_pointer) {
       switch(t->type) {
-      case T_INT : case T_BOOL: case T_SINT: case T_UINT:
-      case T_SHORT : case T_SSHORT: case T_USHORT:
-      case T_LONG : case T_SLONG : case T_ULONG:
+      case T_INT : case T_BOOL: case T_UINT:
+      case T_SHORT : case T_USHORT:
+      case T_LONG : case T_ULONG:
       case T_UCHAR: case T_SCHAR:
 	Printv(getf->code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
 	Printv(vinit, tab4, "sv_setiv(sv,(IV)", name, ");\n",0);
@@ -1432,9 +1434,9 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
     // Generate a constant 
     if (type->is_pointer == 0) {
       switch(type->type) {
-      case T_INT:case T_SINT: case T_UINT: case T_BOOL:
-      case T_SHORT: case T_SSHORT: case T_USHORT:
-      case T_LONG: case T_SLONG: case T_ULONG:
+      case T_INT: case T_UINT: case T_BOOL:
+      case T_SHORT: case T_USHORT:
+      case T_LONG:  case T_ULONG:
       case T_SCHAR: case T_UCHAR:
 	if (!have_int_func) {
 	  Printf(f_header,"%s\n",setiv);
@@ -1537,7 +1539,7 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
   while (p != 0) {
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
       if ((pt->type != T_VOID) || (pt->is_pointer)) {
@@ -1550,12 +1552,12 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
       i++;
       p = ParmList_next(l);
       if (p)
-	if (!p->ignore)
+	if (!Parm_Getignore(p))
 	  Putc(',',temp);
     } else {
       p = ParmList_next(l);
       if (p) 
-	if ((i>0) && (!p->ignore))
+	if ((i>0) && (!Parm_Getignore(p)))
 	  Putc(',',temp);
     }
   }
@@ -1895,7 +1897,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   i = 1;
   while(p) {
     DataType *pt = Parm_Gettype(p);
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       char sourceNtarget[512];
       sprintf(sourceNtarget, "$args[%d]", i);
 

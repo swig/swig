@@ -529,7 +529,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   char           source[256], target[256];
   char	 	*tm;
   DOHString     *cleanup, *outarg, *body;
-  char		*javaReturnSignature;
+  char		*javaReturnSignature = 0;
   DOHString     *javaParameterSignature;
 
   cleanup = NewString("");
@@ -606,7 +606,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), 0);
     }
 
-    if(p->ignore) continue;
+    if(Parm_Getignore(p)) continue;
 
       // Add to java function header
       if(shadow && member_func) {
@@ -643,7 +643,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    Printv(f->code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
           } else {
             char *scalarType = SwigTcToJniScalarType(pt);
-            char *cptrtype = DataType_lstr(pt,0);
+
             pt->is_pointer--;
             const char *basic_jnitype = (pt->is_pointer > 0) ? "jlong" : SwigTcToJniType(pt, 0);
             char *ctype = DataType_lstr(pt,0);
@@ -707,7 +707,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	   // nothing to do
          } else {
             char *scalarType = SwigTcToJniScalarType(pt);
-            char *cptrtype = DataType_lstr(pt,0);
+
             pt->is_pointer--;
             const char *basic_jnitype = (pt->is_pointer > 0) ? "jlong" : SwigTcToJniType(pt, 0);
             char *ctype = DataType_lstr(pt,0);

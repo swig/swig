@@ -41,11 +41,9 @@ static  DOHString       *shadow_methods = 0;
 
 static  char   *module = 0;               // Module name
 static  char   *path = (char*)"python";   // Pathname of where to look for library files
-static  char   *methods;              // Method table name
 static  char   *global_name = (char*)"cvar";          // Name of global variables.
 static  int     shadow = 0;
 static  int     have_defarg = 0;
-static  int     docstring;
 static  int     have_output;
 static  int     use_kw = 0;     
 static  int     noopt = 1; 
@@ -377,7 +375,7 @@ void PYTHON::initialize(void)
 // ---------------------------------------------------------------------
 void PYTHON::initialize_cmodule(void)
 {
-  int i;
+
   Printf(f_header,"#define SWIG_init    init%s\n\n", module);
   Printf(f_header,"#define SWIG_name    \"%s\"\n", module);	
 
@@ -696,7 +694,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     // Only consider this argument if it's not ignored
 
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       Putc(',',arglist);
       // Add an optional argument separator if needed
     
@@ -735,13 +733,13 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // case if you appropriate cast things.   However, if you have
 	    // special cases, you'll need to add more code.  
 	    
-	  case T_INT : case T_UINT: case T_SINT: 
+	  case T_INT : case T_UINT:
 	    Putc('i',parse_args);
 	    break;
-	  case T_SHORT: case T_USHORT: case T_SSHORT:
+	  case T_SHORT: case T_USHORT:
 	    Putc('h',parse_args);
 	    break;
-	  case T_LONG : case T_ULONG: case T_SLONG :
+	  case T_LONG : case T_ULONG:
 	    Putc('l',parse_args);
 	    break;
 	  case T_SCHAR : case T_UCHAR :
@@ -892,13 +890,13 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  // Return an integer type
 	  
-	case T_INT: case T_SINT: case T_UINT: case T_BOOL:
+	case T_INT: case T_UINT: case T_BOOL:
 	  Printf(f->code,"    resultobj = Py_BuildValue(\"i\",result);\n");
 	  break;
-	case T_SHORT: case T_SSHORT: case T_USHORT:
+	case T_SHORT: case T_USHORT:
 	  Printf(f->code,"    resultobj = Py_BuildValue(\"h\",result);\n");
 	  break;
-	case T_LONG : case T_SLONG : case T_ULONG:
+	case T_LONG : case T_ULONG:
 	  Printf(f->code,"    resultobj = Py_BuildValue(\"l\",result);\n");
 	  break;
 	case T_SCHAR: case T_UCHAR :
@@ -1009,7 +1007,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     int need_wrapper = 0;
     int munge_return = 0;
-    int have_optional = 0;
+
     
     // Check return code for modification
     if ((Getattr(hash,d->name)) && (d->is_pointer <=1)) {
@@ -1118,7 +1116,6 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    switch(t->type) {
 	    case T_INT: case T_SHORT: case T_LONG :
 	    case T_UINT: case T_USHORT: case T_ULONG:
-	    case T_SINT: case T_SSHORT: case T_SLONG:
 	    case T_SCHAR: case T_UCHAR: case T_BOOL:
 	      // Get an integer value
 	      Wrapper_add_localv(setf,"tval",DataType_lstr(t,0),"tval",0);
@@ -1244,9 +1241,9 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	  
 	  /* Is a normal datatype */
 	  switch(t->type) {
-	  case T_INT: case T_SINT: case T_UINT: 
-	  case T_SHORT: case T_SSHORT: case T_USHORT:
-	  case T_LONG: case T_SLONG: case T_ULONG:
+	  case T_INT: case T_UINT: 
+	  case T_SHORT: case T_USHORT:
+	  case T_LONG: case T_ULONG:
 	  case T_SCHAR: case T_UCHAR: case T_BOOL:
 	    Printv(getf->code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
 	    break;
@@ -1344,9 +1341,9 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
     
     if (type->is_pointer == 0) {
       switch(type->type) {
-      case T_INT:case T_SINT: case T_UINT: case T_BOOL:
-      case T_SHORT: case T_SSHORT: case T_USHORT:
-      case T_LONG: case T_SLONG: case T_ULONG:
+      case T_INT: case T_UINT: case T_BOOL:
+      case T_SHORT: case T_USHORT:
+      case T_LONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR:
 	Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", name, "\", (long) ", value, ", 0, 0, 0},\n", 0);
 	break;
@@ -1424,7 +1421,7 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
   while (p != 0) {
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
@@ -1437,13 +1434,13 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
       }
       p = ParmList_next(l);
       if (p != 0) {
-	if (!p->ignore)
+	if (!Parm_Getignore(p))
 	  Putc(',',temp);
       }
     } else {
       p = ParmList_next(l);
       if (p) {
-	if ((!p->ignore) && (i > 0))
+	if ((!Parm_Getignore(p)) && (i > 0))
 	  Putc(',',temp);
       }
     }
@@ -1721,13 +1718,9 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
 
 void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 
-  Parm *p;
-  int   i;
   char *realname;
   int   oldshadow;
-  int   pcount;
-  int   numopt;
-  int   have_optional;
+
 
   char  cname[1024];
 
@@ -1802,12 +1795,8 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 
 void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
   char *realname;
-  Parm *p;
-  int   i;
   int   oldshadow = shadow;
   char  cname[1024];
-  int   pcount, numopt;
-  int   have_optional;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
   this->Language::cpp_constructor(name,iname,l);

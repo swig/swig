@@ -38,8 +38,6 @@ Mzscheme Options (available with -mzscheme)\n\
 static  char   *mzscheme_path = (char*)"mzscheme";
 static  char   *prefix = 0;
 static  char   *module = 0;
-static  char   *package = (char*)"";
-static  int    linkage = 0;
 
 static  DOHString *init_func_def = 0;
 
@@ -202,18 +200,6 @@ MZSCHEME::headers (void)
 void
 MZSCHEME::initialize (void)
 {
-  int i;
-
-#ifdef OLD_STYLE_WILL_GO_AWAY
-  if (InitNames) {
-    i = 0;
-    while (InitNames[i]) {
-      Printf(f_init,"\t %s();\n",InitNames[i]);
-      i++;
-    }
-  }
-#endif /* OLD_STYLE_WILL_GO_AWAY */
-
   Printf (f_init, "static void\nSWIG_init (void)\n{\n");
 }
 
@@ -289,14 +275,14 @@ throw_unhandled_mzscheme_type_error (DataType *d)
 void
 MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 {
-  Parm *p;
+
   char   source[256], target[256], argnum[256], arg[256];
   char  *tm;
   Wrapper *f;
   DOHString *cleanup = 0;
   DOHString *proc_name = 0;
-  int need_len = 0;
-  int need_tempc = 0;
+
+
   DOHString *outarg = 0;
   int argout_set = 0;
 
@@ -325,7 +311,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   int pcount = emit_args (d, l, f);
   int numargs = 0;
-  int numopt = 0;
+
 
   // adds local variables : type name
   Wrapper_add_local (f,"_tempc","char *_tempc");
@@ -349,7 +335,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Handle parameter types.
 
-    if (p->ignore)
+    if (Parm_Getignore(p))
       Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
@@ -694,7 +680,7 @@ MZSCHEME::usage_var (char *iname, DataType *t, DOHString *usage)
 void
 MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 {
-  int  i;
+
   Parm *p;
 
   // Print the function name.
@@ -707,7 +693,7 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
 
-    if (p->ignore)
+    if (Parm_Getignore(p))
       continue;
 
     // Print the type.  If the parameter has been named, use that as well.

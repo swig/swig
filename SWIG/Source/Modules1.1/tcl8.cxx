@@ -27,7 +27,7 @@ static char cvsroot[] = "$Header$";
 #include "tcl8.h"
 #include <ctype.h>
 
-static char *Tcl_config=(char*)"swigtcl.swg";
+
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
      -module name    - Set name of module\n\
@@ -54,7 +54,6 @@ static int  shadow = 1;
 static char *tcl_path = (char*)"tcl";
 static char interp_name[256] = "interp";
 static char  *init_name = 0;
-static char  *char_result = (char *)"TCL_VOLATILE";
 
 static int    have_constructor;
 static int    have_destructor;
@@ -510,7 +509,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   while (p != 0) {
     DataType *pt = Parm_Gettype(p);
     char     *pn = Parm_Getname(p);
-    char     *pv = Parm_Getvalue(p);
+
     // Produce string representations of the source and target arguments
     sprintf(source,"objv[%d]",j+1);
     sprintf(target,"%s", Parm_Getlname(p));
@@ -518,7 +517,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     // See if this argument is being ignored
     
-    if (!p->ignore) {
+    if (!Parm_Getignore(p)) {
       if (j == (pcount-numopt)) 
 	Putc('|',argstr);
 
@@ -540,7 +539,6 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Signed Integers
 	  
 	  case T_INT:
-	  case T_SINT:
 	  case T_UINT:
 	    Putc('i', argstr);
 	    Printf(args,",&%s",target);
@@ -556,13 +554,11 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    }
 	    break;
 	  case T_SHORT:
-	  case T_SSHORT:
 	  case T_USHORT:
 	    Putc('h',argstr);
 	    Printf(args,",&%s",target);
 	    break;
 	  case T_LONG:
-	  case T_SLONG:
 	  case T_ULONG:
 	    Putc('l',argstr);
 	    Printf(args,",&%s",target);
@@ -598,6 +594,13 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // User defined.   This is an error.
 	    
 	  case T_USER:
+	    pt->is_pointer++;
+	    DataType_remember(pt);
+	    Putc('p',argstr);
+	    Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
+	    pt->is_pointer--;
+	    break;
+
 	    // Unsupported data type
 	    
 	  default :
@@ -672,11 +675,8 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Is an integer
       case T_BOOL:
       case T_INT:
-      case T_SINT:
       case T_SHORT:
-      case T_SSHORT:
       case T_LONG :
-      case T_SLONG:
       case T_SCHAR:
       case T_UINT:
       case T_USHORT:
@@ -815,12 +815,9 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     if (!t->is_pointer) {
       switch(t->type) {
       case T_INT:
-      case T_SINT:
       case T_SHORT:
       case T_USHORT:
-      case T_SSHORT:
       case T_LONG:
-      case T_SLONG:
       case T_UCHAR:
       case T_SCHAR:
       case T_BOOL:
@@ -882,14 +879,11 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     if (!t->is_pointer) {
       switch(t->type) {
       case T_INT:
-      case T_SINT:
       case T_UINT:
       case T_SHORT:
       case T_USHORT:
-      case T_SSHORT:
       case T_LONG:
       case T_ULONG:
-      case T_SLONG:
       case T_UCHAR:
       case T_SCHAR:
       case T_BOOL:
@@ -1006,15 +1000,13 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
     
     if (type->is_pointer == 0) {
       switch(type->type) {
-      case T_BOOL: case T_INT: case T_SINT: case T_DOUBLE:
+      case T_BOOL: case T_INT: case T_DOUBLE:
 	Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
 	link_variable(var_name,name,type);
 	break;
       case T_SHORT:
       case T_LONG:
-      case T_SSHORT:
       case T_SCHAR:
-      case T_SLONG:
 	Printf(f_header,"static %s %s = %s;\n", DataType_str(type,0), var_name, value);
 	Printf(f_header,"static char *%s_char;\n", var_name);
 	if (CPlusPlus)
