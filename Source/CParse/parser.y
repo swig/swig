@@ -493,9 +493,11 @@ static void merge_extensions(Node *cls, Node *am) {
              then it hasn't been renamed.  However---the name of the class
              itself might have been renamed so we need to do a consistency
              check here */
-	  Setattr(n,"sym:name", Getattr(cls,"sym:name"));
+	  if (Getattr(cls,"sym:name")) {
+	    Setattr(n,"sym:name", Getattr(cls,"sym:name"));
+	  }
 	}
-      }
+      } 
     }
 
     symname = Getattr(n,"sym:name");
@@ -1082,6 +1084,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       Classprefix = 0;
 	       prev_symtab = 0;
 	       $$ = 0;
+
 	     }
              ;
 
