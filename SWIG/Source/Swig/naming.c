@@ -59,7 +59,7 @@ String *
 Swig_name_wrapper(String_or_char *fname) {
   String *r;
   String *f;
-
+  char *c;
   r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   f = Getattr(naming_hash,"wrapper");
@@ -69,7 +69,75 @@ Swig_name_wrapper(String_or_char *fname) {
     Append(r,f);
   }
   Replace(r,"%f",fname, DOH_REPLACE_ANY);
-  Replace(r,":","_", DOH_REPLACE_ANY);
+  c = Char(r);
+  while (*c) {
+    if (!(isalnum(*c) || (*c == '_'))) {
+      switch(*c) {
+      case '+':
+	*c = 'a';
+	break;
+      case '-':
+	*c = 's';
+	break;
+      case '*':
+	*c = 'm';
+	break;
+      case '/':
+	*c = 'd';
+	break;
+      case '<':
+	*c = 'l';
+	break;
+      case '>':
+	*c = 'g';
+	break;
+      case '=':
+	*c = 'e';
+	break;
+      case ',':
+	*c = 'c';
+	break;
+      case '(':
+	*c = 'p';
+	break;
+      case ')':
+	*c = 'P';
+	break;
+      case '[':
+	*c = 'b';
+	break;
+      case ']':
+	*c = 'B';
+	break;
+      case '^':
+	*c = 'x';
+	break;
+      case '&':
+	*c = 'A';
+	break;
+      case '|':
+	*c = 'o';
+	break;
+      case '~':
+	*c = 'n';
+	break;
+      case '!':
+	*c = 'N';
+	break;
+      case '%':
+	*c = 'M';
+	break;
+      case '.':
+	*c = 'f';
+	break;
+      default:
+	*c = '_';
+	break;
+      }
+    }
+    c++;
+  }
+  /*  Replace(r,":","_", DOH_REPLACE_ANY); */
   return Swig_temp_result(r);
 }
 
