@@ -1316,8 +1316,12 @@ int Language::constructorDeclaration(Node *n) {
     /* Name adjustment for %name */
     Swig_save(&n,"sym:name",NULL);
 
-    if ((Strcmp(name,symname) == 0) && (Strcmp(symname,ClassPrefix) != 0)) {
-      Setattr(n,"sym:name", ClassPrefix);
+    {
+	String *base = Swig_scopename_base(name);
+	if ((Strcmp(base,symname) == 0) && (Strcmp(symname, ClassPrefix) != 0)) {
+	    Setattr(n,"sym:name", ClassPrefix);
+	}
+	Delete(base);
     }
     /* Only create a constructor if the class is not abstract */
 
