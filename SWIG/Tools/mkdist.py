@@ -23,7 +23,7 @@ os.system("cvs export -D now -r rel-1-3 -d "+dirname+ " SWIG")
 
 # Now clean the source directory
 
-SOURCES = ['DOH','Swig','Preprocessor','SWIG1.1','Modules1.1', 'Modules', 'Include']
+SOURCES = ['DOH','Swig','Preprocessor','CParse','Modules1.1', 'Modules', 'Include']
 
 srcs = [ ]
 for d in SOURCES:
@@ -73,7 +73,7 @@ os.system("cd "+dirname+"; autoconf")
 os.system("cd "+dirname+"/Source/DOH; autoconf")
 os.system("cd "+dirname+"/Tools; autoconf")
 os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
-os.system("cd "+dirname+"/Source/SWIG1.1; bison -y -d parser.yxx; mv y.tab.c parser.cxx; mv y.tab.h parser.h")
+os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
 os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
 os.system("gzip "+string.lower(dirname)+".tar")
