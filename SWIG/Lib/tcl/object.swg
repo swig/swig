@@ -58,8 +58,11 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
   Tcl_Obj         **objv;
   int              rcode;
   swig_class      *cls;
-  int              bi = 0;
+  swig_class      *cls_stack[64];
+  int              cls_stack_bi[64];
+  int              cls_stack_top = 0;
   int              numconf = 2;
+  int              bi;
 
   objv = (Tcl_Obj **) _objv;
   if (objc < 2) {
@@ -77,8 +80,29 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     SWIG_Disown(inst->thisvalue);
     return TCL_OK;
   }
+  cls_stack[cls_stack_top] = inst->classptr;
+  cls_stack_bi[cls_stack_top] = -1;
   cls = inst->classptr;
-  while (cls) {
+  while (1) {
+    bi = cls_stack_bi[cls_stack_top];
+    cls = cls_stack[cls_stack_top];
+    if (bi != -1) {
+      cls = cls->bases[bi];
+      if (cls) {
+	cls_stack_bi[cls_stack_top]++;
+	cls_stack_top++;
+	cls_stack[cls_stack_top] = cls;
+	cls_stack_bi[cls_stack_top] = -1;
+	continue;
+      }
+    }
+    if (!cls) {
+      cls_stack_top--;
+      if (cls_stack_top < 0) break;
+      else continue;
+    }
+    cls_stack_bi[cls_stack_top]++;
+
     meth = cls->methods;
     /* Check for methods */
     while (meth && meth->name) {
@@ -143,7 +167,6 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	i+=2;
       }
     }
-    cls = inst->classptr->bases[bi++];
   }
   if (strcmp(method,"configure") == 0) {
     if (numconf >= objc) {
@@ -158,7 +181,7 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       return TCL_ERROR;
   }
 
-  Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget ", TCL_STATIC);
+  Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget disown acquire ", TCL_STATIC);
   cls = inst->classptr;
   bi = 0;
   while (cls) {
