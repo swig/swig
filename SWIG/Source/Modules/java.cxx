@@ -3195,13 +3195,13 @@ class JAVA : public Language {
     if ((tm = Swig_typemap_lookup_new("out",n,"",0)))
       addThrows(n, "tmap:out", n);
 
-    if ((throw_parm_list = Getattr(n,"throws"))) {
+    if ((throw_parm_list = Getattr(n,"throws")) || Getattr(n,"throw")) {
       int       gencomma = 0;
 
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      if (throw_parm_list) Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p=nextSibling(p)) {
         if ((tm = Getattr(p,"tmap:throws"))) {
           addThrows(n, "tmap:throws", p);
@@ -3448,7 +3448,7 @@ class JAVA : public Language {
    * ------------------------------------------------------------ */
 
   int classDirectorInit(Node *n) {
-    String *director_classname = directorClassName(n);
+/*    String *director_classname = directorClassName(n);*/
 
     Delete(none_comparison);
     none_comparison = NewString("");            // not used
@@ -3460,7 +3460,7 @@ class JAVA : public Language {
 
     Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
     Printf(f_directors_h, "\npublic:\n");
-    Printf(f_directors_h, "  virtual ~%s();\n", director_classname);
+/*    Printf(f_directors_h, "  virtual ~%s();\n", director_classname);*/
     Printf(f_directors_h, "  void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
     Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
     Printf(f_directors_h, "    return swig_override[n];\n");
@@ -3470,8 +3470,13 @@ class JAVA : public Language {
        least on the FreeBSD platform, if not for others. It also doesn't hurt to put
        "default" destructors into the code, even if they don't appear to do anything.) */
 
+    /* This hack has been removed so that correct code is emitted for working compilers, see the director_exception.i testcase.
+     * Otherwise a search up all destructors is probably needed to understand exception specifications. Not easy with multiple inheritance. */
+
+    /*
     Printf(f_directors, "%s::~%s() {\n", director_classname, director_classname);
     Printf(f_directors, "}\n\n");
+    */
 
     /* Keep track of the director methods for this class */
     first_class_dmethod = curr_class_dmethod = n_dmethods;
