@@ -13,10 +13,10 @@
  * can be used and distributed.
  *******************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #include "swig.h"
 #include "html.h"
-
-static char cvsroot[] = "$Header$";
 
 /*******************************************************************************
  * $Header$
@@ -31,14 +31,6 @@ static char cvsroot[] = "$Header$";
 
 // -----------------------------------------------------------------------------
 // HTML::HTML()
-// 
-// Constructor.  Creates a new HTML documentation module object.
-//
-// Inputs : None
-//
-// Output : HTML Object
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 HTML::HTML() {
@@ -69,12 +61,6 @@ HTML::HTML() {
 //          "<b>:</b>"
 //
 // The start tag for this would be "<b>"
-//
-// Inputs : tag   = HTML tag string
-//
-// Output : Staring portion of the tag variable.
-//
-// Side Effects : None.
 // -----------------------------------------------------------------------------
 
 char *HTML::start_tag(char *tag) {
@@ -94,12 +80,6 @@ char *HTML::start_tag(char *tag) {
 // char *HTML::end_tag(char *tag)
 // 
 // Utility for returning an end-tag.  The counterpart to start_tag().
-//
-// Inputs : tag   = HTML tag string
-//
-// Output : Ending portion of tag variable.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 char *HTML::end_tag(char *tag) {
@@ -127,13 +107,6 @@ char *HTML::end_tag(char *tag) {
 // Outputs the contents of string s into String str.   If mode is 1, we
 // will reformat the text and apply a few common HTML character
 // substitutions.
-//
-// Inputs :  s    =  Documentation text string
-//           mode =  Formatting mode (0 = preformat, 1 = formatted)
-//
-// Output :  str  =  Output is append to str.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void HTML::print_string(char *s, String &str,int mode) { 
@@ -171,12 +144,6 @@ void HTML::print_string(char *s, String &str,int mode) {
 // void HTML::print_decl(DocEntry *de)
 //
 // Generates documentation for a declaration.
-// 
-// Inputs : de  = Documentation entry
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void HTML::print_decl(DocEntry *de) { 
@@ -227,12 +194,6 @@ void HTML::print_decl(DocEntry *de) {
 // void HTML::print_text(DocEntry *de)
 // 
 // Generates documentation for a text-block. Strips any leading whitespace.
-//
-// Inputs : de = Documentation entry
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void HTML::print_text(DocEntry *de) {
@@ -253,12 +214,6 @@ void HTML::print_text(DocEntry *de) {
 // void HTML::title(DocEntry *de)
 // 
 // Generates the title for an HTML document.
-//
-// Inputs : de = Title documentation entry
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void HTML::title(DocEntry *de) { 
@@ -306,15 +261,6 @@ void HTML::title(DocEntry *de) {
 //
 // Creates a new section.  sect_count is used to determine the formatting of
 // the header.  Also fills in a table of contents
-// 
-// Inputs : 
-//          de       = Documentation Entry
-//          sectnum  = Section number
-//
-// Output : None
-//
-// Side Effects :
-//          Creates a new subsection.  Updates HTML table of contents.
 // -----------------------------------------------------------------------------
 
 void HTML::newsection(DocEntry *de,int sectnum) {
@@ -420,13 +366,6 @@ void HTML::newsection(DocEntry *de,int sectnum) {
 //
 // Ends a subsection.  It is an error to call this without first calling
 // newsection previously.
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Closes current section and goes back to parent.
-//          
 // -----------------------------------------------------------------------------
 
 void HTML::endsection() {
@@ -438,12 +377,6 @@ void HTML::endsection() {
 // 
 // Prints a separator after the declaration of a C++ class.  Currently
 // does nothing in HTML mode.
-//
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void HTML::separator() {
@@ -453,12 +386,6 @@ void HTML::separator() {
 // void HTML::init(char *filename)
 //
 // Initializes the HTML module and opens up the documentation file.
-// 
-// Inputs : filename  = Name of documentation file (without a suffix)
-//
-// Output : None
-//
-// Side Effects : Opens documentation file.
 // -----------------------------------------------------------------------------
 
 void HTML::init(char *filename) {
@@ -480,12 +407,6 @@ void HTML::init(char *filename) {
 //
 // Dumps the table of contents and forms the final documentation file. Closes
 // the documentation file upon completion.
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Closes documentation file.
 // -----------------------------------------------------------------------------
 
 void HTML::close(void) {
@@ -510,14 +431,6 @@ void HTML::close(void) {
 // 
 // Process parameters given with the %style directive.  Does nothing if an
 // unrecognized parameter is given.
-//
-// Inputs :
-//          name   = name of style parameter
-//          value  = ASCII string with value of parameter.
-//
-// Output : None
-//
-// Side Effects : Updates internal style parameters.
 // -----------------------------------------------------------------------------
 
 void HTML::style(char *name, char *value) {
@@ -561,14 +474,6 @@ void HTML::style(char *name, char *value) {
 // void HTML::parse_args(int argc, char **argv)
 // 
 // Parse command line options given on the SWIG command line.
-//
-// Inputs : 
-//          argc     = argument count
-//          argv     = argument array
-//
-// Output : None
-//
-// Side Effects : Marks arguments as being parsed.
 // -----------------------------------------------------------------------------
 
 static char *html_usage = "\
