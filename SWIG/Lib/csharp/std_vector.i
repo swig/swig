@@ -207,16 +207,12 @@
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
       std::vector<CTYPE > *GetRange(int index, int count) {
-printf("GetRange C code: %d %d %d\n", index, count, self->size());
         if (index < 0)
           throw std::out_of_range("index");
-printf("GetRange index ok: %d %d %d\n", index, count, self->size());
         if (count < 0)
           throw std::out_of_range("count");
-printf("GetRange count ok: %d %d %d\n", index, count, self->size());
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
           throw "invalid range";
-printf("GetRange everything ok: %d %d %d\n", index, count, self->size());
         return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
       void Insert(int index, const CTYPE& value) {
@@ -239,16 +235,12 @@ printf("GetRange everything ok: %d %d %d\n", index, count, self->size());
           throw std::out_of_range("index");
       }
       void RemoveRange(int index, int count) {
-printf("RemoveRange C code: %d %d %d\n", index, count, self->size());
         if (index < 0)
           throw std::out_of_range("index");
-printf("RemoveRange index ok: %d %d %d\n", index, count, self->size());
         if (count < 0)
           throw std::out_of_range("count");
-printf("RemoveRange count ok: %d %d %d\n", index, count, self->size());
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
           throw "invalid range";
-printf("RemoveRange everything ok: %d %d %d\n", index, count, self->size());
         self->erase(self->begin()+index, self->begin()+index+count);
       }
       static std::vector<CTYPE > *Repeat(const CTYPE& value, int count) {
@@ -260,27 +252,20 @@ printf("RemoveRange everything ok: %d %d %d\n", index, count, self->size());
         std::reverse(self->begin(), self->end());
       }
       void Reverse(int index, int count) {
-printf("Reverse C code: %d %d %d\n", index, count, self->size());
         if (index < 0)
           throw std::out_of_range("index");
-printf("Reverse index ok: %d %d %d\n", index, count, self->size());
         if (count < 0)
           throw std::out_of_range("count");
-printf("Reverse count ok: %d %d %d\n", index, count, self->size());
         if (index >= (int)self->size()+1 || index+count > (int)self->size())
           throw "invalid range";
-printf("Reverse everything ok: %d %d %d\n", index, count, self->size());
         std::reverse(self->begin()+index, self->begin()+index+count);
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
       void SetRange(int index, const std::vector<CTYPE >& values) {
-printf("SetRange C code: %d %d %d\n", index, values.size(), self->size());
         if (index < 0)
           throw std::out_of_range("index");
-printf("SetRange index ok: %d %d %d\n", index, values.size(), self->size());
         if (index+values.size() > self->size())
           throw std::out_of_range("index");
-printf("SetRange values.size() ok: %d %d %d\n", index, values.size(), self->size());
         std::copy(values.begin(), values.end(), self->begin()+index);
       }
     }
