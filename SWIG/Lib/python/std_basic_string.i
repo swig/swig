@@ -217,18 +217,11 @@ namespace std {
     replace(iterator __i1, iterator __i2, const_iterator __k1, const_iterator __k2);
     #endif
 
+    std::basic_string<_CharT>& operator +=(const basic_string& v);
 
-    %newobject __iadd__;
     %newobject __add__;   
     %newobject __radd__;
     %extend {
-    /*
-      swig workaround. if used as expected, __iadd__ deletes 'self'.
-    */
-    std::basic_string<_CharT>* __iadd__(const basic_string& v) {
-      *self += v;
-      return new std::basic_string<_CharT>(*self);
-    }
 
     std::basic_string<_CharT>* __add__(const basic_string& v) {
       std::basic_string<_CharT>* res = new std::basic_string<_CharT>(*self);
