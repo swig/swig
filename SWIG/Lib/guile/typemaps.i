@@ -186,6 +186,33 @@
  SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
  SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
 
+/* Typemaps for constant references */
+
+/* Const primitive references.  Passed by value */
+
+%define REF_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
+  %typemap(in, doc="($name <" #SCM_NAME ">)") const C_NAME & (C_NAME temp) {
+      temp = SCM_TO_C($input);
+      $1 = &temp;
+  }
+  %typemap(out, doc="<" #SCM_NAME ">")  C_NAME & {
+    $result = C_TO_SCM(*$1);
+  }
+%enddef
+
+
+ REF_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
+ REF_MAP(char, gh_scm2char, gh_char2scm, char);
+ REF_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
+ REF_MAP(int, gh_scm2int, gh_int2scm, integer);
+ REF_MAP(short, gh_scm2int, gh_int2scm, integer);
+ REF_MAP(long, gh_scm2long, gh_long2scm, integer);
+ REF_MAP(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
+ REF_MAP(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
+ REF_MAP(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
+ REF_MAP(float, gh_scm2double, gh_double2scm, real);
+ REF_MAP(double, gh_scm2double, gh_double2scm, real);
+
 /* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
