@@ -125,10 +125,10 @@ extern "C" {
 extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *, int flags);
 extern void SWIG_MakePtr(SV *, void *, swig_type_info *, int flags);
 #else
-extern int _SWIG_ConvertPtr(CPerlObj *, SV *, void **, swig_type_info *,int flags);
-extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *, int flags);
-#define SWIG_ConvertPtr(a,b,c,d) _SWIG_ConvertPtr(pPerl,a,b,c,d)
-#define SWIG_MakePtr(a,b,c,d) _SWIG_MakePtr(pPerl,a,b,c,d)
+extern int SWIG_ConvertPtr_(CPerlObj *, SV *, void **, swig_type_info *,int flags);
+extern void SWIG_MakePtr_(CPerlObj *, SV *, void *, swig_type_info *, int flags);
+#define SWIG_ConvertPtr(a,b,c,d) SWIG_ConvertPtr_(pPerl,a,b,c,d)
+#define SWIG_MakePtr(a,b,c,d) SWIG_MakePtr_(pPerl,a,b,c,d)
 #endif
 
 #else
@@ -139,9 +139,9 @@ extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *, int flags)
 SWIGRUNTIME(int) 
 SWIG_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags)
 #else
-#define SWIG_ConvertPtr(a,b,c,d) _SWIG_ConvertPtr(pPerl,a,b,c,d)
+#define SWIG_ConvertPtr(a,b,c,d) SWIG_ConvertPtr_(pPerl,a,b,c,d)
 SWIGRUNTIME(int)
-_SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int flags)
+SWIG_ConvertPtr_(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int flags)
 #endif
 {
   char *_c;
@@ -208,9 +208,9 @@ _SWIG_ConvertPtr(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
 SWIGRUNTIME(void) 
 SWIG_MakePtr(SV *sv, void *ptr, swig_type_info *t,int flags)
 #else
-#define SWIG_MakePtr(a,b,c,d) _SWIG_MakePtr(pPerl,a,b,c,d)
+#define SWIG_MakePtr(a,b,c,d) SWIG_MakePtr_(pPerl,a,b,c,d)
 SWIGRUNTIME(void)
-_SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
+SWIG_MakePtr_(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t, int flags)
 #endif
 {
   sv_setref_pv(sv, (char *) t->name, ptr);
