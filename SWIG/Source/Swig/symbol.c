@@ -178,12 +178,13 @@ void
 Swig_symbol_dump_symtable() {
   Printf(stdout, "DUMPING SYMTABLE start =======================================\n");
   {
-  Hash* cst = Getattr(current_symtab, "csymtab");
-  Swig_print_tree(cst);
-  Printf(stdout, "DUMPING SYMTABLE middle =======================================\n");
-  Swig_print_tree(Getattr(cst, "NumSpace"));
+    Hash* cst = Getattr(current_symtab, "csymtab");
+    Swig_print_tree(cst);
+    /*
+    Swig_print_tree(Getattr(cst, "NumSpace"));
+    */
   }
-  Printf(stdout, "DUMPING SYMTABLE end =======================================\n");
+  Printf(stdout, "DUMPING SYMTABLE end   =======================================\n");
 }
 #endif
 
@@ -675,20 +676,32 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     if (Cmp(nstorage,"typedef") == 0) {
       return c;
     }
+
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
-    cn = c;
-    pn = 0;
-    while (cn) {
-      decl = Getattr(cn,"decl");
-      if (!(u1 || u2)) {
-	if (Cmp(ndecl,decl) == 0) {
-	  /* Declarator conflict */
-	  return cn;
-	}
+    {
+      int n_template = (Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0);
+      int n_plain_cdecl = (Strcmp(nodeType(n),"cdecl") == 0);
+      cn = c;
+      pn = 0;
+      while (cn) {
+        decl = Getattr(cn,"decl");
+        if (!(u1 || u2)) {
+          if (Cmp(ndecl,decl) == 0) {
+            /* Declarator conflict */
+            /* Now check we don't have a non-templated function overloaded by a templated function with same params,
+             * eg void foo(); template<typename> void foo(); */
+            int cn_template = (Strcmp(nodeType(cn),"template") == 0) && (Strcmp(Getattr(cn,"templatetype"),"cdecl") == 0);
+            int cn_plain_cdecl = (Strcmp(nodeType(cn),"cdecl") == 0);
+            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl))) {
+              /* found a conflict */
+              return cn;
+            }
+          }
+        }
+        cl = cn;
+        cn = Getattr(cn,"sym:nextSibling");
+        pn++;
       }
-      cl = cn;
-      cn = Getattr(cn,"sym:nextSibling");
-      pn++;
     }
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n,"sym:symtab",current_symtab);

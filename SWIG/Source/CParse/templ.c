@@ -281,7 +281,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   {
     Parm *tp = Getattr(n,"templateparms");
     Parm *p  = tparms;
-    /*    Printf(stdout,"%s\n", ParmList_str(tp)); */
+    /*    Printf(stdout,"%s\n", ParmList_str_defaultargs(tp)); */
 
     if (tp) {
       while (p && tp) {
@@ -381,13 +381,13 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 }
 
 /* -----------------------------------------------------------------------------
- * cparse_template_locate()
+ * template_locate()
  *
  * Search for a template that matches name with given parameters.
  * ----------------------------------------------------------------------------- */
 
-Node *
-Swig_cparse_template_locate(String *name, Parm *tparms) {
+static Node *
+template_locate(String *name, Parm *tparms) {
   Node   *n;
   String *tname, *rname = 0;
   Node   *templ;
@@ -543,7 +543,7 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
   Delete(rname);
   Delete(mpartials);
   if ((template_debug) && (n)) {
-    Printf(stdout,"Node: %x\n", n);
+    Printf(stdout,"Node: %p\n", n);
       Swig_print_node(n);
   }
   Delete(parms);
@@ -551,4 +551,58 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
 }
 
 
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_template_locate()
+ *
+ * Search for a template that matches name with given parameters.
+ * For templated classes finds the specialized template should there be one.
+ * For templated functions finds the unspecialized template even if a specialized
+ * template exists.
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Swig_cparse_template_locate(String *name, Parm *tparms) {
+  Node *n = 0;
+  n = template_locate(name, tparms); /* this function does what we want for templated classes */
+
+  if (n) {
+    int isclass = 0;
+    assert(Strcmp(nodeType(n),"template") == 0);
+    isclass = (Strcmp(Getattr(n,"templatetype"),"class") == 0);
+    if (!isclass) {
+      /* If not a templated class we must have a templated function.
+         The template found is not necessarily the one we want when dealing with templated
+         functions. We don't want any specialized templated functions as they won't have
+         the default parameters. Lets look for the unspecialized template. Also make sure
+         the number of template parameters is correct as it is possible to overload a
+         templated function with different numbers of template parameters. */
+
+      if (template_debug) {
+        Printf(stdout,"    Not a templated class, seeking most appropriate templated function\n");
+      }
+
+      n = Swig_symbol_clookup_local(name,0);
+      while (n) {
+        Parm *tparmsfound = Getattr(n,"templateparms");
+        if (ParmList_len(tparms) == ParmList_len(tparmsfound)) {
+          /* successful match */
+          break;
+        }
+        /* repeat until we find a match with correct number of templated parameters */
+        n = Getattr(n,"sym:nextSibling");
+      }
+ 
+      if (!n) {
+        Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
+      }
+
+      if ((template_debug) && (n)) {
+        Printf(stdout,"Templated function found: %p\n", n);
+          Swig_print_node(n);
+      }
+    }
+  }
+
+  return n;
+}
 
