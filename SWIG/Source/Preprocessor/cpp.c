@@ -590,8 +590,22 @@ expand_macro(String_or_char *name, List *args)
 	Clear(tempa);
 	Printf(temp,"\001%s", aname);
 	Printf(tempa,"\"%s\"",arg);
-	Replace(ns, temp, tempa, DOH_REPLACE_ANY);
+	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
       }
+      if (strstr(Char(ns),"\002")) {
+	/* Look for concatenation tokens */
+	Clear(temp);
+	Clear(tempa);
+	Printf(temp,"\002%s",aname);
+	Append(tempa,"\002\003");
+	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
+	Clear(temp);
+	Clear(tempa);
+	Printf(temp,"%s\002",aname);
+	Append(tempa,"\003\002");
+	Replace(ns,temp,tempa, DOH_REPLACE_ID_BEGIN);
+      }
+
       /* Non-standard macro expansion.   The value `x` is replaced by a quoted
 	 version of the argument except that if the argument is already quoted
 	 nothing happens */
@@ -633,8 +647,8 @@ expand_macro(String_or_char *name, List *args)
 	}
       }
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
-      Replace(ns, aname, reparg, DOH_REPLACE_ID);
-      /*      Replace(ns, "\003", arg, DOH_REPLACE_ANY);*/
+      Replace(ns, aname, reparg, DOH_REPLACE_ID);   /* Replace expanded args */
+      Replace(ns, "\003", arg, DOH_REPLACE_ANY);    /* Replace unexpanded arg */
       Delete(reparg);
     }
   }
