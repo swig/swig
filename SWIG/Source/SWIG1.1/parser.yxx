@@ -389,8 +389,44 @@ static void dump_nested(char *parent) {
     // Add the appropriate declaration to the C++ processor
     cplus_variable(n->name,(char *) 0, n->type);
 
-    // Dump the code to the scanner
+    // Make all SWIG created typedef structs/unions/classes unnamed else 
+    // redefinition errors occur - nasty hack alert.
+    const int NUM_TYPES = 3;
+    char* types_array[NUM_TYPES] = {"struct", "union", "class"};
+    for (int i=0; i<NUM_TYPES; i++) {
+      char* code_ptr = Char(n->code);
+      while (code_ptr) {
+        // Replace struct name (as in 'struct name {' ) with whitespace
+        // name will be between struct and {
+        code_ptr = strstr(code_ptr, types_array[i]);
+        if (code_ptr) {
+          code_ptr += strlen(types_array[i]);
+          char* open_bracket_pos = strstr(code_ptr, "{");
+          if (open_bracket_pos) { 
+            // Make sure we don't have something like struct A a;
+            char* semi_colon_pos = strstr(code_ptr, ";");
+            if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
+              while (code_ptr < open_bracket_pos)
+                *code_ptr++ = ' ';
+          }
+        }
+      }
+    }
 
+    // Remove SWIG directive %constant which may be left in the SWIG created typedefs
+    char* code_ptr = Char(n->code);
+    while (code_ptr) {
+      code_ptr = strstr(code_ptr, "\%constant");
+      if (code_ptr) {
+        char* directive_end_pos = strstr(code_ptr, ";");
+        if (directive_end_pos) { 
+            while (code_ptr <= directive_end_pos)
+              *code_ptr++ = ' ';
+        }
+      }
+    }
+
+    // Dump the code to the scanner
     Printf(f_header,"\n%s\n", Char(n->code));
     start_inline(Char(n->code),n->line);
 

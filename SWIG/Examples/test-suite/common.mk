@@ -63,7 +63,8 @@ C_TEST_CASES += \
 	const_const \
 	char_constant \
 	name \
-	preproc_1
+	preproc_1 \
+	nested
 
 MULTI_CPP_TEST_CASES += \
 	import 
