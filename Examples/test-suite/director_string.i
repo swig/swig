@@ -28,6 +28,12 @@ struct A
   virtual const std::string& get(int n) const
   { return m_strings[n]; }
 
+  virtual const std::string& call_get_first() const
+  { return get_first(); }
+
+  virtual const std::string& call_get(int n) const
+  { return get(n); }
+
   std::vector<std::string> m_strings;
  };
  
