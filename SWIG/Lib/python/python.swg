@@ -54,6 +54,21 @@ typedef struct _swig_type_info {
   struct _swig_type_info  *prev;
 } _swig_type_info;
 
+/* Constant information structure */
+typedef struct _swig_const_info {
+    int type;
+    char *name;
+    long lvalue;
+    double dvalue;
+    void   *pvalue;
+    _swig_type_info **ptype;
+} _swig_const_info;
+
+#define SWIG_PY_INT     1
+#define SWIG_PY_FLOAT   2
+#define SWIG_PY_STRING  3
+#define SWIG_PY_POINTER 4
+
 #ifdef SWIG_NOINCLUDE
 
 SWIGEXPORT(PyObject *)        SWIG_newvarlink();
@@ -63,6 +78,7 @@ SWIGEXPORT(_swig_type_info *) SWIG_TypeCheck(char *, _swig_type_info *);
 SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *, int);
 SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, _swig_type_info *);
 SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, _swig_type_info *);
+SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, _swig_const_info constants[]);
 
 /* External declarations when using runtime libraries */
 
@@ -360,6 +376,36 @@ SWIG_NewPointerObj(void *ptr, _swig_type_info *type) {
   robj = PyString_FromString(result);
 #endif
   return robj;
+}
+
+/* Install Constants */
+SWIGSTATICRUNTIME(void)
+SWIG_InstallConstants(PyObject *d, _swig_const_info constants[]) {
+  int i;
+  PyObject *obj;
+  for (i = 0; constants[i].type; i++) {
+    switch(constants[i].type) {
+    case SWIG_PY_INT:
+      obj = PyInt_FromLong(constants[i].lvalue);
+      break;
+    case SWIG_PY_FLOAT:
+      obj = PyFloat_FromDouble(constants[i].dvalue);
+      break;
+    case SWIG_PY_STRING:
+      obj = PyString_FromString((char *) constants[i].pvalue);
+      break;
+    case SWIG_PY_POINTER:
+      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype);
+      break;
+    default:
+      obj = 0;
+      break;
+    }
+    if (obj) {
+      PyDict_SetItemString(d,constants[i].name,obj);
+      Py_DECREF(obj);
+    }
+  }
 }
 
 #endif
