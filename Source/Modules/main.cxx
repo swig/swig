@@ -56,6 +56,7 @@ static char *usage = (char*)"\
 \nGeneral Options\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
+     -dirprot        - Turn on wrapping of protected members for director classes\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -E              - Preprocess only, does not generate wrapper code\n\
      -fcompact       - Compile in compact mode\n\
@@ -72,7 +73,6 @@ static char *usage = (char*)"\
      -module <name>  - Set module name to <name>\n\
      -nocontract     - Turn off contract checking \n\
      -nodefault      - Do not generate constructors/destructors\n\
-     -dirprot        - Wrap director protected members\n\
      -nodirprot      - Do not wrap director protected members\n\
      -noexcept       - Do not wrap exception specifiers\n\
      -noextern       - Do not generate extern declarations\n\
