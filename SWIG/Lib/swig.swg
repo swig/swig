@@ -71,6 +71,9 @@
 #define %exception %feature("except")
 #define %newobject %feature("new","1")
 
+/* Warnings */
+#define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
+
 /* Default handling of certain overloaded operators */
 
 #ifdef __cplusplus
