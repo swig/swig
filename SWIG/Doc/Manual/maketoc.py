@@ -18,7 +18,7 @@ print >>f, """
 
 f.close()
 
-num = 0
+num = 1
 
 for c in chs:
     c = c.strip()
