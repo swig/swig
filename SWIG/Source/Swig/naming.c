@@ -351,7 +351,7 @@ void
 Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) {
   DOH *n;
 
-  /*  Printf(stdout,"name:  '%s', '%s'\n", name, decl); */
+  /* Printf(stdout,"name:  '%s', '%s'\n", name, decl);*/
   n = Getattr(namehash,name);
   if (!n) {
     n = NewHash();

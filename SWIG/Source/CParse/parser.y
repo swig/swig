@@ -63,6 +63,7 @@ static Node    *current_class = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
+static char    *last_cpptype = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -1801,10 +1802,11 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 			  if (ty) {
 			    Setattr(tp,"type",ty);
 			  }
+			  Delattr(tp,"value");
 			}
 			p = nextSibling(p);
 			tp = nextSibling(tp);
-			if (!p) {
+			if (!p && tp) {
 			  p = tp;
 			  def_supplied = 1;
 			}
@@ -3875,8 +3877,14 @@ base_list      : base_specifier {
                ;
 
 base_specifier : opt_virtual idcolon {
-                  Swig_error(cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
-		  $$ = (char *) 0;
+                 if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
+                     Swig_error(cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
+   		     $$ = (char *) 0;
+                 } else {
+		   $$ = $2;
+		   Setfile($$,cparse_file);
+		   Setline($$,cparse_line);
+		 }
                }
 	       | opt_virtual access_specifier opt_virtual idcolon {
 		 $$ = 0;
@@ -3896,10 +3904,22 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                ;
 
 
-cpptype        : CLASS { $$ = (char*)"class"; }
-               | STRUCT { $$ = (char*)"struct"; }
-               | UNION {$$ = (char*)"union"; }
-               | TYPENAME { $$ = (char *)"typename"; }
+cpptype        : CLASS { 
+                   $$ = (char*)"class"; 
+		   last_cpptype = $$;
+               }
+               | STRUCT { 
+                   $$ = (char*)"struct"; 
+		   last_cpptype = $$;
+               }
+               | UNION {
+                   $$ = (char*)"union"; 
+		   last_cpptype = $$;
+               }
+               | TYPENAME { 
+                   $$ = (char *)"typename"; 
+		   last_cpptype = $$;
+               }
                ;
 
 opt_virtual    : VIRTUAL
@@ -3934,7 +3954,7 @@ mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer
                ;
 
-mem_initializer : ID LPAREN {
+mem_initializer : idcolon LPAREN {
 	            skip_balanced('(',')');
                     Clear(scanner_ccode);
             	}
