@@ -933,11 +933,11 @@ class OCAML : public Language {
 	lcase(vname);
 	lcase(Char(ml_iname));
 	
-	String *name_no_get = NewString(Char(vname));
-	
+	String *vname_final = uniqueify(vname);
+
 	// Polymorphic variant support
 	if( const_enum )
-	    f_pvariant_value = Copy(name_no_get);
+	    f_pvariant_value = Copy(vname_final);
 	
 	if( classmode ) {
 	    String *s = NewString("");
@@ -947,8 +947,6 @@ class OCAML : public Language {
 		Printf(s,vname);
 	    vname_class = s;
 	}
-	
-	String *vname_final = uniqueify(vname);
 	
 	// Write out signature for module file
 	if(Getattr(n,"feature:immutable") || const_enum) {
@@ -960,7 +958,7 @@ class OCAML : public Language {
 			vname_final, mangled_tcaml, var_name );
 		
 		Printf( f_module, "  let %s = _%s ()\n", 
-			name_no_get,
+			vname_final,
 			vname_final );
 	    }
 	} else {
@@ -1018,7 +1016,6 @@ class OCAML : public Language {
 	Wrapper_print (f, f_wrappers);
 	
 	Delete(vname_final);
-	Delete(name_no_get);
 	Delete(argnum);
 	Delete(arg);
 	Delete(tm2);
