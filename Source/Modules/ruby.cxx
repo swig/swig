@@ -81,13 +81,13 @@ static String *Swig_class_name(Node *n) {
 /* Swig_director_declaration()
  *
  * Generate the full director class declaration, complete with base classes.
- * e.g. "class __DIRECTOR__myclass : public myclass, public Swig::Director {"
+ * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
  *
  */
 
 static String *Swig_director_declaration(Node *n) {
   String* classname = Swig_class_name(n);
-  String *directorname = NewStringf("__DIRECTOR__%s", classname);
+  String *directorname = NewStringf("SwigDirector_%s", classname);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
   Printf(declaration, " : public %s, public Swig::Director {\n", base);
@@ -2076,7 +2076,7 @@ public:
     String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
     String *classname = NewString("");
-    Printf(classname, "__DIRECTOR__%s", supername);
+    Printf(classname, "SwigDirector_%s", supername);
 
     /* insert self and disown parameters */
     Parm *p, *ip;
@@ -2126,10 +2126,10 @@ public:
     Wrapper *w;
     classname = Swig_class_name(n);
     w = NewWrapper();
-    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(VALUE self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
+    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(VALUE self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
     Wrapper_print(w, f_directors);
     DelWrapper(w);
-    Printf(f_directors_h, "    __DIRECTOR__%s(VALUE self, bool disown = true);\n", classname);
+    Printf(f_directors_h, "    SwigDirector_%s(VALUE self, bool disown = true);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }
@@ -2276,7 +2276,7 @@ public:
     /* virtual method definition */
     l = Getattr(n, "parms");
     String *target;
-    String *pclassname = NewStringf("__DIRECTOR__%s", classname);
+    String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     target = method_decl(decl, qualified_name, l, 0, 0);
     String *rtype = SwigType_str(type, 0);
@@ -2340,7 +2340,7 @@ public:
          * Special handling for pointers to other C++ director classes.
 	 * Ideally this would be left to a typemap, but there is currently no
 	 * way to selectively apply the dynamic_cast<> to classes that have
-	 * directors.  In other words, the type "__DIRECTOR__$1_lname" only exists
+	 * directors.  In other words, the type "SwigDirector_$1_lname" only exists
 	 * for classes with directors.  We avoid the problem here by checking
 	 * module.wrap::directormap, but it's not clear how to get a typemap to
 	 * do something similar.  Perhaps a new default typemap (in addition
