@@ -526,27 +526,31 @@ ocaml_static_cpp: $(SRCS)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -g -c -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX)' -g -c -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
-		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)"
+	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
+		$(INTERFACE:%.i=%.cmo) \
+		$(PROGFILE:%.ml=%.cmo) \
+		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 
 
 ocaml_static_multi_cpp: $(SRCS)
 	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -g -c -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX)' -g -c -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
-		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)"
+	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
+		$(INTERFACE:%.i=%.cmo) \
+		$(PROGFILE:%.ml=%.cmo) \
+		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 
 
 ocaml_clean:
 	rm -f *.@OBJEXT@ *@SO@ *_wrap* *~ .~* core *.cmo *.cmi $(MLFILE) $(MLFILE)i
