@@ -1194,7 +1194,9 @@ Language::staticmembervariableHandler(Node *n)
 {
   Swig_require("staticmembervariableHandler",n,"*name","*sym:name","*type", "?value", NIL);
   String *value = Getattr(n,"value");
-  if (!value) {
+  SwigType *type = SwigType_typedef_resolve_all(Getattr(n,"type"));
+
+  if (!value || !(SwigType_isconst(type))) {
     String *name    = Getattr(n,"name");
     String *symname = Getattr(n,"sym:name");
     String *cname, *mrename;
@@ -1212,6 +1214,19 @@ Language::staticmembervariableHandler(Node *n)
     Delete(mrename);
     Delete(cname);
   } else {
+
+    /* This is a C++ static member declaration with an initializer and it's const.
+       Certain C++ compilers optimize this out so that there is no linkage to a
+       memory address.  Example:
+
+          class Foo {
+          public:
+              static const int x = 3;
+          };
+
+	  Some discussion of this in section 9.4 of the C++ draft standard. */
+
+
     String *name    = Getattr(n,"name");
     String *cname   = NewStringf("%s::%s", ClassName,name);
     String* value   = SwigType_namestr(cname);
@@ -1227,6 +1242,7 @@ Language::staticmembervariableHandler(Node *n)
     Delete(cname);
   }  
   
+  Delete(type);
   Swig_restore(n);
   return SWIG_OK;
 }
