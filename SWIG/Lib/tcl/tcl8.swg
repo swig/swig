@@ -307,8 +307,10 @@
 #ifdef __cplusplus
 %rename("+")         *::operator+;
 %rename("u+")        *::operator+();     // Unary +
+%rename("u+")        *::operator+() const;     // Unary +
 %rename("-")         *::operator-;
 %rename("u-")        *::operator-();     // Unary -
+%rename("u-")        *::operator-() const;     // Unary -
 %rename("*")         *::operator*;
 %rename("/")         *::operator/;
 %rename("<<")        *::operator<<;

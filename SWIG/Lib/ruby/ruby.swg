@@ -261,8 +261,10 @@ typedef unsigned long VALUE;
 
 %rename(__add__)      *::operator+;
 %rename(__pos__)      *::operator+();
+%rename(__pos__)      *::operator+() const;
 %rename(__sub__)      *::operator-;
 %rename(__neg__)      *::operator-();
+%rename(__neg__)      *::operator-() const;
 %rename(__mul__)      *::operator*;
 %rename(__div__)      *::operator/;
 %rename(__mod__)      *::operator%;
