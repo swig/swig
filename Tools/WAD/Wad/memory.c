@@ -66,6 +66,7 @@ void *wad_page_alloc(int npages) {
   void *m;
   m = mmap(NULL, npages*pagesize, PROT_READ | PROT_WRITE, MAP_PRIVATE, devzero, 0);
   if (((long) m) == -1) return 0;
+  /*  printf("page_alloc: %x - %x\n", m, ((char *) m) + npages*pagesize); */
   return m;
 }
 
@@ -113,7 +114,7 @@ void *wad_malloc(int nbytes) {
     wm = (WadMemory *) wad_page_alloc(npalloc);
     if (!wm) return 0;
     wm->npages = npalloc;
-    wm->last = sizeof(WadMemory);
+    wm->last = sizeof(WadMemory) + 8;
     wm->next = current;
     current = wm;
   }
