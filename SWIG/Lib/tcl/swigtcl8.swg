@@ -211,12 +211,11 @@ type_error:
 /* Take a pointer and convert it to a string */
 SWIGRUNTIME(void) 
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
-  *(c++) = '_';
   if (ptr) {
+    *(c++) = '_';
     c = SWIG_PackData(c,&ptr,sizeof(void *));
     strcpy(c,ty->name);
   } else {
-    c--;
     strcpy(c,(char *)"NULL");
   }
 }
