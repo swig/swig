@@ -7,7 +7,6 @@
 #include <math.h>
 %}
 
-%include guile/typemaps.i
 %include guilemain.i
 %include matrix.i
 %include vector.i

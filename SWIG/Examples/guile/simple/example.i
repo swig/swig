@@ -4,8 +4,6 @@
 /* Put headers and other declarations here */
 %}
 
-%include guile/typemaps.i
-
 extern double My_variable;
 extern int    fact(int);
 extern int    mod(int n, int m);

@@ -1,7 +1,6 @@
 //
 // FILE : vector.i
 
-%init Vector_Init
 %{
 #include "vector.h"
 %}
