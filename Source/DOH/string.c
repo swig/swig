@@ -117,7 +117,7 @@ String_cmp(DOH *so1, DOH *so2)
   register char *c1 = s1->str;
   register char *c2 = s2->str;
 #if 1
-  /* this is better, but strncmp could be not present in all the systems? */
+  /* this should be faster */
   if (len != s2->len) {
     return (len < s2->len) ? -1 : 1;
   } else {  
