@@ -43,7 +43,7 @@ namespace std {
 
   //multiset
 
-  template <class _Key, class _Compare = less<_Key>,
+  template <class _Key, class _Compare = std::less<_Key>,
 	    class _Alloc = allocator<_Key> >
   class multiset {
   public:

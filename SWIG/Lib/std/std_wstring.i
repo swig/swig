@@ -9,8 +9,8 @@
 
 namespace std
 {
-  %std_comp_methods(basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t> >);
-  typedef basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t> > wstring;
+  %std_comp_methods(basic_string<wchar_t>);
+  typedef basic_string<wchar_t> wstring;
 }
 
-%template(wstring) std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t> >;
+%template(wstring) std::basic_string<wchar_t>;

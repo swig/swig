@@ -49,7 +49,7 @@
 
 namespace std {
 
-  template<class _Tp, class _Alloc = std::allocator<_Tp> > 
+  template<class _Tp, class _Alloc = allocator<_Tp> > 
   class deque {
   public:
     typedef size_t size_type;

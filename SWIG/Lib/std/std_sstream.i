@@ -33,15 +33,15 @@ namespace std
       basic_stringbuf(ios_base::openmode __mode = ios_base::in | ios_base::out);
 
       explicit
-      basic_stringbuf(const basic_string<char_type, _Traits, _Alloc>& __str,
+      basic_stringbuf(const basic_string<_CharT, _Traits, _Alloc>& __str,
 		      ios_base::openmode __mode = ios_base::in | ios_base::out);
 
       // Get and set:
-      basic_string<char_type, _Traits, _Alloc>
+      basic_string<_CharT, _Traits, _Alloc>
       str() const;
 
       void
-      str(const basic_string<char_type, _Traits, _Alloc>& __s);
+      str(const basic_string<_CharT, _Traits, _Alloc>& __s);
 
     };
 
@@ -68,7 +68,7 @@ namespace std
       basic_istringstream(ios_base::openmode __mode = ios_base::in);
 
       explicit
-      basic_istringstream(const basic_string<char_type, _Traits, _Alloc>& __str,
+      basic_istringstream(const basic_string<_CharT, _Traits, _Alloc>& __str,
 			  ios_base::openmode __mode = ios_base::in);
 
       ~basic_istringstream();
@@ -77,11 +77,11 @@ namespace std
       basic_stringbuf<_CharT, _Traits, _Alloc>*
       rdbuf() const;
 
-      basic_string<char_type, _Traits, _Alloc>
+      basic_string<_CharT, _Traits, _Alloc>
       str() const;
 
       void
-      str(const basic_string<char_type, _Traits, _Alloc>& __s);
+      str(const basic_string<_CharT, _Traits, _Alloc>& __s);
     };
 
 
@@ -107,7 +107,7 @@ namespace std
       basic_ostringstream(ios_base::openmode __mode = ios_base::out);
 
       explicit
-      basic_ostringstream(const basic_string<char_type, _Traits, _Alloc>& __str,
+      basic_ostringstream(const basic_string<_CharT, _Traits, _Alloc>& __str,
 			  ios_base::openmode __mode = ios_base::out);
 
       ~basic_ostringstream();
@@ -116,12 +116,12 @@ namespace std
       basic_stringbuf<_CharT, _Traits, _Alloc>*
       rdbuf() const;
 
-      basic_string<char_type, _Traits, _Alloc>
+      basic_string<_CharT, _Traits, _Alloc>
       str() const;
 
 #if 0
       void
-      str(const basic_string<char_type, _Traits, _Alloc>& __s);
+      str(const basic_string<_CharT, _Traits, _Alloc>& __s);
 #endif
     };
 
@@ -147,7 +147,7 @@ namespace std
       basic_stringstream(ios_base::openmode __m = ios_base::out | ios_base::in);
 
       explicit
-      basic_stringstream(const basic_string<char_type, _Traits, _Alloc>& __str,
+      basic_stringstream(const basic_string<_CharT, _Traits, _Alloc>& __str,
 			 ios_base::openmode __m = ios_base::out | ios_base::in);
 
       ~basic_stringstream();
@@ -156,11 +156,11 @@ namespace std
       basic_stringbuf<_CharT, _Traits, _Alloc>*
       rdbuf() const;
 
-      basic_string<char_type, _Traits, _Alloc>
+      basic_string<_CharT, _Traits, _Alloc>
       str() const;
 
       void
-      str(const basic_string<char_type, _Traits, _Alloc>& __s);
+      str(const basic_string<_CharT, _Traits, _Alloc>& __s);
     };
 
 
@@ -168,12 +168,12 @@ namespace std
 
 
 namespace std {
-  %template(istringstream) basic_istringstream<char, char_traits<char>, allocator<char> >;
-  %template(ostringstream) basic_ostringstream<char, char_traits<char>, allocator<char> >;
-  %template(stringstream)  basic_stringstream<char, char_traits<char>, allocator<char> >;
+  %template(istringstream) basic_istringstream<char>;
+  %template(ostringstream) basic_ostringstream<char>;
+  %template(stringstream)  basic_stringstream<char>;
 
 
-  %template(wistringstream) basic_istringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >;
-  %template(wostringstream) basic_ostringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >;
-  %template(wstringstream)  basic_stringstream<wchar_t, char_traits<wchar_t>, allocator<wchar_t> >;
+  %template(wistringstream) basic_istringstream<wchar_t>;
+  %template(wostringstream) basic_ostringstream<wchar_t>;
+  %template(wstringstream)  basic_stringstream<wchar_t>;
 }

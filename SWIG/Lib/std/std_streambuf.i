@@ -5,7 +5,7 @@
 
 namespace std {
 
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   class basic_streambuf 
   {
   public:
@@ -16,8 +16,6 @@ namespace std {
     typedef typename traits_type::pos_type 		pos_type;
     typedef typename traits_type::off_type 		off_type;
 
-    typedef basic_streambuf<char_type, traits_type>  	__streambuf_type;
-      
   public:
     virtual 
     ~basic_streambuf();
@@ -30,7 +28,7 @@ namespace std {
     getloc() const; 
 
     // Buffer and positioning:
-    __streambuf_type* 
+    basic_streambuf<_CharT, _Traits>* 
     pubsetbuf(char_type* __s, streamsize __n);
 
     pos_type 
@@ -82,6 +80,6 @@ namespace std {
 }
 
 namespace std {
-  %template(streambuf) basic_streambuf<char, char_traits<char> >;
-  %template(wstreambuf) basic_streambuf<wchar_t, char_traits<wchar_t> >;
+  %template(streambuf) basic_streambuf<char>;
+  %template(wstreambuf) basic_streambuf<wchar_t>;
 }

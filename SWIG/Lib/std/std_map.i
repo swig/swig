@@ -81,7 +81,7 @@
 namespace std {
 
   template<class _Key, class _Tp, class _Compare = std::less<_Key >,
-	   class _Alloc = std::allocator<std::pair<const _Key, _Tp > > >
+	   class _Alloc = allocator<std::pair<const _Key, _Tp > > >
   class map {
   public:
     typedef size_t size_type;
