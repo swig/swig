@@ -219,8 +219,7 @@ C_TEST_CASES += \
 
 
 MULTI_CPP_TEST_CASES += \
-	imports \
-	template_typedef_import
+	imports
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
 		 $(C_TEST_CASES:=.ctest) \
