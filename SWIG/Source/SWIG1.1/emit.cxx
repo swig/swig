@@ -47,24 +47,26 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   while (p != 0) {
     lname  = Getlname(p);
     pt     = Gettype(p);
-    pname  = Getname(p);
-    pvalue = Getvalue(p);
-
-    tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f->code,tm,"\n",0);
+    if (SwigType_type(pt) != T_VOID) {
+      pname  = Getname(p);
+      pvalue = Getvalue(p);
+      
+      tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+      }
+      /* Check for ignore or default typemaps */
+      tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+      }
+      tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+	Setignore(p,1);
+      }
+      i++;
     }
-    /* Check for ignore or default typemaps */
-    tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f->code,tm,"\n",0);
-    }
-    tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f->code,tm,"\n",0);
-      Setignore(p,1);
-    }
-    i++;
     p = Getnext(p);
   }
   return(i);
