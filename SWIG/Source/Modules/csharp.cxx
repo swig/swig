@@ -281,6 +281,7 @@ class CSHARP : public Language {
       Printf(f_im, "{\n");
 
       // Add the intermediary class methods
+      Replaceall(imclass_class_code,"$module", module_class_name);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
 
@@ -498,7 +499,7 @@ class CSHARP : public Language {
 
     Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
 
-    Printv(f->def, " DllExport ", c_return_type, " ", wname, "(", NIL);
+    Printv(f->def, " DllExport ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args(t,l,f);
@@ -1079,7 +1080,7 @@ class CSHARP : public Language {
       Replaceall(imclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(upcasts_code,
-          "DllExport long CSharp_$imclazznameTo$imbaseclass",
+          "DllExport long SWIGSTDCALL CSharp_$imclazznameTo$imbaseclass",
           "(long objectRef) {\n",
           "    long baseptr = 0;\n"
           "    *($cbaseclass **)&baseptr = *($cclass **)&objectRef;\n"
