@@ -301,12 +301,15 @@ extern "C" {
 void   Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
+/* Utilities */
+
+extern int is_public(Node* n); 
+extern int is_private(Node* n); 
+extern int is_protected(Node* n); 
+extern int is_member_director(Node* parentnode, Node* member); 
+extern int is_member_director(Node* member); 
+
 #endif
-
-
-
-
-
 
 
 

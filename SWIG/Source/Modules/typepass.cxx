@@ -24,7 +24,6 @@
 char cvsroot_typepass_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#include "utils.h"
 
 struct normal_node {
     Symtab *symtab;

@@ -19,7 +19,7 @@
 char cvsroot_allocate_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#include "utils.h"
+
 static int virtual_elimination_mode = 0;   /* set to 0 on default */
 
 /* Set virtual_elimination_mode */
