@@ -66,7 +66,8 @@
   $1 = *argp;
 }
 
-%typemap(varin) SWIGTYPE($&1_ltype argp) {
+%typemap(varin) SWIGTYPE {
+  $&1_ltype argp;
   if (SWIG_Guile_GetPtr($input, (void **) &argp, $1_descriptor))
     scm_wrong_type_arg(FUNC_NAME,1,$input);
   $1 = *argp;

@@ -18,6 +18,9 @@
 %typemap(in)  float, double 
        "$1 = ($1_ltype) SvNV($input);\n";
 
+%typemap(in)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(in)  long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+
 %typemap(in) char *
        "if (!SvOK((SV*) $input)) $1 = 0;
         else $1 = ($1_ltype) SvPV($input, PL_na);";
@@ -60,6 +63,20 @@
 %typemap(out) char *
     "ST(argvi) = sv_newmortal();
      sv_setpv((SV*)ST(argvi++), (char *) $1);";
+
+%typemap(out) long long {
+    char temp[256];
+    sprintf(temp,"%lld", $1);
+    ST(argvi) = sv_newmortal();
+    sv_setpv((SV*)ST(argvi++), temp);
+}
+
+%typemap(out) unsigned long long {
+    char temp[256];
+    sprintf(temp,"%llu", $1);
+    ST(argvi) = sv_newmortal();
+    sv_setpv((SV*)ST(argvi++), temp);
+}
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & 
     "ST(argvi) = sv_newmortal();
@@ -125,6 +142,18 @@
 %typemap(varout) char 
     "sv_setpvn((SV *) $result, &$1, 1);";
 
+%typemap(varout) long long {
+  char temp[256];
+  sprintf(temp,"%lld",$1);
+  sv_setpv((SV *) $result, temp);
+}
+
+%typemap(varout) unsigned long long {
+  char temp[256];
+  sprintf(temp,"%llu",$1);
+  sv_setpv((SV *) $result, temp);
+}
+
 %typemap(varout) char *, char [ANY]
     "sv_setpv((SV *) $result, $1);";
 
@@ -147,6 +176,9 @@
 
 %typemap(consttab) char, char *
        { SWIG_STRING,  (char *) SWIG_prefix "$symname", 0, 0, (void *)"$value", 0}
+
+%typemap(consttab) long long, unsigned long long
+       { SWIG_STRING, (char *) SWIG_prefix "$symname", 0, 0, (void *) "$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
        { SWIG_POINTER, (char *) SWIG_prefix "$symname", 0, 0, (void *)$value, &$1_descriptor}

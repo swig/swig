@@ -143,7 +143,7 @@
         "$1 = (void *) SWIG_ConvertPtr($input, 0);";
 
 %typemap(varin) SWIGTYPE {
-   $&1_ltype ptr = SWIG_ConvertPtr($input,$&1_descriptor);
+   $&1_ltype ptr = ($&1_ltype) SWIG_ConvertPtr($input,$&1_descriptor);
    if (ptr) $1 = *ptr;
 }
 
