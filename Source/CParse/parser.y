@@ -3169,8 +3169,9 @@ template_parms  : rawparms {
 /* Namespace support */
 
 cpp_using_decl : USING idcolon SEMI {
+                  String *uname = Swig_symbol_type_qualify($2,0);
                   $$ = new_node("using");
-		  Setattr($$,"uname",$2);
+		  Setattr($$,"uname",uname);
 		  Setattr($$,"name", Swig_scopename_last($2));
 		  add_symbols($$);
              }
@@ -3559,24 +3560,24 @@ cpp_nested : storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; 
 	      }
 
 /* An unnamed nested structure definition */
-              | storage_class cpptype LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
+              | storage_class cpptype idcolon inherit LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($2,"class") == 0) {
 		    Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
 		    /* Generate some code for a new class */
-		  } else if ($5.id) {
+		  } else if ($7.id) {
 		    /* Generate some code for a new class */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
 		    Printv(n->code, "typedef ", $2, " " ,
-			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
-		    n->name = Swig_copy_string($5.id);
+			    Char(scanner_ccode), " $classname_", $7.id, ";\n",NIL);
+		    n->name = Swig_copy_string($7.id);
 		    n->line = cparse_start_line;
 		    n->type = NewString("");
 		    n->kind = $2;
-		    SwigType_push(n->type,$5.type);
+		    SwigType_push(n->type,$7.type);
 		    n->next = 0;
 		    add_nested(n);
 		  } else {
