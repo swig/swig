@@ -1,6 +1,96 @@
 Version 1.3.22 (in progress)
 ==================================
 
+06/27/2004: wsfulton
+            [Java] New feature for Java exceptions with format %javaexception(exceptionclasses).
+            This feature is a slight enhancement to %exception and the only difference is the 
+            addition of the exception classes which are generated into a throws clause.
+            The 'exceptionclasses' is a comma separated list of classes which will be
+            added to the associated proxy method's throws clause. The 'exceptionclasses'
+            are specified like the exception classes in the 'throws' attribute in the
+            typemaps. This feature should be used for correctly handling checked exceptions
+            thrown from JNI code. For example:
+
+              %javaexception("java.lang.Exception") throwException %{
+                ... convert a std::logic_error into a java.lang.Exception using JNI code ...
+              %}
+
+              #include <stdexcept>
+              void throwException() {
+                throw std::logic_error("Logic error!");
+              }
+
+            will generate a method with a throws clause in the module class:
+
+              public static void throwException() throws java.lang.Exception { ... }
+
+06/27/2004: wsfulton
+            [C#] New %csconstvalue(value) feature directive for use with constants and
+            enums. This works the same way as %javaconstvalue. For C#, this directive
+            is the only way that one can fix wrapping of C/C++ enums with proper C#
+            enums if the enum item's initialiser cannot compile as C# code. This is
+            because Java enums can use a call into C code to initialise the enum item,
+            whereas in C#, the enum value must be a compile time constant. That is,
+            using %csconst(0) cannot be used in C# to initialise the C# enum item via
+            a PINVOKE call.
+
+06/27/2004: wsfulton
+            [Java] New %javaconstvalue(value) feature directive for use with constants and
+            enums. Sometimes the use of %javaconst(1) will produce code that won't compile
+            under Java. If a compile time constant is required, %javaconst(0) is not an
+            option. The %javaconstvalue directive achieves this goal and the value specified
+            is generated as Java code to initialise the constant.  For example:
+
+              %javaconst(1);
+              %javaconstvalue(1000) BIG;
+              %javaconstvalue("new java.math.BigInteger(\"2000\")") LARGE;
+              %javaconstvalue(10) bar;
+              %{
+                const int bar = 10;
+              %}
+              %inline %{
+                #define BIG 1000LL
+                #define LARGE 2000ULL
+                enum Foo { BAR = ::bar };
+              %}
+
+            Generates:
+
+              public interface exampleConstants {
+                public final static long BIG = 1000;
+                public final static java.math.BigInteger LARGE = new java.math.BigInteger("2000");
+              }
+              public final class Foo {
+                public final static Foo BAR = new Foo("BAR", 10);
+                ...
+              }
+
+            Previously, none of BIG, LARGE or BAR would have produced compileable code
+            when using %javaconst(1).
+
+06/27/2004: wsfulton
+            %feature enhancements. Features can now take an unlimited number of attributes
+            in addition to the feature name and feature value. The attributes are optional 
+            and are much the same as the typemap attributes. For example, the following
+            specifies two optional attributes, attrib1 and attrib2:
+
+             %feature(featurename, attrib1="attribval1", attrib2="attribval2") name "val";
+             %feature(featurename, val, attrib1="attribval1", attrib2="attribval2") name;
+
+06/27/2004: wsfulton
+            %feature improvements for the syntax that takes the feature value within the
+            %feature() brackets. The value specified is no longer restricted to being just
+            a string. It can be a string or a number. For example, this is now acceptable
+            syntax:
+              %feature("featurename",20.0);
+            whereas previously it would have to have been:
+              %feature("featurename","20.0");
+            Useful for features that are implemented as a macro, for example:
+              #define %somefeature(value)      %feature("somefeature",value)
+            These will now work accepting either a string or a number:
+              %somefeature("Fred");
+              %somefeature(4);
+
 06/06/2004: wuzzeb (John Lenz)
             [Chicken, Guile]
              - Created the Examples/test-suite/schemerunme directory, which holds all the
