@@ -1,9 +1,9 @@
 /*******************************************************************************
  * Simplified Wrapper and Interface Generator  (SWIG)
- * 
+ *
  * Author : David Beazley
  *
- * Department of Computer Science        
+ * Department of Computer Science
  * University of Chicago
  * 1100 E 58th Street
  * Chicago, IL  60637
@@ -31,6 +31,7 @@ static char cvsroot[] = "$Header$";
 #include "java.h"
 #include "python.h"
 #include "guile.h"
+#include "mzscheme.h"
 
 #include <ctype.h>
 
@@ -45,7 +46,8 @@ Target Language Options:\n\
      -python         - Generate Python wrappers.\n\
      -perl5          - Generate Perl5 wrappers.\n\
      -java           - Generate Java wrappers.\n\
-     -guile          - Generate Guile wrappers.\n";
+     -guile          - Generate Guile wrappers.\n\
+     -mzscheme       - Generate Mzscheme wrappers.\n";
 
 //-----------------------------------------------------------------
 // main()
@@ -59,7 +61,7 @@ int main(int argc, char **argv) {
   Language *dl = new SWIG_LANG;
   extern int SWIG_main(int, char **, Language *);
   Swig_init_args(argc,argv);
-  
+
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -81,6 +83,9 @@ int main(int argc, char **argv) {
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-java") == 0) {
 	      dl = new JAVA;
+	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-mzscheme") == 0) {
+	      dl = new MZSCHEME;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
