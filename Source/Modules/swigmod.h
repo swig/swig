@@ -229,6 +229,12 @@ public:
   /* Returns the dirprot mode */
   int dirprot_mode() const;  
 
+  /* Check if the non public constructor is  needed (for directors) */
+  int need_nonpublic_ctor(Node *n);
+
+  /* Check if the non public member is  needed (for directors) */
+  int need_nonpublic_member(Node *n);
+
   /* Set none comparison string */
   void setSubclassInstanceCheck(String *s);
 

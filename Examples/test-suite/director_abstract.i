@@ -1,4 +1,4 @@
-%module(directors="1",dirprot="1") director_abstract
+%module(directors="1") director_abstract
 %{
 #include <string>
 
@@ -62,11 +62,14 @@ class Example1
 protected:
   int xsize, ysize;
   
-public:
+protected:
+  /* this shouldn't be emitted, unless 'dirprot' is used, since they
+   is already a public constructor */
   
   Example1(int x, int y)
     : xsize(x), ysize(y) { }
 
+public:
   Example1() { }
 
 public:
@@ -92,6 +95,13 @@ protected:
  int xsize, ysize;
 
 protected:
+  /* there is no default constructor, hence, all protected constructors
+     should be emitted */
+
+  Example2(int x)
+  {
+  }
+
   Example2(int x, int y)
     : xsize(x), ysize(y) { }
 
@@ -110,15 +120,53 @@ public:
   }
 };
 
+class Example4
+{
+protected:
+ int xsize, ysize;
+
+protected:
+
+  Example4()
+  {
+  }
+
+  /* this is not emitted, unless dirprot is used */
+  Example4(int x, int y)
+    : xsize(x), ysize(y) { }
+
+public:
+
+  virtual ~Example4() {}
+
+  int  GetXSize() const { return xsize; }
+
+  // pure virtual methods that must be overridden
+  virtual int Color(unsigned char r, unsigned char g, unsigned char b) = 0;
+
+  static int get_color(Example4 *ptr, unsigned char r, 
+		       unsigned char g, unsigned char b) {
+    return ptr->Color(r, g, b);
+  }
+};
+
 namespace ns 
 {
   template <class T>
   class Example3
   {
-  public:
+  protected:
+    /* the default constructor is always emitter, even when protected,
+        having another public constructor, and 'dirprot' is not used.
+        This is just for Java compatibility */
     Example3()
     {
     }
+
+    /* this is no emitted, unless dirprot mode is used */
+    Example3(int x) { }
+
+  public:
     
     Example3(int x, int y) { }
 
@@ -136,3 +184,17 @@ namespace ns
 %}
 
 %template(Example3_i) ns::Example3<int>;
+
+
+%inline %{
+  struct A{
+    virtual ~A() {}
+    friend  int g(A* obj);    
+  protected:
+    A(const A&){}
+    virtual int f() = 0;
+  };
+  
+  int g(A* obj) {return 1;}
+
+%}

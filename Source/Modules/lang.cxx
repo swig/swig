@@ -350,6 +350,8 @@ static Node *first_nontemplate(Node *n) {
   return n;
 }
 
+
+    
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -725,12 +727,9 @@ int Language::cDeclaration(Node *n) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
     if (!isfriend ) {
-      /* and for protected/private members, we check what director
-	 needs. The private members will only be considered if they
-	 are pure virtuals */
-      int need_nopublic = dirprot_mode() && 
-	(is_protected(n) || (is_private(n) && (Cmp(Getattr(n,"value"),"0") == 0)));
-      if (!(need_nopublic && is_member_director(CurrentClass,n)))
+      /* we check what director needs. If the method is  pure virtual,
+	 it is  always needed. */ 
+      if (!(is_member_director(CurrentClass,n) && need_nonpublic_member(n)))
 	return SWIG_NOWRAP;
     }
   }
@@ -1522,12 +1521,8 @@ int Language::unrollVirtualMethods(Node *n,
     if ((Cmp(nodeType, "cdecl") == 0)|| is_destructor) {
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
-      int need_nopublic = dirprot_mode() && 
-	(is_protected(ni) || (is_private(ni) 
-			      && (Cmp(Getattr(ni,"value"),"0") == 0)));
-
       if (SwigType_isfunction(decl) && 
-	  (is_public(ni) || need_nopublic)) {
+	  (is_public(ni) || need_nonpublic_member(ni))) {
 	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
 	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
@@ -1668,19 +1663,50 @@ int Language::classDirectorDisown(Node *n) {
 int Language::classDirectorConstructors(Node *n) {
   Node *ni;
   String *nodeType;
+  Node *parent = Swig_methodclass(n);
+  int default_ctor = Getattr(parent,"allocate:default_constructor") ? 1 : 0;
+  int protected_ctor = 0;
   int constructor = 0;
+  /* emit constructors */
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
-      int need_prot = director_prot_ctor_code && dirprot_mode() && is_protected(ni);
-      if (is_public(ni) || need_prot) {
+      if (is_public(ni)) {
+	/* emit public constructor */
         classDirectorConstructor(ni);
         constructor = 1;
+      } else {
+	/* emit protected constructor if needed */
+	if (need_nonpublic_ctor(ni)) {
+	  classDirectorConstructor(ni);
+	  constructor = 1;
+	  protected_ctor = 1;
+	}
       }
     }
   }
+  /* emit default constructor if needed */
   if (!constructor) {
+    if (!default_ctor) {
+      /* we get here because the class has no public, protected or
+	 default constructor, therefore, the director class can't be
+	 created, ie, is kind of abstract. */
+      Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,Getfile(n),Getline(n),
+		   "Director class '%s' can't be constructed\n",
+		   SwigType_namestr(Getattr(n,"name")));
+      return SWIG_OK;
+    }
     classDirectorDefaultConstructor(n);
+    default_ctor = 1;
+  } else {
+    /* this is just to support old java behavior, ie, the default
+       constructor is always emitted, even when protected, and not
+       needed, since there is a public constructor already defined. */
+    if (!default_ctor && !protected_ctor) {
+      if (Getattr(parent,"allocate:default_base_constructor")) {
+	classDirectorDefaultConstructor(n);
+      }
+    }
   }
   return SWIG_OK;
 }
@@ -2012,19 +2038,11 @@ int Language::constructorDeclaration(Node *n) {
   if (!CurrentClass) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
-  int need_prot = 0;
-  if ((cplus_mode != CPLUS_PUBLIC) && directorsEnabled()) {
-    need_prot = director_prot_ctor_code && dirprot_mode() 
-      && Swig_directorclass(CurrentClass) && is_protected(n);
-    if (need_prot) {
-      Node *parent = Swig_methodclass(n);
-      name = Getattr(parent,"name");
-      symname = Getattr(parent,"sym:name");
-      Setattr(n,"name",name);
-      Setattr(n,"sym:name",symname);
-    }
+  if ((cplus_mode != CPLUS_PUBLIC)) {
+    /* check only for director classes */
+    if (!Swig_directorclass(CurrentClass) || !need_nonpublic_ctor(n))
+      return SWIG_NOWRAP;
   }
-  if ((cplus_mode != CPLUS_PUBLIC) && !need_prot) return SWIG_NOWRAP;
 
   /* Name adjustment for %name */
   Swig_save("constructorDeclaration",n,"sym:name",NIL);
@@ -2111,7 +2129,13 @@ Language::copyconstructorHandler(Node *n) {
   Swig_require("copyconstructorHandler",n,"?name","*sym:name","?type","?parms", NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_copyconstructor(symname);
-  Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor_code,
+  String *director_ctor = director_ctor_code;
+  if (director_prot_ctor_code) {
+    if (is_protected(n) || Getattr(Swig_methodclass(n),"abstract")) {
+      director_ctor = director_prot_ctor_code;
+    }
+  }
+  Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor,
 			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
@@ -2527,6 +2551,91 @@ void Language::allow_dirprot(int val) {
 int Language::dirprot_mode() const {
   return directorsEnabled() ? director_protected_mode : 0;
 }
+
+/* -----------------------------------------------------------------------------
+ * Language::need_nonpublic_ctor()
+ * ----------------------------------------------------------------------------- */
+
+int Language::need_nonpublic_ctor(Node *n) 
+{
+  /* 
+     detects when a protected constructor is needed, which is always
+     the case if 'dirprot' mode is used.  However, if that is not the
+     case, we will try to strictly emit what is minimal to don't break
+     the generated, while preserving compatibility with java, which
+     always try to emit the default constructor.
+
+     rules:
+
+     - when dirprot mode is used, the protected constructors are
+       always needed.
+
+     - the protected default constructor is always needed.
+
+     - if dirprot mode is not used, the protected constructors will be
+       needed only if:
+
+       - there is no any public constructor in the class, and
+       - there is no protected default constructor
+
+       In that case, all the declared protected constructors are
+       needed since we don't know which one to pick up.
+
+    Note: given all the complications here, I am always in favor to
+    always enable 'dirprot', since is the C++ idea of protected
+    members, and use %ignore for the method you don't whan to add in
+    the director class.
+  */
+  if (directorsEnabled()) {
+    if (is_protected(n)) {
+      if (dirprot_mode()) {
+	/* when using dirprot mode, the protected constructors are
+	   always needed */
+	return 1;
+      } else {
+	int is_default_ctor = !ParmList_numrequired(Getattr(n,"parms"));
+	if (is_default_ctor) {
+	  /* the default protected constructor is always needed, for java compatibility */
+	  return 1;
+	} else {
+	  /* check if there is a public constructor */
+	  Node *parent = Swig_methodclass(n);
+	  int public_ctor = Getattr(parent,"allocate:default_constructor") 
+	    || Getattr(parent,"allocate:public_constructor");
+	  if (!public_ctor) {
+	    /* if not, the protected constructor will be needed only
+	       if there is no protected default constructor declared */
+	    int no_prot_default_ctor = !Getattr(parent,"allocate:default_base_constructor");
+	    return no_prot_default_ctor;
+	  }
+	}
+      }
+    }
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::need_nonpublic_member()
+ * ----------------------------------------------------------------------------- */
+int Language::need_nonpublic_member(Node *n) 
+{
+  if (directorsEnabled()) {
+    if (is_protected(n)) {
+      if (dirprot_mode()) {
+	/* when using dirprot mode, the protected members are always
+	   needed. */
+	return 1;
+      } else {
+	/* if the method is pure virtual, we needed it. */
+	int pure_virtual = (Cmp(Getattr(n,"value"),"0") == 0);
+	return pure_virtual;
+      }
+    }
+  }
+  return 0;
+}
+
 
 /* -----------------------------------------------------------------------------
  * Language::is_smart_pointer()
