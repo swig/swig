@@ -2156,13 +2156,16 @@ ways in which pointers can be represented, the following two functions are used
 to safely perform this conversion:
 
 <p>
-<tt>void * SWIG_ConvertPtr(VALUE obj, swig_type_info *ty)</tt>
+<tt>int SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)</tt>
 <blockquote>
-Converts a Ruby object <i>obj</i> to a C pointer and returns the result.
-The second argument, <i>ty</i>, is a pointer to a SWIG type descriptor structure.
+Converts a Ruby object <i>obj</i> to a C pointer whose address is <i>ptr</i>
+(i.e. <i>ptr</i> is a pointer to a pointer).
+The third argument, <i>ty</i>, is a pointer to a SWIG type descriptor structure.
 If <i>ty</i> is not <tt>NULL</tt>, that type information is used to validate
-type compatibility and other aspects of the type conversion, and any type
-errors result in a Ruby <tt>TypeError</tt> being raised.
+type compatibility and other aspects of the type conversion. If <i>flags</i> is
+non-zero, any type errors encountered during this validation result in a Ruby
+<tt>TypeError</tt> exception being raised; if <i>flags</i> is zero, such type errors will
+cause <tt>SWIG_ConvertPtr()</tt> to return -1 but not raise an exception.
 If <i>ty</i> is <tt>NULL</tt>, no type-checking is performed.
 </blockquote>
 
@@ -2184,8 +2187,8 @@ descriptor structure is usually accessed as follows:
 
 <blockquote>
 <pre>
-Foo *f;
-f = SWIG_ConvertPtr($input, SWIGTYPE_p_Foo);
+Foo *foo;
+SWIG_ConvertPtr($input, (void **) &foo, SWIGTYPE_p_Foo, 1);
 
 VALUE obj;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -2198,7 +2201,7 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   $1 = SWIG_ConvertPtr($input, $1_descriptor);
+   SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);
 }
 </pre>
 </blockquote>
@@ -2209,18 +2212,18 @@ typemap variable <tt>$1_descriptor</tt>.  For example:
 <p>
 <tt>VALUE Data_Wrap_Struct(VALUE class, void (*mark)(void *), void (*free)(void *), void *ptr)</tt>
 <blockquote>
-          Given a pointer <i>ptr</i> to some C data, and the two garbage collection routines for this
-          data (<i>mark</i> and <i>free</i>), return a <tt>VALUE</tt> for the Ruby object.
+Given a pointer <i>ptr</i> to some C data, and the two garbage collection routines for this
+data (<i>mark</i> and <i>free</i>), return a <tt>VALUE</tt> for the Ruby object.
 </blockquote>
 <tt>VALUE Data_Make_Struct(VALUE class, <i>c-type</i>, void (*mark)(void *), void (*free)(void *), <i>c-type</i> *ptr)</tt>
 <blockquote>
-          Allocates a new instance of a C data type <i>c-type</i>, assigns it to the pointer <i>ptr</i>, then
-          wraps that pointer with <tt>Data_Wrap_Struct()</tt> as above.
+Allocates a new instance of a C data type <i>c-type</i>, assigns it to the pointer <i>ptr</i>, then
+wraps that pointer with <tt>Data_Wrap_Struct()</tt> as above.
 </blockquote>
 <tt>Data_Get_Struct(VALUE obj, <i>c-type</i>, <i>c-type</i> *ptr)</tt>
 <blockquote>
-          Retrieves the original C pointer of type <i>c-type</i> from the data object
-          <i>obj</i> and assigns that pointer to <i>ptr</i>.
+Retrieves the original C pointer of type <i>c-type</i> from the data object
+<i>obj</i> and assigns that pointer to <i>ptr</i>.
 </blockquote>
 
 <hr>
