@@ -4061,17 +4061,25 @@ ename          :  ID { $$ = $1; }
 /* SWIG enum list */
 
 enumlist       :  enumlist COMMA edecl { 
-                   Node *n = Getattr($1,"_last");
-		   if (!n) {
-		     set_nextSibling($1,$3);
-		     Setattr($1,"_last",$3);
-		   } else {
-		     set_nextSibling(n,$3);
-		     Setattr($1,"_last",$3);
+                   Node *leftSibling = Getattr($1,"_last");
+		   if (!leftSibling) {
+                     leftSibling=$1;
 		   }
+                   set_nextSibling(leftSibling,$3);
+                   Setattr($1,"_last",$3);
+                   if ($3 && !Getattr($3, "enumvalue")) {
+                     /* There is no explicit enum value given, so make one. */
+                     Setattr($3,"enumvalue", NewStringf("%s+1", Getattr(leftSibling,"name")));
+                   }
 		   $$ = $1;
                }
-               |  edecl { $$ = $1; }
+               |  edecl { 
+                   $$ = $1; 
+                   if (!Getattr($1, "enumvalue")) {
+                     /* first enum item value defaults to 0 */
+                     Setattr($1,"enumvalue", "0");
+                   }
+               }
                ;
 
 edecl          :  ID {
