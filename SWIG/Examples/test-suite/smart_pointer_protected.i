@@ -20,7 +20,7 @@
 
     struct C
     {
-      hi::B* operator->() const;
+      hi::B* operator->() const { return new hi::B(); }
     };
   }
   
