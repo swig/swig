@@ -426,107 +426,36 @@ $1 = &temp; %}
 %typemap(out) SWIGTYPE * , SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
 /* Arrays */
-/* bool[ANY] */
-%typemap(in) bool[ANY] (jboolean *jarr)
-%{ if (!SWIG_JavaArrayInBool(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) bool[ANY] 
-%{ SWIG_JavaArrayArgoutBool(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) bool[ANY] 
-%{$result = SWIG_JavaArrayOutBool(jenv, $1, $1_dim0); %}
+/* Macro for most arrays */
+%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JFUNCNAME)
+
+%typemap(in) CTYPE[ANY] (JTYPE *jarr)
+%{ if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
+%typemap(argout) CTYPE[ANY] 
+%{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
+%typemap(out) CTYPE[ANY] 
+%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
+
+%enddef
+
+JAVA_ARRAYS_TYPEMAPS(bool, jboolean, Bool)         /* bool[ANY] */
+JAVA_ARRAYS_TYPEMAPS(signed char, jbyte, Schar)    /* signed char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned char, jshort, Uchar) /* unsigned char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(short, jshort, Short)         /* short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned short, jint, Ushort) /* unsigned short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(int, jint, Int)               /* int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned int, jlong, Uint)    /* unsigned int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long, jint, Long)             /* long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned long, jlong, Ulong)  /* unsigned long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long long, jlong, Longlong)   /* long long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float)         /* float[ANY] */
+JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* char[ANY] - treat as String */
 %typemap(in) char[ANY] { $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; }
 %typemap(argout) char[ANY] ""
 %typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
-
-/* signed char[ANY] */
-%typemap(in) signed char[ANY] (jbyte *jarr)
-%{ if (!SWIG_JavaArrayInSchar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) signed char[ANY] 
-%{ SWIG_JavaArrayArgoutSchar(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) signed char[ANY] 
-%{$result = SWIG_JavaArrayOutSchar(jenv, $1, $1_dim0); %}
-
-/* unsigned char[ANY] */
-%typemap(in) unsigned char[ANY] (jshort *jarr)
-%{ if (!SWIG_JavaArrayInUchar(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) unsigned char[ANY] 
-%{ SWIG_JavaArrayArgoutUchar(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) unsigned char[ANY] 
-%{$result = SWIG_JavaArrayOutUchar(jenv, $1, $1_dim0); %}
-
-/* short[ANY] */
-%typemap(in) short[ANY] (jshort *jarr)
-%{ if (!SWIG_JavaArrayInShort(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) short[ANY] 
-%{ SWIG_JavaArrayArgoutShort(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) short[ANY] 
-%{$result = SWIG_JavaArrayOutShort(jenv, $1, $1_dim0); %}
-
-/* unsigned short[ANY] */
-%typemap(in) unsigned short[ANY] (jint *jarr)
-%{ if (!SWIG_JavaArrayInUshort(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) unsigned short[ANY] 
-%{ SWIG_JavaArrayArgoutUshort(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) unsigned short[ANY] 
-%{$result = SWIG_JavaArrayOutUshort(jenv, $1, $1_dim0); %}
-
-/* int[ANY] */
-%typemap(in) int[ANY] (jint *jarr)
-%{ if (!SWIG_JavaArrayInInt(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) int[ANY] 
-%{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) int[ANY] 
-%{$result = SWIG_JavaArrayOutInt(jenv, $1, $1_dim0); %}
-
-/* unsigned int[ANY] */
-%typemap(in) unsigned int[ANY] (jlong *jarr)
-%{ if (!SWIG_JavaArrayInUint(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) unsigned int[ANY] 
-%{ SWIG_JavaArrayArgoutUint(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) unsigned int[ANY] 
-%{$result = SWIG_JavaArrayOutUint(jenv, $1, $1_dim0); %}
-
-/* long[ANY] */
-%typemap(in) long[ANY] (jint *jarr)
-%{ if (!SWIG_JavaArrayInLong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) long[ANY] 
-%{ SWIG_JavaArrayArgoutLong(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) long[ANY] 
-%{$result = SWIG_JavaArrayOutLong(jenv, $1, $1_dim0); %}
-
-/* unsigned long[ANY] */
-%typemap(in) unsigned long[ANY] (jlong *jarr)
-%{ if (!SWIG_JavaArrayInUlong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) unsigned long[ANY] 
-%{ SWIG_JavaArrayArgoutUlong(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) unsigned long[ANY] 
-%{$result = SWIG_JavaArrayOutUlong(jenv, $1, $1_dim0); %}
-
-/* long long[ANY] */
-%typemap(in) long long[ANY] (jlong *jarr)
-%{ if (!SWIG_JavaArrayInLonglong(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) long long[ANY] 
-%{ SWIG_JavaArrayArgoutLonglong(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) long long[ANY] 
-%{$result = SWIG_JavaArrayOutLonglong(jenv, $1, $1_dim0); %}
-
-/* float[ANY] */
-%typemap(in) float[ANY] (jfloat *jarr)
-%{ if (!SWIG_JavaArrayInFloat(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) float[ANY] 
-%{ SWIG_JavaArrayArgoutFloat(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) float[ANY] 
-%{$result = SWIG_JavaArrayOutFloat(jenv, $1, $1_dim0); %}
-
-/* double[ANY] */
-%typemap(in) double[ANY] (jdouble *jarr)
-%{ if (!SWIG_JavaArrayInDouble(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) double[ANY] 
-%{ SWIG_JavaArrayArgoutDouble(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) double[ANY] 
-%{$result = SWIG_JavaArrayOutDouble(jenv, $1, $1_dim0); %}
 
 /* enum SWIGTYPE[ANY] */
 %typemap(in) enum SWIGTYPE[ANY] (jint *jarr)
@@ -535,6 +464,7 @@ $1 = &temp; %}
 %{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
 %typemap(out) enum SWIGTYPE[ANY] 
 %{$result = SWIG_JavaArrayOutInt(jenv, (int*)$1, $1_dim0); %}
+
 
 /* Arrays of pointers */
 %typemap(in) SWIGTYPE *ARRAYSOFPRIMITIVEPOINTERS[ANY] (jlong *jarr, jsize sz),
