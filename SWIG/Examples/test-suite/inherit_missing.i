@@ -15,6 +15,9 @@ public:
 
 class Foo;
 
+%warnfilter(402) Bar; /* Base class is incomplete */
+%warnfilter(402) Spam; /* Base class is incomplete */
+
 %inline %{
 
 class Bar : public Foo {
