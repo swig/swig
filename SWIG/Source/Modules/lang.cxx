@@ -265,6 +265,8 @@ SwigType *cplus_value_type(SwigType *t) {
 	String *s = NewStringf("SwigValueWrapper< %s >",t);
 	Delete(td);
 	return s;
+      } else {
+	return 0;
       }
     }
     if (SwigType_issimple(td) && SwigType_istemplate(td)) {
@@ -1368,7 +1370,6 @@ int Language::unrollVirtualMethods(Node *n,
   Node *ni;
   String *type;
   String *nodeType;
-  String *c_decl;
   String *storage;
   String *classname;
   String *decl;
@@ -1381,7 +1382,6 @@ int Language::unrollVirtualMethods(Node *n,
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     storage = Getattr(ni, "storage");
-    c_decl = Getattr(ni, "cdecl");
     decl = Getattr(ni, "decl");
     if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
       int is_virtual = storage && !Cmp(storage, "virtual");
