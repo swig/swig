@@ -153,7 +153,7 @@ DOH *SWIG_cpp_define(DOH *str, int swigmacro)
     assert(str);
 
     /* First make sure that string is actually a string */
-    if (String_check(str)) {
+    if (DohCheck(str)) {
       s = Copy(str);
       copy_location(str,s);
       str = s;
@@ -223,19 +223,19 @@ DOH *SWIG_cpp_define(DOH *str, int swigmacro)
     }
 
     if (!swigmacro) {
-      String_replace(macrovalue,"\\\n"," ", DOH_REPLACE_ANY);
+      Replace(macrovalue,"\\\n"," ", DOH_REPLACE_ANY);
     }
     /* Get rid of whitespace surrounding # */
-    String_replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE);
+    Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE);
     while(strstr(Char(macrovalue),"\001 ")) {
-      String_replace(macrovalue,"\001 ","\001", DOH_REPLACE_NOQUOTE);
+      Replace(macrovalue,"\001 ","\001", DOH_REPLACE_NOQUOTE);
     }
     while(strstr(Char(macrovalue)," \001")) {
-      String_replace(macrovalue," \001","\001", DOH_REPLACE_NOQUOTE);
+      Replace(macrovalue," \001","\001", DOH_REPLACE_NOQUOTE);
     }
     
     /* Replace '##' with a special token */
-    String_replace(macrovalue,"\001\001","\002", DOH_REPLACE_NOQUOTE);
+    Replace(macrovalue,"\001\001","\002", DOH_REPLACE_NOQUOTE);
 
     /* Go create the macro */
     macro = NewHash();
@@ -455,13 +455,13 @@ expand_macro(DOH *name, DOH *args)
 	Clear(tempa);
 	Printf(temp,"\001%s", aname);
 	Printf(tempa,"\"%s\"",arg);
-	String_replace(ns, temp, tempa, DOH_REPLACE_ANY);
+	Replace(ns, temp, tempa, DOH_REPLACE_ANY);
       }
-      String_replace(ns, aname, arg, DOH_REPLACE_ID);
+      Replace(ns, aname, arg, DOH_REPLACE_ID);
     }
   }
-  String_replace(ns,"\002","",DOH_REPLACE_ANY);    /* Get rid of concatenation tokens */
-  String_replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */ 
+  Replace(ns,"\002","",DOH_REPLACE_ANY);    /* Get rid of concatenation tokens */
+  Replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */ 
 
   /* Expand this macro even further */
   e = swig_cpp_replace(ns);
