@@ -800,7 +800,11 @@ public:
       return SWIG_NOWRAP;
     }
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NIL);
+      if (!in_class) {
+	Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NIL);
+      } else {
+	Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NIL);      
+      }
     }
     return SWIG_OK;
   }
