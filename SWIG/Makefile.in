@@ -45,17 +45,13 @@ swig13: SWIG1.3 Modules1.1 Swig LParse Preprocessor DOH
 	$(SOURCE)/DOH/libdoh.a \
 	$(LIBS)
 
-experiment: Swig Preprocessor LParse Experiment Swim SWILL DOH Xmlparse Expat Modules
+experiment: Swig Preprocessor LParse Experiment DOH Modules
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Experiment/libexp.a \
-	$(SOURCE)/Xmlparse/libxmlparse.a \
-	$(SOURCE)/Expat/libexpat.a \
 	$(SOURCE)/LParse/liblparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Modules/libmodules.a \
 	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/Swim/libswim.a \
-	$(SOURCE)/SWILL/libswill.a \
 	$(SOURCE)/DOH/libdoh.a \
 	$(LIBS)
 
@@ -80,23 +76,8 @@ LParse:
 Experiment:
 	@cd $(SOURCE)/Experiment; $(MAKE)
 
-Swim:
-	@cd $(SOURCE)/Swim; $(MAKE)
-
-SWILL:
-	@cd $(SOURCE)/SWILL; $(MAKE)
-
 DOH:
 	@cd $(SOURCE)/DOH; $(MAKE)
-
-Xmlparse:
-	@cd $(SOURCE)/Xmlparse; $(MAKE)
-
-Expat:
-	@cd $(SOURCE)/Expat; $(MAKE)
-
-Swithe:
-	@cd $(SOURCE)/Swithe; $(MAKE)
 
 Modules:
 	@cd $(SOURCE)/Modules; $(MAKE)
