@@ -153,12 +153,19 @@
 %define %typemap_in_out(TYPES,TYPE_IN,TYPE_OUT)
 %typemap(in) TYPES * ($*1_ltype intr, int force), 
              TYPES & ($*1_ltype intr, int force) %{
+   /* in_out typemap for TYPES using TYPE_IN and TYPE_OUT */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     /* So... we didn't get a ref or ptr, but can it be reasonably 
        co-erced into what we were looking for a ref of or ptr to? */
-    if (PZVAL_IS_REF(*$input) &&
+    if (!PZVAL_IS_REF(*$input) && (*$input)->type==IS_NULL) {
+      // null passed not by reference means pass NULL
+      $1 = NULL;
+      force=0;
+    } else if (PZVAL_IS_REF(*$input) &&
         ((*$input)->type==IS_STRING ||
          (*$input)->type==IS_LONG ||
+         /* Null passed by reference means we want a value back */
+         (*$input)->type==IS_NULL ||
          (*$input)->type==IS_BOOL ||
          (*$input)->type==IS_DOUBLE)) {
       TYPE_IN($input);
