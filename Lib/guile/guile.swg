@@ -19,4 +19,11 @@
                                       gh_list(object, GH_NOT_PASSED));   \
     }
 
+char *
+GSWIG_scm2str (SCM s)
+{
+  int len = scm_string_length (s);
+  return gh_scm2newstr (s, &len);
+}
+
 /* guile.swg ends here */
