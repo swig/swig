@@ -141,7 +141,7 @@ SWIGSTATICINLINE(int)
 SWIGSTATICINLINE(PyObject* )
   SWIG_From_meth(long long)(long long value)
 {
-  return (value > LONG_MAX) ?
+  return ((value < LONG_MIN) || (value > LONG_MAX)) ?
     PyLong_FromLongLong(value)
     : PyInt_FromLong(swig_numeric_cast(value,long)); 
 }
