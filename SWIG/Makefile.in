@@ -253,9 +253,9 @@ clean-%-gifplot:
 # TARGETS: install & friends
 #####################################################################
 
-INSTALL         = install-sh -c
+INSTALL         = $(srcdir)/Tools/config/install-sh -c
 INSTALL_DATA    = ${INSTALL} -m 644
-INSTALL_PROGRAM = $(srcdir)/${INSTALL} -m 755
+INSTALL_PROGRAM = ${INSTALL} -m 755
 MKINSTDIRS      = $(srcdir)/Tools/config/mkinstalldirs
 
 install: install-main install-lib install-runtime
