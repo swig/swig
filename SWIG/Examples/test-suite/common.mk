@@ -91,6 +91,7 @@ CPP_TEST_CASES += \
 	constructor_exception \
 	constructor_explicit \
 	constructor_value \
+	contract \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
