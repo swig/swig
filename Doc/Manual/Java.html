@@ -101,32 +101,33 @@
 <li><a href="#n66">Sixty four bit JVMs</a>
 <li><a href="#n67">What is a typemap?</a>
 <li><a href="#n68">Typemaps for mapping C/C++ types to Java types</a>
-<li><a href="#n681">Additional Java typemap attributes</a>
-<li><a href="#n69">Java special variables</a>
-<li><a href="#n70">Typemaps for both C and C++ compilation</a>
-<li><a href="#n71">Java code typemaps</a>
-<li><a href="#n72">Director specific typemaps</a>
+<li><a href="#n69">Java typemap attributes</a>
+<li><a href="#n70">Java special variables</a>
+<li><a href="#n71">Typemaps for both C and C++ compilation</a>
+<li><a href="#n72">Java code typemaps</a>
+<li><a href="#n73">Director specific typemaps</a>
 </ul>
-<li><a href="#n73">Typemap Examples</a>
+<li><a href="#n74">Typemap Examples</a>
 <ul>
-<li><a href="#n74">Simpler Java enums for enums without initializers</a>
-<li><a href="#n741">Handling C++ exception specifications as Java exceptions</a>
-<li><a href="#n75">Converting Java String arrays to char ** </a>
-<li><a href="#n76">Expanding a Java object to multiple arguments</a>
-<li><a href="#n77">Using typemaps to return arguments</a>
-<li><a href="#n78">Adding Java downcasts to polymorphic return types</a>
-<li><a href="#n79">Adding an equals method to the Java classes</a>
-<li><a href="#n80">Void pointers and a common Java base class</a>
+<li><a href="#n75">Simpler Java enums for enums without initializers</a>
+<li><a href="#n76">Handling C++ exception specifications as Java exceptions</a>
+<li><a href="#n77">NaN Exception - exception handling for a particular type</a>
+<li><a href="#n78">Converting Java String arrays to char ** </a>
+<li><a href="#n79">Expanding a Java object to multiple arguments</a>
+<li><a href="#n80">Using typemaps to return arguments</a>
+<li><a href="#n81">Adding Java downcasts to polymorphic return types</a>
+<li><a href="#n82">Adding an equals method to the Java classes</a>
+<li><a href="#n83">Void pointers and a common Java base class</a>
 </ul>
-<li><a href="#n81">Living with Java Directors</a>
-<li><a href="#n82">Odds and ends</a>
+<li><a href="#n84">Living with Java Directors</a>
+<li><a href="#n85">Odds and ends</a>
 <ul>
-<li><a href="#n83">JavaDoc comments</a>
-<li><a href="#n84">Functional interface without proxy classes</a>
-<li><a href="#n85">Using your own JNI functions</a>
-<li><a href="#n86">Performance concerns and hints</a>
+<li><a href="#n86">JavaDoc comments</a>
+<li><a href="#n87">Functional interface without proxy classes</a>
+<li><a href="#n88">Using your own JNI functions</a>
+<li><a href="#n89">Performance concerns and hints</a>
 </ul>
-<li><a href="#n87">Examples</a>
+<li><a href="#n90">Examples</a>
 </ul>
 <!-- INDEX -->
 
@@ -3900,7 +3901,9 @@ These are listed below:
 </table>
 
 <a name="typemap_attributes"></a>
-<a name="n681"></a><H3>17.8.5 Java typemap attributes</H3>
+<a name="n69"></a><H3>17.8.5 Java typemap attributes</H3>
+
+
 There is an additional typemap attribute that the Java module supports.
 This is the 'throws' attribute.
 The throws attribute is optional and specified after the typemap name and contains one or more comma separated classes for adding to the throws clause for any methods that use that typemap.
@@ -3925,7 +3928,7 @@ the union of the exception classes is added to the throws clause ensuring there 
 See the <a href="#nan_exception_typemap">NaN exception example</a> for further usage.
 
 <a name="special_variables"></a>
-<a name="n69"></a><H3>17.8.5 Java special variables</H3>
+<a name="n70"></a><H3>17.8.6 Java special variables</H3>
 
 
 The standard SWIG special variables are available for use within typemaps as described in the <a href=Typemaps.html>Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>,<tt>$result</tt> etc.
@@ -4043,7 +4046,7 @@ This special variable expands to the module name, as specified by <tt>%module</t
 Useful for constructing the intermediary classname, which is just <tt>$moduleJNI</tt>.
 
 <a name="typemaps_for_c_and_c++"></a>
-<a name="n70"></a><H3>17.8.6 Typemaps for both C and C++ compilation</H3>
+<a name="n71"></a><H3>17.8.7 Typemaps for both C and C++ compilation</H3>
 
 
 JNI calls must be written differently depending on whether the code is being compiled as C or C++. 
@@ -4074,7 +4077,7 @@ If you do not intend your code to be targeting both C and C++ then your typemaps
 
 
 <a name="java_code_typemaps"></a>
-<a name="n71"></a><H3>17.8.7 Java code typemaps</H3>
+<a name="n72"></a><H3>17.8.8 Java code typemaps</H3>
 
 
 Most of SWIG's typemaps are used for the generation of C/C++ code. 
@@ -4249,7 +4252,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
 Again this is the same that is in "<tt>java.swg</tt>", barring the method modifier for <tt>getCPtr</tt>.
 
 <a name="java_directors_typemaps"></a>
-<a name="n72"></a><H3>17.8.8 Director specific typemaps</H3>
+<a name="n73"></a><H3>17.8.9 Director specific typemaps</H3>
 
 
 The Java directors feature requires the "javadirectorin", "javadirectorout" and the "directorin" typemaps in order to work properly.
@@ -4402,7 +4405,7 @@ The basic strategy here is to provide a default package typemap for the majority
 </blockquote>
 
 <a name="typemap_examples"></a>
-<a name="n73"></a><H2>17.9 Typemap Examples</H2>
+<a name="n74"></a><H2>17.9 Typemap Examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -4411,7 +4414,7 @@ the SWIG library.
 
 
 <a name="simpler_enum_classes"></a>
-<a name="n74"></a><H3>17.9.1 Simpler Java enums for enums without initializers</H3>
+<a name="n75"></a><H3>17.9.1 Simpler Java enums for enums without initializers</H3>
 
 
 The default <a href="#proper_enums_classes">Proper Java enums</a> approach to wrapping enums is somewhat verbose.
@@ -4481,7 +4484,8 @@ This would be done by using the original versions of these typemaps in "enums.sw
 
 
 <a name="exception_typemap"></a>
-<a name="n741"></a><H3>17.9.2 Handling C++ exception specifications as Java exceptions</H3>
+<a name="n76"></a><H3>17.9.2 Handling C++ exception specifications as Java exceptions</H3>
+
 
 This example demonstrates various ways in which C++ exceptions can be tailored and converted into Java exceptions.
 Let's consider a simple file class <tt>SimpleFile</tt> and an exception class <tt>FileException</tt> which it may throw on error:
@@ -4590,7 +4594,9 @@ We could alternatively have used <tt>%rename</tt> to rename <tt>what()</tt> into
 
 
 <a name="nan_exception_typemap"></a>
-<a name="n75"></a><H3>17.9.2 NaN Exception - exception handling for a particular type</H3>
+<a name="n77"></a><H3>17.9.3 NaN Exception - exception handling for a particular type</H3>
+
+
 A Java exception can be thrown from any Java or JNI code.
 Therefore, as most typemaps contain either Java or JNI code, just about any typemap could throw an exception.
 The following example demonstrates exception handling on a type by type basis by checking for 'Not a number' (NaN) whenever a parameter of type <tt>float</tt> is wrapped.
@@ -4689,7 +4695,7 @@ If we were a martyr to the JNI cause, we could replace the succinct code within 
 If we had, we would have put it in the "in" typemap which, like all JNI and Java typemaps, also supports the 'throws' attribute.
 
 <a name="converting_java_string_arrays"></a>
-<a name="n75"></a><H3>17.9.2 Converting Java String arrays to char ** </H3>
+<a name="n78"></a><H3>17.9.4 Converting Java String arrays to char ** </H3>
 
 
 A common problem in many C programs is the processing of command line arguments, which are usually passed in an array of NULL terminated strings.   
@@ -4822,7 +4828,7 @@ Lastly the "jni", "jtype" and "jstype" typemaps are also required to specify
 what Java types to use.
 
 <a name="expanding_java_object"></a>
-<a name="n76"></a><H3>17.9.3 Expanding a Java object to multiple arguments</H3>
+<a name="n79"></a><H3>17.9.5 Expanding a Java object to multiple arguments</H3>
 
 
 Suppose that you had a collection of C functions with arguments
@@ -4896,7 +4902,7 @@ example.foo(new String[]{"red", "green", "blue", "white"});
 
 
 <a name="using_typemaps_return_arguments"></a>
-<a name="n77"></a><H3>17.9.4 Using typemaps to return arguments</H3>
+<a name="n80"></a><H3>17.9.6 Using typemaps to return arguments</H3>
 
 
 A common problem in some C programs is that values may be returned in function parameters rather than in the return value of a function. 
@@ -4997,7 +5003,7 @@ $ java main
 </pre></blockquote>
 
 <a name="adding_downcasts"></a>
-<a name="n78"></a><H3>17.9.5 Adding Java downcasts to polymorphic return types</H3>
+<a name="n81"></a><H3>17.9.7 Adding Java downcasts to polymorphic return types</H3>
 
 
 SWIG support for polymorphism works in that the appropriate virtual function is called. However, the default generated code does not allow for downcasting. 
@@ -5181,7 +5187,7 @@ SWIG usually generates code which constructs the proxy classes using Java code a
 Note that the JNI code above uses a number of string lookups to call a constructor, whereas this would not occur using byte compiled Java code.
 
 <a name="adding_equals_method"></a>
-<a name="n79"></a><H3>17.9.6 Adding an equals method to the Java classes</H3>
+<a name="n82"></a><H3>17.9.8 Adding an equals method to the Java classes</H3>
 
 
 When a pointer is returned from a JNI function, it is wrapped using a new Java proxy class or type wrapper class. 
@@ -5217,7 +5223,7 @@ System.out.println("foo1? " + foo1.equals(foo2));
 
 
 <a name="void_pointers"></a>
-<a name="n80"></a><H3>17.9.7 Void pointers and a common Java base class</H3>
+<a name="n83"></a><H3>17.9.9 Void pointers and a common Java base class</H3>
 
 
 One might wonder why the common code that SWIG emits for the proxy and type wrapper classes is not pushed into a base class. 
@@ -5269,7 +5275,7 @@ This example contains some useful functionality which you may want in your code.
 </ul>
 
 <a name="java_directors_faq"></a>
-<a name="n81"></a><H2>17.10 Living with Java Directors</H2>
+<a name="n84"></a><H2>17.10 Living with Java Directors</H2>
 
 
 <p>
@@ -5435,11 +5441,11 @@ public abstract class UserVisibleFoo extends Foo {
 </ol>
 
 <a name="odds_ends"></a>
-<a name="n82"></a><H2>17.11 Odds and ends</H2>
+<a name="n85"></a><H2>17.11 Odds and ends</H2>
 
 
 <a name="javadoc_comments"></a>
-<a name="n83"></a><H3>17.11.1 JavaDoc comments</H3>
+<a name="n86"></a><H3>17.11.1 JavaDoc comments</H3>
 
 
 The SWIG documentation system is currently deprecated. 
@@ -5491,7 +5497,7 @@ public class Barmy {
 
 
 <a name="functional_interface"></a>
-<a name="n84"></a><H3>17.11.2 Functional interface without proxy classes</H3>
+<a name="n87"></a><H3>17.11.2 Functional interface without proxy classes</H3>
 
 
 It is possible to run SWIG in a mode that does not produce proxy classes by using the -noproxy commandline option.
@@ -5543,7 +5549,7 @@ All destructors have to be called manually for example the <tt>delete_Foo(foo)</
 
 
 <a name="using_own_jni_functions"></a>
-<a name="n85"></a><H3>17.11.3 Using your own JNI functions</H3>
+<a name="n88"></a><H3>17.11.3 Using your own JNI functions</H3>
 
 
 You may have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions.
@@ -5584,7 +5590,7 @@ This directive is only really useful if you want to mix your own hand crafted JN
 
 
 <a name="performance"></a>
-<a name="n86"></a><H3>17.11.4 Performance concerns and hints</H3>
+<a name="n89"></a><H3>17.11.4 Performance concerns and hints</H3>
 
 
 If you're directly manipulating huge arrays of complex objects from Java, performance may suffer greatly when using the array functions in <tt>arrays_java.i</tt>.
@@ -5602,7 +5608,7 @@ This method calls the C++ destructor or <tt>free()</tt> for C code.
 
 
 <a name="java_examples"></a>
-<a name="n87"></a><H2>17.12 Examples</H2>
+<a name="n90"></a><H2>17.12 Examples</H2>
 
 
 The directory Examples/java has a number of further examples. 

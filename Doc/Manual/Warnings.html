@@ -13,18 +13,19 @@
 <li><a href="#n4">Enabling additional warnings</a>
 <li><a href="#n5">Issuing a warning message</a>
 <li><a href="#n6">Commentary</a>
-<li><a href="#n7">Message output format</a>
-<li><a href="#n8">Warning number reference</a>
+<li><a href="#n7">Warnings as errors</a>
+<li><a href="#n8">Message output format</a>
+<li><a href="#n9">Warning number reference</a>
 <ul>
-<li><a href="#n9">Deprecated features (100-199)</a>
-<li><a href="#n10">Preprocessor (200-299)</a>
-<li><a href="#n11">C/C++ Parser (300-399)</a>
-<li><a href="#n12">Types and typemaps (400-499) </a>
-<li><a href="#n13">Code generation (500-599)</a>
-<li><a href="#n14">Language module specific (800-899) </a>
-<li><a href="#n15">User defined (900-999)</a>
+<li><a href="#n10">Deprecated features (100-199)</a>
+<li><a href="#n11">Preprocessor (200-299)</a>
+<li><a href="#n12">C/C++ Parser (300-399)</a>
+<li><a href="#n13">Types and typemaps (400-499) </a>
+<li><a href="#n14">Code generation (500-599)</a>
+<li><a href="#n15">Language module specific (800-899) </a>
+<li><a href="#n16">User defined (900-999)</a>
 </ul>
-<li><a href="#n16">History</a>
+<li><a href="#n17">History</a>
 </ul>
 <!-- INDEX -->
 
@@ -219,10 +220,16 @@ explicitly.
 Certain types of SWIG problems are errors.  These usually arise due to
 parsing errors (bad syntax) or semantic problems for which there is
 no obvious recovery.  There is no mechanism for suppressing error
-messages or handling errors as warnings---you must make changes to
-the input file to fix the problem.
+messages.
 
-<a name="n7"></a><H2>12.6 Message output format</H2>
+<a name="n7"></a><H2>12.6 Warnings as errors</H2>
+
+
+Warnings can be handled as errors by using the <tt>-Werror</tt> command line
+option. This will cause SWIG to exit with a non successful exit code if a
+warning is encountered.
+
+<a name="n8"></a><H2>12.7 Message output format</H2>
 
 
 The output format for both warnings and errors can be selected for
@@ -239,10 +246,10 @@ $ swig -python -Fmicrosoft example.i
 example.i(4): Syntax error in input.
 </pre></blockquote>
 
-<a name="n8"></a><H2>12.7 Warning number reference</H2>
+<a name="n9"></a><H2>12.8 Warning number reference</H2>
 
 
-<a name="n9"></a><H3>12.7.1 Deprecated features (100-199)</H3>
+<a name="n10"></a><H3>12.8.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -268,7 +275,7 @@ example.i(4): Syntax error in input.
 <li>120. Deprecated command line option (-c).
 </ul>
 
-<a name="n10"></a><H3>12.7.2 Preprocessor (200-299)</H3>
+<a name="n11"></a><H3>12.8.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -276,7 +283,7 @@ example.i(4): Syntax error in input.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
-<a name="n11"></a><H3>12.7.3 C/C++ Parser (300-399)</H3>
+<a name="n12"></a><H3>12.8.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -350,7 +357,7 @@ example.i(4): Syntax error in input.
 <li>395. operator delete[] ignored.
 </ul>
 
-<a name="n12"></a><H3>12.7.4 Types and typemaps (400-499) </H3>
+<a name="n13"></a><H3>12.8.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -372,7 +379,7 @@ example.i(4): Syntax error in input.
 <li>468. No 'throw' typemap defined for exception type 'type'.
 </ul>
 
-<a name="n13"></a><H3>12.7.5 Code generation (500-599)</H3>
+<a name="n14"></a><H3>12.8.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -394,7 +401,7 @@ example.i(4): Syntax error in input.
 <li>516. Overloaded method <em>declaration</em> ignored. Method <em>declaration</em> at <em>file</em>:<em>line</em> used.
 </ul>
 
-<a name="n14"></a><H3>12.7.6 Language module specific (800-899) </H3>
+<a name="n15"></a><H3>12.8.6 Language module specific (800-899) </H3>
 
 
 <ul>
@@ -433,12 +440,12 @@ example.i(4): Syntax error in input.
 <li>842. Covariant return types not supported in C#. Proxy method will return <em>basetype</em>  (C#).
 </ul>
 
-<a name="n15"></a><H3>12.7.7 User defined (900-999)</H3>
+<a name="n16"></a><H3>12.8.7 User defined (900-999)</H3>
 
 
 These numbers can be used by your own application.
 
-<a name="n16"></a><H2>12.8 History</H2>
+<a name="n17"></a><H2>12.9 History</H2>
 
 
 The ability to control warning messages was first added to SWIG-1.3.12.
