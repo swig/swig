@@ -46,19 +46,23 @@ setup = \
 # Note CSharp uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
 run_testcase = \
 	if [ -f $*_runme.cs ]; then ( \
-	  $(MAKE) -f $*/$(TOP)/Makefile CSHARPFLAGS='-o $*_runme' CSHARPSRCS='$*_runme.cs $*/*.cs' csharp_compile; \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" ilrun $*_runme; ) \
+	  $(MAKE) -f $*/$(TOP)/Makefile CSHARPFLAGS='-nologo -out:$*_runme.exe' CSHARPSRCS='$*_runme.cs $*\\*.cs' csharp_compile; \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $*_runme.exe; ) \
 	else ( \
 	  cd $*; \
-	  $(MAKE) -f $(TOP)/Makefile CSHARPFLAGS='-c' CSHARPSRCS='*.cs' csharp_compile; ); \
+	  $(MAKE) -f $(TOP)/Makefile CSHARPFLAGS='-nologo -t:module -out:$*.netmodule' CSHARPSRCS='*.cs' csharp_compile; ); \
 	fi;
+#	Above works for Microsoft and Mono.
+#	For pnet use different path separator and use interpreter to run:
+#	  $(MAKE) -f $*/$(TOP)/Makefile CSHARPFLAGS='-nologo -out:$*_runme.exe' CSHARPSRCS='$*_runme.cs $*/*.cs' csharp_compile; \
+#	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" ilrun $*_runme.exe; ) \
 
 # Clean: remove testcase directories
 %.clean:
-	@rm -f $*_runme
 	@if [ -d $* ]; then \
 		rm -rf $*; \
 	fi;
 
 clean:
+	@rm -f *.exe
 
