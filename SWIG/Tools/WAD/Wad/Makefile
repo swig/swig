@@ -7,10 +7,10 @@
 #######################################################################
 
 # These are the files that make up the WAD core
-WADSRCS = return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
-WADOBJS = return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o
+WADSRCS = memory.c return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
+WADOBJS = memory.o return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o
 INCLUDE = -I../Include -I.  $(SINCLUDE)
-WADOPT     = -DWAD_SOLARIS
+WADOPT     = -DWAD_LINUX
 
 # Location of your Python installation
 PYINCLUDE = -I/usr/local/include/python2.0
@@ -23,21 +23,21 @@ TCLSRCS    = wadtcl.cxx
 TCLOBJS    = wadtcl.o
 
 # Location of your Perl installation
-PERLINCLUDE = -I/usr/perl5/5.00503/sun4-solaris/CORE
+PERLINCLUDE = -I/usr/lib/perl5/5.00503/i386-linux/CORE
 PERLSRCS   = wadpl.cxx
 PERLOBJS   = wadpl.o
 
 # C Compiler
-CC = cc
-CFLAGS = #
+CC = gcc
+CFLAGS = #-fpic
 
 # C++ Compiler
-CXX = CC
-CXXFLAGS = #-Kpic
+CXX = c++
+CXXFLAGS = #-fpic
 
 # Linking options
 CLINK = 
-CXXLINK = CC -G
+CXXLINK = g++ -shared
 
 # Rules for creation of a .o file from .cxx
 .SUFFIXES: .cxx
