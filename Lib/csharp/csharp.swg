@@ -84,10 +84,6 @@
 %typemap(imtype) SWIGTYPE & "IntPtr"
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
-%typemap(ctype) enum SWIGTYPE "int"
-%typemap(imtype) enum SWIGTYPE "int"
-%typemap(cstype) enum SWIGTYPE "$csclassname"
-
 /* pointer to a class member */
 %typemap(ctype) SWIGTYPE (CLASS::*) "int"
 %typemap(imtype) SWIGTYPE (CLASS::*) "IntPtr"
@@ -111,8 +107,7 @@
              long long, 
              unsigned long long, 
              float, 
-             double, 
-             enum SWIGTYPE
+             double
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(out) bool               %{ $result = $1; %}
@@ -129,7 +124,6 @@
 %typemap(out) unsigned long long %{ $result = $1; %}
 %typemap(out) float              %{ $result = $1; %}
 %typemap(out) double             %{ $result = $1; %}
-%typemap(out) enum SWIGTYPE      %{ $result = $1; %}
 
 /* char * - treat as String */
 %typemap(in) char * %{ $1 = $input; %}
@@ -242,8 +236,7 @@ $1 = &temp; %}
     long, 
     const unsigned short &, 
     const int &, 
-    const long &,
-    enum SWIGTYPE
+    const long &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Java long */
@@ -299,10 +292,6 @@ $1 = &temp; %}
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 }
 
-%typemap(throws) enum SWIGTYPE {
-  SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
-}
-
 %typemap(throws) char * {
   SWIG_CSharpThrowException(SWIG_CSharpException, $1);
 }
@@ -329,7 +318,6 @@ $1 = &temp; %}
                  char *,
                  char[ANY]
     "$csinput"
-%typemap(csin) enum SWIGTYPE "(int)$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
 %typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
 
@@ -352,9 +340,6 @@ $1 = &temp; %}
                   char *,
                   char[ANY] {
     return $imcall;
-  }
-%typemap(csout) enum SWIGTYPE {
-    return ($csclassname)$imcall;
   }
 %typemap(csout) void {
     $imcall;
@@ -395,10 +380,6 @@ $1 = &temp; %}
     get {
       return $imcall;
     } %}
-%typemap(csvarout) enum SWIGTYPE %{
-    get {
-      return ($csclassname)$imcall;
-    } %}
 
 %typemap(csvarout) void %{
     get {
@@ -420,7 +401,7 @@ $1 = &temp; %}
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*), enum SWIGTYPE "public"
+%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
@@ -460,7 +441,7 @@ $1 = &temp; %}
 
 /* C# specific directives */
 #define %csconst(flag)     %feature("cs:const","flag")
-#define %csenumint(flag)   %feature("cs:enumint","flag")
+#define %csenum(wrapapproach)   %feature("cs:enum","wrapapproach")
 #define %csmethodmodifiers %feature("cs:methodmodifiers")
 
 %pragma(csharp) moduleimports=%{
@@ -479,3 +460,7 @@ using System.Runtime.InteropServices;
 /* csharp keywords */
 /* please test and activate */
 //%include "csharpkw.swg"
+
+// Default enum handling
+%include "enums.swg"
+
