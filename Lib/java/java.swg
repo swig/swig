@@ -9,8 +9,8 @@
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
- * The jtype typemap contains the Java type used in the Java module class. 
- * The jstype typemap contains the Java type used in the Java proxy class. */
+ * The jtype typemap contains the Java type used in the JNI intermediary class. 
+ * The jstype typemap contains the Java type used in the Java proxy classes, type wrapper classes and module class. */
 
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
