@@ -1,6 +1,19 @@
 Version 1.3.18 (In progress)
 ============================
 
+03/03/2003: beazley
+            Fixed a small glitch in typemap local variable replacement.  If you had
+            a typemap like this:
+
+                 %typemap(in) type ($1_type temp) {
+                      ...
+                      temp = ...;
+                      ...
+                 }
+
+            and no occurrence of "$1_type" appeared in the body, then the local
+            variable type wouldn't be substituted.
+
 03/03/2003: cheetah (William Fulton)
             [CSharp] New version of the CSharp module which is typemap based.
             It also uses ECMA C# and no longer uses Microsoft Visual C++.NET 
