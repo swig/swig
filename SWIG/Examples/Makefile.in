@@ -1,32 +1,24 @@
 # ------------------------------------------------------------
-# SWIG Makefile Template
+# SWIG Examples Makefile
+#
+# This file is used by the examples to build modules.  Assuming
+# you ran configure, this file will probably work.  However,
+# it's not perfect so you might need to do some hand tweaking.
 # 
-# This file is used by all of the examples to build modules 
-# and other things.   You can use this as a starting point
-# for building your own modules.
-#
-# How to use this Makefile:
-#
-# 1.   Assuming you ran 'configure', some values in this Makefile
-#      will be set automatically for you.    Configure will try to
-#      guess how to do certain things such as build shared libraries,
-#      etc... Unfortunately, it's not perfect so you may need to
-#      change some things by hand (see next).
-#
-# 2.   Take a look at the prefixes below.   Since SWIG works with
+# Other notes:
+#  
+# 1.   Take a look at the prefixes below.   Since SWIG works with
 #      multiple target languages, you may need to find out where
 #      certain packages have been installed.   Set the prefixes
-#      accordingly.   I've set the prefixes assuming that SWIG has
-#      been installed in the same directory as the target languages.
+#      accordingly. 
 #
-# 3.   To use this makefile, simply set SRCS, INTERFACE, INCLUDE, LIBS, 
+# 2.   To use this makefile, simply set SRCS, INTERFACE, INCLUDE, LIBS, 
 #      TARGET, and do a 
 #           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
 #           INCLUDE='$(INCLUDE) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
 #           TARGET='$(TARGET)' method 
 #
 #      'method' describes what is being built.
-#
 #---------------------------------------------------------------
 
 TARGET     = 
@@ -126,7 +118,7 @@ wish_cpp: $(SRCS)
 # Build a Tcl dynamic loadable module (you might need to tweak this)
 # -----------------------------------------------------------
 
-tcldl:  $(SRCS)
+tcl:  $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
@@ -135,7 +127,7 @@ tcldl:  $(SRCS)
 # Build a Tcl7.5 dynamic loadable module for C++
 # -----------------------------------------------------------
 
-tcldl_cpp: $(SRCS)
+tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
