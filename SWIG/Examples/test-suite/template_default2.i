@@ -1,4 +1,7 @@
 %module template_default2
+
+%warnfilter(801) oss::traits; // Ruby, wrong class name
+
 %inline %{
   namespace oss
   {
