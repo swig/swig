@@ -34,10 +34,12 @@
 #ifdef __cplusplus
 
 %typemap(in) SWIGTYPE & {
+    /* %typemap(in) SWIGTYPE & */
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(out) SWIGTYPE & {
+    /* %typemap(out) SWIGTYPE & */
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *) $1,$1_descriptor));
@@ -69,9 +71,9 @@
 }
 
 %typemap(out) SWIGTYPE {
-    void *temp = new $ltype($1);
+    /* %typemap(out) SWIGTYPE */
+    $&1_ltype temp = new $ltype(($1_ltype &) $1);
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    *(($ltype *)temp) = $1;
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
@@ -86,9 +88,10 @@
 }
 
 %typemap(out) SWIGTYPE {
+    /* %typemap(out) SWIGTYPE */
     void *temp = calloc(1,sizeof($ltype));
     CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
-    *(($ltype *)temp) = $1;
+    memmove( temp, &$1, sizeof( $1_type ) );
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
