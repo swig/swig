@@ -759,8 +759,8 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
 
 String *SwigType_manglestr_default(SwigType *s) {
   char *c;
-  String *result,*base;
-  SwigType *lt;
+  String *result,*base,*mbase;
+  SwigType *lt, *ltp;
   SwigType *ss = 0;
 
   if (SwigType_istemplate(s)) {
@@ -768,14 +768,11 @@ String *SwigType_manglestr_default(SwigType *s) {
     s = ss;
   }
   lt = SwigType_ltype(s);
-  result = SwigType_prefix(lt);
+  ltp = SwigType_prefix(lt);
   base = SwigType_base(lt);
 
-  c = Char(result);
-  while (*c) {
-    if (!isalnum((int)*c)) *c = '_';
-    c++;
-  }
+  result = Swig_string_mangle(ltp);
+  
   if (SwigType_istemplate(base)) {
     String *b = SwigType_namestr(base);
     Delete(base);
@@ -786,23 +783,13 @@ String *SwigType_manglestr_default(SwigType *s) {
   Replace(base,"class ","", DOH_REPLACE_ANY);
   Replace(base,"union ","", DOH_REPLACE_ANY);
 
-  c = Char(base);
-  while (*c) {
-    if (*c == '<') *c = 'T';
-    else if (*c == '>') *c = 't';
-    else if (*c == '*') *c = 'p';
-    else if (*c == '[') *c = 'a';
-    else if (*c == ']') *c = 'A';
-    else if (*c == '&') *c = 'R';
-    else if (*c == '(') *c = 'f';
-    else if (*c == ')') *c = 'F';
-    else if (!isalnum((int)*c)) *c = '_';
-    c++;
-  }
-  Append(result,base);
+  mbase = Swig_string_mangle(base);
+  Append(result,mbase);
   Insert(result,0,"_");
   Delete(lt);
+  Delete(ltp);
   Delete(base);
+  Delete(mbase);
   if (ss) Delete(ss);
   return result;
 }

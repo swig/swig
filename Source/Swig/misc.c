@@ -192,11 +192,28 @@ String *Swig_string_typecode(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_mangle()
  * 
- * Take a string and mangle it by stripping all non-valid C identifier characters
+ * Take a string and mangle it by stripping all non-valid C identifier
+ * characters.
+ *
+ * This routine skips unnecessary blank spaces, therefore mangling
+ * 'char *' and 'char*', 'std::pair<int, int >' and
+ * 'std::pair<int,int>', produce the same result.
+ *
+ * However, note that 'long long' and 'long_long' produce different
+ * mangled strings.
+ *
+ * The mangling method still is not 'perfect', for example std::pair and
+ * std_pair return the same mangling. This is just a little better
+ * than before, but it seems to be enough for most of the purposes.
+ *
+ * Having a perfect mangling will break some examples and code which
+ * assume, for example, that A::get_value will be mangled as
+ * A_get_value. 
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_mangle(String *s) {
-#if 0
+#if 0 
+  /* old mangling, not suitable for using in macros */
   String *t = Copy(s);
   char *c = Char(t);
   while (*c) {
@@ -205,26 +222,34 @@ String *Swig_string_mangle(String *s) {
   }
   return t;
 #else
-  char *pc;
+  String *result = NewString("");
+  int space = 0;
+  int state = 0;
+  char *pc, *cb;
   String *b = Copy(s);
   if (SwigType_istemplate(b)) {
     String *t = SwigType_namestr(b);
     Delete(b);
     b = t ;
   }
-  pc = Char(b);
-  String *result = NewString("");
-  int space = 0;
-  int state = 0;
+  pc = cb = Char(b);
   while (*pc) {
     char c = *pc;
-    if (isalnum((int)c)) {
+    if (isalnum((int)c) || (c == '_')) {
       state = 1;
       if (space && (space == state)) {
-	Printf(result,"_b");
+	Printf(result,"__b");
       }
-      space = 0;      
-      Printf(result,"%c",c);
+      space = 0;
+      if (c == '_' && *(pc + 1) == 'S' && *(pc + 2) == '_') {
+	/* '_S_' is use replaced because it is the special mangling symbol */
+	Printf(result,"_S_%02X",0);
+	pc += 3;
+	continue;
+      } else {
+	Printf(result,"%c",c);
+      }
+      
     } else {
       if (isspace((int)c)) {
 	space = state;
@@ -234,21 +259,90 @@ String *Swig_string_mangle(String *s) {
 	state = 3;
 	space = 0;
       }
-      if (c == '*') c = 'p';
-      else if (c == '&') c = 'R';
-      else if (c == ':') c = 's';
-      else if (c == ',') c = 'c';
-      else if (c == '<') c = 't';
-      else if (c == '>') c = 'T';
-      else if (c == '[') c = 'a';
-      else if (c == ']') c = 'A';
-      else if (c == '(') c = 'f';
-      else if (c == ')') c = 'F';
+      switch(c) {
+      case '.':
+	if ((cb != pc) && (*(pc - 1) == 'p')) {
+	  Append(result,"_");
+	  ++pc;
+	  continue;
+	} else {
+	  c = 'f';
+	}
+	break;
+      case ':':
+	if (*(pc + 1) == ':') {
+	  Append(result,"_");
+	  ++pc; ++pc;
+	  continue;
+	} else {
+	  c = 's';
+	}
+	break;
+      case '*':
+	c = 'm';
+	break;
+      case '&':
+	c = 'A';
+	break;
+      case '<':
+	c = 'l';
+	break;
+      case '>':
+	c = 'g';
+	break;
+      case '=':
+	c = 'e';
+	break;
+      case ',':
+	c = 'c';
+	break;
+      case '(':
+	c = 'p';
+	break;
+      case ')':
+	c = 'P';
+	break;
+      case '[':
+	c = 'b';
+	break;
+      case ']':
+	c = 'B';
+	break;
+      case '^':
+	c = 'x';
+	break;
+      case '|':
+	c = 'o';
+	break;
+      case '~':
+	c = 'n';
+	break;
+      case '!':
+	c = 'N';
+	break;
+      case '%':
+	c = 'M';
+	break;
+      case '?':
+	c = 'q';
+	break;
+      case '+':
+	c = 'a';
+	break;
+      case '-':
+	c = 's';
+	break;
+      case '/':
+	c = 'd';
+	break;
+      default:
+	break;
+      }
       if (isalpha((int)c)) {
-	Printf(result,"_%c",(int)c);
+	Printf(result,"_S_%c",(int)c);
       } else{
-	Printf(result,"_%02X",(int)c);
-      }     
+	Printf(result,"_S_%02X",(int)c);
+      }
     }
     ++pc;
   }
