@@ -11,6 +11,7 @@
  * char ** is mapped to a Java String[].
  *
  * Example usage wrapping:
+ *   %apply char **STRING_ARRAY { char **input };
  *   char ** foo(char **input);
  *  
  * Java usage:
@@ -77,14 +78,47 @@
     return $jnicall;
   }
 
-%typemap(javadirectorin) char **STRING_ARRAY "$jniinput"
-%typemap(javadirectorout) char **STRING_ARRAY "$javacall"
-%typemap(directorin, descriptor="Ljava/lang/String;") char **STRING_ARRAY
-%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
+/* 
+ * char **STRING_OUT typemaps. 
+ * These are typemaps for returning strings when using a C char ** parameter type.
+ * The returned string appears in the 1st element of the passed in Java String array.
+ *
+ * Example usage wrapping:
+ *   void foo(char **string_out);
+ *  
+ * Java usage:
+ *   String stringOutArray[] = { "" };
+ *   modulename.foo(stringOutArray);
+ *   System.out.println( stringOutArray[0] );
+ */
+%typemap(jni) char **STRING_OUT "jobjectArray"
+%typemap(jtype) char **STRING_OUT "String[]"
+%typemap(jstype) char **STRING_OUT "String[]"
+%typemap(javain) char **STRING_OUT "$javainput"
+
+%typemap(in) char **STRING_OUT($*1_ltype temp) {
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
+    return $null;
+  }
+  if (JCALL1(GetArrayLength, jenv, $input) == 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
+    return $null;
+  }
+  $1 = &temp; 
+}
+
+%typemap(argout) char **STRING_OUT {
+  jstring jnewstring = NULL;
+  if($1) {
+     jnewstring = JCALL1(NewStringUTF, jenv, *$1);
+  }
+  JCALL3(SetObjectArrayElement, jenv, $input, 0, jnewstring); 
+}
 
 /* 
- * char *BYTE typemap. 
- * This is an input typemap for mapping a Java byte[] array to a C char array.
+ * char *BYTE typemaps. 
+ * These are input typemaps for mapping a Java byte[] array to a C char array.
  * Note that as a Java array is used and thus passeed by reference, the C routine 
  * can return data to Java via the parameter.
  *
@@ -110,11 +144,4 @@
 
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
-
-%typemap(javadirectorin) char *BYTE "$jniinput"
-%typemap(javadirectorout) char *BYTE "$javacall"
-%typemap(directorin,descriptor="[B") char *BYTE
-%{
-#error "Need directorin typemap for char *BYTE, array input size is unknown."
-%}
 
