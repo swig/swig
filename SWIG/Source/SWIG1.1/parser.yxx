@@ -660,7 +660,7 @@ end_class(SwigType *endtype, char *endname) {
 %type <p>        parm;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
-%type <type>     type type_right opt_signed opt_unsigned;
+%type <type>     type type_right opt_signed opt_unsigned cast_type cast_type_right;
 %type <ivalue>   cpp_vend;
 %type <bases>    base_list inherit;
 %type <dtype>    definetype def_args initializer;
@@ -2236,7 +2236,49 @@ expr           :  NUM_INT { $$ = $1; }
 		 $$.val = NewStringf("(%s)",$2.val);
 		 $$.type = $2.type;
 	       }
+               | LPAREN cast_type parameter_declarator RPAREN expr %prec UMINUS {
+		 $$.val = $5.val;
+		 $$.type = $5.type;
+               }
                ;
+
+
+cast_type      : type_qualifier cast_type_right {
+                   $$ = $2;
+		   SwigType_add_qualifier($$,$1);
+               }
+               | cast_type_right { $$ = $1; }
+               ;
+
+cast_type_right: TYPE_INT { $$ = $1; }
+               | TYPE_SHORT opt_int { $$ = $1; }
+               | TYPE_LONG opt_int { $$ = $1; }
+	       | TYPE_LONG TYPE_LONG opt_int { $$ = NewString("long long");  }
+               | TYPE_CHAR { $$ = $1; }
+               | TYPE_BOOL { $$ = $1; }
+               | TYPE_FLOAT { $$ = $1; }
+               | TYPE_DOUBLE { $$ = $1; }
+               | TYPE_VOID { $$ = $1; }
+               | TYPE_SIGNED opt_signed {
+		   if ($2) $$ = $2;
+		   else $$ = $1;
+	       }
+               | TYPE_UNSIGNED opt_unsigned {
+                   if ($2) $$ = $2;
+		   else $$ = $1;
+	       }
+               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }
+               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+               | ENUM ID { $$ = NewStringf("enum %s", $2); }
+               | TYPE_RAW { $$ = $1; }
+               | cast_type_right type_qualifier {
+		  $$ = $1;
+		  SwigType_add_qualifier($$,$2);
+     	       }
+               ;
+
+
+
 
 inherit        : COLON base_list { $$ = $2; }
                 | empty { $$ = 0; }
