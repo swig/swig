@@ -41,7 +41,8 @@ public :
   virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void create_command(char *, char *);
-  virtual void import(char *);
+  virtual void import_start(char *);
+  virtual void import_end();
 
   // C++ extensions---for creating shadow classes
   

@@ -48,7 +48,8 @@ public :
   virtual void cpp_class_decl(char *, char *, char *);
  virtual  void add_typedef(SwigType *t, char *name);
   virtual void pragma(char *, char *, char *);
-  virtual void import(char *filename);
+  virtual void import_start(char *filename);
+  virtual void import_end();
 };
 
 
