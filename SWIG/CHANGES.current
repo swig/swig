@@ -1,3 +1,7 @@
+10/18/2002: ttn
+	    Fixed typo in doh.h -- thanks to Max Horn.
+
+
 Version 1.3.16 (October 14, 2002)
 =================================
 10/13/2002: beazley
@@ -5,7 +9,7 @@ Version 1.3.16 (October 14, 2002)
             by William Fulton.
 
 10/13/2002: beazley
-            Added OpenVMS build directory (vms).  Contributed by 
+            Added OpenVMS build directory (vms).  Contributed by
             Jean-François Pieronne.
 
 10/09/2002: cheetah (William Fulton)
@@ -20,10 +24,10 @@ Version 1.3.16 (October 14, 2002)
 
 09/23/2002: cheetah (William Fulton)
             [Java] Some error checking added:
-            1) OutOfMemoryException check in the char * typemaps. 
+            1) OutOfMemoryException check in the char * typemaps.
             2) As SWIG treats pointers, references and passing by value all the
             same, it is possible to pass a NULL pointer to a function that expects
-            an object passed by value or by reference. A NullPointerException is 
+            an object passed by value or by reference. A NullPointerException is
             now thrown under this scenario.
 
 09/20/2002: ttn
