@@ -230,6 +230,7 @@ GUILE::set_init (char *iname)
 void
 GUILE::headers (void)
 {
+  Printf(f_runtime, "/* -*- buffer-read-only: t -*- */\n");
   Swig_banner (f_runtime);
 
   Printf (f_runtime, "/* Implementation : GUILE */\n\n");
@@ -238,19 +239,6 @@ GUILE::headers (void)
   
   if (NoInclude) {
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-  }
-  if (Swig_insert_file ("guiledec.swg", f_runtime) == -1) {
-    Printf (stderr, "SWIG : Fatal error.  ");
-    Printf (stderr, "Unable to locate 'guiledec.swg' in SWIG library.\n");
-    SWIG_exit (1);
-  }
-  if (!NoInclude) {
-    // Write out function definitions
-    if (Swig_insert_file ("guile.swg", f_runtime) == -1) {
-      Printf (stderr, "SWIG : Fatal error.  ");
-      Printf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
-      SWIG_exit (1);
-    }
   }
 }
 
