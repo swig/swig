@@ -1668,7 +1668,7 @@ int Language::classDeclaration(Node *n) {
 
 int Language::classHandler(Node *n) {
 
-  bool hasDirector = Swig_directorclass(n);
+  bool hasDirector = Swig_directorclass(n) ? true : false;
 
   /* Emit all of the class members */
   emit_children(n);
