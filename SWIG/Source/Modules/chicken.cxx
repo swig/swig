@@ -1052,7 +1052,7 @@ CHICKEN::variableWrapper(Node *n)  {
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Can't find varout with type %s\n", SwigType_str(t,0));
+		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
     Printf(f->code,"\nC_kontinue (continuation, resultobj);\n");
       
@@ -1269,7 +1269,7 @@ CHICKEN::constantWrapper(Node *n)
     }
     else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Can't find varout with type %s\n", SwigType_str(t,0));
+		   "Unable to read variable of type %s\n", SwigType_str(t,0));
     }
     Printf(f->code,"\nC_kontinue (continuation, resultobj);\n");
       

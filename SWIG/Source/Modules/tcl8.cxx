@@ -485,7 +485,7 @@ public:
       Wrapper_print(getf,f_wrappers);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, 
-		   "Can't link to variable of type %s\n", SwigType_str(t,0));
+		   "Unable to read variable of type %s\n", SwigType_str(t,0));
       DelWrapper(getf);
       return SWIG_NOWRAP;
     }
@@ -513,7 +513,7 @@ public:
 	if (setf) Wrapper_print(setf,f_wrappers);  
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF,input_file, line_number,
-		     "Variable %s will be read-only without a varin typemap.\n", name);
+		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
 	readonly = 1;
       }
       DelWrapper(setf);

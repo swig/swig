@@ -810,7 +810,7 @@ public:
 	Printf(setf->code,"%s\n", tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
-		     "Unable to link with datatype %s (ignored).\n", SwigType_str(t,0));
+		     "Unable to set variable of type %s.\n", SwigType_str(t,0));
 	return SWIG_NOWRAP;
       }
       Printf(setf->code,"    return 1;\n}\n");
@@ -833,7 +833,7 @@ public:
       Printf(getf->code,"%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-		   "Unable to link with datatype %s (ignored).\n", SwigType_str(t,0));
+		   "Unable to read variable of type %s\n", SwigType_str(t,0));
       return SWIG_NOWRAP;
     }
     Printf(getf->code,"    return 1;\n}\n");
