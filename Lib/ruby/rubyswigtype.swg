@@ -102,7 +102,7 @@
         "$result = SWIG_NewPointerObj((void *) &$1, $1_descriptor,0);";
 
 /* Copy by value */
-%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 1);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 0);";
 
 /* Member pointer */
 %typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
