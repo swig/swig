@@ -253,6 +253,9 @@ extern void   String_replace(DOH *s, DOH *token, DOH *rep, int flags);
 extern DOH *NewFile(char *file, char *mode);
 extern DOH *NewFileFromFile(FILE *f);
 extern DOH *NewFileFromFd(int fd);
+extern int  DohCopyto(DOH *input, DOH *output);
+
+#define Copyto DohCopyto
 
 /* -----------------------------------------------------------------------------
  * List
@@ -275,6 +278,7 @@ extern DOH   *Hash_keys(DOH *);
  * ----------------------------------------------------------------------------- */
 
 extern DOH  *NewVoid(void *ptr, void (*del)(void *));
+
 
 extern DOH *DohSplit(DOH *input, char *chs, int nsplits);
 #define Split DohSplit
