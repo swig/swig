@@ -717,7 +717,7 @@ tm_tail        : COMMA tm_parm tm_tail {
 tm_parm        : type tm_name {
                     $$ = NewHash();
 		    if ($2.array) {
-		      SwigType_push($1,$2.array);
+		      StringType_push($1,$2.array);
 		    }
 		    Setattr($$,ATTR_TYPE,$1);
 		    if ($2.name)
@@ -727,9 +727,9 @@ tm_parm        : type tm_name {
                 }
                 | type stars tm_name {
 		  $$ = NewHash();
-		  SwigType_push($1,$2);
+		  StringType_push($1,$2);
 		  if ($3.array) {
-		    SwigType_push($1,$3.array);
+		    StringType_push($1,$3.array);
 		  }
 		  Setattr($$,ATTR_TYPE,$1);
 		  if ($3.name)
@@ -739,9 +739,9 @@ tm_parm        : type tm_name {
 		}
                 | type AND tm_name {
 		  $$ = NewHash();
-		  SwigType_add_reference($1);
+		  StringType_add_reference($1);
 		  if ($3.array) {
-		    SwigType_push($1,$3.array);
+		    StringType_push($1,$3.array);
 		  }
 		  Setattr($$,ATTR_TYPE,$1);
 		  if ($3.name)
@@ -801,8 +801,8 @@ variable_decl   : storage_spec type declaration array2 def_args stail {
                     DOH *o, *t;
 		    $$ = new_node(TAG_VARIABLE,Getfile($3.id),Getline($3.id));
 		    t = Copy($2);
-                    SwigType_push(t,$3.decl);
-		    SwigType_push(t,$4);
+                    StringType_push(t,$3.decl);
+		    StringType_push(t,$4);
 		    Setattr($$,ATTR_NAME,$3.id);
 		    Setattr($$,ATTR_TYPE,t);
                     if ($1.ivalue) {
@@ -816,7 +816,7 @@ variable_decl   : storage_spec type declaration array2 def_args stail {
 		      o = $6;
 		      while (o) {
 			t = Copy($2);
-			SwigType_push(t,Getattr(o,ATTR_TYPE));
+			StringType_push(t,Getattr(o,ATTR_TYPE));
 			Setattr(o,ATTR_TYPE,t);
 			if ($1.ivalue) {
 			  Setattr(o,ATTR_STORAGE,$1.text);
@@ -841,7 +841,7 @@ variable_decl   : storage_spec type declaration array2 def_args stail {
 function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const stail {
                     DOH *o, *t;
 		    t = Copy($2);
-		    SwigType_push(t,$3.decl);
+		    StringType_push(t,$3.decl);
 		    $$ = new_node(TAG_FUNCTION,Getfile($3.id),Getline($3.id));
 		    Setattr($$,ATTR_NAME,$3.id);
 		    Setattr($$,ATTR_TYPE,t);
@@ -854,7 +854,7 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		      o = $8;
 		      while (o) {
 			t = Copy($2);
-			SwigType_push(t,Getattr(o,ATTR_TYPE));
+			StringType_push(t,Getattr(o,ATTR_TYPE));
 			Setattr(o,ATTR_TYPE,t);
 			if ($1.ivalue) {
 			  Setattr(o,ATTR_STORAGE,$1.text);
@@ -867,7 +867,7 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 /* A function declaration with code after it */
 
                 | storage_spec type declaration LPAREN parms RPAREN cpp_end {
-		  SwigType_push($2,$3.decl);
+		  StringType_push($2,$3.decl);
 		  $$ = new_node(TAG_FUNCTION,Getfile($3.id),Getline($3.id));
 		  Setattr($$,ATTR_NAME,$3.id);
 		  Setattr($$,ATTR_TYPE,$2);
@@ -914,8 +914,8 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 stail          : SEMI { $$ = 0; }
                | COMMA declaration array2 def_args stail {
 		 DOH *t = NewString("");
-		 SwigType_push(t,$2.decl);
-		 SwigType_push(t,$3);
+		 StringType_push(t,$2.decl);
+		 StringType_push(t,$3);
 		 $$ = new_node(TAG_VARIABLE, Getfile($2.id),Getline($2.id));
 		 Setattr($$,ATTR_NAME,$2.id);
 		 Setattr($$,ATTR_TYPE,t);
@@ -926,7 +926,7 @@ stail          : SEMI { $$ = 0; }
 	       }
                | COMMA declaration LPAREN parms RPAREN stail {
 		 DOH *t = NewString("");
-		 SwigType_push(t,$2.decl);
+		 StringType_push(t,$2.decl);
 		 $$ = new_node(TAG_FUNCTION, Getfile($2.id), Getline($2.id));
 		 Setattr($$,ATTR_NAME,$2.id);
 		 Setattr($$,ATTR_PARMS,$4);
@@ -1035,8 +1035,8 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 		    int i;
                     $$ = new_node("typedef", $1.filename,$1.line);
 		    t = Copy($2);
-		    SwigType_push($2,$3.decl);
-		    if ($4) SwigType_push($2,$4);
+		    StringType_push($2,$3.decl);
+		    if ($4) StringType_push($2,$4);
 		    Setattr($$,ATTR_NAME,$3.id);
 		    Setattr($$,ATTR_TYPE,$2);
 		    /* Go create more typedefs */
@@ -1046,8 +1046,8 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 		      d = Getitem($5,i);
 		      o = new_node("typedef",$1.filename,$1.line);
 		      ty = Copy(t);
-		      SwigType_push(ty,Getattr(d,"decl"));
-		      SwigType_push(ty,Getattr(d,"array"));
+		      StringType_push(ty,Getattr(d,"decl"));
+		      StringType_push(ty,Getattr(d,"array"));
 		      Setattr(o,ATTR_TYPE,ty);
 		      Setattr(o,ATTR_NAME,Getattr(d,ATTR_NAME));
 		      Setattr(prev,ATTR_SIBLING,o);
@@ -1060,10 +1060,10 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 
                | TYPEDEF type LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("typedef", $1.filename,$1.line);
-		 SwigType_push($2,parmstotype($8));
-		 SwigType_push($2,$4);
+		 StringType_push($2,parmstotype($8));
+		 StringType_push($2,$4);
 		 if ($5.array)
-		   SwigType_push($2,$5.array);
+		   StringType_push($2,$5.array);
 		 Setattr($$,ATTR_NAME,$5.name);
 		 Setattr($$,ATTR_TYPE,$2);
 	       }
@@ -1072,11 +1072,11 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 
                | TYPEDEF type stars LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("typedef", $1.filename,$1.line);
-		 SwigType_push($2,$3);
-		 SwigType_push($2,parmstotype($9));
-		 SwigType_push($2,$5);
+		 StringType_push($2,$3);
+		 StringType_push($2,parmstotype($9));
+		 StringType_push($2,$5);
 		 if ($6.array)
-		   SwigType_push($2,$6.array);
+		   StringType_push($2,$6.array);
 		 Setattr($$,ATTR_NAME,$6.name);
 		 Setattr($$,ATTR_TYPE,$2);
 		 }
@@ -1160,7 +1160,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		 o = new_node("typedef",$3.filename,$3.line);
 		 Setattr(o,ATTR_NAME,$8.id);
 		 t = Copy($3.text);
-		 SwigType_push(t,$8.decl);
+		 StringType_push(t,$8.decl);
 		 Setattr(o,ATTR_TYPE,t);
 		 Setattr($$,ATTR_SIBLING,o);
 		 prev = o;
@@ -1168,8 +1168,8 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		   d = Getitem($9,i);
 		   o = new_node("typedef",$3.filename,$3.line);
 		   t = Copy($3.text);
-		   SwigType_push(t,Getattr(d,"decl"));
-		   SwigType_push(t,Getattr(d,"array"));
+		   StringType_push(t,Getattr(d,"decl"));
+		   StringType_push(t,Getattr(d,"array"));
 		   Setattr(o,ATTR_TYPE,t);
 		   Setattr(o,ATTR_NAME,Getattr(d,ATTR_NAME));
 		   Setattr(prev,ATTR_SIBLING,o);
@@ -1336,7 +1336,7 @@ ptail          : COMMA parm ptail {
 parm           : type pname {
                    $$ = new_node("parm",Getfile($2.name),Getline($2.name));
 		   Setattr($$,ATTR_NAME,$2.name);
-		   SwigType_push($1,$2.array);
+		   StringType_push($1,$2.array);
 		   if ($2.value)
 		     Setattr($$,ATTR_VALUE,$2.value);
 		   Setattr($$,ATTR_TYPE,$1);
@@ -1344,8 +1344,8 @@ parm           : type pname {
                 | type stars pname {
 		  $$ = new_node("parm",Getfile($3.name),Getline($3.name));
 		  Setattr($$,ATTR_NAME,$3.name);
-		  SwigType_push($1,$2);
-		  SwigType_push($1,$3.array);
+		  StringType_push($1,$2);
+		  StringType_push($1,$3.array);
 		  if ($3.value) {
 		    Setattr($$,ATTR_VALUE,$3.value);
 		  }
@@ -1353,8 +1353,8 @@ parm           : type pname {
 		}
                 | type AND pname {
 		  $$ = new_node("parm",Getfile($3.name),Getline($3.name));
-		  SwigType_add_reference($1);
-		  SwigType_push($1,$3.array);
+		  StringType_add_reference($1);
+		  StringType_push($1,$3.array);
 		  Setattr($$,ATTR_NAME,$3.name);
 		  if ($3.value) {
 		    Setattr($$,ATTR_VALUE,$3.value);
@@ -1363,10 +1363,10 @@ parm           : type pname {
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$2.filename, $2.line);
-		  SwigType_push($1,parmstotype($7));
-		  SwigType_push($1,$3);
+		  StringType_push($1,parmstotype($7));
+		  StringType_push($1,$3);
 		  if ($4.array)
-		    SwigType_push($1,$4.array);
+		    StringType_push($1,$4.array);
 		  Setattr($$,ATTR_NAME,$4.name);
 		  if ($4.value)
 		    Setattr($$,ATTR_VALUE,$4.value);
@@ -1374,11 +1374,11 @@ parm           : type pname {
 		}
                 | type stars LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$3.filename, $3.line);
-		  SwigType_push($1,$2);
-		  SwigType_push($1,parmstotype($8));
-		  SwigType_push($1,$4);
+		  StringType_push($1,$2);
+		  StringType_push($1,parmstotype($8));
+		  StringType_push($1,$4);
 		  if ($5.array)
-		    SwigType_push($1,$5.array);
+		    StringType_push($1,$5.array);
 		  Setattr($$,ATTR_NAME,$5.name);
 		  if ($5.value)
 		    Setattr($$,ATTR_VALUE,$5.value);
@@ -1447,32 +1447,32 @@ declaration    : ID {
                | AND ID {
                  $$.id = $2.text;
                  $$.decl = NewString("");
-                 SwigType_add_reference($$.decl);
+                 StringType_add_reference($$.decl);
 	       }
                | AND stars ID {
                  $$.id = $3.text;
                  $$.decl = $2;
-                 SwigType_add_reference($$.decl);
+                 StringType_add_reference($$.decl);
                }
                ;
 
 stars :          STAR empty { 
                     $$ = NewString("");
-		    SwigType_add_pointer($$);
+		    StringType_add_pointer($$);
                }
                | STAR stars { 
                     $$ = $2;
-		    SwigType_add_pointer($$);
+		    StringType_add_pointer($$);
                }
                ;
 
 array :        LBRACKET RBRACKET array2 {
                  $$ = $3;
-                 SwigType_add_array($$,"");
+                 StringType_add_array($$,"");
               }
               | LBRACKET expr RBRACKET array2 {
 		$$ = $4;
-		SwigType_add_array($$,$2.text);
+		StringType_add_array($$,$2.text);
               }
 	      ;
 array2 :      array {
@@ -1509,7 +1509,7 @@ type           : TYPE_INT {  $$ = NewString("int"); }
 		   $$ = NewString($1.text);
 	       }
                | CONST type {
-		 SwigType_add_qualifier($2,"const");
+		 StringType_add_qualifier($2,"const");
 		 $$ = $2;
      	       }
                | cpptype ID {
@@ -1557,7 +1557,7 @@ strict_type    : TYPE_INT {  $$ = NewString("int"); }
 	       }
                | CONST type {
 		  $$ = $2;
-		  SwigType_add_qualifier($$,"const");
+		  StringType_add_qualifier($$,"const");
      	       }
                | cpptype ID {
 		 $$ = NewStringf("%s %s", $1.text, $2.text);
