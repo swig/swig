@@ -1,6 +1,10 @@
 Version 1.3.22 (in progress)
 ==================================
 
+02/24/2004: cheetah (William Fulton)
+            [C#] New commandline option -namespace <name>. This allows one to specify
+            a C# namespace into which all C# classes are generated.
+
 02/23/2004: mkoeppe (Matthias Koeppe) 
 	    [MzScheme] Use FUNC_NAME rather than a bogus typemap variable for signalling
 	    errors.  Call scheme_wrong_type with a zero-based argument number.  
