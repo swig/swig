@@ -600,7 +600,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   int numopt = 0;
 
   // Make a wrapper name for this
-  strcpy(wname, Char(Swig_name_wrapper(name)));
+  strcpy(wname, Char(Swig_name_wrapper(iname)));
 
   // Build the name for scheme.
   proc_name = NewString(iname);
