@@ -1,5 +1,10 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+2/27/00 : ttn
+	  Incorporated Guile support contributed by Matthias Koeppe.
+	  This includes a cpp macro in Lib/guile/guile.swg and the
+	  entire file Lib/guile/typemaps.i.
+
 2/25/00 : ttn
 	  Modified configure.in and Makefile.in files to support
 	  non-local build (useful in multi-arch environments).
