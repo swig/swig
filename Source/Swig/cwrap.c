@@ -48,14 +48,14 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
   case T_USER:
     SwigType_add_pointer(t);
     if (value) 
-      Printf(decl,"%s = &%s", SwigType_lstr(t,name), value);
+      Printf(decl,"%s = (%s) &%s", SwigType_lstr(t,name), SwigType_lstr(t,0), value);
     else
       Printf(decl,"%s", SwigType_lstr(t,name));
     SwigType_del_pointer(t);
     break;
   case T_REFERENCE:
     if (value) 
-      Printf(decl,"%s = &%s", SwigType_lstr(t,name), value);
+      Printf(decl,"%s = (%s) &%s", SwigType_lstr(t,name), SwigType_lstr(t,0), value);
     else
       Printf(decl,"%s", SwigType_lstr(t,name));
     break;
