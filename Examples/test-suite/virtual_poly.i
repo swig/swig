@@ -1,11 +1,10 @@
 %module(directors="1") virtual_poly
 
 //
-// Check this example with directors wherever is possible.
-// It seems to be a good test since it breaks ruby at least.
-// python works fine with and without directors
-// In theory, Java should starts working with directors,
-// but this is not tested yet (my Java installation is broken).
+// Check this example with directors wherever is possible.  Python and
+// ruby work fine with and without directors. In theory, Java may
+// start to work with directors, but this is not tested yet (my Java
+// installation is broken).
 //
 //%feature("director");
 
@@ -17,7 +16,7 @@
   {
     virtual ~NNumber() {};
     virtual NNumber* copy() const = 0;
-
+    
     NNumber* nnumber() 
     {
       return this;
@@ -58,9 +57,17 @@
       return new NInt(val);
     }
 
+    /* See below */
+    static NInt* narrow(NNumber* nn);
+    
   private:
     int val;
   };
+
+  inline NInt& incr(NInt& i) {
+    i = i.get() + 1;
+    return i;
+  }
 
   struct NDouble : NNumber
   {
@@ -78,6 +85,9 @@
       return new NDouble(val);
     }
 
+    /* See below */
+    static NDouble* narrow(NNumber* nn);
+    
   private:
     double val;
   };
@@ -95,32 +105,32 @@
      of the language (strongly typed and 'by value' oriented), and
      there is not much that can be done to work it around.
     
-     However, to improve the situation, and to be able to recover the
-     original data types, we try adding 'dynamic_cast' interfaces in
-     the target language sides. This is a natural mechanism since is
-     exactly the same you will do in the C++ side if is needed.
+     However, since the objects provide their own downcasting
+     mechanim, the narrow methods similar to the CORBA mechanism,
+     in theory you should be able to recover the original object
+     types, just as you can do it in the C++ side or in other
+     languages.
   */
-  inline NInt* NInt_dynamic_cast(NNumber* n) {
+  inline NInt* NInt::narrow(NNumber* n) {
+    // this is just a plain C++ dynamic_cast, but in theory the user
+    // could use whatever he wants.
     return dynamic_cast<NInt*>(n);
   }  
   
-  inline NDouble* NDouble_dynamic_cast(NNumber* n) {
+  inline NDouble* NDouble::narrow(NNumber* n) {
     return dynamic_cast<NDouble*>(n);
-  } 
+  }
   
   /*
-     but they don't work either in Java (see the
+     but the narrow methods don't work either in Java (see the
      java/virtual_poly_runme.java file), because of the current way
-     polymorphic types are wrapped. Using the wrapping method employed
-     with directors (which are also polymorphic types) should allows
-     to use the C++ dynamic_cast and recover the original types at the
-     Java side.  And to do that, it is necessary to identify which
-     classes are polymorphic (the "polymorphic" attribute does that)
-     and apply the proper wrapping mechanism.
+     polymorphic classes are wrapped, the user cannot downcast the
+     Java temporary object when the C++ class (and associated Java
+     class) is a base class in a class hierarchy.
     
-     The dynamic_cast interfaces added to this module, currently work
-     great in languages like python, but in there the polymorphic
-     return type also works, so, you are not forced to use them as a
-     fixing mechanism (see the python/virtual_poly_runme.py file).
+     The 'narrow' methods work currently fine in languages like
+     python, but in there the polymorphic return type also works, so,
+     you are not forced to use them everytime (see the
+     python/virtual_poly_runme.py file).
   */
 %}
