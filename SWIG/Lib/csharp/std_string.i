@@ -27,7 +27,10 @@ class string;
 %typemap(cstype) string "string"
 
 %typemap(in, canthrow=1) string 
-%{ if (!$input) SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "null string");
+%{ if (!$input) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "null string");
+    return $null;
+  }
   $1 = std::string($input); %}
 %typemap(out) string %{ $result = SWIG_csharp_string_callback($1.c_str()); %}
 
@@ -49,7 +52,8 @@ class string;
 %typemap(typecheck) string = char *;
 
 %typemap(throws, canthrow=1) string %{
-  SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
+  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1.c_str());
+  return $null;
 %}
 
 // const string &
@@ -58,7 +62,10 @@ class string;
 %typemap(cstype) const string & "string"
 
 %typemap(in, canthrow=1) const string &
-%{ if (!$input) SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "null string");
+%{ if (!$input) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, "null string");
+    return $null;
+  }
   std::string $1_str($input);
   $1 = &$1_str; %}
 %typemap(out) const string & %{ $result = SWIG_csharp_string_callback($1->c_str()); %}
@@ -81,7 +88,8 @@ class string;
 %typemap(typecheck) const string & = char *;
 
 %typemap(throws, canthrow=1) const string & %{
-  SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
+  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1.c_str());
+  return $null;
 %}
 
 }

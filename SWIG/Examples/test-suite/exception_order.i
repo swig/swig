@@ -2,11 +2,6 @@
 
 %include "exception.i"
 
-#ifdef SWIGCSHARP
-#undef %exception
-#define %exception %csexception
-#endif
-
 /* 
    last resource, catch everything but don't override 
    user's throw declarations.

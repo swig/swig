@@ -20,7 +20,7 @@
 %insert(runtime) %{
 /* Support for throwing C# exceptions from C/C++ */
 typedef enum {
-  SWIG_CSharpException,
+  SWIG_CSharpSystemException,
   SWIG_CSharpOutOfMemoryException,
   SWIG_CSharpIndexOutOfRangeException,
   SWIG_CSharpDivideByZeroException,
@@ -36,15 +36,15 @@ typedef struct {
 } SWIG_CSharpExceptions_t;
 
 static SWIG_CSharpExceptions_t SWIG_csharp_exceptions[] = {
-  { SWIG_CSharpException, NULL },
+  { SWIG_CSharpSystemException, NULL },
   { SWIG_CSharpOutOfMemoryException, NULL },
   { SWIG_CSharpIndexOutOfRangeException, NULL },
   { SWIG_CSharpDivideByZeroException, NULL },
   { SWIG_CSharpArgumentOutOfRangeException, NULL },
   { SWIG_CSharpNullReferenceException, NULL } };
 
-static void SWIG_CSharpThrowException(SWIG_CSharpExceptionCodes code, const char *msg) {
-  SWIG_CSharpExceptionCallback_t callback = SWIG_csharp_exceptions[SWIG_CSharpException].callback;
+static void SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes code, const char *msg) {
+  SWIG_CSharpExceptionCallback_t callback = SWIG_csharp_exceptions[SWIG_CSharpSystemException].callback;
   if (code >=0 && (size_t)code < sizeof(SWIG_csharp_exceptions)/sizeof(SWIG_CSharpExceptions_t)) {
     callback = SWIG_csharp_exceptions[code].callback;
   }
@@ -62,7 +62,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
                                                           SWIG_CSharpExceptionCallback_t divideByZero, 
                                                           SWIG_CSharpExceptionCallback_t argumentOutOfRange,
                                                           SWIG_CSharpExceptionCallback_t nullReference) {
-  SWIG_csharp_exceptions[SWIG_CSharpException].callback = systemException;
+  SWIG_csharp_exceptions[SWIG_CSharpSystemException].callback = systemException;
   SWIG_csharp_exceptions[SWIG_CSharpOutOfMemoryException].callback = outOfMemory;
   SWIG_csharp_exceptions[SWIG_CSharpIndexOutOfRangeException].callback = indexOutOfRange;
   SWIG_csharp_exceptions[SWIG_CSharpDivideByZeroException].callback = divideByZero;
@@ -74,46 +74,46 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
 %pragma(csharp) imclasscode=%{
   class SWIGExceptionHelper {
 
-    public delegate void SWIGExceptionDelegate(string message);
+    public delegate void ExceptionDelegate(string message);
 
-    static SWIGExceptionDelegate systemDelegate = new SWIGExceptionDelegate(ThrowSystemException);
-    static SWIGExceptionDelegate outOfMemoryDelegate = new SWIGExceptionDelegate(ThrowOutOfMemoryException);
-    static SWIGExceptionDelegate indexOutOfRangeDelegate = new SWIGExceptionDelegate(ThrowIndexOutOfRangeException);
-    static SWIGExceptionDelegate divideByZeroDelegate = new SWIGExceptionDelegate(ThrowDivideByZeroException);
-    static SWIGExceptionDelegate argumentOutOfRangeDelegate = new SWIGExceptionDelegate(ThrowArgumentOutOfRangeException);
-    static SWIGExceptionDelegate nullReferenceDelegate = new SWIGExceptionDelegate(ThrowNullReferenceException);
+    static ExceptionDelegate systemDelegate = new ExceptionDelegate(ThrowSystemException);
+    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(ThrowOutOfMemoryException);
+    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(ThrowIndexOutOfRangeException);
+    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(ThrowDivideByZeroException);
+    static ExceptionDelegate argumentOutOfRangeDelegate = new ExceptionDelegate(ThrowArgumentOutOfRangeException);
+    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(ThrowNullReferenceException);
 
     [DllImport("$dllimport", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
     public static extern void SWIGRegisterExceptionCallbacks_$module(
-      SWIGExceptionDelegate systemExceptionDelegate,
-      SWIGExceptionDelegate outOfMemoryDelegate, 
-      SWIGExceptionDelegate indexOutOfRangeDelegate, 
-      SWIGExceptionDelegate divideByZeroDelegate, 
-      SWIGExceptionDelegate argumentOutOfRangeDelegate,
-      SWIGExceptionDelegate nullReferenceDelegate);
+      ExceptionDelegate systemExceptionDelegate,
+      ExceptionDelegate outOfMemoryDelegate, 
+      ExceptionDelegate indexOutOfRangeDelegate, 
+      ExceptionDelegate divideByZeroDelegate, 
+      ExceptionDelegate argumentOutOfRangeDelegate,
+      ExceptionDelegate nullReferenceDelegate);
 
     static void ThrowSystemException(string message) {
-      throw new System.SystemException(message);
+      SWIGPendingException.Set(new System.SystemException(message));
     }
 
     static void ThrowOutOfMemoryException(string message) {
-      throw new System.OutOfMemoryException(message);
+      SWIGPendingException.Set(new System.OutOfMemoryException(message));
     }
 
     static void ThrowIndexOutOfRangeException(string message) {
-      throw new System.IndexOutOfRangeException(message);
+      SWIGPendingException.Set(new System.IndexOutOfRangeException(message));
     }
 
     static void ThrowDivideByZeroException(string message) {
-      throw new System.DivideByZeroException(message);
+      SWIGPendingException.Set(new System.DivideByZeroException(message));
     }
 
     static void ThrowArgumentOutOfRangeException(string message) {
-      throw new System.ArgumentOutOfRangeException(message);
+      SWIGPendingException.Set(new System.ArgumentOutOfRangeException(message));
     }
 
     static void ThrowNullReferenceException(string message) {
-      throw new System.NullReferenceException(message);
+      SWIGPendingException.Set(new System.NullReferenceException(message));
     }
 
     static SWIGExceptionHelper() {
@@ -121,41 +121,45 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
     }
   }
 
-  static SWIGExceptionHelper exceptionHelper = new SWIGExceptionHelper();
+  static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
 
-  [ThreadStatic]
-  private static Exception pendingException = null;
-  private static int numExceptionsPending = 0;
+  public class SWIGPendingException {
+    [ThreadStatic]
+    private static Exception pendingException = null;
+    private static int numExceptionsPending = 0;
 
-  public static bool ExceptionPending {
-    get {
-      bool pending = false;
-      if (numExceptionsPending > 0)
-        if (pendingException != null)
-          pending = true;
-      return pending;
-    } 
-  }
-
-  public static void SetPendingException(Exception e) {
-    pendingException = e;
-    lock(typeof($modulePINVOKE)) {
-      numExceptionsPending++;
+    public static bool Pending {
+      get {
+        bool pending = false;
+        if (numExceptionsPending > 0)
+          if (pendingException != null)
+            pending = true;
+        return pending;
+      } 
     }
-  }
 
-  public static Exception RetrievePendingException() {
-    Exception e = null;
-    if (numExceptionsPending > 0) {
-      if (pendingException != null) {
-        e = pendingException;
-        pendingException = null;
-        lock(typeof($modulePINVOKE)) {
-          numExceptionsPending--;
-        }
+    public static void Set(Exception e) {
+      if (pendingException != null)
+        throw new Exception("Throwing exceptions from unmanaged code has gone broken down");
+      pendingException = e;
+      lock(typeof($modulePINVOKE)) {
+        numExceptionsPending++;
       }
     }
-    return e;
+
+    public static Exception Retrieve() {
+      Exception e = null;
+      if (numExceptionsPending > 0) {
+        if (pendingException != null) {
+          e = pendingException;
+          pendingException = null;
+          lock(typeof($modulePINVOKE)) {
+            numExceptionsPending--;
+          }
+        }
+      }
+      return e;
+    }
   }
 %}
 
@@ -183,7 +187,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
     }
   }
 
-  static SWIGStringHelper stringHelper = new SWIGStringHelper();
+  static SWIGStringHelper swigStringHelper = new SWIGStringHelper();
 %}
 
 %insert(runtime) %{
@@ -196,5 +200,5 @@ DllExport void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringH
 
 /* Contract support */
 
-#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, msg); return nullreturn; } else
+#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_CSharpSetPendingException(SWIG_CSharpArgumentOutOfRangeException, msg); return nullreturn; } else
 %}
