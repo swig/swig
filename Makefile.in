@@ -20,7 +20,7 @@ LIB_DIR  = $(prefix)/lib
 GOAL		:= all
 OBJS_FILE	:= $(srcdir)/objs.tmp
 OBJS    	= `cat $(OBJS_FILE)`
-MODULES		:= 
+MODULES		:= `ls Source/`
 
 #####################################################################
 # TARGET: swig
@@ -65,7 +65,7 @@ _recurse:
 	for i in $(MODULES); \
 	do \
 	  if [ -d Source/$$i -a -f Source/$$i/Makefile ]; then \
-            (cd Source/$$i && $(MAKE) $(TARGET) OBJS_FILE=$(OBJS_FILE)) || exit 1; \
+            (cd Source/$$i && $(MAKE) $(GOAL) OBJS_FILE=$(OBJS_FILE)) || exit 1; \
             cd $$ORIG_DIR ;\
           fi \
         done;
