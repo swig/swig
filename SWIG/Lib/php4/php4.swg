@@ -118,7 +118,11 @@ strarray_inout(char [ANY])
 %}
 
 %typemap(out) char * %{
-	ZVAL_STRING(return_value,$1, 1);
+	if(!$1) {
+	  ZVAL_NULL(return_value);
+	} else {
+	  ZVAL_STRING(return_value,$1, 1);
+	}
 %}
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & %{
