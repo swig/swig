@@ -68,6 +68,7 @@ CPP_TEST_CASES += \
 	abstract_typedef2 \
 	abstract_virtual \
 	add_link \
+	aggregate \
 	anonymous_arg \
 	anonymous_bitfield \
 	argout \
