@@ -960,9 +960,35 @@ public:
 	   "val delete_%s : c_obj -> unit\n",
 	   mangled_sym_name );
 #endif
-
+    
+    /* Handle up-casts in a nice way */
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist)) {
+      Node *base = Firstitem(baselist);
+      while (base) {
+	String *bname = Getattr(base, "ocaml:ctor");
+	if (bname)
+	  Printv(f_class_ctors,
+		 "   \"::",bname,"\", (fun args -> "
+		 "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
+	
+	base = Nextitem(baselist);
+      }
+    }    
+    
     Printf(f_class_ctors,
 	   "    \"&\", (fun args -> raw_ptr) ;\n"
+	   "    \":parents\",\n"
+	   "      (fun args -> \n"
+	   "        C_list \n"
+	   "        (List.map \n"
+	   "	      (fun (x,y) -> \n"
+	   "            C_string (String.sub x 2 ((String.length x) - 2)))\n"
+	   "          (List.filter \n"
+	   "            (fun (x,y) -> \n"
+	   "              ((String.length x) > 2) && \n"
+	   "              x.[0] == ':' && \n"
+	   "              x.[1] == ':') method_table))) ;\n"
 	   "    \":classof\", (fun args -> (C_string \"%s\")) ;\n"
 	   "    \":methods\", "
 	   "(fun args -> C_list (List.map (fun (x,y) -> C_string x) "
@@ -979,8 +1005,7 @@ public:
 	   name );
     
     /* Handle inheritance -- Mostly stolen from python code */
-    String *base_class = NewString("");
-    List *baselist = Getattr(n,"bases");
+    baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Node *base = Firstitem(baselist);
       while (base) {
