@@ -1,20 +1,16 @@
-/******************************************************************************
- * DOH 
+/* ----------------------------------------------------------------------------- 
+ * base.c
+ *
+ *     This file contains the function entry points for dispatching methods on
+ *     DOH objects.  A number of small utility functions are also included.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.	
- ******************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
-
-/*******************************************************************************
- * base.c
- *
- * This file contains the function entry points for dispatching methods on DOH
- * objects. 
- *******************************************************************************/
 
 #include "dohint.h"
 
@@ -1097,6 +1093,54 @@ DohInit(DOH *b) {
 }
 
 /* -----------------------------------------------------------------------------
+ * DohXBase_setfile()
+ *
+ * Set file location (default method).
+ * ----------------------------------------------------------------------------- */
+void
+DohXBase_setfile(DOH *ho, DOH *file) {
+  DohXBase *h = (DohXBase *) ho;
+  if (!DohCheck(file)) file = NewString(file);
+  h->file = file;
+  Incref(h->file);
+}
+
+/* -----------------------------------------------------------------------------
+ * DohXBase_getfile()
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+DohXBase_getfile(DOH *ho) {
+  DohXBase *h = (DohXBase *) ho;
+  return h->file;
+}
+
+/* -----------------------------------------------------------------------------
+ * DohXBase_setline()
+ * ----------------------------------------------------------------------------- */
+void 
+DohXBase_setline(DOH *ho, int l) {
+  DohXBase *h = (DohXBase *) ho;
+  h->line = l;
+}
+
+/* -----------------------------------------------------------------------------
+ * DohXBase_getline()
+ * ----------------------------------------------------------------------------- */
+int 
+DohXBase_getline(DOH *ho) {
+  DohXBase *h = (DohXBase *) ho;
+  return h->line;
+}
+
+static DohPositionalMethods XBasePositionalMethods = {
+  DohXBase_setfile,
+  DohXBase_getfile,
+  DohXBase_setline,
+  DohXBase_getline
+};
+
+/* -----------------------------------------------------------------------------
  * DohXInit()
  *
  * Initialize an extended object.
@@ -1106,47 +1150,9 @@ DohXInit(DOH *b) {
   DohXBase *bs = (DohXBase *) b;
   bs->file = 0;
   bs->line = 0;
+  bs->objinfo->doh_position = &XBasePositionalMethods;
 }
 
-/* -----------------------------------------------------------------------------
- * XBase_setfile()
- *
- * Set file location (default method).
- * ----------------------------------------------------------------------------- */
-void
-XBase_setfile(DOH *ho, DOH *file) {
-  DohXBase *h = (DohXBase *) ho;
-  if (!DohCheck(file)) file = NewString(file);
-  h->file = file;
-  Incref(h->file);
-}
 
-/* -----------------------------------------------------------------------------
- * XBase_getfile()
- * ----------------------------------------------------------------------------- */
-
-DOH *
-XBase_getfile(DOH *ho) {
-  DohXBase *h = (DohXBase *) ho;
-  return h->file;
-}
-
-/* -----------------------------------------------------------------------------
- * XBase_setline()
- * ----------------------------------------------------------------------------- */
-void 
-XBase_setline(DOH *ho, int l) {
-  DohXBase *h = (DohXBase *) ho;
-  h->line = l;
-}
-
-/* -----------------------------------------------------------------------------
- * XBase_getline()
- * ----------------------------------------------------------------------------- */
-int 
-XBase_getline(DOH *ho) {
-  DohXBase *h = (DohXBase *) ho;
-  return h->line;
-}
 
 

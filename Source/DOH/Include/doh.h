@@ -1,26 +1,15 @@
-/*******************************************************************************
- * DOH (Dave's Object Hack)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- *******************************************************************************/
-
-/***********************************************************************
- * $Header$
- *
+/* ----------------------------------------------------------------------------- 
  * doh.h
  *
- * DOH is really not much more than an interface.  This file describes
- * the interface.
- ***********************************************************************/
+ *     This file describes of the externally visible functions in DOH.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ *
+ * $Header$
+ * ----------------------------------------------------------------------------- */
 
 #ifndef _DOH_H
 #define _DOH_H
@@ -151,8 +140,6 @@ typedef struct DohObjInfo {
   extern void    DohInit(DOH *obj);                  /* Initialize an object  */
   extern void    DohXInit(DOH *obj);                 /* Initialize extended object */
   extern int     DohCheck(DOH *ptr);                 /* Check if a DOH object */
-  extern int     DohMemoryUse();                     /* Return current memory */
-  extern int     DohMemoryHigh();                    /* High memory use       */
   extern int     DohPoolSize(int);                   /* Set memory alloc size */
   extern int     DohNewScope();                      /* Create a new scope    */
   extern void    DohDelScope(int);                   /* Delete a scope        */

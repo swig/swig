@@ -1,19 +1,16 @@
-/******************************************************************************
- * DOH 
+/* ----------------------------------------------------------------------------- 
+ * callable.c
+ *
+ *     This file implements a simple callable object supporting a function call
+ *     operation.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.	
- ******************************************************************************/
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
-
-/* -----------------------------------------------------------------------------
- * callable.c
- *
- * Implements a callable function-like object.
- * ----------------------------------------------------------------------------- */
 
 #include "dohint.h"
 

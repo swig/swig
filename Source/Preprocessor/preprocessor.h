@@ -1,17 +1,15 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * preprocessor.h
+ *
+ *     SWIG preprocessor module.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * $Header$
+ * ----------------------------------------------------------------------------- */
 
 #ifndef _PREPROCESSOR_H
 #define _PREPROCESSOR_H

@@ -1,25 +1,15 @@
-/****************************************************************************
- * DOH
+/* ----------------------------------------------------------------------------- 
+ * list.c
+ *
+ *     Implements a simple list object.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which DOH
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
-
-/*******************************************************************************
- * File : list.c
- *
- * General purpose structure for keeping a list of reference counted Swig objects.
- *******************************************************************************/
 
 #include "dohint.h"
 
@@ -31,9 +21,7 @@ typedef struct List {
     DOH        **items;
 } List;
 
-int List_check(DOH *);
-
-/* Internal function.   Doubles amount of memory in a list */
+/* Doubles amount of memory in a list */
 static 
 void more(List *l) {
     int    i;
@@ -52,7 +40,9 @@ void more(List *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *CopyList(DOH *l)   - Copy a list
+ * CopyList()
+ *
+ * Make a shallow copy of a list.
  * ----------------------------------------------------------------------------- */
 
 static DOH *
@@ -61,8 +51,8 @@ CopyList(DOH *lo) {
     int i;
     l = (List *) lo;
     nl = (List *) DohObjMalloc(sizeof(List));
-    DohXInit(nl);
     nl->objinfo = l->objinfo;
+    DohXInit(nl);
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
     nl->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
@@ -80,7 +70,9 @@ CopyList(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
- * void DelList(DOH *l) - Delete a list
+ * DelList()
+ *
+ * Delete a list.
  * ----------------------------------------------------------------------------- */
 
 static void
@@ -99,7 +91,9 @@ DelList(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
- * void List_clear(DOH *l) - Clear all elements in the list
+ * List_clear()
+ *
+ * Remove all of the list entries, but keep the list object intact.
  * ----------------------------------------------------------------------------- */
 
 static void
@@ -115,8 +109,11 @@ List_clear(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
- * void List_scope(DOH *lo, int s)
+ * List_scope()
+ *
+ * Change the scope setting of the list.
  * ----------------------------------------------------------------------------- */
+
 static void
 List_scope(DOH *lo, int s) {
   List *l;
@@ -132,18 +129,19 @@ List_scope(DOH *lo, int s) {
 }
 
 /* -----------------------------------------------------------------------------
- * void List_insert(DOH *lo, int pos, DOH *item) - Insert an element
+ * List_insert()
+ *
+ * Insert an item into the list. If the item is not a DOH object, it is assumed
+ * to be a 'char *' and is used to construct an equivalent string object.
  * ----------------------------------------------------------------------------- */
 
 static int 
-List_insert(DOH *lo, int pos, DOH *item)
-{
+List_insert(DOH *lo, int pos, DOH *item) {
   List *l;
   DohBase *b;
   int i, no = 0;
   
   if (!item) return -1;
-  
   l = (List *) lo;
 
   if (!DohCheck(item)) {
@@ -168,12 +166,13 @@ List_insert(DOH *lo, int pos, DOH *item)
 }
 
 /* -----------------------------------------------------------------------------
- * void List_remove(DOH *lo, int pos) - Remove an element
+ * List_remove()
+ *
+ * Remove an item from a list.
  * ----------------------------------------------------------------------------- */
     
 static int
-List_remove(DOH *lo, int pos)
-{
+List_remove(DOH *lo, int pos) {
     List *l;
     DOH *item;
     int   i;
@@ -192,22 +191,24 @@ List_remove(DOH *lo, int pos)
 }
 
 /* -----------------------------------------------------------------------------
- * int List_len(DOH *l) - List length
+ * List_len()
+ *
+ * Return the number of elements in the list
  * ----------------------------------------------------------------------------- */
 
 static int 
-List_len(DOH *lo) 
-{
+List_len(DOH *lo) {
     return ((List *) lo)->nitems;
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *List_get(DOH *lo, int n) - Get an item
+ * List_get()
+ *
+ * Get the nth item from the list.
  * ----------------------------------------------------------------------------- */
 
 static DOH *
-List_get(DOH *lo, int n) 
-{
+List_get(DOH *lo, int n) {
     List *l;
     l = (List *) lo;
     if (n == DOH_END) n = l->nitems-1;
@@ -219,12 +220,13 @@ List_get(DOH *lo, int n)
 }
 
 /* -----------------------------------------------------------------------------
- * int List_set(DOH *lo, int n, DOH *val) - Set an item
+ * List_set()
+ *
+ * Set the nth item in the list replacing any previous item. 
  * ----------------------------------------------------------------------------- */
 
 static int
-List_set(DOH *lo, int n, DOH *val) 
-{
+List_set(DOH *lo, int n, DOH *val) {
     List *l;
     int no = 0;
     l = (List *) lo;
@@ -246,12 +248,13 @@ List_set(DOH *lo, int n, DOH *val)
 }
 
 /* -----------------------------------------------------------------------------
- * Iterators 
+ * List_first()
+ *
+ * Return the first item in the list.
  * ----------------------------------------------------------------------------- */
 
 static DOH *
-List_first(DOH *lo)
-{
+List_first(DOH *lo) {
     List *l;
     l = (List *) lo;
     l->iter = 0;
@@ -259,9 +262,14 @@ List_first(DOH *lo)
     return l->items[l->iter];
 }
 
+/* -----------------------------------------------------------------------------
+ * List_next()
+ * 
+ * Return the next item in the list.
+ * ----------------------------------------------------------------------------- */
+
 static DOH *
-List_next(DOH *lo)
-{
+List_next(DOH *lo) {
     List *l;
     l = (List *) lo;
     l->iter++;
@@ -270,12 +278,12 @@ List_next(DOH *lo)
 }
 
 /* -----------------------------------------------------------------------------
- * String *List_str() - Create a string representation
+ * List_str()
+ *
+ * Create a string representation of the list
  * ----------------------------------------------------------------------------- */
-
 static DOH *
-List_str(DOH *lo) 
-{
+List_str(DOH *lo) {
     DOH *s;
     int i;
 
@@ -297,6 +305,12 @@ List_str(DOH *lo)
     return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * List_dump()
+ *
+ * Dump the items to an output stream.
+ * ----------------------------------------------------------------------------- */
+
 static int 
 List_dump(DOH *lo, DOH *out) {
   int nsent = 0;
@@ -310,26 +324,6 @@ List_dump(DOH *lo, DOH *out) {
   return nsent;
 }
 
-/* -----------------------------------------------------------------------------
- * void List_sort(DOH *DOH)
- *
- * Sorts a list 
- * ----------------------------------------------------------------------------- */
-
-static int  objcmp(const void *s1, const void *s2) {
-  DOH **so1, **so2;
-  so1 = (DOH **) s1;
-  so2 = (DOH **) s2;
-  return Cmp(*so1,*so2);
-}
-
-void List_sort(DOH *so) {
-  List *l;
-  if (!List_check(so)) return;
-  l = (List *) so;
-  qsort(l->items,l->nitems,sizeof(DOH *), objcmp);
-}
-
 #define MAXLISTITEMS 8
 
 static DohSequenceMethods ListSeqMethods = {
@@ -339,13 +333,6 @@ static DohSequenceMethods ListSeqMethods = {
   List_insert,
   List_first,
   List_next,
-};
-
-static DohPositionalMethods ListPositionalMethods = {
-  XBase_setfile,
-  XBase_getfile,
-  XBase_setline,
-  XBase_getline
 };
 
 static DohObjInfo ListType = {
@@ -367,13 +354,14 @@ static DohObjInfo ListType = {
     0,               /* doh_file */
     0,               /* doh_string */
     0,               /* doh_callable */
-    &ListPositionalMethods, /* doh_position */         
+    0,               /* doh_position */         
 };
 
 /* -----------------------------------------------------------------------------
- * List_check(DOH *lo) - Check to see if an object is a list
+ * List_check()
+ *
+ * Return 1 if an object is a List object.
  * ----------------------------------------------------------------------------- */
-
 int
 List_check(DOH *lo) {
     List *l = (List *) lo;
@@ -384,7 +372,9 @@ List_check(DOH *lo) {
 }
 
 /* -----------------------------------------------------------------------------
- * NewList() - Create a new list
+ * NewList()
+ *
+ * Create a new list.
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -392,8 +382,8 @@ NewList() {
     List *l;
     int   i;
     l = (List *) DohObjMalloc(sizeof(List));
-    DohXInit(l);
     l->objinfo = &ListType;
+    DohXInit(l);
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
     l->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
@@ -402,4 +392,25 @@ NewList() {
     }
     l->iter = 0;
     return (DOH *) l;
+}
+
+/* -----------------------------------------------------------------------------
+ * List_sort()
+ *
+ * Sorts a list 
+ * ----------------------------------------------------------------------------- */
+
+static int  objcmp(const void *s1, const void *s2) {
+  DOH **so1, **so2;
+  so1 = (DOH **) s1;
+  so2 = (DOH **) s2;
+  return Cmp(*so1,*so2);
+}
+
+void
+List_sort(DOH *so) {
+  List *l;
+  if (!List_check(so)) return;
+  l = (List *) so;
+  qsort(l->items,l->nitems,sizeof(DOH *), objcmp);
 }

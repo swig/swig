@@ -1,30 +1,18 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
-
-#include "preprocessor.h"
-
-/* -----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
  * expr.c
  *
- * This is your basic ol' integer arithmetic expression evaluator.   Could have
- * used yacc for this, but it generates something like 1000 lines of code
- * (whereas this implementation is much smaller).
+ *     Integer arithmetic expression evaluator used to handle expressions
+ *     encountered during preprocessing.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * This module is primarily for use by the preprocessor and any other parts of
- * the compiler that need to perform compile-time expression evaluation.
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
+
+#include "preprocessor.h"
 
 static SwigScanner *scan = 0;
 
@@ -172,23 +160,25 @@ static void reduce_op() {
 }
 
 /* -----------------------------------------------------------------------------
- * void Preprocessor_expr_init()
+ * Preprocessor_expr_init()
  * 
  * Initialize the expression evaluator 
  * ----------------------------------------------------------------------------- */
 
-void Preprocessor_expr_init() {
+void 
+Preprocessor_expr_init() {
   if (!expr_init) init_precedence();
   if (!scan) scan = NewSwigScanner();
 }
 
 /* -----------------------------------------------------------------------------
- * int Preprocessor_expr(DOH *s, int *error)
+ * Preprocessor_expr()
  *
- * Evaluates an arithmetic expression in s.
+ * Evaluates an arithmetic expression.  Returns the result and sets an error code.
  * ----------------------------------------------------------------------------- */
 
-int Preprocessor_expr(DOH *s, int *error) {
+int 
+Preprocessor_expr(DOH *s, int *error) {
   int     token = 0;
   int     op = 0;
   
@@ -328,8 +318,14 @@ int Preprocessor_expr(DOH *s, int *error) {
   return 0;
 }
 
-/* Return the expression error message */
-char *Preprocessor_expr_error() {
+/* -----------------------------------------------------------------------------
+ * Preprocessor_expr_error()
+ *
+ * Return error message set by the evaluator (if any)
+ * ----------------------------------------------------------------------------- */
+
+char *
+Preprocessor_expr_error() {
   return errmsg;
 }
 

@@ -1,29 +1,27 @@
-/****************************************************************************
- * Simplified Wrapper and Interface Generator  (SWIG)
+/* ----------------------------------------------------------------------------- 
+ * misc.c
+ *
+ *     Miscellaneous functions that don't really fit anywhere else.
  * 
- * Author : David Beazley
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
 
+
 /* -----------------------------------------------------------------------------
- * $Header$
+ * Swig_copy_string()
  *
- * misc.c
+ * Duplicate a NULL-terminate string given as a char *.
  * ----------------------------------------------------------------------------- */
 
-char *copy_string(const char *s) {
+char *
+Swig_copy_string(const char *s) {
   char *c = 0;
   if (s) {
     c = (char *) malloc(strlen(s)+1);

@@ -1,26 +1,16 @@
-/****************************************************************************
- * DOH (Dynamic Object Hack)
- * 
- * Author : David Beazley
- *
- * Department of Computer Science        
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
- *
- * Please read the file LICENSE for the copyright and terms by which SWIG
- * can be used and distributed.
- ****************************************************************************/
-
-
-static char cvsroot[] = "$Header$";
-
-/* -----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
  * void.c
  *
- * Void Object
+ *     Implements a "void" object that is really just a DOH container around
+ *     an arbitrary C/C++ object represented as a void *.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 1999-2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
+
+static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
@@ -30,9 +20,46 @@ typedef struct {
     void   (*del)(void *);
 } VoidObj;
 
-void  Void_delete(DOH *);
-DOH  *Void_copy(DOH *);
-void *Void_data(DOH *);
+/* -----------------------------------------------------------------------------
+ * Void_delete()
+ *
+ * Delete a void object. Invokes the destructor supplied at the time of creation.
+ * ----------------------------------------------------------------------------- */
+
+static void
+Void_delete(DOH *vo) {
+  VoidObj *v = (VoidObj *) vo;
+  if (v->del) {
+    (*v->del)(v->ptr);
+  }
+  v->del = 0;
+  DohObjFree(v);
+}
+
+/* -----------------------------------------------------------------------------
+ * Void_copy()
+ *
+ * Copies a void object.  This is only a shallow copy. The object destruction
+ * function is not copied in order to avoid potential double-free problems.
+ * ----------------------------------------------------------------------------- */
+
+static DOH *
+Void_copy(DOH *vo) {
+  VoidObj *v = (VoidObj *) vo;
+  return NewVoid(v->ptr,0);
+}
+
+/* -----------------------------------------------------------------------------
+ * Void_data()
+ *
+ * Returns the void * stored in the object.
+ * ----------------------------------------------------------------------------- */
+
+static void *
+Void_data(DOH *vo) {
+  VoidObj *v = (VoidObj *) vo;
+  return v->ptr;
+}
 
 static DohObjInfo DohVoidType = {
   "VoidObj",        /* objname */
@@ -63,7 +90,15 @@ static DohObjInfo DohVoidType = {
 };
 
 
-DOH *NewVoid(void *obj, void (*del)(void *)) {
+/* -----------------------------------------------------------------------------
+ * NewVoid()
+ *
+ * Creates a new Void object given a void * and a pointer to an optional 
+ * destruction function.
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+NewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
   v = (VoidObj *) DohObjMalloc(sizeof(VoidObj));
   v->objinfo = &DohVoidType;
@@ -71,23 +106,3 @@ DOH *NewVoid(void *obj, void (*del)(void *)) {
   v->del = del;
   return (DOH *) v;
 }
-
-void Void_delete(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
-  if (v->del) {
-    (*v->del)(v->ptr);
-  }
-  v->del = 0;
-  DohObjFree(v);
-}
-
-DOH *Void_copy(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
-  return NewVoid(v->ptr,0);
-}
-
-void *Void_data(DOH *vo) {
-  VoidObj *v = (VoidObj *) vo;
-  return v->ptr;
-}
-
