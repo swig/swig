@@ -1,9 +1,5 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Copyright (C) 1998-2000 : The University of Chicago
-Copyright (C) 1995-1998 : University of Utah and the Regents
-                          of the University of California
-
 $Header$
 
 Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
@@ -19,9 +15,15 @@ SWIG release.  The guilty parties working on this are:
   -  Hasan Baran Kovuk (hbkovuk@midway.uchicago.edu)    (SWIG core)
   -  Loic Dachary (loic@ceic.com)                       (Perl5)
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
+  -  Thien-Thi Nguyen (ttn@glug.org)                    (Guile)
 
-*** Disclaimer : The Source directory is a nightmare right now. Please
-pardon the dust.
+*** IMPORTANT NOTICE -- READ FIRST ***
+
+If you downloaded this as a prepackaged release such as SWIG1.3a1,
+be advised that the code represents a snapshot of the most stable
+part of the SWIG CVS repository.  Currently, SWIG is undergoing a
+large redevelopment effort.  The SWIG1.3 series of releases such
+be considered to be transitional releases between SWIG1.1 and SWIG2.0.
 
 General overview:
 =================
@@ -58,10 +60,8 @@ To build and install SWIG, simply type the following:
      % make install
      
 If you checked the code out via CVS, you will have to run autoconf
-before typing 'configure.'  SWIG requires the use of autoconf-2.13 or
-higher. In addition, a full build of SWIG requires the use bison or yacc.
-If you plan to make modifications or contributions to SWIG, you
-should also plan on installing automake-1.4 or higher on your machine.
+before typing 'configure.'  In addition, a full build of SWIG requires
+the use bison or yacc.
 
 Participate!
 ============
