@@ -1,6 +1,47 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/19/2004: mmatus
+
+	    - Allow to disable the new SwigValueWrapper mechanism,
+	      if you add the following line in your language main.
+
+		 /* Turn on safe value wrapper use mode */
+                 Swig_value_wrapper_mode(1);
+
+	      
+	      Now is only active in python. All the other languages
+	      are using the old resolution, but they  can also use the
+	      "valuewrapper"/"novaluewrapper" features to fix some
+	      of the old broken cases. Note, however,  that not all 
+	      the broken cases can be solved in that way.
+
+	      The new mechanism seems to be working fine in perl, ruby
+	      and tcl, but failing in some typemaps in java.
+
+	      Hence, is upto the language maintainer to test it, and
+	      decide to enable it or not.
+
+	      Look at the valuewrapper_opaque.i for examples.
+
+	    - Fix more SwigValueWrapper cases when the new mechanism
+	      is active. Now it also check for local typemap
+	      variables, see valuewrapper_opaque.i for an example when
+	      this is needed. But again, this extra checking will only
+	      be activated when using the new value wrapper mode.
+
+	    - [Python] Fix variable wrapping of classes with private
+	      assign operators. It should be easy to fix in all the 
+	      other modules, instead of checking
+
+	         if (!Getattr(n,"immutable")) ...
+	
+	      you need to verify
+
+	         if (is_assignable(n)) ...
+
+	      Look at the private_assign.i for an example.
+
 10/18/2004: mmatus
 	    - %features "director"/"nodirector" now work as expected.
             - General fixes in %feature to resolve function decl
