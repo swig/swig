@@ -42,6 +42,10 @@ extern  int       NoExcept;                         // -no_except option
 extern  int       Abstract;                         // abstract base class
 extern  int       SmartPointer;                     // smart pointer methods being emitted
 
+/* Overload "argc" and "argv" */
+extern String *argv_template_string;
+extern String *argc_template_string;
+
 /* Miscellaneous stuff */
 
 #define  tab2   "  "
@@ -212,6 +216,9 @@ public:
 
   /* Set none comparison string */
   void setSubclassInstanceCheck(String *s);
+
+  /* Set overload variable templates argc and argv */
+  void setOverloadResolutionTemplates(String *argc, String *argv);
 
  protected:
   /* Patch C++ pass-by-value */

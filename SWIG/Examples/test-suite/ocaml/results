@@ -1,4 +1,6 @@
 Failed:
+director_abstract.cpptest
+template_array_numeric.cpptest
 typedef_inherit.cpptest
 template_typedef_import.multicpptest
 Success:
@@ -49,6 +51,7 @@ director_basic.cpptest
 director_exception.cpptest
 director_finalizer.cpptest
 director_unroll.cpptest
+director_wombat.cpptest
 dynamic_cast.cpptest
 enum_plus.cpptest
 enum_scope.cpptest
@@ -57,10 +60,10 @@ enum_var.cpptest
 evil_diamond.cpptest
 evil_diamond_ns.cpptest
 evil_diamond_prop.cpptest
-explicit.cpptest
 extend_placement.cpptest
 extend_template.cpptest
 extend_template_ns.cpptest
+extern_throws.cpptest
 global_ns_arg.cpptest
 grouping.cpptest
 ignore_parameter.cpptest
@@ -72,6 +75,7 @@ lib_carrays.cpptest
 lib_cdata.cpptest
 lib_cpointer.cpptest
 lib_std_deque.cpptest
+lib_std_pair.cpptest
 lib_std_string.cpptest
 lib_std_vector.cpptest
 lib_typemaps.cpptest
@@ -83,6 +87,7 @@ name_inherit.cpptest
 namespace_enum.cpptest
 namespace_extend.cpptest
 namespace_nested.cpptest
+namespace_spaces.cpptest
 namespace_template.cpptest
 namespace_typemap.cpptest
 namespace_virtual_method.cpptest
@@ -106,11 +111,13 @@ smart_pointer_const.cpptest
 smart_pointer_const2.cpptest
 smart_pointer_multi.cpptest
 smart_pointer_multi_typedef.cpptest
+smart_pointer_namespace.cpptest
 smart_pointer_not.cpptest
 smart_pointer_overload.cpptest
 smart_pointer_protected.cpptest
 smart_pointer_rename.cpptest
 smart_pointer_simple.cpptest
+smart_pointer_static.cpptest
 smart_pointer_typedef.cpptest
 static_array_member.cpptest
 static_const_member.cpptest
@@ -148,6 +155,7 @@ template_ns_enum.cpptest
 template_ns_enum2.cpptest
 template_ns_inherit.cpptest
 template_ns_scope.cpptest
+template_partial_arg.cpptest
 template_qualifier.cpptest
 template_ref_type.cpptest
 template_rename.cpptest
@@ -184,6 +192,7 @@ using_protected.cpptest
 valuewrapper.cpptest
 valuewrapper_base.cpptest
 valuewrapper_const.cpptest
+valuewrapper_default.cpptest
 varargs.cpptest
 virtual_destructor.cpptest
 voidtest.cpptest
@@ -217,6 +226,7 @@ preproc_6.ctest
 ret_by_value.ctest
 sizeof_pointer.ctest
 sneaky1.ctest
+struct_rename.ctest
 typemap_subst.ctest
 unions.ctest
 imports.multicpptest

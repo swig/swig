@@ -1,5 +1,6 @@
 (* example_prog.ml *)
 
+open Swig ;;
 open Example ;;
 
 let side_length (ax,ay) (bx,by) =

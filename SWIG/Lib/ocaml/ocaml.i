@@ -31,4 +31,5 @@
 %include "typemaps.i"
 %include "typecheck.i"
 %include "exception.i"
+%include "preamble.swg"
 %include "director.swg"

@@ -17,6 +17,10 @@ char cvsroot_overload_cxx[] = "$Header$";
 
 #define MAX_OVERLOAD 256
 
+/* Overload "argc" and "argv" */
+String *argv_template_string;
+String *argc_template_string;
+
 extern int emit_num_required(ParmList *);
 
 /* -----------------------------------------------------------------------------
@@ -262,7 +266,7 @@ Swig_overload_rank(Node *n) {
 static bool print_typecheck(String *f, int j, Parm *pj)
 {
   char tmp[256];
-  sprintf(tmp,"argv[%d]",j);
+  sprintf(tmp,Char(argv_template_string),j);
   String *tm = Getattr(pj,"tmap:typecheck");
   if (tm) {
     Replaceid(tm,Getattr(pj,"lname"),"_v");
@@ -284,7 +288,8 @@ ReplaceFormat (const String_or_char *fmt, int j)
   int i;
   String *commaargs = NewString ("");
   for (i=0; i < j; i++) {
-    Printf (commaargs, ", argv[%d]", i);
+    Printv (commaargs, ", ", NIL);
+    Printf (commaargs, Char(argv_template_string), i);
   }
   Replaceall (lfmt, "$commaargs", commaargs);
   return lfmt;
@@ -314,12 +319,14 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
     
     if (!varargs) {
       if (num_required == num_arguments) {
-	Printf(f,"if (argc == %d) {\n", num_required);
+	Printf(f,"if (%s == %d) {\n", argc_template_string, num_required);
       } else {
-	Printf(f,"if ((argc >= %d) && (argc <= %d)) {\n", num_required, num_arguments);
+	Printf(f,"if ((%s >= %d) && (%s <= %d)) {\n", 
+	       argc_template_string, num_required, 
+	       argc_template_string, num_arguments);
       }
     } else {
-      Printf(f,"if (argc >= %d) {\n", num_required);
+      Printf(f,"if (%s >= %d) {\n", argc_template_string, num_required);
     }
 
     if (num_arguments) {
@@ -336,7 +343,7 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       }
       if (j >= num_required) {
 	String *lfmt = ReplaceFormat (fmt, num_arguments);
-	Printf(f, "if (argc <= %d) {\n", j);
+	Printf(f, "if (%s <= %d) {\n", argc_template_string, j);
 	Printf(f, Char(lfmt),Getattr(ni,"wrap:name"));
 	Printf(f, "}\n");
 	Delete (lfmt);
