@@ -25,9 +25,9 @@ public:
   Complex operator-() const {
     return Complex(-rpart, -ipart);
   }
+  
   double re() const { return rpart; }
   double im() const { return ipart; }
-
 };
 
 

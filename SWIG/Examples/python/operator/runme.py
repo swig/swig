@@ -15,3 +15,7 @@ print "a-c =",a-c
 e = example.ComplexCopy(a-c)
 print "e   =",e
 
+# Big expression
+f = ((a+b)*(c+b*e)) + (-a)
+print "f   =",f
+
