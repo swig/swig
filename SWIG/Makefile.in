@@ -134,8 +134,13 @@ check-examples:
 	$(skip-guile) || (cd Examples/guile/matrix ; $(chk))
 	$(skip-guile) || (cd Examples/guile/simple ; $(chk))
 	$(skip-mzscheme) || (cd Examples/mzscheme/simple ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/class ; $(chk))
 	$(skip-ruby) || (cd Examples/ruby/constants ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/pointer ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/reference ; $(chk))
 	$(skip-ruby) || (cd Examples/ruby/simple ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/value ; $(chk))
+	$(skip-ruby) || (cd Examples/ruby/variables ; $(chk))
 
 Examples/GIFPlot/libgifplot.a:
 	cd Examples/GIFPlot/Lib ; $(MAKE)
@@ -153,6 +158,7 @@ check-gifplot-example: Examples/GIFPlot/libgifplot.a
 	$(skip-guile) || (cd Examples/GIFPlot/Guile/simple ; $(chk))
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/full ; $(chk))
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/simple ; $(chk))
+	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/shadow ; $(chk))
 
 check-c++-examples:
 	$(skip-python) || (cd Examples/C++/Python ; $(chk))
