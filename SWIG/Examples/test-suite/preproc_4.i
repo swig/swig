@@ -15,6 +15,7 @@
   {
     return 2;
   }  
+  int f(int min) { return min; }
 %}
 
 #define ARITH_RTYPE(A1, A2) A2
@@ -37,4 +38,7 @@ ARITH_RTYPE(double,int) hello1();
 //   ARITH_RTYPE(double,int) hello2();
 //
 HELLO_TYPE(double,int) hello2();
+
+#define min(x,y) ((x) < (y)) ? (x) : (y) 
+int f(int min);
 
