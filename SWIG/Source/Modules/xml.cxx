@@ -14,6 +14,7 @@ char cvsroot_xml_cxx[] = "$Header$";
 static const char *usage = "\
 XML Options (available with -xml)\n\
      -xmllang <lang> - Typedef language\n\
+     -xmllite        - More lightweight version of XML\n\
      ------\n\
      deprecated (use -o): -xml <output.xml> - Use <output.xml> as output file (extension .xml mandatory)\n";
 
@@ -22,6 +23,8 @@ XML Options (available with -xml)\n\
 
 //static Node *view_top = 0;
 static File *out = 0;
+static int xmllite = 0;
+
 
 class XML
 : public Language
@@ -79,6 +82,11 @@ public:
 			{
 				fputs( usage, stderr );
 			}
+			if( strcmp( argv[iX], "-xmllite" ) == 0 )
+			{
+				Swig_mark_arg (iX);
+                                xmllite = 1;
+                        }
 		}
 
                 // Add a symbol to the parser for conditional compilation
@@ -93,6 +101,7 @@ public:
 		{
 			String *outfile = Getattr(n,"outfile");
 			Replaceall(outfile,".cxx", ".xml");
+			Replaceall(outfile,".cpp", ".xml");
 			Replaceall(outfile,".c", ".xml");
 			out = NewFile(outfile,"w");
 			if (!out)
@@ -159,11 +168,11 @@ public:
 			{
 				Xml_print_baselist( Getattr(obj,k) );
 			}
-			else if (Cmp(k,"typescope") == 0)
+			else if (!xmllite && Cmp(k,"typescope") == 0)
 			{
 				Xml_print_typescope( Getattr(obj,k) );
 			}
-			else if (Cmp(k,"typetab") == 0)
+			else if (!xmllite && Cmp(k,"typetab") == 0)
 			{
 				Xml_print_typetab( Getattr(obj,k) );
 			}
