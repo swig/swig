@@ -471,8 +471,7 @@ class CSHARP : public Language {
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
       bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, variable_name))) != 0;
-      checkReserved(variable_name);
-    
+
       String *getter_setter_name = NewString("");
       if(!getter_flag)
         Printf(getter_setter_name,"set");
@@ -1030,7 +1029,7 @@ class CSHARP : public Language {
       base = Nextitem(baselist);
       if (base) {
         Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, Getattr(base,"name"));
+            "Warning for %s: Base %s ignored. Multiple inheritance is not supported in C#.\n", shadow_classname, Getattr(base,"name"));
       }
     }
 
@@ -1042,7 +1041,7 @@ class CSHARP : public Language {
     const String *pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
     if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
+          "Warning for %s: Base %s ignored. Multiple inheritance is not supported in C#.\n", shadow_classname, pure_java_baseclass);
     }
 
     // Pure Java interfaces
@@ -1890,8 +1889,6 @@ class CSHARP : public Language {
     }
     String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
     
-    checkReserved(arg);
-
     return arg;
   }
 
@@ -2034,15 +2031,6 @@ class CSHARP : public Language {
       while ( (cls = Nextitem(throws_list)) )
         Printf(code, ", %s", cls);
     }
-  }
-
-  void checkReserved(String *name) {
-    if (name) {
-      if (Strcmp(name,"string")==0) {
-         Push(name,"_");
-      }
-    }
-    
   }
 
 };   /* class CSHARP */
