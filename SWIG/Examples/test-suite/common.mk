@@ -25,6 +25,7 @@
 #######################################################################
 TOP        = ../..
 SWIG       = $(TOP)/../swig
+SWIG_LIB   = $(TOP)/../Lib
 TEST_SUITE = test-suite
 CXXSRCS    = 
 CSRCS      = 
@@ -43,6 +44,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	argout \
 	using_protected \
 	using_private \
 	using_extend \
@@ -223,20 +225,20 @@ all:	$(ALL_TEST_CASES)
 check: all
 
 swig_and_compile_cpp =  \
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
-	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG="$(SWIG)" \
+	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
 	for f in `cat $(TOP)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
+	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	  INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
 	  NOLINK=true $(LANGUAGE)$(VARIANT)_multi_cpp; \

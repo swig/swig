@@ -10,37 +10,37 @@
 
 /* Typemaps for input parameters */
 
-%typemap(in) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
-	"convert_to_long_ex($input);
-	$1 = ($1_ltype) Z_LVAL_PP($input);";
+%typemap(in) int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE %{
+	convert_to_long_ex($input);
+	$1 = ($1_ltype) Z_LVAL_PP($input);
+%}
 
-%typemap(in) char
-	"convert_to_string_ex($input);
-	$1 = ($1_ltype) *Z_STRVAL_PP($input);";
+%typemap(in) char %{
+	convert_to_string_ex($input);
+	$1 = ($1_ltype) *Z_STRVAL_PP($input);
+%}
 
-%typemap(in) float,double
-	"convert_to_double_ex($input);
-	$1 = ($1_ltype) Z_DVAL_PP($input);";
+%typemap(in) float,double %{
+	convert_to_double_ex($input);
+	$1 = ($1_ltype) Z_DVAL_PP($input);
+%}
 
-%typemap(in) char *
-	"convert_to_string_ex($input);
-	$1 = ($1_ltype) Z_STRVAL_PP($input);";
+%typemap(in) char *, char [ANY] %{
+	convert_to_string_ex($input);
+	$1 = ($1_ltype) Z_STRVAL_PP($input);
+%}
 
-%typemap(in) char [ANY]
-	"convert_to_string_ex($input);
-	$1 = ($1_ltype) Z_STRVAL_PP($input);";
-
-%typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
+%typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & %{
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
 	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
-}
+%}
 	
-%typemap(in) void * {
+%typemap(in) void * %{
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0) < 0) {
 	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
-}
+%}
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
@@ -53,21 +53,25 @@
 
 /* Typemap for output values */
 
-%typemap(out) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
-	"ZVAL_LONG(return_value,$1);";
+%typemap(out) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE %{
+	ZVAL_LONG(return_value,$1);
+%}
 
-%typemap(out) float, double
-	"ZVAL_DOUBLE(return_value,$1);";
+%typemap(out) float, double %{
+	ZVAL_DOUBLE(return_value,$1);
+%}
 
-%typemap(out) char {
-	"ZVAL_STRINGL(return_value,$1, 1, 1);";
-}
+%typemap(out) char %{
+	ZVAL_STRINGL(return_value,$1, 1, 1);
+%}
 
-%typemap(out) char *
-	"ZVAL_STRING(return_value,$1, 1);";
+%typemap(out) char * %{
+	ZVAL_STRING(return_value,$1, 1);
+%}
 
-%typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &
-	"SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);";
+%typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & %{
+	SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
+%}
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
         swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
@@ -95,6 +99,57 @@
 %typemap(out) char [ANY] {
 	ZVAL_STRING(return_value,$1, 1);
 }
+
+/* Typemap for in/argout references */
+// Won't let me specify all on one line
+%typemap(in) int * ($*1_ltype intr) %{
+  convert_to_long_ex($input);
+  intr = ($*1_ltype) (*$input)->value.lval;
+  $1 = &intr;
+%}
+
+%typemap(in) int & ($*1_ltype intr) %{
+  convert_to_long_ex($input);
+  intr = ($*1_ltype) (*$input)->value.lval;
+  $1 = &intr;
+%}
+//%typemap(in) int * = int &;
+%typemap(in) unsigned int & = int &;
+%typemap(in) unsigned int * = int *;
+%typemap(in) unsigned short & = int &;
+%typemap(in) unsigned short * = int *;
+%typemap(in) short & = int &;
+%typemap(in) short * = int *;
+%typemap(in) unsigned short & = int &;
+%typemap(in) unsigned short * = int *;
+%typemap(in) long & = int &;
+%typemap(in) long * = int *;
+%typemap(in) unsigned long & = int &;
+%typemap(in) unsigned long * = int *;
+%typemap(in) signed char & = int &;
+%typemap(in) signed char * = int *;
+%typemap(in) unsigned char & = int &;
+%typemap(in) unsigned char * = int *;
+%typemap(in) bool & = int &;
+%typemap(in) bool * = int *;
+%typemap(in) enum SWIGTYPE & = int &;
+%typemap(in) enum SWIGTYPE * = int *;
+
+%typemap(argout) int *, unsigned int *, unsigned short *, short *, unsigned short *, long *, unsigned long *, signed char *, unsigned char *, bool *, enum SWIGTYPE *  %{
+  if(! PZVAL_IS_REF(*$arg)) {
+    zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+  } else {
+    ZVAL_LONG(*$arg,intr$argnum);
+  }
+%}
+
+%typemap(argout) int &, unsigned int &, unsigned short &, short &, unsigned short &, long &, unsigned long &, signed char &, unsigned char &, bool &, enum SWIGTYPE & %{
+  if(! PZVAL_IS_REF(*$arg)) {
+    zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+  } else {
+    ZVAL_LONG(*$arg,intr$argnum);
+  }
+%}
 
 /* Global variables - add the variable to PHP */
 

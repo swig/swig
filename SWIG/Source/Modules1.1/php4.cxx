@@ -1036,9 +1036,7 @@ public:
 
     if (mvr && ! mvrset) {
       Wrapper_add_local(f, "_return_value", "zval _return_value");
-//      Printf(f->code,"zval _return_value;\n");
       Wrapper_add_local(f, "return_value", "zval *return_value=&_return_value");
-//      Printf(f->code,"zval *return_value=&_return_value;\n");
     };
 
     // only let this_ptr count as arg[-1] if we are not a constructor
@@ -1173,11 +1171,11 @@ public:
 	p = nextSibling(p);
       }
     }
-    
+
+    // These are saved for argout again...    
     if(num_saved) {
       sprintf(temp, "_saved[%d]",num_saved);
       // Used to be zval *, perhaps above we should use * %s
-     // but I am not sure what saved is for!!
       Wrapper_add_localv(f,"_saved","zval **",temp,NIL);
     }
     
@@ -1210,7 +1208,7 @@ public:
       // are we returning a wrapable object?
       // I don't know if this test is comlete, I nicked it
       if(is_shadow(d) && (SwigType_type(d) != T_ARRAY)) {
-	Printf(f->code,"//THIS IS IT!!!! munge this return value\n");
+	Printf(f->code,"// Wrap this return value\n");
 	if (native_constructor==NATIVE_CONSTRUCTOR) {
 	  Printf(f->code, "if (this_ptr) {\n// NATIVE Constructor, use this_ptr\n");
 	  Printf(f->code,"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
@@ -1256,6 +1254,7 @@ public:
     if(cleanup)
       Printv(f->code,cleanup,NIL);
     
+    // Whats this bit for?
     if((tm = Swig_typemap_lookup((char*)"ret",d,iname,(char *)"result", (char*)"result",(char*)"",0))) {
       Printf(f->code,"%s\n", tm);
     }
