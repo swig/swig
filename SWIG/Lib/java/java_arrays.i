@@ -3,13 +3,13 @@ Support for setting values in arrays. This is intended to cover all types of arr
 */
 %typemap(memberin) SWIGTYPE [] {
     int i;
-    for (i=0; i<$dim0; i++) {
+    for (i=0; i<$1_dim0; i++) {
         $1[i] = $input[i];
     }
 }
 %typemap(globalin) SWIGTYPE [] {
     int i;
-    for (i=0; i<$dim0; i++) {
+    for (i=0; i<$1_dim0; i++) {
         $1[i] = $input[i];
     }
 }
