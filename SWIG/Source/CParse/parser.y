@@ -332,7 +332,7 @@ static void add_symbols(Node *n) {
       SwigType *fun = SwigType_pop_function(fdecl);
       symname = make_name(Getattr(n,"name"),fun);
       wrn = name_warning(symname,fun);
-
+      
       Swig_features_get(features_hash,Namespaceprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
       Delete(fun);
@@ -1005,6 +1005,7 @@ extend_directive : EXTEND options idcolon LBRACE {
 		 Node *am = Getattr(extendhash,clsname);
 		 if (!am) {
 		   Swig_symbol_newscope();
+		   Swig_symbol_setscopename($3);
 		   prev_symtab = 0;
 		 } else {
 		   prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
