@@ -113,3 +113,59 @@ use template_default_arg;
     die "ott test 13 failed";
   }
 }
+
+# Above test in namespaces
+{
+  # plain function: int nsott(Foo<int>)
+  if (template_default_arg::nsott(new template_default_arg::Foo_int()) != 130) {
+    die "nsott test 1 failed";
+  }
+
+  # %template(nsott) nsott<int, int>;
+  if (template_default_arg::nsott() != 110) {
+    die "nsott test 2 failed";
+  }
+  if (template_default_arg::nsott(1) != 110) {
+    die "nsott test 3 failed";
+  }
+  if (template_default_arg::nsott(1, 1) != 110) {
+    die "nsott test 4 failed";
+  }
+
+  if (template_default_arg::nsott("hi") != 120) {
+    die "nsott test 5 failed";
+  }
+  if (template_default_arg::nsott("hi", 1) != 120) {
+    die "nsott test 6 failed";
+  }
+  if (template_default_arg::nsott("hi", 1, 1) != 120) {
+    die "nsott test 7 failed";
+  }
+
+  # %template(nsott) nsott<const char *>;
+  if (template_default_arg::nsottstring(new template_default_arg::Hello_int(), "hi") != 140) {
+    die "nsott test 8 failed";
+  }
+
+  if (template_default_arg::nsottstring(new template_default_arg::Hello_int()) != 140) {
+    die "nsott test 9 failed";
+  }
+
+  # %template(nsott) nsott<int>;
+  if (template_default_arg::nsottint(new template_default_arg::Hello_int(), 1) != 150) {
+    die "nsott test 10 failed";
+  }
+
+  if (template_default_arg::nsottint(new template_default_arg::Hello_int()) != 150) {
+    die "nsott test 11 failed";
+  }
+
+  # %template(nsott) nsott<double>;
+  if (template_default_arg::nsott(new template_default_arg::Hello_int(), 1.0) != 160) {
+    die "nsott test 12 failed";
+  }
+
+  if (template_default_arg::nsott(new template_default_arg::Hello_int()) != 160) {
+    die "nsott test 13 failed";
+  }
+}
