@@ -133,7 +133,6 @@ static DOH      *TAG_VARIABLE = 0;
 
  /* Take a parameter list and produce a type object */
  static DOH *parmstotype(DOH *parms) {
-   int i, l;
    DOH *p, *r;
    DOHList *ty;
 
@@ -233,7 +232,7 @@ static int promote(int t1, int t2) {
 
 /* SWIG directives */
 %token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
-%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA
+%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA INSERT
 %token <tok> RAW_MODE READONLY READWRITE RENAME RUNTIME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
 %token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER MAP
 
@@ -278,7 +277,7 @@ program        : interface {
                ;
 
 interface      : interface statement { 
-                   DOH *o, *o2;
+                   DOH *o, *o2 = 0;
 		   if (!$1.node) {
 		     $$.node = $2;
 		     o = $2;
@@ -434,6 +433,33 @@ modifier_directive : READONLY { $$ = new_node("readonly",$1.filename, $1.line); 
 
 /* -- Code inclusion directives -- */
 
+code_block    : INSERT LPAREN idstring RPAREN STRING {
+                  $$ = new_node("insert", $1.filename, $1.line);
+		  Setattr($$,"filename", $5.text);
+		  Setattr($$,"section",$3.text);
+               }
+               | INSERT LPAREN idstring RPAREN HBLOCK {
+		 $$ = new_node("insert",$1.filename, $1.line);
+		 Setattr($$,"section",$3.text);
+		 Setattr($$,"code",$5.text);
+               }
+              | HBLOCK {
+                 $$ = new_node("insert",$1.filename, $1.line);
+                 Setattr($$,"section","header");
+                 Setattr($$,"code",$1.text);
+	      }
+              | INLINE HBLOCK {
+		 DOH *pp;
+		 $$ = new_node("insert",$2.filename,$2.line);
+                 Setattr($$,"section","header");
+		 Setattr($$,"code", $2.text);
+		 Seek($2.text,0,SEEK_SET);
+		 pp = Preprocessor_parse($2.text);
+		 Seek(pp,0,SEEK_SET);
+		 LParse_push(pp);
+	       }
+
+/*
 code_block    : HBLOCK {
 		 $$ = new_node("headerblock",$1.filename,$1.line);
 		 Setattr($$,"code", $1.text);
@@ -460,6 +486,7 @@ code_block    : HBLOCK {
                  Setattr($$,"code",$2.text);
 	       }
                ;
+*/
 
 /* -- Documentation directives -- */
 
@@ -855,7 +882,7 @@ map_directive   : MAP ID LPAREN parms RPAREN LBRACE map_element RBRACE {
                 ;
 
 map_element     :  variable_decl map_element {
-                    DOH *o, *o2;
+                    DOH *o, *o2 = 0;
                     $$ = $1;
 		    o = $1;
                     while (o) {
@@ -865,7 +892,7 @@ map_element     :  variable_decl map_element {
                     Setattr(o2,ATTR_NEXT,$2);
                 }
                |  function_decl map_element {
-                    DOH *o, *o2;
+                    DOH *o, *o2 = 0;
                     $$ = $1;
 		    o = $1;
                     while (o) {
@@ -1138,7 +1165,7 @@ edecl          :  ID {
                  ;
 		   
 typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
-                    DOH *t, *d, *o, *ty, *prev;
+                    DOH *t, *d, *o, *prev;
 		    int i;
                     $$ = new_node("typedef", $1.filename,$1.line);
 		    t = Copy($2);
