@@ -835,6 +835,14 @@ AC_SUBST(GUILE_SCM_INTERFACE)
 #----------------------------------------------------------------
 
 AC_PATH_PROG(MZC, mzc)
+AC_PATH_PROG(MZSCHEME, mzscheme)
+
+if test -n "$MZSCHEME"; then
+AC_MSG_CHECKING(for MzScheme dynext object) 
+MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext"))(for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries))))'`
+AC_MSG_RESULT($MZDYNOBJ)
+fi
+AC_SUBST(MZDYNOBJ)
 
 #----------------------------------------------------------------
 # Look for Ruby

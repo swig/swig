@@ -80,7 +80,7 @@ namespace std {
                     (($1_type &)$1)[i] =
                         *((T*) SWIG_MustGetPtr(items[i],
                                                $descriptor(T *),
-                                               $argnum));
+                                               $argnum, 0));
                 }
             } else if (SCHEME_NULLP($input)) {
                 $1 = std::vector<T >();
@@ -93,11 +93,11 @@ namespace std {
                     tail = scheme_cdr(tail);
                     $1.push_back(*((T*)SWIG_MustGetPtr(head,
                                                        $descriptor(T *),
-                                                       $argnum)));
+                                                       $argnum, 0)));
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -110,7 +110,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     temp[i] = *((T*) SWIG_MustGetPtr(items[i],
                                                      $descriptor(T *),
-                                                     $argnum));
+                                                     $argnum, 0));
                 }
             } else if (SCHEME_NULLP($input)) {
                 temp = std::vector<T >();
@@ -125,10 +125,10 @@ namespace std {
                     tail = scheme_cdr(tail);
                     temp.push_back(*((T*) SWIG_MustGetPtr(head,
                                                           $descriptor(T *),
-                                                          $argnum)));
+                                                          $argnum, 0)));
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) vector<T> {
@@ -136,7 +136,7 @@ namespace std {
             Scheme_Object** els = SCHEME_VEC_ELS($result);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
-                els[i] = SWIG_MakePtr(x,$descriptor(T *));
+                els[i] = SWIG_NewPointerObj(x,$descriptor(T *), 1);
             }
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
@@ -150,8 +150,8 @@ namespace std {
                     /* check the first element only */
                     T* x;
                     Scheme_Object** items = SCHEME_VEC_ELS($input);
-                    if (SWIG_GetPtr(items[0],(void**) &x,
-                                    $descriptor(T *)) != -1)
+                    if (SWIG_ConvertPtr(items[0],(void**) &x,
+                                    $descriptor(T *), 0) != -1)
                         $1 = 1;
                     else
                         $1 = 0;
@@ -163,16 +163,16 @@ namespace std {
                 /* check the first element only */
                 T* x;
                 Scheme_Object *head = scheme_car($input);
-                if (SWIG_GetPtr(head,(void**) &x,
-                                $descriptor(T *)) != -1)
+                if (SWIG_ConvertPtr(head,(void**) &x,
+                                $descriptor(T *), 0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
             } else {
                 /* wrapped vector? */
                 std::vector<T >* v;
-                if (SWIG_GetPtr($input,(void **) &v, 
-                                $&1_descriptor) != -1)
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $&1_descriptor, 0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -190,8 +190,8 @@ namespace std {
                     /* check the first element only */
                     T* x;
                     Scheme_Object** items = SCHEME_VEC_ELS($input);
-                    if (SWIG_GetPtr(items[0],(void**) &x,
-                                    $descriptor(T *)) != -1)
+                    if (SWIG_ConvertPtr(items[0],(void**) &x,
+                                    $descriptor(T *), 0) != -1)
                         $1 = 1;
                     else
                         $1 = 0;
@@ -203,16 +203,16 @@ namespace std {
                 /* check the first element only */
                 T* x;
                 Scheme_Object *head = scheme_car($input);
-                if (SWIG_GetPtr(head,(void**) &x,
-                                $descriptor(T *)) != -1)
+                if (SWIG_ConvertPtr(head,(void**) &x,
+                                $descriptor(T *), 0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
             } else {
                 /* wrapped vector? */
                 std::vector<T >* v;
-                if (SWIG_GetPtr($input,(void **) &v, 
-                                $1_descriptor) != -1)
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $1_descriptor, 0) != -1)
                     $1 = 1;
                 else
                     $1 = 0;
@@ -292,7 +292,7 @@ namespace std {
                 }
             } else {
                 $1 = *(($&1_type)
-                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
+                       SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -328,7 +328,7 @@ namespace std {
                                           $argnum, argc, argv);
                 }
             } else {
-                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
+                $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         }
         %typemap(out) vector<T> {
@@ -361,8 +361,8 @@ namespace std {
             } else {
                 /* wrapped vector? */
                 std::vector<T >* v;
-                $1 = (SWIG_GetPtr($input,(void **) &v, 
-                                  $&1_descriptor) != -1) ? 1 : 0;
+                $1 = (SWIG_ConvertPtr($input,(void **) &v, 
+                                  $&1_descriptor, 0) != -1) ? 1 : 0;
             }
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
@@ -390,8 +390,8 @@ namespace std {
             } else {
                 /* wrapped vector? */
                 std::vector<T >* v;
-                $1 = (SWIG_GetPtr($input,(void **) &v, 
-                                  $1_descriptor) != -1) ? 1 : 0;
+                $1 = (SWIG_ConvertPtr($input,(void **) &v, 
+                                  $1_descriptor, 0) != -1) ? 1 : 0;
             }
         }
       public:
