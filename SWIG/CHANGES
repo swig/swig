@@ -3,6 +3,11 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+8/30/00 : mkoeppe
+	  Major clean-up in the Guile module. Added typemap-driven
+	  documentation system.
+	  *** NEW FEATURE ***
+
 8/29/00 : beazley
           Added new %insert directive that inserts the contents of a file
           into a portion of the output wrapper file.  This is only intended
@@ -29,6 +34,7 @@ Version 1.3 Alpha 4 (not yet released)
           use this in language configuration files.
           *** NEW FEATURE ***
           
+======= end of combination
 8/28/00 : beazley
           Typemaps can now be specified using string literals like
           this:
