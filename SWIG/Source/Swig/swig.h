@@ -101,8 +101,10 @@ extern char    *Swig_file_basename(const String_or_char *filename);
 extern char    *Swig_file_filename(const String_or_char *filename);
 extern char    *Swig_file_dirname(const String_or_char *filename);
 
-#ifdef MACSWIG
+#if defined(MACSWIG)
 #  define SWIG_FILE_DELIMETER  ":"
+#elif defined(_WIN32)
+#  define  SWIG_FILE_DELIMETER "\\"
 #else
 #  define  SWIG_FILE_DELIMETER "/"
 #endif
