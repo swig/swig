@@ -17,17 +17,17 @@
 
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
+%typemap(throws) enum SWIGTYPE %{
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+%}
+
 %typemap(javain) enum SWIGTYPE "$javainput.swigValue()"
 %typemap(javaout) enum SWIGTYPE {
     return $javaclassname.swigToEnum($jnicall);
   }
 
-%typemap(throws) enum SWIGTYPE {
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-}
-
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
-%typemap(javaclassmodifiers) enum SWIGTYPE "public $static class"
+%typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
 
 /*
  * The swigToEnum method is used to find the Java enum from a C++ enum integer value. The default one here takes 
@@ -41,27 +41,34 @@
     return swigValue;
   }
 
+  public String toString() {
+    return swigName;
+  }
+
   public static $javaclassname swigToEnum(int swigValue) {
     if (swigValue < swigValues.length && swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
-    for (int i = 0; i<swigValues.length; i++)
+    for (int i = 0; i < swigValues.length; i++)
       if (swigValues[i].swigValue == swigValue)
         return swigValues[i];
     throw new IllegalArgumentException("No enum " + $javaclassname.class + " with value " + swigValue);
   }
 
-  private $javaclassname() {
-    this.swigValue = next++;
+  private $javaclassname(String swigName) {
+    this.swigName = swigName;
+    this.swigValue = swigNext++;
   }
 
-  private $javaclassname(int swigValue) {
+  private $javaclassname(String swigName, int swigValue) {
+    this.swigName = swigName;
     this.swigValue = swigValue;
-    next = swigValue+1;
+    swigNext = swigValue+1;
   }
 
   private static $javaclassname[] swigValues = { $enumvalues };
-  private static int next = 0;
+  private static int swigNext = 0;
   private final int swigValue;
+  private final String swigName;
 %}
 
 %javaenum(typesafe);
