@@ -339,6 +339,8 @@ Guile
 **     Maybe communicate the type system between object modules via Scheme
        variables, rather than a shared object.
 
+**     Provide a clean way to construct type predicates.
+
 Mzscheme
 --------
 
