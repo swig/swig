@@ -1080,15 +1080,13 @@ class CSHARP : public Language {
       Replaceall(imclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(upcasts_code,
-          "DllExport long SWIGSTDCALL CSharp_$imclazznameTo$imbaseclass",
-          "(long objectRef) {\n",
-          "    long baseptr = 0;\n"
-          "    *($cbaseclass **)&baseptr = *($cclass **)&objectRef;\n"
-          "    return baseptr;\n"
+          "DllExport $cbaseclass * SWIGSTDCALL CSharp_$imclazznameTo$imbaseclass",
+          "($cclass *objectRef) {\n",
+          "    return ($cbaseclass *)objectRef;\n"
           "}\n",
           "\n",
           NIL); 
-
+ 
       Replaceall(upcasts_code, "$imbaseclass", baseclass);
       Replaceall(upcasts_code, "$cbaseclass",  c_baseclass);
       Replaceall(upcasts_code, "$imclazzname", proxy_class_name);

@@ -68,19 +68,19 @@
 %typemap(cstype) char[ANY]               "string"
 
 /* Non primitive types */
-%typemap(ctype) SWIGTYPE "int"
+%typemap(ctype) SWIGTYPE "void *"
 %typemap(imtype) SWIGTYPE "IntPtr"
 %typemap(cstype) SWIGTYPE "$&csclassname"
 
-%typemap(ctype) SWIGTYPE [] "int"
+%typemap(ctype) SWIGTYPE [] "void *"
 %typemap(imtype) SWIGTYPE [] "IntPtr"
 %typemap(cstype) SWIGTYPE [] "$csclassname"
 
-%typemap(ctype) SWIGTYPE * "int"
+%typemap(ctype) SWIGTYPE * "void *"
 %typemap(imtype) SWIGTYPE * "IntPtr"
 %typemap(cstype) SWIGTYPE * "$csclassname"
 
-%typemap(ctype) SWIGTYPE & "int"
+%typemap(ctype) SWIGTYPE & "void *"
 %typemap(imtype) SWIGTYPE & "IntPtr"
 %typemap(cstype) SWIGTYPE & "$csclassname"
 
@@ -175,34 +175,36 @@ $1 = &temp; %}
 
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = *($&1_ltype*)&$input; 
+%{ argp = ($&1_ltype)$input; 
    if (!argp) {
      SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
    }
    $1 = *argp; %}
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{*($&1_ltype*)&$result = new $1_ltype(($1_ltype &)$1); %}
+%{$result = new $1_ltype(($1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  *($&1_ltype*)&$result = $1ptr;
+  $result = $1ptr;
 }
 #endif
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
-%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
+%typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
+%typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
     SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
   } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE *, SWIGTYPE & %{ $result = (void *)$1; %} 
+%typemap(out) SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
 
 
 /* Default array handling */
-%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
-%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+%typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
+%typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
 /* char[ANY] - treat as String */
 %typemap(in) char[ANY] %{ $1 = $input; %}
@@ -423,8 +425,8 @@ $1 = &temp; %}
 
 %typemap(csdestruct, methodname="Dispose") SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
-      $imcall;
       swigCMemOwn = false;
+      $imcall;
     }
     swigCPtr = IntPtr.Zero;
     GC.SuppressFinalize(this);
@@ -432,8 +434,8 @@ $1 = &temp; %}
 
 %typemap(csdestruct_derived, methodname="Dispose") SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
-      $imcall;
       swigCMemOwn = false;
+      $imcall;
     }
     swigCPtr = IntPtr.Zero;
     GC.SuppressFinalize(this);
