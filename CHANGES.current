@@ -1,6 +1,13 @@
 Version 1.3.22 (in progress)
 ==================================
 
+06/06/2004: wuzzeb (John Lenz)
+            [Chicken, Guile]
+             - Created the Examples/test-suite/schemerunme directory, which holds all the
+	       runme scripts for guile and chicken (and possibly mzscheme...).  The guile
+	       and chicken _runme files then (load "../schemerunme/foo.scm").
+             - In chicken module, fix a few bugs invlolving dynamic casts.
+
 06/03/2004: wsfulton
             Patch to fix wrapping of templated methods. ISO compliant compilers, like
             Comeau and GCC-3.4.0, don't like the template specifier that SWIG was generating

@@ -1,9 +1,2 @@
 (dynamic-call "scm_init_import_nomodule_module" (dynamic-link "./libimport_nomodule.so"))
-
-(define f (create-Foo))
-(test1 f 42)
-
-(define b (new-Bar))
-(test1 b 37)
-
-(exit 0)
+(load "../schemerunme/import_nomodule.scm")
