@@ -17,6 +17,15 @@ tree (maybe).
 Version 1.3.8 (Not yet released)
 ==================================
 
+9/20/2001: beazley
+           Fixed SF bug #462398 problem with nested templates.
+
+9/20/2001: beazley
+           Fixed SF bug #461626 problem with formatting and C++ comments.
+            
+9/20/2001: beazley
+           Fixed SF bug #462845 Wrong ownership of returned objects.
+           
 9/19/2001: beazley
            Fixed SF bug #459367.  Default constructors for classes
            with pure virtual methods.
