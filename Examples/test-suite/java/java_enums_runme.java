@@ -1,7 +1,7 @@
 
 import java_enums.*;
 
-public class java_enums_runme implements java_enumsConstants {
+public class java_enums_runme implements stuff {
   static {
     try {
         System.loadLibrary("java_enums");
@@ -18,26 +18,26 @@ public class java_enums_runme implements java_enumsConstants {
       // Switch statement will only compile if these enums are initialised 
       // from a constant Java value, that is not from a function call
       switch(number) {
-          case java_enums.FIDDLE:
+          case stuff.FIDDLE:
               break;
-          case java_enums.STICKS:
+          case stuff.STICKS:
               break;
-          case java_enums.BONGO:
+          case stuff.BONGO:
               break;
-          case java_enums.DRUMS:
+          case stuff.DRUMS:
               break;
           default:
               break;
       }
-      if (java_enums.DRUMS != 15)
+      if (stuff.DRUMS != 15)
           throw new RuntimeException("Incorrect value for DRUMS");
 
       // check typemaps use short for this enum
-      short nonsense = java_enums.POPPYCOCK;
-      short tst1 = java_enums.test1(nonsense);
-      short tst2 = java_enums.test2(nonsense);
+      short poppycock = nonsense.POPPYCOCK;
+      short tst1 = java_enums.test1(poppycock);
+      short tst2 = java_enums.test2(poppycock);
 
-      // Check that we can drop the java_enums keyword as this class implements the java_enumsConstants interface
+      // Check that stuff is an interface and not a class - we can drop the stuff keyword as this class implements the stuff interface
       switch(number) {
           case FIDDLE:
               break;

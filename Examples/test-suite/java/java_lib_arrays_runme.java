@@ -34,7 +34,7 @@ public class java_lib_arrays_runme {
     long[] array_ll = {1008, 2008};
     float[] array_f = {1009.1f, 2009.1f};
     double[] array_d = {1010.2f, 2010.2f};
-    int[] array_enum = {java_lib_arrays.Three, java_lib_arrays.Four};
+    int[] array_enum = {finger.Three, finger.Four};
 
     SimpleStruct[] array_struct={new SimpleStruct(), new SimpleStruct()};
     array_struct[0].setDouble_field(222.333);
