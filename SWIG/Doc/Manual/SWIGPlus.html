@@ -2887,6 +2887,45 @@ with any namespace awareness.   In the future, language modules may or may not p
 more advanced namespace support.
 
 
+<h2>Exception specifiers</h2>
+
+When C++ programs utilize exceptions, exceptional behavior is sometimes specified as
+part of a function or method declaration.  For example:
+
+<blockquote>
+<pre>
+class Error { };
+
+class Foo {
+public:
+    ...
+    void blah() throw(Error);
+    ...
+};
+</pre>
+</blockquote>
+
+If an exception specification is used, SWIG automatically generates wrapper code for catching the
+indicated exception and converting it into an error in the target language.   In certain language
+modules, wrapped exception classes themselves can be used to catch errors.  For example, in Python, you can
+write code like this:
+
+<blockquote>
+<pre>
+f = Foo()
+try:
+    f.blah()
+except Error,e:
+     # e is a wrapped instance of "Error"
+</pre>
+</blockquote>
+
+Obviously, the exact details of how exceptions are handled depend on the target language module.
+
+<p>
+Since exception specifiers are sometimes only used sparingly, this alone may not be enough to
+properly handle C++ exceptions. To do that, a different set of special SWIG directives are used.
+Consult the "<a href="Customization.html">Customization features</a>" chapter for details.
 
 <a name="n30"></a><H2>5.19 Pointers to Members</H2>
 
