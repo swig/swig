@@ -246,10 +246,12 @@ static void add_symbols(Node *n) {
     }
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
+      Setattr(n,"feature:ignore","1");
       Setattr(n,"error",NewString("ignored"));
       if (strlen(c)) {
 	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n), Getline(n), c+1);
       }
+      Swig_symbol_add(0, n);
     } else {
       Node *c;
       if ((wrn) && (strlen(wrn))) {
@@ -323,23 +325,35 @@ static void merge_addmethods(Node *am) {
 
 /* Check a set of declarations to see if any are pure-abstract */
 
- static int pure_abstract(Node *n) {
+ static List *pure_abstract(Node *n) {
+   List *abs = 0;
    while (n) {
      if (Cmp(nodeType(n),"cdecl") == 0) {
        String *decl = Getattr(n,"decl");
        if (SwigType_isfunction(decl)) {
 	 String *init = Getattr(n,"value");
 	 if (Cmp(init,"0") == 0) {
-	   return 1;
+	   if (!abs) {
+	     abs = NewList();
+	   }
+	   Append(abs,n);
+	   Setattr(n,"abstract","1");
 	 }
        }
      } else if (Cmp(nodeType(n),"destructor") == 0) {
-       if (Cmp(Getattr(n,"value"),"0") == 0) return 1;
+       if (Cmp(Getattr(n,"value"),"0") == 0) {
+	 if (!abs) {
+	   abs = NewList();
+	 }
+	 Append(abs,n);
+	 Setattr(n,"abstract","1");
+       }
      }
      n = nextSibling(n);
    }
-   return 0;
+   return abs;
  }
+
 
  /* Make a classname */
 
@@ -570,6 +584,7 @@ static void patch_template_type(String *s) {
   struct {
     String     *rparms;
     String     *sparms;
+    Parm       *parms;
   } tmplstr;
   struct {
     String     *op;
@@ -1501,74 +1516,95 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
    ------------------------------------------------------------ */
 
 template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATERTHAN SEMI {
-                  Parm *p;
+                  Parm *p, *tp;
+		  Node *n;
 		  String *ts;
 		  String *args;
 		  String *sargs;
 		  String *tds;
 		  String *cpps;
 
-		  ts = NewString("%inline %{\n");
-		  args = NewString("");
-		  sargs = NewString("");
-		  /* Create typedef's and arguments */
-		  p = $7;
-		  while (p) {
-		    String *value = Getattr(p,"value");
-		    if (value) {
-		      Printf(args,"%s",value);
-		      Printf(sargs,"%s",value);
+		  /* Try to locate the template node */
+		  n = Swig_symbol_clookup($5,0);
+		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
+
+		    Parm *tparms = Getattr(n,"parms");
+		    if (ParmList_len($7) > ParmList_len(tparms)) {
+		      Printf(stderr,"%s:%d. Too many template parameters. Maximum of %d.\n", input_file, line_number, ParmList_len(tparms));
+		    } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
+		      Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
 		    } else {
-		      SwigType *ty = Getattr(p,"type");
-		      if (ty) {
-			tds = NewStringf("__swigtmpl%d",templatenum);
-			templatetypes = NewHash();
-			Setattr(templatetypes,Copy(tds),Copy(ty));
-			templatenum++;
-			Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
-			Printf(args,"%s",tds);
-			Printf(sargs,"%s",SwigType_str(ty,0));
-			Delete(tds);
+		      ts = NewString("%inline %{\n");
+		      args = NewString("");
+		      sargs = NewString("");
+		      /* Create typedef's and arguments */
+		      p = $7;
+		      tp = tparms;
+		      while (p) {
+			String *value = Getattr(p,"value");
+			if (value) {
+			  Printf(args,"%s",value);
+			  Printf(sargs,"%s",value);
+			} else {
+			  SwigType *ty = Getattr(p,"type");
+			  if (ty) {
+			    tds = NewStringf("__swigtmpl%d",templatenum);
+			    templatetypes = NewHash();
+			    Setattr(templatetypes,Copy(tds),Copy(ty));
+			    templatenum++;
+			    Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
+			    Printf(args,"%s",tds);
+			    Printf(sargs,"%s",SwigType_str(ty,0));
+			    Delete(tds);
+			  }
+			}
+			p = nextSibling(p);
+			tp = nextSibling(tp);
+			if (!p) p = tp;
+			if (p) {
+			  Printf(args,",");
+			  Printf(sargs,",");
+			}
 		      }
+		      templateargs = NewStringf("%s<%s>", $5, sargs);
+		      canonical_template(templateargs);
+		      
+		      if (!templatemaps) templatemaps = NewHash();
+		      Setattr(templatemaps, templateargs, $3);
+		      
+		      Printf(ts,"%%}\n");
+		      Printf(ts,"%%starttemplate;\n");
+		      Printf(ts,"%s(%s,%s,%s)\n",Getattr(n,"macroname"),$3,args,sargs);
+		      Delete(args);
+		      Delete(sargs);
+		      Setfile(ts,input_file);
+		      Setline(ts,line_number);
+		      Seek(ts,0,SEEK_SET);
+		      
+		      cpps = Preprocessor_parse(ts);
+		      
+		      if (ShowTemplates) {
+			Printf(stderr,"%s:%d. %%template(%s) %s<%s> expanded to the following:\n", input_file, line_number, $3,$5,ParmList_protostr($7));
+			Printf(stderr,"\n%s\n",cpps);
+		      }
+		      if (cpps && (Len(cpps) > 0)) {
+			start_inline(Char(cpps),line_number);
+		      } else {
+			Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
+		      }
+		      Delete(ts);
+		      Delete(cpps);
+		      templatename = NewString($5);
+		      templateiname = NewString($3);
 		    }
-		    p = nextSibling(p);
-		    if (p) {
-		      Printf(args,",");
-		      Printf(sargs,",");
-		    }
-		  }
-		  templateargs = NewStringf("%s<%s>", $5, sargs);
-		  canonical_template(templateargs);
-		  
-		  if (!templatemaps) templatemaps = NewHash();
-		  Setattr(templatemaps, templateargs, $3);
-
-		  Printf(ts,"%%}\n");
-		  Printf(ts,"%%starttemplate;\n");
-                  Printf(ts,"%%_template_%s(%s,%s,%s)\n",$5,$3,args,sargs);
-		  /*		  Printf(ts,"%%endtemplate;\n"); */
-		  Delete(args);
-		  Delete(sargs);
-		  Setfile(ts,input_file);
-		  Setline(ts,line_number);
-		  Seek(ts,0,SEEK_SET);
-
-		  /*		  Printf(stdout,"%%template:\n%s\n", ts); */
-		  cpps = Preprocessor_parse(ts);
-
-		  if (ShowTemplates) {
-		    Printf(stderr,"%s:%d. %%template(%s) %s<%s> expanded to the following:\n", input_file, line_number, $3,$5,ParmList_protostr($7));
-		    Printf(stderr,"\n%s\n",cpps);
-		  }
-		  if (cpps && (Len(cpps) > 0)) {
-		    start_inline(Char(cpps),line_number);
 		  } else {
-		    Printf(stderr,"%s:%d. Unable to expand template %s\n", input_file, line_number, $5);
+		    if (n) {
+		      Printf(stderr,"%s:%d. '%s' is not defined as a template.\n", input_file, line_number, $5);
+		      Printf(stderr,"%s\n", nodeType(n));
+		    } else {
+		      Printf(stderr,"%s:%d. Template '%s' undefined.\n", input_file, line_number, $5);
+		    }
 		  }
-		  Delete(ts);
-		  Delete(cpps);
-		  templatename = NewString($5);
-		  templateiname = NewString($3);
 		  $$ = 0;
                }
                ;
@@ -1868,9 +1904,7 @@ cpp_class_decl  :
 		 Setattr($$,"baselist",$4);
 		 Setattr($$,"allows_typedef","1");
 		 /* Check for pure-abstract class */
-		 if (pure_abstract($7)) {
-		   SetInt($$,"abstract",1);
-		 }
+		 Setattr($$,"abstract", pure_abstract($7));
 		 
 		 /* This bit of code merges in a previously defined %addmethod directive (if any) */
 		 if (addmethods) {
@@ -1958,9 +1992,7 @@ cpp_class_decl  :
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
 	       /* Check for pure-abstract class */
-	       if (pure_abstract($5)) {
-		 SetInt($$,"abstract",1);
-	       }
+	       Setattr($$,"abstract", pure_abstract($5));
 
 	       n = new_node("cdecl");
 	       Setattr(n,"name",$7.id);
@@ -2063,7 +2095,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator initializer cpp_temp_end {
                    if ($3.rparms) {
 		     String  *macrocode = NewString("");
-		     Printf(macrocode, "%%_template_%s(__name,%s,%s)\n", $6.id,$3.rparms,$3.sparms);
+		     String  *macroname = NewStringf("_template_%s_%s", Namespaceprefix, $6.id);
+		     macroname = Swig_name_mangle(macroname);
+		     Insert(macroname,0,"%");
+		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
 		     /* Create function definition */
 		     if ($7.qualifier) SwigType_push($6.type,$7.qualifier);
 		     if (SwigType_isfunction($6.type)) {
@@ -2080,6 +2115,14 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		       Preprocessor_define(macrocode,1);
 		       /*		       	       Printf(stdout,"%s\n", macrocode);  */
 		     } 
+		     /* Drop template into the C symbol table for later lookup */
+		     {
+		       Node *n = new_node("template");
+		       Setattr(n,"name", $6.id);
+		       Setattr(n,"macroname", macroname);
+		       Setattr(n,"parms", $3.parms);
+		       Swig_symbol_add(0, n);
+		     }
 		   }
 		   $$ = 0;
                 }
@@ -2088,7 +2131,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		} SEMI {
 		  if ($3.rparms) {
 		     String  *macrocode = NewString("");
-		     Printf(macrocode, "%%_template_%s(__name,%s,%s)\n", $6,$3.rparms,$3.sparms);
+		     String  *macroname = NewStringf("_template_%s_%s", Namespaceprefix, $6);
+		     macroname = Swig_name_mangle(macroname);
+		     Insert(macroname,0,"%");
+		     Printf(macrocode, "%s(__name,%s,%s)\n", macroname,$3.rparms,$3.sparms);
 		     Printf(macrocode,"%%gencode %%{\n");
 		     Printf(macrocode,"typedef %s< %s > __name;\n", $6,$3.sparms);
 		     Printf(macrocode,"%%}\n");
@@ -2102,6 +2148,18 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		       }
 		     }
 		     Replace(scanner_ccode,$6,"__name", DOH_REPLACE_ID);
+		     /* Replace macros of the form #X with #__swigX */
+		     {
+		       Parm *p = $3.parms;
+		       while (p) {
+			 String *t = NewStringf("#%s", Getattr(p,"name"));
+			 String *r = NewStringf("#__swig%s", Getattr(p,"name"));
+			 Replace(scanner_ccode,t,r, DOH_REPLACE_ID);
+			 Delete(t);
+			 Delete(r);
+			 p = nextSibling(p);
+		       }
+		     }
 		     Printf(macrocode," %s;\n", scanner_ccode);
 		     /* Include a reverse typedef to associate templated version with renamed version */
 		     Printf(macrocode,"%%endtemplate;\n");
@@ -2113,6 +2171,14 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     Setline(macrocode,$1-4);
 		     Setfile(macrocode,input_file);
 		     Preprocessor_define(macrocode,1);
+		     /* Drop template into the C symbol table for later lookup */
+		     {
+		       Node *n = new_node("template");
+		       Setattr(n,"name", $6);
+		       Setattr(n,"macroname", macroname);
+		       Setattr(n,"parms", $3.parms);
+		       Swig_symbol_add(0, n);
+		     }
 		  }
                   $$ = 0;
 		}
@@ -2130,6 +2196,7 @@ template_parms  : rawparms {
 		  Parm *p = $1;
 		  $$.rparms = NewString("");
 		  $$.sparms = NewString("");
+		  $$.parms = $1;
 
 		  while (p) {
 		    String *name = Getattr(p,"name");
@@ -2140,10 +2207,12 @@ template_parms  : rawparms {
 			char *t = strchr(type,' ');
 			Printf($$.rparms,"%s",t+1);
 			Printf($$.sparms,"__swig%s",t+1);
+			Setattr(p,"name", t+1);
 		      } else {
 			 Printf(stderr,"%s:%d. Missing template parameter name\n", input_file,line_number);
 			 $$.rparms = 0;
 			 $$.sparms = 0;
+			 $$.parms = 0;
 			 break;
 		      }
 		    } else {
@@ -3542,6 +3611,7 @@ idcolontail    : DCOLON idtemplate idcolontail {
                    $$ = NewStringf("::%s",$2);
                }
                ;
+
 
 idtemplate    : ID template_decl {
                   $$ = NewStringf("%s%s",$1,$2);

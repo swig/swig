@@ -322,12 +322,12 @@ public:
 	String *alias = Getattr(n,"alias");
 	List   *olist = normalize;
 	normalize = NewList();    
-
+	/*
 	if (!warn) {
 	    Printf(stderr,"%s:%d. Warning. C++ namespace support is experimental and under development.\n", Getfile(n), Getline(n));
 	    warn = 1;
 	}
-
+	*/
 	if (alias) {
 	    Typetab *ts = Getattr(n,"typescope");
 	    if (!ts) {

@@ -24,6 +24,40 @@ class Allocate : public Dispatcher {
   Node  *inclass;
   enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
   AccessMode cplus_mode;
+
+  /* Checks to see if a class is abstract through inheritance */
+  int is_abstract_inherit(Node *n, Node *base = 0) {
+    if (!base) {
+      /* Root node */
+      Symtab *stab = Getattr(n,"symtab");         /* Get symbol table for node */
+      Symtab *oldtab = Swig_symbol_setscope(stab);
+      int ret = is_abstract_inherit(n,n);
+      Swig_symbol_setscope(oldtab);
+      return ret;
+    }
+    List *abstract = Getattr(base,"abstract");
+    if (abstract) {
+      for (int i = 0; i < Len(abstract); i++) {
+	Node *n = Getitem(abstract,i);
+	String *name = Getattr(n,"name");
+	if (Strncmp(name,"~",1) == 0) continue;   /* Don't care about destructors */
+	Node *dn = Swig_symbol_clookup(name,0);
+	assert(dn);                   /* If symbol is in abstract list, it sure better be in the class itself */
+	if (dn && (Getattr(dn,"abstract"))) {
+	  return 1;
+	} 
+      }
+    }
+    List *bases = Getattr(base,"bases");
+    if (!bases) return 0;
+    for (int i = 0; i < Len(bases); i++) {
+      if (is_abstract_inherit(n,Getitem(bases,i))) {
+	return 1;
+      }
+    }
+    return 0;
+  }
+
 public:
   virtual int top(Node *n) {
     cplus_mode = PUBLIC;
@@ -67,19 +101,33 @@ public:
 
     emit_children(n);
 
-    if (Getattr(n,"abstract")) {
+    /* Check if the class is abstract via inheritance.   This might occur if a class didn't have
+       any pure virtual methods of its own, but it didn't implement all of the pure methods in
+       a base class */
+
+    if (is_abstract_inherit(n)) {
+      if (!Getattr(n,"abstract")) {
+	Setattr(n,"abstract",NewList());
+      }
+    }
+
+    /*    if (Getattr(n,"abstract")) {
       Delattr(n,"allocate:default_constructor");
       Delattr(n,"allocate:has_constructor");
-    } else if (!Getattr(n,"allocate:has_constructor")) {
-      /* No constructor was defined.  We need to check a few things */
+    }
+    */
+    if (!Getattr(n,"allocate:has_constructor")) {
+      /* No constructor is defined.  We need to check a few things */
       /* If class is abstract.  No default constructor. Sorry */
-      if (Getattr(n,"abstract")) {
+      /*      if (Getattr(n,"abstract")) {
 	Delattr(n,"allocate:default_constructor");
-      } else if (!Getattr(n,"allocate:default_constructor")) {
+	} else  */
+      
+      if (!Getattr(n,"allocate:default_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n,"bases");
 	int   allows_default = 1;
-
+	
 	for (int i = 0; i < Len(bases); i++) {
 	  Node *n = Getitem(bases,i);
 	  /* If base class does not allow default constructor, we don't allow it either */
@@ -92,7 +140,6 @@ public:
 	}
       }
     }
-
     if (!Getattr(n,"allocate:has_destructor")) {
       /* No destructor was defined.  We need to check a few things here too */
       List *bases = Getattr(n,"bases");

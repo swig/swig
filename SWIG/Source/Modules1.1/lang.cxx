@@ -1236,7 +1236,11 @@ int Language::classDeclaration(Node *n) {
     InClass = 1;
     CurrentClass = n;
 
-    Abstract = GetInt(n,"abstract");
+    if (Getattr(n,"abstract")) {
+      Abstract = 1;
+    } else {
+      Abstract = 0;
+    }
 
     /* Call classHandler() here */
     if (!ImportMode) 
@@ -1270,7 +1274,9 @@ int Language::classHandler(Node *n) {
     if (!ImportMode && GenerateDefault) {
 	if (!Getattr(n,"has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
 	    /* Note: will need to change this to support different kinds of classes */
+	  if (!Abstract) {
 	    constructorHandler(CurrentClass);
+	  }
 	}
 	if (!Getattr(n,"has_destructor") && (Getattr(n,"allocate:default_destructor"))) {
 	    destructorHandler(CurrentClass);

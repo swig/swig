@@ -364,6 +364,12 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     }
   }
 
+  /* No symbol name defined.  We return. */
+  if (!symname) return n;
+
+  /* If node is ignored. We don't proceed any further */
+  if (Getattr(n,"feature:ignore")) return n;
+
   /* See if the symbol already exists in the table */
   c = Getattr(current,symname);
 
