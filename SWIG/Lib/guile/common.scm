@@ -47,7 +47,13 @@
   (display (number->string (object-address o) 16) file))
 
 (define (display-pointer-address o file)
-  (display (number->string (SWIG-PointerAddress o) 16) file))
+  ;; Don't fail if the function SWIG-PointerAddress is not present.
+  (let ((address (false-if-exception (SWIG-PointerAddress o))))
+    (if address
+	(begin
+	  (display " @ " file)
+	  (display (number->string address 16) file)))))
+
 (define-method (write (o <swig>) file)
   ;; We display _two_ addresses to show the object's identity:
   ;;  * first the address of the GOOPS proxy object,
@@ -61,9 +67,10 @@
 	  (display (class-name class) file)
 	  (display #\space file)
 	  (display-address o file)
-	  (display " @ " file)
 	  (display-pointer-address o file)
 	  (display ">" file))
 	(next-method))))
                                               
 (export <swig-metaclass> <swig>)
+
+;;; common.scm ends here
