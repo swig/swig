@@ -1,6 +1,31 @@
 Version 1.3.22 (in progress)
 ==================================
 
+03/21/2004: mmatus
+	    [Python] Disabling the default instantiations like:
+
+	      %template() std::pair<int,int>;
+
+            for all the primitive types and STL containers/classes.
+	    They are expensive, specially for pair and map, and the
+	    previous behaviour also requires the user to perform
+	    manual instantiations. Still, if the speed difference is
+	    not important, it can be re-enabled by defining the macro
+	    SWIG_STD_DEFAULT_INSTANTIATION (see std_common.i).
+
+	    Also, normalizing the INPUT/OUTPUT/INOUT typemaps. Now
+	    they use the same conversors than the rest of the
+	    typemaps, and you can use them for std::pair, std::string
+	    and all the other STL types, like in:
+
+	      void p_inoutd(std::pair<double, double> *INOUT);
+
+	    Added the attribute.i and implicit.i files with macros to
+	    transform functions pairs like 'set_x'/'get_x' 
+	    (or 'T& x()'/'const T& x() const') into an attribute,
+	    and allowing the use of implicit constructors in typemaps
+	    (see the files for more details).
+
 03/21/2004: mkoeppe
 	    [Guile] Fix the documentation strings of functions with
 	    anonymous arguments.
