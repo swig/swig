@@ -368,40 +368,6 @@ void print_array() {
     fprintf(stderr,"[]");
 }
 
-/* manipulate small stack for managing if-then-else */
-
-static int then_data[100];
-static int else_data[100];
-static int allow_data[100];
-static int te_index = 0;
-static int prev_allow = 1;
-
-void if_push() {
-  then_data[te_index] = in_then;
-  else_data[te_index] = in_else;
-  allow_data[te_index] = allow;
-  prev_allow = allow;
-  te_index++;
-  if (te_index >= 100) {
-    fprintf(stderr,"SWIG.  Internal parser error. if-then-else stack overflow.\n");
-    SWIG_exit(1);
-  }
-}
-
-void if_pop() {
-  if (te_index > 0) {
-    te_index--;
-    in_then = then_data[te_index];
-    in_else = else_data[te_index];
-    allow = allow_data[te_index];
-    if (te_index > 0) {
-      prev_allow = allow_data[te_index-1];
-    } else {
-      prev_allow = 1;
-    }
-  }
-}
-
 // Structures for handling code fragments built for nested classes
 
 struct Nested {
@@ -492,6 +458,11 @@ static void dump_nested(char *parent) {
     char *id;
     int   type;
   } dtype;
+  struct {
+    char *filename;
+    int   line;
+    int   flag; 
+  } loc;
   DataType     *type;
   Parm         *p;
   TMParm       *tmparm;
@@ -502,20 +473,21 @@ static void dump_nested(char *parent) {
 %token <id> ID 
 %token <id> HBLOCK WRAPPER POUND 
 %token <id> STRING
+%token <loc> INCLUDE IMPORT WEXTERN SWIGMACRO
 %token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE DEFINE PERIOD
 %token CONST STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
-%token WEXTERN ILLEGAL
-%token READONLY READWRITE NAME RENAME INCLUDE CHECKOUT ADDMETHODS PRAGMA 
+%token ILLEGAL CONSTANT 
+%token READONLY READWRITE NAME RENAME CHECKOUT ADDMETHODS PRAGMA 
 %token CVALUE COUT
 %token ENUM ENDDEF MACRO 
 %token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND OPERATOR THROW TEMPLATE
 %token NATIVE INLINE
 %token IFDEF IFNDEF ENDIF ELSE UNDEF IF DEFINED ELIF
 %token RAW_MODE ALPHA_MODE TEXT DOC_DISABLE DOC_ENABLE STYLE LOCALSTYLE
-%token TYPEMAP EXCEPT IMPORT ECHO NEW APPLY CLEAR DOCONLY
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR DOCONLY
 %token <ivalue> TITLE SECTION SUBSECTION SUBSUBSECTION 
 %token LESSTHAN GREATERTHAN
 %token <id> USERDIRECTIVE
@@ -540,9 +512,9 @@ static void dump_nested(char *parent) {
 %type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method idstring;
 %type <type>     type opt_signed opt_unsigned strict_type;
 %type <decl>     declaration nested_decl;
-%type <ivalue>   stars cpp_const_expr;
+%type <ivalue>   stars;
 %type <ilist>    initlist base_list inherit;
-%type <dtype>    definetype definetail def_args;
+%type <dtype>    definetype def_args;
 %type <dtype>    etype;
 %type <dtype>    expr;
 %type <id>       ename stylearg objc_inherit;
@@ -572,10 +544,6 @@ program        : {
 		   if (lang_init) {
 		     lang->close();
 		   }
-		   if (te_index) {
-		     fprintf(stderr,"%s : EOF.  Missing #endif detected.\n", input_file);
-		     FatalError();
-		   }
                }
                ;
     
@@ -587,75 +555,78 @@ command        : command statement {
 	       }
                ;
 
-statement      : INCLUDE idstring {
-                  if (allow) {
-//		    init_language();
-		    doc_entry = 0;
-		    // comment_handler->clear();
-		    include_file($2);
-		  }
-                }
+statement      : INCLUDE STRING LBRACE {
+                     $1.filename = copy_string(input_file);
+		     $1.line = line_number;
+		     input_file = copy_string($2);
+		     line_number = 0;
+               } command RBRACE {
+                     input_file = $1.filename;
+		     line_number = $1.line;
+               }
 
 /* %extern directive */
 
-               | WEXTERN idstring {
-		 if (allow) {
-		   int oldextern = WrapExtern;
-//		   init_language();
-		   doc_entry = 0;
-		   // comment_handler->clear();
-		   WrapExtern = 1;
-		   if (include_file($2) >= 0) {
-		     add_symbol("SWIGEXTERN",0,0);
-		   } else {
-		     WrapExtern = oldextern;
-		   }
-		 }
+               | WEXTERN STRING LBRACE {
+		 $1.flag = WrapExtern;
+		 WrapExtern = 1;
+		 $1.filename = copy_string(input_file);
+		 $1.line = line_number;
+		 input_file = copy_string($2);
+		 line_number = 0;
+	       } command RBRACE {
+		 input_file = $1.filename;
+		 line_number = $1.line;
+		 WrapExtern = $1.flag;
 	       }
 
 /* %import directive.  Like %extern but calls out to a language module */
 
-                | IMPORT idstring {
-		  if (allow) {
-		    int oldextern = WrapExtern;
-		    init_language();
-		    doc_entry = 0;
-		    WrapExtern = 1;
-		    if (include_file($2) >= 0) {
-		      add_symbol("SWIGEXTERN",0,0);
-		      lang->import($2);
-		    } else {
-		      WrapExtern = oldextern;
-		    }
-		  }
-                }
+               | IMPORT STRING LBRACE {
+		 $1.flag = WrapExtern;
+		 WrapExtern = 1;
+		 $1.filename = copy_string(input_file);
+		 $1.line = line_number;
+		 input_file = copy_string($2);
+		 line_number = 0;
+		 lang->import($2);
+	       } command RBRACE {
+		 input_file = $1.filename;
+		 line_number = $1.line;
+		 WrapExtern = $1.flag;
+	       }
+
+               | SWIGMACRO ID COMMA STRING COMMA NUM_INT LBRACE {
+		 $1.filename = copy_string(input_file);
+		 $1.line = line_number;
+		 input_file = copy_string($4);
+		 line_number = atoi($6) - 1;
+	       } command RBRACE {
+		 input_file = $1.filename;
+		 line_number = $1.line;
+	       }
 
 /* %checkout directive.  Like %include, but simply copies the file into the
    current directory */
 
                 | CHECKOUT idstring {
-                  if (allow) {
-                     if ((checkout_file($2,$2)) == 0) {
-                       fprintf(stderr,"%s checked out from the SWIG library.\n",$2);
-                      }
-                  }
+		 if ((checkout_file($2,$2)) == 0) {
+		   fprintf(stderr,"%s checked out from the SWIG library.\n",$2);
+		 }
                 }
 
 /* An unknown C preprocessor statement.  Just throw it away */
 
                 | POUND {
-		 if (allow) {
                   doc_entry = 0;
 		  if (Verbose) {
 		    fprintf(stderr,"%s : Line %d.  CPP %s ignored.\n", input_file, line_number,$1);
 		  }
-		 }
 		}
 
 /* A variable declaration */
 
                 | extern type declaration array2 def_args {
-		  if (allow) {
 		    init_language();
 		    if (Active_type) delete Active_type;
 		    Active_type = new DataType($2);
@@ -679,7 +650,6 @@ statement      : INCLUDE idstring {
 		      } else
 			create_variable($1,$3.id,$2);
 		    }
-		  }
 		  delete $2;
                 } stail { } 
 
@@ -715,7 +685,6 @@ statement      : INCLUDE idstring {
 /* A function declaration */
 
                 | extern type declaration LPAREN parms RPAREN cpp_const {
-		  if (allow) {
 		    init_language();
 		    if (Active_type) delete Active_type;
 		    Active_type = new DataType($2);
@@ -723,7 +692,6 @@ statement      : INCLUDE idstring {
 		    $2->is_pointer += $3.is_pointer;
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
-		  }
 		  delete $2;
 		  delete $5;
 		} stail { } 
@@ -731,12 +699,10 @@ statement      : INCLUDE idstring {
 /* A function declaration with code after it */
 
                 | extern type declaration LPAREN parms RPAREN func_end {
-		  if (allow) {
 		    init_language();
 		    $2->is_pointer += $3.is_pointer;
 		    $2->is_reference = $3.is_reference;
 		    create_function($1, $3.id, $2, $5);
-		  }
 		  delete $2;
 		  delete $5;
 		};
@@ -744,20 +710,18 @@ statement      : INCLUDE idstring {
 /* A function declared without any return datatype */
 
                 | extern declaration LPAREN parms RPAREN cpp_const { 
-		  if (allow) {
                     init_language();
 		    DataType *t = new DataType(T_INT);
                     t->is_pointer += $2.is_pointer;
 		    t->is_reference = $2.is_reference;
 		    create_function($1,$2.id,t,$4);
 		    delete t;
-		  }
                 } stail { };
 
 /* A static function declaration code after it */
 
                 | STATIC type declaration LPAREN parms RPAREN func_end {
-		  if ((allow) && (Inline)) {
+		  if (Inline) {
 		    if (strlen(CCode.get())) {
 		      init_language();
 		      $2->is_pointer += $3.is_pointer;
@@ -772,7 +736,6 @@ statement      : INCLUDE idstring {
 /* A function with an explicit inline directive. Not safe to use inside a %inline block */
 
                 | INLINE type declaration LPAREN parms RPAREN func_end {
-		  if (allow) {
 		    init_language();
 		    $2->is_pointer += $3.is_pointer;
 		    $2->is_reference = $3.is_reference;
@@ -787,7 +750,6 @@ statement      : INCLUDE idstring {
 		      }
 		      create_function(0, $3.id, $2, $5);
 		    }
-		  }
 		  delete $2;
 		  delete $5;
 		};
@@ -795,10 +757,8 @@ statement      : INCLUDE idstring {
 /* A static function declaration (ignored) */
 
                 | STATIC type declaration LPAREN parms RPAREN cpp_const {
-		  if (allow) {
-		    if (Verbose) {
-		      fprintf(stderr,"static function %s ignored.\n", $3.id);
-		    }
+		  if (Verbose) {
+		    fprintf(stderr,"static function %s ignored.\n", $3.id);
 		  }
 		  Active_static = 1;
 		  delete $2;
@@ -810,23 +770,19 @@ statement      : INCLUDE idstring {
 /* Enable Read-only mode */
 
                | READONLY {
-		  if (allow)
-		    Status = Status | STAT_READONLY;
+		  Status = Status | STAT_READONLY;
 	       }
 
 /* Enable Read-write mode */
 
 	       | READWRITE {
-		 if (allow)
-		   Status = Status & ~STAT_READONLY;
+		 Status = Status & ~STAT_READONLY;
 	       }
 
 /* New %name directive */
                | NAME LPAREN ID RPAREN {
-		 if (allow) {
-                     strcpy(yy_rename,$3);
-                     Rename_true = 1;
-		 }
+		 strcpy(yy_rename,$3);
+		 Rename_true = 1;
                }
 
 /* %rename directive */
@@ -848,11 +804,9 @@ statement      : INCLUDE idstring {
 /* Empty name directive.  No longer allowed  */
 
                | NAME LPAREN RPAREN {
-		 if (allow) {
 		   fprintf(stderr,"%s : Lind %d. Empty %%name() is no longer supported.\n",
 			   input_file, line_number);
 		   FatalError();
-		 }
 	       } cpp {
 		 Rename_true = 0;
 	       }
@@ -860,7 +814,7 @@ statement      : INCLUDE idstring {
 /* A native wrapper function */
 
                | NATIVE LPAREN ID RPAREN extern ID SEMI {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   init_language();
 		   if (add_symbol($3,(DataType *) 0, (char *) 0)) {
 		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
@@ -872,7 +826,7 @@ statement      : INCLUDE idstring {
 		 }
 	       }
                | NATIVE LPAREN ID RPAREN extern type declaration LPAREN parms RPAREN SEMI {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   init_language();
 		   $6->is_pointer += $7.is_pointer;
 		   if (add_symbol($3,(DataType *) 0, (char *) 0)) {
@@ -893,7 +847,7 @@ statement      : INCLUDE idstring {
 /* %title directive */
 
                | TITLE STRING styletail {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   if (!title_init) {
 		     title_init = 1;
 		     doc_init = 1;
@@ -941,7 +895,7 @@ statement      : INCLUDE idstring {
 /* %section directive */
 
                | SECTION STRING styletail {
-		 if (allow && (!WrapExtern) && (!IgnoreDoc)) {
+		 if ((!WrapExtern) && (!IgnoreDoc)) {
 		   // Copy old comment handler
 		   // if (handler_stack[1]) delete handler_stack[1];
 		   handler_stack[1] = new CommentHandler(handler_stack[0]);  
@@ -971,7 +925,7 @@ statement      : INCLUDE idstring {
 
 /* %subsection directive */
                | SUBSECTION STRING styletail {
-		 if (allow && (!WrapExtern) && (!IgnoreDoc)) {
+		 if ((!WrapExtern) && (!IgnoreDoc)) {
 		   if (doc_stack_top < 1) {
 		     fprintf(stderr,"%s : Line %d. Can't apply %%subsection here.\n", input_file,line_number);
 		     FatalError();
@@ -1007,7 +961,7 @@ statement      : INCLUDE idstring {
 
 /* %subsubsection directive */
                | SUBSUBSECTION STRING styletail {
-		 if (allow && (!WrapExtern) && (!IgnoreDoc)) {
+		 if ((!WrapExtern) && (!IgnoreDoc)) {
 		   if (doc_stack_top < 2) {
 		     fprintf(stderr,"%s : Line %d. Can't apply %%subsubsection here.\n", input_file,line_number);
 		     FatalError();
@@ -1044,7 +998,7 @@ statement      : INCLUDE idstring {
 
 /* %alpha directive (obsolete) */
                | ALPHA_MODE {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   fprintf(stderr,"%%alpha directive is obsolete.  Use '%%style sort' instead.\n");
 		   handler_stack[0]->style("sort",0);
 		   doc_stack[0]->style("sort",0);
@@ -1052,7 +1006,7 @@ statement      : INCLUDE idstring {
 	       }
 /* %raw directive (obsolete) */
                | RAW_MODE {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   fprintf(stderr,"%%raw directive is obsolete. Use '%%style nosort' instead.\n");
 		   handler_stack[0]->style("nosort",0);
 		   doc_stack[0]->style("nosort",0);
@@ -1064,7 +1018,7 @@ statement      : INCLUDE idstring {
 /* %text directive */
 
                | TEXT HBLOCK {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   $2[strlen($2) - 1] = 0;
 		   doc_entry = new DocText($2,doc_stack[doc_stack_top]);
 		   doc_entry = 0;
@@ -1077,7 +1031,7 @@ statement      : INCLUDE idstring {
 /* Code insertion block */
 
                | HBLOCK {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   init_language();
 		   $1[strlen($1) - 1] = 0;
 //		   fprintf(f_header,"#line %d \"%s\"\n", start_line, input_file);
@@ -1088,7 +1042,7 @@ statement      : INCLUDE idstring {
 /* Super-secret undocumented for people who really know what's going on feature */
 
                | WRAPPER HBLOCK {
-                 if (allow && (!WrapExtern)) {
+                 if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) - 1] = 0;
 		   fprintf(f_wrappers,"%s\n",$2);
@@ -1098,7 +1052,7 @@ statement      : INCLUDE idstring {
 /* Initialization code */
 
                | INIT HBLOCK {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) -1] = 0;
 		   fprintf(f_init,"%s\n", $2);
@@ -1107,7 +1061,7 @@ statement      : INCLUDE idstring {
 
 /* Inline block */
                | INLINE HBLOCK {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) - 1] = 0;
 		   fprintf(f_header, "%s\n", $2);
@@ -1117,13 +1071,13 @@ statement      : INCLUDE idstring {
 
 /* Echo mode */
                | ECHO HBLOCK {
-		 if (allow && (!WrapExtern)) {
+		 if (!WrapExtern) {
 		   fprintf(stderr,"%s\n", $2);
 		 }
 	       }
 
                | ECHO STRING {
-                 if (allow && (!WrapExtern)) {
+                 if (!WrapExtern) {
                    fprintf(stderr,"%s\n", $2);
                  }
                }
@@ -1136,7 +1090,6 @@ statement      : INCLUDE idstring {
 /* Init directive--to avoid errors in other modules */
 
                | INIT ID initlist {
-		 if (allow) {
 		   if (!module_init) {
 		     lang->set_init($2);
 		     module_init = 1;
@@ -1150,7 +1103,6 @@ statement      : INCLUDE idstring {
 		     fprintf(stderr,"%s : Line %d. Warning. Init list no longer supported.\n",
 			     input_file,line_number);
 		   }
-		 }
 		 for (i = 0; i < $3.count; i++)
 		   if ($3.names[i]) delete [] $3.names[i];
 		 delete [] $3.names;
@@ -1158,23 +1110,20 @@ statement      : INCLUDE idstring {
 /* Module directive */
 
                | MODULE ID initlist {
-		 if (allow) {
 		   if ($3.count)
 		     lang->set_module($2,$3.names);
 		   else
 		     lang->set_module($2,0);
 		   module_init = 1;
 		   init_language();
-		 }
 		 for (i = 0; i < $3.count; i++)
 		   if ($3.names[i]) delete [] $3.names[i];
 		 delete [] $3.names;
 	       }
 
-/* #define directive */
+/* constant directive */
 
-               | DEFINE ID definetail {
-		 if (allow) {
+               | CONSTANT ID definetype SEMI {
 		   if (($3.type != T_ERROR) && ($3.type != T_SYMBOL)) {
 		     init_language();
 		     temp_typeptr = new DataType($3.type);
@@ -1187,26 +1136,11 @@ statement      : INCLUDE idstring {
 			       input_file,line_number, $2);
 		     }
 		   }
-		 }
-	       }
-
-/* A CPP Macro.   Ignore (hopefully) */
-
-               | DEFINE MACRO {
-		 if (Verbose) {
-		   fprintf(stderr,"%s : Line %d.  CPP Macro ignored.\n", input_file, line_number);
-		 }
-	       }
-
-/* An undef directive */
-               | UNDEF ID {
-		 remove_symbol($2);
 	       }
 
 /* Enumerations */
 
                | extern ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE SEMI { 
-		 if (allow) {
 		   init_language();
 		   if ($3) {
 		     temp_type.type = T_INT;
@@ -1215,13 +1149,11 @@ statement      : INCLUDE idstring {
 		     sprintf(temp_type.name,"int");
 		     temp_type.typedef_add($3,1);
 		   }
-		 }
 	       }
 
 /* A typdef'd enum.  Pretty common in C headers */
 
                | TYPEDEF ENUM ename LBRACE { scanner_clear_start(); } enumlist RBRACE ID {
-		 if (allow) {
 		   init_language();
 		   temp_type.type = T_INT;
 		   temp_type.is_pointer = 0;
@@ -1229,7 +1161,6 @@ statement      : INCLUDE idstring {
 		   sprintf(temp_type.name,"int");
 		   Active_typedef = new DataType(&temp_type);
 		   temp_type.typedef_add($8,1);
-		 }
 	       } typedeflist { }
 
 /* -----------------------------------------------------------------
@@ -1413,7 +1344,6 @@ statement      : INCLUDE idstring {
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
                | EXTERN STRING LBRACE command RBRACE { }
-               | cond_compile { }
 
 /* Officially, this directive doesn't exist yet */
 
@@ -1457,7 +1387,6 @@ statement      : INCLUDE idstring {
 /* Dcumentation disable/enable */
 
 doc_enable     : DOC_DISABLE {
-		 if (allow) {
 		   if (IgnoreDoc) {
 		     /* Already in a disabled documentation */
 		     doc_scope++;
@@ -1467,11 +1396,9 @@ doc_enable     : DOC_DISABLE {
 		     IgnoreDoc = 1;
 		     doc_scope = 1;
 		   }
-		 }
 	       }
 /* %enabledoc directive */
                | DOC_ENABLE {
-		 if (allow) {
 		   if (IgnoreDoc) {
 		     if (doc_scope > 1) {
 		       doc_scope--;
@@ -1482,7 +1409,6 @@ doc_enable     : DOC_DISABLE {
 		       doc_scope = 0;
 		     }
 		   }
-		 }
 	       }
                ;
 
@@ -1490,7 +1416,6 @@ doc_enable     : DOC_DISABLE {
 
 /* A typedef with pointers */
 typedef_decl   : TYPEDEF type declaration {
-		 if (allow) {
 		   init_language();
 		   /* Add a new typedef */
 		   Active_typedef = new DataType($2);
@@ -1500,13 +1425,11 @@ typedef_decl   : TYPEDEF type declaration {
 		   if ($1) 
 		     fprintf(f_header,"typedef %s %s;\n", $2->print_full(), $3.id);
 		   cplus_register_type($3.id);
-		 }
 	       } typedeflist { };
 
 /* A rudimentary typedef involving function pointers */
 
                | TYPEDEF type LPAREN STAR pname RPAREN LPAREN parms RPAREN SEMI {
-		 if (allow) {
 		   init_language();
 		   /* Typedef'd pointer */
 		   if ($1) {
@@ -1519,7 +1442,6 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer = 1;
 		   $2->typedef_add($5,1);
 		   cplus_register_type($5);
-		 }
 		 delete $2;
 		 delete $5;
 		 delete $8;
@@ -1528,7 +1450,6 @@ typedef_decl   : TYPEDEF type declaration {
 /* A typedef involving function pointers again */
 
                | TYPEDEF type stars LPAREN STAR pname RPAREN LPAREN parms RPAREN SEMI {
-		 if (allow) {
 		   init_language();
 		   if ($1) {
 		     $2->is_pointer += $3;
@@ -1543,7 +1464,6 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer = 1;
 		   $2->typedef_add($6,1);
 		   cplus_register_type($6);
-		 }
 		 delete $2;
 		 delete $6;
 		 delete $9;
@@ -1552,7 +1472,6 @@ typedef_decl   : TYPEDEF type declaration {
 /* A typedef involving arrays */
 
                | TYPEDEF type declaration array {
-		 if (allow) {
 		   init_language();
 		   Active_typedef = new DataType($2);
 		   // This datatype is going to be readonly
@@ -1566,7 +1485,6 @@ typedef_decl   : TYPEDEF type declaration {
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
 
-		 }
 	       } typedeflist { }
                ;
 
@@ -1581,7 +1499,6 @@ typedef_decl   : TYPEDEF type declaration {
              
 
 typedeflist   : COMMA declaration typedeflist {
-                if (allow) {
 		  if (Active_typedef) {
 		    DataType *t;
 		    t = new DataType(Active_typedef);
@@ -1590,7 +1507,6 @@ typedeflist   : COMMA declaration typedeflist {
 		    cplus_register_type($2.id);
 		    delete t;
 		  }
-		}
               }
               | COMMA declaration array {
 		    DataType *t;
@@ -1606,180 +1522,8 @@ typedeflist   : COMMA declaration typedeflist {
               | empty { }
               ;
 
-/* ----------------------------------------------------------------------------------
-   Conditional Compilation
-
-   SWIG supports the following constructs
-           #ifdef
-	   #ifndef
-	   #else
-	   #endif
-	   #if defined(ID)
-	   #if ! defined(ID)
-	   #elif
-	  
-   #if, and #elif are a little weak in this implementation
-   ---------------------------------------------------------------------------------- */
-
-
-/* #ifdef directive */
-cond_compile   : IFDEF ID {
-		 /* Push old if-then-else status */
-		 if_push();
-		 /* Look a symbol up in the symbol table */
-		 if (lookup_symbol($2)) {
-		   in_then = 1;
-		   in_else = 0;
-		   allow = 1 & prev_allow;
-		 } else {
-		   /* Condition is false.   Skip over whatever is in this block */
-		   in_else = skip_cond(1);
-		   if (in_else == -1) {
-		     /* Unrecoverable error */
-		     SWIG_exit(1);
-		   }
-		   if (!in_else) {
-		     if_pop();        // Pop out. Reached end of block
-		   } else {
-		     allow = prev_allow;
-		     in_then = 0;
-		   }
-		 }
-                }
-
-/* #ifndef directive */
-
-               | IFNDEF ID {
-		 if_push();
-		 if (lookup_symbol($2)) {
-		   /* Condition is false.   Skip over whatever is in this block */
-		   in_else = skip_cond(1);
-		   if (in_else == -1) {
-		     /* Unrecoverable error */
-		     SWIG_exit(1);
-		   }
-		   if (!in_else) {
-		     if_pop();        // Pop out. Reached end of block
-		   } else {
-		     allow = prev_allow;
-		     in_then = 0;
-		   }
-		 } else {
-		   in_then = 1;
-		   in_else = 0;		   
-		   allow = 1 & prev_allow;
-		 }
-	       }
-
-/* #else directive */
-               | ELSE {
-		 if ((!in_then) || (in_else)) {
-		   fprintf(stderr,"%s : Line %d. Misplaced else\n", input_file, line_number);
-		   FatalError();
-		 } else {
-		   in_then = 0;
-		   in_else = 1;
-		   if (allow) {
-		     allow = 0;
-		     /* Skip over rest of the conditional */
-		     skip_cond(0);
-		     if_pop();
-		   } else {
-		     allow = 1;
-		   }
-		   allow = allow & prev_allow;
-		 }
-	       }
-/* #endif directive */
-               | ENDIF {
-		 if ((!in_then) && (!in_else)) {
-		   fprintf(stderr,"%s : Line %d. Misplaced endif\n", input_file, line_number);
-		   FatalError();
-		 } else {
-		   if_pop();
-		 }
-	       }
-
-/* #if */
-               | IF cpp_const_expr {
-		 /* Push old if-then-else status */
-		 if_push();
-		 if ($2) {
-		   in_then = 1;
-		   in_else = 0;
-		   allow = 1 & prev_allow;
-		 } else {
-		   /* Condition is false.   Skip over whatever is in this block */
-		   in_else = skip_cond(1);
-		   if (in_else == -1) {
-		     /* Unrecoverable error */
-		     SWIG_exit(1);
-		   }
-		   if (!in_else) {
-		     if_pop();        // Pop out. Reached end of block
-		   } else {
-		     allow = prev_allow;
-		     in_then = 0;
-		   }
-		 }
-	       }
-
-/* #elif.  We treat this identical to an #if.  Abit of a hack, but what
-   the hell. */
-
-               | ELIF cpp_const_expr {
-		 /* have to pop old if clause off */
-		 if_pop();
-
-		 /* Push old if-then-else status */
-		 if_push();
-		 if ($2) {
-		   in_then = 1;
-		   in_else = 0;
-		   allow = 1 & prev_allow;
-		 } else {
-		   /* Condition is false.   Skip over whatever is in this block */
-		   in_else = skip_cond(1);
-		   if (in_else == -1) {
-		     /* Unrecoverable error */
-		     SWIG_exit(1);
-		   }
-		   if (!in_else) {
-		     if_pop();        // Pop out. Reached end of block
-		   } else {
-		     allow = prev_allow;
-		     in_then = 0;
-		   }
-		 }
-	       }
-               ;
-
-/* C preprocessor expression (only used for conditional compilation */
-
-cpp_const_expr : DEFINED LPAREN ID RPAREN {
-
-                 /* Look ID up in the symbol table */
-                    if (lookup_symbol($3)) {
-		      $$ = 1;
-		    } else {
-		      $$ = 0;
-		    }
-               }
-               | DEFINED ID {
-		 if (lookup_symbol($2)) {
-		   $$ = 1;
-		 } else {
-		   $$ = 0;
-		 }
-	       }
-               | LNOT cpp_const_expr {
-                      if ($2) $$ = 0;
-		      else $$ = 1;
-	       }
-               ;
-
 pragma         : PRAGMA LPAREN ID COMMA ID stylearg RPAREN {
-		 if (allow && (!WrapExtern))
+		 if (!WrapExtern)
 		   lang->pragma($3,$5,$6);
 		   fprintf(stderr,"%s : Line %d. Warning. '%%pragma(lang,opt=value)' syntax is obsolete.\n",
 			   input_file,line_number);
@@ -1787,11 +1531,11 @@ pragma         : PRAGMA LPAREN ID COMMA ID stylearg RPAREN {
 	       }
 
                | PRAGMA ID stylearg {
-                 if (allow && (!WrapExtern)) 
+                 if (!WrapExtern) 
 		   swig_pragma($2,$3);
     	       }
                | PRAGMA LPAREN ID RPAREN ID stylearg {
-		 if (allow && (!WrapExtern))
+		 if (!WrapExtern)
 		   lang->pragma($3,$5,$6);
 	       }
                ;
@@ -1838,20 +1582,6 @@ stail          : SEMI { }
 		 delete $4;
 	       } stail { }
               ;
-
-definetail     : definetype ENDDEF {
-                   $$ = $1;
-                 } 
-               | ENDDEF {
-                   $$.type = T_SYMBOL;
-	       }
-               | error ENDDEF {
-		 if (Verbose) 
-		   fprintf(stderr,"%s : Line %d.  Warning. Unable to parse #define (ignored)\n", input_file, line_number);
-		 $$.type = T_ERROR;
-	       }
-
-               ;
 
 extern         : EXTERN { $$ = 1; }
                | empty {$$ = 0; }
@@ -2366,7 +2096,6 @@ edecl          :  ID {
                    create_constant($1, temp_typeptr, $1);
 		   delete temp_typeptr;
                  }
-                 | cond_compile edecl { }
                  | empty { }
                  ;
 		   
@@ -3232,9 +2961,6 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		skip_decl();
 		scanner_clear_start();
 	      }
-              | cond_compile { 
-		scanner_clear_start();
-	      }
 
 /* A typedef inside a class */
               | typedef_decl { }
@@ -3474,7 +3200,6 @@ cpp_edecl      :  ID {
 		   }
 		 }
                  | NAME LPAREN ID RPAREN ID EQUAL etype {
-		   if (allow) {
 		     if (cplus_mode == CPLUS_PUBLIC) {
 		       if (Verbose) {
 			 fprintf(stderr, "Creating enum value %s = %s\n", $5, $7.id);
@@ -3487,9 +3212,7 @@ cpp_edecl      :  ID {
 		       delete temp_typeptr;
 		       scanner_clear_start();
 		     }
-		   }
 		 }
-                 | cond_compile cpp_edecl { }
                  | empty { }
                  ;
 
