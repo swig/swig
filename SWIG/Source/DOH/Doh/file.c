@@ -169,6 +169,28 @@ File_ungetc(DOH *fo, int ch) {
   return -1;
 }
 
+/* -----------------------------------------------------------------------------
+ * File_close()
+ *
+ * Close the file
+ * ----------------------------------------------------------------------------- */
+
+static int
+File_close(DOH *fo) {
+  int ret = 0;
+  DohFile *f = (DohFile *) ObjData(fo);
+  if (f->filep) {
+    ret = fclose(f->filep);
+    f->filep = 0;
+  } else if (f->fd) {
+#ifdef DOH_INTFILE
+    ret = close(f->fd);
+    f->fd = 0;
+#endif
+  }
+  return ret;
+}
+
 static DohFileMethods FileFileMethods = {
   File_read, 
   File_write,
@@ -177,7 +199,7 @@ static DohFileMethods FileFileMethods = {
   File_ungetc,
   File_seek,
   File_tell,
-  0,              /* close */
+  File_close,           /* close */
 };
 
 static DohObjInfo DohFileType = {

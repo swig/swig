@@ -168,6 +168,7 @@ extern int     DohIsFile(const DOH *obj);
 #define Getc               DohGetc
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
+#define Close              DohClose
 #define vPrintf            DohvPrintf
 #define GetInt             DohGetInt
 #define GetDouble          DohGetDouble
@@ -205,6 +206,7 @@ extern DOHString   *NewStringf(const DOH *fmt, ...);
 extern DOHFile *NewFile(DOH *file, char *mode);
 extern DOHFile *NewFileFromFile(FILE *f);
 extern DOHFile *NewFileFromFd(int fd);
+extern int      DohClose(DOH *file);
 
 extern int  DohCopyto(DOHFile *input, DOHFile *output);
 
