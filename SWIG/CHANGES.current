@@ -1,6 +1,12 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/27/2004: wsfulton
+            [C#] typemaps.i library file with INPUT, OUTPUT and INOUT typemaps added.
+
+10/27/2004: wsfulton
+            [Java] std::wstring typemap fixes in std_string.i from Russell Keith-Magee.
+
 10/25/2004: mmatus 
 
 	    - Using + namespace is working now (using_namespace.i).
