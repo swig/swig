@@ -42,7 +42,7 @@ class Allocate : public Dispatcher {
       for (int i = 0; i < Len(abstract); i++) {
 	Node *n = Getitem(abstract,i);
 	String *name = Getattr(n,"name");
-	if (Strncmp(name,"~",1) == 0) continue;   /* Don't care about destructors */
+	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
 	Node *dn = Swig_symbol_clookup(name,0);
 	assert(dn);       /* If symbol is in abstract list, it sure better be in the class itself */
 	if (dn && (Getattr(dn,"abstract"))) {

@@ -586,7 +586,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
-
+	
 	Printf(qprefix,"<(");
 	p = Firstitem(parms);
 	while (p) {

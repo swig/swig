@@ -47,7 +47,6 @@ class TypePass : public Dispatcher {
     void normalize_type(SwigType *ty) {
 
 	SwigType *qty = SwigType_typedef_qualified(ty);
-
 	/* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
 	/*	Printf(stdout,"%s --> %s\n", ty, qty); */
 	Clear(ty);
@@ -305,7 +304,7 @@ public:
     String *ttype = Getattr(n,"templatetype");
     if (Strcmp(ttype,"class") == 0) {
       SwigType_typedef_class(name);
-    } else if (Strcmp(ttype,"forwardclass") == 0) {
+    } else if (Strcmp(ttype,"classforward") == 0) {
       SwigType_typedef_class(name);
     }
     return SWIG_OK;
@@ -610,6 +609,7 @@ public:
 	}
 	return SWIG_OK;
     }
+
     /* ------------------------------------------------------------
      * typemapDirective()
      * ------------------------------------------------------------ */ 
