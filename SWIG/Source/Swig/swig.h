@@ -28,13 +28,13 @@ extern "C" {
 
 /* --- File interface --- */
 
-extern void  Swig_add_directory(const DOH *dirname);
-extern DOH  *Swig_last_file();
-extern DOH  *Swig_search_path();
-extern FILE *Swig_open(const DOH *name);
-extern DOH  *Swig_read_file(FILE *f);
-extern DOH  *Swig_include(const DOH *name);
-extern int   Swig_insert_file(const DOH *name, DOH *outfile);
+extern void        Swig_add_directory(const DOHString_or_char *dirname);
+extern DOHString  *Swig_last_file();
+extern DOHList    *Swig_search_path();
+extern FILE       *Swig_open(const DOHString_or_char *name);
+extern DOHString  *Swig_read_file(FILE *f);
+extern DOHString  *Swig_include(const DOHString_or_char *name);
+extern int         Swig_insert_file(const DOHString_or_char *name, DOHFile *outfile);
 
 #define  SWIG_FILE_DELIMETER   "/"
 
@@ -55,18 +55,18 @@ extern void  Swig_arg_error();
 typedef struct SwigScanner SwigScanner;
 
 extern SwigScanner *NewSwigScanner();
-extern void     DelSwigScanner(SwigScanner *);
-extern void     SwigScanner_clear(SwigScanner *);
-extern void     SwigScanner_push(SwigScanner *, DOH *);
-extern void     SwigScanner_pushtoken(SwigScanner *, int);
-extern int      SwigScanner_token(SwigScanner *);
-extern DOH     *SwigScanner_text(SwigScanner *);
-extern void     SwigScanner_skip_line(SwigScanner *);
-extern int      SwigScanner_skip_balanced(SwigScanner *, int startchar, int endchar);
-extern void     SwigScanner_set_location(SwigScanner *, DOH *file, int line);
-extern DOH     *SwigScanner_get_file(SwigScanner *);
-extern int      SwigScanner_get_line(SwigScanner *);
-extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
+extern void         DelSwigScanner(SwigScanner *);
+extern void         SwigScanner_clear(SwigScanner *);
+extern void         SwigScanner_push(SwigScanner *, DOHString *);
+extern void         SwigScanner_pushtoken(SwigScanner *, int);
+extern int          SwigScanner_token(SwigScanner *);
+extern DOHString   *SwigScanner_text(SwigScanner *);
+extern void         SwigScanner_skip_line(SwigScanner *);
+extern int          SwigScanner_skip_balanced(SwigScanner *, int startchar, int endchar);
+extern void         SwigScanner_set_location(SwigScanner *, DOHString *file, int line);
+extern DOHString   *SwigScanner_get_file(SwigScanner *);
+extern int          SwigScanner_get_line(SwigScanner *);
+extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 
 #define   SWIG_MAXTOKENS          512
 #define   SWIG_TOKEN_LPAREN        1  
@@ -121,26 +121,26 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 
 /* --- Functions for manipulating the string-based type encoding --- */
 
-extern void  StringType_add_pointer(DOH *t);
-extern void  StringType_add_array(DOH *t, DOH *size);
-extern void  StringType_add_reference(DOH *t);
-extern void  StringType_add_qualifier(DOH *t, DOH *qual);
-extern void  StringType_add_function(DOH *t, DOH *parms);
-extern DOH  *StringType_split(DOH *t);
-extern DOH  *StringType_pop(DOH *t);
-extern void  StringType_push(DOH *t, DOH *s);
-extern DOH  *StringType_split_parms(DOH *p);
-extern DOH  *StringType_split_struct(DOH *s);
-extern DOH  *StringType_split_enum(DOH *s);
-extern DOH  *StringType_get_tag(DOH *s);
-extern DOH  *StringType_cstr(DOH *s, DOH *id);
-extern int   StringType_ispointer(DOH *t);
-extern int   StringType_isreference(DOH *t);
-extern int   StringType_isarray(DOH *t);
-extern int   StringType_isfunction(DOH *t);
-extern int   StringType_isstruct(DOH *t);
-extern int   StringType_isqualifier(DOH *t);
-extern DOH  *StringType_base(DOH *t);
+extern void        StringType_add_pointer(DOHString *t);
+extern void        StringType_add_array(DOHString *t, DOHString *size);
+extern void        StringType_add_reference(DOHString *t);
+extern void        StringType_add_qualifier(DOHString *t, DOHString *qual);
+extern void        StringType_add_function(DOHString *t, DOHString *parms);
+extern DOHList    *StringType_split(DOHString *t);
+extern DOHString  *StringType_pop(DOHString *t);
+extern void        StringType_push(DOHString *t, DOHString *s);
+extern DOHList    *StringType_split_parms(DOHString *p);
+extern DOHList    *StringType_split_struct(DOHString *s);
+extern DOHList    *StringType_split_enum(DOHString *s);
+extern DOHString  *StringType_get_tag(DOHString *s);
+extern DOHString  *StringType_cstr(DOHString *s, DOHString_or_char *id);
+extern int         StringType_ispointer(DOHString *t);
+extern int         StringType_isreference(DOHString *t);
+extern int         StringType_isarray(DOHString *t);
+extern int         StringType_isfunction(DOHString *t);
+extern int         StringType_isstruct(DOHString *t);
+extern int         StringType_isqualifier(DOHString *t);
+extern DOHString  *StringType_base(DOHString *t);
 
 /* --- NEW Type system --- */
 

@@ -103,7 +103,7 @@
  * ----------------------------------------------------------------------------- */
 
 void 
-StringType_add_pointer(DOH *t) {
+StringType_add_pointer(DOHString *t) {
   assert(DohIsString(t));
   Insert(t,0,"*.");
 }
@@ -115,7 +115,7 @@ StringType_add_pointer(DOH *t) {
  * ----------------------------------------------------------------------------- */
 
 void 
-StringType_add_array(DOH *t, DOH *size) {
+StringType_add_array(DOHString *t, DOHString *size) {
   assert(DohIsString(t));
   Insert(t,0,"].");
   Insert(t,0,size);
@@ -129,7 +129,7 @@ StringType_add_array(DOH *t, DOH *size) {
  * ----------------------------------------------------------------------------- */
 
 void 
-StringType_add_reference(DOH *t) {
+StringType_add_reference(DOHString *t) {
   assert(DohIsString(t));
   Insert(t,0,"&.");
 }
@@ -141,7 +141,7 @@ StringType_add_reference(DOH *t) {
  * ----------------------------------------------------------------------------- */
 
 void 
-StringType_add_qualifier(DOH *t, DOH *qual) {
+StringType_add_qualifier(DOHString *t, DOHString *qual) {
   assert(DohIsString(t));
   Insert(t,0,".");
   Insert(t,0,qual);
@@ -156,9 +156,10 @@ StringType_add_qualifier(DOH *t, DOH *qual) {
  * ----------------------------------------------------------------------------- */
 
 void 
-StringType_add_function(DOH *t, DOH *parms) {
-  DOH *pstr;
-  int i,l;
+StringType_add_function(DOHString *t, DOHList *parms) {
+  DOHString *pstr;
+  int        i,l;
+
   assert(DohIsString(t));
   Insert(t,0,").");
   pstr = NewString("");
@@ -178,9 +179,10 @@ StringType_add_function(DOH *t, DOH *parms) {
  *
  * Isolate a single element of a type string (delimeted by periods)
  * ----------------------------------------------------------------------------- */
-static DOH *
+static DOHString *
 isolate_element(char *c) {
-  DOH *result = NewString("");
+  DOHString *result = NewString("");
+
   while (*c) {
     if (*c == '.') return result;
     else if (*c == '(') {
@@ -222,13 +224,14 @@ isolate_element(char *c) {
  * Splits a type into it's component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_split(DOH *t) {
-  DOH *item, *list;
+DOHList *StringType_split(DOH *t) {
+  DOH     *item;
+  DOHList *list;
   char *c;
   int len;
+
   assert(DohIsString(t));
   c = Char(t);
-  
   list = NewList();
   while (*c) {
     item = isolate_element(c);
@@ -252,10 +255,11 @@ DOH *StringType_split(DOH *t) {
  * Pop off the first type-constructor object and update the type
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_pop(DOH *t)
+DOHString *StringType_pop(DOH *t)
 {
-  DOH *result;
-  char *c;
+  DOHString *result;
+  char      *c;
+
   assert(DohIsString(t));
   if (Len(t) == 0) return 0;
   c = Char(t);
@@ -274,7 +278,7 @@ DOH *StringType_pop(DOH *t)
  * Push a type constructor onto the type
  * ----------------------------------------------------------------------------- */
 
-void StringType_push(DOH *t, DOH *cons)
+void StringType_push(DOHString *t, DOHString *cons)
 {
   if (!cons) return;
   if (!Len(cons)) return;
@@ -294,9 +298,11 @@ void StringType_push(DOH *t, DOH *cons)
  * Splits a comma separated list of components into strings.
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_split_parms(DOH *p) {
-  DOH *item, *list;
+DOHList *StringType_split_parms(DOHString *p) {
+  DOH     *item;
+  DOHList *list;
   char *c;
+
   assert(DohIsString(p));
   c = Char(p);
   assert(*c == '(');
@@ -354,7 +360,7 @@ DOH *StringType_split_parms(DOH *p) {
  * Returns the tag for a struct/enum/whatnot
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_get_tag(DOH *s) {
+DOHString *StringType_get_tag(DOHString *s) {
    char *c = Char(s);
 
    if (*c == '{')
@@ -384,10 +390,10 @@ DOH *StringType_get_tag(DOH *s) {
  * Splits a comma separated list of enum elements
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_split_enum(DOH *s) {
-   DOH *list;
-   DOH *item;
-   char *c = Char(s);
+DOHList *StringType_split_enum(DOHString *s) {
+   DOHList *list;
+   DOH     *item;
+   char    *c = Char(s);
 
    assert(*c == '<');
    c++;
@@ -424,9 +430,11 @@ DOH *StringType_split_enum(DOH *s) {
  * Splits a comma separated list of structure components
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_split_struct(DOH *p) {
-  DOH *item, *list;
-  char *c;
+DOHList *StringType_split_struct(DOHString *p) {
+  DOH     *item;
+  DOHList *list;
+  char    *c;
+
   assert(DohIsString(p));
   c = Char(p);
   assert(*c == '{');
@@ -497,48 +505,54 @@ DOH *StringType_split_struct(DOH *p) {
  * Testing functions for querying a datatype
  * ----------------------------------------------------------------------------- */
 
-int StringType_ispointer(DOH *t) {
+int StringType_ispointer(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '*') return 1;
   return 0;
 }
 
-int StringType_isreference(DOH *t) {
+int StringType_isreference(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '&') return 1;
   return 0;
 }
 
-int StringType_isarray(DOH *t) {
+int StringType_isarray(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '[') return 1;
   return 0;
 }
 
-int StringType_isfunction(DOH *t) {
+int StringType_isfunction(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '(') return 1;
   return 0;
 }
 
-int StringType_isstruct(DOH *t) {
+int StringType_isstruct(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '{') return 1;
   return 0;
 }
 
-int StringType_isqualifier(DOH *t) {
+int StringType_isqualifier(DOHString *t) {
   char *c;
+
   assert(DohIsString(t));
   c = Char(t);
   if (*c == '+') return 1;
@@ -551,8 +565,9 @@ int StringType_isqualifier(DOH *t) {
  * Returns the base of a datatype.
  * ----------------------------------------------------------------------------- */
 
-DOH *StringType_base(DOH *t) {
+DOHString *StringType_base(DOHString *t) {
   char *c, *d;
+
   assert(DohIsString(t));
   c = Char(t);
   d = c + strlen(c);
@@ -569,12 +584,12 @@ DOH *StringType_base(DOH *t) {
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
-DOH *
-StringType_cstr(DOH *s, DOH *id)
+DOHString *
+StringType_cstr(DOHString *s, DOHString_or_char *id)
 {
-  DOH *result;
-  DOH *element, *nextelement;
-  DOH *elements;
+  DOHString *result;
+  DOHString *element, *nextelement;
+  DOHList *elements;
   int nelements, i;
   char *c;
 
