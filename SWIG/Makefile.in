@@ -83,8 +83,6 @@ runtime:
 # CHECK
 #####################################################################
 
-check-aliveness: swig
-
 skip-tcl	= [ -z "@TCLINCLUDE@" -o -z "@TCLLIB@" ]
 skip-perl	= [ -z "@PERL@" -o -z "@PERL5EXT@" ]
 skip-python	= [ -z "@PYIINCLUDE@" -o -z "@PYLIB@" ]
@@ -94,6 +92,18 @@ skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 
 chk = $(MAKE) check
+
+check-aliveness:
+	test -x ./swig
+	./swig -version
+	./swig -help
+	$(skip-tcl) || ./swig -tcl -help
+	$(skip-perl) || ./swig -perl -help
+	$(skip-python) || ./swig -python -help
+	$(skip-java) || ./swig -java -help
+	$(skip-guile) || ./swig -guile -help
+	$(skip-mzscheme) || ./swig -mzscheme -help
+	$(skip-ruby) || ./swig -ruby -help
 
 check-examples:
 	$(skip-tcl) || (cd Examples/tcl/constants ; $(chk))
@@ -112,7 +122,19 @@ check-examples:
 	$(skip-ruby) || (cd Examples/ruby/simple ; $(chk))
 
 check-gifplot-example:
-	: todo: gifplot example checking
+	$(skip-perl) || (cd Examples/GIFPlot/Perl/full/Makefile ; $(chk))
+	$(skip-perl) || (cd Examples/GIFPlot/Perl/simple/Makefile ; $(chk))
+	$(skip-perl) || (cd Examples/GIFPlot/Perl/shadow/Makefile ; $(chk))
+	$(skip-python) || (cd Examples/GIFPlot/Python/full/Makefile ; $(chk))
+	$(skip-python) || (cd Examples/GIFPlot/Python/simple/Makefile ; $(chk))
+	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/full/Makefile ; $(chk))
+	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/mandel/Makefile ; $(chk))
+	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/simple/Makefile ; $(chk))
+	$(skip-guile) || (cd Examples/GIFPlot/Guile/full/Makefile ; $(chk))
+	$(skip-guile) || (cd Examples/GIFPlot/Guile/simple/Makefile ; $(chk))
+	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/full/Makefile ; $(chk))
+	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/simple/Makefile ; $(chk))
+	$(skip-java) || (cd Examples/GIFPlot/Java/Makefile ; $(chk))
 
 check: check-aliveness check-examples check-gifplot-example
 
