@@ -139,13 +139,13 @@ strarray_inout(char [ANY])
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype(($1_ltype &) $1);
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, $owner);
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memmove(resultobj, &$1, sizeof($1_type));
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, $owner);
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
 }
 #endif
 
