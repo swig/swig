@@ -129,7 +129,7 @@ extern void cplus_inherit(int, char **);
 extern void cplus_cleanup(void);
 extern void cplus_static_var(char *, char *, DataType *);
 extern void cplus_register_type(char *);
-extern void cplus_register_scope(Hash *);
+extern void cplus_register_scope(void *);
 extern void cplus_inherit_scope(int, char **);
 extern void cplus_add_pragma(char *, char *, char *);
 extern DocEntry *cplus_set_class(char *);
@@ -265,8 +265,6 @@ void create_function(int ext, char *name, DataType *t, ParmList *l) {
 
     doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
     lang->create_function(name, iname, t, l);
-    l->check_defined();
-    t->check_defined();
   }
   scanner_clear_start();
 }
@@ -311,7 +309,6 @@ void create_variable(int ext, char *name, DataType *t) {
     // Now dump it out
     doc_entry = new DocDecl(iname,doc_stack[doc_stack_top]);
     lang->link_variable(name, iname, t);
-    t->check_defined();
     Status = oldstatus;
   }
   scanner_clear_start();
@@ -354,7 +351,6 @@ void create_constant(char *name, DataType *type, char *value) {
 
       doc_entry = new DocDecl(name,doc_stack[doc_stack_top]);	   
       lang->declare_const(name, name, type, value);
-      type->check_defined();
     }
   }
   scanner_clear_start();

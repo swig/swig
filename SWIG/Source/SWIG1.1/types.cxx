@@ -173,17 +173,7 @@ void DataType::primitive() {
     strcpy(name,"UNKNOWN");
     break;
   }
-  //  if (is_pointer) {
-  //    if (!((is_pointer == 1) && (type == T_CHAR))) {
-  //      is_pointer = 1;
-  //      strcpy(name,"POINTER");
-  //    } 
-  //  }
-
   implicit_ptr = 0;          // Gets rid of typedef'd pointers
-
-  // Ditch qualifiers (const, volatile, etc...)
-
   if (qualifier) {
     delete qualifier;
     qualifier = 0;
@@ -215,7 +205,6 @@ char *DataType::print_type() {
     t = new DataType(this);
     t->typedef_replace();   // Upgrade type
   }
-
   ri = ri % 8;
   result[ri] = "";
   result[ri] << t->name << " ";
@@ -229,13 +218,11 @@ char *DataType::print_type() {
   return result[ri++].get();
 
 }
-
 // --------------------------------------------------------------------
 // char *print_full()
 //
 // Prints full type, with qualifiers.
 // --------------------------------------------------------------------
-
 char *DataType::print_full() {
   static String result[8];
   static int ri = 0;
@@ -256,7 +243,6 @@ char *DataType::print_full() {
 //
 // Prints real type, with qualifiers and arrays if necessary.
 // --------------------------------------------------------------------
-
 char *DataType::print_real(char *local) {
   static String result[8];
   static int    ri = 0;
@@ -456,37 +442,8 @@ char *DataType::get_array() {
 // typedef support.  This needs to be scoped.
 // --------------------------------------------------------------------
 
-Hash *DataType::typedef_hash[MAXSCOPE];
-int   DataType::scope = 0;            // Current scope
-
-static Hash undefined_types;          // Hash table containing undefined datatypes.
-
-// -----------------------------------------------------------------------------
-// int DataType::check_defined()
-//
-// Checks to see if a datatype is defined.   If not, returns -1 and puts an entry
-// into an internal hash table
-// -----------------------------------------------------------------------------
-
-int DataType::check_defined() {
-  if (type == T_USER) {
-
-    // Type might be in typedef hash.  Check for that
-    int s = scope;
-    while (s >= 0) {
-      if (typedef_hash[s]->lookup(name)) return 0;
-      s--;
-    }
-
-    // Nope.  Add as an undefined type and continue.
-
-    char *st;
-    st = copy_string(name);
-    undefined_types.add(st,st);
-    return -1;
-  }
-  return 0;
-}
+static Hash *typedef_hash[MAXSCOPE];
+static int   scope = 0;            // Current scope
 
 // -----------------------------------------------------------------------------
 // void DataType::init_typedef() 
@@ -557,7 +514,6 @@ void DataType::typedef_add(char *tname, int mode) {
   // Call into the target language with this typedef
   lang->add_typedef(this,tname);
 }
-
 
 // --------------------------------------------------------------------
 // void DataType::typedef_resolve(int level = 0)
@@ -688,9 +644,10 @@ void DataType::typedef_updatestatus(int newstatus) {
 // Side Effects : Copies all of the entries in h to current scope.
 // -----------------------------------------------------------------------------
 
-void DataType::merge_scope(Hash *h) {
+void DataType::merge_scope(void *ho) {
   char  *key;
   DataType *t, *nt;
+  Hash *h = (Hash *) ho;
 
   if (h) {
     // Copy all of the entries in the given hash table to this new one
@@ -718,7 +675,8 @@ void DataType::merge_scope(Hash *h) {
 // Side Effects : Creates a new hash table and increments the scope counter
 // -----------------------------------------------------------------------------
 
-void DataType::new_scope(Hash *h) {
+void DataType::new_scope(void *ho) {
+  Hash *h = (Hash *) ho;
   scope++;
   typedef_hash[scope] = new Hash;
 
@@ -749,7 +707,7 @@ void DataType::new_scope(Hash *h) {
 // Side Effects : Returns the hash table corresponding to the current scope
 // -----------------------------------------------------------------------------
 
-Hash *DataType::collapse_scope(char *prefix) {
+void *DataType::collapse_scope(char *prefix) {
   DataType *t,*nt;
   char     *key;
   char     *temp;
@@ -772,9 +730,9 @@ Hash *DataType::collapse_scope(char *prefix) {
     h = typedef_hash[scope];
     typedef_hash[scope] = 0;
     scope--;
-    return h;
+    return (void *) h;
   }
-  return (Hash *) 0;
+  return 0;
 }
 		
 // -------------------------------------------------------------
@@ -875,7 +833,7 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
     strcpy(t->name, eqname);
   }
 
-  //  printf("addtypedef: %s : %s : %s\n", name, eqname, t->print_type());
+  //printf("addtypedef: %s : %s : %s\n", name, eqname, t->print_type());
 
   // First we're going to add the equivalence, no matter what
   
@@ -1035,26 +993,6 @@ void typeeq_standard(void) {
 
 }
 
-// ------------------------------------------------------------------------------
-// type_undefined_check(void)
-//
-// Checks the hash table for undefined datatypes and prints a warning message.
-// -------------------------------------------------------------------------------
-
-void type_undefined_check(void) {
-  char *s;
-
-  s = (char *) undefined_types.first();
-  if (s) {
-    fprintf(stderr,"The following datatypes were used, but undefined.\n");
-    while (s) {
-      fprintf(stderr,"     %s\n",s);
-      s = (char *) undefined_types.next();
-    }
-  }
-}
-
-
 // ----------------------------------------------------------------------
 // char *check_equivalent(DataType *t)
 //
@@ -1076,6 +1014,7 @@ check_equivalent(DataType *t) {
     if (!te_init) typeeq_init();
     e1 = (EqEntry *) typeeq_hash.first();
     while (e1) {
+      /*      printf("'%s', '%s'\n", m.get(),e1->name); */
       if (strcmp(m.get(),e1->name) == 0) {
 	e2 = e1->next;
 	while (e2) {
@@ -1100,6 +1039,29 @@ check_equivalent(DataType *t) {
   return out.get();
 }
 
+// -----------------------------------------------------------------------------
+// void DataType::record_base(char *derived, char *base)
+//
+// Record base class information.  This is a hack to make runtime libraries
+// work across multiple files.
+// -----------------------------------------------------------------------------
+
+static Hash  bases;
+
+void DataType::record_base(char *derived, char *base)
+{
+  Hash *nh;
+  nh = (Hash *) bases.lookup(derived);
+  if (!nh) {
+    nh = new Hash();
+    bases.add(derived, (void *) nh);
+  }
+  if (!nh->lookup(base)) {
+    char *bn = copy_string(base);
+    nh->add(base,(void *) bn);
+  }
+}
+
 // ----------------------------------------------------------------------
 // void DataType::remember()
 //
@@ -1110,8 +1072,24 @@ check_equivalent(DataType *t) {
 static  Hash  remembered;
 
 void DataType::remember() {
+  Hash *h;
   DataType *t = new DataType(this);
   remembered.add(t->print_mangle(),(void *) t);
+
+  /* Now, do the base-class hack */
+  h = (Hash *) bases.lookup(t->name);
+  if (h) {
+    char *key;
+    key = h->firstkey();
+    while (key) {
+      DataType *nt = new DataType(t);
+      strcpy(nt->name,key);
+      if (!remembered.lookup(nt->print_mangle()))
+	nt->remember();
+      delete nt;
+      key = h->nextkey();
+    }
+  }
 }
 
 void
@@ -1133,6 +1111,7 @@ emit_type_table() {
     key = remembered.nextkey();
     i++;
   }
+
   table << "0\n};\n";
   fprintf(f_wrappers,"%s\n", types.get());
   fprintf(f_wrappers,"%s\n", table.get());
