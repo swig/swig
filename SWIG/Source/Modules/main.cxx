@@ -251,7 +251,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
        Printf(stderr, "Warning: Could not determine SWIG library location. Assuming " SWIG_LIB "\n");
        sprintf(LibDir,"%s",SWIG_LIB);    // Build up search paths
       } else {
-       strcpy(p+1, "..\\..\\Lib");
+       strcpy(p+1, "Lib");
        strcpy(LibDir, buf);
       }
 #else
