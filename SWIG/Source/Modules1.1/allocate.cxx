@@ -88,8 +88,9 @@ class Allocate : public Dispatcher {
 	    String *storage = Getattr(c,"storage");
 	    if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
 	      String *name = Getattr(c,"name");
+	      String *symname = Getattr(c,"sym:name");
 	      Node   *e    = Swig_symbol_clookup_local(name,0);
-	      if (e && !Getattr(e,"feature:ignore")) {
+	      if (e && !Getattr(e,"feature:ignore") && (Strcmp(symname, Getattr(e,"sym:name")) == 0)) {
 		Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->() at %s:%d\n",
 			     name, Getfile(c),Getline(c));
 	      } else {
@@ -98,7 +99,7 @@ class Allocate : public Dispatcher {
 		int match = 0;
 		for (k = 0; k < Len(methods); k++) {
 		  e = Getitem(methods,k);
-		  if (Strcmp(name,Getattr(e,"name")) == 0) {
+		  if (Strcmp(symname,Getattr(e,"sym:name")) == 0) {
 		    match = 1;
 		    break;
 		  }
