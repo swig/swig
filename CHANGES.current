@@ -35,8 +35,12 @@ Version 1.3.20 (In progress)
             [C#] cildispose and cildisposeoverride typemaps replaced by
             csdestruct_base and csdestruct_derived typemaps. The delete()
             method has been removed and its functionality put into these
-            typemaps designed for the Dispose method.
-            New typemaps: csfinalize for finalizers.
+            typemaps designed for the Dispose() method.
+            New typemaps csinterfaces_base and csinterfaces_derived replace
+            the javainterfaces typemap. Also fixes the peculiarity of all classes
+            in an inheritance chain individually deriving from the IDisposable 
+            interface.
+            New typemap csfinalize for finalizers.
 
 06/10/2003: Tiger
 	    Modified contract code for error message output.
