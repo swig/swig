@@ -2,8 +2,8 @@
  *  Enums 
  * ------------------------------------------------------------ */
 %apply int { enum SWIGTYPE };
-/* this doesn't work now, you need to redefined it for each enum. */
 %apply const int& { const enum SWIGTYPE& };
+
 
 %typemap(varin,fragment=SWIG_AsVal_frag(int)) enum SWIGTYPE
 {
@@ -11,12 +11,15 @@
     PyErr_SetString(PyExc_AttributeError, "enum variable '$name' can not be set");
     return 1;
   }  
-  if (!SWIG_AsVal(int)($input, (int*)(void*)&($1))) {
+  if (!SWIG_AsVal(int)($input, (int*)(void*)(&$1))) {
     return 1;
   }
 }
 
-%define ENUM_OUT_TYPEMAP(from_meth,pyfrag)
+/* 
+   typemaps needed due to unnamed enums
+*/
+%define PY_ENUM_OUT_TYPEMAPS(from_meth,pyfrag)
   %typemap(out,fragment=pyfrag) enum SWIGTYPE 
    "$result = from_meth(($1));";
   %typemap(out,fragment=pyfrag) const enum SWIGTYPE& 
@@ -34,7 +37,7 @@
     SWIG_fail;";
 %enddef
 
-ENUM_OUT_TYPEMAP(SWIG_From(int),SWIG_From_frag(int));
+PY_ENUM_OUT_TYPEMAPS(SWIG_From(int),SWIG_From_frag(int));
 
   
 
