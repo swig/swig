@@ -19,7 +19,7 @@
 #endif
 
 #ifdef SWIG_NOINCLUDE
-void SWIG_JavaThrowException(JNIEnv *jenv, int code, const char *msg);
+void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
 int SWIG_JavaArrayInChar(JNIEnv *jenv, jbyte **jarr, char **carr, jbyteArray input);
 void SWIG_JavaArrayFreeargChar(JNIEnv *jenv, jbyte *jarr, char *carr, jbyteArray input);
 jbyteArray SWIG_JavaArrayOutChar(JNIEnv *jenv, char *result, jsize sz);
@@ -80,7 +80,7 @@ typedef struct {
   const char *java_exception;
 } SWIG_JavaExceptions_t;
 
-void SWIG_JavaThrowException(JNIEnv *jenv, int code, const char *msg) {
+void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
   jclass excep;
   static const SWIG_JavaExceptions_t java_exceptions[] = {
     { SWIG_JavaOutOfMemoryError, "java/lang/OutOfMemoryError" },
@@ -91,7 +91,7 @@ void SWIG_JavaThrowException(JNIEnv *jenv, int code, const char *msg) {
     { SWIG_JavaIllegalArgumentException, "java/lang/IllegalArgumentException" },
     { SWIG_JavaNullPointerException, "java/lang/NullPointerException" },
     { SWIG_JavaUnknownError,  "java/lang/UnknownError" },
-    { (SWIG_JavaExceptionCodes)NULL,  "java/lang/UnknownError" } };
+    { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" } };
   const SWIG_JavaExceptions_t *except_ptr = java_exceptions;
 
   while (except_ptr->code != code && except_ptr->code)
@@ -116,9 +116,9 @@ void SWIG_JavaThrowException(JNIEnv *jenv, int code, const char *msg) {
   *jarr = JCALL2(GETARRAYELEMENTS, jenv, input, 0); \
   if (!*jarr) \
     return 0; \
-  *carr = (CTYPE*) malloc(sz * sizeof(CTYPE)); \
+  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE)); \
   if (!*carr) { \
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "malloc failed"); \
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed"); \
     return 0; \
   } \
   for (i=0; i<sz; i++) \
