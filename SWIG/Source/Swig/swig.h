@@ -356,12 +356,21 @@ extern void       Swig_warn(const char *filename, int line, const char *msg);
 #define WARNING(msg) Swig_warn(__FILE__,__LINE__,msg)
 
 /* --- C Wrappers --- */
-extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
 extern String    *Swig_cparm_name(Parm *p, int i);
+extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
+extern String    *Swig_wrapped_var_type(SwigType *t);
+extern String    *Swig_wrapped_var_deref(SwigType *t, String_or_char *name);
+extern String    *Swig_wrapped_var_assign(SwigType *t, String_or_char *name);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
-
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
 extern String    *Swig_cfunction_call(String_or_char *name, ParmList *parms);
+extern String    *Swig_cmethod_call(String_or_char *name, ParmList *parms);
+extern String    *Swig_cconstructor_call(String_or_char *name);
+extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms);
+extern String    *Swig_cdestructor_call();
+extern String    *Swig_cppdestructor_call();
+extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type);
+extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t);
 
 /* --- Transformations --- */
 
