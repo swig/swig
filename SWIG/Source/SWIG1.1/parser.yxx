@@ -256,7 +256,7 @@ static void add_symbols(Node *n) {
       Seterror(n,NewString("ignored"));
       char *c = Char(symname)+7;
       if (strlen(c)) {
-	Printf(stderr,"%s:%d. %s\n", Getfile(n),Getline(n),c+1);
+	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n),Getline(n),c+1);
       }
     } else {
       Node *c = Swig_symbol_add(symname,n);
