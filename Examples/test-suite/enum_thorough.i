@@ -3,7 +3,7 @@
 // Suppress warning messages from the Ruby module for all of the following...
 %warnfilter(801) red;
 %warnfilter(801) blue;
-%warnfilter(801) blue;
+%warnfilter(801) green;
 %warnfilter(801) SpeedClass::slow;
 %warnfilter(801) SpeedClass::medium;
 %warnfilter(801) SpeedClass::fast;
@@ -13,6 +13,7 @@
 %warnfilter(801) Name::TClass::faraday;
 %warnfilter(801) Name::TClass::bell;
 %warnfilter(801) argh;
+%warnfilter(801) eek;
 %warnfilter(801) OldNameStruct::whizz;
 %warnfilter(801) OldNameStruct::kerboom;
 %warnfilter(801) OldNameStruct::pop;
@@ -32,24 +33,25 @@
 %warnfilter(801) Obscure::twotrailagain;
 %warnfilter(801) globalinstance1;
 %warnfilter(801) globalinstance2;
+%warnfilter(801) globalinstance3;
 %warnfilter(801) Instances::memberinstance1;
 %warnfilter(801) Instances::memberinstance2;
 %warnfilter(801) Instances::memberinstance3;
 
 %inline %{
 
-enum { AnonEnum1, AnonEnum2 };
+enum { AnonEnum1, AnonEnum2 = 100 };
 enum { ReallyAnInteger = 200 };
 //enum { AnonEnum3, AnonEnum4 } instance;
 namespace AnonSpace {
-  enum { AnonSpaceEnum1, AnonSpaceEnum2 };
+  enum { AnonSpaceEnum1, AnonSpaceEnum2 = 300 };
   struct AnonStruct {
-    enum { AnonStructEnum1, AnonStructEnum2 };
+    enum { AnonStructEnum1, AnonStructEnum2 = 400 };
   };
 }
 
 
-enum colour { red, blue };
+enum colour { red, blue, green = 10 };
 colour colourTest1(colour e) { return e; }
 enum colour colourTest2(enum colour e) { return e; }
 const colour colourTest3(const colour e) { return e; }
@@ -67,6 +69,8 @@ struct SpeedClass {
   const enum speed              speedTest4(const enum speed s) { return s; }
   speedtd1                      speedTest5(speedtd1 s) { return s; }
   const speedtd1                speedTest6(const speedtd1 s) { return s; }
+  const speed &                 speedTest7(const speed &s) { return s; }
+  const enum speed &            speedTest8(const enum speed &s) { return s; }
 
   const colour myColour2;
   speedtd1 mySpeedtd1;
@@ -77,13 +81,14 @@ SpeedClass::speed              speedTest1(SpeedClass::speed s) { return s; }
 enum SpeedClass::speed         speedTest2(enum SpeedClass::speed s) { return s; }
 const SpeedClass::speed        speedTest3(const SpeedClass::speed s) { return s; }
 const enum SpeedClass::speed   speedTest4(const enum SpeedClass::speed s) { return s; }
+const SpeedClass::speed &      speedTest5(const SpeedClass::speed &s) { return s; }
 
 
 typedef enum { NamedAnon1, NamedAnon2 } namedanon;
 
 namedanon                       namedanonTest1(namedanon e) { return e; } 
 
-typedef enum twonamestag { TwoNames1, TwoNames2 } twonames;
+typedef enum twonamestag { TwoNames1, TwoNames2, TwoNames3 = 33 } twonames;
 
 twonames                        twonamesTest1(twonames e) { return e; } 
 twonamestag                     twonamesTest2(twonamestag e) { return e; } 
@@ -107,7 +112,7 @@ namedanonspace                  namedanonspaceTest4(namedanonspace e) { return e
 
 
 template<typename T> struct TemplateClass {
-  enum scientists { einstein, galileo }; 
+  enum scientists { einstein, galileo = 10 }; 
   typedef enum scientists scientiststd1;
   typedef scientists scientiststd2;
   typedef scientiststd1 scientiststd3;
@@ -129,6 +134,7 @@ template<typename T> struct TemplateClass {
   typename TemplateClass<T>::scientiststd1  scientistsTestG(typename TemplateClass<T>::scientiststd1 e) { return e; }
   typename TemplateClass<T>::scientiststd2  scientistsTestH(typename TemplateClass<T>::scientiststd2 e) { return e; }
   typename TemplateClass<T>::scientiststd3  scientistsTestI(typename TemplateClass<T>::scientiststd3 e) { return e; }
+  const scientists &                        scientistsTestJ(const scientists &e) { return e; }
 };
 
 TemplateClass<int>::scientists              scientistsTest1(TemplateClass<int>::scientists e) { return e; }
@@ -138,11 +144,12 @@ const enum TemplateClass<int>::scientists   scientistsTest4(const enum TemplateC
 TemplateClass<int>::scientiststd1           scientistsTest5(TemplateClass<int>::scientiststd1 e) { return e; }
 TemplateClass<int>::scientiststd2           scientistsTest6(TemplateClass<int>::scientiststd2 e) { return e; }
 TemplateClass<int>::scientiststd3           scientistsTest7(TemplateClass<int>::scientiststd3 e) { return e; }
+const TemplateClass<int>::scientiststd3 &   scientistsTest8(const TemplateClass<int>::scientiststd3 &e) { return e; }
 
 
 namespace Name {
 template<typename T> struct TClass {
-  enum scientists { faraday, bell }; 
+  enum scientists { faraday, bell = 20 }; 
   typedef enum scientists scientiststd1;
   typedef scientists scientiststd2;
   typedef scientiststd1 scientiststd3;
@@ -232,7 +239,7 @@ TClass<int>::scientiststd3                  scientistsNameSpaceTestL(TClass<int>
 %rename(bang) OldNameStruct::kerboom;
 
 %inline %{
-enum oldname { argh };
+enum oldname { argh, eek = -1 };
 typedef oldname oldnametd;
 oldname                             renameTest1(oldname e) { return e; }
 oldnametd                           renameTest2(oldnametd e) { return e; }
@@ -385,6 +392,7 @@ namespace curly {
     HairStruct::hairtd8             hairTest9(HairStruct::hairtd8 e) { return e; }
     HairStruct::hairtd9             hairTestA(HairStruct::hairtd9 e) { return e; }
     HairStruct::hairtdA             hairTestB(HairStruct::hairtdA e) { return e; }
+    const HairStruct::hair &        hairTestC(const HairStruct::hair &e) { return e; }
   }
   greasy::HairStruct::hair          hairTestA1(greasy::HairStruct::hair e) { return e; }
   greasy::HairStruct::hairtd1       hairTestA2(greasy::HairStruct::hairtd1 e) { return e; }
@@ -397,6 +405,7 @@ namespace curly {
   greasy::HairStruct::hairtd8       hairTestA9(greasy::HairStruct::hairtd8 e) { return e; }
   greasy::HairStruct::hairtd9       hairTestAA(greasy::HairStruct::hairtd9 e) { return e; }
   greasy::HairStruct::hairtdA       hairTestAB(greasy::HairStruct::hairtdA e) { return e; }
+  const greasy::HairStruct::hairtdA &     hairTestAC(const greasy::HairStruct::hairtdA &e) { return e; }
 }
 curly::greasy::HairStruct::hair     hairTestB1(curly::greasy::HairStruct::hair e) { return e; }
 curly::greasy::HairStruct::hairtd1  hairTestB2(curly::greasy::HairStruct::hairtd1 e) { return e; }
@@ -409,6 +418,7 @@ curly::greasy::HairStruct::hairtd7  hairTestB8(curly::greasy::HairStruct::hairtd
 curly::greasy::HairStruct::hairtd8  hairTestB9(curly::greasy::HairStruct::hairtd8 e) { return e; }
 curly::greasy::HairStruct::hairtd9  hairTestBA(curly::greasy::HairStruct::hairtd9 e) { return e; }
 curly::greasy::HairStruct::hairtdA  hairTestBB(curly::greasy::HairStruct::hairtdA e) { return e; }
+const curly::greasy::HairStruct::hairtdA & hairTestBC(const curly::greasy::HairStruct::hairtdA &e) { return e; }
 
 using curly::greasy::HairStruct;
 HairStruct::hair                    hairTestC1(HairStruct::hair e) { return e; }
@@ -422,6 +432,7 @@ HairStruct::hairtd7                 hairTestC8(HairStruct::hairtd7 e) { return e
 HairStruct::hairtd8                 hairTestC9(HairStruct::hairtd8 e) { return e; }
 HairStruct::hairtd9                 hairTestCA(HairStruct::hairtd9 e) { return e; }
 HairStruct::hairtdA                 hairTestCB(HairStruct::hairtdA e) { return e; }
+const HairStruct::hairtdA &         hairTestCC(const HairStruct::hairtdA &e) { return e; }
 
 namespace curly {
   namespace greasy {
@@ -450,10 +461,10 @@ struct Obscure {
 };
 
 // Unnamed enum instance
-enum { globalinstance1, globalinstance2 } GlobalInstance;
+enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
 
 struct Instances {
-  enum { memberinstance1, memberinstance2, memberinstance3 } MemberInstance;
+  enum { memberinstance1, memberinstance2, memberinstance3 = 300 } MemberInstance;
   Instances() : MemberInstance(memberinstance3) {}
 };
 
