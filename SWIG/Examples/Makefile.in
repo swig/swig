@@ -487,7 +487,7 @@ ruby_cpp: $(SRCS)
 # Build a dynamically loadable module, linked against SWIG runtime lib
 # -----------------------------------------------------------------
 
-RUBY_RUNTIME=-L$(RUNTIMEDIR) -lswigruby@release_suffix@
+RUBY_RUNTIME=-L$(RUNTIMEDIR) -lswigrb@release_suffix@
 
 ruby_multi: $(SRCS)
 	$(SWIG) -c -ruby $(SWIGOPT) $(INTERFACE)
