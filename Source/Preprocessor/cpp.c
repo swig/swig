@@ -1114,7 +1114,13 @@ SWIG_cpp_parse(DOH *s)
   	      add_chunk(ns,chunk,allow); 
   	      copy_location(s,chunk); 
   	      Printf(ns,"%sfile \"%s\" {\n", decl, SWIG_last_file()); 
+	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
+		SWIG_cpp_define("WRAPEXTERN 1", 0);
+	      }
   	      s2 = SWIG_cpp_parse(s1); 
+	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
+		SWIG_cpp_undef("WRAPEXTERN");
+	      }
   	      addline(ns,s2,allow); 
   	      Printf(ns,"\n}\n"); 
 	      Delete(s2);
