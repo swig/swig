@@ -131,6 +131,8 @@ extern DOH  *StringType_pop(DOH *t);
 extern void  StringType_push(DOH *t, DOH *s);
 extern DOH  *StringType_split_parms(DOH *p);
 extern DOH  *StringType_split_struct(DOH *s);
+extern DOH  *StringType_split_enum(DOH *s);
+extern DOH  *StringType_get_tag(DOH *s);
 extern DOH  *StringType_cstr(DOH *s, DOH *id);
 extern int   StringType_ispointer(DOH *t);
 extern int   StringType_isreference(DOH *t);
@@ -144,56 +146,49 @@ extern DOH  *StringType_base(DOH *t);
 
    /* constructors */
 DOH *SwigType_fromstring(DOH *string);
-DOH *SwigType_newint(int width, int is_const, int is_volatile, 
-		      int is_signed, int is_unsigned);
-DOH *SwigType_newfloat(int width, int is_const,
-			int is_volatile);
-DOH *SwigType_newvoid();
-DOH *SwigType_newchar(int width, int is_const, int is_volatile);
-DOH *SwigType_newname(DOH *name, int is_const, int is_volatile);
-DOH *SwigType_newenum(DOH *name, DOH *body, 
-		       int is_const, int is_volatile);
-DOH *SwigType_newstruct(DOH *name, DOH *body, 
-			 int is_const, int is_volatile);
-DOH *SwigType_newunion(DOH *name, DOH *body,
-			int is_const, int is_volatile);
-DOH *SwigType_newarray(DOH *size, DOH *parent);
-DOH *SwigType_newfunction(DOH *parameters, DOH *parent);
-DOH *SwigType_newpointer(int is_const, int is_volatile, DOH *parent);
+DOH *SwigType_new(int type, DOH *tag, DOH *contents, DOH *parent, int width);
 
-   /* use the sequence methods on a type to step linearly down through
-      the sequence of constructors.  That is, Getitem(t, 2) is t
-      without its outermost two constructors:
+DOH *SwigType_integer(int width);
+DOH *SwigType_unsigned(int width);
+DOH *SwigType_character(int width);
+DOH *SwigType_float(int width);
+DOH *SwigType_void();
+DOH *SwigType_name(DOH *tag);
+DOH *SwigType_enum(DOH *tag, DOH *contents);
+DOH *SwigType_struct(DOH *tag, DOH *contents);
+DOH *SwigType_union(DOH *tag, DOH *contents);
 
-      t = Pointer(Pointer(Array(Int())))
-      Getitem(t,2) = Array(Int()) */
+DOH *SwigType_array(DOH *size, DOH *parent);
+DOH *SwigType_function(DOH *parameters, DOH *parent);
+DOH *SwigType_pointer(DOH *parent);
+DOH *SwigType_qualifier(DOH *tag, DOH *parent);
 
    /* accessors -- return information about the outermost
       constructor. */
-int SwigType_gettype(DOH *t);
-DOH *SwigType_getname(DOH *t);
-DOH *SwigType_getattributes(DOH *t);
-int SwigType_getwidth(DOH *t);
-int SwigType_getconst(DOH *t);
-int SwigType_getvolatile(DOH *t);
-int SwigType_getsigned(DOH *t);
-int SwigType_getunsigned(DOH *t);
+int SwigType_get_type(DOH *t);
+int SwigType_get_width(DOH *t);
+DOH *SwigType_get_tag(DOH *t);
+DOH *SwigType_get_contents(DOH *t);
 
    /* Type constants (returned from SwigType_gettype) */
 
-#define SWIGTYPE_INT 0
-#define SWIGTYPE_FLOAT 1
-#define SWIGTYPE_VOID 2
-#define SWIGTYPE_CHAR 3
-#define SWIGTYPE_NAME 4
-#define SWIGTYPE_ENUM 5
-#define SWIGTYPE_STRUCT 6
-#define SWIGTYPE_UNION 7
-#define SWIGTYPE_ARRAY 8
-#define SWIGTYPE_FUNCTION 9
-#define SWIGTYPE_POINTER 10
+#define SWIGTYPE_INTEGER 0
+#define SWIGTYPE_UNSIGNED 1
+#define SWIGTYPE_CHARACTER 2
+#define SWIGTYPE_FLOAT 3
+#define SWIGTYPE_VOID 4
+#define SWIGTYPE_NAME 5
+#define SWIGTYPE_ENUM 6
+#define SWIGTYPE_STRUCT 7
+#define SWIGTYPE_UNION 8
+#define SWIGTYPE_CLASS 9
+#define SWIGTYPE_ARRAY 10
+#define SWIGTYPE_FUNCTION 11
+#define SWIGTYPE_POINTER 12
+#define SWIGTYPE_REFERENCE 13
+#define SWIGTYPE_QUALIFIER 14
 
-  /* Parse tree support */
+/* --- Parse tree support --- */
 
 extern void Swig_dump_tags(DOH *obj, DOH *root);
 extern void Swig_emit_rules(DOH *ruleset, DOH *context, DOH *node, 
