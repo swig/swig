@@ -1222,7 +1222,7 @@ class CSHARP : public Language {
    * ----------------------------------------------------------------------------- */
 
   void proxyClassFunctionHandler(Node *n) {
-    SwigType  *t = Getattr(n,"type");
+    SwigType  *t = Getattr(n,"virtual:type") ?  Getattr(n,"virtual:type") : Getattr(n,"type"); 
     ParmList  *l = Getattr(n,"parms");
     String    *intermediary_function_name = Getattr(n,"imfuncname");
     String    *proxy_function_name = Getattr(n,"proxyfuncname");
