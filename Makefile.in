@@ -163,7 +163,7 @@ install-lib:
 	@$(MKINSTDIRS) $(SWIG_LIB)
 #	cd $(SWIG_LIB); rm -rf *
 #	The following line has `*.swg' removed -- add it back if needed.
-	@cd $(srcdir)/Lib; for i in *.i; \
+	@cd $(srcdir)/Lib; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/$$i"; \
             ../$(INSTALL_DATA) $$i $(SWIG_LIB)/$$i; \
