@@ -1,4 +1,4 @@
-from frob import *
+from director_frob import *
 
 foo = Bravo();
 s = foo.abs_method();

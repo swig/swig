@@ -1,4 +1,4 @@
-%module(directors="1") frob;
+%module(directors="1") director_frob;
 
 %header %{
 #include <iostream>

@@ -1,6 +1,6 @@
-require 'frob'
+require 'director_frob'
 
-foo = Frob::Bravo.new;
+foo = Director_frob::Bravo.new;
 s = foo.abs_method;
 
 raise RuntimeError if s != "Bravo::abs_method()"

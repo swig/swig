@@ -1,12 +1,12 @@
 
-import frob.*;
+import director_frob.*;
 import java.lang.reflect.*;
 
-public class frob_runme
+public class director_frob_runme
 {
   static {
     try {
-      System.loadLibrary("frob");
+      System.loadLibrary("director_frob");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
