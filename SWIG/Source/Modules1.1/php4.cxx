@@ -45,7 +45,6 @@ static char *shadow_classname;
 static Wrapper  *f_php;
 static int	gen_extra = 0;
 static int	gen_make = 0;
-static int	no_sync = 0;
 
 static File	  *f_runtime = 0;
 static File	  *f_h = 0;
@@ -70,7 +69,6 @@ static String	  *class_name = 0;
 static String	  *realpackage = 0;
 static String	  *package = 0;
 
-static Hash	*shadow_php_vars;
 static Hash	*shadow_c_vars;
 static String	*shadow_classdef;
 static String 	*shadow_code;
@@ -896,12 +894,7 @@ public:
       String *member_function_name = NewString("");
       String *php_function_name = NewString(iname);
       if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, name)))) == 0) {
-    	if(!no_sync) {
-	  Setattr(shadow_c_vars, php_function_name, name);
-	}
-      } else {
-	if(!no_sync) 
-	  Setattr(shadow_php_vars, php_function_name, name);
+	Setattr(shadow_c_vars, php_function_name, name);
       }
       Putc(toupper((int )*iname), member_function_name);
       Printf(member_function_name, "%s", iname+1);
@@ -1379,8 +1372,13 @@ public:
       this_shadow_import = NewString("");
 
       shadow_c_vars = NewHash();
-      shadow_php_vars = NewHash();
 
+DOH* key;
+key=Firstkey(n);
+while(key) {
+  Printf(stderr, "Class: %s\n",key);
+  key=Nextkey(n);
+}
       /* Deal with inheritance */
       List *baselist = Getattr(n, "bases");
       int class_count = 1;
@@ -1402,21 +1400,9 @@ public:
 	if(class_count > 1) Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
       }
 
-
       /* Write out class init code */
       Printf(s_vdecl,"static zend_class_entry ce_swig_%s;\n",shadow_classname);
       Printf(s_vdecl,"static zend_class_entry* ptr_ce_swig_%s=NULL;\n",shadow_classname);
-      Printf(s_oinit,"// Define class %s\n"
-	     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
-	     "NULL,NULL,NULL);\n",
-	     shadow_classname,shadow_classname,shadow_classname,shadow_classname);
-
-      // XXX Handle inheritance ?
-      // Do we need to tell php who this classes parent class is
-
-      // Save class in class table
-      Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
-      Printf(s_oinit,"\n");
     }
 
     classnode=n;
@@ -1424,13 +1410,66 @@ public:
     classnode=0;
 
     if(shadow) {
+      DOH *key;
+      int count;
+      Node *parent=Getattr(n,"parentnode");
+      Printf(s_oinit,"// Define class %s\n"
+	     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
+	     "NULL,_propget_%s,_propset_%s);\n",
+	     shadow_classname,shadow_classname,shadow_classname,
+	     shadow_classname,shadow_classname,shadow_classname);
+      Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
+
+      Printf(s_wrappers,"pval _propget_%s(zend_property_reference *property_reference) {\n",
+		shadow_classname);
+      Printf(s_wrappers,"  pval presult;\n  presult.type = IS_NULL;\n");
+
+//        int type;  /* read, write or r/w */
+//        zval *object;
+//        zend_llist *elements_list;
+
+
+      Printf(s_wrappers,"  /* get the property name */\n"
+               "  zend_llist_element *element = property_reference->elements_list->head;\n"
+               "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
+               "  char *propname=property->element.value.str.val;\n"
+               "  printf(\"======Read property %%s\\n\",propname);\n");
+
+      key = Firstkey(shadow_c_vars);
+      Printf(stderr,"\nShadow_c_vars\n=============\n");
+      count=0;
+      while (key) {
+        if (count++) Printf(s_wrappers," else");
+        Printf(s_wrappers,"  if (strcmp(propname,\"%s\")==0) {\n"
+                          "    //%s\n    return presult;\n"
+                          "  }",Getattr(shadow_c_vars,key),key);
+        key=Nextkey(shadow_c_vars);
+      }
+      // If there is a parent class then chain it's handler else return null
+      if (count) Printf(s_wrappers," else ");
+      Printf(s_wrappers,  "{\n    //return null\n    return presult;\n  }\n");
+
+      Printf(s_wrappers,"}\n\n");
+
+      // == Write property setter ==
+      Printf(s_wrappers,"int _propset_%s(zend_property_reference *property_reference, pval *value) {\n",
+		shadow_classname);
+
+
+      Printf(s_wrappers,"  return 0;\n");
+      Printf(s_wrappers,"}\n\n");
+
+      // Save class in class table
+      Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
+      Printf(s_oinit,"\n");
+
+
       Printv(f_phpcode, shadow_classdef, shadow_code, NULL);
 
       // Write the enum initialisation code in a static block
       // These are all the enums defined withing the c++ class.
 
-      // PHP Needs to handle shadow enums properly still***
-      // XXX Needed in PHP ?
+      // PHP Needs to handle shadow enums properly still
       if(strlen(Char(shadow_enum_code)) != 0 ) Printv(f_phpcode, "{\n // enum\n", shadow_enum_code, " }\n", NULL);
 
       free(shadow_classname);
@@ -1441,7 +1480,6 @@ public:
       Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
       Delete(this_shadow_import); this_shadow_import = NULL;
       Delete(shadow_c_vars); shadow_c_vars = NULL;
-      Delete(shadow_php_vars); shadow_php_vars = NULL;
       Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
 
       Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
@@ -1798,7 +1836,7 @@ public:
 			 "	ZEND_NAMED_FE(%s,\n"
 			 "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
 
-    if(variable_wrapper_flag && !no_sync)  { return; }
+    if(variable_wrapper_flag)  { return; }
 
     /* Workaround to overcome Getignore(p) not working - p does not always
 	 * have the Getignore attribute set. Noticeable when cpp_func is called
