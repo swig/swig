@@ -15,6 +15,11 @@ extern "C" {
 }
 #endif
 
+// local scope self_constructors are set to 1 inside function wrappers
+// which are also class constructors, so that the php4.swg output typemaps
+// know whether or not to wrap returned objects in this_ptr or a new object
+int self_constructor=0;
+
 SWIGRUNTIME(void)
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   static char hex[17] = "0123456789abcdef";
@@ -63,26 +68,10 @@ SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type) {
 }
 
 SWIGRUNTIME(int)
-SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
-   char *c;
+_SWIG_ConvertPtr(char *c, void **ptr, swig_type_info *ty) {
    register int d;
    unsigned long p;
-   zval *val;
    swig_type_info *tc;
-   
-   if(z == NULL) {
-	*ptr = 0;
-	return 0;
-   }
-
-   if (z->type==IS_OBJECT) {
-     zval ** _cPtr;
-     if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
-       // Don't co-erce to string if it isn't
-       if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
-       else goto type_error; // _cPtr was not string property
-     } else goto type_error; // can't find property _cPtr
-   } else c = Z_STRVAL_P(z); // was not object
 
    if(c == NULL) {
    	*ptr = 0;
@@ -124,3 +113,33 @@ type_error:
 
     return -1;
 }
+
+SWIGRUNTIME(int)
+SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
+   char *c;
+   zval *val;
+   
+   if(z == NULL) {
+	*ptr = 0;
+	return 0;
+   }
+
+   if (z->type==IS_OBJECT) {
+     zval ** _cPtr;
+     if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
+       // Don't co-erce to string if it isn't
+       if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
+       else if ((*_cPtr)->type==IS_RESOURCE) {
+         int type;
+         c = (char *) zend_list_find((*_cPtr)->value.lval,&type);
+         if (! c) goto type_error;
+       } else goto type_error; // _cPtr was not string or resource property
+     } else goto type_error; // can't find property _cPtr
+   } else c = Z_STRVAL_P(z); // was not object
+   return _SWIG_ConvertPtr(c,ptr,ty);
+
+type_error:
+
+    return -1;
+}
+
