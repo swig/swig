@@ -451,6 +451,10 @@ AC_SUBST(PERL5EXT)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
+AC_ARG_ENABLE(experiment, [  --enable-experiment	  Compile experimental code],
+[experiment=true], [experiment=false])
+AM_CONDITIONAL(EXPERIMENT, $experiment)
+
 if test ! -r Source/DOH/configure; then
 	cd Source/DOH
 	autoconf

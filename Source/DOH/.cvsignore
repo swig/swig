@@ -1,3 +1,4 @@
 Makefile
 config.*
 *.tar.gz
+configure

@@ -2,3 +2,5 @@ Makefile
 *.flc
 .deps
 swig
+parser.h
+parser.cxx
