@@ -390,12 +390,19 @@ public:
 
       if( strstr( Char(mangled_name), "__get__" ) ) {
 	String *set_name = Copy(mangled_name);
-	Replaceall(set_name,"__get__","__set__");
-	Printf(f_class_ctors,
-	       "    \"%s\", (fun args -> "
-	       "if args = (C_list [ raw_ptr ]) then %s args else %s args) ;\n",
-	       opname, mangled_name, set_name );
-	Delete(set_name);
+	if( !Getattr(n,"feature:immutable") ) {
+	    Replaceall(set_name,"__get__","__set__");
+	    Printf(f_class_ctors,
+		   "    \"%s\", (fun args -> "
+		   "if args = (C_list [ raw_ptr ]) then %s args else %s args) ;\n",
+		   opname, mangled_name, set_name );
+	    Delete(set_name);
+	} else {
+	    Printf(f_class_ctors,
+		   "    \"%s\", (fun args -> "
+		   "if args = (C_list [ raw_ptr ]) then %s args else C_void) ;\n",
+		   opname, mangled_name );
+	}
       } else if( strstr( Char(mangled_name), "__set__" ) ) {
 	  ; /* Nothing ... handled by the case above */
       } else {
