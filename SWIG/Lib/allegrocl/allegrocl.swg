@@ -3,6 +3,29 @@
 
 #define SWIG_ALLEGRO_CL
 
+/* Typespecs for basic types. */
+
+%typemap(ffitype) char ":char";
+%typemap(lisptype) char "character";
+%typemap(ffitype) unsigned char ":unsigned-char";
+%typemap(lisptype) unsigned char "integer";
+%typemap(ffitype) signed char ":char";
+%typemap(lisptype) signed char "integer";
+%typemap(ffitype) short ":short";
+%typemap(ffitype) signed short ":short";
+%typemap(ffitype) unsigned short ":unsigned-short";
+%typemap(ffitype) int ":int";
+%typemap(ffitype) signed int ":int";
+%typemap(ffitype) unsigned int ":unsigned-int";
+%typemap(ffitype) long ":long";
+%typemap(ffitype) signed long ":long";
+%typemap(ffitype) unsigned long ":unsigned-long";
+%typemap(ffitype) float ":float";
+%typemap(ffitype) double ":double";
+%typemap(ffitype) char * "(* :char)";
+%typemap(ffitype) void * "(* :void)";
+%typemap(ffitype) void ":void";
+
 %wrapper %{
 ;; $Id$
 
