@@ -1,0 +1,13 @@
+/* ----------------------------------------------------------------------------- 
+ * segment.c
+ *
+ *     This file provides access to the virtual memory map of a process
+ *     including the location of the executable, data segments, shared
+ *     libraries, and memory mapped regions.  This information is 
+ *     obtained through /proc.
+ * 
+ * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *
+ * Copyright (C) 2000.  The University of Chicago
+ * See the file LICENSE for information on usage and redistribution.	
+ * ----------------------------------------------------------------------------- */
