@@ -262,13 +262,30 @@ public:
 	normalize = NewList();
 
 	if (name) {
-	  // We need to fully resolve the name to make templates work correctly */
+
+	  if (SwigType_istemplate(name)) {
+	    // We need to fully resolve the name to make templates work correctly */
+	    Node *cn;
+	    String *fname = SwigType_typedef_resolve_all(name);
+	    if (Strcmp(fname,name) != 0) {
+	      cn = Swig_symbol_clookup_local(fname,0);
+	      if (!cn) {
+		Swig_symbol_cadd(fname,n);
+	      } else {
+		Swig_warning(WARN_TYPE_REDEFINED,Getfile(n),Getline(n),"Template '%s' was already wrapped as '%s' at %s:%d.\n",
+			     SwigType_namestr(name), SwigType_namestr(Getattr(cn,"name")), Getfile(cn), Getline(cn));
+	      }
+	    }
+	    Delete(fname);
+	  }
+
 	  if ((CPlusPlus) || (unnamed)) {
 	    SwigType_typedef_class(name);
 	  } else {
 	    SwigType_typedef_class(NewStringf("%s %s", kind, name));
 	  }
 	  SwigType_new_scope(name);
+
 	} else {
 	  SwigType_new_scope(0);
 	}
