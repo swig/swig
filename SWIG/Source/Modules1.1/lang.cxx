@@ -521,6 +521,8 @@ int Language::pragmaDirective(Node *n) {
  * Language::typemapDirective()
  * ---------------------------------------------------------------------- */
 
+extern "C" void Swig_cparse_replace_descriptor(String *s);
+
 int Language::typemapDirective(Node *n) {
     /* %typemap directive */
     String *method = Getattr(n,"method");
@@ -528,7 +530,7 @@ int Language::typemapDirective(Node *n) {
     Parm   *kwargs = Getattr(n,"kwargs");
     Node   *items  = firstChild(n);
     static  int  namewarn = 0;
-
+    
 
     if (Strstr(code,"$source") || (Strstr(code,"$target"))) {
 	Swig_warning(WARN_TYPEMAP_SOURCETARGET,Getfile(n),Getline(n),"Deprecated typemap feature ($source/$target).\n");
@@ -542,6 +544,11 @@ int Language::typemapDirective(Node *n) {
 	    namewarn = 1;
 	}
     }
+
+    /* Replace $descriptor() macros */
+
+    Swig_cparse_replace_descriptor(code);
+
     while (items) {
 	Parm     *pattern   = Getattr(items,"pattern");
 	Parm     *parms     = Getattr(items,"parms");

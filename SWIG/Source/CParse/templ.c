@@ -9,6 +9,8 @@
  * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
+static char cvsroot[] = "$Header$";
+
 #include "swig.h"
 
 static void add_parms(ParmList *p, List *patchlist, List *typelist) {

@@ -567,7 +567,33 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	ctype = SwigType_typedef_resolve(ctype);
       }
     }
-    
+#ifdef NEW    
+    /* No match seems to be found at all. Try a SWIGTYPE substitution */
+    if (!primitive) {
+      SwigType *base = SwigType_base(type);
+      primitive = SwigType_prefix(type);
+      if (Strstr(base,"enum ")) {
+	Append(primitive,"enum SWIGTYPE");
+      } else {
+	Append(primitive,"SWIGTYPE");
+      }
+      tm = Getattr(typemaps[ts],primitive);
+      if (tm && cname) {
+	tm1 = Getattr(tm, cname);
+	if (tm1) {
+	  result = Getattr(tm1,tmop);
+	  if (result) goto ret_result;
+	}
+      }
+      if (tm) {
+	result = Getattr(tm,tmop);
+	if (result) goto ret_result;
+      }
+      Delete(primitive);
+      primitive = 0;
+    }
+#endif
+
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
     if (!primitive)
       primitive = SwigType_default(type);
@@ -748,6 +774,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
       Replace(s,var,mangle,DOH_REPLACE_ANY);
     
       descriptor = NewStringf("SWIGTYPE%s", mangle);
+
       if (index == 1)
 	if (Replace(s, "$descriptor", descriptor, DOH_REPLACE_ANY))
 	  SwigType_remember(type);

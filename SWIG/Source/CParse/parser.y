@@ -619,10 +619,22 @@ Node *Swig_cparse(File *f) {
   extern int yyparse();
   scanner_file(f);
   top = 0;
-
   yyparse();
   return top;
 }
+
+ SwigType *Swig_cparse_type(String *s) {
+   extern void scanner_file(File *);
+   extern int yyparse();
+   extern void scanner_next_token(int);
+   Seek(s,0,SEEK_SET);
+   scanner_file(s);
+   top = 0;
+   scanner_next_token(TYPEPARSE);
+   yyparse();
+   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   return top;
+ }
 
 void canonical_template(String *s) {
   Replaceall(s,"\n"," ");
@@ -724,6 +736,7 @@ void canonical_template(String *s) {
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
+%token TYPEPARSE
 
 %left  CAST
 %left  LOR
@@ -803,6 +816,16 @@ program        :  interface {
 		   Setattr($1,"name",ModuleName);
 		   check_extensions();
 	           top = $1;
+               }
+               | TYPEPARSE type abstract_declarator {
+		 SwigType_push($2, $3.type);
+		 Delete($3.type);
+		 Delete($3.parms);
+		 Delete($3.defarg);
+		 top = $2;
+               }
+               | TYPEPARSE error {
+                 top = 0;
                }
                ;
 

@@ -33,7 +33,7 @@ InFile  *in_head;
 DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
 static DOHString     *comment = 0;
-DOHString     *scanner_ccode = 0;            /* String containing C code */
+DOHString            *scanner_ccode = 0;            /* String containing C code */
 static char          *yybuffer = 0;
 
 static char    yytext[YYBSIZE];
@@ -47,6 +47,7 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 static  int    last_id = 0;
 static  int    rename_active = 0;
+static  int    cplusplus_mode = 0;
 
 /* ----------------------------------------------------------------------
  * locator()
@@ -994,6 +995,11 @@ void scanner_clear_rename() {
   rename_active = 0;
 }
 
+static int next_token = 0;
+void scanner_next_token(int tok) {
+  next_token = tok;
+}
+
 /**************************************************************
  * int yylex()
  *
@@ -1008,6 +1014,11 @@ int yylex(void) {
       scanner_init();
     }
 
+    if (next_token) {
+      l = next_token;
+      next_token = 0;
+      return l;
+    }
     l = yylook();
 
 
