@@ -1357,11 +1357,12 @@ void cplus_add_pragma(char *lang, char *name, char *value)
 {
   Pragma *pp;
   Pragma *p = new Pragma;
-  p->filename = input_file;
+  p->filename = NewString(input_file);
+  p->lang = NewString(lang);
+  p->name = NewString(name);
+  p->value = NewString(value);
+  p->next = 0;
   p->lineno = line_number;
-  p->lang = lang;
-  p->name = name;
-  p->value = value;
   
   if (!current_class->pragmas) {
     current_class->pragmas = p;
