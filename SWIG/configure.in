@@ -358,6 +358,7 @@ fi
 
 AC_SUBST(TCLINCLUDE)
 AC_SUBST(TCLLIB)
+AC_SUBST(TCLPACKAGE)
 
 #----------------------------------------------------------------
 # Look for Python
