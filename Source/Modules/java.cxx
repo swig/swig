@@ -61,7 +61,6 @@ class JAVA : public Language {
   String *upcasts_code; //C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code; //C++ casts up inheritance hierarchies intermediary class code
   String *destructor_call; //C++ destructor call if any
-  String *outfile;
 
   enum type_additions {none, pointer, reference};
 
@@ -111,8 +110,7 @@ class JAVA : public Language {
     module_class_modifiers(NULL),
     upcasts_code(NULL),
     imclass_cppcasts_code(NULL),
-    destructor_call(NULL),
-    outfile(NULL)
+    destructor_call(NULL)
 
     {
     }
@@ -204,7 +202,7 @@ class JAVA : public Language {
   virtual int top(Node *n) {
 
     /* Initialize all of the output files */
-    outfile = Getattr(n,"outfile");
+    String *outfile = Getattr(n,"outfile");
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
@@ -292,7 +290,7 @@ class JAVA : public Language {
 
     // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), imclass_name);
+      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), imclass_name);
       File *f_im = NewFile(filen,"w");
       if(!f_im) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -329,7 +327,7 @@ class JAVA : public Language {
 
     // Generate the Java module class
     {
-      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), module_class_name);
+      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -372,7 +370,7 @@ class JAVA : public Language {
 
     // Generate the Java constants interface
     if (Len(module_class_constants_code) != 0 ) {
-      String *filen = NewStringf("%s%sConstants.java", Swig_file_dirname(outfile), module_class_name);
+      String *filen = NewStringf("%s%sConstants.java", SWIG_output_directory(), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -1231,7 +1229,7 @@ class JAVA : public Language {
         SWIG_exit(EXIT_FAILURE);
       }
 
-      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), proxy_class_name);
+      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), proxy_class_name);
       f_proxy = NewFile(filen,"w");
       if(!f_proxy) {
         Printf(stderr, "Unable to create proxy class file: %s\n", filen);
@@ -1845,7 +1843,7 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
-    String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), classname);
+    String *filen = NewStringf("%s%s.java", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen,"w");
     String *swigtype = NewString("");
 
@@ -2000,7 +1998,8 @@ swig_java(void) {
 
 const char *JAVA::usage = (char*)"\
 Java Options (available with -java)\n\
-     -package <name> - set name of the Java package\n\
-     -noproxy        - Generate the low-level functional interface instead of proxy classes\n\
+     -package <name> - set name of the Java package to <name>\n\
+     -noproxy        - Generate the low-level functional interface instead\n\
+                       of proxy classes\n\
 \n";
 

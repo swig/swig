@@ -13,9 +13,9 @@
 char cvsroot_xml_cxx[] = "$Header$";
 static const char *usage = "\
 XML Options (available with -xml)\n\
-     -xmllang lang   - Typedef language\n\
+     -xmllang <lang> - Typedef language\n\
      ------\n\
-     deprecated (use -o): -xml output.xml - Use output.xml as output file (extension .xml mandatory)\n";
+     deprecated (use -o): -xml <output.xml> - Use <output.xml> as output file (extension .xml mandatory)\n";
 
 
 #include "swigmod.h"

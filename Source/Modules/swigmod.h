@@ -252,6 +252,7 @@ extern  int   SWIG_main(int, char **, Language *);
 extern  void  emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
 extern  void  SWIG_config_file(const String_or_char *);
+extern const String *SWIG_output_directory();
 extern  void  SWIG_config_cppext(const char *ext);
 
 extern "C"    void  SWIG_typemap_lang(const char *);

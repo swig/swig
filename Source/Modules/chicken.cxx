@@ -32,15 +32,14 @@ char cvsroot_chicken_cxx[] = "$Header$";
 static const char *chicken_usage = (char*)"\
 \
 CHICKEN Options (available with -chicken)\n\
--help                  - Print this help.\n\
--prefix name           - Set a prefix to be prepended to all names.\n\
-                         Defaults to the name of the module.\n\
--noprefix              - Don't use a prefix.\n\
--mixed                 - Convert mixed case (ex. aMethodName) into \n\
-                         dash seperated, lower case (ex. a-method-name).\n\
--noclos                - Don't generate clos TinyCLOS code.\n\
--nogeneric             - Don't generate (make-generic) definitions.\n\
--ldflags               - Print runtime libraries to link with.\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
+                       Defaults to the name of the module\n\
+     -noprefix       - Don't use a prefix\n\
+     -mixed          - Convert mixed case (ex. aMethodName) into\n\
+                       dash seperated, lower case (ex. a-method-name)\n\
+     -noclos         - Don't generate clos TinyCLOS code\n\
+     -nogeneric      - Don't generate (make-generic) definitions\n\
+     -ldflags        - Print runtime libraries to link with\n\
 \n"
 ;
 
@@ -265,7 +264,7 @@ CHICKEN::top(Node *n)
     }
   }
     
-  Printf(chicken_filename,"%s%s.scm", Swig_file_dirname(outfile), module);
+  Printf(chicken_filename,"%s%s.scm", SWIG_output_directory(), module);
   if ((f_scm = NewFile(chicken_filename,"w")) == 0) {
     Printf(stderr,"Unable to open %s\n", chicken_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -309,7 +308,7 @@ CHICKEN::top(Node *n)
 
   if (generic) {
     Printf(generic_filename,"%s%s-generic.scm", 
-	   Swig_file_dirname(outfile), module);
+	   SWIG_output_directory(), module);
     if ((f_generic = NewFile(generic_filename,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", generic_filename);
       SWIG_exit (EXIT_FAILURE);
@@ -325,7 +324,7 @@ CHICKEN::top(Node *n)
   }
 
   if (clos) {
-    Printf(clos_filename,"%s%s-clos.scm", Swig_file_dirname(outfile), module);
+    Printf(clos_filename,"%s%s-clos.scm", SWIG_output_directory(), module);
     if ((f_clos = NewFile(clos_filename,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", clos_filename);
       SWIG_exit (EXIT_FAILURE);

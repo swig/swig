@@ -24,11 +24,11 @@ char cvsroot_perl5_cxx[] = "$Header$";
 static const char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -static         - Omit code related to dynamic loading.\n\
-     -nopm           - Do not generate the .pm file.\n\
-     -proxy          - Create proxy classes.\n\
-     -const          - Wrap constants as constants and not variables (implies -shadow).\n\
-     -compat         - Compatibility mode.\n\n";
+     -static         - Omit code related to dynamic loading\n\
+     -nopm           - Do not generate the .pm file\n\
+     -proxy          - Create proxy classes\n\
+     -const          - Wrap constants as constants and not variables (implies -proxy)\n\
+     -compat         - Compatibility mode\n\n";
 
 static int     compat = 0;
 
@@ -247,11 +247,12 @@ public:
 	}
 	pmfile = NewStringf("%s.pm", m);
       }
-      String *filen = NewStringf("%s%s", Swig_file_dirname(outfile),pmfile);
+      String *filen = NewStringf("%s%s", SWIG_output_directory(),pmfile);
       if ((f_pm = NewFile(filen,"w")) == 0) {
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit (EXIT_FAILURE);
       }
+      Delete(filen); filen = NULL;
       Swig_register_filebyname("pm",f_pm);
     }
     {

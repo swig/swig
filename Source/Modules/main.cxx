@@ -45,6 +45,8 @@ extern "C" {
     int        Verbose = 0;
     int        NoExtern = 0;
     int        NoExcept = 0;
+    char      *SwigLib;
+
 
 extern "C" {
 extern String  *ModuleName;
@@ -55,29 +57,37 @@ static char *usage = (char*)"\
      -c              - Produce raw wrapper code (omit support code)\n\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
-     -Dsymbol        - Define a symbol (for conditional compilation)\n\
-     -I<dir>         - Look for SWIG files in <dir>\n\
-     -includeall     - Follow all #include statements\n\
-     -importall      - Follow all #include statements as imports\n\
-     -ignoremissing  - Ignore missing include files.\n\
-     -l<ifile>       - Include SWIG library file.\n\
-     -M              - List all dependencies. \n\
-     -MM             - List dependencies, but omit files in SWIG library.\n\
-     -makedefault    - Create default constructors/destructors (the default)\n\
-     -module         - Set module name\n\
-     -nodefault      - Do not generate constructors/destructors\n\
-     -noexcept       - Do not wrap exception specifiers.\n\
-     -noextern       - Do not generate extern declarations.\n\
-     -o outfile      - Set name of the output file.\n\
-     -swiglib        - Report location of SWIG library and exit\n\
-     -v              - Run in verbose mode\n\
+     -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
      -fcompact       - Compile in compact mode\n\
      -fvirtual       - Compile in virtual elimination mode\n\
+     -help           - This output\n\
+     -I<dir>         - Look for SWIG files in <dir>\n\
+     -ignoremissing  - Ignore missing include files\n\
+     -importall      - Follow all #include statements as imports\n\
+     -includeall     - Follow all #include statements\n\
+     -l<ifile>       - Include SWIG library file <ifile>\n\
+     -M              - List all dependencies \n\
+     -MM             - List dependencies, but omit files in SWIG library\n\
+     -makedefault    - Create default constructors/destructors (the default)\n\
+     -module <name>  - Set module name to <name>\n\
+     -nodefault      - Do not generate constructors/destructors\n\
+     -noexcept       - Do not wrap exception specifiers\n\
+     -noextern       - Do not generate extern declarations\n\
+     -o <outfile>    - Set name of the output file to <outfile>\n\
+     -outdir <dir>   - Set language specific files output directory\n\
      -small          - Compile in virtual elimination & compact mode\n\
+     -swiglib        - Report location of SWIG library and exit\n\
+     -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -Wall           - Enable all warning messages\n\
-     -wn             - Suppress warning number n\n\
-     -help           - This output.\n\n";
+     -w<n>           - Suppress warning number <n>\n\
+\n";
+
+// Local variables
+static int     freeze = 0;
+static String  *lang_config = 0;
+static char    *cpp_extension = (char *) "cxx";
+static String  *outdir = 0;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -139,16 +149,30 @@ install_opts(int argc, char *argv[]) {
     }
   }
 }
+
+// -----------------------------------------------------------------------------
+// Sets the output directory for language specific (proxy) files if not set and 
+// adds trailing file separator if necessary.
+// ----------------------------------------------------------------------------- 
+
+static void set_outdir(const String *c_wrapper_file_dir) {
+
+    // Add file delimiter if not present in output directory name
+    if (outdir && Len(outdir) != 0) {
+        const char* outd = Char(outdir);
+        if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMETER), SWIG_FILE_DELIMETER) != 0)
+            Printv(outdir, SWIG_FILE_DELIMETER, NIL);
+    }
+    // Use the C wrapper file's directory if the output directory has not been set by user
+    if (!outdir)
+        outdir = NewString(c_wrapper_file_dir);
+}
+
 //-----------------------------------------------------------------
 // main()
 //
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
-
-char *SwigLib;
-static int     freeze = 0;
-static String  *lang_config = 0;
-static char    *cpp_extension = (char *) "cxx";
 
 /* This function sets the name of the configuration file */
 
@@ -158,6 +182,12 @@ void SWIG_config_file(const String_or_char *filename) {
 
 void SWIG_library_directory(const char *filename) {
   strcpy(LibDir,filename);
+}
+
+// Returns the directory for generating language specific files (non C/C++ files)
+const String *SWIG_output_directory() {
+    assert(outdir);
+    return outdir;
 }
 
 void SWIG_config_cppext(const char *ext) {
@@ -399,6 +429,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-MM") == 0) {
 	    depend = 2;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-outdir") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      outdir = NewString(argv[i+1]);	    
+	      Swig_mark_arg(i+1);
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-Wall") == 0) {
 	    Swig_mark_arg(i);
 	    Swig_warnall();
@@ -430,7 +468,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    memory_debug =1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
-	    //fputs("Help.\n",stderr);
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
 	    help = 1;
@@ -642,6 +679,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  Setattr(top,"outfile_h", NewStringf("%s.h", header));
 	  free(header);
 	}
+        set_outdir(Swig_file_dirname(Getattr(top,"outfile")));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}

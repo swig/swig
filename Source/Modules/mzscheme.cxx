@@ -32,13 +32,11 @@ char cvsroot_mzscheme_cxx[] = "$Header$";
 #include <ctype.h>
 
 static const char *usage = (char*)"\
-\n\
 Mzscheme Options (available with -mzscheme)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -prefix name    - Set a prefix to be appended to all names\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -declaremodule  - Create extension that declares a module\n\
-\n"
-;
+\n";
 
 static char *prefix=0;
 static bool declaremodule = false;

@@ -14,7 +14,7 @@
 char cvsroot_s_exp_cxx[] = "$Header$";
 static const char *usage = "\
 S-Exp Options (available with -sexp)\n\
-     -typemaplang lang - Typemap language.\n\n";
+     -typemaplang <lang> - Typemap language\n\n";
 
 #include "swigmod.h"
 

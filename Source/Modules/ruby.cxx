@@ -387,7 +387,7 @@ Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -globalmodule   - Wrap everything into the global module\n\
      -minherit       - Attempt to support multiple inheritance\n\
-     -feature name   - Set feature name (used by `require')\n";
+     -feature <name> - Set feature name to <name> (used by `require')\n";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)

@@ -302,12 +302,12 @@ static  String   *real_classname;
 static const char *usage = (char *)"\
 Python Options (available with -python)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -globals name   - Set name used to access C global variable ('cvar' by default).\n\
-     -interface name - Set the lib name\n\
+     -globals <name> - Set <name> used to access C global variable [default: 'cvar']\n\
+     -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
-     -noexcept       - No automatic exception handling.\n\
-     -noproxy        - Don't generate proxy classes. \n\n";
+     -noexcept       - No automatic exception handling\n\
+     -noproxy        - Don't generate proxy classes \n\n";
 
 class PYTHON : public Language {
 public:
@@ -461,11 +461,9 @@ public:
       Printf(f_directors, "#include \"%s\"\n\n", outfile_h);
     }
 
-    char  filen[256];
-
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (shadow) {
-      sprintf(filen,"%s%s.py", Swig_file_dirname(outfile), Char(module));
+      String *filen = NewStringf("%s%s.py", SWIG_output_directory(), Char(module));
       // If we don't have an interface then change the module name X to _X
       if (interface) module = interface;
       else Insert(module,0,"_");
@@ -473,6 +471,8 @@ public:
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit (EXIT_FAILURE);
       }
+      Delete(filen); filen = NULL;
+
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow",f_shadow);

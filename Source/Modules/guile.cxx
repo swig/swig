@@ -33,22 +33,22 @@ char cvsroot_guile_cxx[] = "$Header$";
 static const char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
-     -package name   - Set the path of the module [default NULL]\n\
+     -prefix <name>  - Use <name> as prefix [default \"gswig_\"]\n\
+     -package <name> - Set the path of the module to <name> [default NULL]\n\
      -emit-setters   - Emit procedures-with-setters for variables\n\
                        and structure slots.\n\
-     -linkage lstyle - Use linkage protocol LSTYLE [default `module']\n\
-     -procdoc file   - Output procedure documentation to FILE\n\
-     -procdocformat format - Output procedure documentation in FORMAT;\n\
-                             one of `guile-1.4', `plain', `texinfo'\n\
-     -scmstub file   - Output Scheme FILE with module declaration and\n\
+     -procdoc <file> - Output procedure documentation to <file>\n\
+     -procdocformat <format> - Output procedure documentation in <format>;\n\
+                               one of `guile-1.4', `plain', `texinfo'\n\
+     -linkage <lstyle>       - Use linkage protocol <lstyle> [default `module']\n\
+     -scmstub <file> - Output Scheme <file> with module declaration and\n\
                        exports; only with `passive' and `simple' linkage\n\
      -gh             - Use the gh_ guile interface. (default) \n\
      -scm            - Use the scm guile interface.  (guile >=1.6) \n\
 \n\
-  When unspecified, the default LSTYLE is `simple'.  For native Guile\n\
+  When unspecified, the default <lstyle> is `simple'.  For native Guile\n\
   module linking (for Guile versions >=1.5.0), use `module'.  Other\n\
-  LSTYLE values are: `passive' for passive linking (no C-level\n\
+  <lstyle> values are: `passive' for passive linking (no C-level\n\
   module-handling  code), `ltdlmod' for Guile's old dynamic module\n\
   convention (versions <= 1.4), or `hobbit' for hobbit modules.\n\
 \n";
