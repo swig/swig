@@ -602,6 +602,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
       memmove(t,s,(str->str + str->len) - s + 1);
     }
     str->len += expand;
+    str->str[str->len] = 0;
     if (str->sp >= str->len) str->sp += expand;  /* Fix the end of file pointer */
     return rcount;
   }
@@ -693,6 +694,7 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
     str->str = ns;
     if (str->sp >= str->len) str->sp += expand;
     str->len += expand;
+    str->str[str->len] = 0;
     str->maxsize = newsize;
     DohFree(c);
     return rcount;
