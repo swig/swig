@@ -612,7 +612,8 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 	cls = RCLASS(classes, SwigType_base(t));
 	if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
 	  const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
-	  Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", result);\n",0);
+	  Printv(f->code, "vresult = Wrap_", cls->cname, "(", vname, ", result,", 
+		 (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
 	} else {
 	  if (add_pointer) SwigType_del_pointer(t);
 	  add_pointer = 0;
@@ -730,7 +731,8 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     cls = RCLASS(classes, SwigType_base(t));
     if ((type_code == T_POINTER || type_code == T_REFERENCE) && cls) {
       const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
-      Printv(getf->code, "vresult = Wrap_", cls->cname, "(", vname, ",", source, ");\n",0);
+      Printv(getf->code, "vresult = Wrap_", cls->cname, "(", vname, ",", source,  ",",
+	     (NewObject || (current == CONSTRUCTOR)) ? "1" : "0", ");\n",0);
     } else {
       if (add_pointer) SwigType_del_pointer(t);
       add_pointer = 0;
@@ -1251,9 +1253,9 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
   Printv(klass->header,
 	 "$markproto",
 	 "$freeproto",
-	 "#define Wrap_", klass->cname, "(klass, ptr) (\\\n",
+	 "#define Wrap_", klass->cname, "(klass, ptr, owned) (\\\n",
 	 tab4, "(ptr) ? Data_Wrap_Struct(klass",
-	 ", $markfunc, $freefunc, ptr) : Qnil )\n",
+	 ", $markfunc, (owned) ? $freefunc : 0, ptr) : Qnil )\n",
 	 "#define Get_", klass->cname, "(val, ptr) {\\\n",
 	 tab4, "if (NIL_P(val)) ptr = NULL;\\\n",
 	 tab4, "else {\\\n",
