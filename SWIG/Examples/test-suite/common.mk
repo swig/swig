@@ -90,6 +90,7 @@ CPP_TEST_CASES += \
 	template \
 	template_classes \
 	template_const_ref \
+	template_forward \
 	template_inherit \
 	template_ns2 \
 	template_qualifier \
