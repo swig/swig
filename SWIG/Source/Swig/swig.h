@@ -245,6 +245,7 @@ extern SwigType   *SwigType_typedef_resolve(SwigType *t);
 extern SwigType   *SwigType_typedef_resolve_all(SwigType *t);
 extern SwigType   *SwigType_typedef_qualified(SwigType *t);
 extern int         SwigType_istypedef(SwigType *t);
+extern int         SwigType_isclass(SwigType *t);
 
 extern void        SwigType_remember(SwigType *t);
 extern void        SwigType_emit_type_table(File *f_headers, File *f_table);

@@ -566,6 +566,31 @@ int SwigType_typedef_using(String_or_char *name) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_isclass()
+ *
+ * Determines if a type defines a class or not.   A class is defined by
+ * its type-table entry maps to itself.  Note: a pointer to a class is not
+ * a class.
+ * ----------------------------------------------------------------------------- */
+
+int
+SwigType_isclass(SwigType *t) {
+  SwigType *qty, *qtys;
+  int  isclass = 0;
+
+  qty = SwigType_typedef_resolve_all(t);
+  qtys = SwigType_strip_qualifiers(qty);
+  if (SwigType_issimple(qtys)) {
+    String *td = SwigType_typedef_resolve(qtys);
+    if (resolved_scope) {
+      isclass = 1;
+    }
+  }
+  Delete(qty);
+  Delete(qtys);
+  return isclass;
+}
 
 /* -----------------------------------------------------------------------------
  * SwigType_type()
@@ -966,7 +991,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   }
 
   Printf(table, "0\n};\n");
-  Printf(f_forward,"static swig_type_info *swig_types[%d];\n", i);
+  Printf(f_forward,"static swig_type_info *swig_types[%d];\n", i+1);
   Printf(f_forward,"\n/* -------- TYPES TABLE (END) -------- */\n\n");
   Printf(f_table,"%s\n", types);
   Printf(f_table,"%s\n", table);
