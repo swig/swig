@@ -203,7 +203,7 @@ SWIG is invoked using the <tt>swig</tt> command. We can use this to
 build a Tcl module (under Linux) as follows :
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 unix &gt; <b>swig -tcl example.i</b>
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
@@ -237,7 +237,7 @@ Now, let's turn these functions into a Perl5 module. Without making
 any changes type the following (shown for Solaris):
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 unix &gt; <b>swig -perl5 example.i</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
@@ -262,7 +262,7 @@ unix &gt;
 Finally, let's build a module for Python (shown for Irix).
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 unix &gt; <b>swig -python example.i</b>
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
@@ -289,7 +289,7 @@ it. For example, you could also build a Perl5 module by just running
 SWIG on the C header file and specifying a module name as follows
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 unix &gt; <b>swig -perl5 -module example example.h</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>

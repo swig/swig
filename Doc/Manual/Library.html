@@ -182,7 +182,7 @@ void add(int x, int y, int *result);
 Now, in Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.new_intp()     # Create an "int" for storing result
@@ -262,7 +262,7 @@ void add(int x, int y, int *result);
 Now, in Python (using proxy classes)
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; c = example.intp()         # Create an "int" for storing result
@@ -626,7 +626,7 @@ Here is a simple example that illustrates the use of these macros:
 Now, in a script:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; a = malloc_int()
@@ -698,7 +698,7 @@ Here is a short example:
 Python example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = intArray(10)
 &gt;&gt;&gt; for i in range(0,10):
@@ -949,7 +949,7 @@ void get_path(char *path);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; get_path()
 /home/beazley/packages/Foo/Bar
@@ -992,7 +992,7 @@ void get_packet(char *packet);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; get_packet()
 '\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
@@ -1035,7 +1035,7 @@ void make_upper(char *ustr);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; make_upper("hello world")
 'HELLO WORLD'
@@ -1087,7 +1087,7 @@ void attach_header(char *hstr);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; make_upper("hello world")
 'HELLO WORLD'
@@ -1138,7 +1138,7 @@ void get_path(char *path, int maxpath);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; get_path(1024)
 '/home/beazley/Packages/Foo/Bar'
@@ -1184,7 +1184,7 @@ void get_data(char *data, int *maxdata);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; get_data(1024)
 'x627388912'
@@ -1241,7 +1241,7 @@ void foo(char **s);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo()
 'Hello world\n'
@@ -1291,7 +1291,7 @@ void foo(char **s, int *slen);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo()
 '\xa9Y:\xf6\xd7\xe1\x87\xdbH;y\x97\x7f"\xd3\x99\x14V\xec\x06\xea\xa2\x88'
@@ -1377,7 +1377,7 @@ void        bar(const std::string &amp;x);
 In the target language:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 x = foo();                # Returns a string object
 bar("Hello World");       # Pass string as std::string
@@ -1522,7 +1522,7 @@ namespace std {
 Now, to illustrate the behavior in the scripting interpreter, consider this Python example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; iv = IntVector(4)         # Create an vector&lt;int&gt;

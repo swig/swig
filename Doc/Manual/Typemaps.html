@@ -603,7 +603,7 @@ you can't use typemaps to interchange the arguments, allowing you to call the
 function like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 foo("hello",3)          # Reversed arguments
 </pre>
@@ -682,7 +682,7 @@ are sometimes to attach extra information to a typemap and is often target-langu
 this list is as follows:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 typelist    :  typepattern [, typepattern, typepattern, ... ] ;
 
@@ -703,7 +703,7 @@ variables (parms).   The purpose of these variables will be explained shortly.
 forms:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 code       : { ... }
            | " ... "
@@ -1035,7 +1035,7 @@ int foo(const char *s);
 To find a typemap for the argument <tt>const char *s</tt>, SWIG will search for the following typemaps:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 const char *s           Exact type and name match
 const char *            Exact type match
@@ -1105,7 +1105,7 @@ To find the typemap for <tt>Integer x</tt>, SWIG will first search for the follo
 typemaps:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Integer x
 Integer
@@ -1117,7 +1117,7 @@ Finding no match, it then applies a reduction <tt>Integer -&gt; int</tt> to the 
 repeats the search.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 int x
 int      --&gt; match: typemap 1
@@ -1505,7 +1505,7 @@ and you wanted to pass a native string in the target language as an argument.   
 in Perl, you wanted the function to work like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 $x = foo("Hello World");
 </pre>
@@ -1770,7 +1770,7 @@ on the left-hand side of a C assignment operation.   Here are a few examples of 
 and ltypes:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 type              ltype
 ------            ----------------
@@ -2080,7 +2080,7 @@ with an "in" typemap---possibly to ignore the input value.  For example:
 The following special variables are available.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 $result           - Result object returned to target language.
 $input            - The original input object passed.
@@ -2307,7 +2307,7 @@ C stack.  The typemap then populates this array and passes it to the underlying 
 When used from Python, the typemap allows the following type of function call:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; set_vector(type, [ 1, 2.5, 5, 20 ])
 </pre>
@@ -2414,7 +2414,7 @@ When SWIG runs, it won't produce any code to set the <tt>vec</tt> member.
 You may even get a warning message like this:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 swig -python  example.i
 Generating wrappers for Python
 example.i:10.  Warning. Array member value will be read-only.
@@ -2449,7 +2449,7 @@ When combined with the earlier typemaps for arrays, the combination of the "in" 
 the following usage:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; s = SomeObject()
 &gt;&gt;&gt; s.x = [1, 2.5, 5, 10]
@@ -2462,7 +2462,7 @@ object.  For example, in this example, you will get very odd program behavior wh
 can be set nicely, but reading the member simply returns a pointer:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; s = SomeObject()
 &gt;&gt;&gt; s.x = [1, 2.5, 5. 10]
@@ -2493,7 +2493,7 @@ To fix this, you can write an "out" typemap.   For example:
 Now, you will find that member access is quite nice:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; s = SomeObject()
 &gt;&gt;&gt; s.x = [1, 2.5, 5, 10]
@@ -2581,7 +2581,7 @@ Suppose that you wanted to wrap this function so that it accepted a single
 list of strings like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo(["ale","lager","stout"])
 </pre>
@@ -2766,7 +2766,7 @@ scripting language object being returned to the interpreter.).
 Now, in a script, you can write code that simply passes buffers as strings like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.open("Makefile")
 &gt;&gt;&gt; example.read(f,40)
@@ -2865,7 +2865,7 @@ into typed pointer objects.  For example, an instance of <tt>Foo *</tt> might be
 a string encoded like this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 _108e688_p_Foo
 </pre>
@@ -2901,7 +2901,7 @@ When the class <tt>FooBar</tt> is organized in memory, it contains the contents
 of the classes <tt>Foo</tt> and <tt>Bar</tt> as well as its own data members.  For example:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 FooBar --&gt; | -----------|  &lt;-- Foo
            |   int x    |
@@ -3186,7 +3186,7 @@ int foo(char *s, int y);
 You can access the functions in a normal way from the scripting interpreter:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 # Python
 foo(3)           # foo(int)
@@ -3282,7 +3282,7 @@ is the mechanism by which it is implemented---as a collection of typemaps.
 To support dynamic dispatch, SWIG first defines a general purpose type hierarchy as follows:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Symbolic Name                   Precedence Value
 ------------------------------  ------------------

@@ -98,7 +98,7 @@ When the resulting module is created, you can now use the function
 like this (shown for Python):
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; a = add(3,4)
 &gt;&gt;&gt; print a
 7
@@ -153,7 +153,7 @@ void getwinsize(int winid, int *width, int *height);
 In this case, the function returns multiple values, allowing it to be used like this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; w,h = genwinsize(wid)
 &gt;&gt;&gt; print w
 400
@@ -234,7 +234,7 @@ extern double add(double *INPUT, double *INPUT);
 When the function is used in the scripting language interpreter, it will work like this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 result = add(3,4)
 </pre></div>
 
@@ -297,7 +297,7 @@ extern int foo(double a, double b, double *OUTPUT);
 The function will return two values like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 iresult, dresult = foo(3.5, 2)
 </pre>
@@ -347,7 +347,7 @@ extern void negate(double *INOUT);
 <p>
 Now within a script, you can simply call the function normally :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 a = negate(3);         # a = -3 after calling this
 </pre></div>
 

@@ -291,7 +291,7 @@ The current C++ parser handles a subset of C++.  Most incompatibilities with C a
 subtle aspects of how SWIG parses declarations.  Specifically, SWIG expects all C/C++ declarations to follow this general form:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 <em>storage</em> <em>type</em> <em>declarator</em> <em>initializer</em>;
 </pre>
@@ -395,7 +395,7 @@ The parse tree structure and tag names of an interface can be displayed using <t
 For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ <b>swig -c++ -python -dump_tags example.i</b>
  . top (example.i:1)
@@ -453,7 +453,7 @@ pairs.  Internally, the nodes are simply represented by hash tables.  A display 
 the parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ swig -c++ -python -dump_tree example.i
 ...
@@ -683,7 +683,7 @@ void foo(Bar *b);
 Now, running SWIG:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ swig -dump_tree example.i
 ...
@@ -733,7 +733,7 @@ void foo(Bar *b);
 When you run SWIG on this you now get:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ ./swig example.i
 example.i:6. Overloaded declaration ignored.  foo_d(double )
@@ -777,7 +777,7 @@ given prototype.   When a feature is added, it shows up as an attribute in the <
 You can see this when running with the <tt>-dump_tree</tt> option.   For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
  +++ cdecl ----------------------------------------
  | sym:name     - "getitem"
@@ -828,7 +828,7 @@ When the parser constructs a node for the member <tt>bar</tt>, it creates a raw 
 attributes:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 nodeType    : cdecl
 name        : bar
@@ -844,7 +844,7 @@ sym:name    : bar
 To produce wrapper code, this "cdecl" node undergoes a number of transformations.  First, the node is recognized as a function declaration.   This adjusts some of the type information--specifically, the declarator is joined with the base datatype to produce this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 nodeType    : cdecl
 name        : bar
@@ -862,7 +862,7 @@ member function.  This produces a transformation to a low-level
 accessor function like this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 nodeType    : cdecl
 name        : bar
@@ -1795,7 +1795,7 @@ Internally, types are represented as strings that are constructed in a very
 precise manner.  Here are some examples:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 C datatype                     SWIG encoding (strings)
 -----------------------------  --------------------------
@@ -1819,7 +1819,7 @@ a "pointer to a function(int,double) that returns int".
 The following operator encodings are used in type strings:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Operator              Meaning
 -------------------   -------------------------------
@@ -1846,7 +1846,7 @@ is expected.  For instance, here is
 an extremely perverted example:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 `p.a(10).p.f(int,p.f(int).int)` foo(int, int (*x)(int));
 </pre>
@@ -1856,7 +1856,7 @@ an extremely perverted example:
 This corresponds to the immediately obvious C declaration:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 (*(*foo(int,int (*)(int)))[10])(int,int (*)(int));
 </pre>
@@ -2139,7 +2139,7 @@ typedef int Size;
 produces two trees like this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
                  int               p.Integer
                ^  ^  ^                 ^ 
@@ -2169,7 +2169,7 @@ resolving types, the process starts in the leaf nodes and moves up
 the tree towards the root.   Here are a few examples that show how it works:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Original type            After typedef_resolve()
 ------------------------ -----------------------
@@ -2185,7 +2185,7 @@ For complicated types, the process can be quite involved.  Here is the
 reduction of a function pointer:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 p.f(Integer, p.IntegerPtr, Size).Integer          : Start
 p.f(Integer, p.IntegerPtr, Size).int
@@ -2318,7 +2318,7 @@ functions and templates.  Parameter list are represented as a list of
 nodes with the following attributes:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "type"        -  Parameter type  (required)
 "name"        -  Parameter name  (optional)
@@ -2332,7 +2332,7 @@ Typically parameters are denoted in the source by using a typename of
 code like this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Parm *parms;
 Parm *p;
@@ -2510,7 +2510,7 @@ Next, at the top level of the SWIG distribution, re-run the <tt>autogen.sh</tt> 
 to regenerate the various build files:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ <b>sh autogen.sh</b>
 </pre>
@@ -2520,7 +2520,7 @@ $ <b>sh autogen.sh</b>
 Next re-run <tt>configure</tt> to regenerate all of the Makefiles:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ <b>./configure</b>
 </pre>
@@ -2530,7 +2530,7 @@ $ <b>./configure</b>
 Finally, rebuild SWIG with your module added:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ <b>make</b>
 </pre>
@@ -2974,7 +2974,7 @@ A declaration is parsed as "storage T D" where storage is a storage class, T is 
 and D is a declarator.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Declarator name
 "type"          - Base type T
@@ -2995,7 +2995,7 @@ and D is a declarator.
 C++ constructor declaration.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of constructor
 "parms"         - Parameters
@@ -3014,7 +3014,7 @@ C++ constructor declaration.
 C++ destructor declaration.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of destructor
 "code"          - Function body code (if any)
@@ -3032,7 +3032,7 @@ C++ destructor declaration.
 C++ access change.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "kind"          - public, protected, private
 </pre>
@@ -3047,7 +3047,7 @@ C++ access change.
 Constant created by %constant or #define.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of constant.
 "type"          - Base type.
@@ -3065,7 +3065,7 @@ Constant created by %constant or #define.
 C++ class definition or C structure definition.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the class.
 "kind"          - Class kind ("struct", "union", "class")
@@ -3087,7 +3087,7 @@ C++ class definition or C structure definition.
 Enumeration.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the enum (if supplied).
 "storage"       - Storage class (if any)
@@ -3105,7 +3105,7 @@ Enumeration.
 Enumeration value.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the enum value.
 "type"          - Type (integer or char)
@@ -3122,7 +3122,7 @@ Enumeration value.
 C++ namespace.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the namespace.
 "symtab"        - Symbol table for enclosed scope.
@@ -3140,7 +3140,7 @@ C++ namespace.
 C++ using directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the object being referred to.
 "uname"         - Qualified name actually given to using.
@@ -3158,7 +3158,7 @@ C++ using directive.
 A forward C++ class declaration.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Name of the class.
 "kind"          - Class kind ("union", "struct", "class")
@@ -3175,7 +3175,7 @@ Code insertion directive.  For example, %{ ... %} or
 %insert(section).
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "code"          - Inserted code
 "section"       - Section name ("header", "wrapper", etc.)
@@ -3190,7 +3190,7 @@ Code insertion directive.  For example, %{ ... %} or
 Top of the parse tree.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "module"        - Module name
 </pre>
@@ -3204,7 +3204,7 @@ Top of the parse tree.
 %extend directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"          - Module name
 "symtab"        - Symbol table of enclosed scope.
@@ -3219,7 +3219,7 @@ Top of the parse tree.
 %apply pattern { patternlist }.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "pattern"       - Source pattern.
 "symtab"        - Symbol table of enclosed scope.
@@ -3234,7 +3234,7 @@ Top of the parse tree.
 %clear patternlist;
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "firstChild"    - Patterns to clear
 </pre>
@@ -3248,7 +3248,7 @@ Top of the parse tree.
 %include directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"         - Filename
 "firstChild"   - Children
@@ -3263,7 +3263,7 @@ Top of the parse tree.
 %import directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"         - Filename
 "firstChild"   - Children
@@ -3279,7 +3279,7 @@ Top of the parse tree.
 %module directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"         - Name of the module
 </pre>
@@ -3294,7 +3294,7 @@ Top of the parse tree.
 %typemap directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "method"       - Typemap method name.
 "code"         - Typemap code.
@@ -3311,7 +3311,7 @@ Top of the parse tree.
 %typemap directive with copy.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "method"       - Typemap method name.
 "pattern"      - Typemap source pattern.
@@ -3328,7 +3328,7 @@ Top of the parse tree.
 %typemap pattern. Used with %apply, %clear, %typemap.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "pattern"      - Typemap pattern (a parameter list)
 "parms"        - Typemap parameters.
@@ -3343,7 +3343,7 @@ Top of the parse tree.
 %types directive.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "parms"        - List of parameter types.
 </pre>
@@ -3358,7 +3358,7 @@ Top of the parse tree.
 extern "X" { ... } declaration.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 "name"       - Name "C", "Fortran", etc.
 </pre>

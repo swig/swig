@@ -274,7 +274,7 @@ this actually provides enough support for many simple kinds of varargs functions
 instance, you could make function calls like this (in Python):
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; traceprintf("Hello World")
 &gt;&gt;&gt; traceprintf("Hello %s. Your number is %d\n" % (name, num))
@@ -722,7 +722,7 @@ int printf(const char *fmt, ...);
 Much to your amazement, it even seems to work if you try it:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; example.printf("Grade: %s   %d/60 = %0.2f%%\n", "Dave", 47, 47.0*100/60)
@@ -735,7 +735,7 @@ Grade: Dave   47/60 = 78.33%
 Of course, there are still some limitations to consider:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; example.printf("la de da de da %s", 42)
 Segmentation fault (core dumped)

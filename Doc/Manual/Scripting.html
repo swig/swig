@@ -181,7 +181,7 @@ double Foo = 3.5;
 <p>
 It might be nice to access it from a script as follows (shown for Perl):</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 $a = $Foo * 2.3;   # Evaluation
 $Foo = $a + 2.0;   # Assignment
 </pre></div>
@@ -269,7 +269,7 @@ void Vector_z_set(Vector *v, double z);
 Now, from an interpreter these function might be used as follows:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 % set v [new_Vector]
 % Vector_x_set $v 3.5
 % Vector_y_get $v
@@ -309,7 +309,7 @@ A proxy classing mechanism would allow you to access the structure in
 a more natural manner from the interpreter. For example, in Python, you might want to do this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; v = Vector()
 &gt;&gt;&gt; v.x = 3
 &gt;&gt;&gt; v.y = 4
@@ -321,7 +321,7 @@ a more natural manner from the interpreter. For example, in Python, you might wa
 <p>
 Similarly, in Perl5 you may want the interface to work like this:</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 $v = new Vector;
 $v-&gt;{x} = 3;
 $v-&gt;{y} = 4;
@@ -332,7 +332,7 @@ $v-&gt;{z} = -13;
 Finally, in Tcl :
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 Vector v
 v configure -x 3 -y 4 -z 13
 
@@ -366,7 +366,7 @@ To create a shared library or DLL, you often need to look at the
 manual pages for your compiler and linker.  However, the procedure
 for a few common machines is shown below:</p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 # Build a shared library for Solaris
 gcc -c example.c example_wrap.c -I/usr/local/include
 ld -G example.o example_wrap.o -o example.so
@@ -387,7 +387,7 @@ in the scripting language (load, import, use, etc...). This will
 import your module and allow you to start using it. For example:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 % load ./example.so
 % fact 4
 24
@@ -401,7 +401,7 @@ additional code in order to operate correctly. On many machines, you
 can build a shared C++ module by following the above procedures, but
 changing the link line to the following :</p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 c++ -shared example.o example_wrap.o -o example.so
 </pre></div>
 
@@ -415,7 +415,7 @@ order for the extension to work, it needs to be able to find all of
 these libraries at run-time. Otherwise, you may get an error such as
 the following :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; import graph
 Traceback (innermost last):
   File "&lt;stdin&gt;", line 1, in ?

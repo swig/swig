@@ -205,7 +205,7 @@ When compiling and linking the resulting wrapper file,  it is normal
 to use the C++ compiler.  For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ swig -c++ -tcl example.i
 $ c++ -c example_wrap.cxx 
@@ -394,7 +394,7 @@ all cases, this is caused when classes are determined to be abstract.   To see i
 all of its warnings turned on:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 % swig -Wall -python module.i
 </pre>
@@ -445,7 +445,7 @@ public:
 then the copy constructor can be used as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 x = new_List()               # Create a list
 y = new_List(x)              # Copy list x
@@ -805,7 +805,7 @@ public:
 <p>
 Generates the following set of constants in the target scripting language :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 Swig_ALE = Swig::ALE
 Swig_LAGER = Swig::LAGER
 Swig_PORTER = Swig::PORTER
@@ -916,7 +916,7 @@ void foo(const int &amp;x);
 it is called from a script as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 foo(3)              # Notice pass by value
 </pre>
@@ -1117,7 +1117,7 @@ public:
 When wrapped into Python, we can now perform the following operations
 :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 $ python
 &gt;&gt;&gt; import shapes
 &gt;&gt;&gt; circle = shapes.new_Circle(7)
@@ -1170,7 +1170,7 @@ base classes to be defined in an interface.  Otherwise, you may get an
 warning message like this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example:18. Nothing known about class 'Foo'. Ignored.
 </pre>
@@ -1252,7 +1252,7 @@ pointer and a type string.  For example, in Tcl, a C++ pointer might
 be encoded as a string like this:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 _808fea88_p_Circle
 </pre>
@@ -1328,7 +1328,7 @@ representation of <tt>C</tt>. With multiple inheritance, the data from
 each base class is stacked together.  For example:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
              ------------    &lt;--- (C *),  (A *)
             |     A      |
@@ -1437,7 +1437,7 @@ void foo(char *x) {
 The function is used in a completely natural way.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo(3)
 x is 3
@@ -1468,7 +1468,7 @@ public:
 it might be used like this
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = Foo()          # Create a Foo
 &gt;&gt;&gt; f.bar(3)
@@ -1516,7 +1516,7 @@ required arguments.
 <li><p><b>Argument type precedence.</b>  All C++ datatypes are assigned a numeric type precedence value
 (which is determined by the language module).</p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 Type              Precedence
 ----------------  ----------
@@ -1559,7 +1559,7 @@ The first rule simply ranks the functions by required argument count.
 This would produce the following list:
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 rank
 -----
@@ -1578,7 +1578,7 @@ rank
 The second rule, simply refines the ranking by looking at argument type precedence values.
 </p>
 
-<div class="code">
+<div class="diagram">
 <pre>
 rank
 -----
@@ -1624,7 +1624,7 @@ just by looking at the value of the integer itself (<tt>int</tt> and <tt>long</t
 Therefore, when SWIG encounters this situation, it may generate a warning message like this for scripting languages:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:4: Warning(509): Overloaded foo(long) is shadowed by foo(int) at example.i:3.
 </pre>
@@ -1634,7 +1634,7 @@ example.i:4: Warning(509): Overloaded foo(long) is shadowed by foo(int) at examp
 or for statically typed languages like Java:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:4: Warning(516): Overloaded method foo(long) ignored. Method foo(int)
 at example.i:3 used.
@@ -1684,7 +1684,7 @@ Therefore, earlier methods will shadow methods that appear later.
 When wrapping an overloaded function, there is a chance that you will get an error message like this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:3: Warning(467): Overloaded foo(int) not supported (no type checking
 rule for 'int').
@@ -1703,7 +1703,7 @@ undefined.  You should report this as a bug to the
 If you get an error message such as the following,
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
 foo.i:5. Previous declaration is Spam::foo(int )
@@ -2224,7 +2224,7 @@ When used in the target language, it may now be possible to use the overloaded
 operator normally. For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = Complex(3,4)
 &gt;&gt;&gt; b = Complex(5,2)
@@ -2248,7 +2248,7 @@ name.  If you wrote this:
 The resulting scripting interface might work like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 a = Complex(3,4)
 b = Complex(5,2)
@@ -2361,7 +2361,7 @@ allow us to print the value of an object using the <tt>print</tt>
 command.
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt;
 &gt;&gt;&gt; v = Vector();
 &gt;&gt;&gt; v.x = 3
@@ -2651,7 +2651,7 @@ then SWIG knows that <tt>List&lt;int&gt;</tt> was already wrapped as a class cal
 nothing is known about <tt>List&lt;int&gt;</tt>, you will get a warning message similar to this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.h:42. Nothing known about class 'List&lt;int &gt;' (ignored). 
 example.h:42. Maybe you forgot to instantiate 'List&lt;int &gt;' using %template. 
@@ -3347,7 +3347,7 @@ namespace B {
 When this conflict occurs, you will get an error message that resembles this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:26. Error. 'foo' is multiply defined in the generated module.
 example.i:23. Previous declaration of 'foo'
@@ -3612,7 +3612,7 @@ modules, wrapped exception classes themselves can be used to catch errors.  For 
 write code like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 f = Foo()
 try:
@@ -3661,7 +3661,7 @@ When pointers to members are supported, the pointer value might appear as a spec
 string like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; print example.FOO
 _ff0d54a800000000_m_Object__f_double_double__double
@@ -3791,7 +3791,7 @@ The end result is that access looks very similar to C++.  For
 example, you could do this in Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = make_Foo()
 &gt;&gt;&gt; print f.x
@@ -3869,7 +3869,7 @@ Alternatively, you can import the definition of <tt>Foo</tt> from a separate fil
 as a method <tt>__deref__()</tt>.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 f = Foo()               # Smart-pointer
 p = f.__deref__()       # Raw pointer from operator-&gt;
@@ -3941,7 +3941,7 @@ SWIG emulates the same functionality when creating wrappers.  For example, if
 you wrap this code in Python, the module works just like you would expect:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; f = example.FooBar()
@@ -4125,7 +4125,7 @@ void blah() {
 Now, consider the behavior when wrapped into a Python module:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; bar(foo())         # Okay
 &gt;&gt;&gt; 
@@ -4214,7 +4214,7 @@ Of course, always keep in mind that the real proxy class is written in the targe
 For example, in Python, the proxy might look roughly like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 class Foo:
     def __init__(self):
@@ -4274,7 +4274,7 @@ public:
 Now, consider some script code that uses these classes:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 f = Foo()               # Creates a new Foo
 s = Spam()              # Creates a new Spam

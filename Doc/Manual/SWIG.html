@@ -96,7 +96,7 @@ To run SWIG, use the <tt>swig</tt> command with one or more of the
 following options and a filename like this:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 swig [ <em>options</em> ] filename
 
 -chicken              Generate CHICKEN wrappers
@@ -203,7 +203,7 @@ language (C, C++, etc.). Therefore, you have to use the
 file if you want something different than the default. For example:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c++ -python -o example_wrap.cpp example.i
 </pre></div>
 
@@ -224,13 +224,13 @@ specific files is the same directory as the generated C/C++ file. This can
 can be modified using the <tt>-outdir</tt> option. For example:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c++ -python -outdir pyfiles -o cppfiles/example_wrap.cpp example.i
 </pre></div>
 <p>
 If the directories <tt>cppfiles</tt> and <tt>pyfiles</tt> exist, the following
 will be generated:</p>
-<div class="code"><pre>
+<div class="shell"><pre>
 cppfiles/example_wrap.cpp
 pyfiles/example.py
 </pre></div>
@@ -414,7 +414,7 @@ declarations are accessible as scripting language functions, variables, and
 constants respectively.  For example, in Tcl:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 % sin 3
 5.2335956
 % strcmp Dave Mike
@@ -430,7 +430,7 @@ constants respectively.  For example, in Tcl:
 Or in Python:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; example.sin(3)
 5.2335956
 &gt;&gt;&gt; example.strcmp('Dave','Mike')
@@ -871,7 +871,7 @@ representation that contains the actual value of the pointer and a type-tag.
 Thus, the SWIG representation of the above
 pointers (in Tcl), might look like this:</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 _10081012_p_int
 _1008e124_ppp_double
 _f8ac_pp_char
@@ -979,7 +979,7 @@ as a pointer, so it doesn't really matter what it is. If you wrapped
 this module into Python, you can use the functions just like you
 expect :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 # Copy a file 
 def filecopy(source,target):
 	f1 = fopen(source,"r")
@@ -1115,7 +1115,7 @@ For example:
 In this case, you might run SWIG as follows:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ swig -I/usr/include -includeall example.i
 </pre>
@@ -1334,7 +1334,7 @@ it as a function from the target scripting language (it does not work
 like a variable).  For example, in Python you will have to write:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; set_foo("Hello World")
 </pre>
@@ -1374,7 +1374,7 @@ getting the value.  However, the default behavior does <em>not</em> release the 
 a possible memory leak).  In fact, you may get a warning message such as this when wrapping such a variable:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:20. Typemap warning. Setting const char * variable may leak memory
 </pre>
@@ -1710,7 +1710,7 @@ In this case, SWIG generates wrapper code where the
 default arguments are optional in the target language. For example, this function could be
 used in Tcl as follows :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 % plot -3.4 7.5 				# Use default value
 % plot -3.4 7.5 10				# set color to 10 instead
 
@@ -1751,7 +1751,7 @@ When you first wrap something like this into an extension module, you
 may find the function to be impossible to use.  For instance, in Python:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; def add(x,y):
 ...     return x+y
 ...
@@ -1785,7 +1785,7 @@ In this case, <tt>add</tt>, <tt>sub</tt>, and <tt>mul</tt> become function point
 constants in the target scripting language.  This allows you to use them as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; binary_op(3,4,add)
 7
@@ -1800,7 +1800,7 @@ Unfortunately, by declaring the callback functions as constants, they are no lon
 as functions. For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; add(3,4)
 Traceback (most recent call last):
@@ -1835,7 +1835,7 @@ by the function name).  The callback mode remains in effect until it is explicit
 disabled using <tt>%nocallback</tt>.  When you do this, the interface now works as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; binary_op(3,4,add_cb)
 7
@@ -2070,7 +2070,7 @@ When this
 situation is detected, SWIG may generate a warning message such as the
 following :</p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 interface.i:116. Warning. Array member will be read-only
 </pre></div>
 
@@ -2203,7 +2203,7 @@ can use the <tt>%nodefault</tt> directive or the <tt>-no_default</tt>
 command line option.  For example:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 swig -no_default example.i 
 </pre></div>
 
@@ -2306,7 +2306,7 @@ You can make a <tt>Vector</tt> look alot like a class by writing a SWIG interfac
 Now, when used with proxy classes in Python, you can do things like
 this :</p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; v = Vector(3,4,0)                 # Create a new vector
 &gt;&gt;&gt; print v.magnitude()                # Print magnitude
 5.0
@@ -2530,7 +2530,7 @@ Although this process is a little hairy, it works like you would expect in the
 target scripting language--especially when proxy classes are used.  For instance, in Perl:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 # Perl5 script for accessing nested member
 $o = CreateObject();                    # Create an object somehow
 $o-&gt;{intRep}-&gt;{ivalue} = 7              # Change value of o.intRep.ivalue
