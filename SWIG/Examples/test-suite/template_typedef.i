@@ -1,10 +1,27 @@
 %module template_typedef
 
+//
+// Change this to #if 1 to test the 'test'
+//
+#if 0
+
+#define real double
+%{
+#define real double
+%}
+
+#else
+
+%inline %{
+  typedef double real;
+%}
+
+#endif
 
 
 %inline %{
 
-  typedef double real;
+  //  typedef double real;
 
   namespace vfncs {
 
