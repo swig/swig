@@ -1,5 +1,32 @@
 Version 1.3.20 (In progress)
 ============================
+12/08/2003: mmatus (Marcelo Matus)
+	    The director protected member support (dirprot)
+	    is disabled by default.
+	    
+	    It can be enable by using '-dirprot' or by adding
+	    the option to the module declaration, like:
+
+            %module(directors="1",dirprot="1") my_module
+
+	    This module option was added to properly compile the
+	    director_protected.i and director_nested.i examples.
+	    
+	    The feature has been tested with python[2.2,2.3] 
+	    and ruby[1.6.7], both at compilation and runtime, and 
+	    java[j2sdk1.4.1_01], but only at compilation (my java
+	    installation doesn't run any of the director examples,
+	    olds nor news).
+
+	    Please test for ocaml and java.
+	    
+	    The errors reported by William and Scott were fixed,
+	    except for a warning about  SWIG_JavaThrowExecption()
+	    multiply defined. I can't reproduce this error with my
+	    examples. We will wait for Scott to send us a minimal
+	    case.
+
+
 12/07/2003: mmatus (Marcelo Matus)
 	    The director protected member support has been
 	    completly moved out from python.cxx, and now

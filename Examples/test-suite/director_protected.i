@@ -1,4 +1,4 @@
-%module(directors="1") director_protected
+%module(directors="1",dirprot="1") director_protected
 
 %{
 #include <string>
@@ -12,7 +12,7 @@
 
 %newobject *::create();
 
-%inline %{
+%inline {
 class Foo {
 public:
   virtual ~Foo() {}
@@ -20,7 +20,15 @@ public:
     return "Foo::pong();" + ping();
   }
 protected:
+
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) \
+  || defined(SWIGJAVA) || defined(SWIGOCAML)
   virtual std::string ping() = 0;
+#else
+  virtual std::string ping() { return "";};
+#endif
+
+  void hellom() {}
 };
 
 class Bar : public Foo 
@@ -43,8 +51,9 @@ protected:
   };
   
   int hi;
+  void him() {}
 };
  
  
-%}
+}
 

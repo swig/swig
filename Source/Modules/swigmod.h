@@ -213,6 +213,9 @@ public:
   
   /* Allow director related code generation */
   void allow_directors(int val = 1);
+
+  /* Allow director protected members related code generation */
+  void allow_dirprot(int val = 1);
   
   /* Return true if directors are enabled */
   int directorsEnabled() const;

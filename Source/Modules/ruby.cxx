@@ -335,6 +335,9 @@ public:
         if (Getattr(options, "directors")) {
           allow_directors();
         }
+	if (Getattr(options, "dirprot")) {
+          allow_dirprot();
+	}
         if (Getattr(options, "ruby_globalmodule")) {
           useGlobalModule = true;
         }

@@ -1,4 +1,4 @@
-%module(directors="1") director_nested
+%module(directors="1",dirprot="1") director_nested
 
 %{
 #include <string>
@@ -11,7 +11,7 @@
 
 %newobject *::create();
 
-%inline %{
+%inline {
   template <class C>
     class Foo {
     public:
@@ -25,11 +25,11 @@
     protected:
       virtual std::string do_advance() = 0;
     };
-%}
+}
 
 %template(Foo_int) Foo<int>;
 
-%inline %{
+%inline {
 
   class Bar : public Foo<int>
   {
@@ -47,7 +47,12 @@
     }
     
 
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) || \
+  defined(SWIGJAVA) || defined(SWIGOCAML)
     virtual std::string do_step() const = 0;
+#else
+    virtual std::string do_step() const {return "";};
+#endif
   };  
   
   template <class C>
@@ -56,7 +61,7 @@
     public:
       virtual C get_value() const = 0;
     };
-%}
+}
 
 %template(FooBar_int) FooBar<int>;
 
