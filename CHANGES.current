@@ -1,6 +1,21 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/09/2004: mmatus
+	    - Split the python std/STL C++ library files, now
+	      all the language independent definitions are under
+	      the directory
+	      
+		Lib/std
+
+	      and hence, can be used from other languages.
+
+	    - Add more documentation to the Python STL, and
+	      clean unnecessary code.
+
+	    - Add initial C99 complex support, and some fixes
+	      for long double.
+
 10/08/2004: mmatus
 	    - Fix the SwigValueWrapper for opaque types, now it is 
 	      applied for opaque templates and classes, for which we
