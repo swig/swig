@@ -3,7 +3,12 @@
 
    $Header$  */
 
-/* Basic types */
+/* Unlike other SWIG language modules, the Guile module handles all
+   non-pointer types uniformly via typemaps. Here are the
+   definitions.
+
+   The SIMPLE_MAP macro below defines the whole set of typemaps needed
+   for simple types. */
 
 %define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
  %typemap (guile, in)          C_NAME "$target = SCM_TO_C($source);";

@@ -61,6 +61,14 @@ GSWIG_scm2char (SCM s)
   scm_wrong_type_arg(NULL, 0, s);
 }
 
+/* More 1.3.4 compatibility */
+#ifndef SCM_INPUT_PORT_P
+#  define SCM_INPUT_PORT_P SCM_INPORTP
+#  define SCM_OUTPUT_PORT_P SCM_OUTPORTP
+#endif
+
+/* Type system */
+
 typedef struct SwigPtrType SwigPtrType;
 
 typedef struct swig_type_info {
