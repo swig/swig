@@ -80,6 +80,9 @@
 	 TYPE * cast() {
            return self;
 	 }
+	 static NAME * FromPointer(TYPE *t) {
+	   return (NAME *) t;
+         }
      }
   } NAME;
   %types(NAME = TYPE);
@@ -111,9 +114,10 @@
 
 %define %pointer_functions(TYPE,NAME)
 %{
+static 
 TYPE *new_##NAME(TYPE value) {
   TYPE *self;
-#ifdef __cplusplus
+#if __cplusplus
   self = new TYPE();
 #else
   self = (TYPE *) malloc(sizeof(TYPE));
@@ -121,8 +125,9 @@ TYPE *new_##NAME(TYPE value) {
   *self = value;
   return self;
 }
+static
 void delete_##NAME(TYPE *self) {
-#ifdef __cplusplus
+#if __cplusplus
   if (self) {
     delete self;
   }
@@ -132,13 +137,15 @@ void delete_##NAME(TYPE *self) {
   }
 #endif
 }
- void NAME ##_assign(TYPE *self, TYPE value) {
+static
+void NAME ##_assign(TYPE *self, TYPE value) {
    *self = value;
  }
- TYPE NAME ##_value(TYPE *self) {
+static
+TYPE NAME ##_value(TYPE *self) {
    return *self;
- }
- %}
+}
+%}
 TYPE *new_##NAME(TYPE value = 0);
 void  delete_##NAME(TYPE *self);
 void  NAME##_assign(TYPE *self, TYPE value);
