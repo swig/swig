@@ -16,27 +16,16 @@
 #include <string.h>
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#  if defined(_MSC_VER) || defined(__GNUC__)
-#    if defined(STATIC_LINKED)
-#      define SWIGEXPORT(a) a
-#      define SWIGIMPORT(a) extern a
-#    else
-#      define SWIGEXPORT(a) __declspec(dllexport) a
-#      define SWIGIMPORT(a) extern a
-#    endif
+#  if !defined(STATIC_LINKED)
+#    define SWIGEXPORT(a) __declspec(dllexport) a
 #  else
-#    if defined(__BORLANDC__)
-#      define SWIGEXPORT(a) a _export
-#      define SWIGIMPORT(a) a _export
-#    else
-#      define SWIGEXPORT(a) a
-#      define SWIGIMPORT(a) a
-#    endif
+#    define SWIGEXPORT(a) a
 #  endif
 #else
 #  define SWIGEXPORT(a) a
-#  define SWIGIMPORT(a) a
 #endif
+
+#define SWIGIMPORT(a) a
 
 #ifdef SWIG_GLOBAL
 #  define SWIGRUNTIME(a) SWIGEXPORT(a)
