@@ -2,6 +2,10 @@
 
 %rename(__not__) *::operator!() const;
 
+#ifdef SWIGJAVA
+%rename(negate) *::operator-() const;
+#endif
+
 %inline %{
   
   namespace vfncs {
