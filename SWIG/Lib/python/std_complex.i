@@ -78,14 +78,14 @@ SwigComplex_AsComplexDouble(PyObject *o)
   %typemap(directorout) Complex {
     $result = SwigComplex_As< Complex >($input);
     if (PyErr_Occurred()) {
-      throw SWIG_DIRECTOR_TYPE_MISMATCH("Expecting a complex or compatible type");
+      throw Swig::DirectorTypeMismatchException("Expecting a complex or compatible type");
     }
   }  
   
   %typemap(directorout) const complex<T>& (Complex temp) {
     temp = SwigComplex_As< Complex >($input);
     if (PyErr_Occurred()) {
-      throw SWIG_DIRECTOR_TYPE_MISMATCH("Expecting a complex or compatible type");
+      throw Swig::DirectorTypeMismatchException("Expecting a complex or compatible type");
     }
     $result = &temp;
   }

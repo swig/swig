@@ -337,7 +337,7 @@ public:
     /* Swig_director_declaration()
      *
      * Generate the full director class declaration, complete with base classes.
-     * e.g. "class __DIRECTOR__myclass: public myclass, public __DIRECTOR__ {"
+     * e.g. "class __DIRECTOR__myclass: public myclass, public Swig::Director {"
      *
      */
   
@@ -346,7 +346,7 @@ public:
 	String *directorname = NewStringf("__DIRECTOR__%s", classname);
 	String *base = Getattr(n, "classtype");
 	String *declaration = Swig_class_declaration(n, directorname);
-	Printf(declaration, ": public %s, public __DIRECTOR__ {\n", base);
+	Printf(declaration, ": public %s, public Swig::Director {\n", base);
 	Delete(classname);
 	Delete(directorname);
 	return declaration;
@@ -848,8 +848,8 @@ public:
 	if (CPlusPlus && directorsEnabled()) {
 	    if (!is_smart_pointer()) {
 		if (/*directorbase &&*/ hasVirtual && !constructor && isVirtual) {
-		    Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");
-		    Printf(f->code, "director = dynamic_cast<__DIRECTOR__*>(arg1);\n");
+		    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+		    Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
 		    Printf(f->code, "if (director && (director->__get_self()==argv[0])) director->__set_up();\n");
 		}
 	    }
@@ -1627,9 +1627,9 @@ public:
 			String *mangle = SwigType_manglestr(ptype);
 			if (target) {
 			    String *director = NewStringf("director_%s", mangle);
-			    Wrapper_add_localv(w, director, "__DIRECTOR__ *", director, "= 0", NIL);
+			    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
 			    Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
-			    Printf(wrap_args, "%s = dynamic_cast<__DIRECTOR__*>(%s);\n", director, nonconst);
+			    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
 			    Printf(wrap_args, "if (!%s) {\n", director);
 			    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 			    Printf(wrap_args, "} else {\n");
@@ -1838,7 +1838,7 @@ public:
 					 0, 0);
 	    call = Swig_csuperclass_call(0, basetype, superparms);
 	    Printf( w->def, 
-		    "%s::%s: %s, __DIRECTOR__(self, __disown) { }", 
+		    "%s::%s: %s, Swig::Director(self, __disown) { }", 
 		    classname, target, call );
 	    Delete(target);
 	    Wrapper_print(w, f_directors);
@@ -1871,7 +1871,7 @@ public:
 	classname = Swig_class_name(n);
 	{
 	    Wrapper *w = NewWrapper();
-	    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(CAML_VALUE self, int __disown): __DIRECTOR__(self, __disown) { }", classname, classname);
+	    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(CAML_VALUE self, int __disown): Swig::Director(self, __disown) { }", classname, classname);
 	    Wrapper_print(w, f_directors);
 	    DelWrapper(w);
 	}

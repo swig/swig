@@ -715,7 +715,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	   * create a director instance (there's no way to create a normal
 	   * instance).  if any of the pure virtual methods haven't been
 	   * implemented in the target language, calls to those methods will
-	   * generate SWIG_DIRECTOR_PURE_VIRTUAL exceptions.
+	   * generate Swig::DirectorPureVirtualException exceptions.
 	   */
 	  Printv(action, Swig_cresult(type, "result", director_call), NIL);
 	} else {

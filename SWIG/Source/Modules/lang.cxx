@@ -1453,7 +1453,7 @@ int Language::classDirectorDisown(Node *n) {
   type = NewString("void");
   String *action = NewString("");
   Printv(action, "{\n",
-                 "__DIRECTOR__ *director = dynamic_cast<__DIRECTOR__*>(arg1);\n",
+                 "Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n",
                  "if (director) director->__disown();\n",
 		 "}\n",
 		 NULL);

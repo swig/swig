@@ -62,7 +62,7 @@ namespace std {
             $result = std::string(PyString_AsString($input),
                                   PyString_Size($input));
         else
-            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+            throw Swig::DirectorTypeMismatchException("string expected");
     }
     
     %typemap(directorout) const string & (std::string temp) {
@@ -71,7 +71,7 @@ namespace std {
                                PyString_Size($input));
             $result = &temp;
         } else {
-            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+            throw Swig::DirectorTypeMismatchException("string expected");
         }
     }
 

@@ -18,8 +18,10 @@ Foo *launder(Foo *f) {
 // in target languages that do not support directors.
 
 #ifndef SWIG_DIRECTORS
-class SWIG_DIRECTOR_EXCEPTION {};
-class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
+namespace Swig {
+class DirectorException {};
+class DirectorMethodException: public Swig::DirectorException {};
+}
   #ifndef SWIG_fail
     #define SWIG_fail
   #endif
@@ -33,13 +35,13 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 
 %feature("director:except") {
 	if ($error != NULL) {
-		throw SWIG_DIRECTOR_METHOD_EXCEPTION();
+		throw Swig::DirectorMethodException();
 	}
 }
 
 %exception {
 	try { $action }
-	catch (SWIG_DIRECTOR_EXCEPTION &e) { SWIG_fail; }
+	catch (Swig::DirectorException &e) { SWIG_fail; }
 }
 
 #endif
@@ -47,12 +49,12 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 #ifdef SWIGRUBY
 
 %feature("director:except") {
-    throw SWIG_DIRECTOR_METHOD_EXCEPTION($error);
+    throw Swig::DirectorMethodException($error);
 }
 
 %exception {
   try { $action }
-  catch (SWIG_DIRECTOR_EXCEPTION &e) { rb_exc_raise(e.getError()); }
+  catch (Swig::DirectorException &e) { rb_exc_raise(e.getError()); }
 }
 
 #endif

@@ -2007,7 +2007,7 @@ public:
 
 For each class that has directors enabled, SWIG generates a new class
 that derives from both the class in question and a special
-<tt>__DIRECTOR__</tt> class. These new classes, referred to as director
+<tt>Swig::Director</tt> class. These new classes, referred to as director
 classes, can be loosely thought of as the C++ equivalent of the Python
 proxy classes. The director classes store a pointer to their underlying
 Python object and handle various issues related to object ownership.
@@ -2015,7 +2015,7 @@ Indeed, this is quite similar to the "this" and "thisown" members of the
 Python proxy classes.
 <p>
 
-For simplicity let's ignore the <tt>__DIRECTOR__</tt> class and refer to the
+For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the
 original C++ class as the director's base class. By default, a director
 class extends all virtual methods in the inheritance chain of its base
 class (see the preceding section for how to modify this behavior).
@@ -2150,7 +2150,7 @@ suffice in most cases:
 <pre>
 %feature("director:except") {
     if ($error != NULL) {
-        throw SWIG_DIRECTOR_METHOD_EXCEPTION();
+        throw Swig::DirectorMethodException();
     }
 }
 </pre>
@@ -2160,7 +2160,7 @@ This code will check the Python error state after each method call from
 a director into Python, and throw a C++ exception if an error occured.
 This exception can be caught in C++ to implement an error handler.
 Currently no information about the Python error is stored in the
-SWIG_DIRECTOR_METHOD_EXCEPTION object, but this will likely change in
+Swig::DirectorMethodException object, but this will likely change in
 the future.
 <p>
 
@@ -2176,15 +2176,15 @@ suitable exception handler:
 <pre>
 %exception {
     try { $action }
-    catch (SWIG_DIRECTOR_EXCEPTION &e) { SWIG_fail; }
+    catch (Swig::DirectorException &e) { SWIG_fail; }
 }
 </pre>
 </blockquote>
 
-The class SWIG_DIRECTOR_EXCEPTION used in this example is actually a
-base class of SWIG_DIRECTOR_METHOD_EXCEPTION, so it will trap this
+The class Swig::DirectorException used in this example is actually a
+base class of Swig::DirectorMethodException, so it will trap this
 exception. Because the Python error state is still set when
-SWIG_DIRECTOR_METHOD_EXCEPTION is thrown, Python will register the
+Swig::DirectorMethodException is thrown, Python will register the
 exception as soon as the C wrapper function returns.
 
 <a name="n37"></a><H3>19.5.5 Overhead and code bloat</H3>
