@@ -261,6 +261,13 @@ public:
 	  Replaceall(tm,"$source",source);
 	  Replaceall(tm,"$input",source);
 	  Setattr(p,"emit:input",source);
+
+	  if (Getattr(p,"wrap:disown") || (Getattr(p,"tmap:in:disown"))) {
+	    Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
+	  } else {
+	    Replaceall(tm,"$disown","0");
+	  }
+
 	  Putc('o',argstr);
 	  Printf(args,",0");
 	  if (i >= num_required) {

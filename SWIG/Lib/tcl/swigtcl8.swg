@@ -21,6 +21,10 @@ extern "C" {
 #define SWIG_TCL_POINTER 4
 #define SWIG_TCL_BINARY  5
 
+/* Flags for pointer conversion */
+#define SWIG_POINTER_EXCEPTION     0x1
+#define SWIG_POINTER_DISOWN        0x2
+
 /* Constant information structure */
 typedef struct swig_const_info {
     int type;
@@ -78,6 +82,7 @@ SWIGEXPORT(int)       SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const c
 SWIGEXPORT(char *)    SWIG_PointerTypeFromString(char *c);
 SWIGEXPORT(void)      SWIG_Acquire(void *ptr);
 SWIGEXPORT(int)       SWIG_Disown(void *ptr);
+SWIGEXPORT(int)       SWIG_Thisown(void *ptr);
 SWIGEXPORT(void)      SWIG_InstallConstants(Tcl_Interp *interp, struct swig_const_info constants[]);
 SWIGEXPORT(Tcl_Obj *) SWIG_GetConstant(const char *key);
 SWIGEXPORT(Tcl_Obj *) SWIG_NewInstanceObj(Tcl_Interp *interp, void *, swig_type_info *, int flags);
@@ -85,6 +90,46 @@ SWIGEXPORT(int)       SWIG_ObjectConstructor(ClientData, Tcl_Interp *, int, Tcl_
 SWIGEXPORT(int)       SWIG_MethodCommand(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
 SWIGEXPORT(void)      SWIG_ObjectDelete(ClientData);
 #else
+
+/* Object support */
+static Tcl_HashTable  swigobjectTable;
+static int            swigobjectTableinit = 0;
+
+/* Acquire ownership of a pointer */
+SWIGRUNTIME(void)
+SWIG_Acquire(void *ptr)
+{
+  Tcl_HashEntry *entryPtr;
+  int newobj;
+  if (!swigobjectTableinit) {
+    Tcl_InitHashTable(&swigobjectTable, TCL_ONE_WORD_KEYS);
+    swigobjectTableinit = 1;
+  }
+  entryPtr = Tcl_CreateHashEntry(&swigobjectTable, (char *) ptr, &newobj);
+}
+
+/* Disown a pointer.  Returns 1 if we owned it to begin with */
+SWIGRUNTIME(int)
+SWIG_Disown(void *ptr)
+{
+  Tcl_HashEntry *entryPtr;
+  if (!swigobjectTableinit) return 0;
+  entryPtr = Tcl_FindHashEntry(&swigobjectTable, (char *) ptr);
+  if (entryPtr) {
+    Tcl_DeleteHashEntry(entryPtr);
+    return 1;
+  } 
+  return 0;
+}
+
+SWIGRUNTIME(int)
+SWIG_Thisown(void *ptr) {
+  if (!swigobjectTableinit) return 0;
+  if (Tcl_FindHashEntry(&swigobjectTable, (char *) ptr)) {
+    return 1;
+  }
+  return 0;
+}
 
 /* Pack binary data into a string */
 SWIGRUNTIME(char *)
@@ -108,6 +153,7 @@ SWIG_UnpackData(char *c, void *ptr, int sz) {
   register int d;
   unsigned char *u = (unsigned char *) ptr;
   int i;
+  if (strlen(c) < (2*sz)) return c;
   for (i = 0; i < sz; i++, u++) {
     d = *(c++);
     if ((d >= '0') && (d <= '9'))
@@ -130,22 +176,32 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
 {
   swig_type_info *tc;
   /* Pointer values must start with leading underscore */
-  if (*c != '_') {
+  while (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) return TCL_OK;
-    Tcl_SetResult(interp, (char *) "Type error. Expected a pointer", TCL_STATIC);
+    /* Hmmm. It could be an object name. */
+    if (Tcl_VarEval(interp,c," cget -this", (char *) NULL) == TCL_OK) {
+      Tcl_Obj *result = Tcl_GetObjResult(interp);
+      c = Tcl_GetStringFromObj(result, NULL);
+      continue;
+    }
+    if (flags & SWIG_POINTER_EXCEPTION) 
+      Tcl_SetResult(interp, (char *) "Type error. Expected a pointer", TCL_STATIC);
     return TCL_ERROR;
   }
   c++;
   c = SWIG_UnpackData(c,ptr,sizeof(void *));
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
-    if ((!tc) && flags) {
+    if ((!tc) && (flags & SWIG_POINTER_EXCEPTION)) {
       Tcl_SetResult(interp, (char *) "Type error. Expected ", TCL_STATIC);
       Tcl_AppendElement(interp, (char *) ty->name);
       return TCL_ERROR;
     } else if (!tc) {
       return TCL_ERROR;
+    }
+    if (flags & SWIG_POINTER_DISOWN) {
+      SWIG_Disown((void *) *ptr);
     }
     *ptr = SWIG_TypeCast(tc,(void *) *ptr);
   }
@@ -368,7 +424,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
 	break;
       case 'p': case 'P':
 	ty = (swig_type_info *) va_arg(ap, void *);
-	if (SWIG_ConvertPtr(interp, obj, (void **) vptr, ty,0) == TCL_ERROR) goto argerror;
+	if (SWIG_ConvertPtr(interp, obj, (void **) vptr, ty, SWIG_POINTER_EXCEPTION) == TCL_ERROR) goto argerror;
 	break;
       case 'o': case 'O':
 	*((Tcl_Obj **)vptr) = objv[argno+1];
@@ -397,37 +453,6 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
     va_end(ap);
     return TCL_ERROR;
   }
-}
-
-/* Object support */
-static Tcl_HashTable  swigobjectTable;
-static int            swigobjectTableinit = 0;
-
-/* Acquire ownership of a pointer */
-SWIGRUNTIME(void)
-SWIG_Acquire(void *ptr)
-{
-  Tcl_HashEntry *entryPtr;
-  int newobj;
-  if (!swigobjectTableinit) {
-    Tcl_InitHashTable(&swigobjectTable, TCL_ONE_WORD_KEYS);
-    swigobjectTableinit = 1;
-  }
-  entryPtr = Tcl_CreateHashEntry(&swigobjectTable, (char *) ptr, &newobj);
-}
-
-/* Disown a pointer.  Returns 1 if we owned it to begin with */
-SWIGRUNTIME(int)
-SWIG_Disown(void *ptr)
-{
-  Tcl_HashEntry *entryPtr;
-  if (!swigobjectTableinit) return 0;
-  entryPtr = Tcl_FindHashEntry(&swigobjectTable, (char *) ptr);
-  if (entryPtr) {
-    Tcl_DeleteHashEntry(entryPtr);
-    return 1;
-  } 
-  return 0;
 }
 
 SWIGRUNTIME(void)
@@ -541,6 +566,14 @@ SWIG_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
       }
       if (strcmp(attrname, "-this") == 0) {
 	Tcl_SetObjResult(interp, Tcl_DuplicateObj(inst->thisptr));
+	return TCL_OK;
+      }
+      if (strcmp(attrname, "-thisown") == 0) {
+	if (SWIG_Thisown(inst->thisvalue)) {
+	  Tcl_SetResult(interp,"1",TCL_STATIC);
+	} else {
+	  Tcl_SetResult(interp,"0",TCL_STATIC);
+	}
 	return TCL_OK;
       }
     } else if (strcmp(method, "configure") == 0) {
@@ -661,7 +694,7 @@ SWIG_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
       Tcl_SetResult(interp, (char *) "No constructor available.", TCL_STATIC);
       return TCL_ERROR;
     }
-    if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type),0) == TCL_ERROR) {
+    if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type), SWIG_POINTER_EXCEPTION) == TCL_ERROR) {
       Tcl_DecrRefCount(newObj);
       return TCL_ERROR;
     }

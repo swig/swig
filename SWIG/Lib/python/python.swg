@@ -66,7 +66,7 @@
 %typemap(in) void * "if ((SWIG_ConvertPtr($input,(void **) &$1, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) return NULL;"
 
 /* Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION | $disown ) == -1)) return NULL;
+%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION) == -1)) return NULL;
                                                $1 = *argp; ";
 
 /* Pointer to a class member */
@@ -289,9 +289,18 @@
   strncpy($1,temp,$1_dim0);
 }
 
-%typemap(varin) SWIGTYPE *, SWIGTYPE & {
+%typemap(varin) SWIGTYPE * {
   void *temp;
   if ((SWIG_ConvertPtr($input,(void **) &temp, $1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  $1 = ($1_ltype) temp;
+}
+
+%typemap(varin) SWIGTYPE & {
+  void *temp;
+  if ((SWIG_ConvertPtr($input,(void **) &temp, $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
     PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
     return 1;
   }

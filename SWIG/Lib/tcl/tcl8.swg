@@ -30,8 +30,10 @@
 %typemap(in,parse="c") char "";
 %typemap(in,parse="s") char *, char [ANY] "";
 
-/* The "p" parse code is used for normal pointer conversion */
-%typemap(in,parse="p") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
+/* Pointers */
+%typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
+  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) return TCL_ERROR;";
+
 
 /* For bools, we first convert to an integer and then to a bool.  There
    is no guarantee that a bool is the same size as an int so we have to do this */
@@ -51,8 +53,11 @@
 %typemap(in,parse="i") enum SWIGTYPE "";
 
 /* Unknown type.  We convert from a pointer */
-%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,1) != TCL_OK)) return TCL_ERROR;
-                                        $1 = *argp; ";
+%typemap(in) SWIGTYPE ($&1_ltype argp) 
+  "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) return TCL_ERROR;
+  $1 = *argp; ";
+
+
 
 /* Special constant variations.   These typemaps can be used to parse objects that are both constants
    or values. A Hash table lookup will occur. */
@@ -316,7 +321,15 @@
 
 %typemap(varin) SWIGTYPE * {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
+    return (char*)"Type error. Expected $1_ltype";
+  }
+  $1 = ($1_type) temp;
+}
+
+%typemap(varin) void * {
+  void *temp;
+  if (SWIG_ConvertPtr(interp,$input,&temp,0, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = ($1_type) temp;
@@ -324,7 +337,7 @@
 
 %typemap(varin) SWIGTYPE & {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = *(($&1_type) temp);
@@ -332,7 +345,7 @@
 
 %typemap(varin) SWIGTYPE {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor,1) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
     return (char*)"Type error. Expected $&1_ltype";
   }
   $1 = *(($&1_type) temp);
@@ -340,7 +353,7 @@
 
 %typemap(varin) SWIGTYPE [] {
    void *temp;
-   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
+   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
       return (char *)"Type error. Expected $1_ltype";
    }
    memmove((void *) $1,temp,$1_size*sizeof($1_basetype));
