@@ -179,9 +179,10 @@ nextchar(SwigScanner *s)
     Delitem(s->scanobjs,0);
     if (Len(s->scanobjs) == 0) return 0;
     s->str = Getitem(s->scanobjs,0);
-    s->line = Getline(s->str);
-    if (s->str)
+    if (s->str) {
+      s->line = Getline(s->str);
       Incref(s->str);
+    }
   }
   if (nc == '\n') s->line++;
   c[0] = (char) nc;
