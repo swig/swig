@@ -37,6 +37,7 @@ Swig_cparm_name(Parm *p, int i) {
   if (p) {
     Setattr(p,"lname",name);
   }
+
   return name;
 }
 
@@ -341,7 +342,7 @@ Swig_cconstructor_call(String_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_self, int disown) {
+Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_self) {
   String *func;
   String *nname;
   int i = 0;
@@ -360,16 +361,19 @@ Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_se
     pt = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
       if (comma) Printf(func,",");
-      pname = Swig_cparm_name(p,i);
+      if (!Getattr(p, "arg:byname")) {
+	pname = Swig_cparm_name(p,i);
+	i++;
+      } else {
+	if ((pname = Getattr(p, "value")))
+	  pname = Copy(pname);
+	else
+	  pname = Copy(Getattr(p, "name"));
+      }
       Printf(func,"%s", SwigType_rcaststr(pt, pname));
       comma = 1;
-      i++;
     }
     p = nextSibling(p);
-  }
-  if (disown >= 0) {
-    if (comma) Printf(func, ",");
-    Printf(func, "%d", disown);
   }
   Printf(func,")");
   Delete(nname);
@@ -378,17 +382,17 @@ Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_se
 
 String *
 Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
-  return Swig_cppconstructor_base_call(name, parms, 0, -1);
+  return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
 String *
 Swig_cppconstructor_nodirector_call(String_or_char *name, ParmList *parms) {
-  return Swig_cppconstructor_base_call(name, parms, 1, -1);
+  return Swig_cppconstructor_base_call(name, parms, 1);
 }
 
 String *
 Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
-  return Swig_cppconstructor_base_call(name, parms, 0, 0);
+  return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -595,9 +599,13 @@ Node *
 Swig_directormap(Node *module, String *type) {
   int is_void = !Cmp(type, "void");
   if (!is_void && module) {
+    /* ?? follow the inheritance hierarchy? */
+
     String* base = SwigType_base(type);
+
     Node *directormap = Getattr(module, "wrap:directormap");
-    if (directormap) return Getattr(directormap, base);
+    if (directormap)
+      return Getattr(directormap, base);
   }
   return 0;
 }
@@ -611,9 +619,11 @@ Swig_directormap(Node *module, String *type) {
 
 int
 Swig_ConstructorToFunction(Node *n, String *classname, 
-			   String *none_comparison, int cplus, int flags)
+			   String *none_comparison, String *director_ctor, int cplus, int flags)
 {
   ParmList *parms;
+  Parm     *p;
+  ParmList *directorparms;
   SwigType *type;
   String   *membername;
   String   *mangled;
@@ -627,6 +637,32 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   mangled = Swig_name_mangle(membername);
 
   parms = CopyParmList(nonvoid_parms(Getattr(n,"parms")));
+  if ((p = Getattr(n,"director:prefix_args")) != NULL) {
+    Parm *p2, *p3;
+
+    directorparms = CopyParmList(p);
+    for (p = directorparms; nextSibling(p); p = nextSibling(p));
+    for (p2 = parms; p2; p2 = nextSibling(p2)) {
+      p3 = CopyParm(p2);
+      set_nextSibling(p, p3);
+      p = p3;
+    }
+  } else
+    directorparms = parms;
+
+  if ((p = Getattr(n,"director:postfix_args")) != NULL) {
+    Parm *p2, *p3, *p4;
+
+    if (directorparms == parms) /* no prefix args from above. */
+      directorparms = CopyParmList(parms);
+
+    for (p2 = directorparms; nextSibling(p2); p2 = nextSibling(p2));
+    for (p3 = p; p3; p3 = nextSibling(p)) {
+      p4 = CopyParm(p3);
+      set_nextSibling(p2, p4);
+      p2 = p4;
+    }
+  }
 
   type  = NewString(classname);
   SwigType_add_pointer(type);
@@ -661,8 +697,9 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	
 	Replaceall( tmp_none_comparison, "$arg", "arg1" );
 
-	director_call = Swig_cppconstructor_director_call(directorname, parms);
+	director_call = Swig_cppconstructor_director_call(directorname, directorparms);
 	nodirector_call = Swig_cppconstructor_nodirector_call(classname, parms);
+
 	if (abstract) {
 	  /* whether or not the abstract class has been subclassed in python,
 	   * create a director instance (there's no way to create a normal
@@ -672,15 +709,19 @@ Swig_ConstructorToFunction(Node *n, String *classname,
 	   */
 	  Printv(action, Swig_cresult(type, "result", director_call), NULL);
 	} else {
-          /* if the proxy class has been subclassed, create a director instance.  
-	   * otherwise, just create a normal instance.
-           */
-	  Printv(action, 
-            "if (",tmp_none_comparison,") {/* subclassed */\n",
-	    Swig_cresult(type, "result", director_call),
-            "} else {\n", 
-	    Swig_cresult(type, "result", nodirector_call),
-	    "}\n", NULL);
+	  /* (scottm): The code for creating a new director is now a string
+	     template that gets passed in via the director_ctor argument.
+
+	     $comparison : an 'if' comparison from none_comparison
+	     $director_new: Call new for director class
+	     $nondirector_new: Call new for non-director class
+	   */
+	  Printv(action, director_ctor, NIL);
+	  Replaceall( action, "$comparison", tmp_none_comparison);
+	  Replaceall( action, "$director_new", 
+		      Swig_cresult(type, "result", director_call) );
+	  Replaceall( action, "$nondirector_new", 
+		      Swig_cresult(type, "result", nodirector_call) );
 	}
 	Setattr(n, "wrap:action", action);
 	Delete(tmp_none_comparison);
@@ -696,6 +737,8 @@ Swig_ConstructorToFunction(Node *n, String *classname,
   Setattr(n,"type",type);
   Setattr(n,"parms", parms);
   Delete(type);
+  if (directorparms != parms)
+    Delete(directorparms);
   Delete(parms);
   Delete(mangled);
   Delete(membername);

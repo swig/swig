@@ -201,6 +201,7 @@ extern SwigType   *SwigType_pop_arrays(SwigType *t);
 extern void        SwigType_add_reference(SwigType *t);
 extern void        SwigType_del_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
+extern void        SwigType_del_qualifier(SwigType *t);
 extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern void        SwigType_add_template(SwigType *t, ParmList *parms);
 extern SwigType   *SwigType_pop_function(SwigType *t);
@@ -442,6 +443,7 @@ extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t, String
 extern int        Swig_MethodToFunction(Node *n, String *classname, int flags);
 extern int        Swig_ConstructorToFunction(Node *n, String *classname, 
 					     String *none_comparison,
+					     String *director_ctor,
 					     int cplus, int flags);
 extern int        Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
 extern int        Swig_MembersetToFunction(Node *n, String *classname, int flags);
