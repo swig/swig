@@ -1694,7 +1694,7 @@ List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
   }
  check_exit:
   if (!found) {
-    l = Hash_keys(h);
+    l = Keys(h);
     Delete(h);
     Delete(ch);
     return l;
