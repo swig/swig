@@ -1267,11 +1267,13 @@ class OCAML : public Language {
 	    rv = Language::classHandler(n);
 
 	    if( !mliout )
-		Printf(f_modclass,
-		       "  method _self_ : _p_void = (Obj.magic c_self)\n");
+		Printf( f_modclass,
+		        "  method _self_%s : _p_%s = (Obj.magic c_self)\n",
+			classname, Getattr(n,"name") );
 	    else
 		Printf(f_modclass,
-		       "  method _self_ : _p_void\n" );
+		       "  method _self_%s : _p_%s\n",
+		       classname, Getattr(n,"name") );
 
 	    Printf(f_modclass,"end\n");	    
 	    
