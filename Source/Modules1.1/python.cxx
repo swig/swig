@@ -569,7 +569,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       SwigType_del_pointer(d);
       break;
     case T_STRING:
-      Printf(f->code,"    resultobj = PyString_FromString(result);\n");
+      Printf(f->code,"    resultobj = Py_BuildValue(\"s\",result);\n");
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(d);
