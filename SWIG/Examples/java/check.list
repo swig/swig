@@ -3,6 +3,7 @@ class
 constants
 enum
 funcptr
+mpointer
 multimap
 native
 pointer
