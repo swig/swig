@@ -62,11 +62,11 @@ static int      cparse_externc = 0;
 
 #define SWIG_WARN_NODE_BEGIN(Node) \
  { \
-  String *wrn = Node ? Getattr(Node,"feature:warnfilter") : 0; \
-  if (wrn) Swig_warnfilter(wrn,1) 
+  String *wrnfilter = Node ? Getattr(Node,"feature:warnfilter") : 0; \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,1) 
 
 #define SWIG_WARN_NODE_END(Node) \
-  if (wrn) Swig_warnfilter(wrn,0); \
+  if (wrnfilter) Swig_warnfilter(wrnfilter,0); \
  }
 
  
@@ -332,8 +332,16 @@ static String *make_unnamed() {
 /* Return the node name when it requires to emit a name warning */
 static String *name_warning(Node *n,String *name,SwigType *decl) {
   /* Return in the obvious cases */
-  if (!namewarn_hash || !name || !need_name_warning(n)) return 0;
-
+  if (!namewarn_hash || !name || !need_name_warning(n)) {
+    return 0;
+  } else {
+    String *access = Getattr(n,"access");	
+    int is_public = !access || (Strcmp(access,"public") == 0);
+    if (!is_public && !need_protected(n,dirprot_mode)) {
+      return 0;
+    }
+  }
+  
   /* Check to see if the name is in the hash */
   return Swig_name_object_get(namewarn_hash,Namespaceprefix,name,decl);
 }
@@ -2499,7 +2507,10 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,n);
 		    while (n) {
-		      Setattr(n,"storage","externc");
+		      SwigType *decl = Getattr(n,"decl");
+		      if (SwigType_isfunction(decl)) {
+			Setattr(n,"storage","externc");
+		      }
 		      n = nextSibling(n);
 		    }
 		  } else {
@@ -2796,7 +2807,7 @@ cpp_class_decl  :
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4) {
-		     bases = make_inherit_list($3,$4);
+		     bases = make_inherit_list($3,Getattr($4,"public"));
 		   }
 		   if (SwigType_istemplate($3)) {
 		     String *fbase, *tbase, *prefix;
@@ -2855,7 +2866,11 @@ cpp_class_decl  :
 		 Setline($$,cparse_start_line);
 		 Setattr($$,"name",$3);
 		 Setattr($$,"kind",$2);
-		 Setattr($$,"baselist",$4);
+		 if ($4) {
+		   Setattr($$,"baselist", Getattr($4,"public"));
+		   Setattr($$,"protectedbaselist", Getattr($4,"protected"));
+		   Setattr($$,"privatebaselist", Getattr($4,"private"));
+		 }
 		 Setattr($$,"allows_typedef","1");
 		 /* Check for pure-abstract class */
 		 Setattr($$,"abstract", pure_abstract($7));
@@ -2882,7 +2897,7 @@ cpp_class_decl  :
 		   set_nextSibling($$,p);
 		 }
 		 
-		 if (cparse_cplusplus) {
+		 if (cparse_cplusplus && !cparse_externc) {
 		   ty = NewString($3);
 		 } else {
 		   ty = NewStringf("%s %s", $2,$3);
@@ -4987,34 +5002,43 @@ raw_inherit     : COLON { inherit_list = 1; } base_list { $$ = $3; inherit_list 
                 ;
 
 base_list      : base_specifier {
-	           $$ = NewList();
-	           if ($1) Append($$,$1);
+		   Hash *list = NewHash();
+		   Node *base = $1;
+		   Node *name = Getattr(base,"name");
+		   Setattr(list,"public",NewList());
+		   Setattr(list,"protected",NewList());
+		   Setattr(list,"private",NewList());
+		   Append(Getattr(list,Getattr(base,"access")),name);
+	           $$ = list;
                }
 
                | base_list COMMA base_specifier {
-                   $$ = $1;
-                   if ($3) Append($$,$3);
+		   Hash *list = $1;
+		   Node *base = $3;
+		   Node *name = Getattr(base,"name");
+		   Append(Getattr(list,Getattr(base,"access")),name);
+                   $$ = list;
                }
                ;
 
 base_specifier : opt_virtual idcolon {
+		 $$ = NewHash();
+		 Setattr($$,"name",$2);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
-                     Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
-   		     $$ = (char *) 0;
+		   Setattr($$,"access","private");
+		   Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file,cparse_line,
+				"No access specifier given for base class %s (ignored).\n",$2);
                  } else {
-		   $$ = $2;
-		   Setfile($$,cparse_file);
-		   Setline($$,cparse_line);
+		   Setattr($$,"access","public");
 		 }
                }
 	       | opt_virtual access_specifier opt_virtual idcolon {
-		 $$ = 0;
-	         if (strcmp($2,"public") == 0) {
-		   $$ = $4;
-		   Setfile($$, cparse_file);
-		   Setline($$, cparse_line);
-		 } else {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, cparse_line, "%s inheritance ignored.\n", $2);
+		 $$ = NewHash();
+		 Setattr($$,"name",$4);
+		 Setattr($$,"access",$2);
+	         if (Strcmp($2,"public") != 0) {
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, 
+				cparse_line,"%s inheritance ignored.\n", $2);
 		 }
                }
                ;
