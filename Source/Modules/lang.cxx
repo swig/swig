@@ -1570,7 +1570,7 @@ int Language::unrollVirtualMethods(Node *n,
 
       if (SwigType_isfunction(decl) && 
 	  (is_public(ni) || need_nopublic)) {
-	String *name = Getattr(ni, "sym:name");
+	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
 	
 	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
