@@ -1,4 +1,4 @@
-%module foo
+%module cpp_enum_scope
 
 // This tests to make sure default arguments are handled correctly
 // when scoped.
@@ -11,7 +11,7 @@ public:
    enum speed { FAST, SLOW };
 
    // Note: default values should be Foo::FAST and SWEET 
-   void blah(speed s = FAST, flavor f = SWEET);
+   void blah(speed s = FAST, flavor f = SWEET) {};
 };
 
 %}
