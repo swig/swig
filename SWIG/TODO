@@ -260,10 +260,12 @@ PHP
        interact with the php "new <class>" notation.
        See: abstract_inherit_wrap.cpptest
 
-*      Work out when we can but shouldn't dispose of objects because the
-       creator will
+*      Fix "reference" example
 
-*      Get class properties to work
+*      Work out when we can but shouldn't dispose of objects because the
+       creator will. See "value" example
+
+*      Get class properties to work, and global vars to work both ways
 
 *      Overloading, callbacks, really review to see what else is missed
 

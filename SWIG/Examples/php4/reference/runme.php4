@@ -57,10 +57,13 @@ delete_Vector($c);
 # Get some values from the array
 
 print "Getting some array values\n";
+print "+++\n";
 for ($i = 0; $i < 5; $i++) {
 print "do $i\n";
+var_dump($va);
     print "    va($i) = ". Vector_print(VectorArray_get($va,$i)). "\n";
-print "done\n";
+var_dump($va);
+print "done----\n";
 }
 
 # Watch under resource meter to check on this
