@@ -557,7 +557,13 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
   else self = NewString(self);
   Replaceall(self,"this",Swig_cparm_name(0,0));
   if (SwigType_type(type) != T_ARRAY) {
-    Printf(func,"if (%s) %s%s = %s",Swig_cparm_name(0,0), self,name, Swig_wrapped_var_deref(type, Swig_cparm_name(0,1)));
+    if (!Strstr(type,"$unnamed")) {
+      Printf(func,"if (%s) %s%s = %s",Swig_cparm_name(0,0), self,name,
+	     Swig_wrapped_var_deref(type, Swig_cparm_name(0,1)));
+    } else {
+      Printf(func,"if (%s) swig_assign_unnamed(%s%s, %s)",Swig_cparm_name(0,0), self,name,
+	     Swig_cparm_name(0,1));
+    }
   }
   Delete(self);
   return(func);
