@@ -9,3 +9,5 @@ grouping.test2(42)
 x = grouping.do_unary(37, grouping.NEGATE)
 if x != -37:
     raise RuntimeError
+
+grouping.cvar.test3 = 42

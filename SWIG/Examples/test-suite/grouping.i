@@ -14,6 +14,8 @@ int *(test2)(int x) {
     return &y;
 }
 
+int (test3) = 37;
+
 typedef Integer (UnaryOp)(Integer);
 
 Integer do_unary(Integer x, UnaryOp *f) {
