@@ -17,6 +17,8 @@ class RUBY : public Language {
   void insertConstraintCheckingCode(ParmList *l, Wrapper *f);
   void insertCleanupCode(ParmList *l, String *cleanup);
   void insertArgOutputCode(ParmList *l, String *outarg, int& need_result);
+  void create_command(Node *, char *);
+
  public:
   /* Virtual functions required by the SWIG parser */
   virtual void main(int, char *argv[]);
@@ -40,8 +42,6 @@ class RUBY : public Language {
   virtual int classforwardDeclaration(Node *);
 
   virtual void set_module(char *);          /* Deprecated */
-
-  virtual void create_command(char *, char *, int);   /* Deprecated */
 };
 
 /*

@@ -350,15 +350,13 @@ RUBY::nativeWrapper(Node *n) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::create_command(char *cname, char *iname)
+ * RUBY::create_command(Node *n, char *iname)
  *
  * Creates a new command from a C function.
- *              cname = Name of the C function
  *              iname = Name of function in scripting language
- *              argc  = Number of arguments
  * --------------------------------------------------------------------- */
 
-void RUBY::create_command(char *cname, char *iname, int argc) {
+void RUBY::create_command(Node *n, char *iname) {
   String *wname = Swig_name_wrapper(iname);
   if (CPlusPlus) {
     Insert(wname,0,"VALUEFUNC(");
@@ -372,14 +370,16 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 
   String *s = NewString("");
   String *temp = NewString("");
-  char argcs[32];
-  sprintf(argcs,"%d",argc);
+  
+  const char *alias = GetChar(n,"feature:alias");
 
   switch (current) {
   case MEMBER_FUNC:
     Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	   iname, "\", ", wname, ", ", argcs, ");\n", NULL);
-
+	   iname, "\", ", wname, ", -1);\n", NULL);
+    if (alias) {
+      Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NULL);
+    }
     break;
   case CONSTRUCTOR_NEW:
     Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
@@ -388,7 +388,7 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
     break;
   case CONSTRUCTOR_INITIALIZE:
     Printv(s, tab4, "rb_define_method(", klass->vname,
-	   ", \"initialize\", ", wname, ", ", argcs, ");\n", NULL);
+	   ", \"initialize\", ", wname, ", -1);\n", NULL);
     Replace(klass->init,"$initializer", s, DOH_REPLACE_ANY);
     break;
   case MEMBER_VAR:
@@ -396,15 +396,15 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
     Replace(temp,"_set", "=", DOH_REPLACE_ANY);
     Replace(temp,"_get", "", DOH_REPLACE_ANY);
     Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"",
-	   temp, "\", ", wname, ", ", argcs, ");\n", NULL);
+	   temp, "\", ", wname, ", -1);\n", NULL);
     break;
   case STATIC_FUNC:
     Printv(klass->init, tab4, "rb_define_singleton_method(", klass->vname,
-	   ", \"", iname, "\", ", wname, ", ", argcs, ");\n", NULL);
+	   ", \"", iname, "\", ", wname, ", -1);\n", NULL);
     break;
   default:
     Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
-	   iname, "\", ", wname, ", ", argcs, ");\n",NULL);
+	   iname, "\", ", wname, ", -1);\n",NULL);
     Printv(f_init,s,NULL);
     break;
   }
@@ -748,7 +748,7 @@ int RUBY::functionWrapper(Node *n) {
   Wrapper_print(f, f_wrappers);
 
   /* Now register the function with the language */
-  create_command(name, iname, -1);
+  create_command(n, iname);
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
