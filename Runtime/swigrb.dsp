@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(RUBY_INCLUDE)" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /D NT=1 /D "IMPORT" /D "SWIG_GLOBAL" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(RUBY_INCLUDE)" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /D NT=1 /D "IMPORT" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "$(RUBY_INCLUDE)" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /D NT=1 /D "IMPORT" /D "SWIG_GLOBAL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "$(RUBY_INCLUDE)" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGRB_EXPORTS" /D NT=1 /D "IMPORT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -111,7 +111,7 @@ SOURCE=..\Lib\ruby\rubydef.swg
 
 !IF  "$(CFG)" == "swigrb - Win32 Debug"
 
-USERDEP__RUBYD="..\Lib\common.swg"	"..\Lib\ruby\rubyhead.swg"	
+USERDEP__RUBYD="..\Lib\common.swg"	"..\Lib\ruby\rubyhead.swg"	"..\Lib\swigrun.i"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\Lib\ruby\rubydef.swg
@@ -121,13 +121,13 @@ InputPath=..\Lib\ruby\rubydef.swg
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	copy ..\Lib\common.swg+..\Lib\ruby\rubyhead.swg+..\Lib\ruby\rubydef.swg librb.c 
+	..\swig -ruby -runtime -o librb.c swigrun.i 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "swigrb - Win32 Release"
 
-USERDEP__RUBYD="..\Lib\common.swg"	"..\Lib\ruby\rubyhead.swg"	
+USERDEP__RUBYD="..\Lib\common.swg"	"..\Lib\ruby\rubyhead.swg"	"..\Lib\swigrun.i"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\Lib\ruby\rubydef.swg
@@ -137,7 +137,7 @@ InputPath=..\Lib\ruby\rubydef.swg
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	copy ..\Lib\common.swg+..\Lib\ruby\rubyhead.swg+..\Lib\ruby\rubydef.swg librb.c 
+	..\swig -ruby -runtime -o librb.c swigrun.i 
 	
 # End Custom Build
 
@@ -147,6 +147,10 @@ InputPath=..\Lib\ruby\rubydef.swg
 # Begin Source File
 
 SOURCE=..\Lib\ruby\rubyhead.swg
+# End Source File
+# Begin Source File
+
+SOURCE=..\Lib\swigrun.i
 # End Source File
 # End Target
 # End Project

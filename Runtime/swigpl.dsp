@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(PERL5_INCLUDE)" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /D "SWIG_GLOBAL" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(PERL5_INCLUDE)" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "_DEBUG"
@@ -69,7 +69,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "$(PERL5_INCLUDE)" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /D "SWIG_GLOBAL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "$(PERL5_INCLUDE)" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SWIGPL_EXPORTS" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x809 /d "NDEBUG"
@@ -109,7 +109,7 @@ SOURCE=..\Lib\perl5\perlrun.swg
 
 !IF  "$(CFG)" == "swigpl - Win32 Debug"
 
-USERDEP__PERLR="..\Lib\common.swg"	
+USERDEP__PERLR="..\Lib\common.swg"	"..\Lib\swigrun.i"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\Lib\perl5\perlrun.swg
@@ -119,13 +119,13 @@ InputPath=..\Lib\perl5\perlrun.swg
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	copy ..\Lib\common.swg+..\Lib\perl5\perlrun.swg libpl.c 
+	..\swig -perl -runtime -o libpl.c swigrun.i 
 	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "swigpl - Win32 Release"
 
-USERDEP__PERLR="..\Lib\common.swg"	
+USERDEP__PERLR="..\Lib\common.swg"	"..\Lib\swigrun.i"	
 # Begin Custom Build
 ProjDir=.
 InputPath=..\Lib\perl5\perlrun.swg
@@ -135,12 +135,16 @@ InputPath=..\Lib\perl5\perlrun.swg
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	copy ..\Lib\common.swg+..\Lib\perl5\perlrun.swg libpl.c 
+	..\swig -perl -runtime -o libpl.c swigrun.i 
 	
 # End Custom Build
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=..\Lib\swigrun.i
 # End Source File
 # End Target
 # End Project
