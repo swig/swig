@@ -708,7 +708,7 @@ int yylook(void) {
 	    return 0;
 	  } else {
 	    retract(1);
-	    state = 99;
+	    return(MODULO);
 	  }
 	  break;
 
@@ -1056,7 +1056,23 @@ extern "C" int yylex(void) {
 	    if (strcmp(yytext,"protected") == 0) return(PROTECTED);
 	    if (strcmp(yytext,"friend") == 0) return(FRIEND);
 	    if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
-	    if (strcmp(yytext,"operator") == 0) return(OPERATOR);
+	    if (strcmp(yytext,"operator") == 0) {
+	      String *s = NewString("");
+	      int c;
+	      int state = 0;
+	      while (c = nextchar()) {
+		if ((c == '(') && state) {
+		  retract(1);
+		  break;
+		}
+		if (!isspace(c)) {
+		  Putc(c,s);
+		  state = 1;
+		}
+	      }
+	      yylval.str = s;
+	      return(OPERATOR);
+	    }
 	    if (strcmp(yytext,"throw") == 0) return(THROW);
 	    if (strcmp(yytext,"inline") == 0) return(yylex());
 	    if (strcmp(yytext,"mutable") == 0) return(yylex());
@@ -1064,6 +1080,16 @@ extern "C" int yylex(void) {
 	    if (strcmp(yytext,"template") == 0) {
 	      yylval.ivalue = line_number;
 	      return(TEMPLATE);
+	    }
+	    if (strcmp(yytext,"new") == 0) {
+	      return(NEW);
+	    }
+	    if (strcmp(yytext,"delete") == 0) {
+	      return(DELETE);
+	    }
+	  } else {
+	    if (strcmp(yytext,"class") == 0) {
+	      Printf(stderr,"%s:%d. Warning: class keyword used, but not in C++ mode.\n",input_file,line_number);
 	    }
 	  }
 	  
