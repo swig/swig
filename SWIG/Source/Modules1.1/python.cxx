@@ -1298,8 +1298,8 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
 	   0);
 
     Printv(getattr, tab4, "def __getattr__(self,name):\n", 0);
-    Printv(csetattr, tab4, "__setmethods__ = {\n", 0);
-    Printv(cgetattr, tab4, "__getmethods__ = {\n", 0);
+    Printv(csetattr, tab4, "__setmethods__.update({\n", 0);
+    Printv(cgetattr, tab4, "__getmethods__.update({\n", 0);
   }
 }
 
@@ -1437,9 +1437,11 @@ void
 PYTHON::cpp_close_class() {
   String    *ptrclass;
   String    *repr;
+  String    *attrpatch;
 
   ptrclass = NewString("");
   repr =  NewString("");
+  attrpatch = NewString("");
 
   if (shadow) {
     if (!have_constructor) {
@@ -1461,14 +1463,17 @@ PYTHON::cpp_close_class() {
 	   tab8, "raise AttributeError,name\n",
 	   0);
     Printv(setattr, tab8, "self.__dict__[name] = value\n",0);
-    Printv(cgetattr, tab4, "}\n", 0);
-    Printv(csetattr, tab4, "}\n", 0);
+    Printv(cgetattr, tab4, "})\n", 0);
+    Printv(csetattr, tab4, "})\n", 0);
     Printv(ptrclass,cinit,construct,"\n",0);
     Printv(classes,ptrclass,pyclass,0);
-
+    Printv(classes,tab4,"__setmethods__ = {}\n",0);
+    Printf(classes,"%sfor _s in [%s]: __setmethods__.update(_s.__setmethods__)\n",tab4,base_class);
     if (have_setattr) {
       Printv(classes, csetattr, setattr, 0);
     }
+    Printv(classes,tab4,"__getmethods__ = {}\n",0);
+    Printf(classes,"%sfor _s in [%s]: __getmethods__.update(_s.__getmethods__)\n",tab4,base_class);
     if (have_getattr) {
       Printv(classes,cgetattr,getattr,0);
     }

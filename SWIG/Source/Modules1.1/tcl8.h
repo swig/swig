@@ -44,6 +44,8 @@ public :
   virtual void cpp_variable(char *name, char *iname, SwigType *t);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
+  
+  virtual void cpp_inherit(char **bases, int);
 
   // Module import
   virtual void import_start(char *modname);

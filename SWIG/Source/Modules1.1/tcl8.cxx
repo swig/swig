@@ -31,7 +31,7 @@ static String     *cmd_info = 0;
 static String     *var_info = 0;
 static String     *methods = 0;
 static String     *attributes = 0;
-
+static String     *cpp_bases = 0;
 static String     *prefix = 0;
 static String     *module = 0;
 static int        nspace = 0;
@@ -961,6 +961,7 @@ TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
     Delete(class_name);
     Delete(class_type);
     Delete(real_classname);
+    cpp_bases = NewString("");
 
     class_name = rename ? NewString(rename) : NewString(classname);
     class_type = strip  ? NewString("") : NewStringf("%s ",ctype);
@@ -997,7 +998,10 @@ TCL8::cpp_close_class() {
     Printf(attributes, "    {0,0,0}\n};\n");
     Printv(code,attributes,0);
 
-    Printv(code, "static swig_class _wrap_class_", class_name, " = { \"", class_name,
+    /* Dump bases */
+    Printv(code,"static swig_class *swig_",real_classname,"_bases[] = {", cpp_bases,"0};\n", 0);
+
+    Printv(code, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
 
     if (have_constructor) {
@@ -1010,10 +1014,10 @@ TCL8::cpp_close_class() {
     } else {
       Printf(code,",0");
     }
-    Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes };\n", 0);
+    Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
     Printf(f_wrappers,"%s",code);
 
-    Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", class_name, "},\n", 0);
+    Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", real_classname, "},\n", 0);
   }
   Delete(code);
 }
@@ -1074,6 +1078,19 @@ void
 TCL8::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
   have_destructor = 1;
+}
+
+void
+TCL8::cpp_inherit(char **bases, int mode) {
+  this->Language::cpp_inherit(bases,mode);
+  if (shadow) {
+    int i = 0;
+    while (bases[i]) {
+      Printv(f_wrappers,"extern swig_class _wrap_class_",bases[i],";\n",0);
+      Printf(cpp_bases,"&_wrap_class_%s,", bases[i]);
+      i++;
+    }
+  }
 }
 
 void
