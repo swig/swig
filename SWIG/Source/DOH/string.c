@@ -582,8 +582,10 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
 	if (!q2) {
 	  return 0;
 	}
-	if (q2 > s)
+	if (q2 > s) {
+	  /* Find next match */
 	  s = (*match)(base,q2+1,token,tokenlen);
+	}
 	if (!s) return 0;         /* Oh well, no matches */
 	q = strpbrk(q2+1,"\"\'");
 	if (!q) noquote = 0;      /* No more quotes */
@@ -676,10 +678,12 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
 	      c = 0;
 	      break;
 	    }
-	    if (q2 > c)
+	    if (q2 > c) {
 	      c = (*match)(base,q2+1,token,tokenlen);
-	    if (!c) break;
+	      if (!c) break;
+	    }
 	    q = strpbrk(q2+1,"\"\'");
+	    if (!q) noquote = 0;
 	  }
 	}
       }
@@ -691,6 +695,7 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
 	break;
       }
     }
+
     expand = delta*rcount;     /* Total amount of expansion for the replacement */
     newsize = str->maxsize;
     while ((str->len + expand) >= newsize) newsize *= 2;
@@ -722,9 +727,10 @@ replace_simple(String *str, char *token, char *rep, int flags, int count, char *
 	      c = 0;
 	      break;
 	    }
-	    if (q2 > c)
+	    if (q2 > c) {
 	      c = (*match)(base,q2+1,token,tokenlen);
-	    if (!c) break;
+	      if (!c) break;
+	    }
 	    q = strpbrk(q2+1,"\"\'");
 	    if (!q) noquote = 0;      /* No more quotes */
 	  }
