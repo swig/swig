@@ -30,30 +30,60 @@ int any_varargs(ParmList *pl) {
 }
 
   
-
 /* utilities */
-String *convert_number(String *num, String *type) {
-  char *s=Char(num);
-  
-  /* Make sure doubles use 'd' instead of 'e' */
-  if (!Strcmp(type, "double")) {
-    String *updated=Copy(num);
-    if (Replace(updated, "e", "d", DOH_REPLACE_ANY) > 1) {
-      Printf(stderr, "Weird!! number %s looks invalid.\n", num);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    return updated;
-  }
+/* returns new string w/ parens stripped */
+String *strip_parens(String *string) {
+	char *s=Char(string), *p;
+	int len=Len(string);
+	String *res;
+	
+	if (len==0 || s[0] != '(' || s[len-1] != ')') {
+		return NewString(string);
+	}
+	
+	p=(char *)malloc(len-2+1);
+	if (!p) {
+		Printf(stderr, "Malloc failed\n");
+		SWIG_exit(EXIT_FAILURE);
+	}
+	
+	strncpy(p, s+1, len-1);
+	p[len-2]=0; /* null terminate */
+	
+	res=NewString(p);
+	free(p);
+	
+	return res;
+}
 
-  if (Len(num) < 2 || s[0] != '0') {
-    return Copy(num);
-  }
 
-  /* octal or hex */
-  
-  return NewStringf("#%c%s", 
-		    s[1] == 'x' ? 'x' : 'o', 
-		    s+2);
+String *convert_number(String *num_param, String *type) {
+	String *num=strip_parens(num_param), *res;
+	char *s=Char(num);
+	
+	/* Make sure doubles use 'd' instead of 'e' */
+	if (!Strcmp(type, "double")) {
+		String *updated=Copy(num);
+		if (Replace(updated, "e", "d", DOH_REPLACE_ANY) > 1) {
+			Printf(stderr, "Weird!! number %s looks invalid.\n", num);
+			SWIG_exit(EXIT_FAILURE);
+		}
+		Delete(num);
+		return updated;
+	}
+	
+	if (Len(num) < 2 || s[0] != '0') {
+		return num;
+	}
+	
+	/* octal or hex */
+	
+	res=NewStringf("#%c%s", 
+		       s[1] == 'x' ? 'x' : 'o', 
+		       s+2);
+	Delete(num);
+
+	return res;
 }
 
 typedef struct type_mapping {
@@ -122,7 +152,11 @@ String *convert_type(SwigType *ty) {
 
   if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
       !strncmp(type_reduced, "p.f", 3)) {
+#if 1
+	  return NewString("(* :void)");
+#else
 	  return NewString(":foreign-address");
+#endif
   }
   
   for(i=0; type_mappings[i].c_type; i++) {
@@ -157,9 +191,6 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
   SWIG_library_directory("allegrocl"); 
   SWIG_config_file("allegrocl.swg");
 
-  
-  
-  
 
   for(i=1; i<argc; i++) {
     if (!strcmp(argv[i], "-identifier-converter")) {
@@ -227,6 +258,7 @@ int ALLEGROCL :: top(Node *n) {
   Swig_register_filebyname("wrapper", f_cl);
 
   Printf(f_cl, ";; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :ff :excl))\n\n(in-package :%s)\n", module, module);
+  Printf(f_cl, "(eval-when (compile load eval)\n  (defparameter *swig-identifier-converter* '%s))\n", identifier_converter);
   
   Language::top(n);
 
@@ -245,16 +277,12 @@ int ALLEGROCL :: functionWrapper(Node *n) {
   int argnum=0, first=1, varargs=0;
   
   //Language::functionWrapper(n);
-  
-  Printf(f_cl, 
-	 "(excl::compiler-let ((*record-xref-info* nil))\n (ff:def-foreign-call (#.(%s \"%s\" :type :operator) \"%s\")\n  (", 
-	 identifier_converter,
-	 funcname, 
-	 funcname);
+
+  Printf(f_cl, "(swig-defun \"%s\"\n", funcname);
+  Printf(f_cl, "  (");
 
   /* Special cases */
   
-
   if (ParmList_len(pl) == 0) {
     Printf(f_cl, ":void");
   } else if (any_varargs(pl)) {
@@ -285,14 +313,10 @@ int ALLEGROCL :: functionWrapper(Node *n) {
     }
   }
   Printf(f_cl, ")\n"); /* finish arg list */
-  Printf(f_cl, "  :returning %s\n  :strings-convert t\n  :call-direct %s\n  :optimize-for-space t))\n", 
+  Printf(f_cl, "  :returning (%s)\n  :strings-convert t\n  :call-direct %s\n  :optimize-for-space t)\n", 
 	 convert_type(Getattr(n, "type")),
 	 varargs ? "nil"  : "t");
-		      
-  Printf(f_cl, 
-	 "(eval-when (compile load eval)\n (export '#.(%s \"%s\" :type :operator)))\n\n", 
-	 identifier_converter, 
-	 funcname);
+
   
   return SWIG_OK;
 }
@@ -306,17 +330,10 @@ int ALLEGROCL :: constantWrapper(Node *n) {
   Printf(stdout, "constant %s is of type %s. value: %s\n",
 	 name, type, converted_value);
 #endif
-  
-  Printf(f_cl, 
-	 "(defconstant #.(%s \"%s\" :type :constant) %s)\n", 
-	 identifier_converter,
-	 name, 
-	 converted_value);
-  Printf(f_cl, 
-	 "(eval-when (compile load eval)\n (export '#.(%s \"%s\" :type :constant)))\n\n", 
-	 identifier_converter,
-	 name);
-  
+
+  Printf(f_cl, "(swig-defconstant \"%s\" %s)\n",
+	 name, converted_value);
+
   Delete(converted_value);
  
   return SWIG_OK;
@@ -354,11 +371,14 @@ int ALLEGROCL :: classDeclaration(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
 
+    
+    /* Printf(stdout, "Converting %s in %s\n", type, name); */
     lisp_type=convert_type(type);
 
     Printf(f_cl, 
-	   "  (#.(%s \"%s\" :type :slot) %s)\n", Getattr(c, "sym:name"), 
+	   "  (#.(%s \"%s\" :type :slot) %s)\n", 
 	   identifier_converter,
+	   Getattr(c, "sym:name"), 
 	   lisp_type);
 
     Delete(lisp_type);

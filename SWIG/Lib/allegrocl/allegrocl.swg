@@ -39,7 +39,20 @@
               (setf lastcase :other)))
     (intern (coerce (nreverse res) 'string))))
 
+(defmacro swig-defconstant (string value)
+  (let ((symbol (funcall *swig-identifier-converter* string :type :constant)))
+    `(eval-when (compile load eval)
+       (defconstant ,symbol ,value)
+       (export (quote ,symbol)))))
 
+(defmacro swig-defun (name &rest rest)
+  (let ((symbol (funcall *swig-identifier-converter* name :type :operator)))
+    `(eval-when (compile load eval)
+       (excl::compiler-let ((*record-xref-info* nil))
+	 (ff:def-foreign-call ,symbol ,@rest)
+	 (export (quote ,symbol))))))
+    
+    
 
 ) ;; eval-when
 %}
