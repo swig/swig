@@ -190,7 +190,7 @@ int (foo)(int,int);
 </blockquote>
 
 In practice, few (if any) C programmers actually write code like
-is since this style is never featured in programming books.  However,
+this since this style is never featured in programming books.  However,
 if you're feeling particularly obfuscated, you can certainly break SWIG.
 
 <p>
@@ -209,7 +209,7 @@ int foo::bar(int) {
 </pre>
 </blockquote>
 
-<li>Certain advanced features of C++ such as namespaces and nested classes
+<li>Certain advanced features of C++ such as nested classes and template specialization
 are not yet supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
@@ -1673,6 +1673,94 @@ To eliminate the warning message, typemaps can be used, but this is
 discussed in a later chapter.  In many cases, the warning message is
 harmless.
 
+<h3>Structure data members</h3>
+
+Occasionally, a structure will contain data members that are themselves structures.  For example:
+
+<blockquote>
+<pre>
+typedef struct Foo {
+   int x;
+} Foo;
+
+typedef struct Bar {
+   int y;
+   Foo f;           /* struct member */
+} Bar;
+</pre>
+</blockquote>
+
+When a structure member is wrapped, it is always handled as a pointer.
+For example:
+
+<blockquote>
+<pre>
+Foo *Bar_f_get(Bar *b) {
+   return &b->f;
+}
+void Bar_f_set(Bar *b, Foo *value) {
+   b->f = *value;
+}
+</pre>
+</blockquote>
+
+The reasons for this are somewhat subtle but have to do with the
+problem of modifying and accessing data inside the data member.  For
+example, suppose you wanted to modify the value of <tt>f.x</tt> 
+of a <tt>Bar</tt> object like this:
+
+<blockquote>
+<pre>
+Bar *b;
+b->f.x = 37;
+</pre>
+</blockquote>
+
+Translating this assignment to function calls (as would be used inside the scripting
+language interface) results in the following code:
+
+<blockquote>
+<pre>
+Bar *b;
+Foo_x_set(Bar_f_get(b),37);
+</pre>
+</blockquote>
+
+In this code, if the <tt>Bar_f_get()</tt> function were to return a <tt>Foo</tt> instead of a
+<tt>Foo *</tt>, then the resulting modification would be applied to a <em>copy</em> of <tt>f</tt> and not
+the data member <tt>f</tt> itself.  Clearly that's not what you want!
+
+<p>
+It should be noted that this transformation to pointers only occurs if SWIG knows that a data member
+is a structure or class.   For instance, if you had a structure like this,
+
+<blockquote>
+<pre>
+struct Foo {
+   WORD   w;
+};
+</pre>
+</blockquote>
+
+and nothing was known about <tt>WORD</tt>, then SWIG will generate more normal accessor functions
+like this:
+
+<blockquote>
+<pre>
+WORD Foo_w_get(Foo *f) {
+    return f->w;
+}
+void Foo_w_set(FOO *f, WORD value) {
+    f->w = value;
+}
+</pre>
+</blockquote>
+
+<b>Compatibility Note: </b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes
+to pointers.  Starting in SWIG-1.3.12,  this transformation <em>only</em> occurs if a datatype is known to be a structure,
+class, or union.    This is unlikely to break existing code.  However, if you need to tell SWIG that an undeclared
+datatype is really a struct, simply use a forward struct declaration such as <tt>"struct Foo;"</tt>.
+
 <h3>C constructors and destructors </h3>
 
 When wrapping structures, it is generally useful to have a mechanism
@@ -2562,6 +2650,16 @@ program that is more interactive. In many cases, the old
 <tt>main()</tt> program can be completely replaced by a Perl, Python,
 or Tcl script.<p>
 
+<p>
+<b>Note:</b> If some cases, you might be inclined to create a
+scripting language wrapper for <tt>main()</tt>.  If you do this, the
+compilation will probably work and your module might even load
+correctly.  The only trouble is that when you call your
+<tt>main()</tt> wrapper, you will find that it actually invokes the
+<tt>main()</tt> of the scripting language interpreter itself!    This behavior
+is a side effect of the symbol binding mechanism used in the dynamic linker.
+The bottom line: don't do this.
+
 <h3> How to avoid creating the interface from hell</h3>
 
 SWIG makes it fairly easy to build a big interface really fast. In
@@ -2593,6 +2691,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : December 30, 2001</address>
+<address>SWIG 1.3 - Last Modified : April 4, 2002</address>
 </body>
 </html>
