@@ -15,12 +15,10 @@
 
 (defvar *swig-source-directory* #p"/home/mkoeppe/s/swig1.3/")
 
-(defvar *swig-program* (merge-pathnames "swig" *swig-source-directory*))
+(defvar *swig-program* (merge-pathnames "preinst-swig" *swig-source-directory*))
 
 (defun run-swig (swig-interface-file-name &key directory-search-list module
 		 ignore-errors c++)
-  (setf (port:getenv :SWIG_LIB)
-	(namestring (merge-pathnames "Lib" *swig-source-directory*)))
   (let ((temp-file-name "/tmp/swig.lsp"))
     (let ((process
 	   (port:run-prog (namestring *swig-program*)
@@ -212,7 +210,7 @@ is no representation."
 
 (defvar *struct-fields* '())
 
-(defvar *linkage* nil "NIL or :C")
+(defvar *linkage* :C "NIL or :C")
 
 (defgeneric handle-node (node-type &key &allow-other-keys)
   (:documentation "Handle a node of SWIG's parse tree of a C/C++ program"))
@@ -345,7 +343,8 @@ is no representation."
 ;;  (eval (cons 'progn (compute-uffi-definitions *simple-gifplot-interface*))))
 
 
-(with-open-file (f "/tmp/swig-uffi.lisp" :direction :output)
+(with-open-file (f "/tmp/swig-uffi.lisp" :direction :output
+		   :if-exists :supersede)
   (let ((*uffi-definitions* '())
 	(*uffi-output* f)
 	(*uffi-primitive-type-alist*
@@ -362,10 +361,10 @@ is no representation."
 
 (compile-file "/tmp/swig-uffi.lisp")
 
-(load "/tmp/swig-uffi.lisp")
-
 (uffi:load-foreign-library (merge-pathnames "Examples/GIFPlot/libgifplot.a"
 					    *swig-source-directory*))
+
+(load "/tmp/swig-uffi.lisp")
 
 (load (merge-pathnames "Examples/GIFPlot/Common-Lisp/full/runme.lisp" *swig-source-directory*))
 
@@ -375,6 +374,8 @@ is no representation."
 ||#
 
 ;;; Link to SWIG itself
+
+#||
 
 (defparameter *c++-compiler* "g++")
 
@@ -409,10 +410,11 @@ is no representation."
 		  :ignore-errors t
 		  :c++ t))
   (with-open-file (f *swig-uffi-pathname* :direction :output)
-		  (let ((*uffi-definitions* '())
-			(*uffi-output* f)
-			(*uffi-primitive-type-alist* *uffi-default-primitive-type-alist*))
-		    (apply 'handle-node *swig-interface*)))
+    (let ((*linkage* :c++)
+	  (*uffi-definitions* '())
+	  (*uffi-output* f)
+	  (*uffi-primitive-type-alist* *uffi-default-primitive-type-alist*))
+      (apply 'handle-node *swig-interface*)))
   (compile-file *swig-uffi-pathname*)
   (alien:load-foreign (merge-pathnames "Source/libswig.a"
 				       *swig-source-directory*)
@@ -423,6 +425,8 @@ is no representation."
   ;;                             :supporting-libraries
   ;;                             (list (stdc++-library)))
   (load (compile-file-pathname *swig-uffi-pathname*)))
+
+||#
 
 ;;;; TODO:
 
