@@ -1005,7 +1005,7 @@ SwigType_ltype(SwigType *s) {
   Delete(tc);
   result_qualified = SwigType_typedef_qualified(result);
   Delete(result);
-  /*  Printf(stdout,"ltype(%s) --> %s\n", s, result_qualified);*/
+  /*  Printf(stdout,"ltype(%s) --> %s\n", s, result_qualified); */
   return result_qualified;
 }
 
@@ -1437,15 +1437,19 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
       Append(result,e);
     } else if (SwigType_isfunction(e)) {
       List *parms = SwigType_parmlist(e);
+      String *s = NewString("f(");
       String *p;
-      int j;
-      for (p = Firstitem(parms),j=0; p; p = Nextitem(parms),j++) {
-	Setitem(parms,j,SwigType_typedef_qualified(p));
+      p = Firstitem(parms);
+      while (p) {
+	Append(s,SwigType_typedef_qualified(p));
+	p = Nextitem(parms);
+	if (p) {
+	  Append(s,",");
+	}
       }
-      p = NewString("");
-      SwigType_add_function(p,parms);
-      Append(result,p);
-      Delete(p);
+      Append(s,").");
+      Append(result,s);
+      Delete(s);
     } else {
       Append(result,e);
     }
