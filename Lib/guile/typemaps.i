@@ -15,7 +15,8 @@
 %typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) float          { MK_SIMPLE_MAP (gh_scm2double); }  \
-%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_scm2double); }
+%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_scm2double); }  \
+%typemap (guile, op) char *         { MK_SIMPLE_MAP (gswig_scm2str); }
 
 #define SIMPLE_OUT_MAP_SET(op)                                          \
 %typemap (guile, op) bool           { MK_SIMPLE_MAP (gh_bool2scm); }    \
@@ -27,7 +28,8 @@
 %typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_ulong2scm); }   \
 %typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_ulong2scm); }   \
 %typemap (guile, op) float          { MK_SIMPLE_MAP (gh_double2scm); }  \
-%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_double2scm); }
+%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_double2scm); }  \
+%typemap (guile, op) char *         { MK_SIMPLE_MAP (gh_str02scm); }
 
 /*
  * Declaration start here
