@@ -1,5 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
+08/10/2003: mrose (Mark Rose)
+            Fixed constructor generation for director classes to ignore private
+	    constructors.  Protected constructors are also ignored for now, pending
+	    a solution to the problem of wrapping classes that only define protected
+	    constructors.
+
 08/07/2003: cheetah (William Fulton)
             New commandline option -outdir <dir> to specify where the language specific
             files are to be generated. This is useful for target languages like Python,

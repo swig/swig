@@ -1473,8 +1473,11 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
-      classDirectorConstructor(ni);
-      constructor = 1;
+      String* access = Getattr(ni, "access");
+      if (!access || !Cmp(access, "public")) {
+        classDirectorConstructor(ni);
+        constructor = 1;
+      }
     }
   }
   if (!constructor) {
