@@ -279,7 +279,7 @@ Ruby
 *      Add some special directives to automatically rename declarations to
        or from CamelCase.
 
-*      Consider adding a switch to define everything in the global (Kernel)
+[DONE] Consider adding a switch to define everything in the global (Kernel)
        module instead of nested in a user-defined module, but only if
        it comes up.
 

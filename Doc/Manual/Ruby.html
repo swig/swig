@@ -211,8 +211,7 @@ Ruby <i>module</i> names must be capitalized, but the convention for Ruby
 <i>feature</i> names is to use lowercase names. So, for example, the <b>Etc</b>
 extension module is imported by requiring the <b>etc</b> feature:
 
-<pre><blockquote>
-# The feature name begins with a lowercase letter...
+<pre><blockquote># The feature name begins with a lowercase letter...
 require 'etc'
 
 # ... but the module name begins with an uppercase letter
@@ -224,8 +223,7 @@ To stay consistent with this practice, you should always specify a
 SWIG will automatically correct the resulting Ruby module name for your
 extension. So for example, a SWIG interface file that begins with:
 
-<pre><blockquote>
-%module example
+<pre><blockquote>%module example
 </blockquote></pre>
 
 will result in an extension module using the feature name "example" and
@@ -364,9 +362,20 @@ nested directly under the global module. You can specify a more deeply nested
 module by specifying the fully-qualified module name in quotes, e.g.
 <blockquote><pre>%module "Foo::Bar::Spam"</pre></blockquote>
 
-When choosing a module name, do not use the same
-name as a built-in Ruby command or standard module name, the results may be
-unpredictable.
+Starting with SWIG 1.3.20, you can also choose to wrap everything into the global
+module by specifying the <tt>-globalmodule</tt> option on the SWIG command line, i.e.
+
+<blockquote><pre>$ <b>swig -ruby -globalmodule example.i</b></pre></blockquote>
+
+Note that this does not relieve you of the requirement of specifying the SWIG
+module name with the <tt>%module</tt> directive (or the <tt>-module</tt>
+command-line option) as described earlier.<p>
+
+When choosing a module name, do not use the same name as a built-in Ruby command
+or standard module name, as the results may be unpredictable. Similarly, if you're
+using the <tt>-globalmodule</tt> option to wrap everything into the global module,
+take care that the names of your constants, classes and methods don't conflict
+with any of Ruby's built-in names.
 
 <a name="n13"></a><H3>20.3.2 Functions</H3>
 

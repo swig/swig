@@ -92,6 +92,7 @@ static const char *
 usage = "\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
+     -globalmodule   - Wrap everything into the global module\n\
      -feature name   - Set feature name (used by `require')\n";
 
 
@@ -177,6 +178,9 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if (strcmp(argv[i],"-globalmodule") == 0) {
+          useGlobalModule = true;
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  Printf(stderr,"%s\n", usage);
 	} else if (strcmp (argv[i],"-ldflags") == 0) {
@@ -1330,7 +1334,7 @@ public:
       Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
              ", \"", klass->name, "\", $super);\n", NIL);
     } else {
-      Printv(klass->init, klass->vname, " = rb_define_class_under(\"",
+      Printv(klass->init, klass->vname, " = rb_define_class(\"",
              klass->name, "\", $super);\n", NIL);
     }
 
