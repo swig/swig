@@ -56,11 +56,11 @@ void SWIG_CSharpThrowException(SWIG_CSharpExceptionCodes code, const char *msg) 
 #endif
 %}
 
-%{
+%insert(runtime) %{
 #ifdef __cplusplus
 extern "C" 
 #endif
-DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks(SWIG_CSharpExceptionCallback_t systemException,
+DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExceptionCallback_t systemException,
                                                           SWIG_CSharpExceptionCallback_t outOfMemory, 
                                                           SWIG_CSharpExceptionCallback_t indexOutOfRange, 
                                                           SWIG_CSharpExceptionCallback_t divideByZero, 
@@ -87,8 +87,8 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks(SWIG_CSharpExceptionCa
     static SWIGExceptionDelegate argumentOutOfRangeDelegate = new SWIGExceptionDelegate(ThrowArgumentOutOfRangeException);
     static SWIGExceptionDelegate nullReferenceDelegate = new SWIGExceptionDelegate(ThrowNullReferenceException);
 
-    [DllImport("$module", EntryPoint="SWIGRegisterExceptionCallbacks")]
-    public static extern void SWIGRegisterExceptionCallbacks(
+    [DllImport("$module", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
+    public static extern void SWIGRegisterExceptionCallbacks_$module(
       SWIGExceptionDelegate systemExceptionDelegate,
       SWIGExceptionDelegate outOfMemoryDelegate, 
       SWIGExceptionDelegate indexOutOfRangeDelegate, 
@@ -121,7 +121,7 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks(SWIG_CSharpExceptionCa
     }
 
     static SWIGExceptionHelper() {
-      SWIGRegisterExceptionCallbacks(systemDelegate, outOfMemoryDelegate, indexOutOfRangeDelegate, divideByZeroDelegate, argumentOutOfRangeDelegate, nullReferenceDelegate);
+      SWIGRegisterExceptionCallbacks_$module(systemDelegate, outOfMemoryDelegate, indexOutOfRangeDelegate, divideByZeroDelegate, argumentOutOfRangeDelegate, nullReferenceDelegate);
     }
   }
 
@@ -140,26 +140,26 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
     public delegate string SWIGStringDelegate(string message);
     static SWIGStringDelegate stringDelegate = new SWIGStringDelegate(CreateString);
 
-    [DllImport("$module", EntryPoint="SWIGRegisterStringCallback")]
-    public static extern void SWIGRegisterStringCallback(SWIGStringDelegate stringDelegate);
+    [DllImport("$module", EntryPoint="SWIGRegisterStringCallback_$module")]
+    public static extern void SWIGRegisterStringCallback_$module(SWIGStringDelegate stringDelegate);
 
     static string CreateString(string cString) {
       return cString;
     }
 
     static SWIGStringHelper() {
-      SWIGRegisterStringCallback(stringDelegate);
+      SWIGRegisterStringCallback_$module(stringDelegate);
     }
   }
 
   static SWIGStringHelper stringHelper = new SWIGStringHelper();
 %}
 
-%{
+%insert(runtime) %{
 #ifdef __cplusplus
 extern "C" 
 #endif
-DllExport void SWIGSTDCALL SWIGRegisterStringCallback(SWIG_CSharpStringHelperCallback callback) {
+DllExport void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringHelperCallback callback) {
   SWIG_csharp_string_callback = callback;
 }
 %}
