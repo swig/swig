@@ -1,5 +1,7 @@
 %module(directors="1") director_detect
 
+%warnfilter(822, 842) cloner; /* Java, C# covariant return types */
+
 %{
 #include <string>
 #include <iostream>
