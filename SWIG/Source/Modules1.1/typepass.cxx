@@ -45,12 +45,19 @@ class TypePass : public Dispatcher {
     /* Normalize a type. Replaces type with fully qualified version */
 
     void normalize_type(SwigType *ty) {
-	SwigType *qty = SwigType_typedef_qualified(ty);
-	/* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
-	/*	Printf(stdout,"%s --> %s\n", ty, qty); */
+      SwigType *qty;
+      /*qty = Swig_symbol_type_qualify(ty,0);*/
+      /*      if (SwigType_istemplate(ty)) {
+	qty = Swig_symbol_type_qualify(ty,0);
 	Clear(ty);
 	Append(ty,qty);
-	Delete(qty);
+      }
+      */
+      qty = SwigType_typedef_qualified(ty);
+      /*      Printf(stdout,"%s --> %s\n", ty, qty); */
+      Clear(ty);
+      Append(ty,qty);
+      Delete(qty);
     }
   
     /* Normalize a parameter list */

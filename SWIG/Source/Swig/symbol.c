@@ -312,7 +312,9 @@ Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
   } else {
     qname = NewString(aliasname);
   }
-  Setattr(symtabs,qname,s);
+  if (!Getattr(symtabs,qname)) {
+    Setattr(symtabs,qname,s);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -357,6 +359,8 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
      stays in the C symbol table (so that it can be expanded using %template).
    */
 
+  if (!name) return;
+
   cn = Getattr(ccurrent,name);
   if (cn && (Getattr(cn,"sym:typename"))) {
     /* The node in the C symbol table is a typename.  Do nothing */
@@ -368,9 +372,45 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
   } else if (cn && (Getattr(n,"sym:typename"))) {
     /* The node being added is a typename.  We definitely add it */
     Setattr(ccurrent,name,n);
+  } else if (cn && (Strcmp(nodeType(cn),"templateparm") == 0)) {
+    Swig_error(Getfile(n),Getline(n),"Error. Declaration of '%s' shadows template parameter at %s:%d\n",
+	       name,Getfile(cn),Getline(cn));
+    return;
   } else if (!cn) {
     /* No conflict. Add the symbol */
     Setattr(ccurrent,name,n);
+  }
+
+  /* Special typedef handling.  When a typedef node is added to the symbol table, we
+     might have to add a type alias.   This would occur if the typedef mapped to another
+     scope in the system.  For example:
+
+           class Foo {
+           };
+
+           typedef Foo OtherFoo;
+
+     In this case, OtherFoo becomes an alias for Foo. */
+
+  {
+    Node *td = n;
+    while (td && (Strcmp(nodeType(td),"cdecl") == 0) && (checkAttribute(td,"storage","typedef"))) {
+      SwigType *type;
+      Node *td1;
+      type = Copy(Getattr(td,"type"));
+      SwigType_push(type,Getattr(td,"decl"));
+      td1 = Swig_symbol_clookup(type,0);
+      Delete(type);
+      if (td1 == td) break;
+      td = td1;
+      if (td) {
+	Symtab *st = Getattr(td,"symtab");
+	if (st) {
+	  Swig_symbol_alias(Getattr(n,"name"),st);
+	  break;
+	}
+      }
+    }
   }
 }
 
@@ -420,28 +460,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   if (name) {
     Swig_symbol_cadd(name,n);
   }
-#ifdef OLD
-  {
-    String *name = Getattr(n,"name");
-    if (name) {
-      cn = Getattr(ccurrent,name);
-      if (cn && (Getattr(cn,"sym:typename"))) {
-	  /* The node in the C symbol table is a typename.  Do nothing */
-      } else if (cn && (Getattr(cn,"sym:weak"))) {
-	  /* The node in the symbol table is weak. Replace it */
-	  Setattr(ccurrent,name, n);
-      } else if (cn && (Getattr(n,"sym:weak"))) {
-	  /* The node being added is weak.  Don't worry about it */
-      } else if (cn && (Getattr(n,"sym:typename"))) {
-	  /* The node being added is a typename.  We definitely add it */
-	  Setattr(ccurrent,name,n);
-      } else if (!cn) {
-	  /* No conflict. Add the symbol */
-	  Setattr(ccurrent,name,n);
-      }
-    }
-  }
-#endif
+
   /* No symbol name defined.  We return. */
   if (!symname) {
     Setattr(n,"sym:symtab",current_symtab);
@@ -626,7 +645,6 @@ symbol_lookup(String_or_char *name, Symtab *symtab) {
 
 static Node *
 symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, int local) {
-
   /* This is a little funky, we search by fully qualified names */
 
   if (!symtab) return 0;
@@ -655,19 +673,18 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
       qname = NewString(prefix);
     }
     st = Getattr(symtabs,qname);
-    Delete(qname);
-
     /* Found a scope match */
     if (st) {
       if (!name) return st;
       n = symbol_lookup(name, st);
     }
-
+    Delete(qname);
     if (!n) {
       if (!local) {
-	return symbol_lookup_qualified(name,parentNode(symtab), prefix, local);
+	Node *pn = parentNode(symtab);
+	if (pn) n = symbol_lookup_qualified(name,pn, prefix, local);
       } else {
-	return 0;
+	n = 0;
       }
     }
     return n;
@@ -759,8 +776,9 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
       s = symbol_lookup_qualified(name,hsym,0,0);
     }
   }
-  if (!s)
+  if (!s) {
     s = symbol_lookup(name,hsym);
+  }
   if (!s) return 0;
   /* Check if s is a 'using' node */
   while (s && Strcmp(nodeType(s),"using") == 0) {
@@ -875,7 +893,7 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	String *name = Getattr(n,"name");
 	Clear(e);
 	Append(e,name);
-	{
+	if (!Swig_scopename_check(name)) {
 	  String *qname = Swig_symbol_qualified(n);
 	  if (Len(qname)) {
 	    Insert(e,0,"::");
@@ -895,15 +913,31 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	Printf(qprefix,"<(");
 	for (tparm = Firstitem(targs); tparm;) {
 	  String *qparm = Swig_symbol_type_qualify(tparm,st);
-	  
-	  /* It is possible for an integer to show up here.  If so, we need to evaluate it */
-	  {
-	    Node *nn = Swig_symbol_clookup(qparm,st);
-	    if ((nn) && (Strcmp(nodeType(nn),"cdecl") == 0)) {
-	      String *nv = Getattr(nn,"value");
-	      if (nv) {
-		Clear(qparm);
-		Append(qparm,nv);
+	  /*	  Printf(stdout,"qparm = '%s', tparm = '%s'\n", qparm, tparm);*/
+	  while (1) {
+	    /* It is possible for an integer to show up here.  If so, we need to evaluate it */
+	    {
+	      Node *nn = Swig_symbol_clookup(qparm,st);
+	      if ((nn) && (Strcmp(nodeType(nn),"cdecl") == 0)) {
+		String *nv = Getattr(nn,"value");
+		if (nv) {
+		  Clear(qparm);
+		  Append(qparm,nv);
+		} else {
+		  break;
+		}
+	      } else if ((nn) && (Strcmp(nodeType(nn),"enumitem") == 0)) {
+		String *qn = Swig_symbol_qualified(nn);
+		if (Len(qn)) {
+		  Append(qn,"::");
+		  Append(qn,Getattr(nn,"name"));
+		  Clear(qparm);
+		  Append(qparm,qn);
+		}
+		Delete(qn);
+		break;
+	      } else {
+		break;
 	      }
 	    }
 	  }

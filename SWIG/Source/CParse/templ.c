@@ -255,9 +255,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  for (i = 0; i < sz; i++) {
 	      String *s = Getitem(typelist,i);
 	      Replace(s,name,value, DOH_REPLACE_ID);
-	      /*	Printf(stdout,"s='%s' tname = '%s', iname = '%s'\n", s, tname,iname); */
 	      SwigType_typename_replace(s,tbase,iname);
-	      
 	  }
 	  if (!tydef) {
 	      tydef = value;

@@ -66,6 +66,7 @@ static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
+static Parm    *template_parameters = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -2155,49 +2156,6 @@ cpp_class_decl  :
 		   /* Deal with inheritance  */
 		   if ($4) {
 		     bases = make_inherit_list($3,$4);
-#if 0
-		     String *derived;
-		     int i;
-		     bases = NewList();
-		     if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix, $3);
-		     else derived = NewString($3);
-		     for (i = 0; i < Len($4); i++) {
-		       Node *s;
-		       String *base;
-		       String *n = Getitem($4,i);
-		       /* Try to figure out where this symbol is */
-		       s = Swig_symbol_clookup(n,0);
-		       if (s) {
-			 while (s && (Strcmp(nodeType(s),"class") != 0)) {
-			   /* Not a class.  Could be a typedef though. */
-			   String *storage = Getattr(s,"storage");
-			   if (storage && (Strcmp(storage,"typedef") == 0)) {
-			     String *nn = Getattr(s,"type");
-			     s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
-			   } else {
-			     break;
-			   }
-			 }
-		         if (s && (Strcmp(nodeType(s),"class") == 0)) {
-			   String *q = Swig_symbol_qualified(s);
-			   Append(bases,s);
-			   if (q) {
-			     base = NewStringf("%s::%s", q, Getattr(s,"name"));
-			   } else {
-			     base = NewString(Getattr(s,"name"));
-			   }
-			 } else {
-			   base = NewString(n);
-			 }
-		       } else {
-			 base = NewString(n);
-		       }
-		       if (base) {
-			 rename_inherit(base,derived);
-			 Delete(base);
-		       }
-		     }
-#endif
 		   }
 		   if (SwigType_istemplate($3)) {
 		     String *fbase, *tbase, *prefix;
@@ -2232,6 +2190,19 @@ cpp_class_decl  :
 		   }
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   cparse_start_line = cparse_line;
+
+		   /* If there are active template parameters, we need to make sure they are
+                      placed in the class symbol table so we can catch shadows */
+
+		   if (template_parameters) {
+		     Parm *tp = template_parameters;
+		     while(tp) {
+		       Node *tn = new_node("templateparm");
+		       Setattr(tn,"name",Getattr(tp,"name"));
+		       Swig_symbol_cadd(Copy(Getattr(tp,"name")),tn);
+		       tp = nextSibling(tp);
+		     }
+		   }
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
@@ -2439,9 +2410,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    template<...> decl
    ------------------------------------------------------------ */
 
-cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possible {
+cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_parameters = $3; } cpp_temp_possible {
 		      String *tname = 0;
-                      $$ = $5;
+                      template_parameters = 0;
+                      $$ = $6;
 		      if ($$) tname = Getattr($$,"name");
 
 		      /* Check if the class is a template specialization */
@@ -2461,7 +2433,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			Setattr($$,"templatetype",nodeType($$));
 			set_nodeType($$,"template");
 			/* Template partial specialization */
-			if (($3) && ($5)) {
+			if (($3) && ($6)) {
 			  List   *tlist;
 			  String *targs = SwigType_templateargs(tname);
 			  tlist = SwigType_parmlist(targs);
@@ -2509,7 +2481,6 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			      }
 			      p = nextSibling(p);
 			    }
-			    /*			    Printf(stdout,"Installing '%s'\n", fname); */
 			    {
 			      String *partials = Getattr(tempn,"partials");
 			      if (!partials) {
@@ -2525,7 +2496,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  Delete(targs);
 			}
 		      }  else if ($$) {
-			Setattr($$,"templatetype",nodeType($5));
+			Setattr($$,"templatetype",nodeType($6));
 			set_nodeType($$,"template");
 			Setattr($$,"templateparms", $3);
 			if (!Getattr($$,"sym:weak")) {

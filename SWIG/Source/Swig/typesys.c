@@ -649,21 +649,42 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	p = Firstitem(parms);
 	while (p) {
 	  String *qt = SwigType_typedef_qualified(p);
-	  if ((Strcmp(qt,p) == 0) && (!Swig_scopename_check(qt))) {
-	    /* Hmmm. No change.  See if the parameter might be a symbolic name like an enum value */
+	  if ((Strcmp(qt,p) == 0)) { /*  && (!Swig_scopename_check(qt))) { */
+	    /* No change in value.  It is entirely possible that the parameter is an integer value.
+	       If there is a symbol table associated with this scope, we're going to check for this */
+
 	    if (current_symtab) {
-	      Node *n = Swig_symbol_clookup(p,current_symtab);
-	      if ((n) && (Strcmp(nodeType(n),"enumitem") == 0)) {
-		String *qn = Swig_symbol_qualified(n);
-		/*		Printf(stdout,"qn = '%s', p='%s'\n", qn, p);*/
-		if (Len(qn)) {
-		  Append(qprefix, qn);
-		  Append(qprefix,"::");
+	      Node *lastnode = 0;
+	      String *value = Copy(p);
+	      while (1) {
+		Node *n = Swig_symbol_clookup(value,current_symtab);
+		if (n == lastnode) break;
+		lastnode = n;
+		if (n) {
+		  if (Strcmp(nodeType(n),"enumitem") == 0) {
+		    /* An enum item.   Generate a fully qualified name */
+		    String *qn = Swig_symbol_qualified(n);
+		    if (Len(qn)) {
+		      Append(qn,"::");
+		      Append(qn,Getattr(n,"name"));
+		      Delete(value);
+		      value = qn;
+		      continue;
+		    } else {
+		      break;
+		    }
+		  } else if ((Strcmp(nodeType(n),"cdecl") == 0) && (Getattr(n,"value"))) {
+		    Delete(value);
+		    value = Copy(Getattr(n,"value"));
+		    continue;
+		  }
 		}
-		Delete(qn);
-	      } 
+		break;
+	      }
+	      Append(qprefix,value);
+	    } else {
+	      Append(qprefix,p);
 	    }
-	    Append(qprefix,p);
 	  } else {
 	    Append(qprefix,qt);
 	  }
