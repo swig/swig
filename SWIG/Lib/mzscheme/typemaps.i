@@ -100,6 +100,53 @@
 %typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
 %typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
 
+
+/* Pass-by-value */
+
+%typemap(in) SWIGTYPE($&1_ltype argp) {
+  argp = ($&1_ltype) SWIG_MustGetPtr($input, $&1_descriptor, $argnum);
+  $1 = *argp;
+}
+
+%typemap(varin) SWIGTYPE {
+  $&1_ltype argp;
+  argp = ($&1_ltype) SWIG_MustGetPtr($input, $&1_descriptor, 1);
+  $1 = *argp;
+}
+
+
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result =  SWIG_MakePtr (resultptr, $&1_descriptor);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_MakePtr(resultptr, $&1_descriptor);
+}
+#endif
+
+%typemap(varout) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result =  SWIG_MakePtr (resultptr, $&1_descriptor);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_MakePtr(resultptr, $&1_descriptor);
+}
+#endif
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
@@ -226,6 +273,70 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 //    $2 = ($2_ltype) temp;
 //}
 
+
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE
+{
+  $1 = (SCHEME_INTP($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_BOOL) bool &, const bool &
+{
+  $1 = (SCHEME_BOOLP($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+	float, double,
+	const float &, const double &
+{
+  $1 = (SCHEME_REALP($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char {
+  $1 = (SCHEME_STRINGP($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  $1 = (SCHEME_STRINGP($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  if (SWIG_GetPtr($input, (void **) &ptr, $1_descriptor)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
+  void *ptr;
+  if (SWIG_GetPtr($input, (void **) &ptr, $&1_descriptor)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *ptr;
+  if (SWIG_GetPtr($input, (void **) &ptr, 0)) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
 
 
 
