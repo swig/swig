@@ -655,10 +655,10 @@ To create a constant, use <tt>#define</tt> or the
 </blockquote>
 
 By default the generated static final variables are initialised by making a JNI call to get their value.
-The generated code looks like this:
+The constants are generated into a constants interface and look like this:
 
 <blockquote><pre>
-public class example {
+public interface exampleConstants {
   // enums and constants
   public final static double PI = exampleJNI.get_PI();
   public final static String VERSION = exampleJNI.get_VERSION();
@@ -667,11 +667,12 @@ public class example {
 }
 </pre></blockquote>
 
-Although these are final static variables, they are not compiler constants that can, for example, be used 
+These are runtime constants. They are not compiler constants that can, for example, be used 
 in a switch statement. This can be changed by using the <tt>%javaconst(flag)</tt> directive. It works like all
-the other <tt>%feature</tt> directives. The default is <tt>%javaconst(0)</tt>. 
-It is possible to initialize all wrapped constants from pure Java code using <tt>%javaconst(1)</tt>
-For example:
+the other <a href="Customization.html#features">%feature directives</a>. The default is <tt>%javaconst(0)</tt>. 
+It is possible to initialize all wrapped constants from pure Java code by placing a <tt>%javaconst(1)</tt> <b>before</b> SWIG parses any constants.
+Putting it at the top of your interface file would ensure this.
+Her is an example:
 
 <blockquote><pre>
 %javaconst(1);
@@ -683,7 +684,7 @@ For example:
 generates:
 
 <blockquote><pre>
-public class example {
+public interface exampleConstants {
   // enums and constants
   public final static long BIG = exampleJNI.get_BIG();
   public final static int EXPRESSION = (0x100+5);
@@ -692,12 +693,23 @@ public class example {
 
 Be careful using the <tt>%javaconst(1)</tt> directive as not all C code will compile as Java code. For example the 
 <tt>1000LL</tt> value for the <tt>BIG</tt> constant above would not generate valid Java code. 
-The above example also demonstrates how you can target particular constants with <tt>%javaconst</tt>.
+The example demonstrates how you can target particular constants (<tt>BIG</tt>) with <tt>%javaconst</tt>.
 
 <p>
 Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
 will be accessed using a getter as described in the previous section.  They
 are not wrapped as constants.
+
+<p>
+<b>Compatibility Note:</b> In SWIG-1.3.19 and earlier releases, the constants were generated into the module class and the constants interface didn't exist.
+Backwards compatibility is maintained as the module class implements the constants interface:
+<blockquote><pre>
+public class example implements exampleConstants {
+}
+</pre></blockquote>
+
+You thus have the choice of accessing these constants as either 
+<tt>example.LAGER</tt> or <tt>exampleConstants.LAGER</tt>.
 
 
 <a name="enumerations"></a>
@@ -712,10 +724,10 @@ enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
 </pre>
 </blockquote>
 
-generates:
+is wrapped into the constants interface, in a similar manner as constants (see previous section):
 
 <blockquote><pre>
-public class example {
+public interface exampleConstants {
   // enums and constants
   public final static int ALE = exampleJNI.get_ALE();
   public final static int LAGER = exampleJNI.get_LAGER();
@@ -727,7 +739,7 @@ public class example {
 The <tt>%javaconst(flag)</tt> directive introduced in the previous section on constants can also be used with enums,
 thereby also allowing enum values to be used in Java switch statements. 
 As is the case for constants, the default is <tt>%javaconst(0)</tt> as not all C values will compile as Java code.
-However, it is recommended to add in a <tt>%javaconst(1)</tt> directive into your 
+However, it is recommended to add in a <tt>%javaconst(1)</tt> directive at the top of your 
 interface file as it is only on very rare occasions that this will produce code that won't compile under Java.
 Example usage:
 
@@ -742,7 +754,7 @@ enum Beverage { ALE, LAGER=10, STOUT, PILSNER };
 generates:
 
 <blockquote><pre>
-public class example {
+public interface exampleConstants {
   // enums and constants
   public final static int ALE = 0;
   public final static int LAGER = 10;
@@ -751,6 +763,9 @@ public class example {
 }
 </pre></blockquote>
 
+As in the case of constants, you can access them through either the module class or the constants interface, for example, <tt>example.ALE</tt> or <tt>exampleConstants.ALE</tt>.
+
+<p>
 For enums, make sure that the definition of the enumeration actually appears in a header
 file or in the wrapper file somehow---if you just have an enum in a SWIG interface without
 also telling the C compiler about it, the wrapper code won't compile.
