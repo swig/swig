@@ -192,7 +192,7 @@
 %typemap(inv, parse="J") long long        "$input = (jlong) $1;"
 %typemap(inv, parse="F") float            "$input = (jfloat) $1;"
 %typemap(inv, parse="D") double           "$input = (jdouble) $1;"
-%typemap(inv, parse="I") enum SWIGTYPE    "$input = (jing) $1;"
+%typemap(inv, parse="I") enum SWIGTYPE    "$input = (jint) $1;"
 
 %typemap(directorin) char, 
              signed char, 
@@ -510,11 +510,11 @@
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %} 
 
-%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & 
-%{ *(($&1_ltype)&$input) = $1; %}
+%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
+%{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
-%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE &, const SWIGTYPE &
-%{ *($&1_ltype)&$input = &$1; %}
+%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE &
+%{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
 %typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "new $javaclassname($jniinput, false)"
 %typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "$javaclassname.getCPtr($javacall)"
