@@ -1881,15 +1881,3 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Delete(types);
   Delete(table);
 }
-
-
-
-
-
-
-
-
-
-
-
-

@@ -908,7 +908,7 @@ Language::membervariableDeclaration(Node *n) {
 	    make_wrapper = 0;
 	  }
 	}  else {
-	  Replace(tm,"$minput",Swig_cparm_name(0,1),DOH_REPLACE_ANY);
+	  Replace(tm,"$input",Swig_cparm_name(0,1),DOH_REPLACE_ANY);
 	  Replace(tm,"$self",Swig_cparm_name(0,0),DOH_REPLACE_ANY);
 	  Setattr(n,"wrap:action", tm);
 	  Delete(tm);

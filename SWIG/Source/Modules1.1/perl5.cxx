@@ -12,9 +12,6 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
-/* DB: I had to take out some features related to package naming out of this to
-   get the new type system to work.   These need to be put back in at some point. */
-
 static char cvsroot[] = "$Header$";
 
 #include "mod11.h"
@@ -53,24 +50,23 @@ static File        *f_header = 0;
 static File        *f_wrappers = 0;
 static File        *f_init = 0;
 static File        *f_pm = 0;
-
-static String       *pm;             /* Package initialization code */
-static String       *magic;          /* Magic variable wrappers     */
+static String       *pm;                   /* Package initialization code */
+static String       *magic;                /* Magic variable wrappers     */
 
 static int          is_static = 0;
 
 /* The following variables are used to manage Perl5 classes */
 
-static  int      blessed = 0;                /* Enable object oriented features */
-static  int      do_constants = 0;           /* Constant wrapping */
-static  Hash     *classes = 0;               /* A hash table for storing the classes we've seen so far */
-static  int      have_constructor = 0;
-static  int      have_destructor= 0;
-static  int      have_data_members = 0;
-static  String   *class_name = 0;            /* Name of the class (what Perl thinks it is) */
-static  String   *class_type = 0;            /* Type of class "struct", "class", "union"   */
-static  String   *real_classname = 0;        /* Real name of C/C++ class */
-static  String   *base_class = 0;            /* Base class (if using inheritance) */
+static  int        blessed = 0;                /* Enable object oriented features */
+static  int        do_constants = 0;           /* Constant wrapping */
+static  Hash       *classes = 0;               /* A hash table for storing the classes we've seen so far */
+static  int        have_constructor = 0;
+static  int        have_destructor= 0;
+static  int        have_data_members = 0;
+static  String    *class_name = 0;            /* Name of the class (what Perl thinks it is) */
+static  String    *class_type = 0;            /* Type of class "struct", "class", "union"   */
+static  String    *real_classname = 0;        /* Real name of C/C++ class */
+static  String    *base_class = 0;            /* Base class (if using inheritance) */
 static  int class_renamed = 0;
 static  String   *fullclassname = 0;
 
@@ -78,12 +74,12 @@ static  String   *pcode = 0;                 /* Perl code associated with each c
 static  String   *blessedmembers = 0;        /* Member data associated with each class */
 static  int      member_func = 0;            /* Set to 1 when wrapping a member function */
 static  String   *realpackage = 0;           /* Name of real module  */
-static  String   *func_stubs = 0;         /* Function stubs */
-static  String   *const_stubs = 0;        /* Constant stubs */
-static  int       num_consts = 0;        /* Number of constants */
-static  String   *var_stubs = 0;          /* Variable stubs */
-static  String   *member_keys = 0;        /* Keys for all member data */
-static  String   *exported = 0;           /* Exported symbols */
+static  String   *func_stubs = 0;            /* Function stubs */
+static  String   *const_stubs = 0;           /* Constant stubs */
+static  int       num_consts = 0;            /* Number of constants */
+static  String   *var_stubs = 0;             /* Variable stubs */
+static  String   *member_keys = 0;           /* Keys for all member data */
+static  String   *exported = 0;              /* Exported symbols */
 static  String   *pragma_include = 0;
 static  Hash     *operators = 0;
 static  int       have_operators = 0;
@@ -206,8 +202,6 @@ PERL5::top(Node *n) {
   cmodule = Copy(module);
   Replaceall(cmodule,":","_");
 
-  char filen[256];
-
   if (!package) {
     package = NewString(module);
   }
@@ -234,7 +228,7 @@ PERL5::top(Node *n) {
       }
       m--;
     }
-    sprintf(filen,"%s%s.pm", Swig_file_dirname(outfile),m);
+    String *filen = NewStringf("%s%s.pm", Swig_file_dirname(outfile),m);
     if ((f_pm = NewFile(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit (EXIT_FAILURE);
@@ -246,7 +240,7 @@ PERL5::top(Node *n) {
   } else if (is_static) {
     smodule = NewStringf("%sc",module);
     Append(cmodule,"c");
-    Append(cmodule,"c");
+    Append(cmodule,"c");            /* ???? */
   } else {
     smodule = NewString(module);
   }
@@ -641,11 +635,6 @@ PERL5::functionWrapper(Node *n)
 
   /* --------------------------------------------------------------------
    * Create a stub for this function, provided it's not a member function
-   *
-   * Really we only need to create a stub if this function involves
-   * complex datatypes.   If it does, we'll make a small wrapper to
-   * process the arguments.   If it doesn't, we'll just make a symbol
-   * table entry.
    * -------------------------------------------------------------------- */
 
   if ((blessed) && (!member_func)) {
@@ -664,6 +653,7 @@ PERL5::functionWrapper(Node *n)
      * If this function is returning a result by 'value', SWIG did an
      * implicit malloc/new.   We'll mark the object like it was created
      * in Perl so we can garbage collect it. */
+
     if (is_shadow(d)) {
       Printv(func, tab4, "return undef if (!defined($result));\n", 0);
       
@@ -675,7 +665,6 @@ PERL5::functionWrapper(Node *n)
       }
       
       /* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
-      
       Printv(func,
 	     tab4, "my %resulthash;\n",
 	     tab4, "tie %resulthash, ref($result), $result;\n",
@@ -720,7 +709,6 @@ int PERL5::variableWrapper(Node *n)
   char  val_name[256];
   Wrapper  *getf, *setf;
   String  *tm;
-  int   setable = 1;
 
   sprintf(set_name,"_wrap_set_%s",iname);
   sprintf(val_name,"_wrap_val_%s",iname);
@@ -962,11 +950,6 @@ PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
  ***       5.   Global variables involving a class/struct is encapsulated
  ***            in a tied hash.
  ***
- ***       6.   Object ownership is maintained by having a hash table
- ***            within in each package called "this".  It is unlikely
- ***            that C++ program will use this so it's a somewhat
- ***            safe variable name.
- ***
  ****************************************************************************/
 
 /* -----------------------------------------------------------------------------
@@ -1131,18 +1114,10 @@ PERL5::cpp_close_class() {
  * ----------------------------------------------------------------------------- */
 int
 PERL5::memberfunctionDeclaration(Node *n) {
-  char *name = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
-  SwigType *t = Getattr(n,"type");
-  ParmList *l = Getattr(n,"parms");
+  char *symname = GetChar(n,"sym:name");
+  SwigType *t   = Getattr(n,"type");
 
   String  *func;
-  char    *realname;
-  Parm    *p;
-  int      i;
-  String  *cname;
-  int      pcount, numopt;
-  String  *tm;
   int      need_wrapper = 0;
 
   member_func = 1;
@@ -1151,42 +1126,35 @@ PERL5::memberfunctionDeclaration(Node *n) {
 
   if (blessed) {
     func = NewString("");
-    cname = NewString("perl5:");
   
     /* Now emit a Perl wrapper function around our member function, we might need
        to patch up some arguments along the way */
   
-    if (!iname)
-      realname = name;
-    else
-      realname = iname;
-  
-  if (strstr(realname, "operator") == realname) {
-      if (strstr(realname, "operator_equal_to")) {
+  if (strstr(symname, "operator") == symname) {
+      if (strstr(symname, "operator_equal_to")) {
 	  DohSetInt(operators,"operator_equal_to",1);
 	  have_operators = 1;
-      } else if (strstr(realname, "operator_not_equal_to")) {
+      } else if (strstr(symname, "operator_not_equal_to")) {
 	  DohSetInt(operators,"operator_not_equal_to",1);
 	  have_operators = 1;
-      } else if (strstr(realname, "operator_assignment")) {
+      } else if (strstr(symname, "operator_assignment")) {
 	  DohSetInt(operators,"operator_assignment",1);
 	  have_operators = 1;
       } else {
-	  fprintf(stderr,"Unknown operator: %s\n", realname);
+	  fprintf(stderr,"Unknown operator: %s\n", symname);
       }
-//      fprintf(stderr,"Found member_func operator: %s\n", realname);
+//      fprintf(stderr,"Found member_func operator: %s\n", symname);
   }
 
-    Printf(cname,"%s::%s",class_name,realname);
     Printv(func,
-      "sub ", realname, " {\n",
+      "sub ", symname, " {\n",
       tab4, "my @args = @_;\n",
       0);
   
     /* Okay.  We've made argument adjustments, now call into the package */
   
     Printv(func,
-      tab4, "my $result = ", package, "::", Swig_name_member(class_name,realname),
+      tab4, "my $result = ", package, "::", Swig_name_member(class_name,symname),
           "(@args);\n",
           0);
   
@@ -1196,7 +1164,6 @@ PERL5::memberfunctionDeclaration(Node *n) {
      * in Perl so we can garbage collect it. */
 
     if (is_shadow(t)) {
-  
       Printv(func,tab4, "return undef if (!defined($result));\n", 0);
   
       /* If we're returning an object by value, put it's reference
@@ -1228,10 +1195,9 @@ PERL5::memberfunctionDeclaration(Node *n) {
     if (need_wrapper) {
       Printv(pcode,func,0);
     } else {
-      Printv(pcode,"*",realname," = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+      Printv(pcode,"*",symname," = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
     }
     Delete(func);
-    Delete(cname);
   }
   return SWIG_OK;
 }
@@ -1255,11 +1221,8 @@ PERL5::memberfunctionDeclaration(Node *n) {
 
 int PERL5::membervariableDeclaration(Node *n) {
 
-  char *name = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
+  char *symname = GetChar(n,"sym:name");
   SwigType *t  = Getattr(n,"type");
-
-  char *realname;
 
   /* Emit a pair of get/set functions for the variable */
 
@@ -1268,14 +1231,12 @@ int PERL5::membervariableDeclaration(Node *n) {
   member_func = 0;
 
   if (blessed) {
-    if (iname) realname = iname;
-    else realname = name;
 
     /* Store name of key for future reference */
-    Printf(member_keys,"'%s', ", realname);
+    Printf(member_keys,"'%s', ", symname);
 
-    Printv(pcode,"*swig_", realname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,realname)), ";\n", 0);
-    Printv(pcode,"*swig_", realname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,realname)), ";\n", 0);
+    Printv(pcode,"*swig_", symname, "_get = *", package, "::", Swig_name_get(Swig_name_member(class_name,symname)), ";\n", 0);
+    Printv(pcode,"*swig_", symname, "_set = *", package, "::", Swig_name_set(Swig_name_member(class_name,symname)), ";\n", 0);
 
     /* Now we need to generate a little Perl code for this */
 
@@ -1284,7 +1245,7 @@ int PERL5::membervariableDeclaration(Node *n) {
       /* This is a Perl object that we have already seen.  Add an
 	 entry to the members list*/
       Printv(blessedmembers,
-	     tab4, realname, " => '", is_shadow(t), "',\n",
+	     tab4, symname, " => '", is_shadow(t), "',\n",
 	     0);
 
      }
@@ -1304,64 +1265,25 @@ int PERL5::membervariableDeclaration(Node *n) {
 int
 PERL5::publicconstructorDeclaration(Node *n) {
 
-  char *iname = GetChar(n,"sym:name");
-  ParmList *l = Getattr(n,"parms");
-
-  Parm *p;
-  int   i;
-  String *realname;
-
-  /* Emit an old-style constructor for this class */
+  char *symname = GetChar(n,"sym:name");
 
   member_func = 1;
   Language::publicconstructorDeclaration(n);
 
   if (blessed) {
-
-    if (iname)
-      realname = iname;
-    else {
-      if (class_renamed) realname = class_name;
-      else realname = class_name;
-    }
-
-    if ((Cmp(realname,class_name) == 0)) {
-
+    if ((Cmp(symname,class_name) == 0)) {
       /* Emit a blessed constructor  */
-
       Printf(pcode, "sub new {\n");
-
     } else {
-
       /* Constructor doesn't match classname so we'll just use the normal name  */
-
-      Printv(pcode, "sub ", Swig_name_construct(realname), " () {\n", 0);
-
+      Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", 0);
     }
 
     Printv(pcode, tab4, "my $pkg = shift;\n",
 	   tab4, "my @args = @_;\n", 0);
 
-    /* We are going to need to patch up arguments here if necessary
-     * Now we have to go through and patch up the argument list.  If any
-     * arguments to our function correspond to other Perl objects, we
-     * need to extract them from a tied-hash table object. */
-
-    p = l;
-    i = 0;
-    while(p) {
-      SwigType *pt = Getattr(p,"type");
-
-      if (is_shadow(pt)) {
-	/* Yep.   This smells alot like an object, patch up the arguments */
-	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
-      }
-      p = nextSibling(p);
-      i++;
-    }
-
     Printv(pcode,
-	   tab4, "my $self = ", package, "::", Swig_name_construct(realname), "(@args);\n",
+	   tab4, "my $self = ", package, "::", Swig_name_construct(symname), "(@args);\n",
 	   tab4, "return undef if (!defined($self));\n",
 	   tab4, "bless $self, \"", fullclassname, "\";\n",
 	   tab4, "$OWNER{$self} = 1;\n",
@@ -1372,7 +1294,6 @@ PERL5::publicconstructorDeclaration(Node *n) {
 	   0);
 
     have_constructor = 1;
-
   }
   member_func = 0;
   return SWIG_OK;
@@ -1383,34 +1304,21 @@ PERL5::publicconstructorDeclaration(Node *n) {
  * ----------------------------------------------------------------------------- */
 int
 PERL5::publicdestructorDeclaration(Node *n) {
-  char *name = GetChar(n,"name");
-  char *newname = GetChar(n,"sym:name");
-  String *realname;
+  char *symname = GetChar(n,"sym:name");
   member_func = 1;
   Language::publicdestructorDeclaration(n);
-
   if (blessed) {
-    if (newname) realname = newname;
-    else {
-      if (class_renamed) realname = class_name;
-      else realname = name;
-    }
-
-    /* Emit a destructor for this object*/
-
     Printv(pcode,
 	   "sub DESTROY {\n",
            tab4, "return unless $_[0]->isa('HASH');\n",
 	   tab4, "my $self = tied(%{$_[0]});\n",
            tab4, "delete $ITERATORS{$self};\n",
 	   tab4, "if (exists $OWNER{$self}) {\n",
-	   tab8,  package, "::", Swig_name_destroy(realname), "($self);\n",
+	   tab8,  package, "::", Swig_name_destroy(symname), "($self);\n",
 	   tab8, "delete $OWNER{$self};\n",
 	   tab4, "}\n}\n\n",
 	   0);
-
     have_destructor = 1;
-
   }
   member_func = 0;
   return SWIG_OK;
@@ -1486,10 +1394,7 @@ PERL5::cpp_inherit(char **baseclass, int) {
  * ----------------------------------------------------------------------------- */
 int
 PERL5::memberconstantDeclaration(Node *n) {
-  char *name = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
-
-  String *realname;
+  char *symname = GetChar(n,"sym:name");
   int   oldblessed = blessed;
 
   /* Create a normal constant */
@@ -1498,13 +1403,7 @@ PERL5::memberconstantDeclaration(Node *n) {
   blessed = oldblessed;
 
   if (blessed) {
-    if (!iname)
-      realname = name;
-    else
-      realname = iname;
-
-    /* Create a symbol table entry for it */
-    Printv(pcode, "*", realname, " = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
   }
   return SWIG_OK;
 }

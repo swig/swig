@@ -24,8 +24,6 @@
 class PYTHON : public Language {
 protected:
   void add_method(char *name, char *function, int kw);
-  char *usage_func(char *, SwigType *, ParmList *);
-  void emitAddPragmas(String *output, char* name, char* spacing);
 public :
 
   // Don't change any of this
@@ -41,9 +39,7 @@ public :
   virtual int publicconstructorDeclaration(Node *);
   virtual int publicdestructorDeclaration(Node *);
 
-  virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
-  virtual void create_command(char *, char *);
   virtual void import_start(char *);
   virtual void import_end();
 
@@ -52,11 +48,7 @@ public :
   virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
   virtual void cpp_close_class();
   virtual void cpp_inherit(char **baseclass, int mode = 0);
-
-
   virtual void cpp_class_decl(char *, char *,char *);
-  virtual void pragma(char *, char *, char *);
-  virtual void add_typedef(SwigType *t, char *name);
 };
 
 #define PYSHADOW_MEMBER  0x2
