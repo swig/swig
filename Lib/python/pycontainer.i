@@ -541,17 +541,17 @@ namespace swigpy
 	Py_INCREF(Py_None);
 	return Py_None;
       }
-      PyObject* keyList = PyList_New(pysize);
+      PyObject* keyTuple = PyTuple_New(pysize);
       Dict::const_iterator i = self->begin();
       for (int j = 0; j < pysize; ++i, ++j) {
-	PyList_SetItem(keyList, j, swigpy::from(i->first));
+	PyTuple_SetItem(keyTuple, j, swigpy::from(i->first));
       }
 %#if PY_VERSION_HEX >= 0x02020000
-      PyObject* iter = PyObject_GetIter(keyList);
-      Py_DECREF(keyList);
+      PyObject* iter = PyObject_GetIter(keyTuple);
+      Py_DECREF(keyTuple);
       return iter;
 %#else
-      return keyList;
+      return keyTuple;
 %#endif
     }
   }
