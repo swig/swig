@@ -393,11 +393,31 @@ void emit_action(Node *n, Wrapper *f) {
   }
   /* Exception handling code */
 
+  /* saves action -> eaction for postcatching exception */
+  String *eaction = NewString("");
+  
   /* If we are in C++ mode and there is a throw specifier. We're going to
      enclose the block in a try block */
+  if (throws) {
+    Printf(eaction,"try {\n");
+  }
+
+  Printv(eaction, action, "\n",NIL);
 
   if (throws) {
-    Printf(f->code,"try {\n");
+    Printf(eaction,"}\n");
+    for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
+      String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
+      if (em) {
+	Printf(eaction,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
+	Printv(eaction,em,"\n",NIL);
+	Printf(eaction,"}\n");
+      } else {
+	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
+		     "No 'throw' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep,"type"),0));
+      }
+    }
+    Printf(eaction,"catch(...) { throw; }\n");
   }
 
   /* Look for except typemap (Deprecated) */
@@ -407,33 +427,18 @@ void emit_action(Node *n, Wrapper *f) {
   if (!tm) {
     tm = Getattr(n,"feature:except");
     if (tm) tm = Copy(tm);
-  }
+  }  
   if ((tm) && Len(tm) && (Strcmp(tm,"1") != 0)) {
     Replaceall(tm,"$name",Getattr(n,"name"));
     Replaceall(tm,"$symname", Getattr(n,"sym:name"));
-    Replaceall(tm,"$function", action);
-    Replaceall(tm,"$action", action);
+    Replaceall(tm,"$function", eaction);
+    Replaceall(tm,"$action", eaction);
     Printv(f->code,tm,"\n", NIL);
     Delete(tm);
   } else {
-    Printv(f->code, action, "\n",NIL);
+    Printv(f->code,eaction,"\n",NIL);
   }
-
-  if (throws) {
-    Printf(f->code,"}\n");
-    for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
-      String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
-      if (em) {
-	Printf(f->code,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
-	Printv(f->code,em,"\n",NIL);
-	Printf(f->code,"}\n");
-      } else {
-	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
-		     "No 'throw' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep,"type"),0));
-      }
-    }
-    Printf(f->code,"catch(...) { throw; }\n");
-  }
+  Delete(eaction);
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
