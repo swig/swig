@@ -45,21 +45,6 @@ The following table list the additional commandline options available for the Ja
 </tr>
 
 <tr>
-<td>-jnic</td>
-<td> use c syntax for JNI calls (default depends on -c++ flag)</td>
-</tr>
-
-<tr>
-<td>-jnicpp</td>
-<td> use C++ syntax for JNI calls (default depends on -c++ flag)</td>
-</tr>
-
-<tr>
-<td>-module &lt;module&gt;</td>
-<td>set name of module</td>
-</tr>
-
-<tr>
 <td>-package &lt;java package&gt;</td>
 <td>set the name of the package for the generated classes</td>
 </tr>
@@ -950,18 +935,19 @@ jobject jni_fn(...) {
 
 
 <a name="n126"></a><h3> Typemaps for C and C++</h3>
-JNI calls must be written differently depending on whether the code is being compiled as C or C++. For example C compilation requires syntax like
+JNI calls must be written differently depending on whether the code is being compiled as C or C++. For example C compilation requires the pointer to a function pointer struct member syntax like
 <blockquote><pre>
 const jclass clazz = (*jenv)->FindClass(jenv, "java/lang/String");
 </pre></blockquote>
-whereas C++ code compilation of the same function call has to be written like this
+whereas C++ code compilation of the same function call is a member function call using a class pointer like
 <blockquote><pre>
 const jclass clazz = jenv->FindClass("java/lang/String");
 </pre></blockquote>
-To enable typemaps to be compiled as either C or C++ use the JCALLx macros defined in Lib/java/javahead.swg where x is the number of arguments in the C++ version of the JNI call. The above JNI call would be written in a typemap like this
+To enable typemaps to be used for either C or C++ compilation, a set of JCALLx macros have been defined in Lib/java/javahead.swg, where x is the number of arguments in the C++ version of the JNI call. The above JNI calls would be written in a typemap like this
 <blockquote><pre>
 const jclass clazz = JCALL1(FindClass, jenv, "java/lang/String");
 </pre></blockquote>
+Note that the SWIG preprocessor expands these into the appropriate C or C++ JNI calling convention. The C calling convention is emitted by default and the C++ calling convention is emitted when using the -c++ SWIG commandline option. If you do not intend your code to be compiled under both C and C++ then your typemaps can use the appropriate JNI calling convention and need not use the JCALLx macros.
 <p>
 
 <a name="n125"></a><h3> Name based type conversion</h3>
