@@ -107,7 +107,49 @@ public class template_default_arg_runme {
 
       if (template_default_arg.ott(new Hello_int()) != 60)
         throw new RuntimeException("ott test 13 failed");
+    }
 
+    // Above test in namespaces
+    {
+      // plain function: int nsott(Foo<int>)
+      if (template_default_arg.nsott(new Foo_int()) != 130)
+        throw new RuntimeException("nsott test 1 failed");
+
+      // %template(nsott) nsott<int, int>;
+      if (template_default_arg.nsott() != 110)
+        throw new RuntimeException("nsott test 2 failed");
+      if (template_default_arg.nsott(1) != 110)
+        throw new RuntimeException("nsott test 3 failed");
+      if (template_default_arg.nsott(1, 1) != 110)
+        throw new RuntimeException("nsott test 4 failed");
+
+      if (template_default_arg.nsott("hi") != 120)
+        throw new RuntimeException("nsott test 5 failed");
+      if (template_default_arg.nsott("hi", 1) != 120)
+        throw new RuntimeException("nsott test 6 failed");
+      if (template_default_arg.nsott("hi", 1, 1) != 120)
+        throw new RuntimeException("nsott test 7 failed");
+
+      // %template(nsott) nsott<const char *>;
+      if (template_default_arg.nsottstring(new Hello_int(), "hi") != 140)
+        throw new RuntimeException("nsott test 8 failed");
+
+      if (template_default_arg.nsottstring(new Hello_int()) != 140)
+        throw new RuntimeException("nsott test 9 failed");
+
+      // %template(nsott) nsott<int>;
+      if (template_default_arg.nsottint(new Hello_int(), 1) != 150)
+        throw new RuntimeException("nsott test 10 failed");
+
+      if (template_default_arg.nsottint(new Hello_int()) != 150)
+        throw new RuntimeException("nsott test 11 failed");
+
+      // %template(nsott) nsott<double>;
+      if (template_default_arg.nsott(new Hello_int(), 1.0) != 160)
+        throw new RuntimeException("nsott test 12 failed");
+
+      if (template_default_arg.nsott(new Hello_int()) != 160)
+        throw new RuntimeException("nsott test 13 failed");
     }
   }
 }
