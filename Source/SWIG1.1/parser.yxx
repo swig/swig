@@ -1028,10 +1028,14 @@ statement      : INCLUDE STRING LBRACE {
 		   if (temp_type) Delete(temp_type);
 		   temp_type = NewSwigType(T_INT);
 		   Active_typedef = Copy(temp_type);
-		   SwigType_typedef(temp_type,$3);
-		   lang->add_typedef(temp_type,$3);
-		   SwigType_typedef(temp_type,$8);
-		   lang->add_typedef(temp_type,$8);
+		   if ($3) {
+		     SwigType_typedef(temp_type,$3);
+		     lang->add_typedef(temp_type,$3);
+		   }
+		   if ($8) {
+		     SwigType_typedef(temp_type,$8);
+		     lang->add_typedef(temp_type,$8);
+		   }
 		   /*		   String *ts = NewStringf("enum %s", $3);
 		   SwigType_typedef(temp_type,ts);
 		   lang->add_typedef(temp_type,Char(ts));
