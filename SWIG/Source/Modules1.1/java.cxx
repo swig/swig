@@ -1476,7 +1476,7 @@ void JAVA::cpp_close_class() {
 void JAVA::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_member_func(name,iname,t,l);
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     char* realname = iname ? iname : name;
     String* java_function_name = Swig_name_member(shadow_classname, realname);
 
@@ -1487,7 +1487,7 @@ void JAVA::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 void JAVA::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_static_func(name,iname,t,l);
 
-  if (shadow && !is_multiple_definition()) {
+  if (shadow) {
     char* realname = iname ? iname : name;
     String* java_function_name = Swig_name_member(shadow_classname, realname);
 
@@ -1651,7 +1651,7 @@ DelWrapper(f);
 void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   this->Language::cpp_constructor(name,iname,l);
 
-  if(shadow && !is_multiple_definition()) {
+  if(shadow) {
     String *nativecall = NewString("");
     char arg[256];
   
@@ -1713,7 +1713,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
 void JAVA::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
 
-  if(shadow && !is_multiple_definition()) {
+  if(shadow) {
     char *realname = (newname) ? newname : name;
   
     if(!nofinalize) {
