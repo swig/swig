@@ -166,7 +166,7 @@ private:
      * ----------------------------------------------------------------------------- */
     void enterBlock (block_type newbt)
     {
-      const static char *ident[] =
+      static const char *ident[] =
         { "", "\nCONST\n", "\nVAR\n", "\nTYPE\n", "\nREVEAL\n" };
 #ifdef DEBUG
       if ((bt < 0) || (4 < bt)) {
@@ -2689,7 +2689,7 @@ MODULA3 ():
         Delete (superclass);
 
         {
-          const static char *acc_m3suffix[] =
+          static const char *acc_m3suffix[] =
             { "Public", "Protected", "Private" };
           int acc;
           for (acc = acc_public; acc <= acc_private; acc++) {
