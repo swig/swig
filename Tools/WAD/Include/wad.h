@@ -39,10 +39,8 @@ extern "C" {
 
 extern int   wad_memory_init();
 extern void *wad_malloc(int nbytes);
-extern void *wad_pmalloc(int nbytes);
 extern void  wad_release_memory();
 extern char *wad_strdup(const char *c);
-extern char *wad_pstrdup(const char *c);
 
 /* --- I/O, Debugging --- */
 
@@ -90,7 +88,7 @@ extern void wad_set_return_func(void (*f)(void));
 typedef struct WadLocal {
   char              *name;       /* Name of the local */
   void              *ptr;        /* Pointer to the actual data (if known)  */
-  int                size;       /* Size of the data  */
+  int                size;       /* Size of the data (if known)  */
   int                type;       /* Data type         */
 
   /* Debugging information */

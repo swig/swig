@@ -26,6 +26,7 @@ static WadMemory *current = 0;                /* Current memory block        */
 static WadMemory *persistent = 0;             /* Persistent memory data      */
 static int        pagesize = 0;               /* System page size            */
 static int        devzero = 0;
+static int        npalloc = 8;                 /* Number of pages per alloc   */
 
 /* -----------------------------------------------------------------------------
  * wad_memory_init()
@@ -72,14 +73,14 @@ void *wad_malloc(int nbytes) {
   char      *c;
   int npages;
   /*  wad_printf("wad_malloc: %d\n", nbytes); */
-  if (nbytes >= (pagesize >> 2)) {
+  if (nbytes >= ((npalloc*pagesize) >> 2)) {
     /* Large allocation. */
     npages = ((nbytes + sizeof(WadMemory))/pagesize) + 1;
     ptr = wad_page_alloc(npages);
     if (!ptr) return 0;
     wm = (WadMemory *)ptr;
     wm->npages = npages;
-    wm->last = sizeof(WadMemory);
+    wm->last = sizeof(WadMemory) + 8;
     wm->next = current;
     current = wm;
     c = (char *) current + (current->last);
@@ -97,9 +98,9 @@ void *wad_malloc(int nbytes) {
   }
   if (!wm) {
     /*    wad_printf("wad_malloc: new page\n", nbytes);*/
-    wm = (WadMemory *) wad_page_alloc(1);
+    wm = (WadMemory *) wad_page_alloc(npalloc);
     if (!wm) return 0;
-    wm->npages = 1;
+    wm->npages = npalloc;
     wm->last = sizeof(WadMemory);
     wm->next = current;
     current = wm;
@@ -110,32 +111,16 @@ void *wad_malloc(int nbytes) {
 }  
 
 /* -----------------------------------------------------------------------------
- * wad_pmalloc()
- *
- * Persistent memory allocation.   Allocates memory that will never be reclaimed.
- * This is only really used to store information pertaining to object files.
- * ----------------------------------------------------------------------------- */
-
-void *wad_pmalloc(int nbytes) {
-  void *ptr;
-  WadMemory *tmp;
-  tmp = current;
-  current = persistent;
-  ptr = wad_malloc(nbytes);
-  persistent = current;
-  current = tmp;
-  return ptr;
-}
-
-/* -----------------------------------------------------------------------------
  * wad_release_memory()
  *
- * Releases all memory previously allocated by wad_malloc()
+ * Releases all memory previously allocated by wad_malloc().  This is inherently
+ * dangerous.
  * ----------------------------------------------------------------------------- */
 
 void wad_release_memory() {
   WadMemory *wm, *next;
-  
+
+  return;
   wm = current;
   while (wm) {
     next = wm->next;
@@ -155,14 +140,6 @@ char *wad_strdup(const char *c) {
   char *t;
   if (!c) c = "";
   t = (char *) wad_malloc(strlen(c)+1);
-  strcpy(t,c);
-  return t;
-}
-
-char *wad_pstrdup(const char *c) {
-  char *t;
-  if (!c) c = "";
-  t = (char *) wad_pmalloc(strlen(c)+1);
   strcpy(t,c);
   return t;
 }
