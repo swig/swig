@@ -30,7 +30,11 @@
 
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
 %typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
-%typemap(javabody) enum SWIGTYPE ""
+%typemap(javabase)           enum SWIGTYPE ""
+%typemap(javacode)           enum SWIGTYPE ""
+%typemap(javaimports)        enum SWIGTYPE ""
+%typemap(javainterfaces)     enum SWIGTYPE ""
+%typemap(javabody)           enum SWIGTYPE ""
 
 %javaenum(typeunsafe);
 

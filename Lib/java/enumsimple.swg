@@ -29,7 +29,11 @@
   }
 
 %typemap(javaclassmodifiers) enum SWIGTYPE ""
-%typemap(javabody) enum SWIGTYPE ""
+%typemap(javabase)           enum SWIGTYPE ""
+%typemap(javacode)           enum SWIGTYPE ""
+%typemap(javaimports)        enum SWIGTYPE ""
+%typemap(javainterfaces)     enum SWIGTYPE ""
+%typemap(javabody)           enum SWIGTYPE ""
 
 %javaenum(simple);
 

@@ -27,7 +27,11 @@
       return ($csclassname)$imcall;
     } %}
 
+%typemap(csbase)           enum SWIGTYPE ""
 %typemap(csclassmodifiers) enum SWIGTYPE "public enum"
+%typemap(cscode)           enum SWIGTYPE ""
+%typemap(csimports)        enum SWIGTYPE ""
+%typemap(csinterfaces)     enum SWIGTYPE ""
 
 %typemap(csbody) enum SWIGTYPE ""
 

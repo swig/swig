@@ -352,7 +352,7 @@ public:
     T *operator&() { return tt; }
 private:
     SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
-};   
+};
 #endif
 %}
 #endif

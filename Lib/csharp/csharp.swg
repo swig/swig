@@ -15,7 +15,7 @@
 %typemap(ctype) bool,               const bool &               "unsigned int"
 %typemap(ctype) char,               const char &               "char"
 %typemap(ctype) signed char,        const signed char &        "signed char"
-%typemap(ctype) unsigned char,      const unsigned char &      "unsigned short"
+%typemap(ctype) unsigned char,      const unsigned char &      "unsigned char"
 %typemap(ctype) short,              const short &              "short"
 %typemap(ctype) unsigned short,     const unsigned short &     "unsigned short"
 %typemap(ctype) int,                const int &                "int"
@@ -420,7 +420,8 @@ $1 = &temp; %}
 %typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "\nusing System;\n"
 %typemap(csinterfaces)                SWIGTYPE "IDisposable"
-%typemap(csinterfaces_derived)                  SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csinterfaces)                          SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
 // Proxy classes (base classes, ie, not derived classes)
 %typemap(csbody) SWIGTYPE %{
