@@ -470,10 +470,10 @@ DohSplit(DOH *in, char *chs, int nsplits) {
   int c;
   
   list = NewList();
-  /*  if (String_check(in)) {
+
+  if (DohIsString(in)) {
     Seek(in,0,SEEK_SET);
   }
-  */
 
   while (1) {
     str = NewString("");
