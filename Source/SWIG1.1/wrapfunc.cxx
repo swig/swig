@@ -43,7 +43,7 @@ static String type_ext;
 static char *isolate_type_name(char *tname) {
   static String s;
   s = "";
-  while ((*tname) && (isalnum(*tname) || (*tname == '_') || (*tname == '$') || (*tname == ' '))) {
+  while ((*tname) && (isalnum(*tname) || (*tname == '_') || (*tname == '$') || (*tname == ' ') || (*tname == ':'))) {
     s << *tname;
     tname++;
   }
