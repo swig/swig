@@ -14,7 +14,7 @@ SWIG Myths
 <h4>Fact:</h4>
 
 SWIG <em>does</em> provide wrapping support for all of ANSI C.  However, SWIG has
-also included C++ support since it's initial release in 1996.   To be fair, early
+also included C++ support since its initial release in 1996.   To be fair, early
 SWIG releases had limitations, but C++ support has continually improved with
 each SWIG release.
 
