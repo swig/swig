@@ -68,6 +68,14 @@ namespace test {
 	    delete $1;
 	}
 #endif
+#ifdef SWIGRUBY
+	%typemap(in) string * {
+	    $1 = new string(STR2CSTR($input));
+	}
+	%typemap(freearg) string * {
+	    delete $1;
+	}
+#endif
 }
 
 %inline %{
@@ -192,6 +200,14 @@ namespace Split {
 	if ($1 < 0) {
 	    PyErr_SetString(PyExc_ValueError,"domain error\n");
 	    return NULL;
+	}
+    }	
+#endif
+#ifdef SWIGRUBY
+    %typemap(in) PosInteger {
+	$1 = NUM2INT($input);
+	if ($1 < 0) {
+	    rb_raise(rb_eRangeError, "domain error");
 	}
     }	
 #endif
