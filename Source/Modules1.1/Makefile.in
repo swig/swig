@@ -16,8 +16,11 @@ TARGET   = libmodules11.a
 COREOBJS = main.o emit.o lang.o generate.o
 CORESRCS = main.cxx emit.cxx lang.cxx generate.cxx
 
-OBJS     = $(COREOBJS) tcl8.o python.o perl5.o guile.o ruby.o mzscheme.o #java.o
-SRCS     = $(CORESRCS) tcl8.cxx python.cxx perl5.cxx guile.cxx ruby.cxx mzscheme.cxx #java.cxx
+LANGOBJS = tcl8.o python.o perl5.o guile.o ruby.o mzscheme.o #java.o
+LANGSRCS = tcl8.cxx python.cxx perl5.cxx guile.cxx ruby.cxx mzscheme.cxx #java.cxx
+
+OBJS     = $(COREOBJS) $(LANGOBJS) xml.o
+SRCS     = $(CORESRCS) $(LANGSRCS) xml.cxx
 
 INCLUDE  = -I$(srcdir)/../Include		\
 	   -I$(srcdir)/../Preprocessor          \
