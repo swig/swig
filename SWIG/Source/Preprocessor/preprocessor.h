@@ -26,7 +26,7 @@ extern char *Preprocessor_expr_error(void);
 extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 extern void  Preprocessor_undef(DOHString_or_char *name);
 extern void  Preprocessor_init();
-extern DOH  *Preprocessor_parse(DOHString *s);
+extern DOH  *Preprocessor_parse(DOH *s);
 extern void  Preprocessor_include_all(int);
 
 #ifdef __cplusplus
