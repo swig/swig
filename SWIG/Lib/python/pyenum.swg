@@ -2,6 +2,8 @@
  *  Enums 
  * ------------------------------------------------------------ */
 %apply int { enum SWIGTYPE };
+/* this doesn't work now, you need to redefined it for each enum. */
+%apply const int& { const enum SWIGTYPE& };
 
 %typemap(varin,fragment=SWIG_AsVal_frag(int)) enum SWIGTYPE
 {
@@ -14,8 +16,28 @@
   }
 }
 
+%define ENUM_OUT_TYPEMAP(from_meth,pyfrag)
+  %typemap(out,fragment=pyfrag) enum SWIGTYPE 
+   "$result = from_meth(($1));";
+  %typemap(out,fragment=pyfrag) const enum SWIGTYPE& 
+   "$result = from_meth((*$1));";
+  %typemap(varout,fragment=pyfrag) enum SWIGTYPE, const enum SWIGTYPE&  
+   "$result = from_meth($1);";
+  %typemap(constcode,fragment=pyfrag) enum SWIGTYPE
+   "PyDict_SetItemString(d,\"$symname\", from_meth($value));";
+  %typemap(directorin,fragment=pyfrag) enum SWIGTYPE *DIRECTORIN 
+   "$input = from_meth(*$1_name);";
+  %typemap(directorin,fragment=pyfrag) enum SWIGTYPE, const enum SWIGTYPE& 
+   "$input = from_meth($1_name);";
+  %typemap(throws,fragment=pyfrag) enum SWIGTYPE 
+   "PyErr_SetObject(PyExc_RuntimeError, from_meth($1));
+    SWIG_fail;";
+%enddef
 
-/* this doesn't work now, you need to redefined it for each enum. */
-%apply const int& { const enum SWIGTYPE& };
+ENUM_OUT_TYPEMAP(SWIG_From(int),SWIG_From_frag(int));
+
+  
+
+
 
 
