@@ -478,8 +478,13 @@ public:
 	     iname, "\", ", wname, ", -1);\n", NIL);
       break;
     case CONSTRUCTOR_ALLOCATE:
+      Printv(s, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n", NIL);
+      Printv(s, tab4, "rb_define_alloc_func(", klass->vname,
+	     ", ", wname, ");\n", NIL);
+      Printv(s, "#else\n", NIL);
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
 	     ", \"new\", ", wname, ", -1);\n", NIL);
+      Printv(s, "#endif\n", NIL);
       Replaceall(klass->init,"$allocator", s);
       break;
     case CONSTRUCTOR_INITIALIZE:
@@ -829,7 +834,9 @@ public:
     if (current == CONSTRUCTOR_ALLOCATE) {
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(t)));
+      Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
       Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
+      Printf(f->code, "#endif\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
       // Printf(f->code, "DATA_PTR(self) = result;\n");
@@ -1328,8 +1335,10 @@ public:
     Printv(f_header, klass->header,NIL);
 
     String *s = NewString("");
+    Printv(s, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n", NIL);
     Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
 	   "), \"new\");\n", NIL);
+    Printv(s, "#endif\n", NIL);
     Replaceall(klass->init,"$allocator", s);
     Replaceall(klass->init,"$initializer", "");
     Replaceall(klass->init,"$super", "rb_cObject");
