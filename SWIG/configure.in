@@ -610,11 +610,11 @@ if test ! -r $srcdir/Source/DOH/configure; then
 	(cd $srcdir/Source/DOH ; autoconf)
 fi
 
-if test -d $srcdir/Source/SWILL/SWILL; then
-  if test ! -r $srcdir/Source/SWILL/configure; then
-  	(cd $srcdir/Source/SWILL ; autoconf)
-  fi
-fi
+#if test -d $srcdir/Source/SWILL/SWILL; then
+#  if test ! -r $srcdir/Source/SWILL/configure; then
+#  	(cd $srcdir/Source/SWILL ; autoconf)
+#  fi
+#fi
 
 if test ! -r $srcdir/Tools/configure ; then
 	(cd $srcdir/Tools ; autoconf)
@@ -625,7 +625,7 @@ fi
 # DB: Maybe I'm missings something, but why is it necessary to put
 # an 'install-sh' script in the Examples directory?
 
-AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH Tools)
+AC_CONFIG_SUBDIRS(Source/DOH Tools)
 
 # NOTE: The following ref to `Source' should NOT be prefixed w/ `$srcdir/'.
 # We can remove it if `Source' ever has a generated file but not before.
@@ -636,7 +636,6 @@ AC_OUTPUT(
     Examples/guile/Makefile
     Makefile
     Runtime/Makefile
-    Source/Expat/Makefile
     Source/Experiment/Makefile
     Source/Include/swigconfig.h
     Source/Include/swigver.h
@@ -647,9 +646,6 @@ AC_OUTPUT(
     Source/SWIG1.1/Makefile
     Source/SWIG1.3/Makefile
     Source/Swig/Makefile
-    Source/Swim/Makefile
-    Source/Swithe/Makefile
-    Source/Xmlparse/Makefile
     )
 
 dnl configure.in ends here
