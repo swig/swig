@@ -1,3 +1,7 @@
 # see top-level Makefile.in
+class
 enum
+funcptr
+reference
 simple
+template
