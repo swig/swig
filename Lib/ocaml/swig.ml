@@ -31,7 +31,7 @@ exception NotObject of empty_enum c_obj_t
 exception NotEnumType of empty_enum c_obj_t
 exception LabelNotFromThisEnum of empty_enum c_obj_t
 
-let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)
+let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject (Obj.magic obj))
 let _ = Callback.register "swig_runmethod" invoke
 let fnhelper fin f arg =
   let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
