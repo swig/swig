@@ -9,9 +9,10 @@
     int x[4];
     int y;
     static const int z;
+    static const int zz = 3;
+    static int zx;
 
     static int boo() { return 0;}
-    
   };
   
   class Bar {
@@ -49,4 +50,6 @@
 
 %{
   const int Foo::z = 3;
+  const int Foo::zz;
+  int Foo::zx;
 %}
