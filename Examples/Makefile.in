@@ -512,12 +512,12 @@ NOLINK ?= false
 
 ocaml_static: $(SRCS)
 	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
-	$(OCC) -g -c -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
+	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
+	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
@@ -526,13 +526,13 @@ ocaml_static_cpp: $(SRCS)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX)' -g -c -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
+	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 
@@ -541,13 +541,13 @@ ocaml_static_multi_cpp: $(SRCS)
 	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX)' -g -c -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
+	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 

@@ -5,11 +5,7 @@ TARGET     = example
 INTERFACE  = example.i
 PROGFILE   = runme.ml
 
-default:: static
-
-all::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' ocaml_cpp
+all default:: static
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \

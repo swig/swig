@@ -1,2 +1,5 @@
 # see top-level Makefile.in
 simple
+std_string
+std_vector
+stl
