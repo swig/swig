@@ -1,10 +1,13 @@
 <?php
 
+// do we have true global vars or just GETSET functions?
+// Used to filter out get/set global functions to fake vars...
+define(GETSET,1);
+
 $_original_functions=get_defined_functions();
 $_original_globals=1;
 $_original_classes=get_declared_classes();
 $_original_globals=array_keys($GLOBALS);
-
 
 class check {
   function get_extra_classes($ref=FALSE) {
@@ -19,27 +22,45 @@ class check {
     return $extra;
   }
 
-  function get_extra_functions($ref=FALSE) {
+  function get_extra_functions($ref=FALSE,$gs=false) {
     static $extra;
+    static $extrags; // for get/setters
     global $_original_functions;
     if ($ref===FALSE) $f=$_original_functions;
-    if (! is_array($extra)) {
+    if (! is_array($extra) || $gs) {
+      $extra=array();
+      $extrags=array();
       $df=get_defined_functions();
       $df=array_flip($df[internal]);
       foreach($_original_functions[internal] as $func) unset($df[$func]);
-      $extra=array_keys($df);
+      // Now chop out any get/set accessors
+      foreach(array_keys($df) as $func) if (GETSET && ereg('_[gs]et$',$func)) $extrags[]=$func;
+      else $extra[]=$func;
+//      $extra=array_keys($df);
     }
+    if ($gs) return $extrags;
     return $extra;
   }
 
   function get_extra_globals($ref=FALSE) {
     static $extra;
     global $_original_globals;
-    if ($ref===FALSE) $ref=$_original_globals;
     if (! is_array($extra)) {
-      $df=array_flip(array_keys($GLOBALS));
-      foreach($_original_globals as $func) unset($df[$func]);
-      $extra=array_keys($df);
+      if (GETSET) {
+        foreach(check::get_extra_functions(false,1) as $global) {
+          if (ereg('^(.*)_[sg]et$',$global,$match)) $_extra[$match[1]]=1;
+        }
+        $extra=array_keys($_extra);
+      } else {
+        if ($ref===FALSE) $ref=$_original_globals;
+        if (! is_array($extra)) {
+          $df=array_flip(array_keys($GLOBALS));
+          foreach($_original_globals as $func) unset($df[$func]);
+          // MASK xxxx_LOADED__ variables
+          foreach(array_keys($df) as $func) if (ereg('_LOADED__$',$func)) unset($df[$func]);
+          $extra=array_keys($df);
+        }
+      }
     }
     return $extra;
   }
@@ -65,6 +86,18 @@ class check {
       return check::fail("Class %s %s\nFull class list:\n  %s\n",$classname,join("\nbut ",$message),join("\n  ",get_class_methods($classname)));
     }
     return TRUE;
+  }
+
+  function set($var,$value) {
+    $func=$var."_set";
+    if (GETSET) $func($value);
+    else $_GLOBALS[$var]=$value;
+  }
+
+  function &get($var) {
+    $func=$var."_get";
+    if (GETSET) return $func();
+    else return $_GLOBALS[$var];
   }
 
   function is_a($a,$b) {
@@ -125,10 +158,14 @@ class check {
     $message=array();
     $missing=array();
     $extra=array_flip(check::get_extra_globals());
-
     foreach ($globals as $glob) {
-      if (! isset($GLOBALS[$glob])) $missing[]=$glob;
-      else unset($extra[$glob]);
+      if (GETSET) {
+        if (! isset($extra[$glob])) $missing[]=$glob;
+        else unset($extra[$glob]);
+      } else {
+        if (! isset($GLOBALS[$glob])) $missing[]=$glob;
+        else unset($extra[$glob]);
+      }
     }
     if ($missing) $message[]=sprintf("Globals missing: %s",join(",",$missing));
     if ($extra) $message[]=sprintf("These extra globals are defined: %s",join(",",array_keys($extra)));
