@@ -23,12 +23,12 @@
 
 #include "doh.h"
 
-static int    debug_level = 0;
+int    doh_debug_level = 0;
 
 void DohError(int level, char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
-  if (level <= debug_level) {
+  if (level <= doh_debug_level) {
     printf("DOH %d:",level);
     vprintf(fmt,ap);
   }
@@ -36,7 +36,7 @@ void DohError(int level, char *fmt, ...) {
 }
 
 void DohDebug(int d) {
-  debug_level = d;
+  doh_debug_level = d;
 }
 
 static DohObjInfo DohBaseType = {
@@ -86,7 +86,7 @@ static DOH *find_internal(DOH *co) {
   char *c;
   if (DohCheck(co)) return co;
   c = (char *) co;
-  if (debug_level) {
+  if (doh_debug_level) {
     DohError(DOH_CONVERSION,"Unknown object %x being treated as 'char *'.\n", c);
   }
   r = root;
@@ -121,11 +121,18 @@ void DohDestroy(DOH *obj) {
     if (!DohCheck(b)) return;
     b->refcount--;
     if (b->refcount <= 0) {
+      if (doh_debug_level >= DOH_MEMORY) {
+	if (DohFreeCheck(obj)) {
+	  DohError(DOH_MEMORY,"DohFree. %x was already released! (ignoring for now)\n", obj);
+	  return;
+	}
+      }
       if (b->objinfo->doh_del) {
 	(b->objinfo->doh_del)(obj);
 	return;
-      } 
-      free(b);
+      } else {
+	free(b);
+      }
     }
 }
 

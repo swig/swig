@@ -66,7 +66,6 @@ Pool *CreatePool(int size)
   p->len = size;
   p->current = 0;
   p->next = 0;
-  printf("Created pool : %x, %d\n", p->ptr, size);
   return p;
 }
 
@@ -79,7 +78,7 @@ Pool *CreatePool(int size)
 static void InitPools() {
   int i;
   if (pools_initialized) return;
-  for (i = 0; i < 1024; i++) {
+  for (i = 0; i < DOH_MAX_FRAG; i++) {
     FreeFragments[i] = 0;
   }
   Pools = CreatePool(DOH_POOL_SIZE);       /* Create initial pool */
@@ -154,7 +153,6 @@ void *DohMalloc(int size) {
   }
 
   /* Pool is not large enough. Create a new pool */  
-  
   if (p->len - p->current > 0) {
     f = (Fragment *) malloc(sizeof(Fragment));
     f->ptr = (p->ptr + p->current);
@@ -178,11 +176,17 @@ void *DohMalloc(int size) {
 void DohFree(DOH *ptr) {
   DohBase  *b;
   Fragment *f;
+  extern int doh_debug_level;
+
   if (!DohCheck(ptr)) {
+    DohError(DOH_MEMORY,"DohFree. %x not a DOH object!\n", ptr);
     return;                  /* Oh well.  Guess we're leaky */
   }
   b = (DohBase *) ptr;
-  if (!b->objinfo) return;   /* Improperly initialized object. leak some more */
+  if (!b->objinfo) {
+    DohError(DOH_MEMORY,"DohFree. %x not properly defined.  No objinfo structure.\n", ptr);
+    return;   /* Improperly initialized object. leak some more */
+  }
   f = (Fragment *) malloc(sizeof(Fragment));
   f->ptr = (char *) ptr;
   f->len = b->objinfo->objsize; 

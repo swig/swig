@@ -43,7 +43,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   int   maxwidth;
   char  *w, *prec;
   int   ivalue;
-  int   dvalue;
+  double dvalue;
   void  *pvalue;
   char  *stemp;
   int   nbytes = 0;
@@ -298,6 +298,7 @@ int DohCopyto(DOH *in, DOH *out) {
   int nbytes = 0, ret;
   char buffer[16384];
 
+  if ((!in) || (!out)) return 0;
   while (1) {
     ret = Read(in,buffer,16384);
     if (ret > 0) {
@@ -321,20 +322,20 @@ DOH *DohSplit(DOH *in, char *chs, int nsplits) {
     Seek(in,0,SEEK_SET);
   }
   while (1) {
+    str = NewString("");
     do {
       c = Getc(in);
     } while ((c != EOF) && (c == *chs));
     if (c != EOF) {
-      str = NewString("");
       Putc(c,str);
       while (1) {
 	c = Getc(in);
 	if ((c == EOF) || ((c == *chs) && (nsplits != 0))) break;
 	Putc(c,str);
       }
-      Append(list,str);
       nsplits--;
     }
+    Append(list,str);
     if (c == EOF) break;
   }
   return list;
