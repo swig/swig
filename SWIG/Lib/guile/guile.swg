@@ -190,32 +190,14 @@ SWIG_Cast_Str (void *source, char *source_type, void **ptr, char *_t)
 static unsigned long swig_tag = 0;
 
 SWIGSTATIC SCM
-SWIG_Guile_MakePtr (void *ptr, SwigPtrType *type)
+SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type)
 {
   if (ptr==NULL) return SCM_EOL;
-  SCM_RETURN_NEWSMOB((((unsigned long)type->tag << 16) | swig_tag),
+  SCM_RETURN_NEWSMOB((((unsigned long)type->ptrtype->tag << 16) | swig_tag),
 		     ptr);
 }
 
-/* TRANSITIONAL */
-SWIGSTATIC SCM
-SWIG_Guile_MakePtr_Str (void *ptr, char *typestring, char *prettytypestring)
-{
-  SwigPtrType *type = SWIG_GetPtrType(typestring);
-  if (type == NULL) {
-    SWIG_RegisterMapping(typestring, NULL, NULL);
-    type = SWIG_GetPtrType(typestring);
-    if (type == NULL) {
-      fprintf(stderr, "SWIG_Guile_MakePtr_Str: bailing out\n");
-      abort();
-    }
-  }
-  if (type->prettyname == NULL) type->prettyname = prettytypestring;
-  return SWIG_Guile_MakePtr(ptr, type);
-}
-
-/* TRANSITIONAL */
-SWIGSTATIC int
+static int
 SWIG_Guile_GetPtr_Str (SCM s, void **result, char *typestring)
 {
   if (SCM_NULLP(s)) {
@@ -234,8 +216,9 @@ SWIG_Guile_GetPtr_Str (SCM s, void **result, char *typestring)
 
 /* Return 0 if successful. */
 SWIGSTATIC int
-SWIG_Guile_GetPtr(SCM s, void **result, SwigPtrType *type)
+SWIG_Guile_GetPtr(SCM s, void **result, _swig_type_info *type)
 {
+  /* FIXME: Use native typechecking w/o string-compares */
   return SWIG_Guile_GetPtr_Str(s, result, type->name);
 }
 
@@ -271,6 +254,24 @@ SWIG_Guile_Init (void)
     swig_tag = scm_make_smob_type_mfpe("swig", 0, NULL, NULL,
 				       print_swig, equalp_swig);
   }
+}
+
+/* Convert datatype table */
+
+SWIGSTATIC
+void SWIG_Guile_RegisterTypes(_swig_type_info **table)
+{
+  for (; *table; table++) {
+    _swig_type_info *type = *table;
+    char *origname = type->name;
+    /* Register datatype itself */
+    SWIG_RegisterMapping(origname, 0, 0);
+    /* Store pointer to actual type */
+    type->ptrtype = SWIG_GetPtrType(origname);
+    /* Register compatible types */
+    for (type++; type->name; type++)
+      SWIG_RegisterMapping(origname, type->name, type->converter);
+  }    
 }
 
 #ifdef __cplusplus
