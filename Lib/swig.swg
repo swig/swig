@@ -335,4 +335,54 @@ private:
 %}
 %enddef
 
+/*
+
+   This macro performs constant aggregation.  Basically the idea of
+   constant aggregation is that you can group a collection of constants 
+   together.  For example, suppose you have some code like this:
+
+       #define UP  1
+       #define DOWN 2
+       #define LEFT 3
+       #define RIGHT 4
+
+   Now, suppose you had a function like this:
+
+       int move(int direction)
+
+   In this case, you might want to restrict the direction argument to one of the supplied
+   constant names. To do this, you could write some typemap code by hand.  Alternatively,
+   you can use the %aggregate_check macro defined here to create a simple check function
+   for you.  Here is an example:
+
+      %aggregate_check(int, check_direction, UP, DOWN, LEFT, RIGHT);
+
+   Now, using a typemap
+
+       %typemap(check) int direction {
+            if (!check_direction($1)) SWIG_exception(SWIG_ValueError,"Bad direction.");
+       }
+
+   or a contract (better)
+
+       %contract move(int x) {
+       require:
+           check_direction(x);
+       }
+*/
+   
+%define %aggregate_check(TYPE, NAME, FIRST, ...)
+%wrapper %{
+static int NAME(TYPE x) {
+    static  TYPE values[] = { FIRST, ##__VA_ARGS__ };
+    static  int size = sizeof(values);
+    int     i,j;
+    for (i = 0, j = 0; i < size; i+=sizeof(TYPE),j++) {
+        if (x == values[j]) return 1; 
+    }
+    return 0;
+}
+%}
+%enddef
+
 
