@@ -40,7 +40,7 @@ namespace std {
 
     %typemap(out) string {
         $result = sv_newmortal();
-        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1.c_str());
+        sv_setpv((SV*)ST(argvi++), const_cast<char*>($1.c_str()));
     }
 
     %typemap(out) const string & {
