@@ -595,7 +595,7 @@ ruby_cpp_static: $(SRCS)
 PHP4_INCLUDE = @PHP4INC@
 
 php4: $(SRCS)
-	$(SWIG) -php4 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(PHP4_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
 
@@ -604,7 +604,7 @@ php4: $(SRCS)
 # --------------------------------------------------------------------
 
 php4_cpp: $(SRCS)
-	$(SWIG) -php4 -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php4 -cppext cxx -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
@@ -615,12 +615,12 @@ php4_cpp: $(SRCS)
 PHP4_RUNTIME=-L$(RUNTIMEDIR) -lswigphp4@release_suffix@
 
 php4_multi: $(SRCS)
-	$(SWIG) -c -php4 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PHP4_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) -o $(TARGET)module$(SO)
 
 php4_multi_cpp: $(SRCS)
-	$(SWIG) -c -c++ -php4 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c -c++ -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 

@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE   = php4
-SCRIPTSUFFIX = _runme.php3
+SCRIPTSUFFIX = _runme.php4
 
 include ../common.mk
 
@@ -27,15 +27,15 @@ SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
 	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
-# a file is found which has _runme.php3 appended after the testcase name.
+# a file is found which has _runme.php4 appended after the testcase name.
 run_testcase = \
-	if [ -f $*\_runme.php3 ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH perl $*\_runme.php3;) \
+	if [ -f $*\_runme.php4 ]; then ( \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH perl $*\_runme.php4;) \
 	fi;
 
 # Clean: remove the generated .pm file
 %.clean:
-	@rm -f $*.php3;
+	@rm -f $*.php4;
 
 clean:
-	@rm -f *_wrap* *.o *~ *.so *.dll *.php3 .~* core
+	@rm -f *_wrap* *.o *~ *.so *.dll *.php4 .~* core

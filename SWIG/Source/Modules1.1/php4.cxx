@@ -50,7 +50,6 @@ static File	  *f_runtime = 0;
 static File	  *f_h = 0;
 static File	  *f_phpcode = 0;
 
-static String	  *s_resourcetypes;
 static String	  *s_header;
 static String	  *s_wrappers;
 static String	  *s_init;
@@ -103,7 +102,7 @@ static String *all_shadow_baseclass = 0;
 static String *this_shadow_baseclass = 0; 
 		//inheritance for shadow class from %pragma and cpp_inherit
 static String *this_shadow_multinherit = 0;
-static int	  shadow	= 0;
+static int	  shadow	= 1;
 
 
 static void (*r_prevtracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
@@ -129,7 +128,7 @@ static const char *php_header =
 "\n */\n";
 
 void
-SwigPHP_emit_resource_registrations(File *s_rtypes) {
+SwigPHP_emit_resource_registrations() {
   DOH *key;
   String *destructor=0;
   String *classname=0;
@@ -139,32 +138,32 @@ SwigPHP_emit_resource_registrations(File *s_rtypes) {
   key = Firstkey(zend_types);
   while (key) if (1 /* is pointer type*/) {
     Node *class_node;
-    Printf(stderr,"Mangled Name: %s\n",key);
     if (class_node=Getattr(zend_types,key)) {
       classname = Getattr(class_node,"name");
       if (! (shadow_classname = Getattr(class_node,"sym:name"))) shadow_classname=classname;
-      Printf(stderr,"%s (%s)\n",classname,shadow_classname);
     } else Printf(stderr,"No node\n");
 
     // Write out destructor
-    Printf(s_rtypes,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",
-                   shadow_classname);
+    Printf(s_wrappers,"//NEW Destructor style\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n",
+                   key);
 
     // Do we have a known destructor for this type?
     if (class_node && (destructor = Getattr(class_node,"destructor"))) {
-      Printf(s_rtypes,"// has destructor: %s\n",destructor);
+      Printf(s_wrappers,"// has destructor: %s\n",destructor);
+      Printf(s_wrappers,"%s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n",destructor,key);
+
     } else {
-      Printf(s_rtypes,"//blah NO destructor\n");
+      Printf(s_wrappers,"//bah! No destructor for this wrapped type!!\n");
     }
-    Printf(s_rtypes,"}\n");
+    Printf(s_wrappers,"}\n");
 
-    Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", key, shadow_classname);
+    Printf(s_vdecl,"static int le_swig_%s=0; // handle for %s\n", key, shadow_classname);
 
-    Printf(s_rtypes,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+    Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
+	     "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
 	     key,key,key);
 
-    Printf(s_rtypes,"SWIG_TypeClientData(SWIGTYPE%s,(void *)le_swig_%s);\n\n",
+    Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n\n",
            key,key);
     key = Nextkey(zend_types);
   }
@@ -266,8 +265,8 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-	}  else if((strcmp(argv[i], "-shadow") == 0) || (strcmp(argv[i],"-proxy") == 0)) {
-	  shadow = 1;
+	}  else if((strcmp(argv[i], "-noshadow") == 0) || (strcmp(argv[i],"-noproxy") == 0)) {
+	  shadow = 0;
 	  Swig_mark_arg(i);
 	} else if(strcmp(argv[i], "-make") == 0) {
 	  gen_make = 1;
@@ -523,7 +522,6 @@ public:
     
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
-    s_resourcetypes = NewString("/* register resource types section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
     s_type = NewString("");
@@ -703,8 +701,8 @@ public:
     /* Emit all of the code */
     Language::top(n);
 
-    SwigPHP_emit_resource_registrations(s_resourcetypes);    
-    Printv(s_init,s_resourcetypes,NULL);
+    SwigPHP_emit_resource_registrations();    
+//    Printv(s_init,s_resourcetypes,NULL);
     /* We need this after all classes written out by ::top */
     Printf(s_oinit, "CG(active_class_entry) = NULL;\n");	
     Printf(s_oinit, "/* end oinit subsection */\n");
@@ -827,7 +825,6 @@ public:
     
     Printv(f_runtime, s_vdecl, s_wrappers, s_init, NULL);
     Delete(s_header);
-    Delete(s_resourcetypes);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
@@ -871,7 +868,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
-//    Node *classnode = Getattr(n,"classtype");//SAMFIX
     char *name = GetChar(n,"name");
     char *iname = GetChar(n,"sym:name");
     SwigType *d = Getattr(n,"type");
@@ -885,6 +881,16 @@ public:
     String *cleanup, *outarg;
     
     if (!addSymbol(iname,n)) return SWIG_ERROR;
+/*
+  DOH* key;
+Printf(stderr,"Classode: %p\n",classnode);
+  key = Firstkey(classnode);
+  while (key) {
+    Printf(stderr,"classnode: %s\n",key,Getattr(classnode,key));
+    key = Nextkey(classnode);
+  }
+  Printf(stderr,"--classtype=%s\n",Getattr(classnode,"classtype"));
+*/
     
     if(shadow && variable_wrapper_flag && !enum_flag) {
       String *member_function_name = NewString("");
@@ -915,45 +921,51 @@ public:
     // Special action for shadowing destructors under php.
     // The real destructor is the resource list destructor, this is
     // merely the thing that actually knows how to destroy...
+
     if (destructor) {
       String *destructorname=NewString("");
-      Printf(destructorname,"_wrap_destroy_%s",class_name);
+      Printf(destructorname,"_%s",Swig_name_wrapper(iname));
       Setattr(classnode,"destructor",destructorname);
 
       Wrapper *df = NewWrapper();
-      if (shadow) Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
-      else Printf(df->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",class_name);
-      
+      Printf(df->def,"// This function is designed to be called by the zend list destructors to typecast and do the actual destruction\n"
+                     "void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
+
       // Magic spell nicked from further down.
       emit_args(d, l, df);
-      
-      Printf(df->code,
+      emit_attach_parmmaps(l,f);
+
+      // Get type of first arg, thing to be destructed
+      /* Skip ignored arguments */
+      {
+        p=l;
+        while (Getattr(p,"tmap:ignore")) {
+  	p = Getattr(p,"tmap:ignore:next");
+        }
+        SwigType *pt = Getattr(p,"type");
+
+        Printf(df->code,
 	     "  // should we do type checking? How do I get SWIG_ type name?\n"
-	     "  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &arg1,NULL);\n"
+	     "  SWIG_ZTS_ConvertResourceData(rsrc->ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n"
 	     "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
-	     ,class_name, shadow_classname);
+	     ,SwigType_manglestr(pt), shadow_classname);
+      }
       
       emit_action(n,df);
       Printf(df->code,
-	     "  // now delete wrapped string pointer\n"
-	     "  efree(rsrc->ptr);\n"
-	     "  rsrc->ptr=NULL;\n"
 	     "}\n");
+
       Wrapper_print(df,s_wrappers);
-      
-      // if !shadow we also want a plain destructor?
-      if (shadow) return SWIG_OK;
     }
-    
+
     /* If shadow not set all functions exported. If shadow set only
      * non-wrapped functions exported ( the wrapped ones are accessed
      * through the class. )
      */
-    
-    if(1 || !shadow || !wrapping_member)
-      create_command(iname, Char(Swig_name_wrapper(iname)));
+
+    create_command(iname, Char(Swig_name_wrapper(iname)));
     Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
-    
+
     emit_args(d, l, f);
     /* Attach standard typemaps */
     emit_attach_parmmaps(l,f);
@@ -1037,7 +1049,7 @@ public:
 	p = Getattr(p,"tmap:ignore:next");
       }
       SwigType *pt = Getattr(p,"type");
-      
+
       // Do we fake this_ptr as arg0, or just possibly shift other args by 1 if we did fake?
       if (i==0) sprintf(source, "((%d<argbase)?(&this_ptr):(args[%d-argbase]))", i, i);
       else sprintf(source, "args[%d-argbase]", i);
@@ -1122,20 +1134,15 @@ public:
       // If it is a registered resource (and it always should be)
       // then destroy it the resource way
       
-      // Why do we access args[0] directly and not use argbase too see if
-      // we should get at this_ptr ?? Because this code is never output if
-      // shadowing is on and as this_ptr is never set without shadowing
       Printf(f->code,
-	     "if ((*args[0])->type==IS_RESOURCE) {\n"
-	     "  // Get zend list destructor to free it\n"
-	     "  char * _cPtr=NULL;\n"
-	     "  ZEND_FETCH_RESOURCE(_cPtr, char *, args[0],-1,\"%s\",le_swig_%s);\n"
-	     "  zend_list_delete(Z_LVAL_PP(args[0]));\n"
-	     "} else {\n",name,name
+	     "//if ((*args[0])->type==IS_RESOURCE) {\n"
+	     "//  // Get zend list destructor to free it\n"
+	     "//  zend_list_delete(Z_LVAL_PP(args[0]));\n"
+	     "//} else {\n",name,name
 	     );
       // but leave the old way in for as long as we accept strings as swig objects
       emit_action(n,f);
-      Printf(f->code,"}\n");
+      Printf(f->code,"//}\n");
       
     } else {
       emit_action(n,f);
@@ -1156,9 +1163,6 @@ public:
 	  Printf(f->code,"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
 		 "*_cPtr = *return_value;\n"
 		 "INIT_ZVAL(*return_value);\n"
-		 "// Gypsy switch here, we steal the pchar from _cPtr so\n"
-		 "// we don't need to zval_dtor _cPtr\n"
-		 "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
 		 "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n"
 		 "} else if (! this_ptr) ",shadow_classname);
 	}
@@ -1178,18 +1182,13 @@ public:
 	  
 	  if (! shadow) {
 	    Printf(f->code,
-		   "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
-		   "*return_value=*_cPtr;\n",
-		   class_name);
+		   "*return_value=*_cPtr;\n");
 	  } else {
 	    Printf(f->code, 
 		   "object_init_ex(obj,ptr_ce_swig_%s);\n"
-		   "// Gypsy switch here, we steal the pchar from _cPtr so\n"
-		   "// we don't need to zval_dtor _cPtr\n"
-		   "ZEND_REGISTER_RESOURCE(_cPtr, Z_STRVAL_P(_cPtr), le_swig_%s);\n"
 		   "add_property_zval(obj,\"_cPtr\",_cPtr);\n"
 		   "*return_value=*obj;\n",
-		   shadowrettype, shadowrettype);
+		   shadowrettype);
 	  }
 	  Printf(f->code, "}\n");
 	}
@@ -1756,17 +1755,20 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
+    char *iname = GetChar(n, "sym:name");
+
     destructor=1;
     Language::destructorHandler(n);
     destructor=0;
-    
-    // Wots this bit doing?  Do we need equiv. in C code?
-    //	    for(k = Firstkey(shadow_php_vars);k;k = Nextkey(shadow_php_vars)) {
-    //		    Printf(shadow_code, "$this->%s = %s::%s($this->_cPtr);\n",
-    //					 Getattr(shadow_php_vars, k),
-    //					 package, k);
-    //	    }
-    //	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
+
+    // we don't give user access to destructors, they have to unset var
+    // and let php dispose instead
+    if(0 && shadow) {
+      // But we also need one per wrapped-class
+      if (cs_entry) Printf(cs_entry,
+			   "	ZEND_NAMED_FE(_destroy_%(lower)s,\n"
+			   "		_wrap_delete_%s, NULL)\n", iname,iname);
+    }
     
     return SWIG_OK;
   }
@@ -1802,7 +1804,6 @@ public:
 			 "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
 
     if(variable_wrapper_flag && !no_sync)  { return; }
-
 
     /* Workaround to overcome Getignore(p) not working - p does not always
 	 * have the Getignore attribute set. Noticeable when cpp_func is called
