@@ -1,6 +1,6 @@
 %module add_link
 
-%addmethods Foo {
+%extend Foo {
 Foo *blah() {
    return new Foo();
 }
@@ -14,5 +14,7 @@ public:
 };
 
 %}
+
+
 
 
