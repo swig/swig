@@ -13,7 +13,7 @@ languages need to access the underlying C/C++ code.
 
 <p>
 John Ousterhout has written a
-<a href="http://www.scriptics.com/people/john.ousterhout/scripting.html">paper</a>
+<a href="http://home.pacbell.net/ouster/scripting.html">paper</a>
 that describes the
 benefits of scripting languages.   SWIG makes it fairly easy to connect scripting
 languages with C/C++ code.

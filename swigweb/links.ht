@@ -59,7 +59,7 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 
 <ul>
 
-John Ousterhout's <a href="http://www.scriptics.com/people/john.ousterhout/scripting.html"> paper </a> on scripting languages
+John Ousterhout's <a href="http://home.pacbell.net/ouster/scripting.html"> paper </a> on scripting languages
 (appeared in IEEE Computer). <br>
 <A HREF="http://SAL.KachinaTech.COM/"> SAL - Scientific Applications on Linux</a>. <br>
 <a href="http://www.usenix.org">USENIX</a> <br>

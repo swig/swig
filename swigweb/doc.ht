@@ -101,7 +101,7 @@ Scripting and Alternative Languages. <br>
 
 
 <p>
-<li> John Ousterhout's <a href="http://www.scriptics.com/people/john.ousterhout/scripting.html">
+<li> John Ousterhout's <a href="http://home.pacbell.net/ouster/scripting.html">
 paper </a> on scripting languages provides a good  overview
 of the use of scripting languages and their relationship to
 systems programming languages.  SWIG was developed with many of these issues
