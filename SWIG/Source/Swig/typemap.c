@@ -577,20 +577,26 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
     }
 
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
-    if (!primitive) {
-      primitive = SwigType_default(type);
-    }
-    tm = Getattr(typemaps[ts],primitive);
-    if (tm && cname) {
-      tm1 = Getattr(tm,cname);
-      if (tm1) {
-	result = Getattr(tm1,tmop);          /* See if there is a type-name match */
+
+    primitive = SwigType_default(type);
+    while (primitive) {
+      tm = Getattr(typemaps[ts],primitive);
+      if (tm && cname) {
+	tm1 = Getattr(tm,cname);
+	if (tm1) {
+	  result = Getattr(tm1,tmop);          /* See if there is a type-name match */
+	  if (result) goto ret_result;
+	}
+      }
+      if (tm) {			/* See if there is simply a type match */
+	result = Getattr(tm,tmop);
 	if (result) goto ret_result;
       }
-    }
-    if (tm) {			/* See if there is simply a type match */
-      result = Getattr(tm,tmop);
-      if (result) goto ret_result;
+      {
+	SwigType *nprim = SwigType_default(primitive);
+	Delete(primitive);
+	primitive = nprim;
+      }
     }
     if (ctype != type) { Delete(ctype); ctype = 0; }
     ts--;         /* Hmmm. Nothing found in this scope.  Guess we'll go try another scope */
