@@ -4143,7 +4143,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   }
 		   $$.type = T_CHAR;
 		   $$.bitfield = 0;
-		   $$.throws;
+		   $$.throws = 0;
 		 }
                 ;
 

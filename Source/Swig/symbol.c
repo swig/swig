@@ -757,7 +757,7 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
 
 Node *
 Swig_symbol_clookup(String_or_char *name, Symtab *n) {
-  Hash *hsym;
+  Hash *hsym = 0;
   Node *s = 0;
   
   if (!n) {
@@ -824,7 +824,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
 
 Node *
 Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node *n)) {
-  Hash *hsym;
+  Hash *hsym = 0;
   Node *s = 0;
   
   if (!n) {

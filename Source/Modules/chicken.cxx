@@ -536,7 +536,7 @@ CHICKEN::functionWrapper(Node *n)
   int has_void_return = 0;
   int will_alloca = 0;
   for (p = l; p;) {
-    if (tm = Getattr(p,"tmap:argout:chicken_words")) {
+    if ((tm = Getattr(p,"tmap:argout:chicken_words"))) {
       Replaceall(tm,"$typename", mangle);
       if (strcmp(Char(tm), "void") == 0) continue;
       if (strcmp(Char(tm), "0") != 0) will_alloca = 1;
@@ -553,7 +553,7 @@ CHICKEN::functionWrapper(Node *n)
     }
   }
   if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
-    if (am = Getattr(n,"tmap:out:chicken_words")) {
+    if ((am = Getattr(n,"tmap:out:chicken_words"))) {
       Replaceall(am,"$typename", mangle);
       if (strcmp(Char(am), "void") == 0) {
 	has_void_return = 1;
@@ -1018,9 +1018,9 @@ CHICKEN::variableWrapper(Node *n)  {
 
     // Now return the value of the variable - regardless
     // of evaluating or setting.
-    if (tm = Swig_typemap_lookup_new("varout",n,name,0)) {
+    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       /* Calculate fixed alloca code */
-      if (am = Getattr(n,"tmap:varout:chicken_words")) {
+      if ((am = Getattr(n,"tmap:varout:chicken_words"))) {
 	Replaceall(am,"$typename", mangle);
 	if (strcmp(Char(am), "0") != 0) {
 	  Wrapper_add_local(f,"known_space", "C_word *known_space");
@@ -1235,9 +1235,9 @@ CHICKEN::constantWrapper(Node *n)
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
 
     // Return the value of the variable
-    if (tm = Swig_typemap_lookup_new("varout",n,name,0)) {
+    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
       /* Calculate fixed alloca code */
-      if (am = Getattr(n,"tmap:varout:chicken_words")) {
+      if ((am = Getattr(n,"tmap:varout:chicken_words"))) {
 	Replaceall(am,"$typename", mangle);
 	if (strcmp(Char(am), "0") != 0) {
 	  Wrapper_add_local(f,"known_space", "C_word *known_space");
@@ -1629,7 +1629,6 @@ CHICKEN::membervariableHandler(Node *n)
 int
 CHICKEN::memberconstantHandler(Node *n)
 {
-  String *iname = Getattr(n,"sym:name");
   int   oldclos = clos;
   if (clos) clos = clos | SCMCLOS_MEMBER;
   Language::memberconstantHandler(n);
@@ -1641,8 +1640,6 @@ CHICKEN::memberconstantHandler(Node *n)
 int
 CHICKEN::staticmemberfunctionHandler(Node *n)
 {
-  String *iname = Getattr(n,"sym:name");
-
   int   oldclos = clos;
   if (clos) clos = clos | SCMCLOS_STATIC_MEMBER;
   Language::staticmemberfunctionHandler(n);
@@ -1654,8 +1651,6 @@ CHICKEN::staticmemberfunctionHandler(Node *n)
 int
 CHICKEN::staticmembervariableHandler(Node *n)
 {
-  String *iname = Getattr(n,"sym:name");
-
   int   oldclos = clos;
   if (clos) clos = clos | SCMCLOS_STATIC_MEMBER;
   Language::staticmembervariableHandler(n);
@@ -1668,7 +1663,6 @@ CHICKEN::staticmembervariableHandler(Node *n)
 int
 CHICKEN::destructorHandler(Node *n)
 {
-  String *iname = Getattr(n,"sym:name");
   int oldclos = clos;
     
   if (clos) clos = clos | SCMCLOS_MEMBER;
@@ -1681,7 +1675,6 @@ CHICKEN::destructorHandler(Node *n)
 int
 CHICKEN::constructorHandler(Node *n)
 {
-  String *iname = Getattr(n,"sym:name");
   int   oldclos = clos;
 
   if (clos) clos = clos | SCMCLOS_MEMBER;
@@ -1971,8 +1964,8 @@ CHICKEN::namify(String *scmname)
       char *s = Char(scmname);
       const int l = Len(scmname);
       int case_is_set = 0;
-      int was_uppercase;
-      int pseudo_first;
+      int was_uppercase = 0;
+      int pseudo_first = 0;
 
       changedcase = 0;
       for (i=0; i < l; ++i, ++s) {

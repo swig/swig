@@ -171,8 +171,9 @@ class Allocate : public Dispatcher {
 	String *base_decl = Getattr(nn,"decl");
 	if (base_decl) base_decl = SwigType_typedef_resolve_all(base_decl);
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
+    /*
 	int implemented = 0;
-	/*	Node *dn = Swig_symbol_clookup_local(name,0);
+	Node *dn = Swig_symbol_clookup_local(name,0);
 	if (!dn) {
 	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
 	}
