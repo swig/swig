@@ -1297,7 +1297,7 @@ public:
             Wrapper_add_local(f, "resultdirector", "__DIRECTOR__ *resultdirector = 0");
             Printf(f->code, "resultdirector = dynamic_cast<__DIRECTOR__*>(result);\n");
             Printf(f->code, "if (resultdirector) {\n");
-            Printf(f->code, "  resultobj = resultdirector->__get_self();\n");
+            Printf(f->code, "  vresult = resultdirector->__get_self();\n");
             Printf(f->code, "} else {\n"); 
             Printf(f->code,"%s\n", tm);
             Printf(f->code, "}\n");
