@@ -1335,11 +1335,20 @@ public:
     if (!is_void) outputs++;
 	
     /* build argument list and type conversion string */
-    for (i=0, idx=0, p = l; i < num_arguments; i++) {
+    for (i=0, idx=0, p = l; i < num_arguments && p != 0; i++) {
 
+      if (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
+	continue;
+      }
+
+      /* old style?  caused segfaults without the p!=0 check
+         in the for() condition, and seems dangerous in the
+	 while loop as well.
       while (Getattr(p, "tmap:ignore")) {
 	p = Getattr(p, "tmap:ignore:next");
       }
+      */
 
       if (Getattr(p, "tmap:argoutv") != 0) outputs++;
       
