@@ -12,7 +12,13 @@
  * ----------------------------------------------------------------------------- */
 
 #include "wad.h"
+#ifdef WAD_SOLARIS
 #include <sys/elf.h>
+#endif
+#ifdef WAD_LINUX
+#include <elf.h>
+#endif
+
 
 /* --- What's needed here (high level interface) :
 
