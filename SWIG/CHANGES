@@ -17,6 +17,70 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/16/2001:beazley
+           Support for multivalued typemaps added.  The typemaps
+           are specified using the syntax below.   Within each
+           typemap, variable substitution is handled as follows:
+
+              %typemap(in) (int argc, char *argv[]) {
+                  $source;  // The input object in the target language
+ 
+                  // These variables only refer to first argument
+                  $target $type, $ltype, $basetype, etc...
+
+                  // These variables refer to either argument
+                  $0.target, $0.type, $0.ltype, $0.basetype, etc...  (argc)
+                  $1.target, $1.type, $1.ltype, $1.basetype, etc...  (argv[])
+
+                  // Array dimension of argv
+                  $1.dim0
+              }
+
+           Basically any variable that was available in normal typemaps
+           is available for either argument by prefacing the variable
+           name by '$n.' where n is the argument position.
+
+           Notes:  
+           (1) Multi-valued typemaps can only be applied to a single
+               object in the target scripting language.   For example,
+               you can split a string into a (char *, int) pair or
+               split a list into a (int, char []) pair.  It is not
+               possible to map multiple objects to multiple arguments.
+
+           (2) To maintain compatibility with older SWIG versions, the
+               variables such as $target and $type are preserved and
+               are mapped onto the first argument only.
+
+           (3) This should not affect compatibility with older code.
+               Multi-valued typemaps are an extension to typemap handling.
+               Single valued typemaps can be specified in the usual
+               way.
+
+           *** NEW FEATURE ***
+
+10/16/2001:beazley
+           Added parsing support for multivalued typemaps.  The syntax
+           is a little funky, but here goes:
+
+              // Define a multivalued typemap
+              %typemap(in) (int argc, char *argv[]) {
+                    ... typemap code ...
+              }
+
+              // Multivalued typemap with locals
+              %typemap(in) (int argc, char *argv[])(int temp) {
+                    ... typemap code ...
+              }
+              
+              // Copy a multivalued typemap
+              %typemap(in) (int argcount, char **argv) = (int argc, char *argv[]);
+
+              // Apply a multivalued typemap
+              %apply (int argc, char *argv[]) { (int argcount, char **argv) };
+
+           Note: this extra parsing support is added for future extension.
+           No language modules currently support multi-valued typemaps.
+
 10/11/2001:beazley
            Modified the typemap matching code to discard qualifiers when
            checking for a match.   For example, if you have a declaration
@@ -229,7 +293,7 @@ Version 1.3.10 (In progress)
            accessor function is actually set to an array.  This means
            that you can now write typemaps like this:
 
-              %typemap(python,out) char [] {
+              %typemap(python,out) char [ANY] {
                  $target = PyString_FromStringAndSize($source,$dim0);
               }
 
