@@ -186,12 +186,13 @@ void wad_restore_i386_registers(WadFrame *f, int nlevels) {
   unsigned long     *saved;
   int i, j;
   int pci;
-  for (i = 0; i <= nlevels; i++) {
+  for (i = 0; i <= nlevels; i++, f=f->next) {
 
     /* This gets the starting instruction for the stack frame */
     pc = (unsigned char *) f->sym_base;
     /*    printf("pc = %x, base = %x, %s\n", f->pc, f->sym_base, SYMBOL(f)); */
-    
+    if (!pc) continue;
+
     /* Look for the standard prologue 0x55 0x89 0xe5 */
     if ((pc[0] == 0x55) && (pc[1] == 0x89) && (pc[2] == 0xe5)) {
       /* Determine the size */
@@ -226,7 +227,6 @@ void wad_restore_i386_registers(WadFrame *f, int nlevels) {
 	else break;
       }
     }
-    f = f->next;
   }
 }
 
