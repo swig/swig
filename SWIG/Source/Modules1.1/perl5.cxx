@@ -1706,7 +1706,7 @@ void PERL5::cpp_close_class() {
       // Output a FETCH method.  This is actually common to all classes
       pm << "sub FETCH {\n"
 	 << tab4 << "my ($self,$field) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_get(Swig_name_member(class_name,"${field}")) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_get(Swig_name_member(class_name,(char*)"${field}")) << "\";\n"
 	 << tab4 << "my $val = &$member_func($self);\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "return undef if (!defined($val));\n"
@@ -1721,7 +1721,7 @@ void PERL5::cpp_close_class() {
       
       pm << "sub STORE {\n"
 	 << tab4 << "my ($self,$field,$newval) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_set(Swig_name_member(class_name,"${field}")) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << Swig_name_set(Swig_name_member(class_name,(char*)"${field}")) << "\";\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "&$member_func($self,tied(%{$newval}));\n"
 	 << tab4 << "} else {\n"
