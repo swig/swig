@@ -1831,8 +1831,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  }
 		  /* Look for the template */
 
-		  if (!n) {
-		  }
 		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		    Parm *tparms = Getattr(n,"templateparms");
 		    if (!tparms) specialized = 1;
@@ -1946,10 +1944,11 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      appendChild(nspace_inner,$$);
 		      $$ = nspace;
 		    }
-		    Swig_symbol_setscope(tscope);
-		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
-}
+   	          Swig_symbol_setscope(tscope);
+		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+
+                }
                ;
 
 /* ------------------------------------------------------------
@@ -2414,10 +2413,12 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_parameters = $3; } cpp_temp_possible {
 		      String *tname = 0;
+		      int     error = 0;
+
                       template_parameters = 0;
                       $$ = $6;
 		      if ($$) tname = Getattr($$,"name");
-
+		      
 		      /* Check if the class is a template specialization */
 		      if (($$) && (Strstr(tname,"<")) && (Strncmp(tname,"operator ",9) != 0)) {
 			/* If a specialization.  Check if defined. */
@@ -2428,6 +2429,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  if (!tempn || (Strcmp(nodeType(tempn),"template") != 0)) {
 			    Swig_warning(WARN_PARSE_TEMPLATE_SP_UNDEF, Getfile($$),Getline($$),"Specialization of non-template '%s'.\n", tbase);
 			    tempn = 0;
+			    error = 1;
 			  }
 			  Delete(tbase);
 			}
@@ -2435,7 +2437,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			Setattr($$,"templatetype",nodeType($$));
 			set_nodeType($$,"template");
 			/* Template partial specialization */
-			if (($3) && ($6)) {
+			if (tempn && ($3) && ($6)) {
 			  List   *tlist;
 			  String *targs = SwigType_templateargs(tname);
 			  tlist = SwigType_parmlist(targs);
@@ -2521,6 +2523,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  Swig_symbol_cadd(fname,$$);
 			}
 		      }
+		      if (error) $$ = 0;
                   }
                 ;
 
