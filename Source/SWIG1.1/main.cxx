@@ -148,6 +148,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   DOH    *libfiles = 0;
 
+  {
+    //    Printf(stdout,"%s\n", SwigType_lcaststr("a(20).a(10).f(int,q(const).p.double).int","a"));
+  }
+
 #ifdef MACSWIG
   try {
 #endif
