@@ -584,7 +584,6 @@ int Language::typesDirective(Node *n) {
 	if (!v) {
 	  SwigType_remember(t);
 	} else {
-	  Printf(stdout,"t = '%s', v = '%s'\n", t,v);
 	  if (SwigType_issimple(t)) {
 	    SwigType_inherit(t,v);
 	  }
