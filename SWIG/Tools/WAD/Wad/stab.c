@@ -33,6 +33,75 @@ typedef struct Stab {
 #define N_PSYM      0xa0          /* Parameter         */
 #define N_LBRAC     0xc0          /* Left brace        */
 
+
+/* -----------------------------------------------------------------------------
+ * stabs type handler
+ *
+ * Type names are defined as N_LSYM types.   We need to keep a hash table of
+ * logical type names and stabs type names.
+ *
+ * We also need to keep a hash table of stabs types.
+ * ----------------------------------------------------------------------------- */
+
+typedef struct stabtype {
+  char             *name;
+  char             *value;
+  struct stabtype  *next;
+} stabtype;
+
+#define HASH_SIZE    113
+
+static int       stab_type_init = 0;
+static stabtype *lnames[HASH_SIZE];     /* Hash of local names */
+
+/* Initialize the hash table */
+
+static void init_hash() {
+  int i;
+  for (i = 0; i < HASH_SIZE; i++) {
+    lnames[i] = 0;
+  }
+}
+
+static int thash(char *name) {
+  unsigned int h = 0;
+  int i;
+  for (i = 0; i < 8 && (*name); i++, name++) {
+    h = ((h << 7) + *name) % HASH_SIZE;
+  }
+  return h;
+}
+
+/* Add a symbol to the hash */
+
+static void type_add(char *name, char *value) {
+  int h;
+  stabtype *s;
+  if (!stab_type_init) {
+    init_hash();
+    stab_type_init = 1;
+  }
+  h = thash(name);
+  s = lnames[h];
+  while (s) {
+    if (strcmp(s->name,name) == 0) {
+      if (strcmp(s->value,value) == 0) {
+	return;
+      }
+      s->value = (char *) wad_strdup(value);
+      return;
+    }
+    s = s->next;
+  }
+  s = (stabtype *) wad_malloc(sizeof(stabtype));
+  s->name = wad_strdup(name);
+  s->value = wad_strdup(value);
+  s->next = lnames[h];
+  lnames[h] = s;
+}
+  
+
+
 /* -----------------------------------------------------------------------------
  * match_stab_symbol()
  *
@@ -63,15 +132,23 @@ stab_string_parm(char *str) {
 
 static void
 stab_symbol(Stab *s, char *stabstr) {
+  char *str;
   char *pstr;
+  char name[1024]; 
   int a;
 
-  pstr = stab_string_parm(stabstr+s->n_strx);
+  str = stabstr+s->n_strx;
+  pstr = stab_string_parm(str);
   if (!pstr) return;
-
+  
+  strncpy(name,str, pstr-str);
+  name[(int)(pstr-str)] = 0;
   if (pstr[1] == 't') {
+    /* A stabs type definition */
     /*    wad_printf("stab lsym:  other=%d, desc=%d, value=%d, str='%s'\n", s->n_other,s->n_desc,s->n_value,
 	  stabstr+s->n_strx); */
+    /*    wad_printf("name = '%s', pstr='%s'\n", name, pstr+2); */
+    type_add(name,pstr+2);
   }
 }
 

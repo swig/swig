@@ -54,8 +54,8 @@ load_file(const char *path) {
     return 0;       /* Doesn't exist. Oh well */
   }
   if (wad_debug_mode & DEBUG_FILE) wad_printf("loaded.\n");
-  wf = (WadFile *) wad_pmalloc(sizeof(WadFile));
-  wf->path = wad_pstrdup(path);
+  wf = (WadFile *) wad_malloc(sizeof(WadFile));
+  wf->path = wad_strdup(path);
 
   /* Get file length */
   wf->size = lseek(fd,0,SEEK_END);
@@ -116,10 +116,18 @@ wad_object_load(const char *path) {
   WadObjectFile  *wad_arobject_load(const char *path, const char *name);
 
   if (wad_debug_mode & DEBUG_OBJECT) {
-    wad_printf("wad: Loading object   '%s'\n", path);
+    wad_printf("wad: Loading object   '%s'", path);
   }
   for (wo = wad_objects; wo; wo=wo->next) {
-    if (strcmp(wo->path,path) == 0) return wo;
+    if (strcmp(wo->path,path) == 0) {
+      if (wad_debug_mode & DEBUG_OBJECT) {
+	wad_printf(" (cached)\n");
+      }
+      return wo;
+    }
+  }
+  if (wad_debug_mode & DEBUG_OBJECT) {
+    wad_printf("\n");
   }
   /* Didn't find it.  Now we need to go load some files */
 
@@ -142,7 +150,9 @@ wad_object_load(const char *path) {
       wo = wad_arobject_load(realfile,objfile);
       if (wo) {
 	/* Reset the path */
-	wo->path = wad_pstrdup(path);
+	wo->path = wad_strdup(path);
+	wo->next = wad_objects;
+	wad_objects = wo;
 	return wo;
       }
     }
@@ -150,10 +160,12 @@ wad_object_load(const char *path) {
   wf = load_file(path);
   if (!wf) return 0;
 
-  wo = (WadObjectFile *) wad_pmalloc(sizeof(WadObjectFile));
-  wo->path = wad_pstrdup(path);
+  wo = (WadObjectFile *) wad_malloc(sizeof(WadObjectFile));
+  wo->path = wad_strdup(path);
   wo->ptr = wf->addr;
   wo->len = wf->size;
+  wo->next = wad_objects;
+  wad_objects = wo;
   return wo;
 }
 
@@ -235,7 +247,7 @@ wad_arobject_load(const char *arpath, const char *robjname) {
     /* Compare the names */
     if (strncmp(mname,objname,sobjname) == 0) {
       /* Found the archive */
-      wo = (WadObjectFile *) wad_pmalloc(sizeof(WadObjectFile));
+      wo = (WadObjectFile *) wad_malloc(sizeof(WadObjectFile));
       wo->ptr = (void *) (arptr + offset);
       wo->len = msize;
       wo->path = 0;

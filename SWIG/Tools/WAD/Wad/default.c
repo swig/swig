@@ -24,17 +24,26 @@ char *wad_arg_string(WadFrame *frame) {
   WadLocal *wp;
   long    *stack;
   long    *nextstack;
+  long    *prevstack;
   int     i;
   WadFrame *nf;
-  
+  WadFrame *pf;
+
   nf = frame->next;
   if (nf) 
     nextstack = (long *) nf->stack;
   else
     nextstack = 0;
 
+  pf = frame->prev;
+  if (pf)
+    prevstack = (long *) pf->stack;
+  else
+    prevstack = 0;
+
   str[0] = 0;
   stack = (long *) frame->stack;
+
 
 #ifdef WAD_LINUX
   if (!nf) {
@@ -42,7 +51,7 @@ char *wad_arg_string(WadFrame *frame) {
   }
 #endif
 
-  if (frame->debug_nargs < 0) {
+  if ((frame->debug_nargs < 0) || (0)){
     /* No argument information is available. If we are on SPARC, we'll dump
        the %in registers since these usually hold input parameters.  On
        Linux, we do nothing */

@@ -47,20 +47,46 @@ void wad_build_vars(WadFrame *f) {
       } else if (loc->stack < 0) {
 	loc->ptr = (void *) (stack + f->stack_size + loc->stack);
       }
+      loc->size = sizeof(long);
     }
+    if (loc->loc == PARM_REGISTER) {
+      /* Parameter is located in a register */
+#ifdef WAD_SOLARIS
+      if ((loc->reg >= 24) && (loc->reg < 32)) {
+	/* Value is located in the %in registers.  */
+	  loc->ptr = (void *) (stack + (loc->reg - 16)*sizeof(int));
+	  loc->size = sizeof(int);
+      } else if ((loc->reg >= 8) && (loc->reg < 16)) {
+
+          /* Value is located in the %on registers */
+	if (nstack) {
+	  loc->ptr = (void *) (stack + (loc->reg)*sizeof(int));
+	  loc->size = sizeof(int);
+	}
+      } else if ((loc->reg >= 16) && (loc->reg < 24)) {
+	/* Value has been placed in the %ln registers */
+	loc->ptr = (void *) (stack + (loc->reg - 16)*sizeof(int));
+	loc->size = sizeof(int);
+      }
+#endif
+    }
+#ifdef OLD
     if (lastloc) {
       /* Figure out the size */
       if (!lastloc->size)
 	lastloc->size = abs(loc->stack - lastloc->stack);
     }
     lastloc = loc;
+#endif
+
     loc = loc->next;
   }
-
+#ifdef OLD
   /* If last size is not set. Assume that it is a word */
   if (lastloc && (!lastloc->size)) {
     lastloc->size = 4;
   }
+#endif
 
 }
 
