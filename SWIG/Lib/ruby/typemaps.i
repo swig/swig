@@ -340,42 +340,7 @@ phased out in future releases.
 %apply double *INOUT { double *BOTH };
 
 // --------------------------------------------------------------------
-// OUTPUT typemaps for user defined type.
-//
-// --------------------------------------------------------------------
-
-#ifdef AUTODOC
-%subsection "Output Methods for User-defined types"
-
-%text %{
-The following method can be applied to turn a pointer to
-user-defined type returned through function aruguments into
-an output value.
-
-         User **OUTPUT
-         
-You can use the %apply directive :
-
-        %include typemaps.i
-        %apply User **OUTPUT { Foo **OUTPUT };
-        int foo_func(Foo **OUTPUT);
-
-%}
-#endif
-
-%typemap(ruby,ignore) User **OUTPUT(void *temp)
-{
-  $1 = ($type)&temp;
-}
-%typemap(ruby,argout) User **OUTPUT
-{
-  $result = output_helper($result, Wrap_$basetype(*$1));
-}
-
-
-// --------------------------------------------------------------------
 // Special types
-//
 // --------------------------------------------------------------------
 
 #ifdef AUTODOC
@@ -387,7 +352,7 @@ The typemaps.i library also provides the following mappings :
 struct timeval *
 time_t
 
-    Ruby has builtin class Time.  INPUT/OUPUT typemap for timeval and
+    Ruby has builtin class Time.  INPUT/OUTPUT typemap for timeval and
     time_t is provided.
 
 int PROG_ARGC
@@ -492,6 +457,7 @@ extern "C" {
 }
 #endif
 %}
+
 %typemap(ruby,in) FILE *READ {
     OpenFile *of;
     GetOpenFile($input, of);
@@ -499,12 +465,14 @@ extern "C" {
     $1 = GetReadFile(of);
     rb_read_check($1);
 }
+
 %typemap(ruby,in) FILE *READ_NOCHECK {
     OpenFile *of;
     GetOpenFile($input, of);
     rb_io_check_readable(of);
     $1 = GetReadFile(of);
 }
+
 %typemap(ruby,in) FILE *WRITE {
     OpenFile *of;
     GetOpenFile($input, of);
