@@ -68,7 +68,7 @@ public :
     have_defarg = 0;
     import_file = 0;
     use_kw = 0;
-    noopt = 0;
+    noopt = 1;
     hash = NewHash();
     symbols = NewHash();
   };
