@@ -13,4 +13,6 @@
     SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);
     _swig_init = 1;
   }
+
+  SWIG_Guile_Init();
 %}
