@@ -45,6 +45,9 @@ public class java_typemaps_proxy_runme {
     // Create a NULL pointer for Farewell using the constructor with changed modifiers
     Farewell nullFarewell = new Farewell(0, false);
 
+    // Test typemaps are being found for templated classes
+    AdieuIntPtrPtr.adieu();
+
     // Check the %javamethodmodifiers feature
     try {
 
@@ -57,7 +60,6 @@ public class java_typemaps_proxy_runme {
     } catch (SecurityException s) {
       throw new RuntimeException("SecurityException caught. Test failed.");
     }
-
   }
 }
 
