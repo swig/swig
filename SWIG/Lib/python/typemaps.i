@@ -67,6 +67,7 @@ or you can use the %apply directive :
    $1 = &temp;
 }
 %typemap(typecheck) type *INPUT = type;
+%typemap(typecheck) type &INPUT = type;
 %enddef
 
 INPUT_TYPEMAP(float, PyFloat_AsDouble);
@@ -248,6 +249,17 @@ phased out in future releases.
 %typemap(in) float *INOUT = float *INPUT;
 %typemap(in) double *INOUT = double *INPUT;
 
+%typemap(in) int &INOUT = int &INPUT;
+%typemap(in) short &INOUT = short &INPUT;
+%typemap(in) long &INOUT = long &INPUT;
+%typemap(in) unsigned &INOUT = unsigned &INPUT;
+%typemap(in) unsigned short &INOUT = unsigned short &INPUT;
+%typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned char &INOUT = unsigned char &INPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(in) float &INOUT = float &INPUT;
+%typemap(in) double &INOUT = double &INPUT;
+
 %typemap(argout) int *INOUT = int *OUTPUT;
 %typemap(argout) short *INOUT = short *OUTPUT;
 %typemap(argout) long *INOUT = long *OUTPUT;
@@ -258,6 +270,17 @@ phased out in future releases.
 %typemap(argout) bool *INOUT = bool *OUTPUT;
 %typemap(argout) float *INOUT = float *OUTPUT;
 %typemap(argout) double *INOUT = double *OUTPUT;
+
+%typemap(argout) int &INOUT = int &OUTPUT;
+%typemap(argout) short &INOUT = short &OUTPUT;
+%typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
+%typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
+%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
+%typemap(argout) float &INOUT = float &OUTPUT;
+%typemap(argout) double &INOUT = double &OUTPUT;
 
 /* Overloading information */
 
@@ -272,6 +295,18 @@ phased out in future releases.
 %typemap(typecheck) short *INOUT = short;
 %typemap(typecheck) int *INOUT = int;
 %typemap(typecheck) float *INOUT = float;
+
+%typemap(typecheck) double &INOUT = double;
+%typemap(typecheck) bool &INOUT = bool;
+%typemap(typecheck) signed char &INOUT = signed char;
+%typemap(typecheck) unsigned char &INOUT = unsigned char;
+%typemap(typecheck) unsigned long &INOUT = unsigned long;
+%typemap(typecheck) unsigned short &INOUT = unsigned short;
+%typemap(typecheck) unsigned int &INOUT = unsigned int;
+%typemap(typecheck) long &INOUT = long;
+%typemap(typecheck) short &INOUT = short;
+%typemap(typecheck) int &INOUT = int;
+%typemap(typecheck) float &INOUT = float;
 
 
 

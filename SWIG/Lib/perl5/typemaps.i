@@ -10,36 +10,20 @@
 // ever need to write a typemap.
 //
 
-#ifdef AUTODOC
-%section "Typemap Library (Perl 5)",info,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
-%text %{
-%include typemaps.i
-
+/*
 The SWIG typemap library provides a language independent mechanism for
 supporting output arguments, input values, and other C function
 calling mechanisms.  The primary use of the library is to provide a
 better interface to certain C function--especially those involving
 pointers.
-%}
-
-#endif
-
-// ------------------------------------------------------------------------
-// Pointer handling
-//
-// These mappings provide support for input/output arguments and common
-// uses for C/C++ pointers.
-// ------------------------------------------------------------------------
+*/
 
 // INPUT typemaps.
 // These remap a C pointer to be an "INPUT" value which is passed by value
 // instead of reference.
 
 
-#ifdef AUTODOC
-%subsection "Input Methods"
-
-%text %{
+/*
 The following methods can be applied to turn a pointer into a simple
 "input" value.  That is, instead of passing a pointer to an object,
 you would use a real value instead.
@@ -71,68 +55,37 @@ or you can use the %apply directive :
         %apply double *INPUT { double *a, double *b };
         double fadd(double *a, double *b);
 
-%}
-#endif
+*/
 
-%typemap(in) double *INPUT(double temp)
-{
-  temp = (double) SvNV($input);
+%define INPUT_TYPEMAP(type, converter) 
+%typemap(in) type *INPUT(type temp), type &INPUT(type temp) {
+  temp = (type) converter($input);
   $1 = &temp;
 }
+%typemap(typecheck) type *INPUT = type;
+%typemap(typecheck) type &INPUT = type;
+%enddef
 
-%typemap(in) float  *INPUT(float temp)
-{
-  temp = (float) SvNV($input);
-  $1 = &temp;
-}
+INPUT_TYPEMAP(float, SvNV);
+INPUT_TYPEMAP(double, SvNV);
+INPUT_TYPEMAP(int, SvIV);
+INPUT_TYPEMAP(long, SvIV);
+INPUT_TYPEMAP(short, SvIV);
+INPUT_TYPEMAP(signed char, SvIV);
+INPUT_TYPEMAP(unsigned int, SvUV);
+INPUT_TYPEMAP(unsigned long, SvUV);
+INPUT_TYPEMAP(unsigned short, SvUV);
+INPUT_TYPEMAP(unsigned char, SvUV);
+INPUT_TYPEMAP(bool, SvIV);
 
-%typemap(in) int            *INPUT(int temp)
-{
-  temp = (int) SvIV($input);
-  $1 = &temp;
-}
 
-%typemap(in) short          *INPUT(short temp)
-{
-  temp = (short) SvIV($input);
-  $1 = &temp;
-}
-
-%typemap(in) long           *INPUT(long temp)
-{
-  temp = (long) SvIV($input);
-  $1 = &temp;
-}
-%typemap(in) unsigned int   *INPUT(unsigned int temp)
-{
-  temp = (unsigned int) SvIV($input);
-  $1 = &temp;
-}
-%typemap(in) unsigned short *INPUT(unsigned short temp)
-{
-  temp = (unsigned short) SvIV($input);
-  $1 = &temp;
-}
-%typemap(in) unsigned long  *INPUT(unsigned long temp)
-{
-  temp = (unsigned long) SvIV($input);
-  $1 = &temp;
-}
-%typemap(in) unsigned char  *INPUT(unsigned char temp)
-{
-  temp = (unsigned char) SvIV($input);
-  $1 = &temp;
-}
+#undef INPUT_TYPEMAP
                  
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
 
-
-#ifdef AUTODOC
-%subsection "Output Methods"
-
-%text %{
+/*
 The following methods can be applied to turn a pointer into an "output"
 value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  In the case of
@@ -150,7 +103,7 @@ multiple output values, functions will return a Perl array.
          
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
-returns the integer part in one of its parameters).K:
+returns the integer part in one of its parameters).:
 
         double modf(double x, double *ip);
 
@@ -168,32 +121,28 @@ or you can use the %apply directive :
 The Perl output of the function would be an array containing both
 output values. 
 
-%}
-
-#endif
+*/
 
 // Force the argument to be ignored.
 
-%typemap(ignore) int            *OUTPUT(int temp),
-                       short          *OUTPUT(short temp),
-                       long           *OUTPUT(long temp),
-                       unsigned int   *OUTPUT(unsigned int temp),
-                       unsigned short *OUTPUT(unsigned short temp),
-                       unsigned long  *OUTPUT(unsigned long temp),
-                       unsigned char  *OUTPUT(unsigned char temp),
-                       float          *OUTPUT(float temp),
-                       double         *OUTPUT(double temp)
-{
-  $1 = &temp;
-}
+%typemap(ignore) int            *OUTPUT(int temp),  int &OUTPUT(int temp),
+                 short          *OUTPUT(short temp), short &OUTPUT(short temp),
+                 long           *OUTPUT(long temp), long &OUTPUT(long temp),
+                 unsigned int   *OUTPUT(unsigned int temp), unsigned int &OUTPUT(unsigned int temp),
+                 unsigned short *OUTPUT(unsigned short temp), unsigned short &OUTPUT(unsigned short temp),
+                 unsigned long  *OUTPUT(unsigned long temp), unsigned long &OUTPUT(unsigned long temp),
+                 unsigned char  *OUTPUT(unsigned char temp), unsigned char &OUTPUT(unsigned char temp),
+                 signed char    *OUTPUT(signed char temp), signed char &OUTPUT(signed char temp),
+                 bool           *OUTPUT(bool temp), bool &OUTPUT(bool temp),
+                 float          *OUTPUT(float temp), float &OUTPUT(float temp),
+                 double         *OUTPUT(double temp), double &OUTPUT(double temp)
+"$1 = &temp;";
 
-%typemap(argout) int            *OUTPUT,
-                       short          *OUTPUT,
-                       long           *OUTPUT,
-                       unsigned int   *OUTPUT,
-                       unsigned short *OUTPUT,
-                       unsigned long  *OUTPUT,
-                       unsigned char  *OUTPUT
+%typemap(argout)  int            *OUTPUT, int &OUTPUT,
+                  short          *OUTPUT, short &OUTPUT,
+                  long           *OUTPUT, long &OUTPUT,
+                  signed char    *OUTPUT, signed char &OUTPUT,
+                  bool           *OUTPUT, bool &OUTPUT
 {
   if (argvi >= items) {
     EXTEND(sp,1);
@@ -203,8 +152,23 @@ output values.
   argvi++;
 }
 
-%typemap(argout) float    *OUTPUT,
-                       double   *OUTPUT
+%typemap(argout)  unsigned int   *OUTPUT, unsigned int &OUTPUT,
+                  unsigned short *OUTPUT, unsigned short &OUTPUT,
+                  unsigned long  *OUTPUT, unsigned long &OUTPUT,
+                  unsigned char  *OUTPUT, unsigned char &OUTPUT
+{
+  if (argvi >= items) {
+    EXTEND(sp,1);
+  }
+  $result = sv_newmortal();
+  sv_setuv($result,(UV) *($1));
+  argvi++;
+}
+
+
+
+%typemap(argout) float    *OUTPUT, float &OUTPUT,
+                 double   *OUTPUT, double &OUTPUT
 {
   if (argvi >= items) {
     EXTEND(sp,1);
@@ -218,15 +182,11 @@ output values.
 // Mappings for an argument that is both an input and output
 // parameter
 
-
-#ifdef AUTODOC
-%subsection "Input/Output Methods"
-
-%text %{
+/*
 The following methods can be applied to make a function parameter both
 an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
-returned in the form of a Tcl list.
+returned in the form of a Perl array.
 
          int            *INOUT
          short          *INOUT
@@ -262,9 +222,7 @@ do this :
 
        $x = neg($x);
 
-%}
-
-#endif
+*/
 
 %typemap(in) int *INOUT = int *INPUT;
 %typemap(in) short *INOUT = short *INPUT;
@@ -273,8 +231,23 @@ do this :
 %typemap(in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(in) unsigned long *INOUT = unsigned long *INPUT;
 %typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) signed char *INOUT = signed char *INPUT;
+%typemap(in) bool *INOUT = bool *INPUT;
 %typemap(in) float *INOUT = float *INPUT;
 %typemap(in) double *INOUT = double *INPUT;
+
+%typemap(in) int &INOUT = int &INPUT;
+%typemap(in) short &INOUT = short &INPUT;
+%typemap(in) long &INOUT = long &INPUT;
+%typemap(in) unsigned &INOUT = unsigned &INPUT;
+%typemap(in) unsigned short &INOUT = unsigned short &INPUT;
+%typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned char &INOUT = unsigned char &INPUT;
+%typemap(in) signed char &INOUT = signed char &INPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(in) float &INOUT = float &INPUT;
+%typemap(in) double &INOUT = double &INPUT;
+
 
 %typemap(argout) int *INOUT = int *OUTPUT;
 %typemap(argout) short *INOUT = short *OUTPUT;
@@ -283,27 +256,27 @@ do this :
 %typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
 %typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) signed char *INOUT = signed char *OUTPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
 %typemap(argout) float *INOUT = float *OUTPUT;
 %typemap(argout) double *INOUT = double *OUTPUT;
 
-%apply int *INOUT { int *BOTH };
-%apply short *INOUT { short *BOTH };
-%apply long *INOUT { long *BOTH };
-%apply unsigned int *INOUT { unsigned int *BOTH };
-%apply unsigned long *INOUT { unsigned long *BOTH };
-%apply unsigned short *INOUT { unsigned short *BOTH };
-%apply unsigned char *INOUT { unsigned char *BOTH };
-%apply float *INOUT { float *BOTH };
-%apply double *INOUT { double *BOTH };
+%typemap(argout) int &INOUT = int &OUTPUT;
+%typemap(argout) short &INOUT = short &OUTPUT;
+%typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) unsigned &INOUT = unsigned &OUTPUT;
+%typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
+%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
+%typemap(argout) signed char &INOUT = signed char &OUTPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
+%typemap(argout) float &INOUT = float &OUTPUT;
+%typemap(argout) double &INOUT = double &OUTPUT;
 
 // REFERENCE
 // Accept Perl references as pointers
 
-
-#ifdef AUTODOC
-%subsection "Reference Methods"
-
-%text %{
+/*
 The following methods make Perl references work like simple C
 pointers.  References can only be used for simple input/output
 values, not C arrays however.  It should also be noted that 
@@ -344,11 +317,10 @@ as follows :
        $x = 3;
        neg(\$x);
        print "$x\n";         # Should print out -3.
-%}
 
-#endif
+*/
 
-%typemap(in) double *REFERENCE (double dvalue)
+%typemap(in) double *REFERENCE (double dvalue), double &REFERENCE(double dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -363,7 +335,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(in) float *REFERENCE (float dvalue)
+%typemap(in) float *REFERENCE (float dvalue), float &REFERENCE(float dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -377,7 +349,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(in) int *REFERENCE (int dvalue)
+%typemap(in) int *REFERENCE (int dvalue), int &REFERENCE (int dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -391,7 +363,7 @@ as follows :
   $1 = &dvalue;
 }
 
-%typemap(in) short *REFERENCE (short dvalue)
+%typemap(in) short *REFERENCE (short dvalue), short &REFERENCE(short dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -404,7 +376,7 @@ as follows :
   dvalue = (short) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(in) long *REFERENCE (long dvalue)
+%typemap(in) long *REFERENCE (long dvalue), long &REFERENCE(long dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -417,7 +389,7 @@ as follows :
   dvalue = (long) SvIV(tempsv);
   $1 = &dvalue;
 }
-%typemap(in) unsigned int *REFERENCE (unsigned int dvalue)
+%typemap(in) unsigned int *REFERENCE (unsigned int dvalue), unsigned int &REFERENCE(unsigned int dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -427,10 +399,10 @@ as follows :
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
-  dvalue = (unsigned int) SvIV(tempsv);
+  dvalue = (unsigned int) SvUV(tempsv);
   $1 = &dvalue;
 }
-%typemap(in) unsigned short *REFERENCE (unsigned short dvalue)
+%typemap(in) unsigned short *REFERENCE (unsigned short dvalue), unsigned short &REFERENCE(unsigned short dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -440,10 +412,10 @@ as follows :
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
-  dvalue = (unsigned short) SvIV(tempsv);
+  dvalue = (unsigned short) SvUV(tempsv);
   $1 = &dvalue;
 }
-%typemap(in) unsigned long *REFERENCE (unsigned long dvalue)
+%typemap(in) unsigned long *REFERENCE (unsigned long dvalue), unsigned long &REFERENCE(unsigned long dvalue)
 {
   SV *tempsv;
   if (!SvROK($input)) {
@@ -453,43 +425,82 @@ as follows :
   if (!SvIOK(tempsv)) {
     croak("expected a integer reference");
   }
-  dvalue = (unsigned long) SvIV(tempsv);
+  dvalue = (unsigned long) SvUV(tempsv);
   $1 = &dvalue;
 }
 
-%typemap(argout) double *REFERENCE,
-                       float  *REFERENCE
+%typemap(in) unsigned char *REFERENCE (unsigned char dvalue), unsigned char &REFERENCE(unsigned char dvalue)
+{
+  SV *tempsv;
+  if (!SvROK($input)) {
+    croak("expected a reference");
+  }
+  tempsv = SvRV($input);
+  if (!SvIOK(tempsv)) {
+    croak("expected a integer reference");
+  }
+  dvalue = (unsigned char) SvUV(tempsv);
+  $1 = &dvalue;
+}
+
+%typemap(in) signed char *REFERENCE (signed char dvalue), signed char &REFERENCE(signed char dvalue)
+{
+  SV *tempsv;
+  if (!SvROK($input)) {
+    croak("expected a reference");
+  }
+  tempsv = SvRV($input);
+  if (!SvIOK(tempsv)) {
+    croak("expected a integer reference");
+  }
+  dvalue = (signed char) SvIV(tempsv);
+  $1 = &dvalue;
+}
+
+%typemap(in) bool *REFERENCE (bool dvalue), bool &REFERENCE(bool dvalue)
+{
+  SV *tempsv;
+  if (!SvROK($input)) {
+    croak("expected a reference");
+  }
+  tempsv = SvRV($input);
+  if (!SvIOK(tempsv)) {
+    croak("expected a integer reference");
+  }
+  dvalue = (bool) SvIV(tempsv);
+  $1 = &dvalue;
+}
+
+%typemap(argout) double *REFERENCE, double &REFERENCE,
+                 float  *REFERENCE, float &REFERENCE
 {
   SV *tempsv;
   tempsv = SvRV($arg);
   sv_setnv(tempsv, (double) *$1);
 }
 
-%typemap(argout) int            *REFERENCE,
-                       short          *REFERENCE,
-                       long           *REFERENCE,
-                       unsigned int   *REFERENCE,
-                       unsigned short *REFERENCE,
-                       unsigned long  *REFERENCE
+%typemap(argout)       int            *REFERENCE, int &REFERENCE,
+                       short          *REFERENCE, short &REFERENCE,
+                       long           *REFERENCE, long  &REFERENCE,
+                       signed char    *REFERENCE, unsigned char &REFERENCE,
+                       bool           *REFERENCE, bool &REFERENCE
 {
   SV *tempsv;
   tempsv = SvRV($input);
-  sv_setiv(tempsv, (int) *$1);
+  sv_setiv(tempsv, (IV) *$1);
+}
+
+%typemap(argout)       unsigned int   *REFERENCE, unsigned int &REFERENCE,
+                       unsigned short *REFERENCE, unsigned short &REFERENCE,
+                       unsigned long  *REFERENCE, unsigned long &REFERENCE,
+                       unsigned char  *REFERENCE, unsigned char &REFERENCE
+{
+  SV *tempsv;
+  tempsv = SvRV($input);
+  sv_setuv(tempsv, (UV) *$1);
 }
 
 /* Overloading information */
-
-%typemap(typecheck) double *INPUT = double;
-%typemap(typecheck) bool *INPUT = bool;
-%typemap(typecheck) signed char *INPUT = signed char;
-%typemap(typecheck) unsigned char *INPUT = unsigned char;
-%typemap(typecheck) unsigned long *INPUT = unsigned long;
-%typemap(typecheck) unsigned short *INPUT = unsigned short;
-%typemap(typecheck) unsigned int *INPUT = unsigned int;
-%typemap(typecheck) long *INPUT = long;
-%typemap(typecheck) short *INPUT = short;
-%typemap(typecheck) int *INPUT = int;
-%typemap(typecheck) float *INPUT = float;
 
 %typemap(typecheck) double *INOUT = double;
 %typemap(typecheck) bool *INOUT = bool;

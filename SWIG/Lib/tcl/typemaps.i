@@ -300,8 +300,22 @@ to a Tcl variable you might do this :
 %typemap(in) unsigned short *INOUT = unsigned short *INPUT;
 %typemap(in) unsigned long *INOUT = unsigned long *INPUT;
 %typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) signed char *INOUT = signed char *INPUT;
+%typemap(in) bool *INOUT = bool *INPUT;
 %typemap(in) float *INOUT = float *INPUT;
 %typemap(in) double *INOUT = double *INPUT;
+
+%typemap(in) int &INOUT = int &INPUT;
+%typemap(in) short &INOUT = short &INPUT;
+%typemap(in) long &INOUT = long &INPUT;
+%typemap(in) unsigned int &INOUT = unsigned int &INPUT;
+%typemap(in) unsigned short &INOUT = unsigned short &INPUT;
+%typemap(in) unsigned long &INOUT = unsigned long &INPUT;
+%typemap(in) unsigned char &INOUT = unsigned char &INPUT;
+%typemap(in) signed char &INOUT = signed char &INPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(in) float &INOUT = float &INPUT;
+%typemap(in) double &INOUT = double &INPUT;
 
 %typemap(argout) int *INOUT = int *OUTPUT;
 %typemap(argout) short *INOUT = short *OUTPUT;
@@ -310,8 +324,22 @@ to a Tcl variable you might do this :
 %typemap(argout) unsigned short *INOUT = unsigned short *OUTPUT;
 %typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
 %typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) signed char *INOUT = signed char *OUTPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
 %typemap(argout) float *INOUT = float *OUTPUT;
 %typemap(argout) double *INOUT = double *OUTPUT;
+
+%typemap(argout) int &INOUT = int &OUTPUT;
+%typemap(argout) short &INOUT = short &OUTPUT;
+%typemap(argout) long &INOUT = long &OUTPUT;
+%typemap(argout) unsigned int &INOUT = unsigned int &OUTPUT;
+%typemap(argout) unsigned short &INOUT = unsigned short &OUTPUT;
+%typemap(argout) unsigned long &INOUT = unsigned long &OUTPUT;
+%typemap(argout) unsigned char &INOUT = unsigned char &OUTPUT;
+%typemap(argout) signed char &INOUT = signed char &OUTPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
+%typemap(argout) float &INOUT = float &OUTPUT;
+%typemap(argout) double &INOUT = double &OUTPUT;
 
 // --------------------------------------------------------------------
 // Special types
@@ -374,6 +402,18 @@ int Tcl_Result
 %typemap(typecheck) int *INPUT = int;
 %typemap(typecheck) float *INPUT = float;
 
+%typemap(typecheck) double &INPUT = double;
+%typemap(typecheck) bool &INPUT = bool;
+%typemap(typecheck) signed char &INPUT = signed char;
+%typemap(typecheck) unsigned char &INPUT = unsigned char;
+%typemap(typecheck) unsigned long &INPUT = unsigned long;
+%typemap(typecheck) unsigned short &INPUT = unsigned short;
+%typemap(typecheck) unsigned int &INPUT = unsigned int;
+%typemap(typecheck) long &INPUT = long;
+%typemap(typecheck) short &INPUT = short;
+%typemap(typecheck) int &INPUT = int;
+%typemap(typecheck) float &INPUT = float;
+
 %typemap(typecheck) double *INOUT = double;
 %typemap(typecheck) bool *INOUT = bool;
 %typemap(typecheck) signed char *INOUT = signed char;
@@ -385,6 +425,18 @@ int Tcl_Result
 %typemap(typecheck) short *INOUT = short;
 %typemap(typecheck) int *INOUT = int;
 %typemap(typecheck) float *INOUT = float;
+
+%typemap(typecheck) double &INOUT = double;
+%typemap(typecheck) bool &INOUT = bool;
+%typemap(typecheck) signed char &INOUT = signed char;
+%typemap(typecheck) unsigned char &INOUT = unsigned char;
+%typemap(typecheck) unsigned long &INOUT = unsigned long;
+%typemap(typecheck) unsigned short &INOUT = unsigned short;
+%typemap(typecheck) unsigned int &INOUT = unsigned int;
+%typemap(typecheck) long &INOUT = long;
+%typemap(typecheck) short &INOUT = short;
+%typemap(typecheck) int &INOUT = int;
+%typemap(typecheck) float &INOUT = float;
 
 
   
