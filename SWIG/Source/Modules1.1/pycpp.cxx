@@ -449,11 +449,10 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) inhash = 1;
     
     // Now write some code to set the variable
-    *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_set(name_member(realname,class_name)) << ",\n";
-
     if (Status & STAT_READONLY) {
       //      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n";
     } else {
+      *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_set(name_member(realname,class_name)) << ",\n";
     }
     // Write some code to get the variable
     if (inhash) {
