@@ -34,7 +34,8 @@ struct normal_node {
 
 static normal_node *patch_list = 0;
 
-class TypePass : public Dispatcher {
+/* Singleton class - all non-static methods in this class are private */
+class TypePass : private Dispatcher {
   Node   *inclass;
   Node   *module;
   int    importmode;
@@ -42,18 +43,13 @@ class TypePass : public Dispatcher {
   Hash   *classhash;
   List   *normalize;
 
+  TypePass() {
+  }
+
   /* Normalize a type. Replaces type with fully qualified version */
 
   void normalize_type(SwigType *ty) {
     SwigType *qty;
-    /*qty = Swig_symbol_type_qualify(ty,0);*/
-    /*      if (SwigType_istemplate(ty)) {
-	    qty = Swig_symbol_type_qualify(ty,0);
-	    Clear(ty);
-	    Append(ty,qty);
-	    }
-    */
-
     if (CPlusPlus) {
 	Replaceall(ty,"struct ","");
 	Replaceall(ty,"union ","");
@@ -317,8 +313,6 @@ class TypePass : public Dispatcher {
       Delattr(n,"sym:overloaded");
     }
   }
-
-public:
 
   /* ------------------------------------------------------------
    * top()
@@ -743,20 +737,29 @@ public:
 
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n,"name");
-    String *uname = Getattr(n,"unnamed");
+
     if (name) {
-      SwigType *t;
-      if (uname) {
-	t = NewStringf("enum %s", uname);
-	if (checkAttribute(n,"storage","typedef")) {
-	  SwigType_typedef(t,name);
-	}
+      // Correct the name to contain the fully qualified scopename
+      // Add a typedef to the type table so that we can use 'enum Name' as well as just 'Name'
+      if (nsname || inclass) {
+        String *nname = 0;
+        if (nsname && inclass) {
+          nname = NewStringf("%s::%s::%s", nsname, Getattr(inclass,"name"), name);
+        } else if (nsname) {
+          nname = NewStringf("%s::%s", nsname, name);
+        } else if (inclass) {
+          nname = NewStringf("%s::%s", Getattr(inclass,"name"), name);
+        }
+        Setattr(n,"name",nname);
+        SwigType *t = NewStringf("enum %s", nname);
+        SwigType_typedef(t,name);
+        Delete(nname);
       } else {
-	t = NewStringf("enum %s", name);
-	SwigType_typedef(t,name);
+        SwigType *t = NewStringf("enum %s", name);
+        SwigType_typedef(t,name);
       }
-      Delete(t);
     }
+
     emit_children(n);
     return SWIG_OK;
   }
@@ -977,13 +980,17 @@ public:
     }
     return SWIG_OK;
   }
+
+public:
+  static void pass(Node *n) {
+    TypePass t;
+    t.top(n);
+  }
 };
 
 void Swig_process_types(Node *n) {
   if (!n) return;
-  TypePass *t = new TypePass;
-  t->top(n);
-  delete t;
+  TypePass::pass(n);
 }
 
 
