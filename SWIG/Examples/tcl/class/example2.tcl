@@ -11,7 +11,7 @@ catch { load ./example.dll example}    ;# Windows
 puts "Creating some objects:"
 Circle c 10
 puts "    Created circle [c cget -this]"
-Circle s 10
+Square s 10
 puts "    Created square [s cget -this]"
 
 # ----- Access a static member -----
