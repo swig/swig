@@ -19,6 +19,17 @@ typedef SCM (*guile_destructor)(SCM);
 
 #define SWIG_scm2str(s) SWIG_scm2newstr(s, NULL)
 
+#define SWIG_malloc(size) \
+  SCM_MUST_MALLOC(size)
+#define SWIG_free(mem) \
+  scm_must_free(mem)
+#define SWIG_ConvertPtr(s, result, type, flags) \
+  SWIG_Guile_ConvertPtr(s, result, type, flags)
+#define SWIG_MustGetPtr(s, type, argnum, flags) \
+  SWIG_Guile_MustGetPtr(s, type, argnum, flags, FUNC_NAME)
+#define SWIG_NewPointerObj(ptr, type, owner) \
+  SWIG_Guile_NewPointerObj((void*)ptr, type, owner)
+
 #ifdef SWIG_NOINCLUDE
 
 /* Interface helper function */
@@ -174,13 +185,13 @@ SWIGRUNTIME(void)
 SWIG_Guile_Init ()
 {
   if (!swig_tag) {
-    swig_tag = scm_make_smob_type("swig", 0);
+    swig_tag = scm_make_smob_type((char*)"swig", 0);
     scm_set_smob_print(swig_tag, print_swig);
     scm_set_smob_equalp(swig_tag, equalp_swig);
   }
 
   if (!swig_collected_tag) {
-    swig_collected_tag = scm_make_smob_type("collected swig", 0);
+    swig_collected_tag = scm_make_smob_type((char*)"collected swig", 0);
     scm_set_smob_print(swig_collected_tag, print_collected_swig);
     scm_set_smob_equalp(swig_collected_tag, equalp_swig);
     scm_set_smob_free(swig_collected_tag, free_swig);
