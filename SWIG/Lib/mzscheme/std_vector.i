@@ -5,6 +5,7 @@
 //
 // MzScheme implementation
 
+%include std_common.i
 %include exception.i
 
 // containers
@@ -311,6 +312,8 @@ namespace std {
                           scheme_make_double);
     specialize_std_vector(double,SCHEME_REALP,scheme_real_to_double,\
                           scheme_make_double);
+    specialize_std_vector(string,SCHEME_STRINGP,swig_scm_to_string,\
+                          swig_make_string);
     
 
 }

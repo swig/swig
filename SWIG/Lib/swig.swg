@@ -204,6 +204,7 @@ namespace std {
 %define SWIG_TYPECHECK_UNISTRING    120    %enddef
 %define SWIG_TYPECHECK_CHAR         130    %enddef
 %define SWIG_TYPECHECK_STRING       140    %enddef
+%define SWIG_TYPECHECK_VECTOR       150    %enddef
 
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 

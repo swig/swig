@@ -5,29 +5,8 @@
 //
 // Ruby implementation
 
-
-// These should be factored out somewhere
-%{
-#define SWIG_FLOAT_P(x) ((TYPE(x) == T_FLOAT) || FIXNUM_P(x))
-
-bool SWIG_BOOL_P(VALUE) {
-    // dummy test, RTEST should take care of everything
-    return true;
-}
-bool SWIG_RB2BOOL(VALUE x) {
-    return RTEST(x);
-}
-VALUE SWIG_BOOL2RB(bool b) {
-    return b ? Qtrue : Qfalse;
-}
-double SWIG_NUM2DBL(VALUE x) {
-    return (FIXNUM_P(x) ? FIX2INT(x) : NUM2DBL(x));
-}
-%}
-
+%include std_common.i
 %include exception.i
-
-// containers
 
 %exception std::vector::__getitem__ {
     try {
@@ -114,7 +93,7 @@ namespace std {
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
                     T* x;
-		    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
+                    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
                     temp[i] = *x;
                 }
             } else {
@@ -130,10 +109,64 @@ namespace std {
                                                 $descriptor(T *), 1));
             }
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,1) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
 
         %rename(__len__) size;
         unsigned int size() const;
@@ -225,10 +258,60 @@ namespace std {
             for (unsigned int i=0; i<$1.size(); i++)
                 rb_ary_store($result,i,CONVERT_TO((($1_type &)$1)[i]));
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if (CHECK(o))
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+            /* native sequence? */
+            if (rb_obj_is_kind_of($input,rb_cArray)) {
+                unsigned int size = RARRAY($input)->len;
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    VALUE o = RARRAY($input)->ptr[0];
+                    if (CHECK(o))
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,1) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
 
         %rename(__len__) size;
         unsigned int size() const;
@@ -279,6 +362,7 @@ namespace std {
     specialize_std_vector(unsigned long,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(double,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
     specialize_std_vector(float,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
+    specialize_std_vector(string,SWIG_STRING_P,SWIG_RB2STR,SWIG_STR2RB);
 
 }
 

@@ -5,15 +5,7 @@
 //
 // Guile implementation
 
-
-// This should be factored out somewhere
-%{
-SCM SWIG_bool2scm(bool b) {
-    int i = b ? 1 : 0;
-    return gh_bool2scm(i);
-}
-%}
-
+%include std_common.i
 %include exception.i
 
 %exception std::vector::ref {
@@ -298,6 +290,7 @@ namespace std {
     specialize_stl_vector(unsigned short,gh_number_p,gh_scm2ulong,gh_ulong2scm);
     specialize_stl_vector(float,gh_number_p,gh_scm2double,gh_double2scm);
     specialize_stl_vector(double,gh_number_p,gh_scm2double,gh_double2scm);
+    specialize_stl_vector(string,gh_string_p,gh_scm2string,gh_string2scm);
 
 }
 

@@ -5,23 +5,8 @@
 //
 // Python implementation
 
-
-// These should be factored out somewhere
-%{
-PyObject* SwigInt_FromBool(bool b) {
-    return PyInt_FromLong(b ? 1L : 0L);
-}
-double SwigNumber_Check(PyObject* o) {
-    return PyFloat_Check(o) || PyInt_Check(o);
-}
-double SwigNumber_AsDouble(PyObject* o) {
-    return (PyFloat_Check(o) ? PyFloat_AsDouble(o) : double(PyInt_AsLong(o)));
-}
-%}
-
+%include std_common.i
 %include exception.i
-
-// containers
 
 // __getitem__ is required to raise an IndexError for for-loops to work
 // other methods which can raise are made to throw an IndexError as well
@@ -162,10 +147,68 @@ namespace std {
                                                    $descriptor(T *), 1));
             }
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T *),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
 
         %rename(__len__) size;
         unsigned int size() const;
@@ -317,10 +360,68 @@ namespace std {
                                                    $descriptor(T), 0));
             }
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T x;
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T x;
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if ((SWIG_ConvertPtr(o,(void **) &x, 
+                                         $descriptor(T),0)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
 
         %rename(__len__) size;
         unsigned int size() const;
@@ -464,10 +565,64 @@ namespace std {
                 PyTuple_SetItem($result,i,
                                 CONVERT_TO((($1_type &)$1)[i]));
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if (CHECK(o))
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $&1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T> & {
+            /* native sequence? */
+            if (PyTuple_Check($input) || PyList_Check($input)) {
+                unsigned int size = (PyTuple_Check($input) ?
+                                     PyTuple_Size($input) :
+                                     PyList_Size($input));
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    PyObject* o = PySequence_GetItem($input,0);
+                    if (CHECK(o))
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector();
         vector(unsigned int size, const T& value=T());
-	vector(const vector<T> &);
+        vector(const vector<T> &);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
@@ -559,6 +714,8 @@ namespace std {
                           SwigNumber_AsDouble,PyFloat_FromDouble);
     specialize_std_vector(float,SwigNumber_Check,\
                           SwigNumber_AsDouble,PyFloat_FromDouble);
+    specialize_std_vector(string,PyString_Check,\
+                          SwigString_AsString,SwigString_FromString);
 
 }
 
