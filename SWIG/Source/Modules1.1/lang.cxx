@@ -1318,7 +1318,9 @@ int Language::classHandler(Node *n) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
       if (!Abstract) {
+	Setattr(CurrentClass,"feature:new","1");
 	constructorHandler(CurrentClass);
+	Delattr(CurrentClass,"feature:new");
       }
     }
     if (!Getattr(n,"has_destructor") && (!Getattr(n,"allocate:has_destructor")) && (Getattr(n,"allocate:default_destructor"))) {
