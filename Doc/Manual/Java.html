@@ -16,9 +16,9 @@
 <li><a href="#n7">Using your module</a>
 <li><a href="#n8">Compilation problems and compiling with C++</a>
 </ul>
-<li><a href="#n9">Building Java Extensions under Windows</a>
+<li><a href="#n9">Building on Windows</a>
 <ul>
-<li><a href="#n10">Running SWIG from Developer Studio</a>
+<li><a href="#n10">Running SWIG from Visual Studio</a>
 <li><a href="#n11">Using NMAKE</a>
 </ul>
 <li><a href="#n12">A tour of basic C/C++ wrapping</a>
@@ -104,22 +104,38 @@
 </ul>
 <!-- INDEX -->
 
-
-
 This chapter describes SWIG's support of Java. 
-Java is one of the few non-scripting language modules in SWIG
-and an advantage of using Java over scripting languages is its type safety.
-The 100% Pure Java effort is a commendable concept, however in the real world programmers either need to re-use their existing code or in some situations 
-want to take advantage of Java but are forced into using some native (C/C++) code.
-<p>
+It covers most SWIG features, but certain low-level details are covered in less depth than in earlier chapters. 
 
+
+<a name="n2"></a><H2>15.1 Overview</H2>
+
+The 100% Pure Java effort is a commendable concept, however in the real world programmers often either need to re-use their existing code or in some situations 
+want to take advantage of Java but are forced into using some native (C/C++) code.
 The Java extension to SWIG makes it very easy to plumb in existing C/C++ code for access from Java, as SWIG writes the Java Native Interface (JNI) code for you. 
-It is different to using the 'javah' tool as SWIG will wrap existing C/C++ code, whereas javah takes Java functions and creates C/C++ function prototypes.
+It is different to using the 'javah' tool as SWIG will wrap existing C/C++ code, whereas javah takes 'native' Java function declarations and creates C/C++ function prototypes.
 SWIG wraps C/C++ code using Java proxy classes and is very useful if you want to have access to large amounts of C/C++ code from Java.
 If only one or two JNI functions are needed then using SWIG may be overkill.
 An important point to note is that SWIG enables a Java program to easily call into C/C++ code and not visa-versa.
-If you primarily want calls from C/C++ into Java then SWIG isn't particularly useful as the appropriate JNI code will have to be written by hand. 
+If you primarily want calls from C/C++ into Java then currently SWIG isn't particularly useful as the appropriate JNI code will have to be written by hand. 
 <p>
+
+Java is one of the few non-scripting language modules in SWIG.
+As SWIG utilizes the type safety that the Java language offers, it takes a somewhat different approach to that used for scripting languages.
+In particular the runtime type checking and runtime library are not used by Java.
+This should be borne in mind when reading the rest of the SWIG documentation.
+This chapter on Java is relatively self contained and will provide you with nearly everything you need for using SWIG and Java.
+However, the "<a href="SWIG.html">SWIG Basics</a>" chapter will be a useful read in conjunction with this one.
+<p>
+
+This chapter starts with a few practicalities on running SWIG and compiling the generated code.
+If you are looking for the minimum amount to read, have a look at the sections up to and including the
+<a href="#java_basic_tour">tour of basic C/C++ wrapping</a> section which explains how to call the various C/C++ code constructs from Java.
+Following this section are details of the C/C++ code and Java classes that SWIG generates.
+Due to the complexities of C and C++ there are different ways in which C/C++ code could be wrapped and called from Java.
+SWIG is a powerful tool and the rest of the chapter details how the default code wrapping can be tailored.
+Various customisation tips and techniques using SWIG directives are covered.
+The latter sections cover the advanced techniques of using typemaps for complete control of the wrapping process.
 
 <a name="n2"></a><H2>15.1 Preliminaries</H2>
 
@@ -132,20 +148,45 @@ The generated code is also known to work on vxWorks using WindRiver's PJava 3.1.
 The best way to determine whether your combination of operating system and JDK will work is to test the examples and test-suite that comes with SWIG. 
 Run <tt>make -k check</tt> from the SWIG root directory after installing SWIG on Unix systems. <p>
 
-The Java module requires your system to support shared libraries and dynamic loading. This is the commonly used method to load JNI code so your system will more than likely support this.<p>
+The Java module requires your system to support shared libraries and dynamic loading. 
+This is the commonly used method to load JNI code so your system will more than likely support this.<p>
 
 <a name="n3"></a><H3>15.1.1 Running SWIG</H3>
 
+Suppose that you defined a SWIG module such as the following:
 
-The basics of getting a SWIG Java module up and running can be seen from one of SWIG's example Makefiles, but is also described here. 
-To build a Java module, run SWIG using the <tt>-java</tt> option.<p>
-<p>
+<blockquote>
+<pre>
+%module example
+%{
+#include "header.h"
+%}
+int fact(int n);
+</pre>
+</blockquote>
+
+
+To build a Java module, run SWIG using the <tt>-java</tt> option :<p>
+
 <blockquote><pre>%swig -java example.i
 </pre></blockquote>
 <p>
-This will produce a C or C++ file and many Java files.
-The file <tt>example_wrap.c</tt> contains all of the C code needed to build a Java module. 
-To build a Java module, you will need to compile the file <tt>example_wrap.c</tt> to create a shared library. 
+
+If building C++, add the <tt>-c++</tt> option:
+
+<p>
+<blockquote><pre>$ swig -c++ -java example.i
+</pre></blockquote>
+
+This creates two different files; a C/C++ source file <tt>example_wrap.c</tt> or
+<tt>example_wrap.cxx</tt> and numerous Java files.   The generated
+C/C++ source file contains the JNI wrapper code that needs to be compiled and linked with the
+rest of your C/C++ application. 
+
+<p>
+The name of the wrapper file is derived from the name of the input file.  For example, if the
+input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
+To change this, you can use the <tt>-o</tt> option. 
 
 <a name="n4"></a><H3>15.1.2 Additional Commandline Options</H3>
 
@@ -166,7 +207,7 @@ The following table list the additional commandline options available for the Ja
 
 <tr>
 <td>-noproxy</td>
-<td>Use the low-level functional interface, that is, do not generate proxy classes a.k.a. shadow classes</td>
+<td>Generate the low-level functional interface instead of proxy classes </td>
 </tr>
 
 </table>
@@ -176,7 +217,7 @@ Their use will become clearer by the time you have finished reading this section
 <a name="n5"></a><H3>15.1.3 Getting the right header files</H3>
 
 
-In order to compile, you need to locate the "jni.h" and "md.h" header files which are part of the JDK. 
+In order to compile the C/C++ wrappers, the compiler needs the <tt>jni.h</tt> and <tt>jni_md.h</tt> header files which are part of the JDK. 
 They are usually in directories like this:<p>
 <p>
 <blockquote><pre>
@@ -189,8 +230,8 @@ The exact location may vary on your machine, but the above locations are typical
 <a name="n6"></a><H3>15.1.4 Compiling a dynamic module</H3>
 
 
-The JNI code exists in a dynamic module or shared object and gets loaded by the JVM. 
-To build a shared object file, you need to compile your module in a manner similar to the following (shown for Solaris):<p>
+The JNI code exists in a dynamic module or shared library (DLL on Windows) and gets loaded by the JVM. 
+To build a shared library file, you need to compile your module in a manner similar to the following (shown for Solaris):<p>
 <p>
 <blockquote><pre>
 $ swig -java example.i
@@ -198,17 +239,24 @@ $ gcc -c example_wrap.c  -I/usr/java/include -I/usr/java/include/solaris
 $ ld -G example_wrap.o  -o libexample.so
 
 </pre></blockquote>
-Unfortunately, the process of building a shared object file varies on every single machine so you may need to read up on the man pages for your C compiler and linker.<p>
+The exact commands for doing this vary from platform to platform. 
+However, SWIG tries to guess the right options when it is installed.  Therefore, 
+you may want to start with one of the examples in the <tt>Examples/java</tt> 
+directory.   If that doesn't work, you will need to read the man-pages for
+your compiler and linker to get the right set of options.  You might also
+check the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> for
+additional information.
 <p>
-When building a dynamic module, the name of the output file is important. 
-If the name of your SWIG module is "<tt>example</tt>", the name of the corresponding object file should be "<tt>libexample.so</tt>" (or equivalent depending on your machine, see <a href="#dynamic_linking_problems">Dynamic linking problems</a> for more information). 
+
+The name of the shared library output file is important. 
+If the name of your SWIG module is "<tt>example</tt>", the name of the corresponding shared library file should be "<tt>libexample.so</tt>" (or equivalent depending on your machine, see <a href="#dynamic_linking_problems">Dynamic linking problems</a> for more information). 
 The name of the module is specified using the <tt>%module</tt> directive or<tt> -module</tt> command line option.<p>
 <p>
 
 <a name="n7"></a><H3>15.1.5 Using your module</H3>
 
 
-To use your module in Java, simply use Java's <tt>System.loadLibrary</tt> method in a Java class:<p>
+To load your shared native library module in Java, simply use Java's <tt>System.loadLibrary</tt> method in a Java class:<p>
 <p>
 <blockquote><pre>
 // main.java
@@ -232,34 +280,132 @@ $ java main
 $
 </pre></blockquote>
 
+If it doesn't work have a look at the following section which discusses problems loading the shared library.
+
+<a name="dynamic_linking_problems"></a>
+<a name="n66"></a><H3>15.9.3 Dynamic linking problems</H3>
+
+As shown in the previous section the code to load a native library (shared library) is <tt>System.loadLibrary("name")</tt>. 
+This can fail with an UnsatisfiedLinkError exception and can be due to a number of reasons.
+<p>
+You may get an exception similar to this:
+<blockquote><pre>
+$ java main
+Exception in thread "main" java.lang.UnsatisfiedLinkError: no example in java.library.path
+        at java.lang.ClassLoader.loadLibrary(ClassLoader.java:1312)
+        at java.lang.Runtime.loadLibrary0(Runtime.java:749)
+        at java.lang.System.loadLibrary(System.java:820)
+        at main.<clinit>(main.java:5)
+</pre></blockquote>
+
+The most common cause for this is an incorrect naming of the native library for the name passed to the <tt>loadLibrary</tt> function. 
+The string passed to the <tt>loadLibrary</tt> function must not include the file extension name in the string, that is <i>.dll</i> or <i>.so</i>. 
+The string must be <i>name</i> and not <i>libname</i> for all platforms. 
+On Windows the native library must then be called <i>name.dll</i> and on most Unix systems it must be called <i>libname.so</i>. 
+If you are debugging using <tt> java -debug</tt>, then the native library must be called <i>name_g.dll</i> on Windows and <i>libname_g.so</i> on Unix.
+<p>
+
+Another common reason for the native library not loading is because it is not in your path. 
+On Windows make sure the <i>path</i> environment variable contains the path to the native library. 
+On Unix make sure that your <i>LD_LIBRARY_PATH</i> contains the path to the native library. 
+Adding paths to <i>LD_LIBRARY_PATH</i> can slow down other programs on your system so you may want to consider alternative approaches.
+For example you could recompile your native library with extra path information using <tt>-rpath</tt> if you're using GNU, see the GNU linker documentation (<tt>ld</tt> man page).
+You could use a command such as <tt>ldconfig</tt> (Linux) or
+<tt>crle</tt> (Solaris) to add additional search paths to the default
+system configuration (this requires root access and you will need to read the man pages).
+
+<p>
+
+The native library will also not load if there are any unresolved symbols in the compiled C/C++ code. 
+The following exception is indicative of this:
+
+<blockquote><pre>
+$ java main
+Exception in thread "main" java.lang.UnsatisfiedLinkError: libexample.so: undefined symbol: fact
+        at java.lang.ClassLoader$NativeLibrary.load(Native Method)
+        at java.lang.ClassLoader.loadLibrary0(ClassLoader.java, Compiled Code)
+        at java.lang.ClassLoader.loadLibrary(ClassLoader.java, Compiled Code)
+        at java.lang.Runtime.loadLibrary0(Runtime.java, Compiled Code)
+        at java.lang.System.loadLibrary(System.java, Compiled Code)
+        at main.<clinit>(main.java:5)
+$
+</pre></blockquote>
+
+This error usually indicates that you forgot to include some object files or libraries in the linking of the native library file.  
+Make sure you compile both the SWIG wrapper file and the code you are wrapping into the native library file.  
+Also make sure you pass all of the required libraries to the linker.  
+You may get some more clues on unresolved symbols if you use the -verbose:jni commandline switch when running Java.
+<p>
+
+In summary, ensure that you are using the correct C/C++ compiler and linker combination and options for successful native library loading. 
+If you are using the examples that ship with SWIG, then the Examples/Makefile must have these set up correctly for your system. 
+The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
+The <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> also has some settings for commonly used compiler and operating system combinations.
+The following section also contains some C++ specific linking problems and solutions.
+
+
 <a name="n8"></a><H3>15.1.6 Compilation problems and compiling with C++</H3>
 
+On most machines, shared library files should be linked using the C++
+compiler.  For example:
 
-For the most part, compiling a Java module is straightforward, but there are a number of potential problems :<p>
 <p>
-<ul>
-<li>In order to build C++ modules, you may need to link with the C++ compiler using a command like `<tt>c++ -shared example_wrap.o example.o -o libexample.so</tt>'
-<li>If building a dynamic C++ module using g++, you may also need to link against <tt>libgcc.a</tt>, <tt>libg++.a</tt>, and <tt>libstc++.a</tt> libraries.
-<li>Make sure you are using the version of JDK header files matches the version of Java that you are running.
-</ul>
+<blockquote><pre>% swig -c++ -java example.i
+% g++ -c -fpic example.cxx
+% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/j2sdk1.4.1/include/linux
+% g++ -shared example.o example_wrap.o -o libexample.so
+</pre></blockquote>
 
-<a name="n9"></a><H2>15.2 Building Java Extensions under Windows</H2>
+In addition to this, you may need to include additional library
+files to make it work.  For example, if you are using the Sun C++ compiler on
+Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
+
+<p>
+<blockquote><pre>% swig -c++ -java example.i
+% CC -c example.cxx
+% CC -c example_wrap.cxx -I/usr/java/include -I/usr/java/include/solaris
+% CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o libexample.so -lCrun
+</pre></blockquote>
+
+If you aren't entirely sure about the linking for C++, you
+might look at an existing C++ program.  On many Unix machines, the
+<tt>ldd</tt> command will list library dependencies.  This should give
+you some clues about what you might have to include when you link your
+shared library. For example:
+
+<blockquote>
+<pre>
+$ ldd swig
+        libstdc++-libc6.1-1.so.2 => /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)
+        libm.so.6 => /lib/libm.so.6 (0x4005b000)
+        libc.so.6 => /lib/libc.so.6 (0x40077000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
+$
+</pre>
+</blockquote>
+
+Finally make sure the version of JDK header files matches the version of Java that you are running as incompatibilities could lead to compilation problems or unpredictable behaviour.
 
 
-Building a SWIG extension to Java under Windows is roughly similar to the process used with Unix.  
+<a name="n9"></a><H3>15.2 Building on Windows</H3>
+
+
+Building on Windows is roughly similar to the process used with Unix.  
 You will want to produce a DLL that can be loaded by the Java Virtual Machine.  
 This section covers the process of using SWIG with Microsoft Visual C++ 6 although the procedure may be similar with other compilers.  
-In order to build extensions, you will need to have a JDK installed on your machine in order to read the JNI header files.<p>
+In order for everything to work, you will need to have a JDK installed on your machine in order to read the JNI header files.<p>
 
-<a name="n10"></a><H3>15.2.1 Running SWIG from Developer Studio</H3>
+<a name="n10"></a><H4>15.2.1 Running SWIG from Visual Studio</H4>
 
 
-If you are developing your application within Microsoft developer studio, SWIG can be invoked as a custom build option. 
-The process roughly follows these steps:<p>
+If you are developing your application within Microsoft Visual studio, SWIG can be invoked as a custom build option. 
+The Examples\java directory has a few <a href="Windows.html#examples">Windows Examples</a> containing Visual Studio project (.dsp) files.
+The process to re-create the project files for a C project are roughly:<p>
 <p>
 <ul>
 <li>Open up a new workspace and use the AppWizard to select a DLL project.
-<li>Add both the SWIG interface file (the .i file), any supporting C files, and the name of the wrapper file that will be created by SWIG (ie. <tt>example_wrap.c</tt>).   Note: If using C++, choose a different suffix for the wrapper file <tt>example_wrap.cxx</tt>. Don't worry if the wrapper file doesn't exist yet--Developer Studio will keep a reference to it.
+<li>Add both the SWIG interface file (the .i file), any supporting C files, and the name of the wrapper file that will be created by SWIG (ie. <tt>example_wrap.c</tt>).   
+Don't worry if the wrapper file doesn't exist yet--Visual Studio will keep a reference to it.
 <li>Select the SWIG interface file and go to the settings menu. Under settings, select the "Custom Build" option.
 <li>Enter "SWIG" in the description field.
 <li>Enter "<tt>swig -java -o $(ProjDir)\$(InputName)_wrap.c $(InputPath)</tt>" in the "Build command(s) field"
@@ -271,22 +417,24 @@ The process roughly follows these steps:<p>
 <li>Build your project.
 </ul>
 <p>
+Note: If using C++, choose a C++ suffix for the wrapper file, for example <tt>example_wrap.cxx</tt>.
+Use <tt>_wrap.cxx</tt> instead of <tt>_wrap.c</tt> in the instructions above and add -c++ when invoking swig.
+<p>
 Now, assuming all went well, SWIG will be automatically invoked when you build your project.  
 When doing a build, any changes made to the interface file will result in SWIG being automatically invoked to produce a new version of the wrapper file.  
 The Java classes that SWIG output should also be compiled into .class files. 
 To run the native code in the DLL (example.dll), make sure that it is in your path then run your Java program which uses it, as described in the previous section. 
 If the library fails to load have a look at <a href="#dynamic_linking_problems">Dynamic linking problems</a>.
-<p>
 
-<a name="n11"></a><H3>15.2.2 Using NMAKE</H3>
+<a name="n11"></a><H4>15.2.2 Using NMAKE</H4>
 
 
-Alternatively, SWIG extensions can be built by writing a Makefile for NMAKE.   
+Alternatively, a Makefile for use by NMAKE can be written.   
 Make sure the environment variables for MSVC++ are available and the MSVC++ tools are in your path.   
 Now, just write a short Makefile like this :<p>
 <p>
 <blockquote><pre>
-# Makefile for building a Java extension
+# Makefile for using SWIG and Java for C code
 
 SRCS          = example.c
 IFILE         = example
@@ -329,10 +477,13 @@ java::
 	javac *.java
 </pre></blockquote>
 <p>
-To build the extension, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
-This is a pretty simplistic Makefile, but hopefully its enough to get you started.   <p>
+To build the DLL and compile the java code, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
+This is a pretty simplistic Makefile, but hopefully its enough to get you started.
+Of course you may want to make changes for it to work for C++ by adding in the -c++ command line switch for swig and replacing .c with .cxx.
+<p>
 
 
+<a name="java_basic_tour"></a>
 <a name="n12"></a><H2>15.3 A tour of basic C/C++ wrapping</H2>
 
 
@@ -981,7 +1132,7 @@ example.spam4(null);   // Array - ok
 </blockquote>
 
 For <tt>spam1</tt> and <tt>spam4</tt> above the Java <tt>null</tt> gets translated into a NULL pointer for passing to the C/C++ function. 
-The converse also occurs, that is, NULL pointers are translated into <tt>null</tt> java objects when returned from a C/C++ function.
+The converse also occurs, that is, NULL pointers are translated into <tt>null</tt> Java objects when returned from a C/C++ function.
 
 <a name="n24"></a><H3>15.3.11 C++ overloaded functions</H3>
 
@@ -1257,7 +1408,7 @@ in situations where no proxies are generated.  This provides a very
 natural, type safe Java interface to the C/C++ code and fits in with the Java programing paradigm.
 However, a number of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work and then covers the type wrapper classes.
-First the crucial intermediary JNI class is considered.
+First, the crucial intermediary JNI class is considered.
 
 <a name="n29"></a><H3>15.4.1 The intermediary JNI class</H3>
 
@@ -1341,7 +1492,8 @@ SWIG uses Java code wherever possible as it is compiled into byte code which req
 The functions in the intermediary JNI class cannot be accessed outside of its package. Access to them is gained through the module class for globals otherwise the appropriate proxy class.
 
 <p>
-The name of the intermediary JNI class can be changed from its default which is the module name with JNI appended after it. The module directive attribute <tt>jniclassname</tt> is used to achieve this:
+The name of the intermediary JNI class can be changed from its default, that is, the module name with JNI appended after it. 
+The module directive attribute <tt>jniclassname</tt> is used to achieve this:
 
 <blockquote>
 <pre>
@@ -1394,7 +1546,7 @@ The pragma code appears in the generated intermediary JNI class where you would 
 </pre>
 </blockquote>
 
-The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block for loading the shared object / dynamic link library and demonstrates how pragmas work:
+The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block for loading the shared library / dynamic link library and demonstrates how pragmas work:
 
 <blockquote>
 <pre>
@@ -3945,34 +4097,6 @@ Unlike proxy classes, there is no attempt at tracking memory.
 All destructors have to be called manually for example the <tt>delete_Foo(foo)</tt> call above.
 
 
-<a name="dynamic_linking_problems"></a>
-<a name="n66"></a><H3>15.9.3 Dynamic linking problems</H3>
-
-
-The code to load a native library is <tt>System.loadLibrary("name")</tt>. 
-This can fail and it can be due to a number of reasons. 
-<p>
-
-The most common is an incorrect naming of the native library for the name passed to the <tt>loadLibrary</tt> function. 
-The text passed to the <tt>loadLibrary</tt> function must not include the the extension name in the text, that is <i>.dll</i> or <i>.so</i>. 
-The text must be <i>name</i> and not <i>libname</i> for all platforms. On Windows the native library must then be called <i>name.dll</i> and on Unix it must be called <i>libname.so</i>. 
-If you are debugging using <tt> java -debug</tt>, then the native library must be called <i>name_g.dll</i> on Windows and <i>libname_g.so</i> on Unix.
-<p>
-
-Another common reason for the native library not loading is because it is not in your path. On Unix make sure that your <i>LD_LIBRARY_PATH</i> contains the path to the native library. 
-On Windows make sure the <i>path</i> environment variable contains the path to the native library. 
-SWIG code usually works if you have <i>LD_LIBRARY_PATH</i> set to '.' (or no modification to <i>path</i> in Windows).
-<p>
-
-The native library will also not load if there are any unresolved symbols in the compiled C/C++ code. 
-Unresolved symbols will be described if you use the -verbose:jni commandline switch when running Java.
-<p>
-
-Ensure that you are using the correct C/C++ compiler and linker combination and options for successful native library loading. 
-If you are using the examples that ship with SWIG, then the Examples/Makefile must have these set up correctly for your system. 
-The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
-The <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> also has some settings for commonly used compiler and operating system combinations.
-
 <a name="n67"></a><H3>15.9.4 Using your own JNI functions</H3>
 
 
@@ -4030,14 +4154,15 @@ This method calls the C++ destructor or <tt>free()</tt> for C code.
 <p>
 
 
+<a name="java_examples"></a>
 <a name="n69"></a><H2>15.10 Examples</H2>
 
 
 The directory Examples/java has a number of further examples. 
 Take a look at these if you want to see some of the techniques described in action.
-The Examples/index.html in the parent directory contains the SWIG Examples Documentation and is a useful starting point. 
+The Examples/index.html file in the parent directory contains the SWIG Examples Documentation and is a useful starting point. 
 If your SWIG installation went well Unix users should be able to type <tt>make</tt> in each example directory, then <tt>java main</tt> to see them running.
-For the benefit of Windows users, there are also Visual C++ project files in a couple of the examples.
+For the benefit of Windows users, there are also Visual C++ project files in a couple of the <a href="Windows.html#examples">Windows Examples</a>.
 
 </body>
 </html>
