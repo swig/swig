@@ -1,17 +1,67 @@
-SWIG Source Directory
+SWIG (Simplified Wrapper and Interface Generator)
 
-All new development is being done in C. Portions of the old SWIG1.1
-C++ base are slowly being converted over.
+Copyright (C) 1998-2000 : The University of Chicago
+Copyright (C) 1995-1998 : University of Utah and the Regents
+                          of the University of California
 
-DOH -  Dave's Object Hack.   A C library containing core datatypes
-        for most of the new C-based system.
+January 11, 2000 ($Header$)
 
-Core -  C based SWIG core.
+Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
+         with scripting languages including Perl, Python, and Tcl.
 
-Preprocessor - C based preprocessing module.
+This distribution represents work in progress towards building a new
+SWIG release.  The guilty parties currently working on this are:
 
-SWIG1.1  - Old SWIG1.1 C++ core
+    -  Dave Beazley  (beazley@cs.uchicago.edu)    
+    -  Dustin Mitchell (djmitche@cs.uchicago.edu)
+    -  Loic Dachary (loic@ceic.com)
 
-Modules1.1 - Old SWIG1.1 C++ modules
+General overview:
+=================
+The primary goal of future development is to make SWIG more modular,
+extensible, and easier to maintain.  To this end, the source code has
+been consolidated into the Source directory.   Within this directory,
+there are a number of different components:
+
+      SWIG1.1       - These two directories contain the C++ code
+      Modules1.1      corresponding to the SWIG1.1.x series of 
+                      releases.  This code is still in use but is
+                      slowly being deprecated.
+
+*** Important note: ALL future SWIG development will *NOT* be taking
+place in C++.  Please use ANSI C instead. -- Dave ***
+
+      DOH           - Object framework for the ANSI C core.
+      Core          - New SWIG core (ANSI C)
+      Preprocessor  - Simple SWIG preprocessor module
+      Dustin        - Some Python stuff Dustin is working on.
+
+Documentation for these components is weak or non-existent at this
+time.   Please bear with us.
+
+Installation
+============
+It should be relatively simple.  Simply type the following:
+
+     % ./configure
+     % make
+     % make install
+     
+If you checked the code out via CVS, you will have to run autoconf
+before typing 'configure.'  In addition, a full build of SWIG requires
+the use bison or yacc.
+
+Participate!
+============
+
+We are looking for people who want to join the effort of getting this
+next release off the ground.  Please send me email.
+
+-- Dave (beazley@cs.uchicago.edu)
+
+      
+
+
+
   
 
