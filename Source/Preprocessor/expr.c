@@ -201,6 +201,19 @@ Preprocessor_expr_init (void) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Tokenizer 
+ * ----------------------------------------------------------------------------- */
+
+static int expr_token(SwigScanner *s) {
+  int t;
+  while(1) {
+    t = SwigScanner_token(s);
+    if (!((t == SWIG_TOKEN_BACKSLASH) || (t == SWIG_TOKEN_ENDLINE))) break;
+  }
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * Preprocessor_expr()
  *
  * Evaluates an arithmetic expression.  Returns the result and sets an error code.
@@ -216,7 +229,7 @@ Preprocessor_expr(DOH *s, int *error) {
   assert(scan);
 
   Seek(s,0,SEEK_SET);
-  /*  Printf(stdout,"evaluating : '%s'\n", s); */
+  /* Printf(stdout,"evaluating : '%s'\n", s); */
   *error = 0;
   SwigScanner_clear(scan);
   SwigScanner_push(scan,s);
@@ -230,7 +243,7 @@ Preprocessor_expr(DOH *s, int *error) {
     switch(stack[sp].op) {
     case EXPR_TOP:
       /* An expression.   Can be a number or another expression enclosed in parens */
-      token = SwigScanner_token(scan);
+      token = expr_token(scan);
       if (!token) {
 	errmsg = "Expected an expression";
 	*error = 1;
@@ -267,7 +280,7 @@ Preprocessor_expr(DOH *s, int *error) {
       break;
     case EXPR_VALUE:
       /* A value is on the stack.   We may reduce or evaluate depending on what the next token is */
-      token = SwigScanner_token(scan);
+      token = expr_token(scan);
       if (!token) {
 	/* End of input. Might have to reduce if an operator is on stack */
 	while (sp > 0) {
