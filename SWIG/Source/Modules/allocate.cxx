@@ -650,6 +650,7 @@ public:
   }
 
   virtual int destructorDeclaration(Node *n) {
+    (void)n;
     if (!inclass) return SWIG_OK;
     if (!extendmode) {
 	Setattr(inclass,"allocate:has_destructor","1");

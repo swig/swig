@@ -949,7 +949,7 @@ public:
       Putc(toupper((int )*iname), member_function_name);
       Printf(member_function_name, "%s", iname+1);
 
-      cpp_func(Char(member_function_name), d, l, php_function_name);
+      cpp_func(l, php_function_name);
      
       Delete(php_function_name);
       Delete(member_function_name);
@@ -1707,7 +1707,6 @@ public:
   virtual int memberfunctionHandler(Node *n) {
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
     this->Language::memberfunctionHandler(n);
@@ -1716,7 +1715,7 @@ public:
       char *realname = iname ? iname : name;
       String *php_function_name = Swig_name_member(shadow_classname, realname);
 
-      cpp_func(iname, t, l, realname, php_function_name);
+      cpp_func(l, realname, php_function_name);
 
     }
     return SWIG_OK;
@@ -1752,7 +1751,7 @@ public:
       static_flag = 1;      
       char *realname = iname ? iname : name;
       String *php_function_name = Swig_name_member(shadow_classname, realname);
-      cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), symname, php_function_name);
+      cpp_func(Getattr(n, "parms"), symname, php_function_name);
       static_flag = 0;
     }
 
@@ -1787,7 +1786,7 @@ public:
     if(Getattr(n,"feature:immutable")) {
       const_flag = 1;
     }
-    cpp_func(iname, d, 0, iname);
+    cpp_func(0, iname);
     static_flag = 0;
 
     create_command(iname, Char(Swig_name_wrapper(iname)));
@@ -2051,7 +2050,7 @@ public:
   }
 
   // This method is quite stale and ought to be factored out
-  void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL) {
+  void cpp_func(ParmList *l, String *php_function_name, String *handler_name = NULL) {
     if(!shadow) return;
 
 	// if they didn't provide a handler name, use the realname

@@ -720,13 +720,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	  Setattr(top,"outfile_h", NewStringf("%s_wrap.h", Swig_file_basename(input_file)));
 	} else {
-	  char *header = strdup(outfile_name);
-	  char *ext = header + strlen(header);
-	  while (ext > header && *ext != '.') ext--;
-	  if (*ext == '.') *ext = 0;
+          char *ext = strrchr(outfile_name, '.');
+          String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
 	  Setattr(top,"outfile", outfile_name);
-	  Setattr(top,"outfile_h", NewStringf("%s.h", header));
-	  free(header);
+	  Setattr(top,"outfile_h", NewStringf("%s.h", basename));
+          Delete(basename);
 	}
         set_outdir(Swig_file_dirname(Getattr(top,"outfile")));
 	if (Swig_contract_mode_get()) {

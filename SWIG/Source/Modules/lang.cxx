@@ -15,6 +15,7 @@
 char cvsroot_lang_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
 #include <ctype.h>
 
 static int director_protected_mode = 0;   /* set to 0 on default */
@@ -519,6 +520,7 @@ int Language::insertDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::moduleDirective(Node *n) {
+  (void)n;
   /* %module directive */
   return SWIG_OK;
 }
@@ -555,8 +557,6 @@ int Language::pragmaDirective(Node *n) {
 /* ----------------------------------------------------------------------
  * Language::typemapDirective()
  * ---------------------------------------------------------------------- */
-
-extern "C" void Swig_cparse_replace_descriptor(String *s);
 
 int Language::typemapDirective(Node *n) {
   /* %typemap directive */
@@ -1402,6 +1402,9 @@ int Language::typedefHandler(Node *) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorMethod(Node *n, Node *parent, String* super) {
+  (void)n;
+  (void)parent;
+  (void)super;
   return SWIG_OK;
 }
 
@@ -1410,6 +1413,7 @@ int Language::classDirectorMethod(Node *n, Node *parent, String* super) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorConstructor(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
@@ -1418,6 +1422,7 @@ int Language::classDirectorConstructor(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorDefaultConstructor(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
@@ -1564,6 +1569,7 @@ int Language::classDirectorMethods(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorInit(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
@@ -1572,6 +1578,7 @@ int Language::classDirectorInit(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorEnd(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
@@ -1776,6 +1783,7 @@ int Language::classHandler(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classforwardDeclaration(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
@@ -2080,10 +2088,13 @@ int Language::functionWrapper(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int Language::nativeWrapper(Node *n) {
+  (void)n;
   return SWIG_OK;
 }
 
 void Language::main(int argc, char *argv[]) {
+  (void)argc;
+  (void)argv;
 }
 
 /* -----------------------------------------------------------------------------

@@ -96,7 +96,7 @@ Swig_wrapped_var_type(SwigType *t) {
   return ty;
 }
 
-String *
+static String *
 Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
   if (SwigType_isclass(t)) {
     return NewStringf("*%s",name);
@@ -105,8 +105,8 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
   }
 }
 
-String *
-Swig_wrapped_var_assign(SwigType *t, String_or_char *name) {
+static String *
+Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
   if (SwigType_isclass(t)) {
     return NewStringf("&%s",name);
   } else {
@@ -463,7 +463,7 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self)
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_cmemberget_call(String_or_char *name, SwigType *t, String_or_char *self) {
+Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self) {
   String *func;
   if (!self) self = NewString("(this)->");
   else self = NewString(self);

@@ -26,7 +26,7 @@ char cvsroot_parms_c[] = "$Header$";
  * Create a new parameter from datatype 'type' and name 'n'.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, String_or_char *n) {
+Parm *NewParm(SwigType *type, const String_or_char *n) {
   Parm *p = NewHash();
   
   if (type) {

@@ -247,7 +247,7 @@ extern String     *SwigType_templateargs(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);
-extern void        SwigType_array_setdim(SwigType *t, int n, String_or_char *rep);
+extern void        SwigType_array_setdim(SwigType *t, int n, const String_or_char *rep);
 extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
 extern void        SwigType_typename_replace(SwigType *t, String *pat, String *rep);
@@ -261,7 +261,7 @@ extern void        SwigType_inherit(String *subclass, String *baseclass, String 
 extern int         SwigType_issubtype(SwigType *subtype, SwigType *basetype);
 extern void        SwigType_scope_alias(String *aliasname, Typetab *t);
 extern void        SwigType_using_scope(Typetab *t);
-extern void        SwigType_new_scope(String_or_char *name);
+extern void        SwigType_new_scope(const String_or_char *name);
 extern void        SwigType_inherit_scope(Typetab *scope);
 extern Typetab    *SwigType_pop_scope();
 extern Typetab    *SwigType_set_scope(Typetab *h);
@@ -310,7 +310,7 @@ extern SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab);
 /* Parameters are really just hidden behind a DOH object.  The following
    interface will probably be simplified even further. */
 
-extern Parm       *NewParm(SwigType *type, String_or_char *n);
+extern Parm       *NewParm(SwigType *type, const String_or_char *n);
 extern Parm       *CopyParm(Parm *p);
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
@@ -396,7 +396,7 @@ extern void      Swig_name_object_set(Hash *namehash, String_or_char *name, Swig
 extern DOH      *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
 extern void      Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
 extern void      Swig_features_get(Hash *features, String_or_char *prefix, String_or_char *name, SwigType *decl, Node *n);
-extern void      Swig_feature_set(Hash *features, String_or_char *name, SwigType *decl, String_or_char *fname, String *value);
+extern void      Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value);
 
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);
@@ -430,8 +430,6 @@ extern void       Swig_error_msg_format(ErrorMessageFormat format);
 extern String    *Swig_cparm_name(Parm *p, int i);
 extern String    *Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value);
 extern String    *Swig_wrapped_var_type(SwigType *t);
-extern String    *Swig_wrapped_var_deref(SwigType *t, String_or_char *name);
-extern String    *Swig_wrapped_var_assign(SwigType *t, String_or_char *name);
 extern int        Swig_cargs(Wrapper *w, ParmList *l);
 extern String    *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl);
 
@@ -442,7 +440,7 @@ extern String    *Swig_cppconstructor_call(String_or_char *name, ParmList *parms
 extern String    *Swig_cdestructor_call();
 extern String    *Swig_cppdestructor_call();
 extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self);
-extern String    *Swig_cmemberget_call(String_or_char *name, SwigType *t, String_or_char *self);
+extern String    *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self);
 
 /* --- Transformations --- */
 

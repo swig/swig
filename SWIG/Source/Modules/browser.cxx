@@ -413,6 +413,9 @@ Swig_browser(Node *top, int port) {
   swill_close();
   delete browse;
   return;
+#else
+  (void)top;
+  (void)port;
 #endif
 }
 

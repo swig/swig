@@ -234,7 +234,7 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(Node *n, const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
+  void add_method(const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
     String *rename = NULL;
     switch (current) {
       case NO_CPP:
@@ -468,7 +468,7 @@ public:
 
     /* Now register the function with the interpreter. */
     if (!Getattr(n,"sym:overloaded")) {
-      add_method(n, iname, wname, description);
+      add_method(iname, wname, description);
     } else {
       Setattr(n,"wrap:name", wname);
       if (!Getattr(n,"sym:nextSibling")) {
@@ -532,7 +532,7 @@ public:
       if (pd)
 	Printf(description, " %s", pd);
     }
-    add_method(n, symname, wname, description);
+    add_method(symname, wname, description);
     Delete(description);
 
     DelWrapper(f);
@@ -597,7 +597,7 @@ public:
 
     if (!addSymbol(wrapname,n)) return SWIG_ERROR;
 
-    add_method(n, name, wrapname,0);
+    add_method(name, wrapname,0);
     return SWIG_OK;
   }  
 
@@ -775,7 +775,7 @@ public:
       
       /* Register it with Pike */
       String *description = NewString("tStr tFloat, tVoid");
-      add_method(First(membervariables).item, "`->=", wname, description);
+      add_method("`->=", wname, description);
       Delete(description);
 
       /* Clean up */
@@ -812,7 +812,7 @@ public:
     
     /* Register it with Pike */
     String *description = NewString("tStr, tMix");
-    add_method(First(membervariables).item, "`->", wname, description);
+    add_method("`->", wname, description);
     Delete(description);
     
     /* Clean up */

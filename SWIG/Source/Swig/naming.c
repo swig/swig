@@ -625,7 +625,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_feature_set(Hash *features, String *name, SwigType *decl, String *featurename, DOH *value) {
+Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value) {
   Hash *n;
   Hash *fhash;
   /*  Printf(stdout,"feature: %s %s %s %s\n", name, decl, featurename, value);*/

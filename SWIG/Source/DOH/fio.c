@@ -300,7 +300,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	    DohFree(stemp);
 	  }
 	} else {
-	  if (!doh) doh = "";
+	  if (!doh) doh = (char *)"";
 	  
 	  if (strlen(encoder)) {
 	    DOH *s = NewString(doh);

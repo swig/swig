@@ -207,7 +207,7 @@ SwigType_scope_name(Typetab *ttab) {
  * Creates a new scope
  * ----------------------------------------------------------------------------- */
 
-void SwigType_new_scope(String_or_char *name) {
+void SwigType_new_scope(const String_or_char *name) {
   Typetab *s;
   Hash    *ttab;
   String  *qname;
@@ -1653,7 +1653,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   while (ki.key) {
     List *el;
     Iterator ei;
-    String *cd;
+    const String *cd;
 
     Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", ki.key, i);
     Printv(types,"static swig_type_info _swigt_", ki.key, "[] = {", NIL);

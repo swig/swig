@@ -59,6 +59,7 @@ static int      dirprot_mode  = 0;
 
 /* Called by the parser (yyparse) when an error is found.*/
 static void yyerror (const char *e) {
+  (void)e;
 }
 
 static Node *new_node(const String_or_char *tag) {
@@ -2970,7 +2971,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
              | NAMESPACE LBRACE {
 	       Hash *h;
 	       $1 = Swig_symbol_current();
-	       h = Swig_symbol_clookup("",0);
+	       h = Swig_symbol_clookup((char *)"",0);
 	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		 Swig_symbol_setscope(Getattr(h,"symtab"));
 	       } else {
@@ -4786,7 +4787,7 @@ stringnum      : string {
 		 $$ = $1;
                }
                | exprnum {
-                 $$ = $1.val;
+                 $$ = Char($1.val);
                }
                ;
 

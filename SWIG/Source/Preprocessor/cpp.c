@@ -112,7 +112,7 @@ List *Preprocessor_depend(void) {
 /* -----------------------------------------------------------------------------
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
-void Preprocessor_init() {
+void Preprocessor_init(void) {
   Hash *s;
   cpp = NewHash();
   s =   NewHash();
@@ -386,7 +386,7 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
  *
  * Undefines a macro.
  * ----------------------------------------------------------------------------- */
-void Preprocessor_undef(String_or_char *str)
+void Preprocessor_undef(const String_or_char *str)
 {
   Hash *symbols;
   assert(cpp);
@@ -1343,7 +1343,7 @@ Preprocessor_parse(String *s)
 	      Printf(ns,"%%importfile \"%s\" [\n", Swig_last_file());
 
 	    /* See if the filename has a directory component */
-	    dirname = Swig_file_dirname(Swig_last_file);
+	    dirname = Swig_file_dirname(Swig_last_file());
 	    if (!strlen(dirname)) dirname = 0;
 	    if (dirname) {
 	      dirname[strlen(dirname)-1] = 0;   /* Kill trailing directory delimeter */

@@ -453,7 +453,7 @@ void
 SwigType_del_qualifier(SwigType *t) {
   char *c = Char(t);
   assert(strncmp(c,"q(",2) == 0);
-  Delslice(t,0,element_size(t));
+  Delslice(t,0,element_size(Char(t)));
 }
 
 int 
@@ -586,7 +586,7 @@ SwigType_array_getdim(SwigType *t, int n) {
 }
 
 /* Replace nth array dimension */
-void SwigType_array_setdim(SwigType *t, int n, String_or_char *rep) {
+void SwigType_array_setdim(SwigType *t, int n, const String_or_char *rep) {
   String *result = 0;
   char temp;
   char *start;
