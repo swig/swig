@@ -28,6 +28,14 @@ if (overload_simple::foo($v) != "foo:void *") {
     die("foo(void *)");
 }
 
+if (overload_simple::blah(3) != "blah:double") {
+    die("blah(double)");
+}
+
+if (overload_simple::blah("hello") != "blah:char *") {
+    die("blah(char *)");
+}
+
 $s = new overload_simple::Spam();
 
 if ($s->foo(3) != "foo:int") {
