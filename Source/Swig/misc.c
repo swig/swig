@@ -211,7 +211,7 @@ String *Swig_string_typecode(String *s) {
  * A_get_value. 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_mangle(String *s) {
+String *Swig_string_mangle(const String *s) {
 #if 0 
   /* old mangling, not suitable for using in macros */
   String *t = Copy(s);
@@ -241,7 +241,7 @@ String *Swig_string_mangle(String *s) {
 	Printf(result,"_SS_");
       }
       space = 0;
-      Printf(result,"%c",c);
+      Printf(result,"%c",(int)c);
       
     } else {
       if (isspace((int)c)) {
@@ -267,8 +267,6 @@ String *Swig_string_mangle(String *s) {
 	  Append(result,"_");
 	  ++pc; ++pc;
 	  continue;
-	} else {
-	  c = 's';
 	}
 	break;
       case '*':

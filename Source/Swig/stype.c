@@ -758,7 +758,6 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
 }
 
 String *SwigType_manglestr_default(SwigType *s) {
-  char *c;
   String *result,*base,*mbase;
   SwigType *lt, *ltp;
   SwigType *ss = 0;
