@@ -36,7 +36,7 @@
 
 /* include C++ or C value */
 %define SWIG_cplusplus(cppval, cval)
-#if __cplusplus
+#ifdef __cplusplus
 cppval
 #else
 cval

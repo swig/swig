@@ -124,13 +124,13 @@
    if (SWIG_arg_fail($argnum)) SWIG_fail;
    $1 = ($1_ltype) t;
 #if #__VA_ARGS__ == ""
-#if __cplusplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[n+1];
 #else
    $1 = ($1_ltype) malloc(n+1);
 #endif
 #else
-#if __cplusplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[n+1+__VA_ARGS__];
 #else
    $1 = ($1_ltype) malloc(n+1+__VA_ARGS__);
@@ -144,7 +144,7 @@
    PyObject *o;
    o = PyString_FromString($1);
    $result = t_output_helper($result,o);
-#if __cplusplus
+#ifdef __cplusplus
    delete[] $1;
 #else
    free($1);

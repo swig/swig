@@ -48,7 +48,7 @@ int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **carr, JNI
   *jarr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, input, 0);
   if (!*jarr)
     return 0; %}
-#if __cplusplus
+#ifdef __cplusplus
 %{  *carr = new CTYPE[sz]; %}
 #else
 %{  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE)); %}
@@ -230,7 +230,7 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(freearg) CTYPE[ANY] 
-#if __cplusplus
+#ifdef __cplusplus
 %{ delete [] $1; %}
 #else
 %{ free($1); %}
@@ -351,7 +351,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double, "[D")      /* double[ANY] */
   if (!jarr) {
     return $null;
   }
-#if __cplusplus
+#ifdef __cplusplus
   $1 = new $*1_ltype[sz];
 #else
   $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
@@ -381,7 +381,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double, "[D")      /* double[ANY] */
   if (!jarr) {
     return $null;
   }
-#if __cplusplus
+#ifdef __cplusplus
   $1 = new $*1_ltype[sz];
 #else
   $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
@@ -425,7 +425,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double, "[D")      /* double[ANY] */
 }
 
 %typemap(freearg) ARRAYSOFCLASSES[ANY]
-#if __cplusplus
+#ifdef __cplusplus
 %{ delete [] $1; %}
 #else
 %{ free($1); %}
