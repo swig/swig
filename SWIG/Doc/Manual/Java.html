@@ -99,9 +99,8 @@
 <li><a href="#n66">Dynamic linking problems</a>
 <li><a href="#n67">Using your own JNI functions</a>
 <li><a href="#n68">Performance concerns and hints</a>
-<li><a href="#n69">Known bugs</a>
 </ul>
-<li><a href="#n70">Examples</a>
+<li><a href="#n69">Examples</a>
 </ul>
 <!-- INDEX -->
 
@@ -3924,34 +3923,42 @@ The <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> also has
 <a name="n67"></a><H3>15.9.4 Using your own JNI functions</H3>
 
 
-Perhaps you have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions? This can be accomplished using the <tt>%native</tt> directive or the <tt>%ignore</tt> directive depending on what you want. <p>
-
-If you don't want SWIG to wrap your JNI function as you have written the Java native method declaration in addition to the JNI function, simply use the <tt>%ignore</tt> directive. <p>
-        
-Alternatively you may want SWIG to help out and do some work by using the <tt>%native</tt> directive, for example:
+You may have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions.
+Adding these to your SWIG generated package is possible using the <tt>%native</tt> directive.
+If you don't want SWIG to wrap your JNI function then of course you can simply use the <tt>%ignore</tt> directive.
+However, if you want SWIG to generate just the Java code for a JNI function then use the <tt>%native</tt> directive.
+The C types for the parameters and return type must be specified in place of the JNI types and the function name must be the native method name.
+For example:
 
 <blockquote><pre>
-%typemap (jtype) SomeCType "SomeJavaClass";
-%typemap (jstype) SomeCType "SomeJavaClass";
-%native (HandRolledJavaName) int HandRolledCName(long, char *, SomeCType);
+%native (HandRolled) void HandRolled(int, char *);
 %{
-JNIEXPORT jint JNICALL
-Java_modulename_HandRolled ( JNIEnv *jenv, jclass jcls, jint net, jstring path, jobject SomeJavaClass)
-{
-/* implementation */
-}
+JNIEXPORT void JNICALL Java_packageName_moduleName_HandRolled(JNIEnv *, jclass, jlong, jstring);
 %}
 </pre></blockquote>
 
-No C/C++ code will be generated and the <tt>Java_modulename_HandRolled</tt> function will be unmodified and accessible using the SWIG generated Java native method call which will look something like this:
+No C JNI function will be generated and the <tt>Java_packageName_moduleName_HandRolled</tt> function will be accessible using the SWIG generated Java native method call in the JNI class which will look like this:
 
 <blockquote><pre>
-  public final static native int HandRolledJavaName(int jarg1, String jarg2, SomeJavaClass jarg3);
+  public final static native void HandRolled(int jarg1, String jarg2);
 </pre></blockquote>
 
-What is happening here is the <tt>%native</tt> directive is telling SWIG to generate the module Java native method declaration, but not the JNI C code for a (possibly non-existent) C function called <tt>HandRolledCName</tt>. 
-To accomplish this SWIG needs to be told about the mapping of (possibly non-existent) C types to Java types, either using the built in mapping (char * -&gt; String) or the supplied one using the jtype typemap (SomeCType -&gt; SomeJavaClass). 
-This directive is only really useful if you want to mix your own JNI code and the SWIG generated code into one C/C++ file or mix your own JNI function calls into a SWIG generated Java class.
+and as usual this function is wrapped by another which for a global C function would appear in the module class:
+
+<blockquote><pre>
+  public static void HandRolled(int arg0, String arg1) {
+    exampleJNI.HandRolled(arg0, arg1);
+  }
+</pre></blockquote>
+
+The <tt>packageName</tt> and <tt>moduleName</tt> must of course be correct else you will get linker errors when the JVM dynamically loads the JNI function.
+You may have to add in some "jtype", "jstype", "javain" and "javaout" typemaps when wrapping some JNI types.
+Here the default typemaps work for for <tt>int</tt> and <tt>char *</tt>.
+<p>
+
+In summary the <tt>%native</tt> directive is telling SWIG to generate the Java code to access the JNI C code, but not the JNI C function itself.
+This directive is only really useful if you want to mix your own hand crafted JNI code and the SWIG generated code into one Java class or package.
+
 
 <a name="n68"></a><H3>15.9.5 Performance concerns and hints</H3>
 
@@ -3968,22 +3975,8 @@ Java classes without any finalizers generally speed up code execution as there i
 However, you will have to be careful about memory management and make sure that you code in a call to the <tt>delete()</tt> member function. This method calls the C++ destructor or <tt>free()</tt> for C code.
 <p>
 
-<a name="n69"></a><H3>15.9.6 Known bugs</H3>
 
-
-Known bugs at release:
-
-<ul>
-    <li>Pointers to member functions don't work yet.
-</ul>
-
-If you need these, have a go at writing your own typemaps.
-
-</body>
-</html>
-
-
-<a name="n70"></a><H2>15.10 Examples</H2>
+<a name="n69"></a><H2>15.10 Examples</H2>
 
 
 The directory Examples/java has a number of further examples. 
@@ -3991,3 +3984,7 @@ Take a look at these if you want to see some of the techniques described in acti
 The Examples/index.html in the parent directory contains the SWIG Examples Documentation and is a useful starting point. 
 If your SWIG installation went well Unix users should be able to type <tt>make</tt> in each example directory, then <tt>java main</tt> to see them running.
 For the benefit of Windows users, there are also Visual C++ project files in a couple of the examples.
+
+</body>
+</html>
+
