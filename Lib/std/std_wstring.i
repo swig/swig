@@ -1,11 +1,7 @@
-%{
-#include <cwchar>
-%}
-
+%include <wchar.i>
 %include <std/std_basic_string.i>
 
 /* wide strings */
-
 
 namespace std
 {
@@ -14,3 +10,4 @@ namespace std
 }
 
 %template(wstring) std::basic_string<wchar_t>;
+

@@ -1,5 +1,7 @@
 %include <std_common.i>
+#if defined(SWIG_WCHAR)
 %include <wchar.i>
+#endif
 
 namespace std 
 {
@@ -68,6 +70,7 @@ namespace std
   };
 
 
+#if defined(SWIG_WCHAR)
   template<>
   struct char_traits<wchar_t>
   {
@@ -119,14 +122,19 @@ namespace std
     static int_type 
     not_eof(const int_type& __c);
   };
+#endif
 }
 
 namespace std {
 #ifndef SWIG_STL_WRAP_TRAITS
 %template() char_traits<char>;
+#if defined(SWIG_WCHAR)
 %template() char_traits<wchar_t>;
+#endif
 #else
 %template(char_traits_c) char_traits<char>;
+#if defined(SWIG_WCHAR)
 %template(char_traits_w) char_traits<wchar_t>;
+#endif
 #endif
 }
