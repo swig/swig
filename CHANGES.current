@@ -1,6 +1,18 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/17/2004: mkoeppe (Matthias Koeppe)
+
+	    [Guile] New runtime functions SWIG_PointerAddress,
+	    SWIG_PointerType, SWIG_IsPointerOfType, SWIG_IsPointer.
+
+	    [Guile] In -scm mode, wrap several SWIG runtime functions
+	    and export them into the module (Swig swigrun).  The
+	    runtime module is now built with "module" linkage.
+
+	    [Guile] GOOPS proxy objects now also print the pointer
+	    address of the C object.
+
 05/14/2004: lyle
             Added Kou's patch for the Ruby %import directive so that modules
             with "nested" names are handled properly. Consider an interface
