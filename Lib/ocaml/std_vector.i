@@ -61,7 +61,6 @@ namespace std {
 	%extend {
 	    T *to_array() {
 		T *array = new T[self->size() + 1];
-		array[self->size()] = T();
 		for( int i = 0; i < self->size(); i++ ) 
 		    array[i] = (*self)[i];
 		return array;
