@@ -414,7 +414,6 @@ There are three different concepts of "module" involved, defined separately
 for SWIG, Guile, and Libtool.  To avoid horrible confusion, we explicitly
 prefix the context, e.g., "guile-module".
 
-
 <h3>Linkage</h3>
 
 <p>
@@ -485,6 +484,17 @@ user's foo.i.  At this time, we must say:
 </blockquote>
 
 in foo.i.  This may change in the future.
+
+<h3>Smobs</h3>
+
+<p>
+For pointer types, SWIG can use Guile smobs if given the command-line option
+"-with-smobs".  Ultimately this will be the default (and only) behavior and
+the command-line option will no longer be supported.  Ideally, "-with-smobs"
+will not even make it to beta.
+
+<p>
+[insert smob implementation overview here (Matthias Koeppe?)]
 
 <h2>11. Miscellaneous </h2>
 
