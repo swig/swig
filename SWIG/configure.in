@@ -719,6 +719,7 @@ test -d Source || mkdir Source
 dnl We use the following in `AC_OUTPUT' and "make distclean".
 configure_substituted_files=`echo	\
     Examples/Makefile			\
+    Examples/C++/test_conf.py		\
     Examples/guile/Makefile		\
     Makefile				\
     Runtime/Makefile			\
