@@ -76,7 +76,10 @@ namespace std {
     
     template<class T> class vector {
         %typemap(in) vector<T> (std::vector<T>* v) {
-            if (SvROK($input)) {
+            if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $&1_descriptor,1) != -1) {
+                $1 = *v;
+            } else if (SvROK($input)) {
                 AV *av = (AV *)SvRV($input);
                 if (SvTYPE(av) != SVt_PVAV)
                     SWIG_croak("Type error in argument $argnum of $symname. "
@@ -95,9 +98,6 @@ namespace std {
                                    "Expected an array of " #T);
                     }
                 }
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $&1_descriptor,1) != -1){
-                $1 = *v;
             } else {
                 SWIG_croak("Type error in argument $argnum of $symname. "
                            "Expected an array of " #T);
@@ -107,7 +107,10 @@ namespace std {
                                        std::vector<T>* v),
                      const vector<T>* (std::vector<T> temp,
                                        std::vector<T>* v) {
-            if (SvROK($input)) {
+            if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $1_descriptor,1) != -1) {
+                $1 = v;
+            } else if (SvROK($input)) {
                 AV *av = (AV *)SvRV($input);
                 if (SvTYPE(av) != SVt_PVAV)
                     SWIG_croak("Type error in argument $argnum of $symname. "
@@ -127,9 +130,6 @@ namespace std {
                     }
                 }
                 $1 = &temp;
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $1_descriptor,1) != -1){
-                $1 = v;
             } else {
                 SWIG_croak("Type error in argument $argnum of $symname. "
                            "Expected an array of " #T);
@@ -150,66 +150,68 @@ namespace std {
             argvi++;
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
-            /* native sequence? */
-            if (SvROK($input)) {
-                AV *av = (AV *)SvRV($input);
-                if (SvTYPE(av) == SVt_PVAV) {
-                    SV **tv;
-                    I32 len = av_len(av) + 1;
-                    if (len == 0) {
-                        /* an empty sequence can be of any type */
-                        $1 = 1;
-                    } else {
-                        /* check the first element only */
-                        T* obj;
-                        tv = av_fetch(av, 0, 0);
-                        if (SWIG_ConvertPtr(*tv, (void **)&obj, 
-                                            $descriptor(T *),0) != -1)
-                            $1 = 1;
-                        else
-                            $1 = 0;
-                    }
-                }
-            } else {
+            {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_&descriptor,0) != -1)
+                                    $1_&descriptor,0) != -1) {
                     $1 = 1;
-                else
+                } else if (SvROK($input)) {
+                    /* native sequence? */
+                    AV *av = (AV *)SvRV($input);
+                    if (SvTYPE(av) == SVt_PVAV) {
+                        SV **tv;
+                        I32 len = av_len(av) + 1;
+                        if (len == 0) {
+                            /* an empty sequence can be of any type */
+                            $1 = 1;
+                        } else {
+                            /* check the first element only */
+                            T* obj;
+                            tv = av_fetch(av, 0, 0);
+                            if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                                $descriptor(T *),0) != -1)
+                                $1 = 1;
+                            else
+                                $1 = 0;
+                        }
+                    }
+                } else {
                     $1 = 0;
+                }
             }
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
                                           const vector<T>* {
-            /* native sequence? */
-            if (SvROK($input)) {
-                AV *av = (AV *)SvRV($input);
-                if (SvTYPE(av) == SVt_PVAV) {
-                    SV **tv;
-                    I32 len = av_len(av) + 1;
-                    if (len == 0) {
-                        /* an empty sequence can be of any type */
-                        $1 = 1;
-                    } else {
-                        /* check the first element only */
-                        T* obj;
-                        tv = av_fetch(av, 0, 0);
-                        if (SWIG_ConvertPtr(*tv, (void **)&obj, 
-                                            $descriptor(T *),0) != -1)
-                            $1 = 1;
-                        else
-                            $1 = 0;
-                    }
-                }
-            } else {
+            {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_descriptor,0) != -1)
+                                    $1_descriptor,0) != -1) {
                     $1 = 1;
-                else
+                } else if (SvROK($input)) {
+                    /* native sequence? */
+                    AV *av = (AV *)SvRV($input);
+                    if (SvTYPE(av) == SVt_PVAV) {
+                        SV **tv;
+                        I32 len = av_len(av) + 1;
+                        if (len == 0) {
+                            /* an empty sequence can be of any type */
+                            $1 = 1;
+                        } else {
+                            /* check the first element only */
+                            T* obj;
+                            tv = av_fetch(av, 0, 0);
+                            if (SWIG_ConvertPtr(*tv, (void **)&obj, 
+                                                $descriptor(T *),0) != -1)
+                                $1 = 1;
+                            else
+                                $1 = 0;
+                        }
+                    }
+                } else {
                     $1 = 0;
+                }
             }
         }
       public:
@@ -250,7 +252,10 @@ namespace std {
     %define specialize_std_vector(T,CHECK_T,TO_T,FROM_T)
     template<> class vector<T> {
         %typemap(in) vector<T> (std::vector<T>* v) {
-            if (SvROK($input)) {
+            if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $&1_descriptor,1) != -1){
+                $1 = *v;
+            } else if (SvROK($input)) {
                 AV *av = (AV *)SvRV($input);
                 if (SvTYPE(av) != SVt_PVAV)
                     SWIG_croak("Type error in argument $argnum of $symname. "
@@ -267,9 +272,6 @@ namespace std {
                                    "Expected an array of " #T);
                     }
                 }
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $&1_descriptor,1) != -1){
-                $1 = *v;
             } else {
                 SWIG_croak("Type error in argument $argnum of $symname. "
                            "Expected an array of " #T);
@@ -279,7 +281,10 @@ namespace std {
                                        std::vector<T>* v),
                      const vector<T>* (std::vector<T> temp,
                                        std::vector<T>* v) {
-            if (SvROK($input)) {
+            if (SWIG_ConvertPtr($input,(void **) &v, 
+                                $1_descriptor,1) != -1) {
+                $1 = v;
+            } else if (SvROK($input)) {
                 AV *av = (AV *)SvRV($input);
                 if (SvTYPE(av) != SVt_PVAV)
                     SWIG_croak("Type error in argument $argnum of $symname. "
@@ -298,9 +303,6 @@ namespace std {
                     }
                 }
                 $1 = &temp;
-            } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $1_descriptor,1) != -1){
-                $1 = v;
             } else {
                 SWIG_croak("Type error in argument $argnum of $symname. "
                            "Expected an array of " #T);
@@ -320,65 +322,66 @@ namespace std {
             argvi++;
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
-            /* native sequence? */
-            if (SvROK($input)) {
-                AV *av = (AV *)SvRV($input);
-                if (SvTYPE(av) == SVt_PVAV) {
-                    SV **tv;
-                    I32 len = av_len(av) + 1;
-                    if (len == 0) {
-                        /* an empty sequence can be of any type */
-                        $1 = 1;
-                    } else {
-                        /* check the first element only */
-                        tv = av_fetch(av, 0, 0);
-                        if (CHECK_T(*tv))
-                            $1 = 1;
-                        else
-                            $1 = 0;
-                    }
-                }
-            } else {
+            {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_&descriptor,0) != -1)
+                                    $1_&descriptor,0) != -1) {
                     $1 = 1;
-                else
+                } else if (SvROK($input)) {
+                    /* native sequence? */
+                    AV *av = (AV *)SvRV($input);
+                    if (SvTYPE(av) == SVt_PVAV) {
+                        SV **tv;
+                        I32 len = av_len(av) + 1;
+                        if (len == 0) {
+                            /* an empty sequence can be of any type */
+                            $1 = 1;
+                        } else {
+                            /* check the first element only */
+                            tv = av_fetch(av, 0, 0);
+                            if (CHECK_T(*tv))
+                                $1 = 1;
+                            else
+                                $1 = 0;
+                        }
+                    }
+                } else {
                     $1 = 0;
+                }
             }
         }
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
                                           const vector<T>* {
-            /* native sequence? */
-            if (SvROK($input)) {
-                AV *av = (AV *)SvRV($input);
-                if (SvTYPE(av) == SVt_PVAV) {
-                    SV **tv;
-                    I32 len = av_len(av) + 1;
-                    if (len == 0) {
-                        /* an empty sequence can be of any type */
-                        $1 = 1;
-                    } else {
-                        /* check the first element only */
-                        tv = av_fetch(av, 0, 0);
-                        if (CHECK_T(*tv))
-                            $1 = 1;
-                        else
-                            $1 = 0;
-                    }
-                }
-            } else {
+            {
                 /* wrapped vector? */
                 std::vector<T >* v;
                 if (SWIG_ConvertPtr($input,(void **) &v, 
-                                    $1_descriptor,0) != -1)
+                                    $1_descriptor,0) != -1) {
                     $1 = 1;
-                else
+                } else if (SvROK($input)) {
+                    /* native sequence? */
+                    AV *av = (AV *)SvRV($input);
+                    if (SvTYPE(av) == SVt_PVAV) {
+                        SV **tv;
+                        I32 len = av_len(av) + 1;
+                        if (len == 0) {
+                            /* an empty sequence can be of any type */
+                            $1 = 1;
+                        } else {
+                            /* check the first element only */
+                            tv = av_fetch(av, 0, 0);
+                            if (CHECK_T(*tv))
+                                $1 = 1;
+                            else
+                                $1 = 0;
+                        }
+                    }
+                } else {
                     $1 = 0;
+                }
             }
         }
-        // add specialized typemaps here
       public:
         vector();
         vector(unsigned int size, const T& value=T());
