@@ -55,6 +55,7 @@ SWIGEXPORT(int) SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, _swig_type_inf
 SWIGEXPORT(void) SWIG_MakePtr(char *, void *, _swig_type_info *);
 SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, _swig_type_info *);
 SWIGEXPORT(int) SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
+SWIGEXPORT(char *) SWIG_PointerTypeFromString(char *c);
 
 #else
 static _swig_type_info *swig_types = 0;
@@ -163,11 +164,30 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_in
   return TCL_OK;
 }
 
+
 /* Convert a pointer value */
 SWIGSTATICRUNTIME(int)
 SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, _swig_type_info *ty)
 {
   return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty);
+}
+
+
+/* Convert a pointer value */
+SWIGSTATICRUNTIME(char *)
+SWIG_PointerTypeFromString(char *c) {
+  char d;
+  /* Pointer values must start with leading underscore */
+  if (*c != '_') {
+    return 0;
+  }
+  c++;
+  /* Extract hex value from pointer */
+  while (d = *c) {
+    if (!(((d >= '0') && (d <= '9')) || ((d >= 'a') && (d <= 'f')))) break;
+    c++;
+  }
+  return c;
 }
 
 /* Take a pointer and convert it to a string */
