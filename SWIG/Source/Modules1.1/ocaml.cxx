@@ -97,7 +97,6 @@ static Hash *seen_labels = NULL;      /* Enum labels emitted already. */
 static Hash *seen_names = NULL;       /* Symbols emitted. */
 
 static char *simple_types[][2] = {
-    { "_enum", "enum" },
     { "_bool", "bool" },
     { "_void", "unit" },
     { "_int", "int" },
@@ -234,202 +233,159 @@ class OCAML : public Language {
     }
 
     int
-    processInterface( String *modfile, Node *n )
-	{
-	    /* Initialize all of the output files */
-	    String *outfile = Getattr(n,"outfile");
-
-	    classmode = 0;
-	    const_enum = 0;
-
-	    if( !outfile || !modfile ) {
-		Printf(stderr,"%s name was not set.\n", 
-		       (!outfile) ? "Output file" : "Module file");
-		SWIG_exit(EXIT_FAILURE);
-	    }
-
-	    if( mliout ) 
-		f_runtime = NewString("");
-	    else
-		f_runtime = NewFile(outfile,"w");
-
-	    if (!f_runtime) {
-		Printf(stderr,"*** Can't open '%s'\n", outfile);
-		SWIG_exit(EXIT_FAILURE);
-	    }
-
-	    f_module_file = NewFile(modfile,"w");
-	    if (!f_module_file) {
-		Printf(stderr,"*** Can't open '%s'\n", modfile);
-		SWIG_exit(EXIT_FAILURE);
-	    }
-
-	    classname = NewString("");
-	    f_module = NewString("");
-
-	    Printf(f_module_file,
-		   "(* -*- buffer-read-only: t -*- vi: set ro: *)\n");
-	    if( !mliout ) {
-		Printf(f_module_file,"open Int32\n" );
-		Printf(f_module_file,"open Int64\n" );
-	    }
-
-	    if( wrapmod )
-		Printf(f_module_file,"module %s = struct\n",wrapmod);
-
-	    seen_types = NewHash();
-	    seen_deleters = NewHash();
-	    seen_classes = NewHash();
-	    seen_labels = NewHash();
-	    seen_names = NewHash();
-
-	    int i;
-
-	    // I starts at one here to skip the _enum type.
-	    for( i = 1; simple_types[i][0]; i++ ) {
-		Printf(f_module, "type %s = %s\n", 
-		       simple_types[i][0], simple_types[i][1] );
-		Setattr(seen_types,simple_types[i][0],
-			NewString(simple_types[i][1]));
-	    }
-	    // Now add the _enum type to seen_types
-	    Setattr(seen_types,simple_types[0][0],
-		    NewString(simple_types[0][1]));
-
-	    f_init = NewString("");
-	    f_header = NewString("");
-	    f_init_fn = NewString("");
-	    f_wrappers = NewString("");
-	    f_modclass = NewString("");
-
-	    f_pvariant_value = NewString("");
-
-	    if( mliout ) {
-		f_pvariant_to_int = NewString("");
-		f_pvariant_from_int = NewString("");
-	    } else {
-		f_pvariant_to_int = 
-		    NewString("let enum_to_int _v_ =\nmatch _v_ with\n"
-					      "`int x -> x\n");
-		f_pvariant_from_int = NewString("let int_to_enum _v_ =\n");
-	    }
-
-	    f_pvariant_def = NewString("type _enum =\n[ `int of int\n");
-
-	    /* Register file targets with the SWIG file handler */
-	    Swig_register_filebyname("header",f_header);
-	    Swig_register_filebyname("wrapper",f_wrappers);
-	    Swig_register_filebyname("runtime",f_runtime);
-	    Swig_register_filebyname("init",f_init_fn);
-
-	    Printf(f_runtime, 
-		   "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
-	    Swig_banner (f_runtime);
-
-	    if (NoInclude) {
-		Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
-	    }
-	    
-	    Printf( f_init_fn,
-		    "#ifdef __cplusplus\n"
-		    "extern \"C\"\n"
-		    "#endif\n"
-		    "value _wrapper_init_fn(value v) {\n"
-		    "  CAMLparam1(v);\n");
-
-	    Language::top(n);
-
-	    Printf( f_init_fn,
-		    "\n"
-		    "  CAMLreturn(Val_unit);\n"
-		    "}\n\n" );
-	    
-	    Printf(f_pvariant_def,"]\n");
-
-	    if( !mliout ) {
-		Printf(f_pvariant_to_int,
-		       "let _ = Callback.register \"%s_enum_to_int\" "
-		       "enum_to_int\n"
-		       "let enum_bits _v_ = int_to_enum "
-		       "(List.fold_left (fun a b -> a lor (enum_to_int b)) "
-		       "0 _v_)\n"
-		       "let check_enum_bit f _v_ = "
-		       "(enum_to_int _v_) land (enum_to_int f) == "
-		       "(enum_to_int f)\n"
-		       "let bits_enum _v_ f_list = "
-		       "List.filter (fun f -> check_enum_bit f _v_) f_list\n",
-		       module );
-
-		Printf(f_pvariant_from_int,
-		       "`int _v_\n"
-		       "let _ = Callback.register \"%s_int_to_enum\" "
-		       "int_to_enum\n",
-		       module);
-	    } else {
-		Printf(f_pvariant_to_int,
-		       "val enum_to_int : _enum -> int\n"
-		       "val int_to_enum : int -> _enum\n"
-		       "val enum_bits : _enum list -> _enum\n"
-		       "val check_enum_bit : _enum -> _enum -> bool\n"
-		       "val bits_enum : _enum -> _enum list -> _enum list\n");
-	    }
-
-	    SwigType_emit_type_table (f_runtime, f_wrappers);
-
-	    Dump(f_pvariant_def,f_module_file);
-	    Dump(f_module,f_module_file);
-	    Dump(f_modclass,f_module_file);
-
-	    // *** Polymorphic variant support ***
-	    Dump(f_pvariant_from_int,f_module_file);
-	    Dump(f_pvariant_to_int,f_module_file);
-
-	    /* Produce the enum_to_int and int_to_enum functions */
-	    Printf(f_wrappers,
-		   "static int enum_to_int( value v ) {\n"
-		   "  value *en_to_int_cb = "
-		   "caml_named_value(\"%s_enum_to_int\");\n"
-		   "  return Int_val(callback(*en_to_int_cb,v));\n"
-		   "}\n"
-		   "static value int_to_enum( int v ) {\n"
-		   "  value *int_to_en_cb = "
-		   "caml_named_value(\"%s_int_to_enum\");\n"
-		   "  return callback(*int_to_en_cb,Val_int(v));\n"
-		   "}\n",module,module);
-
-	    /* Close all of the files */
-	    if( wrapmod )
-		Printf(f_module_file,"end\n",wrapmod);
-
-	    Dump(f_header,f_runtime);
-
-	    Dump(f_wrappers,f_runtime);
-	    Dump(f_init_fn,f_runtime);
-	    Wrapper_pretty_print(f_init,f_runtime);
-
-	    // Init function support in module
-	    if( !mliout )
-		Printf(f_module_file,
-		       "external _wrapper_init_fn : unit -> unit = "
-		       "\"_wrapper_init_fn\"\n"
-		       "let _ = _wrapper_init_fn ()\n");
-
-	    Delete(f_header);
-	    Delete(f_wrappers);
-	    Delete(f_init);
-	    Delete(f_init_fn);
-
-	    if( !mliout ) 
-		Close(f_runtime);
-
-	    Close(f_module_file);
-	    Delete(f_runtime);
-	    Delete(f_module);
-	    Delete(f_module_file);
-
-	    return SWIG_OK;
+    processInterface( String *modfile, Node *n ) {
+	/* Initialize all of the output files */
+	String *outfile = Getattr(n,"outfile");
+	
+	classmode = 0;
+	const_enum = 0;
+	
+	if( !outfile || !modfile ) {
+	    Printf(stderr,"%s name was not set.\n", 
+		   (!outfile) ? "Output file" : "Module file");
+	    SWIG_exit(EXIT_FAILURE);
 	}
-
+	
+	if( mliout ) 
+	    f_runtime = NewString("");
+	else
+	    f_runtime = NewFile(outfile,"w");
+	
+	if (!f_runtime) {
+	    Printf(stderr,"*** Can't open '%s'\n", outfile);
+	    SWIG_exit(EXIT_FAILURE);
+	}
+	
+	f_module_file = NewFile(modfile,"w");
+	if (!f_module_file) {
+	    Printf(stderr,"*** Can't open '%s'\n", modfile);
+	    SWIG_exit(EXIT_FAILURE);
+	}
+	
+	classname = NewString("");
+	f_module = NewString("");
+	
+	Printf(f_module_file,
+	       "(* -*- buffer-read-only: t -*- vi: set ro: *)\n");
+	if( !mliout ) {
+	    Printf(f_module_file,"open Int32\n" );
+	    Printf(f_module_file,"open Int64\n" );
+	}
+	
+	if( wrapmod )
+	    Printf(f_module_file,"module %s = struct\n",wrapmod);
+	
+	seen_types = NewHash();
+	seen_deleters = NewHash();
+	seen_classes = NewHash();
+	seen_labels = NewHash();
+	seen_names = NewHash();
+	
+	int i;
+	
+	// I starts at one here to skip the _enum type.
+	for( i = 0; simple_types[i][0]; i++ ) {
+	    Printf(f_module, "type %s = %s\n", 
+		   simple_types[i][0], simple_types[i][1] );
+	    Setattr(seen_types,simple_types[i][0],
+		    NewString(simple_types[i][1]));
+	}
+	
+	f_init = NewString("");
+	f_header = NewString("");
+	f_init_fn = NewString("");
+	f_wrappers = NewString("");
+	f_modclass = NewString("");
+	
+	f_pvariant_def = NewString("");
+	f_pvariant_value = NewString("");
+	f_pvariant_to_int = NewString("");
+	f_pvariant_from_int = NewString("");
+	
+	/* Register file targets with the SWIG file handler */
+	Swig_register_filebyname("header",f_header);
+	Swig_register_filebyname("wrapper",f_wrappers);
+	Swig_register_filebyname("runtime",f_runtime);
+	Swig_register_filebyname("init",f_init_fn);
+	
+	Printf(f_runtime, 
+	       "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
+	Swig_banner (f_runtime);
+	
+	if (NoInclude) {
+	    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+	}
+	
+	Printf( f_init_fn,
+		"#ifdef __cplusplus\n"
+		"extern \"C\"\n"
+		"#endif\n"
+		"value _wrapper_init_fn(value v) {\n"
+		"  CAMLparam1(v);\n");
+	
+	Language::top(n);
+	
+	Printf( f_init_fn,
+		"\n"
+		"  CAMLreturn(Val_unit);\n"
+		"}\n\n" );
+	
+	SwigType_emit_type_table (f_runtime, f_wrappers);
+	
+	Dump(f_pvariant_def,f_module_file);
+	Dump(f_module,f_module_file);
+	Dump(f_modclass,f_module_file);
+	
+	// *** Polymorphic variant support ***
+	Dump(f_pvariant_from_int,f_module_file);
+	Dump(f_pvariant_to_int,f_module_file);
+	
+	/* Produce the enum_to_int and int_to_enum functions */
+	Printf(f_wrappers,
+	       "static int enum_to_int( value v ) {\n"
+	       "  value *en_to_int_cb = "
+	       "caml_named_value(\"%s_enum_to_int\");\n"
+	       "  return Int_val(callback(*en_to_int_cb,v));\n"
+	       "}\n"
+	       "static value int_to_enum( int v ) {\n"
+	       "  value *int_to_en_cb = "
+	       "caml_named_value(\"%s_int_to_enum\");\n"
+	       "  return callback(*int_to_en_cb,Val_int(v));\n"
+	       "}\n",module,module);
+	
+	/* Close all of the files */
+	if( wrapmod )
+	    Printf(f_module_file,"end\n",wrapmod);
+	
+	Dump(f_header,f_runtime);
+	
+	Dump(f_wrappers,f_runtime);
+	Dump(f_init_fn,f_runtime);
+	Wrapper_pretty_print(f_init,f_runtime);
+	
+	// Init function support in module
+	if( !mliout )
+	    Printf(f_module_file,
+		   "external _wrapper_init_fn : unit -> unit = "
+		   "\"_wrapper_init_fn\"\n"
+		   "let _ = _wrapper_init_fn ()\n");
+	
+	Delete(f_header);
+	Delete(f_wrappers);
+	Delete(f_init);
+	Delete(f_init_fn);
+	
+	if( !mliout ) 
+	    Close(f_runtime);
+	
+	Close(f_module_file);
+	Delete(f_runtime);
+	Delete(f_module);
+	Delete(f_module_file);
+	
+	return SWIG_OK;
+    }
+    
 // ---------------------------------------------------------------------
 // set_module(char *mod_name)
 //
@@ -519,13 +475,8 @@ class OCAML : public Language {
 	return 0;
     }
     
-    static int is_enum(SwigType *t) {
-	return !strncmp(Char(SwigType_typedef_resolve_all(t)),"enum ",5);    
-    }
-
     static SwigType *process_type( SwigType *t ) { 
         // Return a SwigType that's liveable for ocaml
-	if( is_enum(t) ) return(NewString("enum"));
 	if( !is_simple(t) && !is_a_pointer(t) ) {
 	    SwigType *tt = Copy(t);
 	    SwigType_add_pointer(tt);
@@ -1060,11 +1011,11 @@ class OCAML : public Language {
 
 	if(f_pvariant_value) {
 	    int suffix_digit = 1;
-	    String *output_name = Copy(Getattr(n,"name"));
+	    String *output_name = Copy(name);
 	    while( Getattr(seen_labels,output_name) ) {
 		Delete(output_name);
 		output_name = NewString("");
-		Printf(output_name,"%s_%d",Getattr(n,"name"),suffix_digit);
+		Printf(output_name,"%s_%d",name,suffix_digit);
 		suffix_digit++;
 	    }
 
@@ -1074,15 +1025,74 @@ class OCAML : public Language {
 	    // Implementation only
 	    if( !mliout ) {
 		Printf(f_pvariant_to_int,"| `%s -> %s\n", 
-		       Getattr(n,"name"), f_pvariant_value);
+		       name, f_pvariant_value);
 		Printf(f_pvariant_from_int,"if _v_ == %s then `%s else\n", 
-		       f_pvariant_value, Getattr(n,"name"));
+		       f_pvariant_value, name);
 	    }
 	    // Both
-	    Printf(f_pvariant_def,"| `%s\n", Getattr(n,"name"));
+	    Printf(f_pvariant_def,"| `%s\n", name);
 	}
 
 	return SWIG_OK;
+    }
+
+    int enumDeclaration(Node *n) {
+	String *name = Getattr(n,"name");
+
+	if( !name || !strlen(Char(name)) ) return SWIG_OK;
+
+	if( !mliout ) {
+	    Printf(f_pvariant_to_int,
+		   "let _%s_to_int _v_ =\nmatch _v_ with\n"
+		   "`int x -> x\n",name);
+	    Printf(f_pvariant_from_int,"let int_to_%s _v_ =\n",name);
+	}
+	
+	Printf(f_pvariant_def,"type _%s =\n[ `int of int\n",name);
+
+	Language::enumDeclaration(n);
+
+	Printf(f_pvariant_def,"]\n");
+
+	if( !mliout ) {
+	    Printf( f_pvariant_to_int,
+		    "let _ = Callback.register \"%s_%s_to_int\" "
+		    "_%s_to_int\n"
+		    "let _%s_bits _v_ = int_to_%s "
+		    "(List.fold_left (fun a b -> a lor (_%s_to_int b)) "
+		    "0 _v_)\n"
+		    "let check_%s_bit f _v_ = "
+		    "(_%s_to_int _v_) land (_%s_to_int f) == "
+		    "(_%s_to_int f)\n"
+		    "let bits_%s _v_ f_list = "
+		    "List.filter (fun f -> check_%s_bit f _v_) f_list\n",
+		    module, name, name,
+		    name, name,
+		    name,
+		    name,
+		    name, name,
+		    name,
+		    name,
+		    name );
+	    
+	    Printf( f_pvariant_from_int,
+		    "`int _v_\n"
+		    "let _ = Callback.register \"%s_int_to_%s\" "
+		    "int_to_%s\n",
+		    module, name, name);
+	} else {
+	    Printf( f_pvariant_to_int,
+		    "val _%s_to_int : _%s -> int\n"
+		    "val int_to_%s : int -> _%s\n"
+		    "val _%s_bits : _%s list -> _%s\n"
+		    "val check_%s_bit : _%s -> _%s -> bool\n"
+		    "val bits_%s : _%s -> _%s list -> _%s list\n",
+		    name, name, 
+		    name, name, 
+		    name, name, name,
+		    name, name, name,
+		    name, name, name, name );
+	}
     }
 
 // -----------------------------------------------------------------------
@@ -1204,7 +1214,8 @@ class OCAML : public Language {
 		    if( mliout ) 
 			Printf( f_modclass, "  inherit %s\n" );
 		    else
-			Printf( f_modclass,"  inherit %s (Obj.magic c_self)\n", 
+			Printf( f_modclass,
+				"  inherit %s (Obj.magic c_self)\n", 
 				seen );
 		}
 
