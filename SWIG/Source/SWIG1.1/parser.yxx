@@ -1575,7 +1575,7 @@ stars :          STAR empty { $$ = 1; }
 
 array :        LBRACKET  RBRACKET array2 {
 		 $$ = $3 + 1;
-		 SwigType_add_array(ArrayString,"");
+		 SwigType_add_array(ArrayString,(char*)"");
               }
               | LBRACKET expr RBRACKET array2 {
                  $$ = $4 + 1;
@@ -1637,7 +1637,7 @@ type           : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-		  SwigType_add_qualifier($$,"const");
+		  SwigType_add_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
 		 $$ = NewStringf("%s %s",$1,$2);
@@ -1698,7 +1698,7 @@ strict_type    : TYPE_INT {
 	       }
                | CONST type {
 		  $$ = $2;
-		  SwigType_add_qualifier($$,"const");
+		  SwigType_add_qualifier($$,(char*)"const");
      	       }
                | cpptype ID {
 		 $$ = NewStringf("%s %s", $1, $2);
