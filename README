@@ -82,6 +82,8 @@ SWIG-1.3.23 summary:
 - Overloaded templated function support added
 - More powerful default typemaps (mixed default typemaps)
 - Some important %feature, %extend and director code bug fixes
+- Guile now defaults to using SCM API.  The old interface can be obtained by
+  the -gh option.
 - Various minor improvements and bug fixes for C#, Chicken, Guile, Java, 
   MzScheme, Perl, Python and Ruby
 
