@@ -512,14 +512,14 @@ void emit_action(Node *n, Wrapper *f) {
       Replaceid(tm, "SWIG_invariant", "SWIG_invariant_end");
       Printv(f->code,tm,"\n",NIL);
     }
-    /* Inherit Postassertion */
-    tm = Getattr(n, "feature:inherit_postassert");
+    /* Postassertion */
+    tm = Getattr(n, "feature:postassert");
     if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Printv(f->code,tm,"\n",NIL);
     }
-    /* Postassertion */
-    tm = Getattr(n, "feature:postassert");
+    /* Inherit Postassertion */
+    tm = Getattr(n, "feature:inherit_postassert");
     if (Len(tm)) {
       replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
       Printv(f->code,tm,"\n",NIL);
