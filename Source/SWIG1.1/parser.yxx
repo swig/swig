@@ -987,11 +987,10 @@ statement      : INCLUDE STRING LBRACE {
 		   init_language();
 		   if ($3) {
 		     if (temp_type) Delete(temp_type);
-		     String *ts = NewStringf("enum %s", $3);
+		     temp_type = NewStringf("enum %s", $3);
 		     /*		     String *ts = NewSwigType(T_INT); */
-		     SwigType_typedef(temp_type,ts);
-		     lang->add_typedef(temp_type,Char(ts));
-		     Delete(ts);
+		     SwigType_typedef(temp_type,$3);
+		     lang->add_typedef(temp_type,$3);
 		   }
 	       }
 
