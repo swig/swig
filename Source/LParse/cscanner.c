@@ -75,12 +75,14 @@ static int           remap[SWIG_MAXTOKENS];
 static int           cscan_init = 0;
 static int           cplusplus_mode = 0;
 static int           objc_mode = 0;
-static int           strict_type = 1;
+static int           strict_type = 0;
 
 static SwigScanner  *cscanner = 0;
 
 /* -----------------------------------------------------------------------------
- * void lparse_init()
+ * lparse_init()
+ * 
+ * Initialize the parser
  * ----------------------------------------------------------------------------- */
 
 static void 
@@ -97,35 +99,69 @@ lparse_init() {
 }
 
 /* -----------------------------------------------------------------------------
- * LParse_push(DOH *str) - Initialize the scanner
+ * LParse_push()
+ *
+ * Push some text into the scanner.
  * ----------------------------------------------------------------------------- */
 void
-LParse_push(DOH *str) 
-{
+LParse_push(DOH *str) {
   assert(str);
   lparse_init();
   SwigScanner_push(cscanner, str);
 }
 
-DOH *LParse_file() {
+/* ----------------------------------------------------------------------------- 
+ * LParse_file()
+ *
+ * Return the current filename
+ * ----------------------------------------------------------------------------- */
+
+DOH *
+LParse_file() {
   return SwigScanner_get_file(cscanner);
 }
 
-int LParse_line() {
+/* -----------------------------------------------------------------------------
+ * LParse_line()
+ *
+ * Return the current line number
+ * ----------------------------------------------------------------------------- */
+
+int 
+LParse_line() {
   return SwigScanner_get_line(cscanner);
 }
 
-void LParse_set_location(DOH *file, int line) {
+/* -----------------------------------------------------------------------------
+ * LParse_set_location()
+ *
+ * Set the file and line number of the scanner.
+ * ----------------------------------------------------------------------------- */
+
+void 
+LParse_set_location(DOH *file, int line) {
   SwigScanner_set_location(cscanner,file,line);
 }
 
-void LParse_strict_type(int i) {
+/* -----------------------------------------------------------------------------
+ * LParse_strict_type()
+ *
+ * Set the value of the strict type handling flag.
+ * ----------------------------------------------------------------------------- */
+
+int 
+LParse_strict_type(int i) {
+  int old = strict_type;
   strict_type = i;
+  return old;
 }
 
 /* -----------------------------------------------------------------------------
- * LParse_cplusplus(int i) -  Enable C++ scanning
+ * LParse_cplusplus()
+ *
+ * Enable or disable C++ keywords.
  * ----------------------------------------------------------------------------- */
+
 int
 LParse_cplusplus(int i) {
   int old = cplusplus_mode;
@@ -134,7 +170,9 @@ LParse_cplusplus(int i) {
 }
 
 /* -----------------------------------------------------------------------------
- * LParse_objc(int i) - Enable Objective-C scanning
+ * LParse_objc()
+ *
+ * Enable or disable objective-C keywords.
  * ----------------------------------------------------------------------------- */
 int
 LParse_objc(int i) {
@@ -143,20 +181,31 @@ LParse_objc(int i) {
   return old;
 }
 
-/* -----------------------------------------------------------------------------
- * LParse_error(DOH *file, int line, char *fmt, ...)
- * ----------------------------------------------------------------------------- */
-
 static DOH *macro_name = 0;
 static DOH *macro_file = 0;
 static int macro_line = 0;
 
-void LParse_macro_location(DOH *name, DOH *file, int line) {
+/* -----------------------------------------------------------------------------
+ * LParse_macro_location()
+ *
+ * Set the location of a macro when parsing macro text.
+ * ----------------------------------------------------------------------------- */
+ 
+void
+LParse_macro_location(DOH *name, DOH *file, int line) {
   macro_name = name;
   macro_file = file;
   macro_line = line;
 }
-void LParse_error(DOH *file, int line, char *fmt, ...) {
+
+/* -----------------------------------------------------------------------------
+ * LParse_error()
+ *
+ * Report an error.
+ * ----------------------------------------------------------------------------- */
+
+void
+LParse_error(DOH *file, int line, char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
   if (!file) {
@@ -177,11 +226,13 @@ void LParse_error(DOH *file, int line, char *fmt, ...) {
 }
 
 /* -----------------------------------------------------------------------------
- * LParse_skip_balanced() - Skip over some text
+ * LParse_skip_balanced()
+ *
+ * Skip over text enclosed in balanced characters (), [], <>, etc...
  * ----------------------------------------------------------------------------- */
+
 DOH * 
-LParse_skip_balanced(int startchar, int endchar)
-{
+LParse_skip_balanced(int startchar, int endchar) {
   DOH *file;
   int line;
   file = SwigScanner_get_file(cscanner);
@@ -192,8 +243,11 @@ LParse_skip_balanced(int startchar, int endchar)
 }
 
 /* -----------------------------------------------------------------------------
- * LParse_skip_semi() - Skip to the next semicolon
+ * LParse_skip_semi()
+ *
+ * Skip to the next semi-colon
  * ----------------------------------------------------------------------------- */
+
 void
 LParse_skip_semi() {
   int t, line;
@@ -207,6 +261,12 @@ LParse_skip_semi() {
   }
   LParse_error(file,line,"Missing semicolon. Reached the end of input.\n");
 }
+
+/* -----------------------------------------------------------------------------
+ * LParse_skip_decl()
+ *
+ * Skip the current declaration (terminated by either a semicolon or }
+ * ----------------------------------------------------------------------------- */
 
 void
 LParse_skip_decl() {
@@ -232,7 +292,9 @@ LParse_skip_decl() {
 }
 
 /* -----------------------------------------------------------------------------
- * int lparse_yylex() - Entry point called by the parser 
+ * yylex1()
+ *
+ * Get next token.
  * ----------------------------------------------------------------------------- */
 static int
 yylex1(void) {
@@ -377,7 +439,14 @@ yylex1(void) {
     return(l1);
 }
 
-int lparse_yylex() {
+/* -----------------------------------------------------------------------------
+ * lparse_yylex()
+ *
+ * main entry point for the parser
+ * ----------------------------------------------------------------------------- */
+
+int
+lparse_yylex() {
   int t;
   t = yylex1();
   /*   printf("%d\n",t); */
