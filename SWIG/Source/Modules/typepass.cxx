@@ -782,6 +782,16 @@ class TypePass : private Dispatcher {
       Setattr(n,"value",new_value);
       Delete(new_value);
     }
+
+    // Make up an enumvalue if one was not specified in the parsed code
+    if (Getattr(n,"_last") && !Getattr(n,"enumvalue")) { // Only the first enum item has _last set
+      Setattr(n,"enumvalueex", "0");
+    }
+    Node *next = nextSibling(n);
+    if (next && !Getattr(next,"enumvalue")) {
+      Setattr(next,"enumvalueex", NewStringf("%s + 1", Getattr(n,"sym:name")));
+    }
+
     return SWIG_OK;
   }
 
