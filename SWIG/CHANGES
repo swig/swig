@@ -17,6 +17,58 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/08/2002: cheetah (William Fulton)
+            [Java] Proxy method _delete() changed to delete(). There shouldn't ever
+            be a wrapped function called delete() as it is a C++ keyword and there
+            is no such thing as a member function in C.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+            Backwards compatibility can be achieved by adding the function back in
+            for all proxy classes:
+            %typemap(javacode) SWIGTYPE %{
+              public void _delete() {
+                delete();
+              }
+            %}
+
+            Java backwards compatibility summary
+            ------------------------------------
+
+            There are a number of changes that have been made in improving the Java module 
+            for ver 1.3.14.  If at all possible change your code to take advantages of the 
+            improvements. If you were using proxy classes you may not notice any backwards 
+            compatibility issues. Here is an example which will help with most backwards 
+            compatibility problems where it is not possible to modify the code that uses
+            the generated output:
+
+            Replace:
+                %module modulename
+
+            With:
+                %module (jniclassname="modulename") modulename;
+                %typemap(javacode) SWIGTYPE %{
+                    public long getCPtr$javaclassname() {
+                        return swigCPtr;
+                    }
+                    public void _delete() {
+                      delete();
+                    }
+                %}
+                %pragma(java) jniclassclassmodifiers="public";
+
+            The proxy constructors that took parameters (long cPtr, boolean cMemoryOwn)
+            were public and are now protected. If you were making use of these then you'll 
+            have to modify your code and the best solution would be to use the new type 
+            wrapper classes.
+
+            The other main areas are the pragmas and global variable wrapping. Replace 
+            the pragmas with one of the new directives or typemaps mentioned below and use
+            %rename on the variables.
+
+08/08/2002: cheetah (William Fulton)
+            [Java] Fix for wrapping two dimension array variables.
+
 08/07/2002: beazley
             [Python,Tcl]
             Object management now has a much better sense of ownership.
@@ -136,37 +188,6 @@ Version 1.3.14 (In progress)
 
             If 'name' is the same as 'modulename' then the module class name gets changed
             from 'modulename' to modulenameModule.
-
-            Java backwards compatibility summary
-            ------------------------------------
-
-            The 'jniclassname' attribute is the last of the changes which will help in 
-            achieving some backwards compatibility for the changes in the Java module
-            version 1.3.14.  If at all possible change your code to take advantages of the 
-            improvements. If you were using proxy classes you may not notice any backwards 
-            compatibility issues. Here is an example which will help with most backwards 
-            compatibility problems where this is not possible:
-
-            Repalce:
-                %module modulename
-
-            With:
-                %module (jniclassname="modulename") modulename;
-                %typemap(javacode) SWIGTYPE %{
-                    public long getCPtr$javaclassname() {
-                        return swigCPtr;
-                    }
-                %}
-                %pragma(java) jniclassclassmodifiers="public";
-
-            The proxy constructors that took parameters (long cPtr, boolean cMemoryOwn)
-            were public and are now protected. If you were making use of these then you'll 
-            have to modify your code and the best solution would be to use the new type 
-            wrapper classes.
-
-            The other main areas are the pragmas and global variable wrapping. Replace 
-            the pragmas with one of the new directives or typemaps mentioned below and use
-            %rename on the variables.
 
 08/01/2002: beazley
             Fixed problem with file include order.  Language specific
