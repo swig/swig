@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+06/10/2002: Tiger
+	    Modified contract code for error message output.
+            Contract code can now print out simple error message.
+            Modified contract code to prepare for inheritance
+            
 06/03/2003: mkoeppe
 	    [Guile] Applied Guile module updates contributed by 
 	    John Lenz <jelenz@students.wisc.edu>. 
