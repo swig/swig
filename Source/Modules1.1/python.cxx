@@ -348,6 +348,22 @@ void PYTHON::initialize(void)
   fprintf(f_wrappers,"#ifdef __cplusplus\n");
   fprintf(f_wrappers,"extern \"C\" {\n");
   fprintf(f_wrappers,"#endif\n");
+  
+  const_code << "typedef struct { \n"
+	     << tab4 << "int  type;\n"
+	     << tab4 << "char *name;\n"
+	     << tab4 << "long lvalue;\n"
+	     << tab4 << "double dvalue;\n"
+	     << tab4 << "void   *pvalue;\n"
+	     << tab4 << "_swig_type_info *ptype;\n"
+	     << "} _swig_const_info;\n";
+
+  const_code << "#define SWIG_PY_INT     1\n"
+	     << "#define SWIG_PY_FLOAT   2\n"
+	     << "#define SWIG_PY_STRING  3\n"
+	     << "#define SWIG_PY_POINTER 4\n";
+  
+  const_code << "static _swig_const_info _swig_const_table[] = {\n";
 }
 
 // ---------------------------------------------------------------------
@@ -455,7 +471,34 @@ void PYTHON::close_cmodule(void)
   extern void emit_type_table();
   emit_type_table();
   /*  emit_ptr_equivalence(f_init); */
-  fprintf(f_init,"%s\n", const_code.get());
+  const_code << "{0}};\n";
+  
+  fprintf(f_wrappers,"%s\n",const_code.get());
+  
+  String cinit;
+  cinit << tab4 << "{\n"
+	<< tab8 << "int i;\n"
+	<< tab8 << "for (i = 0; _swig_const_table[i].type; i++) {\n"
+	<< tab8 << tab4 << "switch(_swig_const_table[i].type) {\n"
+	<< tab8 << tab4 << "case SWIG_PY_INT:\n"
+	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyInt_FromLong(_swig_const_table[i].lvalue));\n"
+	<< tab8 << tab8 << "break;\n"
+	<< tab8 << tab4 << "case SWIG_PY_FLOAT:\n"
+	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyFloat_FromDouble(_swig_const_table[i].dvalue));\n"
+	<< tab8 << tab8 << "break;\n"
+	<< tab8 << tab4 << "case SWIG_PY_STRING:\n"
+	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyString_FromString((char *) _swig_const_table[i].pvalue));\n"
+	<< tab8 << tab8 << "break;\n"
+	<< tab8 << tab4 << "case SWIG_PY_POINTER:\n"
+	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, SWIG_NewPointerObj(_swig_const_table[i].pvalue, _swig_const_table[i].ptype));\n"
+	<< tab8 << tab8 << "break;\n"
+	<< tab8 << tab4 << "default:\n"
+	<< tab8 << tab8 << "break;\n"
+	<< tab8 << tab4 << "}\n"
+	<< tab8 << "}\n"
+	<< tab4 << "}\n";
+
+  fprintf(f_init,"%s\n", cinit.get());
   fprintf(f_init,"}\n");
 }
 
@@ -1308,14 +1351,14 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       case T_SHORT: case T_SSHORT: case T_USHORT:
       case T_LONG: case T_SLONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR:
-	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyInt_FromLong((long)" << value << "));\n";
+	const_code << tab4 << "{ SWIG_PY_INT,     \"" << name << "\", (long) " << value << ", 0, 0, 0},\n";
 	break;
       case T_DOUBLE:
       case T_FLOAT:
-	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyFloat_FromDouble((double)" << value << "));\n";
+	const_code << tab4 << "{ SWIG_PY_FLOAT,   \"" << name << "\", 0, (double) " << value << ", 0,0},\n";
 	break;
       case T_CHAR :
-	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyString_FromString(\"" << value << "\"));\n";
+	const_code << tab4 << "{ SWIG_PY_STRING,  \"" << name << "\", 0, 0, (void *) \"" << value << "\", 0},\n";
 	break;
       default:
 	fprintf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
@@ -1323,12 +1366,12 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
       }
     } else {
       if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", PyString_FromString(\"" << value << "\"));\n";
+	const_code << tab4 << "{ SWIG_PY_STRING,  \"" << name << "\", 0, 0, (void *) \"" << value << "\", 0},\n";
       } else {
 	// A funky user-defined type.  We're going to munge it into a string pointer value
 	type->remember();
-	const_code << tab4 << "PyDict_SetItemString(d,\"" << name << "\", SWIG_NewPointerObj((void *) " << value
-		   << ", SWIGTYPE" << type->print_mangle() << "));\n";
+	const_code << tab4 << "{ SWIG_PY_POINTER, \"" << name << "\", 0, 0, (void *) " << value << ", SWIGTYPE" << type->print_mangle() << ")); \n";
+
       }
     }
   }
