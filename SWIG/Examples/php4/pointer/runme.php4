@@ -14,13 +14,13 @@
 
 	print "	a = $a\n";
 	print "	b = $b\n";
-	print "	c = $x\n";
+	print "	c = $c\n";
 
 	# Call the add() function wuth some pointers
 	add($a,$b,$c);
 
 	# Now get the result
-	$r = ptrvalue($c);
+	$r = intp_value($c);
 
 	print "	37 + 42 = $r\n";
 
