@@ -21,6 +21,11 @@ namespace std
   %template(pairii) pair<int, int>;
   %template(pairA) pair<int, A*>;
   %template(mapA) map<int, A*>;
+
+  %template(paircA1) pair<const int, A*>;
+  %template(paircA2) pair<const int, const A*>;
+  %template(pairiiA) pair<int,pair<int, A*> >;
+  %template(pairiiAc) pair<int,const pair<int, A*> >;
 }
 
 
