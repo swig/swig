@@ -267,6 +267,22 @@ static bool print_typecheck(String *f, int j, Parm *pj)
     return false;
 }
 
+static String *
+ReplaceFormat (const String_or_char *fmt, int j)
+{
+  String *lfmt = NewString (fmt);
+  char buf[50];
+  sprintf (buf, "%d", j);
+  Replaceall (lfmt, "$numargs", buf);
+  int i;
+  String *commaargs = NewString ("");
+  for (i=0; i < j; i++) {
+    Printf (commaargs, ", argv[%d]", i);
+  }
+  Replaceall (lfmt, "$commaargs", commaargs);
+  return lfmt;
+};
+
 String *
 Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   int i,j;
@@ -312,9 +328,11 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
 	continue;
       }
       if (j >= num_required) {
+	String *lfmt = ReplaceFormat (fmt, num_arguments);
 	Printf(f, "if (argc <= %d) {\n", j);
-	Printf(f, Char(fmt),Getattr(ni,"wrap:name"));
+	Printf(f, Char(lfmt),Getattr(ni,"wrap:name"));
 	Printf(f, "}\n");
+	Delete (lfmt);
       }
       if (print_typecheck(f, j, pj)) {
 	Printf(f, "if (_v) {\n");
@@ -325,7 +343,9 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       else pj = nextSibling(pj);
       j++;
     }
-    Printf(f, Char(fmt),Getattr(ni,"wrap:name"));
+    String *lfmt = ReplaceFormat (fmt, num_arguments);
+    Printf(f, Char(lfmt),Getattr(ni,"wrap:name"));
+    Delete (lfmt);
     /* close braces */
     for (/* empty */; num_braces > 0; num_braces--)
       Printf(f, "}\n");
@@ -334,5 +354,3 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   Delete(dispatch);
   return f;
 }
-
-
