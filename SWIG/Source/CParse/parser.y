@@ -259,6 +259,7 @@ static void add_tag(Node *n) {
     Printf(stderr,"%s",e);
     Setattr(n,"error",e);
   }
+  Swig_features_get(features_hash, 0, Getattr(n,"name"), 0, n);
 }
 
 /* Addmethods merge.  This function is used to handle the %addmethods directive
