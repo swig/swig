@@ -1341,15 +1341,18 @@ if test -z "$CSHARPBIN" ; then
       # Check that mcs is the C# compiler and not the Unix mcs utility by examining the output of 'mcs --version'
       # The Mono compiler should emit: Mono C# compiler version a.b.c.d
       csharp_version_raw=`(mcs --version) 2>/dev/null`
-      csharp_version_searched=`(mcs --version | sed -n "/C#\|Mono/p") 2>/dev/null`
+      csharp_version_searched=`(mcs --version | sed -e "/C#/b" -e "/Mono/b" -e d) 2>/dev/null` # return string if contains 'Mono' or 'C#'
       CSHARPCOMPILER="";
       if test -n "$csharp_version_raw" ; then
         if test "$csharp_version_raw" = "$csharp_version_searched" ; then
           CSHARPCOMPILER="mcs"
         fi
       fi
-
-      AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
+      if test "mcs" = "$CSHARPCOMPILER" ; then
+        AC_CHECK_PROGS(CSHARPCILINTERPRETER, mono) # Mono JIT
+      else
+        echo "mcs is not the Mono C# compiler"
+      fi
     else 
       if test "csc" = "$CSHARPCOMPILER"; then
           CSHARPPATHSEPARATOR="\\\\"
