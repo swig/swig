@@ -369,11 +369,12 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Emit wrapper code (if any) */
   wrap = Getattr(n,"wrap:code");
-  if (wrap) {
+  if (wrap && Swig_filebyname("header")!=Getattr(n,"wrap:code:done") ) {
     File *f_code = Swig_filebyname("header");
     if (f_code) {
       Printv(f_code,wrap,NIL);
     }
+    Setattr(n,"wrap:code:done",f_code);
   }
   action = Getattr(n,"feature:action");
   if (!action)
