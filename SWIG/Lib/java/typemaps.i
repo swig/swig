@@ -1,4 +1,4 @@
-//
+//-*-c++-*-
 // SWIG Typemap library
 // for Java
 
@@ -125,3 +125,40 @@
 %typemap(java,ignore) jobject jobj {
   $target = jobj;
 }
+
+/*
+ * typemaps for standard C++ string
+ * by: Tal Shalif <tal@slt.atr.co.jp>
+ */
+/* what type to use in java source code */
+%typemap(java,jtype) const string & {String}
+
+/* what is the corresponding jni type */
+%typemap(java,jni) const string & {jstring}
+
+/* how to convert the c++ type to the java type */
+%typemap(java,out) const string & {
+ $target = JCALL(NewStringUTF, jenv) $source->c_str());
+}
+
+/* how to convert java type to requested c++ type */
+%typemap(java,in) const string & {
+  $target = NULL;
+  if($source != NULL) {
+    /* get the String from the StringBuffer */
+    char *p = (char *)jenv->GetStringUTFChars($source, 0); 
+    $target =  new string(p);
+    /* free(p); HdH assuming string constructor makes a copy */
+    JCALL(ReleaseStringUTFChars, jenv) $source, p);
+  }
+}
+/* free resource once finished using */
+%typemap(java,argout) const string & {
+  delete $target;
+}
+
+%typemap(java,jtype) string & = const string &;
+%typemap(java,jni) string & = const string &;
+%typemap(java,in) string & = const string &;
+%typemap(java,out) string & = const string &;
+%typemap(java,argout) string & = const string &;
