@@ -496,6 +496,37 @@ match_identifier(char *base, char *s, char *token, int tokenlen)
   return 0;
 }
 
+
+static char *
+match_identifier_begin(char *base, char *s, char *token, int tokenlen)
+{
+  while (s) {
+    s = strstr(s,token);
+    if (!s) return 0;
+    if ((s > base) && (isalnum(*(s-1)) || (*(s-1) == '_'))) {
+      s += tokenlen;
+      continue;
+    }
+    return s;
+  }
+  return 0;
+}
+
+static char *
+match_identifier_end(char *base, char *s, char *token, int tokenlen)
+{
+  while (s) {
+    s = strstr(s,token);
+    if (!s) return 0;
+    if (isalnum(*(s+tokenlen)) || (*(s+tokenlen) == '_')) {
+      s += tokenlen;
+      continue;
+    }
+    return s;
+  }
+  return 0;
+}
+
 static int 
 replace_simple(String *str, char *token, char *rep, int flags, int count, char *(*match)(char *, char *, char *, int))
 {
@@ -714,7 +745,11 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 
     if (flags & DOH_REPLACE_FIRST) count = 1;
 
-    if (flags & DOH_REPLACE_ID) {
+    if (flags & DOH_REPLACE_ID_END) {
+      return replace_simple(str,Char(token),Char(rep),flags, count, match_identifier_end);      
+    } else if (flags & DOH_REPLACE_ID_BEGIN) {
+      return replace_simple(str,Char(token),Char(rep),flags, count, match_identifier_begin);      
+    } else if (flags & DOH_REPLACE_ID) {
       return replace_simple(str,Char(token),Char(rep),flags, count, match_identifier);
     } else {
       return replace_simple(str,Char(token), Char(rep), flags, count, match_simple);
