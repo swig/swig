@@ -237,16 +237,67 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
   if (!swigmacro) {
     Replace(macrovalue,"\\\n"," ", DOH_REPLACE_NOQUOTE);
   }
+
+  /* Look for special # substitutions.   We only consider # that appears
+     outside of quotes and comments */
+
+  {
+    int state = 0;
+    char *cc = Char(macrovalue);
+    while (*cc) {
+      switch(state) {
+      case 0:
+	if (*cc == '#') *cc = 1;
+	else if (*cc == '/') state = 10;
+	else if (*cc == '\'') state = 20;
+	else if (*cc == '\"') state = 30;
+	break;
+      case 10:
+	if (*cc == '*') state = 11;
+	else if (*cc == '/') state = 15;
+	else state = 0;
+	break;
+      case 11:
+	if (*cc == '*') state = 12;
+	break;
+      case 12:
+	if (*cc == '/') state = 0;
+	else if (*cc != '*') state = 11;
+	break;
+      case 15:
+	if (*cc == '\n') state = 0;
+	break;
+      case 20:
+	if (*cc == '\'') state = 0;
+	if (*cc == '\\') state = 21;
+	break;
+      case 21:
+	state = 20;
+	break;
+      case 30:
+	if (*cc == '\"') state = 0;
+	if (*cc == '\\') state = 31;
+	break;
+      case 31:
+	state = 30;
+	break;
+      default:
+	break;
+      }
+      cc++;
+    }
+  }
+
   /* Get rid of whitespace surrounding # */
-  Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE);
+  /*  Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE); */
   while(strstr(Char(macrovalue),"\001 ")) {
-    Replace(macrovalue,"\001 ","\001", DOH_REPLACE_NOQUOTE);
+    Replace(macrovalue,"\001 ","\001", DOH_REPLACE_ANY);
   }
   while(strstr(Char(macrovalue)," \001")) {
-    Replace(macrovalue," \001","\001", DOH_REPLACE_NOQUOTE);
+    Replace(macrovalue," \001","\001", DOH_REPLACE_ANY);
   }
   /* Replace '##' with a special token */
-  Replace(macrovalue,"\001\001","\002", DOH_REPLACE_NOQUOTE);
+  Replace(macrovalue,"\001\001","\002", DOH_REPLACE_ANY);
 
   /* Go create the macro */
   macro = NewHash();
@@ -1084,11 +1135,11 @@ Preprocessor_parse(String *s)
 	  start_level = level;
 	  sval = Preprocessor_replace(value);
 	  Seek(sval,0,SEEK_SET);
-	  /*	  Printf(stdout,"Evaluating '%s'\n", sval); */
+	  /*	  Printf(stdout,"Evaluating '%s'\n", sval);*/
   	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET);
-	    /* cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
+	    /*	    cpp_error(Getfile(value),Getline(value),"Could not evaluate '%s'\n", value); */
   	    allow = 0;
   	  } else {
   	    if (val == 0)
