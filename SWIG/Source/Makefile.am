@@ -87,7 +87,7 @@ eswig_LDADD   = @SWIGLIBS@
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple 
 # build directories.
-all-local:
+all-local: eswig@EXEEXT@
 	cp eswig@EXEEXT@ ../swig@release_suffix@@EXEEXT@
 
 clean-local:
