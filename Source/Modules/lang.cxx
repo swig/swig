@@ -653,6 +653,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   while (items) {
     Parm     *pattern   = Getattr(items,"pattern");
     Parm     *parms     = Getattr(items,"parms");
+    
     if (code) {
       Swig_typemap_register(method,pattern,code,parms,kwargs);
     } else {
@@ -1141,21 +1142,19 @@ Language::variableHandler(Node *n) {
     globalvariableHandler(n);
   } else {
     String *storage = Getattr(n,"storage");
-    if ((Cmp(storage,"static") == 0)) {
-      if (!SmartPointer) {
-	staticmembervariableHandler(n);
-      } 
-    } else {
-      Swig_save("variableHandler",n,"feature:immutable",NIL);
-      /* If a smart-pointer and it's a constant access, we have to set immutable */
-      if (SmartPointer) {
-	if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
-	  Setattr(n,"feature:immutable","1");
-	}
+    Swig_save("variableHandler",n,"feature:immutable",NIL);
+    if (SmartPointer) {
+      if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
+	Setattr(n,"feature:immutable","1");
       }
-      membervariableHandler(n);
-      Swig_restore(n);
     }
+    if ((Cmp(storage,"static") == 0)) {
+      staticmembervariableHandler(n);
+    } else {
+      /* If a smart-pointer and it's a constant access, we have to set immutable */
+      membervariableHandler(n);
+    }
+    Swig_restore(n);
   }
   return SWIG_OK;
 }
@@ -1215,7 +1214,11 @@ Language::membervariableHandler(Node *n) {
       String *tm = 0;
       String *target = 0;
       if (!Extend) {
-	target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
+	if (SmartPointer) {
+	  target = NewStringf("(*%s)->%s", Swig_cparm_name(0,0),name);
+	} else {
+	  target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
+	}	
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
       int flags = Extend | SmartPointer;
@@ -1314,6 +1317,7 @@ Language::staticmembervariableHandler(Node *n)
   String *value = Getattr(n,"value");
   SwigType *type = SwigType_typedef_resolve_all(Getattr(n,"type"));
 
+  String *classname = !SmartPointer ? ClassName : Getattr(CurrentClass,"allocate:smartpointerbase");
   if (!value || !(SwigType_isconst(type))) {
     String *name    = Getattr(n,"name");
     String *symname = Getattr(n,"sym:name");
@@ -1321,7 +1325,7 @@ Language::staticmembervariableHandler(Node *n)
     
     /* Create the variable name */
     mrename = Swig_name_member(ClassPrefix, symname);
-    cname = NewStringf("%s::%s", ClassName,name);
+    cname = NewStringf("%s::%s", classname,name);
     
     Setattr(n,"sym:name",mrename);
     Setattr(n,"name", cname);
@@ -1346,7 +1350,7 @@ Language::staticmembervariableHandler(Node *n)
 
 
     String *name    = Getattr(n,"name");
-    String *cname   = NewStringf("%s::%s", ClassName,name);
+    String *cname   = NewStringf("%s::%s", classname,name);
     String* value   = SwigType_namestr(cname);
     Setattr(n, "value", value);
     
@@ -2110,6 +2114,24 @@ int Language::constructorDeclaration(Node *n) {
   if (!CurrentClass) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
+  /* clean protected overloaded constructors, in case they are not
+     needed anymore */
+  Node *over = Swig_symbol_isoverloaded(n);
+  if (over && !Getattr(CurrentClass,"sym:cleanconstructor")) {
+    int dirclass = Swig_directorclass(CurrentClass);
+    Node *nn = over;    
+    while (nn) {
+      if (!is_public(nn)) {
+	if (!dirclass || !need_nonpublic_ctor(nn)) {
+	  Setattr(nn,"feature:ignore","1");
+	}
+      }
+      nn = Getattr(nn,"sym:nextSibling");
+    }
+    clean_overloaded(over);
+    Setattr(CurrentClass,"sym:cleanconstructor","1");
+  }
+  
   if ((cplus_mode != CPLUS_PUBLIC)) {
     /* check only for director classes */
     if (!Swig_directorclass(CurrentClass) || !need_nonpublic_ctor(n))
