@@ -26,11 +26,11 @@ public class main {
     int nxpoints =  60;
     int nypoints =  60;
     
-    long cmap  = gifplot.new_ColorMap("cmap");
-    long frame = gifplot.new_FrameBuffer(500,500);
+    SWIGTYPE_p_ColorMap cmap  = gifplot.new_ColorMap("cmap");
+    SWIGTYPE_p_FrameBuffer frame = gifplot.new_FrameBuffer(500,500);
     gifplot.FrameBuffer_clear(frame,(short)gifplot.BLACK);
     
-    long p3    = gifplot.new_Plot3D(frame,xmin,ymin,zmin,xmax,ymax,zmax);
+    SWIGTYPE_p_Plot3D p3    = gifplot.new_Plot3D(frame,xmin,ymin,zmin,xmax,ymax,zmax);
     gifplot.Plot3D_lookat(p3,2*(zmax-zmin));
     gifplot.Plot3D_autoperspective(p3,40);
     gifplot.Plot3D_rotu(p3,60);

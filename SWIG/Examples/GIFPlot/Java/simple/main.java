@@ -15,8 +15,8 @@ public class main {
     // Draw some simple shapes
     System.out.println( "Drawing some basic shapes" );
     
-    long cmap = simple.new_ColorMap(null);
-    long f    = simple.new_FrameBuffer(400,400);
+    SWIGTYPE_p_ColorMap cmap = simple.new_ColorMap(null);
+    SWIGTYPE_p_FrameBuffer f    = simple.new_FrameBuffer(400,400);
     
     // Clear the picture
     simple.FrameBuffer_clear(f,(short)simple.BLACK);
