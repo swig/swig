@@ -26,7 +26,7 @@ short			InstallConsole _ANSI_ARGS_((short fd));
 void			RemoveConsole _ANSI_ARGS_((void));
 long			WriteCharsToConsole _ANSI_ARGS_((char *buff, long n));
 long			ReadCharsFromConsole _ANSI_ARGS_((char *buff, long n));
-extern char *		__ttyname _ANSI_ARGS_((long fildes));
+char *			__ttyname _ANSI_ARGS_((long fildes));
 short			SIOUXHandleOneEvent _ANSI_ARGS_((EventRecord *event));
 
 /*
@@ -213,10 +213,10 @@ ReadCharsFromConsole(char *buffer, long n)
 extern char *
 __ttyname(long fildes)
 {
-    static char *__devicename = "null device";
+    static char *devicename = "null device";
 
     if (fildes >= 0 && fildes <= 2) {
-	return (__devicename);
+	return (devicename);
     }
     
     return (0L);
