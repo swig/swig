@@ -1,5 +1,3 @@
-Simple example from users manual.
-
 type:
 make
 javac *.java
