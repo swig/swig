@@ -474,11 +474,21 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     String *mangled;
     String *membername = Swig_name_member(classname, name);
     mangled = Swig_name_mangle(membername);
+
+    code = Getattr(n,"code");
     type = Getattr(n,"type");
+
+    /* Check if the method is overloaded.   If so, and it has code attached, we append an extra suffix
+       to avoid a name-clash in the generated wrappers.  This allows overloaded methods to be defined
+       in C. */
+
+    if (Getattr(n,"sym:overloaded") && code) {
+      Append(mangled,Getattr(n,"sym:overname"));
+    }
+
     Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
 
     /* See if there is any code that we need to emit */
-    code = Getattr(n,"code");
     if (code) {
       String *body;
       String *tmp = NewStringf("%s(%s)", mangled, ParmList_str(p));

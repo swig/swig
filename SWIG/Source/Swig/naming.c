@@ -351,7 +351,7 @@ void
 Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) {
   DOH *n;
 
-  /* Printf(stdout,"name:  '%s', '%s'\n", name, decl);*/
+  /*  Printf(stdout,"name:  '%s', '%s'\n", name, decl);*/
   n = Getattr(namehash,name);
   if (!n) {
     n = NewHash();
@@ -392,8 +392,6 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   char   *ncdecl = 0;
 
   if (!namehash) return 0;
-
-  /*  Printf(stdout,"get: '%s' '%s' '%s'\n", prefix, name, decl); */
 
   /* DB: This removed to more tightly control feature/name matching */
   /*  if ((decl) && (SwigType_isqualifier(decl))) {
