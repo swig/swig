@@ -167,12 +167,33 @@ SWIG_TypeName(const swig_type_info *ty) {
   return ty->name;
 }
 
+/* 
+   Compare two type names skipping the space characters, therefore
+   "char*" == "char *" and "Class<int>" == "Class<int >", etc.
+
+   Return 0 when the two name types are equivalent, as in
+   strncmp, but skipping ' '.
+*/
+static int
+SWIG_TypeNameComp(const char *name1, const char *name2) {
+  register size_t s1 = strlen(name1);
+  register size_t s2 = strlen(name2);
+  register size_t i1 = 0;
+  register size_t i2 = 0;
+  for( ; (i1 < s1) && (i2 < s2); ++i1, ++i2) {
+    while ((name1[i1] == ' ') && (i1 < s1)) ++i1;
+    while ((name2[i2] == ' ') && (i2 < s2)) ++i2;
+    if (name1[i1] != name2[i2]) return name1[i1] - name2[i2];
+  }
+  return (s1 - i1) - (s2 - i2);
+}
+
 /* Search for a swig_type_info structure */
 SWIGRUNTIME(swig_type_info *)
 SWIG_TypeQuery(const char *name) {
   swig_type_info *ty = swig_type_list;
   while (ty) {
-    if (ty->str && (strcmp(name,ty->str) == 0)) return ty;
+    if (ty->str && (SWIG_TypeNameComp(name,ty->str) == 0)) return ty;
     if (ty->name && (strcmp(name,ty->name) == 0)) return ty;
     ty = ty->prev;
   }
