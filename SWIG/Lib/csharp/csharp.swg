@@ -93,7 +93,7 @@
 %typemap(imtype) SWIGTYPE (CLASS::*) "IntPtr"
 %typemap(cstype) SWIGTYPE (CLASS::*) "$csclassname"
 
-/* The following are the in, out, freearg, argout typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
+/* The following are the in and out typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
 
 /* primitive types */
 %typemap(in) bool
@@ -132,11 +132,8 @@
 %typemap(out) enum SWIGTYPE      %{ $result = $1; %}
 
 /* char * - treat as String */
-%typemap(in) char * {
-  $1 = $input;
-}
-//%typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-//%typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(in) char * %{ $1 = $input; %}
+%typemap(out) char * %{ $result = $1; %}
 
 %typemap(out) void ""
 
@@ -208,13 +205,8 @@ $1 = &temp; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 
 /* char[ANY] - treat as String */
-%typemap(in) char[ANY] { 
-    $1 = $input;
-}
-
-%typemap(argout) char[ANY] ""
-%typemap(freearg) char[ANY] ""//{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
-%typemap(out) char[ANY] { if($1) $result = $1; }
+%typemap(in) char[ANY] %{ $1 = $input; %}
+%typemap(out) char[ANY] %{ $result = $1; %}
 
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
