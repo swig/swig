@@ -230,6 +230,7 @@ List_set(DOH *lo, int n, DOH *val) {
     List *l;
     int no = 0;
     l = (List *) lo;
+    if (!val) return -1;
     if ((n < 0) || (n >= l->nitems)) {
 	printf("List_set : Invalid list index %d\n", n);
 	return -1;
