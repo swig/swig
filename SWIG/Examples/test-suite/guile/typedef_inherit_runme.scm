@@ -17,3 +17,5 @@
 
 (if (not (string=? (do-blah2 d) "Grok::blah"))
     (error "bad return"))
+
+(exit 0)
