@@ -1173,6 +1173,12 @@ Preprocessor_parse(DOH *s)
   	  /* Got some kind of file inclusion directive  */
   	  if (allow) {
   	    DOH *s1, *s2, *fn;
+
+	    if (Cmp(decl,"%extern") == 0) {
+	      Printf(stderr,"%s:%d. %%extern is deprecated. Use %%import instead.\n",Getfile(s),Getline(s));
+	      Clear(decl);
+	      Printf(decl,"%%import");
+	    }
   	    fn = get_filename(s);
 	    s1 = cpp_include(fn);
 	    if (s1) {
@@ -1181,9 +1187,11 @@ Preprocessor_parse(DOH *s)
   	      Printf(ns,"%sfile \"%s\" {\n", decl, Swig_last_file());
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_define("WRAPEXTERN 1", 0);
+		Preprocessor_define("SWIGIMPORT 1", 0);
 	      }
   	      s2 = Preprocessor_parse(s1);
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
+		Preprocessor_undef("SWIGIMPORT");
 		Preprocessor_undef("WRAPEXTERN");
 	      }
   	      addline(ns,s2,allow);
