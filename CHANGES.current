@@ -1,6 +1,26 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/23/2005: mmatus
+
+	    [Python] Added option -nortti to disable the use of native
+	    C++ RTTI with directors (dynamic_cast<> is not used).
+
+	    Add more code for directors to detect and report errors in
+	    the python side.
+
+	    Extend the use of SWIGINTERN whenever is possible.
+
+	    Remove template warnings reported by VC7.1.
+
+	    Remove warnings reported by gcc/g++. Finally you can
+	    compile using
+
+	       g++ -W -Wall -c mymodule_wrap.cxx
+
+	    and no spurious errors will be generated in the wrapper
+	    code.
+
 02/23/2005: wuzzeb (John Lenz)
 	    Added -external-runtime argument.  This argument is used to dump
 	    out all the code needed for external access to the runtime system,
