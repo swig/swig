@@ -27,10 +27,10 @@ TARGET      = swig
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH
+swig: Modules1.1 Swig Preprocessor LParse DOH
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Modules1.1/libmodules11.a \
-	$(SOURCE)/SWIG1.1/libswig11.a \
+	$(SOURCE)/LParse/liblparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
 	$(SOURCE)/DOH/libdoh.a \
