@@ -40,6 +40,7 @@ LIBS          = -L. -L../DOH/ -ldoh
 #     SWIGOPT   = SWIG compiler options
 #     SWIGCC    = Compiler used to compile the wrapper file
 
+# this is kinda silly: SWIG depends on SWIG.... :)
 SWIG          = $(exec_prefix)/bin/swig 
 SWIGOPT       = -python
 SWIGCC        = $(CC) 
