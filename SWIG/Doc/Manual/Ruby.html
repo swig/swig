@@ -2001,17 +2001,19 @@ should free it, not Ruby.
 <a name="n43"></a><H3>18.8.1 Creating Multi-Module Packages</H3>
 
 
-The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basic
-mechanics of creating multi-module extensions with SWIG, and in particular
+The chapter on <a href="Advanced.html">Advanced Topics</a> discusses the basics
+of creating multi-module extensions with SWIG, and in particular
 the considerations for sharing runtime type information amongst the different
-modules. The main thing to keep in mind is that all of the individual modules'
-wrapper files need to be compiled into the same shared library because some
-global data is shared between the modules.<p>
+modules.<p>
 
 As an example, consider one module's interface file (<tt>shape.i</tt>) that defines our base class:
 <blockquote>
 <pre>
 %module shape
+
+%{
+#include "Shape.h"
+%}
 
 class Shape {
 protected:
@@ -2030,6 +2032,11 @@ We also have a separate interface file (<tt>circle.i</tt>) that defines a derive
 <pre>
 %module circle
 
+%{
+#include "Shape.h"
+#include "Circle.h"
+%}
+
 // Import the base class definition from Shape module
 %import shape.i
 
@@ -2043,42 +2050,17 @@ public:
 </pre>
 </blockquote>
 Both of these modules should be compiled with SWIG's <tt>-c</tt> option so that
-the runtime library code is omitted from the wrapper files:<p>
+the runtime library code is omitted from the wrapper files. We'll start by building
+the <b>Shape</b> extension module:<p>
 <blockquote>
 <pre>
 $ <b>swig -c++ -ruby -c shape.i</b>
-$ <b>swig -c++ -ruby -c circle.i</b>
 </pre>
 </blockquote>
-Because these two wrapper files now share some global data related to the types
-(specifically, <tt>circle_wrap.cxx</tt> contains references to variables defined
-in <tt>shape_wrap.cxx</tt>) it is easiest if these two files are compiled
-into the same shared library. One straightforward way to handle this is to
-create a third "container" interface whose sole purpose is to load and initialize
-the extensions it contains, e.g.<p>
-<blockquote>
-<pre>
-%module shapescontainer
 
-%{
-extern "C" void Init_shape();
-extern "C" void Init_circle();
-%}
-
-%init {
-    Init_shape();
-    Init_circle();
-}
-</pre>
-</blockquote>
-This module should also be compiled with SWIG's <tt>-c</tt> option:
-<blockquote>
-<pre>
-$ <b>swig -c++ -ruby -c shapescontainer.i</b>
-</pre>
-</blockquote>
-Finally, to build these into a dynamically loadable extension for Ruby, prepare
-an <tt>extconf.rb</tt> script using this template:<p>
+SWIG generates a wrapper file named <tt>shape_wrap.cxx</tt>. To compile this
+into a dynamically loadable extension for Ruby, prepare an <tt>extconf.rb</tt>
+script using this template:<p>
 <blockquote>
 <pre>
 require 'mkmf'
@@ -2086,13 +2068,13 @@ require 'mkmf'
 # Since the SWIG runtime support library for Ruby (libswigrb.so)
 # depends on the Ruby library, make sure it's in the list
 # of libraries.
-$libs = append_library($libs, Config::CONFIG['RUBY_SO_NAME'])
+$libs = append_library($libs, Config::CONFIG['RUBY_INSTALL_NAME'])
 
 # Now add the SWIG runtime support library
 have_library('swigrb', 'SWIG_InitRuntime')
 
 # Create the makefile
-create_makefile('shapescontainer')
+create_makefile('shape')
 </pre>
 </blockquote>
 Run this script to create a <tt>Makefile</tt> and then type <tt>make</tt> to
@@ -2104,46 +2086,42 @@ checking for SWIG_InitRuntime() in -lswigrb... yes
 creating Makefile
 
 $ <b>make</b>
-g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
-        -I. -I/usr/local/include    -c circle_wrap.cpp
-g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
-        -I. -I/usr/local/include    -c shapescontainer_wrap.cpp
-g++ -DUSEIMPORTLIB -g -O2  -I. -I/usr/local/lib/ruby/1.7/i386-cygwin \
-        -I. -I/usr/local/include    -c shape_wrap.cpp
-dllwrap --target=cygwin --as=as --dlltool-name=dlltool --driver-name=gcc \
-        --export-all -s --def=shapescontainer.def \
-        -L/usr/local/lib/ruby/1.7/i386-cygwin -L/usr/local/lib \
-        -o shapescontainer.so circle_wrap.o shapescontainer_wrap.o shape_wrap.o \
-        -L. -lcygwin-ruby17 -lswigrb -lcygwin-ruby17
+g++ -fPIC -g -O2  -I. -I/usr/local/lib/ruby/1.7/i686-linux \
+        -I. -c shape_wrap.cxx
+gcc -shared -L/usr/local/lib -o shape.so shape_wrap.o -L. \
+	-lruby -lswigrb -lruby -lc
 </pre>
 </blockquote>
 Note that depending on your installation, the outputs may be slightly different;
-these outputs are those for a Cygwin-based development environment. The end result
-should be a shared library (here, <tt>shapescontainer.so</tt>) containing the extension
-module code. You can test this interactively in IRB to confirm that the the
-<tt>Shape</tt> and <tt>Circle</tt> modules were properly loaded and initialized:<p>
+these outputs are those for a Linux-based development environment. The end
+result should be a shared library (here, <tt>shape.so</tt>) containing the
+extension module code. Now repeat this process in a separate directory for
+the <b>Circle</b> module:
+<ol>
+<li> Run SWIG to generate the wrapper code (<tt>circle_wrap.cxx</tt>);
+<li> Write an <tt>extconf.rb</tt> script that your end-users can use to
+     create a platform-specific <tt>Makefile</tt> for the extension;
+<li> Build the shared library for this extension by typing <tt>make</tt>.
+</ol>
+
+Once you've built both of these extension modules, you can test them
+interactively in IRB to confirm that the the <tt>Shape</tt> and <tt>Circle</tt>
+modules are properly loaded and initialized:<p>
 <blockquote>
 <pre>
 $ <b>irb</b>
-irb(main):001:0> <b>require 'shapescontainer'</b>
+irb(main):001:0> <b>require 'shape'</b>
 true
-irb(main):002:0> <b>c = Circle::Circle.new(5, 5, 20)</b>
+irb(main):002:0> <b>require 'circle'</b>
+true
+irb(main):003:0> <b>c = Circle::Circle.new(5, 5, 20)</b>
 #&lt;Circle::Circle:0xa097208&gt;
-irb(main):003:0> <b>c.kind_of? Shape::Shape</b>
+irb(main):004:0> <b>c.kind_of? Shape::Shape</b>
 true
-irb(main):003:0> <b>c.getX()</b>
+irb(main):005:0> <b>c.getX()</b>
 5.0
 </pre>
 </blockquote>
-You can experiment with variations on this approach to see what works best for
-your situation. For example, to avoid creating a "dummy" module like our
-"shapescontainer" you could instead insert module initialization code into
-one of the existing modules' initialization functions using SWIG's <tt>%init</tt>
-directive. The trick with this is to be sure that the modules are initialized in
-the proper order. For the previous example, we want to ensure that the <tt>Shape</tt>
-module is initialized before the <tt>Circle</tt> module; otherwise, the <tt>Circle</tt>
-module initialization will fail when it tries to define the <tt>Circle</tt> class
-as a subclass of <tt>Shape</tt>.
 
 <a name="n44"></a><H3>18.8.2 Defining Aliases</H3>
 
