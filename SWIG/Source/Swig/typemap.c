@@ -177,7 +177,7 @@ Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char 
     tm1 = Getattr(tm,pname);
     if (!tm1) {
       tm1 = NewHash();
-      Setattr(tm,NewString(pname),tm1);
+      Setattr(tm,pname,tm1);
       Delete(tm1);
     }
     tm = tm1;
@@ -225,14 +225,25 @@ Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char 
     /*    Setattr(tm2,newop,newop); */
     Delete(newop);
   } else {
-    Setattr(tm2,"code",NewString(code));
-    Setattr(tm2,"type",Copy(type));
-    Setattr(tm2,"typemap",NewStringf("typemap(%s) %s", op, SwigType_str(type,pname)));
+    String *str = SwigType_str(type,pname);
+    String *typemap = NewStringf("typemap(%s) %s", op, str);
+    ParmList *clocals = CopyParmList(locals);
+    ParmList *ckwargs = CopyParmList(kwargs);
+    
+    Setattr(tm2,"code", code);
+    Setattr(tm2,"type", type);
+    Setattr(tm2,"typemap", typemap);
     if (pname) {
-      Setattr(tm2,"pname", NewString(pname));
+      Setattr(tm2,"pname", pname);
     }
-    Setattr(tm2,"locals", CopyParmList(locals));
-    Setattr(tm2,"kwargs", CopyParmList(kwargs));
+    Setattr(tm2,"locals", clocals);
+    Setattr(tm2,"kwargs", ckwargs);
+
+    Delete(clocals);
+    Delete(ckwargs);
+
+    Delete(str);
+    Delete(typemap);
   }
 }
 
@@ -1079,14 +1090,19 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
 	    continue;
 	}
 	if (value) {
-	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), "=", value, NIL);
+	  String *pstr = SwigType_str(pt,str);
+	  new_name = Wrapper_new_localv(f,str, pstr, "=", value, NIL);
+	  Delete(pstr);
 	} else {
-	    new_name = Wrapper_new_localv(f,str, SwigType_str(pt,str), NIL);
+	  String *pstr = SwigType_str(pt,str);
+	  new_name = Wrapper_new_localv(f,str, pstr, NIL);
+	  Delete(pstr);
 	}
 	if (!isglobal) {
 	    /* Substitute  */
 	    Replace(s,pn,new_name,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
 	}
+	Delete(str);
       }
     }
     p = nextSibling(p);

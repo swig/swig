@@ -49,13 +49,19 @@ Swig_fragment_register(Node* fragment) {
       fragments = NewHash();
     }
     if (!Getattr(fragments,name)) {
-      String *section = Getattr(fragment,"section");
+      String *section = Copy(Getattr(fragment,"section"));
       String *ccode = Copy(Getattr(fragment,"code"));
       Hash *kwargs = Getattr(fragment,"kwargs");
-      Setmeta(ccode,"section",Copy(section));
-      if (kwargs) Setmeta(ccode,"kwargs",Copy(kwargs));
+      Setmeta(ccode,"section",section);
+      if (kwargs) {
+	kwargs = Copy(kwargs);
+	Setmeta(ccode,"kwargs",kwargs);
+	Delete(kwargs);      
+      }
       Setattr(fragments,name,ccode);
       if (debug) Printf(stdout,"registering fragment %s %s\n",name,section);
+      Delete(section);
+      Delete(ccode);
     }
   }
 }

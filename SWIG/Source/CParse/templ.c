@@ -158,7 +158,9 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
     name = Getattr(n,"sym:name");
     if (name && Strstr(name,"<")) {
-      Setattr(n,"sym:name", Copy(tname));
+      String *sn = Copy(tname);
+      Setattr(n,"sym:name", sn);
+      Delete(sn);
     } else {
       Replace(name,tname,rname, DOH_REPLACE_ANY);
     }
@@ -251,12 +253,14 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
       if (ptype && tptype) {
 	partial_type = partial_arg(tptype,ptype);
 	/*	Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
-	Setattr(tp,"type",partial_type); 
+	Setattr(tp,"type",partial_type);
+	Delete(partial_type);
       }
       p = nextSibling(p);
       tp = nextSibling(tp);
     }
     assert(ParmList_len(ptargs) == ParmList_len(tparms));
+    Delete(ptargs);
   }
 
   if (0) {
@@ -377,6 +381,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	String *qn = Swig_symbol_type_qualify(b.item,tscope);
 	Clear(b.item);
 	Append(b.item,qn);
+	Delete(qn);
       }
     }
   }
@@ -384,6 +389,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
   Delete(cpatchlist);
   Delete(typelist);
   Delete(tbase);
+  Delete(templateargs);
 
   /*  set_nodeType(n,"template");*/
   return 0;
@@ -427,6 +433,7 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
     if (ty) {
       SwigType *nt = Swig_symbol_type_qualify(ty,tscope);
       Setattr(p,"type",nt);
+      Delete(nt);
     }
     p = nextSibling(p);
   }

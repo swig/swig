@@ -59,9 +59,15 @@ Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value
   switch(SwigType_type(t)) {
   case T_REFERENCE:
     if (value) {
-      Printf(decl,"%s = (%s) &%s_defvalue", SwigType_lstr(t,name), SwigType_lstr(t,0), name);
+      String *lstrname = SwigType_lstr(t,name);
+      String *lstr = SwigType_lstr(t,0);
+      Printf(decl,"%s = (%s) &%s_defvalue", lstrname, lstr, name);
+      Delete(lstrname);
+      Delete(lstr);
     } else {
-      Printf(decl,"%s = 0", SwigType_lstr(t,name));
+      String *lstrname = SwigType_lstr(t,name);
+      Printf(decl,"%s = 0", lstrname);
+      Delete(lstrname);
     }
     break;
   case T_VOID:
@@ -72,9 +78,15 @@ Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value
 
   default:
     if (value) {
-      Printf(decl,"%s = (%s) %s", SwigType_lstr(t,name), SwigType_lstr(t,0), SwigType_lcaststr(t,value));
+      String *lcaststr = SwigType_lcaststr(t,value);
+      String *lstr = SwigType_lstr(t,0);
+      Printf(decl,"%s = (%s) %s", SwigType_lstr(t,name), lstr, lcaststr);
+      Delete(lcaststr);
+      Delete(lstr);
     } else {
-      Printf(decl,"%s", SwigType_lstr(t,name));
+      String *lstrname = SwigType_lstr(t,name);
+      Printf(decl,"%s", lstrname);
+      Delete(lstrname);
     }
   }
   return decl;
@@ -185,7 +197,9 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	    defvalue = NewStringf("%s = %s", SwigType_lstr(tvalue,defname),qvalue);
 	  } else {
 	    /* user type, we copy the reference value */
-	    defvalue = NewStringf("%s = %s",SwigType_str(type,defname),qvalue);
+	    String *str = SwigType_str(type,defname);
+	    defvalue = NewStringf("%s = %s",str,qvalue);
+	    Delete(str);
 	  }
 	  Wrapper_add_localv(w,defname, defvalue, NIL);
 	  Delete(tvalue);
@@ -827,6 +841,7 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   Setattr(n,"parms",p);
   Delete(p);
   Delete(self);
+  Delete(parms);
   return SWIG_OK;
 }
 
@@ -926,6 +941,7 @@ Swig_ConstructorToFunction(Node *n, String *classname,
     for (p2 = parms; p2; p2 = nextSibling(p2)) {
       p3 = CopyParm(p2);
       set_nextSibling(p, p3);
+      Delete(p3);
       p = p3;
     }
   } else
