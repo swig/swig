@@ -1040,10 +1040,9 @@ class CSHARP : public Language {
     bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
     /* Adjust the enum type for the Swig_typemap_lookup.
-     * We want the same cstype typemap for all the enum items so we use the enum type (parent node).
-     * The type of each enum item depends on what value it is assigned, but is usually a C int. */
+     * We want the same jstype typemap for all the enum items so we use the enum type (parent node). */
     if (is_enum_item) {
-      t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
+      t = Getattr(parentNode(n),"enumtype");
       Setattr(n,"type", t);
     }
 
@@ -2173,45 +2172,61 @@ class CSHARP : public Language {
 
   bool substituteClassname(SwigType *pt, String *tm) {
     bool substitution_performed = false;
-    if (Strstr(tm, "$csclassname") || Strstr(tm,"$&csclassname")) {
-      SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
-      SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
-      if (SwigType_isenum(strippedtype)) {
-        String *enumname = getEnumName(pt);
-        if (enumname)
-          Replaceall(tm, "$csclassname", enumname);
-        else
-          Replaceall(tm, "$csclassname", NewStringf("int"));
-      } else {
-        String *classname = getProxyName(pt);
-        if (classname) {
-          Replaceall(tm,"$&csclassname", classname); // getProxyName() works for pointers to classes too
-          Replaceall(tm,"$csclassname", classname);
-        }
-        else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
-          String *descriptor = NULL;
-
-          if (Strstr(tm, "$&csclassname")) {
-            SwigType_add_pointer(type);
-            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-            Replaceall(tm, "$&csclassname", descriptor);
-          }
-          else { // $csclassname
-            descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-            Replaceall(tm, "$csclassname", descriptor);
-          }
-
-          // Add to hash table so that the type wrapper classes can be created later
-          Setattr(swig_types_hash, descriptor, type);
-          Delete(descriptor);
-        }
-      }
+    if (Strstr(tm, "$csclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$csclassname");
       substitution_performed = true;
-      Delete(type);
-      Delete(strippedtype);
+      Delete(classnametype);
     }
+    if (Strstr(tm, "$*csclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      substituteClassnameSpecialVariable(classnametype, tm, "$*csclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&csclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&csclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
     return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype);
+      if (enumname)
+        Replaceall(tm, classnamespecialvariable, enumname);
+      else
+        Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+    } else {
+      String *classname = getProxyName(classnametype);
+      if (classname) {
+        Replaceall(tm, classnamespecialvariable, classname); // getProxyName() works for pointers to classes too
+      }
+      else { // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+        String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+        Replaceall(tm, classnamespecialvariable, descriptor);
+
+        // Add to hash table so that the type wrapper classes can be created later
+        Setattr(swig_types_hash, descriptor, classnametype);
+        Delete(descriptor);
+      }
+    }
   }
 
   /* -----------------------------------------------------------------------------
