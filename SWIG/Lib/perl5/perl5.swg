@@ -109,7 +109,11 @@
 
 %typemap(out) char *
     "ST(argvi) = sv_newmortal();
-     sv_setpv((SV*)ST(argvi++), (char *) $1);";
+     if ($1) {
+        sv_setpv((SV*)ST(argvi++), (char *) $1);
+     } else {
+        sv_setsv((SV*)ST(argvi++), &PL_sv_undef);
+     }";
 
 %typemap(out) long long {
     char temp[256];
@@ -269,7 +273,11 @@
 }
 
 %typemap(varout) char *, char [ANY]
-    "sv_setpv((SV *) $result, $1);";
+    "if ($1) {
+        sv_setpv((SV*)$result, (char *) $1);
+     } else {
+        sv_setsv((SV*)$result, &PL_sv_undef);
+     }";
 
 //%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
 //    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
