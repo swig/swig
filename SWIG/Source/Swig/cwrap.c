@@ -695,7 +695,6 @@ Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags)
 {
   SwigType *type;
   Parm     *p;
-  Node     *classNode;
  
   type  = NewString(classname);
   SwigType_add_pointer(type);
