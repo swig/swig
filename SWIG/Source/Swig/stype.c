@@ -1336,18 +1336,26 @@ int SwigType_type(SwigType *t)
 
 static Hash *r_mangled = 0;                /* Hash mapping mangled types to fully resolved types */
 static Hash *r_resolved = 0;               /* Hash mapping resolved types to mangled types       */
+static Hash *r_ltype = 0;                  /* Hash mapping mangled names to their local c type   */
 
 void SwigType_remember(SwigType *t) {
   String *mt;
+  SwigType *lt;
   Hash   *h;
   SwigType *fr;
 
   if (!r_mangled) {
     r_mangled = NewHash();
     r_resolved = NewHash();
+    r_ltype = NewHash();
   }
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
+  if (SwigType_istypedef(t))
+    lt = Copy(t);
+  else
+    lt = SwigType_ltype(t);
+  Setattr(r_ltype, mt, lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
   h = Getattr(r_mangled,mt);
   if (!h) {
@@ -1535,6 +1543,9 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(stdout,"---r_resolved---\n");
   Printf(stdout,"%s\n", r_resolved);
 
+  Printf(stdout,"---r_ltype---\n");
+  Printf(stdout,"%s\n", r_ltype);
+
   Printf(stdout,"---subclass---\n");
   Printf(stdout,"%s\n", subclass);
 
@@ -1552,7 +1563,7 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     String *en;
     Printf(f_forward,"#define  SWIGTYPE%s _swig_types[%d] \n", key, i);
     Printv(types,"static _swig_type_info _swigt_", key, "[] = {", 0);
-    Printv(types,"{\"", key, "\",0},", 0);
+    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\"},", 0);
     el = SwigType_equivalent_mangle(key,0,0);
     for (en = Firstitem(el); en; en = Nextitem(el)) {
       String *ckey;
@@ -1560,12 +1571,12 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       if (Getattr(conversions,ckey)) {
 	Printf(types,"{\"%s\", %sTo%s},", en, en, key);
       } else {
-	Printf(types,"{\"%s\",0},", en);
+	Printf(types,"{\"%s\"},", en);
       }
       Delete(ckey);
     }
     Delete(el);
-    Printf(types,"{0,0}};\n");
+    Printf(types,"{0}};\n");
     Printv(table, "_swigt_", key, ", \n", 0);
     key = Nextkey(r_mangled);
     i++;
