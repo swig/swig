@@ -700,6 +700,7 @@ int check_locals(ParmList *p, const char *s) {
     if (strstr(c,s)) return 1;
     p = nextSibling(p);
   }
+  return 0;
 }
 
 static
