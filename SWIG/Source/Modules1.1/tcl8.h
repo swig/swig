@@ -49,7 +49,7 @@ public :
 
   // Module import
   virtual void import_start(char *modname);
-
+  virtual int  validIdentifier(String *);
 };
 
 

@@ -1097,3 +1097,12 @@ void
 TCL8::import_start(char *) {
   /* Does nothing */
 }
+
+int TCL8::validIdentifier(String *s) {
+  char *c = Char(s);
+  while (*c) {
+    if (*c == ' ') return 0;
+    c++;
+  }
+  return 1;
+}
