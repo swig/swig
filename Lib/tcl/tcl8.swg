@@ -288,13 +288,25 @@
 
 /* -- Variable input --- */
 
-%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
+%typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char
 {
   long temp;
   if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
     return (char*) "Type error. expected an integer";
   }
   $1 = ($1_type) temp;
+}
+
+%typemap(varin) enum SWIGTYPE
+{
+  int temp;
+  if (Tcl_GetIntFromObj(interp, $input, &temp) != TCL_OK) {
+    return (char*) "Type error. expected an integer";
+  }
+  if (sizeof(int) != sizeof($1)) {
+    return (char*) "enum variable '$name' can not be set.";
+  }
+  *(int *)(void *)&($1) = temp;
 }
 
 %typemap(varin) bool
@@ -352,6 +364,10 @@
 %typemap(varin) char [ANY] {
   char *temp = Tcl_GetStringFromObj($input,NULL);
   strncpy((char*)$1,temp,$1_dim0);
+}
+
+%typemap(varin,warning="462: Unable to set variable of type char []") char [] {
+  return (char*)"Variable $symname is read-only.";
 }
 
 %typemap(varin) char 
