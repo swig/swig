@@ -86,6 +86,10 @@ public:
 
     SWIG_library_directory("python");
   
+
+    /* Turn on safe value wrapper use mode */
+    Swig_value_wrapper_mode(1);
+
     /* Turn on template extmode */
     Wrapper_template_extmode_set(1);
 
@@ -1467,7 +1471,11 @@ public:
 	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
       }
     }
-    if ((shadow) && (checkAttribute(n,"feature:immutable","1"))) {
+    int assignable = is_assignable(n);
+
+    Printf(stderr,"name %s %s\n",name, Getattr(n,"allocate:noassign"));
+
+    if ((shadow) && assignable) {
       if (!in_class) {
 	Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
       }
@@ -1477,7 +1485,7 @@ public:
 
     /* Create a function for setting the value of the variable */
 
-    if (!Getattr(n,"feature:immutable")) {
+    if (assignable) {
       Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
 	Replaceall(tm,"$source","_val");
@@ -2658,15 +2666,15 @@ public:
     shadow = oldshadow;
 
     if (shadow) {
-      int immutable = (Getattr(n,"feature:immutable") != NULL);
+      int assignable = is_assignable(n);
       if (!modern) {
-        if (!immutable) {
+        if (assignable) {
           Printv(f_shadow, tab4, "__swig_setmethods__[\"", symname, "\"] = ", module, ".", Swig_name_set(Swig_name_member(class_name,symname)), "\n", NIL);
         } 
         Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = ", module, ".", Swig_name_get(Swig_name_member(class_name,symname)),"\n", NIL);
       }
       if (!classic) {
-	if (immutable) {
+	if (!assignable) {
 	  Printv(f_shadow,tab4, modern ? "" : "if _newclass:",
                  symname," = property(", module, ".", 
 		 Swig_name_get(Swig_name_member(class_name,symname)),")\n", NIL);
