@@ -1,36 +1,179 @@
 # -----------------------------------------------------------------------------
-# Wad port-mortem debugger
+# WAD Post-mortem debugger
+#
+# This program can be used to walk up and down the call stack of a mixed
+# Python-C program.   The following commands are supported:
+# 
+#     w          -  A stack traceback 
+#     u          -  Go up the call stack
+#     d          -  Go down the call stack
+#     e          -  Edit a file
+#     c          -  Clear the debugger.
 #
 # David Beazley
+# Copyright (C) 2001
+# University of Chicago
+# All Rights Reserved
 # -----------------------------------------------------------------------------
 
 import sys
+import os
+import traceback
+import types
+import linecache
 
 
-_last_exc = None
+print "**************************************************"
+print "*          WAD Post-Mortem Debugger              *"
+print "**************************************************"
+
+# Save a local copy of the last exception and value objects from sys
+
+_last_type = sys.last_type
+_last_value = sys.last_value
+_last_traceback = sys.last_traceback
 _last_level = 0
-frame = None
 
-print "WAD port-mortem"
+_cstack = None                   # Stack of C-only code
+_pystack = None                  # Stack of Python only code
+_combined_stack = None           # Combined C-python stack
+
+_allmode = 0                     # Show entire C stack
+
+# Generalized object for holding stack frames
+
+class wad_frame:
+    def __init__(self,frame, n = 0):
+	if isinstance(frame,types.TupleType):
+               # A Python traceback object
+               self.file = frame[0]
+               self.line = frame[1]
+               self.name = frame[2]
+               self.argstr = frame[3]
+               self.frameno = n
+               # Make the debugging string
+               self.debugstr = "#%-3d [ Python ] in %s in %s, line %d" % (self.frameno, self.argstr, self.file, self.line)
+               
+               # Try to get source data
+               self.source = "%s, Line %d\n\n" % (self.file, self.line)
+               for i in range(self.line-2,self.line+3):
+                     l = linecache.getline(self.file,i)
+                     if not l: l = '\n'
+                     if (i == self.line):
+                        self.source += " => "
+                     else:
+                        self.source += "    "
+                     self.source += l
+                
+        elif hasattr(frame,"__WAD__"):
+               # A WAD traceback object
+               self.file = frame.__FILE__
+               self.line = frame.__LINE__
+               self.name = frame.__NAME__
+               self.debugstr = frame.__WHERE__
+               self.source = frame.__SOURCE__
+
+    def __str__(self):
+               return self.debugstr.strip()
+
+    def output(self):
+        print self
+        if self.source:
+               print "\n%s" % (self.source,)
+
+
+def wad_build_info():
+    global _last_type,_last_value, _last_traceback, _cstack, _combined_stack,_pystack
+
+    _last_type = None
+    _last_value = None
+    _last_traceback = None
+    _cstack = None
+    _combined_stack = []
+
+    # Check to see if any exception is defined
+    if not sys.last_type:
+           print "No exception has occurred."
+           return
+     
+    # Save a copy of previous exception
+    _last_type = sys.last_type
+    _last_value = sys.last_value
+    _last_traceback = sys.last_traceback
+    _last_level = 0
+
+    start_frame = 0
+    # Test to see what kind of object it is
+    if issubclass(_last_type,StandardError):
+          # Python exception
+          print "Python exception"
+    elif hasattr(_last_value[0],"__WAD__"):
+          # A wad exception frame object
+          w = sys.last_value[0]
+          i = 0
+          _cstack = []
+          while not w[i].__LAST__:
+                start_frame += 1
+                wf = wad_frame(w[i])
+                _cstack.append(wf)
+                i = i + 1
+
+#          wf = wad_frame(w[i])
+#          _cstack.append(wf)
+#          start_frame += 1
+
+          # Build the rest of the c stack
+          _combined_stack = _cstack[:]
+          while i < len(w):
+               wf = wad_frame(w[i])
+               _cstack.append(wf)
+               i = i + 1
+
+    else:
+          print "Unknown error"
+
+    # Build the Python call stack
+    _pystack = []
+    t = sys.last_traceback
+    tp = None
+    while hasattr(t,"tb_frame"):
+          tp = t
+          t = t.tb_next
+
+    fr = traceback.extract_stack(tp.tb_frame)	
+    for i in range(len(fr),0,-1):
+          f = wad_frame(fr[i-1], start_frame)
+          start_frame += 1
+          _pystack.append(f)
+    _combined_stack.extend(_pystack)
+
+
+wad_build_info()
 
 class where_impl:
     def __init__(self):
 	self.all = 0;
+        self.cstack = 0
 
     def __repr__(self):
-        global _last_exc, _last_level, frame
-	if sys.last_value:
-	     if not _last_exc:
-		_last_exc = sys.last_value[0]
-                _last_level = 0
+        global _combined_stack, _cstack, _last_level
+        if (self.cstack):
+             stack = _cstack
+        else:
+             stack = _combined_stack
 
-        else:
-             raise RuntimeError,"No pending error."
-        if (self.all):
-	        print repr(_last_exc)
-        else:
-		print str(_last_exc)
-        frame = _last_exc
+	if not stack:
+             print "No current exception."
+             return ""
+
+        last_source = None
+        for i in range(len(stack),0,-1):
+             f = stack[i-1]
+             print f
+             if (f.source):
+                 last_source = f.source
+                 _last_level = i-1
+        if last_source: print "\n%s" % last_source
         return ""
     def __getattr__(self,name):
         try:
@@ -39,10 +182,14 @@ class where_impl:
                 raise AttributeError
 
     def __getitem__(self,n):
-        global frame, _last_level
-        frame = _last_exc[n]
+        global _last_level, _cstack, _combined_stack
+        if (self.cstack):
+              stack = _cstack
+        else:
+              stack = _combined_stack
         _last_level = n
-	return frame
+        stack[_last_level].output()
+	return None
 
     def __len__(self):
         return len(frame)
@@ -53,12 +200,16 @@ w = where
 
 class up_impl:
     def __repr__(self):
-        global _last_exc, _last_level, frame
-	if not _last_exc:
+        global _last_level, _combined_stack, _cstack
+        if where.cstack:
+             stack = _cstack
+        else:
+             stack = _combined_stack
+
+	if not stack:
 	     return ""
 	_last_level += 1
-	print repr(_last_exc[_last_level])
-        frame = _last_exc[_last_level]
+        stack[_last_level].output()
         return ""
 
 up = up_impl()
@@ -66,12 +217,16 @@ u = up
 
 class down_impl:
     def __repr__(self):
-        global _last_exc, _last_level, frame
-	if not _last_exc:
+        global _last_level, _combined_stack, _cstack
+        if where.cstack:
+             stack = _cstack
+        else:
+             stack = _combined_stack
+
+	if not stack:
 	     return ""
 	_last_level -= 1
-	print repr(_last_exc[_last_level])
-        frame = _last_exc[_last_level]
+        stack[_last_level].output()
         return ""
 
 down = down_impl()
@@ -85,4 +240,27 @@ class clear_impl:
 
 clear = clear_impl()
 c = clear
+
+class edit_impl:
+    def __repr__(self):
+        global _last_level, _combined_stack, _cstack
+        if where.cstack:
+             stack = _cstack
+        else:
+             stack = _combined_stack
+
+	if not stack:
+	     return ""
+	f = stack[_last_level]
+        e = os.getenv("EDITOR","emacs")
+	if f.file:
+	     os.system("%s +%d %s" % (e,f.line,f.file))
+        return ""
+
+edit = edit_impl()
+e = edit
+
+
+repr(w)
+
 

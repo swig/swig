@@ -47,15 +47,15 @@ wadobject_dealloc(wadobject *self) {
   PyMem_DEL(self);
 }
 
+static char message[65536];
 static PyObject *
 wadobject_repr(wadobject *self) {
-  char message[65536];
   char *srcstr = 0;
   WadFrame *fp = 0;
   int    n;
   WadFrame *f = self->frame;
 
-  strcpy(message,"[ C stack trace ]\n\n");
+  message[0] = 0;
   /* Find the last exception frame */
   n = self->count;
   while (f && n) {
@@ -84,7 +84,6 @@ wadobject_repr(wadobject *self) {
 
 static PyObject *
 wadobject_str(wadobject *self) {
-  char message[65536];
   char *srcstr = 0;
   int   n;
 
@@ -157,32 +156,34 @@ wadobject_getslice(wadobject *self, int start, int end) {
 
 static PyObject *
 wadobject_getattr(wadobject *self, char *name) {
-  if (strcmp(name,"name") == 0) {
+  if (strcmp(name,"__NAME__") == 0) {
     return Py_BuildValue("z", self->frame->sym_name);
-  } else if (strcmp(name,"exe") == 0) {
+  } else if (strcmp(name,"__EXE__") == 0) {
     return Py_BuildValue("z", self->frame->object->path);
-  } else if (strcmp(name,"source") == 0) {
+  } else if (strcmp(name,"__FILE__") == 0) {
     return Py_BuildValue("z", self->frame->loc_srcfile);
-  } else if (strcmp(name,"object") == 0) {
+  } else if (strcmp(name,"__OBJECT__") == 0) {
     return Py_BuildValue("z", self->frame->loc_objfile);
-  } else if (strcmp(name,"line") == 0) {
+  } else if (strcmp(name,"__LINE__") == 0) {
     return Py_BuildValue("i", self->frame->loc_line);
-  } else if (strcmp(name,"pc") == 0) {
+  } else if (strcmp(name,"__SOURCE__") == 0) {
+    return Py_BuildValue("z",self->frame->debug_srcstr);
+  } else if (strcmp(name,"__PC__") == 0) {
     return PyLong_FromUnsignedLong(self->frame->pc);
-  } else if (strcmp(name,"sp") == 0) {
+  } else if (strcmp(name,"__SP__") == 0) {
     return PyLong_FromUnsignedLong(self->frame->sp);
-  } else if (strcmp(name,"fp") == 0) {
+  } else if (strcmp(name,"__FP__") == 0) {
     return PyLong_FromUnsignedLong(self->frame->fp);
-  } else if (strcmp(name,"stack_size") == 0) {
-    return PyInt_FromLong(self->frame->stack_size);
-  } else if (strcmp(name,"stack") == 0) {
+  } else if (strcmp(name,"__STACK__") == 0) {
     return PyString_FromStringAndSize(self->frame->stack, self->frame->stack_size);
-  } else if (strcmp(name,"nargs") == 0) {
+  } else if (strcmp(name,"__NARGS__") == 0) {
     return PyInt_FromLong(self->frame->debug_nargs);
-  } else if (strcmp(name,"seg_base") == 0) {
-    return PyLong_FromUnsignedLong((long )self->frame->segment->base);
-  } else if (strcmp(name,"seg_size") == 0) {
-    return PyLong_FromUnsignedLong((long) self->frame->segment->size);
+  } else if (strcmp(name,"__LAST__") == 0) {
+    return PyInt_FromLong(self->frame->last);
+  } else if (strcmp(name,"__WHERE__") == 0) {
+    return Py_BuildValue("z",self->frame->debug_str);
+  } else if (strcmp(name,"__WAD__") == 0) {
+    return PyInt_FromLong(1);
   }
 
   PyErr_SetString(PyExc_NameError,"Unknown attribute.");

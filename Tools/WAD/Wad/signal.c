@@ -11,6 +11,8 @@
 
 #include "wad.h"
 
+extern void wad_stab_debug();
+
 /* For some odd reason, certain linux distributions do not seem to define the
    register constants in a way that is easily accessible to us.  This is a hack */
 
@@ -353,6 +355,8 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   /* Generate debugging strings */
   wad_debug_make_strings(frame);
+  
+  wad_stab_debug();
 
   /* Walk the exception frames and try to find a return point */
   origframe = frame;
