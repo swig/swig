@@ -108,6 +108,81 @@ public class runme
       } catch (DivideByZeroException e) {
       }
       if (Counter.count != 0) throw new Exception("Memory leaks when throwing exception. count: " + Counter.count);
+
+      // test exception pending in the csconstruct typemap
+      try {
+        constructor c = new constructor(null);
+        throw new Exception("constructor 1 not working");
+      } catch (SystemException e) {
+      }
+      try {
+        constructor c = new constructor();
+        throw new Exception("constructor 2 not working");
+      } catch (SystemException e) {
+      }
+
+      // test exception pending in the csout typemaps
+      try {
+        csharp_exceptions.ushorttest();
+        throw new Exception("csout not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+
+      // test exception pending in the csvarout/csvarin typemaps and canthrow attribute in unmanaged code typemaps (1) global variables
+      // 1) global variables
+      try {
+        csharp_exceptions.numberin = -1;
+        throw new Exception("global csvarin not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      csharp_exceptions.numberin = 5;
+      if (csharp_exceptions.numberin != 5)
+        throw new Exception("global numberin not 5");
+      csharp_exceptions.numberout = 20;
+      try {
+        int numberout = csharp_exceptions.numberout;
+        throw new Exception("global csvarout not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      // 2) static member variables
+      try {
+        InOutStruct.staticnumberin = -1;
+        throw new Exception("static csvarin not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      InOutStruct.staticnumberin = 5;
+      if (InOutStruct.staticnumberin != 5)
+        throw new Exception("static staticnumberin not 5");
+      InOutStruct.staticnumberout = 20;
+      try {
+        int numberout = InOutStruct.staticnumberout;
+        throw new Exception("static csvarout not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      // 3) member variables
+      InOutStruct io = new InOutStruct();
+      try {
+        io.numberin = -1;
+        throw new Exception("member csvarin not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      io.numberin = 5;
+      if (io.numberin != 5)
+        throw new Exception("member numberin not 5");
+      io.numberout = 20;
+      try {
+        int numberout = io.numberout;
+        throw new Exception("member csvarout not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      // test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
+      try {
+        csharp_exceptions.exceptionmacrotest(-1);
+        throw new Exception("exception macro not working");
+      } catch (IndexOutOfRangeException e) {
+      }
+      if (csharp_exceptions.exception_macro_run_flag)
+        throw new Exception("exceptionmacrotest was executed");
     }
 }
 
