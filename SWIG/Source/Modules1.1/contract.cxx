@@ -74,7 +74,7 @@ public:
       int token = -1;
       while(1) {
 	String *clause = DohNewString(""); /*BUG -- should free*/
-	while(token=SwigScanner_token(ss)) {
+	while((token=SwigScanner_token(ss))) {
 	  if ((token==SWIG_TOKEN_SEMI)||(token==SWIG_TOKEN_RBRACE))
 	    break;
 	  //	  if (token != SWIG_TOKEN_ENDLINE)

@@ -1196,7 +1196,6 @@ RUBY::copyconstructorHandler(Node *n) {
 
 int
 RUBY::destructorHandler(Node *n) {
-  char *name = GetChar(n,"name");
   current = DESTRUCTOR;
   Language::destructorHandler(n);
 

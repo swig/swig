@@ -244,6 +244,7 @@ DohDelattr(DOH *obj, const DOH *name) {
   if (objinfo->doh_hash && objinfo->doh_hash->doh_delattr) {
     return (objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
   }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------

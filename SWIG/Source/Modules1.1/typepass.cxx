@@ -190,7 +190,7 @@ public:
 
     virtual int top(Node *n) {
 	importmode = 0;
-	module = 0;
+	module = Getattr(n,"module");
 	inclass = 0;
 	normalize = 0;
 	nsname = 0;

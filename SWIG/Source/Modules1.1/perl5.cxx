@@ -1005,7 +1005,7 @@ void PERL5::setclassname(Node *n) {
   String *fullname;
   String *actualpackage;
   Node   *clsmodule = Getattr(n,"module");
-  
+
   /* Do some work on the class name */
   actualpackage = Getattr(clsmodule,"name");
   if ((!compat) && (!Strchr(symname,':'))) {

@@ -60,6 +60,7 @@ static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
        String  *ModuleName = 0;
+static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
@@ -147,7 +148,7 @@ static Node *copy_node(Node *n) {
       char  *typemap_lang = 0;    /* Current language setting */
 
 static int cplus_mode  = 0;
-static char  *class_rename = 0;
+static String  *class_rename = 0;
 
 /* C++ modes */
 
@@ -273,7 +274,7 @@ static int  add_only_one = 0;
 
 static void add_symbols(Node *n) {
   String *decl;
-  char *wrn = 0;
+  String *wrn = 0;
 
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
@@ -328,7 +329,7 @@ static void add_symbols(Node *n) {
       Swig_symbol_add(0, n);
     } else {
       Node *c;
-      if ((wrn) && (strlen(wrn))) {
+      if ((wrn) && (Len(wrn))) {
 	Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
@@ -616,7 +617,7 @@ static Node *dump_nested(char *parent) {
        redefinition errors occur - nasty hack alert.*/
 
     {
-      char* types_array[3] = {"struct", "union", "class"};
+      const char* types_array[3] = {"struct", "union", "class"};
       int i;
       for (i=0; i<3; i++) {
 	char* code_ptr = Char(n->code);
@@ -872,6 +873,12 @@ void canonical_template(String *s) {
 program        :  interface {
 		   Setattr($1,"classes",classes); 
 		   Setattr($1,"name",ModuleName);
+
+		   if ((!module_node) && ModuleName) {
+		     module_node = new_node("module");
+		     Setattr(module_node,"name",ModuleName);
+		   }
+		   Setattr($1,"module",module_node);
 		   check_extensions();
 	           top = $1;
                }
@@ -1295,6 +1302,7 @@ module_directive: MODULE idstring {
                  $$ = new_node("module");
 		 Setattr($$,"name",$2);
 		 if (!ModuleName) ModuleName = NewString($2);
+		 if (!module_node) module_node = $$;
 	       }
                ;
 
@@ -2253,13 +2261,13 @@ cpp_class_decl  :
 		 }
 		 /* Dump nested classes */
 		 {
-		   char *name = $3;
+		   String *name = $3;
 		   if ($9) {
 		     SwigType *decltype = Getattr($9,"decl");
 		     if (Cmp($1,"typedef") == 0) {
 		       if (!decltype || !Len(decltype)) {
-			 name = Char(Getattr($9,"name"));
-			 Setattr($$,"tdname",name);
+			 name = Getattr($9,"name");
+			 Setattr($$,"tdname",Copy(name));
 
 			 /* Use typedef name as class name */
 			 if (class_rename && (Strcmp(class_rename,$3) == 0)) {
@@ -2272,7 +2280,7 @@ cpp_class_decl  :
 		       }
 		     }
 		   }
-		   appendChild($$,dump_nested(name));
+		   appendChild($$,dump_nested(Char(name)));
 		 }
 		 yyrename = NewString(class_rename);
 		 add_symbols($$);
@@ -2334,13 +2342,13 @@ cpp_class_decl  :
 	       set_nextSibling($$,n);
 	       {
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
-		 char *name = 0;
+		 String *name = 0;
 		 if ($1 && (strcmp($1,"typedef") == 0)) {
 		   if (!Len($7.type)) {	
 		     name = $7.id;
 		     Setattr($$,"tdname",name);
 		     Setattr($$,"name",name);
-		     if (!class_rename) class_rename = name;
+		     if (!class_rename) class_rename = NewString(name);
 		     Swig_symbol_setscopename(name);
 
 		     /* If a proper name given, we use that as the typedef, not unnamed */
@@ -2369,7 +2377,7 @@ cpp_class_decl  :
 		   }
 		 }
 		 appendChild($$,$5);
-		 appendChild($$,dump_nested(name));
+		 appendChild($$,dump_nested(Char(name)));
 	       }
 	       /* Pop the scope */
 	       Setattr($$,"symtab",Swig_symbol_popscope());
