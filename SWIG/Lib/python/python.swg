@@ -267,6 +267,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
   _swig_type_info *tc;
   char  *c;
   static PyObject *SWIG_this = 0;
+  int    newref = 0;
 
   if (!obj || (obj == Py_None)) {
     *ptr = 0;
@@ -277,10 +278,16 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
     obj = PyObject_GetAttr(obj,SWIG_this);
-    if ((!obj) || !(PyCObject_Check(obj))) goto type_error;
+    newref = 1;
+    if (!obj) goto type_error;
+    if (!PyCObject_Check(obj)) {
+      Py_DECREF(obj);
+      goto type_error;
+    }
   } 
   *ptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
+  if (newref) Py_DECREF(obj);
   goto cobject;
 #else
   if (!(PyString_Check(obj))) {
@@ -324,6 +331,7 @@ cobject:
   return 0;
 
 type_error:
+
   if (flags) {
     if (ty) {
       char *temp = (char *) malloc(64+strlen(ty->name));
