@@ -11,6 +11,22 @@ extern "C" {
 #include "zend.h"
 #include "zend_API.h"
 #include "php.h"
+
+// These TSRMLS_ stuff should already be defined now, but with older php under
+// redhat are not...
+#indef TSRMLS_D
+#define TSRMLS_D
+#endif
+#indef TSRMLS_DC
+#define TSRMLS_DC
+#endif
+#indef TSRMLS_C
+#define TSRMLS_C
+#endif
+#indef TSRMLS_CC
+#define TSRMLS_CC
+#endif
+
 #ifdef __cplusplus
 }
 #endif
