@@ -791,16 +791,27 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
     if (flags & CWRAP_SMART_POINTER) {
       int i = 0;
       Parm *pp = p;
-      String *func = NewStringf("%s((%s*)(%s)->operator ->()", mangled, cname, 
-				Swig_cparm_name(pp,i++));
-      while ((pp = nextSibling(pp))) {
+      String *func = NewStringf("%s(", mangled);
+      if (Cmp(Getattr(n,"storage"),"static") != 0) {
+	String *fadd = NewStringf("(%s*)(%s)->operator ->()", cname, Swig_cparm_name(pp,i));
+	Append(func,fadd);
+	Delete(fadd);
+	pp = nextSibling(pp);
+	if (pp) Append(func,",");
+      } else{ 
+	pp = nextSibling(pp);
+      }
+      ++i;
+      while (pp) {
 	SwigType *pt = Getattr(pp,"type");
 	if ((SwigType_type(pt) != T_VOID)) {
 	  String *pname = Swig_cparm_name(pp,i++);
 	  String *rcaststr = SwigType_rcaststr(pt, pname);
-	  Printf(func,",%s", rcaststr);
+	  Printf(func,"%s", rcaststr);
 	  Delete(rcaststr);
 	  Delete(pname);
+	  pp = nextSibling(pp);
+	  if (pp) Append(func,",");
 	}
       }
       Printf(func,")");

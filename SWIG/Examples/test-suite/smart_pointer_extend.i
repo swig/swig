@@ -69,3 +69,29 @@
   };
 %}
 
+
+
+%extend CFoo
+{
+public:
+    static void StatFun() {};
+    static void StatFun(int i) {};
+
+    static void HoHoHo(int i, int j) {};
+}
+
+%inline %{
+
+class CFoo
+{
+};
+
+class CPtrFoo
+{
+public:
+    CFoo* operator->(void) {return 0;};
+};
+
+%}
+
+
