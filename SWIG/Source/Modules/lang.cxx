@@ -1192,8 +1192,7 @@ Language::membervariableHandler(Node *n) {
 	target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 	tm = Swig_typemap_lookup_new("memberin",n,target,0);
       }
-      int VarRef = CPlusPlus ? CWRAP_VAR_REFERENCE : 0;
-      Swig_MembersetToFunction(n,ClassType,Extend | SmartPointer| VarRef);
+      Swig_MembersetToFunction(n,ClassType,Extend | SmartPointer);
       if (!Extend) {
 	/* Check for a member in typemap here */
 
@@ -1226,8 +1225,7 @@ Language::membervariableHandler(Node *n) {
     }
     /* Emit get function */
     {
-      int VarRef = CPlusPlus ? CWRAP_VAR_REFERENCE : 0;
-      Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer| VarRef);
+      Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer);
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }
