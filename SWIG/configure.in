@@ -1107,16 +1107,7 @@ AC_CONFIG_FILES([			\
     Runtime/Makefile			\
     Examples/Makefile			\
     Examples/guile/Makefile		\
-    Examples/chicken/class/Makefile	\
-    Examples/chicken/constants/Makefile	\
-    Examples/chicken/simple/Makefile	\
-    Examples/chicken/multimap/Makefile	\
-    Examples/chicken/overload/Makefile	\
-    Examples/chicken/vtk/Makefile	\
-    Examples/chicken/zlib/Makefile	\
     Examples/GIFPlot/Makefile		\
-    Examples/GIFPlot/Chicken/full/Makefile \
-    Examples/GIFPlot/Chicken/simple/Makefile \
     Examples/GIFPlot/Lib/Makefile	\
 ])
 AC_OUTPUT
