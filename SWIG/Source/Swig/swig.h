@@ -501,6 +501,8 @@ extern  void  Swig_fragment_emit(String *name);
 
 /* hacks defined in C++ ! */
 extern  int   Swig_need_protected();
+extern  int   Swig_director_mode();
+extern  int   Swig_template_extmode();
 
 #ifdef __cplusplus
 }

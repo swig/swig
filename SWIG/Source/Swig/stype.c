@@ -757,9 +757,11 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   return result;
 }
 
+/* keep old mangling since Java codes need it */
 String *SwigType_manglestr_default(SwigType *s) {
-  String *result,*base,*mbase;
-  SwigType *lt, *ltp;
+  char *c;
+  String *result,*base;
+  SwigType *lt;
   SwigType *ss = 0;
 
   if (SwigType_istemplate(s)) {
@@ -767,11 +769,14 @@ String *SwigType_manglestr_default(SwigType *s) {
     s = ss;
   }
   lt = SwigType_ltype(s);
-  ltp = SwigType_prefix(lt);
+  result = SwigType_prefix(lt);
   base = SwigType_base(lt);
 
-  result = Swig_string_mangle(ltp);
-  
+  c = Char(result);
+  while (*c) {
+    if (!isalnum((int)*c)) *c = '_';
+    c++;
+  }
   if (SwigType_istemplate(base)) {
     String *b = SwigType_namestr(base);
     Delete(base);
@@ -782,13 +787,23 @@ String *SwigType_manglestr_default(SwigType *s) {
   Replace(base,"class ","", DOH_REPLACE_ANY);
   Replace(base,"union ","", DOH_REPLACE_ANY);
 
-  mbase = Swig_string_mangle(base);
-  Append(result,mbase);
+  c = Char(base);
+  while (*c) {
+    if (*c == '<') *c = 'T';
+    else if (*c == '>') *c = 't';
+    else if (*c == '*') *c = 'p';
+    else if (*c == '[') *c = 'a';
+    else if (*c == ']') *c = 'A';
+    else if (*c == '&') *c = 'R';
+    else if (*c == '(') *c = 'f';
+    else if (*c == ')') *c = 'F';
+    else if (!isalnum((int)*c)) *c = '_';
+    c++;
+  }
+  Append(result,base);
   Insert(result,0,"_");
   Delete(lt);
-  Delete(ltp);
   Delete(base);
-  Delete(mbase);
   if (ss) Delete(ss);
   return result;
 }
