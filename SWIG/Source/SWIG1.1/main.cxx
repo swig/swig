@@ -342,6 +342,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     sprintf(fn_wrapper,"%s%s_wrap.wrap",output_dir,infile);
     sprintf(fn_init,"%s%s_wrap.init",output_dir,infile);
 
+    printf("%s\n", input_file);
+    printf("%s\n", fn_cpp);
+    printf("%s\n", fn_wrapper);
+    printf("%s\n", fn_init);
+
     // Define the __cplusplus symbol
     if (CPlusPlus)
       Preprocessor_define((DOH *) "__cplusplus 1", 0);
