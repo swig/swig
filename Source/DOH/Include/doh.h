@@ -96,9 +96,6 @@ typedef struct {
   int     (*doh_getline)(DOH *obj);
 } DohPositionalMethods;
 
-
-  
-
 /* -----------------------------------------------------------------------------
  * DohObjInfo
  * 
@@ -145,84 +142,102 @@ typedef struct DohObjInfo {
 } DohObjInfo;
 
 /* Memory management */
-extern void   *DohMalloc(size_t size);     
-extern void   *DohRealloc(void *, size_t size);
-extern void   *DohObjMalloc(size_t size);
-extern void    DohFree(DOH *ptr);
-extern void    DohObjFree(DOH *ptr);
-extern int     DohObjFreeCheck(DOH *ptr);
-extern int     DohCheck(DOH *ptr);
-extern int     DohFreeCheck(DOH *ptr);
-extern int     DohMemoryUse();
-extern int     DohMemoryHigh();
-extern int     DohPoolSize(int);
-extern int     DohNewScope();
-extern void    DohDelScope(int);
-extern void    DohGarbageCollect();
-extern void    DohSetScope(DOH *, int scp);
-extern void    DohIntern(DOH *);
+  extern void   *DohMalloc(size_t size);             /* Allocate memory       */
+  extern void   *DohRealloc(void *, size_t size);    /* Reallocate memory     */
+  extern void    DohFree(DOH *ptr);                  /* Free memory           */
+  extern void   *DohObjMalloc(size_t size);          /* Allocate a DOH object */
+  extern void    DohObjFree(DOH *ptr);               /* Free a DOH object     */
+  extern int     DohObjFreeCheck(DOH *ptr);          /* Check if already free */
+  extern void    DohInit(DOH *obj);                  /* Initialize an object  */
+  extern void    DohXInit(DOH *obj);                 /* Initialize extended object */
+  extern int     DohCheck(DOH *ptr);                 /* Check if a DOH object */
+  extern int     DohMemoryUse();                     /* Return current memory */
+  extern int     DohMemoryHigh();                    /* High memory use       */
+  extern int     DohPoolSize(int);                   /* Set memory alloc size */
+  extern int     DohNewScope();                      /* Create a new scope    */
+  extern void    DohDelScope(int);                   /* Delete a scope        */
+  extern void    DohGarbageCollect();                /* Invoke garbage collection */
 
-/* Low-level doh methods.  Do not call directly (well, unless you want to). */
-extern void    DohError(int level, char *fmt,...);
-extern void    DohDebug(int d);
-extern void    DohDestroy(DOH *obj);
-extern DOH    *DohCopy(DOH *obj);
-extern void    DohClear(DOH *obj);
-extern int     DohCmp(DOH *obj1, DOH *obj2);
-extern DOH    *DohStr(DOH *obj);
-extern int     DohDump(DOH *obj, DOH *out);
-extern DOH    *DohGetattr(DOH *obj, DOH *name);
-extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
-extern void    DohDelattr(DOH *obj, DOH *name);
-extern int     DohHashval(DOH *obj);
-extern DOH    *DohGetitem(DOH *obj, int index);
-extern void    DohSetitem(DOH *obj, int index, DOH *value);
-extern void    DohDelitem(DOH *obj, int index);
-extern void    DohInsertitem(DOH *obj, int index, DOH *value);
-extern int     DohLen(DOH *obj);
-extern DOH    *DohFirst(DOH *obj);
-extern DOH    *DohNext(DOH *obj);
-extern DOH    *DohFirstkey(DOH *obj);
-extern DOH    *DohNextkey(DOH *obj);
-extern DOH    *DohFirstitem(DOH *obj);
-extern DOH    *DohNextitem(DOH *obj);
-extern void   *DohData(DOH *obj);
-extern int     DohGetline(DOH *obj);
-extern void    DohSetline(DOH *obj, int line);
-extern DOH    *DohGetfile(DOH *obj);
-extern void    DohSetfile(DOH *obj, DOH *file);
-extern void    DohInit(DOH *obj);
+  extern void    DohIntern(DOH *);                   /* Intern an object      */
 
-extern int     DohGetInt(DOH *obj, DOH *name);
-extern double  DohGetDouble(DOH *obj, DOH *name);
-extern char   *DohGetChar(DOH *obj, DOH *name);
-extern void    DohSetInt(DOH *obj, DOH *name, int);
-extern void    DohSetDouble(DOH *obj, DOH *name, double);
+  /* Basic object methods.  Common to most objects */
 
-/* File methods */
+  extern void    DohDelete(DOH *obj);                /* Delete an object      */
+  extern DOH    *DohCopy(DOH *obj);
+  extern void    DohClear(DOH *obj);
+  extern void    DohSetScope(DOH *, int scp);        /* Set scope of object   */
+  extern DOH    *DohStr(DOH *obj);
+  extern void   *DohData(DOH *obj);
+  extern int     DohDump(DOH *obj, DOH *out);
+  extern DOH    *DohLoad(DOH *in);
+  extern int     DohLen(DOH *obj);
+  extern int     DohHashval(DOH *obj);
+  extern int     DohCmp(DOH *obj1, DOH *obj2);
 
-extern int     DohWrite(DOH *obj, void *buffer, int length);
-extern int     DohRead(DOH *obj, void *buffer, int length);
-extern int     DohSeek(DOH *obj, long offset, int whence);
-extern long    DohTell(DOH *obj);
-extern int     DohGetc(DOH *obj);
-extern int     DohPutc(int ch, DOH *obj);
-extern int     DohUngetc(int ch, DOH *obj);
+  /* Mapping methods */
+  
+  extern DOH    *DohGetattr(DOH *obj, DOH *name);
+  extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
+  extern void    DohDelattr(DOH *obj, DOH *name);
+  extern DOH    *DohFirstkey(DOH *obj);
+  extern DOH    *DohNextkey(DOH *obj);
+  extern DOH    *DohFirst(DOH *obj);
+  extern DOH    *DohNext(DOH *obj);
+  extern int     DohGetInt(DOH *obj, DOH *name);
+  extern double  DohGetDouble(DOH *obj, DOH *name);
+  extern char   *DohGetChar(DOH *obj, DOH *name);
+  extern void    DohSetInt(DOH *obj, DOH *name, int);
+  extern void    DohSetDouble(DOH *obj, DOH *name, double);
 
-extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
-extern int     DohPrintf(DOH *obj, char *format, ...);
-extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
-extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
-extern void    DohChop(DOH *src);
-extern DOH    *DohReadline(DOH *in);
+  /* Sequence methods */
 
-extern DOH    *DohCall(DOH *obj, DOH *args);
+  extern DOH    *DohGetitem(DOH *obj, int index);
+  extern void    DohSetitem(DOH *obj, int index, DOH *value);
+  extern void    DohDelitem(DOH *obj, int index);
+  extern void    DohInsertitem(DOH *obj, int index, DOH *value);
+  extern DOH    *DohFirstitem(DOH *obj);
+  extern DOH    *DohNextitem(DOH *obj);
+
+  /* File methods */
+
+  extern int     DohWrite(DOH *obj, void *buffer, int length);
+  extern int     DohRead(DOH *obj, void *buffer, int length);
+  extern int     DohSeek(DOH *obj, long offset, int whence);
+  extern long    DohTell(DOH *obj);
+  extern int     DohGetc(DOH *obj);
+  extern int     DohPutc(int ch, DOH *obj);
+  extern int     DohUngetc(int ch, DOH *obj);
+
+  /* Callable Methods */
+
+  extern DOH    *DohCall(DOH *obj, DOH *args);
+
+  /* Position Methods */
+
+  extern int     DohGetline(DOH *obj);
+  extern void    DohSetline(DOH *obj, int line);
+  extern DOH    *DohGetfile(DOH *obj);
+  extern void    DohSetfile(DOH *obj, DOH *file);
+
+  /* Utility functions */
+
+  extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
+  extern int     DohPrintf(DOH *obj, char *format, ...);
+  extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
+  extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
+  extern void    DohChop(DOH *src);
+  extern DOH    *DohReadline(DOH *in);
+
+  /* Miscellaneous */
+
+  extern void    DohError(int level, char *fmt,...);
+  extern void    DohDebug(int d);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
    the caller to simplify debugging if something goes wrong */
 
-#define Delete             DohDestroy
+#define Delete             DohDelete
 #define Copy               DohCopy
 #define Clear              DohClear
 #define Str                DohStr
@@ -307,7 +322,6 @@ typedef struct {
 
 #define Getscope(a)      ((DohBase *) a)->scope
 #define Setscope(a,s)    DohSetScope(a,s)
-
 #define Objname(a)       ((DohBase *) a)->objinfo->objname
 
 /* Flags for various internal operations */
