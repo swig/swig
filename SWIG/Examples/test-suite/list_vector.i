@@ -114,7 +114,7 @@ double sum_lists(int len,
 		 int *list3)
 {
   int i;
-  double sum;
+  double sum = 0.0;
   for (i = 0; i<len; i++)
     sum += (list1[i] + list2[i] + list3[i]);
   return sum;
@@ -126,7 +126,7 @@ double sum_lists2(size_t len,
 		  int *list3)
 {
   size_t i;
-  double sum;
+  double sum = 0.0;
   for (i = 0; i<len; i++)
     sum += (list1[i] + list2[i] + list3[i]);
   return sum;
