@@ -112,8 +112,13 @@ Version 1.3.20 (In progress)
 
 	    So, all the language maintainers, please check the
 	    keywords list, and remember that you can also add bad
-	    member names too, like *::clone or *::cget (see an example
-	    in the tcl8/tclkw.swg file).
+	    members names too, like *::clone or *::cget (see an
+	    example in the tcl8/tclkw.swg file).
+
+	    Just to be consistent:
+
+	    - Use code 314 for keyword and/or fatal bad names.
+	    - Use code 315 for bad names, but not fatal ones.
 
 	    **** And don't add any new test file without checking it
 	    with the -Wallkw option!! (that includes me) *****.
