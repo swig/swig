@@ -1,6 +1,6 @@
 %module template_tbase_template
 
-%warnfilter(801) traits<Double, Double>; /* Ruby, wrong class name */
+%warnfilter(801) traits<double, double>;	/* Ruby, wrong class name */
 
 %inline %{
   typedef double Double;
