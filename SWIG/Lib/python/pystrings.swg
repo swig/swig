@@ -126,7 +126,7 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
   }
   if (val) {
     PyErr_Format(PyExc_TypeError, 
-		 "a char array of maximum size %d is expected", 
+		 "a char array of maximum size %ld is expected", 
 		 size);
   }
   return 0;
