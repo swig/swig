@@ -180,3 +180,19 @@ Klass constructorcall(const Klass& k = Klass()) { return k; }
 }
 %}
 
+%inline
+%{
+  extern "C" double cfunc1(double x,double p = 1) {
+    return(x+p);
+  }
+
+  extern "C" {
+    double cfunc2(double x,double p = 2) {
+      return(x+p);
+    }
+
+    double cfunc3(double x,double p = 3) {
+      return(x+p);
+    }
+  }
+%}
