@@ -36,13 +36,12 @@ INCLUDES   = -I$(TOP)/$(TEST_SUITE)
 RUNTIMEDIR = ../$(TOP)/Runtime/.libs
 DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
+#
 # Please keep test cases in alphabetical order.
 #
-# EXCEPTION: PLEASE PUT BROKEN TEST CASES AT THE TOP OF THIS LIST.
 
-# C++ test cases. (Can be run individually using make testcase.cpptest.)
-
-CPP_TEST_BROKEN = \
+# Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
+CPP_TEST_BROKEN += \
 	cast_operator \
 	arrayref \
 	abstract_typedef \
@@ -54,8 +53,12 @@ CPP_TEST_BROKEN = \
 	template_specialization_enum \
 	using_namespace
 
-CPP_TEST_CASES += $(CPP_TEST_BROKEN)
 
+# Broken C test cases. (Can be run individually using make testcase.cpptest.)
+C_TEST_BROKEN += 
+
+
+# C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
 	abstract_inherit \
 	abstract_inherit_ok \
@@ -250,23 +253,32 @@ C_TEST_CASES += \
 	unions
 
 
+# Multi-module C++ test cases . (Can be run individually using make testcase.ctest.)
 MULTI_CPP_TEST_CASES += \
 	imports \
 	template_typedef_import
 
-ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
-		 $(C_TEST_CASES:=.ctest) \
-		 $(MULTI_CPP_TEST_CASES:=.multicpptest)
-ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) \
-		 $(C_TEST_CASES:=.clean) \
-		 $(MULTI_CPP_TEST_CASES:=.clean)
+NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
+			$(C_TEST_CASES:=.ctest) \
+			$(MULTI_CPP_TEST_CASES:=.multicpptest)
+
+BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
+			$(C_TEST_BROKEN:=.ctest)
+
+ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
+			$(C_TEST_CASES:=.clean) \
+			$(MULTI_CPP_TEST_CASES:=.clean) \
+			$(CPP_TEST_BROKEN:=.clean) \
+			$(C_TEST_BROKEN:=.clean)
 
 #######################################################################
 # The following applies for all module languages
 #######################################################################
-all:	$(ALL_TEST_CASES)
+all:	$(BROKEN_TEST_CASES) $(NOT_BROKEN_TEST_CASES)
 
-check: all
+check: 	$(NOT_BROKEN_TEST_CASES)
+
+broken: $(BROKEN_TEST_CASES)
 
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
