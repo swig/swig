@@ -8,7 +8,7 @@ public:
   Foo(float a, float b=1.0)
   {
   }
-  r
+  
   Foo(float a, int c, float b=1.0)
   {
   }
