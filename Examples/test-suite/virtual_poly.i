@@ -1,4 +1,15 @@
-%module virtual_poly
+%module(directors="1") virtual_poly
+
+//
+// Check this example with directors wherever is possible.
+// It seems to be a good test since it breaks ruby at least.
+// python works fine with and without directors
+// In theory, Java should starts working with directors,
+// but this is not tested yet (my Java installation is broken).
+//
+//%feature("director");
+
+%newobject *::copy();
 
 
 %inline %{  
@@ -6,6 +17,12 @@
   {
     virtual ~NNumber() {};
     virtual NNumber* copy() const = 0;
+
+    NNumber* nnumber() 
+    {
+      return this;
+    }
+    
   };
   
   /* 
