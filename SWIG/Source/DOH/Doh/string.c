@@ -13,14 +13,15 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "dohint.h"
+static char cvsroot[] = "$Header$";
 
 /* ---------------------------------------------------------------------------
- * $Header$
  * string.c
  *
- * String support.
+ * String object.
  * --------------------------------------------------------------------------- */
+
+#include "dohint.h"
 
 typedef struct String {
     DOHXCOMMON;

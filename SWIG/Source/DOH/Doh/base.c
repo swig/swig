@@ -13,12 +13,13 @@
  * can be used and distributed.
  ****************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 /*******************************************************************************
- * $Header$
- *
  * File : base.c
  *
- * Methods for base objects
+ * This file contains all of the basic DOH methods.  These functions really
+ * just dispatch to the methods for each object.
  *******************************************************************************/
 
 #include "dohint.h"

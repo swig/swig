@@ -13,34 +13,135 @@
  * can be used and distributed.
  ****************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
+/* ---------------------------------------------------------------------------
+ * file.c
+ *
+ * This file implements a DOH file-like object.
+ * --------------------------------------------------------------------------- */
+
 #include "dohint.h"
 #include <unistd.h>
 
-/* ---------------------------------------------------------------------------
- * $Header$
- * string.c
+typedef struct {
+  DOHCOMMON;
+  FILE     *filep;       
+  int       fd;
+  int closeondel;
+} DohFile;
+
+/* -----------------------------------------------------------------------------
+ * DelFile(DOH *s) - Delete a file
+ * ----------------------------------------------------------------------------- */
+
+static void
+DelFile(DOH *so) {
+  DohFile *f = (DohFile *) so;
+  assert(f->refcount <= 0);
+  if (f->closeondel)
+    fclose(f->filep);
+  DohObjFree(f);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_read(DOH *so, void *buffer, int len)
+ * 
+ * Read data from the File
+ * ----------------------------------------------------------------------------- */
+
+static int
+File_read(DOH *so, void *buffer, int len) {
+  DohFile *s = (DohFile *) so;
+  if (s->filep) 
+    return fread(buffer,1,len,s->filep);
+  else 
+    return read(s->fd,buffer,len);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_write(DOH *so, void *buffer, int len)
+ * 
+ * Write data to the File
+ * ----------------------------------------------------------------------------- */
+static int
+File_write(DOH *so, void *buffer, int len) {
+  DohFile *s = (DohFile *) so;
+  if (s->filep) 
+    return fwrite(buffer,1,len,s->filep);
+  else
+    return write(s->fd, buffer, len);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_seek(DOH *so, long offset, int whence)
+ * 
+ * Seek to a new position
+ * ----------------------------------------------------------------------------- */
+static int
+File_seek(DOH *so, long offset, int whence) {
+  DohFile *s = (DohFile *) so;
+  if (s->filep) 
+    return fseek(s->filep,offset,whence);
+  else
+    return lseek(s->fd,offset,whence);
+}
+
+/* -----------------------------------------------------------------------------
+ * long File_tell(DOH *so)
+ * 
+ * Return current position
+ * ----------------------------------------------------------------------------- */
+static long
+File_tell(DOH *so) {
+  DohFile *s = (DohFile *) so;
+  if (s->filep) 
+    return ftell(s->filep);
+  else
+    return lseek(s->fd,0,SEEK_CUR);
+}
+
+/* -----------------------------------------------------------------------------
+ * int File_putc(DOH *obj, int ch)
  *
- * String support.
- * --------------------------------------------------------------------------- */
+ * Put a character on the output
+ * ----------------------------------------------------------------------------- */
 
-typedef struct File {
-    DOHCOMMON;
-    FILE     *filep;       
-    int       fd;
-    int closeondel;
-} File;
+static int 
+File_putc(DOH *obj, int ch) {
+  DohFile *s = (DohFile *) obj;
+  if (s->filep) 
+    return fputc(ch,s->filep);
+  return EOF;
+}
 
-/* Forward references */
+/* -----------------------------------------------------------------------------
+ * int File_getc(DOH *obj)
+ *
+ * Get a character
+ * ----------------------------------------------------------------------------- */
 
-void    DelFile(DOH *s);
-int     File_read(DOH *s, void *buffer, int length);
-int     File_write(DOH *s, void *buffer, int length);
-int     File_putc(DOH *s, int ch);
-int     File_getc(DOH *s);
-int     File_ungetc(DOH *s, int ch);
-int     File_seek(DOH *s, long offset, int whence);
-long    File_tell(DOH *s);
+static int 
+File_getc(DOH *obj) {
+  DohFile *s = (DohFile *) obj;
+  if (s->filep)
+    return fgetc(s->filep);
+  return EOF;
+}
 
+/* -----------------------------------------------------------------------------
+ * int File_ungetc(DOH *obj, int ch)
+ *
+ * Put a character back onto the input
+ * ----------------------------------------------------------------------------- */
+
+static int 
+File_ungetc(DOH *obj, int ch) {
+  DohFile *s = (DohFile *) obj;
+  if (s->filep)
+    return ungetc(ch, s->filep);
+  return EOF;
+}
 
 static DohFileMethods FileFileMethods = {
   File_read, 
@@ -53,9 +154,9 @@ static DohFileMethods FileFileMethods = {
   0,              /* close */
 };
 
-static DohObjInfo FileType = {
-    "File",          /* objname      */
-    sizeof(File),    /* objsize      */
+static DohObjInfo DohFileType = {
+    "DohFile",          /* objname      */
+    sizeof(DohFile),    /* objsize      */
     DelFile,         /* doh_del      */
     0,               /* doh_copy     */
     0,               /* doh_clear    */
@@ -75,17 +176,13 @@ static DohObjInfo FileType = {
     0,               /* doh_position */
 };
 
-DohObjInfo *File_type() {
-  return &FileType;
-}
-
 /* -----------------------------------------------------------------------------
  * NewFile(DOH *filename, char *mode)
  * ----------------------------------------------------------------------------- */
 DOH *
 NewFile(DOH *fn, char *mode)
 {
-  File *f;
+  DohFile *f;
   FILE *file;
   char *filename;
 
@@ -93,12 +190,12 @@ NewFile(DOH *fn, char *mode)
   file = fopen(filename,mode);
   if (!file) return 0;
 
-  f = (File *) DohObjMalloc(sizeof(File));
+  f = (DohFile *) DohObjMalloc(sizeof(DohFile));
   if (!f) {
     fclose(file);
     return 0;
   }
-  f->objinfo = &FileType;
+  f->objinfo = &DohFileType;
   f->filep = file;
   f->fd = fileno(file);
   f->closeondel = 1;
@@ -112,10 +209,10 @@ NewFile(DOH *fn, char *mode)
 DOH *
 NewFileFromFile(FILE *file) 
 {
-  File *f;
-  f = (File *) DohObjMalloc(sizeof(File));
+  DohFile *f;
+  f = (DohFile *) DohObjMalloc(sizeof(DohFile));
   if (!f) return 0;
-  f->objinfo = &FileType;
+  f->objinfo = &DohFileType;
   f->filep = file;
   f->fd = fileno(file);
   f->closeondel = 0;
@@ -129,27 +226,16 @@ NewFileFromFile(FILE *file)
 DOH *
 NewFileFromFd(int fd)
 {
-  File *f;
-  f = (File *) DohObjMalloc(sizeof(File));
+  DohFile *f;
+  f = (DohFile *) DohObjMalloc(sizeof(DohFile));
   if (!f) return 0;
-  f->objinfo = &FileType;
+  f->objinfo = &DohFileType;
   f->filep = 0;
   f->fd = fd;
   f->closeondel = 0;
   return (DOH *) f;
 }
-
-/* -----------------------------------------------------------------------------
- * DelFile(DOH *s) - Delete a file
- * ----------------------------------------------------------------------------- */
-void
-DelFile(DOH *so) {
-  File *f = (File *) so;
-  assert(f->refcount <= 0);
-  if (f->closeondel)
-    fclose(f->filep);
-  DohObjFree(f);
-}
+    
 
 /* -----------------------------------------------------------------------------
  * int File_check(DOH *f) - Check if f is a file
@@ -157,110 +243,12 @@ DelFile(DOH *so) {
 int
 File_check(DOH *f) 
 {
-  File *df;
+  DohFile *df;
   if (!DohCheck(f)) return 0;
-  
-  df = (File *) f;
-  if (df->objinfo == &FileType) return 1;
+  df = (DohFile *) f;
+  if (df->objinfo == &DohFileType) return 1;
   return 0;
 }
-
-/* -----------------------------------------------------------------------------
- * int File_read(DOH *so, void *buffer, int len)
- * 
- * Read data from the File
- * ----------------------------------------------------------------------------- */
-int
-File_read(DOH *so, void *buffer, int len) {
-  File *s = (File *) so;
-  if (s->filep) 
-    return fread(buffer,1,len,s->filep);
-  else 
-    return read(s->fd,buffer,len);
-}
-
-/* -----------------------------------------------------------------------------
- * int File_write(DOH *so, void *buffer, int len)
- * 
- * Write data to the File
- * ----------------------------------------------------------------------------- */
-int
-File_write(DOH *so, void *buffer, int len) {
-  File *s = (File *) so;
-  if (s->filep) 
-    return fwrite(buffer,1,len,s->filep);
-  else
-    return write(s->fd, buffer, len);
-}
-
-/* -----------------------------------------------------------------------------
- * int File_seek(DOH *so, long offset, int whence)
- * 
- * Seek to a new position
- * ----------------------------------------------------------------------------- */
-int
-File_seek(DOH *so, long offset, int whence) {
-  File *s = (File *) so;
-  if (s->filep) 
-    return fseek(s->filep,offset,whence);
-  else
-    return lseek(s->fd,offset,whence);
-}
-
-/* -----------------------------------------------------------------------------
- * long File_tell(DOH *so)
- * 
- * Return current position
- * ----------------------------------------------------------------------------- */
-long
-File_tell(DOH *so) {
-  File *s = (File *) so;
-  if (s->filep) 
-    return ftell(s->filep);
-  else
-    return lseek(s->fd,0,SEEK_CUR);
-}
-
-/* -----------------------------------------------------------------------------
- * int File_putc(DOH *obj, int ch)
- *
- * Put a character on the output
- * ----------------------------------------------------------------------------- */
-
-int File_putc(DOH *obj, int ch) {
-  File *s = (File *) obj;
-  if (s->filep) 
-    return fputc(ch,s->filep);
-  return EOF;
-}
-
-/* -----------------------------------------------------------------------------
- * int File_getc(DOH *obj)
- *
- * Get a character
- * ----------------------------------------------------------------------------- */
-
-int File_getc(DOH *obj) {
-  File *s = (File *) obj;
-  if (s->filep)
-    return fgetc(s->filep);
-  return EOF;
-}
-
-/* -----------------------------------------------------------------------------
- * int File_ungetc(DOH *obj, int ch)
- *
- * Put a character back onto the input
- * ----------------------------------------------------------------------------- */
-
-int File_ungetc(DOH *obj, int ch) {
-  File *s = (File *) obj;
-  if (s->filep)
-    return ungetc(ch, s->filep);
-  return EOF;
-}
-
-    
 
 
 
