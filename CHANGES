@@ -1,5 +1,20 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+6/16/00 : beazley
+          Added -includeall to follow all #include statements in the
+          preprocessor.
+
+6/15/00 : beazley
+          Tried to fix as many C++ warnings as possible when compiling
+          with the Sun Workshop C++ compiler.  Unfortunately, this means
+          that there are a lot of statements that contain string literals
+          of the form (char*)"Blah".
+
+6/15/00:  beazley
+          A variety of cleanup and performance optimization in the
+          low-level DOH library.   This seems to result in a speedup
+          of 50-100% for preprocessing and other related tasks.
+
 5/10/00 : ttn
 	  Applied variable-wrapping bugfix patch contributed
 	  by Matthias Koeppe.
