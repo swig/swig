@@ -792,7 +792,7 @@ void cplus_set_class(char *name) {
     current_class = c;
     localtypes = c->local;
   } else {
-    fprintf(stderr,"%s:%d:  Warning class %s undefined.\n",input_file,line_number,name);
+    Printf(stderr,"%s:%d:  Warning class %s undefined.\n",input_file,line_number,name);
     current_class = new CPP_class(name,0);
     localtypes = current_class->local;
   }
@@ -987,7 +987,7 @@ void cplus_generate_types(char **baseclass) {
 		 "}\n",
 		 0);
 	  
-	  fprintf(f_wrappers,"%s\n",Char(cfunc));
+	  Printf(f_wrappers,"%s\n",Char(cfunc));
 	}
       } else {
 	Clear(temp3);
@@ -1082,7 +1082,7 @@ void cplus_inherit_members(char *baseclass, int mode) {
   if (bc) {
     bc->inherit_decls(mode);
   } else {
-    fprintf(stderr,"%s:%d:  Warning.  Base class %s undefined (ignored).\n", input_file, current_class->line, baseclass);    
+    Printf(stderr,"%s:%d:  Warning.  Base class %s undefined (ignored).\n", input_file, current_class->line, baseclass);    
   }
 }
 

@@ -237,7 +237,7 @@ void RUBY::set_module(char *mod_name, char **mod_list) {
 }
 
 
-static void insert_file(char *filename, FILE *file) {
+static void insert_file(char *filename, DOHFile *file) {
   if (Swig_insert_file(filename, file) == -1) {
     Printf(stderr,
 	    "SWIG : Fatal error. "

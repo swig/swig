@@ -20,52 +20,34 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 
 extern "C" {
-  #include "doh.h"
+  #include "swig.h"
 }
 
 #define  YYBSIZE  8192
 
 struct InFile {
-  FILE   *f;
-  int    line_number;
-  char  *in_file;
-  int    extern_mode;	
-  int    force_extern;
+  DOHFile *f;
+  int     line_number;
+  char   *in_file;
+  int     extern_mode;	
+  int     force_extern;
+  int     inline_mode;
   struct InFile *prev;
-};
-
-// This structure is used for managing code fragments as
-// might be used by the %inline directive and handling of
-// nested structures.
-
-struct CodeFragment {
-  char          *text;
-  int            line_number;
-  CodeFragment  *next;
 };
 
 InFile  *in_head;
 
-FILE    *LEX_in = NULL;
-
+DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
 static DOHString     *comment = 0;
        DOHString     *CCode = 0;            // String containing C code 
-static char           *yybuffer;
+static char           *yybuffer = 0;
 static int            lex_pos = 0;
 static int            lex_len = 0;         
-static char           *inline_yybuffer = 0;
-static int            inline_lex_pos = 0;
-static int            inline_lex_len = 0;
-static int            inline_line_number = 0;
-static CodeFragment  *fragments = 0;      // Code fragments
 
-static 
-char           yytext[YYBSIZE];
+static char    yytext[YYBSIZE];
 static int     yylen = 0;
 int            line_number = 1;
-int            column = 1;
-int            column_start = 1;
 char          *input_file;
 int            start_line = 0;
 static  int    comment_start;
@@ -82,7 +64,6 @@ extern  int    Error;
  **************************************************************/
 
 void scanner_init() {
-
   yybuffer = (char *) malloc(YYBSIZE);
   scan_init = 1;
   header = NewString("");
@@ -95,7 +76,7 @@ void scanner_init() {
  *
  * Start reading from new file 
  **************************************************************/
-void scanner_file(FILE *f) {
+void scanner_file(DOHFile *f) {
   InFile *in;
 
   in = (InFile *) malloc(sizeof(InFile));
@@ -103,7 +84,7 @@ void scanner_file(FILE *f) {
   in->in_file = input_file;
   in->extern_mode = WrapExtern;	
   in->force_extern = ForceExtern;
-  if (in_head) in_head->line_number = line_number+1;
+  in->inline_mode = 0;
   if (!in_head) in->prev = 0;
   else in->prev = in_head;
   in_head = in;
@@ -118,10 +99,11 @@ void scanner_file(FILE *f) {
  **************************************************************/
 
 void scanner_close() {
-
   InFile *p;
-  fclose(LEX_in);
   if (!in_head) return;
+  if (in_head->inline_mode) {
+    Delete(LEX_in);
+  }
   p = in_head->prev;
   if (p != 0) {
     LEX_in = p->f;
@@ -129,8 +111,9 @@ void scanner_close() {
     input_file = p->in_file;
     WrapExtern = p->extern_mode;
     ForceExtern = p->force_extern;
+    Inline = p->inline_mode;
   } else {
-    LEX_in = NULL;
+    LEX_in = 0;
   }
   free(in_head);
   in_head = p;
@@ -145,92 +128,37 @@ void scanner_close() {
  **************************************************************/
 
 char nextchar() {
-
-    char c = 0;
-
-    if (Inline) {
-      if (inline_lex_pos >= inline_lex_len) {
-	// Done with inlined code.  Check to see if we have any
-	// new code fragments.  If so, switch to them.
-	free(inline_yybuffer);
-	if (fragments) {
-	  CodeFragment *f;
-	  inline_yybuffer = fragments->text;
-	  inline_lex_pos = 1;
-	  inline_lex_len = strlen(fragments->text);
-	  line_number = fragments->line_number;
-	  f = fragments->next;
-	  free(fragments);
-	  fragments = f;
-	  c = inline_yybuffer[0];
-	} else {
-	  c = 0;
-	  Inline = 0;
-	  line_number = inline_line_number;       // Restore old line number
-	}
+    int c = 0;
+    
+    while (LEX_in) {
+      c = Getc(LEX_in);
+      if (c == EOF) {
+	scanner_close();
       } else {
-	inline_lex_pos++;
-	c = inline_yybuffer[inline_lex_pos-1];
+	break;
       }
     }
-    if (!Inline) {
-      if (lex_pos >= lex_len) {
-	if (!LEX_in) {
-	  SWIG_exit(1);
-	}
-	while(fgets(yybuffer, YYBSIZE, LEX_in) == NULL) {
-	  scanner_close();        // Close current input file
-	  if (!LEX_in) return 0;  // No more, we're outta here
-	}
-	lex_len = strlen(yybuffer);
-	lex_pos = 0;
-      }
-      
-      lex_pos++;
-      c = yybuffer[lex_pos-1];
-    }
-      
+    if (!LEX_in) return 0;
     if (yylen >= YYBSIZE) {
-      fprintf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.cxx.\nReport this to swig@cs.utah.edu.\n");
+      Printf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.cxx.\nReport this to swig-dev@cs.uchicago.edu.\n");
       SWIG_exit(1);
     }
     yytext[yylen] = c;
     yylen++;
     if (c == '\n') {
       line_number++;
-      column = 1;
-    } else {
-      column++;
     }
     return(c);
 }
 
 void retract(int n) {
-  int i, j, c;
-  
+  int i;
   for (i = 0; i < n; i++) {
-    if (Inline) {
-      inline_lex_pos--;
-      if (inline_lex_pos < 0) {
-	fprintf(stderr,"Internal scanner error. inline_lex_pos < 0\n");
-	SWIG_exit(1);
-      }
-    }
-    else lex_pos--;
     yylen--;
-    column--;
     if (yylen >= 0) {
+      Ungetc(yytext[yylen],LEX_in);
       if (yytext[yylen] == '\n') {
 	line_number--;
-	// Figure out what column we're in
-	c = yylen-1;
-	j = 1;
-	while (c >= 0){
-	  if (yytext[c] == '\n') break;
-	  j++;
-	  c--;
-	}
-	column = j;
       }
     }
   }
@@ -249,37 +177,21 @@ void retract(int n) {
  **************************************************************/
 
 void start_inline(char *text, int line) {
+  InFile *in;
 
-  if (Inline) {
-
-    // Already processing a code fragment, simply hang on
-    // to this one for later.
-
-    CodeFragment *f,*f1;
-
-    // Add a new code fragment to our list
-    f = (CodeFragment *) malloc(sizeof(CodeFragment));
-    f->text = Swig_copy_string(text);
-    f->line_number = line;
-    f->next = 0;
-    if (!fragments) fragments = f;
-    else {
-      f1 = fragments;
-      while (f1->next) f1 = f1->next;
-      f1->next = f;
-    }
-  } else {
-
-    // Switch our scanner over to process text from a string.
-    // Save current line number and other information however.
-
-    inline_yybuffer = Swig_copy_string(text);
-    inline_lex_len = strlen(text);
-    inline_lex_pos = 0;
-    inline_line_number = line_number;       // Make copy of old line number
-    line_number = line;
-    Inline = 1;
-  }
+  in = (InFile *) malloc(sizeof(InFile));
+  in->f = NewString(text);
+  Seek(in->f,0,SEEK_SET);
+  in->in_file = Swig_copy_string(input_file);
+  in->line_number = line;
+  in->extern_mode = WrapExtern;
+  in->force_extern = ForceExtern;
+  in->inline_mode = 1;
+  in->prev = in_head;
+  in_head = in;
+  LEX_in = in->f;
+  line_number = line;
+  Inline = 1;
 }
 
 /**************************************************************
@@ -308,7 +220,7 @@ void skip_brace(void) {
   Putc('{',CCode);
   while (num_brace > last_brace) {
     if ((c = nextchar()) == 0) {
-      fprintf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
+      Printf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -339,7 +251,7 @@ void skip_template(void) {
   int  num_lt = 1;
   while (num_lt > 0) {
     if ((c = nextchar()) == 0) {
-      fprintf(stderr,"%s : Line %d.  Missing '>'. Reached end of input.\n",
+      Printf(stderr,"%s : Line %d.  Missing '>'. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -380,7 +292,7 @@ void skip_to_end(void) {
       break;
     }
   }
-  fprintf(stderr,"%s : EOF. Missing @end. Reached end of input.\n",
+  Printf(stderr,"%s : EOF. Missing @end. Reached end of input.\n",
 	  input_file);
   FatalError();
   return;
@@ -403,7 +315,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      fprintf(stderr,"%s : Line %d.  Missing semicolon. Reached end of input.\n",
+      Printf(stderr,"%s : Line %d.  Missing semicolon. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -419,7 +331,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	fprintf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
+	Printf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
 		input_file, line_number);
 	FatalError();
 	return;
@@ -473,7 +385,7 @@ int yylook(void) {
 	  else if (c == '}') {
 	    num_brace--;
 	    if (num_brace < 0) {
-	      fprintf(stderr,"%s : Line %d. Error. Extraneous '}' (Ignored)\n",
+	      Printf(stderr,"%s : Line %d. Error. Extraneous '}' (Ignored)\n",
 		      input_file, line_number);
 	      state = 0;
 	      num_brace = 0;
@@ -521,13 +433,11 @@ int yylook(void) {
 	  if ((c = nextchar()) == 0) return(0);
 	  if (c == '/') {
 	    comment_start = line_number;
-	    column_start = column;
 	    Clear(comment);
 	    Printf(comment,"  ");
 	    state = 10;        // C++ style comment
 	  } else if (c == '*') {
 	    comment_start = line_number;
-	    column_start = column;
 	    Clear(comment);
 	    Printf(comment,"  ");
 	    state = 11;   // C style comment
@@ -538,14 +448,14 @@ int yylook(void) {
 	  break;
 	case 10:  /* C++ style comment */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated comment detected.\n",input_file);
+	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n",input_file);
 	    FatalError();
 	    return 0;
 	  }
 	  if (c == '\n') {
 	    Putc(c,comment);
 	    // Add the comment to documentation
-	    yycomment(Char(comment),comment_start, column_start);
+	    //	    yycomment(Char(comment),comment_start, column_start);
 	    yylen = 0;
 	    state = 0;
 	  } else {
@@ -556,7 +466,7 @@ int yylook(void) {
 	  break;
 	case 11: /* C style comment block */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
+	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
@@ -570,7 +480,7 @@ int yylook(void) {
 	  break;
 	case 12: /* Still in C style comment */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
+	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
@@ -579,7 +489,7 @@ int yylook(void) {
 	    state = 12;
 	  } else if (c == '/') {
 	    Printf(comment,"  \n");
-	    yycomment(Char(comment),comment_start,column_start);
+	    //	    yycomment(Char(comment),comment_start,column_start);
 	    yylen = 0;
 	    state = 0;
 	  } else {
@@ -592,7 +502,7 @@ int yylook(void) {
 
 	case 2: /* Processing a string */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated string detected.\n", input_file);
+	    Printf(stderr,"%s : EOF. Unterminated string detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
@@ -638,7 +548,7 @@ int yylook(void) {
 	  
 	case 40: /* Process an include block */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
+	    Printf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
@@ -652,7 +562,7 @@ int yylook(void) {
 	  break;
 	case 41: /* Still processing include block */
 	  if ((c = nextchar()) == 0) {
-	    fprintf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
+	    Printf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
 	    FatalError();
 	    return 0;
 	  }
@@ -871,7 +781,7 @@ int yylook(void) {
 	  break;
 	default:
 	  if (!Error) {
-	    fprintf(stderr,"%s : Line %d ::Illegal character '%c'=%d.\n",input_file, line_number,c,c);
+	    Printf(stderr,"%s : Line %d ::Illegal character '%c'=%d.\n",input_file, line_number,c,c);
 	    FatalError();
 	  }
 	  state = 0;	
@@ -986,7 +896,7 @@ extern "C" int yylex(void) {
 	}
 
 	// Objective-C keywords
-        if (ObjC) {
+        if ((ObjC) && (yytext[0] == '@')) {
 	  if (strcmp(yytext,"@interface") == 0) return (OC_INTERFACE);
 	  if (strcmp(yytext,"@end") == 0) return (OC_END);
 	  if (strcmp(yytext,"@public") == 0) return (OC_PUBLIC);
@@ -1007,79 +917,81 @@ extern "C" int yylex(void) {
 	if (strcmp(yytext,"enum") == 0) return(ENUM);
 	if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
 
+	if (strcmp(yytext,"typedef") == 0) {
+	  yylval.ivalue = 0;
+	  return(TYPEDEF);
+	}
+
 	// Ignored keywords 
 
 	if (strcmp(yytext,"volatile") == 0) return(yylex());
 
 	// SWIG directives
 
-	if (strcmp(yytext,"%module") == 0) return(MODULE);
-	if (strcmp(yytext,"%init") == 0)  return(INIT);
-	if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
-	if (strcmp(yytext,"%readonly") == 0) return(READONLY);
-	if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
-	if (strcmp(yytext,"%name") == 0) return(NAME);
-        if (strcmp(yytext,"%rename") == 0) return(RENAME);
-	if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
-	if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
-	if (strcmp(yytext,"%val") == 0) {
-	  fprintf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
-	  return (yylex());
+	if (yytext[0] == '%') {
+	  if (strcmp(yytext,"%module") == 0) return(MODULE);
+	  if (strcmp(yytext,"%init") == 0)  return(INIT);
+	  if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
+	  if (strcmp(yytext,"%readonly") == 0) return(READONLY);
+	  if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
+	  if (strcmp(yytext,"%name") == 0) return(NAME);
+	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
+	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
+	  if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
+	  if (strcmp(yytext,"%val") == 0) {
+	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
+	    return (yylex());
+	  }
+	  if (strcmp(yytext,"%out") == 0) {
+	    Printf(stderr,"%s:%d %%out directive deprecated (ignored).\n", input_file, line_number);
+	    return(yylex());
+	  }
+	  if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
+	  if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
+	  
+	  if (strcmp(yytext,"%section") == 0) {
+	    yylval.ivalue = line_number;
+	    return(SECTION);
+	  }
+	  if (strcmp(yytext,"%subsection") == 0) {
+	    yylval.ivalue = line_number;
+	    return(SUBSECTION);
+	  }
+	  if (strcmp(yytext,"%subsubsection") == 0) {
+	    yylval.ivalue = line_number;
+	    return (SUBSUBSECTION);
+	  }
+	  if (strcmp(yytext,"%title") == 0) {
+	    yylval.ivalue = line_number;
+	    return(TITLE);
+	  } 
+	  if (strcmp(yytext,"%style") == 0) return(STYLE);
+	  if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
+	  if (strcmp(yytext,"%typedef") == 0) {
+	    yylval.ivalue = 1;
+	    return(TYPEDEF);
+	  }
+	  if (strcmp(yytext,"%alpha") == 0) return(ALPHA_MODE);
+	  if (strcmp(yytext,"%raw") == 0) return(RAW_MODE);
+	  if (strcmp(yytext,"%text") == 0) return(TEXT);
+	  if (strcmp(yytext,"%native") == 0) return(NATIVE);
+	  if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
+	  if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
+	  if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
+	  if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
+	  if (strcmp(yytext,"%inline") == 0) return(INLINE);
+	  if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
+	  if (strcmp(yytext,"%except") == 0) return(EXCEPT);
+	  if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
+	  if (strcmp(yytext,"%echo") == 0) return(ECHO);
+	  if (strcmp(yytext,"%new") == 0) return(NEW);
+	  if (strcmp(yytext,"%apply") == 0) return(APPLY);
+	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
+	  if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
 	}
-	if (strcmp(yytext,"%out") == 0) {
-	  fprintf(stderr,"%s:%d %%out directive deprecated (ignored).\n", input_file, line_number);
-	  return(yylex());
-	}
-	if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
-	if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
-
-	if (strcmp(yytext,"%section") == 0) {
-	  yylval.ivalue = line_number;
-	  return(SECTION);
-	}
-	if (strcmp(yytext,"%subsection") == 0) {
-	  yylval.ivalue = line_number;
-	  return(SUBSECTION);
-	}
-	if (strcmp(yytext,"%subsubsection") == 0) {
-	  yylval.ivalue = line_number;
-	  return (SUBSUBSECTION);
-	}
-	if (strcmp(yytext,"%title") == 0) {
-	  yylval.ivalue = line_number;
-	  return(TITLE);
-	} 
-	if (strcmp(yytext,"%style") == 0) return(STYLE);
-	if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
-	if (strcmp(yytext,"%typedef") == 0) {
-	  yylval.ivalue = 1;
-	  return(TYPEDEF);
-	}
-	if (strcmp(yytext,"typedef") == 0) {
-	  yylval.ivalue = 0;
-	  return(TYPEDEF);
-	}
-	if (strcmp(yytext,"%alpha") == 0) return(ALPHA_MODE);
-	if (strcmp(yytext,"%raw") == 0) return(RAW_MODE);
-	if (strcmp(yytext,"%text") == 0) return(TEXT);
-	if (strcmp(yytext,"%native") == 0) return(NATIVE);
-	if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
-	if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
-	if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
-	if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
-	if (strcmp(yytext,"%inline") == 0) return(INLINE);
-	if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
-	if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-	if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
-	if (strcmp(yytext,"%echo") == 0) return(ECHO);
-        if (strcmp(yytext,"%new") == 0) return(NEW);
-	if (strcmp(yytext,"%apply") == 0) return(APPLY);
-	if (strcmp(yytext,"%clear") == 0) return(CLEAR);
-        if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
- 
-	// Have an unknown identifier, as a last step, we'll
+	  // Have an unknown identifier, as a last step, we'll
 	// do a typedef lookup on it.
-
+	
 	if (check_typedef) {
 	  if (DataType_is_typedef(yytext)) {
 	    yylval.type = NewDataType(T_USER);
@@ -1088,7 +1000,7 @@ extern "C" int yylex(void) {
 	    return(TYPE_TYPEDEF);
 	  }
 	}
-
+	
 	yylval.id = Swig_copy_string(yytext);
 	return(ID);
       default:

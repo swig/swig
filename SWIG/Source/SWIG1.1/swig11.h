@@ -34,9 +34,9 @@ extern  FILE   *swig_log;
 #endif
 
 extern  FILE      *f_runtime;                       // Runtime code
-extern  FILE      *f_header;                        // Headers
-extern  FILE      *f_wrappers;                      // Wrappers
-extern  FILE      *f_init;                          // Initialization code
+extern  DOH       *f_header;                        // Headers
+extern  DOH       *f_wrappers;                      // Wrappers
+extern  DOH       *f_init;                          // Initialization code
 extern  FILE      *f_input;
 extern  char      InitName[256];
 extern  char      LibDir[512];                      // Library directory

@@ -201,25 +201,25 @@ static void format_string(char *str) {
 
 // Emit an external function declaration 
 
-static void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FILE *f) {
+static void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, DOHFile *f) {
 
   switch(extern_type) {
   case 0:
-    fprintf(f,"%s", DataType_str(t,0));
-    fprintf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    Printf(f,"%s", DataType_str(t,0));
+    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
   case 1:
-    fprintf(f,"extern %s", DataType_str(t,0));
-    fprintf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    Printf(f,"extern %s", DataType_str(t,0));
+    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
   case 2:
   /* A C++ --- > C Extern */
-    fprintf(f,"extern \"C\" %s", DataType_str(t,0));
-    fprintf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    Printf(f,"extern \"C\" %s", DataType_str(t,0));
+    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
   case 3:
-    fprintf(f,"%s", DataType_str(t,0));
-    fprintf(f,"%s(%s)\n", decl, ParmList_str(L));
+    Printf(f,"%s", DataType_str(t,0));
+    Printf(f,"%s(%s)\n", decl, ParmList_str(L));
     break;
   default:
     break;
@@ -267,7 +267,7 @@ int promote(int t1, int t2) {
   if ((t1 == T_SHORT) || (t2 == T_SHORT)) return T_SHORT;
   if ((t1 == T_UCHAR) || (t2 == T_UCHAR)) return T_UCHAR;
   if (t1 != t2) {
-    fprintf(stderr,"%s : Line %d. Type mismatch in constant expression\n",
+    Printf(stderr,"%s : Line %d. Type mismatch in constant expression\n",
 	    input_file, line_number);
     FatalError();
   }
@@ -320,7 +320,7 @@ void create_function(int ext, char *name, DataType *t, ParmList *l) {
   // Check if symbol already exists
 
   if (add_symbol(iname)) {
-    fprintf(stderr,"%s : Line %d. Function %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Function %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
 
@@ -355,7 +355,7 @@ void create_variable(int ext, char *name, DataType *t) {
 
   char *iname = make_name(name);
   if (add_symbol(iname)) {
-    fprintf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n",
+    Printf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n",
 	    input_file, line_number, iname);
   } else {
 
@@ -388,7 +388,7 @@ void create_constant(char *name, DataType *type, char *value) {
   init_language();
 
   if (Rename_true) {
-    fprintf(stderr,"%s : Line %d. %%name directive ignored with #define\n",
+    Printf(stderr,"%s : Line %d. %%name directive ignored with #define\n",
 	    input_file, line_number);
     Rename_true = 0;
   }
@@ -399,7 +399,7 @@ void create_constant(char *name, DataType *type, char *value) {
   if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
-    fprintf(stderr,"%s : Line %d. Constant %s multiply defined. (2nd definition ignored)\n",
+    Printf(stderr,"%s : Line %d. Constant %s multiply defined. (2nd definition ignored)\n",
 	    input_file, line_number, name);
   } else {
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
@@ -414,7 +414,7 @@ void create_constant(char *name, DataType *type, char *value) {
 void print_array() {
   int i;
   for (i = 0; i < InArray; i++)
-    fprintf(stderr,"[]");
+    Printf(stderr,"[]");
 }
 
 // Structures for handling code fragments built for nested classes
@@ -467,7 +467,7 @@ static void dump_nested(char *parent) {
 
     // Dump the code to the scanner
 
-    fprintf(f_header,"\n%s\n", Char(n->code));
+    Printf(f_header,"\n%s\n", Char(n->code));
     start_inline(Char(n->code),n->line);
 
     n1 = n->next;
@@ -662,7 +662,7 @@ statement      : INCLUDE STRING LBRACE {
 		      DataType_set_arraystr($2,Char(ArrayString));
 		    }
 		    if ($3.is_reference) {
-		      fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
+		      Printf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		      FatalError();
 		    } else {
 		      if (DataType_qualifier($2)) {
@@ -683,7 +683,7 @@ statement      : INCLUDE STRING LBRACE {
 
                 | extern strict_type LPAREN STAR { 
                    skip_decl();
-		   fprintf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
+		   Printf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
 			   input_file, line_number);
 		}
 
@@ -700,7 +700,7 @@ statement      : INCLUDE STRING LBRACE {
 
                 | STATIC strict_type LPAREN STAR { 
                    skip_decl();
-		   fprintf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
+		   Printf(stderr,"%s : Line %d. Function pointers not currently supported.\n",
 			   input_file, line_number);
 		}
 
@@ -763,13 +763,13 @@ statement      : INCLUDE STRING LBRACE {
 		    add_pointers($2,$3.is_pointer);
 		    if ($3.is_reference) DataType_add_reference($2);
 		    if (Inline) {
-		      fprintf(stderr,"%s : Line %d. Repeated %%inline directive.\n",input_file,line_number);
+		      Printf(stderr,"%s : Line %d. Repeated %%inline directive.\n",input_file,line_number);
 		      FatalError();
 		    } else {
 		      if (strlen(Char(CCode))) {
-			fprintf(f_header,"static ");
+			Printf(f_header,"static ");
 			emit_extern_func($3.id,$2,$5,3,f_header);
-			fprintf(f_header,"%s\n",Char(CCode));
+			Printf(f_header,"%s\n",Char(CCode));
 		      }
 		      create_function(0, $3.id, $2, $5);
 		    }
@@ -822,7 +822,7 @@ statement      : INCLUDE STRING LBRACE {
 /* Empty name directive.  No longer allowed  */
 
                | NAME LPAREN RPAREN {
-		   fprintf(stderr,"%s : Lind %d. Empty %%name() is no longer supported.\n",
+		   Printf(stderr,"%s : Lind %d. Empty %%name() is no longer supported.\n",
 			   input_file, line_number);
 		   FatalError();
 	       } cpp {
@@ -835,7 +835,7 @@ statement      : INCLUDE STRING LBRACE {
 		 if (!WrapExtern) {
 		   init_language();
 		   if (add_symbol($3)) {
-		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
+		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
 		     lang->add_native($3,$6,0,0);
@@ -847,7 +847,7 @@ statement      : INCLUDE STRING LBRACE {
 		   init_language();
 		   add_pointers($6,$7.is_pointer);
 		   if (add_symbol($3)) {
-		     fprintf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
+		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
 		   } else {
 		     if ($5) {
@@ -895,8 +895,8 @@ statement      : INCLUDE STRING LBRACE {
 		 if (!WrapExtern) {
 		   init_language();
 		   $1[strlen($1) - 1] = 0;
-//		   fprintf(f_header,"#line %d \"%s\"\n", start_line, input_file);
-		   fprintf(f_header, "%s\n", $1);
+//		   Printf(f_header,"#line %d \"%s\"\n", start_line, input_file);
+		   Printf(f_header, "%s\n", $1);
 		 }
 	       }
 
@@ -906,7 +906,7 @@ statement      : INCLUDE STRING LBRACE {
                  if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) - 1] = 0;
-		   fprintf(f_wrappers,"%s\n",$2);
+		   Printf(f_wrappers,"%s\n",$2);
 		 }
 	       }
 
@@ -916,7 +916,7 @@ statement      : INCLUDE STRING LBRACE {
 		 if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) -1] = 0;
-		   fprintf(f_init,"%s\n", $2);
+		   Printf(f_init,"%s\n", $2);
 		 }
 	       }
 
@@ -925,7 +925,7 @@ statement      : INCLUDE STRING LBRACE {
 		 if (!WrapExtern) {
 		   init_language();
 		   $2[strlen($2) - 1] = 0;
-		   fprintf(f_header, "%s\n", $2);
+		   Printf(f_header, "%s\n", $2);
 		   {
 	              /* Need to run through the preprocessor */
 	              DOH *cpps;
@@ -944,13 +944,13 @@ statement      : INCLUDE STRING LBRACE {
 /* Echo mode */
                | ECHO HBLOCK {
 		 if (!WrapExtern) {
-		   fprintf(stderr,"%s\n", $2);
+		   Printf(stderr,"%s\n", $2);
 		 }
 	       }
 
                | ECHO STRING {
                  if (!WrapExtern) {
-                   fprintf(stderr,"%s\n", $2);
+                   Printf(stderr,"%s\n", $2);
                  }
                }
 
@@ -967,7 +967,7 @@ statement      : INCLUDE STRING LBRACE {
 		     init_language();
 		   }
 		   if ($3.count > 0) {
-		     fprintf(stderr,"%s : Line %d. Warning. Init list no longer supported.\n",
+		     Printf(stderr,"%s : Line %d. Warning. Init list no longer supported.\n",
 			     input_file,line_number);
 		   }
 		 for (i = 0; i < $3.count; i++)
@@ -999,7 +999,7 @@ statement      : INCLUDE STRING LBRACE {
 		   } else if ($3.type == T_SYMBOL) {
 		     // Add a symbol to the SWIG symbol table
 		     if (add_symbol($2)) {
-		       fprintf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n", 
+		       Printf(stderr,"%s : Line %d. Warning. Symbol %s already defined.\n", 
 			       input_file,line_number, $2);
 		     }
 		   }
@@ -1051,8 +1051,8 @@ statement      : INCLUDE STRING LBRACE {
 /* Create a new typemap in current language */
                | TYPEMAP LPAREN tm_method RPAREN tm_list LBRACE {
 		 if (!typemap_lang) {
-		   fprintf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   fprintf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
+		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
+		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
 		   FatalError();
 		 } else {
 		   TMParm *p;
@@ -1082,8 +1082,8 @@ statement      : INCLUDE STRING LBRACE {
 
                | TYPEMAP LPAREN tm_method RPAREN tm_list SEMI {
 		 if (!typemap_lang) {
-		   fprintf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   fprintf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
+		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
+		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
 		   FatalError();
 		 } else {
 		   TMParm *p;
@@ -1115,8 +1115,8 @@ statement      : INCLUDE STRING LBRACE {
 
                | TYPEMAP LPAREN tm_method RPAREN tm_list EQUAL typemap_parm SEMI {
 		 if (!typemap_lang) {
-		   fprintf(stderr,"SWIG internal error. No typemap_lang specified.\n");
-		   fprintf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
+		   Printf(stderr,"SWIG internal error. No typemap_lang specified.\n");
+		   Printf(stderr,"typemap on %s : Line %d. will be ignored.\n",input_file,line_number);
 		   FatalError();
 		 } else {
                    TMParm *p;
@@ -1195,7 +1195,7 @@ statement      : INCLUDE STRING LBRACE {
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       fprintf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
                        // Try to make some kind of recovery.
@@ -1250,7 +1250,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   lang->add_typedef($2,$3.id);
 		   /* If this is %typedef, add it to the header */
 		   if ($1) 
-		     fprintf(f_header,"typedef %s;\n", DataType_str($2,$3.id));
+		     Printf(f_header,"typedef %s;\n", DataType_str($2,$3.id));
 		   cplus_register_type($3.id);
 	       } typedeflist { };
 
@@ -1261,7 +1261,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   /* Typedef'd pointer */
 		   if ($1) {
 		     sprintf(temp_name,"(*%s)",$5);
-		     fprintf(f_header,"typedef ");
+		     Printf(f_header,"typedef ");
 		     emit_extern_func(temp_name, $2,$8,0,f_header);
 		   }
 		   DataType_Setname($2,"<function ptr>");
@@ -1282,7 +1282,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   if ($1) {
 		     add_pointers($2,$3);
 		     sprintf(temp_name,"(*%s)",$6);
-		     fprintf(f_header,"typedef ");
+		     Printf(f_header,"typedef ");
 		     emit_extern_func(temp_name, $2,$9,0,f_header);
 		   }
 
@@ -1311,7 +1311,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   DataType_set_arraystr($2,Char(ArrayString));
 		   DataType_typedef_add($2,$3.id,0);
 		   lang->add_typedef($2,$3.id);
-		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
+		   Printf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
 
 	       } typedeflist { }
@@ -1348,7 +1348,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
 		    DelDataType(t);
-    		    fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap.\n",input_file,line_number, $2.id);
+    		    Printf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap.\n",input_file,line_number, $2.id);
 	      }
               | empty { }
               ;
@@ -1356,9 +1356,9 @@ typedeflist   : COMMA declaration typedeflist {
 pragma         : PRAGMA LPAREN ID COMMA ID stylearg RPAREN {
 		 if (!WrapExtern)
 		   lang->pragma($3,$5,$6);
-		   fprintf(stderr,"%s : Line %d. Warning. '%%pragma(lang,opt=value)' syntax is obsolete.\n",
+		   Printf(stderr,"%s : Line %d. Warning. '%%pragma(lang,opt=value)' syntax is obsolete.\n",
 			   input_file,line_number);
-		   fprintf(stderr,"        Use '%%pragma(lang) opt=value' instead.\n");
+		   Printf(stderr,"        Use '%%pragma(lang) opt=value' instead.\n");
 	       }
 
                | PRAGMA ID stylearg {
@@ -1384,7 +1384,7 @@ stail          : SEMI { }
 		   DataType_set_arraystr(temp_typeptr,Char(ArrayString));
 		 }
 		 if ($2.is_reference) {
-		   fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		   FatalError();
 		 } else {
 		   if (DataType_qualifier(temp_typeptr)) {
@@ -1416,7 +1416,7 @@ extern         : EXTERN { $$ = 1; }
 		 if (strcmp($2,"C") == 0) {
 		   $$ = 2;
 		 } else {
-		   fprintf(stderr,"%s : Line %d.  Unrecognized extern type \"%s\" (ignored).\n", input_file, line_number, $2);
+		   Printf(stderr,"%s : Line %d.  Unrecognized extern type \"%s\" (ignored).\n", input_file, line_number, $2);
 		   FatalError();
 		 }
 	       }
@@ -1490,13 +1490,13 @@ parm_type      : type pname {
 		  DataType_add_pointer(pt);
 		  Setvalue($$,DefArg);
 		  if (!CPlusPlus) {
-			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
 		  DelDataType($1);
 		  free($3);
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
-                  fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
+                  Printf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
 		  $$ = NewParm($1,$4);
 		  DataType *pt = Gettype($$);
@@ -1508,7 +1508,7 @@ parm_type      : type pname {
 		  Delete($7);
 		}
                 | PERIOD PERIOD PERIOD {
-                  fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
+                  Printf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewDataType(T_INT),(char *) "varargs");
 		  DataType *pt = Gettype($$);
 		  DataType_Settypecode(pt,T_ERROR);
@@ -1577,7 +1577,7 @@ declaration    : ID { $$.id = $1;
 		      $$.is_pointer = 1;
 		      $$.is_reference = 1;
 		      if (!CPlusPlus) {
-			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		      }
 	       }
                ;
@@ -1645,7 +1645,7 @@ type           : TYPE_INT {
 		 $$ = $1;
 		 if (strlen($2) > 0) {
 		    if ((strlen($2) + strlen(DataType_Getname($$))) >= MAX_NAME) {
-		      fprintf(stderr,"%s : Line %d. Fatal error. Type-name is too long!\n", 
+		      Printf(stderr,"%s : Line %d. Fatal error. Type-name is too long!\n", 
 			      input_file, line_number);
 		    } else {
 		      char temp[256];
@@ -1661,7 +1661,7 @@ type           : TYPE_INT {
 		  DataType_typedef_resolve($$,0);
 		  if (strlen($2) > 0) {
 		    if ((strlen($2) + strlen(DataType_Getname($$))) >= MAX_NAME) {
-		      fprintf(stderr,"%s : Line %d. Fatal error. Type-name is too long!\n", 
+		      Printf(stderr,"%s : Line %d. Fatal error. Type-name is too long!\n", 
 			      input_file, line_number);
 		    } else {
 		      char temp[256];
@@ -1898,7 +1898,7 @@ etype            : expr {
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) && 
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
-		     fprintf(stderr,"%s : Lind %d. Type error. Expecting an int\n",
+		     Printf(stderr,"%s : Lind %d. Type error. Expecting an int\n",
 			     input_file, line_number);
 		     FatalError();
 		   }
@@ -1986,7 +1986,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"&");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 free($1.id);
@@ -1997,7 +1997,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"|");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -2009,7 +2009,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"^");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -2021,7 +2021,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,"<<");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -2033,7 +2033,7 @@ expr           :  NUM_INT {
 	         E_BINARY($$.id,$1.id,$3.id,">>");
 		 $$.type = promote($1.type,$3.type);
 		 if (($1.type == T_DOUBLE) || ($3.type == T_DOUBLE)) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		 }
 		 $$.type = T_INT;
@@ -2052,7 +2052,7 @@ expr           :  NUM_INT {
 	          $$.id = (char *) malloc(strlen($2.id)+2);
 		  sprintf($$.id,"~%s",$2.id);
 		  if ($2.type == T_DOUBLE) {
-		   fprintf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
+		   Printf(stderr,"%s : Line %d. Type error in constant expression (expecting integers).\n", input_file, line_number);
 		   FatalError();
 		  }
 		  $$.type = $2.type;
@@ -2083,11 +2083,11 @@ cpp_class    :
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
-		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
 	       iname = make_name($3);
 	       if (iname == $3) 
@@ -2107,7 +2107,7 @@ cpp_class    :
 		 if (strcmp($2,"union") != 0)
 		   cplus_inherit($4.count, $4.names);
 		 else {
-		   fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		   Printf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
 		   FatalError();
 		 }
 	       }
@@ -2138,11 +2138,11 @@ cpp_class    :
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
-		 fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
+		 Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $3);
 		 FatalError();
 	       }
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
 	       iname = make_name($3);
 	       if ($3 == iname) 
@@ -2164,7 +2164,7 @@ cpp_class    :
 		  if (strcmp($2,"union") != 0)
 		    cplus_inherit($4.count, $4.names);
 		  else {
-		    fprintf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
+		    Printf(stderr,"%s : Line %d.  Inheritance not allowed for unions.\n",input_file, line_number);
 		    FatalError();
 		  }
 		}
@@ -2184,7 +2184,7 @@ cpp_class    :
 		}
 		
 		if ($9.is_pointer > 0) {
-		  fprintf(stderr,"%s : Line %d.  typedef struct { } *id not supported properly. Winging it...\n", input_file, line_number);
+		  Printf(stderr,"%s : Line %d.  typedef struct { } *id not supported properly. Winging it...\n", input_file, line_number);
 		  
 		}
 		// Create dump nested class code
@@ -2224,7 +2224,7 @@ cpp_class    :
 	       init_language();
 	       DataType_new_scope(0);
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
-		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
 	       iname = make_name((char*)"");
 	       if (strlen(iname))
@@ -2239,12 +2239,12 @@ cpp_class    :
 	       nested_list = 0;
               } cpp_members RBRACE declaration {
 		if ($7.is_pointer > 0) {
-		  fprintf(stderr,"%s : Line %d. typedef %s {} *%s not supported correctly. Will be ignored.\n", input_file, line_number, $2, $7.id);
+		  Printf(stderr,"%s : Line %d. typedef %s {} *%s not supported correctly. Will be ignored.\n", input_file, line_number, $2, $7.id);
 		  cplus_abort();
 		} else {
 		  sprintf(temp_name,"CPP_CLASS:%s\n",$7.id);
 		  if (add_symbol(temp_name)) {
-		    fprintf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
+		    Printf(stderr,"%s : Line %d. Error. %s %s is multiply defined.\n", input_file, line_number, $2, $7.id);
 		    FatalError();
 		  }
 		}
@@ -2279,7 +2279,7 @@ cpp_other    :/* A dummy class name */
               | extern type declaration DCOLON ID LPAREN parms RPAREN SEMI {
 		init_language();
 		if (!CPlusPlus) 
-		  fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		  Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 		
 		add_pointers($2,$3.is_pointer);
 		if ($3.is_reference) DataType_add_reference($2);
@@ -2298,7 +2298,7 @@ cpp_other    :/* A dummy class name */
              | extern type declaration DCOLON ID SEMI {
 	       init_language();
 	       if (!CPlusPlus) 
-		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
+		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
 	       add_pointers($2,$3.is_pointer);
 	       // Fix up the function name
@@ -2314,7 +2314,7 @@ cpp_other    :/* A dummy class name */
 /* Operator overloading catch */
 
              | extern type declaration DCOLON OPERATOR {
-	       fprintf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
+	       Printf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		DelDataType($2);
 	     } 
@@ -2322,7 +2322,7 @@ cpp_other    :/* A dummy class name */
 
 /* Template catch */
              | TEMPLATE {
-	       fprintf(stderr,"%s : Line %d. Templates not currently supported (ignored).\n",
+	       Printf(stderr,"%s : Line %d. Templates not currently supported (ignored).\n",
 		       input_file, line_number);
 	       skip_decl();
 	     }
@@ -2356,7 +2356,7 @@ cpp_members  : cpp_member cpp_members {}
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       fprintf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
 		     }
@@ -2503,7 +2503,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  cplus_variable($2.id,iname,$1);
 		  Status = oldstatus;
 		  if (!tm)
-		    fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
+		    Printf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
 		}
 		scanner_clear_start();
 		DelDataType($1);
@@ -2602,14 +2602,14 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 	      }
 /* A friend :   Illegal */
               | FRIEND {
-		fprintf(stderr,"%s : Line %d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
+		Printf(stderr,"%s : Line %d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }  
 
 /* An operator: Illegal */
               | type type_extra OPERATOR {
-		fprintf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		Printf(stderr,"%s : Line %d. Operator overloading not supported (ignored).\n", input_file, line_number);
 		skip_decl();
 		scanner_clear_start();
 	      }
@@ -2657,7 +2657,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 		  cplus_register_type($2);
 		  if ($5.id) {
 		    if (strcmp($1,"class") == 0) {
-		      fprintf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
+		      Printf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored).\n", input_file, line_number);
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -2680,7 +2680,7 @@ cpp_pragma    : PRAGMA ID stylearg {
               } declaration SEMI { 
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($1,"class") == 0) {
-		    fprintf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
+		    Printf(stderr,"%s : Line %d.  Warning. Nested classes not currently supported (ignored)\n", input_file, line_number);
 		    /* Generate some code for a new class */
 		  } else {
 		    /* Generate some code for a new class */
@@ -2710,17 +2710,17 @@ cpp_pragma    : PRAGMA ID stylearg {
 /* Other miscellaneous errors */
               | type stars LPAREN { 
                      skip_decl();
-                     fprintf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
+                     Printf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
 		     
 	      }
               | strict_type LPAREN STAR {
                      skip_decl();
-                     fprintf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
+                     Printf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
 		     
 	      }
               | ID LPAREN STAR { 
                      skip_decl();
-                     fprintf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
+                     Printf(stderr,"%s : Line %d. Function pointers not currently supported (ignored).\n", input_file, line_number);
 		     
 	      }
               | doc_enable { }
@@ -2769,7 +2769,7 @@ cpp_tail      : SEMI { }
 		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
 		   Status = oldstatus;
 		   if (!tm)
-		     fprintf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
+		     Printf(stderr,"%s : Line %d. Warning. Array member will be read-only.\n",input_file,line_number);
 		   DelDataType(temp_typeptr);
 		 }
 		 scanner_clear_start();
@@ -2860,12 +2860,12 @@ base_list      : base_specifier {
                ;
                                  
 base_specifier : ID {     
-                  fprintf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
+                  Printf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
 			  input_file,line_number,$1);
 		  $$ = (char *) 0;
                }
                | VIRTUAL ID { 
-                  fprintf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
+                  Printf(stderr,"%s : Line %d. No access specifier given for base class %s (ignored).\n",
 			  input_file,line_number,$2);
 		  $$ = (char *) 0;
 	       }
@@ -2873,7 +2873,7 @@ base_specifier : ID {
 		 if (strcmp($2,"public") == 0) {
 		   $$ = $3;
 		 } else {
-		   fprintf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$2);
 		   $$ = (char *) 0;
 		 }
@@ -2882,7 +2882,7 @@ base_specifier : ID {
 		 if (strcmp($1,"public") == 0) {
 		   $$ = $2;
 		 } else {
-		   fprintf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$1);
 		   $$ = (char *) 0;
 		 }
@@ -2891,7 +2891,7 @@ base_specifier : ID {
                  if (strcmp($1,"public") == 0) {
 		   $$ = $3;
 		 } else {
-		   fprintf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
+		   Printf(stderr,"%s : Line %d. %s inheritance not supported (ignored).\n",
 			   input_file,line_number,$1);
 		   $$ = (char *) 0;
 		 }
@@ -2949,7 +2949,7 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 		   cplus_mode = CPLUS_PROTECTED;
 		   sprintf(temp_name,"CPP_CLASS:%s\n",$2);
 		   if (add_symbol(temp_name)) {
-		     fprintf(stderr,"%s : Line %d.  @interface %s is multiple defined.\n",
+		     Printf(stderr,"%s : Line %d.  @interface %s is multiple defined.\n",
 			     input_file,line_number,$2);
 		     FatalError();
 		   }
@@ -3026,7 +3026,7 @@ objc_data      : objc_vars objc_data { }
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       fprintf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
 		     }
@@ -3150,7 +3150,7 @@ objc_methods   : objc_method objc_methods { };
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       fprintf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
+		       Printf(stderr,"%s : Line %d. Syntax error in input.\n", input_file, line_number);
 		       FatalError();
 		       last_error_line = line_number;
 		     }
@@ -3356,14 +3356,14 @@ typemap_parm   : type typemap_name {
 		  DataType_add_reference(pt);
 		  DataType_add_pointer(pt);
 		  if (!CPlusPlus) {
-			fprintf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		  }
 		  $$->args = tm_parm;
 		  DelDataType($1);
 		  free($3);
 		}
                 | type LPAREN stars typemap_name RPAREN LPAREN parms RPAREN {
-                  fprintf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
+                  Printf(stderr,"%s : Line %d. Error. Function pointer not allowed (remap with typedef).\n", input_file, line_number);
 		  FatalError();
                   $$ = NewTMParm();
 		  $$->p = NewParm($1,$4);
@@ -3468,7 +3468,7 @@ void error_recover() {
 
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (char *) {
-  //  Fprintf(stderr,"%s : Line %d. Syntax error.\n", input_file, line_number);
+  //  Printf(stderr,"%s : Line %d. Syntax error.\n", input_file, line_number);
   //  error_recover();
 }
 
