@@ -1636,7 +1636,7 @@ class JAVA : public Language {
 
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
-    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
@@ -1760,7 +1760,7 @@ class JAVA : public Language {
       String *imcall = NewString("");
 
       const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
-      methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+      methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
       Printf(proxy_class_code, "  %s %s(", methodmods, proxy_class_name);
       Printv(imcall, "this(", imclass_name, ".", mangled_overname, "(", NIL);
 
@@ -2015,7 +2015,7 @@ class JAVA : public Language {
 
     /* Start generating the function */
     const String *methodmods = Getattr(n,"feature:java:methodmodifiers");
-    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 

@@ -598,8 +598,8 @@ public:
     case MEMBER_FUNC: 
       {
 #ifdef SWIG_PROTECTED_TARGET_METHODS
-	const char* rb_define_method = is_protected(n) ?
-	  "rb_define_protected_method" : "rb_define_method";
+	const char* rb_define_method = is_public(n) ?
+	  "rb_define_method" : "rb_define_protected_method" ;
 #else        
 	const char* rb_define_method = "rb_define_method";
 #endif	

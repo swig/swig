@@ -36,6 +36,11 @@ void Wrapper_template_extmode_set(int flag) {
 }
 
 extern "C" {
+  int Swig_director_mode() 
+  {
+    return director_mode;
+  }
+
   int Swig_need_protected() 
   {
     return director_protected_mode;
@@ -730,9 +735,9 @@ int Language::cDeclaration(Node *n) {
   Node   *over;
   File   *f_header = 0;
   SwigType *ty, *fullty;
-  
+
   /* discarts nodes following the access control rules */
-  if (cplus_mode != CPLUS_PUBLIC) {
+  if (cplus_mode != CPLUS_PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
     if (!isfriend ) {
@@ -745,7 +750,7 @@ int Language::cDeclaration(Node *n) {
 	return SWIG_NOWRAP;
     }
   }
-  
+
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
     SwigType *t = Copy(type);
@@ -1510,7 +1515,8 @@ int Language::unrollVirtualMethods(Node *n,
  	String *fqname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
-	Setattr(item, "methodNode", Copy(ni));
+	Node *m = Copy(ni);
+	Setattr(item, "methodNode", m);
 	Setattr(vm, method_id, item);
 	Delete(fqname);
 	Delete(item);
@@ -1566,7 +1572,7 @@ int Language::unrollVirtualMethods(Node *n,
 	*/
 	Node *c = Copy(m);
 	Setattr(c, "parentNode", n);
-	int cdir = checkAttribute(c, "feature:director", "1");
+	int cdir = checkAttribute(c, "feature:director", "1") || director_mode;
 	int cndir = checkAttribute(c, "feature:nodirector", "1");
 	dir = (cdir || cndir) ? (cdir && !cndir) : dir;
 	Delete(c);
@@ -1862,30 +1868,14 @@ int Language::classHandler(Node *n) {
       cplus_mode =  CPLUS_PROTECTED;
       for (k = First(vtable); k.key; k = Next(k)) {
 	item = k.item;
-	String* director = Getattr(item,"director");
 	Node *method = Getattr(item, "methodNode");
-	Node* parentnode = Getattr(method, "parentNode");
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
-	/* only pure virtual abstract private methods are needed */
-	int need_private = (is_private(method) 
-			    && (Cmp(Getattr(method,"value"),"0") == 0));
 	if (!Getattr(symbols,wrapname) 
-	    && !Cmp(director,"1") 
-	    && (n != parentnode) 
-	    && (is_protected(method) || need_private)) {
+	    && (!is_public(method))) {
 	  Node* m = Copy(method);
-	  String* mdecl = Getattr(m,"decl");
+	  Setattr(m, "director", "1");
 	  Setattr(m,"parentNode", n);
-	  /* ugly trick, to avoid an uglier one later on emit.  We
-	     take the 'const' out from calling method to avoid the
-	     ugly const casting latter. The casting from 'non-const'
-	     to 'const' is not needed here, but it prevents the simple
-	     replacement of arg1 by darg on emit.cxx.
-	  */
-	  if (Strncmp(mdecl, "q(const).", 9)== 0)
-	    Replace(mdecl,"q(const).","", DOH_REPLACE_FIRST);
-	  
 	  cDeclaration(m);
 	  Delete(m);
 	}
