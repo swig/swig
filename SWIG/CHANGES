@@ -27,22 +27,28 @@ Version 1.3.14 (In progress)
 		static const int b;       // not this one
             };     
 
-	    are emitted like constants (equivalent to enums or explicit
-	    %constant).
+	    are emitted like constants (equivalent to enums or
+	    explicit %constant).
 	    
 	    This is because they cannot be added directly to 'cvar'
 	    since they lack the needed reference (well, you can force
 	    them to have a real reference, but in an ugly way which
 	    goes completely again the original purpose of initialize
-	    them during declaration in the first place, you also have
-	    to deal with extra linking matters, and it take a while to
-	    figure out what is the problem and how to solve it).
+	    them during declaration, you also have to deal with extra
+	    linking matters, and it take a while to figure out what is
+	    the problem and how to solve it).
 	    
-	    Please test it with your preferred target language, and not
-	    only the code generation, but really run the example in
-	    the test-suite (static-const-member-2.i) because the
+	    Please test it with your preferred target language, and
+	    not only the code generation, but really run the example
+	    in the test-suite (static-const-member-2.i) because the
 	    problem and the solution cannot be "fully" appreciated
-	    until you try to load the module and run it.	    
+	    until you try to load the module and run it.
+
+	    In some target languages (python specially), this can
+	    produces a difference in the way that the static constant
+	    members 'a' and 'b' are internally wrapped. Hopefully,
+	    they still can be accessed in the same way.
+
 
 08/11/2002: mmatus
 	    [python] Now static const members can be accessed in a more
@@ -51,8 +57,8 @@ Version 1.3.14 (In progress)
 	    struct A
              {		 
 		typedef unsigned int viewflags;
-		static const viewflags forward_field  = 1 << 0;
-		static const viewflags backward_field = 1 << 1;
+		static const viewflags forward_field = 0;
+		static const viewflags backward_field;
             };     
 	    
 	    now you can do:
@@ -63,6 +69,16 @@ Version 1.3.14 (In progress)
 
 	        a = A()
 		print a.forward_field
+		
+	    Note that if the static const members don't have an
+	    initializer (like backward_field), still you can access
+	    them in the same way in the python side, but the
+	    implementation is a quite different: backward_field will
+	    still appear in the cvar entity, and also, you are 
+	    responsible to initialize it in some code unit, and link it
+	    properly. forward_field, by the other hand, will not
+	    appear in the cvar entity but only as a A member, similar
+	    to what happen with enum or %constant members.
 
 08/11/2002: mmatus
 	    [python] Common code in the __setattr__/__getattr__ now
