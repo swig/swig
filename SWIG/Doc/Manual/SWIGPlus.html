@@ -237,6 +237,9 @@ void delete_List(List *l) {
 }
 
 </pre></blockquote>
+
+<h3>Default constructors</h3>
+
 If a C++ class does not define any public constructors or
 destructors, SWIG will automatically create a default constructor or 
 destructor.   However, there are a few rules that define this behavior:
@@ -299,8 +302,72 @@ However, this removal may now cause SWIG to erroneously generate constructors
 for classes that define a constructor in those sections.  Consider restoring
 those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
-<a name="n8"></a><H3>5.5.2 Copy constructors</H3>
+<h3>When constructor wrappers aren't created</h3>
 
+If a class defines a constructor, SWIG normally tries to generate a wrapper for it.  However, SWIG will 
+not generate a constructor wrapper if it thinks that it will result in illegal wrapper code.  There are really
+two cases where this might show up.
+
+<p>
+First, SWIG won't generate wrappers for protected or private constructors.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+protected:
+     Foo();         // Not wrapped.
+public:
+      ...
+};
+</pre>
+</blockquote>
+
+<p>Next, SWIG won't generate wrappers for a class if it appears to be abstract--that is, it has undefined
+pure virtual methods.  Here are some examples:
+
+<blockquote>
+<pre>
+class Bar {
+public:
+     Bar();               // Not wrappped.  Bar is abstract.
+     virtual void spam(void) = 0; 
+};
+
+class Grok : public Bar {
+public:
+      Grok();            // Not wrapped. No implementation of abstract spam().
+};
+</pre>
+</blockquote>
+
+Some users are surprised (or confused) to find missing constructor wrappers in their interfaces.  In almost 
+all cases, this is caused when classes are determined to be abstract.   To see if this is the case, run SWIG with
+all of its warnings turned on:
+
+<blockquote>
+<pre>
+% swig -Wall -python module.i
+</pre>
+</blockquote>
+
+In this mode, SWIG will issue a warning for all abstract classes.   It is possible to force a class to be
+non-abstract using this:
+
+<blockquote>
+<pre>
+%feature("notabstract") Foo;
+
+class Foo : public Bar {
+public:
+     Foo();    // Generated no matter what---not abstract. 
+     ...
+};
+</pre>
+</blockquote>
+
+More information about <tt>%feature</tt> can be found in the <a href="Customization.html">Customization features</a> chapter.
+
+<a name="n8"></a><H3>5.5.2 Copy constructors</H3>
 
 If a class defines more than one constructor, its behavior depends on the capabilities of the
 target language.  If overloading is supported, the copy constructor is accessible using
