@@ -110,6 +110,7 @@ SWIG_TypeRegister(swig_type_info *ti)
     head = tc;
     tc++;
   }
+  if (next) next->prev = head;  /**/
   head->next = next;
   return ret;
 }
@@ -133,6 +134,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       s->next = ty->next;
       if (ty->next) ty->next->prev = s;
       ty->next = s;
+      s->prev = ty;  /**/
       return s;
     }
     s = s->next;
