@@ -27,7 +27,6 @@ static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 #include "ascii.h"
-#include "latex.h"
 #include "html.h"
 #include "nodoc.h"
 #include <time.h>
@@ -43,7 +42,6 @@ static char *usage = "\
 \nDocumentation Options\n\
      -dascii         - ASCII documentation.\n\
      -dhtml          - HTML documentation.\n\
-     -dlatex         - LaTeX documentation.\n\
      -dnone          - No documentation.\n\n\
 General Options\n\
      -c              - Produce raw wrapper code (omit support code)\n\
@@ -208,9 +206,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	      mark_arg(i);
 	  } else if (strcmp(argv[i],"-dhtml") == 0) {
 	      doc = new HTML;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-dlatex") == 0) {
-	      doc = new LATEX;
 	      mark_arg(i);
 	  } else if (strcmp(argv[i],"-nocomment") == 0) {
 	      ignorecomments = 1;

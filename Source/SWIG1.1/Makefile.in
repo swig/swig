@@ -9,6 +9,9 @@
 # This makefile is now mostly constructed by ./configure.
 #
 # $Log$
+# Revision 1.2  2000/01/12 04:56:27  beazley
+# Removed latex
+#
 # Revision 1.1  2000/01/11 20:08:16  beazley
 # First checkin
 #
@@ -61,11 +64,11 @@ AR      = @AR@
 ########################################################################
 
 LIBOBJS = main.o scanner.o symbol.o include.o types.o parms.o emit.o newdoc.o ascii.o \
-          html.o latex.o cplus.o lang.o hash.o sstring.o wrapfunc.o getopt.o comment.o \
+          html.o cplus.o lang.o hash.o sstring.o wrapfunc.o getopt.o comment.o \
           typemap.o naming.o
 
 LIBSRCS = main.cxx scanner.cxx symbol.cxx include.cxx types.cxx parms.cxx emit.cxx \
-	  newdoc.cxx ascii.cxx html.cxx latex.cxx cplus.cxx lang.cxx hash.cxx \
+	  newdoc.cxx ascii.cxx html.cxx cplus.cxx lang.cxx hash.cxx \
           sstring.cxx wrapfunc.cxx getopt.cxx comment.cxx typemap.cxx naming.cxx
 
 PARSER   = parser.y
@@ -102,4 +105,13 @@ clean::
 
 nuke::
 	rm -f Makefile *~ #* core a.out
+
+
+
+
+
+
+
+
+
 

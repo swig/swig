@@ -116,28 +116,7 @@ public:
 
 class Hash {
 private:
-  struct Node {
-    Node(const char *k, void *obj, void (*d)(void *)) {
-      key = new char[strlen(k)+1];
-      strcpy(key,k);
-      object = obj;
-      del_proc = d;
-      next = 0;
-    };
-    ~Node() {
-      delete key;
-      if (del_proc) (*del_proc)(object);
-    };
-    char        *key;
-    void        *object;
-    struct Node *next;
-    void (*del_proc)(void *);
-  };
-  int    h1(const char *key);      // Hashing function
-  int    hashsize;                 // Size of hash table
-  Node  **hashtable;               // Actual hash table
-  int    index;                    // Current index (used by iterators)
-  Node   *current;                 // Current item in hash table
+  void  *data;
 public:
   Hash();
   ~Hash();
