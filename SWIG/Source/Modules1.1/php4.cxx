@@ -1089,6 +1089,11 @@ PHP4::constantWrapper(Node *n) {
 		case T_FLOAT:
 			Printv(f_cinit, "REGISTER_DOUBLE_CONSTANT(\"", name, "\", ", rval, ", CONST_CS);\n", 0);
 			break;
+		case T_CHAR:
+			Printv(f_cinit, "{\nchar c[2];\nc[0] = ", rval, ";\nc[1] = '\\0';\n", 0);
+			Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\",  estrdup(c),  CONST_CS | CONST_PERSISTENT);\n", 0);
+			Printv(f_cinit, "}\n", 0);
+			break;
 		case T_STRING:
 			Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\", ", rval, ", CONST_CS | CONST_PERSISTENT);\n", 0);
 			break;
