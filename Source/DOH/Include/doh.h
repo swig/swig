@@ -84,6 +84,7 @@ typedef struct {
 /* String methods */
 typedef struct {
   int     (*doh_replace)(DOH *obj, DOH *old, DOH *rep, int flags);
+  void    (*doh_chop)(DOH *obj);
 } DohStringMethods;
 
 /* Callable */
@@ -205,6 +206,7 @@ extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
 extern int     DohPrintf(DOH *obj, char *format, ...);
 extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
 extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
+extern void    DohChop(DOH *src);
 extern DOH    *DohReadline(DOH *in);
 
 extern DOH    *DohCall(DOH *obj, DOH *args);
@@ -259,6 +261,7 @@ extern DOH    *DohCall(DOH *obj, DOH *args);
 #define Nextitem           DohNextitem
 #define Readline           DohReadline
 #define Replace            DohReplace
+#define Chop               DohChop
 #define NewScope           DohNewScope
 #define DelScope           DohDelScope
 #define Call               DohCall
@@ -307,7 +310,6 @@ typedef struct {
 
 extern DOH   *NewString(char *c);
 extern int    String_check(DOH *s);
-extern void   String_chop(DOH *s);
 
 /* String replacement flags */
 
