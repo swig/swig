@@ -11,6 +11,7 @@ C_TEST_CASES = \
 
 CPP_TEST_CASES = \
 	java_constants \
+	java_enums \
 	java_jnitypes \
 	java_pragmas \
 	java_throws \
