@@ -17,6 +17,69 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+07/24/2002: cheetah (William Fulton)
+            [Java] More new typemaps so that the Java proxy classes and type wrapper classes
+            can be further tailored by users. These are the default code for generating the 
+            finalize() methods (proxy classes only) and the getCPtr() methods for proxy 
+            classes and type wrapper classes:
+
+            %typemap(javafinalize) SWIGTYPE %{
+              protected void finalize() {
+                _delete();
+              }
+            %}
+            
+            %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+              public static long getCPtr($javaclassname obj) {
+                return obj.swigCPtr;
+              }
+            %}
+
+            The javagetcptr typemap will enable users to handle Java null by overriding
+            this typemap - a requested feature.
+
+            The -nofinalize commandline option has been deprecated. The javafinalize
+            typemap is more powerful as it will allow the removal of the finalize methods 
+            for all or any one or more particular proxy class.
+
+07/23/2002: cheetah (William Fulton)
+            [Java] The getCPtrXXX() function has been changed to a static function and
+            is now of the form:
+
+            public static long getCPtr(XXX obj) {...}
+
+            This is a requested change which will allow Java null pointers to be used as null
+            can be passed in for obj. However, to achieve this the appropriate code must be
+            written using the new javagetcptr typemap directive.
+
+07/23/2002: cheetah (William Fulton)
+            [Java] New directive to control constant code generation - %javaconst.
+            The default handling for handling constants is to get the value through
+            a JNI call, eg
+
+            #define YELLOW 5
+            #define BIG 1234LL
+
+            results in:
+
+            public final static int YELLOW = modulename.get_YELLOW();
+            public final static long BIG = modulename.get_BIG();
+
+            Earlier versions of the Java module initialised the value using the C value:
+
+            public final static int YELLOW = 5;
+            public final static long BIG = 1234LL;
+
+            This works in most cases, but the value for BIG won't compile as 1234LL is not
+            valid Java code and this is one of the reasons why the default is now to get the 
+            values through a JNI call. The side effect is that these 'constants' cannot be used 
+            in switch statements. The %javaconst directive allows one to specify the
+            way the constant value is initialised and works like other %feature
+            directives, eg
+
+            %javaconst(0);     // all constants from this point on are initialised using the C value
+            %javaconst(1) BIG; // just BIG initialised using JNI call (must be parsed before BIG is defined)
+
 07/23/2002: beazley
             *** IMPORTANT CHANGES TO THE PYTHON MODULE ***
 
@@ -117,16 +180,15 @@ Version 1.3.14 (In progress)
                    file:line. Warning. Can't apply (char *OUTPUT). No typemaps are defined.
 
 07/22/2002: cheetah (William Fulton)
-            [Java] Started Java pragma deprecation. The pragmas have been deprecated 
-            from SWIG and these are the last to go. Replacements use %feature based 
-            directives and enable proxy classes to be tailored in various ways. 
-            These are the new directives:
+            [Java] Started Java pragma deprecation. Replacements use %typemap based 
+            directives and enable proxy classes and the new type wrapper classes to be 
+            tailored in various ways. These are the new typemaps:
             
-            %javabase      - base (extends) for java proxy class
-            %javaclassmodifiers  - class modifiers for the proxy class
-            %javacode      - java code is copied verbatim to the proxy class
-            %javaimport    - import statements for proxy class
-            %javainterface - interfaces (extends) for proxy class
+            %typemap(javabase)           - base (extends) for Java class
+            %typemap(javaclassmodifiers) - class modifiers for the Java class: default is "public"
+            %typemap(javacode)           - java code is copied verbatim to the Java class
+            %typemap(javaimport)         - import statements for Java class
+            %typemap(javainterface)      - interfaces (extends) for Java class
             
             And these are the %pragma directives being deprecated:
             allshadowbase
@@ -140,11 +202,121 @@ Version 1.3.14 (In progress)
             shadowimport
             shadowinterface
             
-            Note that it is possible to target a particular class:
-            %javaimport Foo "import java.util.*";
-            or all classes:
-            %javaimport "import java.math.*";
+            Note that it is possible to target a particular proxy class:
+            %typemap(javaimport) Foo "import java.util.*";
+            or a particular type wrapper class:
+            %typemap(javaimport) double* "import java.math.*";
+            Note that $javaclassname in these typemaps are substituted with either the proxy 
+            classname when using proxy classes or the SWIGTYPE class name.
 
+07/18/2002: cheetah (William Fulton)
+            [Java] Java module overhaul to implement static type checking of all 
+            types. 
+            
+            1) Changes when using Java Proxy classes
+            ----------------------------------------
+
+            Previously when wrapping global functions: 
+
+            class SomeClass{};
+            void foo(SomeClass* s);
+            SomeClass* bar();
+
+            The native method prototypes used a long for pointers and looked like this:
+
+            public class modulename  {
+                ...
+                public final static native void foo(long jarg1);
+                public final static native long bar();
+            }
+
+            and unlike member functions of a C++ class there was no wrapper around the native calls 
+            to make the use of them more user friendly. They would be used from Java like this:
+
+            SomeClass s = new SomeClass(modulename.bar(), false);
+            modulename.foo(s.getCPtrSomeClass());
+
+            Note that the following will have the same effect, but then it would not have 
+            been possible to call any proxy member functions in SomeClass:
+
+            long s = modulename.bar();
+            modulename.foo(s);
+
+            Now wrapper functions are generated:
+
+            public class modulename  {
+                public static void foo(SomeClass s) {
+                    // calls the native function
+                }
+
+                public static SomeClass bar() {
+                    // calls the native function
+                }
+            }
+
+            Which means these functions can now be used more naturally with proxy classes:
+
+            SomeClass s = modulename.bar();
+            modulename.foo(s);
+
+            2) Changes when not using Java Proxy classes
+            --------------------------------------------
+
+            The so called low-level interface was rather low-level indeed. The 
+            new static type checking implementation makes it less so but it remains a
+            functional interface to the C/C++ world. Proxy classes are the obvious way to use
+            SWIG generated code, but for those who want a functional interface all non-primitive
+            types now have a simple Java class wrapper around the C/C++ pointer. The class name
+            is based on the SWIG descriptors used by the other language modules. For example:
+
+            C/C++ type      Java class name
+            ----------      ---------------
+            int*            SWIGTYPE_p_int
+            double**        SWIGTYPE_p_p_double
+            SomeClass*      SWIGTYPE_p_SomeClass
+            SomeClass&      SWIGTYPE_p_SomeClass
+            SomeClass       SWIGTYPE_p_SomeClass
+
+            Note that everything wrapped by SWIG is accessed via a pointer even when wrapping 
+            functions that pass by value or reference. So the previous example would now be 
+            used like this:
+
+            SWIGTYPE_p_SomeClass s = example.bar();
+            example.foo(s);
+
+            Note that typedefs that SWIG knows about are resolved, so that if one has 
+
+            class Foo{};
+            typedef Foo Bar;
+
+            then any use of Bar will require one to use SWIGTYPE_p_Foo;
+
+            Some considerations:
+            Make sure you make a firm decision to use either proxy classes or the functional 
+            interface early on as the classnames are different.
+
+            3) Pointers and non-parsed types
+            --------------------------------
+            Sometimes SWIG cannot generate a proxy class. This occurs when the definition of 
+            a type is not parsed by SWIG, but is then used as a variable or a parameter. 
+            For example,
+
+            void foo(Snazzy sds);
+
+            If SWIG has not parsed Snazzy it handles it simply as a pointer to a Snazzy.
+            The Java module gives it a wrapper class around the pointer and calls it 
+            SWIGTYPE_p_Snazzy. In other words it handles it in the same manner as types are 
+            handled in the low-level functional interface. This approach is used for all 
+            non-proxy classes, eg all pointer to pointers and pointers to primitive types.
+
+            4) Backwards compatibility
+            -----------------------
+            Backwards compatibility is not an issue if you have been using proxy classes and 
+            no global variables/functions. Otherwise some changes will have to be made. 
+            The native methods still exist but they are now in a JNI interface class,
+            which is called modulenameJNI. As this class is really part of the internal workings,
+            it should not be required so the class has become protected. Some pragmas/directives
+            will hopefully be added to help with backwards compatibility.
 
 07/18/2002: beazley
             Modified wrapping of uninstantiated templates returned by
