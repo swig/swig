@@ -1,7 +1,7 @@
 # see top-level Makefile.in
-#constants
-#matrix
+constants
+matrix
 simple
-#port
-#multimap
-#multivalue
+port
+multimap
+multivalue
