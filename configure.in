@@ -355,7 +355,7 @@ TCLINCLUDE=
 TCLLIB=
 TCLPACKAGE=
 
-AC_ARG_WITH(tclconfig,[  --with-tclconfig=path  Set location of tclConfig.sh],
+AC_ARG_WITH(tclconfig,[  --with-tclconfig=path   Set location of tclConfig.sh],
         with_tclconfig="$withval")
 AC_ARG_WITH(tcl,[  --with-tcl=path         Set location of Tcl package],[
 	TCLPACKAGE="$withval"], [TCLPACKAGE=])
@@ -482,7 +482,7 @@ PYPACKAGE=
 #   fi
 #fi
 
-AC_ARG_WITH(python,[  --with-python=path       Set location of Python executable],[ PYBIN="$withval"], [PYBIN=])
+AC_ARG_WITH(python,[  --with-python=path      Set location of Python executable],[ PYBIN="$withval"], [PYBIN=])
 
 # First figure out the name of the Python executable
 
@@ -638,8 +638,8 @@ AC_SUBST(PERL5CCFLAGS)
 # Look for java
 #----------------------------------------------------------------
 
-AC_ARG_WITH(java, [  --with-java=path        Set location of Java],[JAVABIN="$withval"], [JAVABIN=])
-AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac],[JAVACBIN="$withval"], [JAVACBIN=])
+AC_ARG_WITH(java, [  --with-java=path        Set location of Java executable],[JAVABIN="$withval"], [JAVABIN=])
+AC_ARG_WITH(javac, [  --with-javac=path       Set location of Javac executable],[JAVACBIN="$withval"], [JAVACBIN=])
 
 if test -z "$JAVABIN" ; then
   AC_CHECK_PROGS(JAVA, java kaffe guavac)
@@ -980,11 +980,11 @@ AC_SUBST(PHP4INC)
 # Look for ocaml
 #----------------------------------------------------------------
 
-AC_ARG_WITH(ocaml,[  --with-ocaml=path	  Set location of ocaml executable],[ OCAMLBIN="$withval"], [OCAMLBIN=])
-AC_ARG_WITH(ocamlc,[  --with-ocamlc=path  Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
+AC_ARG_WITH(ocaml,[  --with-ocaml=path       Set location of ocaml executable],[ OCAMLBIN="$withval"], [OCAMLBIN=])
+AC_ARG_WITH(ocamlc,[  --with-ocamlc=path      Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 AC_ARG_WITH(ocamldlgen,[  --with-ocamldlgen=path  Set location of ocamldlgen],[ OCAMLDLGEN="$withval" ], [OCAMLDLGEN=])
-AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path  Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
-AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path	  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
+AC_ARG_WITH(ocamlfind,[  --with-ocamlfind=path   Set location of ocamlfind],[OCAMLFIND="$withval"],[OCAMLFIND=])
+AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop executable],[ OCAMLMKTOP="$withval"], [OCAMLMKTOP=])
 
 AC_MSG_CHECKING(for Ocaml DL load generator)
 if test -z "$OCAMLDLGEN"; then
@@ -1055,7 +1055,7 @@ AC_SUBST(OCAMLMKTOP)
 
 # Identify the name of the Pike executable
 PIKEBIN=
-AC_ARG_WITH(pike,[  --with-pike=path       Set location of Pike executable],[ PIKEBIN="$withval"], [PIKEBIN=])
+AC_ARG_WITH(pike,[  --with-pike=path        Set location of Pike executable],[ PIKEBIN="$withval"], [PIKEBIN=])
 if test -z "$PIKEBIN"; then
 	AC_CHECK_PROGS(PIKE, pike)
 else
@@ -1064,7 +1064,7 @@ fi
 
 # Check for a --with-pikeincl option to configure
 PIKEINCLUDE=
-AC_ARG_WITH(pikeincl,[  --with-pikeincl=path     Set location of Pike include directory],[
+AC_ARG_WITH(pikeincl,[  --with-pikeincl=path    Set location of Pike include directory],[
 	PIKEINCLUDE="-I$withval"], [PIKEINCLUDE=])
 
 AC_MSG_CHECKING(for Pike header files)
@@ -1097,7 +1097,7 @@ CHICKENOPTS=
 CHICKENLIB=
 
 
-AC_ARG_WITH(chicken,[  --with-chicken=path  Set location of CHICKEN executable],[ CHICKEN="$withval"], [CHICKEN=])
+AC_ARG_WITH(chicken,[  --with-chicken=path     Set location of CHICKEN executable],[ CHICKEN="$withval"], [CHICKEN=])
 
 if test -z "$CHICKEN"; then
 AC_CHECK_PROGS(CHICKEN, chicken)
@@ -1105,7 +1105,7 @@ else
 CHICKEN="$CHICKEN"
 fi
 
-AC_ARG_WITH(chickcfg,[  --with-chickencfg=path   Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
+AC_ARG_WITH(chickcfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
 
 if test -z "$CHICKEN_CONFIG"; then
 AC_CHECK_PROGS(CHICKEN_CONFIG, chicken-config)
@@ -1115,15 +1115,15 @@ fi
 
 if test -n "$CHICKEN_CONFIG" ; then
 
-  AC_ARG_WITH(chickhme,[  --with-chickenhome=path   Set location of CHICKEN home directory],[
+  AC_ARG_WITH(chickhme,[  --with-chickenhome=path Set location of CHICKEN home directory],[
 	CHICKENHOME="$withval"], [CHICKENHOME=])
   AC_ARG_WITH(chickops,[  --with-chickensharedopts=path   Set compiler options for shared CHICKEN generated code],[
 	CHICKENSHAREDOPTS="$withval"], [CHICKENSHAREDOPTS=])
-  AC_ARG_WITH(chickopt,[  --with-chickenopts=path   Set compiler options for static CHICKEN generated code],[
+  AC_ARG_WITH(chickopt,[  --with-chickenopts=path Set compiler options for static CHICKEN generated code],[
 	CHICKENOPTS="$withval"], [CHICKENOPTS=])
   AC_ARG_WITH(chicklis,[  --with-chickensharedlib=path    Set linker options for shared CHICKEN generated code],[
 	CHICKENSHAREDLIB="$withval"], [CHICKENSHAREDLIB=])
-  AC_ARG_WITH(chicklib,[  --with-chickenlib=path    Set linker options for static CHICKEN generated code],[
+  AC_ARG_WITH(chicklib,[  --with-chickenlib=path  Set linker options for static CHICKEN generated code],[
 	CHICKENLIB="$withval"], [CHICKENLIB=])
 
   AC_MSG_CHECKING(for CHICKEN home directory)
@@ -1205,19 +1205,27 @@ AC_SUBST(CHICKENSHAREDLIB)
 # Look for csharp
 #----------------------------------------------------------------
 
-AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path        Set location of CIL interpreter for CSharp],[CSHARPBIN="$withval"], [CSHARPBIN=])
-AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path       Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
-
-if test -z "$CSHARPBIN" ; then
-  AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun mono)
-else
-  CSHARPCILINTERPRETER="$CSHARPBIN"
-fi
+AC_ARG_WITH(cil-interpreter, [  --with-cil-interpreter=path     Set location of CIL interpreter for CSharp],[CSHARPBIN="$withval"], [CSHARPBIN=])
+AC_ARG_WITH(csharp-compiler, [  --with-csharp-compiler=path     Set location of CSharp compiler],[CSHARPCOMPILERBIN="$withval"], [CSHARPCOMPILERBIN=])
 
 if test -z "$CSHARPCOMPILERBIN" ; then
-  AC_CHECK_PROGS(CSHARPCOMPILER, cscc mcs csc)
+  case $host in
+  *-*-cygwin* | *-*-mingw*)
+    AC_CHECK_PROGS(CSHARPCOMPILER, mcs.bat cscc csc);;
+  *)AC_CHECK_PROGS(CSHARPCOMPILER, mcs cscc);;
+  esac
 else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
+fi
+
+if test -z "$CSHARPBIN" ; then
+  if test "cscc" = "$CSHARPCOMPILER" ; then
+    AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun)
+  else
+    CSHARPCILINTERPRETER=""
+  fi
+else
+  CSHARPCILINTERPRETER="$CSHARPBIN"
 fi
 
 # Cygwin requires the Windows standard (Pascal) calling convention as it is a Windows executable and not a Cygwin built executable
@@ -1343,8 +1351,12 @@ AC_SUBST(SKIP_CHICKEN)
 
 
 SKIP_CSHARP=
-if test -z "$CSHARPCILINTERPRETER" || test -z "$CSHARPCOMPILER" ; then
+if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
+else
+    if test "cscc" = "$CSHARPCOMPILER" && test -z "$CSHARPCILINTERPRETER" ; then
+      SKIP_CSHARP="1"
+    fi
 fi
 AM_CONDITIONAL(SKIP_CSHARP, test -n "$SKIP_CSHARP")
 AC_SUBST(SKIP_CSHARP)
