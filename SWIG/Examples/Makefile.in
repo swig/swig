@@ -534,3 +534,38 @@ ruby_cpp_static: $(SRCS)
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
 
+# -------------------------------------------------------------------
+# Build a PHP4 dynamically loadable module (C)
+# -------------------------------------------------------------------
+
+PHP4_INCLUDE = @PHP4INC@
+
+php4: $(SRCS)
+	$(SWIG) -php4 $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(PHP4_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# --------------------------------------------------------------------
+# Build a PHP4 dynamically loadable module (C++)
+# --------------------------------------------------------------------
+
+php4_cpp: $(SRCS)
+	$(SWIG) -php4 -c++ $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+# ---------------------------------------------------------------------
+# Build a dynamically loadable module, linked against SWIG Runtime lib
+# ---------------------------------------------------------------------
+
+PHP4_RUNTIME=-L$(RUNTIMEDIR) -lswigphp4@release_suffix@
+
+php4_multi: $(SRCS)
+	$(SWIG) -c -php4 $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PHP4_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_DLNK) $(LIBS) $(PHP4_RUNTIME) -o $(TARGET)module$(SO)
+
+php4_multi_cpp: $(SRCS)
+	$(SWIG) -c -c++ -php4 $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_DLNK) $(LIBS) $(PHP4_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
