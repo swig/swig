@@ -84,30 +84,6 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       p = nextSibling(p);
     }
   }
-
-#ifdef DEPRECATED  
-  /* Apply the ignore typemap */
-  p = l;
-  while (p) {
-    tm = Getattr(p,"tmap:ignore");
-    if (tm) {
-      Parm *np;
-      Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
-      Printv(f->code,tm,"\n",NIL);
-      np = Getattr(p,"tmap:ignore:next");
-
-      /* Deprecate this part later */
-      while (p && (p != np)) {
-	Setattr(p,"ignore","1");
-	p = nextSibling(p);
-      }
-      /* -- end deprecate */
-
-    } else {
-      p = nextSibling(p);
-    }
-  }
-#endif
   return;
 }
 
@@ -235,23 +211,6 @@ int emit_num_arguments(ParmList *parms) {
     }
   }
 
-#ifdef DEPRECATED
-  while (p) {
-    /* Ignored arguments */
-    if (Getattr(p,"tmap:ignore")) {
-      p = Getattr(p,"tmap:ignore:next");
-    } else {
-      /* Marshalled arguments */
-      nargs++;
-      if (Getattr(p,"tmap:in")) {
-	p = Getattr(p,"tmap:in:next");
-      } else {
-	p = nextSibling(p);
-      }
-    }
-  }
-#endif
-
   /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
   /*
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
@@ -346,23 +305,6 @@ void emit_mark_varargs(ParmList *l) {
     p = nextSibling(p);
   }
 }
-
-#if 0
-/* -----------------------------------------------------------------------------
- * replace_args()
- * ----------------------------------------------------------------------------- */
-
-static
-void replace_args(Parm *p, String *s) {
-  while (p) {
-    String *n = Getattr(p,"name");
-    if (n) {
-      Replace(s,n,Getattr(p,"lname"), DOH_REPLACE_ID);
-    }
-    p = nextSibling(p);
-  }
-}
-#endif
 
 /* replace_contract_args.  This function replaces argument names in contract
    specifications.   Used in conjunction with the %contract directive. */

@@ -78,7 +78,7 @@ int Swig_contract_mode_get() {
 
 /* Apply contracts */
 void Swig_contracts(Node *n) {
-  Printf(stdout,"Applying contracts (experimental version)\n");
+  //   Printf(stdout,"Applying contracts (experimental version)\n");
 
   Contracts *a = new Contracts;
   a->top(n);
@@ -551,7 +551,7 @@ int Contracts::emit_contract(Node *n) {
   ret = ret && AssertModify(n, 1);
   ret = ret && AssertModify(n, 2);
   ret = ret && AssertModify(n, 3);
-  ret = ret && InheritModify(n);
+  if (InClass) { ret = ret && InheritModify(n); }
   if ((InClass) && (!InConstructor) && (!InDestructor)){
     Setattr(n, "feature:contract_classparm",  SWIG_CONTRACT_SET);
   }
