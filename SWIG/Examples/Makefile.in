@@ -4,40 +4,43 @@
 # This file is used by the examples to build modules.  Assuming
 # you ran configure, this file will probably work.  However,
 # it's not perfect so you might need to do some hand tweaking.
-# 
+#
 # Other notes:
-#  
+#
 # 1.   Take a look at the prefixes below.   Since SWIG works with
 #      multiple target languages, you may need to find out where
 #      certain packages have been installed.   Set the prefixes
-#      accordingly. 
+#      accordingly.
 #
-# 2.   To use this makefile, simply set SRCS, INTERFACE, INCLUDE, LIBS, 
-#      TARGET, and do a 
+# 2.   To use this makefile, simply set SRCS, INTERFACE, INCLUDE, LIBS,
+#      TARGET, and do a
 #           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
 #           INCLUDE='$(INCLUDE) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
-#           TARGET='$(TARGET)' method 
+#           TARGET='$(TARGET)' method
 #
 #      'method' describes what is being built.
 #---------------------------------------------------------------
 
-TARGET     = 
+TARGET     =
 CC         = @CC@
 CXX        = @CXX@
-CFLAGS     = 
+CFLAGS     =
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
 INCLUDE    =
 LIBS       =
 INTERFACE  =
-SWIGOPT    = 
+SWIGOPT    =
 SWIG       = SWIG
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
 LIBCRYPT   = @LIBCRYPT@
 SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
+
+libtool_comp = $(TOP)/../Tools/libtool --mode compile
+libtool_link = $(TOP)/../Tools/libtool --mode link
 
 # X11 options
 
@@ -57,7 +60,7 @@ ISRCS      = $(INTERFACE:.i=_wrap.c)
 
 CPP_DLLIBS = #-L/usr/local/lib/gcc-lib/sparc-sun-solaris2.5.1/2.7.2 \
              -L/usr/local/lib -lg++ -lstdc++ -lgcc
- 
+
 
 # Symbols used for using shared libraries
 SO=		@SO@
@@ -65,12 +68,12 @@ LDSHARED=	@LDSHARED@
 CCSHARED=	@CCSHARED@
 CXXSHARED=      @LDSHARED@
 
-# This is used for building shared libraries with a number of C++ 
+# This is used for building shared libraries with a number of C++
 # compilers.   If it doesn't work,  comment it out.
 
 CXXSHARED=      @CXX@ -shared
 
-OBJS      = $(SRCS:.c=.o) 
+OBJS      = $(SRCS:.c=.o)
 IOBJS     = $(ISRCS:.c=.o)
 
 ##################################################################
@@ -81,20 +84,20 @@ IOBJS     = $(ISRCS:.c=.o)
 
 TCL_INCLUDE = @TCLINCLUDE@
 TCL_LIB     = @TCLLIB@
-TCL_OPTS    = -ltcl @LIBS@          
-TK_OPTS     = -ltk -ltcl @LIBS@ 
+TCL_OPTS    = -ltcl @LIBS@
+TK_OPTS     = -ltk -ltcl @LIBS@
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
 # -----------------------------------------------------------
 
 
-tclsh: $(SRCS) 
+tclsh: $(SRCS)
 	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
 	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(TCL_LIB)  $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
-tclsh_cpp: $(SRCS) 
+tclsh_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
 	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
@@ -109,7 +112,7 @@ wish: $(SRCS)
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 
-wish_cpp: $(SRCS) 
+wish_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
 	$(CXX) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
@@ -149,7 +152,7 @@ PERL5_INCLUDE= @PERL5EXT@
 
 perl5: $(SRCS)
 	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACE)
-	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -158,14 +161,14 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a module from existing XS C source code.   (ie. from xsubpp).
 # ----------------------------------------------------------------
 perl5_xs: $(SRCS)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDE) -I$(PERL5_INCLUDE) 
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(OBJS) $(LIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -216,8 +219,8 @@ python_cpp: $(SRCS)
 # library file
 # -----------------------------------------------------------------
 
-#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11 
-TKINTER = 
+#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
+TKINTER =
 PYTHON_LIBOPTS = @PYLINK@ @LIBS@ $(TKINTER) $(SYSLIBS)
 
 python_static: $(SRCS)
@@ -229,6 +232,68 @@ python_static_cpp: $(SRCS)
 	$(SWIG) -c++ -python -lembed.i $(SWIGOPT) $(INTERFACE)
 	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+
+##################################################################
+#####                       GUILE                           ######
+##################################################################
+
+# Make sure these locate your Guile installation
+GUILE_INCLUDE = @GUILEINCLUDE@
+GUILE_LIB     = @GUILELIB@
+
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+guile-hobbit: $(SRCS)
+	$(SWIG) -guile -Linkage hobbit $(SWIGOPT) $(INTERFACE)
+	for f in $^ ; do $(libtool_comp) $(CC) -c -O2 $(INCLUDE) $$f ; done
+	$(libtool_link) $(CC) -g -O2 -o lib$^.la -rpath `pwd` $^
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+guile: $(SRCS)
+	$(SWIG) -guile $(SWIGOPT) $(INTERFACE)
+	for f in $(ISRCS) ; do $(libtool_comp)                          \
+                $(CC) -c $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) ; done
+	$(libtool_link) $(LDSHARED) -o lib$(TARGET)$(SO)        \
+                $(OBJS) $(IOBJS) $(LIBS)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+guile_cpp: $(SRCS)
+	$(SWIG) -c++ -guile $(SWIGOPT) $(INTERFACE)
+	$(libtool) compile                                              \
+                $(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS)        \
+                        $(INCLUDE) $(GUILE_INCLUDE)
+	$(libtool) link                                                 \
+                $(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS)     \
+                        -o lib$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Guile interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(TKINTER) $(SYSLIBS)
+
+guile_static: $(SRCS)
+	$(SWIG) -guile -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
+
+guile_static_cpp: $(SRCS)
+	$(SWIG) -c++ -guile -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
 
 
 ##################################################################
@@ -247,7 +312,7 @@ JAVA_INCLUDE= @JAVAINC@
 
 java: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE) 
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -256,7 +321,7 @@ java: $(SRCS)
 
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE) 
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
