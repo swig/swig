@@ -450,7 +450,7 @@
 	float, double,
 	const float &, const double &
 {
-  $1 = SvNOK($input) ? 1 : 0;
+  $1 = SvNIOK($input) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_CHAR) char {
