@@ -295,18 +295,18 @@ $1 = &temp; %}
                  unsigned short {
   char error_msg[256];
   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, error_msg);
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, error_msg);
   return $null;
 }
 
 %typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
   (void)$1;
-  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, "C++ $1_type exception thrown");
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, "C++ $1_type exception thrown");
   return $null;
 %}
 
 %typemap(throws, canthrow=1) char * %{
-  SWIG_CSharpSetPendingException(SWIG_CSharpSystemException, $1);
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, $1);
   return $null;
 %}
 
