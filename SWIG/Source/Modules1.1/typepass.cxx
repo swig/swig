@@ -768,68 +768,60 @@ public:
 	    if (Strcmp(ntype,"cdecl") == 0) {
 	      if (checkAttribute(ns,"storage","typedef")) {
 		    /* A typedef declaration */
-		    /*	  SwigType *ty = Getattr(ns,"type");
-			  SwigType *decl = Getattr(ns,"decl");
-			  SwigType *t = Copy(ty);
-			  SwigType_push(t,decl);
-			  SwigType_typedef(t,Getattr(n,"name"));*/
 		    String *uname = Getattr(n,"uname");
 		    SwigType_typedef_using(uname);
 	      } else {
 		/* A normal C declaration. */
-		if (inclass) {
+		if ((inclass) && (!Getattr(n,"feature:ignore")) && (Getattr(n,"sym:name"))) {
 		  Node *c = ns;
 		  Node *unodes = 0, *last_unodes = 0;
 		  int   ccount = 0;
+		  String *symname = Getattr(n,"sym:name");
 		  while (c) {
 		    if (Strcmp(nodeType(c),"cdecl") == 0) {
 		      if (!(checkAttribute(c,"storage","static") 
 			    || checkAttribute(c,"storage","typedef")
 			    || checkAttribute(c,"storage","friend"))) {
 			
-			/* Check for existence in overload list already */
-			{
-			  String *decl = Getattr(c,"decl");
-			  Node   *over = Getattr(n,"sym:overloaded");
-			  int     match = 0;
-			  while (over) {
-			    String *odecl = Getattr(over,"decl");
-			    if (Cmp(decl, odecl) == 0) {
-			      match = 1;
-			      break;
+			String *csymname = Getattr(c,"sym:name");
+			if (!csymname || (Strcmp(csymname,symname) == 0)) {
+			  /* Check for existence in overload list already */
+			  {
+			    String *decl = Getattr(c,"decl");
+			    Node   *over = Getattr(n,"sym:overloaded");
+			    int     match = 0;
+			    while (over) {
+			      String *odecl = Getattr(over,"decl");
+			      if (Cmp(decl, odecl) == 0) {
+				match = 1;
+				break;
+			      }
+			      over = Getattr(over,"sym:nextSibling");
 			    }
-			    over = Getattr(over,"sym:nextSibling");
+			    if (match) {
+			      c = Getattr(c,"csym:nextSibling");
+			      continue;
+			    }
 			  }
-			  if (match) {
-			    c = Getattr(c,"csym:nextSibling");
-			    continue;
+			  Node *nn = copyNode(c);
+			  if (!Getattr(nn,"feature:ignore")) {
+			    Setattr(nn,"parms",CopyParmList(Getattr(c,"parms")));
+			    ccount++;
+			    if (!last_unodes) {
+			      last_unodes = nn;
+			      unodes = nn;
+			    } else {
+			      Setattr(nn,"previousSibling",last_unodes);
+			      Setattr(last_unodes,"nextSibling", nn);
+			      Setattr(nn,"sym:previousSibling", last_unodes);
+			      Setattr(last_unodes,"sym:nextSibling", nn);
+			      Setattr(nn,"sym:overloaded", unodes);
+			      Setattr(unodes,"sym:overloaded", unodes);
+			    last_unodes = nn;
+			    }
+			  } else {
+			    Delete(nn);
 			  }
-			}
-			Node *nn = NewHash();
-			set_nodeType(nn,"cdecl");
-			Setattr(nn,"name",Getattr(c,"name"));
-			Setattr(nn,"sym:name", Getattr(n,"sym:name"));
-			Setattr(nn,"type",Getattr(c,"type"));
-			Setattr(nn,"decl",Getattr(c,"decl"));
-			Setattr(nn,"parms", CopyParmList(Getattr(c,"parms")));
-			Setattr(nn,"storage",Getattr(c,"storage"));
-			Setattr(nn,"using","1");
-			Setattr(nn,"sym:overname", Getattr(c,"sym:overname"));
-
-			ccount++;
-			Setfile(nn,Getfile(c));
-			Setline(nn,Getline(c));
-			if (!last_unodes) {
-			  last_unodes = nn;
-			  unodes = nn;
-			} else {
-			  Setattr(nn,"previousSibling",last_unodes);
-			  Setattr(last_unodes,"nextSibling", nn);
-			  Setattr(nn,"sym:previousSibling", last_unodes);
-			  Setattr(last_unodes,"sym:nextSibling", nn);
-			  Setattr(nn,"sym:overloaded", unodes);
-			  Setattr(unodes,"sym:overloaded", unodes);
-			  last_unodes = nn;
 			}
 		      }
 		    }

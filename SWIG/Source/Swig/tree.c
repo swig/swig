@@ -179,6 +179,28 @@ deleteNode(Node *n) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * copyNode()
+ *
+ * Copies a node, but only copies simple attributes (no lists, hashes).
+ * ----------------------------------------------------------------------------- */
+
+Node *
+copyNode(Node *n) {
+  String *key;
+  DOH *v;
+  Node *c = NewHash();
+  for (key = Firstkey(n); key; key = Nextkey(n)) {
+    v = Getattr(n,key);
+    if (DohIsString(v)) {
+      Setattr(c,key,Copy(v));
+    }
+  }
+  Setfile(c,Getfile(n));
+  Setline(c,Getline(n));
+  return c;
+}
+
 int
 checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
   String *v;

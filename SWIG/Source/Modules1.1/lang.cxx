@@ -1546,7 +1546,9 @@ int Language::validIdentifier(String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Language::usingDeclaration(Node *n) {
-  emit_children(n);
+  if (cplus_mode == CPLUS_PUBLIC) {
+    emit_children(n);
+  }
   return SWIG_OK;
 }
 
