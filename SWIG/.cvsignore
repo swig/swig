@@ -10,3 +10,4 @@ configure
 autom4te.cache
 .gdbinit
 mkmf.log
+preinst-swig
