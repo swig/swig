@@ -14,6 +14,25 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+9/01/2001: beazley
+           Fixed SF Patch [ #447791 ] Fix for python -interface option.
+           Submitted by Tarn Weisner Burton.
+
+9/01/2001: beazley
+           SWIG no longer generates default constructors/destructors
+           for a class if it only defines a private/protected constructor
+           or destructor or if any one of its base classes only has
+           private constructors/destructors.  This was reported in
+           SF Patch [ #444281 ] nonpublic/default/inhereted ctor/dtor
+           by Marcelo Matus.
+
+9/01/2001: beazley
+           Added patch to Perl5 module that allows constants to be
+           wrapped as constants that don't require the leading $.
+           This feature is enabled using the -const option.
+           Patch contributed by Rich Wales.
+           *** NEW FEATURE ***
+
 8/31/2001: beazley
            Added parsing support for the 'volatile' type qualifier.
            volatile doesn't mean anything to SWIG, but it is
@@ -87,7 +106,7 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
               %rename(bar_i) ::bar(int);
 
-           only applies the renaming if bar(int) is defined inside a class.
+           only applies the renaming if bar(int) is defined in the global scope.
            The declaration,
      
               %rename(bar_i) Foo::bar(int);
@@ -107,11 +126,21 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
            class hierarchy simply by specifying renaming rules for
            the base class.
 
+           A class wildcard of * can be used if you want to renaming
+           all matching members of all classes.  For example:
+
+              %rename(bar_i) *::bar(int);
+
+           will rename all members bar(int) that are defined in classes.
+           It will not renamed definitions of bar(int) in the global
+           scope.
+
            The old use of %rename is still supported, but is somewhat
            enhanced.  
 
-              %rename(foo) bar;      // Renames all occurrences of 'bar'
-              %rename(foo) ::bar;    // Rename all 'bar' in a class
+              %rename(foo) bar;      // Renames all occurrences of 'bar'.
+              %rename(foo) ::bar;    // Rename all 'bar' in global scope only.
+              %rename(foo) *::bar;   // Rename all 'bar' in classes only.
               %rename(foo) Foo::bar; // Rename all 'bar' defined in class Foo.
 
            *** NEW FEATURE ***
