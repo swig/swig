@@ -4,9 +4,12 @@
 // May 7, 2002
 // Chris Seatory 
 // August 5, 2002
+// Igor Bely
+// May 16, 2003
 //
 // Perl implementation
 
+%include std_common.i
 %include exception.i
 
 // containers
@@ -42,7 +45,7 @@
 // 
 // The aim of all that follows would be to integrate std::vector with 
 // Perl as much as possible, namely, to allow the user to pass and 
-// be returned Perl lists.
+// be returned Perl arrays.
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
@@ -244,8 +247,137 @@ namespace std {
 
     // specializations for built-ins
 
-    %define specialize_std_vector(T)
+    %define specialize_std_vector(T,CHECK_T,TO_T,FROM_T)
     template<> class vector<T> {
+        %typemap(in) vector<T> (std::vector<T>* v) {
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) != SVt_PVAV)
+                    SWIG_croak("Type error in argument $argnum of $symname. "
+                               "Expected an array of " #T);
+                SV **tv;
+                I32 len = av_len(av) + 1;
+                for (int i=0; i<len; i++) {
+                    tv = av_fetch(av, i, 0);
+                    if (CHECK_T(*tv)) {
+                        $1.push_back(TO_T(*tv));
+                    } else {
+                        SWIG_croak("Type error in argument $argnum of "
+                                   "$symname. "
+                                   "Expected an array of " #T);
+                    }
+                }
+            } else if (SWIG_ConvertPtr($input,(void **) &v, 
+                                       $&1_descriptor,1) != -1){
+                $1 = *v;
+            } else {
+                SWIG_croak("Type error in argument $argnum of $symname. "
+                           "Expected an array of " #T);
+            }
+        }
+        %typemap(in) const vector<T>& (std::vector<T> temp,
+                                       std::vector<T>* v),
+                     const vector<T>* (std::vector<T> temp,
+                                       std::vector<T>* v) {
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) != SVt_PVAV)
+                    SWIG_croak("Type error in argument $argnum of $symname. "
+                               "Expected an array of " #T);
+                SV **tv;
+                I32 len = av_len(av) + 1;
+                T* obj;
+                for (int i=0; i<len; i++) {
+                    tv = av_fetch(av, i, 0);
+                    if (CHECK_T(*tv)) {
+                        temp.push_back(TO_T(*tv));
+                    } else {
+                        SWIG_croak("Type error in argument $argnum of "
+                                   "$symname. "
+                                   "Expected an array of " #T);
+                    }
+                }
+                $1 = &temp;
+            } else if (SWIG_ConvertPtr($input,(void **) &v, 
+                                       $1_descriptor,1) != -1){
+                $1 = v;
+            } else {
+                SWIG_croak("Type error in argument $argnum of $symname. "
+                           "Expected an array of " #T);
+            }
+        }
+        %typemap(out) vector<T> {
+            int len = $1.size();
+            SV **svs = new SV*[len];
+            for (unsigned int i=0; i<len; i++) {
+                svs[i] = sv_newmortal();
+                FROM_T(svs[i], $1.at(i));
+            }
+            AV *myav = av_make(len, svs);
+            delete[] svs;
+            $result = newRV_noinc((SV*) myav);
+            sv_2mortal($result);
+            argvi++;
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) == SVt_PVAV) {
+                    SV **tv;
+                    I32 len = av_len(av) + 1;
+                    if (len == 0) {
+                        /* an empty sequence can be of any type */
+                        $1 = 1;
+                    } else {
+                        /* check the first element only */
+                        tv = av_fetch(av, 0, 0);
+                        if (CHECK_T(*tv))
+                            $1 = 1;
+                        else
+                            $1 = 0;
+                    }
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_&descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (SvROK($input)) {
+                AV *av = (AV *)SvRV($input);
+                if (SvTYPE(av) == SVt_PVAV) {
+                    SV **tv;
+                    I32 len = av_len(av) + 1;
+                    if (len == 0) {
+                        /* an empty sequence can be of any type */
+                        $1 = 1;
+                    } else {
+                        /* check the first element only */
+                        tv = av_fetch(av, 0, 0);
+                        if (CHECK_T(*tv))
+                            $1 = 1;
+                        else
+                            $1 = 0;
+                    }
+                }
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_ConvertPtr($input,(void **) &v, 
+                                    $1_descriptor,0) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
         // add specialized typemaps here
       public:
         vector();
@@ -283,15 +415,16 @@ namespace std {
     };
     %enddef
 
-    specialize_std_vector(bool);
-    specialize_std_vector(int);
-    specialize_std_vector(short);
-    specialize_std_vector(long);
-    specialize_std_vector(unsigned int);
-    specialize_std_vector(unsigned short);
-    specialize_std_vector(unsigned long);
-    specialize_std_vector(float);
-    specialize_std_vector(double);
+    specialize_std_vector(bool,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(int,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(short,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(long,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(unsigned int,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(unsigned short,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(unsigned long,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(float,SvNIOK,SwigSvToNumber,sv_setnv);
+    specialize_std_vector(double,SvNIOK,SwigSvToNumber,sv_setnv);
+    specialize_std_vector(std::string,SvPOK,SvPVX,SwigSvFromString);
 
 }
 
