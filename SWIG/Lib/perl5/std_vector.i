@@ -141,7 +141,7 @@ namespace std {
             for (unsigned int i=0; i<len; i++) {
                 svs[i] = sv_newmortal();
                 SWIG_MakePtr(svs[i], (void*)&($1[i]), 
-                             $descriptor(T *), 0);
+                             $descriptor(T *), $shadow|$owner);
             }
             AV *myav = av_make(len, svs);
             delete[] svs;

@@ -90,7 +90,7 @@ static  String    *real_classname = 0;        /* Real name of C/C++ class */
 static  String   *fullclassname = 0;
 
 static  String   *pcode = 0;                 /* Perl code associated with each class */
-static  String   *blessedmembers = 0;        /* Member data associated with each class */
+/* static  String   *blessedmembers = 0;     */   /* Member data associated with each class */
 static  int      member_func = 0;            /* Set to 1 when wrapping a member function */
 static  String   *func_stubs = 0;            /* Function stubs */
 static  String   *const_stubs = 0;           /* Constant stubs */
@@ -396,6 +396,25 @@ public:
       Printf(base, "sub FIRSTKEY { }\n\n");
       Printf(base, "sub NEXTKEY { }\n\n");
 
+      /* Output a FETCH method.  This is actually common to all classes */
+      Printv(base,
+	     "sub FETCH {\n",
+	     tab4, "my ($self,$field) = @_;\n",
+	     tab4, "my $member_func = \"swig_${field}_get\";\n",
+	     tab4, "$self->$member_func();\n",
+	     "}\n\n",
+	     NIL);
+
+      /* Output a STORE method.   This is also common to all classes (might move to base class) */
+
+      Printv(base,
+	     "sub STORE {\n",
+	     tab4, "my ($self,$field,$newval) = @_;\n",
+	     tab4, "my $member_func = \"swig_${field}_set\";\n",
+	     tab4, "$self->$member_func($newval);\n",
+	     "}\n\n",
+	     NIL);
+
       /* Output a 'this' method */
 
       Printv(base,
@@ -625,9 +644,21 @@ public:
     emit_action(n,f);
 
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+      SwigType *t = Getattr(n,"type");
       Replaceall(tm,"$source","result");
       Replaceall(tm,"$target","ST(argvi)");
       Replaceall(tm,"$result", "ST(argvi)");
+      if (is_shadow(t)) {
+	Replaceall(tm, "$shadow", "SWIG_SHADOW");
+      } else {
+	Replaceall(tm, "$shadow", "0");
+      }
+      if ((!SwigType_ispointer(t) && !SwigType_isreference(t))
+	  || Getattr(n,"feature:new")) {
+	Replaceall(tm,"$owner","SWIG_OWNER");
+      } else {
+	Replaceall(tm,"$owner","0");
+      }
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
@@ -720,56 +751,9 @@ public:
        * -------------------------------------------------------------------- */
       
       if ((blessed) && (!member_func)) {
-	int    need_stub = 0;
-	String *func = NewString("");
-	
-	/* We'll make a stub since we may need it anyways */
-	
-	Printv(func, "sub ", iname, " {\n",
-	       tab4, "my @args = @_;\n",
-	       NIL);
-	
-	Printv(func, tab4, "my $result = ", cmodule, "::", iname, "(@args);\n", NIL);
-	
-	/* Now check to see what kind of return result was found.
-	 * If this function is returning a result by 'value', SWIG did an
-	 * implicit malloc/new.   We'll mark the object like it was created
-	 * in Perl so we can garbage collect it. */
-	
-	if (is_shadow(d)) {
-	  Printv(func, tab4, "return undef if (!defined($result));\n", NIL);
-	  
-	  /* If we're returning an object by value, put it's reference
-	     into our local hash table */
-	  
-	  if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || Getattr(n,"feature:new")) {
-	    Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NIL);
-	  }
-	  
-	  /* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
-	  Printv(func,
-		 tab4, "my %resulthash;\n",
-		 tab4, "tie %resulthash, ref($result), $result;\n",
-		 tab4, "return bless \\%resulthash, ref($result);\n",
-		 "}\n",
-		 NIL);
-	  
-	  need_stub = 1;
-	} else {
-	  /* Hmmm.  This doesn't appear to be anything I know about */
-	  Printv(func, tab4, "return $result;\n", "}\n", NIL);
-	}
-	
-	/* Now check if we needed the stub.  If so, emit it, otherwise
-	 * Emit code to hack Perl's symbol table instead */
-	
-	if (need_stub) {
-	  Printf(func_stubs,"%s",func);
-	} else {
-	  Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
-	}
-	Delete(func);
+	Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
+
     }
     Delete(cleanup);
     Delete(outarg);
@@ -1116,7 +1100,7 @@ public:
       }
       real_classname = Getattr(n,"name");
       pcode = NewString("");
-      blessedmembers = NewString("");
+      // blessedmembers = NewString("");
     }
 
     /* Emit all of the members */
@@ -1178,11 +1162,6 @@ public:
 
       /* Dump out a hash table containing the pointers that we own */
       Printf(pm, "%%OWNER = ();\n");
-      if (have_data_members) {
-	Printv(pm,
-	       "%BLESSEDMEMBERS = (\n", blessedmembers, ");\n\n",
-	       NIL);
-      }
       if (have_data_members || have_destructor)
 	Printf(pm, "%%ITERATORS = ();\n");
 
@@ -1198,48 +1177,16 @@ public:
 	     tab4, "my $self = shift;\n",
 	     tab4, "my $ptr = tied(%$self);\n",
 	     tab4, "delete $OWNER{$ptr};\n",
-	     tab4, "};\n\n",
+	     "}\n\n",
 	     "sub ACQUIRE {\n",
 	     tab4, "my $self = shift;\n",
 	     tab4, "my $ptr = tied(%$self);\n",
 	     tab4, "$OWNER{$ptr} = 1;\n",
-	     tab4, "};\n\n",
+	     "}\n\n",
 	     NIL);
 
       /* Only output the following methods if a class has member data */
 
-      if (have_data_members) {
-
-	/* Output a FETCH method.  This is actually common to all classes */
-	Printv(pm,
-	       "sub FETCH {\n",
-	       tab4, "my ($self,$field) = @_;\n",
-	       tab4, "my $member_func = \"swig_${field}_get\";\n",
-	       tab4, "my $val = $self->$member_func();\n",
-	       tab4, "if (exists $BLESSEDMEMBERS{$field}) {\n",
-	       tab8, "return undef if (!defined($val));\n",
-	       tab8, "my %retval;\n",
-	       tab8, "tie %retval,$BLESSEDMEMBERS{$field},$val;\n",
-	       tab8, "return bless \\%retval, $BLESSEDMEMBERS{$field};\n",
-	       tab4, "}\n",
-	       tab4, "return $val;\n",
-	       "}\n\n",
-	       NIL);
-
-	/* Output a STORE method.   This is also common to all classes (might move to base class) */
-
-	Printv(pm,
-	       "sub STORE {\n",
-	       tab4, "my ($self,$field,$newval) = @_;\n",
-	       tab4, "my $member_func = \"swig_${field}_set\";\n",
-	       tab4, "if (exists $BLESSEDMEMBERS{$field}) {\n",
-	       tab8, "$self->$member_func(tied(%{$newval}));\n",
-	       tab4, "} else {\n",
-	       tab8, "$self->$member_func($newval);\n",
-	       tab4, "}\n",
-	       "}\n\n",
-	       NIL);
-      }
       Delete(operators);     operators = 0;
     }
     return SWIG_OK;
@@ -1251,20 +1198,12 @@ public:
 
   virtual int memberfunctionHandler(Node *n) {
     String   *symname = Getattr(n,"sym:name");
-    SwigType *t   = Getattr(n,"type");
-
-    String  *func;
-    int      need_wrapper = 0;
 
     member_func = 1;
     Language::memberfunctionHandler(n);
     member_func = 0;
 
     if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
-      func = NewString("");
-  
-      /* Now emit a Perl wrapper function around our member function, we might need
-	 to patch up some arguments along the way */
   
       if (Strstr(symname, "operator") == symname) {
 	if (Strstr(symname, "operator_equal_to")) {
@@ -1282,58 +1221,7 @@ public:
 	//      fprintf(stderr,"Found member_func operator: %s\n", symname);
       }
 
-      Printv(func,
-	     "sub ", symname, " {\n",
-	     tab4, "my @args = @_;\n",
-	     NIL);
-  
-      /* Okay.  We've made argument adjustments, now call into the package */
-  
-      Printv(func,
-	     tab4, "my $result = ", cmodule, "::", Swig_name_member(class_name,symname),
-	     "(@args);\n",
-	     NIL);
-  
-      /* Now check to see what kind of return result was found.
-       * If this function is returning a result by 'value', SWIG did an
-       * implicit malloc/new.   We'll mark the object like it was created
-       * in Perl so we can garbage collect it. */
-
-      if (is_shadow(t)) {
-	Printv(func,tab4, "return undef if (!defined($result));\n", NIL);
-  
-	/* If we're returning an object by value, put it's reference
-	   into our local hash table */
-  
-	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
-	  Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NIL);
-	}
-  
-	/* We're returning a Perl "object" of some kind.  Turn it into
-	   a tied hash */
-  
-	Printv(func,
-	       tab4, "my %resulthash;\n",
-	       tab4, "tie %resulthash, ref($result), $result;\n",
-	       tab4, "return bless \\%resulthash, ref($result);\n",
-	       "}\n",
-	       NIL);
-  
-	need_wrapper = 1;
-      } else {
-  
-	/* Hmmm.  This doesn't appear to be anything I know about so just
-	   return it unmodified */
-  
-	Printv(func, tab4,"return $result;\n", "}\n", NIL);
-      }
-  
-      if (need_wrapper) {
-	Printv(pcode,func,NIL);
-      } else {
-	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
-      }
-      Delete(func);
+      Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1341,24 +1229,13 @@ public:
   /* ------------------------------------------------------------
    * membervariableHandler()
    *
-   * Adds an instance member.   This is a little hairy because data members are
-   * really added with a tied-hash table that is attached to the object.
-   *
-   * On the low level, we will emit a pair of get/set functions to retrieve
-   * values just like before.    These will then be encapsulated in a FETCH/STORE
-   * method associated with the tied-hash.
-   *
-   * In the event that a member is an object that we have already wrapped, then
-   * we need to retrieve the data a tied-hash as opposed to what SWIG normally
-   * returns.   To determine this, we build an internal hash called 'BLESSEDMEMBERS'
-   * that contains the names and types of tied data members.  If a member name
-   * is in the list, we tie it, otherwise, we just return the normal SWIG value.
+   * Adds an instance member.
    * ----------------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
 
     String   *symname = Getattr(n,"sym:name");
-    SwigType *t  = Getattr(n,"type");
+    /* SwigType *t  = Getattr(n,"type"); */
 
     /* Emit a pair of get/set functions for the variable */
 
@@ -1373,15 +1250,16 @@ public:
 
       /* Now we need to generate a little Perl code for this */
 
-      if (is_shadow(t)) {
+      /* if (is_shadow(t)) {
 
-	/* This is a Perl object that we have already seen.  Add an
-	   entry to the members list*/
+      *//* This is a Perl object that we have already seen.  Add an
+	   entry to the members list*//*
 	Printv(blessedmembers,
 	       tab4, symname, " => '", is_shadow(t), "',\n",
 	       NIL);
 
       }
+				      */
     }
     have_data_members++;
     return SWIG_OK;
@@ -1412,17 +1290,10 @@ public:
 	Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
       }
 
-      Printv(pcode, tab4, "my $pkg = shift;\n",
-	     tab4, "my @args = @_;\n", NIL);
-
       Printv(pcode,
-	     tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@args);\n",
-	     tab4, "return undef if (!defined($self));\n",
-	     /*	     tab4, "bless $self, \"", fullclassname, "\";\n", */
-	     tab4, "$OWNER{$self} = 1;\n",
-	     tab4, "my %retval;\n",
-	     tab4, "tie %retval, \"", fullclassname, "\", $self;\n",
-	     tab4, "return bless \\%retval, $pkg;\n",
+	     tab4, "my $pkg = shift;\n",
+	     tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n",
+	     tab4, "bless $self, $pkg if defined($self);\n",
 	     "}\n\n",
 	     NIL);
 
@@ -1468,46 +1339,7 @@ public:
     member_func = 0;
     if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
       String *symname = Getattr(n,"sym:name");
-      SwigType *t = Getattr(n,"type");
-      if (is_shadow(t)) {
-	Printv(pcode,
-	       "sub ", symname, " {\n",
-	       tab4, "my @args = @_;\n",
-	       NIL);
-	
-	/* Okay.  We've made argument adjustments, now call into the package */
-	
-	Printv(pcode,
-	       tab4, "my $result = ", cmodule, "::", Swig_name_member(class_name,symname),
-	       "(@args);\n",
-	       NIL);
-	
-	/* Now check to see what kind of return result was found.
-	 * If this function is returning a result by 'value', SWIG did an
-	 * implicit malloc/new.   We'll mark the object like it was created
-	 * in Perl so we can garbage collect it. */
-	
-	Printv(pcode,tab4, "return undef if (!defined($result));\n", NIL);
-	
-	/* If we're returning an object by value, put it's reference
-	   into our local hash table */
-	
-	if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || Getattr(n,"feature:new")) {
-	  Printv(pcode, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NIL);
-	}
-	
-	/* We're returning a Perl "object" of some kind.  Turn it into
-	   a tied hash */
-	
-	Printv(pcode,
-	       tab4, "my %resulthash;\n",
-	       tab4, "tie %resulthash, ref($result), $result;\n",
-	       tab4, "return bless \\%resulthash, ref($result);\n",
-	       "}\n",
-	       NIL);
-      } else {
-	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
-      }
+      Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
