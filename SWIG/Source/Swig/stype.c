@@ -526,13 +526,13 @@ DOHString *SwigType_default(DOHString_or_char *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_cstr(DOH *s, DOH *id)
+ * SwigType_str(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
 DOHString *
-SwigType_cstr(DOHString *s, DOHString_or_char *id)
+SwigType_str(DOHString *s, DOHString_or_char *id)
 {
   DOHString *result;
   DOHString *element = 0, *nextelement;
@@ -546,7 +546,6 @@ SwigType_cstr(DOHString *s, DOHString_or_char *id)
   }
 
   elements = SwigType_split(s);
-  /*  Printf(stdout,"%s\n",elements); */
   nelements = Len(elements);
 
   if (nelements > 0) {
@@ -581,7 +580,7 @@ SwigType_cstr(DOHString *s, DOHString_or_char *id)
       parms = SwigType_parmlist(element);
       plen = Len(parms);
       for (j = 0; j < plen; j++) {
-	p = SwigType_cstr(Getitem(parms,j),0);
+	p = SwigType_str(Getitem(parms,j),0);
 	Append(result,p);
 	if (j < (plen-1)) Append(result,",");
 	Delete(p);
@@ -599,6 +598,213 @@ SwigType_cstr(DOHString *s, DOHString_or_char *id)
       Insert(result,0,element);
     }
     element = nextelement;
+  }
+  Delete(elements);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_lstr(DOH *s, DOH *id)
+ *
+ * Produces a type-string that is suitable as a lvalue in an expression.
+ * That is, a type that can be freely assigned a value without violating
+ * any C assignment rules.
+ *
+ *      -   Qualifiers such as 'const' and 'volatile' are stripped.
+ *      -   Arrays are converted into a *single* pointer (i.e.,
+ *          double [][] becomes double *).
+ *      -   References are converted into a pointer.
+ *      -   Typedef names that refer to read-only types will be replaced
+ *          with an equivalent assignable version.
+ * -------------------------------------------------------------------- */
+
+DOHString *
+SwigType_lstr(DOHString *s, DOHString_or_char *id)
+{
+  DOHString *result;
+  DOHString *element = 0, *nextelement;
+  DOHList *elements;
+  int nelements, i;
+
+  if (id) {
+    result = NewString(Char(id));
+  } else {
+    result = NewString("");
+  }
+
+  elements = SwigType_split(s);
+  nelements = Len(elements);
+
+  if (nelements > 0) {
+    element = Getitem(elements,0);
+  }
+  /* Now, walk the type list and start emitting */
+  for (i = 0; i < nelements; i++) {
+    if (i < (nelements - 1)) {
+      nextelement = Getitem(elements,i+1);
+    } else {
+      nextelement = 0;
+    }
+    if (SwigType_ispointer(element)) {
+      Insert(result,0,"*");
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
+    } else if (SwigType_isreference(element)) {
+      Insert(result,0,"*");
+    } else if (SwigType_isarray(element)) {
+      DOH *size;
+      Insert(result,0,"*");
+      while (nextelement && (SwigType_isarray(nextelement))) {
+	i++;
+	nextelement = Getitem(elements,i+1);
+      }
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
+    } else if (SwigType_isfunction(element)) {
+      DOH *parms, *p;
+      int j, plen;
+      Append(result,"(");
+      parms = SwigType_parmlist(element);
+      plen = Len(parms);
+      for (j = 0; j < plen; j++) {
+	p = SwigType_str(Getitem(parms,j),0);
+	Append(result,p);
+	if (j < (plen-1)) Append(result,",");
+	Delete(p);
+      }
+      Append(result,")");
+      Delete(parms);
+    } else if (SwigType_isqualifier(element)) {
+    } else {
+      Insert(result,0," ");
+      Insert(result,0,element);
+    }
+    element = nextelement;
+  }
+  Delete(elements);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_rcaststr()
+ *
+ * Produces a casting string that maps the type returned by lstr() to the real 
+ * datatype printed by str().
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_rcaststr(DOHString *s, DOHString_or_char *name) {
+  DOHString *result, *cast;
+  DOHString *element = 0, *nextelement;
+  DOHList *elements;
+  int      nelements, i;
+  int      clear = 1;
+  int      firstarray = 1;
+
+  result = NewString("");
+  elements = SwigType_split(s);
+  nelements = Len(elements);
+
+  if (nelements > 0) {
+    element = Getitem(elements,0);
+  }
+  /* Now, walk the type list and start emitting */
+  for (i = 0; i < nelements; i++) {
+    if (i < (nelements - 1)) {
+      nextelement = Getitem(elements,i+1);
+    } else {
+      nextelement = 0;
+    }
+    if (SwigType_ispointer(element)) {
+      Insert(result,0,"*");
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
+    } else if (SwigType_isreference(element)) {
+      Insert(result,0,"&");
+    } else if (SwigType_isarray(element)) {
+      DOH *size;
+      if (firstarray) {
+	Append(result,"(*)");
+	firstarray = 0;
+      } else {
+	Append(result,"[");
+	size = SwigType_parm(element);
+	Append(result,size);
+	Append(result,"]");
+	Delete(size);
+	clear = 0;
+      }
+    } else if (SwigType_isfunction(element)) {
+      DOH *parms, *p;
+      int j, plen;
+      Append(result,"(");
+      parms = SwigType_parmlist(element);
+      plen = Len(parms);
+      for (j = 0; j < plen; j++) {
+	p = SwigType_str(Getitem(parms,j),0);
+	Append(result,p);
+	if (j < (plen-1)) Append(result,",");
+	Delete(p);
+      }
+      Append(result,")");
+      Delete(parms);
+    } else if (SwigType_isqualifier(element)) {
+      DOH *q = 0;
+      q = SwigType_parm(element);
+      Insert(result,0," ");
+      Insert(result,0,q);
+      Delete(q);
+      clear = 0;
+    } else {
+      Insert(result,0," ");
+      Insert(result,0,element);
+    }
+    element = nextelement;
+  }
+  Delete(elements);
+  if (clear) {
+    cast = NewString("");
+  } else {
+    cast = NewStringf("(%s)",result);
+  }
+  if (name) {
+    if (SwigType_isreference(s)) {
+      Append(cast,"*");
+    }
+    Append(cast,name);
+  }
+  Delete(result);
+  return cast;
+}
+
+
+/* -----------------------------------------------------------------------------
+ * SwigType_lcaststr()
+ *
+ * Casts a variable from the real type to the local datatype.
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_lcaststr(DOHString *s, DOHString_or_char *name) {
+  DOHString *result;
+
+  result = NewString("");
+
+  if (SwigType_isarray(s)) {
+    Printf(result,"(%S)%s", SwigType_lstr(s,0),name);
+  } else if (SwigType_isreference(s)) {
+    Printf(result,"(%S)", SwigType_lstr(s,0));
+    if (name) 
+      Printf(result,"&%s", name);
+  } else if (SwigType_isqualifier(s)) {
+    Printf(result,"(%S)%s", SwigType_lstr(s,0),name);
+  } else {
+    if (name)
+      Append(result,name);
   }
   return result;
 }
