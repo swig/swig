@@ -81,7 +81,7 @@ AC_DEFUN([SWIG_PYTHON],[
 # PYTHON_DEVEL()
 #
 # Checks for Python and tries to get the include path to 'Python.h'.
-# It provides the $(PYTHON_CPPFLAGS) output variable.
+# It provides the $(PYTHON_CPPFLAGS) and $(PYTHON_LDFLAGS) output variable.
 AC_DEFUN([PYTHON_DEVEL],[
 	AC_REQUIRE([AM_PATH_PYTHON])
 
@@ -103,4 +103,23 @@ AC_DEFUN([PYTHON_DEVEL],[
 		AC_MSG_ERROR([cannot find Python include path])
 	fi
 	AC_SUBST([PYTHON_CPPFLAGS],[-I$python_path])
+
+	# Check for Python library path
+	AC_MSG_CHECKING([for Python library path])
+	python_path=${PYTHON%/bin*}
+	for i in "$python_path/lib/python$PYTHON_VERSION/config/" "$python_path/lib/python$PYTHON_VERSION/" "$python_path/lib/python/config/" "$python_path/lib/python/" "$python_path/" ; do
+		python_path=`find $i -type f -name libpython$PYTHON_VERSION.* -print`
+		if test -n "$python_path" ; then
+			break
+		fi
+	done
+	for i in $python_path ; do
+		python_path=${python_path%/libpython*}
+		break
+	done
+	AC_MSG_RESULT([$python_path])
+	if test -z "$python_path" ; then
+		AC_MSG_ERROR([cannot find Python library path])
+	fi
+	AC_SUBST([PYTHON_LDFLAGS],["-L$python_path -lpython$PYTHON_VERSION"])
 ])
