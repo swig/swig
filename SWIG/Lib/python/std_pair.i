@@ -8,23 +8,30 @@
 	  fragment="StdTraits",fragment="PyObject_var") {
   namespace swigpy {
     template <class T, class U >
-    struct traits_asval<std::pair<T,U> >  {
-      static int asval(PyObject *obj, std::pair<T,U> *val) {
+    struct traits_asptr<std::pair<T,U> >  {
+      static int asptr(PyObject *obj, std::pair<T,U> **val) {
 	typedef std::pair<T,U> value_type;
 	if (PySequence_Check(obj) && (PySequence_Size(obj) == 2)) {
 	  swigpy::PyObject_var first = PySequence_GetItem(obj,0);
 	  swigpy::PyObject_var second = PySequence_GetItem(obj,1);
-	  T *pfirst = val ? &(val->first) : 0;
-	  U *psecond = val ? &(val->second) : 0;	  
+	  T *pfirst = 0;
+	  U *psecond = 0;
+	  if (val) {
+	    *val = new std::pair<T,U>;
+	    pfirst = &((*val)->first);
+	    psecond = &((*val)->second);
+	  }	  
 	  if (swigpy::asval(first,pfirst) && swigpy::asval(second,psecond)) {
-	    return 1;
+	    return SWIG_NEWOBJ;
+	  } else {
+	    delete *val;
 	  }
 	} else {
 	  value_type *p;
 	  if (SWIG_ConvertPtr(obj,(void**)&p,
 			      swigpy::type_info<value_type>(),0) != -1) {
-	    if (val) *val = *p;
-	    return 1;
+	    if (val) *val = p;
+	    return SWIG_OLDOBJ;
 	  }
 	}
 	if (val) {
@@ -61,7 +68,7 @@ namespace std {
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T,U > > {
-	  typedef value_category category;
+	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::pair<" #T "," #U " >";
 	  }
@@ -69,10 +76,10 @@ namespace std {
       }
     }
 
-    %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U >);
+    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T,U >);
 
     pair();
-    pair(const T& __a, const U& __b);
+    pair(T __a, U __b);
     pair(const pair& __p);
 
     T first;
@@ -102,7 +109,7 @@ namespace std {
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T,U* > > {
-	  typedef value_category category;
+	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::pair<" #T "," #U " * >";
 	  }
@@ -110,7 +117,7 @@ namespace std {
       }
     }
 
-    %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U* >);
+    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T,U* >);
 
     pair();
     pair(const T& __a, U* __b);
@@ -131,7 +138,7 @@ namespace std {
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T*,U > > {
-	  typedef value_category category;
+	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::pair<" #T *"," #U " >";
 	  }
@@ -139,7 +146,7 @@ namespace std {
       }
     }
 
-    %typemap_traits(SWIG_CCode(PAIR), std::pair<T*,U >);
+    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T*,U >);
 
     pair();
     pair(T* __a, const U& __b);
@@ -157,7 +164,7 @@ namespace std {
 	      fragment="StdPairTraits") {
       namespace swigpy {
 	template <>  struct traits<std::pair<T*,U* > > {
-	  typedef value_category category;
+	  typedef pointer_category category;
 	  static const char* type_name() {
 	    return "std::pair<" #T *"," #U " * >";
 	  }
