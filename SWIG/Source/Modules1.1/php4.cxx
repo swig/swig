@@ -1085,6 +1085,7 @@ PHP4::functionWrapper(Node *n) {
     Replaceall(tm, "$input", "result");
     Replaceall(tm, "$source", "result");
     Replaceall(tm, "$target", "return_value");
+    Replaceall(tm, "$result", "return_value");
     Printf(f->code, "%s\n", tm);
     // are we returning a wrapable object?
     // I don't know if this test is comlete, I nicked it
