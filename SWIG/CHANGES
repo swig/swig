@@ -18,6 +18,39 @@ Version 1.3.12 (In progress)
 ============================
 
 03/10/2002: beazley
+            Highly experimental change to handle variable length arguments.
+            First, there is no portable or reliable way to wrap
+            a varargs function in full generality.  However, you *can* change
+            the function signature using %feature.  For example:
+
+               %feature(varargs) fprintf %parms(char *s);
+               ...
+               void fprintf(FILE *f, char *fmt, ...);
+
+            In this case, the variable length parameter "..." is
+            simply replaced by the parameters given in %parms. This
+            results in a function like this:
+
+               void fprintf(FILE *f, char *fmt, char *s);
+
+            More than one argument can be used and default values
+            can be defined.  
+
+            A more friendly version of this is available as a macro:
+
+               %varargs(fprintf) (char *s);
+
+            *** EXPERIMENTAL NEW FEATURE ***
+ 
+03/10/2002: beazley
+            Change to handling of variable length arguments.  varargs
+            is now handled as a proper parameter and is passed to the
+            code generator.  However, it still can't be handled correctly
+            (and will generate a typemap warning).   This change has been
+            made to better incorporate variable length arguments with other
+            directives such as %ignore, %rename, %feature, and so forth.
+
+03/10/2002: beazley
             Fixed [ 522555 ] Syntax error parsing "define" construct. SWIG
             is a little more restrictive in determining #define statements
             that will be wrapped as constants.  Also added a better parser
