@@ -149,33 +149,34 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
       /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << name_member(realname,class_name) << "\n"; */
     } else {
 
-    // Now add it to the class
+      // Now add it to the class
     
-    if (use_kw)
-      *pyclass << tab4 << "def " << realname << "(*args, **kwargs):\n";
-    else
-      *pyclass << tab4 << "def " << realname << "(*args):\n";
-    
-    if (use_kw)
-      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args, kwargs)\n";
-    else
-      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args)\n";
+      if (use_kw)
+	*pyclass << tab4 << "def " << realname << "(*args, **kwargs):\n";
+      else
+	*pyclass << tab4 << "def " << realname << "(*args):\n";
       
-    // Check to see if the return type is an object
-    if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
-      if (!typemap_check("out",typemap_lang,t,name_member(realname,class_name))) {
-	if (!have_output) {
-	  *pyclass << tab8 << "if val: val = " << (char *) hash.lookup(t->name) << "Ptr(val) ";
-	  if (((hash.lookup(t->name)) && (t->is_pointer < 1)) ||
-	      ((hash.lookup(t->name)) && (t->is_pointer == 1) && NewObject))
-	    *pyclass << "; val.thisown = 1\n";
-	  else 
-	    *pyclass << "\n";
-	} else {
-	  // Do nothing!
+      if (use_kw)
+	*pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args, kwargs)\n";
+      else
+	*pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args)\n";
+      
+      // Check to see if the return type is an object
+      if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
+	if (!typemap_check("out",typemap_lang,t,name_member(realname,class_name))) {
+	  if (!have_output) {
+	    *pyclass << tab8 << "if val: val = " << (char *) hash.lookup(t->name) << "Ptr(val) ";
+	    if (((hash.lookup(t->name)) && (t->is_pointer < 1)) ||
+		((hash.lookup(t->name)) && (t->is_pointer == 1) && NewObject))
+	      *pyclass << "; val.thisown = 1\n";
+	    else 
+	      *pyclass << "\n";
+	  } else {
+	    // Do nothing!
+	  }
 	}
       }
-    }
+      *pyclass << tab8 << "return val\n";
     }
     //    emitAddPragmas(*pyclass, realname, tab8);
     //    *pyclass << tab8 << "return val\n";
