@@ -23,7 +23,7 @@
  * --------------------------------------------------------------------------- */
 
 typedef struct String {
-    DOHCOMMON;
+    DOHXCOMMON;
     int            maxsize;                   /* Max size allocated */
     int            len;                       /* Current length     */
     int            hashkey;                   /* Hash key value     */
@@ -68,6 +68,13 @@ static DohSequenceMethods StringSeqMethods = {
   0,                      /* doh_next    */
 };
 
+static DohPositionalMethods StringPositionalMethods = {
+  XBase_setfile,
+  XBase_getfile,
+  XBase_setline,
+  XBase_getline
+};
+
 static DohFileMethods StringFileMethods = {
   String_read,
   String_write,
@@ -77,10 +84,6 @@ static DohFileMethods StringFileMethods = {
   String_seek,
   String_tell,
   0,              /* close */
-  0,              /* getfile */
-  0,              /* setfile */ 
-  0,              /* getline */
-  0               /* setline */
 };
 
 static DohStringMethods StringStringMethods = {
@@ -107,6 +110,7 @@ static DohObjInfo StringType = {
     &StringFileMethods,/* doh_file */
     &StringStringMethods, /* doh_string */ 
     0,                 /* doh_callable */ 
+    &StringPositionalMethods, /* doh_position */
 };
 
 #define INIT_MAXSIZE  16
@@ -160,6 +164,7 @@ NewString(char *s)
     str->lsp = 0;
     str->pbi = 0;
     str->line = 1;
+    str->file = 0;
     max = INIT_MAXSIZE;
     if (s) {
       l = (int) strlen(s);
@@ -191,7 +196,9 @@ CopyString(DOH *so) {
   str->hashkey = -1;
   str->sp = 0;
   str->lsp = 0;
-  str->line = 1;
+  str->line = s->line;
+  str->file = s->file;
+  if (str->file) Incref(str->file);
   str->pbi = 0;
   max = s->maxsize;
   str->str = (char *) DohMalloc(max);
@@ -213,6 +220,7 @@ DelString(DOH *so) {
   if (s->str) 
     DohFree(s->str);
   s->str = 0;
+  Delete(s->file);
   DohObjFree(s);
 }
 

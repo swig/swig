@@ -51,10 +51,6 @@ static DohFileMethods FileFileMethods = {
   File_seek,
   File_tell,
   0,              /* close */
-  0,              /* getfile */
-  0,              /* setfile */
-  0,              /* getline */
-  0               /* setline */
 };
 
 static DohObjInfo FileType = {
@@ -76,6 +72,7 @@ static DohObjInfo FileType = {
     &FileFileMethods,/* doh_file     */
     0,               /* doh_string   */
     0,               /* doh_callable */
+    0,               /* doh_position */
 };
 
 DohObjInfo *File_type() {

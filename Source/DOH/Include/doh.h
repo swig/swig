@@ -75,10 +75,6 @@ typedef struct {
   int       (*doh_seek)(DOH *obj, long offset, int whence);
   long      (*doh_tell)(DOH *obj);
   int       (*doh_close)(DOH *obj);
-  DOH      *(*doh_getfile)(DOH *obj);
-  void      (*doh_setfile)(DOH *obj, DOH *f);
-  int       (*doh_getline)(DOH *obj);
-  void      (*doh_setline)(DOH *obj, int);
 } DohFileMethods;
 
 /* String methods */
@@ -91,6 +87,16 @@ typedef struct {
 typedef struct {
   DOH    *(*doh_call)(DOH *obj, DOH *args);                 /* Callable */
 } DohCallableMethods;
+
+/* Positional */
+typedef struct {
+  void    (*doh_setfile)(DOH *obj, DOH *file);
+  DOH    *(*doh_getfile)(DOH *obj);
+  void    (*doh_setline)(DOH *obj, int line);
+  int     (*doh_getline)(DOH *obj);
+} DohPositionalMethods;
+
+
   
 
 /* -----------------------------------------------------------------------------
@@ -128,6 +134,7 @@ typedef struct DohObjInfo {
   DohFileMethods     *doh_file;                /* File methods       */
   DohStringMethods   *doh_string;              /* String methods     */
   DohCallableMethods *doh_callable;            /* Callable methods   */ 
+  DohPositionalMethods *doh_position;          /* Positional methods */
   void               *reserved4;
   void               *reserved5;
   void               *reserved6;
@@ -277,14 +284,21 @@ extern DOH    *DohCall(DOH *obj, DOH *args);
    DohObjInfo    *objinfo; \
    DOH           *nextptr; \
    int            refcount; \
-   short          line; \
    unsigned char  flags; \
-   unsigned char  scope; \
-   DOH           *file 
+   unsigned char  scope
 
 typedef struct {
   DOHCOMMON;
 } DohBase;
+
+#define  DOHXCOMMON      \
+  DOHCOMMON; \
+  DOH    *file; \
+  int     line
+
+typedef struct {
+  DOHXCOMMON;
+} DohXBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
 #define Decref(a)        if (a) ((DohBase *) a)->refcount--

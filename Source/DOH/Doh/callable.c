@@ -53,7 +53,7 @@ static DohObjInfo DohCallableType = {
   0,                /* doh_file  */
   0,                /* doh_string */
   &doh_callable_methods,  /* doh_callable */
-  0,                /* reserved4 */
+  0,                /* doh_position */
   0,                /* reserved5 */
   0,                /* reserved6 */
   0,                /* user1 */

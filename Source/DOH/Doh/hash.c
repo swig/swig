@@ -32,14 +32,13 @@ typedef struct HashNode {
 
 /* Hash object */
 typedef struct Hash {
-    DOHCOMMON;
+    DOHXCOMMON;
     HashNode          **hashtable;
     int                 hashsize;
     int                 currentindex;
     int                 nitems;
     HashNode           *current;
 } Hash;
-
 
 /* -----------------------------------------------------------------------------
    Key interning.    This is used for getattr,setattr functions.
@@ -126,6 +125,13 @@ static DohMappingMethods HashMappingMethods = {
   Hash_nextkey,
 };
 
+static DohPositionalMethods HashPositionalMethods = {
+  XBase_setfile,
+  XBase_getfile,
+  XBase_setline,
+  XBase_getline
+};
+
 static DohObjInfo HashType = {
     "Hash",          /* objname */
     sizeof(Hash),    /* size */
@@ -145,6 +151,7 @@ static DohObjInfo HashType = {
     0,                /* doh_file */
     0,                /* doh_string */
     0,                /* doh_callable */
+    &HashPositionalMethods,  /* doh_positional */
 };
 
 DohObjInfo *Hash_type() {
@@ -167,6 +174,7 @@ DOH *NewHash() {
     Hash *h;
     int   i;
     h = (Hash *) DohObjMalloc(sizeof(Hash));
+    DohXInit(h);
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
     for (i = 0; i < h->hashsize; i++) {
@@ -187,10 +195,9 @@ DOH *CopyHash(DOH *ho) {
     Hash *h, *nh;
     HashNode *n;
     int   i;
-
     h = (Hash *) ho;
     nh = (Hash *) DohObjMalloc(sizeof(Hash));
-
+    DohXInit(h);
     nh->hashsize = h->hashsize;
     nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
     for (i = 0; i < nh->hashsize; i++) {
@@ -200,6 +207,9 @@ DOH *CopyHash(DOH *ho) {
     nh->current = 0;
     nh->nitems = 0;
     nh->objinfo = h->objinfo;
+    nh->line = h->line;
+    nh->file = h->file;
+    if (nh->file) Incref(nh->file);
 
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
@@ -235,6 +245,7 @@ void DelHash(DOH *ho)
     DohFree(h->hashtable);
     h->hashtable = 0; 
     h->hashsize = 0;
+    Delete(h->file);
     DohObjFree(h);
 }
 
@@ -558,6 +569,3 @@ DOH *Hash_keys(DOH *so) {
   /*   List_sort(keys); */
   return keys;
 }
-
-      
-  

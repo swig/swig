@@ -50,7 +50,7 @@ static DohObjInfo DohVoidType = {
   0,                /* doh_file  */
   0,                /* doh_string */
   0,                /* doh_callable */
-  0,                /* reserved4 */
+  0,                /* doh_position */
   0,                /* reserved5 */
   0,                /* reserved6 */
   0,                /* user1 */

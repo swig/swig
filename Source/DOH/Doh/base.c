@@ -58,7 +58,7 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_file  */
   0,                /* doh_string */
   0,                /* doh_callable */
-  0,                /* reserved4 */
+  0,                /* doh_positional */
   0,                /* reserved5 */
   0,                /* reserved6 */
   0,                /* user1 */
@@ -247,10 +247,9 @@ int DohGetline(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetline %x\n",obj);
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_getline) {
-      return (b->objinfo->doh_file->doh_getline)(obj);
+    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getline) {
+      return (b->objinfo->doh_position->doh_getline)(obj);
     }
-    return b->line;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Getline.\n", obj);
   }
@@ -262,11 +261,10 @@ void DohSetline(DOH *obj, int line) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohSetline %x, %d\n",obj, line);
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_setline) {
-      (b->objinfo->doh_file->doh_setline)(obj, line);
+    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_setline) {
+      (b->objinfo->doh_position->doh_setline)(obj, line);
       return;
     }
-    b->line = line;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Setline.\n", obj);
   }
@@ -277,10 +275,9 @@ DOH *DohGetfile(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohGetfile %x\n",obj);
   if (DohCheck(obj)) {
-    if (b->objinfo->doh_file && b->objinfo->doh_file->doh_getfile) {
-      return (b->objinfo->doh_file->doh_getfile)(obj);
+    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getfile) {
+      return (b->objinfo->doh_position->doh_getfile)(obj);
     }
-    return b->file;
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Getfile.\n", obj);
   }
@@ -289,22 +286,13 @@ DOH *DohGetfile(DOH *obj) {
 
 /* Set the file */
 void DohSetfile(DOH *obj, DOH *file) {
-  DOH *nf;
+  DOH *nf = 0;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohSetfile %x, %x\n",obj,file);
   if (DohCheck(obj)) {
-    if (file) {
-      nf = find_internal(file);
-      if (b->objinfo->doh_file && b->objinfo->doh_file->doh_setfile) {
-	(b->objinfo->doh_file->doh_setfile)(obj,nf);
-	return;
-      }
-      Incref(nf);
-      if (b->file) Delete(b->file);
-      b->file = nf;
-    } else {
-      Delete(b->file);
-      b->file = 0;
+    if (b->objinfo->doh_position && b->objinfo->doh_position->doh_setfile) {
+      (b->objinfo->doh_position->doh_setfile)(obj,file);
+      return;
     }
   } else {
     DohError(DOH_UNKNOWN, "Unknown object %x passed to Setfile.\n", obj);
@@ -865,7 +853,45 @@ void DohInit(DOH *b) {
     DohBase *bs = (DohBase *) b;
     bs->refcount = 1;
     bs->objinfo = &DohBaseType;
-    bs->line = 0;
-    bs->file = 0;
     bs->flags = 0;
+}
+
+void DohXInit(DOH *b) {
+    DohXBase *bs = (DohXBase *) b;
+    bs->file = 0;
+    bs->line = 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * XBase_setfile(DOH *ho, DOH *file)
+ * ----------------------------------------------------------------------------- */
+void XBase_setfile(DOH *ho, DOH *file) {
+  DohXBase *h = (DohXBase *) ho;
+  if (!DohCheck(file)) file = NewString(file);
+  h->file = file;
+  Incref(h->file);
+}
+
+/* -----------------------------------------------------------------------------
+ * DOH *XBase_getfile(DOH *ho)
+ * ----------------------------------------------------------------------------- */
+DOH *XBase_getfile(DOH *ho) {
+  DohXBase *h = (DohXBase *) ho;
+  return h->file;
+}
+
+/* -----------------------------------------------------------------------------
+ * void XBase_setline(DOH *ho, int l)
+ * ----------------------------------------------------------------------------- */
+void XBase_setline(DOH *ho, int l) {
+  DohXBase *h = (DohXBase *) ho;
+  h->line = l;
+}
+
+/* -----------------------------------------------------------------------------
+ * int XBase_getline(DOH *ho)
+ * ----------------------------------------------------------------------------- */
+int XBase_getline(DOH *ho) {
+  DohXBase *h = (DohXBase *) ho;
+  return h->line;
 }
