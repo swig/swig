@@ -130,8 +130,8 @@ extern Parm       *CopyParm(Parm *p);
 
 typedef DOH   ParmList;
 
-extern ParmList *NewParmList();
-extern ParmList *CopyParmList(ParmList *);
+extern ParmList   *NewParmList();
+extern ParmList   *CopyParmList(ParmList *);
 
 extern int         ParmList_numarg(ParmList *);
 extern char       *ParmList_str(ParmList *);
@@ -400,6 +400,9 @@ extern Wrapper   *Swig_cvarget_wrapper(DOHString_or_char *varname,
 #define Setlname(x,v)      SetChar(x,"lname",Char(v))
 #define Setvalue(x,v)      SetChar(x,"value", Char(v))
 #define Setignore(x,v)     SetInt(x,"ignore",v)
+
+#define Getnext(x)         Getattr(x,"next")
+#define Setnext(x,n)       Setattr(x,"next",n)
 
 #endif
 

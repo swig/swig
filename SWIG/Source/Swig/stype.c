@@ -379,7 +379,7 @@ int SwigType_isqualifier(DOHString_or_char *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_base()
  *
- * Returns the base of a datatype.
+ * Returns the base name of a datatype.
  * ----------------------------------------------------------------------------- */
 
 DOHString *SwigType_base(DOHString *t) {
