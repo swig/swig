@@ -388,7 +388,6 @@ void emit_action(Node *n, Wrapper *f) {
       if (em) {
 	Printf(f->code,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
 	Printv(f->code,em,"\n",NIL);
-	Printf(f->code,"return NULL;\n");
 	Printf(f->code,"}\n");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),

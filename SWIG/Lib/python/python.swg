@@ -485,6 +485,7 @@
                   unsigned long, 
                   unsigned short {
   PyErr_SetObject(PyExc_RuntimeError, PyInt_FromLong((long) $1));
+  return NULL;
 }
 
 %typemap("throw") SWIGTYPE {
@@ -494,10 +495,12 @@
   } else {
     PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&1_descriptor,1));
   }
+  return NULL;
 }
 
 %typemap("throw") char * {
   PyErr_SetString(PyExc_RuntimeError, $1);
+  return NULL;
 }
 
 /* ------------------------------------------------------------
