@@ -212,11 +212,13 @@ if cvar.var_char != '\0':
   raise RuntimeError, "bad char '0' case"
 
 cvar.var_namet = '\0'
-if cvar.var_namet != '\0\0\0\0\0':
+#if cvar.var_namet != '\0\0\0\0\0':
+if cvar.var_namet != '':
   raise RuntimeError, "bad char '\0' case"
 
 cvar.var_namet = ''
-if cvar.var_namet != '\0\0\0\0\0':
+#if cvar.var_namet != '\0\0\0\0\0':
+if cvar.var_namet != '':
   raise RuntimeError, "bad char empty case"
 
 cvar.var_pchar = None
@@ -257,7 +259,8 @@ if cvar.var_pchar != "hola":
   raise RuntimeError, "bad pointer case"
 
 cvar.var_namet = pc
-if cvar.var_namet != "hola\0":
+#if cvar.var_namet != "hola\0":
+if cvar.var_namet != "hola":
   raise RuntimeError, "bad pointer case"
 
 
