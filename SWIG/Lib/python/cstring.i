@@ -10,7 +10,7 @@
  * some way.
  */
 
-%include "fragments.i"
+%include "pytuplehlp.swg"
 
 /* %cstring_input_binary(TYPEMAP, SIZE)
  * 

@@ -123,7 +123,7 @@ output values.
 // Author: Robin Dunn
 //----------------------------------------------------------------------
 
-%include fragments.i
+%include pytuplehlp.swg
 
 %define _PYVAL_OUTPUT_TYPEMAP(from_meth, from_frag, Type)
  %typemap(in,numinputs=0) Type *OUTPUT ($*1_ltype temp, int res = 0), 
@@ -193,7 +193,7 @@ phased out in future releases.
 %enddef
 
 #ifndef SWIG_INOUT_NODEF
-#define PYVAL_INPUT_TYPEMAP(code,_a,_c,_af,_cf,...)			        \
+#define PYVAL_INPUT_TYPEMAP(code,_a,_c,_af,_cf,...)			\
   _PYVAL_INPUT_TYPEMAP(SWIG_arg(code),SWIG_arg(_a),SWIG_arg(_c),	\
 		       SWIG_arg(_af),SWIG_arg(_cf),SWIG_arg(__VA_ARGS__))
 
