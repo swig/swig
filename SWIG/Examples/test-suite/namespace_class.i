@@ -158,10 +158,34 @@ namespace jafar {
       static void hello(){}
       
       template<class VecFrame, class Vec, class VecRes>
-      static void toFrame(const VecFrame& frame_, const Vec&v_,VecRes& vRes){}
+      static void toFrame(const VecFrame& frame_, const Vec&v_,const VecRes& vRes){}
     };
   }
 }
 %}
 
 %template(toFrame) jafar::jmath::EulerT3D::toFrame<int,int,int>;
+
+
+%inline %{
+
+namespace {
+  /* the unnamed namespace is 'private', so, the following
+     declarations shouldn't be wrapped */
+  class Private1
+  {
+  };
+
+}
+
+namespace a
+{
+  namespace 
+  {
+    class Private2
+    {
+    };
+  }
+}
+ 
+%}
