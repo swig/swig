@@ -8,7 +8,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include <ctype.h>
-
+#include <limits.h> /* for INT_MAX */
 #include "swigmod.h"
 
 class JAVA : public Language {
@@ -615,6 +615,7 @@ class JAVA : public Language {
 
       // Get typemap for this argument
       if ((tm = Getattr(p,"tmap:in"))) {
+        addThrows(n, "tmap:in", p);
         Replaceall(tm,"$source",arg); /* deprecated */
         Replaceall(tm,"$target",ln); /* deprecated */
         Replaceall(tm,"$arg",arg); /* deprecated? */
@@ -635,6 +636,7 @@ class JAVA : public Language {
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:check"))) {
+        addThrows(n, "tmap:check", p);
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
@@ -648,6 +650,7 @@ class JAVA : public Language {
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
+        addThrows(n, "tmap:freearg", p);
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
         Replaceall(tm,"$input",Getattr(p,"emit:input"));
@@ -661,6 +664,7 @@ class JAVA : public Language {
     /* Insert argument output code */
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:argout"))) {
+        addThrows(n, "tmap:argout", p);
         Replaceall(tm,"$source",Getattr(p,"emit:input")); /* deprecated */
         Replaceall(tm,"$target",Getattr(p,"lname")); /* deprecated */
         Replaceall(tm,"$arg",Getattr(p,"emit:input")); /* deprecated? */
@@ -670,6 +674,19 @@ class JAVA : public Language {
         p = Getattr(p,"tmap:argout:next");
       } else {
         p = nextSibling(p);
+      }
+    }
+
+    // Get any Java exception classes in the throw typemap
+    if (Getattr(n,"throws")) {
+      Swig_typemap_attach_parms("throw", l, f);
+      for (p = l; p;) {
+        if ((tm = Getattr(p,"tmap:throw"))) {
+          addThrows(n, "tmap:throw", p);
+          p = Getattr(p,"tmap:throw:next");
+        } else {
+          p = nextSibling(p);
+        }
       }
     }
 
@@ -695,6 +712,7 @@ class JAVA : public Language {
     /* Return value if necessary  */
     if((SwigType_type(t) != T_VOID) && !native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
+        addThrows(n, "tmap:out", n);
         Replaceall(tm,"$source", "result"); /* deprecated */
         Replaceall(tm,"$target", "jresult"); /* deprecated */
         Replaceall(tm,"$result","jresult");
@@ -1423,7 +1441,9 @@ class JAVA : public Language {
       Printf(nativecall,");\n");
     }
 
-    Printf(shadow_code, ") {\n");
+    Printf(shadow_code, ")");
+    generateThrowsClause(n, shadow_code);
+    Printf(shadow_code, " {\n");
     Printv(shadow_code, user_arrays, NIL);
     Printf(shadow_code, "    %s", nativecall);
     Printf(shadow_code, "  }\n\n");
@@ -1512,7 +1532,9 @@ class JAVA : public Language {
 
       Printf(nativecall, "), true);\n");
 
-      Printf(shadow_code, ") {\n");
+      Printf(shadow_code, ")");
+      generateThrowsClause(n, shadow_code);
+      Printf(shadow_code, " {\n");
       Printv(shadow_code, user_arrays, NIL);
       Printf(shadow_code, "    %s", nativecall);
       Printf(shadow_code, "  }\n\n");
@@ -1827,7 +1849,9 @@ class JAVA : public Language {
       Printf(nativecall,");\n");
     }
 
-    Printf(module_class_code, ") {\n");
+    Printf(module_class_code, ")");
+    generateThrowsClause(n, module_class_code);
+    Printf(module_class_code, " {\n");
     Printv(module_class_code, user_arrays, NIL);
     Printf(module_class_code, "    %s", nativecall);
     Printf(module_class_code, "  }\n\n");
@@ -2022,6 +2046,61 @@ class JAVA : public Language {
     }
 
     return code ? code : empty_string;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addThrows()
+   * ----------------------------------------------------------------------------- */
+
+  void addThrows(Node *n, const String *typemap, Node *parameter) {
+    // Get the comma separated throws clause - held in "throws" attribute in the typemap passed in
+    String *throws_attribute = NewStringf("%s:throws", typemap);
+    String *throws = Getattr(parameter,throws_attribute);
+
+    if (throws) {
+      String *throws_list = Getattr(n,"java:throwslist");
+      if (!throws_list) {
+        throws_list = NewList();
+        Setattr(n,"java:throwslist", throws_list);
+      }
+
+      // Put the exception classes in the throws clause into a temporary List
+      List *temp_classes_list = Split(throws,",",INT_MAX);
+
+      // Add the exception classes to the node throws list, but don't duplicate if already in list
+      if (temp_classes_list && Len(temp_classes_list) > 0) {
+        for (String *cls = Firstitem(temp_classes_list); cls; cls = Nextitem(temp_classes_list)) {
+          Replaceall(cls," ","");  // remove spaces
+          Replaceall(cls,"\t",""); // remove tabs
+          if (Len(cls) > 0) {
+            bool found_flag = false;
+            for (String *item = Firstitem(throws_list); item; item = Nextitem(throws_list)) {
+              if (Strcmp(item, cls) == 0)
+                found_flag = true;
+            }
+            if (!found_flag)
+              Append(throws_list, cls);
+          }
+        } 
+      }
+      Delete(temp_classes_list);
+    } 
+    Delete(throws_attribute);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * generateThrowsClause()
+   * ----------------------------------------------------------------------------- */
+
+  void generateThrowsClause(Node *n, String *code) {
+    // Add the throws clause into code
+    List *throws_list = Getattr(n,"java:throwslist");
+    if (throws_list) {
+      String *cls = Firstitem(throws_list);
+      Printf(code, " throws %s", cls);
+      while (cls = Nextitem(throws_list))
+        Printf(code, ", %s", cls);
+    }
   }
 
 };   /* class JAVA */
