@@ -1,5 +1,62 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+2/1/00  : Added a number of performance enhancements to the Python shadow
+          classing and type-checking code.  Contributed by Vadim Chugunov.
+
+          1. Remove _kwargs argument from the shadow wrappers when -keyword
+             option is not specified. This saves us a construction of keyword
+             dictionary on each method call.
+
+             def method1(self, *_args, **_kwargs):
+                 val = apply(test2c.PyClass1_method1, (self,) + _args, _kwargs)
+                 return val
+
+             becomes
+ 
+             def method1(self, *_args):
+                 val = apply(test2c.PyClass1_method1, (self,) + _args)
+                 return val
+
+          2. Incorporate self into the _args tuple.  This saves at least one tuple
+             allocation per method call.
+ 
+             def method1(self, *_args):
+                 val = apply(test2c.PyClass1_method1, (self,) + _args)
+                 return val
+
+             becomes
+
+             def method1(*_args):
+                 val = apply(test2c.PyClass1_method1, _args)
+                 return val
+
+          3. Remove *Ptr classes.  
+             Assume that we are SWIGging a c++ class CppClass.
+             Currently SWIG will generate both CppClassPtr class 
+             that hosts all methods and also CppClass that is derived
+             from the former and contains just the constructor.
+             When CppClass method is called, the interpreter will try
+             to find it in the CppClass's dictionary first, and only then 
+             check the base class.
+
+             CppClassPtr functionality may be emulated with:
+
+             import new
+             _new_instance = new.instance
+             def CppClassPtr(this):
+                  return _new_instance(CppClass, {"this":this,"thisown":0})
+
+             This saves us one dictionary lookup per call.
+
+             <DB>The new module was first added in Python-1.5.2 so it 
+             won't work with older versions.  I've implemented an
+             alternative that achieves the same thing</DB>
+         
+          4. Use CObjects instead of strings for pointers.
+
+          Dave: This enhancements result in speedups of up to 50% in some
+          of the preliminary tests I ran.
+
 2/1/00  : Upgraded the Python module to use a new type-checking scheme that
           is more memory efficient, provides better performance, and
           is less error prone. Unfortunately, it will break all code that
