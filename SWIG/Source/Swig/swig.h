@@ -336,6 +336,8 @@ extern String  *Swig_name_destroy(String_or_char *classname);
 extern void      Swig_name_object_set(Hash *namehash, String_or_char *name, SwigType *decl, DOH *object);
 extern DOH      *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
 extern void      Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
+extern void      Swig_features_get(Hash *features, String_or_char *prefix, String_or_char *name, SwigType *decl, Node *n);
+extern void      Swig_feature_set(Hash *features, String_or_char *name, SwigType *decl, String_or_char *fname, String *value);
 
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);

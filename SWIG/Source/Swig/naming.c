@@ -327,6 +327,8 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   Hash   *n;
   char   *ncdecl = 0;
 
+  if (!namehash) return 0;
+
   if ((decl) && (SwigType_isqualifier(decl))) {
     ncdecl = strchr(Char(decl),'.');
     ncdecl++;
@@ -370,6 +372,12 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   return rn;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_inherit()
+ *
+ * Implements name-based inheritance scheme. 
+ * ----------------------------------------------------------------------------- */
+
 void
 Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   String *key;
@@ -406,6 +414,113 @@ Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
     }
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_features_get()
+ *
+ * Given a node, this function merges features.
+ * ----------------------------------------------------------------------------- */
+
+static void merge_features(Hash *features, Node *n) {
+  String *fs;
+  String *key;
+  for (key = Firstkey(features); key; key = Nextkey(features)) {
+    if (Getattr(n,key)) {
+      continue;
+    }
+    Setattr(n,key,Getattr(features,key));
+  }
+}
+
+void
+Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
+  String *tname;
+  DOH    *rn = 0;
+  Hash   *n;
+  char   *ncdecl = 0;
+
+  if (!features) return;
+
+  if ((decl) && (SwigType_isqualifier(decl))) {
+    ncdecl = strchr(Char(decl),'.');
+    ncdecl++;
+  }
+
+  /* Perform a class-based lookup (if class prefix supplied) */
+  if (prefix) {
+    if (Len(prefix)) {
+      tname = NewStringf("%s::%s",prefix,name);
+      n = Getattr(features,tname);
+      rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+      if (!rn) rn = get_object(n,0);
+      if (rn) merge_features(rn,node);
+      Delete(tname);
+    }
+    /* A wildcard-based class lookup */
+    if (!rn) {
+      tname = NewStringf("*::%s",name);
+      n = Getattr(features,tname);
+      rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+      if (!rn) rn = get_object(n,0);
+      if (rn) merge_features(rn,node);
+      Delete(tname);
+    }
+  } else {
+    /* Lookup in the global namespace only */
+    tname = NewStringf("::%s",name);
+    n = Getattr(features,tname);
+    rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+    if (!rn) rn = get_object(n,0);
+    if (rn) merge_features(rn,node);
+    Delete(tname);
+  }
+  /* Catch-all */
+  if (!rn) {
+    n = Getattr(features,name);
+    rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
+    if (!rn) rn = get_object(n,0);
+    if (rn) merge_features(rn,node);
+  }
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_feature_set()
+ *
+ * Sets a feature name and value.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_feature_set(Hash *features, String *name, SwigType *decl, String *featurename, DOH *value) {
+  Hash *n;
+  Hash *fhash;
+  /*  Printf(stdout,"feature: %s %s %s %s\n", name, decl, featurename, value);*/
+
+  n = Getattr(features,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(features,name,n);
+  }
+  if (!decl) {
+    fhash = Getattr(n,"*");
+    if (!fhash) {
+      fhash = NewHash();
+      Setattr(n,"*",fhash);
+    }
+  } else {
+    fhash = Getattr(n,decl);
+    if (!fhash) {
+      fhash = NewHash();
+      Setattr(n,Copy(decl),fhash);
+    }
+  }
+  Setattr(fhash,featurename,value);
+}
+
 
 
 

@@ -109,6 +109,7 @@ static String *yyrename = 0;
 /* Forward renaming operator */
 static Hash   *rename_hash = 0;
 static Hash   *namewarn_hash = 0;
+static Hash   *features_hash = 0;
 
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
@@ -124,71 +125,9 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
 
 static void
 rename_inherit(String *base, String *derived) {
-
   Swig_name_object_inherit(rename_hash,base,derived);
   Swig_name_object_inherit(namewarn_hash,base,derived);
-
-#if 0
-  String *key;
-  String *bprefix;
-  String *dprefix;
-  char *cbprefix;
-  int   plen;
-
-  if (!rename_hash) return;
-  
-  bprefix = NewStringf("%s::",base);
-  dprefix = NewStringf("%s::",derived);
-  cbprefix = Char(bprefix);
-  plen = strlen(cbprefix);
-  for (key = Firstkey(rename_hash); key; key = Nextkey(rename_hash)) {
-    char *k = Char(key);
-    if (strncmp(k,cbprefix,plen) == 0) {
-      Hash *n, *newh;
-      String *nkey, *okey;
-      
-      nkey = NewStringf("%s%s",dprefix,k+plen);
-      n = Getattr(rename_hash,key);
-      newh = Getattr(rename_hash,nkey);
-      if (!newh) {
-	newh = NewHash();
-	Setattr(rename_hash,nkey,newh);
-      }
-
-      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
-	String *ovalue = Getattr(n,okey);
-	if (!Getattr(newh,okey)) {
-	  Setattr(newh,okey,Copy(ovalue));
-	}
-      }
-    }
-  }
-
-  if (!namewarn_hash) return;
-  /* Inherit all of the name warnings as well */
-  for (key = Firstkey(namewarn_hash); key; key = Nextkey(namewarn_hash)) {
-    char *k = Char(key);
-    if (strncmp(k,cbprefix,plen) == 0) {
-      String *nkey, *okey;
-      Hash *n, *newh;
-
-      nkey = NewStringf("%s%s",dprefix,k+plen);
-      n = Getattr(namewarn_hash,key);
-      newh = Getattr(namewarn_hash,nkey);
-      if (!newh) {
-	newh = NewHash();
-	Setattr(namewarn_hash,nkey,newh);
-      }
-      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
-	String *ovalue = Getattr(n,okey);
-	if (!Getattr(newh,okey)) {
-	  Setattr(newh,okey,Copy(ovalue));
-	}
-      }
-    }
-  }
-#endif
-
+  Swig_name_object_inherit(features_hash,base,derived);
 }
 
 /* Generate the symbol table name for an object */
@@ -253,7 +192,6 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
       Setattr(n,"error",NewString("ignored"));
@@ -280,6 +218,8 @@ static void add_symbols(Node *n) {
 	Setattr(n,"error",e);
       }
     }
+    /* Attach features (if any) */
+    Swig_features_get(features_hash, Classprefix, Getattr(n,"name"), decl, n);
     n = nextSibling(n);
   }
 }
@@ -562,7 +502,7 @@ Node *Swig_cparse(File *f) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
-%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA
+%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
@@ -591,7 +531,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
-%type <node>     new_directive pragma_directive rename_directive typemap_directive ;
+%type <node>     new_directive pragma_directive rename_directive feature_directive typemap_directive ;
 %type <node>     types_directive template_directive ;
 
 /* C declarations */
@@ -629,7 +569,7 @@ Node *Swig_cparse(File *f) {
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
-%type <str>      idcolon idcolontail;
+%type <str>      idcolon idcolontail stringbrace stringbracesemi;
 %type <id>       string;
 %type <tmplstr>  template_parms;
 %type <ivalue>   cpp_vend;
@@ -700,6 +640,7 @@ swig_directive : addmethods_directive { $$ = $1; }
                | new_directive { $$ = $1; }
                | pragma_directive { $$ = $1; }
                | rename_directive { $$ = $1; }
+               | feature_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
@@ -1072,12 +1013,12 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		    }
 		    $$ = 0;
               }
-              | rename_namewarn LPAREN idstring RPAREN declarator initializer SEMI {
+              | rename_namewarn LPAREN idstring RPAREN declarator cpp_const SEMI {
 		SwigType *t = $5.type;
 		if (!Len(t)) t = 0;
 		/* Special declarator check */
 		if (t) {
-		  if ($6.qualifier) SwigType_push(t,$6.qualifier);
+		  if ($6) SwigType_push(t,$6);
 		  if (SwigType_isfunction(t)) {
 		    SwigType *decl = SwigType_pop_function(t);
 		    if (SwigType_ispointer(t)) {
@@ -1129,6 +1070,49 @@ rename_namewarn : RENAME {
                 | NAMEWARN {
                     $$ = 0;
                 };
+
+
+/* ------------------------------------------------------------
+   %feature(featurename) name { ... }
+   %feature(featurename) name "..." 
+   ------------------------------------------------------------ */
+
+feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
+                 String *fname;
+                 Hash *n;
+                 String *val;
+		 SwigType *t;
+                 if (!features_hash) features_hash = NewHash();
+		 fname = NewStringf("feature:%s",$3);
+		 val = NewString($7);
+		 t = $5.type;
+		 if (!Len(t)) t = 0;
+		 if (t) {
+		   if ($6) SwigType_push(t,$6);
+		   if (SwigType_isfunction(t)) {
+		     SwigType *decl = SwigType_pop_function(t);
+		     if (SwigType_ispointer(t)) {
+		       String *nname = NewStringf("*%s",$5.id);
+		       Swig_feature_set(features_hash, nname, decl, fname, val);
+		       Delete(nname);
+		     } else {
+		       Swig_feature_set(features_hash, $5.id, decl, fname, val);
+		     }
+		   } else if (SwigType_ispointer(t)) {
+		     String *nname = NewStringf("*%s",$5.id);
+		     Swig_feature_set(features_hash,nname,0,fname,val);
+		     Delete(nname);
+		   }
+		 } else {
+		   Swig_feature_set(features_hash,$5.id,0,fname,val);
+		 }
+		 Delete(fname);
+		 $$ = 0;
+              }
+              ;
+
+stringbracesemi : stringbrace { $$ = $1; }
+                | SEMI { $$ = ""; }
  
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -1137,34 +1121,7 @@ rename_namewarn : RENAME {
    %typemap(method) type1,type2,... = type;    - typemap copy
    ------------------------------------------------------------ */
 
-typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
-                   Parm *p;
-                   skip_balanced('{','}');
-		   $$ = 0;
-		   if ($3.op) {
-		     $$ = new_node("typemap");
-		     Setattr($$,"method",$3.op);
-		     Setattr($$,"code",NewString(scanner_ccode));
-		     if ($3.kwargs) {
-		       Setattr($$,"kwargs", $3.kwargs);
-		     }
-		     appendChild($$,$5);
-		     /*
-		     p = $5;
-		     while (p) {
-		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Getattr(p,"type"));
-		       Setattr(n,"multitype",Getattr(p,"multitype"));
-		       Setattr(n,"name",Getattr(p,"name"));
-		       Setattr(n,"parms",Getattr(p,"parms"));
-		       appendChild($$,n);
-		       p = nextSibling(p);
-		     }
-		     */
-                   }
-	       }
-
-               | TYPEMAP LPAREN typemap_type RPAREN tm_list string {
+typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   Parm *p;
 		   $$ = 0;
 		   if ($3.op) {
@@ -1175,21 +1132,8 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		       Setattr($$,"kwargs", $3.kwargs);
 		     }
 		     appendChild($$,$5);
-		     /*
-		     p = $5;
-		     while (p) {
-		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Getattr(p,"type"));
-		       Setattr(n,"multitype",Getattr(p,"multitype"));
-		       Setattr(n,"name",Getattr(p,"name"));
-		       Setattr(n,"parms",Getattr(p,"parms"));
-		       appendChild($$,n);
-                       p = nextSibling(p);
-		     }
-		     */
 		   }
 	       }
-
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
 		 Parm *p;
 		 $$ = 0;
@@ -1197,15 +1141,6 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   $$ = new_node("typemap");
 		   Setattr($$,"method",$3.op);
 		   appendChild($$,$5);
-		   /*		   p = $5;
-		   while (p) {
-		     Node *n = new_node("typemapitem");
-		     Setattr(n,"type",Getattr(p,"type"));
-		     Setattr(n,"multitype",Getattr(p,"multitype"));
-		     Setattr(n,"name",Getattr(p,"name"));
-		     appendChild($$,n);
-		     p = nextSibling(p);
-		     }*/
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
@@ -1216,17 +1151,6 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     Setattr($$,"method",$3.op);
 		     Setattr($$,"pattern", Getattr($7,"pattern"));
 		     appendChild($$,$5);
-		     /*
-		     p = $5;
-		     while (p) {
-		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type", Getattr(p,"type"));
-		       Setattr(n,"multitype",Getattr(p,"multitype"));
-		       Setattr(n,"name", Getattr(p,"name"));
-		       appendChild($$,n);
-		       p = nextSibling(p);
-		     }
-		     */
 		   }
 	       }
                ;
@@ -3014,6 +2938,15 @@ string         : string STRING {
                | STRING { $$ = $1;}
                ; 
 
+stringbrace    : string {
+		 $$ = $1;
+               }
+               | LBRACE {
+                  skip_balanced('{','}');
+		  $$ = NewString(scanner_ccode);
+               }
+               ;
+ 
 /* Keyword arguments */
 kwargs         : idstring EQUAL string {
 		 $$ = NewHash();

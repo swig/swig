@@ -1213,6 +1213,7 @@ int yylex(void) {
 	  if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
 	  if (strcmp(yytext,"%inline") == 0) return(INLINE);
 	  if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
+	  if (strcmp(yytext,"%feature") == 0) return(FEATURE);
 	  if (strcmp(yytext,"%except") == 0) return(EXCEPT);
 	  if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
 	  if (strcmp(yytext,"%echo") == 0) return(ECHO);
