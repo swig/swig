@@ -52,6 +52,7 @@
 <li><a href="#n35">"memberin" typemap</a>
 <li><a href="#n36">"varin" typemap</a>
 <li><a href="#n37">"varout" typemap</a>
+<li><a href="#n371">"throws" typemap</a>
 </ul>
 <li><a href="#n38">Some typemap examples</a>
 <ul>
@@ -1874,6 +1875,45 @@ purposes of assigning to a C/C++ global variable.    This is implementation spec
 The "varout" typemap is used to convert a C/C++ object to an object in the target
 language when reading a C/C++ global variable.  This is implementation specific.
 
+<a name="throws_typemap"></a>
+<a name="n371"></a><H3>8.5.13 "throws" typemap</H3>
+
+The "throws" typemap is only used when SWIG parses a C++ method with an exception specification.
+It provides a default mechanism for handling C++ methods that have declared the exceptions it will throw.
+The purpose of this typemap is to convert a C++ exception into an error or exception in the target language.
+It is slightly different to the other typemaps as it is based around the exception type rather than the type of a parameter or variable.
+For example:
+
+<blockquote>
+<pre>
+%typemap(throws) const char * %{
+  PyErr_SetString(PyExc_RuntimeError, $1);
+  SWIG_fail;
+%}
+void bar() throw (const char *);
+</pre>
+</blockquote>
+
+As can be seen from the generated code below, SWIG generates an exception handler
+with the catch block comprising the "throws" typemap content.
+
+<blockquote>
+<pre>
+...
+try {
+    bar();
+}
+catch(char const *_e) {
+    PyErr_SetString(PyExc_RuntimeError, _e);
+    SWIG_fail;
+    
+}
+...
+</pre>
+</blockquote>
+
+Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
+For a neat way to handle these, see the <a href="Customization.html#exception">Exception handling with %exception</a> section.
 
 <a name="n38"></a><H2>8.6 Some typemap examples</H2>
 
@@ -2395,8 +2435,14 @@ ordering (and perform conversions if needed).
 
 <a name="n42"></a><H2>8.8 The run-time type checker</H2>
 
+The run-time type checker is used by many, but not all, of SWIG's supported target languages.
+The run-time type checker features
+are not required and are thus not used for strongly typed languages such as Java and C#.
+The scripting and scheme based languages rely on it and it forms
+a critical part of SWIG's operation for these languages.
 
-A critical part of SWIG's operation is that of its run-time type checker.  
+<p/>
+
 When pointers, arrays, and objects are wrapped by SWIG, they are normally converted
 into typed pointer objects.  For example, an instance of <tt>Foo *</tt> might be
 a string encoded like this:
@@ -2976,7 +3022,7 @@ in a tremendous amount of code bloat.  For example, consider this typemap for an
 
 If you had a large interface with hundreds of functions all accepting
 array parameters, this typemap would be replicated
-repeatedly--generating a huge amount of huge.  A better approach might
+repeatedly--generating a huge amount of code.  A better approach might
 be to consolidate some of the typemap into a function.  For example:
 
 <blockquote>
@@ -3063,9 +3109,11 @@ default behavior using typemaps.  These are found in files such as
 forth.  The <tt>typemaps.i</tt> file in the library also contains
 numerous examples.   You should look at these files to get a feel
 for how to define typemaps of your own.
+Some of the language modules support additional typemaps and further
+information is available in the individual chapters for each target language.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : June 1 , 2003</address>
+<address>SWIG 1.3 - Last Modified : July 2 , 2004</address>
 </body>
 </html>
