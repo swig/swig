@@ -17,8 +17,8 @@
 
 static String *module = 0;
 static String *cap_module = 0;
-static String *f_vinit = 0;
 static String *f_cinit = 0;
+static String *f_init = 0;
 static String *f_entry = 0;
 
 static FILE	*f_h = 0;
@@ -28,8 +28,8 @@ static int	gen_extra = 1;
 
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
-static File       *f_init = 0;
 static File       *f_runtime = 0;
+static File	  *f_vinit = 0;
 
 static int make_method = PHP_IZE;
 
@@ -85,7 +85,7 @@ PHP4::main(int argc, char *argv[]) {
 	Preprocessor_define((void *) "SWIGPHP4", 0);
 	SWIG_typemap_lang("php4");
 	/* DB: Suggest using a language configuration file */
-	/* SWIG_config_file("php4.swg"); */
+	SWIG_config_file("php4.swg");
 }
 
 
@@ -111,6 +111,9 @@ static const char *php_header = "/*\
 int
 PHP4::top(Node *n) {
 
+  FILE *f_m4, *f_credits, *f_make;
+  char filen[256];
+
   /* Initialize all of the output files */
   String *outfile = Getattr(n,"outfile");
   
@@ -122,42 +125,23 @@ PHP4::top(Node *n) {
   f_init = NewString("");
   f_header = NewString("");
   f_wrappers = NewString("");
+  f_vinit = NewString("");
   
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("header",f_header);
   Swig_register_filebyname("wrapper",f_wrappers);
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
-
-  f_vinit = NewString("");
+  Swig_register_filebyname("vinit",f_vinit);
 
   Swig_banner(f_runtime);
-
-  /* DB: Suggest using a php4.swg configuration file instead.  Uncomment the SWIG_config_file() call above.
-     Then in php4.swg.  Do this:
-
-         %runtime "common.swg"
-         %runtime "php4run.swg"
-   
-     (copy the contents of php4.swg to php4run.swg)
-  */
-  if(Swig_insert_file("common.swg", f_runtime) == -1) {
-    Printf(stderr, "SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit(EXIT_FAILURE);
-  }
-  if(Swig_insert_file("php4.swg", f_runtime) == -1) {
-    Printf(stderr, "SWIG : Fatal error. Unable to locate 'php4.swg' in SWIG library.\n");
-    SWIG_exit(EXIT_FAILURE);
-  }
 
   /* Set the module name */
   module = Copy(Getattr(n,"name"));
   cap_module = NewStringf("%(upper)s",module);
 
-
   /* Initialize the rest of the module */
 
-  char filen[256];
 
   f_cinit = NewString("");
 
@@ -222,44 +206,52 @@ PHP4::top(Node *n) {
 		  "}\n", 0);
 
 
+  Printf(f_init,"#ifdef COMPILE_DL_%s\n", cap_module);
+  Printf(f_init,"\tZEND_GET_MODULE(%s)\n", module);
+  Printf(f_init,"#endif\n\n");
+
+  Printf(f_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
+  Printf(f_init,"\treturn SUCCESS;\n");
+  Printf(f_init, "}\n");
+
+  Printf(f_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
+  Printf(f_init,"\treturn SUCCESS;\n");
+  Printf(f_init,"}\n");
+
+  Printf(f_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
+  Printf(f_init, "%s\n", f_cinit);
+  Printf(f_init, "%s\n", f_vinit);
+
   /* Emit all of the code */
   Language::top(n);
 
-  /* Done. Close the language module */
+  /* Complete header file */
 
-	FILE *f_m4, *f_credits, *f_make;
+  Printf(f_h,"/*If you declare any globals in php_%s.h uncomment this:\n", module);
+  Printf(f_h,"ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
+  Printf(f_h,"ZEND_END_MODULE_GLOBALS(%s)\n", module);
+  Printf(f_h,"*/\n");
 
-	/* Complete header file */
+  Printf(f_h,"#ifdef ZTS\n");
+  Printf(f_h,"#define %s_D  zend_%s_globals *%s_globals\n", cap_module, module, module);
+  Printf(f_h,"#define %s_DC  , %s_D\n",  cap_module, cap_module);
+  Printf(f_h,"#define %s_C  %s_globals\n", cap_module, module);
+  Printf(f_h,"#define %s_CC  , %s_C\n", cap_module, cap_module);
+  Printf(f_h,"#define %s_SG(v)  (%s_globals->v)\n", cap_module, module);
+  Printf(f_h,"#define %s_FETCH()  zend_%s_globals *%s_globals = ts_resource(%s_globals_id)\n", cap_module, module, module, module);
+  Printf(f_h,"#else\n");
+  Printf(f_h,"#define %s_D\n", cap_module);  
+  Printf(f_h,"#define %s_DC\n", cap_module);
+  Printf(f_h,"#define %s_C\n", cap_module);
+  Printf(f_h,"#define %s_CC\n", cap_module);
+  Printf(f_h,"#define %s_SG(v)  (%s_globals.v)\n", cap_module, module);
+  Printf(f_h,"#define %s_FETCH()\n", cap_module);
+  Printf(f_h,"#endif\n\n");
 
-  	Printf(f_h,"/*If you declare any globals in php_%s.h uncomment this:\n", module);
-  	Printf(f_h,"ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
-  	Printf(f_h,"ZEND_END_MODULE_GLOBALS(%s)\n", module);
- 	Printf(f_h,"*/\n");
-
-	Printf(f_h,"#ifdef ZTS\n");
-	Printf(f_h,"#define %s_D  zend_%s_globals *%s_globals\n", cap_module, module, module);
-	Printf(f_h,"#define %s_DC  , %s_D\n",  cap_module, cap_module);
-	Printf(f_h,"#define %s_C  %s_globals\n", cap_module, module);
-	Printf(f_h,"#define %s_CC  , %s_C\n", cap_module, cap_module);
-	Printf(f_h,"#define %s_SG(v)  (%s_globals->v)\n", cap_module, module);
-	Printf(f_h,"#define %s_FETCH()  zend_%s_globals *%s_globals = ts_resource(%s_globals_id)\n", cap_module, module, module, module);
-	Printf(f_h,"#else\n");
-	Printf(f_h,"#define %s_D\n", cap_module);  
-	Printf(f_h,"#define %s_DC\n", cap_module);
-	Printf(f_h,"#define %s_C\n", cap_module);
-	Printf(f_h,"#define %s_CC\n", cap_module);
-	Printf(f_h,"#define %s_SG(v)  (%s_globals.v)\n", cap_module, module);
-	Printf(f_h,"#define %s_FETCH()\n", cap_module);
-	Printf(f_h,"#endif\n\n");
-
-	Printf(f_h,"#endif /* PHP_%s_H */\n", cap_module);
+  Printf(f_h,"#endif /* PHP_%s_H */\n", cap_module);
 	
-	fclose(f_h);
+  fclose(f_h);
 
-  	String *type_table = NewString("");
-  	SwigType_emit_type_table(f_runtime,type_table);
-  	Printf(f_runtime,"%s",type_table);
-  	Delete(type_table);
 
 	/* Now finish structures in wrapper file */
 
@@ -277,23 +269,11 @@ PHP4::top(Node *n) {
 	Printf(f_header,"\tSTANDARD_MODULE_PROPERTIES\n");
 	Printf(f_header,"};\n\n");
 
+  	String *type_table = NewString("");
+  	SwigType_emit_type_table(f_runtime,type_table);
+  	Printf(f_runtime,"%s",type_table);
+  	Delete(type_table);
 
-	Printf(f_init,"#ifdef COMPILE_DL_%s\n", cap_module);
-	Printf(f_init,"\tZEND_GET_MODULE(%s)\n", module);
-	Printf(f_init,"#endif\n\n");
-
-
-	Printf(f_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
-	Printf(f_init,"\treturn SUCCESS;\n");
-	Printf(f_init, "}\n");
-
-	Printf(f_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
-	Printf(f_init,"\treturn SUCCESS;\n");
-	Printf(f_init,"}\n");
-
-  	Printf(f_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
-	Printf(f_init, "%s\n", f_cinit);
-	Printf(f_init, "%s\n", f_vinit);
 	Printf(f_init, "return SUCCESS;\n");
 	Printf(f_init,"}\n");
 
