@@ -14,7 +14,7 @@
 <li> <a href="#n8">The gory details of shadow classes</a>
 <li> <a href="#n9">Java pragmas</a>
 <li> <a href="#n10">Dynamic linking problems</a>
-<li> <a href="#n11">Tips</a>
+<li> <a href="#n11">Using your own JNI methods</a>
 <li> <a href="#n12">Known bugs</a>
 </ul>
 
@@ -1521,7 +1521,7 @@ struct Globals {
 // Alternative way to wrap global functions into a structure
 %addmethods Globals { static Vector sub2(Vector a, Vector b) { return global_subv(a, b); }
 </pre></blockquote>
-The dummy class consists entirely of static member functions. Note the two different ways that global_subv can be wrapped into Globals. Access to the global function <tt>global_subv</tt> is then much neater:
+The dummy class consists entirely of static member functions. Note that <i>static</I> takes on the C++ meaning of static even when used in C code. Also take note of the two different ways that <tt>global_subv</tt> can be wrapped into <tt>Globals</tt>. Access to the global function <tt>global_subv</tt> is then much neater:
 
 <blockquote><pre>
 Vector a = new Vector();
@@ -1940,11 +1940,32 @@ Ensure that you are using the correct C/C++ compiler and linker combination and 
 <br><br>
 Linking problems used to occur when there were underscores in the module name or package name. This was fixed in SWIG 1.3.7.
 
-<a name="n11"></a><h2>Tips</h2>
+<a name="n11"></a><h2>Using your own JNI methods</h2>
 
-<ul>
-The %native directive can be used to mix hand written JNI functions with the auto generated functions.
-</ul>
+Perhaps you have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions? This can be accomplished using the <tt>%native</tt> directive or the <tt>%ignore</tt> directive depending on what you want. <p>
+
+If you don't want SWIG to wrap your JNI function as you have written the Java native function declaration in addition to the JNI function, simply use the <tt>%ignore</tt> directive. <p>
+        
+Alternatively you may want SWIG to help out and do some work by using the <tt>%native</tt> directive, for example:
+
+<blockquote><pre>
+%typemap (jtype) SomeCType "SomeJavaClass";
+%native (HandRolledJavaName) int HandRolledCName(long, char*, SomeCType);
+%{
+JNIEXPORT jint JNICALL
+Java_modulename_HandRolled ( JNIEnv *jenv, jclass jcls, jint net, jstring path, jobject SomeJavaClass)
+{
+/* implementation */
+}
+</pre></blockquote>
+
+No C/C++ code will be generated and the <tt>Java_modulename_HandRolled</tt> function will be unmodified and accessible using the SWIG generated Java native function call which will look something like this:
+
+<blockquote><pre>
+  public final static native int HandRolledJavaName(int jarg1, String jarg2, SomeJavaClass jarg3);
+</pre></blockquote>
+
+What is happening here is the <tt>%native</tt> directive is telling SWIG to generate the module Java native method declaration, but not the JNI C code for a (possibly non-existent) C function called <tt>HandRolledCName</tt>. To accomplish this SWIG needs to be told about the mapping of (possibly non-existent) C types to Java types, either using the built in mapping (char* -&gt; String) or the supplied one using the jtype typemap (SomeCType -&gt; SomeJavaClass). This is only really useful if you want to mix your own JNI code and the SWIG generated code into one C/C++ file or mix your own JNI function calls into a SWIG generated Java class.
 
 <a name="n12"></a><h2>Known bugs</h2>
 <ul>
