@@ -661,6 +661,7 @@ check_id(DOH *s)
       break;
     case 1:
       if ((c == 'L') || (c == 'U') || (c == 'F') || (c == 'l') || (c == 'u')) state = 2;
+      else if ((c == 'x') || (c == 'X')) state = 1;
       else if (isidentifier(c)) return 1;
       else if (!isdigit(c)) state = 0;
       break;
