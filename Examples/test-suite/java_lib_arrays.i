@@ -9,3 +9,11 @@ JAVA_ARRAYSOFCLASSES(SimpleStruct)
 
 %include "arrays.i"
 
+// This will test the %typemap(javacode) in the JAVA_ARRAYSOFCLASSES works with C structs amongst other things
+JAVA_ARRAYSOFCLASSES(struct AnotherStruct)
+%inline %{
+struct AnotherStruct {
+	SimpleStruct  simple;
+};
+%}
+
