@@ -543,13 +543,21 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   DOH    *rn = 0;
   Hash   *n;
   char   *ncdecl = 0;
-  
+  SwigType *rname = 0;
   if (!features) return;
 
   if ((decl) && (SwigType_isqualifier(decl))) {
     ncdecl = strchr(Char(decl),'.');
     ncdecl++;
   }
+  
+  /* very specific hack for template constructors/destructors */
+  if (name && SwigType_istemplate(name) &&
+      ((Strcmp(nodeType(node),"constructor") == 0)
+	|| (Strcmp(nodeType(node),"destructor") == 0))) {
+    rname = SwigType_templateprefix(name);
+    name = rname;
+  }  
 
   if (name) {
     /* Perform a class-based lookup (if class prefix supplied) */
@@ -619,6 +627,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
   rn = get_object(n,0);
   merge_features(rn,node);
 
+  Delete(rname);
 }
 
 
