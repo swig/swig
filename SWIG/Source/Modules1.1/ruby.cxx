@@ -88,11 +88,20 @@ class RClass {
 };
 
 
+#ifdef RUBY_SUPPORTS_KEYWORD_ARGS
+static const char *
+usage = "\
+Ruby Options (available with -ruby)\n\
+     -ldflags        - Print runtime libraries to link with\n\
+     -feature name   - Set feature name (used by `require')\n\
+     -keyword        - Use keyword arguments\n";
+#else
 static const char *
 usage = "\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -feature name   - Set feature name (used by `require')\n";
+#endif
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
@@ -112,6 +121,7 @@ private:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  bool use_kw;
 
   // Wrap modes
   enum {
@@ -146,6 +156,7 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
+    use_kw = false;
   }
   
   /* ---------------------------------------------------------------------
@@ -174,9 +185,12 @@ public:
 	  }
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  Printf(stderr,"%s\n", usage);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
+	} else if (strcmp (argv[i],"-ldflags") == 0) {
 	  printf("%s\n", SWIG_RUBY_RUNTIME);
 	  SWIG_exit (EXIT_SUCCESS);
+	} else if (strcmp(argv[i],"-keyword") == 0) {
+	  use_kw = true;
+	  Swig_mark_arg(i);
 	}
       }
     }
@@ -493,7 +507,7 @@ public:
    * the function wrapper.
    * --------------------------------------------------------------------- */
   
-  void marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f) {
+  void marshalInputArgs(ParmList *l, int numarg, int numreq, int start, String *kwargs, bool allow_kwargs, Wrapper *f) {
     int i;
     Parm *p;
     String *tm;
@@ -502,13 +516,16 @@ public:
     int use_self = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
     int varargs = emit_isvarargs(l);
 
+    Printf(kwargs,"{ ");
     for (i = 0, p = l; i < numarg; i++) {
+
       /* Skip ignored arguments */
       while (checkAttribute(p,"tmap:in:numinputs","0")) {
 	p = Getattr(p,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
+      String   *pn = Getattr(p,"name");
       String   *ln = Getattr(p,"lname");
 
       /* Produce string representation of source and target arguments */
@@ -523,7 +540,15 @@ public:
       if (i >= (numreq)) { /* Check if parsing an optional argument */
 	Printf(f->code,"    if (argc > %d) {\n", i -  start);
       }
+      
+      /* Record argument name for keyword argument handling */
+      if (Len(pn)) {
+        Printf(kwargs,"\"%s\",", pn);
+      } else {
+	Printf(kwargs,"\"arg%d\",", i+1);
+      }
 
+      /* Look for an input typemap */
       if ((tm = Getattr(p,"tmap:in"))) {
 	Replaceall(tm,"$target",ln);
 	Replaceall(tm,"$source",source);
@@ -540,6 +565,13 @@ public:
 	Printf(f->code,"}\n");
       }
     }
+    
+    /* Finish argument marshalling */
+    Printf(kwargs," NULL }");
+    if (allow_kwargs) {
+      Printv(f->locals, tab4, "char *kwnames[] = ", kwargs, ";\n", NIL);
+    }
+    
     /* Trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p,"tmap:in"))) {
@@ -686,6 +718,7 @@ public:
 
     String *cleanup = NewString("");
     String *outarg = NewString("");
+    String *kwargs = NewString("");
     Wrapper *f = NewWrapper();
 
     /* Rename predicate methods */
@@ -711,9 +744,10 @@ public:
     Setattr(n, "wrap:parms", l);
 
     /* Get number of arguments */
-    int numarg = emit_num_arguments(l);
-    int numreq = emit_num_required(l);
-    int varargs = emit_isvarargs(l);
+    int  numarg = emit_num_arguments(l);
+    int  numreq = emit_num_required(l);
+    int  varargs = emit_isvarargs(l);
+    bool allow_kwargs = use_kw || Getattr(n,"feature:kwargs");
 
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
@@ -732,7 +766,7 @@ public:
     /* Now walk the function parameter list and generate code */
     /* to get arguments */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      marshalInputArgs(l, numarg, numreq, start, f);
+      marshalInputArgs(l, numarg, numreq, start, kwargs, allow_kwargs, f);
     }
 
     /* Insert constraint checking code */
@@ -844,6 +878,7 @@ public:
       }
     }
     
+    Delete(kwargs);
     Delete(cleanup);
     Delete(outarg);
     DelWrapper(f);
