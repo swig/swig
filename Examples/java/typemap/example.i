@@ -82,3 +82,4 @@ void f2(char *BYTE);
 
 /* apply the new typemap to our function */
 void f3(char *SBUF);
+
