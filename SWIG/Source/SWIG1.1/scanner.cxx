@@ -296,7 +296,7 @@ void skip_brace(void) {
   Putc('{',CCode);
   while (num_brace > last_brace) {
     if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
+      Printf(stderr,"%s:%d. Missing '}'. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -327,7 +327,7 @@ void skip_template(void) {
   int  num_lt = 1;
   while (num_lt > 0) {
     if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s : Line %d.  Missing '>'. Reached end of input.\n",
+      Printf(stderr,"%s:%d. Missing '>'. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -356,7 +356,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s : Line %d.  Missing semicolon. Reached end of input.\n",
+      Printf(stderr,"%s:%d. Missing semicolon. Reached end of input.\n",
 	      input_file, line_number);
       FatalError();
       return;
@@ -372,7 +372,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	Printf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
+	Printf(stderr,"%s:%d. Missing '}'. Reached end of input.\n",
 		input_file, line_number);
 	FatalError();
 	return;
@@ -526,7 +526,7 @@ int yylook(void) {
 	  else if (c == '}') {
 	    num_brace--;
 	    if (num_brace < 0) {
-	      Printf(stderr,"%s : Line %d. Error. Extraneous '}' (Ignored)\n",
+	      Printf(stderr,"%s:%d. Error. Extraneous '}' (Ignored)\n",
 		      input_file, line_number);
 	      state = 0;
 	      num_brace = 0;
@@ -688,7 +688,11 @@ int yylook(void) {
 	    Clear(header);
 	    start_line = line_number;
 	  } else if ((isalpha(c)) || (c == '_')) state = 7;
-	  else {
+	  else if (c == '}') {
+	    Printf(stderr,"%s:%d. Misplaced %%}.\n", input_file, line_number);
+	    FatalError();
+	    return 0;
+	  } else {
 	    retract(1);
 	    state = 99;
 	  }
@@ -918,7 +922,7 @@ int yylook(void) {
 
 	default:
 	  if (!Error) {
-	    Printf(stderr,"%s : Line %d ::Illegal character '%c'=%d.\n",input_file, line_number,c,c);
+	    Printf(stderr,"%s:%d. Illegal character '%c'=%d.\n",input_file, line_number,c,c);
 	    FatalError();
 	  }
 	  state = 0;
