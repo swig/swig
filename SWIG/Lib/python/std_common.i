@@ -8,6 +8,15 @@
 //
 //#define SWIG_STD_NOMODERN_STL
 
+// Here, we identify compilers we now have problems with STL.
+%{
+  
+#if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
+#define SWIG_STD_NOASSIGN_STL
+#endif
+
+%}
+
 //
 // Define or uncomment the following macro to instantiate by default
 // all the basic std typemaps (std::pair<T,U>, std::vector<T>, etc)
