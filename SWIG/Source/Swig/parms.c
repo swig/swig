@@ -46,6 +46,7 @@ Parm *CopyParm(Parm *p) {
   char     *lname;
   char     *value;
   int       ignore;
+  char     *alttype;
 
   Parm *np = NewHash();
   t = Getattr(p,"type");
@@ -53,6 +54,7 @@ Parm *CopyParm(Parm *p) {
   lname = GetChar(p,"lname");
   value = GetChar(p,"value");
   ignore = GetInt(p,"ignore");
+  alttype = GetChar(p,"alttype");
 
   if (t) 
     Setattr(np,"type",Copy(t));
@@ -64,6 +66,9 @@ Parm *CopyParm(Parm *p) {
     Setattr(np,"value", value);
   if (ignore)
     SetInt(np,"ignore", ignore);
+  if (alttype) 
+    Setattr(np,"alttype", alttype);
+      
   return np;
 }
 

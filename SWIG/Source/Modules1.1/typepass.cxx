@@ -380,6 +380,7 @@ public:
      * ------------------------------------------------------------ */ 
 
     virtual int cDeclaration(Node *n) {
+
 	/* Search for var args */
 	if (Getattr(n,"feature:varargs")) {
 	    ParmList *v = Getattr(n,"feature:varargs");
