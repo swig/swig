@@ -2209,54 +2209,57 @@ Language::classLookup(SwigType *s) {
 
   /* Look in hash of cached values */
   n = Getattr(classtypes,s);
-  if (n) return n;
+  if (!n) {
 
-  lt = SwigType_ltype(s);
-  ty1 = SwigType_typedef_resolve_all(lt);
-  ty2 = SwigType_strip_qualifiers(ty1);
-  Delete(lt);
-  Delete(ty1);
+    lt = SwigType_ltype(s);
+    ty1 = SwigType_typedef_resolve_all(lt);
+    ty2 = SwigType_strip_qualifiers(ty1);
+    Delete(lt);
+    Delete(ty1);
 
-  base = SwigType_base(ty2);
+    base = SwigType_base(ty2);
 
-  Replaceall(base,"class ","");
-  Replaceall(base,"struct ","");
-  Replaceall(base,"union ","");
+    Replaceall(base,"class ","");
+    Replaceall(base,"struct ","");
+    Replaceall(base,"union ","");
 
-  prefix = SwigType_prefix(ty2);
+    prefix = SwigType_prefix(ty2);
 
-  while (!n) {
-    Hash *nstab;
-    n = Swig_symbol_clookup(base,stab);
-    if (!n) break;
-    if (Strcmp(nodeType(n),"class") == 0) break;
-    n = parentNode(n);
-    if (!n) break;
-    nstab = Getattr(n,"sym:symtab");
-    n = 0;
-    if ((!nstab) || (nstab == stab)) {
-      break;
-    }
-    stab = nstab;
-  }
-  /* Do a symbol table search on the base type */
-  /*    n = Swig_symbol_clookup(base,0); */
-  if (n) {
-    /* Found a match.  Look at the prefix.  We only allow
-       a few cases: pointers, references, and simple */
-    if ((Len(prefix) == 0) ||               /* Simple type */
-	(Strcmp(prefix,"p.") == 0) ||       /* pointer     */ 
-	(Strcmp(prefix,"r.") == 0)) {       /* reference   */
-      Setattr(classtypes,Copy(s),n);
-    } else {
+    /* Do a symbol table search on the base type */
+    while (!n) {
+      Hash *nstab;
+      n = Swig_symbol_clookup(base,stab);
+      if (!n) break;
+      if (Strcmp(nodeType(n),"class") == 0) break;
+      n = parentNode(n);
+      if (!n) break;
+      nstab = Getattr(n,"sym:symtab");
       n = 0;
+      if ((!nstab) || (nstab == stab)) {
+        break;
+      }
+      stab = nstab;
     }
-  }
-  Delete(ty2);
-  Delete(base);
-  Delete(prefix);
+    if (n) {
+      /* Found a match.  Look at the prefix.  We only allow
+         a few cases: pointers, references, and simple */
+      if ((Len(prefix) == 0) ||               /* Simple type */
+          (Strcmp(prefix,"p.") == 0) ||       /* pointer     */ 
+          (Strcmp(prefix,"r.") == 0)) {       /* reference   */
+        Setattr(classtypes,Copy(s),n);
+      } else {
+        n = 0;
+      }
+    }
+    Delete(ty2);
+    Delete(base);
+    Delete(prefix);
 
-  if (n && (Getattr(n,"feature:ignore"))) return 0;
+  }
+  if (n && (Getattr(n,"feature:ignore"))) {
+      n = 0;
+  }
+
   return n; 
 }
 
