@@ -430,8 +430,7 @@ AC_SUBST(PYLINK)
 
 PERLBIN=nope
 
-AC_ARG_WITH(perl5,[  --with-perl5=path       Set location of Perl5 executable],[
-	PERLBIN="$withval"], [PERLBIN=nope])
+AC_ARG_WITH(perl5,[  --with-perl5=path       Set location of Perl5 executable],[ PERLBIN="$withval"], [PERLBIN=nope])
 
 # First figure out what the name of Perl5 is
 
@@ -467,6 +466,61 @@ if test "$PERL" != nope; then
     fi
 
 AC_SUBST(PERL5EXT)
+
+#----------------------------------------------------------------
+# Look for java
+#----------------------------------------------------------------
+
+AC_ARG_WITH(java, [  --with-java=path        Set location of java executable],[JAVABIN="$withval"], [JAVABIN=nope])
+AC_ARG_WITH(javac, [  --with-javac=path        	Set location of javac executable],[JAVACBIN="$withval"], [JAVACBIN=nope])
+
+if test "$JAVABIN" = nope ; then
+  AC_CHECK_PROGS(JAVA, java kaffe guavac, nope)
+else
+  JAVA="$JAVABIN"
+fi
+
+if test "$JAVACBIN" = nope ; then
+  AC_CHECK_PROGS(JAVAC, javac, nope)
+else
+  JAVAC="$JAVACBIN"
+fi
+
+AC_MSG_CHECKING(for java include file jni.h)
+AC_ARG_WITH(java, [  --with-java-include=path	Set location of java include files], [JAVAINCDIR="$withval"], [JAVAINCDIR=nope])
+
+if test "$JAVAINCDIR" = nope; then
+  dirs="/usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe"
+  for d in $dirs ; do
+    if test -r $d/jni.h ; then
+      AC_MSG_RESULT($d)
+      JAVAINCDIR=$d
+      JAVAINC="-I$d"
+      break
+    fi
+  done
+fi
+
+if test "$JAVAINCDIR" = nope ; then
+  AC_MSG_RESULT(not found)
+else
+  # now look for <arch>/md.h
+  AC_MSG_CHECKING(for java include file md.h)
+  JAVAMDDIR=`find $JAVAINCDIR -name md.h -print`
+  if test "$JAVAMDDIR" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+    JAVAMDDIR=`dirname $JAVAMDDIR`
+    JAVAINC="${JAVAINC} -I$JAVAMDDIR"
+    AC_MSG_RESULT($JAVAMDDIR)
+  fi
+fi
+
+AC_SUBST(JAVA)
+AC_SUBST(JAVAC)
+AC_SUBST(JAVAINC)
+
+AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
 #----------------------------------------------------------------
 # Look for Guile

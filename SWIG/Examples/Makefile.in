@@ -232,6 +232,34 @@ python_static_cpp: $(SRCS)
 
 
 ##################################################################
+#####                       JAVA                            ######
+##################################################################
+
+# You need to set this variable to the java directories containing the
+# files "jni.h" and "md.h"
+# usually something like /usr/java/include and /usr/java/include/<arch-osname>.
+
+JAVA_INCLUDE= @JAVAINC@
+
+# ----------------------------------------------------------------
+# Build a java dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+java: $(SRCS)
+	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE) 
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a java dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+java_cpp: $(SRCS)
+	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE) 
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+##################################################################
 #####                       SWIG                            ######
 ##################################################################
 
