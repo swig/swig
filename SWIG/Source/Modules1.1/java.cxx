@@ -287,6 +287,7 @@ char *JAVA::JavaTypeFromTypemap(char *op, SwigType *t, String_or_char *pname, St
   char *tm;
   char *c = bigbuf;
   if(!(tms = Swig_typemap_lookup(op, t, pname, lname, (char*)"", (char*)"", NULL))) return NULL;
+
   tm = Char(tms);
   while(*tm && (isspace(*tm) || *tm == '{')) tm++;
   while(*tm && *tm != '}') *c++ = *tm++;
@@ -758,6 +759,7 @@ int JAVA::functionWrapper(Node *n) {
       if (tm) {
         Printf(f->code,"%s\n", tm);
         Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
+	Replaceall(f->code,"$input",source);
 	Delete(tm);
       } else {
         switch(SwigType_type(pt)) {
@@ -864,6 +866,7 @@ int JAVA::functionWrapper(Node *n) {
       // Yep.  Use it instead of the default
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
+      Replace(outarg,"$result",target,DOH_REPLACE_ANY);
       Delete(tm);
     } else {
         switch(SwigType_type(pt)) {
@@ -928,6 +931,7 @@ int JAVA::functionWrapper(Node *n) {
 
   if((SwigType_type(t) != T_VOID) && !native_func) {
     if ((tm = Swig_typemap_lookup((char*)"out",t,iname,(char*)"result",(char*)"result",(char*)"jresult",NULL))) {
+      Replaceall(tm,"$result","jresult");
       Printf(f->code,"%s\n", tm);
       Delete(tm);
     } else {

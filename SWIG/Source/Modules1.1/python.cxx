@@ -175,15 +175,16 @@ PYTHON::top(Node *n) {
   Printf(methods,"\t { NULL, NULL }\n");
   Printf(methods,"};\n");
   Printf(f_wrappers,"%s\n",methods);
-  Printf(f_wrappers,"#ifdef __cplusplus\n");
-  Printf(f_wrappers,"}\n");
-  Printf(f_wrappers,"#endif\n");
 
   SwigType_emit_type_table(f_runtime,f_wrappers);
 
   Printf(const_code, "{0}};\n");
   Printf(f_wrappers,"%s\n",const_code);
   Printf(f_init,"}\n");
+
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"}\n");
+  Printf(f_wrappers,"#endif\n");
 
   if (shadow) {
     Printv(f_shadow, f_shadow_stubs, "\n",0);
@@ -575,7 +576,7 @@ PYTHON::constantWrapper(Node *n) {
   /* Special hook for member pointer */
   if (SwigType_type(type) == T_MPOINTER) {
     String *wname = Swig_name_wrapper(iname);
-    Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
+    Printf(f_header, "static %s = %s;\n", SwigType_str(type,wname), value);
     value = Char(wname);
   }
   if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {

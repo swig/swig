@@ -267,7 +267,12 @@ GUILE::top(Node *n)
   Language::top(n);
   
   /* Close module */
+
+  Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+
   SwigType_emit_type_table (f_runtime, f_wrappers);
+
+  Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
 
   Printf (f_init, "SWIG_Guile_RegisterTypes(swig_types, swig_types_initial);\n");
   Printf (f_init, "}\n\n");

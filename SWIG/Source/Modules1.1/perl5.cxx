@@ -277,6 +277,8 @@ PERL5::top(Node *n) {
 	 "}\n",
 	 0);
 
+  Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+
   /* emit wrappers */
   Language::top(n);
 
@@ -313,6 +315,8 @@ PERL5::top(Node *n) {
   Printf(constant_tab,"{0}\n};\n");
   Printv(f_wrappers,constant_tab,0);
 
+  Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
+
   /*  Printf(stdout,"::: Perl shadow :::\n\n%s",classes); */
 
   Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
@@ -325,6 +329,7 @@ PERL5::top(Node *n) {
 
   Printf(command_tab,"{0,0}\n};\n");
   Printv(f_wrappers,command_tab,0);
+
 
   Printf(f_pm,"package %s;\n", package);
 

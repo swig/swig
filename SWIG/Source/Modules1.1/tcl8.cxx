@@ -151,6 +151,8 @@ TCL8::top(Node *n) {
   Printf(var_tab,   "\nstatic swig_var_info swig_variables[] = {\n");
   Printf(const_tab, "\nstatic swig_const_info swig_constants[] = {\n");
 
+  Printf(f_wrappers,"#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+
   /* Start emitting code */
   Language::top(n);
 
@@ -163,6 +165,8 @@ TCL8::top(Node *n) {
 
   /* Dump the pointer equivalency table */
   SwigType_emit_type_table(f_runtime, f_wrappers);
+
+  Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
 
   /* Close the init function and quit */
   Printf(f_init,"return TCL_OK;\n}\n");
@@ -442,7 +446,7 @@ TCL8::variableWrapper(Node *n) {
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
       Printf(ro->def, "static const char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
-      Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", 0);
+      Printv(ro->code, "return (char*) \"Variable is read-only\";\n", "}\n", 0);
       Wrapper_print(ro,f_wrappers);
       readonlywrap = 1;
       DelWrapper(ro);
