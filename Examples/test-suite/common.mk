@@ -285,6 +285,7 @@ C_TEST_CASES += \
 	ret_by_value \
 	sizeof_pointer \
 	sneaky1 \
+	struct_rename \
 	typemap_subst \
 	unions
 
