@@ -112,6 +112,7 @@ Swig_typemap_register(char *op, SwigType *type, String_or_char *pname, String_or
   }
   Setattr(tm2,"code",NewString(code));
   Setattr(tm2,"type",NewString(type));
+  Setattr(tm2,"typemap",NewStringf("typemap(%s) %s", op, SwigType_str(type,pname)));
   if (pname) {
     Setattr(tm2,"pname", NewString(pname));
   }
@@ -436,6 +437,10 @@ char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, Strin
   /* Now perform character replacements */
   Replace(s,"$source",source,DOH_REPLACE_ANY);
   Replace(s,"$target",target,DOH_REPLACE_ANY);
+  {
+    String *tmname = Getattr(tm,"typemap");
+    if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
+  }
   Replace(s,"$type",SwigType_str(type,0),DOH_REPLACE_ANY);
   {
     SwigType *ltype = Swig_clocal_type(type);
