@@ -367,6 +367,8 @@ void add_symbols_copy(Node *n) {
   String *name;
   String *symname;
   int    oldmode = cplus_mode;
+  int    emode = 0;
+
   while (n) {
     add_oldname = Getattr(n,"sym:name");
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
@@ -383,7 +385,15 @@ void add_symbols_copy(Node *n) {
 	Swig_symbol_newscope();
 	Swig_symbol_setscopename(name);
       }
+      if (Strcmp(nodeType(n),"extend") == 0) {
+	emode = cplus_mode;
+	cplus_mode = CPLUS_PUBLIC;
+      }
       add_symbols_copy(firstChild(n));
+      if (Strcmp(nodeType(n),"extend") == 0) {
+	cplus_mode = emode;
+      }
+
       if (Getattr(n,"requires_symtab")) {
 	Setattr(n,"symtab", Swig_symbol_popscope());
 	Delattr(n,"requires_symtab");
@@ -393,7 +403,14 @@ void add_symbols_copy(Node *n) {
       }
       add_oldname = 0;
     } else {
-	add_symbols_copy(firstChild(n));
+      if (Strcmp(nodeType(n),"extend") == 0) {
+	emode = cplus_mode;
+	cplus_mode = CPLUS_PUBLIC;
+      }
+      add_symbols_copy(firstChild(n));
+      if (Strcmp(nodeType(n),"extend") == 0) {
+	cplus_mode = emode;
+      }
     }
     if (Strcmp(nodeType(n),"access") == 0) {
       String *kind = Getattr(n,"kind");

@@ -45,7 +45,13 @@ class Browser : public Dispatcher {
 	  (Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
 	/* Do nothing */
       } else if (Cmp(k,"parms") == 0) {
-	Printf(os,"<a href=\"data.html?n=0x%x\">?</a> %-12s - %s\n", Getattr(obj,k), k, ParmList_protostr(Getattr(obj,k)));
+	String *o = NewString("");
+	Printf(o,"%s", ParmList_protostr(Getattr(obj,k)));
+	Replaceall(o,"&","&amp;");
+	Replaceall(o,"<","&lt;");
+	Replaceall(o,">","&gt;");
+	Printf(os,"<a href=\"data.html?n=0x%x\">?</a> %-12s - %s\n", Getattr(obj,k), k, o);
+	Delete(o);
       } else {
 	DOH *o;
 	char *trunc = "";
@@ -54,6 +60,7 @@ class Browser : public Dispatcher {
 	  if (Len(o) > 70) {
 	    trunc = "...";
 	  }
+	  Replaceall(o,"&","&amp;");
 	  Replaceall(o,"<","&lt;");
 	  Printf(os,"<a href=\"data.html?n=0x%x\">?</a> %-12s - \"%(escape)-0.70s%s\"\n", Getattr(obj,k), k, o, trunc);
 	  Delete(o);

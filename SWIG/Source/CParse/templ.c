@@ -94,9 +94,20 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     }
   } else if (Strcmp(nodeType(n),"constructor") == 0) {
     String *name = Getattr(n,"name");
-    if (!Getattr(n,"templatetype")) {
-      if (Strstr(tname,name)) {
-	Replaceid(name,name,tname);
+    if (!(Getattr(n,"templatetype"))) {
+      String *symname;
+      String *stripped_name = SwigType_templateprefix(name);
+      if (Strstr(tname,stripped_name)) {
+	Replaceid(name,stripped_name,tname);
+      }
+      Delete(stripped_name);
+      symname = Getattr(n,"sym:name");
+      if (symname) {
+	stripped_name = SwigType_templateprefix(symname);
+	if (Strstr(tname,stripped_name)) {
+	  Replaceid(symname,stripped_name,tname);
+	}
+	Delete(stripped_name);
       }
       if (Strstr(name,"<")) {
 	Append(patchlist,Getattr(n,"name"));
@@ -166,6 +177,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   patchlist = NewList();
   cpatchlist = NewList();
   typelist = NewList();
+  String *tbase;
 
   {
     String *tmp = NewString("");
@@ -175,6 +187,8 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   }
 
   tname = Copy(Getattr(n,"name"));
+  tbase = Swig_scopename_base(tname);
+
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
 
   /* Set the name */
@@ -231,7 +245,9 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist,i);
 	Replace(s,name,value, DOH_REPLACE_ID);
-	SwigType_typename_replace(s,tname,iname);
+	/*	Printf(stdout,"s='%s' tname = '%s', iname = '%s'\n", s, tname,iname); */
+	SwigType_typename_replace(s,tbase,iname);
+
       }
       if (!tydef) {
 	tydef = value;
@@ -257,6 +273,8 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   Delete(patchlist);
   Delete(cpatchlist);
   Delete(typelist);
+  Delete(tbase);
+
   /*  set_nodeType(n,"template");*/
   return 0;
 }

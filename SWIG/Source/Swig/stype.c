@@ -687,6 +687,7 @@ int SwigType_issimple(SwigType *t) {
 	if (*c == '>') nest--;
 	c++;
       }
+      c--;
     }
     if (*c == '.') return 0;
     c++;
@@ -1461,7 +1462,7 @@ String *SwigType_manglestr(SwigType *s) {
 /* -----------------------------------------------------------------------------
  * SwigType_typename_replace()
  *
- * Replaces a typename in a type with something else.  Needed for templates
+ * Replaces a typename in a type with something else.  Needed for templates.
  * ----------------------------------------------------------------------------- */
 
 void
@@ -1483,20 +1484,40 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     String *e = Getitem(elem,i);
     if (SwigType_issimple(e)) {
       if (Strcmp(e,pat) == 0) {
-	/* Broken for templates */
+	/* Replaces a type of the form 'pat' with 'rep<args>' */
 	Replace(e,pat,rep,DOH_REPLACE_ANY);
       } else if (SwigType_istemplate(e)) {
-
+         /* Replaces a type of the form 'pat<args>' with 'rep' */
+	if (Strncmp(e,pat,Len(pat)) == 0) {
+	  String *repbase = SwigType_templateprefix(rep);
+	  Replace(e,pat,repbase,DOH_REPLACE_ID | DOH_REPLACE_FIRST);
+	  Delete(repbase);
+	} 
+	{
+	  List *tparms = SwigType_parmlist(e);
+	  int j;
+	  String *nt = SwigType_templateprefix(e);
+	  Printf(nt,"<(");
+	  for (j = 0; j < Len(tparms); j++) {
+	    SwigType_typename_replace(Getitem(tparms,j), pat, rep);
+	    Printf(nt,"%s",Getitem(tparms,j));
+	    if (j < (Len(tparms)-1)) Printf(nt,",");
+	  }
+	  Printf(nt,")>%s", SwigType_templatesuffix(e));
+	  Clear(e);
+	  Append(e,nt);
+	  Delete(nt);
+	}
       }
     } else if (SwigType_isfunction(e)) {
       int j;
-      List *parms = SwigType_parmlist(e);
+      List *fparms = SwigType_parmlist(e);
       Clear(e);
       Printf(e,"f(");
-      for (j = 0; j < Len(parms); j++) {
-	SwigType_typename_replace(Getitem(parms,j), pat, rep);
-	Printf(e,"%s",Getitem(parms,j));
-	if (j < (Len(parms)-1)) Printf(e,",");
+      for (j = 0; j < Len(fparms); j++) {
+	SwigType_typename_replace(Getitem(fparms,j), pat, rep);
+	Printf(e,"%s",Getitem(fparms,j));
+	if (j < (Len(fparms)-1)) Printf(e,",");
       }
       Printf(e,").");
     }
