@@ -17,9 +17,36 @@ tree (maybe).
 Version 1.3.11 (Work in progress)
 =================================
 
+01/25/2002: cheetah (william fulton)
+           [Java] Overhaul of the Java module. The C code generation is now 
+           done from typemaps.
+
+01/24/2002: cheetah (william fulton)
+           [Java] Support for arrays of enum pointers
+
+01/20/2002: cheetah (william fulton)
+           [Java] Error checking for null Java objects being passed to native 
+           functions.  Exception thrown now whereas before the JVM crashed.
+
+01/18/2002: cheetah (william fulton)
+           [Java] Corrected behaviour for functions that take arrays. For 
+           example, when this c function: 
+
+           void arrayfn(int array[]);
+           
+           is wrapped the corresponding native function
+
+           public final static native void arrayfn(int[] array);
+
+           is produced. Previously if the C function made any changes to the 
+           array elements, these were not reflected back into the Java array. 
+           This has now been corrected so that the changes are propogated back
+           to Java and the calling function will see these changes. This is 
+           how pure Java functions work, ie arrays are passed by reference.
+
 01/15/2002:mkoeppe
-	   [Guile] New file cplusplus.i with C++ typemaps contributed
-	   by Marcio Luis Teixeira <marciot@holly.colostate.edu>.
+           [Guile] New file cplusplus.i with C++ typemaps contributed
+           by Marcio Luis Teixeira <marciot@holly.colostate.edu>.
 
 01/11/2002: cheetah (william fulton)
            [Java] Changed mapping of C long to Java type. Was mapped to Java
@@ -117,6 +144,8 @@ Version 1.3.11 (Work in progress)
 
 12/28/2001: cheetah (william fulton)
            [Java] Multi typemaps now working for Java see multimap example.
+           [Java] Fix for recently introduced bug - freearg typemap code was appearing
+           before the function call.
 
 12/28/2001: cheetah (william fulton)
            [Java] JCALL macro for JNI calls that work in both C and C++ typemaps
