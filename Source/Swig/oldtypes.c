@@ -235,30 +235,6 @@ char *DataType_print_full(DataType *t) {
 }
 
 /* --------------------------------------------------------------------
- * char *print_real()
- *
- * Prints real type, with qualifiers and arrays if necessary.
- * -------------------------------------------------------------------- */
-char *DataType_print_real(DataType *t, char *local) {
-  static char  result[8][256];
-  static int    ri = 0;
-  int           oldstatus;
-
-  oldstatus = t->status;
-  t->status = t->status & (~STAT_REPLACETYPE);
-  ri = ri % 8;
-  if (t->_arraystr) t->is_pointer--;
-  strcpy(result[ri], DataType_print_full(t));
-  if (local) strcat(result[ri],local);
-  if (t->_arraystr) {
-    strcat(result[ri],t->_arraystr);
-    t->is_pointer++;
-  }
-  t->status = oldstatus;
-  return result[ri++];
-}
-
-/* --------------------------------------------------------------------
  * char *print_cast()
  *
  * Prints a cast.  (Basically just a type but with parens added).
@@ -375,6 +351,40 @@ char *DataType_print_mangle(DataType *t) {
 
 void DataType_set_mangle(char *(*m)(DataType *t)) {
   mangler = m;
+}
+
+/* -----------------------------------------------------------------------------
+ * char *DataType_str()
+ *
+ * Produces an exact string representation of the datatype along with an optional
+ * variable name.
+ * ----------------------------------------------------------------------------- */
+
+char *DataType_str(DataType *t, char *name) {
+  static char  result[8][256];
+  static int    ri = 0;
+  int i;
+
+  ri = ri % 8;
+  if (t->_arraystr) t->is_pointer--;
+  if (t->is_reference) t->is_pointer--;
+  if (t->_qualifier) {
+    sprintf(result[ri],"%s %s", t->_qualifier, t->name);
+  } else {
+    sprintf(result[ri],"%s ", t->name);
+  }
+
+  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++) {
+    strcat(result[ri],"*");
+  }
+  if (t->is_reference) strcat(result[ri],"&");
+  if (name) strcat(result[ri],name);
+  if (t->_arraystr) {
+    strcat(result[ri],t->_arraystr);
+    t->is_pointer++;
+  }
+  if (t->is_reference) t->is_pointer++;
+  return result[ri++];
 }
 
 /* --------------------------------------------------------------------
