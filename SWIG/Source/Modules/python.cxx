@@ -88,7 +88,7 @@ public:
   
 
     /* Turn on safe value wrapper use mode */
-    Swig_value_wrapper_mode(1);
+    /* Swig_value_wrapper_mode(1); */
 
     /* Turn on template extmode */
     Wrapper_template_extmode_set(1);
