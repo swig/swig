@@ -2,6 +2,7 @@ This directory contains examples for CHICKEN.
 
 class       -- illustrates the shadow-class C++ interface
 constants   -- handling #define and %constant literals
+egg         -- examples of building chicken extension libraries
 multimap    -- typemaps with multiple sub-types
 overload    -- C++ function overloading
 simple      -- the simple example from the user manual

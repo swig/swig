@@ -1,4 +1,4 @@
-(declare (hide swig-initialize swig-initialize-return))
+(declare (hide swig-initialize swig-init-return))
 
 (define (swig-initialize obj initargs create)
      (slot-set! obj 'swig-this

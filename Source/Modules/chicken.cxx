@@ -56,27 +56,34 @@ static String        *swigtype_ptr = 0;
 static  String       *f_sym_size = 0;
 static  String       *closcode = 0;
 
+/* some options */
+static int           declare_unit = 1;
+static int           no_collection = 0;
+
 /* C++ Support + Clos Classes */
 static int           clos = 0;
 static  String       *class_name  = 0;
 static  String       *short_class_name  = 0;
-static  String       *clos_class_methods = 0;
+
+/* sections of the clos code */
+static  String       *clos_class_defines = 0;
+static  String       *clos_methods = 0;
+
 static  int          in_class = 0;
 static  int          have_constructor = 0;
-static  String       *constructor_name = 0;
 static  bool         exporting_destructor = false;
+static  String       *constructor_name = 0;
+static String        *memberfunction_name = 0;
+
 static int           useclassprefix = 0;
 static String        *closprefix = 0;
-static String        *memberfunction_name = 0;
 static  int          hide_primitive = 1;
 static Hash          *primitive_names = 0;
-static int           declare_unit = 1;
-static int           no_collection = 0;
 
+/* Used for overloading constructors */
 static int           has_constructor_args = 0;
 static List          *constructor_arg_types = 0;
 static String        *constructor_dispatch = 0;
-static String        *constructor_dispatch_func = 0;
 
 static Hash          *overload_parameter_lists = 0;
 
@@ -88,7 +95,6 @@ public:
   virtual int  functionWrapper(Node *n); 
   virtual int  variableWrapper(Node *n);
   virtual int  constantWrapper(Node *n);
-  virtual int  classDeclaration(Node *n);
   virtual int  classHandler(Node *n);
   virtual int  memberfunctionHandler(Node *n);
   virtual int  membervariableHandler(Node *n);
@@ -229,6 +235,8 @@ CHICKEN::top(Node *n)
   Swig_register_filebyname("closprefix", closhelpers);
     
   closcode = NewString("");
+  clos_class_defines = NewString("");
+  clos_methods = NewString("");
 
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner(f_runtime);
@@ -290,6 +298,8 @@ CHICKEN::top(Node *n)
     Replaceall(closhelpers,"$module", scmmodule);
     Printf (f_scm, "%s\n", closhelpers);
     Printf (f_scm, "%s\n", closcode);
+    Printf (f_scm, "%s\n", clos_class_defines);
+    Printf (f_scm, "%s\n", clos_methods);
   }
 
   Printf(f_scm, "%s\n", chickentext);
@@ -312,6 +322,10 @@ CHICKEN::top(Node *n)
   Delete(chickentext);
   Delete(closhelpers);
   Delete(overload_parameter_lists);
+
+  Delete(closcode);
+  Delete(clos_class_defines);
+  Delete(clos_methods);
 
   /* Close all of the files */
   Delete(primitive_names);
@@ -449,10 +463,11 @@ CHICKEN::functionWrapper(Node *n)
               if (i < num_required) {
                   if (strcmp("void", Char(pt)) != 0) {
                       Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), checkNodeClass);
-                      String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
-                      if (closclassname) {
-                          Append(function_arg_types, closclassname);
+                      if (class_node) {
+			  String *class_name = NewStringf("<%s>", Getattr(class_node, "sym:name"));
+                          Append(function_arg_types, class_name);
                           any_specialized_arg = true;
+                          Delete(class_name);
                       } else {
                           Append(function_arg_types, "^^##primitive$$");
                       }
@@ -625,11 +640,7 @@ CHICKEN::functionWrapper(Node *n)
                                                      1);
           Delete(fmt);
         }
-        if (in_class) {
-            Printv(clos_class_methods, method_def, NIL);
-        } else {
-            Printv(closcode, method_def, NIL);
-        }
+        Printv(clos_methods, method_def, NIL);
         Delete(clos_name);
         Delete(method_def);
     }
@@ -645,28 +656,8 @@ CHICKEN::functionWrapper(Node *n)
       flist = NewList();
       Setattr(overload_parameter_lists, scmname, flist);
     }
-    /* remove all primitive arguments from the end of the list */
-    List *nlst = NewList();
-    List *plst = NewList();
-    Iterator i;
-    for (i = First(function_arg_types); i.item; i = Next(i)) {
-      if (Strcmp(i.item, "^^##optional$$") == 0) {
-        /* skip it */
-      } else if (Strcmp(i.item, "^^##primitive$$") == 0) {
-        Append(plst, i.item);
-      } else {
-        /* append plst onto nlst */
-        Iterator j;
-        for (j = First(plst); j.item; j = Next(j)) {
-          Append(nlst, j.item);
-        }
-        Delete(plst);
-        plst = NewList();
-        Append(nlst, i.item);
-      }
-    }
-    Delete(plst);
-    Append(flist, nlst);
+
+    Append(flist, Copy(function_arg_types));
 
     if (!Getattr(n,"sym:nextSibling")) {
       dispatchFunction(n);
@@ -810,7 +801,7 @@ CHICKEN::variableWrapper(Node *n)  {
         String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
         String *clos_name = chickenNameMapping(scmname, (char *)"");
         /* Simply re-export the procedure */
-        Printv(closcode, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+        Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
         Delete(class_name);
         Delete(clos_name);
     }
@@ -975,7 +966,7 @@ CHICKEN::constantWrapper(Node *n)
 
     if (!in_class) {
       String *clos_name = chickenNameMapping(scmname, (char *)"");
-      Printv(closcode, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+      Printv(clos_methods, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
       Delete(clos_name);
     }
 
@@ -999,20 +990,11 @@ CHICKEN::constantWrapper(Node *n)
 }
 
 int
-CHICKEN::classDeclaration(Node *n)
-{
-  String *class_name = NewStringf("<%s>", Getattr(n, "sym:name"));
-  Setattr(n, "chicken:closclassname", class_name);
-  return Language::classDeclaration(n);
-}
-
-int
 CHICKEN::classHandler(Node *n)
 {
   /* Create new strings for building up a wrapper function */
   have_constructor = 0;
   constructor_dispatch = 0;
-  constructor_dispatch_func = 0;
   constructor_name = 0;
       
   class_name = NewString("");
@@ -1043,17 +1025,17 @@ CHICKEN::classHandler(Node *n)
     String *scmmod = NewString(module);
     Replaceall(scmmod, "_", "-");
 
-    Printv(closcode,"(define ", class_name, "\n",
+    Printv(clos_class_defines,"(define ", class_name, "\n",
                     "  (make <swig-metaclass-", scmmod, "> 'name '", class_name, "\n", NIL);
     Delete(scmmod);
 
     if (Len(base_class) > 2) {
-      Printv(closcode,"    'direct-supers (list ", base_class, ")\n", NIL);
+      Printv(clos_class_defines,"    'direct-supers (list ", base_class, ")\n", NIL);
     } else {
-      Printv(closcode,"    'direct-supers (list <object>)\n", NIL);
+      Printv(clos_class_defines,"    'direct-supers (list <object>)\n", NIL);
     }
 
-    Printf(closcode, "    'direct-slots (list 'swig-this\n");
+    Printf(clos_class_defines, "    'direct-slots (list 'swig-this\n");
 
     String *mangled_classname = Swig_name_mangle(Getattr(n, "sym:name"));
 
@@ -1066,22 +1048,15 @@ CHICKEN::classHandler(Node *n)
     SwigType_remember(ct);
 
   /* Emit all of the members */
-  clos_class_methods = NewString("");
 
   in_class = 1;
   Language::classHandler(n);
   in_class = 0;
 
-  Printf(closcode, ")))\n");
-
-  if (constructor_dispatch_func) {
-    Printf(closcode, "%s", constructor_dispatch_func);
-    Delete(constructor_dispatch_func);
-    constructor_dispatch_func = 0;
-  }
+  Printf(clos_class_defines, ")))\n\n");
 
   if (have_constructor) {
-      Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
+      Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs ", NIL);
       if (constructor_arg_types) {
@@ -1089,31 +1064,27 @@ CHICKEN::classHandler(Node *n)
                                                   "(lambda (%s) %s)",
                                                   chickenPrimitiveName(constructor_name),
                                                   0);
-        Printf(closcode, "%s", func_call);
+        Printf(clos_methods, "%s", func_call);
         Delete(func_call);
         Delete(constructor_arg_types);
         constructor_arg_types = 0;
       } else if (constructor_dispatch) {
-        Printf(closcode, "%s", constructor_dispatch);
+        Printf(clos_methods, "%s", constructor_dispatch);
         Delete(constructor_dispatch);
         constructor_dispatch = 0;
       } else {
-        Printf(closcode, "%s", chickenPrimitiveName(constructor_name));
+        Printf(clos_methods, "%s", chickenPrimitiveName(constructor_name));
       }
-      Printf(closcode, ")\n)\n");
+      Printf(clos_methods, ")\n)\n");
       Delete(constructor_name);
       constructor_name = 0;
   } else {
-      Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
+      Printv(clos_methods, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs (lambda x #f)))\n",
 		       NIL);
   }
 
-  Printf(closcode, "%s\n", clos_class_methods);
-  Delete(clos_class_methods);
-  clos_class_methods = 0;
-  
   /* export class initialization function */
   if (clos) {
       String *funcname = NewString(mangled_classname);
@@ -1132,7 +1103,7 @@ CHICKEN::classHandler(Node *n)
                          "}\n", NIL);
       addMethod(closfuncname, funcname);
 
-      Printv(closcode, "(", chickenPrimitiveName(closfuncname), " (lambda (x) (make ", class_name, " 'swig-this x)))\n", NIL);
+      Printv(clos_methods, "(", chickenPrimitiveName(closfuncname), " (lambda (x) (make ", class_name, " 'swig-this x)))\n\n", NIL);
 
       Delete(closfuncname);
       Delete(funcname);
@@ -1173,7 +1144,7 @@ CHICKEN::staticmemberfunctionHandler(Node *n)
     String *proc = NewString(iname);
     Replaceall(proc, "_", "-");
 
-    memberfunction_name = chickenNameMapping(proc, short_class_name);
+    memberfunction_name = NewStringf("%s-%s", short_class_name, proc);
     Language::staticmemberfunctionHandler(n);
     Delete(memberfunction_name);
     memberfunction_name = NULL;
@@ -1194,21 +1165,20 @@ CHICKEN::membervariableHandler(Node *n)
   Replaceall(proc,"_","-");
 
   Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
-  String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
 
   String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
   String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
 
-  Printv(closcode,"        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
+  Printv(clos_class_defines,"        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
 
   if (!Getattr(n,"feature:immutable")) {
-      if (closclassname) {
-          Printv(closcode, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))))\n", NIL);
+      if (class_node) {
+          Printv(clos_class_defines, " ':swig-set (lambda (x y) (", chickenPrimitiveName(setfunc), " x (slot-ref y 'swig-this))))\n", NIL);
       } else {
-          Printv(closcode, " ':swig-set ", chickenPrimitiveName(setfunc), ")\n", NIL);
+          Printv(clos_class_defines, " ':swig-set ", chickenPrimitiveName(setfunc), ")\n", NIL);
       }
   } else {
-      Printf(closcode, ")\n");
+      Printf(clos_class_defines, ")\n");
   }
 
   Delete(proc);
@@ -1229,15 +1199,14 @@ CHICKEN::staticmembervariableHandler(Node *n)
   String *closprocname = chickenNameMapping(proc, short_class_name);
 
   Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
-  String *closclassname = (class_node == NULL) ? NULL : Getattr(class_node, "chicken:closclassname");
 
   String *primfunc = NewStringf("%s-%s", short_class_name, proc);
 
-  if (closclassname) {
-    Printv(clos_class_methods, "(define (", closprocname, " . lst) (if (null? lst) (", chickenPrimitiveName(primfunc), ") (",
+  if (class_node) {
+    Printv(clos_methods, "(define (", closprocname, " . lst) (if (null? lst) (", chickenPrimitiveName(primfunc), ") (",
 	             chickenPrimitiveName(primfunc), " (slot-ref (car lst) 'swig-this))))\n", NIL);
   } else {
-    Printv(clos_class_methods, "(define ", closprocname, " ", chickenPrimitiveName(primfunc), ")\n", NIL);
+    Printv(clos_methods, "(define ", closprocname, " ", chickenPrimitiveName(primfunc), ")\n", NIL);
   }
 
   Delete(closprocname);
@@ -1298,14 +1267,21 @@ String *CHICKEN::buildClosFunctionCall(List *types, char *format, String_or_char
   Iterator arg_type;
   int arg_count = 0;
   int optional_arguments = 0;
+  int first_argument = 1;
 
   for (arg_type = First(types); arg_type.item; arg_type = Next(arg_type)) {
     if (Strcmp(arg_type.item, "^^##optional$$") == 0) {
       optional_arguments = 1;
     } else if (Strcmp(arg_type.item, "^^##primitive$$") == 0) {
-      Printf(method_signature, " arg%i", arg_count);
+      if (first_argument)
+        Printf(method_signature, " (arg%i <top>)", arg_count);
+      else
+        Printf(method_signature, " arg%i", arg_count);
+
       Printf(func_args, " arg%i", arg_count);
+      first_argument = 0;
     } else {
+      first_argument = 0;
       if (method_specialize) {
         Printf(method_signature, " (arg%i %s)", arg_count, arg_type.item);
       } else {
@@ -1447,7 +1423,7 @@ CHICKEN::dispatchFunction(Node *n)
           constructor_dispatch = NewStringf("%s@SWIG@new@dispatch", short_class_name);
           clos_name = Copy(constructor_dispatch);
           construct = 1;
-          constructor_dispatch_func = NewStringf("(declare (hide %s))\n", clos_name);
+          Printf(clos_methods, "(declare (hide %s))\n", clos_name);
       } else if (in_class)
           clos_name = NewString(memberfunction_name);
       else
@@ -1455,51 +1431,54 @@ CHICKEN::dispatchFunction(Node *n)
       
       Iterator f;
       List *prev = 0;
-      int has_all_prim = 0;
+      int has_empty_call = 0;
+      int all_primitive = 1;
+
+      /* first check for duplicates and an empty call */
+      String *method_name = NewString(clos_name);
+      String *newlist = NewList();
       for (f = First(flist); f.item; f = Next(f)) {
         /* check if cur is a duplicate of prev */
         if (prev && compareTypeLists(f.item, prev) == 0) {
           Delete(f.item);
-          continue;
-        }
-        if (Len(f.item) == 0) {
-          has_all_prim = 1;
+        } else if (Len(f.item) == 0) {
+          has_empty_call = 1;
+          Delete(method_name);
+          method_name = NewStringf("%s@SWIG@multireal", clos_name);
           Delete(f.item);
-          continue;
+        } else {
+          Append(newlist, f.item);
+          prev = f.item;
+          Iterator j;
+          for (j = First(f.item); j.item; j = Next(j)) {
+            if (Strcmp(j.item, "^^##optional$$") != 0 && Strcmp(j.item, "^^##primitive$$") != 0)
+              all_primitive = 0;
+          }
         }
-        /* now export clos code for argument */
-        List *n = NewList();
-        n = Copy(f.item);
-        Push(n, "^^##optional$$");
-        String *fmt = NewStringf("(define-method (%s %%s) %%s)\n", clos_name);
-        String *func_call = buildClosFunctionCall(n, Char(fmt), chickenPrimitiveName(scmname), 1);
-
-        if (construct)
-          Printf(constructor_dispatch_func, "%s", func_call);
-        else if (in_class)
-          Printf(clos_class_methods, "%s", func_call);
-        else
-          Printf(closcode, "%s", func_call);
-
-        Delete(func_call);
-        Delete(n);
-
-        Delete(prev);
-        prev = f.item;
       }
-      if (prev) Delete(prev);
+      Delete(flist);
+      flist = newlist;
       
-      if (has_all_prim) {
-        String *func_call = NewStringf("(define-method (%s . args) (apply %s args))\n", clos_name, chickenPrimitiveName(scmname));
-        if (construct)
-          Printf(constructor_dispatch_func, "%s", func_call);
-        else if (in_class)
-          Printf(clos_class_methods, "%s", func_call);
-        else
-          Printf(closcode, "%s", func_call);
-        Delete(func_call);
+      if (all_primitive) {
+        Printf(clos_methods, "(define %s %s)\n", method_name, chickenPrimitiveName(scmname));
+      } else {
+        for (f = First(flist); f.item; f = Next(f)) {
+          /* now export clos code for argument */
+          String *fmt = NewStringf("(define-method (%s %%s) %%s)\n", method_name);
+          String *func_call = buildClosFunctionCall(f.item, Char(fmt), chickenPrimitiveName(scmname), 1);
+          Printf(clos_methods, "%s", func_call);
+          Delete(f.item);
+          Delete(func_call);
+        }
+      
+        if (has_empty_call) {
+            Printf(clos_methods, "(declare (hide %s))\n", method_name);
+            Printf(clos_methods, "(define (%s . args) (if (null? args) (%s) (apply %s@SWIG@multireal args)))\n",
+                                 clos_name, chickenPrimitiveName(scmname), clos_name);
+        }
       }
 
+      Delete(method_name);
       Delete(clos_name);
       Delete(flist);
     }

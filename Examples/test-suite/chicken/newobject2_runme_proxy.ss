@@ -1,9 +1,9 @@
 (load-library 'newobject2 "newobject2.so")
 
-(define f (new-Foo))
+(define f (make <Foo>))
 
-(Foo-dummy-set f 14)
-(if (not (= (Foo-dummy-get f) 14))
+(slot-set! f 'dummy 14)
+(if (not (= (slot-ref f 'dummy) 14))
   (error "Bad dummy value"))
 
 (if (not (= (fooCount) 0))
@@ -14,8 +14,8 @@
 (if (not (= (fooCount) 1))
   (error "Bad foo count 2"))
 
-(Foo-dummy-set f2 16)
-(if (not (= (Foo-dummy-get f2) 16))
+(slot-set! f2 'dummy 16)
+(if (not (= (slot-ref f2 'dummy) 16))
   (error "Bad dummy value for f2"))
 
 (set! f #f)
