@@ -14,34 +14,27 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "internal.h"
+#include "cparse.h"
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
 
-extern "C" {
-  #include "swig.h"
-}
-
 #define  YYBSIZE  8192
 
-struct InFile {
+typedef struct InFile {
   DOHFile *f;
   int     line_number;
   char   *in_file;
-  int     import_mode;
-  int     force_extern;
-  int     inline_mode;
   struct InFile *prev;
-};
+} InFile;
 
 InFile  *in_head;
 
 DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
 static DOHString     *comment = 0;
-DOHString     *CCode = 0;            /* String containing C code */
-static char           *yybuffer = 0;
+DOHString     *scanner_ccode = 0;            /* String containing C code */
+static char          *yybuffer = 0;
 
 static char    yytext[YYBSIZE];
 static int     yylen = 0;
@@ -54,6 +47,27 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 extern  int    Error;
 static  int    last_id = 0;
+
+
+static int       fatal_errors = 0;         
+
+/* Handle an error */
+void cparse_error(String *file, int line, char *fmt, ...) {
+  va_list ap;
+  va_start(ap,fmt);
+  if (line > 0) {
+    Printf(stderr,"%s:%d. ", file, line);
+  } else {
+    Printf(stderr,"%s:EOF ",file);
+  }
+  vPrintf(stderr,fmt,ap);
+  va_end(ap);
+  fatal_errors++;
+}
+
+int CParse_errors(void) {
+  return fatal_errors;
+}
 
 /* ----------------------------------------------------------------------
  * locator()
@@ -83,7 +97,7 @@ scanner_locator(String *loc) {
       input_file = locs->filename;
       line_number = locs->line_number;
       l = locs->next;
-      delete locs;
+      free(locs);
       locs = l;
     }
     /*    Printf(stderr,"location: %s:%d\n",input_file,line_number);*/
@@ -91,42 +105,43 @@ scanner_locator(String *loc) {
   }
 
   /* We're going to push a new location */
-  l = new Locator;
+  l = (Locator *) malloc(sizeof(Locator));
   l->filename = input_file;
   l->line_number = line_number;
   l->next = locs;
   locs = l;
   
   /* Now, parse the new location out of the locator string */
-  
-  String *fn = NewString("");
-  Putc(c,fn);
-  
-  while ((c = Getc(loc)) != EOF) {
-    if ((c == '@') || (c == ',')) break;
+  {
+    String *fn = NewString("");
     Putc(c,fn);
-  }
+    
+    while ((c = Getc(loc)) != EOF) {
+      if ((c == '@') || (c == ',')) break;
+      Putc(c,fn);
+    }
 
-  input_file = Swig_copy_string(Char(fn));
-  Clear(fn);
+    input_file = Swig_copy_string(Char(fn));
+    Clear(fn);
   
-  line_number = 1;
-  /* Get the line number */
-  while ((c = Getc(loc)) != EOF) {
-    if ((c == '@') || (c == ',')) break;
-    Putc(c,fn);
-  }
+    line_number = 1;
+    /* Get the line number */
+    while ((c = Getc(loc)) != EOF) {
+      if ((c == '@') || (c == ',')) break;
+      Putc(c,fn);
+    }
 
-  line_number = atoi(Char(fn));
-  Clear(fn);
+    line_number = atoi(Char(fn));
+    Clear(fn);
 
-  /* Get the rest of it */
-  while (( c= Getc(loc)) != EOF) {
-    if (c == '@') break;
-    Putc(c,fn);
+    /* Get the rest of it */
+    while (( c= Getc(loc)) != EOF) {
+      if (c == '@') break;
+      Putc(c,fn);
+    }
+    /*  Printf(stderr,"location: %s:%d\n",input_file,line_number); */
+    Delete(fn);
   }
-  /*  Printf(stderr,"location: %s:%d\n",input_file,line_number); */
-  Delete(fn);
 }
 
 /**************************************************************
@@ -140,7 +155,7 @@ void scanner_init() {
   scan_init = 1;
   header = NewString("");
   comment = NewString("");
-  CCode = NewString("");
+  scanner_ccode = NewString("");
 }
 
 /**************************************************************
@@ -154,9 +169,6 @@ void scanner_file(DOHFile *f) {
   in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
   in->in_file = input_file;
-  in->import_mode = ImportMode;
-  in->force_extern = ForceExtern;
-  in->inline_mode = 0;
   in->line_number = 1;
   if (!in_head) in->prev = 0;
   else in->prev = in_head;
@@ -174,17 +186,12 @@ void scanner_file(DOHFile *f) {
 void scanner_close() {
   InFile *p;
   if (!in_head) return;
-  if (in_head->inline_mode) {
-    Delete(LEX_in);
-  }
+  Delete(LEX_in);
   p = in_head->prev;
   if (p != 0) {
     LEX_in = p->f;
     line_number = p->line_number;
     input_file = p->in_file;
-    ImportMode = p->import_mode;
-    ForceExtern = p->force_extern;
-    Inline = p->inline_mode;
   } else {
     LEX_in = 0;
   }
@@ -214,7 +221,7 @@ char nextchar() {
     if (!LEX_in) return 0;
     if (yylen >= YYBSIZE) {
       Printf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.cxx.\nReport this to swig-dev@cs.uchicago.edu.\n");
-      SWIG_exit (EXIT_FAILURE);
+      exit (EXIT_FAILURE);
     }
     yytext[yylen] = c;
     yylen++;
@@ -261,14 +268,10 @@ void start_inline(char *text, int line) {
   Seek(in->f,0,SEEK_SET);
   in->in_file = Swig_copy_string(input_file);
   in->line_number = line;
-  in->import_mode = ImportMode;
-  in->force_extern = ForceExtern;
-  in->inline_mode = 1;
   in->prev = in_head;
   in_head = in;
   LEX_in = in->f;
   line_number = line;
-  Inline = 1;
 }
 
 /**************************************************************
@@ -277,7 +280,7 @@ void start_inline(char *text, int line) {
  * Inserts a comment into a documentation entry.
  **************************************************************/
 
-void yycomment(char *, int, int) {
+void yycomment(char *a, int b, int c) {
 }
 
 
@@ -295,17 +298,15 @@ skip_balanced(int startchar, int endchar) {
     int  state = 0;
     char temp[2] = {0,0};
 
-    Clear(CCode);
-    Putc(startchar,CCode);
+    Clear(scanner_ccode);
+    Putc(startchar,scanner_ccode);
     temp[0] = (char) startchar;
     while (num_levels > 0) {
 	if ((c = nextchar()) == 0) {
-	  Printf(stderr,"%s:%d. Missing '%c'. Reached end of input.\n",
-		 input_file, line_number,endchar);
-	  FatalError();
+	  cparse_error(input_file, line_number, "Missing '%c'. Reached end of input.\n", endchar);
 	  return;
 	}
-	Putc(c,CCode);
+	Putc(c,scanner_ccode);
 	switch(state) {
 	case 0:
 	    if (c == startchar) num_levels++;
@@ -353,10 +354,10 @@ skip_balanced(int startchar, int endchar) {
     
     /* Sick hack alert.  We look for type-escapes and replace them here */
     /* might not need.
-    if (strchr(Char(CCode),'`')) {
-      String *ns = Copy(CCode);
-      Clear(CCode);
-      Printf(CCode,"%(typecode)s",ns);
+    if (strchr(Char(scanner_ccode),'`')) {
+      String *ns = Copy(scanner_ccode);
+      Clear(scanner_ccode);
+      Printf(scanner_ccode,"%(typecode)s",ns);
       Delete(ns);
     }
     */
@@ -380,9 +381,7 @@ void skip_decl(void) {
   int  done = 0;
   while (!done) {
     if ((c = nextchar()) == 0) {
-      Printf(stderr,"%s:%d. Missing semicolon. Reached end of input.\n",
-	      input_file, line_number);
-      FatalError();
+      cparse_error(input_file,line_number,"Missing semicolon. Reached end of input.\n");
       return;
     }
     if (c == '{') {
@@ -396,9 +395,7 @@ void skip_decl(void) {
   if (!done) {
     while (num_brace > last_brace) {
       if ((c = nextchar()) == 0) {
-	Printf(stderr,"%s:%d. Missing '}'. Reached end of input.\n",
-		input_file, line_number);
-	FatalError();
+	cparse_error(input_file,line_number,"Missing '}'. Reached end of input.\n");
 	return;
       }
       if (c == '{') num_brace++;
@@ -617,8 +614,7 @@ int yylook(void) {
 	  break;
 	case 10:  /* C++ style comment */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n",input_file);
-	    FatalError();
+	    cparse_error(input_file,-1, "Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '\n') {
@@ -636,8 +632,7 @@ int yylook(void) {
 
 	case 12: /* C style comment block */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
-	    FatalError();
+	    cparse_error(input_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -650,8 +645,7 @@ int yylook(void) {
 	  break;
 	case 13: /* Still in C style comment */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated comment detected.\n", input_file);
-	    FatalError();
+	    cparse_error(input_file,-1,"Unterminated comment detected.\n");
 	    return 0;
 	  }
 	  if (c == '*') {
@@ -682,8 +676,7 @@ int yylook(void) {
 
 	case 2: /* Processing a string */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated string detected.\n", input_file);
-	    FatalError();
+	    cparse_error(input_file,-1, "Unterminated string detected.\n");
 	    return 0;
 	  }
 	  if (c == '\"') {
@@ -715,8 +708,7 @@ int yylook(void) {
 	    start_line = line_number;
 	  } else if ((isalpha(c)) || (c == '_')) state = 7;
 	  else if (c == '}') {
-	    Printf(stderr,"%s:%d. Misplaced %%}.\n", input_file, line_number);
-	    FatalError();
+	    cparse_error(input_file,line_number, "Misplaced %%}.\n");
 	    return 0;
 	  } else {
 	    retract(1);
@@ -726,8 +718,7 @@ int yylook(void) {
 
 	case 40: /* Process an include block */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
-	    FatalError();
+	    cparse_error(input_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  yylen = 0;
@@ -740,8 +731,7 @@ int yylook(void) {
 	  break;
 	case 41: /* Still processing include block */
 	  if ((c = nextchar()) == 0) {
-	    Printf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
-	    FatalError();
+	    cparse_error(input_file,-1, "Unterminated include block detected.\n");
 	    return 0;
 	  }
 	  if (c == '}') {
@@ -965,8 +955,7 @@ int yylook(void) {
 
 	default:
 	  if (!Error) {
-	    Printf(stderr,"%s:%d. Illegal character '%c'=%d.\n",input_file, line_number,c,c);
-	    FatalError();
+	    cparse_error(input_file, line_number, "Illegal character '%c'=%d.\n",c,c);
 	  }
 	  state = 0;
   	  Error = 1;
@@ -992,7 +981,7 @@ void scanner_ignore_typedef() {
  * Gets the lexene and returns tokens.
  *************************************************************/
 
-extern "C" int yylex(void) {
+int yylex(void) {
 
     int   l;
 

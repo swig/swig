@@ -16,22 +16,7 @@
 
 static char cvsroot[] = "$Header$";
 
-/* -----------------------------------------------------------------------------
- * new_create_function()
- * 
- * Create a new function
- * ----------------------------------------------------------------------------- */
-
-void new_create_function(char *name, char *iname, SwigType *type, ParmList *l) {
-  Hash *h;
-  h = NewHash();
-  Setattr(h,"name",name);
-  Setattr(h,"scriptname",iname);
-  Setattr(h,"type",type);
-  Setattr(h,"parms",l);
-  lang->function(h);
-  Delete(h);
-}
+extern Language *lang;
 
 /* -----------------------------------------------------------------------------
  * emit_args()
@@ -43,10 +28,8 @@ void new_create_function(char *name, char *iname, SwigType *type, ParmList *l) {
  * Returns the number of parameters associated with a function.
  * ----------------------------------------------------------------------------- */
 
-int emit_args(DOH *node, Wrapper *f) {
+int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
 
-  SwigType *rt;
-  ParmList *l;
   Parm *p;
   int   i;
   char *tm;
@@ -54,9 +37,6 @@ int emit_args(DOH *node, Wrapper *f) {
   DOHString  *pvalue;
   DOHString  *pname;
   DOHString  *lname;
-
-  rt = Getattr(node,"type");
-  l = Getattr(node,"parms");
 
   /* Emit function arguments */
   Swig_cargs(f, l);
@@ -66,25 +46,27 @@ int emit_args(DOH *node, Wrapper *f) {
   while (p != 0) {
     lname  = Getlname(p);
     pt     = Gettype(p);
-    pname  = Getname(p);
-    pvalue = Getvalue(p);
-
-    tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f,tm,"\n",0);
+    if (SwigType_type(pt) != T_VOID) {
+      pname  = Getname(p);
+      pvalue = Getvalue(p);
+      
+      tm = Swig_typemap_lookup((char*)"arginit",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+      }
+      /* Check for ignore or default typemaps */
+      tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+      }
+      tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
+      if (tm) {
+	Printv(f->code,tm,"\n",0);
+	Setignore(p,1);
+      }
+      i++;
     }
-    /* Check for ignore or default typemaps */
-    tm = Swig_typemap_lookup((char*)"default",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f,tm,"\n",0);
-    }
-    tm = Swig_typemap_lookup((char*)"ignore",pt,pname,(char*)"",lname,f);
-    if (tm) {
-      Printv(f,tm,"\n",0);
-      Setignore(p,1);
-    }
-    i++;
-    p = Getnext(p);
+    p = nextSibling(p);
   }
   return(i);
 }
@@ -105,27 +87,24 @@ static DOH *fcall = 0;
 
 void emit_set_action(DOHString_or_char *decl) {
   if (fcall) Delete (fcall);
-  fcall = NewString(decl);
+  if (decl) {
+    fcall = NewString(decl);
+  } else {
+    fcall = 0;
+  }
 }
 
-void emit_func_call(DOH *node, Wrapper *f) {
-  char *decl;
-  SwigType *t;
-  ParmList *l;
+void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
   char *tm;
 
-  decl = GetChar(node,"name");
-  t = Getattr(node,"type");
-  l = Getattr(node,"parms");
-
   if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result",(char*)"",0))) {
-    Printv(f,tm,0);
-    Replace(f,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f->code,tm,0);
+    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
   } else if ((tm = Swig_except_lookup())) {
-    Printv(f,tm,0);
-    Replace(f,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f->code,tm,0);
+    Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
   } else {
-    Printv(f,"$function",0);
+    Printv(f->code,"$function",0);
   }
   
   if (!fcall) fcall = NewString(Swig_cfunction_call(decl,l));
@@ -140,7 +119,7 @@ void emit_func_call(DOH *node, Wrapper *f) {
 }
 
 /* -----------------------------------------------------------------------------
- * void emit_set_get()
+ * void emit_set_get(char *name, char *iname, DataType *type)
  *
  * Emits a pair of functions to set/get the value of a variable.  This is
  * only used in the event the target language can't provide variable linking
@@ -176,16 +155,15 @@ strcpy((char *)$target,$source);\n\
 return ($ltype) $target;\n;";
 
 
-void emit_set_get(DOH *node) {
-  char *name, *iname;
-  SwigType *t;
+void emit_set_get(char *name, char *iname, SwigType *t) {
+
   Wrapper *w;
   DOHString *new_iname;
   char    *code = 0;
+  File    *f_header;
   
-  name = GetChar(node,"name");
-  iname = GetChar(node,"iname");
-  t = Getattr(node,"type");
+  f_header = Swig_filebyname("header");
+  assert(f_header);
 
   /* First write a function to set the variable of the variable */
   if (!ReadOnly) {
@@ -197,21 +175,21 @@ void emit_set_get(DOH *node) {
 	code = c_str;
     }
     w = Swig_cvarset_wrapper(name, t, code);
-    Printf(f_header,"%s", w);
+    Wrapper_print(w,f_header);
     new_iname = Swig_name_set(iname);
     DohIncref(new_iname);
-    new_create_function(GetChar(w,"name"), Char(new_iname), Gettype(w), Getparms(w));
+    lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
     Delete(new_iname);
-    Delete(w);
+    DelWrapper(w);
   }
 
   w = Swig_cvarget_wrapper(name,t,0);
-  Printf(f_header,"%s", w);
+  Wrapper_print(w,f_header);
   new_iname = Swig_name_get(iname);
   DohIncref(new_iname);
-  new_create_function(GetChar(w,"name"), Char(new_iname), Gettype(w), Getparms(w));
+  lang->create_function(Wrapper_Getname(w), Char(new_iname), Wrapper_Gettype(w), Wrapper_Getparms(w));
   Delete(new_iname);
-  Delete(w);
+  DelWrapper(w);
 }
 
 /* ------------------------------------------------------------------
@@ -225,7 +203,7 @@ int check_numopt(ParmList *p) {
   int  i = 0;
   int  state = 0;
 
-  for (;p; p = Getnext(p),i++) {
+  for (;p; p = nextSibling(p),i++) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
     if (Getvalue(p)) {
@@ -238,13 +216,12 @@ int check_numopt(ParmList *p) {
       n++;
     } else {
       if (state) {
-	Printf(stderr,"%s:%d.  Argument %d must have a default value!\n", Getfile(p), Getline(p),i+1);
+	Printf(stderr,"%s : Line %d.  Argument %d must have a default value!\n", input_file,line_number,i+1);
       }
     }
   }
   return n;
 }
-
 
 
 

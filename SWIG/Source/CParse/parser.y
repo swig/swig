@@ -18,10 +18,8 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "internal.h"
-extern "C" {
+#include "cparse.h"
 #include "preprocessor.h"
-}
 #include <ctype.h>
 
 /* We do this for portability */
@@ -32,7 +30,7 @@ extern "C" {
  *                               Externals
  * ----------------------------------------------------------------------------- */
 
-extern "C" int yylex();
+extern int   yylex();
 extern void  yyerror (const char *s);
 
 /* scanner.cxx */
@@ -44,6 +42,8 @@ extern void skip_decl(void);
 extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
 extern void start_inline(char *, int);
+extern String *scanner_ccode;
+extern void cparse_error(String *, int, char *, ...);
 
 /* NEW Variables */
 
@@ -149,15 +149,17 @@ rename_inherit(String *base, String *derived) {
   for (key = Firstkey(rename_hash); key; key = Nextkey(rename_hash)) {
     char *k = Char(key);
     if (strncmp(k,cbprefix,plen) == 0) {
-      String *nkey = NewStringf("%s%s",dprefix,k+plen);
-      Hash *n;
+      Hash *n, *newh;
+      String *nkey, *okey;
+      
+      nkey = NewStringf("%s%s",dprefix,k+plen);
       n = Getattr(rename_hash,key);
-      Hash *newh = Getattr(rename_hash,nkey);
+      newh = Getattr(rename_hash,nkey);
       if (!newh) {
 	newh = NewHash();
 	Setattr(rename_hash,nkey,newh);
       }
-      String *okey;
+
       for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
 	String *ovalue = Getattr(n,okey);
 	if (!Getattr(newh,okey)) {
@@ -172,15 +174,16 @@ rename_inherit(String *base, String *derived) {
   for (key = Firstkey(namewarn_hash); key; key = Nextkey(namewarn_hash)) {
     char *k = Char(key);
     if (strncmp(k,cbprefix,plen) == 0) {
-      String *nkey = NewStringf("%s%s",dprefix,k+plen);
-      Hash *n;
+      String *nkey, *okey;
+      Hash *n, *newh;
+
+      nkey = NewStringf("%s%s",dprefix,k+plen);
       n = Getattr(namewarn_hash,key);
-      Hash *newh = Getattr(namewarn_hash,nkey);
+      newh = Getattr(namewarn_hash,nkey);
       if (!newh) {
 	newh = NewHash();
 	Setattr(namewarn_hash,nkey,newh);
       }
-      String *okey;
       for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
 	String *ovalue = Getattr(n,okey);
 	if (!Getattr(newh,okey)) {
@@ -232,12 +235,12 @@ static void add_symbols(Node *n) {
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
   while (n) {
+    char *symname;
     if (nodeSymbol(n)) {
       n = nextSibling(n);
       continue;
     }
     decl = Getdecl(n);
-    char *symname;
     if (!SwigType_isfunction(decl)) {
       symname = make_name(GetChar(n,"name"),0);
       wrn = name_warning(symname,0);
@@ -255,16 +258,17 @@ static void add_symbols(Node *n) {
     }
 
     if (strncmp(Char(symname),"$ignore",7) == 0) {
-      Seterror(n,NewString("ignored"));
       char *c = Char(symname)+7;
+      Seterror(n,NewString("ignored"));
       if (strlen(c)) {
 	Printf(stderr,"%s:%d. Warning. %s\n", Getfile(n), Getline(n), c+1);
       }
     } else {
+      Node *c;
       if ((wrn) && (strlen(wrn))) {
 	Printf(stderr,"%s:%d. NameWarning. %s\n", Getfile(n), Getline(n), wrn);
       }
-      Node *c = Swig_symbol_add(symname,n);
+      c = Swig_symbol_add(symname,n);
       if (c != n) {
 	String *e = NewString("");
 	Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
@@ -286,6 +290,7 @@ static void add_symbols(Node *n) {
 /* Add a declaration to the tag-space */
 static void add_tag(Node *n) {
   char *symname = make_name(GetChar(n,"name"),0);
+  Node *c;
   if (!symname) {
     symname = GetChar(n,"unnamed");
   }
@@ -295,7 +300,7 @@ static void add_tag(Node *n) {
     return;
   }
 
-  Node *c = Swig_symbol_add_tag(symname, n);
+  c = Swig_symbol_add_tag(symname, n);
   if (c != n) {
     String *e = NewString("");
     Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(n),Getline(n),symname);
@@ -369,14 +374,14 @@ static void merge_addmethods(Node *am) {
  }
 /* Structures for handling code fragments built for nested classes */
 
-struct Nested {
+typedef struct Nested {
   String   *code;        /* Associated code fragment */
   int      line;         /* line number where it starts */
   char     *name;        /* Name associated with this nested class */
   char     *kind;        /* Kind of class */
   SwigType *type;        /* Datatype associated with the name */
-  Nested   *next;        /* Next code fragment in list */
-};
+  struct Nested   *next;        /* Next code fragment in list */
+} Nested;
 
 /* Some internal variables for saving nested class information */
 
@@ -400,14 +405,15 @@ static void add_nested(Nested *n) {
 
 static Node *dump_nested(char *parent) {
   Nested *n,*n1;
-  n = nested_list;
   Node *ret = 0;
+  n = nested_list;
   if (!parent) {
     nested_list = 0;
     return 0;
   }
   while (n) {
     char temp[256];
+    Node *retx;
     /* Token replace the name of the parent class */
     Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
     /* Fix up the name of the datatype (for building typedefs and other stuff) */
@@ -418,7 +424,7 @@ static Node *dump_nested(char *parent) {
     Append(n->type,n->name);
 
     /* Add the appropriate declaration to the C++ processor */
-    Node *retx = new_node("cdecl");
+    retx = new_node("cdecl");
     Setname(retx,n->name);
     Settype(retx,Copy(n->type));
     Setattr(retx,"nested",parent);
@@ -437,18 +443,20 @@ static Node *dump_nested(char *parent) {
     /* Make all SWIG created typedef structs/unions/classes unnamed else 
        redefinition errors occur - nasty hack alert.*/
 
-    const int NUM_TYPES = 3;
-    char* types_array[NUM_TYPES] = {"struct", "union", "class"};
-    for (int i=0; i<NUM_TYPES; i++) {
-      char* code_ptr = Char(n->code);
+    {
+      char* types_array[3] = {"struct", "union", "class"};
+      int i;
+      for (i=0; i<3; i++) {
+	char* code_ptr = Char(n->code);
       while (code_ptr) {
         /* Replace struct name (as in 'struct name {' ) with whitespace
            name will be between struct and { */
-
+	
         code_ptr = strstr(code_ptr, types_array[i]);
         if (code_ptr) {
+	  char *open_bracket_pos;
           code_ptr += strlen(types_array[i]);
-          char* open_bracket_pos = strstr(code_ptr, "{");
+          open_bracket_pos = strstr(code_ptr, "{");
           if (open_bracket_pos) { 
             /* Make sure we don't have something like struct A a; */
             char* semi_colon_pos = strstr(code_ptr, ";");
@@ -458,27 +466,31 @@ static Node *dump_nested(char *parent) {
           }
         }
       }
-    }
-
-    /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
-    char* code_ptr = Char(n->code);
-    while (code_ptr) {
-      code_ptr = strstr(code_ptr, "%constant");
-      if (code_ptr) {
-        char* directive_end_pos = strstr(code_ptr, ";");
-        if (directive_end_pos) { 
-            while (code_ptr <= directive_end_pos)
-              *code_ptr++ = ' ';
-        }
       }
     }
-
-    Node *head;
-    head = new_node("insert");
-    Setattr(head,"code",NewStringf("\n%s\n",n->code));
-    set_nextSibling(head,ret);
-    ret = head;
-
+    
+    {
+      /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
+      char* code_ptr = Char(n->code);
+      while (code_ptr) {
+	code_ptr = strstr(code_ptr, "%constant");
+	if (code_ptr) {
+	  char* directive_end_pos = strstr(code_ptr, ";");
+	  if (directive_end_pos) { 
+            while (code_ptr <= directive_end_pos)
+              *code_ptr++ = ' ';
+	  }
+	}
+      }
+    }
+    {
+      Node *head;
+      head = new_node("insert");
+      Setattr(head,"code",NewStringf("\n%s\n",n->code));
+      set_nextSibling(head,ret);
+      ret = head;
+    }
+      
     /* Dump the code to the scanner */
     start_inline(Char(n->code),n->line);
 
@@ -515,7 +527,6 @@ Node *Swig_cparse(File *f) {
     char *type;
     char *filename;
     int   line;
-    int   flag;
   } loc;
   struct {
     char      *id;
@@ -531,7 +542,6 @@ Node *Swig_cparse(File *f) {
   SwigType     *type;
   String       *str;
   Parm         *p;
-  TMParm       *tmparm;
   ParmList     *pl;
   int           ivalue;
   Node         *node;
@@ -594,7 +604,7 @@ Node *Swig_cparse(File *f) {
 %type <id>       storage_class;
 %type <pl>       parms  ptail;
 %type <p>        parm;
-%type <tmparm>   typemap_parm tm_list tm_tail;
+%type <p>        typemap_parm tm_list tm_tail;
 %type <id>       cpptype access_specifier tm_method;
 %type <node>     base_specifier
 %type <type>     type type_right opt_signed opt_unsigned cast_type cast_type_right;
@@ -655,8 +665,7 @@ declaration    : swig_directive { $$ = $1; }
 		 if (!Error) {
 		   static int last_error_line = -1;
 		   if (last_error_line != line_number) {
-		     Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
-		     FatalError();
+		     cparse_error(input_file, line_number,"Syntax error in input.\n");
 		     last_error_line = line_number;
 		     skip_decl();
 		   }
@@ -695,10 +704,11 @@ swig_directive : addmethods_directive { $$ = $1; }
    ------------------------------------------------------------ */
 
 addmethods_directive : ADDMETHODS ID LBRACE {
+               Node *cls;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
 	       if (!addmethods) addmethods = NewHash();
-	       Node *cls = Getattr(classes,$2);
+	       cls = Getattr(classes,$2);
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
 		 Node *am = Getattr(addmethods,$2);
@@ -836,7 +846,7 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_balanced('{','}');
 		    if (strcmp($3,typemap_lang) == 0) {
 		      $$ = new_node("except");
-		      Setattr($$,"code",Copy(CCode));
+		      Setattr($$,"code",Copy(scanner_ccode));
 		    } else {
 		      $$ = 0;
 		    }
@@ -846,7 +856,7 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
                | EXCEPT LBRACE {
                     skip_balanced('{','}');
 		    $$ = new_node("except");
-		    Setattr($$,"code",Copy(CCode));
+		    Setattr($$,"code",Copy(scanner_ccode));
                }
 
                | EXCEPT LPAREN ID RPAREN SEMI {
@@ -864,7 +874,6 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    ------------------------------------------------------------ */
 
 include_directive: includetype string LBRACE {
-		     $1.flag = ImportMode;
                      $1.filename = Swig_copy_string(input_file);
 		     $1.line = line_number;
 		     input_file = Swig_copy_string($2);
@@ -888,10 +897,10 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
    ------------------------------------------------------------ */
 
 inline_directive : INLINE HBLOCK {
+                 String *cpps;
                  $$ = new_node("insert");
 		 Setattr($$,"code",$2);
 		 /* Need to run through the preprocessor */
-		 DOH *cpps;
 		 Setline($2,start_line);
 		 Setfile($2,input_file);
 		 Seek($2,0,SEEK_SET);
@@ -949,9 +958,7 @@ name_directive : NAME LPAREN idstring RPAREN {
                }
                | NAME LPAREN RPAREN {
                    $$ = 0;
-		   Printf(stderr,"%s:%d. Missing argument to %%name directive.\n",
-			   input_file, line_number);
-		   FatalError();
+		   cparse_error(input_file,line_number,"Missing argument to %%name directive.\n");
 	       }
                ;
 
@@ -1107,27 +1114,27 @@ rename_namewarn : RENAME {
    ------------------------------------------------------------ */
 
 typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
-		   TMParm *p;
+                   Parm *p;
                    skip_balanced('{','}');
 		   $$ = 0;
 		   if ($3) {
 		     $$ = new_node("typemap");
 		     Setattr($$,"method",$3);
-		     Setattr($$,"code",NewString(CCode));
+		     Setattr($$,"code",NewString(scanner_ccode));
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Gettype(p->p));
-		       Setattr(n,"name",Getname(p->p));
-		       Setattr(n,"parms",p->args);
+		       Setattr(n,"type",Gettype(p));
+		       Setattr(n,"name",Getname(p));
+		       Setattr(n,"parms",Getparms(p));
 		       appendChild($$,n);
-		       p = p->next;
+		       p = nextSibling(p);
 		     }
                    }
 	       }
 
                | TYPEMAP LPAREN typemap_type RPAREN tm_list string {
-		   TMParm *p;
+		   Parm *p;
 		   $$ = 0;
 		   if ($3) {
 		     $$ = new_node("typemap");
@@ -1136,17 +1143,17 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"type",Gettype(p->p));
-		       Setattr(n,"name",Getname(p->p));
-		       Setattr(n,"parms",p->args);
+		       Setattr(n,"type",Gettype(p));
+		       Setattr(n,"name",Getname(p));
+		       Setattr(n,"parms",Getparms(p));
 		       appendChild($$,n);
-		       p = p->next;
+                       p = nextSibling(p);
 		     }
 		   }
 	       }
 
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
-		 TMParm *p;
+		 Parm *p;
 		 $$ = 0;
 		 if ($3) {
 		   $$ = new_node("typemap");
@@ -1154,29 +1161,29 @@ typemap_directive : TYPEMAP LPAREN typemap_type RPAREN tm_list LBRACE {
 		   p = $5;
 		   while (p) {
 		     Node *n = new_node("typemapitem");
-		     Setattr(n,"type",Gettype(p->p));
-		     Setattr(n,"name",Getname(p->p));
+		     Setattr(n,"type",Gettype(p));
+		     Setattr(n,"name",Getname(p));
 		     appendChild($$,n);
-		     p = p->next;
+		     p = nextSibling(p);
 		   }
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
-                   TMParm *p;
+                   Parm *p;
 		   $$ = 0;
 		   if ($3) {
 		     $$ = new_node("typemapcopy");
 		     Setattr($$,"method",$3);
-		     Setattr($$,"type",Gettype($7->p));
-		     Setattr($$,"name",Getname($7->p));
+		     Setattr($$,"type",Gettype($7));
+		     Setattr($$,"name",Getname($7));
 
 		     p = $5;
 		     while (p) {
 		       Node *n = new_node("typemapitem");
-		       Setattr(n,"newtype", Gettype(p->p));
-		       Setattr(n,"newname", Getname(p->p));
+		       Setattr(n,"newtype", Gettype(p));
+		       Setattr(n,"newname", Getname(p));
 		       appendChild($$,n);
-		       p = p->next;
+		       p = nextSibling(p);
 		     }
 		   }
 	       }
@@ -1200,23 +1207,21 @@ tm_method      : ID { $$ = $1;  }
 
 tm_list        : typemap_parm tm_tail {
                  $$ = $1;
-                 $$->next = $2;
+		 set_nextSibling($$,$2);
 		}
                ;
 
 tm_tail        : COMMA typemap_parm tm_tail {
                  $$ = $2;
-                 $$->next = $3;
+		 set_nextSibling($$,$3);
                 }
                | empty { $$ = 0;}
                ;
 
 typemap_parm   : type typemap_parameter_declarator {
 		  SwigType_push($1,$2.type);
-                  $$ = (TMParm *) malloc(sizeof(TMParm));
-		  $$->p = NewParm($1,$2.id);
-		  $$->args = $2.parms;
-		  $$->next = 0;
+		  $$ = NewParm($1,$2.id);
+		  Setparms($$,$2.parms);
                 }
 		;
 
@@ -1240,6 +1245,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  String *args;
 		  String *sargs;
 		  String *tds;
+		  String *cpps;
+
 		  ts = NewString("%inline %{\n");
 		  args = NewString("");
 		  sargs = NewString("");
@@ -1276,7 +1283,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  Setfile(ts,input_file);
 		  Setline(ts,line_number);
 		  Seek(ts,0,SEEK_SET);
-		  String *cpps;
+
 		  /*		  Printf(stdout,"%%template:\n%s\n", ts); */
 		  cpps = Preprocessor_parse(ts);
 
@@ -1328,13 +1335,13 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		   Setparms($$,$3.parms);
 		   Setvalue($$,$4.val);
 		   if (!$5) {
-		     if (Len(CCode)) {
-		       Setattr($$,"code",Copy(CCode));
+		     if (Len(scanner_ccode)) {
+		       Setattr($$,"code",Copy(scanner_ccode));
 		     }
 		   } else {
-		     set_nextSibling($$,$5);
-		     /* Inherit attributes */
 		     Node *n = $5;
+		     set_nextSibling($$,n);
+		     /* Inherit attributes */
 		     while (n) {
 		       Settype(n,$2);
 		       Setattr(n,"storage",$1);
@@ -1349,7 +1356,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 
 c_decl_tail    : SEMI { 
                    $$ = 0;
-                   Clear(CCode); 
+                   Clear(scanner_ccode); 
                }
                | COMMA declarator initializer c_decl_tail {
 		 $$ = new_node("cdecl");
@@ -1359,7 +1366,7 @@ c_decl_tail    : SEMI {
 		 Setparms($$,$2.parms);
 		 Setvalue($$,$3.val);
 		 if (!$4) {
-		   if (Len(CCode)) Setattr($$,"code",Copy(CCode));
+		   if (Len(scanner_ccode)) Setattr($$,"code",Copy(scanner_ccode));
 		 } else {
 		   set_nextSibling($$,$4);
 		 }
@@ -1404,8 +1411,9 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
 		 SwigType *ty;
-		 $$ = new_node("enum");
 		 String   *unnamed = 0;
+
+		 $$ = new_node("enum");
 		 if ($3) {
 		   Setname($$,$3);
 		   ty = NewStringf("enum %s", $3);
@@ -1422,8 +1430,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 Setparms(n,$7.parms);
 		 Setattr(n,"unnamed",unnamed);
 		 if ($8) {
-		   set_nextSibling(n,$8);
 		   Node *p = $8;
+		   set_nextSibling(n,p);
 		   while (p) {
 		     Settype(p,ty);
 		     Setattr(p,"unnamed",unnamed);
@@ -1431,7 +1439,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		     p = nextSibling(p);
 		   }
 		 } else {
-		   if (Len(CCode)) Setattr(n,"code",Copy(CCode));
+		   if (Len(scanner_ccode)) Setattr(n,"code",Copy(scanner_ccode));
 		 }
 		 set_nextSibling($$,n);
 		 add_tag($$);           /* Add enum to tag space */
@@ -1485,68 +1493,70 @@ cpp_class_decl  :
 		   start_line = line_number;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
+		 Node *p;
+		 SwigType *ty;
 		 inclass = 0;
-               $$ = new_node("class");
-	       Setline($$,start_line);
-	       Setname($$,$3);
-	       Setattr($$,"kind",$2);
-	       Setattr($$,"bases",$4);
-	       
-	       /* Check for pure-abstract class */
-	       if (pure_abstract($7)) {
-		 SetInt($$,"abstract",1);
-	       }
-	       
-	       /* This bit of code merges in a previously defined %addmethod directive (if any) */
-	       if (addmethods) {
-		 Node *am = Getattr(addmethods,$3);
-		 if (am) {
-		   merge_addmethods(am);
-		   appendChild($$,am);
-		   Delattr(addmethods,$3);
+		 $$ = new_node("class");
+		 Setline($$,start_line);
+		 Setname($$,$3);
+		 Setattr($$,"kind",$2);
+		 Setattr($$,"bases",$4);
+		 
+		 /* Check for pure-abstract class */
+		 if (pure_abstract($7)) {
+		   SetInt($$,"abstract",1);
 		 }
-	       }
-	       if (!classes) classes = NewHash();
-	       Setattr(classes,$3,$$);
-
-	       Setattr($$,"symtab",Swig_symbol_popscope());
-	       yyrename = NewString(class_rename);
-	       appendChild($$,$7);
-	       Node *p = $9;
-	       if (p) {
-		 set_nextSibling($$,p);
-	       }
-	       SwigType *ty;
-	       if (CPlusPlus) {
-		 ty = NewString($3);
-	       } else {
-		 ty = NewStringf("%s %s", $2,$3);
-	       }
-	       while (p) {
-		 Setattr(p,"storage",$1);
-		 Settype(p,ty);
-		 p = nextSibling(p);
-	       }
-	       /* Dump nested classes */
-	       {
-		 char *name = $3;
-		 if ($9) {
-		   SwigType *decltype = Getattr($9,"decl");
-		   if (Cmp($1,"typedef") == 0) {
-		     if (!decltype || !Len(decltype)) {
-		       name = Char(Getname($9));
-		       Setattr($$,"tdname",name);
-		       Setattr($$,"decl",decltype);
-		     }
+		 
+		 /* This bit of code merges in a previously defined %addmethod directive (if any) */
+		 if (addmethods) {
+		   Node *am = Getattr(addmethods,$3);
+		   if (am) {
+		     merge_addmethods(am);
+		     appendChild($$,am);
+		     Delattr(addmethods,$3);
 		   }
 		 }
-		 appendChild($$,dump_nested(name));
+		 if (!classes) classes = NewHash();
+		 Setattr(classes,$3,$$);
+		 
+		 Setattr($$,"symtab",Swig_symbol_popscope());
+		 yyrename = NewString(class_rename);
+		 appendChild($$,$7);
+		 p = $9;
+		 if (p) {
+		   set_nextSibling($$,p);
+		 }
+		 
+		 if (CPlusPlus) {
+		   ty = NewString($3);
+		 } else {
+		   ty = NewStringf("%s %s", $2,$3);
+		 }
+		 while (p) {
+		   Setattr(p,"storage",$1);
+		   Settype(p,ty);
+		   p = nextSibling(p);
+		 }
+		 /* Dump nested classes */
+		 {
+		   char *name = $3;
+		   if ($9) {
+		     SwigType *decltype = Getattr($9,"decl");
+		     if (Cmp($1,"typedef") == 0) {
+		       if (!decltype || !Len(decltype)) {
+			 name = Char(Getname($9));
+			 Setattr($$,"tdname",name);
+			 Setattr($$,"decl",decltype);
+		       }
+		     }
+		   }
+		   appendChild($$,dump_nested(name));
+		 }
+		 add_tag($$);
+		 if ($9)
+		   add_symbols($9);
+		 Classprefix = 0;
 	       }
-	       add_tag($$);
-	       if ($9)
-		 add_symbols($9);
-	       Classprefix = 0;
-	     }
 
 /* An unnamed struct, possibly with a typedef */
 
@@ -1562,9 +1572,11 @@ cpp_class_decl  :
 	       inclass = 1;
 	       Classprefix = NewString("");
              } cpp_members RBRACE declarator c_decl_tail {
+	       String *unnamed;
+	       Node *n, *p, *pp = 0;
 	       Classprefix = 0;
 	       inclass = 0;
-	       String *unnamed = make_unnamed();
+	       unnamed = make_unnamed();
 	       $$ = new_node("class");
 	       Setline($$,start_line);
 	       Setattr($$,"kind",$2);
@@ -1576,7 +1588,7 @@ cpp_class_decl  :
 		 SetInt($$,"abstract",1);
 	       }
 
-	       Node *n = new_node("cdecl");
+	       n = new_node("cdecl");
 	       Setname(n,$7.id);
 	       Setattr(n,"unnamed",unnamed);
 	       Settype(n,unnamed);
@@ -1584,7 +1596,6 @@ cpp_class_decl  :
 	       Setparms(n,$7.parms);
 	       Setattr(n,"storage",$1);
 	       set_nextSibling($$,n);
-	       Node *p, *pp = 0;
 	       if ($8) {
 		 set_nextSibling(n,$8);
 		 p = $8;
@@ -1667,9 +1678,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 		     /* Create function definition */
 		     if ($7.qualifier) SwigType_push($6.type,$7.qualifier);
 		     if (SwigType_isfunction($6.type)) {
+		       String *pdecl;
 		       Delete(SwigType_pop_function($6.type));
 		       SwigType_push($5,$6.type);
-		       String *pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
+		       pdecl = NewStringf("%s(%s)", $6.id, ParmList_str($6.parms));
 		       Printf(macrocode,"%%name(__name) %s;\n", SwigType_str($5,pdecl));
 		       Delete(pdecl);
 		       Seek(macrocode, 0, SEEK_SET);
@@ -1700,8 +1712,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN type declarator
 			 if (i < (Len($7) - 1)) Putc(',',macrocode);
 		       }
 		     }
-		     Replace(CCode,$6,"__name", DOH_REPLACE_ID);
-		     Printf(macrocode," %s;\n", CCode);
+		     Replace(scanner_ccode,$6,"__name", DOH_REPLACE_ID);
+		     Printf(macrocode," %s;\n", scanner_ccode);
 		     /* Include a reverse typedef to associate templated version with renamed version */
 		     Printf(macrocode,"typedef __name %s< %s >;\n", $6,$3.sparms);
 		     /*		     Printf(stdout,"%s\n", macrocode); */
@@ -1723,9 +1735,10 @@ cpp_temp_end    : SEMI { }
 
 template_parms  : parms {
 		   /* Rip out the parameter names */
+		  Parm *p = $1;
 		  $$.rparms = NewString("");
 		  $$.sparms = NewString("");
-		  Parm *p = $1;
+
 		  while (p) {
 		    String *name = Getname(p);
 		    if (!name) {
@@ -1778,8 +1791,7 @@ cpp_members  : cpp_member cpp_members {
 		   {
 		     static int last_error_line = -1;
 		     if (last_error_line != line_number) {
-		       Printf(stderr,"%s:%d. Syntax error in input.\n", input_file, line_number);
-		       FatalError();
+		       cparse_error(input_file, line_number,"Syntax error in input.\n");
 		       last_error_line = line_number;
 		     }
 		   }
@@ -1807,15 +1819,15 @@ cpp_member   : c_declaration { $$ = $1; }
 
 /* Possibly a constructor */
 cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
+		 SwigType *decl = NewString("");
+		 List *l = typelist($4);
 		 $$ = new_node("constructor");
 		 Setname($$,$2);
 		 Setparms($$,$4);
-		 List *l = typelist($4);
-		 SwigType *decl = NewString("");
 		 SwigType_add_function(decl,l);
 		 Setdecl($$,decl);
-		 if (Len(CCode)) {
-		   Setattr($$,"code",Copy(CCode));
+		 if (Len(scanner_ccode)) {
+		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
 		 add_symbols($$);
 	       }
@@ -1826,8 +1838,8 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
 	       Setname($$,NewStringf("~%s",$2));
-	       if (Len(CCode)) {
-		 Setattr($$,"code",Copy(CCode));
+	       if (Len(scanner_ccode)) {
+		 Setattr($$,"code",Copy(scanner_ccode));
 	       }
 	       add_symbols($$);
 	      }
@@ -1841,8 +1853,8 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 		if ($7) {
 		  Setattr($$,"value","0");
 		}
-		if (Len(CCode)) {
-		  Setattr($$,"code",Copy(CCode));
+		if (Len(scanner_ccode)) {
+		  Setattr($$,"code",Copy(scanner_ccode));
 		}
 		add_symbols($$);
 	      }
@@ -1851,10 +1863,10 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 
 /* C++ type conversion operator */
 cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAREN cpp_vend {
+		 List *l = typelist($6);
                  $$ = new_node("cdecl");
                  Settype($$,$3);
 		 Setname($$,$2);
-		 List *l = typelist($6);
 		 SwigType_add_function($4,l);
 		 Delete(l);
 		 Setdecl($$,$4);
@@ -1862,11 +1874,12 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 add_symbols($$);
 	       }
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
+		List *l = typelist($5);
+		String *t = NewString("");
+
 		$$ = new_node("cdecl");
 		Settype($$,$3);
 		Setname($$,$2);
-		List *l = typelist($5);
-		String *t = NewString("");
 		SwigType_add_function(t,l);
 		Delete(l);
 		Setdecl($$,t);
@@ -1926,7 +1939,7 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
 		      n->code = NewString("");
 		      Printv(n->code, "typedef ", $2, " ",
-			     Char(CCode), " $classname_", $6.id, ";\n", 0);
+			     Char(scanner_ccode), " $classname_", $6.id, ";\n", 0);
 
 		      n->name = Swig_copy_string($6.id);
 		      n->line = start_line;
@@ -1953,7 +1966,7 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewString("");
 		    Printv(n->code, "typedef ", $2, " " ,
-			    Char(CCode), " $classname_", $5.id, ";\n",0);
+			    Char(scanner_ccode), " $classname_", $5.id, ";\n",0);
 		    n->name = Swig_copy_string($5.id);
 		    n->line = start_line;
 		    n->type = NewString("");
@@ -1990,13 +2003,13 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
              ;
 
 cpp_end        : cpp_const SEMI {
-	            Clear(CCode);
+	            Clear(scanner_ccode);
                }
                | cpp_const LBRACE { skip_balanced('{','}'); }
                ;
 
-cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
-               | cpp_const EQUAL definetype SEMI { Clear(CCode); $$ = 1; }
+cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$ = 0;  }
+               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$ = 1; }
                | cpp_const LBRACE { skip_balanced('{','}'); $$ = 0; }
                ;
 
@@ -2052,17 +2065,17 @@ parm           : type parameter_declarator {
 		}
 
                 | PERIOD PERIOD PERIOD {
-                  Printf(stderr,"%s:%d. Variable length arguments not supported (ignored).\n", input_file, line_number);
+                  cparse_error(input_file, line_number, "Variable length arguments not supported (ignored).\n");
 		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs");
-		  FatalError();
 		}
 		;
 
 def_args       : EQUAL definetype { 
+                  Node *n;
                   $$ = $2; 
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
-		  Node *n = Swig_symbol_lookup($2.val);
+		  n = Swig_symbol_lookup($2.val);
 		  if (n) {
 		    $$.val = NewStringf("%s%s", Swig_symbol_qualified(n),$2.val);
 		  }
@@ -2165,9 +2178,9 @@ declarator :  pointer direct_declarator {
 	     }
            }
            | idcolon DSTAR direct_declarator { 
-	     
-	     $$ = $3;
 	     SwigType *t = NewString("");
+
+	     $$ = $3;
 	     SwigType_add_memberpointer(t,$1);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
@@ -2176,8 +2189,8 @@ declarator :  pointer direct_declarator {
 	     $$.type = t;
            }
            | pointer idcolon DSTAR direct_declarator { 
-	     $$ = $4;
 	     SwigType *t = NewString("");
+	     $$ = $4;
 	     SwigType_add_memberpointer(t,$2);
 	     SwigType_push($1,t);
 	     if ($$.type) {
@@ -2198,8 +2211,8 @@ declarator :  pointer direct_declarator {
 	     $$.type = $1;
 	   }
            | idcolon DSTAR AND direct_declarator { 
-	     $$ = $4;
 	     SwigType *t = NewString("");
+	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
 	     if ($$.type) {
@@ -2334,11 +2347,11 @@ abstract_declarator : pointer {
 		    $$.have_parms = 0;
 		   } 
                   | pointer idcolon DSTAR { 
+		    SwigType *t = NewString("");
                     $$.type = $1;
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
-		    SwigType *t = NewString("");
 		    SwigType_add_memberpointer(t,$2);
 		    SwigType_push($$.type,t);
 		    Delete(t);
@@ -2607,9 +2620,7 @@ etype            : expr {
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR)) {
-		     Printf(stderr,"%s:%d. Type error. Expecting an int\n",
-			     input_file, line_number);
-		     FatalError();
+		     cparse_error(input_file,line_number,"Type error. Expecting an int\n");
 		   }
 
                 }
@@ -2787,18 +2798,18 @@ cpp_const      : type_qualifier {
                }
                | THROW LPAREN {
 	            skip_balanced('(',')');
-		    Clear(CCode);
+		    Clear(scanner_ccode);
                     $$ = 0;
                }
                | type_qualifier THROW LPAREN {
   		    skip_balanced('(',')');
-		    Clear(CCode);
+		    Clear(scanner_ccode);
                     $$ = $1;
                }
                | empty { $$ = 0; }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { Clear(CCode); }
+ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); }
                | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); }
                ;
 
@@ -2812,13 +2823,14 @@ mem_initializer_list : mem_initializer
 
 mem_initializer : ID LPAREN {
 	            skip_balanced('(',')');
-                    Clear(CCode);
+                    Clear(scanner_ccode);
             	}
                 ;
 
 template_decl : LESSTHAN { 
+                     String *s;
                      skip_balanced('<','>');
-		     String *s = Copy(CCode);
+		     s = Copy(scanner_ccode);
 	             Replace(s,"\n"," ", DOH_REPLACE_ANY);
                      Replace(s,"\t"," ", DOH_REPLACE_ANY);
 	             Replace(s,"  "," ", DOH_REPLACE_ANY);
@@ -2873,7 +2885,7 @@ idcolontail    : DCOLON ID idcolontail {
 
 /* Concatenated strings */
 string         : string STRING { 
-                   $$ = new char[strlen($1)+strlen($2)+1];
+                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
                    strcpy($$,$1);
                    strcat($$,$2);
                }
@@ -2885,7 +2897,7 @@ empty          :   ;
 %%
 
 /* Called by the parser (yyparse) when an error is found.*/
-void yyerror (const char *) {
+void yyerror (const char *e) {
     Printf(stderr,"Syntax error\n");
 }
 
