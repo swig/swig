@@ -2,12 +2,12 @@
 // SWIG Pointer manipulation library
 // 
 // This library can be used to manipulate C pointers.
-%title "SWIG Pointer Library"
+//%title "SWIG Pointer Library"
 
 %module pointer
 
 
-%section "Pointer Handling Library",noinfo,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
+//%section "Pointer Handling Library",noinfo,after,pre,nosort,skip=1,chop_left=3,chop_right=0,chop_top=0,chop_bottom=0
 
 %text %{
 %include pointer.i
