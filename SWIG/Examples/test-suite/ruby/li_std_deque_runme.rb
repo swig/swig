@@ -1,6 +1,6 @@
-require 'lib_std_deque'
+require 'li_std_deque'
 
-include Lib_std_deque
+include Li_std_deque
 
 # Test constructors for std::deque<int>
 intDeque  = IntDeque.new

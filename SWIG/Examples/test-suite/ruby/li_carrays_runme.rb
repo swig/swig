@@ -1,6 +1,6 @@
-require 'lib_carrays'
+require 'li_carrays'
 
-include Lib_carrays
+include Li_carrays
 
 #
 # Testing for %array_functions(int,intArray)

@@ -1,6 +1,6 @@
-require 'lib_std_string'
+require 'li_std_string'
 
-include Lib_std_string
+include Li_std_string
 
 # Checking expected use of %typemap(in) std::string {}
 test_value("Fee")

@@ -1,6 +1,6 @@
-require 'lib_std_pair'
+require 'li_std_pair'
 
-include Lib_std_pair
+include Li_std_pair
 
 #
 # Because of template specializations for pair<int, int>, this should return
