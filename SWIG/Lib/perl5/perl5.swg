@@ -207,14 +207,14 @@
 
 %typemap(out) const long long & {
   char temp[256];
-  sprintf(temp,"%lld", *($1));
+  sprintf(temp,"%lld", (long long)*($1));
   ST(argvi) = sv_newmortal();
   sv_setpv((SV*)ST(argvi++), temp);
 }
 
 %typemap(out) const unsigned long long & {
   char temp[256];
-  sprintf(temp,"%llu", *($1));
+  sprintf(temp,"%llu", (unsigned long long)*($1));
   ST(argvi) = sv_newmortal();
   sv_setpv((SV*)ST(argvi++), temp);
 }
@@ -242,9 +242,11 @@
 %typemap(varin)  unsigned long long "$1 = ($1_ltype) strtoull(SvPV($input, PL_na), 0, 0);";
 
 %typemap(varin) SWIGTYPE * {
+        void *temp;
         if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
+        $1 = *($1_ltype) temp;
 }
 
 %typemap(varin) SWIGTYPE [ANY] {
@@ -255,6 +257,11 @@
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
         for (i = 0; i < $1_size; i++) b[i] = temp[i];
+}
+
+%typemap(varin,warning="462:Unable to set dimensionless array variable") SWIGTYPE []
+{
+  croak("C/C++ variable '$name' is read-only");
 }
 
 %typemap(varin) SWIGTYPE & {
@@ -385,13 +392,13 @@
 
 %typemap(varout) long long {
   char temp[256];
-  sprintf(temp,"%lld",$1);
+  sprintf(temp,"%lld",(long long)$1);
   sv_setpv((SV *) $result, temp);
 }
 
 %typemap(varout) unsigned long long {
   char temp[256];
-  sprintf(temp,"%llu",$1);
+  sprintf(temp,"%llu",(unsigned long long)$1);
   sv_setpv((SV *) $result, temp);
 }
 

@@ -64,6 +64,10 @@
   for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
 }
 
+%typemap(varin,warning="462: Unable to set dimensionless array variable") SWIGTYPE [] {
+  rb_raise(rb_eTypeError, "C/C++ variable '$name' is readonly");
+}
+
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
 

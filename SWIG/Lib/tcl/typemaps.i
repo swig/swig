@@ -274,7 +274,7 @@ output values.
 {
   char temp[256];
   Tcl_Obj *o;
-  sprintf(temp,"%lld",*($1));
+  sprintf(temp,"%lld",(long long)*($1));
   o = Tcl_NewStringObj(temp,-1);
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
@@ -283,7 +283,7 @@ output values.
 {
   char temp[256];
   Tcl_Obj *o;
-  sprintf(temp,"%llu",*($1));
+  sprintf(temp,"%llu",(unsigned long long)*($1));
   o = Tcl_NewStringObj(temp,-1);
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
