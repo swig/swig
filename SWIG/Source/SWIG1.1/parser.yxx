@@ -515,7 +515,7 @@ static void dump_nested(char *parent) {
 %type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method;
 %type <type>     type opt_signed opt_unsigned strict_type;
 %type <decl>     declaration nested_decl;
-%type <ivalue>   stars;
+%type <ivalue>   stars cpp_vend;
 %type <ilist>    initlist base_list inherit;
 %type <dtype>    definetype def_args;
 %type <dtype>    etype;
@@ -2328,7 +2328,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		 if ($3.is_reference) SwigType_add_reference($2);
 		 iname = make_name($3.id);
 		 if (iname == $3.id) iname = 0;
-		 cplus_member_func($3.id,iname,$2,$5,1);
+		 cplus_member_func($3.id,iname,$2,$5,$7);
 	       }
 	       scanner_clear_start();
 	       Delete($2);
@@ -2672,9 +2672,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { skip_brace(); }
                ;
 
-cpp_vend       : cpp_const SEMI { Clear(CCode); }
-               | cpp_const EQUAL definetype SEMI { Clear(CCode); }
-               | cpp_const LBRACE { skip_brace(); }
+cpp_vend       : cpp_const SEMI { Clear(CCode); $$ = 0;  }
+               | cpp_const EQUAL definetype SEMI { Clear(CCode); $$ = 1; }
+               | cpp_const LBRACE { skip_brace(); $$ = 0; }
                ;
 
 cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
