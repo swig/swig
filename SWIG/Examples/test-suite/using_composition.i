@@ -1,5 +1,7 @@
 %module using_composition
 
+%warnfilter(802) FooBar;	// Ruby, multiple inheritance
+
 %inline %{
 class Foo {
 public:

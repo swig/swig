@@ -1,5 +1,7 @@
 %module using_extend
 
+%warnfilter(802) FooBar;	// Ruby, multiple inheritance
+
 %extend Foo {
      int blah(int x, int y) {
         return x+y;
