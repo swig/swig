@@ -16,6 +16,58 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/25/2002: beazley
+            [perl] Fixed [ 475452 ] memory leak in return-by-value.
+            Problem related to static member variables returning newly
+            allocated objects. Reported by Roy Lecates.
+ 
+05/25/2002: beazley
+            [perl] Fixed [ 513134 ] %BLESSEDMEMBERS isn't always right.
+            Reported by Fleur Diana Dragan.
+
+05/25/2002: beazley
+            Fixed [ 540735 ] -importall and the -I option.
+
+05/25/2002: beazley
+            [guile] Fixed [ 532723 ] Default arg for char* can SegV.  
+            Error in guile module.  Reported by Brett Williams.
+
+05/25/2002: beazley
+            Subtle change to typemap application code.  The "freearg"
+            typemap must exactly match up with the "in" or "ignore"
+            typemap.  For example:
+
+                 %typemap(in) (char *data, int len) { ... };
+                 %typemap(freearg) char *data { ... }; 
+
+                 void foo(char *data, int len);
+
+             In this case, the "in" typemap is applied, but the
+             freearg typemap is not.  This is because the freearg
+             typemap doesn't match up with the input argument sequence.
+
+05/25/2002: beazley
+            Fixed [ 548272 ] Default argument code missing braces.
+            Reported by Brett Williams.
+
+05/25/2002: beazley
+            Fixed [ 547730 ] SwigValueWrapper needed for constructors.
+            Reported by William Fulton.
+
+05/25/2002: beazley
+            Undefined identifiers now evaluate to 0 when evaluating
+            preprocessor expressions.  For example:
+
+                  #if !FOO
+                  ...
+                  #endif
+      
+            where FOO is undefined or set to some non-numeric value.
+
+            Fixes [ 540868 ] #if defined whatever - not parsed.
+            Reported by Adam Hupp.
+
+ 
 05/24/2002: beazley
             SWIG now ignores the C++ 'export' keyword.
 
