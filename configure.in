@@ -67,7 +67,11 @@ else
 fi
 
 
-dnl Checks for library functions.
+dnl Checks for types.
+AC_LANG_PUSH([C++])
+AC_CHECK_TYPES([bool])
+AC_LANG_POP([C++])
+
 
 # Set info about shared libraries.
 AC_SUBST(SO)
@@ -658,7 +662,7 @@ fi
 
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
-	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib};') 2>/dev/null`
+	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
 	if test "$PERL5DIR" != ""; then
 		dirs="$PERL5DIR $PERL5DIR/CORE"
 		PERL5EXT=none
@@ -675,14 +679,14 @@ if test -n "$PERL"; then
 		fi
 
 		AC_MSG_CHECKING(for Perl5 library)
-		PERL5LIB=`($PERL -e 'use Config; $_=$Config{libperl}; s/^lib//; s/$Config{_a}$//; print $_') 2>/dev/null`
+		PERL5LIB=`($PERL -e 'use Config; $_=$Config{libperl}; s/^lib//; s/$Config{_a}$//; print $_, "\n"') 2>/dev/null`
 		if test "$PERL5LIB" = "" ; then
 			AC_MSG_RESULT(not found)
 		else
 			AC_MSG_RESULT($PERL5LIB)
 		fi
     AC_MSG_CHECKING(for Perl5 compiler options)
- 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}' | sed "s/-I/$ISYSTEM/") 2>/dev/null`
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-I/$ISYSTEM/") 2>/dev/null`
  		if test "$PERL5CCFLAGS" = "" ; then
  			AC_MSG_RESULT(not found)
  		else
@@ -972,22 +976,27 @@ if test -n "$RUBY"; then
 			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
 		fi
 
-		# Find library and path for linking. Use libruby.a except on Cygwin use the DLL.
+		# Find library and path for linking.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
-		case $host in
-		*-*-cygwin* | *-*-mingw*)
-			rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
-			rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
-			dirs="$dirs $rb_libdir $rb_bindir"
-			rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_SO"]]') 2>/dev/null`
-			RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_SO_NAME"]]') 2>/dev/null`
-			;;
-		*)
-			rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
-			RUBYLINK=`($RUBY -rrbconfig -e 'print Config::CONFIG[["RUBY_INSTALL_NAME"]]') 2>/dev/null`
-			;;
-		esac
+		rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
+		rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
+		dirs="$dirs $rb_libdir $rb_bindir"
+
+        rb_libruby=`($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        RUBYLINK=`($RUBY -rrbconfig -e '
+            c = Config::CONFIG
+            if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
+                if c[["LIBRUBY"]] == c[["LIBRUBY_A"]]
+                    link = c[["LIBRUBYARG_STATIC"]]
+                else
+                    link = c[["LIBRUBYARG_SHARED"]]
+                end
+            else # 1.6.x
+                link = "-l" + c[["RUBY_INSTALL_NAME"]]
+            end
+            puts link') 2>/dev/null`
+
 		if test "$rb_libruby" != ""; then
 			for i in $dirs; do
 				if (test -r $i/$rb_libruby;) then
@@ -1007,7 +1016,7 @@ if test -n "$RUBY"; then
 		RUBYINCLUDE="-I$RUBYDIR"
 		RUBYLIB="$RUBYDIR"
 	fi
-	RUBYLINK="-l$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
+	RUBYLINK="$RUBYLINK `($RUBY -rrbconfig -e 'print Config::CONFIG[["LIBS"]]') 2>/dev/null`"
 	RUBYCCDLFLAGS=`($RUBY -rrbconfig -e 'print Config::CONFIG[["CCDLFLAGS"]]') 2>/dev/null`
 else
 	AC_MSG_RESULT(could not figure out how to run ruby)
