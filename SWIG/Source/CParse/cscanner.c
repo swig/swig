@@ -1014,6 +1014,9 @@ void scanner_ignore_typedef() {
   check_typedef = 0;
 }
 
+void scanner_last_id(int x) {
+  last_id = x;
+}
 
 /**************************************************************
  * int yylex()
@@ -1249,6 +1252,7 @@ int yylex(void) {
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
 	  if (strcmp(yytext,"%endtemplate") == 0) return (ENDTEMPLATE);
+	  if (strcmp(yytext,"%starttemplate") == 0) return (STARTTEMPLATE);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

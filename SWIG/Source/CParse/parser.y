@@ -41,6 +41,7 @@ extern void skip_balanced(int startchar, int endchar);
 extern void skip_decl(void);
 extern void scanner_check_typedef(void);
 extern void scanner_ignore_typedef(void);
+extern void scanner_last_id(int);
 extern void start_inline(char *, int);
 extern String *scanner_ccode;
 extern void cparse_error(String *, int, char *, ...);
@@ -58,6 +59,7 @@ static Node    *current_class = 0;
        String  *ModuleName = 0;
 static String  *Classprefix = 0;  
 static int      inclass = 0;
+static int      templatemode = 0;
 static int      templatenum = 0;
 static Hash    *templatetypes = 0;
 static String  *templatename = 0;        /* Name of the template used during expansion */
@@ -523,6 +525,18 @@ static void patch_template_code(String *s) {
   }
 }
 
+static void patch_template_type(String *s) {
+  if (templatetypes) {
+    if (Strstr(s,"__swig")) {
+      String *key;
+      for (key = Firstkey(templatetypes); key; key = Nextkey(templatetypes)) {
+	Replace(s,key,Getattr(templatetypes,key), DOH_REPLACE_ID);
+      }
+    }
+    Replace(s,templateiname,templatename, DOH_REPLACE_ID);
+  }
+}
+
 %}
 
 %union {
@@ -582,7 +596,7 @@ static void patch_template_code(String *s) {
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE GENCODE
+%token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE ENDTEMPLATE STARTTEMPLATE GENCODE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES
 %token NONID DSTAR
@@ -608,7 +622,7 @@ static void patch_template_code(String *s) {
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive gencode_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive typemap_directive ;
-%type <node>     types_directive template_directive endtemplate_directive ;
+%type <node>     types_directive template_directive endtemplate_directive starttemplate_directive ;
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
@@ -645,7 +659,7 @@ static void patch_template_code(String *s) {
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
-%type <str>      idcolon idcolontail stringbrace stringbracesemi;
+%type <str>      idcolon idcolontail idtemplate stringbrace stringbracesemi;
 %type <id>       string;
 %type <tmplstr>  template_parms;
 %type <ivalue>   cpp_vend;
@@ -723,6 +737,7 @@ swig_directive : addmethods_directive { $$ = $1; }
                | types_directive  { $$ = $1; }
                | template_directive { $$ = $1; }
                | endtemplate_directive { $$ = $1; }
+               | starttemplate_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
@@ -1432,6 +1447,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  Setattr(templatemaps, templateargs, $3);
 
 		  Printf(ts,"%%}\n");
+		  Printf(ts,"%%starttemplate;\n");
                   Printf(ts,"%%_template_%s(%s,%s,%s)\n",$5,$3,args,sargs);
 		  /*		  Printf(ts,"%%endtemplate;\n"); */
 		  Delete(args);
@@ -1461,6 +1477,19 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
                ;
 
 /* -----------------------------------------------------------------------------
+ * %starttemplate
+ *
+ * This directive appears at the beginning of template expansion.  It's needed
+ * to prevent certain types of template substitutions.
+ * ----------------------------------------------------------------------------- */
+
+starttemplate_directive: STARTTEMPLATE SEMI {
+                   templatemode = 1;
+                   $$ = 0;
+                }
+                ;
+
+/* -----------------------------------------------------------------------------
  * %endtemplate
  *
  * This directive appears at the end of performing a template expansion.  It's
@@ -1476,6 +1505,7 @@ endtemplate_directive: ENDTEMPLATE SEMI {
 		    templateiname = 0;
 		    Delete(templateargs);
 		    templateargs = 0;
+                    templatemode = 0;
                     $$ = 0;
                 }
                 ;
@@ -1855,10 +1885,10 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    class Name;
    ------------------------------------------------------------ */
 
-cpp_forward_class_decl : storage_class cpptype idcolon template_decl SEMI {
+cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
-	       Setattr($$,"name",NewStringf("%s%s",$3,$4));
+	       Setattr($$,"name",$3);
 	       Setattr($$,"sym:name", make_name(GetChar($$,"name"),0));
 	     }
              ;
@@ -2456,16 +2486,12 @@ declarator :  pointer direct_declarator {
 	   }
            ;
              
-direct_declarator : idcolon template_decl {
+direct_declarator : idcolon {
   /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
-                 if (strlen($2)) {
-		       $$.id = Char(NewStringf("%s%s",$1,$2));
-		     } else {
-		       $$.id = Char($1);
-		     }
-		     $$.type = 0;
-		     $$.parms = 0;
-		     $$.have_parms = 0;
+                 $$.id = Char($1);
+		 $$.type = 0;
+		 $$.parms = 0;
+		 $$.have_parms = 0;
                   }
 
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
@@ -2721,7 +2747,7 @@ rawtype       : type_qualifier type_right {
                ;
 
 type_right     : primitive_type { $$ = $1;
-/* Printf(stdout,"primitive = '%s'\n", $$);*/
+                  /* Printf(stdout,"primitive = '%s'\n", $$);*/
                 }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
@@ -2733,44 +2759,14 @@ type_right     : primitive_type { $$ = $1;
 	          SwigType_push($$,$2);
      	       }
 
-               | idcolon template_decl { 
-  		   $$ = 0;
-		   /* Check for template substitution */
-		   if (templatetypes) {
-		     SwigType *ty = Getattr(templatetypes,$1);
-		     if (ty) {
-		       $$ = NewStringf("%s%s",ty,$2);
-		     }
-		   }
-		   if (!$$ && templatename && (Len($2))) {
-		     if (Cmp($1,templateiname) == 0) {
-		       $$ = NewStringf("%s%s", templatename, $2);
-		     }
-		   }
-		   if (!$$) {
-		     $$ = NewStringf("%s%s",$1,$2); 
-		   }
-		   if ((templateargs) && (Cmp($$,templateargs) == 0)) {
-		     Delete($$);
-		     $$ = NewString(templateiname);
-		   }
+               | idcolon {
+                  if (templatemode) {
+		    patch_template_type($1);
+		  }
+		  $$ = $1;
                }
-               | cpptype idcolon template_decl { 
-  		   $$ = 0;
-		   if (templatetypes) {
-		     SwigType *ty = Getattr(templatetypes,$2);
-		     if (ty) {
-		       $$ = NewStringf("%s %s%s",$1, ty,$3);
-		     }
-		   }
-		   if (!$$ && templatename) {
-		     if (Cmp($2,templateiname) == 0) {
-		       $$ = NewStringf("%s %s%s", $1, templatename, $2);
-		     }
-		   }
-		   if (!$$) {
-		     $$ = NewStringf("%s %s%s",$1, $2,$3); 
-		   }
+               | cpptype idcolon { 
+		 $$ = NewStringf("%s %s", $1, $2);
                }
                ;
 
@@ -3108,24 +3104,14 @@ base_list      : base_specifier {
                }
                ;
 
-base_specifier : opt_virtual idcolon template_decl {
+base_specifier : opt_virtual idcolon {
                   Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",input_file,line_number,$2);
 		  $$ = (char *) 0;
                }
-	       | opt_virtual access_specifier opt_virtual idcolon template_decl {
+	       | opt_virtual access_specifier opt_virtual idcolon {
 		 $$ = 0;
 	         if (strcmp($2,"public") == 0) {
-		   $$ = NewStringf("%s%s",$4,$5);
-		   /*
-		   if (classes) {
-		     Node *cls = Getattr(classes,$4);
-		     $$ = cls;
-		   }
-		   if (!$$) {
-		     Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
-			    input_file,line_number,$4);
-		   }
-		   */
+		   $$ = $4;
 		 }
                }
                ;
@@ -3202,24 +3188,19 @@ idstring       : ID { $$ = $1; }
                | string { $$ = $1; }
                ;
 
-idcolon        : ID idcolontail { 
+idcolon        : idtemplate idcolontail { 
                   $$ = 0;
-                  if (templatetypes) {
-		    SwigType *ty = Getattr(templatetypes,$1);
-		    if (ty)
-		      $$ = NewStringf("%s%s", ty,$2);
-                  }
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
       	          Delete($2);
                }
-               | NONID DCOLON ID idcolontail { 
+               | NONID DCOLON idtemplate idcolontail { 
 		 $$ = NewStringf("::%s%s",$3,$4);
                  Delete($4);
                }
-               | ID {
+               | idtemplate {
 		 $$ = NewString($1);
-               }      
-               | NONID DCOLON ID {
+   	       }     
+               | NONID DCOLON idtemplate {
 		 $$ = NewStringf("::%s",$3);
                }
                | OPERATOR {
@@ -3230,17 +3211,29 @@ idcolon        : ID idcolontail {
                }
                ;
 
-idcolontail    : DCOLON ID idcolontail {
+idcolontail    : DCOLON idtemplate idcolontail {
                    $$ = NewStringf("::%s%s",$2,$3);
 		   Delete($3);
                }
-               | DCOLON ID {
+               | DCOLON idtemplate {
                    $$ = NewStringf("::%s",$2);
                }
                | DCOLON OPERATOR {
                    $$ = NewStringf("::%s",$2);
                }
                ;
+
+idtemplate    : ID template_decl {
+                  $$ = NewStringf("%s%s",$1,$2);
+		  if (templatemode) {
+		    if ((templateargs) && (Cmp($$,templateargs) == 0)) {
+		      Delete($$);
+		      $$ = NewString(templateiname);
+		    }
+		  }
+                  scanner_last_id(1);
+              }
+              ;
 
 /* Concatenated strings */
 string         : string STRING { 
