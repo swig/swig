@@ -255,6 +255,12 @@ case $host in
    *) GUILE_SO=$SO;;
 esac
 
+AC_SUBST(PHP4_SO)
+case $host in
+   *-*-darwin*) PHP4_SO=.so;;
+   *) PHP4_SO=$SO;;
+esac
+
 AC_SUBST(MZSCHEME_SO)
 case $host in
    *) MZSCHEME_SO=.so;;
