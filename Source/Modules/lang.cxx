@@ -15,7 +15,6 @@
 char cvsroot_lang_cxx[] = "$Header$";
 
 #include "swigmod.h"
-#include "utils.h"
 #include <ctype.h>
 
 static int director_protected_mode = 0;   /* set to 0 on default */

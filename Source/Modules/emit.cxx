@@ -13,7 +13,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-#include "utils.h"
 
 char cvsroot_emit_cxx[] = "$Header$";
 
