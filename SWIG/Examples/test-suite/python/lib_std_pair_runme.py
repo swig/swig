@@ -38,3 +38,4 @@ if pab.first.val != 2:
 
 pci = lib_std_pair.CIntPair(1,0)
 
+print len(psii)
