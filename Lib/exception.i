@@ -268,4 +268,37 @@ static void _SWIG_exception(int code, const char *msg) {
 %}
 #endif
 
+#ifdef SWIGCSHARP
+%{
+static void SWIG_exception(int code, const char *msg) {
+  SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpException;
+  switch(code) {
+  case SWIG_MemoryError:
+    exception_code = SWIG_CSharpOutOfMemoryException;
+    break;
+  case SWIG_IndexError:
+    exception_code = SWIG_CSharpIndexOutOfRangeException;
+    break;
+  case SWIG_DivisionByZero:
+    exception_code = SWIG_CSharpDivideByZeroException;
+    break;
+  case SWIG_ValueError:
+    exception_code = SWIG_CSharpArgumentOutOfRangeException;
+    break;
+  case SWIG_IOError:
+  case SWIG_RuntimeError:
+  case SWIG_TypeError:
+  case SWIG_OverflowError:
+  case SWIG_SyntaxError:
+  case SWIG_SystemError:
+  case SWIG_UnknownError:
+  default:
+    exception_code = SWIG_CSharpException;
+    break;
+  }
+  SWIG_CSharpThrowException(exception_code, msg);
+}
+%}
+#endif // SWIGCSHARP
+
 /* exception.i ends here */
