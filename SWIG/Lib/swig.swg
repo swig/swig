@@ -311,12 +311,15 @@ namespace std {
 template<class T> class SwigValueWrapper {
     T *tt;
 public:
-    inline SwigValueWrapper() : tt(0) { }
-    inline SwigValueWrapper(const T& t) : tt(new T(t)) { }
-    inline ~SwigValueWrapper() { if (tt) delete tt; } 
-    inline SwigValueWrapper& operator=(const T& t) { tt = new T(t); return *this; }
-    inline operator T&() const { return *tt; }
-    inline T *operator&() { return tt; }
+    SwigValueWrapper() : tt(0) { }
+    SwigValueWrapper(const SwigValueWrapper<T>& rhs) : tt(new T(*rhs.tt)) { }
+    SwigValueWrapper(const T& t) : tt(new T(t)) { }
+    ~SwigValueWrapper() { delete tt; } 
+    SwigValueWrapper& operator=(const T& t) { delete tt; tt = new T(t); return *this; }
+    operator T&() const { return *tt; }
+    T *operator&() { return tt; }
+private:
+    SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
 };                                                    
 #endif
 %}
