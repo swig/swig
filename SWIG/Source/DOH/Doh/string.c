@@ -32,7 +32,6 @@ typedef struct String {
 
 static void *
 String_data(DOH *so) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   String *s = (String *) ObjData(so);
   s->str[s->len] = 0;
   return (void *) s->str;

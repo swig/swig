@@ -20,7 +20,6 @@ static char cvsroot[] = "$Header$";
 
 void
 DohDelete(DOH *obj) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
 

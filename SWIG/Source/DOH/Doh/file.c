@@ -30,7 +30,6 @@ typedef struct {
 
 static void
 DelFile(DOH *fo) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->closeondel) {
     if (f->filep) {

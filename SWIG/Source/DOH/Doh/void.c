@@ -27,7 +27,6 @@ typedef struct {
 
 static void
 Void_delete(DOH *vo) {
-  (void)cvsroot; /* keep version info in binary without compiler warning */
   VoidObj *v = (VoidObj *) ObjData(vo);
   if (v->del)
     (*v->del)(v->ptr);
