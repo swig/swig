@@ -55,6 +55,39 @@ public class java_throws_runme {
 
       if (!pass)
         throw new RuntimeException("Test 4 failed");
+
+      // Check except feature throws attribute...
+      // Static method
+      pass = false;
+      try {
+        FeatureTest.staticMethod();
+      }
+      catch (MyException e) { pass = true; }
       
+      if (!pass)
+        throw new RuntimeException("Test 5 failed");
+
+      FeatureTest f = new FeatureTest();
+      // Instance method
+      pass = false;
+      try {
+        f.method();
+      }
+      catch (MyException e) { pass = true; }
+
+      if (!pass)
+        throw new RuntimeException("Test 6 failed");
+
+      // Global function
+      pass = false;
+      try {
+        java_throws.globalFunction(10);
+      }
+      catch (MyException e) { pass = true; }
+      catch (ClassNotFoundException e) {}
+      catch (NoSuchFieldException e) {}
+
+      if (!pass)
+        throw new RuntimeException("Test 7 failed");
   }
 }
