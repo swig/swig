@@ -27,7 +27,8 @@ segment_read(int fs, WadSegment *s) {
 
   n = read(fs, &pmap, sizeof(prmap_t));
   if (n <= 0) return 0;
-  strncpy(s->mapname, pmap.pr_mapname, MAX_PATH);
+  s->mapname = wad_strdup(pmap.pr_mapname);
+  s->mappath = (char *) wad_malloc(20+strlen(pmap.pr_mapname));
   strcpy(s->mappath,"/proc/self/object/");
   strcat(s->mappath,pmap.pr_mapname);
   s->vaddr = (char *) pmap.pr_vaddr;

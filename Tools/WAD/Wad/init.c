@@ -19,6 +19,7 @@ int    wad_debug_mode = 0;
 void wad_init() {
   static int init = 0;
 
+  wad_memory_init();
   if (getenv("WAD_DEBUG_SEGMENT")) {
     wad_debug_mode |= DEBUG_SEGMENT;
   }

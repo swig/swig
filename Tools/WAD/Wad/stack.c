@@ -79,7 +79,10 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 
   /* Read the segments */
 
-  segments = wad_segment_read();
+  if (wad_segment_read() < 0) {
+    printf("WAD: Unable to read segment map\n");
+    return 0;
+  }
 
   /* Open the frame file for output */
   tmpnam(framefile);
@@ -97,7 +100,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 
   while (p_sp) {
     /* Add check for stack validity here */
-    ws = wad_segment_find(segments, (void *) p_sp);
+    ws = wad_segment_find((void *) p_sp);
 
     if (!ws) {
       /* If the stack is bad, we are really hosed here */
@@ -105,7 +108,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       exit(1);
       break;
     }
-    ws = wad_segment_find(segments, (void *) p_pc);
+    ws = wad_segment_find((void *) p_pc);
     {
       int   symsize = 0;
       int   srcsize = 0;
@@ -272,7 +275,6 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   lseek(ffile,0,SEEK_SET);
   trace_addr = mmap(NULL, trace_len, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, ffile, 0);
   close(ffile);
-  wad_segment_release(segments);
   return (WadFrame *) trace_addr;
 }
 

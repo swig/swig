@@ -48,12 +48,13 @@ segment_read(int fd, WadSegment *s)
   pbuffer[8] = 0;
   pbuffer[17] = 0;
   pbuffer[31] = 0;
-  s->mapname[0] = 0;
-  s->mappath[0] = 0;
   if (len >= 49) {
-    strcpy(s->mapname, pbuffer+49);
-    strcpy(s->mappath, pbuffer+49);
-  } 
+    s->mapname = wad_strdup(pbuffer+49);
+    s->mappath = s->mapname;
+  }  else {
+    s->mapname = "";
+    s->mappath = s->mapname;
+  }
   if (linux_first) {
     strcpy(linux_firstsegment, s->mappath);
     linux_first = 0;

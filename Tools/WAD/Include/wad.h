@@ -33,19 +33,26 @@ extern "C" {
 #define MAX_PATH 1024
 #endif
 
+/* Low level memory management */
+
+extern int   wad_memory_init();
+extern void *wad_malloc(int nbytes);
+extern void  wad_release_memory();
+extern char *wad_strdup(const char *c);
+
 /* Memory segments */
 typedef struct WadSegment {
-  char          *base;                  /* Base address for symbol lookup */
-  char          *vaddr;                 /* Virtual address start          */
-  unsigned long  size;                  /* Size of the segment (bytes)    */
-  unsigned long  offset;                /* Offset into mapped object      */
-  char           mapname[MAX_PATH];     /* Filename mapped to this region */
-  char           mappath[MAX_PATH];     /* Full path to mapname           */
+  char              *base;                  /* Base address for symbol lookup */
+  char              *vaddr;                 /* Virtual address start          */
+  unsigned long      size;                  /* Size of the segment (bytes)    */
+  unsigned long      offset;                /* Offset into mapped object      */
+  char              *mapname;               /* Filename mapped to this region */
+  char              *mappath;               /* Full path to mapname           */
+  struct WadSegment *next;                  /* Next segment                   */
 } WadSegment;
 
-extern WadSegment *wad_segment_read();
-extern WadSegment *wad_segment_find(WadSegment *s, void *vaddr);
-extern void        wad_segment_release(WadSegment *s);
+extern int         wad_segment_read();
+extern WadSegment *wad_segment_find(void *vaddr);
 
 /* Object file handling */
 typedef struct WadObjectFile {

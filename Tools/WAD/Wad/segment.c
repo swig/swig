@@ -17,18 +17,6 @@
 
 #include "wad.h"
 
-/* General comments:
-
-   The segment map gets returned as an array of WadSegment structures.
-   Due to memory constraints, this is usually located in a memory mapped
-   region or similar section of memory.
-
-   The first element of the memory map describes the segment map (address and size)
-   so that it can be cleaned up later on.
-
-   The last element of the memory map is a sentinel where base == 0 and size == 0.
-*/
-
 /* Include the proper code for reading the segment map */
 
 #ifdef WAD_SOLARIS
@@ -39,90 +27,44 @@
 #include "plat/segment_linux.c"
 #endif
 
+static WadSegment    *segments = 0;   /* Linked list of segments */
+
 /* ----------------------------------------------------------------------------- 
  * wad_segment_read()
  *
- * Read all of the memory segments.
+ * Read all of the memory segments into a linked list.  Any previous segment
+ * map is simply lost.  The only way to reclaim this memory is to call
+ * wad_release_memory().
  * ----------------------------------------------------------------------------- */
 
-WadSegment *
+int
 wad_segment_read() {
   int         fs;
-  int         dz;
-  int         offset = 0;
-  int         i;
-  int         n = 0;
-  int         nsegments;
-  WadSegment *segments;
-  WadSegment *s;
-  WadSegment  ws;
+  int         n;
+  WadSegment *s, *lasts;
 
-  /* Try to load the virtual address map */
+  segments = 0;
+  lasts = 0;
   fs = segment_open();
-  if (fs < 0) return 0;
-  nsegments = 0;
-  while (1) {
-    n = segment_read(fs,&ws);
-    if (n <= 0) break;
-    nsegments++;
-  }
-  nsegments+=3;
-  close(fs);
-
-  dz = open("/dev/zero", O_RDWR, 0644);
-  if (dz < 0) {
-    puts("Couldn't open /dev/zero\n");
-    return 0;
-  }
-  segments = (WadSegment *) mmap(NULL, nsegments*sizeof(WadSegment), PROT_READ | PROT_WRITE, MAP_PRIVATE, dz, 0);
-  close(dz);
-  
-  fs = segment_open();
-  i = 0;
-  s = segments;
-
-  /* First segment is a map to the segment list */
-  s->base = (char *) segments;
-  s->vaddr = (char *) segments;
-  s->size = nsegments*sizeof(WadSegment);
-  s->mapname[0] = 0;
-  s->mappath[0] = 0;
-  s++;
 
   while (1) {
-    n = segment_read(fs,&ws);
+    s = (WadSegment *) wad_malloc(sizeof(WadSegment));    
+    n = segment_read(fs,s);
     if (n <= 0) break;
-    strcpy(s->mapname, ws.mapname);
-    strcpy(s->mappath, ws.mappath);
-    s->vaddr = ws.vaddr;
-    s->base = ws.base;
-    s->size = ws.size;
-    s->offset = ws.offset;
+    s->next = 0;
+    if (!lasts) {
+      segments = s;
+      lasts = s;
+    } else {
+      lasts->next = s;
+      lasts = s;
+    }
     if (wad_debug_mode & DEBUG_SEGMENT) {
       printf("wad_segment: read : %08x-%08x, base=%x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->base, s->mappath);
     }
-    s++;
   }
-  /* Create sentinel */
-  s->base = 0;
-  s->vaddr = 0;
-  s->size = 0;
-  s->offset = 0;
-  s->mapname[0] =0;
-  s->mappath[0] = 0;
   close(fs);
-  return segments;
-}
-
-/* -----------------------------------------------------------------------------
- * wad_segment_release()
- *
- * This function releases all of the segments.
- * ----------------------------------------------------------------------------- */
-
-void 
-wad_segment_release(WadSegment *s) {
-  munmap((void *)s, s->size);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -135,13 +77,14 @@ wad_segment_release(WadSegment *s) {
  * ----------------------------------------------------------------------------- */
 
 WadSegment *
-wad_segment_find(WadSegment *s, void *vaddr) {
+wad_segment_find(void *vaddr) {
   WadSegment *ls;
+  WadSegment *s;
   char *addr = (char *)vaddr;
 
-  ls = s;
-  while (s->size || s->base) {
-    /*    printf("s = %x, %x(%d) %x\n",s, s->vaddr, s->size,addr); */
+  s = segments;
+  ls = segments;
+  while (s) {
     if (strcmp(s->mapname,ls->mapname)) {
       ls = s;    /* First segment for a given name */
     }
@@ -151,9 +94,13 @@ wad_segment_find(WadSegment *s, void *vaddr) {
       }
       return ls;
     }
-    s++;
+    s = s->next;
   }
   return 0;
 }
+
+
+
+
 
 
