@@ -779,7 +779,9 @@ AC_SUBST(JAVACXXSHARED)
 # Look for Guile
 #----------------------------------------------------------------
 
+GUILEPACKAGE=
 GUILEINCLUDE=
+GUILE=
 GUILELIB=
 GUILELINK=
 
@@ -790,15 +792,21 @@ if test -z "$GUILE_CONFIG" ; then
 fi
 
 if test -n "$GUILE_CONFIG" ; then
+  GUILEPACKAGE="`$GUILE_CONFIG info prefix`"
+  GUILEINCLUDE="`$GUILE_CONFIG info includedir`"
+  GUILELIB="`$GUILE_CONFIG info libdir`"
+  GUILE="`$GUILE_CONFIG info bindir`/guile"
+  GUILELINK="`$GUILE_CONFIG link`"
+fi
 
-  GUILEPACKAGE=
+AC_ARG_WITH(guilepackage,[  --with-guile-prefix=path       Set location of Guile tree],[
+	GUILEPACKAGE="$withval"])
 
-  AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile],[
-	GUILEPACKAGE="$withval"], [GUILEPACKAGE=])
-  AC_ARG_WITH(guileincl,[  --with-guileincl=path   Set location of Guile include directory],[
-	GUILEINCLUDE="$withval"], [GUILEINCLUDE=])
-  AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
-	GUILELIB="$withval"], [GUILELIB=])
+  if test -z "$GUILE"; then
+     if test -n "$GUILEPACKAGE"; then
+  	GUILE="$GUILEPACKAGE/bin/guile"
+     fi
+  fi
 
   if test -z "$GUILEINCLUDE"; then
      if test -n "$GUILEPACKAGE"; then
@@ -812,9 +820,16 @@ if test -n "$GUILE_CONFIG" ; then
      fi
   fi
 
-  AC_MSG_CHECKING(for Guile header files)
+AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile executable],[
+	GUILE="$withval"])
+AC_ARG_WITH(guileincl,[  --with-guileincl=path   Set location of Guile include directory],[
+	GUILEINCLUDE="$withval"])
+AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
+	GUILELIB="$withval"])
 
-  dirs="$GUILEINCLUDE `$GUILE_CONFIG info includedir`"
+AC_MSG_CHECKING(for Guile header files)
+
+  dirs="$GUILEINCLUDE"
   for i in $dirs ; do
   	if test -r $i/guile/gh.h; then
   		AC_MSG_RESULT($i)
@@ -827,7 +842,7 @@ if test -n "$GUILE_CONFIG" ; then
   fi
 
   AC_MSG_CHECKING(for Guile library)
-  dirs="$GUILELIB `$GUILE_CONFIG info libdir`"
+  dirs="$GUILELIB"
   for i in $dirs ; do
   	if test -r $i/libguile.so; then
   	    AC_MSG_RESULT($i)
@@ -839,10 +854,11 @@ if test -n "$GUILE_CONFIG" ; then
   	AC_MSG_RESULT(not found)
   fi
 
-  GUILELINK="`$GUILE_CONFIG link`"
+if test -z "$GUILELINK"; then
+  GUILELINK="-L$GUILELIB -lguile"
+fi
 
-fi # have GUILE_CONFIG
-
+AC_SUBST(GUILE)
 AC_SUBST(GUILEINCLUDE)
 AC_SUBST(GUILELIB)
 AC_SUBST(GUILELINK)
