@@ -317,7 +317,7 @@ emit_linkage (String &module_name, int linkage)
       mod << module_name;
       mod.replace ("/", " ");
       fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
-               mname.get());
+               mod.get());
     }
     fprintf (f_init, "}\n");
     break;
