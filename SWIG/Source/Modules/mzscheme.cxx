@@ -398,7 +398,7 @@ public:
     
     // Wrap things up (in a manner of speaking)
     
-    Printv(f->code, tab4, "return SWIG_Mzscheme_PackageValues(lenv, values);\n", NIL);
+    Printv(f->code, tab4, "return SWIG_MzScheme_PackageValues(lenv, values);\n", NIL);
     Printf(f->code, "#undef FUNC_NAME\n");
     Printv(f->code, "}\n",NIL);
     

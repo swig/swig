@@ -3,6 +3,7 @@
    with SCM_ flavor.
 */
 
+%runtime "precommon.swg"
 %runtime "common.swg"
 %runtime "guile_scm_run.swg"
 %include "ghinterface.i"
