@@ -4234,7 +4234,8 @@ options        : LPAREN kwargs RPAREN {
 		     n = nextSibling(n);
 		  }
                }   
-               | empty { $$ = 0; }
+               | empty { $$ = 0; };
+
  
 /* Keyword arguments */
 kwargs         : idstring EQUAL stringnum {
