@@ -406,7 +406,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
       if ((tm = Swig_typemap_lookup((char*)"in",pt,pn,source,target,f))) {
 	Putc('O',parse_args);
-	Wrapper_add_localv(f, source, "PyObject *",source,0);
+	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
 	Printf(arglist,"&%s",source);
 	if (i >= (pcount-numopt))
 	  Printv(get_pointers, tab4, "if (", source, ")\n", 0);
