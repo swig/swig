@@ -640,7 +640,7 @@ static void patch_template_type(String *s) {
 /* Misc */
 %type <dtype>    initializer;
 %type <id>       storage_class;
-%type <pl>       parms  ptail rawparms;
+%type <pl>       parms  ptail rawparms varargs_parms ;
 %type <p>        parm;
 %type <p>        typemap_parm tm_list tm_tail;
 %type <id>       cpptype access_specifier;
@@ -1306,7 +1306,7 @@ stringbracesemi : stringbrace { $$ = $1; }
 
 /* %varargs() directive. */
 
-varargs_directive : VARARGS LPAREN parms RPAREN declarator cpp_const SEMI {
+varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEMI {
                  Hash *n;
                  Parm *val;
 		 String *name;
@@ -1342,6 +1342,28 @@ varargs_directive : VARARGS LPAREN parms RPAREN declarator cpp_const SEMI {
 		 Delete(name);
 		 $$ = 0;
               };
+
+varargs_parms   : parms { $$ = $1; }
+                | NUM_INT COMMA parm { 
+		  int i;
+		  int n;
+		  Parm *p;
+		  n = atoi(Char($1.val));
+		  if (n <= 0) {
+		    cparse_error(input_file, line_number,"Argument count must be positive.\n");
+		    $$ = 0;
+		  } else {
+		    $$ = Copy($3);
+		    Setattr($$,"name","VARARGS_SENTINEL");
+		    for (i = 0; i < n; i++) {
+		      p = Copy($3);
+		      set_nextSibling(p,$$);
+		      $$ = p;
+		    }
+		  }
+                }
+               ;
+
 
 /* ------------------------------------------------------------
    %typemap(method) type { ... }

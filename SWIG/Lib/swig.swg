@@ -136,6 +136,8 @@
   else $1[0] = 0;
 }
 
+%typemap(ignore) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
+
 /*  
  * This template wrapper is used to handle C++ objects that are passed or 
  * returned by value.   Theis is necessary to handle objects that define
