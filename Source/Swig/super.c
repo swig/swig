@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include "doh.h"
 #include "swig.h"
+#include <ctype.h>
 
 static char cvstag[] = "$Header$";
 
@@ -60,7 +61,6 @@ static int Super_len(DOH *s);
 static int Super_cmp(DOH *, DOH *);
 static int Super_hash(DOH *s);
 static void Super_clear(DOH *s);
-static void Super_scope(DOH *s, int sc);
 static int Super_insert(DOH *s, int pos, DOH *DOH);
 static int Super_delitem(DOH *s, int where);
 static DOH *Super_str(DOH *s);
@@ -143,7 +143,7 @@ static DohObjInfo SuperType =
    DelSuper,			/* doh_del */
    CopySuper,			/* doh_copy */
    Super_clear,			/* doh_clear */
-   Super_scope,			/* doh_scope */
+   0,				/* reserved */
    Super_str,			/* doh_str */
    Super_data,			/* doh_data */
    Super_dump,			/* doh_dump */
@@ -400,25 +400,6 @@ Super_hash(DOH *so)
  * ------------------------------------------------------------------------- */
 
 static void
-Super_scope(DOH *o, int sc)
-{
-   Super *s = (Super *)o;
-   int i;
-
-   for (i = 0; i < s->numtags; i++)
-     /* I am commenting this out because I can't find a definition anywhere.
-        Sorry for this horrible kludge!  The fprintf should be removed when
-        things are properly fixed.  -ttn, 2000/05/11 01:11:24  */
-     /* Setscope(s->tags[i].filename, sc) */
-     fprintf (stderr, "WARNING: Swig/super.c:Super_scope() dainbramaged!\n")
-     ;
-}
-
-/* -------------------------------------------------------------------------
- * void Super_clear(DOH *s) - Clear a Super
- * ------------------------------------------------------------------------- */
-
-static void
 Super_clear(DOH *so)
 {
    Super *s;
@@ -457,9 +438,8 @@ Super_insert(DOH *so, int pos, DOH *str)
       Super_string_insert(s, pos, Char(str), Len(str),
 			  Getfile(str), Getline(str));
    else
-      /* hmph. Nothin. */
-      /* The cast to `char *' seems bogus.  --ttn, 2000/05/11 00:03:24 */
-      Super_string_insert(s, pos, (char *) str, 0, 0, 0);
+      /* hmph. Nothin. Assume a char * */
+      Super_string_insert(s, pos, (char *)str, 0, 0, 0);
 
    return 0;
 }
@@ -528,7 +508,7 @@ Super_str(DOH *so)
 static int
 Super_read(DOH *so, void *buffer, int len)
 {
-   int    reallen, retlen;
+   int    retlen;
    char   *cb;
    Super *s = (Super *) so;
 
@@ -725,19 +705,20 @@ static int
 Super_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 {
    if (SuperString_check(rep))
-      Super_raw_replace((Super *)stro, Char(token), flags,
-			Super_super_insert2, (DOH *)rep, 0, 0, 0);
+      return Super_raw_replace((Super *)stro, Char(token), flags,
+			       Super_super_insert2, (DOH *)rep, 0, 0,
+			       0);
    else if (String_check(rep))
    {
       Seek(rep, 0, SEEK_SET);
-      Super_raw_replace((Super *)stro, Char(token), flags,
-			Super_string_insert, (DOH *)rep, Len(rep),
-			Getfile(rep), Getline(rep));
+      return Super_raw_replace((Super *)stro, Char(token), flags,
+			       Super_string_insert, (DOH *)rep,
+			       Len(rep), Getfile(rep), Getline(rep)); 
    }
    else
-      Super_raw_replace((Super *)stro, Char(token), flags,
-			Super_string_insert, (DOH *)Char(rep), Len(rep),
-			0, 0);
+      return Super_raw_replace((Super *)stro, Char(token), flags,
+			       Super_string_insert, (DOH *)Char(rep),
+			       Len(rep), 0, 0); 
 }
 
 /* -------------------------------------------------------------------------
@@ -1302,7 +1283,7 @@ Super_raw_replace(Super *str, char *token, int flags,
 		  DOH *rep_fn, int rep_line)
 {
    char *match, *lastmatch_end;
-   int  tokenlen, state, i;
+   int  tokenlen, state;
    int  repcount = 0;
 
    str->hashkey = -1;
