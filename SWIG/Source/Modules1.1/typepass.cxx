@@ -107,9 +107,17 @@ class TypePass : public Dispatcher {
 		    int   clsforward = 0;
 		    String *bname = Getitem(nlist,i);
 		    String *sname = bname;
+		    String *tname = 0;
+
 		    /* Try to locate the base class.   We look in the symbol table and we chase 
 		       typedef declarations to get to the base class if necessary */
 		    Symtab *st = Getattr(cls,"sym:symtab");
+
+		    if (SwigType_istemplate(bname)) {
+		      tname = SwigType_typedef_resolve_all(bname);
+		      sname = tname;
+		    }
+		    /* Printf(stdout,"'%s' ---> '%s'\n", bname, SwigType_typedef_resolve_all(bname));*/
 		    while (1) {
 			bcls = Swig_symbol_clookup(sname,st);
 			if (bcls) {
@@ -142,6 +150,7 @@ class TypePass : public Dispatcher {
 			}
 			break;
 		    }
+		    if (tname) Delete(tname);
 		    if (!bcls) {
 			if (!clsforward) {
 			    if (!Getmeta(bname,"already_warned")) {
@@ -253,6 +262,7 @@ public:
 	normalize = NewList();
 
 	if (name) {
+	  // We need to fully resolve the name to make templates work correctly */
 	  if ((CPlusPlus) || (unnamed)) {
 	    SwigType_typedef_class(name);
 	  } else {

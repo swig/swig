@@ -292,9 +292,13 @@ find_scope(Typetab *s, String *nameprefix) {
     }
     if (Getattr(scopes,full)) {
       s = Getattr(scopes,full);
+    } else {
+      s = 0;
     }
     Delete(full);
-    if (s) return s;
+    if (s) {
+      return s;
+    }
     ss = Getattr(ss,"parent");
   }
   return 0;
@@ -317,7 +321,7 @@ typedef_resolve(Typetab *s, String *base) {
   List     *inherit;
 
   if (!s) return 0;
-  /*  Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base);*/
+  /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base); */
 
   if (Getmark(s)) return 0;
   Setmark(s,1);
@@ -362,6 +366,8 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   base = SwigType_base(t);
 
+  /* Printf(stdout,"base = '%s'\n", base); */
+
   if (SwigType_issimple(base)) {
     s = current_scope;
     ttab = current_typetab;
@@ -381,6 +387,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       if (Swig_scopename_check(base)) {
 	/* A qualified name. */
 	nameprefix = Swig_scopename_prefix(base);
+	/* Printf(stdout,"nameprefix = '%s'\n", nameprefix); */
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
 	  s = find_scope(s,nameprefix);
@@ -392,7 +399,9 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  }
 	  /* Try to locate the name starting in the scope */
 	  namebase = Swig_scopename_base(base);
+	  /* Printf(stdout,"namebase = '%s'\n", namebase); */
 	  type = typedef_resolve(s,namebase);
+	  /* Printf(stdout,"%s type = '%s'\n", Getattr(s,"name"), type); */
 	  if ((type) && (!Swig_scopename_check(type))) {
 	    Typetab *rtab = resolved_scope;
 	    String *qname = Getattr(resolved_scope,"qname");
@@ -527,7 +536,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   if (newtype) {
     Delete(type);
   }
-  /*  Printf(stdout,"%s --> %s\n", t,r); */
+  /* Printf(stdout,"%s --> %s\n", t,r); */
   return r;
 }
 
