@@ -851,10 +851,10 @@ static String *resolve_node_scope(String *cname) {
 	    }
 	    /* we get the 'inner' class */
 	    nscope_inner = Swig_symbol_clookup(sname,0);
-	    /* save the last namespace prefix */
-	    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	    /* set the scope to the inner class */
 	    Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
+	    /* save the last namespace prefix */
+	    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	    /* and return the node name, including the inner class prefix */
 	    break;
 	  }
@@ -2798,6 +2798,25 @@ cpp_class_decl  :
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   $3 = resolve_node_scope($3);
+		   
+		   /* support for old nested classes "pseudo" support, such as:
+
+		         %rename(Ala__Ola) Ala::Ola;
+			class Ala::Ola {
+			public:
+			    Ola() {}
+		         };
+
+		      this should dissapear with a proper implementation is added.
+		   */
+		   if (nscope_inner && Strcmp(nodeType(nscope_inner),"namespace") != 0) {
+		     if (Namespaceprefix) {
+		       String *name = NewStringf("%s::%s", Namespaceprefix, $3);		       
+		       $3 = name;
+		       Namespaceprefix = 0;
+		       nscope_inner = 0;
+		     }
+		   }
 
                    class_rename = make_name($3,0);
 		   Classprefix = NewString($3);
@@ -2944,6 +2963,8 @@ cpp_class_decl  :
 		   add_symbols($$);
 		   add_symbols($9);
 		 }
+		 Swig_symbol_setscope(cscope);
+		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       }
 
 /* An unnamed struct, possibly with a typedef */
