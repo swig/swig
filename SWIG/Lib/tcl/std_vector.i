@@ -76,6 +76,7 @@ int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
     if(temp == NULL)
         return TCL_ERROR;
     *val = temp;
+    return TCL_OK;
 }
 
 // behaviour of this is such as the real Tcl_GetIntFromObj
