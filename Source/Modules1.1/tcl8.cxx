@@ -276,7 +276,10 @@ void TCL8::headers(void)
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
-
+  if (Swig_insert_file("common.swg",f_runtime) == -1) {
+    Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
+    SWIG_exit(1);
+  }
   if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
     SWIG_exit(1);
