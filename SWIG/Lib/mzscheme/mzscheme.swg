@@ -205,7 +205,7 @@ SWIG_MustGetPtr_ (Scheme_Object *s,  swig_type_info *type,
   void *result;
   if (SWIG_GetPtr(s, &result, type) != 0) {
     /* type mismatch */
-    scheme_wrong_type(func_name, type->str, argnum, argc, argv);
+    scheme_wrong_type(func_name, type->str ? type->str : "void *", argnum, argc, argv);
   }
   return result;
 }
