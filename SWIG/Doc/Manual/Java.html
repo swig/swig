@@ -1498,7 +1498,7 @@ allow the calling function to read the double* value after returning from the fu
     jclass clazz = jenv-&gt;FindClass("MyDouble");
     jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
     jlong cPtr = jenv-&gt;GetLongField($input, fid);
-    MyDouble* pMyDouble;
+    MyDouble* pMyDouble = NULL;
     *(MyDouble*)&pMyDouble = *(MyDouble*)&cPtr;
     $1 = &pMyDouble-&gt;value;
 }
