@@ -16,11 +16,11 @@ RUBY      = ruby
 SWIG      = swig
 
 # for C extension
-SWIGOPT   = -ruby
+SWIGOPT   = -ruby -feature $(FEATURE)
 WRAPPER   = $(MODULE)_wrap.c
 
 ## for C++ extension
-#SWIGOPT   = -ruby -c++
+#SWIGOPT   = -ruby -c++ -feature $(FEATURE)
 #WRAPPER   = $(MODULE)_wrap.cc
 
 
