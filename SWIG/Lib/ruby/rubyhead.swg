@@ -20,3 +20,10 @@
 # define VOIDFUNC(f) (f)
 #endif
 
+typedef struct {
+  VALUE  klass;
+  void  (*destroy)(void *);
+} swig_class;
+
+  
+  

@@ -217,7 +217,7 @@ static VALUE ptrcreate(char *type, VALUE _RBVALUE, int numelements) {
   } 
   /* Create the pointer value */
   
-  obj = SWIG_NewPointerObj(ptr,cast);
+  obj = SWIG_NewPointerObj(ptr,cast,0);
   return obj;
 }
 
@@ -333,7 +333,7 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
   } else {
     rb_raise(rb_eTypeError,"Type error in ptradd. Argument is not a valid pointer value.");
   }
-  obj = SWIG_NewPointerObj(ptr, type);
+  obj = SWIG_NewPointerObj(ptr, type,0);
   return obj;
 }
 

@@ -4,7 +4,7 @@ extern "C" {
 #endif
 
 SWIGEXPORT(void)   SWIG_define_class(swig_type_info *);
-SWIGEXPORT(VALUE)  SWIG_NewPointerObj(void *, swig_type_info *);
+SWIGEXPORT(VALUE)  SWIG_NewPointerObj(void *, swig_type_info *, int own);
 SWIGEXPORT(char *) SWIG_MangleStr(VALUE);
 SWIGEXPORT(void *) SWIG_ConvertPtr(VALUE, swig_type_info *);
 SWIGEXPORT(int)    SWIG_CheckConvert(VALUE, swig_type_info *);

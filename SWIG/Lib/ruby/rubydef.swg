@@ -24,14 +24,19 @@ SWIG_define_class(swig_type_info *type)
 
 /* Create a new pointer object */
 SWIGRUNTIME(VALUE)
-SWIG_NewPointerObj(void *ptr, swig_type_info *type)
+SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own)
 {
     char *klass_name;
-    VALUE klass;
+    swig_class *sklass;
 
+    VALUE klass;
     if (!ptr)
 	return Qnil;
-
+    
+    if (type->clientdata) {
+      sklass = (swig_class *) type->clientdata;
+      return Data_Wrap_Struct(sklass->klass, 0, (own) ? VOIDFUNC(sklass->destroy) : 0, ptr);
+    }
     klass_name = ALLOCA_N(char, 4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
     klass = rb_const_get(_mSWIG, rb_intern(klass_name));
@@ -60,16 +65,28 @@ SWIGRUNTIME(void *)
 SWIG_ConvertPtr(VALUE obj, swig_type_info *ty)
 {
   char *c;
-  void *ptr;
+  void *ptr = 0;
   swig_type_info *tc;
 
-  if ((c = SWIG_MangleStr(obj)) == NULL)
-    rb_raise(rb_eTypeError, "Expected %s", ty->str);	
-  Data_Get_Struct(obj, void, ptr);
-  if (ty) {
-    tc = SWIG_TypeCheck(c, ty);
-    if (!tc) rb_raise(rb_eTypeError, "Expected %s", ty->str);
-    ptr = SWIG_TypeCast(tc, ptr);
+  if (ty->clientdata) {
+    if (NIL_P(obj)) ptr = NULL;
+    else {
+
+      if (!rb_obj_is_kind_of(obj, ((swig_class *) (ty->clientdata))->klass))
+	rb_raise(rb_eTypeError, "wrong argument type (expected %s)", ty->str);
+
+      Data_Get_Struct(obj, void, ptr);
+      if (!ptr) rb_raise(rb_eRuntimeError, "This %s already released", ty->str);
+    }
+  } else {
+    if ((c = SWIG_MangleStr(obj)) == NULL)
+      rb_raise(rb_eTypeError, "Expected %s", ty->str);	
+    Data_Get_Struct(obj, void, ptr);
+    if (ty) {
+      tc = SWIG_TypeCheck(c, ty);
+      if (!tc) rb_raise(rb_eTypeError, "Expected %s", ty->str);
+      ptr = SWIG_TypeCast(tc, ptr);
+    }
   }
   return ptr;
 }
