@@ -27,8 +27,6 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 
 %}
 
-%include "typemaps.i"
-%include "exception.i"
 %include "std_string.i"
 
 #ifdef SWIGPYTHON

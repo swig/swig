@@ -11,8 +11,6 @@ public:
 
 %}
 
-%include "typemaps.i"
-%include "exception.i"
 %include "std_string.i"
 
 %feature("director") Foo;
