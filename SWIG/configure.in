@@ -1386,6 +1386,15 @@ case $host in
 *)CSHARPLIBRARYPREFIX="lib";;
 esac
 
+# C#/Mono on Mac OS X tweaks
+case $host in
+*-*-darwin*)
+    CSHARPSO=".so"
+    ;;
+*)
+    CSHARPSO=$SO
+    ;;
+esac
 
 AC_SUBST(CSHARPCILINTERPRETER)
 AC_SUBST(CSHARPPATHSEPARATOR)
@@ -1394,6 +1403,7 @@ AC_SUBST(CSHARPCOMPILER)
 AC_SUBST(CSHARPDYNAMICLINKING)
 AC_SUBST(CSHARPLIBRARYPREFIX) # Is this going to be used?
 AC_SUBST(CSHARPCFLAGS)
+AC_SUBST(CSHARPSO)
 
 #----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
