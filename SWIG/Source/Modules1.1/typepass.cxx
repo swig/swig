@@ -155,6 +155,11 @@ class TypePass : public Dispatcher {
 		  if (!decl || !(Len(decl))) {
 		    sname = Getattr(bcls,"type");
 		    st = Getattr(bcls,"sym:symtab");
+		    if (SwigType_istemplate(sname)) {
+		      if (tname) Delete(tname);
+		      tname = SwigType_typedef_resolve_all(sname);
+		      sname = tname;
+		    }
 		    continue;
 		  } 
 		}
