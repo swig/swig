@@ -278,8 +278,8 @@ throw_unhandled_mzscheme_type_error (DataType *d)
   Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
   Printf (stderr, "is_reference %d\n", d->is_reference);
   Printf (stderr, "      status %d\n", d->status);
-  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
-  Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : ""));
+  /*  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
+      Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : "")); */
   Printf (stderr, "          id %d\n", d->id);
 
   Printf (stderr, "\n\nBAILING...\n"); // for now -ttn

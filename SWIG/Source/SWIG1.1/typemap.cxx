@@ -168,14 +168,14 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
   // Check to see if an array typemap has been applied to a non-array type
 
-  if ((tm_type->arraystr) && (!type->arraystr)) {
+  if ((DataType_arraystr(tm_type)) && (!DataType_arraystr(type))) {
     fprintf(stderr,"%s:%d: Warning. Array typemap has been applied to a non-array type.\n",
 	    input_file,line_number);
   }
 
   // If both are arrays, make sure they have the same dimension 
 
-  if ((tm_type->arraystr) && (type->arraystr)) {
+  if ((DataType_arraystr(tm_type)) && (DataType_arraystr(type))) {
     char s[128],*t;
     if (DataType_array_dimensions(tm_type) != DataType_array_dimensions(type)) {
       fprintf(stderr,"%s:%d: Warning. Array types have different number of dimensions.\n",
@@ -266,7 +266,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
     is_default = 1;
   }
 
-  key = typemap_string(lang,tm->type,pname,tm->type->arraystr, op);
+  key = typemap_string(lang,tm->type,pname,DataType_arraystr(tm->type), op);
 
   // Get any previous setting of the typemap
 
@@ -362,7 +362,7 @@ void typemap_register_default(char *op, char *lang, int type, int ptr, char *arr
   // Create a raw datatype from the arguments
 
   t->is_pointer = ptr;
-  t->arraystr = copy_string(arraystr);
+  DataType_set_arraystr(t,arraystr);
 
   // Now, go register this as a default type
 
@@ -405,22 +405,23 @@ TypeMap *typemap_search(char *key, int id) {
 // ------------------------------------------------------------------------
 
 TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str) {
-  char      *origarr = type->arraystr;
+  char      origarr[1024];
   char      *key;
   int       ndim,i,j,k,n;
   TypeMap   *tm;
   char      temp[10];
 
-  if (!type->arraystr) return 0;
+  if (!DataType_arraystr(type)) return 0;
 
+  strcpy(origarr,DataType_arraystr(type));
   // First check to see if exactly this array has been mapped
 
-  key = typemap_string(lang,type,pname,type->arraystr,op);
+  key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
   tm = typemap_search(key,type->id);
 
   // Check for unnamed array of specific dimensions
   if (!tm) {
-    key = typemap_string(lang,type,(char*)"",type->arraystr,op);
+    key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
     tm = typemap_search(key,type->id);
   } 
 
@@ -441,14 +442,14 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 	}
 	k = k >> 1;
       }
-      type->arraystr = Char(tempastr);
-      key = typemap_string(lang,type,pname,type->arraystr,op);
+      DataType_set_arraystr(type, Char(tempastr));
+      key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
       tm = typemap_search(key,type->id);
       if (!tm) {
-	key = typemap_string(lang,type,(char*)"",type->arraystr,op);
+	key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
 	tm = typemap_search(key,type->id);
       }
-      type->arraystr = origarr;
+      DataType_set_arraystr(type,origarr);
       if (tm) {
 	Delete(tempastr);
 	break;
@@ -502,9 +503,9 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	}
         
 	// Have a real parameter here
-        if (tt->arraystr) {
+        if (DataType_arraystr(tt)) {
 	  tt->is_pointer--;
-	  Printf(str,"%s%s",p->name, tt->arraystr);
+	  Printf(str,"%s%s",p->name, DataType_arraystr(tt));
 	} 
         else {
 	  Printf(str,"%s",p->name);
@@ -525,7 +526,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
         else 
           new_name = Wrapper_new_localv(f,str, DataType_print_full(tt), str, 0);
 
-	if (tt->arraystr) tt->is_pointer++;
+	if (DataType_arraystr(tt)) tt->is_pointer++;
 	// Substitute 
 	Replace(s,p->name,new_name,DOH_REPLACE_ID);
       }
@@ -535,7 +536,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
   // If the original datatype was an array. We're going to go through and substitute
   // it's array dimensions
 
-  if (t->arraystr) {
+  if (DataType_arraystr(t)) {
     char temp[10];
     for (int i = 0; i < DataType_array_dimensions(t); i++) {
       sprintf(temp,"$dim%d",i);
@@ -709,13 +710,16 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  m->type->is_pointer += drop_pointer;
 
 	  // Copy old array string (just in case)
-
-	  oldary = m->type->arraystr; 
+	  
+	  if (DataType_arraystr(m->type))
+	    oldary = copy_string(DataType_arraystr(m->type));
+	  else
+	    oldary = 0;
 
 	  // If the mapping type is an array and has the 'ANY' keyword, we
           // have to play some magic
 
-	  if ((m->type->arraystr) && (type->arraystr)) {
+	  if ((DataType_arraystr(m->type)) && (DataType_arraystr(type))) {
 	    // Build up the new array string
 	    Clear(newarray);
 	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
@@ -726,14 +730,16 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 		Printf(newarray,"[%s]", d);
 	      }
 	    }
-	    m->type->arraystr = Char(newarray);
-	  } else if (type->arraystr) {
+	    DataType_set_arraystr(m->type, Char(newarray));
+	  } else if (DataType_arraystr(type)) {
 	    // If an array string is available for the current datatype,
 	    // make it available.
-	    m->type->arraystr = type->arraystr;
+	    DataType_set_arraystr(m->type,DataType_arraystr(type));
 	  }
 	  result = typemap_lookup_internal(op,lang,m->type,ppname,source,target,f);
-	  m->type->arraystr = oldary;
+	  DataType_set_arraystr(m->type,oldary);
+	  if (oldary)
+	    delete oldary;
 	  m->type->is_pointer -= drop_pointer;
 	  if (result) {
 	    type->is_pointer += drop_pointer;
@@ -762,8 +768,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       // Still no result, go even more primitive
       t->type = T_USER;
       t->is_pointer = 1;
-      if (t->arraystr) delete [] t->arraystr;
-      t->arraystr = 0;
+      DataType_set_arraystr(t,0);
       DataType_primitive(t);
       result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     }
@@ -807,8 +812,8 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
   }
 
   // Check for unnamed array
-  if ((!tm) && (type->arraystr)) {
-    key = typemap_string(lang,type,(char*)"",type->arraystr,op);
+  if ((!tm) && (DataType_arraystr(type))) {
+    key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
     tm = typemap_search(key,type->id);
   } 
 
@@ -866,12 +871,15 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  if (*(m->name)) ppname = m->name;
 	  else ppname = pname;
 	  m->type->is_pointer += drop_pointer;
-	  oldary = m->type->arraystr;
+	  if (DataType_arraystr(m->type))
+	    oldary = copy_string(DataType_arraystr(m->type));
+	  else
+	    oldary = 0;
 
 	  // If the mapping type is an array and has the 'ANY' keyword, we
           // have to play some magic
 	  
-	  if ((m->type->arraystr) && (type->arraystr)) {
+	  if ((DataType_arraystr(m->type)) && (DataType_arraystr(type))) {
 	    // Build up the new array string
 	    Clear(newarray);
 	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
@@ -882,13 +890,13 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 		Printf(newarray,"[%s]", d);
 	      }
 	    }
-	    oldary = m->type->arraystr;
-	    m->type->arraystr = Char(newarray);
-	  } else if (type->arraystr) {
-	    m->type->arraystr = type->arraystr;
+	    DataType_set_arraystr(m->type, Char(newarray));
+	  } else if (DataType_arraystr(type)) {
+	    DataType_set_arraystr(m->type, DataType_arraystr(type));
 	  }
 	  result = typemap_check_internal(op,lang,m->type,ppname);
-	  m->type->arraystr = oldary;
+	  DataType_set_arraystr(m->type,oldary);
+	  if (oldary) delete oldary;
 	  m->type->is_pointer -= drop_pointer;
 	  if (result) {
 	    type->is_pointer += drop_pointer;
@@ -916,8 +924,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       // Still no result, go even more primitive
       t->type = T_USER;
       t->is_pointer = 1;
-      if (t->arraystr) delete [] t->arraystr;
-      t->arraystr = 0;
+      DataType_set_arraystr(t,0);
       DataType_primitive(t);
       result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     }
@@ -939,7 +946,7 @@ void typemap_clear(char *op, char *lang, DataType *type, char *pname) {
   char     *key;
   TypeMap  *tm;
 
-  key = typemap_string(lang,type,pname,type->arraystr,op);
+  key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
 
   // Look for any previous version, simply set the last id if
   // applicable.
@@ -966,7 +973,7 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
 
   // Try to locate a previous typemap
 
-  key = typemap_string(lang,stype,sname,stype->arraystr,op);
+  key = typemap_string(lang,stype,sname,DataType_arraystr(stype),op);
   tm = typemap_search(key,stype->id);
   if (!tm) return;
   if (strcmp(ttype->name,"PREVIOUS") == 0) {

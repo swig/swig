@@ -39,14 +39,14 @@ static char cvsroot[] = "$Header$";
 void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
   char *arr = 0;
 
-  if (t->arraystr) arr = t->arraystr;
-  else arr = (char*)"";
+  arr = DataType_arraystr(t);
+  if (!arr) arr = (char*)"";
 
   switch(extern_type) {
 
   case 0:
     // No extern.  Just a forward reference
-    if (t->arraystr)
+    if (DataType_arraystr(t))
       t->is_pointer--;
 
     if (t->is_reference) {
@@ -56,11 +56,11 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
     } else {
       fprintf(f,"%s %s%s; \n", DataType_print_full(t), decl,arr);
     }
-    if (t->arraystr)
+    if (DataType_arraystr(t))
       t->is_pointer++;
     break;
   case 1: case 2:
-    if (t->arraystr)
+    if (DataType_arraystr(t))
       t->is_pointer--;
 
     // Normal C/C++ extern
@@ -72,7 +72,7 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
     } else {
       fprintf(f,"extern %s %s%s; \n", DataType_print_full(t), decl,arr);
     }
-    if (t->arraystr)
+    if (DataType_arraystr(t))
       t->is_pointer++;
 
   default:
