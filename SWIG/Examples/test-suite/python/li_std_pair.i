@@ -4,6 +4,11 @@
 // activate the automatic comparison methods generation (==,!=,...) 
 //
 
+%{
+#include <algorithm>                   // for std::swap
+%}
+
+
 %include std_pair.i
 %include std_string.i
 %include std_complex.i
