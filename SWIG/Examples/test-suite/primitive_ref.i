@@ -3,7 +3,7 @@
 
 %define ref(type,name)
 %inline %{
-type &ref_##name(const type &x) {
+const type &ref_##name(const type &x) {
    static type y = x;
    return y;
 }
