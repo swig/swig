@@ -169,6 +169,12 @@ Library
 
 ****   Continue to expand the set of recognized typemaps.
 
+Windows
+-------
+
+***    VC++ Project files / Makefiles for building the runtime libraries.
+       Will require libtool mods to work under Cygwin.
+
 All language modules
 --------------------
 
@@ -277,14 +283,27 @@ Ruby
 
 Java
 ----
-**     Default argument support. Default arguments are effectively ignored 
+
+****   Default argument support. Default arguments are effectively ignored 
        at present. An overridden method for each default argument could be 
        generated thereby enabling one to call methods with default arguments.
 
-[DONE] Vararg typemaps
+**     Implement idea from Dave Dribin email to the swig mailing list, 2 April 2003, 
+       where the global enums and constants are placed in an interface so that they 
+       can be implemented by other Java classes. This will allow improved syntax when
+       referring to the enums/constants:
+         int foo = enumname;
+       instead of
+         int foo = ModuleName.enumname;
 
-[DONE] $javaconst(1) option for enums - so that no JNI call is necessary to 
-       get the value of the enum.
+C#
+--
+
+***    Need a way to throw a C# exception from the PINVOKE C/C++ code.
+
+***    The correct override/virtual keywords not always emitted for polymorphic
+       methods. It currently only works when 'virtual' is specified in a derived 
+       C++ class function. A polymorphic method need not specify 'virtual' in C++.
 
 PHP
 ---
