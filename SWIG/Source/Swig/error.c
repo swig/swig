@@ -44,12 +44,15 @@ static int silence = 0;            /* Silent operation */
 static String *filter = 0;         /* Warning filter */
 static int warnall = 0;
 static int nwarning = 0;
+static int nerrors = 0;
 
 static int init_fmt = 0;
 static char wrn_wnum_fmt[64];
 static char wrn_nnum_fmt[64];
 static char err_line_fmt[64];
 static char err_eof_fmt[64];
+
+static String *format_filename(const String_or_char *filename);
 
 /* -----------------------------------------------------------------------------
  * Swig_warning()
@@ -96,13 +99,15 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
     }
   }
   if (warnall || wrn) {
+    String *formatted_filename = format_filename(filename);
     if (wnum) {
-      Printf(stderr, wrn_wnum_fmt, filename, line, wnum);
+      Printf(stderr, wrn_wnum_fmt, formatted_filename, line, wnum);
     } else {
-      Printf(stderr, wrn_nnum_fmt, filename, line);
+      Printf(stderr, wrn_nnum_fmt, formatted_filename, line);
     }
     Printf(stderr,"%s",msg);
     nwarning++;
+    Delete(formatted_filename);
   }
   Delete(out);
   va_end(ap);
@@ -114,24 +119,25 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
  * Issue an error message
  * ----------------------------------------------------------------------------- */
 
-static int nerrors = 0;
-
 void 
 Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
   va_list ap;
+  String *formatted_filename = NULL;
 
   if (silence) return;
   if (!init_fmt) Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
   
   va_start(ap,fmt);
+  formatted_filename = format_filename(filename);
   if (line > 0) {
-    Printf(stderr, err_line_fmt, filename, line);
+    Printf(stderr, err_line_fmt, formatted_filename, line);
   } else {
-    Printf(stderr, err_eof_fmt, filename);
+    Printf(stderr, err_eof_fmt, formatted_filename);
   }
   vPrintf(stderr,fmt,ap);
   va_end(ap);
   nerrors++;
+  Delete(formatted_filename);
 }
 
 /* -----------------------------------------------------------------------------
@@ -222,18 +228,20 @@ Swig_error_msg_format(ErrorMessageFormat format) {
   const char* error    = "Error";
   const char* warning  = "Warning";
 
-  const char* fmt_eof  = "%s:EOF";
+  const char* fmt_eof  = 0;
+  const char* fmt_line = 0;
 
   /* here 'format' could be directly a string instead of an enum, but
      by now a switch is used to translated into one. */
-  const char* fmt_line = 0;
   switch (format) {
   case EMF_MICROSOFT:
     fmt_line = "%s(%d)";
+    fmt_eof  = "%s(999999)"; /* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:
     fmt_line = "%s:%d";
+    fmt_eof  = "%s:EOF";
   }
 
   sprintf(wrn_wnum_fmt, "%s: %s(%%d): ", fmt_line, warning);
@@ -244,3 +252,18 @@ Swig_error_msg_format(ErrorMessageFormat format) {
   msg_format = format;
   init_fmt = 1;
 }
+
+/* -----------------------------------------------------------------------------
+ * format_filename()
+ *
+ * Remove double backslashes in Windows filename paths for display
+ * ----------------------------------------------------------------------------- */
+static String *
+format_filename(const String_or_char *filename) {
+  String *formatted_filename = NewString(filename);
+#if defined(_WIN32)
+    Replaceall(formatted_filename,"\\\\","\\");
+#endif
+    return formatted_filename;
+}
+
