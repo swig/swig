@@ -103,7 +103,7 @@ char *JAVA::SwigTcToJniType(DataType *t, int ret) {
 	    case T_USER: return (char*)"jlong";
 	  }
   }
-  fprintf(stderr, "SwigTcToJniType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
+  Printf(stderr, "SwigTcToJniType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
   return NULL;
 }
 
@@ -149,7 +149,7 @@ char *JAVA::SwigTcToJavaType(DataType *t, int ret, int inShadow) {
 	    case T_USER: return (char*)"long";
 	  }
   }
-  fprintf(stderr, "SwigTcToJavaType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
+  Printf(stderr, "SwigTcToJavaType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
   return NULL;
 }
 
@@ -175,7 +175,7 @@ char *JAVA::SwigTcToJniScalarType(DataType *t) {
     return (char*)"Long";
   }
 
-  fprintf(stderr, "SwigTcToJniScalarType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
+  Printf(stderr, "SwigTcToJniScalarType: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
   return NULL;
 }
 
@@ -220,7 +220,7 @@ char *JAVA::JavaMethodSignature(DataType *t, int ret, int inShadow) {
 	    case T_USER: return (char*)"J";
 	  }
   }
-  fprintf(stderr, "JavaMethodSignature: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
+  Printf(stderr, "JavaMethodSignature: unhandled SWIG type %d, %s\n", t->type, (char *) t->name);
   return NULL;
 }
 
@@ -353,7 +353,7 @@ void JAVA::parse_args(int argc, char *argv[]) {
         Swig_mark_arg(i);
 	    jnic = 0;
       } else if (strcmp(argv[i],"-help") == 0) {
-	    fprintf(stderr,"%s\n", usage);
+	    Printf(stderr,"%s\n", usage);
       }
     }
   }
@@ -380,7 +380,7 @@ void JAVA::parse_args(int argc, char *argv[]) {
 
 void JAVA::parse() {
 
-  fprintf(stderr,"Generating wrappers for Java\n");
+  Printf(stderr,"Generating wrappers for Java\n");
 
   shadow_classes = NewHash();
   shadow_classdef = NewString("");
@@ -415,12 +415,12 @@ void JAVA::set_module(char *mod_name, char **mod_list) {
 void JAVA::headers(void)
 {
   Swig_banner(f_header);               // Print the SWIG banner message
-  fprintf(f_header,"/* Implementation : Java */\n\n");
+  Printf(f_header,"/* Implementation : Java */\n\n");
 
   // Include header file code fragment into the output
   // if (file::include("java.swg",f_header) == -1) {
   if (Swig_insert_file("java.swg",f_header) == -1) {
-    fprintf(stderr,"Fatal Error. Unable to locate 'java.swg'.\n");
+    Printf(stderr,"Fatal Error. Unable to locate 'java.swg'.\n");
     SWIG_exit(1);
   }
 }
@@ -435,7 +435,7 @@ void JAVA::headers(void)
 void JAVA::initialize() 
 {
   if (!module) {
-    fprintf(stderr,"*** Error. No module name specified.\n");
+    Printf(stderr,"*** Error. No module name specified.\n");
     SWIG_exit(1);
   }
 
@@ -443,22 +443,22 @@ void JAVA::initialize()
     DOHString *s = NewString(package);
     Replace(s,".","_", DOH_REPLACE_ANY);
     Append(s,"_");
-    c_pkgstr = copy_string(Char(s));
+    c_pkgstr = Swig_copy_string(Char(s));
     Delete(s);
 
     DOHString *s2 = NewString(package);
     Replace(s2,".","/", DOH_REPLACE_ANY);
     Append(s2,"/");
-    jni_pkgstr = copy_string(Char(s2));
+    jni_pkgstr = Swig_copy_string(Char(s2));
     Delete(s2);
   } else {
     package = c_pkgstr = jni_pkgstr = (char*)"";
   }
     
   sprintf(bigbuf, "Java_%s%s", c_pkgstr, module);
-  c_pkgstr = copy_string(bigbuf);
+  c_pkgstr = Swig_copy_string(bigbuf);
   sprintf(bigbuf, "%s_%%f", c_pkgstr);
-  Swig_name_register((char*)"wrapper", copy_string(bigbuf));
+  Swig_name_register((char*)"wrapper", Swig_copy_string(bigbuf));
   Swig_name_register((char*)"set", (char*)"set_%v");
   Swig_name_register((char*)"get", (char*)"get_%v");
   Swig_name_register((char*)"member", (char*)"%c_%m"); 
@@ -466,22 +466,22 @@ void JAVA::initialize()
   // Generate the java class
   sprintf(bigbuf, "%s.java", module);
   if((f_java = fopen(bigbuf, "w")) == 0) {
-    fprintf(stderr,"Unable to open %s\n", bigbuf);
+    Printf(stderr,"Unable to open %s\n", bigbuf);
     SWIG_exit(1);
   }
 
-  fprintf(f_header, "#define J_CLASSNAME %s\n", module);
+  Printf(f_header, "#define J_CLASSNAME %s\n", module);
   if(package && *package) {
-    fprintf(f_java, "package %s;\n\n", package);
-    fprintf(f_header, "#define J_PACKAGE %s\n", package);
+    Printf(f_java, "package %s;\n\n", package);
+    Printf(f_header, "#define J_PACKAGE %s\n", package);
   } else {
-    fprintf(f_header, "#define J_PACKAGE\n");
+    Printf(f_header, "#define J_PACKAGE\n");
   }
 }
 
 void JAVA::emit_classdef() {
   if(!classdef_emitted)
-    fprintf(f_java, "public class %s {\n", module);
+    Printf(f_java, "public class %s {\n", module);
   classdef_emitted = 1;
 }
 
@@ -496,7 +496,7 @@ void JAVA::close(void)
   if(!classdef_emitted) emit_classdef();
 
   // Finish off the java class
-  fprintf(f_java, "}\n");
+  Printf(f_java, "}\n");
   fclose(f_java);
 
   if(useRegisterNatives)
@@ -563,8 +563,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	 f.add_local(jnirettype, (char*)"_jresult", (char*)"0");
   }
 
-  fprintf(f_java, "  %s ", method_modifiers);
-  fprintf(f_java, "native %s %s(", javarettype, iname);
+  Printf(f_java, "  %s ", method_modifiers);
+  Printf(f_java, "native %s %s(", javarettype, iname);
   if(shadow && member_func) {
     DOHString *member_name = NewString("");
     if(strcmp(iname, Swig_name_set(Swig_name_member(shadow_classname, shadow_name))) == 0)
@@ -577,8 +577,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     Delete(member_name);
   }
 
-  if(!jnic) Printf(f._def,"extern \"C\"\n");
-  Printv(f._def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
+  if(!jnic) Printf(f.def,"extern \"C\"\n");
+  Printv(f.def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", 0);
 
   // Emit all of the local variables for holding arguments.
   int pcount = emit_args(t,l,f);
@@ -609,36 +609,36 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       // Add to java function header
       if(shadow && member_func) {
         if(i > 0) {
-          if(i>1) fprintf(f_shadow, ", ");
-          fprintf(f_shadow, "%s %s", jtype, source);
+          if(i>1) Printf(f_shadow, ", ");
+          Printf(f_shadow, "%s %s", jtype, source);
 	  Printv(body,", ", source, 0);
         }
       }
 
-      if(gencomma) fprintf(f_java, ", ");
-      fprintf(f_java, "%s %s", jtype, source);
+      if(gencomma) Printf(f_java, ", ");
+      Printf(f_java, "%s %s", jtype, source);
 
       gencomma = 1;
 
       // Add to Jni function header
-      Printv(f._def, ", ", jnitype, " ", source, 0);
+      Printv(f.def, ", ", jnitype, " ", source, 0);
   
       // Get typemap for this argument
       tm = typemap_lookup((char*)"in",typemap_lang,p->t,p->name,source,target,&f);
       if (tm) {
-	Printf(f._code,"%s\n", tm);
-	Replace(f._code,"$arg",source, DOH_REPLACE_ANY);
+	Printf(f.code,"%s\n", tm);
+	Replace(f.code,"$arg",source, DOH_REPLACE_ANY);
       } else {
         if(!p->t->is_pointer)
-	  Printv(f._code, tab4, target, " = ", p->t->print_cast(), source, ";\n", 0);
+	  Printv(f.code, tab4, target, " = ", p->t->print_cast(), source, ";\n", 0);
         else if((p->t->type == T_VOID && p->t->is_pointer == 1) ||
 	        (p->t->type == T_USER && p->t->is_pointer == 1)) {
             p->t->is_pointer++;
-	    Printv(f._code, tab4, target, " = *", p->t->print_cast(), "&", source, ";\n", 0);
+	    Printv(f.code, tab4, target, " = *", p->t->print_cast(), "&", source, ";\n", 0);
             p->t->is_pointer--;
         } else {
           if(p->t->type == T_CHAR && p->t->is_pointer == 1) {
-	    Printv(f._code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
+	    Printv(f.code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
           } else {
             char *scalarType = SwigTcToJniScalarType(p->t);
             char *cptrtype = p->t->print_type();
@@ -646,7 +646,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
             char *ctype = p->t->print_type();
 	    if(scalarType == NULL || basic_jnitype == NULL) {
-	      fprintf(stderr, "\'%s\' does not have a in/jni typemap, and is not a basic type.\n", ctype);
+	      Printf(stderr, "\'%s\' does not have a in/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
 	    };
             p->t->is_pointer++;
@@ -654,20 +654,20 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    DOHString *basic_jniptrtype = NewStringf("%s*",basic_jnitype);
             DOHString *source_length = NewStringf("%s%s)", JNICALL((char*)"GetArrayLength"), source);
 
-            target_copy = copy_string(f.new_local(Char(basic_jniptrtype), target, NULL));
-            target_length = copy_string(f.new_local((char*)"jsize", target, Char(source_length)));
-            if(local_i == NULL) local_i = copy_string(f.new_local((char*)"int", (char*)"i", NULL));
+            target_copy = Swig_copy_string(f.new_local(Char(basic_jniptrtype), target, NULL));
+            target_length = Swig_copy_string(f.new_local((char*)"jsize", target, Char(source_length)));
+            if(local_i == NULL) local_i = Swig_copy_string(f.new_local((char*)"int", (char*)"i", NULL));
 	    
 	    DOHString *scalarFunc = NewStringf("Get%sArrayElements",scalarType);
 
-	    Printv(f._code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
-	    Printv(f._code, tab4, target, " = ", p->t->print_cast(), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
-	    Printv(f._code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
+	    Printv(f.code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
+	    Printv(f.code, tab4, target, " = ", p->t->print_cast(), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
+	    Printv(f.code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
 	    if(p->t->is_pointer > 1) {
-	      Printv(f._code, tab8, target, "[i] = *", p->t->print_cast(), "&", target_copy, "[i];\n", 0);
+	      Printv(f.code, tab8, target, "[i] = *", p->t->print_cast(), "&", target_copy, "[i];\n", 0);
 	    } else {
               p->t->is_pointer--;
-	      Printv(f._code, tab8, target, "[i] = ", p->t->print_cast(), target_copy, "[i];\n", 0); 
+	      Printv(f.code, tab8, target, "[i] = ", p->t->print_cast(), target_copy, "[i];\n", 0); 
 	      p->t->is_pointer++;
 	    }
 	    Delete(scalarFunc);
@@ -680,8 +680,8 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     // Check to see if there was any sort of a constaint typemap
     if ((tm = typemap_lookup((char*)"check",typemap_lang,p->t,p->name,source,target))) {
       // Yep.  Use it instead of the default
-      Printf(f._code,"%s\n", tm);
-      Replace(f._code,"$arg",source, DOH_REPLACE_ANY);
+      Printf(f.code,"%s\n", tm);
+      Replace(f.code,"$arg",source, DOH_REPLACE_ANY);
     }
 
     // Check if there was any cleanup code (save it for later)
@@ -710,7 +710,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
             char *ctype = p->t->print_type();
 	    if(scalarType == NULL || basic_jnitype == NULL) {
-	      fprintf(stderr, "\'%s\' does not have a argout/jni typemap, and is not a basic type.\n", ctype);
+	      Printf(stderr, "\'%s\' does not have a argout/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
 	    };
             p->t->is_pointer++;
@@ -732,13 +732,13 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     }
   }
 
-  fprintf(f_java, ");\n");
+  Printf(f_java, ");\n");
   if(shadow && member_func) {
-    fprintf(f_shadow, ") {\n");
+    Printf(f_shadow, ") {\n");
     Printf(body,")");
     Printf(f_shadow, "%s;\n  }\n\n",body);
   }
-  Printf(f._def,") {");
+  Printf(f.def,") {");
 
   // Now write code to make the function call
 
@@ -749,27 +749,27 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 
   if((t->type != T_VOID || t->is_pointer) && !native_func) {
     if ((tm = typemap_lookup((char*)"out",typemap_lang,t,iname,(char*)"_result",(char*)"_jresult"))) {
-      Printf(f._code,"%s\n", tm);
+      Printf(f.code,"%s\n", tm);
     } else {
       if(t->is_pointer == 0 && t->type == T_USER) { /* return by value */
 	    t->is_pointer=2;
-	    Printv(f._code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer=0;
       } else if(t->is_pointer == 0 && t->type != T_USER) {
-	Printv(f._code, tab4, "_jresult = (", jnirettype, ") _result;\n", 0);
+	Printv(f.code, tab4, "_jresult = (", jnirettype, ") _result;\n", 0);
       } else if((t->type == T_VOID && t->is_pointer == 1) ||
 	        (t->type == T_USER && t->is_pointer == 1)) {
 	    t->is_pointer++;
-	    Printv(f._code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
       } else {
         if(t->type == T_CHAR && t->is_pointer == 1) {
-	  Printv(f._code, tab4, "if(_result != NULL)\n", 0);
-          Printv(f._code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "_result);\n", 0);
+	  Printv(f.code, tab4, "if(_result != NULL)\n", 0);
+          Printv(f.code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "_result);\n", 0);
         } else {
-	  fprintf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,t->print_type());
+	  Printf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,t->print_type());
 	    t->is_pointer++;
-	    Printv(f._code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f.code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
         }
       }
@@ -777,32 +777,32 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   }
 
   // Dump argument output code;
-  Printv(f._code, outarg, 0);
+  Printv(f.code, outarg, 0);
 
   // Dump the argument cleanup code
-  Printv(f._code,cleanup, 0);
+  Printv(f.code,cleanup, 0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
     if ((tm = typemap_lookup((char*)"newfree",typemap_lang,t,iname,(char*)"_result",(char*)""))) {
-      Printf(f._code,"%s\n", tm);
+      Printf(f.code,"%s\n", tm);
     }
   }
 
   if((t->type != T_VOID || t->is_pointer) && !native_func) {
     if ((tm = typemap_lookup((char*)"ret",typemap_lang,t,iname,(char*)"_result",(char*)"_jresult", NULL))) {
-      Printf(f._code,"%s\n", tm);
+      Printf(f.code,"%s\n", tm);
     }
   }
 
   // Wrap things up (in a manner of speaking)
   if(t->type != T_VOID || t->is_pointer)
-    Printv(f._code, tab4, "return _jresult;\n", 0);
-  Printf(f._code, "}\n");
+    Printv(f.code, tab4, "return _jresult;\n", 0);
+  Printf(f.code, "}\n");
 
   // Substitute the cleanup code (some exception handlers like to have this)
-  Replace(f._code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replace(f.code,"$cleanup",cleanup, DOH_REPLACE_ANY);
  
   // Emit the function
   
@@ -861,12 +861,12 @@ void JAVA::declare_const(char *name, char *iname, DataType *type, char *value) {
       char *jtype = typemap_lookup((char*)"jtype", typemap_lang, type, name, name, iname);
       if(!jtype) jtype = SwigTcToJavaType(type, 0, 0);
       if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {
-        fprintf(stderr, "ignoring enum constant: %s\n", jname);
+        Printf(stderr, "ignoring enum constant: %s\n", jname);
       } else 
-        fprintf(jfile, "  public final static %s %s = %s;\n\n", jtype, jname, value);
+        Printf(jfile, "  public final static %s %s = %s;\n\n", jtype, jname, value);
     } else {
       if(type->type == T_CHAR && type->is_pointer == 1) {
-        fprintf(jfile, "  public final static String %s = \"%s\";\n\n", jname, value);
+        Printf(jfile, "  public final static String %s = \"%s\";\n\n", jname, value);
       } else {
         emit_set_get(name,iname, type);
       }
@@ -875,23 +875,23 @@ void JAVA::declare_const(char *name, char *iname, DataType *type, char *value) {
 }
 
 void emit_shadow_banner(FILE *f) {
-  fprintf(f, "/*\n");
-  fprintf(f, " *\n");
-  fprintf(f, " * This file was automatically generated by :\n");
-  fprintf(f, " * Simplified Wrapper and Interface Generator (SWIG)\n");
-  fprintf(f, " * Version 1.1  (Final)\n");
-  fprintf(f, " *\n");
-  fprintf(f, " * Portions Copyright (c) 1995-1997\n");
-  fprintf(f, " * The University of Utah and The Regents of the University of California.\n");
-  fprintf(f, " * Permission is granted to distribute this file in any manner provided\n");
-  fprintf(f, " * this notice remains intact.\n");
-  fprintf(f, " *\n");
-  fprintf(f, " * Portions Copyright (c) 1997-1999\n");
-  fprintf(f, " * Harco de Hilster, Harco.de.Hilster@ATConsultancy.nl\n");
-  fprintf(f, " *\n");
-  fprintf(f, " * Do not make changes to this file--changes will be lost!\n");
-  fprintf(f, " *\n");
-  fprintf(f, " */\n\n\n");
+  Printf(f, "/*\n");
+  Printf(f, " *\n");
+  Printf(f, " * This file was automatically generated by :\n");
+  Printf(f, " * Simplified Wrapper and Interface Generator (SWIG)\n");
+  Printf(f, " * Version 1.1  (Final)\n");
+  Printf(f, " *\n");
+  Printf(f, " * Portions Copyright (c) 1995-1997\n");
+  Printf(f, " * The University of Utah and The Regents of the University of California.\n");
+  Printf(f, " * Permission is granted to distribute this file in any manner provided\n");
+  Printf(f, " * this notice remains intact.\n");
+  Printf(f, " *\n");
+  Printf(f, " * Portions Copyright (c) 1997-1999\n");
+  Printf(f, " * Harco de Hilster, Harco.de.Hilster@ATConsultancy.nl\n");
+  Printf(f, " *\n");
+  Printf(f, " * Do not make changes to this file--changes will be lost!\n");
+  Printf(f, " *\n");
+  Printf(f, " */\n\n\n");
 }
 
 void JAVA::pragma(char *lang, char *code, char *value) {
@@ -900,7 +900,7 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   DOHString *s = NewString(value);
   Replace(s,"\\\"", "\"", DOH_REPLACE_ANY);
   if(strcmp(code, "import") == 0) {
-    jimport = copy_string(Char(s));
+    jimport = Swig_copy_string(Char(s));
     Printf(f_java, "// pragma\nimport %s;\n\n", jimport);
   } else if(strcmp(code, "module") == 0) {
     if(!classdef_emitted) emit_classdef();
@@ -914,9 +914,9 @@ void JAVA::pragma(char *lang, char *code, char *value) {
       Printf(f_shadow, "\n\n");
     }
   } else if(strcmp(code, "modifiers") == 0) {
-    method_modifiers = copy_string(value);
+    method_modifiers = Swig_copy_string(value);
   } else {
-    fprintf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
+    Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
   }
   Delete(s);
 }
@@ -954,11 +954,11 @@ void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
   if(!shadow) return;
 
   if(rename)
-    shadow_classname = copy_string(rename);
-  else shadow_classname = copy_string(classname);
+    shadow_classname = Swig_copy_string(rename);
+  else shadow_classname = Swig_copy_string(classname);
 
   if (strcmp(shadow_classname, module) == 0) {
-    fprintf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
+    Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
     SWIG_exit(1);
   }
 
@@ -970,16 +970,16 @@ void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
 
   sprintf(bigbuf, "%s.java", shadow_classname);
   if(!(f_shadow = fopen(bigbuf, "w"))) {
-    fprintf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
+    Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
   }
 
   emit_shadow_banner(f_shadow);
 
   if(*package)
-	fprintf(f_shadow, "package %s;\n\n", package);
-  else fprintf(f_shadow, "import %s;\n\n", module);
+	Printf(f_shadow, "package %s;\n\n", package);
+  else Printf(f_shadow, "import %s;\n\n", module);
   if(jimport != NULL)
-	fprintf(f_shadow, "import %s;\n\n", jimport);
+	Printf(f_shadow, "import %s;\n\n", jimport);
 
   Clear(shadow_classdef);
   Printv(shadow_classdef, "public class ", shadow_classname, " %BASECLASS% ", "{\n", 0);
@@ -1020,10 +1020,10 @@ void JAVA::cpp_close_class() {
   if(!shadow_classdef_emitted) emit_shadow_classdef();
 
   if(have_default_constructor == 0) {
-    fprintf(f_shadow, "  public %s() {}\n\n", shadow_classname);
+    Printf(f_shadow, "  public %s() {}\n\n", shadow_classname);
   }
 
-  fprintf(f_shadow, "}\n");
+  Printf(f_shadow, "}\n");
   fclose(f_shadow);
   f_shadow = NULL;
 
@@ -1049,7 +1049,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     shadowrettype = GetChar(shadow_classes,t->name);
   }
 
-  fprintf(f_shadow, "  public %s %s(", (shadowrettype) ? shadowrettype : javarettype, iname);
+  Printf(f_shadow, "  public %s %s(", (shadowrettype) ? shadowrettype : javarettype, iname);
 
   if((t->type != T_VOID || t->is_pointer)) {
     Printf(nativecall,"return ");
@@ -1083,9 +1083,9 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       }
 
       // Add to java function header
-      fprintf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
+      Printf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
       if(i != pcount-1) {
-        fprintf(f_shadow, ", ");
+        Printf(f_shadow, ", ");
       }
   }
 
@@ -1118,7 +1118,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
     shadowrettype = GetChar(shadow_classes,t->name);
   }
 
-  fprintf(f_shadow, "  public static %s %s(", (shadowrettype) ? shadowrettype : javarettype, iname);
+  Printf(f_shadow, "  public static %s %s(", (shadowrettype) ? shadowrettype : javarettype, iname);
 
   if((t->type != T_VOID || t->is_pointer)) {
     Printf(nativecall, "return ");
@@ -1184,7 +1184,7 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   DOHString *nativecall = NewString("");
   char arg[256];
 
-  fprintf(f_shadow, "  public %s(", shadow_classname);
+  Printf(f_shadow, "  public %s(", shadow_classname);
 
   Printv(nativecall, "    if(_self == 0 && ", shadow_classname, ".class == _selfClass()) {\n", 0);
   if (iname != NULL)
@@ -1246,19 +1246,19 @@ void JAVA::cpp_destructor(char *name, char *newname) {
   char *realname = (newname) ? newname : name;
 
   if(finalize) {
-    fprintf(f_shadow, "  protected void finalize() {\n");
-    fprintf(f_shadow, "    if(_selfown) {\n");
-    fprintf(f_shadow, "      _delete();\n");
-    fprintf(f_shadow, "    }\n");
-    fprintf(f_shadow, "  };\n\n");
+    Printf(f_shadow, "  protected void finalize() {\n");
+    Printf(f_shadow, "    if(_selfown) {\n");
+    Printf(f_shadow, "      _delete();\n");
+    Printf(f_shadow, "    }\n");
+    Printf(f_shadow, "  };\n\n");
   }
 
-  fprintf(f_shadow, "  public void _delete() {\n");
-  fprintf(f_shadow, "    if(_self != 0 && %s.class == _selfClass()) {\n", shadow_classname);
-  fprintf(f_shadow, "\t%s.%s(_self);\n", module, Swig_name_destroy(realname));
-  fprintf(f_shadow, "\t_self = 0;\n");
-  fprintf(f_shadow, "    }\n");
-  fprintf(f_shadow, "  }\n\n");
+  Printf(f_shadow, "  public void _delete() {\n");
+  Printf(f_shadow, "    if(_self != 0 && %s.class == _selfClass()) {\n", shadow_classname);
+  Printf(f_shadow, "\t%s.%s(_self);\n", module, Swig_name_destroy(realname));
+  Printf(f_shadow, "\t_self = 0;\n");
+  Printf(f_shadow, "    }\n");
+  Printf(f_shadow, "  }\n\n");
 }
 
 void JAVA::cpp_class_decl(char *name, char *rename, char *type) {
@@ -1285,23 +1285,23 @@ void JAVA::cpp_inherit(char **baseclass, int) {
   while(*bc++) cnt++;
 
   if(cnt > 1)
-    fprintf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
+    Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
  
-  shadow_baseclass = copy_string(*baseclass);
+  shadow_baseclass = Swig_copy_string(*baseclass);
 }
 
 void JAVA::cpp_variable(char *name, char *iname, DataType *t) {
   if(shadow && !shadow_classdef_emitted) emit_shadow_classdef();
 
   if(shadow) member_func = 1;
-  shadow_name = copy_string((iname) ? iname : name);
+  shadow_name = Swig_copy_string((iname) ? iname : name);
   this->Language::cpp_variable(name, iname, t);
   member_func = 0;
 }
 
 void JAVA::cpp_static_var(char *name, char *iname, DataType *t) {
   if(shadow) member_func = 1;
-  shadow_name = copy_string((iname) ? iname : name);
+  shadow_name = Swig_copy_string((iname) ? iname : name);
   this->Language::cpp_static_var(name, iname, t);
   member_func = 0;
 }
@@ -1310,7 +1310,7 @@ void JAVA::cpp_declare_const(char *name, char *iname, DataType *type, char *valu
   if(shadow && !shadow_classdef_emitted) emit_shadow_classdef();
 
   if(shadow) member_func = 1;
-  shadow_name = copy_string((iname) ? iname : name);
+  shadow_name = Swig_copy_string((iname) ? iname : name);
   this->Language::cpp_declare_const(name, iname, type, value);
   member_func = 0;
 }

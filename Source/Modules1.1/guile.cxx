@@ -350,18 +350,18 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
 		    int num_scheme_parm)
 {
   /* Pointers are smobs */
-  Printf(f._code, "    if (SWIG_Guile_GetPtr_Str(s_%d,(void **) &_arg%d", parm, parm);
+  Printf(f.code, "    if (SWIG_Guile_GetPtr_Str(s_%d,(void **) &_arg%d", parm, parm);
   if (t->type == T_VOID)
-    Printf(f._code, ", (char *) 0)) {\n");
+    Printf(f.code, ", (char *) 0)) {\n");
   else
-    Printv(f._code, ", \"", t->print_mangle(), "\")) {\n", 0);
+    Printv(f.code, ", \"", t->print_mangle(), "\")) {\n", 0);
   /* Raise exception */
-  Printv(f._code,
+  Printv(f.code,
 	 tab8,
          "scm_wrong_type_arg(\"",proc_name, "\", ",
 	 0);
-  Printf(f._code,"%d, s_%d);\n", num_scheme_parm, parm);
-  Printv(f._code, tab4, "}\n", 0);
+  Printf(f.code,"%d, s_%d);\n", num_scheme_parm, parm);
+  Printv(f.code, tab4, "}\n", 0);
 }
 
 // ----------------------------------------------------------------------
@@ -422,7 +422,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Now write the wrapper function itself....this is pretty ugly
 
-  Printv(f._def, "static SCM\n", wname," (", 0);
+  Printv(f.def, "static SCM\n", wname," (", 0);
 
   int i = 0;
   int first_arg = 1;
@@ -431,17 +431,17 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
       continue;
     if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
       if (!first_arg)
-	Printf(f._def,", ");
-      Printf(f._def,"SCM s_%d", i);
+	Printf(f.def,", ");
+      Printf(f.def,"SCM s_%d", i);
       first_arg = 0;
     }
   }
 
-  Printf(f._def, ")\n{\n");
+  Printf(f.def, ")\n{\n");
 
   // Define the scheme name in C
 
-  Printv(f._def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
+  Printv(f.def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
 
   // Declare return variable and arguments
 
@@ -467,13 +467,13 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Handle parameter types.
 
     if (p.ignore)
-      Printv(f._code, "/* ", p.name, " ignored... */\n", 0);
+      Printv(f.code, "/* ", p.name, " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
                                 p.t, p.name, source, target, &f))) {
-	Printv(f._code,tm,"\n",0);
-        mreplace (f._code, argnum, arg, proc_name);
+	Printv(f.code,tm,"\n",0);
+        mreplace (f.code, argnum, arg, proc_name);
       }
       else if (p.t->is_pointer)
         get_pointer (iname, i, p.t, f, proc_name, numargs);
@@ -487,8 +487,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
                               p.t, p.name, source, target, &f))) {
-      Printv(f._code,tm,"\n",0);
-      mreplace (f._code, argnum, arg, proc_name);
+      Printv(f.code,tm,"\n",0);
+      mreplace (f.code, argnum, arg, proc_name);
     }
 
     // Pass output arguments back to the caller.
@@ -509,23 +509,23 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   }
 
   // Now write code to make the function call
-  Printv(f._code, tab4, "gh_defer_ints();\n", 0);
+  Printv(f.code, tab4, "gh_defer_ints();\n", 0);
   emit_func_call (name, d, l, f);
-  Printv(f._code, tab4, "gh_allow_ints();\n", 0);
+  Printv(f.code, tab4, "gh_allow_ints();\n", 0);
 
   // Now have return value, figure out what to do with it.
 
   if (d->type == T_VOID)
-    Printv(f._code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
+    Printv(f.code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
   else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
                                  d, name, (char*)"_result", (char*)"gswig_result", &f))) {
-    Printv(f._code,tm,"\n",0);
-    mreplace (f._code, argnum, arg, proc_name);
+    Printv(f.code,tm,"\n",0);
+    mreplace (f.code, argnum, arg, proc_name);
   }
   else if (d->is_pointer) {
     /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
        look-up. */
-    Printv(f._code, tab4,
+    Printv(f.code, tab4,
            "gswig_result = SWIG_Guile_MakePtr_Str (",
            "_result, ",
            "\"", d->print_mangle(), "\", ",
@@ -538,18 +538,18 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   }
 
   // Dump the argument output code
-  Printv(f._code,outarg,0);
+  Printv(f.code,outarg,0);
 
   // Dump the argument cleanup code
-  Printv(f._code,cleanup,0);
+  Printv(f.code,cleanup,0);
 
   // Look for any remaining cleanup
 
   if (NewObject) {
     if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
                               d, iname, (char*)"_result", (char*)"", &f))) {
-      Printv(f._code,tm,"\n",0);
-      mreplace (f._code, argnum, arg, proc_name);
+      Printv(f.code,tm,"\n",0);
+      mreplace (f.code, argnum, arg, proc_name);
     }
   }
 
@@ -557,18 +557,18 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
                             d, name, (char*)"_result", (char*)"", &f))) {
-    Printv(f._code,tm,"\n",0);
-    mreplace (f._code, argnum, arg, proc_name);
+    Printv(f.code,tm,"\n",0);
+    mreplace (f.code, argnum, arg, proc_name);
   }
 
   // Wrap things up (in a manner of speaking)
 
-  Printv(f._code, tab4, "return gswig_result;\n", 0);
+  Printv(f.code, tab4, "return gswig_result;\n", 0);
 
   // Undefine the scheme name
 
-  Printf(f._code, "#undef SCHEME_NAME\n");
-  Printf(f._code, "}\n");
+  Printf(f.code, "#undef SCHEME_NAME\n");
+  Printf(f.code, "}\n");
 
   f.print (f_wrappers);
 

@@ -62,31 +62,6 @@ extern  int       Verbose;
 #define  STAT_READONLY  1
 #define  MAXSCOPE       16
 
-// -----------------------------------------------------------------------
-// String class
-// -----------------------------------------------------------------------
-
-class String {
-private:
-  void  *str;               // String object
-public:
-  String();
-  String(const char *s);
-  ~String();
-  char  *get() const;
-  void  *doh() { return str; }
-  friend String& operator<<(String&,const char *s);
-  friend String& operator<<(String&,const int);
-  friend String& operator<<(String&,const char);
-  friend String& operator<<(String&,const String&);
-  friend String& operator>>(const char *s, String&);
-  friend String& operator>>(const String&,String&);
-  String& operator=(const char *);
-  void   replace(const char *token, const char *rep);
-  void   replaceid(const char *id, const char *rep);
-  void   strip();
-};
-
 #define  tab2   "  "
 #define  tab4   "    "
 #define  tab8   "        "
@@ -434,6 +409,7 @@ extern "C" {
   extern void *Preprocessor_define(void *, int);
   extern int  Swig_insert_file(const void *filename, void *outfile);
   extern FILE *Swig_open(const void *filename);
+  extern char *Swig_copy_string(const char *s);
 }
 
 // -----------------------------------------------------------------------
@@ -447,16 +423,10 @@ private:
 public:
   WrapperFunction();
   ~WrapperFunction();
-  String  def;
-  String  locals;
-  String  code;
-  String  init;
-  void    *_def;               /* Migration code */
-  void    *_locals;
-  void    *_code;
-  void    *_init;
+  void    *def;               /* Migration code */
+  void    *locals;
+  void    *code;
   void    print(void *f);
-  void    print(String &f);
   void    add_local(char *type, char *name, char *defvalue = 0);
   char   *new_local(char *type, char *name, char *defvalue = 0);
 static    void    del_type(void *obj);

@@ -79,6 +79,8 @@ static char *usage = (char*)"\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
 
+
+
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
 //

@@ -207,7 +207,7 @@ PERL5::parse_args(int argc, char *argv[]) {
 	    }
 	  } else if (strcmp(argv[i],"-alt-header") == 0) {
 	    if (argv[i+1]) {
-	      alt_header = copy_string(argv[i+1]);
+	      alt_header = Swig_copy_string(argv[i+1]);
 	      Swig_mark_arg(i);
 	      Swig_mark_arg(i+1);
 	      i++;
@@ -283,9 +283,9 @@ void PERL5::set_module(char *mod_name, char **mod_list) {
   if (import_file) {
     if (!(strcmp(import_file,input_file+strlen(input_file)-strlen(import_file)))) {
       if (blessed) {
-	fprintf(f_pm,"require %s;\n", mod_name);
+	Printf(f_pm,"require %s;\n", mod_name);
       }
-      delete [] import_file;
+      free(import_file);
       import_file = 0;
     }
   }
@@ -350,29 +350,29 @@ void PERL5::headers(void)
 
   if (!alt_header) {
     if (Swig_insert_file("headers.swg", f_header) == -1) {
-      fprintf(stderr,"Perl5 : Fatal error. Unable to locate headers.swg. Possible installation problem.\n");
+      Printf(stderr,"Perl5 : Fatal error. Unable to locate headers.swg. Possible installation problem.\n");
       SWIG_exit(1);
     }
   } else {
     if (Swig_insert_file(alt_header, f_header) == -1) {
-      fprintf(stderr,"SWIG : Fatal error.  Unable to locate %s.\n",alt_header);
+      Printf(stderr,"SWIG : Fatal error.  Unable to locate %s.\n",alt_header);
       SWIG_exit(1);
     }
   }
 
   if (NoInclude) {
-    fprintf(f_header,"#define SWIG_NOINCLUDE\n");
+    Printf(f_header,"#define SWIG_NOINCLUDE\n");
   }
 
   // Get special SWIG related declarations
   if (Swig_insert_file("perl5.swg", f_header) == -1) {
-    fprintf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
+    Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
 
   // Get special SWIG related declarations
   if (Swig_insert_file("perl5mg.swg", f_header) == -1) {
-    fprintf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5mg.swg' in SWIG library.\n");
+    Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5mg.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
 
@@ -391,7 +391,7 @@ void PERL5::initialize()
   char filen[256];
 
   if (!module){
-    fprintf(stderr,"*** Error. No module name specified.\n");
+    Printf(stderr,"*** Error. No module name specified.\n");
     SWIG_exit(1);
   }
 
@@ -426,7 +426,7 @@ void PERL5::initialize()
     }
     sprintf(filen,"%s%s.pm", output_dir,m);
     if ((f_pm = fopen(filen,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n", filen);
+      Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit(0);
     }
   }
@@ -536,8 +536,8 @@ void PERL5::initialize()
 // ---------------------------------------------------------------------
 
 void PERL5::import(char *filename) {
-  if (import_file) delete [] import_file;
-  import_file = copy_string(filename);
+  if (import_file) free(import_file);
+  import_file = Swig_copy_string(filename);
 }
 
 
@@ -563,17 +563,17 @@ void PERL5::close(void)
   
   emit_ptr_equivalence(f_init);
 
-  fprintf(f_init,"\t ST(0) = &PL_sv_yes;\n");
-  fprintf(f_init,"\t XSRETURN(1);\n");
-  fprintf(f_init,"}\n");
+  Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
+  Printf(f_init,"\t XSRETURN(1);\n");
+  Printf(f_init,"}\n");
 
   Printv(vinit,tab4, "XSRETURN(1);\n", "}\n", 0);
   Printf(f_wrappers,"%s", vinit);
 
-  fprintf(f_pm,"package %s;\n", package);	
+  Printf(f_pm,"package %s;\n", package);	
 
   if (!is_static) {
-    fprintf(f_pm,"bootstrap %s;\n", realpackage);
+    Printf(f_pm,"bootstrap %s;\n", realpackage);
   } else {
     DOHString *tmp = NewString(realpackage);
     Replace(tmp,":","_",DOH_REPLACE_ANY);
@@ -724,7 +724,7 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
 // ----------------------------------------------------------------------
 
 void PERL5::create_command(char *cname, char *iname) {
-  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(cname));
+  Printf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(cname));
   if (export_all) {
     Printf(exported,"%s ",iname);
   }
@@ -759,8 +759,8 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   
   // Now write the wrapper function itself....this is pretty ugly
 
-  Printv(f._def, "XS(", wname, ") {\n", 0);
-  Printv(f._code, tab4, "cv = cv;\n", 0);
+  Printv(f.def, "XS(", wname, ") {\n", 0);
+  Printv(f.code, tab4, "cv = cv;\n", 0);
 
   pcount = emit_args(d, l, f);
   numopt = l->numopt();
@@ -770,8 +770,8 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Check the number of arguments
 
   usage = usage_func(iname,d,l);
-  Printf(f._code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, l->numarg());
-  Printf(f._code,"        croak(\"Usage: %s\");\n", usage);
+  Printf(f.code,"    if ((items < %d) || (items > %d)) \n", pcount-numopt, l->numarg());
+  Printf(f.code,"        croak(\"Usage: %s\");\n", usage);
 
   // Write code to extract parameters.
   // This section should be able to extract virtually any kind 
@@ -793,13 +793,13 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       // If there are optional arguments, check for this
 
       if (j>= (pcount-numopt))
-	Printf(f._code,"    if (items > %d) {\n", j);
+	Printf(f.code,"    if (items > %d) {\n", j);
 
       // See if there is a type-map
       if ((tm = typemap_lookup((char*)"in",(char*)"perl5",p->t,p->name,source,target,&f))) {
-	Printf(f._code,"%s\n",tm);
-	Replace(f._code,"$argnum",argnum,DOH_REPLACE_ANY);
-	Replace(f._code,"$arg",source,DOH_REPLACE_ANY);
+	Printf(f.code,"%s\n",tm);
+	Replace(f.code,"$argnum",argnum,DOH_REPLACE_ANY);
+	Replace(f.code,"$arg",source,DOH_REPLACE_ANY);
       } else {
 
 	if (!p->t->is_pointer) {
@@ -822,19 +822,19 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  case T_USHORT:
 	  case T_ULONG:
 	  case T_UCHAR:
-	    Printf(f._code,"    _arg%d = %sSvIV(ST(%d));\n", i, p->t->print_cast(),j);
+	    Printf(f.code,"    _arg%d = %sSvIV(ST(%d));\n", i, p->t->print_cast(),j);
 	    break;
 	  case T_CHAR :
 
 
-	    Printf(f._code,"    _arg%d = (char) *SvPV(ST(%d),PL_na);\n", i, j);
+	    Printf(f.code,"    _arg%d = (char) *SvPV(ST(%d),PL_na);\n", i, j);
 	    break;
 	  
 	  // Doubles
 	  
 	  case T_DOUBLE :
 	  case T_FLOAT :
-	    Printf(f._code,"    _arg%d = %s SvNV(ST(%d));\n", i, p->t->print_cast(), j);
+	    Printf(f.code,"    _arg%d = %s SvNV(ST(%d));\n", i, p->t->print_cast(), j);
 	    break;
 	  
 	  // Void.. Do nothing.
@@ -850,7 +850,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Unsupported data type
 	    
 	  default :
-	    fprintf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, p->t->print_type());
+	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, p->t->print_type());
 	    break;
 	  }
 	} else {
@@ -859,15 +859,15 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // since that is usually a string.
 	  
 	  if ((p->t->type == T_CHAR) && (p->t->is_pointer == 1)) {
-	    Printf(f._code,"    if (! SvOK((SV*) ST(%d))) { _arg%d = 0; }\n", j, i);
-	    Printf(f._code,"    else { _arg%d = (char *) SvPV(ST(%d),PL_na); }\n", i,j);
+	    Printf(f.code,"    if (! SvOK((SV*) ST(%d))) { _arg%d = 0; }\n", j, i);
+	    Printf(f.code,"    else { _arg%d = (char *) SvPV(ST(%d),PL_na); }\n", i,j);
 	  } else {
 	    
 	    // Have a generic pointer type here.    Read it in as a swig
 	    // typed pointer.
 	    
 	    sprintf(temp,"argument %d", i+1);
-	    get_pointer(iname,temp,source,target, p->t, f._code, (char*)"XSRETURN(1)");
+	    get_pointer(iname,temp,source,target, p->t, f.code, (char*)"XSRETURN(1)");
 	  }
 	}
       }
@@ -875,7 +875,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
       sprintf(temp,"_saved[%d]",num_saved);
       if (j>= (pcount-numopt))
-	Printf(f._code,"    } \n");
+	Printf(f.code,"    } \n");
       j++;
     } else {
       temp[0] = 0;
@@ -883,8 +883,8 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     // Check if there is any constraint code
     if ((tm = typemap_lookup((char*)"check",(char*)"perl5",p->t,p->name,source,target))) {
-      Printf(f._code,"%s\n", tm);
-      Replace(f._code,"$argnum",argnum, DOH_REPLACE_ANY);
+      Printf(f.code,"%s\n", tm);
+      Replace(f.code,"$argnum",argnum, DOH_REPLACE_ANY);
     }
     need_save = 0;
 
@@ -905,7 +905,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     // If we needed a saved variable, we need to emit to emit some code for that
     // This only applies if the argument actually existed (not ignore)
     if ((need_save) && (!p->ignore)) {
-      Printv(f._code, tab4, temp, " = ", source, ";\n", 0);
+      Printv(f.code, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
     p = l->get_next();
@@ -926,26 +926,26 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // See if there was a typemap
   if ((tm = typemap_lookup((char*)"out",(char*)"perl5",d,iname,(char*)"_result",(char*)"ST(argvi)"))) {
     // Yep.  Use it instead of the default
-    Printf(f._code, "%s\n", tm);
+    Printf(f.code, "%s\n", tm);
   } else if ((d->type != T_VOID) || (d->is_pointer)) {
     if (!d->is_pointer) {
       
       // Function returns a "value"
-      Printf(f._code,"    ST(argvi) = sv_newmortal();\n");
+      Printf(f.code,"    ST(argvi) = sv_newmortal();\n");
       switch(d->type) {
       case T_INT: case T_BOOL: case T_SINT: case T_UINT:
       case T_SHORT: case T_SSHORT: case T_USHORT:
       case T_LONG : case T_SLONG : case T_ULONG:
       case T_SCHAR: case T_UCHAR :
-	Printf(f._code,"    sv_setiv(ST(argvi++),(IV) _result);\n");
+	Printf(f.code,"    sv_setiv(ST(argvi++),(IV) _result);\n");
 	break;
       case T_DOUBLE :
       case T_FLOAT :
-	Printf(f._code,"    sv_setnv(ST(argvi++), (double) _result);\n");
+	Printf(f.code,"    sv_setnv(ST(argvi++), (double) _result);\n");
 	break;
       case T_CHAR :
 	f.add_local((char*)"char", (char*)"_ctemp[2]");
-	Printv(f._code,
+	Printv(f.code,
 	       tab4, "_ctemp[0] = _result;\n",
 	       tab4, "_ctemp[1] = 0;\n",
 	       tab4, "sv_setpv((SV*)ST(argvi++),_ctemp);\n",
@@ -956,28 +956,28 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	
       case T_USER:
 	d->is_pointer++;
-	Printv(f._code,
+	Printv(f.code,
 	       tab4, "sv_setref_pv(ST(argvi++),\"",(hidden ? realpackage : ""), (hidden ? "::" : ""), d->print_mangle(),
 	       "\", (void *) _result);\n", 0);
 	d->is_pointer--;
 	break;
 	
       default :
-	fprintf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
+	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
 	break;
       }
     } else {
       
       // Is a pointer return type
-      Printf(f._code,"    ST(argvi) = sv_newmortal();\n");
+      Printf(f.code,"    ST(argvi) = sv_newmortal();\n");
       if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
 	
 	// Return a character string
-	Printf(f._code,"    sv_setpv((SV*)ST(argvi++),(char *) _result);\n");
+	Printf(f.code,"    sv_setpv((SV*)ST(argvi++),(char *) _result);\n");
 	
       } else {
 	// Is an ordinary pointer type.
-	Printv(f._code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), d->print_mangle(),
+	Printv(f.code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), d->print_mangle(),
 	       "\", (void *) _result);\n", 0);
       }
     }
@@ -985,34 +985,34 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // If there were any output args, take care of them.
   
-  Printv(f._code,outarg,0);
+  Printv(f.code,outarg,0);
 
   // If there was any cleanup, do that.
 
-  Printv(f._code,cleanup,0);
+  Printv(f.code,cleanup,0);
 
   if (NewObject) {
     if ((tm = typemap_lookup((char*)"newfree",(char*)"perl5",d,iname,(char*)"_result",(char*)""))) {
-      Printf(f._code,"%s\n",tm);
+      Printf(f.code,"%s\n",tm);
     }
   }
 
   if ((tm = typemap_lookup((char*)"ret",(char*)"perl5",d,iname,(char*)"_result",(char*)""))) {
       // Yep.  Use it instead of the default
-    Printf(f._code,"%s\n", tm);
+    Printf(f.code,"%s\n", tm);
   }
 
   // Wrap things up (in a manner of speaking)
 
-  Printf(f._code,"    XSRETURN(argvi);\n}\n");
+  Printf(f.code,"    XSRETURN(argvi);\n}\n");
 
   // Add the dXSARGS last
 
   f.add_local((char*)"dXSARGS",(char*)"");
 
   // Substitute the cleanup code
-  Replace(f._code,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f._code,"$name",iname,DOH_REPLACE_ANY);
+  Replace(f.code,"$cleanup",cleanup,DOH_REPLACE_ANY);
+  Replace(f.code,"$name",iname,DOH_REPLACE_ANY);
 
   // Dump this function out
 
@@ -1020,7 +1020,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Now register the function
 
-  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, wname);
+  Printf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, wname);
 
   if (export_all) {
     Printf(exported,"%s ", iname);
@@ -1157,17 +1157,17 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   // Create a Perl function for setting the variable value
 
   if (!(Status & STAT_READONLY)) {
-    Printf(setf._def,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
-    Printv(setf._code,
+    Printf(setf.def,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
+    Printv(setf.code,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
 	   0);
 
     /* Check for a few typemaps */
     if ((tm = typemap_lookup((char*)"varin",(char*)"perl5",t,(char*)"",(char*)"sv",name))) {
-      Printf(setf._code,"%s\n", tm);
+      Printf(setf.code,"%s\n", tm);
     } else if ((tm = typemap_lookup((char*)"in",(char*)"perl5",t,(char*)"",(char*)"sv",name))) {
-      Printf(setf._code,"%s\n", tm);
+      Printf(setf.code,"%s\n", tm);
     } else {
       if (!t->is_pointer) {
 	
@@ -1178,14 +1178,14 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	case T_SHORT : case T_SSHORT : case T_USHORT:
 	case T_LONG : case T_SLONG : case T_ULONG:
 	case T_UCHAR: case T_SCHAR:
-	  Printv(setf._code,tab4, name, " = ", t->print_cast(), " SvIV(sv);\n", 0);
+	  Printv(setf.code,tab4, name, " = ", t->print_cast(), " SvIV(sv);\n", 0);
 	  break;
 	case T_DOUBLE :
 	case T_FLOAT :
-	  Printv(setf._code, tab4, name, " = ", t->print_cast(), " SvNV(sv);\n", 0);
+	  Printv(setf.code, tab4, name, " = ", t->print_cast(), " SvNV(sv);\n", 0);
 	  break;
 	case T_CHAR :
-	  Printv(setf._code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
+	  Printv(setf.code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
 	  break;
 	  
 	case T_USER:
@@ -1195,51 +1195,51 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	  
 	  t->is_pointer++;
 	  setf.add_local((char*)"void",(char*)"*_temp");
-	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf._code, (char*)"return(1)");
-	  Printv(setf._code, tab4, name, " = *(", t->print_cast(), " _temp);\n", 0);
+	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf.code, (char*)"return(1)");
+	  Printv(setf.code, tab4, name, " = *(", t->print_cast(), " _temp);\n", 0);
 	  t->is_pointer--;
 	  break;
 	  
 	default :
-	  fprintf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, t->print_type());
+	  Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, t->print_type());
 	  return;
 	}
       } else {
 	// Have some sort of pointer type here, Process it differently
 	if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
 	  setf.add_local((char*)"char",(char*)"*_a");
-	  Printf(setf._code,"    _a = (char *) SvPV(sv,PL_na);\n");
+	  Printf(setf.code,"    _a = (char *) SvPV(sv,PL_na);\n");
 	  
 	  if (CPlusPlus)
-	    Printv(setf._code,
+	    Printv(setf.code,
 		   tab4, "if (", name, ") delete [] ", name, ";\n",
 		   tab4, name, " = new char[strlen(_a)+1];\n",
 		   0);
 	  else
-	    Printv(setf._code,
+	    Printv(setf.code,
 		   tab4, "if (", name, ") free(", name, ");\n",
 		   tab4, name, " = (char *) malloc(strlen(_a)+1);\n",
 		   0);
-	  Printv(setf._code,"strcpy(", name, ",_a);\n", 0);
+	  Printv(setf.code,"strcpy(", name, ",_a);\n", 0);
 	} else {
 	  // Set the value of a pointer
 	  
 	  setf.add_local((char*)"void",(char*)"*_temp");
-	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf._code, (char*)"return(1)");
-	  Printv(setf._code,tab4, name, " = ", t->print_cast(), " _temp;\n", 0);
+	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf.code, (char*)"return(1)");
+	  Printv(setf.code,tab4, name, " = ", t->print_cast(), " _temp;\n", 0);
 	}
       }
     }
-    Printf(setf._code,"    return 1;\n}\n");
-    Replace(setf._code,"$name",iname, DOH_REPLACE_ANY);
+    Printf(setf.code,"    return 1;\n}\n");
+    Replace(setf.code,"$name",iname, DOH_REPLACE_ANY);
     setf.print(magic);
     
   }
 
   // Now write a function to evaluate the variable
   
-  Printf(getf._def,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
-  Printv(getf._code,
+  Printf(getf.def,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
+  Printv(getf.code,
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "mg = mg;\n",
 	 0);
@@ -1247,9 +1247,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   // Check for a typemap
   
   if ((tm = typemap_lookup((char*)"varout",(char*)"perl5",t,(char*)"",name, (char*)"sv"))) {
-    Printf(getf._code,"%s\n", tm);
+    Printf(getf.code,"%s\n", tm);
   } else  if ((tm = typemap_lookup((char*)"out",(char*)"perl5",t,(char*)"",name,(char*)"sv"))) {
-    Printf(getf._code,"%s\n", tm);
+    Printf(getf.code,"%s\n", tm);
   } else {
     if (!t->is_pointer) {
       switch(t->type) {
@@ -1257,17 +1257,17 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       case T_SHORT : case T_SSHORT: case T_USHORT:
       case T_LONG : case T_SLONG : case T_ULONG:
       case T_UCHAR: case T_SCHAR:
-	Printv(getf._code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
+	Printv(getf.code,tab4, "sv_setiv(sv, (IV) ", name, ");\n", 0);
 	Printv(vinit, tab4, "sv_setiv(sv,(IV)", name, ");\n",0);
 	break;
       case T_DOUBLE :
       case T_FLOAT :
-	Printv(getf._code, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
+	Printv(getf.code, tab4,"sv_setnv(sv, (double) ", name, ");\n", 0);
 	Printv(vinit, tab4, "sv_setnv(sv,(double)", name, ");\n",0);
 	break;
       case T_CHAR :
 	getf.add_local((char*)"char",(char*)"_ptemp[2]");
-	Printv(getf._code,
+	Printv(getf.code,
 	       tab4, "_ptemp[0] = ", name, ";\n",
 	       tab4, "_ptemp[1] = 0;\n",
 	       tab4, "sv_setpv((SV*) sv, _ptemp);\n",
@@ -1275,7 +1275,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	break;
       case T_USER:
 	t->is_pointer++;
-	Printv(getf._code,
+	Printv(getf.code,
 	       tab4, "rsv = SvRV(sv);\n",
 	       tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
 	       0);
@@ -1293,9 +1293,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       // Have some sort of arbitrary pointer type.  Return it as a string
       
       if ((t->type == T_CHAR) && (t->is_pointer == 1))
-	Printv(getf._code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
+	Printv(getf.code, tab4, "sv_setpv((SV*) sv, ", name, ");\n", 0);
       else {
-	Printv(getf._code,
+	Printv(getf.code,
 	       tab4, "rsv = SvRV(sv);\n",
 	       tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
 	       0);
@@ -1305,9 +1305,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       }
     }
   }
-  Printf(getf._code,"    return 1;\n}\n");
+  Printf(getf.code,"    return 1;\n}\n");
 
-  Replace(getf._code,"$name",iname, DOH_REPLACE_ANY);
+  Replace(getf.code,"$name",iname, DOH_REPLACE_ANY);
   getf.print(magic);
   
   // Now add symbol to the PERL interpreter
@@ -1411,10 +1411,10 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
   static  int have_ref_func = 0;
 
   if ((tm = typemap_lookup((char*)"const",(char*)"perl5",type,name,value,name))) {
-    fprintf(f_init,"%s\n",tm);
+    Printf(f_init,"%s\n",tm);
   } else {
     if ((type->type == T_USER) && (!type->is_pointer)) {
-      fprintf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
+      Printf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
       return;
     }
     // Generate a constant 
@@ -1425,7 +1425,7 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
       case T_LONG: case T_SLONG: case T_ULONG:
       case T_SCHAR: case T_UCHAR:
 	if (!have_int_func) {
-	  fprintf(f_header,"%s\n",setiv);
+	  Printf(f_header,"%s\n",setiv);
 	  have_int_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setiv(\"", package, "::", name, "\", (long) ", value, ");\n",0);
@@ -1433,33 +1433,33 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
       case T_DOUBLE:
       case T_FLOAT:
 	if (!have_double_func) {
-	  fprintf(f_header,"%s\n",setnv);
+	  Printf(f_header,"%s\n",setnv);
 	  have_double_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setnv(\"", package, "::", name, "\", (double) (", value, "));\n",0);
 	break;
       case T_CHAR :
 	if (!have_char_func) {
-	  fprintf(f_header,"%s\n",setpv);
+	  Printf(f_header,"%s\n",setpv);
 	  have_char_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
 	break;
       default:
-	fprintf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+	Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
 	break;
       }
     } else {
       if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
 	if (!have_char_func) {
-	  fprintf(f_header,"%s\n",setpv);
+	  Printf(f_header,"%s\n",setpv);
 	  have_char_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setpv(\"", package, "::", name, "\", \"", value, "\");\n",0);
       } else {
 	// A user-defined type.  We're going to munge it into a string pointer value
 	if (!have_ref_func) {
-	  fprintf(f_header,"%s\n",setrv);
+	  Printf(f_header,"%s\n",setrv);
 	  have_ref_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"", 
@@ -1573,7 +1573,7 @@ char *PERL5::usage_const(char *iname, DataType *, char *value) {
 // -----------------------------------------------------------------------
 
 void PERL5::add_native(char *name, char *funcname, DataType *, ParmList *) {
-  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package,name, funcname);
+  Printf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package,name, funcname);
   if (export_all)
     Printf(exported,"%s ",name);
   if (blessed) {
@@ -1646,7 +1646,7 @@ void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
     // If the class is being renamed to something else, use the renaming
 
     if (rname) {
-      class_name = copy_string(rname);
+      class_name = Swig_copy_string(rname);
       class_renamed = 1;
       // Now things get even more hideous.   Need to register an equivalence
       // between the renamed name and the new name. Yuck!
@@ -1654,11 +1654,11 @@ void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
         typeeq_addtypedef(classname,rname,0);
         typeeq_addtypedef(rname,classname,0);
      /*
-      fprintf(f_init,"\t SWIG_RegisterMapping(\"%s\",\"%s\",0);\n",classname,rname);
-      fprintf(f_init,"\t SWIG_RegisterMapping(\"%s\",\"%s\",0);\n",rname,classname);
+      Printf(f_init,"\t SWIG_RegisterMapping(\"%s\",\"%s\",0);\n",classname,rname);
+      Printf(f_init,"\t SWIG_RegisterMapping(\"%s\",\"%s\",0);\n",rname,classname);
       */
     } else {
-      class_name = copy_string(classname);
+      class_name = Swig_copy_string(classname);
       class_renamed = 0;
     }
 
@@ -1675,17 +1675,17 @@ void PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
       strcpy(fullclassname, class_name);
     }
 
-    real_classname = copy_string(classname);
+    real_classname = Swig_copy_string(classname);
     if (base_class) Delete(base_class);
     base_class =  0;
-    class_type = copy_string(ctype);
+    class_type = Swig_copy_string(ctype);
     pcode = NewString("");
     blessedmembers = NewString("");
     member_keys = NewString("");
 
     // Add some symbols to the hash tables
 
-    //    classes.add(real_classname,copy_string(class_name));   /* Map original classname to class */
+    //    classes.add(real_classname,Swig_copy_string(class_name));   /* Map original classname to class */
     Setattr(classes,real_classname,fullclassname);
 
     // Add full name of datatype to the hash table just in case the user uses it
@@ -2319,7 +2319,7 @@ void PERL5::pragma(char *lang, char *code, char *value) {
       if (value) {
 	FILE *f = Swig_open(value);
 	if (!f) {
-	  fprintf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
+	  Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
 	} else {
 	  char buffer[4096];
 	  while (fgets(buffer,4095,f)) {
@@ -2328,7 +2328,7 @@ void PERL5::pragma(char *lang, char *code, char *value) {
 	}
       }
     } else {
-      fprintf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
+      Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
     }
   }
 }

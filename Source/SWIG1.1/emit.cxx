@@ -233,16 +233,16 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 
 	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,&f);
 	if (tm) {
-	  Printv(f._code,tm,"\n",0);
+	  Printv(f.code,tm,"\n",0);
 	}
       }
       // Check for ignore or default typemaps
       tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm)
-	Printv(f._code,tm,"\n",0);
+	Printv(f.code,tm,"\n",0);
       tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm) {
-	Printv(f._code,tm,"\n",0);
+	Printv(f.code,tm,"\n",0);
 	p->ignore = 1;
       }
       tm = typemap_check((char*)"build",typemap_lang,p->t,p->name);
@@ -353,14 +353,14 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
     Printv(exc,tm);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
-    Printv(f._code,exc,0);
+    Printv(f.code,exc,0);
   } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
     Printv(exc,tm);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
-    Printv(f._code,exc,0);
+    Printv(f.code,exc,0);
   } else {
-    Printv(f._code,fcall,0);
+    Printv(f.code,fcall,0);
   }
   Delete(fcall);
   Delete(exc);
