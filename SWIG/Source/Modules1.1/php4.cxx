@@ -932,7 +932,7 @@ public:
       Printf(member_function_name, "%s", iname+1);
 
       cpp_func(Char(member_function_name), d, l, php_function_name);
-      
+     
       Delete(php_function_name);
       Delete(member_function_name);
     }
@@ -1682,6 +1682,7 @@ public:
       String *php_function_name = Swig_name_member(shadow_classname, realname);
 
       cpp_func(iname, t, l, realname, php_function_name);
+
     }
     return SWIG_OK;
   }
@@ -1706,13 +1707,19 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    char *name = GetChar(n, "name");
+    char *iname = GetChar(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
 
     Language::staticmemberfunctionHandler(n);
 
     if(shadow) {
       String *symname = Getattr(n, "sym:name");
-      static_flag = 1;
-      cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), symname);
+      static_flag = 1;      
+      char *realname = iname ? iname : name;
+      String *php_function_name = Swig_name_member(shadow_classname, realname);
+      cpp_func(Char(symname), Getattr(n, "type"), Getattr(n, "parms"), symname, php_function_name);
       static_flag = 0;
     }
 
@@ -2012,7 +2019,6 @@ public:
 
   // This method is quite stale and ought to be factored out
   void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL) {
-
     if(!shadow) return;
 
 	// if they didn't provide a handler name, use the realname
