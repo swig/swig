@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+08/07/2003: beazley
+            Fixed [ 779062 ] Class"\n"::foo not supported.  SWIG
+            should now correctly handle whitespace in between 
+            namespace qualifiers.  For example "A :: Foo :: Bar".
+            
 07/31/2003: cheetah (William Fulton)
             Fixes for parameters which are classes that are passed by value and have 
             a default value. A copy constructor for SwigValueWrapper is required 
