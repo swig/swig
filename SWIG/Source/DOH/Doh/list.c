@@ -326,11 +326,13 @@ List_str(DOH *lo)
 
     List *l = (List *) lo;
     s = NewString("");
+    Printf(s,"List [ ");
     for (i = 0; i < l->nitems; i++) {
-      Printf(s, "%o", l->items[i]);
+      Printf(s, "     %s\n", l->items[i]);
       if ((i+1) < l->nitems)
 	Printf(s,", ");
     }
+    Printf(s," ]\n");
     return s;
 }
 

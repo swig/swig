@@ -171,7 +171,10 @@ File_check(DOH *f)
 int
 File_read(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
-  return (size_t) fread(buffer,1,len,s->filep);
+  if (s->filep) 
+    return (size_t) fread(buffer,1,len,s->filep);
+  else 
+    return (size_t) read(s->fd,buffer,len);
 }
 
 /* -----------------------------------------------------------------------------
@@ -182,7 +185,10 @@ File_read(DOH *so, void *buffer, int len) {
 int
 File_write(DOH *so, void *buffer, int len) {
   File *s = (File *) so;
-  return (size_t) fwrite(buffer,1,len,s->filep);
+  if (s->filep) 
+    return (size_t) fwrite(buffer,1,len,s->filep);
+  else
+    return (size_t) write(s->fd,buffer,len);
 }
 
 /* -----------------------------------------------------------------------------
@@ -193,7 +199,10 @@ File_write(DOH *so, void *buffer, int len) {
 int
 File_seek(DOH *so, long offset, int whence) {
   File *s = (File *) so;
-  return fseek(s->filep,offset,whence);
+  if (s->filep) 
+    return fseek(s->filep,offset,whence);
+  else
+    return lseek(s->fd,offset,whence);
 }
 
 /* -----------------------------------------------------------------------------
@@ -204,7 +213,10 @@ File_seek(DOH *so, long offset, int whence) {
 long
 File_tell(DOH *so) {
   File *s = (File *) so;
-  return ftell(s->filep);
+  if (s->filep) 
+    return ftell(s->filep);
+  else
+    return lseek(s->fd,0,SEEK_CUR);
 }
 
 /* -----------------------------------------------------------------------------
@@ -215,7 +227,9 @@ File_tell(DOH *so) {
 
 int File_putc(DOH *obj, int ch) {
   File *s = (File *) obj;
-  return fputc(ch,s->filep);
+  if (s->filep) 
+    return fputc(ch,s->filep);
+  return EOF;
 }
 
 /* -----------------------------------------------------------------------------
@@ -226,7 +240,9 @@ int File_putc(DOH *obj, int ch) {
 
 int File_getc(DOH *obj) {
   File *s = (File *) obj;
-  return fgetc(s->filep);
+  if (s->filep)
+    return fgetc(s->filep);
+  return EOF;
 }
 
 /* -----------------------------------------------------------------------------
@@ -237,7 +253,9 @@ int File_getc(DOH *obj) {
 
 int File_ungetc(DOH *obj, int ch) {
   File *s = (File *) obj;
-  return ungetc(ch, s->filep);
+  if (s->filep)
+    return ungetc(ch, s->filep);
+  return EOF;
 }
 
     

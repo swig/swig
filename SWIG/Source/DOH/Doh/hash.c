@@ -435,17 +435,17 @@ Hash_str(DOH *ho) {
     Hash *h;
 
     h = (Hash *) ho;
-#ifdef OLD
-    s = NewString("Hash {\n");
+    s = NewString("");
+    Printf(s,"Hash {\n");
     for (i = 0; i < h->hashsize; i++) {
 	n = h->hashtable[i];
 	while (n) {
-	    Appendf(s,"   '%o' : %o, \n", n->key, n->object);
+	    Printf(s,"   '%s' : %s, \n", n->key, n->object);
 	    n = n->next;
 	}
     }
-    Append(s,"}\n");
-#else
+    Printf(s,"}\n");
+#ifdef old
     s = NewString("Hash");
     Printf(s,"(%x) {",h);
     for (i = 0; i < h->hashsize; i++) {

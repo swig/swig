@@ -422,6 +422,28 @@ DOH *DohNextkey(DOH *obj) {
     return 0;
 }
 
+int DohGetInt(DOH *obj, DOH *name) {
+  int ival;
+  DOH *val;
+  val = Getattr(obj,name);
+  if (!val) return 0;
+  if (String_check(val)) {
+    return atoi(Data(val));
+  } 
+  return 0;
+}
+
+double DohGetDouble(DOH *obj, DOH *name) {
+  double dval;
+  DOH *val;
+  val = Getattr(obj,name);
+  if (!val) return 0;
+  if (String_check(val)) {
+    return atof(Data(val));
+  } 
+  return 0;
+}
+
 /* ----------------------------------------------------------------------
  * Sequence Interface
  * ---------------------------------------------------------------------- */
