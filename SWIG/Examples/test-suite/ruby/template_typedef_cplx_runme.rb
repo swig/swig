@@ -6,24 +6,17 @@ include Template_typedef_cplx
 # double case
 #
 
-begin
-  d = make_Identity_double()
-# a = d.this
-rescue
-  raise RuntimeError, "#{d} is not an instance"
-end
+
+d = make_Identity_double()
+raise RuntimeError, "#{d} is not an instance" if d.is_a? SWIG::Pointer
 
 classname = d.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
   raise RuntimeError, "#{d} is not an ArithUnaryFunction"
 end
 
-begin
-  e = make_Multiplies_double_double_double_double(d, d)
-# a = e.this
-rescue
-  raise RuntimeError, "#{e} is not an instance"
-end
+e = make_Multiplies_double_double_double_double(d, d)
+raise RuntimeError, "#{e} is not an instance" if e.is_a? SWIG::Pointer
 
 classname = e.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
@@ -35,24 +28,16 @@ end
 # complex case
 #
 
-begin
-  c = make_Identity_complex()
-# a = c.this
-rescue
-  raise RuntimeError, "#{c}is not an instance"
-end
+c = make_Identity_complex()
+raise RuntimeError, "#{c}is not an instance" if c.is_a? SWIG::Pointer
 
 classname = c.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
   raise RuntimeError, "#{c} is not an ArithUnaryFunction"
 end
 
-begin
-  f = make_Multiplies_complex_complex_complex_complex(c, c)
-# a = f.this
-rescue
-  raise RuntimeError, "{f} is not an instance"
-end
+f = make_Multiplies_complex_complex_complex_complex(c, c)
+raise RuntimeError, "{f} is not an instance" if f.is_a? SWIG::Pointer
 
 classname = f.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
@@ -63,25 +48,16 @@ end
 # Mix case
 #
 
-begin
-  g = make_Multiplies_double_double_complex_complex(d, c)
-# a = g.this
-rescue
-  raise RuntimeError, "#{g} is not an instance"
-end
+g = make_Multiplies_double_double_complex_complex(d, c)
+raise RuntimeError, "#{g} is not an instance" if g.is_a? SWIG::Pointer
 
 classname = g.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
   raise RuntimeError, "#{g} is not an ArithUnaryFunction"
 end
 
-
-begin
-  h = make_Multiplies_complex_complex_double_double(c, d)
-# a = h.this
-rescue
-  raise RuntimeError, "#{h} is not an instance"
-end
+h = make_Multiplies_complex_complex_double_double(c, d)
+raise RuntimeError, "#{h} is not an instance" if h.is_a? SWIG::Pointer
 
 classname = h.class.name.split(/::/).last
 unless classname =~ /ArithUnaryFunction/
