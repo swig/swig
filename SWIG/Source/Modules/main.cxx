@@ -189,6 +189,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     dump_classes = 0;
   int     werror = 0;
   int     depend = 0;
+  int     memory_debug = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -427,6 +428,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_classes") == 0) {
 	    dump_classes = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_memory") == 0) {
+	    memory_debug =1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    //fputs("Help.\n",stderr);
 	    fputs(usage,stderr);
@@ -583,10 +587,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     Node *top = Swig_cparse(cpps);
 
+
     if (Verbose) {
       Printf(stdout,"Processing types...\n");
     }
     Swig_process_types(top);
+
 
     if (Verbose) {
       Printf(stdout,"C++ analysis...\n");
@@ -652,7 +658,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
   }
   if (tm_debug) Swig_typemap_debug();
+  if (memory_debug) DohMemoryDebug();
   while (freeze);
+
+
   if ((werror) && (Swig_warn_count())) {
     return Swig_warn_count();
   }

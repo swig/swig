@@ -107,6 +107,7 @@
 
 #define DohObjMalloc       DOH_NAMESPACE(ObjMalloc)
 #define DohObjFree         DOH_NAMESPACE(ObjFree)
+#define DohMemoryDebug     DOH_NAMESPACE(MemoryDebug)
 #define DohStringType      DOH_NAMESPACE(StringType)
 #define DohListType        DOH_NAMESPACE(ListType)
 #define DohHashType        DOH_NAMESPACE(HashType)
@@ -296,6 +297,8 @@ extern DOHHash   *DohNewHash();
 extern DOHVoid  *DohNewVoid(void *ptr, void (*del)(void *));
 extern DOHList  *DohSplit(DOHFile *input, char ch, int nsplits);
 extern DOH      *DohNone;
+
+extern void      DohMemoryDebug(void);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of

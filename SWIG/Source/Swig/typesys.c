@@ -176,6 +176,7 @@ int SwigType_typedef_class(String_or_char *name) {
   cname = NewString(name);
   Setmeta(cname,"class","1");
   Setattr(current_typetab,cname,cname);
+  Delete(cname);
   flush_cache();
   return 0;
 }
@@ -506,23 +507,30 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *namebase = 0;
   String *nameprefix = 0;
   int     newtype = 0;
+  static   String *noscope = 0;
+
+  /*
+  if (!noscope) {
+    noscope = NewString("");
+  }
+  */
 
   resolved_scope = 0;
 
+  /*
   if (!typedef_resolve_cache) {
     typedef_resolve_cache = NewHash();
   }
-  /*
   r = Getattr(typedef_resolve_cache,t);
   if (r) {
-    if (r != DohNone) {
+    if (r != noscope) {
       resolved_scope = Getmeta(r,"scope");
       return Copy(r);
     } else {
       return 0;
     }
   }
-*/
+  */
 
   base = SwigType_base(t);
 
@@ -551,6 +559,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
 	  s = SwigType_find_scope(s,nameprefix);
+
 	  /* Couldn't locate a scope for the type.  */
 	  if (!s) {
 	    Delete(base);
@@ -586,7 +595,10 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     }
     
     if (type && (Strcmp(base,type) == 0)) {
+      if (newtype) Delete(type);
       Delete(base);
+      Delete(namebase);
+      Delete(nameprefix);
       r = 0;
       goto return_result;
     }
@@ -600,6 +612,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       int i,sz;
       int rep = 0;
       type = SwigType_templateprefix(base);
+      newtype = 1;
       suffix = SwigType_templatesuffix(base);
       Append(type,"<(");
       tparms = SwigType_parmlist(base);
@@ -614,6 +627,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	}
 	if (tpr) {
 	  Append(type,tpr);
+	  Delete(tpr);
 	  rep = 1;
 	} else {
 	  Append(type,tp);
@@ -631,12 +645,15 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     }
     if (namebase) Delete(namebase);
     if (nameprefix) Delete(nameprefix);
+    namebase = 0;
+    nameprefix = 0;
   } else {
     if (SwigType_isfunction(base)) {
       List *parms;
       int i,sz;
       int rep = 0;
       type = NewString("f(");
+      newtype = 1;
       parms = SwigType_parmlist(base);
       sz = Len(parms);
       for (i = 0; i < sz; i++) {
@@ -649,6 +666,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	}
 	if (tpr) {
 	  Append(type,tpr);
+	  Delete(tpr);
 	  rep = 1;
 	} else {
 	  Append(type,tp);
@@ -667,6 +685,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
       rt = SwigType_typedef_resolve(mtype);
       if (rt) {
 	type = NewStringf("m(%s).", rt);
+	newtype = 1;
 	Delete(rt);
       }
       Delete(mtype);
@@ -700,16 +719,24 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   }
 
  return_result:
-  if (!r) {
-    Setattr(typedef_resolve_cache,NewString(t),DohNone);
-  } else {
-    Setattr(typedef_resolve_cache,NewString(t),r);
-    Setmeta(r,"scope",resolved_scope);
-    r = Copy(r);
+  /*
+  {
+    String *key = NewString(t);
+    if (!r) {
+      Setattr(typedef_resolve_cache,key,noscope);
+    } else {
+      SwigType *r1;
+      Setattr(typedef_resolve_cache,key,r);
+      Setmeta(r,"scope",resolved_scope);
+      r1 = Copy(r);
+      Delete(r);
+      r = r1;
+    }
+    Delete(key);
   }
+  */
   return r;
 }
-
 
 /* -----------------------------------------------------------------------------
  * SwigType_typedef_resolve_all()
@@ -734,8 +761,12 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
     r = n;
   }
   {
+    String *key;
     SwigType *rr = Copy(r);
-    Setattr(typedef_all_cache,NewString(t),rr);
+    key = NewString(t);
+    Setattr(typedef_all_cache,key,rr);
+    Delete(key);
+    Delete(rr);
   }
   return r;
 }
@@ -841,6 +872,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 		      value = qn;
 		      continue;
 		    } else {
+		      Delete(qn);
 		      break;
 		    }
 		  } else if ((Strcmp(nodeType(n),"cdecl") == 0) && (Getattr(n,"value"))) {
@@ -852,6 +884,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 		break;
 	      }
 	      Append(qprefix,value);
+	      Delete(value);
 	    } else {
 	      Append(qprefix,p);
 	    }
@@ -871,6 +904,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	Append(e,qprefix);
 	Delete(tprefix);
 	Delete(qprefix);
+	Delete(parms);
       }
       if (Strncmp(e,"::",2) == 0) {
 	Delitem(e,0);
@@ -883,7 +917,9 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
       String *p;
       p = Firstitem(parms);
       while (p) {
-	Append(s,SwigType_typedef_qualified(p));
+	String *pq = SwigType_typedef_qualified(p);
+	Append(s,pq);
+	Delete(pq);
 	p = Nextitem(parms);
 	if (p) {
 	  Append(s,",");
@@ -892,6 +928,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
       Append(s,").");
       Append(result,s);
       Delete(s);
+      Delete(parms);
     } else if (SwigType_isarray(e)) {
       String *ndim;
       String *dim = SwigType_parm(e);
@@ -904,7 +941,14 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
     }
   }
   Delete(elements);
-  Setattr(typedef_qualified_cache,NewString(t),NewString(result));
+  {
+    String *key, *cresult;
+    key = NewString(t);
+    cresult = NewString(result);
+    Setattr(typedef_qualified_cache,key,cresult);
+    Delete(key);
+    Delete(cresult);
+  }
   return result;
 }
 
@@ -1157,6 +1201,7 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   Hash   *h;
   SwigType *fr;
   SwigType *qr;
+  String   *tkey;
 
   if (!r_mangled) {
     r_mangled = NewHash();
@@ -1172,7 +1217,9 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
     if (last && (Cmp(last,clientdata) == 0)) return;
   }
 
-  Setattr(r_remembered, Copy(t), clientdata ? NewString(clientdata) : (void *) "");
+  tkey = Copy(t);
+  Setattr(r_remembered, tkey, clientdata ? NewString(clientdata) : (void *) "");
+  Delete(tkey);
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
 

@@ -949,7 +949,15 @@ SwigType_strip_qualifiers(SwigType *t) {
     if (SwigType_isqualifier(e)) continue;
     Append(r,e);
   }
-  Setattr(memoize_stripped,Copy(t),Copy(r));
+  Delete(l);
+  {
+    String *key, *value;
+    key = Copy(t);
+    value = Copy(r);
+    Setattr(memoize_stripped,key,value);
+    Delete(key);
+    Delete(value);
+  }
   return r;
 }
 
@@ -1587,6 +1595,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	  Delete(repbase);
 	} 
 	{
+	  String *tsuffix;
 	  List *tparms = SwigType_parmlist(e);
 	  int j;
 	  String *nt = SwigType_templateprefix(e);
@@ -1596,10 +1605,13 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	    Printf(nt,"%s",Getitem(tparms,j));
 	    if (j < (Len(tparms)-1)) Printf(nt,",");
 	  }
-	  Printf(nt,")>%s", SwigType_templatesuffix(e));
+	  tsuffix = SwigType_templatesuffix(e);
+	  Printf(nt,")>%s", tsuffix);
+	  Delete(tsuffix);
 	  Clear(e);
 	  Append(e,nt);
 	  Delete(nt);
+	  Delete(tparms);
 	}
       } else if (Swig_scopename_check(e)) {
 	String *first, *rest;
@@ -1623,6 +1635,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 	if (j < (Len(fparms)-1)) Printf(e,",");
       }
       Printf(e,").");
+      Delete(fparms);
     }
     Append(nt,e);
   }

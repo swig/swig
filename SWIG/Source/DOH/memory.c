@@ -45,6 +45,7 @@ CreatePool() {
   assert(p);
   p->ptr = (DohBase *) DohMalloc(sizeof(DohBase)*PoolSize);
   assert(p->ptr);
+  memset(p->ptr,0,sizeof(DohBase)*PoolSize);
   p->len = PoolSize;
   p->blen = PoolSize*sizeof(DohBase);
   p->current = 0;
@@ -139,10 +140,79 @@ DohObjFree(DOH *ptr) {
   b = (DohBase *) ptr;
   if (b->flag_intern) return;
   b->data = (void *) FreeList;
+  b->refcount = 0;
   if (b->meta) {
     Delete(b->meta);
     b->meta = 0;
   }
   b->type = 0;
   FreeList = b;
+}
+
+/* ----------------------------------------------------------------------
+ * DohMemoryDebug()
+ *
+ * Display memory usage statistics
+ * ---------------------------------------------------------------------- */
+
+void
+DohMemoryDebug(void) {
+  extern DohObjInfo DohStringType;
+  extern DohObjInfo DohListType;
+  extern DohObjInfo DohHashType;
+
+  Pool *p;
+  int   totsize = 0;
+  int   totused = 0;
+  int   totfree = 0;
+
+  int   numstring = 0;
+  int   numlist   = 0;
+  int   numhash   = 0;
+
+  printf("Memory statistics:\n\n");
+  printf("Pools:\n");
+  
+  p = Pools;
+  while(p) {
+    /* Calculate number of used, free items */
+    int i;
+    int nused = 0, nfree = 0;
+    for (i = 0; i < p->len; i++) {
+      if (p->ptr[i].refcount <= 0) nfree++;
+      else {
+	nused++;
+	if (p->ptr[i].type == &DohStringType) numstring++;
+	else if (p->ptr[i].type == &DohListType) numlist++;
+	else if (p->ptr[i].type == &DohHashType) numhash++;
+      }
+    }
+    printf("    Pool %8x: size = %10d. used = %10d. free = %10d\n", p, p->len, nused, nfree);
+    totsize += p->len;
+    totused+= nused;
+    totfree+= nfree;
+    p = p->next;
+  }
+  printf("\n    Total: size = %d, used = %d, free = %d\n", totsize, totused, totfree);
+
+  printf("\nObject types\n");
+  printf("    Strings   : %d\n", numstring);
+  printf("    Lists     : %d\n", numlist);
+  printf("    Hashes    : %d\n", numhash);
+
+#if 0
+  p = Pools;
+  while(p) {
+    int i;
+    for (i = 0; i < p->len; i++) {
+      if (p->ptr[i].refcount > 0) {
+	if (p->ptr[i].type == &DohStringType) {
+	  Printf(stdout,"%s\n", p->ptr+i);
+	}
+      }
+    }
+    p = p->next;
+  }
+#endif
+
 }

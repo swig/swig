@@ -486,7 +486,6 @@ static SwigType *strip_arrays(SwigType *type) {
   return t;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_typemap_search()
  *
@@ -532,7 +531,9 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       if (isarray) {
 	/* If working with arrays, strip away all of the dimensions and replace with "ANY".
 	   See if that generates a match */
-	if (!noarrays) noarrays = strip_arrays(ctype);
+	if (!noarrays) {
+	  noarrays = strip_arrays(ctype);
+	}
 	tma = Getattr(typemaps[ts],noarrays);
 	if (tma && cname) {
 	  tm1 = Getattr(tma,cname);
@@ -565,9 +566,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       {
 	String *octype;
 	if (unstripped) {
-	  if (unstripped != type) {
-	    Delete(ctype);
-	  } 
+ 	  Delete(ctype);
 	  ctype = unstripped;
 	  unstripped = 0;
 	}
@@ -576,36 +575,11 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	if (octype != type) Delete(octype);
       }
     }
-#ifdef NEW    
-    /* No match seems to be found at all. Try a SWIGTYPE substitution */
-    if (!primitive) {
-      SwigType *base = SwigType_base(type);
-      primitive = SwigType_prefix(type);
-      if (Strstr(base,"enum ")) {
-	Append(primitive,"enum SWIGTYPE");
-      } else {
-	Append(primitive,"SWIGTYPE");
-      }
-      tm = Getattr(typemaps[ts],primitive);
-      if (tm && cname) {
-	tm1 = Getattr(tm, cname);
-	if (tm1) {
-	  result = Getattr(tm1,tmop);
-	  if (result) goto ret_result;
-	}
-      }
-      if (tm) {
-	result = Getattr(tm,tmop);
-	if (result) goto ret_result;
-      }
-      Delete(primitive);
-      primitive = 0;
-    }
-#endif
 
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
-    if (!primitive)
+    if (!primitive) {
       primitive = SwigType_default(type);
+    }
     tm = Getattr(typemaps[ts],primitive);
     if (tm && cname) {
       tm1 = Getattr(tm,cname);
@@ -618,7 +592,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
       result = Getattr(tm,tmop);
       if (result) goto ret_result;
     }
-    if (ctype != type) Delete(ctype);
+    if (ctype != type) { Delete(ctype); ctype = 0; }
     ts--;         /* Hmmm. Nothing found in this scope.  Guess we'll go try another scope */
   }
   result = backup;
@@ -633,6 +607,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
   if (type != ctype) Delete(ctype);
   return result;
 }
+
 
 /* -----------------------------------------------------------------------------
  * Swig_typemap_search_multi()

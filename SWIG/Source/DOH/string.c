@@ -88,8 +88,8 @@ static void
 DelString(DOH *so) {
   String *s = (String *) ObjData(so);
   s->hashkey = -1;
-  s->str = 0;
   DohFree(s->str);
+  s->str = 0;
   DohFree(s);
 }
 
