@@ -28,10 +28,13 @@ you would use a real value instead.
          int            *INPUT
          short          *INPUT
          long           *INPUT
+         long long      *INPUT
          unsigned int   *INPUT
          unsigned short *INPUT
          unsigned long  *INPUT
+         unsigned long long *INPUT
          unsigned char  *INPUT
+         bool           *INPUT
          float          *INPUT
          double         *INPUT
          
@@ -157,17 +160,17 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-%typemap(in) long long *INPUT(long long temp), 
-             long long &INPUT(long long temp)
+%typemap(in) long long *INPUT($*1_ltype temp), 
+             long long &INPUT($*1_ltype temp)
 {
-  temp = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
+  temp = ($*1_ltype) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
   $1 = &temp;
 }
 
-%typemap(in) unsigned long long *INPUT(unsigned long long temp), 
-             unsigned long long &INPUT(unsigned long long temp)
+%typemap(in) unsigned long long *INPUT($*1_ltype temp), 
+             unsigned long long &INPUT($*1_ltype temp)
 {
-  temp = (long long) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
+  temp = ($*1_ltype) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
   $1 = &temp;
 }
   
@@ -184,10 +187,13 @@ multiple output values, they are returned in the form of a Tcl list.
          int            *OUTPUT
          short          *OUTPUT
          long           *OUTPUT
+         long long      *OUTPUT
          unsigned int   *OUTPUT
          unsigned short *OUTPUT
          unsigned long  *OUTPUT
+         unsigned long long *OUTPUT
          unsigned char  *OUTPUT
+         bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
          
@@ -224,8 +230,8 @@ output values.
                      bool           *OUTPUT(bool temp),
                      float          *OUTPUT(float temp),
                      double         *OUTPUT(double temp),
-                     long long      *OUTPUT(long long temp),
-                     unsigned long long *OUTPUT(unsigned long long temp),
+                     long long      *OUTPUT($*1_ltype temp),
+                     unsigned long long *OUTPUT($*1_ltype temp),
 	             int            &OUTPUT(int temp),
                      short          &OUTPUT(short temp),
                      long           &OUTPUT(long temp),
@@ -237,8 +243,8 @@ output values.
                      unsigned char  &OUTPUT(unsigned char temp),
                      float          &OUTPUT(float temp),
                      double         &OUTPUT(double temp),
-                     long long      &OUTPUT(long long temp),
-                     unsigned long long &OUTPUT(unsigned long long temp)
+                     long long      &OUTPUT($*1_ltype temp),
+                     unsigned long long &OUTPUT($*1_ltype temp)
 "$1 = &temp;";
 
 %typemap(argout)     int     *OUTPUT, int &OUTPUT,
@@ -295,10 +301,13 @@ returned in the form of a Tcl list.
          int            *INOUT
          short          *INOUT
          long           *INOUT
+         long long      *INOUT
          unsigned int   *INOUT
          unsigned short *INOUT
          unsigned long  *INOUT
+         unsigned long long *INOUT
          unsigned char  *INOUT
+         bool           *INOUT
          float          *INOUT
          double         *INOUT
          
