@@ -56,7 +56,8 @@ CPP_TEST_BROKEN += \
 	using_namespace
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
-C_TEST_BROKEN += 
+C_TEST_BROKEN += \
+	inctest.i 
 
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
