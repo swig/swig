@@ -1101,6 +1101,10 @@ Language::staticmemberfunctionHandler(Node *n) {
     Delete(mrename);
     mrename = mangled;
 
+    if (Getattr(n,"sym:overloaded") && code) {
+      Append(cname, Getattr(defaultargs ? defaultargs : n,"sym:overname"));
+    }
+
     if (!defaultargs && code) {
       /* Hmmm. An added static member.  We have to create a little wrapper for this */
       Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus);
