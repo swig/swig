@@ -33,9 +33,13 @@ if v[0:3][1] != vu[0:3][1]:
   
 
 m = ((1,2,3),(2,3),(3,4))
-if m != std_containers.mident(m):
+if m != std_containers.midenti(m):
   raise RuntimeError, "bad getslice"
-  
+
+mb = ((1,0,1),(1,1),(1,1))
+if mb != std_containers.midentb(mb):
+  raise RuntimeError, "bad getslice"
+
 
 mi = std_containers.imatrix(m)
 mc = std_containers.cmatrix(m)

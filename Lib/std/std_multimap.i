@@ -42,43 +42,45 @@
 
 
 namespace std {
-  template<class K, class T> class multimap {
+  template<class _Key, class _Tp, class _Compare = std::less<_Key >,
+	   class _Alloc = std::allocator<std::pair<const _Key, _Tp > > >
+  class multimap {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef K key_type;
-    typedef T mapped_type;
-    typedef std::pair<const K, T> value_type;
+    typedef _Key key_type;
+    typedef _Tp mapped_type;
+    typedef std::pair<const _Key, _Tp> value_type;
 
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(K);
-    %traits_swigtype(T);	    
+    %traits_swigtype(_Key);
+    %traits_swigtype(_Tp);	    
 
-    %fragment(SWIG_Traits_frag(std::multimap<K, T >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<K, T >),
-	      fragment="StdMultimapTraits") {
+    %fragment(SWIG_Traits_frag(std::multimap<_Key, _Tp, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(std::pair<_Key, _Tp >),
+	      fragment="StdMultiapTraits") {
       namespace swig {
-	
-	template <>  struct traits<std::multimap<K, T > > {
-	  typedef value_category category;
+	template <>  struct traits<std::multimap<_Key, _Tp, _Compare, _Alloc > > {
+	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::multimap<" #K "," #T " >";
+	    return "std::multimap<" #_Key "," #_Tp "," #_Compare "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<K, T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTIMAP, std::multimap<_Key, _Tp, _Compare, _Alloc >);
   
     %std_multimap_methods(multimap);
 
 #ifdef %swig_multimap_methods
     // Add swig/language extra methods
-    %swig_multimap_methods(std::multimap<K, T >);
+    %swig_multimap_methods(std::multimap<_Key, _Tp, _Compare, _Alloc >);
 #endif
   };
 }

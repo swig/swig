@@ -61,73 +61,77 @@
 
 namespace std {
 
-  template<class T > class list {
+  template<class _Tp, class _Alloc = std::allocator<_Tp>  > 
+  class list {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
+    typedef _Tp value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::list<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::list<_Tp, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdListTraits") {
       namespace swig {
-	template <>  struct traits<std::list<T > > {
+	template <>  struct traits<std::list<_Tp, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::list<" #T " >";
+	    return "std::list<" #_Tp ", " #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<_Tp, _Alloc >);
   
     %std_list_methods(list);
 
 #ifdef %swig_list_methods
     // Add swig/language extra methods
-    %swig_list_methods(std::list<T >);
+    %swig_list_methods(std::list<_Tp, _Alloc >);
 #endif
   };
 
-  template<class T > class list<T*> {
+  template<class _Tp, class _Alloc >
+  class list<_Tp*, _Alloc> {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T* value_type;
+    typedef _Tp* value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type reference;
     typedef value_type const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::list<T* >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::list<_Tp*, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdListTraits") {
       namespace swig {
-	template <>  struct traits<std::list<T* > > {
+	template <>  struct traits<std::list<_Tp*, _Alloc > > {
 	  typedef value_category category;
 	  static const char* type_name() {
-	    return "std::list<" #T " * >";
+	    return "std::list<" #_Tp " *," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<T* >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_LIST, std::list<_Tp*, _Alloc >);
 
     %std_list_methods_val(list);
 
 #ifdef %swig_list_methods_val
     // Add swig/language extra methods
-    %swig_list_methods_val(std::list<T* >);
+    %swig_list_methods_val(std::list<_Tp*, _Alloc >);
 #endif
   };
 

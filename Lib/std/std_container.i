@@ -1,5 +1,6 @@
 %include <std_common.i>
 %include <exception.i>
+%include <std_alloc.i>
 
 %{
 #include <algorithm>
@@ -7,7 +8,7 @@
 
 // Common container methods
 
-%define %std_container_methods(container)
+%define %std_container_methods(container...)
   container();
   container(const container&);
 
@@ -16,6 +17,8 @@
   void clear();
 
   void swap(container& v);
+
+  allocator_type get_allocator() const;
 
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
   iterator begin();
@@ -34,7 +37,7 @@
 
 %define %std_sequence_methods_common(sequence)
   
-    %std_container_methods(SWIG_arg(sequence));
+  %std_container_methods(SWIG_arg(sequence));
   
   sequence(size_type size);
   void pop_back();
@@ -71,7 +74,7 @@
   
 %enddef
 
-%define %std_sequence_methods_val(sequence)
+%define %std_sequence_methods_val(sequence...)
   
   %std_sequence_methods_common(SWIG_arg(sequence));
   

@@ -5,14 +5,14 @@
 
 // Deque
 
-%define %std_deque_methods(deque)  
+%define %std_deque_methods(deque...)  
   %std_sequence_methods(deque)
 
   void pop_front();
   void push_front(const value_type& x);
 %enddef
 
-%define %std_deque_methods_val(deque)
+%define %std_deque_methods_val(deque...)
   %std_sequence_methods_val(deque)
 
   void pop_front();
@@ -49,73 +49,77 @@
 
 namespace std {
 
-  template<class T > class deque {
+  template<class _Tp, class _Alloc = std::allocator<_Tp> > 
+  class deque {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
+    typedef _Tp value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::deque<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::deque<_Tp, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdDequeTraits") {
       namespace swig {
-	template <>  struct traits<std::deque<T > > {
+	template <>  struct traits<std::deque<_Tp, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::deque<" #T " >";
+	    return "std::deque<" #_Tp " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<_Tp, _Alloc >);
   
     %std_deque_methods(deque);
 
 #ifdef %swig_deque_methods
     // Add swig/language extra methods
-    %swig_deque_methods(std::deque<T >);
+    %swig_deque_methods(std::deque<_Tp, _Alloc >);
 #endif
   };
 
-  template<class T > class deque<T*> {
+  template<class _Tp, class _Alloc > 
+  class deque<_Tp*, _Alloc > {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T* value_type;
+    typedef _Tp* value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type reference;
     typedef value_type const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::deque<T* >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::deque<_Tp*, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdDequeTraits") {
       namespace swig {
-	template <>  struct traits<std::deque<T* > > {
+	template <>  struct traits<std::deque<_Tp*, _Alloc > > {
 	  typedef value_category category;
 	  static const char* type_name() {
-	    return "std::deque<" #T " * >";
+	    return "std::deque<" #_Tp " * >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<T* >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_DEQUE, std::deque<_Tp*, _Alloc >);
 
-    %std_deque_methods_val(std::deque<T* >);
+    %std_deque_methods_val(std::deque<_Tp*, _Alloc >);
 
 #ifdef %swig_deque_methods_val
     // Add swig/language extra methods
-    %swig_deque_methods_val(std::deque<T* >);
+    %swig_deque_methods_val(std::deque<_Tp*, _Alloc >);
 #endif
   };
 

@@ -6,7 +6,7 @@
 
 // Multiset
 
-%define %std_multiset_methods(multiset)
+%define %std_multiset_methods(multiset...)
   %std_set_methods_common(multiset);
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
   pair<iterator,bool> insert(iterator pos);
@@ -43,40 +43,42 @@ namespace std {
 
   //multiset
 
-  template<class T > class multiset {
+  template <class _Key, class _Compare = less<_Key>,
+	    class _Alloc = allocator<_Key> >
+  class multiset {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
-    typedef T key_type;
+    typedef _Key value_type;
+    typedef _Key key_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
     typedef const value_type& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Key);
 
-    %fragment(SWIG_Traits_frag(std::multiset<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::multiset<_Key, _Compare, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Key),
 	      fragment="StdMultisetTraits") {
       namespace swig {
-	template <>  struct traits<std::multiset<T > > {
+	template <>  struct traits<std::multiset<_Key, _Compare, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::multiset<" #T " >";
+	    return "std::multiset<" #_Key "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_MULTISET, std::multiset<_Key, _Compare, _Alloc >);
   
     %std_multiset_methods(multiset);
 
 #ifdef %swig_multiset_methods
     // Add swig/language extra methods
-    %swig_multiset_methods(std::multiset<T >);
+    %swig_multiset_methods(std::multiset<_Key, _Compare, _Alloc >);
 #endif
   };
-
 }

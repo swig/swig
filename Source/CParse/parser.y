@@ -2324,6 +2324,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         } else {
                           int  def_supplied = 0;
                           /* Expand the template */
+			  Node *templ = Swig_symbol_clookup($5,0);
+			  Parm *targs = templ ? Getattr(templ,"templateparms") : 0;
+
                           ParmList *temparms;
                           if (specialized) temparms = CopyParmList($7);
                           else temparms = CopyParmList(tparms);
@@ -2345,6 +2348,21 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               }
                               Delattr(tp,"value");
                             }
+			    /* fix default arg values */
+			    if (targs) {
+			      Parm *pi = temparms;
+			      Parm *ti = targs;
+			      String *tv = Getattr(tp,"value");
+			      if (!tv) tv = Getattr(tp,"type");
+			      while(pi != tp) {
+				String *name = Getattr(ti,"name");
+				String *value = Getattr(pi,"value");
+				if (!value) value = Getattr(pi,"type");
+				Replaceid(tv, name, value);
+				pi = nextSibling(pi);
+				ti = nextSibling(ti);
+			      }
+			    }
                             p = nextSibling(p);
                             tp = nextSibling(tp);
                             if (!p && tp) {

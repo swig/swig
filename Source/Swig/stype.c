@@ -13,6 +13,7 @@
 char cvsroot_stype_c[] = "$Header$";
 
 #include "swig.h"
+#include "cparse.h"
 #include <ctype.h>
 
 /* -----------------------------------------------------------------------------
@@ -902,11 +903,14 @@ String *SwigType_manglestr_default(SwigType *s) {
   char *c;
   String *result,*base;
   SwigType *lt;
-  SwigType *ss = 0;
+  SwigType *ss = SwigType_typedef_resolve_all(s);
+  s = ss;
 
   if (SwigType_istemplate(s)) {
-    ss = SwigType_typedef_resolve_all(s);
+    String *st = ss;
+    ss = Swig_cparse_template_deftype(st, 0);
     s = ss;
+    Delete(st);
   }
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);

@@ -6,7 +6,7 @@
 
 // Vector
 
-%define %std_vector_methods(vector)
+%define %std_vector_methods(vector...)
   %std_sequence_methods(vector)
   
   void reserve(size_type n);
@@ -14,7 +14,7 @@
 %enddef
 
 
-%define %std_vector_methods_val(vector)
+%define %std_vector_methods_val(vector...)
   %std_sequence_methods_val(vector)
   
   void reserve(size_type n);
@@ -53,44 +53,43 @@
 
 // exported classes
 
-#if !defined(SWIG_STD_MODERN_STL) || defined(SWIG_STD_NOMODERN_STL) 
-%ignore std::vector<bool>::flip();
-#endif
 
 namespace std {
 
-  template<class T > class vector {
+  template<class _Tp, class _Alloc = std::allocator< _Tp > >
+  class vector {
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
+    typedef _Tp value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
-    typedef T& reference;
-    typedef const T& const_reference;
+    typedef _Tp& reference;
+    typedef const _Tp& const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::vector<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::vector<_Tp, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdVectorTraits") {
       namespace swig {
-	template <>  struct traits<std::vector<T > > {
+	template <>  struct traits<std::vector<_Tp, _Alloc > > {
 	  typedef pointer_category category;
 	  static const char* type_name() {
-	    return "std::vector<" #T " >";
+	    return "std::vector<" #_Tp "," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<T >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<_Tp, _Alloc >);
   
     %std_vector_methods(vector);
 
 #ifdef %swig_vector_methods
     // Add swig/language extra methods
-    %swig_vector_methods(std::vector<T >);
+    %swig_vector_methods(std::vector<_Tp, _Alloc >);
 #endif
   };
 
@@ -98,52 +97,49 @@ namespace std {
   // This specialization should dissapear or get simplified when
   // a 'const SWIGTYPE*&' can be defined
   // ***
-  template<class T > class vector<T*> {
+  template<class _Tp, class _Alloc >
+  class vector<_Tp*, _Alloc > {
   public:
     typedef size_t size_type;    
     typedef ptrdiff_t difference_type;
-    typedef T* value_type;
+    typedef _Tp* value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type reference;
     typedef value_type const_reference;
+    typedef _Alloc allocator_type;
 
-    %traits_swigtype(T);
+    %traits_swigtype(_Tp);
 
-    %fragment(SWIG_Traits_frag(std::vector<T* >), "header",
-	      fragment=SWIG_Traits_frag(T),
+    %fragment(SWIG_Traits_frag(std::vector<_Tp*, _Alloc >), "header",
+	      fragment=SWIG_Traits_frag(_Tp),
 	      fragment="StdVectorTraits") {
       namespace swig {
-	template <>  struct traits<std::vector<T* > > {
+	template <>  struct traits<std::vector<_Tp*, _Alloc > > {
 	  typedef value_category category;
 	  static const char* type_name() {
-	    return "std::vector<" #T " * >";
+	    return "std::vector<" #_Tp " *," #_Alloc " >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<T* >);
+    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<_Tp*, _Alloc >);
 
     %std_vector_methods_val(vector);
 
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods
-    %swig_vector_methods_val(std::vector<T* >);
+    %swig_vector_methods_val(std::vector<_Tp*, _Alloc >);
 #endif
   };
 
   // ***
   // ***
   // bool specialization
-  %extend vector<bool> {
-    void flip() 
-    {
-      self->flip();
-    }
-  }
 
-  template<class T > class vector<bool> {
+  template<class _Alloc > 
+  class vector<bool,_Alloc > {
   public:
     typedef size_t size_type;    
     typedef ptrdiff_t difference_type;
@@ -152,29 +148,34 @@ namespace std {
     typedef const value_type* const_pointer;
     typedef value_type reference;
     typedef value_type const_reference;
+    typedef _Alloc allocator_type;
 
     %traits_swigtype(bool);
 
-    %fragment(SWIG_Traits_frag(std::vector<bool>), "header",
+    %fragment(SWIG_Traits_frag(std::vector<bool, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(bool),
 	      fragment="StdVectorTraits") {
       namespace swig {
-	template <>  struct traits<std::vector<bool> > {
+	template <>  struct traits<std::vector<bool, _Alloc > > {
 	  typedef value_category category;
 	  static const char* type_name() {
-	    return "std::vector<bool>";
+	    return "std::vector<bool, _Alloc >";
 	  }
 	};
       }
     }
 
-    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool>);
+    %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<bool, _Alloc >);
 
-    %std_vector_methods_val(vector<bool>);
+    %std_vector_methods_val(vector);
+
+#if defined(SWIG_STD_MODERN_STL) && !defined(SWIG_STD_NOMODERN_STL) 
+    void flip();
+#endif
 
 #ifdef %swig_vector_methods_val
     // Add swig/language extra methods
-    %swig_vector_methods_val(std::vector<bool>);
+    %swig_vector_methods_val(std::vector<bool, _Alloc >);
 #endif
   };
 
