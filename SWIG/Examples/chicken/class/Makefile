@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-CHICKGEN   = csi.o precsi.o oexample.o example.cxx example_wrap.cxx
-SRCS       = $(CHICKGEN)
+CHICKGEN   = csi.o precsi.o oexample.o example_wrap.cxx
+SRCS       = $(CHICKGEN) example.cxx
 TARGET     = class
 INCLUDE    =
 SWIGOPT    = 
@@ -10,7 +10,7 @@ CFLAGS     =
 all:: $(TARGET) example_generic.scm example_clos.scm
 
 .c.o:
-	$(MAKE) -f $(TOP)/Makefile CFLAGS='$(CFLAGS)' TARGET='$@' \
+	$(MAKE) -f $(TOP)/Makefile CFLAGS='$$(CHICKEN_CFLAGS) $(CFLAGS)' TARGET='$@' \
 		INCLUDE='$(INCLUDE)' INTERFACE='$<' compile
 csi.c:
 	$(MAKE) -f $(TOP)/Makefile TARGET='csi.c' \
@@ -35,7 +35,7 @@ $(TARGET): $(SRCS)
 
 clean::
 	rm -f *_wrap* *.o core *~ *.so *.stackdump STACKTRACE
-	rm -f $(CHICKGEN)
+	rm -f $(CHICKGEN) csi.c precsi.c oexample.c
 	rm -f example.scm example_generic.scm example_clos.scm
 	rm -f $(TARGET)
 

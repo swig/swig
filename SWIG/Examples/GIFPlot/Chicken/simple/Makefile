@@ -32,7 +32,7 @@ $(TARGET): $(SRCS)
 
 clean::
 	rm -f *_wrap* *.o core *~ *.so *.stackdump STACKTRACE
-	rm -f $(CHICKGEN)
+	rm -f $(CHICKGEN) csi.c precsi.c osimple.c
 	rm -f simple.scm
 	rm -f $(TARGET)
 	rm -f *.gif
