@@ -266,9 +266,14 @@
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
 
-%typemap(varin) SWIGTYPE *,
-                SWIGTYPE &
-	"SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
+%typemap(varin) SWIGTYPE *
+        "SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
+
+%typemap(varin) SWIGTYPE & {
+        void *temp;
+        SWIG_ConvertPtr($input, (void **) &temp, $1_descriptor, 1);
+        $1 = *($1_ltype) temp;
+}
 
 %typemap(varin) SWIGTYPE [] {
 	rb_raise(rb_eRuntimeError, "Array $name is readonly");
