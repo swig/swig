@@ -3,6 +3,7 @@ callback
 class
 constants
 enum
+extend
 funcptr
 mpointer
 multimap
