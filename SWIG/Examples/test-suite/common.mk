@@ -43,7 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	cast_operator \
-	arrayref \
 	namespace_nested \
 	template_default_arg \
 	template_extend_overload \
@@ -68,6 +67,7 @@ CPP_TEST_CASES += \
 	add_link \
 	anonymous_arg \
 	argout \
+	arrayref \
 	arrays_global \
 	arrays_global_twodim \
 	arrays_scope \
