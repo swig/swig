@@ -126,7 +126,7 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 
   SwigType_remember(t);
   SwigType *lt = SwigType_ltype(t);
-  Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
+  Printv(f, "if (SWIG_ConvertPtr(", src, ",(void **) ", dest, ",", 0);
 
   /* If we're passing a void pointer, we give the pointer conversion a NULL
      pointer, otherwise pass in the expected type. */
@@ -487,7 +487,11 @@ PHP4::top(Node *n) {
       "#endif\n"
       "#include \"php.h\"\n"
       "#include \"php_ini.h\"\n"
-      "#include \"php_%s.h\"\n", module, module, module);
+      "#include \"php_%s.h\"\n"
+      "#ifdef __cplusplus\n"
+      "}\n"
+      "#endif\n\n",
+      module, module, module);
 
   /* Create the .h file too */
   filen = NewString("");
@@ -617,10 +621,6 @@ PHP4::top(Node *n) {
   Close(f_h);
 
 
-  Printf(s_header, 
-	"#ifdef __cplusplus\n"
-	"}\n"
-	"#endif\n\n");
 
   Printf(s_header, "%s", s_entry);
 
@@ -799,7 +799,7 @@ PHP4::functionWrapper(Node *n) {
     SwigType *pt = Getattr(p,"type");
     String   *pn = Getattr(p,"name");
 
-    sprintf(source, "*(args[%d])", i);
+    sprintf(source, "args[%d]", i);
     sprintf(target, "%s", Char(Getattr(p,"lname")));
     sprintf(argnum, "%d", i+1);
 
@@ -984,8 +984,8 @@ PHP4::functionWrapper(Node *n) {
     Printf(f->code,"%s\n", tm);
   }
   
-  Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f->code,"$name",iname,DOH_REPLACE_ANY);
+  Replaceall(f->code,"$cleanup",cleanup);
+  Replaceall(f->code,"$symname",iname);
   
   Printf(f->code, "\nSwig_sync_php();\n");
   Printf(f->code, "\n}");
@@ -1304,7 +1304,7 @@ PHP4::variableWrapper(Node *n) {
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
 	Printf(f_c->code, "{\n %s _temp;\n", SwigType_lstr(t,0));
 	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void *)&z_var);\n", name, strlen(name)+1);
-	get_pointer(name, (char*)"value", (char*)"*z_var", (char*)"_temp", t, f_c->code,(char*)"return");
+	get_pointer(name, (char*)"value", (char*)"*z_var", (char*)"&_temp", t, f_c->code,(char*)"return");
 	Printv(f_c->code, tab4, name, " = *(", SwigType_str(t,0), ") _temp;\n", 0);
 	Printf(f_c->code,"}\n");
 	SwigType_del_pointer(t);
@@ -1343,7 +1343,7 @@ PHP4::variableWrapper(Node *n) {
 	Printf(f_c->code, "%s _temp;\n", SwigType_lstr(t,0));
 	Wrapper_add_local(f_c, "z_var", "zval **z_var");
 	Printf(f_c->code, "zend_hash_find(&EG(symbol_table), \"%s\", %d, (void **)&z_var);\n", name, strlen(name)+1);
-	get_pointer(name, (char*)"value", (char*)"(*z_var)", (char*)"_temp", t,f_c->code, (char*)"return");
+	get_pointer(name, (char*)"value", (char*)"*(z_var)", (char*)"&_temp", t,f_c->code, (char*)"return");
 	Printv(f_c->code, tab4, name, " = (", SwigType_str(t,0), ") _temp;\n", 0);
 	Printf(f_c->code, "}\n");
 	break;
@@ -1362,6 +1362,7 @@ PHP4::constantWrapper(Node *n) {
   SwigType *type = Getattr(n,"type");
   char *value = GetChar(n,"value");
 	String *rval;
+	String *tm;
 
 	SwigType_remember(type);
 
@@ -1376,6 +1377,12 @@ PHP4::constantWrapper(Node *n) {
 		rval = NewString(value);
 	}
 
+	if((tm = Swig_typemap_lookup_new("consttab", n, name, 0))) {
+		Replaceall(tm, "$source", value);
+		Replaceall(tm, "$target", name);
+		Replaceall(tm, "$value", value);
+		Printf(s_cinit, "%s\n", tm);
+	} else {
 	switch(SwigType_type(type)) {
 		case T_BOOL: 
 		case T_INT :
@@ -1422,6 +1429,7 @@ PHP4::constantWrapper(Node *n) {
 			break;
 	}
 	return SWIG_OK;
+	}
 }
 
 /*
@@ -1433,10 +1441,8 @@ PHP4::constantWrapper(Node *n) {
  * %pragma(php4) include="file.pl"     # Includes a file in the .php file
  */
 void PHP4::pragma(char *lang, char *type, char *value) {
-       if (strcmp(lang,"php4") != 0) {
-               Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
-                       input_file, line_number);
-       }
+       if (strcmp(lang,"php4") != 0) return;
+
        if (strcmp(type, "code") == 0) {
                if (value)
                        Printf(pragma_code, "%s\n", value);
@@ -1472,7 +1478,7 @@ PHP4::emit_shadow_classdef() {
 	
 	if(this_shadow_baseclass && *Char(this_shadow_baseclass))
 		Printf(shadow_classdef, 
-		      "include(\"%s.php3\");\n",
+		      "include(\"%s.php\");\n",
 		      this_shadow_baseclass);
 
 	// Import statements
@@ -1570,7 +1576,7 @@ int PHP4::classHandler(Node *n) {
 			Setattr(shadow_classes, bigbuf, shadow_classname);
 		}
 
-		sprintf(bigbuf, "%s.php3", shadow_classname);
+		sprintf(bigbuf, "%s.php", shadow_classname);
 		if(!(f_shadow = fopen(bigbuf, "w"))) {
 			Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
 		}
@@ -1640,7 +1646,12 @@ int PHP4::classHandler(Node *n) {
 
 		}
 
-		Language::classHandler(n);
+	}
+
+
+	Language::classHandler(n);
+
+	if(shadow) {
 
 		emit_shadow_classdef();
 
