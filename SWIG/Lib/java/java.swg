@@ -146,10 +146,6 @@
 %typemap(jtype) SWIGTYPE & "long"
 %typemap(jstype) SWIGTYPE & "$javaclassname"
 
-%typemap(jni) enum SWIGTYPE "jint"
-%typemap(jtype) enum SWIGTYPE "int"
-%typemap(jstype) enum SWIGTYPE "int"
-
 /* pointer to a class member */
 %typemap(jni) SWIGTYPE (CLASS::*) "jlong"
 %typemap(jtype) SWIGTYPE (CLASS::*) "long"
@@ -175,8 +171,7 @@
              unsigned long, 
              long long, 
              float, 
-             double, 
-             enum SWIGTYPE
+             double
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(directorin, descriptor="Z") bool             "$input = (jboolean) $1;"
@@ -192,7 +187,6 @@
 %typemap(directorin, descriptor="J") long long        "$input = (jlong) $1;"
 %typemap(directorin, descriptor="F") float            "$input = (jfloat) $1;"
 %typemap(directorin, descriptor="D") double           "$input = (jdouble) $1;"
-%typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
 
 %typemap(javadirectorin) char, 
                          signed char, 
@@ -205,8 +199,7 @@
                          unsigned long, 
                          long long, 
                          float, 
-                         double, 
-                         enum SWIGTYPE
+                         double
   "$jniinput"
 
 %typemap(javadirectorout) char, 
@@ -220,8 +213,7 @@
                           unsigned long, 
                           long long, 
                           float, 
-                          double, 
-                          enum SWIGTYPE
+                          double
   "$javacall"
 
 %typemap(out) bool           %{ $result = (jboolean)$1; %}
@@ -237,7 +229,6 @@
 %typemap(out) long long      %{ $result = (jlong)$1; %}
 %typemap(out) float          %{ $result = (jfloat)$1; %}
 %typemap(out) double         %{ $result = (jdouble)$1; %}
-%typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
 /* unsigned long long */
 /* Convert from BigInteger using the toByteArray member function */
@@ -681,8 +672,7 @@
     long, 
     const unsigned short &, 
     const int &, 
-    const long &,
-    enum SWIGTYPE
+    const long &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64) /* Java long */
@@ -806,8 +796,7 @@
                  float,              const float &,
                  double,             const double &,
                  char *,
-                 char[ANY],
-                 enum SWIGTYPE 
+                 char[ANY]
     "$javainput"
 %typemap(javain) jboolean,
                  jchar,
@@ -849,8 +838,7 @@
                   float,              const float &,
                   double,             const double &,
                   char *,
-                  char[ANY],
-                  enum SWIGTYPE {
+                  char[ANY] {
     return $jnicall;
   }
 %typemap(javaout) jboolean,
@@ -927,8 +915,8 @@
 
 /* Java specific directives */
 #define %javaconst(flag)     %feature("java:const","flag")
+#define %javaenum(wrapapproach)   %feature("java:enum","wrapapproach")
 #define %javamethodmodifiers %feature("java:methodmodifiers")
-
 
 /* Some ANSI C typemaps */
 
@@ -937,3 +925,7 @@
 /* java keywords */
 /* please test and activate */
 //%include "javakw.swg"
+
+// Default enum handling
+%include "enumtypesafe.swg"
+
