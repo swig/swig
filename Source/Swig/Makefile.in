@@ -2,6 +2,9 @@
 # $Header$
 #----------------------------------------------------------------
 
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
 SRCS          = tree.c stype.c scanner.c include.c getopt.c misc.c super.c
 OBJS          = tree.o stype.o scanner.o include.o getopt.o misc.o super.o
 
@@ -12,10 +15,10 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I. -I../DOH/Include
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include
 TARGET        = libswig.a
 
-.c.o: 
+.c.o:
 	$(CC) $(CFLAGS) $(INCLUDE) -c -o $*.o $<
 
 all: $(TARGET)
@@ -36,4 +39,3 @@ typetest: type.c super.o
 
 clean:
 	rm -f *.o *~ core *.so *.a *_wrap.*
-
