@@ -21,6 +21,7 @@
  * Support for formatted I/O via fprintf, fscanf.
  * ----------------------------------------------------------------------------- */
 
+#define OBUFLEN  512
 /* -----------------------------------------------------------------------------
  * DohvPrintf(DOH *so, char *format, va_list ap)
  *
@@ -34,6 +35,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   int state = 0;
   char *p = format;
   char  newformat[256];
+  char  obuffer[OBUFLEN];
   char *fmt;
   char  temp[64];
   int   widthval = 0;
@@ -42,6 +44,8 @@ DohvPrintf(DOH *so, char *format, va_list ap)
   char  *w, *prec;
   int   ivalue;
   int   dvalue;
+  void  *pvalue;
+  char  *stemp;
 
   while (*p) {
     switch(state) {
@@ -180,10 +184,9 @@ DohvPrintf(DOH *so, char *format, va_list ap)
       if ((*p == 's') || (*p == 'S')) {       /* Null-Terminated string */
 	DOH    *doh;
 	DOH    *Sval;
-	char   *temps;
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
-	  /* Is an object at least */
+	  /* Is a DOH object. */
 	  if (String_check(doh)) {
 	    Sval = doh;
 	  } else {
@@ -192,33 +195,49 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  maxwidth = maxwidth+strlen(newformat)+Len(Sval);
 	  *(fmt++) = 's';
 	  *fmt = 0;
-	  temps = (char *) malloc(maxwidth+1);
-	  sprintf(temps,newformat,Data(Sval));
-	  Write(so,temps,strlen(temps));
+	  if ((maxwidth + 1) < OBUFLEN) {
+	    stemp = obuffer;
+	  } else {
+	    stemp = (char *) malloc(maxwidth+1);
+	  }
+	  sprintf(stemp,newformat,Data(Sval));
+	  Write(so,stemp,strlen(stemp));
 	  if ((DOH *) Sval != doh) {
 	    Delete(Sval);
 	  }
 	  if (*p == 'S') {
 	    Delete(doh);
 	  }
-	  free(temps);
+	  if (stemp != obuffer) {
+	    free(stemp);
+	  }
 	} else {
 	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
 	  *(fmt++) = 's';
 	  *fmt = 0;
-	  temps = (char *) malloc(maxwidth+1);
-	  sprintf(temps,newformat,doh);
-	  free(temps);
+	  if ((maxwidth+1) < OBUFLEN) {
+	    stemp = obuffer;
+	  } else {
+	    stemp = (char *) malloc(maxwidth + 1);
+	  }
+	  sprintf(stemp,newformat,doh);
+	  Write(so,stemp,strlen(stemp));
+	  if (stemp != obuffer) {
+	    free(stemp);
+	  }
 	}
       } else {
-	int ivalue;
-	double dvalue;
-	void  *pvalue;
-	char  *stemp;
 	*(fmt++) = *p;
 	*fmt = 0;
 	maxwidth = maxwidth+strlen(newformat)+64;
-	stemp = (char *) malloc(maxwidth+1);
+	
+	/* Only allocate a buffer if it is too big to fit.  Shouldn't have to do
+           this very often */
+
+	if (maxwidth < OBUFLEN)
+	  stemp = obuffer;
+	else 
+	  stemp = (char *) malloc(maxwidth+1);
 	switch(*p) {
 	case 'd':
 	case 'i':
@@ -246,7 +265,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  break;
 	}
 	Write(so,stemp,strlen(stemp));
-	free(stemp);
+	if (stemp != obuffer) free(stemp);
       }
       state = 0;
       break;

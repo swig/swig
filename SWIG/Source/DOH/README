@@ -1,0 +1,56 @@
+DOH  (Dave's Object Hack)
+
+Overview:
+---------
+DOH is a small C library that provides a number of simple yet powerful
+data structures for building flexible applications.  The data
+structures are built around a dynamic type model in which any given
+object is allowed to support one or more classes of operations.
+
+Common Operations (for all types)
+---------------------------------
+Delete(obj)             Decrease the reference count and destroy if zero
+Copy(obj)               Make a copy of an object.
+Str(obj)                Create a string representation of obj.
+Data(obj)               Return pointer to raw data in an object
+Len(obj)                Length of an object
+Hash(obj)               Hash value (used for mapping)
+Cmp(obj1,obj2)          Compare two objects.
+Name(obj)               Return the object name
+First(obj)              Return first object (iterator)
+Next(obj)               Return next object
+
+Mapping Operations (for hash table behavior)
+--------------------------------------------
+Getattr(hash,key)              Get an attribute
+Setattr(hash,key,value)        Set an attribute
+Delattr(hash,key)              Delete an attribute
+Firstkey(hash,key)             Get first key
+Nextkey(hash,key)              Get next key
+Getattrf(hash,key,format,...)  Formatted attribute get
+Setattrf(hash,key,format,...)  Formatted attribute set
+
+Sequence Operations
+-------------------
+Getitem(list,index)             Get an item
+Setitem(list,index,val)         Set an item
+Delitem(list,index,val)         Delete an item
+Insert(list,index,val)          Insert an item
+Append(list,val)                Append to end
+
+File Operations
+---------------
+Read(obj,buffer,len)            Read data
+Write(obj,buffer,len)           Write data
+Getc(obj)                       Get a character
+Putc(ch,obj)                    Put a character
+Ungetc(ch,obj)                  Put character back on input stream
+Seek(obj,offset,whence)         Seek
+Tell(obj)                       Return file pointer
+Printf(obj,format,...)          Printf
+Close(obj)                      Close
+
+
+
+
+
