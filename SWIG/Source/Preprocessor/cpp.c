@@ -840,7 +840,7 @@ Preprocessor_parse(DOH *s)
       break;
 
     case 41:  /* Build up the name of the preprocessor directive */
-      if (isspace(c)) {
+      if ((isspace(c) || (!isalpha(c)))) {
 	Clear(value);
 	Clear(comment);
 	if (c == '\n') {
