@@ -18,6 +18,66 @@ Version 1.3.14 (In progress)
 ============================
 
 07/23/2002: beazley
+            *** IMPORTANT CHANGES TO THE PYTHON MODULE ***
+
+            (1) The Python module now enables shadow/proxy classes by default.
+            This means that two files are always created by SWIG.  For
+            instance, if you have this:
+
+                 // file: foo.i
+                 %module foo
+                 ...
+
+            Then swig generates two files "foo_wrap.c" and "foo.py".
+
+            (2) The name of the low-level C extension module has been changed
+            to start with a leading underscore.   This means that you have
+            to compile the module as follows:
+
+                $ cc -c -I/usr/local/include/python2.2 foo_wrap.c
+                $ cc -shared foo_wrap.o $(OBJS) -o _foo.so
+                                                   ^^^^
+                                                   note extra underscore
+
+            This naming scheme is consistent with other Python modules that
+            utilize extension code.  For instance, the socket module consists
+            of "_socket.so" and "socket.py".  In previous versions of SWIG,
+            the shared object file was named "foocmodule.so".
+
+            (3) A new directive can be used to insert Python code into
+            the corresponding .py file.  For example:
+
+                %pythoncode %{
+                def foo():
+                    print "Hello World"
+                %}
+
+             This directive allows you to create modules as a mix of C and Python.
+             Python code is seamlessly added to the module.
+
+            (4) The -shadow command line option is deprecated.  This is turned on
+            by default.
+
+            (5) To disable the generation of the extra python file, use the "-noproxy"
+            command line option.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            This change will likely break the build environment of projects that
+            utilize shadow classes.   To fix this, you probably only need to
+            change the name of the target .so file.  For example, if you have
+            Makefile information like this:
+
+                   TARGET = examplecmodule.so
+
+            Just change it to:
+
+                   TARGET = _example.so
+
+            *** DOCUMENTATION UPDATE ***
+            The file Doc/Manual/Python.html has been updated to describe these changes.
+
+
+07/23/2002: beazley
             Added -noextern option.   If supplied, SWIG will not generate
             extra extern declarations.  This is sometimes an issue on 
             non-unix platforms.
