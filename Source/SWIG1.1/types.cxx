@@ -188,7 +188,7 @@ void DataType::primitive() {
 // --------------------------------------------------------------------
 
 char *DataType::print_type() {
-  static String result[8];
+  static char    result[8][256];
   static int    ri = 0;
 
   DataType *t = this;
@@ -198,36 +198,32 @@ char *DataType::print_type() {
     t->typedef_replace();   // Upgrade type
   }
   ri = ri % 8;
-  result[ri] = "";
-  result[ri] << t->name << " ";
+  sprintf(result[ri],"%s ", t->name);
   for (int i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
-    result[ri] << '*';
+    strcat(result[ri],"*");
 
   if (status & STAT_REPLACETYPE) {
     delete t;
   };
-
-  return result[ri++].get();
-
+  return result[ri++];
 }
+
 // --------------------------------------------------------------------
 // char *print_full()
 //
 // Prints full type, with qualifiers.
 // --------------------------------------------------------------------
 char *DataType::print_full() {
-  static String result[8];
+  static char result[8][256];
   static int ri = 0;
 
   ri = ri % 8;
-  result[ri] = "";
-  if (qualifier)
-    result[ri] << qualifier << " " << print_type();
-  else 
-    result[ri] << print_type();
-
-  return result[ri++].get();
-
+  if (qualifier) {
+    sprintf(result[ri],"%s %s", qualifier, print_type());
+    return result[ri++];
+  } else {
+    return print_type();
+  }
 }
 
 // --------------------------------------------------------------------
@@ -236,23 +232,22 @@ char *DataType::print_full() {
 // Prints real type, with qualifiers and arrays if necessary.
 // --------------------------------------------------------------------
 char *DataType::print_real(char *local) {
-  static String result[8];
+  static char  result[8][256];
   static int    ri = 0;
   int           oldstatus;
 
   oldstatus = status;
   status = status & (~STAT_REPLACETYPE);
   ri = ri % 8;
-  result[ri] = "";
   if (arraystr) is_pointer--;
-  result[ri] << print_full();
-  if (local) result[ri] << local;
+  strcpy(result[ri], print_full());
+  if (local) strcat(result[ri],local);
   if (arraystr) {
-    result[ri] << arraystr;
+    strcat(result[ri],arraystr);
     is_pointer++;
   }
   status = oldstatus;
-  return result[ri++].get();
+  return result[ri++];
 }
 
 // --------------------------------------------------------------------
@@ -262,14 +257,12 @@ char *DataType::print_real(char *local) {
 // --------------------------------------------------------------------
 
 char *DataType::print_cast() {
-  static String result[8];
+  static char   result[8][256];
   static int    ri = 0;
 
   ri = ri % 8;
-  result[ri] = "";
-  result[ri] << "(" << print_type() << ")";
-  return result[ri++].get();
-
+  sprintf(result[ri],"(%s)", print_type());
+  return result[ri++];
 }
 
 // --------------------------------------------------------------------
@@ -280,7 +273,7 @@ char *DataType::print_cast() {
 // --------------------------------------------------------------------
 
 char *DataType::print_arraycast() {
-  static String result[8];
+  static char result[8][256];
   static int    ri = 0;
   int  ndim;
   char *c;
@@ -293,8 +286,6 @@ char *DataType::print_arraycast() {
   }
 
   ri = ri % 8;
-  result[ri] = "";
-
   if (t->arraystr) {
     ndim = 0;
     c = t->arraystr;
@@ -307,23 +298,24 @@ char *DataType::print_arraycast() {
       int oldstatus = status;
       t->status = t->status & (~STAT_REPLACETYPE);
       t->is_pointer--;
-      result[ri] << "(" << t->print_type();
+      sprintf(result[ri],"(%s", t->print_type());
       t->is_pointer++;
       t->status = oldstatus;
-      result[ri] << " (*)";
+      strcat(result[ri]," (*)");
       c = t->arraystr;
       while (*c) {
 	if (*c == ']') break;
 	c++;
       }
       if (*c) c++;
-      result[ri] << c << ")";
+      strcat(result[ri],c);
+      strcat(result[ri],")");
     }
   }
   if (status & STAT_REPLACETYPE) {
     delete t;
   }
-  return result[ri++].get();
+  return result[ri++];
 }
 
 // --------------------------------------------------------------------
@@ -335,30 +327,32 @@ char *DataType::print_arraycast() {
 // --------------------------------------------------------------------
 
 char *DataType::print_mangle_default() {
-  static String result[8];
+  static char   result[8][256];
   static int    ri = 0;
   int   i;
   char *c;
+  char *d;
 
   ri = ri % 8;
-  result[ri] = "";
   c = name;
 
-  result[ri] << '_';
+  result[ri][0] = '_';
+
+  d = result[ri];
 
   if ((strncmp(c,"struct ",7) == 0) || (strncmp(c,"class ",6) == 0) || (strncmp(c,"union ",6) == 0)) {
     c = strchr(c,' ') + 1;
   }
-  //  if (d) c = d+1;
   for (; *c; c++) {
-      if ((*c == ' ') || (*c == ':') || (*c == '<') || (*c == '>')) result[ri] << '_';
-      else result[ri] << *c;
-    }
-    if ((is_pointer-implicit_ptr)) result[ri] << '_';
-    for (i = 0; i < (is_pointer-implicit_ptr); i++)
-      result[ri] << 'p';
+      if ((*c == ' ') || (*c == ':') || (*c == '<') || (*c == '>')) *(d++) = '_';
+      else *(d++) = *c;
+  }
+  if ((is_pointer-implicit_ptr)) *(d++) = '_';
+  for (i = 0; i < (is_pointer-implicit_ptr); i++)
+    *(d++) = 'p';
 
-    return result[ri++].get();
+  *d = 0;
+  return result[ri++];
 }
 
 // This is kind of ugly but needed for each language to support a
@@ -396,11 +390,14 @@ int DataType::array_dimensions() {
 // --------------------------------------------------------------------
 
 char *DataType::get_dimension(int n) {
-  static String dim;
+  static char dim[256];
   char  *c;
+  char  *d = dim;
 
-  dim = "";
-  if (n >= array_dimensions()) return dim.get(); 
+  if (n >= array_dimensions()) {
+    *d = 0;
+    return dim;
+  }
   
   // Attemp to locate the right dimension
 
@@ -413,11 +410,11 @@ char *DataType::get_dimension(int n) {
   // c is now at start of array dimension
   if (*c) {
     while ((*c) && (*c != ']')) {
-      dim << *c;
-      c++;
+      *(d++) = *(c++);
     }
   }
-  return dim.get();
+  *d = 0;
+  return dim;
 }
 
 // --------------------------------------------------------------------
@@ -467,7 +464,7 @@ void DataType::init_typedef() {
 // --------------------------------------------------------------------
 
 void DataType::typedef_add(char *tname, int mode) {
-  String name1,name2;
+  char *name1, *name2;
   DataType *nt, t1;
   void typeeq_addtypedef(char *name, char *eqname, DataType *);
 
@@ -497,10 +494,10 @@ void DataType::typedef_add(char *tname, int mode) {
   if (mode == 0) {
       if ((type != T_VOID) && (strcmp(name,tname) != 0)) {
 	strcpy(t1.name,tname);
-	name2 << t1.print_mangle();
-	name1 << print_mangle();
-	typeeq_addtypedef(name1.get(),name2.get(),&t1);
-	typeeq_addtypedef(name2.get(),name1.get(),this);
+	name2 = t1.print_mangle();
+	name1 = print_mangle();
+	typeeq_addtypedef(name1,name2,&t1);
+	typeeq_addtypedef(name2,name1,this);
       }
   }
   // Call into the target language with this typedef
@@ -570,7 +567,9 @@ void DataType::typedef_resolve(int level) {
 
 void DataType::typedef_replace () {
   DataType *td;
-  String temp;
+  char   temp[512];
+
+  temp[0] = 0;
 
   if ((td = (DataType *) GetVoid(typedef_hash[scope],name))) {
     type = td->type;
@@ -579,11 +578,11 @@ void DataType::typedef_replace () {
     strcpy(name, td->name);
     if (td->arraystr) {
       if (arraystr) {
-	temp << arraystr;    
+	strcat(temp,arraystr);
 	delete arraystr;
       }
-      temp << td->arraystr;
-      arraystr = copy_string(temp.get());
+      strcat(temp,td->arraystr);
+      arraystr = copy_string(temp);
     }
   }
   // Not found, do nothing
@@ -858,10 +857,10 @@ void typeeq_addtypedef(char *name, char *eqname, DataType *t) {
 
 void emit_ptr_equivalence(FILE *f) {
 
-  EqEntry  *e1,*e2;
-  DOH      *k;
-  void     typeeq_standard();
-  String   ttable;
+  EqEntry      *e1,*e2;
+  DOH          *k;
+  void         typeeq_standard();
+  String       ttable;
 
   if (!te_init) typeeq_init();
 
@@ -929,7 +928,7 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
 
 void typeeq_derived(char *n1, char *n2, char *cast=0) {
   DataType   t,t1;
-  String     name,name2;
+  char       *name, *name2;
 
   if (!te_init) typeeq_init();
 
@@ -937,9 +936,9 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
   t1.type = T_USER;
   strcpy(t.name,n1);
   strcpy(t1.name,n2);
-  name << t.print_mangle();
-  name2 << t1.print_mangle();
-  typeeq_add(name.get(),name2.get(),cast, &t1);
+  name = t.print_mangle();
+  name2 = t1.print_mangle();
+  typeeq_add(name,name2, cast, &t1);
 }
 
 // ------------------------------------------------------------------------------
@@ -950,15 +949,15 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
 
 void typeeq_mangle(char *n1, char *n2, char *cast=0) {
   DataType   t,t1;
-  String     name,name2;
+  char      *name, *name2;
 
   if (!te_init) typeeq_init();
 
   strcpy(t.name,n1);
   strcpy(t1.name,n2);
-  name << t.print_mangle();
-  name2 << t1.print_mangle();
-  typeeq_add(name.get(),name2.get(),cast);
+  name = t.print_mangle();
+  name2 = t1.print_mangle();
+  typeeq_add(name,name2,cast);
 }
 
 // ------------------------------------------------------------------------------
