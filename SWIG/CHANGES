@@ -14,6 +14,25 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/19/2001: beazley
+           Python module modified to support pointers to C++ members.  This
+           is an experimental feature.
+           *** NEW FEATURE ***
+     
+8/19/2001: beazley
+           Added limited parsing and full type-system support for pointers to
+           members. None of SWIG's language modules really know how to deal with
+           this so this is really only provided for completeness and future
+           expansion.  Note: SWIG does not support pointers to members which 
+           are themselves pointers to members, references to pointers to members,
+           or other complicated declarations like this.
+           *** NEW FEATURE ***
+
+8/19/2001: beazley
+           SWIG is much better at parsing certain C++ declarations. Operators and
+           friends generally don't cause anymore syntax errors.  However, neither
+           are really supported.
+
 8/18/2001: beazley
            Added *highly* experimental support for wrapping of C++
            template declarations.  Since C++ templates are essentially
