@@ -14,6 +14,18 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/13/2001: beazley
+           Many improvements to Tcl/Perl/Python modules to better
+           work with multiple interface files and the %import directive.
+
+8/13/2001: beazley
+           Fixed up the behavior of %import in the Python module.
+           SWIG no longer pollutes the module namespace by using
+           'from module import *' to refer to the other module. 
+           Instead, it does a proper 'import module'.   Also, SWIG
+           may work a lot better when importing modules that include
+           references to other imported modules.
+
 8/13/2001: mkoeppe
 	   Added new typemap substitutions, generalizing those of the
 	   Guile-specific 5/27/2001 changes: 
@@ -30,6 +42,7 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	   The Guile-specific substitution $basedescriptor was removed
 	   because it was useless.
 
+>>>>>>> 1.73.2.69.2.39
 8/12/2001: beazley
            The %extern directive is now deprecated and withdrawn.  The
            purpose of this directive was to import selected definitions
