@@ -80,6 +80,9 @@ public:
 				fputs( usage, stderr );
 			}
 		}
+
+                // Add a symbol to the parser for conditional compilation
+                Preprocessor_define("SWIGXML 1",0);
 	}
 
   /* Top of the parse tree */
