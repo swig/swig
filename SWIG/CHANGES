@@ -17,6 +17,17 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/22/2001:beazley
+           Ruby module modified to support multi-argument typemaps.
+
+10/22/2001:beazley
+           The Ruby module can now handle functions with an arbitrary
+           number of arguments.  Previous versions were limited to 
+           to functions with only 9 or 16 arguments depending on
+           the use of default arguments.   Note: from some inspection
+           of the Ruby interpreter source, the new approach might be
+           a little faster as well.
+
 10/18/2001:beazley
            Fixed a bug with forward class declarations and
            templates.
@@ -32,15 +43,15 @@ Version 1.3.10 (In progress)
 
               %typemap(in) (int argc, char *argv[]) {
                   $arg;  // The input object in the target language
-                  $0;    // C local variable for first argument
-                  $1;    // C local variable for second argument
+                  $1;    // C local variable for first argument
+                  $2;    // C local variable for second argument
 
                   // These variables refer to either argument
-                  $0_type, $0_ltype, $0_basetype, etc...  (argc)
-                  $1_type, $1_ltype, $1_basetype, etc...  (argv[])
+                  $1_type, $1_ltype, $1_basetype, etc...  (argc)
+                  $2_type, $2_ltype, $2_basetype, etc...  (argv[])
 
                   // Array dimension of argv
-                  $1_dim0
+                  $2_dim0
               }
 
            Basically any variable that was available in normal typemaps
