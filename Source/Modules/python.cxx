@@ -508,7 +508,6 @@ public:
     int     varargs = 0;
     int     allow_kwargs = check_kwargs(n);
 
-    /* member of a director class? */
     String *nodeType = Getattr(n, "nodeType");
     int constructor = (!Cmp(nodeType, "constructor")); 
     int destructor = (!Cmp(nodeType, "destructor")); 
@@ -974,8 +973,8 @@ public:
 
     /* Create a function for setting the value of the variable */
 
-    Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
     if (!Getattr(n,"feature:immutable")) {
+      Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
       if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
 	Replaceall(tm,"$source","_val");
 	Replaceall(tm,"$target",name);
@@ -989,6 +988,7 @@ public:
       Printf(setf->code,"    return 0;\n");
     } else {
       /* Is a readonly variable.  Issue an error */
+      Printf(setf->def,"static int %s_set(PyObject *) {", wname);
       Printv(setf->code,
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
