@@ -1,5 +1,10 @@
 Version 1.3.18 (In progress)
 ============================
+02/25/2003: beazley
+            Fixed [ 675337 ] Partial template specialization not entirely working.
+            There was a subtle problem related to the naming and ordering of
+            template partial specialization arguments.  Matching worked okay,
+            the resulting templates weren't expanded correctly.
 
 02/25/2003: beazley
             Fixed problem with parsing (and generating code) for 
