@@ -36,8 +36,6 @@ static char cvsroot[] = "$Header$";
 extern "C" int SwigType_isenum(SwigType *t);
 extern void emit_one( Node *n );
 
-static void lcase( char *c ) { while( *c ) { *c = tolower( *c ); c++; } }
-
 static char *ocaml_usage = (char*)
     ("\n"
      "Ocaml Options (available with -ocaml)\n"
@@ -51,8 +49,13 @@ static const char *ocaml_path = "ocaml";
 
 /* Data used by more than one handler */
 
+#define VWRAP_SET 1
+#define VWRAP_GET 2
+
 static int in_constructor = 0;   /* Is this function a constructor */
 static int in_destructor = 0;    /* Is this function a destructor */
+static int in_copyconst = 0;     /* Copy constructor */
+static int in_vwrap = 0;         /* Vwrap cycle */
 static int const_enum;           /* Is this constant an enum label */
 static int classmode;            /* Are we in a class definition */
 static int error_count;          /* Number of errors encountered */
@@ -95,8 +98,6 @@ static Hash *seen_deleters = NULL;    /* A delete function is in here if we
 					 custom_operations block on new */
 static Hash *seen_types = NULL;       /* Types we have emitted so far. */
 static Hash *seen_classes = NULL;     /* Classes emitted so far. */
-static Hash *seen_labels = NULL;      /* Enum labels emitted already. */
-static Hash *seen_names = NULL;       /* Symbols emitted. */
 
 static char *simple_types[][2] = {
     { "_bool", "bool" },
@@ -185,11 +186,11 @@ class OCAML : public Language {
 	// Read in default typemaps */
 	SWIG_config_file("ocaml.i");
     }
-
+    
     void print_unseen_type( String *type ) {
 	String *rtype = mangle_type(SwigType_typedef_resolve_all(type));
 	String *ntype = mangle_type(type);
-
+	
 	if( Getattr(seen_types,ntype) ) return;
 	else {
 	    if( Getattr(seen_types,rtype) ) {
@@ -281,8 +282,6 @@ class OCAML : public Language {
 	seen_types = NewHash();
 	seen_deleters = NewHash();
 	seen_classes = NewHash();
-	seen_labels = NewHash();
-	seen_names = NewHash();
 	
 	int i;
 	
@@ -339,6 +338,9 @@ class OCAML : public Language {
 		"value _wrapper_init_fn(value v) {\n"
 		"  CAMLparam1(v);\n");
 	
+	Swig_name_register((char *)"get",(char *)"%v_get");
+	Swig_name_register((char *)"set",(char *)"%v_set");
+
 	Language::top(n);
 	
 	Printf( f_init_fn,
@@ -388,7 +390,20 @@ class OCAML : public Language {
 	
 	return SWIG_OK;
     }
-    
+
+//----------------------------------------------------------------------
+// Words must start lower case in ocaml except as module names or labels
+// Also guard against ocaml keywords
+//----------------------------------------------------------------------
+
+    void lcase(String *out) {
+	if( isupper((Char(out))[0]) ||
+	    banned_word(Char(out)) ||
+	    (Char(out))[0] == '_' ) // leading caps are special in ocaml
+	    Insert(out,0,"_");      // The '_' handling removes the
+	                            // possibility of overlapping names.
+    }
+       
 // ---------------------------------------------------------------------
 // set_module(char *mod_name)
 //
@@ -398,32 +413,136 @@ class OCAML : public Language {
 //
 //----------------------------------------------------------------------
 
-    void
-    set_module (char *mod_name) {
+    void set_module (char *mod_name) {
 	module = NewString(mod_name);
     }
-
-    String *uniqueify(char *word) {
-	int x = 1;
-	String *out = NewString(word);
     
-	while( Getattr(seen_names,out) ) {
-	    Delete( out );
-	    out = NewString( word );
-	    Printf( out, "_%d", x );
+//----------------------------------------------------------------------
+// Get a name that works as a C symbol name
+//----------------------------------------------------------------------
+    
+    String *get_wrapper_name( Node *n ) {
+	String *out = get_function_name(n);
+	Insert(out,0,"_wrap_");
+	return out;
+    }
+
+//----------------------------------------------------------------------
+// Given a function name, return an ocaml name that works as a function
+// name.
+// If in_constructor or in_destructor, then 
+//----------------------------------------------------------------------
+
+    String *get_function_name( Node *n ) {
+	String *name = Getattr(n,"name");
+	char *fname;
+	const char *prefix = 
+	    in_constructor ? 
+	    (in_copyconst ? "copy_" : "new_") :
+	    in_destructor ? "delete_" : "";
+
+	if( !name ) name = Getattr(n,"origname");
+	fname = Char(name);
+
+	String *out = NewString(prefix);
+	Printf(out,"%s",fname);
+
+	if( classmode && !in_constructor ) {
+	    Insert(out,0,"::");
+	    Insert(out,0,classname);
 	}
 
-	Setattr(seen_names,out,out);
+	Replaceall(out,"::","_");
+	Replaceall(out,"<","T_");
+	Replaceall(out,"(","P_");
+	Replaceall(out,")","_p");
+	Replaceall(out,">","_t");
+	Replaceall(out,"~","");
+
+	if( in_vwrap == VWRAP_SET ) 
+	    out = Swig_name_set(out);
+	else if( in_vwrap == VWRAP_GET )
+	    out = Swig_name_get(out);
 
 	return out;
     }
+
+    String *get_ml_function_name( Node *n ) {
+	String *out = get_function_name(n);
+	lcase(out);
+
+	return out;
+    }
+
+    String *get_ml_method_name( Node *n ) {
+	char *fname = GetChar(n,"name");
+	char *last_comp = strstr(fname,"::");
+	if( !last_comp ) last_comp = fname;
+
+	while( *last_comp == ':' ) last_comp++;
+
+	String *out;
+
+	if( *last_comp == '~' ) out = NewString("delete");
+	else out = NewString(last_comp);
+
+	if( in_vwrap == VWRAP_SET ) 
+	    out = Swig_name_set(out);
+	else if( in_vwrap == VWRAP_GET )
+	    out = Swig_name_get(out);
+
+	Replaceall(out,"<","T_");
+	Replaceall(out,"(","P_");
+	Replaceall(out,")","_p");
+	Replaceall(out,">","_t");
+
+	lcase(out);
+
+	return out;
+    }
+
+//----------------------------------------------------------------------
+// Generate a usable class name
+//----------------------------------------------------------------------
+
+    String *get_ml_class_name( char *cname ) {
+	char *c = strrchr(cname,':');
+
+	if( !c ) c = cname; else c++;
+
+	String *out = NewString(cname);
+	Replaceall(out,"::","_");
+	Replaceall(out,"<","T_");
+	Replaceall(out,"(","P_");
+	Replaceall(out,")","_p");
+	Replaceall(out,">","_t");
+
+	lcase(out);
+
+	return out;
+    }
+
+//----------------------------------------------------------------------
+// Generate a usable class pointer type
+//----------------------------------------------------------------------
+
+    String *get_ml_class_type( SwigType *classtype ) {
+	String *out = Copy(classtype);
+	Replaceall(out,"::","_");
+
+	return out;
+    }
+
+//-----------------------------------------------------------------------
+// True if the word is a keyword in ocaml
+//-----------------------------------------------------------------------
 
     int banned_word(char *word) {
 	char *keywords[] = { "type", "class", "object", "true", "false",
 			     "val", "function", "fun", "let", "rec",
 			     "char", "int", "bool", "string", "end",
 			     "begin", "in", "match", "with", "try",
-			     "new",
+			     "new", "method", "struct", "val",
 			     NULL };
 	int i;
 
@@ -431,11 +550,6 @@ class OCAML : public Language {
 	    if( !strcmp( word, keywords[i] ) ) return 1;
 	return 0;
     }
-
-// ----------------------------------------------------------------------
-// functionWrapper()
-// Create a function declaration and register it with the interpreter.
-// ----------------------------------------------------------------------
 
     void throw_unhandled_ocaml_type_error (SwigType *d) {
 	Printf (stderr, "%s : Line %d. Unable to handle type %s.\n", 
@@ -483,7 +597,7 @@ class OCAML : public Language {
     
     SwigType *process_type( SwigType *t ) { 
         // Return a SwigType that's liveable for ocaml
-	if( !is_simple(t) && !is_a_pointer(t) ) {
+	if( !is_enum(t) && !is_simple(t) && !is_a_pointer(t) ) {
 	    SwigType *tt = Copy(t);
 	    SwigType_add_pointer(tt);
 	    return tt;
@@ -516,14 +630,104 @@ class OCAML : public Language {
 	    return SwigType_manglestr(t);
     }
 
+    /* Output a method version of this function */
+    void print_method( Node *n ) {
+	String *ml_function_name = get_ml_function_name(n);
+	String *ml_method_name = get_ml_method_name(n);
+
+	SwigType *dcaml = process_type(Getattr(n,"type"));
+
+	ParmList *l = Getattr(n,"parms");
+	Parm *p;
+
+	Printf( f_modclass, "  method %s", 
+		ml_method_name );
+
+	int numargs = emit_num_arguments(l);	
+	
+	if( mliout ) {
+	    if( numargs > 1 ) {
+		Printf( f_modclass, " : (" );
+		
+		p = l; if( p ) p = nextSibling(p);
+		while( p ) {
+		    SwigType *tcaml = process_type(Getattr(p,"type"));
+		    Printf(f_modclass, "%s", 
+			   mangle_type(tcaml));
+		    p = nextSibling(p);
+		    if( p ) Printf(f_modclass," * ");
+		    Delete(tcaml);
+		}
+		
+		Printf( f_modclass, ") -> %s\n",
+			mangle_type(dcaml) );
+	    } else {
+		Printf( f_modclass, " : %s\n", 
+			mangle_type(dcaml) );
+	    }
+	} else {
+	    char x = 'a';
+	    
+	    if( numargs > 1 ) 
+		Printf( f_modclass, " (" );
+	    
+	    p = l; if( p ) p = nextSibling(p);
+	    while( p ) {
+		Printf(f_modclass, "%c", x);
+		++x;
+		p = nextSibling(p);
+		if( p ) Printf(f_modclass,",");
+	    }
+	    
+	    Printf( f_modclass, "%s", numargs > 1 ? ")" : "" );
+	    
+	    Printf( f_modclass, " = %s ", 
+		    ml_function_name );
+	    
+	    if( numargs != 1 )
+		Printf( f_modclass, "(" );
+	    if( numargs > 0 ) 
+		Printf( f_modclass, "(Obj.magic c_self)" );
+	    if( numargs > 1 ) 
+		Printf( f_modclass, "," );
+	    
+	    x = 'a';
+	    
+	    p = l; if( p ) p = nextSibling(p);
+	    while( p ) {
+		Printf(f_modclass, "%c", x);
+		++x;
+		p = nextSibling(p);
+		if( p ) Printf(f_modclass,",");
+	    }
+	    
+	    if( numargs != 1 ) 
+		Printf( f_modclass, ")" );
+	    
+	    Printf( f_modclass, "\n" );
+	}
+
+	Delete(ml_function_name);
+	Delete(ml_method_name);
+    }
+
+// ----------------------------------------------------------------------
+// functionWrapper()
+// Create a function declaration and register it with the interpreter.
+// ----------------------------------------------------------------------
+
     int functionWrapper(Node *n) {
-	char *iname = GetChar(n,"sym:name");
+	// ML function name
+	String *ml_function_name;
+
 	SwigType *d = Getattr(n,"type");
+
+	if( !d ) return SWIG_OK;
+
 	SwigType *dcaml = process_type(d);
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	Wrapper *f = NewWrapper();
-	String *vname_class = NewString("");
 	String *sizetuple = NewString("");
 	String *source = NewString("");
 	String *target = NewString("");
@@ -531,8 +735,6 @@ class OCAML : public Language {
 	String *cleanup = NewString("");
 	String *outarg = NewString("");
 	String *build = NewString("");
-	String *ml_vname = NewString("");
-	String *ml_iname = NewString(GetChar(n,"name"));
 
 	String   *tm;
 	int argout_set = 0;
@@ -541,33 +743,15 @@ class OCAML : public Language {
 	int numreq;
 	int is_static = 1;
 
+	if( in_vwrap > VWRAP_GET ) return SWIG_OK;
+	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
+	    in_vwrap = VWRAP_GET;
+
+	ml_function_name = get_ml_function_name(n);
+
 	// Make a wrapper name for this
-	char *wname = Char(Swig_name_wrapper(iname));
-
-	ml_vname = Copy(Swig_name_wrapper(iname));
-	/* Skip the _wrap_ and then lowercase the rest */
-
-	char *vname;
-
-	if( !strncmp( Char(ml_vname), "_wrap_", 6) )
-	    vname = Char(ml_vname) + strlen("_wrap_");
-	else
-	    vname = Char(ml_vname);
-
-	lcase(vname);
-	lcase(Char(ml_iname));
-
-	String *vname_final = uniqueify(vname);
-
-	if( classmode ) {
-	    char *proposed_str = vname + strlen(Char(classname)) + 1;
-	    String *s = NewString("");
-	    if( banned_word(proposed_str) )
-		Printf(s,"_%s",proposed_str);
-	    else
-		Printf(s,proposed_str);
-	    vname_class = s;
-	}
+	String *wrap_name = get_wrapper_name(n);
+	Setattr(n,"sym:name",Char(wrap_name));
     
 	print_unseen_type( dcaml );
 
@@ -578,7 +762,7 @@ class OCAML : public Language {
 	       "#endif\n"
 	       "value %s( value args )\n"
 	       "{\n"
-	       "\tCAMLparam1(args);\n", wname);
+	       "\tCAMLparam1(args);\n", wrap_name);
     
 	// Declare return variable and arguments
 	// number of parameters
@@ -603,7 +787,6 @@ class OCAML : public Language {
 	    SwigType *ptcaml = process_type(pt);
 	    String *tn = mangle_type(ptcaml);
 
-	    lcase(Char(tn));
 	    if( !strncmp( Char(tn), "_p_", 3 ) &&
 		!strcmp( Char(tn) + 3, Char(classname) ) ) is_static = 0;
 
@@ -657,7 +840,7 @@ class OCAML : public Language {
 	// Write out signature for function in module file
 	if( !classmode || !onlyobjects || !mliout ||
 	    in_constructor || in_destructor ) {
-	    Printf(f_module, "  external %s : ", vname_final);
+	    Printf(f_module, "  external %s : ", ml_function_name);
 	
 	    if( numargs == 0 ) 
 		Printf(f_module," unit");
@@ -675,77 +858,12 @@ class OCAML : public Language {
 		Printf(f_module,")");
 	
 	    Printf(f_module, " -> %s = \"%s\"\n", mangle_type(dcaml), 
-		   wname );
+		   wrap_name );
 	}
 
 	if( classmode ) {
-	    if( strncmp( vname, "new_", 4 ) &&
-		strncmp( vname, "delete_", 7 ) &&
-		strncmp( vname, "copy_", 5 ) ) {
-		Printf( f_modclass, "  method %s", 
-			vname_class );
-
-		if( mliout ) {
-		    if( numargs > 1 ) {
-			Printf( f_modclass, " : (" );
-		    
-			p = l; if( p ) p = nextSibling(p);
-			while( p ) {
-			    SwigType *tcaml = process_type(Getattr(p,"type"));
-			    Printf(f_modclass, "%s", 
-				   mangle_type(tcaml));
-			    p = nextSibling(p);
-			    if( p ) Printf(f_modclass," * ");
-			    Delete(tcaml);
-			}
-
-			Printf( f_modclass, ") -> %s\n",
-				mangle_type(dcaml) );
-		    } else {
-			Printf( f_modclass, " : %s\n", 
-				mangle_type(dcaml) );
-		    }
-		} else {
-		    char x = 'a';
-
-		    if( numargs > 1 ) 
-			Printf( f_modclass, " (" );
-
-		    p = l; if( p ) p = nextSibling(p);
-		    while( p ) {
-			Printf(f_modclass, "%c", x);
-			++x;
-			p = nextSibling(p);
-			if( p ) Printf(f_modclass,",");
-		    }
-		
-		    Printf( f_modclass, "%s", numargs > 1 ? ")" : "" );
-		
-		    Printf( f_modclass, " = %s ", 
-			    vname_final );
-
-		    if( numargs != 1 )
-			Printf( f_modclass, "(" );
-		    if( numargs > 0 ) 
-			Printf( f_modclass, "c_self" );
-		    if( numargs > 1 ) 
-			Printf( f_modclass, "," );
-		
-		    x = 'a';
-		
-		    p = l; if( p ) p = nextSibling(p);
-		    while( p ) {
-			Printf(f_modclass, "%c", x);
-			++x;
-			p = nextSibling(p);
-			if( p ) Printf(f_modclass,",");
-		    }
-
-		    if( numargs != 1 ) 
-			Printf( f_modclass, ")" );
-
-		    Printf( f_modclass, "\n" );
-		}
+	    if( !in_constructor ) {
+		print_method( n );
 	    }
 	}
 
@@ -831,166 +949,20 @@ class OCAML : public Language {
 	Printf(f->code, "\tCAMLreturn(swig_result);\n");
 	Printv(f->code, "}\n",0);
 
+	if( in_vwrap ) in_vwrap++;
+
 	Wrapper_print(f, f_wrappers);
 
-	Delete(vname_final);
 	Delete(source);
 	Delete(target);
 	Delete(arg);
 	Delete(outarg);
 	Delete(cleanup);
 	Delete(build);
-	Delete(ml_vname);
-	Delete(ml_iname);
 	Delete(dcaml);
+	Delete(ml_function_name);
 	DelWrapper(f);
 
-	return SWIG_OK;
-    }
-
-// -----------------------------------------------------------------------
-// variableWrapper()
-//
-// Create a link to a C variable.
-// This creates a single function _wrap_swig_var_varname().
-// This function takes a single optional argument.   If supplied, it means
-// we are setting this variable to some value.  If omitted, it means we are
-// simply evaluating this variable.  Either way, we return the variables
-// value.
-// -----------------------------------------------------------------------
-
-    int variableWrapper(Node *n) {
-	char *name  = GetChar(n,"name");
-	char *iname = GetChar(n,"sym:name");
-	SwigType *t = Getattr(n,"type");
-	SwigType *tcaml = process_type(t);
-	
-	char  var_name[256];
-	String *tm;
-	String *vname_class;
-	String *ml_iname = NewString(iname);
-	String *ml_vname = NewString("");
-	String *tm2 = NewString("");
-	String *argnum = NewString("0");
-	String *arg = NewString("Field(args,0)");
-	String *mangled_tcaml = mangle_type(t);
-	Wrapper *f;
-	
-	if( strlen(Char(mangled_tcaml)) == 0 ) return SWIG_OK;
-	
-	f = NewWrapper();
-	
-	print_unseen_type( t );
-	
-	// evaluation function names
-	
-	strcpy(var_name, Char(Swig_name_wrapper(iname)));
-	
-	Printf (f->def, 
-		"#ifdef __cplusplus\n"
-		"extern \"C\"\n"
-		"#endif\n"
-		"value %s (value args)\n"
-		"{\n"
-		"\tCAMLparam1(args);\n", var_name);
-	
-	Wrapper_add_local (f, "swig_result", "value swig_result");
-	
-	ml_vname = Copy(Swig_name_wrapper(iname));
-	/* Skip the _wrap_ and then lowercase the rest */
-	
-	char *vname = Char(ml_vname) + strlen("_wrap_");
-	lcase(vname);
-	lcase(Char(ml_iname));
-	
-	String *vname_final = uniqueify(vname);
-
-	// Polymorphic variant support
-	if( const_enum )
-	    f_pvariant_value = Copy(vname_final);
-	
-	if( classmode ) {
-	    String *s = NewString("");
-	    if( banned_word(vname + strlen(Char(classname)) + 1) )
-		Printf(s,vname + strlen(Char(classname)) + 1);
-	    else
-		Printf(s,vname);
-	    vname_class = s;
-	}
-	
-	// Write out signature for module file
-	if(Getattr(n,"feature:immutable") || const_enum) {
-	    if( mliout )
-		Printf( f_module, "  val %s : %s\n", 
-			vname_final, mangled_tcaml );
-	    else {
-		Printf( f_module, "  external _%s : unit -> %s = \"%s\"\n", 
-			vname_final, mangled_tcaml, var_name );
-		
-		Printf( f_module, "  let %s = _%s ()\n", 
-			vname_final,
-			vname_final );
-	    }
-	} else {
-	    if( !onlyobjects || !classmode || !mliout ) {
-		Printf( f_module, 
-			"  external %s_set : %s -> %s = \"%s\"\n"
-			"  external %s_get : unit -> %s = \"%s\"\n",
-			vname_final, mangled_tcaml, mangled_tcaml, var_name,
-			vname_final, mangled_tcaml, var_name );
-	    }
-	    
-	    if( classmode ) {
-		if( mliout ) {
-		    Printf( f_modclass, 
-			    "  method %s_set : %s -> %s\n"
-			    "  method %s_get : unit -> %s\n",
-			    vname_class, mangled_tcaml, mangled_tcaml,
-			    vname_class, mangled_tcaml );
-		} else {
-		    Printf( f_modclass, 
-			    "  method %s_set = %s_set\n"
-			    "  method %s_get = %s_get\n",
-			    vname_class, vname_final,
-			    vname_class, vname_final );
-		}
-	    }
-	    
-	    /* Check for a setting of the variable value */
-	    Printf (f->code, "if (args != (value)1) {\n");
-	    if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-		Replaceall(tm,"$source","args");
-		Replaceall(tm,"$target",name);
-		Replaceall(tm,"$input","args");
-		Printv(f->code, tm, "\n",0);
-	    } else {
-		throw_unhandled_ocaml_type_error (t);
-	    }
-	    Printf(f->code, "}\n");
-	}
-	
-	// Now return the value of the variable (regardless
-	// of evaluating or setting)
-	
-	if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-	    Replaceall(tm,"$source",name);
-	    Replaceall(tm,"$target","swig_result");
-	    Replaceall(tm,"$result","swig_result");
-	    Printf (f->code, "%s\n", tm);
-	} else {
-	    throw_unhandled_ocaml_type_error (t);
-	}
-	Printf (f->code, "\nCAMLreturn(swig_result);\n");
-	Printf (f->code, "}\n");
-	
-	Wrapper_print (f, f_wrappers);
-	
-	Delete(vname_final);
-	Delete(argnum);
-	Delete(arg);
-	Delete(tm2);
-	Delete(ml_vname);
-	DelWrapper(f);
 	return SWIG_OK;
     }
 
@@ -1021,18 +993,6 @@ class OCAML : public Language {
 	const_enum = 0;
 
 	if(f_pvariant_value) {
-	    int suffix_digit = 1;
-	    String *output_name = Copy(name);
-	    while( Getattr(seen_labels,output_name) ) {
-		Delete(output_name);
-		output_name = NewString("");
-		Printf(output_name,"%s_%d",name,suffix_digit);
-		suffix_digit++;
-	    }
-
-	    // Never output overlapping names
-	    Setattr(seen_labels,output_name,output_name);
-
 	    // Implementation only
 	    if( !mliout ) {
 		Printf(f_pvariant_to_int,"| `%s -> %s\n", 
@@ -1044,6 +1004,99 @@ class OCAML : public Language {
 	    Printf(f_pvariant_def,"| `%s\n", name);
 	}
 
+	return SWIG_OK;
+    }
+
+// -----------------------------------------------------------------------
+// constantWrapper()
+// ------------------------------------------------------------------------
+
+    int constantWrapper(Node *n) {
+	char *name      = GetChar(n,"name");
+	char *iname     = GetChar(n,"sym:name");
+	SwigType *type  = Getattr(n,"type");
+	String   *value = Getattr(n,"value");
+
+	String *var_name = get_wrapper_name(n);
+	String *rvalue = NewString("");
+	String *temp = NewString("");
+	String *tm;
+
+	print_unseen_type( type );
+
+	// Build the name for scheme.
+
+	if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
+	    fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
+		     input_file, line_number);
+	    return SWIG_NOWRAP;
+	}
+
+	// See if there's a typemap
+
+	Printv(rvalue, value,0);
+	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
+	    temp = Copy(rvalue);
+	    Clear(rvalue);
+	    Printv(rvalue, "\"", temp, "\"",0);
+	}
+	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
+	    Delete(temp);
+	    temp = Copy(rvalue);
+	    Clear(rvalue);
+	    Printv(rvalue, "'", temp, "'",0);
+	}
+	if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
+	    Replaceall(tm,"$source",rvalue);
+	    Replaceall(tm,"$value",rvalue);
+	    Replaceall(tm,"$target",name);
+	    Printf (f_init, "%s\n", tm);
+	} else {
+	    // Create variable and assign it a value
+
+	    Printf (f_header, "static %s = ", 
+		    SwigType_str(type,var_name));
+	    if ((SwigType_type(type) == T_STRING)) {
+		Printf (f_header, "\"%s\";\n", value);
+	    } else if (SwigType_type(type) == T_CHAR) {
+		Printf (f_header, "\'%s\';\n", value);
+	    } else {
+		Printf (f_header, "%s;\n", value);
+	    }
+
+	    // Now create a variable declaration
+
+	    {
+		/* Hack alert: will cleanup later -- Dave */
+		Node *n = NewHash();
+		Setattr(n,"name",name);
+		Setattr(n,"sym:name",iname);
+		Setattr(n,"type", type);
+		Setattr(n,"feature:immutable","true");
+
+		in_vwrap = VWRAP_GET;
+		String *get_function = get_ml_function_name(n); // Get func
+		in_vwrap = VWRAP_GET;
+
+		variableWrapper(n);
+		
+		in_vwrap = VWRAP_GET + 1;
+		
+		f_pvariant_value = get_ml_function_name(n);
+		if( mliout )
+		    Printf(f_module,"val %s : %s\n",
+			   f_pvariant_value,
+			   SwigType_manglestr(process_type(type)));
+		else
+		    Printf(f_module,"let %s = %s ()\n",
+			   f_pvariant_value,get_function);
+
+		Delete(get_function);
+		Delete(n);
+	    }
+	}
+	Delete(rvalue);
+	Delete(temp);
 	return SWIG_OK;
     }
 
@@ -1134,22 +1187,21 @@ class OCAML : public Language {
     int destructorHandler(Node *n) {
 	int ret;
 	String *name = NewString(GetChar(n,"name"));
-	char *iname = GetChar(n,"sym:name");
-
-	lcase(Char(name));
-	
-	// Register this deleter as one we recognize 
-	String *del_vname = NewString("");
-	
-	Printf(del_vname,"_wrap_delete_%s",name);
-	Setattr( seen_deleters, name, del_vname );
-	Delete(del_vname);
-
+	// Make a wrapper name for this
+	String *wrap_name = get_wrapper_name(n);
+	Setattr(n,"sym:name",Char(wrap_name));
+    
 	in_destructor = 1;
+	
+	String *ml_delete_func = get_ml_function_name(n);
+	
+	Setattr( seen_deleters, name, wrap_name );
+
 	ret = Language::destructorHandler(n);
 	in_destructor = 0;
 	    
 	Delete(name);
+	Delete(wrap_name);
 
 	return ret;
     }
@@ -1157,115 +1209,36 @@ class OCAML : public Language {
     int copyconstructorHandler(Node *n) {
 	int ret;
 
+	in_copyconst = 1;
 	in_constructor = 1;
 	ret = Language::copyconstructorHandler(n);
 	in_constructor = 0;
+	in_copyconst = 0;
 
 	return ret;
     }
 
-// -----------------------------------------------------------------------
-// constantWrapper()
-// ------------------------------------------------------------------------
-
-    int constantWrapper(Node *n) {
-	char *name      = GetChar(n,"name");
-	char *iname     = GetChar(n,"sym:name");
-	SwigType *type  = Getattr(n,"type");
-	String   *value = Getattr(n,"value");
-
-	String *var_name = NewString("");
-	String *rvalue = NewString("");
-	String *temp = NewString("");
-	String *tm;
-
-	print_unseen_type( type );
-
-	// Make a static variable;
-
-	Printf (var_name, "_wrap_const_%s", Swig_name_mangle(iname));
-
-	// Build the name for scheme.
-
-	if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
-	    fprintf (stderr, "%s : Line %d.  Unsupported constant value.\n",
-		     input_file, line_number);
-	    return SWIG_NOWRAP;
-	}
-
-	// See if there's a typemap
-
-	Printv(rvalue, value,0);
-	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
-	    temp = Copy(rvalue);
-	    Clear(rvalue);
-	    Printv(rvalue, "\"", temp, "\"",0);
-	}
-	if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
-	    Delete(temp);
-	    temp = Copy(rvalue);
-	    Clear(rvalue);
-	    Printv(rvalue, "'", temp, "'",0);
-	}
-	if ((tm = Swig_typemap_lookup_new("constant",n,name,0))) {
-	    Replaceall(tm,"$source",rvalue);
-	    Replaceall(tm,"$value",rvalue);
-	    Replaceall(tm,"$target",name);
-	    Printf (f_init, "%s\n", tm);
-	} else {
-	    // Create variable and assign it a value
-
-	    Printf (f_header, "static %s = ", 
-		    SwigType_str(type,var_name));
-	    if ((SwigType_type(type) == T_STRING)) {
-		Printf (f_header, "\"%s\";\n", value);
-	    } else if (SwigType_type(type) == T_CHAR) {
-		Printf (f_header, "\'%s\';\n", value);
-	    } else {
-		Printf (f_header, "%s;\n", value);
-	    }
-
-	    // Now create a variable declaration
-
-	    {
-		/* Hack alert: will cleanup later -- Dave */
-		Node *n = NewHash();
-		Setattr(n,"name",var_name);
-		Setattr(n,"sym:name",iname);
-		Setattr(n,"type", type);
-		Setattr(n,"feature:immutable","true");
-		variableWrapper(n);
-		Delete(n);
-	    }
-	}
-	Delete(rvalue);
-	Delete(temp);
-	return SWIG_OK;
-    }
-
-    int
-    classHandler(Node *n) {
+    int classHandler(Node *n) {
 	int rv = 0;
-	String *name = Getattr(n,"name");
 
-	if( name && objects ) {
+	if( classname ) Delete(classname);
+	classname = get_ml_class_name(GetChar(n,"name"));
+
+	if( strlen(Char(classname)) && objects ) {
 	    classmode = 1;
-    
-	    classname = Copy(Getattr(n,"name"));
-	    lcase(Char(classname));
 
 	    /* Print this pointer type if it hasn't been seen before */
 	    String *type_name = NewString("");
 	    Printf(type_name,"p.%s", Getattr(n,"name"));
 	    print_unseen_type( type_name );
-	    Delete(type_name);
+	    type_name = SwigType_manglestr(process_type(type_name));
 
 	    if( mliout )
-		Printf(f_modclass,"class %s : _p_%s -> object\n", 
-		       classname, Getattr(n,"name"));
+		Printf(f_modclass,"class %s : %s -> object\n", 
+		       classname, type_name );
 	    else
-		Printf(f_modclass,"class %s (c_self : _p_%s) = object\n",
-		       classname, Getattr(n,"name"));
+		Printf(f_modclass,"class %s (c_self : %s) = object\n",
+		       classname, type_name );
 	
 	    DOH *baseclass_list = Getattr(n,"bases");
 	    Printf(f_modclass,"(* Start superclasses *)\n" );
@@ -1274,14 +1247,15 @@ class OCAML : public Language {
 	
 	    for( i = 0; i < Len(baseclass_list); i++ ) {
 		SwigType *baseclass = Getitem(baseclass_list,i);
-		String *basename = Copy(Getattr(baseclass,"name"));
-		lcase(Char(basename));
+		String *basename = 
+		    get_ml_class_name(GetChar(baseclass,"name"));
+
 		Printf(f_modclass,"(* %s is a superclass *)\n", basename);
 		String *seen = Getattr(seen_classes,basename);
 
 		if( seen ) {
 		    if( mliout ) 
-			Printf( f_modclass, "  inherit %s\n" );
+			Printf( f_modclass, "  inherit %s\n", seen );
 		    else
 			Printf( f_modclass,
 				"  inherit %s (Obj.magic c_self)\n", 
@@ -1296,19 +1270,21 @@ class OCAML : public Language {
 
 	    if( !mliout )
 		Printf( f_modclass,
-		        "  method _self_%s : _p_%s = (Obj.magic c_self)\n",
-			classname, Getattr(n,"name") );
+		        "  method _self_%s : %s = (Obj.magic c_self)\n",
+			classname, type_name );
 	    else
 		Printf(f_modclass,
-		       "  method _self_%s : _p_%s\n",
-		       classname, Getattr(n,"name") );
+		       "  method _self_%s : %s\n",
+		       classname, type_name );
 
 	    Printf(f_modclass,"end\n");	    
 	    
 	    classmode = 0;
-	
-	    String *cln = NewString(classname);
+
+	    String *cln = Copy(classname);
 	    Setattr(seen_classes,cln,cln);
+
+	    //Printf(stderr,"Adding class %s\n",cln);
 	} else {
 	    rv = Language::classHandler(n);
 	}
@@ -1316,12 +1292,50 @@ class OCAML : public Language {
 	return rv;
     }
 
-    void
-    import_start(char *modname) {
+    int globalvariableHandler(Node *n) {
+	in_vwrap = VWRAP_SET;
+	if( Getattr(n,"feature:immutable") )
+	    in_vwrap++;
+
+	Language::variableWrapper(n);
+	in_vwrap = 0;
+	
+	return SWIG_OK;
     }
 
-    void 
-    import_end() {
+    int membervariableHandler(Node *n) {
+	in_vwrap = VWRAP_SET;
+	Language::membervariableHandler(n);
+	in_vwrap = 0;
+	
+	return SWIG_OK;
+    }
+
+    int variableWrapper(Node *n) {
+	in_vwrap = VWRAP_SET;
+	Language::variableWrapper(n);
+	in_vwrap = 0;
+
+	return SWIG_OK;
+    }
+
+    int namespaceDeclaration(Node *n) {
+	if(Getattr(n,"alias")) return SWIG_OK;
+	if(Getattr(n,"name")) {
+	    int rv;
+
+	    //Printf(stderr,"Namespace name is %s\n",GetChar(n,"name"));
+
+	    emit_children(n);
+
+	    return rv;
+	} else return Language::namespaceDeclaration(n);
+    }
+
+    void import_start(char *modname) {
+    }
+
+    void import_end() {
     }
 };
 
