@@ -117,24 +117,31 @@
 %fragment(SWIG_As_frag(__VA_ARGS__),"header",
 	  fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{
 SWIGSTATICINLINE(__VA_ARGS__)
-SWIG_As_meth(__VA_ARGS__)(PyObject* obj)
+SWIG_As(__VA_ARGS__)(PyObject* obj)
 {
   __VA_ARGS__ v;
-  SWIG_AsVal_meth(__VA_ARGS__)(obj, &v);
+  if (!SWIG_AsVal(__VA_ARGS__)(obj, &v)) {
+    /*
+      this is needed to make valgrind/purify happier.  the other
+      solution is throw an exception, but since this code should work
+      with plain C ....
+     */
+    memset((void*)&v, 0, sizeof(__VA_ARGS__));
+  }
   return v;
 }
 %}
 %fragment(SWIG_Check_frag(__VA_ARGS__),"header",
 	  fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{  
 SWIGSTATICINLINE(int)
-SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
+SWIG_Check(__VA_ARGS__)(PyObject* obj)
 {
-  return SWIG_AsVal_meth(__VA_ARGS__)(obj, (__VA_ARGS__*)0);
+  return SWIG_AsVal(__VA_ARGS__)(obj, (__VA_ARGS__*)0);
 }
 %}
 %typemap_ascheck(SWIG_arg(CheckCode),
-		 SWIG_As_meth(__VA_ARGS__), 
-		 SWIG_Check_meth(__VA_ARGS__), 
+		 SWIG_As(__VA_ARGS__), 
+		 SWIG_Check(__VA_ARGS__), 
 		 SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
 		 SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 
 		 __VA_ARGS__);
@@ -172,7 +179,7 @@ SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
 */
 %define %typemap_asvalfromn(CheckCode, ...)
   %typemap_asvaln(SWIG_arg(CheckCode), __VA_ARGS__);
-  %typemap_from(SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
+  %typemap_from(SWIG_arg(SWIG_From(__VA_ARGS__)), 
 		SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
 		__VA_ARGS__);
 
@@ -186,9 +193,9 @@ SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
 */
 %define %typemap_ascheckfromn(CheckCode, ...)
  %typemap_ascheckfrom(SWIG_arg(CheckCode),
-		      SWIG_As_meth(__VA_ARGS__), 
-		      SWIG_From_meth(__VA_ARGS__), 
-		      SWIG_Check_meth(__VA_ARGS__), 
+		      SWIG_As(__VA_ARGS__), 
+		      SWIG_From(__VA_ARGS__), 
+		      SWIG_Check(__VA_ARGS__), 
 		      SWIG_arg(SWIG_As_frag(__VA_ARGS__)), 
 		      SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
 		      SWIG_arg(SWIG_Check_frag(__VA_ARGS__)), 

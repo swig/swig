@@ -2,12 +2,13 @@
 /* Auxiliar swig  macros that appear in the header */
 
 #define SWIG_OLDOBJ  1
-#define SWIG_NEWOBJ  2
+#define SWIG_NEWOBJ  SWIG_OLDOBJ + 1
 
 #ifdef __cplusplus
 #define SWIGSTATICINLINE(a) static inline a
 #define SWIGSTATIC(a) static a
 #define swig_new_array(size,Type) (new Type[(size)])
+#define swig_delete(cptr) delete cptr
 #define swig_delete_array(cptr) delete[] cptr
 #define swig_const_cast(a,Type) const_cast<Type >(a)
 #define swig_static_cast(a,Type) static_cast<Type >(a)
@@ -20,6 +21,7 @@
 #define SWIGSTATICINLINE(a) static a
 #define SWIGSTATIC(a) static a
 #define swig_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define swig_delete(cptr) free((char*)cptr)
 #define swig_delete_array(cptr) free((char*)cptr)
 #define swig_const_cast(a,Type) (Type)(a)
 #define swig_static_cast(a,Type) (Type)(a)
@@ -36,18 +38,19 @@
 #define SWIG_str(...) #__VA_ARGS__
 
 #define SWIG_Mangle(...) #@__VA_ARGS__
+#define SWIG_Descriptor(...) SWIGTYPE_ ## #@__VA_ARGS__
 
-#define SWIG_MethodType(Name, ...) SWIG_ ## Name ## _ ## #@__VA_ARGS__
+#define SWIG_NameType(Name, ...) SWIG_ ## Name ## _ ## #@__VA_ARGS__
 #define SWIG_StringType(Name, ...)  "SWIG_" #Name "_" {__VA_ARGS__}
 
-#define SWIG_AsVal_meth(...)  SWIG_MethodType(AsVal, __VA_ARGS__)
-#define SWIG_AsPtr_meth(...)  SWIG_MethodType(AsPtr, __VA_ARGS__)
-#define SWIG_As_meth(...)     SWIG_MethodType(As, __VA_ARGS__)
-#define SWIG_From_meth(...)   SWIG_MethodType(From, __VA_ARGS__)
-#define SWIG_Check_meth(...)  SWIG_MethodType(Check, __VA_ARGS__)
-#define SWIG_CCode(...)       SWIG_MethodType(TYPECHECK, __VA_ARGS__)
-#define SWIG_OrderType(...)   SWIG_MethodType(OrderType, __VA_ARGS__)
-#define SWIG_EqualType(...)   SWIG_MethodType(EqualType, __VA_ARGS__)
+#define SWIG_AsVal(...)  SWIG_NameType(AsVal, __VA_ARGS__)
+#define SWIG_AsPtr(...)  SWIG_NameType(AsPtr, __VA_ARGS__)
+#define SWIG_As(...)     SWIG_NameType(As, __VA_ARGS__)
+#define SWIG_From(...)   SWIG_NameType(From, __VA_ARGS__)
+#define SWIG_Check(...)  SWIG_NameType(Check, __VA_ARGS__)
+#define SWIG_CCode(...)       SWIG_NameType(TYPECHECK, __VA_ARGS__)
+#define SWIG_OrderType(...)   SWIG_NameType(OrderType, __VA_ARGS__)
+#define SWIG_EqualType(...)   SWIG_NameType(EqualType, __VA_ARGS__)
 
 #define SWIG_Traits_frag(...)  SWIG_StringType(Traits, __VA_ARGS__)
 #define SWIG_AsPtr_frag(...)   SWIG_StringType(AsPtr, __VA_ARGS__)
@@ -97,32 +100,50 @@ macro(arg1, arg2)
 %enddef
 
 
+/* 
+  mark a flag, ie, define a macro name but ignore it in
+  the interface. 
+  
+  the flags latter can be used with %evalif
+*/
+
 %define %swig_mark_flag(x)
 %ignore x;
 #define x 1
 %enddef
 
-%define %_evalif(x,macro) 
-#if x == 1
-macro
-#endif
-%enddef
 
-%define %_evalif_2(x,y,macro) 
-#if x == 1 && #y == 1
-macro
-#endif
-%enddef
-
-%define %evalif(x,...) 
-  %_evalif(SWIG_arg(x),SWIG_arg(__VA_ARGS__)) 
-%enddef
-
-%define %evalif_2(x,y,...) 
-  %_evalif_2(SWIG_arg(x),SWIG_arg(y),SWIG_arg(__VA_ARGS__)) 
-%enddef
-
+/*
+ %swig_equal_type and %swig_order_type flagged a type of having equal (==,!=)
+ and/or order methods  (<=,>=,<,>).
+*/
 #define %swig_equal_type(...) %swig_mark_flag(SWIG_EqualType(__VA_ARGS__))
 #define %swig_order_type(...)		       \
   %swig_mark_flag(SWIG_EqualType(__VA_ARGS__)) \
   %swig_mark_flag(SWIG_OrderType(__VA_ARGS__))
+
+/*
+  %evalif and %evalif_2 are use to evaluate or process 
+  an expression if the given predicate is 'true' (1).
+*/
+%define %_evalif(_x,_expr) 
+#if _x == 1
+_expr
+#endif
+%enddef
+
+%define %_evalif_2(_x,_y,_expr) 
+#if _x == 1 && _y == 1
+_expr
+#endif
+%enddef
+
+%define %evalif(_x,...) 
+  %_evalif(SWIG_arg(_x),SWIG_arg(__VA_ARGS__)) 
+%enddef
+
+%define %evalif_2(_x,_y,...) 
+  %_evalif_2(SWIG_arg(_x),SWIG_arg(_y),SWIG_arg(__VA_ARGS__)) 
+%enddef
+
+

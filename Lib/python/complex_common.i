@@ -12,7 +12,7 @@
 %fragment(SWIG_From_frag(Type),"header")
 %{
 SWIGSTATICINLINE(PyObject*)
-  SWIG_From_meth(Type)(SWIG_cplusplus(const Type&, Type) c)
+  SWIG_From(Type)(SWIG_cplusplus(const Type&, Type) c)
 {
   return PyComplex_FromDoubles(Real(c), Imag(c));
 }
@@ -25,7 +25,7 @@ SWIGSTATICINLINE(PyObject*)
 	  fragment=SWIG_AsVal_frag(double))
 %{
 SWIGSTATICINLINE(int)
-  SWIG_AsVal_meth(Type) (PyObject *o, Type* val)
+  SWIG_AsVal(Type) (PyObject *o, Type* val)
 {
   if (PyComplex_Check(o)) {
     if (val) *val = Constructor(PyComplex_RealAsDouble(o),
@@ -33,7 +33,7 @@ SWIGSTATICINLINE(int)
     return 1;
   } else {
     double d;    
-    if (SWIG_AsVal_meth(double)(o, &d)) {
+    if (SWIG_AsVal(double)(o, &d)) {
       if (val) *val = Constructor(d, 0);
       return 1;
     } else {
@@ -56,7 +56,7 @@ SWIGSTATICINLINE(int)
           fragment=SWIG_AsVal_frag(float))
 %{
 SWIGSTATICINLINE(int)
-  SWIG_AsVal_meth(Type)(PyObject *o, Type *val)
+  SWIG_AsVal(Type)(PyObject *o, Type *val)
 {
   const char* errmsg = val ? #Type : 0;
   if (PyComplex_Check(o)) {
@@ -72,7 +72,7 @@ SWIGSTATICINLINE(int)
     }    
   } else {
     double re;    
-    if (SWIG_AsVal_meth(double)(o, &re)) {
+    if (SWIG_AsVal(double)(o, &re)) {
       if (SWIG_CheckDoubleInRange(re, FLT_MIN, FLT_MAX, errmsg)) {
 	if (val) *val = Constructor(swig_numeric_cast(re,float), 0);      
 	return 1;

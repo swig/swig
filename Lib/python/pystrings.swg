@@ -4,35 +4,34 @@
  * ------------------------------------------------------------ */
 
 %types(char *);
-
+%{
+#define SWIG_PYSTR SWIG_NEWOBJ + 1
+%} 
 %fragment("SWIG_AsCharPtrAndSize","header") %{
-/* returns '1' if the input is a raw char*, '2' if is a PyString */
+/* returns SWIG_OLDOBJ if the input is a raw char*, SWIG_PYSTR if is a PyString */
 SWIGSTATIC(int)
-SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* size)
+SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize)
 {
   static swig_type_info* pchar_info = 0;
-  int vsize = 0;
   char* vptr = 0;
   if (!pchar_info) pchar_info = SWIG_TypeQuery("char *");
 
   if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_info, 0) != -1) {
     if (cptr) *cptr = vptr;
-    if (size) *size = vptr ? (strlen(vptr) + 1) : 0;
+    if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
     return SWIG_OLDOBJ;
   } else {
     if (PyString_Check(obj)) {
-#if PY_VERSION_HEX >= 0x02000000
-      PyString_AsStringAndSize(obj, &vptr, &vsize);
-#else
-      vptr = PyString_AsString(obj);
-      vsize = PyString_Size(obj);
-#endif
-      if (cptr) *cptr = vptr;
-      if (size) *size = vsize;
-      return SWIG_NEWOBJ;
+      if (cptr) {
+	*cptr = PyString_AS_STRING(obj);
+	if (psize) {
+	  *psize = PyString_GET_SIZE(obj) + 1;
+	}
+      }
+      return SWIG_PYSTR;
     }
   }
-  if (cptr || size) {
+  if (cptr) {
     PyErr_SetString(PyExc_TypeError, "a string is expected");
   }
   return 0;
@@ -44,8 +43,8 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* size)
 SWIGSTATICINLINE(int)
   SWIG_AsCharPtr(PyObject *obj, char **val)
 {
-  char* cptr;
-  if (SWIG_AsCharPtrAndSize(obj, &cptr, 0)) {
+  char* cptr = 0;
+  if (SWIG_AsCharPtrAndSize(obj, &cptr, (size_t*)(0))) {
     if (val) *val = cptr;
     return 1;
   }
@@ -60,18 +59,21 @@ SWIGSTATICINLINE(int)
 SWIGSTATICINLINE(PyObject *)
 SWIG_FromCharPtr(const char* cptr)
 { 
-  size_t size = cptr ? strlen(cptr) : 0;
   if (cptr) {
+    size_t size = strlen(cptr);
     if (size > INT_MAX) {
       return SWIG_NewPointerObj(swig_const_cast(cptr,char*), 
 				SWIG_TypeQuery("char *"), 0);
     } else {
-      return PyString_FromStringAndSize(cptr, swig_numeric_cast(size,int));
+      if (size != 0) {
+	return PyString_FromStringAndSize(cptr, size);
+      } else {
+	return PyString_FromString(cptr);
+      }
     }
-  } else {
-    Py_INCREF(Py_None);
-    return Py_None;
   }
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 %}
 
@@ -84,22 +86,18 @@ SWIGSTATIC(int)
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize);
   if (res) {
     if (val) {
-      /* we add the '0' terminator if needed for PyString */
-      size_t size = ((res == 2) && csize  && (cptr[csize - 1])) ?
-	csize + 1 : csize;
-      if (size) {
-	*val = swig_new_array(size, char);
-	if (csize) memcpy(*val, cptr, csize);
-	if (csize < size) (*val)[csize] = 0;
+      if (csize) {
+	*val = swig_new_array(csize, char);
+	memcpy(*val, cptr, --csize);
+	(*val)[csize] = 0;
       } else if (cptr) {
 	*val = swig_new_array(1, char);
 	(*val)[0] = 0;
       } else {
 	*val = 0;
       }
-      
     }
-    return 1;
+    return SWIG_NEWOBJ;
   } 
   if (val) {
     PyErr_SetString(PyExc_TypeError, "a char* is expected");
@@ -115,15 +113,13 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
 { 
   char* cptr; size_t csize;  
   if (SWIG_AsCharPtrAndSize(obj, &cptr, &csize)) {
-    /* in C (but not in C++) you can do: 
-       
+    /* in C you can do:        
+
          char x[5] = "hello"; 
 
         ie, assing the array using an extra '0' char.
     */
-#ifndef __cplusplus
     if ((csize == size + 1) && !(cptr[csize-1])) --csize;
-#endif
     if (csize <= size) {
       if (val) {
 	if (csize) memcpy(val, cptr, csize);
@@ -370,7 +366,7 @@ SWIG_FromCharArray(const char* carray, size_t size)
   int res = SWIG_AsCharPtrAndSize($input, &buf, &size);
   if (!res) SWIG_fail;
   $1 = ($1_ltype) buf;
-  $2 = ($2_ltype) ((res == 1) && size) ? size - 1 : size;
+  $2 = ($2_ltype) size - 1;
 }
 
 /* Here size includes the '0' terminator */

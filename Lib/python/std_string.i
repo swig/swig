@@ -98,6 +98,83 @@ namespace std {
     basic_string& 
     replace(size_type __pos, size_type __n1, size_type __n2, _CharT __c);
 
+
+    size_type 
+    copy(_CharT* __s, size_type __n, size_type __pos = 0) const;    
+
+    // String operations:
+    const _CharT* c_str() const;
+
+    size_type 
+    find(const _CharT* __s, size_type __pos, size_type __n) const;
+    
+    size_type 
+    find(const basic_string& __str, size_type __pos = 0) const;
+
+    size_type 
+    find(_CharT __c, size_type __pos = 0) const;
+
+    size_type 
+    rfind(const basic_string& __str, size_type __pos = npos) const;
+
+    size_type 
+    rfind(const _CharT* __s, size_type __pos, size_type __n) const;
+
+    size_type 
+    rfind(_CharT __c, size_type __pos = npos) const;
+
+    size_type 
+    find_first_of(const basic_string& __str, size_type __pos = 0) const;
+
+    size_type 
+    find_first_of(const _CharT* __s, size_type __pos, size_type __n) const;
+
+    size_type 
+    find_first_of(_CharT __c, size_type __pos = 0) const;
+
+    size_type 
+    find_last_of(const basic_string& __str, size_type __pos = npos) const;
+    
+    size_type 
+    find_last_of(const _CharT* __s, size_type __pos, size_type __n) const;
+
+    size_type 
+    find_last_of(_CharT __c, size_type __pos = npos) const;
+    
+    size_type 
+    find_first_not_of(const basic_string& __str, size_type __pos = 0) const;
+
+    size_type 
+    find_first_not_of(const _CharT* __s, size_type __pos, 
+		      size_type __n) const;
+
+    size_type 
+    find_first_not_of(_CharT __c, size_type __pos = 0) const;
+
+    size_type 
+    find_last_not_of(const basic_string& __str, size_type __pos = npos) const;
+
+    size_type 
+    find_last_not_of(const _CharT* __s, size_type __pos, 
+		     size_type __n) const;
+    
+    size_type 
+    find_last_not_of(_CharT __c, size_type __pos = npos) const;
+
+    basic_string 
+    substr(size_type __pos = 0, size_type __n = npos) const;
+
+    int 
+    compare(const basic_string& __str) const;
+
+    int 
+    compare(size_type __pos, size_type __n, const basic_string& __str) const;
+
+    int 
+    compare(size_type __pos1, size_type __n1, const basic_string& __str,
+	    size_type __pos2, size_type __n2) const;
+
+
     %ignore pop_back();
     %ignore front() const;
     %ignore back() const;
@@ -148,18 +225,33 @@ namespace std {
     #endif
   };
 
-  /*
-    swig workaround. if used as expected, __iadd__ deletes 'self'.
-  */
-  %newobject basic_string<char>::__iadd__;    
+  %newobject basic_string<char>::__iadd__;
+  %newobject basic_string<char>::__add__;   
+  %newobject basic_string<char>::__radd__;
   %extend basic_string<char> {
+    /*
+      swig workaround. if used as expected, __iadd__ deletes 'self'.
+    */
     std::string* __iadd__(const std::string& v) {
       *self += v;
       return new std::string(*self);
     }
-    std::string __str__() {
-      return *self;
+
+    std::string* __add__(const std::string& v) {
+      std::string* res = new std::string(*self);
+      *res += v;      
+      return res;
     }
+
+    std::string* __radd__(const std::string& v) {
+      std::string* res = new std::string(v);
+      *res += *self;      
+      return res;
+    }
+
+    const std::string& __str__() {
+      return *self;
+    }    
   }
 
   %std_equal_methods(basic_string<char>);
@@ -173,42 +265,74 @@ namespace std {
 
 %fragment(SWIG_AsPtr_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_AsCharPtrAndSize") {
-SWIGSTATICINLINE(int)
-  SWIG_AsPtr_meth(std::basic_string<char>)(PyObject* obj, std::string **val)
-  {
-    static swig_type_info* string_info = SWIG_TypeQuery("std::string *");
-    std::string *vptr;    
-    if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
-      if (val) *val = vptr;
-      return SWIG_OLDOBJ;
-    } else {
-      PyErr_Clear();
-      char* buf = 0 ; size_t size = 0;
-      if (SWIG_AsCharPtrAndSize(obj, &buf, &size)) {
-	if (buf) {
-	  if (val) *val = new std::string(buf, size);
-	  return SWIG_NEWOBJ;
-	}
+  SWIGSTATICINLINE(int)
+    SWIG_AsPtr(std::basic_string<char>)(PyObject* obj, std::string **val)
+    {
+      static swig_type_info* string_info = SWIG_TypeQuery("std::string *");
+      std::string *vptr;    
+      if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
+	if (val) *val = vptr;
+	return SWIG_OLDOBJ;
       } else {
 	PyErr_Clear();
-      }  
-      if (val) {
-	PyErr_SetString(PyExc_TypeError,"a string is expected");
+	char* buf = 0 ; size_t size = 0;
+	if (SWIG_AsCharPtrAndSize(obj, &buf, &size)) {
+	  if (buf) {
+	    if (val) *val = new std::string(buf, size - 1);
+	    return SWIG_NEWOBJ;
+	  }
+	} else {
+	  PyErr_Clear();
+	}  
+	if (val) {
+	  PyErr_SetString(PyExc_TypeError,"a string is expected");
+	}
+	return 0;
       }
-      return 0;
     }
-  }
+  
+  SWIGSTATICINLINE(int)
+    SWIG_AsPtr(std::string)(PyObject* obj, std::string **val)
+    {
+      return SWIG_AsPtr(std::basic_string<char>)(obj, val);
+   }
 }
 
 %fragment(SWIG_From_frag(std::basic_string<char>),"header",
 	  fragment="SWIG_FromCharArray") {
 SWIGSTATICINLINE(PyObject*)
-  SWIG_From_meth(std::basic_string<char>)(const std::string& s)
+  SWIG_From(std::basic_string<char>)(const std::string& s)
   {
     return SWIG_FromCharArray(s.data(), s.size());
   }
+SWIGSTATICINLINE(PyObject*)
+  SWIG_From(std::string)(const std::string& s)
+  {
+    return SWIG_From(std::basic_string<char>)(s);
+  }
 }
 
-%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
 
+%fragment(SWIG_AsVal_frag(std::string),"header",
+          fragment=SWIG_AsPtr_frag(std::basic_string<char>)) {
+SWIGSTATICINLINE(int)
+  SWIG_AsVal(std::string)(PyObject* obj, std::string *val)
+  {
+    std::string* s;
+    int res = SWIG_AsPtr(std::basic_string<char>)(obj, &s);
+    if (res && s) {
+      if (val) *val = *s;
+      if (res == SWIG_NEWOBJ) delete s;
+      return res;
+    }
+    if (val) {
+      PyErr_SetString(PyExc_TypeError,"a string is expected");
+    }
+    return 0;
+  }
+}
+
+
+%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
+%typemap_asptrfromn(SWIG_CCode(STRING), std::string);
 
