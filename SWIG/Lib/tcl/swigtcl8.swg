@@ -77,11 +77,6 @@ typedef struct swig_instance {
   SWIG_Tcl_NewPointerObj(ptr, type, flags)
 #define SWIG_ConvertPtr(oc, ptr, ty, flags) \
   SWIG_Tcl_ConvertPtr(interp, oc, ptr, ty, flags)
-
-#define SWIG_PackData(c, ptr, sz) \
-  SWIG_Tcl_PackData(c, ptr, sz)
-#define SWIG_UnpackData(c, ptr, sz) \
-  SWIG_Tcl_UnpackData(c, ptr, sz)
 #define SWIG_ConvertPtrFromString(c, ptr, ty, flags) \
   SWIG_Tcl_ConvertPtrFromString(interp, c, ptr, ty, flags)
 #define SWIG_ConvertPacked(obj, ptr, sz, ty, flags) \
@@ -111,8 +106,6 @@ typedef struct swig_instance {
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGIMPORT(char *)    SWIG_Tcl_PackData(char *c, void *ptr, int sz);
-SWIGIMPORT(char *)    SWIG_Tcl_UnpackData(char *c, void *ptr, int sz);
 SWIGIMPORT(int)       SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *,int flags);
 SWIGIMPORT(int)       SWIG_Tcl_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *, int flags);
 SWIGIMPORT(int)       SWIG_Tcl_ConvertPacked(Tcl_Interp *, Tcl_Obj *, void *, int sz, swig_type_info *, int flags);
@@ -169,45 +162,6 @@ SWIG_Tcl_Thisown(void *ptr) {
     return 1;
   }
   return 0;
-}
-
-/* Pack binary data into a string */
-SWIGRUNTIME(char *)
-SWIG_Tcl_PackData(char *c, void *ptr, int sz) {
-  static char hex[17] = "0123456789abcdef";
-  int i;
-  unsigned char *u = (unsigned char *) ptr;
-  register unsigned char uu;
-  for (i = 0; i < sz; i++,u++) {
-    uu = *u;
-    *(c++) = hex[(uu & 0xf0) >> 4];
-    *(c++) = hex[uu & 0xf];
-  }
-  return c;
-}
-
-/* Unpack binary data from a string */
-SWIGRUNTIME(char *)
-SWIG_Tcl_UnpackData(char *c, void *ptr, int sz) {
-  register unsigned char uu = 0;
-  register int d;
-  unsigned char *u = (unsigned char *) ptr;
-  int i;
-  if ((int)strlen(c) < (2*sz)) return c;
-  for (i = 0; i < sz; i++, u++) {
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu = ((d - '0') << 4);
-    else if ((d >= 'a') && (d <= 'f'))
-      uu = ((d - ('a'-10)) << 4);
-    d = *(c++);
-    if ((d >= '0') && (d <= '9'))
-      uu |= (d - '0');
-    else if ((d >= 'a') && (d <= 'f'))
-      uu |= (d - ('a'-10));
-    *u = uu;
-  }
-  return c;
 }
 
 /* Convert a pointer value */
