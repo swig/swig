@@ -285,12 +285,79 @@ int SwigType_issimple(SwigType *t) {
  * allows recursive application for special types like arrays.
  * ----------------------------------------------------------------------------- */
 
+#ifdef SWIG_DEFAULT_CACHE
 static Hash *default_cache = 0;
+#endif
+
+#define SWIG_NEW_TYPE_DEFAULT
+/* The new default type resolution method:
+
+1.- It preserves the original mixed types, then it goes 'backward'
+    first deleting the qualifier, then the inner types
+    
+    typedef A *Aptr;
+    const Aptr&;
+    r.q(const).Aptr       -> r.q(const).p.SWIGTYPE
+    r.q(const).p.SWIGTYPE -> r.p.SWIGTYPE
+    r.p.SWIGTYPE          -> r.SWIGTYPE
+    r.SWIGTYPE            -> SWIGTYPE
+
+
+    enum Hello {};
+    const Hello& hi;
+    r.q(const).Hello          -> r.q(const).enum SWIGTYPE
+    r.q(const).enum SWIGTYPE  -> r.enum SWIGTYPE
+    r.enum SWIGTYPE           -> r.SWIGTYPE
+    r.SWIGTYPE                -> SWIGTYPE
+
+    int a[2][4];
+    a(2).a(4).int           -> a(ANY).a(ANY).SWIGTYPE
+    a(ANY).a(ANY).SWIGTYPE  -> a(ANY).a().SWIGTYPE
+    a(ANY).a().SWIGTYPE     -> a(ANY).p.SWIGTYPE
+    a(ANY).p.SWIGTYPE       -> a(ANY).SWIGTYPE
+    a(ANY).SWIGTYPE         -> a().SWIGTYPE
+    a().SWIGTYPE            -> p.SWIGTYPE
+    p.SWIGTYPE              -> SWIGTYPE
+*/
+
+static 
+void SwigType_add_default(String *def, SwigType *nr)
+{
+  if (Strcmp(nr,"SWIGTYPE") == 0) {
+    Append(def,"SWIGTYPE");
+  } else {
+    String *q = SwigType_isqualifier(nr) ? SwigType_pop(nr) : 0;
+    if (q && Strstr(nr,"SWIGTYPE")) {
+      Append(def, nr);
+    } else {
+      String *nd = SwigType_default(nr);
+      if (nd) {
+	String *bdef = nd;
+	if (q) {
+	  bdef = NewStringf("%s%s", q, nd);
+	  if ((Strcmp(nr,bdef) == 0)) {
+	    Delete(bdef);
+	    bdef = nd;
+	  } else {
+	    Delete(nd);
+	  }
+	}
+	Append(def,bdef);
+	Delete(bdef);
+      } else {
+	Append(def,nr);
+      }
+    }
+    Delete(q);
+  }
+}
+
 
 SwigType *SwigType_default(SwigType *t) {
   String *r1, *def;
   String *r = 0;
 
+#ifdef SWIG_DEFAULT_CACHE
   if (!default_cache) default_cache = NewHash();
   
   r = Getattr(default_cache,t);
@@ -298,6 +365,7 @@ SwigType *SwigType_default(SwigType *t) {
     if (Strcmp(r,t) == 0) return 0;
     return Copy(r);
   }
+#endif
  
   if (SwigType_isvarargs(t)) {
     return 0;
@@ -309,48 +377,96 @@ SwigType *SwigType_default(SwigType *t) {
     r = r1;
   }
   if (SwigType_isqualifier(r)) {
+    String *q;
     if (r == t) r = Copy(t);
-    do {
-      Delete(SwigType_pop(r));
-    } while (SwigType_isqualifier(r));
+    q = SwigType_pop(r);
+    if (Strstr(r,"SWIGTYPE")) {
+      Delete(q);
+      def = r;
+      return def;
+    }
   }
-  if (SwigType_ispointer(r)) {
+  if (Strcmp(r,"p.SWIGTYPE") == 0) {
+    def = NewString("SWIGTYPE");
+  } else if (SwigType_ispointer(r)) {
+#ifdef SWIG_NEW_TYPE_DEFAULT
+    SwigType *nr = Copy(r);
+    SwigType_del_pointer(nr);
+    def = NewStringf("p.");
+    SwigType_add_default(def, nr);
+    Delete(nr);
+#else
     def = NewString("p.SWIGTYPE");
+#endif
+  } else if (Strcmp(r,"r.SWIGTYPE") == 0) {
+    def = NewString("SWIGTYPE");
   } else if (SwigType_isreference(r)) {
+#ifdef SWIG_NEW_TYPE_DEFAULT
+    SwigType *nr = Copy(r);
+    SwigType_del_reference(nr);
+    def = NewStringf("r.");
+    SwigType_add_default(def, nr);
+    Delete(nr);
+#else
     def = NewString("r.SWIGTYPE");
+#endif
   } else if (SwigType_isarray(r)) {
-    if (Strcmp(r,"a(ANY).SWIGTYPE") == 0) {
+    if (Strcmp(r,"a().SWIGTYPE") == 0) {
+      def = NewString("p.SWIGTYPE");
+    } else if (Strcmp(r,"a(ANY).SWIGTYPE") == 0) {
       def = NewString("a().SWIGTYPE");
     } else {
       int i, empty = 0;
       int ndim = SwigType_array_ndim(r);
+      SwigType *nr = Copy(r);
       for (i = 0; i < ndim; i++) {
 	String *dim = SwigType_array_getdim(r,i);
 	if (!Len(dim)) {
-	  empty = 1;
+	  char *c = Char(nr);
+	  empty = strstr(c,"a(ANY).") != c;
 	}
 	Delete(dim);
       }
       if (empty) {
-	def = NewString("a().SWIGTYPE");
+	def = NewString("a().");
       } else {
-	def = NewString("a(ANY).SWIGTYPE");
+	def = NewString("a(ANY).");
       }
+#ifdef SWIG_NEW_TYPE_DEFAULT
+      SwigType_del_array(nr);
+      SwigType_add_default(def, nr);
+      Delete(nr);
+#else
+      Append(def,"SWIGTYPE");
+#endif
     }
   } else if (SwigType_ismemberpointer(r)) {
-    def = NewString("m(CLASS).SWIGTYPE");
+    if (Strcmp(r,"m(CLASS).SWIGTYPE") == 0) {
+      def = NewString("p.SWIGTYPE");
+    } else {
+      def = NewString("m(CLASS).SWIGTYPE");
+    }
   } else if (SwigType_isenum(r)) {
-    def = NewString("enum SWIGTYPE");
+    if (Strcmp(r,"enum SWIGTYPE") == 0) {
+      def = NewString("SWIGTYPE");
+    } else {
+      def = NewString("enum SWIGTYPE");
+    }
   } else {
     def = NewString("SWIGTYPE");
   }
   if (r != t) Delete(r);
+#ifdef SWIG_DEFAULT_CACHE
   /* The cache produces strange results, see enum_template.i case */
-  /* Setattr(default_cache,t,Copy(def)); */
+  Setattr(default_cache,t,Copy(def)); 
+#endif
   if (Strcmp(def,t) == 0) {
     Delete(def);
     def = 0;
   }
+
+  /* Printf(stderr,"type : def %s : %s\n", t, def);  */
+
   return def;
 }
 
