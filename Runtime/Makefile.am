@@ -21,7 +21,10 @@ if !SKIP_PYTHON
 lib_LTLIBRARIES += libswigpy.la
 endif
 if !SKIP_GUILE
-lib_LTLIBRARIES += libswigguile.la libswigguilescm.la
+lib_LTLIBRARIES += libswigguile.la
+endif
+if !SKIP_GUILESCM
+lib_LTLIBRARIES += libswigguilescm.la
 endif
 if !SKIP_RUBY
 lib_LTLIBRARIES += libswigrb.la

@@ -801,6 +801,35 @@ AC_SUBST(GUILEINCLUDE)
 AC_SUBST(GUILELIB)
 AC_SUBST(GUILELINK)
 
+guilesafe_CFLAGS=$CFLAGS
+guilesafe_LDFLAGS=$LDFLAGS
+CFLAGS="$CFLAGS $GUILEINCLUDE"
+LDFLAGS="$LDFLAGS $GUILELINK"
+
+AC_MSG_CHECKING(whether Guile's gh_ API works)
+AC_LINK_IFELSE([#include <guile/gh.h>
+  int main() { SCM s; return gh_scm2int(s); }], GUILE_GH_INTERFACE=1, )
+if test -n "$GUILE_GH_INTERFACE" ; then
+        AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+AC_MSG_CHECKING(whether Guile's SCM_ API works)
+AC_LINK_IFELSE([#include <libguile.h>
+  int main() { SCM s; return SCM_STRING_LENGTH(s); }], GUILE_SCM_INTERFACE=1, )
+if test -n "$GUILE_SCM_INTERFACE" ; then
+        AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+CFLAGS=$guilesafe_CFLAGS
+LDFLAGS=$guilesafe_LDFLAGS
+
+AM_CONDITIONAL(GUILE_GH_INTERFACE, test -n "$GUILE_GH_INTERFACE")
+AC_SUBST(GUILE_GH_INTERFACE)
+AM_CONDITIONAL(GUILE_SCM_INTERFACE, test -n "$GUILE_SCM_INTERFACE")
+AC_SUBST(GUILE_SCM_INTERFACE)
+
 #----------------------------------------------------------------
 # Look for MzScheme
 #----------------------------------------------------------------
@@ -1239,11 +1268,18 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" ; then
+if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_GH_INTERFACE"; then
     SKIP_GUILE="1"
 fi
 AM_CONDITIONAL(SKIP_GUILE, test -n "$SKIP_GUILE")
 AC_SUBST(SKIP_GUILE)
+
+SKIP_GUILESCM=
+if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_SCM_INTERFACE"; then
+    SKIP_GUILESCM="1"
+fi
+AM_CONDITIONAL(SKIP_GUILESCM, test -n "$SKIP_GUILESCM")
+AC_SUBST(SKIP_GUILESCM)
 
 
 SKIP_MZSCHEME=
