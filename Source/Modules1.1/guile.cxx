@@ -31,6 +31,7 @@ Guile Options (available with -guile)\n\
      -module name    - Set base name of module\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
      -package name   - Set the path of the module [default NULL]\n\
+     -with-smobs     - Represent SWIG objects as smobs\n\
      -Linkage lstyle - Use linkage protocol LSTYLE [default `ltdlmod']\n\
 \n\
   The module option does not create a guile module with a separate name\n\
@@ -63,6 +64,7 @@ GUILE::GUILE ()
   module = NULL;
   package = NULL;
   linkage = GUILE_LSTYLE_LTDLMOD;
+  with_smobs = false;
 }
 
 // ---------------------------------------------------------------------
@@ -84,6 +86,10 @@ GUILE::parse_args (int argc, char *argv[])
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (guile_usage, stderr);
 	SWIG_exit (0);
+      }
+      else if (strcmp (argv[i], "-with-smobs") == 0) {
+	Swig_mark_arg (i);
+	with_smobs = true;
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
@@ -233,31 +239,25 @@ GUILE::headers (void)
   emit_banner (f_header);
 
   fprintf (f_header, "/* Implementation : GUILE */\n\n");
-  fprintf (f_header, "#define SWIGGUILE\n");
-  fprintf (f_header, "#include <stdio.h>\n");
-  fprintf (f_header, "#include <string.h>\n");
-  fprintf (f_header, "#include <stdlib.h>\n");
 
-  // Write out hex conversion functions
+  // Write out directives and declarations
 
+  if (NoInclude) {
+    /* This module imports the helper functions, so declare them `extern' */
+    fprintf(f_header, "#define SWIG_GLOBAL\n");
+  }
+  if (Swig_insert_file ("guiledec.swg", f_header) == -1) {
+    fprintf (stderr, "SWIG : Fatal error.  ");
+    fprintf (stderr, "Unable to locate 'guiledec.swg' in SWIG library.\n");
+    SWIG_exit (1);
+  }
   if (!NoInclude) {
+    // Write out function definitions
     if (Swig_insert_file ("guile.swg", f_header) == -1) {
       fprintf (stderr, "SWIG : Fatal error.  ");
       fprintf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
       SWIG_exit (1);
     }
-    // <DB> I Removed a call to emit_hex() here.  The pointer
-    // type-checking code should be included into guile.swg instead </DB>
-  } else {
-    fprintf (f_header, "#ifdef __cplusplus\n");
-    fprintf (f_header, "extern \"C\" {\n");
-    fprintf (f_header, "#endif\n");
-    fprintf (f_header, "extern void SWIG_MakePtr(char *, void *, char *);\n");
-    fprintf (f_header, "extern void SWIG_RegisterMapping(char *, char *, void *(*)(void *));\n");
-    fprintf (f_header, "extern char *SWIG_GetPtr(char *, void **, char *);\n");
-    fprintf (f_header, "#ifdef __cplusplus\n");
-    fprintf (f_header, "}\n");
-    fprintf (f_header, "#endif\n");
   }
 }
 
@@ -284,6 +284,8 @@ GUILE::initialize (void)
 #endif /* OLD_STYLE_WILL_GO_AWAY */
 
   fprintf (f_init, "static void\nSWIG_init (void)\n{\n");
+
+  fprintf (f_init, "\tSWIG_Guile_Init();\n");
 }
 
 // ---------------------------------------------------------------------
@@ -318,6 +320,7 @@ emit_linkage (String &module_name, int linkage)
       mod.replace ("/", " ");
       fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
                mod.get());
+      fprintf (f_init, "    return SCM_UNSPECIFIED;\n");
     }
     fprintf (f_init, "}\n");
     break;
@@ -329,7 +332,7 @@ emit_linkage (String &module_name, int linkage)
 void
 GUILE::close (void)
 {
-  // emit_ptr_equivalence (f_init);
+  emit_ptr_equivalence (f_init);
   fprintf (f_init, "}\n\n");
 
   String module_name ("");
@@ -351,18 +354,39 @@ GUILE::close (void)
 
 void
 GUILE::get_pointer (char *iname, int parm, DataType *t,
-		    WrapperFunction &f)
+		    WrapperFunction &f, const String &proc_name,
+		    int num_scheme_parm)
 {
-  // Pointers are read as hex-strings with encoded type information
-  f.code << tab4 << "_tempc = gh_scm2newstr (s_" << parm << ", &_len);\n";
-  f.code << tab4 << "if (SWIG_GetPtr (_tempc, (void **) &_arg" << parm;
-  if (t->type == T_VOID)
-    f.code << ", (char *) 0)) {\n";
-  else
-    f.code << ", \"" << t->print_mangle() << "\")) {\n";
+  if (with_smobs) {
+    /* Pointers are smobs */
+    f.code << tab4 << "if (SWIG_Guile_GetPtr_Str(s_" << parm << ", "
+	   << "(void **) &_arg" << parm;
+    if (t->type == T_VOID)
+      f.code << ", (char *) 0)) {\n";
+    else
+      f.code << ", \"" << t->print_mangle() << "\")) {\n";
+    /* Raise exception */
+    f.code << tab8
+	   << "scm_wrong_type_arg(\"" << proc_name << "\", "
+	   << num_scheme_parm << ", s_" << parm << ");\n";
+    f.code << tab4 << "}\n";
+  }
+  else {
+    // Pointers are read as hex-strings with encoded type information
+    f.code << tab4 << "_tempc = gh_scm2newstr (s_" << parm << ", &_len);\n";
+    f.code << tab4 << "if (SWIG_GetPtr (_tempc, (void **) &_arg" << parm;
+    if (t->type == T_VOID)
+      f.code << ", (char *) 0)) {\n";
+    else
+      f.code << ", \"" << t->print_mangle() << "\")) {\n";
+    /* Raise exception */
+    f.code << tab8
+	   << "scm_wrong_type_arg(\"" << proc_name << "\", "
+	   << num_scheme_parm << ", s_" << parm << ");\n";
 
-  f.code << tab4 << "}\n";
-  f.code << tab4 << "free(_tempc);\n";
+    f.code << tab4 << "}\n";
+    f.code << tab4 << "free(_tempc);\n";
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -486,7 +510,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
         mreplace (f.code, argnum, arg, proc_name);
       }
       else if (p.t->is_pointer)
-        get_pointer (iname, i, p.t, f);
+        get_pointer (iname, i, p.t, f, proc_name, numargs);
       else {
         throw_unhandled_guile_type_error (p.t);
       }
@@ -534,6 +558,17 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     mreplace (f.code, argnum, arg, proc_name);
   }
   else if (d->is_pointer) {
+    if (with_smobs) {
+      /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
+	 look-up. */
+      f.code << tab4
+	     << "gswig_result = SWIG_Guile_MakePtr_Str ("
+	     << "_result, "
+	     << "\"" << d->print_mangle() << "\", "
+	     << "\"" << d->print_type() << "\""
+	     << ");\n";
+    }
+    else {
     f.add_local ("char", "_ptemp[128]");
     f.code << tab4
            << "SWIG_MakePtr (_ptemp, _result,\""
@@ -541,6 +576,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
            << "\");\n";
     f.code << tab4
            << "gswig_result = gh_str02scm (_ptemp);\n";
+    }
   }
   else {
     throw_unhandled_guile_type_error (d);
@@ -615,7 +651,9 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
     fprintf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
     if ((t->type == T_CHAR) || (t->is_pointer)){
-      fprintf (f_wrappers, "\t char *_temp, _ptemp[128];\n");
+      if (!with_smobs)
+	fprintf (f_wrappers, "\t char _ptemp[128];\n");
+      fprintf (f_wrappers, "\t char *_temp;\n");
       fprintf (f_wrappers, "\t int  _len;\n");
     }
     fprintf (f_wrappers, "\t SCM gswig_result;\n");
@@ -627,8 +665,9 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
     // Yup. Extract the type from s_0 and set variable value
 
     if (Status & STAT_READONLY) {
-      fprintf (f_wrappers, "\t\t GSWIG_ASSERT(0,\"Unable to set %s.  "
-               "Variable is read only.\", s_0);\n", iname);
+      fprintf (f_wrappers, "\t\t scm_misc_error(\"%s\", "
+	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
+	       proc_name.get(), proc_name.get());
     }
     else if ((tm = typemap_lookup ("varin", typemap_lang,
                                    t, name, "s_0", name))) {
@@ -644,14 +683,23 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         fprintf (f_wrappers, "\t\t %s[_len] = 0;\n", name);
       } else {
         // Set the value of a pointer
+	if (with_smobs) {
+	  /* MK: I would like to use SWIG_Guile_GetPtr here */
+	  fprintf (f_wrappers, "\t if (SWIG_Guile_GetPtr_Str(s_0, "
+		   "(void **) &%s, ", name);
+	}
+	else {
         fprintf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0,&_len);\n");
         fprintf (f_wrappers, "\t if (SWIG_GetPtr(_temp, (void **) &%s,",
                  name);
+	}
         if (t->type == T_VOID)
           fprintf (f_wrappers, "(char *) 0)) {\n");
         else
           fprintf (f_wrappers, "\"%s\")) {\n", t->print_mangle());
-
+	/* Raise exception */
+	fprintf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
+		"%d, s_0);\n", proc_name, 1);
         fprintf (f_wrappers, "\t}\n");
       }
     }
@@ -672,9 +720,17 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         fprintf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
       } else {
         // Is an ordinary pointer type.
+	if (with_smobs) {
+	  /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
+	     look-up. */
+	  fprintf(f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr_Str ("
+		  "%s, \"%s\", \"%s\");\n", name, t->print_mangle(), t->print_type());
+	}
+	else {
         fprintf (f_wrappers, "\t  SWIG_MakePtr(_ptemp, %s,\"%s\");\n",
                  name, t->print_mangle());
         fprintf (f_wrappers, "\t gswig_result = gh_str02scm(_ptemp);\n");
+	}
       }
     }
     else {
