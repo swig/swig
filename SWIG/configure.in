@@ -961,9 +961,9 @@ fi
 
 AC_MSG_CHECKING(for Pike header files)
 if test -n "$PIKE"; then
-	PIKEPATHS=`$PIKE --show-paths 2>/dev/null`
-	AC_MSG_RESULT(/usr/local/pike/7.2.239/include/pike)
-	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
+	PIKEPATH=`which $PIKE`
+	PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
+ 	AC_MSG_RESULT($PIKEINCLUDE)
 else
 	AC_MSG_RESULT(could not figure out how to run Pike)
 	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
