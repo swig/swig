@@ -23,14 +23,14 @@ noncommercial use.
 
 <h3>Important Notice</h3>
 
-SWIG is currently in a state of redevelopment in which it is being
-reimplemented in ANSI C.  This work can be found in the SWIG1.3 series
-of releases.  If you are concerned about stability or are a first-time
-user, you may want to download some variant of SWIG1.1 instead.
-Caveat--SWIG1.1 may not be compatible with recent releases of certain
-scripting languages such as Perl 5.6 and Guile.  Note: These changes
-only pertain to the implementation of SWIG (the new version continues
-to support C++ wrappers).
+SWIG is currently in a state of redevelopment in which substantial
+parts of the system are being reimplemented.  This work can be found
+in the SWIG1.3 series of releases.  If you are concerned about
+stability or are a first-time user, you may want to download some
+variant of SWIG1.1 instead.  Caveat--SWIG1.1 may not be compatible
+with recent releases of certain scripting languages such as Perl 5.6
+and Guile.  Note: These changes only pertain to the implementation of
+SWIG (the new version continues to support C++ wrappers).
 
 <p>
 SWIG is an all volunteer effort.  We are always looking for fearless people with 
@@ -38,6 +38,11 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<p>
+<b>2001/09/28</b> <a href="Doc1.3">Development documentation</a> for SWIG1.3 is now online.  This is a work in progress, but many new SWIG features
+are described.
+
 <p>
 <b>2001/09/23</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.9.tar.gz">SWIG-1.3.9</a> has been
 released. This is a bug-fix release for 1.3.7 (described below).
