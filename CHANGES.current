@@ -1,6 +1,20 @@
 Version 1.3.20 (In progress)
 ============================
 11/25/2003: beazley
+            Incorporated [ 840878 ] support for %inline { ... } (PATCH).
+            This adds support for the following:
+
+                  %inline {
+                      ... some code ...
+                  }
+
+            The difference between this and %inline %{ ... %} is that the
+            enclosed text is processed by the SWIG preprocessor.   This
+            allows special macros and other processing to be used in 
+            conjunction with %inline.
+            Contributed by Salvador Fandino Garcia.
+
+11/25/2003: beazley
             Fixed [ 836903 ] C++ inconsistency (with void arguments).
             SWIG was having difficulty with f() vs f(void) in C++ programs.
             For instance:
