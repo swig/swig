@@ -28,6 +28,7 @@ static char cvsroot[] = "$Header$";
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
+#include <ctype.h>
 
 static char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
@@ -1051,4 +1052,14 @@ GUILE::import_start(char *modname) {
 
 void 
 GUILE::import_end() {
+}
+
+
+int GUILE::validIdentifier(String *s) {
+  char *c = Char(s);
+  while (*c) {
+    if (!(isalnum(*c) || (*c == '_') || (*c == '-'))) return 0;
+    c++;
+  }
+  return 1;
 }
