@@ -59,14 +59,14 @@ static int onlyobjects = 0;	 /* Do not export functions that back
 				    methods. */
 static int mliout = 0;		 /* Are we in .mli file */
 
-String *classname = NULL;        /* Name of the current class */
+static String *classname = NULL; /* Name of the current class */
 
 /* Wrapmod */
 
-String *wrapmod = NULL;          /* Non-null if we want an additional module
+static String *wrapmod = NULL;   /* Non-null if we want an additional module
 				    wrapper. */
-String *module = NULL;           /* Module name */
-String *modfile_cmd = NULL;      /* Command-line specified .ml output file */
+static String *module = NULL;    /* Module name */
+static String *modfile_cmd = NULL;/* Command-line specified .ml output file */
 
 /* C(++) output */
 static String *f_init = NULL;
