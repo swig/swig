@@ -44,6 +44,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	template_arg_typename \
 	template_type_namespace \
 	template_construct \
 	template_typedef \
