@@ -356,9 +356,10 @@ Hash_nextkey(DOH *ho) {
 
 static DOH *
 Hash_str(DOH *ho) {
-    int i;
+    int i,j;
     HashNode *n;
     DOH *s;
+    static int indent = 4;
     Hash *h = (Hash *) ObjData(ho);
 
     s = NewString("");
@@ -371,10 +372,14 @@ Hash_str(DOH *ho) {
     for (i = 0; i < h->hashsize; i++) {
 	n = h->hashtable[i];
 	while (n) {
-	    Printf(s,"   '%s' : %s, \n", n->key, n->object);
-	    n = n->next;
+	  for (j = 0; j < indent; j++) Putc(' ',s);
+	  indent+=4;
+	  Printf(s,"'%s' : %s, \n", n->key, n->object);
+	  indent-=4;
+	  n = n->next;
 	}
     }
+    for (j = 0; j < (indent-4); j++) Putc(' ',s);
     Printf(s,"}\n");
     ObjSetMark(ho,0);
     return s;
