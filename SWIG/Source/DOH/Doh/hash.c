@@ -46,6 +46,9 @@ static DOH *find_key (DOH *doh_c) {
   char *c = (char *) doh_c;
   KeyValue *r, *s;
   int d = 0;
+  /* OK, sure, we use a binary tree for maintaining interned
+     symbols.  Then we use their hash values for accessing secondary
+     hash tables. */     
   r = root;
   s = 0;
   while (r) {
@@ -427,6 +430,8 @@ static DOH *
 CopyHash(DOH *ho) {
     Hash *h, *nh;
     HashNode *n;
+    DOH *nho;
+    
     int   i;
     h = (Hash *) ObjData(ho);
     nh = (Hash *) DohMalloc(sizeof(Hash));
@@ -442,15 +447,16 @@ CopyHash(DOH *ho) {
     nh->file = h->file;
     if (nh->file) Incref(nh->file);
 
+    nho = DohObjMalloc(DOHTYPE_HASH, nh);
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
-		Hash_setattr(nh, n->key, n->object);
+		Hash_setattr(nho, n->key, n->object);
 		n = n->next;
 	    }
 	}
     }
-    return DohObjMalloc(DOHTYPE_HASH, nh);
+    return nho;
 }
 
 
