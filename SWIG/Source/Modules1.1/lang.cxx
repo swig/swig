@@ -271,6 +271,14 @@ static void patch_parms(Parm *p) {
     }
 }
 
+static Node *first_nontemplate(Node *n) {
+  while (n) {
+    if (Strcmp(nodeType(n),"template") != 0) return n;
+    n = Getattr(n,"sym:nextSibling");
+  }
+  return n;
+}
+
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -622,6 +630,7 @@ int Language::cDeclaration(Node *n) {
 
     /* Overloaded symbol check */
     over = Swig_symbol_isoverloaded(n);
+    if (over) over = first_nontemplate(over);
     if (over && (over != n)) {
       SwigType *tc = Copy(decl);
       SwigType *td = SwigType_pop_function(tc);
@@ -1329,6 +1338,7 @@ int Language::constructorDeclaration(Node *n) {
     if (!Abstract) {
 	Node *over;
 	over = Swig_symbol_isoverloaded(n);
+	if (over) over = first_nontemplate(over);
 	if (over) {
 	  /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so, 
              we invoke copyconstructorHandler() as a special case. */

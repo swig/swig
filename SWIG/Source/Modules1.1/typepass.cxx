@@ -48,7 +48,7 @@ class TypePass : public Dispatcher {
 	SwigType *qty = SwigType_typedef_qualified(ty);
 
 	/* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
-	/*    Printf(stdout,"%s --> %s\n", ty, qty); */
+	/*	Printf(stdout,"%s --> %s\n", ty, qty); */
 	Clear(ty);
 	Append(ty,qty);
 	Delete(qty);
@@ -404,7 +404,6 @@ public:
 
 	    Delete(nsname);
 	    nsname = oldnsname;
-
 	    return SWIG_OK;
 	}
     }

@@ -364,11 +364,25 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     String *name = Getattr(n,"name");
     if (name) {
       cn = Getattr(ccurrent,name);
+      if (cn && (Getattr(cn,"sym:typename"))) {
+	/* Do nothing. */
+      } else if (cn && (Getattr(cn,"sym:weak"))) {
+	Setattr(ccurrent,name, n);
+      } else if (cn && (Getattr(n,"sym:weak"))) {
+	/* Do nothing */
+      } else if (!cn) {
+	Setattr(ccurrent,name,n);
+      }
+#ifdef OLD
       if ((!cn) || (Getattr(cn,"sym:weak") && !Getattr(cn,"sym:typename"))) {
 	Setattr(ccurrent,name,n);
       } else if (cn && Getattr(n,"sym:typename")) {
+	Printf(stdout,"Here!\n");
         Setattr(ccurrent,name,n);
+      } else {
+	Printf(stderr,"*Here!\n");
       }
+#endif
     }
   }
 
@@ -456,7 +470,14 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     decl = Getattr(c,"decl");
     ndecl = Getattr(n,"decl");
 
-    if (Cmp(nodeType(n),nodeType(c))) return c;
+    {
+      String *nt1, *nt2;
+      nt1 = nodeType(n);
+      if (Strcmp(nt1,"template") == 0) nt1 = Getattr(n,"templatetype");
+      nt2 = nodeType(c);
+      if (Strcmp(nt2,"template") == 0) nt2 = Getattr(c,"templatetype");
+      if (Strcmp(nt1,nt2) != 0) return c;
+    }
     if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
       /* Symbol table conflict */
       return c;

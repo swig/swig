@@ -328,20 +328,25 @@ static void add_symbols(Node *n) {
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	if ((c != n) && (!(Getattr(n,"sym:weak") || (Getattr(c,"sym:typename") && inclass)))) {
-	  String *e = NewString("");
-	  Printf(e,"Identifier '%s' redeclared (ignored).", symname);
-	  if (Cmp(symname,Getattr(n,"name"))) {
-	    Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
+	/*	if ((c != n) && (!(Getattr(n,"sym:weak") || (Getattr(c,"sym:typename") && inclass)))) { */
+	if (c != n) {
+	  if (Getattr(n,"sym:weak")) {
+	    Setattr(n,"sym:name",symname);
+	  } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
+	    Setattr(n,"sym:name",symname);
+	  } else {
+	    String *e = NewString("");
+	    Printf(e,"Identifier '%s' redeclared (ignored).", symname);
+	    if (Cmp(symname,Getattr(n,"name"))) {
+	      Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
+	    }
+	    Printf(e,"\n%s:%d: Previous declaration of '%s'", Getfile(c),Getline(c),symname);
+	    if (Cmp(symname,Getattr(c,"name"))) {
+	      Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
+	    }
+	    Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
+	    Setattr(n,"error",e);
 	  }
-	  Printf(e,"\n%s:%d: Previous declaration of '%s'", Getfile(c),Getline(c),symname);
-	  if (Cmp(symname,Getattr(c,"name"))) {
-	    Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
-	  }
-	  Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
-	  Setattr(n,"error",e);
-	} else if ((c != n) && (Getattr(n,"sym:weak"))) {
-	  Setattr(n,"sym:name", symname);
 	}
       } else {
 	Setattr(n,"sym:name", symname);
@@ -1756,8 +1761,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      }
 		    } else {
 		      if (n) {
-			Swig_error(input_file, line_number, "'%s' is not defined as a template.\n", $5);
-			Printf(stderr,"%s\n", nodeType(n));
+			Swig_error(input_file, line_number, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
 		      } else {
 			Swig_error(input_file, line_number, "Template '%s' undefined.\n", $5);
 		      }
@@ -1781,7 +1785,12 @@ warn_directive : WARN string {
  *                              C Parsing
  * ====================================================================== */
 
-c_declaration   : c_decl { $$ = $1; }
+c_declaration   : c_decl {
+                    $$ = $1; 
+                    if ($$) {
+   		      add_symbols($$);
+   	            }
+                }
                 | c_enum_decl { $$ = $1; }
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
@@ -1830,9 +1839,6 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		$$ = $5;
 	      } else {
 		set_nextSibling($$,$5);
-	      }
-	      if ($$) {
-		add_symbols($$);
 	      }
            }
            ;
@@ -2257,9 +2263,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 
 cpp_temp_possible:  c_decl {
 		  $$ = $1;
-                  if ($$) {
+		  /*		  if ($$) {
 		    Setattr($$,"sym:weak","1");
-		  }
+		    } */
                 }
                 | cpp_class_decl {
                    $$ = $1;
