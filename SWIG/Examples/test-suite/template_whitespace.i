@@ -5,8 +5,10 @@
 %module test
 
 %{
-#include <vector>
-#include <map>
+template<class T> class vector {
+};
+template<class T, class U> class map {
+};
 %}
 
 %typemap(in) vector<int> "/* Xyzzy! */";
