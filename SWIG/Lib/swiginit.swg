@@ -51,6 +51,8 @@ SWIG_InitializeModule(void *clientdata) {
   swig_module_info *module_head;
   static int init_run = 0;
 
+  clientdata = clientdata;
+
   if (init_run) return;
   init_run = 1;
 
