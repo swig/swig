@@ -763,6 +763,12 @@ chicken_c:
 chicken_cpp:
 	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
 
+compile: $(INTERFACE)
+	$(CC) $(CFLAGS) $(INCLUDE) -c $(INTERFACE) -o $(TARGET)
+
+cxxcompile: $(INTERFACE)
+	$(CXX) $(CFLAGS) $(INCLUDE) -c $(INTERFACE) -o $(TARGET)
+
 chicken_csi:
 	X=`pwd` && cd @CHICKENHOME@ && \
 	@CHICKEN@ @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
