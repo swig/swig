@@ -10,8 +10,6 @@
  * some way.
  */
 
-%include "fragments.i"
-
 /* %cstring_input_binary(TYPEMAP, SIZE)
  * 
  * Macro makes a function accept binary string data along with
@@ -40,10 +38,10 @@
    $1 = ($1_ltype) temp;
 }
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
-   PyObject *o;
+   Tcl_Obj *o;
    $1[MAX] = 0;
-   o = PyString_FromString($1);
-   $result = t_output_helper($result,o);
+   o = Tcl_NewStringObj($1,-1);
+   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp), o);
 }
 %enddef
 
@@ -65,8 +63,8 @@
    $1 = ($1_ltype) temp;
 }
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
-   PyObject *o = PyString_FromStringAndSize($1,SIZE);
-   $result = t_output_helper($result,o);
+   Tcl_Obj *o = Tcl_NewStringObj($1,SIZE);
+   Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp),o);
 }
 %enddef
 
@@ -88,16 +86,15 @@
 
 %define %cstring_bounded_mutable(TYPEMAP,MAX)
 %typemap(in) TYPEMAP(char temp[MAX+1]) {
-   char *t = PyString_AsString($input);
-   if (PyErr_Occurred()) return NULL;
+   char *t = Tcl_GetStringFromObj($input,NULL);
    strncpy(temp,t,MAX);
    $1 = ($1_ltype) temp;
 }
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
-   PyObject *o;
+   Tcl_Obj *o;
    $1[MAX] = 0;
-   o = PyString_FromString($1);
-   $result = t_output_helper($result,o);
+   o = Tcl_NewStringObj($1,-1);
+   Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp),o);
 }
 %enddef
 
@@ -119,10 +116,10 @@
 
 %define %cstring_mutable(TYPEMAP,...)
 %typemap(in) TYPEMAP {
-   char *t = PyString_AsString($input);
-   int   n = PyString_Size($input);
-   if (PyErr_Occurred()) return NULL;
+   int   n;
+   char *t = Tcl_GetStringFromObj($input,&n);
    $1 = ($1_ltype) t;
+
 #if #__VA_ARGS__ == ""
 #if __cplusplus
    $1 = ($1_ltype) new char[n+1];
@@ -141,9 +138,9 @@
 }
 
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
-   PyObject *o;
-   o = PyString_FromString($1);
-   $result = t_output_helper($result,o);
+   Tcl_Obj *o;
+   o = Tcl_NewStringObj($1,-1);
+   Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), o);
 #if __cplusplus
    delete[] $1;
 #else
@@ -165,8 +162,11 @@
 
 %define %cstring_output_maxsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
-   $2 = PyInt_AsLong($input);
-   if (PyErr_Occurred()) return NULL;
+   long  temp;
+   if (Tcl_GetLongFromObj(interp,$input,&temp) != TCL_OK) {
+	return TCL_ERROR;
+   }
+   $2 = ($2_ltype) temp;
 #ifdef __cpluscplus
    $1 = ($1_ltype) new char[$2+1];
 #else
@@ -174,9 +174,9 @@
 #endif
 }
 %typemap(argout,fragment="t_output_helper") (TYPEMAP,SIZE) {
-   PyObject *o;
-   o = PyString_FromString($1);
-   $result = t_output_helper($result,o);
+   Tcl_Obj *o;
+   o = Tcl_NewStringObj($1,-1);
+   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 #ifdef __cplusplus
    delete [] $1;
 #else
@@ -200,8 +200,10 @@
 
 %define %cstring_output_withsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
-   int n = PyInt_AsLong($input);
-   if (PyErr_Occurred()) return NULL;
+   long  n;
+   if (Tcl_GetLongFromObj(interp,$input,&n) != TCL_OK) {
+	return TCL_ERROR;
+   }
 #ifdef __cpluscplus
    $1 = ($1_ltype) new char[n+1];
    $2 = ($2_ltype) new $*1_ltype;
@@ -212,9 +214,9 @@
    *$2 = n;
 }
 %typemap(argout,fragment="t_output_helper") (TYPEMAP,SIZE) {
-   PyObject *o;
-   o = PyString_FromStringAndSize($1,*$2);
-   $result = t_output_helper($result,o);
+   Tcl_Obj *o;
+   o = Tcl_NewStringObj($1,*$2);
+   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp), o);
 #ifdef __cplusplus
    delete [] $1;
    delete $2;
@@ -245,9 +247,9 @@
 
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
    if (*$1) {
-      PyObject *o = PyString_FromString(*$1);
+      Tcl_Obj *o = Tcl_NewStringObj(*$1,-1);
       RELEASE;
-      $result = t_output_helper($result,o);
+      Tcl_ListObjAppendElement(interp, Tcl_GetObjResult(interp), o);
    }
 }
 %enddef
@@ -274,9 +276,9 @@
 
 %typemap(argout,fragment="t_output_helper")(TYPEMAP,SIZE) {
    if (*$1) {
-      PyObject *o = PyString_FromStringAndSize(*$1,*$2);
+      Tcl_Obj *o = Tcl_NewStringObj(*$1,*$2);
       RELEASE;
-      $result = t_output_helper($result,o);
+      Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp), o);
    }
 }
 %enddef
