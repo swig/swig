@@ -652,7 +652,8 @@ public:
 				    const String *maybe_delimiter,
 				    Parm *p,
 				    const String *typemap,
-				    const String *default_doc)
+				    const String *default_doc,
+				    const String *name = NULL)
   {
     String *tmp = NewString("");
     String *tm;
@@ -664,7 +665,7 @@ public:
     if (maybe_delimiter && Len(output) > 0 && Len(tm) > 0) {
       Printv(output, maybe_delimiter, NIL);
     }
-    String *pn = Getattr(p,"name");
+    String *pn = (name == NULL) ? Getattr(p,"name") : name;
     String *pt = Getattr(p,"type");
     Replaceall(tm, "$name", pn); // legacy for $parmname
     Replaceall(tm, "$type", SwigType_str(pt,0));
@@ -801,6 +802,17 @@ public:
 	Replaceall(tm,"$input",source);
 	Setattr(p,"emit:input", source);
 	Printv(f->code,tm,"\n",NIL);
+
+	SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
+	SwigType *pn = Getattr(p,"name");
+	String *argname;
+	scheme_argnum++;
+	if (pn && !Getattr(scheme_arg_names, pn))
+	  argname = pn;
+	else {
+	  /* Anonymous arg or re-used argument name -- choose a name that cannot clash */
+	  argname = NewStringf("%%arg%d", scheme_argnum);
+	}
 	
 	if (procdoc) {
 	  if (i == numreq) {
@@ -809,24 +821,14 @@ public:
 	  }
 	  /* Add to signature (arglist) */
 	  handle_documentation_typemap(signature, " ", p, "tmap:in:arglist",
-				       "$name");
+				       "$name", argname);
 	  /* Document the type of the arg in the documentation body */
 	  handle_documentation_typemap(doc_body, ", ", p, "tmap:in:doc",
-				       "$NAME is of type <$type>");
+				       "$NAME is of type <$type>", argname);
 	}
 
 	if (goops) {
 	  if (i < numreq) {
-	    SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
-	    SwigType *pn = Getattr(p,"name");
-	    String *argname;
-	    scheme_argnum++;
-	    if (pn && !Getattr(scheme_arg_names, pn))
-	      argname = pn;
-	    else {
-	      /* Anonymous arg or re-used argument name -- choose a name that cannot clash */
-	      argname = NewStringf("%%arg%d", scheme_argnum);
-	    }
 	    if (strcmp("void", Char(pt)) != 0) {
 	      Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
 	      String *goopsclassname = (class_node == NULL) ? NULL :
@@ -840,10 +842,11 @@ public:
 	      Printv(primitive_args, " ", argname, NIL);
 	      Setattr(scheme_arg_names, argname, p);
 	    }
-	    if (!pn) {
-	      Delete(argname);
-	    }
 	  }
+	}
+	
+	if (!pn) {
+	  Delete(argname);
 	}
 	p = Getattr(p,"tmap:in:next");
       } else {
