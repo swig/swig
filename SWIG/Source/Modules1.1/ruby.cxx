@@ -181,7 +181,7 @@ void RUBY::parse() {
   value.type = T_VOID;
   value.is_pointer = 1;
   value.implicit_ptr = 0;
-  value.typedef_add((char*)"VALUE");
+  DataType_typedef_add(&value,(char*)"VALUE",0);
 
   yyparse();       // Run the SWIG parser
 }
@@ -537,7 +537,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
-		input_file,line_number, p->t->print_type());
+		input_file,line_number, DataType_print_type(p->t));
       }
       if (j >= (pcount-numopt))
 	Printv(f->code, tab4, "} \n");
@@ -590,7 +590,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
-		input_file,line_number,t->print_type());
+		input_file,line_number,DataType_print_type(t));
       }
     }
   }
@@ -681,13 +681,13 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   } else if (!t->is_pointer && t->type == T_USER) {
     // Hack this into a pointer
     t->is_pointer++;
-    t->remember();
+    DataType_remember(t);
     Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
-	   ", \"", t->print_mangle(), "\");\n", 0);
+	   ", \"", DataType_print_mangle(t), "\");\n", 0);
     t->is_pointer--;
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	    input_file,line_number,t->print_type());
+	    input_file,line_number,DataType_print_type(t));
   }
   Printv(getf->code, tab4, "return _val;\n}\n", 0);
   Wrapper_print(getf,f_wrappers);
@@ -713,15 +713,15 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
       Delete(s);
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
-      Wrapper_add_localv(setf,"temp",t->print_type(), "temp",0);
-      Printv(setf->code, tab4, "temp = (", t->print_type(), ")",
-	     "SWIG_ConvertPtr(_val, \"", t->print_mangle(), "\");\n",
+      Wrapper_add_localv(setf,"temp",DataType_print_type(t), "temp",0);
+      Printv(setf->code, tab4, "temp = (", DataType_print_type(t), ")",
+	     "SWIG_ConvertPtr(_val, \"", DataType_print_mangle(t), "\");\n",
 	     0);
       Printv(setf->code, tab4, name, " = *temp;\n",0);
       t->is_pointer--;
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
-	      input_file,line_number,t->print_type());
+	      input_file,line_number,DataType_print_type(t));
     }
     if (mod_attr)
       Printv(setf->code, tab4, "return _val;\n",0);
@@ -843,7 +843,7 @@ void RUBY::declare_const(char *name, char *iname, DataType *type, char *value) {
     Delete(str);
   } else {
     Printf(stderr,"%s : Line %d. Unable to create constant %s = %s\n",
-	    input_file, line_number, type->print_type(), value);
+	    input_file, line_number, DataType_print_type(type), value);
   }
 }
 
@@ -913,7 +913,7 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
     Replace(s,"$source",source, DOH_REPLACE_ANY);
   if (target && strlen(target) > 0)
     Replace(s,"$target",target, DOH_REPLACE_ANY);
-  Replace(s,"$type", type->print_type(), DOH_REPLACE_ANY);
+  Replace(s,"$type", DataType_print_type(type), DOH_REPLACE_ANY);
   return Char(s);
 }
 
@@ -961,7 +961,7 @@ int RUBY::to_VALUE(DataType *type, char *value, DOHString *str, int raw) {
     else
       Printv(str, "rb_str_new2(", value, ")", 0);
   } else {
-    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", type->print_mangle(), "\")", 0);
+    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", DataType_print_mangle(type), "\")", 0);
   }
 
   if (Len(str) == 0)
@@ -1015,7 +1015,7 @@ int RUBY::from_VALUE(DataType *type, char *value, DOHString *str) {
   } else if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
     Printv(str, "STR2CSTR(", value, ")", 0);
   } else {
-    Printv(str, "SWIG_ConvertPtr(", value, ", \"", type->print_mangle(), "\")", 0);
+    Printv(str, "SWIG_ConvertPtr(", value, ", \"", DataType_print_mangle(type), "\")", 0);
   }
   
   if (Len(str) == 0) return 0;

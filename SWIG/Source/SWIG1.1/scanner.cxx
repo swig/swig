@@ -1293,11 +1293,11 @@ extern "C" int yylex(void) {
 	// do a typedef lookup on it.
 
 	if (check_typedef) {
-	  if (DataType::is_typedef(yytext)) {
+	  if (DataType_is_typedef(yytext)) {
 	    yylval.type = new DataType;
 	    yylval.type->type = T_USER;
 	    strcpy(yylval.type->name,yytext);
-	    yylval.type->typedef_resolve();
+	    DataType_typedef_resolve(yylval.type,0);
 	    return(TYPE_TYPEDEF);
 	  }
 	}

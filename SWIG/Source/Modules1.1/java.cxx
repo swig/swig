@@ -630,21 +630,21 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
       } else {
         if(!p->t->is_pointer)
-	  Printv(f->code, tab4, target, " = ", p->t->print_cast(), source, ";\n", 0);
+	  Printv(f->code, tab4, target, " = ", DataType_print_cast(p->t), source, ";\n", 0);
         else if((p->t->type == T_VOID && p->t->is_pointer == 1) ||
 	        (p->t->type == T_USER && p->t->is_pointer == 1)) {
             p->t->is_pointer++;
-	    Printv(f->code, tab4, target, " = *", p->t->print_cast(), "&", source, ";\n", 0);
+	    Printv(f->code, tab4, target, " = *", DataType_print_cast(p->t), "&", source, ";\n", 0);
             p->t->is_pointer--;
         } else {
           if(p->t->type == T_CHAR && p->t->is_pointer == 1) {
 	    Printv(f->code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
           } else {
             char *scalarType = SwigTcToJniScalarType(p->t);
-            char *cptrtype = p->t->print_type();
+            char *cptrtype = DataType_print_type(p->t);
             p->t->is_pointer--;
             const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
-            char *ctype = p->t->print_type();
+            char *ctype = DataType_print_type(p->t);
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      Printf(stderr, "\'%s\' does not have a in/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
@@ -661,13 +661,13 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    DOHString *scalarFunc = NewStringf("Get%sArrayElements",scalarType);
 
 	    Printv(f->code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
-	    Printv(f->code, tab4, target, " = ", p->t->print_cast(), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
+	    Printv(f->code, tab4, target, " = ", DataType_print_cast(p->t), " malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
 	    Printv(f->code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
 	    if(p->t->is_pointer > 1) {
-	      Printv(f->code, tab8, target, "[i] = *", p->t->print_cast(), "&", target_copy, "[i];\n", 0);
+	      Printv(f->code, tab8, target, "[i] = *", DataType_print_cast(p->t), "&", target_copy, "[i];\n", 0);
 	    } else {
               p->t->is_pointer--;
-	      Printv(f->code, tab8, target, "[i] = ", p->t->print_cast(), target_copy, "[i];\n", 0); 
+	      Printv(f->code, tab8, target, "[i] = ", DataType_print_cast(p->t), target_copy, "[i];\n", 0); 
 	      p->t->is_pointer++;
 	    }
 	    Delete(scalarFunc);
@@ -705,10 +705,10 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	   // nothing to do
          } else {
             char *scalarType = SwigTcToJniScalarType(p->t);
-            char *cptrtype = p->t->print_type();
+            char *cptrtype = DataType_print_type(p->t);
             p->t->is_pointer--;
             const char *basic_jnitype = (p->t->is_pointer > 0) ? "jlong" : SwigTcToJniType(p->t, 0);
-            char *ctype = p->t->print_type();
+            char *ctype = DataType_print_type(p->t);
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      Printf(stderr, "\'%s\' does not have a argout/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
@@ -716,7 +716,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             p->t->is_pointer++;
 	    Printf(outarg, "    for(i=0; i< %d; i++)\n", target_length);
 	    if(p->t->is_pointer > 1) {
-	      Printv(outarg, tab8, "*", p->t->print_cast(), "&", target_copy, "[i] = ",  target, "[i];\n", 0);
+	      Printv(outarg, tab8, "*", DataType_print_cast(p->t), "&", target_copy, "[i] = ",  target, "[i];\n", 0);
 	    } else {
 	      Printv(outarg, tab8, target_copy, "[i] = (", basic_jnitype, ") ", target, "[i];\n", 0); 
 	    }
@@ -753,23 +753,23 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
     } else {
       if(t->is_pointer == 0 && t->type == T_USER) { /* return by value */
 	    t->is_pointer=2;
-	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", DataType_print_cast(t), "&_jresult = _result;\n", 0);
 	    t->is_pointer=0;
       } else if(t->is_pointer == 0 && t->type != T_USER) {
 	Printv(f->code, tab4, "_jresult = (", jnirettype, ") _result;\n", 0);
       } else if((t->type == T_VOID && t->is_pointer == 1) ||
 	        (t->type == T_USER && t->is_pointer == 1)) {
 	    t->is_pointer++;
-	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", DataType_print_cast(t), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
       } else {
         if(t->type == T_CHAR && t->is_pointer == 1) {
 	  Printv(f->code, tab4, "if(_result != NULL)\n", 0);
           Printv(f->code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "_result);\n", 0);
         } else {
-	  Printf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,t->print_type());
+	  Printf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,DataType_print_type(t));
 	    t->is_pointer++;
-	    Printv(f->code, tab4, "*", t->print_cast(), "&_jresult = _result;\n", 0);
+	    Printv(f->code, tab4, "*", DataType_print_cast(t), "&_jresult = _result;\n", 0);
 	    t->is_pointer--;
         }
       }

@@ -327,15 +327,15 @@ void ParmList_print_types(ParmList *l, DOHFile *f) {
     if (l->parms[pn]->t->is_reference) {
       if (l->parms[pn]->t->is_pointer) {
 	l->parms[pn]->t->is_pointer--;
-	Printf(f,"%s&", l->parms[pn]->t->print_real());
+	Printf(f,"%s&", DataType_print_real(l->parms[pn]->t,0));
 	l->parms[pn]->t->is_pointer++;
       } else {
-	Printf(f,"%s&", l->parms[pn]->t->print_real());
+	Printf(f,"%s&", DataType_print_real(l->parms[pn]->t,0));
       }
     } else {
       if (l->parms[pn]->call_type & CALL_VALUE) l->parms[pn]->t->is_pointer++;
       if (l->parms[pn]->call_type & CALL_REFERENCE) l->parms[pn]->t->is_pointer--;
-      Printf(f,"%s", l->parms[pn]->t->print_real());
+      Printf(f,"%s", DataType_print_real(l->parms[pn]->t,0));
       l->parms[pn]->t->is_pointer = is_pointer;
     }
     pn++;
@@ -360,15 +360,15 @@ void ParmList_print_args(ParmList *l, DOHFile *f) {
     if (l->parms[pn]->t->is_reference) {
       if (l->parms[pn]->t->is_pointer) {
 	l->parms[pn]->t->is_pointer--;
-	Printf(f,"%s&", l->parms[pn]->t->print_full());
+	Printf(f,"%s&", DataType_print_full(l->parms[pn]->t));
 	l->parms[pn]->t->is_pointer++;
       } else {
-	Printf(f,"%s&", l->parms[pn]->t->print_full());
+	Printf(f,"%s&", DataType_print_full(l->parms[pn]->t));
       }
     } else {
       if (l->parms[pn]->call_type & CALL_VALUE) l->parms[pn]->t->is_pointer++;
       if (l->parms[pn]->call_type & CALL_REFERENCE) l->parms[pn]->t->is_pointer--;
-      Printf(f,"%s", l->parms[pn]->t->print_full());
+      Printf(f,"%s", DataType_print_full(l->parms[pn]->t));
       l->parms[pn]->t->is_pointer = is_pointer;
     }
     Printf(f,"%s",l->parms[pn]->name);

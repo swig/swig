@@ -248,8 +248,8 @@ void
 MZSCHEME::get_pointer (DOHString_or_char *name, int parm, DataType *t,
 		       Wrapper *f)
 {
-  Printf(f->code,"    if (!swig_get_c_pointer(argv[%d],\"%s\", (void **) &_arg%d))\n", parm, t->print_mangle(), parm);
-  Printf(f->code,"        scheme_wrong_type(\"%s\", \"%s\", %d, argc, argv);\n", name, t->print_mangle(), parm);
+  Printf(f->code,"    if (!swig_get_c_pointer(argv[%d],\"%s\", (void **) &_arg%d))\n", parm, DataType_print_mangle(t), parm);
+  Printf(f->code,"        scheme_wrong_type(\"%s\", \"%s\", %d, argc, argv);\n", name, DataType_print_mangle(t), parm);
 }
 
 // ----------------------------------------------------------------------
@@ -416,7 +416,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 	   tab4,
 	   "swig_result = swig_make_c_pointer(",
 	   "_result, \"",
-	   d->print_mangle(),
+	   DataType_print_mangle(d),
 	   "\");\n",
 	   0);
   }
@@ -558,9 +558,9 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       } else {
         // Set the value of a pointer
 	Printf(f_wrappers, "\t\tif (!swig_get_c_pointer(argv[0], \"%s\", (void **) &_arg0))\n",
-		t->print_mangle());
+		DataType_print_mangle(t));
 	Printf(f_wrappers, "\t\t\tscheme_wrong_type(\"%s\", %s, 0, argc, argv", \
-		var_name, t->print_mangle());
+		var_name, DataType_print_mangle(t));
       }
     }
     else {
@@ -581,7 +581,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       } else {
         // Is an ordinary pointer type.
 	Printf(f_wrappers, "\tswig_result = swig_make_c_pointer(%s, \"%s\");\n",
-		name, t->print_mangle());
+		name, DataType_print_mangle(t));
       }
     }
     else {
@@ -601,7 +601,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
              " type %s (ignored).\n",
-             input_file, line_number, t->print_type());
+             input_file, line_number, DataType_print_type(t));
   }
   Delete(proc_name);
 }
@@ -654,7 +654,7 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
   } else {
     // Create variable and assign it a value
 
-    Printf (f_header, "static %s %s = ", type->print_type(), var_name);
+    Printf (f_header, "static %s %s = ", DataType_print_type(type), var_name);
     if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
@@ -777,7 +777,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
       Insert(param,0," unspecified");
     else {
       Insert(param,0,"# ");
-      Insert(param,0,d->print_type());
+      Insert(param,0,DataType_print_type(d));
       Insert(param,0," $");
     }
   }

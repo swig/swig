@@ -907,7 +907,7 @@ statement      : INCLUDE STRING LBRACE {
 		     temp_type.is_pointer = 0;
 		     temp_type.implicit_ptr = 0;
 		     sprintf(temp_type.name,"int");
-		     temp_type.typedef_add($3,1);
+		     DataType_typedef_add(&temp_type,$3,1);
 		   }
 	       }
 
@@ -920,7 +920,7 @@ statement      : INCLUDE STRING LBRACE {
 		   temp_type.implicit_ptr = 0;
 		   sprintf(temp_type.name,"int");
 		   Active_typedef = new DataType(&temp_type);
-		   temp_type.typedef_add($8,1);
+		   DataType_typedef_add(&temp_type,$8,1);
 	       } typedeflist { }
 
 /* -----------------------------------------------------------------
@@ -1141,10 +1141,10 @@ typedef_decl   : TYPEDEF type declaration {
 		   /* Add a new typedef */
 		   Active_typedef = new DataType($2);
 		   $2->is_pointer += $3.is_pointer;
-		   $2->typedef_add($3.id);
+		   DataType_typedef_add($2, $3.id,0);
 		   /* If this is %typedef, add it to the header */
 		   if ($1) 
-		     fprintf(f_header,"typedef %s %s;\n", $2->print_full(), $3.id);
+		     fprintf(f_header,"typedef %s %s;\n", DataType_print_full($2), $3.id);
 		   cplus_register_type($3.id);
 	       } typedeflist { };
 
@@ -1161,7 +1161,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   strcpy($2->name,"<function ptr>");
 		   $2->type = T_USER;
 		   $2->is_pointer = 1;
-		   $2->typedef_add($5,1);
+		   DataType_typedef_add($2,$5,1);
 		   cplus_register_type($5);
 		 delete $2;
 		 delete $5;
@@ -1183,7 +1183,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   strcpy($2->name,"<function ptr>");
 		   $2->type = T_USER;
 		   $2->is_pointer = 1;
-		   $2->typedef_add($6,1);
+		   DataType_typedef_add($2,$6,1);
 		   cplus_register_type($6);
 		 delete $2;
 		 delete $6;
@@ -1202,7 +1202,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   // Turn this into a "pointer" corresponding to the array
 		   $2->is_pointer++;
 		   $2->arraystr = copy_string(Char(ArrayString));
-		   $2->typedef_add($3.id);
+		   DataType_typedef_add($2,$3.id,0);
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
 
@@ -1224,7 +1224,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    DataType *t;
 		    t = new DataType(Active_typedef);
 		    t->is_pointer += $2.is_pointer;
-		    t->typedef_add($2.id);
+		    DataType_typedef_add(t,$2.id,0);
 		    cplus_register_type($2.id);
 		    delete t;
 		  }
@@ -1235,7 +1235,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t->status = STAT_READONLY | STAT_REPLACETYPE;
 		    t->is_pointer += $2.is_pointer + 1;
 		    t->arraystr = copy_string(Char(ArrayString));
-		    t->typedef_add($2.id);
+		    DataType_typedef_add(t,$2.id,0);
 		    cplus_register_type($2.id);
 		    delete t;
     		    fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap.\n",input_file,line_number, $2.id);
@@ -1575,7 +1575,7 @@ type           : TYPE_INT {
 		  strcpy($$->name,$1);
 		  $$->type = T_USER;
 		  /* Do a typedef lookup */
-		  $$->typedef_resolve();
+		  DataType_typedef_resolve($$,0);
 		  if (strlen($2) > 0) {
 		    if ((strlen($2) + strlen($$->name)) >= MAX_NAME) {
 		      fprintf(stderr,"%s : Line %d. Fatal error. Type-name is too long!\n", 
@@ -1599,7 +1599,7 @@ type           : TYPE_INT {
                   $$ = new DataType;
                   sprintf($$->name,"%s::%s",$1,$3);
                   $$->type = T_USER;
-		  $$->typedef_resolve();
+		  DataType_typedef_resolve($$,0);
                }
 /* This declaration causes a shift-reduce conflict.  Unresolved for now */
 
@@ -1608,13 +1608,13 @@ type           : TYPE_INT {
                   $$ = new DataType;
                   sprintf($$->name,"%s", $2);
                   $$->type = T_USER;
-                  $$->typedef_resolve(1);
+                  DataType_typedef_resolve($$,1);
                }
                | ENUM ID {
                   $$ = new DataType;
                   sprintf($$->name,"enum %s", $2);
                   $$->type = T_INT;
-                  $$->typedef_resolve(1);
+                  DataType_typedef_resolve($$,1);
                }
                ;
 
@@ -1993,7 +1993,7 @@ cpp_class    :
              extern cpptype ID inherit LBRACE {
 	       char *iname;
 	       init_language();
-	       DataType::new_scope();
+	       DataType_new_scope(0);
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
@@ -2038,7 +2038,7 @@ cpp_class    :
 	       dump_nested($3);
 	       
 	       // Save and collapse current scope
-	       cplus_register_scope(DataType::collapse_scope($3));
+	       cplus_register_scope(DataType_collapse_scope($3));
 	       cplus_class_close((char *) 0); 
 	       cplus_mode = CPLUS_PUBLIC;
 	      }
@@ -2048,7 +2048,7 @@ cpp_class    :
              | TYPEDEF cpptype ID inherit LBRACE {
 	       char *iname;
 	       init_language();
-	       DataType::new_scope();
+	       DataType_new_scope(0);
 	       
 	       sprintf(temp_name,"CPP_CLASS:%s\n",$3);
 	       if (add_symbol(temp_name)) {
@@ -2111,7 +2111,7 @@ cpp_class    :
 		
 		// Collapse any datatypes created in the the class
 		
-		cplus_register_scope(DataType::collapse_scope($3));
+		cplus_register_scope(DataType_collapse_scope($3));
 		if ($9.is_pointer > 0) {
 		  cplus_class_close($3);
 		} else {
@@ -2119,11 +2119,11 @@ cpp_class    :
 		}
 		// Create a typedef in global scope
 		if ($9.is_pointer == 0)
-		  Active_typedef->typedef_add($9.id);
+		  DataType_typedef_add(Active_typedef,$9.id,0);
 		else {
 		  DataType *t = new DataType(Active_typedef);
 		  t->is_pointer += $9.is_pointer;
-		  t->typedef_add($9.id);
+		  DataType_typedef_add(t,$9.id,0);
 		  cplus_register_type($9.id);
 		  delete t;
 		}
@@ -2135,7 +2135,7 @@ cpp_class    :
              | TYPEDEF cpptype LBRACE {
 	       char *iname;
 	       init_language();
-	       DataType::new_scope();
+	       DataType_new_scope(0);
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
 		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
@@ -2174,7 +2174,7 @@ cpp_class    :
 		
 		// Go back to previous scope
 		
-		cplus_register_scope(DataType::collapse_scope((char *) 0));
+		cplus_register_scope(DataType_collapse_scope((char *) 0));
 		if ($7.is_pointer == 0) 
 		  cplus_class_close($7.id); 
 		cplus_mode = CPLUS_PUBLIC;
@@ -2505,7 +2505,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		    temp_type.is_pointer = 0;
 		    temp_type.implicit_ptr = 0;
 		    sprintf(temp_type.name,"int");
-		    temp_type.typedef_add($2,1); 
+		    DataType_typedef_add(&temp_type,$2,1); 
 		  }
 		}
 	      }

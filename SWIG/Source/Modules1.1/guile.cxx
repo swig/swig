@@ -354,7 +354,7 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
   if (t->type == T_VOID)
     Printf(f->code, ", (char *) 0)) {\n");
   else
-    Printv(f->code, ", \"", t->print_mangle(), "\")) {\n", 0);
+    Printv(f->code, ", \"", DataType_print_mangle(t), "\")) {\n", 0);
   /* Raise exception */
   Printv(f->code,
 	 tab8,
@@ -529,8 +529,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     Printv(f->code, tab4,
            "gswig_result = SWIG_Guile_MakePtr_Str (",
            "_result, ",
-           "\"", d->print_mangle(), "\", ",
-           "\"", d->print_type(), "\"",
+           "\"", DataType_print_mangle(d), "\", ",
+           "\"", DataType_print_type(d), "\"",
            ");\n",
 	   0);
   }
@@ -659,7 +659,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         if (t->type == T_VOID)
           Printf (f_wrappers, "(char *) 0)) {\n");
         else
-          Printf (f_wrappers, "\"%s\")) {\n", t->print_mangle());
+          Printf (f_wrappers, "\"%s\")) {\n", DataType_print_mangle(t));
 	/* Raise exception */
 	Printf(f_wrappers, "\tscm_wrong_type_arg(\"%s\", "
 		"%d, s_0);\n", proc_name, 1);
@@ -686,8 +686,8 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
            look-up. */
         Printf (f_wrappers, "\t gswig_result = SWIG_Guile_MakePtr_Str ("
-                 "%s, \"%s\", \"%s\");\n", name, t->print_mangle(),
-                 t->print_type());
+                 "%s, \"%s\", \"%s\");\n", name, DataType_print_mangle(t),
+                 DataType_print_type(t));
       }
     }
     else {
@@ -704,7 +704,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   } else {
     Printf (stderr, "%s : Line %d. ** Warning. Unable to link with "
              " type %s (ignored).\n",
-             input_file, line_number, t->print_type());
+             input_file, line_number, DataType_print_type(t));
   }
   Delete(proc_name);
 }
@@ -756,7 +756,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   } else {
     // Create variable and assign it a value
 
-    Printf (f_header, "static %s %s = ", type->print_type(), var_name);
+    Printf (f_header, "static %s %s = ", DataType_print_type(type), var_name);
     if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
@@ -881,7 +881,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
       Insert(param,0," unspecified ");
     else {
       Insert(param,0,"# ");
-      Insert(param,0, d->print_type());
+      Insert(param,0, DataType_print_type(d));
       Insert(param,0," $");
     }
   }

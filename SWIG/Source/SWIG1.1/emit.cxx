@@ -51,10 +51,10 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
 
     if (t->is_reference) {
       t->is_pointer--;
-      fprintf(f,"%s& %s%s; \n", t->print_full(), decl, arr);
+      fprintf(f,"%s& %s%s; \n", DataType_print_full(t), decl, arr);
       t->is_pointer++;
     } else {
-      fprintf(f,"%s %s%s; \n", t->print_full(), decl,arr);
+      fprintf(f,"%s %s%s; \n", DataType_print_full(t), decl,arr);
     }
     if (t->arraystr)
       t->is_pointer++;
@@ -67,10 +67,10 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
 //    fprintf(f,"#line %d \"%s\"\n", line_number, input_file);
     if (t->is_reference) {
       t->is_pointer--;
-      fprintf(f,"extern %s& %s%s; \n", t->print_full(), decl,arr);
+      fprintf(f,"extern %s& %s%s; \n", DataType_print_full(t), decl,arr);
       t->is_pointer++;
     } else {
-      fprintf(f,"extern %s %s%s; \n", t->print_full(), decl,arr);
+      fprintf(f,"extern %s %s%s; \n", DataType_print_full(t), decl,arr);
     }
     if (t->arraystr)
       t->is_pointer++;
@@ -104,10 +104,10 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
   case 0:
     if (t->is_reference) {
 	t->is_pointer--;
-	fprintf(f,"%s&", t->print_full());
+	fprintf(f,"%s&", DataType_print_full(t));
 	t->is_pointer++;
     } else {
-      fprintf(f,"%s", t->print_full());
+      fprintf(f,"%s", DataType_print_full(t));
     }
 
     fprintf(f,"%s(", decl);
@@ -119,10 +119,10 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
 //    fprintf(f,"#line %d \"%s\"\n", line_number, input_file);
     if (t->is_reference) {
 	t->is_pointer--;
-	fprintf(f,"extern %s&", t->print_full());
+	fprintf(f,"extern %s&", DataType_print_full(t));
 	t->is_pointer++;
     } else {
-      fprintf(f,"extern %s", t->print_full());
+      fprintf(f,"extern %s", DataType_print_full(t));
     }
     fprintf(f,"%s(", decl);
     ParmList_print_types(L,f);
@@ -133,10 +133,10 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
 //    fprintf(f,"#line %d \"%s\"\n", line_number, input_file);
     if (t->is_reference) {
 	t->is_pointer--;
-	fprintf(f,"extern \"C\" %s&", t->print_full());
+	fprintf(f,"extern \"C\" %s&", DataType_print_full(t));
 	t->is_pointer++;
     } else {
-      fprintf(f,"extern \"C\" %s", t->print_full());
+      fprintf(f,"extern \"C\" %s", DataType_print_full(t));
     }
     fprintf(f,"%s(", decl);
     ParmList_print_types(L,f);
@@ -146,10 +146,10 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
     // A function declaration (for inlining )
     if (t->is_reference) {
 	t->is_pointer--;
-	fprintf(f,"%s&", t->print_full());
+	fprintf(f,"%s&", DataType_print_full(t));
 	t->is_pointer++;
     } else {
-      fprintf(f,"%s", t->print_full());
+      fprintf(f,"%s", DataType_print_full(t));
     }
 
     fprintf(f,"%s(", decl);
@@ -199,12 +199,12 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
 
       // Special case for return by "value"
       rt->is_pointer++;
-      Wrapper_add_localv(f, "_result", rt->print_type(), "_result",0);
+      Wrapper_add_localv(f, "_result", DataType_print_type(rt), "_result",0);
       rt->is_pointer--;
     } else {
 
       // Normal return value
-      Wrapper_add_localv(f, "_result", rt->print_type(), "_result",0);
+      Wrapper_add_localv(f, "_result", DataType_print_type(rt), "_result",0);
     }
   }
 
@@ -218,13 +218,13 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
       // Figure out default values
       if (((p->t->is_reference) && (p->defvalue)) ||
 	  ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE) && (p->defvalue))) {
-	Wrapper_add_localv(f,temp, p->t->print_type(), temp," = (", p->t->print_type(), ") &", p->defvalue,0);
+	Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp," = (", DataType_print_type(p->t), ") &", p->defvalue,0);
       } else {
 	char deftmp[1024];
 	if (p->defvalue) {
-	  Wrapper_add_localv(f,temp, p->t->print_type(), temp, " = (", p->t->print_type(), ") ", p->defvalue, 0);
+	  Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp, " = (", DataType_print_type(p->t), ") ", p->defvalue, 0);
 	} else {
-	  Wrapper_add_localv(f,temp, p->t->print_type(), temp, 0);
+	  Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp, 0);
 	}
 
 	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,f);
@@ -288,24 +288,24 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
       // used properly.
 
       if (CPlusPlus) {
-	Printv(fcall, "_result = new ", t->print_type(), "(", 0);
+	Printv(fcall, "_result = new ", DataType_print_type(t), "(", 0);
       } else {
 	t->is_pointer++;
-	Printv(fcall, "_result = ", t->print_cast(), " malloc(sizeof(", 0);
+	Printv(fcall, "_result = ", DataType_print_cast(t), " malloc(sizeof(", 0);
 	t->is_pointer--;
-	Printv(fcall, t->print_type(), "));\n", 0);
+	Printv(fcall, DataType_print_type(t), "));\n", 0);
 	Printv(fcall, tab4, "*(_result) = ", 0);
       }
     } else {
       // Check if this is a C++ reference
       if (t->is_reference) {
 	t->is_pointer--;
-	Printv(fcall, t->print_full(), "& _result_ref = ", 0);
+	Printv(fcall, DataType_print_full(t), "& _result_ref = ", 0);
 	t->is_pointer++;
       } else {
 
 	// Normal return value
-	Printv(fcall, "_result = ", t->print_cast(), 0);
+	Printv(fcall, "_result = ", DataType_print_cast(t), 0);
       }
     }
   }
@@ -317,7 +317,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   p = ParmList_first(l);
   while(p != 0) {
     if ((p->t->type != T_VOID) || (p->t->is_pointer)){
-      Printf(fcall,p->t->print_arraycast());
+      Printf(fcall,DataType_print_arraycast(p->t));
       if ((!p->t->is_reference) && (p->call_type & CALL_VALUE))
 	Printf(fcall, "&");
       if ((!(p->call_type & CALL_VALUE)) &&
@@ -340,7 +340,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   Printf(fcall,";\n");
 
   if (t->is_reference) {
-    Printv(fcall, tab4, "_result = ",  t->print_cast(), " &_result_ref;\n", 0);
+    Printv(fcall, tab4, "_result = ",  DataType_print_cast(t), " &_result_ref;\n", 0);
   }
   // Check for exception handling
 
@@ -407,11 +407,11 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       if ((t->type == T_USER) && (!t->is_pointer)) {
 	t->is_pointer++;
 	fprintf(f_header,"static %s %s(%s val) {\n",
-		t->print_type(), Swig_name_set(name), t->print_type());
+		DataType_print_type(t), Swig_name_set(name), DataType_print_type(t));
 	t->is_pointer--;
       } else {
 	fprintf(f_header,"static %s %s(%s val) {\n",
-		t->print_type(), Swig_name_set(name), t->print_type());
+		DataType_print_type(t), Swig_name_set(name), DataType_print_type(t));
       }
 
       if ((t->type != T_VOID) || (t->is_pointer)) {
@@ -422,11 +422,11 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 	  // Otherwise, just assign it.
 
 	  if (t->type != T_USER) {
-	    fprintf(f_header,"\t return (%s) (%s = val);\n", t->print_type(), name);
+	    fprintf(f_header,"\t return (%s) (%s = val);\n", DataType_print_type(t), name);
 	  } else {
 	    fprintf(f_header,"\t %s = *(val);\n", name);
 	    t->is_pointer++;
-	    fprintf(f_header,"\t return (%s) &%s;\n", t->print_type(),name);
+	    fprintf(f_header,"\t return (%s) &%s;\n", DataType_print_type(t),name);
 	    t->is_pointer--;
 	  }
 	} else {
@@ -447,7 +447,7 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 	      fprintf(f_header,"\t return %s;\n", name);
 	    }
 	  } else {
-	    fprintf(f_header,"\t return (%s) (%s = val);\n", t->print_type(), name);
+	    fprintf(f_header,"\t return (%s) (%s = val);\n", DataType_print_type(t), name);
 	  }
 	}
       }
@@ -482,13 +482,13 @@ void emit_set_get(char *name, char *iname, DataType *t) {
     if ((t->type == T_USER) && (!t->is_pointer)) {
       t->is_pointer++;
       fprintf(f_header,"static %s %s() { \n",
-	      t->print_type(), Swig_name_get(name));
-      fprintf(f_header,"\t return (%s) &%s;\n", t->print_type(), name);
+	      DataType_print_type(t), Swig_name_get(name));
+      fprintf(f_header,"\t return (%s) &%s;\n", DataType_print_type(t), name);
       t->is_pointer--;
     } else {
       fprintf(f_header,"static %s %s() { \n",
-	      t->print_type(), Swig_name_get(name));
-      fprintf(f_header,"\t return (%s) %s;\n", t->print_type(), name);
+	      DataType_print_type(t), Swig_name_get(name));
+      fprintf(f_header,"\t return (%s) %s;\n", DataType_print_type(t), name);
     }
 
     fprintf(f_header,"}\n");
