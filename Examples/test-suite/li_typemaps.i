@@ -1,4 +1,4 @@
-%module lib_typemaps
+%module li_typemaps
 
 %include "typemaps.i"
 

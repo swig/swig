@@ -1,4 +1,4 @@
-%module lib_std_vector
+%module li_std_vector
 
 %include "std_vector.i"
 

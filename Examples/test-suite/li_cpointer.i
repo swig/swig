@@ -1,4 +1,4 @@
-%module lib_cpointer
+%module li_cpointer
 
 %warnfilter(801) doublep; /* Ruby, wrong class name */
 

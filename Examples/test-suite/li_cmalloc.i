@@ -1,4 +1,4 @@
-%module lib_cmalloc
+%module li_cmalloc
 
 %warnfilter(801) sizeof_int;    /* Ruby, wrong constant name */
 %warnfilter(801) sizeof_double; /* Ruby, wrong constant name */

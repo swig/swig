@@ -1,4 +1,4 @@
-%module lib_cstring
+%module li_cstring
 
 %include "cstring.i"
 
