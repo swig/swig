@@ -9,6 +9,7 @@ SCRIPTSUFFIX = _runme.java
 CPP_TEST_CASES = \
 	java_constants \
 	java_pragmas \
+	java_throws \
 	java_typemaps_proxy \
 	java_typemaps_typewrapper
 
