@@ -1847,7 +1847,7 @@ public:
 
 	{
 	    Wrapper *w = NewWrapper();
-	    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(CAML_VALUE self) : Swig::Director(self) { swig_disown(); }", classname, classname);
+	    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(CAML_VALUE self) : Swig::Director(self) { }", classname, classname);
 	    Wrapper_print(w, f_directors);
 	    DelWrapper(w);
 	}
