@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Source/Swig/swig.h)
-AC_PREREQ(2.0)
+AM_INIT_AUTOMAKE([swig], 2.0, nosubst)
+AC_PREREQ(2.13)
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)
@@ -34,6 +35,9 @@ AC_MSG_RESULT($MACHDEP)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+
+dnl Initialize maintainer mode
+AM_MAINTAINER_MODE
 
 dnl Checks for programs.
 
@@ -123,15 +127,9 @@ then
 fi
 AC_MSG_RESULT($CCSHARED)
 
-AC_ARG_WITH(yacc,[  --without-yacc          Try to compile without yacc/bison], [
-	YACC="cp parser.cxx.no y.tab.c; cp parser.h.no y.tab.h"
-        AC_SUBST(YACC)
-        YACCFLAGS=""
-	AC_SUBST(YACCFLAGS)
-], [ AC_PROG_YACC
-     YACCFLAGS="-d parser.y"
-     AC_SUBST(YACCFLAGS) ])
-
+AC_PROG_YACC
+YFLAGS=-d
+AC_SUBST(YFLAGS)
 
 # RPATH is the path used to look for shared library files.
 AC_MSG_CHECKING(RPATH)
@@ -453,39 +451,9 @@ AC_SUBST(PERL5EXT)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
-IMPORTED_DIRS="Source/SWILL/ Source/DOH/"
+AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
 
-# execute configure for our imported directories
-for dir in $IMPORTED_DIRS; do
-    if test -d $dir; then
-	echo Configuring in $dir -- $0 $ac_configure_args
-	cd $dir
-	# re-autoconf if necessary
-	if test ! -x configure; then $AUTOCONF; fi
-	if test configure -ot configure.in; then $AUTOCONF; fi
-	if test ! -f config.cache; then cp ../../config.cache .; fi
-	$0 $ac_configure_args
-	cd ../../
-    fi
-done
-
-AC_OUTPUT(Makefile Source/Swig/Makefile 
+AC_OUTPUT(Makefile Source/Makefile Source/Swig/Makefile 
     Source/Preprocessor/Makefile Source/SWIG1.1/Makefile 
     Source/Modules1.1/Makefile Source/LParse/Makefile 
-    Source/Experiment/Makefile Examples/Makefile, [
-
-# execute config.status for DOH and for SWILL, our imported directories
-for dir in $IMPORTED_DIRS; do
-    if test -d $dir; then
-	echo $0: Entering directory $dir
-	cd $dir
-	$0 "$@"
-	echo $0: Leaving directory $dir
-	cd ../../
-    fi
-done
-],
-[
-AUTOCONF=$AUTOCONF
-IMPORTED_DIRS="$IMPORTED_DIRS"
-])
+    Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile)

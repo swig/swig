@@ -1,0 +1,7 @@
+AUTOMAKE_OPTIONS = foreign
+
+SWIG_INCLUDES = -I$(top_srcdir)/Source/DOH/Include \
+	        -I$(top_srcdir)/Source/SWILL/Include
+
+SWIG_LIBS = $(top_builddir)/Source/DOH/Doh/libdoh.a \
+	    $(top_builddir)/Source/SWILL/SWILL/libswill.a
