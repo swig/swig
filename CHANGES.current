@@ -1,5 +1,24 @@
 Version 1.3.20 (In progress)
 ============================
+12/07/2003: mmatus (Marcelo Matus)
+	    The director protected member support had been
+	    completly moved out from python.cxx, and now
+	    resides in the common lang.cxx, emmit.cxx and
+	    allocate.cxx files. 
+
+	    This means it should work for all the other languages
+	    that currently support directors, ie, python, java, ocalm
+	    and ruby.
+
+	    The change has been tested with python (compilation+runtime)
+	    and java (just compilation).
+	    
+	    Please add runtime tests for the missing languages 
+	    and test it.
+
+	    The '-nodirprot' option was moved to the principal main,
+	    and can be used from all the languages.
+
 12/07/2003: cheetah (William Fulton)
             [Java] Fixed and improved error checking of STRING_OUT typemaps in 
             various.i.
