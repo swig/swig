@@ -1108,7 +1108,8 @@ Language::membervariableHandler(Node *n) {
 
 	if (!tm) {
 	  if (SwigType_isarray(type)) {
-	    /*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
+	    Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+		     "Unable to set variable of type %s.\n", SwigType_str(type,0));
 	    make_wrapper = 0;
 	  }
 	}  else {
@@ -1929,7 +1930,8 @@ int Language::variableWrapper(Node *n) {
 
     if (!tm) {
       if (SwigType_isarray(type)) {
-	/*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
+	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, 
+		     "Unable to set variable of type %s.\n", SwigType_str(type,0));
 	make_wrapper = 0;
       }
     }  else {
