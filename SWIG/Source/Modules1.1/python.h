@@ -33,13 +33,8 @@ protected:
   int     docstring;
   int     have_output;
   int     use_kw;     
+  int     noopt; 
   FILE    *f_shadow;
-  struct Method {               // Methods list.  Needed to build methods
-    char   *name;               // Array at very end.
-    char   *function;
-    Method *next;
-  };
-  Method  *head;
   Hash     hash;
   String   classes;
   String   func;
@@ -49,7 +44,7 @@ protected:
 
   char     *import_file;
   char     *class_name;
-  void add_method(char *name, char *function);
+  void add_method(char *name, char *function, int kw);
   void print_methods();
   char *usage_var(char *, DataType *);
   char *usage_func(char *, DataType *, ParmList *);
@@ -67,12 +62,12 @@ public :
     module = (char *) 0;
     path = "python";     // Set this to subdirectory where language
                                   // Dependent library files will be stored
-    head = 0;                     // Head of method list
     global_name = "cvar";
     shadow = 0;
     have_defarg = 0;
     import_file = 0;
     use_kw = 0;
+    noopt = 0;
   };
 
   // Don't change any of this
