@@ -346,12 +346,12 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
 
   if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"_result",(char*)""))) {
     // Found a type-specific mapping
-    Printv(exc,tm);
+    Printv(exc,tm,0);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
     Printv(f->code,exc,0);
   } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
-    Printv(exc,tm);
+    Printv(exc,tm,0);
     Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
     Replace(exc,"$name",decl,DOH_REPLACE_ANY);
     Printv(f->code,exc,0);
