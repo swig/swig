@@ -211,6 +211,7 @@ DohObjFree(DOH *ptr) {
     DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
     return;   /* Improperly initialized object. leak some more */
   }
+  if (b->file) DohDelete(b->file);
   f = (Fragment *) DohMalloc(sizeof(Fragment));
   f->ptr = (char *) ptr;
   f->len = (b->objinfo->objsize + 7) & ~0x07; 

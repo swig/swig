@@ -156,7 +156,6 @@ static DohObjInfo DohFileType = {
     DelFile,         /* doh_del      */
     0,               /* doh_copy     */
     0,               /* doh_clear    */
-    0,               /* doh_scope    */
     0,               /* doh_str      */
     0,               /* doh_data     */
     0,               /* doh_dump     */

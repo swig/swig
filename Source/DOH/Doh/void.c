@@ -67,7 +67,6 @@ static DohObjInfo DohVoidType = {
   Void_delete,      /* doh_del */
   Void_copy,        /* doh_copy */
   0,                /* doh_clear */
-  0,                /* doh_scope */
   0,                /* doh_str */
   Void_data,        /* doh_data */
   0,                /* doh_dump */

@@ -14,7 +14,7 @@ static char cvsroot[] = "$Header$";
 #include "dohint.h"
 
 typedef struct List {
-    DOHXCOMMON;
+    DOHCOMMON;
     int          maxitems;        /* Max size  */
     int          nitems;          /* Num items */
     int          iter;            /* Iterator  */
@@ -52,7 +52,6 @@ CopyList(DOH *lo) {
     l = (List *) lo;
     nl = (List *) DohObjMalloc(sizeof(List));
     nl->objinfo = l->objinfo;
-    DohXInit(nl);
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
     nl->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
@@ -86,7 +85,6 @@ DelList(DOH *lo) {
     }
     DohFree(l->items);
     l->items = 0;
-    Delete(l->file);
     DohObjFree(l);
 }
 
@@ -318,7 +316,6 @@ static DohObjInfo ListType = {
     DelList,         /* doh_del */
     CopyList,        /* doh_copy */
     List_clear,      /* doh_clear */
-    0,               /* doh_scope */
     List_str,        /* doh_str */
     0,               /* doh_data */
     List_dump,       /* doh_dump */

@@ -22,14 +22,14 @@ AR      = @AR@
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
-LIBOBJS = callable.o void.o fio.o memory.o base.o file.o list.o hash.o string.o
+LIBOBJS = void.o fio.o memory.o base.o file.o list.o hash.o string.o
 
-LIBSRCS = callable.c void.c fio.c memory.c base.c file.c list.c hash.c string.c
+LIBSRCS = void.c fio.c memory.c base.c file.c list.c hash.c string.c
 
 LIBHEADERS = $(srcdir)/../Include/doh.h
 LIB      = libdoh.a
 INCLUDE  = -I$(srcdir)/../Include
-CFLAGS   = @CFLAGS@ -DDOH_STRING_UPDATE_LINES
+CFLAGS   = @CFLAGS@
 SHELL  = /bin/sh
 
 #

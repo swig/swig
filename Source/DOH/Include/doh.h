@@ -26,13 +26,16 @@ extern "C" {
 
 typedef void DOH;
 
-  /* Symbolic names used to clarify the reading of code using DOH objects */
+/*
+ * With dynamic typing, all DOH objects are technically of type 'void *'.
+ * However, to clarify the reading of source code, the following symbolic
+ * names are used.
+ */
 
 #define DOHString          DOH
 #define DOHList            DOH
 #define DOHHash            DOH
 #define DOHFile            DOH
-#define DOHFunction        DOH
 #define DOHVoid            DOH
 #define DOHString_or_char  DOH
 #define DOHObj_or_char     DOH
@@ -67,14 +70,14 @@ typedef struct {
 
 /* File methods */
 typedef struct {
-  int       (*doh_read)(DOH *obj, void *buffer, int nbytes);
-  int       (*doh_write)(DOH *obj, void *buffer, int nbytes);
-  int       (*doh_putc)(DOH *obj, int ch);
-  int       (*doh_getc)(DOH *obj);
-  int       (*doh_ungetc)(DOH *obj, int ch);
-  int       (*doh_seek)(DOH *obj, long offset, int whence);
-  long      (*doh_tell)(DOH *obj);
-  int       (*doh_close)(DOH *obj);
+  int       (*doh_read)(DOH *obj, void *buffer, int nbytes);  /* Read bytes */
+  int       (*doh_write)(DOH *obj, void *buffer, int nbytes); /* Write bytes */
+  int       (*doh_putc)(DOH *obj, int ch);                    /* Put character */
+  int       (*doh_getc)(DOH *obj);                            /* Get character */
+  int       (*doh_ungetc)(DOH *obj, int ch);                  /* Unget character */
+  int       (*doh_seek)(DOH *obj, long offset, int whence);   /* Seek */
+  long      (*doh_tell)(DOH *obj);                            /* Tell */
+  int       (*doh_close)(DOH *obj);                           /* Close */
 } DohFileMethods;
 
 /* String methods */
@@ -82,19 +85,6 @@ typedef struct {
   int     (*doh_replace)(DOH *obj, DOH *old, DOH *rep, int flags);
   void    (*doh_chop)(DOH *obj);
 } DohStringMethods;
-
-/* Callable */
-typedef struct {
-  DOH    *(*doh_call)(DOH *obj, DOH *args);                 /* Callable */
-} DohCallableMethods;
-
-/* Positional */
-typedef struct {
-  void    (*doh_setfile)(DOH *obj, DOH *file);
-  DOH    *(*doh_getfile)(DOH *obj);
-  void    (*doh_setline)(DOH *obj, int line);
-  int     (*doh_getline)(DOH *obj);
-} DohPositionalMethods;
 
 /* -----------------------------------------------------------------------------
  * DohObjInfo
@@ -111,7 +101,6 @@ typedef struct DohObjInfo {
   void      (*doh_del)(DOH *obj);              /* Delete object      */
   DOH      *(*doh_copy)(DOH *obj);             /* Copy and object    */
   void      (*doh_clear)(DOH *obj);            /* Clear an object    */
-  void      (*doh_scope)(DOH *obj, int sc);    /* Scope              */
 
   /* Output methods */
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
@@ -120,18 +109,18 @@ typedef struct DohObjInfo {
   DOH       *(*doh_load)(DOH *in);             /* Unserialize from in */
 
   /* Length and hash values */
-  int       (*doh_len)(DOH *obj);
-  int       (*doh_hash)(DOH *obj);
+  int        (*doh_len)(DOH *obj);
+  int        (*doh_hash)(DOH *obj);
 
   /* Compare */
-  int       (*doh_cmp)(DOH *obj1, DOH *obj2);
+  int        (*doh_cmp)(DOH *obj1, DOH *obj2);
 
   DohMappingMethods  *doh_mapping;             /* Mapping methods    */
   DohSequenceMethods *doh_sequence;            /* Sequence methods   */
   DohFileMethods     *doh_file;                /* File methods       */
   DohStringMethods   *doh_string;              /* String methods     */
-  DohCallableMethods *doh_callable;            /* Callable methods   */
-  DohPositionalMethods *doh_position;          /* Positional methods */
+  void               *reserved2;
+  void               *reserved3;
   void               *reserved4;
   void               *reserved5;
   void               *reserved6;
@@ -142,6 +131,7 @@ typedef struct DohObjInfo {
 } DohObjInfo;
 
 /* Memory management */
+
   extern void   *DohMalloc(size_t size);             /* Allocate memory       */
   extern void   *DohRealloc(void *, size_t size);    /* Reallocate memory     */
   extern void    DohFree(DOH *ptr);                  /* Free memory           */
@@ -149,7 +139,6 @@ typedef struct DohObjInfo {
   extern void    DohObjFree(DOH *ptr);               /* Free a DOH object     */
   extern int     DohObjFreeCheck(DOH *ptr);          /* Check if already free */
   extern void    DohInit(DOH *obj);                  /* Initialize an object  */
-  extern void    DohXInit(DOH *obj);                 /* Initialize extended object */
   extern int     DohCheck(const DOH *ptr);           /* Check if a DOH object */
   extern int     DohPoolSize(int);                   /* Set memory alloc size */
   extern void    DohIntern(DOH *);                   /* Intern an object      */
@@ -201,11 +190,7 @@ typedef struct DohObjInfo {
   extern int     DohPutc(int ch, DOHFile *obj);
   extern int     DohUngetc(int ch, DOHFile *obj);
 
-  /* Callable Methods */
-
-  extern DOH    *DohCall(DOHFunction *obj, DOH *args);
-
-  /* Position Methods */
+  /* Positional */
 
   extern int     DohGetline(DOH *obj);
   extern void    DohSetline(DOH *obj, int line);
@@ -233,7 +218,6 @@ typedef struct DohObjInfo {
   extern int     DohIsSequence(const DOH *obj);
   extern int     DohIsString(const DOH *obj);
   extern int     DohIsFile(const DOH *obj);
-  extern int     DohIsCallable(const DOH *obj);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
@@ -286,7 +270,6 @@ typedef struct DohObjInfo {
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
-#define Call               DohCall
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -299,20 +282,13 @@ typedef struct DohObjInfo {
    DohObjInfo    *objinfo; \
    DOH           *nextptr; \
    int            refcount; \
+   DOH           *file; \
+   int            line; \
    unsigned char  flags
 
 typedef struct {
   DOHCOMMON;
 } DohBase;
-
-#define  DOHXCOMMON      \
-  DOHCOMMON; \
-  DOH    *file; \
-  int     line
-
-typedef struct {
-  DOHXCOMMON;
-} DohXBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
 #define Decref(a)        if (a) ((DohBase *) a)->refcount--
@@ -378,12 +354,6 @@ extern DOHList *DohSplit(DOHFile *input, char *chs, int nsplits);
 #define Split DohSplit
 
 extern DOH *DohNone;
-
-/* -----------------------------------------------------------------------------
- * Callable
- * ----------------------------------------------------------------------------- */
-
-extern DOHFunction *NewCallable(DOH *(*func)(DOH *, DOH *));
 
 /* -----------------------------------------------------------------------------
  * Error handling levels.
