@@ -45,7 +45,6 @@ char cvsroot_ruby_cxx[] = "$Header$";
 
   String *type;
   String *prefix;
-  String *header;
   String *init;
 
   int constructor_defined;
@@ -60,7 +59,6 @@ char cvsroot_ruby_cxx[] = "$Header$";
     mImpl = NewString("");
     type = NewString("");
     prefix = NewString("");
-    header = NewString("");
     init = NewString("");
     constructor_defined = 0;
     destructor_defined = 0;
@@ -74,7 +72,6 @@ char cvsroot_ruby_cxx[] = "$Header$";
     Delete(mname);
     Delete(type);
     Delete(prefix);
-    Delete(header);
     Delete(init);
     Delete(temp);
   }
@@ -1618,7 +1615,6 @@ public:
 	Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
       }
     }
-    Replaceall(klass->header,"$freeproto", "");
   }
   
   /* ----------------------------------------------------------------------
@@ -1639,7 +1635,7 @@ public:
 
     Clear(klass->type);
     Printv(klass->type, Getattr(n,"classtype"), NIL);
-    Printv(klass->header, "\nswig_class c", valid_name, ";\n", NIL);
+    Printv(f_wrappers, "swig_class c", valid_name, ";\n\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
     if (multipleInheritance) {
       if (!useGlobalModule) {
@@ -1674,10 +1670,6 @@ public:
     Printv(klass->init, "$allocator",NIL);
     Printv(klass->init, "$initializer",NIL);
 
-    Printv(klass->header,
-	   "$freeproto",
-	   NIL);
-
     Language::classHandler(n);
 
     handleBaseClasses(n);
@@ -1687,8 +1679,6 @@ public:
     if (multipleInheritance) {
       Printv(klass->init, "rb_include_module(", klass->vname, ", ", klass->mImpl, ");\n", NIL);
     }
-
-    Printv(f_header, klass->header,NIL);
 
     String *s = NewString("");
     Printv(s, tab4, "rb_undef_alloc_func(", klass->vname, ");\n", NIL);
@@ -1835,21 +1825,16 @@ public:
     Language::destructorHandler(n);
 
     String *freefunc = NewString("");
-    String *freeproto = NewString("");
     String *freebody = NewString("");
   
     Printv(freefunc, "free_", klass->mname, NIL);
-    Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", NIL);
     Printv(freebody, "static void\n",
 	   freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
 	   tab4, NIL);
     if (Extend) {
       String *wrap = Getattr(n, "wrap:code");
       if (wrap) {
-	File *f_code = Swig_filebyname("header");
-	if (f_code) {
-	  Printv(f_code, wrap, NIL);
-	}
+        Printv(f_wrappers, wrap, NIL);
       }
       /*    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NIL); */
       Printv(freebody,Getattr(n,"wrap:action"), NIL);
@@ -1867,13 +1852,11 @@ public:
     }
     Printv(freebody, "}\n", NIL);
   
-    Replaceall(klass->header,"$freeproto", freeproto);
     Printv(f_wrappers, freebody, NIL);
   
     klass->destructor_defined = 1;
     current = NO_CPP;
     Delete(freefunc);
-    Delete(freeproto);
     Delete(freebody);
     return SWIG_OK;
   }
