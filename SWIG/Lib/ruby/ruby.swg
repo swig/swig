@@ -252,8 +252,13 @@ typedef unsigned long VALUE;
 
 %apply long { size_t };
 
+/* Overloaded operator support */
 
+#ifdef __cplusplus
 
+%rename(__add__)	*::operator+;
+%rename(__sub__)	*::operator-;
+%rename(__mul__)	*::operator*;
+%rename(__div__)	*::operator/;
 
-
-
+#endif /* __cplusplus */

@@ -12,23 +12,26 @@
                NUM2INT(n)), (short)0)\
 )
 
-#ifdef __cplusplus
-#  if defined(_WIN32) && defined(_MSC_VER)
-#    define VALUEFUNC(f) ((VALUE (*)())f)
-#    define VOIDFUNC(f) ((void (*)(void *))f)
-#  else
-#    define VALUEFUNC(f) ((VALUE (*)(...))f)
-#    define VOIDFUNC(f) ((void (*)(...))f)
-#  endif
+#ifdef RUBY_METHOD_FUNC
+#  define VALUEFUNC(f) RUBY_METHOD_FUNC(f)
+#  define VOIDFUNC(f) ((RUBY_DATA_FUNC) f)
 #else
-# define VALUEFUNC(f) (f)
-# define VOIDFUNC(f) (f)
+#  ifdef __cplusplus
+#    if defined(_WIN32) && defined(_MSC_VER)
+#      define VALUEFUNC(f) ((VALUE (*)())f)
+#      define VOIDFUNC(f) ((void (*)(void *))f)
+#    else
+#      define VALUEFUNC(f) ((VALUE (*)(...))f)
+#      define VOIDFUNC(f) ((void (*)(...))f)
+#    endif
+#  else
+#   define VALUEFUNC(f) (f)
+#   define VOIDFUNC(f) (f)
+#  endif
 #endif
 
 typedef struct {
   VALUE  klass;
+  void  (*mark)(void *);
   void  (*destroy)(void *);
 } swig_class;
-
-  
-  

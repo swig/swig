@@ -269,8 +269,9 @@ int RUBY::top(Node *n) {
 	 "\n",
 	 0);
 
+  Printv(f_init, tab4, "SWIG_InitRuntime();\n", 0);
+  
   Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	 "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
 	 0);
   Printv(f_init,
 	 "\n",
@@ -829,7 +830,7 @@ int RUBY::classHandler(Node *n) {
 
   Clear(klass->type);
   Printv(klass->type, Getattr(n,"classtype"), 0);
-  Printv(klass->header, "\nstatic swig_class c", valid_name, ";\n", 0);
+  Printv(klass->header, "\nswig_class c", valid_name, ";\n", 0);
   Printv(klass->init, "\n", tab4, 0);
   Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
 	 ", \"", klass->name, "\", $super);\n", 0);
@@ -860,6 +861,7 @@ int RUBY::classHandler(Node *n) {
     while (base) {
       RClass *super = RCLASS(classes, Getattr(base,"name"));
       if (super) {
+        Printv(f_wrappers,"extern swig_class c", super->name, ";\n", 0);
 	Replaceall(klass->init,"$super",super->vname);
 	break;
       }
@@ -869,6 +871,8 @@ int RUBY::classHandler(Node *n) {
 
   Replace(klass->header,"$markfunc", "0", DOH_REPLACE_ANY);
   Replace(klass->header,"$markproto", "", DOH_REPLACE_ANY);
+  Printf(klass->init,"c%s.mark = 0;\n", klass->name);
+  
   if (!klass->destructor_defined) {
     Replace(klass->header,"$freefunc", "0", DOH_REPLACE_ANY);
     Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
@@ -953,9 +957,9 @@ int RUBY::destructorHandler(Node *n) {
     } else {
       /* When no addmethods mode, swig emits no destroy function. */
       if (CPlusPlus)
-        Printf(freebody, "delete %s;\n", Swig_cparm_name(0,0));
+        Printf(freebody, "delete %s", Swig_cparm_name(0,0));
       else
-        Printf(freebody, "free((char*) %s);\n", Swig_cparm_name(0,0));
+        Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
     }
     Printv(freebody, ";\n}\n", 0);
     if (CPlusPlus) {

@@ -19,18 +19,23 @@
 #       if defined(_MSC_VER)
 #               if defined(STATIC_LINKED)
 #                       define SWIGEXPORT(a) a
+#                       define SWIGIMPORT(a) extern a
 #               else
 #                       define SWIGEXPORT(a) __declspec(dllexport) a
+#                       define SWIGIMPORT(a) extern a
 #               endif
 #       else
 #               if defined(__BORLANDC__)
 #                       define SWIGEXPORT(a) a _export
+#                       define SWIGIMPORT(a) a _export
 #               else
 #                       define SWIGEXPORT(a) a
+#                       define SWIGIMPORT(a) a
+#               endif
 #       endif
-#endif
 #else
 #       define SWIGEXPORT(a) a
+#       define SWIGIMPORT(a) a
 #endif
 
 #ifdef SWIG_GLOBAL
@@ -38,8 +43,6 @@
 #else
 #define SWIGRUNTIME(a) static a
 #endif
-
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,11 +60,13 @@ typedef struct swig_type_info {
 } swig_type_info;
 
 #ifdef SWIG_NOINCLUDE
-SWIGEXPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
-SWIGEXPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
-SWIGEXPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
-SWIGEXPORT(swig_type_info *) SWIG_TypeQuery(const char *);
-SWIGEXPORT(void) SWIG_TypeClientData(swig_type_info *, void *);
+
+SWIGIMPORT(swig_type_info *) SWIG_TypeRegister(swig_type_info *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeCheck(char *c, swig_type_info *);
+SWIGIMPORT(void *) SWIG_TypeCast(swig_type_info *, void *);
+SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
+SWIGIMPORT(void) SWIG_TypeClientData(swig_type_info *, void *);
+
 #else
 
 static swig_type_info *swig_type_list = 0;
@@ -175,6 +180,3 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 }
 
 #endif
-
-
-

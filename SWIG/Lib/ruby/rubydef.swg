@@ -3,11 +3,19 @@
 extern "C" {
 #endif
 
+static VALUE _mSWIG = Qnil;
+static VALUE _cSWIG_Pointer = Qnil;
 
-SWIGRUNTIME(VALUE) _mSWIG = Qnil;
-SWIGRUNTIME(VALUE) _cSWIG_Pointer = Qnil;
+/* Initialize Ruby runtime support */
+SWIGRUNTIME(void)
+SWIG_InitRuntime(void)
+{
+    if (_mSWIG == Qnil) {
+        _mSWIG = rb_define_module("SWIG");
+    }
+}
 
-/* Define ruby class for C type */
+/* Define Ruby class for C type */
 SWIGRUNTIME(void)
 SWIG_define_class(swig_type_info *type)
 {
@@ -35,7 +43,7 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own)
     
     if (type->clientdata) {
       sklass = (swig_class *) type->clientdata;
-      return Data_Wrap_Struct(sklass->klass, 0, (own) ? VOIDFUNC(sklass->destroy) : 0, ptr);
+      return Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
     }
     klass_name = ALLOCA_N(char, 4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
