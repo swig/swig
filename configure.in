@@ -563,25 +563,35 @@ if test -n "$PYTHON"; then
     PYVERSION=`($PYTHON -c "import string,operator,os.path; print operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1)")`
     AC_MSG_RESULT($PYVERSION)
 
+    # Find the directory for libraries this is necessary to deal with
+    # platforms that can have apps built for multiple archs: e.g. x86_64
+    AC_MSG_CHECKING(for Python lib dir)
+    PYLIBDIR=`($PYTHON -c "import sys; print sys.lib") 2>/dev/null`
+    if test -z "$PYLIBDIR"; then
+      # older versions don't have sys.lib  so the best we can do is assume lib
+      PYLIBDIR="lib" 
+    fi
+    AC_MSG_RESULT($PYLIBDIR)
+    
     # Set the include directory
 
     AC_MSG_CHECKING(for Python header files)
     if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
-        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/lib/$PYVERSION/config"
+        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
     fi
     if test -z "$PYINCLUDE"; then
         if test -r $PYPREFIX/include/Py/Python.h; then
-            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/lib/python/lib"
+            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
         fi
     fi
     AC_MSG_RESULT($PYINCLUDE)
 
     # Set the library directory blindly.   This probably won't work with older versions
     AC_MSG_CHECKING(for Python library)
-    dirs="$PYVERSION/config $PYVERSION/lib python/lib"
+    dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
     for i in $dirs; do
-        if test -d $PYEPREFIX/lib/$i; then
-           PYLIB="$PYEPREFIX/lib/$i"
+        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
            break
         fi
     done
