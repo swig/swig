@@ -40,7 +40,7 @@ typedef struct swig_const_info {
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGEXPORT(PyObject *)        SWIG_newvarlink();
+SWIGEXPORT(PyObject *)        SWIG_newvarlink(void);
 SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
 SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, swig_type_info *, int);
 SWIGEXPORT(int)               SWIG_ConvertPacked(PyObject *, void *, int sz, swig_type_info *, int);
