@@ -1,8 +1,8 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    =
+SWIGOPT    = -noproxy
 SRCS       =
-TARGET     = libsimple
+TARGET     = php_simple
 INTERFACE  = simple.i
 LIBS       = -L../.. -lgifplot
 INCLUDE    = -I../../Include

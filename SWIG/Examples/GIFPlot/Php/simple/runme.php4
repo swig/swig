@@ -3,7 +3,7 @@
 # Draw some simple shapes
 print "Drawing some basic shapes\n";
 
-dl("libsimple.so");
+require "simple.php";
 
 $cmap = new_ColorMap();
 $f    = new_FrameBuffer(400,400);
