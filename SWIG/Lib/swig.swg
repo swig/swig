@@ -53,3 +53,20 @@
 %typemap(newfree) char * "free($source);";
 #endif
 
+/* Default typemap for handling char * members */
+
+#ifdef __cplusplus
+%typemap(memberin) char * {
+  if ($target) delete [] $target;
+  $target = new char[strlen($source)+1];
+  strcpy($target,$source);
+}
+#else
+%typemap(memberin) char * {
+  if ($target) free($target);
+  $target = (char *) malloc(strlen($source)+1);
+  strcpy($target,$source);
+}
+#endif
+
+  
