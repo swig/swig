@@ -598,6 +598,22 @@ void SwigType_array_setdim(SwigType *t, int n, String_or_char *rep) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_array_type()
+ *
+ * Return the base type of an array
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_array_type(SwigType *ty) {
+  SwigType *t;
+  t = Copy(ty);
+  while (SwigType_isarray(t)) {
+    Delete(SwigType_pop(t));
+  }
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_default()
  *
  * Create the default string for this datatype.   This takes a type and strips it
@@ -884,11 +900,12 @@ SwigType_ltype(SwigType *s) {
     } else if (SwigType_isarray(element)) {
       if (firstarray) {
 	Append(result,"p.");
-	while (i < (nelements - 1)) {
+	/* [beazley] This removed to properly handle arrays. 8/15/01 */
+	/*	while (i < (nelements - 1)) {
 	  element = Getitem(elements,i+1);
 	  if (!SwigType_isarray(element)) break;
 	  i++;
-	}
+	  } */
 	firstarray = 0;
       } else {
 	Append(result,element);
