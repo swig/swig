@@ -87,7 +87,7 @@ static Locator *locs = 0;
   
 static void
 scanner_locator(String *loc) {
-  char c;
+  int c;
   Locator *l;
   Seek(loc,1,SEEK_SET);
   c = Getc(loc);
