@@ -1,0 +1,69 @@
+<!-- Published by Quadralay WebWorks HTML Lite 1.5.1 -->
+<!-- And munged by Dave's special Python script -->
+<html>
+<head>
+<title>SWIG and Ruby</title>
+</head>
+
+<body bgcolor="#ffffff">
+<a name="n0"></a><h1>9 SWIG and Ruby</h1>
+
+<p><ul>
+<li> <a href="#n1">Preliminaries</a>
+<li> <a href="#n2">Building Ruby Extensions under Windows 95/NT</a>
+</ul>
+
+This chapter describes SWIG's support of Ruby. <p>
+
+Note that this chapter is in its early infant stage and only really has some advice for using SWIG and Ruby on Windows. <p>
+
+<a name="n1"></a><h2> Preliminaries</h2>
+SWIG 1.3 is known to work with Ruby 1.6.4 and Ruby 1.6.5, but should work with other versions. Given the choice, you should use the latest version of Ruby. You should also determine if your system supports shared libraries and dynamic loading. SWIG will work with or without dynamic loading, but the compilation process will vary.<p>
+<a name="n14"></a><h3> Running SWIG</h3>
+To build a Ruby module, run SWIG using the <tt>-ruby</tt> option :<p>
+<p>
+<blockquote><pre>%swig -ruby example.i
+</pre></blockquote>
+<p>
+
+<a name="n16"></a><h3> Compiling a dynamic module</h3>
+<a name="n18"></a><h3> Using your module</h3>
+
+<a name="n2"></a><h2> Building Ruby Extensions under Windows 95/NT</h2>
+Building a SWIG extension to Ruby under Windows 95/NT is roughly similar to the process used with Unix.   Normally, you will want to produce a DLL that can be loaded into the Ruby interpreter.    This section covers the process of using SWIG with Microsoft Visual C++ 6 although the procedure may be similar with other compilers.   In order to build extensions, you will need to download the source distribution to the Ruby package as you will need the Ruby header files.<p>
+<a name="n20"></a><h3> Running SWIG from Developer Studio</h3>
+If you are developing your application within Microsoft developer studio, SWIG can be invoked as a custom build option.      The process roughly follows these steps :<p>
+<p>
+<ul>
+<li>Open up a new workspace and use the AppWizard to select a DLL project.
+<li>Add both the SWIG interface file (the .i file), any supporting C files, and the name of the wrapper file that will be created by SWIG (ie. <tt>example_wrap.c</tt>).   Note : If using C++, choose a different suffix for the wrapper file such as <tt>example_wrap.cxx</tt>. Don't worry if the wrapper file doesn't exist yet--Developer Studio will keep a reference to it around.
+<li>Select the SWIG interface file and go to the settings menu.   Under settings, select the "Custom Build" option.
+<li>Enter "SWIG" in the description field.
+<li>Enter "<tt>swig -ruby -o $(ProjDir)\$(InputName)_wrap.c $(InputPath)</tt>" in the "Build command(s) field". You may have to include the path to swig.exe.
+<li>Enter "<tt>$(ProjDir)\$(InputName)_wrap.c</tt>" in the "Output files(s) field".
+<li>Next, select the settings for the entire project and go to the C/C++ tab and select the Preprocessor category. Add NT=1 to the Preprocessor definitions. This must be set else you will get compilation errors. Also add IMPORT to the preprocessor definitions, else you may get runtime errors. Also add the include directories for your Ruby installation under "Additional include directories".
+<li>Next, select the settings for the entire project and go to the Link tab and select the General category. Set the name of the output file to match the name of your Ruby module (ie. example.dll). Next add the Ruby library file to your link libraries under Object/Library modules.  For example "mswin32-ruby16.lib. You also need to add the path to the library under the Input tab - Additional library path.
+<li>Finally still under the Link tab, add the dll entry point in the Project Options: Use "/EXPORT:Init_example" for when you have set the swig module name to 'example'. In general use "/EXPORT:Init_<module>", where <module> is the swig module name (specified using %module in your interface file).
+<li>Build your project.
+</ul>
+<p>
+Now, assuming all went well, SWIG will be automatically invoked when you build your project.  Any changes made to the interface file will result in SWIG being automatically invoked to produce a new version of the wrapper file.  To run your new Ruby extension, simply run Ruby and use the <tt>require</tt> command as normal. For example if you have this ruby file run.rb:<p>
+<p>
+<blockquote><pre>
+# file: run.rb
+require 'example'
+
+# Call a c function
+print "Foo = ", Example.Foo, "\n"
+</pre></blockquote>
+
+Ensure the dll just built is in your path or current directory, then run the Ruby script from the DOS/Command prompt:
+<blockquote><pre>
+c:\swigtest&gt;ruby run.rb
+Foo = 3.0
+</pre></blockquote>
+
+<p><hr>
+
+</body>
+</html>
