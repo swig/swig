@@ -629,8 +629,12 @@ AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include di
 
 if test -z "$JAVAINCDIR"; then
   JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
+
   # Add in default installation directory on Windows for cygwin
-  JAVAINCDIR="$JAVAINCDIR /cygdrive/c/j2sdk*/include /cygdrive/d/j2sdk*/include /cygdrive/c/jdk*/include /cygdrive/d/jdk*/include"
+  case $ac_sys_system/$ac_sys_release in
+  CYGWIN*) JAVAINCDIR="$JAVAINCDIR c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include";;
+  *);;
+  esac
 fi
 
 JAVAINC=""
