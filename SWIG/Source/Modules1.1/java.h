@@ -35,6 +35,8 @@ public :
   void cpp_variable(char *name, char *iname, SwigType *t);
   void cpp_static_var(char *, char *, SwigType *);
   void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
+  void import_start(char *modulename);
+  void import_end();
 
   /* Java Module methods */
   void emit_classdef();

@@ -1799,4 +1799,9 @@ void JAVA::cpp_declare_const(char *name, char *iname, SwigType *type, char *valu
 }
 
 
+void JAVA::import_start(char *modulename) {
+}
+
+void JAVA::import_end() {
+}
 
