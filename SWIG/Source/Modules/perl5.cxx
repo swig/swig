@@ -654,8 +654,7 @@ public:
       } else {
 	Replaceall(tm, "$shadow", "0");
       }
-      if ((!SwigType_ispointer(t) && !SwigType_isreference(t))
-	  || Getattr(n,"feature:new")) {
+      if (Getattr(n,"feature:new")) {
 	Replaceall(tm,"$owner","SWIG_OWNER");
       } else {
 	Replaceall(tm,"$owner","0");
