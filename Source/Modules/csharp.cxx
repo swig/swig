@@ -1087,9 +1087,9 @@ class CSHARP : public Language {
         derived?javaTypemapLookup("cildisposeoverride", shadow_classname, WARN_NONE):
             javaTypemapLookup("cildispose", shadow_classname, WARN_NONE), // finalize method
         "\n",
-        *Char(destructor_call) ? 
-        "  protected void delete() {\n" :
-        "  private void delete() {\n",
+        *Char(destructor_call) ? "  protected " : "  private ", 
+        derived ? "override" : "virtual",
+        " void delete() {\n",
         "    if(swigCPtr != IntPtr.Zero && swigCMemOwn) {\n",
         destructor_call,
         "",
@@ -1272,7 +1272,7 @@ class CSHARP : public Language {
     String    *shadowrettype = NewString("");
     String    *user_arrays = NewString("");
     String    *propertytype = NewString("");
-    
+
     if(!proxy_flag) return;
 
 
@@ -1322,16 +1322,16 @@ class CSHARP : public Language {
     }
     bool newProperty = Cmp(variable_name, last_property) != 0;
     if (newProperty) {
-        Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
-        if (static_flag)
-            Printf(shadow_code, "static ");
-        Printf(shadow_code, "%s ", get_property_flag?shadowrettype:propertytype);
-        Printf(shadow_code, "%s {", variable_name);
+      Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
+      if (static_flag)
+        Printf(shadow_code, "static ");
+      Printf(shadow_code, "%s ", get_property_flag?shadowrettype:propertytype);
+      Printf(shadow_code, "%s {", variable_name);
     }
 
     Delete (last_property);
     last_property = variable_name;
-    
+
     /* Start generating the shadow function */
     Printf(shadow_code, "\n    %s", get_property_flag?"get":"set");
 
@@ -1339,54 +1339,54 @@ class CSHARP : public Language {
     if (!static_flag)
       Printv(nativecall, "swigCPtr", NIL);
     if (!get_property_flag)
-        Printv(nativecall, static_flag?"":", ", "value", NIL);
+      Printv(nativecall, static_flag?"":", ", "value", NIL);
     else {
-        int gencomma = !static_flag;
-        /* Output each parameter */
-        for (i = 0, p=l; p; i++) {
+      int gencomma = !static_flag;
+      /* Output each parameter */
+      for (i = 0, p=l; p; i++) {
 
         /* Ignored parameters */
         if (checkAttribute(p,"tmap:in:numinputs","0")) {
-            p = Getattr(p,"tmap:in:next");
-            continue;
+          p = Getattr(p,"tmap:in:next");
+          continue;
         }
 
         /* Ignore the 'this' argument for variable wrappers */
         if (!(variable_wrapper_flag && i==0)) 
         {
-            SwigType *pt = Getattr(p,"type");
-            String   *javaparamtype = NewString("");
+          SwigType *pt = Getattr(p,"type");
+          String   *javaparamtype = NewString("");
 
-            /* Get the java type of the parameter */
-            if ((tm = Getattr(p,"tmap:jstype"))) {
+          /* Get the java type of the parameter */
+          if ((tm = Getattr(p,"tmap:jstype"))) {
             substituteJavaclassname(pt, tm);
             Printf(javaparamtype, "%s", tm);
-            } else {
+          } else {
             Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
                 "No jstype typemap defined for %s\n", SwigType_str(pt,0));
-            }
+          }
 
-            if (gencomma)
-               Printf(nativecall, ", ");
+          if (gencomma)
+            Printf(nativecall, ", ");
 
-            String *arg = makeParameterName(n, p, i);
-            
-            // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
-            if ((tm = Getattr(p,"tmap:javain"))) {
+          String *arg = makeParameterName(n, p, i);
+
+          // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in native function (in JNI class)
+          if ((tm = Getattr(p,"tmap:javain"))) {
             substituteJavaclassname(pt, tm);
             Replaceall(tm, "$javainput", arg);
             Printv(nativecall, tm, NIL);
-            } else {
+          } else {
             Swig_warning(WARN_JAVA_TYPEMAP_JAVAIN_UNDEF, input_file, line_number, 
                 "No javain typemap defined for %s\n", SwigType_str(pt,0));
-            }
+          }
 
-            gencomma = 2;
-            Delete(arg);
-            Delete(javaparamtype);
+          gencomma = 2;
+          Delete(arg);
+          Delete(javaparamtype);
         }
         p = Getattr(p,"tmap:in:next");
-        }
+      }
     }
 
     Printf(nativecall, ")");
@@ -1402,7 +1402,7 @@ class CSHARP : public Language {
       Replaceall(tm, "$jnicall", nativecall);
       Printf(shadow_code, " %s", tm);
       if (get_property_flag) { //TODO: this is not the right way to do this
-          Printf(shadow_code, "\n  }\n\n");
+        Printf(shadow_code, "\n  }\n\n");
       }
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
@@ -1463,9 +1463,11 @@ class CSHARP : public Language {
     Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
     if (static_flag)
       Printf(shadow_code, "static ");
-    else
-      Printf(shadow_code, "virtual ");
-    //make all methods virtual unless they are static - you might want to change this..
+    if (Getattr(n,"virtual:derived"))
+        Printf(shadow_code, "override ");
+    else if (checkAttribute(n, "storage", "virtual"))
+        Printf(shadow_code, "virtual ");
+
     Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
     Printv(nativecall, jniclass_name, ".", java_function_name, "(", NIL);
@@ -1623,7 +1625,7 @@ class CSHARP : public Language {
         p = Getattr(p,"tmap:in:next");
       }
 
-      Printf(nativecall, "), true)\n");
+      Printf(nativecall, "), true)");
 
       Printf(shadow_code, ")");
       Printf(shadow_code,"%s", nativecall);
