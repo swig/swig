@@ -121,6 +121,7 @@ CPP_TEST_CASES += \
 	lib_std_string \
 	lib_std_vector \
 	lib_typemaps \
+	long_long_apply \
 	member_template \
 	minherit \
 	name_cxx \
