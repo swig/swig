@@ -914,6 +914,8 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   cname = Swig_name_construct(ClassName);
   mrename = Swig_name_construct(iname ? iname : ClassPrefix);
 
+  if (Swig_symbol_lookup(mrename)) return;
+
   if (CPlusPlus) {
     w = Swig_cppconstructor_wrapper(ClassType, l, CCode);
   } else {
@@ -946,6 +948,9 @@ void Language::cpp_destructor(char *name, char *iname) {
 
   cname = Swig_name_destroy(ClassPrefix);
   mrename = Swig_name_destroy(iname ? iname : name);
+
+  /* Symbol table */
+  if (Swig_symbol_lookup(mrename)) return;
 
   if (CPlusPlus) {
     w = Swig_cppdestructor_wrapper(ClassType,CCode);
