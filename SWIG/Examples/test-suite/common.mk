@@ -137,6 +137,7 @@ CPP_TEST_CASES += \
 	evil_diamond_ns \
 	evil_diamond_prop \
 	exception_order \
+	extend_default \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
