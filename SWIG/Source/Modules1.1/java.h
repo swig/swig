@@ -45,6 +45,8 @@ public :
     useRegisterNatives=0;
     finalize=0;
     shadow_classes = NewHash();
+    classdef_emitted = 0;
+    shadow_classdef_emitted = 0;
   };
 
   // Virtual functions required by the SWIG parser
