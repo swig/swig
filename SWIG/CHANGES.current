@@ -1,5 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
+04/23/2003: beazley
+            Fixed problem with namespace resolution and nested namespaces.
+            Reported by Alfred Lorber (and Marcelo Matus).
+
 04/16/2003: cheetah (William Fulton)
             Patch for Java examples and test-suite to run on Mac OS X.
 
