@@ -29,3 +29,4 @@
 %include "typemaps.i"
 %include "typecheck.i"
 %include "exception.i"
+%include "director.swg"
