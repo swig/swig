@@ -223,7 +223,7 @@ retract(SwigScanner *s, int n) {
 static int
 look(SwigScanner *s) {
     int      state;
-    char     c = 0;
+    int      c = 0;
 
     state = 0;
     Clear(s->text);
