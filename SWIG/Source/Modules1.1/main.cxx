@@ -129,9 +129,10 @@ install_opts(int argc, char *argv[]) {
 	} else {
 	  Printf(opt," 1");
 	}
-	/*	Printf(stdout,"%s\n", opt);*/
-	if (!noopt)
+	if (!noopt) {
+	  /*	  Printf(stdout,"%s\n", opt); */
 	  Preprocessor_define(opt, 0);
+	}
       }
     }
   }
