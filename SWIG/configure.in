@@ -138,7 +138,7 @@ then
              then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
              else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun";
              fi;;
-        hp*|HP*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
+        *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
         *-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
