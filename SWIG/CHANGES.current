@@ -1,3 +1,7 @@
 Version 1.3.23 (in progress)
 ==================================
 
+09/06/2004: wsfulton
+            Added the missing runtime.dsp Visual Studio project files for the
+            import examples to work.
+
