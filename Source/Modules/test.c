@@ -132,7 +132,7 @@ emit_function(DOH *obj, void *clientdata) {
   DOHHash     *p;
   SwigWrapper *wf;
   int         numarg = 0, numopt = 0;
-  int         i;
+  int         i, pn;
 
   if (ExternMode) return 0;
 
@@ -164,20 +164,25 @@ emit_function(DOH *obj, void *clientdata) {
     DOHString   *inputstr;
     DOHString   *checkstr;
     DOHString   *initstr;
+    DOHString   *targetstr;
 
     parsestr = NewString("");
     argstr    = NewString("");
     inputstr  = NewString("");
     checkstr  = NewString("");
     initstr   = NewString("");
+    targetstr = NewString("");
 
     p = parms;
-    i = 0;
+    pn = 0;
     
     while (p) {
       int nmatch = 0;
       DOHHash  *map;
       DOHHash  *rules;
+      char      suffix[32];
+
+      sprintf(suffix,"_%d", pn);
 
       map = Swig_map_match(Rules, "argument", p, &nmatch);
 
@@ -185,22 +190,23 @@ emit_function(DOH *obj, void *clientdata) {
 	Printf(stderr,"%s:%d. No argument rule for %S\n", Getfile(p),Getline(p),SwigType_cstr(Getattr(p,"type"),Getattr(p,"name")));
 	return;
       }
-      Printf(stdout,"Got match: %s\n", Getattr(map,"parms"));
-
       /* Pull out the rules */
-
       rules = Getattr(map,"rules");
       if (rules) {
 	DOH *linit;
 	DOH *lparse;
 	DOH *linput;
 	DOH *lcheck;
+	DOH *largstr;
+	DOH *ltarget;
 
-	linit = Getattr(rules,"init");
-	lparse = Getattr(rules,"parse");
-	linput = Getattr(rules,"input");
-	lcheck = Getattr(rules,"check");
+	linit = Copy(Getattr(rules,"init"));
+	lparse = Copy(Getattr(rules,"parse"));
+	linput = Copy(Getattr(rules,"input"));
+	lcheck = Copy(Getattr(rules,"check"));
+	ltarget = Copy(Getattr(rules,"target"));
 
+	largstr = 0;
 	/* Construct the parse and argument strings */
 
 	if (lparse) {
@@ -209,9 +215,6 @@ emit_function(DOH *obj, void *clientdata) {
 	  int i;
 	  Seek(lparse,0,SEEK_SET);
 	  sp = DohSplit(lparse,",",-1);
-
-	  Printf(stdout,"*** %s\n", sp);
-
 	  pstr = Getitem(sp,0);
 	  if (pstr) {
 	    char *c = Char(pstr);
@@ -222,33 +225,83 @@ emit_function(DOH *obj, void *clientdata) {
 	      c++;
 	    }
 	  }
+	  largstr = NewString("");
 	  for (i = 1; i < Len(sp); i++) {
-	    Printf(argstr,",%s",Getitem(sp,i));
+	    Printf(largstr,",%s",Getitem(sp,i));
+	  }
+	  Delete(sp);
+	}
+
+	/* Variable substitution.   We're going to walk down the map's children and perform variable name
+	   replacements */
+
+	{
+	  DOH *c = Getattr(map,"child");
+	  while (c) {
+	    if (Cmp(Getattr(c,"tag"),"variable") == 0) {
+	      DOH *vname;
+	      DOH *rname;
+	      DOH *vtype;
+	      DOH *vvalue;
+	      DOH *storage;
+	      DOH *local;
+
+	      storage = Getattr(c,"storage");
+	      vname = Getattr(c,"name");
+	      vtype = Getattr(c,"type");
+	      vvalue = Getattr(c,"value");
+	      
+	      rname = NewStringf("%s_%d",vname,pn);
+
+	      if (largstr) Replace(largstr,vname,rname,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
+	      if (linit) Replace(linit,vname,rname,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
+	      if (linput) Replace(linput,vname,rname,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
+	      if (lcheck) Replace(lcheck,vname,rname,DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
+	      if (ltarget) Replace(ltarget,vname,rname, DOH_REPLACE_ID | DOH_REPLACE_NOQUOTE);
+
+	      /* Declare as local to wrapper function */
+	      local = NewString("");
+	      Printf(local,"%S", SwigType_cstr(vtype,rname));
+	      if (vvalue) {
+		Printf(local," = %s", vvalue);
+	      }
+	      SwigWrapper_add_local(wf,local,rname);
+	      Delete(local);
+	      Delete(rname);
+	    }
+	    c = Swig_next(c);
 	  }
 	}
+	if (largstr) Append(argstr, largstr);
 	if (linput) Append(inputstr,linput);
 	if (lcheck) Append(checkstr,lcheck);
 	if (linit) Append(initstr,linit);
+	if (ltarget) Printf(targetstr,"%s,", ltarget);
+	Delete(largstr);
+	Delete(linput);
+	Delete(lcheck);
+	Delete(linit);
+	Delete(ltarget);
       }
-
 
       while (nmatch > 0) {
 	p = Swig_next(p);
 	nmatch--;
+	pn++;
       }
     }
 
+    /* Dump out the wrapper code */
+
+    if (pn > 0)
+      Delitem(targetstr,DOH_END);
+
     Printv(wf->code,
-	   "init:\n",
 	   initstr,
-	   "\nparse:\n",
-	   parsestr,
-	   "\nargstr:\n",
-	   argstr,
-	   "\ninput:\n",
+	   "if (PyParse_Args(\"", parsestr, "\"", argstr, ") == NULL) return NULL;\n",
 	   inputstr,
-	   "\ncheck:\n",
 	   checkstr,
+	   "result = ", name, "(", targetstr, ");\n",
 	   0);
   }
 
