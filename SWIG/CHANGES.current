@@ -1,5 +1,18 @@
 Version 1.3.20 (In progress)
 ============================
+05/28/2003: beazley
+            Fixed subtle type handling bug with references and pointers.
+            If you had functions like this:
+
+                  typedef Foo Bar;
+
+                  Foo *func1();
+                  void func2(Bar &x);
+
+            Then func2() wouldn't accept objects returned by func1()
+            because of a type error.   It should work now.
+            Reported by Brian Yang.
+
 05/21/2003: cheetah (William Fulton)
             Fixes to some of the Visual C++ example project files which would not 
             work with spaces in the paths held in the environment variables used to 
