@@ -214,7 +214,6 @@ String *Swig_method_decl(SwigType *s, const String_or_char *id, List *args, int 
 	if (!name) {
 	    name = NewString("");
 	}
-	SwigType_remember(type);
 	p = SwigType_str(type, name);
 	Append(result,p);
         String* value = Getattr(parm, "value");
