@@ -964,6 +964,7 @@ if test -n "$PIKE"; then
 	PIKEPATH=`which $PIKE`
 	PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
  	AC_MSG_RESULT($PIKEINCLUDE)
+	PIKEINCLUDE="-I$PIKEINCLUDE"
 else
 	AC_MSG_RESULT(could not figure out how to run Pike)
 	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
