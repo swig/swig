@@ -513,3 +513,8 @@
 
 %include "java_arrays.i"
 
+
+/* Some ANSI C typemaps */
+
+%apply long { size_t };
+
