@@ -405,9 +405,10 @@
 	 signed char, unsigned char,
 	 long long, unsigned long long,
 	 const int &, const short &, const long &,
-	const unsigned int &, const unsigned short &, const unsigned long &,
-	const long long &, const unsigned long long &,
-	enum SWIGTYPE 
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE,
+         bool, const bool & 
 {
   $1 = PyInt_Check($input) ? 1 : 0;
 }
