@@ -643,7 +643,7 @@ SwigType_ltype(SwigType *s) {
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
     td = SwigType_typedef_resolve(tc);
-    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isenum(td) || SwigType_isreference(td))) {
+    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       /* We need to use the typedef type */
       Delete(tc);
       tc = td;
@@ -653,6 +653,7 @@ SwigType_ltype(SwigType *s) {
   }
   elements = SwigType_split(tc);
   nelements = Len(elements);
+
   /* Now, walk the type list and start emitting */
   for (i = 0; i < nelements; i++) {
     element = Getitem(elements,i);
@@ -683,7 +684,8 @@ SwigType_ltype(SwigType *s) {
       }
       firstarray = 0;
     } else if (SwigType_isenum(element)) {
-      if (notypeconv) {
+      int anonymous_enum = (Cmp(element,"enum ") == 0); 
+      if (notypeconv || !anonymous_enum) {
 	Append(result,element);
       } else {
 	Append(result,"int");
@@ -924,6 +926,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   Replace(base,"struct ","", DOH_REPLACE_ANY);     /* This might be problematic */
   Replace(base,"class ","", DOH_REPLACE_ANY);
   Replace(base,"union ","", DOH_REPLACE_ANY);
+  Replace(base,"enum ","", DOH_REPLACE_ANY);
 
   c = Char(base);
   while (*c) {
