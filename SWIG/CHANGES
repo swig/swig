@@ -3,6 +3,93 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+8/15/00 : beazley
+          Typemaps have been completely rewritten.  Eventually they may be
+          replaced with something better, but for now they stay.  However,
+          there are a number of a significant changes that may trip some
+          people up:
+
+          1.  Typemap scoping is currently broken.  Because of this, the
+              following code won't work.
+
+              %typemap(in) blah * { 
+                   ...
+              }
+              class Foo {
+                   ...
+                   int bar(blah *x);
+              }
+              %typemap(in) blah *;   /* Clear typemap */
+
+              (this breaks because the code for the class Foo is actually
+              generated after the entire interface file has been processed).
+              This is only a temporary bug.
+
+          2.  In SWIG1.1, the %apply directive worked by performing a 
+              very complex type-aliasing procedure.  From this point on,
+              %apply is simply a generalized typemap copy operation. 
+              For example,
+
+                  %apply double *OUTPUT { double *x, double *y };
+ 
+              Copies *ALL* currently defined typemaps for 'double *OUTPUT' and
+              copies them to 'double *x' and 'double *y'.
+
+              Most people probably won't even notice this change in
+              %apply.  However, where it will break things is in code like 
+              this:
+
+                  %apply double *OUTPUT { double *x };
+                  %typemap(in) double *OUTPUT {
+                       ... whatever ...
+                  }
+
+                  void foo(double *x);
+
+              In SWIG1.1, you will find that 'foo' uses the 'double *OUTPUT' rule
+              even though it was defined after the %apply directive (this is
+              the weird aliasing scheme at work).  In SWIG1.3 and later,
+              the 'double *OUTPUT' rule is ignored because it is defined
+              after the %apply directive.
+
+          3.  The %clear directive has been modified to erase all currently
+              defined typemaps for a particular type.  This differs from 
+              SWIG1.1 where %clear only removed rules that were added using
+              the %apply directive.
+
+          4.  Typemap matching is now performed using *exact* types.
+              This means that things like this
+
+                   %typemap(in) char * { }
+                   %typemap(in) const char * { }
+
+              are different typemaps.    A similar rule applies for pointers,
+              arrays, and references.  For example:
+
+                   %typemap(in) double * { }
+ 
+              used to apply to 'double &', 'double []',  Now, it only applies
+              to 'double *'.  If you want a 'double &', you'll need to handle
+              that separately.
+
+          5.  Array matching has been simplfied.  In SWIG1.1, array matching
+              was performed by trying various combinations of dimensions.
+              For example, 'double a[10][20]' was matched as follows:
+     
+                   double [10][20]
+                   double [ANY][20]
+                   double [10][ANY]
+                   double [ANY][ANY]
+
+              In SWIG1.3, only the following matches are attempted:
+
+                   double [10][20]
+                   double [ANY][ANY]
+
+          On the positive side, typemap matching is now *significantly* faster
+          than before.
+          *** POTENTIAL INCOMPATIBILITY ***
+
 8/14/00 : beazley
           Completely new type-system added to the implementation.
           More details later.
