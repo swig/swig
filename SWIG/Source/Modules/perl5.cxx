@@ -1144,7 +1144,11 @@ public:
       }
       /* If we are inheriting from a base class, set that up */
 
-      Printv(pm, "@ISA = qw( ",fullmodule, NIL);
+
+      Printv(pm, "@ISA = qw( ", NIL);
+      if (!compat || Cmp(fullmodule, fullclassname)) {
+	Printv(pm, fullmodule, NIL);
+      }
 
       /* Handle inheritance */
       List *baselist = Getattr(n,"bases");
