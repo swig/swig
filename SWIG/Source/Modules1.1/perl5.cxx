@@ -1686,7 +1686,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 
     }
 
-    Printv(pcode, tab4, "my $self = shift;\n",
+    Printv(pcode, tab4, "my $pkg = shift;\n",
 	   tab4, "my @args = @_;\n", 0);
 
     /* We are going to need to patch up arguments here if necessary
@@ -1708,13 +1708,13 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     }
 
     Printv(pcode,
-	   tab4, "$self = ", package, "::", Swig_name_construct(realname), "(@args);\n",
+	   tab4, "my $self = ", package, "::", Swig_name_construct(realname), "(@args);\n",
 	   tab4, "return undef if (!defined($self));\n",
 	   tab4, "bless $self, \"", fullclassname, "\";\n",
 	   tab4, "$OWNER{$self} = 1;\n",
 	   tab4, "my %retval;\n",
 	   tab4, "tie %retval, \"", fullclassname, "\", $self;\n",
-	   tab4, "return bless \\%retval,\"", fullclassname, "\";\n",
+	   tab4, "return bless \\%retval, $pkg;\n",
 	   "}\n\n",
 	   0);
 
