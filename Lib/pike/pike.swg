@@ -111,8 +111,7 @@ extern "C" {
 %typemap(out, pikedesc="tStr") char *		"push_text($1);";
 
 /* Pointers, references, and arrays */
-%typemap(out) SWIGTYPE*, SWIGTYPE &, SWIGTYPE []
-        "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner);";
+%typemap(out, pikedesc="tObj") SWIGTYPE*, SWIGTYPE &, SWIGTYPE [] "push_object(SWIG_NewPointerObj((void *) $1, $1_descriptor, $owner));";
 
 /* Void return value; don't push anything */
 %typemap(out, pikedesc="tVoid") void		"";
@@ -128,19 +127,19 @@ extern "C" {
 %typemap(out, pikedesc="tStr") char [ANY], const char [ANY] "push_text($1);";
 
 /* Primitive types--return by value */
-%typemap(out) SWIGTYPE 
+%typemap(out, "tObj") SWIGTYPE 
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
   resultptr = new $1_ltype(($1_ltype &) $1);
-  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+  push_object(SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1));
 }
 #else
 {
   $&1_ltype resultptr;
   resultptr = ($&1_ltype) malloc(sizeof($1_type));
   memmove(resultptr, &$1, sizeof($1_type));
-  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+  push_object(SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1));
 }
 #endif
 
