@@ -1,4 +1,4 @@
-require 'lib_std_string'
+require 'li_std_string'
 
 include Lib_std_string
 

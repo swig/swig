@@ -1,4 +1,4 @@
-from lib_std_vector import *
+from li_std_vector import *
 
 iv = IntVector(4)
 for i in range(0,4):

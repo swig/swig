@@ -1,4 +1,4 @@
-require 'lib_std_deque'
+require 'li_std_deque'
 
 include Lib_std_deque
 

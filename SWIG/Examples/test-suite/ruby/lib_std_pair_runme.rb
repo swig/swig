@@ -1,4 +1,4 @@
-require 'lib_std_pair'
+require 'li_std_pair'
 
 include Lib_std_pair
 
@@ -30,7 +30,7 @@ raise RuntimeError unless (intPairConstRef.first == 7 && intPairConstRef.second 
 #
 # Now test various input typemaps. Each of the wrapped C++ functions
 # (product1, product2 and product3) is expecting an argument of a
-# different type (see lib_std_pair.i). Typemaps should be in place to
+# different type (see li_std_pair.i). Typemaps should be in place to
 # convert this Array into the expected argument type.
 #
 raise RuntimeError unless product1(intPair) == 42
