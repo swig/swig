@@ -41,9 +41,8 @@ public :
   virtual int destructorHandler(Node *);
   virtual int classHandler(Node *);
   virtual int classDeclaration(Node *);
-
   virtual int insertDirective(Node *);
-  virtual void import_start(char *);
+  virtual int importDirective(Node *);
 
 };
 

@@ -940,111 +940,118 @@ Valid pragmas:
  shadowinterface - interfaces (extends) for the shadow class
 */
 
-void JAVA::pragma(char *lang, char *code, char *value) {
-  if(strcmp(lang, "java") != 0) return;
-
-  String *strvalue = NewString(value);
-  Replace(strvalue,"\\\"", "\"", DOH_REPLACE_ANY);
-
-  if(strcmp(code, "moduleimport") == 0) {
-    Printf(module_import, "import %s;\n", strvalue);
-  } 
-  else if(strcmp(code, "allshadowimport") == 0) {
-    if(shadow && all_shadow_import)
-      Printf(all_shadow_import, "import %s;\n", strvalue);
-  } 
-  else if(strcmp(code, "import") == 0) {
-    Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please replace with moduleimport, shadowimport and/or allshadowimport pragmas.\n", input_file, line_number);
-  }
-  else if(strcmp(code, "modulecode") == 0 || strcmp(code, "module") == 0) {
-    if(strcmp(code, "module") == 0)
-      Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulecode pragma.\n", input_file, line_number);
-    Printf(module_extra_code, "%s\n", strvalue);
-  } 
-  else if(strcmp(code, "allshadowcode") == 0 || strcmp(code, "shadow") == 0) {
-    if(shadow && all_shadow_extra_code) {
-      if(strcmp(code, "shadow") == 0)
-        Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with allshadowcode pragma.\n", input_file, line_number);
-      Printf(all_shadow_extra_code, "%s\n", strvalue);
+int JAVA::pragmaDirective(Node *n) {
+    if (!ImportMode) {
+	String *lang = Getattr(n,"lang");
+	String *code = Getattr(n,"name");
+	String *value = Getattr(n,"value");
+	
+	if(Strcmp(lang, "java") != 0) return Language::pragmaDirective(n);
+	
+	String *strvalue = NewString(value);
+	Replace(strvalue,"\\\"", "\"", DOH_REPLACE_ANY);
+	
+	if(Strcmp(code, "moduleimport") == 0) {
+	    Printf(module_import, "import %s;\n", strvalue);
+	} 
+	else if(Strcmp(code, "allshadowimport") == 0) {
+	    if(shadow && all_shadow_import)
+		Printf(all_shadow_import, "import %s;\n", strvalue);
+	} 
+	else if(Strcmp(code, "import") == 0) {
+	    Printf(stderr,"%s : Line %d. Ignored: Deprecated pragma. Please replace with moduleimport, shadowimport and/or allshadowimport pragmas.\n", input_file, line_number);
+	}
+	else if(Strcmp(code, "modulecode") == 0 || Strcmp(code, "module") == 0) {
+	    if(Strcmp(code, "module") == 0)
+		Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulecode pragma.\n", input_file, line_number);
+	    Printf(module_extra_code, "%s\n", strvalue);
+	} 
+	else if(Strcmp(code, "allshadowcode") == 0 || Strcmp(code, "shadow") == 0) {
+	    if(shadow && all_shadow_extra_code) {
+		if(Strcmp(code, "shadow") == 0)
+		    Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with allshadowcode pragma.\n", input_file, line_number);
+		Printf(all_shadow_extra_code, "%s\n", strvalue);
+	    }
+	} 
+	else if(Strcmp(code, "modulebase") == 0) {
+	    if(shadow && module_baseclass)
+		Printf(module_baseclass, "%s", strvalue);
+	} 
+	else if(Strcmp(code, "allshadowbase") == 0) {
+	    if(shadow && all_shadow_baseclass)
+		Printf(all_shadow_baseclass, "%s", strvalue);
+	} 
+	else if(Strcmp(code, "moduleinterface") == 0) {
+	    if(shadow && module_interfaces)
+		if (!*Char(module_interfaces))
+		    Printf(module_interfaces, "implements %s", strvalue);
+		else
+		    Printf(module_interfaces, ", %s", strvalue);
+	} 
+	else if(Strcmp(code, "allshadowinterface") == 0) {
+	    if(shadow && all_shadow_interfaces) {
+		if (!*Char(all_shadow_interfaces))
+		    Printf(all_shadow_interfaces, "implements %s", strvalue);
+		else
+		    Printf(all_shadow_interfaces, ", %s", strvalue);
+	    }
+	} 
+	else if(Strcmp(code, "allshadowclassmodifiers") == 0) {
+	    if(shadow && all_shadow_class_modifiers)
+		Printv(all_shadow_class_modifiers, strvalue, NULL);
+	} 
+	else if(Strcmp(code, "moduleclassmodifiers") == 0) {
+	    if(shadow && module_class_modifiers)
+		Printv(module_class_modifiers, strvalue, NULL);
+	} 
+	else if(Strcmp(code, "modulemethodmodifiers") == 0 || Strcmp(code, "modifiers") == 0) {
+	    if(Strcmp(code, "modifiers") == 0)
+		Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulemethodmodifiers pragma.\n", input_file, line_number);
+	    Clear(module_method_modifiers);
+	    Printv(module_method_modifiers, strvalue, NULL);
+	} else if (shadow) {
+	    if (Strcmp(code,"shadowcode") == 0) {
+		if (f_shadow && shadow_code)
+		    Printf(shadow_code, "%s\n", strvalue);
+		else
+		    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+	    } 
+	    else if (Strcmp(code,"shadowimport") == 0) {
+		if (this_shadow_import)
+		    Printf(this_shadow_import, "import %s;\n", strvalue);
+		else
+		    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+	    } 
+	    else if (Strcmp(code,"shadowbase") == 0) {
+		if (this_shadow_baseclass)
+		    Printf(this_shadow_baseclass, "%s", strvalue);
+		else
+		    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+	    } 
+	    else if (Strcmp(code,"shadowinterface") == 0) {
+		if (this_shadow_interfaces) {
+		    if (!*Char(this_shadow_interfaces))
+			Printf(this_shadow_interfaces, "implements %s", strvalue);
+		    else
+			Printf(this_shadow_interfaces, ", %s", strvalue);
+		}
+		else
+		    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+	    } 
+	    else if (Strcmp(code,"shadowclassmodifiers") == 0) {
+		if (this_shadow_class_modifiers)
+		    Printv(this_shadow_class_modifiers, strvalue, NULL);
+		else
+		    Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
+	    }  else {
+		Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	    }
+	} else {
+	    Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	}
+	Delete(strvalue);
     }
-  } 
-  else if(strcmp(code, "modulebase") == 0) {
-    if(shadow && module_baseclass)
-      Printf(module_baseclass, "%s", strvalue);
-  } 
-  else if(strcmp(code, "allshadowbase") == 0) {
-    if(shadow && all_shadow_baseclass)
-      Printf(all_shadow_baseclass, "%s", strvalue);
-  } 
-  else if(strcmp(code, "moduleinterface") == 0) {
-    if(shadow && module_interfaces)
-      if (!*Char(module_interfaces))
-        Printf(module_interfaces, "implements %s", strvalue);
-      else
-        Printf(module_interfaces, ", %s", strvalue);
-  } 
-  else if(strcmp(code, "allshadowinterface") == 0) {
-    if(shadow && all_shadow_interfaces) {
-      if (!*Char(all_shadow_interfaces))
-        Printf(all_shadow_interfaces, "implements %s", strvalue);
-      else
-        Printf(all_shadow_interfaces, ", %s", strvalue);
-    }
-  } 
-  else if(strcmp(code, "allshadowclassmodifiers") == 0) {
-    if(shadow && all_shadow_class_modifiers)
-      Printv(all_shadow_class_modifiers, strvalue, NULL);
-  } 
-  else if(strcmp(code, "moduleclassmodifiers") == 0) {
-    if(shadow && module_class_modifiers)
-      Printv(module_class_modifiers, strvalue, NULL);
-  } 
-  else if(strcmp(code, "modulemethodmodifiers") == 0 || strcmp(code, "modifiers") == 0) {
-    if(strcmp(code, "modifiers") == 0)
-      Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulemethodmodifiers pragma.\n", input_file, line_number);
-    Clear(module_method_modifiers);
-    Printv(module_method_modifiers, strvalue, NULL);
-  } else if (shadow) {
-    if (strcmp(code,"shadowcode") == 0) {
-      if (f_shadow && shadow_code)
-        Printf(shadow_code, "%s\n", strvalue);
-      else
-        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-    } 
-    else if (strcmp(code,"shadowimport") == 0) {
-      if (this_shadow_import)
-        Printf(this_shadow_import, "import %s;\n", strvalue);
-      else
-        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-    } 
-    else if (strcmp(code,"shadowbase") == 0) {
-      if (this_shadow_baseclass)
-        Printf(this_shadow_baseclass, "%s", strvalue);
-      else
-        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-    } 
-    else if (strcmp(code,"shadowinterface") == 0) {
-      if (this_shadow_interfaces) {
-        if (!*Char(this_shadow_interfaces))
-          Printf(this_shadow_interfaces, "implements %s", strvalue);
-        else
-          Printf(this_shadow_interfaces, ", %s", strvalue);
-      }
-      else
-        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-    } 
-    else if (strcmp(code,"shadowclassmodifiers") == 0) {
-      if (this_shadow_class_modifiers)
-        Printv(this_shadow_class_modifiers, strvalue, NULL);
-      else
-        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
-    }  else {
-      Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
-    }
-  } else {
-    Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
-  }
-  Delete(strvalue);
+    return Language::pragmaDirective(n);
 }
 
 void JAVA::emitShadowClassDef(Node *n) {

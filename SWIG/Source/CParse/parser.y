@@ -1121,12 +1121,23 @@ include_directive: includetype string LBRACKET {
 		     cparse_file = Swig_copy_string($2);
 		     cparse_line = 0;
                } interface RBRACKET {
+                     $$ = $5;
 		     cparse_file = $1.filename;
 		     cparse_line = $1.line;
-		     if (strcmp($1.type,"include") == 0) $$ = new_node("include");
-		     if (strcmp($1.type,"import") == 0) $$ = new_node("import");
+		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
+		     if (strcmp($1.type,"import") == 0) set_nodeType($$,"import");
 		     Setattr($$,"name",$2);
-		     appendChild($$,firstChild($5));
+		     /* Search for the module (if any) */
+		     {
+			 Node *n = firstChild($$);
+			 while (n) {
+			     if (Strcmp(nodeType(n),"module") == 0) {
+				 Setattr($$,"module",Getattr(n,"name"));
+				 break;
+			     }
+			     n = nextSibling(n);
+			 }
+		     }
                }
                ;
 

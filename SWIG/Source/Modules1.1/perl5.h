@@ -39,12 +39,10 @@ public :
   virtual int memberfunctionHandler(Node *);
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
-
   virtual int classHandler(Node *n);
   virtual int classDeclaration(Node *n);
-
-  virtual void pragma(char *, char *, char *);
-  virtual void import_start(char *filename);
+  virtual int importDirective(Node *n);
+  virtual int pragmaDirective(Node *n);
 };
 
 

@@ -300,12 +300,16 @@ RUBY::top(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * RUBY::import_start(char *modname)
+ * RUBY::importDirective()
  * ----------------------------------------------------------------------------- */
 
-void
-RUBY::import_start(char *modname) {
-  Printf(f_init,"rb_require(\"%s\");\n", modname);
+int
+RUBY::importDirective(Node *n) {
+  String *modname = Getattr(n,"module");
+  if (modname) {
+    Printf(f_init,"rb_require(\"%s\");\n", modname);
+  }
+  return Language::importDirective(n);
 }
 
 /* ---------------------------------------------------------------------

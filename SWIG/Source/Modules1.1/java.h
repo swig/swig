@@ -25,8 +25,7 @@ public :
   virtual int destructorHandler(Node *);
   virtual int classHandler(Node *);
   virtual int classDeclaration(Node *);
-
-  virtual void pragma(char *lang, char *code, char *value);
+  virtual int pragmaDirective(Node *);
 
 private:
   String *is_shadow(SwigType *ty);

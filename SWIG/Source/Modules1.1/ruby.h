@@ -61,7 +61,7 @@ class RUBY : public Language {
 
   // Import directive
 
-  virtual void import_start(char *modulename);    /* Import a new module */  
+  virtual int importDirective(Node *n);   /* Import a new module */  
 };
 
 /*

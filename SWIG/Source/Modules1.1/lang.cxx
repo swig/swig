@@ -412,12 +412,7 @@ int Language::exceptDirective(Node *n) {
 int Language::importDirective(Node *n) {
     int oldim = ImportMode;
     ImportMode = IMPORT_MODE;
-
     emit_children(n);
-
-    if (ImportMode & IMPORT_MODULE) {
-	import_end();
-    }
     ImportMode = oldim;
     return SWIG_OK;
 }
@@ -463,13 +458,6 @@ int Language::insertDirective(Node *n) {
 
 int Language::moduleDirective(Node *n) {
     /* %module directive */
-    String *name = Getattr(n,"name");
-    if (ImportMode) {
-	if (ImportMode == IMPORT_MODE) {
-	    import_start(Char(name));
-	    ImportMode |= IMPORT_MODULE;
-	} 
-    }
     return SWIG_OK;
 }
 
@@ -478,7 +466,6 @@ int Language::moduleDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::nativeDirective(Node *n) {
-  
     if (!ImportMode) {
 	return nativeWrapper(n);
     } else {
@@ -509,11 +496,10 @@ int Language::pragmaDirective(Node *n) {
 	String *name = Getattr(n,"name");
 	String *value = Getattr(n,"value");
 	swig_pragma(Char(lan),Char(name),Char(value));
-	pragma(Char(lan),Char(name),Char(value));
+	/*	pragma(Char(lan),Char(name),Char(value)); */
 	return SWIG_OK;
-    } else {
-	return SWIG_NOWRAP;
     }
+    return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
@@ -1503,22 +1489,6 @@ int Language::namespaceDeclaration(Node *n) {
     if (Getattr(n,"alias")) return SWIG_OK;
     emit_children(n);
     return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * Language::pragma()
- * ----------------------------------------------------------------------------- */
-
-void Language::pragma(char *, char *, char *) {
-    /* Does nothing by default */
-}
-
-void Language::import_start(char *modulename) {
-    /* Does nothing by default */
-}
-
-void Language::import_end() {
-    /* Does nothing by default */
 }
 
 int Language::validIdentifier(String *s) {

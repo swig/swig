@@ -203,14 +203,18 @@ PYTHON::top(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::import_start(char *modname)
+ * PYTHON::importDirective()
  * ----------------------------------------------------------------------------- */
 
-void
-PYTHON::import_start(char *modname) {
+int
+PYTHON::importDirective(Node *n) {
   if (shadow) {
-    Printf(f_shadow,"import %s\n", modname);
+      String *modname = Getattr(n,"module");
+      if (modname) {
+	  Printf(f_shadow,"import %s\n", modname);
+      }
   }
+  return Language::importDirective(n);
 }
 
 /* -----------------------------------------------------------------------------

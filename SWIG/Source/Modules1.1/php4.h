@@ -14,7 +14,7 @@
  *******************************************************************************/
 
 class PHP4 : public Language {
-        String *is_shadow(SwigType *t);
+
 public :
 	virtual void main(int, char *argv[]);
 	virtual int top(Node *n);
@@ -35,14 +35,9 @@ public :
 
 	virtual int  classHandler(Node *n);
 	virtual int  classDeclaration(Node *n);
-
-#ifdef DEPRECATED
-	virtual int  classforwardDeclaration(Node *n);
-	virtual int  typedefHandler(Node *);
-#endif
-	virtual void pragma(char *lang, char *code, char *value);
-
-
+	virtual int  pragmaDirective(Node *n);
+ private:
+        String *is_shadow(SwigType *t);
 	void emit_classdef();
 	void emit_shadow_classdef();
 	void SwigToPhpType(SwigType *t, String_or_char *pname, String *php_type, int shadow_flag);

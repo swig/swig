@@ -595,14 +595,6 @@ MZSCHEME::constantWrapper(Node *n)
   return SWIG_OK;
 }
 
-void
-MZSCHEME::import_start(char *modname) {
-}
-
-void 
-MZSCHEME::import_end() {
-}
-
 // snarfed from guile.cxx
 int 
 MZSCHEME::validIdentifier(String *s) {

@@ -1023,15 +1023,22 @@ int GUILE::membervariableHandler(Node *n)
   return SWIG_OK;
 }
 
-void GUILE::pragma(char *lang, char *cmd, char *value)
+int GUILE::pragmaDirective(Node *n)
 {
-  if (strcmp(lang,(char*)"guile") == 0) {
-    if (strcmp(cmd, (char*)"beforereturn")==0) {
-      if (before_return)
-	Delete(before_return);
-      before_return = value ? NewString(value) : NULL;
+    if (!ImportMode) {
+	String *lang = Getattr(n,"lang");
+	String *cmd = Getattr(n,"name");
+	String *value = Getattr(n,"value");
+
+	if (Strcmp(lang,"guile") == 0) {
+	    if (Strcmp(cmd, "beforereturn")==0) {
+		if (before_return)
+		    Delete(before_return);
+		before_return = value ? NewString(value) : NULL;
+	    }
+	}
     }
-  }
+    return Language::pragmaDirective(n);
 }
 
 int GUILE::validIdentifier(String *s) {

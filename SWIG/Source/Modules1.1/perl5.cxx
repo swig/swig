@@ -427,14 +427,18 @@ PERL5::top(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::import_start(char *modname)
+ * PERL5::importDirective(Node *n)
  * ----------------------------------------------------------------------------- */
 
-void
-PERL5::import_start(char *modname) {
-  if (blessed) {
-    Printf(f_pm,"require %s;\n", modname);
-  }
+int
+PERL5::importDirective(Node *n) {
+    if (blessed) {
+	String *modname = Getattr(n,"module");
+	if (modname) {
+	    Printf(f_pm,"require %s;\n", modname);
+	}
+    }
+    return Language::importDirective(n);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1428,28 +1432,37 @@ PERL5::memberconstantHandler(Node *n) {
  * %pragma(perl5) include="file.pl"          # Includes a file in the .pm file
  * ----------------------------------------------------------------------------- */
 
-void PERL5::pragma(char *lang, char *code, char *value) {
-  if (strcmp(lang,"perl5") == 0) {
-    if (strcmp(code,"code") == 0) {
-      /* Dump the value string into the .pm file */
-      if (value) {
-	Printf(pragma_include, "%s\n", value);
-      }
-    } else if (strcmp(code,"include") == 0) {
-      /* Include a file into the .pm file */
-      if (value) {
-	FILE *f = Swig_open(value);
-	if (!f) {
-	  Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
-	} else {
-	  char buffer[4096];
-	  while (fgets(buffer,4095,f)) {
-	    Printf(pragma_include,"%s",buffer);
-	  }
+int PERL5::pragmaDirective(Node *n) {
+    String *lang;
+    String *code;
+    String *value;
+    if (!ImportMode) {
+	lang = Getattr(n,"lang");
+	code = Getattr(n,"name");
+	value = Getattr(n,"value");
+	if (Strcmp(lang,"perl5") == 0) {
+	    if (Strcmp(code,"code") == 0) {
+		/* Dump the value string into the .pm file */
+		if (value) {
+		    Printf(pragma_include, "%s\n", value);
+		}
+	    } else if (Strcmp(code,"include") == 0) {
+		/* Include a file into the .pm file */
+		if (value) {
+		    FILE *f = Swig_open(value);
+		    if (!f) {
+			Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
+		    } else {
+			char buffer[4096];
+			while (fgets(buffer,4095,f)) {
+			    Printf(pragma_include,"%s",buffer);
+			}
+		    }
+		}
+	    } else {
+		Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
+	    }
 	}
-      }
-    } else {
-      Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file,line_number);
     }
-  }
+    return Language::pragmaDirective(n);
 }

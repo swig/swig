@@ -1237,22 +1237,30 @@ PHP4::constantWrapper(Node *n) {
  * %pragma(php4) code="String"         # Includes a string in the .php file
  * %pragma(php4) include="file.pl"     # Includes a file in the .php file
  */
-void PHP4::pragma(char *lang, char *type, char *value) {
-       if (strcmp(lang,"php4") != 0) return;
+int PHP4::pragmaDirective(Node *n) {
+    if (!ImportMode) {
+	String *lang = Getattr(n,"lang");
+	String *type = Getattr(n,"name");
+	String *value = Getattr(n,"value");
 
-       if (strcmp(type, "code") == 0) {
-               if (value)
-                       Printf(pragma_code, "%s\n", value);
-       } else if (strcmp(type, "include") == 0) {
-               if (value)
-                       Printf(pragma_incl, "include \"%s\";\n", value);
-       } else if (strcmp(type, "phpinfo") == 0) {
-               if (value)
-                       Printf(pragma_phpinfo, "%s\n", value);
-       } else {
-	      Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
-		      input_file, line_number);
-       }
+	if (Strcmp(lang,"php4") == 0) {
+	
+	    if (Strcmp(type, "code") == 0) {
+		if (value)
+		    Printf(pragma_code, "%s\n", value);
+	    } else if (Strcmp(type, "include") == 0) {
+		if (value)
+		    Printf(pragma_incl, "include \"%s\";\n", value);
+	    } else if (Strcmp(type, "phpinfo") == 0) {
+		if (value)
+		    Printf(pragma_phpinfo, "%s\n", value);
+	    } else {
+		Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
+		       input_file, line_number);
+	    }
+	}
+    }
+    return Language::pragmaDirective(n);
 }
 
 int PHP4::classDeclaration(Node *n) {

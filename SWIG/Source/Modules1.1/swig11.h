@@ -42,8 +42,6 @@ extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;
 
-/* #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); } */
-
 /* Miscellaneous stuff */
 
 #define  tab2   "  "
@@ -197,12 +195,7 @@ public:
 
   // Pragma directive
 
-  virtual void pragma(char *, char *, char *);
-
-  // Import directive
-
-  virtual void import_start(char *modulename);    /* Import a new module */
-  virtual void import_end();                      /* Done with import    */
+ private:
 
   // Attributes
 
