@@ -713,7 +713,7 @@ static void add_nested(Nested *n) {
  * However.  We need to do a few name replacements and other munging
  * first.  This function must be called before closing a class! */
 
-static Node *dump_nested(char *parent) {
+static Node *dump_nested(const char *parent) {
   Nested *n,*n1;
   Node *ret = 0;
   n = nested_list;
@@ -867,6 +867,92 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
   }
   Delete(fname);
   Delete(name);
+}
+
+/* If the Node is a function with parameters, check to see if any of the parameters
+ * have default arguments. If so create a new function for each defaulted argument. 
+ * The additional functions form a linked list of nodes with the head being the original Node n. */
+static void default_arguments(Node *n) {
+  Node *function = n;
+  while (function) {
+    /* Look for parameters with default arguments */
+    ParmList *p = Getattr(function,"parms");
+    int default_args = 0;
+    while (p) {
+      if (Getattr(p, "value")) {
+        default_args = 1;
+        break;
+      }
+      p = nextSibling(p);
+    }
+    if (default_args) {
+      ParmList* newparms = 0;
+
+      /* Create a parameter list for the new function by copying all
+         but the last (defaulted) parameter */
+      {
+        ParmList *p = Getattr(function,"parms");
+        Parm *newparm = 0;
+        Parm *pp = 0;
+        Parm *fp = 0;
+        while (nextSibling(p)) {
+          newparm = CopyParm(p);
+          if (pp) {
+            set_nextSibling(pp,newparm);
+          } else {
+            fp = newparm;
+          }
+          pp = newparm;
+          p = nextSibling(p);
+        }
+        newparms = fp;
+      }
+
+      /* Create new function and add to symbol table */
+      {
+        Node *new_function = new_node(Copy(nodeType(function)));
+        SwigType *decl = Copy(Getattr(function,"decl"));
+        Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
+        SwigType_add_function(decl,newparms);
+
+        Setattr(new_function,"name",Copy(Getattr(function,"name")));
+        Setattr(new_function,"code",Copy(Getattr(function,"code")));
+        Setattr(new_function,"decl", decl);
+        Setattr(new_function,"parms",newparms);
+        Setattr(new_function,"storage",Copy(Getattr(function,"storage")));
+        Setattr(new_function,"type",Copy(Getattr(function,"type")));
+
+        {
+          Node *throws = Getattr(function,"throws");
+          if (throws) Setattr(new_function,"throws",CopyParmList(throws));
+        }
+
+        /* copy template specific attributes */
+        if (Strcmp(nodeType(function),"template") == 0) {
+          Node *templatetype = Getattr(function,"templatetype");
+          Node *symname = Getattr(function,"sym:name");
+          Node *symtypename = Getattr(function,"sym:typename");
+          Parm *templateparms = Getattr(function,"templateparms");
+          if (templatetype) Setattr(new_function,"templatetype",Copy(templatetype));
+          if (symname) Setattr(new_function,"sym:name",Copy(symname));
+          if (symtypename) Setattr(new_function,"sym:typename",Copy(symtypename));
+          if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
+        }
+
+        add_symbols(new_function);
+
+        /* mark added functions as ones with overloaded parameters and point to the parsed method */
+        Setattr(new_function,"defaultargs", n);
+
+        /* Point to the new function, extending the linked list */
+        set_nextSibling(function, new_function);
+
+        function = new_function;
+      }
+    } else {
+      function = 0;
+    }
+  }
 }
 
 %}
@@ -1042,6 +1128,7 @@ program        :  interface {
                ;
 
 interface      : interface declaration {  
+                   /* add declaration to end of linked list (the declaration isn't always a single declaration, sometimes it is a linked list itself) */
                    appendChild($1,$2);
                    $$ = $1;
                }
@@ -2146,7 +2233,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  }
    	          Swig_symbol_setscope(tscope);
 		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-
                 }
                ;
 
@@ -2169,6 +2255,7 @@ c_declaration   : c_decl {
                     $$ = $1; 
                     if ($$) {
    		      add_symbols($$);
+                      default_arguments($$);
    	            }
                 }
                 | c_enum_decl { $$ = $1; }
@@ -2907,6 +2994,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  Setattr($$,"sym:typename","1");
 			}
 			add_symbols($$);
+                        default_arguments($$);
 			/* We also place a fully parameterized version in the symbol table */
 			{
 			  Parm *p;
@@ -3089,6 +3177,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 
 cpp_members  : cpp_member cpp_members {
                    $$ = $1;
+                   /* Insert cpp_member (including any siblings) to the front of the cpp_members linked list */
 		   if ($$) {
 		     Node *p = $$;
 		     Node *pp =0;
@@ -3146,6 +3235,7 @@ cpp_member   : c_declaration { $$ = $1; }
 		   }
 		 }
 		 add_symbols($$);
+                 default_arguments($$);
              }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
@@ -3613,22 +3703,14 @@ def_args       : EQUAL definetype {
 		 Node *n = Swig_symbol_clookup($3.id,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
-		   if (Getattr(n,"access")) {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3.id);
-		       Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
-		     }
-		     $$.val = 0;
-		   } else {
-		     if (q) {
-		       String *temp = NewStringf("%s::%s", q, Getattr(n,"name"));
-		       $$.val = NewStringf("&%s", SwigType_str($3.type,temp));
-		       Delete(q);
-		       Delete(temp);
-		     } else {
-		       $$.val = NewStringf("&%s", SwigType_str($3.type,$3.id));
-		     }
-		   }
+                   if (q) {
+                     String *temp = NewStringf("%s::%s", q, Getattr(n,"name"));
+                     $$.val = NewStringf("&%s", SwigType_str($3.type,temp));
+                     Delete(q);
+                     Delete(temp);
+                   } else {
+                     $$.val = NewStringf("&%s", SwigType_str($3.type,$3.id));
+                   }
 		 } else {
 		   $$.val = NewStringf("&%s",SwigType_str($3.type,$3.id));
 		 }
@@ -4418,19 +4500,14 @@ expr           :  exprnum { $$ = $1; }
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
-		   if (Getattr(n,"access") && (cplus_mode == CPLUS_PUBLIC)) {
-		     Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
-		     $$.type = T_ERROR;
-		   } else {
-		     /* A band-aid for enum values used in expressions. */
-		     if (Strcmp(nodeType(n),"enumitem") == 0) {
-		       String *q = Swig_symbol_qualified(n);
-		       if (q) {
-			 $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
-			 Delete(q);
-		       }
-		     }
-		   }
+                   /* A band-aid for enum values used in expressions. */
+                   if (Strcmp(nodeType(n),"enumitem") == 0) {
+                     String *q = Swig_symbol_qualified(n);
+                     if (q) {
+                       $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
+                       Delete(q);
+                     }
+                   }
 		 }
                }
 
