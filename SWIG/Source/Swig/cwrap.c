@@ -89,7 +89,13 @@ static int varref = 0;
 String *
 Swig_wrapped_var_type(SwigType *t) {
   SwigType *ty;
-  ty = Copy(t);
+
+  if (!Strstr(t,"enum $unnamed")) {
+    ty = Copy(t);
+  } else {
+    /* Change the type for unnamed enum instance variables */
+    ty = NewString("int");
+  }
 
   if (SwigType_isclass(t)) {
     if (varref) {
@@ -1092,7 +1098,11 @@ Swig_VarsetToFunction(Node *n) {
   parms = NewParm(ty,"value");
   Delete(ty);
   
-  Setattr(n,"wrap:action", NewStringf("%s = %s;\n", nname, Swig_wrapped_var_deref(type,Swig_cparm_name(0,0))));
+  if (!Strstr(type,"enum $unnamed")) {
+    Setattr(n,"wrap:action", NewStringf("%s = %s;\n", nname, Swig_wrapped_var_deref(type,Swig_cparm_name(0,0))));
+  } else {
+    Setattr(n,"wrap:action", NewStringf("if (sizeof(int) == sizeof(%s)) *(int*)(void*)&(%s) = %s;\n", nname, nname, Swig_cparm_name(0,0)));
+  }
   Setattr(n,"type","void");
   Setattr(n,"parms",parms);
   Delete(parms);
