@@ -568,6 +568,16 @@ public:
    *
    * Creates a new command from a C function.
    *              iname = Name of function in scripting language
+   *
+   * A note about what "protected" and "private" mean in Ruby:
+   *
+   * A private method is accessible only within the class or its subclasses,
+   * and it is callable only in "function form", with 'self' (implicit or
+   * explicit) as a receiver.
+   *
+   * A protected method is callable only from within its class, but unlike
+   * a private method, it can be called with a receiver other than self, such
+   * as another instance of the same class.
    * --------------------------------------------------------------------- */
 
   void create_command(Node *n, const String_or_char *iname) {
@@ -589,14 +599,20 @@ public:
     
     switch (current) {
     case MEMBER_FUNC: 
-      if (multipleInheritance) {	
+      if (multipleInheritance) {
+        /*
 	const char* rb_define_method = !is_protected(n) ?
 	  "rb_define_method" : "rb_define_protected_method";
+        */
+	const char* rb_define_method = "rb_define_method";
 	Printv(klass->init, tab4, rb_define_method,"(", klass->mImpl, ", \"",
 	       iname, "\", ", wname, ", -1);\n", NIL);
       } else {
+        /*
 	const char* rb_define_method = !is_protected(n) ?
 	  "rb_define_method" : "rb_define_protected_method";
+        */
+	const char* rb_define_method = "rb_define_method";
 	Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"",
 	       iname, "\", ", wname, ", -1);\n", NIL);
       }
