@@ -580,15 +580,15 @@ typedef unsigned long VALUE;
                   unsigned int, 
                   unsigned long, 
                   unsigned short {
-  rb_exc_raise(rb_exc_new3(rb_eRuntimeError, INT2NUM($1)));
+  rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(INT2NUM($1))));
 }
 
 %typemap(throws) SWIGTYPE {
   $&1_ltype temp = new $1_ltype($1);
   if ($&1_descriptor->clientdata) {
-    rb_exc_raise(rb_exc_new3(((swig_class *) ($&1_descriptor->clientdata))->klass, SWIG_NewPointerObj(temp, $&1_descriptor, 1)));
+    rb_exc_raise(rb_exc_new3(((swig_class *) ($&1_descriptor->clientdata))->klass, rb_obj_as_string(SWIG_NewPointerObj(temp, $&1_descriptor, 1))));
   } else {
-    rb_exc_raise(rb_exc_new3(rb_eRuntimeError, SWIG_NewPointerObj(temp, $&1_descriptor, 1)));
+    rb_exc_raise(rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(SWIG_NewPointerObj(temp, $&1_descriptor, 1))));
   }
 }
 
