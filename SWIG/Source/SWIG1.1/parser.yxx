@@ -102,6 +102,10 @@ static char           *Callback = 0;
 #define  STORAGE_STATIC     3
 #define  STORAGE_VIRTUAL    4
 
+/* Import modes */
+#define  IMPORT_MODE        1
+#define  IMPORT_MODULE      2
+
 /* -----------------------------------------------------------------------------
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
@@ -212,7 +216,7 @@ static char *make_name(char *name) {
 
 static void create_constant(char *name, SwigType *type, char *value) {
 
-  if (WrapExtern) return;   
+  if (ImportMode) return;   
   init_language();
 
   char *iname = make_name(name);
@@ -238,7 +242,7 @@ static void
 c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, ParmList *parms) {
   SwigType *ty;
   if (Active_static) return;
-  if (WrapExtern) return;
+  if (ImportMode) return;
   if ((storage == STORAGE_STATIC) && (!Inline)) return;
 
   init_language();
@@ -598,7 +602,7 @@ static List *typelist(Parm *p) {
 %token <str> HBLOCK
 %token <id> POUND 
 %token <id> STRING
-%token <loc> INCLUDE IMPORT WEXTERN INSERT
+%token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
@@ -836,31 +840,32 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
 
 /* ------------------------------------------------------------
    %includefile "filename" { declarations } 
-   %externfile  "filename" { declarations }
    %importfile  "filename" { declarations }
    ------------------------------------------------------------ */
 
 include_directive: includetype STRING LBRACE {
-		     $1.flag = WrapExtern;
+		     $1.flag = ImportMode;
                      $1.filename = Swig_copy_string(input_file);
 		     $1.line = line_number;
 		     input_file = Swig_copy_string($2);
 		     line_number = 0;
-		     if ((strcmp($1.type,"extern") == 0) || (strcmp($1.type,"import") == 0)) {
-		       WrapExtern = 1;
-		       if (strcmp($1.type,"import") == 0) {
-			 lang->import($2);
-		       }
+		     if (strcmp($1.type,"import") == 0) {
+		       ImportMode = IMPORT_MODE;
+		       /*		       lang->import($2); */
 		     }
                } interface RBRACE {
 		     input_file = $1.filename;
 		     line_number = $1.line;
-		     WrapExtern = $1.flag;
+		     if (strcmp($1.type,"import") == 0) {
+		       if (ImportMode & IMPORT_MODULE) {
+			 lang->import_end();
+		       }
+		     }
+		     ImportMode = $1.flag;
                }
                ;
 
 includetype    : INCLUDE { $$.type = (char *) "include"; }
-               | WEXTERN { $$.type = (char *) "extern"; }
                | IMPORT  { $$.type = (char *) "import"; }
                ;
 
@@ -869,7 +874,7 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
    ------------------------------------------------------------ */
 
 inline_directive : INLINE HBLOCK {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   File *f;
 		   init_language();
 		   f = Swig_filebyname("header");
@@ -898,7 +903,7 @@ inline_directive : INLINE HBLOCK {
    ------------------------------------------------------------ */
 
 insert_directive : HBLOCK {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   File *f = Swig_filebyname("header");
 		   if (f) {
 		     Printf(f, "%s\n", $1);
@@ -907,7 +912,7 @@ insert_directive : HBLOCK {
 		 Delete($1);
 	       }
                | INSERT LPAREN idstring RPAREN STRING {
-	         if (!WrapExtern) {
+	         if (!ImportMode) {
 		   File *f = Swig_filebyname($3);
 		   if (!f) {
 		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, $3);
@@ -920,7 +925,7 @@ insert_directive : HBLOCK {
 		 }
                }
                | INSERT LPAREN idstring RPAREN HBLOCK {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   File *f;
 		   f = Swig_filebyname($3);
 		   if (!f) {
@@ -939,9 +944,17 @@ insert_directive : HBLOCK {
    ------------------------------------------------------------ */
 
 module_directive: MODULE idstring {
-		 lang->set_module($2);
-		 module_init = 1;
-		 init_language();
+		 if (ImportMode) {
+		   /* We only call import_start for the first %module directive */
+		   if (ImportMode == IMPORT_MODE) {
+		     lang->import_start($2);
+		     ImportMode |= IMPORT_MODULE;
+		   }
+		 } else {
+		   lang->set_module($2);
+		   module_init = 1;
+		   init_language();
+		 }
 	       }
                ;
 
@@ -968,7 +981,7 @@ name_directive : NAME LPAREN idstring RPAREN {
    ------------------------------------------------------------ */
 
 native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   init_language();
 		   if (add_symbol($3)) {
 		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
@@ -979,7 +992,7 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		 }
 	       }
                | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   init_language();
 		   if (!SwigType_isfunction($7.type)) {
 		     Printf(stderr,"%s:%d. %%native declaration '%s' is not a function.\n", input_file,line_number, $7.id);
@@ -1025,7 +1038,7 @@ new_directive : NEW {
    ------------------------------------------------------------ */
 
 pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
-		 if (!WrapExtern) {
+		 if (!ImportMode) {
 		   swig_pragma($2,$3,Char($5));
 		   if (InClass) {  /* Hack. Fix me */
 		     cplus_add_pragma($2,$3,Char($5));
@@ -1035,7 +1048,7 @@ pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
 		 }
 	       }
               | PRAGMA pragma_lang ID {
-		if (!WrapExtern) {
+		if (!ImportMode) {
 		  swig_pragma($2,$3,"");
 		  if (InClass) {    /* Hack. Fix me */
 		    cplus_add_pragma($2,$3,0); 

@@ -520,7 +520,7 @@ public:
   char        *classrename;           // New name of class (if applicable)
   char        *classtype;             // class type (struct, union, class)
   int          strip;                 // Strip off class declarator
-  int          wextern;               // Value of extern wrapper variable for this class
+  int          import_mode;               // Value of extern wrapper variable for this class
   int          have_constructor;      // Status bit indicating if we've seen a constructor
   int          have_destructor;       // Status bit indicating if a destructor has been seen
   int          is_abstract;           // Status bit indicating if this is an abstract class
@@ -561,7 +561,7 @@ public:
     next = 0;
     members = 0;
     strip = 0;
-    wextern = WrapExtern;
+    import_mode = ImportMode;
     have_constructor = 0;
     have_destructor = 0;
     is_abstract = 0;
@@ -689,7 +689,7 @@ void CPP_class::create_all() {
     if (!c->error) {
       current_class = c;
       localtypes = c->local;
-      if ((!c->wextern) && (c->classtype)) {
+      if ((!c->import_mode) && (c->classtype)) {
 	lang->cpp_open_class(c->classname,c->classrename,c->classtype,c->strip);
 	lang->cpp_pragma(c->pragmas);
 	c->create_default();
@@ -701,7 +701,7 @@ void CPP_class::create_all() {
       // Force brute patch to produce the proper casting code
       // between "local" classes and "external" ones when
       // %import is used.
-      else if ( (c->wextern) && (c->classtype) ) {
+      else if ( (c->import_mode) && (c->classtype) ) {
 	SwigType *t;
 	t = NewString(c->classname);
 	SwigType_add_pointer(t);

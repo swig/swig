@@ -29,7 +29,7 @@ struct InFile {
   DOHFile *f;
   int     line_number;
   char   *in_file;
-  int     extern_mode;
+  int     import_mode;
   int     force_extern;
   int     inline_mode;
   struct InFile *prev;
@@ -153,7 +153,7 @@ void scanner_file(DOHFile *f) {
   in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
   in->in_file = input_file;
-  in->extern_mode = WrapExtern;
+  in->import_mode = ImportMode;
   in->force_extern = ForceExtern;
   in->inline_mode = 0;
   in->line_number = 1;
@@ -181,7 +181,7 @@ void scanner_close() {
     LEX_in = p->f;
     line_number = p->line_number;
     input_file = p->in_file;
-    WrapExtern = p->extern_mode;
+    ImportMode = p->import_mode;
     ForceExtern = p->force_extern;
     Inline = p->inline_mode;
   } else {
@@ -260,7 +260,7 @@ void start_inline(char *text, int line) {
   Seek(in->f,0,SEEK_SET);
   in->in_file = Swig_copy_string(input_file);
   in->line_number = line;
-  in->extern_mode = WrapExtern;
+  in->import_mode = ImportMode;
   in->force_extern = ForceExtern;
   in->inline_mode = 1;
   in->prev = in_head;
@@ -1086,7 +1086,6 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%name") == 0) return(NAME);
 	  if (strcmp(yytext,"%rename") == 0) return(RENAME);
 	  if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
-	  if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
 	  if (strcmp(yytext,"%val") == 0) {
 	    Printf(stderr,"%s:%d %%val directive deprecated (ignored).\n", input_file, line_number);
 	    return (yylex());

@@ -18,7 +18,7 @@
 
 extern    Language      *lang;
 extern    int           ForceExtern;
-extern    int           WrapExtern;
+extern    int           ImportMode;
 extern    void         *CCode;
 extern    int           GenerateDefault;
 
