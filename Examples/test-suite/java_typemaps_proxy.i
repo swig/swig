@@ -29,8 +29,22 @@ import java.lang.*; // for Exception
 %}
 
 // Create a new getCPtr() function which takes Java null and is public
-// Make the pointer constructor public
 %typemap(javabody) NS::Greeting %{
+  private long swigCPtr;
+  protected boolean swigCMemOwn;
+
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
+  public static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+// Make the pointer constructor public
+%typemap(javabody) NS::Farewell %{
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
@@ -39,7 +53,7 @@ import java.lang.*; // for Exception
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr($javaclassname obj) {
+  protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}

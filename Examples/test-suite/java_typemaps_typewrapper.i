@@ -39,11 +39,13 @@ import java.lang.*; // for Exception
 // Make the pointer constructor public
 %typemap(javabody) Farewell * %{
   private long swigCPtr;
-  protected boolean swigCMemOwn;
 
-  public $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwn = cMemoryOwn;
+  public $javaclassname(long cPtr, boolean bFutureUse) {
     swigCPtr = cPtr;
+  }
+
+  protected $javaclassname() {
+    swigCPtr = 0;
   }
 
   public static long getCPtr($javaclassname obj) {
