@@ -448,7 +448,7 @@ typedef_resolve(Typetab *s, String *base) {
   List     *inherit;
 
   if (!s) return 0;
-  /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base); */
+  /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base);  */
 
   if (Getmark(s)) return 0;
   Setmark(s,1);
@@ -811,6 +811,13 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
       Append(s,").");
       Append(result,s);
       Delete(s);
+    } else if (SwigType_isarray(e)) {
+      String *ndim;
+      String *dim = SwigType_parm(e);
+      ndim = Swig_symbol_string_qualify(dim,0);
+      Printf(result,"a(%s).",ndim);
+      Delete(dim);
+      Delete(ndim);
     } else {
       Append(result,e);
     }
