@@ -118,22 +118,33 @@ extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 
 /* --- Functions for manipulating the string-based type encoding --- */
 
-extern void        StringType_add_pointer(DOHString *t);
-extern void        StringType_add_array(DOHString *t, DOHString *size);
-extern void        StringType_add_reference(DOHString *t);
-extern void        StringType_add_qualifier(DOHString *t, DOHString *qual);
-extern void        StringType_add_function(DOHString *t, DOHString *parms);
-extern DOHList    *StringType_split(DOHString *t);
-extern DOHString  *StringType_pop(DOHString *t);
-extern void        StringType_push(DOHString *t, DOHString *s);
-extern DOHList    *StringType_split_parms(DOHString *p);
-extern DOHString  *StringType_cstr(DOHString *s, DOHString_or_char *id);
-extern int         StringType_ispointer(DOHString *t);
-extern int         StringType_isreference(DOHString *t);
-extern int         StringType_isarray(DOHString *t);
-extern int         StringType_isfunction(DOHString *t);
-extern int         StringType_isqualifier(DOHString *t);
-extern DOHString  *StringType_base(DOHString *t);
+extern void        SwigType_add_pointer(DOHString *t);
+extern void        SwigType_add_array(DOHString *t, DOHString_or_char *size);
+extern void        SwigType_add_reference(DOHString *t);
+extern void        SwigType_add_qualifier(DOHString *t, DOHString_or_char *qual);
+extern void        SwigType_add_function(DOHString *t, DOHList *parms);
+extern DOHList    *SwigType_split(DOHString *t);
+extern DOHString  *SwigType_pop(DOHString *t);
+extern void        SwigType_push(DOHString *t, DOHString *s);
+extern DOHList    *SwigType_parmlist(DOHString *p);
+extern DOHString  *SwigType_parm(DOHString *p);
+extern DOHString  *SwigType_cstr(DOHString *s, DOHString_or_char *id);
+extern int         SwigType_ispointer(DOHString_or_char *t);
+extern int         SwigType_isreference(DOHString_or_char *t);
+extern int         SwigType_isarray(DOHString_or_char *t);
+extern int         SwigType_isfunction(DOHString_or_char *t);
+extern int         SwigType_isqualifier(DOHString_or_char *t);
+extern DOHString  *SwigType_base(DOHString_or_char *t);
+extern DOHString  *SwigType_prefix(DOHString_or_char *t);
+
+extern int         SwigType_typedef(DOHString_or_char *type, DOHString_or_char *name);
+extern void        SwigType_new_scope();
+extern void        SwigType_reset_scopes();
+extern void        SwigType_set_scope_name(DOHString_or_char *name);
+extern void        SwigType_merge_scope(DOHHash *scope, DOHString_or_char *prefix);
+extern DOHHash    *SwigType_pop_scope();
+extern DOHString  *SwigType_typedef_resolve(DOHString_or_char *t);
+extern int         SwigType_istypedef(DOHString_or_char *t);
 
 /* --- Parse tree support --- */
 
