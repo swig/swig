@@ -1870,24 +1870,26 @@ namespace D {
 class Spam : public D::Bar {
 };
 
+void evil(A::Foo *a, B::FooClass *b, B::C::Foo *c, BIGB::FooClass *d,
+          BIGB::C::Foo *e, D::FooClass *f);
+
 </pre>
 </blockquote>
 
 Given the possibility for such perversion, it's hard to imagine how
 every C++ programmer might want such code wrapped into the target
-language.  Clearly three classes are defined, but the relationship between
-them certainly isn't obvious (well, it's definitely not crystal clear to me).
+language.  Clearly this code defines three different classes.  However, one
+of those classes is accessible under at least six different class names!
 
 <p>
-SWIG's support for namespaces allows you to wrap declarations contained with
-a C++ namespace.  However, some compromises are made to try and keep things
-relatively manageable.   First, SWIG fully supports C++ namespaces in its internal
-type system and class handling code.   If you feed SWIG the above code, it will
-be parsed correctly, it will generate compilable wrapper code, and it will
-produce a working scripting language module.   However, the default wrapping
-behavior is to flatten all namespaces in the target language.   This means
-that namespaces have no apparent effect in the scripting language module.
-For example, if you have code like this,
+SWIG fully supports C++ namespaces in its internal type system and
+class handling code.  If you feed SWIG the above code, it will be
+parsed correctly, it will generate compilable wrapper code, and it
+will produce a working scripting language module.  However, the
+default wrapping behavior is to flatten namespaces in the target
+language.  This means that the contents of all namespaces are merged
+together in the resulting scripting language module.  For example, if
+you have code like this,
 
 <blockquote>
 <pre>
@@ -1896,25 +1898,81 @@ namespace foo {
    void bar(int);
    void spam();
 }
+
+namespace bar {
+   void blah();
+}
+
 </pre>
 </blockquote>
 
-then SWIG creates two functions <tt>bar()</tt> and <tt>spam()</tt> in
-the target language.  SWIG does not prepend the names with a namespace
-prefix nor are the functions packaged in some kind of nested scope.
+then SWIG simply creates three wrapper functions <tt>bar()</tt>,
+<tt>spam()</tt>, and <tt>blah()</tt> in the target language.  SWIG
+does not prepend the names with a namespace prefix nor are the
+functions packaged in any kind of nested scope.
 
 <p>
-This is some rationale for taking this approach.  Since C++ namespaces
-are often used to define modules for C++, there is a natural
-correlation between the likely contents of a SWIG module and the
-contents of a namespace.  For instance, it is not unreasonable to
-assume that a programmer might make a separate extension module for
-each namespace.  In this case, it is redundant to prepend
-everything with an additional namespace prefix (in fact, that would just be annoying).
+There is some rationale for taking this approach.  Since C++
+namespaces are often used to define modules in C++, there is a natural
+correlation between the likely contents of a SWIG module and the contents of
+a namespace.  For instance, it would not be unreasonable to assume
+that a programmer might make a separate extension module for each C++
+namespace.  In this case, it would be redundant to prepend everything
+with an additional namespace prefix when the module itself already
+serves as a namespace in the target language.
 
+<p>
+Because namespaces are flattened, it is possible for symbols defined in different
+namespaces to generate a name conflict in the target language. For example:
 
+<blockquote>
+<pre>
+namespace A {
+   void foo(int);
+}
+namespace B {
+   void foo(double);
+}
+</pre>
+</blockquote>
 
-(in progress)
+When this conflict occurs, you will get an error message that resembles this:
+
+<blockquote>
+<pre>
+example.i:26. Error. 'foo' is multiply defined in the generated module.
+example.i:23. Previous declaration of 'foo'
+</pre>
+</blockquote>
+
+To resolve this error, simply use <tt>%rename</tt> to disambiguate the declarations.  For example:
+
+<blockquote>
+<pre>
+%rename(B_foo) B::foo;
+...
+namespace A {
+   void foo(int);
+}
+namespace B {
+   void foo(double);     // Gets renamed to B_foo
+}
+</pre>
+</blockquote>
+
+Similarly, <tt>%ignore</tt> can be used to ignore declarations.
+
+<p>
+<b>Note:</b> Although namespaces are flattened in the target language, the SWIG generated wrapper
+code follows the same namespace conventions as used in the input file.  Thus, if there are no symbol
+conflicts in the input, there will be no conflicts in the generated code. 
+
+<p>
+<b>Note:</b> The flattening of namespaces is only intended to serve as
+a basic namespace implementation.  Since namespaces are a new addition
+to SWIG, none of the target language modules are currently programmed
+with any namespace awareness.   In the future, language modules may or may not provide
+more advanced namespace support.
 
 <h2>Pointers to Members</h2>
 
