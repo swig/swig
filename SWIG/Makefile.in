@@ -91,7 +91,8 @@ skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
 skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 
-chk = $(MAKE) check
+chk-swiglib = @ROOT_DIR@/Lib
+chk = $(MAKE) SWIG_LIB=$(chk-swiglib) check
 
 check-aliveness:
 	test -x ./swig
