@@ -63,6 +63,13 @@
   $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
 
+/* Enums */
+
+%typemap(in)     enum SWIGENUM "$target = gh_scm2int($source);";
+%typemap(varin)  enum SWIGENUM "$target = gh_scm2int($source);";
+%typemap(out)    enum SWIGENUM "$target = gh_int2scm($source);";
+%typemap(varout) enum SWIGENUM "$target = gh_int2scm($source);";
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 

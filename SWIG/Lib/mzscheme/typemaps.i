@@ -58,6 +58,22 @@
   $target = SWIG_MakePtr ($source, $descriptor);
 }
 
+/* Enums */
+%typemap(in) enum SWIGENUM {
+  if (!SCHEME_INTP($source)) 
+      scheme_wrong_type("$name", "integer", $argnum, argc, argv);
+  $target = SCHEME_INT_VAL($source);
+}
+
+%typemap(varin) enum SWIGENUM {
+  if (!SCHEME_INTP($source)) 
+      scheme_wrong_type("$name", "integer", $argnum, argc, argv);
+  $target = SCHEME_INT_VAL($source);
+}
+
+%typemap(out) enum SWIGENUM "$target = scheme_make_integer_value($source);";
+%typemap(varout) enum SWIGENUM "$target = scheme_make_integer_value($source);";
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
