@@ -12,8 +12,8 @@ int i;
 
   $1 = (*jenv)->GetArrayLength(jenv, $input);
   if ($1 == 0) {
-    SWIG_exception(SWIG_ValueError, "Array must contain at least 1 element");
-    return;
+    SWIG_exception(SWIG_IndexError, "Array must contain at least 1 element");
+    return $null;
   }
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   jsarray = (jstring *) malloc($1*sizeof(jstring));
