@@ -50,10 +50,10 @@ TCL_DLNK    = @TCLDYNAMICLINKING@
 
 libswigtcl8_la_SOURCES  = libtcl8.c
 libswigtcl8_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(TCL_DLNK)
-libswigtcl8_la_CFLAGS   = -DSWIG_GLOBAL $(TCL_INCLUDE)
+libswigtcl8_la_CFLAGS   = $(TCL_INCLUDE)
 
 libtcl8.c: $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME)
-	cat $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME) > libtcl8.c
+	../swig -tcl -runtime -I../Lib -o libtcl8.c swigrun.i
 
 # ----------------------------------------------------------------------
 # Perl run-time library
@@ -67,10 +67,10 @@ PERL5_CCFLAGS = @PERL5CCFLAGS@
 
 libswigpl_la_SOURCES    = libpl.c
 libswigpl_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PERL5_DLNK)
-libswigpl_la_CFLAGS     = -DSWIG_GLOBAL $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
+libswigpl_la_CFLAGS     = $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
 
 libpl.c: $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
-	cat $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME) > libpl.c
+	../swig -perl5 -runtime -I../Lib -o libpl.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Python run-time library
@@ -83,10 +83,10 @@ PYTHON_DLNK    = @PYTHONDYNAMICLINKING@
 
 libswigpy_la_SOURCES    = libpy.c
 libswigpy_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PYTHON_DLNK)
-libswigpy_la_CFLAGS     = -DSWIG_GLOBAL $(PYTHON_INCLUDE)
+libswigpy_la_CFLAGS     = $(PYTHON_INCLUDE)
 
 libpy.c: $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
-	cat $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) > libpy.c
+	../swig -python -runtime -I../Lib -o libpy.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Guile run-time library
@@ -124,10 +124,10 @@ RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 
 libswigrb_la_SOURCES    = librb.c
 libswigrb_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(RUBY_DLNK)
-libswigrb_la_CFLAGS     = -DSWIG_GLOBAL $(RUBY_INCLUDE) $(RUBY_CFLAGS)
+libswigrb_la_CFLAGS     = $(RUBY_INCLUDE) $(RUBY_CFLAGS)
 
 librb.c: $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
-	cat $(RUBY_PRECOMMON) $(SWIG_TYPECHECK) $(RUBY_RUNTIME) > librb.c
+	../swig -ruby -runtime -I../Lib -o librb.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # PHP4 run-time library
@@ -140,10 +140,10 @@ PHP4_DLNK    =
 
 libswigphp4_la_SOURCES  = libphp4.c
 libswigphp4_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PHP4_DLNK)
-libswigphp4_la_CFLAGS   = -DSWIG_GLOBAL $(PHP4_INCLUDE)
+libswigphp4_la_CFLAGS   = $(PHP4_INCLUDE)
 
 libphp4.c: $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
-	cat $(PHP4_PRECOMMON) $(SWIG_TYPECHECK) $(PHP4_RUNTIME) > libphp4.c
+	../swig -php -runtime -I../Lib -o libphp4.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Pike run-time library
@@ -172,13 +172,10 @@ CHICKEN_DLNK    = @CHICKENSHAREDLIB@
 
 libswigchicken_la_SOURCES = libchicken.c
 libswigchicken_la_LDFLAGS = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(CHICKEN_DLNK)
-libswigchicken_la_CFLAGS  = -DSWIG_GLOBAL $(CHICKEN_INCLUDE)
+libswigchicken_la_CFLAGS  = $(CHICKEN_INCLUDE)
 
 libchicken.c: $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME)
-	echo '#include "chicken.h"' > libchicken.c
-	cat $(CHICKEN_PRECOMMON) $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
-
-
+	../swig -chicken -runtime -I../Lib -o libchicken.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # The following do not use Libtool
@@ -203,7 +200,7 @@ all-local:
 endif
 
 .libs/libswigmz$(RELEASESUFFIX)$(SO): $(MZSCHEME_RUNTIME)
-	cat $(MZSCHEME_RUNTIME) > libmz.c
+	../swig -mzscheme -runtime -I../Lib -o libmz.c swigrun.i	
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
 	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
