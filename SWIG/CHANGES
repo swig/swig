@@ -16,6 +16,30 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+
+04/13/2002: beazley
+            Fixed problem with default arguments and references.   Declarations such 
+            as this should now work:
+
+                void foo(const string &x = "Hello");
+
+04/12/2002: beazley
+            Added typemap $* substitutions for typemaps involving arrays.
+            Requested by William Fulton.
+
+04/11/2002: beazley
+            Template specialization is now supported.  For example:
+
+               template<> class vector<int> {
+               ...
+               };
+
+            When the %template directive is used, it will use a specialization
+            if one is defined.   There are still some limitations. Partial
+            specialization is not supported.  A template of type <void *> does
+            not match all pointers.
+            *** NEW FEATURE ***
+
 04/11/2002: beazley
             Major change to template wrapping internals. Template declarations are
             no longer processed as macros but now result in real parse-tree
