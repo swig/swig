@@ -190,6 +190,15 @@ CORE:
        the most common cases.   This is likely to be hard and implementing
        it would really only be for completeness.
 
+Build
+-----
+****   Upgrade libtool to a more recent version.  Might fix linking on OS-X.
+
+****   Make sure there are tests for *ALL* library files in the test-suite.
+       A number of files appear to be broken in SWIG-1.3.13.
+
+*      Upgrade autoconf?
+ 
 Library
 -------
 
