@@ -28,6 +28,7 @@ working on this are:
  Richard Palmer (richard@magicality.org)                (PHP)
  Luigi Ballabio (ballabio@mac.com)                      (Macintosh port)
  Sam Liddicott (saml@liddicott.com)                     (PHP)
+ Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
 
 Past contributors include:
 
@@ -97,6 +98,8 @@ The most notable changes since SWIG1.1 include the following:
    - A lot of minor bug fixes and cleanup.
 
    - Better Windows support.
+
+   - Ocaml language support.
 
 Here are a few missing features:
 

@@ -892,6 +892,59 @@ AC_ARG_WITH(release-suffix,
 AC_SUBST(release_suffix)
 
 #----------------------------------------------------------------
+# Detect ocaml
+#----------------------------------------------------------------
+
+OCAMLBIN=
+
+AC_ARG_WITH(ocaml,[  --with-ocaml=path	  Set location of ocaml executable],[ OCAMLBIN="$withval"], [OCAMLBIN=])
+AC_ARG_WITH(ocamlc,[  --with-ocamlc=path  Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
+
+AC_MSG_CHECKING(for Ocaml compiler)
+if test -z "$OCAMLC"; then
+AC_CHECK_PROGS(OCAMLC, ocamlc, ocamlc)
+else
+OCAMLC="$OCAMLC"
+fi
+
+AC_MSG_CHECKING(for Ocaml interpreter)
+if test -z "$OCAMLBIN"; then
+AC_CHECK_PROGS(OCAML, ocaml, ocaml)
+else
+OCAMLBIN="$OCAMLBIN"
+fi
+AC_MSG_CHECKING(for Ocaml header files)
+dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
+for i in $dirs; do
+	if test -r $i/mlvalues.h; then
+		AC_MSG_RESULT($i)
+		OCAMLEXT="$i"
+		OCAMLINC="-I$OCAMLEXT"
+		break;
+	fi
+done
+if test -z "$OCAMLINC"; then
+	AC_MSG_RESULT(not found)
+fi
+
+AC_SUBST(OCAMLINC)
+AC_SUBST(OCAMLBIN)
+AC_SUBST(OCAMLC)
+	
+# Configure SWIG_LIB path
+
+AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
+  [swig_lib="$withval"], [swig_lib="\$(prefix)/lib/swig1.3"])
+AC_SUBST(swig_lib)
+
+# Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
+
+AC_ARG_WITH(release-suffix, 
+  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
+  [release_suffix="$withval"], [release_suffix=""])
+AC_SUBST(release_suffix)
+
+#----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
 
