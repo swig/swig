@@ -2,6 +2,10 @@
 %insert(runtime) "javahead.swg"
 
 /* Java typemaps.
+ *
+ * The Java module has most of its code generation hard coded. This will move in a future release to typemaps.
+ * Typemaps are implemented for long long and unsigned long long. unsigned long long arrays still to be done.
+ *
  * The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
  * The jtype typemap contains the Java type used in the Java module class. 
@@ -15,7 +19,7 @@
 %typemap(jni) unsigned short     "jint"
 %typemap(jni) int                "jint"
 %typemap(jni) unsigned int       "jlong"
-%typemap(jni) long               "jlong"
+%typemap(jni) long               "jint"
 %typemap(jni) unsigned long      "jlong"
 %typemap(jni) long long          "jlong"
 %typemap(jni) unsigned long long "jobject"
@@ -32,7 +36,7 @@
 %typemap(jtype) unsigned short     "int"
 %typemap(jtype) int                "int"
 %typemap(jtype) unsigned int       "long"
-%typemap(jtype) long               "long"
+%typemap(jtype) long               "int"
 %typemap(jtype) unsigned long      "long"
 %typemap(jtype) long long          "long"
 %typemap(jtype) unsigned long long "java.math.BigInteger"
@@ -49,7 +53,7 @@
 %typemap(jstype) unsigned short     "int"
 %typemap(jstype) int                "int"
 %typemap(jstype) unsigned int       "long"
-%typemap(jstype) long               "long"
+%typemap(jstype) long               "int"
 %typemap(jstype) unsigned long      "long"
 %typemap(jstype) long long          "long"
 %typemap(jstype) unsigned long long "java.math.BigInteger"
@@ -59,8 +63,6 @@
 %typemap(jstype) char *             "String"
 %typemap(jstype) void               "void"
 
-/*%apply long long {__int64};*/ /*Microsoft uses __int64 instead */
-
 /* Arrays of primtive types */                     
 %typemap(jni) char[ANY]               "jbyteArray"
 %typemap(jni) signed char[ANY]        "jbyteArray"
@@ -69,10 +71,10 @@
 %typemap(jni) unsigned short[ANY]     "jintArray"
 %typemap(jni) int[ANY]                "jintArray"
 %typemap(jni) unsigned int[ANY]       "jlongArray"
-%typemap(jni) long[ANY]               "jlongArray"
+%typemap(jni) long[ANY]               "jintArray"
 %typemap(jni) unsigned long[ANY]      "jlongArray"
 %typemap(jni) long long[ANY]          "jlongArray"
-/*%typemap(jni) unsigned long long[ANY] "jlongArray"*/
+/*%typemap(jni) unsigned long long[ANY] "jobjectArray"*/
 %typemap(jni) float[ANY]              "jfloatArray"
 %typemap(jni) double[ANY]             "jdoubleArray"
 %typemap(jni) bool[ANY]               "jbooleanArray"
@@ -86,10 +88,10 @@
 %typemap(jtype) unsigned short[ANY]     "int[]"
 %typemap(jtype) int[ANY]                "int[]"
 %typemap(jtype) unsigned int[ANY]       "long[]"
-%typemap(jtype) long[ANY]               "long[]"
+%typemap(jtype) long[ANY]               "int[]"
 %typemap(jtype) unsigned long[ANY]      "long[]"
 %typemap(jtype) long long[ANY]          "long[]"
-/*%typemap(jtype) unsigned long long[ANY] "long[]"*/
+/*%typemap(jtype) unsigned long long[ANY] "java.math.BigInteger[]"*/
 %typemap(jtype) float[ANY]              "float[]"
 %typemap(jtype) double[ANY]             "double[]"
 %typemap(jtype) bool[ANY]               "boolean[]"
@@ -103,17 +105,15 @@
 %typemap(jstype) unsigned short[ANY]     "int[]"
 %typemap(jstype) int[ANY]                "int[]"
 %typemap(jstype) unsigned int[ANY]       "long[]"
-%typemap(jstype) long[ANY]               "long[]"
+%typemap(jstype) long[ANY]               "int[]"
 %typemap(jstype) unsigned long[ANY]      "long[]"
 %typemap(jstype) long long[ANY]          "long[]"
-/*%typemap(jstype) unsigned long long[ANY] "long[]"*/
+/*%typemap(jstype) unsigned long long[ANY] "java.math.BigInteger[]"*/
 %typemap(jstype) float[ANY]              "float[]"
 %typemap(jstype) double[ANY]             "double[]"
 %typemap(jstype) bool[ANY]               "boolean[]"
 //%typemap(jstype="String")  char *                     
 //%typemap(jstype="void")    void                     
-
-/*%apply long long[ANY] {__int64[ANY]};*/ /*Microsoft uses __int64 instead */
 
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
@@ -150,8 +150,6 @@
 %apply SWIGTYPE *ARRAYSOFPOINTERS[ANY] { 
     bool *[ANY], char *[ANY], unsigned char *[ANY], short *[ANY], unsigned short *[ANY], int *[ANY], unsigned int *[ANY], long *[ANY], unsigned long *[ANY], long long *[ANY], /*unsigned long long *[ANY],*/ float *[ANY], double *[ANY], void *[ANY] };
 
-/*%apply long long *[ANY] {__int64 *[ANY]};*/
-
 /* Arrays of enums. SWIG does not have a default for arrays of enums, eg enum SWIGTYPE []. The following 
  * typemaps are applied in the source code for all enum declarations that is the equivalent of:
  * %apply enum SWIGTYPE[ANY] {name[ANY]}; */
@@ -169,10 +167,10 @@
 
 
 /* in typemaps */
-%typemap(in) long long, __int64 %{ $1 = $input; %}
+%typemap(in) long long %{ $1 = $input; %}
 
 /* Convert from BigInteger using the toByteArray member function */
-%typemap(in) unsigned long long, __int64 { 
+%typemap(in) unsigned long long { 
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -206,10 +204,10 @@
 
 
 /* out typemaps */
-%typemap(out) long long, __int64 %{ $result = $1; %}
+%typemap(out) long long %{ $result = $1; %}
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
-%typemap(out) unsigned long long, __int64 { 
+%typemap(out) unsigned long long { 
   jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
   jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
   jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
