@@ -61,6 +61,7 @@ C_TEST_BROKEN +=
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	abstract_access \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
