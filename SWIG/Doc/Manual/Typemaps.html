@@ -1,283 +1,126 @@
 <html>
 <head>
-<title>Pointers, Constraints, and Typemaps</title>
+<title>Types and Typemaps</title>
 </head>
 
 <body bgcolor="#ffffff">
-<h1>6 Pointers, Constraints, and Typemaps</h1>
+<h1>6 Types and Typemaps</h1>
 
 <b>Caution: This chapter is under repair!</b>
 
 <h2>Introduction</h2>
 
-For most applications, SWIG's treatment of basic datatypes and
-pointers is enough to build an interface. However, in certain cases,
-it is desirable to change SWIG's treatment of particular
-datatypes. For example, we may want a <tt>char ** </tt>to act like a
-list of strings instead of a pointer. In another instance, we may want
-to tell SWIG that <tt>double *result</tt> is the output value of a
-function. Similarly, we might want to map a datatype of
-<tt>float[4]</tt> into a 4 element tuple. This chapter describes
-advanced methods for managing pointers, arrays, and complex
-datatypes. It also describes how you can customize SWIG to handle new
-kinds of objects and datatypes.<p>
+In Chapter 3, SWIG's treatment of basic datatypes and pointers was
+described.  In particular, primitive types such as <tt>int</tt> and
+<tt>double</tt> are mapped to corresponding types in the target
+language.  For everything else, pointers are used to refer to
+structures, classes, arrays, and other user-defined datatypes.
+However, in certain applications it is desirable to change SWIG's
+handling of a specific datatype. For example, you may want a <tt>char
+** </tt>to act like a list of strings instead of a bare pointer. In
+another case, you may want to tell SWIG that a parameter of
+<tt>double *result</tt> is the output value of a function. Similarly,
+you might want to map a datatype of <tt>float[4]</tt> into a 4 element
+tuple.  This chapter describes some of the techniques that can be used
+to customize SWIG's type handling.  In particular, details of the
+underlying type system and typemaps, an advanced customization
+feature, are presented.
 
-<h2> The SWIG Pointer Library</h2>
+<h2>The Problem</h2>
 
-If your interface involves C pointers, chances are you will need to
-work with these pointers in some way or another. The SWIG pointer
-library provides a collection of useful methods for manipulating
-pointers. To use the library, simply put the following declaration in
-your interface file :<p>
+Suppose that you wanted to provide a scripting language wrapper
+around a function with the following prototype:
 
-<p>
-<blockquote><pre>%include pointer.i 				// Grab the SWIG pointer library
+<blockquote>
+<pre>
+int foo(int argc, char *argv[]);
+</pre>
+</blockquote>
 
-</pre></blockquote>
-or run SWIG as follows :<p>
-<p>
-<blockquote><pre>swig -perl5 -lpointer.i interface.i 
+If you do nothing at all, SWIG produces a wrapper that 
+expects to receive a pointer of type <tt>char **</tt> as 
+the second argument.  For example, if you try to use the function
+you might get an error like this:
 
-</pre></blockquote>
+<blockquote>
+<pre>
+>>> foo(3,["ale","lager","stout"])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: Type error. Expected _p_p_char
+>>> 
+</pre>
+</blockquote>
 
-Doing so adds a collection of pointer manipulation functions that are
-described below. The functions are mainly designed to work with basic
-C datatypes, but can often be used with more complicated
-structures.<p>
+One way to fix this problem is to write a few assist functions to
+manufacture an object of the appropriate type.  For example:
 
-<h3> Pointer Library Functions</h3>
-
-<b>ptrcreate(type,?value?,?nitems?)</b><p>
-<dl>
-<dt><dd>
-<dt><dd>Creates a new object and returns a pointer to
-it. <tt>type</tt> is a string containing the C datatype and may be one
-of
-"<tt>int</tt>","<tt>short</tt>","<tt>long</tt>","<tt>float</tt>","<tt>double</tt>","<tt>char</tt>","<tt>char
-*</tt>", or "<tt>void</tt>". <tt>value</tt> is the optional initial
-value to be assigned to the object. <tt>nitems</tt> is an optional
-parameter containing the number of objects to create. By default it is
-1, but specifying another value allows you to create an array of
-values. This function is really just a wrapper around the C
-<tt>malloc()</tt> function.
-
-</dl>
-<b></b><p>
-<b>ptrfree(ptr)</b><p>
-<dl>
-<dt><dd>Destroys an object created by <tt>ptrcreate</tt>. It is
-generally unsafe to use this function on objects not created by
-<tt>ptrcreate</tt>. Calls the C <tt>free()</tt> function.
-</dl>
-<p>
-<b>ptrvalue(ptr,?index?,?type?)</b><p>
-<dl>
-<dt><dd>This dereferences a pointer and returns the value that it is
-pointing to. <tt>index</tt> is an optional parameter that allows array
-access by returning the value of <tt>ptr[index]</tt>. <tt>type</tt> is
-an optional parameter that explicitly specifies the datatype. Since
-SWIG pointers are encoded with type information, the type is usually
-unnecessary. The <tt>type</tt> parameter provides somewhat better
-performance and allows you to dereference a pointer of different type
-however.
-<dt><dd>
-</dl>
-<b>ptrset(ptr, value, ?index?, ?type?)</b><p>
-<dl>
-<dt><dd>Sets the value of the object a pointer is pointing
-to. <tt>value</tt> is the new value of the object. <tt>index </tt>is
-an optional parameter allowing array access by setting <tt>ptr[index]
-= value</tt>. <tt>type </tt>is an optional parameter that explicitly
-specifies the datatype as described above.
-<dt><dd>
-</dl>
-<b>ptrcast(ptr, newtype)</b><p>
-<dl>
-<dt><dd>Casts a pointer to a new datatype and returns the new
-value. <tt>newtype</tt> is a string containing the new datatype and
-may either be the "mangled" version used by SWIG (such as
-"<tt>_Vector_p</tt>") or the C version (such as "<tt>Vector
-*</tt>"). This function works with any kind of pointer value. In
-additional to pointers, <tt>ptr</tt> may also hold an integer value in
-which case the integer is turned into a pointer of given type.
-<dt><dd>
-</dl>
-<b>ptradd(ptr, offset)</b><p>
-<dl>
-<dt><dd>Adds an offset to a pointer and returns a new
-pointer. <tt>offset</tt> is specified as the number of objects except
-for unknown complex datatypes in which case it is the number of
-bytes. For example, is <tt>ptr</tt> is a "<tt>double *</tt>",
-<tt>ptradd(ptr,1)</tt> will return the next double. On the other hand,
-if if <tt>ptr</tt> is "<tt>Vector *</tt>", then <tt>ptradd(ptr,1)</tt>
-will update the pointer by 1 byte.
-<dt><dd>
-</dl>
-<b>ptrmap(type1,type2)</b><p>
-<dl>
-<dt><dd>This performs a "runtime typedef" and makes SWIG recognize
-pointers of <tt>type1</tt> and <tt>type2</tt> as
-equivalent. <tt>type1</tt> and <tt>type2</tt> are specified as
-strings. Not generally needed, but sometimes useful.
-</dl>
-
-<h3> A simple example</h3>
-
-Suppose you have the following C function :<p>
-
-<blockquote><pre>
-void add(double a, double b, double *result) {
-	*result = a + b;
+<blockquote>
+<pre>
+%inline %{
+char **new_args(int maxarg) {
+   return (char **) malloc(maxarg*sizeof(char *));
 }
-
-</pre></blockquote>
-
-To manage the result output, we can write an interface file like this
-:<p>
-
-<p>
-<blockquote><pre>%module example
-%include pointer.i
-
-extern void add(double a, double b, double *result);
-
-</pre></blockquote>
-
-Now, let's use the pointer library (shown for a few languages) :<p>
-
-<blockquote><pre>
-# Tcl 
-set result [ptrcreate double]          ;# Create a double
-add 4.5 3 $result                      ;# Call our C function
-puts [ptrvalue $result]                ;# Print out the result
-ptrfree $result                        ;# Destroy the double
-
-# Perl5
-use example;
-package example;                        # Functions are in example package
-$result = ptrcreate("double");          # Create a double
-add(4.5,3,$result);                     # Call C function
-print ptrvalue($result),"\n";           # Print the result
-ptrfree($result);                       # Destroy the double
-
-# Python
-import example
-result = example.ptrcreate("double")    # Create a double
-example.add(4.5,3,result)               # Call C function
-print example.ptrvalue(result)          # Print the result
-example.ptrfree(result)                 # Destroy the double
-
-</pre></blockquote>
-
-In this case, the idea is simple--we create a pointer, pass it to our
-C function, and dereference it to get the result. It's essentially
-identical to how we would have done it in C (well, minus the function
-call to dereference the value).<p>
-
-<h3> Creating arrays</h3>
-
-Now suppose you have a C function involving arrays :<p>
-<p>
-<blockquote><pre>void addv(double a[], double b[], double c[], int nitems) {
-	int i;
-	for (i = 0; i &lt; nitems; i++) {
-		c[i] = a[i]+b[i];
-	}
+void del_args(char **args, int narg) {
+   while (--narg > 0) {
+      free(args[narg]);
+   }
+   free(args);
 }
-
-</pre></blockquote>
-
-This is also easily handled by our pointer library. For example (in Python) :<p>
-
-<p>
-<blockquote><pre># Python function to turn a list into an "array"
-def build_array(l):
-	nitems = len(l)
-	a = ptrcreate("double",0,nitems)
-	i = 0
-	for item in l:
-		ptrset(a,item,i)
-		i = i + 1
-	return a
-
-# Python function to turn an array into list
-def build_list(a,nitems):
-	l = []
-	for i in range(0,nitems):
-		l.append(ptrvalue(a,i))
-	return l
-
-# Now use our functions
-a = listtoarray([0.0,-2.0,3.0,9.0])
-b = build_array([-2.0,3.5,10.0,22.0])
-c = ptrcreate("double",0,4)            # For return result
-add(a,b,c,4)                           # Call our C function
-result = build_list(c)                 # Build a python list from the result
-print result
-ptrfree(a)
-ptrfree(b)
-ptrfree(c)
-
-</pre></blockquote>
-
-This example may look quite inefficient on the surface (due to the
-translation of Python lists to and from C arrays). However, if you're
-working with lots of C functions, it's possible to simply pass C
-pointers around between them without any translation. As a result,
-applications can run fast--even when controlled from a scripting
-language. It's also worth emphasizing that the <tt>ptrcreate()</tt>
-function created a real C array that can be interchanged with other
-arrays. The <tt>ptrvalue()</tt> function can also dereference a C
-pointer even if it wasn't created from Python. <p>
-
-<h3> Packing a data structure</h3>
-
-The pointer library can even be used to pack simple kinds of
-data-structures, perhaps for sending across a network, or simply for
-changing the value. For example, suppose you had this data
-structure:<p>
-
-<p>
-<blockquote><pre>struct Point {
-	double x,y;
-	int color;
-};
-
-</pre></blockquote>
-
-<p>
-You could write a Tcl function to set the fields of the structure as
-follows :<p>
-
-<p>
-<blockquote><pre>proc set_point { ptr x y c } {
-	set p [ptrcast $ptr "double *"]       ;# Make a double *
-	ptrset $p $x                          ;# Set x component
-	set p [ptradd $p 1]                   ;# Update pointer
-	ptrset $p $y                          ;# Set y component
-	set p [ptrcast [ptradd $p 1] "int *"] ;# Update pointer and cast
-	ptrset $p $c                          ;# Set color component
+void set_arg(char **args, int n, char *value) {
+   args[n] = (char *) malloc(strlen(value)+1);
+   strcpy(args[n],value);
 }
-</pre></blockquote>
+%}
+</pre>
+</blockquote>
+
+Now in the scripting language:
+
+<blockquote>
+<pre>
+>>> args = new_args(3)
+>>> args
+_000f4248_p_p_char
+>>> set_arg(args,0,"ale")
+>>> set_arg(args,1,"lager")
+>>> set_arg(args,2,"stout")
+>>> foo(3,args)
+>>> del_args(args,3)
+</pre>
+</blockquote>
+
+Needless to say, this isn't the most user friendly interface that you
+might imagine.  It would be much nicer if you could simply make a list
+of strings work like a <tt>char **</tt>.  Similar problems arise when
+creating wrappers for small arrays, output values, and certain kinds
+of data structures.
+
 <p>
-This function could be used even if you didn't tell SWIG anything
-about the "Point" structure above. <p>
+One of the reasons why SWIG does not provide automatic support for mapping
+advanced types such as lists and associative arrays into C is that it
+is often difficult to know how and when this should be done.  For example,
+if you have a function like this,
 
-<h2> Introduction to typemaps</h2>
+<blockquote>
+<pre>
+void foo(double *x, double *y, double *r);
+</pre>
+</blockquote>
 
-Sometimes it's desirable to change SWIG behavior in some manner. For
-example, maybe you want to automatically translate C arrays to and
-from Perl lists. Or perhaps you would like a particular function
-argument to behave as an output parameter. Typemaps provide a
-mechanism for doing just this by modifying SWIG's code
-generator. Typemaps are new to SWIG 1.1, but it should be emphasized
-that they are not required to build an interface. <p>
+it's not at all clear what the arguments are supposed to represent.
+Are they single values?  Are they arrays?  Is a result stored in one
+of the arguments?  The only thing that SWIG really knows is that they
+are pointers to a <tt>double</tt>.  Any further interpretation requires
+more information.
 
-<h3> The idea (in a nutshell)</h3>
+<h2>Typemaps</h2>
 
-The idea behind typemaps is relatively simple--given the occurrence of
-a particular C datatype, we want to apply rules for special
-processing. For example, suppose we have a C function like this :<p>
+Typemaps provide a customization mechanism for modifying SWIG's
+default type-handling behavior. The idea behind a typemap is 
+relatively simple--given the occurrence of a particular C 
+datatype, you may want to apply rules for special
+processing. For example, suppose you have a C function like this :<p>
 
 <p>
 <blockquote><pre>void add(double a, double b, double *result) {
@@ -286,41 +129,27 @@ processing. For example, suppose we have a C function like this :<p>
 </pre></blockquote>
 
 <p>
-It is clear to us that the result of the function is being returned in
-the <tt>result</tt> parameter. Unfortunately, SWIG isn't this
+It is clear to the reader that the result of the function is being returned in
+the <tt>result</tt> parameter. Unfortunately, SWIG isn't so
 smart--after all "result" is just like any other pointer. However,
-with a typemap, we can make SWIG recognize "<tt>double *result</tt>"
-as a special datatype and change the handling to do exactly what we
-want.<p>
+using a typemap, you can make SWIG recognize "<tt>double *result</tt>"
+as an output parameter and to create wrapper code that handles it as such.
 
 <p>
-So, despite being a common topic of discussion on the SWIG mailing
-list, a typemap is really just a special processing rule that is
-applied to a particular datatype. Each typemap relies on two essential
-attributes--a datatype and a name (which is optional). When trying to
-match parameters, SWIG looks at both attributes. Thus, special
-processing applied to a parameter of "<tt>double *result</tt>" will
-not be applied to "<tt>double *input</tt>". On the other hand, special
-processing defined for a datatype of "<tt>double *</tt>" could be
-applied to both (since it is more general). <p>
-
-<h3> Using some typemaps</h3>
-
-It is easy to start using some typemaps right away. To wrap the above
-function, simply use the <tt>typemaps.i</tt> library file (which is
-part of the SWIG library) as follows :<p>
+The most gentle introduction to using typemaps is to start with some
+of the predefined typemaps contained in the <tt>typemaps.i</tt>
+library file.  For example:
 
 <p>
 <blockquote><pre>// Simple example using typemaps
 %module example
-%include typemaps.i 					// Grab the standard typemap library
+%include typemaps.i
 
-%apply double *OUTPUT { double *result };
+%apply double *OUTPUT { double *result; }
 extern void add(double a, double b, double *result);
-
 </pre></blockquote>
 
-The <tt>%apply</tt> directive tells SWIG that we are going to apply
+The <tt>%apply</tt> directive tells SWIG that you are going to apply
 special processing to a datatype. The "<tt>double *OUTPUT</tt>" is the
 name of a rule describing how to return an output value from a
 "<tt>double *</tt>" (this rule is defined in the file
@@ -328,8 +157,7 @@ name of a rule describing how to return an output value from a
 listed in curly braces-- in this case "<tt>double *result</tt>".<p>
 
 <p>
-While it may sound complicated, when you compile the module and use
-it, you get a function that works as follows :<p>
+When you use the resulting module, the typemap allows you to write code like this:
 
 <p>
 <blockquote><pre># Perl code to call our add function
@@ -340,9 +168,32 @@ print $a,"\n";
 
 </pre></blockquote>
 
-Our function is much easier to use and it is no longer necessary to
-create a special double * object and pass it to the function. Typemaps
-took care of this automatically.<p>
+In this case, the output value returned in the third argument has
+magically been transformed into a function return value. 
+Clearly this makes the function much easier to use since it is no
+longer necessary to manufacture a special <tt>double *</tt> object and
+pass it to the function as a third argument.
+
+<p>
+Once defined, a typemap rule applies to all future occurrences of a
+matching type and name.  For instance, in the above example, all
+occurrences of <tt>double *result</tt> will be handled as an output
+parameter.   Thus, if a header file or interface file uses a consistent
+naming scheme, typemaps can be used to apply special rules across many 
+different declarations.
+
+<p>
+Although, the <tt>%apply</tt> directive has been used to apply a special
+processing rule to <tt>double *result</tt> it is also possible to use the
+rule name directly as an argument.  For example, you could have also written this:
+
+<blockquote><pre>// Simple example using typemaps
+%module example
+%include typemaps.i
+
+extern void add(double a, double b, double *OUTPUT);
+</pre></blockquote>
+
 
 <h2> Managing input and output parameters</h2>
 
@@ -1187,6 +1038,252 @@ it may soon be possible to redefine almost all of SWIG's code
 generation on the fly. Future language modules will rely upon typemaps
 almost exclusively. <p>
 <p>
+
+
+<!--
+
+<h2> The SWIG Pointer Library</h2>
+
+If your interface involves C pointers, chances are you will need to
+work with these pointers in some way or another. The SWIG pointer
+library provides a collection of useful methods for manipulating
+pointers. To use the library, simply put the following declaration in
+your interface file :<p>
+
+<p>
+<blockquote><pre>%include pointer.i 				// Grab the SWIG pointer library
+
+</pre></blockquote>
+or run SWIG as follows :<p>
+<p>
+<blockquote><pre>swig -perl5 -lpointer.i interface.i 
+
+</pre></blockquote>
+
+Doing so adds a collection of pointer manipulation functions that are
+described below. The functions are mainly designed to work with basic
+C datatypes, but can often be used with more complicated
+structures.<p>
+
+<h3> Pointer Library Functions</h3>
+
+<b>ptrcreate(type,?value?,?nitems?)</b><p>
+<dl>
+<dt><dd>
+<dt><dd>Creates a new object and returns a pointer to
+it. <tt>type</tt> is a string containing the C datatype and may be one
+of
+"<tt>int</tt>","<tt>short</tt>","<tt>long</tt>","<tt>float</tt>","<tt>double</tt>","<tt>char</tt>","<tt>char
+*</tt>", or "<tt>void</tt>". <tt>value</tt> is the optional initial
+value to be assigned to the object. <tt>nitems</tt> is an optional
+parameter containing the number of objects to create. By default it is
+1, but specifying another value allows you to create an array of
+values. This function is really just a wrapper around the C
+<tt>malloc()</tt> function.
+
+</dl>
+<b></b><p>
+<b>ptrfree(ptr)</b><p>
+<dl>
+<dt><dd>Destroys an object created by <tt>ptrcreate</tt>. It is
+generally unsafe to use this function on objects not created by
+<tt>ptrcreate</tt>. Calls the C <tt>free()</tt> function.
+</dl>
+<p>
+<b>ptrvalue(ptr,?index?,?type?)</b><p>
+<dl>
+<dt><dd>This dereferences a pointer and returns the value that it is
+pointing to. <tt>index</tt> is an optional parameter that allows array
+access by returning the value of <tt>ptr[index]</tt>. <tt>type</tt> is
+an optional parameter that explicitly specifies the datatype. Since
+SWIG pointers are encoded with type information, the type is usually
+unnecessary. The <tt>type</tt> parameter provides somewhat better
+performance and allows you to dereference a pointer of different type
+however.
+<dt><dd>
+</dl>
+<b>ptrset(ptr, value, ?index?, ?type?)</b><p>
+<dl>
+<dt><dd>Sets the value of the object a pointer is pointing
+to. <tt>value</tt> is the new value of the object. <tt>index </tt>is
+an optional parameter allowing array access by setting <tt>ptr[index]
+= value</tt>. <tt>type </tt>is an optional parameter that explicitly
+specifies the datatype as described above.
+<dt><dd>
+</dl>
+<b>ptrcast(ptr, newtype)</b><p>
+<dl>
+<dt><dd>Casts a pointer to a new datatype and returns the new
+value. <tt>newtype</tt> is a string containing the new datatype and
+may either be the "mangled" version used by SWIG (such as
+"<tt>_Vector_p</tt>") or the C version (such as "<tt>Vector
+*</tt>"). This function works with any kind of pointer value. In
+additional to pointers, <tt>ptr</tt> may also hold an integer value in
+which case the integer is turned into a pointer of given type.
+<dt><dd>
+</dl>
+<b>ptradd(ptr, offset)</b><p>
+<dl>
+<dt><dd>Adds an offset to a pointer and returns a new
+pointer. <tt>offset</tt> is specified as the number of objects except
+for unknown complex datatypes in which case it is the number of
+bytes. For example, is <tt>ptr</tt> is a "<tt>double *</tt>",
+<tt>ptradd(ptr,1)</tt> will return the next double. On the other hand,
+if if <tt>ptr</tt> is "<tt>Vector *</tt>", then <tt>ptradd(ptr,1)</tt>
+will update the pointer by 1 byte.
+<dt><dd>
+</dl>
+<b>ptrmap(type1,type2)</b><p>
+<dl>
+<dt><dd>This performs a "runtime typedef" and makes SWIG recognize
+pointers of <tt>type1</tt> and <tt>type2</tt> as
+equivalent. <tt>type1</tt> and <tt>type2</tt> are specified as
+strings. Not generally needed, but sometimes useful.
+</dl>
+
+<h3> A simple example</h3>
+
+Suppose you have the following C function :<p>
+
+<blockquote><pre>
+void add(double a, double b, double *result) {
+	*result = a + b;
+}
+
+</pre></blockquote>
+
+To manage the result output, we can write an interface file like this
+:<p>
+
+<p>
+<blockquote><pre>%module example
+%include pointer.i
+
+extern void add(double a, double b, double *result);
+
+</pre></blockquote>
+
+Now, let's use the pointer library (shown for a few languages) :<p>
+
+<blockquote><pre>
+# Tcl 
+set result [ptrcreate double]          ;# Create a double
+add 4.5 3 $result                      ;# Call our C function
+puts [ptrvalue $result]                ;# Print out the result
+ptrfree $result                        ;# Destroy the double
+
+# Perl5
+use example;
+package example;                        # Functions are in example package
+$result = ptrcreate("double");          # Create a double
+add(4.5,3,$result);                     # Call C function
+print ptrvalue($result),"\n";           # Print the result
+ptrfree($result);                       # Destroy the double
+
+# Python
+import example
+result = example.ptrcreate("double")    # Create a double
+example.add(4.5,3,result)               # Call C function
+print example.ptrvalue(result)          # Print the result
+example.ptrfree(result)                 # Destroy the double
+
+</pre></blockquote>
+
+In this case, the idea is simple--we create a pointer, pass it to our
+C function, and dereference it to get the result. It's essentially
+identical to how we would have done it in C (well, minus the function
+call to dereference the value).<p>
+
+<h3> Creating arrays</h3>
+
+Now suppose you have a C function involving arrays :<p>
+<p>
+<blockquote><pre>void addv(double a[], double b[], double c[], int nitems) {
+	int i;
+	for (i = 0; i &lt; nitems; i++) {
+		c[i] = a[i]+b[i];
+	}
+}
+
+</pre></blockquote>
+
+This is also easily handled by our pointer library. For example (in Python) :<p>
+
+<p>
+<blockquote><pre># Python function to turn a list into an "array"
+def build_array(l):
+	nitems = len(l)
+	a = ptrcreate("double",0,nitems)
+	i = 0
+	for item in l:
+		ptrset(a,item,i)
+		i = i + 1
+	return a
+
+# Python function to turn an array into list
+def build_list(a,nitems):
+	l = []
+	for i in range(0,nitems):
+		l.append(ptrvalue(a,i))
+	return l
+
+# Now use our functions
+a = listtoarray([0.0,-2.0,3.0,9.0])
+b = build_array([-2.0,3.5,10.0,22.0])
+c = ptrcreate("double",0,4)            # For return result
+add(a,b,c,4)                           # Call our C function
+result = build_list(c)                 # Build a python list from the result
+print result
+ptrfree(a)
+ptrfree(b)
+ptrfree(c)
+
+</pre></blockquote>
+
+This example may look quite inefficient on the surface (due to the
+translation of Python lists to and from C arrays). However, if you're
+working with lots of C functions, it's possible to simply pass C
+pointers around between them without any translation. As a result,
+applications can run fast--even when controlled from a scripting
+language. It's also worth emphasizing that the <tt>ptrcreate()</tt>
+function created a real C array that can be interchanged with other
+arrays. The <tt>ptrvalue()</tt> function can also dereference a C
+pointer even if it wasn't created from Python. <p>
+
+<h3> Packing a data structure</h3>
+
+The pointer library can even be used to pack simple kinds of
+data-structures, perhaps for sending across a network, or simply for
+changing the value. For example, suppose you had this data
+structure:<p>
+
+<p>
+<blockquote><pre>struct Point {
+	double x,y;
+	int color;
+};
+
+</pre></blockquote>
+
+<p>
+You could write a Tcl function to set the fields of the structure as
+follows :<p>
+
+<p>
+<blockquote><pre>proc set_point { ptr x y c } {
+	set p [ptrcast $ptr "double *"]       ;# Make a double *
+	ptrset $p $x                          ;# Set x component
+	set p [ptradd $p 1]                   ;# Update pointer
+	ptrset $p $y                          ;# Set y component
+	set p [ptrcast [ptradd $p 1] "int *"] ;# Update pointer and cast
+	ptrset $p $c                          ;# Set color component
+}
+</pre></blockquote>
+<p>
+This function could be used even if you didn't tell SWIG anything
+about the "Point" structure above. <p>
+
+-->
 
 <p><hr>
 
