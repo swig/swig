@@ -95,6 +95,7 @@ typedef struct swig_type_info {
   const char  *name;
   swig_converter_func converter;
   const char  *str;
+  void        *clientdata;
   size_t tag;
   swig_dycast_func        dcast;
 } swig_type_info;

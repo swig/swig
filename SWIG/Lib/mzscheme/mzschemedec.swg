@@ -44,6 +44,7 @@ typedef struct swig_type_info {
   const char  *name;
   void *(*converter)(void *);
   const char  *str;
+  void        *clientdata;
   SwigPtrType *ptrtype;
   swig_dycast_func        dcast;
 } swig_type_info;
