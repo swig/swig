@@ -1,6 +1,5 @@
 SWIG Myths
 
-<p>
 <h2>SWIG Myths</h2>
 
 <p>
@@ -8,7 +7,7 @@ Here are some common misconceptions about SWIG that have occasionally
 appeared on other web pages and in articles--especially those that
 describe older SWIG versions.
 
-<font color="#ff0000"><h4>Myth: SWIG only really works with ANSI C</h4></font>
+<h4><font color="#ff0000">Myth: SWIG only really works with ANSI C</font></h4>
 
 <h4>Fact:</h4>
 
@@ -23,8 +22,8 @@ every C++ feature including templates, namespaces, operators, overloaded methods
 and more.  The only major C++ feature not supported is nested classes---and we're
 working on that. See the <a href="compare.html">Features</a> page for more information.
 
-<font color="#ff0000"><h4>Myth: SWIG wraps C++ into this unusable
-low-level "C-tran" interface.</h4></font>
+<h4><font color="#ff0000">Myth: SWIG wraps C++ into this unusable
+low-level "C-tran" interface.</font></h4>
 
 <h4>Fact:</h4>
 
@@ -38,7 +37,7 @@ are wrapped as Python classes, in Perl, C++ classes are wrapped as
 Perl classes, and so forth.   The existence of procedural wrappers is
 only an artifact of SWIG's layered approach to wrapper code generation.
 
-<font color="#ff0000"><h4>Myth: SWIG doesn't support overloaded methods/functions</h4></font>
+<h4><font color="#ff0000">Myth: SWIG doesn't support overloaded methods/functions</font></h4>
 
 <h4>Fact:</h4>
 
@@ -50,7 +49,7 @@ For example, if you have declarations like this:
 class Foo {
 public:
      Foo();
-     Foo(const Foo &);
+     Foo(const Foo &amp;);
      void spam(int x);
      void spam(double x);
      void spam(char *x, int n);
@@ -119,7 +118,7 @@ or
 </pre>
 </blockquote>
 
-<font color="#ff0000"><h4>Myth: SWIG doesn't support basic idiomatic C++ constructs like templates and smart pointers</h4></font>
+<h4><font color="#ff0000">Myth: SWIG doesn't support basic idiomatic C++ constructs like templates and smart pointers</font></h4>
 
 <h4>Fact:</h4>
 
@@ -188,7 +187,7 @@ Now, in the target language, the wrapper object works just like you would expect
 </blockquote>
 
 
-<font color="#ff0000"><h4>Myth: SWIG is just too confusing to use</h4></font>
+<h4><font color="#ff0000">Myth: SWIG is just too confusing to use</font></h4>
 
 <h4>Fact:</h4>
 
@@ -196,23 +195,20 @@ Most users find SWIG to be relatively easy to use.  However, confusion can arise
 from the following:
 
 <ul>
-<li>C programming.  To effectively use SWIG, you should have a good grasp of
+<li><p>C programming.  To effectively use SWIG, you should have a good grasp of
 basic C programming concepts like pointers, arrays, memory management, data structures,
 functions, parameter passing semantics, and so forth.  SWIG tries to make it easy for
 C programmers to build extension modules, but it does not try to make C programming
 easy.
 
-<p>
-<li>C++. This language is so large and complicated that certain parts of SWIG
+<li><p>C++. This language is so large and complicated that certain parts of SWIG
 may not make any sense unless you are also familiar with the underlying C++ concepts.
 
-<P>
-<li>Dynamic linking and shared libraries.  To build extension modules, you usually
+<li><p>Dynamic linking and shared libraries.  To build extension modules, you usually
 have to create DLLs.  If you've never done this before, there is a small
 learning curve associated with finding the right compiler and linker options.
 
-<p>
-<li>Customization features.  SWIG provides a large number of customization features and
+<li><p>Customization features.  SWIG provides a large number of customization features and
 options that can be used to control almost all parts of the wrapper generation
 process.  These are provided to better support power users and to provide the
 flexibility needed to solve difficult real-world wrapping problems.  However,

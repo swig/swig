@@ -49,7 +49,6 @@ or not a wrapper generator can parse C++ is clearly the wrong question
 to ask.  Instead, the real question is whether or not a wrapper
 generation tool that parses C++ can actually do anything useful.
 
-<p>
 <h3>The problem with using C++ as an interface definition language</h3>
 
 If you cut through all of the low-level details of parsing, the primary
@@ -100,7 +99,6 @@ more than just parse C++---it must give users the freedom to customize
 various aspects of the wrapper generation process.  Again, things aren't
 looking too good for C++.
 
-<p>
 <h3>The SWIG approach: pattern matching</h3>
 
 SWIG takes a different approach to the C++ wrapping problem.
@@ -172,8 +170,8 @@ For example:
 %exception Foo::getitem(int) {
     try {
         $action
-    } catch (std::out_of_range& e) {
-        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    } catch (std::out_of_range&amp; e) {
+        SWIG_exception(SWIG_IndexError,const_cast&lt;char*&gt;(e.what()));
     }
 }
 
@@ -181,7 +179,7 @@ For example:
 template&lt;class T&gt; class Foo {
 public:
      ...
-     T &getitem(int index);    // Exception handling code attached
+     T &amp;getitem(int index);    // Exception handling code attached
      ...
 };
 </pre>
@@ -194,7 +192,7 @@ declaration that appears later in the input.  This means that raw C++
 header files can often be parsed and customized with few, if any,
 modifications.
 
-<h3>The SWIG difference</h2>
+<h3>The SWIG difference</h3>
 
 Pattern based approaches to wrapper code generation are not unique to SWIG.
 However, most prior efforts have based their pattern matching engines on simple

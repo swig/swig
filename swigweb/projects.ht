@@ -1,6 +1,6 @@
 The SWIG Files
 
-<p><img src="images/projects.png">
+<p><img src="images/projects.png" alt="Projects">
 
 <p>
 SWIG is being used in an increasing number of applications, most of
@@ -13,11 +13,10 @@ some of the ways in which SWIG is currently being used.
 opinions expressed here do not necessarily reflect those of any
 given employer or organization).
 
-<p>
 <hr>
 <p>
 David Beazley (dmb@viking.lanl.gov) and Peter Lomdahl (pxl@viking.lanl.gov)<br>
-<p>
+
 <p>
 SWIG is being used to construct a Python interface to the <a
 href="http://bifrost.lanl.gov/MD/MD.html">SPaSM</a> molecular dynamics
@@ -35,11 +34,10 @@ interface is automatically generated during compilation.  This work
 was recently featured on the cover of "Computers in Physics" (June,
 1997).
 
-<p>
 <hr>
 <p>
 John Schmidt (jas@cs.utah.edu) <br>
-<p>
+
 <p>
 I am using SWIG to integrate four stand alone software packages into a
 unified system controlled by Tcl/Tk scripts.  The unified software
@@ -52,11 +50,10 @@ written in C++ using OpenGL and Motif.  SWIG has been crucial to the
 development of this project.  With SWIG, the integration of the
 individual pieces was trivial.
 
-<p>
 <hr>
 <p>
 David Brydon (brydon@lanl.gov) <br>
-<p>
+
 <p>
 We are using swig with python to retrieve, analyze, and visualize very
 large data sets from ocean model simulations on parallel computers.
@@ -64,11 +61,10 @@ We have written C routines that access our data.  Graphics libraries
 and Matlab are used to visualize the data.  We are very happy with the
 flexible, programmable, powerful tool that results.
 
-<p>
 <hr> 	
 <p>
 Mike Weiblen (mew@paradigmsim.com) <br>
-<p>
+
 <p>
 Paradigm sells modular C toolkits for developing visual
 simulation/virtual reality graphics applications called Vega and another
@@ -84,15 +80,14 @@ Several years ago (I believe we discussed this stuff way back in 1994
 ;-), I created a set of C preprocessor macros that did SWIG-like
 things.  It was a very tedious process, making it difficult to follow
 changes to an evolving API, but it was useful for proof-of-concept. 
-When SWIG 1.1B1 came out in October, I was generously given a R&D budget
+When SWIG 1.1B1 came out in October, I was generously given a R&amp;D budget
 to reimplement my project in SWIG.  The project has been a resounding
 success!  
 
-<p>
 <hr>
 <p>
 Jonah Lee (jonah@melab.uafsoe.alaska.edu)
-<p>
+
 <p>
 [We're using SWIG for] wrapping up engineering applications using
 finite element method including pre- and post-processing. My program
@@ -102,10 +97,9 @@ deformations. It's mainly used for rapid prototyping, development and
 testing. The code runs on workstations, Cray Y-MPs and Cray T3E (when
 I get there...  that is).
 
-<p>
 <hr>
 <p>Jody Winston (jody@sccsi.com) 
-<p>
+
 <p>
 
 I have used SWIG to wrap an API that controlled two stepper motors and
@@ -119,11 +113,10 @@ SWIG has allowed me to move the time critical code into C, C++, or
 FORTRAN while having the application being controlled by Python.  I
 can quickly embed an interpreter into an application.
 
-<p>
 <hr>
 <p>
 Peter Lister (p.lister@cranfield.ac.uk)<br>
-<p>
+
 <p>
 I'm using [SWIG] for a Perl scriptable version of Van Jacobson's libpcap
 packet capture library. I can now use Perl regular expressions to
@@ -132,12 +125,11 @@ from ARP packets and automatically maintain our database of IP/MAC
 address mappings directly from perl rather than hacking the output of
 arpwatch or tcpdump.
 
-<p>
 <hr>
 <p>
-Harald Singer (singer@itl.atr.co.jp) <p>
-<p>
+Harald Singer (singer@itl.atr.co.jp)
 
+<p>
 [We are using SWIG for] wrapping C libraries  to Python for speech recognition research
 at ATR Interpreting Telecommunications Laboratories.
 <p>
@@ -151,17 +143,17 @@ The advantages of using Python become more evident every day. For
 example, it was fairly easy to write a GUI using python/tk. We are
 using this now for interactive error analysis. A typical scenario is
 like this:
-<p>
+
 <ul>
 <li> audio data is collected via microphone/AD (in Python) and sent to the
 recognizer frame by frame. 
-<p>
+
 <li> the recognizer (C code) makes a decision about speech endpointing and
 once it has discovered end of utterance does a callback to the
 application (python/tk) with a word lattice as result.
-<p>
+
 <li> this word lattice is now displayed for the user in python/tk. 
-<p>
+
 <li> the user can now interactively rescore part of the lattices, look at
 the detailed acoustic and language model scores, listen to parts of
 the utterance, etc.
@@ -171,10 +163,9 @@ SWIG helps us in taking away part of the error-prone task of making
 the C routines accessible from python and has considerably improved
 our efficiency.
 
-<p>
 <hr>
 <p>
-Dominique Dumont (domi@ss7serv.grenoble.hp.com) <p>
+Dominique Dumont (domi@ss7serv.grenoble.hp.com)
 <p>
 I'm using SWIG to generate a perl5 API on top of HP's OpenCall TCAP
 API. TCAP is the top protocol layer of HP's SS7 stack of telecom 
@@ -197,9 +188,9 @@ Hopefully (i.e. if we have some spare time), the next step will be to
 combine Tk with Perl and SWIG so we'll be able to monitor with a user
 friendly interface the progress of the test suite.
 
-<p>
 <hr>
 <p>Daniel Michelson (Daniel.Michelson@smhi.se)
+
 <p>
 A collegue and I are using SWIG for two purposes, both of which
 centre around the creation of a Python-based environment for analysis
@@ -209,13 +200,14 @@ network:
 <li> interfacing old code
 <li> interfacing new, performance critical, code.
 </ul>
-We have a couple of other collegues, also at SMHI R&D, who are working
+<p>
+We have a couple of other collegues, also at SMHI R&amp;D, who are working
 in satellite-based remote sensing activities and who will be starting to
 use SWIG in the near future for their purposes.
 
-<p>
 <hr>
 <p>Roger Burnham (rburnham@cri-inc.com)
+
 <p>
 Thanks again for SWIG... Its fun, allows great productivity while 
 avoiding much tedium...
@@ -241,10 +233,9 @@ able to control a frame grabber, display live/acquired images, all
 from within Python, within the same day I received the frame grabber 
 SDK, never having dealt with such hardware before!
 
-<p>
 <hr>
 <p>
-Simon Gibson (gibson@dstc.qut.edu.au) <p>
+Simon Gibson (gibson@dstc.qut.edu.au)
 <p>
 
 I have been using SWIG to create a Python interface for our
@@ -260,7 +251,7 @@ Hector is described in an article in the January/February
 <hr>
 <p>
 Mark Hammond (MHammond@skippinet.com.au)
-<p>
+
 <p>
 
 I'm using [SWIG] to write a commericial application, which runs as an NT
@@ -272,10 +263,9 @@ The COM extensions will allow (once the .i file is up to it :-) any native
 COM interface (ie, not IDispatch (eg, VB/Word/Excel) based) to be supported
 by Python.
 
-<p>
 <hr>
 <p> Michael Bell (michaelb@gold.net.au)
-<p>
+
 <p>
 I've used SWIG on a Linux platform to create Python modules for
 graphing and database access.
@@ -304,10 +294,10 @@ and d.close(), returning data as Python lists and arrays.
 <p>
 I'm particularly pleased that I managed to do these things with my
 reading only knowledge of C, and lots of cutting and pasting.
-<p>
+
 <hr>
 <p>
-Soeren Henkel (soeren@hni.uni-paderborn.de) <p>
+Soeren Henkel (soeren@hni.uni-paderborn.de)
 <p>
 We are currently in the process of redeveloping OOPUS, a system for
 modeling plant systems and generate plant control software from a model.
@@ -317,10 +307,9 @@ into an OODBMS, namely POET. So we needed an integration of POET
 (which is tightly coupled to C++) with Tcl/Tk, and we've successfully
 done that with SWIG.
 
-<p>
 <hr>
 <p>
-Peter A. Tinker (patinker@msmail4.hac.com) <p>
+Peter A. Tinker (patinker@msmail4.hac.com)
 <p>
 We're using SWIG to "glue" Tcl/Tk to custom and third-party libraries. In
 particular, SWIG provides an elegant means for controlling Sense8
@@ -331,10 +320,9 @@ functions from a Tcl script and/or a Tk GUI. This approach is
 being used in a variety of projects involving advanced 3D visualization
 on a variety of imcompatible systems.
 
-<p>
 <hr>
 <p>
-Peter-Pike Sloan (ppsloan@cs.utah.edu) <p>
+Peter-Pike Sloan (ppsloan@cs.utah.edu)
 <p>
 I have been using SWIG for several projects, mostly to streamline
 working with OpenGL under Tcl/Tk.  Examples are a time-critical
@@ -346,10 +334,9 @@ development time allowing me to develop code and debug state in an
 interpreted environment (currently Tcl, but I think I am going to move
 to Python).
 
-<p>
 <hr>
 <p>
-Chris Myers (myers@beamtech.com) <p>
+Chris Myers (myers@beamtech.com)
 <p>
 We at Beam Technologies, Inc. have used SWIG to begin developing an
 interpreted Python interface to our PDESolve library.  PDESolve is a
@@ -381,10 +368,9 @@ and running quickly with a Python interface to PDESolve, and
 demonstrate the utility of such an approach for a complex C++ library
 (something that SWIG was not originally designed to really tackle).
 
-<p>
 <hr>
 <p>
-Vladimir I.Ulogov (gandalf@starship.skyport.net) <p>
+Vladimir I.Ulogov (gandalf@starship.skyport.net)
 <p>
 
 SWIG is being used to create a Python interface to CLIPS expert system shell
@@ -399,50 +385,41 @@ too. Module was be tested on Windows/NT and SUN Solaris 2.4 host platforms,
 CLIPS version: 6.04, Python version 1.4. This module consist about 270
 functions. This job took 3 days of my job at october 1997.
 
-<p>
 <hr>
 <p>
-Pinhong Chen (phchenb@tsmc.com) <p>
+Pinhong Chen (phchenb@tsmc.com)
 <p>
 I got a page for
 <a href="http://www-cad.eecs.berkeley.edu/~pinhong/scriptEDA"
 >EDA applications</a>
 using SWIG.
 
-<p>
 <hr>
 <h3> Tools and Modules </h3>
 The following tools and modules have been produced using SWIG
 or are related to SWIG.
 
 <ul>
-<li><a href="http://www.thestuff.net/bob/projects/blade">BLADE</a>. A web publishing environment.
+<li><p><a href="http://www.thestuff.net/bob/projects/blade">BLADE</a>. A web publishing environment.
 
-<p>
-<li><a href="http://students.cs.byu.edu/~butler/jni/PyJava.html">PyJava</a>. Provides
+<li><p><a href="http://students.cs.byu.edu/~butler/jni/PyJava.html">PyJava</a>. Provides
 Python access to Java methods (Kevin Butler). 
 
-<p>
-<li><a href="http://playground.sun.com/~bharat/pilotmgr.html">Pilot Manager</a>. Hook
+<li><p><a href="http://playground.sun.com/~bharat/pilotmgr.html">Pilot Manager</a>. Hook
 your US Robotics PalmPilot up to your Sun workstation (Bharat Mediratta).
 
-<p>
-<li> <a href="http://www.mic.atr.co.jp/~gulliver/WTK/www">PyWTK</a>.  A Python
+<li><p> <a href="http://www.mic.atr.co.jp/~gulliver/WTK/www">PyWTK</a>.  A Python
 interface to the WorldToolKit (a virtual reality modeling toolkit). (Roberto Lopez Gulliver)
 
-<p>
-<li> A Python interface to
+<li><p> A Python interface to
 <a href="http://starship.python.net/crew/robind/index.html">BSD DB 2.7.x</a> (Robin Dunn).
 
-<p>
-<li><a href="http://alldunn.com/wxPython/index.html">wxPython</a>. A Python extension
+<li><p><a href="http://alldunn.com/wxPython/index.html">wxPython</a>. A Python extension
 module that encapsulates the wxWindows GUI classes.
 
-<p>
-<li> Net-Pcap.  A Perl interface to the libpcap library (Peter Lister).
+<li><p> Net-Pcap.  A Perl interface to the libpcap library (Peter Lister).
 
-<p>
-<li> X11::Wcl. A Perl interface to the Widget Creation Library (Joe Buehler).
+<li><p> X11::Wcl. A Perl interface to the Widget Creation Library (Joe Buehler).
 
 </ul>
 

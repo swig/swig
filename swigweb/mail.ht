@@ -1,19 +1,20 @@
 SWIG Mailing Lists
 
-<p><img src="images/mail.png">
+<p><img src="images/mail.png" alt="Mail">
 
-<p/>
+<p>
 
 There are a number of mailing lists available. Please use them for any queries related to the use or development of SWIG.
 
-<p/>
+<p>
 <b>Important</b>. The mailing lists are set with a very high level of spam rejection, meaning occasionally some SWIG user's email postings will be discarded. Emails classified as spam are quietly discarded, so please check the archives if you are unsure as whether your email was successfully posted. The mailing lists are also subscriber only lists, so you must subscribe to the relevant list in order to post to that list.
 
-<p/>
+<p>
 To subscribe to any of the mailing lists or view the archives, use the links on the left column.
-<p/>
+<br>
+<br>
 
-<table BORDER="1">
+<table BORDER="1" summary="Maling lists">
 <tr>
 <td><font size="+1">List</font></td>
 <td><font size="+1">Purpose</font></td>
@@ -48,7 +49,4 @@ SWIG CVS list. CVS commits are mailed to this list.
 
 </table>
 
-<ul>
-</ul>
 
-<p/>

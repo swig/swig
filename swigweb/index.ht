@@ -1,5 +1,5 @@
 Simplified Wrapper and Interface Generator
-<p>
+
 <h2>Welcome to SWIG</h2>
 
 [ <a href="http://swig-jp.dyndns.org">Japanese</a> ]
@@ -8,9 +8,9 @@ Simplified Wrapper and Interface Generator
 SWIG is a software development tool that connects programs written in
 C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
-such as Perl, Python, Tcl/Tk, and Ruby, however the list of 
+such as Perl, Python, Tcl/Tk and Ruby, however the list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
-non-scripting languages such as C#, Java, Modula-3 and OCAML. Also several
+non-scripting languages such as C#, Common Lisp (Allegro CL), Java, Modula-3 and OCAML. Also several
 interpreted and compiled Scheme implementations (Chicken, Guile, MzScheme)
 are supported. SWIG is most
 commonly used to create high-level interpreted or compiled programming
@@ -28,7 +28,6 @@ and non-commercial use.
 <li> <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki!</a>
 </ul>
 
-<p>
 <h3>News</h3>
 
 
@@ -198,11 +197,5 @@ but it fixes a lot of bugs in SWIG1.3a3 and SWIG1.3a4, includes new language mod
 for Ruby and Mzscheme, and has some new examples.  Note: this is a somewhat
 unstable release and may not be suitable for first time users.
 Download SWIG-1.1 instead.
-
-<p>
-</blockquote>
-
-
-
 
 

@@ -22,7 +22,7 @@ languages with C/C++ code.
 <p>SWIG is used in a number of ways:
 
 <ul>
-<li><b>Building more powerful C/C++ programs</b>.  Using SWIG, you can
+<li><p><b>Building more powerful C/C++ programs</b>.  Using SWIG, you can
 replace the main() function of a C program with a scripting
 interpreter from which you can control the application.  This adds
 quite a lot of flexibility and makes the program "programmable."  That
@@ -33,22 +33,19 @@ of the large software packages that you use every day---nearly all of
 them include special a macro language, configuration language, or even
 a scripting engine that allows users to make customizations.
 
-<p>
-<li><b>Rapid prototyping and debugging</b>.  SWIG allows C/C++ programs to be placed in
+<li><p><b>Rapid prototyping and debugging</b>.  SWIG allows C/C++ programs to be placed in
 a scripting environment that can be used for testing and debugging.
 For example, you might test a library with a collection of scripts or use the scripting
 interpreter as an interactive debugger.   Since SWIG requires no modifications to the
 underlying C/C++ code, it can be used even if the final product does not rely upon scripting.
 
-<p>
-<li><b>Systems integration</b>.  Scripting languages work fairly well
+<li><p><b>Systems integration</b>.  Scripting languages work fairly well
 for controlling and gluing loosely-coupled software components
 together.  With SWIG, different C/C++ programs can be turned into
 scripting language extension modules.  These modules can then be
 combined together to create new and interesting applications.
 
-<p>
-<li><b>Construction of scripting language extension modules</b>.  SWIG
+<li><p><b>Construction of scripting language extension modules</b>.  SWIG
 can be used to turn common C/C++ libraries into components for use in
 popular scripting languages.  Of course, you will still want to make
 sure that no-one else has already created a module before doing this.
@@ -61,34 +58,30 @@ make it so you don't have to add an extra layer of IDL specifications
 to your application.  If anything, it's much more of a rapid
 application development and prototyping tool.  Specifically:
 
-<p>
 <ul>
-<li><b>ANSI C/C++ syntax</b>.  SWIG parses ANSI C++ that has been
+<li><p><b>ANSI C/C++ syntax</b>.  SWIG parses ANSI C++ that has been
 extended with a number of special directives.  As a result, interfaces
 are usually built by grabbing a header file and tweaking it a little
 bit.  This particular approach is especially useful when the
 underlying C/C++ program undergoes frequent modification.
 
-<p>
-<li><b>SWIG is not a stub generator</b>.  SWIG produces code that you
+<li><p><b>SWIG is not a stub generator</b>.  SWIG produces code that you
 simply compile and run.  You don't have to fill in any stubs or write
 special client/server code as you do with RPC-like systems.
 
-<p>
-<li><b>SWIG does not define a protocol nor is it a component
+<li><p><b>SWIG does not define a protocol nor is it a component
 framework.</b> SWIG does not define mechanisms or enforce rules
 regarding the way in which software components are supposed to
 interact with each other.  Nor is it a specialized runtime library
 or alternative scripting language API.  SWIG is merely a code generator
 that provides the glue necessary to hook C/C++ to other languages.
 
-<p> <li><b>Designed to work with existing C/C++ code</b>.  SWIG
+<li><p><b>Designed to work with existing C/C++ code</b>.  SWIG
 requires little, if any, modifications to existing code.  For the most
 part, it encourages you to keep a clean separation between C/C++ and
 its scripting interface.
 
-<p>
-<li><b>Extensibility</b>.  SWIG provides a variety of customization options that
+<li><p><b>Extensibility</b>.  SWIG provides a variety of customization options that
 allow you to blow your whole leg off if that's what you want to do.  
 SWIG is not here to enforce programming morality.
 </ul>

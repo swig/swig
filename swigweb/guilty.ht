@@ -5,15 +5,15 @@ Guilty Parties
 <p>
 <b>Active Developers</b>
 
-<table cellpadding=0 cellspacing=8 width="100%" border=0>
+<table cellpadding=0 cellspacing=8 width="100%" border=0 summary="Developer mugshots">
 <tr>
 <td>
-<img src="images/Dave3.jpg"><br>
+<img src="images/Dave3.jpg" alt="Dave Beazley"><br>
 <b>Dave Beazley (Chicago, Illinois).</b><br>
 SWIG core, type system, Python, Tcl, Perl.
 </td>
 <td>
-<img src="images/luigi.jpg"><br>
+<img src="images/luigi.jpg" alt="Luigi Ballabio"><br>
 <b>Luigi Ballabio (Milano, Italy).</b><br>
 Macintosh port, STL libraries, Python.
 </td>
@@ -21,12 +21,12 @@ Macintosh port, STL libraries, Python.
 
 <tr>
 <td>
-<img src="images/fulton3.jpg"><br>
+<img src="images/fulton3.jpg" alt="William Fulton"><br>
 <b>William Fulton (Bath, UK).</b> <br>
 Java and C# modules. Cygwin/Windows.
 </td>
 <td>
-<img src="images/lyle.jpg"><br>
+<img src="images/lyle.jpg" alt="Lyle Johnson"><br>
 <b>Lyle Johnson (Madison, Alabama).</b><br>
 Ruby module.
 </td>
@@ -34,12 +34,12 @@ Ruby module.
 
 <tr>
 <td>
-<img src="blank.jpg"><br>
+<img src="blank.jpg" alt="Blank"><br>
 <b>Matthias Köppe (Magdeburg, Germany).</b> <br>
 Guile module.
 </td>
 <td>
-<img src="images/sam.jpg"><br>
+<img src="images/sam.jpg" alt="Sam Liddicott"><br>
 <b>Sam Liddicott (Wakefield, UK).</b>  <br>
 PHP module.
 </td>
@@ -47,12 +47,12 @@ PHP module.
 
 <tr>
 <td>
-<img src="blank.jpg"><br>
+<img src="blank.jpg" alt="Blank"><br>
 <b>Marcelo Matus (Tuscon, AZ).</b> <br>
 Evil C++ testing.
 </td>
 <td>
-<img src="blank.jpg"><br>
+<img src="blank.jpg" alt="Blank"><br>
 <b>Richard Palmer.</b> <br>
 PHP module.
 </td>
@@ -60,12 +60,12 @@ PHP module.
 
 <tr>
 <td>
-<img src="blank.jpg"><br>
+<img src="blank.jpg" alt="Blank"><br>
 <b>Jason Stewart (Albuquerque, New Mexico).</b> <br>
 Perl module.
 </td>
 <td>
-<img src="blank.jpg"><br>
+<img src="blank.jpg" alt="Blank"><br>
 <b>Klaus Wiederänders (Vienna, Austria).</b> <br>
 XML module.
 </td>
@@ -73,12 +73,12 @@ XML module.
 
 <tr>
 <td>
-<img src="images/arty.jpg"><br>
+<img src="images/arty.jpg" alt="Art Yerkes"><br>
 <b>Art Yerkes (Chicago, Illinois).</b> <br>
 OCAML module.
 </td>
 <td>
-<img src="images/yoshiki.jpg"><br>
+<img src="images/yoshiki.jpg" alt="Shibukawa Yoshiki"><br>
 <b>Shibukawa Yoshiki (Tokyo, Japan).</b> <br>
 Japanese translation.
 </td>

@@ -18,7 +18,7 @@ name in brackets and use the ampersand like this
 
 <blockquote>
 <pre>
-void foo(Bar <&b>) {
+void foo(Bar <&amp;b>) {
     b.frag(3);       // Call some method  
     ...
 }
@@ -36,25 +36,24 @@ Obviously, there are a few complicated cases such as:
 
 <blockquote>
 <pre>
-void foo(const Bar *const *<&b>);
+void foo(const Bar *const *<&amp;b>);
 </pre>
 </blockquote>
 
 The interpretation of this is left as an exercise to the reader (hey,
 it's good to be a professor).
 
-<p>
-<li><b>Circular shift operators.</b> Sure, one doesn't really need to
+<li><p><b>Circular shift operators.</b> Sure, one doesn't really need to
 do a circular bit shift very often, but they are sometimes useful in
 cryptographic algorithms and for general-purpose bit-twiddling.  I
 propose the inclusion of the triple angle bracket operators
-(<tt>&lt;&lt;&lt</tt> and <tt>&gt;&gt;&gt;</tt>) for this purpose.  Of
+(<tt>&lt;&lt;&lt;</tt> and <tt>&gt;&gt;&gt;</tt>) for this purpose.  Of
 course, these operators could also be overloaded just like the normal
 shift operators.  It's not that I really need these operators, but it
 is yet another opportunity to include more angle brackets into the
 language.
-<p>
-<li><b>The survival cast.</b>  I'm not really sure where I got this idea,
+
+<li><p><b>The survival cast.</b>  I'm not really sure where I got this idea,
 but basically it works like this: given an object, you can cast it using
 a <tt>survival_cast</tt> like this  
 
@@ -87,13 +86,11 @@ precise mechanism and scope of destruction is implementation specific
 and may depend on the type of objects to which the survival cast has
 been applied.
 
-<p>
-<li><b>The non-castable function pointer</b>.  Since function pointers are
+<li><p><b>The non-castable function pointer</b>.  Since function pointers are
 too confusing for everyone, it should be impossible to cast them into any
 other type.  Oh wait, this is already a C++ feature.
 
-<p>
-<li><b>The identifier length cast</b>.  Since we're on the subject of casting....  I would
+<li><p><b>The identifier length cast</b>.  Since we're on the subject of casting....  I would
 also like to propose the identifier length cast.  This is a cast that only works
 if the identifier names of the two types are exactly the same length in 
 characters.  For example:
@@ -109,8 +106,7 @@ In addition, there should be an <tt>identifier_case_cast</tt> that works similar
 which looks at the case of the type names.   I'm not really sure what purpose these casts
 would serve, but that doesn't really distinguish them from any of the other casts.
  
-<p>
-<li><b>The instance goto</b>.  In a nutshell, I really want to be able to do
+<li><p><b>The instance goto</b>.  In a nutshell, I really want to be able to do
 this:
 
 <blockquote>
@@ -140,20 +136,19 @@ possibilities of combining template classes with goto.  For example:
 
 <blockquote>
 <pre>
-template class Foo<x> {
+template class Foo&lt;x&gt; {
 public:
     x: 
         ... some code here ...
         break;
     ...
 };
-</blockquote>
 </pre>
+</blockquote>
 
 Clearly, the number of applications is endless.
 
-<p>
-<li><b>MP3 player</b>.   Since compiling a C++ application takes so long, I think
+<li><p><b>MP3 player</b>.   Since compiling a C++ application takes so long, I think
 it would be useful to modify the C++ compiler to go out and search the net for an
 appropriate symphony or sonata to download and play while it is working. Ahhhh. Yes.
 Of course, if you have a DVD player handy, I have personally found that watching "Apocalypse Now"

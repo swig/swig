@@ -1,7 +1,7 @@
 SWIG Copyright
 
 <p>
-<img src="images/copyright.png">
+<img src="images/copyright.png" alt="Copyright">
 
 <pre>
 Simplified Wrapper and Interface Generator  (SWIG)
@@ -70,3 +70,6 @@ THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND 
 THE AUTHORS AND DISTRIBUTORS HAVE NO OBLIGATION TO PROVIDE MAINTENANCE,
 SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+</pre>
+

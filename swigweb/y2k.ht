@@ -1,6 +1,6 @@
 SWIG2K
 
-<p><img src="images/y2k.png">
+<p><img src="images/y2k.png" alt="Y2K">
 
 <p>
 SWIG does not use the date and should not be affected by Y2K.
@@ -8,7 +8,6 @@ However, like any development tool, SWIG will not prevent you from
 creating a buggy application.  SWIG is distributed under the following
 terms :
 
-<p>
 <pre>
 
 IN NO EVENT SHALL THE AUTHOR, THE UNIVERSITY OF CALIFORNIA, THE 

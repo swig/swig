@@ -1,7 +1,7 @@
 SWIG Related Links
 
 <p>
-<img src="images/links.png">
+<img src="images/links.png" alt="Links">
 
 <H3> Projects </H3>
 
@@ -10,7 +10,7 @@ Lots of people <a href="projects.html">use SWIG</a>.
 
 <H3> Language related links </h3>
 
-<ul>
+<blockquote>
 
 The <a href="http://www.scriptics.com"> Tcl/Tk </a> homepage at Scriptics<br>
 The <a href ="http://www.python.org"> Python </a> homepage. <br>
@@ -28,14 +28,14 @@ The <a href ="http://www.python.org"> Python </a> homepage. <br>
 <a href="http://www.php.net/">PHP</a> homepage. <br>
 <a href="http://www.call-with-current-continuation.org/chicken.html">CHICKEN</a> homepage. <br>
 <a href="http://www.schemers.org/"> schemers.org </a> - a collection of resources for the Scheme programming language <br>
-</ul>
+</blockquote>
 
 <h3> Code generators and other interesting packages</h3>
 
-<ul>
+<blockquote>
 The <a href="ftp://ftp.parc.xerox.com/pub/ilu/ilu.html"> ILU </a> homepage (Xerox PARC) <br>
-<a href="http://www.fpx.de/fp/Software/tclobj"> TclObj </a> </br>
-<a href="http://www.amath.washington.edu/~lf/software/tcl++">Modular Tcl</a></br>
+<a href="http://www.fpx.de/fp/Software/tclobj"> TclObj </a> <br>
+<a href="http://www.amath.washington.edu/~lf/software/tcl++">Modular Tcl</a><br>
 <a href="http://lnc.usc.edu/~holt/matwrap/">Matwrap</a>. A wrapper
 generator for matrix languages. <br>
 <a href="http://www.riverbankcomputing.co.uk/sip">SIP</a>. A wrapper generator
@@ -82,18 +82,18 @@ sure to check it out.
 
 <a href="http://elmer.sourceforge.net">Elmer</a>. Glue code generator so that Python modules can run in C and Tcl programs.<br>
 
-</ul>
+</blockquote>
 
 <h3> Other interesting links</h3>
 
-<ul>
+<blockquote>
 
 John Ousterhout's <a href="http://home.pacbell.net/ouster/scripting.html"> paper </a> on scripting languages
 (appeared in IEEE Computer). <br>
 <A HREF="http://SAL.KachinaTech.COM/"> SAL - Scientific Applications on Linux</a>. <br>
 <a href="http://www.usenix.org">USENIX</a> <br>
 <a href="http://www.mathtools.net">Mathtools.net</a> A technical computing portal for all scientific and engineering needs. Contains useful links to technical computing programmers, covering C/C++, Java, Excel, MATLAB, Fortran and others.<br>
-</ul>
+</blockquote>
 
 <b>I am always on the lookout for projects that are either related to SWIG 
 or which provide alternative solutions to the problem of wrapping C/C++ code.

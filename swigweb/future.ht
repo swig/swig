@@ -232,15 +232,14 @@ useful to know that the whole system is essentially being built around
 three extensions to the C++ type system:
 
 <ul>
-<p>
-<li><b>Typemaps.</b>  Typemaps are rules that define the process by which
+
+<li><p><b>Typemaps.</b>  Typemaps are rules that define the process by which
       data is converted between languages.   They are fully integrated
       with the C++ type system and they are applied using a type-based
       pattern matching mechanism.  All data conversion SWIG is
       defined by typemaps and is fully reconfigurable.
 
-<p>
-<li><b>Declaration annotation.</b> There are special directives that modify
+<li><p><b>Declaration annotation.</b> There are special directives that modify
       the wrapping behavior of individual declarations. Declarations
       can be selectively identified and decorated with arbitrary
       attributes that affect wrapper generation.  Like typemaps, 
@@ -248,8 +247,7 @@ three extensions to the C++ type system:
       Almost all SWIG customization directives are a form of declaration 
       annotation.   
 
-<p>
-<li><b>Class extension.</b>  The ability to extend classes and structures
+<li><p><b>Class extension.</b>  The ability to extend classes and structures
       with new methods/attributes when building wrappers.  Classes
       are part of the type system so class extension is naturally 
       integrated with the C++ type system as well (big surprise).
@@ -325,37 +323,33 @@ developers do the same.  However, we only have limited resources and
 we need your help.
 
 <ul>
-<li>
+<li><p>
 If you like SWIG and find it useful, we need you to try new versions.
    We want you to torture test the releases and to break them.  We need
    bug reports. No bug is too obscure or unimportant---we *will* fix it
    if we can.  We also need feedback about things that are annoying or
    compatibility features that might help in going from 1.1 to 2.0.
 
-<p>
-<li> We need help with documentation, examples, testing, libraries, and all
+<li><p> We need help with documentation, examples, testing, libraries, and all
    sorts of other aspects of the release.  Even if you have never
    written a SWIG language module or dived into its implementation,
    there are many ways that you can help.  Consider writing a case study
    about how you wrapped a big library.  Contribute tests that break the
    implementation in horrible ways.  Help with the web page or FAQ.
 
-<p>
-<li> Most of the SWIG-1.3.x work has focused on the SWIG core.  However, as
+<li><p> Most of the SWIG-1.3.x work has focused on the SWIG core.  However, as
    the 2.0 release nears, we will be working on a variety of enhancements
    to the language modules.  If there are things you would like to see
    in any of the language modules, you need to let us know.
 
-<p>
-<li> There are SWIG language modules that have not made it into the
+<li><p> There are SWIG language modules that have not made it into the
    distribution.  Examples that I know about include ITCL, Swig-Eiffel,
    and Swig-Lua.  We would gladly make these part of the standard SWIG
    distribution.  However, we also need help to do it.  Porting from
    SWIG-1.1 is no easy task, but we're more than willing to help.  It's
    not as bad as one might imagine.
 
-<p>
-<li> We are always looking for developers.  Subscribe to
+<li><p> We are always looking for developers.  Subscribe to
    to the <a href="mail.html">swig-dev</a> mailing list
    or send me email to get involved.
 </ul>

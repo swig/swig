@@ -1,6 +1,5 @@
 SWIG Features
 
-<p>
 <h2>SWIG Features</h2>
 
 <p>
@@ -106,7 +105,4 @@ hierarchies, template instantiations, and more.  Features include:
 <li>Extensive diagnostics (error/warning messages).
 <li>Extended SWIG macro handling.
 </ul>
-
-</body>
-</html>
 
