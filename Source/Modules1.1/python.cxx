@@ -277,7 +277,7 @@ PYTHON::get_pointer(char *src, char *dest, SwigType *t, String *f, char *ret) {
   Printv(f,tab4, "if ((SWIG_ConvertPtr(", src, ",(void **) &", dest, ",", 0);
   if (SwigType_type(t) == T_VOID) Printv(f, "0,1)) == -1) return ", ret, ";\n", 0);
   else
-    Printv(f,"SWIGTYPE", SwigType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
+    Printv(f,"SWIGTYPE_", SwigType_manglestr(t), ",1)) == -1) return ", ret, ";\n", 0);
 }
 
 /* -----------------------------------------------------------------------------

@@ -29,8 +29,9 @@ static char cvsroot[] = "$Header$";
 #include "tcl8.h"
 #include "python.h"
 
-#ifdef OLD
+
 #include "perl5.h"
+#ifdef OLD
 #include "java.h"
 #include "guile.h"
 #include "mzscheme.h"
@@ -81,10 +82,11 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-python") == 0) {
 	      dl = new PYTHON;
 	      Swig_mark_arg(i);
-#ifdef OLD
+
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
 	      Swig_mark_arg(i);
+#ifdef OLD
 	  } else if (strcmp(argv[i],"-guile") == 0) {
 	      dl = new GUILE;
 	      Swig_mark_arg(i);

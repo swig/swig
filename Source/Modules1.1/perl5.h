@@ -21,12 +21,7 @@
 
 class PERL5 : public Language {
 private:
-  void   get_pointer(char *iname, char *srcname, char *src, char *dest,
-			SwigType *t, DOHString *f, char *ret);
-  char     *usage_var(char *, SwigType *);
   char     *usage_func(char *, SwigType *, ParmList *);
-  char     *usage_const(char *, SwigType *, char *);
-
 public :
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
@@ -34,10 +29,8 @@ public :
   virtual void link_variable(char *, char *, SwigType *);
   virtual void declare_const(char *, char *, SwigType *, char *);
   virtual void initialize(void);
-  virtual void headers(void);
   virtual void close(void);
-  virtual void set_module(char *, char **);
-  virtual void set_init(char *);
+  virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void create_command(char *, char *);
 
