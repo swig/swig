@@ -2321,6 +2321,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
+		 int       unnamedinstance = 0;
 
 		 $$ = new_node("enum");
 		 if ($3) {
@@ -2334,7 +2335,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   if ($1 && Cmp($1,"typedef") == 0) {
 		     Setattr($$,"name",$7.id);
                    } else {
-		     Setattr($$,"unnamedinstance","1");
+                     unnamedinstance = 1;
                    }
 		   Setattr($$,"storage",$1);
 		 }
@@ -2350,6 +2351,11 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 Setattr(n,"decl",$7.type);
 		 Setattr(n,"parms",$7.parms);
 		 Setattr(n,"unnamed",unnamed);
+
+                 if (unnamedinstance) {
+		   Setattr($$,"unnamedinstance","1");
+		   Setattr(n,"unnamedinstance","1");
+                 }
 		 if ($8) {
 		   Node *p = $8;
 		   set_nextSibling(n,p);
@@ -4331,10 +4337,6 @@ enumlist       :  enumlist COMMA edecl {
                     }
                     set_nextSibling(leftSibling,$3);
                     Setattr($1,"_last",$3);
-                    if ($3 && !Getattr($3, "enumvalue")) {
-                      /* There is no explicit enum value given, so make one. */
-                      Setattr($3,"enumvalueex", NewStringf("%s + 1", Getattr(leftSibling,"name")));
-                    }
                   }
 		  $$ = $1;
                }
@@ -4342,10 +4344,6 @@ enumlist       :  enumlist COMMA edecl {
                    $$ = $1; 
                    if ($1) {
                      Setattr($1,"_last",$1);
-                     if (!Getattr($1, "enumvalue")) {
-                       /* first enum item value defaults to 0 */
-                       Setattr($1,"enumvalueex", "0");
-                     }
                    }
                }
                ;
