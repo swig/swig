@@ -67,10 +67,10 @@ CPP_TEST_CASES += \
 	template_classes \
 	template_inherit \
 	template_whitespace \
+	typedef_scope \
 	typename \
 	virtual_destructor \
 	voidtest
-
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
