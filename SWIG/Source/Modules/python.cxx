@@ -426,6 +426,15 @@ public:
   }
 
 
+  int functionHandler(Node *n) {
+    if (checkAttribute(n,"feature:python:callback","1")) {
+      Setattr(n,"feature:callback","%s_cb_ptr");
+    }
+    
+    return Language::functionHandler(n);
+  }
+  
+
   /* ------------------------------------------------------------
    * emitFunctionShadowHelper()
    *    Refactoring some common code out of functionWrapper and
@@ -434,7 +443,7 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
-    if ( ! have_addtofunc(n) ) {
+    if (checkAttribute(n,"feature:python:callback","1") || ! have_addtofunc(n) ) {
       /* If there is no addtofunc directive then just assign from the extension module */
       Printv(f_dest, "\n", name, " = ", module, ".", name, "\n", NIL);
     } else {
@@ -486,11 +495,20 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(String *name, String *function, int kw) {
-    if (!kw)
-      Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS, NULL },\n", name, function);
+  void add_method(String *name, String *function, int kw, Node *n = 0) {
+    if (!kw) 
+      Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS, ", name, function);
     else
-      Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, NULL },\n", name, function);
+      Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, ", name, function);
+    
+    if (n && Getattr(n,"feature:callback")) {
+      Printf(methods,"\"swig_ptr: %s\"", Getattr(n,"feature:callback:name"));
+    } else {
+      Printf(methods,"NULL");
+    }
+    
+
+    Printf(methods,"},\n");
   }
   
   /* ------------------------------------------------------------
@@ -901,7 +919,7 @@ public:
 
     /* Now register the function with the interpreter.   */
     if (!Getattr(n,"sym:overloaded")) {
-      add_method(iname, wname, allow_kwargs);
+      add_method(iname, wname, allow_kwargs, n);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
@@ -954,8 +972,13 @@ public:
     
     Replaceall(dispatch,"$args","self,args");
     Printv(f->code,dispatch,"\n",NIL);
-    Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No matching function for overloaded '%s'\");\n", symname);
-    Printf(f->code,"return NULL;\n");
+    if (checkAttribute(n,"feature:python:maybecall","1")) {
+      Printf(f->code,"Py_INCREF(Py_NotImplemented);\n");
+      Printf(f->code,"return Py_NotImplemented;\n");
+    } else {
+      Printf(f->code,"PyErr_SetString(PyExc_NotImplementedError,\"No matching function for overloaded '%s'\");\n", symname);
+      Printf(f->code,"return NULL;\n");
+    }
     Printv(f->code,"}\n",NIL);
     Wrapper_print(f,f_wrappers);
     add_method(symname,wname,0);
@@ -999,10 +1022,10 @@ public:
 	Printf(f_shadow_stubs,"%s = %s.%s\n", global_name, module, global_name);
       }
     }
-    if ((shadow) && (!SwigType_ismutable(t))) {
-	if (!in_class) {
-	  Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
-	}
+    if ((shadow) && (checkAttribute(n,"feature:immutable","1"))) {
+      if (!in_class) {
+	Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
+      }
     }
 
     wname = Swig_name_wrapper(iname);
@@ -1107,7 +1130,9 @@ public:
       if (!in_class) {
 	Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NIL);
       } else {
-	Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NIL);      
+	if (!(Getattr(n,"feature:python:callback"))) {
+	  Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NIL);      
+	}
       }
     }
     return SWIG_OK;
@@ -1477,6 +1502,10 @@ public:
 	} else {
 	  Replaceall(tm, "$input", "result");
 	}
+	char temp[24];
+	sprintf(temp,"%d",idx);
+	Replaceall(tm,"$argnum",temp);
+
 	/* TODO check this */
 	if (Getattr(n,"wrap:disown")) {
 	  Replaceall(tm,"$disown","SWIG_POINTER_DISOWN");
@@ -1939,18 +1968,15 @@ public:
 	  Delete(pyaction);
 	  Printv(f_shadow,pycode,"\n",NIL);
 	} else {
-
-          Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "): ", NIL);
-          if ( have_addtofunc(n) ) {
-            Printv(f_shadow, "\n", NIL);
-            Printv(f_shadow, tab8, "val = ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
-            Printv(f_shadow, tab8, addtofunc(n), "\n", NIL);
-            Printv(f_shadow, tab8, "return val\n", NIL);
-          } else {
-            Printv(f_shadow, "return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
-          }
+	  Printv(f_shadow, tab4, "def ", symname, "(*args", (allow_kwargs ? ", **kwargs" : ""), "): ", NIL);
+	  if (have_addtofunc(n)) {
+	    Printv(f_shadow, "\n", NIL);
+	    Printv(f_shadow, tab8, "val = ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
+	    Printv(f_shadow, tab8, addtofunc(n), "\n", NIL);
+	  } else {
+	    Printv(f_shadow, "return ", funcCallHelper(Swig_name_member(class_name,symname), allow_kwargs), "\n", NIL);
+	  }
         }
-
       }
     }
     return SWIG_OK;
@@ -1982,10 +2008,10 @@ public:
           Printv(f_shadow, tab4, "__swig_getmethods__[\"", symname, "\"] = lambda x: ", module, ".", Swig_name_member(class_name, symname), "\n",  NIL);
         }
         if (!classic) {
-          Printv(f_shadow, tab4, modern ? "" : "if _newclass:",  symname,
-                 " = staticmethod(", module, ".",
-                 Swig_name_member(class_name, symname), ")\n", NIL);
-        }
+	  Printv(f_shadow, tab4, modern ? "" : "if _newclass:",  symname,
+		 " = staticmethod(", module, ".",
+		 Swig_name_member(class_name, symname), ")\n", NIL);
+	}
       }
     }
     return SWIG_OK;
