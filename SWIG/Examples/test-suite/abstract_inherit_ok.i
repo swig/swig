@@ -1,6 +1,7 @@
 %module abstract_inherit_ok
 
 %feature("notabstract") Spam;
+%warnfilter(403) Spam;
 
 %inline %{
 

@@ -1,5 +1,8 @@
 %module abstract_inherit
 
+%warnfilter(403) Spam;
+%warnfilter(403) Bar;
+
 %inline %{
 
 class Foo {
