@@ -177,6 +177,24 @@ static Hash   *rename_hash = 0;
 static Hash   *namewarn_hash = 0;
 static Hash   *features_hash = 0;
 
+static String *feature_identifier_fix(String *s) {
+  if (SwigType_istemplate(s)) {
+    String *tp, *ts, *ta, *tq;
+    tp = SwigType_templateprefix(s);
+    ts = SwigType_templatesuffix(s);
+    ta = SwigType_templateargs(s);
+    tq = Swig_symbol_type_qualify(ta,0);
+    Append(tp,tq);
+    Append(tp,ts);
+    Delete(ts);
+    Delete(ta);
+    Delete(tq);
+    return tp;
+  } else {
+    return NewString(s);
+  }
+}
+
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
   String *nname;
@@ -199,6 +217,7 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
   } else {
     nname = NewString(name);
   }
+
   Swig_name_object_set(namewarn_hash,nname,decl,NewString(warning));
   Delete(nname);
 }
@@ -1384,6 +1403,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
               }
               | rename_namewarn LPAREN idstring RPAREN declarator cpp_const SEMI {
 		SwigType *t = $5.type;
+		$5.id = Char(feature_identifier_fix($5.id));
 		if (!Len(t)) t = 0;
 		/* Special declarator check */
 		if (t) {
@@ -1458,8 +1478,12 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 if (Namespaceprefix) name = NewStringf("%s::%s", Namespaceprefix, $5.id);
-		 else name = NewString($5.id);
+		 $5.id = Char(feature_identifier_fix($5.id));
+		 if (Namespaceprefix) {
+		   name = NewStringf("%s::%s",Namespaceprefix, $5.id);
+		 } else {
+		   name = NewString($5.id);
+		 }
 		 val = $7 ? Copy($7) : 0;
 		 if ($5.parms) {
 		   Setmeta(val,"parms",$5.parms);
@@ -1498,10 +1522,15 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
                  String *val;
 		 String *name;
 		 SwigType *t;
+
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 if (Namespaceprefix) name = NewStringf("%s::%s", Namespaceprefix, $7.id);
-		 else name = NewString($7.id);
+		 $7.id = Char(feature_identifier_fix($7.id));
+		 if (Namespaceprefix) {
+		   name = NewStringf("%s::%s",Namespaceprefix, $7.id);
+		 } else {
+		   name = NewString($7.id);
+		 }
 		 val = NewString($5);
 		 if ($7.parms) {
 		   Setmeta(val,"parms",$7.parms);
@@ -1629,6 +1658,7 @@ varargs_parms   : parms { $$ = $1; }
    %typemap(method) type "..."
    %typemap(method) type;    - typemap deletion
    %typemap(method) type1,type2,... = type;    - typemap copy
+   %typemap type1,type2,... = type;            - typemap copy
    ------------------------------------------------------------ */
 
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
