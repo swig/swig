@@ -1,5 +1,26 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+2/1/00  : Upgraded the Python module to use a new type-checking scheme that
+          is more memory efficient, provides better performance, and
+          is less error prone. Unfortunately, it will break all code that
+          depends on the SWIG_GetPtr() function call in typemaps.  
+          These functions should be changed as follows:
+
+                if (SWIG_GetPtr(string,&ptr,"_Foo_p")) {
+                    return NULL;
+                }
+
+          becomes
+
+                if (SWIG_ConvertPtr(pyobj, &ptr, SWIG_TYPE_Foo_p) == -1) {
+                    return NULL;
+                }
+
+          Note: In the new implementation SWIG_TYPE_Foo_p is no longer
+          a type-signature string, but rather an index into a type
+          encoding table that contains type information.
+          *** POTENTIAL INCOMPATIBILITY ***
+
 1/30/00 : loic
 	  Conditionaly compile experimental code with --enable-experiment
 	  configure flag.
