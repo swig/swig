@@ -22,6 +22,8 @@ char cvsroot_csharp_cxx[] = "$Header$";
 class CSHARP : public Language {
   static const char *usage;
   const  String *empty_string;
+  const  String *public_string;
+  const  String *protected_string;
 
   Hash   *swig_types_hash;
   File   *f_runtime;
@@ -71,6 +73,8 @@ class CSHARP : public Language {
 
   CSHARP() : 
     empty_string(NewString("")),
+    public_string(NewString("public")),
+    protected_string(NewString("protected")),
 
     swig_types_hash(NULL),
     f_runtime(NULL),
@@ -1262,7 +1266,9 @@ class CSHARP : public Language {
     }
 
     /* Start generating the proxy function */
-    Printf(function_code, "  %s ", Getattr(n,"feature:cs:methodmodifiers"));
+    const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
     if (Getattr(n,"virtual:derived"))
@@ -1416,7 +1422,10 @@ class CSHARP : public Language {
       String *overloaded_name = getOverloadedName(n);
       String *imcall = NewString("");
 
-      Printf(proxy_class_code, "  %s %s(", Getattr(n,"feature:cs:methodmodifiers"), proxy_class_name);
+      const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
+      methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+      methodmods = methodmods ? methodmods : public_string;
+      Printf(proxy_class_code, "  %s %s(", methodmods, proxy_class_name);
       Printv(imcall, " : this(", imclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
@@ -1664,7 +1673,9 @@ class CSHARP : public Language {
     }
 
     /* Start generating the function */
-    Printf(function_code, "  %s static %s %s(", Getattr(n,"feature:cs:methodmodifiers"), return_type, func_name);
+    const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
