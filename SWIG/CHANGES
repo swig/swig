@@ -131,6 +131,12 @@ Version 1.3.10 (In progress)
            interface).
            *** NEW FEATURE ***
 
+11/29/2001: cheetah (william fulton)
+           Modifications for Java and Python modules to work on cygwin.
+           Unfortunately a lot of the python module has started to produces code 
+           which cannot be auto-imported using cygwin libtools so most of it is 
+           still broken.
+
 11/28/2001:beazley
            The %rename and %feature directive can now be used inside
            of a class definition. For example:
