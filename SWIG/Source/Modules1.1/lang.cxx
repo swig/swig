@@ -1154,10 +1154,6 @@ int Language::classDeclaration(Node *n) {
   }
   Setattr(n,"classtype", ClassType);
 
-  //  if (!ImportMode) {
-  //    this->cpp_open_class(classname,iname,Char(kind),strip);
-  //  }
-
   InClass = 1;
   CurrentClass = n;
 

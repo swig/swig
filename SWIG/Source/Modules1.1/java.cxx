@@ -757,9 +757,10 @@ int JAVA::functionWrapper(Node *n) {
       // Get typemap for this argument
       tm = Swig_typemap_lookup((char*)"in",pt,pn,ln,source,target,f);
       if (tm) {
+	Replaceall(tm,"$input",source);
+	Setattr(p,"emit:input", source);   /* Save the location of the object */
         Printf(f->code,"%s\n", tm);
         Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
-	Replaceall(f->code,"$input",source);
 	Delete(tm);
       } else {
         switch(SwigType_type(pt)) {
@@ -867,6 +868,7 @@ int JAVA::functionWrapper(Node *n) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
       Replace(outarg,"$result",target,DOH_REPLACE_ANY);
+      Replaceall(outarg,"$input", Getattr(p,"emit:input"));
       Delete(tm);
     } else {
         switch(SwigType_type(pt)) {
