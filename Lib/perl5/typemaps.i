@@ -533,6 +533,7 @@ as follows :
 {
   SV *tempsv;
   tempsv = SvRV($arg);
+  if (!$1) SWIG_croak("expected a reference");
   sv_setnv(tempsv, (double) *$1);
 }
 
@@ -544,6 +545,7 @@ as follows :
 {
   SV *tempsv;
   tempsv = SvRV($input);
+  if (!$1) SWIG_croak("expected a reference");
   sv_setiv(tempsv, (IV) *$1);
 }
 
@@ -554,6 +556,7 @@ as follows :
 {
   SV *tempsv;
   tempsv = SvRV($input);
+  if (!$1) SWIG_croak("expected a reference");
   sv_setuv(tempsv, (UV) *$1);
 }
 
