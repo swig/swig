@@ -140,7 +140,7 @@ namespace std {
             SV **svs = new SV*[len];
             for (unsigned int i=0; i<len; i++) {
                 svs[i] = sv_newmortal();
-                SWIG_MakePtr(svs[i], (void*)&($1.at(i)), 
+                SWIG_MakePtr(svs[i], (void*)&($1[i]), 
                              $descriptor(T *), 0);
             }
             AV *myav = av_make(len, svs);
@@ -313,7 +313,7 @@ namespace std {
             SV **svs = new SV*[len];
             for (unsigned int i=0; i<len; i++) {
                 svs[i] = sv_newmortal();
-                FROM_T(svs[i], $1.at(i));
+                FROM_T(svs[i], $1[i]);
             }
             AV *myav = av_make(len, svs);
             delete[] svs;
