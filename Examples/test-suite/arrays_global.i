@@ -2,7 +2,7 @@
 This test case tests that various types of arrays are working.
 */
 
-#pragma SWIG nowarn=451
+#pragma SWIG nowarn=451,462
 
 %module arrays_global
 
