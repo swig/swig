@@ -714,13 +714,13 @@ namespace std {
     specialize_std_vector(bool,PyInt_Check,PyInt_AsLong,SwigInt_FromBool);
     specialize_std_vector(int,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(short,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
-    specialize_std_vector(long,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(long,PyLong_Check,PyLong_AsLong,PyLong_FromLong);
     specialize_std_vector(unsigned int,PyInt_Check,\
                           PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(unsigned short,PyInt_Check,\
                           PyInt_AsLong,PyInt_FromLong);
-    specialize_std_vector(unsigned long,PyInt_Check,\
-                          PyInt_AsLong,PyInt_FromLong);
+    specialize_std_vector(unsigned long,PyLong_Check,\
+                          PyLong_AsUnsignedLong,PyLong_UnsignedLong);
     specialize_std_vector(double,SwigNumber_Check,\
                           SwigNumber_AsDouble,PyFloat_FromDouble);
     specialize_std_vector(float,SwigNumber_Check,\
