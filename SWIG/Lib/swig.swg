@@ -80,18 +80,9 @@
 
 /* Smart pointer handling */
 
-%rename(__deref__) operator->;
-#if !definded(SWIG_WRAP_OPERATOR_REF) && !definded(SWIG_NO_WRAP_OPERATOR_REF)
-#define SWIG_WRAP_OPERATOR_REF
-#endif
-
-#ifdef SWIG_WRAP_OPERATOR_REF
-%rename(__ref__) operator*();
-%rename(__ref__) operator*() const;
-#else
-%ignorewarn("396:operator*() ignored") operator*();
-%ignorewarn("396:operator*() const ignored") operator*() const;
-#endif
+%rename(__deref__) *::operator->;
+%rename(__ref__) *::operator*();
+%rename(__ref__) *::operator*() const;
 
 /* Define std namespace */
 namespace std {
