@@ -2,7 +2,7 @@
  * types.c
  *
  *     This file defines a generic type object implementation.  Types are
- *     defined recursively as describe in the "dragan book", pg. 355.
+ *     defined recursively as described in the "dragon book", pg. 355.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
