@@ -214,7 +214,7 @@ Swig_dump_rules() {
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_tag_check(DOH *obj, String_or_char *tagname) {
+Swig_tag_check(DOH *obj, const String_or_char *tagname) {
   String *tag;
   char   *tc;
   char   *tnc;
