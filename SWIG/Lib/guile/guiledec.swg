@@ -16,12 +16,12 @@
 extern "C" {
 #endif
 
-#ifdef SWIG_GLOBAL
-#define SWIGSTATIC
-#endif
-
-#ifndef SWIGSTATIC
-#define SWIGSTATIC static
+#if defined(SWIG_NOINCLUDE)
+#	define SWIGSTATIC
+#elif defined(SWIG_GLOBAL)
+#	define SWIGSTATIC
+#else
+#	define SWIGSTATIC static
 #endif
 
 #define GH_NOT_PASSED    SCM_UNDEFINED
@@ -57,11 +57,13 @@ SWIGSTATIC
 void SWIG_RegisterMapping (char *origtype, char *newtype,
                            void *(*cast)(void *));
 
+/* Register SWIG smobs with Guile */
 SWIGSTATIC
 void SWIG_Guile_Init();
 
-SWIGSTATIC
-void SWIG_init();
+/* Initialization function for this SWIG module; actually renamed by a
+   #define */
+/* extern void SWIG_init(); */
 
 /* OBSOLESCENT functions (from swigptr.swg, still used unless -with-smobs) */
 
