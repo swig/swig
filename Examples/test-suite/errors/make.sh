@@ -3,7 +3,7 @@ echo "---------------------------------------"
 echo "Testing SWIG error and warning messages"
 echo "---------------------------------------"
 
-SWIG='../../../swig -I../../../Lib'
+SWIG='../../../preinst-swig'
 
 # Files run in C mode
 CFILES='
