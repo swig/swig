@@ -12,7 +12,7 @@
     $1 = SWIG_static_cast(SWIG_arg(as_meth($input)),$type); 
     if (SWIG_arg_fail($argnum)) SWIG_fail;
   }
-  %typemap(in,fragment=pyfrag) const Type & ($basetype temp) {  
+  %typemap(in,fragment=pyfrag) const Type & ($*ltype temp) {  
      temp = SWIG_static_cast(SWIG_arg(as_meth($input)),$basetype);
      if (SWIG_arg_fail($argnum)) SWIG_fail;
      $1 = &temp;

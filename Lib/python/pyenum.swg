@@ -4,6 +4,12 @@
 %apply int { enum SWIGTYPE };
 %apply const int& { const enum SWIGTYPE& };
 
+%typemap(in,fragment=SWIG_As_frag(int)) const enum SWIGTYPE& ($basetype temp) {  
+  temp = SWIG_static_cast(SWIG_As(int)($input),$basetype);
+  if (SWIG_arg_fail($argnum)) SWIG_fail;
+  $1 = &temp;
+}
+
 
 %typemap(varin,fragment=SWIG_AsVal_frag(int)) enum SWIGTYPE
 {
