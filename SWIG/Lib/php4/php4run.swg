@@ -75,7 +75,14 @@ SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty) {
 	return 0;
    }
 
-   c = Z_STRVAL_P(z);
+   if (z->type==IS_OBJECT) {
+     zval ** _cPtr;
+     if (zend_hash_find(HASH_OF(z),"_cPtr",sizeof("_cPtr"),(void**)&_cPtr)==SUCCESS) {
+       // Don't co-erce to string if it isn't
+       if ((*_cPtr)->type==IS_STRING) c = Z_STRVAL_PP(_cPtr);
+       else goto type_error; // _cPtr was not string property
+     } else goto type_error; // can't find property _cPtr
+   } else c = Z_STRVAL_P(z); // was not object
 
    if(c == NULL) {
    	*ptr = 0;
