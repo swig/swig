@@ -53,6 +53,7 @@ static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
 static int      compact_default_args = 0;
+static int      template_typedef_reduction = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -1614,14 +1615,19 @@ insert_directive : HBLOCK {
 module_directive: MODULE options idstring {
                  $$ = new_node("module");
 		 Setattr($$,"name",$3);
-		 if ($2) Setattr($$,"options",$2);
-		 if ($2 && Getattr($2,"directors")) {
-		   /*
-		     we set dirprot_mode here to 1, just to save the
-		     symbols. Later, the language module must decide
-		     what to do with them.
-		   */
-		   dirprot_mode = 1;
+		 if ($2) {
+		   Setattr($$,"options",$2);
+		   if (Getattr($2,"directors")) {
+		     /*
+		       we set dirprot_mode here to 1, just to save the
+		       symbols. Later, the language module must decide
+		       what to do with them.
+		     */
+		     dirprot_mode = 1;
+		   } 
+		   if (Getattr($2,"tpltreduc")) {
+		     template_typedef_reduction = 1;
+		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
 		 if (!module_node) module_node = $$;
@@ -2128,16 +2134,19 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    if (!value) {
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
-			SwigType *rty = Swig_symbol_typedef_reduce(ty,0); 
-			ty = Swig_symbol_type_qualify(rty,0);
-			Setattr(p,"type",ty);
-			Delete(rty);
+			if (template_typedef_reduction) {
+			  SwigType *rty = Swig_symbol_typedef_reduce(ty,0);
+			  ty = Swig_symbol_type_qualify(rty,0);
+			  Setattr(p,"type",ty);
+			  Delete(rty);
+			} else {
+			  ty = Swig_symbol_type_qualify(ty,0);
+			  Setattr(p,"type",ty);
+			}
 		      }
 		    } else {
-		      SwigType *rty = Swig_symbol_typedef_reduce(value,0); 
-		      value = Swig_symbol_type_qualify(rty,0);
+		      value = Swig_symbol_type_qualify(value,0);
 		      Setattr(p,"value",value);
-		      Delete(rty);
 		    }
 		    
 		    p = nextSibling(p);

@@ -1,5 +1,8 @@
+#ifdef SWIGPYTHON
+%module("tpltreduc") template_typedef
+#else
 %module template_typedef
-
+#endif
 //
 // Change this to #if 1 to test the 'test'
 //

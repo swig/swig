@@ -1,4 +1,13 @@
-%module template_typedef_ptr
+%module("tpltreduc") template_typedef_ptr
+
+ /*
+   Use the "tpltreduc" to force swig to reduce the temaplate
+   typedef as much as possible.
+   
+   This fix cases like this one, but it can prevent some
+   typemaps for working.
+
+ */
 
 %inline %{
  struct C{};
@@ -13,7 +22,7 @@
      
    };
 
-
+ 
  template <class A, class B>
    struct Test<A, B*> 
    {

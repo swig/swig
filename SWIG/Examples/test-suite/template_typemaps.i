@@ -1,22 +1,33 @@
 %module template_typemap
 
 
-%typemap(in) Integer 
+%typemap(in) Integer1 
 {
   /* do nothing */
 }
 
-%typemap(out) Integer 
+%typemap(out) Integer1 
+{
+  /* do nothing */
+}
+
+%typemap(in) Integer2 
+{
+  /* do nothing */
+}
+
+%typemap(out) Integer2 
 {
   /* do nothing */
 }
 
 %{
-  typedef int Integer;
+  typedef int Integer1;
 %}
 
 
 %inline %{
+  typedef int Integer2;
 
   template <class T>
     struct Foo 
@@ -35,8 +46,8 @@
     };  
 %}
 
-%template(Foo_i) Foo<int>;
-%template(Foo_I) Foo<Integer>;
+%template(Foo_I1) Foo<Integer1>;
+%template(Foo_I2) Foo<Integer2>;
 
 
 
