@@ -506,7 +506,6 @@ static DohObjInfo HashType = {
     Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */
-    0,               /* doh_load */
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */

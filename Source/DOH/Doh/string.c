@@ -86,7 +86,6 @@ static DohObjInfo StringType = {
     String_str,        /* doh_str */
     String_data,       /* doh_data */
     String_dump,       /* doh_dump */
-    0,                 /* doh_load */
     String_len,        /* doh_len */
     String_hash,       /* doh_hash    */
     String_cmp,        /* doh_cmp */
