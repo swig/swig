@@ -1,1 +1,1 @@
-This directory contains files for building SWIG on Windows.
+Please see the Windows.html file for instructions on SWIG for Windows including running the examples.
