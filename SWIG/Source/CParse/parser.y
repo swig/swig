@@ -252,6 +252,8 @@ static String *make_name(String *name,SwigType *decl) {
     }
     return s;
   }
+
+
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (!rename_hash) {
@@ -2499,7 +2501,7 @@ cpp_class_decl  :
 		     name = $7.id;
 		     Setattr($$,"tdname",name);
 		     Setattr($$,"name",name);
-		     if (!class_rename) class_rename = NewString(name);
+		     /* if (!class_rename) class_rename = NewString(name); */
 		     Swig_symbol_setscopename(name);
 
 		     /* If a proper name given, we use that as the typedef, not unnamed */
