@@ -20,6 +20,7 @@ type 'a c_obj_t =
   | C_enum of 'a
   | C_director_core of 'a c_obj_t * 'a c_obj_t option ref
 
+val invoke : 'a c_obj_t -> (string -> 'a c_obj_t -> 'a c_obj_t)
 val convert_c_obj : 'a c_obj_t -> 'b c_obj_t
 
 val get_int : 'a c_obj_t -> int
