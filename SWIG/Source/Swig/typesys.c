@@ -949,8 +949,9 @@ int SwigType_type(SwigType *t)
 static Hash *r_mangled = 0;                /* Hash mapping mangled types to fully resolved types */
 static Hash *r_resolved = 0;               /* Hash mapping resolved types to mangled types       */
 static Hash *r_ltype = 0;                  /* Hash mapping mangled names to their local c type   */
+static Hash *r_clientdata = 0;             /* Hash mapping resolved types to client data         */
 
-void SwigType_remember(SwigType *t) {
+void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata) {
   String *mt;
   SwigType *lt;
   Hash   *h;
@@ -960,6 +961,7 @@ void SwigType_remember(SwigType *t) {
     r_mangled = NewHash();
     r_resolved = NewHash();
     r_ltype = NewHash();
+    r_clientdata = NewHash();
   }
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
@@ -990,6 +992,24 @@ void SwigType_remember(SwigType *t) {
     Delete(h);
   }
   Setattr(h,mt,fr);
+
+  if (clientdata) {
+    String *cd = Getattr(r_clientdata,fr);
+    if (cd) {
+      if (Strcmp(clientdata,cd) != 0) {
+	Printf(stderr,"*** Internal error. Inconsistent clientdata for type '%s'\n", SwigType_str(fr,0));
+	Printf(stderr,"*** '%s' != '%s'\n", clientdata, cd);
+	assert(0);
+      } 
+    } else {
+      Setattr(r_clientdata, fr, NewString(clientdata));
+    }
+  }
+}
+
+void
+SwigType_remember(SwigType *ty) {
+  SwigType_remember_clientdata(ty,0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1054,6 +1074,57 @@ List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
     return 0;
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * SwigType_clientdata_collect()
+ *
+ * Returns the clientdata field for a mangled type-string.
+ * ----------------------------------------------------------------------------- */
+
+static
+String *SwigType_clientdata_collect(String *ms, Hash *checked) {
+  Hash *ch;
+  Hash *mh;
+  String *clientdata = 0;
+
+  if (checked) {
+    ch = checked;
+  } else {
+    ch = NewHash();
+  }
+  if (Getattr(ch,ms)) goto check_exit;    /* Already checked this type */
+  Setattr(ch, ms, "1");
+  mh = Getattr(r_mangled,ms);
+  if (mh) {
+    String *key;
+    key = Firstkey(mh);
+    while (key) {
+      Hash *rh;
+      Setattr(ch,key,"1");
+      clientdata = Getattr(r_clientdata,key);
+      if (clientdata) goto check_exit;
+      rh = Getattr(r_resolved,key);
+      if (rh) {
+	String *rkey;
+	rkey = Firstkey(rh);
+	while (rkey) {
+	  clientdata = SwigType_clientdata_collect(rkey,ch);
+	  if (clientdata) goto check_exit;
+	  rkey = Nextkey(rh);
+	}
+      }
+      key = Nextkey(mh);
+    }
+  }
+ check_exit:
+  if (!checked) {
+    Delete(ch);
+  }
+  return clientdata;
+}
+
+
+
 
 /* -----------------------------------------------------------------------------
  * SwigType_inherit()
@@ -1216,9 +1287,14 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   while (key) {
     List *el;
     String *en;
+    String *cd;
+
     Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", key, i);
     Printv(types,"static swig_type_info _swigt_", key, "[] = {", NULL);
-    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\"},", NULL);
+    
+    cd = SwigType_clientdata_collect(key,0);
+    if (!cd) cd = "0";
+    Printv(types,"{\"", key, "\", 0, \"", SwigType_str(Getattr(r_ltype,key),0),"\", ", cd, "},", NULL);
     el = SwigType_equivalent_mangle(key,0,0);
     for (en = Firstitem(el); en; en = Nextitem(el)) {
       String *ckey;
