@@ -431,7 +431,10 @@ void wad_signal_init() {
     printf("WAD: Initializing signal handler.\n");
   }
 
+  /* This is buggy in Linux and threads.  disabled by default */
+#ifndef WAD_LINUX
   /* Set up an alternative stack */
+
   sigstk.ss_sp = (char *) wad_sig_stack;
   sigstk.ss_size = STACK_SIZE;
   sigstk.ss_flags = 0;
@@ -440,6 +443,8 @@ void wad_signal_init() {
       perror("sigaltstack");
     }
   }
+#endif
+
   sigemptyset(&newvec.sa_mask);
   sigaddset(&newvec.sa_mask, SIGSEGV);
   sigaddset(&newvec.sa_mask, SIGBUS);
@@ -451,9 +456,11 @@ void wad_signal_init() {
   if (wad_debug_mode & DEBUG_ONESHOT) {
     newvec.sa_flags |= SA_RESETHAND;
   }
+#ifndef WAD_LINUX
   if (!(wad_debug_mode & DEBUG_NOSTACK)) {
     newvec.sa_flags |= SA_ONSTACK;
   } 
+#endif
   newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
   if (sigaction(SIGSEGV, &newvec, NULL) < 0) goto werror;
   if (sigaction(SIGBUS, &newvec, NULL) < 0) goto werror;

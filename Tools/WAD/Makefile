@@ -1,6 +1,10 @@
 # Generated automatically from Makefile.in by configure.
 # Generated automatically from Makefile.in by configure.
 
+SHELL     = /bin/sh
+prefix    = /usr/local
+execprefix= ${prefix}
+LIB        = $(execprefix)/lib
 
 # Location of your Python installation
 PYINCLUDE = -I/usr/local/include/python2.0
@@ -25,6 +29,9 @@ tcl:
 perl:
 	@cd Wad; $(MAKE) SINCLUDE='$(PERLINCLUDE)' perl
 
+install:
+	cp libwad*.so $(LIB)
+	chmod a+rx $(LIB)/libwad*.so
 
 clean:
 	@cd Wad; $(MAKE) clean

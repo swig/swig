@@ -10,42 +10,48 @@ Copyright (C) 2000-2001
 University of Chicago
 All Rights Reserved
 
+$Header$
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!                        DISCLAIMER                           !!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 THIS IS EXPERIMENTAL UNSUPPORTED SOFTWARE THAT UTILIZES A HORRIBLE MIX
 OF LOW-LEVEL C, C++, AND ASSEMBLY CODE.  IT IS NOT PORTABLE, IT HAS
-NOT BEEN RIGOROUSLY TESTED, AND IT MIGHT NOT WORK AT ALL.  PLEASE KEEP
+NOT BEEN EXHAUSTIVELY TESTED, AND IT MIGHT NOT WORK AT ALL.  PLEASE KEEP
 AWAY FROM SMALL CHILDREN, PETS, NUCLEAR REACTORS, AIR-TRAFFIC CONTROL,
 AND VOTING MACHINES. SIDE EFFECTS MAY INCLUDE NAUSEA, VOMITING, AND
 HEADACHE.  OTHER THAN THIS, IT'S PERFECTLY SAFE.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!                     READ THIS FIRST                         !!!!!!!!
+!!!!!!!!                   SUPPORTED PLATFORMS                       !!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-This software is only known to work on Sun Sparc Solaris 2.8 and recent
-i386-Linux systems.  In addition, there are numerous issues concerning
-the interaction of this software with signal handling, thread
-libraries, and compilers.  Please read this entire document before 
-proceeding.
+This software is only known to work with 32-bit applications on Sun
+Sparc Solaris 2.8 and recent i386-Linux systems. In addition, there
+are numerous issues concerning the interaction of this software with
+signal handling, thread libraries, and compilers.  Please read this
+entire document before proceeding.
 
 1. Introduction
 
 WAD is an embedded error-recovery mechanism that attempts to convert
-fatal errors such as SIGSEGV, SIGBUS, and SIGFPE into sensible error messages
-and exceptions.  It is specifically designed to support scripting language
-extension programming although it can also be used with stand-alone C programs.
+fatal errors such as SIGSEGV, SIGBUS, and SIGFPE into sensible error
+messages and exceptions.  It is primarily designed to support
+scripting language extension programming although it can also be used
+with stand-alone C programs.
 
-The primary goal of this system is to explore alternative approaches
-to mixed scripting-compiled debugging.  Feedback is welcome. 
-Contributions and modifications are even more welcome.
+The primary goal of this system is to explore an alternative approach
+to mixed scripting-compiled debugging.  It requires no modifications
+or recompilation of existing software--only relinking.  Therefore, it
+should be relatively easy to try out.  Feedback is welcome. Contributions 
+and modifications are even more welcome.
 
 2. Compilation and Installation
 
 WAD is not particularly portable (for obvious reasons).  At this time,
-only two platforms are supported: Sun Sparc Solaris and i386-Linux.
+only two platforms are supported: Sun Sparc Solaris and i386-Linux. 
+
 Installation is as follows:
 
       ./configure
@@ -64,34 +70,38 @@ The build process creates the following shared libraries:
                         modules or loaded as 'load libwadtcl.so'.
 
     libwadpl.so      -  Perl WAD.  Can be linked to Perl extension
-                        modules.
+                        modules or loaded as 'libwadpl'.
 
 To install the libraries, simply type 'make install'.  This copies the libraries
 to /usr/local/lib (unless you modify the makefile).
+
+In case the build process does not work, pre-built binaries for both
+platforms can be found in the Prebuilt directory.   Simply go to the appropriate
+platform directory and type 'make install'.
 
 Notes:
 
    -  The Sun version of WAD has only been tested when compiled with the
       Sun Workshop C/C++ compilers.   Although WAD works with other programs
       that have been compiled with gcc.  If gcc is installed on your
-      machine, you may want to set the following environment variables:
+      machine, you may want to set the following environment variables
+      before running configure:
 
            setenv CC cc
            setenv CXX CC
            ./configure
  
-   -  Not all of these libraries are currently available on all platforms.
-      Most development work has taken place on Solaris.
-
    -  You may need to modify the Makefile to point to the installed locations
       of various scripting language libraries if you have installed
       them in non-traditional locations. 
 
+   -  The Linux version has only been tested with 2.2-12 and 2.2-14 kernels
+      and the RedHat 6.0 distribution.  Your mileage may vary. 
      
 3. Using WAD
 
 WAD has no functional API nor does it have any command line options so
-it's pretty easy to use---simply link the appropriate WAD library with
+it's pretty easy to describe---simply link the appropriate WAD library with
 your C code.  For example:
 
    % cc blah.c -lwad
@@ -113,6 +123,14 @@ Segmentation fault.
       return 1;
     }
 
+For scripting languages, WAD works in a similar manner--simply link
+your scripting language extension module with the appropriate WAD library
+(wadpy, wadtcl, wadpl).  For example:
+
+   % cc pymodule.o -lwadpy
+
+When the scripting module is loaded into the interpreter, WAD should
+automatically initialize.
 
 4. Debugging Modes
 
@@ -167,9 +185,19 @@ General:
   -  WAD does not currently support 64 bit applications on any platform.
 
   -  If executables have been stripped, their symbol tables might not
-     have enough information to recover from errors.  There is very little
-     practical point in stripping the interpreter symbol table other
-     than saving a little disk space.
+     have enough information to recover from errors.  Therefore, if you
+     are using Python, Tcl, or Perl from a binary distribution, you
+     may want to rebuild non-stripped versions of these packages yourself.
+
+  -  WAD only works with programs that utilize the ELF32 linking format
+     and stabs debugging data.  Newer formats such as DWARF2 are not
+     supported at this time.
+
+  -  WAD does not correctly report argument values for structures or
+     floating point numbers yet.
+
+  -  Overly aggressive compiler optimization may lead to very strange
+     WAD output.
 
 Solaris:
 
@@ -179,15 +207,17 @@ Linux:
 
   -  The interaction of threads and signals are particularly problematic
      on this platform and may cause WAD not to work at all.   Here are
-     some specific thread-based problems that may arise:
+     some specific thread-based issues that may arise:
 
      1.  WAD causes the program to crash immediately upon startup. 
          This appears to be caused by a bug in in the implemenation
-         of sigaction() and the initialization of signals.  There is no
-         known solution.
+         of sigaction() and the initialization of signals.  This 
+         only occurs if WAD is directly linked to an executable
+         using threads.  It does not occur when WAD is dynamically
+         loaded into a threaded application.
 
-     2.  Programs lock up when an error occurs.  This is sometimes
-         caused by a broken implementation of sigaltstack().
+     2.  Programs may lock up when an error occurs.  This is sometimes
+         caused by an apparently broken implementation of sigaltstack().
          One solution to this is to set the following environment
          variable:
 
@@ -208,9 +238,11 @@ Linux:
   -  WAD has to rely upon a heuristic register recovery scheme when it
      returns to scripting language interpreters.  It seems to
      work, but it relies upon a very specific compiler code generation
-     convention for saving registers in function prologues.
+     convention for saving registers in function prologues.  It also
+     relies upon the register save conventions described in the Linux
+     Assembly HOWTO.
 
-6.  Language dependent issues
+6.  Language specific issues
 
 If WAD is linked with a normal C/C++ program, errors simply produce a stack trace
 that is printed on standard error.
@@ -235,11 +267,14 @@ code derived from the sigtrap module.
 
 7. Testing and Examples
 
-The Tests directory contains some very simple code for testing wad.  In the most simple
-form, compile the stand-along test program 'debug' as follows:
+The Test directory contains some very simple code for testing WAD.  In the
+most simple form, compile the stand-along test program 'debug' as follows:
 
-% cd Tests
+% cd Test
 % make
+
+Now, running it:
+
 % debug
 WAD debug program.
 
@@ -274,8 +309,28 @@ The scripts debug.py, debug.tcl, debug.pl can be used to test these extensions.
 No official documentation exists at this time.  However, the Papers directory contains
 two conference papers that describe WAD's design and high-level operation.
 
+9. To-Do
+
+The current implementation is fairly messy and undergoing constant
+change.  Here is the short list:
+
+    -  Continued clean up and modularization of the core.
+    -  Support for ELF64 linking format.
+    -  Improved support for stack-overflow and heap-corruption.  Although WAD
+       probably won't be able to recover, it still might be able to produce some 
+       informative diagnostics.
+    -  Removal of printf() and other high-level library calls which may not
+       operate with a corrupted heap.
+    -  Better integration with scripting languages.
+    -  Support for new platforms.
+    -  Support for new scripting languages.
+
 Dave Beazley
-December 28, 2000
+January 3, 2001
+
+
+
+
 
 
 
