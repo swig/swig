@@ -6,44 +6,50 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>21 SWIG and PHP4</H1>
+<H1><a name="Php"></a>23 SWIG and PHP4</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">Preliminaries</a>
-<li><a href="#n3">Building PHP4 Extensions</a>
+<li><a href="#Php_nn2">Preliminaries</a>
+<li><a href="#Php_nn3">Building PHP4 Extensions</a>
 <ul>
-<li><a href="#n4">Building a loadable extension</a>
-<li><a href="#n5">Basic PHP4 interface</a>
-<li><a href="#n6">Functions</a>
-<li><a href="#n7">Global Variables</a>
-<li><a href="#n8">Pointers </a>
-<li><a href="#n9">Structures and C++ classes</a>
-<li><a href="#n10">Constants</a>
-<li><a href="#n11">Shadow classes</a>
-<li><a href="#n12">Constructors and Destructers</a>
-<li><a href="#n13">Static Member Variables</a>
-<li><a href="#n14">PHP4 Pragmas</a>
-<li><a href="#n15">Building extensions into php</a>
-<li><a href="#n16">To be furthered...</a>
+<li><a href="#Php_nn4">Building a loadable extension</a>
+<li><a href="#Php_nn5">Basic PHP4 interface</a>
+<li><a href="#Php_nn6">Functions</a>
+<li><a href="#Php_nn7">Global Variables</a>
+<li><a href="#Php_nn8">Pointers </a>
+<li><a href="#Php_nn9">Structures and C++ classes</a>
+<li><a href="#Php_nn10">Constants</a>
+<li><a href="#Php_nn11">Shadow classes</a>
+<li><a href="#Php_nn12">Constructors and Destructers</a>
+<li><a href="#Php_nn13">Static Member Variables</a>
+<li><a href="#Php_nn14">PHP4 Pragmas</a>
+<li><a href="#Php_nn15">Building extensions into php</a>
+<li><a href="#Php_nn16">To be furthered...</a>
 </ul>
 </ul>
 <!-- INDEX -->
 
 
 
+<p>
 <b>Caution: This chapter (and module!) is still under construction</b>
+</p>
 
+<p>
 In this chapter, we discuss SWIG's support of PHP4. The PHP4 module is 
 still under development so some of the features below may not work properly
 (or at all!.)
+</p>
+
 <p>
 The PHP4 module has undergone a lot of changes recently affecting the 
 way shadow classes are implemented so you should read this document even 
 if you thought you were familiar with what it said.  The major change is 
 that shadow classes are implemented inside the php module in C++ instead 
 of in the generated .php file in php.
+</p>
 
-<a name="n2"></a><H2>21.1 Preliminaries</H2>
+<H2><a name="Php_nn2"></a>23.1 Preliminaries</H2>
 
 
 In order to use this module, you will need to have a copy of the PHP 4.0 (or
@@ -53,15 +59,18 @@ need either the php binary or the Apache php module. If you want to build your
 extension into php directly (without having the overhead of loading it into
 each script), you will need the complete PHP source tree available.
 
-<a name="n3"></a><H2>21.2 Building PHP4 Extensions</H2>
+<H2><a name="Php_nn3"></a>23.2 Building PHP4 Extensions</H2>
 
 
-To build a PHP4 extension, run swig using the <tt>-php4</tt> option as follows :
 <p>
+To build a PHP4 extension, run swig using the <tt>-php4</tt> option as follows :
+</p>
+
 <blockquote><pre>
 swig -php4 example.i
-
 </pre></blockquote>
+
+<p>
 This will produce 3 files by default. The first file, <tt>example_wrap.c</tt>
 contains all of the C code needed to build a PHP4 extension. The second file,
 <tt>php_example.h</tt> contains the header information needed to link the
@@ -71,6 +80,8 @@ a place-holder for extra code specified in the interface file.  If you want to
 build your extension using the <tt>phpize</tt> utility, or if you want to 
 build your module into PHP directly, you can specify the <tt>-phpfull</tt> 
 command line argument to swig.
+</p>
+
 <p>
 The <tt>-phpfull</tt> will generate three extra files.
 The first extra file, <tt>config.m4</tt> contains the shell code needed to
@@ -78,6 +89,8 @@ enable the extension as part of the PHP4 build process. The second extra file,
 <tt>Makefile.in</tt> contains the information needed to build the final
 Makefile after substitutions. The third and final extra file, <tt>CREDITS</tt>
 should contain the credits for the extension.
+</p>
+
 <p>
 To finish building the extension, you have two choices. You can either build 
 the extension as a seperate object file which will then have to be explicitly
@@ -85,19 +98,25 @@ loaded by each script. Or you can rebuild the entire php source tree and build
 the extension into the php executable/library so it will be available in every
 script.  The first choice is the default, however it can be changed by passing
 the '-phpfull' command line switch to select the second build method.  
+</p>
 
-<a name="n4"></a><H3>21.2.1 Building a loadable extension</H3>
+<H3><a name="Php_nn4"></a>23.2.1 Building a loadable extension</H3>
 
 
+<p>
 To build a dynamic module for PHP, you have two options.  You can use the
 <tt>phpize</tt> utility, or you can do it manually.
+</p>
+
 <p>
 To build manually, use a compile string similar to this (different for each
 OS):
+</p>
 <blockquote><pre>
 	cc -I.. $(PHPINC) -fpic -c example_wrap.c
 	cc -shared example_wrap.o -o libexample.so
 </pre></blockquote>
+
 <p>
 To build with phpize, after you have run swig you will need
 to run the 'phpize' command (installed as part of php) in the same
@@ -111,12 +130,17 @@ to check that a correct library version is installed or correct header files
 are included, etc, but you must edit this file before running phpize. )
 If you like SWIG can generate simple extra tests for libraries and header
 files for you.
+</p>
+
 <blockquote><pre>
 	swig -php4 -phpfull -withlibs "xapian omquery" --withincs "om.h"
 </pre></blockquote>
+
 <p>
 Will include in the config.m4 search for libxapian.a or libxapian.so and
 search for libomquery.a or libomquery.so as well as a search for om.h
+</p>
+
 <p>
 If you depend on source files not generated by SWIG, before generated 
 configure file, you may need to edit the <tt>
@@ -125,15 +149,21 @@ Makefile.in</tt> file. This contains the names of the source files to compile
 linked in. If there are extra C files to compile, you will need to add them
 to the Makefile.in, or add the names of libraries if they are needed.  In 
 simple cases SWIG is pretty good at generating a complete Makefile.in and 
-config.m4 which need no further editing. <p>
+config.m4 which need no further editing.
+</p>
+
+<p>
 You then run the configure script with the command line argument needed
 to enable the extension. Then run make, which builds the extension.
 The extension object file will be left in the modules sub directory, you can
 move it to wherever it is convenient to call from your php script. 
-<p>
+</p>
+
 <p>
 To test the extension from a PHP script, you need to load it first. You do
 this by putting the line,
+</p>
+
 <blockquote><pre>
 	dl("/path/to/modulename.so");	// Load the module
 </pre></blockquote>
@@ -146,23 +176,28 @@ attempts to do the <tt>dl()</tt> call for you:
 A more complicated method which builds the module directly into the <tt>php</tt>
 executable is described <a href="n12">below</a>.
 
-<a name="n5"></a><H3>21.2.2 Basic PHP4 interface</H3>
+<H3><a name="Php_nn5"></a>23.2.2 Basic PHP4 interface</H3>
 
 
-<a name="n6"></a><H3>21.2.3 Functions</H3>
+<H3><a name="Php_nn6"></a>23.2.3 Functions</H3>
 
 
-C functions are converted into PHP functions. Default/optional arguments are
-also allowed. An interface file like this :<p>
 <p>
-<blockquote><pre>%module default
+C functions are converted into PHP functions. Default/optional arguments are
+also allowed. An interface file like this :
+</p>
+
+<blockquote><pre>
+%module default
 int foo(int a);
 double bar(double, double b = 3.0);
 ...
-
 </pre></blockquote>
-Will be accessed in PHP like this :<p>
+
 <p>
+Will be accessed in PHP like this :
+</p>
+
 <blockquote><pre>
 dl("default.so"); $a = foo(2);
 $b = bar(3.5, -1.5);
@@ -170,50 +205,65 @@ $c = bar(3.5);		# Use default argument for 2nd parameter
 
 </pre></blockquote>
 
-<a name="n7"></a><H3>21.2.4 Global Variables</H3>
+<H3><a name="Php_nn7"></a>23.2.4 Global Variables</H3>
 
 
+<p>
 Global variables are difficult for PHP to handle, unlike Perl, their is no
 'magic' way to intercept modifications made to variables, so changes in a PHP
 variable will not be reflected in its C equivalent. To get around the problem, 
 two extra function are generated, <tt>Swig_sync_c()</tt> and <tt>Swig_sync_php()</tt>. These functions are called at the start and end of every function call, 
 ensuring changes made in PHP are updated in C ( and vice versa. ) Because this 
 is handled for you, you can modify the variables in PHP as normal, e.g.
-<p><p>
-<blockquote><pre>%module example;
+</p>
+
+<blockquote><pre>
+%module example;
 ...
 double seki = 2;
 ...
 int example_func(void);
-
 </pre></blockquote>
-is accessed as follow :<p>
+
 <p>
+is accessed as follow :
+</p>
+
 <blockquote><pre>
 dl("example.so");
 print $seki;
 $seki = $seki * 2;	# Does not affect C variable, still equal to 2
 example_func();		# Syncs C variable to PHP Variable, now both 4
 </pre></blockquote>
+
+<p>
 SWIG supports global variables of all C datatypes including pointers and complex
-objects.<p>
+objects.
+</p>
 
-<a name="n8"></a><H3>21.2.5 Pointers </H3>
+<H3><a name="Php_nn8"></a>23.2.5 Pointers </H3>
 
 
+<p>
 Pointers to C/C++ objects <b>no longer</b> represented as character 
 strings such as:<tt>_523d3f4_Circle_p</tt>, instead they are represented
 as PHP resources, rather like MySQL connection handles.
+</p>
+
 <p>
 You can also explicitly create a NULL pointer as a string "NULL" 
 or by passing a null or empty value.
+</p>
 
-<a name="n9"></a><H3>21.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn9"></a>23.2.6 Structures and C++ classes</H3>
 
 
-For structures and classes, SWIG produces accessor fuction for each member function and data. For example :<p>
 <p>
-<blockquote><pre>%module vector
+For structures and classes, SWIG produces accessor fuction for each member function and data. For example :
+</p>
+
+<blockquote><pre>
+%module vector
 
 class Vector {
 public:
@@ -224,7 +274,11 @@ public:
 };
 
 </pre></blockquote>
-This gets turned into the following collection of PHP functions :<p>
+
+<p>
+This gets turned into the following collection of PHP functions :
+</p>
+
 <blockquote><pre>
 Vector_x_set($obj);
 Vector_x_get($obj);
@@ -241,25 +295,29 @@ To use the class, simply use these functions. However, SWIG also has a mechanism
 for creating shadow classes that hides these functions and uses an object 
 oriented interface instead - see <a href="n7">below</a>
 
-<a name="n10"></a><H3>21.2.7 Constants</H3>
+<H3><a name="Php_nn10"></a>23.2.7 Constants</H3>
 
 
+<p>
 These work in much the same way as in C/C++, constants can be defined by using
 either the normal C pre-processor declarations, or the <tt>%constant</tt> SWIG 
 directive.  These will then be available from your PHP script as a PHP constant,
 (e.g. no dollar sign is needed to access them. ) For example, with a swig file like this,
-<p>
+</p>
+
 <blockquote><pre>
 %module example
 
 #define PI 3.14159
 
 %constant int E  = 2.71828
-
 </pre>
 </blockquote>
+
 <p>
 you can access from in your php script like this,
+</p>
+
 <blockquote><pre>
 dl("libexample.so");
 
@@ -274,16 +332,19 @@ echo "E = " . E . "\n";
 There are two peculiarities with using constants in PHP4. The first is that
 if you try to use an undeclared constant, it will evaulate to a string
 set to the constants name. For example,
-<p>
+</p>
+
 <blockquote><pre>
 %module example
 
 #define EASY_TO_MISPELL	0
-
 </pre>
 </blockquote>
-accessed incorrectly in PHP,
+
 <p>
+accessed incorrectly in PHP,
+</p>
+
 <blockquote>
 <pre>
 dl("libexample.so");
@@ -296,93 +357,120 @@ if(EASY_TO_MISPEL) {
 
 </pre>
 </blockquote>
-<p>
 
+<p>
 will issue a warning about the undeclared constant, but will then evalute
 it and turn it into a string ('EASY_TO_MISPEL'), which evaluates to true,
 rather than the value of the constant which would be false. This is a feature.
+</p>
+
 <p>
 The second 'feature' is that although constants are case sensitive (by default),
 you cannot declare a constant twice with alternative cases. E.g.,
-<p>
+</p>
+
 <blockquote>
 <pre>
 %module example
 
 #define TEST	Hello
 #define Test	World
-
 </pre>
 </blockquote>
-accessed from PHP,
+
 <p>
-<pre>
+accessed from PHP,
+</p>
+
 <blockquote>
+<pre>
 dl("libexample.so");
 
 echo TEST, Test;
-
-</blockquote>
 </pre>
+</blockquote>
+
 <p>
 will output "Hello Test" rather than "Hello World". This is because internally,
 all constants are stored in a hash table by their lower case name, so 'TEST' and
 'Test' will map to the same hash element ('Test'). But, because we declared them case sensitive, the Zend engine will test if the case matches with the case the
 constant was declared with first. 
+</p>
+
 <p>
 So, in the example above, the TEST constant was declared first, and will be stored under the hash element 'test'. The 'Test' constant will also map to the same hash element 'test', but will not overwrite it. When called from the script, the TEST constant will again be mapped to the hash element 'test' so the constant will be retrieved. The case will then be checked, and will match up, so the value ('Hello') will be returned. When 'Test' is evaulated, it will also map to the same hash element 'test'. The same constant will be retrieved, this time though the case check will fail as 'Test' != 'TEST'. So PHP will assume that Test is a undeclared constant, and as explained above, will return it as a string set to the constant name ('Test'). Hence the script above will print 'Hello Test'. If
 they were declared non-case sensitive, the output would be 'Hello Hello', as
 both point to the same value, without the case test taking place.
 ( Apologies, this paragraph needs rewritting to make some sense. )
+</p>
 
-<a name="n11"></a><H3>21.2.8 Shadow classes</H3>
+<H3><a name="Php_nn11"></a>23.2.8 Shadow classes</H3>
 
 
+<p>
 To avoid having to call the various accessor function to get at structures or
 class members, we can turn C structs and C++ classes into PHP classes that
 can be be used directly in PHP scripts as objects and object methods. This is done by writing additional PHP code that builds PHP classes on top of the low-level SWIG interface. These PHP classes "shadow" an underlying C/C++ class.
+</p>
 
+<p>
 To have SWIG create shadow classes, use the <tt>-shadow</tt> option :
-<p><p><blockquote><pre>% swig -php4 -shadow tbc.i
+</p>
+
+<blockquote><pre>
+% swig -php4 -shadow tbc.i
 </pre></blockquote>
+
 <p>
 This will produce the same files as before except that the final module 
 will declare internal PHP classes with the same names as the classes in 
 your .i file.  No longer are the shadow classes defined in 
 the <tt>.php</tt> file, it will not contain significantly more support PHP 
 code. 
+</p>
 
+<p>
 For the most part, the code is the same except that we can now access members of
 complex data structures using <tt>-&gt;</tt> instead of the low level access or
 functions like before. 
+</p>
 
+<p>
 .... ( more examples on the way ) ....
+</p>
 
-<a name="n12"></a><H3>21.2.9 Constructors and Destructers</H3>
+<H3><a name="Php_nn12"></a>23.2.9 Constructors and Destructers</H3>
 
 
+<p>
 Constructors are used in PHP as in C++, they are called when the object is
 created and any arguments are passed to them. However, function overloading
 is not allowed in PHP so only one constructor can be used. This creates a
 problem when copying objects, as we cannot avoid creating a whole new one
 when all we want is to make it point to the same value as the original. This
 is currently worked around by doing the following,
+</p>
+
 <ul>
 <li>Create the new PHP object
 <li>Delete the PHP objects pointer to the C object
 <li>Set the PHP object's pointer to the same as the original PHP object's pointer.
 </ul>
+
+<p>
 This is rather convoluted and hopefully will be improved upon in a later
 release.
-<p><p>
+</p>
 
+<p>
 Because the internal wrapped objects are wrapped in PHP resources, PHP 
 handles the cleaning up when there are no more references to the wrapped 
 object.  'RegisterShutdownFunction' is no longer needed for this.
 I am not sure if PHP resources are all freed at the end of a script, or 
 when they each go out of scope.
+</p>
 
-<a name="n13"></a><H3>21.2.10 Static Member Variables</H3>
+<H3><a name="Php_nn13"></a>23.2.10 Static Member Variables</H3>
 
 
 Class variables are not supported in PHP, however class functions are, using
@@ -398,8 +486,11 @@ class Ko {
 };
 
 </pre></blockquote>
+
 <p>
 would be accessed in PHP as,
+</p>
+
 <blockquote><pre>
 dl("libexample.so");
 
@@ -416,7 +507,7 @@ echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></blockquote>
 
-<a name="n14"></a><H3>21.2.11 PHP4 Pragmas</H3>
+<H3><a name="Php_nn14"></a>23.2.11 PHP4 Pragmas</H3>
 
 
 There are a few pragmas understood by the PHP4 module.  The first, 
@@ -445,21 +536,28 @@ function is called.
 	%include "example.h"
 </pre></blockquote>
 
-<a name="n15"></a><H3>21.2.12 Building extensions into php</H3>
+<H3><a name="Php_nn15"></a>23.2.12 Building extensions into php</H3>
 
 
+<p>
 This method, selected with the <tt>-phpfull</tt> command line switch, involves
 rebuilding the entire php source tree. Whilst more complicated to build,
 it does mean that the extension is then available without having to load it 
 in each script. 
+</p>
+
 <p>
 After running swig with the -phpfull switch, you will be left with a shockingly
 similiar set of files to the previous build process. However you will then need
 to move these files to a subdirectory within the php source tree, this subdirectory you will need to create under the ext directory, with the name of the extension ( e.g mkdir php-4.0.6/ext/modulename .)
+</p>
+
 <p>
 After moving the files into this directory, you will need to run the 'buildall'
 script in the php source directory. This rebuilds the configure script 
 and includes the extra command line arguments from the module you have added. 
+</p>
+
 <p>
 Before running the generated configure file, you may need to edit the <tt>
 Makefile.in</tt>. This contains the names of the source files to compile (
@@ -468,13 +566,18 @@ link in. If their are extra C files to compile you will need to add them
 to the Makefile, or add the names of libraries if they are needed.
 In most cases <tt>Makefile.in</tt> will be complete, especially if you 
 make use of <tt>-withlibs</tt> and <tt>-withincs</tt>
+</p>
+
 <blockquote><pre>
 	swig -php4 -phpfull -withlibs "xapian omquery" --withincs "om.h"
 </pre></blockquote>
+
 <p>
 Will include in the config.m4 and Makefile.in search for libxapian.a or 
 libxapian.so and search for libomquery.a or libomquery.so as well as a 
 search for om.h
+</p>
+
 <p>
 You then need to run the configure command and pass the necessary command
 line arguments to enable your module ( by default this is --enable-modulename,
@@ -482,12 +585,16 @@ but this can be changed by editing the config.m4 file in the modules directory
 before running the buildall script. In addition, extra tests can be added to
 the config.m4 file to ensure the correct libraries and header files are 
 installed.)
+</p>
+
 <p>
 Once configure has completed, you can run make to build php. If this all
 compiles correctly, you should end up with a php executable/library
 which contains your new module. You can test it with a php script which
 does not have the 'dl' command as used above.
-<a name="n16"></a><H3>21.2.13 To be furthered...</H3>
+</p>
+
+<H3><a name="Php_nn16"></a>23.2.13 To be furthered...</H3>
 
 
 </body>

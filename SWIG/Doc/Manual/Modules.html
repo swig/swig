@@ -5,13 +5,14 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>14 Working with Modules</H1>
+<H1><a name="Modules"></a>15 Working with Modules</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">The SWIG runtime code</a>
-<li><a href="#n3">Compiling Multiple SWIG modules</a>
-<li><a href="#n4">A word of caution about static libraries</a>
-<li><a href="#n5">References</a>
+<li><a href="#Modules_nn2">The SWIG runtime code</a>
+<li><a href="#Modules_nn3">Compiling Multiple SWIG modules</a>
+<li><a href="#Modules_nn4">A word of caution about static libraries</a>
+<li><a href="#Modules_nn5">References</a>
+<li><a href="#Modules_nn6">Reducing the wrapper file size</a>
 </ul>
 <!-- INDEX -->
 
@@ -28,8 +29,9 @@ target language interface when it is broken up into smaller pieces.
 <p>
 This chapter describes the problem of using SWIG in programs
 where you want to create a collection of modules.
+</p>
 
-<a name="n2"></a><H2>14.1 The SWIG runtime code</H2>
+<H2><a name="Modules_nn2"></a>15.1 The SWIG runtime code</H2>
 
 
 Many of SWIG's target languages generate a set of functions
@@ -52,13 +54,15 @@ module is used in the same application, those modules often need to
 share type information.  This is especially true for C++ programs
 where SWIG must collect and share information about inheritance
 relationships that cross module boundaries.
+</p>
 
 <p>
 To solve the problem of sharing information across modules, the
 SWIG runtime functions need to be exposed in a way that allows data to
 be shared between modules. The next section describes how to do that.
+</p>
 
-<a name="n3"></a><H2>14.2 Compiling Multiple SWIG modules</H2>
+<H2><a name="Modules_nn3"></a>15.2 Compiling Multiple SWIG modules</H2>
 
 
 Suppose that you have three SWIG interface files A.i, B.i, and C.i
@@ -67,10 +71,12 @@ there are two approaches you can take:
 
 <p>
 <b>Option 1:</b> Designate one module to provide the runtime code
+</p>
 
 <p>
 With this option, one of the modules is designated as providing the runtime
 environment.   This is done with the <tt>-runtime</tt> option like this:
+</p>
 
 <blockquote>
 <pre>
@@ -99,14 +105,17 @@ on the system.  On many systems, the symbols contained in dynamically loaded mod
 are private.  Therefore, even though module A provides the runtime code, the other modules
 won't be able to find it.   You'll know if this is the case if you try to load the other modules
 and you get errors about unresolved SWIG_* functions.
+</p>
 
 <p>
 <b>Option 2: Build a runtime library</b>
+</p>
 
 <p>
 The second way to work with multiple modules is to create a special runtime library module.
 To do this, you first need to create an empty SWIG interface file, say swigrun.i, containing
 just the %module directive, for example:
+</p>
 
 <blockquote>
 <pre>
@@ -155,8 +164,9 @@ you need to link all of the modules against that library.
 When you use the modules created using this technique, the runtime code will be automatically loaded
 when the modules are imported.  Moreover, since all of the modules are linked against the same runtime
 library, they will share that code.
+</p>
 
-<a name="n4"></a><H2>14.3 A word of caution about static libraries</H2>
+<H2><a name="Modules_nn4"></a>15.3 A word of caution about static libraries</H2>
 
 
 When working with multiple SWIG modules, you should take care not to use static
@@ -165,27 +175,31 @@ of SWIG modules with that library, each module will get its own private copy of 
 into it. This is very often <b>NOT</b> what you want and it can lead to unexpected or bizarre program
 behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libaries.
 
-<a name="n5"></a><H2>14.4 References</H2>
+<H2><a name="Modules_nn5"></a>15.4 References</H2>
 
 
 Due to the complexity of working with shared libraries and multiple modules, it might be a good idea to consult
 an outside reference.  John Levine's "Linkers and Loaders" is highly recommended.
 
-<a name="n6"></a><H2>14.5 Reducing the wrapper file size</H2>
+<H2><a name="Modules_nn6"></a>15.5 Reducing the wrapper file size</H2>
+
+
+<p>
 Using multiple modules with the <tt>%import</tt> directive is the most common approach to modularising large projects.
 In this way a number of different wrapper files can be generated, thereby avoiding the generation of a single large wrapper file.
 There are a couple of alternative solutions for reducing the size of a wrapper file through the use of command line options.
+</p>
 
-<p/>
 <b>-fcompact</b><br>
 This command line option will compact the size of the wrapper file without changing the code generated into the wrapper file.
 It simply removes blank lines and joins lines of code together.
 This is useful for compilers that have a maximum file size that can be handled.
 
-<p/>
+<p>
 <b>-fvirtual</b><br>
 This command line option will remove the generation of superfluous virtual method wrappers.
 Consider the following inheritance hierarchy:
+</p>
 
 <blockquote>
 <pre>
@@ -204,7 +218,7 @@ Normally wrappers are generated for both methods, whereas this command line opti
 Normal polymorphic behaviour remains as <tt>Derived::method</tt> will still be called should you have
 a <tt>Derived</tt> instance and call the wrapper for <tt>Base::method</tt>.
 
-<p><hr>
+<hr>
 
 <address>SWIG 1.3 - Last Modified : July 9, 2004</address>
 </body>

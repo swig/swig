@@ -5,33 +5,33 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>12 Warning Messages</H1>
+<H1><a name="Warnings"></a>14 Warning Messages</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">Introduction</a>
-<li><a href="#n3">Warning message suppression</a>
-<li><a href="#n4">Enabling additional warnings</a>
-<li><a href="#n5">Issuing a warning message</a>
-<li><a href="#n6">Commentary</a>
-<li><a href="#n7">Warnings as errors</a>
-<li><a href="#n8">Message output format</a>
-<li><a href="#n9">Warning number reference</a>
+<li><a href="#Warnings_nn2">Introduction</a>
+<li><a href="#Warnings_nn3">Warning message suppression</a>
+<li><a href="#Warnings_nn4">Enabling additional warnings</a>
+<li><a href="#Warnings_nn5">Issuing a warning message</a>
+<li><a href="#Warnings_nn6">Commentary</a>
+<li><a href="#Warnings_nn7">Warnings as errors</a>
+<li><a href="#Warnings_nn8">Message output format</a>
+<li><a href="#Warnings_nn9">Warning number reference</a>
 <ul>
-<li><a href="#n10">Deprecated features (100-199)</a>
-<li><a href="#n11">Preprocessor (200-299)</a>
-<li><a href="#n12">C/C++ Parser (300-399)</a>
-<li><a href="#n13">Types and typemaps (400-499) </a>
-<li><a href="#n14">Code generation (500-599)</a>
-<li><a href="#n15">Language module specific (800-899) </a>
-<li><a href="#n16">User defined (900-999)</a>
+<li><a href="#Warnings_nn10">Deprecated features (100-199)</a>
+<li><a href="#Warnings_nn11">Preprocessor (200-299)</a>
+<li><a href="#Warnings_nn12">C/C++ Parser (300-399)</a>
+<li><a href="#Warnings_nn13">Types and typemaps (400-499) </a>
+<li><a href="#Warnings_nn14">Code generation (500-599)</a>
+<li><a href="#Warnings_nn15">Language module specific (800-899) </a>
+<li><a href="#Warnings_nn16">User defined (900-999)</a>
 </ul>
-<li><a href="#n17">History</a>
+<li><a href="#Warnings_nn17">History</a>
 </ul>
 <!-- INDEX -->
 
 
 
-<a name="n2"></a><H2>12.1 Introduction</H2>
+<H2><a name="Warnings_nn2"></a>14.1 Introduction</H2>
 
 
 During compilation, SWIG may generate a variety of warning messages.  For example:
@@ -47,7 +47,7 @@ Typically, warning messages indicate non-fatal problems with the input
 where the generated wrapper code will probably compile, but it may not
 work like you expect.
 
-<a name="n3"></a><H2>12.2 Warning message suppression</H2>
+<H2><a name="Warnings_nn3"></a>14.2 Warning message suppression</H2>
 
 
 All warning messages have a numeric code that is shown in the warning message itself.
@@ -125,7 +125,7 @@ There is no option to suppress all SWIG warning messages.  The warning messages 
 for a reason---to tell you that something may be <em>broken</em> in
 your interface.  Ignore the warning messages at your own peril.
 
-<a name="n4"></a><H2>12.3 Enabling additional warnings</H2>
+<H2><a name="Warnings_nn4"></a>14.3 Enabling additional warnings</H2>
 
 
 Some warning messages are disabled by default and are generated only
@@ -143,6 +143,7 @@ When <tt>-Wall</tt> is used, all other warning filters are disabled.
 <p>
 To selectively turn on extra warning messages, you can use the directives and options in the
 previous section--simply add a "+" to all warning numbers.  For example:
+</p>
 
 <blockquote>
 <pre>
@@ -169,7 +170,7 @@ or
 Note: selective enabling of warnings with <tt>%warnfilter</tt> overrides any global settings you might have
 made using <tt>-w</tt> or <tt>#pragma</tt>.
 
-<a name="n5"></a><H2>12.4 Issuing a warning message</H2>
+<H2><a name="Warnings_nn5"></a>14.4 Issuing a warning message</H2>
 
 
 Warning messages can be issued from an interface file using a number of directives.  The
@@ -187,6 +188,7 @@ your own warnings, make sure you don't use numbers defined in the table at the e
 <p>
 The <tt>%ignorewarn</tt> directive is the same as <tt>%ignore</tt> except that it issues a
 warning message whenever a matching declaration is found. For example:
+</p>
 
 <blockquote>
 <pre>
@@ -207,7 +209,7 @@ Warning messages can be associated with typemaps using the
 
 In this case, the warning message will be printed whenever the typemap is actually used.
 
-<a name="n6"></a><H2>12.5 Commentary</H2>
+<H2><a name="Warnings_nn6"></a>14.5 Commentary</H2>
 
 
 The ability to suppress warning messages is really only provided for
@@ -221,15 +223,16 @@ Certain types of SWIG problems are errors.  These usually arise due to
 parsing errors (bad syntax) or semantic problems for which there is
 no obvious recovery.  There is no mechanism for suppressing error
 messages.
+</p>
 
-<a name="n7"></a><H2>12.6 Warnings as errors</H2>
+<H2><a name="Warnings_nn7"></a>14.6 Warnings as errors</H2>
 
 
 Warnings can be handled as errors by using the <tt>-Werror</tt> command line
 option. This will cause SWIG to exit with a non successful exit code if a
 warning is encountered.
 
-<a name="n8"></a><H2>12.7 Message output format</H2>
+<H2><a name="Warnings_nn8"></a>14.7 Message output format</H2>
 
 
 The output format for both warnings and errors can be selected for
@@ -246,10 +249,10 @@ $ swig -python -Fmicrosoft example.i
 example.i(4): Syntax error in input.
 </pre></blockquote>
 
-<a name="n9"></a><H2>12.8 Warning number reference</H2>
+<H2><a name="Warnings_nn9"></a>14.8 Warning number reference</H2>
 
 
-<a name="n10"></a><H3>12.8.1 Deprecated features (100-199)</H3>
+<H3><a name="Warnings_nn10"></a>14.8.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -275,7 +278,7 @@ example.i(4): Syntax error in input.
 <li>120. Deprecated command line option (-c).
 </ul>
 
-<a name="n11"></a><H3>12.8.2 Preprocessor (200-299)</H3>
+<H3><a name="Warnings_nn11"></a>14.8.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -283,7 +286,7 @@ example.i(4): Syntax error in input.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
-<a name="n12"></a><H3>12.8.3 C/C++ Parser (300-399)</H3>
+<H3><a name="Warnings_nn12"></a>14.8.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -330,7 +333,7 @@ example.i(4): Syntax error in input.
 <li>368. operator/= ignored.
 <li>369. operator%= ignored.
 <li>370. operator^= ignored.
-<li>371. operator&= ignored.
+<li>371. operator&amp;= ignored.
 <li>372. operator|= ignored.
 <li>373. operator&lt;&lt; ignored.
 <li>374. operator&gt;&gt;ignored.
@@ -357,7 +360,7 @@ example.i(4): Syntax error in input.
 <li>395. operator delete[] ignored.
 </ul>
 
-<a name="n13"></a><H3>12.8.4 Types and typemaps (400-499) </H3>
+<H3><a name="Warnings_nn13"></a>14.8.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -379,7 +382,7 @@ example.i(4): Syntax error in input.
 <li>468. No 'throw' typemap defined for exception type 'type'.
 </ul>
 
-<a name="n14"></a><H3>12.8.5 Code generation (500-599)</H3>
+<H3><a name="Warnings_nn14"></a>14.8.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -390,7 +393,7 @@ example.i(4): Syntax error in input.
 <li>505. Variable length arguments discarded.
 <li>506. Can't wrap varargs with keyword arguments enabled.
 <li>507. Adding native function <em>name</em> not supported (ignored).
-<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator->() at <em>file:line</em>.
+<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator-&gt;() at <em>file:line</em>.
 <li>509. Overloaded <em>declaration</em> is shadowed by <em>declaration</em> at <em>file</em>:<em>line</em>.
 <li>510. Friend function '<em>name</em>' ignored.
 <li>511. Can't use keyword arguments with overloaded functions.
@@ -401,7 +404,7 @@ example.i(4): Syntax error in input.
 <li>516. Overloaded method <em>declaration</em> ignored. Method <em>declaration</em> at <em>file</em>:<em>line</em> used.
 </ul>
 
-<a name="n15"></a><H3>12.8.6 Language module specific (800-899) </H3>
+<H3><a name="Warnings_nn15"></a>14.8.6 Language module specific (800-899) </H3>
 
 
 <ul>
@@ -440,17 +443,17 @@ example.i(4): Syntax error in input.
 <li>842. Covariant return types not supported in C#. Proxy method will return <em>basetype</em>  (C#).
 </ul>
 
-<a name="n16"></a><H3>12.8.7 User defined (900-999)</H3>
+<H3><a name="Warnings_nn16"></a>14.8.7 User defined (900-999)</H3>
 
 
 These numbers can be used by your own application.
 
-<a name="n17"></a><H2>12.9 History</H2>
+<H2><a name="Warnings_nn17"></a>14.9 History</H2>
 
 
 The ability to control warning messages was first added to SWIG-1.3.12.
 
-<p><hr>
+<hr>
 <address>SWIG 1.3 - Last Modified : June 28, 2003</address>
 </body>
 </html>

@@ -4,31 +4,31 @@
 <title>SWIG and Modula-3</title>
 </head>
 <body bgcolor="#FFFFFF">
-<a name="n1"></a><H1>18 SWIG and Modula-3</H1>
+<H1><a name="Modula3"></a>20 SWIG and Modula-3</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">Overview</a>
-<li><a href="#n3">Conception</a>
+<li><a href="#modula3_overview">Overview</a>
+<li><a href="#conception">Conception</a>
 <ul>
-<li><a href="#n4">Interfaces to C libraries</a>
-<li><a href="#n5">Interfaces to C++ libraries</a>
-<li><a href="#n6">No plan?</a>
+<li><a href="#cinterface">Interfaces to C libraries</a>
+<li><a href="#noplan">Interfaces to C++ libraries</a>
+<li><a href="#cppinterface">No plan?</a>
 </ul>
-<li><a href="#n7">Preliminaries</a>
+<li><a href="#preliminaries">Preliminaries</a>
 <ul>
-<li><a href="#n8">Compilers</a>
-<li><a href="#n9">Additional Commandline Options</a>
+<li><a href="#compilers">Compilers</a>
+<li><a href="#commandline">Additional Commandline Options</a>
 </ul>
-<li><a href="#n10">Modula-3 typemaps</a>
+<li><a href="#modula3_typemaps">Modula-3 typemaps</a>
 <ul>
-<li><a href="#n11">Inputs and outputs</a>
-<li><a href="#n12">Subranges, Enumerations, Sets</a>
-<li><a href="#n13">Objects</a>
-<li><a href="#n14">Imports</a>
-<li><a href="#n15">Exceptions</a>
-<li><a href="#n16">Pragmas</a>
-<li><a href="#n17">Example</a>
-<li><a href="#n18">Remarks</a>
+<li><a href="#inoutparam">Inputs and outputs</a>
+<li><a href="#ordinals">Subranges, Enumerations, Sets</a>
+<li><a href="#class">Objects</a>
+<li><a href="#imports">Imports</a>
+<li><a href="#exceptions">Exceptions</a>
+<li><a href="#swig_pragmas">Pragmas</a>
+<li><a href="#typemap_example">Example</a>
+<li><a href="#remarks">Remarks</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -38,12 +38,11 @@
 This chapter describes SWIG's support of
 <a href="http://www.m3.org/">Modula-3</a>.
 You should be familiar with the
-<a href="SWIG.html">basics</a>
+<a href="SWIG.html#SWIG">basics</a>
 of SWIG,
 especially typemaps.
 
-<a name="overview"></a>
-<a name="n2"></a><H2>18.1 Overview</H2>
+<H2><a name="modula3_overview"></a>20.1 Overview</H2>
 
 
 <p>
@@ -52,6 +51,8 @@ Many features are still not designed satisfyingly
 and I need more discussion about the odds and ends.
 The Modula-3 generator was already useful for interfacing
 to the libraries
+</p>
+
 <a href="http://www.elegosoft.com/cgi-bin/cvsweb.cgi/cm3/m3-libs/plplot/">
 PLPlot
 </a>
@@ -66,9 +67,9 @@ FFTW
 The following introduction may help you
 when you are uncertain about using
 the Modula-3 support or SWIG at all.
+</p>
 
 
-<a name="whycxx"></a>
 <a name="n3"></a><DISABLED>18.1.1 Why not scripting ?</DISABLED>
 
 
@@ -80,6 +81,7 @@ to make programming life easier
 by hiding machine internals from the programmer
 there are several aspects of todays scripting languages
 that are unfavourable in my opinion.
+</p>
 
 <p>
 Besides C, C++, Cluster (a Modula derivate for Amiga computers)
@@ -102,8 +104,8 @@ e.g. matching regular expressions,
 complex built-in datatypes like lists, dictionaries,
 are not advantages of the language itself
 but can be provided by function libraries.
+</p>
 
-<a name="whymodula3"></a>
 <a name="n4"></a><DISABLED>18.1.2 Why Modula-3 ?</DISABLED>
 
 
@@ -124,6 +126,7 @@ control three languages,
 namely the preprocessor, C and ++,
 Modula-3 is made in one go
 and the language definition is really compact.
+</p>
 
 On the one hand Modula-3 can be safe
 (but probably less efficient) in normal modules
@@ -138,14 +141,13 @@ requires more writing than scripting languages do.
 Today if I want to safe characters
 I prefer Haskell (similar to OCAML) -
 it's statically typed, too.
+</p>
 
 
-<a name="whycxx"></a>
 <a name="n5"></a><DISABLED>18.1.3 Why C / C++ ?</DISABLED>
 
 
 <p>
-
 Although it is no problem to write Modula-3 programs
 that performs as fast as C
 most libraries are not written in Modula-3 but in C.
@@ -153,13 +155,12 @@ Fortunately the binary interface of most function libraries
 can be addressed by Modula-3.
 Even more fortunately even non-C libraries may provide C header files.
 This is where SWIG becomes helpful.
+</p>
 
-<a name="whycxx"></a>
 <a name="n6"></a><DISABLED>18.1.4 Why SWIG ?</DISABLED>
 
 
 <p>
-
 The C headers and the possibility to interface to C libraries
 still leaves the work for you
 to write Modula-3 interfaces to them.
@@ -167,9 +168,9 @@ To make things comfortable you will also need
 wrappers that convert between high-level features of Modula-3
 (garbage collecting, exceptions)
 and the low level of the C libraries.
+</p>
 
 <p>
-
 SWIG converts C headers to Modula-3 interfaces for you.
 You could call the C functions without loss
 of efficiency but it won't be joy
@@ -185,6 +186,7 @@ E.g. C programmers are very creative to work-around
 missing data types like (real) enumerations and sets.
 You should turn such work-arounds back to the Modula-3 way
 otherwise you lose static safety and consistency.
+</p>
 
 <p>
 
@@ -203,9 +205,10 @@ when a new library version is released.
 You will realise that writing <b>good</b> SWIG interfaces
 is very costly and it will only amortise
 when considering evolving libraries.
+</p>
+
 
 <p>
-
 Without SWIG you would probably never consider
 to call C++ libraries from Modula-3.
 But with SWIG this is worth a consideration.
@@ -215,23 +218,22 @@ In fact it breaks down C++ libraries to C interfaces
 which can be in turn called from Modula-3.
 To make it complete you can hide the C interface
 with Modula-3 classes and exceptions.
+</p>
 
 <p>
-
 Although SWIG does the best it can do
 it can only serve as a one-way strategy.
 That means you can use C++ libraries
 with Modula-3 (even with call back functions),
 but it's certainly not possible to smoothly
 integrate Modula-3 code into a C / C++ project.
+</p>
 -->
 
-<a name="conception"></a>
-<a name="n3"></a><H2>18.2 Conception</H2>
+<H2><a name="conception"></a>20.2 Conception</H2>
 
 
-<a name="cinterface"></a>
-<a name="n4"></a><H3>18.2.1 Interfaces to C libraries</H3>
+<H3><a name="cinterface"></a>20.2.1 Interfaces to C libraries</H3>
 
 
 <p>
@@ -249,7 +251,7 @@ All you have to do is to write pieces of Modula-3 code
 that SWIG puts together.
 </p>
 
-<table border>
+<table border summary="Modula-3 C library support">
 <tr><th colspan=2>C library support integrated in Modula-3<th></tr>
 <tr>
 <td>Pragma <tt>&lt;* EXTERNAL *&gt;</tt></td>
@@ -276,7 +278,7 @@ and C's <tt>char *</tt> type.</td>
 In each run of SWIG the Modula-3 part
 generates several files:
 </p>
-<table border>
+<table border summary="Modula-3 generated files">
 <tr>
   <td>Module<tt>Raw.i3</tt></td>
   <td>Declaration of types that are equivalent to those of the C library,
@@ -314,7 +316,7 @@ generates several files:
 
 Here's a scheme of how the function calls to Modula-3 wrappers
 a redirected to C library functions:
-<table>
+<table summary="Modula-3 C library">
 <tr>
   <td align=center>
     Modula-3 wrapper<br>
@@ -347,8 +349,7 @@ a redirected to C library functions:
 </table>
 
 
-<a name="cppinterface"></a>
-<a name="n5"></a><H3>18.2.2 Interfaces to C++ libraries</H3>
+<H3><a name="noplan"></a>20.2.2 Interfaces to C++ libraries</H3>
 
 
 <p>
@@ -361,7 +362,7 @@ with a C interface.
 
 Here's a scheme of how the function calls to Modula-3 wrappers
 a redirected to C library functions:
-<table>
+<table summary="Modula-3 C++ library">
 <tr>
   <td align=center>
     Modula-3 wrapper<br>
@@ -400,6 +401,7 @@ a redirected to C library functions:
 
 <p>
 Wrapping C++ libraries arises additional problems:
+</p>
 <ul>
 <li>
 Is it sensible to wrap C++ class with Modula-3 classes?
@@ -445,8 +447,7 @@ There is no C++ library I wrote a SWIG interface for,
 so I'm not sure if this is possible or sensible, yet.
 </p>
 
-<a name="cppinterface"></a>
-<a name="n6"></a><H3>18.2.3 No plan?</H3>
+<H3><a name="cppinterface"></a>20.2.3 No plan?</H3>
 
 
 <p>
@@ -468,12 +469,10 @@ and the principal type must be renamed (<tt>%typemap</tt>).
 </p>
 
 
-<a name="preliminaries"></a>
-<a name="n7"></a><H2>18.3 Preliminaries</H2>
+<H2><a name="preliminaries"></a>20.3 Preliminaries</H2>
 
 
-<a name="compilers"></a>
-<a name="n8"></a><H3>18.3.1 Compilers</H3>
+<H3><a name="compilers"></a>20.3.1 Compilers</H3>
 
 
 There are different Modula-3 compilers around:
@@ -485,8 +484,7 @@ may do so.
 For testing examples I used Critical Mass cm3.
 
 
-<a name="commandline"></a>
-<a name="n9"></a><H3>18.3.2 Additional Commandline Options</H3>
+<H3><a name="commandline"></a>20.3.2 Additional Commandline Options</H3>
 
 
 There are some experimental command line options
@@ -494,7 +492,7 @@ that prevent SWIG from generating interface files.
 Instead files are emitted that may assist you
 when writing SWIG interface files.
 
-<table>
+<table summary="Modula-3 specific options">
 <tr>
 <th>Modula-3 specific options</th>
 </tr>
@@ -560,12 +558,10 @@ Instead generate templates for some basic typemaps.
 </tr>
 </table>
 
-<a name="typemaps"></a>
-<a name="n10"></a><H2>18.4 Modula-3 typemaps</H2>
+<H2><a name="modula3_typemaps"></a>20.4 Modula-3 typemaps</H2>
 
 
-<a name="inoutparam"></a>
-<a name="n11"></a><H3>18.4.1 Inputs and outputs</H3>
+<H3><a name="inoutparam"></a>20.4.1 Inputs and outputs</H3>
 
 
 <p>
@@ -614,7 +610,7 @@ consist of the following parts:
 <li>Return values.</li>
 </ul>
 
-<table border>
+<table border summary="Modula-3 typemaps">
 <tr>
   <th>Typemap</th>
   <th>Example</th>
@@ -654,21 +650,21 @@ consist of the following parts:
 </tr>
 <tr>
   <td>m3wrapinname</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
     New name of the input argument.
   </td>
 </tr>
 <tr>
   <td>m3wrapintype</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
     Modula-3 type of the input argument.
   </td>
 </tr>
 <tr>
   <td>m3wrapindefault</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
     Default value of the input argument
   </td>
@@ -682,14 +678,14 @@ consist of the following parts:
 </tr>
 <tr>
   <td>m3wrapincheck</td>
-  <td><tt>IF Text.Length($1_name) > 10 THEN RAISE E("str too long"); END;</tt></td>
+  <td><tt>IF Text.Length($1_name) &gt; 10 THEN RAISE E("str too long"); END;</tt></td>
   <td>
     Check the integrity of the input value.
   </td>
 </tr>
 <tr>
   <td>m3wrapoutname</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
     Name of the <tt>RECORD</tt> field to be used for returning multiple values.
     This applies to referential output arguments that shall be turned
@@ -698,56 +694,56 @@ consist of the following parts:
 </tr>
 <tr>
   <td>m3wrapouttype</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
     Type of the value that is returned instead of a referential output argument.
   </td>
 </tr>
 <tr>
   <td>m3wrapoutconv</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapoutcheck</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapretraw</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapretname</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wraprettype</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapretvar</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapretconv</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
 <tr>
   <td>m3wrapretcheck</td>
-  <td><tt></tt></td>
+  <td></td>
   <td>
   </td>
 </tr>
@@ -764,16 +760,13 @@ consist of the following parts:
 </table>
 
 
-<a name="ordinals"></a>
-<a name="n12"></a><H3>18.4.2 Subranges, Enumerations, Sets</H3>
+<H3><a name="ordinals"></a>20.4.2 Subranges, Enumerations, Sets</H3>
 
 
-<a name="class"></a>
-<a name="n13"></a><H3>18.4.3 Objects</H3>
+<H3><a name="class"></a>20.4.3 Objects</H3>
 
 
-<a name="imports"></a>
-<a name="n14"></a><H3>18.4.4 Imports</H3>
+<H3><a name="imports"></a>20.4.4 Imports</H3>
 
 
 <p>
@@ -806,8 +799,7 @@ IMPORT M3toC;
 </pre>
 
 
-<a name="exceptions"></a>
-<a name="n15"></a><H3>18.4.5 Exceptions</H3>
+<H3><a name="exceptions"></a>20.4.5 Exceptions</H3>
 
 
 Modula-3 provides another possibility
@@ -825,11 +817,10 @@ contains code that may raise the exceptions <tt>OSError.E</tt>
 you should declare
 <tt>%typemap("m3wrapinconv:throws") blah * %{OSError.E%}</tt>.
 
-<a name="swig_pragmas"></a>
-<a name="n16"></a><H3>18.4.6 Pragmas</H3>
+<H3><a name="swig_pragmas"></a>20.4.6 Pragmas</H3>
 
 
-<table border>
+<table border summary="Modula-3 pragmas">
 <tr>
   <td>unsafe</td>
   <td><tt>%pragma(modula3) unsafe="true";</tt></td>
@@ -844,8 +835,7 @@ you should declare
 </tr>
 </table>
 
-<a name="typemap_example"></a>
-<a name="n17"></a><H3>18.4.7 Example</H3>
+<H3><a name="typemap_example"></a>20.4.7 Example</H3>
 
 
 The generation of wrappers in Modula-3 needs very fine control
@@ -871,7 +861,7 @@ where almost everything is generated by a typemap:
     BEGIN
       TRY
         arg1 := M3toC.SharedTtoS(str);   <I>(* m3wrapinconv *)</I>
-        IF Text.Length(arg1) > 10 THEN   <I>(* m3wrapincheck *)</I>
+        IF Text.Length(arg1) &gt; 10 THEN   <I>(* m3wrapincheck *)</I>
           RAISE E("str too long");
         END;
 <I> (* m3wrapretraw           m3wrapargraw *)</I>
@@ -887,8 +877,7 @@ where almost everything is generated by a typemap:
     END Name;
 </pre></blockquote>
 
-<a name="remarks"></a>
-<a name="n18"></a><H3>18.4.8 Remarks</H3>
+<H3><a name="remarks"></a>20.4.8 Remarks</H3>
 
 
 <ul>

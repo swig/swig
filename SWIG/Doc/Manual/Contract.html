@@ -5,13 +5,13 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>10 Contracts</H1>
+<H1><a name="Contract"></a>12 Contracts</H1>
 <!-- INDEX -->
 <ul>
-<li><a href="#n2">The %contract directive</a>
-<li><a href="#n3">%contract and classes</a>
-<li><a href="#n4">Constant aggregation and %aggregate_check</a>
-<li><a href="#n5">Notes</a>
+<li><a href="#Contract_nn2">The %contract directive</a>
+<li><a href="#Contract_nn3">%contract and classes</a>
+<li><a href="#Contract_nn4">Constant aggregation and %aggregate_check</a>
+<li><a href="#Contract_nn5">Notes</a>
 </ul>
 <!-- INDEX -->
 
@@ -31,8 +31,9 @@ to a declaration.  For example, you can easily attach argument checking rules,
 check the output values of a function and more. 
 When one of the rules is violated by a script, a runtime exception is 
 generated rather than having the program continue to execute.
+</p>
 
-<a name="n2"></a><H2>10.1 The %contract directive</H2>
+<H2><a name="Contract_nn2"></a>12.1 The %contract directive</H2>
 
 
 Contracts are added to a declaration using the %contract directive.  Here
@@ -42,9 +43,9 @@ is a simple example:
 <pre>
 %contract sqrt(double x) {
 require:
-    x >= 0;
+    x &gt;= 0;
 ensure:
-    sqrt >= 0;
+    sqrt &gt;= 0;
 }
 
 ...
@@ -65,24 +66,26 @@ cases, the conditions that must hold must be specified as boolean expressions.
 <p>
 In the above example, we're simply making sure that sqrt() returns a non-negative
 number (if it didn't, then it would be broken in some way).
+</p>
 
 <p>
 Once a contract has been specified, it modifies the behavior of the
 resulting module.  For example:
+</p>
 
 <blockquote>
 <pre>
->>> example.sqrt(2)
+&gt;&gt;&gt; example.sqrt(2)
 1.4142135623730951
->>> example.sqrt(-2)
+&gt;&gt;&gt; example.sqrt(-2)
 Traceback (most recent call last):
-  File "<stdin>", line 1, in ?
-RuntimeError: Contract violation: require: (arg1>=0)
->>>
+  File "&lt;stdin&gt;", line 1, in ?
+RuntimeError: Contract violation: require: (arg1&gt;=0)
+&gt;&gt;&gt;
 </pre>
 </blockquote>
 
-<a name="n3"></a><H2>10.2 %contract and classes</H2>
+<H2><a name="Contract_nn3"></a>12.2 %contract and classes</H2>
 
 
 The <tt>%contract</tt> directive can also be applied to class methods and constructors.  For example:
@@ -91,14 +94,14 @@ The <tt>%contract</tt> directive can also be applied to class methods and constr
 <pre>
 %contract Foo::bar(int x, int y) {
 require:
-   x > 0;
+   x &gt; 0;
 ensure:
-   bar > 0;
+   bar &gt; 0;
 }
 
 %contract Foo::Foo(int a) {
 require:
-   a > 0;
+   a &gt; 0;
 }
 
 class Foo {
@@ -127,12 +130,12 @@ In addition to this, separate contracts can be applied to both the base class an
 <pre>
 %contract Foo::bar(int x, int) {
 require:
-    x > 0;
+    x &gt; 0;
 }
 
 %contract Spam::bar(int, int y) {
 require:
-    y > 0;
+    y &gt; 0;
 }
 
 class Foo {
@@ -153,7 +156,7 @@ In other words conditions specified for the base class and conditions
 specified for the derived class all must hold.  In the above example,
 this means that both the arguments to <tt>Spam::bar</tt> must be positive.
 
-<a name="n4"></a><H2>10.3 Constant aggregation and %aggregate_check</H2>
+<H2><a name="Contract_nn4"></a>12.3 Constant aggregation and %aggregate_check</H2>
 
 
 Consider an interface file that contains the following code:
@@ -229,13 +232,13 @@ void move(SomeObject *, int direction, int distance);
 Regrettably, there is no automatic way to perform similar checks with enums values.  Maybe in a future
 release.
 
-<a name="n5"></a><H2>10.4 Notes</H2>
+<H2><a name="Contract_nn5"></a>12.4 Notes</H2>
 
 
 Contract support was implemented by Songyan (Tiger) Feng and first appeared
 in SWIG-1.3.20.
 
-<p><hr>
+<hr>
 
 <address>SWIG 1.3 - Last Modified : November 12, 2003</address>
 </body>
