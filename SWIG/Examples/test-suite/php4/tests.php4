@@ -127,9 +127,14 @@ class check {
   }
 
   function resource($a,$b,$message) {
-    $resource=check::var_dump($a);
+    $resource=trim(check::var_dump($a));
     if (! eregi("^resource\([0-9]+\) of type \($b\)",$resource)) return check::fail($message);
     return TRUE;
+  }
+
+  function isnull($a,$message) {
+    $value=trim(check::var_dump($a));
+    return check::equal($value,"NULL",$message);
   }
 
   function var_dump($arg) {

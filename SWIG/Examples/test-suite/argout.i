@@ -1,5 +1,5 @@
 /* This interface file checks how well SWIG handles passing data back
-   through arguments WITHOUT returnin it seperatly; for the cases where
+   through arguments WITHOUT returning it seperatly; for the cases where
    maybe multiple values are passed by refernce and all want changing */
 
 %module argout
@@ -22,6 +22,16 @@ typedef int & IntRef;
 // returns old value
 int inctr(IntRef value) {
   return value++;
+}
+
+// example of the old DB login type routines where you keep
+// a void* which it points to its opaque struct when you login
+// So login function takes a void**
+void voidhandle(void** handle) {
+  *handle=(void*)"Here it is";
+}
+char * handle(void* handle) {
+  return (char *)handle;
 }
 
 %}

@@ -42,6 +42,39 @@
 	}
 %}
 
+/* Special case when void* is passed by reference so it can be made to point
+   to opaque api structs */
+%typemap(in) void ** ($*1_ltype ptr, int force), void *& ($*1_ltype ptr, int force) %{
+  // If they pass NULL by reference, make it into a void*
+  // This bit should go in arginit if arginit support init-ing scripting args
+  if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+    // So... we didn't get a ref or ptr, but we'll accept NULL by reference
+    if ((*$input)->type==IS_NULL) {
+      #if __cplusplus
+      ptr=new $*1_ltype;
+      #else
+      ptr=($*1_ltype) emalloc(sizeof($*1_ltype));
+      #endif
+      $1=&ptr;
+      // have to passback arg$arg too
+      force=1;
+    } else {  // wasn't a pre/ref/thing, OR anything like an int thing
+      force=0;
+      zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or %s or at least NULL passe by reference", $argnum-argbase, $1_descriptor->name,$*1_descriptor->name);
+    }
+  } else force=0;
+%}
+
+%typemap(argout) void **, void *& %{
+  if (force$argnum) {  // pass back arg$argnum through params ($arg) if we can
+    if(! PZVAL_IS_REF(*$arg)) {
+      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+    } else {
+      SWIG_SetPointerZval(*$arg, (void *) ptr$argnum, $*1_descriptor, 1);
+    }
+  }
+%}
+
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
 	$&1_ltype argp;
