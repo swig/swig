@@ -79,14 +79,14 @@
 /* Constant references. Passed by value */
 /* Const primitive references.  Passed by value */
 
-%typemap(in) const int & (int temp),
-	     const short & (short temp),
-             const long  & (long temp),
-             const unsigned int & (unsigned int temp),
-             const unsigned short & (unsigned short temp),
-             const unsigned long & (unsigned long temp),
-             const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp)
+%typemap(in) const int & ($basetype temp),
+	     const short & ($basetype temp),
+             const long  & ($basetype temp),
+             const unsigned int & ($basetype temp),
+             const unsigned short & ($basetype temp),
+             const unsigned long & ($basetype temp),
+             const signed char & ($basetype temp),
+             const unsigned char & ($basetype temp)
 {
   long ltemp;
   if (Tcl_GetLongFromObj(interp, $input, &ltemp) != TCL_OK) {
@@ -464,9 +464,11 @@
 
 %types(size_t);
 %apply unsigned long { size_t };
+%apply const unsigned long& { const size_t& };
 
 %types(ptrdiff_t);
 %apply long { ptrdiff_t };
+%apply const long& { const ptrdiff_t& };
 
 
 /* ------------------------------------------------------------
