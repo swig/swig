@@ -1383,10 +1383,11 @@ If necessary, type related substitutions can also be used when declaring locals.
 </blockquote>
 
 <p>
+
 <h2>Typemaps for arrays</h2>
 
 A common use of typemaps is to provide support for C arrays appearing both as
-arguments to functions and as member structures.
+arguments to functions and as structure members.
 
 <p>
 For example, suppose you had a function like this:
@@ -1398,181 +1399,239 @@ void set_vector(int type, float value[4]);
 </blockquote>
 
 If you wanted to handle <tt>float value[4]</tt> as a list of floats, you might write a typemap
-like this:
+similar to this:
 
 <blockquote>
 <pre>
+
 %typemap(python,in) float value[4] (float temp[4]) {
-   int i;
-   /* Fill in the temp array */
-   if (!PyList_Check($input)) {
-   
-
-   }
-   for (i = 0; i < 4; i++) {
+  int i;
+  if (!PySequence_Check($input)) {
+    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    return NULL;
+  }
+  if (PySequence_Length($input) != 4) {
+    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected 4 elements");
+    return NULL;
+  }
+  for (i = 0; i &lt; 4; i++) {
+    PyObject *o = PySequence_GetItem($input,i);
+    if (PyNumber_Check(o)) {
       temp[i] = (float) PyFloat_AsDouble(o);
-   }
-   $1 = temp;
+    } else {
+      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      return NULL;
+    }
+  }
+  $1 = temp;
 }
 </pre>
 </blockquote>
 
-In this case, the variable <tt>temp</tt> places a small array on the
-stack.  This array is then populated and passed to the underlying C
-function.
-
-If you wanted to generalize the typemap to all arrays, you might write this:
-
-
-<blockquote>
-<pre>
-%typemap(python,in) float [ANY] (float temp[$1_dim0]) {
-     /* Doesn't work. (I don't think) */
-}
-</pre>
-</blockquote>
-
- 
-One of the most common uses of typemaps is providing some support for
-arrays. Due to the subtle differences between pointers and arrays in
-C, array support is somewhat limited unless you provide additional
-support. For example, consider the following structure appears in an
-interface file :<p>
+In this example, the variable <tt>temp</tt> allocates a small array on the
+C stack.  The typemap then populates this array and passes it to the underlying C function.
 
 <p>
-<blockquote><pre>struct Person {
-	char name[32];
-	char address[64];
-	int id;
-};
+When used from Python, the typemap allows the following type of function call:
 
+<blockquote>
+<pre>
+>>> set_vector(type, [ 1, 2.5, 5, 20 ])
+</pre>
+</blockquote>
+
+<p>
+If you wanted to generalize the typemap to apply to arrays of all dimensions you might write this:
+
+<blockquote>
+<pre>
+%typemap(python,in) float value[ANY] (float temp[$1_dim0]) {
+  int i;
+  if (!PySequence_Check($input)) {
+    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    return NULL;
+  }
+  if (PySequence_Length($input) != $1_dim0) {
+    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
+    return NULL;
+  }
+  for (i = 0; i &lt; $1_dim0; i++) {
+    PyObject *o = PySequence_GetItem($input,i);
+    if (PyNumber_Check(o)) {
+      temp[i] = (float) PyFloat_AsDouble(o);
+    } else {
+      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      return NULL;
+    }
+  }
+  $1 = temp;
+}
+</pre>
+</blockquote>
+
+In this example, the special variable <tt>$1_dim0</tt> is expanded with the actual
+array dimensions.   Multidimensional arrays can be matched in a similar manner.  For example:
+
+<blockquote>
+<pre>
+%typemap(python,in) float matrix[ANY][ANY] (float temp[$1_dim0][$1_dim1]) {
+   ... convert a 2d array ...
+}
+</pre>
+</blockquote>
+
+For large arrays, it may be impractical to allocate storage on the stack using a temporary variable
+as shown.   To work with heap allocated data, the following technique can be used.
+
+<blockquote>
+<pre>
+%typemap(python,in) float value[ANY] {
+  int i;
+  if (!PySequence_Check($input)) {
+    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
+    return NULL;
+  }
+  if (PySequence_Length($input) != $1_dim0) {
+    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
+    return NULL;
+  }
+  $1 = (float) malloc($1_dim0*sizeof(float));
+  for (i = 0; i &lt; $1_dim0; i++) {
+    PyObject *o = PySequence_GetItem($input,i);
+    if (PyNumber_Check(o)) {
+      $1[i] = (float) PyFloat_AsDouble(o);
+    } else {
+      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
+      return NULL;
+    }
+  }
+}
+%typemap(python,freearg) float value[ANY] {
+   if ($1) free($1);
+}
+</pre>
+</blockquote>
+
+In this case, an array is allocated using <tt>malloc</tt>.   The <tt>freearg</tt> typemap is then used
+to release the argument after the function has been called.
+
+<p>
+Another common use of array typemaps is to provide support for array structure members.
+Due to subtle differences between pointers and arrays in C, you can't just "assign" to
+a array structure member.  Instead, you have to explicitly copy elements into the array.
+For example, suppose you had a structure like this:
+
+<p>
+<blockquote><pre>struct SomeObject {
+	float  value[4];
+        ...
+};
 </pre></blockquote>
 
-When SWIG is run, you may get the following warnings :<p>
+When SWIG runs, it won't produce any code to set the <tt>vec</tt> member.
+You may get a warning message like this:
 
 <p>
 <blockquote><pre>swig -python  example.i
 Generating wrappers for Python
-example.i:2.  Warning. Array member will be read-only.
-example.i:3.  Warning. Array member will be read-only.
+example.i:10.  Warning. Array member value will be read-only.
 </pre></blockquote>
 
 <p>
 These warning messages indicate that SWIG does not know how you want
-to set the name and address fields. As a result, you will only be able
-to query their value.<p>
+to set the <tt>vec</tt> field.
+
 <p>
-To fix this, we could supply two typemaps in the file such as the
-following :<p>
+To fix this, you can supply a special "memberin" typemap like this:
 
 <blockquote><pre>
-
-%typemap(memberin) char [32] {
-	strncpy($target,$source,32);
+%typemap(memberin) float [ANY] {
+  int i;
+  for (i = 0; i &lt; $1_dim0; i++) {
+      $1[i] = $minput[i];
+  }
 }
-%typemap(memberin) char [64] {
-	strncpy($target,$source,64);
-}
-
-</pre></blockquote>
-
-The "memberin" typemap is used to set members of structures and
-classes. When you run the new version through SWIG, the warnings will
-go away and you can now set each member. It is important to note that
-<tt>char[32]</tt> and <tt>char[64]</tt> are different datatypes as far
-as SWIG typemaps are concerned. However, both typemaps can be combined
-as follows :<p>
-
-<p>
-<blockquote><pre>// A better typemap for char arrays
-%typemap(memberin) char [] {
-	strncpy($target,$source,$dim0);
-}
-
-</pre></blockquote>
-
-When an empty dimension is used in a typemap, it matches any array dimension.
-When used, the special variable <tt>$dim0</tt> will contain
-the real dimension of the array and can be used as shown above.<p>
-
-<p>
-Multidimensional arrays can also be handled by typemaps. For example :<p>
-<p>
-
-<blockquote><pre>// A typemap for handling any int [][] array
-%typemap(memberin) int [][] {
-	int i,j;
-	for (i = 0; i &lt; $dim0; i++)
-		for (j = 0; j &lt; $dim1; j++) {
-			$target[i][j] = *($source+$dim1*i+j);
-		}
-}
-
-</pre></blockquote>
-
-When multi-dimensional arrays are used, the symbols <tt>$dim0,</tt>
-<tt>$dim1</tt>,<tt> $dim2</tt>, etc... get replaced by the actual
-array dimensions being used. <p>
-<p>
-
-<h2> Typemaps and the SWIG Library</h2>
-
-Writing typemaps is a tricky business. For this reason, many common
-typemaps can be placed into a SWIG library file and reused in other
-modules without having to worry about nasty underlying details. To do
-this, you first write a file containing typemaps such as this :<p>
-<p>
-
-<blockquote><pre>// file : stdmap.i
-// A file containing a variety of useful typemaps
-
-%typemap(tcl,in) int INTEGER {
-	...
-}
-%typemap(tcl,in) double DOUBLE {
-	...
-}
-%typemap(tcl,out) int INT {
-	...
-}
-%typemap(tcl,out) double DOUBLE {
-	...
-}
-%typemap(tcl,argout) double DOUBLE {
-	...
-}
-// and so on...
-
-</pre></blockquote>
-
-This file may contain dozens or even hundreds of possible
-mappings. Now, to use this file with other modules, simply include it
-in other files and use the <tt>%apply</tt> directive :<p>
-
-<p>
-<blockquote><pre>// interface.i
-// My interface file
-
-%include stdmap.i                         // Load the typemap library
-
-// Now grab the typemaps we want to use
-%apply double DOUBLE {double};
-
-// Rest of your declarations
 </pre></blockquote>
 
 <p>
-In this case, <tt>stdmap.i</tt> contains a variety of standard
-mappings. The <tt>%apply</tt> directive lets us apply specific
-versions of these to new datatypes without knowing the underlying
-implementation details.<p>
+The memberin typemap is used to set a structure member from data that has already been converted
+from the target language to C.  In this case, <tt>$minput</tt> is the local variable in which 
+converted input data is stored.   This typemap then copies this data into the structure. 
 
 <p>
-To clear a typemap that has been applied, you can use the
-<tt>%clear</tt> directive. For example :<p>
+When combined with the earlier typemaps for arrays, the combination of the "in" and "memberin" typemap allows
+the following usage:
+
+<blockquote>
+<pre>
+>>> s = SomeObject()
+>>> s.x = [1, 2.5, 5, 10]
+</pre>
+</blockquote>
+
+<b>Note:</b> Since the memberin typemap is usually only used to copy data, it is often specified without any target language
+as shown above.
+
 <p>
-<blockquote><pre>%clear double x; 			// Clears any typemaps being applied to double x
-</pre></blockquote>
+Related to structure member input, it may be desirable to return structure members as a new kind of
+object.  For example, in this example, you will get very odd program behavior where the structure member
+can be set nicely, but reading the member simply returns a pointer:
+
+<blockquote>
+<pre>
+>>> s = SomeObject()
+>>> s.x = [1, 2.5, 5. 10]
+>>> print s.x
+_1008fea8_p_float
+>>> 
+</pre>
+</blockquote>
+
+To fix this, you can write an "out" typemap.   For example:
+
+<blockquote>
+<pre>
+%typemap(python,out) float [ANY] {
+  int i;
+  $result = PyList_New($1_dim0);
+  for (i = 0; i &lt; $1_dim0; i++) {
+    PyObject *o = PyFloat_FromDouble((double) $1[i]);
+    PyList_SetItem($result,i,o);
+  }
+}
+</pre>
+</blockquote>
+
+Now, you will find that member access is quite nice:
+
+<blockquote>
+<pre>
+>>> s = SomeObject()
+>>> s.x = [1, 2.5, 5, 10]
+>>> print s.x
+[ 1, 2.5, 5, 10]
+</pre>
+</blockquote>
+
+<b>Compatibility Note:</b>  SWIG1.1 used to provide a special "memberout" typemap.  However, it was mostly
+useless and has since been eliminated.   To return structure members, simply use the "out" typemap.
+
+<p>
+A somewhat common array member problem is dealing with binary data packed into a <tt>char</tt> array.
+For example:
+
+<blockquote>
+<pre>
+struct SomeObject {
+    char blob[SIZE];
+};
+</pre>
+</blockquote>
+
+In many cases, it is desirable to marshal this data into a string in the target language.  To do this,
+you might consider write some typemaps like this:
+
+
 
 <h2> Implementing constraints with typemaps</h2>
 
@@ -1583,8 +1642,8 @@ checking the values of function arguments. For example :<p>
 <p>
 <blockquote><pre>%module math
 
-%typemap(perl5,check) double *posdouble {
-	if ($target &lt; 0) {
+%typemap(perl5,check) double posdouble {
+	if ($1 &lt; 0) {
 		croak("Expecting a positive number");
 	}
 }
@@ -1603,10 +1662,10 @@ This kind of checking can be particularly useful when working with
 pointers. For example :<p>
 <p>
 <blockquote><pre>%typemap(python,check) Vector * {
-	if ($target == 0) {
-		PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
-		return NULL;
-	}
+    if ($1 == 0) {
+        PyErr_SetString(PyExc_TypeError,"NULL Pointer not allowed");
+        return NULL;
+   }
 }
 
 </pre></blockquote>
@@ -1616,276 +1675,319 @@ a NULL pointer. As a result, SWIG can often prevent a potential
 segmentation faults or other run-time problems by raising an exception
 rather than blindly passing values to the underlying C/C++ program.<p>
 
-<h2> Typemap examples</h2>
+<h2>Multi-argument typemaps</h2>
 
-Typemaps are inherently language dependent so more examples appear in
-later chapters. The SWIG<tt> Examples </tt>directory also includes a
-variety of examples. Sophisticated users may gain more by examining
-the <tt>typemaps.i</tt> and <tt>constraints.i </tt>SWIG library
-files.<p>
+So far, the typemaps presented have focused on the problem of dealing with
+single values.  For example, converting a single input object to a single argument
+in a function call.   However, certain conversion problems are difficult to handle
+in this manner.   As an example, consider the example at the very beginning of this
+chapter:
 
-<h2> How to break everything with a typemap</h2>
+<blockquote>
+<pre>
+int foo(int argc, char *argv[]);
+</pre>
+</blockquote>
 
-It should be emphasized that typemaps provide a direct mechanism for
-modifying SWIG's output. As a result, it can be very easy to break
-almost everything if you don't know what you're doing. For this
-reason, it should be stressed that typemaps are not required in order
-to use SWIG with most kinds of applications. Power users, however,
-will probably find typemaps to be a useful tool for creating extremely
-powerful scripting language extensions. <p>
+Suppose that you wanted to wrap this function so that it accepted a single
+list of strings like this:
 
-<h2> Typemaps and the future</h2>
+<blockquote>
+<pre>
+>>> foo(["ale","lager","stout"])
+</pre>
+</blockquote>
 
-The current typemap mechanism is in the process of refinement
-and will probably be extended to handle groups of types in a future release.
-
-<!--
-
-<h2> The SWIG Pointer Library</h2>
-
-If your interface involves C pointers, chances are you will need to
-work with these pointers in some way or another. The SWIG pointer
-library provides a collection of useful methods for manipulating
-pointers. To use the library, simply put the following declaration in
-your interface file :<p>
+To do this, you not only need to map a list of strings to <tt> char *argv[]</tt>, but the
+value of <tt>int argc</tt> is implicitly determined by the length of the list.   Using only simple
+typemaps, this type of conversion is possible, but extremely painful.  Therefore, SWIG1.3 
+introduces the notion of multi-argument typemaps.
 
 <p>
-<blockquote><pre>%include pointer.i 				// Grab the SWIG pointer library
+A multi-argument typemap is a conversion rule that specifies how to
+convert a <em>single</em> object in the target language to set of
+consecutive function arguments in C/C++.   For example, the following multi-argument
+maps perform the conversion described for the above example: the above conversion:
 
-</pre></blockquote>
-or run SWIG as follows :<p>
-<p>
-<blockquote><pre>swig -perl5 -lpointer.i interface.i 
-
-</pre></blockquote>
-
-Doing so adds a collection of pointer manipulation functions that are
-described below. The functions are mainly designed to work with basic
-C datatypes, but can often be used with more complicated
-structures.<p>
-
-<h3> Pointer Library Functions</h3>
-
-<b>ptrcreate(type,?value?,?nitems?)</b><p>
-<dl>
-<dt><dd>
-<dt><dd>Creates a new object and returns a pointer to
-it. <tt>type</tt> is a string containing the C datatype and may be one
-of
-"<tt>int</tt>","<tt>short</tt>","<tt>long</tt>","<tt>float</tt>","<tt>double</tt>","<tt>char</tt>","<tt>char
-*</tt>", or "<tt>void</tt>". <tt>value</tt> is the optional initial
-value to be assigned to the object. <tt>nitems</tt> is an optional
-parameter containing the number of objects to create. By default it is
-1, but specifying another value allows you to create an array of
-values. This function is really just a wrapper around the C
-<tt>malloc()</tt> function.
-
-</dl>
-<b></b><p>
-<b>ptrfree(ptr)</b><p>
-<dl>
-<dt><dd>Destroys an object created by <tt>ptrcreate</tt>. It is
-generally unsafe to use this function on objects not created by
-<tt>ptrcreate</tt>. Calls the C <tt>free()</tt> function.
-</dl>
-<p>
-<b>ptrvalue(ptr,?index?,?type?)</b><p>
-<dl>
-<dt><dd>This dereferences a pointer and returns the value that it is
-pointing to. <tt>index</tt> is an optional parameter that allows array
-access by returning the value of <tt>ptr[index]</tt>. <tt>type</tt> is
-an optional parameter that explicitly specifies the datatype. Since
-SWIG pointers are encoded with type information, the type is usually
-unnecessary. The <tt>type</tt> parameter provides somewhat better
-performance and allows you to dereference a pointer of different type
-however.
-<dt><dd>
-</dl>
-<b>ptrset(ptr, value, ?index?, ?type?)</b><p>
-<dl>
-<dt><dd>Sets the value of the object a pointer is pointing
-to. <tt>value</tt> is the new value of the object. <tt>index </tt>is
-an optional parameter allowing array access by setting <tt>ptr[index]
-= value</tt>. <tt>type </tt>is an optional parameter that explicitly
-specifies the datatype as described above.
-<dt><dd>
-</dl>
-<b>ptrcast(ptr, newtype)</b><p>
-<dl>
-<dt><dd>Casts a pointer to a new datatype and returns the new
-value. <tt>newtype</tt> is a string containing the new datatype and
-may either be the "mangled" version used by SWIG (such as
-"<tt>_Vector_p</tt>") or the C version (such as "<tt>Vector
-*</tt>"). This function works with any kind of pointer value. In
-additional to pointers, <tt>ptr</tt> may also hold an integer value in
-which case the integer is turned into a pointer of given type.
-<dt><dd>
-</dl>
-<b>ptradd(ptr, offset)</b><p>
-<dl>
-<dt><dd>Adds an offset to a pointer and returns a new
-pointer. <tt>offset</tt> is specified as the number of objects except
-for unknown complex datatypes in which case it is the number of
-bytes. For example, is <tt>ptr</tt> is a "<tt>double *</tt>",
-<tt>ptradd(ptr,1)</tt> will return the next double. On the other hand,
-if if <tt>ptr</tt> is "<tt>Vector *</tt>", then <tt>ptradd(ptr,1)</tt>
-will update the pointer by 1 byte.
-<dt><dd>
-</dl>
-<b>ptrmap(type1,type2)</b><p>
-<dl>
-<dt><dd>This performs a "runtime typedef" and makes SWIG recognize
-pointers of <tt>type1</tt> and <tt>type2</tt> as
-equivalent. <tt>type1</tt> and <tt>type2</tt> are specified as
-strings. Not generally needed, but sometimes useful.
-</dl>
-
-<h3> A simple example</h3>
-
-Suppose you have the following C function :<p>
-
-<blockquote><pre>
-void add(double a, double b, double *result) {
-	*result = a + b;
+<blockquote>
+<pre>
+%typemap(python,in) (int argc, char *argv[]) {
+  int i;
+  if (!PyList_Check($input)) {
+    PyErr_SetString(PyExc_ValueError, "Expecting a list");
+    return NULL;
+  }
+  $1 = PyList_Size($input);
+  $2 = (char **) malloc(($1+1)*sizeof(char *));
+  for (i = 0; i < $1; i++) {
+    PyObject *s = PyList_GetItem($input,i);
+    if (!PyString_Check(s)) {
+        free($2);
+        PyErr_SetString(PyExc_ValueError, "List items must be strings");
+        return NULL;
+    }
+    $2[i] = PyString_AsString(s);
+  }
+  $2[i] = 0;
 }
 
-</pre></blockquote>
-
-To manage the result output, we can write an interface file like this
-:<p>
-
-<p>
-<blockquote><pre>%module example
-%include pointer.i
-
-extern void add(double a, double b, double *result);
-
-</pre></blockquote>
-
-Now, let's use the pointer library (shown for a few languages) :<p>
-
-<blockquote><pre>
-# Tcl 
-set result [ptrcreate double]          ;# Create a double
-add 4.5 3 $result                      ;# Call our C function
-puts [ptrvalue $result]                ;# Print out the result
-ptrfree $result                        ;# Destroy the double
-
-# Perl5
-use example;
-package example;                        # Functions are in example package
-$result = ptrcreate("double");          # Create a double
-add(4.5,3,$result);                     # Call C function
-print ptrvalue($result),"\n";           # Print the result
-ptrfree($result);                       # Destroy the double
-
-# Python
-import example
-result = example.ptrcreate("double")    # Create a double
-example.add(4.5,3,result)               # Call C function
-print example.ptrvalue(result)          # Print the result
-example.ptrfree(result)                 # Destroy the double
-
-</pre></blockquote>
-
-In this case, the idea is simple--we create a pointer, pass it to our
-C function, and dereference it to get the result. It's essentially
-identical to how we would have done it in C (well, minus the function
-call to dereference the value).<p>
-
-<h3> Creating arrays</h3>
-
-Now suppose you have a C function involving arrays :<p>
-<p>
-<blockquote><pre>void addv(double a[], double b[], double c[], int nitems) {
-	int i;
-	for (i = 0; i &lt; nitems; i++) {
-		c[i] = a[i]+b[i];
-	}
+%typemap(python,freearg) (int argc, char *argv[]) {
+   if ($2) free($2);
 }
+</blockquote>
+</pre>
 
-</pre></blockquote>
+A multi-argument map is always specified by surrounding the arguments with parentheses as shown.
+For example:
 
-This is also easily handled by our pointer library. For example (in Python) :<p>
+<blockquote>
+<pre>
+%typemap(python,in) (int argc, char *argv[]) { ... }
+</pre>
+</blockquote>
 
-<p>
-<blockquote><pre># Python function to turn a list into an "array"
-def build_array(l):
-	nitems = len(l)
-	a = ptrcreate("double",0,nitems)
-	i = 0
-	for item in l:
-		ptrset(a,item,i)
-		i = i + 1
-	return a
-
-# Python function to turn an array into list
-def build_list(a,nitems):
-	l = []
-	for i in range(0,nitems):
-		l.append(ptrvalue(a,i))
-	return l
-
-# Now use our functions
-a = listtoarray([0.0,-2.0,3.0,9.0])
-b = build_array([-2.0,3.5,10.0,22.0])
-c = ptrcreate("double",0,4)            # For return result
-add(a,b,c,4)                           # Call our C function
-result = build_list(c)                 # Build a python list from the result
-print result
-ptrfree(a)
-ptrfree(b)
-ptrfree(c)
-
-</pre></blockquote>
-
-This example may look quite inefficient on the surface (due to the
-translation of Python lists to and from C arrays). However, if you're
-working with lots of C functions, it's possible to simply pass C
-pointers around between them without any translation. As a result,
-applications can run fast--even when controlled from a scripting
-language. It's also worth emphasizing that the <tt>ptrcreate()</tt>
-function created a real C array that can be interchanged with other
-arrays. The <tt>ptrvalue()</tt> function can also dereference a C
-pointer even if it wasn't created from Python. <p>
-
-<h3> Packing a data structure</h3>
-
-The pointer library can even be used to pack simple kinds of
-data-structures, perhaps for sending across a network, or simply for
-changing the value. For example, suppose you had this data
-structure:<p>
+Within the typemap code, the variables <tt>$1</tt>, <tt>$2</tt>, and so forth refer to each type
+in the map.  All of the usual substitutions apply--just use the appropriate <tt>$1</tt> or <tt>$2</tt>
+prefix on the variable name (e.g., <tt>$2_type</tt>, <tt>$1_ltype</tt>, etc.)
 
 <p>
-<blockquote><pre>struct Point {
-	double x,y;
-	int color;
+Multi-argument typemaps always have precedence over simple typemaps and SWIG always performs longest-match searching.
+Therefore, you will get the following behavior:
+
+<blockquote>
+<pre>
+%typemap(in) int argc                              { ... typemap 1 ... }
+%typemap(in) (int argc, char *argv[])              { ... typemap 2 ... }
+%typemap(in) (int argc, char *argv[], char *env[]) { ... typemap 3 ... }
+
+int foo(int argc, char *argv[]);                   // Uses typemap 2
+int bar(int argc, int x);                          // Uses typemap 1
+int spam(int argc, char *argv[], char *env[]);     // Uses typemap 3
+</pre>
+</blockquote>
+
+It should be stressed that multi-argument typemaps can appear anywhere in a function declaration and can
+appear more than once.  For example, you could write this:
+
+<blockquote>
+<pre>
+%typemap(in) (int scount, char *swords[]) { ... }
+%typemap(in) (int wcount, char *words[]) { ... }
+
+void search_words(int scount, char *swords[], int wcount, char *words[], int maxcount);
+</pre>
+</blockquote>
+
+Other directives such as <tt>%apply</tt> and <tt>%clear</tt> also work with multi-argument maps.  For example:
+
+<blockquote>
+<pre>
+%apply (int argc, char *argv[]) {
+    (int scount, char *swords[]),
+    (int wcount, char *words[])
 };
+...
+%clear (int scount, char *swords[]), (int wcount, char *words[]);
+...
+</pre>
+</blockquote>
 
-</pre></blockquote>
+Although multi-argument typemaps may seem like an exotic, little used feature, there
+are several situations where they make sense.  First, suppose you wanted to wrap
+functions similar to the low-level <tt>read()</tt> and <tt>write()</tt> system calls.
+For example:
 
-<p>
-You could write a Tcl function to set the fields of the structure as
-follows :<p>
+<blockquote>
+<pre>
+typedef unsigned int size_t;
 
-<p>
-<blockquote><pre>proc set_point { ptr x y c } {
-	set p [ptrcast $ptr "double *"]       ;# Make a double *
-	ptrset $p $x                          ;# Set x component
-	set p [ptradd $p 1]                   ;# Update pointer
-	ptrset $p $y                          ;# Set y component
-	set p [ptrcast [ptradd $p 1] "int *"] ;# Update pointer and cast
-	ptrset $p $c                          ;# Set color component
+int read(int fd, void *rbuffer, size_t len);
+int write(int fd, void *wbuffer, size_t len);
+</pre>
+</blockquote>
+
+As is, the only way to use the functions would be to allocate memory and pass some kind of pointer
+as the second argument---a process that might require the use of a helper function.  However, using
+multi-argument maps, the functions can be transformed into something more natural.  For example, you 
+might write typemaps like this:
+
+<blockquote>
+<pre>
+// typemap for an outgoing buffer
+%typemap(python,in) (void *wbuffer, size_t len) {
+   if (!PyString_Check($input)) {
+       PyErr_SetString(PyExc_ValueError, "Expecting a string");
+       return NULL;
+   }
+   $1 = (void *) PyString_AsString($input);
+   $2 = PyString_Size($input);
 }
-</pre></blockquote>
-<p>
-This function could be used even if you didn't tell SWIG anything
-about the "Point" structure above. <p>
 
--->
+// typemap for an incoming buffer
+%typemap(python,in) (void *rbuffer, size_t len) {
+   if (!PyInt_Check($input)) {
+       PyErr_SetString(PyExc_ValueError, "Expecting an integer");
+       return NULL;
+   }
+   $2 = PyInt_AsLong($input);
+   if ($2 < 0) {
+       PyErr_SetString(PyExc_ValueError, "Positive integer expected");
+       return NULL;
+   }
+   $1 = (void *) malloc($2);
+}
+
+// Return the buffer.  Discarding any previous return result
+%typemap(python,argout) (void *rbuffer, size_t len) {
+   Py_XDECREF($result);   /* Blow away any previous result */
+   if (result < 0) {      /* Check for I/O error */
+       free($1);
+       PyErr_SetFromErrno(PyExc_IOError);
+       return NULL;
+   }
+   $result = PyString_FromStringAndSize($1,result);
+   free($1);
+}
+</pre>
+</blockquote>
+
+(note: In the above example, <tt>$result</tt> and <tt>result</tt> are two different variables.
+<tt>result</tt> is the real C datatype that was returned by the function.  <tt>$result</tt> is the
+scripting language object being returned to the interpreter.).
+
+<p>
+Now, in a script, you can write code that simply passes buffers as strings like this:
+
+<blockquote>
+<pre>
+>>> f = example.open("Makefile")
+>>> example.read(f,40)
+'TOP        = ../..\nSWIG       = $(TOP)/.'
+>>> example.read(f,40)
+'./swig\nSRCS       = example.c\nTARGET    '
+>>> example.close(f)
+0
+>>> g = example.open("foo", example.O_WRONLY | example.O_CREAT, 0644)
+>>> example.write(g,"Hello world\n")
+12
+>>> example.write(g,"This is a test\n")
+15
+>>> example.close(g)
+0
+>>>
+</pre>
+</blockquote>
+
+A number of multi-argument typemap problems also arise in libraries that
+perform matrix-calculations--especially if they are mapped onto low-level Fortran
+or C code. For example, you might have a function like this:
+
+<blockquote>
+<pre>
+int is_symmetric(double *mat, int rows, int columns);
+</pre>
+</blockquote>
+
+In this case, you might want to pass some kind of higher-level object as an matrix.  To do
+this, you could write a multi-argument typemap like this:
+
+<blockquote>
+<pre>
+%typemap(python,in) (double *mat, int rows, int columns) {
+    MatrixObject *a;
+    a = GetMatrixFromObject($input);     /* Get matrix somehow */
+
+    /* Get matrix properties */
+    $1 = GetPointer(a);
+    $2 = GetRows(a);
+    $3 = GetColumns(a);
+}
+</pre>
+</blockquote>
+
+This kind of technique can be used to hook into scripting-language matrix packages such as
+Numeric Python.  However, it should also be stressed that some care is in order.  For example,
+when crossing languages you may need to worry about issues such as row-major vs. column-major
+ordering (and perform conversions if needed).
+
+<h2>More about <tt>%apply</tt> and <tt>%clear</tt></h2>
+
+In order to implement certain kinds of program behavior, it is sometimes necessary to
+write sets of typemaps.  For example, to support output arguments, one often writes
+a set of typemaps like this:
+
+<blockquote>
+<pre>
+%typemap(ignore) int *OUTPUT (int temp) {
+   $1 = &temp;
+}
+%typemap(argout) int *OUTPUT {
+   // return value somehow
+}
+</pre>
+</blockquote>
+
+To make it easier to apply the typemap to different argument types and names, the <tt>%apply</tt> directive
+performs a copy of all typemaps from one type to another.  For example, if you specify this,
+
+<blockquote>
+<pre>
+%apply int *OUTPUT { int *retvalue, int32 *output };
+</pre>
+</blockquote>
+
+then all of the <tt>int *OUTPUT</tt> typemaps are copied to <tt>int *retvalue</tt> and <tt>int32 *output</tt>.
+
+<p>
+However, there is a subtle aspect of <tt>%apply</tt> that needs more description.  Namely, <tt>%apply</tt> does not
+overwrite a typemap rule if it is already defined for the target datatype.   This behavior allows you to do two things:
+
+<ul>
+<li>You can specialize parts of a complex typemap rule by first defining a few typemaps and then using
+<tt>%apply</tt> to incorporate the remaining pieces.
+
+<p>
+<li>Sets of different typemaps can be applied to the same datatype using repeated <tt>%apply</tt> directives.
+</ul>
+
+For example:
+
+<blockquote>
+<pre>
+%typemap(in) int *INPUT (int temp) {
+   temp = ... get value from $input ...;
+   $1 = &temp;
+}
+
+%typemap(check) int *POSITIVE {
+   if (*$1 <= 0) {
+      SWIG_exception(SWIG_ValueError,"Expected a positive number!\n");
+      return NULL;
+   }
+}
+
+...
+%apply int *INPUT     { int *invalue };
+%apply int *POSITIVE  { int *invalue };
+</pre>
+</blockquote>
+
+Since <tt>%apply</tt> does not overwrite or replace any existing rules, the only way to reset behavior is to
+use the <tt>%clear</tt> directive.  <tt>%clear</tt> removes all typemap rules defined for a specific datatype.  For
+example:
+
+<blockquote>
+<pre>
+%clear int *invalue;
+</pre>
+</blockquote>
+
+<h2>Reducing wrapper code size</h2>
+
+<h2>Where to go for more information?</h2>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : September 23, 2001</address>
+<address>SWIG 1.3 - Last Modified : November 3, 2001</address>
 </body>
 </html>
