@@ -40,6 +40,7 @@ DohDelete(DOH *obj) {
     abort();
   }
   if (b->flag_intern) return;
+  assert(b->refcount > 0);
   b->refcount--;
   if (b->refcount <= 0) {
     objinfo = dohtypes[b->type];
