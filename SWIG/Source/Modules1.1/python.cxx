@@ -34,6 +34,7 @@ static  String       *func;
 static  String       *vars;
 static  String       *pragma_include = 0;
 static  String       *import_file = 0;
+static  List         *import_stack = 0;
 static  String       *methods;
 static  char         *class_name;
 
@@ -136,6 +137,7 @@ PYTHON::parse() {
   vars           = NewString("");
   pragma_include = NewString("");
   methods        = NewString("");
+  import_stack   = NewList();
 
   Swig_banner(f_runtime);
 
@@ -159,30 +161,35 @@ PYTHON::parse() {
  * ----------------------------------------------------------------------------- */
 void
 PYTHON::set_module(char *mod_name) {
-
-  /* If an "import" method has been set and we're in shadow class mode,
-     output a python command to load the module */
-
-  if (import_file) {
-    if (!(strcmp(Char(import_file),input_file+strlen(input_file)-strlen(Char(import_file))))) {
-      if (shadow) {
-	Printf(f_shadow,"\nfrom %s import *\n", mod_name);
-      }
-      Delete(import_file);
-      import_file = 0;
-    }
-  }
   if (module) return;
   module = NewString(mod_name);
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::import(char *filename)
+ * PYTHON::import_start(char *modname)
  * ----------------------------------------------------------------------------- */
+
 void
-PYTHON::import(char *filename) {
-  if (import_file) Delete(import_file);
-  import_file = NewString(filename);
+PYTHON::import_start(char *modname) {
+  if (shadow) {
+    Printf(f_shadow,"import %s\n", modname);
+  }
+  /* Save the old module */
+  if (import_file) {
+    Append(import_stack,import_file);
+  }
+  import_file = NewString(modname);
+}
+
+void 
+PYTHON::import_end() {
+  Delete(import_file);
+  if (Len(import_stack)) {
+    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
+    Delitem(import_stack,Len(import_stack)-1);
+  } else {
+    import_file = 0;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -1017,16 +1024,23 @@ PYTHON::add_native(char *name, char *funcname, SwigType *, ParmList *) {
 void
 PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
     String *stype;
+    String *importname;
     if (shadow) {
+      if (import_file) {
+	importname = NewStringf("%s.%s", import_file, rename);
+      } else {
+	importname = NewString(rename);
+      }
       stype = NewString(name);
       SwigType_add_pointer(stype);
-      Setattr(hash,stype,rename);
+      Setattr(hash,stype,importname);
       Delete(stype);
+      /*      Printf(stdout,"cpp_class_decl: %s %s %s\n", name,importname,type); */
       /* Add full name of datatype to the hash table */
       if (strlen(type) > 0) {
 	stype = NewStringf("%s %s", type, name);
 	SwigType_add_pointer(stype);
-	Setattr(hash,stype,rename);
+	Setattr(hash,stype,importname);
 	Delete(stype);
       }
     }
