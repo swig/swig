@@ -22,11 +22,15 @@ Group: Development/Tools
 BuildRoot: %{_tmppath}/%{name}-root
 
 %description
-SWIG is an interface compiler that connects programs written in C,
-C++, and Objective-C with scripting languages including Perl, Python,
-and Tcl/Tk. It works by taking the declarations commonly found in
-C/C++ header files and using them to generate the glue code (wrappers)
-that scripting languages need to access the underlying C/C++ code
+SWIG is a software development tool that connects programs written in C and C++
+with a variety of high-level programming languages. SWIG is primarily used with
+common scripting languages such as Perl, Python, Tcl/Tk, and Ruby, however the
+list of supported languages also includes non-scripting languages such as Java,
+OCAML and C#. Also several interpreted and compiled Scheme implementations
+(Guile, MzScheme, Chicken) are supported. SWIG is most commonly used to create
+high-level interpreted or compiled programming environments, user interfaces,
+and as a tool for testing and prototyping C/C++ software. SWIG can also export
+its parse tree in the form of XML and Lisp s-expressions. 
 
 %package runtime
 Summary: Runtime libraries required for dynamically loading swig-generated modules
