@@ -224,7 +224,7 @@ cobject:
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
-    *ptr = SWIG_TypeCast(tc,(void*)p);
+    *ptr = SWIG_TypeCast(tc,(void*) *ptr);
   }
   return 0;
 
