@@ -247,7 +247,7 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
     while (*cc) {
       switch(state) {
       case 0:
-	if (*cc == '#') *cc = 1;
+	if (*cc == '#') *cc = '\001';
 	else if (*cc == '/') state = 10;
 	else if (*cc == '\'') state = 20;
 	else if (*cc == '\"') state = 30;
@@ -255,7 +255,10 @@ Hash *Preprocessor_define(String_or_char *str, int swigmacro)
       case 10:
 	if (*cc == '*') state = 11;
 	else if (*cc == '/') state = 15;
-	else state = 0;
+	else {
+	  state = 0;
+	  cc--;
+	}
 	break;
       case 11:
 	if (*cc == '*') state = 12;
