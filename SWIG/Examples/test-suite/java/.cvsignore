@@ -12,16 +12,19 @@ const_const_2
 cplusplus_throw
 cpp_enum
 cpp_enum_scope
+cpp_namespace
 cpp_nodefault
 cpp_static
 cpp_typedef
 default_constructor
 defineop
 defines
+dynamic_cast
 enum
 explicit
 imports
 imports_runme
+inherit_missing
 kind
 long_long
 macro_2
@@ -34,6 +37,7 @@ pointer_reference
 preproc_1
 preproc_2
 pure_virtual
+rename_default
 ret_by_value
 rname
 sizeof_pointer
@@ -44,6 +48,8 @@ template
 template_inherit
 template_classes
 template_whitespace
+typedef_inherit
+typedef_scope
 typemap_subst
 typename
 unions
