@@ -57,6 +57,7 @@ static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
        String  *ModuleName = 0;
 static String  *Classprefix = 0;  
+static int      inclass = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -113,7 +114,6 @@ static Hash   *rename_hash = 0;
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
   Hash *n;
-  
   if (!rename_hash) rename_hash = NewHash();
   n = Getattr(rename_hash,name);
   if (!n) {
@@ -188,10 +188,14 @@ static char *make_name(char *name,String *decl) {
     n = Getattr(rename_hash,tname);
     Delete(tname);
     if (!n) {
-      tname = NewStringf("::%s",name);
+      tname = NewStringf("*::%s",name);
       n = Getattr(rename_hash,tname);
       Delete(tname);
     }
+  } else {
+    tname = NewStringf("::%s",name);
+    n = Getattr(rename_hash,tname);
+    Delete(tname);
   }
   if (!n) {
     n = Getattr(rename_hash,name);
@@ -216,6 +220,8 @@ static String *make_unnamed() {
 /* Add declaration list to symbol table */
 static void add_symbols(Node *n) {
   String *decl;
+  /* Don't add symbols for private/protected members */
+  if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
   while (n) {
     if (nodeSymbol(n)) {
       n = nextSibling(n);
@@ -526,7 +532,7 @@ static Node *dump_nested(char *parent) {
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_other ;
-%type <node>     cpp_members cpp_member cpp_member_node ;
+%type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_operator ;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
 
@@ -976,7 +982,25 @@ rename_directive : RENAME declarator idstring SEMI {
               | RENAME LPAREN idstring RPAREN declarator SEMI {
 		SwigType *t = $5.type;
 		if (!Len(t)) t = 0;
-                rename_add($5.id,t,$3);
+		/* Special declarator check */
+		if (t) {
+		  if (SwigType_isfunction(t)) {
+		    SwigType *decl = SwigType_pop(t);
+		    if (SwigType_ispointer(t)) {
+		      String *nname = NewStringf("*%s",$5.id);
+		      rename_add(Char(nname),decl,$3);
+		      Delete(nname);
+		    } else {
+		      rename_add($5.id,decl,$3);
+		    }
+		  } else if (SwigType_ispointer(t)) {
+		    String *nname = NewStringf("*%s",$5.id);
+		    rename_add(Char(nname),0,$3);
+		    Delete(nname);
+		  }
+		} else {
+		  rename_add($5.id,0,$3);
+		}
                 $$ = 0;
               }
                ;
@@ -1306,7 +1330,9 @@ cpp_class_decl  :
 		   }
 		   Swig_symbol_newscope();
 		   start_line = line_number;
+		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
+		 inclass = 0;
                $$ = new_node("class");
 	       Setline($$,start_line);
 	       Setname($$,$3);
@@ -1382,7 +1408,9 @@ cpp_class_decl  :
 	       }
 	       Swig_symbol_newscope();
 	       start_line = line_number;
+	       inclass = 1;
              } cpp_members RBRACE declarator c_decl_tail {
+	       inclass = 0;
 	       String *unnamed = make_unnamed();
 	       $$ = new_node("class");
 	       Setline($$,start_line);
@@ -1616,13 +1644,7 @@ cpp_members  : cpp_member cpp_members {
 
 /* A class member.  May be data or a function. Static or virtual as well */
 
-cpp_member   : cpp_member_node {
-               if (cplus_mode == CPLUS_PUBLIC) $$ = $1;
-               else $$ = 0;
-             }
-             ;
-
-cpp_member_node   : c_declaration { $$ = $1; }
+cpp_member   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { $$ = $1; }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
@@ -1680,20 +1702,23 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 
 /* public: */
 cpp_protection_decl : PUBLIC COLON { 
-                $$ = 0;
+                $$ = new_node("access");
+		Setattr($$,"kind","public");
                 cplus_mode = CPLUS_PUBLIC;
               }
 
 /* private: */
               | PRIVATE COLON { 
-                $$ = 0;
+                $$ = new_node("access");
+                Setattr($$,"kind","private");
 		cplus_mode = CPLUS_PRIVATE;
 	      }
 
 /* protected: */
 
               | PROTECTED COLON { 
-                $$ = 0;
+		$$ = new_node("access");
+		Setattr($$,"kind","protected");
 		cplus_mode = CPLUS_PROTECTED;
 	      }
               ;
