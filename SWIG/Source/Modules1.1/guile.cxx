@@ -218,7 +218,8 @@ GUILE::headers (void)
       fprintf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
       SWIG_exit (1);
     }
-    emit_hex (f_header);
+    // <DB> I Removed a call to emit_hex() here.  The pointer type-checking code
+    // should be included into guile.swg instead </DB>
   } else {
     fprintf (f_header, "#ifdef __cplusplus\n");
     fprintf (f_header, "extern \"C\" {\n");
