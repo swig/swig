@@ -471,6 +471,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	case T_VOID :
 	  noarg = 1;
+	  Printf(stdout,"VOID!\n");
 	  break;
 
 	case T_USER:
@@ -505,6 +506,19 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	  Printf(arglist,"&%s",source);
 	  get_pointer(source, target, pt, get_pointers, (char*)"NULL");
+	  noarg = 1;
+	  break;
+
+	case T_MPOINTER:
+	  /* Pointer to a member.  Ugh! */
+	  Putc('O',parse_args);
+	  sprintf(source,"arg0%d", i);
+	  sprintf(target,"%s",Char(Getlname(p)));
+	  Wrapper_add_localv(f,source,"PyObject *", source, "=0",0);
+	  Printf(arglist,"&%s",source);
+	  Printv(get_pointers, "if ((SWIG_ConvertPacked(", source, ", (void *) &", target, ", sizeof(", SwigType_str(pt,0),"),",
+		 "SWIGTYPE", SwigType_manglestr(pt), ",1)) == -1) return NULL;\n", 0);
+	  SwigType_remember(pt);
 	  noarg = 1;
 	  break;
 
@@ -587,6 +601,11 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       SwigType_remember(d);
       Printv(f->code, tab4, "resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
       break;
+    case T_MPOINTER:
+      SwigType_remember(d);
+      Printv(f->code, tab4, "resultobj = SWIG_NewPackedObj((void *) &result, sizeof(", SwigType_str(d,0), "), SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
+      break;
+
     case T_VOID:
       Printf(f->code,"    Py_INCREF(Py_None);\n");
       Printf(f->code,"    resultobj = Py_None;\n");
@@ -818,9 +837,17 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 	  break;
 
 	case T_POINTER: case T_REFERENCE:
-	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,0), "temp",0);
+	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,"temp"),0);
 	  get_pointer((char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	  Printv(setf->code,tab4, name, " = temp;\n", 0);
+	  break;
+
+	case T_MPOINTER:
+	  Wrapper_add_localv(setf,"temp", SwigType_lstr(t,"temp"), 0);	  
+	  Printv(setf->code, "if ((SWIG_ConvertPacked(val,(void *) &temp, sizeof(", SwigType_str(t,0),"),",
+		 "SWIGTYPE", SwigType_manglestr(t), ",1)) == -1) return 1;\n", 0);
+	  Printv(setf->code,tab4, name, " = temp;\n", 0);
+	  SwigType_remember(t);
 	  break;
 
 	default:
@@ -890,6 +917,14 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 	Printv(getf->code,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
 	       ", SWIGTYPE", SwigType_manglestr(t), ");\n",
+	       0);
+	break;
+      case T_MPOINTER:
+	SwigType_remember(t);
+	Printv(getf->code,
+	       tab4, "pyobj = SWIG_NewPackedObj((void *) &",name,
+	       ", sizeof(", SwigType_str(t,0), "),",
+	       "SWIGTYPE", SwigType_manglestr(t), ");\n",
 	       0);
 	break;
       case T_ARRAY:
@@ -968,6 +1003,17 @@ PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
       SwigType_remember(type);
       Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", iname, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
       break;
+    case T_MPOINTER: {
+      String *wname = Copy(Swig_name_wrapper(iname));
+      SwigType_remember(type);
+      Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
+      Printv(f_init, tab4, "PyDict_SetItemString(d, \"", iname, "\", SWIG_NewPackedObj((void *) &", wname,
+	     ", sizeof(", SwigType_str(type,0), "), SWIGTYPE", SwigType_manglestr(type), "));\n", 0);
+    }
+      break;
+      
+
+      
     default:
       Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
       return;
