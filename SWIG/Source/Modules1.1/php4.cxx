@@ -398,9 +398,10 @@ public:
 	Printf(f_extra,
 	       "    dnl ** Now $INCDIR should be the include file path\n"
 	       "    if test \"$HNAME\" != \"\" -a -z \"$INCDIR\" ; then\n"
-	       "      AC_MSG_RESULT(Include files $HNAME found in $INCDIR)\n"
+	       "      AC_MSG_RESULT(Include files $HNAME not found)\n"
 	       "      AC_MSG_ERROR(Is the %s distribution installed properly?)\n"
 	       "    else\n"
+	       "      AC_MSG_RESULT(Include files $HNAME found in $INCDIR)\n"
 	       "      PHP_ADD_INCLUDE($INCDIR)\n"
 	       "    fi\n\n",module);
 	Printf(f_extra,"  done\n\n");
