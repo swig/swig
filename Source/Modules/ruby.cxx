@@ -263,34 +263,8 @@ public:
     }
   }
 
-  /* ---------------------------------------------------------------------
-   * top()
-   * --------------------------------------------------------------------- */
+  void registerMagicMethods() {
 
-  virtual int top(Node *n) {
-
-    /* Initialize all of the output files */
-    String *outfile = Getattr(n,"outfile");
-
-    f_runtime = NewFile(outfile,"w");
-    if (!f_runtime) {
-      Printf(stderr,"*** Can't open '%s'\n", outfile);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    f_init = NewString("");
-    f_header = NewString("");
-    f_wrappers = NewString("");
-
-    /* Register file targets with the SWIG file handler */
-    Swig_register_filebyname("header",f_header);
-    Swig_register_filebyname("wrapper",f_wrappers);
-    Swig_register_filebyname("runtime",f_runtime);
-    Swig_register_filebyname("init",f_init);
-
-    modvar = 0;
-    current = NO_CPP;
-    klass = 0;
-    classes = NewHash();
     special_methods = NewHash();
 
     /* Python style special method name. */
@@ -336,6 +310,55 @@ public:
     Setattr(special_methods, "__int__", "to_i");
     Setattr(special_methods, "__float__", "to_f");
     Setattr(special_methods, "__coerce__", "coerce");
+  }
+
+  /* ---------------------------------------------------------------------
+   * top()
+   * --------------------------------------------------------------------- */
+
+  virtual int top(Node *n) {
+
+    /**
+     * See if any Ruby module options have been specified as options
+     * to the %module directive.
+     */
+    Node *swigModule = Getattr(n, "module");
+    if (swigModule) {
+      Node *options = Getattr(swigModule, "options");
+      if (options) {
+        if (Getattr(options, "ruby_globalmodule")) {
+          useGlobalModule = true;
+        }
+        if (Getattr(options, "ruby_minherit")) {
+          multipleInheritance = true;
+        }
+      }
+    }
+
+    /* Initialize all of the output files */
+    String *outfile = Getattr(n,"outfile");
+
+    f_runtime = NewFile(outfile,"w");
+    if (!f_runtime) {
+      Printf(stderr,"*** Can't open '%s'\n", outfile);
+      SWIG_exit(EXIT_FAILURE);
+    }
+    f_init = NewString("");
+    f_header = NewString("");
+    f_wrappers = NewString("");
+
+    /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("header",f_header);
+    Swig_register_filebyname("wrapper",f_wrappers);
+    Swig_register_filebyname("runtime",f_runtime);
+    Swig_register_filebyname("init",f_init);
+
+    modvar = 0;
+    current = NO_CPP;
+    klass = 0;
+    classes = NewHash();
+    
+    registerMagicMethods();
 
     Swig_banner(f_runtime);
 
@@ -396,6 +419,7 @@ public:
     Delete(f_init);
     Close(f_runtime);
     Delete(f_runtime);
+
     return SWIG_OK;
   }
 
