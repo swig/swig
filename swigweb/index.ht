@@ -39,6 +39,16 @@ an abundance of spare time.
 <p>
 <h3>News</h3>
 
+<p>
+<b>2001/12/10</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.10.tar.gz">SWIG-1.3.10</a> has been
+released.   This release features substantial changes to typemaps, exception
+handling, and SWIG's internals.   New features also include support for C++ operator
+overloading and an experimental PHP module.   Since this is an unstable
+release, first time users might want to consider using SWIG-1.3.9 or
+SWIG1.1p5 instead.
+See the <a href="download.html">download</a> page for release notes and versions for Windows and Macintosh.  
+
+
 <P>
 <b>2001/12/10</b> The <a href="Doc1.3">development documentation</a> for SWIG1.3 has been extensively updated.  Not yet finished, but includes coverage of most
 new SWIG features including the redesigned typemap system and
