@@ -1668,10 +1668,10 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    ------------------------------------------------------------ */
 
 /* fragment keyword arguments */
-stringtype    : string LBRACE type RBRACE {		 
+stringtype    : string LBRACE parm RBRACE {		 
                  $$ = NewHash();
                  Setattr($$,"value",$1);
-		 Setattr($$,"type",$3);
+		 Setattr($$,"type",Getattr($3,"type"));
                }
                ;
 
@@ -3353,6 +3353,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  String *fname = Swig_symbol_type_qualify(ty,0);
 			  Swig_symbol_cadd(fname,$$);
 			  Delete(ty);
+			  Delete(fname);
 			}
 		      }  else if ($$) {
 			Setattr($$,"templatetype",nodeType($6));
