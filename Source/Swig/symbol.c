@@ -1310,14 +1310,15 @@ Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
   tscope = tempn ? Getattr(tempn,"sym:symtab") : 0;
   Printf(qprefix,"<(");
   for (ti = First(targs); ti.item;) {
+    String *vparm;
     String *qparm = Swig_symbol_type_qualify(ti.item,st);
     if (tscope && (tscope != st)) {
       String *ty = Swig_symbol_type_qualify(qparm,tscope);
       Delete(qparm);      
       qparm = ty;
     }
-    
-    String *vparm = Swig_symbol_template_param_eval(qparm, st);
+
+    vparm = Swig_symbol_template_param_eval(qparm, st);
     Append(qprefix,vparm);
     ti = Next(ti);
     if (ti.item) {
