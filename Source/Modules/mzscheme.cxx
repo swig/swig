@@ -32,10 +32,12 @@ Mzscheme Options (available with -mzscheme)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -declaremodule  - Create extension that declares a module\n\
-\n";
+     -noinit         - Do not emit scheme_initialize, scheme_reload,\n\
+                       scheme_module_name functions\n";
 
 static char *prefix=0;
 static bool declaremodule = false;
+static bool noinit = false;
 static String *module=0;
 static char *mzscheme_path=(char*)"mzscheme";
 static String *init_func_def = 0;
@@ -81,6 +83,9 @@ public:
 	} else if (strcmp (argv[i], "-declaremodule") == 0) {
 		declaremodule = true;
 		Swig_mark_arg (i);
+	} else if (strcmp (argv[i], "-noinit") == 0) {
+	  noinit = true;
+	  Swig_mark_arg (i);
 	} else if (strcmp (argv[i], "-ldflags") == 0) {
 	  printf("%s\n", SWIG_MZSCHEME_RUNTIME);
 	  SWIG_exit (EXIT_SUCCESS);
@@ -150,6 +155,7 @@ public:
     Language::top(n);
     
     SwigType_emit_type_table (f_runtime, f_wrappers);
+    if (!noinit) {
     Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
 	Printf(f_init, "\tScheme_Env *menv = env;\n");
 	if (declaremodule) {
@@ -172,6 +178,7 @@ public:
 		Printf(f_init,"   return scheme_make_symbol((char*)\"%s\");\n", module);
 	}
     Printf(f_init,"}\n");
+    }
 
     /* Close all of the files */
     Dump(f_header,f_runtime);
