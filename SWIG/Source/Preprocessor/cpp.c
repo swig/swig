@@ -652,25 +652,16 @@ check_id(DOH *s)
   Seek(s,0,SEEK_SET);
   while ((c = Getc(s)) != EOF) {
     switch(state) {
+      
     case 0:
       if (isdigit(c)) state = 1;
       else if (isidentifier(c)) return 1;
       else if (c == '\"') skip_tochar(s,'\"',0);
-      else if (c == '\'')	skip_tochar(s,'\'',0);
+      else if (c == '\'') skip_tochar(s,'\'',0);
       else if (c == '/') state = 3;
       break;
     case 1:
-      if ((c == 'L') || (c == 'U') || (c == 'F') || (c == 'l') || (c == 'u')) state = 2;
-      else if ((c == 'x') || (c == 'X')) state = 1;
-      else if (isidentifier(c)) return 1;
-      else if (!isdigit(c)) state = 0;
-      break;
-    case 2:
-      if ((c == 'L') || (c == 'U') || (c == 'F') || (c == 'l') || (c == 'u')) state = 2;
-      else {
-	Ungetc(c,s);
-	state = 0;
-      }
+      if (isspace(c)) state = 0;
       break;
     case 3:
       if (c == '*') state = 10;
