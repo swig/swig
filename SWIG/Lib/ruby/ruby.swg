@@ -141,17 +141,18 @@
 #endif
 
 %typemap(varin) char [ANY]      "strncpy($1,STR2CSTR($input),$1_dim0);";
-
-
 %typemap(varin) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
 
 %typemap(varin) SWIGTYPE *,
-             SWIGTYPE &,
-             SWIGTYPE []
+                SWIGTYPE &
 	"$1 = ($1_ltype) SWIG_ConvertPtr($input, $1_descriptor);"
+
+%typemap(varin) SWIGTYPE [] {
+	rb_raise(rb_eRuntimeError, "Array $name is readonly");
+}
 
 %typemap(varin) void *
         "$1 = (void *) SWIG_ConvertPtr($input, 0);";
