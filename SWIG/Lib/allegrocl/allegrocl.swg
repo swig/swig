@@ -1,3 +1,8 @@
+/* Define a C preprocessor symbol that can be used in interface files
+   to distinguish between the SWIG language modules. */ 
+
+#define SWIG_ALLEGRO_CL
+
 %wrapper %{
 ;; $Id$
 
@@ -49,10 +54,10 @@
   (let ((symbol (funcall *swig-identifier-converter* name :type :operator)))
     `(eval-when (compile load eval)
        (excl::compiler-let ((*record-xref-info* nil))
-	 (ff:def-foreign-call ,symbol ,@rest)
+	 (ff:def-foreign-call (,symbol ,name) ,@rest)
 	 (export (quote ,symbol))))))
-    
-    
+
+
 
 ) ;; eval-when
 %}
