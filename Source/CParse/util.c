@@ -192,6 +192,12 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
 	    ap = nextSibling(ap);
 	    bp = nextSibling(bp);
 	  }
+          {
+            Node *a_template = Getattr(a,"template");
+            Node *b_template = Getattr(b,"template");
+            /* Not equivalent if one is a template instantiation (via %template) and the other is a non-templated function */
+            if ((a_template && !b_template) || (!a_template && b_template)) return 0;
+          }
 	  return 1;
 	}
       }

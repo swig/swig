@@ -382,10 +382,10 @@ static void add_symbols(Node *n) {
 	Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
       }
       c = Swig_symbol_add(symname,n);
+
       if (c != n) {
+        /* symbol conflict attempting to add in the new symbol */
         if (Getattr(n,"sym:weak")) {
-          Setattr(n,"sym:name",symname);
-        } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
           Setattr(n,"sym:name",symname);
         } else {
           String *e = NewString("");
@@ -892,7 +892,6 @@ static void default_arguments(Node *n) {
     }
     if (default_args) {
       ParmList* newparms = 0;
-
       /* Create a parameter list for the new function by copying all
          but the last (defaulted) parameter */
       {
@@ -933,14 +932,12 @@ static void default_arguments(Node *n) {
           if (throws) Setattr(new_function,"throws",CopyParmList(throws));
         }
 
-        /* copy template specific attributes */
+        /* copy specific attributes for global (or in a namespace) template functions - these are not templated class methods */
         if (Strcmp(nodeType(function),"template") == 0) {
           Node *templatetype = Getattr(function,"templatetype");
-          Node *symname = Getattr(function,"sym:name");
           Node *symtypename = Getattr(function,"sym:typename");
           Parm *templateparms = Getattr(function,"templateparms");
           if (templatetype) Setattr(new_function,"templatetype",Copy(templatetype));
-          if (symname) Setattr(new_function,"sym:name",Copy(symname));
           if (symtypename) Setattr(new_function,"sym:typename",Copy(symtypename));
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
         }
@@ -2097,147 +2094,168 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    }
 		    p = nextSibling(p);
 		  }
+
 		  /* Look for the template */
+		  {
+                    Node *nn = n;
+                    Node *linklistend = 0;
+                    while (nn) {
+                      Node *templnode = 0;
+                      if (Strcmp(nodeType(nn),"template") == 0) {
+                        int nnisclass = (Strcmp(Getattr(nn,"templatetype"),"class") == 0); /* if not a templated class it is a templated function */
+                        Parm *tparms = Getattr(nn,"templateparms");
+                        if (!tparms) {
+                          specialized = 1;
+                        }
+                        if (nnisclass && !specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
+                          Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
+                        } else if (nnisclass && !specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
+                          Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
+                        } else if (!nnisclass && ((ParmList_len($7) != ParmList_len(tparms)))) {
+                          /* must be an overloaded templated method - ignore it as it is overloaded with a different number of template parameters */
+                          nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions */
+                          continue;
+                        } else {
+                          int  def_supplied = 0;
+                          /* Expand the template */
+                          ParmList *temparms;
+                          if (specialized) temparms = CopyParmList($7);
+                          else temparms = CopyParmList(tparms);
 
-		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
-		    Parm *tparms = Getattr(n,"templateparms");
-		    if (!tparms) {
-		      specialized = 1;
-		    }
-		    if (!specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
-		      Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
-		    } else if (!specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
-		      Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
-		    } else {
-		      int  def_supplied = 0;
-		      /* Expand the template */
-		      ParmList *temparms;
-		      if (specialized) temparms = CopyParmList($7);
-		      else temparms = CopyParmList(tparms);
+                          /* Create typedef's and arguments */
+                          p = $7;
+                          tp = temparms;
+                          while (p) {
+                            String *value = Getattr(p,"value");
+                            if (def_supplied) {
+                              Setattr(p,"default","1");
+                            }
+                            if (value) {
+                              Setattr(tp,"value",value);
+                            } else {
+                              SwigType *ty = Getattr(p,"type");
+                              if (ty) {
+                                Setattr(tp,"type",ty);
+                              }
+                              Delattr(tp,"value");
+                            }
+                            p = nextSibling(p);
+                            tp = nextSibling(tp);
+                            if (!p && tp) {
+                              p = tp;
+                              def_supplied = 1;
+                            }
+                          }
 
-		      /* Create typedef's and arguments */
-		      p = $7;
-		      tp = temparms;
-		      while (p) {
-			String *value = Getattr(p,"value");
-			if (def_supplied) {
-			  Setattr(p,"default","1");
-			}
-			if (value) {
-			  Setattr(tp,"value",value);
-			} else {
-			  SwigType *ty = Getattr(p,"type");
-			  if (ty) {
-			    Setattr(tp,"type",ty);
-			  }
-			  Delattr(tp,"value");
-			}
-			p = nextSibling(p);
-			tp = nextSibling(tp);
-			if (!p && tp) {
-			  p = tp;
-			  def_supplied = 1;
-			}
-		      }
+                          templnode = copy_node(nn);
+                          /* We need to set the node name based on name used to instantiate */
+                          Setattr(templnode,"name",Copy($5));
+                          if (!specialized) {
+                            Delattr(templnode,"sym:typename");
+                          } else {
+                            Setattr(templnode,"sym:typename","1");
+                          }
+                          if ($3) {
+                            Swig_cparse_template_expand(templnode,$3,temparms);
+                            Setattr(templnode,"sym:name",$3);
+                          } else {
+                            static int cnt = 0;
+                            String *nname = NewStringf("__dummy_%d__", cnt++);
+                            Swig_cparse_template_expand(templnode,nname,temparms);
+                            Setattr(templnode,"sym:name",nname);
+                            if (!Swig_template_extmode()) {
+                              Setattr(templnode,"feature:ignore","1");
+                            } else {
+                              Setattr(templnode,"feature:onlychildren",
+                                      "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+                            }
+                          }
+                          Delattr(templnode,"templatetype");
+                          Setattr(templnode,"template",nn);
+                          tnode = templnode;
+                          Setfile(templnode,cparse_file);
+                          Setline(templnode,cparse_line);
+                          Delete(temparms);
+                          
+                          add_symbols_copy(templnode);
 
-		      $$ = copy_node(n);
-		      /* We need to set the node name based on name used to instantiate */
-		      Setattr($$,"name",Copy($5));
-		      if (!specialized) {
-			Delattr($$,"sym:typename");
-		      } else {
-			Setattr($$,"sym:typename","1");
-		      }
-		      if ($3) {
-			Swig_cparse_template_expand($$,$3,temparms);
-			Setattr($$,"sym:name",$3);
-		      } else {
-			static int cnt = 0;
-			String *nname = NewStringf("__dummy_%d__", cnt++);
-			Swig_cparse_template_expand($$,nname,temparms);
-			Setattr($$,"sym:name",nname);
-			if (!Swig_template_extmode()) {
-			  Setattr($$,"feature:ignore","1");
-			} else {
-			  Setattr($$,"feature:onlychildren",
-				  "typemap,typemapitem,typemapcopy,typedef,types,fragment");
-			}
-		      }
-		      Delattr($$,"templatetype");
-		      Setattr($$,"template",n);
-		      tnode = $$;
-		      Setfile($$,cparse_file);
-		      Setline($$,cparse_line);
-		      Delete(temparms);
-		      
-		      add_symbols_copy($$);
-		      if (Strcmp(nodeType($$),"class") == 0) {
+                          if (Strcmp(nodeType(templnode),"class") == 0) {
 
-			/* Identify pure abstract methods */
-			Setattr($$,"abstract", pure_abstract(firstChild($$)));
-			
-                        /* Set up inheritance in symbol table */
-			{
-			  Symtab  *csyms;
- 			  List *baselist = Getattr($$,"baselist");
-			  csyms = Swig_symbol_current();
-			  Swig_symbol_setscope(Getattr($$,"symtab"));
-			  if (baselist) {
-			    List *bases = make_inherit_list(Getattr($$,"name"),baselist);
-			    if (bases) {
-			      Iterator s;
-			      for (s = First(bases); s.item; s = Next(s)) {
-				Symtab *st = Getattr(s.item,"symtab");
-				if (st) {
-				  Swig_symbol_inherit(st);
-				}
-			      }
-			    }
-			  }
-			  Swig_symbol_setscope(csyms);
-			}
+                            /* Identify pure abstract methods */
+                            Setattr(templnode,"abstract", pure_abstract(firstChild(templnode)));
+                            
+                            /* Set up inheritance in symbol table */
+                            {
+                              Symtab  *csyms;
+                              List *baselist = Getattr(templnode,"baselist");
+                              csyms = Swig_symbol_current();
+                              Swig_symbol_setscope(Getattr(templnode,"symtab"));
+                              if (baselist) {
+                                List *bases = make_inherit_list(Getattr(templnode,"name"),baselist);
+                                if (bases) {
+                                  Iterator s;
+                                  for (s = First(bases); s.item; s = Next(s)) {
+                                    Symtab *st = Getattr(s.item,"symtab");
+                                    if (st) {
+                                      Swig_symbol_inherit(st);
+                                    }
+                                  }
+                                }
+                              }
+                              Swig_symbol_setscope(csyms);
+                            }
 
-			/* Merge in addmethods for this class */
-			
-			/* !!! This may be broken.  We may have to  add the addmethods at the beginning of
-			   the class */
-			
-			if (extendhash) {
-			  String *clsname;
-			  Node *am;
-			  if (Namespaceprefix) {
-			    clsname = NewStringf("%s::%s", Namespaceprefix, Getattr($$,"name"));
-			  } else {
-			    clsname = Getattr($$,"name");
-			  }
-			  am = Getattr(extendhash,clsname);
-			  if (am) {
-			    Symtab *st = Swig_symbol_current();
-			    Swig_symbol_setscope(Getattr($$,"symtab"));
-			    /*			    Printf(stdout,"%s: %s %x %x\n", Getattr($$,"name"), clsname, Swig_symbol_current(), Getattr($$,"symtab")); */
-			    merge_extensions($$,am);
-			    Swig_symbol_setscope(st);
-			    appendChild($$,am);
-			    Delattr(extendhash,clsname);
-			  }
-			}
-			/* Add to classes hash */
-			if (!classes) classes = NewHash();
+                            /* Merge in addmethods for this class */
+                            
+                            /* !!! This may be broken.  We may have to  add the addmethods at the beginning of
+                               the class */
+                            
+                            if (extendhash) {
+                              String *clsname;
+                              Node *am;
+                              if (Namespaceprefix) {
+                                clsname = NewStringf("%s::%s", Namespaceprefix, Getattr(templnode,"name"));
+                              } else {
+                                clsname = Getattr(templnode,"name");
+                              }
+                              am = Getattr(extendhash,clsname);
+                              if (am) {
+                                Symtab *st = Swig_symbol_current();
+                                Swig_symbol_setscope(Getattr(templnode,"symtab"));
+                                /*			    Printf(stdout,"%s: %s %x %x\n", Getattr(templnode,"name"), clsname, Swig_symbol_current(), Getattr(templnode,"symtab")); */
+                                merge_extensions(templnode,am);
+                                Swig_symbol_setscope(st);
+                                appendChild(templnode,am);
+                                Delattr(extendhash,clsname);
+                              }
+                            }
+                            /* Add to classes hash */
+                            if (!classes) classes = NewHash();
 
-			{
-			  if (Namespaceprefix) {
-			    String *temp = NewStringf("%s::%s", Namespaceprefix, Getattr($$,"name"));
-			    Setattr(classes,temp,$$);
-			  } else {
-			    Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
-			  }
-			}
-		      }
-		    }
-		    if ($$ && nspace) {
-		      appendChild(nspace_inner,$$);
-		      $$ = nspace;
-		    }
+                            {
+                              if (Namespaceprefix) {
+                                String *temp = NewStringf("%s::%s", Namespaceprefix, Getattr(templnode,"name"));
+                                Setattr(classes,temp,templnode);
+                              } else {
+                                Setattr(classes,Swig_symbol_qualifiedscopename(templnode),templnode);
+                              }
+                            }
+                          }
+                        }
+                        if (templnode && nspace) {
+                          appendChild(nspace_inner,templnode);
+                          templnode = nspace;
+                        }
+                        /* all the overloaded templated functions are added into a linked list */
+                        if (!linklistend) {
+                          $$ = templnode;
+                        } else {
+                          set_nextSibling(linklistend,templnode);
+                        }
+                        linklistend = templnode;
+                      }
+                      nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
+                    }
 		  }
    	          Swig_symbol_setscope(tscope);
 		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
