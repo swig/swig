@@ -26,7 +26,7 @@ char cvsroot_pike_cxx[] = "$Header$";
 
 static const char *usage = (char *)"\
 Pike Options (available with -pike)\n\
-     -ldflags        - Print runtime libraries to link with\n\
+     [None]\n\
 \n";
 
 class PIKE : public Language {
@@ -87,9 +87,6 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_PIKE_RUNTIME);
-	  SWIG_exit(EXIT_SUCCESS);
 	}
       }
     }

@@ -35,7 +35,6 @@ CHICKEN Options (available with -chicken)\n\
                        dash seperated, lower case (ex. a-method-name)\n\
      -noclos         - Don't generate clos TinyCLOS code\n\
      -nogeneric      - Don't generate (make-generic) definitions\n\
-     -ldflags        - Print runtime libraries to link with\n\
 \n"
 ;
 
@@ -175,10 +174,6 @@ CHICKEN::main(int argc, char *argv[])
       else if (strcmp(argv[i],"-nogeneric") == 0) {
 	generic = 0;
 	Swig_mark_arg(i);
-      }
-      else if (strcmp(argv[i], "-ldflags") == 0) {
-	printf("%s\n", SWIG_CHICKEN_RUNTIME);
-	SWIG_exit(EXIT_SUCCESS);
       }
     }
   }

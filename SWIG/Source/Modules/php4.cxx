@@ -22,7 +22,6 @@ char cvsroot_php4_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -cppext         - cpp file extension (default to .cpp)\n\
      -noproxy        - Don't generate proxy classes.\n\
      -dlname <name>  - Set module prefix to <name>\n\
@@ -311,9 +310,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if(strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stderr);
-	} else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_PHP_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }

@@ -119,7 +119,6 @@ char cvsroot_ruby_cxx[] = "$Header$";
 static const char *
 usage = "\
 Ruby Options (available with -ruby)\n\
-     -ldflags        - Print runtime libraries to link with\n\
      -globalmodule   - Wrap everything into the global module\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -feature <name> - Set feature name to <name> (used by `require')\n";
@@ -222,9 +221,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  Printf(stderr,"%s\n", usage);
-	} else if (strcmp (argv[i],"-ldflags") == 0) {
-	  printf("%s\n", SWIG_RUBY_RUNTIME);
-	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }
