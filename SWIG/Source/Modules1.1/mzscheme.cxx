@@ -259,10 +259,10 @@ throw_unhandled_mzscheme_type_error (DataType *d)
   fflush (stdout);
   Printf (stderr, "ERROR: Unhandled MZSCHEME type error.\n");
   Printf (stderr, "        type %d\n", DataType_Gettypecode(d));
-  Printf (stderr, "        name %s\n", d->name);
+  Printf (stderr, "        name %s\n", DataType_Getname(d));
   Printf (stderr, "  is_pointer %d\n", d->is_pointer);
   Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
-  Printf (stderr, "is_reference %d\n", d->is_reference);
+  Printf (stderr, "is_reference %d\n", DataType_is_reference(d));
   Printf (stderr, "      status %d\n", d->status);
   /*  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
       Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : "")); */
@@ -701,7 +701,7 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
     if (DataType_type(pt) != T_VOID) {
 
       // Print the type.
-      Printv(usage," <", pt->name, 0);
+      Printv(usage," <", DataType_Getname(pt), 0);
       if (pt->is_pointer) {
 	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {
 	  Putc('*', usage);
@@ -752,7 +752,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
       ++have_param;
 
       // Print the type.
-      Printv(param," $",pt->name, 0);
+      Printv(param," $",DataType_Getname(pt), 0);
       if (pt->is_pointer) {
 	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) {
 	  Putc('*',param);

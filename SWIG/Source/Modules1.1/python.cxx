@@ -982,7 +982,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     
     // Check return code for modification
-    if ((Getattr(hash,d->name)) && (d->is_pointer <=1)) {
+    if ((Getattr(hash,DataType_Getname(d))) && (d->is_pointer <=1)) {
       need_wrapper = 1;
       munge_return = 1;
     }
@@ -1007,9 +1007,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
           // unchanged.  Otherwise, emit some shadow class conversion code.
 
 	  if (!have_output) {
-	    Printv(func, tab4, "if val: val = ", GetChar(hash,d->name), "Ptr(val)", 0);
-	    if (((Getattr(hash,d->name)) && (d->is_pointer < 1)) ||
-		((Getattr(hash,d->name)) && (d->is_pointer == 1) && NewObject))
+	    Printv(func, tab4, "if val: val = ", GetChar(hash,DataType_Getname(d)), "Ptr(val)", 0);
+	    if (((Getattr(hash,DataType_Getname(d))) && (d->is_pointer < 1)) ||
+		((Getattr(hash,DataType_Getname(d))) && (d->is_pointer == 1) && NewObject))
 	      Printf(func, "; val.thisown = 1\n");
 	    else
 	      Printf(func,"\n");
@@ -1261,9 +1261,9 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Output a shadow variable.  (If applicable and possible)
     // ----------------------------------------------------------
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
+      if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) {
 	Printv(vars,
-	       iname, " = ", GetChar(hash,t->name), "Ptr(", module, ".", global_name,
+	       iname, " = ", GetChar(hash,DataType_Getname(t)), "Ptr(", module, ".", global_name,
 	       ".", iname, ")\n",
 	       0);
       }
@@ -1694,7 +1694,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     if (strcmp(realname,"__repr__") == 0) 
       have_repr = 1;
 
-    if (!((Getattr(hash,t->name)) && (t->is_pointer <=1)) && !noopt) {
+    if (!((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <=1)) && !noopt) {
       Printv(imethod,
 	     class_name, ".", realname, " = new.instancemethod(", module, ".", Swig_name_member(class_name,realname), ", None, ", class_name, ")\n",
 	     0);
@@ -1714,12 +1714,12 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	Printv(pyclass, tab8, "val = apply(", module, ".", Swig_name_member(class_name,realname), ",args)\n",0);
       
       // Check to see if the return type is an object
-      if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
+      if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) {
 	if (!typemap_check((char*)"out",typemap_lang,t,Swig_name_member(class_name,realname))) {
 	  if (!have_output) {
-	    Printv(pyclass, tab8, "if val: val = ", GetChar(hash,t->name), "Ptr(val) ", 0);
-	    if (((Getattr(hash,t->name)) && (t->is_pointer < 1)) ||
-		((Getattr(hash,t->name)) && (t->is_pointer == 1) && NewObject))
+	    Printv(pyclass, tab8, "if val: val = ", GetChar(hash,DataType_Getname(t)), "Ptr(val) ", 0);
+	    if (((Getattr(hash,DataType_Getname(t))) && (t->is_pointer < 1)) ||
+		((Getattr(hash,DataType_Getname(t))) && (t->is_pointer == 1) && NewObject))
 	      Printf(pyclass, "; val.thisown = 1\n");
 	    else 
 	      Printf(pyclass,"\n");
@@ -1982,7 +1982,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     
     // Figure out if we've seen this datatype before
     
-    if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) inhash = 1;
+    if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) inhash = 1;
     
     // Now write some code to set the variable
     if (Status & STAT_READONLY) {
@@ -1992,7 +1992,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     }
     // Write some code to get the variable
     if (inhash) {
-      Printv(cgetattr, tab8, "\"", realname, "\" : lambda x : ", GetChar(hash,t->name), "Ptr(", module, ".", Swig_name_get(Swig_name_member(class_name,realname)), "(x)),\n", 0);
+      Printv(cgetattr, tab8, "\"", realname, "\" : lambda x : ", GetChar(hash,DataType_Getname(t)), "Ptr(", module, ".", Swig_name_get(Swig_name_member(class_name,realname)), "(x)),\n", 0);
 
     } else {
       Printv(cgetattr, tab8, "\"", realname, "\" : ", module, ".", Swig_name_get(Swig_name_member(class_name,realname)),",\n", 0);
@@ -2058,12 +2058,12 @@ void PYTHON::add_typedef(DataType *t, char *name) {
 
   // Now look up the datatype in our shadow class hash table
 
-  if (Getattr(hash,t->name)) {
+  if (Getattr(hash,DataType_Getname(t))) {
 
     // Yep.   This datatype is in the hash
     
     // Put this types 'new' name into the hash
 
-    Setattr(hash,name, GetChar(hash,t->name));
+    Setattr(hash,name, GetChar(hash,DataType_Getname(t)));
   }
 }

@@ -1025,7 +1025,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       break;
     case T_FLOAT:
       DataType_Settypecode(type,T_DOUBLE);
-      strcpy(type->name,"double");
+      DataType_Setname(type,"double");
       Printf(f_header,"static %s %s = (%s) (%s);\n", DataType_lstr(type,0), var_name, DataType_lstr(type,0), value);
       link_variable(var_name,name,type);
       break;
@@ -1254,9 +1254,10 @@ void TCL8::cpp_close_class() {
 
   this->Language::cpp_close_class();
   if (shadow) {
-
+    char temp[256];
     t = NewDataType(T_USER);
-    sprintf(t->name,"%s%s", class_type, real_classname);
+    sprintf(temp,"%s%s", class_type, real_classname);
+    DataType_Setname(t,temp);
     t->is_pointer = 1;
 
     if (have_destructor) {
@@ -1405,11 +1406,11 @@ void TCL8::add_typedef(DataType *t, char *name) {
 
   // Now look up the datatype in our shadow class hash table
 
-  if (Getattr(hash,t->name)) {
+  if (Getattr(hash,DataType_Getname(t))) {
 
     // Yep.   This datatype is in the hash
     // Put this types 'new' name into the hash
-    Setattr(hash,name,GetChar(hash,t->name));
+    Setattr(hash,name,GetChar(hash,DataType_Getname(t)));
   }
 }
 

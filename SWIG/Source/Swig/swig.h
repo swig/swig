@@ -50,10 +50,10 @@
 
 typedef struct DataType {
   int         _type;           /* SWIG Type code */
-  char        name[MAX_NAME];  /* Name of type   */
+  char        _name[MAX_NAME]; /* Name of type   */
   int         is_pointer;      /* Is this a pointer */
   int         implicit_ptr;    /* Implicit ptr */
-  int         is_reference;    /* A C++ reference type */
+  int         _is_reference;   /* A C++ reference type */
   int         status;          /* Is this datatype read-only? */
   char        *_qualifier;     /* A qualifier string (ie. const). */
   char        *_arraystr;      /* String containing array part */
@@ -67,6 +67,8 @@ extern void      DelDataType(DataType *type);
 int     DataType_type(DataType *t);
 int     DataType_Gettypecode(DataType *t);
 void    DataType_Settypecode(DataType *t, int type);
+void    DataType_Setname(DataType *t, char *name);
+char   *DataType_Getname(DataType *t);
 
 /* -- New type interface -- */
 
@@ -76,6 +78,9 @@ extern char     *DataType_rcaststr(DataType *, DOHString_or_char *name);    /* C
 extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);    /* Cast from str to lstr    */
 extern char     *DataType_manglestr(DataType *t);                           /* Mangled type name        */
 extern DataType *DataType_ltype(DataType *);                                /* Create local type object */
+
+void    DataType_add_reference(DataType *t);
+int     DataType_is_reference(DataType *t);
 
 /* -- Old type interface. This is going away -- */
 

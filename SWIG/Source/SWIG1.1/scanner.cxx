@@ -1129,52 +1129,44 @@ extern "C" int yylex(void) {
 
 	if (strcmp(yytext,"int") == 0) {
 	  yylval.type = NewDataType(T_INT);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_INT);
 	}
 	if (strcmp(yytext,"double") == 0) {
 	  yylval.type = NewDataType(T_DOUBLE);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_DOUBLE);
 	}
 	if (strcmp(yytext,"void") == 0) {
 	  yylval.type = NewDataType(T_VOID);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_VOID);
 	}
 	if (strcmp(yytext,"char") == 0) {
 	  yylval.type = NewDataType(T_CHAR);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_CHAR);
 	}
 	if (strcmp(yytext,"short") == 0) {
 	  yylval.type = NewDataType(T_SHORT);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_SHORT);
 	}
 	if (strcmp(yytext,"long") == 0) {
 	  yylval.type = NewDataType(T_LONG);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_LONG);
 	}
 	if (strcmp(yytext,"float") == 0) {
 	  yylval.type = NewDataType(T_FLOAT);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_FLOAT);
 	}
 	if (strcmp(yytext,"signed") == 0) {
 	  yylval.type = NewDataType(T_INT);
-	  strcpy(yylval.type->name,yytext);
+	  DataType_Setname(yylval.type,yytext);
 	  return(TYPE_SIGNED);
 	}
 	if (strcmp(yytext,"unsigned") == 0) {
 	  yylval.type = NewDataType(T_UINT);
-	  strcpy(yylval.type->name,yytext);
+	  DataType_Setname(yylval.type,yytext);
 	  return(TYPE_UNSIGNED);
 	}
 	if (strcmp(yytext,"bool") == 0) {
 	  yylval.type = NewDataType(T_BOOL);
-	  strcpy(yylval.type->name,yytext);
 	  return(TYPE_BOOL);
 	}
 	// C++ keywords
@@ -1291,7 +1283,7 @@ extern "C" int yylex(void) {
 	if (check_typedef) {
 	  if (DataType_is_typedef(yytext)) {
 	    yylval.type = NewDataType(T_USER);
-	    strcpy(yylval.type->name,yytext);
+	    DataType_Setname(yylval.type,yytext);
 	    DataType_typedef_resolve(yylval.type,0);
 	    return(TYPE_TYPEDEF);
 	  }
