@@ -8,8 +8,8 @@
    }; 
    template <Test T>   
    struct Bar { 
-     operator int(); 
-     operator int&(); 
+     operator int();
+     operator int&();
      operator Foo<T>(); 
      operator Foo<T>&(); 
    }; 
