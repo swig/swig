@@ -42,7 +42,6 @@ SWIGEXPORT(char *)            SWIG_UnpackData(char *c, void *, int);
 SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, swig_type_info *,int own);
 SWIGEXPORT(PyObject *)        SWIG_NewPackedObj(void *, int sz, swig_type_info *);
 SWIGEXPORT(void)              SWIG_InstallConstants(PyObject *d, swig_const_info constants[]);
-SWIGEXPORT(PyObject *)        SWIG_MakeShadow(PyObject *robj, swig_type_info *type, int own);
 #else
 
 /* -----------------------------------------------------------------------------
@@ -338,29 +337,6 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own) {
       Py_DECREF(n);
     }
     robj = inst;
-  }
-  return robj;
-}
-
-SWIGRUNTIME(PyObject *)
-SWIG_MakeShadow(PyObject *robj, swig_type_info *type, int own) {
-  if (!robj || (robj == Py_None)) return robj;
-  if (type->clientdata) {
-    PyInstanceObject *inst;
-    inst = PyObject_NEW(PyInstanceObject, &PyInstance_Type);
-    if (!inst) return robj;
-    inst->in_dict = PyDict_New();
-    inst->in_class = (PyClassObject *) type->clientdata;
-    Py_INCREF(inst->in_class);
-    PyObject_SetAttrString((PyObject *)inst,(char*)"this",robj);
-    Py_DECREF(robj);
-    if (own) {
-      PyObject *n = PyInt_FromLong(1);
-      PyObject_SetAttrString((PyObject *)inst,(char*)"thisown",n);
-      Py_DECREF(n);
-    }
-    robj = (PyObject *) inst;
-    Py_INCREF(robj);
   }
   return robj;
 }
