@@ -68,6 +68,8 @@ class Allocate : public Dispatcher {
   int function_is_defined_in_bases(Node *c, Node *bases) {
     Node *b, *temp;
     String *name, *type, *local_decl, *base_decl;
+    SwigType *base_type, *local_type;
+    
     if (!bases)
       return 0;
     
@@ -79,6 +81,7 @@ class Allocate : public Dispatcher {
     } else {
       return 0;
     }
+    local_type = SwigType_typedef_resolve_all(type);
 
     /* Width first search */
     for (int i = 0; i < Len(bases); i++) {
@@ -86,28 +89,38 @@ class Allocate : public Dispatcher {
       temp = firstChild (b);
       while (temp) {
 	base_decl = Getattr(temp, "decl");
-	if (base_decl) {
+	base_type = Getattr(temp, "type");
+	if (base_decl && base_type) {
 	  base_decl = SwigType_typedef_resolve_all(base_decl);
+	  base_type = SwigType_typedef_resolve_all(base_type);
 	  
 	  if ( (checkAttribute(temp, "storage", "virtual")) &&
 	       (checkAttribute(temp, "name", name)) &&
-	       (checkAttribute(temp, "type", type)) &&
+	       (!Strcmp(local_type, base_type)
+		|| SwigType_issubtype(local_type, base_type)) &&
 	       (!Strcmp(local_decl, base_decl)) ) {
             // Indicate a virtual method in the derived class, that is, not the virtual method definition in a base class
 	    Setattr(c, "storage", "virtual");
 	    Setattr(c, "virtual:derived", "1"); 
-            if (virtual_elimination_mode)
+	    // record the virtual base type in case some language needs it
+	    Setattr(c, "virtual:type", Getattr(temp, "type")); 
+	    if (virtual_elimination_mode && !Strcmp(local_type, base_type))
 	      Setattr(c, "feature:ignore", "1");
+	    
 	    Delete(base_decl);
+	    Delete(base_type);
 	    Delete(local_decl);
+	    Delete(local_type);
 	    return 1;
 	  }
 	  Delete(base_decl);
+	  Delete(base_type);
 	}
 	temp = nextSibling(temp);
       }
     }
     Delete(local_decl);
+    Delete(local_type);
     for (int j = 0; j < Len(bases); j++) {
       b = Getitem(bases,j);
       if (function_is_defined_in_bases(c, Getattr(b, "bases")))

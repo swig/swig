@@ -1,6 +1,51 @@
 Version 1.3.20 (In progress)
 ============================
 12/08/2003: mmatus (Marcelo Matus)
+	    The virtual method detections now properly
+	    treats the following cases:
+
+             namespace foo { typedef int Int; }
+	     struct A {};
+	     typedef A B;
+
+             struct Foo {
+               virtual ~Foo() {}
+
+               virtual Foo* cloner() = 0;
+	       virtual int get_value() = 0;
+	       virtual A* get_class() = 0;
+	       virtual void just_do_it() = 0;
+	     };
+
+             struct Bar : Foo
+             {
+               Bar* cloner();
+               foo::Int get_value();
+               B* get_class();
+               void just_do_it();
+             };
+ 
+            All the Foo and Bar methods are virtual.  A new attribute
+	    "virtual:type" record the base polymorphic type. In the
+	    previous cases we have:
+
+	       type : Bar       virtual:type : Foo
+	       type : foo::Int  virtual:type : int
+	       type : B         virtual:type : A
+	       type : void      virtual:type : void
+
+            This attribute is useful in languages (java+directors)
+	    that could have problems redefining Bar* Bar::cloner().
+
+	    If you never had code like the above, you will see no
+	    effects. But if you have some code like that, you
+	    will see some effects since some methods that
+	    before were not properly treated as virtual,
+	    will start to act like that. This could enlarge
+	    your director classes.
+	    
+
+12/08/2003: mmatus (Marcelo Matus)
 	    The director protected member support (dirprot)
 	    is disabled by default.
 	    
