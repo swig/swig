@@ -110,6 +110,13 @@ public class li_std_vector_runme {
           throw new Exception("CopyTo (7) test failed (only a shallow copy was made), i:" + i);
       }
     }
+    {
+      try {
+        vect.CopyTo(null);
+        throw new Exception("CopyTo (8) test failed");
+      } catch (ArgumentNullException) {
+      }
+    }
 
     // Contains() test
     if (!vect.Contains(0*10.1))
@@ -141,6 +148,11 @@ public class li_std_vector_runme {
           if (structArray[i].num != sv[i].num + 200.0)
             throw new Exception("ICollection constructor not a deep copy, index:" + i);
         }
+      }
+      try {
+        new DoubleVector(null);
+        throw new Exception("ICollection constructor null test failed");
+      } catch (ArgumentNullException) {
       }
 
       // IndexOf() test
@@ -204,6 +216,11 @@ public class li_std_vector_runme {
         if (vect.IndexOf(i*10.1) != i+dvect.Count)
           throw new Exception("InsertRange (3) test " + i + " failed");
       }
+      try {
+        vect.InsertRange(0, null);
+        throw new Exception("InsertRange (4) test failed");
+      } catch (ArgumentNullException) {
+      }
 
       // RemoveRange() test
       vect.RemoveRange(0, 0);
@@ -215,7 +232,6 @@ public class li_std_vector_runme {
           throw new Exception("RemoveRange test " + i + " failed");
       }
       try {
-        Console.Error.WriteLine("Fix me (1)"); // goes wrong when leave the new Exception in below ???
         vect.RemoveRange(-1, 0);
         throw new Exception("RemoveRange index out of range (1) test failed");
       } catch (ArgumentOutOfRangeException) {
@@ -248,6 +264,11 @@ public class li_std_vector_runme {
         if (vect[i+collectionSize] != dvect[i])
           throw new Exception("AddRange (2) test " + i + " failed");
       }
+      try {
+        vect.AddRange(null);
+        throw new Exception("AddRange (3) test failed");
+      } catch (ArgumentNullException) {
+      }
       vect.RemoveRange(collectionSize, dvect.Count);
 
       // GetRange() test
@@ -261,7 +282,6 @@ public class li_std_vector_runme {
           throw new Exception("GetRange test " + i + " failed");
       }
       try {
-        Console.Error.WriteLine("Fix me (2)"); // goes wrong when leave the new Exception in below ???
         vect.GetRange(-1, 0);
         throw new Exception("GetRange index out of range (1) test failed");
       } catch (ArgumentOutOfRangeException) {
@@ -380,7 +400,6 @@ public class li_std_vector_runme {
     {
       // Capacity test
       try {
-        Console.Error.WriteLine("Fix me (3)"); // goes wrong when leave the new Exception in below ???
         myDoubleVector = new DoubleVector(-1);
         throw new Exception("constructor setting capacity (1) test failed");
       } catch (ArgumentOutOfRangeException) {
@@ -420,6 +439,11 @@ public class li_std_vector_runme {
         throw new Exception("SetRange test (3) failed");
       } catch (ArgumentOutOfRangeException) {
       }
+      try {
+        vect.SetRange(0, null);
+        throw new Exception("SetRange (4) test failed");
+      } catch (ArgumentNullException) {
+      }
 
       // Reverse() test
       dv.Reverse();
@@ -438,7 +462,6 @@ public class li_std_vector_runme {
           throw new Exception("Reverse test (3) failed, index:" + i);
       }
       try {
-        Console.Error.WriteLine("Fix me (4)"); // goes wrong when leave the new Exception in below ???
         dv.Reverse(-1, 0);
         throw new Exception("Reverse test (4) failed");
       } catch (ArgumentOutOfRangeException) {
