@@ -300,6 +300,18 @@
   return 1;
 }
 
+%typemap(varin) SWIGTYPE [ANY] {
+  void *temp;
+  int ii;
+  $1_basetype *b = 0;
+  if ((SWIG_ConvertPtr($input,(void **) &temp, $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  b = ($1_basetype *) $1;
+  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
+}
+
 /* Special case for string array variables */
 %typemap(varin) char [ANY] {
   char *temp = (char *) PyString_AsString($input);
