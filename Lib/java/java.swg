@@ -158,8 +158,10 @@
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
 /* primitive types */
-%typemap(in) bool,
-             char, 
+%typemap(in) bool
+%{ $1 = $input ? true : false; %}
+
+%typemap(in) char, 
              signed char, 
              unsigned char, 
              short, 
@@ -256,8 +258,11 @@
 %typemap(out) void ""
 
 /* primitive types by reference */
-%typemap(in) const bool & (bool temp),
-             const char & (char temp), 
+%typemap(in) const bool & (bool temp)
+%{ temp = $input ? true : false; 
+   $1 = &temp; %}
+
+%typemap(in) const char & (char temp), 
              const signed char & (signed char temp), 
              const unsigned char & (unsigned char temp), 
              const short & (short temp), 
@@ -270,7 +275,7 @@
              const float & (float temp), 
              const double & (double temp)
 %{ temp = ($*1_ltype)$input; 
-$1 = &temp; %}
+   $1 = &temp; %}
 
 %typemap(out) const bool &           %{ $result = (jboolean)*$1; %}
 %typemap(out) const char &           %{ $result = (jchar)*$1; %}
