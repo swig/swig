@@ -39,8 +39,8 @@
 %typemap(in) char            "$1 = NUM2CHR($input);";
 %typemap(in) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
 %typemap(in) bool            "$1 = RTEST($input);";
-%typemap(in) char *          "$1 = STR2CSTR($input);";
-%typemap(in) char [ANY]      "$1 = STR2CSTR($input);";
+%typemap(in) char *          "$1 = StringValuePtr($input);";
+%typemap(in) char [ANY]      "$1 = StringValuePtr($input);";
 %typemap(in) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
 
 /* Long long */
@@ -119,7 +119,7 @@
          $1 = &temp;";
 
 %typemap(in) const char &(char temp) {
-        char *stemp = STR2CSTR($input);
+        char *stemp = StringValuePtr($input);
         temp = *stemp;
         $1 = &temp;
 }
@@ -238,32 +238,32 @@
 /* A string */
 #ifdef __cplusplus
 %typemap(varin) char * {
-  char *temp = (char *) STR2CSTR($input);
+  char *temp = (char *) StringValuePtr($input);
   if ($1) delete [] $1;
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
 %typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) STR2CSTR($input);
+  char *temp = (char *) StringValuePtr($input);
   $1 = ($type) new char[strlen(temp)+1];
   strcpy((char*)$1,temp);
 }
 #else
 %typemap(varin) char * {
-  char *temp = (char *) STR2CSTR($input);
+  char *temp = (char *) StringValuePtr($input);
   if ($1) free((char*) $1);
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
 %typemap(varin,warning="451:Setting const char * variable may leak memory") const char * {
-  char *temp = (char *) STR2CSTR($input);
+  char *temp = (char *) StringValuePtr($input);
   $1 = ($type) malloc(strlen(temp)+1);
   strcpy((char*)$1,temp);
 }
 
 #endif
 
-%typemap(varin) char [ANY]      "strncpy($1,STR2CSTR($input),$1_dim0);";
+%typemap(varin) char [ANY]      "strncpy($1,StringValuePtr($input),$1_dim0);";
 %typemap(varin) enum SWIGTYPE   "$1 = ($1_type) NUM2INT($input);";
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
@@ -389,7 +389,7 @@ typedef unsigned long VALUE;
  * ------------------------------------------------------------ */
 
 %typemap(in) (char *STRING, int LENGTH) {
-    $1 = ($1_ltype) STR2CSTR($input);
+    $1 = ($1_ltype) StringValuePtr($input);
     $2 = ($2_ltype) RSTRING($input)->len;
 }
 
