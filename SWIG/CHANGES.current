@@ -1,3 +1,6 @@
+10/21/2002: ttn
+	    Fixed Runtime/Makefile.in bug -- thanks to Richard Calmbach.
+
 10/18/2002: ttn
 	    Fixed typo in doh.h -- thanks to Max Horn.
 
