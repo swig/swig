@@ -1111,16 +1111,21 @@ int Language::enumvalueDeclaration(Node *n) {
   Swig_require(&n,"name", "?value",NULL);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
+  String *tmpValue;
+  
   if (value)
-    Setattr(n,"value", value);
+    tmpValue = NewString(value);
   else
-    Setattr(n,"value", name);
+    tmpValue = NewString(name);
+  Setattr(n, "value", tmpValue);
 
   if (!CurrentClass) {
     constantWrapper(n);
   } else {
     memberconstantHandler(n);
   }
+  
+  Delete(tmpValue);
   Swig_restore(&n);
   return SWIG_OK;
 }
