@@ -3,6 +3,54 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+8/27/00 : beazley
+          Typemaps have been modified to follow typedef declarations.
+          For example, if you have this:
+
+              typedef int Number;
+
+              %typemap(in) int {
+                      ... get an integer ...
+              }
+
+              void foo(Number a);
+
+          The typemap for 'int' will be applied to the argument 'Number a'.
+          Of course, if you specify a typemap for 'Number' it will take
+          precedence (nor will it ever be applied to an 'int').
+          *** POTENTIAL INCOMPATIBILITY ***
+
+8/27/00 : beazley
+          Default typemap specification has changed.   In older
+          versions of swig, you could do this:
+
+               %typemap(in) int SWIG_DEFAULT_TYPE {
+                   ...
+               }
+             
+          To specify the default handling of a datatype.   Now that
+          SWIG follows typedef declarations, this is unnecessary.
+          Simply specifying a typemap for 'int' will work for all
+          variations of integers that are typedef'd to 'int'.
+
+          Caveat, specifying the default behavior for pointers,
+          references, arrays, and user defined types is a little
+          different.  This must be done as follows:
+
+               %typemap() SWIGPOINTER * {
+                      ... a pointer ... 
+               }
+               %typemap() SWIGREFERENCE & {
+                      ... a reference ...
+               }
+               %typemap() SWIGARRAY [] {
+                      ... an array ...
+               }
+               %typemap() SWIGTYPE {
+                      ... a user-defined type (by value) ...
+               }
+          *** POTENTIAL INCOMPATIBILITY ***
+
 8/15/00 : dustin
           The file swig-1.3a1-1.spec has been added to the Tools directory.
           It can be used to build a redhat package for SWIG, although it
