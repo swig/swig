@@ -669,11 +669,50 @@ public:
   }
   
   /* ---------------------------------------------------------------------
-   * marshalInputArgs(int numarg, int numreq, int start, Wrapper *f)
+   * applyInputTypemap()
    *
-   * Checks each of the parameters in the parameter list for a "check"
-   * typemap and (if it finds one) inserts the typemapping code into
-   * the function wrapper.
+   * Look up the appropriate "in" typemap for this parameter (p),
+   * substitute the correct strings for the $target and $input typemap
+   * parameters, and dump the resulting code to the wrapper file.
+   * --------------------------------------------------------------------- */
+
+  Parm *applyInputTypemap(Parm *p, String *ln, String *source, Wrapper *f) {
+    String *tm;
+    SwigType *pt = Getattr(p,"type");
+    if ((tm = Getattr(p,"tmap:in"))) {
+      Replaceall(tm,"$target",ln);
+      Replaceall(tm,"$source",source);
+      Replaceall(tm,"$input",source);
+      Setattr(p,"emit:input",Copy(source));
+      Printf(f->code,"%s\n", tm);
+      p = Getattr(p,"tmap:in:next");
+    } else {
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
+        "Unable to use type %s as a function argument.\n", SwigType_str(pt,0));
+      p = nextSibling(p);
+    }
+    return p;
+  }
+
+  Parm *skipIgnoredArgs(Parm *p) {
+    while (checkAttribute(p,"tmap:in:numinputs","0")) {
+      p = Getattr(p,"tmap:in:next");
+    }
+    return p;
+  }
+
+  /* ---------------------------------------------------------------------
+   * marshalInputArgs()
+   *
+   * Process all of the arguments passed into the scripting language
+   * method and convert them into C/C++ function arguments using the
+   * supplied typemaps.
+   *
+   * The 'start' argument indicates which of the C/C++ function arguments
+   * produced here corresponds to the first value in Ruby's argv[] array.
+   * The value of start is either zero or one. If start is zero, then
+   * the first argument (with name arg1) is based on the value of argv[0].
+   * If start is one, then arg1 is based on the value of argv[1].
    * --------------------------------------------------------------------- */
   
   void marshalInputArgs(Node *n, ParmList *l, int numarg, int numreq, int start, String *kwargs, bool allow_kwargs, Wrapper *f) {
@@ -682,6 +721,8 @@ public:
     String *tm;
     String *source;
     String *target;
+
+    assert((start == 0) || (start == 1));
 
     source = NewString("");
     target = NewString("");
@@ -692,23 +733,28 @@ public:
     Printf(kwargs,"{ ");
     for (i = 0, p = l; i < numarg; i++) {
 
-      /* Skip ignored arguments */
-      while (checkAttribute(p,"tmap:in:numinputs","0")) {
-	p = Getattr(p,"tmap:in:next");
+      p = skipIgnoredArgs(p);
+
+      String *pn = Getattr(p,"name");
+      String *ln = Getattr(p,"lname");
+
+      /* Produce string representation of source argument */
+      Clear(source);
+
+      /* First argument is a special case */
+      if (i == 0) {
+        if (use_self)
+          Printv(source,"self",NIL);
+        else {
+          assert(start == 0);
+          Printv(source,"argv[0]",NIL);
+        }
+      } else {
+        assert(i >= start);
+        Printf(source,"argv[%d]",i-start);
       }
 
-      SwigType *pt = Getattr(p,"type");
-      String   *pn = Getattr(p,"name");
-      String   *ln = Getattr(p,"lname");
-
-      /* Produce string representation of source and target arguments */
-      Clear(source);
-      int selfp = (use_self && i == 0);
-      if (selfp)
-	Printv(source,"self",NIL);
-      else
-	Printf(source,"argv[%d]",i-start);
-
+      /* Produce string representation of target argument */
       Clear(target);
       Printf(target,"%s",Char(ln));
 
@@ -724,18 +770,7 @@ public:
       }
 
       /* Look for an input typemap */
-      if ((tm = Getattr(p,"tmap:in"))) {
-	Replaceall(tm,"$target",ln);
-	Replaceall(tm,"$source",source);
-	Replaceall(tm,"$input",source);
-	Setattr(p,"emit:input",Copy(source));
-	Printf(f->code,"%s\n", tm);
-	p = Getattr(p,"tmap:in:next");
-      } else {
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number,
-		     "Unable to use type %s as a function argument.\n", SwigType_str(pt,0));
-	p = nextSibling(p);
-      }
+      p = applyInputTypemap(p, ln, source, f);
       if (i >= numreq) {
 	Printf(f->code,"}\n");
       }
@@ -941,8 +976,8 @@ public:
     int  varargs = emit_isvarargs(l);
     bool allow_kwargs = use_kw || Getattr(n,"feature:kwargs");
     
-    int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
     bool use_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
+    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || use_director) ? 1 : 0;
 
     /* Now write the wrapper function itself */
     if        (current == CONSTRUCTOR_ALLOCATE) {
@@ -952,19 +987,13 @@ public:
       Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       Printf(f->def, "#endif\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
-      int na = numarg;
-      int nr = numreq;
-      if (use_director) {
-        na--;
-        nr--;
-      }
       Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
-	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", nr-start, na-start);
+	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
       } else {
-	Printf(f->code,"if (argc < %d)\n", nr-start);
+	Printf(f->code,"if (argc < %d)\n", numreq-start);
       }
-      Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",nr-start);
+      Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
     } else {
       Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
