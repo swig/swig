@@ -8,9 +8,15 @@ AC_INIT(ltmain.sh)
 ##   config.guess
 ##   config.sub
 ##   ltmain.sh
-## The following line makes libtoolize place them in this directory
-## rather than in the parent (where it finds install-sh).
+## The following lines make libtoolize place them in this directory
+## rather than in the parent (where it finds install-sh).  But this
+## means at configure time, install-sh actually does need to be in
+## this directory, so we copy it from the parent, *before* the decl.
+## (The alternative is to check into cvs and consequently distribute
+## another copy of install-sh, but that way lies madness.)
 
+cp ${srcdir}/../install-sh ${srcdir}
+chmod +x ${srcdir}/install-sh
 AC_CONFIG_AUX_DIR(.)
 
 ## Apparently libtool configuration (now) assumes libtool is installed
