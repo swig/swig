@@ -27,7 +27,7 @@
     __VA_ARGS__ *ptr = (__VA_ARGS__ *)0;
     int res = asptr_meth($input, &ptr);
     if (!res || !ptr) {
-      PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+      PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
       return 1;
     }
     $1 = *ptr;

@@ -18,7 +18,7 @@
   void * temp;
   if ((SWIG_ConvertPtr($input, &temp, 0,
 		       SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   $1 = ($1_ltype) temp;
