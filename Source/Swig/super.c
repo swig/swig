@@ -32,7 +32,6 @@ typedef struct Super
    int len;			/* Current length     */
    int hashkey;			/* Hash key value     */
    int sp;			/* Current position   */
-   int lsp;			/* Last returned position */
    char *str;			/* String data        */
    char pb[4];			/* Pushback data      */
    int pbi;
@@ -84,7 +83,7 @@ static int Super_get_tag(Super *s, int pos, int *offset);
 static void Super_add_space(Super *s, int more_bytes);
 static void Super_insert_tag(Super *s, int index, int length, 
 			     int line, DOH *filename);
-static void Super_delete_tag(Super *s, int index);
+static void Super_Delete_tag(Super *s, int index);
 static int Super_count_newlines(char *s, int len);
 static void Super_string_insert(Super *s, int pos, char *str,
 				int len, DOH *filename, int line);
@@ -176,7 +175,6 @@ NewSuper(char *s, DOH *filename, int firstline)
    str->objinfo = &SuperType;
    str->hashkey = -1;
    str->sp = 0;
-   str->lsp = 0;
    str->pbi = 0;
 
    max = INIT_MAXSIZE;
@@ -203,14 +201,15 @@ NewSuper(char *s, DOH *filename, int firstline)
    assert(str->tags);
    str->tags[0].length = strlen(str->str);
    str->tags[0].line = firstline;
-   if (!DohCheck(filename) || (!String_check(filename) && !SuperString_check(filename)))
+   if (!DohCheck(filename) || 
+       (!String_check(filename) && !SuperString_check(filename)))
       filename = NewString(filename);
    else
       Incref(filename);
    str->tags[0].filename = filename;
 
    str->line = firstline;
-   str->file = filename;	/* don't incref: it's 'owned' by the
+   str->file = filename;	/* don't Incref: it's 'owned' by the
 				   tag it comes from. */
    str->len = l;
    return (DOH *) str;
@@ -240,8 +239,7 @@ CopySuper(DOH *so)
    str = (Super *) DohObjMalloc(sizeof(Super));
    str->objinfo = &SuperType;
    str->hashkey = -1;
-   str->sp = 0;
-   str->lsp = 0;
+   str->sp = s->sp;
    str->pbi = 0;
 
    max = s->maxsize;
@@ -252,7 +250,7 @@ CopySuper(DOH *so)
    str->str[str->len] = 0;
 
    str->line = s->line;
-   str->file = s->file; Incref(str->file);
+   str->file = s->file; 
 
    max = s->maxtags;
    str->numtags = s->numtags;
@@ -410,7 +408,6 @@ Super_clear(DOH *so)
    s->len = 0;
    *(s->str) = 0;
    s->sp = 0;
-   s->lsp = 0;
    s->pbi = 0;
 
    for (i = 1; i < s->numtags; i++)
@@ -482,7 +479,7 @@ static int Super_delitem(DOH *so, int pos)
 
    /* and move the tags */
    if (! --s->tags[tag].length)
-      Super_delete_tag(s, tag);
+      Super_Delete_tag(s, tag);
 
    return 0;
 }
@@ -639,7 +636,6 @@ Super_putc(DOH *so, int ch)
 	 assert(s->str);
       }
 
-      printf("Append %c\n", ch);
       s->str[s->len++] = ch;
       s->tags[s->numtags-1].length++;
       s->str[s->len] = 0;
@@ -789,7 +785,7 @@ Super_chop(DOH *so) {
 
    /* Delete any relevant tags... */
    while (s->numtags > tag + 1)
-     Super_delete_tag(s, --s->numtags);
+     Super_Delete_tag(s, --s->numtags);
    s->tags[tag].length = offset;
 
    s->len = len;
@@ -954,13 +950,13 @@ Super_insert_tag(Super *s, int index, int length,
 }
 
 /* -------------------------------------------------------------------------
- * static int Super_delete_tag(Super *s, int index)
+ * static int Super_Delete_tag(Super *s, int index)
  * ------------------------------------------------------------------------- */
 
 static void
-Super_delete_tag(Super *s, int index)
+Super_Delete_tag(Super *s, int index)
 {
-   if (!index) return;		/* don't delete first tag */
+   if (!index) return;		/* don't Delete first tag */
    Delete(s->tags[index].filename);
 
    memmove(s->tags + index, s->tags + index + 1, 
@@ -1124,10 +1120,11 @@ Super_super_insert(Super *s, int pos, Super *str)
    /* collect some factoids about the new layout of the tags */
    left_len = offset;
    right_len = s->tags[tag].length - offset;
-   right_filename = s->tags[tag].filename;
 
    if (right_len)
    {
+      right_filename = s->tags[tag].filename;
+
       /* only calculate this if it will be used */
       right_line = s->tags[tag].line + 
 	 Super_count_newlines(s->str + pos - offset, offset);
@@ -1162,6 +1159,8 @@ Super_super_insert(Super *s, int pos, Super *str)
    if (left_len)
       s->tags[tag++].length = left_len;
    memmove(s->tags + tag, str->tags, str->numtags * sizeof(SSTag));
+   for (i = 0; i < str->numtags; i++)
+      Incref(s->tags[tag + i].filename);
    tag += str->numtags;
    if (right_len)
    {
@@ -1217,6 +1216,8 @@ Super_rr_append_chunk(int start, int len)
    /* the job of this function: append a chunk to rr_dest from
       rr_original. */
 
+   if (len == 0) return;	/* :) */
+
    /* we use Super_move because it lets us move relatively within the
       string instead of having to recalculate from the beginning every
       time with Super_get_tag() */
@@ -1234,7 +1235,7 @@ Super_rr_append_chunk(int start, int len)
    if  (rr_original->curtag_offset )
    {
       final = rr_original->tags[final_tag];
-      new_final.line = rr_original->line;
+      new_final.line = final.line;
       new_final.filename = rr_original->file;
       new_final.length = rr_original->curtag_offset;
    }
@@ -1308,7 +1309,6 @@ Super_raw_replace(Super *str, char *token, int flags,
 	 Super_rr_append_chunk(lastmatch_end - rr_original->str,
 			       match - lastmatch_end);
 
-	 printf("(*insert): '%*s'\n", Len(rep), Char(rep));
 	 /* and now insert the replacement */
 	 (*insert)(rr_dest, DOH_END, (char *)rep, 
 		   rep_len, rep_fn, rep_line);
@@ -1424,6 +1424,12 @@ Super_raw_replace(Super *str, char *token, int flags,
 			 lastmatch_end);
       
 
+   /* and reset the pointer */
+   rr_dest->sp = rr_dest->curtag = 
+      rr_dest->curtag_offset = rr_dest->pbi = 0;
+   rr_dest->line = rr_dest->tags[0].line;
+   rr_dest->file = rr_dest->tags[0].filename;
+
    Delete(rr_original);
    return repcount;
 }
@@ -1481,12 +1487,24 @@ static void annotate(DOH *hyd)
 
 int main(int argc, char **argv)
 {
-   DOH *abcd = NewSuper("pot", "pot", 20);
-   DOH *ijkl = NewSuper("foohashbar", "ijkl", 30);
+   DOH *a = NewSuper("aaa\naaa", "a", 10);
+   DOH *b = NewSuper("bbb", "b", 20);
+   DOH *c = NewSuper("cc\ncc", "c", 30);
+   DOH *d = NewSuper("dd\ndd", "d", 40);
 
-   Replace(ijkl, "hash", abcd, 0);
-   dump_tags(ijkl);
-   annotate(ijkl);
+   DOH *r = NewSuper("repl", "repl", 50);
+   DOH *r2 = NewSuper("LPER", "lepr", 60);
+
+   Insert(a, 6, b);
+   Insert(a, 5, c);
+   Insert(a, 3, d);
+   
+   Insert(r, 2, r2);
+
+   Replace(a, "ac", r, 0);
+   Replace(a, "LPER", r, 0);
+   dump_tags(a);
+   annotate(a);
 
    return 0;
 }
