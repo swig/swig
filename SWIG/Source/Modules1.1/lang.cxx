@@ -385,6 +385,9 @@ int Language::clearDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::constantDirective(Node *n) {
+
+  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+
   if (!ImportMode) {
     Swig_require(&n,"name", "?value",NULL);
     String *name = Getattr(n,"name");
