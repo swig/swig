@@ -33,3 +33,14 @@ if va[0].f(1) != 6:
 b.val = 7
 if va[3].f(1) != 8:
     raise RuntimeError,"bad std::vector<A*> mapping"
+
+
+ip = PtrInt()
+ap = new_ArrInt(10)
+
+vi = IntPtrVector((ip,ap,None))
+
+if vi[1] != ap:
+    raise RuntimeError,"bad std::vector<int*> mapping"
+    
+
