@@ -88,4 +88,8 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
 }
 %insert(runtime) %{
 #endif
+
+/* Contract support */
+
+#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
 %}
