@@ -185,6 +185,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1",strlen("$1")+1, (void**)&z_var);
+  convert_to_long_ex(z_var);
   if($1 != ($1_ltype)((*z_var)->value.lval)) {
     $1 = Z_LVAL_PP(z_var);
   }
@@ -195,6 +196,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
+  convert_to_double_ex(z_var);
   if($1 != ($1_ltype)((*z_var)->value.dval)) {
     $1 = Z_DVAL_PP(z_var);
   }
@@ -205,6 +207,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1",strlen("$1")+1, (void**)&z_var);
+  convert_to_string_ex($input);
   if($1 != *((*z_var)->value.str.val)) {
     $1 = *((*z_var)->value.str.val);
   }
@@ -216,6 +219,7 @@
   char *s1;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
+  convert_to_string_ex($input);
   s1 = Z_STRVAL_PP(z_var);
   if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
     if(s1)
