@@ -691,4 +691,8 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* Java specific directives */
 #define %javaconst(flag)     %feature("java:const","flag")
+#define %javamethodmodifiers %feature("java:methodmodifiers")
+
+%javamethodmodifiers "public";
+
 
