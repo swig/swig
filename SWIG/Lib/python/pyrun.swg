@@ -268,7 +268,7 @@ cobject:
 
   if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
       PyObject *zero = PyInt_FromLong(0);
-      PyObject_SetAttrString(pyobj,"thisown",zero);
+      PyObject_SetAttrString(pyobj,(char*)"thisown",zero);
       Py_DECREF(zero);
   }
   return 0;
