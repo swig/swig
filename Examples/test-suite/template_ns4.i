@@ -1,5 +1,6 @@
 %module template_ns4
 
+
 %inline %{
     namespace hello {
 
@@ -50,9 +51,19 @@
     {
       return Class<AF, RF>();
     }
-   
+
+
   }  
 %}
+
+%{  
+  namespace hello {
+    template class Function <Double, Double>;
+    template class ArithFunction <Double, Double>;
+    template class Class <Double, Double>;   
+  }  
+%}
+
  namespace hello {
   //
   // This complains only when using a namespace

@@ -24,11 +24,11 @@
                                 typename traits<AF, AG>::res_type>
   {
   };
- 
- template class traits <double, double>;
+%}
+
+%{
  template class Function <double, double>;
  template class Class <double, double>;
-
 %}
  
 %template(traits_dd) traits <double, double>;
