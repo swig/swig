@@ -73,7 +73,7 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T,U >);
+    %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U >);
 
     T first;
     U second;
@@ -98,7 +98,7 @@ namespace std {
       }
     }
 
-    %typemap_traits_ptr(SWIG_CCode(PAIR), std::pair<T,U* >);
+    %typemap_traits(SWIG_CCode(PAIR), std::pair<T,U* >);
 
     T first;
     U* second;
