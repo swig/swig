@@ -837,7 +837,7 @@ Node *Swig_cparse(File *f) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_constructor_decl ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -853,7 +853,7 @@ Node *Swig_cparse(File *f) {
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
 %type <p>        parm valparm rawvalparms valparms valptail ;
-%type <p>        typemap_parm tm_list tm_tail;
+%type <p>        typemap_parm tm_list tm_tail ctor_end;
 %type <id>       cpptype access_specifier;
 %type <node>     base_specifier
 %type <type>     type rawtype type_right ;
@@ -869,7 +869,7 @@ Node *Swig_cparse(File *f) {
 %type <str>      pragma_arg;
 %type <loc>      includetype;
 %type <type>     pointer primitive_type;
-%type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
+%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
@@ -933,7 +933,12 @@ declaration    : swig_directive { $$ = $1; }
 		  }
                }
 /* Out of class constructor/destructor declarations */
-               | c_constructor_decl { $$ = 0; }
+               | c_constructor_decl { 
+                  if ($$) {
+   		      add_symbols($$);
+                  }
+                  $$ = $1; 
+               }
                ;
 
 
@@ -2118,6 +2123,40 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                ;
 
 c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
+                   /* This is a sick hack.  If the ctor_end has parameters,
+                      and the parms paremeter only has 1 parameter, this
+                      could be a declaration of the form:
+
+                         type (id)(parms)
+
+			 Otherwise it's an error. */
+                    $$ = 0;
+
+                    if ($6) {
+                      int err = 1;
+		      if (ParmList_len($4) == 1) {
+                         SwigType *ty = Getattr($4,"type");
+                         String *value = Getattr($4,"value");
+                         String *decl;
+                         if (!value) {
+                            $$ = new_node("cdecl");
+                            Setattr($$,"type",$2);
+                            Setattr($$,"storage",$1);
+                            Setattr($$,"name",ty);
+                            decl = NewString("");
+                            SwigType_add_function(decl,$6);
+                            Setattr($$,"decl",decl);
+                            Setattr($$,"parms",$6);
+			    if (Len(scanner_ccode)) {
+			      Setattr($$,"code",Copy(scanner_ccode));
+			    }
+                            err = 0;
+                         }
+		      }
+		      if (err) {
+			Swig_error(cparse_file,cparse_line,"Syntax error in input.\n");
+                      }
+		    }
                 }
                 ;
 
@@ -3282,7 +3321,7 @@ typemap_parameter_declarator : declarator {
             ;
 
 
-declarator :  pointer direct_declarator {
+declarator :  pointer notso_direct_declarator {
               $$ = $2;
 	      if ($$.type) {
 		SwigType_push($1,$$.type);
@@ -3290,7 +3329,7 @@ declarator :  pointer direct_declarator {
 	      }
 	      $$.type = $1;
            }
-           | pointer AND direct_declarator {
+           | pointer AND notso_direct_declarator {
               $$ = $3;
 	      SwigType_add_reference($1);
               if ($$.type) {
@@ -3303,7 +3342,7 @@ declarator :  pointer direct_declarator {
               $$ = $1;
 	      if (!$$.type) $$.type = NewString("");
            }
-           | AND direct_declarator { 
+           | AND notso_direct_declarator { 
 	     $$ = $2;
 	     $$.type = NewString("");
 	     SwigType_add_reference($$.type);
@@ -3312,7 +3351,7 @@ declarator :  pointer direct_declarator {
 	       Delete($2.type);
 	     }
            }
-           | idcolon DSTAR direct_declarator { 
+           | idcolon DSTAR notso_direct_declarator { 
 	     SwigType *t = NewString("");
 
 	     $$ = $3;
@@ -3323,7 +3362,7 @@ declarator :  pointer direct_declarator {
 	     }
 	     $$.type = t;
 	     } 
-           | pointer idcolon DSTAR direct_declarator { 
+           | pointer idcolon DSTAR notso_direct_declarator { 
 	     SwigType *t = NewString("");
 	     $$ = $4;
 	     SwigType_add_memberpointer(t,$2);
@@ -3335,7 +3374,7 @@ declarator :  pointer direct_declarator {
 	     $$.type = $1;
 	     Delete(t);
 	   }
-           | pointer idcolon DSTAR AND direct_declarator { 
+           | pointer idcolon DSTAR AND notso_direct_declarator { 
 	     $$ = $5;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_reference($1);
@@ -3345,7 +3384,7 @@ declarator :  pointer direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
-           | idcolon DSTAR AND direct_declarator { 
+           | idcolon DSTAR AND notso_direct_declarator { 
 	     SwigType *t = NewString("");
 	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
@@ -3357,9 +3396,9 @@ declarator :  pointer direct_declarator {
 	     $$.type = t;
 	   }
            ;
-             
-direct_declarator : idcolon {
-  /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
+
+notso_direct_declarator : idcolon {
+                /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
                  $$.id = Char($1);
 		 $$.type = 0;
 		 $$.parms = 0;
@@ -3373,6 +3412,100 @@ direct_declarator : idcolon {
                   $$.have_parms = 0;
                   }
 
+/* This generate a shift-reduce conflict with constructors */
+
+                  | LPAREN idcolon RPAREN {
+                  $$.id = Char($2);
+                  $$.type = 0;
+                  $$.parms = 0;
+                  $$.have_parms = 0;
+                  }
+
+/* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
+                  | LPAREN pointer notso_direct_declarator RPAREN {
+		    $$ = $3;
+		    if ($$.type) {
+		      SwigType_push($2,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $2;
+                  }
+                  | LPAREN idcolon DSTAR notso_direct_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $4;
+		    t = NewString("");
+		    SwigType_add_memberpointer(t,$2);
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		    }
+                  | notso_direct_declarator LBRACKET RBRACKET { 
+		    SwigType *t;
+		    $$ = $1;
+		    t = NewString("");
+		    SwigType_add_array(t,(char*)"");
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+                  }
+                  | notso_direct_declarator LBRACKET expr RBRACKET { 
+		    SwigType *t;
+		    $$ = $1;
+		    t = NewString("");
+		    SwigType_add_array(t,$3.val);
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+                  }
+                  | notso_direct_declarator LPAREN parms RPAREN {
+		    SwigType *t;
+                    $$ = $1;
+		    t = NewString("");
+		    SwigType_add_function(t,$3);
+		    if (!$$.have_parms) {
+		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+		  }
+                  ;
+
+direct_declarator : idcolon {
+                /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
+                 $$.id = Char($1);
+		 $$.type = 0;
+		 $$.parms = 0;
+		 $$.have_parms = 0;
+                  }
+
+                  | NOT idcolon {
+                  $$.id = Char(NewStringf("~%s",$2));
+                  $$.type = 0;
+                  $$.parms = 0;
+                  $$.have_parms = 0;
+                  }
+
+/* This generate a shift-reduce conflict with constructors */
+/*
+                  | LPAREN idcolon RPAREN {
+                  $$.id = Char($2);
+                  $$.type = 0;
+                  $$.parms = 0;
+                  $$.have_parms = 0;
+                  }
+*/
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
                   | LPAREN pointer direct_declarator RPAREN {
 		    $$ = $3;
@@ -4065,8 +4198,10 @@ cpp_const      : type_qualifier {
                | empty { $$ = 0; }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); }
-               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); }
+ctor_end       : cpp_const ctor_initializer SEMI { Clear(scanner_ccode); $$ = 0; }
+               | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); $$ = 0; }
+               | LPAREN parms RPAREN SEMI { $$ = $2; }
+               | LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); $$ = $2; }
                ;
 
 ctor_initializer : COLON mem_initializer_list
