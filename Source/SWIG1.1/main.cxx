@@ -401,13 +401,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
       }
-      for (i = 0; i < Len(libfiles); i++) {
-	Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
-      }
       Printf(fs,"\n%%includefile \"%s\" {\n", Swig_last_file());
       Append(fs, ds);
       Append(fs,"\n}\n");
       Delete(ds);
+      for (i = 0; i < Len(libfiles); i++) {
+	Printf(fs,"\n%%include \"%s\"\n", Getitem(libfiles,i));
+      }
       Seek(fs,0,SEEK_SET);
       cpps = Preprocessor_parse(fs);
       if (cpp_only) {
