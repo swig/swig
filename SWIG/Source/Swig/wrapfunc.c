@@ -133,7 +133,9 @@ Wrapper_str(DOH *wo) {
   WrapObj *w = (WrapObj *) ObjData(wo);
   s = NewString(w->code);
   s1 = NewString("");
-  Replace(s,"$locals", Getattr(w->attr,"locals"), DOH_REPLACE_ANY);
+
+  /* Replace the first '{' with a brace followed by local variable definitions */
+  Replace(s,"{", Getattr(w->attr,"locals"), DOH_REPLACE_FIRST);
   Wrapper_pretty_print(s,s1);
   Delete(s);
   return s1;
@@ -236,7 +238,7 @@ Wrapper_new_local(Wrapper *wo, const String_or_char *name, const String_or_char 
   WrapObj *w = (WrapObj *) ObjData(wo);
   i = 0;
 
-  while (Wrapper_check_local(w,nname)) {
+  while (Wrapper_check_local(wo,nname)) {
     Clear(nname);
     Printf(nname,"%s%d",name,i);
     i++;
@@ -455,7 +457,7 @@ NewWrapper() {
   w->localh = NewHash();
   w->code = NewString("");
   w->attr= NewHash();
-  Setattr(w->attr,"locals","");
+  Setattr(w->attr,"locals","{\n");
   Setattr(w->attr,"wrapcode", w->code);
   return DohObjMalloc(DOHTYPE_WRAPPER, w);
 }

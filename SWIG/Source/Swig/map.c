@@ -107,7 +107,6 @@ Swig_map_add_typerule(Hash *ruleset, DOH *type, String_or_char *name, DOH *obj) 
   Delete(p);
 }
 
-
 typedef struct MatchObject {
   Hash    *ruleset;             /* Hash table of rules */
   Hash    *p;                   /* Parameter on which checking starts */

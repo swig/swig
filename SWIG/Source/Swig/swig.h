@@ -70,6 +70,8 @@ extern void     Swig_register_filebyname(const String_or_char *name, File *outfi
 extern File    *Swig_filebyname(const String_or_char *name);
 extern void     Swig_swiglib_set(const String_or_char *name);
 extern String  *Swig_swiglib_get();
+extern void     Swig_set_config_file(const String_or_char *name);
+extern String  *Swig_get_config_file();
 
 #define OUTFILE(x)   Swig_filebyname(x)
 
@@ -250,6 +252,7 @@ extern void Swig_node_cut(DOH *obj);
 extern void Swig_node_insert(DOH *node, DOH *newnode);
 extern void Swig_node_temporary(DOH *node);
 extern void Swig_node_ignore(DOH *node);
+extern void Swig_node_append_child(DOH *node, DOH *cld);
 extern int  Swig_count_nodes(DOH *node);
 
 extern DOH *Swig_next(DOH *obj);
@@ -292,6 +295,7 @@ extern DOH       *Swig_map_match(Hash *ruleset, Hash *parms, int *nmatch);
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);
 extern void       Swig_banner(File *f);
+extern void       Swig_section(File *f, const String_or_char *s);
 extern DOH       *Swig_temp_result(DOH *x);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
@@ -375,15 +379,15 @@ extern DOH    *Swig_run_modules(DOH *node);
 /* --- Legacy Typemap API (somewhat simplified) --- */
 
 extern void   Swig_typemap_init();
-extern void   Swig_typemap_register(char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
-extern void   Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname,
+extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
+extern void   Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname,
 				SwigType *ttype, String_or_char *tname);
-extern void   Swig_typemap_clear(char *op, SwigType *type, String_or_char *name);
+extern void   Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name);
 extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_debug();
-extern Hash  *Swig_typemap_search(char *op, SwigType *type, String_or_char *pname);
-extern char  *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
+extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
+extern char  *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
@@ -400,16 +404,25 @@ extern void   Swig_except_clear();
 #define Getlname(x)        Getattr(x,"lname")
 #define Getignore(x)       GetInt(x,"ignore")
 #define Getparms(x)        Getattr(x,"parms")
+#define Gettag(x)          Getattr(x,"tag")
+#define Getparent(x)       Getattr(x,"parent")
 
-#define Settype(x,v)       Setattr(x,"type",x)
+#define Settype(x,v)       Setattr(x,"type",v)
 #define Setname(x,v)       Setattr(x,"name",v)
 #define Setlname(x,v)      Setattr(x,"lname",v)
 #define Setvalue(x,v)      Setattr(x,"value", v)
 #define Setignore(x,v)     SetInt(x,"ignore",v)
+#define Settag(x,v)        Setattr(x,"tag",v)
+#define Setparms(x,v)      Setattr(x,"parms", v)
+#define Setparent(x,p)     Setattr(x,"parent",p)
 
 #define Getnext(x)         Getattr(x,"next")
 #define Setnext(x,n)       Setattr(x,"next",n)
+#define Getprev(x)         Getattr(x,"prev")
+#define Setprev(x,n)       Setattr(x,"prev",n)
+
 #define Getchild(x)        Getattr(x,"child")
+#define Setchild(x,c)      Setattr(x,"child",c)
 
 extern int Swig_main(int argc, char *argv[]);
 

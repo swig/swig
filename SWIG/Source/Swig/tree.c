@@ -26,11 +26,11 @@ static int     debug_emit = 0;
  * ----------------------------------------------------------------------------- */
 
 DOH *Swig_next(DOH *obj) {
-  return Getattr(obj,"next");
+  return Getnext(obj);
 }
 
 DOH *Swig_prev(DOH *obj) {
-  return Getattr(obj,"prev");
+  return Getprev(obj);
 }
 
 void Swig_debug_emit(int n) {
@@ -52,7 +52,7 @@ Swig_dump_tags(DOH *obj, DOH *root) {
   else croot = root;
 
   while (obj) {
-    Printf(stdout,"%s . %s\n", croot, Getattr(obj,"tag"));
+    Printf(stdout,"%s . %s (%s:%d)\n", croot, Getattr(obj,"tag"), Getfile(obj), Getline(obj));
     cobj = Getattr(obj,"child");
     if (cobj) {
       newroot = NewStringf("%s . %s",croot,Getattr(obj,"tag"));
@@ -221,8 +221,8 @@ Swig_tag_check(DOH *obj, String_or_char *tagname) {
   tag = Getattr(obj,"tag");
   assert(tag);
   
-  tc = Char(tag);
-  tnc = Char(tagname);
+  tnc  = Char(tag);
+  tc = Char(tagname);
   
   while (tnc) {
     if (strcmp(tc,tnc) == 0) return 1;
@@ -465,6 +465,31 @@ Swig_node_insert(DOH *node, DOH *newnode) {
   Setattr(node,"next",newnode);
   Setattr(newnode,"prev", node);
   Setattr(newnode,"parent", Getattr(node,"parent"));
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_node_append_child()
+ *
+ * Appends a new child to a node
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_node_append_child(DOH *node, DOH *chd) {
+  DOH *c;
+  DOH *pc;
+  c = Getattr(node,"child");
+  if (!c) {
+    Setattr(node,"child",chd);
+    Setattr(chd,"parent",node);
+    return;
+  }
+  while (c) {
+    pc = c;
+    c = Getnext(c);
+  }
+  Setattr(pc,"next",chd);
+  Setattr(chd,"prev",pc);
+  Setattr(chd,"parent",node);
 }
 
 /* -----------------------------------------------------------------------------

@@ -21,6 +21,18 @@ static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
 static int        bytes_read = 0;         /* Bytes read */
 static String    *swiglib = 0;            /* Location of SWIG library */
+static String    *lang_config = 0;        /* Language configuration file */
+
+/* This function sets the name of the configuration file */
+
+void Swig_set_config_file(const String_or_char *filename) {
+  lang_config = NewString(filename);
+}
+
+String *Swig_get_config_file() {
+  return lang_config;
+}
+
 
 /* -----------------------------------------------------------------------------
  * Swig_swiglib_set()
