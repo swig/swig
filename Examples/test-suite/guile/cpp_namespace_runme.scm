@@ -19,7 +19,7 @@
 
 (weird "hello" 4)
 
-(delete-Test t)
+;; (delete-Test t)
 
 (define t2 (new-Test2))
 (define t3 (new-Test3))
