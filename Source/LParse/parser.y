@@ -231,10 +231,9 @@ static int promote(int t1, int t2) {
 %token <tok> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL
 
 /* SWIG directives */
-%token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
-%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA INSERT
-%token <tok> RAW_MODE READONLY READWRITE RENAME RUNTIME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
-%token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER MAP
+%token <tok> ADDMETHODS APPLY CLEAR CONSTANT ECHO EXCEPT
+%token <tok> ILLEGAL FILEDIRECTIVE INLINE MACRO MODULE NAME NATIVE PRAGMA INSERT
+%token <tok> TYPE TYPEMAP MAP
 
 /* Operators */
 %left <tok> LOR
@@ -250,7 +249,7 @@ static int promote(int t1, int t2) {
 %left <tok> DCOLON
 
 %type <tok>    idstring template_decl cpptype expr definetype def_args storage_spec pragma_arg ename
-%type <node>   file_include_type parm parms ptail idlist stylelist styletail stars
+%type <node>   parm parms ptail idlist stars
 %type <node>   array array2
 %type <node>   type strict_type opt_signed opt_unsigned
 %type <decl>   declaration 
@@ -259,7 +258,7 @@ static int promote(int t1, int t2) {
 %type <tmname> tm_name
 %type <tok>    tm_method
 %type <node>   statement swig_directive c_declaration
-%type <node>   file_include code_block doc_directive except_directive pragma_directive modifier_directive native_directive typemap_directive map_directive
+%type <node>   file_include code_block except_directive pragma_directive native_directive typemap_directive map_directive
 %type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist map_element
 %type <nodelist>   enumlist interface
 %type <node>   inherit base_list
@@ -335,11 +334,6 @@ swig_directive : MODULE idstring {
 		 LParse_set_location($7.filename,$7.line-1);
                  $$ = $9.node;
 	       }
-               | RENAME ID ID SEMI { 
-		 $$  = new_node("rename",$2.filename,$2.line);
-		 Setattr($$,"oldname",$2.text);
-		 Setattr($$,"newname",$3.text);
-	       }
                | CONSTANT ID definetype SEMI {
 		  $$ = new_node("constant",$2.filename, $2.line);
 		  Setattr($$,ATTR_NAME,$2.text);
@@ -385,10 +379,8 @@ swig_directive : MODULE idstring {
                | echo_directive { $$ = 0; }
                | file_include { $$ = $1; }
                | code_block { $$ = $1; }
-               | doc_directive { $$ = $1; }
                | except_directive { $$ = $1; }
                | pragma_directive { $$ = $1; }
-               | modifier_directive { $$ = $1; }
                | native_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | map_directive { $$ = $1; }
@@ -401,35 +393,18 @@ echo_directive:  ECHO HBLOCK { Printf(stderr,"%s\n", $2.text); }
 
 /* -- File inclusion directives -- */
 
-file_include   : file_include_type STRING LBRACE {
-                    Setattr($1,ATTR_NAME,$2.text);
-		    $$ = $1;
-		    LParse_set_location($2.text,0);
+file_include   : FILEDIRECTIVE LPAREN STRING RPAREN STRING LBRACE {
+		    $$ = new_node("file",$1.filename,$1.line);
+                    Setattr($$,ATTR_NAME,$5.text);
+		    Setattr($$,"type",$3.text);
+		    LParse_set_location($5.text,0);
                } interface RBRACE {
-		    LParse_set_location($3.filename,$3.line + 1);
-		    if ($5.node) {
-		      Setattr($$,ATTR_CHILD,$5.node);
-		      setparent($$,$5.node);
+		    LParse_set_location($6.filename,$6.line + 1);
+		    if ($8.node) {
+		      Setattr($$,ATTR_CHILD,$8.node);
+		      setparent($$,$8.node);
 		    }
                }
-
-file_include_type : INCLUDE { $$ = new_node("includefile",$1.filename,$1.line); }
-               | WEXTERN { $$ = new_node("externfile",$1.filename,$1.line); }
-               | IMPORT { $$ = new_node("importfile", $1.filename,$1.line); }
-               ;
-
-/* -- Modifier directives -- */
-
-modifier_directive : READONLY { $$ = new_node("readonly",$1.filename, $1.line); }
-               | READWRITE    { $$ = new_node("readwrite",$1.filename,$1.line); }
-               | NAME LPAREN idstring RPAREN { 
-		 $$ = new_node("name",$3.filename,$3.line);
-		 Setattr($$,ATTR_NAME,$3.text);
-	       }
-               | NEW { 
-		 $$ = new_node("new",$1.filename,$1.line);
-	       }
-               ;
 
 /* -- Code inclusion directives -- */
 
@@ -458,82 +433,6 @@ code_block    : INSERT LPAREN idstring RPAREN STRING {
 		 Seek(pp,0,SEEK_SET);
 		 LParse_push(pp);
 	       }
-
-/*
-code_block    : HBLOCK {
-		 $$ = new_node("headerblock",$1.filename,$1.line);
-		 Setattr($$,"code", $1.text);
-               }
-               | WRAPPER HBLOCK {
-                 $$ = new_node("wrapperblock",$2.filename,$2.line);
-                 Setattr($$,"code",$2.text);
-	       }
-               | INIT HBLOCK {
-                 $$ = new_node("initblock",$2.filename,$2.line);
-                 Setattr($$,"code",$2.text);
-               }
-               | INLINE HBLOCK {
-		 DOH *pp;
-		 $$ = new_node("headerblock",$2.filename,$2.line);
-		 Setattr($$,"code", $2.text);
-		 Seek($2.text,0,SEEK_SET);
-		 pp = Preprocessor_parse($2.text);
-		 Seek(pp,0,SEEK_SET);
-		 LParse_push(pp);
-	       }
-               | RUNTIME HBLOCK {
-                 $$ = new_node("runtimeblock",$2.filename,$2.line);
-                 Setattr($$,"code",$2.text);
-	       }
-               ;
-*/
-
-/* -- Documentation directives -- */
-
-doc_directive  : DOC_ENABLE { $$ = 0; }
-               | DOC_DISABLE { $$ = 0; }
-
-/* %title directive */
-
-               | TITLE STRING styletail { $$ = 0; }
-
-/* %section directive */
-
-               | SECTION STRING styletail { $$ = 0; }
-
-/* %subsection directive */
-               | SUBSECTION STRING styletail { $$ = 0; }
-
-/* %subsubsection directive */
-               | SUBSUBSECTION STRING styletail { $$ = 0; }
-
-/* %text directive */
-
-               | TEXT HBLOCK { $$ = 0; }
-
-/* Disable code generation */
-               | DOCONLY { $$ = 0; }
-
-/* %style directive.   This applies to all current styles */
-
-               | STYLE stylelist { $$ = 0; }
-
-/* %localstyle directive.   This applies only to the current style */
-
-               | LOCALSTYLE stylelist { $$ = 0; }
-
-/* Documentation style list */
-
-stylelist      : ID stylearg styletail { $$ = 0; }
-               ;
-
-styletail      : styletail COMMA ID stylearg { $$ = 0; }
-               | empty { $$ = 0; }
-               ;
-
-stylearg       : EQUAL NUM_INT { }
-               | EQUAL STRING { }
-               | empty { }
                ;
 
 idstring       : ID { $$ = $1; }
@@ -546,7 +445,7 @@ idstring       : ID { $$ = $1; }
 except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
                   DOH  *t;
 		  t = LParse_skip_balanced('{','}');
-		  $$ = new_node("exceptiondirective",$1.filename,$1.line);
+		  $$ = new_node("exception",$1.filename,$1.line);
 		  Setattr($$,"lang",$3.text);
 		  Setattr($$,"code",t);
                 }
@@ -555,19 +454,19 @@ except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
                | EXCEPT LBRACE {
                    DOH *t;
 		   t = LParse_skip_balanced('{','}');
-		   $$ = new_node("exceptiondirective",$1.filename,$1.line);
+		   $$ = new_node("exception",$1.filename,$1.line);
 		   Setattr($$,"code",t);
                }
 
 /* Clear an exception */
                | EXCEPT LPAREN ID RPAREN SEMI {
-		 $$ = new_node("exceptiondirective",$1.filename,$1.line);
+		 $$ = new_node("exception",$1.filename,$1.line);
 		 Setattr($$,"lang",$3.text);
 	       }
 
 /* Generic clear */
                | EXCEPT SEMI {
-		 $$ = new_node("exceptiondirective",$1.filename,$1.line);
+		 $$ = new_node("exception",$1.filename,$1.line);
 	       }
                ; 
 

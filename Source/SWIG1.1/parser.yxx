@@ -477,7 +477,7 @@ static void dump_nested(char *parent) {
 %token <id> ID
 %token <id> HBLOCK WRAPPER POUND RUNTIME HEADER
 %token <id> STRING
-%token <loc> INCLUDE IMPORT WEXTERN SWIGMACRO INSERT
+%token <loc> INCLUDE SWIGMACRO INSERT
 %token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
@@ -546,46 +546,24 @@ command        : command statement {
 	       }
                ;
 
-statement      : INCLUDE STRING LBRACE {
+statement      : INCLUDE LPAREN STRING RPAREN STRING LBRACE {
                      $1.filename = Swig_copy_string(input_file);
 		     $1.line = line_number;
-		     input_file = Swig_copy_string($2);
+		     input_file = Swig_copy_string($5);
+		     $1.flag = WrapExtern;
+		     if (strcmp($3,"extern") == 0) {
+		       WrapExtern = 1;
+		     }
+		     if (strcmp($3,"import") == 0) {
+		       WrapExtern = 1;
+		       lang->import($5);		       
+		     }
 		     line_number = 0;
                } command RBRACE {
                      input_file = $1.filename;
 		     line_number = $1.line;
+		     WrapExtern = $1.flag;
                }
-
-/* %extern directive */
-
-               | WEXTERN STRING LBRACE {
-		 $1.flag = WrapExtern;
-		 WrapExtern = 1;
-		 $1.filename = Swig_copy_string(input_file);
-		 $1.line = line_number;
-		 input_file = Swig_copy_string($2);
-		 line_number = 0;
-	       } command RBRACE {
-		 input_file = $1.filename;
-		 line_number = $1.line;
-		 WrapExtern = $1.flag;
-	       }
-
-/* %import directive.  Like %extern but calls out to a language module */
-
-               | IMPORT STRING LBRACE {
-		 $1.flag = WrapExtern;
-		 WrapExtern = 1;
-		 $1.filename = Swig_copy_string(input_file);
-		 $1.line = line_number;
-		 input_file = Swig_copy_string($2);
-		 line_number = 0;
-		 lang->import($2);
-	       } command RBRACE {
-		 input_file = $1.filename;
-		 line_number = $1.line;
-		 WrapExtern = $1.flag;
-	       }
 
                | SWIGMACRO ID COMMA STRING COMMA NUM_INT LBRACE {
 		 $1.filename = Swig_copy_string(input_file);

@@ -30,11 +30,6 @@ tag        : "module"
 syntax     : %module idstring
 attributes : "name"      -  Module name
 
-tag        : "rename"
-syntax     : %rename id1 id2;
-attributes : "oldname"   -  Old name (id1)
-             "newname"   -  New name (id2)
-
 tag        : "constant"
 syntax     : %constant name value;
 attributes : "name"      -  Constant name
@@ -53,22 +48,6 @@ tag        : "importfile"
 syntax     : %import filename
 attributes : None
 
-tag        : "readonly"
-syntax     : %readonly
-attributes : None
-
-tag        : "readwrite"
-syntax     : %readwrite
-attributes : None
-
-tag        : "name"
-syntax     : %name(idstring) decl
-attributes : "name"     - New name
-
-tag        : "new"
-syntax     : %new decl
-attributes : None
-
 tag        : "insert"
 syntax     : %insert(section) "filename"
              %insert(section) %{ code %}
@@ -77,7 +56,6 @@ syntax     : %insert(section) "filename"
 attributes : "section"       - Code section
              "filename"      - File to include (if given)
              "code"          - Code to include (if given)
-
 
 tag        : "pragma"
 syntax     : %pragma name [ value ];
