@@ -2,7 +2,9 @@ aclocal.m4
 config.*
 libtool
 Makefile
-swig*
+swig
+swig.exe
+swig.spec
 *.tar.gz
 configure
 autom4te.cache
