@@ -1,6 +1,13 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/25/2005: wuzzeb (John Lenz)
+	    Update documentation to use CSS and <div> instead of <blockquote>
+	    I used a script to convert the docs, and it set all the box classes
+	    to be "code".  There are actually 4 different classes,
+	    "shell", "code", "targetlang", and "diagram".  We need to go through
+	    and convert the divs depending on what they contain.
+
 02/23/2005: mmatus
 
 	    [Python] Added option -nortti to disable the use of native
