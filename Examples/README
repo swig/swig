@@ -5,6 +5,10 @@ directories contain a very simple example.  The "GIFPlot" contains a
 more complicated example that illustrates some of SWIG's more advanced
 capabilities.
 
+The file 'index.html' is the top of a hyperlinked document that
+contains information about all of the examples along with various
+notes related to each example.
+
 The Examples directory is currently quite incomplete because it
 is being reorganized.  A more complete set of examples can be found
 in the SWIG1.1p5 distribution (most of which should work with 
