@@ -32,6 +32,7 @@ class RClass {
  public:
   String *name;    /* class name (renamed) */
   String *cname;   /* original C class/struct name */
+  String *mname;   /* Mangled name */
   String *vname;   /* variable name */
   String *type;
   String *prefix;
@@ -45,6 +46,7 @@ class RClass {
     temp = NewString("");
     name = NewString("");
     cname = NewString("");
+    mname = NewString("");
     vname = NewString("");
     type = NewString("");
     prefix = NewString("");
@@ -57,6 +59,7 @@ class RClass {
     Delete(name);
     Delete(cname);
     Delete(vname);
+    Delete(mname);
     Delete(type);
     Delete(prefix);
     Delete(header);
@@ -67,6 +70,8 @@ class RClass {
   void set_name(char *cn, char *rn, char *valn) {
     Clear(cname);
     Append(cname,cn);
+    Delete(mname);
+    mname = Swig_name_mangle(cname);
     Clear(name);
     Append(name,valn);
     Clear(vname);
@@ -994,7 +999,7 @@ int RUBY::classHandler(Node *n) {
     Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
   } else {
     if (klass->destructor_defined) {
-      Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->cname);
+      Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
     }
   }
   Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
@@ -1086,7 +1091,7 @@ int RUBY::destructorHandler(Node *n) {
   String *freeproto = NewString("");
   String *freebody = NewString("");
   
-  Printv(freefunc, "free_", klass->cname, NULL);
+  Printv(freefunc, "free_", klass->mname, NULL);
   Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", NULL);
   Printv(freebody, "static void\n",
 	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
