@@ -1,6 +1,10 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/08/2005: wsfulton
+            [Perl] Fix for Perl incorrectly taking memory ownership for return types that
+            are typedefs to a struct/class pointer. Reported by Josh Cherry.
+
 03/07/2005: wsfulton
             [C#] Various exception changes for the std::vector wrappers. These now more
             accurately mirror the same exceptions that System.Collections.ArrayList throw.
