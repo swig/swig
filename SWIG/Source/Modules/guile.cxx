@@ -129,6 +129,7 @@ static int     useclassprefix = 0; // -useclassprefix argument
 static String *goopsprefix = 0; // -goopsprefix argument
 static int     primRenamer = 0; // if (use-modules ((...) :renamer ...) is exported to GOOPS file
 static int     exportprimitive = 0; // -exportprimitive argument
+static String *memberfunction_name = 0;
 
 class GUILE : public Language {
 public:
@@ -703,6 +704,8 @@ public:
     String *signature = NewString("");
     String *doc_body = NewString("");
     String *returns = NewString("");
+    String *method_signature = NewString("");
+    String *primitive_args = NewString("");
     int num_results = 1;
     String *tmp = NewString("");
     String *tm;
@@ -711,6 +714,7 @@ public:
     int numreq = 0;
     String *overname = 0;
     int args_passed_as_array = 0;
+    int scheme_argnum = 0;
     
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
@@ -804,12 +808,44 @@ public:
 	Printv(f->code,tm,"\n",NIL);
 	
 	if (procdoc) {
+	  if (i == numreq) {
+	    /* First optional argument */
+	    Printf(signature, " #:optional");
+	  }
 	  /* Add to signature (arglist) */
 	  handle_documentation_typemap(signature, " ", p, "tmap:in:arglist",
 				       "$name");
 	  /* Document the type of the arg in the documentation body */
 	  handle_documentation_typemap(doc_body, ", ", p, "tmap:in:doc",
 				       "$NAME is of type <$type>");
+	}
+
+	if (goops) {
+	  if (i < numreq) {
+	    SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
+	    SwigType *pn = Getattr(p,"name");
+	    String *argname;
+	    scheme_argnum++;
+	    if (pn)
+	      argname = pn;
+	    else {
+	      /* Anonymous arg -- choose a name that cannot clash */
+	      argname = NewStringf("%%arg%d", scheme_argnum);
+	    }
+	    if (strcmp("void", Char(pt)) != 0) {
+	      Node *search;
+	      /* do input conversion */
+	      if ((search = Getattr(known_classes, pb))) {
+		Printv(method_signature, " (", argname, " <", pb, ">)", NIL);
+	      } else {
+		Printv(method_signature, " ", argname, NIL);
+	      }
+	      Printv(primitive_args, " ", argname, NIL);
+	    }
+	    if (!pn) {
+	      Delete(argname);
+	    }
+	  }
 	}
 	p = Getattr(p,"tmap:in:next");
       } else {
@@ -861,11 +897,20 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p,"tmap:freearg"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
+	Replaceall(tm,"$input",Getattr(p,"emit:input"));
 	Printv(cleanup,tm,"\n",NIL);
 	p = Getattr(p,"tmap:freearg:next");
       } else {
 	p = nextSibling(p);
       }
+    }
+
+    if (use_scm_interface && exporting_destructor) {
+      /* Mark the destructor's argument as destroyed. */
+      String *tm = NewString("SWIG_Guile_MarkPointerDestroyed($input);");
+      Replaceall(tm,"$input",Getattr(l,"emit:input"));
+      Printv(cleanup, tm, "\n", NIL);
+      Delete(tm);
     }
     
     /* Close prototype */
@@ -1023,10 +1068,9 @@ public:
               "((swig_guile_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (guile_destructor) %s;\n",
               swigtype_ptr, wname);
           //Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
-        } else {
-          Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
-                 proc_name, numreq, numargs-numreq, wname);
-        }
+        } 
+	Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n",
+	       proc_name, numreq, numargs-numreq, wname);
       } else {
       Printf (f_init, "gh_new_procedure(\"%s\", (swig_guile_proc) %s, %d, %d, 0);\n",
 	      proc_name, wname, numreq, numargs-numreq);
@@ -1070,22 +1114,43 @@ public:
     }
     Printf (exported_symbols, "\"%s\", ", proc_name);
 
+    if (!in_class || memberfunction_name) {
     // export wrapper into goops file
-    if (!in_class) { // only if function is not in a class
-      String *args = NewString("");
-      String *wrapargs = NewString("");
-      buildGoopsArguments(Getattr(n, "parms"), args, wrapargs);
-      
-      String *goops_name = goopsNameMapping(proc_name, (char *)"");
-      Printv(goopscode, "(define-method (", goops_name, args, ")\n", NIL);
-      Printv(goopscode, primRenamer ? "  (primitive:" : "  (", proc_name, wrapargs, "))\n", NIL);
+      String *method_def = NewString("");
+      String *goops_name;
+      if (in_class)
+	goops_name = goopsNameMapping(memberfunction_name, short_class_name);
+      else
+	goops_name = goopsNameMapping(proc_name, (char *)"");
+      String *primitive_name = NewString("");
+      if (primRenamer)
+	Printv(primitive_name, "primitive:", proc_name, NIL);
+      else
+	Printv(primitive_name, proc_name, NIL);
+      Replaceall(method_signature, "_", "-");
+      Replaceall(primitive_args, "_", "-");
+      if (numreq == numargs) {
+	Printv(method_def, "(define-method (", goops_name, method_signature, ")\n", NIL);
+	Printv(method_def, "  (", primitive_name, primitive_args, "))\n", NIL);	
+      }
+      else {
+	/* Handle optional args. For the rest argument, use a name
+	   that cannot clash.*/
+	Printv(method_def, "(define-method (", goops_name, method_signature, " . %args)\n", NIL);
+	Printv(method_def, "  (apply ", primitive_name, primitive_args, " %args))\n", NIL);
+      }
+      if (in_class) {
+	/* Defer method definition till end of class definition. */
+	Printv(goops_class_methods, method_def, NIL);
+      }
+      else {
+	Printv(goopscode, method_def, NIL);
+      }
       Printf(goopsexport, "%s ", goops_name);
+      Delete(primitive_name);
       Delete(goops_name);
-      Delete(wrapargs);
-      Delete(args);
+      Delete(method_def);
     }
-      
-
     
     if (procdoc) {
       String *returns_text = NewString("");
@@ -1114,6 +1179,8 @@ public:
     Delete(outarg);
     Delete(cleanup);
     Delete(signature);
+    Delete(method_signature);
+    Delete(primitive_args);
     Delete(doc_body);
     Delete(returns);
     Delete(tmp);
@@ -1514,82 +1581,17 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * buildGoopsArguments()
-   * The ParmList l is parsed and any argument types that are known
-   * classes are wrapped with a (slot-ref)
-   * ------------------------------------------------------------ */
-  void buildGoopsArguments(ParmList *l, String *args, String *wrapargs) {
-    Parm      *p;
-    Node *search;
-    int argnum = 0;
-
-    /* input arguments */
-    for (p=l; p; p = nextSibling(p)) {
-      while (p && checkAttribute(p,"tmap:in:numinputs","0")) {
-        p = Getattr(p,"tmap:in:next");
-      }
-
-      if (!p) break;
-
-      SwigType *pt = Getattr(p,"type");
-      String   *pn = Getattr(p,"name");
-      SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
-      String *argname;
-      argnum++;
-      if (pn)
-	argname = pn;
-      else {
-	/* Anonymous arg */
-	argname = NewStringf("arg%d", argnum);
-      }
-      
-      if (strcmp("void", Char(pt)) != 0) {
-        /* do input conversion */
-        if ((search = Getattr(known_classes, pb))) {
-          Printv(wrapargs, " (slot-ref ", argname, " 'swig-smob)", NIL);
-          Printv(args, " (", argname, " <", pb, ">)", NIL);
-        } else {
-          Printv(wrapargs, " ", argname, NIL);
-          Printv(args, " ", argname, NIL);
-        }
-      }
-      if (!pn) {
-	Delete(argname);
-      }
-
-    }
-
-    Replaceall(args, "_", "-");
-    Replaceall(wrapargs, "_", "-");
-  }
-
-  /* ------------------------------------------------------------
    * memberfunctionHandler()
    * ------------------------------------------------------------ */
   int memberfunctionHandler(Node *n) {
     String *iname = Getattr(n,"sym:name");
-    String *args;
-    String *wrapargs;
-
-    args = NewString("");
-    wrapargs = NewString("");
-    buildGoopsArguments(Getattr(n, "parms"), args, wrapargs);
-
-    Language::memberfunctionHandler(n);
-
     String *proc = NewString(iname);
     Replaceall(proc,"_", "-");
 
-    String *goops_name = goopsNameMapping(proc, short_class_name);
-    Printv(goops_class_methods, 
-          "(define-method (", goops_name, " (swig_smob ", class_name, ")", args, ")\n",
-          primRenamer ? "  (primitive:" : "  (", short_class_name, "-", proc, 
-          "  (slot-ref swig_smob 'swig-smob)", wrapargs, "))\n", NIL);
-    Printf(goopsexport, "%s ", goops_name);
-    Delete(goops_name);
-
-    Delete(wrapargs);
-    Delete(args);
+    memberfunction_name = goopsNameMapping(proc, short_class_name);
+    Language::memberfunctionHandler(n);
+    Delete(memberfunction_name);
+    memberfunction_name = NULL;
     Delete(proc);
     return SWIG_OK;
   }
@@ -1616,25 +1618,27 @@ public:
     String *proc = NewString(iname);
     Replaceall(proc,"_", "-");
     String *goops_name = goopsNameMapping(proc, short_class_name);
-    
-    Printv(goopscode, "  (", goops_name, " #:allocation #:virtual", NIL);
+
+    /* The slot name is never qualified with the class,
+       even if useclassprefix is true. */
+    Printv(goopscode, "  (", proc, " #:allocation #:virtual", NIL);
     /* GOOPS (at least in Guile 1.6.3) only accepts closures, not
        primitive procedures for slot-ref and slot-set. */
-    Printv(goopscode, " #:slot-ref (lambda (obj) (",
+    Printv(goopscode, "\n   #:slot-ref (lambda (obj) (",
 	   primRenamer ? "primitive:" : "", 
 	   short_class_name, "-", proc, "-get", " obj))", NIL);
     if (!Getattr(n,"feature:immutable")) {
-      Printv(goopscode, " #:slot-set! (lambda (obj value) (",
+      Printv(goopscode, "\n   #:slot-set! (lambda (obj value) (",
 	     primRenamer ? "primitive:" : "", 
 	     short_class_name, "-", proc, "-set", " obj value))", NIL);
     } else {
-      Printf(goopscode, " #:slot-set! (lambda (obj value) (error \"Immutable slot\"))");
+      Printf(goopscode, "\n   #:slot-set! (lambda (obj value) (error \"Immutable slot\"))");
     }
     if (emit_slot_accessors) {
       if (Getattr(n, "feature:immutable")) {
-        Printv(goopscode, " #:getter ", goops_name, NIL);
+        Printv(goopscode, "\n   #:getter ", goops_name, NIL);
       } else {
-        Printv(goopscode, " #:accessor ", goops_name, NIL);
+        Printv(goopscode, "\n   #:accessor ", goops_name, NIL);
       }
       Printf(goopsexport, "%s ", goops_name);
     }
