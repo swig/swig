@@ -7,7 +7,7 @@ namespace Foo {
  
     class Baz { 
       public: 
-        Baz(Bar b = Bar()); 
+        Baz(Bar b = Bar()) {}
     }; 
 } 
 
