@@ -1170,11 +1170,17 @@ class OCAML : public Language {
 	    if( numargs > 1 ) 
 		Printf(f_module,curried ? "" : ")");
 	
-	    if( curried ) 
-		Printf(f_module, " -> %s = \"%s_bytecode\" \"%s_native\"\n",
-		       mangle_type(dcaml),
-		       wrap_name, wrap_name );
-	    else
+	    if( curried ) {
+		if( numargs > 5 ) 
+		    Printf(f_module,
+			   " -> %s = \"%s_bytecode\" \"%s_native\"\n",
+			   mangle_type(dcaml),
+			   wrap_name, wrap_name );
+		else
+		    Printf(f_module,
+			   " -> %s = \"%s_native\"\n", 
+			   mangle_type(dcaml), wrap_name );
+	    } else
 		Printf(f_module, " -> %s = \"%s\"\n", mangle_type(dcaml), 
 		       wrap_name );
 	}
@@ -1272,7 +1278,7 @@ class OCAML : public Language {
 
 	// If curried, create bytecode version
 
-	if( curried ) 
+	if( curried && numargs > 5 ) 
 	    createCurriedBytecodeFunctionHeader(f, wrap_name, n);
 
 	// Slightly ugly wrap-advance for get/set
