@@ -54,7 +54,9 @@ A wrapper generator for interfacing C++ with [incr Tcl].<br>
 <a href="http://www.excelsior-usa.com/xfunction.html">xFunction</a>. Java native code access library.<br>
 <a href="http://www.gnu.org/software/gcc/java/index.html">GCJ</a>. Gnu Compiler for Java - Part of GCC 3.0 and later. C++ and Java can be easily mixed together - Java objects are C++ objects and all Java classes are C++ classes using CNI, the alternative to JNI.<br>
 <a href="http://inline.perl.org">Inline</a>.  Perl programmers will definitely want to take a look at
-this module--especially if you're making simple C/C++ extensions.
+this module--especially if you're making simple C/C++ extensions.<br>
+<a href="http://www.kd-dev.com/~eic/">EiC</a>. Embeddable, extensible and pointer-safe C interpreter with an interface to compiled C code.<br>
+<a href="http://root.cern.ch/root/Cint.html">CINT</a>. C/C++ interpreter with an interface to compiled C/C++ code.<br>
 
 </ul>
 
