@@ -4,9 +4,9 @@
 class Error {
 };
 
-class Object {
+class SomeClass {
 public:
-   Object(int x) {
+   SomeClass(int x) {
        if (x < 0) {
            throw Error();
        }
@@ -14,7 +14,7 @@ public:
 };
 
 class Test {
-  Object o;
+  SomeClass o;
 public:
   Test(int x) try : o(x) { }
   catch (Error &e) {
