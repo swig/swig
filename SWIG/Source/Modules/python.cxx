@@ -1396,9 +1396,9 @@ public:
       Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
 
     if (Len(parse_args) > 0) {
-      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", \"(%s)\" %s);\n", pyname, parse_args, arglist);
+      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
     } else {
-      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", NULL);\n", pyname);
+      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", NULL);\n", pyname);
     }
     Printv(xdecref, "Py_XDECREF(result);\n", NULL);
     if (dirprot_mode() && !is_public(n))
