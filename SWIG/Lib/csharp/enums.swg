@@ -27,9 +27,10 @@
     return ret;
   }
 
-%typemap(csvarout) const enum SWIGTYPE & %{
+%typemap(csvarout, excode=SWIGEXCODE2) const enum SWIGTYPE & %{
     get {
-      return ($*csclassname)$imcall;
+      $*csclassname ret = ($*csclassname)$imcall;$excode
+      return ret;
     } %}
 
 
@@ -55,9 +56,10 @@
     return ret;
   }
 
-%typemap(csvarout) enum SWIGTYPE %{
+%typemap(csvarout, excode=SWIGEXCODE2) enum SWIGTYPE %{
     get {
-      return ($csclassname)$imcall;
+      $csclassname ret = ($csclassname)$imcall;$excode
+      return ret;
     } %}
 
 %typemap(csbase)           enum SWIGTYPE ""
