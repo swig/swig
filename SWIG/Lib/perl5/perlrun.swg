@@ -166,20 +166,32 @@ extern "C" {
 #  define SWIG_MAYBE_PERL_OBJECT
 #endif
 
-/* load the swig_runtime_list_handle variable from the interpreter */
-static void SWIG_Perl_LookupTypePointer() {
+static swig_type_info **
+SWIG_Perl_GetTypeListHandle() {
+  static void *type_pointer = (void *)0;
   SV *pointer;
 
   /* first check if pointer already created */
-  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
-  if (pointer && SvOK(pointer)) {
-    swig_type_list_handle = INT2PTR(swig_type_info **, SvIV(pointer));
-  } else {
-    /* create a new pointer */
-    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
-    sv_setiv(pointer, PTR2IV(swig_type_list_handle));
+  if (!type_pointer) {
+    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
+    if (pointer && SvOK(pointer)) {
+      type_pointer = INT2PTR(swig_type_info **, SvIV(pointer));
+    }
   }
+
+  return (swig_type_info **) type_pointer;
 }
+
+/*
+  Search for a swig_type_info structure
+ */
+SWIGRUNTIMEINLINE swig_type_info *
+SWIG_Perl_GetTypeList() {
+  swig_type_info **tlh = SWIG_Perl_GetTypeListHandle();
+  return tlh ? *tlh : (swig_type_info*)0;
+}
+
+#define SWIG_Runtime_GetTypeList SWIG_Perl_GetTypeList 
 
 static swig_type_info *
 SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
