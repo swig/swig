@@ -1,7 +1,7 @@
 /* File : example.c */
 
 #include "example.h"
-#include <math.h>
+#define M_PI 3.14159265358979323846
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {
