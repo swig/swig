@@ -4,6 +4,8 @@
 
 %module name
 
+#pragma SWIG nowarn=121 // %name is deprecated. Use %rename instead.
+
 #ifdef SWIGGUILE
 %rename foo_1 "foo-2";
 #else
