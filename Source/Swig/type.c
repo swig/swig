@@ -513,11 +513,14 @@ static int Swig_Type_tag_hash(DOH *o)
       tag->hashkey = 
 	 Hashval(tag->name);
       break;
+#ifdef THIS_IS_BROKEN
+/* Please do not use the ternary ? operator.  It's too error prone, no one can read
+   it, and I don't like it.  Plus, with it nested like this, I have no idea
+   what this code is supposed be doing.  -- Dave */
    case Swig_Type_Enum:
       tag->hashkey = 
 	 (tag->name) ? Hashval(tag->name) : 0 +
-	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
-	 5 << 10;
+	 (tag->attributes) ? Hashval(tag->attributes) : 0 + 5 << 10;
       break;
    case Swig_Type_Struct:
       tag->hashkey = 
@@ -541,13 +544,14 @@ static int Swig_Type_tag_hash(DOH *o)
 	 (tag->attributes) ? Hashval(tag->attributes) : 0 +
 	 9 << 10;
       break;
+#endif
+
    case Swig_Type_Pointer:
       tag->hashkey = 
 	 (tag->is_const << 8) +
 	 (tag->is_volatile << 9) +
 	 10 << 10;
       break;
-
    default:
       tag->hashkey =
 	 tag->type;
