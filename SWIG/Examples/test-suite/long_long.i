@@ -23,3 +23,11 @@ long long ll;
 unsigned long long ull;
 %}
 
+%constant long long  lconst1 = 1234567890LL;
+%constant unsigned long long lconst2 = 1234567890ULL;
+
+%constant lconst3 = 1234567LL;
+%constant lconst4 = 1234567ULL;
+
+#define lconst5 987654321LL
+#define lconst6 987654321ULL
