@@ -143,6 +143,15 @@ public:
     }
     /* Class defines some kind of constructor. May or may not be public */
     Setattr(inclass,"allocate:has_constructor","1");
+
+    /* See if this is a copy constructor */
+    if (parms && (!nextSibling(parms))) {
+      String *cc = NewStringf("r.q(const).%s", Getattr(inclass,"name"));
+      if (Strcmp(cc,Getattr(parms,"type")) == 0) {
+	Setattr(n,"copy_constructor","1");
+      }
+      Delete(cc);
+    }
     return SWIG_OK;
   }
 
