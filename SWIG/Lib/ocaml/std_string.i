@@ -17,7 +17,10 @@
 
 %{
 #include <string>
+#include <vector>
 %}
+
+%include std_vector.i
 
 namespace std {
     template <class charT> class basic_string {
@@ -113,3 +116,32 @@ namespace std {
     }
 }
 
+%template (StringVector) std::vector<string >;
+
+char **c_charptr_array( const std::vector <string > &str_v );
+
+%{
+  SWIGEXT char **c_charptr_array( const std::vector <string > &str_v ) {
+    char **out = new char *[str_v.size() + 1];
+    out[str_v.size()] = 0;
+    for( int i = 0; i < str_v.size(); i++ ) {
+      out[i] = (char *)str_v[i].c_str();
+    }
+    return out;
+  }
+%}
+
+%insert(ml) %{
+  (* Some STL convenience items *)
+
+  let string_array_to_vector sa = 
+    let nv = _new_StringVector C_void in
+      array_to_vector nv (fun x -> C_string x) sa ; nv
+	
+  let c_string_array ar = 
+    _c_charptr_array (string_array_to_vector ar)
+%}
+
+%insert(mli) %{
+  val c_string_array: string array -> c_obj
+%}

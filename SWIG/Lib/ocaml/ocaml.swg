@@ -23,6 +23,7 @@ extern "C" {
 #define C_obj 14
 #define C_string 15
 #define C_enum 16
+#define C_director_core 17
 
 /* Cast a pointer if possible; returns 1 if successful */
     
@@ -114,8 +115,15 @@ extern "C" {
 	    break;
 
 	case C_ptr:
-	    fprintf( stderr, "PTR(%p) ", caml_ptr_val(v,0) );
-	    break;
+	{
+	    void *vout = 0;
+	    caml_ptr_val_internal(v,&vout,0);
+	    swig_type_info *ty = (swig_type_info *)Int64_val(Field(v,1));
+	    fprintf( stderr, "PTR(%p,%s) ", 
+		     vout,
+		     ty ? ty->name : "(null)" );
+	}
+	break;
 	case C_array:
 	{
 	    unsigned int i;
@@ -130,8 +138,12 @@ extern "C" {
 	    fprintf( stderr, "OBJ(%p) ", (void *)Field(v,0) );
 	    break;
 	case C_string:
-	    fprintf( stderr, "'%s' ", (char *)caml_ptr_val(v,0) );
-	    break;
+	{
+	    void *cout;
+	    caml_ptr_val_internal(v,&cout,0);
+	    fprintf( stderr, "'%s' ", (char *)cout );
+	} 
+	break;
 	}
     }
 
@@ -444,6 +456,9 @@ extern "C" {
 
     SWIGSTATIC void *caml_ptr_val( value v, swig_type_info *descriptor ) {
 	CAMLparam0();
+#ifdef TYPE_CAST_VERBOSE
+	caml_print_val( v );
+#endif
 	void *out = NULL;
 	if( !caml_ptr_val_internal( v, &out, descriptor ) )
 	    CAMLreturn(out);

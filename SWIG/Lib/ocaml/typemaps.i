@@ -86,6 +86,7 @@
     }
 }
 
+#if 0
 %typemap(ocaml,argout) SWIGTYPE & {
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
@@ -99,6 +100,9 @@
 			     caml_val_ptr ((void *) $1,$1_descriptor));
     }
 }
+#endif
+
+%typemap(ocaml,argout) const SWIGTYPE & { }
 
 %typemap(ocaml,in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
