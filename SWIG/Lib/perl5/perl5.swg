@@ -9,6 +9,8 @@
 %runtime "perlrun.swg"        // Perl runtime functions
 %runtime "noembed.h"          // undefine Perl5 macros
 
+#define %perlcode  %insert("perl")
+
 /* Typemaps for input parameters */
 
 %typemap(in)  int, short, long, signed char, bool, enum SWIGTYPE
