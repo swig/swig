@@ -43,6 +43,7 @@ cpp_namespace
 cpp_nodefault
 cpp_static
 cpp_typedef
+CVS
 default_args
 default_constructor
 defvalue_constructor
@@ -51,6 +52,7 @@ derived_nested
 destructor_reprotected
 director_abstract
 director_basic
+director_constructor
 director_default
 director_detect
 director_enum
@@ -60,6 +62,8 @@ director_frob
 director_nested
 director_protected
 director_redefined
+directors_enum
+director_string
 director_unroll
 director_wombat
 dynamic_cast
@@ -93,8 +97,19 @@ inctest
 inherit_missing
 inherit_void_arg
 inline_initializer
+java_constants
+java_enums
+java_jnitypes
+java_lib_arrays
+java_lib_arrays_dimensionless
+java_lib_various
+java_pragmas
+java_throws
+java_typemaps_proxy
+java_typemaps_typewrapper
 kind
 lextype
+lib_arrays_dimensionless
 li_carrays
 li_cdata
 li_cmalloc
@@ -114,7 +129,6 @@ mixed_types
 multiple_inheritance
 name
 name_cxx
-name_inherit
 namespace_class
 namespace_enum
 namespace_extend
@@ -131,6 +145,7 @@ newobject2
 overload_copy
 overload_extend
 overload_extendc
+overload_rename
 overload_simple
 overload_subtype
 overload_template
@@ -142,14 +157,18 @@ protected_rename
 pure_virtual
 redefined
 reference_global_vars
+register_par
 rename_scope
 ret_by_value
 return_const_value
 return_value_scope
 rname
 sizeof_pointer
+sizet
 smart_pointer_const
 smart_pointer_const2
+smart_pointer_extend
+smart_pointer_member
 smart_pointer_multi
 smart_pointer_multi_typedef
 smart_pointer_namespace
@@ -234,6 +253,7 @@ typedef_reference
 typedef_scope
 typemap_namespace
 typemap_ns_using
+typemap_numinputs
 typemap_subst
 typename
 unions
