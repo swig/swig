@@ -19,6 +19,7 @@
 char cvsroot_allocate_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "utils.h"
 static int virtual_elimination_mode = 0;   /* set to 0 on default */
 
 /* Set virtual_elimination_mode */
@@ -93,6 +94,7 @@ class Allocate : public Dispatcher {
 	       (checkAttribute(temp, "type", type)) &&
 	       (!Strcmp(local_decl, base_decl)) ) {
             // Indicate a virtual method in the derived class, that is, not the virtual method definition in a base class
+	    Setattr(c, "storage", "virtual");
 	    Setattr(c, "virtual:derived", "1"); 
             if (virtual_elimination_mode)
 	      Setattr(c, "feature:ignore", "1");
@@ -146,7 +148,8 @@ class Allocate : public Dispatcher {
     bases = Getattr(classnode, "bases");
     if (!bases) return 0;
 
-    if (checkAttribute(member, "storage", "virtual")) {
+    //if (checkAttribute(member, "storage", "virtual"))
+    {
       if (function_is_defined_in_bases(member, bases))
 	defined = 1;
     }
@@ -318,7 +321,7 @@ class Allocate : public Dispatcher {
     {
       for (int i = 0; i < Len(methods); ) {
 	Node *n = Getitem(methods,i);
-	if (checkAttribute(n,"access","protected") || checkAttribute(n,"access","private")) {
+	if (!is_public(n)) {
 	  Delitem(methods,i);
 	  continue;
 	}
@@ -490,8 +493,8 @@ public:
 
     if (inclass) {
       /* check whether the member node n is defined in class node inclass's bases */
-      if (checkAttribute(n, "storage", "virtual"))
-	class_member_is_defined_in_bases(n, inclass);
+      // if (checkAttribute(n, "storage", "virtual"))
+      class_member_is_defined_in_bases(n, inclass);
 
       /* Check to see if this is a static member or not.  If so, we add an attribute
 	 cplus:staticbase that saves the current class */

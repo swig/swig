@@ -24,6 +24,7 @@
 char cvsroot_typepass_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "utils.h"
 
 struct normal_node {
     Symtab *symtab;
@@ -799,7 +800,7 @@ public:
 	ns = 0;
       }
       if (!ns) {
-	if (!Getattr(n,"access") || ((Strcmp(Getattr(n,"access"),"public") == 0))) {
+	if (is_public(n)) {
 	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n,"uname")));	    
 	}
       } else {

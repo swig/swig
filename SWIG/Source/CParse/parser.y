@@ -308,7 +308,7 @@ static void add_symbols(Node *n) {
   }
 
   /* Don't add symbols for private/protected members */
-  if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
+  if (inclass && (cplus_mode == CPLUS_PRIVATE)) {
     while (n) {
       Swig_symbol_add(0, n);       /* Add to C symbol table */
       if (cplus_mode == CPLUS_PRIVATE) {
@@ -327,6 +327,9 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
+    if (cplus_mode == CPLUS_PROTECTED) {
+      Setattr(n,"access", "protected");
+    } 
     decl = Getattr(n,"decl");
     if (!SwigType_isfunction(decl)) {
       symname = make_name(Getattr(n,"name"),0);
@@ -3506,9 +3509,11 @@ def_args       : EQUAL definetype {
 		 Node *n = Swig_symbol_clookup($3.id,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
-		   if (Getattr(n,"access")) {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3.id);
+		   String *a = Getattr(n,"access");		   
+		   if (a && (Strncmp(a,"private",7) == 0)) {
+		     if (cplus_mode != CPLUS_PRIVATE) {
+		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file,
+				    cparse_line,"'%s' is %s in this context.\n", q, a);
 		       Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
 		     }
 		     $$.val = 0;
@@ -4314,7 +4319,9 @@ expr           :  exprnum { $$ = $1; }
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
-		   if (Getattr(n,"access") && (cplus_mode == CPLUS_PUBLIC)) {
+		   String *a = Getattr(n,"access");
+		   if (a && (Strncmp(a, "private", 7) == 0) 
+		       && (cplus_mode != CPLUS_PRIVATE)) {
 		     Swig_warning(WARN_PARSE_PRIVATE,cparse_file, cparse_line, "'%s' is private in this context.\n", $1);
 		     $$.type = T_ERROR;
 		   } else {

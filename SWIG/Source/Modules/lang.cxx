@@ -15,7 +15,16 @@
 char cvsroot_lang_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "utils.h"
 #include <ctype.h>
+
+static int director_protected_mode = 0;   /* set to 0 on default */
+
+/* Set director_protected_mode */
+void Wrapper_director_protected_mode_set(int flag) {
+  director_protected_mode = flag;
+}
+  
 
 /* Some status variables used during parsing */
 
@@ -689,7 +698,7 @@ int Language::cDeclaration(Node *n) {
   SwigType *ty, *fullty;
 
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
-
+  
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
     SwigType *t = Copy(type);
@@ -1421,27 +1430,27 @@ int Language::unrollVirtualMethods(Node *n,
   // find the methods that need directors
   classname = Getattr(n, "name");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+    if (!Cmp(Getattr(ni, "feature:nodirector"), "1")) continue;
     nodeType = Getattr(ni, "nodeType");
     storage = Getattr(ni, "storage");
     decl = Getattr(ni, "decl");
     if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
       int is_virtual = storage && !Cmp(storage, "virtual");
-      String* access = Getattr(ni, "access");
-      if (!access || !Cmp(access, "public")) {
-        if (is_virtual) {
-          String *method_id;
-          String *name = Getattr(ni, "name");
-	  method_id = NewStringf("%s|%s", name, decl);
-          String *fqname = NewString("");
-          Printf(fqname, "%s::%s", classname, name);
-	  Hash *item = NewHash();
-	  Setattr(item, "fqName", fqname);
-	  Setattr(item, "methodNode", ni);
-	  Setattr(vm, method_id, item);
-          Delete(fqname);
-	  Delete(item);
-	  Delete(method_id);
-        }
+      if (is_virtual &&
+	  (is_public(ni) || (is_protected(ni) && director_protected_mode))) {
+	Setattr(ni, "feature:director", "1");
+	String *method_id;
+	String *name = Getattr(ni, "name");
+	method_id = NewStringf("%s|%s", name, decl);
+	String *fqname = NewString("");
+	Printf(fqname, "%s::%s", classname, name);
+	Hash *item = NewHash();
+	Setattr(item, "fqName", fqname);
+	Setattr(item, "methodNode", ni);
+	Setattr(vm, method_id, item);
+	Delete(fqname);
+	Delete(item);
+	Delete(method_id);
       } 
     }
     else if (!Cmp(nodeType, "destructor")) {
@@ -1504,8 +1513,7 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
-      String* access = Getattr(ni, "access");
-      if (!access || !Cmp(access, "public")) {
+      if (is_public(ni)) {
         classDirectorConstructor(ni);
         constructor = 1;
       }
@@ -1637,7 +1645,7 @@ int Language::classDeclaration(Node *n) {
     ClassType = NewStringf("%s %s", kind, classname);
   }
   Setattr(n,"classtype", SwigType_namestr(ClassType));
-  Setattr(n,"classtypeobj", Copy(ClassType));
+
   InClass = 1;
   CurrentClass = n;
 
