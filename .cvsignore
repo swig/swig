@@ -1,4 +1,5 @@
-configure config.*
+config.*
 Makefile
 swig
-objs.tmp experiment
+*.tar.gz
+

@@ -1,1 +1,2 @@
-Makefile y.tab.* lyacc.h parser.c
+Makefile
+.deps

@@ -1,136 +1,334 @@
-# ---------------------------------------------------------------
-# $Header$
-# SWIG Makefile
-# 
-# This file can be used to build various Python extensions with SWIG.
-# By default this file is set up for dynamic loading, but it can
-# be easily customized for static extensions by modifying various
-# portions of the file.
-#
-#        SRCS       = C source files
-#        CXXSRCS    = C++ source files
-#        OBJCSRCS   = Objective-C source files
-#        OBJS       = Additional .o files (compiled previously)
-#        INTERFACE  = SWIG interface file
-#        TARGET     = Name of target module or executable
-#
-#----------------------------------------------------------------
+# Makefile.in generated automatically by automake 1.4a from Makefile.am
 
-SRCS          = types.c scanner.c include.c getopt.c misc.c super.c type.c
-OBJS          = $(SRCS:.c=.o)
-INTERFACE     = swig.i
-WRAPFILE      = $(INTERFACE:.i=_wrap.c)
-WRAPOBJ       = $(INTERFACE:.i=_wrap.o)
-TARGET        = swigmodule@SO@ # Use this kind of target for dynamic loading
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
 
-prefix        = @prefix@
-exec_prefix   = @exec_prefix@
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
 
-CC            = @CC@
-AR            = @AR@
-RANLIB        = @RANLIB@
-RPATH         = @RPATH@
-CC            = @CC@
-CFLAGS        = -g
-INCLUDE       = -I. -I../DOH/Include
-LIBS          = -L. -L../DOH/ -ldoh
 
-# SWIG Options
-#     SWIG      = location of the SWIG executable
-#     SWIGOPT   = SWIG compiler options
-#     SWIGCC    = Compiler used to compile the wrapper file
 
-# this is kinda silly: SWIG depends on SWIG.... :)
-SWIG          = $(exec_prefix)/bin/swig 
-SWIGOPT       = -python
-SWIGCC        = $(CC) 
+SHELL = @SHELL@
 
-# SWIG Library files.  Uncomment if rebuilding the Python interpreter
-#SWIGLIB       = -lembed.i
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
 
-# Command that will be used to build the final extension.
-BUILD         = $(SWIGCC)
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
 
-# Uncomment the following if you are using dynamic loading
-CCSHARED      = @CCSHARED@
-BUILD         = @LDSHARED@
+DESTDIR =
 
-# Python installation
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
 
-PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@ 
-PY_LIB        = @PYLIB@
+top_builddir = ../..
 
-# Build libraries (needed for static builds)
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
 
-LIBM          = @LIBM@
-LIBC          = @LIBC@
-SYSLIBS       = $(LIBM) $(LIBC) @LIBS@
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_STRIP_FLAG =
+transform = @program_transform_name@
 
-# Build options
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+AR = @AR@
+AUTOCONF = @AUTOCONF@
+CC = @CC@
+CCSHARED = @CCSHARED@
+CXX = @CXX@
+LDSHARED = @LDSHARED@
+LIBC = @LIBC@
+LIBCRYPT = @LIBCRYPT@
+LIBM = @LIBM@
+MACHDEP = @MACHDEP@
+MAINT = @MAINT@
+MAKEINFO = @MAKEINFO@
+PACKAGE = @PACKAGE@
+PERL = @PERL@
+PERL5EXT = @PERL5EXT@
+PYINCLUDE = @PYINCLUDE@
+PYLIB = @PYLIB@
+PYLINK = @PYLINK@
+RANLIB = @RANLIB@
+ROOT_DIR = @ROOT_DIR@
+RPATH = @RPATH@
+SO = @SO@
+TCLINCLUDE = @TCLINCLUDE@
+TCLLIB = @TCLLIB@
+VERSION = @VERSION@
+XINCLUDES = @XINCLUDES@
+XLIBSW = @XLIBSW@
+YACC = @YACC@
+YFLAGS = @YFLAGS@
 
-BUILD_LIBS    = $(LIBS) # Dynamic loading
+AUTOMAKE_OPTIONS = foreign
 
-# Compilation rules for non-SWIG components
+SWIG_INCLUDES = -I$(top_srcdir)/Source/DOH/Include 	        -I$(top_srcdir)/Source/SWILL/Include
 
-.c.o: 
-	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
 
-# ----------------------------------------------------------------------
-# Toplevel Targets
-# ----------------------------------------------------------------------
+SWIG_LIBS = $(top_builddir)/Source/DOH/Doh/libdoh.a 	    $(top_builddir)/Source/SWILL/SWILL/libswill.a
 
-######################################################################
-# TARGET: swig
-#####################################################################
-# note that here we echo the names of all of our object files, 
-# relative to the project root, into $(OBJS_FILE), for compatibility
-# with the parent makefile.
-all: swig
-swig: $(OBJS)
-	for i in $(OBJS); do echo Source/Swig/$$i >> $(OBJS_FILE); done
 
-######################################################################
-# TARGET: experiment
-#####################################################################
-# same as swig
-experiment: swig
+INCLUDES = $(SWIG_INCLUDES)
 
-######################################################################
-# TARGET: python
-#####################################################################
-# not integrated with the mother ship yet
-python: $(TARGET)		# the python module
+noinst_LIBRARIES = libswig.a
 
-######################################################################
-# TARGET: supertest
-#####################################################################
-# not integrated with the mother ship yet
-supertest: super.c		# test the super module
-	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DSUPER_TEST -c \
-		-o supertest.o super.c
-	$(CC) supertest.o -ldoh -o supertest
+libswig_a_SOURCES = types.c scanner.c include.c getopt.c misc.c super.c type.c
 
-######################################################################
-# TARGET: typetest
-#####################################################################
-# not integrated with the mother ship yet
-typetest: type.c super.o
-	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DTYPE_TEST -c \
-		-o typetest.o type.c
-	$(CC) super.o typetest.o -ldoh -o typetest
+noinst_HEADERS = swig.h
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+LIBRARIES =  $(noinst_LIBRARIES)
 
-clean:
-	rm -f *.o *~ core *.so *.a *_wrap.*
 
-# ----------------------------------------------------------------------
-# Rules for building the extension
-# ----------------------------------------------------------------------
+DEFS = @DEFS@ -I. -I$(srcdir) 
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libswig_a_LIBADD = 
+libswig_a_OBJECTS =  types.o scanner.o include.o getopt.o misc.o super.o \
+type.o
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(noinst_HEADERS)
 
-$(WRAPOBJ) : $(WRAPFILE)
-	$(SWIGCC) -c $(CCSHARED) $(CFLAGS) $(WRAPFILE) $(INCLUDE) $(PY_INCLUDE) 
-$(WRAPFILE) : $(INTERFACE)
-	$(SWIG) $(SWIGOPT) -o $(WRAPFILE) $(SWIGLIB) $(INTERFACE)
+DIST_COMMON =  Makefile.am Makefile.in
 
-$(TARGET): $(WRAPOBJ) $(ALLOBJS)
-	$(BUILD) $(WRAPOBJ) $(OBJS) $(BUILD_LIBS) -o $(TARGET)
 
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+DEP_FILES =  .deps/getopt.P .deps/include.P .deps/misc.P .deps/scanner.P \
+.deps/super.P .deps/type.P .deps/types.P
+SOURCES = $(libswig_a_SOURCES)
+OBJECTS = $(libswig_a_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .o .s
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) $(top_srcdir)/Makefile.common
+	cd $(top_srcdir) && $(AUTOMAKE) --foreign Source/Swig/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status $(BUILT_SOURCES)
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-noinstLIBRARIES:
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+distclean-noinstLIBRARIES:
+
+maintainer-clean-noinstLIBRARIES:
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libswig.a: $(libswig_a_OBJECTS) $(libswig_a_DEPENDENCIES)
+	-rm -f libswig.a
+	$(AR) cru libswig.a $(libswig_a_OBJECTS) $(libswig_a_LIBADD)
+	$(RANLIB) libswig.a
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = Source/Swig
+
+distdir: $(DISTFILES)
+	here=`cd $(top_builddir) && pwd`; \
+	top_distdir=`cd $(top_distdir) && pwd`; \
+	distdir=`cd $(distdir) && pwd`; \
+	cd $(top_srcdir) \
+	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --foreign Source/Swig/Makefile
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+
+DEPS_MAGIC := $(shell mkdir .deps > /dev/null 2>&1 || :)
+
+-include $(DEP_FILES)
+
+mostlyclean-depend:
+
+clean-depend:
+
+distclean-depend:
+	-rm -rf .deps
+
+maintainer-clean-depend:
+
+%.o: %.c
+	@echo '$(COMPILE) -c $<'; \
+	$(COMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-cp .deps/$(*F).pp .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm .deps/$(*F).pp
+
+%.lo: %.c
+	@echo '$(LTCOMPILE) -c $<'; \
+	$(LTCOMPILE) -Wp,-MD,.deps/$(*F).pp -c $<
+	@-sed -e 's/^\([^:]*\)\.o[ 	]*:/\1.lo \1.o :/' \
+	  < .deps/$(*F).pp > .deps/$(*F).P; \
+	tr ' ' '\012' < .deps/$(*F).pp \
+	  | sed -e 's/^\\$$//' -e '/^$$/ d' -e '/:$$/ d' -e 's/$$/ :/' \
+	    >> .deps/$(*F).P; \
+	rm -f .deps/$(*F).pp
+info-am:
+info: info-am
+dvi-am:
+dvi: dvi-am
+check-am: all-am
+check: check-am
+installcheck-am:
+installcheck: installcheck-am
+install-exec-am:
+install-exec: install-exec-am
+
+install-data-am:
+install-data: install-data-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-am
+uninstall-am:
+uninstall: uninstall-am
+all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-redirect: all-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_STRIP_FLAG=-s install
+installdirs:
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
+		mostlyclean-tags mostlyclean-depend mostlyclean-generic
+
+mostlyclean: mostlyclean-am
+
+clean-am:  clean-noinstLIBRARIES clean-compile clean-tags clean-depend \
+		clean-generic mostlyclean-am
+
+clean: clean-am
+
+distclean-am:  distclean-noinstLIBRARIES distclean-compile \
+		distclean-tags distclean-depend distclean-generic \
+		clean-am
+
+distclean: distclean-am
+
+maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-depend maintainer-clean-generic \
+		distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-am
+
+.PHONY: mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
+clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile tags mostlyclean-tags distclean-tags \
+clean-tags maintainer-clean-tags distdir mostlyclean-depend \
+distclean-depend clean-depend maintainer-clean-depend info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-am install-data install-am install \
+uninstall-am uninstall all-redirect all-am all installdirs \
+mostlyclean-generic distclean-generic clean-generic \
+maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
