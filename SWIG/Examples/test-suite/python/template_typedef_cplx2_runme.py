@@ -12,7 +12,7 @@ except:
   print d, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % d)[1]
+s = '%s' % d
 if string.find(s, 'ArithUnaryFunction') == -1:
   print d, "is not an ArithUnaryFunction"
   raise RuntimeError
@@ -24,7 +24,7 @@ except:
   print e, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % e)[1]
+s = '%s' % e
 if string.find(s, 'ArithUnaryFunction') == -1:
   print e, "is not an ArithUnaryFunction"
   raise RuntimeError
@@ -41,7 +41,7 @@ except:
   print c, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % c)[1]
+s = '%s' % c
 if string.find(s, 'ArithUnaryFunction') == -1:
   print c, "is not an ArithUnaryFunction"
   raise RuntimeError
@@ -53,7 +53,7 @@ except:
   print f, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % f)[1]
+s = '%s' % f
 if string.find(s, 'ArithUnaryFunction') == -1:
   print f, "is not an ArithUnaryFunction"
   raise RuntimeError
@@ -69,7 +69,7 @@ except:
   print g, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % g)[1]
+s = '%s' % g
 if string.find(s, 'ArithUnaryFunction') == -1:
   print g, "is not an ArithUnaryFunction"
   raise RuntimeError
@@ -82,7 +82,7 @@ except:
   print h, "is not an instance"
   raise RuntimeError
 
-s = string.split('%s' % h)[1]
+s = '%s' % h
 if string.find(s, 'ArithUnaryFunction') == -1:
   print h, "is not an ArithUnaryFunction"
   raise RuntimeError
