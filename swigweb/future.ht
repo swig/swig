@@ -274,7 +274,7 @@ give the system more credibility and long term viability---and it will
 be a lot more fun to use!
 
 <p>
-It's also worth nothing that there are some rather interesting CS
+It's also worth noting that there are some rather interesting CS
 connections at work here.  Extensions to the type system and typemaps
 have some interesting relations to work in programming languages.  The
 SWIG declaration annotation system and class extension feature seem
