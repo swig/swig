@@ -23,17 +23,21 @@ static Hash *fragments = 0;
 /* -----------------------------------------------------------------------------
  * Swig_fragment_register()
  *
- * Add a fragment.
+ * Add a fragment. Use the original Node*, so, if something needs to be
+ * changed, lang.cxx doesn't nedd to be touched again.
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_fragment_register(String *name, String *section, String *code) {
-  String *ccode;
+Swig_fragment_register(Node* fragment) {
+  String *name = Getattr(fragment,"name");
+  String *section = Getattr(fragment,"section");
+  String *ccode = Copy(Getattr(fragment,"code"));
+  Hash *kwargs = Getattr(fragment,"kwargs");
   if (!fragments) {
     fragments = NewHash();
   }
-  ccode = Copy(code);
   Setmeta(ccode,"section",Copy(section));
+  if (kwargs) Setmeta(ccode,"kwargs",Copy(kwargs));
   Setattr(fragments,Copy(name),ccode);
 }
 
@@ -51,6 +55,13 @@ Swig_fragment_emit(String *name) {
   code = Getattr(fragments,name);
   if (code) {
     String *section = Getmeta(code,"section");
+    Hash *n = Getmeta(code,"kwargs");
+    while (n) {
+      if (Cmp(Getattr(n,"name"),"fragment") == 0) {
+	Swig_fragment_emit(Getattr(n,"value"));
+      }
+      n = nextSibling(n);
+    }
     if (section) {
       File *f = Swig_filebyname(section);
       if (!f) {

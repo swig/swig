@@ -461,10 +461,7 @@ int Language::constantDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::fragmentDirective(Node *n) {
-  String *name = Getattr(n,"name");
-  String *code = Getattr(n,"code");
-  String *section = Getattr(n,"section");
-  Swig_fragment_register(name,section,code);
+  Swig_fragment_register(n);
   return SWIG_OK;
 }
 
