@@ -2,6 +2,8 @@
 *_wrap.cxx
 *.dll
 *.dsw
+*.exp
+*.lib
 *.ncb
 *.opt
 *.plg

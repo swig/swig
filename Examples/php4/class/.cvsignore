@@ -1,4 +1,5 @@
-base.py
+Makefile
+Makefile.lnk
 *_wrap.c
 *_wrap.cxx
 *.dll
