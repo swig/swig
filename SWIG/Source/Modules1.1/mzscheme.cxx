@@ -124,10 +124,9 @@ MZSCHEME::top(Node *n)
   Swig_register_filebyname("header",f_header);
   Swig_register_filebyname("wrapper",f_wrappers);
   Swig_register_filebyname("runtime",f_runtime);
-  Swig_register_filebyname("init",f_init);
-
 
   init_func_def = NewString("");
+  Swig_register_filebyname("init",init_func_def);
 
   Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner (f_runtime);
