@@ -542,6 +542,53 @@ static void merge_extensions(Node *am) {
    return nname;
  }
 
+ static List *make_inherit_list(String *clsname, List *names) {
+   int i;
+   String *derived;
+   List *bases = NewList();
+
+   if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
+   else derived = NewString(clsname);
+
+   for (i = 0; i < Len(names); i++) {
+     Node *s;
+     String *base;
+     String *n = Getitem(names,i);
+     /* Try to figure out where this symbol is */
+     s = Swig_symbol_clookup(n,0);
+     if (s) {
+       while (s && (Strcmp(nodeType(s),"class") != 0)) {
+	 /* Not a class.  Could be a typedef though. */
+	 String *storage = Getattr(s,"storage");
+	 if (storage && (Strcmp(storage,"typedef") == 0)) {
+	   String *nn = Getattr(s,"type");
+	   s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
+	 } else {
+	   break;
+	 }
+       }
+       if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
+	 String *q = Swig_symbol_qualified(s);
+	 Append(bases,s);
+	 if (q) {
+	   base = NewStringf("%s::%s", q, Getattr(s,"name"));
+	 } else {
+	   base = NewString(Getattr(s,"name"));
+	 }
+       } else {
+	 base = NewString(n);
+       }
+     } else {
+       base = NewString(n);
+     }
+     if (base) {
+       rename_inherit(base,derived);
+       Delete(base);
+     }
+   }
+   return bases;
+ }
+
 /* Structures for handling code fragments built for nested classes */
 
 typedef struct Nested {
@@ -1880,6 +1927,27 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		      add_symbols_copy($$);
 		      if (Strcmp(nodeType($$),"class") == 0) {
+
+			/* Identify pure abstract methods */
+			Setattr($$,"abstract", pure_abstract(firstChild($$)));
+			
+                        /* Set up inheritance in symbol table */
+			{
+			  List *baselist = Getattr($$,"baselist");
+			  if (baselist) {
+			    List *bases = make_inherit_list(Getattr($$,"name"),baselist);
+			    if (bases) {
+			      Node *s;
+			      for (s = Firstitem(bases); s; s = Nextitem(bases)) {
+				Symtab *st = Getattr(s,"symtab");
+				if (st) {
+				  Swig_symbol_inherit(st);
+				}
+			      }
+			    }
+			  }
+			}
+
 			/* Merge in addmethods for this class */
 			
 			/* !!! This may be broken.  We may have to
@@ -2111,8 +2179,10 @@ cpp_class_decl  :
                    List *bases = 0;
                    class_rename = make_name($3,0);
 		   Classprefix = NewString($3);
-		   /* Deal with renaming */
+		   /* Deal with inheritance  */
 		   if ($4) {
+		     bases = make_inherit_list($3,$4);
+#if 0
 		     String *derived;
 		     int i;
 		     bases = NewList();
@@ -2154,6 +2224,7 @@ cpp_class_decl  :
 			 Delete(base);
 		       }
 		     }
+#endif
 		   }
 		   if (SwigType_istemplate($3)) {
 		     String *fbase, *tbase, *prefix;
@@ -3144,8 +3215,6 @@ valparm        : parm {
  
 def_args       : EQUAL definetype { 
                   $$ = $2; 
-		  /* If the value of a default argument is in the symbol table,  we replace it with it's
-                     fully qualified name.  Needed for C++ enums and other features */
 		  if ($2.type == T_ERROR) {
 		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
 		    $$.val = 0;

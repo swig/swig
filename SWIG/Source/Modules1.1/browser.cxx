@@ -181,6 +181,7 @@ static void display(FILE *f, Node *n) {
   if (n != tree_top) {
     Printf(f," [ <a href=\"index.html?node=0x%x\">Up</a> ]", parentNode(n));
   }
+  Printf(f," [ <a href=\"symbol.html\">Symbols</a> ]");
   Printf(f,"<br><hr><p>\n");
 
   out = f;
@@ -309,6 +310,7 @@ void symbol_handler(FILE *f) {
   Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
   Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
   Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
+  Printf(f," [ <a href=\"symbol.html\">Symbols</a> ]");
   Printf(f,"<br><hr><p>\n");
   
   if (!swill_getargs("p(sym)|s(name)", &sym, &name)) {

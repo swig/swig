@@ -60,6 +60,7 @@ class TypePass : public Dispatcher {
 	while (p) {
 	    SwigType *ty = Getattr(p,"type");
 	    normalize_type(ty);
+	    String *value = Getattr(p,"value");
 	    p = nextSibling(p);
 	}
     }

@@ -37,7 +37,6 @@ class Allocate : public Dispatcher {
       return ret;
     }
     List *abstract = Getattr(base,"abstract");
-
     if (abstract) {
       for (int i = 0; i < Len(abstract); i++) {
 	Node *n = Getitem(abstract,i);
