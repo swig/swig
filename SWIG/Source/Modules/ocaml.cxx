@@ -391,7 +391,7 @@ public:
 	    Delete(SwigType_pop(t));
 	    c = Char(t);
 	}
-	if (strncmp(c,"a(",1)) {
+	if (strncmp(c,"a(",2) == 0) {
 	    Delete(SwigType_pop(t));
 	}
     }
@@ -728,6 +728,7 @@ public:
 					   "CAMLreturn(%s(args));\n",
 					   &maxargs);
 
+		Wrapper_add_local(df, "_v", "int _v = 0");
 		Wrapper_add_local(df, "argv", "CAML_VALUE *argv");
 
 		Printv(df->def,
@@ -1215,19 +1216,28 @@ public:
   
     String *normalizeTemplatedClassName( String *name ) {
 	String *name_normalized = SwigType_typedef_resolve_all(name);
-    
-	if( is_a_pointer(name_normalized) )
-	    SwigType_del_pointer( name_normalized );
-    
-	if( is_a_reference(name_normalized) ) 
-	    oc_SwigType_del_reference( name_normalized );
-    
-	if( is_an_array(name_normalized) )
-	    oc_SwigType_del_array( name_normalized );
+	bool took_action;
+	
+	do {
+	    took_action = false;
 
-	Replaceall(name_normalized,"(","");
-	Replaceall(name_normalized,")","");
-	return name_normalized;
+	    if( is_a_pointer(name_normalized) ) {
+		SwigType_del_pointer( name_normalized );
+		took_action = true;
+	    }
+    
+	    if( is_a_reference(name_normalized) ) {
+		oc_SwigType_del_reference( name_normalized );
+		took_action = true;
+	    }
+    
+	    if( is_an_array(name_normalized) ) {
+		oc_SwigType_del_array( name_normalized );
+		took_action = true;
+	    }
+	} while( took_action );
+
+	return SwigType_str(name_normalized,0);
     }
 
     /*
@@ -1286,7 +1296,7 @@ public:
 
 	Printf( fully_qualified_name, "%s", name );
 
-	return fully_qualified_name;
+	return normalizeTemplatedClassName(fully_qualified_name);
     }
 
     /* Benedikt Grundmann inspired --> Enum wrap styles */
