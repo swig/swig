@@ -9,7 +9,7 @@
 static inline int
 SwigComplex_Check(PyObject *o)
 {
-  return (PyComplex_Check(o) || PyFloat_Check(o) || PyInt_Check(o)) ? 1 : 0;
+  return PyComplex_Check(o) || PyFloat_Check(o) || PyInt_Check(o) || PyLong_Check(o);
 }
  
 template <class __Complex>
@@ -22,6 +22,8 @@ SwigComplex_As(PyObject *o)
     return __Complex(PyFloat_AsDouble(o), 0);
   } else if (PyInt_Check(o)) {
     return __Complex(PyInt_AsLong(o), 0);
+  } else if (PyLong_Check(o)) {
+    return __Complex(PyLong_AsLongLong(o), 0);
   } else {
     PyErr_SetString(PyExc_TypeError, "Expecting a complex or compatible type");
     return __Complex(0,0);
@@ -68,11 +70,11 @@ SwigComplex_AsComplexDouble(PyObject *o)
   // C++ proxy class typemaps
 
   %typemap(directorin) Complex {
-    $input =  PyComplex_FromDoubles($1_name.real(), $1_name.imag());
+    $input = PyComplex_FromDoubles($1_name.real(), $1_name.imag());
   }
   
   %typemap(directorin) const Complex & {
-    $input =  PyComplex_FromDoubles($1_name.real(), $1_name.imag());
+    $input = PyComplex_FromDoubles($1_name.real(), $1_name.imag());
   }
   
   %typemap(directorout) Complex {
@@ -82,7 +84,7 @@ SwigComplex_AsComplexDouble(PyObject *o)
     }
   }  
   
-  %typemap(directorout) const complex<T>& (Complex temp) {
+  %typemap(directorout) const Complex & (Complex temp) {
     temp = SwigComplex_As< Complex >($input);
     if (PyErr_Occurred()) {
       throw Swig::DirectorTypeMismatchException("Expecting a complex or compatible type");
