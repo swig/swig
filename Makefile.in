@@ -42,6 +42,7 @@ skip-php4	= [ -z "@PHP4@" -o -z "@PHP4INC@" ]
 skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
 skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
 skip-chicken	= [ -z "@CHICKEN@" -o -z "@CHICKENHOME@" -o -z "@CHICKENLIB@" ]
+skip-csharp	= [ -z "@CSHARPCILINTERPRETER@" -o -z "@CSHARPCOMPILER@" ]
 
 #####################################################################
 # Runtime libraries
@@ -56,8 +57,9 @@ runtime:
 	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
 	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
 	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
+	@-$(skip-chicken)  || (cd Runtime; $(MAKE) chicken)
+	@-$(skip-csharp)   || (cd Runtime; $(MAKE) csharp)
 #	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
-	@-$(skip-chicken)    || (cd Runtime; $(MAKE) chicken)
 
 #####################################################################
 # CHECK
@@ -87,6 +89,7 @@ check-aliveness:
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
 #	@$(skip-pike)     || ./$(TARGET) -pike     -help
 
 check-examples:					\
@@ -100,6 +103,7 @@ check-examples:					\
 	check-ocaml-examples			\
 	check-php4-examples			\
 	check-chicken-examples                  \
+	check-csharp-examples                   \
 #	check-pike-examples
 
 check-%-examples:
@@ -160,6 +164,7 @@ check-gifplot:					\
 	check-ocaml-gifplot			\
 	check-php4-gifplot			\
 	check-chicken-gifplot                   \
+#	check-csharp-gifplot                    \
 #	check-pike-gifplot
 
 check-%-gifplot: gifplot-library
@@ -286,7 +291,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET)
 
 lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
-	pike chicken 
+	pike chicken csharp
 
 install-lib:
 	@echo "Installing the SWIG library"

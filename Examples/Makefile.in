@@ -834,3 +834,60 @@ chicken_cpp_static: $(SRCS)
 	$(INCLUDE) \
 	$(CHICKEN_INCLUDE) $(LIBS) $(CHICKEN_LIBOPTS) \
 	-o $(TARGET)
+
+##################################################################
+#####                      CSHARP                           ######
+##################################################################
+
+# Extra CSharp specific dynamic linking options
+CSHARP_DLNK  = @CSHARPDYNAMICLINKING@
+CSHARPLIBPREFIX = @CSHARPLIBRARYPREFIX@
+CSHARPCOMPILER = @CSHARPCOMPILER@
+CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
+
+# ----------------------------------------------------------------
+# Build a CSharp dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+csharp: $(SRCS)
+	$(SWIG) -csharp $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARPLIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a CSharp dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+csharp_cpp: $(SRCS)
+	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARPLIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a CSharp dynamically loadable module
+# ----------------------------------------------------------------
+
+csharp_multi: $(SRCS)
+	$(SWIG) -csharp $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARPLIBPREFIX)$(TARGET)$(SO)
+
+csharp_multi_cpp: $(SRCS)
+	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARPLIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Compile CSharp files
+# ----------------------------------------------------------------
+
+csharp_compile: $(SRCS)
+	$(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS)
+
+# -----------------------------------------------------------------
+# Cleaning the CSharp examples
+# -----------------------------------------------------------------
+
+csharp_clean:
+	rm -f *.o *.dll *_wrap* *~ .~* core runme `find . -name \*.cs | grep -v runme.cs`
+
