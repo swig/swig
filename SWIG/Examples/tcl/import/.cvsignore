@@ -1,4 +1,11 @@
-bar_wrap.cxx
-base_wrap.cxx
-foo_wrap.cxx
-spam_wrap.cxx
+*_wrap.c
+*_wrap.cxx
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug

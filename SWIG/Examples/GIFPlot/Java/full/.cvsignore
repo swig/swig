@@ -5,3 +5,5 @@
 *.so
 *.dll
 *.gif
+*.exp
+*.lib

@@ -1,7 +1,10 @@
+example.py
 *_wrap.c
 *_wrap.cxx
 *.dll
 *.dsw
+*.exp
+*.lib
 *.ncb
 *.opt
 *.plg

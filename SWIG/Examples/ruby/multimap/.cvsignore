@@ -1,2 +1,11 @@
-example_wrap.c
-example.dll
+*_wrap.c
+*_wrap.cxx
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug
