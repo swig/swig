@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
-# This script builds a SWIG1.3 distribution.
-# Usage : mkdist.py dirname 
+# This script builds a SWIG-1.3 distribution.
+# Usage : mkdist.py directory, where directory should be SWIG-1.3.x
 
 import sys
 import string
@@ -9,7 +9,7 @@ import string
 try:
    dirname = sys.argv[1]
 except:
-   print "Usage: mkdist.py directory"
+   print "Usage: mkdist.py directory, where directory should be SWIG-1.3.x"
    sys.exit(0)
 
 # If directory exists, remove it
@@ -33,6 +33,7 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 
 # Go build the system
 
+print "Building system"
 os.system("cd "+dirname+"; ./autogen.sh")
 os.system("cd "+dirname+"/Tools/WAD; autoconf")
 os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
@@ -41,7 +42,8 @@ os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser
 os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;");
 
 # Build documentation
-os.system("cd "+dirname+"/Doc/Manual; python maketoc.py; rm *.bak")
+print "Building documentation"
+os.system("cd "+dirname+"/Doc/Manual; make; rm *.bak")
 
 # Build the tar-ball
 os.system("tar -cf "+string.lower(dirname)+".tar "+dirname)
