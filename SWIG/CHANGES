@@ -16,6 +16,9 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/08/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed [ 553864 ] Inline destructor code not written.
+
 05/08/2002: beazley
             %ignore behaves better with constructors, destructors, and the
             type system in general.   For constructors and destructors,

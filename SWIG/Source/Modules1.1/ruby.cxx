@@ -595,13 +595,12 @@ int RUBY::functionWrapper(Node *n) {
   int i;
   Parm *p;
 
-  /* Ruby needs no destructor wrapper */
-  if (current == DESTRUCTOR)
-    return SWIG_NOWRAP;
-
   char mname[256], inamebuf[256];
   int need_result = 0;
 
+  /* Ruby needs no destructor wrapper */
+  if (current == DESTRUCTOR)
+      return SWIG_NOWRAP;
 
   cleanup = NewString("");
   outarg = NewString("");
@@ -1115,9 +1114,16 @@ int RUBY::destructorHandler(Node *n) {
 	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
   	 tab4, NULL);
   if (Extend) {
+    String *wrap = Getattr(n, "wrap:code");
+    if (wrap) {
+      File *f_code = Swig_filebyname("header");
+      if (f_code) {
+        Printv(f_code, wrap, NULL);
+      }
+    }
     Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL);
   } else {
-    /* When no addmethods mode, swig emits no destroy function. */
+    /* When no extend mode, swig emits no destroy function. */
     if (CPlusPlus)
       Printf(freebody, "delete %s", Swig_cparm_name(0,0));
     else
