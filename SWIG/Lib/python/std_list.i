@@ -2,7 +2,7 @@
 // std::list
 // Python implementation
 
-%include std_container.i
+%include <std_container.i>
 
 // List
 

@@ -8,17 +8,41 @@
   methods. In the other cases, some extra work is needed.
 */
 
-
-%insert(header) {
-SWIG_define(SWIG_From(signed char),    PyInt_FromLong)
-SWIG_define(SWIG_From(unsigned char),  PyInt_FromLong)
-SWIG_define(SWIG_From(short),          PyInt_FromLong)
-SWIG_define(SWIG_From(unsigned short), PyInt_FromLong)
-SWIG_define(SWIG_From(int),            PyInt_FromLong)
-SWIG_define(SWIG_From(long),           PyInt_FromLong)
-SWIG_define(SWIG_From(float),          PyFloat_FromDouble)
-SWIG_define(SWIG_From(double),         PyFloat_FromDouble)
+%fragment(SWIG_From_frag(signed char),"header") {
+  SWIG_define(SWIG_From(signed char),    PyInt_FromLong)
 }
+
+%fragment(SWIG_From_frag(unsigned char),"header") {
+  SWIG_define(SWIG_From(unsigned char),  PyInt_FromLong)
+}
+
+%fragment(SWIG_From_frag(short),"header") {
+  SWIG_define(SWIG_From(short),          PyInt_FromLong)
+}
+
+%fragment(SWIG_From_frag(unsigned short),"header") {
+  SWIG_define(SWIG_From(unsigned short), PyInt_FromLong)
+}
+
+%fragment(SWIG_From_frag(int),"header") {
+  SWIG_define(SWIG_From(int),            PyInt_FromLong)
+}
+
+%fragment(SWIG_From_frag(long),"header") {
+  SWIG_define(SWIG_From(long),           PyInt_FromLong)
+}
+
+%fragment(SWIG_From_frag(float),"header") {
+  SWIG_define(SWIG_From(float),          PyFloat_FromDouble)
+}
+
+%fragment(SWIG_From_frag(double),"header") {
+  SWIG_define(SWIG_From(double),         PyFloat_FromDouble)
+}
+
+/*
+  Here, we have all the complex AsVal/From methods
+*/
 
 %fragment("<limits.h>","header") %{
 #include <limits.h>
@@ -87,7 +111,7 @@ SWIGSTATICINLINE(int)
   if (value > max_value) {
     if (errmsg) {
       PyErr_Format(PyExc_OverflowError,
-		   "value %ld is greater than '%s' minimum %ld",
+		   "value %lud is greater than '%s' minimum %lud",
 		   value, errmsg, max_value);
     }
     return 0;

@@ -2,7 +2,7 @@
 // std::map
 // Python implementation
 
-%include std_map.i
+%include <std_map.i>
 
 
 %define %std_multimap_methods(...)

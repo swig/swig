@@ -123,7 +123,7 @@ output values.
 // Author: Robin Dunn
 //----------------------------------------------------------------------
 
-%include pytuplehlp.swg
+%include <pytuplehlp.swg>
 
 %define _PYVAL_OUTPUT_TYPEMAP(from_meth, from_frag, Type)
  %typemap(in,numinputs=0) Type *OUTPUT ($*1_ltype temp, int res = 0), 

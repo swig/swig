@@ -2,7 +2,7 @@
 // std::vector
 // Python implementation
 
-%include std_container.i
+%include <std_container.i>
 
 // Vector
 

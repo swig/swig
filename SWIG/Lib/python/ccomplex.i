@@ -1,10 +1,10 @@
-
-%include complex_common.i
-
 /*
- *  C complex wrap
+ *  C complex typemaps
  *  ISO C99:  7.3 Complex arithmetic <complex.h>
  */
+
+
+%include <pycomplex.swg>
 
 %{
 #include <complex.h>

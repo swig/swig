@@ -7,7 +7,7 @@
 /* Python.h has to appear first */
 
 %insert(runtime) %{
-#include "Python.h"
+#include <Python.h>
 %}
 
 %insert(runtime) "precommon.swg";
@@ -19,46 +19,46 @@
 #define %shadow      %insert("shadow")
 #define %pythoncode  %insert("python")
 
-%include "pymacros.swg"
+%include <pymacros.swg>
 
 
 /* -----------------------------------------------------------------------------
- *  Look for user fragments.i file. If not found, include empty system one.
+ *  Look for user fragments file. If not found, include empty system one.
  * ----------------------------------------------------------------------------- */
 
-%include "fragments.i"
+%include "pyfragments.swg"
 
 
 /* -----------------------------------------------------------------------------
  *  SWIGTYPE typemaps
  * ----------------------------------------------------------------------------- */
 
-%include "pyswigtype.swg"
+%include <pyswigtype.swg>
 
 /* -----------------------------------------------------------------------------
  *  Typemap specializations
  * ----------------------------------------------------------------------------- */
 
-%include "pyinout.swg"
-%include "pyvoid.swg"
-%include "pyobject.swg"
-%include "pystrbase.swg"
-%include "pystrings.swg"
-%include "pyvaltypes.swg"
-%include "pyptrtypes.swg"
-%include "pyprimtypes.swg"
-%include "pymisctypes.swg"
-%include "pyenum.swg"
+%include <pyinout.swg>
+%include <pyvoid.swg>
+%include <pyobject.swg>
+%include <pystrbase.swg>
+%include <pystrings.swg>
+%include <pyvaltypes.swg>
+%include <pyptrtypes.swg>
+%include <pyprimtypes.swg>
+%include <pymisctypes.swg>
+%include <pyenum.swg>
 
 /* ------------------------------------------------------------
  *  Overloaded operator support
  * ------------------------------------------------------------ */
-%include "pyopers.swg"
+%include <pyopers.swg>
 
 /* ------------------------------------------------------------
  * Warnings for Python keywords 
  * ------------------------------------------------------------ */
-%include "pythonkw.swg"
+%include <pythonkw.swg>
 
 /* ------------------------------------------------------------
  * The start of the Python initialization function 

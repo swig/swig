@@ -1,6 +1,6 @@
-%include std_common.i
-%include pycontainer.i
-%include exception.i
+%include <pycontainer.swg>
+%include <std_common.i>
+%include <exception.i>
 
 %{
 #include <algorithm>

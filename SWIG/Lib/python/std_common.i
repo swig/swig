@@ -13,6 +13,7 @@
   
 #if defined(__SUNPRO_CC) 
 #define SWIG_STD_NOASSIGN_STL
+#define SWIG_STD_NOINSERT_TEMPLATE_STL
 #endif
 
 %}
@@ -50,7 +51,7 @@
 // Common code for supporting the STD C++ namespace
 //
 
-%include pyptrtypes.swg
+%include <pyptrtypes.swg>
 %{
 #include <string>
 #include <stdexcept>

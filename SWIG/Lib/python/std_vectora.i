@@ -7,7 +7,7 @@
 // std_vector.i instead.
 //
 
-%include std_container.i
+%include <std_container.i>
 
 // Vector
 

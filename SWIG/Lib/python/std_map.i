@@ -2,8 +2,8 @@
 // std::map
 // Python implementation
 
-%include std_pair.i
-%include std_container.i
+%include <std_pair.i>
+%include <std_container.i>
 
 %define %std_map_methods_common(map)
   %std_container_methods(SWIG_arg(map));

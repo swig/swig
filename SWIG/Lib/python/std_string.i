@@ -12,8 +12,8 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
-%include pystrings.swg
-%include std_basic_string.i
+%include <pystrings.swg>
+%include <std_basic_string.i>
 
 /* plain strings */
 
