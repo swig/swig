@@ -53,7 +53,7 @@ static char cvsroot[] = "$Header$";
  * However, if a third declaration "foo(int)" was made, it would generate a 
  * conflict (due to having a declarator that matches a previous entry).
  *
- * Structure and classes:
+ * Structures and classes:
  *
  * C/C++ symbol tables are normally managed in a few different spaces.  The
  * most visible namespace is reserved for functions, variables, typedef, enum values
@@ -77,6 +77,16 @@ static char cvsroot[] = "$Header$";
  * In this case, the symbol table contains an entry for the structure itself.  The
  * typedef is left out of the symbol table.
  *
+ * Target language vs C:
+ *
+ * The symbol tables are normally managed *in the namespace of the target language*.
+ * This means that name-collisions can be resolved using %rename and related 
+ * directives.   A quirk of this is that sometimes the symbol tables need to
+ * be used for C type resolution as well.  To handle this, each symbol table
+ * also has a C-symbol table lurking behind the scenes.  This is used to locate 
+ * symbols in the C namespace.  However, this symbol table is not used for error 
+ * reporting nor is it used for anything else during code generation.
+ *
  * Symbol table structure:
  *
  * Symbol tables themselves are a special kind of node that is organized just like
@@ -84,8 +94,10 @@ static char cvsroot[] = "$Header$";
  * traversed using the SWIG-DOM API. The following attributes names are reserved.
  *
  *     name           -- Name of the scope defined by the symbol table (if any)
- *     symtab         -- Hash table containing all of the normal symbols
- *     tags           -- Hash table containing tag symbols
+ *                       This name is the C-scope name and is not affected by
+ *                       %renaming operations
+ *     symtab         -- Hash table mapping identifiers to nodes.
+ *     csymtab        -- Hash table mapping C identifiers to nodes.
  *
  * Reserved attributes on symbol objects:
  *
@@ -102,7 +114,8 @@ static char cvsroot[] = "$Header$";
  * pertaining to symbol table management is prefaced by the "sym:" prefix.   
  * ----------------------------------------------------------------------------- */
      
-static Hash *current = 0;         /* This current symbol table */
+static Hash *current = 0;         /* The current symbol table hash */
+static Hash *ccurrent = 0;        /* The current c symbol table hash */
 static Hash *current_symtab = 0;  /* Current symbol table node */
 static Hash *symtabs = 0;         /* Hash of all symbol tables by fully-qualified name */
 static Hash *global_scope = 0;    /* Global scope */
@@ -117,8 +130,10 @@ void
 Swig_symbol_init() {
   current = NewHash();
   current_symtab = NewHash();
+  ccurrent = NewHash();
   set_nodeType(current_symtab,"symboltable");
   Setattr(current_symtab,"symtab",current);
+  Setattr(current_symtab,"csymtab", ccurrent);
 
   /* Set the global scope */
   symtabs = NewHash();
@@ -129,7 +144,7 @@ Swig_symbol_init() {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_setscopename()
  *
- * Set the name of the current symbol table scope
+ * Set the C scopename of the current symbol table.
  * ----------------------------------------------------------------------------- */
 
 void
@@ -150,7 +165,7 @@ Swig_symbol_setscopename(const String_or_char *name) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_getscopename()
  *
- * Get the name of the current symbol table scope
+ * Get the C scopename of the current symbol table
  * ----------------------------------------------------------------------------- */
 
 String *
@@ -161,7 +176,7 @@ Swig_symbol_getscopename() {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_getscope()
  *
- * Given a fully qualified name, this function returns a scope 
+ * Given a fully qualified C scopename, this function returns a symbol table
  * ----------------------------------------------------------------------------- */
 
 Symtab *
@@ -174,7 +189,8 @@ Swig_symbol_getscope(const String_or_char *name) {
 /* ----------------------------------------------------------------------------- 
  * Swig_symbol_qualifiedscopename()
  *
- * Get the fully qualified name of a symbol table
+ * Get the fully qualified C scopename of a symbol table.  Note, this only pertains
+ * to the C/C++ scope name.  It is not affected by renaming.
  * ----------------------------------------------------------------------------- */
 
 String *
@@ -212,6 +228,7 @@ Swig_symbol_newscope()
 {
   Hash *n;
   Hash *hsyms, *h;
+
   hsyms = NewHash();
   h = NewHash();
 
@@ -227,8 +244,10 @@ Swig_symbol_newscope()
   }
   set_lastChild(current_symtab,h);
   current = hsyms;
+  ccurrent = NewHash();
+  Setattr(h,"csymtab",ccurrent);
   current_symtab = h;
-  return current;
+  return current_symtab;
 }
 
 /* -----------------------------------------------------------------------------
@@ -243,13 +262,16 @@ Swig_symbol_setscope(Symtab *sym) {
   current_symtab = sym;
   current = Getattr(sym,"symtab");
   assert(current);
+  ccurrent = Getattr(sym,"csymtab");
+  assert(ccurrent);
   return ret;
 }
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_popscope()
  *
- * Pop out of the current scope.  Returns the popped scope
+ * Pop out of the current scope.  Returns the popped scope and sets the
+ * scope to the parent scope.
  * ----------------------------------------------------------------------------- */
 
 Symtab *
@@ -259,13 +281,15 @@ Swig_symbol_popscope() {
   assert(current_symtab);
   current = Getattr(current_symtab,"symtab");
   assert(current);
+  ccurrent = Getattr(current_symtab,"csymtab");
+  assert(ccurrent);
   return h;
 }
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_current()
  *
- * Get current scope
+ * Return the current symbol table.
  * ----------------------------------------------------------------------------- */
 
 Symtab *
@@ -277,7 +301,10 @@ Swig_symbol_current() {
  * Swig_symbol_add()
  *
  * Adds a node to the symbol table.  Returns the node itself if successfully
- * added.  Otherwise, it returns the symbol table entry of the conflicting node
+ * added.  Otherwise, it returns the symbol table entry of the conflicting node.
+ *
+ * Also places the symbol in a behind-the-scenes C symbol table.  This is needed
+ * for namespace support, type resolution, and other issues.
  * ----------------------------------------------------------------------------- */
 
 Node *
@@ -286,6 +313,22 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   SwigType *decl, *ndecl;
   String   *cstorage, *nstorage;
   int      nt = 0, ct = 0;
+  
+  /* See if the node has a name.  If so, we place in the C symbol table for this
+     scope. We don't worry about overloading here---the primary purpose of this
+     is to record information for type/name resolution for later. Conflicts
+     in C namespaces are errors, but these will be caught by the C++ compiler
+     when compiling the wrapper code */
+
+  {
+    String *name = Getattr(n,"name");
+    if (name) {
+      if (!Getattr(ccurrent,name)) {
+	Setattr(ccurrent,name,n);
+      }
+    }
+  }
+
   /* See if the symbol already exists in the table */
   c = Getattr(current,symname);
   if (c) {
@@ -400,7 +443,9 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
  *
  * Internal function to handle fully qualified symbol table lookups.  This
  * works from the symbol table supplied in symtab and unwinds its way out
- * towards the global scope.
+ * towards the global scope. 
+ *
+ * This function operates in the C namespace, not the target namespace.
  * ----------------------------------------------------------------------------- */
 
 static Node *
@@ -462,77 +507,22 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
     }
     return n;
   }
-
-#ifdef OLD
-  if (!symtab) return 0;
-
-  if (!namelist) {
-    Node *n;
-    String *nname = NewString(name);
-    Replaceall(nname,"::",":");
-    namelist = Split(nname,":",-1);
-    n = symbol_lookup_qualified(name, symtab, namelist, local);
-    Delete(nname);
-    Delete(namelist);
-    return n;
-  } else {
-    int   i, len;
-    Node *n;
-    Symtab *nsym = symtab;
-    len = Len(namelist);
-
-    /* First, we try to pin down the enclosing scopes */
-    for (i = 0; i < len-1; i++) {
-      String *nm;
-      Hash *sym;
-      if (!nsym) {
-	/* Whoa. No symbol table */
-	if (!local) {
-	  return symbol_lookup_qualified(name, parentNode(symtab), namelist, local);
-	} else {
-	  return 0;
-	}
-      }
-      nm = Getitem(namelist,i);
-      /* See if this scope has any children with the right name */
-      {
-	Symtab *chd = firstChild(nsym);
-	while (chd) {
-	  String *cname = Getattr(chd,"name");
-	  if (cname && (Strcmp(cname,nm) == 0)) break;
-	  chd = nextSibling(chd);
-	}
-	nsym = chd;
-      }
-    }
-    /* If we made it this far, we found all enclosing scopes do a final check */
-    if (nsym) {
-      n = Getattr(nsym, Getitem(namelist,len-1));
-      if (n) return n;
-    }
-    if (!local) {
-      return symbol_lookup_qualified(name,parentNode(symtab),namelist, local);
-    }  else {
-      return 0;
-    }
-  }
-#endif
-
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_lookup()
+ * Swig_symbol_clookup()
  *
- * Look up a symbol in the symbol table
+ * Look up a symbol in the symbol table.   This uses the C name, not scripting
+ * names.
  * ----------------------------------------------------------------------------- */
 
 Node *
-Swig_symbol_lookup(String_or_char *name, Symtab *n) {
+Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   Hash *h,*hsym;
   Hash *s;
 
   if (!n) {
-    h = current;
+    h = ccurrent;
     hsym = current_symtab;
   } else {
     if (Strcmp(nodeType(n),"symboltable")) {
@@ -541,7 +531,7 @@ Swig_symbol_lookup(String_or_char *name, Symtab *n) {
     assert(n);
     if (n) {
       hsym = n;
-      h = Getattr(hsym,"symtab");
+      h = Getattr(hsym,"csymtab");
     }
   }
 
@@ -555,24 +545,24 @@ Swig_symbol_lookup(String_or_char *name, Symtab *n) {
     if (s) return s;
     hsym = parentNode(hsym);
     if (!hsym) break;
-    h = Getattr(hsym,"symtab");
+    h = Getattr(hsym,"csymtab");
   }
   return 0;
 }
 
 Node *
-Swig_symbol_lookup_local(String_or_char *name, Symtab *n) {
+Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   Hash *h, *hsym;
   if (!n) {
     hsym = current_symtab;
-    h = current;
+    h = ccurrent;
   } else {
     if (Strcmp(nodeType(n),"symboltable")) {
       n = Getattr(n,"sym:symtab");
     }
     assert(n);
     hsym = n;
-    h = Getattr(n,"symtab");
+    h = Getattr(n,"csymtab");
   }
 
   if (Strstr(name,"::")) {
@@ -586,13 +576,13 @@ Swig_symbol_lookup_local(String_or_char *name, Symtab *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_scope_lookup()
+ * Swig_symbol_cscope()
  *
  * Look up a scope name.
  * ----------------------------------------------------------------------------- */
 
 Symtab *
-Swig_symbol_scope_lookup(String_or_char *name, Symtab *symtab) {
+Swig_symbol_cscope(String_or_char *name, Symtab *symtab) {
   if (Strncmp(name,"::",2) == 0) return symbol_lookup_qualified(0, global_scope, name, 0);
   return symbol_lookup_qualified(0,symtab,name,0);
 }

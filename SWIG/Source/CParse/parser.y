@@ -1807,7 +1807,7 @@ cpp_class_decl  :
 		       String *n = Getitem($4,i);
 		       /* Try to figure out where this symbol is */
 		       /*		       s = Swig_symbol_lookup_tag(n); */
-		       s = Swig_symbol_lookup(n,0);
+		       s = Swig_symbol_clookup(n,0);
 		       if (s && (Strcmp(nodeType(s),"class") == 0)) {
 			 String *q = Swig_symbol_qualified(s);
 			 if (q) {
@@ -2149,7 +2149,7 @@ cpp_using_decl : USING idcolon SEMI {
 cpp_namespace_decl : NAMESPACE idcolon LBRACE { 
                 Hash *h;
                 $1 = Swig_symbol_current();
-		h = Swig_symbol_lookup($2,0);
+		h = Swig_symbol_clookup($2,0);
 		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		  Swig_symbol_setscope(Getattr(h,"symtab"));
 		} else {
@@ -2170,7 +2170,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
              | NAMESPACE LBRACE {
 	       Hash *h;
 	       $1 = Swig_symbol_current();
-	       h = Swig_symbol_lookup("",0);
+	       h = Swig_symbol_clookup("",0);
 	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		 Swig_symbol_setscope(Getattr(h,"symtab"));
 	       } else {
@@ -2544,7 +2544,7 @@ def_args       : EQUAL definetype {
                   $$ = $2; 
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
-		  n = Swig_symbol_lookup($2.val,0);
+		  n = Swig_symbol_clookup($2.val,0);
 		  if (n) {
 		    String *q = Swig_symbol_qualified(n);
 		    if (q) {
@@ -2556,7 +2556,7 @@ def_args       : EQUAL definetype {
 		  }
                }
                | EQUAL AND idcolon {
-		 Node *n = Swig_symbol_lookup($3,0);
+		 Node *n = Swig_symbol_clookup($3,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (q) {

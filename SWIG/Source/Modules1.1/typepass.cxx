@@ -69,7 +69,7 @@ class TypePass : public Dispatcher {
 	  /* Typedef resolve the name */
 	  while (sname) {
 	    bcls = Getattr(classhash,sname);
-	    Symtab *bscp = Swig_symbol_scope_lookup(sname, Getattr(cls,"sym:symtab"));
+	    Symtab *bscp = Swig_symbol_cscope(sname, Getattr(cls,"sym:symtab"));
 	    if (bscp) {
 	      String *qname = Swig_symbol_qualifiedscopename(bscp);
 	      if (qname) {
@@ -231,7 +231,7 @@ public:
 
     } else {
       if (name) {
-	Node *nn = Swig_symbol_lookup(name,n);
+	Node *nn = Swig_symbol_clookup(name,n);
 	Hash *ts = Getattr(nn,"typescope");
 	if (!ts) {
 	  SwigType_new_scope();

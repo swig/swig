@@ -323,7 +323,7 @@ void symbol_handler(FILE *f) {
   fprintf(f,"</form>");
 
   if (name) {
-    Node *n = Swig_symbol_lookup(name,sym);
+    Node *n = Swig_symbol_clookup(name,sym);
     Printf(f,"Symbol '%s':\n", name);
     Printf(f,"<blockquote>\n");
     if (!n) {
