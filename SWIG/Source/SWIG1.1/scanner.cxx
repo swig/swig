@@ -524,7 +524,7 @@ int yylook(void) {
 	    state = 0;
 	    yylen = 0;
 	    last_id = 0;
-	  } else if (isspace(c)) {
+	  } else if (isspace(c) || (c=='\\')) {
 	    state = 0;
 	    yylen = 0;
 	    last_id = 0;
