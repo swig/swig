@@ -57,10 +57,24 @@ sizeof(TYPE)
 %enddef
 
 %define %realloc(TYPE,...)
+%insert("header") {
 #if #__VA_ARGS__ != ""
-%name(realloc_##__VA_ARGS__) TYPE *realloc(TYPE *ptr, int nbytes);
+TYPE *realloc_##__VA_ARGS__(TYPE *ptr, int nitems)
 #else
-%name(realloc_##TYPE)        TYPE *realloc(TYPE *ptr, int nbytes);
+TYPE *realloc_##TYPE(TYPE *ptr, int nitems)
+#endif
+{
+#if #TYPE != "void"
+return (TYPE *) realloc(ptr, nitems*sizeof(TYPE));
+#else
+return (TYPE *) realloc(ptr, nitems);
+#endif
+}
+}
+#if #__VA_ARGS__ != ""
+TYPE *realloc_##__VA_ARGS__(TYPE *ptr, int nitems);
+#else
+TYPE *realloc_##TYPE(TYPE *ptr, int nitems);
 #endif
 %enddef
 

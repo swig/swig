@@ -368,6 +368,15 @@
 %typemap(constcode) unsigned long long "PyDict_SetItemString(d,\"$symname\", PyLong_FromUnsignedLongLong($value));";
 
 /* ------------------------------------------------------------
+ * String & length
+ * ------------------------------------------------------------ */
+
+%typemap(in) (char *STRING, int LENGTH) {
+    $1 = ($1_ltype) PyString_AsString($input);
+    $2 = ($2_ltype) PyString_Size($input);
+}
+
+/* ------------------------------------------------------------
  * ANSI C typemaps
  * ------------------------------------------------------------ */
 

@@ -290,6 +290,17 @@ typedef unsigned long VALUE;
 //  $target = xmalloc(RSTRING($source)->len + 1);
 //  strncpy((char*)$target, STR2CSTR($source), RSTRING($source)->len + 1);";
 
+
+/* ------------------------------------------------------------
+ * String & length
+ * ------------------------------------------------------------ */
+
+%typemap(in) (char *STRING, int LENGTH) {
+    int temp;
+    $1 = ($1_ltype) rb_str2cstr($input,&temp);
+    $2 = ($2_ltype) temp;
+}
+
 /* Some ANSI C typemaps */
 
 %apply long { size_t };
