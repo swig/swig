@@ -14,6 +14,11 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/01/2001: cheetah (william fulton)
+	   * [Java] Efficiency changes: _cPtr used where possible rather than
+	     getCPtr(). Bug fixes for inheritance - derived class sometimes
+	     didn't delete the c memory when _delete() was called.
+
 7/31/2001: beazley
            Modified the %constant directive to be more C-like in syntax.
            The syntax is now:

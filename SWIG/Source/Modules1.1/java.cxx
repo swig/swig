@@ -52,9 +52,9 @@ static FILE   *f_shadow = 0;
 static int    shadow = 0;
 static Hash   *shadow_classes;
 static String *shadow_classdef;
+static String *shadow_code;
 static char   *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
 static int    classdef_emitted = 0;
-static int    shadow_classdef_emitted = 0;
 static int    have_default_constructor = 0;
 static int    native_func = 0;     // Set to 1 when wrapping a native function
 static int    enum_flag = 0; // Set to 1 when wrapping an enum
@@ -449,6 +449,7 @@ void JAVA::parse_args(int argc, char *argv[]) {
 void JAVA::parse() {
   shadow_classes = NewHash();
   shadow_classdef = NewString("");
+  shadow_code = NewString("");
   registerNativesList = NewString("");
   java_enum_code = NewString("");
   module_extra_code = NewString("");
@@ -584,8 +585,8 @@ void JAVA::emit_classdef() {
       Printf(f_java, "public");
     Printf(f_java, " class %s ", module);
 
-    if (module_baseclass)
-      Printv(f_java, module_baseclass, 0);
+    if (module_baseclass && *Char(module_baseclass))
+      Printf(f_java, "extends %s ", module_baseclass);
     if (module_interfaces)
       Printv(f_java, module_interfaces, " ", 0);
     Printf(f_java, "{\n", module);
@@ -619,6 +620,7 @@ void JAVA::close(void)
 
   Delete(shadow_classes); shadow_classes = NULL;
   Delete(shadow_classdef); shadow_classdef = NULL;
+  Delete(shadow_code); shadow_code = NULL;
   Delete(registerNativesList); registerNativesList = NULL;
   Delete(java_enum_code); java_enum_code = NULL;
   Delete(module_extra_code); module_extra_code = NULL;
@@ -1085,26 +1087,25 @@ void JAVA::link_variable(char *name, char *iname, SwigType *t)
 void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
   int OldStatus = Status;
   char *tm;
-  FILE *jfile;
   char *jname;
+  DOH *jout;
   Status = STAT_READONLY;
   String *java_type = NewString("");
 
   if(!classdef_emitted) emit_classdef();
 
   if(shadow && wrapping_member) {
-    if(!shadow_classdef_emitted) emit_shadow_classdef();
-    jfile = f_shadow;
+    jout = shadow_code;
     jname = shadow_variable_name;
   } else {
-    jfile = f_java;
+    jout = f_java;
     jname = name;
   }
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,name,iname,NULL))) {
     String *str = NewString(tm);
     Replace(str,"$value",value, DOH_REPLACE_ANY);
-    Printf(jfile,"  %s\n\n", str);
+    Printf(jout,"  %s\n\n", str);
     Delete(str);
   } else {
     SwigToJavaType(type, iname, java_type, shadow && wrapping_member);
@@ -1114,7 +1115,7 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
       The enum implementation is done using a public final static int
       in Java. They are then initialised through a JNI call to c in a Java static block.
       */
-      Printf(jfile, "  public final static %s %s;\n", java_type, jname, value);
+      Printf(jout, "  public final static %s %s;\n", java_type, jname, value);
 
       if(shadow && wrapping_member) {
         Printv(shadow_enum_code, tab4, jname, " = ", module, ".", Swig_name_get(iname), "();\n", 0);
@@ -1133,11 +1134,11 @@ void JAVA::declare_const(char *name, char *iname, SwigType *type, char *value) {
       enum_flag = 0;
     } else {
       if(SwigType_type(type) == T_STRING)
-        Printf(jfile, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
+        Printf(jout, "  public final static %s %s = \"%s\";\n", java_type, jname, value);
       else if(SwigType_type(type) == T_CHAR)
-        Printf(jfile, "  public final static String %s = \"%s\";\n", jname, value);
+        Printf(jout, "  public final static String %s = \"%s\";\n", jname, value);
       else
-        Printf(jfile, "  public final static %s %s = %s;\n", java_type, jname, value);
+        Printf(jout, "  public final static %s %s = %s;\n", java_type, jname, value);
     }
   }
   Delete(java_type);
@@ -1188,11 +1189,11 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   } 
   else if(strcmp(code, "modulebase") == 0) {
     if(shadow && module_baseclass)
-      Printf(module_baseclass, "extends %s ", strvalue);
+      Printf(module_baseclass, "%s", strvalue);
   } 
   else if(strcmp(code, "allshadowbase") == 0) {
     if(shadow && all_shadow_baseclass)
-      Printf(all_shadow_baseclass, "extends %s ", strvalue);
+      Printf(all_shadow_baseclass, "%s", strvalue);
   } 
   else if(strcmp(code, "moduleinterface") == 0) {
     if(shadow && module_interfaces)
@@ -1262,7 +1263,7 @@ void JAVA::cpp_pragma(Pragma* plist) {
       } 
       else if (strcmp(Char(plist->name),"shadowbase") == 0) {
         if (this_shadow_baseclass)
-          Printf(this_shadow_baseclass, "extends %s ", strvalue);
+          Printf(this_shadow_baseclass, "%s", strvalue);
       } 
       else if (strcmp(Char(plist->name),"shadowinterface") == 0) {
         if (this_shadow_interfaces) {
@@ -1325,13 +1326,10 @@ void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
     Printf(f_shadow, "package %s;\n\n", package);
   else 
     Printf(f_shadow, "import %s;\n", module);
-  if(all_shadow_import)
-    Printf(f_shadow, "%s", all_shadow_import);
 
   Clear(shadow_classdef);
-  Printv(shadow_classdef, "$classmodifiers class ", shadow_classname, " $bases", "{\n", 0);
+  Clear(shadow_code);
 
-  shadow_classdef_emitted = 0;
   have_default_constructor = 0;
   shadow_enum_code = NewString("");
   this_shadow_baseclass =  NewString("");
@@ -1345,17 +1343,41 @@ void JAVA::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
 }
 
 void JAVA::emit_shadow_classdef() {
-  String* temp_str = NewString("");
-  if(this_shadow_baseclass)
-    Printv(temp_str, this_shadow_baseclass, 0);
-  if(all_shadow_baseclass)
-    Printv(temp_str, all_shadow_baseclass, 0);
+  String* baseclass = NULL;
+
+  // Import statements
+  if(all_shadow_import)
+    Printf(shadow_classdef, "%s", all_shadow_import);
+  if(this_shadow_import)
+    Printf(shadow_classdef, "%s", this_shadow_import);
+  Printf(shadow_classdef, "\n");
+
+  // Class modifiers
+  if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
+    Printv(shadow_classdef, this_shadow_class_modifiers, 0);
+  else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
+    Printv(shadow_classdef, all_shadow_class_modifiers, 0);
+  else
+    Printv(shadow_classdef, "public", 0);
+  Printf(shadow_classdef, " class $class ");
+
+  // Inherited classes
+  if(this_shadow_baseclass && *Char(this_shadow_baseclass)) {
+    Printf(shadow_classdef, "extends %s ", this_shadow_baseclass);
+    baseclass = this_shadow_baseclass;
+  }
+  if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
+    Printf(shadow_classdef, "extends %s ", all_shadow_baseclass);
+    baseclass = all_shadow_baseclass;
+  }
+
+  // Implemented interfaces
   if(this_shadow_interfaces && *Char(this_shadow_interfaces))
-    Printv(temp_str, this_shadow_interfaces, " ", 0);
-  Replace(shadow_classdef,"$bases", temp_str, DOH_REPLACE_ANY);
+    Printv(shadow_classdef, this_shadow_interfaces, " ", 0);
+  Printf(shadow_classdef, "{\n");
 
   //Display warning on attempt to use multiple inheritance
-  char* search_str = Char(temp_str);
+  char* search_str = Char(shadow_classdef);
   int count = 0;
   while(search_str = strstr(search_str, "extends")) {
     search_str += strlen("extends");
@@ -1364,26 +1386,50 @@ void JAVA::emit_shadow_classdef() {
   if (count > 1)
     Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in Java.\n", shadow_classname);
 
-  if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
-    Replace(shadow_classdef, "$classmodifiers", this_shadow_class_modifiers, DOH_REPLACE_ANY);
-  else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
-    Replace(shadow_classdef, "$classmodifiers", all_shadow_class_modifiers, DOH_REPLACE_ANY);
-  else
-    Replace(shadow_classdef, "$classmodifiers", "public", DOH_REPLACE_ANY);
+  // Different code depending on whether or not the base class is a SWIG shadow class
+  if (baseclass && is_shadow(baseclass)) {
+    Printv(shadow_classdef,
+      "  public $class(long cPointer, boolean cMemoryOwn) {\n",
+      "    super(cPointer, cMemoryOwn);\n",
+      "  }\n",
+      "\n", 0);
 
-  Printv(shadow_classdef,
-    "  private long _cPtr = 0;\n",
-    "  private boolean _cMemOwn = false;\n",
-    "\n",
-    "  public $class(long cPointer, boolean cMemoryOwn) {\n",
-    "    _cPtr = cPointer;\n",
-    "    _cMemOwn = cMemoryOwn;\n",
-    "  }\n",
-    "\n",
-    "  public long getCPtr() {\n",
-    "    return _cPtr;\n",
-    "  }\n",
-    "\n", 0);
+    if(!have_default_constructor) {
+      Printv(shadow_classdef, 
+        "  protected $class() {\n",
+        "  }\n",
+        "\n", 0);
+    }
+    // Control which super constructor is called - we don't want 2 malloc/new c/c++ calls
+    Replace(shadow_code, "$superconstructorcall", "    super(0, false);\n", DOH_REPLACE_ANY);
+  }
+  else {
+    Printv(shadow_classdef,
+      "  protected long _cPtr;\n",
+      "  protected boolean _cMemOwn;\n",
+      "\n",
+      "  public $class(long cPointer, boolean cMemoryOwn) {\n",
+      "    _cPtr = cPointer;\n",
+      "    _cMemOwn = cMemoryOwn;\n",
+      "  }\n",
+      "\n",
+      "  public long getCPtr() {\n",
+      "    return _cPtr;\n",
+      "  }\n",
+      "\n", 0);
+
+    if(!have_default_constructor) {
+      Printv(shadow_classdef, 
+        "  protected $class() {\n",
+        "    _cPtr = 0;\n",
+        "    _cMemOwn = false;\n",
+        "  }\n",
+        "\n", 0);
+    }
+    // No explicit super constructor call as this class does not have a SWIG base class.
+    Replace(shadow_code, "$superconstructorcall", "", DOH_REPLACE_ANY);
+  }
+
   Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
 
   if (all_shadow_extra_code)
@@ -1391,28 +1437,15 @@ void JAVA::emit_shadow_classdef() {
 
   if (this_shadow_extra_code)
     Printv(shadow_classdef, this_shadow_extra_code, 0);
-
-  if(this_shadow_import)
-    Printf(f_shadow, "%s", this_shadow_import);
-  Printf(f_shadow, "\n");
-
-  Printv(f_shadow, shadow_classdef,0);
-  shadow_classdef_emitted = 1;
-  Delete(temp_str);
 }
 
 void JAVA::cpp_close_class() {
   this->Language::cpp_close_class();
   if(!shadow) return;
 
-  if(!shadow_classdef_emitted) emit_shadow_classdef();
+  emit_shadow_classdef();
 
-  // No default constructor implies class is abstract.
-  // Note that abstract in cplus.cxx has this information - it ought to be passed to each
-  // module when the class is opened.
-  if(have_default_constructor == 0) {
-    Printf(f_shadow, "  protected %s() {}\n\n", shadow_classname);
-  }
+  Printv(f_shadow, shadow_classdef, shadow_code, 0);
 
   // Write the enum initialisation code in a static block.
   // These are all the enums defined within the c++ class.
@@ -1480,12 +1513,11 @@ void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function
   String   *user_arrays = NewString("");
 
   if(!shadow) return;
-  if(!shadow_classdef_emitted) emit_shadow_classdef();
 
   /* Get the java return type */
   SwigToJavaType(t, iname, shadowrettype, shadow);
 
-  Printf(f_shadow, "  public %s %s %s(", (static_flag ? "static":""), shadowrettype, iname);
+  Printf(shadow_code, "  public %s %s %s(", (static_flag ? "static":""), shadowrettype, iname);
 
   if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
     Printf(nativecall, "long[] cArray = ");
@@ -1501,7 +1533,7 @@ void JAVA::cpp_func(char *iname, SwigType *t, ParmList *l, String* java_function
 
   Printv(nativecall, module, ".", java_function_name, "(", 0);
   if (!static_flag)
-    Printv(nativecall, "getCPtr()", 0);
+    Printv(nativecall, "_cPtr", 0);
 
   int gencomma = !static_flag;
   int pcount = ParmList_len(l);
@@ -1552,9 +1584,9 @@ DelWrapper(f);
   
       /* Add to java shadow function header */
       if (gencomma >= 2)
-        Printf(f_shadow, ", ");
+        Printf(shadow_code, ", ");
       gencomma = 2;
-      Printf(f_shadow, "%s %s", javaparamtype, arg);
+      Printf(shadow_code, "%s %s", javaparamtype, arg);
 
       Delete(javaparamtype);
     }
@@ -1594,10 +1626,10 @@ DelWrapper(f);
     Printf(nativecall,");\n");
   }
 
-  Printf(f_shadow, ") {\n");
-  Printv(f_shadow, user_arrays, 0);
-  Printf(f_shadow, "\t%s", nativecall);
-  Printf(f_shadow, "  }\n\n");
+  Printf(shadow_code, ") {\n");
+  Printv(shadow_code, user_arrays, 0);
+  Printf(shadow_code, "\t%s", nativecall);
+  Printf(shadow_code, "  }\n\n");
   Delete(shadowrettype);
   Delete(nativecall);
   Delete(user_arrays);
@@ -1607,18 +1639,16 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   this->Language::cpp_constructor(name,iname,l);
 
   if(shadow && !is_multiple_definition()) {
-    if(!shadow_classdef_emitted) emit_shadow_classdef();
-  
     String *nativecall = NewString("");
     char arg[256];
   
-    Printf(f_shadow, "  public %s(", shadow_classname);
+    Printf(shadow_code, "  public %s(", shadow_classname);
   
-    Printv(nativecall, "    if(getCPtr() == 0) {\n", 0);
+    Printv(nativecall, "$superconstructorcall", 0); // Super call for filling in later.
     if (iname != NULL)
-      Printv(nativecall, tab8, " _cPtr = ", module, ".", Swig_name_construct(iname), "(", 0);
+      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(iname), "(", 0);
     else
-      Printv(nativecall, tab8, " _cPtr = ", module, ".", Swig_name_construct(shadow_classname), "(", 0);
+      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(shadow_classname), "(", 0);
   
     int pcount = ParmList_len(l);
     if(pcount == 0)  // We must have a default constructor
@@ -1646,25 +1676,23 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
       SwigToJavaType(pt, pn, javaparamtype, shadow); 
   
       /* Add to java shadow function header */
-      Printf(f_shadow, "%s %s", javaparamtype, arg);
+      Printf(shadow_code, "%s %s", javaparamtype, arg);
   
       if(i != pcount-1) {
         Printf(nativecall, ", ");
-        Printf(f_shadow, ", ");
+        Printf(shadow_code, ", ");
       }
       Delete(javaparamtype);
     }
   
-  
-    Printf(f_shadow, ") {\n");
+    Printf(shadow_code, ") {\n");
     Printv(nativecall,
-  	 ");\n",
-  	 tab8, " _cMemOwn = true;\n",
-  	 "    }\n",
-  	 0);
+  	  ");\n",
+  	  tab4, "_cMemOwn = true;\n",
+  	  0);
   
-    Printf(f_shadow, "%s", nativecall);
-    Printf(f_shadow, "  }\n\n");
+    Printf(shadow_code, "%s", nativecall);
+    Printf(shadow_code, "  }\n\n");
     Delete(nativecall);
   }
 }
@@ -1673,22 +1701,20 @@ void JAVA::cpp_destructor(char *name, char *newname) {
   this->Language::cpp_destructor(name,newname);
 
   if(shadow && !is_multiple_definition()) {
-    if(!shadow_classdef_emitted) emit_shadow_classdef();
-  
     char *realname = (newname) ? newname : name;
   
     if(!nofinalize) {
-      Printf(f_shadow, "  protected void finalize() {\n");
-      Printf(f_shadow, "    _delete();\n");
-      Printf(f_shadow, "  }\n\n");
+      Printf(shadow_code, "  protected void finalize() {\n");
+      Printf(shadow_code, "    _delete();\n");
+      Printf(shadow_code, "  }\n\n");
     }
   
-    Printf(f_shadow, "  public void _delete() {\n");
-    Printf(f_shadow, "    if(getCPtr() != 0 && _cMemOwn) {\n");
-    Printf(f_shadow, "\t%s.%s(_cPtr);\n", module, Swig_name_destroy(shadow_classname));
-    Printf(f_shadow, "\t_cPtr = 0;\n");
-    Printf(f_shadow, "    }\n");
-    Printf(f_shadow, "  }\n\n");
+    Printf(shadow_code, "  public void _delete() {\n");
+    Printf(shadow_code, "    if(_cPtr!=0 && _cMemOwn) {\n");
+    Printf(shadow_code, "      %s.%s(_cPtr);\n", module, Swig_name_destroy(shadow_classname));
+    Printf(shadow_code, "      _cPtr = 0;\n");
+    Printf(shadow_code, "    }\n");
+    Printf(shadow_code, "  }\n\n");
   }
 }
 
@@ -1711,7 +1737,6 @@ void JAVA::cpp_class_decl(char *name, char *rename, char *type) {
 
 void JAVA::cpp_inherit(char **baseclass, int) {
   this->Language::cpp_inherit(baseclass, 0);
-
   if(!shadow) return;
 
   int i = 0;
@@ -1727,7 +1752,7 @@ void JAVA::cpp_inherit(char **baseclass, int) {
     String *b = NewString(baseclass[i]);
     bc = Char(is_shadow(b));
     if (bc && this_shadow_baseclass)
-      Printf(this_shadow_baseclass, "extends %s ", bc);
+      Printf(this_shadow_baseclass, "%s", bc);
     Delete(b);
   }
 }
