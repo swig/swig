@@ -1,6 +1,11 @@
 Version 1.3.18 (In progress)
 ============================
 
+03/20/2003: cheetah (William Fulton)
+            [C#] Added some typemaps as suggested by Andreas Schoerk for handling
+            parameters that are passed as pointers or by reference. These have
+            been put in typemaps.i.
+
 03/20/2003: beazley
             Fixed a C++ scoping bug related to code like this:
 
