@@ -128,7 +128,6 @@ class TypePass : public Dispatcher {
 		      tname = SwigType_typedef_resolve_all(bname);
 		      sname = tname;
 		    }
-		    /*		    Printf(stdout,"'%s' ---> '%s'\n", bname, SwigType_typedef_resolve_all(bname)); */
 		    while (1) {
 			bcls = Swig_symbol_clookup(sname,st);
 			if (bcls) {
@@ -160,7 +159,53 @@ class TypePass : public Dispatcher {
 			}
 			break;
 		    }
+
+		    /* If not a base class and still a template, it might be a const int reference */
+
+		    if ((!bcls) && (SwigType_istemplate(bname))) {
+		      List *tparms = SwigType_parmlist(bname);
+		      /*		      Printf(stdout,"tparms = '%s'\n", tparms); */
+		      String *pname;
+		      int i;
+		      int rep = 0;
+		      for (i = 0; i < Len(tparms); i++) {
+			pname = Getitem(tparms,i);
+			Node *pnode = Swig_symbol_clookup(pname,st);
+			if ((pnode) && (Strcmp(nodeType(pnode),"cdecl") == 0)) {
+			  SwigType *ptype = Copy(Getattr(pnode,"type"));
+			  SwigType *pdecl = Getattr(pnode,"decl");
+			  if (pdecl) {
+			    SwigType_push(ptype,pdecl);
+			  }
+			  SwigType *qtype = SwigType_typedef_resolve_all(ptype);
+			  if (SwigType_isconst(qtype)) {
+			    String *value = Getattr(pnode,"value");
+			    if (value) {
+			      Setitem(tparms,i,Copy(value));
+			      rep = 1;
+			    }
+			  }
+			  Delete(ptype);
+			  Delete(qtype);
+			}
+		      }
+		      if (rep) {
+			/* Recreate the template */
+			SwigType *newtemp = SwigType_templateprefix(bname);
+			Printf(newtemp,"<(");
+			for (i = 0; i < Len(tparms); i++) {
+			  Printf(newtemp,"%s",Getitem(tparms,i));
+			  if ((i+1) < Len(tparms)) {
+			    Putc(',',newtemp);
+			  }
+			}
+			Printf(newtemp,")>%s",SwigType_templatesuffix(bname));
+			/*			Printf(stdout,"newtemp = '%s'\n", newtemp); */
+
+		      }
+		    }
 		    if (tname) Delete(tname);
+
 		    if (!bcls) {
 			if (!clsforward) {
 			    if (!Getmeta(bname,"already_warned")) {
