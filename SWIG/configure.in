@@ -722,6 +722,7 @@ configure_substituted_files=`echo	\
     Examples/Makefile			\
     Examples/C++/test_conf.py		\
     Examples/guile/Makefile		\
+    Examples/xml/Makefile		\
     Makefile				\
     Runtime/Makefile			\
     Source/Include/swigconfig.h		\
