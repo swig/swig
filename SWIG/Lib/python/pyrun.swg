@@ -242,7 +242,8 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   static PyObject *SWIG_this = 0;
   int    newref = 0;
   PyObject  *pyobj = 0;
-
+  void *vptr;
+  
   if (!obj) return 0;
   if (obj == Py_None) {
     *ptr = 0;
@@ -262,7 +263,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
       goto type_error;
     }
   }  
-  *ptr = PyCObject_AsVoidPtr(obj);
+  vptr = PyCObject_AsVoidPtr(obj);
   c = (char *) PyCObject_GetDesc(obj);
   if (newref) Py_DECREF(obj);
   goto type_check;
@@ -282,9 +283,9 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
   c = PyString_AS_STRING(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
-    *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) {
       if (newref) { Py_DECREF(obj); }
+      *ptr = (void *) 0;
       return 0;
     } else {
       if (newref) { Py_DECREF(obj); }
@@ -292,7 +293,7 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
     }
   }
   c++;
-  c = SWIG_UnpackData(c,ptr,sizeof(void *));
+  c = SWIG_UnpackData(c,&vptr,sizeof(void *));
   if (newref) { Py_DECREF(obj); }
 #endif
 
@@ -301,7 +302,7 @@ type_check:
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;
-    *ptr = SWIG_TypeCast(tc,(void*) *ptr);
+    *ptr = SWIG_TypeCast(tc,vptr);
   }
 
   if ((pyobj) && (flags & SWIG_POINTER_DISOWN)) {
@@ -315,17 +316,17 @@ type_error:
     obj = pyobj;
     if (PyCFunction_Check(obj)) {
       /* here we get the method pointer for callbacks */
-      c = strstr((((PyCFunctionObject *)obj) -> m_ml -> ml_doc), "swig_ptr: ");
+      char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
+      c = doc ? strstr(doc, "swig_ptr: ") : 0;
       if (c) {
 	c += 10;
 	if (*c == '_') {
 	  c++;
-	  c = SWIG_UnpackData(c,ptr,sizeof(void *));
+	  c = SWIG_UnpackData(c,&vptr,sizeof(void *));
 	  goto type_check;
 	}
       }
-    }
-    if (PyInt_Check(obj)) {
+    } else if (PyInt_Check(obj)) {
       /* here we check for the only accepted zero value */
       long v = PyInt_AsLong(obj);
       if (v == 0) {
