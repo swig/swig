@@ -1,8 +1,11 @@
 import lib_std_wstring
 
+x=u"h"
+
+if lib_std_wstring.test_wcvalue(x) != x:
+  raise RuntimeError, "bad string mapping"
+
 x=u"hello"
-
-
 if lib_std_wstring.test_ccvalue(x) != x:
   raise RuntimeError, "bad string mapping"
 

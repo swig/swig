@@ -26,6 +26,10 @@ struct B
 };
  
 
+wchar_t test_wcvalue(wchar_t x) {
+   return x;
+}
+
 const wchar_t* test_ccvalue(const wchar_t* x) {
    return x;
 }
