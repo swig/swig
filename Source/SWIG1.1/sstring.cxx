@@ -142,7 +142,7 @@ String::String(const char *s) {
     l = (int) strlen(s);
     if ((l+1) > max) max = l+1;
   }
-  str = new char[maxsize];
+  str = new char[max];
   if (s) {
     strcpy(str,s);
     len = l;
