@@ -56,7 +56,7 @@ static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
        String  *ModuleName = 0;
- 
+static String  *Classprefix = 0;  
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -106,11 +106,71 @@ static int promote(int t1, int t2) {
 }
 
 static String *yyrename = 0;
-static Hash   *name_hash = 0;
+
+/* Forward renaming operator */
+static Hash   *rename_hash = 0;
+
+static void
+rename_add(String *name, SwigType *decl, String *newname) {
+  Hash *n;
+  
+  if (!rename_hash) rename_hash = NewHash();
+  n = Getattr(rename_hash,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(rename_hash,name,n);
+  }
+  
+  /* Add a renaming based on the declarator */
+  if (!decl) {
+    decl = NewString("*");
+  }
+  Setattr(n,decl,newname);
+}
+
+static void
+rename_inherit(String *base, String *derived) {
+  String *key;
+  String *value;
+  String *bprefix;
+  String *dprefix;
+  char *cbprefix;
+  int   plen;
+
+  if (!rename_hash) return;
+  
+  bprefix = NewStringf("%s::",base);
+  dprefix = NewStringf("%s::",derived);
+  cbprefix = Char(bprefix);
+  plen = strlen(cbprefix);
+  for (key = Firstkey(rename_hash); key; key = Nextkey(rename_hash)) {
+    char *k = Char(key);
+    if (strncmp(k,cbprefix,plen) == 0) {
+      String *nkey = NewStringf("%s%s",dprefix,k+plen);
+      Hash *n;
+      n = Getattr(rename_hash,key);
+      Hash *newh = Getattr(rename_hash,nkey);
+      if (!newh) {
+	newh = NewHash();
+	Setattr(rename_hash,nkey,newh);
+      }
+      String *okey;
+      for (okey = Firstkey(n); okey; okey = Nextkey(n)) {
+	String *ovalue = Getattr(n,okey);
+	if (!Getattr(newh,okey)) {
+	  Setattr(newh,okey,Copy(ovalue));
+	}
+      }
+    }
+  }
+}
 
 /* Generate the symbol table name for an object */
-static char *make_name(char *name) {
-  static String *tmp = 0;
+static char *make_name(char *name,String *decl) {
+  String *tname = 0;
+  char   *hname = 0;
+  String *rn;
+  Node *n;
   if (yyrename) {
     String *s = yyrename;
     yyrename = 0;
@@ -118,9 +178,30 @@ static char *make_name(char *name) {
   }
   if (!name) return 0;
   /* Check to see if the name is in the hash */
-  if (!name_hash) name_hash = NewHash();
-  String *nn = Getattr(name_hash,name);
-  if (nn) return Char(nn);   
+  if (!rename_hash) return name;
+  
+
+  if (Classprefix) {
+    tname = NewStringf("%s::%s",Classprefix,name);
+    n = Getattr(rename_hash,tname);
+    Delete(tname);
+    if (!n) {
+      tname = NewStringf("::%s",name);
+      n = Getattr(rename_hash,tname);
+      Delete(tname);
+    }
+  }
+  if (!n) {
+    n = Getattr(rename_hash,name);
+  }
+  if (!n) return name;
+
+  if (decl) {
+    rn = Getattr(n,decl);
+    if (rn) return Char(rn);
+  }
+  rn = Getattr(n,"*");
+  if (rn) return Char(rn);
   return name;
 }
 
@@ -132,12 +213,23 @@ static String *make_unnamed() {
 
 /* Add declaration list to symbol table */
 static void add_symbols(Node *n) {
+  String *decl;
   while (n) {
     if (nodeSymbol(n)) {
       n = nextSibling(n);
       continue;
     }
-    char *symname = make_name(GetChar(n,"name"));
+    decl = Getdecl(n);
+    char *symname;
+    if (!SwigType_isfunction(decl)) {
+      symname = make_name(GetChar(n,"name"),0);
+    } else {
+      SwigType *fdecl = Copy(decl);
+      SwigType *fun = SwigType_pop(fdecl);
+      symname = make_name(GetChar(n,"name"),fun);
+      Delete(fdecl);
+      Delete(fun);
+    }
     String *storage = Getstorage(n);
     if (!symname) {
       n = nextSibling(n);
@@ -163,7 +255,7 @@ static void add_symbols(Node *n) {
 
 /* Add a declaration to the tag-space */
 static void add_tag(Node *n) {
-  char *symname = make_name(GetChar(n,"name"));
+  char *symname = make_name(GetChar(n,"name"),0);
   if (!symname) {
     symname = GetChar(n,"unnamed");
   }
@@ -872,14 +964,19 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
    %rename identifier "newname";
    ------------------------------------------------------------ */
 
-rename_directive : RENAME ID idstring SEMI {
-                 if (!name_hash) {
-                    name_hash = NewHash();
-                 }
-   	         Setattr(name_hash,$2,$3);
-		 $$ = 0;
+rename_directive : RENAME declarator idstring SEMI {
+                    SwigType *t = $2.type;
+		    if (!Len(t)) t = 0;
+		    rename_add($2.id,t,$3);
+		    $$ = 0;
               }
-              ;
+              | RENAME LPAREN idstring RPAREN declarator SEMI {
+		SwigType *t = $5.type;
+		if (!Len(t)) t = 0;
+                rename_add($5.id,t,$3);
+                $$ = 0;
+              }
+               ;
 
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -1187,7 +1284,18 @@ cpp_class_decl  :
 
 /* A simple class/struct/union definition */
                 storage_class cpptype ID inherit LBRACE {
-                   class_rename = make_name($3);
+                   class_rename = make_name($3,0);
+		   
+		   Classprefix = NewString($3);
+		   /* Deal with renaming */
+		   if ($4) {
+		     int i;
+		     for (i = 0; i < Len($4); i++) {
+		       Node *n = Getitem($4,i);
+		       rename_inherit(Getname(n),$3);
+		     }
+		   }
+
                    if (strcmp($2,"class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
 		   } else {
@@ -1257,12 +1365,13 @@ cpp_class_decl  :
 	       add_tag($$);
 	       if ($9)
 		 add_symbols($9);
+	       Classprefix = 0;
 	     }
 
 /* An unnamed struct, possibly with a typedef */
 
              | storage_class cpptype LBRACE {
-	       class_rename = make_name(0);
+	       class_rename = make_name(0,0);
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
