@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Argument Handling</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Arguments"></a>9 Argument Handling</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Arguments_nn2">The typemaps.i library</a>
 <ul>
@@ -23,6 +25,7 @@
 <li><a href="#Arguments_nn11">Applying constraints to new datatypes</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -44,19 +47,23 @@ describes some of the techniques for doing this.
 <H2><a name="Arguments_nn2"></a>9.1 The typemaps.i library</H2>
 
 
+<p>
 This section describes the <tt>typemaps.i</tt> library file--commonly used to
 change certain properties of argument conversion.
+</p>
 
 <H3><a name="Arguments_nn3"></a>9.1.1 Introduction</H3>
 
 
+<p>
 Suppose you had a C function like this:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 void add(double a, double b, double *result) {
 	*result = a + b;
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 From reading the source code, it is clear that the function is storing
@@ -70,14 +77,14 @@ One way to deal with this is to use the
 <tt>typemaps.i</tt> library file and write interface code like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Simple example using typemaps
 %module example
 %include "typemaps.i"
 
 %apply double *OUTPUT { double *result };
 extern void add(double a, double b, double *result);
-</pre></blockquote>
+</pre></div>
 
 <p>
 The <tt>%apply</tt> directive tells SWIG that you are going to apply
@@ -91,25 +98,27 @@ When the resulting module is created, you can now use the function
 like this (shown for Python):
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt;&gt;&gt; a = add(3,4)
 &gt;&gt;&gt; print a
 7
 &gt;&gt;&gt;
-</pre></blockquote>
+</pre></div>
 
+<p>
 In this case, you can see how the output value normally returned in
 the third argument has magically been transformed into a function
 return value.  Clearly this makes the function much easier to use
 since it is no longer necessary to manufacture a special <tt>double
 *</tt> object and pass it to the function somehow.
+</p>
 
 <p>
 Once a typemap has been applied to a type, it stays in effect for all future occurrences
 of the type and name.  For example, you could write the following:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 %include "typemaps.i"
 
@@ -119,16 +128,18 @@ extern void sub(double a, double b, double *result);
 extern void mul(double a, double b, double *result);
 extern void div(double a, double b, double *result);
 ...
-</pre></blockquote>
+</pre></div>
 
+<p>
 In this case, the <tt>double *OUTPUT</tt> rule is applied to all of the functions that follow.
+</p>
 
 <p>
 Typemap transformations can even be extended to multiple return values.
 For example, consider this code:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %include "typemaps.i"
 %apply int *OUTPUT { int *width, int *height };
@@ -136,11 +147,13 @@ For example, consider this code:
 // Returns a pair (width,height)
 void getwinsize(int winid, int *width, int *height);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, the function returns multiple values, allowing it to be used like this:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt;&gt;&gt; w,h = genwinsize(wid)
 &gt;&gt;&gt; print w
 400
@@ -148,7 +161,7 @@ In this case, the function returns multiple values, allowing it to be used like 
 300
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
 <p>
 It should also be noted that although the <tt>%apply</tt> directive is
@@ -156,22 +169,24 @@ used to associate typemap rules to datatypes, you can also use the
 rule names directly in arguments.  For example, you could write this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Simple example using typemaps
 %module example
 %include "typemaps.i"
 
 extern void add(double a, double b, double *OUTPUT);
-</pre></blockquote>
+</pre></div>
 
+<p>
 Typemaps stay in effect until they are explicitly deleted or redefined to something
 else.   To clear a typemap, the <tt>%clear</tt> directive should be used.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %clear double *result;      // Remove all typemaps for double *result
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Arguments_nn4"></a>9.1.2 Input parameters</H3>
 
@@ -181,7 +196,7 @@ The following typemaps instruct SWIG that a pointer really only holds a single
 input value:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int *INPUT		
 short *INPUT
 long *INPUT
@@ -190,34 +205,38 @@ unsigned short *INPUT
 unsigned long *INPUT
 double *INPUT
 float *INPUT
-</pre></blockquote>
+</pre></div>
 
+<p>
 When used, it allows values to be passed instead of pointers.  For example, consider this
 function:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 double add(double *a, double *b) {
 	return *a+*b;
 }
-</pre></blockquote>
+</pre></div>
 
+<p>
 Now, consider this SWIG interface:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 %include "typemaps.i"
 ...
 extern double add(double *INPUT, double *INPUT);
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 When the function is used in the scripting language interpreter, it will work like this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 result = add(3,4)
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Arguments_nn5"></a>9.1.3 Output parameters</H3>
 
@@ -228,7 +247,7 @@ function. When used, you do not need to supply the argument when
 calling the function. Instead, one or more output values are returned. 
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int *OUTPUT
 short *OUTPUT
 long *OUTPUT
@@ -238,47 +257,51 @@ unsigned long *OUTPUT
 double *OUTPUT
 float *OUTPUT
 
-</pre></blockquote>
+</pre></div>
 <p>
 These methods can be used as shown in an earlier example. For example, if you have this C function :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 void add(double a, double b, double *c) {
 	*c = a+b;
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 A SWIG interface file might look like this :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 %include "typemaps.i"
 ...
 extern void add(double a, double b, double *OUTPUT);
 
-</pre></blockquote>
+</pre></div>
 
+<p>
 In this case, only a single output value is returned, but this is not
 a restriction.  An arbitrary number of output values can be returned by applying
 the output rules to more than one argument (as shown previously).
+</p>
 
 <p>
 If the function also returns a value, it is returned along with the argument. For example,
 if you had this:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 extern int foo(double a, double b, double *OUTPUT);
-</pre></blockquote>
+</pre></div>
 
+<p>
 The function will return two values like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 iresult, dresult = foo(3.5, 2)
 </pre>
-</blockquote>
+</div>
 
 <H3><a name="Arguments_nn6"></a>9.1.4 Input/Output parameters</H3>
 
@@ -287,7 +310,7 @@ iresult, dresult = foo(3.5, 2)
 When a pointer serves as both an input and output value you can use
 the following typemaps :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 int *INOUT
 short *INOUT
 long *INOUT
@@ -297,43 +320,45 @@ unsigned long *INOUT
 double *INOUT
 float *INOUT
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 A C function that uses this might be something like this:</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 void negate(double *x) {
 	*x = -(*x);
 }
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 To make x function as both and input and output value, declare the
 function like this in an interface file :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 %include typemaps.i
 ...
 extern void negate(double *INOUT);
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 Now within a script, you can simply call the function normally :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 a = negate(3);         # a = -3 after calling this
-</pre></blockquote>
+</pre></div>
 
+<p>
 One subtle point of the <tt>INOUT</tt> rule is that many scripting languages
 enforce mutability constraints on primitive objects (meaning that simple objects
 like integers and strings aren't supposed to change).   Because of this, you can't
 just modify the object's value in place as the underlying C function does in this example.
 Therefore, the <tt>INOUT</tt> rule returns the modified value as a new object
 rather than directly overwriting the value of the original input object.
+</p>
 
 <p>
 <b>Compatibility note :</b> The <tt>INOUT</tt> rule used to be known as <tt>BOTH</tt> in earlier versions of
@@ -348,7 +373,7 @@ As previously shown, the <tt>%apply</tt> directive can be used to apply the <tt>
 <tt>INOUT</tt> typemaps to different argument names.  For example:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Make double *result an output value
 %apply double *OUTPUT { double *result };
 
@@ -358,25 +383,31 @@ As previously shown, the <tt>%apply</tt> directive can be used to apply the <tt>
 // Make long *x inout
 %apply long *INOUT {long *x};
 
-</pre></blockquote>
+</pre></div>
 
+<p>
 To clear a rule, the <tt>%clear</tt> directive is used:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %clear double *result;
 %clear Int32 *in, long *x;
-</pre></blockquote>
+</pre></div>
 
+<p>
 Typemap declarations are lexically scoped so a typemap takes effect from the point of definition to the end of the
 file or a matching <tt>%clear</tt> declaration.
+</p>
 
 <H2><a name="Arguments_nn8"></a>9.2 Applying constraints to input values</H2>
 
 
+<p>
 In addition to changing the handling of various input values, it is
 also possible to use typemaps to apply constraints. For example, maybe you want to
 insure that a value is positive, or that a pointer is non-NULL. This
 can be accomplished including the <tt>constraints.i</tt> library file.
+</p>
 
 <H3><a name="Arguments_nn9"></a>9.2.1 Simple constraint example</H3>
 
@@ -385,7 +416,7 @@ can be accomplished including the <tt>constraints.i</tt> library file.
 The constraints library is best illustrated by the following interface
 file :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Interface file with constraints
 %module example
 %include "constraints.i"
@@ -396,7 +427,7 @@ double sqrt(double NONNEGATIVE);     // Non-negative values only
 double inv(double NONZERO);          // Non-zero values
 void   free(void *NONNULL);          // Non-NULL pointers only
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 The behavior of this file is exactly as you would expect. If any of
@@ -410,7 +441,7 @@ values, prevent mysterious program crashes and so on.</p>
 <p>
 The following constraints are currently available</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 POSITIVE                     Any number &gt; 0 (not zero)
 NEGATIVE                     Any number &lt; 0 (not zero)
 NONNEGATIVE                  Any number &gt;= 0
@@ -418,7 +449,7 @@ NONPOSITIVE                  Any number &lt;= 0
 NONZERO                      Nonzero number
 NONNULL                      Non-NULL pointer (pointers only).
 
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Arguments_nn11"></a>9.2.3 Applying constraints to new datatypes</H3>
 
@@ -428,24 +459,24 @@ The constraints library only supports the primitive C datatypes, but it
 is easy to apply it to new datatypes using <tt>%apply</tt>. For
 example :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 // Apply a constraint to a Real variable
 %apply Number POSITIVE { Real in };
 
 // Apply a constraint to a pointer type
 %apply Pointer NONNULL { Vector * };
 
-</pre></blockquote>
+</pre></div>
 
 <p>
 The special types of "Number" and "Pointer" can be applied to any
 numeric and pointer variable type respectively. To later remove a
 constraint, the <tt>%clear</tt> directive can be used :</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %clear Real in;
 %clear Vector *;
-</pre></blockquote>
+</pre></div>
 
 </body>
 </html>

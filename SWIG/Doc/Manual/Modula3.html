@@ -2,10 +2,12 @@
 <html>
 <head>
 <title>SWIG and Modula-3</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body bgcolor="#FFFFFF">
 <H1><a name="Modula3"></a>20 SWIG and Modula-3</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#modula3_overview">Overview</a>
 <ul>
@@ -40,10 +42,12 @@
 </ul>
 <li><a href="#remarks">Remarks</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 This chapter describes SWIG's support of
 <a href="http://www.m3.org/">Modula-3</a>.
 You should be familiar with the
@@ -51,6 +55,7 @@ You should be familiar with the
 of SWIG,
 especially
 <a href="Typemaps.html">typemaps</a>.
+</p>
 
 <H2><a name="modula3_overview"></a>20.1 Overview</H2>
 
@@ -78,9 +83,11 @@ FFTW
 </ol>
 
 
+<p>
 I took some more time to explain
 why I think it's right what I'm doing.
 So the introduction got a bit longer than it should ...  ;-)
+</p>
 
 
 <H3><a name="whyscripting"></a>20.1.1 Why not scripting ?</H3>
@@ -141,12 +148,14 @@ Modula-3 is made in one go
 and the language definition is really compact.
 </p>
 
+<p>
 On the one hand Modula-3 can be safe
 (but probably less efficient) in normal modules
 while providing much static and dynamic safety.
 On the other hand you can write efficient
 but less safe code in the style of C
 within <tt>UNSAFE</tt> modules.
+</p>
 
 <p>
 Unfortunately Modula's safety and strength
@@ -337,8 +346,11 @@ generates several files:
 </tr>
 </table>
 
+<p>
 Here's a scheme of how the function calls to Modula-3 wrappers
 are redirected to C library functions:
+</p>
+
 <table summary="Modula-3 C library">
 <tr>
   <td align=center>
@@ -403,8 +415,11 @@ but C++ compilers should support generating C++ functions
 with a C interface.
 </p>
 
+<p>
 Here's a scheme of how the function calls to Modula-3 wrappers
 a redirected to C library functions:
+</p>
+
 <table summary="Modula-3 C++ library">
 <tr>
   <td align=center>
@@ -496,6 +511,7 @@ so I'm not sure if this is possible or sensible, yet.
 <H3><a name="compilers"></a>20.3.1 Compilers</H3>
 
 
+<p>
 There are different Modula-3 compilers around:
 cm3, pm3, ezm3, Klagenfurth Modula-3, Cambridge Modula-3.
 SWIG itself does not contain compiler specific code
@@ -503,15 +519,18 @@ but the library file
 <a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
 may do so.
 For testing examples I use Critical Mass cm3.
+</p>
 
 
 <H3><a name="commandline"></a>20.3.2 Additional Commandline Options</H3>
 
 
+<p>
 There are some experimental command line options
 that prevent SWIG from generating interface files.
 Instead files are emitted that may assist you
 when writing SWIG interface files.
+</p>
 
 <table border summary="Modula-3 specific options">
 <tr>
@@ -802,9 +821,12 @@ consist of the following parts:
 <H3><a name="ordinals"></a>20.4.2 Subranges, Enumerations, Sets</H3>
 
 
+<p>
 Subranges, enumerations, and sets are machine oriented types
 that make Modula very strong and expressive compared
 with the type systems of many other languages.
+</p>
+
 <ul>
 <li>
 Subranges are used for statically restricted choices of integers.
@@ -816,8 +838,12 @@ Enumerations are used for named choices.
 Sets are commonly used for flag (option) sets.
 </li>
 </ul>
-Using them extensively makes Modula code very safe and readable.
 
+<p>
+Using them extensively makes Modula code very safe and readable.
+</p>
+
+<p>
 C supports enumerations, too, but they are not as safe as the ones of Modula.
 Thus they are abused for many things:
 For named choices, for integer constant definitions, for sets.
@@ -826,7 +852,9 @@ To make it complete every way of defining a value in C
 is somewhere used for defining something
 that must be handled completely different in Modula-3
 (<tt>INTEGER</tt>, enumeration, <tt>SET</tt>).
+</p>
 
+<p>
 I played around with several <tt>%feature</tt>s and <tt>%pragma</tt>s
 that split the task up into converting
 the C bit patterns (integer or bit set)
@@ -839,17 +867,20 @@ So the best what you can currently do is
 to rewrite constant definitions manually.
 Though this is a tedious work
 that I'd like to automate.
+</p>
 
 
 <H3><a name="class"></a>20.4.3 Objects</H3>
 
 
+<p>
 Declarations of C++ classes are mapped to <tt>OBJECT</tt> types
 while it is tried to retain the access hierarchy
 "public - protected - private" using partial revelation.
 Though the
 <a href="../../Examples/modula3/class/example.i">implementation</a>
 is not really useful, yet.
+</p>
 
 
 <H3><a name="imports"></a>20.4.4 Imports</H3>
@@ -878,40 +909,50 @@ for the typemap library
 For a monolithic module you might be better off
 if you add the imports directly:
 </p>
+
+<div class="code">
 <pre>
 %insert(m3rawintf) %{
 IMPORT M3toC;
 %}
-</pre>
+</pre></div>
 
 
 <H3><a name="exceptions"></a>20.4.5 Exceptions</H3>
 
 
+<p>
 Modula-3 provides another possibility
 of an output of a function: exceptions.
+</p>
 
+<p>
 Any piece of Modula-3 code that SWIG inserts
 due to a typemap can raise an exception.
 This way you can also convert an error code
 from a C function into a Modula-3 exception.
+</p>
 
+<p>
 The <tt>RAISES</tt> clause is controlled
 by typemaps with the <tt>throws</tt> extension.
 If the typemap <tt>m3wrapinconv</tt> for <tt>blah *</tt>
 contains code that may raise the exceptions <tt>OSError.E</tt>
 you should declare
 <tt>%typemap("m3wrapinconv:throws") blah * %{OSError.E%}</tt>.
+</p>
 
 <H3><a name="typemap_example"></a>20.4.6 Example</H3>
 
 
+<p>
 The generation of wrappers in Modula-3 needs very fine control
 to take advantage of the language features.
 Here is an example of a generated wrapper
 where almost everything is generated by a typemap:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 <I>         (* %relabel  m3wrapinmode m3wrapinname m3wrapintype  m3wrapindefault *)</I>
   PROCEDURE Name     (READONLY       str       :    TEXT    :=      ""       )
 <I>              (* m3wrapoutcheck:throws *)</I>
@@ -945,7 +986,7 @@ where almost everything is generated by a typemap:
         M3toC.FreeSharedS(str,arg1);     <I>(* m3wrapfreearg *)</I>
       END;
     END Name;
-</pre></blockquote>
+</pre></div>
 
 
 <H2><a name="hints"></a>20.5 More hints to the generator</H2>

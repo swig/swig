@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>SWIG and Pike</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Pike"></a>25 SWIG and Pike</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Pike_nn2">Preliminaries</a>
 <ul>
@@ -24,6 +26,7 @@
 <li><a href="#Pike_nn12">Static Members</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -49,18 +52,29 @@ chapter.<br>
 <H3><a name="Pike_nn3"></a>25.1.1 Running SWIG</H3>
 
 
+<p>
 Suppose that you defined a SWIG module such as the following:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br>int fact(int n);<br></pre>
-</blockquote>
+</div>
+
+<p>
 To build a C extension module for Pike, run SWIG using the <tt>-pike</tt> option :
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>swig -pike example.i</b><br></pre>
-</blockquote>
+</div>
+
+<p>
 If you're building a C++ extension, be sure to add the <tt>-c++</tt> option:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>swig -c++ -pike example.i</b><br></pre>
-</blockquote>
+</div>
 
 <p>
 This creates a single source file named <tt>example_wrap.c</tt> (or <tt>example_wrap.cxx</tt>, if you
@@ -77,9 +91,9 @@ of the wrapper file is <tt>example_wrap.c</tt>. To change this, you
 can use the <tt>-o</tt> option:
 </p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>swig -pike -o pseudonym.c example.i</b><br></pre>
-</blockquote>
+</div>
 <H3><a name="Pike_nn4"></a>25.1.2 Getting the right header files</H3>
 
 
@@ -89,9 +103,9 @@ path to the Pike header files. These files are usually contained in a
 directory such as
 </p>
 
-<blockquote>
+<div class="code">
   <pre>/usr/local/pike/7.4.10/include/pike<br></pre>
-</blockquote>
+</div>
 
 <p>
 There doesn't seem to be any way to get Pike itself to reveal the
@@ -103,15 +117,17 @@ and so on.
 <H3><a name="Pike_nn5"></a>25.1.3 Using your module</H3>
 
 
+<p>
 To use your module, simply use Pike's <tt>import</tt> statement:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 $ <b>pike</b>
 Pike v7.4 release 10 running Hilfe v3.5 (Incremental Pike Frontend)
 &gt; <b>import example;</b>
 &gt; <b>fact(4);</b>
 (1) Result: 24
-</pre></blockquote>
+</pre></div>
 
 <H2><a name="Pike_nn6"></a>25.2 Basic C/C++ Mapping</H2>
 
@@ -119,49 +135,59 @@ Pike v7.4 release 10 running Hilfe v3.5 (Incremental Pike Frontend)
 <H3><a name="Pike_nn7"></a>25.2.1 Modules</H3>
 
 
+<p>
 All of the code for a given SWIG module is wrapped into a single Pike
 module. Since the name of the shared library that implements your
 module ultimately determines the module's name (as far as Pike is
 concerned), SWIG's <tt>%module</tt> directive doesn't really have any
 significance.
+</p>
 
 <H3><a name="Pike_nn8"></a>25.2.2 Functions</H3>
 
 
+<p>
 Global functions are wrapped as new Pike built-in functions. For
 example,
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 int fact(int n);
-</pre></blockquote>
+</pre></div>
 
+<p>
 creates a new built-in function <tt>example.fact(n)</tt> that works
 exactly as you'd expect it to:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt; <b>import example;</b>
 &gt; <b>fact(4);</b>
 (1) Result: 24
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Pike_nn9"></a>25.2.3 Global variables</H3>
 
 
+<p>
 Global variables are currently wrapped as a pair of of functions, one to get
 the current value of the variable and another to set it. For example, the
 declaration
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %module example
 
 double Foo;
-</pre></blockquote>
+</pre></div>
 
+<p>
 will result in two functions, <tt>Foo_get()</tt> and <tt>Foo_set()</tt>:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 &gt; <b>import example;</b>
 &gt; <b>Foo_get();</b>
 (1) Result: 3.000000
@@ -169,43 +195,51 @@ will result in two functions, <tt>Foo_get()</tt> and <tt>Foo_set()</tt>:
 (2) Result: 0
 &gt; <b>Foo_get();</b>
 (3) Result: 3.141590
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Pike_nn10"></a>25.2.4 Constants and enumerated types</H3>
 
 
+<p>
 Enumerated types in C/C++ declarations are wrapped as Pike constants,
 not as Pike enums.
+</p>
 
 <H3><a name="Pike_nn11"></a>25.2.5 Constructors and Destructors</H3>
 
 
+<p>
 Constructors are wrapped as <tt>create()</tt> methods, and destructors are
 wrapped as <tt>destroy()</tt> methods, for Pike classes.
+</p>
 
 <H3><a name="Pike_nn12"></a>25.2.6 Static Members</H3>
 
 
+<p>
 Since Pike doesn't support static methods or data for Pike classes, static
 member functions in your C++ classes are wrapped as regular functions and
 static member variables are wrapped as pairs of functions (one to get the
 value of the static member variable, and another to set it). The names of
 these functions are prepended with the name of the class.
 For example, given this C++ class declaration:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 class Shape
 {
 public:
     static void print();
     static int nshapes;
 };
-</pre></blockquote>
+</pre></div>
 
+<p>
 SWIG will generate a <tt>Shape_print()</tt> method that invokes the static
 <tt>Shape::print()</tt> member function, as well as a pair of methods,
 <tt>Shape_nshapes_get()</tt> and <tt>Shape_nshapes_set()</tt>, to get and set
 the value of <tt>Shape::nshapes</tt>.
+</p>
 
 </body>
 </html>

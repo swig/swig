@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Introduction</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Introduction"></a>2 Introduction</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Introduction_nn2">What is SWIG?</a>
 <li><a href="#Introduction_nn3">Why use SWIG?</a>
@@ -24,6 +26,7 @@
 <li><a href="#Introduction_nn12">Hands off code generation</a>
 <li><a href="#Introduction_nn13">SWIG and freedom</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -31,6 +34,7 @@
 <H2><a name="Introduction_nn2"></a>2.1 What is SWIG?</H2>
 
 
+<p>
 SWIG is a software development tool that simplifies the task of
 interfacing different languages to C and C++ programs.  In a
 nutshell, SWIG is a compiler that takes C declarations and creates
@@ -39,6 +43,7 @@ including Perl, Python, Tcl, Ruby, Guile, and Java.  SWIG normally
 requires no modifications to existing code and can often be used to
 build a usable interface in only a few minutes.  Possible applications
 of SWIG include:
+</p>
 
 <ul>
 <li>Building interpreted interfaces to existing C programs.
@@ -68,10 +73,12 @@ in scientific and engineering projects.
 <H2><a name="Introduction_nn3"></a>2.2 Why use SWIG?</H2>
 
 
+<p>
 As stated in the previous section, the primary purpose of SWIG is to simplify
 the task of integrating C/C++ with other programming languages.  However, why would
 anyone want to do that?   To answer that question, it is useful to list a few strengths
 of C/C++ programming:
+</p>
 
 <ul>
 <li>Excellent support for writing programming libraries.
@@ -80,7 +87,9 @@ of C/C++ programming:
 <li>Large user community and software base.
 </ul>
 
+<p>
 Next, let's list a few problems with C/C++ programming
+</p>
 
 <ul>
 <li>Writing a user interface is rather painful (i.e., consider programming with MFC, X11, GTK, or any number
@@ -90,7 +99,7 @@ of other libraries).
 <li>Modularization can be tricky.
 <li>Security concerns (buffer overflow for instance).
 </ul>
-
+<p>
 To address these limitations, many programmers have arrived at the
 conclusion that it is much easier to use different programming
 languages for different tasks.  For instance, writing a graphical user
@@ -104,6 +113,7 @@ strengths and weaknesses.  Moreover, it is extremely unlikely that any
 programming is ever going to be perfect.  Therefore, by combining
 languages together, you can utilize the best features of each language
 and greatly simplify certain aspects of software development.
+</p>
 
 <p>
 From the standpoint of C/C++, a lot of people use SWIG because they want to break
@@ -116,10 +126,11 @@ in programs that resemble this:
 <li>A horrible collection of hacks that form some kind of user interface (but 
 which no-one really wants to touch).
 </ul>
-
+<p>
 Instead of going down that route, incorporating C/C++ into a higher level language
 often results in a more modular design, less code, better flexibility, and increased
 programmer productivity.   
+</p>
 
 <p>
 SWIG tries to make the problem of C/C++ integration as painless as possible.
@@ -134,10 +145,12 @@ user manual ;-).
 <H2><a name="Introduction_nn4"></a>2.3 A SWIG example</H2>
 
 
+<p>
 The best way to illustrate SWIG is with a simple example. Consider the
 following C code:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 /* File : example.c */
 
 double  My_variable  = 3.0;
@@ -152,7 +165,7 @@ int  fact(int n) {
 int my_mod(int n, int m) {
 	return(n % m);
 }
-</pre></blockquote>
+</pre></div>
 
 <p>
 Suppose that you wanted to access these functions and the global
@@ -163,7 +176,7 @@ suffix) :
 <H3><a name="Introduction_nn5"></a>2.3.1 SWIG interface file</H3>
 
 
-<blockquote><pre>
+<div class="code"><pre>
 /* File : example.i */
 %module example
 %{
@@ -173,7 +186,7 @@ suffix) :
 extern double My_variable;
 extern int    fact(int);
 extern int    my_mod(int n, int m);
-</pre></blockquote>
+</pre></div>
 
 <p>
 The interface file contains ANSI C function prototypes and variable
@@ -185,10 +198,12 @@ files or additional C declarations.
 <H3><a name="Introduction_nn6"></a>2.3.2 The swig command</H3>
 
 
+<p>
 SWIG is invoked using the <tt>swig</tt> command. We can use this to
 build a Tcl module (under Linux) as follows :
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; <b>swig -tcl example.i</b>
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
@@ -201,7 +216,7 @@ unix &gt; <b>tclsh</b>
 % <b>expr $My_variable + 4.5</b>
 7.5
 %
-</pre></blockquote>
+</pre></div>
 	<p>
 
 The <tt>swig</tt> command produced a new file called
@@ -217,10 +232,12 @@ almost never need to worry about it.
 <H3><a name="Introduction_nn7"></a>2.3.3 Building a Perl5 module</H3>
 
 
+<p>
 Now, let's turn these functions into a Perl5 module. Without making
 any changes type the following (shown for Solaris):
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; <b>swig -perl5 example.i</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
@@ -235,15 +252,17 @@ print $example::My_variable + 4.5, "\n";
 2
 7.5
 unix &gt;
-</pre></blockquote>
+</pre></div>
 
 
 <H3><a name="Introduction_nn8"></a>2.3.4 Building a Python module</H3>
 
 
+<p>
 Finally, let's build a module for Python (shown for Irix).
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; <b>swig -python example.i</b>
 unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
@@ -258,17 +277,19 @@ Type "copyright", "credits" or "license" for more information.
 2
 &gt;&gt;&gt; <b>example.cvar.My_variable + 4.5</b>
 7.5
-</pre></blockquote>
+</pre></div>
 
 <H3><a name="Introduction_nn9"></a>2.3.5 Shortcuts</H3>
 
 
+<p>
 To the truly lazy programmer, one may wonder why we needed the extra
 interface file at all. As it turns out, you can often do without
 it. For example, you could also build a Perl5 module by just running
 SWIG on the C header file and specifying a module name as follows
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 unix &gt; <b>swig -perl5 -module example example.h</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
@@ -282,15 +303,17 @@ print $example::My_variable + 4.5, "\n";
 24
 2
 7.5
-</pre></blockquote>
+</pre></div>
 
 <H2><a name="Introduction_nn10"></a>2.4 Supported C/C++ language features</H2>
 
 
+<p>
 A primary goal of the SWIG project is to make the language binding
 process extremely easy.  Although a few simple examples have been shown,
 SWIG is quite capable in supporting most of C++.  Some of the
 major features include:
+</p>
 
 <ul>
 <li>Full C99 preprocessing.
@@ -306,8 +329,10 @@ major features include:
 <li>C++ smart pointers.
 </ul>
 
+<p>
 Currently, the only major C++ feature not supported is nested classes--a limitation
 that will be removed in a future release.
+</p>
 
 <p>
 It is important to stress that SWIG is not a simplistic C++ lexing
@@ -323,12 +348,14 @@ stresses the very limits of many C++ compilers.
 <H2><a name="Introduction_nn11"></a>2.5 Non-intrusive interface building</H2>
 
 
+<p>
 When used as intended, SWIG requires minimal (if any) modification to
 existing C or C++ code. This makes SWIG extremely easy to use with existing
 packages and promotes software reuse and modularity. By making
 the C/C++ code independent of the high level interface, you can change the
 interface and reuse the code in other applications.   It is also
 possible to support different types of interfaces depending on the application.
+</p>
 
 <H2><a name="Introduction_build_system"></a>2.6 Incorporating SWIG into a build system</H2>
 
@@ -362,7 +389,7 @@ driving SWIG from IDE's and makefiles.  All of this can be done from a single cr
 The following example is a CMake input file for creating a python wrapper for the SWIG interface file, example.i:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 
 # This is a CMake example for Python
 
@@ -381,14 +408,16 @@ SET_SOURCE_FILES_PROPERTIES(example.i PROPERTIES SWIG_FLAGS "-includeall")
 SWIG_ADD_MODULE(example python example.i example.cxx)
 SWIG_LINK_LIBRARIES(example ${PYTHON_LIBRARIES})
 
-</pre></blockquote>
-
+</pre></div>
+<p>
 The above example will generate native build files such as makefiles, nmake files and Visual Studio projects
 which will invoke SWIG and compile the generated C++ files into _example.so (UNIX) or _example.dll (Windows).
+</p>
 
 <H2><a name="Introduction_nn12"></a>2.7 Hands off code generation</H2>
 
 
+<p>
 SWIG is designed to produce working code that needs no
 hand-modification (in fact, if you look at the output, you probably
 won't want to modify it). You should think of your target language interface being
@@ -396,10 +425,12 @@ defined entirely by the input to SWIG, not the resulting output
 file. While this approach may limit flexibility for hard-core hackers,
 it allows others to forget about the low-level implementation
 details.
+</p>
 
 <H2><a name="Introduction_nn13"></a>2.8 SWIG and freedom</H2>
 
 
+<p>
 No, this isn't a special section on the sorry state of world politics.
 However, it may be useful to know that SWIG was written with a
 certain "philosophy" about programming---namely that programmers are
@@ -409,6 +440,7 @@ you get away with. In fact, you can use SWIG to go well beyond
 "shooting yourself in the foot" if dangerous programming is your goal.
 On the other hand, this kind of freedoom may be exactly what is needed
 to work with complicated and unusual C/C++ applications.
+</p>
 
 <p>
 Ironically, the freedom that SWIG provides is countered by an

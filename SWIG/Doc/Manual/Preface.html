@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Preface</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Preface"></a>1 Preface</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Preface_nn2">Introduction</a>
 <li><a href="#Preface_nn3">Special Introduction for Version 1.3</a>
@@ -19,6 +21,7 @@
 <li><a href="#Preface_nn10">Credits</a>
 <li><a href="#Preface_nn11">Bug reports</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -26,6 +29,7 @@
 <H2><a name="Preface_nn2"></a>1.1 Introduction</H2>
 
 
+<p>
 SWIG (Simplified Wrapper and Interface Generator) is a software development tool for building scripting language
 interfaces to C and C++ programs.  Originally developed in 1995, SWIG was
 first used by scientists in the Theoretical Physics Division at Los Alamos National Laboratory for
@@ -37,6 +41,7 @@ interface provided a simple yet highly flexible foundation for solving these
 types of problems.  SWIG simplifies development by largely automating
 the task of scripting language integration--allowing developers and users
 to focus on more important problems.
+</p>
 
 <p>
 Although SWIG was originally developed for scientific applications, it
@@ -47,6 +52,7 @@ is involved.
 <H2><a name="Preface_nn3"></a>1.2 Special Introduction for Version 1.3</H2>
 
 
+<p>
 Since SWIG was released in 1996, its user base and applicability has
 continued to grow. Although its rate of development has varied, an
 active development effort has continued to make improvements to the
@@ -55,10 +61,12 @@ SWIG-2.0---a system that aims to provide wrapping support for nearly
 all of the ANSI C++ standard and approximately ten target languages
 including Guile, Java, Mzscheme, Ocaml, Perl, Pike, PHP, Python, Ruby,
 and Tcl.
+</p>
 
 <H2><a name="Preface_nn4"></a>1.3 SWIG Versions</H2>
 
 
+<p>
 For several years, the most stable version of SWIG has been release
 1.1p5. Starting with version 1.3, a new version numbering scheme has
 been adopted.  Odd version numbers (1.3, 1.5, etc.) represent
@@ -66,15 +74,18 @@ development versions of SWIG.  Even version numbers (1.4, 1.6, etc.)
 represent stable releases.  Currently, developers are working to
 create a stable SWIG-2.0 release.  Don't let the development status 
 of SWIG-1.3 scare you---it is much more stable (and capable) than SWIG-1.1p5.
+</p>
 
 <H2><a name="Preface_nn5"></a>1.4 SWIG resources</H2>
 
 
+<p>
 The official location of SWIG related material is
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 <a href="http://www.swig.org">http://www.swig.org</a>
-</pre></blockquote>
+</pre></div>
 
 <p>
 This site contains the latest version of the software, users guide,
@@ -85,9 +96,9 @@ implementation tricks.
 You can also subscribe to the SWIG mailing list by visiting the page
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 <a href="http://www.swig.org/mail.html">http://www.swig.org/mail.html</a>
-</pre></blockquote>
+</pre></div>
 
 <p>
 The mailing list often discusses some of the more technical aspects of
@@ -99,9 +110,9 @@ CVS access to the latest version of SWIG is also available.  More information
 about this can be obtained at:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 <a href="http://www.swig.org/cvs.html">http://www.swig.org/cvs.html</a>
-</pre></blockquote>
+</pre></div>
 
 
 <H2><a name="Preface_nn6"></a>1.5 Prerequisites</H2>
@@ -132,6 +143,7 @@ in C++, you may just want to skip those parts of the manual.
 <H2><a name="Preface_nn7"></a>1.6 Organization of this manual</H2>
 
 
+<p>
 The first few chapters of this manual describe SWIG in general and
 provide an overview of its capabilities. The remaining chapters are
 devoted to specific SWIG language modules and are self
@@ -139,16 +151,19 @@ contained. Thus, if you are using SWIG to build Python interfaces, you
 can probably skip to that chapter and find almost everything you need
 to know.   Caveat: we are currently working on a documentation rewrite and many
 of the older language module chapters are still somewhat out of date.
+</p>
 
 <H2><a name="Preface_nn8"></a>1.7 How to avoid reading the manual</H2>
 
 
+<p>
 If you hate reading manuals, glance at the "Introduction" which
 contains a few simple examples. These
 examples contain about 95% of everything you need to know to use
 SWIG. After that, simply use the language-specific chapters as a reference.
 The SWIG distribution also comes with a large directory of
 examples that illustrate different topics.
+</p>
 
 <H2><a name="Preface_nn9"></a>1.8 Backwards Compatibility</H2>
 
@@ -180,11 +195,11 @@ This can be used in an interface file to define different typemaps, take
 advantage of different features etc:
 </p>
 
-<blockquote><pre>
+<div class="code"><pre>
 #if SWIG_VERSION &gt;= 0x010311
 /* Use some fancy new feature */
 #endif
-</pre></blockquote>
+</pre></div>
 
 <p>
 Note: The version symbol is not defined in the generated SWIG
@@ -194,12 +209,14 @@ wrapper file. The SWIG preprocessor has defined SWIG_VERSION since SWIG-1.3.11.
 <H2><a name="Preface_nn10"></a>1.9 Credits</H2>
 
 
+<p>
 SWIG is an unfunded project that would not be possible without the
 contributions of many people.  Most recent SWIG development has been
 supported by Matthias K&ouml;ppe, William Fulton, Lyle Johnson,
 Richard Palmer, Thien-Thi Nguyen, Jason Stewart, Loic Dachary, Masaki
 Fukushima, Luigi Ballabio, Sam Liddicott, Art Yerkes, Marcelo Matus, 
 Harco de Hilster, and John Lenz.
+</p>
 
 <p>
 Historically, the following people contributed to early versions of SWIG.
@@ -218,6 +235,7 @@ port.
 <H2><a name="Preface_nn11"></a>1.10 Bug reports</H2>
 
 
+<p>
 Although every attempt has been made to make SWIG bug-free, we are also trying
 to make feature improvements that may introduce bugs.
 To report a bug, either send mail to the SWIG developer
@@ -227,6 +245,7 @@ possible, including (if applicable), error messages, tracebacks (if a
 core dump occurred), corresponding portions of the SWIG interface file
 used, and any important pieces of the SWIG generated wrapper code.  We
 can only fix bugs if we know about them.
+</p>
 
 </body>
 </html>

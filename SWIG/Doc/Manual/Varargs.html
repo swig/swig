@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>Variable Length Arguments</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 
 <body bgcolor="#ffffff">
 <H1><a name="Varargs"></a>13 Variable Length Arguments</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Varargs_nn2">Introduction</a>
 <li><a href="#Varargs_nn3">The Problem</a>
@@ -18,11 +20,14 @@
 <li><a href="#Varargs_nn9">C++ Issues</a>
 <li><a href="#Varargs_nn10">Discussion</a>
 </ul>
+</div>
 <!-- INDEX -->
 
 
 
+<p>
 <b>(a.k.a, "The horror. The horror.")</b>
+</p>
 
 <p>
 This chapter describes the problem of wrapping functions that take a
@@ -40,30 +45,36 @@ wisely chosen to avoid this issue.
 <H2><a name="Varargs_nn2"></a>13.1 Introduction</H2>
 
 
+<p>
 Some C and C++ programs may include functions that accept a variable
 number of arguments.  For example, most programmers are
 familiar with functions from the C library such as the following:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int printf(const char *fmt, ...)
 int fprintf(FILE *, const char *fmt, ...);
 int sprintf(char *s, const char *fmt, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Although there is probably little practical purpose in wrapping these
 specific C library functions in a scripting language (what would be the
 point?), a library may include its own set of special functions based
 on a similar API. For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int  traceprintf(const char *fmt, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, you may want to have some kind of access from the target language.
+</p>
 
 <p>
 Before describing the SWIG implementation, it is important to discuss
@@ -77,7 +88,7 @@ NULL-terminated list of pointers.  A good example of this would
 be a function like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 int execlp(const char *path, const char *arg1, ...);
 ...
@@ -85,14 +96,16 @@ int execlp(const char *path, const char *arg1, ...);
 /* Example */
 execlp("ls","ls","-l",NULL);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In addition, varargs is sometimes used to fake default arguments in older
 C libraries.   For instance, the low level <tt>open()</tt> system call
 is often declared as a varargs function so that it will accept two
 or three arguments:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int open(const char *path, int oflag, ...);
 ...
@@ -101,13 +114,15 @@ int open(const char *path, int oflag, ...);
 f = open("foo", O_RDONLY);
 g = open("bar", O_WRONLY | O_CREAT, 0644);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Finally, to implement a varargs function, recall that you have to use
 the C library functions defined in <tt>&lt;stdarg.h&gt;</tt>.  For
 example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 List make_list(const char *s, ...) {
     va_list ap;
@@ -122,17 +137,19 @@ List make_list(const char *s, ...) {
     return x;
 }
 </pre>
-</blockquote>
+</div>
 
 <H2><a name="Varargs_nn3"></a>13.2 The Problem</H2>
 
 
+<p>
 Generating wrappers for a variable length argument function presents a
 number of special challenges.  Although C provides support for
 implementing functions that receive variable length arguments, there
 are no functions that can go in the other direction.  Specifically,
 you can't write a function that dynamically creates a list of
 arguments and which invokes a varargs function on your behalf.
+</p>
 
 <p>
 Although it is possible to write functions that accept the special
@@ -147,25 +164,27 @@ The reason this doesn't work has to do with the way that function
 calls get compiled. For example, suppose that your program has a function call like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 printf("Hello %s. Your number is %d\n", name, num);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When the compiler looks at this, it knows that you are calling
 <tt>printf()</tt> with exactly three arguments.  Furthermore, it knows
 that the number of arguments as well are their types and sizes is
 <em>never</em> going to change during program execution.  Therefore,
 this gets turned to machine code that sets up a three-argument stack
 frame followed by a call to <tt>printf()</tt>.
+</p>
 
 <p>
 In contrast, suppose you attempted to make some kind of wrapper around
 <tt>printf()</tt> using code like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 int wrap_printf(const char *fmt, ...) {
    va_list ap;
@@ -176,14 +195,16 @@ int wrap_printf(const char *fmt, ...) {
    va_end(ap);
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 Athough this code might compile, it won't do what you expect. This is
 because the call to <tt>printf()</tt> is compiled as a procedure call
 involving only two arguments.  However, clearly a two-argument
 configuration of the call stack is completely wrong if your intent is
 to pass an arbitrary number of arguments to the real
 <tt>printf()</tt>.  Needless to say, it won't work.
+</p>
 
 <p>
 Unfortunately, the situation just described is exactly the problem
@@ -214,84 +235,102 @@ are willing to get hands dirty.  Keep reading.
 <H2><a name="Varargs_nn4"></a>13.3 Default varargs support</H2>
 
 
+<p>
 When variable length arguments appear in an interface, the default
 behavior is to drop the variable argument list entirely, replacing
 them with a single NULL pointer.  For example, if you had this
 function,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void traceprintf(const char *fmt, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 it would be wrapped as if it had been declared as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 void traceprintf(const char *fmt);
 </pre>
-</blockquote>
+</div>
 
+<p>
 When the function is called inside the wrappers, it is called as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 traceprintf(arg1, NULL);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Arguably, this approach seems to defeat the whole point of variable length arguments.  However,
 this actually provides enough support for many simple kinds of varargs functions to still be useful.  For
 instance, you could make function calls like this (in Python):
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; traceprintf("Hello World")
 &gt;&gt;&gt; traceprintf("Hello %s. Your number is %d\n" % (name, num))
 </pre>
-</blockquote>
+</div>
 
+<p>
 Notice how string formatting is being done in Python instead of C. 
+</p>
 
 <H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
 
 
+<p>
 Instead of dropping the variable length arguments, an alternative approach is to replace
 <tt>(...)</tt> with a set of suitable arguments.   SWIG provides a special <tt>%varargs</tt> directive 
 that can be used to do this.  For example,
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %varargs(int mode = 0) open;
 ...
 int open(const char *path, int oflags, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 is equivalent to this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int open(const char *path, int oflags, int mode = 0);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this case, <tt>%varargs</tt> is simply providing more specific information about the
 extra arguments that might be passed to a function.  
 If the parameters to a varargs function are of uniform type, <tt>%varargs</tt> can also
 accept a numerical argument count as follows:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %varargs(10,char *arg = NULL) execlp;
 ...
 int execlp(const char *path, const char *arg1, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 This would wrap <tt>execlp()</tt> as a function that accepted up to 10 optional arguments.
 Depending on the application, this may be more than enough for practical purposes.
+</p>
 
 <p>
 Argument replacement is most appropriate in cases where the types of
@@ -311,9 +350,11 @@ wrappers to such functions presents special problems (covered shortly).
 <H2><a name="Varargs_nn6"></a>13.5 Varargs and typemaps</H2>
 
 
+<p>
 Variable length arguments may be used in typemap specifications.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) (...) {
     // Get variable length arguments (somehow)
@@ -324,8 +365,9 @@ Variable length arguments may be used in typemap specifications.  For example:
     // Multi-argument typemap
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 However, this immediately raises the question of what "type" is actually used
 to represent <tt>(...)</tt>.  For lack of a better alternative, the type of
 <tt>(...)</tt> is set to <tt>void *</tt>.  Since there is no
@@ -334,11 +376,13 @@ the <tt>void *</tt> argument value is intended to serve as a place holder
 for storing some kind of information about the extra arguments (if any).  In addition, the
 default behavior of SWIG is to pass the <tt>void *</tt> value as an argument to
 the function.  Therefore, you could use the pointer to hold a valid argument value if you wanted.
+</p>
+
 <p>
 To illustrate, here is a safer version of wrapping <tt>printf()</tt> in Python:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) (const char *fmt, ...) {
     $1 = "%s";                                /* Fix format string to %s */
@@ -347,16 +391,18 @@ To illustrate, here is a safer version of wrapping <tt>printf()</tt> in Python:
 ...
 int printf(const char *fmt, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this example, the format string is implicitly set to <tt>"%s"</tt>.
 This prevents a program from passing a bogus format string to the
 extension.  Then, the passed input object is decoded and placed in the
 <tt>void *</tt> argument defined for the <tt>(...)</tt> argument.  When the
 actual function call is made, the underlying wrapper code will look roughly
 like this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 wrap_printf() {
    char *arg1;
@@ -370,10 +416,12 @@ wrap_printf() {
    ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 Notice how both arguments are passed to the function and it does what you
 would expect. 
+</p>
 
 <p>
 The next example illustrates a more advanced kind of varargs typemap.
@@ -394,7 +442,7 @@ instead of using <tt>%varargs</tt>, you might first write a typemap
 like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(in) (...)(char *args[10]) {
     int i;
@@ -416,8 +464,9 @@ like this:
     $1 = (void *) args;
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 In this typemap, the special variable <tt>varargs</tt> is a tuple
 holding all of the extra arguments passed (this is specific to the
 Python module).  The typemap then pulls this apart and sticks the
@@ -428,8 +477,9 @@ is only half of the picture----clearly this alone is not enough to
 make the function work.  To patch everything up, you have to rewrite the
 underlying action code using the <tt>%feature</tt> directive like
 this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("action") execlp {
    char *args = (char **) arg3;
@@ -439,7 +489,7 @@ this:
 
 int execlp(const char *path, const char *arg, ...);
 </pre>
-</blockquote>
+</div>
 
 <p>
 This patches everything up and creates a function that more or less
@@ -452,6 +502,7 @@ security, continue to the next section.
 <H2><a name="Varargs_nn7"></a>13.6 Varargs wrapping with libffi</H2>
 
 
+<p>
 All of the previous examples have relied on features of SWIG that are
 portable and which don't rely upon any low-level machine-level
 details.  In many ways, they have all dodged the real issue of variable
@@ -459,6 +510,7 @@ length arguments by recasting a varargs function into some weaker variation
 with a fixed number of arguments of known types.  In many cases, this
 works perfectly fine.  However, if you want more generality than this,
 you need to bring out some bigger guns.
+</p>
 
 <p>
 One way to do this is to use a special purpose library such as libffi
@@ -477,7 +529,7 @@ arguments.  To do this, you might make a few adjustments to the previous
 example. For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 /* Take an arbitrary number of extra arguments and place into an array
    of strings */
@@ -547,19 +599,21 @@ example. For example:
 /* Declare the function. Whew! */
 int execlp(const char *path, const char *arg1, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Looking at this example, you may start to wonder if SWIG is making
 life any easier.  Given the amount of code involved, you might also wonder
 why you didn't just write a hand-crafted wrapper!  Either that or you're wondering
 "why in the hell am I trying to wrap this varargs function in the 
 first place?!?"  Obviously, those are questions you'll have to answer for yourself.
+</p>
 
 <p>
 As a more extreme example of libffi, here is some code that attempts to wrap <tt>printf()</tt>,
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 /* A wrapper for printf() using libffi */
 
@@ -662,47 +716,56 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
 /* The function */
 int printf(const char *fmt, ...);
 </pre>
-</blockquote>
+</div>
 
+<p>
 Much to your amazement, it even seems to work if you try it:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; example.printf("Grade: %s   %d/60 = %0.2f%%\n", "Dave", 47, 47.0*100/60)
 Grade: Dave   47/60 = 78.33%
 &gt;&gt;&gt;
 </pre>
-</blockquote>
+</div>
 
+<p>
 Of course, there are still some limitations to consider:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 &gt;&gt;&gt; example.printf("la de da de da %s", 42)
 Segmentation fault (core dumped)
 </pre>
-</blockquote>
+</div>
 
+<p>
 And, on this note, we leave further exploration of libffi to the reader as an exercise.  Although Python has been used as an example,
 most of the techniques in this section can be extrapolated to other language modules with a bit of work.   The only
 details you need to know is how the extra arguments are accessed in each target language.  For example, in the Python
 module, we used the special <tt>varargs</tt> variable to get these arguments.  Modules such as Tcl8 and Perl5 simply
 provide an argument number for the first extra argument.  This can be used to index into an array of passed arguments to get
 values.   Please consult the chapter on each language module for more details.
+</p>
 
 <H2><a name="Varargs_nn8"></a>13.7 Wrapping of va_list</H2>
 
 
+<p>
 Closely related to variable length argument wrapping, you may encounter functions that accept a parameter
 of type <tt>va_list</tt>.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 int vfprintf(FILE *f, const char *fmt, va_list ap);
 </pre>
-</blockquote>
+</div>
 
+<p>
 As far as we know, there is no obvious way to wrap these functions
 with SWIG.  This is because there is no documented way to assemble the
 proper va_list structure (there are no C library functions to do it
@@ -710,16 +773,19 @@ and the contents of va_list are opaque).  Not only that, the contents
 of a <tt>va_list</tt> structure are closely tied to the underlying
 call-stack.  It's not clear that exporting a <tt>va_list</tt> would
 have any use or that it would work at all.
+</p>
 
 <H2><a name="Varargs_nn9"></a>13.8 C++ Issues</H2>
 
 
+<p>
 Wrapping of C++ member functions that accept a variable number of
 arguments presents a number of challenges.   By far, the easiest way to
 handle this is to use the <tt>%varargs</tt> directive.   This is portable
 and it fully supports classes much like the <tt>%rename</tt> directive.  For example:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 %varargs (10, char * = NULL) Foo::bar;
 
@@ -733,10 +799,12 @@ public:
      virtual void bar(char *arg, ...);   // gets varargs above
 };
 </pre>
-</blockquote>
+</div>
 
+<p>
 <tt>%varargs</tt> also works with constructors, operators, and any
 other C++ programming construct that accepts variable arguments.
+</p>
 
 <p>
 Doing anything more advanced than this is likely to involve a serious
@@ -760,7 +828,7 @@ always places the <tt>this</tt> pointer in <tt>arg1</tt>.   Other arguments
 are placed in <tt>arg2</tt>, <tt>arg3</tt>, and so forth.  For example:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %feature("action") Foo::bar {
    ...
@@ -768,19 +836,23 @@ are placed in <tt>arg2</tt>, <tt>arg3</tt>, and so forth.  For example:
    ...
 }
 </pre>
-</blockquote>
+</div>
 
+<p>
 Given the potential to shoot yourself in the foot, it is probably easier to reconsider your
 design or to provide an alternative interface using a helper function than it is to create a
 fully general wrapper to a varargs C++ member function.
+</p>
 
 <H2><a name="Varargs_nn10"></a>13.9 Discussion</H2>
 
 
+<p>
 This chapter has provided a number of techniques that can be used to address the problem of variable length
 argument wrapping.  If you care about portability and ease of use, the <tt>%varargs</tt> directive is
 probably the easiest way to tackle the problem.   However, using typemaps, it is possible to do some very advanced
 kinds of wrapping.
+</p>
 
 <p>
 One point of discussion concerns the structure of the libffi examples in the previous section.  Looking
@@ -791,7 +863,7 @@ between wrapper-specific information and the declaration of the function itself.
 you might structure your interface like this:
 </p>
 
-<blockquote>
+<div class="code">
 <pre>
 %typemap(const char *fmt, ...) {
    ...
@@ -803,16 +875,18 @@ you might structure your interface like this:
 /* Include some header file with traceprintf in it */
 %include "someheader.h"
 </pre>
-</blockquote>
+</div>
 
+<p>
 Second, careful scrutiny will reveal that the typemaps involving <tt>(...)</tt> have nothing
 whatsoever to do with the libffi library.  In fact, they are generic with respect to the way in which
 the function is actually called.   This decoupling means that it will be much easier to consider
 other library alternatives for making the function call.  For instance, if libffi wasn't supported on a certain
 platform, you might be able to use something else instead.  You could use conditional compilation
 to control this:
+</p>
 
-<blockquote>
+<div class="code">
 <pre>
 #ifdef USE_LIBFFI
 %feature("action") printf {
@@ -825,11 +899,13 @@ to control this:
 }
 #endif
 </pre>
-</blockquote>
+</div>
 
+<p>
 Finally, even though you might be inclined to just write a hand-written wrapper for varargs functions,
 the techniques used in the previous section have the advantage of being compatible with all other features
 of SWIG such as exception handling.
+</p>
 
 <p>
 As a final word, some C programmers seem to have the assumption that

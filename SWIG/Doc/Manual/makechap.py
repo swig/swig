@@ -70,7 +70,7 @@ open(filename+".bak","w").write(data)   # Make backup
 
 lines = data.splitlines()
 result = [ ] # This is the result of postprocessing the file
-index = "<!-- INDEX -->\n" # index contains the index for adding at the top of the file. Also printed to stdout.
+index = "<!-- INDEX -->\n<div class=\"sectiontoc\">\n" # index contains the index for adding at the top of the file. Also printed to stdout.
 
 skip = 0
 skipspace = 0
@@ -195,7 +195,7 @@ if subsection:
 if section:
     index += "</ul>\n"
 
-index += "<!-- INDEX -->\n"
+index += "</div>\n<!-- INDEX -->\n"
 
 data = "\n".join(result)
 

@@ -2,10 +2,12 @@
 <html>
 <head>
   <title>SWIG and Ruby</title>
+<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body bgcolor="#ffffff">
 <H1><a name="Ruby"></a>27 SWIG and Ruby</H1>
 <!-- INDEX -->
+<div class="sectiontoc">
 <ul>
 <li><a href="#Ruby_nn2">Preliminaries</a>
 <ul>
@@ -76,6 +78,7 @@
 <li><a href="#Ruby_nn51">Interacting with Ruby's Garbage Collector</a>
 </ul>
 </ul>
+</div>
 <!-- INDEX -->
 
 
@@ -84,6 +87,7 @@
 <H2><a name="Ruby_nn2"></a>27.1 Preliminaries</H2>
 
 
+<p>
 SWIG 1.3 is known to work with Ruby versions 1.6 and later. Given the
 choice, you should
 use the latest stable version of Ruby. You should also determine if
@@ -91,6 +95,8 @@ your
 system supports shared libraries and dynamic loading. SWIG will work
 with or
 without dynamic loading, but the compilation process will vary.
+</p>
+
 <p>This chapter covers most SWIG features, but in less depth than is
 found in
 earlier chapters. At the very least, make sure you also read the "<a
@@ -104,16 +110,19 @@ has a basic understanding of Ruby.
 <p>
 To build a Ruby module, run SWIG using the <tt>-ruby</tt> option:</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>swig -ruby example.i</b>
   </pre>
-</blockquote>
-If building a C++ extension, add the <tt>-c++</tt> option:
+</div>
 
-<blockquote>
+<p>
+If building a C++ extension, add the <tt>-c++</tt> option:
+</p>
+
+<div class="code">
   <pre>$ <b>swig -c++ -ruby example.i</b>
   </pre>
-</blockquote>
+</div>
 <p>
 This creates a file <tt>example_wrap.c</tt> (<tt>example_wrap.cxx</tt>
 if
@@ -132,13 +141,17 @@ In order to compile the wrapper code, the compiler needs the <tt>ruby.h</tt>
 header file. This file is usually contained in a directory such as
 </p>
 
-<blockquote>
+<div class="code">
   <pre>/usr/local/lib/ruby/1.6/i686-linux/ruby.h<br></pre>
-</blockquote>
+</div>
+
+<p>
 The exact location may vary on your machine, but the above location is
 typical. If you are not entirely sure where Ruby is installed, you
 can run Ruby to find out. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>ruby -e 'puts $:.join("\n")'</b>
 /usr/local/lib/ruby/site_ruby/1.6 
 /usr/local/lib/ruby/site_ruby/1.6/i686-linux 
@@ -148,10 +161,11 @@ can run Ruby to find out. For example:
 . 
 
   </pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn5"></a>27.1.3 Compiling a dynamic module</H3>
 
 
+<p>
 Ruby extension modules are typically compiled into shared libraries
 that the
 interpreter loads dynamically at runtime. Since the exact commands for
@@ -159,31 +173,38 @@ doing
 this vary from platform to platform, your best bet is to follow the
 steps
 described in the <tt>README.EXT</tt> file from the Ruby distribution:
+</p>
 
 <ol>
-  <li>Create a file called <tt>extconf.rb</tt> that looks like the
-following:
-    <blockquote>
+  <li><p>Create a file called <tt>extconf.rb</tt> that looks like the
+following:</p>
+    <div class="code">
       <pre>require 'mkmf'<br>create_makefile('example')<br></pre>
-    </blockquote>
+    </div>
   </li>
-  <li>Type the following to build the extension:
-    <blockquote>
+  <li><p>Type the following to build the extension:</p>
+    <div class="code">
       <pre>$ <b>ruby extconf.rb</b>
 $ <b>make</b>
 $ <b>make install</b>
       </pre>
-    </blockquote>
+    </div>
   </li>
 </ol>
+
+<p>
 Of course, there is the problem that mkmf does not work correctly on
 all
 platforms, e.g, HPUX. If you need to add your own make rules to the
 file that
 <tt>extconf.rb</tt> produces, you can add this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>open("Makefile", "a") { |mf|<br>   puts &lt;&lt;EOM<br>   # Your make rules go here<br>   EOM<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 to the end of the <tt>extconf.rb</tt> file.
 If for some reason you don't want to use the standard approach, you'll
 need
@@ -192,13 +213,16 @@ platform.
 For example, a typical sequence of commands for the Linux operating
 system
 would look something like this:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>swig -ruby example.i</b>
 $ <b>gcc -c example.c</b>
 $ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> <br>$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
   </pre>
-</blockquote>
+</div>
+
+<p>
 For other platforms it may be necessary to compile with the <tt>-fPIC</tt>
 option to generate position-independent code. If in doubt, consult the
 manual
@@ -207,25 +231,39 @@ options.
 You might also check the <a
  href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">
 SWIG Wiki</a> for additional information.
+</p>
+
 <p> <a name="n6"></a></p>
 <H3><a name="Ruby_nn6"></a>27.1.4 Using your module</H3>
 
 
+<p>
 Ruby <i>module</i> names must be capitalized, but the convention for
 Ruby
 <i>feature</i> names is to use lowercase names. So, for example, the <b>Etc</b>
 extension module is imported by requiring the <b>etc</b> feature:
-<blockquote><pre># The feature name begins with a lowercase letter...<br>require 'etc'<br><br># ... but the module name begins with an uppercase letter<br>puts "Your login name: #{Etc.getlogin}"<br></pre></blockquote>
+</p>
+
+<div class="code"><pre># The feature name begins with a lowercase letter...<br>require 'etc'<br><br># ... but the module name begins with an uppercase letter<br>puts "Your login name: #{Etc.getlogin}"<br></pre></div>
+
+<p>
 To stay consistent with this practice, you should always specify a
 <b>lowercase</b> module name with SWIG's <tt>%module</tt> directive.
 SWIG will automatically correct the resulting Ruby module name for your
 extension. So for example, a SWIG interface file that begins with:
-<blockquote><pre>%module example<br></pre></blockquote>
+</p>
+
+<div class="code"><pre>%module example<br></pre></div>
+
+<p>
 will result in an extension module using the feature name "example" and
 Ruby module name "Example".
+</p>
+
 <H3><a name="Ruby_nn7"></a>27.1.5 Static linking</H3>
 
 
+<p>
 An alternative approach to dynamic linking is to rebuild the Ruby
 interpreter with your extension module added to it. In the past,
 this approach was sometimes necessary due to limitations in dynamic
@@ -234,6 +272,8 @@ support on certain machines. However, the situation has improved
 greatly
 over the last few years and you should not consider this approach
 unless there is really no other option.
+</p>
+
 <p>The usual procedure for adding a new module to Ruby involves finding
 the Ruby source, adding an entry to the <tt>ext/Setup</tt> file,
 adding your directory to the list of extensions in the file, and
@@ -248,13 +288,15 @@ On most machines, C++ extension modules should be linked using the C++
 compiler. For example:
 </p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>swig -c++ -ruby example.i</b>
 $ <b>g++ -c example.cxx</b>
 $ <b>g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux</b>
 $ <b>g++ -shared example.o example_wrap.o -o example.so</b>
   </pre>
-</blockquote>
+</div>
+
+<p>
 If you've written an <tt>extconf.rb</tt> script to automatically
 generate a
 <tt>Makefile</tt> for your C++ extension module, keep in mind that (as
@@ -269,13 +311,16 @@ A workaround for this problem is use the <tt>mkmf</tt> module's <tt>append_libra
 method to add one of the C++ runtime libraries to the list of libraries
 linked
 into your extension, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>require 'mkmf'<br>$libs = append_library($libs, "supc++")<br>create_makefile('example')<br></pre>
-</blockquote>
+</div>
 
 <H2><a name="Ruby_nn9"></a>27.2 Building Ruby Extensions under Windows 95/NT</H2>
 
 
+<p>
 Building a SWIG extension to Ruby under Windows 95/NT is roughly
 similar to the
 process used with Unix. Normally, you will want to produce a DLL that
@@ -286,12 +331,16 @@ described above (i.e. using an <tt>extconf.rb</tt> script) will work
 with
 Windows as well; you should be able to build your code into a DLL by
 typing:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>C:\swigtest&gt; <b>ruby extconf.rb</b>
 C:\swigtest&gt; <b>nmake</b>
 C:\swigtest&gt; <b>nmake install</b>
   </pre>
-</blockquote>
+</div>
+
+<p>
 The remainder of this section covers the process of compiling
 SWIG-generated
 Ruby extensions with Microsoft Visual C++ 6 (i.e. within the Developer
@@ -301,15 +350,19 @@ extensions,
 you may need to download the source distribution to the Ruby package,
 as you
 will need the Ruby header files.
+</p>
+
 <p><a name="n10"></a></p>
 <H3><a name="Ruby_nn10"></a>27.2.1 Running SWIG from Developer Studio</H3>
 
 
+<p>
 If you are developing your application within Microsoft developer
 studio, SWIG
 can be invoked as a custom build option. The process roughly follows
 these
 steps :
+</p>
 
 <ul>
   <li>Open up a new workspace and use the AppWizard to select a DLL
@@ -377,41 +430,57 @@ your new Ruby extension, simply run Ruby and use the <tt>require</tt>
 command
 as normal. For example if you have this ruby file run.rb:</p>
 
-<blockquote>
+<div class="code">
   <pre># file: run.rb<br>require 'Example'<br><br># Call a c function<br>print "Foo = ", Example.Foo, "\n"<br></pre>
-</blockquote>
+</div>
+
+<p>
 Ensure the dll just built is in your path or current directory, then
 run the
 Ruby script from the DOS/Command prompt:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>C:\swigtest&gt; <b>ruby run.rb</b>
 Foo = 3.0
   </pre>
-</blockquote>
+</div>
 
 <H2><a name="Ruby_nn11"></a>27.3 The Ruby-to-C/C++ Mapping</H2>
 
 
+<p>
 This section describes the basics of how SWIG maps C or C++
 declarations
 in your SWIG interface files to Ruby constructs.
+</p>
+
 <H3><a name="Ruby_nn12"></a>27.3.1 Modules</H3>
 
 
+<p>
 The SWIG <tt>%module</tt> directive specifies the name of the Ruby
 module. If
 you specify:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example</pre>
-</blockquote>
+</div>
+
+<p>
 then everything is wrapped into a Ruby module named <tt>Example</tt>
 that is
 nested directly under the global module. You can specify a more deeply
 nested
 module by specifying the fully-qualified module name in quotes, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module "foo::bar::spam"</pre>
-</blockquote>
+</div>
+
+<p>
 An alternate method of specifying a nested module name is to use the <span
  style="font-family: monospace;">-prefix</span> option on the SWIG
 command line. The prefix that you specify with this option will be
@@ -419,32 +488,50 @@ prepended to the module name specified with the <span
  style="font-family: monospace;">%module</span> directive in your SWIG
 interface file. So for example, this declaration at the top of your
 SWIG interface file:<br>
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module "foo::bar::spam"</pre>
-</blockquote>
+</div>
+
+<p>
 will result in a nested module name of <span
  style="font-family: monospace;">Foo::Bar::Spam</span>, but you can
 achieve the <span style="font-style: italic;">same</span> effect by
 specifying:<br>
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module spam</pre>
-</blockquote>
+</div>
+
+<p>
 and then running SWIG with the <span style="font-family: monospace;">-prefix</span>
 command line option:<br>
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>swig -ruby -prefix "foo::bar::" example.i</b></pre>
-</blockquote>
+</div>
+
+<p>
 Starting with SWIG 1.3.20, you can also choose to wrap everything into
 the global
 module by specifying the <tt>-globalmodule</tt> option on the SWIG
 command line, i.e.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>swig -ruby -globalmodule example.i</b></pre>
-</blockquote>
+</div>
+
+<p>
 Note that this does not relieve you of the requirement of specifying
 the SWIG
 module name with the <tt>%module</tt> directive (or the <tt>-module</tt>
 command-line option) as described earlier.
+</p>
+
 <p>When choosing a module name, do not use the same name as a built-in
 Ruby command
 or standard module name, as the results may be unpredictable.
@@ -458,44 +545,56 @@ with any of Ruby's built-in names.
 <H3><a name="Ruby_nn13"></a>27.3.2 Functions</H3>
 
 
+<p>
 Global functions are wrapped as Ruby module methods. For example, given
 the SWIG interface file <tt>example.i</tt>:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>%module example<br><br>int fact(int n);<br></pre>
-</blockquote>
+</div>
+
+<p>
 and C source file <tt>example.c</tt>:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>int fact(int n) {<br>  if (n == 0)<br>    return 1;<br>  return (n * fact(n-1));<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 SWIG will generate a method <i>fact</i> in the <i>Example</i> module
 that
 can be used like so:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'example'</b>
 true
 irb(main):002:0&gt; <b>Example.fact(4)</b>
 24
   </pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn14"></a>27.3.3 Variable Linking</H3>
 
 
+<p>
 C/C++ global variables are wrapped as a pair of singleton methods for
 the
 module: one to get the value of the global variable and one to set it.
 For
 example, the following SWIG interface file declares two global
 variables:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>// SWIG interface file with global variables<br>%module example<br>...<br>extern int    variable1;<br>extern double Variable2;<br>...<br></pre>
-</blockquote>
+</div>
 <p>
 Now look at the Ruby interface:</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'Example'</b>
 true
@@ -506,18 +605,18 @@ irb(main):003:0&gt; <b>Example.Variable2 = 4 * 10.3</b>
 irb(main):004:0&gt; <b>Example.Variable2</b>
 41.2
   </pre>
-</blockquote>
+</div>
 <p>
 If you make an error in variable assignment, you will receive an
 error message. For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>irb(main):005:0&gt; <b>Example.Variable2 = "hello"</b>
 TypeError: no implicit conversion to float from string
   from (irb):5:in `Variable2='
   from (irb):5
   </pre>
-</blockquote>
+</div>
 <p>
 If a variable is declared as <tt>const</tt>, it is wrapped as a
 read-only variable. Attempts to modify its value will result in an
@@ -526,71 +625,96 @@ error.
 <p>To make ordinary variables read-only, you can also use the <tt>%immutable</tt>
 directive. For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%immutable;<br>extern char *path;<br>%mutable;<br></pre>
-</blockquote>
+</div>
+
+<p>
 The <tt>%immutable</tt> directive stays in effect until it is
 explicitly
 disabled using <tt>%mutable</tt>.
+</p>
+
 <H3><a name="Ruby_nn15"></a>27.3.4 Constants</H3>
 
 
+<p>
 C/C++ constants are wrapped as module constants initialized to the
 appropriate value. To create a constant, use <tt>#define</tt> or the
 <tt>%constant</tt> directive. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>#define PI 3.14159<br>#define VERSION "1.0"<br><br>%constant int FOO = 42;<br>%constant const char *path = "/usr/local";<br><br>const int BAR = 32;<br></pre>
-</blockquote>
+</div>
+
+<p>
 Remember to use the :: operator in Ruby to get at these constant
 values, e.g.
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'Example'</b>
 true
 irb(main):002:0&gt; <b>Example::PI</b>
 3.14159
   </pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn16"></a>27.3.5 Pointers</H3>
 
 
+<p>
 "Opaque" pointers to arbitrary C/C++ types (i.e. types that aren't
 explicitly
 declared in your SWIG interface file) are wrapped as data objects. So,
 for
 example, consider a SWIG interface file containing only the
 declarations:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>Foo *get_foo();<br>void set_foo(Foo *foo);<br></pre>
-</blockquote>
+</div>
+
+<p>
 For this case, the <i>get_foo()</i> method returns an instance of an
 internally generated Ruby class:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>irb(main):001:0&gt; <b>foo = Example::get_foo()</b>
 #&lt;SWIG::TYPE_p_Foo:0x402b1654&gt;
   </pre>
-</blockquote>
+</div>
+
+<p>
 A <tt>NULL</tt> pointer is always represented by the Ruby <tt>nil</tt>
 object.
+</p>
+
 <H3><a name="Ruby_nn17"></a>27.3.6 Structures</H3>
 
 
+<p>
 C/C++ structs are wrapped as Ruby classes, with accessor methods (i.e.
 "getters"
 and "setters") for all of the struct members. For example, this struct
 declaration:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>struct Vector {<br>    double x, y;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 gets wrapped as a <tt>Vector</tt> class, with Ruby instance methods <tt>x</tt>,
 <tt>x=</tt>, <tt>y</tt> and <tt>y=</tt>. These methods can be used to
 access
 structure data from Ruby as follows:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'Example'</b>
 true
@@ -601,7 +725,8 @@ nil
 irb(main):004:0&gt; <b>f.x</b>
 10.0
   </pre>
-</blockquote>
+</div>
+
 <p>
 Similar access is provided for unions and the public data members of
 C++
@@ -613,9 +738,9 @@ forced to be read-only using the <tt>%immutable</tt> directive (in
 C++,
 <tt>private</tt> may also be used). For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>struct Foo {<br>   ...<br>   %immutable;<br>   int x;        /* Read-only members */<br>   char *name;<br>   %mutable;<br>   ...<br>};<br></pre>
-</blockquote>
+</div>
 <p>
 When <tt>char *</tt> members of a structure are wrapped, the contents
 are
@@ -631,32 +756,45 @@ typemap
 <p>Array members are normally wrapped as read-only. For example, this
 code:
 </p>
-<blockquote>
+<div class="code">
   <pre>struct Foo {<br>   int x[50];<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 produces a single accessor function like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>int *Foo_x_get(Foo *self) {<br>    return self-&gt;x;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 If you want to set an array member, you will need to supply a
 "memberin"
 typemap described in the <a href="#ruby_cpp_smart_pointers">section on typemaps</a>. As a
 special
 case, SWIG does generate code to set array members of type <tt>char</tt>
 (allowing you to store a Ruby string in the structure).
+</p>
+
 <p>When structure members are wrapped, they are handled as pointers.
 For example,
 </p>
-<blockquote>
+<div class="code">
   <pre>struct Foo {<br>   ...<br>};<br><br>struct Bar {<br>   Foo f;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 generates accessor functions such as this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>Foo *Bar_f_get(Bar *b) {<br>    return &amp;b-&gt;f;<br>}<br><br>void Bar_f_set(Bar *b, Foo *val) {<br>    b-&gt;f = *val;<br>}<br></pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn18"></a>27.3.7 C++ classes</H3>
 
 
+<p>
 Like structs, C++ classes are wrapped by creating a new Ruby class of
 the same
 name with accessor methods for the public class member data.
@@ -666,11 +804,12 @@ methods,
 and public static member functions are wrapped as Ruby singleton
 methods. So,
 given the C++ class declaration:
+</p>
 
 
-<blockquote>
+<div class="code">
   <pre>class List {<br>public:<br>  List();<br>  ~List();<br>  int  search(char *item);<br>  void insert(char *item);<br>  void remove(char *item);<br>  char *get(int n);<br>  int  length;<br>  static void print(List *l);<br>};<br></pre>
-</blockquote>
+</div>
 <p>
 SWIG would create a <tt>List</tt> class with:
 </p>
@@ -687,22 +826,29 @@ set the value of the <i>length</i> data member); and,
 <p>
 In Ruby, these functions are used as follows:
 </p>
-<blockquote>
+<div class="code">
   <pre>require 'Example'<br><br>l = Example::List.new<br><br>l.insert("Ale")<br>l.insert("Stout")<br>l.insert("Lager")<br>Example.print(l)<br>l.length()<br>----- produces the following output <br>Lager<br>Stout<br>Ale<br>3<br></pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn19"></a>27.3.8 C++ Inheritance</H3>
 
 
+<p>
 The SWIG type-checker is fully aware of C++ inheritance. Therefore, if
 you have
 classes like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>class Parent {<br>    ...<br>};<br><br>class Child : public Parent {<br>    ...<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 those classes are wrapped into a hierarchy of Ruby classes that reflect
 the same inheritance structure.
 All of the usual Ruby utility methods work normally:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>irb(main):001:0&gt; <b>c = Child.new</b>
 #&lt;Bar:0x4016efd4&gt;
 irb(main):002:0&gt; <b>c.instance_of? Child</b>
@@ -718,14 +864,22 @@ true
 irb(main):007:0&gt; <b>Child &gt; Parent</b>
 false
   </pre>
-</blockquote>
+</div>
+
+<p>
 Furthermore, if you have a function like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>void spam(Parent *f);<br></pre>
-</blockquote>
+</div>
+
+<p>
 then the function <tt>spam()</tt> accepts <tt>Parent</tt>* or a
 pointer to any
 class derived from <tt>Parent</tt>.
+</p>
+
 <p>Until recently, the Ruby module for SWIG didn't support multiple
 inheritance, and
 this is still the default behavior. This doesn't mean that you can't
@@ -738,9 +892,11 @@ classes are ignored.
 As an example, consider a SWIG interface file with a declaration like
 this:
 </p>
-<blockquote>
+<div class="code">
   <pre>class Derived : public Base1, public Base2<br>{<br>    ...<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 For this case, the resulting Ruby class (<tt>Derived</tt>) will only
 consider <tt>Base1</tt> as
 its superclass. It won't inherit any of <tt>Base2</tt>'s member
@@ -750,12 +906,16 @@ and it won't recognize <tt>Base2</tt> as an "ancestor" of <tt>Derived</tt>
 the <em>is_a?</em> relationship would fail). When SWIG processes this
 interface file,
 you'll see a warning message like:
-<blockquote>
+</p>
+
+<div class="code">
 <pre>
 example.i:5: Warning(802): Warning for Derived: Base Base2 ignored.
 Multiple inheritance is not supported in Ruby.
 </pre>
-</blockquote>
+</div>
+
+<p>
 Starting with SWIG 1.3.20, the Ruby module for SWIG provides limited
 support
 for multiple inheritance. Because the approach for dealing with
@@ -763,14 +923,22 @@ multiple inheritance
 introduces some limitations, this is an optional feature that you can
 activate with
 the <tt>-minherit</tt> command-line option:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>swig -c++ -ruby -minherit example.i</b></pre>
-</blockquote>
+</div>
+
+<p>
 Using our previous example, if your SWIG interface file contains a
 declaration like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>class Derived : public Base1, public Base2<br>{<br>    ...<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 and you run SWIG with the <tt>-minherit</tt> command-line option, then
 you will
 end up with a Ruby class <tt>Derived</tt> that appears to "inherit"
@@ -783,9 +951,13 @@ classes
 defines a nested module named <tt>Impl</tt>, and it's in these nested <tt>Impl</tt>
 modules
 that the actual instance methods for the classes are defined, i.e.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>class Base1<br>  module Impl<br>    # Define Base1 methods here<br>  end<br>  include Impl<br>end<br><br>class Base2<br>  module Impl<br>    # Define Base2 methods here<br>  end<br>  include Impl<br>end<br><br>class Derived<br>  module Impl<br>    include Base1::Impl<br>    include Base2::Impl<br>    # Define Derived methods here<br>  end<br>  include Impl<br>end<br></pre>
-</blockquote>
+</div>
+
+<p>
 Observe that after the nested <tt>Impl</tt> module for a class is
 defined, it is
 mixed-in to the class itself. Also observe that the <tt>Derived::Impl</tt>
@@ -793,67 +965,94 @@ module
 first mixes-in its base classes' <tt>Impl</tt> modules, thus
 "inheriting" all of
 their behavior.
+</p>
+
 <p>The primary drawback is that, unlike the default mode of operation,
 neither
 <tt>Base1</tt> nor <tt>Base2</tt> is a true superclass of <tt>Derived</tt>
 anymore:
 </p>
-<blockquote>
+<div class="code">
   <pre>obj = Derived.new<br>obj.is_a? Base1    # this will return false...<br>obj.is_a? Base2    # ... and so will this<br></pre>
-</blockquote>
+</div>
+
+<p>
 In most cases, this is not a serious problem since objects of type <tt>Derived</tt>
 will otherwise behave as though they inherit from both <tt>Base1</tt>
 and <tt>Base2</tt>
 (i.e. they exhibit <a href="http://c2.com/cgi/wiki?DuckTyping">"Duck
 Typing"</a>).
+</p>
+
 <H3><a name="Ruby_nn20"></a>27.3.9 C++ Overloaded Functions</H3>
 
 
+<p>
 C++ overloaded functions, methods, and constructors are mostly
 supported by SWIG. For example,
 if you have two functions like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>void foo(int);<br>void foo(char *c);<br></pre>
-</blockquote>
+</div>
+
+<p>
 You can use them in Ruby in a straightforward manner:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>irb(main):001:0&gt; <b>foo(3)</b>           # foo(int)<br>irb(main):002:0&gt; <b>foo("Hello")</b>     # foo(char *c)<br></pre>
-</blockquote>
-Similarly, if you have a class like this,
-<blockquote>
+</div>
+<p>Similarly, if you have a class like this,</p>
+<div class="code">
   <pre>class Foo {<br>public:<br>    Foo();<br>    Foo(const Foo &amp;);<br>    ...<br>};<br></pre>
-</blockquote>
-you can write Ruby code like this:
-<blockquote>
+</div>
+<p>you can write Ruby code like this:</p>
+<div class="code">
   <pre>irb(main):001:0&gt; <b>f = Foo.new</b>          # Create a Foo<br>irb(main):002:0&gt; <b>g = Foo.new(f)</b>       # Copy f<br></pre>
-</blockquote>
+</div>
+
+<p>
 Overloading support is not quite as flexible as in C++. Sometimes there
 are methods that SWIG
 can't disambiguate. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>void spam(int);<br>void spam(short);<br></pre>
-</blockquote>
-or
-<blockquote>
+</div>
+<p>or</p>
+<div class="code">
   <pre>void foo(Bar *b);<br>void foo(Bar &amp;b);<br></pre>
-</blockquote>
+</div>
+
+<p>
 If declarations such as these appear, you will get a warning message
 like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
 at example.i:11.
   </pre>
-</blockquote>
+</div>
+
+<p>
 To fix this, you either need to ignore or rename one of the methods.
 For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%rename(spam_short) spam(short);<br>...<br>void spam(int);    <br>void spam(short);   // Accessed as spam_short<br></pre>
-</blockquote>
-or
-<blockquote>
+</div>
+<p>or</p>
+<div class="code">
   <pre>%ignore spam(short);<br>...<br>void spam(int);    <br>void spam(short);   // Ignored<br></pre>
-</blockquote>
+</div>
+
+<p>
 SWIG resolves overloaded functions and methods using a disambiguation
 scheme that ranks and sorts
 declarations according to a set of type-precedence rules. The order in
@@ -861,20 +1060,29 @@ which declarations appear
 in the input does not matter except in situations where ambiguity
 arises--in this case, the
 first declaration takes precedence.
+</p>
+
 <p>Please refer to the <a href="SWIGPlus.html#SWIGPlus">"SWIG and C++"</a>
 chapter for more information about overloading. <a name="n21"></a></p>
 <H3><a name="Ruby_nn21"></a>27.3.10 C++ Operators</H3>
 
 
+<p>
 For the most part, overloaded operators are handled automatically by
 SWIG
 and do not require any special treatment on your part. So if your class
 declares an overloaded addition operator, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>class Complex {<br>    ...<br>    Complex operator+(Complex &amp;);<br>    ...<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 the resulting Ruby class will also support the addition (+) method
 correctly.
+</p>
+
 <p>For cases where SWIG's built-in support is not sufficient, C++
 operators can
 be wrapped using the <tt>%rename</tt> directive (available on SWIG
@@ -883,27 +1091,34 @@ later releases). All you need to do is give the operator the name of a
 valid
 Ruby identifier. For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%rename(add_complex) operator+(Complex &amp;, Complex &amp;);<br>...<br>Complex operator+(Complex &amp;, Complex &amp;);<br></pre>
-</blockquote>
-Now, in Ruby, you can do this:
-<blockquote>
+</div>
+<p>Now, in Ruby, you can do this:</p>
+<div class="code">
   <pre>a = Example::Complex.new(2, 3)<br>b = Example::Complex.new(4, -1)<br>c = Example.add_complex(a, b)<br></pre>
-</blockquote>
+</div>
+
+<p>
 More details about wrapping C++ operators into Ruby operators is
 discussed in
 the <a href="#ruby_operator_overloading">section on operator overloading</a>.
+</p>
+
 <H3><a name="Ruby_nn22"></a>27.3.11 C++ namespaces</H3>
 
 
+<p>
 SWIG is aware of C++ namespaces, but namespace names do not appear in
 the module nor do namespaces result in a module that is broken up into
 submodules or packages. For example, if you have a file like this,
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br><br>namespace foo {<br>   int fact(int n);<br>   struct Vector {<br>       double x,y,z;<br>   };<br>};<br></pre>
-</blockquote>
-it works in Ruby as follows:
-<blockquote>
+</div>
+<p>it works in Ruby as follows:</p>
+<div class="code">
   <pre>irb(main):001:0&gt; <b>require 'example'</b>
 true
 irb(main):002:0&gt; <b>Example.fact(3)</b>
@@ -915,33 +1130,44 @@ irb(main):004:0&gt; <b>v.x = 3.4</b>
 irb(main):004:0&gt; <b>v.y</b>
 0.0
   </pre>
-</blockquote>
+</div>
+
+<p>
 If your program has more than one namespace, name conflicts (if any)
 can be resolved using <tt>%rename</tt>
 For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%rename(Bar_spam) Bar::spam;<br><br>namespace Foo {<br>    int spam();<br>}<br><br>namespace Bar {<br>    int spam();<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 If you have more than one namespace and your want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 For example, make the module name the same as the namespace and create
 extension modules for each namespace separately. If your program
 utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
+</p>
+
 <H3><a name="Ruby_nn23"></a>27.3.12 C++ templates</H3>
 
 
+<p>
 C++ templates don't present a huge problem for SWIG. However, in order
 to create wrappers, you have to tell SWIG to create wrappers for a
 particular
 template instantiation. To do this, you use the <tt>%template</tt>
 directive.
 For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br><br>%{<br>#include "pair.h"<br>%}<br><br>template&lt;class T1, class T2&gt;<br>struct pair {<br>   typedef T1 first_type;<br>   typedef T2 second_type;<br>   T1 first;<br>   T2 second;<br>   pair();<br>   pair(const T1&amp;, const T2&amp;);<br>  ~pair();<br>};<br><br>%template(Pairii) pair&lt;int,int&gt;;<br></pre>
-</blockquote>
-In Ruby:
-<blockquote>
+</div>
+<p>In Ruby:</p>
+<div class="code">
   <pre>irb(main):001:0&gt; <b>require 'example'</b>
 true
 irb(main):002:0&gt; <b>p = Example::Pairii.new(3, 4)</b>
@@ -951,7 +1177,9 @@ irb(main):003:0&gt; <b>p.first</b>
 irb(main):004:0&gt; <b>p.second</b>
 4
   </pre>
-</blockquote>
+</div>
+
+<p>
 On a related note, the standard SWIG library contains a number of
 modules that
 provide typemaps for standard C++ library classes (such as <tt>std::pair</tt>,
@@ -965,64 +1193,86 @@ expects instances
 of standard C++ templates. For example, suppose the C++ library you're
 wrapping has a
 function that expects a vector of floats:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br><br>float sum(const std::vector&lt;float&gt;&amp; values);<br></pre>
-</blockquote>
+</div>
+
+<p>
 Rather than go through the hassle of writing an "in" typemap to convert
 an array of Ruby
 numbers into a std::vector&lt;float&gt;, you can just use the <tt>std_vector.i</tt>
 module
 from the standard SWIG library:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br><br><b>%include std_vector.i</b>
 
 float sum(const std::vector&lt;float&gt;&amp; values);
   </pre>
-</blockquote>
+</div>
+
+<p>
 Obviously, there is a lot more to template wrapping than shown in these
 examples.
 More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a>
 chapter.
+</p>
+
 <H3><a name="ruby_cpp_smart_pointers"></a>27.3.13 C++ Smart Pointers</H3>
 
 
+<p>
 In certain C++ programs, it is common to use classes that have been
 wrapped by
 so-called "smart pointers." Generally, this involves the use of a
 template class
 that implements <tt>operator-&gt;()</tt> like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>template&lt;class T&gt; class SmartPtr {<br>   ...<br>   T *operator-&gt;();<br>   ...<br>}<br></pre>
-</blockquote>
-Then, if you have a class like this,
-<blockquote>
+</div>
+<p>Then, if you have a class like this,</p>
+<div class="code">
   <pre>class Foo {<br>public:<br>     int x;<br>     int bar();<br>};<br></pre>
-</blockquote>
-A smart pointer would be used in C++ as follows:
-<blockquote>
+</div>
+<p>A smart pointer would be used in C++ as follows:</p>
+<div class="code">
   <pre>SmartPtr&lt;Foo&gt; p = CreateFoo();   // Created somehow (not shown)<br>...<br>p-&gt;x = 3;                        // Foo::x<br>int y = p-&gt;bar();                // Foo::bar<br></pre>
-</blockquote>
+</div>
+
+<p>
 To wrap this in Ruby, simply tell SWIG about the <tt>SmartPtr</tt>
 class and the low-level
 <tt>Foo</tt> object. Make sure you instantiate <tt>SmartPtr</tt> using
 <tt>%template</tt> if necessary.
 For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br>...<br>%template(SmartPtrFoo) SmartPtr&lt;Foo&gt;;<br>...<br></pre>
-</blockquote>
-Now, in Ruby, everything should just "work":
-<blockquote>
+</div>
+<p>Now, in Ruby, everything should just "work":</p>
+<div class="code">
   <pre>irb(main):001:0&gt; <b>p = Example::CreateFoo()</b>          # Create a smart-pointer somehow<br>#&lt;Example::SmartPtrFoo:0x4016f4df&gt;<br>irb(main):002:0&gt; <b>p.x = 3</b>                          # Foo::x<br>3<br>irb(main):003:0&gt; <b>p.bar()</b>                          # Foo::bar<br></pre>
-</blockquote>
+</div>
+
+<p>
 If you ever need to access the underlying pointer returned by <tt>operator-&gt;()</tt>
 itself,
 simply use the <tt>__deref__()</tt> method. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>irb(main):004:0&gt; <b>f = p.__deref__()</b>     # Returns underlying Foo *<br></pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn25"></a>27.3.14 Cross-Language Polymorphism</H3>
 
 
+<p>
 SWIG's Ruby module supports cross-language polymorphism (a.k.a. the
 "directors"
 feature) similar to that for SWIG's Python module. Rather than
@@ -1032,9 +1282,12 @@ this
 secton just notes the differences that you need to be aware of when
 using this
 feature with Ruby.
+</p>
+
 <H4><a name="Ruby_nn26"></a>27.3.14.1 Exception Unrolling</H4>
 
 
+<p>
 Whenever a C++ director class routes one of its virtual member function
 calls to a
 Ruby instance method, there's always the possibility that an exception
@@ -1047,92 +1300,122 @@ like to change this behavior, you can use the <tt>%feature("director:except")</t
 directive to indicate what action should be taken when a Ruby exception
 is raised.
 The following code should suffice in most cases:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%feature("director:except") {<br>    throw Swig::DirectorMethodException($error);<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 When this feature is activated, the call to the Ruby instance method is
 "wrapped"
 using the <tt>rb_rescue2()</tt> function from Ruby's C API. If any
 Ruby exception
 is raised, it will be caught here and a C++ exception is raised in its
 place.
+</p>
+
 <H2><a name="Ruby_nn27"></a>27.4 Input and output parameters</H2>
 
 
+<p>
 A common problem in some C programs is handling parameters passed as
 simple
 pointers. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>void add(int x, int y, int *result) {<br>   *result = x + y;<br>}<br>or<br>int sub(int *x, int *y) {<br>   return *x-*y;<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 The easiest way to handle these situations is to use the <tt>typemaps.i</tt>
 file. For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module Example<br>%include "typemaps.i"<br><br>void add(int, int, int *OUTPUT);<br>int  sub(int *INPUT, int *INPUT);<br></pre>
-</blockquote>
-In Ruby, this allows you to pass simple values. For example:
-<blockquote>
+</div>
+<p>In Ruby, this allows you to pass simple values. For example:</p>
+<div class="code">
   <pre>a = Example.add(3,4)<br>puts a<br>7<br>b = Example.sub(7,4)<br>puts b<br>3<br></pre>
-</blockquote>
+</div>
+
+<p>
 Notice how the <tt>INPUT</tt> parameters allow integer values to be
 passed
 instead of pointers and how the <tt>OUTPUT</tt> parameter creates a
 return
 result.
+</p>
+
 <p>If you don't want to use the names <tt>INPUT</tt> or <tt>OUTPUT</tt>,
 use the
 <tt>%apply</tt> directive. For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%module Example<br>%include "typemaps.i"<br><br>%apply int *OUTPUT { int *result };<br>%apply int *INPUT  { int *x, int *y};<br><br>void add(int x, int y, int *result);<br>int  sub(int *x, int *y);<br></pre>
-</blockquote>
+</div>
 <p>
 If a function mutates one of its parameters like this,
 </p>
-<blockquote>
+<div class="code">
   <pre>void negate(int *x) {<br>   *x = -(*x);<br>}<br></pre>
-</blockquote>
-you can use <tt>INOUT</tt> like this:
-<blockquote>
+</div>
+<p>you can use <tt>INOUT</tt> like this:</p>
+<div class="code">
   <pre>%include "typemaps.i"<br>...<br>void negate(int *INOUT);<br></pre>
-</blockquote>
-In Ruby, a mutated parameter shows up as a return value. For example:
-<blockquote>
+</div>
+<p>In Ruby, a mutated parameter shows up as a return value. For example:</p>
+<div class="code">
   <pre>a = Example.negate(3)<br>print a<br>-3<br><br></pre>
-</blockquote>
+</div>
 <p>
 The most common use of these special typemap rules is to handle
 functions that
 return more than one value. For example, sometimes a function returns a
 result as well as a special error code:
 </p>
-<blockquote>
+<div class="code">
   <pre>/* send message, return number of bytes sent, success code, and error_code */<br>int send_message(char *text, int *success, int *error_code);<br></pre>
-</blockquote>
+</div>
+
+<p>
 To wrap such a function, simply use the <tt>OUTPUT</tt> rule above.
 For example:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module example<br>%include "typemaps.i"<br>...<br>int send_message(char *, int *OUTPUT, int *OUTPUT);<br></pre>
-</blockquote>
+</div>
+
+<p>
 When used in Ruby, the function will return an array of multiple
 values.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>bytes, success, error_code = send_message("Hello World")<br>if not success<br>  print "error #{error_code} : in send_message"<br>else<br>  print "Sent", bytes<br>end<br></pre>
-</blockquote>
+</div>
+
+<p>
 Another way to access multiple return values is to use the <tt>%apply</tt>
 rule. In the following example, the parameters rows and columns are
 related to
 SWIG as <tt>OUTPUT</tt> values through the use of <tt>%apply</tt>
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module Example<br>%include "typemaps.i"<br>%apply int *OUTPUT { int *rows, int *columns };<br>...<br>void get_dimensions(Matrix *m, int *rows, int*columns);<br></pre>
-</blockquote>
-In Ruby:
-<blockquote>
+</div>
+<p>In Ruby:</p>
+<div class="code">
   <pre>r, c = Example.get_dimensions(m)<br></pre>
-</blockquote>
+</div>
 <H2><a name="Ruby_nn28"></a>27.5 Simple exception handling </H2>
 
 
+<p>
 The SWIG <tt>%exception</tt> directive can be used to define a
 user-definable
 exception handler that can convert C/C++ errors into Ruby exceptions.
@@ -1140,35 +1423,47 @@ The
 chapter on <a href="Customization.html#Customization">Customization Features</a>
 contains more
 details, but suppose you have a C++ class like the following :
+</p>
 
-<blockquote>
+<div class="code">
   <pre>class DoubleArray {<br>  private:<br>    int n;<br>    double *ptr;<br>  public:<br>    // Create a new array of fixed size<br>    DoubleArray(int size) {<br>      ptr = new double[size];<br>      n = size;<br>    }<br>    // Destroy an array<br>    ~DoubleArray() {<br>       delete ptr;<br>    }<br>    // Return the length of the array<br>    int   length() {<br>      return n;<br>    }<br><br>    // Get an array item and perform bounds checking.<br>    double getitem(int i) {<br>      if ((i &gt;= 0) &amp;&amp; (i &lt; n))<br>        return ptr[i];<br>      else<br>        throw RangeError();<br>    }<br>    // Set an array item and perform bounds checking.<br>    void setitem(int i, double val) {<br>      if ((i &gt;= 0) &amp;&amp; (i &lt; n))<br>        ptr[i] = val;<br>      else {<br>        throw RangeError();<br>      }<br>    }<br>  };<br></pre>
-</blockquote>
+</div>
+
+<p>
 Since several methods in this class can throw an exception for an
 out-of-bounds
 access, you might want to catch this in the Ruby extension by writing
 the
 following in an interface file:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>%exception {<br>  try {<br>    $action<br>  }<br>  catch (const RangeError&amp;) {<br>    static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);<br>    rb_raise(cpperror, "Range error.");<br>  }<br>}<br><br>class DoubleArray {<br>   ...<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 The exception handling code is inserted directly into generated wrapper
 functions. When an exception handler is defined, errors can be
 caught and used to gracefully raise a Ruby exception instead of forcing
 the
 entire program to terminate with an uncaught error.
+</p>
+
 <p>As shown, the exception handling code will be added to every wrapper
 function.
 Because this is somewhat inefficient, you might consider refining the
 exception handler to only apply to specific methods like this:
 </p>
-<blockquote>
+<div class="code">
   <pre>%exception getitem {<br>  try {<br>    $action<br>  }<br>  catch (const RangeError&amp;) {<br>    static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);<br>    rb_raise(cpperror, "Range error in getitem.");<br>  }<br>}<br><br>%exception setitem {<br>  try {<br>    $action<br>  }<br>  catch (const RangeError&amp;) {<br>    static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);<br>    rb_raise(cpperror, "Range error in setitem.");<br>  }<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 In this case, the exception handler is only attached to methods and
 functions
 named <tt>getitem</tt> and <tt>setitem</tt>.
+</p>
+
 <p>Since SWIG's exception handling is user-definable, you are not
 limited to C++
 exception handling. See the chapter on <a href="Customization.html#Customization">Customization
@@ -1184,9 +1479,11 @@ the standard
 Ruby exception classes, consult a Ruby reference such as <a
  href="http://www.rubycentral.com/book"><em>Programming Ruby</em></a>.
 </p>
+
 <H2><a name="Ruby_nn29"></a>27.6 Typemaps</H2>
 
 
+<p>
 This section describes how you can modify SWIG's default wrapping
 behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.
@@ -1194,24 +1491,28 @@ This
 is an advanced topic that assumes familiarity with the Ruby C API as
 well
 as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
+</p>
+
 <p>Before proceeding, it should be stressed that typemaps are not a
 required part of using SWIG---the default wrapping behavior is enough
 in most cases.
 Typemaps are only used if you want to change some aspect of the
 primitive
-C-Ruby interface.
+C-Ruby interface.</p>
 
 <H3><a name="Ruby_nn30"></a>27.6.1 What is a typemap?</H3>
 
 
+<p>
 A typemap is nothing more than a code generation rule that is attached
 to a specific C datatype. For example, to convert integers from Ruby to
 C,
 you might define a typemap like this:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>%module example<br><br>%typemap(in) int {<br>  $1 = (int) NUM2INT($input);<br>  printf("Received an integer : %d\n",$1);<br>}<br><br>extern int fact(int n);<br></pre>
-</blockquote>
+</div>
 <p>
 Typemaps are always associated with some specific aspect of code
 generation.
@@ -1229,25 +1530,29 @@ The <tt>$input</tt> variable is the input Ruby object.
 sample code:
 </p>
 
-<blockquote>
+<div class="code">
   <pre>require 'example'<br><br>puts Example.fact(6)<br></pre>
-</blockquote>
-prints the result:
-<blockquote>
+</div>
+<p>prints the result:</p>
+<div class="code">
   <pre>Received an integer : 6<br>720<br></pre>
-</blockquote>
+</div>
 <p>
 In this example, the typemap is applied to all occurrences of the <tt>int</tt>
 datatype. You can refine this by supplying an optional parameter name.
 For
 example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%module example<br><br>%typemap(in) int n {<br>  $1 = (int) NUM2INT($input);<br>  printf("n = %d\n",$1);<br>}<br><br>extern int fact(int n);<br></pre>
-</blockquote>
+</div>
+
+<p>
 In this case, the typemap code is only attached to arguments that
 exactly match
 "<tt>int n</tt>".
+</p>
+
 <p>The application of a typemap to specific datatypes and argument
 names involves
 more than simple text-matching--typemaps are fully integrated into the
@@ -1260,31 +1565,40 @@ addition, the typemap system follows <tt>typedef</tt> declarations.
 For
 example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%typemap(in) int n {<br>    $1 = (int) NUM2INT($input);<br>    printf("n = %d\n",$1);<br>}<br><br>typedef int Integer;<br>extern int fact(Integer n);    // Above typemap is applied<br></pre>
-</blockquote>
+</div>
+
+<p>
 However, the matching of <tt>typedef</tt> only occurs in one
 direction. If you
 defined a typemap for <tt>Integer</tt>, it is not applied to arguments
 of
 type <tt>int</tt>.
+</p>
+
 <p>Typemaps can also be defined for groups of consecutive arguments.
 For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%typemap(in) (char *str, int len) {<br>    $1 = STR2CSTR($input);<br>    $2 = (int) RSTRING($input)-&gt;len;<br>};<br><br>int count(char c, char *str, int len);<br></pre>
-</blockquote>
+</div>
+
+<p>
 When a multi-argument typemap is defined, the arguments are always
 handled as a
 single Ruby object. This allows the function <tt>count</tt> to be used
 as
 follows (notice how the length parameter is omitted):
-<blockquote>
+</p>
+
+<div class="code">
   <pre>puts Example.count('o','Hello World')<br>2<br></pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn31"></a>27.6.2 Ruby typemaps</H3>
 
 
+<p>
 The previous section illustrated an "in" typemap for converting Ruby
 objects to
 C. A variety of different typemap methods are defined by the Ruby
@@ -1292,53 +1606,63 @@ module. For
 example, to convert a C integer back into a Ruby object, you might
 define an
 "out" typemap like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%typemap(out) int {<br>    $result = INT2NUM($1);<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 The following list details all of the typemap methods that can be used
 by the
 Ruby module:
+</p>
+
 <p><tt>%typemap(in) </tt>
 </p>
-<blockquote>Converts Ruby objects to input function arguments
-</blockquote>
-<tt>%typemap(out)</tt>
-<blockquote>Converts return value of a C function to a Ruby object
-</blockquote>
-<tt>%typemap(varin)</tt>
-<blockquote>Assigns a C global variable from a Ruby object
-</blockquote>
-<tt>%typemap(varout)</tt>
-<blockquote>Returns a C global variable as a Ruby object
-</blockquote>
-<tt>%typemap(freearg)</tt>
-<blockquote>Cleans up a function argument (if necessary)
-</blockquote>
-<tt>%typemap(argout)</tt>
-<blockquote>Output argument processing
-</blockquote>
-<tt>%typemap(ret)</tt>
-<blockquote>Cleanup of function return values
-</blockquote>
-<tt>%typemap(memberin)</tt>
-<blockquote>Setting of structure/class member data
-</blockquote>
-<tt>%typemap(globalin)</tt>
-<blockquote>Setting of C global variables
-</blockquote>
-<tt>%typemap(check)</tt>
-<blockquote>Checks function input values.
-</blockquote>
-<tt>%typemap(default)</tt>
-<blockquote>Set a default value for an argument (making it optional).
-</blockquote>
-<tt>%typemap(arginit)</tt>
-<blockquote>Initialize an argument to a value before any conversions
+<div class="indent">Converts Ruby objects to input function arguments
+</div>
+<p><tt>%typemap(out)</tt></p>
+<div class="indent">Converts return value of a C function to a Ruby object
+</div>
+<p><tt>%typemap(varin)</tt></p>
+<div class="indent">Assigns a C global variable from a Ruby object
+</div>
+<p><tt>%typemap(varout)</tt></p>
+<div class="indent">Returns a C global variable as a Ruby object
+</div>
+<p><tt>%typemap(freearg)</tt></p>
+<div class="indent">Cleans up a function argument (if necessary)
+</div>
+<p><tt>%typemap(argout)</tt></p>
+<div class="indent">Output argument processing
+</div>
+<p><tt>%typemap(ret)</tt></p>
+<div class="indent">Cleanup of function return values
+</div>
+<p><tt>%typemap(memberin)</tt></p>
+<div class="indent">Setting of structure/class member data
+</div>
+<p><tt>%typemap(globalin)</tt></p>
+<div class="indent">Setting of C global variables
+</div>
+<p><tt>%typemap(check)</tt></p>
+<div class="indent">Checks function input values.
+</div>
+<p><tt>%typemap(default)</tt></p>
+<div class="indent">Set a default value for an argument (making it optional).
+</div>
+<p><tt>%typemap(arginit)</tt></p>
+<div class="indent">Initialize an argument to a value before any conversions
 occur.
-</blockquote>
+</div>
+
+<p>
 Examples of these typemaps appears in the <a href="#ruby_typemap_examples">section on
 typemap
 examples</a>
+</p>
+
 <H3><a name="Ruby_nn32"></a>27.6.3 Typemap variables</H3>
 
 
@@ -1349,28 +1673,28 @@ common
 variables:
 <p><tt>$1</tt>
 </p>
-<blockquote>A C local variable corresponding to the actual type
+<div class="indent">A C local variable corresponding to the actual type
 specified in the
   <tt>%typemap</tt> directive. For input values, this is a C local
 variable
 that is supposed to hold an argument value. For output values, this is
 the raw result that is supposed to be returned to Ruby.
-</blockquote>
-<tt>$input</tt>
-<blockquote>A <tt>VALUE</tt> holding a raw Ruby object with an
+</div>
+<p><tt>$input</tt></p>
+<div class="indent">A <tt>VALUE</tt> holding a raw Ruby object with an
 argument or variable value.
-</blockquote>
-<tt>$result</tt>
-<blockquote>A <tt>VALUE</tt> that holds the result to be returned to
+</div>
+<p><tt>$result</tt></p>
+<div class="indent">A <tt>VALUE</tt> that holds the result to be returned to
 Ruby.
-</blockquote>
-<tt>$1_name</tt>
-<blockquote>The parameter name that was matched. </blockquote>
-<tt>$1_type</tt>
-<blockquote>The actual C datatype matched by the typemap.
-</blockquote>
-<tt>$1_ltype</tt>
-<blockquote>An assignable version of the datatype matched by the
+</div>
+<p><tt>$1_name</tt></p>
+<div class="indent">The parameter name that was matched. </div>
+<p><tt>$1_type</tt></p>
+<div class="indent">The actual C datatype matched by the typemap.
+</div>
+<p><tt>$1_ltype</tt></p>
+<div class="indent">An assignable version of the datatype matched by the
 typemap (a type that can
 appear on the left-hand-side of a C assignment operation). This type is
 stripped of qualifiers and may be an altered version of <tt>$1_type</tt>.
@@ -1378,13 +1702,14 @@ All
 arguments and local variables in wrapper functions are declared using
 this type
 so that their values can be properly assigned.
-</blockquote>
-<tt>$symname</tt>
-<blockquote>The Ruby name of the wrapper function being created.
-</blockquote>
+</div>
+<p><tt>$symname</tt></p>
+<div class="indent">The Ruby name of the wrapper function being created.
+</div>
 <H3><a name="Ruby_nn33"></a>27.6.4 Useful Functions</H3>
 
 
+<p>
 When you write a typemap, you usually have to work directly with Ruby
 objects.
 The following functions may prove to be useful. (These functions plus
@@ -1392,151 +1717,165 @@ many
 more can be found in <a href="http://www.rubycentral.com/book"><em>Programming
 Ruby</em></a>, by David Thomas
 and Andrew Hunt.)
+</p>
+
 <p><a name="n34"></a></p>
 <H4><a name="Ruby_nn34"></a>27.6.4.1 C Datatypes to Ruby Objects</H4>
 
 
-<blockquote>
+<div class="code">
   <pre>INT2NUM(long or int)  - int to Fixnum or Bignum<br>INT2FIX(long or int)  - int to Fixnum (faster than INT2NUM)<br>CHR2FIX(char)         - char to Fixnum<br>rb_str_new2(char*)    - char* to String<br>rb_float_new(double)  - double to Float<br></pre>
-</blockquote>
+</div>
 <H4><a name="Ruby_nn35"></a>27.6.4.2 Ruby Objects to C Datatypes</H4>
 
 
-<blockquote>
+<div class="code">
   <pre>          int NUM2INT(Numeric)<br>          int FIX2INT(Numeric)<br> unsigned int NUM2UINT(Numeric)<br> unsigned int FIX2UINT(Numeric)<br>         long NUM2LONG(Numeric)<br>         long FIX2LONG(Numeric)<br>unsigned long FIX2ULONG(Numeric)<br>         char NUM2CHR(Numeric or String)<br>       char * STR2CSTR(String)<br>       char * rb_str2cstr(String, int*length)<br>       double NUM2DBL(Numeric)<br><br></pre>
-</blockquote>
+</div>
 <H4><a name="Ruby_nn36"></a>27.6.4.3 Macros for VALUE</H4>
 
 
 <p>
 <tt>RSTRING(str)-&gt;len</tt>
 </p>
-<blockquote>length of the Ruby string</blockquote>
-<tt>RSTRING(str)-&gt;ptr</tt>
-<blockquote>pointer to string storage</blockquote>
-<tt>RARRAY(arr)-&gt;len</tt>
-<blockquote>length of the Ruby array</blockquote>
-<tt>RARRAY(arr)-&gt;capa</tt>
-<blockquote>capacity of the Ruby array</blockquote>
-<tt>RARRAY(arr)-&gt;ptr</tt>
-<blockquote>pointer to array storage</blockquote>
+<div class="indent">length of the Ruby string</div>
+<p><tt>RSTRING(str)-&gt;ptr</tt></p>
+<div class="indent">pointer to string storage</div>
+<p><tt>RARRAY(arr)-&gt;len</tt></p>
+<div class="indent">length of the Ruby array</div>
+<p><tt>RARRAY(arr)-&gt;capa</tt></p>
+<div class="indent">capacity of the Ruby array</div>
+<p><tt>RARRAY(arr)-&gt;ptr</tt></p>
+<div class="indent">pointer to array storage</div>
+
 <H4><a name="Ruby_nn37"></a>27.6.4.4 Exceptions</H4>
 
 
 <p>
 <tt>void rb_raise(VALUE exception, const char *fmt, ...)</tt>
 </p>
-<blockquote> Raises an exception. The given format string <i>fmt</i>
+<div class="indent"> Raises an exception. The given format string <i>fmt</i>
 and remaining arguments are interpreted as with <tt>printf()</tt>.
-</blockquote>
-<tt>void rb_fatal(const char *fmt, ...)</tt>
-<blockquote> Raises a fatal exception, terminating the process. No
+</div>
+<p><tt>void rb_fatal(const char *fmt, ...)</tt></p>
+<div class="indent"> Raises a fatal exception, terminating the process. No
 rescue blocks are called, but ensure blocks will be called. The given
 format string <i>fmt</i> and remaining arguments are interpreted as
 with <tt>printf()</tt>.
-</blockquote>
-<tt>void rb_bug(const char *fmt, ...)</tt>
-<blockquote> Terminates the process immediately -- no handlers of any
+</div>
+<p><tt>void rb_bug(const char *fmt, ...)</tt></p>
+<div class="indent"> Terminates the process immediately -- no handlers of any
 sort will be called. The given format string <i>fmt</i> and remaining
 arguments are interpreted as with <tt>printf()</tt>. You should call
-this function only if a fatal bug has been exposed. </blockquote>
-<tt>void rb_sys_fail(const char *msg)</tt>
-<blockquote> Raises a platform-specific exception corresponding to the
+this function only if a fatal bug has been exposed. </div>
+<p><tt>void rb_sys_fail(const char *msg)</tt></p>
+<div class="indent"> Raises a platform-specific exception corresponding to the
 last known system error, with the given string <i>msg</i>.
-</blockquote>
-<tt>VALUE rb_rescue(VALUE (*body)(VALUE), VALUE args,
-VALUE(*rescue)(VALUE, VALUE), VALUE rargs)</tt>
-<blockquote> Executes <i>body</i> with the given <i>args</i>. If a <tt>StandardError</tt>
+</div>
+<p><tt>VALUE rb_rescue(VALUE (*body)(VALUE), VALUE args,
+VALUE(*rescue)(VALUE, VALUE), VALUE rargs)</tt></p>
+<div class="indent"> Executes <i>body</i> with the given <i>args</i>. If a <tt>StandardError</tt>
 exception is raised, then execute <i>rescue</i> with the given <i>rargs</i>.
-</blockquote>
-<tt>VALUE rb_ensure(VALUE(*body)(VALUE), VALUE args,
-VALUE(*ensure)(VALUE), VALUE eargs)</tt>
-<blockquote> Executes <i>body</i> with the given <i>args</i>. Whether
+</div>
+<p><tt>VALUE rb_ensure(VALUE(*body)(VALUE), VALUE args,
+VALUE(*ensure)(VALUE), VALUE eargs)</tt></p>
+<div class="indent"> Executes <i>body</i> with the given <i>args</i>. Whether
 or not an exception is raised, execute <i>ensure</i> with the given <i>rargs</i>
 after <i>body</i> has completed.
-</blockquote>
-<tt>VALUE rb_protect(VALUE (*body)(VALUE), VALUE args, int *result)</tt>
-<blockquote> Executes <i>body</i> with the given <i>args</i> and
+</div>
+<p><tt>VALUE rb_protect(VALUE (*body)(VALUE), VALUE args, int *result)</tt></p>
+<div class="indent"> Executes <i>body</i> with the given <i>args</i> and
 returns nonzero in result if any exception was raised.
-</blockquote>
-<tt>void rb_notimplement()</tt>
-<blockquote> Raises a <tt>NotImpError</tt> exception to indicate that
+</div>
+<p><tt>void rb_notimplement()</tt></p>
+<div class="indent"> Raises a <tt>NotImpError</tt> exception to indicate that
 the enclosed function is not implemented yet, or not available on this
 platform.
-</blockquote>
-<tt>void rb_exit(int status)</tt>
-<blockquote> Exits Ruby with the given <i>status</i>. Raises a <tt>SystemExit</tt>
+</div>
+<p><tt>void rb_exit(int status)</tt></p>
+<div class="indent"> Exits Ruby with the given <i>status</i>. Raises a <tt>SystemExit</tt>
 exception and calls registered exit functions and finalizers.
-</blockquote>
-<tt>void rb_warn(const char *fmt, ...)</tt>
-<blockquote> Unconditionally issues a warning message to standard
+</div>
+<p><tt>void rb_warn(const char *fmt, ...)</tt></p>
+<div class="indent"> Unconditionally issues a warning message to standard
 error. The given format string <i>fmt</i> and remaining arguments are
 interpreted as with <tt>printf()</tt>.
-</blockquote>
-<tt>void rb_warning(const char *fmt, ...)</tt>
-<blockquote> Conditionally issues a warning message to standard error
+</div>
+<p><tt>void rb_warning(const char *fmt, ...)</tt></p>
+<div class="indent"> Conditionally issues a warning message to standard error
 if Ruby was invoked with the <tt>-w</tt> flag. The given format string
   <i>fmt</i> and remaining arguments are interpreted as with <tt>printf()</tt>.
-</blockquote>
+</div>
+
 <H4><a name="Ruby_nn38"></a>27.6.4.5 Iterators</H4>
 
 
 <p>
 <tt>void rb_iter_break()</tt>
 </p>
-<blockquote> Breaks out of the enclosing iterator block.
-</blockquote>
-<tt>VALUE rb_each(VALUE obj)</tt>
-<blockquote> Invokes the <tt>each</tt> method of the given <i>obj</i>.
-</blockquote>
-<tt>VALUE rb_yield(VALUE arg)</tt>
-<blockquote> Transfers execution to the iterator block in the current
+<div class="indent"> Breaks out of the enclosing iterator block.
+</div>
+<p><tt>VALUE rb_each(VALUE obj)</tt></p>
+<div class="indent"> Invokes the <tt>each</tt> method of the given <i>obj</i>.
+</div>
+<p><tt>VALUE rb_yield(VALUE arg)</tt></p>
+<div class="indent"> Transfers execution to the iterator block in the current
 context, passing <i>arg</i> as an argument. Multiple values may be
-passed in an array. </blockquote>
-<tt>int rb_block_given_p()</tt>
-<blockquote> Returns <tt>true</tt> if <tt>yield</tt> would execute a
+passed in an array. </div>
+<p><tt>int rb_block_given_p()</tt></p>
+<div class="indent"> Returns <tt>true</tt> if <tt>yield</tt> would execute a
 block in the current context; that is, if a code block was passed to
 the current method and is available to be called.
-</blockquote>
-<tt>VALUE rb_iterate(VALUE (*method)(VALUE), VALUE args, VALUE
-(*block)(VALUE, VALUE), VALUE arg2)</tt>
-<blockquote> Invokes <i>method</i> with argument <i>args</i> and
+</div>
+<p><tt>VALUE rb_iterate(VALUE (*method)(VALUE), VALUE args, VALUE
+(*block)(VALUE, VALUE), VALUE arg2)</tt></p>
+<div class="indent"> Invokes <i>method</i> with argument <i>args</i> and
 block <i>block</i>. A <tt>yield</tt> from that method will invoke <i>block</i>
 with the argument given to <tt>yield</tt>, and a second argument <i>arg2</i>.
-</blockquote>
-<tt>VALUE rb_catch(const char *tag, VALUE (*proc)(VALUE, VALUE), VALUE
-value)</tt>
-<blockquote> Equivalent to Ruby's <tt>catch</tt>.
-</blockquote>
-<tt>void rb_throw(const char *tag, VALUE value)</tt>
-<blockquote> Equivalent to Ruby's <tt>throw</tt>.
-</blockquote>
+</div>
+<p><tt>VALUE rb_catch(const char *tag, VALUE (*proc)(VALUE, VALUE), VALUE
+value)</tt></p>
+<div class="indent"> Equivalent to Ruby's <tt>catch</tt>.
+</div>
+<p><tt>void rb_throw(const char *tag, VALUE value)</tt></p>
+<div class="indent"> Equivalent to Ruby's <tt>throw</tt>.
+</div>
 <H3><a name="ruby_typemap_examples"></a>27.6.5 Typemap Examples</H3>
 
 
+<p>
 This section includes a few examples of typemaps. For more examples,
 you
 might look at the examples in the <tt>Example/ruby</tt> directory.
+</p>
+
 <H3><a name="Ruby_nn40"></a>27.6.6 Converting a Ruby array to a char **</H3>
 
 
+<p>
 A common problem in many C programs is the processing of command line
 arguments, which are usually passed in an array of <tt>NULL</tt>
 terminated
 strings. The following SWIG interface file allows a Ruby Array instance
 to be used as a <tt>char **</tt> object.
+</p>
 
 
-<blockquote>
+<div class="code">
   <pre>%module argv<br><br>// This tells SWIG to treat char ** as a special case<br>%typemap(in) char ** {<br>  /* Get the length of the array */<br>  int size = RARRAY($input)-&gt;len;     <br>  int i;<br>  $1 = (char **) malloc((size+1)*sizeof(char *));<br>  /* Get the first element in memory */<br>  VALUE *ptr = RARRAY($input)-&gt;ptr;   <br>  for (i=0; i &lt; size; i++, ptr++)<br>    /* Convert Ruby Object String to char* */<br>    $1[i]= STR2CSTR(*ptr); <br>  $1[i]=NULL;  /* End of list */<br>}<br><br>// This cleans up the char ** array created before <br>// the function call<br><br>%typemap(freearg) char ** {<br>  free((char *) $1);<br>}<br><br>// Now a test function<br>%inline %{<br>int print_args(char **argv) {<br>    int i = 0;<br>    while (argv[i]) {<br>         printf("argv[%d] = %s\n", i,argv[i]);<br>         i++;<br>    }<br>    return i;<br>}<br>%}<br><br></pre>
-</blockquote>
+</div>
+
+<p>
 When this module is compiled, the wrapped C function now operates as
 follows :
+</p>
 
 
-<blockquote>
+<div class="code">
   <pre>require 'Argv'<br>Argv.print_args(["Dave","Mike","Mary","Jane","John"])<br>argv[0] = Dave<br>argv[1] = Mike<br>argv[2] = Mary<br>argv[3] = Jane<br>argv[4] = John<br></pre>
-</blockquote>
+</div>
+
+<p>
 In the example, two different typemaps are used. The "in" typemap is
 used to
 receive an input argument and convert it to a C array. Since dynamic
@@ -1544,10 +1883,14 @@ memory
 allocation is used to allocate memory for the array, the "freearg"
 typemap is
 used to later release this memory after the execution of the C
-function. <a name="n41"></a>
+function.
+</p>
+
+<a name="n41"></a>
 <H3><a name="Ruby_nn41"></a>27.6.7 Collecting arguments in a hash</H3>
 
 
+<p>
 Ruby's solution to the "keyword arguments" capability of some other
 languages is
 to allow the programmer to pass in one or more key-value pairs as
@@ -1559,26 +1902,38 @@ provide similar functionality for your Ruby interface. For example,
 suppose you'd
 like to wrap this C function that collects information about people's
 vital statistics:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>void setVitalStats(const char *person, int nattributes, const char **names, int *values);<br></pre>
-</blockquote>
+</div>
+
+<p>
 and you'd like to be able to call it from Ruby by passing in an
 arbitrary
 number of key-value pairs as inputs, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>setVitalStats("Fred",<br>              'weight' =&gt; 270,<br>	      'age' =&gt; 42<br>	     )<br></pre>
-</blockquote>
+</div>
+
+<p>
 To make this work, you need to write a typemap that expects a Ruby <tt>Hash</tt>
 as its input and
 somehow extracts the last three arguments (<i>nattributes</i>, <i>names</i>
 and
 <i>values</i>) needed by your C function. Let's start with the basics:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>}
   </pre>
-</blockquote>
+</div>
+
+<p>
 This <tt>%typemap</tt> directive tells SWIG that we want to match any
 function declaration that
 has the specified types and names of arguments somewhere in the
@@ -1592,20 +1947,26 @@ different argument names.
 The arguments that appear in the second set of parentheses (<i>keys_arr</i>,
 <i>i</i>, <i>key</i>
 and <i>val</i>) define local variables that our typemap will need.
+</p>
+
 <p>Since we expect the input argument to be a <tt>Hash</tt>, let's
 next add a check for that:
 </p>
-<blockquote>
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  <b>Check_Type($input, T_HASH);</b>
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 <tt>Check_Type()</tt> is just a macro (defined in the Ruby header
 files) that confirms that the
 input argument is of the correct type; if it isn't, an exception will
 be raised.
+</p>
+
 <p>The next task is to determine how many key-value pairs are present
 in the hash; we'll assign
 this number to the first typemap argument (<tt>$1</tt>). This is a
@@ -1615,25 +1976,31 @@ hash, but we can
 get around that by calling the hash's <i>size</i> method directly and
 converting its result
 to a C <tt>int</tt> value: </p>
-<blockquote>
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  <b>$1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));</b>
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 So now we know the number of attributes. Next we need to initialize the
 second and
 third typemap arguments (i.e. the two C arrays) to <tt>NULL</tt> and
 set the stage
 for extracting the keys and values from the hash:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  <b>$2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>  }</b>
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 There are a number of ways we could extract the keys and values from
 the input
 hash, but the simplest approach is to first call the hash's <i>keys</i>
@@ -1641,19 +2008,25 @@ method
 (which returns a Ruby array of the keys) and then start looping over
 the elements
 in that array:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    <b>keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>    }</b>
   }
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 Recall that <i>keys_arr</i> and <i>i</i> are local variables for this
 typemap. For each element in the <i>keys_arr</i>
 array, we want to get the key itself, as well as the value
 corresponding to that key in the hash:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      <b>key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);</b>
@@ -1661,11 +2034,15 @@ corresponding to that key in the hash:
   }
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 To be safe, we should again use the <tt>Check_Type()</tt> macro to
 confirm that the
 key is a <tt>String</tt> and the value is a <tt>Fixnum</tt>:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      <b>Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);</b>
@@ -1673,11 +2050,15 @@ key is a <tt>String</tt> and the value is a <tt>Fixnum</tt>:
   }
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 Finally, we can convert these Ruby objects into their C equivalents and
 store them
 in our local C arrays:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>
 %typemap(in) (int nattributes, const char **names, const int *values)
                              (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);<br>      <b>$2[i] = STR2CSTR(key);<br>      $3[i] = NUM2INT(val);</b>
@@ -1685,7 +2066,9 @@ in our local C arrays:
   }
 }
   </pre>
-</blockquote>
+</div>
+
+<p>
 We're not done yet. Since we used <tt>malloc()</tt> to dynamically
 allocate
 the memory used for the <i>names</i> and <i>values</i> arguments, we
@@ -1693,17 +2076,24 @@ need
 to provide a corresponding "freearg" typemap to free that memory so
 that there
 is no memory leak. Fortunately, this typemap is a lot easier to write:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%typemap(freearg) (int nattributes, const char **names, const int *values) {<br>  free((void *) $2);<br>  free((void *) $3);<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 All of the code for this example, as well as a sample Ruby program that
 uses
 the extension, can be found in the <tt>Examples/ruby/hashargs</tt>
 directory
 of the SWIG distribution.
+</p>
+
 <H3><a name="Ruby_nn42"></a>27.6.8 Pointer handling</H3>
 
 
+<p>
 Occasionally, it might be necessary to convert pointer values that have
 been
 stored using the SWIG typed-pointer representation. Since there are
@@ -1711,10 +2101,12 @@ several
 ways in which pointers can be represented, the following two functions
 are used
 to safely perform this conversion:
+</p>
+
 <p><tt>int SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty,
 int flags)</tt>
 </p>
-<blockquote>Converts a Ruby object <i>obj</i> to a C pointer whose
+<div class="indent">Converts a Ruby object <i>obj</i> to a C pointer whose
 address is <i>ptr</i>
 (i.e. <i>ptr</i> is a pointer to a pointer).
 The third argument, <i>ty</i>, is a pointer to a SWIG type descriptor
@@ -1730,11 +2122,11 @@ such type errors will
 cause <tt>SWIG_ConvertPtr()</tt> to return -1 but not raise an
 exception.
 If <i>ty</i> is <tt>NULL</tt>, no type-checking is performed.
-</blockquote>
+</div>
 <p>
 <tt>VALUE SWIG_NewPointerObj(void *ptr, swig_type_info *ty, int own)</tt>
 </p>
-<blockquote>Creates a new Ruby pointer object. Here, <i>ptr</i> is the
+<div class="indent">Creates a new Ruby pointer object. Here, <i>ptr</i> is the
 pointer to convert,
   <i>ty</i> is the SWIG type descriptor structure that describes the
 type,
@@ -1742,7 +2134,9 @@ and <i>own</i> is a flag that indicates whether or not Ruby should
 take
 ownership of the pointer (i.e. whether Ruby should free this data
 when the corresponding Ruby instance is garbage-collected).
-</blockquote>
+</div>
+
+<p>
 Both of these functions require the use of a special SWIG
 type-descriptor
 structure. This structure contains information about the mangled name
@@ -1752,15 +2146,21 @@ converting
 pointer values under C++ inheritance. For a type of <tt>Foo *</tt>,
 the type
 descriptor structure is usually accessed as follows:
-<blockquote>
+</p>
+
+<div class="indent">
   <pre>Foo *foo;<br>SWIG_ConvertPtr($input, (void **) &amp;foo, SWIGTYPE_p_Foo, 1);<br><br>VALUE obj;<br>obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);<br></pre>
-</blockquote>
+</div>
+
+<p>
 In a typemap, the type descriptor should always be accessed using the
 special
 typemap variable <tt>$1_descriptor</tt>. For example:
-<blockquote>
+</p>
+
+<div class="indent">
   <pre>%typemap(in) Foo * {<br>   SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 1);<br>}<br></pre>
-</blockquote>
+</div>
 <H4><a name="Ruby_nn43"></a>27.6.8.1 Ruby Datatype Wrapping</H4>
 
 
@@ -1768,41 +2168,51 @@ typemap variable <tt>$1_descriptor</tt>. For example:
 <tt>VALUE Data_Wrap_Struct(VALUE class, void (*mark)(void *), void
 (*free)(void *), void *ptr)</tt>
 </p>
-<blockquote>Given a pointer <i>ptr</i> to some C data, and the two
+<div class="indent">Given a pointer <i>ptr</i> to some C data, and the two
 garbage collection routines for this
 data (<i>mark</i> and <i>free</i>), return a <tt>VALUE</tt> for the
 Ruby object.
-</blockquote>
-<tt>VALUE Data_Make_Struct(VALUE class, <i>c-type</i>, void
-(*mark)(void *), void (*free)(void *), <i>c-type</i> *ptr)</tt>
-<blockquote>Allocates a new instance of a C data type <i>c-type</i>,
+</div>
+<p><tt>VALUE Data_Make_Struct(VALUE class, <i>c-type</i>, void
+(*mark)(void *), void (*free)(void *), <i>c-type</i> *ptr)</tt></p>
+<div class="indent">Allocates a new instance of a C data type <i>c-type</i>,
 assigns it to the pointer <i>ptr</i>, then
 wraps that pointer with <tt>Data_Wrap_Struct()</tt> as above.
-</blockquote>
-<tt>Data_Get_Struct(VALUE obj, <i>c-type</i>, <i>c-type</i> *ptr)</tt>
-<blockquote>Retrieves the original C pointer of type <i>c-type</i>
+</div>
+<p><tt>Data_Get_Struct(VALUE obj, <i>c-type</i>, <i>c-type</i> *ptr)</tt></p>
+<div class="indent">Retrieves the original C pointer of type <i>c-type</i>
 from the data object
   <i>obj</i> and assigns that pointer to <i>ptr</i>.
-</blockquote>
+</div>
 <H2><a name="ruby_operator_overloading"></a>27.7 Operator overloading</H2>
 
 
+<p>
 SWIG allows operator overloading with, by using the <tt>%extend</tt>
 or
 <tt>%rename</tt> commands in SWIG and the following operator names
 (derived
 from Python):
-<blockquote>
+</p>
+
+<div class="code">
   <pre><b> General</b> <br>__repr__      - inspect<br>__str__       - to_s<br>__cmp__       - &lt;=&gt;<br>__hash__      - hash<br>__nonzero__   - nonzero?<br><br><b> Callable</b> <br>__call__      - call<br><br><b> Collection</b> <br>__len__       - length<br>__getitem__   - []<br>__setitem__   - []=<br><br><b> Numeric</b> <br>__add__       - +<br>__sub__       - -<br>__mul__       - *<br>__div__       - /<br>__mod__       - %<br>__divmod__    - divmod<br>__pow__       - **<br>__lshift__    - &lt;&lt;<br>__rshift__    - &gt;&gt;<br>__and__       - &amp;<br>__xor__       - ^<br>__or__        - |<br>__neg__       - -@<br>__pos__       - +@<br>__abs__       - abs<br>__invert__    - ~<br>__int__       - to_i<br>__float__     - to_f<br>__coerce__    - coerce<br><br><b>Additions in 1.3.13 </b> <br>__lt__        - &lt; <br>__le__        - &lt;=<br>__eq__        - ==<br>__gt__        - &gt;<br>__ge__        - &gt;=<br><br></pre>
-</blockquote>
+</div>
+
+<p>
 Note that although SWIG supports the <tt>__eq__</tt> magic method name
 for defining an equivalence operator, there is no separate method for
 handling <i>inequality</i> since Ruby parses the expression <i>a != b</i>
 as <i>!(a == b)</i>.
+</p>
+
 <H3><a name="Ruby_nn45"></a>27.7.1 Example: STL Vector to Ruby Array</H3>
 
 
+<p>
 <em><b>FIXME: This example is out of place here!</b></em>
+</p>
+
 <p>Another use for macros and type maps is to create a Ruby array from
 a STL
 vector of pointers. In essence, copy of all the pointers in the vector
@@ -1816,28 +2226,37 @@ constructing
 similar typemaps for other STL structures:
 </p>
 
-<blockquote>
+<div class="code">
   <pre>%define PTR_VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)<br>%typemap(ruby, out) vectorclassname &amp;, const vectorclassname &amp; {<br>  VALUE arr = rb_ary_new2($1-&gt;size());<br>  vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();<br>  for ( ; i!=iend; i++ )<br>    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br>  $result = arr;<br>}<br>%typemap(ruby, out) vectorclassname, const vectorclassname {<br>  VALUE arr = rb_ary_new2($1.size());<br>  vectorclassname::iterator i = $1.begin(), iend = $1.end();<br>  for ( ; i!=iend; i++ )<br>    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));<br>  $result = arr;<br>}<br>%enddef<br></pre>
-</blockquote>
+</div>
+
+<p>
 Note, that the "<tt>c ## classname.klass"</tt> is used in the
 preprocessor step
 to determine the actual object from the class name.
+</p>
+
 <p>To use the macro with a class Foo, the following is used:
 </p>
 
-<blockquote>
+<div class="code">
   <pre>PTR_VECTOR_TO_RUBY_ARRAY(vector&lt;foo *=""&gt;, Foo)<br></pre>
-</blockquote>
+</div>
+
+<p>
 It is also possible to create a STL vector of Ruby objects:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>%define RUBY_ARRAY_TO_PTR_VECTOR(vectorclassname, classname)<br>%typemap(ruby, in) vectorclassname &amp;, const vectorclassname &amp; {<br>  Check_Type($input, T_ARRAY);<br>  vectorclassname *vec = new vectorclassname;<br>  int len = RARRAY($input)-&gt;len;<br>  for (int i=0; i!=len; i++) {<br>    VALUE inst = rb_ary_entry($input, i);<br>    //The following _should_ work but doesn't on HPUX<br>    //    Check_Type(inst, T_DATA);<br>    classname *element = NULL;<br>    Data_Get_Struct(inst, classname, element);<br>    vec-&gt;push_back(element);<br>  }<br>  $1 = vec;<br>}<br><br>%typemap(ruby, freearg) vectorclassname &amp;, const vectorclassname &amp; {<br>  delete $1;<br>}<br>%enddef<br></pre>
-</blockquote>
+</div>
 
+<p>
 It is also possible to create a Ruby array from a vector of static data
 types:
+</p>
 
-<blockquote><pre>
+<div class="code"><pre>
 %define VECTOR_TO_RUBY_ARRAY(vectorclassname, classname)
 %typemap(ruby, out) vectorclassname &amp;, const vectorclassname &amp; {
   VALUE arr = rb_ary_new2($1-&gt;size()); 
@@ -1854,51 +2273,67 @@ types:
   $result = arr;
 }
 %enddef
-</pre></blockquote>
+</pre></div>
 <H2><a name="Ruby_nn46"></a>27.8 Advanced Topics</H2>
 
 
 <H3><a name="Ruby_nn47"></a>27.8.1 Creating Multi-Module Packages</H3>
 
 
+<p>
 The chapter on <a href="Modules.html">Working with Modules</a> discusses
 the basics
 of creating multi-module extensions with SWIG, and in particular
 the considerations for sharing runtime type information among the
 different
 modules.
+</p>
+
 <p>As an example, consider one module's interface file (<tt>shape.i</tt>)
 that defines our base class:
 </p>
-<blockquote>
+<div class="code">
   <pre>%module shape<br><br>%{<br>#include "Shape.h"<br>%}<br><br>class Shape {<br>protected:<br>    double xpos;<br>    double ypos;<br>protected:<br>    Shape(double x, double y);<br>public:<br>    double getX() const;<br>    double getY() const;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 We also have a separate interface file (<tt>circle.i</tt>) that defines
 a derived class:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%module circle<br><br>%{<br>#include "Shape.h"<br>#include "Circle.h"<br>%}<br><br>// Import the base class definition from Shape module<br>%import shape.i<br><br>class Circle : public Shape {<br>protected:<br>    double radius;<br>public:<br>    Circle(double x, double y, double r);<br>    double getRadius() const;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 We'll start
 by building
 the <b>Shape</b> extension module:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>swig -c++ -ruby shape.i</b>
   </pre>
-</blockquote>
+</div>
+
+<p>
 SWIG generates a wrapper file named <tt>shape_wrap.cxx</tt>. To
 compile this
 into a dynamically loadable extension for Ruby, prepare an <tt>extconf.rb</tt>
 script using this template:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>require 'mkmf'<br><br># Since the SWIG runtime support library for Ruby<br># depends on the Ruby library, make sure it's in the list<br># of libraries.<br>$libs = append_library($libs, Config::CONFIG['RUBY_INSTALL_NAME'])<br><br># Create the makefile<br>create_makefile('shape')<br></pre>
-</blockquote>
+</div>
+
+<p>
 Run this script to create a <tt>Makefile</tt> and then type <tt>make</tt>
 to
 build the shared library:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>ruby extconf.rb</b>
 creating Makefile
 
@@ -1908,7 +2343,9 @@ g++ -fPIC -g -O2  -I. -I/usr/local/lib/ruby/1.7/i686-linux \
 gcc -shared -L/usr/local/lib -o shape.so shape_wrap.o -L. \
 	-lruby -lruby -lc
   </pre>
-</blockquote>
+</div>
+
+<p>
 Note that depending on your installation, the outputs may be slightly
 different;
 these outputs are those for a Linux-based development environment. The
@@ -1918,6 +2355,8 @@ the
 extension module code. Now repeat this process in a separate directory
 for
 the <b>Circle</b> module:
+</p>
+
 <ol>
   <li> Run SWIG to generate the wrapper code (<tt>circle_wrap.cxx</tt>);
   </li>
@@ -1927,11 +2366,14 @@ to create a platform-specific <tt>Makefile</tt> for the extension;
   <li> Build the shared library for this extension by typing <tt>make</tt>.
   </li>
 </ol>
+
+<p>
 Once you've built both of these extension modules, you can test them
 interactively in IRB to confirm that the <tt>Shape</tt> and <tt>Circle</tt>
 modules are properly loaded and initialized:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'shape'</b>
 true
@@ -1944,10 +2386,11 @@ true
 irb(main):005:0&gt; <b>c.getX()</b>
 5.0
   </pre>
-</blockquote>
+</div>
 <H3><a name="Ruby_nn48"></a>27.8.2 Defining Aliases</H3>
 
 
+<p>
 It's a fairly common practice in the Ruby built-ins and standard
 library to
 provide aliases for method names. For example, <em>Array#size</em> is
@@ -1957,23 +2400,33 @@ one
 of your class' instance methods, one approach is to use SWIG's
 <tt>%extend</tt> directive to add a new method of the aliased name
 that calls the original function. For example:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>class MyArray {<br>public:<br>  // Construct an empty array<br>  MyArray();<br>  <br>  // Return the size of this array<br>  size_t length() const;<br>};<br><br>%extend MyArray {<br>  // MyArray#size is an alias for MyArray#length<br>  size_t size() const {<br>    return self-&gt;length();<br>  }<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 A better solution is to instead use the <tt>%alias</tt> directive
 (unique to
 SWIG's Ruby module). The previous example could then be rewritten as:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>// MyArray#size is an alias for MyArray#length<br>%alias MyArray::length "size";<br><br>class MyArray {<br>public:<br>  // Construct an empty array<br>  MyArray();<br>  <br>  // Return the size of this array<br>  size_t length() const;<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 Multiple aliases can be associated with a method by providing a
 comma-separated list of
 aliases to the <tt>%alias</tt> directive, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%alias MyArray::length "amount,quantity,size";</pre>
-</blockquote>
+</div>
+
+<p>
 From an end-user's standpoint, there's no functional difference between
 these
 two approaches; i.e. they should get the same result from calling
@@ -1983,17 +2436,20 @@ either
 the
 wrapper code that's usually associated with added methods like our
 <em>MyArray::size()</em> example.
+</p>
+
 <p>Note that the <tt>%alias</tt> directive is implemented using SWIG's
 "features"
 mechanism and so the same name matching rules used for other kinds of
 features
 apply (see the chapter on <a href="Customization.html#Customization">"Customization
 Features"</a>)
-for more details).
+for more details).</p>
 
 <H3><a name="Ruby_nn49"></a>27.8.3 Predicate Methods</H3>
 
 
+<p>
 Predicate methods in Ruby are those which return either <tt>true</tt>
 or
 <tt>false</tt>. By convention, these methods' names end in a question
@@ -2008,6 +2464,8 @@ you
 would also want your interface's predicate methods' names to end in a
 question
 mark and return <tt>true</tt> or <tt>false</tt>.
+</p>
+
 <p>One cumbersome solution to this problem is to rename the method
 (using
 SWIG's <tt>%rename</tt> directive) and provide a custom typemap that
@@ -2015,33 +2473,41 @@ converts
 the function's actual return type to Ruby's <tt>true</tt> or <tt>false</tt>.
 For example:
 </p>
-<blockquote>
+<div class="code">
   <pre>%rename("is_it_safe?") is_it_safe();<br><br>%typemap(out) int is_it_safe <br>   "$result = ($1 != 0) ? Qtrue : Qfalse;";<br><br>int is_it_safe();<br></pre>
-</blockquote>
+</div>
+
+<p>
 A better solution is to instead use the <tt>%predicate</tt> directive
 (unique
 to SWIG's Ruby module) to designate certain methods as predicate
 methods.
 For the previous example, this would look like:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>%predicate is_it_safe();<br><br>int is_it_safe();<br></pre>
-</blockquote>
-and to use this method from your Ruby code:
-<blockquote>
+</div>
+<p>and to use this method from your Ruby code:</p>
+<div class="code">
   <pre>irb(main):001:0&gt; <b>Example::is_it_safe?</b>
 true
   </pre>
-</blockquote>
+</div>
+
+<p>
 Note that the <tt>%predicate</tt> directive is implemented using
 SWIG's
 "features" mechanism and so the same name matching rules used for other
 kinds
 of features apply (see the chapter on <a href="Customization.html#Customization">"Customization
 Features"</a>) for more details).
+</p>
+
 <H3><a name="Ruby_nn50"></a>27.8.4 Specifying Mixin Modules</H3>
 
 
+<p>
 The Ruby language doesn't support multiple inheritance, but it does
 allow you
 to mix one or more modules into a class using Ruby's <tt>include</tt>
@@ -2049,15 +2515,19 @@ method.
 For example, if you have a Ruby class that defines an <em>each</em>
 instance
 method, e.g.
+</p>
 
-<blockquote>
+<div class="code">
   <pre>class Set<br>  def initialize<br>    @members = []<br>  end<br>  <br>  def each<br>    @members.each { |m| yield m }<br>  end<br>end<br></pre>
-</blockquote>
+</div>
+
+<p>
 then you can mix-in Ruby's <tt>Enumerable</tt> module to easily add a
 lot
 of functionality to your class:
+</p>
 
-<blockquote>
+<div class="code">
   <pre>class Set<br>  <b>include Enumerable</b>
   
   def initialize
@@ -2069,45 +2539,64 @@ of functionality to your class:
   end
 end
   </pre>
-</blockquote>
+</div>
+
+<p>
 To get the same benefit for your SWIG-wrapped classes, you can use the <tt>%mixin</tt>
 directive to specify the names of one or more modules that should be
 mixed-in to
 a class. For the above example, the SWIG interface specification might
 look like this:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%mixin Set "Enumerable";<br><br>class Set {<br>public:<br>  // Constructor<br>  Set();<br>  <br>  // Iterates through set members<br>  void each();<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 Multiple modules can be mixed into a class by providing a
 comma-separated list of
 module names to the <tt>%mixin</tt> directive, e.g.
-<blockquote>
+</p>
+
+<div class="code">
   <pre>%mixin Set "Fee,Fi,Fo,Fum";</pre>
-</blockquote>
+</div>
+
+<p>
 Note that the <tt>%mixin</tt> directive is implemented using SWIG's
 "features" mechanism and so the same name matching rules used for other
 kinds
 of features apply (see the chapter on <a href="Customization.html#Customization">"Customization
 Features"</a>) for more details).
+</p>
+
 <H3><a name="Ruby_nn51"></a>27.8.5 Interacting with Ruby's Garbage Collector</H3>
 
 
+<p>
 <b>This section is still unfinished!</b>
+</p>
+
 <p>By default, SWIG ensures that any C++ objects it creates are
 destroyed when the
 corresponding Ruby instance is garbage-collected. For example, if you
 have an
 interface like this:
 </p>
-<blockquote>
+<div class="code">
   <pre>class Foo<br>{<br>public:<br>    // Construct a new Foo object<br>    Foo();<br>};<br></pre>
-</blockquote>
+</div>
+
+<p>
 When a user of this extension creates a new <tt>Foo</tt> instance from
 Ruby, it
 will construct a new C++ <tt>Foo</tt> object behind the scenes, and
 when that
 Ruby instance is garbage-collected, the same C++ object will be
 destroyed.
+</p>
+
 <p>But in the real world, things aren't always that simple.</p>
 <p>It is often the case, especially for C++ libraries, that objects
 contain
@@ -2115,7 +2604,7 @@ references to other objects. For example, consider a class library that
 models
 a zoo and the animals in the zoo:
 </p>
-<blockquote>
+<div class="code">
   <pre>%module zoo<br><br>%{<br>#include &lt;string&gt;
 #include &lt;vector&gt;
 
@@ -2139,12 +2628,16 @@ class Zoo
 {
 protected:
     std::vector&lt;animal *=""&gt; animals;<br>    <br>public:<br>    // Construct an empty zoo<br>    Zoo() {}<br>    <br>    // Add a new animal to the zoo<br>    void addAnimal(Animal* animal) {<br>      animals.push_back(animal); <br>    }<br>    <br>    // Return the number of animals in the zoo<br>    size_t getNumAnimals() const {<br>      return animals.size(); <br>    }<br>    <br>    // Return a pointer to the ith animal<br>    Animal* getAnimal(size_t i) const {<br>      return animals[i]; <br>    }<br>};<br><br></pre>
-</blockquote>
+</div>
+
+<p>
 Basically, a <tt>Zoo</tt> is modeled as a "container" for animals. And
 we can
 SWIG this set of classes, and running <tt>irb</tt> gives the
 following:
-<blockquote>
+</p>
+
+<div class="code">
   <pre>$ <b>irb</b>
 irb(main):001:0&gt; <b>require 'zoo'</b>
 true
@@ -2165,7 +2658,9 @@ irb(main):008:0&gt; <b>zoo.getAnimal(0).getName()</b>
 ruby 1.7.2 (2002-03-25) [i386-cygwin]
 Aborted (core dumped)
   </pre>
-</blockquote>
+</div>
+
+<p>
 Observe that after the garbage collector runs (as a result of our call
 to
 <tt>GC.start</tt>) the call to <tt>Animal#getName</tt> causes a
@@ -2173,6 +2668,8 @@ segmentation
 fault. To understand what went wrong requires a basic understanding of
 Ruby's
 "mark and sweep" garbage collection scheme.
+</p>
+
 <p><em>Add brief discussion of mark and sweep here?</em></p>
 <p>So the problem with our previous example is that during the GC
 "mark" phase,
@@ -2198,10 +2695,12 @@ all of the animals in the zoo and call <tt>rb_gc_mark()</tt> for each
 of the
 Ruby instances associated with those C++ <tt>Animal</tt> objects:
 </p>
-<blockquote>
+<div class="code">
   <pre>void Zoo_markfunc(void *ptr)<br>{<br>    Animal *cppAnimal;<br>    VALUE   rubyAnimal;<br>    Zoo *zoo;<br>    <br>    zoo = static_cast&lt;zoo
  *=""&gt;(ptr);<br>    for (size_t i = 0; i &lt; zoo-&gt;getNumAnimals(); i++) {<br>        cppAnimal = zoo-&gt;getAnimal(i);<br>        rubyAnimal = SWIG_RubyInstanceFor(cppAnimal);<br>        rb_gc_mark(rubyAnimal);<br>    }<br>}<br></pre>
-</blockquote>
+</div>
+
+<p>
 <em>SWIG_RubyInstanceFor() is an imaginary function that takes a
 pointer
 to a C/C++ object as its input and returns a <tt>VALUE</tt>
@@ -2209,13 +2708,17 @@ corresponding to
 the Ruby instance that wraps this object. Currently, SWIG doesn't keep
 track
 of this kind of mapping at all.</em>
+</p>
+
 <p>You can use the <tt>%markfunc</tt> directive to associate the name
 of this function with
 a SWIGed class:
 </p>
-<blockquote>
+<div class="code">
   <pre>%markfunc Zoo "Zoo_markfunc";</pre>
-</blockquote>
+</div>
+
+<p>
 Note that the <tt>%markfunc</tt> and <tt>%freefunc</tt> directives
 are
 implemented using SWIG's' "features" mechanism and so the same name
@@ -2223,6 +2726,7 @@ matching
 rules used for other kinds of features apply (see the chapter on
 <a href="Customization.html#Customization">"Customization Features"</a>)
 for more details).
+</p>
 
 </body>
 </html>
