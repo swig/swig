@@ -2032,7 +2032,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       else if (CPlusPlus) Printf(fcall,")");
 
       Printf(wrap,"(%s)", fcall);
-      fprintf(f_wrappers,"%s",Char(wrap));
+      fprintf(f_wrappers,"%s\n",Char(wrap));
     } else {
       if (ccode) {
 	Printv(wrap, "static ", classtype, classname, " *", cname, "(", 0);
