@@ -776,9 +776,25 @@ Preprocessor_replace(DOH *s)
 static int
 check_id(DOH *s)
 {
+  static SwigScanner *scan = 0;
+
   int c, state = 0;
   int hasvalue = 0;
   Seek(s,0,SEEK_SET);
+
+  if (!scan) {
+    scan = NewSwigScanner();
+  }
+
+  SwigScanner_clear(scan);
+  SwigScanner_push(scan,Copy(s));
+  while ((c = SwigScanner_token(scan))) {
+    if (c == SWIG_TOKEN_ID) return 1;
+  }
+  return 0;
+
+#ifdef OLD
+
   while ((c = Getc(s)) != EOF) {
     switch(state) {
 
@@ -823,6 +839,8 @@ check_id(DOH *s)
   }
   if (!hasvalue) return 1;
   return 0;
+#endif
+
 }
 
 /* addline().  Utility function for adding lines to a chunk */
