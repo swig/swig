@@ -36,11 +36,11 @@ public :
   JAVA() {
     module = NULL;
     package = NULL;
-    java_path = "java";
+    java_path = (char*)"java";
     f_java = f_shadow = NULL;
     native_func = shadow = member_func = 0;
     jimport = shadow_name = shadow_baseclass = NULL;
-    method_modifiers = "public final static";
+    method_modifiers = (char*)"public final static";
     jnic = -1;
     useRegisterNatives=0;
     finalize=0;

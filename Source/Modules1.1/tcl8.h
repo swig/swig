@@ -59,8 +59,8 @@ public :
     init_name = 0;
     nspace = 0;
     shadow = 1;
-    char_result = "TCL_VOLATILE";
-    tcl_path = "tcl";
+    char_result = (char*)"TCL_VOLATILE";
+    tcl_path = (char*)"tcl";
     sprintf(interp_name,"interp");
     class_name = 0;
     class_type = 0;

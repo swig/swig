@@ -27,8 +27,8 @@ static char cvsroot[] = "$Header$";
 #include "tcl8.h"
 #include <ctype.h>
 
-static char *Tcl_config="swigtcl.swg";
-static char *usage = "\
+static char *Tcl_config=(char*)"swigtcl.swg";
+static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
      -module name    - Set name of module\n\
      -prefix name    - Set a prefix to be appended to all names\n\
@@ -101,7 +101,7 @@ void TCL8::parse_args(int argc, char *argv[]) {
       prefix[strlen(prefix)] = '_';
     }
   } else 
-    prefix = "";
+    prefix = (char*)"";
 
   // Create a symbol SWIGTCL
 
@@ -110,7 +110,7 @@ void TCL8::parse_args(int argc, char *argv[]) {
 
   // Set name of typemaps
 
-  typemap_lang = "tcl8";
+  typemap_lang = (char*)"tcl8";
 
 }
 
@@ -268,7 +268,7 @@ void TCL8::initialize()
   }
 
   fprintf(f_header,"#define SWIG_init    %s\n", init_name);
-  if (!module) module = "swig";
+  if (!module) module = (char*)"swig";
   fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);
   if (nspace) {
     fprintf(f_header,"#define SWIG_prefix  \"%s::\"\n", ns_name);
@@ -496,7 +496,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	argstr << "|";
       //	f.code << tab4 << "if (objc >" << j+1 << ") { \n";
 
-      if ((tm = typemap_lookup("in","tcl8",p->t,p->name,source,target,&f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"tcl8",p->t,p->name,source,target,&f))) {
 	argstr << "o";
 	args << ",0";
 
@@ -524,7 +524,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    {
 	      char tb[32];
 	      sprintf(tb,"tempb%d",i);
-	      f.add_local("int",tb);
+	      f.add_local((char*)"int",tb);
 	      args << ",&" << tb;
 	      incode << tab4 << target << " = (bool) " << tb << ";\n";
 	    }
@@ -599,13 +599,13 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     // Check to see if there is any sort of "build" typemap (highly complicated)
 
-    if ((tm = typemap_lookup("build","tcl8",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"build",(char*)"tcl8",p->t,p->name,source,target))) {
       build << tm << "\n";
       have_build = 1;
     }
 
     // Check to see if there was any sort of a constaint typemap
-    if ((tm = typemap_lookup("check","tcl8",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"tcl8",p->t,p->name,source,target))) {
       // Yep.  Use it instead of the default
       incode << tm << "\n";
       incode.replace("$argnum",argnum);
@@ -613,14 +613,14 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
 
     // Check if there was any cleanup code (save it for later)
-    if ((tm = typemap_lookup("freearg","tcl8",p->t,p->name,target,"tcl_result"))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"tcl8",p->t,p->name,target,(char*)"tcl_result"))) {
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
       cleanup.replace("$argnum",argnum);
       cleanup.replace("$arg",source);
     }
     // Look for output arguments
-    if ((tm = typemap_lookup("argout","tcl8",p->t,p->name,target,"tcl_result"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"tcl8",p->t,p->name,target,(char*)"tcl_result"))) {
       outarg << tm << "\n";
       outarg.replace("$argnum",argnum);
       outarg.replace("$arg",source);
@@ -662,7 +662,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Return value if necessary 
 
-  if ((tm = typemap_lookup("out","tcl8",d,name,"_result","tcl_result"))) {
+  if ((tm = typemap_lookup((char*)"out",(char*)"tcl8",d,name,(char*)"_result",(char*)"tcl_result"))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
   } else if ((d->type != T_VOID) || (d->is_pointer)) {
@@ -743,12 +743,12 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup("newfree","tcl8",d,iname,"_result",""))) {
+    if ((tm = typemap_lookup((char*)"newfree",(char*)"tcl8",d,iname,(char*)"_result",(char*)""))) {
       f.code << tm << "\n";
     }
   }
 
-  if ((tm = typemap_lookup("ret","tcl8",d,name,"_result",""))) {
+  if ((tm = typemap_lookup((char*)"ret",(char*)"tcl8",d,name,(char*)"_result",(char*)""))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
   }
@@ -781,8 +781,8 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 
   // See if there were any typemaps
 
-  tm = typemap_lookup("varin","tcl8",t,name,"","");
-  tm1 = typemap_lookup("varout","tcl8",t,name,"","");
+  tm = typemap_lookup((char*)"varin",(char*)"tcl8",t,name,(char*)"",(char*)"");
+  tm1 = typemap_lookup((char*)"varout",(char*)"tcl8",t,name,(char*)"",(char*)"");
   if (tm || tm1) {
     fprintf(stderr,"%s : Line %d. Warning. varin/varout typemap methods not supported.",
 	    input_file, line_number);
@@ -796,13 +796,13 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     set.def << "static char *_swig_" << t->print_mangle() << "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {";
     get.def << "static char *_swig_" << t->print_mangle() << "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {";
     t->is_pointer++;
-    get.add_local(t->print_type(),"addr");
-    set.add_local(t->print_type(),"addr");
+    get.add_local(t->print_type(),(char*)"addr");
+    set.add_local(t->print_type(),(char*)"addr");
     set.code << tab4 << "addr = " << t->print_cast() << " clientData;\n";
     get.code << tab4 << "addr = " << t->print_cast() << " clientData;\n";
     t->is_pointer--;
-    set.add_local("char *","value");
-    get.add_local("Tcl_Obj *","value");
+    set.add_local((char*)"char *",(char*)"value");
+    get.add_local((char*)"Tcl_Obj *",(char*)"value");
 
     set.code << tab4 << "value = Tcl_GetVar2(interp, name1, name2, flags);\n"
 	     << tab4 << "if (!value) return NULL;\n";
@@ -887,27 +887,27 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_UCHAR:
       case T_SCHAR:
       case T_BOOL:
-	get.add_local("Tcl_Obj *","value");
+	get.add_local((char*)"Tcl_Obj *",(char*)"value");
 	get.code << tab4 << "value = Tcl_NewIntObj((int) *addr);\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
 		 << tab4 << "Tcl_DecrRefCount(value);\n";
 	break;
       case T_FLOAT:
       case T_DOUBLE:
-	get.add_local("Tcl_Obj *","value");
+	get.add_local((char*)"Tcl_Obj *",(char*)"value");
 	get.code << tab4 << "value = Tcl_NewDoubleObj((double) *addr);\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
 		 << tab4 << "Tcl_DecrRefCount(value);\n";
 	break;
 
       case T_CHAR:
-	get.add_local("char","temp[4]");
+	get.add_local((char*)"char",(char*)"temp[4]");
 	get.code << tab4 << "temp[0] = *addr; temp[1] = 0;\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,temp,flags);\n";
 	break;
 
       case T_USER:
-	get.add_local("Tcl_Obj *","value");
+	get.add_local((char*)"Tcl_Obj *",(char*)"value");
 	t->is_pointer++;
 	t->remember();
 	get.code << tab4 << "value = SWIG_NewPointerObj(addr, SWIGTYPE" << t->print_mangle() << ");\n"
@@ -923,7 +923,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
 	get.code << tab4 << "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n";
       } else {
-	get.add_local("Tcl_Obj *","value");
+	get.add_local((char*)"Tcl_Obj *",(char*)"value");
 	t->remember();
 	get.code << tab4 << "value = SWIG_NewPointerObj(*addr, SWIGTYPE" << t->print_mangle() << ");\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
@@ -985,7 +985,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
     rvalue << "'";
     "'" >> rvalue;
   }
-  if ((tm = typemap_lookup("const","tcl8",type,name,rvalue.get(),name))) {
+  if ((tm = typemap_lookup((char*)"const",(char*)"tcl8",type,name,rvalue.get(),name))) {
     // Yep.  Use it instead of the default
     fprintf(f_init,"%s\n",tm);
   } else {
@@ -1133,7 +1133,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
 
     // Only print an argument if not ignored
 
-    if (!typemap_check("ignore","tcl8",p->t,p->name)) {
+    if (!typemap_check((char*)"ignore",(char*)"tcl8",p->t,p->name)) {
       if (i >= (pcount-numopt))
 	temp << "?";
 
@@ -1257,7 +1257,7 @@ void TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip)
       class_type = new char[strlen(ctype)+2];
       sprintf(class_type,"%s ", ctype);
     } else
-      class_type = "";
+      class_type = (char*)"";
 
     real_classname = copy_string(classname);
   }

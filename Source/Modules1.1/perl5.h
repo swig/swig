@@ -68,7 +68,7 @@ public :
   PERL5() {
     package = 0;
     module = 0;
-    perl_path = "perl5";
+    perl_path = (char*)"perl5";
     is_static = 0;
     blessed = 0;
     hidden = 0;
