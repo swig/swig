@@ -558,18 +558,18 @@ read-only variable.  Attempts to modify its value will result in an
 error.
 
 <p>
-To make ordinary variables read-only, you can also use the <tt>%readonly</tt> directive. For example:
+To make ordinary variables read-only, you can also use the <tt>%immutable</tt> directive. For example:
 
 <blockquote>
 <pre>
-%readonly
+%immutable;
 extern char *path;
-%readwrite
+%mutable;
 </pre>
 </blockquote>
 
-The <tt>%readonly</tt> directive stays in effect until it is explicitly disabled using
-<tt>%readwrite</tt>.
+The <tt>%immutable</tt> directive stays in effect until it is explicitly disabled using
+<tt>%mutable</tt>.
 
 <p>
 If you would like to use a name other than "<tt>cvar</tt>", it can be
@@ -764,16 +764,16 @@ Similar access is provided for unions and the data members of C++ classes.<p>
 
 <p>
 <tt>const</tt> members of a structure are read-only. Data members
-can also be forced to be read-only using the <tt>%readonly</tt> directive. For example:
+can also be forced to be read-only using the <tt>%immutable</tt> directive. For example:
 
 <blockquote>
 <pre>
 struct Foo {
    ...
-   %readonly
+   %immutable;
    int x;        /* Read-only members */
    char *name;
-   %readwrite
+   %mutable;
    ...
 };
 </pre>

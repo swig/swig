@@ -154,7 +154,8 @@ destructor.   However, there are a few rules that define this behavior:
 <li>A default constructor is not created if a class already defines a constructor with arguments.
 
 <p>
-<li>Default constructors are not generated for classes with pure virtual methods.
+<li>Default constructors are not generated for classes with pure virtual methods or for classes that
+inherit from an abstract class, but don't provide definitions for all of the pure methods.
 
 <p>
 <li>A default constructor is not created unless all bases classes support a 
@@ -198,6 +199,69 @@ the private and protected sections of a class due to parsing limitations.
 However, this removal may now cause SWIG to erroneously generate constructors
 for classes that define a constructor in those sections.  Consider restoring
 those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
+
+<h3>Copy constructors</h3>
+
+If a class defines more than one constructor, SWIG ordinarily generates a name clash (see the
+section on overloading).   However, a copy constructor is handled as a special case. 
+If a class defines a copy constructor like this,
+
+<blockquote>
+<pre>
+class List {
+public:
+    List();    
+    List(const List &);      // Copy constructor
+    ...
+};
+</pre>
+</blockquote>
+
+the copy constructor is mapped into an accessor function like this:
+
+<blockquote>
+<pre>
+List *copy_List(List *f) {
+    return new List(*f);
+}
+</pre>
+</blockquote>
+
+Depending on the target language module, this function may be further incorporated 
+into object wrapping.  However, if not, the copy function will simply be available as
+an ordinary procedure.
+
+<p>
+<b>Note:</b>  For a class <tt>X</tt>, SWIG only treats a constructor as a copy constructor if it can be applied to
+an object of type <tt>X</tt> or <tt>X *</tt>.  If more than one copy constructor is defined, only the first definition
+that appears is used as the copy constructor--other definitions will result in a name-clash.
+Constructors such as <tt>X(const X &)</tt>, <tt>X(X &)</tt>, and <tt>X(X *)</tt> are handled as
+copy constructors in SWIG.
+
+<p>
+<b>Note:</b> SWIG does <em>not</em> generate a copy constructor wrapper unless one is explicitly
+declared in the class.   This differs from the treatment of default constructors and destructors.
+
+<p>
+<b>Compatibility note:</b>  Special support for copy constructors was not added until SWIG-1.3.12.  In previous
+versions, copy constructors could be wrapped, but they had to be renamed.  For example:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    Foo();
+  %name(CopyFoo) Foo(const Foo &);
+    ...
+};
+</pre>
+</blockquote>
+
+For backwards compatibility, SWIG does not perform any special
+copy-constructor handling if the constructor has been manually
+renamed.  For instance, in the above example, the name of the
+constructor is set to <tt>new_CopyFoo()</tt>.   This is the same as in 
+older versions.
 
 <h3> Member functions</h3>
 
@@ -247,8 +311,8 @@ int List_length_set(List *obj, int value) {
 
 </pre></blockquote>
 
-A read-only member can be created using the <tt>%readonly</tt> and
-<tt>%readwrite</tt> directives. For example, we probably wouldn't want
+A read-only member can be created using the <tt>%immutable</tt> and
+<tt>%mutable</tt> directives. For example, we probably wouldn't want
 the user to change the length of a list so we could do the following
 to make the value available, but read-only.<p>
 
@@ -256,12 +320,26 @@ to make the value available, but read-only.<p>
 <blockquote><pre>class List {
 public:
 ...
-%readonly
+%immutable;
 	int length;
-%readwrite
+%mutable;
 ...
 };
 </pre></blockquote>
+
+Alternatively, you can specify an immutable member as follows:
+
+<blockquote>
+<pre>
+%immutable List::length;
+...
+class List {
+   ...
+   int length;         // Immutable by above directive
+   ...
+};
+</pre>
+</blockquote>
 
 Similarly, all data attributes declared as <tt>const</tt> are wrapped as read-only members.
 
@@ -293,6 +371,12 @@ void Foo_items_set(Foo *self, List *value) {
 
 More information about this can be found in the "Structure data
 members" section of the <a href="SWIG.html">SWIG Basics</a> chapter.
+
+<p>
+<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
+<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
+generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
+<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
 
 <h2>Protection</h2>
 
@@ -2179,11 +2263,11 @@ of your project.
 
 If you're wrapping serious C++ code, you might want to pick up a copy
 of "The Annotated C++ Reference Manual" by Ellis and Stroustrup.  This
-is the reference document we use to help guide a lot of SWIG's C++ support.
+is the reference document we use to guide a lot of SWIG's C++ support.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : April 4, 2002</address>
+<address>SWIG 1.3 - Last Modified : April 7, 2002</address>
 </body>
 </html>
 

@@ -1037,7 +1037,7 @@ void foo_set(char *value) {
 </blockquote>
 
 If this is not the behavior that you want, consider making the variable read-only using the
-<tt>%readonly</tt> directive.  Alternatively, you might write a short assist-function to set the value
+<tt>%immutable</tt> directive.  Alternatively, you might write a short assist-function to set the value
 exactly like you want.  For example:
 
 <blockquote>
@@ -1233,22 +1233,33 @@ In the target language, the value can be set like a normal variable.
 
 <h3>Creating read-only variables</h3>
 
-A read-only variable can be created by using the <tt>%readonly</tt>
+A read-only variable can be created by using the <tt>%immutable</tt>
 directive as shown :<p>
 
 <blockquote><pre>
 // File : interface.i
 
 int 	a; 			// Can read/write
-%readonly
+%immutable;
 int	b,c,d			// Read only variables
-%readwrite
+%mutable;
 double	x,y			// read/write
 </pre></blockquote>
 
 <p>
-The <tt>%readonly</tt> directive enables read-only mode until it is
-explicitly disabled using the <tt>%readwrite</tt> directive.<p>
+The <tt>%immutable</tt> directive enables read-only mode until it is
+explicitly disabled using the <tt>%mutable</tt> directive.  As an alternative to turning
+read-only mode off and on like this, individual declarations can also be tagged as
+immutable.  For example:
+
+<blockquote><pre>
+%immutable x;               // Make x read-only
+...
+double x;                   // Read-only (from earlier %immutable directive)
+double y;                   // Read-write
+...
+</pre>
+</blockquote>
 
 Read-only variables are also created when declarations are declared as <tt>const</tt>.
 For example:
@@ -1259,6 +1270,12 @@ const int foo;               /* Read only variable */
 char * const version="1.0";  /* Read only variable */
 </pre>
 </blockquote>
+
+<p>
+<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
+<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
+generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
+<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
 
 <h3>Renaming and ignoring declarations</h3>
 
