@@ -13,7 +13,7 @@ class Foo {
 protected:
     int x;
 public:
-    void y();
+    void y() {}
 };
 
 %}
