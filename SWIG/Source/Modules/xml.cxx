@@ -1,10 +1,10 @@
 /* -----------------------------------------------------------------------------
  * Xml.cxx
  *
- *     A web-base parse tree Xml using SWILL.   This is an optional
- *     feature that's normally disabled.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
+ *     An Xml parse tree generator
+
+ * Author(s) : Swig base: David Beazley (beazley@cs.uchicago.edu)
+ *		Xml module: Klaus Wiederaenders (kwconsulting@compuserve.com
  *
  * Copyright (C) 2002.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
@@ -13,8 +13,10 @@
 char cvsroot_xml_cxx[] = "$Header$";
 static const char *usage = "\
 XML Options (available with -xml)\n\
-     -xml output.xml - Use output.xml as output file (extension .xml mandatory)\n\
-     -xmllang lang   - Typedef language.\n\n";
+     -xmllang lang   - Typedef language\n\
+     ------\n\
+     deprecated (use -o): -xml output.xml - Use output.xml as output file (extension .xml mandatory)\n";
+
 
 #include "swigmod.h"
 
@@ -43,12 +45,15 @@ public:
 
 	virtual void main(int argc, char *argv[])
 	{
-	    SWIG_typemap_lang("xml");
+		SWIG_typemap_lang("xml");
 		for( int iX = 0; iX < argc; iX++ )
 		{
 			if( strcmp( argv[iX], "-xml" ) == 0 )
 			{
-				char * extension = argv[iX+1]+strlen(argv[iX+1])-4;
+				char  * extension = 0; 
+				if( iX + 1 >= argc )
+					continue;
+				extension = argv[iX+1]+strlen(argv[iX+1])-4;
 				if( strcmp( extension, ".xml" ) )
 					continue;
 				iX++;
@@ -84,7 +89,8 @@ public:
 		if( out == 0 )
 		{
 			String *outfile = Getattr(n,"outfile");
-			Replaceall(outfile,"_wrap.cxx", ".xml");
+			Replaceall(outfile,".cxx", ".xml");
+			Replaceall(outfile,".c", ".xml");
 			out = NewFile(outfile,"w");
 			if (!out)
 			{
