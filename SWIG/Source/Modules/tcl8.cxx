@@ -614,6 +614,7 @@ public:
   virtual int constantWrapper(Node *n) {
     String *name      = Getattr(n,"name");
     String *iname     = Getattr(n,"sym:name");
+    String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
     SwigType *type    = Getattr(n,"type");
     String   *value   = Getattr(n,"value");
     String *tm;
@@ -626,21 +627,26 @@ public:
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
       value = Char(wname);
     }
+    
     if ((tm = Swig_typemap_lookup_new("consttab",n,name,0))) {
       Replaceall(tm,"$source",value);
       Replaceall(tm,"$target",name);
       Replaceall(tm,"$value",value);
+      Replaceall(tm,"$nsname",nsname);
       Printf(const_tab,"%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup_new("constcode", n, name, 0))) {
       Replaceall(tm,"$source", value);
       Replaceall(tm,"$target", name);
       Replaceall(tm,"$value",value);
+      Replaceall(tm,"$nsname",nsname);
       Printf(f_init, "%s\n", tm);
     } else {
+      Delete(nsname);
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF,
 		   input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
+    Delete(nsname);
     return SWIG_OK;
   }
 
