@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	valuewrapper_base \
 	smart_pointer_rename \
 	grouping \
 	enum_scope_template \
