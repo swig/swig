@@ -275,10 +275,6 @@
         $1 = *($1_ltype) temp;
 }
 
-%typemap(varin) SWIGTYPE [] {
-	rb_raise(rb_eRuntimeError, "Array $name is readonly");
-}
-
 %typemap(varin) void *
         "SWIG_ConvertPtr($input, (void **) &$1, 0, 1);";
 

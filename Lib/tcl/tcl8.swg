@@ -386,7 +386,7 @@
   $1 = *(($&1_type) temp);
 }
 
-%typemap(varin) SWIGTYPE [] {
+%typemap(varin) SWIGTYPE [ANY] {
    void *temp;
    if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
       return (char *)"Type error. Expected $1_ltype";

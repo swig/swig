@@ -295,11 +295,6 @@
 }
 #endif
 
-%typemap(varin) SWIGTYPE [] {
-  PyErr_SetString(PyExc_TypeError, "Variable $name is read-only.");
-  return 1;
-}
-
 %typemap(varin) SWIGTYPE [ANY] {
   void *temp;
   int ii;

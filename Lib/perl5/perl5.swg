@@ -226,7 +226,7 @@
 %typemap(varin)  long long "$1 = ($1_ltype) strtoll(SvPV($input, PL_na), 0, 0);";
 %typemap(varin)  unsigned long long "$1 = ($1_ltype) strtoull(SvPV($input, PL_na), 0, 0);";
 
-%typemap(varin) SWIGTYPE *, SWIGTYPE [] {
+%typemap(varin) SWIGTYPE * {
         if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
@@ -324,8 +324,6 @@
 
 %typemap(varin) char [ANY]
      "strncpy($1, (char *) SvPV(sv,PL_na), $1_dim0);";
-
-%typemap(varin) SWIGTYPE [] "croak(\"Value is read-only.\");";
 
 %typemap(varin) enum SWIGTYPE
      "$1 = ($1_type) SvIV($input);";
