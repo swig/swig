@@ -13,10 +13,10 @@
  %typemap (guile, indoc)       C_NAME "($arg <SCM_NAME>)";		\
  %typemap (guile, outdoc)      C_NAME "<SCM_NAME>";			\
  %typemap (guile, in)          C_NAME *INPUT (C_NAME temp)		\
- { temp = (C_NAME) C_TO_SCM($source); $target = &temp; }		\
+ "temp = (C_NAME) C_TO_SCM($source); $target = &temp;"			\
  %typemap (guile, indoc)       C_NAME *INPUT "($arg <SCM_NAME>)";	\
  %typemap (guile, ignore)      C_NAME *OUTPUT (C_NAME temp)		\
- { $target = &temp; }							\
+ "$target = &temp;"							\
  %typemap (guile, argout)      C_NAME *OUTPUT				\
  "GUILE_APPEND_RESULT(C_TO_SCM(*$target));";				\
  %typemap (guile, argoutdoc)   C_NAME *OUTPUT "($arg <SCM_NAME>)";	\
