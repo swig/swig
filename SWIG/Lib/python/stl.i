@@ -114,6 +114,14 @@ namespace std {
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+
+double SwigNumber_Check(PyObject* o) {
+    return PyFloat_Check(o) || PyInt_Check(o);
+}
+
+double SwigNumber_AsDouble(PyObject* o) {
+    return (PyFloat_Check(o) ? PyFloat_AsDouble(o) : double(PyInt_AsLong(o)));
+}
 %}
 
 // exported class
@@ -423,10 +431,10 @@ namespace std {
                           PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(unsigned long,PyInt_Check,\
                           PyInt_AsLong,PyInt_FromLong);
-    specialize_std_vector(double,PyFloat_Check,\
-                          PyFloat_AsDouble,PyFloat_FromDouble);
-    specialize_std_vector(float,PyFloat_Check,\
-                          PyFloat_AsDouble,PyFloat_FromDouble);
+    specialize_std_vector(double,SwigNumber_Check,\
+                          SwigNumber_AsDouble,PyFloat_FromDouble);
+    specialize_std_vector(float,SwigNumber_Check,\
+                          SwigNumber_AsDouble,PyFloat_FromDouble);
 
 }
 

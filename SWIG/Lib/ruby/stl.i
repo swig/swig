@@ -109,7 +109,11 @@ namespace std {
 #include <algorithm>
 #include <stdexcept>
 
-#define SWIG_FLOAT_P(x) (TYPE(x) == T_FLOAT)
+#define SWIG_FLOAT_P(x) ((TYPE(x) == T_FLOAT) || FIXNUM_P(x))
+
+double SWIG_NUM2DBL(VALUE x) {
+    return (FIXNUM_P(x) ? FIX2INT(x) : NUM2DBL(x));
+}
 %}
 
 // exported class
@@ -292,8 +296,8 @@ namespace std {
     specialize_std_vector(unsigned int,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(unsigned short,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(unsigned long,FIXNUM_P,FIX2INT,INT2NUM);
-    specialize_std_vector(double,SWIG_FLOAT_P,NUM2DBL,rb_float_new);
-    specialize_std_vector(float,SWIG_FLOAT_P,NUM2DBL,rb_float_new);
+    specialize_std_vector(double,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
+    specialize_std_vector(float,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
 
 }
 
