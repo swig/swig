@@ -812,7 +812,7 @@ public:
 
     int maxargs;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n, "return %s(argc, argv, self);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(nargs, args, self);", &maxargs);
 	
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -822,10 +822,27 @@ public:
 
     Printv(f->def,	
 	   "static VALUE ", wname,
-	   "(int argc, VALUE *argv, VALUE self) {",
+	   "(int nargs, VALUE *args, VALUE self) {",
 	   NULL);
     
-    Replaceall(dispatch, "$args", "argc, argv, self");
+    Wrapper_add_local(f, "argc", "int argc");
+    Printf(tmp, "VALUE argv[%d]", maxargs+1);
+    Wrapper_add_local(f, "argv", tmp);
+    Wrapper_add_local(f, "ii", "int ii");
+    if (current == MEMBER_FUNC || current == MEMBER_VAR) {
+      Printf(f->code, "argc = nargs + 1;\n");
+      Printf(f->code, "argv[0] = self;\n");
+      Printf(f->code, "for (ii = 1; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
+      Printf(f->code, "argv[ii] = args[ii-1];\n");
+      Printf(f->code, "}\n");
+    } else {
+      Printf(f->code, "argc = nargs;\n");
+      Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", maxargs);
+      Printf(f->code, "argv[ii] = args[ii];\n");
+      Printf(f->code, "}\n");
+    }
+    
+    Replaceall(dispatch, "$args", "nargs, args, self");
     Printv(f->code, dispatch, "\n", NULL);
     Printf(f->code, "rb_raise(rb_eArgError, \"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"return Qnil;\n");
