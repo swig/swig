@@ -219,18 +219,18 @@ PYTHON::initialize(void) {
 
     sprintf(filen,"%s%s.py", output_dir, Char(module));
     // If we don't have an interface then change the module name X to Xc
-    if (! interface)
-    Append(module,"c");
+    if (interface) module = interface;
+    else Append(module,"c");
     if ((f_shadow = fopen(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit (EXIT_FAILURE);
     }
     Printf(f_shadow,"# This file was created automatically by SWIG.\n");
-    Printf(f_shadow,"import %s\n", interface ? interface : module);
+    Printf(f_shadow,"import %s\n", module);
 
     // Include some information in the code
     Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
-  ------------------------------------------------*/\n", interface ? interface : module);
+  ------------------------------------------------*/\n", module);
 
     if (!noopt)
       Printf(f_shadow,"import new\n");
