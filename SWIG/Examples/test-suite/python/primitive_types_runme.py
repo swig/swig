@@ -196,6 +196,7 @@ if t.var_namet != 'hol\0\0':
 
 
 if t.strlen('hile') != 4:
+  print t.strlen('hile')
   raise RuntimeError, "bad string typemap"
 
 if t.strlen('hil\0') != 4:
@@ -224,6 +225,7 @@ if cvar.var_pchar != None:
 
 cvar.var_pchar = ''
 if cvar.var_pchar != '':
+  print '%c' % (cvar.var_pchar[0],)
   raise RuntimeError, "bad char empty case"
 
 cvar.var_pcharc = None
@@ -251,6 +253,7 @@ if t.strlen(pc) != 4:
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":
+  print cvar.var_pchar
   raise RuntimeError, "bad pointer case"
 
 cvar.var_namet = pc

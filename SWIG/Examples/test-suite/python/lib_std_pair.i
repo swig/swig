@@ -1,25 +1,38 @@
 %module lib_std_pair
 
 %include std_pair.i
+%include std_string.i
+%include std_complex.i
 
+%inline
 %{
   struct A 
   {
+    int val;
+    
+    A(int v = 0): val(v)
+    {
+    }
+    
   };
   struct B
   {
   };
 %}
 
-
 namespace std {
   %template() pair<double, double>;
+  %template(String) basic_string<char>;
   %template(IntPair) pair<int, int>;
+  %template(SIPair) pair<std::string, int>;
+  %template(CIPair) pair<std::complex<double>, int>;
+  %template(SIIPair) pair<std::pair<std::string, int>, int>;
   %template(AIntPair) pair<A, int>;
 
   %template(ABPair) pair<A, B>;
   %template(IntAPair) pair<int, A>;
 }
+%std_comp_methods(std::pair<std::pair<std::string, int>, int>);
 
 %apply std::pair<int,int> *INOUT {std::pair<int,int> *INOUT2};
 
@@ -113,6 +126,11 @@ p_inoutd(std::pair<double, double> *INOUT) {
   std::swap(INOUT->first, INOUT->second);
 }
 
+std::string
+  s_ident(const std::string& s) {
+  return s;
+}
+
 #if 0
 std::pair<char, char> 
   p_ident(std::pair<char, char> p, const std::pair<char, char>& q) {
@@ -141,6 +159,7 @@ std::pair<int, int>
   p_ident(std::pair<int, int> p, const std::pair<A, B>& q) {
   return p;
 }
+
 
 
 #endif
