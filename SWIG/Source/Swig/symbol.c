@@ -114,6 +114,57 @@ char cvsroot_symbol_c[] = "$Header$";
  *
  * These names are modeled after XML namespaces.  In particular, every attribute 
  * pertaining to symbol table management is prefaced by the "sym:" prefix.   
+ *
+ * An example dump of the parse tree showing symbol table entries for the 
+ * following code should clarify this:
+ *
+ *   namespace OuterNamespace {
+ *       namespace InnerNamespace {
+ *           class Class {
+ *           };
+ *           struct Struct {
+ *               int Var;
+ *           };
+ *       }
+ *    }
+ *
+ *   +++ namespace ----------------------------------------
+ *   | sym:name     - "OuterNamespace"
+ *   | symtab       - 0xa064bf0
+ *   | sym:symtab   - 0xa041690
+ *   | sym:overname - "__SWIG_0"
+ *  
+ *         +++ namespace ----------------------------------------
+ *         | sym:name     - "InnerNamespace"
+ *         | symtab       - 0xa064cc0
+ *         | sym:symtab   - 0xa064bf0
+ *         | sym:overname - "__SWIG_0"
+ *  
+ *               +++ class ----------------------------------------
+ *               | sym:name     - "Class"
+ *               | symtab       - 0xa064d80
+ *               | sym:symtab   - 0xa064cc0
+ *               | sym:overname - "__SWIG_0"
+ *               | 
+ *               +++ class ----------------------------------------
+ *               | sym:name     - "Struct"
+ *               | symtab       - 0xa064f00
+ *               | sym:symtab   - 0xa064cc0
+ *               | sym:overname - "__SWIG_0"
+ *  
+ *                     +++ cdecl ----------------------------------------
+ *                     | sym:name     - "Var"
+ *                     | sym:symtab   - 0xa064f00
+ *                     | sym:overname - "__SWIG_0"
+ *                     | 
+ *  
+ *
+ * Each class and namespace has its own scope and thus a new symbol table (sym)
+ * is created. The sym attribute is only set for the first entry in the symbol
+ * table. The sym:symtab entry points to the symbol table in which the symbol
+ * exists, so for example, Struct is in the scope OuterNamespace::InnerNamespace
+ * so sym:symtab points to this symbol table (0xa064cc0).
+ *
  * ----------------------------------------------------------------------------- */
      
 static Hash *current = 0;         /* The current symbol table hash */
@@ -121,6 +172,20 @@ static Hash *ccurrent = 0;        /* The current c symbol table hash */
 static Hash *current_symtab = 0;  /* Current symbol table node */
 static Hash *symtabs = 0;         /* Hash of all symbol tables by fully-qualified name */
 static Hash *global_scope = 0;    /* Global scope */
+
+#if 0
+void
+Swig_symbol_dump_symtable() {
+  Printf(stdout, "DUMPING SYMTABLE start =======================================\n");
+  {
+  Hash* cst = Getattr(current_symtab, "csymtab");
+  Swig_print_tree(cst);
+  Printf(stdout, "DUMPING SYMTABLE middle =======================================\n");
+  Swig_print_tree(Getattr(cst, "NumSpace"));
+  }
+  Printf(stdout, "DUMPING SYMTABLE end =======================================\n");
+}
+#endif
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_new()
@@ -650,7 +715,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * symbol_lookup_qualified()
+ * symbol_lookup()
  *
  * Internal function to handle fully qualified symbol table lookups.  This
  * works from the symbol table supplied in symtab and unwinds its way out
@@ -707,6 +772,10 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
   Setmark(symtab,0);
   return 0;
 }
+
+/* -----------------------------------------------------------------------------
+ * symbol_lookup_qualified()
+ * ----------------------------------------------------------------------------- */
 
 static Node *
 symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, int local, int (*checkfunc)(Node *n)) {
@@ -888,6 +957,10 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
   return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_clookup_local()
+ * ----------------------------------------------------------------------------- */
+
 Node *
 Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   Hash *h, *hsym;
@@ -927,6 +1000,9 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_clookup_local_check()
+ * ----------------------------------------------------------------------------- */
 
 Node *
 Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node *)) {
