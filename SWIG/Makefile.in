@@ -58,7 +58,6 @@ runtime:
 	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
 	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
 	@-$(skip-chicken)  || (cd Runtime; $(MAKE) chicken)
-	@-$(skip-csharp)   || (cd Runtime; $(MAKE) csharp)
 #	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
 
 #####################################################################
