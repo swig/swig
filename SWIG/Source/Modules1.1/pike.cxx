@@ -132,6 +132,14 @@ public:
     return Language::importDirective(n);
   }
   
+  /* ------------------------------------------------------------
+   * strip()
+   *
+   * For names that begin with the current class prefix plus an
+   * underscore (e.g. "Foo_enum_test"), return the base function
+   * name (i.e. "enum_test").
+   * ------------------------------------------------------------ */
+
   String *strip(String *name) {
     String *s = Copy(name);
     if (Strncmp(name, PrefixPlusUnderscore, Len(PrefixPlusUnderscore)) != 0) {
@@ -142,15 +150,31 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * is_constructor()
+   * ------------------------------------------------------------ */
+
+  int is_constructor(Node *n) const {
+    return Strcmp(nodeType(n), "constructor") == 0;
+  }
+
+  /* ------------------------------------------------------------
+   * is_member_function()
+   * ------------------------------------------------------------ */
+  
+  int is_member_function(Node *n) const {
+    return CPlusPlus && !is_constructor(n);
+  }
+
+  /* ------------------------------------------------------------
    * add_method()
    * ------------------------------------------------------------ */
 
   void add_method(Node *n, String *name, String *function, String *description) {
-    if (is_wrapping_class()) {
+    if (is_member_function(n)) {
       name = strip(name);
     }
     Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", name, function, description);
-    if (is_wrapping_class()) {
+    if (is_member_function(n)) {
       Delete(name);
     }
   }
@@ -194,7 +218,7 @@ public:
     int varargs = emit_isvarargs(l);
     
     /* Which input argument to start with? */
-    int start = is_wrapping_class() ? 1 : 0;
+    int start = is_member_function(n) ? 1 : 0;
 
     char wname[256];
     strcpy(wname,Char(Swig_name_wrapper(iname)));
