@@ -828,7 +828,6 @@ public:
 	      argname = NewStringf("%%arg%d", scheme_argnum);
 	    }
 	    if (strcmp("void", Char(pt)) != 0) {
-	      Node *search;
 	      Node *class_node = Swig_symbol_clookup(pb, Getattr(n, "sym:symtab"));
 	      String *goopsclassname = (class_node == NULL) ? NULL :
 		Getattr(class_node, "guile:goopsclassname");
