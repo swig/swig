@@ -31,7 +31,6 @@ static char cvsroot[] = "$Header$";
 #include "guile.h"
 #include "debug.h"
 #include "ascii.h"
-#include "latex.h"
 #include "html.h"
 #include "nodoc.h"
 #include <ctype.h>
