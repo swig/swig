@@ -43,8 +43,6 @@ public:
 
     int* array_member1[ARRAY_SIZE];
     ParametersTest* array_member2[ARRAY_SIZE];
-    int* const array_member3[ARRAY_SIZE];
-    ParametersTest* const array_member4[ARRAY_SIZE];
     MemberVariablesTest() : member3(NULL), member4(NULL) {}
 };
 void foo(const int *const i) {}
@@ -52,11 +50,14 @@ void foo(const int *const i) {}
 typedef int *typedef1, typedef2, *const typedef3;
 int int1, int2=2, *int3, *const int4 = &GlobalInt;
 
+int* const global_const_int_ptr_array[ARRAY_SIZE] = { &int1, &int2 };
+ParametersTest* const array_member4[ARRAY_SIZE] = { new ParametersTest(), new ParametersTest() };
+
 class ReturnValuesTest {
 public:
     typedef1 td1;
     typedef2 td2;
-    int int1, int2, *const int3, *int4, array1[ARRAY_SIZE], *const array2[ARRAY_SIZE];
+    int int1, int2, *const int3, *int4, array1[ARRAY_SIZE];
     int ret1() {return 5;}
     const int ret2() {return 5;}
     int ret3() {return 5;}
