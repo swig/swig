@@ -3,7 +3,7 @@ dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
 AC_INIT([swig],[1.3.25],[http://www.swig.org])
-AC_PREREQ(2.54)
+AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
 AC_CONFIG_HEADERS([Source/Include/swigconfig.h])
