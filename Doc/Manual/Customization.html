@@ -14,10 +14,10 @@
 <li><a href="#n4">Exception handling with longjmp()</a>
 <li><a href="#n5">Handling C++ exceptions</a>
 <li><a href="#n6">Defining different exception handlers</a>
-<li><a href="#n8">Using The SWIG exception library</a>
+<li><a href="#n7">Using The SWIG exception library</a>
 </ul>
-<li><a href="#n9">Object ownership and %newobject</a>
-<li><a href="#n10">Features and the %feature directive</a>
+<li><a href="#n8">Object ownership and %newobject</a>
+<li><a href="#n9">Features and the %feature directive</a>
 </ul>
 <!-- INDEX -->
 
@@ -344,7 +344,7 @@ was intended to be a mechanism for pinpointing specific
 declarations.  However, it never really worked that well and the new
 %exception directive is much better.
 
-<a name="n8"></a><H3>9.1.6 Using The SWIG exception library</H3>
+<a name="n7"></a><H3>9.1.5 Using The SWIG exception library</H3>
 
 
 The <tt>exception.i</tt> library file provides support for creating
@@ -396,7 +396,7 @@ Since the <tt>SWIG_exception()</tt> function is defined at the C-level
 it can be used elsewhere in SWIG. This includes typemaps and helper
 functions.  
 
-<a name="n9"></a><H2>9.2 Object ownership and %newobject</H2>
+<a name="n8"></a><H2>9.2 Object ownership and %newobject</H2>
 
 
 A common problem in some applications is managing proper ownership of objects.  For
@@ -491,7 +491,7 @@ char *strdup(const char *s);
 The results might not be what you expect.
 
 <a name="features"></a>
-<a name="n10"></a><H2>9.3 Features and the %feature directive</H2>
+<a name="n9"></a><H2>9.3 Features and the %feature directive</H2>
 
 
 Both <tt>%exception</tt> and <tt>%newobject</tt> are examples of a
