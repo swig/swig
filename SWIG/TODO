@@ -112,6 +112,8 @@ Perl
        in C instead of Perl.   This will fix a number of problems
        related to typemaps and reduce the amount of Perl wrapper code.
 
+****   Create tests for existing support for operator overloading
+
 Tcl
 ---
 
@@ -188,6 +190,8 @@ Documentation
 ****   Extending SWIG (and internals).
 
 ***    Perl, Python, Tcl modules.
+
+***    add section for Perl module support for operator overloading
 
 **     Add section on WAD.
 
