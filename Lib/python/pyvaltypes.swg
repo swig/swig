@@ -31,7 +31,7 @@
   %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
     $1_type temp = ($1_type) as_meth($input);  
     if (PyErr_Occurred()) {
-      PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+      PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
       return 1;
     }
     $1 = temp;

@@ -85,7 +85,7 @@
   int ii;
   $1_basetype *b = 0;
   if ((SWIG_ConvertPtr($input, &temp, $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   b = ($1_basetype *) $1;
@@ -95,7 +95,7 @@
 %typemap(varin) SWIGTYPE * {
   void *temp;
   if ((SWIG_ConvertPtr($input, &temp, $1_descriptor, SWIG_POINTER_EXCEPTION | SWIG_POINTER_DISOWN)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   $1 = ($1_ltype) temp;
@@ -104,7 +104,7 @@
 %typemap(varin) SWIGTYPE & {
   void *temp;
   if ((SWIG_ConvertPtr($input, &temp, $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1 || temp == NULL) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   $1 = *($1_ltype) temp;
@@ -114,7 +114,7 @@
 %typemap(varin) SWIGTYPE (CLASS::*) {
   char temp[sizeof($1_type)];
   if ((SWIG_ConvertPacked($input,(void *) temp, sizeof($1_type), $1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   memmove((void *) &$1,temp,sizeof($1_type));
@@ -123,7 +123,7 @@
 %typemap(varin) SWIGTYPE {
   $&1_ltype temp;
   if ((SWIG_ConvertPtr($input, (void **)(&temp), $&1_descriptor, SWIG_POINTER_EXCEPTION)) == -1) {
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   $1 = *(($&1_type) temp);

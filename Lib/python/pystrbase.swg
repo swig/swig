@@ -55,7 +55,7 @@
   Char *cptr = 0;
   if (!SWIG_AsNewCharPtr($input, &cptr)) {
     PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   if ($1) swig_delete_array($1);
@@ -69,7 +69,7 @@
   Char *cptr;
   if (!SWIG_AsNewCharPtr($input, &cptr)) {    
     PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
   $1 = cptr;
@@ -139,14 +139,11 @@
 %apply Char* { Char [] };
 %apply const Char* { const Char [] };
 
-%typemap(varin,fragment=#SWIG_AsCharArray) Char []
+%typemap(varin,fragment=#SWIG_AsCharArray,
+	 warning="462:Unable to set variable of type Char []") Char []
 {
-  size_t size = sizeof($1);
-  if (!SWIG_AsCharArray($input, $1, size)) {
-    PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
-    return 1;
-  }
+  PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name' is read-only");
+  return 1;
 }
 
 
@@ -189,7 +186,7 @@
 {
   if (!SWIG_AsCharArray($input, $1, $1_dim0)) {
     PyErr_Clear();
-    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    PyErr_SetString(PyExc_TypeError, "C/C++ variable '$name ($1_ltype)'");
     return 1;
   }
 }
