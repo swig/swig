@@ -172,19 +172,19 @@ DohData(const DOH *obj) {
 }
 
 /* -----------------------------------------------------------------------------
- * DohCmp()
+ * RawData()
  * ----------------------------------------------------------------------------- */
 
-#define RawData(b) ((b->type->doh_data) ? (b->type->doh_data)(b) : 0)
-
-/*
 static void *
 RawData(DohBase *b) {
   DohObjInfo *objinfo = b->type;
   return (objinfo->doh_data) ? (objinfo->doh_data)(b) : 0;
 }
-*/
 
+
+/* -----------------------------------------------------------------------------
+ * DohCmp()
+ * ----------------------------------------------------------------------------- */
 
 int
 DohCmp(const DOH *obj1, const DOH *obj2) {
