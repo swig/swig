@@ -1635,7 +1635,6 @@ public:
 			    Printf(wrap_args, "} else {\n");
 			    Printf(wrap_args,   "%s = %s->__get_self();\n", source, director);
 			    Printf(wrap_args, "}\n");
-			    Printf(wrap_args, "assert(%s);\n", source);
 			    Delete(director);
 			    Printv(arglist, source, NIL);
 			} else {
@@ -1674,9 +1673,6 @@ public:
 	Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
 	Printf(w->code, "}\n");
     
-	/* check that we don't wrap a null... */
-	Printv(w->code, "assert(__get_self());\n", NIL);
-
 	/* wrap complex arguments to values */
 	Printv(w->code, wrap_args, NIL);
 

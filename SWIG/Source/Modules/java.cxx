@@ -2773,7 +2773,6 @@ class JAVA : public Language {
     /* Preamble code */
 
     Printf(w->code, "jenv = __acquire_jenv();\n");
-    Printf(w->code, "assert(jenv);\n");
     Printf(w->code, "if (!__override[%d]) {\n", classmeth_off);
 
     if (!pure_virtual) {
@@ -2823,7 +2822,6 @@ class JAVA : public Language {
       Delete(tp);
     }
 
-    Printf(w->code, "assert(__get_self());\n");
     if (!recursive_upcall) {
       if (!is_const)
         Printf(w->code, "if (!__get_ricochet(%d)) {\n", classmeth_off);

@@ -2382,7 +2382,6 @@ public:
 	    Printf(wrap_args, "} else {\n");
 	    Printf(wrap_args,   "%s = %s->__get_self();\n", source, director);
 	    Printf(wrap_args, "}\n");
-	    Printf(wrap_args, "assert(%s != Qnil);\n", source);
 	    Delete(director);
 	    Printv(arglist, source, NIL);
 	  } else {
@@ -2429,9 +2428,6 @@ public:
     }
     Printf(w->code, "}\n");
     
-    /* check that have a wrapped Ruby object */
-    Printv(w->code, "assert(__get_self() != Qnil);\n", NIL);
-
     /* wrap complex arguments to VALUEs */
     Printv(w->code, wrap_args, NIL);
 
