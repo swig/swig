@@ -2333,11 +2333,11 @@ cpp_class_decl  :
 		   appendChild($$,dump_nested(Char(name)));
 		 }
 		 yyrename = NewString(class_rename);
+		 Classprefix = 0;
+		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		 add_symbols($$);
 		 if ($9)
 		   add_symbols($9);
-		 Classprefix = 0;
-		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
 	       }
 
