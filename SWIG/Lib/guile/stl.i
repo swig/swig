@@ -121,25 +121,25 @@ namespace std {
     template<class T> class vector {
         /*
         %typemap(in) vector<T> {
-            if (SCHEME_VECTORP($input)) {
+            if (gh_vector_p($input)) {
                 swig_type_info* type = SWIG_TypeQuery(#T " *");
-                unsigned int size = SCHEME_VEC_SIZE($input);
+                unsigned long size = gh_vector_length($input);
                 $1 = std::vector<T>(size);
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
+                    SCM o = gh_vector_ref($input,gh_long2scm(i));
                     (($1_type &)$1)[i] =
-                        *((T*) SWIG_MustGetPtr(items[i],type,$argnum));
+                        *((T*) SWIG_MustGetPtr(o,type,$argnum));
                 }
-            } else if (SCHEME_NULLP($input)) {
+            } else if (gh_null_p($input)) {
                 $1 = std::vector<T>();
-            } else if (SCHEME_PAIRP($input)) {
+            } else if (gh_pair_p($input)) {
                 swig_type_info* type = SWIG_TypeQuery(#T " *");
-                Scheme_Object *head, *tail;
+                SCM head, tail;
                 $1 = std::vector<T>();
                 tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
+                while (!gh_null_p(tail)) {
+                    head = gh_car(tail);
+                    tail = gh_cdr(tail);
                     $1.push_back(*((T*)SWIG_MustGetPtr(head,type,$argnum)));
                 }
             } else {
@@ -149,27 +149,27 @@ namespace std {
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
                      const vector<T>* (std::vector<T> temp) {
-            if (SCHEME_VECTORP($input)) {
+            if (gh_vector_p($input)) {
                 swig_type_info* type = SWIG_TypeQuery(#T " *");
                 unsigned int size = SCHEME_VEC_SIZE($input);
                 temp = std::vector<T>(size);
                 $1 = &temp;
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
-                    temp[i] = *((T*) SWIG_MustGetPtr(items[i],type,$argnum));
+                    SCM o = gh_vector_ref($input,gh_long2scm(i));
+                    temp[i] = *((T*) SWIG_MustGetPtr(o,type,$argnum));
                 }
-            } else if (SCHEME_NULLP($input)) {
+            } else if (gh_null_p($input)) {
                 temp = std::vector<T>();
                 $1 = &temp;
-            } else if (SCHEME_PAIRP($input)) {
+            } else if (gh_pair_p($input)) {
                 swig_type_info* type = SWIG_TypeQuery(#T " *");
                 temp = std::vector<T>();
                 $1 = &temp;
-                Scheme_Object *head, *tail;
+                SCM head, tail;
                 tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
+                while (!gh_null_p(tail)) {
+                    head = gh_car(tail);
+                    tail = gh_cdr(tail);
                     temp.push_back(*((T*) SWIG_MustGetPtr(head,type,$argnum)));
                 }
             } else {
@@ -178,11 +178,10 @@ namespace std {
         }
         %typemap(out) vector<T> {
         swig_type_info* type = SWIG_TypeQuery(#T " *");
-            $result = scheme_make_vector($1.size(),scheme_undefined);
-            Scheme_Object** els = SCHEME_VEC_ELS($result);
+            $result = gh_make_vector(gh_long2scm($1.size()),SCM_UNSPECIFIED);
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* x = new T((($1_type &)$1)[i]);
-                els[i] = SWIG_MakePtr(x,type);
+                gh_vector_set($result,gh_long2scm(i),SWIG_MakePtr(x,type));
             }
         }
         */
@@ -227,35 +226,22 @@ namespace std {
     // specializations for built-ins
 
     template<> class vector<int> {
-        /* 
         %typemap(in) vector<int> {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
+            if (gh_vector_p($input)) {
+                unsigned long size = gh_vector_length($input);
                 $1 = std::vector<int>(size);
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_INTP(o))
-                        (($1_type &)$1)[i] = SCHEME_INT_VAL(o);
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
+                long* data = gh_scm2longs($input,NULL);
+                std::copy(data,data+size,$1.begin());
+                free(data);
+            } else if (gh_null_p($input)) {
                 $1 = std::vector<int>();
-            } else if (SCHEME_PAIRP($input)) {
-                Scheme_Object *head, *tail;
-                $1 = std::vector<int>();
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_INTP(head))
-                        $1.push_back(SCHEME_INT_VAL(head));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
-                                          $argnum, argc, argv);
-                }
+            } else if (gh_pair_p($input)) {
+                SCM v = gh_list_to_vector($input);
+                unsigned long size = gh_vector_length(v);
+                $1 = std::vector<int>(size);
+                long* data = gh_scm2longs(v,NULL);
+                std::copy(data,data+size,$1.begin());
+                free(data);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
@@ -263,47 +249,34 @@ namespace std {
         }
         %typemap(in) const vector<int>& (std::vector<int> temp),
                      const vector<int>* (std::vector<int> temp) {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
+            if (gh_vector_p($input)) {
+                unsigned long size = gh_vector_length($input);
                 temp = std::vector<int>(size);
                 $1 = &temp;
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_INTP(o))
-                        temp[i] = SCHEME_INT_VAL(o);
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
+                long* data = gh_scm2longs($input,NULL);
+                std::copy(data,data+size,temp.begin());
+                free(data);
+            } else if (gh_null_p($input)) {
                 temp = std::vector<int>();
                 $1 = &temp;
-            } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<int>();
+            } else if (gh_pair_p($input)) {
+                SCM v = gh_list_to_vector($input);
+                unsigned long size = gh_vector_length(v);
+                temp = std::vector<int>(size);
                 $1 = &temp;
-                Scheme_Object *head, *tail;
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_INTP(head))
-                        temp.push_back(SCHEME_INT_VAL(head));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<int>", 
-                                          $argnum, argc, argv);
-                }
+                long* data = gh_scm2longs(v,NULL);
+                std::copy(data,data+size,temp.begin());
+                free(data);
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
         %typemap(out) vector<int> {
-            $result = scheme_make_vector($1.size(),scheme_undefined);
-            Scheme_Object** els = SCHEME_VEC_ELS($result);
-            for (unsigned int i=0; i<$1.size(); i++)
-                els[i] = scheme_make_integer_value((($1_type &)$1)[i]);
+            int* data = new int[$1.size()];
+            std::copy($1.begin(),$1.end(),data);
+            $result = gh_ints2scm(data,$1.size());
+            delete [] data;
         }
-        */
       public:
         vector(unsigned int size);
         %rename(length) size;
@@ -343,43 +316,22 @@ namespace std {
 
 
     template<> class vector<double> {
-        /*
         %typemap(in) vector<double> {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
+            if (gh_vector_p($input)) {
+                unsigned long size = gh_vector_length($input);
                 $1 = std::vector<double>(size);
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_DBLP(o))
-                        (($1_type &)$1)[i] = SCHEME_DBL_VAL(o);
-                    else if (SCHEME_RATIONALP(o))
-                        (($1_type &)$1)[i] = scheme_rational_to_double(o);
-                    else if (SCHEME_INTP(o))
-                        (($1_type &)$1)[i] = double(SCHEME_INT_VAL(o));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
+                double* data = gh_scm2doubles($input,NULL);
+                std::copy(data,data+size,$1.begin());
+                free(data);
+            } else if (gh_null_p($input)) {
                 $1 = std::vector<double>();
-            } else if (SCHEME_PAIRP($input)) {
-                Scheme_Object *head, *tail;
-                $1 = std::vector<double>();
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_DBLP(head))
-                        $1.push_back(SCHEME_DBL_VAL(head));
-                    else if (SCHEME_RATIONALP(head))
-                        $1.push_back(scheme_rational_to_double(head));
-                    else if (SCHEME_INTP(head))
-                        $1.push_back(double(SCHEME_INT_VAL(head)));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
+            } else if (gh_pair_p($input)) {
+                SCM v = gh_list_to_vector($input);
+                unsigned long size = gh_vector_length(v);
+                $1 = std::vector<double>(size);
+                double* data = gh_scm2doubles(v,NULL);
+                std::copy(data,data+size,$1.begin());
+                free(data);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum));
@@ -387,55 +339,34 @@ namespace std {
         }
         %typemap(in) const vector<double>& (std::vector<double> temp),
                      const vector<double>* (std::vector<double> temp) {
-            if (SCHEME_VECTORP($input)) {
-                unsigned int size = SCHEME_VEC_SIZE($input);
+            if (gh_vector_p($input)) {
+                unsigned long size = gh_vector_length($input);
                 temp = std::vector<double>(size);
                 $1 = &temp;
-                Scheme_Object** items = SCHEME_VEC_ELS($input);
-                for (unsigned int i=0; i<size; i++) {
-                    Scheme_Object* o = items[i];
-                    if (SCHEME_DBLP(o))
-                        temp[i] = SCHEME_DBL_VAL(o);
-                    else if (SCHEME_RATIONALP(o))
-                        temp[i] = scheme_rational_to_double(o);
-                    else if (SCHEME_INTP(o))
-                        temp[i] = double(SCHEME_INT_VAL(o));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
-            } else if (SCHEME_NULLP($input)) {
+                double* data = gh_scm2doubles($input,NULL);
+                std::copy(data,data+size,temp.begin());
+                free(data);
+            } else if (gh_null_p($input)) {
                 temp = std::vector<double>();
                 $1 = &temp;
-            } else if (SCHEME_PAIRP($input)) {
-                temp = std::vector<double>();
+            } else if (gh_pair_p($input)) {
+                SCM v = gh_list_to_vector($input);
+                unsigned long size = gh_vector_length(v);
+                temp = std::vector<double>(size);
                 $1 = &temp;
-                Scheme_Object *head, *tail;
-                tail = $input;
-                while (!SCHEME_NULLP(tail)) {
-                    head = scheme_car(tail);
-                    tail = scheme_cdr(tail);
-                    if (SCHEME_DBLP(head))
-                        temp.push_back(SCHEME_DBL_VAL(head));
-                    else if (SCHEME_RATIONALP(head))
-                        temp.push_back(scheme_rational_to_double(head));
-                    else if (SCHEME_INTP(head))
-                        temp.push_back(double(SCHEME_INT_VAL(head)));
-                    else
-                        scheme_wrong_type(FUNC_NAME, "vector<double>", 
-                                          $argnum, argc, argv);
-                }
+                double* data = gh_scm2doubles(v,NULL);
+                std::copy(data,data+size,temp.begin());
+                free(data);
             } else {
                 $1 = ($1_ltype) SWIG_MustGetPtr($input,$1_descriptor,$argnum);
             }
         }
         %typemap(out) vector<double> {
-            $result = scheme_make_vector($1.size(),scheme_undefined);
-            Scheme_Object** els = SCHEME_VEC_ELS($result);
-            for (unsigned int i=0; i<$1.size(); i++)
-                els[i] = scheme_make_double((($1_type &)$1)[i]);
+            double* data = new double[$1.size()];
+            std::copy($1.begin(),$1.end(),data);
+            $result = gh_doubles2scm(data,$1.size());
+            delete [] data;
         }
-        */
       public:
         vector(unsigned int size);
         %rename(length) size;
