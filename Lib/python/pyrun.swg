@@ -44,16 +44,15 @@ extern "C" {
  * Create a new pointer string 
  * ----------------------------------------------------------------------------- */
 
+#ifndef SWIG_BUFFER_SIZE
+#define SWIG_BUFFER_SIZE 1024
+#endif
 
 #if defined(SWIG_COBJECT_TYPES)
 #if !defined(SWIG_COBJECT_PYTHON)
 /* -----------------------------------------------------------------------------
  * Implements a simple Swig Object type, and use it instead of PyCObject
  * ----------------------------------------------------------------------------- */
-
-#ifndef SWIG_BUFFER_SIZE
-#define SWIG_BUFFER_SIZE 1024
-#endif
 
 typedef struct {
   PyObject_HEAD
@@ -285,7 +284,7 @@ PySwigPacked_str(PySwigPacked *v)
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))){
     return PyString_FromFormat("%s%s", result, v->desc);
   } else {
-    return PyString_FromFormat("%s%s", v->desc);
+    return PyString_FromFormat("%s", v->desc);
   }  
 }
 
