@@ -170,7 +170,9 @@
 	<li>Using <tt>-module example</tt> on the SWIG command
 	  line.</li>
       </ul>
-      The generated example.scm file then exports <code>(declare (unit modulename))</code>
+      The generated example.scm file then exports <code>(declare (unit modulename))</code>.
+      If you do not want SWIG to export the <code>(declare (unit modulename))</code>, pass
+      the -nounit option to SWIG.
 
     <p>
       CHICKEN will be able to access the module using the <code>(declare
@@ -385,9 +387,9 @@
       <li>No exception handling.</li>
       <li>No director support.</li>
       <li>No support for c++ standard types like std::vector.</li>
-      <li>No support for automatic garbage collection of wrapped classes and structures. (Planned on adding in SWIG version 1.3.24) </li>
-      <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.24) </li>
-      <li>Problems with complicated function overloading. (Planned on fixing for 1.3.24)</li>
+      <li>No support for automatic garbage collection of wrapped classes and structures. (Planned on adding in SWIG version 1.3.25) </li>
+      <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.25) </li>
+      <li>Problems with complicated function overloading. (Planned on fixing for 1.3.25)</li>
     </ul>
 
   </body>
