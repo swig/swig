@@ -1,10 +1,6 @@
 /* File : example.i */
 %module example
 
-%{
-#include "example.h"
-%}
-
 /* Turn all data attributes into a pair of accessor functions.
    In this case, a data attribute foo is accessed using
    foo() and changed using set_foo().  The format strings

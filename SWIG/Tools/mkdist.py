@@ -19,7 +19,7 @@ os.system("rm -rf "+dirname)
 # Do a CVS export on the directory name
 
 print "Checking out SWIG"
-os.system("cvs export -D now -d "+dirname+ " SWIG")
+os.system("cvs export -D now -r rel-1-3 -d "+dirname+ " SWIG")
 
 # Now clean the source directory
 
