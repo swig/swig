@@ -490,7 +490,7 @@ except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
 		  $$ = new_node("swig:exception",$1.filename,$1.line);
 		  Setattr($$,"lang",$3.text);
 		  Setattr($$,"code",t);
-		  LParse_error($1.filename,$1.line,"Warning. Language specifier in %except is now ignored.\n");
+		  LParse_error($1.filename,$1.line,"Warning. Language specifier in %%except is now ignored.\n");
                 }
 
 /* A Generic Exception (no language specified) */
@@ -505,7 +505,7 @@ except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
                | EXCEPT LPAREN ID RPAREN SEMI {
 		 $$ = new_node("swig:exception",$1.filename,$1.line);
 		 Setattr($$,"lang",$3.text);
-		 LParse_error($1.filename,$1.line,"Warning. Language specifier in %except is now ignored.\n");
+		 LParse_error($1.filename,$1.line,"Warning. Language specifier in %%except is now ignored.\n");
 	       }
 
 /* Generic clear */
