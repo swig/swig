@@ -288,13 +288,13 @@ $1 = &temp; %}
   SWIG_CSharpThrowException(SWIG_CSharpException, error_msg);
 }
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE * {
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
-}
+%}
 
-%typemap(throws) char * {
+%typemap(throws) char * %{
   SWIG_CSharpThrowException(SWIG_CSharpException, $1);
-}
+%}
 
 
 /* Typemaps for code generation in proxy classes and C# type wrapper classes */
