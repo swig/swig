@@ -13,8 +13,8 @@
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
 %typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
-%typemap(javadirectorin) enum SWIGTYPE "$jniinput"
-%typemap(javadirectorout) enum SWIGTYPE "$javacall"
+%typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
+%typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
