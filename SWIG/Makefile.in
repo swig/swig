@@ -90,7 +90,8 @@ runtime:
 CHECK_CLEAN = check
 
 chk-swiglib = @ROOT_DIR@/Lib
-chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) $(CHECK_CLEAN)
+chk-runtimelib = /c/Data/swig/SWIG/Runtime/.libs
+chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=/c/Data/swig/SWIG/$(TARGET) RUNTIMEDIR=$(chk-runtimelib) $(CHECK_CLEAN)
 
 check-aliveness:
 	test -x ./$(TARGET)
