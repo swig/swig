@@ -1607,9 +1607,9 @@ int Language::unrollVirtualMethods(Node *n,
 	  Delattr(vm, method_id);
 	}
         /* filling a new method item */
- 	String *fqname = NewStringf("%s::%s", classname, name);
+ 	String *fqdname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
-	Setattr(item, "fqName", fqname);
+	Setattr(item, "fqdname", fqdname);
 	Node *m = Copy(ni);
 
         /* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
@@ -1627,7 +1627,7 @@ int Language::unrollVirtualMethods(Node *n,
 	Setattr(item, "methodNode", m);
 	Setattr(vm, method_id, item);
 	Delete(mname);
-	Delete(fqname);
+	Delete(fqdname);
 	Delete(item);
 	Delete(method_id);
       } 
@@ -1794,7 +1794,7 @@ int Language::classDirectorMethods(Node *n) {
   for (k = First(vtable); k.key; k = Next(k)) {
     item = k.item;
     String *method = Getattr(item, "methodNode");
-    String *fqname = Getattr(item, "fqName");
+    String *fqdname = Getattr(item, "fqdname");
     if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
       continue;
     
@@ -1803,7 +1803,7 @@ int Language::classDirectorMethods(Node *n) {
       classDirectorDestructor(method);
     }
     else {
-      if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
+      if (classDirectorMethod(method, n, fqdname) == SWIG_OK) {
 	Setattr(item, "director", "1");
       }
     }
