@@ -1,5 +1,16 @@
 Version 1.3.18 (In progress)
 ============================
+03/06/2003: cheetah (William Fulton)
+            The long long typemaps have been rewritten so that they can be more
+            easily used with non ISO compilers, like Visual C++. For example
+            if you are wrapping the Windows 64 bit type __int64 the long long
+            typemaps can be used with %apply:
+
+                %apply long long { __int64 };
+                __int64 value1(__int64 x);
+
+            __int64 will now appear in the generated code instead of long long.
+            
 03/06/2003: beazley
             *** DEVELOPER CHANGE ***
             Swig module mutation has been changed slightly.  When a language
