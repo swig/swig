@@ -123,7 +123,7 @@ Swig_symbol_getscopename() {
 
 String *
 Swig_symbol_qualifiedscopename(Symtab *symtab) {
-  String *result;
+  String *result = 0;
   Hash *parent;
   String *name;
   if (!symtab) symtab = current;
@@ -136,7 +136,7 @@ Swig_symbol_qualifiedscopename(Symtab *symtab) {
   }
   name = Getattr(symtab,"$scopename");
   if (name) {
-    Printf(result,"%s::");
+    Printf(result,"%s::",name);
   }
   return result;
 }
@@ -392,7 +392,7 @@ Swig_symbol_remove(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_symbol_qualified(Symtab *n) {
+Swig_symbol_qualified(Node *n) {
   Hash *symtab;
   symtab = Getattr(n,"$symtab");
   if (!symtab) return NewString("");
