@@ -153,6 +153,10 @@ SwigType_add_pointer(SwigType *t) {
 void 
 SwigType_del_pointer(SwigType *t) {
   char *c = Char(t);
+  if (strncmp(c,"q(",2) == 0) {
+    Delete(SwigType_pop(t));
+    c = Char(t);
+  }
   if (strncmp(c,"p.",2)) {
     printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
     abort();
@@ -281,6 +285,25 @@ SwigType_add_function(SwigType *t, List *parms) {
   }
   Insert(t,0,pstr);
   Delete(pstr);
+}
+
+SwigType *
+SwigType_pop_function(SwigType *t) {
+  SwigType *f = 0;
+  SwigType *g = 0;
+  char *c = Char(t);
+  if (strncmp(c,"q(",2) == 0) {
+    f = SwigType_pop(t);
+    c = Char(t);
+  }
+  if (strncmp(c,"f(",2)) {
+    printf("Fatal error. SwigType_pop_function applied to non-function.\n");
+    abort();
+  }
+  g = SwigType_pop(t);
+  if (f) SwigType_push(g,f);
+  Delete(f);
+  return g;
 }
 
 /* -----------------------------------------------------------------------------
@@ -479,6 +502,11 @@ int SwigType_ispointer(SwigType *t) {
   char *c;
   if (!t) return 0;
   c = Char(t);
+  if (strncmp(c,"q(",2) == 0) {
+    c = strchr(c,'.');
+    if (!c) return 0;
+    c++;
+  }
   if (strncmp(c,"p.",2) == 0) {
     return 1;
   }
@@ -521,6 +549,12 @@ int SwigType_isfunction(SwigType *t) {
     return 0;
   }
   c = Char(t);
+  if (strncmp(c,"q(",2) == 0) {
+    /* Might be a 'const' function.  Try to skip over the 'const' */
+    c = strchr(c,'.');
+    if (c) c++;
+    else return 0;
+  }
   if (strncmp(c,"f(",2) == 0) {
     return 1;
   }
@@ -549,7 +583,6 @@ int SwigType_isconst(SwigType *t) {
     }
     Delete(q);
   }
-  
   /* Hmmm. Might be const through a typedef */
   if (SwigType_issimple(t)) {
     int ret;
@@ -820,14 +853,19 @@ SwigType_str(SwigType *s, const String_or_char *id)
     } else {
       nextelement = 0;
     }
-    if (SwigType_ispointer(element)) {
+    if (SwigType_isqualifier(element)) {
+      DOH *q = 0;
+      q = SwigType_parm(element);
+      Insert(result,0," ");
+      Insert(result,0,q);
+      Delete(q);
+    } else if (SwigType_ispointer(element)) {
       Insert(result,0,"*");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result,0,"(");
 	Append(result,")");
       }
-    }
-    else if (SwigType_ismemberpointer(element)) {
+    } else if (SwigType_ismemberpointer(element)) {
       String *q;
       q = SwigType_parm(element);
       Insert(result,0,"::*");
@@ -859,12 +897,6 @@ SwigType_str(SwigType *s, const String_or_char *id)
       }
       Append(result,")");
       Delete(parms);
-    } else if (SwigType_isqualifier(element)) {
-      DOH *q = 0;
-      q = SwigType_parm(element);
-      Insert(result,0," ");
-      Insert(result,0,q);
-      Delete(q);
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
@@ -915,7 +947,9 @@ SwigType_ltype(SwigType *s) {
   /* Now, walk the type list and start emitting */
   for (i = 0; i < nelements; i++) {
     element = Getitem(elements,i);
-    if (SwigType_ispointer(element)) {
+    if (SwigType_isqualifier(element)) {
+      /* Do nothing. Ignore */
+    } else if (SwigType_ispointer(element)) {
       Append(result,element);
       firstarray = 0;
     } else if (SwigType_ismemberpointer(element)) {
@@ -927,8 +961,6 @@ SwigType_ltype(SwigType *s) {
     } else if (SwigType_isarray(element) && firstarray) {
       Append(result,"p.");
       firstarray = 0;
-    } else if (SwigType_isqualifier(element)) {
-      /* Do nothing. Ignore */
     } else if (SwigType_isenum(element)) {
       Append(result,"int");
     } else {
@@ -1020,7 +1052,14 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     } else {
       nextelement = 0;
     }
-    if (SwigType_ispointer(element)) {
+    if (SwigType_isqualifier(element)) {
+      DOH *q = 0;
+      q = SwigType_parm(element);
+      Insert(result,0," ");
+      Insert(result,0,q);
+      Delete(q);
+      clear = 0;
+    } else if (SwigType_ispointer(element)) {
       Insert(result,0,"*");
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result,0,"(");
@@ -1066,13 +1105,6 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       }
       Append(result,")");
       Delete(parms);
-    } else if (SwigType_isqualifier(element)) {
-      DOH *q = 0;
-      q = SwigType_parm(element);
-      Insert(result,0," ");
-      Insert(result,0,q);
-      Delete(q);
-      clear = 0;
     } else if (SwigType_isenum(element)) {
       Insert(result,0,element);
       clear = 0;
