@@ -97,6 +97,7 @@ static Hash *seen_labels = NULL;      /* Enum labels emitted already. */
 static Hash *seen_names = NULL;       /* Symbols emitted. */
 
 static char *simple_types[][2] = {
+    { "_enum", "enum" },
     { "_bool", "bool" },
     { "_void", "unit" },
     { "_int", "int" },
@@ -278,12 +279,16 @@ class OCAML : public Language {
 
 	    int i;
 
-	    for( i = 0; simple_types[i][0]; i++ ) {
+	    // I starts at one here to skip the _enum type.
+	    for( i = 1; simple_types[i][0]; i++ ) {
 		Printf(f_module, "type %s = %s\n", 
 		       simple_types[i][0], simple_types[i][1] );
 		Setattr(seen_types,simple_types[i][0],
 			NewString(simple_types[i][1]));
 	    }
+	    // Now add the _enum type to seen_types
+	    Setattr(seen_types,simple_types[0][0],
+		    NewString(simple_types[0][1]));
 
 	    f_init = NewString("");
 	    f_header = NewString("");

@@ -182,13 +182,15 @@ libswigphp4$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PHP4_RUN
 # ----------------------------------------------------------------------
 
 OCAML_CFLAGS  = 
-OCAML_INCLUDE = @OCAMLINC@
+OCAML_INCLUDE = @OCAMLINC@ -I$(SWIGLIB)/ocaml
+OCAML_RUNTIME = $(SWIGLIB)/ocaml/libswigocaml.swg
 
 # Ocaml shared
 
 ocaml: libswigocaml$(RELEASESUFFIX).la
 
 libswigocaml$(RELEASESUFFIX).la:
+	rm -f libswigocaml.c
+	cat $(srcdir)/$(OCAML_RUNTIME) >> libswigocaml.c
 	$(LIBTOOL) $(CC) $(OCAML_CFLAGS) -c $(OCAML_INCLUDE) -DSWIG_GLOBAL libswigocaml.c
 	$(LIBTOOL) $(CC) -o libswigocaml$(RELEASESUFFIX).la libswigocaml.lo -rpath $(LIB_DIR) 
-
