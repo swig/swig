@@ -139,6 +139,10 @@ the main SWIG distribution. There is no need to download anything else.
 
 Unix Installation
 =================
+You must use GNU `make' to build Swig.
+
+http://www.gnu.org/software/make/
+
 To build and install SWIG, simply type the following:
 
      % ./configure
