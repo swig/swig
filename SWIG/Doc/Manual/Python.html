@@ -3853,5 +3853,195 @@ that has a <tt>this</tt> attribute.  In addition,
 <tt>SWIG_NewPointerObj()</tt> can automatically generate a proxy
 class object (if applicable).
 
+
+
+<H2><a name="Python_nn65"></a>26.10 Docstring Features</H2>
+
+Usign docstrings in Python code is becoming more and more important
+ans more tools are coming on the scene that take advantage of them,
+everything from full-blown documentaiton generators to class browsers
+and popup call-tips in Python-aware IDEs.  Given the way that SWIG
+generates the proxy code by default, your users will normally get
+something like <tt>"function_name(*args)"</tt> in the popup calltip of
+their IDE which is next to useless when the real function prototype
+might be something like this:
+
+<blockquote>
+<pre>
+bool function_name(int x, int y, Foo* foo=NULL, Bar* bar=NULL);
+</pre>
+</blockquote>
+
+The features described in this section make it easy for you to add
+docstrings to your modules, functions and methods that can then be
+used by the various tools out there to make the programming experience
+of your users much simpler.
+
+
+<H3><a name="Python_nn66"></a>26.10.1 Module docstring</H3>
+
+Python allows a docstring at the begining of the <tt>.py</tt> file
+before any other statements, and it is typically used to give a
+general description of the entire module.  SWIG supports this by
+setting an option of the <tt>%module</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%module(docstring="This is the example module's docstring") example
+</pre>
+</blockquote>
+
+When you have more than just a line or so then you can retain the easy
+readability of the <tt>%module</tt> directive by using a macro.  For
+example:
+
+<blockquote>
+<pre>
+%define DOCSTRING
+"The `XmlResource` class allows program resources defining menus, 
+layout of controls on a panel, etc. to be loaded from an XML file."
+%enddef
+
+%module(docstring=DOCSTRING) xrc
+</pre>
+</blockquote>
+
+
+<H3><a name="Python_nn67"></a>26.10.2 %feature("autodoc")</H3>
+
+As alluded to above SWIG will generate all the function and method
+proxy wrappers with just "*args" (or "*args, **kwargs" if the -keyword
+option is used) for a parameter list and will then sort out the
+individual parameters in the C wrapper code.  This is nice and simple
+for the wrapper code, but makes it difficult to be programmer and tool
+friendly as anyone looking at the <tt>.py</tt> file will not be able
+to find out anything about the parameters that the fuctions accept.
+
+<p>But since SWIG does know everything about the fucntion it is
+possible to generate a docstring containing the parameter types, names
+and default values. Since many of the doctring tools are adopting a
+standard of recognizing if the first thing in the docstring is a
+function prototype then using that instead of what they found from
+introspeciton, then life is good once more.
+
+<p>SWIG's Python module provides support for the "autodoc" feature,
+which when attached to a node in the parse tree will cause a docstring
+to be generated that includes the name of the funciton, parameter
+names, default values if any, and return type if any. There are also
+three options for autodoc controlled by the value given to the
+feature, described below.
+
+<H4>%feature("autodoc", "0")</H4>
+
+When the "0" option is given then the types of the parameters will
+<em>not</em> be included in the autodoc string.  For example, given
+this function prototype:
+
+<blockquote>
+<pre>
+%feature("autodoc", "0");
+bool function_name(int x, int y, Foo* foo=NULL, Bar* bar=NULL);
+</pre>
+</blockquote>
+
+Then Python code like this will be generated:
+
+<blockquote>
+<pre>
+def function_name(*args, **kwargs):
+    """function_name(x, y, foo=None, bar=None) -> bool"""
+    ...
+</pre>
+</blockquote>
+
+
+<H4>%feature("autodoc", "1")</H4>
+
+When the "1" option is used then the parameter types <em>will</em> be
+used in the autodoc string.  In addition, an atempt is made to
+simplify the type name such that it makes more sense to the Python
+user.  Pointer, reference and const info is removed,
+<tt>%rename</tt>'s are evaluated, etc.  (This is not always
+successful, but works most of the time.  See the next section for what
+to do when it doesn't.)  Given the example above, then turning on the
+parameter types with the "1" option will result in Python code like
+this:
+
+<blockquote>
+<pre>
+def function_name(*args, **kwargs):
+    """function_name(int x, int y, Foo foo=None, Bar bar=None) -> bool"""
+    ...
+</pre>
+</blockquote>
+
+
+
+<H4>%feature("autodoc", "docstring")</H4>
+
+Finally, there are times when the automatically generated autodoc
+string will make no sense for a Python programmer, particularly when a
+typemap is involved.  So if you give an explicit value for the autodoc
+feature then that string will be used in place of the automatically
+generated string.  For example:
+
+<blockquote>
+<pre>
+%feature("autodoc", "GetPosition() -> (x, y)") GetPosition;
+void GetPosition(int* OUTPUT, int* OUTPUT);
+</pre>
+</blockquote>
+
+
+<H3><a name="Python_nn68"></a>26.10.3 %feature("docstring")</H3>
+
+In addition to the autodoc strings described above, you can also
+attach any arbitrary descriptive text to a node in the parse tree with
+the "docstring" feature.  When the proxy module is generated then any
+docstring associated with classes, function or methods are output.
+If an item already has an autodoc string then it is combined with the
+docstring and they are output together.  If the docstring is all on a
+single line then it is output like this::
+
+<blockquote>
+<pre>
+"""This is the docstring"""
+</pre>
+</blockquote>
+
+Otherwise, to aid readability it is output like this:
+
+<blockquote>
+<pre>
+"""
+This is a multi-line docstring
+with more than one line.
+"""
+</pre>
+</blockquote>
+
+<H2><a name="Python_nn70"></a>26.11 Python Packages</H2>
+
+Using the <tt>package</tt> option of the <tt>%module</tt> directive
+allows you to specify what Python package that the module will be
+living in when installed. 
+
+<blockquote>
+<pre>
+%module(package="wx") xrc
+</pre>
+</blockquote>
+
+This is useful when the <tt>.i</tt> file is <tt>%import</tt>ed by
+another <tt>.i</tt> file.  By default SWIG will assume that the
+importer is able to find the importee with just the module name, but
+if they live in separate Python packages then that won't work.
+However if the importee specifies what its package is with the
+<tt>%module</tt> option then the Python code generated for the
+importer will use that package name when importing the other module
+and also in base class declarations, etc. if the pacakge name is
+different than its own.
+
+
 </body>
 </html>
