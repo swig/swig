@@ -1,6 +1,6 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.19
+Release: SWIG-1.3.20
 
 $Header$
 -----------------------------------------------------------------------------
@@ -361,8 +361,8 @@ C#
 
 [DONE] Need a way to throw a C# exception from the PINVOKE C/C++ code.
 
-***    The correct override/virtual keywords not always emitted for polymorphic
-       methods. It currently only works when 'virtual' is specified in a derived 
+[DONE] The correct override/virtual keywords not always emitted for polymorphic
+       methods. It currently works with 'virtual' is specified in a derived 
        C++ class function. A polymorphic method need not specify 'virtual' in C++.
 
 ****   Wrap C/C++ enums with C# enums, currently they are wrapped with a C# int.
