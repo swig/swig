@@ -739,7 +739,7 @@ int JAVA::functionWrapper(Node *n) {
   Replaceall(f->code,"$cleanup",cleanup);
 
   if(SwigType_type(t) != T_VOID)
-    Replaceall(f->code,"$null","NULL");
+    Replaceall(f->code,"$null","0");
   else
     Replaceall(f->code,"$null","");
 
