@@ -3,11 +3,10 @@
 #include "example.h"
 %}
 
+#define ENABLE_CHARPTR_ARRAY
+#define ENABLE_STRING_VECTOR
 %include stl.i
 
 %feature("director");
-namespace std {
-	%template(StringVector) std::vector<string>;
-};
 
 %include example.h
