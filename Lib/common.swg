@@ -33,6 +33,16 @@
 #  define SWIGINLINE
 #endif
 
+/* 
+   needed at Swig_cfunction_call/Swig_cmethod_call (cwrap.c) when
+   using template calls
+*/
+#if defined(__SUNPRO_CC) 
+#define SWIG_TEMPLATE_DISAMBIGUATOR template
+#else
+#define SWIG_TEMPLATE_DISAMBIGUATOR 
+#endif
+
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */
 #define SWIG_RUNTIME_VERSION "1"
