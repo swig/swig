@@ -351,6 +351,16 @@ skip_balanced(int startchar, int endchar) {
 	}
 	yylen = 0;
     }
+    
+    /* Sick hack alert.  We look for type-escapes and replace them here */
+    /* might not need.
+    if (strchr(Char(CCode),'`')) {
+      String *ns = Copy(CCode);
+      Clear(CCode);
+      Printf(CCode,"%(typecode)s",ns);
+      Delete(ns);
+    }
+    */
     return;
 }
 

@@ -56,6 +56,7 @@ extern "C" {
     int        error_count = 0;                 // Error count
     int        Verbose = 0;
 extern String  *ModuleName;
+extern int ShowTemplates;
 
 class SwigException {};
 
@@ -75,6 +76,7 @@ static char *usage = (char*)"\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
+     -show_templates - Show template expansions\n\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
 
@@ -223,6 +225,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-no_default") == 0) {
 	    GenerateDefault = 0;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-show_templates") == 0) {
+	    ShowTemplates = 1;
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
