@@ -137,3 +137,87 @@ int need_name_warning(Node *n)
   }
   return need;
 }
+    
+
+int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
+{
+  /* they must have the same type */
+  SwigType *ta = nodeType(a);
+  SwigType *tb = nodeType(b);  
+  if (Cmp(ta, tb) != 0) return 0;
+  
+  /* cdecl case */
+  if (Cmp(ta, "cdecl") == 0) {
+    /* typedef */
+    String *a_storage = Getattr(a,"storage");
+    String *b_storage = Getattr(b,"storage");
+
+    if ((Cmp(a_storage,"typedef") == 0)
+	|| (Cmp(b_storage,"typedef") == 0)) {	
+      if (Cmp(a_storage, b_storage) == 0) {
+	String *a_type = (Getattr(a,"type"));
+	String *b_type = (Getattr(b,"type"));
+	if (Cmp(a_type, b_type) == 0) return 1;
+      }
+      return 0;
+    }
+
+    /* static functions */
+    if ((Cmp(a_storage, "static") == 0) 
+	|| (Cmp(b_storage, "static") == 0)) {
+      if (Cmp(a_storage, b_storage) != 0) return 0;
+    }
+    
+    if (!a_inclass || (Cmp(a_storage,"friend") == 0)) {
+      /* check declaration */
+      String *a_decl = (Getattr(a,"decl"));
+      String *b_decl = (Getattr(b,"decl"));
+      if (Cmp(a_decl, b_decl) == 0) {
+	/* check return type */
+	String *a_type = (Getattr(a,"type"));
+	String *b_type = (Getattr(b,"type"));
+	if (Cmp(a_type, b_type) == 0) {
+	  /* check parameters */
+	  Parm *ap = (Getattr(a,"parms"));
+	  Parm *bp = (Getattr(b,"parms"));
+	  int la = Len(ap);
+	  int lb = Len(bp);
+	  
+	  if (la != lb) return 0;
+	  while (ap && bp) {
+	    SwigType *at = Getattr(ap,"type");
+	    SwigType *bt = Getattr(bp,"type");
+	    if (Cmp(at, bt) != 0) return 0;
+	    ap = nextSibling(ap);
+	    bp = nextSibling(bp);
+	  }
+	  return 1;
+	}
+      }
+    }
+  } else {
+    /* %constant case */  
+    String *a_storage = Getattr(a,"storage");
+    String *b_storage = Getattr(b,"storage");
+    if ((Cmp(a_storage, "%constant") == 0) 
+	|| (Cmp(b_storage, "%constant") == 0)) {
+      if (Cmp(a_storage, b_storage) == 0) {
+	String *a_type = (Getattr(a,"type"));
+	String *b_type = (Getattr(b,"type"));
+	if ((Cmp(a_type, b_type) == 0)
+	    && (Cmp(Getattr(a,"value"), Getattr(b,"value")) == 0))
+	  return 1;
+      }
+      return 0;
+    }
+  }
+  return 0;
+}
+
+int need_redefined_warn(Node* a, Node* b, int InClass)
+{
+  String *a_storage = Getattr(a,"storage");
+  String *b_storage = Getattr(b,"storage");
+
+  return !are_equivalent_nodes(a, b, InClass);
+}

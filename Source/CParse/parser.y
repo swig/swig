@@ -271,7 +271,6 @@ static String *make_unnamed() {
 }
 
 /* Return the node name when it requires to emit a name warning */
-extern int need_name_warning(Node *n);
 static String *name_warning(Node *n,String *name,SwigType *decl) {
   /* Return in the obvious cases */
   if (!namewarn_hash || !name || !need_name_warning(n)) return 0;
@@ -375,18 +374,26 @@ static void add_symbols(Node *n) {
 	    Setattr(n,"sym:name",symname);
 	  } else {
 	    String *e = NewString("");
-	    Printf(e,"Identifier '%s' redeclared (ignored).", symname);
+	    String *en = NewString("");
+	    String *ec = NewString("");
+	    Printf(en,"Identifier '%s' redeclared (ignored)", symname);
 	    if (Cmp(symname,Getattr(n,"name"))) {
-	      Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
+	      Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
 	    }
-	    Printf(e,"\n%s:%d: Previous declaration of '%s'", Getfile(c),Getline(c),symname);
+	    Printf(en,",");
+	    Printf(ec,"  previous declaration of '%s'", symname);
 	    if (Cmp(symname,Getattr(c,"name"))) {
-	      Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
+	      Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
 	    }
-	    /* avoid warning for friend declarations */
-	    if (!is_friend(n) && !is_friend(c))
-	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
+	    Printf(ec,".");
+	    if (need_redefined_warn(n, c, inclass)) {	      
+	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
+	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
+	    }
+	    Printf(e,"%s\n%s:%d:%s\n", en, Getfile(c), Getline(c), ec);
 	    Setattr(n,"error",e);
+	    Delete(en);
+	    Delete(ec);
 	  }
 	}
       } else {
@@ -526,10 +533,16 @@ static void merge_extensions(Node *cls, Node *am) {
       if (csym != n) {
 	/* Conflict with previous definition.  Nuke previous definition */
 	String *e = NewString("");
-	Printf(e,"Identifier '%s' redeclared (ignored).\n", symname);
-	Printf(e,"%s:%d: Previous definition of tag '%s'", Getfile(n),Getline(n), symname);
-	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym), Getline(csym), "%s\n", e);
+	String *en = NewString("");
+	String *ec = NewString("");
+	Printf(ec,"Identifier '%s' redeclared (ignored),\n", symname);
+	Printf(en,"  %%extend definition of '%s'.", symname);
+	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym), Getline(csym), "%s\n", ec);
+	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n), "%s\n", en);
+	Printf(e,"%s\n%s:%d:%s\n", ec, Getfile(n), Getline(n), en);
 	Setattr(csym,"error",e);
+	Delete(en);
+	Delete(ec);
 	Swig_symbol_remove(csym);              /* Remove class definition */
 	Swig_symbol_add(symname,n);            /* Insert extend definition */
       }

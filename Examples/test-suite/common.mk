@@ -174,6 +174,7 @@ CPP_TEST_CASES += \
 	private_assign \
         protected_rename \
 	pure_virtual \
+	redefined \
 	reference_global_vars \
 	rename_default \
 	rename_default \
