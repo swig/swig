@@ -37,7 +37,7 @@ print "    Square = (" . $s->x . "," . $s->y . ")\n";
 
 print "\nHere are some properties of the shapes:\n";
 foreach (array($c,$s) as $o) {
-      print "    $o\n";
+      print "    ".get_class($o)." $o\n";
       print "        area      = " .  $o->area() . "\n";
       print "        perimeter = " .  $o->perimeter() . "\n";
   }
