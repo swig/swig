@@ -60,51 +60,9 @@
 %typemap(jstype) char *                                         "String"
 %typemap(jstype) void                                           "void"
 
-/* Arrays of primitive types */                     
-%typemap(jni) bool[ANY]               "jbooleanArray"
 %typemap(jni) char[ANY]               "jstring"
-%typemap(jni) signed char[ANY]        "jbyteArray"
-%typemap(jni) unsigned char[ANY]      "jshortArray"
-%typemap(jni) short[ANY]              "jshortArray"
-%typemap(jni) unsigned short[ANY]     "jintArray"
-%typemap(jni) int[ANY]                "jintArray"
-%typemap(jni) unsigned int[ANY]       "jlongArray"
-%typemap(jni) long[ANY]               "jintArray"
-%typemap(jni) unsigned long[ANY]      "jlongArray"
-%typemap(jni) long long[ANY]          "jlongArray"
-/*%typemap(jni) unsigned long long[ANY] "jobjectArray"*/
-%typemap(jni) float[ANY]              "jfloatArray"
-%typemap(jni) double[ANY]             "jdoubleArray"
-
-%typemap(jtype) bool[ANY]               "boolean[]"
 %typemap(jtype) char[ANY]               "String"
-%typemap(jtype) signed char[ANY]        "byte[]"
-%typemap(jtype) unsigned char[ANY]      "short[]"
-%typemap(jtype) short[ANY]              "short[]"
-%typemap(jtype) unsigned short[ANY]     "int[]"
-%typemap(jtype) int[ANY]                "int[]"
-%typemap(jtype) unsigned int[ANY]       "long[]"
-%typemap(jtype) long[ANY]               "int[]"
-%typemap(jtype) unsigned long[ANY]      "long[]"
-%typemap(jtype) long long[ANY]          "long[]"
-/*%typemap(jtype) unsigned long long[ANY] "java.math.BigInteger[]"*/
-%typemap(jtype) float[ANY]              "float[]"
-%typemap(jtype) double[ANY]             "double[]"
-
-%typemap(jstype) bool[ANY]               "boolean[]"
 %typemap(jstype) char[ANY]               "String"
-%typemap(jstype) signed char[ANY]        "byte[]"
-%typemap(jstype) unsigned char[ANY]      "short[]"
-%typemap(jstype) short[ANY]              "short[]"
-%typemap(jstype) unsigned short[ANY]     "int[]"
-%typemap(jstype) int[ANY]                "int[]"
-%typemap(jstype) unsigned int[ANY]       "long[]"
-%typemap(jstype) long[ANY]               "int[]"
-%typemap(jstype) unsigned long[ANY]      "long[]"
-%typemap(jstype) long long[ANY]          "long[]"
-/*%typemap(jstype) unsigned long long[ANY] "java.math.BigInteger[]"*/
-%typemap(jstype) float[ANY]              "float[]"
-%typemap(jstype) double[ANY]             "double[]"
 
 /* JNI types */
 %typemap(jni) jboolean      "jboolean"
@@ -403,37 +361,6 @@ $1 = &temp; %}
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
 %typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
 
-/* Arrays of primitive types use the following macro. The array typemaps use support functions. */
-%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME)
-
-%typemap(in) CTYPE[ANY] (JNITYPE *jarr)
-%{ if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) CTYPE[ANY] 
-%{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
-%typemap(out) CTYPE[ANY] 
-%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
-%typemap(freearg) CTYPE[ANY] 
-#ifdef __cplusplus
-%{ delete [] $1; %}
-#else
-%{ free($1); %}
-#endif
-
-%enddef
-
-JAVA_ARRAYS_TYPEMAPS(bool, jboolean, Bool)         /* bool[ANY] */
-JAVA_ARRAYS_TYPEMAPS(signed char, jbyte, Schar)    /* signed char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned char, jshort, Uchar) /* unsigned char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(short, jshort, Short)         /* short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned short, jint, Ushort) /* unsigned short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(int, jint, Int)               /* int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned int, jlong, Uint)    /* unsigned int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long, jint, Long)             /* long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned long, jlong, Ulong)  /* unsigned long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long long, jlong, Longlong)   /* long long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float)         /* float[ANY] */
-JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
-
 /* char[ANY] - treat as String */
 %typemap(in) char[ANY] { 
   $1 = 0;
@@ -562,20 +489,8 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     char[ANY]
     ""
 
-%define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
-%define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
-%define SWIG_TYPECHECK_INT16_ARRAY       1035    %enddef
-%define SWIG_TYPECHECK_INT32_ARRAY       1045    %enddef
-%define SWIG_TYPECHECK_INT64_ARRAY       1055    %enddef
-%define SWIG_TYPECHECK_INT128_ARRAY      1065    %enddef
-%define SWIG_TYPECHECK_FLOAT_ARRAY       1080    %enddef
-%define SWIG_TYPECHECK_DOUBLE_ARRAY      1090    %enddef
-%define SWIG_TYPECHECK_CHAR_ARRAY        1130    %enddef
-%define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
-
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
-    jbooleanArray,
-    bool[ANY]
+    jbooleanArray
     ""
 
 %typecheck(SWIG_TYPECHECK_CHAR_ARRAY) /* Java char[] */
@@ -583,42 +498,27 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     ""
 
 %typecheck(SWIG_TYPECHECK_INT8_ARRAY) /* Java byte[] */
-    jbyteArray,
-    signed char[ANY]
+    jbyteArray
     ""
 
 %typecheck(SWIG_TYPECHECK_INT16_ARRAY) /* Java short[] */
-    jshortArray,
-    unsigned char[ANY], 
-    short[ANY] 
+    jshortArray
     ""
 
 %typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
-    jintArray,
-    unsigned short[ANY], 
-    int[ANY], 
-    long[ANY]
+    jintArray
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
-    jlongArray,
-    unsigned int[ANY], 
-    unsigned long[ANY], 
-    long long[ANY] 
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT128_ARRAY) /* Java BigInteger[] */
-    unsigned long long[ANY]
+    jlongArray
     ""
 
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) /* Java float[] */
-    jfloatArray,
-    float[ANY]
+    jfloatArray
     ""
 
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) /* Java double[] */
-    jdoubleArray,
-    double[ANY]
+    jdoubleArray
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER) /* Default */
@@ -673,22 +573,28 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
                  float,              const float &,
                  double,             const double &,
                  char *,
+                 char[ANY],
                  enum SWIGTYPE 
     "$javainput"
-%typemap(javain) bool[ANY],
-                 char[ANY],
-                 signed char[ANY],
-                 unsigned char[ANY],
-                 short[ANY],
-                 unsigned short[ANY],
-                 int[ANY],
-                 unsigned int[ANY],
-                 long[ANY],
-                 unsigned long[ANY],
-                 long long[ANY],
-/*               unsigned long long[ANY], */
-                 float[ANY],
-                 double[ANY]
+%typemap(javain) jboolean,
+                 jchar,
+                 jbyte,
+                 jshort,
+                 jint,
+                 jlong,
+                 jfloat,
+                 jdouble,
+                 jstring,
+                 jobject,
+                 jbooleanArray,
+                 jcharArray,
+                 jbyteArray,
+                 jshortArray,
+                 jintArray,
+                 jlongArray,
+                 jfloatArray,
+                 jdoubleArray,
+                 jobjectArray
     "$javainput"
 %typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
 %typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
@@ -710,23 +616,29 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
                   float,              const float &,
                   double,             const double &,
                   char *,
+                  char[ANY],
                   enum SWIGTYPE {
     return $jnicall;
   }
-%typemap(javaout) bool[ANY],
-                  char[ANY],
-                  signed char[ANY],
-                  unsigned char[ANY],
-                  short[ANY],
-                  unsigned short[ANY],
-                  int[ANY],
-                  unsigned int[ANY],
-                  long[ANY],
-                  unsigned long[ANY],
-                  long long[ANY],
-/*                unsigned long long[ANY], */
-                  float[ANY],
-                  double[ANY] {
+%typemap(javaout) jboolean,
+                  jchar,
+                  jbyte,
+                  jshort,
+                  jint,
+                  jlong,
+                  jfloat,
+                  jdouble,
+                  jstring,
+                  jobject,
+                  jbooleanArray,
+                  jcharArray,
+                  jbyteArray,
+                  jshortArray,
+                  jintArray,
+                  jlongArray,
+                  jfloatArray,
+                  jdoubleArray,
+                  jobjectArray {
     return $jnicall;
   }
 %typemap(javaout) void {
