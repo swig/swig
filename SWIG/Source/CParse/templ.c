@@ -295,7 +295,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 Node *
 Swig_cparse_template_locate(String *name, Parm *parms) {
   Node   *n;
-  String *tname, *rname;
+  String *tname, *rname = 0;
   Node   *templ;
   List   *mpartials = 0;
   Parm   *p;
@@ -390,10 +390,7 @@ Swig_cparse_template_locate(String *name, Parm *parms) {
 	    p = nextSibling(p);
 	  }
 	  if (template_debug) {
-	    Printf(stdout,"    searching: '%s' (partial specialization)\n", ss);
-	    if ((Strcmp(ss,tname) == 0) || (Strcmp(ss,rname) == 0)) {
-	      Printf(stdout,"    Match!\n");
-	    }
+	    Printf(stdout,"    searching: '%s' (partial specialization - %s)\n", ss, s);
 	  }
 	  if ((Strcmp(ss,tname) == 0) || (Strcmp(ss,rname) == 0)) {
 	    Append(mpartials,s);

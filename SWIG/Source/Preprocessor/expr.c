@@ -258,6 +258,10 @@ Preprocessor_expr(DOH *s, int *error) {
       } else if ((token == SWIG_TOKEN_STRING)) {
 	stack[sp].svalue = NewString(SwigScanner_text(scan));
 	stack[sp].op = EXPR_VALUE;
+      } else if ((token == SWIG_TOKEN_ID)) {
+	stack[sp].value = 0;
+	stack[sp].svalue = 0;
+	stack[sp].op = EXPR_VALUE;
       } else goto syntax_error;
       break;
     case EXPR_VALUE:

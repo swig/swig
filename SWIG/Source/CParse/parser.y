@@ -2313,7 +2313,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			      }
 			      p = nextSibling(p);
 			    }
-			    Printf(stdout,"Installing '%s'\n", fname);
+			    /*			    Printf(stdout,"Installing '%s'\n", fname); */
 			    {
 			      String *partials = Getattr(tempn,"partials");
 			      if (!partials) {

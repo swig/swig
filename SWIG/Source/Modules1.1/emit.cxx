@@ -127,6 +127,34 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("check",l,f);
   Swig_typemap_attach_parms("freearg",l,f);
 
+  /* Perform a sanity check on "in" and "freearg" typemaps.  These
+     must exactly match to avoid chaos.  If a mismatch occurs, we
+     nuke the freearg typemap */
+
+  {
+    Parm *p = l;
+    Parm *npin, *npfreearg;
+    while (p) {
+      npin = 0;
+      if (Getattr(p,"tmap:ignore")) {
+	npin = Getattr(p,"tmap:ignore:next");
+      } else if (Getattr(p,"tmap:in")) {
+	npin = Getattr(p,"tmap:in:next");
+      }
+      if (Getattr(p,"tmap:freearg")) {
+	npfreearg = Getattr(p,"tmap:freearg:next");
+	if (npin != npfreearg) {
+	  while (p != npin) {
+	    Delattr(p,"tmap:freearg");
+	    Delattr(p,"tmap:freearg:next");
+	    p = nextSibling(p);
+	  }
+	}
+      }
+      p = npin;
+    }
+  }
+      
   /* Check for variable length arguments with no input typemap.
      If no input is defined, we set this to ignore and print a
      message.

@@ -253,9 +253,13 @@ TCL8::functionWrapper(Node *n) {
 	Setattr(p,"emit:input",source);
 	Putc('o',argstr);
 	Printf(args,",0");
-	if (i >= num_required)
-	  Printf(incode, "if (objc > %d)\n", i+1);
+	if (i >= num_required) {
+	  Printf(incode, "if (objc > %d) {\n", i+1);
+	}
 	Printf(incode,"%s\n", tm);
+	if (i >= num_required) {
+	  Printf(incode, "}\n");
+	}
       } else {
 	Printf(argstr,"%s",parse);
 	Printf(args,",&%s",ln);

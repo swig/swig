@@ -1384,7 +1384,46 @@ PERL5::staticmemberfunctionHandler(Node *n) {
   Language::staticmemberfunctionHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
-    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+    SwigType *t = Getattr(n,"type");
+    if (is_shadow(t)) {
+      Printv(pcode,
+	     "sub ", symname, " {\n",
+	     tab4, "my @args = @_;\n",
+	     NULL);
+  
+      /* Okay.  We've made argument adjustments, now call into the package */
+  
+      Printv(pcode,
+	     tab4, "my $result = ", package, "::", Swig_name_member(class_name,symname),
+	     "(@args);\n",
+	     NULL);
+  
+      /* Now check to see what kind of return result was found.
+       * If this function is returning a result by 'value', SWIG did an
+       * implicit malloc/new.   We'll mark the object like it was created
+       * in Perl so we can garbage collect it. */
+      
+      Printv(pcode,tab4, "return undef if (!defined($result));\n", NULL);
+  
+      /* If we're returning an object by value, put it's reference
+         into our local hash table */
+  
+      if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject) {
+        Printv(pcode, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", NULL);
+      }
+  
+      /* We're returning a Perl "object" of some kind.  Turn it into
+         a tied hash */
+  
+      Printv(pcode,
+          tab4, "my %resulthash;\n",
+	     tab4, "tie %resulthash, ref($result), $result;\n",
+	     tab4, "return bless \\%resulthash, ref($result);\n",
+	     "}\n",
+	     NULL);
+    } else {
+      Printv(pcode,"*",symname," = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+    }
   }
   return SWIG_OK;
 }
@@ -1398,7 +1437,7 @@ PERL5::staticmembervariableHandler(Node *n) {
   Language::staticmembervariableHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
-    Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
+    Printv(pcode,"*",symname," = *", package, "::", Swig_name_member(class_name,symname), ";\n", NULL);
   }
   return SWIG_OK;
 }

@@ -112,12 +112,10 @@ void Preprocessor_init() {
  * ----------------------------------------------------------------------------- */
 void Preprocessor_include_all(int a) {
   include_all = a;
-  if (import_all) import_all = 0;
 }
 
 void Preprocessor_import_all(int a) {
   import_all = a;
-  if (include_all) include_all = 0;
 }
 
 void Preprocessor_ignore_missing(int a) {
@@ -1160,7 +1158,7 @@ Preprocessor_parse(String *s)
 	  start_level = level;
 	  sval = Preprocessor_replace(value);
 	  Seek(sval,0,SEEK_SET);
-	  /*	  Printf(stdout,"Evaluating '%s'\n", sval);*/
+	  /*	  Printf(stdout,"Evaluating '%s'\n", sval); */
   	  val = Preprocessor_expr(sval,&e);
   	  if (e) {
   	    Seek(value,0,SEEK_SET);

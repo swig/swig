@@ -66,6 +66,7 @@ static char *usage = (char*)"\
      -I<dir>         - Look for SWIG files in <dir>\n\
      -includeall     - Follow all #include statements\n\
      -importall      - Follow all #include statements as imports\n\
+     -ignoremissing  - Ignore missing include files.\n\
      -l<ifile>       - Include SWIG library file.\n\
      -make_default   - Create default constructors/destructors (the default)\n\
      -no_default     - Do not generate constructors/destructors\n\
@@ -321,6 +322,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-importall") == 0) {
 	    Preprocessor_import_all(1);
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-ignoremissing") == 0) {
+	    Preprocessor_ignore_missing(1);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-tm_debug") == 0) {
 	    tm_debug = 1;
