@@ -550,7 +550,6 @@ DOH *
 DohNewHash() {
     Hash *h;
     int   i;
-    static int init = 0;
     h = (Hash *) DohMalloc(sizeof(Hash));
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
