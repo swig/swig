@@ -219,6 +219,8 @@ Language::~Language() {
 int Language::emit_one(Node *n) {
   int ret;
   
+  if (!n) return SWIG_OK;
+
   if (Getattr(n,"feature:ignore")) return SWIG_OK;
 
   line_number = Getline(n);
