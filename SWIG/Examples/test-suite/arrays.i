@@ -16,6 +16,7 @@ typedef struct {
 
 typedef struct {
 	char           array_c [ARRAY_LEN];
+	signed char    array_sc[ARRAY_LEN];
 	unsigned char  array_uc[ARRAY_LEN];
 	short          array_s [ARRAY_LEN];
 	unsigned short array_us[ARRAY_LEN];
