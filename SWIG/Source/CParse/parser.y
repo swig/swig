@@ -2613,6 +2613,7 @@ cpp_class_decl  :
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
 		 SwigType *ty;
+		 Node *am = 0;
 		 inclass = 0;
 		 $$ = new_node("class");
 		 Setline($$,cparse_start_line);
@@ -2624,12 +2625,12 @@ cpp_class_decl  :
 		 Setattr($$,"abstract", pure_abstract($7));
 		 
 		 /* This bit of code merges in a previously defined %extend directive (if any) */
+		 
 		 if (extendhash) {
 		   String *clsname = Swig_symbol_qualifiedscopename(0);
-		   Node *am = Getattr(extendhash,clsname);
+		   am = Getattr(extendhash,clsname);
 		   if (am) {
 		     merge_extensions($$,am);
-		     appendChild($$,am);
 		     Delattr(extendhash,clsname);
 		   }
 		   Delete(clsname);
@@ -2638,6 +2639,8 @@ cpp_class_decl  :
 		 Setattr(classes,Swig_symbol_qualifiedscopename(0),$$);
 
 		 appendChild($$,$7);
+		 if (am) appendChild($$,am);
+
 		 p = $9;
 		 if (p) {
 		   set_nextSibling($$,p);
