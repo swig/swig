@@ -17,9 +17,9 @@ class Test {
   SomeClass o;
 public:
   Test(int x) try : o(x) { }
-  catch (Error &e) {
+  catch (Error &) {
   } 
-  catch (int y) {
+  catch (int) {
   }
   catch (...) {
   }

@@ -372,6 +372,7 @@ JAVA_LIBPREFIX = @JAVALIBRARYPREFIX@
 JAVASO =@JAVASO@
 JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
+JAVACFLAGS = @JAVACFLAGS@
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C)
@@ -379,7 +380,7 @@ JAVACXXSHARED = @JAVACXXSHARED@
 
 java: $(SRCS)
 	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVALDSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
 # ----------------------------------------------------------------
@@ -388,7 +389,7 @@ java: $(SRCS)
 
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVACXXSHARED) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
 # -----------------------------------------------------------------
@@ -831,6 +832,7 @@ CSHARP_DLNK  = @CSHARPDYNAMICLINKING@
 CSHARP_LIBPREFIX = @CSHARPLIBRARYPREFIX@
 CSHARPCOMPILER = @CSHARPCOMPILER@
 CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
+CSHARPCFLAGS = @CSHARPCFLAGS@
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)
@@ -838,7 +840,7 @@ CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
 
 csharp: $(SRCS)
 	$(SWIG) -csharp $(SWIGOPT) $(INTERFACE)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -847,7 +849,7 @@ csharp: $(SRCS)
 
 csharp_cpp: $(SRCS)
 	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
