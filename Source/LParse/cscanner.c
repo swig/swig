@@ -67,6 +67,7 @@ static int map[][2] = {
   { SWIG_TOKEN_DOLLAR, -1},
   { SWIG_TOKEN_CODEBLOCK, HBLOCK},
   { SWIG_TOKEN_ILLEGAL, SWIG_TOKEN_ILLEGAL},
+  { SWIG_TOKEN_RSTRING, SWIG_TOKEN_RSTRING},
   { SWIG_TOKEN_LAST, -1},
   {0,0},
 };
@@ -319,7 +320,7 @@ yylex1(void) {
       LParse_error(0,0,"Illegal character '%s'\n", text);
       return yylex1();
     }
-    if ((l1 == STRING) || (l1 == CHARCONST)) {
+    if ((l1 == STRING) || (l1 == CHARCONST) || (l1 == SWIG_TOKEN_RSTRING)) {
       yylval.tok.text = NewString(yytext+1);
       Setfile(yylval.tok.text,yylval.tok.filename);
       Setline(yylval.tok.text,yylval.tok.line);
@@ -328,6 +329,10 @@ yylex1(void) {
     if ((l1 == HBLOCK) || (l1 == NUM_INT) || (l1 == NUM_FLOAT) || (l1 == NUM_UNSIGNED) || (l1 == NUM_LONG) || (l1 == NUM_ULONG))  {
       yylval.tok.text = NewString(yytext);
     }
+    if (l1 == SWIG_TOKEN_RSTRING) {
+      return (TYPE_TYPESTRING);
+    }
+
     if (l1 == ID) {
       /* Look for keywords now */
       if (strcmp(yytext,"int") == 0) return(TYPE_INT);

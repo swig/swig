@@ -234,7 +234,7 @@ static int promote(int t1, int t2) {
 %token <tok> OC_INTERFACE OC_END OC_PUBLIC OC_PRIVATE OC_PROTECTED OC_CLASS OC_IMPLEMENT OC_PROTOCOL
 
 /* C Types */
-%token <tok> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL
+%token <tok> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPESTRING
 
 /* SWIG directives */
 %token <tok> ADDMETHODS APPLY CLEAR CONSTANT ECHO EXCEPT SCOPE
@@ -1603,6 +1603,7 @@ type           : TYPE_INT {  $$ = NewString("int"); }
                | TYPE_FLOAT { $$ = NewString("float"); }
                | TYPE_DOUBLE { $$ = NewString("double"); }
                | TYPE_VOID {  $$ = NewString("void"); }
+               | TYPE_TYPESTRING { $$ = $1.text; }
                | TYPE_SIGNED opt_signed { 
                  if ($2) $$ = $2;
 		 else {

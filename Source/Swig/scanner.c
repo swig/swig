@@ -295,6 +295,11 @@ look(SwigScanner *s) {
 		s->string_start = s->line;
 		state = 9;    /* A character constant */
 	    }
+  	    else if (c == '`') {
+	        s->string_start = s->line;
+  	        state = 900;
+  	    }
+
 	    else if (c == '.') state = 100;   /* Maybe a number, maybe just a period */
 	    else if (isdigit(c)) state = 8;   /* A numerical value */
 	    else state = 99;                  /* An error */
@@ -640,6 +645,18 @@ look(SwigScanner *s) {
 	    break;
       
 	    /* An illegal character */
+	    
+	    /* Reverse string */
+	case 900:
+	  if ((c = nextchar(s)) == 0) {
+	    /* add_error(0,"Unterminated character constant", string_start); */
+	    return 0;
+	  }
+	  if (c == '`') {
+	    return(SWIG_TOKEN_RSTRING);
+	  }
+	  break;
+
 	default:
 	  return SWIG_TOKEN_ILLEGAL;
 	}
