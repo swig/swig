@@ -54,6 +54,8 @@ Here are the most notable changes (so far):
 
    - SWIG requires an ANSI C compiler.
 
+   - Better Windows support.
+
 Here are a few missing features:
 
    - The SWIG1.1 documentation system is gone and hasn't been
@@ -85,8 +87,13 @@ The files NEW and CHANGES describe in some detail all of the important
 changes that have been made to the system.  Experienced users would be
 advised to read this.
 
-Installation
-============
+Windows
+=======
+Please see the Win/Windows.html file for instructions on obtaining 
+and using SWIG on Windows.
+
+Unix Installation
+=================
 To build and install SWIG, simply type the following:
 
      % ./configure
@@ -110,13 +117,6 @@ Notes:
 (1) If you checked the code out via CVS, you will have to run ./autogen.sh
     before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
-
-(2) If you are using Windows, the easiest way to install and build
-    SWIG is to use the Cygwin package (http://sourceware.cygnus.com/cygwin/).
-    Note: Even if you build SWIG using Cygwin, the easier way to
-    actually use SWIG on Windows is to build your extensions using Visual C++.
-    The SWIG1.1p5 distribution also contains a number of examples configured
-    to work with Visual C++ (most of which should also work with SWIG1.3).
 
 (3) 'make -k check' is a new feature that requires at least one of the target
     languages to be installed and which performs compile/link level testing
