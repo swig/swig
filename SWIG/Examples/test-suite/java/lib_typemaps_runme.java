@@ -32,6 +32,12 @@ public class lib_typemaps_runme {
         lib_typemaps.outr_double(22.22, var);
         if (var[0] != 22.22) exit_test("outr_double");
     }
+    try {
+        double[] var = null;
+        lib_typemaps.out_double(22.22, var);
+        exit_test("null out_double");
+    } catch (NullPointerException e) {
+    }
 
     // Check double INOUT typemaps
     {
@@ -44,13 +50,24 @@ public class lib_typemaps_runme {
         lib_typemaps.inoutr_double(var);
         if (var[0] != 44.44) exit_test("inoutr_double");
     }
-
+    try {
+        double[] var = null;
+        lib_typemaps.inout_double(var);
+        exit_test("null inout_double");
+    } catch (NullPointerException e) {
+    }
 
     // Check unsigned long long INPUT typemaps
     BigInteger forty = new BigInteger("40");
     BigInteger twenty = new BigInteger("20");
     if (!lib_typemaps.in_ulonglong(twenty).equals(twenty)) exit_test("in_ulonglong");
     if (!lib_typemaps.inr_ulonglong(twenty).equals(twenty)) exit_test("inr_ulonglong");
+
+    try {
+        lib_typemaps.in_ulonglong(null);
+        exit_test("null in_ulonglong");
+    } catch (NullPointerException e) {
+    }
 
     // Check unsigned long long OUTPUT typemaps
     {
@@ -62,6 +79,17 @@ public class lib_typemaps_runme {
         BigInteger[] var = {new BigInteger("40")};
         lib_typemaps.outr_ulonglong(twenty, var);
         if (!var[0].equals(twenty)) exit_test("outr_ulonglong");
+    }
+    try {
+        BigInteger[] var = null;
+        lib_typemaps.out_ulonglong(twenty, var);
+        exit_test("null out_ulonglong");
+    } catch (NullPointerException e) {
+    }
+    {
+        BigInteger[] var = { null };
+        lib_typemaps.out_ulonglong(twenty, var);
+        if (!var[0].equals(twenty)) exit_test("null element out_ulonglong");
     }
 
     // Check unsigned long long INOUT typemaps
@@ -75,11 +103,23 @@ public class lib_typemaps_runme {
         lib_typemaps.inoutr_ulonglong(var);
         if (!var[0].equals(forty)) exit_test("inoutr_ulonglong");
     }
+    try {
+        BigInteger[] var = null;
+        lib_typemaps.inout_ulonglong(var);
+        exit_test("null inout_ulonglong");
+    } catch (NullPointerException e) {
+    }
+    try {
+        BigInteger[] var = { null };
+        lib_typemaps.inout_ulonglong(var);
+        exit_test("null element inout_ulonglong");
+    } catch (NullPointerException e) {
+    }
+
   }
 
   private static void exit_test(String funcName) {
-      System.err.println("Test FAILED in function " + funcName);
-      System.exit(1);
+      throw new RuntimeException("Test FAILED in function " + funcName);
   }
 }
 
