@@ -3,13 +3,10 @@
 /*
  * SWIG typemaps for std::vector
  * C# implementation
- * The C# wrapper is made to look and feel like a typesafe C# ArrayList
+ * The C# wrapper is made to look and feel like a typesafe C# System.Collections.ArrayList
  * All the methods in IList are defined, but we don't derive from IList as this is a typesafe collection.
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  */
-
-// TODO: change ArgumentOutOfRangeException/char* Exception to ArgumentException in RemoveRange and GetRange and SetRange, Reverse(int, int) too - also add in runtime tests
-// also check ArgumentNullException is constructed correctly
 
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
@@ -17,6 +14,8 @@
 %typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable";
 %typemap(cscode) std::vector<CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
+    if (c == null)
+      throw new ArgumentNullException("c");
     foreach (CSTYPE element in c) {
       this.Add(element);
     }
@@ -76,7 +75,7 @@
 
   public void CopyTo(int index, System.Array array, int arrayIndex, int count) {
     if (array == null)
-      throw new ArgumentNullException("array is null.");
+      throw new ArgumentNullException("array");
     if (index < 0)
       throw new ArgumentOutOfRangeException("index", "Value is less than zero");
     if (arrayIndex < 0)
@@ -326,6 +325,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -334,6 +334,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -342,6 +343,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -350,6 +352,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -358,8 +361,10 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   } catch (const char *e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
+    return $null;
   }
 }
 
@@ -368,6 +373,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -376,6 +382,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -384,6 +391,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -392,6 +400,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
@@ -400,8 +409,10 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   } catch (const char *e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
+    return $null;
   }
 }
 
@@ -410,8 +421,10 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   } catch (const char *e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, e, "");
+    return $null;
   }
 }
 
@@ -420,6 +433,7 @@ namespace std {
     $action
   } catch (std::out_of_range& e) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, 0, e.what());
+    return $null;
   }
 }
 
