@@ -47,9 +47,9 @@ void print_vars() {
   printf("cvar      = %c\n", cvar);
   printf("strvar    = %s\n", strvar ? strvar : "(null)");
   printf("cstrvar   = %s\n", cstrvar ? cstrvar : "(null)");
-  printf("iptrvar   = %x\n", iptrvar);
+  printf("iptrvar   = %p\n", iptrvar);
   printf("name      = %s\n", name);
-  printf("ptptr     = %x (%d, %d)\n", ptptr, ptptr ? ptptr->x : 0, ptptr ? ptptr->y : 0);
+  printf("ptptr     = %p (%d, %d)\n", ptptr, ptptr ? ptptr->x : 0, ptptr ? ptptr->y : 0);
   printf("pt        = (%d, %d)\n", pt.x, pt.y);
   printf("status    = %d\n", status);
 }

@@ -33,6 +33,8 @@ JNIEXPORT jstring JNICALL Java_exampleJNI_point_1toString2(JNIEnv *jenv, jclass 
     char buf[80];
     jstring result;
 
+    (void)jcls;
+
     p = *(Point **)&jpoint;
     sprintf(buf, "[%d,%d]", p->x, p->y);
 

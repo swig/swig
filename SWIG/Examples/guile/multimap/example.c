@@ -39,7 +39,7 @@ int count(char *bytes, int len, char c) {
 void capitalize(char *str, int len) {
   int i;
   for (i = 0; i < len; i++) {
-    str[i] = toupper(str[i]);
+    str[i] = (char)toupper(str[i]);
   }
 }
 
