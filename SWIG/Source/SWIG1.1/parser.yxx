@@ -51,11 +51,12 @@ extern void generate_all(Node *);
 
 static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
-
 static Hash    *addmethods = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
- static Node    *current_class = 0;
+static Node    *current_class = 0;
+       String  *ModuleName = 0;
+ 
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -132,7 +133,7 @@ static String *make_unnamed() {
 /* Add declaration list to symbol table */
 static void add_symbols(Node *n) {
   while (n) {
-    if (Getattr(n,"$symname")) {
+    if (nodeSymbol(n)) {
       n = nextSibling(n);
       continue;
     }
@@ -189,7 +190,7 @@ static void merge_addmethods(Node *am) {
   n = firstChild(am);
   while (n) {
     String *symname;
-    symname = Getattr(n,"$symname");
+    symname = nodeSymbol(n);
     DohIncref(symname);
     if ((symname) && (!Geterror(n))) {
       /* Remove node from its symbol table */
@@ -210,12 +211,31 @@ static void merge_addmethods(Node *am) {
   }
 }
 
+/* Check a set of declarations to see if any are pure-abstract */
+
+ static int pure_abstract(Node *n) {
+   while (n) {
+     if (Cmp(nodeType(n),"cdecl") == 0) {
+       String *decl = Getdecl(n);
+       if (SwigType_isfunction(decl)) {
+	 String *init = Getvalue(n);
+	 if (Cmp(init,"0") == 0) {
+	   return 1;
+	 }
+       }
+     } else if (Cmp(nodeType(n),"destructor") == 0) {
+       if (Cmp(Getvalue(n),"0") == 0) return 1;
+     }
+     n = nextSibling(n);
+   }
+ }
 /* Structures for handling code fragments built for nested classes */
 
 struct Nested {
   String   *code;        // Associated code fragment
   int      line;         // line number where it starts
   char     *name;        // Name associated with this nested class
+  char     *kind;        // Kind of class
   SwigType *type;        // Datatype associated with the name
   Nested   *next;        // Next code fragment in list
 };
@@ -252,7 +272,6 @@ static Node *dump_nested(char *parent) {
     char temp[256];
     // Token replace the name of the parent class
     Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
-
     // Fix up the name of the datatype (for building typedefs and other stuff)
     sprintf(temp,"%s_%s", parent,n->name);
 
@@ -263,12 +282,19 @@ static Node *dump_nested(char *parent) {
     // Add the appropriate declaration to the C++ processor
     Node *retx = new_node("cdecl");
     Setname(retx,n->name);
-    Settype(retx,n->type);
+    Settype(retx,Copy(n->type));
     Setattr(retx,"nested",parent);
     if (ret) {
       set_nextSibling(retx,ret);
     }
     ret = retx;
+
+    /* Insert a forward class declaration */
+    retx = new_node("classforward");
+    Setattr(retx,"kind",n->kind);
+    Setname(retx,Copy(n->type));
+    set_nextSibling(retx,ret);
+    ret = retx; 
 
     // Make all SWIG created typedef structs/unions/classes unnamed else 
     // redefinition errors occur - nasty hack alert.
@@ -406,7 +432,7 @@ static Node *dump_nested(char *parent) {
 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_other ;
-%type <node>     cpp_members cpp_member ;
+%type <node>     cpp_members cpp_member cpp_member_node ;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_operator ;
 %type <node>     cpp_swig_directive cpp_template_decl cpp_nested cpp_opt_declarators ;
 
@@ -448,8 +474,9 @@ static Node *dump_nested(char *parent) {
  * ====================================================================== */
 
 program        :  interface {
-	           top = $1;
-		   generate_all(top);
+		   Setattr($1,"classes",classes);
+		   Setname($1,ModuleName);
+		   lang->top($1);
                }
                ;
 
@@ -686,8 +713,8 @@ include_directive: includetype string LBRACE {
                } interface RBRACE {
 		     input_file = $1.filename;
 		     line_number = $1.line;
-		     $$ = new_node("include");
-		     Setattr($$,"kind",$1.type);
+		     if (strcmp($1.type,"include") == 0) $$ = new_node("include");
+		     if (strcmp($1.type,"import") == 0) $$ = new_node("import");
 		     Setname($$,$2);
 		     appendChild($$,firstChild($5));
                }
@@ -748,6 +775,7 @@ insert_directive : HBLOCK {
 module_directive: MODULE idstring {
                  $$ = new_node("module");
 		 Setname($$,$2);
+		 if (!ModuleName) ModuleName = NewString($2);
 	       }
                ;
 
@@ -1169,6 +1197,12 @@ cpp_class_decl  :
 	       Setname($$,$3);
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"bases",$4);
+	       
+	       /* Check for pure-abstract class */
+	       if (pure_abstract($7)) {
+		 SetInt($$,"abstract",1);
+	       }
+
 	       Swig_symbol_setscopename($3);
 	       
 	       /* This bit of code merges in a previously defined %addmethod directive (if any) */
@@ -1239,6 +1273,11 @@ cpp_class_decl  :
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
+	       
+	       /* Check for pure-abstract class */
+	       if (pure_abstract($5)) {
+		 SetInt($$,"abstract",1);
+	       }
 
 	       Node *n = new_node("cdecl");
 	       Setname(n,$7.id);
@@ -1313,7 +1352,7 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    ------------------------------------------------------------ */
 
 cpp_forward_class_decl : storage_class cpptype ID SEMI {
-               $$ = new_node("forwardclass");
+               $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
 	       Setname($$,$3);
 	     }
@@ -1421,18 +1460,18 @@ cpp_other      : storage_class type abstract_declarator OPERATOR LPAREN parms RP
              ;
 
 cpp_members  : cpp_member cpp_members {
-                 $$ = $1;
-		 if ($$) {
-		   Node *p = $$;
-		   Node *pp =0;
-		   while (p) {
-		     pp = p;
-		     p = nextSibling(p);
+                   $$ = $1;
+		   if ($$) {
+		     Node *p = $$;
+		     Node *pp =0;
+		     while (p) {
+		       pp = p;
+		       p = nextSibling(p);
+		     }
+		     set_nextSibling(pp,$2);
+		   } else {
+		     $$ = $2;
 		   }
-		   set_nextSibling(pp,$2);
-		 } else {
-		   $$ = $2;
-		 }
              }
              | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
 	       $$ = new_node("addmethods");
@@ -1461,7 +1500,13 @@ cpp_members  : cpp_member cpp_members {
 
 /* A class member.  May be data or a function. Static or virtual as well */
 
-cpp_member   : c_declaration { $$ = $1; }
+cpp_member   : cpp_member_node {
+               if (cplus_mode == CPLUS_PUBLIC) $$ = $1;
+               else $$ = 0;
+             }
+             ;
+
+cpp_member_node   : c_declaration { $$ = $1; }
              | cpp_constructor_decl { $$ = $1; }
              | cpp_destructor_decl { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
@@ -1519,23 +1564,20 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 
 /* public: */
 cpp_protection_decl : PUBLIC COLON { 
-                $$ = new_node("access");
-		Setattr($$,"kind","public");
+                $$ = 0;
                 cplus_mode = CPLUS_PUBLIC;
               }
 
 /* private: */
               | PRIVATE COLON { 
-                $$ = new_node("access");
-		Setattr($$,"kind","private");
+                $$ = 0;
 		cplus_mode = CPLUS_PRIVATE;
 	      }
 
 /* protected: */
 
               | PROTECTED COLON { 
-                $$ = new_node("access");
-		Setattr($$,"kind","protected");
+                $$ = 0;
 		cplus_mode = CPLUS_PROTECTED;
 	      }
               ;
@@ -1581,10 +1623,12 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
 		      n->code = NewString("");
 		      Printv(n->code, "typedef ", $2, " ",
-			      Char(CCode), " $classname_", $6.id, ";\n", 0);
+			     Char(CCode), " $classname_", $6.id, ";\n", 0);
+
 		      n->name = Swig_copy_string($6.id);
 		      n->line = start_line;
 		      n->type = NewString("");
+		      n->kind = $2;
 		      SwigType_push(n->type, $6.type);
 		      n->next = 0;
 		      add_nested(n);
@@ -1610,6 +1654,7 @@ cpp_nested : storage_class cpptype ID LBRACE { start_line = line_number; skip_ba
 		    n->name = Swig_copy_string($5.id);
 		    n->line = start_line;
 		    n->type = NewString("");
+		    n->kind = $2;
 		    SwigType_push(n->type,$5.type);
 		    n->next = 0;
 		    add_nested(n);
@@ -2199,14 +2244,17 @@ enumlist       :  enumlist COMMA edecl {
 edecl          :  ID {
 		   $$ = new_node("enumitem");
 		   Setname($$,$1);
+		   Settype($$,NewSwigType(T_INT));
 		 }
                  | ID EQUAL etype {
 		   $$ = new_node("enumitem");
 		   Setname($$,$1);
 	           if ($3.type == T_CHAR) {
 		     Setvalue($$,$3.val);
+		     Settype($$,NewSwigType(T_CHAR));
 		   } else {
 		     Setvalue($$,$1);
+		     Settype($$,NewSwigType(T_INT));
 		   }
                  }
                  | empty { $$ = 0; }
@@ -2360,18 +2408,20 @@ base_specifier : opt_virtual ID {
                }
 	       | opt_virtual access_specifier opt_virtual ID {
 		 $$ = 0;
-		 if (classes) {
-		   Node *cls = Getattr(classes,$4);
-		   if (cls) {
-		     $$ = new_node("inherits");
-		     Setattr($$,"access",$2);
-		     Setattr($$,"name",$4);
-		     Setattr($$,"class",cls);
+	         if (strcmp($2,"public") == 0) {
+		   if (classes) {
+		     Node *cls = Getattr(classes,$4);
+		     if (cls) {
+		       $$ = new_node("inherits");
+		       Setattr($$,"access",$2);
+		       Setattr($$,"name",$4);
+		       Setattr($$,"class",cls);
+		     }
 		   }
-		 }
-		 if (!$$) {
-		   Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
-			  input_file,line_number,$4);
+		   if (!$$) {
+		     Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
+			    input_file,line_number,$4);
+		   }
 		 }
                }
                ;

@@ -22,6 +22,7 @@
 
 extern "C" {
 #include "swig.h"
+extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
 }
 
 /* Global variables.   Needs to be cleaned up */
@@ -96,6 +97,55 @@ struct Pragma {
 
 class Language {
 public:
+
+  /* ----------------------------------------------------------------------
+   * New interface.  SWIG-1.3.7 and newer versions
+   * ---------------------------------------------------------------------- */
+
+  virtual void top(Node *n);
+  
+  /* SWIG directives */
+  
+  virtual void addmethodsDirective(Node *n);
+  virtual void applyDirective(Node *n);
+  virtual void clearDirective(Node *n);
+  virtual void constantDirective(Node *n);
+  virtual void exceptDirective(Node *n);
+  virtual void importDirective(Node *n);
+  virtual void includeDirective(Node *n);
+  virtual void insertDirective(Node *n);
+  virtual void moduleDirective(Node *n);
+  virtual void nativeDirective(Node *n);
+  virtual void newDirective(Node *n);
+  virtual void pragmaDirective(Node *n);
+  virtual void typemapDirective(Node *n);
+  virtual void typemapcopyDirective(Node *n);
+  virtual void typesDirective(Node *n);
+
+  /* C/C++ parsing */
+  
+  virtual void cDeclaration(Node *n);
+  virtual void externDeclaration(Node *n);
+  virtual void enumDeclaration(Node *n);
+  virtual void enumvalueDeclaration(Node *n);
+  virtual void classDeclaration(Node *n);
+  virtual void classforwardDeclaration(Node *n);
+  virtual void constructorDeclaration(Node *n);
+  virtual void destructorDeclaration(Node *n);
+  virtual void operatorDeclaration(Node *n);
+
+  /* Low-level code generation */
+  
+  virtual void constantWrapper(Node *n);
+  virtual void variableWrapper(Node *n);
+  virtual void functionWrapper(Node *n);
+
+  /* ----------------------------------------------------------------------
+   !! Deprecated interface.   It is only provided for backwards
+   !! compatibility with old language modules.  Use the functions above
+   !! instead
+   * ----------------------------------------------------------------------*/
+
   virtual void parse_args(int argc, char *argv[]) = 0;
   virtual void parse() = 0;
   virtual void create_function(char *, char *, SwigType *, ParmList *) = 0;
@@ -107,11 +157,6 @@ public:
   virtual void add_native(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void add_typedef(SwigType *t, char *name);
   virtual void create_command(char *cname, char *iname);
-
-  //
-  // C++ language extensions.
-  // You can redefine these, or use the defaults below
-  //
 
   virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
@@ -148,46 +193,7 @@ protected:
 extern  void  emit_func_call(char *, SwigType *, ParmList *, FILE *);
 extern  void  emit_set_get(char *, char *, SwigType *);
 extern  void  emit_set_action(DOHString_or_char *decl);
-
 extern  int   SWIG_main(int, char **, Language *);
-
-// Some functions for emitting some C++ helper code
-
-extern void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, SwigType *type, ParmList *l,
-                                   int mode);
-
-extern void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, SwigType *type, ParmList *l,
-                                   int mode);
-
-extern void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
-                                  char *name, char *iname, int mode);
-
-extern void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
-                                   char *name, char *iname, ParmList *l, int mode);
-
-extern void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, SwigType *type, int mode);
-
-extern void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, SwigType *type, int mode);
-
-extern char *cplus_base_class(char *name);
-
-/* These are in the new core */
-
-extern "C" {
-  /* Option processing */
-  extern void Swig_init_args(int argc, char **);
-  extern void Swig_mark_arg(int n);
-  extern void Swig_check_options();
-  extern void Swig_arg_error();
-  extern void *Preprocessor_define(void *, int);
-  extern int  Swig_insert_file(const void *filename, void *outfile);
-  extern FILE *Swig_open(const void *filename);
-  extern char *Swig_copy_string(const char *s);
-}
 
 // Misc
 

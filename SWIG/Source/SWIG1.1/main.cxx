@@ -55,6 +55,7 @@ extern "C" {
 
     int        error_count = 0;                 // Error count
     int        Verbose = 0;
+extern String  *ModuleName;
 
 class SwigException {};
 
@@ -69,6 +70,7 @@ static char *usage = (char*)"\
      -importall      - Follow all #include statements as imports\n\
      -l<ifile>       - Include SWIG library file.\n\
      -make_default   - Create default constructors/destructors\n\
+     -module         - Set module name\n\
      -o outfile      - Set name of the output file.\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -v              - Run in verbose mode\n\
@@ -258,6 +260,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-tm_debug") == 0) {
 	    tm_debug = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-module") == 0) {
+	    Swig_mark_arg(i);
+	    if (argv[i+1]) {
+	      ModuleName = NewString(argv[i+1]);	    
+	      Swig_mark_arg(i+1);
+	    } else {
+	      Swig_arg_error();
+	    }
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
