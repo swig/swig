@@ -178,6 +178,7 @@ CPP_TEST_CASES += \
 	smart_pointer_protected \
 	smart_pointer_rename \
 	smart_pointer_simple \
+	smart_pointer_static \
 	smart_pointer_typedef \
 	static_array_member \
 	static_const_member \
