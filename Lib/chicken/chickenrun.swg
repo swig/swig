@@ -141,7 +141,7 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
     c = 1;
     break;
   case SWIG_BARF1_CONTRACT_ASSERT:
-    barfval = C_OUT_OF_RANGE_ERROR;
+    barfval = C_BAD_ARGUMENT_TYPE_ERROR;
     c = 1;
     break;
   default:
