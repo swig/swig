@@ -36,6 +36,7 @@ int             SmartPointer = 0;
 
 extern    int           GenerateDefault;
 extern    int           ForceExtern;
+extern    int           NoExtern;
 
 /* import modes */
 
@@ -700,15 +701,16 @@ int Language::cDeclaration(Node *n) {
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
       f_header = Swig_filebyname("header");
-#ifndef NOEXTERN
-      if (f_header) {
-	if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
-	  Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
-	} else if (Cmp(storage,"externc") == 0) {
-	  Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
+
+      if (!NoExtern) {
+	if (f_header) {
+	  if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
+	    Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+	  } else if (Cmp(storage,"externc") == 0) {
+	    Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
+	  }
 	}
       }
-#endif
     }
     /* This needs to check qualifiers */
     if (SwigType_isqualifier(ty)) {
@@ -729,10 +731,11 @@ int Language::cDeclaration(Node *n) {
     if (!CurrentClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 	f_header = Swig_filebyname("header");
-#ifndef NOEXTERN
-	if (f_header)
-	  Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
-#endif
+	if (!NoExtern) {
+	  if (f_header) {
+	    Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+	  }
+	}
       }
     }
     if (SwigType_isconst(ty)) {
@@ -794,7 +797,7 @@ Language::globalfunctionHandler(Node *n) {
   String   *storage = Getattr(n,"storage");  
   ParmList *parms   = Getattr(n,"parms");
 
-  if (Cmp(storage,"static") == 0) {
+  if (0 && (Cmp(storage,"static") == 0)) {
     Swig_restore(&n);
     return SWIG_NOWRAP;   /* Can't wrap static functions */
   } else {
@@ -983,7 +986,7 @@ Language::variableHandler(Node *n) {
 int
 Language::globalvariableHandler(Node *n) {
   String *storage = Getattr(n,"storage");
-  if (Cmp(storage,"static") == 0) return SWIG_NOWRAP;
+  if (0 && (Cmp(storage,"static") == 0)) return SWIG_NOWRAP;
   variableWrapper(n);
   return SWIG_OK;
 }
