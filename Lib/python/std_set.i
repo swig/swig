@@ -34,14 +34,6 @@
   #endif
 %enddef
 
-%define %std_multiset_methods(multiset)
-  %std_set_methods_common(multiset);
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  pair<iterator,bool> insert(iterator pos);
-  #endif
-%enddef
-
-
 // ------------------------------------------------------------------------
 // std::set
 // 
@@ -96,31 +88,6 @@
   }
 %}
 
-%fragment("StdMultisetTraits","header",fragment="StdSequenceTraits")
-%{
-  namespace swigpy {
-    template <class PySeq, class T> 
-    void assign(const PySeq& pyseq, std::multiset<T>* seq) {
-      seq->insert(pyseq.begin(), pyseq.end());
-    }
-
-    template <class T>
-    struct traits_asptr<std::multiset<T> >  {
-      typedef std::multiset<T> multiset_type;
-      static int asptr(PyObject *obj, multiset_type **m) {
-	return traits_asptr_stdseq<std::multiset<T> >::asptr(obj, m);
-      }
-    };
-
-    template <class T>
-    struct traits_from<std::multiset<T> > {
-      static PyObject *from(const std::multiset<T>& vec) {
-	return traits_from_stdseq<std::multiset<T> >::from(vec);
-      }
-    };
-  }
-%}
-
 
 // exported classes
 
@@ -158,71 +125,13 @@ namespace std {
     %pycontainer_methods(std::set<T >);
   };
 
-  // Add the order operations <,>,<=,=> as needed
-  
-  %define %std_order_set(T)
-    %std_comp_methods(set<T>);
-  %enddef
-  
-  %apply_otypes(%std_order_set);
-
-
-  //multiset
-
-  template<class T > class multiset {
-  public:
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    typedef T value_type;
-    typedef T key_type;
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
-
-    %traits_swigtype(T);
-
-    %fragment(SWIG_Traits_frag(std::multiset<T >), "header",
-	      fragment=SWIG_Traits_frag(T),
-	      fragment="StdMultisetTraits") {
-      namespace swigpy {
-	template <>  struct traits<std::multiset<T > > {
-	  typedef pointer_category category;
-	  static const char* type_name() {
-	    return "std::multiset<" #T " >";
-	  }
-	};
-      }
-    }
-
-    %typemap_traits_ptr(SWIG_CCode(MULTISET), std::multiset<T >);
-  
-    %std_multiset_methods(std::multiset<T >);
-    %pycontainer_methods(std::multiset<T >);
-  };
-
-  // Add the order operations <,>,<=,=> as needed
-  
-  %define %std_order_multiset(T)
-    %std_comp_methods(multiset<T>);
-  %enddef
-  
-  %apply_otypes(%std_order_multiset);
-
 }
 
-// set 
-
 %define %std_set_ptypen(...) 
-%template() std::set<__VA_ARGS__ >;
+  %std_extcomp(set, __VA_ARGS__);
+  %std_definst(set, __VA_ARGS__);
 %enddef
 
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_set_ptypen);
-
-// multiset
-
-%define %std_multiset_ptypen(...) 
-%template() std::multiset<__VA_ARGS__ >;
-%enddef
-
-%apply_cpptypes(%std_multiset_ptypen);
+#endif

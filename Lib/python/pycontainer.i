@@ -17,10 +17,13 @@
 #if PY_VERSION_HEX < 0x02000000
 #define PySequence_Size PySequence_Length
 #endif
+#if PY_VERSION_HEX < 0x02020000
+#define PyObject_GetIter Py_INCREF
+#endif
 %}
 
 %fragment("PySequence_Cont","header",
-	  fragment="traits",
+	  fragment="StdTraits",
 	  fragment="PyObject_var")
 %{
 #include <iterator>
@@ -334,8 +337,8 @@ namespace swigpy
       return tmp;
     }
 
-    void __setslice__(difference_type i, 
-		      difference_type j, const Sequence& v) {
+    void __setslice__(difference_type i, difference_type j,
+		      const Sequence& v) {
       Sequence::size_type size = self->size();
       if (i<0) i += size;
       if (i<0) i = 0;
@@ -362,8 +365,7 @@ namespace swigpy
 	throw std::out_of_range("index out of range");
     }
 
-    void __delslice__(difference_type i,
-		      difference_type j) {
+    void __delslice__(difference_type i, difference_type j) {
       Sequence::size_type size = self->size();
       if (i<0) i +=size;
       if (j<0) j +=size;
@@ -455,6 +457,7 @@ namespace swigpy
     void append(value_type x) {
       self->push_back(x);
     }
+
  }
 %enddef
 
@@ -472,7 +475,7 @@ namespace swigpy
     }
     
     void __setitem__(const key_type& key, const mapped_type& x) {
-      (*self)[key] = x;
+      self->insert(Dict::value_type(key,x));
     }
     
     void __delitem__(const key_type& key) {
@@ -542,11 +545,11 @@ namespace swigpy
     }
     
     // Python 2.2 methods
-    bool __contains__(const key_type& key) const {
-      Dict::const_iterator i = self->find(key);
-      return i != self->end();
+    bool __contains__(const key_type& key) {
+      return self->find(key) != self->end();
     }
     
+
     PyObject* __iter__() {
       Dict::size_type size = self->size();
       int pysize = size <= INT_MAX ? (int) size : 0;
@@ -562,13 +565,9 @@ namespace swigpy
       for (int j = 0; j < pysize; ++i, ++j) {
 	PyList_SetItem(keyList, j, swigpy::from(i->first));
       }
-%#if PY_VERSION_HEX >= 0x02020000
       PyObject* iter = PyObject_GetIter(keyList);
       Py_DECREF(keyList);
       return iter;
-%#else
-      return keyList;   
-%#endif
     }
   }
 %enddef

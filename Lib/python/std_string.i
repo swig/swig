@@ -13,7 +13,7 @@
 // ------------------------------------------------------------------------
 
 %include exception.i
-%include pycontainer.i
+%include std_container.i
 
 %{
 #include <string>
@@ -32,32 +32,20 @@ namespace std {
     
     static const size_type npos;
 
-    basic_string();
-    basic_string(const basic_string& __str);
     basic_string(const _CharT* __s, size_type __n);
 
     // Capacity:
-    size_type size() const;
 
     size_type length() const;
 
     size_type max_size() const;
 
-    void resize(size_type __n, _CharT __c);
-
-    void resize(size_type __n);
-
     size_type capacity() const;
 
     void reserve(size_type __res_arg = 0);
 
-    void clear();
-
-    bool empty() const;
 
     // Modifiers:
-    basic_string
-    operator+=(const basic_string& __str);
 
     basic_string& 
     append(const basic_string& __str);
@@ -71,8 +59,6 @@ namespace std {
     basic_string& 
     append(size_type __n, _CharT __c);
 
-    void push_back(_CharT __c);
-
     basic_string& 
     assign(const basic_string& __str);
 
@@ -81,9 +67,6 @@ namespace std {
     
     basic_string& 
     assign(const _CharT* __s, size_type __n);
-
-    basic_string& 
-    assign(size_type __n, _CharT __c);
 
     basic_string& 
     insert(size_type __pos1, const basic_string& __str);    
@@ -114,6 +97,13 @@ namespace std {
 
     basic_string& 
     replace(size_type __pos, size_type __n1, size_type __n2, _CharT __c);
+
+    %ignore pop_back();
+    %ignore front() const;
+    %ignore back() const;
+    %ignore basic_string(size_type n);
+    %std_sequence_methods_val(basic_string);    
+
 
     %ignore pop();
     %pysequence_methods_val(std::basic_string<_CharT>);
@@ -157,7 +147,24 @@ namespace std {
     replace(iterator __i1, iterator __i2, const_iterator __k1, const_iterator __k2);
     #endif
   };
-  
+
+  /*
+    swig workaround. if used as expected, __iadd__ deletes 'self'.
+  */
+  %newobject basic_string<char>::__iadd__;    
+  %extend basic_string<char> {
+    std::string* __iadd__(const std::string& v) {
+      *self += v;
+      return new std::string(*self);
+    }
+    std::string __str__() {
+      return *self;
+    }
+  }
+
+  %std_equal_methods(basic_string<char>);
+  %std_order_methods(basic_string<char>);
+
   typedef basic_string<char> string;
 
 }
@@ -169,17 +176,18 @@ namespace std {
 SWIGSTATICINLINE(int)
   SWIG_AsPtr_meth(std::basic_string<char>)(PyObject* obj, std::string **val)
   {
-    static swig_type_info* string_info = SWIG_TypeQuery("std::basic_string<char> *");
+    static swig_type_info* string_info = SWIG_TypeQuery("std::string *");
     std::string *vptr;    
     if (SWIG_ConvertPtr(obj, (void**)&vptr, string_info, 0) != -1) {
       if (val) *val = vptr;
-      return SWIG_OLDPTR;
+      return SWIG_OLDOBJ;
     } else {
+      PyErr_Clear();
       char* buf = 0 ; size_t size = 0;
       if (SWIG_AsCharPtrAndSize(obj, &buf, &size)) {
 	if (buf) {
 	  if (val) *val = new std::string(buf, size);
-	  return SWIG_NEWPTR;
+	  return SWIG_NEWOBJ;
 	}
       } else {
 	PyErr_Clear();
@@ -202,4 +210,5 @@ SWIGSTATICINLINE(PyObject*)
 }
 
 %typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<char>);
+
 

@@ -134,19 +134,13 @@ namespace std {
     %pysequence_methods_val(std::deque<T* >);
   };
 
-  // Add the order operations <,>,<=,=> as needed
-  
-  %define %std_order_deque(T)
-    %std_comp_methods(deque<T>);
-  %enddef
-  
-  %apply_otypes(%std_order_deque);
 }
 
-
 %define %std_deque_ptypen(...) 
-%template() std::deque<__VA_ARGS__ >;
+  %std_extcomp(deque, __VA_ARGS__);
+  %std_definst(deque, __VA_ARGS__);
 %enddef
 
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
 %apply_cpptypes(%std_deque_ptypen);
-
+#endif

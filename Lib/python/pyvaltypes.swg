@@ -6,30 +6,30 @@
 
 /* in */
 
-%define PYVAL_IN_TYPEMAP(pyobj_as,pyfrag,...)
+%define PYVAL_IN_TYPEMAP(as_meth,pyfrag,...)
   %typemap(in,fragment=pyfrag) __VA_ARGS__ 
-    "$1 = ($1_type) pyobj_as($input); 
+    "$1 = ($1_type) as_meth($input); 
      if (PyErr_Occurred()) SWIG_fail;";
   %typemap(in,fragment=pyfrag) const __VA_ARGS__ & ($basetype temp)
-    "temp = ($basetype) pyobj_as($input);
+    "temp = ($basetype) as_meth($input);
      if (PyErr_Occurred()) SWIG_fail;
      $1 = &temp;";
 %enddef
 
 /* out */
 
-%define PYVAL_OUT_TYPEMAP(pyobj_from,pyfrag,...)
+%define PYVAL_OUT_TYPEMAP(from_meth,pyfrag,...)
   %typemap(out,fragment=pyfrag) __VA_ARGS__ 
-  "$result = pyobj_from((__VA_ARGS__)$1);";
+  "$result = from_meth((__VA_ARGS__)$1);";
   %typemap(out,fragment=pyfrag) const __VA_ARGS__& 
-  "$result = pyobj_from((__VA_ARGS__)*($1));";
+  "$result = from_meth((__VA_ARGS__)*($1));";
 %enddef
 
 /* varin */
 
-%define PYVAL_VARIN_TYPEMAP(pyobj_as,pyfrag,...)
+%define PYVAL_VARIN_TYPEMAP(as_meth,pyfrag,...)
   %typemap(varin,fragment=pyfrag) __VA_ARGS__ {
-    $1_type temp = ($1_type) pyobj_as($input);  
+    $1_type temp = ($1_type) as_meth($input);  
     if (PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
       return 1;
@@ -40,48 +40,48 @@
 
 /* varout */
 
-%define PYVAL_VAROUT_TYPEMAP(pyobj_from,pyfrag,...)
+%define PYVAL_VAROUT_TYPEMAP(from_meth,pyfrag,...)
   %typemap(varout,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__&  
-   "$result = pyobj_from((__VA_ARGS__)$1);";
+   "$result = from_meth((__VA_ARGS__)$1);";
 %enddef
 
 /* constant installation code */
-%define PYVAL_CONSTCODE_TYPEMAP(pyobj_from,pyfrag,...)
+%define PYVAL_CONSTCODE_TYPEMAP(from_meth,pyfrag,...)
   %typemap(constcode,fragment=pyfrag) __VA_ARGS__ 
-     "PyDict_SetItemString(d,\"$symname\", pyobj_from((__VA_ARGS__)$value));";
+     "PyDict_SetItemString(d,\"$symname\", from_meth((__VA_ARGS__)$value));";
 %enddef
 
 
 /* directorin */
 
-%define PYVAL_DIRECTORIN_TYPEMAP(pyobj_from,pyfrag,...)
+%define PYVAL_DIRECTORIN_TYPEMAP(from_meth,pyfrag,...)
   %typemap(directorin,fragment=pyfrag) __VA_ARGS__ *DIRECTORIN 
-  "$input = pyobj_from((__VA_ARGS__)*$1_name);";
+  "$input = from_meth((__VA_ARGS__)*$1_name);";
   %typemap(directorin,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__& 
-  "$input = pyobj_from((__VA_ARGS__)$1_name);";
+  "$input = from_meth((__VA_ARGS__)$1_name);";
 %enddef
 
 /* directorout */
 
-%define PYVAL_DIRECTOROUT_TYPEMAP(pyobj_as,pyfrag,...)
+%define PYVAL_DIRECTOROUT_TYPEMAP(as_meth,pyfrag,...)
   %typemap(directorargout,fragment=pyfrag) __VA_ARGS__ *DIRECTOROUT
-    "*$result = ($basetype) pyobj_as($input);
-     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
+    "*$result = ($basetype) as_meth($input);
+     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using as_meth\");";
 %typemap(directorout,fragment=pyfrag) __VA_ARGS__
-    "$result = ($basetype) pyobj_as($input);
-    if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
+    "$result = ($basetype) as_meth($input);
+    if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using as_meth\");";
 %typemap(directorout,fragment=pyfrag) const __VA_ARGS__&
-    "$basetype temp = ($basetype) pyobj_as($input);
+    "$basetype temp = ($basetype) as_meth($input);
      $result = &temp;
-     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using pyobj_as\");";
+     if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using as_meth\");";
   %typemap(directorout,fragment=pyfrag) __VA_ARGS__ &DIRECTOROUT = __VA_ARGS__
 %enddef
 
 /* throws */
 
-%define PYVAL_THROWS_TYPEMAP(pyobj_from,pyfrag,...)
+%define PYVAL_THROWS_TYPEMAP(from_meth,pyfrag,...)
   %typemap(throws,fragment=pyfrag) __VA_ARGS__ {
-    PyErr_SetObject(PyExc_RuntimeError, pyobj_from((__VA_ARGS__)$1));
+    PyErr_SetObject(PyExc_RuntimeError, from_meth((__VA_ARGS__)$1));
     SWIG_fail;
   }
 %enddef
@@ -104,6 +104,9 @@
   PYVAL_DIRECTOROUT_TYPEMAP(SWIG_arg(AsMeth), SWIG_arg(AsFrag), __VA_ARGS__);
   PYVAL_TYPECHECK_TYPEMAP(SWIG_arg(CheckCode), SWIG_arg(CheckMeth), 
 			  SWIG_arg(CheckFrag), __VA_ARGS__);
+
+  PYVAL_INPUT_TYPEMAP(SWIG_arg(CheckCode), SWIG_arg(AsMeth), SWIG_arg(CheckMeth),
+		      SWIG_arg(AsFrag), SWIG_arg(CheckFrag), __VA_ARGS__);
 %enddef
 
 
@@ -146,6 +149,9 @@ SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
   PYVAL_CONSTCODE_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
   PYVAL_DIRECTORIN_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
   PYVAL_THROWS_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag),__VA_ARGS__);
+
+  PYVAL_OUTPUT_TYPEMAP(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+
 %enddef
 
 
@@ -154,6 +160,9 @@ SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
   %typemap_ascheck(SWIG_arg(CheckCode), SWIG_arg(AsMeth), SWIG_arg(CheckMeth),
 		   SWIG_arg(AsFrag), SWIG_arg(CheckFrag), __VA_ARGS__);
   %typemap_from(SWIG_arg(FromMeth), SWIG_arg(FromFrag), __VA_ARGS__);
+
+  PYVAL_INOUT_TYPEMAP(__VA_ARGS__);
+
 %enddef
 
 
@@ -166,6 +175,9 @@ SWIG_Check_meth(__VA_ARGS__)(PyObject* obj)
   %typemap_from(SWIG_arg(SWIG_From_meth(__VA_ARGS__)), 
 		SWIG_arg(SWIG_From_frag(__VA_ARGS__)), 
 		__VA_ARGS__);
+
+  PYVAL_INOUT_TYPEMAP(__VA_ARGS__);
+
 %enddef
 
 

@@ -16,17 +16,6 @@
   size_type size() const;
   void clear();
 
-
-  %extend {
-    bool operator == (const container& v) {
-      return *self == v;
-    }
-    
-    bool operator != (const container& v) {
-      return *self != v;
-    }  
-  }
-
   void swap(container& v);
 
   #ifdef SWIG_EXPORT_ITERATOR_METHODS
@@ -67,10 +56,7 @@
   %std_sequence_methods_common(SWIG_arg(sequence));
   
   sequence(size_type size, const value_type& value);
-  void push_back(const value_type& x);
-  
-  value_type& front();
-  value_type& back();
+  void push_back(const value_type& x);  
 
   const value_type& front() const;
   const value_type& back() const;
@@ -112,7 +98,7 @@
 //
 
 %fragment("StdSequenceTraits","header",
-	  fragment="traits",fragment="PyObject_var",
+	  fragment="StdTraits",fragment="PyObject_var",
 	  fragment="PySequence_Cont")
 %{
   namespace swigpy {
@@ -134,7 +120,7 @@
 	      sequence *pseq = new sequence();
 	      assign(pyseq, pseq);
 	      *seq = pseq;
-	      return SWIG_NEWPTR;
+	      return SWIG_NEWOBJ;
 	    } else {
 	      return pyseq.check();
 	    }
@@ -189,22 +175,3 @@
   }
 %}
 
-%define %std_comp_methods(...)
-%extend __VA_ARGS__ {
-  bool operator > (const __VA_ARGS__& v) {
-    return *self > v;
-  }
-  
-  bool operator < (const __VA_ARGS__& v) {
-    return *self < v;
-  }
-
-  bool operator >= (const __VA_ARGS__& v) {
-    return *self >= v;
-  }
-
-  bool operator <= (const __VA_ARGS__& v) {
-    return *self <= v;
-  }  
-}
-%enddef

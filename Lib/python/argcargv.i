@@ -2,12 +2,12 @@
  * --- Argc & Argv ---
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsArgcArgv","header") %{
+%fragment("SWIG_AsArgcArgv","header",
+	  fragment="SWIG_AsCharPtr") %{
 SWIGSTATIC(char**)
-SWIG_AsArgcArgv(PyObject* input,
-		      swig_type_info* ppchar_info,
-		      swig_type_info* pchar_info,
-		      size_t* argc, int* owner)
+  SWIG_AsArgcArgv(PyObject* input,
+		  swig_type_info* ppchar_info,
+		  size_t* argc, int* owner)
 {  
   char **argv = 0;
   size_t i = 0;
@@ -20,8 +20,7 @@ SWIG_AsArgcArgv(PyObject* input,
       *owner = 1;
       for (; i < *argc; ++i) {
 	PyObject *obj = list ? PyList_GetItem(input,i) : PyTuple_GetItem(input,i);
-	argv[i] = SWIG_AsCharPtr(obj, pchar_info);
-	if (PyErr_Occurred()) {
+	if (!SWIG_AsCharPtr(obj, &(argv[i]))) {
 	  PyErr_Clear();
 	  PyErr_SetString(PyExc_TypeError,"list or tuple must contain strings only");
 	}
@@ -51,8 +50,7 @@ SWIG_AsArgcArgv(PyObject* input,
 %typemap(in,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV)
   (int owner) {
   size_t argc = 0;
-  char **argv = SWIG_AsArgcArgv($input, $descriptor(char**), 
-				      $descriptor(char*), &argc, &owner);
+  char **argv = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &owner);
   if (PyErr_Occurred()) { 
     $1 = 0; $2 = 0;
     SWIG_fail;
@@ -62,7 +60,7 @@ SWIG_AsArgcArgv(PyObject* input,
   }
 }
 
-%typemap(freearg) (int ARGC, char **ARGV) (owner) {
-  if (owner) swig_delete_array($2);
+%typemap(freearg) (int ARGC, char **ARGV)  {
+  if (owner$argnum) swig_delete_array($2);
 }
 

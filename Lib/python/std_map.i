@@ -33,15 +33,6 @@
   #endif
 %enddef
 
-%define %std_multimap_methods(...)
-  %std_map_methods_common(SWIG_arg(__VA_ARGS__));
-
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  pair<iterator,bool> insert(const value_type& x);
-  pair<iterator,iterator> equal_range(const key_type& x);
-  pair<const_iterator,const_iterator> equal_range(const key_type& x) const;
-  #endif
-%enddef
 
 // ------------------------------------------------------------------------
 // std::map
@@ -81,9 +72,10 @@
   namespace swigpy {
     template <class PySeq, class K, class T >
     void assign(const PySeq& pyseq, std::map<K,T > *map) {
+      typedef typename std::map<K,T>::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
-      for (;it != pyseq.end(); ++ it) {
-	(*map)[it->first] = it->second;
+      for (;it != pyseq.end(); ++it) {
+	map->insert(value_type(it->first, it->second));
       }
     }
 
@@ -91,7 +83,6 @@
     struct traits_asptr<std::map<K,T> >  {
       typedef std::map<K,T> map_type;
       typedef K key_type;
-      typedef T value_type;
       
       static int asptr(PyObject *obj, map_type **val) {
 	if (PyDict_Check(obj)) {
@@ -170,53 +161,13 @@ namespace std {
     %pydict_methods(SWIG_arg(std::map<K, T >));
   };
 
-  template<class K, class T> class multimap {
-  public:
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    typedef K key_type;
-    typedef T mapped_type;
-    typedef std::pair<const K, T> value_type;
-
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
-
-    %traits_swigtype(K);
-    %traits_swigtype(T);	    
-
-    %fragment(SWIG_Traits_frag(std::multimap<K, T >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<K, T >),
-	      fragment="StdMapTraits") {
-      namespace swigpy {
-	
-	template <>  struct traits<std::multimap<K, T > > {
-	  typedef value_category category;
-	  static const char* type_name() {
-	    return "std::multimap<" #K "," #T " >";
-	  }
-	};
-      }
-    }
-
-    %typemap_traits_ptr(SWIG_CCode(MULTIMAP), std::multimap<K, T >);
-  
-    %std_multimap_methods(std::multimap<K, T >);
-    %pydict_methods(SWIG_arg(std::multimap<K, T >));
-  };
 }
 
-// map
-%define std_map_ptypen(...)
-  %template() std::map< __VA_ARGS__ >;
+%define %std_map_ptypen(...) 
+  %std_extcomp_2(map, __VA_ARGS__);
+  %std_definst_2(map, __VA_ARGS__);
 %enddef
 
-%apply_cpptypes_2(std_map_ptypen);
-
-// multimap
-%define std_multimap_ptypen(...)
-  %template() std::multimap< __VA_ARGS__ >;
-%enddef
-
-%apply_cpptypes_2(std_multimap_ptypen);
+#if defined(SWIG_STD_EXTEND_COMPARISON) || defined(SWIG_STD_DEFAULT_INSTANTIATION)
+%apply_cpptypes_2(%std_map_ptypen);
+#endif
