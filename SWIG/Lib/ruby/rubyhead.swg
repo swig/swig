@@ -38,6 +38,11 @@
 #endif
 #endif
 
+/* Ruby 1.8 deprecates STR2CSTR() in favor of StringValuePtr() */
+#ifndef StringValuePtr
+#define StringValuePtr(x) STR2CSTR((x))
+#endif
+
 /*
  * Need to be very careful about how these macros are defined, especially
  * when compiling C++ code or C code with an ANSI C compiler.

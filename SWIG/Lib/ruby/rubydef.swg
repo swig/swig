@@ -72,7 +72,7 @@ SWIGRUNTIME(char *)
 SWIG_MangleStr(VALUE obj)
 {
   VALUE stype = rb_iv_get(obj, "__swigtype__");
-  return STR2CSTR(stype);
+  return StringValuePtr(stype);
 }
 
 /* Convert a pointer value */
@@ -186,7 +186,7 @@ SWIG_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) 
   char  *c;
 
   if (TYPE(obj) != T_STRING) goto type_error;
-  c = STR2CSTR(obj);
+  c = StringValuePtr(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') goto type_error;
   c++;

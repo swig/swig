@@ -30,7 +30,7 @@ namespace std {
 
     %typemap(in) string {
         if (TYPE($input) == T_STRING) {
-            $1 = std::string(STR2CSTR($input));
+            $1 = std::string(StringValuePtr($input));
         } else {
             SWIG_exception(SWIG_TypeError, "not a string");
         }
@@ -38,7 +38,7 @@ namespace std {
 
     %typemap(in) const string & (std::string temp) {
         if (TYPE($input) == T_STRING) {
-            temp = std::string(STR2CSTR($input));
+            temp = std::string(StringValuePtr($input));
             $1 = &temp;
         } else {
             SWIG_exception(SWIG_TypeError, "not a string");
