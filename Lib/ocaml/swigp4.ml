@@ -7,6 +7,8 @@ let c_ify e loc =
     | <:expr< $str:_$ >> -> <:expr< (C_string $e$) >>
     | <:expr< $chr:_$ >> -> <:expr< (C_char $e$) >>
     | <:expr< $flo:_$ >> -> <:expr< (C_double $e$) >>
+    | <:expr< True    >> -> <:expr< (C_bool $e$) >>
+    | <:expr< False   >> -> <:expr< (C_bool $e$) >>
     | _ -> <:expr< $e$ >>
 let rec mk_list args l f =
   match args with
@@ -25,8 +27,10 @@ EXTEND
 	<:expr< (invoke $e1$) $str:u$ (C_list $mk_list args loc c_ify$) >>
     | e1 = expr ; "'" ; "." ; "(" ; args = LIST0 (expr LEVEL "simple") SEP "," ; ")" ->
 	<:expr< (invoke $e1$) "()" (C_list $mk_list args loc c_ify$) >>
-    | e1 = expr ; "'" ; "->" ->
-	<:expr< (invoke ((invoke $e1$) "->" C_void)) >>
+    | e1 = expr ; "'" ; "->" ; l = LIDENT ; "(" ; args = LIST0 (expr LEVEL "simple") SEP "," ; ")" ->
+	<:expr< (invoke ((invoke $e1$) "->" C_void)) $str:l$ (C_list $mk_list args loc c_ify$) >>
+    | e1 = expr ; "'" ; "->" ; u = UIDENT ; "(" ; args = LIST0 (expr LEVEL "simple") SEP "," ; ")" ->
+	<:expr< (invoke ((invoke $e1$) "->" C_void)) $str:u$ (C_list $mk_list args loc c_ify$) >>
     | e1 = expr ; "'" ; "++" ->
 	<:expr< (invoke $e1$) "++" C_void >>
     | e1 = expr ; "'" ; "--" ->
