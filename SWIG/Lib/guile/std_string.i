@@ -20,7 +20,6 @@
 
 namespace std {
 
-    %feature("novaluewrapper") string;  
     class string;
 
     %typemap(typecheck) string = char *;
