@@ -26,7 +26,7 @@ static char cvsroot[] = "$Header$";
 #include "mod11.h"
 #include "guile.h"
 
-static char *guile_usage = "\
+static char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
      -module name    - Set base name of module\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
@@ -53,11 +53,11 @@ GUILE::GUILE ()
 {
   // Set global vars
 
-  typemap_lang = "guile";
+  typemap_lang = (char*)"guile";
 
   // Set class vars
 
-  prefix = "gswig_";
+  prefix = (char*)"gswig_";
   module = NULL;
   package = NULL;
   linkage = GUILE_LSTYLE_SIMPLE;
@@ -477,10 +477,10 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numopt = 0;
 
   if (!with_smobs) {
-    f.add_local ("int",    "_len");
-    f.add_local ("char *", "_tempc");
+    f.add_local ((char*)"int",    (char*)"_len");
+    f.add_local ((char*)"char *", (char*)"_tempc");
   }
-  f.add_local ("SCM",    "gswig_result");
+  f.add_local ((char*)"SCM",    (char*)"gswig_result");
 
   // Now write code to extract the parameters (this is super ugly)
 
@@ -506,7 +506,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
       f.code << "/* " << p.name << " ignored... */\n";
     else {
       ++numargs;
-      if ((tm = typemap_lookup ("in", typemap_lang,
+      if ((tm = typemap_lookup ((char*)"in", typemap_lang,
                                 p.t, p.name, source, target, &f))) {
 	f.code << tm << "\n";
         mreplace (f.code, argnum, arg, proc_name);
@@ -521,7 +521,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Check if there are any constraints.
 
-    if ((tm = typemap_lookup ("check", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"check", typemap_lang,
                               p.t, p.name, source, target, &f))) {
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
@@ -529,7 +529,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Pass output arguments back to the caller.
 
-    if ((tm = typemap_lookup ("argout", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
                               p.t, p.name, source, target, &f))) {
       outarg << tm << "\n";
       mreplace (outarg, argnum, arg, proc_name);
@@ -537,7 +537,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Free up any memory allocated for the arguments.
 
-    if ((tm = typemap_lookup ("freearg", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
                               p.t, p.name, source, target, &f))) {
       cleanup << tm << "\n";
       mreplace (cleanup, argnum, arg, proc_name);
@@ -554,8 +554,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   if (d->type == T_VOID)
     f.code << tab4 << "gswig_result = GH_UNSPECIFIED;\n";
-  else if ((tm = typemap_lookup ("out", typemap_lang,
-                                 d, name, "_result", "gswig_result", &f))) {
+  else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
+                                 d, name, (char*)"_result", (char*)"gswig_result", &f))) {
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
   }
@@ -571,7 +571,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 	     << ");\n";
     }
     else {
-    f.add_local ("char", "_ptemp[128]");
+    f.add_local ((char*)"char", (char*)"_ptemp[128]");
     f.code << tab4
            << "SWIG_MakePtr (_ptemp, _result,\""
            << d->print_mangle()
@@ -593,8 +593,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup ("newfree", typemap_lang,
-                              d, iname, "_result", "", &f))) {
+    if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
+                              d, iname, (char*)"_result", (char*)"", &f))) {
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
     }
@@ -602,8 +602,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Free any memory allocated by the function being wrapped..
 
-  if ((tm = typemap_lookup ("ret", typemap_lang,
-                            d, name, "_result", "", &f))) {
+  if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
+                            d, name, (char*)"_result", (char*)"", &f))) {
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
   }
@@ -642,7 +642,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   String proc_name;
   char  var_name[256];
   char  *tm;
-  char  *tm2 = typemap_lookup ("varout", "guile", t, name, name, "scmresult");
+  char  *tm2 = typemap_lookup ((char*)"varout", (char*)"guile", t, name, name, (char*)"scmresult");
 
   // evaluation function names
 
@@ -683,8 +683,8 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
 	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
 	       proc_name.get(), proc_name.get());
     }
-    else if ((tm = typemap_lookup ("varin", typemap_lang,
-                                   t, name, "s_0", name))) {
+    else if ((tm = typemap_lookup ((char*)"varin", typemap_lang,
+                                   t, name, (char*)"s_0", name))) {
       fprintf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
@@ -725,8 +725,8 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = typemap_lookup ("varout", typemap_lang,
-                              t, name, name, "gswig_result"))) {
+    if ((tm = typemap_lookup ((char*)"varout", typemap_lang,
+                              t, name, name, (char*)"gswig_result"))) {
       fprintf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
@@ -809,7 +809,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
     rvalue << "'";
     "'" >> rvalue;
   }
-  if ((tm = typemap_lookup ("const", typemap_lang, type, name,
+  if ((tm = typemap_lookup ((char*)"const", typemap_lang, type, name,
                             rvalue.get(), name))) {
     fprintf (f_init, "%s\n", tm);
   } else {

@@ -26,7 +26,7 @@ static char cvsroot[] = "$Header$";
 #include "mod11.h"
 #include "mzscheme.h"
 
-static char *mzscheme_usage = "\
+static char *mzscheme_usage = (char*)"\
 \n\
 Mzscheme Options (available with -mzscheme)\n\
      -help           - Print this help\n\
@@ -44,10 +44,10 @@ MZSCHEME::MZSCHEME ()
 {
   prefix = NULL;
   module = NULL;
-  package = "";
+  package = (char*)"";
   linkage = 0;
-  mzscheme_path = "mzscheme";
-  init_func_def = "";
+  mzscheme_path = (char*)"mzscheme";
+  init_func_def = (char*)"";
 }
 
 // ---------------------------------------------------------------------
@@ -102,7 +102,7 @@ MZSCHEME::parse_args (int argc, char *argv[])
       prefix[strlen (prefix)] = '_';
     }
   } else
-    prefix = "swig_";
+    prefix = (char*)"swig_";
 
   // Add a symbol for this module
 
@@ -110,7 +110,7 @@ MZSCHEME::parse_args (int argc, char *argv[])
 
   // Set name of typemaps
 
-  typemap_lang = "mzscheme";
+  typemap_lang = (char*)"mzscheme";
 }
 
 // --------------------------------------------------------------------
@@ -336,9 +336,9 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int numopt = 0;
 
   // adds local variables : type name
-  f.add_local ("char *", "_tempc");
-  f.add_local ("int",    "_len");
-  f.add_local ("Scheme_Object *", "swig_result");
+  f.add_local ((char*)"char *", (char*)"_tempc");
+  f.add_local ((char*)"int",    (char*)"_len");
+  f.add_local ((char*)"Scheme_Object *", (char*)"swig_result");
 
   // Now write code to extract the parameters (this is super ugly)
 
@@ -363,7 +363,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
       f.code << "/* " << p.name << " ignored... */\n";
     else {
       ++numargs;
-      if ((tm = typemap_lookup ("in", typemap_lang,
+      if ((tm = typemap_lookup ((char*)"in", typemap_lang,
 				p.t, p.name, source, target, &f))) {
 	f.code << tm << "\n";
 	mreplace (f.code, argnum, arg, proc_name);
@@ -379,7 +379,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Check if there are any constraints.
 
-    if ((tm = typemap_lookup ("check", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"check", typemap_lang,
 			      p.t, p.name, source, target, &f))) {
       // Yep.  Use it instead of the default
       f.code << tm << "\n";
@@ -388,7 +388,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     // Pass output arguments back to the caller.
 
-    if ((tm = typemap_lookup ("argout", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
                               p.t, p.name, source, target, &f))) {
       // Yep.  Use it instead of the default
       outarg << tm << "\n";
@@ -397,7 +397,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
     }
 
     // Free up any memory allocated for the arguments.
-    if ((tm = typemap_lookup ("freearg", typemap_lang,
+    if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
                               p.t, p.name, source, target, &f))) {
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
@@ -416,8 +416,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
       f.code << tab4 << "swig_result = scheme_void;\n";
   }
 
-  else if ((tm = typemap_lookup ("out", typemap_lang,
-                                 d, name, "_result", "swig_result", &f))) {
+  else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
+                                 d, name, (char*)"_result", (char*)"swig_result", &f))) {
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
   }
@@ -443,8 +443,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    if ((tm = typemap_lookup ("newfree", typemap_lang,
-                              d, iname, "_result", "", &f))) {
+    if ((tm = typemap_lookup ((char*)"newfree", typemap_lang,
+                              d, iname, (char*)"_result", (char*)"", &f))) {
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
     }
@@ -452,8 +452,8 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Free any memory allocated by the function being wrapped..
 
-  if ((tm = typemap_lookup ("ret", typemap_lang,
-                            d, name, "_result", "", &f))) {
+  if ((tm = typemap_lookup ((char*)"ret", typemap_lang,
+                            d, name, (char*)"_result", (char*)"", &f))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
@@ -462,13 +462,13 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // returning multiple values
   if(argout_set) {
     if(d->type == T_VOID) {
-      f.add_local("int", "_lenv", "0");
-      f.add_local("Scheme_Object *", "_values[MAXVALUES]");
+      f.add_local((char*)"int", (char*)"_lenv", (char*)"0");
+      f.add_local((char*)"Scheme_Object *", (char*)"_values[MAXVALUES]");
       f.code << tab4 << "swig_result = scheme_values(_lenv, _values);\n";
     }
     else {
-      f.add_local("int", "_lenv", "1");
-      f.add_local("Scheme_Object *", "_values[MAXVALUES]");
+      f.add_local((char*)"int", (char*)"_lenv", (char*)"1");
+      f.add_local((char*)"Scheme_Object *",(char*) "_values[MAXVALUES]");
       f.code << tab4 << "_values[0] = swig_result;\n";
       f.code << tab4 << "swig_result = scheme_values(_lenv, _values);\n";
     }
@@ -542,8 +542,8 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       fprintf (f_wrappers, "\t\t scheme_signal_error(\"Unable to set %s.  "
                "Variable is read only.\");\n", iname);
     }
-    else if ((tm = typemap_lookup ("varin", typemap_lang,
-                                   t, name, "argv[0]", name))) {
+    else if ((tm = typemap_lookup ((char*)"varin", typemap_lang,
+                                   t, name, (char*)"argv[0]", name))) {
       tm2 = tm;
       mreplace(tm2, argnum, arg, proc_name);
       fprintf (f_wrappers, "%s\n", tm2.get());
@@ -570,8 +570,8 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = typemap_lookup ("varout", typemap_lang,
-                              t, name, name, "swig_result"))) {
+    if ((tm = typemap_lookup ((char*)"varout", typemap_lang,
+                              t, name, name, (char*)"swig_result"))) {
       fprintf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
@@ -646,7 +646,7 @@ MZSCHEME::declare_const (char *name, char *, DataType *type, char *value)
     rvalue << "'";
     "'" >> rvalue;
   }
-  if ((tm = typemap_lookup ("const", typemap_lang, type, name,
+  if ((tm = typemap_lookup ((char*)"const", typemap_lang, type, name,
                             rvalue.get(), name))) {
     // Yep.  Use it instead of the default
     fprintf (f_init, "%s\n", tm);

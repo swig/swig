@@ -39,7 +39,7 @@ Method  *head = 0;
 static   String       const_code;
 static   String       shadow_methods;
 
-static char *usage = "\
+static char *usage = (char *)"\
 Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -module name    - Set module name\n\
@@ -102,7 +102,7 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 
   // Set name of typemaps
 
-  typemap_lang = "python";
+  typemap_lang = (char*)"python";
 
 }
 
@@ -518,7 +518,7 @@ void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
 char *PYTHON::convert_self(WrapperFunction &)
 {
   // Default behaviour is no translation
-  return "";
+  return (char*)"";
 }
 
 // ----------------------------------------------------------------------
@@ -528,7 +528,7 @@ char *PYTHON::convert_self(WrapperFunction &)
 // ----------------------------------------------------------------------
 char *PYTHON::make_funcname_wrapper(char *fnName)
 {
-  return name_wrapper(fnName,"");
+  return name_wrapper(fnName,(char*)"");
 }
 
 // ----------------------------------------------------------------------
@@ -542,7 +542,7 @@ void PYTHON::create_command(char *cname, char *iname) {
 
   // Create the name of the wrapper function
 
-  char *wname = name_wrapper(cname,"");
+  char *wname = name_wrapper(cname,(char*)"");
 
   // Now register the function with the interpreter.  
 
@@ -598,7 +598,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   emit_function_header(f, wname);
 
-  f.add_local("PyObject *","_resultobj");
+  f.add_local((char*)"PyObject *",(char*)"_resultobj");
 
   // Get the function usage string for later use
   
@@ -656,9 +656,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
       // Look for input typemap
       
-      if ((tm = typemap_lookup("in","python",p->t,p->name,source,target,&f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"python",p->t,p->name,source,target,&f))) {
 	parse_args << "O";        // Grab the argument as a raw PyObject
-	f.add_local("PyObject *",source,"0");
+	f.add_local((char*)"PyObject *",source,(char*)"0");
 	arglist << "&" << source;
 	if (i >= (pcount-numopt))
 	  get_pointers << tab4 << "if (" << source << ")\n";
@@ -710,9 +710,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	      tempb << "tempbool" << i;
 	      parse_args << "i";
 	      if (!p->defvalue)
-		f.add_local("int",tempb.get());
+		f.add_local((char*)"int",tempb.get());
 	      else
-		f.add_local("int",tempb.get(),tempval.get());
+		f.add_local((char*)"int",tempb.get(),tempval.get());
 	      get_pointers << tab4 << target << " = " << p->t->print_cast() << " " << tempb << ";\n";
 	      arglist << "&" << tempb;
 	    }
@@ -758,32 +758,32 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    sprintf(target,"_arg%d", i);
 	    sprintf(temp,"argument %d",i+1);
 	    
-	    f.add_local("PyObject *", source,"0");
+	    f.add_local((char*)"PyObject *", source,(char*)"0");
 	    arglist << "&" << source;
-	    get_pointer(iname, temp, source, target, p->t, get_pointers, "NULL");
+	    get_pointer(iname, temp, source, target, p->t, get_pointers, (char*)"NULL");
 	  }
 	}
       }
       j++;
     }
     // Check if there was any constraint code
-    if ((tm = typemap_lookup("check","python",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"python",p->t,p->name,source,target))) {
       check << tm << "\n";
       check.replace("$argnum", argnum);
     }
     // Check if there was any cleanup code
-    if ((tm = typemap_lookup("freearg","python",p->t,p->name,target,source))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"python",p->t,p->name,target,source))) {
       cleanup << tm << "\n";
       cleanup.replace("$argnum", argnum);
       cleanup.replace("$arg",source);
     }
-    if ((tm = typemap_lookup("argout","python",p->t,p->name,target,"_resultobj"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"python",p->t,p->name,target,(char*)"_resultobj"))) {
       outarg << tm << "\n";
       outarg.replace("$argnum", argnum);
       outarg.replace("$arg",source);
       have_output++;
     } 
-    if ((tm = typemap_lookup("build","python",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"build",(char*)"python",p->t,p->name,source,target))) {
       build << tm << "\n";
       have_build = 1;
     }
@@ -837,7 +837,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // If there was a result, it was saved in _result.
   // If the function is a void type, don't do anything.
   
-  if ((tm = typemap_lookup("out","python",d,iname,"_result","_resultobj"))) {
+  if ((tm = typemap_lookup((char*)"out",(char*)"python",d,iname,(char*)"_result",(char*)"_resultobj"))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
   } else {
@@ -932,14 +932,14 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   // Look to see if there is any newfree cleanup code
 
   if (NewObject) {
-    if ((tm = typemap_lookup("newfree","python",d,iname,"_result",""))) {
+    if ((tm = typemap_lookup((char*)"newfree",(char*)"python",d,iname,(char*)"_result",(char*)""))) {
       f.code << tm << "\n";
     }
   }
 
   // See if there is any argument cleanup code
 
-  if ((tm = typemap_lookup("ret","python",d,iname,"_result",""))) {
+  if ((tm = typemap_lookup((char*)"ret",(char*)"python",d,iname,(char*)"_result",(char*)""))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
   }
@@ -997,7 +997,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	//  If the output of this object has been remapped in any way, we're
 	//  going to return it as a bare object.
 	
-	if (!typemap_check("out",typemap_lang,d,iname)) {
+	if (!typemap_check((char*)"out",typemap_lang,d,iname)) {
 
 	  // If there are output arguments, we are going to return the value
           // unchanged.  Otherwise, emit some shadow class conversion code.
@@ -1053,7 +1053,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // First make a sanitized version of the function name (in case it's some
     // funky C++ thing).
     
-    wname = name_wrapper(name,"");
+    wname = name_wrapper(name,(char*)"");
 
     // ---------------------------------------------------------------------
     // Create a function for setting the value of the variable
@@ -1061,7 +1061,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 
     setf.def << "static int " << wname << "_set(PyObject *val) {";
     if (!(Status & STAT_READONLY)) {
-      if ((tm = typemap_lookup("varin","python",t,name,"val",name))) {
+      if ((tm = typemap_lookup((char*)"varin",(char*)"python",t,name,(char*)"val",name))) {
 	setf.code << tm << "\n";
 	setf.code.replace("$name",iname);
       } else {
@@ -1076,7 +1076,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    case T_SINT: case T_SSHORT: case T_SLONG:
 	    case T_SCHAR: case T_UCHAR: case T_BOOL:
 	      // Get an integer value
-	      setf.add_local(t->print_type(), "tval");
+	      setf.add_local(t->print_type(), (char*)"tval");
 	      setf.code << tab4 << "tval = " << t->print_cast() << "PyInt_AsLong(val);\n"
 			<< tab4 << "if (PyErr_Occurred()) {\n"
 			<< tab8 << "PyErr_SetString(PyExc_TypeError,\"C variable '"
@@ -1088,7 +1088,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      
 	    case T_FLOAT: case T_DOUBLE:
 	      // Get a floating point value
-	      setf.add_local(t->print_type(), "tval");
+	      setf.add_local(t->print_type(), (char*)"tval");
 	      setf.code << tab4 << "tval = " << t->print_cast() << "PyFloat_AsDouble(val);\n"
 			<< tab4 << "if (PyErr_Occurred()) {\n"
 			<< tab8 << "PyErr_SetString(PyExc_TypeError,\"C variable '"
@@ -1101,7 +1101,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      // A single ascii character
 	      
 	    case T_CHAR:
-	      setf.add_local("char *", "tval");
+	      setf.add_local((char*)"char *", (char*)"tval");
 	      setf.code << tab4 << "tval = (char *) PyString_AsString(val);\n"
 			<< tab4 << "if (PyErr_Occurred()) {\n"
 			<< tab8 << "PyErr_SetString(PyExc_TypeError,\"C variable '"
@@ -1112,8 +1112,8 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      break;
 	    case T_USER:
 	      t->is_pointer++;
-	      setf.add_local(t->print_type(),"temp");
-	      get_pointer(iname,"value","val","temp",t,setf.code,"1");
+	      setf.add_local(t->print_type(),(char*)"temp");
+	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf.code,(char*)"1");
 	      setf.code << tab4 << name << " = *temp;\n";
 	      t->is_pointer--;
 	      break;
@@ -1125,7 +1125,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    // Parse a pointer value
 	    
 	    if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	      setf.add_local("char *", "tval");
+	      setf.add_local((char*)"char *", (char*)"tval");
 	      setf.code << tab4 << "tval = (char *) PyString_AsString(val);\n"
 			<< tab4 << "if (PyErr_Occurred()) {\n"
 			<< tab8 << "PyErr_SetString(PyExc_TypeError,\"C variable '"
@@ -1146,8 +1146,8 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      
 	      // Is a generic pointer value.
 	      
-	      setf.add_local(t->print_type(),"temp");
-	      get_pointer(iname,"value","val","temp",t,setf.code,"1");
+	      setf.add_local(t->print_type(),(char*)"temp");
+	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf.code,(char*)"1");
 	      setf.code << tab4 << name << " = temp;\n";
 	    }
 	  }
@@ -1172,11 +1172,11 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // ----------------------------------------------------------------
     
     getf.def << "static PyObject *" << wname << "_get() {";
-    getf.add_local("PyObject *","pyobj");
-    if ((tm = typemap_lookup("varout","python",t,name,name,"pyobj"))) {
+    getf.add_local((char*)"PyObject *",(char*)"pyobj");
+    if ((tm = typemap_lookup((char*)"varout",(char*)"python",t,name,name,(char*)"pyobj"))) {
       getf.code << tm << "\n";
       getf.code.replace("$name",iname);
-    } else if ((tm = typemap_lookup("out","python",t,name,name,"pyobj"))) {
+    } else if ((tm = typemap_lookup((char*)"out",(char*)"python",t,name,name,(char*)"pyobj"))) {
       getf.code << tm << "\n";
       getf.code.replace("$name",iname);
     } else {
@@ -1195,7 +1195,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    getf.code << tab4 << "pyobj = PyFloat_FromDouble((double) " << name << ");\n";
 	    break;
 	  case T_CHAR:
-	    getf.add_local("char","ptemp[2]");
+	    getf.add_local((char*)"char",(char*)"ptemp[2]");
 	    getf.code << tab4 << "ptemp[0] = " << name << ";\n"
 		      << tab4 << "ptemp[1] = 0;\n"
 		      << tab4 << "pyobj = PyString_FromString(ptemp);\n";
@@ -1263,7 +1263,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
 
   // Make a static python object
 
-  if ((tm = typemap_lookup("const","python",type,name,value,name))) {
+  if ((tm = typemap_lookup((char*)"const",(char*)"python",type,name,value,name))) {
     const_code << tm << "\n";
   } else {
 
@@ -1443,7 +1443,7 @@ void PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
 
 void PYTHON::pragma(char *lang, char *cmd, char *value) {
 
-    if (strcmp(lang,"python") == 0) {
+    if (strcmp(lang,(char*)"python") == 0) {
 	if (strcmp(cmd,"CODE") == 0) {
 	  if (shadow) {
 	    fprintf(f_shadow,"%s\n",value);
@@ -1496,7 +1496,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
     pragmas = 0;
   }
   while (plist) {
-    if (strcmp(plist->lang,"python") == 0) {
+    if (strcmp(plist->lang,(char*)"python") == 0) {
       if (strcmp(plist->name,"addtomethod") == 0) {
             // parse value, expected to be in the form "methodName:line"
 	String temp = plist->value;
@@ -1518,7 +1518,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
 		  plist->filename.get(),plist->lineno);
 	}
       } else if (strcmp(plist->name, "addtoclass") == 0) {
-	pyp1 = new PyPragma("__class__",plist->value);
+	pyp1 = new PyPragma((char*)"__class__",plist->value);
 	if (pyp2) {
 	  pyp2->next = pyp1;
 	  pyp2 = pyp1;
