@@ -1913,7 +1913,7 @@ public:
      * to receive the scripting language object (e.g. 'self')
      *
      */
-    Swig_save("python:constructorHandler",n,"parms",NIL);
+    Swig_save("ruby:constructorHandler",n,"parms",NIL);
     if (use_director) {
       Parm *parms = Getattr(n, "parms");
       Parm *self;
