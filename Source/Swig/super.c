@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------------- 
+/* ------------------------------------------------------------------------- 
  * super.c
  *
  *     SuperStrings are just like strings, except that they maintain
@@ -9,7 +9,7 @@
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.	
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
 #include "doh.h"
 #include "swig.h"
@@ -552,6 +552,7 @@ Super_write(DOH *so, void *buffer, int len)
    /* update size */
    newsize = s->sp + len + 1;
    if (newsize > s->maxsize) {
+      newsize *= 2;
       s->str = (char *) DohRealloc(s->str,newsize);
       assert(s->str);
       s->maxsize = newsize;
@@ -559,16 +560,22 @@ Super_write(DOH *so, void *buffer, int len)
 
    /* update length */
    if ((s->sp + len) > s->len) 
-      s->len = s->sp + len;
+   {
+      int newlen = s->sp + len;
+      s->tags[s->numtags-1].length += newlen - s->len;
 
-   /* update tag */
-   s->tags[s->curtag].length += len;
+      s->len = newlen;
+      s->str[s->len] = 0;
+   }
 
    /* and copy the data */
    memmove(s->str + s->sp, buffer, len);
 
-   /* move the point */
-   Super_move(s, len);		/* counts newlines */
+   /* move the point.  This does kinda weird things if the point was
+      not at the end of the string -- by obliterating newlines, it can
+      change line number information, but it won't change file
+      information.  Such is the cost of writing inside of a string. */
+   Super_move(s, len);
    return len;
 }
 
@@ -780,7 +787,6 @@ Super_chop(DOH *so) {
 static void 
 Super_move(Super *s, int delta)
 {
-   int changed_tag = 0;
    int curtag_offset = s->curtag_offset;
    int line = s->line;
 
@@ -795,7 +801,7 @@ Super_move(Super *s, int delta)
       {
 	 int remaining = s->tags[s->curtag].length - curtag_offset;
       
-	 if (delta >= remaining)
+	 if (delta > remaining)
 	 {
 	    delta -= remaining;
 	    s->sp += remaining;
@@ -803,7 +809,7 @@ Super_move(Super *s, int delta)
 	    line = s->tags[s->curtag].line;
 	    curtag_offset = 0;
 	 }
-	 else
+	 else 
 	 {
 	    line += Super_count_newlines(s->str + s->sp, delta);
 	    curtag_offset += delta;
@@ -1398,10 +1404,7 @@ static void annotate(DOH *hyd, int pos)
       char d;
       int pos;
 
-      if (i % 2)
-	 Seek(hyd, 0, SEEK_SET);
-      else
-	 Seek(hyd, 0, SEEK_END);
+      Seek(hyd, 0, SEEK_SET);
 
       Seek(hyd, i, SEEK_SET);
 
@@ -1426,10 +1429,11 @@ int main(int argc, char **argv)
 {
    DOH *abcd = NewSuper("AB\nCD", "abcd", 20);
    DOH *ijkl = NewSuper("IJ\nKL\nMN", "ijkl", 30);
- 
+   char buffer[] = "XXXX";
+
    Insert(ijkl, 6, abcd);
-   Insert(ijkl, 5, abcd);
    Seek(ijkl, atoi(argv[1]), SEEK_SET);
+/*     Write(ijkl, buffer, 3); */
    annotate(ijkl, atoi(argv[2]));
 
    return 0;
