@@ -117,6 +117,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_basic \
 	director_detect \
+	director_default \
 	director_exception \
 	director_frob \
 	director_finalizer \
