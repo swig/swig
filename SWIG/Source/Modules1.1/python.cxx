@@ -562,7 +562,11 @@ public:
 
       /* Create a shadow for this function (if enabled and not in a member function) */
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-	Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
+	if (in_class) {
+	  Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n\n", NULL);
+	} else {
+	  Printv(f_shadow,iname, " = ", module, ".", iname, "\n\n", NULL);	  
+	}
       }
     } else {
       Setattr(n,"wrap:name", wname);
@@ -752,7 +756,7 @@ public:
       return SWIG_NOWRAP;
     }
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      Printv(f_shadow_stubs,iname, " = ", module, ".", iname, "\n", NULL);
+      Printv(f_shadow,iname, " = ", module, ".", iname, "\n", NULL);
     }
     return SWIG_OK;
   }
@@ -917,6 +921,8 @@ public:
 
       Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
       shadow_indent = 0;
+      Printf(f_shadow,"%s\n", f_shadow_stubs);
+      Clear(f_shadow_stubs);
     }
     return SWIG_OK;
   }
@@ -1174,11 +1180,7 @@ public:
     if ((!ImportMode) && ((Cmp(section,"python") == 0) || (Cmp(section,"shadow") == 0))) {
       if (shadow) {
 	String *pycode = pythoncode(code,shadow_indent);
-	if (in_class) {
-	  Printv(f_shadow, pycode, "\n", NULL);
-	} else {
-	  Printv(f_shadow_stubs,pycode,"\n",NULL);
-	}
+	Printv(f_shadow, pycode, "\n", NULL);
 	Delete(pycode);
       }
     } else {
