@@ -349,10 +349,6 @@ $result = C_SCHEME_UNDEFINED;
 }
 #endif
 
-%typemap(varin) SWIGTYPE [] {
-  swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Variable $name is read-only");
-}
-
 /* Special case for string array variables */
 %typemap(varin) char [ANY] {
   if ($input == C_SCHEME_FALSE) {
