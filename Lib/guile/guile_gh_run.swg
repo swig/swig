@@ -30,6 +30,12 @@ extern "C" {
 #define SWIG_Guile_MarkPointerNoncollectable(s) (s)
 #define SWIG_Guile_MarkPointerDestroyed(s) (s)
   
+#define SWIG_contract_assert(expr, msg)				\
+  if (!(expr))							\
+    scm_error(gh_symbol2scm("swig-contract-assertion-failed"),	\
+	      (char *) FUNC_NAME, (char *) msg,			\
+	      SCM_EOL, SCM_BOOL_F); else
+
 #if defined(SWIG_NOINCLUDE)
 #	define SWIGSTATIC
 #elif defined(SWIG_GLOBAL)
