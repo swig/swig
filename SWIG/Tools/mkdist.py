@@ -58,11 +58,6 @@ f = open(dirname+"/configure.in","w")
 f.write(s)
 f.close()
 
-# Clean the documentation directory
-
-print "Cleaning the Doc directory"
-os.system("rm -rf "+dirname+"/Doc/*")
-
 # Blow away all .cvsignore files
 
 print "Blowing away .cvsignore files"
