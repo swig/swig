@@ -34,9 +34,9 @@ Trying TinyCLOS code ...
 ")
 
 ;; ALL generic methods must be included first
-(include "example_generic")
+(include "example-generic")
 ;; After generic methods are defined, can include TinyCLOS code
-(include "example_clos")
+(include "example-clos")
 
 (+example:foo+ 1)
 (+example:foo+ "some string")

@@ -55,8 +55,8 @@
       difficult to wrap by hand in CHICKEN -- and its <strong>typed
       pointer representation</strong>, essential for C and C++
       libraries involving structures or classes.
-      
-    </p>      
+
+    </p>
 
 <a name="n2"></a><H2>22.1 Preliminaries</H2>
 
@@ -73,7 +73,7 @@
 
       You may want to look at any of the examples in Examples/chicken/
       or Examples/GIFPlot/Chicken for the basic steps to run SWIG
-      CHICKEN.  
+      CHICKEN.
 
       We will generically refer to the <em>wrapper</em> as the
       generated files.
@@ -112,8 +112,8 @@
 	<pre>% swig -chicken -c++ example.i</pre>
       </blockquote>
       This will generate <tt>example_wrap.cxx</tt>,
-      <tt>example.scm</tt>, <tt>example_generic.scm</tt> and
-      <tt>example_clos.scm</tt>.  The basic Scheme code must be
+      <tt>example.scm</tt>, <tt>example-generic.scm</tt> and
+      <tt>example-clos.scm</tt>.  The basic Scheme code must be
       compiled to C using your system's CHICKEN compiler.
       <blockquote>
 	<pre>% chicken example.scm -output-file oexample.c</pre>
@@ -248,16 +248,16 @@
       generic procedures to implement an object-oriented Scheme
       system.  Please consult a Scheme book if you are unfamiliar
       with the concept.
-      
+
       <br></br>
 
       CHICKEN has a modified version of TinyCLOS, which SWIG CHICKEN
       uses in C++ mode.  SWIG CHICKEN generates a
-      <tt>xxx_generic.scm</tt> and a <tt>xxx_clos.scm</tt> file, which
+      <tt>xxx-generic.scm</tt> and a <tt>xxx-clos.scm</tt> file, which
       contain TinyCLOS macros.  When using these macros, you will need
-      to <tt>(include "xxx_generic")</tt> all the generic macros your
+      to <tt>(include "xxx-generic")</tt> all the generic macros your
       program needs, and <strong>then</strong> <tt>(include
-      "xxx_clos")</tt> all the metaobject (class) macros your program
+      "xxx-clos")</tt> all the metaobject (class) macros your program
       needs.
 
       <br></br>
@@ -391,9 +391,9 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
       to SWIG</em> will have correct TinyCLOS representations based on
       <code>SIMPLE_CLOS_OBJECT</code>.  SWIG "knows" the classes that
       are exposed in the SWIG interface file; it "fully knows" only
-      those classes that are not forward declarations.  
+      those classes that are not forward declarations.
 
-      <br></br> 
+      <br></br>
 
       A real-world example of the "fully knows" problem is found in
       the VTK visualization library.  All VTK classes are derived from
@@ -488,13 +488,13 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
     <code>vtkRenderer</code>.
 
     </p>
-      
+
 <a name="n15"></a><H2>22.7 Pointers</H2>
 
 
     <p>
       For pointer types, SWIG uses CHICKEN tagged pointers.
-	    
+
       A tagged pointer is an ordinary CHICKEN pointer with an
       extra slot for an arbitrary Scheme object.  With SWIG
       CHICKEN, this Scheme object is a reference to a type-info

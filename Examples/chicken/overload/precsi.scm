@@ -43,9 +43,9 @@ class Foo {
       (display "----------------\n")
       (display "
   ;; ALL generic methods must be included first
-  (include \"example_generic\")
+  (include \"example-generic\")
   ;; After generic methods are defined, can include TinyCLOS code
-  (include \"example_clos\")
+  (include \"example-clos\")
 
   (+example:foo+ %x-int)
   (+example:foo+ %x-string)
