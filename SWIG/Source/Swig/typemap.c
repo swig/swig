@@ -220,7 +220,7 @@ Swig_typemap_register_multi(const String_or_char *op, ParmList *parms, String_or
   np = nextSibling(parms);
   if (np) {
     /* Make an entirely new operator key */
-    String *newop = NewStringf("%s-%s:",op,type);
+    String *newop = NewStringf("%s-%s-%s:",op,type,pname);
     /* Now reregister on the remaining arguments */
     Swig_typemap_register_multi(newop,np,code,locals);
     Setattr(tm2,newop,newop);
@@ -329,7 +329,7 @@ Swig_typemap_clear_multi(const String_or_char *op, ParmList *parms) {
     if (!tm) return;
     p = nextSibling(p);
     if (p) 
-      Printf(newop,"-%s:", type);
+      Printf(newop,"-%s-%s:", type,name);
   }
   if (tm)
     Delattr(tm,tmop_name(newop));
@@ -543,7 +543,7 @@ Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch
   /* Try to find a match on the first type */
   tm = Swig_typemap_search(op, type, name);
   if (tm) {
-    newop = NewStringf("%s-%s:", op, type);
+    newop = NewStringf("%s-%s-%s:", op, type,name);
     tm1 = Swig_typemap_search_multi(newop, nextSibling(parms), nmatch);
     if (tm1) tm = tm1;
     if (Getattr(tm,"code")) {
