@@ -3,6 +3,17 @@ Version 1.3.22 (in progress)
 
 04/10/2004: mmatus (Marcelo Matus) 
 	    
+	    [python] Added support for std::wstring and wchar_t,
+	    for compiler and python versions that support them.
+	    
+	    When needed, use 
+
+	     %inlcude std_string.i      // 'char' strings
+	     %inlcude std_wstring.i     // 'wchar_t; strings
+	    
+
+04/10/2004: mmatus (Marcelo Matus) 
+	    
 	    [python] Fix the default behaviour (seg. fault) when an
 	    inplace operator (+=,-=,...) was wrapped, as reported by
 	    Lucriz (lucriz@sitilandia.it), when the most common
@@ -20,8 +31,8 @@ Version 1.3.22 (in progress)
 	    To fix it, we needed to introduce a new feature and use an
 	    old one:
 
-               %feature("self:disown","") A::operator+=;
-               %feature("new","") A::operator+=;
+               %feature("self:disown") A::operator+=;
+               %feature("new") A::operator+=;
 	    
 	    here, "self:disown" disable the ownership of the 'self'
 	    or input object, and the "new" feature transfers the
@@ -30,6 +41,18 @@ Version 1.3.22 (in progress)
 	    The feature/solution could also be used in other languages
 	    that use gc and implement the inplace operators, or other
 	    operators, in a similar way.
+
+            *** POTENTIAL INCOMPATIBILITY FOR Python MODULE ***
+
+	    If you already are using the inplace operators in python,
+	    and you implemented some kind of workaround to the problem
+	    fixed here, it is possible you could end with 'free'
+	    objects that never get deleted. If that is the case, and
+	    you want to disable the current fix, use:
+
+               %feature("self:disown","") A::operator+=;
+               %feature("new","") A::operator+=;
+
 
 04/07/2004: cheetah (William Fulton)
             [C#] C++ enums are no longer wrapped by integers, they are now wrapped by 
