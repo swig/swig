@@ -352,7 +352,7 @@ yylex1(void) {
 	if (strcmp(yytext,"public") == 0) return(PUBLIC);
 	if (strcmp(yytext,"protected") == 0) return(PROTECTED);
 	if (strcmp(yytext,"friend") == 0) return(FRIEND);
-	if (strcmp(yytext,"virtual") == 0) return(lparse_yylex());
+	if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
 	if (strcmp(yytext,"operator") == 0) return(OPERATOR);
 	if (strcmp(yytext,"throw") == 0) return(THROW);
 	if (strcmp(yytext,"inline") == 0) return(lparse_yylex());

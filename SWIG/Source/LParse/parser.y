@@ -223,7 +223,7 @@ static int promote(int t1, int t2) {
 %token <tok> CONST ENUM EXTERN SIZEOF STATIC STRUCT TYPEDEF UNION 
 
 /* C++ keywords */
-%token <tok> CLASS FRIEND OPERATOR PRIVATE PROTECTED PUBLIC TEMPLATE THROW 
+%token <tok> VIRTUAL CLASS FRIEND OPERATOR PRIVATE PROTECTED PUBLIC TEMPLATE THROW 
 
 /* Objective C keywords */
 %token <tok> OC_INTERFACE OC_END OC_PUBLIC OC_PRIVATE OC_PROTECTED OC_CLASS OC_IMPLEMENT OC_PROTOCOL
@@ -890,20 +890,26 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 	      }
 
 /* A C++ destructor */
-              | NOT ID LPAREN parms RPAREN cpp_end {
-		$$ = new_node("c:destructor",$2.filename,$2.line);
-		Setattr($$,ATTR_NAME,$2.text);
-		if ($6.text) {
-		  Setattr($$,"code",$6.text);
+              | storage_spec NOT ID LPAREN parms RPAREN cpp_end {
+		$$ = new_node("c:destructor",$3.filename,$3.line);
+		Setattr($$,ATTR_NAME,$3.text);
+		if ($7.text) {
+		  Setattr($$,"code",$7.text);
 		}
 		if (pure_virtual) {
 		  SetInt($$,"abstract",1);
 		  pure_virtual = 0;
 		}
+		if ($1.ivalue) {
+		  Setattr($$,ATTR_STORAGE,$1.text);
+		}
 	      }
-              | NOT ID LPAREN parms RPAREN cpp_const SEMI {
-		$$ = new_node("c:destructor",$2.filename,$2.line);
-		Setattr($$,ATTR_NAME,$2.text);
+              | storage_spec NOT ID LPAREN parms RPAREN cpp_const SEMI {
+		$$ = new_node("c:destructor",$3.filename,$3.line);
+		Setattr($$,ATTR_NAME,$3.text);
+		if ($1.ivalue) {
+		  Setattr($$,ATTR_STORAGE,$1.text);
+		}
 	      }
               ;
 
@@ -942,6 +948,10 @@ storage_spec    : EXTERN {
                    $$.ivalue = 1;
 		   $$.text = NewStringf("extern \"%s\"", $2.text);
 	       }
+               | VIRTUAL {
+                   $$.ivalue = 1;
+                   $$.text = NewString("virtual");
+               }
                | STATIC {
 		 $$.ivalue = 1;
 		 $$.text = NewString("static");
