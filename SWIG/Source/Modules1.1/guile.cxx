@@ -484,7 +484,7 @@ guile_typemap_lookup(const char *op, SwigType *type, const String_or_char *pname
   if (!tm) {
     SwigType *base = SwigType_typedef_resolve_all(type);
     if (strncmp(Char(base), "enum ", 5)==0)
-      tm = Swig_typemap_lookup((char*) op, (char*) "int", (char*)pname, source, target, f);
+      tm = Swig_typemap_lookup((char*) op, NewSwigType(T_INT), (char*)pname, source, target, f);
   }
   return tm;
 }
@@ -503,42 +503,11 @@ guile_do_typemap(DOHFile *file, const char *op,
   if ((tm = guile_typemap_lookup(op, type, arg,
 				 source, target, f))) {
     String *s = NewString(tm);
-    String *descriptor = NewString("");
-    String *basedescriptor = NewString("");
-    String *stardescriptor = NewString("");
     char argnum_s[10];
-    SwigType *startype = NULL;
-
-    if (SwigType_ispointer(type)) {
-      startype = Copy(type);
-      SwigType_del_pointer(startype);
-      Printf(stardescriptor, "SWIGTYPE%s",
-	     SwigType_manglestr(startype));
-    }
-    else Printf(stardescriptor, "SWIGTYPE_BAD");
-    Printf(descriptor, "SWIGTYPE%s",
-	   SwigType_manglestr(type));
-    Printf(basedescriptor, "SWIGTYPE%s",
-	   SwigType_manglestr(SwigType_base(type)));
     sprintf(argnum_s, "%d", argnum);
     Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);
     Replace(s,"$arg",    arg,      DOH_REPLACE_ANY);
     Replace(s,"$name",   name,     DOH_REPLACE_ANY);
-    if (Replace(s, "$descriptor",
-		descriptor, DOH_REPLACE_ANY))
-      SwigType_remember(type);
-    if (Replace(s, "$basedescriptor",
-		basedescriptor, DOH_REPLACE_ANY))
-      SwigType_remember(SwigType_base(type));
-    if (Replace(s, "$*descriptor", stardescriptor,
-		DOH_REPLACE_ANY)) {
-      if (!startype) {
-	Printf (stderr, "%s : Line %d. $*descriptor is meaningless for non-pointer types.\n",
-		input_file, line_number);
-	error_count++;
-      }
-      else SwigType_remember(startype);
-    }
     if (nonewline_p)
       Printv(file, s, 0);
     else Printv(file, s, "\n", 0);

@@ -14,6 +14,22 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/13/2001: mkoeppe
+	   Added new typemap substitutions, generalizing those of the
+	   Guile-specific 5/27/2001 changes: 
+	   * $descriptor is the same as SWIGTYPE$mangle, but also
+	     ensures that the type descriptor of this name gets
+	     defined.
+	   * $*type, $*ltype, $*mangle, $*descriptor are the same as
+	     the variants without star, but they REMOVE one level of
+	     pointers from the type. (This is only valid for pointer 
+	     types.)
+	   * $&type, $&ltype, $&mangle, $&descriptor are the same as
+	     the variants without ampersand, but they ADD one level of
+	     pointers to the type.
+	   The Guile-specific substitution $basedescriptor was removed
+	   because it was useless.
+
 8/12/2001: beazley
            The %extern directive is now deprecated and withdrawn.  The
            purpose of this directive was to import selected definitions

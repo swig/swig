@@ -13,7 +13,7 @@
 void foo_1() {}
 %}
 
-#ifdef SWIG_GUILE
+#ifdef SWIGGUILE
 %name("bar-2")
 #else
 %name("bar_2")
