@@ -59,8 +59,13 @@
 
 /* Common features */
 
+#ifdef SWIGCSHARP
+#define %exception   %feature("except", canthrow=1)
+#else
 #define %exception   %feature("except")
+#endif
 #define %noexception %feature("except","")
+
 #define %newobject   %feature("new")
 
 /* Warnings */
