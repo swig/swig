@@ -436,11 +436,15 @@ namespace std {
 
     specialize_std_vector(bool,SCHEME_BOOLP,SCHEME_TRUEP,\
                           swig_make_boolean);
+    specialize_std_vector(char,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
     specialize_std_vector(int,SCHEME_INTP,SCHEME_INT_VAL,\
                           scheme_make_integer_value);
     specialize_std_vector(short,SCHEME_INTP,SCHEME_INT_VAL,\
                           scheme_make_integer_value);
     specialize_std_vector(long,SCHEME_INTP,SCHEME_INT_VAL,\
+                          scheme_make_integer_value);
+    specialize_std_vector(unsigned char,SCHEME_INTP,SCHEME_INT_VAL,\
                           scheme_make_integer_value);
     specialize_std_vector(unsigned int,SCHEME_INTP,SCHEME_INT_VAL,\
                           scheme_make_integer_value);
@@ -454,7 +458,6 @@ namespace std {
                           scheme_make_double);
     specialize_std_vector(std::string,SCHEME_STRINGP,swig_scm_to_string,\
                           swig_make_string);
-    
 
 }
 

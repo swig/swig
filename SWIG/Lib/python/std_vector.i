@@ -895,9 +895,12 @@ namespace std {
     %enddef
 
     specialize_std_vector(bool,PyInt_Check,PyInt_AsLong,SwigInt_FromBool);
+    specialize_std_vector(char,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(int,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(short,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(long,PyLong_Check,PyLong_AsLong,PyLong_FromLong);
+    specialize_std_vector(unsigned char,PyInt_Check,\
+                          PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(unsigned int,PyInt_Check,\
                           PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(unsigned short,PyInt_Check,\
