@@ -651,8 +651,8 @@ void Language::classDeclaration(Node *n) {
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
 
-  this->cpp_class_decl(Char(name),iname,Char(kind));
   if (ImportMode) {
+    if (name) this->cpp_class_decl(Char(name),iname,Char(kind));
     return;
   }
   SwigType_new_scope();
