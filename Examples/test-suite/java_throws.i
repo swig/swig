@@ -98,7 +98,7 @@ try {
 %}
 %enddef
 
-JAVAEXCEPTION(FeatureTest::FeatureTest) // doesn't seem to work
+JAVAEXCEPTION(FeatureTest::FeatureTest)
 JAVAEXCEPTION(FeatureTest::method)
 JAVAEXCEPTION(FeatureTest::staticMethod)
 
