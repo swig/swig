@@ -1,15 +1,15 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * swig11.h
  *
  *     Main header file for the SWIG1.1 core.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2000.  The University of Chicago
  * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
  *                           University of California.
  *
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  *
  * $Header$
  * ----------------------------------------------------------------------------- */
@@ -34,7 +34,7 @@ extern  FILE      *f_header;                        // Headers
 extern  FILE      *f_wrappers;                      // Wrappers
 extern  FILE      *f_init;                          // Initialization code
 extern  FILE      *f_input;
-extern  char      InitName[256];             
+extern  char      InitName[256];
 extern  char      LibDir[512];                      // Library directory
 //extern  char     **InitNames;                       // List of other init functions
 extern  int       Status;                           // Variable creation status
@@ -53,6 +53,7 @@ extern  char     *typemap_lang;                     // Current language name
 extern  int       error_count;
 extern  char     *copy_string(char *);
 extern  char      output_dir[512];                  // Output directory
+extern  int       Verbose;
 
 #define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit(1); }
 
@@ -62,29 +63,29 @@ extern  char      output_dir[512];                  // Output directory
 #define  MAXSCOPE       16
 
 // -----------------------------------------------------------------------
-// String class 
+// String class
 // -----------------------------------------------------------------------
 
 class String {
 private:
   int   maxsize;            // Max size of current string
   void  add(const char *newstr);  // Function to add a new string
-  void  add(char c);              // Add a character				       
-  void  insert(const char *newstr);  
+  void  add(char c);              // Add a character
+  void  insert(const char *newstr);
   int   len;
-  char  *str;               // String data 
+  char  *str;               // String data
 public:
   String();
   String(const char *s);
   ~String();
-  char  *get() const;                
+  char  *get() const;
   friend String& operator<<(String&,const char *s);
   friend String& operator<<(String&,const int);
   friend String& operator<<(String&,const char);
   friend String& operator<<(String&,String&);
   friend String& operator>>(const char *s, String&);
   friend String& operator>>(String&,String&);
-  String& operator=(const char *);   
+  String& operator=(const char *);
   operator char*() const { return str; }
   void   untabify();
   void   replace(const char *token, const char *rep);
@@ -158,12 +159,12 @@ public:
   int         type;          // SWIG Type code
   char        name[MAX_NAME];      // Name of type
   char        is_pointer;    // Is this a pointer?
-  char        implicit_ptr;  // Implicit ptr				  
+  char        implicit_ptr;  // Implicit ptr
   char        is_reference;  // A C++ reference type
   char        status;        // Is this datatype read-only?
   char        *qualifier;    // A qualifier string (ie. const).
   char        *arraystr;     // String containing array part
-  int         id;            // type identifier (unique for every type).				  
+  int         id;            // type identifier (unique for every type).
   DataType();
   DataType(DataType *);
   DataType(int type);
@@ -189,9 +190,9 @@ public:
   void       typedef_replace();                     // Replace this type with it's original type
 static int   is_typedef(char *name);                // See if this is a typedef
   void       typedef_updatestatus(int newstatus);   // Change status of a typedef
-static void  init_typedef(void);                    // Initialize typedef manager   
+static void  init_typedef(void);                    // Initialize typedef manager
 static void  merge_scope(void *h);                  // Functions for managing scoping of datatypes
-static void  new_scope(void *h = 0); 
+static void  new_scope(void *h = 0);
 static void  *collapse_scope(char *);
   void       remember();
 static void       record_base(char *derived, char *base);
@@ -203,14 +204,14 @@ static void       record_base(char *derived, char *base);
  * class Parm
  *
  * Structure for holding information about function parameters
- *   
+ *
  *      CALL_VALUE  -->  Call by value even though function parameter
- *                       is a pointer.   
- *                          ex :   foo(&_arg0);  
+ *                       is a pointer.
+ *                          ex :   foo(&_arg0);
  *      CALL_REF    -->  Call by reference even though function parameter
  *                       is by value
  *                          ex :   foo(*_arg0);
- * 
+ *
  ************************************************************************/
 
 #define CALL_VALUE      0x01
@@ -250,20 +251,20 @@ public:
   void  insert(Parm *p, int pos); // Insert a parameter into the list
   void  del(int pos);             // Delete a parameter at position pos
   int   numopt();                 // Get number of optional arguments
-  int   numarg();                 // Get number of active arguments				       
+  int   numarg();                 // Get number of active arguments
   Parm *get(int pos);             // Get the parameter at position pos
-  Parm &operator[](int);          // An alias for get().  
-  ParmList(); 
-  ParmList(ParmList *l); 
+  Parm &operator[](int);          // An alias for get().
+  ParmList();
+  ParmList(ParmList *l);
   ~ParmList();
 
   // Keep this for backwards compatibility
 
   Parm  *get_first();              // Get first parameter from list
-  Parm  *get_next();               // Get next parameter from list      
+  Parm  *get_next();               // Get next parameter from list
   void   print_types(FILE *f);     // Print list of datatypes
   void   print_types(String &f);   // Generate list of datatypes.
-  void   print_args(FILE *f);      // Print argument list				     
+  void   print_args(FILE *f);      // Print argument list
   void   sub_parmnames(String &s); // Remaps real parameter names in code fragment
 };
 
@@ -307,7 +308,7 @@ struct Pragma {
  *
  *    link_variable(vname, iname, type)
  *           Creates a link to a variable.
- *    
+ *
  *    declare_const(cname, type, value)
  *           Creates a constant (for #define).
  *
@@ -328,7 +329,7 @@ struct Pragma {
  *
  *    usage_const(iname, type, value, string)
  *           Produces usage string for constants
- *           
+ *
  *    set_module(char *modname)
  *           Sets the name of the module (%module directive)
  *
@@ -345,15 +346,15 @@ struct Pragma {
  *    languages.   SWIG handles inheritance, symbol tables, and other
  *    information.
  *
- *    cpp_open_class(char *classname, char *rname) 
+ *    cpp_open_class(char *classname, char *rname)
  *          Open a new C++ class definition.
  *    cpp_close_class(char *)
  *          Close current C++ class
  *    cpp_member_func(char *name, char *rname, DataType *rt, ParmList *l)
  *          Create a C++ member function
- *    cpp_constructor(char *name, char *iname, ParmList *l) 
+ *    cpp_constructor(char *name, char *iname, ParmList *l)
  *          Create a C++ constructor.
- *    cpp_destructor(char *name, char *iname) 
+ *    cpp_destructor(char *name, char *iname)
  *          Create a C++ destructor
  *    cpp_variable(char *name, char *iname, DataType *t)
  *          Create a C++ member data item.
@@ -361,7 +362,7 @@ struct Pragma {
  *          Create a C++ constant.
  *    cpp_inherit(char *baseclass)
  *          Inherit data from baseclass.
- *    cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) 
+ *    cpp_static_func(char *name, char *iname, DataType *t, ParmList *l)
  *          A C++ static member function.
  *    cpp_static_var(char *name, char *iname, DataType *t)
  *          A C++ static member data variable.
@@ -372,7 +373,7 @@ class Language {
 public:
   virtual void parse_args(int argc, char *argv[]) = 0;
   virtual void parse() = 0;
-  virtual void create_function(char *, char *, DataType *, ParmList *) = 0; 
+  virtual void create_function(char *, char *, DataType *, ParmList *) = 0;
   virtual void link_variable(char *, char *, DataType *)  = 0;
   virtual void declare_const(char *, char *, DataType *, char *) = 0;
   virtual void initialize(void) = 0;
@@ -391,7 +392,7 @@ public:
   // C++ language extensions.
   // You can redefine these, or use the defaults below
   //
-       
+
   virtual void cpp_member_func(char *name, char *iname, DataType *t, ParmList *l);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
@@ -405,7 +406,7 @@ public:
   virtual void cpp_static_var(char *name, char *iname, DataType *t);
   virtual void cpp_pragma(Pragma *plist);
 
-  // Pragma directive 
+  // Pragma directive
 
   virtual void pragma(char *, char *, char *);
 
@@ -441,13 +442,13 @@ extern void cplus_emit_member_func(char *classname, char *classtype, char *class
                                    int mode);
 
 extern void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, DataType *type, ParmList *l, 
+                                   char *mname, char *mrename, DataType *type, ParmList *l,
                                    int mode);
 
 extern void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
                                   char *name, char *iname, int mode);
 
-extern void cplus_emit_constructor(char *classname, char *classtype, char *classrename, 
+extern void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
                                    char *name, char *iname, ParmList *l, int mode);
 
 extern void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
@@ -486,9 +487,9 @@ public:
   String  def;
   String  locals;
   String  code;
-  String  init;                    
+  String  init;
   void    print(FILE *f);
-  void    print(String &f); 
+  void    print(String &f);
   void    add_local(char *type, char *name, char *defvalue = 0);
   char   *new_local(char *type, char *name, char *defvalue = 0);
 static    void    del_type(void *obj);
