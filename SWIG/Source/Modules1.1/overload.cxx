@@ -46,11 +46,13 @@ Swig_overload_rank(Node *n) {
   c = o;
   while (c) {
     if (!Getattr(c,"error")) {
-      nodes[nnodes].n = c;
-      nodes[nnodes].parms = Getattr(c,"wrap:parms");
-      nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
-      nodes[nnodes].error = 0;
-      nnodes++;
+      if (Getattr(c,"wrap:name")) {
+	nodes[nnodes].n = c;
+	nodes[nnodes].parms = Getattr(c,"wrap:parms");
+	nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
+	nodes[nnodes].error = 0;
+	nnodes++;
+      }
     }
     c = Getattr(c,"sym:nextSibling");
   }

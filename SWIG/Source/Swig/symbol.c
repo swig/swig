@@ -347,6 +347,7 @@ void Swig_symbol_inherit(Symtab *s) {
 
 void
 Swig_symbol_cadd(String_or_char *name, Node *n) {
+  Node *append = 0;
 
   Node *cn;
   /* There are a few options for weak symbols.  A "weak" symbol 
@@ -370,6 +371,8 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
   cn = Getattr(ccurrent,name);
   if (cn && (Getattr(cn,"sym:typename"))) {
     /* The node in the C symbol table is a typename.  Do nothing */
+    /* We might append the symbol at the end */
+    append = n;
   } else if (cn && (Getattr(cn,"sym:weak"))) {
     /* The node in the symbol table is weak. Replace it */
     Setattr(ccurrent,name, n);
@@ -378,13 +381,30 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
   } else if (cn && (Getattr(n,"sym:typename"))) {
     /* The node being added is a typename.  We definitely add it */
     Setattr(ccurrent,name,n);
+    append = cn;
   } else if (cn && (Strcmp(nodeType(cn),"templateparm") == 0)) {
     Swig_error(Getfile(n),Getline(n),"Error. Declaration of '%s' shadows template parameter at %s:%d\n",
 	       name,Getfile(cn),Getline(cn));
     return;
+  } else if (cn) {
+    append = n;
   } else if (!cn) {
     /* No conflict. Add the symbol */
     Setattr(ccurrent,name,n);
+  }
+
+  /* Multiple entries in the C symbol table.   We append to to the symbol table */
+  if (append) {
+    Node *fn, *pn;
+    cn = Getattr(ccurrent,name);
+    fn = cn;
+    while (fn) {
+      pn = fn;
+      fn = Getattr(fn,"csym:nextSibling");
+    }
+    if (pn) {
+      Setattr(pn,"csym:nextSibling",append);
+    }
   }
 
   /* Special typedef handling.  When a typedef node is added to the symbol table, we

@@ -232,11 +232,12 @@ class TypePass : public Dispatcher {
   void clean_overloaded(Node *n) {
     Node *nn = Getattr(n,"sym:overloaded");
     Node *first = 0;
+    int   cnt = 0;
     while (nn) {
       if ((Strcmp(nodeType(nn),"template") == 0) ||
 	  (Getattr(nn,"feature:ignore")) ||
 	  (Getattr(nn,"error")) ||
-	  (Strcmp(nodeType(nn),"using") == 0) || 
+	  ((Strcmp(nodeType(nn),"using") == 0) && !firstChild(nn)) ||
 	  (checkAttribute(nn,"storage","friend"))) {
 	/* Remove from overloaded list */
 	Node *ps = Getattr(nn,"sym:previousSibling");
@@ -252,6 +253,38 @@ class TypePass : public Dispatcher {
 	Delattr(nn,"sym:overloaded");
 	nn = ns;
 	continue;
+      } else if ((Strcmp(nodeType(nn),"using") == 0)) {
+	/* A possibly dangerous parse tree hack.  We're going to
+           cut the parse tree node out and stick in the resolved
+           using declarations */
+	
+	Node *ps = Getattr(nn,"sym:previousSibling");
+	Node *ns = Getattr(nn,"sym:nextSibling");
+	Node *un = firstChild(nn);
+	Node *pn = un;
+
+	if (!first) {
+	  first = un;
+	}
+	while (pn) {
+	  Node *ppn = Getattr(pn,"sym:nextSibling");
+	  Setattr(pn,"sym:overloaded",first);
+	  Setattr(pn,"sym:overname", NewStringf("%s_%d", Getattr(nn,"sym:overname"), cnt++));
+	  if (ppn) pn = ppn;
+	  else break;
+	}
+	if (ps) {
+	  Setattr(ps,"sym:nextSibling",un);
+	  Setattr(un,"sym:previousSibling",ps);
+	}
+	if (ns) {
+	  Setattr(ns,"sym:previousSibling", pn);
+	  Setattr(pn,"sym:nextSibling",ns);
+	}
+	if (!first) {
+	  first = un;
+	  Setattr(nn,"sym:overloaded",first);
+	}
       } else {
 	if (!first) first = nn;
 	Setattr(nn,"sym:overloaded",first);
@@ -744,7 +777,74 @@ public:
 		    SwigType_typedef_using(uname);
 	      } else {
 		/* A normal C declaration. */
+		if (inclass) {
+		  Node *c = ns;
+		  Node *unodes = 0, *last_unodes = 0;
+		  int   ccount = 0;
+		  while (c) {
+		    if (Strcmp(nodeType(c),"cdecl") == 0) {
+		      if (!(checkAttribute(c,"storage","static") 
+			    || checkAttribute(c,"storage","typedef")
+			    || checkAttribute(c,"storage","friend"))) {
+			
+			/* Check for existence in overload list already */
+			{
+			  String *decl = Getattr(c,"decl");
+			  Node   *over = Getattr(n,"sym:overloaded");
+			  int     match = 0;
+			  while (over) {
+			    String *odecl = Getattr(over,"decl");
+			    if (Cmp(decl, odecl) == 0) {
+			      match = 1;
+			      break;
+			    }
+			    over = Getattr(over,"sym:nextSibling");
+			  }
+			  if (match) {
+			    c = Getattr(c,"csym:nextSibling");
+			    continue;
+			  }
+			}
+			Node *nn = NewHash();
+			set_nodeType(nn,"cdecl");
+			Setattr(nn,"name",Getattr(c,"name"));
+			Setattr(nn,"sym:name", Getattr(n,"sym:name"));
+			Setattr(nn,"type",Getattr(c,"type"));
+			Setattr(nn,"decl",Getattr(c,"decl"));
+			Setattr(nn,"parms", CopyParmList(Getattr(c,"parms")));
+			Setattr(nn,"storage",Getattr(c,"storage"));
+			Setattr(nn,"using","1");
+			Setattr(nn,"sym:overname", Getattr(c,"sym:overname"));
 
+			ccount++;
+			Setfile(nn,Getfile(c));
+			Setline(nn,Getline(c));
+			if (!last_unodes) {
+			  last_unodes = nn;
+			  unodes = nn;
+			} else {
+			  Setattr(nn,"previousSibling",last_unodes);
+			  Setattr(last_unodes,"nextSibling", nn);
+			  Setattr(nn,"sym:previousSibling", last_unodes);
+			  Setattr(last_unodes,"sym:nextSibling", nn);
+			  Setattr(nn,"sym:overloaded", unodes);
+			  Setattr(unodes,"sym:overloaded", unodes);
+			  last_unodes = nn;
+			}
+		      }
+		    }
+		    c = Getattr(c,"csym:nextSibling");
+		  }
+		  if (unodes) {
+		    set_firstChild(n,unodes);
+		    if (ccount > 1) {
+		      if (!Getattr(n,"sym:overloaded")) {
+			Setattr(n,"sym:overloaded",n);
+			Setattr(n,"sym:overname","_SWIG_0");
+		      }
+		    }
+		  }
+		}
 	      }
 	    } else if ((Strcmp(ntype,"class") == 0) || ((Strcmp(ntype,"classforward") == 0))) {
 		/* We install the using class name as kind of a typedef back to the original class */

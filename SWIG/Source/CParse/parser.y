@@ -96,6 +96,7 @@ static Node *copy_node(Node *n) {
 	(Strcmp(key,"lastChild") == 0)) {
       continue;
     }
+    if (Strncmp(key,"csym:",5) == 0) continue;
     /* We do copy sym:name.  For templates */
     if ((Strcmp(key,"sym:name") == 0) || 
 	(Strcmp(key,"sym:weak") == 0) ||

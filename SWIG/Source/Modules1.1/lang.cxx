@@ -1541,6 +1541,15 @@ int Language::validIdentifier(String *s) {
   return 1;
 }
 
+/* -----------------------------------------------------------------------------
+ * Language::usingDeclaration()
+ * ----------------------------------------------------------------------------- */
+
+int Language::usingDeclaration(Node *n) {
+  emit_children(n);
+  return SWIG_OK;
+}
+
 /* Stubs. Language modules need to implement these */
 
 /* ----------------------------------------------------------------------
