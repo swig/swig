@@ -53,7 +53,7 @@ libswigtcl8_la_LDFLAGS  = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(TCL
 libswigtcl8_la_CFLAGS   = $(TCL_INCLUDE)
 
 libtcl8.c: $(TCL_PRECOMMON) $(SWIG_TYPECHECK) $(TCL_RUNTIME)
-	../swig -tcl -runtime -I../Lib -o libtcl8.c swigrun.i
+	../swig -tcl -runtime -I../Lib -I../Lib/tcl -o libtcl8.c swigrun.i
 
 # ----------------------------------------------------------------------
 # Perl run-time library
@@ -70,7 +70,7 @@ libswigpl_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PER
 libswigpl_la_CFLAGS     = $(PERL5_INCLUDE) -Dbool=char -Dexplicit=$(PERL5_CCFLAGS)
 
 libpl.c: $(PERL5_PRECOMMON) $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
-	../swig -perl5 -runtime -I../Lib -o libpl.c swigrun.i	
+	../swig -perl5 -runtime -I../Lib -I../Lib/perl5 -o libpl.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Python run-time library
@@ -86,7 +86,7 @@ libswigpy_la_LDFLAGS    = @LIBTOOL_NO_UNDEFINED@ $(RELEASE_SUFFIX_LIBTOOL) $(PYT
 libswigpy_la_CFLAGS     = $(PYTHON_INCLUDE)
 
 libpy.c: $(PYTHON_PRECOMMON) $(SWIG_TYPECHECK) $(PYTHON_RUNTIME)
-	../swig -python -runtime -I../Lib -o libpy.c swigrun.i	
+	../swig -python -runtime -I../Lib -I../Lib/python -o libpy.c swigrun.i	
 
 # ----------------------------------------------------------------------
 # Guile run-time library
