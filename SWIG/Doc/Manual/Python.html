@@ -82,10 +82,7 @@
 
 This chapter describes SWIG's support of Python.  SWIG is compatible
 with most recent Python versions including Python 2.2 as well as older
-versions dating back to Python 1.5.  The original release of SWIG was
-developed for Python 1.3 so current versions may still work with that
-release.  However, this hasn't been tested for quite some time and
-your mileage might vary.  For the best results, consider using Python
+versions dating back to Python 1.5.2.  For the best results, consider using Python
 2.0 or newer.
 
 <p>
@@ -2567,10 +2564,9 @@ as the material in the "<a href="Typemaps.html">Typemaps</a>" chapter.
 Before proceeding, it should be stressed that typemaps are not a required 
 part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
-C-Python interface.
+C-Python interface or if you want to elevate your guru status.
 
 <a name="n38"></a><H3>18.6.1 What is a typemap?</H3>
-
 
 A typemap is nothing more than a code generation rule that is attached to 
 a specific C datatype.   For example, to convert integers from Python to C,
@@ -2611,19 +2607,22 @@ You can refine this by supplying an optional parameter name.  For example:
 
 <blockquote><pre>%module example
 
-%typemap(in) int n {
+%typemap(in) int nonnegative {
 	$1 = (int) PyLong_AsLong($input);
-	printf("n = %d\n",$1);
+        if ($1 < 0) {
+           PyErr_SetString(PyExc_ValueError,"Expected a nonnegative value.");
+           return NULL;
+        }
 }
-extern int fact(int n);
+extern int fact(int nonnegative);
 </pre></blockquote>
 
-In this case, the typemap code is only attached to arguments that exactly match <tt>int n</tt>.
+In this case, the typemap code is only attached to arguments that exactly match <tt>int nonnegative</tt>.
 
 <p>
 The application of a typemap to specific datatypes and argument names involves
 more than simple text-matching--typemaps are fully integrated into the
-SWIG type-system.   When you define a typemap for <tt>int</tt>, that typemap
+SWIG C++ type-system.   When you define a typemap for <tt>int</tt>, that typemap
 applies to <tt>int</tt> and qualified variations such as <tt>const int</tt>.  In addition,
 the typemap system follows <tt>typedef</tt> declarations.  For example:
 
@@ -2637,10 +2636,6 @@ typedef int Integer;
 extern int fact(Integer n);    // Above typemap is applied
 </pre>
 </blockquote>
-
-However, the matching of <tt>typedef</tt> only occurs in one direction.  If you
-defined a typemap for <tt>Integer</tt>, it is not applied to arguments of
-type <tt>int</tt>.
 
 <p>
 Typemaps can also be defined for groups of consecutive arguments.  For example:
@@ -2670,7 +2665,6 @@ parameter is ommitted):
 
 <a name="n39"></a><H3>18.6.2 Python typemaps</H3>
 
-
 The previous section illustrated an "in" typemap for converting Python objects to C.
 A variety of different typemap methods are defined by the Python module.  For example,
 to convert a C integer back into a Python object, you might define an "out" typemap
@@ -2684,87 +2678,23 @@ like this:
 </pre>
 </blockquote>
 
-The following list details all of the typemap methods that can be used by the Python module:
-<p>
-<tt>%typemap(in)	</tt>
+A detailed list of available methods can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
+However, the best source of typemap information (and examples) is probably the Python module
+itself.  In fact, all of SWIG's default type handling is defined by typemaps.  You can view
+these typemaps by looking at the <tt>python.swg</tt> file in the SWIG library.  Just issue
+these commands:
+
 <blockquote>
-Converts Python objects to input function arguments<p>
+<pre>
+$ swig -python -co python.swg
+'python.swg' checked out from the SWIG library.
+$ cat python.swg
+</pre>
 </blockquote>
 
-<tt>%typemap(out)</tt>
-<blockquote>
-Converts return value of a C function to a Python object<p>
-</blockquote>
-
-<tt>%typemap(varin)</tt>
-<blockquote>
-Assigns a C global variable from a Python object<p>
-</blockquote>
-
-<tt>%typemap(varout)</tt>
-<blockquote>
-Returns a C global variable as a Python object<p>
-</blockquote>
-
-<tt>%typemap(freearg)</tt>
-<blockquote>
-Cleans up a function argument (if necessary)<p>
-</blockquote>
-
-<tt>%typemap(argout)</tt>
-<blockquote>
-Output argument processing<p>
-</blockquote>
-
-<tt>%typemap(ret)</tt>
-<blockquote>
-Cleanup of function return values<p>
-</blockquote>
-
-<tt>%typemap(consttab)</tt>
-<blockquote>
-Creation of Python constants (constant table)<p>
-</blockquote>
-
-<tt>%typemap(constcode)</tt> 
-<blockquote>
-Creation of Python constants (init function)
-</blockquote>
-
-<tt>%typemap(memberin)</tt>
-<blockquote>
-Setting of structure/class member data<p>
-</blockquote>
-
-<tt>%typemap(globalin)</tt>
-<blockquote>
-Setting of C global variables<p>
-</blockquote>
-
-<tt>%typemap(check)</tt>
-<blockquote>
-Checks function input values.<p>
-</blockquote>
-
-<tt>%typemap(default)</tt>
-<blockquote>
-Set a default value for an argument (making it optional).
-</blockquote>
-
-<tt>%typemap(ignore)</tt>
-<blockquote>
-Ignore an argument, but initialize its value.
-</blockquote>
-
-<tt>%typemap(arginit)</tt>
-<blockquote>
-Initialize an argument to a value before any conversions occur.
-</blockquote>
-
-Examples of these methods will appear shortly.
+Additional typemap examples can also be found in the <tt>typemaps.i</tt> file.
 
 <a name="n40"></a><H3>18.6.3 Typemap variables</H3>
-
 
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
 A full list of variables can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
@@ -2817,8 +2747,7 @@ properly assigned.
 The Python name of the wrapper function being created.
 </blockquote>
 
-<a name="n41"></a><H3>18.6.4 Useful Functions</H3>
-
+<a name="n41"></a><H3>18.6.4 Useful Python Functions</H3>
 
 When you write a typemap, you usually have to work directly with Python objects.
 The following functions may prove to be useful.
@@ -2916,7 +2845,6 @@ write me
 
 <a name="n42"></a><H2>18.7 Typemap Examples</H2>
 
-
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
@@ -2994,8 +2922,7 @@ memory allocation is used to allocate memory for the array, the
 "freearg" typemap is used to later release this memory after the execution of
 the C function. 
 
-<a name="n44"></a><H3>18.7.2 Expanding a Python object to multiple arguments</H3>
-
+<a name="n44"></a><H3>18.7.2 Expanding a Python object into multiple arguments</H3>
 
 Suppose that you had a collection of C functions with arguments
 such as the following:
@@ -3065,7 +2992,6 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 </blockquote>
 
 <a name="n45"></a><H3>18.7.3 Using typemaps to return arguments</H3>
-
 
 A common problem in some C programs is that values may be returned in
 arguments rather than in the return value of a function.  For example
@@ -3144,7 +3070,6 @@ function can now be used as follows:
 
 <a name="n46"></a><H3>18.7.4 Mapping Python tuples into small arrays</H3>
 
-
 In some applications, it is sometimes desirable to pass small arrays
 of numbers as arguments. For example :<p>
 
@@ -3184,7 +3109,6 @@ array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.<p>
 
 <a name="n47"></a><H3>18.7.5 Mapping sequences to C arrays</H3>
-
 
 Suppose that you wanted to generalize the previous example to handle C
 arrays of different sizes.  To do this, you might write a typemap as follows:
@@ -3262,60 +3186,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 </pre>
 </blockquote>
 
-<a name="n48"></a><H3>18.7.6 Accessing array structure members</H3>
-
-
-Consider the following data structure :<p>
-<p>
-<blockquote><pre>#define SIZE  8
-typedef struct {
-    int   values[SIZE];
-    ...
-} Foo;
-
-</pre></blockquote>
-
-By default, SWIG doesn't know how to the handle the values structure
-member it's an array, not a pointer.  In this case, SWIG makes the array member
-read-only.   Reading will simply return a pointer to the first item in the array.
-To make the member writable, a "memberin" typemap can be used.
-
-<p>
-<blockquote><pre>%typemap(memberin) int [SIZE] {
-    int i;
-    for (i = 0; i < SIZE; i++) {
-        $1[i] = $input[i];
-    }
-}
-
-</pre></blockquote>
-
-Whenever a <tt>int [SIZE]</tt> member is encountered in a structure
-or class, this typemap provides a safe mechanism for setting its
-value.  
-
-<p>
-As in the previous example, the typemap can be generalized for any dimension.
-For example:
-
-<blockquote><pre>%typemap(memberin) int [ANY] {
-   int i;
-   for (i = 0; i < $1_dim0; i++) {
-      $1[i] = $input[i];
-   }
-}
-</pre></blockquote>
-
-When setting structure members, the input object is always assumed to
-be a C array of values that have already been converted from the
-target language.  Because of this, the <tt>memberin</tt> typemap is
-almost always combined with the use of an "in" typemap.  For example,
-the "in" typemap in the previous section would be used to convert an
-<tt>int[]</tt> array to C whereas the "memberin" typemap would be used
-to copy the converted array into a C data structure.
-
 <a name="n49"></a><H3>18.7.7 Pointer handling</H3>
-
 
 Occasionally, it might be necessary to convert pointer values that have
 been stored using the SWIG typed-pointer representation.  Since there are
@@ -3330,9 +3201,9 @@ int SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)</t
 <blockquote>
 Converts a Python object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
 into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
-<tt>flags</tt> is used to handle error checking and other aspects of conversion.  If set, 
-the function converts type-errors into a Python <tt>TypeError</tt> exception.  If set to zero, no Python exception
-is raised.  Returns 0 on success and -1 on error.
+<tt>flags</tt> is used to handle error checking and other aspects of conversion.  It is the
+bitwise-or of several flag values including <tt>SWIG_POINTER_EXCEPTION</tt> and <tt>SWIG_POINTER_DISOWN</tt>.   The first flag makes the function raise an exception on type error.  The second flag additionally
+steals ownership of an object. Returns 0 on success and -1 on error.
 </blockquote>
 
 <p>
@@ -3356,7 +3227,7 @@ is usually accessed as follows:
 <blockquote>
 <pre>
 Foo *f;
-if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, 1) == -1) return NULL;
+if (SWIG_ConvertPtr($input, (void **) &f, SWIGTYPE_p_Foo, SWIG_POINTER_EXCEPTION) == -1) return NULL;
 
 PyObject *obj;
 obj = SWIG_NewPointerObj(f, SWIGTYPE_p_Foo, 0);
@@ -3369,7 +3240,7 @@ variable <tt>$1_descriptor</tt>.  For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,1)) == -1) return NULL;
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION)) == -1) return NULL;
 }
 </pre>
 </blockquote>
@@ -3381,7 +3252,7 @@ For example:
 <blockquote>
 <pre>
 %typemap(in) Foo * {
-   if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), 1)) == -1) return NULL;
+   if ((SWIG_ConvertPtr($input,(void **) &$1, $descriptor(Foo *), SWIG_POINTER_EXCEPTION)) == -1) return NULL;
 }
 </pre>
 </blockquote>
@@ -3394,44 +3265,6 @@ that has a <tt>this</tt> attribute.  In addition,
 <tt>SWIG_NewPointerObj()</tt> can automatically generate a shadow
 class object (if applicable).
 
-<a name="n50"></a><H2>18.8 Other odds and ends</H2>
-
-
-<a name="n51"></a><H3>18.8.1 Adding native Python functions to a SWIG module</H3>
-
-
-Sometimes it is desirable to add a native Python method to a SWIG
-wrapper file.  Suppose you have the following Python/C function :<p>
-
-<p>
-<blockquote><pre>PyObject *spam_system(PyObject *self, PyObject *args) {
-	char *command;
-	int sts;
-	if (!PyArg_ParseTuple(args,"s",&amp;command))
-		return NULL;
-	sts = system(command);
-	return Py_BuildValue("i",sts);
-}
-
-</pre></blockquote>
-
-This function can be added to a SWIG module using the following
-declaration :<p>
-
-<p>
-<blockquote><pre>%native(system) spam_system;        // Create a command called `system'
-
-</pre></blockquote>
-Alternatively, you can use the full function declaration like this <p>
-<p>
-<blockquote><pre>%native(system) PyObject *spam_system(PyObject *self, PyObject *args);
-</pre></blockquote>
-<p>
-or<p>
-<p>
-<blockquote><pre>%native(system) extern PyObject *spam_system(PyObject *self, PyObject *args);
-</pre></blockquote>
-
-<address>SWIG 1.3 - Last Modified : January 27, 2002</address>
+<address>SWIG 1.3 - Last Modified : August 7, 2002</address>
 </body>
 </html>
