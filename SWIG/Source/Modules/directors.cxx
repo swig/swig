@@ -25,6 +25,7 @@ char cvsroot_directors_cxx[] = "$Header";
 
 String *Swig_csuperclass_call(String* base, String* method, ParmList* l) {
   String *call = NewString("");
+  int arg_idx = 0;
   Parm *p;
   if (base) {
     Printf(call, "%s::", base);
@@ -32,6 +33,10 @@ String *Swig_csuperclass_call(String* base, String* method, ParmList* l) {
   Printf(call, "%s(", method);
   for (p=l; p; p = nextSibling(p)) {
     String *pname = Getattr(p, "name");
+    if (!pname && Cmp(Getattr(p,"type"), "void")) {
+      pname = NewString("");
+      Printf(pname, "arg%d", arg_idx++);
+    }
     if (p != l) Printf(call, ", ");
     Printv(call, pname, NIL);
   }
