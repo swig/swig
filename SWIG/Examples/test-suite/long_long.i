@@ -8,8 +8,8 @@
 
 #ifdef SWIGGUILE
 /* Silly sample typemaps */
-%typemap(in) long long, unsigned long long "$target = 42;";
-%typemap(out) long long, unsigned long long "$target = SCM_BOOL_F;";
+%typemap(in) long long, unsigned long long "$1 = 42;";
+%typemap(out) long long, unsigned long long "$result = SCM_BOOL_F;";
 #endif
 
 %inline %{
