@@ -212,9 +212,18 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
       Putc(c,macroname);
     } else if (isspace(c)) {
       break;
+    } else if (c == '\\') {
+      c = Getc(str);
+      if (c != '\n') {
+	Ungetc(c,str);
+	Ungetc('\\',str);
+	break;
+      }
     } else {
-      Swig_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
-      goto macro_error;
+      /*Swig_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
+	goto macro_error; */
+      Ungetc(c,str);
+      break;
     }
   }
   if (!swigmacro)
@@ -924,6 +933,7 @@ check_id(DOH *s)
 {
   static SwigScanner *scan = 0;
   int c;
+  int hastok = 0;
 
   Seek(s,0,SEEK_SET);
 
@@ -936,10 +946,11 @@ check_id(DOH *s)
   Seek(s,SEEK_SET,0);
   SwigScanner_push(scan,s);
   while ((c = SwigScanner_token(scan))) {
+    hastok = 1;
     if ((c == SWIG_TOKEN_ID) || (c == SWIG_TOKEN_LBRACE) || (c == SWIG_TOKEN_RBRACE)) return 1;
   }
+  if (!hastok) return 1;
   return 0;
-
 }
 
 /* addline().  Utility function for adding lines to a chunk */
@@ -1140,8 +1151,12 @@ Preprocessor_parse(String *s)
       break;
 
     case 44:
-      if (c == '\n') cpp_lines++;
-      Putc(c,value);
+      if (c == '\n') {
+	Putc(c,value);
+	cpp_lines++;
+      } else {
+	Ungetc(c,s);
+      }
       state = 43;
       break;
 
