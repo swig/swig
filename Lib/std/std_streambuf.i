@@ -81,5 +81,7 @@ namespace std {
 
 namespace std {
   %template(streambuf) basic_streambuf<char>;
+#if defined(SWIG_WCHAR)
   %template(wstreambuf) basic_streambuf<wchar_t>;
+#endif
 }

@@ -248,7 +248,9 @@ namespace std {
 
 namespace std {
   %template(ios) basic_ios<char>;
+#if defined(SWIG_WCHAR)
   %template(wios) basic_ios<wchar_t>;
+#endif
 }
 
   
