@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "swig-ocamlrt.h"
+#include "libswigocaml.h"
 /* Ocaml runtime support ... not much here yet */
 
 void *nullptr = 0;

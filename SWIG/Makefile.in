@@ -578,10 +578,15 @@ install-lib:
 	    done;
 
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ocaml
-	@cd $(srcdir)/Lib/ocaml; for i in *.h *.i *.swg; \
+	@cd $(srcdir)/Lib/ocaml; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/ocaml/$$i"; \
             ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ocaml/$$i; \
+	    done;
+	@cd $(srcdir)/Lib/ocaml; for i in *.h; \
+	    do \
+	    echo "Installing Lib/ocaml/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/../../include/$$i; \
 	    done;
 
 install-runtime:
