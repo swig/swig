@@ -345,7 +345,8 @@ Guile
 	   void free_foo(struct foo *FREED);
 
 **     Make SWIG's types first-class by using a separate smob type for
-       SWIG type descriptors; enable reflection on types.
+       SWIG type descriptors; enable reflection on types.  (Maybe
+       GOOPS metaclasses?)
 
 **     Maybe communicate the type system between object modules via Scheme
        variables, rather than a shared object.
