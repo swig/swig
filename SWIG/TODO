@@ -290,6 +290,20 @@ Java
 PHP
 ---
 
+[done] Much better class implementation in php.  Wrapped classes are 
+       implemented in c++ but accessable natively as php4 classes, all
+       fully subclassable in php! - including class property accessors.
+
+[done] Much improved pointer handling and destructing by means of php 
+       resources
+
+*      Work out when we can but shouldn't dispose of objects because the
+       creator will
+
+*      Get class properties to work
+
+*      Overloading, callbacks, really review to see what else is missed
+
 Guile
 -----
 
