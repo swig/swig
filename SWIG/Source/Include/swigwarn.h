@@ -107,6 +107,8 @@
 #define WARN_IGNORE_OPERATOR_UMINUS     391   /* - */
 #define WARN_IGNORE_OPERATOR_UMUL       392   /* * */
 #define WARN_IGNORE_OPERATOR_UAND       393   /* & */
+#define WARN_IGNORE_OPERATOR_NEWARR     394   /* new [] */
+#define WARN_IGNORE_OEPRATOR_DELARR     395   /* delete [] */
 
 /* 394-399 are reserved */
 
@@ -138,6 +140,7 @@
 #define WARN_LANG_VARARGS             505 
 #define WARN_LANG_VARARGS_KEYWORD     506
 #define WARN_LANG_NATIVE_UNIMPL       507
+#define WARN_LANG_DEREF_SHADOW        508
 
 /* -- Reserved (600-799) -- */
 
