@@ -202,6 +202,7 @@ public:
   virtual  int  addSymbol(String *s, Node *n);     /* Add symbol        */
   virtual  Node *symbolLookup(String *s);          /* Symbol lookup     */
   virtual  Node *classLookup(SwigType *s);         /* Class lookup      */
+  virtual  int  abstractClassTest(Node *n);	   /* Is class really abstract? */
   
   /* Allow director related code generation */
   void allow_directors(int val = 1);
