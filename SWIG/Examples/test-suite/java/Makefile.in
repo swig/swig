@@ -19,6 +19,7 @@ CPP_TEST_CASES = \
 	enum_thorough_typeunsafe \
 	java_constants \
 	java_enums \
+	java_lib_arrays_dimensionless \
 	java_lib_various \
 	java_jnitypes \
 	java_pragmas \
