@@ -676,10 +676,9 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   WrapperFunction f;
   char  source[256],target[256],temp[256], argnum[32];
   char  *tm;
-  String cleanup,outarg,build;
+  String cleanup,outarg;
   int    numopt = 0;
   int    need_save, num_saved = 0;             // Number of saved arguments.
-  int    have_build = 0;
 
   // Make a wrapper name for this
 
@@ -813,12 +812,6 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     } else {
       temp[0] = 0;
     }
-    // Check to see if there is any sort of "build" typemap (highly complicated)
-
-    if ((tm = typemap_lookup((char*)"build",(char*)"perl5",p->t,p->name,source,target))) {
-      build << tm << "\n";
-      have_build = 1;
-    }
 
     // Check if there is any constraint code
     if ((tm = typemap_lookup((char*)"check",(char*)"perl5",p->t,p->name,source,target))) {
@@ -856,28 +849,6 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   if (num_saved) {
     sprintf(temp,"_saved[%d]",num_saved);
     f.add_local((char*)"SV *",temp);
-  }
-
-  // If there was a "build" typemap, we need to go in and perform a serious hack
-  
-  if (have_build) {
-    char temp1[32];
-    char temp2[256];
-    l->sub_parmnames(build);            // Replace all parameter names
-    j = 1;
-    for (i = 0; i < l->nparms; i++) {
-      p = l->get(i);
-      if (strlen(p->name) > 0) {
-	sprintf(temp1,"_in_%s", p->name);
-      } else {
-	sprintf(temp1,"_in_arg%d", i);
-      }
-      sprintf(temp2,"argv[%d]",j);
-      build.replaceid(temp1,temp2);
-      if (!p->ignore) 
-	j++;
-    }
-    f.code << build;
   }
 
   // Now write code to make the function call

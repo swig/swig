@@ -582,10 +582,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   String   get_pointers;
   String   cleanup, outarg;
   String   check;
-  String   build;
   String   kwargs;
 
-  int      have_build = 0;
   char     *tm;
   int      numopt = 0;
 
@@ -787,10 +785,6 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       outarg.replace("$arg",source);
       have_output++;
     } 
-    if ((tm = typemap_lookup((char*)"build",(char*)"python",p->t,p->name,source,target))) {
-      build << tm << "\n";
-      have_build = 1;
-    }
     p = l->get_next();
     i++;
   }
@@ -809,26 +803,6 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   /* Now slap the whole first part of the wrapper function together */
 
   f.code << parse_args << get_pointers << check;
-
-
-  // Special handling for build values
-
-  if (have_build) {
-    char temp1[256];
-    char temp2[256];
-    l->sub_parmnames(build);            // Replace all parameter names
-    for (i = 0; i < l->nparms; i++) {
-      p = l->get(i);
-      if (strlen(p->name) > 0) {
-	sprintf(temp1,"_in_%s", p->name);
-      } else {
-	sprintf(temp1,"_in_arg%d", i);
-      }
-      sprintf(temp2,"_obj%d",i);
-      build.replaceid(temp1,temp2);
-    }
-    f.code << build;
-  }
 
   // This function emits code to call the real function.  Assuming you read
   // the parameters in correctly, this will work.
