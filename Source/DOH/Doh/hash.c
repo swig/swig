@@ -243,7 +243,6 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
 	HashNode *nn;
 	if (prev) {
 	  prev->next = n->next;
-	  h->hashtable[hv] = n->next;
 	} else {
 	  h->hashtable[hv] = n->next;
 	}
