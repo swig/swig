@@ -32,6 +32,9 @@ commercial or noncommercial use.
 <h3>News</h3>
 
 <p>
+(7/2/00) Bug tracking has been moved to SourceForge. Please pardon our dust.
+
+<p>
 (6/18/00) <a href="http://download.sourceforge.net/swig/swig1.3a3.tar.gz">SWIG1.3a3</a> has been released. This fixes a number of bugs in 1.3a2 and
 includes more code cleanup.
 

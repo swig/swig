@@ -2,18 +2,13 @@ SWIG Bug Tracking
 
 <p><img src="images/bugs.png">
 
-<p>A <a href="http://swig.cs.uchicago.edu/cgi-bin/swig">bug-tracking system</a> for SWIG
-is located at the University of Chicago.  Bug reports can also be sent to 
-<a href="mailto:swigbugs@swig.cs.uchicago.edu">swigbugs@swig.cs.uchicago.edu</a>.
+<p>A <a href="http://sourceforge.net/bugs/?group_id=1645">bug-tracking system</a> for SWIG
+is located on <a href="http://sourceforge.net">SourceForge</a>. 
 
 <p>
-Please note that due to the volume of e-mail I receive, bug reports may not 
-receive an immediate response (and in some cases, a response is not be sent until 
-the bug is actually fixed).   If you have an immediate problem, you may want to
-search the bug database or post a message to the SWIG mailing list instead.
-
-<p>
-However, with that said, if you have a bug or suggestion for improvement that you don't
-want me to forget, the bug database is the best place to put it.  I often walk through
-the database when working on improvements.
+Please note that due to time constraints, bug reports may not 
+receive an immediate response.
+If you have an urgent problem, you may want to
+post a message to the SWIG mailing list at <a href="mailto:swig@cs.uchicago.edu">swig@cs.uchicago.edu</a>
+instead. 
 
