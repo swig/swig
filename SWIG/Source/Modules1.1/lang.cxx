@@ -606,7 +606,7 @@ int Language::typesDirective(Node *n) {
       SwigType_remember(t);
     } else {
       if (SwigType_issimple(t)) {
-	SwigType_inherit(t,v);
+	SwigType_inherit(t,v,0);
       }
     }
     parms = nextSibling(parms);

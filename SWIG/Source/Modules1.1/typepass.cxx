@@ -116,7 +116,7 @@ class TypePass : public Dispatcher {
     }
   
     /* generate C++ inheritance type-relationships */
-    void cplus_inherit_types(Node *first, Node *cls, String *clsname) {
+    void cplus_inherit_types(Node *first, Node *cls, String *clsname, String *cast = 0) {
       
       if (first == cls) return;  /* The Marcelo check */
       if (!cls) cls = first;
@@ -187,7 +187,7 @@ class TypePass : public Dispatcher {
 				Setmeta(bname,"already_warned","1");
 			    }
 			}
-			SwigType_inherit(clsname,bname);
+			SwigType_inherit(clsname,bname, cast);
 		    }
 		}
 	    }
@@ -203,7 +203,7 @@ class TypePass : public Dispatcher {
 	    String *bname = Getattr(n,"name");
 	    Node *bclass = n; /* Getattr(n,"class"); */
 	    Hash *scopes = Getattr(bclass,"typescope");
-	    SwigType_inherit(clsname,bname);
+	    SwigType_inherit(clsname,bname, cast);
 	    if (!importmode) {
 		String *btype = Copy(bname);
 		SwigType_add_pointer(btype);
@@ -221,7 +221,9 @@ class TypePass : public Dispatcher {
 	    Swig_symbol_setscope(s);
 
             /* Recursively hit base classes */
-	    cplus_inherit_types(first,bclass,clsname);
+	    String *newcast = NewStringf("(%s *)%s", SwigType_namestr(Getattr(bclass,"name")), cast);
+	    cplus_inherit_types(first,bclass,clsname, newcast);
+	    Delete(newcast);
 	}
     }
 

@@ -1153,17 +1153,19 @@ static Hash   *subclass = 0;
 static Hash   *conversions = 0;
 
 void
-SwigType_inherit(String *derived, String *base) {
+SwigType_inherit(String *derived, String *base, String *cast) {
   Hash *h;
   if (!subclass) subclass = NewHash();
   
-  /*  Printf(stdout,"'%s' --> '%s'\n", derived, base); */
+  /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
   h = Getattr(subclass,base);
   if (!h) {
     h = NewHash();
     Setattr(subclass,base,h);
   }
-  Setattr(h,derived,"1");
+  if (!Getattr(h,derived)) {
+    Setattr(h,derived, cast ? cast : (void *) "");
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -1196,6 +1198,7 @@ void SwigType_inherit_equiv(File *out) {
     }
 
     /* This type has subclasses.  We now need to walk through these subtypes and generate pointer converion functions */
+
     rh = Getattr(r_resolved, rkey);
     rlist = NewList();
     for (ckey = Firstkey(rh); ckey; ckey = Nextkey(rh)) {
@@ -1210,7 +1213,7 @@ void SwigType_inherit_equiv(File *out) {
       if (!Getattr(conversions,ckey)) {
 	String *convname = NewStringf("%sTo%s", SwigType_manglestr(prefix), SwigType_manglestr(rkey));
 	Printf(out,"static void *%s(void *x) {\n", convname);
-	Printf(out,"    return (void *)((%s) ((%s) x));\n", SwigType_lstr(rkey,0), SwigType_lstr(prefix,0));
+	Printf(out,"    return (void *)((%s) %s ((%s) x));\n", SwigType_lstr(rkey,0), Getattr(sub,bkey), SwigType_lstr(prefix,0));
 	Printf(out,"}\n");
 	Setattr(conversions,ckey,convname);
 	Delete(ckey);	
@@ -1251,7 +1254,6 @@ void SwigType_inherit_equiv(File *out) {
     }
     rkey = Nextkey(r_resolved);
   }
-      
 }
 
 /* -----------------------------------------------------------------------------
@@ -1287,9 +1289,6 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   Printf(stdout,"---subclass---\n");
   Printf(stdout,"%s\n", subclass);
-
-  Printf(stdout,"---scopes[0]---\n");
-  Printf(stdout,"%s\n", scopes[0]);
   
 #endif
   table = NewString("");
