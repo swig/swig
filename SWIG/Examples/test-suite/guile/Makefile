@@ -33,7 +33,7 @@ include ../common.mk
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $*\_runme.scm ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH)::$LD_LIBRARY_PATH guile -l $*\_runme.scm;) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH guile -l $*\_runme.scm;) \
 	fi;
 
 # Clean

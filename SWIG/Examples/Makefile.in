@@ -312,7 +312,7 @@ guile: $(SRCS)
 guile_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a dynamically loadable module with passive linkage
@@ -326,7 +326,7 @@ guile_passive: $(SRCS)
 guile_passive_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a dynamically loadable module with passive linkage, 
@@ -343,7 +343,7 @@ guile_passive_multi: $(SRCS)
 guile_passive_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(GUILE_RUNTIME) -o lib$(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(GUILE_RUNTIME) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
@@ -434,7 +434,7 @@ mzscheme: $(SRCS)
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
+	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(CPP_DLLIBS) 
 
 # ----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG runtime
@@ -450,7 +450,7 @@ mzscheme_multi: $(SRCS)
 mzscheme_multi_cpp: $(SRCS)
 	$(SWIG) -c -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
 	$(MZC) --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME)
+	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS) $(MZSCHEME_RUNTIME) $(CPP_DLLIBS) 
 
 ##################################################################
 #####                       RUBY                            ######

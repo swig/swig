@@ -11,9 +11,9 @@ template<class T, class U> class map {
 };
 %}
 
-%typemap(in) vector<int> "/* Xyzzy! */";
-%typemap(in) vector<unsigned int> "/* Foo! */";
-%typemap(in) map<int,int> "/* Bar! */";
+%typemap(in) vector<int> "$target = new vector<int>();";
+%typemap(in) vector<unsigned int> "$target = new vector<unsigned int>();";
+%typemap(in) map<int,int> "$target = new map<int, int>();";
 
 %inline %{
 void foo(vector<int > v) {}

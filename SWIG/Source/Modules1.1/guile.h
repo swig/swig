@@ -69,6 +69,8 @@ public :
   void create_command (char *, char *) { };
   void cpp_variable(char *name, char *iname, SwigType *t);
   void pragma(char *lang, char *cmd, char *value);
+  void import_start(char *modname);
+  void import_end();
 };
 
 /* guile.h ends here */
