@@ -1,13 +1,13 @@
 %module("templatereduce") template_typedef_ptr
-%module("templatereduce") template_typedef_ptr
+
+%warnfilter(801) Test<int, C*>; /* Ruby, wrong constant name */
 
  /*
-   Use the "templatereduce" option to force swig to reduce the
-   temaplate typedef as much as possible.
-   
-   This fix cases like the one in this file, but it can prevent some
-   typemaps for working as expected.
+   Use the "templatereduce" feature to force swig to reduce the template
+   typedef as much as possible.
 
+   This fixes cases like this one, but it can prevent some
+   typemaps from working.
  */
 
 %inline %{
