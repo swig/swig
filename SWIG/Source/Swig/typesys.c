@@ -41,6 +41,7 @@ static char cvsroot[] = "$Header$";
  *    "name"            -  Scope name
  *    "qname"           -  Fully qualified typename
  *    "typetab"         -  Type table containing typenames and typedef information
+ *    "symtab"          -  Hash table of symbols defined in a scope
  *    "inherit"         -  List of inherited scopes       
  *    "parent"          -  Parent scope
  * 
@@ -98,6 +99,7 @@ static char cvsroot[] = "$Header$";
 
 static Typetab *current_scope = 0;                /* Current type scope                           */
 static Hash    *current_typetab = 0;              /* Current type table                           */
+static Hash    *current_symtab  = 0;              /* Current symbol table                         */
 static Typetab *global_scope  = 0;                /* The global scope                             */
 static Hash    *scopes        = 0;                /* Hash table containing fully qualified scopes */
 
@@ -114,6 +116,7 @@ void SwigType_typesystem_init() {
   current_typetab = NewHash();
   Setattr(current_scope,"typetab", current_typetab);
 
+  current_symtab = 0;
   scopes = NewHash();
   Setattr(scopes,"",current_scope);
 }
@@ -198,6 +201,7 @@ void SwigType_new_scope(String_or_char *name) {
 
   current_scope = s;
   current_typetab = ttab;
+  current_symtab = 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -232,11 +236,13 @@ Typetab *SwigType_pop_scope() {
   if (!s) {
     current_scope = 0;
     current_typetab = 0;
+    current_symtab = 0;
     return 0;
   }
   s1 = current_scope;
   current_scope = s;
   current_typetab = Getattr(s,"typetab");
+  current_symtab = Getattr(s,"symtab");
   return s1;
 }
 
@@ -252,7 +258,20 @@ SwigType_set_scope(Typetab *t) {
   if (!t) t = global_scope;
   current_scope = t;
   current_typetab = Getattr(t,"typetab");
+  current_symtab = Getattr(t,"symtab");
   return old;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_attach_symtab()
+ *
+ * Attaches a symbol table to a type scope
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_attach_symtab(Symtab *sym) {
+  Setattr(current_scope,"symtab",sym);
+  current_symtab = sym;
 }
 
 /* -----------------------------------------------------------------------------
@@ -604,11 +623,29 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
-	
 	Printf(qprefix,"<(");
 	p = Firstitem(parms);
 	while (p) {
-	  Append(qprefix,SwigType_typedef_qualified(p));
+	  String *qt = SwigType_typedef_qualified(p);
+	  if ((Strcmp(qt,p) == 0) && (!Swig_scopename_check(qt))) {
+	    /* Hmmm. No change.  See if the parameter might be a symbolic name like an enum value */
+	    if (current_symtab) {
+	      Node *n = Swig_symbol_clookup_local(p,current_symtab);
+	      if (n) {
+		String *qn = Swig_symbol_qualified(n);
+		/*		Printf(stdout,"qn = '%s', p='%s'\n", qn, p);*/
+		if (Len(qn)) {
+		  Append(qprefix, qn);
+		  Append(qprefix,"::");
+		}
+		Delete(qn);
+	      } 
+	    }
+	    Append(qprefix,p);
+	  } else {
+	    Append(qprefix,qt);
+	  }
+	  Delete(qt);
 	  p= Nextitem(parms);
 	  if (p) {
 	    Append(qprefix,",");

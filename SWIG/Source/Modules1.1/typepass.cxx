@@ -308,6 +308,7 @@ public:
 	    nname = NewStringf("%s::%s", nsname, name);
 	} 
 	SwigType_new_scope(scopename);
+	SwigType_attach_symtab(Getattr(n,"symtab"));
 
 	/* Inherit type definitions into the class */
 	if (name) {
@@ -412,13 +413,13 @@ public:
 		Hash *ts = Getattr(nn,"typescope");
 		if (!ts) {
 		    SwigType_new_scope(name);
+		    SwigType_attach_symtab(Getattr(n,"symtab"));
 		} else {
 		    SwigType_set_scope(ts);
 		}
 	    }
 	    String *oldnsname = nsname;
 	    nsname = Swig_symbol_qualified(Getattr(n,"symtab"));
-
 	    symtab = Swig_symbol_setscope(Getattr(n,"symtab"));
 	    emit_children(n);
 	    Swig_symbol_setscope(symtab);
