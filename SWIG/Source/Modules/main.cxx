@@ -192,9 +192,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
-  extern void Swig_contracts(Node *n);
-  extern void Swig_contract_mode_set(int flag);
-  extern int  Swig_contract_mode_get();
   extern void Swig_browser(Node *n, int);
   extern void Swig_default_allocators(Node *n);
   extern void Swig_process_types(Node *n);

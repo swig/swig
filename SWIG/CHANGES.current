@@ -1,6 +1,28 @@
 Version 1.3.20 (In progress)
 ============================
+05/21/2003:  songyanf (Tiger)
+            Added -contracts option.
+            First try of the idea of "Wrap by Contract": 
+            build up realiable cross-language module by wrapping with SWIG.
+            Implemented basic assertion
+            (preassertion & postassertion & invariant)
+            for simple C/C++ functions.
+            
+            Current format of contracts are:
+            %contract class_name :: func_name (paras...) {
+            require:
+                   boolean exprs;
+                   exprs;
+            ensure:
+                   boolean expr;
+                   exprs;
+            invariant:
+                   boolean expr;
+                   exprs;
+            }
 
+            *** NEW FEATURE ***
+	    	
 05/19/2003: cheetah (William Fulton)
             Build tweaks. There were a few preprocessor definitions which were
             specified in the Makefile for passing on the commandline when compiling.
