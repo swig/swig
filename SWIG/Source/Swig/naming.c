@@ -177,7 +177,7 @@ Swig_name_member(String_or_char *classname, String_or_char *mname) {
   if (c) cname = c+1;
   Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
-  name_mangle(r);
+  /*  name_mangle(r);*/
   return r;
 }
 
