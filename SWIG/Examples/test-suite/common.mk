@@ -48,6 +48,7 @@ CPP_TEST_CASES += \
 	template_type_namespace \
 	template_construct \
 	template_typedef \
+	template_typedef_cplx \
 	arrays_scope \
 	enum_var \
 	union_scope \
