@@ -64,6 +64,7 @@ class TypePass : public Dispatcher {
 	    if (cls) {
 	      if (!ilist) ilist = NewList();
 	      Append(ilist,cls);
+	      break;
 	    }
 	    String *nname = SwigType_typedef_resolve(sname);
 	    if (sname != bname) Delete(sname);
