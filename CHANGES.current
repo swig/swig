@@ -1,6 +1,5 @@
 Version 1.3.20 (In progress)
 ============================
-
 06/03/2003: mkoeppe
 	    [Guile] Applied Guile module updates contributed by 
 	    John Lenz <jelenz@students.wisc.edu>. 
@@ -30,6 +29,19 @@ Version 1.3.20 (In progress)
 
             *** NEW FEATURE [Guile] ***
 	    	
+06/01/2003: cheetah (William Fulton)
+            Dimensionless arrays such as 
+
+                int foo[] = {1, 2};
+                extern int bar[];
+
+            produce a warning that the variable is read-only. Depending on the target
+            language, this used to cause compile errors or generate a setter that
+            generated a runtime error. A setter cannot be automatically generated
+            because the array size cannot be determined by SWIG. A varin, globalin 
+            or memberin typemap (depending on the target language) must be written 
+            by the user.
+
 05/29/2003: beazley
             Refinement to default typemap matching and arrays.  When an
             array is declared like this:
