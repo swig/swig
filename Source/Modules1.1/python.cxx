@@ -459,7 +459,7 @@ PYTHON::function(DOH *node) {
 	      Wrapper_add_localv(f,tempb,"int",tempb,0);
 	    else
 	      Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	    Printv(get_pointers, tab4, target, " = (", SwigType_lstr(pt,0), ") ", tempb, ";\n", 0);
+	    Printv(get_pointers, tab4, target, " = ( ", tempb, " != 0);\n", 0);
 	    Printf(arglist,"&%s",tempb);
 	    noarg = 1;
 	  }
