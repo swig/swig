@@ -3,6 +3,8 @@
    <kozminski@users.sf.net>. 
 */
 
+%module test
+
 %inline %{
 
 class A {

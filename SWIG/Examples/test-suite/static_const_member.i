@@ -3,6 +3,8 @@
    Kozminski <kozminski@users.sf.net>. 
 */
 
+%module static_const_member
+
 %inline %{
   
 class X {
