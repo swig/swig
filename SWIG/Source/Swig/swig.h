@@ -430,7 +430,7 @@ extern     void   Swig_typemap_init();
 extern     void   Swig_typemap_register(const String_or_char *op, ParmList *pattern, String_or_char *code, ParmList *locals, ParmList *kwargs);
 extern     int    Swig_typemap_copy(const String_or_char *op, ParmList *srcpattern, ParmList *pattern);
 extern     void   Swig_typemap_clear(const String_or_char *op, ParmList *pattern);
-extern     void   Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
+extern     int    Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
 extern     void   Swig_typemap_clear_apply(ParmList *pattern);
 extern     void   Swig_typemap_debug();
 

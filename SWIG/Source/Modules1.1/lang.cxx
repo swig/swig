@@ -360,7 +360,9 @@ int Language::applyDirective(Node *n) {
       Swig_error(input_file, line_number, "Can't apply (%s) to (%s).  Number of arguments don't match.\n",
 		 ParmList_str(pattern), ParmList_str(apattern));
     } else {
-      Swig_typemap_apply(pattern,apattern);
+      if (!Swig_typemap_apply(pattern,apattern)) {
+	Swig_warning(WARN_TYPEMAP_APPLY_UNDEF,input_file,line_number,"Can't apply (%s). No typemaps are defined.\n", ParmList_str(pattern));
+      }
     }
     c = nextSibling(c);
   }

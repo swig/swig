@@ -318,7 +318,7 @@ int count_args(String *s) {
   return na;
 }
 
-void 
+int
 Swig_typemap_apply(ParmList *src, ParmList *dest) {
   String *ssig, *dsig;
   Parm   *p, *np, *lastp, *dp, *lastdp = 0;
@@ -326,6 +326,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   int     ts = tm_scope;
   SwigType *type = 0, *name;
   Hash     *tm, *sm;
+  int      match = 0;
 
   /*  Printf(stdout,"apply : %s --> %s\n", ParmList_str(src), ParmList_str(dest)); */
 
@@ -379,6 +380,8 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
 
     if (sm) {
 
+      match = 1;
+
       /* Got a typemap.  Need to only merge attributes for methods that match our signature */
       String *key;
 
@@ -414,6 +417,7 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
     }
     ts--;
   }
+  return match;
 }
 
 /* -----------------------------------------------------------------------------
