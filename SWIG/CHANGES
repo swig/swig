@@ -16,6 +16,108 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+
+10/4/2001: beazley
+           Added -show_templates command line option.  This makes
+           SWIG display the code it actually parses to generate
+           template wrappers.  Mostly useful for debugging.
+           *** NEW FEATURE ***
+
+10/4/2001: beazley
+           Change to semantics of %template directive.  When
+           using %template, the template arguments are handled
+           as types by default.  For example:
+
+                %template(vecint) vector<int>;
+                %template(vecdouble) vector<double>;
+
+           To specify a template argument that is *not* a type, you
+           need to use default-value syntax. For example:
+
+                %template(vecint) vector<int,int=50>;
+                %template(vecdouble) vector<int,size=100>;
+
+           In this case, the type name doesn't really matter--only
+           the default value (e.g., 50, 100) is used during
+           expansion.  This differs from normal C++, but I couldn't
+           figure out a better way to do it in the parser.  Might
+           implement an alternative later.
+           *** POTENTIAL INCOMPATIBILITY ***
+       
+10/4/2001: beazley
+           Major changes to template handling in order to provide
+           better integration with the C++ type-system. The main
+           problem is as follows:
+
+           Suppose you have a template like this:
+
+              template<class T> void blah(const T x) { stuff };
+                   
+           Now suppose, that you instantiate the template on a
+           type like this in SWIG:
+
+              %template(blahint) blah<int *>;
+
+           In C++, this is *supposed* to generate code like this:
+
+              void blah(int *const x) { stuff };
+
+           However, in SWIG-1.3.9, the template substitution gets it wrong
+           and produces
+
+              void blah(const int *x) { stuff };
+
+           (notice the bad placement of the 'const' qualifier).
+
+           To fix this, the SWIG parser now generates implicit typedefs
+           for template type arguments that produces code roughly
+           equivalent to doing this:
+
+              typedef int *__swigtmpl1;
+              %template(blahint) blah<__swigtmpl1>;
+
+           which generates code like this:
+
+              void blah(const __swigtmpl1 x) { stuff };
+
+           Since this is correct in both C++ and SWIG, it provides the right
+           semantics and allows everything to compile properly.  However,
+           to clean up the generated code a little bit, the parser keeps
+           track of the template types and performs back-substitution to
+           the original type when building the parse tree.  Thus, even
+           though the implicit typedef is used in the input and may appear
+           in the generated wrapper file (for proper compilation), the parse
+           tree will hide a lot of these details.   For example:
+
+              void blah(const __swigtmpl1 x) { stuff };
+
+           will look like it was declared as follows (which is what
+           you want):
+
+              void blah(int *const x) { stuff }
+
+           The only place you are likely to notice the typedef hack
+           is in bodies of template functions.  For example, if you
+           did this,
+
+              template<class T> class blah {
+                   ...
+                   %addmethods {
+                       void spam() {
+                          T  tempvalue;
+                          ...
+                       }
+                   }
+              }
+
+           you will find that 'T tempvalue' got expanded into some
+           strange typedef type.  This *still* compiles correctly 
+           so it's not a big deal (other than looking kind of ugly
+           in the wrapper file).
+
+10/4/2001: beazley
+           Fixed some inheritance problems in Tcl Object interface.
+
 10/1/2001: beazley
            Tcl module has changed to use byte-backed pointer strings.  This
            implementation should be safe on 64-bit platforms.  However,
