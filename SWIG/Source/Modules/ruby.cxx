@@ -1942,10 +1942,6 @@ public:
     return Language::classDirectorEnd(n);
   }
   
-  virtual int unrollVirtualMethods(Node *n, Node *parent, Hash *vm, int default_director, int &virtual_destructor) {
-    return Language::unrollVirtualMethods(n, parent, vm, default_director, virtual_destructor);
-  }
-  
   /* ------------------------------------------------------------
    * classDirectorConstructor()
    * ------------------------------------------------------------ */
