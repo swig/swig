@@ -1615,8 +1615,14 @@ module_directive: MODULE options idstring {
                  $$ = new_node("module");
 		 Setattr($$,"name",$3);
 		 if ($2) Setattr($$,"options",$2);
-		 if ($2 && Getattr($2,"directors") && Getattr($2,"dirprot"))
+		 if ($2 && Getattr($2,"directors")) {
+		   /*
+		     we set dirprot_mode here to 1, just to save the
+		     symbols. Later, the language module must decide
+		     what to do with them.
+		   */
 		   dirprot_mode = 1;
+		 }
 		 if (!ModuleName) ModuleName = NewString($3);
 		 if (!module_node) module_node = $$;
 	       }
