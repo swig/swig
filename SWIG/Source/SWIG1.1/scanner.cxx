@@ -72,8 +72,6 @@ static  int    comment_start;
 static  int    scan_init  = 0;
 static  int    num_brace = 0;
 static  int    last_brace = 0;
-static  int    in_define = 0;
-static  int    define_first_id = 0;   /* Set when looking for first identifier of a define */
 extern  int    Error;
 
 
@@ -432,170 +430,6 @@ void skip_decl(void) {
     }
   }
 }
-
-/**************************************************************
- * void skip_define(void)
- *
- * Skips to the end of a #define statement.
- *
- **************************************************************/
-
-void skip_define(void) {
-  char c;
-  while (in_define) {
-    if ((c = nextchar()) == 0) return;
-    if (c == '\\') in_define = 2;
-    if (c == '\n') {
-      if (in_define == 2) {
-	in_define = 1;
-      } else if (in_define == 1) {
-	in_define = 0;
-      }
-    }
-    yylen = 0;
-  }
-}
-
-/**************************************************************
- * int skip_cond(int inthen)
- *
- * Skips the false portion of an #ifdef directive.   Looks
- * for either a matching #else or #endif 
- *
- * inthen is 0 or 1 depending on whether or not we're
- * handling the "then" or "else" part of a conditional.
- *
- * Returns 1 if the else part of the #if-#endif block was
- * reached.  Returns 0 otherwise.  Returns -1 on error.
- **************************************************************/
-
-int skip_cond(int inthen) {
-  int    level = 0;         /* Used to handled nested if-then-else */
-  int    state = 0;
-  char   c;
-  int    start_line;
-  char  *file;
-  
-  file = Swig_copy_string(input_file);
-  start_line = line_number;
-  yylen = 0;
-
-  while(1) {
-    switch(state) {
-    case 0 :
-      if ((c = nextchar()) == 0) {
-	fprintf(stderr,"%s : Line %d.  Unterminated #if-else directive.\n", file, start_line);
-	FatalError();
-	return -1;     /* Error */
-      }
-      if ((c == '#') || (c == '%')) {
-	state = 1;
-      } else if (isspace(c)) {
-	yylen =0;
-	state = 0;
-      } else {
-	/* Some non-whitespace character. Look for line end */
-	yylen = 0;
-	state = 3;
-      }
-      break;
-    case 1:
-      /* Beginning of a C preprocessor statement */
-      if ((c = nextchar()) == 0) {
-	fprintf(stderr,"%s : Line %d.  Unterminated #if-else directive.\n", file, start_line);
-	FatalError();
-	return -1;     /* Error */
-      }
-      if (c == '\n') {
-	state = 0;
-	yylen = 0;
-      }
-      else if (isspace(c)) {
-	state = 1;
-	yylen--;
-      } else {
-	state = 2;
-      }
-      break;
-    case 2:
-      /* CPP directive */
-      if ((c = nextchar()) == 0)  {
-	fprintf(stderr,"%s : Line %d.  Unterminated #if-else directive.\n", file, start_line);
-	FatalError();
-	return -1;     /* Error */
-      }
-      if ((c == ' ') || (c == '\t') || (c=='\n')) {
-	yytext[yylen-1] = 0;
-	if ((strcmp(yytext,"#ifdef") == 0) || (strcmp(yytext,"%ifdef") == 0)) {
-	  level++;
-	  state = 0;
-	} else if ((strcmp(yytext,"#ifndef") == 0) || (strcmp(yytext,"%ifndef") == 0)) {
-	  level++;
-	  state = 0;
-	} else if ((strcmp(yytext,"#if") == 0) || (strcmp(yytext,"%if") == 0)) {
-	  level++;
-	  state = 0;
-	} else if ((strcmp(yytext,"#else") == 0) || (strcmp(yytext,"%else") == 0)) {
-	  if (level == 0) {    /* Found matching else.  exit */
-	    if (!inthen) {
-	      /* Hmmm.  We've got an "extra #else" directive here */
-	      fprintf(stderr,"%s : Line %d.  Misplaced #else.\n", input_file, line_number);
-	      FatalError();
-	      yylen = 0;
-	      state = 0;
-	    } else {
-	      yylen = 0;
-	      free(file);
-	      return 1;
-	    }
-	  } else {
-	    yylen = 0;
-	    state = 0;
-	  }
-	} else if ((strcmp(yytext,"#endif") == 0) || (strcmp(yytext,"%endif") == 0)) {
-	  if (level <= 0) {    /* Found matching endif. exit */
-	    yylen = 0;
-	    free(file);
-	    return 0;
-	  } else {
-	    state = 0;
-	    yylen = 0;
-	    level--;
-	  }
-	} else if ((strcmp(yytext,"#elif") == 0) || (strcmp(yytext,"%elif") == 0)) {
-	  if (level <= 0) {
-	    // If we come across this, we pop it back onto the input queue and return
-	    retract(6);
-	    free(file);
-	    return 0;
-	  } else {
-	    yylen = 0;
-	    state = 0;
-	  }
-	} else {
-	  yylen = 0;
-	  state = 0;
-	}
-      }
-      break;
-    case 3:
-      /* Non-white space.  Look for line break */
-      if ((c = nextchar()) == 0) {
-	fprintf(stderr,"%s : Line %d.  Unterminated #if directive.\n", file, start_line);
-	FatalError();
-	return -1;     /* Error */
-      }
-      if (c == '\n') {
-	yylen = 0;
-	state = 0;
-      } else {
-	yylen = 0;
-	state = 3;
-      }
-      break;
-    }
-  }
-}
       
 /**************************************************************
  * int yylook()
@@ -624,12 +458,6 @@ int yylook(void) {
 	  if (c == '\n') {
 	    state = 0;
 	    yylen = 0;
-	    if (in_define == 1) {
-	      in_define = 0;
-	      return(ENDDEF);
-	    } else if (in_define == 2) {
-	      in_define = 1;
-	    }
 	  } else if (isspace(c)) {
 	    state = 0;
 	    yylen = 0;
@@ -669,11 +497,7 @@ int yylook(void) {
 	  else if (c == '~') return (NOT);
           else if (c == '!') return (LNOT);	                  
 	  else if (c == '\\') {
-	    if (in_define == 1) {
-	      in_define = 2;
-	      state = 0;
-	    } else 
-	      state = 99;
+	    state = 99;
 	  }
   	  else if (c == '[') return (LBRACKET);
 	  else if (c == ']') return (RBRACKET);
@@ -724,10 +548,6 @@ int yylook(void) {
 	    yycomment(Char(comment),comment_start, column_start);
 	    yylen = 0;
 	    state = 0;
-	    if (in_define == 1) {
-	      in_define = 0;
-	      return(ENDDEF);
-	    }
 	  } else {
 	    state = 10;
 	    Putc(c,comment);
@@ -875,24 +695,10 @@ int yylook(void) {
 	  break;
 	case 7: /* Identifier */
 	  if ((c = nextchar()) == 0) return(0);
-	  if (isalnum(c) || (c == '_') || (c == '.') || (c == '$'))
-	    //              || (c == '.') || (c == '-'))
+	  if (isalnum(c) || (c == '_') || (c == '.') || (c == '$')) {
 	    state = 7;
-	  else if (c == '(') {
-	    /* We might just be in a CPP macro definition.  Better check */
-	    if ((in_define) && (define_first_id)) {
-	      /* Yep.  We're going to ignore the rest of it */
-	      skip_define();
-	      define_first_id = 0;
-	      return (MACRO);
-	    } else {
-	      retract(1);
-	      define_first_id = 0;
-	      return(ID);
-	    }
 	  } else {
 	    retract(1);
-	    define_first_id = 0;
 	    return(ID);
 	  }
 	  break;
@@ -1114,12 +920,6 @@ extern "C" int yylex(void) {
     /* Copy the lexene */
 
     yytext[yylen] = 0;
-
-    /* Hack to support ignoring of CPP macros */
-
-    if (l != DEFINE) {
-      define_first_id = 0;
-    }
 
     switch(l) {
 
