@@ -38,7 +38,7 @@
     void *stardesc = SWIGTYPE$*mangle;
     void *ampdesc = SWIGTYPE$&mangle;
   }
-  $target = temp;
+  $target = ($ltype) temp;
 }
 
 #ifndef SWIGJAVA
@@ -46,3 +46,7 @@
   void foo(const struct xyzzy **TEST) {}
 %}
 #endif
+
+
+
+
