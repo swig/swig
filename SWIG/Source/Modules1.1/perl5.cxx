@@ -1105,8 +1105,16 @@ public:
     /* Emit all of the members */
     Language::classHandler(n);
 
+
     /* Finish the rest of the class */
     if (blessed) {
+      /* Generate a client-data entry */
+      SwigType *ct = NewStringf("p.%s", real_classname);
+      Printv(f_init,"SWIG_TypeClientData(SWIGTYPE", SwigType_manglestr(ct),", (void*) \"",
+	     fullclassname, "\");\n", NULL);
+      SwigType_remember(ct);
+      Delete(ct);
+
       Printv(pm,
 	     "\n############# Class : ", fullclassname, " ##############\n",
 	     "\npackage ", fullclassname, ";\n",
@@ -1392,7 +1400,7 @@ public:
       Printv(pcode,
 	     tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@args);\n",
 	     tab4, "return undef if (!defined($self));\n",
-	     tab4, "bless $self, \"", fullclassname, "\";\n",
+	     /*	     tab4, "bless $self, \"", fullclassname, "\";\n", */
 	     tab4, "$OWNER{$self} = 1;\n",
 	     tab4, "my %retval;\n",
 	     tab4, "tie %retval, \"", fullclassname, "\", $self;\n",
@@ -1419,6 +1427,7 @@ public:
 	     "sub DESTROY {\n",
 	     tab4, "return unless $_[0]->isa('HASH');\n",
 	     tab4, "my $self = tied(%{$_[0]});\n",
+	     tab4, "return unless defined $self;\n",
 	     tab4, "delete $ITERATORS{$self};\n",
 	     tab4, "if (exists $OWNER{$self}) {\n",
 	     tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
