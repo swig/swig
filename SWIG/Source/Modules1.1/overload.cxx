@@ -208,7 +208,11 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
     int varargs = emit_isvarargs(pi);    
     
     if (!varargs) {
-      Printf(f,"if ((argc >= %d) && (argc <= %d)) {\n", num_required, num_arguments);
+      if (num_required == num_arguments) {
+	Printf(f,"if (argc == %d) {\n", num_required);
+      } else {
+	Printf(f,"if ((argc >= %d) && (argc <= %d)) {\n", num_required, num_arguments);
+      }
     } else {
       Printf(f,"if (argc >= %d) {\n", num_required);
     }
@@ -240,7 +244,7 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       else pj = nextSibling(pj);
       j++;
     }
-    Printf(f,"if (_m) {\n");
+    Printf(f,"if (_m && _v) {\n");
     Printf(f,Char(fmt),Getattr(ni,"wrap:name"));
     Printf(f,"\n");
     Printf(f,"}\n");
