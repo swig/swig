@@ -7,6 +7,8 @@ extern int    gcd(int x, int y);
 %typemap(jtype) (int argc, char *argv[]) "String[]"
 %typemap(jstype) (int argc, char *argv[]) "String[]"
 
+%typemap(javain) (int argc, char *argv[]) "$javainput"
+
 %typemap(in) (int argc, char *argv[]) (jstring *jsarray) {
 int i;
 
@@ -40,6 +42,8 @@ extern int gcdmain(int argc, char *argv[]);
 %typemap(jtype) (char *bytes, int len) "String"
 %typemap(jstype) (char *bytes, int len) "String"
 
+%typemap(javain) (char *bytes, int len) "$javainput"
+
 %typemap(in) (char *bytes, int len) {
   $1 = ($1_type)(*jenv)->GetStringUTFChars(jenv, $input, 0);
   $2 = (*jenv)->GetStringUTFLength(jenv, $input);
@@ -57,6 +61,8 @@ extern int count(char *bytes, int len, char c);
 %typemap(jni) (char *str, int len) "jobjectArray"
 %typemap(jtype) (char *str, int len) "String[]"
 %typemap(jstype) (char *str, int len) "String[]"
+
+%typemap(javain) (char *str, int len) "$javainput"
 
 %typemap(in) (char *str, int len) (jstring js) %{
   int index=0;
