@@ -439,6 +439,8 @@ void JAVA::parse_args(int argc, char *argv[]) {
 
   // Add typemap definitions
   typemap_lang = (char*)"java";
+
+  SWIG_config_file("java.i");
 }
 
 // ---------------------------------------------------------------------
