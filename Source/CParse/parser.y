@@ -2088,8 +2088,22 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 
 	      /* Look for "::" declarations (ignored) */
 	      if (Strstr($3.id,"::")) {
-		Delete($$);
-		$$ = $5;
+		if (Namespaceprefix) {
+		  /* This is a special case. If the scope name of the declaration exactly
+                     matches that of the declaration, then we will allow it. Otherwise, delete. */
+		  String *p = Swig_scopename_prefix($3.id);
+		  if (Strcmp(p,Namespaceprefix) == 0) {
+		    Setattr($$,"name",Swig_scopename_last($3.id));
+		    set_nextSibling($$,$5);
+		  } else {
+		    Delete($$);
+		    $$ = $5;
+		  }
+		  Delete(p);
+		} else {
+		  Delete($$);
+		  $$ = $5;
+		}
 	      } else {
 		set_nextSibling($$,$5);
 	      }
