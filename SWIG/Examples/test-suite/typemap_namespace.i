@@ -12,6 +12,12 @@ namespace Foo {
     struct Str1;
     struct Str2;
 
+#ifdef SWIGJAVA
+    %typemap(jni) Str1 * = char *;
+    %typemap(jtype) Str1 * = char *;
+    %typemap(jstype) Str1 * = char *;
+    %typemap(freearg) Str1 * = char *;
+#endif
     %typemap(in) Str1 * = char *;
     %apply char * { Str2 * };
 }
