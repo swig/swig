@@ -122,6 +122,14 @@ static const char *php_header =
 "\n  +----------------------------------------------------------------------+"
 "\n */\n";
 
+String *
+ClassRefThingy(SwigType * classtype) {
+  SwigType *t = Copy(classtype);
+  SwigType_add_pointer(t);
+  String *desc = NewStringf("%s",SwigType_manglestr(t));
+  Delete(t);
+  return(desc);
+}
 
 class PHP4 : public Language {
 public:
@@ -176,6 +184,7 @@ public:
   virtual void main(int argc, char *argv[]) {
     int i;
     SWIG_library_directory("php4");
+    SWIG_config_cppext("cpp");
     for(i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i], "-phpfull") == 0) {
@@ -1361,20 +1370,20 @@ public:
       // Now register resource to handle this wrapped class
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE_p%s->name),module_number);\n",
-	     shadow_classname, shadow_classname, SwigType_manglestr(t));
-printf(">>> %s => %s\n",shadow_classname,Char(SwigType_manglestr(t)));
+	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+	     shadow_classname, shadow_classname, ClassRefThingy(t));
+printf(">>> %s => %s\n",shadow_classname,Char(ClassRefThingy(t)));
       // Now register with swig (clientdata) the resource type
-      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE_p%s,(void *)le_swig_%s);\n",
-             SwigType_manglestr(t),shadow_classname);
+      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,(void *)le_swig_%s);\n",
+             ClassRefThingy(t),shadow_classname);
       Printf(s_oinit,"// End of %s\n\n",shadow_classname);
 
     } else { // still need resource destructor
       // Now register resource to handle this wrapped class
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", class_name, class_name);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE_p%s->name),module_number);\n",
-	     class_name, class_name, SwigType_manglestr(t));
+	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n",
+	     class_name, class_name, ClassRefThingy(t));
     }
 
     Language::classHandler(n);
@@ -1593,7 +1602,7 @@ printf(">>> %s => %s\n",shadow_classname,Char(SwigType_manglestr(t)));
     case T_POINTER:
       Printf(f->code, 
 	     "SWIG_SetPointerZval(return_value, (void *)%s, "
-	     "SWIGTYPE_p%s);\n", static_name, SwigType_manglestr(d));
+	     "SWIGTYPE%s);\n", static_name, ClassRefThingy(d));
       break;
     case  T_STRING:
       Printf(f->code, "RETURN_STRING(%s, 1);\n", static_name);
