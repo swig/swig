@@ -380,7 +380,7 @@ void emit_action(Node *n, Wrapper *f) {
   action = Getattr(n,"feature:action");
   if (!action)
     action = Getattr(n,"wrap:action");
-  assert(action);
+  assert(action != 0);
 
   /* Get the return type */
 

@@ -1161,7 +1161,7 @@ public:
     String *namestr = SwigType_namestr(name); // does template expansion
 
     klass = RCLASS(classes, Char(namestr));
-    assert(klass);
+    assert(klass != 0);
     Delete(namestr);
     String *valid_name = NewString(symname);
     validate_const_name(Char(valid_name), "class");
