@@ -1,19 +1,28 @@
-/* ruby.swg */
-#include "ruby.h"
+/* ----------------------------------------------------------------------
+ * ruby.swg
+ *
+ * Ruby configuation file.
+ * ---------------------------------------------------------------------- */
 
-#define NUM2USHRT(n) NUM2UINT(n)
-#define NUM2SHRT(n) (\
-    (SHRT_MIN <= NUM2INT(n) && NUM2INT(n) <= SHRT_MAX)\
-    ? (short)NUM2INT(n)\
-    : (rb_raise(rb_eArgError, "integer %d out of range of `short'",\
-               NUM2INT(n)), (short)0)\
-)
+%runtime "rubyhead.swg"
+%runtime "common.swg"
 
-#ifdef __cplusplus
-# define VALUEFUNC(f) ((VALUE (*)(...))f)
-# define VOIDFUNC(f) ((void (*)(...))f)
+#ifdef SWIG_NOINCLUDE
+%runtime "rubydec.swg"
 #else
-# define VALUEFUNC(f) (f)
-# define VOIDFUNC(f) (f)
+%runtime "rubydef.swg"
 #endif
+
+// Typedef declaration for VALUE.  This is provided to make VALUE typemaps
+typedef unsigned long VALUE;
+
+%typemap(ruby,in)  VALUE  "$1 = $input;";
+%typemap(ruby,out) VALUE  "$result = $1;";
+
+%typemap(ruby,varin) char * "
+  Check_Type($source, T_STRING);
+  if ($target) free((char*)$target);
+  $target = xmalloc(RSTRING($source)->len + 1);
+  strncpy((char*)$target, STR2CSTR($source), RSTRING($source)->len + 1);";
+
 
