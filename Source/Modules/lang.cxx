@@ -1083,14 +1083,17 @@ Language::staticmemberfunctionHandler(Node *n) {
   String   *cname, *mrename;
 
   if (!Extend) {
-    String *sname = Getattr(Getattr(n,"cplus:staticbase"),"name");
+    Node *sb = Getattr(n,"cplus:staticbase");
+    String *sname = sb ? Getattr(sb,"name") : 0;
     if (sname) {
       cname = NewStringf("%s::%s",sname,name);
     } else {
       cname = NewStringf("%s::%s",ClassName,name);
     }
   } else {
-    cname = Copy(Swig_name_member(ClassPrefix,name));
+    String *mname = Swig_name_mangle(ClassName);
+    cname = Swig_name_member(mname,name);
+    Delete(mname);
   }
   mrename = Swig_name_member(ClassPrefix, symname);
 
