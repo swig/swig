@@ -33,6 +33,8 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, _swig_type_in
   if (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) return TCL_OK;
+    Tcl_SetResult(interp,"Type error. Expected a pointer", TCL_STATIC);
+    return TCL_ERROR;
   }
   c++;
   /* Extract hex value from pointer */
