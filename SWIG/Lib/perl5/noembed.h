@@ -52,3 +52,13 @@
 #ifdef ENTER
   #undef ENTER
 #endif
+#ifdef read
+  #undef read
+#endif
+#ifdef write
+  #undef write
+#endif
+#ifdef eof
+  #undef eof
+#endif
+
