@@ -288,9 +288,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
     /*    Printf(stdout,"%s\n", ParmList_str_defaultargs(tp)); */
 
     if (tp) {
+      Symtab *tsdecl = Getattr(n,"sym:symtab");
       while (p && tp) {
 	String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
 	int     sz, i;
+	String *dvalue = 0;
 	
 	name = Getattr(tp,"name");
 	value = Getattr(p,"value");
@@ -298,19 +300,22 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 
 	if (name) {
 	  if (!value) value = Getattr(p,"type");
-	  if (SwigType_istemplate(value)) {
-	    value = Swig_cparse_template_deftype(value, 0);
+	  dvalue = Swig_symbol_type_qualify(value,tsdecl);
+	  if (SwigType_istemplate(dvalue)) {
+	    String *ty = Swig_symbol_template_deftype(dvalue, tscope);
+	    Delete(dvalue);
+	    dvalue = ty;
 	  }
 	  
-	  valuestr = SwigType_str(value,0);
-	  assert(value);
+	  assert(dvalue);
+	  valuestr = SwigType_str(dvalue,0);
 	  /* Need to patch default arguments */
 	  {
 	    Parm *rp = nextSibling(p);
 	    while (rp) {
 	      String *rvalue = Getattr(rp,"value");
 	      if (rvalue) {
-		Replace(rvalue,name,value, DOH_REPLACE_ID);
+		Replace(rvalue,name,dvalue, DOH_REPLACE_ID);
 	      }
 	      rp = nextSibling(rp);
 	    }
@@ -318,20 +323,20 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	  sz = Len(patchlist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(patchlist,i);
-	    Replace(s,name,value, DOH_REPLACE_ID);
+	    Replace(s,name,dvalue, DOH_REPLACE_ID);
 	  }
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist,i);
 	    /*	    Replace(s,name,value, DOH_REPLACE_ID); */
-	    /*	    Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, value, tbase, iname, s); */
-	    SwigType_typename_replace(s,name,value);
+	    /*	    Printf(stdout,"name = '%s', value = '%s', tbase = '%s', iname='%s' s = '%s' --> ", name, dvalue, tbase, iname, s); */
+	    SwigType_typename_replace(s,name,dvalue);
 	    SwigType_typename_replace(s,tbase,iname);
 	    /*	    Printf(stdout,"'%s'\n", s);*/
 	  }
 	  
 	  if (!tydef) {
-	    tydef = value;
+	    tydef = dvalue;
 	  }
 	  tmp = NewStringf("#%s",name);
 	  tmpr = NewStringf("\"%s\"", valuestr);
@@ -346,6 +351,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 	  Delete(tmp);
 	  Delete(tmpr);
 	  Delete(valuestr);
+	  Delete(dvalue);
 	}
 	p = nextSibling(p);
 	tp = nextSibling(tp);
@@ -384,105 +390,6 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *ts
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_cparse_template_defargs()
- *
- * Apply default arg from generic template default args 
- * ----------------------------------------------------------------------------- */
-
-
-void
-Swig_cparse_template_defargs(Parm *parms, Parm *targs, Symtab *tscope) {
-  if (Len(parms) < Len(targs)) {
-    Parm *lp = parms;
-    Parm *p = lp;
-    Parm *tp = targs;
-    while(p && tp) {
-      p = nextSibling(p);
-      tp = nextSibling(tp);
-      if (p) lp = p;
-    }
-    while (tp) {
-      String *value = Getattr(tp,"value");
-      if (value) {
-	Parm *cp;
-	Parm *ta = targs;
-	Parm *p = parms;
-	SwigType *nt  = Swig_symbol_typedef_reduce(value,tscope);
-	while(p && ta) {
-	  String *name = Getattr(ta,"name");
-	  String *value = Getattr(p,"value");
-	  if (!value) value = Getattr(p,"type");
-	  Replace(nt, name, value, DOH_REPLACE_ID);
-	  p = nextSibling(p);
-	  ta = nextSibling(ta);
-	}
-	cp = NewParm(Swig_symbol_type_qualify(nt,tscope),0);
-	set_nextSibling(lp,cp);
-	lp = cp;
-	tp = nextSibling(tp);
-	Delete(nt);
-      } else {
-	tp = 0;
-      }
-    }
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_cparse_template_deftype()
- *
- * Apply default args to generic template type
- * ----------------------------------------------------------------------------- */
-String*
-Swig_cparse_template_deftype(SwigType *type, Symtab *tscope) {
-  String *prefix  = SwigType_prefix(type);
-  String *base    = SwigType_base(type);
-  String *tprefix = SwigType_templateprefix(base);
-  String *targs   = SwigType_templateargs(base);
-  String *tsuffix = SwigType_templatesuffix(base);
-  ParmList *tparms = SwigType_function_parms(targs);
-  Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
-  if (tempn) {
-    ParmList *tnargs = Getattr(tempn,"templateparms");
-    Parm *p;
-    /* Printf(stderr,"deftype type %s %s %s\n", tprefix, targs, tsuffix);*/
-    Append(tprefix,"<(");
-    Swig_cparse_template_defargs(tparms, tnargs,tscope);
-    p = tparms;
-    while (p) {
-      SwigType *ptype = Getattr(p,"type");
-      SwigType *ttr = Swig_symbol_typedef_reduce(ptype ? ptype : Getattr(p,"value") ,tscope);
-      SwigType *ttq = Swig_symbol_type_qualify(ttr,tscope);
-      if (SwigType_istemplate(ttq)) {
-	SwigType *t = Swig_cparse_template_deftype(ttq, tscope);
-	Delete(ttq);
-	ttq = t;
-      }	
-      Append(tprefix,ttq);
-      p = nextSibling(p);
-      if (p) Putc(',',tprefix);
-      Delete(ttr);
-      Delete(ttq);
-    }
-    Append(tprefix,")>");
-    Append(tprefix,tsuffix);
-    Append(prefix,tprefix);
-    /* Printf(stderr,"deftype default %s \n", tprefix); */
-    type = Copy(prefix);
-  } else {
-    type = Copy(type);
-  }
-  
-  Delete(prefix);
-  Delete(base);
-  Delete(tprefix);
-  Delete(tsuffix);
-  Delete(targs);
-  Delete(tparms);
-  return type;
-}
-
-/* -----------------------------------------------------------------------------
  * template_locate()
  *
  * Search for a template that matches name with given parameters.
@@ -506,8 +413,10 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
 
   /* Add default values from generic template */
   if (templ) {
+    Symtab *tsdecl = Getattr(templ,"sym:symtab");
+
     targs = Getattr(templ,"templateparms");
-    Swig_cparse_template_defargs(parms, targs, tscope);
+    Swig_symbol_template_defargs(parms, targs, tscope, tsdecl);
   }
   
 
@@ -516,10 +425,8 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
   while (p) {
     SwigType *ty = Getattr(p,"type");
     if (ty) {
-      SwigType *rt = Swig_symbol_typedef_reduce(ty,tscope);
-      SwigType *nt = Swig_symbol_type_qualify(rt,tscope);
+      SwigType *nt = Swig_symbol_type_qualify(ty,tscope);
       Setattr(p,"type",nt);
-      Delete(rt);
     }
     p = nextSibling(p);
   }
@@ -537,6 +444,16 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	  Printf(stdout,"    searching: '%s' (exact specialization)\n", tname);
       }
       n = Swig_symbol_clookup_local(tname,0);
+      if (!n) {
+	SwigType *rname = Swig_symbol_typedef_reduce(tname,tscope);	
+	if (Strcmp(rname,tname)) {
+	  if (template_debug) {
+	    Printf(stdout,"    searching: '%s' (exact specialization)\n", rname);
+	  }
+	  n = Swig_symbol_clookup_local(rname,0);
+	}
+	Delete(rname);
+      }
       if (n) {
 	  Node *tn;
 	  if (Strcmp(nodeType(n),"template") == 0) goto success;
@@ -562,16 +479,17 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
   while (p) {
     String *t;
     t = Getattr(p,"type");
+    if (!t) t = Getattr(p,"value");
     if (t) {
-      String *tbase = SwigType_base(t);
-      t = SwigType_default(t);
-      Replaceid(t,"enum SWIGTYPE",tbase);
-      Replaceid(t,"SWIGTYPE",tbase);
-      Printf(rname,"%s",t);
-      Delete(t);
-    } else {
-      String *v = Getattr(p,"value");
-      Printf(rname,"%s",v);
+      String *ty = Swig_symbol_typedef_reduce(t,tscope);
+      String *tb = SwigType_base(ty); 
+      String *td = SwigType_default(ty);
+      Replaceid(td,"enum SWIGTYPE",tb);
+      Replaceid(td,"SWIGTYPE",tb);
+      Printf(rname,"%s",td);
+      Delete(tb);
+      Delete(ty);
+      Delete(td);
     }
     p = nextSibling(p);
     if (p) {
@@ -600,13 +518,13 @@ template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	    String *t,*tn;
 	    sprintf(tmp,"$%d",i);
 	    t = Getattr(p,"type");
+	    if (!t) t = Getattr(p,"value");
 	    if (t) {
-	      tn = SwigType_base(t);
+	      String *ty = Swig_symbol_typedef_reduce(t,tscope);
+	      tn = SwigType_base(ty);
 	      Replaceid(ss,tmp,tn);
 	      Delete(tn);
-	    } else {
-	      String *v = Getattr(p,"value");
-	      Replaceid(ss,tmp,v);
+	      Delete(ty);
 	    }
 	    i++;
 	    p = nextSibling(p);

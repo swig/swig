@@ -229,7 +229,7 @@ SwigType_parm(SwigType *t) {
  * Splits a type into it's component parts and returns a list of string.
  * ----------------------------------------------------------------------------- */
 
-List *SwigType_split(SwigType *t) {
+List *SwigType_split(const SwigType *t) {
   DOH     *item;
   List    *list;
   char    *c;
@@ -769,8 +769,9 @@ SwigType_add_template(SwigType *t, ParmList *parms) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_templateprefix(SwigType *t) {
-  char *c,*s;
+SwigType_templateprefix(const SwigType *t) {
+  const char *c;
+  const char *s;
 
   s = Char(t);
   c = s;
@@ -796,7 +797,7 @@ SwigType_templateprefix(SwigType *t) {
 
 String *
 SwigType_templatesuffix(const SwigType *t) {
-  char *c;
+  const char *c;
   c = Char(t);
   while (*c) {
     if ((*c == '<') && (*(c+1) == '(')) {
@@ -821,9 +822,9 @@ SwigType_templatesuffix(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_templateargs(SwigType *t) {
-  char *c;
-  char *start;
+SwigType_templateargs(const SwigType *t) {
+  const char *c;
+  const char *start;
   c = Char(t);
   while (*c) {
     if ((*c == '<') && (*(c+1) == '(')) {
@@ -862,7 +863,7 @@ SwigType_istemplate(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *
-SwigType_base(SwigType *t) {
+SwigType_base(const SwigType *t) {
   char *c;
   char *lastop = 0;
   c = Char(t);
@@ -915,7 +916,7 @@ SwigType_base(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_prefix(SwigType *t) {
+SwigType_prefix(const SwigType *t) {
   char *c, *d;
   String *r = 0;
 

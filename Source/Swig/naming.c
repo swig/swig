@@ -639,6 +639,14 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
       Delete(tname);
     }
   }
+  if (name && SwigType_istemplate(name)) {
+    String *dname = Swig_symbol_template_deftype(name,0);
+    if (Strcmp(dname,name)) {    
+      Swig_features_get(features, prefix, dname, decl, node);
+    }
+    Delete(dname);
+  }
+
   Delete(rname);
   Delete(rdecl);
 }
@@ -699,6 +707,14 @@ Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, con
       }
       attribs = nextSibling(attribs);
     }
+  }
+
+  if (name && SwigType_istemplate(name)) {
+    String *dname = Swig_symbol_template_deftype(name,0);
+    if (Strcmp(dname,name)) {    
+      Swig_feature_set(features, dname, decl, featurename, value, featureattribs);
+    }
+    Delete(dname);
   }
 }
 

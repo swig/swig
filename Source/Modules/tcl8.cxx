@@ -668,7 +668,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-  
+    static Hash* emitted = NewHash();
     String     *mangled_classname = 0;
     String     *real_classname = 0;
 
@@ -697,6 +697,9 @@ public:
 
     real_classname = Getattr(n,"name");
     mangled_classname = Swig_name_mangle(real_classname);
+
+    if (Getattr(emitted,mangled_classname)) return SWIG_NOWRAP;
+    Setattr(emitted,mangled_classname,"1");    
 
     attr_tab = NewString("");
     Printf(attr_tab, "static swig_attribute swig_");

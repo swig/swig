@@ -226,7 +226,7 @@ extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern void        SwigType_add_template(SwigType *t, ParmList *parms);
 extern SwigType   *SwigType_pop_function(SwigType *t);
 extern ParmList   *SwigType_function_parms(SwigType *t);
-extern List       *SwigType_split(SwigType *t);
+extern List       *SwigType_split(const SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
 extern List       *SwigType_parmlist(const SwigType *p);
@@ -253,12 +253,12 @@ extern int         SwigType_istemplate(const SwigType *t);
 extern int         SwigType_isenum(SwigType *t);
 extern int         SwigType_check_decl(SwigType *t, const String_or_char *decl);
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
-extern String     *SwigType_base(SwigType *t);
+extern String     *SwigType_base(const SwigType *t);
 extern String     *SwigType_namestr(const SwigType *t);
-extern String     *SwigType_templateprefix(SwigType *t);
+extern String     *SwigType_templateprefix(const SwigType *t);
 extern String     *SwigType_templatesuffix(const SwigType *t);
-extern String     *SwigType_templateargs(SwigType *t);
-extern String     *SwigType_prefix(SwigType *t);
+extern String     *SwigType_templateargs(const SwigType *t);
+extern String     *SwigType_prefix(const SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
 extern String     *SwigType_array_getdim(SwigType *t, int n);
 extern void        SwigType_array_setdim(SwigType *t, int n, const String_or_char *rep);
@@ -266,6 +266,9 @@ extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
 extern void        SwigType_typename_replace(SwigType *t, String *pat, String *rep);
 extern SwigType   *SwigType_alttype(SwigType *t, int ltmap);
+
+extern void     SwigType_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
+extern SwigType*  SwigType_template_deftype(const SwigType *type, Symtab *tscope);
 
 /* --- Type-system managment --- */
 extern void        SwigType_typesystem_init();
@@ -316,9 +319,13 @@ extern Node     *Swig_symbol_isoverloaded(Node *node);
 extern void      Swig_symbol_remove(Node *node);
 extern void      Swig_symbol_alias(String_or_char *aliasname, Symtab *tab);
 extern void      Swig_symbol_inherit(Symtab *tab);
-extern SwigType *Swig_symbol_type_qualify(SwigType *ty, Symtab *tab);
+extern SwigType *Swig_symbol_type_qualify(const SwigType *ty, Symtab *tab);
 extern String   *Swig_symbol_string_qualify(String *s, Symtab *tab);
 extern SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab);
+
+extern void     Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
+extern SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope);
+extern SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab);
 
 /* --- Parameters and Parameter Lists --- */
 

@@ -15,6 +15,7 @@ char cvsroot_symbol_c[] = "$Header$";
 #include "swigwarn.h"
 #include <ctype.h>
 
+/*#define SWIG_DEBUG*/
 /* -----------------------------------------------------------------------------
  * Synopsis
  *
@@ -433,6 +434,17 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
    */
 
   if (!name) return;
+  if (SwigType_istemplate(name)) {
+    String *dname = Swig_symbol_template_deftype(name,0);
+    if (Strcmp(dname,name)) {    
+      Swig_symbol_cadd(dname, n);
+    }
+    Delete(dname);
+  }
+
+#ifdef SWIG_DEBUG
+  Printf(stderr,"symbol_cadd %s %x\n", name, n);
+#endif
   cn = Getattr(ccurrent,name);
 
   if (cn && (Getattr(cn,"sym:typename"))) {
@@ -558,7 +570,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
    */
 
   name = Getattr(n,"name");
-  if (name) {
+  if (name && Len(name)) {
     Swig_symbol_cadd(name,n);
   }
 
@@ -746,11 +758,16 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
   Node *n;
   List *inherit;
   Hash *sym = Getattr(symtab,"csymtab");
-  
   if (Getmark(symtab)) return 0;
   Setmark(symtab,1);
 
+
   n = Getattr(sym,name);
+
+#ifdef SWIG_DEBUG
+  Printf(stderr,"symbol_look %s %x %x %s\n", name, n, symtab, Getattr(symtab,"name"));
+#endif
+  
   if (n) {
     /* if a check-function is defined.  Call it to determine a match */
     if (check) {
@@ -770,6 +787,17 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
     }
   }
 
+  if (!n && SwigType_istemplate(name)) {
+    String *dname = 0;
+    Setmark(symtab,0);
+    dname = Swig_symbol_template_deftype(name,symtab);
+    if (Strcmp(name,dname)) {
+      n = symbol_lookup(dname, symtab, check);
+    }
+    Delete(dname);
+    if (n) return n;
+  }
+
   inherit = Getattr(symtab,"inherit");
   if (inherit) {
     int  i,len;
@@ -782,6 +810,7 @@ symbol_lookup(String_or_char *name, Symtab *symtab, int (*check)(Node *n)) {
       }
     }
   }
+
   Setmark(symtab,0);
   return 0;
 }
@@ -825,6 +854,7 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
       if (!name) return st;
       n = symbol_lookup(name, st,checkfunc);
     }
+
     Delete(qname);
     if (!n) {
       if (!local) {
@@ -936,6 +966,7 @@ Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc)(Node
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
       }
+      Delete(nname);
     } else {
       String *prefix = Swig_scopename_prefix(name);
       if (prefix) {
@@ -993,7 +1024,11 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
 
   if (Swig_scopename_check(name)) {
     if (Strncmp(name,"::",2) == 0) {
-      s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0,0);
+      String *nname = NewString(Char(name)+2);
+      if (Swig_scopename_check(nname)) {
+	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
+      }
+      Delete(nname);
     } else {
       s = symbol_lookup_qualified(name,hsym,0,0,0);
     }
@@ -1036,7 +1071,11 @@ Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc
 
   if (Swig_scopename_check(name)) {
     if (Strncmp(name,"::",2) == 0) {
-      s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0,checkfunc);
+      String *nname = NewString(Char(name)+2);
+      if (Swig_scopename_check(nname)) {
+	s = symbol_lookup_qualified(nname,global_scope,0,0,checkfunc);
+      }
+      Delete(nname);
     } else {
       s = symbol_lookup_qualified(name,hsym,0,0,checkfunc);
     }
@@ -1161,6 +1200,9 @@ Swig_symbol_qualified(Node *n) {
     symtab = Getattr(n,"sym:symtab");
   }
   if (!symtab) return NewString("");
+#ifdef SWIG_DEBUG
+  Printf(stderr,"symbol_qscope %s %x %s\n", Getattr(n,"name"), symtab,Getattr(symtab,"name"));
+#endif
   return Swig_symbol_qualifiedscopename(symtab);
 }
 
@@ -1181,8 +1223,48 @@ Swig_symbol_isoverloaded(Node *n) {
  * Create a fully qualified type name
  * ----------------------------------------------------------------------------- */
 
+static int no_constructor(Node *n) {
+  SwigType *type = nodeType(n);
+#ifdef SWIG_DEBUG
+  Printf(stderr,"node type %s\n", Getattr(n,"name"), type);
+#endif
+  return type ? (Strcmp(type,"constructor") != 0): 1;
+}
+
+static SwigType *
+Swig_symbol_template_qualify(const SwigType *e, Symtab *st) {
+  String *tprefix, *tsuffix;
+  SwigType *qprefix;
+  List   *targs;
+  Iterator ti;
+  tprefix = SwigType_templateprefix(e);
+  tsuffix = SwigType_templatesuffix(e);
+  qprefix = Swig_symbol_type_qualify(tprefix,st);
+  targs = SwigType_parmlist(e);
+  Printf(qprefix,"<(");
+  for (ti = First(targs); ti.item;) {
+    String *qparm = Swig_symbol_type_qualify(ti.item,st);
+    String *vparm = Swig_symbol_template_param_eval(qparm, st);
+    Append(qprefix,vparm);
+    ti = Next(ti);
+    if (ti.item) {
+      Putc(',',qprefix);
+    }
+    Delete(qparm);
+    Delete(vparm);
+  }
+  Append(qprefix,")>");
+  Append(qprefix,tsuffix);
+  Delete(tprefix);
+  Delete(tsuffix);
+#ifdef SWIG_DEBUG
+  Printf(stderr,"symbol_temp_qual %s %s\n", e, qprefix);
+#endif
+  return qprefix;
+}
+
 SwigType *
-Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
+Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List   *elements;
   String *result;
   int     i,len;
@@ -1194,75 +1276,29 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
-      Node *n = Swig_symbol_clookup(e,st);
+      Node *n = Swig_symbol_clookup_check(e,st,no_constructor);
       if (n) {
 	String *name = Getattr(n,"name");
 	Clear(e);
 	Append(e,name);
+#ifdef SWIG_DEBUG
+	Printf(stderr,"symbol_qual_ei %d %s %s %x\n", i, name, e, st);
+#endif
 	if (!Swig_scopename_check(name)) {
 	  String *qname = Swig_symbol_qualified(n);
 	  if (Len(qname)) {
 	    Insert(e,0,"::");
 	    Insert(e,0,qname);
 	  }
+#ifdef SWIG_DEBUG
+	  Printf(stderr,"symbol_qual_sc %d %s %s %x\n", i, qname, e, st);
+#endif
 	  Delete(qname);
 	}
       } else if (SwigType_istemplate(e)) {
-	String *tprefix, *tsuffix;
-	SwigType *qprefix;
-	List   *targs;
-	Iterator ti;
-	tprefix = SwigType_templateprefix(e);
-	tsuffix = SwigType_templatesuffix(e);
-	qprefix = Swig_symbol_type_qualify(tprefix,st);
-	targs = SwigType_parmlist(e);
-	Printf(qprefix,"<(");
-	for (ti = First(targs); ti.item;) {
-	  String *qparm = Swig_symbol_type_qualify(ti.item,st);
-	  while (1) {
-	    /* It is possible for an integer to show up here.  If so, we need to evaluate it */
-	    Node *nn = Swig_symbol_clookup(qparm,st);
-	    if (nn) {
-	      SwigType *nt = nodeType(nn);
-	      if (Strcmp(nt,"cdecl") == 0) {
-		String *nv = Getattr(nn,"value");
-		if (nv) {
-		  Clear(qparm);
-		  Append(qparm,nv);
-		} else {
-		  break;
-		}
-	      } else if (Strcmp(nt,"enumitem") == 0) {
-		String *qn = Swig_symbol_qualified(nn);
-		if (Len(qn)) {
-		  Append(qn,"::");
-		  Append(qn,Getattr(nn,"name"));
-		  Clear(qparm);
-		  Append(qparm,qn);
-		}
-		Delete(qn);
-		break;
-	      } else {
-		break;
-	      }
-	    } else {
-	      break;
-	    }
-	  }
-	  Append(qprefix,qparm);
-	  ti = Next(ti);
-	  if (ti.item) {
-	    Putc(',',qprefix);
-	  }
-	  Delete(qparm);
-	}
-	Append(qprefix,")>");
-	Append(qprefix,tsuffix);
+	SwigType *ty = Swig_symbol_template_qualify(e,st);
 	Clear(e);
-	Append(e,qprefix);
-	Delete(tprefix);
-	Delete(tsuffix);
-	Delete(qprefix);
+	Append(e,ty);
       }
       if (Strncmp(e,"::",2) == 0) {
 	Delitem(e,0);
@@ -1289,6 +1325,9 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
     }
   }
   Delete(elements);
+#ifdef SWIG_DEBUG
+  Printf(stderr,"symbol_qualify %s %s %x %s\n", t, result, st, st ?Getattr(st,"name"): 0);
+#endif
   return result;
 }
 
@@ -1297,6 +1336,48 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
  *
  * Chase a typedef through symbol tables looking for a match.
  * ----------------------------------------------------------------------------- */
+
+static 
+SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab)
+{
+  Iterator pi;
+  Parm *p;
+  List *parms = SwigType_parmlist(qt);
+  String *tprefix = SwigType_templateprefix(qt);
+  String *tsuffix = SwigType_templatesuffix(qt);
+  String *qprefix = SwigType_typedef_qualified(tprefix);
+  Printv(qprefix,"<(",NIL);
+  pi = First(parms);
+  while ((p = pi.item)) {
+    String *np;
+    String *tp = Swig_symbol_typedef_reduce(p, ntab);
+    String *qp = Swig_symbol_type_qualify(tp, ntab);
+    Node *n = Swig_symbol_clookup(qp,ntab);
+    if (n) {
+      String *qual = Swig_symbol_qualified(n);
+      np = Copy(Getattr(n,"name"));
+      tp = np;
+      if (qual) {
+	Insert(np,0,"::");
+	Insert(np,0,qual);
+	Delete(qual);
+      }
+    } else {
+      np = qp;
+    }
+    Append(qprefix,np);
+    pi= Next(pi);
+    if (pi.item) {
+      Append(qprefix,",");
+    }
+    Delete(qp);
+    Delete(tp);
+  }
+  Append(qprefix,")>");
+  Insert(tsuffix, 0, qprefix);
+  return tsuffix;
+}
+
 
 SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   SwigType *prefix, *base;
@@ -1309,8 +1390,20 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   n = Swig_symbol_clookup(base,tab);
   if (!n) {
     Delete(base);
-    Delete(prefix);
-    return Copy(ty);
+    if (SwigType_istemplate(ty)) {
+      SwigType *qt = Swig_symbol_template_reduce(ty,tab);
+      Append(prefix,qt);
+#ifdef SWIG_DEBUG
+      Printf(stderr,"symbol_reduce %s %s\n", ty, prefix);
+#endif
+      return prefix;
+    } else {
+      Delete(prefix);
+#ifdef SWIG_DEBUG
+      Printf(stderr,"symbol_reduce %s %s\n", ty, ty);
+#endif
+      return Copy(ty);
+    }
   }
   if (Strcmp(nodeType(n),"using") == 0) {
     String *uname = Getattr(n,"uname");
@@ -1319,6 +1412,9 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       if (!n) {
 	Delete(base);
 	Delete(prefix);
+#ifdef SWIG_DEBUG
+	Printf(stderr,"symbol_reduce %s %s\n", ty, ty);
+#endif
 	return Copy(ty);
       }
     } 
@@ -1354,52 +1450,23 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       rt = Swig_symbol_typedef_reduce(nt, ntab);
       qt = Swig_symbol_type_qualify(rt, ntab);
       if (SwigType_istemplate(qt)) {
-	Iterator pi;
-	Parm *p;
-	List *parms = SwigType_parmlist(qt);
-	String *tprefix = SwigType_templateprefix(qt);
-	String *tsuffix = SwigType_templatesuffix(qt);
-	String *qprefix = SwigType_typedef_qualified(tprefix);
-	Printv(qprefix,"<(",NIL);
-	pi = First(parms);
-	while ((p = pi.item)) {
-	  String *np;
-	  String *tp = 0;
-	  String *qp = Swig_symbol_type_qualify(p, ntab);
-	  Node *n = Swig_symbol_clookup(qp,ntab);
-	  if (n) {
-	    String *qual = Swig_symbol_qualified(n);
-	    np = Copy(Getattr(n,"name"));
-	    tp = np;
-	    if (qual) {
-	      Insert(np,0,"::");
-	      Insert(np,0,qual);
-	      Delete(qual);
-	    }
-	  } else {
-	    np = qp;
-	  }
-	  Append(qprefix,np);
-	  pi= Next(pi);
-	  if (pi.item) {
-	    Append(qprefix,",");
-	  }
-	  Delete(qp);
-	  Delete(tp);
-	}
-	Append(qprefix,")>");
-	Insert(tsuffix, 0, qprefix);
+	SwigType *qtr = Swig_symbol_template_reduce(qt,ntab);
 	Delete(qt);
-	qt = tsuffix;
+	qt = qtr;
       }      
       Delete(nt);
       Delete(rt);
-      /* Printf(stderr,"reduce  %s %s\n", ty, qt); */
+#ifdef SWIG_DEBUG
+      Printf(stderr,"symbol_reduce %s %s\n", qt, ty);
+#endif
       return qt;
     }
   }
   Delete(base);
   Delete(prefix);
+#ifdef SWIG_DEBUG
+      Printf(stderr,"symbol_reduce %s %s\n", ty, ty);
+#endif
   return Copy(ty);
 }
 
@@ -1446,3 +1513,154 @@ Swig_symbol_string_qualify(String *s, Symtab *st) {
   return r;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_template_defargs()
+ *
+ * Apply default arg from generic template default args 
+ * ----------------------------------------------------------------------------- */
+
+
+void
+Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl) {
+  if (Len(parms) < Len(targs)) {
+    Parm *lp = parms;
+    Parm *p = lp;
+    Parm *tp = targs;
+    while(p && tp) {
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+      if (p) lp = p;
+    }
+    while (tp) {
+      String *value = Getattr(tp,"value");
+      if (value) {
+	Parm *cp;
+	Parm *ta = targs;
+	Parm *p = parms;
+	SwigType *nt = Swig_symbol_string_qualify(value,tsdecl);
+	SwigType *ntq = 0;
+#ifdef SWIG_DEBUG
+	Printf(stderr,"value %s %s %s\n",value, nt,tsdecl?Getattr(tsdecl,"name") : tsdecl);
+#endif
+	while(p && ta) {
+	  String *name = Getattr(ta,"name");
+	  String *value = Getattr(p,"value") ? Getattr(p,"value") : Getattr(p,"type");
+	  String *ttq = Swig_symbol_type_qualify(value,tscope);
+	  /* value = SwigType_typedef_resolve_all(value);*/
+	  Replaceid(nt, name, ttq);
+	  p = nextSibling(p);
+	  ta = nextSibling(ta);
+	  Delete(ttq);
+	}
+	ntq = Swig_symbol_type_qualify(nt,tsdecl);
+	if (SwigType_istemplate(ntq)) {
+	  String *ty = Swig_symbol_template_deftype(ntq, tscope);
+	  Delete(ntq);
+	  ntq = ty;
+	}
+	/* Printf(stderr,"value %s %s %s\n",value,ntr,ntq);*/
+	cp = NewParm(ntq,0);
+	set_nextSibling(lp,cp);
+	lp = cp;
+	tp = nextSibling(tp);
+	Delete(nt);
+	Delete(ntq);
+      } else {
+	tp = 0;
+      }
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_template_deftype()
+ *
+ * Apply default args to generic template type
+ * ----------------------------------------------------------------------------- */
+SwigType*
+Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
+  String *result   = 0;
+  String *prefix   = SwigType_prefix(type);
+  String *base     = SwigType_base(type);
+  String *tprefix  = SwigType_templateprefix(base);
+  String *targs    = SwigType_templateargs(base);
+  String *tsuffix  = SwigType_templatesuffix(base);
+  ParmList *tparms = SwigType_function_parms(targs);
+  Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
+  /* Printf(stderr,"deftype type %s \n", type);*/
+  if (tempn) {
+    ParmList *tnargs = Getattr(tempn,"templateparms");
+    Parm *p;
+    Symtab *tsdecl = Getattr(tempn,"sym:symtab");
+
+    /* Printf(stderr,"deftype type %s %s %s %s\n", tprefix, targs, tsuffix);*/
+    Append(tprefix,"<(");
+    Swig_symbol_template_defargs(tparms, tnargs,tscope,tsdecl);
+    p = tparms;
+    while (p) {
+      SwigType *ptype = Getattr(p,"type");
+      SwigType *ttr = ptype ? ptype : Getattr(p,"value");
+      SwigType *ttf = Swig_symbol_type_qualify(ttr,tscope);
+      SwigType *ttq = Swig_symbol_template_param_eval(ttf,tscope);
+      SwigType *ttd = 0;
+      if (SwigType_istemplate(ttq)) {
+	ttd = Swig_symbol_template_deftype(ttq, tscope);
+	ttq = ttd;
+      }	
+      Append(tprefix,ttq);
+      p = nextSibling(p);
+      if (p) Putc(',',tprefix);
+      Delete(ttr);
+      Delete(ttf);
+      Delete(ttd);
+    }
+    Append(tprefix,")>");
+    Append(tprefix,tsuffix);
+    Append(prefix,tprefix);
+    /* Printf(stderr,"deftype %s %s \n", type, tprefix); */
+    result = Copy(prefix);
+  } else {
+    result = Copy(type);
+  }
+  Delete(prefix);
+  Delete(base);
+  Delete(tprefix);
+  Delete(tsuffix);
+  Delete(targs);
+  Delete(tparms);
+  return result;
+}
+
+SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab)
+{
+  String *value = Copy(p);
+  Node *lastnode = 0;
+  while (1) {
+    Node *n = Swig_symbol_clookup(value,symtab);
+    if (n == lastnode) break;
+    lastnode = n;
+    if (n) {
+      if (Strcmp(nodeType(n),"enumitem") == 0) {
+	/* An enum item.   Generate a fully qualified name */
+	String *qn = Swig_symbol_qualified(n);
+	if (Len(qn)) {
+	  Append(qn,"::");
+	  Append(qn,Getattr(n,"name"));
+	  Delete(value);
+	  value = qn;
+	  continue;
+	} else {
+	  Delete(qn);
+	  break;
+	}
+      } else if ((Strcmp(nodeType(n),"cdecl") == 0) && (Getattr(n,"value"))) {
+	Delete(value);
+	value = Copy(Getattr(n,"value"));
+	continue;
+      }
+    }
+    break;
+  }
+  return value;
+}

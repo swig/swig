@@ -33,6 +33,7 @@
       return f;
     }
   };
+
   
   int get_y(Bar *b) 
   {

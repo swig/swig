@@ -862,6 +862,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   elements = SwigType_split(t);
   len = Len(elements);
   for (i = 0; i < len; i++) {
+    String *ty = 0;
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
       if (!SwigType_istemplate(e)) {
@@ -927,7 +928,10 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	String *tsuffix;
 	Iterator pi;
 	Parm   *p;
-	List *parms = SwigType_parmlist(e);
+	List *parms;
+	ty = Swig_symbol_template_deftype(e,current_symtab);
+	e = ty;
+	parms = SwigType_parmlist(e);
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = SwigType_typedef_qualified(tprefix);
@@ -996,6 +1000,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	Delitem(e,0);
       }
       Append(result,e);
+      Delete(ty);
     } else if (SwigType_isfunction(e)) {
       List *parms = SwigType_parmlist(e);
       String *s = NewString("f(");
@@ -1588,10 +1593,14 @@ SwigType_inherit(String *derived, String *base, String *cast) {
   /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
 
   if (SwigType_istemplate(derived)) {
-    derived = SwigType_typedef_qualified(SwigType_typedef_resolve_all(derived));
+    String *ty = SwigType_typedef_resolve_all(derived);
+    derived = SwigType_typedef_qualified(ty);
+    Delete(ty);
   }
   if (SwigType_istemplate(base)) {
-    base = SwigType_typedef_qualified(SwigType_typedef_resolve_all(base));
+    String *ty = SwigType_typedef_resolve_all(base);
+    base = SwigType_typedef_qualified(ty);
+    Delete(ty);
   }
 
   /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast);*/

@@ -230,7 +230,11 @@ String *Swig_string_mangle(const String *s) {
   char *pc, *cb;
   String *b = Copy(s);
   if (SwigType_istemplate(b)) {
-    String *t = SwigType_namestr(b);
+    String *st = Swig_symbol_template_deftype(b, 0);
+    String *sq = Swig_symbol_type_qualify(st,0);
+    String *t = SwigType_namestr(sq);
+    Delete(st);
+    Delete(sq);
     Delete(b);
     b = t ;
   }

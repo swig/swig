@@ -51,12 +51,14 @@ static Hash* get_typemap(int tm_scope, SwigType* type)
   Hash *tm  = 0;
   SwigType* dtype = 0;
   if (SwigType_istemplate(type)) {
-    dtype = Swig_cparse_template_deftype(type,0);
+    String *ty = Swig_symbol_template_deftype(type,0);
+    dtype = Swig_symbol_type_qualify(ty,0);    
     /* Printf(stderr,"gettm %s %s\n", type, dtype);*/
     type = dtype;
+    Delete(ty);
   }
   tm = Getattr(typemaps[tm_scope],type);
-  if (dtype) Delete(dtype);
+  Delete(dtype);
   return tm;
 }
 
@@ -64,12 +66,14 @@ static void set_typemap(int tm_scope, SwigType* type, Hash* tm)
 {
   SwigType* dtype = 0;
   if (SwigType_istemplate(type)) {
-    dtype = Swig_cparse_template_deftype(type,0);
+    String *ty = Swig_symbol_template_deftype(type,0);
+    dtype = Swig_symbol_type_qualify(ty,0);    
     /* Printf(stderr,"settm %s %s\n", type, dtype);*/
     type = dtype; 
+    Delete(ty);
   }
   Setattr(typemaps[tm_scope],Copy(type),tm);
-  if (dtype) Delete(dtype);
+  Delete(dtype);
 }
 
 
