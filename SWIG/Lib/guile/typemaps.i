@@ -9,7 +9,7 @@
 
 /* Pointers */
 
-%typemap(in) SWIGPOINTER * {
+%typemap(in) SWIGTYPE * {
   if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor))
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
@@ -19,7 +19,7 @@
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
 
-%typemap(varin) SWIGPOINTER * {
+%typemap(varin) SWIGTYPE * {
   if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor))
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
@@ -29,24 +29,70 @@
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
 
-%typemap(out) SWIGPOINTER * {
+%typemap(out) SWIGTYPE * {
     $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
     
-%typemap(varout) SWIGPOINTER * {
+%typemap(varout) SWIGTYPE * {
     $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
+
+/* Pass-by-value */
+
+%typemap(in) SWIGTYPE($&1_ltype argp) {
+  if (SWIG_Guile_GetPtr($input, (void **) &argp, $1_descriptor))
+    scm_wrong_type_arg(FUNC_NAME,$argnum,$input);
+  $1 = *argp;
+}
+
+%typemap(varin) SWIGTYPE($&1_ltype argp) {
+  if (SWIG_Guile_GetPtr($input, (void **) &argp, $1_descriptor))
+    scm_wrong_type_arg(FUNC_NAME,$argnum,$input);
+  $1 = *argp;
+}
+
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype($1);
+  $result =  SWIG_Guile_MakePtr (resultptr, $&1_descriptor);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_Guile_MakePtr(resultptr, $&1_descriptor);
+}
+#endif
+
+%typemap(varout) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype($1);
+  $result =  SWIG_Guile_MakePtr (resultptr, $&1_descriptor);
+} 
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  $result = SWIG_Guile_MakePtr(resultptr, $&1_descriptor);
+}
+#endif
 
 /* C++ References */
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGREFERENCE & {
+%typemap(in) SWIGTYPE & {
   if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
 
-%typemap(out) SWIGREFERENCE & {
+%typemap(out) SWIGTYPE & {
   $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
 
@@ -54,21 +100,21 @@
 
 /* Arrays */
 
-%typemap(in) SWIGARRAY[] {
+%typemap(in) SWIGTYPE[] {
   if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
     scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
 }
 
-%typemap(out) SWIGARRAY[] {
+%typemap(out) SWIGTYPE[] {
   $target = SWIG_Guile_MakePtr ($source, $descriptor);
 }
 
 /* Enums */
 
-%typemap(in)     enum SWIGENUM "$target = gh_scm2int($source);";
-%typemap(varin)  enum SWIGENUM "$target = gh_scm2int($source);";
-%typemap(out)    enum SWIGENUM "$target = gh_int2scm($source);";
-%typemap(varout) enum SWIGENUM "$target = gh_int2scm($source);";
+%typemap(in)     enum SWIGTYPE "$target = gh_scm2int($source);";
+%typemap(varin)  enum SWIGTYPE "$target = gh_scm2int($source);";
+%typemap(out)    enum SWIGTYPE "$target = gh_int2scm($source);";
+%typemap(varout) enum SWIGTYPE "$target = gh_int2scm($source);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */

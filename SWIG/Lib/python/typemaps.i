@@ -285,6 +285,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned int   *T_OUTPUT(unsigned int temp),
                         unsigned short *T_OUTPUT(unsigned short temp),
                         unsigned long  *T_OUTPUT(unsigned long temp),
+                        signed char    *T_OUTPUT(signed char temp),
                         unsigned char  *T_OUTPUT(unsigned char temp),
                         float          *T_OUTPUT(float temp),
                         double         *T_OUTPUT(double temp)
@@ -298,7 +299,8 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned int   *T_OUTPUT,
                         unsigned short *T_OUTPUT,
                         unsigned long  *T_OUTPUT,
-                        unsigned char  *T_OUTPUT
+                        unsigned char  *T_OUTPUT,
+                        signed char    *T_OUTPUT
 {
     PyObject *o;
     o = PyInt_FromLong((long) (*$1));

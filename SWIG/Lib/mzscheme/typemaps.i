@@ -10,7 +10,7 @@
 
 /* Pointers */
 
-%typemap(in) SWIGPOINTER * {
+%typemap(in) SWIGTYPE * {
   $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
 }
 
@@ -18,7 +18,7 @@
   $target = SWIG_MustGetPtr($source, NULL, $argnum);
 }
 
-%typemap(varin) SWIGPOINTER * {
+%typemap(varin) SWIGTYPE * {
   $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
 }
 
@@ -26,11 +26,11 @@
   $target = SWIG_MustGetPtr($source, NULL, $argnum);
 }
 
-%typemap(out) SWIGPOINTER * {
+%typemap(out) SWIGTYPE * {
   $target = SWIG_MakePtr ($source, $descriptor);
 }
     
-%typemap(varout) SWIGPOINTER * {
+%typemap(varout) SWIGTYPE * {
   $target = SWIG_MakePtr ($source, $descriptor);
 }
 
@@ -38,11 +38,11 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGREFERENCE & { 
+%typemap(in) SWIGTYPE & { 
   $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
 }
 
-%typemap(out) SWIGREFERENCE & {
+%typemap(out) SWIGTYPE & {
   $target = SWIG_MakePtr ($source, $descriptor);
 }
 
@@ -50,29 +50,29 @@
 
 /* Arrays */
 
-%typemap(in) SWIGARRAY[] {
+%typemap(in) SWIGTYPE[] {
   $target = ($ltype) SWIG_MustGetPtr($source, $descriptor, $argnum);
 }
 
-%typemap(out) SWIGARRAY[] {
+%typemap(out) SWIGTYPE[] {
   $target = SWIG_MakePtr ($source, $descriptor);
 }
 
 /* Enums */
-%typemap(in) enum SWIGENUM {
+%typemap(in) enum SWIGTYPE {
   if (!SCHEME_INTP($source)) 
       scheme_wrong_type("$name", "integer", $argnum, argc, argv);
   $target = SCHEME_INT_VAL($source);
 }
 
-%typemap(varin) enum SWIGENUM {
+%typemap(varin) enum SWIGTYPE {
   if (!SCHEME_INTP($source)) 
       scheme_wrong_type("$name", "integer", $argnum, argc, argv);
   $target = SCHEME_INT_VAL($source);
 }
 
-%typemap(out) enum SWIGENUM "$target = scheme_make_integer_value($source);";
-%typemap(varout) enum SWIGENUM "$target = scheme_make_integer_value($source);";
+%typemap(out) enum SWIGTYPE "$target = scheme_make_integer_value($source);";
+%typemap(varout) enum SWIGTYPE "$target = scheme_make_integer_value($source);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */

@@ -19,6 +19,7 @@ extern "C" {
 #define SWIG_PY_FLOAT   2
 #define SWIG_PY_STRING  3
 #define SWIG_PY_POINTER 4
+#define SWIG_PY_BINARY  5
 
 /* Constant information structure */
 typedef struct swig_const_info {
@@ -356,6 +357,9 @@ SWIG_InstallConstants(PyObject *d, swig_const_info constants[]) {
       break;
     case SWIG_PY_POINTER:
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype);
+      break;
+    case SWIG_PY_BINARY:
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
       break;
     default:
       obj = 0;
