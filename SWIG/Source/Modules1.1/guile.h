@@ -53,7 +53,7 @@ public :
   void set_module(char *);
   void set_init (char *);
   void create_command (char *, char *) { };
-  void cpp_variable(char *name, char *iname, SwigType *t);
+  void cpp_variable(DOH *node);
 };
 
 /* guile.h ends here */

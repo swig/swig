@@ -80,6 +80,7 @@ void scanner_file(DOHFile *f) {
   in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
   in->in_file = input_file;
+  in->line_number = 1;
   in->extern_mode = WrapExtern;
   in->force_extern = ForceExtern;
   in->inline_mode = 0;
@@ -177,6 +178,7 @@ void retract(int n) {
 void start_inline(char *text, int line) {
   InFile *in;
 
+  in_head->line_number = line_number;
   in = (InFile *) malloc(sizeof(InFile));
   in->f = NewString(text);
   Seek(in->f,0,SEEK_SET);

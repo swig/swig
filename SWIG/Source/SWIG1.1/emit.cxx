@@ -46,8 +46,10 @@ void new_create_function(char *name, char *iname, SwigType *type, ParmList *l) {
  * Returns the number of parameters associated with a function.
  * ----------------------------------------------------------------------------- */
 
-int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
+int emit_args(DOH *node, Wrapper *f) {
 
+  SwigType *rt;
+  ParmList *l;
   Parm *p;
   int   i;
   char *tm;
@@ -55,6 +57,9 @@ int emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   DOHString  *pvalue;
   DOHString  *pname;
   DOHString  *lname;
+
+  rt = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   /* Emit function arguments */
   Swig_cargs(f, l);
@@ -106,8 +111,15 @@ void emit_set_action(DOHString_or_char *decl) {
   fcall = NewString(decl);
 }
 
-void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
+void emit_func_call(DOH *node, Wrapper *f) {
+  char *decl;
+  SwigType *t;
+  ParmList *l;
   char *tm;
+
+  decl = GetChar(node,"name");
+  t = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   if ((tm = Swig_typemap_lookup((char*)"except",t,decl,(char*)"result",(char*)"",0))) {
     Printv(f->code,tm,0);
@@ -131,7 +143,7 @@ void emit_func_call(char *decl, SwigType *t, ParmList *l, Wrapper *f) {
 }
 
 /* -----------------------------------------------------------------------------
- * void emit_set_get(char *name, char *iname, DataType *type)
+ * void emit_set_get()
  *
  * Emits a pair of functions to set/get the value of a variable.  This is
  * only used in the event the target language can't provide variable linking
@@ -167,12 +179,17 @@ strcpy((char *)$target,$source);\n\
 return ($ltype) $target;\n;";
 
 
-void emit_set_get(char *name, char *iname, SwigType *t) {
-
+void emit_set_get(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
   Wrapper *w;
   DOHString *new_iname;
   char    *code = 0;
-    
+  
+  name = GetChar(node,"name");
+  iname = GetChar(node,"iname");
+  t = Getattr(node,"type");
+
   /* First write a function to set the variable of the variable */
   if (!(Status & STAT_READONLY)) {
 
@@ -230,6 +247,9 @@ int check_numopt(ParmList *p) {
   }
   return n;
 }
+
+
+
 
 
 

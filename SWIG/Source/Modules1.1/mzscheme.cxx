@@ -311,7 +311,7 @@ MZSCHEME::function(DOH *node)
   // they are called arg0, arg1, ...
   // the return value is called result
 
-  int pcount = emit_args(d, l, f);
+  int pcount = emit_args(node, f);
   int numargs = 0;
   int numopt = 0;
 
@@ -389,7 +389,7 @@ MZSCHEME::function(DOH *node)
 
   // Now write code to make the function call
 
-  emit_func_call (name, d, l, f);
+  emit_func_call (node, f);
 
   // Now have return value, figure out what to do with it.
 

@@ -498,7 +498,7 @@ GUILE::function (DOH *node) {
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
   /* Emit locals etc. into f->code; figure out which args to ignore */
-  emit_args (d, l, f);
+  emit_args (node, f);
 
   /* Declare return variable */
 
@@ -599,7 +599,7 @@ GUILE::function (DOH *node) {
 
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
-  emit_func_call (name, d, l, f);
+  emit_func_call (node, f);
   Printv(f->code, tab4, "gh_allow_ints();\n", 0);
 
   // Now have return value, figure out what to do with it.
@@ -968,17 +968,17 @@ GUILE::constant(DOH *node)
   DelWrapper(f);
 }
 
-void GUILE::cpp_variable(char *name, char *iname, SwigType *t)
+void GUILE::cpp_variable(DOH *node)
 {
   if (emit_setters) {
     struct_member = 1;
     Printf(f_init, "{\n");
-    Language::cpp_variable(name, iname, t);
+    Language::cpp_variable(node);
     Printf(f_init, "}\n");
     struct_member = 0;
   }
   else {
     /* Only emit traditional VAR-get and VAR-set procedures */
-    Language::cpp_variable(name, iname, t);
+    Language::cpp_variable(node);
   }
 }

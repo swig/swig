@@ -347,11 +347,11 @@ void RUBY::close(void) {
 }
 
 /* --------------------------------------------------------------------------
- * RUBY::add_native()
+ * RUBY::nativefunction()
  * -------------------------------------------------------------------------- */
 void
-RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
-  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
+RUBY::nativefunction(DOH *node) {
+  Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, Getattr(node,"scriptname"));
 }
 
 /* ---------------------------------------------------------------------
@@ -451,7 +451,7 @@ void RUBY::function(DOH *node) {
   /* Ruby needs no destructor wrapper */
   if (current == DESTRUCTOR) {
     Wrapper *dummy = NewWrapper();
-    emit_func_call(name,t,l,dummy);
+    emit_func_call(node,dummy);
     DelWrapper(dummy);
     return;
   }
@@ -532,7 +532,7 @@ void RUBY::function(DOH *node) {
       }
     }
   }
-  int pcount = emit_args(t,l,f);
+  int pcount = emit_args(node,f);
 
   /* Emit count to check the number of arguments */
   if (vararg) {
@@ -621,7 +621,7 @@ void RUBY::function(DOH *node) {
   }
 
   /* Now write code to make the function call */
-  emit_func_call(name,t,l,f);
+  emit_func_call(node,f);
 
 
   /* Return value if necessary */
@@ -1288,9 +1288,9 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
  *
  * --------------------------------------------------------------------- */
 
-void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
+void RUBY::cpp_memberfunction(DOH *node) {
   current = MEMBER_FUNC;
-  this->Language::cpp_member_func(name, iname, t, l);
+  this->Language::cpp_memberfunction(node);
   current = NO_CPP;
 }
 
@@ -1305,9 +1305,9 @@ void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
  *      l        - parameters
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_constructor(char *name, char *iname, ParmList *l) {
+void RUBY::cpp_constructor(DOH *node) {
   current = CONSTRUCTOR;
-  this->Language::cpp_constructor(name, iname, l);
+  this->Language::cpp_constructor(node);
   current = NO_CPP;
 }
 
@@ -1322,9 +1322,13 @@ void RUBY::cpp_constructor(char *name, char *iname, ParmList *l) {
  *
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_destructor(char *name, char *newname) {
+void RUBY::cpp_destructor(DOH *node) {
+  char *name, *newname;
+
+  name = GetChar(node,"name");
+  newname = GetChar(node,"scriptname");
   current = DESTRUCTOR;
-  this->Language::cpp_destructor(name, newname);
+  this->Language::cpp_destructor(node);
 
   String *freefunc = NewString("");
   String *freeproto = NewString("");
@@ -1374,9 +1378,9 @@ void RUBY::cpp_destructor(char *name, char *newname) {
  * This creates a pair of functions to set/get the variable of a member.
  * -------------------------------------------------------------------- */
 
-void RUBY::cpp_variable(char *name, char *iname, SwigType *t) {
+void RUBY::cpp_variable(DOH *node) {
   current = MEMBER_VAR;
-  this->Language::cpp_variable(name, iname, t);
+  this->Language::cpp_variable(node);
   current = NO_CPP;
 }
 
@@ -1392,9 +1396,9 @@ void RUBY::cpp_variable(char *name, char *iname, SwigType *t) {
  *      l              = Parameters
  * ---------------------------------------------------------------------- */
 
-void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
+void RUBY::cpp_staticfunction(DOH *node) {
   current = STATIC_FUNC;
-  this->Language::cpp_static_func(name, iname, t, l);
+  this->Language::cpp_staticfunction(node);
   current = NO_CPP;
 }
 
@@ -1412,9 +1416,9 @@ void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
  * --------------------------------------------------------------------- */
 
 
-void RUBY::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
+void RUBY::cpp_constant(DOH *node) {
   current = CLASS_CONST;
-  this->Language::cpp_declare_const(name, iname, type, value);
+  this->Language::cpp_constant(node);
   current = NO_CPP;
 }
 
@@ -1430,9 +1434,9 @@ void RUBY::cpp_declare_const(char *name, char *iname, SwigType *type, char *valu
  *
  * --------------------------------------------------------------------- */
 
-void RUBY::cpp_static_var(char *name, char *iname, SwigType *t) {
+void RUBY::cpp_staticvariable(DOH *node) {
   current = STATIC_VAR;
-  this->Language::cpp_static_var(name, iname, t);
+  this->Language::cpp_staticvariable(node);
   current = NO_CPP;
 }
 
