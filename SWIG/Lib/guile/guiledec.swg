@@ -1,5 +1,5 @@
 /* -*- c -*-
- *  -----------------------------------------------------------------------
+ * -----------------------------------------------------------------------
  * swig_lib/guile/guiledec.swg
  * Copyright (C) 2000 Matthias Koeppe
  *
@@ -47,44 +47,43 @@ GSWIG_scm2str (SCM s)
 
 typedef struct SwigPtrType SwigPtrType;
 
+typedef struct _swig_type_info {
+  char  *name;
+  void *(*converter)(void *);
+  SwigPtrType *ptrtype;
+} _swig_type_info;
+
+#define _swig_types_initial _swig_types
+
+SWIGSTATIC void
+SWIG_Guile_RegisterTypes (_swig_type_info **table);
+
 /* Register a new type-mapping with the type-checker.  origtype is the
    original datatype and newtype is an equivalent type.  cast is optional
    pointer to a function to cast pointer values between types (this is
    typically used to cast pointers from derived classes to base classes in
    C++).  */
 
-SWIGSTATIC
-void SWIG_RegisterMapping (char *origtype, char *newtype,
-                           void *(*cast)(void *));
+SWIGSTATIC void
+SWIG_RegisterMapping (char *origtype, char *newtype,
+                      void *(*cast)(void *));
 
-/* Register SWIG smobs with Guile */
-SWIGSTATIC
-void SWIG_Guile_Init();
+/* Register SWIG smobs with Guile.  */
+SWIGSTATIC void
+SWIG_Guile_Init();
 
 /* Initialization function for this SWIG module; actually renamed by a
    #define */
 /* extern void SWIG_init(); */
 
-/* TRANSITIONAL functions (used if -with-smobs) */
+/* Get a pointer value from a smob.  If there is a type-mismatch,
+   return nonzero; on success, return 0.  */
+SWIGSTATIC int
+SWIG_Guile_GetPtr (SCM s, void **result, _swig_type_info *type);
 
-/* Makes a smob from a pointer and typestring. */
-
-SWIGSTATIC
-SCM SWIG_Guile_MakePtr_Str(void *ptr, char *typestring,
-			   char *prettytypestring);
-
-/* Gets a pointer value from a string. If there is a type-mismatch, returns
-   nonzero; on success, return 0. */
-
-SWIGSTATIC
-int SWIG_Guile_GetPtr_Str(SCM s, void **result, char *typestring);
-
-/* UPCOMING functions (not yet used) */
-SWIGSTATIC
-int SWIG_Guile_GetPtr(SCM s, void **result, SwigPtrType *type);
-
-SWIGSTATIC
-SCM SWIG_Guile_MakePtr(void *ptr, SwigPtrType *type);
+/* Make a smob from a pointer and typeinfo.  */
+SWIGSTATIC SCM
+SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type);
 
 #ifdef __cplusplus
 }
