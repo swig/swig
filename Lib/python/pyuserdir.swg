@@ -122,3 +122,12 @@ These methods "may be called" if needed.
 #endif
 #define %nocallback %nopythoncallback; %feature("callback","")
 
+
+/* When using -nortti, tell directors to avoid RTTI */
+#ifdef SWIG_NORTTI
+%insert("runtime") %{
+#ifndef SWIG_DIRECTOR_NORTTI
+#define SWIG_DIRECTOR_NORTTI
+#endif
+%}
+#endif

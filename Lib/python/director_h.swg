@@ -13,14 +13,32 @@
 
 #include <string>
 
-extern "C" {
-  struct swig_type_info;
-}
-
+/*
+  Use -DSWIG_DIRECTOR_STATIC if you prefer to avoid the use of the
+  'Swig' namespace. This could be usefull for multi-modules projects.
+*/
 #ifdef SWIG_DIRECTOR_STATIC
 /* Force anonymous (static) namespace */
 #define Swig
 #endif
+
+
+/*
+  Use -DSWIG_DIRECTOR_NORTTI if you prefer to avoid the use of RTTI
+  and dynamic_cast<>. But be aware that directors could stop working
+  when using this option.
+*/
+
+#if defined(SWIG_DIRECTOR_NORTTI) 
+#  define SWIG_DIRECTOR_CAST(arg) (Swig::Director*)(arg)
+#else
+#  define SWIG_DIRECTOR_CAST(arg) dynamic_cast<Swig::Director*>(arg)
+#endif
+
+
+extern "C" {
+  struct swig_type_info;
+}
 
 namespace Swig {
   /* base class for director exceptions */
