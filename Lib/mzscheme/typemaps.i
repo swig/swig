@@ -292,7 +292,7 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
   $1 = (SCHEME_INTP($input)) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_BOOL) bool &, const bool &
+%typecheck(SWIG_TYPECHECK_BOOL) bool, bool &, const bool &
 {
   $1 = (SCHEME_BOOLP($input)) ? 1 : 0;
 }
