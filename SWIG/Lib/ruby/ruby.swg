@@ -13,6 +13,7 @@
 %runtime "rubydef.swg"
 #endif
 
+#define %markfunc %feature("markfunc")
 
 /* ----------------------------------------------------------------------
  *                         Standard Typemaps

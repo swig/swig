@@ -944,7 +944,6 @@ int RUBY::classHandler(Node *n) {
   Printv(klass->init, "$initializer",0);
 
   Printv(klass->header,
-	 "$markproto",
 	 "$freeproto",
 	 0);
 
@@ -965,16 +964,18 @@ int RUBY::classHandler(Node *n) {
     }
   }
 
-  Replace(klass->header,"$markfunc", "0", DOH_REPLACE_ANY);
-  Replace(klass->header,"$markproto", "", DOH_REPLACE_ANY);
-  Printf(klass->init,"c%s.mark = 0;\n", klass->name);
-  
-  if (!klass->destructor_defined) {
-    Replace(klass->header,"$freefunc", "0", DOH_REPLACE_ANY);
-    Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
+  /* Check to see if a %markfunc was specified */
+  String *markfunc = Getattr(n, "feature:markfunc");
+  if (markfunc) {
+    Printf(klass->init, "c%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
   } else {
-    Printf(klass->init,"c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->cname);
+    Printf(klass->init, "c%s.mark = 0;\n", klass->name);
   }
+
+  if (klass->destructor_defined) {
+    Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->cname);
+  }
+  Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
 
   Printv(f_header, klass->header,0);
 
@@ -1054,40 +1055,35 @@ int RUBY::destructorHandler(Node *n) {
   current = DESTRUCTOR;
   Language::destructorHandler(n);
 
-    String *freefunc = NewString("");
-    String *freeproto = NewString("");
-    String *freebody = NewString("");
+  String *freefunc = NewString("");
+  String *freeproto = NewString("");
+  String *freebody = NewString("");
   
-    Printv(freefunc, "free_", klass->cname, 0);
-    Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
-    Printv(freebody, "static void\n",
-  	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
+  Printv(freefunc, "free_", klass->cname, 0);
+  Printv(freeproto, "static void ", freefunc, "(", klass->type, " *);\n", 0);
+  Printv(freebody, "static void\n",
+	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
   	 tab4, 0);
-    if (AddMethods) {
-      Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
-    } else {
-      /* When no addmethods mode, swig emits no destroy function. */
-      if (CPlusPlus)
-        Printf(freebody, "delete %s", Swig_cparm_name(0,0));
-      else
-        Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
-    }
-    Printv(freebody, ";\n}\n", 0);
-    if (CPlusPlus) {
-      Insert(freefunc,0,"VOIDFUNC(");
-      Append(freefunc,")");
-    }
+  if (AddMethods) {
+    Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
+  } else {
+    /* When no addmethods mode, swig emits no destroy function. */
+    if (CPlusPlus)
+      Printf(freebody, "delete %s", Swig_cparm_name(0,0));
+    else
+      Printf(freebody, "free((char*) %s)", Swig_cparm_name(0,0));
+  }
+  Printv(freebody, ";\n}\n", 0);
   
-    Replace(klass->header,"$freefunc", freefunc, DOH_REPLACE_ANY);
-    Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
-    Printv(f_wrappers, freebody, 0);
+  Replace(klass->header,"$freeproto", freeproto, DOH_REPLACE_ANY);
+  Printv(f_wrappers, freebody, 0);
   
-    klass->destructor_defined = 1;
-    current = NO_CPP;
-    Delete(freefunc);
-    Delete(freeproto);
-    Delete(freebody);
-    return SWIG_OK;
+  klass->destructor_defined = 1;
+  current = NO_CPP;
+  Delete(freefunc);
+  Delete(freeproto);
+  Delete(freebody);
+  return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
