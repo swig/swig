@@ -499,7 +499,7 @@ extern void   Swig_typemap_attach_parms(const String_or_char *op, ParmList *parm
 
 /* --- Code fragment support --- */
 
-extern  void  Swig_fragment_register(String *name, String *section, String *code);
+extern  void  Swig_fragment_register(Node* fragment);
 extern  void  Swig_fragment_emit(String *name);
 
 /* hacks defined in C++ ! */

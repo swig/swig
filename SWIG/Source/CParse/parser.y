@@ -1266,17 +1266,21 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
    %fragment(name,location) { ... }
    ------------------------------------------------------------ */
 
-fragment_directive: FRAGMENT LPAREN idstring COMMA idstring RPAREN HBLOCK {
+fragment_directive: FRAGMENT LPAREN kwargs RPAREN HBLOCK {
+		 Hash *p = nextSibling($3);
                  $$ = new_node("fragment");
-                 Setattr($$,"section", $5);
-                 Setattr($$,"name",$3);
-                 Setattr($$,"code",$7);
+                 Setattr($$,"section", Getattr(p,"name"));
+                 Setattr($$,"name",Getattr($3,"name"));
+                 Setattr($$,"kwargs",nextSibling(p));
+                 Setattr($$,"code",$5);
                  }
-                 | FRAGMENT LPAREN idstring COMMA idstring RPAREN LBRACE {
+                 | FRAGMENT LPAREN kwargs RPAREN LBRACE {
+		   Hash *p = nextSibling($3);
                    skip_balanced('{','}');
 		   $$ = new_node("fragment");
-		   Setattr($$,"section",$5);
-		   Setattr($$,"name",$3);
+		   Setattr($$,"section", Getattr(p,"name"));
+		   Setattr($$,"name",Getattr($3,"name"));
+		   Setattr($$,"kwargs",nextSibling(p));
 		   Delitem(scanner_ccode,0);
 		   Delitem(scanner_ccode,DOH_END);
 		   Setattr($$,"code",Copy(scanner_ccode));
