@@ -79,7 +79,7 @@ copy_location(DOH *s1, DOH *s2) {
 static String *cpp_include(String_or_char *fn) {
   String *s;
   s = Swig_include(fn);
-  if (single_include) {
+  if (s && single_include) {
     String *file = Getfile(s);
     if (Getattr(included_files,file)) {
       Delete(s);
