@@ -12,6 +12,7 @@ top_builddir = @top_builddir@
 CPP_TEST_CASES += \
 	argcargvtest \
 	attributetest \
+	autodoc \
 	callback \
 	complextest \
 	director_stl \
