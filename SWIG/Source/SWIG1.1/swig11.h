@@ -124,6 +124,7 @@ public:
   virtual void constructorDeclaration(Node *n);
   virtual void destructorDeclaration(Node *n);
   virtual void operatorDeclaration(Node *n);
+  virtual void accessDeclaration(Node *n);
 
   /* Low-level code generation */
   
