@@ -98,7 +98,7 @@ public:
       Printf(calling,"sprintf(message,\"Contract %s failed on clause %%i (line %%i)!\",cfail[1],cfail[0]);\n",contractName);
       Printf(calling,"PyErr_SetString(PyExc_Exception,message);return NULL;\n}\n");
       Printf(calling,"}\n");
-      Setattr(n,"feature:preassert",calling);
+      /*      Setattr(n,"feature:preassert",calling); */
     }
     /*There are two attributes "feature:preassert" and "feature:postassert".*/
 
