@@ -4,3 +4,6 @@
 */
 
 #define CHAR_CONSTANT 'x'
+
+#define STRING_CONSTANT "xyzzy"
+

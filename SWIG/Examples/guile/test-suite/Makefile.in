@@ -16,7 +16,8 @@ all::   macro-2.test \
 	name.runtest \
 	template-whitespace.cplusplustest \
 	anonymous-arg.cplusplustest \
-	static-array-member.cplusplustest
+	static-array-member.cplusplustest \
+	preproc-1.test
 
 .SUFFIXES: .i .test .cplusplustest .runtest .cplusplusruntest
 
