@@ -91,7 +91,7 @@ runtime:
 	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
 	@-$(skip-php4)     || (cd Runtime; $(MAKE) php4)
 	@-$(skip-ocaml)    || (cd Runtime; $(MAKE) ocaml)
-	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
+#	@-$(skip-pike)     || (cd Runtime; $(MAKE) pike)
 
 #####################################################################
 # CHECK
@@ -120,7 +120,7 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-php4)     || ./$(TARGET) -php4     -help
-	@$(skip-pike)     || ./$(TARGET) -pike     -help
+#	@$(skip-pike)     || ./$(TARGET) -pike     -help
 
 check-examples:					\
 	check-tcl-examples			\
@@ -132,7 +132,7 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-php4-examples			\
-	check-pike-examples
+#	check-pike-examples
 
 check-%-examples:
 	@passed=true;						\
@@ -161,7 +161,7 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-php4-test-suite			\
-	check-pike-test-suite
+#	check-pike-test-suite
 
 check-%-test-suite:
 	@passed=true;							\
@@ -190,7 +190,7 @@ check-gifplot:					\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
 	check-php4-gifplot			\
-	check-pike-gifplot
+#	check-pike-gifplot
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
