@@ -1,6 +1,8 @@
 ;; run with './multimap test-multimap.scm'
 ;; feel free to uncomment and comment sections
 
+(declare (uses example))
+
 (display "(example:gcd 90 12): ")
 (display (example:gcd 90 12))
 (display "\n")
@@ -50,5 +52,5 @@
 (display "\n")
 
 (display "(example:squarecubed 3: ")
-(display (example:squarecubed 3))
+(display (example:squareCubed 3))
 (display "\n")

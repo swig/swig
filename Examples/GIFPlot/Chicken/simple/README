@@ -2,17 +2,4 @@ This is a very minimalistic example in which just a few functions
 and constants from library are wrapped and used to draw some simple
 shapes.  
 
-`make' will build a version of the CHICKEN interpreter which defines
-an additional unit (simple).  Run `./simple test-simple.scm' to test
-it.
-
-** If you have a platform that supports dynamic linking (most UNIXes
-** and Win32), then you can run "make module".  This will create a
-** dynamic module called module.dll/module.so/module.shl (depending on
-** your platform), which you can use with the following:
-
-   (load-library 'precsi "module.dll")
-
-or
-
-   (load-library 'simple "module.dll")
+`make' will build an exe.  Run ./simple to test it.

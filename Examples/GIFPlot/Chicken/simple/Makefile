@@ -1,48 +1,28 @@
-TOP        = ../../..
-SWIG       = $(TOP)/../swig
-CHICKSRCS  = precsi.c osimple.c
-SRCS       = simple_wrap.c
-CXXSRCS    = 
-CHICKGEN   = $(CHICKSRCS) csi.c simple_wrap.c
-TARGET     = simple
-INCLUDE    = -I. -I../../Include
-LIBS       = -L../.. -lgifplot -lm
-SWIGOPT    = -I../../Include
+TOP         = ../../..
+SWIG        = $(TOP)/../preinst-swig
+INTERFACE   = simple.i
+SRCS        = 
+CXXSRCS     = 
+TARGET      = simple
+INCLUDE     = -I. -I../../Include
+SWIGOPT     = -I../../Include
+CFLAGS      = 
+VARIANT     = 
+LIBS        = -L../.. -lgifplot -lm
+
+# comment the following two lines to build a dynamic so file
+CHICKEN_MAIN = test-simple.scm
+VARIANT      = _static
 
 all:: $(TARGET)
 
-csi.c:
-	$(MAKE) -f $(TOP)/Makefile TARGET='csi.c' \
-		INTERFACE='precsi' chicken_csi
-
-precsi.c: precsi.scm
-	$(MAKE) -f $(TOP)/Makefile TARGET='precsi.c' \
-		INTERFACE='$<' chicken
-
-simple_wrap.c simple.scm: simple.i
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-		INCLUDE='$(INCLUDE)' INTERFACE='simple.i' chicken_c
-
-osimple.c: simple.scm
-	$(MAKE) -f $(TOP)/Makefile TARGET='osimple.c' \
-		INTERFACE='$<' chicken
-
-$(TARGET): csi.c $(CHICKSRCS) $(SRCS) $(CXXSRCS)
-	$(MAKE) -f $(TOP)/Makefile LIBS='$(LIBS)' \
-		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
-		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' \
-		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_static
-
-module:: $(CHICKSRCS) $(SRCS) $(CXXSRCS)
-	$(MAKE) -f $(TOP)/Makefile LIBS='$(LIBS)' \
-		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
-		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='module' \
-		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_module
+$(TARGET): $(INTERFACE) $(SRCS)
+	$(MAKE) -f $(TOP)/Makefile \
+		SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' CHICKEN_MAIN='$(CHICKEN_MAIN)' \
+		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='$(TARGET)' \
+		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' CHICKENOPTS='$(CHICKENOPTS)' chicken$(VARIANT)
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile chicken_clean
-	rm -f $(CHICKGEN)
-	rm -f simple.scm
-	rm -f $(TARGET) image.gif
-
-check:: all
+	rm -f simple.scm image.gif
+	rm -f $(TARGET)

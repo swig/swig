@@ -3,17 +3,4 @@ any changes.  The Scheme program 'test-gifplot.scm' does something a
 little more interesting.  You'll have to go look at the header file to
 get a complete listing of the functions.
 
-`make' will build a version of the CHICKEN interpreter which defines
-an additional unit (gifplot).  Run `./simple test-gifplot.scm' to test
-it.
-
-** If you have a platform that supports dynamic linking (most UNIXes
-** and Win32), then you can run "make module".  This will create a
-** dynamic module called module.dll/module.so/module.shl (depending on
-** your platform), which you can use with the following:
-
-   (load-library 'precsi "module.dll")
-
-or
-
-   (load-library 'gifplot "module.dll")
+`make' will build a static binary.  Run ./gifplot to test it.

@@ -1,5 +1,5 @@
-;; run with './simple test-simple.scm'
 ;; feel free to uncomment and comment sections
+(declare (uses example))
 
 (display "(example:My-variable): ")
 (display (example:My-variable))

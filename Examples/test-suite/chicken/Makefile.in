@@ -4,11 +4,13 @@
 #######################################################################
 
 LANGUAGE     = chicken
-VARIANT      = _module
-SCRIPTSUFFIX = _runme.scm
+VARIANT      = 
+SCRIPTSUFFIX = _runme.ss
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+CHICKEN_CSI  = @CHICKEN_CSI@
+SO           = @SO@
 
 #C_TEST_CASES = long_long list_vector pointer_in_out multivalue
 
@@ -37,7 +39,7 @@ include $(srcdir)/../common.mk
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH ./$* $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH $(CHICKEN_CSI) $*$(SO) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean
@@ -45,3 +47,4 @@ run_testcase = \
 	
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile chicken_clean
+	rm -f *.scm

@@ -1,6 +1,8 @@
 ;; run with './constants test-constants.scm'
 ;; feel free to uncomment and comment sections
 
+(declare (uses example))
+
 (display "starting test ... you will see 'finished' if successful.\n")
 (or (= (example:ICONST) 42) (exit 1))
 (or (< (abs (- (example:FCONST) 2.1828)) 0.00001) (exit 1))

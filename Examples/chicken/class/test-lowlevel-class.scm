@@ -1,6 +1,8 @@
 ;; This file illustrates the low-level C++ interface generated
 ;; by SWIG.
 
+(declare (uses example))
+
 ;; ----- Object creation -----
 
 (display "Creating some objects:\n")

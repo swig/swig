@@ -1,5 +1,7 @@
 ;;; Draw some simple shapes
 
+(declare (uses simple))
+
 (display "Drawing some basic shapes\n")
 
 (define cmap (simple:new-ColorMap #f))

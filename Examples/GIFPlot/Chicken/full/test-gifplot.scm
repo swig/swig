@@ -1,5 +1,7 @@
 ;;; Plot a 3D function
 
+(declare (uses gifplot))
+
 ;; Here is the function to plot
 (define (func x y)
   (* 5

@@ -1,6 +1,9 @@
 ;; This file illustrates the shadow C++ interface generated
 ;; by SWIG.
 
+(declare (uses example))
+(declare (uses tinyclos))
+
 ;; All generic methods must be included first
 (include "example-generic")
 

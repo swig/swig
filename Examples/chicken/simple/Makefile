@@ -1,49 +1,30 @@
-TOP        = ../..
-SWIG       = $(TOP)/../swig
-INTERFACE  = example.i
-CHICKSRCS  = precsi.c oexample.c
-SRCS       = example.c example_wrap.c
-CXXSRCS    = 
-CHICKGEN   = $(CHICKSRCS) csi.c example_wrap.c
-TARGET     = simple
-INCLUDE    =
-SWIGOPT    = 
-CFLAGS     = 
+TOP         = ../..
+SWIG        = $(TOP)/../preinst-swig
+INTERFACE   = example.i
+SRCS        = example.c
+CXXSRCS     = 
+TARGET      = simple
+INCLUDE     =
+SWIGOPT     = 
+CFLAGS      = 
+VARIANT     = 
+
+# uncomment the following two lines to build a static exe
+#CHICKEN_MAIN = test-simple.scm
+#VARIANT      = _static
 
 all:: $(TARGET)
 
-csi.c:
-	$(MAKE) -f $(TOP)/Makefile TARGET='csi.c' \
-		INTERFACE='precsi' chicken_csi
-
-precsi.c: precsi.scm
-	$(MAKE) -f $(TOP)/Makefile TARGET='precsi.c' \
-		INTERFACE='$<' chicken_chicken
-
-example_wrap.c example.scm: example.i
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-		INCLUDE='$(INCLUDE)' INTERFACE='example.i' chicken_swig_c
-
-oexample.c: example.scm
-	$(MAKE) -f $(TOP)/Makefile TARGET='oexample.c' \
-		INTERFACE='$<' chicken_chicken
-
-$(TARGET): csi.c $(CHICKSRCS) $(SRCS) $(CXXSRCS)
+$(TARGET): $(INTERFACE) $(SRCS)
 	$(MAKE) -f $(TOP)/Makefile \
-		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
+		SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' CHICKEN_MAIN='$(CHICKEN_MAIN)' \
 		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' \
-		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_static
-
-module:: $(CHICKSRCS) $(SRCS) $(CXXSRCS)
-	$(MAKE) -f $(TOP)/Makefile \
-		CHICKSRCS='$(CHICKSRCS)' SRCS='$(SRCS)' CXXSRCS='$(CXXSRCS)' \
-		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT)' TARGET='module' \
-		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' chicken_module
+		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' CHICKENOPTS='$(CHICKENOPTS)' chicken$(VARIANT)
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile chicken_clean
-	rm -f $(CHICKGEN)
 	rm -f example.scm example-generic.scm example-clos.scm
 	rm -f $(TARGET)
 
-check:: module
+check::
+	csi -batch simple.so test-simple.scm
