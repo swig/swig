@@ -159,6 +159,9 @@ public:
           if (Getattr(options, "directors")) {
             allow_directors();
           }
+          if (Getattr(options, "dirprot")) {
+	    allow_dirprot();
+          }
         }
       }
     }

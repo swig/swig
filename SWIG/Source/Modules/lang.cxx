@@ -1720,41 +1720,43 @@ int Language::classHandler(Node *n) {
     classDirectorDisown(n);
 
     /* emit all the protected virtual members as needed */
-    Node *vtable = Getattr(n, "vtable");
-    String* symname = Getattr(n, "sym:name");
-    Node *item;
-    Iterator k;    
-    int old_mode = cplus_mode;
-    cplus_mode =  CPLUS_PROTECTED;
-    for (k = First(vtable); k.key; k = Next(k)) {
-      item = k.item;
-      String* director = Getattr(item,"director");
-      Node *method = Getattr(item, "methodNode");
-      Node* parentnode = Getattr(method, "parentNode");
-      String* methodname = Getattr(method,"sym:name");
-      String* wrapname = NewStringf("%s_%s", symname,methodname);
-      if (!Getattr(symbols,wrapname) 
-	  && !Cmp(director,"1") 
-	  && (n != parentnode) 
-	  && is_protected(method)) {
-	Node* m = Copy(method);
-	String* mdecl = Getattr(m,"decl");
-	Setattr(m,"parentNode", n);
-	/* ugly trick, to avoid an uglier one later on emit.  We take
-	   the 'const' out from calling method to avoid the ugly const
-	   casting latter. The casting from 'non-const' to 'const' is not
-	   needed here, but it prevents the simple replacement of
-	   arg1 by darg on emit.cxx.
-	 */
-	if (Strncmp(mdecl, "q(const).", 9)== 0)
-	  Replace(mdecl,"q(const).","", DOH_REPLACE_FIRST);
-
-	cDeclaration(m);
-	Delete(m);
+    if (director_protected_mode) {
+      Node *vtable = Getattr(n, "vtable");
+      String* symname = Getattr(n, "sym:name");
+      Node *item;
+      Iterator k;
+      int old_mode = cplus_mode;
+      cplus_mode =  CPLUS_PROTECTED;
+      for (k = First(vtable); k.key; k = Next(k)) {
+	item = k.item;
+	String* director = Getattr(item,"director");
+	Node *method = Getattr(item, "methodNode");
+	Node* parentnode = Getattr(method, "parentNode");
+	String* methodname = Getattr(method,"sym:name");
+	String* wrapname = NewStringf("%s_%s", symname,methodname);
+	if (!Getattr(symbols,wrapname) 
+	    && !Cmp(director,"1") 
+	    && (n != parentnode) 
+	    && is_protected(method)) {
+	  Node* m = Copy(method);
+	  String* mdecl = Getattr(m,"decl");
+	  Setattr(m,"parentNode", n);
+	  /* ugly trick, to avoid an uglier one later on emit.  We
+	     take the 'const' out from calling method to avoid the
+	     ugly const casting latter. The casting from 'non-const'
+	     to 'const' is not needed here, but it prevents the simple
+	     replacement of arg1 by darg on emit.cxx.
+	  */
+	  if (Strncmp(mdecl, "q(const).", 9)== 0)
+	    Replace(mdecl,"q(const).","", DOH_REPLACE_FIRST);
+	  
+	  cDeclaration(m);
+	  Delete(m);
+	}
+	Delete(wrapname);
       }
-      Delete(wrapname);
+      cplus_mode = old_mode;
     }
-    cplus_mode = old_mode;
   }
 
   return SWIG_OK;
@@ -2182,6 +2184,14 @@ void Language::allow_multiple_input(int val) {
 
 void Language::allow_directors(int val) {
   directors = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::allow_dirprot()
+ * ----------------------------------------------------------------------------- */
+
+void Language::allow_dirprot(int val) {
+  director_protected_mode = val;
 }
 
 /* -----------------------------------------------------------------------------

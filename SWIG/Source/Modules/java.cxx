@@ -268,6 +268,9 @@ class JAVA : public Language {
       if (Getattr(optionsnode, "directors")) {
         allow_directors();
       }
+      if (Getattr(optionsnode, "dirprot")) {
+	allow_dirprot();
+      }
     }
 
     /* Initialize all of the output files */
