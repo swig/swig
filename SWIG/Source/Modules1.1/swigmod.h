@@ -192,7 +192,10 @@ public:
   static void patch_parms(Parm *p);
 
   /* Allow overloaded functions */
-  void   allow_overloading();
+  void   allow_overloading(int val = 1);
+
+  /* Allow multiple-input typemaps */
+  void   allow_multiple_input(int val = 1);
 
   /* Wrapping class query */
   int is_wrapping_class();
@@ -213,6 +216,7 @@ public:
   Hash   *symbols;
   Hash   *classtypes;
   int     overloading;
+  int     multiinput;
 };
 
 extern  int   SWIG_main(int, char **, Language *);

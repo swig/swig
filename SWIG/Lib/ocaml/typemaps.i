@@ -11,37 +11,37 @@
 
 /* Pointers */
 
-%typemap(ocaml,in) void * {
+%typemap(in) void * {
     $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
 }
 
-%typemap(ocaml,varin) void * {
+%typemap(varin) void * {
     $1 = ($ltype)SWIG_MustGetPtr($input, NULL);
 }
 
-%typemap(ocaml,out) void * {
+%typemap(out) void * {
     $result = SWIG_MakePtr((void *)$1, $descriptor, NULL);
 }
 
-%typemap(ocaml,varout) void * {
+%typemap(varout) void * {
     $result = SWIG_MakePtr((void *)$1, $descriptor, NULL);
 }
 
-%typemap(ocaml,in) SWIGTYPE * {
+%typemap(in) SWIGTYPE * {
     $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
 }
 
-%typemap(ocaml,out) SWIGTYPE * {
+%typemap(out) SWIGTYPE * {
     extern value $delete_fn( value );
     $result = SWIG_MakePtr ((void *)$1, 
 			    $descriptor, "$delete_fn");
 }
 
-%typemap(ocaml,varin) SWIGTYPE * {
+%typemap(varin) SWIGTYPE * {
     $1 = ($ltype)SWIG_MustGetPtr($input, $descriptor);
 }
 
-%typemap(ocaml,varout) SWIGTYPE * {
+%typemap(varout) SWIGTYPE * {
     $result = SWIG_MakePtr ((void *)$1, $descriptor, NULL);
 }
 
@@ -49,19 +49,19 @@
 
 #ifdef __cplusplus
 
-%typemap(ocaml,in) SWIGTYPE & {
+%typemap(in) SWIGTYPE & {
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor) ;
 }
 
-%typemap(ocaml,out) SWIGTYPE & {
+%typemap(out) SWIGTYPE & {
   $result = SWIG_MakePtr ((void *)& $1, $descriptor, NULL);
 }
 
-%typemap(ocaml,in) SWIGTYPE {
+%typemap(in) SWIGTYPE {
   $1 = *(($&1_type) SWIG_MustGetPtr($input, $descriptor)) ;
 }
 
-%typemap(ocaml,out) SWIGTYPE {
+%typemap(out) SWIGTYPE {
     $&1_type temp = new $type(($1_ltype &) $1 );
     $result = SWIG_MakePtr ((void *)temp, $descriptor, 
 			    "$delete_fn" );
@@ -69,11 +69,11 @@
 
 #else
 
-%typemap(ocaml,in) SWIGTYPE {
+%typemap(in) SWIGTYPE {
     $1 = *(($&1_ltype) SWIG_MustGetPtr((value)$input, $descriptor)) ;
 }
 
-%typemap(ocaml,out) SWIGTYPE {
+%typemap(out) SWIGTYPE {
     void *temp = calloc(1,sizeof($ltype));
     memcpy(temp,(char *)&$1,sizeof($ltype));
     $result = SWIG_MakePtr ((void *)temp, $descriptor, "$delete_fn");
@@ -83,50 +83,50 @@
 
 /* Arrays */
 
-%typemap(ocaml,in) SWIGTYPE[] {
+%typemap(in) SWIGTYPE[] {
     $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor);
 }
 
-%typemap(ocaml,out) SWIGTYPE[] {
+%typemap(out) SWIGTYPE[] {
     $result = SWIG_MakePtr ($1, $descriptor, NULL);
 }
 
 /* Enums */
-%typemap(ocaml,in) enum SWIGTYPE {
+%typemap(in) enum SWIGTYPE {
     $1 = enum_to_int("$type_to_int",$input);
 }
 
-%typemap(ocaml,varin) enum SWIGTYPE {
+%typemap(varin) enum SWIGTYPE {
     $1 = enum_to_int("$type_to_int",$input);
 }
 
-%typemap(ocaml,out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
-%typemap(ocaml,varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, C_TO_MZ, MZ_TO_C)
-%typemap(ocaml,in) C_NAME {
+%typemap(in) C_NAME {
     $1 = MZ_TO_C($input);
 }
-%typemap(ocaml,varin) C_NAME {
+%typemap(varin) C_NAME {
     $1 = MZ_TO_C($input);
 }
-%typemap(ocaml,out) C_NAME {
+%typemap(out) C_NAME {
     $result = C_TO_MZ($1);
 }
-%typemap(ocaml,varout) C_NAME {
+%typemap(varout) C_NAME {
     $result = C_TO_MZ($1);
 }
-%typemap(ocaml,in) C_NAME *INPUT (C_NAME temp) {
+%typemap(in) C_NAME *INPUT (C_NAME temp) {
     temp = (C_NAME) MZ_TO_C($input);
     $1 = &temp;
 }
-%typemap(ocaml,ignore) C_NAME *OUTPUT (C_NAME temp) {
+%typemap(in,numinputs=0) C_NAME *OUTPUT (C_NAME temp) {
     $1 = &temp;
 }
-%typemap(ocaml,argout) C_NAME *OUTPUT {
+%typemap(argout) C_NAME *OUTPUT {
     *$arg = *$input;
 }
 %enddef
@@ -152,9 +152,9 @@ SIMPLE_MAP(unsigned long long,copy_int64,Int64_val);
 
 /* Void */
 
-%typemap(ocaml,out) void "$result = Val_unit;";
+%typemap(out) void "$result = Val_unit;";
 
 /* Pass through value */
 
-%typemap (ocaml,in) value "$1=$input;";
-%typemap (ocaml,out) value "$result=$1;";
+%typemap (in) value "$1=$input;";
+%typemap (out) value "$result=$1;";

@@ -396,8 +396,8 @@ public:
     Printf(kwargs,"{ ");  
     for (i = 0, p=l; i < num_arguments; i++) {
     
-      while (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");

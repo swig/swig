@@ -125,7 +125,7 @@ output values.
 
 // Force the argument to be ignored.
 
-%typemap(ignore) int            *OUTPUT(int temp),  int &OUTPUT(int temp),
+%typemap(in,numinputs=0) int            *OUTPUT(int temp),  int &OUTPUT(int temp),
                  short          *OUTPUT(short temp), short &OUTPUT(short temp),
                  long           *OUTPUT(long temp), long &OUTPUT(long temp),
                  unsigned int   *OUTPUT(unsigned int temp), unsigned int &OUTPUT(unsigned int temp),

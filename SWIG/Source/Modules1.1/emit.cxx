@@ -53,12 +53,12 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
   }
   
   /* Attach typemaps to parameters */
-  Swig_typemap_attach_parms("ignore",l,f);
+  /*  Swig_typemap_attach_parms("ignore",l,f); */
+
   Swig_typemap_attach_parms("default",l,f);
   Swig_typemap_attach_parms("arginit",l,f);
 
-  /* Apply the arginit, default, and ignore typemaps */
-
+  /* Apply the arginit and default */
   p = l;
   while (p) {
     tm = Getattr(p,"tmap:arginit");
@@ -83,7 +83,8 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       p = nextSibling(p);
     }
   }
-  
+
+#ifdef DEPRECATED  
   /* Apply the ignore typemap */
   p = l;
   while (p) {
@@ -105,6 +106,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       p = nextSibling(p);
     }
   }
+#endif
   return;
 }
 
@@ -120,6 +122,31 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("argout",l,f);
   Swig_typemap_attach_parms("check",l,f);
   Swig_typemap_attach_parms("freearg",l,f);
+
+  {
+    /* This is compatibility code to deal with the deprecated "ignore" typemap */
+    Parm *p = l;
+    Parm *np;
+    String *tm;
+    while (p) {
+      tm = Getattr(p,"tmap:in");
+      if (tm && checkAttribute(p,"tmap:in:numinputs","0")) {
+	Replaceall(tm,"$target", Getattr(p,"lname"));
+	Printv(f->code,tm,"\n",NIL);
+	Setattr(p,"tmap:ignore",tm);
+	np = Getattr(p,"tmap:in:next");
+	Setattr(p,"tmap:ignore:next", np);
+	while (p && (p != np)) {
+	  Setattr(p,"ignore","1");
+	  p = nextSibling(p);
+	}
+      } else if (tm) {
+	p = Getattr(p,"tmap:in:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
 
   /* Perform a sanity check on "in" and "freearg" typemaps.  These
      must exactly match to avoid chaos.  If a mismatch occurs, we
@@ -197,6 +224,16 @@ int emit_num_arguments(ParmList *parms) {
   int   nargs = 0;
 
   while (p) {
+    if (Getattr(p,"tmap:in")) {
+      nargs += GetInt(p,"tmap:in:numinputs");
+      p = Getattr(p,"tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+#ifdef DEPRECATED
+  while (p) {
     /* Ignored arguments */
     if (Getattr(p,"tmap:ignore")) {
       p = Getattr(p,"tmap:ignore:next");
@@ -210,6 +247,7 @@ int emit_num_arguments(ParmList *parms) {
       }
     }
   }
+#endif
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
     if (!nextSibling(p)) {
       nargs--;
@@ -231,13 +269,12 @@ int emit_num_required(ParmList *parms) {
   int   nargs = 0;
 
   while (p) {
-    /* Ignored arguments */
-    if (Getattr(p,"tmap:ignore")) {
-      p = Getattr(p,"tmap:ignore:next");
+    if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
+      p = Getattr(p,"tmap:in:next");
     } else {
       if (Getattr(p,"value")) break;
       if (Getattr(p,"tmap:default")) break;
-      nargs++;
+      nargs+= GetInt(p,"tmap:in:numinputs");
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");
       } else {
@@ -245,10 +282,11 @@ int emit_num_required(ParmList *parms) {
       }
     }
   }
+
   /* Print message for non-default arguments */
   while (p) {
-    if (Getattr(p,"tmap:ignore")) {
-      p = Getattr(p,"tmap:ignore:next");
+    if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
+      p = Getattr(p,"tmap:in:next");
     } else {
       if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
 	Swig_error(Getfile(p),Getline(p),"Error. Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));

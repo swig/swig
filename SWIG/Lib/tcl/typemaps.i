@@ -199,7 +199,7 @@ output values.
 
 */
 
-%typemap(ignore)     int            *OUTPUT(int temp),
+%typemap(in,numinputs=0)     int            *OUTPUT(int temp),
                      short          *OUTPUT(short temp),
                      long           *OUTPUT(long temp),
                      unsigned int   *OUTPUT(unsigned int temp),
@@ -378,7 +378,7 @@ int Tcl_Result
  
 */
 
-%typemap(ignore) Tcl_Interp *interp {
+%typemap(in,numinputs=0) Tcl_Interp *interp {
   $1 = interp;
 }
 

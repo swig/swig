@@ -11,61 +11,61 @@
 // ever need to write a typemap.
 //
 
-%typemap(php4,in) double *INPUT(double temp)
+%typemap(in) double *INPUT(double temp)
 {
 	temp = (double) Z_DVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) float  *INPUT(float temp)
+%typemap(in) float  *INPUT(float temp)
 {
 	temp = (float) Z_DVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) int	*INPUT(int temp)
+%typemap(in) int	*INPUT(int temp)
 {
 	temp = (int) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) short	*INPUT(short temp)
+%typemap(in) short	*INPUT(short temp)
 {
 	temp = (short) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) long	*INPUT(long temp)
+%typemap(in) long	*INPUT(long temp)
 {
 	temp = (long) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) unsigned int	*INPUT(unsigned int temp)
+%typemap(in) unsigned int	*INPUT(unsigned int temp)
 {
 	temp = (unsigned int) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) unsigned short *INPUT(unsigned short temp)
+%typemap(in) unsigned short *INPUT(unsigned short temp)
 {
 	temp = (unsigned short) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) unsigned long *INPUT(unsigned long temp)
+%typemap(in) unsigned long *INPUT(unsigned long temp)
 {
 	temp = (unsigned long) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,in) unsigned char *INPUT(unsigned char temp)
+%typemap(in) unsigned char *INPUT(unsigned char temp)
 {
 	temp = (unsigned char) Z_LVAL_PP($input);
 	$1 = &temp;
 }
 
-%typemap(php4,ignore)	int	*OUTPUT(int temp),
+%typemap(in,numinputs=0)	int	*OUTPUT(int temp),
 			short	*OUTPUT(short temp),
 			long	*OUTPUT(long temp),
 			unsigned int	*OUTPUT(unsigned int temp),
@@ -78,7 +78,7 @@
   $1 = &temp;
 }
 
-%typemap(php4,argout)	int	*OUTPUT,
+%typemap(argout)	int	*OUTPUT,
 			short	*OUTPUT,
 			long	*OUTPUT,
 			unsigned int	*OUTPUT,
@@ -90,35 +90,35 @@
   ZVAL_LONG($result,*($input));
 }
 
-%typemap(php4,argout)	float	*OUTPUT,
+%typemap(argout)	float	*OUTPUT,
 			double	*OUTPUT
 {
   ZVAL_DOUBLE($result,*($input));
 }
 
-%typemap(php4,in) int *INOUT = int *INPUT;
-%typemap(php4,in) short *INOUT = short *INPUT;
-%typemap(php4,in) long *INOUT = long *INPUT;
-%typemap(php4,in) unsigned *INOUT = unsigned *INPUT;
-%typemap(php4,in) unsigned short *INOUT = unsigned short *INPUT;
-%typemap(php4,in) unsigned long *INOUT = unsigned long *INPUT;
-%typemap(php4,in) unsigned char *INOUT = unsigned char *INPUT;
-%typemap(php4,in) float *INOUT = float *INPUT;
-%typemap(php4,in) double *INOUT = double *INPUT;
+%typemap(in) int *INOUT = int *INPUT;
+%typemap(in) short *INOUT = short *INPUT;
+%typemap(in) long *INOUT = long *INPUT;
+%typemap(in) unsigned *INOUT = unsigned *INPUT;
+%typemap(in) unsigned short *INOUT = unsigned short *INPUT;
+%typemap(in) unsigned long *INOUT = unsigned long *INPUT;
+%typemap(in) unsigned char *INOUT = unsigned char *INPUT;
+%typemap(in) float *INOUT = float *INPUT;
+%typemap(in) double *INOUT = double *INPUT;
 
-%typemap(php4,argout) int *INOUT = int *OUTPUT;
-%typemap(php4,argout) short *INOUT = short *OUTPUT;
-%typemap(php4,argout) long *INOUT= long *OUTPUT;
-%typemap(php4,argout) unsigned short *INOUT= unsigned short *OUTPUT;
-%typemap(php4,argout) unsigned long *INOUT = unsigned long *OUTPUT;
-%typemap(php4,argout) unsigned char *INOUT = unsigned char *OUTPUT;
-%typemap(php4,argout) float *INOUT = float *OUTPUT;
-%typemap(php4,argout) double *INOUT= double *OUTPUT;
+%typemap(argout) int *INOUT = int *OUTPUT;
+%typemap(argout) short *INOUT = short *OUTPUT;
+%typemap(argout) long *INOUT= long *OUTPUT;
+%typemap(argout) unsigned short *INOUT= unsigned short *OUTPUT;
+%typemap(argout) unsigned long *INOUT = unsigned long *OUTPUT;
+%typemap(argout) unsigned char *INOUT = unsigned char *OUTPUT;
+%typemap(argout) float *INOUT = float *OUTPUT;
+%typemap(argout) double *INOUT= double *OUTPUT;
 
 // REFERENCE
 // Accept Php references as pointers
 
-%typemap(php4,in) double *REFERENCE (double dvalue)
+%typemap(in) double *REFERENCE (double dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -130,7 +130,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) float *REFERENCE (float dvalue)
+%typemap(in) float *REFERENCE (float dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -142,7 +142,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) int *REFERENCE (int dvalue)
+%typemap(in) int *REFERENCE (int dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -154,7 +154,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) short *REFERENCE (short dvalue)
+%typemap(in) short *REFERENCE (short dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -166,7 +166,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) long *REFERENCE (long dvalue)
+%typemap(in) long *REFERENCE (long dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -178,7 +178,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) unsigned int *REFERENCE (unsigned int dvalue)
+%typemap(in) unsigned int *REFERENCE (unsigned int dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -190,7 +190,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) unsigned short *REFERENCE (unsigned short dvalue)
+%typemap(in) unsigned short *REFERENCE (unsigned short dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -202,7 +202,7 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,in) unsigned long *REFERENCE (unsigned long dvalue)
+%typemap(in) unsigned long *REFERENCE (unsigned long dvalue)
 {
   if(!ParameterPassedByReference(ht, argvi))
   {
@@ -214,14 +214,14 @@
   $1 = &dvalue;
 }
 
-%typemap(php4,argout) double *REFERENCE,
+%typemap(argout) double *REFERENCE,
 		      float  *REFERENCE
 {
   $1->value.dval = (double)(*$arg);
   $1->type = IS_DOUBLE;
 }
 
-%typemap(php4,argout) int	*REFERENCE,
+%typemap(argout) int	*REFERENCE,
 		      short	*REFERENCE,
 		      long	*REFERENCE,
 		      unsigned int *REFERENCE,

@@ -139,7 +139,7 @@ output values.
 %include "fragments.i"
 
 %define OUTPUT_TYPEMAP(type, converter, convtype)
-%typemap(ignore) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
+%typemap(in,numinputs=0) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
 %typemap(argout,fragment="t_output_helper") type *OUTPUT, type &OUTPUT {
    PyObject *o = converter(convtype (*$1));
    $result = t_output_helper($result,o);

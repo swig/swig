@@ -171,7 +171,7 @@
     temp = (C_NAME) MZ_TO_C($input);
     $1 = &temp;
 }
-%typemap(ignore) C_NAME *OUTPUT (C_NAME temp) {
+%typemap(in,numinputs=0) C_NAME *OUTPUT (C_NAME temp) {
     $1 = &temp;
 }
 %typemap(argout) C_NAME *OUTPUT {

@@ -572,15 +572,15 @@ class JAVA : public Language {
 
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p=l, jnip=l, jtypep=l; i < num_arguments; i++) {
-
-      while (Getattr(p,"tmap:ignore")) {
-        p = Getattr(p,"tmap:ignore:next");
+      
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+        p = Getattr(p,"tmap:in:next");
       }
-      while (Getattr(jnip,"tmap:ignore")) {
-        jnip = Getattr(jnip,"tmap:ignore:next");
+      while (checkAttribute(jnip,"tmap:in:numinputs","0")) {
+        jnip = Getattr(jnip,"tmap:in:next");
       }
-      while (Getattr(jtypep,"tmap:ignore")) {
-        jtypep = Getattr(jtypep,"tmap:ignore:next");
+      while (checkAttribute(jtypep,"tmap:in:numinputs","0")) {
+        jtypep = Getattr(jtypep,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
@@ -1328,7 +1328,7 @@ class JAVA : public Language {
 
     /* Attach the non-standard typemaps to the parameter list */
     Swig_typemap_attach_parms("jstype", l, NULL);
-    Swig_typemap_attach_parms("ignore", l, NULL);
+    Swig_typemap_attach_parms("in", l, NULL);         /* Should be "in"????? */
 
     /* Get Java return types */
     bool is_return_type_java_class = false;
@@ -1366,12 +1366,12 @@ class JAVA : public Language {
 
       /* Ignored parameters */
       bool continue_flag = false;
-      if (Getattr(p,"tmap:ignore")) {
-        p = Getattr(p,"tmap:ignore:next");
+      if (checkAttribute(p,"tmap:in:numinputs","0")) {
+        p = Getattr(p,"tmap:in:next");
         continue_flag = true;
       }
-      if (Getattr(jstypep,"tmap:ignore")) {
-        jstypep = Getattr(jstypep,"tmap:ignore:next");
+      if (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
+        jstypep = Getattr(jstypep,"tmap:in:next");
         continue_flag = true;
       }
       if (continue_flag)
@@ -1487,7 +1487,7 @@ class JAVA : public Language {
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("jstype", l, NULL);
-      Swig_typemap_attach_parms("ignore", l, NULL);
+      Swig_typemap_attach_parms("in", l, NULL);       /* in??? */
 
       int gencomma = 0;
 
@@ -1496,12 +1496,12 @@ class JAVA : public Language {
 
         /* Ignored parameters */
         bool continue_flag = false;
-        if (Getattr(p,"tmap:ignore")) {
-          p = Getattr(p,"tmap:ignore:next");
+	if (checkAttribute(p,"tmap:in:numinputs","0")) {
+          p = Getattr(p,"tmap:in:next");
           continue_flag = true;
         }
-        if (Getattr(jstypep,"tmap:ignore")) {
-          jstypep = Getattr(jstypep,"tmap:ignore:next");
+        if (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
+          jstypep = Getattr(jstypep,"tmap:in:next");
           continue_flag = true;
         }
         if (continue_flag)
@@ -1785,11 +1785,11 @@ class JAVA : public Language {
     /* Output each parameter */
     for (i = 0, p=l, jstypep=l; i < num_arguments; i++) {
 
-      while (Getattr(p,"tmap:ignore")) {
-        p = Getattr(p,"tmap:ignore:next");
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+        p = Getattr(p,"tmap:in:next");
       }
-      while (Getattr(jstypep,"tmap:ignore")) {
-        jstypep = Getattr(jstypep,"tmap:ignore:next");
+      while (checkAttribute(jstypep,"tmap:in:numinputs","0")) {
+        jstypep = Getattr(jstypep,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");

@@ -1195,20 +1195,9 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
   int   argnum = 0;
   char  temp[256];
   Parm  *kw;
-  int   inmap = 0;
-
-  /* This is hack to work around the clash of ignore/in typemaps.  Need to fix more generally */
-  if (Strcmp(op,"in") == 0) inmap = 1;
 
   p = parms;
   while (p) {
-    if (inmap) {
-      if (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
-	argnum++;
-	continue;
-      }
-    }
     argnum++;
     nmatch = 0;
     tm = Swig_typemap_search_multi(op,p,&nmatch);

@@ -202,6 +202,7 @@ Language::Language() {
   symbols = NewHash();
   classtypes = NewHash();
   overloading = 0;
+  multiinput = 0;
 }
 
 Language::~Language() {
@@ -536,9 +537,48 @@ Doc/Manual/Typemaps.html for complete details.\n");
     }
   }
 
+  /*
   if (Strcmp(method,"except") == 0) {
     Swig_warning(WARN_DEPRECATED_EXCEPT_TM, Getfile(n), Getline(n),
 		 "%%typemap(except) is deprecated. Use the %%exception directive.\n");
+  }
+  */
+
+  if (Strcmp(method,"in") == 0) {
+    Hash *k;
+    k = kwargs;
+    while (k) {
+      if (checkAttribute(k,"name","numinputs")) {
+	if (!multiinput && (GetInt(k,"value") > 1)) {
+	  Swig_error(Getfile(n),Getline(n),"Multiple-input typemaps (numinputs > 1) not supported by this target language module.\n");
+	  return SWIG_ERROR;
+	}
+	break;
+      }
+      k = nextSibling(k);
+    }
+    if (!k) {
+      k = NewHash();
+      Setattr(k,"name","numinputs");
+      Setattr(k,"value","1");
+      set_nextSibling(k,kwargs);
+      Setattr(n,"kwargs",k);
+      kwargs = k;
+    }
+  }
+
+  if (Strcmp(method,"ignore") == 0) {
+    Swig_warning(WARN_DEPRECATED_IGNORE_TM, Getfile(n), Getline(n),
+		 "%%typemap(ignore) has been replaced by %%typemap(in,numinputs=0).\n");
+    
+    Clear(method);
+    Append(method,"in");
+    Hash *k = NewHash();
+    Setattr(k,"name","numinputs");
+    Setattr(k,"value","0");
+    set_nextSibling(k,kwargs);
+    Setattr(n,"kwargs",k);
+    kwargs = k;
   }
 
   /* Replace $descriptor() macros */
@@ -1760,8 +1800,16 @@ Language::classLookup(SwigType *s) {
  * Language::allow_overloading()
  * ----------------------------------------------------------------------------- */
 
-void Language::allow_overloading() {
-  overloading = 1;
+void Language::allow_overloading(int val) {
+  overloading = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::allow_multiple_input()
+ * ----------------------------------------------------------------------------- */
+
+void Language::allow_multiple_input(int val) {
+  multiinput = val;
 }
 
 /* -----------------------------------------------------------------------------

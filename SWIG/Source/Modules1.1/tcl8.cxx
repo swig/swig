@@ -243,8 +243,9 @@ public:
     
     for (i = 0, p = parms; i < num_arguments; i++) {
       /* Skip ignored arguments */
-      while (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
+    
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
       }
       
       SwigType *pt = Getattr(p,"type");
@@ -800,9 +801,8 @@ public:
       
       SwigType  *pt = Getattr(p,"type");
       String    *pn = Getattr(p,"name");
-      
-      /* Only print an argument if not ignored */
-      if (!Swig_typemap_search((char*)"ignore",pt,pn)) {
+      /* Only print an argument if not ignored */      
+      if (!checkAttribute(p,"tmap:in:numinputs","0")) {
 	if (i >= (pcount-numopt))
 	  Putc('?',temp);
 	if (Len(pn) > 0) {

@@ -132,7 +132,7 @@ output values.
 %include "fragments.i"
 		
 %define OUTPUT_TYPEMAP(type, converter, convtype)
-%typemap(ignore) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
+%typemap(in,numinputs=0) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
 %typemap(argout, fragment="output_helper") type *OUTPUT, type &OUTPUT {
    VALUE o = converter(convtype (*$1));
    $result = output_helper($result, o);
@@ -152,7 +152,7 @@ OUTPUT_TYPEMAP(double, rb_float_new, (double));
 
 #undef OUTPUT_TYPEMAP
 
-%typemap(ignore) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;";
+%typemap(in,numinputs=0) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;";
 %typemap(argout, fragment="output_helper") bool *OUTPUT, bool &OUTPUT {
     VALUE o = (*$1) ? Qtrue : Qfalse;
     $result = output_helper($result, o);
@@ -303,7 +303,7 @@ struct timeval rb_time_timeval(VALUE);
     }
 }
 
-%typemap(ignore) struct timeval *OUTPUT(struct timeval temp)
+%typemap(in,numinputs=0) struct timeval *OUTPUT(struct timeval temp)
 {
     $1 = &temp;
 }
@@ -338,11 +338,11 @@ struct timeval rb_time_timeval(VALUE);
 }
 
 // argc and argv
-%typemap(ignore) int PROG_ARGC {
+%typemap(in,numinputs=0) int PROG_ARGC {
     $1 = RARRAY(rb_argv)->len + 1;
 }
 
-%typemap(ignore) char **PROG_ARGV {
+%typemap(in,numinputs=0) char **PROG_ARGV {
     int i, n;
     VALUE ary = rb_eval_string("[$0] + ARGV");
     n = RARRAY(ary)->len;

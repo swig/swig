@@ -978,9 +978,9 @@ public:
       /* Skip ignored arguments */
       {
         p=l;
-        while (Getattr(p,"tmap:ignore")) {
-  	p = Getattr(p,"tmap:ignore:next");
-        }
+	while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	  p = Getattr(p,"tmap:in:next");
+	}
         SwigType *pt = Getattr(p,"type");
 
         Printf(df->code,
@@ -1087,8 +1087,8 @@ public:
 
     for (i = 0, p = l; i < num_arguments; i++) {
       /* Skip ignored arguments */
-      while (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
       }
       SwigType *pt = Getattr(p,"type");
 

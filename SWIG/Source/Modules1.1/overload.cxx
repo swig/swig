@@ -83,12 +83,12 @@ Swig_overload_rank(Node *n) {
 	  int   num_checked = 0;
 	  while (p1 && p2 && (num_checked < nodes[i].argc)) {
 	    //	  Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
-	    if (Getattr(p1,"tmap:ignore")) {
-	      p1 = Getattr(p1,"tmap:ignore:next");
+	    if (checkAttribute(p1,"tmap:in:numinputs","0")) {
+	      p1 = Getattr(p1,"tmap:in:next");
 	      continue;
 	    }
-	    if (Getattr(p2,"tmap:ignore")) {
-	      p2 = Getattr(p2,"tmap:ignore:next");
+	    if (checkAttribute(p2,"tmap:in:numinputs","0")) {
+	      p2 = Getattr(p2,"tmap:in:next");
 	      continue;
 	    }
 	    String *t1 = Getattr(p1,"tmap:typecheck:precedence");
@@ -304,8 +304,8 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
     j = 0;
     Parm *pj = pi;
     while (pj) {
-      if (Getattr(pj,"tmap:ignore")) {
-	pj = Getattr(pj,"tmap:ignore:next");
+      if (checkAttribute(pj,"tmap:in:numinputs","0")) {
+	pj = Getattr(pj,"tmap:in:next");
 	continue;
       }
       if (j >= num_required) {

@@ -173,7 +173,7 @@
      C_NAME *INPUT(C_NAME temp) {
        SCM swig_scm_value = $input;
        temp = (C_NAME) SCM_TO_C_EXPR; $1 = &temp; }
- %typemap (ignore)      C_NAME *OUTPUT (C_NAME temp)
+ %typemap (in,numinputs=0)      C_NAME *OUTPUT (C_NAME temp)
      {$1 = &temp;}
  %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT
      { C_NAME swig_c_value = *$1;
@@ -211,7 +211,7 @@
      C_NAME *INPUT(C_NAME temp) {
    temp = (C_NAME) SCM_TO_C($input); $1 = &temp;
  }
- %typemap (ignore)      C_NAME *OUTPUT (C_NAME temp)
+ %typemap (in,numinputs=0)      C_NAME *OUTPUT (C_NAME temp)
    {$1 = &temp;}
  %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT
    {SWIG_APPEND_VALUE(C_TO_SCM(*$1));}
@@ -258,7 +258,7 @@
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
  }
- %typemap (ignore)  char * *OUTPUT (char * temp)
+ %typemap (in,numinputs=0)  char * *OUTPUT (char * temp)
    {$1 = &temp;}
  %typemap (argout,doc="$NAME (a string)") char * *OUTPUT
    {SWIG_APPEND_VALUE(gh_str02scm(*$1));}

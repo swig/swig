@@ -468,8 +468,8 @@ public:
 
     for (i = 0, p = l; i < numarg; i++) {
       /* Skip ignored arguments */
-      while (Getattr(p,"tmap:ignore")) {
-	p = Getattr(p,"tmap:ignore:next");
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
       }
 
       SwigType *pt = Getattr(p,"type");
@@ -669,7 +669,9 @@ public:
     }
 
     /* Attach standard typemaps */
-    emit_attach_parmmaps(l, f);
+    if (current != CONSTRUCTOR_ALLOCATE) {
+      emit_attach_parmmaps(l, f);
+    }
     Setattr(n, "wrap:parms", l);
 
     /* Get number of arguments */
