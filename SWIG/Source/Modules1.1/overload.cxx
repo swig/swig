@@ -47,7 +47,6 @@ Swig_overload_rank(Node *n) {
   while (c) {
     nodes[nnodes].n = c;
     nodes[nnodes].parms = Getattr(c,"wrap:parms");
-    if (!nodes[nnodes].parms) nodes[nnodes].parms = Getattr(c,"parms");
     nodes[nnodes].argc = emit_num_required(nodes[nnodes].parms);
     nodes[nnodes].error = 0;
     nnodes++;
