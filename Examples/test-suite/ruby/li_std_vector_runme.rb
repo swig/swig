@@ -1,6 +1,6 @@
-require 'lib_std_vector'
+require 'li_std_vector'
 
-include Lib_std_vector
+include Li_std_vector
 
 iv = IntVector.new(4)
 0.upto(3) { |i| iv[i] = i }
