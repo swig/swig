@@ -1370,10 +1370,13 @@ PERL5::cpp_close_class() {
 
     /* If we are inheriting from a base class, set that up */
 
+    Printv(pm, "@ISA = qw( ",realpackage, 0);
+    /* Removed to fix SF Bug #449398 */
     if (Cmp(class_name,realpackage))
       Printv(pm, "@ISA = qw( ",realpackage, 0);
     else
       Printv(pm, "@ISA = qw( ", 0);
+    */
 
     if (base_class) {
       Printv(pm, " ", base_class, 0);
