@@ -123,6 +123,14 @@ defer  ready to go.  The primary obstacle lies in the target language
 	  arguments (int FIRST, double SECOND) are close to the
 	  actual arguments (foo, bar).
 
+	Comment by beazley
+
+               $typemap(in, input=x) int = foo;
+
+        is a little bit hard to parse in terms of variable substitution.
+        I'm considering something like this:
+
+               $typemap(in,1=int foo, input=x)
 
 ***    Add attributes to the %feature directive. Something like:
 
