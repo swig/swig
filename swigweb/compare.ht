@@ -4,11 +4,11 @@ SWIG Features
 <h2>SWIG Features</h2>
 
 <p>
-This information is based on the current release, SWIG-1.3.16.
+This information is based on the current release, SWIG-1.3.18.
 
 <h3>Code Generation</h3>
 
-SWIG current generates wrapper code for nine different target languages:
+SWIG current generates wrapper code for eleven different target languages:
 
 <ul>
 <li>Guile
@@ -20,6 +20,8 @@ SWIG current generates wrapper code for nine different target languages:
 <li>Python
 <li>Ruby
 <li>Tcl
+<li>Chicken
+<li>C#
 </ul>
 
 In addition to this, an XML output module was recently added and work
@@ -63,8 +65,9 @@ SWIG provides wrapping support for almost all of ANSI C++.
 
 The only major C++ feature not currently supported by SWIG is the
 wrapping of nested classes--a problem we're working on. SWIG also
-does not allow C++ virtual methods to be implemented in the
-target language (a subtle feature that might be useful in certain projects).
+does not allow C++ virtual methods to be implemented in certain
+target languages (a subtle feature that might be useful in projects that
+rely heavily on the use of callback functions).
 
 <p>
 C++ users who rely on advanced template programming techniques 

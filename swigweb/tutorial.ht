@@ -262,7 +262,7 @@ Now, compiling (Python):
 
 <blockquote>
 <pre>
-$ swig -proxy -python -c++ pair.i
+$ swig -python -c++ pair.i
 $ c++ -c pair_wrap.c -I/usr/local/include/python2.1
 $ c++ -shared pair_wrap.o -o paircmodule.so
 $ python
