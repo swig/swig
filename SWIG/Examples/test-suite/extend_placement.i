@@ -8,6 +8,7 @@
     Foo(int a) { return new Foo(); }
     ~Foo() { delete self;}
     int spam(int x) { return x; }
+    int spam(int x, int y) { return x + y ; }
 };
 
 %inline %{
