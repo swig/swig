@@ -220,6 +220,7 @@ extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
 extern int         SwigType_isconst(SwigType *t);
 extern int         SwigType_issimple(SwigType *t);
+extern int         SwigType_ismutable(SwigType *t);
 extern int         SwigType_isvarargs(const SwigType *t);
 extern int         SwigType_istemplate(const SwigType *t);
 extern int         SwigType_isenum(SwigType *t);

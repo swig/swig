@@ -666,6 +666,17 @@ int SwigType_isconst(SwigType *t) {
   return 0;
 }
 
+int SwigType_ismutable(SwigType *t) {
+  int r;
+  SwigType *qt = SwigType_typedef_resolve_all(t);
+  if (SwigType_isreference(qt)) {
+    Delete(SwigType_pop(qt));
+  }
+  r = SwigType_isconst(qt);
+  Delete(qt);
+  return r ? 0 : 1;
+}
+
 int SwigType_isenum(SwigType *t) {
   char *c = Char(t);
   if (!t) return 0;

@@ -729,7 +729,7 @@ int Language::cDeclaration(Node *n) {
 	}
       }
     }
-    if (SwigType_isconst(ty)) {
+    if (!SwigType_ismutable(ty)) {
       Setattr(n,"feature:immutable","1");
     }
     /* If an array and elements are const, then read-only */
