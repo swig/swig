@@ -372,9 +372,9 @@ install-runtime:
 
 install-m4:
 	@echo "Installing M4 macros"
-	@$(MKINSTDIRS) $(M4_INSTALL_DIR)
-	@echo "Installing $(M4_INSTALL_DIR)/swig.m4"
-	@$(INSTALL_DATA) $(M4_SOURCE_DIR)/swig.m4 $(M4_INSTALL_DIR)/swig.m4
+	@$(MKINSTDIRS) $(DESTDIR)$(M4_INSTALL_DIR)
+	@echo "Installing $(DESTDIR)$(M4_INSTALL_DIR)/swig.m4"
+	@$(INSTALL_DATA) $(M4_SOURCE_DIR)/swig.m4 $(DESTDIR)$(M4_INSTALL_DIR)/swig.m4
 
 
 #####################################################################
