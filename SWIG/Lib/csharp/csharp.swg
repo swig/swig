@@ -4,97 +4,96 @@
  * CSharp typemaps
  * ----------------------------------------------------------------------------- */
 
-//Initial revision of this module - the typemap names will change, in fact anything could change!!
 %include "csharphead.swg"
 
-/* The jni, jtype and jstype typemaps work together and so there should be one of each. 
- * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
- * The jtype typemap contains the Java type used in the Java module class. 
- * The jstype typemap contains the Java type used in the Java proxy class. */
+/* The ctype, cstype and cswtype typemaps work together and so there should be one of each. 
+ * The ctype typemap contains the PInvoke type used in the PInvoke (C/C++) code. 
+ * The cstype typemap contains the C# type used in the PInvoke class. 
+ * The cswtype typemap contains the C# type used in the C# proxy classes, type wrapper classes and module class. */
 
 /* Primitive types */
-%typemap(jni) bool,               const bool &               "bool"
-%typemap(jni) char,               const char &               "char"
-%typemap(jni) signed char,        const signed char &        "signed char"
-%typemap(jni) unsigned char,      const unsigned char &      "unsigned short"
-%typemap(jni) short,              const short &              "short"
-%typemap(jni) unsigned short,     const unsigned short &     "unsigned short"
-%typemap(jni) int,                const int &                "int"
-%typemap(jni) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(jni) long,               const long &               "long"
-%typemap(jni) unsigned long,      const unsigned long &      "unsigned long"
-%typemap(jni) long long,          const long long &          "long long"
-%typemap(jni) unsigned long long, const unsigned long long & "unsigned long long"
-%typemap(jni) float,              const float &              "float"
-%typemap(jni) double,             const double &             "double"
-%typemap(jni) char *                                         "char *"
-%typemap(jni) void                                           "void"
+%typemap(ctype) bool,               const bool &               "bool"
+%typemap(ctype) char,               const char &               "char"
+%typemap(ctype) signed char,        const signed char &        "signed char"
+%typemap(ctype) unsigned char,      const unsigned char &      "unsigned short"
+%typemap(ctype) short,              const short &              "short"
+%typemap(ctype) unsigned short,     const unsigned short &     "unsigned short"
+%typemap(ctype) int,                const int &                "int"
+%typemap(ctype) unsigned int,       const unsigned int &       "unsigned int"
+%typemap(ctype) long,               const long &               "long"
+%typemap(ctype) unsigned long,      const unsigned long &      "unsigned long"
+%typemap(ctype) long long,          const long long &          "long long"
+%typemap(ctype) unsigned long long, const unsigned long long & "unsigned long long"
+%typemap(ctype) float,              const float &              "float"
+%typemap(ctype) double,             const double &             "double"
+%typemap(ctype) char *                                         "char *"
+%typemap(ctype) void                                           "void"
 
-%typemap(jtype) bool,               const bool &               "bool"
-%typemap(jtype) char,               const char &               "char"
-%typemap(jtype) signed char,        const signed char &        "sbyte"
-%typemap(jtype) unsigned char,      const unsigned char &      "byte"
-%typemap(jtype) short,              const short &              "short"
-%typemap(jtype) unsigned short,     const unsigned short &     "ushort"
-%typemap(jtype) int,                const int &                "int"
-%typemap(jtype) unsigned int,       const unsigned int &       "uint"
-%typemap(jtype) long,               const long &               "int"
-%typemap(jtype) unsigned long,      const unsigned long &      "uint"
-%typemap(jtype) long long,          const long long &          "long"
-%typemap(jtype) unsigned long long, const unsigned long long & "ulong"
-%typemap(jtype) float,              const float &              "float"
-%typemap(jtype) double,             const double &             "double"
-%typemap(jtype) char *                                         "string"
-%typemap(jtype) void                                           "void"
+%typemap(cstype) bool,               const bool &               "bool"
+%typemap(cstype) char,               const char &               "char"
+%typemap(cstype) signed char,        const signed char &        "sbyte"
+%typemap(cstype) unsigned char,      const unsigned char &      "byte"
+%typemap(cstype) short,              const short &              "short"
+%typemap(cstype) unsigned short,     const unsigned short &     "ushort"
+%typemap(cstype) int,                const int &                "int"
+%typemap(cstype) unsigned int,       const unsigned int &       "uint"
+%typemap(cstype) long,               const long &               "int"
+%typemap(cstype) unsigned long,      const unsigned long &      "uint"
+%typemap(cstype) long long,          const long long &          "long"
+%typemap(cstype) unsigned long long, const unsigned long long & "ulong"
+%typemap(cstype) float,              const float &              "float"
+%typemap(cstype) double,             const double &             "double"
+%typemap(cstype) char *                                         "string"
+%typemap(cstype) void                                           "void"
 
-%typemap(jstype) bool,               const bool &               "bool"
-%typemap(jstype) char,               const char &               "char"
-%typemap(jstype) signed char,        const signed char &        "sbyte"
-%typemap(jstype) unsigned char,      const unsigned char &      "byte"
-%typemap(jstype) short,              const short &              "short"
-%typemap(jstype) unsigned short,     const unsigned short &     "ushort"
-%typemap(jstype) int,                const int &                "int"
-%typemap(jstype) unsigned int,       const unsigned int &       "uint"
-%typemap(jstype) long,               const long &               "int"
-%typemap(jstype) unsigned long,      const unsigned long &      "uint"
-%typemap(jstype) long long,          const long long &          "long"
-%typemap(jstype) unsigned long long, const unsigned long long & "ulong"
-%typemap(jstype) float,              const float &              "float"
-%typemap(jstype) double,             const double &             "double"
-%typemap(jstype) char *                                         "string"
-%typemap(jstype) void                                           "void"
+%typemap(cswtype) bool,               const bool &               "bool"
+%typemap(cswtype) char,               const char &               "char"
+%typemap(cswtype) signed char,        const signed char &        "sbyte"
+%typemap(cswtype) unsigned char,      const unsigned char &      "byte"
+%typemap(cswtype) short,              const short &              "short"
+%typemap(cswtype) unsigned short,     const unsigned short &     "ushort"
+%typemap(cswtype) int,                const int &                "int"
+%typemap(cswtype) unsigned int,       const unsigned int &       "uint"
+%typemap(cswtype) long,               const long &               "int"
+%typemap(cswtype) unsigned long,      const unsigned long &      "uint"
+%typemap(cswtype) long long,          const long long &          "long"
+%typemap(cswtype) unsigned long long, const unsigned long long & "ulong"
+%typemap(cswtype) float,              const float &              "float"
+%typemap(cswtype) double,             const double &             "double"
+%typemap(cswtype) char *                                         "string"
+%typemap(cswtype) void                                           "void"
 
-%typemap(jni) char[ANY]               "char *"
-%typemap(jtype) char[ANY]               "string"
-%typemap(jstype) char[ANY]               "string"
+%typemap(ctype) char[ANY]               "char *"
+%typemap(cstype) char[ANY]               "string"
+%typemap(cswtype) char[ANY]               "string"
 
 /* Non primitive types */
-%typemap(jni) SWIGTYPE "int"
-%typemap(jtype) SWIGTYPE "IntPtr"
-%typemap(jstype) SWIGTYPE "$&javaclassname"
+%typemap(ctype) SWIGTYPE "int"
+%typemap(cstype) SWIGTYPE "IntPtr"
+%typemap(cswtype) SWIGTYPE "$&csclassname"
 
-%typemap(jni) SWIGTYPE [] "int"
-%typemap(jtype) SWIGTYPE [] "IntPtr"
-%typemap(jstype) SWIGTYPE [] "$javaclassname"
+%typemap(ctype) SWIGTYPE [] "int"
+%typemap(cstype) SWIGTYPE [] "IntPtr"
+%typemap(cswtype) SWIGTYPE [] "$csclassname"
 
-%typemap(jni) SWIGTYPE * "int"
-%typemap(jtype) SWIGTYPE * "IntPtr"
-%typemap(jstype) SWIGTYPE * "$javaclassname"
+%typemap(ctype) SWIGTYPE * "int"
+%typemap(cstype) SWIGTYPE * "IntPtr"
+%typemap(cswtype) SWIGTYPE * "$csclassname"
 
-%typemap(jni) SWIGTYPE & "int"
-%typemap(jtype) SWIGTYPE & "IntPtr"
-%typemap(jstype) SWIGTYPE & "$javaclassname"
+%typemap(ctype) SWIGTYPE & "int"
+%typemap(cstype) SWIGTYPE & "IntPtr"
+%typemap(cswtype) SWIGTYPE & "$csclassname"
 
-%typemap(jni) enum SWIGTYPE "int"
-%typemap(jtype) enum SWIGTYPE "int"
-%typemap(jstype) enum SWIGTYPE "int"
+%typemap(ctype) enum SWIGTYPE "int"
+%typemap(cstype) enum SWIGTYPE "int"
+%typemap(cswtype) enum SWIGTYPE "int"
 
 /* pointer to a class member */
-%typemap(jni) SWIGTYPE (CLASS::*) "int"
-%typemap(jtype) SWIGTYPE (CLASS::*) "IntPtr"
-%typemap(jstype) SWIGTYPE (CLASS::*) "$javaclassname"
+%typemap(ctype) SWIGTYPE (CLASS::*) "int"
+%typemap(cstype) SWIGTYPE (CLASS::*) "IntPtr"
+%typemap(cswtype) SWIGTYPE (CLASS::*) "$csclassname"
 
-/* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
+/* The following are the in, out, freearg, argout typemaps. These are the PInvoke code generating typemaps for converting from C# to C and visa versa. */
 
 /* primitive types */
 %typemap(in) bool
@@ -221,7 +220,7 @@ $1 = &temp; %}
 
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
- * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
+ * that cannot be overloaded in C# as more than one C++ type maps to a single C# type */
 
 %typecheck(SWIG_TYPECHECK_BOOL) /* Java boolean */
     bool,
@@ -316,11 +315,11 @@ $1 = &temp; %}
 }
 
 
-/* Typemaps for code generation in proxy classes and Java type wrapper classes */
+/* Typemaps for code generation in proxy classes and C# type wrapper classes */
 
-/* The javain typemap is used for converting function parameter types from the type 
- * used in the proxy, module or type wrapper class to the type used in the JNI class. */
-%typemap(javain) bool,               const bool &,
+/* The csin typemap is used for converting function parameter types from the type 
+ * used in the proxy, module or type wrapper class to the type used in the PInvoke class. */
+%typemap(csin)   bool,               const bool &,
                  char,               const char &,
                  signed char,        const signed char &,
                  unsigned char,      const unsigned char &,
@@ -337,13 +336,13 @@ $1 = &temp; %}
                  char *,
                  char[ANY],
                  enum SWIGTYPE 
-    "$javainput"
-%typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
-%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$javaclassname.getCPtr($javainput)"
+    "$csinput"
+%typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
 
-/* The javaout typemap is used for converting function return types from the return type
- * used in the JNI class to the type returned by the proxy, module or type wrapper class. */
-%typemap(javaout) bool,               const bool &,
+/* The csout typemap is used for converting function return types from the return type
+ * used in the PInvoke class to the type returned by the proxy, module or type wrapper class. */
+%typemap(csout)   bool,               const bool &,
                   char,               const char &,
                   signed char,        const signed char &,
                   unsigned char,      const unsigned char &,
@@ -360,26 +359,26 @@ $1 = &temp; %}
                   char *,
                   char[ANY],
                   enum SWIGTYPE {
-    return $jnicall;
+    return $imcall;
   }
-%typemap(javaout) void {
-    $jnicall;
+%typemap(csout) void {
+    $imcall;
   }
-%typemap(javaout) SWIGTYPE {
-    return new $&javaclassname($jnicall, true);
+%typemap(csout) SWIGTYPE {
+    return new $&csclassname($imcall, true);
   }
-%typemap(javaout) SWIGTYPE & {
-    return new $javaclassname($jnicall, $owner);
+%typemap(csout) SWIGTYPE & {
+    return new $csclassname($imcall, $owner);
   }
-%typemap(javaout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
-    IntPtr cPtr = $jnicall;
-    return (cPtr == IntPtr.Zero) ? null : new $javaclassname(cPtr, $owner);
+%typemap(csout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
+    IntPtr cPtr = $imcall;
+    return (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);
   }
 
 /* Properties */
 %typemap(csvarin) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
     set {
-      $jnicall;
+      $imcall;
     } %}
 
 %typemap(csvarout) bool,               const bool &,
@@ -400,34 +399,34 @@ $1 = &temp; %}
                    char[ANY],
                    enum SWIGTYPE %{
     get {
-      return $jnicall;
+      return $imcall;
     } %}
 %typemap(csvarout) void %{
     get {
-      $jnicall;
+      $imcall;
     } %}
 %typemap(csvarout) SWIGTYPE %{
     get {
-      return new $&javaclassname($jnicall, true);
+      return new $&csclassname($imcall, true);
     } %}
 %typemap(csvarout) SWIGTYPE & %{
     get {
-      return new $javaclassname($jnicall, $owner);
+      return new $csclassname($imcall, $owner);
     } %}
 %typemap(csvarout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
     get {
-      IntPtr cPtr = $jnicall;
-      return (cPtr == IntPtr.Zero) ? null : new $javaclassname(cPtr, $owner);
+      IntPtr cPtr = $imcall;
+      return (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);
     } %}
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
-%typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
-%typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "using System;"
-%typemap(csinterfaces_base)    SWIGTYPE "IDisposable"
-%typemap(csinterfaces_derived)           SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaptrconstructormodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
+%typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public"
+%typemap(cscode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "using System;"
+%typemap(csinterfaces)                SWIGTYPE "IDisposable"
+%typemap(csinterfaces_derived)                  SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(csptrconstructormodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
 
 %typemap(csfinalize) SWIGTYPE %{
   protected override void Finalize() {
@@ -435,9 +434,9 @@ $1 = &temp; %}
   }
 %}
 
-%typemap(csdestruct_base) SWIGTYPE {
+%typemap(csdestruct) SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
-      $jnicall;
+      $imcall;
       swigCMemOwn = false;
     }
     swigCPtr = IntPtr.Zero;
@@ -446,7 +445,7 @@ $1 = &temp; %}
 
 %typemap(csdestruct_derived) SWIGTYPE {
     if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
-      $jnicall;
+      $imcall;
       swigCMemOwn = false;
     }
     swigCPtr = IntPtr.Zero;
@@ -454,23 +453,23 @@ $1 = &temp; %}
     base.Dispose();
   }
 
-%typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-  internal static IntPtr getCPtr($javaclassname obj) {
+%typemap(csgetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+  internal static IntPtr getCPtr($csclassname obj) {
     return (obj == null) ? IntPtr.Zero : obj.swigCPtr;
   }
 %}
 
-/* Java specific directives */
-#define %javaconst(flag)     %feature("java:const","flag")
-#define %javamethodmodifiers %feature("java:methodmodifiers")
+/* C# specific directives */
+#define %csconst(flag)     %feature("cs:const","flag")
+#define %csmethodmodifiers %feature("cs:methodmodifiers")
 
-%javamethodmodifiers "public";
+%csmethodmodifiers "public";
 
-%pragma(java) moduleimports=%{
+%pragma(csharp) moduleimports=%{
 using System;
 %}
 
-%pragma(java) jniclassimports=%{
+%pragma(csharp) imclassimports=%{
 using System;
 using System.Runtime.InteropServices;
 %}
