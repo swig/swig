@@ -14,6 +14,11 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/17/2001: cheetah (william fulton)
+	   * Parser bug fix to support constant pointers, eg int* const ptr.
+	   Fixed everywhere - variables, parameters, return types etc. Note that
+	   when wrapping a constant pointer variable only the getter is generated.
+
 7/17/2001: mkoeppe
 	   * Fixed SF bug #441470 (#define X "//" would not be parsed,
 	     see test-suite entry "preproc-1"), reported by T. W. Burton

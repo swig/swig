@@ -37,6 +37,7 @@ extern void swig_pragma(char *, char *);
  char  *typemap_lang = 0;
 
 #include "internal.h"
+#include "parser_internal.h"
 extern "C" {
 #include "preprocessor.h"
 }
@@ -144,6 +145,34 @@ static void add_pointers(SwigType *t, int npointer) {
   for (i = 0; i < npointer; i++) {
     SwigType_add_pointer(t);
   }
+}
+
+static void add_declaration_types(SwigType*t, Declaration* declar, int add_arrays_flag) {
+  add_pointers(t, declar->is_pointer);
+  if (declar->is_post_type_const) 
+    SwigType_add_qualifier(t, (char*)"const");
+  if (add_arrays_flag)
+    SwigType_push(t, ArrayString);
+  if (declar->is_reference) 
+    SwigType_add_reference(t);
+}
+
+void cplus_static_var_declaration(Declaration* declar, char *iname, SwigType *t)
+{
+  if (declar->is_post_type_const) 
+    Status = Status | STAT_READONLY;
+  cplus_static_var(declar->id, iname, t);
+  if (declar->is_post_type_const) 
+    Status = Status & ~STAT_READONLY;
+}
+
+void cplus_variable_declaration(Declaration* declar, char *iname, SwigType *t)
+{
+  if (declar->is_post_type_const) 
+    Status = Status | STAT_READONLY;
+  cplus_variable(declar->id, iname, t);
+  if (declar->is_post_type_const) 
+    Status = Status & ~STAT_READONLY;
 }
 
 // Emit an external function declaration
@@ -286,12 +315,15 @@ void create_function(int ext, char *name, SwigType *t, ParmList *l) {
 }
 
 // -------------------------------------------------------------------
-// create_variable(int ext, char *name, DataType *t)
+// create_variable(int ext, char *name, DataType *t, Declaration* declar)
 //
 // Create a link to a global variable.
 // -------------------------------------------------------------------
 
-void create_variable(int ext, char *name, SwigType *t) {
+static void create_variable(int ext, char *name, SwigType *t, Declaration* declar) {
+
+  if (declar->is_post_type_const) 
+    Status = Status | STAT_READONLY;
 
   if (WrapExtern) return;        // External wrapper file. Ignore
   if (Active_static) return;  // If static ignore
@@ -314,6 +346,9 @@ void create_variable(int ext, char *name, SwigType *t) {
     lang->link_variable(name, iname, t);
   }
   scanner_clear_start();
+
+  if (declar->is_post_type_const) 
+    Status = Status & ~STAT_READONLY;
 }
 
 // ------------------------------------------------------------------
@@ -334,6 +369,9 @@ void create_constant(char *name, SwigType *type, char *value) {
     Rename_true = 0;
   }
 
+  if (SwigType_type(type) == T_CHAR) {
+    SwigType_add_pointer(type);
+  }
   if (!value) value = Swig_copy_string(name);
   sprintf(temp_name,"const:%s", name);
   if (add_symbol(temp_name)) {
@@ -439,13 +477,10 @@ static void dump_nested(char *parent) {
    C++ declaration for "yylval" that appears
    in parser.tab.h. */
 
+
 %union {
   char        *id;
-  struct Declaration {
-    char *id;
-    int   is_pointer;
-    int   is_reference;
-  } decl;
+  Declaration decl;
   struct InitList {
     char **names;
     int    count;
@@ -511,7 +546,7 @@ static void dump_nested(char *parent) {
 %type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method;
 %type <type>     type opt_signed opt_unsigned strict_type;
 %type <decl>     declaration nested_decl;
-%type <ivalue>   stars maybestars cpp_vend;
+%type <ivalue>   stars maybestars cpp_vend maybeconst;
 %type <ilist>    initlist base_list inherit;
 %type <dtype>    definetype def_args;
 %type <dtype>    etype;
@@ -606,18 +641,15 @@ statement      : INCLUDE STRING LBRACE {
 		    if (Active_type) Delete(Active_type);
 		    Active_type = Copy($2);
   		    Active_extern = $1;
-		    add_pointers($2,$3.is_pointer);
-		    if ($4 > 0) {
-		      SwigType_push($2,ArrayString);
-		    }
+		    add_declaration_types($2, &$3, $4);
 		    if ($3.is_reference) {
 		      Printf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		      FatalError();
 		    } else {
-		      if (SwigType_isconst($2)) {
+		      if (SwigType_isconst($2) && !$3.is_post_type_const) {
 			create_constant($3.id, $2, $5.id);
 		      } else {
-			create_variable($1,$3.id,$2);
+			create_variable($1, $3.id, $2, &$3);
 		      }
 		    }
 		  Delete($2);
@@ -656,8 +688,7 @@ statement      : INCLUDE STRING LBRACE {
 		  if (Active_type) Delete(Active_type);
 		  Active_type = Copy($2);
 		  Active_extern = $1;
-		  add_pointers($2,$3.is_pointer);
-		  if ($3.is_reference) SwigType_add_reference($2);
+		  add_declaration_types($2, &$3, 0);
 		  create_function($1, $3.id, $2, $5);
 		  Delete($2);
 	          Delete($5);
@@ -667,8 +698,7 @@ statement      : INCLUDE STRING LBRACE {
 
                 | extern type declaration LPAREN parms RPAREN func_end {
 		    init_language();
-		  add_pointers($2,$3.is_pointer);
-		  if ($3.is_reference) SwigType_add_reference($2);
+		  add_declaration_types($2, &$3, 0);
 		  create_function($1, $3.id, $2, $5);
 		  Delete($2);
 	          Delete($5);
@@ -679,8 +709,7 @@ statement      : INCLUDE STRING LBRACE {
                 | extern declaration LPAREN parms RPAREN cpp_const {
 		  init_language();
 		  SwigType *t = NewString("int");
-		  add_pointers(t,$2.is_pointer);
-		  if ($2.is_reference) SwigType_add_reference(t);
+		  add_declaration_types(t, &$2, 0);
 		  create_function($1,$2.id,t,$4);
 		  Delete(t);
                 } stail { };
@@ -691,8 +720,7 @@ statement      : INCLUDE STRING LBRACE {
 		  if (Inline) {
 		    if (strlen(Char(CCode))) {
 		      init_language();
-		      add_pointers($2, $3.is_pointer);
-		      if ($3.is_reference) SwigType_add_reference($2);
+		      add_declaration_types($2, &$3, 0);
 		      create_function(0, $3.id, $2, $5);
 		    }
 		  }
@@ -704,8 +732,7 @@ statement      : INCLUDE STRING LBRACE {
 
                 | INLINE type declaration LPAREN parms RPAREN func_end {
 		    init_language();
-		    add_pointers($2,$3.is_pointer);
-		    if ($3.is_reference) SwigType_add_reference($2);
+		    add_declaration_types($2, &$3, 0);
 		    if (Inline) {
 		      Printf(stderr,"%s : Line %d. Repeated %%inline directive.\n",input_file,line_number);
 		      FatalError();
@@ -803,7 +830,7 @@ statement      : INCLUDE STRING LBRACE {
                | NATIVE LPAREN ID RPAREN extern type declaration LPAREN parms RPAREN SEMI {
 		 if (!WrapExtern) {
 		   init_language();
-		   add_pointers($6,$7.is_pointer);
+		   add_declaration_types($6, &$7, 0);
 		   if (add_symbol($3)) {
 		     Printf(stderr,"%s : Line %d. Name of native function %s conflicts with previous declaration (ignored)\n",
 			     input_file, line_number, $3);
@@ -1266,7 +1293,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   init_language();
 		   /* Add a new typedef */
 		   Active_typedef = Copy($2);
-		   add_pointers($2,$3.is_pointer);
+		   add_declaration_types($2, &$3, 0);
 		   SwigType_typedef($2, $3.id);
 		   lang->add_typedef($2,$3.id);
 		   cplus_register_type($3.id);
@@ -1313,8 +1340,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   Active_typedef = Copy($2);
 		   // This datatype is going to be readonly
 
-		   add_pointers($2,$3.is_pointer);
-		   SwigType_push($2,ArrayString);
+		   add_declaration_types($2, &$3, 1);
 		   SwigType_typedef($2,$3.id);
 		   lang->add_typedef($2,$3.id);
 		   cplus_register_type($3.id);
@@ -1336,7 +1362,7 @@ typedeflist   : COMMA declaration typedeflist {
 		  if (Active_typedef) {
 		    SwigType *t;
 		    t = Copy(Active_typedef);
-		    add_pointers(t,$2.is_pointer);
+		    add_declaration_types(t, &$2, 0);
 		    SwigType_typedef(t,$2.id);
 		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
@@ -1346,8 +1372,7 @@ typedeflist   : COMMA declaration typedeflist {
               | COMMA declaration array {
 		    SwigType *t;
 		    t = Copy(Active_typedef);
-		    add_pointers(t, $2.is_pointer);
-		    SwigType_push(t,ArrayString);
+		    add_declaration_types(t, &$2, 1);
 		    SwigType_typedef(t,$2.id);
 		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
@@ -1381,10 +1406,7 @@ stail          : SEMI { }
                | COMMA declaration array2 def_args {
 		 init_language();
 		 temp_typeptr = Copy(Active_type);
-		 add_pointers(temp_typeptr, $2.is_pointer);
-		 if ($3 > 0) {
-		   SwigType_push(temp_typeptr, ArrayString);
-		 }
+		 add_declaration_types(temp_typeptr, &$2, $3);
 		 if ($2.is_reference) {
 		   Printf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		   FatalError();
@@ -1392,7 +1414,7 @@ stail          : SEMI { }
 		   if (SwigType_isconst(temp_typeptr)) {
 		     create_constant($2.id, temp_typeptr, $4.id);
 		   } else {
-		     create_variable(Active_extern,$2.id, temp_typeptr);
+		     create_variable(Active_extern, $2.id, temp_typeptr, &$2);
 		   }
 		 }
 		 Delete(temp_typeptr);
@@ -1400,8 +1422,7 @@ stail          : SEMI { }
                | COMMA declaration LPAREN parms RPAREN cpp_const {
 		 init_language();
 		 temp_typeptr = Copy(Active_type);
-		 add_pointers(temp_typeptr, $2.is_pointer);
-		 if ($2.is_reference) SwigType_add_reference(temp_typeptr);
+		 add_declaration_types(temp_typeptr, &$2, 0);
 		 create_function(Active_extern, $2.id, temp_typeptr, $4);
 		 Delete(temp_typeptr);
 		 Delete($4);
@@ -1481,50 +1502,35 @@ ptail          : COMMA parm ptail {
 parm           : parm_type {
                   $$ = $1;
                }
-
-parm_type      : type pname {
-		    if (InArray) {
-		      // Add array string to the type
-		      SwigType_push($1, ArrayString);
-		    }
-		    $$ = NewParm($1,$2);
-		    Setvalue($$,DefArg);
-		    Delete($1);
-		    free($2);
-                 }
-
-                | type stars pname {
-		   $$ = NewParm($1,$3);
+parm_type      : type maybestars maybeconst pname {
+		   $$ = NewParm($1,$4);
 		   add_pointers(Gettype($$), $2);
+		   if ($3)
+		     SwigType_add_qualifier(Gettype($$),(char*)"const");
 		   Setvalue($$,DefArg);
 		   if (InArray) {
 		     // Add array string to the type
 		     SwigType_push(Gettype($$), ArrayString);
 		    }
 		   Delete($1);
-		   free($3);
-		}
-
-		| type maybestars CONST pname {
-		   $$ = NewParm($1,$4);
-		   add_pointers(Gettype($$), $2);
-		   SwigType_add_qualifier($$,(char*)"const");
-		   Setvalue($$,DefArg);
-		   Delete($1);
 		   free($4);
 		}
 
-                | type maybestars AND pname {
-		  $$ = NewParm($1,$4);
-		  SwigType *pt = Gettype($$);
-		  add_pointers(Gettype($$), $2);
-		  SwigType_add_reference(pt);
-		  Setvalue($$,DefArg);
-		  if (!CPlusPlus) {
-			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
-		  }
-		  Delete($1);
-		  free($4);
+                | type maybestars maybeconst AND pname {
+		   $$ = NewParm($1,$5);
+		   add_pointers(Gettype($$), $2);
+		   if ($3)
+		     SwigType_add_qualifier(Gettype($$),(char*)"const");
+		   SwigType_add_reference(Gettype($$));
+		   Setvalue($$,DefArg);
+		   if (InArray) {
+		     // Add array string to the type
+		     SwigType_push(Gettype($$), ArrayString);
+		    }
+		   if (!CPlusPlus)
+		     Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+		   Delete($1);
+		   free($5);
 		}
 
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
@@ -1549,7 +1555,7 @@ parm_type      : type pname {
 pname          : ID def_args {
                     $$ = $1;
                     InArray = 0;
-		    if ($2.type == T_CHAR || $2.type == T_STRING)
+		    if ($2.type == T_CHAR)
 		      DefArg = Swig_copy_string(Char(ConstChar));
 		    else
 		      DefArg = Swig_copy_string($2.id);
@@ -1570,7 +1576,7 @@ pname          : ID def_args {
 	            $$ = (char *) malloc(1);
 	            $$[0] = 0;
                     InArray = 0;
-		    if ($1.type == T_CHAR || $1.type == T_STRING)
+		    if ($1.type == T_CHAR)
 		      DefArg = Swig_copy_string(Char(ConstChar));
 		    else
 		      DefArg = Swig_copy_string($1.id);
@@ -1595,20 +1601,49 @@ def_args       : EQUAL definetype { $$ = $2; }
                ;
 
 /* Declaration must be an identifier, possibly preceded by a * for pointer types  */
+/* Note: Using maybeconst or maybestars introduces conflicts */
 
-declaration    : ID { $$.id = $1;
+declaration    : ID { 
+                      $$.id = $1;
                       $$.is_pointer = 0;
 		      $$.is_reference = 0;
+		      $$.is_post_type_const = 0;
                 }
                | stars ID {
                       $$.id = $2;
 		      $$.is_pointer = $1;
 		      $$.is_reference = 0;
+		      $$.is_post_type_const = 0;
 	       }
+               | stars CONST ID {
+                      $$.id = $3;
+                      $$.is_pointer = $1;
+		      $$.is_reference = 0;
+		      $$.is_post_type_const = 1;
+                }
                | AND ID {
 		      $$.id = $2;
 		      $$.is_pointer = 0;
 		      $$.is_reference = 1;
+		      $$.is_post_type_const = 0;
+		      if (!CPlusPlus) {
+			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+		      }
+	       }
+               | stars AND ID {
+		      $$.id = $3;
+		      $$.is_pointer = $1;
+		      $$.is_reference = 1;
+		      $$.is_post_type_const = 0;
+		      if (!CPlusPlus) {
+			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
+		      }
+	       }
+               | stars CONST AND ID {
+		      $$.id = $4;
+		      $$.is_pointer = $1;
+		      $$.is_reference = 1;
+		      $$.is_post_type_const = 1;
 		      if (!CPlusPlus) {
 			Printf(stderr,"%s : Line %d. Warning.  Use of C++ Reference detected.  Use the -c++ option.\n", input_file, line_number);
 		      }
@@ -1640,6 +1675,10 @@ array2 :       array {
 	         Clear(ArrayString);
               }
 	      ;
+
+maybeconst :   empty { $$ = 0; }
+	       | CONST { $$ = 1; }
+	       ;
 
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
@@ -1820,7 +1859,7 @@ definetype     : { scanner_check_typedef(); } expr {
                 }
                 | STRING {
                    $$.id = $1;
-                   $$.type = T_STRING;
+                   $$.type = T_CHAR;
 		   if (ConstChar) Delete(ConstChar);
 		   ConstChar = NewStringf("\"%(escape)s\"",$1);
 		}
@@ -2270,8 +2309,7 @@ cpp_other    :/* A dummy class name */
 		if (!CPlusPlus)
 		  Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
-		add_pointers($2,$3.is_pointer);
-		if ($3.is_reference) SwigType_add_reference($2);
+		add_declaration_types($2, &$3, 0);
 		// Fix up the function name
 		sprintf(temp_name,"%s::%s",$3.id,$5);
 		if (!Rename_true) {
@@ -2289,14 +2327,14 @@ cpp_other    :/* A dummy class name */
 	       if (!CPlusPlus)
 		 Printf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 
-	       add_pointers($2,$3.is_pointer);
+	       add_declaration_types($2, &$3, 0);
 	       // Fix up the function name
 	       sprintf(temp_name,"%s::%s",$3.id,$5);
 	       if (!Rename_true) {
 		 Rename_true = 1;
 		 sprintf(yy_rename,"%s_%s",$3.id,$5);
 	       }
-	       create_variable($1,temp_name, $2);
+	       create_variable($1, temp_name, $2, &$3);
 	       Delete($2);
 	     }
 
@@ -2358,8 +2396,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
                 char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  add_pointers($1,$2.is_pointer);
-		  if ($2.is_reference) SwigType_add_reference($1);
+		  add_declaration_types($1, &$2, 0);
 		  iname = make_name($2.id);
 		  if (iname == $2.id) iname = 0;
 		  cplus_member_func($2.id, iname, $1,$4,0);
@@ -2375,8 +2412,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 	       char *iname;
 	       init_language();
 	       if (cplus_mode == CPLUS_PUBLIC) {
-		 add_pointers($2,$3.is_pointer);
-		 if ($3.is_reference) SwigType_add_reference($2);
+		 add_declaration_types($2, &$3, 0);
 		 iname = make_name($3.id);
 		 if (iname == $3.id) iname = 0;
 		 cplus_member_func($3.id,iname,$2,$5,$7 ? PURE_VIRTUAL : PLAIN_VIRTUAL);
@@ -2435,16 +2471,13 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (Active_type) Delete(Active_type);
 		  Active_type = Copy($1);
-		  add_pointers($1,$2.is_pointer);
-		  if ($2.is_reference) SwigType_add_reference($1);
-		  if (SwigType_isconst($1)) {
-		    iname = make_name($2.id);
-		    if (iname == $2.id) iname = 0;
+		  add_declaration_types($1, &$2, 0);
+		  iname = make_name($2.id);
+		  if (iname == $2.id) iname = 0;
+		  if (SwigType_isconst($1) && !$2.is_post_type_const) {
 		    my_cplus_declare_const($2.id,iname, $1, $3.id);
 		  } else {
-		      iname = make_name($2.id);
-		      if (iname == $2.id) iname = 0;
-		      cplus_variable($2.id,iname,$1);
+		    cplus_variable_declaration(&$2, iname, $1);
 		  }
 		}
 		scanner_clear_start();
@@ -2457,12 +2490,10 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (Active_type) Delete(Active_type);
 		  Active_type = Copy($1);
-		  add_pointers($1, $2.is_pointer);
-		  if ($2.is_reference) SwigType_add_reference($1);
-		  SwigType_push($1,ArrayString);
+		  add_declaration_types($1, &$2, 1);
 		  iname = make_name($2.id);
 		  if (iname == $2.id) iname = 0;
-		  cplus_variable($2.id,iname,$1);
+		  cplus_variable_declaration(&$2, iname, $1);
 		}
 		scanner_clear_start();
 		Delete($1);
@@ -2475,10 +2506,10 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  add_pointers($2,$3.is_pointer);
+		  add_declaration_types($2, &$3, 0);
 		  iname = make_name($3.id);
 		  if (iname == $3.id) iname = 0;
-		  cplus_static_var($3.id,iname,$2);
+		  cplus_static_var_declaration(&$3, iname, $2);
 		  if (Active_type) Delete(Active_type);
 		  Active_type = Copy($2);
 		}
@@ -2505,8 +2536,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 
               | STATIC type declaration LPAREN parms RPAREN cpp_end {
 		char *iname;
-		add_pointers($2,$3.is_pointer);
-		if ($3.is_reference) SwigType_add_reference($2);
+		add_declaration_types($2, &$3, 0);
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  iname = make_name($3.id);
 		  if (iname == $3.id) iname = 0;
@@ -2669,8 +2699,7 @@ cpp_pragma    : PRAGMA ID stylearg {
 		    n->name = Swig_copy_string($4.id);
 		    n->line = start_line;
 		    n->type = NewString("");
-		    add_pointers(n->type, $4.is_pointer);
-		    if ($4.is_reference) SwigType_add_reference(n->type);
+		    add_declaration_types(n->type, &$4, 0);
 		    n->next = 0;
 		    add_nested(n);
 
@@ -2718,8 +2747,8 @@ cpp_tail      : SEMI { }
 		 init_language();
 		 if (cplus_mode == CPLUS_PUBLIC) {
 		   temp_typeptr = Copy(Active_type);
-		   add_pointers(temp_typeptr, $2.is_pointer);
-		   cplus_variable($2.id,(char *) 0,temp_typeptr);
+		   add_declaration_types(temp_typeptr, &$2, 0);
+		   cplus_variable_declaration(&$2, (char *) 0, temp_typeptr);
 		   Delete(temp_typeptr);
 		 }
 		 scanner_clear_start();
@@ -2728,8 +2757,8 @@ cpp_tail      : SEMI { }
 		 init_language();
 		 if (cplus_mode == CPLUS_PUBLIC) {
 		   temp_typeptr = Copy(Active_type);
-		   add_pointers(temp_typeptr, $2.is_pointer);
-		   cplus_variable($2.id,(char *) 0,temp_typeptr);
+		   add_declaration_types(temp_typeptr, &$2, 1);
+		   cplus_variable_declaration(&$2, (char *) 0, temp_typeptr);
 		   Delete(temp_typeptr);
 		 }
 		 scanner_clear_start();
@@ -3017,11 +3046,10 @@ objc_var       : type declaration {
 		   char *iname;
 		   if (Active_type) Delete(Active_type);
 		   Active_type = Copy($1);
-		   add_pointers($1,$2.is_pointer);
-		   if ($2.is_reference) SwigType_add_reference($1);
+		   add_declaration_types($1, &$2, 0);
 		   iname = make_name($2.id);
 		   if (iname == $2.id) iname = 0;
-		   cplus_variable($2.id,iname,$1);
+		   cplus_variable_declaration(&$2, iname, $1);
 		   Status = oldstatus;
 		 }
 		 scanner_clear_start();
@@ -3033,12 +3061,10 @@ objc_var       : type declaration {
 		   char *iname;
 		   if (Active_type) Delete(Active_type);
 		   Active_type = Copy($1);
-		   add_pointers($1,$2.is_pointer);
-		   if ($2.is_reference) SwigType_add_reference($1);
-		   SwigType_push($1,ArrayString);
+		   add_declaration_types($1, &$2, 1);
 		   iname = make_name($2.id);
 		   if (iname == $2.id) iname = 0;
-		   cplus_variable($2.id,iname,$1);
+		   cplus_variable_declaration(&$2, iname, $1);
 		   Status = oldstatus;
 		 }
 		 scanner_clear_start();
@@ -3054,11 +3080,10 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   int oldstatus = Status;
 		   char *iname;
 		   SwigType *t = Copy(Active_type);
-		   add_pointers(t,$2.is_pointer);
-		   if ($2.is_reference) SwigType_add_reference(t);
+		   add_declaration_types(t, &$2, 0);
 		   iname = make_name($2.id);
 		   if (iname == $2.id) iname = 0;
-		   cplus_variable($2.id,iname,t);
+		   cplus_variable_declaration(&$2, iname, t);
 		   Status = oldstatus;
 		   Delete(t);
 		 }
@@ -3069,12 +3094,10 @@ objc_vartail   : COMMA declaration objc_vartail {
                  if (cplus_mode == CPLUS_PUBLIC) {
 		   int oldstatus = Status;
 		   SwigType *t = Copy(Active_type);
-		   add_pointers(t,$2.is_pointer);
-		   if ($2.is_reference) SwigType_add_reference(t);
-		   SwigType_push(t,ArrayString);
+		   add_declaration_types(t, &$2, 1);
 		   iname = make_name($2.id);
 		   if (iname == $2.id) iname = 0;
-		   cplus_variable($2.id,iname,t);
+		   cplus_variable_declaration(&$2, iname, t);
 		   Status = oldstatus;
 		   Delete(t);
 		 }

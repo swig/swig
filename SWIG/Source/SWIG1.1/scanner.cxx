@@ -15,6 +15,7 @@
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
+#include "parser_internal.h"
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
