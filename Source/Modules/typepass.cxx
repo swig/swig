@@ -767,26 +767,53 @@ class TypePass : private Dispatcher {
     String *name = Getattr(n,"name");
 
     if (name) {
-      // Correct the name to contain the fully qualified scopename
+      String *scope = 0;
+
       // Add a typedef to the type table so that we can use 'enum Name' as well as just 'Name'
       if (nsname || inclass) {
-        String *nname = 0;
+
+        // But first correct the name and tdname to contain the fully qualified scopename
         if (nsname && inclass) {
-          nname = NewStringf("%s::%s::%s", nsname, Getattr(inclass,"name"), name);
+          scope = NewStringf("%s::%s", nsname, Getattr(inclass,"name"));
         } else if (nsname) {
-          nname = NewStringf("%s::%s", nsname, name);
+          scope = NewStringf("%s", nsname);
         } else if (inclass) {
-          nname = NewStringf("%s::%s", Getattr(inclass,"name"), name);
+          scope = NewStringf("%s", Getattr(inclass,"name"));
         }
+
+        String *nname = NewStringf("%s::%s", scope, name);
         Setattr(n,"name",nname);
+
+        String *tdname = Getattr(n,"tdname");
+        if (tdname) {
+          tdname = NewStringf("%s::%s", scope, tdname);
+          Setattr(n,"tdname",tdname);
+        }
+
         SwigType *t = NewStringf("enum %s", nname);
         SwigType_typedef(t,name);
-        Delete(nname);
       } else {
         SwigType *t = NewStringf("enum %s", name);
         SwigType_typedef(t,name);
       }
+      Delete(scope);
     }
+
+    String *tdname = Getattr(n,"tdname");
+    String *unnamed = Getattr(n,"unnamed");
+    String *storage = Getattr(n,"storage");
+
+    // Construct enumtype - for declaring an enum of this type with SwigType_ltype() etc
+    String *enumtype = 0;
+    if (unnamed && tdname && (Cmp(storage,"typedef") == 0)) {
+      enumtype = Copy(Getattr(n,"tdname"));
+    } else if (name) {
+      enumtype = NewStringf("%s%s", CPlusPlus ? "" : "enum ", Getattr(n,"name"));
+    } else {
+      // anonymous enums
+      enumtype = Copy(Getattr(n,"type"));
+    }
+    Setattr(n,"enumtype",enumtype);
 
     emit_children(n);
     return SWIG_OK;
