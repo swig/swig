@@ -140,15 +140,8 @@ void
 DohObjFree(DOH *ptr) {
   DohBase  *b;
   int len;
-  if (!DohCheck(ptr)) {
-    DohTrace(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
-    return;                  /* Oh well.  Guess we're leaky */
-  }
   b = (DohBase *) ptr;
-  if (!b->objinfo) {
-    DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
-    return;   /* Improperly initialized object. leak some more */
-  }
+  if (b->flags & DOH_FLAG_INTERN) return;
   if (b->file) DohDelete(b->file);
   len = (b->objinfo->objsize + 7) & ~0x07; 
   b->file = (DOH *) FreeFragments[len];
