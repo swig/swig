@@ -22,6 +22,7 @@ static char cvsroot[] = "$Header$";
 extern "C" {
 #include "preprocessor.h"
 }
+#include <ctype.h>
 
 /* We do this for portability */
 #undef alloca
@@ -86,6 +87,7 @@ static Hash           *name_hash = 0;          // Hash table containing renaming
 static Hash           *symbols = 0;
 static int             cplus_mode;
 static int             InClass = 0;
+static char           *Callback = 0;
 
 /* C++ modes */
 
@@ -120,6 +122,10 @@ void swig_pragma(char *lang, char *name, char *value) {
       Status = Status | STAT_READONLY;
     } else if (strcmp(name,"readwrite") == 0) {
       Status = Status & ~STAT_READONLY;
+    } else if (strcmp(name,"callback") == 0) {
+      Callback = Swig_copy_string(value ? value:"%s");
+    } else if (strcmp(name,"nocallback") == 0) {
+      Callback = 0;
     }
   }
 }
@@ -198,50 +204,6 @@ static char *make_name(char *name) {
   return name;
 }
 
-/* ----------------------------------------------------------------------
- * c_varfunc_decl()
- *
- * Create a wrapper for a C declaration (variable or function)
- * ---------------------------------------------------------------------- */
-
-static void
-c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, ParmList *parms) {
-  if (Active_static) return;
-  if (WrapExtern) return;
-  if ((storage == STORAGE_STATIC) && (!Inline)) return;
-
-  init_language();
-  char *iname = make_name(name);
-
-  if (add_symbol(iname)) {
-    Printf(stderr,"%s:%d. %s multiply defined (2nd definition ignored).\n", input_file, line_number, iname);
-    return;
-  }
-  SwigType *ty = Copy(type);    
-  if (SwigType_isfunction(decltype)) {
-    /* Function declaration */
-    Delete(SwigType_pop(decltype));
-    SwigType_push(ty,decltype);
-    if ((storage) || (ForceExtern)) {
-      emit_extern_func(name,ty,parms,ForceExtern ? 1 : storage, f_header);
-    }
-    lang->create_function(name,iname,ty,parms);
-  } else {
-    /* Variable declaration */
-    SwigType_push(ty,decltype);
-    if ((storage == STORAGE_EXTERN) || (ForceExtern)) {
-      Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
-    }
-    int oldstatus = Status;
-    if (SwigType_isconst(ty)) {
-      Status |= STAT_READONLY;
-    }
-    lang->link_variable(name,iname,ty);
-    Status = oldstatus;
-  }
-  Delete(ty);
-}
-
 /* ------------------------------------------------------------------
  * create_constant()
  *
@@ -258,12 +220,73 @@ static void create_constant(char *name, SwigType *type, char *value) {
   if (!value) value = Swig_copy_string(name);
   if (add_symbol(iname)) {
     Printf(stderr,"%s:%d. %s multiply defined. (2nd definition ignored)\n",
-	    input_file, line_number, name);
+	   input_file, line_number, name);
   } else {
     String *tval = NewStringf("%(escape)s",value);
     lang->declare_const(name, iname, type, Char(tval));
     Delete(tval);
   }
+}
+
+/* ----------------------------------------------------------------------
+ * c_varfunc_decl()
+ *
+ * Create a wrapper for a C declaration (variable or function)
+ * ---------------------------------------------------------------------- */
+
+static void
+c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, ParmList *parms) {
+  SwigType *ty;
+  if (Active_static) return;
+  if (WrapExtern) return;
+  if ((storage == STORAGE_STATIC) && (!Inline)) return;
+
+  init_language();
+
+  char *iname = make_name(name);
+
+  if (add_symbol(iname)) {
+    Printf(stderr,"%s:%d. %s multiply defined (2nd definition ignored).\n", input_file, line_number, iname);
+    return;
+  }
+  ty = Copy(type);    
+  if (SwigType_isfunction(decltype)) {
+    SwigType_push(ty,decltype);
+    Delete(SwigType_pop(ty));
+    if ((storage) || (ForceExtern)) {
+      emit_extern_func(name,ty,parms,ForceExtern ? 1 : storage, f_header);
+    }
+    if (Callback) {
+      String *cbname;
+      SwigType *cbty = Copy(type);
+      SwigType_push(cbty,decltype);
+      SwigType_add_pointer(cbty);
+      cbname = NewStringf(Callback,iname);
+      if (Cmp(cbname,iname) == 0) {
+	lang->declare_const(name,iname,cbty,name);
+      } else {
+	create_constant(Char(cbname),cbty,name);
+	lang->create_function(name,iname,ty,parms);
+      }
+      Delete(cbty);
+      Delete(cbname);
+    } else {
+      lang->create_function(name,iname,ty,parms);
+    }
+  } else {
+    /* Variable declaration */
+    SwigType_push(ty,decltype);
+    if ((storage == STORAGE_EXTERN) || (ForceExtern)) {
+      Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+    }
+    int oldstatus = Status;
+    if (SwigType_isconst(ty)) {
+      Status |= STAT_READONLY;
+    }
+    lang->link_variable(name,iname,ty);
+    Status = oldstatus;
+  }
+  Delete(ty);
 }
 
 /* ----------------------------------------------------------------------
@@ -749,6 +772,10 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
                | CONSTANT type declarator def_args SEMI {
 		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		   SwigType_push($2,$3.type);
+		   /* Sneaky callback function trick */
+		   if (SwigType_isfunction($2)) {
+		     SwigType_add_pointer($2);
+		   }
 		   create_constant($3.id,$2,Char($4.val));
 		 } 
                }
@@ -1009,7 +1036,7 @@ pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
 	       }
               | PRAGMA pragma_lang ID {
 		if (!WrapExtern) {
-		  swig_pragma($2,$3,0);
+		  swig_pragma($2,$3,"");
 		  if (InClass) {    /* Hack. Fix me */
 		    cplus_add_pragma($2,$3,0); 
 		  } else {
