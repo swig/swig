@@ -82,6 +82,9 @@
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
      "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, $1_descriptor));";
 
+%typemap(out) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
+
 %typemap(out) void "";
 
 /* Primitive types--return by value */
@@ -101,6 +104,23 @@
 }
 #endif
 
+/* Primitive types--return by value */
+%typemap(out) SWIGTYPE INSTANCE
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype($1);
+  Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
+}
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
+}
+#endif
+
 /* Special typemap for character array returns */
 %typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
 
@@ -115,7 +135,12 @@
 %typemap(varout) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
 %typemap(varout) char "$result = Tcl_NewStringObj(&$1,1);";
 %typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor);";
+
+%typemap(varout) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
+    "$result = SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0);";
+
 %typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor);";
+%typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor, 0);";
 
 /* -- Variable input --- */
 
@@ -205,13 +230,10 @@
 %typemap(consttab) SWIGTYPE (CLASS::*) 
        { SWIG_TCL_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
-
 // Some special reserved words in classes
 
 %namewarn("cget is a reserved method name") *::cget;
 %namewarn("configure is a reserved method name") *::configure;
-%namewarn("disown is a reserved method name") *::disown;
-%namewarn("acquire is a reserved method name") *::acquire;
 
 /* C++ overloaded operators.
 
@@ -221,18 +243,19 @@
    normal operator names */
 
 #ifdef __cplusplus
-%rename("+")         operator+;
-%rename("u+")        operator+();     // Unary +
-%rename("-")         operator-;
-%rename("u-")        operator-();     // Unary -
-%rename("*")         operator*;
-%rename("/")         operator/;
-%rename("<<")        operator<<;
-%rename(">>")        operator>>;
-%rename("&")         operator&;
-%rename("|")         operator|;
-%rename("^")         operator^;
-%rename("%")         operator%;
+%rename("+")         *::operator+;
+%rename("u+")        *::operator+();     // Unary +
+%rename("-")         *::operator-;
+%rename("u-")        *::operator-();     // Unary -
+%rename("*")         *::operator*;
+%rename("/")         *::operator/;
+%rename("<<")        *::operator<<;
+%rename(">>")        *::operator>>;
+%rename("&")         *::operator&;
+%rename("|")         *::operator|;
+%rename("^")         *::operator^;
+%rename("%")         *::operator%;
+%rename("=")         *::operator=;
 #endif
 
 

@@ -6,6 +6,8 @@
    $Header$
 */
 
+%echo "list-vector.i is currently broken. Sorry."
+
 /* Here is a macro that will define typemaps for converting between C
    arrays and Scheme lists or vectors when passing arguments to the C
    function.

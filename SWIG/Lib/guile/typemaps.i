@@ -3,38 +3,59 @@
 
    $Header$  */
 
-/* Unlike other SWIG language modules, the Guile module handles all
-   types uniformly via typemaps. Here are the definitions.
+/* (11/24/2001) Note to Matthias:
+
+   I've replaced all of the documentation related typemaps (indoc, varindoc, outdoc, argoutdoc, ...)
+   with a typemap parameter of "doc".  For example:
+
+   %typemap(in, doc="<integer>") int {
+      ...
+   }
+
+   This is somewhat more sane to handle when multi-argument typemaps are used.  For example:
+
+   %typemap(in, doc="<buffer>") (char *data, int len) {
+       ...
+   }
+
+   See guile.cxx for details of how the typemap parameters actually get accessed.
+
+   Also, it's no longer necessary to specify typemaps for 'const' qualifiers.  They
+   now get matched against non-const versions.
+
+   Feel free to delete this comment after you've read it.
+
+                         --- Dave
 */
 
 /* Pointers */
 
 %typemap(in) SWIGTYPE * {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor))
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor))
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
 %typemap(in) void * {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, NULL))
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, NULL))
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
 %typemap(varin) SWIGTYPE * {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor))
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor))
+    scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 
 %typemap(varin) void * {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, NULL))
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, NULL))
+    scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 
 %typemap(out) SWIGTYPE * {
-    $target = SWIG_Guile_MakePtr ($source, $descriptor);
+    $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
     
 %typemap(varout) SWIGTYPE * {
-    $target = SWIG_Guile_MakePtr ($source, $descriptor);
+    $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
 
 /* Pass-by-value */
@@ -47,7 +68,7 @@
 
 %typemap(varin) SWIGTYPE($&1_ltype argp) {
   if (SWIG_Guile_GetPtr($input, (void **) &argp, $1_descriptor))
-    scm_wrong_type_arg(FUNC_NAME,$argnum,$input);
+    scm_wrong_type_arg(FUNC_NAME,1,$input);
   $1 = *argp;
 }
 
@@ -88,12 +109,12 @@
 #ifdef __cplusplus
 
 %typemap(in) SWIGTYPE & {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor)!=0)
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
 %typemap(out) SWIGTYPE & {
-  $target = SWIG_Guile_MakePtr ($source, $descriptor);
+  $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
 
 #endif
@@ -101,50 +122,41 @@
 /* Arrays */
 
 %typemap(in) SWIGTYPE[] {
-  if (SWIG_Guile_GetPtr($source, (void **) &$target, $descriptor)!=0)
-    scm_wrong_type_arg(FUNC_NAME, $argnum, $source);
+  if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor)!=0)
+    scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
 %typemap(out) SWIGTYPE[] {
-  $target = SWIG_Guile_MakePtr ($source, $descriptor);
+  $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
 
 /* Enums */
 
-%typemap(in)     enum SWIGTYPE "$target = gh_scm2int($source);";
-%typemap(varin)  enum SWIGTYPE "$target = gh_scm2int($source);";
-%typemap(out)    enum SWIGTYPE "$target = gh_int2scm($source);";
-%typemap(varout) enum SWIGTYPE "$target = gh_int2scm($source);";
+%typemap(in)     enum SWIGTYPE "$1 = gh_scm2int($input);";
+%typemap(varin)  enum SWIGTYPE "$1 = gh_scm2int($input);";
+%typemap(out)    enum SWIGTYPE "$result = gh_int2scm($1);";
+%typemap(varout) enum SWIGTYPE "$result = gh_int2scm($1);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
 %define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
- %typemap (guile, in)          C_NAME, C_NAME const {$target = SCM_TO_C($source);}
- %typemap (guile, varin)       C_NAME, C_NAME const {$target = SCM_TO_C($source);}
- %typemap (guile, out)         C_NAME, C_NAME const {$target = C_TO_SCM($source);}
- %typemap (guile, varout)      C_NAME, C_NAME const {$target = C_TO_SCM($source);}
- %typemap (guile, indoc)       C_NAME, C_NAME const "($arg <SCM_NAME>)";
- %typemap (guile, varindoc)    C_NAME, C_NAME const "($arg <SCM_NAME>)";
- %typemap (guile, outdoc)      C_NAME, C_NAME const "<SCM_NAME>";
- %typemap (guile, varoutdoc)   C_NAME, C_NAME const "<SCM_NAME>";
- %typemap (guile, in)          C_NAME *INPUT(C_NAME temp) {
-   temp = (C_NAME) SCM_TO_C($source); $target = &temp;
+ %typemap (in,     doc="($name <" #SCM_NAME ">)")      C_NAME {$1 = SCM_TO_C($input);}
+ %typemap (varin,  doc="(new-value <" #SCM_NAME ">)")  C_NAME {$1 = SCM_TO_C($input);}
+ %typemap (out,    doc="<" #SCM_NAME ">")              C_NAME {$result = C_TO_SCM($1);}
+ %typemap (varout, doc="<" #SCM_NAME ">")              C_NAME {$result = C_TO_SCM($1);}
+ %typemap (in, doc="($name <" #SCM_NAME ">)") C_NAME *INPUT(C_NAME temp) {
+   temp = (C_NAME) SCM_TO_C($input); $1 = &temp;
  }
- %typemap (guile, indoc)       C_NAME *INPUT "($arg <SCM_NAME>)";
- %typemap (guile, ignore)      C_NAME *OUTPUT (C_NAME temp)
-   {$target = &temp;}
- %typemap (guile, argout)      C_NAME *OUTPUT
-   {SWIG_APPEND_VALUE(C_TO_SCM(*$target));}
- %typemap (guile, argoutdoc)   C_NAME *OUTPUT "($arg <SCM_NAME>)";
- %typemap (guile, in)          C_NAME *BOTH = C_NAME *INPUT;
- %typemap (guile, indoc)       C_NAME *BOTH = C_NAME *INPUT;
- %typemap (guile, argout)      C_NAME *BOTH = C_NAME *OUTPUT;
- %typemap (guile, argoutdoc)   C_NAME *BOTH = C_NAME *OUTPUT;
- %typemap (guile, in)          C_NAME *INOUT = C_NAME *INPUT;
- %typemap (guile, indoc)       C_NAME *INOUT = C_NAME *INPUT;
- %typemap (guile, argout)      C_NAME *INOUT = C_NAME *OUTPUT;
- %typemap (guile, argoutdoc)   C_NAME *INOUT = C_NAME *OUTPUT;
+ %typemap (ignore)      C_NAME *OUTPUT (C_NAME temp)
+   {$1 = &temp;}
+ %typemap (argout,doc="($name <" #SCM_NAME ">)") C_NAME *OUTPUT
+   {SWIG_APPEND_VALUE(C_TO_SCM(*$1));}
+
+ %typemap (in)          C_NAME *BOTH = C_NAME *INPUT;
+ %typemap (argout)      C_NAME *BOTH = C_NAME *OUTPUT;
+ %typemap (in)          C_NAME *INOUT = C_NAME *INPUT;
+ %typemap (argout)      C_NAME *INOUT = C_NAME *OUTPUT;
 %enddef
 
  SIMPLE_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
@@ -166,31 +178,34 @@
 /* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (guile, freearg) char *, const char * "if ($target) scm_must_free($target);";
-
-%typemap (guile, freearg) char **OUTPUT, char **BOTH "if (*$target) scm_must_free(*$target);"
+%typemap (freearg) char * "if ($1) scm_must_free($1);";
+%typemap (freearg) char **OUTPUT, char **BOTH "if (*$1) scm_must_free(*$1);"
 
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
-%typemap (guile, freearg) char *OUTPUT, char *BOTH "";
+%typemap (freearg) char *OUTPUT, char *BOTH "";
 
 /* If we set a string variable, delete the old result first. */
 
-%typemap (varin) char *, const char * {
-    if ($target) free($target);
-    $target = SWIG_scm2str($source);
+%typemap (varin) char * {
+    if ($1) free($1);
+    $1 = SWIG_scm2str($input);
 }
 
 /* Void */
 
-%typemap (guile, out) void "gswig_result = GH_UNSPECIFIED;";
-%typemap (guile, outdoc) void "";
+%typemap (out,doc="") void "gswig_result = GH_UNSPECIFIED;";
 
 /* SCM is passed through */
 
 typedef unsigned long SCM;
-%typemap (guile, in) SCM "$target=$source;";
-%typemap (guile, out) SCM "$target=$source;";
+%typemap (in) SCM "$1=$input;";
+%typemap (out) SCM "$result=$1;";
 
 /* typemaps.i ends here */
+
+
+
+
+
