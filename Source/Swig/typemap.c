@@ -768,7 +768,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
   {
     SwigType *star_type, *amp_type, *base_type;
     SwigType *ltype, *star_ltype, *amp_ltype;
-    String *mangle, *star_mangle, *amp_mangle, *base_mangle;
+    String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name;
     String *descriptor, *star_descriptor, *amp_descriptor;
     String *ts;
     char   *sc;
@@ -948,13 +948,14 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
       base_type = SwigType_base(type);
     }
 
+    base_name = SwigType_namestr(base_type);
     if (index == 1) {
-      Replace(s,"$basetype", base_type, DOH_REPLACE_ANY);
-      replace_local_types(locals,"$basetype", base_type);
+      Replace(s,"$basetype", base_name, DOH_REPLACE_ANY);
+      replace_local_types(locals,"$basetype", base_name);
     }
     strcpy(varname,"basetype");
     Replace(s,var,base_type,DOH_REPLACE_ANY);
-    replace_local_types(locals,var,base_type);
+    replace_local_types(locals,var,base_name);
     
     base_mangle = SwigType_manglestr(base_type);
     if (index == 1)
@@ -963,6 +964,7 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
     Replace(s,var,base_mangle,DOH_REPLACE_ANY);
     Delete(base_mangle);
     Delete(base_type);
+    Delete(base_name);
   }
   
   /* Replace any $n. with (&n)-> */
