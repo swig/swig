@@ -39,6 +39,8 @@ extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;
 extern  int       NoExcept;                         // -no_except option
+extern  int       Abstract;                         // abstract base class
+extern  int       SmartPointer;                     // smart pointer methods being emitted
 
 /* Miscellaneous stuff */
 
@@ -238,10 +240,15 @@ public:
   /* Return true if the current method is part of a smart-pointer */
   int is_smart_pointer() const;
 
+  /* Director subclass comparison test */
+  String *none_comparison;
+
+  /* Director constructor "template" code */
+  String *director_ctor_code;
+
  private:
   Hash   *symbols;
   Hash   *classtypes;
-  String *none_comparison;
   int     overloading;
   int     multiinput;
   int     directors;

@@ -374,7 +374,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int top(Node *n) {
-
     /* check if directors are enabled for this module.  note: this 
      * is a "master" switch, without which no director code will be
      * emitted.  %feature("director") statements are also required
@@ -444,7 +443,7 @@ public:
       Printf(f_runtime,"#define SWIG_DIRECTORS\n");
     }
 
-  /* Set module name */
+    /* Set module name */
     module = Copy(Getattr(n,"name"));
     mainmodule = Getattr(n,"name");
 
@@ -1629,7 +1628,9 @@ public:
     parms = p;
     for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
     p = NewParm(NewString("int"), NewString("__disown"));
-    Setattr(p, "value", "1");
+    Setattr(p, "arg:byname", "1");
+    Setattr(n, "director:postfix_args", p);
+    Setattr(p, "value", "0");
     set_nextSibling(ip, p);
     
     /* constructor */
