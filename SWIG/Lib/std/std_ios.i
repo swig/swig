@@ -155,7 +155,7 @@ namespace std {
     operator=(const ios_base&);
   };
 
-  template<typename _CharT, typename _Traits >
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   class basic_ios : public ios_base
   {
   public:
