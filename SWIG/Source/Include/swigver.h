@@ -2,7 +2,7 @@
 /* SWIG version information */
 
 #ifndef SWIG_VERSION
-#define SWIG_VERSION "1.3.14u-20020617-2123"
+#define SWIG_VERSION "1.3.14u-20020705-2031"
 #endif
 
 #ifndef SWIG_MAJOR_VERSION

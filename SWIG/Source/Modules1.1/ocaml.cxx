@@ -1134,6 +1134,8 @@ class OCAML : public Language {
 		    name, name, name,
 		    name, name, name, name );
 	}
+
+	return SWIG_OK;
     }
 
 // -----------------------------------------------------------------------
@@ -1216,7 +1218,7 @@ class OCAML : public Language {
     }
 
     int
-    OCAML::classHandler(Node *n) {
+    classHandler(Node *n) {
 	int rv = 0;
 	String *name = Getattr(n,"name");
 
