@@ -66,12 +66,11 @@ SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
 }
 
 SWIGRUNTIME(void)
-__SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
+SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
    char data[512];
 
    SWIG_MakePtr(data, ptr, type);
    *c = estrdup(data);
-
 }
 
 #define SWIG_SetPointerZval(a,b,c) SWIG_ZTS_SetPointerZval(a,b,c, SWIG_module_entry TSRMLS_CC)
