@@ -184,6 +184,12 @@ install-lib:
 	    echo "Installing Lib/java/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/java/$$i; \
 	    done;
+	@$(MKINSTDIRS) $(SWIG_LIB)/mzscheme
+	@cd $(srcdir)/Lib/mzscheme; for i in *.i *.swg; \
+	    do \
+	    echo "Installing Lib/mzscheme/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/mzscheme/$$i; \
+	    done;
 
 install-runtime:
 	@cd Runtime; $(MAKE) install
