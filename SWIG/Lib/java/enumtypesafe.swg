@@ -11,7 +11,7 @@
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
-%typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
+%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE    "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 

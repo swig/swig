@@ -2723,11 +2723,26 @@ class JAVA : public Language {
    *
    * (scottm) There is probably a SWIG function to do this, but I
    * haven't found it yet.
+   * (william) Rewriting this area based on substituteClassname()
+   * should work - using getProxyName() and getEnumName().
    * --------------------------------------------------------------- */
 
   Node *canonicalizeType(Node *n, String *classtype) {
     String *reduced_type = SwigType_typedef_resolve_all(classtype);
-    String *base_type = SwigType_base(reduced_type);
+    String *base_type;
+
+    if (Strncmp(reduced_type, "enum ", 5)) {
+      /* Not an enum, most likely branch */
+      base_type = SwigType_base(reduced_type);
+    } else {
+      /* Enum handling code: Swig_typedef_resolve_all() will prefix an
+       * enumerated type with "enum ", leading to all kinds of headaches
+       * when above code is called. Need to call Swig_symbol_clookup
+       * with the unadorned enum name.
+       */
+      base_type = classtype;
+    }
+
     Node   *classnode = Swig_symbol_clookup(base_type, Getattr(n, "sym:symtab"));
 
     if (classnode != NULL) {
@@ -2753,8 +2768,9 @@ class JAVA : public Language {
       }
     }
 
+    if (base_type != classtype)
+      Delete(base_type);
     Delete(reduced_type);
-    Delete(base_type);
 
     return classnode;
   }
