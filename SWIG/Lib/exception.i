@@ -192,6 +192,18 @@ static void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 %}
 #endif // SWIGJAVA
 
+#ifdef SWIGOCAML
+%{
+#define OCAML_MSG_BUF_LEN 1024
+static void _SWIG_exception(int code, const char *msg) {
+  char msg_buf[OCAML_MSG_BUF_LEN];
+  sprintf( msg_buf, "Exception(%d): %s\n", code, msg );
+  failwith( msg_buf );  
+}
+#define SWIG_exception(a,b) _SWIG_exception((a),(b))
+%}
+#endif
+
 #ifdef SWIGRUBY
 %{
 static void _SWIG_exception(int code, const char *msg) {
