@@ -1674,7 +1674,11 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
   while (ki.key) {
     List *el;
     Iterator ei;
-    SwigType *ft;
+    SwigType *lt;
+    SwigType *rt;
+    String *nt;
+    String *ln;
+    String *rn;
     const String *cd;
 
     Printf(f_forward,"#define  SWIGTYPE%s swig_types[%d] \n", ki.key, i);
@@ -1682,8 +1686,17 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
     
     cd = SwigType_clientdata_collect(ki.key,0);
     if (!cd) cd = "0";
-    ft = SwigType_typedef_resolve_all(Getattr(r_ltype,ki.key));
-    Printv(types,"{\"", ki.key, "\", 0, \"",SwigType_str(ft,0),"\", ", cd, ", 0, 0, 0},", NIL);
+    lt = Getattr(r_ltype,ki.key);
+    rt = SwigType_typedef_resolve_all(lt);
+    /* we save the original type and the fully resolved version */
+    ln = SwigType_str(lt,0);
+    rn = SwigType_str(rt,0);
+    if (Strcmp(ln,rn) == 0) {
+      nt = NewStringf("%s", ln);
+    } else {
+      nt = NewStringf("%s|%s", rn, ln);
+    }
+    Printv(types,"{\"", ki.key, "\", 0, \"",nt,"\", ", cd, ", 0, 0, 0},", NIL);
     el = SwigType_equivalent_mangle(ki.key,0,0);
     for (ei = First(el); ei.item; ei = Next(ei)) {
       String *ckey;
@@ -1698,7 +1711,8 @@ SwigType_emit_type_table(File *f_forward, File *f_table) {
       Delete(ckey);
     }
     Delete(el);
-    Delete(ft);
+    Delete(nt);
+    Delete(rt);
     Printf(types,"{0, 0, 0, 0, 0, 0, 0}};\n");
     Printv(table, "_swigt_", ki.key, ", \n", NIL);
     ki = Next(ki);

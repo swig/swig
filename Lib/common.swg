@@ -175,25 +175,41 @@ SWIG_TypeName(const swig_type_info *ty) {
    strncmp, but skipping ' '.
 */
 static int
-SWIG_TypeNameComp(const char *name1, const char *name2) {
-  register size_t s1 = strlen(name1);
-  register size_t s2 = strlen(name2);
-  register size_t i1 = 0;
-  register size_t i2 = 0;
-  for( ; (i1 < s1) && (i2 < s2); ++i1, ++i2) {
-    while ((name1[i1] == ' ') && (i1 < s1)) ++i1;
-    while ((name2[i2] == ' ') && (i2 < s2)) ++i2;
-    if (name1[i1] != name2[i2]) return name1[i1] - name2[i2];
+SWIG_TypeNameComp(const char *f1, const char *l1,
+		  const char *f2, const char *l2) {
+  for (;(f1 != l1) && (f2 != l2); ++f1, ++f2) {
+    while ((*f1 == ' ') && (f1 != l1)) ++f1;
+    while ((*f2 == ' ') && (f2 != l2)) ++f2;
+    if (*f1 != *f2) return *f1 - *f2;
   }
-  return (s1 - i1) - (s2 - i2);
+  return (l1 - f1) - (l2 - f2);
 }
+
+/*
+  Check type equivalence in a name list like <name1>|<name2>|...
+*/
+static int
+SWIG_TypeEquiv(const char *nb, const char *tb) {
+  int equiv = 0;
+  const char* te = tb + strlen(tb);
+  const char* ne = nb;
+  while (!equiv && *ne) {
+    for (nb = ne; *ne; ++ne) {
+      if (*ne == '|') break;
+    }
+    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
+    if (*ne) ++ne;
+  }
+  return equiv;
+}
+  
 
 /* Search for a swig_type_info structure */
 SWIGRUNTIME(swig_type_info *)
 SWIG_TypeQuery(const char *name) {
   swig_type_info *ty = swig_type_list;
   while (ty) {
-    if (ty->str && (SWIG_TypeNameComp(name,ty->str) == 0)) return ty;
+    if (ty->str && (SWIG_TypeEquiv(ty->str,name))) return ty;
     if (ty->name && (strcmp(name,ty->name) == 0)) return ty;
     ty = ty->prev;
   }
