@@ -1,5 +1,20 @@
 Version 1.3.20 (In progress)
 ============================
+12/11/2003: cheetah (William Fulton)
+            [Java] Protected class methods are wrapped as protected Java methods 
+            when using the dirprot director feature. This can be changed using
+            %javamethodmodifiers to something else should the need arise, for
+            example, private or package access.
+
+12/11/2003: cheetah (William Fulton)
+            [Java, C#] 
+            %javamethodmodifiers (Java) and %csmethodmodifiers (C#) operate slightly 
+            differently. Previously this feature had to be present to set the method
+            modifiers. Now it is only used if it exists for the method being wrapped.
+            The default is "public" as previous however, when wrapping protected
+            director methods it is "protected". This change will not affect existing
+            use of the %javamethodmodifiers or %csmethodmodifiers.
+
 12/11/2003: mmatus (Marcelo Matus)
 
 	    This fix some recurring reports about keywords not been
@@ -135,7 +150,8 @@ Version 1.3.20 (In progress)
             Added support for accepting the Unix directory separator '/' on 
             Windows and the Mac in addition to the native one ( '\' on 
             Windows). This can be used in %import, %include and commandline 
-            options taking a path, for example -I.
+            options taking a path, for example -I. On Cygwin, both the Windows
+            and Unix directory separator can now be used (was '/' only).
             
 12/10/2003: mmatus (Marcelo Matus)
 
@@ -194,8 +210,8 @@ Version 1.3.20 (In progress)
 	    members at the target language side.
 
 	    This finished the director protected support for the 
-	    python language. Java and Ocalm will need to add the
-	    "reprotection" latter.
+	    python language. Ocalm will need to add the
+	    "reprotection" later.
 
 12/10/2003: mmatus (Marcelo Matus)
 
