@@ -106,6 +106,7 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
+	namespace_nested \
 	namespace_template \
 	namespace_typemap \
 	newobject1 \
