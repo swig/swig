@@ -92,11 +92,14 @@ Xmlparse:
 	@cd $(SOURCE)/Xmlparse; $(MAKE)
 
 Expat:
-	@cd $(SOURCE)/Expat; $(Make)
+	@cd $(SOURCE)/Expat; $(MAKE)
+
+Swithe:
+	@cd $(SOURCE)/Swithe; $(MAKE)
 
 
 .PHONY: SWIG1.1 Modules1.1 Swig Preprocessor LParse \
-        Experiment Swim SWILL DOH
+        Experiment Swim SWILL DOH Swithe
 
 #####################################################################
 # Runtime libraries
