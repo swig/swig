@@ -202,7 +202,6 @@ then
 fi
 AC_MSG_RESULT($LINKFORSHARED)
 
-
 echo ""
 echo "Checking for installed packages."
 echo "Note : None of the following packages are required to compile SWIG"
@@ -224,6 +223,11 @@ AC_CHECK_LIB(nsl, t_open, [LIBS="-lnsl $LIBS"]) # SVR4
 AC_CHECK_LIB(inet, gethostbyname, [LIBS="-linet $LIBS"], [], -lnsl) # Sequent
 AC_CHECK_LIB(socket, socket, [LIBS="-lsocket $LIBS"], [], $LIBS) # SVR4 sockets
 fi
+
+
+AC_CHECK_LIB(swill, swill_init, [SWIGLIBS="-lswill $LIBS" SWILL="-DSWIG_SWILL"])
+AC_SUBST(SWIGLIBS)
+AC_SUBST(SWILL)
 
 # check for --with-libm=...
 AC_SUBST(LIBM)
@@ -319,6 +323,7 @@ fi
 
 AC_SUBST(XINCLUDES)
 AC_SUBST(XLIBSW)
+
 
 #--------------------------------------------------------------------
 #	Try to locate the Tcl package
