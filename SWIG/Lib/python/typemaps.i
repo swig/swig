@@ -78,58 +78,58 @@ or you can use the %apply directive :
 
 %typemap(python,in) double *INPUT(double temp)
 {
-  temp = PyFloat_AsDouble($source);
-  $target = &temp;
+  temp = PyFloat_AsDouble($input);
+  $1 = &temp;
 }
 
 %typemap(python,in) float  *INPUT(float temp)
 {
-  temp = (float) PyFloat_AsDouble($source);
-  $target = &temp;
+  temp = (float) PyFloat_AsDouble($input);
+  $1 = &temp;
 }
 
 %typemap(python,in) int            *INPUT(int temp)
 {
-  temp = (int) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (int) PyInt_AsLong($input);
+  $1 = &temp;
 }
 
 %typemap(python,in) short          *INPUT(short temp)
 {
-  temp = (short) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (short) PyInt_AsLong($input);
+  $1 = &temp;
 }
 
 %typemap(python,in) long           *INPUT(long temp)
 {
-  temp = (long) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (long) PyInt_AsLong($input);
+  $1 = &temp;
 }
 %typemap(python,in) unsigned int   *INPUT(unsigned int temp)
 {
-  temp = (unsigned int) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (unsigned int) PyInt_AsLong($input);
+  $1 = &temp;
 }
 %typemap(python,in) unsigned short *INPUT(unsigned short temp)
 {
-  temp = (unsigned short) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (unsigned short) PyInt_AsLong($input);
+  $1 = &temp;
 }
 %typemap(python,in) unsigned long  *INPUT(unsigned long temp)
 {
-  temp = (unsigned long) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (unsigned long) PyInt_AsLong($input);
+  $1 = &temp;
 }
 %typemap(python,in) unsigned char  *INPUT(unsigned char temp)
 {
-  temp = (unsigned char) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (unsigned char) PyInt_AsLong($input);
+  $1 = &temp;
 }
 
 %typemap(python,in) signed char  *INPUT(signed char temp)
 {
-  temp = (unsigned char) PyInt_AsLong($source);
-  $target = &temp;
+  temp = (unsigned char) PyInt_AsLong($input);
+  $1 = &temp;
 }
                  
 // OUTPUT typemaps.   These typemaps are used for parameters that
@@ -216,7 +216,7 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
                         float          *L_OUTPUT(float temp),
                         double         *L_OUTPUT(double temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(python,argout) int            *L_OUTPUT,
@@ -229,16 +229,16 @@ static PyObject* l_output_helper(PyObject* target, PyObject* o) {
                         signed char    *L_OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
-    l_output_helper($target,o);
+    o = PyInt_FromLong((long) (*$1));
+    $result = l_output_helper($result,o);
 }
 
 %typemap(python,argout) float    *L_OUTPUT,
                         double   *L_OUTPUT
 {
     PyObject *o;
-    o = PyFloat_FromDouble((double) (*$source));
-    $target = l_output_helper($target,o);
+    o = PyFloat_FromDouble((double) (*$1));
+    $result = l_output_helper($result,o);
 }
 
 // These typemaps contributed by Robin Dunn
@@ -289,7 +289,7 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         float          *T_OUTPUT(float temp),
                         double         *T_OUTPUT(double temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(python,argout) int            *T_OUTPUT,
@@ -301,16 +301,16 @@ static PyObject* t_output_helper(PyObject* target, PyObject* o) {
                         unsigned char  *T_OUTPUT
 {
     PyObject *o;
-    o = PyInt_FromLong((long) (*$source));
-    $target = t_output_helper($target, o);
+    o = PyInt_FromLong((long) (*$1));
+    $result = t_output_helper($result, o);
 }
 
 %typemap(python,argout) float    *T_OUTPUT,
                         double   *T_OUTPUT
 {
     PyObject *o;
-    o = PyFloat_FromDouble((double) (*$source));
-    $target = t_output_helper($target, o);
+    o = PyFloat_FromDouble((double) (*$1));
+    $result = t_output_helper($result, o);
 }
 
 // Set the default output typemap
@@ -532,10 +532,10 @@ PyObject *
 // value, simply pass it straight through.
 
 %typemap(python,in) PyObject * {
-  $target = $source;
+  $1 = $input;
 }
 
 %typemap(python,out) PyObject * {
-  $target = $source;
+  $result = $1;
 }
 
