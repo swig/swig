@@ -263,23 +263,16 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
-            /*
-            void each() {
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
-                std::map<K,T >::iterator i;
-                for (i=self->begin(); i!=self->end(); ++i) {
+            Scheme_Object* keys() {
+                Scheme_Object* result = scheme_null;
+                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
+                                                      i!=$1.rend(); ++i) {
                     K* key = new K(i->first);
-                    T* val = &(i->second);
-                    VALUE entry = rb_ary_new2(2);
-                    VALUE k = SWIG_NewPointerObj((void *) key,k_type,1);
-                    VALUE x = SWIG_NewPointerObj((void *) val,t_type,0);
-                    rb_ary_store(entry,0,k);
-                    rb_ary_store(entry,1,x);
-                    rb_yield(entry);
+                    Scheme_Object* k = SWIG_MakePtr(key,$descriptor(K *));
+                    result = scheme_make_pair(k,result);
                 }
+                return result;
             }
-            */
         }
     };
 
@@ -490,21 +483,15 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
-            /*
-            void each() {
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
-                std::map<K,T >::iterator i;
-                for (i=self->begin(); i!=self->end(); ++i) {
-                    T* val = &(i->second);
-                    VALUE entry = rb_ary_new2(2);
-                    VALUE k = CONVERT_TO(i->first);
-                    VALUE x = SWIG_NewPointerObj((void *) val,t_type,0);
-                    rb_ary_store(entry,0,k);
-                    rb_ary_store(entry,1,x);
-                    rb_yield(entry);
+            Scheme_Object* keys() {
+                Scheme_Object* result = scheme_null;
+                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
+                                                      i!=$1.rend(); ++i) {
+                    Scheme_Object* k = CONVERT_TO(i->first);
+                    result = scheme_make_pair(k,result);
                 }
+                return result;
             }
-            */
         }
     };
     %enddef
@@ -708,21 +695,16 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
-            /*
-            void each() {
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
-                std::map<K,T >::iterator i;
-                for (i=self->begin(); i!=self->end(); ++i) {
+            Scheme_Object* keys() {
+                Scheme_Object* result = scheme_null;
+                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
+                                                      i!=$1.rend(); ++i) {
                     K* key = new K(i->first);
-                    VALUE entry = rb_ary_new2(2);
-                    VALUE k = SWIG_NewPointerObj((void *) key,k_type,1);
-                    VALUE x = CONVERT_TO(i->second);
-                    rb_ary_store(entry,0,k);
-                    rb_ary_store(entry,1,x);
-                    rb_yield(entry);
+                    Scheme_Object* k = SWIG_MakePtr(key,$descriptor(K *));
+                    result = scheme_make_pair(k,result);
                 }
+                return result;
             }
-            */
         }
     };
     %enddef
@@ -925,17 +907,15 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
-            /*
-            void each() {
-                std::map<K,T >::iterator i;
-                for (i=self->begin(); i!=self->end(); ++i) {
-                    VALUE entry = rb_ary_new2(2);
-                    rb_ary_store(entry,0,CONVERT_K_TO(i->first));
-                    rb_ary_store(entry,1,CONVERT_T_TO(i->second));
-                    rb_yield(entry);
+            Scheme_Object* keys() {
+                Scheme_Object* result = scheme_null;
+                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
+                                                      i!=$1.rend(); ++i) {
+                    Scheme_Object* k = CONVERT_K_TO(i->first);
+                    result = scheme_make_pair(k,result);
                 }
+                return result;
             }
-            */
         }
     };
     %enddef

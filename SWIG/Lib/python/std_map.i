@@ -274,32 +274,30 @@ namespace std {
             }
             PyObject* keys() {
                 PyObject* keyList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     PyList_SetItem(keyList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(K *),1));
                 }
                 return keyList;
             }
             PyObject* values() {
                 PyObject* valueList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     T* ptr = new T(i->second);
                     PyList_SetItem(valueList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(T *),1));
                 }
                 return valueList;
             }
             PyObject* items() {
                 PyObject* itemList = PyList_New(self->size());
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
@@ -308,10 +306,10 @@ namespace std {
                     PyObject* item = PyTuple_New(2);
                     PyTuple_SetItem(item,0,
                                     SWIG_NewPointerObj((void *) k_ptr,
-                                                       k_type,1));
+                                                       $descriptor(K *),1));
                     PyTuple_SetItem(item,1,
                                     SWIG_NewPointerObj((void *) t_ptr,
-                                                       t_type,1));
+                                                       $descriptor(T *),1));
                     PyList_SetItem(itemList,j,item);
                 }
                 return itemList;
@@ -324,13 +322,13 @@ namespace std {
             PyObject* __iter__() {
                 %#if PY_VERSION_HEX >= 0x02020000
                 PyObject* keyList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     PyList_SetItem(keyList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(K *),1));
                 }
                 PyObject* iter = PyObject_GetIter(keyList);
                 Py_DECREF(keyList);
@@ -551,19 +549,18 @@ namespace std {
             }
             PyObject* values() {
                 PyObject* valueList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     T* ptr = new T(i->second);
                     PyList_SetItem(valueList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(T *),1));
                 }
                 return valueList;
             }
             PyObject* items() {
                 PyObject* itemList = PyList_New(self->size());
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
@@ -573,7 +570,7 @@ namespace std {
                                     CONVERT_TO(i->first));
                     PyTuple_SetItem(item,1,
                                     SWIG_NewPointerObj((void *) t_ptr,
-                                                       t_type,1));
+                                                       $descriptor(T *),1));
                     PyList_SetItem(itemList,j,item);
                 }
                 return itemList;
@@ -799,13 +796,13 @@ namespace std {
             }
             PyObject* keys() {
                 PyObject* keyList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     PyList_SetItem(keyList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(K *),1));
                 }
                 return keyList;
             }
@@ -821,7 +818,6 @@ namespace std {
             }
             PyObject* items() {
                 PyObject* itemList = PyList_New(self->size());
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
@@ -829,7 +825,7 @@ namespace std {
                     PyObject* item = PyTuple_New(2);
                     PyTuple_SetItem(item,0,
                                     SWIG_NewPointerObj((void *) k_ptr,
-                                                       k_type,1));
+                                                       $descriptor(K *),1));
                     PyTuple_SetItem(item,1,
                                     CONVERT_TO(i->second));
                     PyList_SetItem(itemList,j,item);
@@ -844,13 +840,13 @@ namespace std {
             PyObject* __iter__() {
                 %#if PY_VERSION_HEX >= 0x02020000
                 PyObject* keyList = PyList_New(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     PyList_SetItem(keyList,j,
-                                   SWIG_NewPointerObj((void *) ptr,type,1));
+                                   SWIG_NewPointerObj((void *) ptr,
+                                                      $descriptor(K *),1));
                 }
                 PyObject* iter = PyObject_GetIter(keyList);
                 Py_DECREF(keyList);
