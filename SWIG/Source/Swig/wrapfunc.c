@@ -125,6 +125,21 @@ Wrapper_pretty_print(String *str, File *f) {
       Printf(f,"%s",ts);
       Clear(ts);
       empty = 1;
+    } else if (c == '/') {
+      Putc(c,ts);
+      c = Getc(str);
+      if (c != EOF) {
+	Putc(c,ts);
+	if (c == '/') {                     /* C++ comment */
+	  while ((c = Getc(str)) != EOF) {
+	    if (c == '\n') {
+	      Ungetc(c,str);
+	      break;
+	    }
+	    Putc(c,ts);
+	  }
+	}
+      }
     } else {
       if (!empty || !isspace(c)) {
 	Putc(c,ts);
