@@ -3,6 +3,8 @@
    with gh_ flavor.
 */
 
+#define SWIGGUILE_GH
+
 %runtime "guile_gh_run.swg"
 %include "guile.i"
 

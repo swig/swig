@@ -5,13 +5,17 @@
 ;;;*     GOOPS file support
 ;;;*
 ;;;* Copyright (C) 2003 John Lenz (jelenz@wisc.edu)
+;;;* Copyright (C) 2004 Matthias Koeppe (mkoeppe@mail.math.uni-magdeburg.de)
 ;;;*
 ;;;* This file may be freely redistributed without license or fee provided
 ;;;* this copyright message remains intact.
 ;;;************************************************************************
 
-(define-module (Swig common))
-(use-modules (oop goops))
+(define-module (Swig swigrun))
+
+(define-module (Swig common)
+  #:use-module (oop goops)
+  #:use-module (Swig swigrun))
 
 (define-class <swig-metaclass> (<class>)
   (new-function #:init-value #f))
@@ -38,5 +42,28 @@
           (if (slot-exists? ret 'swig-smob)
             (slot-ref ret 'swig-smob)
             ret))))))
+
+(define (display-address o file)
+  (display (number->string (object-address o) 16) file))
+
+(define (display-pointer-address o file)
+  (display (number->string (SWIG-PointerAddress o) 16) file))
+(define-method (write (o <swig>) file)
+  ;; We display _two_ addresses to show the object's identity:
+  ;;  * first the address of the GOOPS proxy object,
+  ;;  * second the pointer address.
+  ;; The reason is that proxy objects are created and discarded on the
+  ;; fly, so different proxy objects for the same C object will appear.
+  (let ((class (class-of o)))
+    (if (slot-bound? class 'name)
+	(begin
+	  (display "#<" file)
+	  (display (class-name class) file)
+	  (display #\space file)
+	  (display-address o file)
+	  (display " @ " file)
+	  (display-pointer-address o file)
+	  (display ">" file))
+	(next-method))))
                                               
 (export <swig-metaclass> <swig>)

@@ -34,6 +34,14 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_MustGetPtr(s, type, argnum, flags, FUNC_NAME)
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_Guile_NewPointerObj((void*)ptr, type, owner)
+#define SWIG_PointerAddress(object) \
+  SWIG_Guile_PointerAddress(object)
+#define SWIG_PointerType(object) \
+  SWIG_Guile_PointerType(object)
+#define SWIG_IsPointerOfType(object, type) \
+  SWIG_Guile_IsPointerOfType(object, type)
+#define SWIG_IsPointer(object) \
+  SWIG_Guile_IsPointer(object)
 #define SWIG_PropagateClientData(type) \
   SWIG_Guile_PropagateClientData(type)
 #define SWIG_contract_assert(expr, msg)				\
@@ -68,7 +76,16 @@ SWIG_Guile_MarkPointerNoncollectable(SCM s);
 /* Mark a pointer object destroyed */
 SWIGIMPORT(void)
 SWIG_Guile_MarkPointerDestroyed(SCM s);
-       
+/* Access type and address of a pointer object. */
+SWIGIMPORT(unsigned long)
+SWIG_Guile_PointerAddress(SCM object);
+SWIGIMPORT(swig_type_info *)
+SWIG_Guile_PointerType(SCM object);
+SWIGIMPORT(int)
+SWIG_Guile_IsPointer(SCM object);
+SWIGIMPORT(int)
+SWIG_Guile_IsPointerOfType(SCM object, swig_type_info *type);
+
 #else
 
 SWIGRUNTIME(char *) 
@@ -130,6 +147,32 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
   }
 }
 
+SWIGRUNTIME(unsigned long)
+SWIG_Guile_PointerAddress(SCM object)
+{
+  SCM smob = SWIG_Guile_GetSmob(object);
+  if (SCM_NULLP(smob)) return 0;
+  else if (SCM_SMOB_PREDICATE(swig_tag, smob)
+	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
+	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
+    return (unsigned long) (void *) SCM_CELL_WORD_1(smob);
+  }
+  else scm_wrong_type_arg("SWIG-Guile-PointerAddress", 1, object);
+}
+
+SWIGRUNTIME(swig_type_info *)
+SWIG_Guile_PointerType(SCM object)
+{
+  SCM smob = SWIG_Guile_GetSmob(object);
+  if (SCM_NULLP(smob)) return NULL;
+  else if (SCM_SMOB_PREDICATE(swig_tag, smob)
+	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
+	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
+    return (swig_type_info *) SCM_CELL_WORD_2(smob);
+  }
+  else scm_wrong_type_arg("SWIG-Guile-PointerType", 1, object);
+}
+  
 /* Return 0 if successful. */
 SWIGRUNTIME(int)
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
@@ -171,6 +214,23 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
     scm_wrong_type_arg((char *) func_name, argnum, s);
   }
   return result;
+}
+
+SWIGRUNTIME(int)
+SWIG_Guile_IsPointerOfType (SCM s, swig_type_info *type)
+{
+  void *result;
+  if (SWIG_Guile_ConvertPtr(s, &result, type, 0)) {
+    /* type mismatch */
+    return 0;
+  }
+  else return 1;
+}
+  
+SWIGRUNTIME(int)
+SWIG_Guile_IsPointer (SCM s)
+{
+  return SWIG_Guile_IsPointerOfType (s, NULL);
 }
 
 /* Mark a pointer object non-collectable */
@@ -264,29 +324,30 @@ free_swig(SCM A)
 SWIGRUNTIME(void)
 SWIG_Guile_Init ()
 {
-  if (!swig_tag) {
-    swig_tag = scm_make_smob_type((char*)"swig-pointer", 0);
-    scm_set_smob_print(swig_tag, print_swig);
-    scm_set_smob_equalp(swig_tag, equalp_swig);
-  }
+  static int initialized = 0;
+  if (initialized) return;
+  initialized = 1;
 
-  if (!swig_collectable_tag) {
-    swig_collectable_tag = scm_make_smob_type((char*)"collectable-swig-pointer", 0);
-    scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
-    scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
-    scm_set_smob_free(swig_collectable_tag, free_swig);
-  }
+  swig_tag = scm_make_smob_type((char*)"swig-pointer", 0);
+  scm_set_smob_print(swig_tag, print_swig);
+  scm_set_smob_equalp(swig_tag, equalp_swig);
 
-  if (!swig_destroyed_tag) {
-    swig_destroyed_tag = scm_make_smob_type((char*)"destroyed-swig-pointer", 0);
-    scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
-    scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
-  }
+  swig_collectable_tag = scm_make_smob_type((char*)"collectable-swig-pointer", 0);
+  scm_set_smob_print(swig_collectable_tag, print_collectable_swig);
+  scm_set_smob_equalp(swig_collectable_tag, equalp_swig);
+  scm_set_smob_free(swig_collectable_tag, free_swig);
+
+  swig_destroyed_tag = scm_make_smob_type((char*)"destroyed-swig-pointer", 0);
+  scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
+  scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
       
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
   swig_keyword = scm_permanent_object(scm_c_make_keyword((char*) "init-smob"));
   swig_symbol = scm_permanent_object(scm_str2symbol("swig-smob"));
+#ifdef SWIG_INIT_RUNTIME_MODULE
+  SWIG_INIT_RUNTIME_MODULE
+#endif
 }
 
 SWIGRUNTIME(int)

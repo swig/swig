@@ -3,8 +3,23 @@
    with SCM_ flavor.
 */
 
+#define SWIGGUILE_SCM
+
 %runtime "precommon.swg"
 %runtime "common.swg"
+
+#ifdef SWIG_RUNTIME_MODE
+/* Hook the runtime module initialization
+   into the shared initialization function SWIG_Guile_Init. */
+%runtime %{
+/* Hook the runtime module initialization
+   into the shared initialization function SWIG_Guile_Init. */
+#include <libguile.h>
+SCM scm_init_Swig_swigrun_module (void);
+#define SWIG_INIT_RUNTIME_MODULE scm_init_Swig_swigrun_module();
+%}
+#endif
+
 %runtime "guile_scm_run.swg"
 %include "ghinterface.i"
 %include "guile.i"
