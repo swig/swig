@@ -31,8 +31,9 @@ let triangle_class pts ob meth args =
       "cover" ->
 	(match args with
 	     C_list [ x_arg ; y_arg ] ->
-	       C_bool (point_in_triangle 
-			 pts (get_float x_arg) (get_float y_arg))
+	       let xa = x_arg as float 
+	       and ya = y_arg as float in
+		 (point_in_triangle pts xa ya) to bool
 	   | _ -> raise (Failure "cover needs two double arguments."))
     | _ -> (invoke ob) meth args ;;
 
@@ -53,24 +54,23 @@ let waveplot_class events distance ob meth args =
       "depth" ->
 	(match args with
 	     C_list [ x_arg ; y_arg ] ->
-	       let xa = get_float x_arg and ya = get_float y_arg in
-		 C_double 
-		   (waveplot_depth events distance 
-		      (get_float x_arg,get_float y_arg))
+	       let xa = x_arg as float 
+	       and ya = y_arg as float in
+		 (waveplot_depth events distance (xa,ya)) to float
 	   | _ -> raise (Failure "cover needs two double arguments."))
-    | _ -> (invoke ob) meth args ;;		   
+    | _ -> (invoke ob) meth args ;;
 
 let triangle =
   new_derived_object 
     new_shape
     (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.6)))
-    C_void ;;
+    '() ;;
 
 let waveplot = 
   new_derived_object
     new_volume
     (waveplot_class [ 0.01,0.01,3.0 ; 1.01,-2.01,1.5 ] 5.0)
-    C_void ;;
+    '() ;;
 
-let _ = _draw_shape_coverage (C_list [ triangle ; C_int 60 ; C_int 20 ]) ;;
-let _ = _draw_depth_map (C_list [ waveplot ; C_int 60 ; C_int 20 ]) ;;
+let _ = _draw_shape_coverage '(triangle, 60, 20) ;;
+let _ = _draw_depth_map '(waveplot, 60, 20) ;;
