@@ -178,21 +178,25 @@ public:
 				print_indent(0);
 				if (DohIsString(Getattr(obj,k)))
 				{
+				  String *ck = NewString(k);
 					o = Str(Getattr(obj,k));
-					Replaceall( k, ":", "_" );
+					Replaceall( ck, ":", "_" );
                                         /* Do first to avoid aliasing errors. */
 					Replaceall( o, "&", "&amp;" );
 					Replaceall( o, "<", "&lt;" );
 					Replaceall( o, "\"", "&quot;" );
 					Replaceall( o, "\\", "\\\\" );
-					Printf(out,"<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%x\" />\n", k, o, ++id, o );
+					Printf(out,"<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
 					Delete(o);
+					Delete(ck);
 				}
 				else
 				{
 					o = Getattr(obj,k);
-					Replaceall( k, ":", "_" );
-					Printf(out,"<attribute name=\"%s\" value=\"%x\" id=\"%ld\" addr=\"%x\" />\n", k, o, ++id, o );
+					String *ck = NewString(k);
+					Replaceall( ck, ":", "_" );
+					Printf(out,"<attribute name=\"%s\" value=\"%x\" id=\"%ld\" addr=\"%x\" />\n", ck, o, ++id, o );
+					Delete(ck);
 				}
 			}
 			k = Nextkey(obj);
