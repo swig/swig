@@ -14,7 +14,7 @@ cpp_enum
 cpp_enum_scope
 cpp_nodefault
 cpp_static
-CVS
+cpp_typedef
 default_constructor
 defineop
 defines
