@@ -183,40 +183,6 @@ add(String *s, const char *newstr) {
   s->len += l;
 }
 
-/* Add a single character to s */
-
-static void
-String_addchar(String *s, char c) {
-  register char *tc;
-  register int   len = s->len;
-  register int   maxsize = s->maxsize;
-  s->hashkey = -1;
-  if (len > (maxsize-2)) {
-    s->str = (char *) DohRealloc(s->str,2*maxsize);
-    assert(s->str);
-    s->maxsize = 2*maxsize;
-  }
-  tc = s->str;
-  tc[len] = c;
-  if (s->sp >= len) {
-    s->sp = len+1;
-    tc[len+1] = 0;
-    if (c == '\n') s->line++;
-  }
-  s->len++;
-}
-
-/* Expand a string to accomodate a write */
-
-static void
-String_expand(String *s, int width) {
-  if ((s->len + width) > (s->maxsize-1)) {
-    s->str = (char *) DohRealloc(s->str,(s->len + width)+1);
-    assert(s->str);
-    s->maxsize = s->len + width + 1;
-  }
-}
-
 /* -----------------------------------------------------------------------------
  * void String_clear() - Clear a string
  * ----------------------------------------------------------------------------- */
