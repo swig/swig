@@ -1,0 +1,6 @@
+Kill lots of time exploring the Mandelbrot set.  This example uses
+the full SWIG interface file located in ../../Interface.  To run
+the program, type 'wish mandel.tcl'.
+
+
+
