@@ -20,9 +20,9 @@
 
 %define PYVAL_OUT_TYPEMAP(from_meth,pyfrag,...)
   %typemap(out,fragment=pyfrag) __VA_ARGS__ 
-  "$result = from_meth((__VA_ARGS__)$1);";
+  "$result = from_meth((__VA_ARGS__)($basetype)($1));";
   %typemap(out,fragment=pyfrag) const __VA_ARGS__& 
-  "$result = from_meth((__VA_ARGS__)*($1));";
+  "$result = from_meth((__VA_ARGS__)($basetype)(*$1));";
 %enddef
 
 /* varin */
@@ -42,13 +42,13 @@
 
 %define PYVAL_VAROUT_TYPEMAP(from_meth,pyfrag,...)
   %typemap(varout,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__&  
-   "$result = from_meth((__VA_ARGS__)$1);";
+   "$result = from_meth((__VA_ARGS__)($basetype)$1);";
 %enddef
 
 /* constant installation code */
 %define PYVAL_CONSTCODE_TYPEMAP(from_meth,pyfrag,...)
   %typemap(constcode,fragment=pyfrag) __VA_ARGS__ 
-     "PyDict_SetItemString(d,\"$symname\", from_meth((__VA_ARGS__)$value));";
+     "PyDict_SetItemString(d,\"$symname\", from_meth((__VA_ARGS__)($basetype)$value));";
 %enddef
 
 
@@ -56,9 +56,9 @@
 
 %define PYVAL_DIRECTORIN_TYPEMAP(from_meth,pyfrag,...)
   %typemap(directorin,fragment=pyfrag) __VA_ARGS__ *DIRECTORIN 
-  "$input = from_meth((__VA_ARGS__)*$1_name);";
+  "$input = from_meth((__VA_ARGS__)($basetype)*$1_name);";
   %typemap(directorin,fragment=pyfrag) __VA_ARGS__, const __VA_ARGS__& 
-  "$input = from_meth((__VA_ARGS__)$1_name);";
+  "$input = from_meth((__VA_ARGS__)($basetype)$1_name);";
 %enddef
 
 /* directorout */
@@ -80,10 +80,9 @@
 /* throws */
 
 %define PYVAL_THROWS_TYPEMAP(from_meth,pyfrag,...)
-  %typemap(throws,fragment=pyfrag) __VA_ARGS__ {
-    PyErr_SetObject(PyExc_RuntimeError, from_meth((__VA_ARGS__)$1));
-    SWIG_fail;
-  }
+  %typemap(throws,fragment=pyfrag) __VA_ARGS__ 
+   "PyErr_SetObject(PyExc_RuntimeError, from_meth((__VA_ARGS__)($basetype)$1));
+    SWIG_fail;";
 %enddef
 
 /* typecheck */
