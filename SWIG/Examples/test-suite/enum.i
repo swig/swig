@@ -7,9 +7,20 @@
 typedef enum { 
     CSP_ITERATION_FWD,
     CSP_ITERATION_BWD
-} CSP_IterDir;
+} foo1;
+
+typedef enum foo2 {
+    ABCDE = 0,
+    FGHJI = 1
+} foo3;
 
 void
-CSP_iteration_setup(CSP_IterDir direction);
+bar1(foo1 x) {}
+
+void
+bar2(enum foo2 x) {}
+
+void 
+bar3(foo3 x) {}
 
 %}
