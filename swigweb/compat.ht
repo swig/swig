@@ -71,18 +71,19 @@ The following languages are also supported in SWIG 1.3.6 onwards.
 
 PHP support was added in SWIG 1.3.11.<br>
 Objective Caml (Ocaml) support was added in SWIG 1.3.14.<br>
-Support for the Chicken scheme compiler was added in SWIG 1.3.18.
+Support for C# and the Chicken scheme compiler was added in SWIG 1.3.18.
 <p>
 
 Any newer versions of these languages should be assumed to be
 supported unless otherwise indicated.   
 
-There is also <a href="http://www.ultravioletconsulting.com/projects/swigjs">SwigJS</a>, a JavaScript module for SWIG and <a href="http://www.elj.com/eiffel/swig-eiffel/tutorial/">SWIG-Eiffel</a> for Eiffel.
+There is also <a href="http://www.ultravioletconsulting.com/projects/swigjs">SwigJS</a>, a JavaScript module for SWIG 
+and <a href="http://efsa.sourceforge.net/archive/cozzi/swigeiffel.htm">SWIGEiffel</a> for Eiffel.
 
 <h3> Compilation Requirements </h3>
 
 SWIG is implemented in C and C++ and is distributed in source form.
-You will need a working C++ compiler (i.e., g++) to build SWIG and at
+You will need a working C++ compiler (e.g. g++) to build SWIG and at
 least one of the supported scripting languages to use it (or else it
 isn't going to be very useful).  SWIG does not depend upon any of the
 supported scripting languages for its own compilation.  Finally,
