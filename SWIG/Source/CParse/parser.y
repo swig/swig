@@ -325,7 +325,7 @@ static void add_symbols(Node *n) {
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	if ((c != n)) {
+	if ((c != n) && (!Getattr(n,"sym:weak"))) {
 	  String *e = NewString("");
 	  Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
 	  if (Cmp(symname,Getattr(n,"name"))) {
@@ -455,7 +455,6 @@ static void merge_extensions(Node *am) {
    }
    return abs;
  }
-
 
  /* Make a classname */
 
