@@ -69,6 +69,7 @@ Swig_name_wrapper(String_or_char *fname) {
     Append(r,f);
   }
   Replace(r,"%f",fname, DOH_REPLACE_ANY);
+  Replace(r,":","_", DOH_REPLACE_ANY);
   return Swig_temp_result(r);
 }
 
