@@ -2657,6 +2657,13 @@ abstract_declarator : pointer {
 		     $$.type = $1;
 		     Delete($2.type);
                   }
+                  | pointer AND {
+		    $$.type = $1;
+		    SwigType_add_reference($$.type);
+		    $$.id = 0;
+		    $$.parms = 0;
+		    $$.have_parms = 0;
+		  }
                   | pointer AND direct_abstract_declarator {
 		    $$ = $3;
 		    SwigType_add_reference($1);
