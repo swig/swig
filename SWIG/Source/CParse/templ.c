@@ -234,65 +234,78 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   {
     Parm *tp = Getattr(n,"templateparms");
     Parm *p  = tparms;
-    while (p && tp) {
-      String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
-      int     sz, i;
 
-      name = Getattr(tp,"name");
-      value = Getattr(p,"value");
-      tydef = Getattr(p,"typedef");
-      if (name) {
+    if (tp) {
+      while (p && tp) {
+	String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
+	int     sz, i;
+	
+	name = Getattr(tp,"name");
+	value = Getattr(p,"value");
+	tydef = Getattr(p,"typedef");
+	if (name) {
 	  if (!value) {
-	      value = Getattr(p,"type");
-	      valuestr = SwigType_str(value,0);
+	    value = Getattr(p,"type");
+	    valuestr = SwigType_str(value,0);
 	  } else {
-	      valuestr = SwigType_namestr(value);
+	    valuestr = SwigType_namestr(value);
 	  }
 	  assert(value);
 	  /* Need to patch default arguments */
 	  {
-	      Parm *rp = nextSibling(p);
-	      while (rp) {
-		String *rvalue = Getattr(rp,"value");
-		if (rvalue) {
-		  Replace(rvalue,name,value, DOH_REPLACE_ID);
-		}
-		rp = nextSibling(rp);
+	    Parm *rp = nextSibling(p);
+	    while (rp) {
+	      String *rvalue = Getattr(rp,"value");
+	      if (rvalue) {
+		Replace(rvalue,name,value, DOH_REPLACE_ID);
 	      }
+	      rp = nextSibling(rp);
+	    }
 	  }
 	  sz = Len(patchlist);
 	  for (i = 0; i < sz; i++) {
-	      String *s = Getitem(patchlist,i);
-	      Replace(s,name,value, DOH_REPLACE_ID);
+	    String *s = Getitem(patchlist,i);
+	    Replace(s,name,value, DOH_REPLACE_ID);
 	  }
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
-	      String *s = Getitem(typelist,i);
-	      Replace(s,name,value, DOH_REPLACE_ID);
-	      SwigType_typename_replace(s,tbase,iname);
+	    String *s = Getitem(typelist,i);
+	    Replace(s,name,value, DOH_REPLACE_ID);
+	    SwigType_typename_replace(s,tbase,iname);
 	  }
+	  
 	  if (!tydef) {
-	      tydef = value;
+	    tydef = value;
 	  }
 	  tmp = NewStringf("#%s",name);
 	  tmpr = NewStringf("\"%s\"", value);
 	  
 	  sz = Len(cpatchlist);
 	  for (i = 0; i < sz; i++) {
-	      String *s = Getitem(cpatchlist,i);
-	      Replace(s,tmp,tmpr, DOH_REPLACE_ID);
-	      /*	Replace(s,name,tydef, DOH_REPLACE_ID); */
-	      Replace(s,name,valuestr, DOH_REPLACE_ID);
+	    String *s = Getitem(cpatchlist,i);
+	    Replace(s,tmp,tmpr, DOH_REPLACE_ID);
+	    /*	Replace(s,name,tydef, DOH_REPLACE_ID); */
+	    Replace(s,name,valuestr, DOH_REPLACE_ID);
 	  }
 	  Delete(tmp);
 	  Delete(tmpr);
 	  Delete(valuestr);
+	}
+	p = nextSibling(p);
+	tp = nextSibling(tp);
+	if (!p) p = tp;
       }
-      p = nextSibling(p);
-      tp = nextSibling(tp);
-      if (!p) p = tp;
+    } else {
+      /* No template parameters at all.  This could be a specialization */
+      int i, sz;
+      sz = Len(typelist);
+      for (i = 0; i < sz; i++) {
+	String *s = Getitem(typelist,i);
+	SwigType_typename_replace(s,tbase,iname);
+      }
     }
   }
+
   /* Patch bases */
   {
     List *bases = Getattr(n,"baselist");
