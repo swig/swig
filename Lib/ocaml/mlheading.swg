@@ -21,6 +21,7 @@ type c_obj =
   | C_obj of (string -> c_obj -> c_obj)
   | C_string of string
   | C_enum of c_enum_tag
+  | C_director_core of c_obj * c_obj option ref
 exception BadArgs of string
 exception BadMethodName of c_obj * string * string
 exception NotObject of c_obj
@@ -85,6 +86,17 @@ let rec get_bool x =
     | _ -> 
 	(try if get_int x != 0 then true else false
 	 with _ -> raise (Failure "Can't convert to bool"))
+
+let disown_object obj = 
+  match obj with
+      C_director_core (o,r) -> r := None
+    | _ -> raise (Failure "Not a director core object")
+let _ = Callback.register "caml_obj_disown" disown_object
+let director_get_self obj = 
+  match obj with
+      C_director_core (self,r) -> self
+    | _ -> raise (Failure "Not a director core object")
+let _ = Callback.register "caml_director_get_self" director_get_self
       
 let addr_of obj = (invoke obj) "&" C_void
 let _ = Callback.register "caml_obj_ptr" addr_of

@@ -58,5 +58,35 @@ namespace std {
 		(*self)[i] = x;
 	    }
 	};
+	%extend {
+	    T *to_array() {
+		T *array = new T[self->size() + 1];
+		array[self->size()] = T();
+		for( int i = 0; i < self->size(); i++ ) 
+		    array[i] = (*self)[i];
+		return array;
+	    }
+	};
     };
 };
+
+%insert(ml) %{
+  
+  let array_to_vector v argcons array = 
+    for i = 0 to (Array.length array) - 1 do
+	(invoke v) "set" (C_list [ C_int i ; (argcons array.(i)) ])
+    done ;
+    v
+    
+  let vector_to_array v argcons array =
+    for i = 0; to (get_int ((invoke v) "size" C_void)) - 1 do
+	array.(i) <- argcons ((invoke v) "[]" (C_int i))
+    done ; 
+    v
+      
+%}
+
+%insert(mli) %{
+    val array_to_vector : c_obj -> ('a -> c_obj) -> 'a array -> c_obj
+    val vector_to_array : c_obj -> (c_obj -> 'a) -> 'a array -> c_obj
+%}

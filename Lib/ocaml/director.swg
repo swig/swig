@@ -95,6 +95,9 @@ public:
     
     /* discard our reference at destruction */
     virtual ~__DIRECTOR__() {
+	__disown(); 
+        // Disown is safe here because we're just divorcing a reference that
+	// points to us.  
     }
     
     /* return a pointer to the wrapped ocaml object */
@@ -146,6 +149,7 @@ public:
 	assert(_self); 
 	if (!_disown) { 
 	    _disown=1;
+	    callback(*caml_named_value("caml_obj_disown"),_self);
 	} 
     }
 };
@@ -162,3 +166,32 @@ int __DIRECTOR__::_mutex_active = 0;
 
 %}
 
+%insert(mli) %{
+    val new_derived_object: 
+	(c_obj -> c_obj) ->
+	(c_obj -> string -> c_obj -> c_obj) ->
+	c_obj -> c_obj
+%}
+
+%insert(ml) %{
+let new_derived_object cfun x_class args =
+  begin
+    let get_object ob =
+      match !ob with
+          None ->
+    raise (NotObject C_void)
+        | Some o -> o in
+    let class_fun class_f ob_r =
+    (fun meth args -> class_f (get_object ob_r) meth args) in
+    let ob_ref = ref None in
+    let new_class = class_fun x_class ob_ref in
+    let obj =
+    cfun (match args with
+                C_list argl ->
+	  (C_list ((C_obj new_class) :: argl))
+	  | a -> (C_list [ C_director_core 
+			   (C_obj new_class,ob_ref)  ; a ])) in
+    ob_ref := Some obj ;
+      obj
+  end
+%}
