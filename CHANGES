@@ -1,5 +1,9 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+1/13/00 : beazley
+          Added patch to guile module for supporting optional arguments
+          Patch contributed by Dieter Baron.
+
 1/13/00 : loic
 	  Added .cvsignore, Examples/.cvsignore, Source/DOH/Doh/.cvsignore 
 	  Source/SWIG1.1/main.cxx: Fixed -I handling bug
