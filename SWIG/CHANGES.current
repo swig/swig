@@ -147,12 +147,14 @@ Version 1.3.20 (In progress)
 	    be uncommented at each language.swg file.
 
 	    So, all the language maintainers, please check the
-	    keywords list, and remember that you can be more specific
-	    and refer only to member names, like *::configure or
-	    *::cget (see an example in the tcl8/tcl8kw.swg file).
+	    keywords list. 
 
-	    Also, you can add 'bad names', and not only keywords,
-	    like 'True/False' in python.
+	    Also, you can add 'bad names', and not only keywords, like
+	    'True/False' in python.  Remember that you can be more
+	    specific and refer only to member names, like *::configure
+	    or *::cget (see an example in the tcl8/tcl8kw.swg file),
+	    or only global names, like ::range (see an example in the
+	    python/pythonkw.swg file.
 
 	    Just to be consistent, use the following codes:
 
