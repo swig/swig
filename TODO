@@ -31,6 +31,8 @@
        in type handling and internal data structures may have broken
        a variety of things.
 
+** [Guile] Rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
+
 ** [Guile] Maybe support keyword args
 
 ** [Guile] Maybe support GOOPS shadow classes
@@ -71,4 +73,6 @@
    void add(SWIG_OUTPUT(int) *z, int x, int y)
 
 ** Unify Guile and MzScheme support, add support for more Scheme systems.
+
+** [Guile]: Make SWIG's types first class.
 
