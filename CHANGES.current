@@ -1,6 +1,10 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/12/2005: mkoeppe (Matthias Koeppe)
+	    New configure switches --without-tcl, --without-python etc. allow to
+            disable the search for installed languages.
+
 01/31/2005: wuzzeb (John Lenz)
             - Add DohSortList to DOH
 	    
