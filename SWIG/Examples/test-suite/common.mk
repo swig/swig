@@ -36,9 +36,14 @@ RUNTIMEDIR = ../$(TOP)/Runtime/.libs
 DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Please keep test cases in alphabetical order.
+#
+# Exception: during development, recent tests may appear at the
+# top of the list since they are being used to fix bugs.
+
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	template_ns \
 	template_qualifier \
 	primitive_ref \
 	typedef_mptr \
