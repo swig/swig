@@ -29,13 +29,15 @@ working on this are:
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
-
+ 
 Major contributors include:
  Shibukawa Yoshiki                                      (Japanese Translation)
  Marcelo Matus                                          (Evil C++ testing)
  Loic Dachary                                           (Perl5)
  Masaki Fukushima                                       (Ruby)
 
+ James Michael DuPont(mdupont777@yahoo.com)             (C#/PNet Support with the original code from Niel Cawse)
+ 
 Past contributors include:
  Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
  Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
