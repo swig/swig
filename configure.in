@@ -1066,7 +1066,7 @@ configure_substituted_files=`echo	\
     Source/CParse/Makefile		\
     Source/DOH/Makefile			\
     Source/DOH/Doh/Makefile		\
-    Source/Modules1.1/Makefile		\
+    Source/Modules/Makefile		\
     Source/Preprocessor/Makefile	\
     Source/Swig/Makefile		\
 `
