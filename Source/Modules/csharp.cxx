@@ -859,6 +859,12 @@ class CSHARP : public Language {
     return SWIG_OK;
   }
 
+  virtual int insertDirective(Node *n) {
+    String *code = Getattr(n,"code");
+    Replaceall(code, "$module", module_class_name);
+    return Language::insertDirective(n);
+  }
+
   /* -----------------------------------------------------------------------------
    * pragmaDirective()
    *
