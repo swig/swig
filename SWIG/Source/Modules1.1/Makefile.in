@@ -13,8 +13,8 @@ AR       = @AR@
 RANLIB   = @RANLIB@
 
 TARGET   = libmodules11.a
-OBJS     = main.o emit.o lang.o swigmain.o tcl8.o python.o perl5.o guile.o ruby.o mzscheme.o java.o
-SRCS     = main.cxx emit.cxx lang.cxx swigmain.cxx tcl8.cxx python.cxx perl5.cxx guile.cxx ruby.cxx mzscheme.cxx java.cxx
+OBJS     = main.o emit.o lang.o swigmain.o tcl8.o python.o perl5.o guile.o ruby.o mzscheme.o java.o php4.o
+SRCS     = main.cxx emit.cxx lang.cxx swigmain.cxx tcl8.cxx python.cxx perl5.cxx guile.cxx ruby.cxx mzscheme.cxx java.cxx php4.cxx
 
 INCLUDE  = -I$(srcdir)/../Include		\
            -I$(srcdir)/../DOH/Include		\
