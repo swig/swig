@@ -2982,6 +2982,16 @@ cpp_class_decl  :
 		   }
 		   appendChild($$,dump_nested(Char(name)));
 		 }
+
+		 if (cplus_mode != CPLUS_PUBLIC) {
+		 /* we 'open' the class at the end, to allow %template
+		    to add new members */
+		   Node *pa = new_node("access");
+		   Setattr(pa,"kind","public");
+		   cplus_mode = CPLUS_PUBLIC;
+		   appendChild($$,pa);
+		 }
+
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 
 		 Classprefix = 0;
