@@ -347,7 +347,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
       case 'f': case 'F':
       case 'd': case 'D':
 	if (Tcl_GetDoubleFromObj(interp,obj,&tempd) != TCL_OK) goto argerror;
-	if ((*c == 'f') || (*c == 'F')) *((float *) vptr) = tempd;
+	if ((*c == 'f') || (*c == 'F')) *((float *) vptr) = (float)tempd;
 	else if ((*c == 'd') || (*c == 'D')) *((double*) vptr) = tempd;
 	break;
       case 's': case 'S':
@@ -608,7 +608,6 @@ SWIG_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     int               firstarg = 0;
     int               thisarg = 0;
     int               destroy = 1; 
-    Tcl_CmdInfo       ci;
 
     if (!classptr) {
       Tcl_SetResult(interp, (char *) "swig: internal runtime error. No class object defined.", TCL_STATIC);
