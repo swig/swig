@@ -3,6 +3,14 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 5 
 ===================
 
+9/18/00 : mkoeppe
+	  Incorporated patch #101430, fixing bugs in the Guile module: 
+	  1. Some arguments were erroneously taken as *optional* arguments when
+	     ignored arguments were present. 
+	  2. Guile 1.3.4 was not supported since functions introduced in Guile
+	      1.4 were used.	  
+	  3. Added handling of `const char *'.
+
 9/17/00 : beazley
           Fixed problem with failed assertion and large files.
 

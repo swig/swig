@@ -42,11 +42,12 @@
  SIMPLE_MAP(float, gh_scm2double, gh_double2scm, real);
  SIMPLE_MAP(double, gh_scm2double, gh_double2scm, real);
  SIMPLE_MAP(char *, GSWIG_scm2str, gh_str02scm, string);
+ SIMPLE_MAP(const char *, GSWIG_scm2str, gh_str02scm, string);
 
 /* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (guile, freearg) char * "if ($target) scm_must_free($target);";
+%typemap (guile, freearg) char *, const char * "if ($target) scm_must_free($target);";
 
 /* Void */
 
