@@ -14,8 +14,8 @@
 
   struct A 
   {
-    complex test1();
-    std::complex<double> test2();
+    complex test1() { complex r; return r; }
+    std::complex<double> test2() { std::complex<double> r; return r; }
   };
   
 %}
