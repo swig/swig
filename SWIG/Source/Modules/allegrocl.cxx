@@ -1,6 +1,6 @@
-#include "swigmod.h"
+char cvsroot_allegrocl_cxx[] = "$Header$";
 
-;; $Id$
+#include "swigmod.h"
 
 class ALLEGROCL : public Language {
 public:
@@ -179,7 +179,8 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
 	identifier_converter="identifier-convert-null";
       } else {
 	/* Must be user defined */
-	identifier_converter=strdup(conv);
+        identifier_converter = (char *)malloc(strlen(conv)+1);
+        strcpy(identifier_converter, conv);
       }
     }
 
