@@ -617,7 +617,6 @@ expand_macro(String_or_char *name, List *args)
   if (Getattr(macro,"swigmacro")) {
     String *g;
     String *f = NewString("");
-    /* Printf(f," %%macro \"%s\",\"%s\",%d\n ", name, Getfile(macro), Getline(macro)); */
     Seek(e,0,SEEK_SET);
     copy_location(macro,e);
     g = Preprocessor_parse(e);
@@ -1140,7 +1139,7 @@ Preprocessor_parse(String *s)
 	    allow = 0;
 	    mask = 0;
 	  } else if (level == start_level) {
-	    allow = 1;
+	    allow = 1*mask;
 	  }
 	}
       } else if (Cmp(id,"endif") == 0) {
