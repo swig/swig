@@ -67,7 +67,7 @@ namespace test4 {
 %}
 
 namespace test4 {
-   %template(maxInt) max<Integer>;
-   %template(vectorInt) vector<Integer>;
+   %template(maxInteger) max<Integer>;
+   %template(vectorInteger) vector<Integer>;
 }
 
