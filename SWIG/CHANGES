@@ -17,28 +17,35 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/18/2001:beazley
+           Fixed a bug with forward class declarations and
+           templates.
+
+                 class Foo <S,T>;
+
+           Bug reported by Irina Kotlova.
+
 10/16/2001:beazley
            Support for multivalued typemaps added.  The typemaps
            are specified using the syntax below.   Within each
            typemap, variable substitution is handled as follows:
 
               %typemap(in) (int argc, char *argv[]) {
-                  $source;  // The input object in the target language
- 
-                  // These variables only refer to first argument
-                  $target $type, $ltype, $basetype, etc...
+                  $arg;  // The input object in the target language
+                  $0;    // C local variable for first argument
+                  $1;    // C local variable for second argument
 
                   // These variables refer to either argument
-                  $0.target, $0.type, $0.ltype, $0.basetype, etc...  (argc)
-                  $1.target, $1.type, $1.ltype, $1.basetype, etc...  (argv[])
+                  $0_type, $0_ltype, $0_basetype, etc...  (argc)
+                  $1_type, $1_ltype, $1_basetype, etc...  (argv[])
 
                   // Array dimension of argv
-                  $1.dim0
+                  $1_dim0
               }
 
            Basically any variable that was available in normal typemaps
            is available for either argument by prefacing the variable
-           name by '$n.' where n is the argument position.
+           name by '$n_' where n is the argument position.
 
            Notes:  
            (1) Multi-valued typemaps can only be applied to a single
@@ -55,6 +62,10 @@ Version 1.3.10 (In progress)
                Multi-valued typemaps are an extension to typemap handling.
                Single valued typemaps can be specified in the usual
                way.
+
+           The old $source and $target variables are officially
+           deprecated.  Input variables are referenced through
+           $arg$ and output values are reference through $result$.
 
            *** NEW FEATURE ***
 
