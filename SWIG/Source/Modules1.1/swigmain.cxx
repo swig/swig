@@ -55,23 +55,24 @@ struct swig_module {
 };
 
 /* Association of command line options to language modules.
-   Place an entry for new language modules here */
+   Place an entry for new language modules here, keeping the
+   list sorted alphabetically. */
 
 swig_module  modules[] = {
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
   {"-mzscheme",  swig_mzscheme,  "Mzscheme"},
+  {"-ocaml",     swig_ocaml,     "Ocaml"},
   {"-perl",      swig_perl5,     "Perl"},
   {"-perl5",     swig_perl5, 0},
   {"-php",       swig_php,       "PHP"},
   {"-php4",      swig_php, 0},
+  {"-pike",      swig_pike,      "Pike"},
   {"-python",    swig_python,    "Python"},
   {"-ruby",      swig_ruby,      "Ruby"},
   {"-tcl",       swig_tcl,       "Tcl"},
   {"-tcl8",      swig_tcl, 0},
-  {"-ocaml",     swig_ocaml,     "Ocaml"},
-  {"-pike",      swig_pike,      "Pike"},
-  {"-xml",     swig_xml,     "XML"},
+  {"-xml",       swig_xml,       "XML"},
   {NULL, NULL, NULL}
 };
 
