@@ -53,7 +53,7 @@ swig <options> filename\n\n\
 Target Language Options:\n\
      -tcl            - Generate Tcl wrappers.\n\
      -python         - Generate Python wrappers.\n\
-     -perl5          - Generate Perl5 wrappers.\n\
+     -perl           - Generate Perl wrappers.\n\
      -java           - Generate Java wrappers.\n\
      -guile          - Generate Guile wrappers.\n\
      -mzscheme       - Generate Mzscheme wrappers.\n\
@@ -81,18 +81,13 @@ int main(int argc, char **argv) {
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
-	  if(strcmp(argv[i],"-tcl") == 0) {
-	      fprintf(stderr,"swig: -tcl option now implies -tcl8\n");
-	      dl = new TCL8;
-	      Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-tcl8") == 0) {
+          if ((strcmp(argv[i],"-tcl8") == 0) || (strcmp(argv[i],"-tcl") == 0)) {
 	      dl = new TCL8;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-python") == 0) {
 	      dl = new PYTHON;
 	      Swig_mark_arg(i);
-
-	  } else if (strcmp(argv[i],"-perl5") == 0) {
+	  } else if ((strcmp(argv[i],"-perl5") == 0) || (strcmp(argv[i],"-perl") == 0)) {
 	      dl = new PERL5;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-guile") == 0) {
