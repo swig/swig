@@ -21,6 +21,9 @@ public:
     void foo(long);
     void foo(int);
     void foo(Bar *);
+    
+    void spam(int x, int y=2, int z=3);
+    void spam(double x, int y=2, int z=3);
 };
 
 void foo(const Bar&);
@@ -31,5 +34,8 @@ void foo(char *);
 void foo(int);
 void foo(long);
 void foo(Bar *);
+
+void spam(int x, int y=2, int z=3);
+void spam(double x, int y=2, int z=3);
 
 #endif

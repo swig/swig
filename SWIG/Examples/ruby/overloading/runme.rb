@@ -64,3 +64,9 @@ bar.foo(42)
 # This should invoke Bar::Bar() to construct the input
 # argument, followed by Bar::foo(Bar *).
 bar.foo(Example::Bar.new)
+
+# This should invoke Bar::spam(int x, int y, int z)
+bar.spam(1)
+
+# This should invoke Bar::spam(double x, int y, int z)
+bar.spam(3.14159)

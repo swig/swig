@@ -72,6 +72,14 @@ void Bar::foo(Bar *x) {
     std::cout << "Called Bar::foo(Bar *) with x = " << x << std::endl;
 }
 
+void Bar::spam(int x, int y, int z) {
+    std::cout << "Called Bar::spam(int, int, int) with x, y, z = " << x << ", " << y << ", " << z << std::endl;
+}
+
+void Bar::spam(double x, int y, int z) {
+    std::cout << "Called Bar::spam(double, int, int) with x, y, z = " << x << ", " << y << ", " << z << std::endl;
+}
+
 // Overloaded global methods
 void foo(const Bar& x) {
     std::cout << "Called foo(const Bar& x) with &x = " << &x << std::endl;
