@@ -471,6 +471,22 @@ Common Lisp
        typemaps would be written as Lisp programs that generate Lisp
        code.
 
+Ocaml
+-----
+**     I've been working with my camlp4 module and type information
+       from the compiler.  When I'm done, the user will have access
+       to type inference when writing code, when the inference is
+       unambiguous.  This allows the user to write x = _foo 1.0
+       instead of x = get_float (_foo (C_float 1.0)).  It's not as
+       easy as it sounds, because O'caml doesn't keep type information
+       at run time, and doesn't really have a mechanism for doing what
+       I need.  However, it's possible to write a preprocessor that
+       inserts correct type info at compile time.
+
+       That having been said, the program must compile for type info
+       to be available, so I need to attend to a lot of details;  The
+       program must compile both with and without type augmentation.
+       
 Documentation
 -------------
 
