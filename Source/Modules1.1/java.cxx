@@ -441,10 +441,10 @@ void JAVA::initialize()
   sprintf(bigbuf, "Java_%s%s", c_pkgstr, module);
   c_pkgstr = copy_string(bigbuf);
   sprintf(bigbuf, "%s_%%f", c_pkgstr);
-  Swig_name_register("wrapper", copy_string(bigbuf));
-  Swig_name_register("set", "set_%v");
-  Swig_name_register("get", "get_%v");
-  Swig_name_register("member", "%c_%m"); 
+  Swig_name_register((char*)"wrapper", copy_string(bigbuf));
+  Swig_name_register((char*)"set", (char*)"set_%v");
+  Swig_name_register((char*)"get", (char*)"get_%v");
+  Swig_name_register((char*)"member", (char*)"%c_%m"); 
  
   // Generate the java class
   sprintf(bigbuf, "%s.java", module);
