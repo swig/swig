@@ -46,6 +46,33 @@ static void replace_embedded_typemap(String *s);
 static Hash *typemaps[MAX_SCOPE];
 static int   tm_scope = 0;
 
+static Hash* get_typemap(int tm_scope, SwigType* type)
+{
+  Hash *tm  = 0;
+  SwigType* dtype = 0;
+  if (SwigType_istemplate(type)) {
+    dtype = Swig_cparse_template_deftype(type,0);
+    /* Printf(stderr,"gettm %s %s\n", type, dtype);*/
+    type = dtype;
+  }
+  tm = Getattr(typemaps[tm_scope],type);
+  if (dtype) Delete(dtype);
+  return tm;
+}
+
+static void set_typemap(int tm_scope, SwigType* type, Hash* tm)
+{
+  SwigType* dtype = 0;
+  if (SwigType_istemplate(type)) {
+    dtype = Swig_cparse_template_deftype(type,0);
+    /* Printf(stderr,"settm %s %s\n", type, dtype);*/
+    type = dtype; 
+  }
+  Setattr(typemaps[tm_scope],Copy(type),tm);
+  if (dtype) Delete(dtype);
+}
+
+
 /* -----------------------------------------------------------------------------
  * Swig_typemap_init()
  *
@@ -135,10 +162,10 @@ Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char 
   pname = Getattr(parms,"name");
 
   /* See if this type has been seen before */
-  tm = Getattr(typemaps[tm_scope],type);
+  tm = get_typemap(tm_scope,type);
   if (!tm) {
     tm = NewHash();
-    Setattr(typemaps[tm_scope],Copy(type),tm);
+    set_typemap(tm_scope,type,tm);
     Delete(tm);
   }
   if (pname) {
@@ -216,7 +243,7 @@ Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
   Hash *tm, *tm1;
   /* See if this type has been seen before */
   if ((scope < 0) || (scope > tm_scope)) return 0;
-  tm = Getattr(typemaps[scope],type);
+  tm = get_typemap(scope,type);
   if (!tm) {
     return 0;
   }
@@ -368,10 +395,11 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
   }
 
   /* make sure a typemap node exists for the last destination node */
-  tm = Getattr(typemaps[tm_scope],Getattr(lastdp,"type"));
+  type = Getattr(lastdp,"type");
+  tm = get_typemap(tm_scope,type);
   if (!tm) {
     tm = NewHash();
-    Setattr(typemaps[tm_scope],Getattr(lastdp,"type"),tm);
+    set_typemap(tm_scope,type,tm);
     Delete(tm);
   }
   name = Getattr(lastdp,"name");
@@ -478,7 +506,7 @@ Swig_typemap_clear_apply(Parm *parms) {
     }
     p = np;
   }
-  tm = Getattr(typemaps[tm_scope],Getattr(lastp,"type"));
+  tm = get_typemap(tm_scope,Getattr(lastp,"type"));
   if (!tm) {
     Delete(tsig);
     return;
@@ -546,7 +574,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_ch
     ctype = type;
     while (ctype) {
       /* Try to get an exact type-match */
-      tm = Getattr(typemaps[ts],ctype);
+      tm = get_typemap(ts,ctype);
       if (tm && cname) {
 	tm1 = Getattr(tm,cname);
 	if (tm1) {
@@ -567,7 +595,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_ch
 	if (!noarrays) {
 	  noarrays = strip_arrays(ctype);
 	}
-	tma = Getattr(typemaps[ts],noarrays);
+	tma = get_typemap(ts,noarrays);
 	if (tma && cname) {
 	  tm1 = Getattr(tma,cname);
 	  if (tm1) {
@@ -613,7 +641,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_ch
 
     primitive = SwigType_default(type);
     while (primitive) {
-      tm = Getattr(typemaps[ts],primitive);
+      tm = get_typemap(ts,primitive);
       if (tm && cname) {
 	tm1 = Getattr(tm,cname);
 	if (tm1) {
