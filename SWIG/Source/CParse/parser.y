@@ -1488,7 +1488,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 } else {
 		   name = fixname;
 		 }
-		 val = $7 ? Copy($7) : 0;
+		 val = $7 ? NewString($7) : NewString("1");
 		 if ($5.parms) {
 		   Setmeta(val,"parms",$5.parms);
 		 }
@@ -1536,7 +1536,11 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		 } else {
 		   name = fixname;
 		 }
-		 val = NewString($5);
+		 if (Len($5)) {
+		   val = NewString($5);
+		 } else {
+		   val = 0;
+		 }
 		 if ($7.parms) {
 		   Setmeta(val,"parms",$7.parms);
 		 }
@@ -1575,7 +1579,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		if (!features_hash) features_hash = NewHash();
 		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
 		else name = NewString("");
-		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : 0));
+		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : NewString("1")));
 		Delete(name);
 		Delete(fname);
 		$$ = 0;
@@ -1586,7 +1590,7 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
 		if (!features_hash) features_hash = NewHash();
 		if (Namespaceprefix) name = NewStringf("%s::", Namespaceprefix);
 		else name = NewString("");
-		Swig_feature_set(features_hash,name,0,fname,($5 ? NewString($5) : 0));
+		Swig_feature_set(features_hash,name,0,fname,(Len($5) ? NewString($5) : 0));
 		Delete(name);
 		Delete(fname);
 		$$ = 0;
