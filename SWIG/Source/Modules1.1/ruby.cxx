@@ -102,7 +102,7 @@ class RUBY : public Language {
 private:
 
   char *module;
-  char *modvar;
+  String *modvar;
   char *feature;
   int current;
   Hash *classes;		/* key=cname val=RClass */
@@ -345,21 +345,16 @@ public:
    *---------------------------------------------------------------------- */
 
   void set_module(const char *mod_name) {
-    if (module) return;
-    
-    if (!feature) {
-      feature = new char[strlen(mod_name)+1];
-      strcpy(feature, mod_name);
+    if (!module) {
+      if (!feature) {
+	feature = new char[strlen(mod_name)+1];
+	strcpy(feature, mod_name);
+      }
+      module = new char[strlen(mod_name)+1];
+      strcpy(module, mod_name);
+      module[0] = toupper(module[0]);
+      modvar = NewStringf("m%s", module);
     }
-    
-    module = new char[strlen(mod_name)+1];
-    strcpy(module, mod_name);
-    /* module name must be a constant. */
-    module[0] = toupper(module[0]);
-    
-    modvar = new char[1+strlen(module)+1];
-    modvar[0] = 'm';
-    strcpy(modvar+1, module);
   }
   
   /* --------------------------------------------------------------------------
