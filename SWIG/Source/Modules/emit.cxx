@@ -252,7 +252,7 @@ int emit_num_required(ParmList *parms) {
       p = Getattr(p,"tmap:in:next");
     } else {
       if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
-	Swig_error(Getfile(p),Getline(p),"Error. Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
+	Swig_error(Getfile(p),Getline(p),"Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
       }
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");

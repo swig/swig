@@ -345,7 +345,6 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   /* Go create the macro */
   macro = NewHash();
   Setattr(macro,"name", macroname);
-  Delete(macroname);
   if (arglist) {
     Setattr(macro,"args",arglist);
     Delete(arglist);
@@ -362,17 +361,23 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
   }
   symbols = Getattr(cpp,"symbols");
   if ((m1 = Getattr(symbols,macroname))) {
-    if (Cmp(Getattr(m1,"value"),macrovalue))
-      Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined. Previous definition in \'%s\', Line %d\n", macroname, Getfile(m1), Getline(m1));
+    if (Cmp(Getattr(m1,"value"),macrovalue)) {
+      Swig_error(Getfile(str),Getline(str),"Macro '%s' redefined,\n",macroname);    
+      Swig_error(Getfile(m1),Getline(m1),"previous definition of '%s'.\n",macroname);
+      goto macro_error;
+    }
   }
   Setattr(symbols,macroname,macro);
+  
   Delete(str);
   Delete(argstr);
+  Delete(macroname);
   return macro;
 
  macro_error:
   Delete(str);
   Delete(argstr);
+  Delete(macroname);
   return 0;
 }
 

@@ -405,8 +405,12 @@ public:
 	    SwigType_typedef_class(fname);
 	    scopename = Copy(fname);
 	  } else {
-	    Swig_warning(WARN_TYPE_REDEFINED,Getfile(n),Getline(n),"Template '%s' was already wrapped as '%s' at %s:%d.\n",
-			 SwigType_namestr(name), SwigType_namestr(Getattr(cn,"name")), Getfile(cn), Getline(cn));
+	    Swig_warning(WARN_TYPE_REDEFINED,Getfile(n),Getline(n),
+			 "Template '%s' was already wrapped,\n",
+			 SwigType_namestr(name));
+	    Swig_warning(WARN_TYPE_REDEFINED,Getfile(cn), Getline(cn),
+			 "previous wrap of '%s'.\n",
+			 SwigType_namestr(Getattr(cn,"name")));
 	    scopename = 0;
 	  }
 	} else {

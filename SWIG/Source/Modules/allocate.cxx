@@ -289,7 +289,7 @@ class Allocate : public Dispatcher {
 	    if (e && is_public(e) && !Getattr(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
 	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->(),\n",
 			   name);
-	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(c),Getline(c)," '%s' first declared here.\n", name);
+	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(c),Getline(c),"previous declaration of '%s'.\n", name);
 	    } else {
 	      /* Make sure node with same name doesn't already exist */
 	      int k;

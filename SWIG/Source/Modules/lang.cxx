@@ -2097,7 +2097,7 @@ int
 Language::addSymbol(String *s, Node *n) {
   Node *c = Getattr(symbols,s);
   if (c && (c != n)) {
-    Swig_error(input_file, line_number, "Error. '%s' is multiply defined in the generated module.\n", s);
+    Swig_error(input_file, line_number, "'%s' is multiply defined in the generated module.\n", s);
     Swig_error(Getfile(c),Getline(c), "Previous declaration of '%s'\n", s);
     return 0;
   }

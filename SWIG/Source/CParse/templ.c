@@ -517,8 +517,12 @@ Swig_cparse_template_locate(String *name, Parm *tparms) {
     n = Swig_symbol_clookup_local(s,0);
     if (Len(mpartials) > 1) {
       if (n) {
-	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG,cparse_file,cparse_line,"Instantiation of template %s is ambiguous. Using %s at %s:%d\n",
-		     SwigType_namestr(tname), SwigType_namestr(Getattr(n,"name")), Getfile(n),Getline(n));
+	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG,cparse_file,cparse_line,
+		     "Instantiation of template '%s' is ambiguous,\n",
+		     SwigType_namestr(tname));
+	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG,Getfile(n),Getline(n),
+		     "  instantiation '%s' is used.\n",
+		     SwigType_namestr(Getattr(n,"name")));
       }
     }
   }
