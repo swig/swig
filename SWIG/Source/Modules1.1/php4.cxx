@@ -69,7 +69,8 @@ static String	  *class_name = 0;
 static String	  *realpackage = 0;
 static String	  *package = 0;
 
-static Hash	*shadow_c_vars;
+static Hash	*shadow_get_vars;
+static Hash	*shadow_set_vars;
 static String	*shadow_classdef;
 static String 	*shadow_code;
 static int	have_default_constructor = 0;
@@ -887,18 +888,26 @@ public:
     Wrapper *f;
     int num_saved = 0;
     String *cleanup, *outarg;
+    bool mvr=(shadow && variable_wrapper_flag && !enum_flag);
+    bool mvrset=0;
     
     if (!addSymbol(iname,n)) return SWIG_ERROR;
-    
+    mvrset=(mvr && (strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, name)))) == 0));
+
+    // if shadow and variable wrapper we want to snag the main contents
+    // of this function to stick in to the property handler....    
     if(shadow && variable_wrapper_flag && !enum_flag) {
       String *member_function_name = NewString("");
       String *php_function_name = NewString(iname);
       if(strcmp(iname, Char(Swig_name_set(Swig_name_member(shadow_classname, name)))) == 0) {
-	Setattr(shadow_c_vars, php_function_name, name);
+	Setattr(shadow_set_vars, php_function_name, name);
+      }
+      if(strcmp(iname, Char(Swig_name_get(Swig_name_member(shadow_classname, name)))) == 0) {
+	Setattr(shadow_get_vars, php_function_name, name);
       }
       Putc(toupper((int )*iname), member_function_name);
       Printf(member_function_name, "%s", iname+1);
-      
+
       cpp_func(Char(member_function_name), d, l, php_function_name);
       
       Delete(php_function_name);
@@ -951,11 +960,17 @@ public:
       Wrapper_print(df,s_wrappers);
     }
 
-    create_command(iname, Char(Swig_name_wrapper(iname)));
-    Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
+    if (mvr) { // do prop[gs]et header
+      if (mvrset) Printf(f->def, "static int _wrap_%s(zend_property_reference *property_reference, pval *value) {\n",iname);
+      else Printf(f->def, "static pval _wrap_%s(zend_property_reference *property_reference) {\n",iname);
+    } else { // regular header
+      create_command(iname, Char(Swig_name_wrapper(iname)));
+      Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
+    }
 
     emit_args(d, l, f);
     /* Attach standard typemaps */
+
     emit_attach_parmmaps(l,f);
     
     int num_arguments = emit_num_arguments(l);
@@ -964,10 +979,11 @@ public:
     
     // we do +1 because we are going to push in this_ptr as arg0 if present
     // or do we need to?
-    sprintf(args, "%s[%d]", "zval **args", num_arguments+1); 
-    
-    Wrapper_add_local(f, "args",args);    
 
+    sprintf(args, "%s[%d]", "zval **args", num_arguments+1); 
+
+    Wrapper_add_local(f, "args",args);    
+    Wrapper_add_localv(f, "argbase", "int argbase=0", NULL);
     // This generated code may be called 
     // 1) as an object method, or
     // 2) as a class-method/function (without a "this_ptr")
@@ -975,17 +991,22 @@ public:
     // first parameter
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    Printf(f->code,"{ // scope for argbase \n");   
     if (native_constructor) {
       if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
       else Printf(f->code, "// ALTERNATIVE Constructor\n");
     }
-    Printf(f->code, "int argbase=0;\n");
-    
+
+    if (mvr && ! mvrset) {
+      Wrapper_add_local(f, "_return_value", "zval _return_value");
+//      Printf(f->code,"zval _return_value;\n");
+      Wrapper_add_local(f, "return_value", "zval *return_value=&_return_value");
+//      Printf(f->code,"zval *return_value=&_return_value;\n");
+    };
+
     // only let this_ptr count as arg[-1] if we are not a constructor
     // if we are a constructor and this_ptr is null we are called as a class
     // method and can make one of us
-    if (native_constructor==0) Printf(f->code,
+    if (! mvr && native_constructor==0) Printf(f->code,
 				      "if (this_ptr && this_ptr->type==IS_OBJECT) {\n"
 				      "  // fake this_ptr as first arg (till we can work out how to do it better\n"
 				      "  argbase++;\n"
@@ -997,9 +1018,8 @@ public:
     // the first slot alone, so we have to check whether or not to access
     // this_ptr explicitly in each case where we normally just read args[]
     
-    if(numopt > 0) {
+    if(numopt > 0) { // membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
-      
       Printf(f->code,
 	     "arg_count = ZEND_NUM_ARGS();\n"
 	     "if(arg_count<(%d-argbase) || arg_count>(%d-argbase))\n"
@@ -1011,8 +1031,7 @@ public:
 	     "if(zend_get_parameters_array_ex(arg_count-argbase,args)!=SUCCESS)"
 	     "\n\t\tWRONG_PARAM_COUNT;\n\n");
       
-    } else {
-      
+    } else if (!mvr) {
       Printf(f->code, 
 	     "if(((ZEND_NUM_ARGS() + argbase )!= %d) || (zend_get_parameters_array_ex(%d-argbase, args)"
 	     "!= SUCCESS)) {\n"
@@ -1037,31 +1056,36 @@ public:
       }
       SwigType *pt = Getattr(p,"type");
 
-      // Do we fake this_ptr as arg0, or just possibly shift other args by 1 if we did fake?
-      if (i==0) sprintf(source, "((%d<argbase)?(&this_ptr):(args[%d-argbase]))", i, i);
-      else sprintf(source, "args[%d-argbase]", i);
-      sprintf(target, "%s", Char(Getattr(p,"lname")));
-      sprintf(argnum, "%d", i+1);
-      
-      /* Check if optional */
-      
-      if(i>= (num_required))
-	Printf(f->code,"\tif(arg_count > %d) {\n", i);
-      
-      Setattr(p,"emit:input", source);
-      
-      if ((tm = Getattr(p,"tmap:in"))) {
-	Replaceall(tm,"$target",target);
-	Replaceall(tm,"$source",source);
-	Replaceall(tm,"$input", source);
-	Printf(f->code,"%s\n",tm);
-	p = Getattr(p,"tmap:in:next");
-	if (i >= num_required) {
-	  Printf(f->code,"}\n");
-	}
-	continue;
+ 
+      if (mvr) { // do we assert that numargs=2, that i<2
+        if (i==0) sprintf(source,"&(property_reference->object)");
+        else sprintf(source,"&value");
       } else {
-	Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n", input_file, line_number, SwigType_str(pt,0));
+        // Do we fake this_ptr as arg0, or just possibly shift other args by 1 if we did fake?
+        if (i==0) sprintf(source, "((%d<argbase)?(&this_ptr):(args[%d-argbase]))", i, i);
+        else sprintf(source, "args[%d-argbase]", i); } 
+        sprintf(target, "%s", Char(Getattr(p,"lname")));
+        sprintf(argnum, "%d", i+1);
+      
+        /* Check if optional */
+      
+        if(i>= (num_required))
+	  Printf(f->code,"\tif(arg_count > %d) {\n", i);
+      
+        Setattr(p,"emit:input", source);
+      
+        if ((tm = Getattr(p,"tmap:in"))) {
+	  Replaceall(tm,"$target",target);
+	  Replaceall(tm,"$source",source);
+	  Replaceall(tm,"$input", source);
+	  Printf(f->code,"%s\n",tm);
+	  p = Getattr(p,"tmap:in:next");
+	  if (i >= num_required) {
+	    Printf(f->code,"}\n");
+	  }
+	  continue;
+        } else {
+	  Printf(stderr,"%s : Line %d, Unable to use type %s as a function argument.\n", input_file, line_number, SwigType_str(pt,0));
       }
       if (i>= num_required)
 	Printf(f->code,"\t}\n");
@@ -1196,10 +1220,15 @@ public:
     
     Replaceall(f->code,"$cleanup",cleanup);
     Replaceall(f->code,"$symname",iname);
-    
-    Printf(f->code, "\n} // end of arbase scope\n}\n");
-    
+
+    if (mvr) {
+      if (! mvrset) Printf(f->code,"return _return_value;\n");    
+      else Printf(f->code,"return SUCCESS;\n");
+    }
+
+    Printf(f->code, "}\n");    
     Wrapper_print(f,s_wrappers);
+
     return SWIG_OK;
   }
   
@@ -1371,7 +1400,8 @@ public:
       this_shadow_extra_code = NewString("");
       this_shadow_import = NewString("");
 
-      shadow_c_vars = NewHash();
+      shadow_get_vars = NewHash();
+      shadow_set_vars = NewHash();
 
       /* Deal with inheritance */
       List *baselist = Getattr(n, "bases");
@@ -1429,7 +1459,47 @@ public:
 //        zend_llist *elements_list;
 
 
-      key = Firstkey(shadow_c_vars);
+      key = Firstkey(shadow_set_vars);
+      // Print function header; we only need to find property name if there
+      // are properties for this class to look up...
+      if (key) {
+        Printf(s_propset,"  /* get the property name */\n"
+               "  zend_llist_element *element = property_reference->elements_list->head;\n"
+               "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
+               "  char *propname=Z_STRVAL_P(&(property->element));\n");
+      } else {
+        if (base) {
+          Printf(s_propset,"  // No extra properties for subclass %s\n",shadow_classname);
+        } else {
+          Printf(s_propset,"  // No properties for base class %s\n",shadow_classname);
+        }
+      }
+
+      scount=0;
+      while (key) {
+        if (scount++) Printf(s_propset," else");
+        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n"
+                          "    return _wrap_%s(property_reference, value);\n"
+                          "  }",Getattr(shadow_set_vars,key),key);
+
+        key=Nextkey(shadow_set_vars);
+      }
+
+      if (scount) Printf(s_propset," else");
+
+      // If there is a base class then chain it's handler else set directly
+      if (base) {
+        Printf(s_propset,  "  {\n    // chain to base class\n"
+               "    return _propset_%s(property_reference, value);\n  }\n",
+               GetChar(base, "sym:name"));
+      } else {
+        Printf(s_propset,"  {\n    //set it ourselves as we are base class\n");
+        Printf(s_propset,"    return add_property_zval_ex(property_reference->object,propname,Z_STRLEN_P(&(property->element)),value);\n");
+        Printf(s_propset,"  }\n");
+      }
+      Printf(s_propset,"}\n\n");
+
+      key = Firstkey(shadow_get_vars);
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
       if (key) {
@@ -1437,64 +1507,55 @@ public:
         Printf(s_propget,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
-               "  char *propname=property->element.value.str.val;\n"
-               "  printf(\"======Read property %s:%%s\\n\",propname);\n",shadow_classname);
-
-        Printf(s_propset,"  /* get the property name */\n"
-               "  zend_llist_element *element = property_reference->elements_list->head;\n"
-               "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
-               "  char *propname=property->element.value.str.val;\n"
-               "  printf(\"======Write property %s:%%s\\n\",propname);\n",shadow_classname);
+               "  char *propname=Z_STRVAL_P(&(property->element));\n");
       } else {
         if (base) {
           Printf(s_propget,"  // No extra properties for subclass %s\n",shadow_classname);
-          Printf(s_propset,"  // No extra properties for subclass %s\n",shadow_classname);
         } else {
           Printf(s_propget,"  // No properties for base class %s\n",shadow_classname);
-          Printf(s_propset,"  // No properties for base class %s\n",shadow_classname);
         }
       }
 
       gcount=0;
-      scount=0;
       while (key) {
         if (gcount++) Printf(s_propget," else");
         Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n"
-                          "    //%s\n    return presult;\n"
-                          "  }",Getattr(shadow_c_vars,key),key);
+                          "    return _wrap_%s(property_reference);\n"
+                          "  }",Getattr(shadow_get_vars,key),key);
 
-        if (scount++) Printf(s_propset," else");
-        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n"
-                          "    //%s\n    return 0;\n"
-                          "  }",Getattr(shadow_c_vars,key),key);
-
-        key=Nextkey(shadow_c_vars);
+        key=Nextkey(shadow_get_vars);
       }
 
       if (gcount) Printf(s_propget," else");
-      if (scount) Printf(s_propset," else");
 
-      // If there is a parent class then chain it's handler else return null
+      // If there is a base class then chain it's handler else return null
       if (base) {
         Printf(s_propget,  "  {\n    // chain to base class\n"
                "    return _propget_%s(property_reference);\n  }\n",
                GetChar(base, "sym:name"));
-        Printf(s_propset,  "  {\n    // chain to base class\n"
-               "    return _propset_%s(property_reference, value);\n  }\n",
-               GetChar(base, "sym:name"));
-      } else {
-        Printf(s_propget,  "  {\n    //return null\n    return presult;\n  }\n");
-        Printf(s_propset,  "  {\n    //return null\n    return 0;\n  }\n");
+      } else { 
+        Printf(s_propget,"  {\n    //return it ourselves\n    pval **_result;\n"
+                         "    if (zend_hash_find(Z_OBJPROP_P(property_reference->object),propname,Z_STRLEN_P(&(property->element)),(void**)&_result)==SUCCESS) {\n"
+                         "      return **_result;\n"
+                         "    }\n");
+        Printf(s_propget,"  return presult;\n  }\n");
       }
       Printf(s_propget,"}\n\n");
-      Printf(s_propset,"}\n\n");
+
+      // wrappers generated now...
 
       // add wrappers to output code
       Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
       Printv(s_wrappers,s_propget,s_propset,NULL);
 
       // Save class in class table
-      Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
+      if (base) {
+        Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
+          shadow_classname,shadow_classname,GetChar(base, "sym:name"), shadow_classname);
+      } else {
+        Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,NULL,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
+          shadow_classname,shadow_classname, shadow_classname);
+      }
       Printf(s_oinit,"\n");
 
 
@@ -1513,7 +1574,8 @@ public:
       Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
       Delete(this_shadow_extra_code); this_shadow_extra_code = NULL;
       Delete(this_shadow_import); this_shadow_import = NULL;
-      Delete(shadow_c_vars); shadow_c_vars = NULL;
+      Delete(shadow_set_vars); shadow_set_vars = NULL;
+      Delete(shadow_get_vars); shadow_get_vars = NULL;
       Delete(this_shadow_multinherit); this_shadow_multinherit = NULL;
 
       Printf(all_cs_entry,"%s	{ NULL, NULL, NULL}\n};\n",cs_entry);
@@ -1851,6 +1913,7 @@ public:
     return SWIG_OK;
   }
 
+  // This method is quite stale and ought to be factored out
   void cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name, String *handler_name = NULL) {
 
     if(!shadow) return;
@@ -1866,7 +1929,7 @@ public:
 
     // But we also need one per wrapped-class
     //        Printf(f_h, "x ZEND_NAMED_FUNCTION(%s);\n", Swig_name_wrapper(handler_name));
-    if (cs_entry) Printf(cs_entry,
+    if (cs_entry && !(variable_wrapper_flag && shadow)) Printf(cs_entry,
 			 "	ZEND_NAMED_FE(%s,\n"
 			 "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
 
