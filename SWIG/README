@@ -18,7 +18,7 @@ aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
 Active Developers:
- Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
+ Dave Beazley (beazley@signal6.com)                     (SWIG core, Python, Tcl, Perl)
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
@@ -51,7 +51,7 @@ Up-to-date SWIG related information can be found at
 
 A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
-       http://swig.cs.uchicago.edu/cgi-bin/wiki.pl
+       http://www.signal6.com/cgi-bin/wiki.pl
 
 Information about SWIG is also available in Japanese translation at
 
@@ -271,7 +271,7 @@ installed.  To fix this:
         have to do this.
 
 If you are having other troubles, you might look at the SWIG Wiki at
-http://swig.cs.uchicago.edu/cgi-bin/wiki.pl.
+http://www.signal6.com/cgi-bin/wiki.pl.
 
 Documentation
 =============
