@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * base.c
+ * base.c 
  *
  *     This file contains the function entry points for dispatching methods on
  *     DOH objects.  A number of small utility functions are also included.
