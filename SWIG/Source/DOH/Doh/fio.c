@@ -464,7 +464,7 @@ DohCopyto(DOH *in, DOH *out) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohSplit(DOH *in, char *chs, int nsplits) {
+DohSplit(DOH *in, const char *chs, int nsplits) {
   DOH *list;
   DOH *str;
   int c;

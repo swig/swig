@@ -234,7 +234,7 @@ static DohObjInfo DohFileType = {
 static int init = 0;
 
 DOH *
-NewFile(DOH *fn, char *mode)
+NewFile(DOH *fn, const char *mode)
 {
   DohFile *f;
   FILE *file;

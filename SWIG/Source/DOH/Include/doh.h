@@ -212,7 +212,7 @@ extern char *Strchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *NewFile(DOH *file, char *mode);
+extern DOHFile *NewFile(DOH *file, const char *mode);
 extern DOHFile *NewFileFromFile(FILE *f);
 extern DOHFile *NewFileFromFd(int fd);
 extern int      DohClose(DOH *file);
@@ -240,7 +240,7 @@ extern DOHList   *Hash_keys(DOHHash *);
 
 extern DOHVoid  *NewVoid(void *ptr, void (*del)(void *));
 
-extern DOHList *DohSplit(DOHFile *input, char *chs, int nsplits);
+extern DOHList *DohSplit(DOHFile *input, const char *chs, int nsplits);
 #define Split DohSplit
 
 extern DOH *DohNone;
