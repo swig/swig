@@ -114,7 +114,7 @@ libswigrb_la_LDFLAGS    = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(RUBY_DLNK)
 libswigrb_la_CFLAGS     = -DSWIG_GLOBAL $(RUBY_INCLUDE) $(RUBY_CFLAGS)
 
 librb.c: $(SWIG_TYPECHECK) $(RUBY_RUNTIME)
-	cat $(SWIG_TYPECHECK) $(RUBY_RUNTIME) >> librb.c
+	cat $(SWIG_TYPECHECK) $(RUBY_RUNTIME) > librb.c
 
 # ----------------------------------------------------------------------
 # PHP4 run-time library
