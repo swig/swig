@@ -241,4 +241,50 @@ static void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 %}
 #endif // SWIGJAVA
 
+#ifdef SWIGRUBY
+%{
+static void _SWIG_exception(int code, char *msg) {
+    switch (code) {
+        case SWIG_MemoryError:
+            rb_raise(rb_eNoMemError, msg);
+            break;
+        case SWIG_IOError:
+            rb_raise(rb_eIOError, msg);
+            break;
+        case SWIG_RuntimeError:
+            rb_raise(rb_eRuntimeError, msg);
+            break;
+        case SWIG_IndexError:
+            rb_raise(rb_eIndexError, msg);
+            break;
+        case SWIG_TypeError:
+            rb_raise(rb_eTypeError, msg);
+            break;
+        case SWIG_DivisionByZero:
+            rb_raise(rb_eZeroDivError, msg);
+            break;
+        case SWIG_OverflowError:
+            rb_raise(rb_eRangeError, msg);
+            break;
+        case SWIG_SyntaxError:
+            rb_raise(rb_eSyntaxError, msg);
+            break;
+        case SWIG_ValueError:
+            rb_raise(rb_eArgError, msg);
+            break;
+        case SWIG_SystemError:
+            rb_raise(rb_eFatal, msg);
+            break;
+        case SWIG_UnknownError:
+            rb_raise(rb_eRuntimeError, msg);
+            break;
+        default:
+            break;
+    }
+}
+
+#define SWIG_exception(a, b) _SWIG_exception((a), (b))
+%}
+#endif
+
 /* exception.i ends here */
