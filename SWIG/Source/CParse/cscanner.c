@@ -922,24 +922,45 @@ int yylook(void) {
 
 	case 87 :
 	  /* A long integer of some sort */
-	  if ((c = nextchar()) == 0) return (0);
+	  if ((c = nextchar()) == 0) return (NUM_LONG);
 	  if ((c == 'u') || (c == 'U')) {
 	    return(NUM_ULONG);
+	  } else if ((c == 'l') || (c == 'L')) {
+	    state = 870;
 	  } else {
 	    retract(1);
 	    return(NUM_LONG);
 	  }
+	  break;
+
+	case 870:
+	  if ((c = nextchar()) == 0) return (NUM_LONGLONG);
+	  if ((c == 'u') || (c == 'U')) {
+	    return (NUM_ULONGLONG);
+	  } else {
+	    retract(1);
+	    return(NUM_LONGLONG);
+	  }
 
 	case 88:
 	  /* An unsigned integer of some sort */
-	  if ((c = nextchar()) == 0) return (0);
+	  if ((c = nextchar()) == 0) return (NUM_UNSIGNED);
 	  if ((c == 'l') || (c == 'L')) {
-	    return(NUM_ULONG);
+	    state = 880;
 	  } else {
 	    retract(1);
 	    return(NUM_UNSIGNED);
 	  }
+	  break;
 
+	case 880:
+	  if ((c = nextchar()) == 0) return (NUM_ULONG);
+	  if ((c == 'l') || (c == 'L')) return (NUM_ULONGLONG);
+	  else {
+	    retract(1);
+	    return(NUM_ULONG);
+	  }
+	  
 	case 9:
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '\\') {
@@ -1034,11 +1055,15 @@ int yylex(void) {
     case NUM_ULONG:
     case NUM_LONG:
     case NUM_UNSIGNED:
+    case NUM_LONGLONG:
+    case NUM_ULONGLONG:
       if (l == NUM_INT) yylval.dtype.type = T_INT;
       if (l == NUM_FLOAT) yylval.dtype.type = T_DOUBLE;
       if (l == NUM_ULONG) yylval.dtype.type = T_ULONG;
       if (l == NUM_LONG) yylval.dtype.type = T_LONG;
       if (l == NUM_UNSIGNED) yylval.dtype.type = T_UINT;
+      if (l == NUM_LONGLONG) yylval.dtype.type = T_LONGLONG;
+      if (l == NUM_ULONGLONG) yylval.dtype.type = T_ULONGLONG;
       yylval.dtype.val = NewString(yytext);
       return(l);
       break;
