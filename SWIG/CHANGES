@@ -1,22 +1,58 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-1/11/00 : Dave Beazley
+1/12/00 : beazley
+          Added Harco's Java modules.
+
+1/12/00 : beazley
+          Revoked the %ifdef, %ifndef, %endif, %if, %elif, and %else 
+          directives.  These are no longer needed as SWIG now has a real
+          preprocessor.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+1/12/00 : beazley
+          Moved the documentation modules from the SWIG directory
+          to the Modules directory (where they really should have been
+          to begin with).
+
+1/12/00 : beazley
+          Removed the -stat option for printing statistics. The 
+          statistics reporting was inadequate and mostly broken
+          anyway.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+1/12/00 : beazley
+          Removed the -t option for reading a typemap file.  More
+          trouble than it's worth.  Just include typemaps at the top
+          of the interface file.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+1/12/00 : beazley
+          Removed the %checkout directive.
+          *** POTENTIAL INCOMPATIBILITY ***
+
+1/12/00 : beazley
+          Removed the -ci option for file checkin.   Too problematic
+          to implement.  Probably better to just put your SWIG library
+          under CVS instead.
+          *** POTENTIAL INCOMPATIBILITY ***.
+
+1/11/00 : beazley
           Deleted the LATEX module.  Sorry... Didn't know anyone
           who was using it.  Besides, I'm looking to simplify
           the documentation system.
           *** POTENTIAL INCOMPATIBILITY ***
 
-1/11/00 : Dave Beazley
+1/11/00 : beazley
           Modified the ASCII documentation module to use a .txt
           suffix for its output file instead of .doc.
 
-1/11/00 : Dave Beazley
+1/11/00 : beazley
           Added the long-lost SWIG preprocessor back to the system.
           It should be enabled by default.  Raw preprocessed output
           can be viewed using swig -E file.i.
           *** NEW FEATURE ***
 
-1/11/00 : Dave Beazley & Dustin Mitchell
+1/11/00 : beazley and djmitche
           Completely reorganized the SWIG directory structure.  The
           basic organization is now:
 
