@@ -65,7 +65,7 @@
       CHICKEN support was introduced to SWIG in version 1.3.18.  SWIG
       relies on some recent additions to CHICKEN, which are only
       present in releases of CHICKEN with version number
-      <strong>greater than or equal to <tt>1.0</tt></strong>.
+      <strong>greater than or equal to <tt>1.40</tt></strong>.
 
       <br></br> CHICKEN can be downloaded from <a
       href="http://www.call-with-current-continuation.org/chicken.html">http://www.call-with-current-continuation.org/chicken.html</a>
@@ -495,8 +495,8 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
       For pointer types, SWIG uses CHICKEN tagged pointers.
 
       A tagged pointer is an ordinary CHICKEN pointer with an
-      extra slot for an arbitrary Scheme object.  With SWIG
-      CHICKEN, this Scheme object is a reference to a type-info
+      extra slot for a void *.  With SWIG
+      CHICKEN, this void * is a pointer to a type-info
       structure.  So each pointer used as input or output from
       the SWIG-generated CHICKEN wrappers will have type
       information attached to it.  This will let the wrappers
@@ -506,22 +506,20 @@ CHICKEN_HOME=/usr/local/share/chicken</pre>
     </p>
     <p>
       To construct a Scheme object from a C pointer, the wrapper code
-      calls the function <code>swig_new_pointer_obj()</code>, passing
-      stack allocation space of size SWIG_ALLOCSZ_POINTER (see
-      definition in Lib/chicken/chickenrun.swg and also
-      <code>C_alloc()</code> in the CHICKEN documentation) and a
-      pointer to a struct representing the pointer type.
+      calls the function 
+      <code>SWIG_NewPointerObj(void *ptr, swig_type_info *type, int owner)</code>,
+      The function that calls <code>SWIG_NewPointerObj</code> must have a variable declared
+      <code>C_word *known_space = C_alloc(C_SIZEOF_SWIG_POINTER);</code>
+      It is ok to call <code>SWIG_NewPointerObj</code> more than once, 
+      just make sure known_space has enough space for all the created pointers.
     </p>
     <p>
       To get the pointer represented by a CHICKEN tagged pointer, the
-      wrapper code calls the function <code>swig_convert_ptr()</code>,
+      wrapper code calls the function 
+      <code>SWIG_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags)</code>,
       passing a pointer to a struct representing the expected pointer
-      type.  If the Scheme object passed was not a tagged pointer
-      representing a compatible pointer, a non-zero value is returned.
+      type.
     </p>
-    <p><strong>Warning:</strong> The Chicken typechecking code seems
-    to be broken (Bug #782468), so that type errors may not be
-    reported.
 
 <a name="n16"></a><H2>25.8 Unsupported features</H2>
 
