@@ -1026,9 +1026,11 @@ class OCAML : public Language {
 	       "{\n"
 	       "\treturn %s_native(", wrap_name, wrap_name );
 
+	char *comma = "";
 	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
 	    Printf(f->code,
-		   "args[%d]%s", i, i == numargs - 1 ? "":",");
+		   "%sargs[%d]", comma, i);
+	    comma = ",";
 	}
 
 	Printf(f->code,

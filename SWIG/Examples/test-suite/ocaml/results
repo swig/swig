@@ -1,10 +1,14 @@
 Failed:
-return_value_scope.cpptest
-template_retvalue.cpptest
+pointer_cxx.cpptest
 template_ns4.cpptest
 Success:
+template_enum_typedef.cpptest
+template_inherit_abstract.cpptest
+template_default_qualify.cpptest
 template_enum_ns_inherit.cpptest
 template_int_const.cpptest
+return_value_scope.cpptest
+template_retvalue.cpptest
 template_ns_scope.cpptest
 constructor_exception.cpptest
 template_arg_scope.cpptest
@@ -55,7 +59,6 @@ namespace_enum.cpptest
 namespace_extend.cpptest
 namespace_template.cpptest
 namespace_typemap.cpptest
-pointer_cxx.cpptest
 pointer_reference.cpptest
 primitive_ref.cpptest
 private_assign.cpptest
