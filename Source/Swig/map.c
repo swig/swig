@@ -68,7 +68,7 @@ Swig_map_add_parmrule(DOHHash *ruleset, DOHHash *parms, DOH *obj)
     
     /* Create a hash table key */
     
-    key = NewStringf("%s-%s",name,ty);
+    key = NewStringf("*map:%s-%s",name,ty);
 
     /* See if there is already a entry with this type in the table */
     nn = Getattr(n,key);
@@ -124,6 +124,10 @@ static MatchObject *matchstack = 0;
  * Perform a longest map match for a list of parameters and a set of mapping rules.
  * Returns the corresponding rule object and the number of parameters that were
  * matched.
+ *
+ * Note: If the ruleset has a 'parent' attribute, this function will walk its
+ * way up and try to find a match.  This can be used to implement scoped
+ * mappings.
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -184,7 +188,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
 
 
     if (!SwigType_isarray(ty)) {
-      key = NewStringf("-%s",ty);
+      key = NewStringf("*map:-%s",ty);
       /* See if there is a generic name match for this type */
       nm = Getattr(rs,key);
       if (nm) {
@@ -198,7 +202,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
       
       /* See if there is a specific name match for this type */
       Clear(key);
-      Printf(key,"%s-%s",name,ty);
+      Printf(key,"*map:%s-%s",name,ty);
       nm = Getattr(rs,key);
       if (nm) {
 	if (!mo) {
@@ -244,7 +248,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
 	  }
 	}
 	Clear(key);
-	Printf(key,"-%s",ntype);
+	Printf(key,"*map:-%s",ntype);
 	Printf(stdout,"matcharray : %s\n", key);
 	nm = Getattr(rs,key);
 	if (nm) {
@@ -273,7 +277,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
 	  }
 	}
 	Clear(key);
-	Printf(key,"%s-%s",name,ntype);
+	Printf(key,"*map:%s-%s",name,ntype);
 	Printf(stdout,"matcharray : %s\n", key);
 	nm = Getattr(rs,key);
 	if (nm) {
@@ -302,7 +306,7 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
     DOH  *rs;
     DOHString *key;
     DOHString *dty = SwigType_default(Getattr(parms,"type"));
-    key = NewStringf("-%s",dty);
+    key = NewStringf("*map:-%s",dty);
     
     rs = Getattr(ruleset,key);
     if (rs) {
@@ -311,6 +315,12 @@ Swig_map_match_parms(DOHHash *ruleset, DOHHash *parms, int *nmatch)
     }
     Delete(key);
     Delete(dty);
+  }
+  if (!bestobj) {
+    DOH *prules = Getattr(ruleset,"parent");
+    if (prules) {
+      bestobj = Swig_map_match_parms(prules,parms,nmatch);
+    }
   }
   return bestobj;
 }
