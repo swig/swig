@@ -48,8 +48,9 @@ private:
   char   *class_type;
   char   *real_classname;
   char   *base_class;
-  Hash   hash;
-  Hash   repeatcmd;
+  DOH   *hash;
+  DOH   *repeatcmd;
+  DOH   *setget;
 
 public :
     TCL8() {
@@ -65,6 +66,9 @@ public :
     class_type = 0;
     real_classname = 0;
     base_class = 0;
+    hash = NewHash();
+    repeatcmd = NewHash();
+    setget = NewHash();
   };
   virtual void parse_args(int, char *argv[]);
   virtual void parse();

@@ -422,7 +422,7 @@ void TCL8::create_command(char *cname, char *iname) {
   // Add interpreter name to repeatcmd hash table.  This hash is used in C++ code
   // generation to try and find repeated wrapper functions.
 
-  repeatcmd.add(iname,copy_string(wname));
+  Setattr(repeatcmd,iname,wname);
 }
 
 // ----------------------------------------------------------------------
@@ -767,8 +767,6 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
 void TCL8::link_variable(char *name, char *iname, DataType *t)
 {
-
-  static    Hash setget;
   String    s;
   char      *tm, *tm1;
 
@@ -782,8 +780,8 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
   }
 
   // Dump a collection of set/get functions suitable for variable tracing
-  if (!setget.lookup(t->print_type())) {
-    setget.add(t->print_type(),(void *)1);
+  if (!Getattr(setget,t->print_type())) {
+    Setattr(setget,t->print_type(),"1");
     WrapperFunction get;
     WrapperFunction set;
     set.def << "static char *_swig_" << t->print_mangle() << "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {";
@@ -1320,7 +1318,7 @@ void TCL8::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 
     temp = "";
     temp << name_member(realname,class_name);
-    rname = (char *) repeatcmd.lookup(temp);
+    rname = GetChar(repeatcmd,temp);
     if (!rname)
       rname = name_wrapper(temp.get(),prefix);
     
@@ -1348,7 +1346,7 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
     // Try to figure out if there is a wrapper for this function
     temp = "";
     temp << name_get(name_member(realname,bc));
-    rname = (char *) repeatcmd.lookup(temp);
+    rname = GetChar(repeatcmd,temp);
     if (!rname) 
       rname = name_wrapper(temp.get(),prefix);
     attributes << rname << ", ";
@@ -1356,7 +1354,7 @@ void TCL8::cpp_variable(char *name, char *iname, DataType *t) {
     if (!(Status & STAT_READONLY)) {
       temp = "";
       temp << name_set(name_member(realname,bc));
-      rname = (char *) repeatcmd.lookup(temp);
+      rname = GetChar(repeatcmd,temp);
       if (!rname) 
 	rname = name_wrapper(temp.get(),prefix);
       attributes << rname << "},\n";
@@ -1409,15 +1407,15 @@ void TCL8::add_typedef(DataType *t, char *name) {
   // First check to see if there aren't too many pointers
 
   if (t->is_pointer > 1) return;
-  if (hash.lookup(name)) return;      // Already added
+  if (Getattr(hash,name)) return;      // Already added
 
   // Now look up the datatype in our shadow class hash table
 
-  if (hash.lookup(t->name)) {
+  if (Getattr(hash,t->name)) {
 
     // Yep.   This datatype is in the hash
     // Put this types 'new' name into the hash
-    hash.add(name,copy_string((char *) hash.lookup(t->name)));
+    Setattr(hash,name,GetChar(hash,t->name));
   }
 }
 
@@ -1433,11 +1431,11 @@ void TCL8::cpp_class_decl(char *name, char *rename, char *type) {
   this->Language::cpp_class_decl(name,rename, type);
 
   if (shadow) {
-    hash.add(name,copy_string(rename));
+    Setattr(hash,name,rename);
     // Add full name of datatype to the hash table
     if (strlen(type) > 0) {
       sprintf(temp,"%s %s", type, name);
-      hash.add(temp,copy_string(rename));
+      Setattr(hash,temp,rename);
     }
   }
 }

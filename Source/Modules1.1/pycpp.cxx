@@ -50,8 +50,6 @@ static  String   base_getattr;
 static  String   base_setattr;
 static  int      class_renamed = 0;
 
-static  Hash     symbols;
-
 // --------------------------------------------------------------------------
 // PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
 //
@@ -101,10 +99,10 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
   class_type = copy_string(ctype);
 
   // Build up the hash table
-  hash.add(real_classname,copy_string(class_name));
+  Setattr(hash,real_classname,class_name);
 
   sprintf(temp,"%s %s", class_type, real_classname);
-  hash.add(temp,copy_string(class_name));
+  Setattr(hash,temp,class_name);
 
   if (shadow) {
     *setattr << tab4 << "def __setattr__(self,name,value):\n"
@@ -153,15 +151,16 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     
     // Check to see if we've already seen this
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(),0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;   // Forget it, already saw it
     }
+    Setattr(symbols,cname.get(),cname.get());
     
     if (strcmp(realname,"__repr__") == 0) 
       have_repr = 1;
 
 
-    if (!((hash.lookup(t->name)) && (t->is_pointer <=1)) && !noopt) {
+    if (!((Getattr(hash,t->name)) && (t->is_pointer <=1)) && !noopt) {
       *imethod << class_name << "."  << realname << " = new.instancemethod(" << module << "." << name_member(realname,class_name) << ", None, " << class_name << ")\n";
       /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << name_member(realname,class_name) << "\n"; */
     } else {
@@ -179,12 +178,12 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	*pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",args)\n";
       
       // Check to see if the return type is an object
-      if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
+      if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
 	if (!typemap_check("out",typemap_lang,t,name_member(realname,class_name))) {
 	  if (!have_output) {
-	    *pyclass << tab8 << "if val: val = " << (char *) hash.lookup(t->name) << "Ptr(val) ";
-	    if (((hash.lookup(t->name)) && (t->is_pointer < 1)) ||
-		((hash.lookup(t->name)) && (t->is_pointer == 1) && NewObject))
+	    *pyclass << tab8 << "if val: val = " << GetChar(hash,t->name) << "Ptr(val) ";
+	    if (((Getattr(hash,t->name)) && (t->is_pointer < 1)) ||
+		((Getattr(hash,t->name)) && (t->is_pointer == 1) && NewObject))
 	      *pyclass << "; val.thisown = 1\n";
 	    else 
 	      *pyclass << "\n";
@@ -230,9 +229,10 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
     
     // Check to see if we've already seen this
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(), 0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;   // Forget it, already seen it
     }
+    Setattr(symbols,cname.get(),cname.get());
 
     if (!have_constructor) { 
 
@@ -398,7 +398,7 @@ void PYTHON::cpp_inherit(char **baseclass,int) {
   // Now tell the Python module that we're inheriting from a base class
 
   while (baseclass[i]) {
-    bc = (char *) hash.lookup(baseclass[i]);
+    bc = GetChar(hash,baseclass[i]);
     if (bc) {
       if (first_base) *base_class << ",";
       *base_class << bc;
@@ -439,13 +439,14 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     // Check to see if we've already seen this
 
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(), 0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;   // Forget it, already seen it
     }
+    Setattr(symbols,cname.get(),cname.get());
     
     // Figure out if we've seen this datatype before
     
-    if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) inhash = 1;
+    if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) inhash = 1;
     
     // Now write some code to set the variable
     *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_set(name_member(realname,class_name)) << ",\n";
@@ -456,7 +457,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     }
     // Write some code to get the variable
     if (inhash) {
-      *cgetattr << tab8 << "\"" << realname << "\" : lambda x : " << (char *) hash.lookup(t->name) << "Ptr(" << module << "." << name_get(name_member(realname,class_name)) << "(x)),\n";
+      *cgetattr << tab8 << "\"" << realname << "\" : lambda x : " << GetChar(hash,t->name) << "Ptr(" << module << "." << name_get(name_member(realname,class_name)) << "(x)),\n";
 
     } else {
       *cgetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_get(name_member(realname,class_name)) << ",\n";
@@ -488,9 +489,10 @@ void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *va
     // Check to see if we've already seen this
 
     cname << class_name << "::" << realname;
-    if ((symbols.add(cname.get(), 0)) == -1) {
+    if (Getattr(symbols,cname.get())) {
       return;   // Forget it, already seen it
     }
+    Setattr(symbols,cname.get(),cname.get());
     
     *cinit << tab4 << realname << " = " << module << "." << name_member(realname,class_name) << "\n";
   }
@@ -518,17 +520,17 @@ void PYTHON::add_typedef(DataType *t, char *name) {
 
   if (t->is_pointer > 1) return;
 
-  if (hash.lookup(name)) return;      // Already added
+  if (Getattr(hash,name)) return;      // Already added
 
 
   // Now look up the datatype in our shadow class hash table
 
-  if (hash.lookup(t->name)) {
+  if (Getattr(hash,t->name)) {
 
     // Yep.   This datatype is in the hash
     
     // Put this types 'new' name into the hash
 
-    hash.add(name,copy_string((char *) hash.lookup(t->name)));
+    Setattr(hash,name, GetChar(hash,t->name));
   }
 }
