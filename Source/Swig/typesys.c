@@ -1261,6 +1261,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
   if (value_wrapper_mode == 0) {
     /* old partial use of SwigValueTypes, it can fail for opaque types */
     Node *n;
+    SwigType *w = 0;
     int use_wrapper = 0;
     if (local_tmap) return 0;
     if (!use_wrapper && SwigType_isclass(t)) {
@@ -1283,9 +1284,10 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	  use_wrapper = 1;
 	}
       }
+      if (use_wrapper) w = NewStringf("SwigValueWrapper<%s >",SwigType_str(td,0));
       Delete(td);
     }
-    return (use_wrapper ? NewStringf("SwigValueWrapper< %s >",SwigType_str(t,0)): 0);
+    return w;
   } else {
     /*  safe use of SwigValueTypes, it can fail with some typemaps */
     SwigType *w = 0;
@@ -1306,9 +1308,7 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
       use_wrapper = 0;
     }    
     if (use_wrapper) {
-      String *name = SwigType_str(t,0);
-      w = NewStringf("SwigValueWrapper<%s >",name);
-      Delete(name);
+      w = NewStringf("SwigValueWrapper<%s >",td);
     }
     Delete(ftd);
     Delete(td);
