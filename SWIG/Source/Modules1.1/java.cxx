@@ -12,36 +12,20 @@
 #include "mod11.h"
 #include "java.h"
 
-char bigbuf[1024];
-
 static char *usage = (char*)"\
 Java Options\n\
      -package <name>  - set name of the package\n\
      -shadow          - generate shadow classes\n\
-     -nofinalize      - do not generate finalize methods in shadow classes\n\
-     -rn              - generate register natives code\n\n";
+     -nofinalize      - do not generate finalize methods in shadow classes\n";
 
-static char   *package = 0;         // Name of the package
-static char   *c_pkgstr = 0;        // Name of the package
-static char   *jni_pkgstr = 0;      // Name of the package
-static FILE   *f_java = 0;
-static FILE   *f_shadow = 0;
-
+static  File         *f_java = 0;
+static  File         *f_shadow = 0;
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
 static  File         *f_wrappers = 0;
 static  File         *f_init = 0;
 
-static int    shadow = 0;
-
-#ifdef DEPRECATED
-static Hash   *shadow_classes;
-#endif
-static String *module = 0;          // Name of the module
-static String *shadow_classdef = 0;
-static String *shadow_code = 0;
-static String *shadow_classname = 0;
-static String *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
+static int    shadow = 0; // Set to 1 when generating shadow classes
 static int    classdef_emitted = 0;
 static int    have_default_constructor = 0;
 static int    native_func = 0;     // Set to 1 when wrapping a native function
@@ -50,10 +34,16 @@ static int    static_flag = 0; // Set to 1 when wrapping a static functions or m
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
 static int    nofinalize = 0;          // for generating finalize methods
-static int    useRegisterNatives = 0;        // Set to 1 when doing stuff with register natives
-static String *registerNativesList = 0;
+
+static String *module = 0;  // Module name
+static String *shadow_classdef = 0;
+static String *shadow_code = 0;
+static String *shadow_classname = 0;
+static String *shadow_variable_name = 0; //Name of a c struct variable or c++ public member variable (may or may not be const)
 static String *shadow_constants_code = 0;
 static String *module_constants_code = 0;
+static String *package = 0; // Package name
+static String *jnipackage = 0; // JNI package name
 static String *module_extra_code = 0; // Extra code for the module class from %pragma
 static String *all_shadow_extra_code = 0; // Extra code for all shadow classes from %pragma
 static String *this_shadow_extra_code = 0; // Extra code for current single shadow class from %pragma
@@ -77,7 +67,6 @@ static String *destructor_call = 0; //Destructor (delete) call if any
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
 String *JAVA::is_shadow(SwigType *t) {
-  /*  Printf(stdout,"is_shadow: '%s'\n", t); */
   if (shadow) {
     Node *n = classLookup(t);
     if (n) {
@@ -86,21 +75,10 @@ String *JAVA::is_shadow(SwigType *t) {
     }
   }
   return 0;
-
-#ifdef DEPRECATED
-  SwigType *shadow_name = Getattr(shadow_classes,SwigType_base(t));
-  /* See if this type is a typedef */
-  if (!shadow_name) {
-    SwigType *type_resolved = SwigType_typedef_resolve_all(t);
-    shadow_name = Getattr(shadow_classes,SwigType_base(type_resolved));
-  }
-  return shadow_name;
-#endif
-
 }
 
 // Return the type of the c array
-static SwigType *get_array_type(SwigType *t) {
+SwigType *JAVA::getArrayType(SwigType *t) {
   SwigType *ta = 0;
   if (SwigType_type(t) == T_ARRAY) {
     SwigType *aop;
@@ -110,120 +88,10 @@ static SwigType *get_array_type(SwigType *t) {
   return ta;
 }
 
-/* javaMethodSignature still needs updating for changes from SWIG1.3a3 to SWIG1.3a5 and for current version */
-char *JAVA::javaMethodSignature(SwigType *t, int ret, int inShadow) {
-  if(SwigType_ispointer(t) == 1) {
-	  switch(SwigType_type(t)) {
-	    case T_CHAR:   return (char*)"Ljava/lang/String;";
-	    case T_SCHAR:  return (char*)"[B";
-	    case T_UCHAR:  return (char*)"[S";
-	    case T_SHORT:  return (char*)"[S";
-	    case T_USHORT: return (char*)"[I";
-	    case T_INT:    return (char*)"[I";
-	    case T_UINT:   return (char*)"[J";
-	    case T_LONG:   return (char*)"[I";
-	    case T_ULONG:  return (char*)"[J";
-	    case T_FLOAT:  return (char*)"[F";
-	    case T_DOUBLE: return (char*)"[D";
-	    case T_BOOL:   return (char*)"[Z";
-	    case T_STRING:	return (char*)"Ljava/lang/String;";
-	    case T_POINTER:	return (char*)"[J";
-	    case T_REFERENCE:	return (char*)"[J";
-	    case T_ARRAY:	return (char*)"???";
-	    case T_VOID:
-        case T_USER:   if(inShadow && is_shadow(t))
-                         return Char(is_shadow(t));
-                       else return (char*)"J";
-	  }
-  } else if(SwigType_ispointer(t) > 1) {
-    if(ret) return (char*)"J";
-    else return (char*)"[J";
-  } else {
-	  switch(SwigType_type(t)) {
-	    case T_CHAR: return (char*)"B";
-	    case T_SCHAR: return (char*)"B";
-	    case T_UCHAR: return (char*)"S";
-	    case T_SHORT: return (char*)"S";
-	    case T_USHORT: return (char*)"I";
-	    case T_INT: return (char*)"I";
-	    case T_UINT: return (char*)"J";
-	    case T_LONG: return (char*)"I";
-	    case T_ULONG: return (char*)"J";
-	    case T_FLOAT: return (char*)"F";
-	    case T_DOUBLE: return (char*)"D";
-	    case T_BOOL: return (char*)"Z";
-	    case T_STRING:	return (char*)"Ljava/lang/String;";
-	    case T_POINTER:	return (char*)"J";
-	    case T_REFERENCE:	return (char*)"J";
-	    case T_ARRAY:	return (char*)"???";
-	    case T_VOID: return (char*)"V";
-	    case T_USER: return (char*)"J";
-	  }
-  }
-  Printf(stderr, "javaMethodSignature: unhandled SWIG type [%d] %s\n", SwigType_type(t), SwigType_str(t,0));
-  return NULL;
-}
-
 String *JAVA::makeValidJniName(const String *name) {
   String *valid_jni_name = NewString(name);
   Replace(valid_jni_name,"_","_1", DOH_REPLACE_ANY);
   return valid_jni_name;
-}
-
-// !! this approach fails for functions without arguments
-char *JAVA::jniCall(String_or_char *func) {
-  if(CPlusPlus)
-	sprintf(bigbuf, "jenv->%s(", Char(func));
-  else
-	sprintf(bigbuf, "(*jenv)->%s(jenv, ", Char(func));
-
-  return Swig_copy_string(bigbuf);
-}
-
-void JAVA::writeRegisterNatives()
-{
-  if(Len(registerNativesList) == 0)
-    return;
-
-  Printf(f_wrappers,"\n");
-  Printf(f_wrappers,"JNINativeMethod nativeMethods[] = {\n");
-  Printv(f_wrappers, registerNativesList, NULL);
-  Printf(f_wrappers, "};\n");
-
-  Printf(f_wrappers,"\nint numberOfNativeMethods=sizeof(nativeMethods)/sizeof(JNINativeMethod);\n\n");
-
-  // The registerNatives function
-
-  Printv(f_wrappers,
-	 "jint registerNatives(JNIEnv *jenv) {", "\n",
-	 "    jclass nativeClass = ", jniCall((char*)"FindClass"),
-	 "\"", jni_pkgstr, module, "\");","\n",
-	 NULL);
-
-  Printv(f_wrappers,
-	 "    if (nativeClass == 0)", "\n", 
-     "        return -1;", "\n",
-	 "    return ", jniCall((char*)"RegisterNatives"), "nativeClass, nativeMethods, ", "numberOfNativeMethods);", "\n",
-	 "}", "\n", "\n",
-	 NULL);
-
-  // The unregisterNatives function
-
-  Printv(f_wrappers,
-	 "jint unregisterNatives(JNIEnv *jenv) {", "\n",
-	 "    jclass nativeClass = ", jniCall((char*)"FindClass"),
-	 "\"", jni_pkgstr, module, "\");","\n",
-	 NULL);
-
-  Printv(f_wrappers,
-	 "    if (nativeClass == 0)", "\n", 
-     "        return -1;", "\n",
-	 "    // Sun documentation suggests that this method should not be invoked in ",
-	 "\"normal native code\".", "\n",
-	 "    // return ", jniCall((char*)"UnregisterNatives"), "nativeClass);", "\n",
-	 "    return 0;", "\n",
-	 "}", "\n",
-	 NULL);
 }
 
 // ---------------------------------------------------------------------
@@ -241,8 +109,8 @@ void JAVA::main(int argc, char *argv[]) {
     if (argv[i]) {
       if (strcmp(argv[i],"-package") == 0) {
 	if (argv[i+1]) {
-	  package = new char[strlen(argv[i+1])+1];
-          strcpy(package, argv[i+1]);
+      package = NewString("");
+      Printf(package, argv[i+1]);
 	  Swig_mark_arg(i);
 	  Swig_mark_arg(i+1);
 	  i++;
@@ -255,17 +123,12 @@ void JAVA::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i],"-jnic") == 0) {
 	    Swig_mark_arg(i);
         Printf(stderr,"Deprecated command line option: -jnic. C JNI calling convention now used when -c++ not specified.\n");
-        SWIG_exit(1);
       } else if (strcmp(argv[i],"-nofinalize") == 0) {
 	    Swig_mark_arg(i);
         nofinalize = 1;
-      } else if (strcmp(argv[i],"-rn") == 0) {
-	    Swig_mark_arg(i);
-        useRegisterNatives = 1;
       } else if (strcmp(argv[i],"-jnicpp") == 0) {
         Swig_mark_arg(i);
         Printf(stderr,"Deprecated command line option: -jnicpp. C++ JNI calling convention now used when -c++ specified.\n");
-        SWIG_exit(1);
       } else if (strcmp(argv[i],"-help") == 0) {
 	    Printf(stderr,"%s\n", usage);
       }
@@ -291,7 +154,7 @@ int JAVA::top(Node *n) {
 
   f_runtime = NewFile(outfile,"w");
   if (!f_runtime) {
-    Printf(stderr,"*** Can't open '%s'\n", outfile);
+    Printf(stderr,"Unable to open %s\n", outfile);
     SWIG_exit(EXIT_FAILURE);
   }
   f_init = NewString("");
@@ -304,13 +167,8 @@ int JAVA::top(Node *n) {
   Swig_register_filebyname("runtime",f_runtime);
   Swig_register_filebyname("init",f_init);
 
-#ifdef DEPRECATED
-  shadow_classes = NewHash();
-#endif
-
   shadow_classdef = NewString("");
   shadow_code = NewString("");
-  registerNativesList = NewString("");
   module_constants_code = NewString("");
   module_extra_code = NewString("");
   module_baseclass = NewString("");
@@ -325,6 +183,8 @@ int JAVA::top(Node *n) {
   module_method_modifiers = NewString("public final static");
   module_conversion_code = NewString("");
   wrapper_conversion_code = NewString("");
+  if (!package) package = NewString("");
+  jnipackage = NewString("");
 
   Swig_banner(f_runtime);               // Print the SWIG banner message
 
@@ -338,27 +198,14 @@ int JAVA::top(Node *n) {
   String* wrapper_name = NewString("");
 
   if(package) {
-    String *s = NewString(package);
-    String *jniname = makeValidJniName(s);
-    Clear(s);
-    Printv(s, jniname, NULL);
+    String *jniname = makeValidJniName(package);
+    Printv(jnipackage, jniname, NULL);
     Delete(jniname);
-    Replace(s,".","_", DOH_REPLACE_ANY);
-    Append(s, "_");
-    c_pkgstr = Swig_copy_string(Char(s));
-    Delete(s);
-
-    String *s2 = NewString(package);
-    Replace(s2,".","/", DOH_REPLACE_ANY);
-    Append(s2,"/");
-    jni_pkgstr = Swig_copy_string(Char(s2));
-    Delete(s2);
-  } else {
-    package = c_pkgstr = jni_pkgstr = (char*)"";
+    Replace(jnipackage,".","_", DOH_REPLACE_ANY);
+    Append(jnipackage, "_");
   }
-
   String *jniname = makeValidJniName(module);
-  Printf(wrapper_name, "Java_%s%s_%%f", c_pkgstr, jniname);
+  Printf(wrapper_name, "Java_%s%s_%%f", Char(jnipackage), jniname);
   Delete(jniname);
 
   Swig_name_register((char*)"wrapper", Char(wrapper_name));
@@ -369,17 +216,19 @@ int JAVA::top(Node *n) {
   Delete(wrapper_name);
 
   // Generate the java class
-  sprintf(bigbuf, "%s.java", Char(module));
-  if((f_java = fopen(bigbuf, "w")) == 0) {
-    Printf(stderr,"Unable to open %s\n", bigbuf);
-    SWIG_exit(1);
+  String *filen = NewStringf("%s.java", module);
+  f_java = NewFile(filen,"w");
+  if(!f_java) {
+    Printf(stderr,"Unable to open %s\n", filen);
+    SWIG_exit(EXIT_FAILURE);
   }
+  Delete(filen); filen = NULL;
 
   Printf(f_wrappers,"#ifdef __cplusplus\n");
   Printf(f_wrappers,"extern \"C\" {\n");
   Printf(f_wrappers,"#endif\n");
 
-  if(package && *package)
+  if(Len(package) > 0)
     Printf(f_java, "package %s;\n\n", package);
 
   /* Emit code */
@@ -395,11 +244,8 @@ int JAVA::top(Node *n) {
 
   // Finish off the java class
   Printf(f_java, "}\n");
-  fclose(f_java);
+  Close(f_java);
 
-  if(useRegisterNatives)
-	writeRegisterNatives();
-  
   if(wrapper_conversion_code)
     Printv(f_wrappers,wrapper_conversion_code,NULL);
 
@@ -407,12 +253,8 @@ int JAVA::top(Node *n) {
   Printf(f_wrappers,"}\n");
   Printf(f_wrappers,"#endif\n");
 
-#ifdef DEPRECATED
-  Delete(shadow_classes); shadow_classes = NULL;
-#endif
   Delete(shadow_classdef); shadow_classdef = NULL;
   Delete(shadow_code); shadow_code = NULL;
-  Delete(registerNativesList); registerNativesList = NULL;
   Delete(module_constants_code); module_constants_code = NULL;
   Delete(module_extra_code); module_extra_code = NULL;
   Delete(module_baseclass); module_baseclass = NULL;
@@ -425,8 +267,10 @@ int JAVA::top(Node *n) {
   Delete(all_shadow_class_modifiers); all_shadow_class_modifiers = NULL;
   Delete(module_import); module_import = NULL;
   Delete(module_method_modifiers); module_method_modifiers = NULL;
-  Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
   Delete(module_conversion_code); module_conversion_code = NULL;
+  Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
+  Delete(package); package = NULL;
+  Delete(jnipackage); jnipackage = NULL;
 
   /* Close all of the files */
   Dump(f_header,f_runtime);
@@ -440,7 +284,7 @@ int JAVA::top(Node *n) {
   return SWIG_OK;
 }
 
-static void emit_banner(FILE *f) {
+void JAVA::emitBanner(File *f) {
   Printf(f, "/* ----------------------------------------------------------------------------\n");
   Printf(f, " * This file was automatically generated by SWIG (http://www.swig.org).\n");
   Printf(f, " * Version: %s\n", SWIG_VERSION);
@@ -452,7 +296,7 @@ static void emit_banner(FILE *f) {
 
 void JAVA::emitClassDef() {
   if(!classdef_emitted) {
-    emit_banner(f_java);
+    emitBanner(f_java);
     if(module_import)
       Printf(f_java, "%s\n", module_import);
 
@@ -574,19 +418,15 @@ int JAVA::functionWrapper(Node *n) {
   if ((tm = Swig_typemap_lookup_new("jni",n,"",0))) {
     Printf(jnirettype,"%s", tm);
   } else {
-    Printf(stderr, "No jni typemap defined for %s\n", SwigType_str(t,0));
+    Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
+        "No jni typemap defined for %s\n", SwigType_str(t,0));
   }
 
   if ((tm = Swig_typemap_lookup_new("jtype",n,"",0))) {
     Printf(javarettype,"%s", tm);
   } else {
-    Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(t,0));
-  }
-
-  // If dumping the registerNative outputs, store the method return type
-  // signature
-  if (useRegisterNatives) {
-      javaReturnSignature = javaMethodSignature(t, 1, 0);
+    Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+        "No jtype typemap defined for %s\n", SwigType_str(t,0));
   }
 
   if (SwigType_type(t) != T_VOID) {
@@ -624,17 +464,14 @@ int JAVA::functionWrapper(Node *n) {
 
     sprintf(source,"j%s", Char(ln));
 
-    if (useRegisterNatives) {
-      Printv(javaParameterSignature, javaMethodSignature(pt, 0, 0), NULL);
-    }
-
     /* Get the jni types of the parameter */
     if ((tm = Getattr(jnip,"tmap:jni"))) {
       jnip = Getattr(jnip,"tmap:jni:next");
       Printv(jni_param_type, tm, NULL);
     } else {
       jnip = nextSibling(jnip);
-      Printf(stderr, "No jni typemap defined for %s\n", SwigType_str(pt,0));
+      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, 
+          "No jni typemap defined for %s\n", SwigType_str(pt,0));
     }
 
     /* Get the java types of the parameter */
@@ -643,7 +480,8 @@ int JAVA::functionWrapper(Node *n) {
       Printv(javaparamtype, tm, NULL);
     } else {
       jtypep = nextSibling(jtypep);
-      Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(pt,0));
+      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+          "No jtype typemap defined for %s\n", SwigType_str(pt,0));
     }
 
     /* Add to java function header */
@@ -665,7 +503,8 @@ int JAVA::functionWrapper(Node *n) {
       Printf(f->code,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");
     } else {
-      Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, SwigType_str(pt,0));
+      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, 
+		   "Unable to use type %s as a function argument.\n",SwigType_str(pt,0));
       p = nextSibling(p);
     }
     Delete(javaparamtype);
@@ -747,7 +586,8 @@ int JAVA::functionWrapper(Node *n) {
       Replaceall(tm,"$result","jresult");
       Printf(f->code,"%s\n", tm);
     } else {
-      Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, SwigType_str(t,0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		 "Unable to use return type %s in function %s.\n", SwigType_str(t,0), name);
     }
   }
 
@@ -788,16 +628,6 @@ int JAVA::functionWrapper(Node *n) {
   /* Dump the function out */
   if(!native_func)
 	Wrapper_print(f,f_wrappers);
-
- // If registerNatives is active, store the table entry for this method
-  if (useRegisterNatives) {
-    Printv(registerNativesList,
-	   "    {",
-	   "\"", name, "\", \"(", javaParameterSignature, ")", javaReturnSignature, "\", ", wname,
-	   "},\n",
-	   NULL);
-
-  }
 
   Delete(jnirettype);
   Delete(javarettype);
@@ -891,14 +721,16 @@ int JAVA::constantWrapper(Node *n) {
         else
           Printf(java_type,"%s", tm);
       } else {
-        Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(type,0));
+        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+            "No jstype typemap defined for %s\n", SwigType_str(type,0));
       }
     } else {
       Swig_typemap_attach_parms("jtype", l, 0);
       if ((tm = Swig_typemap_lookup_new("jtype",n,"",0))) {
         Printf(java_type,"%s", tm);
       } else {
-        Printf(stderr, "No jtype typemap defined for %s\n", SwigType_str(type,0));
+        Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, 
+            "No jtype typemap defined for %s\n", SwigType_str(type,0));
       }
     }
 //    if(Cmp(jname, value) == 0 || strstr(value,"::") != NULL) {
@@ -1018,7 +850,7 @@ int JAVA::pragmaDirective(Node *n) {
 	else if(Strcmp(code, "allshadowinterface") == 0) {
 	    if(shadow && all_shadow_interfaces) {
 		if (!*Char(all_shadow_interfaces))
-		    Printf(all_shadow_interfaces, "implements %s", strvalue);
+		    Printf(all_shadow_interfaces, " implements %s", strvalue);
 		else
 		    Printf(all_shadow_interfaces, ", %s", strvalue);
 	    }
@@ -1058,7 +890,7 @@ int JAVA::pragmaDirective(Node *n) {
 	    else if (Strcmp(code,"shadowinterface") == 0) {
 		if (this_shadow_interfaces) {
 		    if (!*Char(this_shadow_interfaces))
-			Printf(this_shadow_interfaces, "implements %s", strvalue);
+			Printf(this_shadow_interfaces, " implements %s", strvalue);
 		    else
 			Printf(this_shadow_interfaces, ", %s", strvalue);
 		}
@@ -1098,7 +930,8 @@ void JAVA::emitShadowClassDef(Node *n) {
     }
     base = Nextitem(baselist);
     if (base) {
-      Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported in Java.\n", shadow_classname);
+      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+        "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, Getattr(base,"name"));
     }
   }
 
@@ -1107,13 +940,20 @@ void JAVA::emitShadowClassDef(Node *n) {
   if(this_shadow_baseclass && *Char(this_shadow_baseclass))
     pure_java_baseclass = this_shadow_baseclass;
   if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
-    if (pure_java_baseclass)
-      Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in Java.\n", shadow_classname);
-    else
+    if (pure_java_baseclass) {
+      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+        "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
+      pure_java_baseclass = NULL;
+    }
+    else {
       pure_java_baseclass = all_shadow_baseclass;
+    }
   }
-  if (pure_java_baseclass && baseclass)
-    Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in Java.\n", shadow_classname);
+  if (pure_java_baseclass && baseclass) {
+    Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+        "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
+    pure_java_baseclass = NULL;
+  }
  
   // Get any non-default class modifiers
   String *class_modifiers = 0;
@@ -1227,7 +1067,7 @@ void JAVA::emitShadowClassDef(Node *n) {
     Printv(wrapper_conversion_code,
         "extern \"C\" {\n",
         "  JNIEXPORT jlong JNICALL",
-        " Java_$jnipkgstr$jnimodule_$jniclassTo$jnibaseclass",
+        " Java_$jnipackage$jnimodule_$jniclassTo$jnibaseclass",
         "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
         "    jlong baseptr = 0;\n"
         "    *($cbaseclass **)&baseptr = ($cclass *)*(void**)&jarg1;\n"
@@ -1243,7 +1083,7 @@ void JAVA::emitShadowClassDef(Node *n) {
     Replace(wrapper_conversion_code, "$cbaseclass",  c_baseclass, DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$jniclass",    jniclass,  DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$cclass",      c_classname, DOH_REPLACE_ANY);
-    Replace(wrapper_conversion_code, "$jnipkgstr",   c_pkgstr,  DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$jnipackage",  jnipackage,  DOH_REPLACE_ANY);
     Replace(wrapper_conversion_code, "$jnimodule",   jnimodule, DOH_REPLACE_ANY);
     Delete(jnibaseclass);
     Delete(jniclass);
@@ -1257,17 +1097,21 @@ int JAVA::classHandler(Node *n) {
     shadow_classname = NewString(Getattr(n,"sym:name"));
     
     if (Cmp(shadow_classname, module) == 0) {
-      Printf(stderr, "class name cannot be equal to module name: %s\n", shadow_classname);
-      SWIG_exit(1);
+      Printf(stderr, "Class name cannot be equal to module name: %s\n", shadow_classname);
+      SWIG_exit(EXIT_FAILURE);
     }
-    sprintf(bigbuf, "%s.java", Char(shadow_classname));
-    if(!(f_shadow = fopen(bigbuf, "w"))) {
-      Printf(stderr, "Unable to create shadow class file: %s\n", bigbuf);
+
+    String *filen = NewStringf("%s.java", shadow_classname);
+    f_shadow = NewFile(filen,"w");
+    if(!f_shadow) {
+      Printf(stderr, "Unable to create shadow class file: %s\n", filen);
+      SWIG_exit(EXIT_FAILURE);
     }
+    Delete(filen); filen = NULL;
+
+    emitBanner(f_shadow);
     
-    emit_banner(f_shadow);
-    
-    if(*package)
+    if(Len(package) > 0)
       Printf(f_shadow, "package %s;\n\n", package);
     
     Clear(shadow_classdef);
@@ -1297,7 +1141,7 @@ int JAVA::classHandler(Node *n) {
       Printv(f_shadow, "  // enums and constants\n", shadow_constants_code, NULL);
 
     Printf(f_shadow, "}\n");
-    fclose(f_shadow);
+    Close(f_shadow);
     f_shadow = NULL;
     
     Delete(shadow_classname); shadow_classname = NULL;
@@ -1383,7 +1227,8 @@ void JAVA::javaShadowFunctionHandler(Node* n, int is_virtual) {
     else
       Printf(shadowrettype,"%s", tm);
   } else {
-    Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(t,0));
+    Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+        "No jstype typemap defined for %s\n", SwigType_str(t,0));
   }
 
   Printf(shadow_code, "  public ");
@@ -1391,7 +1236,7 @@ void JAVA::javaShadowFunctionHandler(Node* n, int is_virtual) {
     Printf(shadow_code, "static ");
   Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
-  if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
+  if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
     Printf(nativecall, "long[] cArray = ");
   }
   else {
@@ -1442,7 +1287,8 @@ DelWrapper(f);
         jstypep = Getattr(jstypep,"tmap:jstype:next");
       } else {
         jstypep = nextSibling(jstypep);
-        Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(pt,0));
+        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+            "No jstype typemap defined for %s\n", SwigType_str(pt,0));
       }
 
       /* Create a name for the parameter */
@@ -1455,7 +1301,7 @@ DelWrapper(f);
       if (gencomma)
         Printf(nativecall, ", ");
 
-      if(SwigType_type(pt) == T_ARRAY && is_shadow(get_array_type(pt))) {
+      if(SwigType_type(pt) == T_ARRAY && is_shadow(getArrayType(pt))) {
         Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NULL);
         Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NULL);
         Printv(user_arrays, "      $arg_cArray[i] = $arg[i].getCPtr",is_shadow(SwigType_base(pt)),"();\n", NULL);
@@ -1479,7 +1325,7 @@ DelWrapper(f);
     p = nextSibling(p);
   }
 
-  if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
+  if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
     String* array_ret = NewString("");
     String* array_type = NewString("");
     Printf(array_ret,");\n");
@@ -1587,7 +1433,8 @@ int JAVA::constructorHandler(Node *n) {
         jstypep = Getattr(jstypep,"tmap:jstype:next");
       } else {
         jstypep = nextSibling(jstypep);
-        Printf(stderr, "No jstype typemap defined for %s\n", SwigType_str(pt,0));
+        Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
+            "No jstype typemap defined for %s\n", SwigType_str(pt,0));
       }
   
       /* Add to java shadow function header */

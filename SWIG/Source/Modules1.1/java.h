@@ -28,19 +28,17 @@ public :
   virtual int pragmaDirective(Node *);
 
 private:
-  String *is_shadow(SwigType *ty);
-
-  /* Java module enums */
+  // Java module enums
   enum type_additions {none, pointer, reference};
 
-  /* Java module methods */
+  // Java module methods
+  String *is_shadow(SwigType *ty);
   void emitClassDef();
+  void emitBanner(File *f);
   void emitShadowClassDef(Node *);
-  char *jniCall(DOHString_or_char *func);
   String *makeValidJniName(const String *name);
-  char *javaMethodSignature(SwigType *t, int ret, int inShadow);
-  void writeRegisterNatives();
   void javaShadowFunctionHandler(Node* n, int is_virtual);
   void typemapApply(String *swigtype, String *tmap, String *name, type_additions additions, int array_flag);
   void addclasstypemaps(Node *n);
+  SwigType *getArrayType(SwigType *t);
 };
