@@ -1,23 +1,24 @@
-# ----------------------------------------------------------------------
-# Simplified Wrapper and Interface Generator (SWIG)
-# 
-# Authors : David Beazley
-#           Dustin Mitchell  
-#
-# Department of Computer Science        
-# University of Chicago
-# 1100 E 58th Street
-# Chicago, IL  60637
-# beazley@cs.uchicago.edu
-#
-# Please read the file LICENSE for the copyright and terms by which SWIG
-# can be used and distributed.
-# ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * Simplified Wrapper and Interface Generator (SWIG)
+ * 
+ * Authors : David Beazley
+ *           Dustin Mitchell  
+ *
+ * Department of Computer Science        
+ * University of Chicago
+ * 1100 E 58th Street
+ * Chicago, IL  60637
+ * beazley@cs.uchicago.edu
+ *
+ * Please read the file LICENSE for the copyright and terms by which SWIG
+ * can be used and distributed.
+ ---------------------------------------------------------------------- */
 
 #include "doh.h"
 #include "swigcore.h"
-
 #if 0
+static char cvstag[] = "$Header$";
+
 /*
  * SuperStrings are just like strings, except that they maintain
  * information as to the origininal file/line of each character they
@@ -25,9 +26,9 @@
  */
 
 typedef struct SSTag {
-  int position;
-  int line;
-  DOH *filename;
+  int length;			/* distance to the next tag */
+  int line;			/* of this character */
+  DOH *filename;		/* of this character */
 } SSTag;
 
 typedef struct Super {
@@ -47,39 +48,45 @@ typedef struct Super {
   SSTag *tags;			/* array of tags */
   int maxtags;			/* max size allocated for tags */
   int numtags;			/* count of tags */
+
+  int curtag;			/* last tag before point */
+  int curtag_offset;		/* offset into current tag */
 } Super;
 
 /* Forward references for member functions */
 
-static void DelSuper(DOH *s);
 static DOH *CopySuper(DOH *s);
-static void Super_clear(DOH *s);
-static DOH *Super_str(DOH *s);
-static int Super_delitem(DOH *s, int where);
-static int Super_len(DOH *s);
-static void Super_appendfv(DOH *s, char *fmt, va_list ap);
-static int Super_insertfv(DOH *s, int pos, char *fmt, va_list ap);
-static int Super_insert(DOH *s, int pos, DOH *DOH);
+static void DelSuper(DOH *s);
 static void *Super_data(DOH *s);
+static int Super_dump(DOH *s, DOH *out);
+static int Super_len(DOH *s);
 static int Super_cmp(DOH *, DOH *);
 static int Super_hash(DOH *s);
-static int Super_dump(DOH *s, DOH *out);
+static void Super_clear(DOH *s);
+static int Super_insert(DOH *s, int pos, DOH *DOH);
+static int Super_delitem(DOH *s, int where);
+static DOH *Super_str(DOH *s);
 static int Super_read(DOH *s, void *buffer, int length);
 static int Super_write(DOH *s, void *buffer, int length);
-static int Super_getc(DOH *s);
-static int Super_putc(DOH *s, int ch);
-static int Super_ungetc(DOH *s, int ch);
 static int Super_seek(DOH *s, long offset, int whence);
 static long Super_tell(DOH *s);
+static int Super_putc(DOH *s, int ch);
+static int Super_getc(DOH *s);
+static int Super_ungetc(DOH *s, int ch);
 static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
+static int Super_setfile(DOH *s, DOH *f);
+static int Super_setline(DOH *s, int);
 static void Super_chop(DOH *str);
 
 /* internal functions */
 
 static void Super_add(Super *s, const char *newstr);
-static void Super_addchar(DOH *so, char c);
 static void Super_raw_insert(Super *s, int pos, char *data, int len);
-static void Super_tags_insert(Super *s, int pos, Super *new, int len);
+static void Super_move(Super *s, int delta);
+static int Super_get_tag(Super *s, int pos, int *offset);
+static int Super_pb_getc(Super *s);
+static int replace_internal(Super *str, char *token, char *rep,
+			    int flags, char *start, int count);
 
 /* method tables */
 
@@ -101,6 +108,10 @@ static DohFileMethods SuperFileMethods = {
   Super_seek,
   Super_tell,
   0,
+  0,
+  Super_setfile,
+  0,
+  Super_setline
 };
 
 static DohSuperMethods SuperSuperMethods = {
@@ -164,23 +175,32 @@ NewSuper(char *s, DOH *filename, int firstline)
     else
       str->str[0] = 0;
 
+    str->line = firstline;
+    str->file = filename;	/* don't incref: it's 'owned' by the
+				   tag it comes from. */
+
     str->maxtags = INIT_MAXTAGS;
     str->numtags = 1;
+    str->curtag = 0;
+    str->curtag_offset = 0;
 
     str->tags = (SSTag *) DohMalloc(max * sizeof(SSTag));
     assert(str->tags);
     str->tags[0].position = 0;
+    str->tags[0].line = 1;
     if (!String_check(filename) && !SuperString_check(filename))
       filename = NewString(filename);
+    else
+      Incref(filename);
     str->tags[0].filename = filename;
 
     str->len = l;
     return (DOH *) str;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_check(DOH *s) - Check if s is a Super
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 int
 SuperString_check(DOH *s) 
 {
@@ -196,7 +216,7 @@ static DOH *
 CopySuper(DOH *so)
 {
   Super *s;
-  int max;
+  int max, i;
   Super *str;
   s = (Super *) so;
   str = (Super *) DohObjMalloc(sizeof(Super));
@@ -213,11 +233,20 @@ CopySuper(DOH *so)
   str->len = s->len;
   str->str[str->len] = 0;
 
+  str->line = s->line;
+  str->file = s->file; Incref(str->file);
+
   max = s->maxtags;
-  str->tags = (SSTag *) DohMalloc(max * sizeof(SSTag));
-  memmove(str->tags, s->tags, s->numtags * sizeof(SSTag));
   str->numtags = s->numtags;
   str->maxtags = s->maxtags;
+  str->curtag = s->curtag;
+  str->curtag_offset = s->curtag_offset;
+
+  str->tags = (SSTag *) DohMalloc(max * sizeof(SSTag));
+  memmove(str->tags, s->tags, s->numtags * sizeof(SSTag));
+
+  for (i = 0; i < str->numtags; i++)
+    Incref(str->tags[i].filename);
 
   return (DOH *) str;
 }
@@ -237,8 +266,14 @@ DelSuper(DOH *so)
   s->str = 0;
 
   if (s->tags)
-    DohFree(s->tags);
-  s->tags = 0;
+    {
+      int i;
+      for (i = 0; i < s->numtags; i++)
+	Delete(s->tags[i].filename);
+
+      DohFree(s->tags);
+    }
+  s->tags = 0;  
 
   DohObjFree(s);
 }
@@ -346,243 +381,531 @@ Super_hash(DOH *so)
  * void Super_clear(DOH *s) - Clear a Super
  * ------------------------------------------------------------------------- */
 
-void
+static void
 Super_clear(DOH *so)
 {
   Super *s;
+  int i;
+
   s = (Super *) so;
   s->hashkey = -1;
   s->len = 0;
   *(s->str) = 0;
   s->sp = 0;
   s->lsp = 0;
-  s->line = 1;
   s->pbi = 0;
-  s->numtags = 0;
+
+  for (i = 1; i < s->numtags; i++)
+    Delete(s->tags[i].filename);
+  s->tags[0].length = 0;
+
+  s->line = s->tags[0].line;
+  s->file = s->tags[0].filename;
+  s->numtags = 1;
+  s->curtag = 0;
+  s->curtag_offset = 0;
 }
   
 /* -------------------------------------------------------------------------
  * void Super_insert(DOH *so, int pos, SO *str) - Insert a Super
  * ------------------------------------------------------------------------- */
-int
+static int
 Super_insert(DOH *so, int pos, DOH *str)
 {
     Super *s, *s1;
     char   *c;
     int     len;
     s = (Super *) so;
-    /*    assert(s->refcount <= 1); */ /* quasi-immutability?!? */
     s1 = (Super *) str;
+
     len = s1->len;
     c = s1->str;
     Super_raw_insert(s,pos,c,len);
-    Super_tags_insert(s,pos,s1,len);
+    
     return 0;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_delitem(DOH *so, int pos)
  * 
  * Delete an individual item
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-int Super_delitem(DOH *so, int pos)
+static int Super_delitem(DOH *so, int pos)
 {
   Super *s = (Super *) so;
+  int thistag, nexttag;
+
   s->hashkey = -1;
   if (pos == DOH_END) pos = s->len-1;
   if (pos == DOH_BEGIN) pos = 0;
   if (s->len == 0) return 0;
 
-  if (s->sp > pos) {
-    s->sp--;
-#ifdef DOH_Super_UPDATE_LINES
-    if (s->str[pos] == '\n') s->line--;
-#endif
-  }
+  tag = Super_get_tag(s, pos, 0);
+
+  /* special handling for deleting the current character */
+  if (s->sp == pos)
+    Super_move(s, 1);	/* move ahead off of the character */
+    
+  /* move the current point */
+  else if (s->sp > pos)
+    {
+      s->sp--;
+      if (s->curtag == tag)
+	s->curtag_offset--;
+    }
+
+  /* move the string data */
   memmove(s->str+pos, s->str+pos+1, ((s->len-1) - pos));
   s->len--;
   s->str[s->len] = 0;
+
+  /* and move the tags */
+  if (! --s->tags[tag].length && tag)
+    {
+      /* eliminate an empty tag */
+      Delete(s->tags[tag].filename);
+      memmove(s->tags + tag, s->tags + tag + 1,
+	      sizeof(SSTag) * s->numtags - (tag + 1));
+      s->numtags--;
+    }
+
   return 0;
 }
   
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * DOH *Super_str(DOH *so) - Returns a Super (used by printing commands)
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-DOH *
-Super_str(DOH *so) {
-    DOH *nstr;
-    Super *s = (Super *) so;
-    nstr = CopySuper(s);
-    return nstr;
+static DOH *
+Super_str(DOH *so)
+{
+  DOH *nstr;
+  Super *s = (Super *) so;
+  nstr = CopySuper(s);
+  return nstr;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_read(DOH *so, void *buffer, int len)
  * 
  * Read data from the Super
- * ----------------------------------------------------------------------------- */
-int
-Super_read(DOH *so, void *buffer, int len) {
+ * ------------------------------------------------------------------------- */
+
+static int
+Super_read(DOH *so, void *buffer, int len)
+{
   int    reallen, retlen;
   char   *cb;
   Super *s = (Super *) so;
-  if (((s->sp-s->pbi) + len) > s->len) reallen = (s->len - (s->sp-s->pbi));
-  else reallen = len;
+
+  if (((s->sp - s->pbi) + len) > s->len)
+    len = (s->len - (s->sp - s->pbi));
 
   cb = (char *) buffer;
-  retlen = reallen;
+  retlen = len;
 
   /* Read the push-back buffer contents first */
-  while (reallen > 0) {
-    if (s->pbi <= 0) break;
-    *(cb++) = (char) s->pb[--s->pbi];
-    reallen--;
-  }
-  if (reallen > 0) {
-    memmove(cb, s->str+s->sp, reallen);
-    s->sp += reallen;
+  while (len > 0 && s->pbi)
+    {
+      *(cb++) = Source_pb_getc(s);
+      len--;
+    }
+  if (len > 0) {
+    memmove(cb, s->str+s->sp, len);
+    Super_move(s, len);
   }
   return retlen;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_write(DOH *so, void *buffer, int len)
  * 
  * Write data to the Super
- * ----------------------------------------------------------------------------- */
-int
-Super_write(DOH *so, void *buffer, int len) {
-  int    newlen;
+ * ------------------------------------------------------------------------- */
+
+static int
+Super_write(DOH *so, void *buffer, int len) 
+{
+  int    newsize;
   Super *s = (Super *) so;
+  
+  /* zero the hash and pushback */
   s->hashkey = -1;
-  newlen = s->sp + len+1;
-  if (newlen > s->maxsize) {
-    s->str = (char *) DohRealloc(s->str,newlen);
-    assert(s->str);
-    s->maxsize = newlen;
-    s->len = s->sp + len;
-  }
-  if ((s->sp+len) > s->len) s->len = s->sp + len;
-  memmove(s->str+s->sp,buffer,len);
-  s->sp += len;
   s->pbi = 0;
+
+  /* update size */
+  newsize = s->sp + len + 1;
+  if (newsize > s->maxsize) {
+    s->str = (char *) DohRealloc(s->str,newsize);
+    assert(s->str);
+    s->maxsize = newsize;
+  }
+
+  /* update length */
+  if ((s->sp + len) > s->len) 
+    s->len = s->sp + len;
+
+  /* update tag */
+  s->tag[s->curtag].length += len;
+
+  /* and copy the data */
+  memmove(s->str + s->sp, buffer, len);
+
+  /* move the point */
+  Super_move(s, len);		/* counts newlines */
   return len;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_seek(DOH *so, long offset, int whence)
  * 
  * Seek to a new position
- * ----------------------------------------------------------------------------- */
-int
-Super_seek(DOH *so, long offset, int whence) {
-  int    pos, nsp, inc;
-  Super *s = (Super *) so;
-  if (whence == SEEK_SET) pos = 0;
-  else if (whence == SEEK_CUR) pos = s->sp;
-  else if (whence == SEEK_END) {
-    pos = s->len;
-    offset = -offset;
-  }
-  else pos = s->sp;
+ * ------------------------------------------------------------------------- */
 
-  nsp = pos + offset;
-  if (nsp < 0) nsp = 0;
-  if (nsp > s->len) nsp = s->len;
-  if (nsp > s->sp) inc = 1;
-  else inc = -1;
-#ifdef DOH_Super_UPDATE_LINES
-  while (s->sp != nsp) { 
-    if (s->str[s->sp-1] == '\n') s->line += inc;
-    s->sp += inc;
-  }
-#endif
-  s->sp = nsp;
+static int
+Super_seek(DOH *so, long offset, int whence) 
+{
+  Super *s = (Super *) so;
   s->pbi = 0;
+
+  if (whence == SEEK_SET) offset = -s->sp;
+  else if (whence == SEEK_END) offset = s->len - offset;
+
+  Super_move(s, offset);
+
   return 0;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * long Super_tell(DOH *so)
  * 
  * Return current position
- * ----------------------------------------------------------------------------- */
-long
-Super_tell(DOH *so) {
+ * ------------------------------------------------------------------------- */
+static long
+Super_tell(DOH *so)
+{
   Super *s = (Super *) so;
   return (long) (s->sp - s->pbi);
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_putc(DOH *so, int ch)
  *
  * Put a character into the Super.
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-int
-Super_putc(DOH *so, int ch) {
+static int
+Super_putc(DOH *so, int ch)
+{
   Super *s = (Super *) so;
+
   s->hashkey = -1;
-  if (s->sp >= s->len) {
-    Super_addchar(s,(char) ch);
-  } else {
-    s->str[s->sp] = (char) ch;
-    s->sp++;
-#ifdef DOH_Super_UPDATE_LINES
-  if (ch == '\n') s->line++;
-#endif
-  }
   s->pbi = 0;
+
+  /* either append or overwrite */
+  if (s->sp >= s->len)
+    {
+      if (s->len + 1 >= s->maxsize) {
+	s->str = (char *) DohRealloc(s->str ,2 * s->maxsize);
+	assert(s->str);
+	s->maxsize *= 2;
+      }
+      s->str[s->len++] = c;
+      s->str[s->len] = 0;
+    }
+  else
+    s->str[s->sp] = (char) ch;
+
+  /* and move ahead over the new character */
+  Super_move(s, 1)
   return ch;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_getc(DOH *so)
  *
  * Get a character from the Super.  Updates the line number.
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-int Super_getc(DOH *so) {
+static int
+Super_getc(DOH *so)
+{
   int c;
   Super *s = (Super *) so;
 
-  if (s->pbi) {
-    c = (int) s->pb[--s->pbi];
-  } else if (s->sp >= s->len) c = EOF;
-  else c = (int) s->str[s->sp++];
-#ifdef DOH_Super_UPDATE_LINES
-  if (c == '\n') s->line++;
-#endif
+  if (s->pbi)
+    return Super_pb_getc(s);
+  else if (s->sp >= s->len)
+    return EOF;
+
+  c = (int) s->str[s->sp];
+  Super_move(s, 1);
   return c;
 }
 
-/* -----------------------------------------------------------------------------
+/* -------------------------------------------------------------------------
  * int Super_ungetc(DOH *so, int ch)
  *
  * Put a character back on to the input stream.  Updates the line count.
- * ----------------------------------------------------------------------------- */
-int Super_ungetc(DOH *so, int ch) {
+ * ------------------------------------------------------------------------- */
+static int
+Super_ungetc(DOH *so, int ch) 
+{
   Super *s = (Super *) so;
+
   if (ch == EOF) return ch;
   if ((s->sp - s->pbi) <= 0) return EOF;
-  if (s->pbi == 4) {
-    s->pb[0] = s->pb[1];
-    s->pb[1] = s->pb[2];
-    s->pb[2] = s->pb[3];
-    s->pb[3] = (char) ch;
-  } else {
+  if (s->pbi == 4)
+    {
+      s->pb[0] = s->pb[1], s->pb[1] = s->pb[2];
+      s->pb[2] = s->pb[3], s->pb[3] = (char)ch;
+    }
+  else
     s->pb[s->pbi++] = (char) ch;
-  }
-#ifdef DOH_Super_UPDATE_LINES
-  if (ch == '\n') s->line--;
-#endif
+  if (ch == (int)'\n')
+    s->line--;
   return ch;
 }
 
-/* -----------------------------------------------------------------------------
- * int replace_internal(Super *str, char *token, char *rep, int flags, char *start, int count)
+
+/* -------------------------------------------------------------------------
+ * int Super_replace(DOH *str, DOH *token, DOH *rep, int flags)
+ * ------------------------------------------------------------------------- */
+
+static int 
+Super_replace(DOH *stro, DOH *token, DOH *rep, int flags)
+{
+  int count = -1;
+  Super *str;
+  str = (Super *)stro;
+  if (flags & DOH_REPLACE_FIRST) count = 1;
+  return replace_internal(str,Char(token),Char(rep),flags,str->str,count);
+}
+
+/* -------------------------------------------------------------------------
+ * void Super_setfile(DOH *obj, DOH *f)
+ * ------------------------------------------------------------------------- */
+
+static void
+Super_setfile(DOH *obj, DOH *f)
+{
+  assert(0);			/* illegal operation */
+}
+
+/* -------------------------------------------------------------------------
+ * void Super_setline(DOH *obj, int l)
+ * ------------------------------------------------------------------------- */
+
+static void
+Super_setline(DOH *obj, int l)
+{
+  assert(0);			/* illegal operation */
+}
+
+/* -------------------------------------------------------------------------
+ * void Super_chop(DOH *str)
+ * ------------------------------------------------------------------------- */
+
+void
+Super_chop(DOH *so) {
+  char *c;
+  int len, tag, offset;
+  Super *s = (Super *) so;
+  
+  /* check this one for obiwans */
+
+  s->hashkey = -1;
+  s->pbi = 0;
+
+  /* find trailing whitespace */
+  c = s->str + s->len - 1;
+  while ((s->len >= 0) && (isspace(*c))) 
+    c--;
+  len = c - str->str + 1;
+
+  /* Move the point back if necessary */
+  if (s->sp > len)
+    Super_move(len - s->sp);
+
+  tag = Super_get_tag(s, len, &offset);
+
+  /* Delete any relevant tags... */
+  while (--s->numtags > tag)
+      Delete(s->tags[s->numtags].filename);
+  s->numtags++;
+  s->tags[tag].length = offset;
+
+  s->len = len;
+}
+
+/* ---- internal functions ---- */
+  
+/* -------------------------------------------------------------------------
+ * static Super_add(Super *s, const char *newstr) - Append to s
+ * ------------------------------------------------------------------------- */
+/********************************* */
+static void
+Super_add(Super *s, const char *newstr)
+{
+  int   newlen, newmaxsize, l, i;
+  if (!newstr) return;
+  s->hashkey = -1;
+  l = (int) strlen(newstr);
+  newlen = s->len+l + 1;
+  if (newlen >= s->maxsize-1) {
+    newmaxsize = 2*s->maxsize;
+    if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
+    s->str = (char *) DohRealloc(s->str,newmaxsize);
+    assert(s->str);
+    s->maxsize = newmaxsize;
+  }
+  strcpy(s->str+s->len,newstr);
+  if (s->sp >= s->len) {
+#ifdef DOH_Super_UPDATE_LINES
+    for (i = s->sp; i < s->len+l; i++) {
+      if (s->str[i] == '\n') s->line++;
+    }
+#endif
+    s->sp = s->len+l;
+  }
+  s->len += l;
+}  
+
+/* -------------------------------------------------------------------------
+ * static Super_raw_insert(Super *s, int pos, char *data, int len)
+ * ------------------------------------------------------------------------- */
+
+static void
+Super_raw_insert(Super *s, int pos, char *data, int len)
+{
+    char *nstr;
+    nstr = s->str;
+    s->hashkey = -1;
+    if (pos == DOH_END) {
+	Super_add(s, data);
+	return;
+    }
+    if (pos < 0) pos = 0;
+    else if (pos > s->len) pos = s->len;
+
+    /* See if there is room to insert the new data */
+
+    while (s->maxsize <= s->len+len) {
+	s->str = (char *) DohRealloc(s->str,2*s->maxsize);
+	assert(s->str);
+	s->maxsize *= 2;
+    }
+    memmove(s->str+pos+len, s->str+pos, (s->len - pos));
+    memcpy(s->str+pos,data,len);
+    if (s->sp >= s->len) {
+      int i;
+      s->sp = s->len;
+#ifdef DOH_Super_UPDATE_LINES
+      for (i = 0; i < len; i++) {
+	if (data[i] == '\n') s->line++;
+      }
+#endif
+      s->sp+=len;
+    }
+    s->len += len; 
+    s->str[s->len] = 0;
+
+    if (SuperString_check(str))
+      {
+	
+      }
+    else
+      {
+	
+      }
+}  
+
+/* -------------------------------------------------------------------------
+ * static Super_move(Super *s, int delta)
+ * ------------------------------------------------------------------------- */
+
+static void 
+Super_move(Super *s, int delta)
+{
+  int changed_tag = 0;
+  int curtag_offset = s->curtag_offset;
+  int line_offset;
+
+  if (delta > len - s->sp)
+    delta = len - s->sp;
+
+  while (1)
+    {
+      int remaining = s->tags[s->curtag].length - curtag_offset;
+      
+      if (delta > remaining)
+	{
+	  delta -= remaining;
+	  s->sp += remaining;
+	  s->curtag++;
+	  curtag_offset = 0;
+	}
+      else
+	{
+	  char *p, *e;
+	  
+	  /* count newlines */
+	  line_offset = 0;
+	  p = s->str + s->sp;
+	  e = p + delta;
+	  while (p < e)
+	    if (*(p++) == '\n')
+	      line_offset++;
+
+	  curtag_offset += delta;
+	  s->sp += delta;
+
+	  break;
+	}
+    }
+
+  s->curtag_offset = curtag_offset;
+  s->file = s->tags[s->curtag].filename;
+  s->line = s->tags[s->curtag].line + line_offset;
+}
+
+/* -------------------------------------------------------------------------
+ * static int Super_get_tag(Super *s, int pos, int *offset)
+ * ------------------------------------------------------------------------- */
+
+static int
+Super_get_tag(Super *s, int pos, int *offset)
+{
+  int tag = 0;
+  SSTag *tags = s->tags;
+
+  while (pos > tags->length)
+    {
+      pos -= tags->length;
+      tags++;
+      tag++;
+    }
+
+  if (offset) *offset = pos;
+  return tag;
+}
+
+/* -------------------------------------------------------------------------
+ * static int Super_pb_getc(Super *s)
+ * ------------------------------------------------------------------------- */
+
+static int
+Super_pb_getc(Super *s, int pos)
+{
+  int c = s->pb[--s->pbi];
+  if (c == (int)'\n') s->line++;
+  return c;
+}
+
+/* -------------------------------------------------------------------------
+ * int replace_internal(Super *str, char *token, char *rep, int flags, 
+ #                      char *start, int count)
  *
  * Replaces token with rep.  flags is as follows:
  *
@@ -592,10 +915,11 @@ int Super_ungetc(DOH *so, int ch) {
  *         REPLACE_FIRST         -   Only replace first occurrence
  * 
  * start is a starting position. count is a count.
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
-static
-int replace_internal(Super *str, char *token, char *rep, int flags, char *start, int count)
+static int
+replace_internal(Super *str, char *token, char *rep, int flags,
+		 char *start, int count)
 {
     char *s, *c, *t;
     int  tokenlen;
@@ -701,155 +1025,5 @@ int replace_internal(Super *str, char *token, char *rep, int flags, char *start,
 	DohFree(s);
     }
     return repcount;
-}
-
-/* -----------------------------------------------------------------------------
- * int Super_replace(DOH *str, DOH *token, DOH *rep, int flags)
- * ----------------------------------------------------------------------------- */
-
-int 
-Super_replace(DOH *stro, DOH *token, DOH *rep, int flags)
-{
-    int count = -1;
-    Super *str;
-    if (!Super_check(stro)) return 0;
-    str = (Super *) stro;
-    assert(str->refcount);
-    /* assert(!str->refcount); */
-    if (flags & DOH_REPLACE_FIRST) count = 1;
-    return replace_internal(str,Char(token),Char(rep),flags,str->str,count);
-}
-
-/* -----------------------------------------------------------------------------
- * void Super_chop(DOH *str)
- * ----------------------------------------------------------------------------- */
-
-void
-Super_chop(DOH *s) {
-  char *c;
-  Super *str = (Super *) s;
-  if (!Super_check(s)) return;
-  /* assert(!str->refcount); */
-  
-  /* Replace trailing whitespace */
-  c = str->str + str->len - 1;
-  while ((str->len >= 0) && (isspace(*c))) {
-    if (str->sp >= str->len) {
-      str->sp--;
-#ifdef DOH_Super_UPDATE_LINES
-      if (*c == '\n') str->line--;
-#endif
-    }
-    str->len--;
-    c--;
-  }
-  str->hashkey = -1;
-  str->pbi = 0;
-}
-
-/* ---- internal functions ---- */
-  
-/* -------------------------------------------------------------------------
- * static Super_add(Super *s, const char *newstr) - Append to s
- * ------------------------------------------------------------------------- */
-
-static void
-Super_add(Super *s, const char *newstr)
-{
-  int   newlen, newmaxsize, l, i;
-  if (!newstr) return;
-  s->hashkey = -1;
-  l = (int) strlen(newstr);
-  newlen = s->len+l + 1;
-  if (newlen >= s->maxsize-1) {
-    newmaxsize = 2*s->maxsize;
-    if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    s->str = (char *) DohRealloc(s->str,newmaxsize);
-    assert(s->str);
-    s->maxsize = newmaxsize;
-  }
-  strcpy(s->str+s->len,newstr);
-  if (s->sp >= s->len) {
-#ifdef DOH_Super_UPDATE_LINES
-    for (i = s->sp; i < s->len+l; i++) {
-      if (s->str[i] == '\n') s->line++;
-    }
-#endif
-    s->sp = s->len+l;
-  }
-  s->len += l;
-}  
-
-/* -------------------------------------------------------------------------
- * static Super_addchar(DOH *so, char c) - Add a single character to s
- * ------------------------------------------------------------------------- */
-
-static void
-Super_addchar(DOH *so, char c) {
-  Super *s = (Super *) so;
-  s->hashkey = -1;
-  if ((s->len+1) > (s->maxsize-1)) {
-    s->str = (char *) DohRealloc(s->str,2*s->maxsize);
-    assert(s->str);
-    s->maxsize *= 2;
-  }
-  s->str[s->len] = c;
-  if (s->sp >= s->len) {
-    s->sp = s->len+1;
-    s->str[s->len+1] = 0;
-#ifdef DOH_Super_UPDATE_LINES
-    if (c == '\n') s->line++;
-#endif
-  }
-  s->len++;
-}
-
-/* -------------------------------------------------------------------------
- * static Super_raw_insert(Super *s, int pos, char *data, int len)
- * ------------------------------------------------------------------------- */
-
-static void
-Super_raw_insert(Super *s, int pos, char *data, int len)
-{
-    char *nstr;
-    nstr = s->str;
-    s->hashkey = -1;
-    if (pos == DOH_END) {
-	Super_add(s, data);
-	return;
-    }
-    if (pos < 0) pos = 0;
-    else if (pos > s->len) pos = s->len;
-
-    /* See if there is room to insert the new data */
-
-    while (s->maxsize <= s->len+len) {
-	s->str = (char *) DohRealloc(s->str,2*s->maxsize);
-	assert(s->str);
-	s->maxsize *= 2;
-    }
-    memmove(s->str+pos+len, s->str+pos, (s->len - pos));
-    memcpy(s->str+pos,data,len);
-    if (s->sp >= s->len) {
-      int i;
-      s->sp = s->len;
-#ifdef DOH_Super_UPDATE_LINES
-      for (i = 0; i < len; i++) {
-	if (data[i] == '\n') s->line++;
-      }
-#endif
-      s->sp+=len;
-    }
-    s->len += len; 
-    s->str[s->len] = 0;
-}  
-
-/* -------------------------------------------------------------------------
- * static Super_tags_insert(Super *s, int pos, char *data, int len)
- * ------------------------------------------------------------------------- */
-
-static void 
-Super_tags_insert(Super *s, int pos, Super *new, int len)
-{
 }
 #endif
