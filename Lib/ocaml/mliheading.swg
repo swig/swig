@@ -1,3 +1,4 @@
+(* -*- tuareg -*- *)
 type c_obj = 
     C_void
   | C_bool of bool
@@ -25,3 +26,22 @@ exception LabelNotFromThisEnum of c_obj
 
 val invoke : c_obj -> (string -> c_obj -> c_obj)
 val get_int : c_obj -> int
+val get_float : c_obj -> float
+val get_string : c_obj -> string
+val get_char : c_obj -> char
+val get_bool : c_obj -> bool
+
+val make_float : float -> c_obj
+val make_double : float -> c_obj
+val make_string : string -> c_obj
+val make_bool : bool -> c_obj
+val make_char : char -> c_obj
+val make_char_i : int -> c_obj
+val make_uchar : char -> c_obj
+val make_uchar_i : int -> c_obj
+val make_short : int -> c_obj
+val make_ushort : int -> c_obj
+val make_int : int -> c_obj
+val make_uint : int -> c_obj
+val make_int32 : int -> c_obj
+val make_int64 : int -> c_obj

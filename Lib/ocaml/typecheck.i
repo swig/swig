@@ -8,8 +8,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_char: $1 = 1;
-      default: $1 = 0;  
+      case C_char: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -18,8 +18,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_uchar: $1 = 1;
-      default: $1 = 0;  
+      case C_uchar: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -28,8 +28,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_short: $1 = 1;
-      default: $1 = 0;  
+      case C_short: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -38,8 +38,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_ushort: $1 = 1;
-      default: $1 = 0;  
+      case C_ushort: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -51,8 +51,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_int: $1 = 1;
-      default: $1 = 0;  
+      case C_int: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -61,9 +61,9 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_uint: $1 = 1;
-      case C_int32: $1 = 1;
-      default: $1 = 0;  
+      case C_uint: $1 = 1; break;
+      case C_int32: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -72,8 +72,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_int64: $1 = 1;
-      default: $1 = 0;  
+      case C_int64: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -82,8 +82,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_bool: $1 = 1;
-      default: $1 = 0;  
+      case C_bool: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }
 }
@@ -92,8 +92,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_float: $1 = 1;
-      default: $1 = 0;  
+      case C_float: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }  
 }
@@ -102,8 +102,8 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_double: $1 = 1;
-      default: $1 = 0;  
+      case C_double: $1 = 1; break;
+      default: $1 = 0; break;
       }
   }  
 }
