@@ -157,7 +157,7 @@
 %define %cstring_output_maxsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
    $2 = caml_val_long($input);
-#ifdef __cpluscplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[$2+1];
 #else
    $1 = ($1_ltype) malloc($2+1);
@@ -189,7 +189,7 @@
 %define %cstring_output_withsize(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
    int n = caml_val_long($input);
-#ifdef __cpluscplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[n+1];
    $2 = ($2_ltype) new $*1_ltype;
 #else
