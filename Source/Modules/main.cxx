@@ -58,6 +58,7 @@ static char *usage = (char*)"\
      -c++            - Enable C++ processing\n\
      -co             - Check a file out of the SWIG library\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
+     -E              - Preprocess only, does not generate wrapper code\n\
      -fcompact       - Compile in compact mode\n\
      -fvirtual       - Compile in virtual elimination mode\n\
      -help           - This output\n\
@@ -388,7 +389,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
  	      fprintf(stderr,"\nSWIG Version %s\n", PACKAGE_VERSION);
 	      fprintf(stderr,"Copyright (c) 1995-1998\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
-              fprintf(stderr,"Copyright (c) 1998-2002\n");
+              fprintf(stderr,"Copyright (c) 1998-2003\n");
 	      fprintf(stderr,"University of Chicago\n");
 	      fprintf(stderr,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	      fprintf(stderr,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
@@ -488,7 +489,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   
   if (help) {
-    Printf(stderr,"\nNote: 'swig -lang -help' displays options for a specific language module.\n\n");
+    Printf(stderr,"\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
     SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
   }
 
