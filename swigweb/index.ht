@@ -38,6 +38,11 @@ an abundance of spare time.
 <p>
 <h3>News</h3>
 <p>
+(7/16/01) A Macintosh port of <a
+href="http://prdownloads.sourceforge.net/swig/SWIG-1.3.6.sit">SWIG-1.3.6</a>
+has been contributed by Luigi Ballabio.
+
+<p>
 (7/10/01) <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG-1.3.6</a> has been released.  This release includes substantial changes
 to the language modules and greatly improved support for Guile, Java, and 
 Ruby.
