@@ -98,7 +98,7 @@ or you can use the %apply directive :
   %typemap(freearg) Type *INPUT, Type &INPUT
     "if (res$argnum == SWIG_NEWOBJ) delete $1;";
   %typemap(typecheck,precedence=code,fragment=asptr_frag) Type *INPUT, Type &INPUT
-    "$1 = asptr_meth($input, (Type*)0) != 0;"
+    "$1 = asptr_meth($input, (Type**)0) != 0;"
 %enddef
 
 // OUTPUT typemaps.   These typemaps are used for parameters that
