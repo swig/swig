@@ -55,6 +55,9 @@ public class runme
       Foo foo = new Foo();
       foo.newname(); 
       foo.newname(10); 
+      foo.renamed3arg(10, 10.0); 
+      foo.renamed2arg(10); 
+      foo.renamed1arg(); 
 
       // exception specifications
       try {

@@ -70,6 +70,9 @@ if (default_args::reftest2() != "hello") {
 $foo = new default_args::Foo();
 $foo->newname(); 
 $foo->newname(10); 
+$foo->renamed3arg(10, 10.0); 
+$foo->renamed2arg(10); 
+$foo->renamed1arg(); 
  
 # exception specifications
 eval { default_args::exceptionspec() };

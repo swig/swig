@@ -76,6 +76,10 @@
 %rename(bar2) Foo::bar;
 %rename(newname) Foo::oldname(int x = 1234);
 %ignore Foo::Foo(int x, int y = 0, int z = 0);
+%ignore Foo::meth(int x, int y = 0, int z = 0);
+%rename(renamed3arg) Foo::renameme(int x, double d) const;
+%rename(renamed2arg) Foo::renameme(int x) const;
+%rename(renamed1arg) Foo::renameme() const;
 
 %inline %{
 
@@ -88,6 +92,8 @@
       Foo(){}
      
       Foo(int x, int y = 0, int z = 0){}
+
+      void meth(int x, int y = 0, int z = 0){}
     
       // Use a renamed member as a default argument.  SWIG has to resolve
       // bar to Foo::bar and not Foo::spam.  SWIG-1.3.11 got this wrong.
@@ -99,6 +105,7 @@
 
       // test the method itself being renamed
       void oldname(int x = 1234) {}
+      void renameme(int x = 1234, double d=123.4) const {}
   };
   int Foo::bar = 1;
   int Foo::spam = 2;
