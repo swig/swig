@@ -49,6 +49,7 @@ CPP_TEST_BROKEN += \
 	defvalue_constructor \
 	exception_order \
 	namespace_union \
+	smart_pointer_namespace2 \
 	template_default_arg \
 	template_specialization_defarg \
 	template_specialization_enum \
@@ -171,6 +172,7 @@ CPP_TEST_CASES += \
 	smart_pointer_const2 \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
+	smart_pointer_namespace \
 	smart_pointer_not \
 	smart_pointer_overload \
 	smart_pointer_protected \
