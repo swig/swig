@@ -91,11 +91,12 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
   if (filter) {
     char    temp[32];    
     char *c;
+    char *f = Char(filter);
     sprintf(temp,"%d",wnum);
-    c = Strstr(filter,temp);
-    if (c) {
+    while(*f != '\0' && (c = strstr(f,temp))) {
       if (*(c-1) == '-') wrn = 0;     /* Warning disabled */
       if (*(c-1) == '+') wrn = 1;     /* Warning enabled */
+      f += strlen(temp);
     }
   }
   if (warnall || wrn) {
