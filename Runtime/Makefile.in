@@ -73,8 +73,7 @@ tcl: libswigtcl8$(RELEASESUFFIX).la
 
 libswigtcl8$(RELEASESUFFIX).la:
 	rm -f swigtcl8.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(TCL_RUNTIME) >> swigtcl8.c
-#	-cp $(srcdir)/$(TCL_RUNTIME) swigtcl8.c
+	cat $(SWIG_TYPECHECK) $(TCL_RUNTIME) >> swigtcl8.c
 	$(LIBTOOL) $(CC) -c $(TCL_INCLUDE) -DSWIG_GLOBAL swigtcl8.c
 	$(LIBTOOL) $(CC) -o libswigtcl8$(RELEASESUFFIX).la swigtcl8.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -92,8 +91,7 @@ python: libswigpy$(RELEASESUFFIX).la
 libswigpy$(RELEASESUFFIX).la:
 	rm -f libpy.c
 	echo '#include "Python.h"' >> libpy.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PYTHON_RUNTIME) >> libpy.c
-#	-cp $(srcdir)/$(PYTHON_RUNTIME) libpy.c
+	cat $(SWIG_TYPECHECK) $(PYTHON_RUNTIME) >> libpy.c
 	$(LIBTOOL) $(CC) -c $(PYTHON_INCLUDE) -DSWIG_GLOBAL libpy.c
 	$(LIBTOOL) $(CC) -o libswigpy$(RELEASESUFFIX).la libpy.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -109,10 +107,9 @@ PERL5_CCFLAGS = @PERL5CCFLAGS@
 
 perl5: libswigpl$(RELEASESUFFIX).la
 
-libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME)
+libswigpl$(RELEASESUFFIX).la: $(SWIG_TYPECHECK) $(PERL5_RUNTIME)
 	@rm -f libperl.c
-#	cat $(srcdir)/perlrun.h >> libperl.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME) >> libperl.c
+	cat $(SWIG_TYPECHECK) $(PERL5_RUNTIME) >> libperl.c
 	$(LIBTOOL) $(CC) -c $(PERL5_INCLUDE) -DSWIG_GLOBAL -Dbool=char -Dexplicit= $(PERL5_CCFLAGS) libperl.c
 	$(LIBTOOL) $(CC) -o libswigpl$(RELEASESUFFIX).la libperl.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -131,7 +128,7 @@ ruby: libswigrb$(RELEASESUFFIX).la
 
 libswigrb$(RELEASESUFFIX).la:
 	rm -f librb.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(RUBY_RUNTIME) $(SWIGLIB)/ruby/rubydef.swg >> librb.c
+	cat $(SWIG_TYPECHECK) $(RUBY_RUNTIME) $(SWIGLIB)/ruby/rubydef.swg >> librb.c
 	$(LIBTOOL) $(CC) $(RUBY_CFLAGS) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
 	$(LIBTOOL) $(CC) -o libswigrb$(RELEASESUFFIX).la librb.lo -rpath $(LIB_DIR) $(RUBY_DLNK) -avoid-version
 
@@ -148,7 +145,7 @@ guile: libswigguile$(RELEASESUFFIX).la
 
 libswigguile$(RELEASESUFFIX).la: $(GUILE_RUNTIME)
 	rm -f libguile.c
-	cat $(srcdir)/$(GUILE_RUNTIME) >> libguile.c
+	cat $(GUILE_RUNTIME) >> libguile.c
 	$(LIBTOOL) $(CC) -c $(GUILE_INCLUDE) -DSWIG_GLOBAL libguile.c
 	$(LIBTOOL) $(CC) -o libswigguile$(RELEASESUFFIX).la libguile.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -166,7 +163,7 @@ mzscheme: libswigmz$(RELEASESUFFIX).la
 
 libswigmz$(RELEASESUFFIX).la: $(MZSCHEME_RUNTIME)
 	rm -f libmz.c
-	cat $(srcdir)/$(MZSCHEME_RUNTIME) >> libmz.c
+	cat $(MZSCHEME_RUNTIME) >> libmz.c
 	$(MZC) ++ccf "-DSWIG_GLOBAL" --cc libmz.c
 	if [ ! -d .libs ] ; then mkdir .libs; fi
 	$(MZC) --ld .libs/libswigmz$(RELEASESUFFIX)$(SO) libmz.o
@@ -180,9 +177,9 @@ PHP4_RUNTIME = $(SWIGLIB)/php4/php4run.swg
 
 php4: libswigphp4$(RELEASESUFFIX).la
 
-libswigphp4$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PHP4_RUNTIME)
+libswigphp4$(RELEASESUFFIX).la: $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
 	@rm -f libphp4.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PHP4_RUNTIME) >> libphp4.c
+	cat $(SWIG_TYPECHECK) $(PHP4_RUNTIME) >> libphp4.c
 	$(LIBTOOL) $(CC) -c $(PHP4_INCLUDE) -DSWIG_GLOBAL libphp4.c
 	$(LIBTOOL) $(CC) -o libswigphp4$(RELEASESUFFIX).la libphp4.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -200,7 +197,7 @@ ocaml: libswigocaml$(RELEASESUFFIX).la
 
 libswigocaml$(RELEASESUFFIX).la:
 	rm -f libswigocaml.c
-	cat $(srcdir)/$(OCAML_RUNTIME) >> libswigocaml.c
+	cat $(OCAML_RUNTIME) >> libswigocaml.c
 	$(LIBTOOL) $(CC) $(OCAML_CFLAGS) -c $(OCAML_INCLUDE) -DSWIG_GLOBAL libswigocaml.c
 	$(LIBTOOL) $(CC) -o libswigocaml$(RELEASESUFFIX).la libswigocaml.lo -rpath $(LIB_DIR)
 
@@ -217,7 +214,7 @@ pike: libswigpike$(RELEASESUFFIX).la
 
 libswigpike$(RELEASESUFFIX).la:
 	rm -f libpike.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PIKE_RUNTIME) >> libpike.c
+	cat $(SWIG_TYPECHECK) $(PIKE_RUNTIME) >> libpike.c
 	$(LIBTOOL) $(CC) -c $(PIKE_INCLUDE) -DSWIG_GLOBAL libpike.c
 	$(LIBTOOL) $(CC) -o libswigpike$(RELEASESUFFIX).la libpike.lo -rpath $(LIB_DIR) -avoid-version
 
@@ -235,7 +232,7 @@ chicken: libswigchicken$(RELEASESUFFIX).la
 libswigchicken$(RELEASESUFFIX).la: $(CHICKEN_RUNTIME)
 	rm -f libchicken.c
 	echo '#include "chicken.h"' >> libchicken.c
-	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(CHICKEN_RUNTIME) >> libchicken.c
+	cat $(SWIG_TYPECHECK) $(CHICKEN_RUNTIME) >> libchicken.c
 	$(LIBTOOL) $(CC) -c $(CHICKENOPTS) -DSWIG_GLOBAL libchicken.c
 	$(LIBTOOL) $(CC) -o libswigchicken$(RELEASESUFFIX).la libchicken.lo -rpath $(LIB_DIR) -avoid-version
 
