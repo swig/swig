@@ -67,6 +67,7 @@ typedef  DOH     Node;
 #define   T_REFERENCE  35
 #define   T_ARRAY      36
 #define   T_FUNCTION   37
+#define   T_MPOINTER   38
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
@@ -178,6 +179,7 @@ typedef DOH SwigType;
 
 extern SwigType   *NewSwigType(int typecode);
 extern void        SwigType_add_pointer(SwigType *t);
+extern void        SwigType_add_memberpointer(SwigType *t, String_or_char *qual);
 extern void        SwigType_del_pointer(SwigType *t);
 extern void        SwigType_add_array(SwigType *t, String_or_char *size);
 extern void        SwigType_add_reference(SwigType *t);
@@ -195,6 +197,7 @@ extern String     *SwigType_lcaststr(SwigType *s, const String_or_char *id);
 extern String     *SwigType_manglestr(SwigType *t);
 extern SwigType   *SwigType_ltype(SwigType *t);
 extern int         SwigType_ispointer(SwigType *t);
+extern int         SwigType_ismemberpointer(SwigType *t);
 extern int         SwigType_isreference(SwigType *t);
 extern int         SwigType_isarray(SwigType *t);
 extern int         SwigType_isfunction(SwigType *t);

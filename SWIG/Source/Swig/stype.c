@@ -38,12 +38,12 @@ static char cvsroot[] = "$Header$";
  *
  * All type constructors are denoted by a trailing '.':
  * 
- *  'p.'                = Pointer
- *  'r.'                = Reference
- *  'a(n).'             = Array of size n
- *  'f(..,..).'         = Function with arguments
- *  'q(str).'           = Qualifier (such as const or volatile)
- *  't(...).'           = Template specifier???
+ *  'p.'                = Pointer (*)
+ *  'r.'                = Reference (&)
+ *  'a(n).'             = Array of size n  [n]
+ *  'f(..,..).'         = Function with arguments  (args)
+ *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
+ *  'm(qual).'          = Pointer to member (qual::*)
  *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
@@ -158,6 +158,19 @@ SwigType_del_pointer(SwigType *t) {
     abort();
   }
   Replace(t,"p.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_add_memberpointer()
+ * 
+ * Add a pointer to a member to a type
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_add_memberpointer(SwigType *t, String_or_char *name) {
+  String *temp = NewStringf("m(%s).", name);
+  Insert(t,0,temp);
+  Delete(temp);
 }
 
 /* -----------------------------------------------------------------------------
@@ -422,6 +435,15 @@ int SwigType_ispointer(SwigType *t) {
   return 0;
 }
 
+int SwigType_ismemberpointer(SwigType *t) {
+  char *c;
+  c = Char(t);
+  if (strncmp(c,"m(",2) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
 int SwigType_isreference(SwigType *t) {
   char *c;
   c = Char(t);
@@ -624,6 +646,7 @@ SwigType_array_type(SwigType *ty) {
  *     References:    r.SWIGREFERENCE
  *     Arrays:        a().SWIGARRAY
  *     Types:         SWIGTYPE
+ *     MemberPointer: m(SWIGMEMBER).SWIGPOINTER
  *
  * ----------------------------------------------------------------------------- */
 
@@ -655,6 +678,8 @@ SwigType *SwigType_default(SwigType *t) {
     def = NewString("r.SWIGREFERENCE");
   } else if (SwigType_isarray(r)) {
     def = NewString("a().SWIGARRAY");
+  } else if (SwigType_ismemberpointer(r)) {
+    def = NewString("m(SWIGMEMBER).SWIGPOINTER");
   } else {
     def = NewString("SWIGTYPE");
   }
@@ -702,6 +727,17 @@ SwigType_str(SwigType *s, const String_or_char *id)
 	Insert(result,0,"(");
 	Append(result,")");
       }
+    }
+    else if (SwigType_ismemberpointer(element)) {
+      String *q;
+      q = SwigType_parm(element);
+      Insert(result,0,"::*");
+      Insert(result,0,q);
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
+      Delete(q);
     }
     else if (SwigType_isreference(element)) Insert(result,0,"&");
     else if (SwigType_isarray(element)) {
@@ -780,6 +816,9 @@ SwigType_ltype(SwigType *s) {
   for (i = 0; i < nelements; i++) {
     element = Getitem(elements,i);
     if (SwigType_ispointer(element)) {
+      Append(result,element);
+      firstarray = 0;
+    } else if (SwigType_ismemberpointer(element)) {
       Append(result,element);
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
@@ -878,6 +917,17 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
     }
     if (SwigType_ispointer(element)) {
       Insert(result,0,"*");
+      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+	Insert(result,0,"(");
+	Append(result,")");
+      }
+      firstarray = 0;
+    } else  if (SwigType_ismemberpointer(element)) {
+      String *q;
+      Insert(result,0,"::*");
+      q = SwigType_parm(element);
+      Insert(result,0,q);
+      Delete(q);
       if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
 	Insert(result,0,"(");
 	Append(result,")");
@@ -984,7 +1034,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   Replace(result,"union ","", DOH_REPLACE_ANY);
   c = Char(result);
   while (*c) {
-    if (!isalnum(*c)) *c = '_';
+    if (*c == '<') *c = 'T';
+    else if (*c == '>') *c = 't';
+    else if (!isalnum(*c)) *c = '_';
     c++;
   }
   Insert(result,0,"_");
@@ -1245,7 +1297,7 @@ int SwigType_type(SwigType *t)
   }
   if (strncmp(c,"a(",2) == 0) return T_ARRAY;
   if (strncmp(c,"r.",2) == 0) return T_REFERENCE;
-  
+  if (strncmp(c,"m(",2) == 0) return T_MPOINTER;
   if (strncmp(c,"q(",2) == 0) {
     while(*c && (*c != '.')) c++;
     if (*c) return SwigType_type(c+1);
