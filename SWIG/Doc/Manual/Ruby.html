@@ -122,40 +122,17 @@ $ <b>ruby -e 'puts $:.join("\n")'</b>
 
 <a name="n15"></a><h3>Compiling a dynamic module</h3>
 
-The preferred approach to building an extension module is to compile it into a
-shared object file or DLL.   To do this, you will need to compile your program
-using commands like this (shown for Linux):
-
-<p>
-<blockquote><pre>
-$ <b>swig -ruby example.i</b>
-$ <b>gcc -c example.c</b>
-$ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> 
-$ <b>gcc -shared example.o example_wrap.o -o Example.so</b>
-</pre></blockquote>
-
-The exact commands for doing this vary from platform to platform.  (For
-example, on other platforms it is necessary to compile with the <tt>-fPIC</tt>
-option to make the <tt>.o</tt> files position independent.)  SWIG tries
-to guess the right options when it is installed.  Therefore, you may want to
-start with one of the examples in the <tt>SWIG/Examples/ruby</tt> directory.
-If that doesn't work, you will need to read the man-pages for your compiler and
-linker to get the right set of options.  You might also check the <a
-href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> for additional
-information.
-
-<p> 
-
-However the politically "correct" way to compile a Ruby extension is to
-follow the steps described <tt>README.EXT</tt> in Ruby distribution:
-</p>
+Ruby extension modules are typically compiled into shared libraries that the
+interpreter loads dynamically at runtime. Since the exact commands for doing
+this vary from platform to platform, your best bet is to follow the steps
+described in the <tt>README.EXT</tt> file from the Ruby distribution:<p>
 <ol>
 <li>Create a file called <tt>extconf.rb</tt> that looks like the
 following:</>
 <blockquote>
 <pre>
 require 'mkmf'
-create_makefile('interface')
+create_makefile('example')
 </pre>
 </blockquote>
 <li>Type the following to build the extension:</p>
@@ -167,9 +144,6 @@ $ <b>make install</b>
 </pre>
 </blockquote>
 </ol>
-Because the compilation step is performed here, there should be no need
-to invoke the SWIG <tt>Examples/Makefile</tt>.  
-<p>
 
 Of course, there is the problem that mkmf does not work correctly on all
 platforms, e.g, HPUX.  If you need to add your own make rules to the file that
@@ -186,52 +160,49 @@ open("Makefile", "a") { |mf|
 </blockquote>
 to the end of the <tt>extconf.rb</tt> file.
 
-
-<a name="n16"></a><h3> Using your module</h3>
-
-When linking the module, the name of the output file has to match the name
-of the module.  For example, if the name of your SWIG module is
-"<tt>Example</tt>", the name of the corresponding object file should be
-"<tt>Example.so</tt>".  The name of the module is specified using the
-<tt>%module</tt> directive or the <tt>-module</tt> command line option.<p>
-
+If for some reason you don't want to use the standard approach, you'll need
+to determine the correct compiler and linker flags for your build platform.
+For example, a typical sequence of commands for the Linux operating system
+would look something like this:
 <p>
-Because of the naming conventions used in Ruby, it is best if the module names
-are capitalized.  But, it is still possible to create a module name that is not
-capitalized, but the use of the module inside of Ruby must be capitalized.
-For example:
-
-<p>
-<pre><blockquote>
-$ <b>swig -ruby -module example example.i</b>
+<blockquote><pre>
+$ <b>swig -ruby example.i</b>
+$ <b>gcc -c example.c</b>
+$ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> 
 $ <b>gcc -shared example.o example_wrap.o -o example.so</b>
-$ <b>irb</b>
-irb(main):001:0&gt; <b>require 'example'</b>
-irb(main):002:0&gt; <b>Example.my_function(this, that, other)</b>
 </pre></blockquote>
-<p>
-Through the remainder of this document it is assumed that the <tt>%module</tt>
-directive and the shared library file are capitalized.
 
-A common error received by first-time users is the following:
+For other platforms it may be necessary to compile with the <tt>-fPIC</tt>
+option to generate position-independent code. If in doubt, consult the manual
+pages for your compiler and linker to determine the correct set of options.
+You might also check the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">
+SWIG Wiki</a> for additional information.<p> 
 
-<p>
-<blockquote>
-<pre>
-$ <b>irb</b>
-irb(main):001:0&gt; <b>require 'Example'</b>
-LoadError: (null) - ./Example.so
-  from (irb):3:in `require'
-  from (irb):3
-</pre>
-</blockquote>
+<a name="n16"></a><h3>Using your module</h3>
 
-This error is almost always caused when the name of the shared object file
-doesn't match the name of the module supplied using the SWIG <tt>%module</tt>
-directive.  Double-check the interface to make sure the module name and the
-shared object file match.  Another possible cause of this error is forgetting
-to link the SWIG-generated wrapper code with the rest of your application when
-creating the extension module.
+Ruby <i>module</i> names must be capitalized, but the convention for Ruby
+<i>feature</i> names is to use lowercase names. So, for example, the <b>Etc</b>
+extension module is imported by requiring the <b>etc</b> feature:
+
+<pre><blockquote>
+# The feature name begins with a lowercase letter...
+require 'etc'
+
+# ... but the module name begins with an uppercase letter
+puts "Your login name: #{Etc::getlogin}"
+</blockquote></pre>
+
+To stay consistent with this practice, you should always specify a
+<b>lowercase</b> module name with SWIG's <tt>%module</tt> directive.
+SWIG will automatically correct the resulting Ruby module name for your
+extension. So for example, a SWIG interface file that begins with:
+
+<pre><blockquote>
+%module example
+</blockquote></pre>
+
+will result in an extension module using the feature name "example" and
+Ruby module name "Example".
 
 <a name="n17"></a><h3>Static linking</h3>
 
@@ -258,21 +229,31 @@ compiler.  For example:
 <blockquote><pre>$ <b>swig -c++ -ruby example.i</b>
 $ <b>g++ -c example.cxx</b>
 $ <b>g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux</b>
-$ <b>g++ -shared example.o example_wrap.o -o Example.so</b>
+$ <b>g++ -shared example.o example_wrap.o -o example.so</b>
 </pre></blockquote>
 
 <hr>
 <a name="n2"></a><h2> Building Ruby Extensions under Windows 95/NT</h2>
 
 Building a SWIG extension to Ruby under Windows 95/NT is roughly similar to the
-process used with Unix.   Normally, you will want to produce a DLL that can be
-loaded into the Ruby interpreter.    This section covers the process of using
-SWIG with Microsoft Visual C++ 6 although the procedure may be similar with
-other compilers.   In order to build extensions, you will need to download the
-source distribution to the Ruby package as you will need the Ruby header
-files.<p>
+process used with Unix. Normally, you will want to produce a DLL that can be
+loaded into the Ruby interpreter. For all recent versions of Ruby, the procedure
+described above (i.e. using an <tt>extconf.rb</tt> script) will work with
+Windows as well; you should be able to build your code into a DLL by typing:
 
-<a name="n20"></a><h3> Running SWIG from Developer Studio</h3>
+<blockquote><pre>
+C:\swigtest&gt; <b>ruby extconf.rb</b>
+C:\swigtest&gt; <b>nmake</b>
+C:\swigtest&gt; <b>nmake install</b>
+</pre></blockquote>
+
+The remainder of this section covers the process of compiling SWIG-generated
+Ruby extensions with Microsoft Visual C++ 6 (i.e. within the Developer Studio
+IDE, instead of using the command line tools). In order to build extensions,
+you may need to download the source distribution to the Ruby package, as you
+will need the Ruby header files.<p>
+
+<a name="n20"></a><h3>Running SWIG from Developer Studio</h3>
 
 If you are developing your application within Microsoft developer studio, SWIG
 can be invoked as a custom build option.      The process roughly follows these
@@ -331,7 +312,7 @@ print "Foo = ", Example.Foo, "\n"
 Ensure the dll just built is in your path or current directory, then run the
 Ruby script from the DOS/Command prompt:
 <blockquote><pre>
-C:\swigtest&gt;<b>ruby run.rb</b>
+C:\swigtest&gt; <b>ruby run.rb</b>
 Foo = 3.0
 </pre></blockquote>
 
@@ -339,36 +320,31 @@ Foo = 3.0
 
 
 <hr>
-<a name="n3"></a><h2>The primitive Ruby-C interface</h2>
+<a name="n3"></a><h2>The Ruby-to-C/C++ Mapping</h2>
 
-At its core, the Ruby module uses a simple low-level interface to C function,
-variables, constants, and classes.  This section describes the low-level
-interface.  
-
-NOTE: The Ruby-C interface differs from the Python-C interface in that there
-are no shadow classes in the Ruby-C interface.  Instead, real Ruby classes are
-created using the simple Ruby-C interface.  Thus, there is no need for the
-overhead of the shadow classes.
+This section describes the basics of how SWIG maps C or C++ declarations
+in your SWIG interface files to Ruby constructs.
 
 <a name="n301"></a><h3> Modules</h3>
 
 The SWIG <tt>%module</tt> directive specifies the name of the Ruby module. If
 you specify `<tt>%module example</tt>', then everything is wrapped into a Ruby
-'<tt>example</tt>' module.  When choosing a module name, make sure you don't
+'<tt>Example</tt>' module.  When choosing a module name, make sure you don't
 use the same name as a built-in Ruby command or standard module name.
 Otherwise, the results may be unpredictable.
 
 <a name="n303"></a><h3>Functions</h3>
 
-Global functions are wrapped as new Ruby built-in functions.  For example,
-given the file <tt>example.i</tt>:
+Global functions are wrapped as Ruby module methods. For example, given
+the SWIG interface file <tt>example.i</tt>:
 <p>
 <blockquote><pre>
-%module Example
+%module example
+
 int fact(int n);
 </pre></blockquote>
 
-and file <tt>example.c</tt>:
+and C source file <tt>example.c</tt>:
 <blockquote><pre>
 int fact(int n) {
   if (n == 0)
@@ -377,14 +353,13 @@ int fact(int n) {
 }
 </pre></blockquote>
 
-
-(after compiling and linking) creates a built-in function
-<tt>Example.fact(n)</tt> that works like this:<p>
+SWIG will generate a method <i>fact</i> in the <i>Example</i> module that
+can be used like so:
 
 <p>
 <blockquote><pre>
 $ <b>irb</b>
-irb(main):001:0&gt; <b>require 'Example'</b>
+irb(main):001:0&gt; <b>require 'example'</b>
 true
 irb(main):002:0&gt; <b>Example.fact(4)</b>
 24
@@ -392,12 +367,13 @@ irb(main):002:0&gt; <b>Example.fact(4)</b>
 
 <a name="n305"></a><h3>Variable Linking</h3>
 
-C/C++ global variables are fully supported by SWIG.  The following <tt>.i</tt>tt> file
-declares two <tt>extern</tt> variables:
+C/C++ global variables are wrapped as a pair of singleton methods for the
+module: one to get the value of the global variable and one to set it. For
+example, the following SWIG interface file declares two global variables:
 
 <blockquote><pre>
 // SWIG interface file with global variables
-%module Example
+%module example
 ...
 extern int    variable1;
 extern double Variable2;
@@ -451,8 +427,8 @@ disabled using <tt>%mutable</tt>.
 
 <a name="n307"></a><h3> Constants</h3>
 
-C/C++ constants are installed as Ruby objects containing the
-appropriate value.  To create a constant, use <tt>#define</tt> or the
+C/C++ constants are wrapped as module constants initialized to the
+appropriate value. To create a constant, use <tt>#define</tt> or the
 <tt>%constant</tt> directive.  For example:
 
 <blockquote>
@@ -465,8 +441,7 @@ appropriate value.  To create a constant, use <tt>#define</tt> or the
 </pre>
 </blockquote>
 
-The only difference here is the accessor in Ruby to get at these constant
-values is with the :: operator.  For example,
+Remember to use the :: operator in Ruby to get at these constant values, e.g.
 <p>
 <blockquote><pre>
 $ <b>irb</b>
@@ -478,69 +453,37 @@ irb(main):002:0&gt; <b>Example::PI</b>
 
 <a name="n309"></a><h3>Pointers</h3>
 
-Pointers to C/C++ objects are represented as encoded character strings such as
-the following :<p>
-
-<p>
+"Opaque" pointers to arbitrary C/C++ types (i.e. types that aren't explicitly declared
+in your SWIG interface file) are wrapped as data objects. So, for example,
+conside a SWIG interface file containing only the declarations:<p>
 <blockquote><pre>
-&lt;Module::ClassName:0x4020ad70&gt;
+Foo *get_foo();
+void set_foo(Foo *foo);
+</pre></blockquote>
+For this case, the <i>get_foo()</i> method would return an instance of an
+internally generated Ruby class:
+<blockquote><pre>
+irb(main):001:0&gt; <b>foo = Example::get_foo()</b>
+#&lt;SWIG::TYPE_p_Foo:0x402b1654&gt;
 </pre></blockquote>
 
-A <tt>NULL</tt> pointer is represented by the Ruby <tt>nil</tt> object.
-
-If you need to cast a pointer or change its value, consider writing some helper
-functions instead.  For example:
-
-<blockquote>
-<pre>
-%inline %{
-/* C-style cast */
-Bar *FooToBar(Foo *f) {
-   return (Bar *) f;
-}
-
-/* C++-style cast */
-Foo *BarToFoo(Bar *b) {
-   return dynamic_cast&lt;Foo*&gt;(b);
-}
-
-Foo *IncrFoo(Foo *f, int i) {
-    return f+i;
-}
-%}
-</pre>
-</blockquote>
-
-If you need to type-cast a lot of objects, it may indicate a serious 
-weakness in your design.  Also, if working with C++, you should always try
-to use the new C++ style casts.  
+A <tt>NULL</tt> pointer is always represented by the Ruby <tt>nil</tt> object.
 
 <a name="n311"></a><h3>Structures</h3>
 
-Access to the contents of a structure are provided through a set of low-level
-accessor functions as described in the <a href="SWIG.html">"SWIG Basics"</a> chapter.  For example,
+C/C++ structs are wrapped as Ruby classes, with accessor methods (i.e. "getters"
+and "setters") for all of the struct members. For example, this struct declaration:
 <p>
 
 <blockquote><pre>
 struct Vector {
-  double x,y;
+    double x, y;
 };
 </pre></blockquote>
 
-gets mapped into the following collection of accessor functions:
-
-<p>
-<blockquote><pre>
-struct Vector *new_Vector();
-void           free_Vector(Vector *v);
-double         Vector_x_get(Vector *obj)
-void           Vector_x_set(Vector *obj, double x)
-double         Vector_y_get(Vector *obj)
-void           Vector_y_set(Vector *obj, double y)
-
-</pre></blockquote>
-
-These functions are then used to access structure data from Ruby as follows:
+gets wrapped as a <tt>Vector</tt> class, with instance methods <tt>x</tt>,
+<tt>x=</tt>, <tt>y</tt> and <tt>y=</tt>. These methods can be used to access
+structure data from Ruby as follows:
 
 <p>
 <blockquote><pre>
@@ -640,8 +583,11 @@ void Bar_f_set(Bar *b, Foo *val) {
 
 <a name="n313"></a><h3>C++ classes</h3>
 
-C++ classes are wrapped by building a set of low level accessor functions. 
-Consider the following class :<p>
+Like structs, C++ classes are wrapped by creating a new Ruby class of the same
+name with accessor methods for the (public) class member data. Additionally,
+public member functions for the class are wrapped as Ruby instance methods,
+and public static member functions are wrapped as Ruby singleton methods. So,
+given the C++ class declaration:<p>
 
 <p>
 <blockquote><pre>class List {
@@ -658,20 +604,14 @@ public:
 </pre></blockquote>
 
 <p>
-When wrapped by SWIG, the following functions are created :<p>
-
-<blockquote><pre>
-List    *new_List();
-void     delete_List(List *l);
-int      List_search(List *l, char *item);
-void     List_insert(List *l, char *item);
-void     List_remove(List *l, char *item);
-char    *List_get(List *l, int n);
-int      List_length_get(List *l);
-void     List_length_set(List *l, int n);
-void     List_print(List *l);
-
-</pre></blockquote>
+SWIG would create a <tt>List</tt> class with:
+<ul>
+<li> instance methods <i>search</i>, <i>insert</i>, <i>remove</i>, and <i>get</i>;
+<li> instance methods <i>length</i> and <i>length=</i> (to get and set the value
+     of the <i>length</i> data member); and,
+<li> a <i>print</i> singleton method for the class.
+</ul>
+<p>
 
 In Ruby, these functions are used as follows:
 
@@ -689,11 +629,6 @@ Stout
 Ale
 3
 </pre></blockquote>
-
-At this low level, C++ objects are really just typed pointers.  Member
-functions are accessed by calling a C-like wrapper with an instance pointer as
-the first argument.   Although this interface is fairly primitive, it provides
-direct access to C++ objects.  
 
 <a name="n315"></a><h3>C++ classes and type-checking</h3>
 
@@ -769,20 +704,21 @@ s.foo_d(3.14)
 </pre>
 </blockquote>
 
-Similarly, overloaded class constructors can be renamed and then accessed as class singleton methods. For example, for this SWIG interface file: 
+Similarly, overloaded class constructors can be renamed and then accessed as
+class singleton methods. For example, for this SWIG interface file: 
 
 <blockquote>
 <pre>
-/* Rename the copy constructor to "Copy" */
-%rename(Copy) Complex::Complex(const Complex&); 
+/* Rename the second constructor */
+%rename(FromThreePts) Circle::Circle(double x1, double y1, double x2, double y2, double x3, double y3); 
 
-class Complex {
+class Circle {
 public:
-   // Construct a complex number from its real and imaginary parts
-   Complex(double r, double i);
+   // Construct a circle from its center point and radius
+   Circle(double x, double y, double r);
    
-   // Copy constructor
-   Complex(const Complex&);
+   // Construct a circle from three points that lie on the circle
+   Complex(double x1, double y1, double x2, double y2, double x3, double y3);
    
    // ... other stuff ...
 };
@@ -793,18 +729,63 @@ SWIG will generate an extension which can be used from Ruby as follows:
 
 <blockquote>
 <pre>
-a = Example::Complex.new(3.0, 4.0)
-copy_of_a = Example::Complex.Copy(a)
+c1 = Example::Circle.new(0.5, 0.5, 2.0)
+c2 = Example::Circle.FromThreePoints(0.5, 2.5, 0.5, -1.5, 2.5, 0.5)
 </pre>
 </blockquote>
 
-Please refer to the <a href="SWIG.html">"SWIG Basics"</a> chapter for more information. 
+Finally, as a special case, the copy constructor for a class will be wrapped
+as a <i>clone</i> instance method. So for example, for a class declared as:
+
+<blockquote>
+<pre>
+class Complex {
+public:
+   // Construct from real and imaginary parts
+   Complex(double r, double i);
+   
+   // Copy constructor
+   Complex(const Complex&);
+   
+   // ... other stuff ...
+};
+</pre>
+</blockquote>
+
+SWIG will generate a <tt>Complex</tt> class with a <i>clone</i> instance
+method that returns a copy of the receiver, e.g.
+
+<blockquote>
+<pre>
+c1 = Example::Complex.new(0.5, 0.5)
+c2 = c1.clone
+</pre>
+</blockquote>
+
+For more information, please refer to the <a href="SWIGPlus.html">"SWIG and C++"</a> chapter.
 
 <a name="n319"></a><h3>Operators</h3>
 
-C++ operators can also be wrapped using the <tt>%rename</tt> directive
-(available on SWIG 1.3.10 and later releases).  All you need to do is give the
-operator the name of a valid Ruby identifier.  For example:
+For the most part, overloaded operators are handled automatically by SWIG
+and don't require any special treatment on your part. So if your class
+declares an overloaded addition operator, e.g.
+
+<blockquote>
+<pre>
+class Complex {
+    ...
+    Complex operator+(Complex &amp;);
+    ...
+};
+</pre>
+</blockquote>
+
+the resulting Ruby class will also support the addition (+) method correctly.<p>
+
+For cases where SWIG's built-in support isn't sufficient, C++ operators can
+be wrapped using the <tt>%rename</tt> directive (available on SWIG 1.3.10 and
+later releases).  All you need to do is give the operator the name of a valid
+Ruby identifier. For example:
 
 <blockquote>
 <pre>
@@ -1351,16 +1332,6 @@ Output argument processing
 Cleanup of function return values
 </blockquote>
 
-<tt>%typemap(consttab)</tt>
-<blockquote>
-Creation of Ruby constants (constant table)
-</blockquote>
-
-<tt>%typemap(constcode)</tt> 
-<blockquote>
-Creation of Ruby constants (init function)
-</blockquote>
-
 <tt>%typemap(memberin)</tt>
 <blockquote>
 Setting of structure/class member data
@@ -1825,7 +1796,7 @@ Note that although SWIG supports the <tt>__eq__</tt> magic method name for defin
 <a name="n70"></a><h3> An example (putting everything together)</h3>
 
 One way to illustrate the use of operator overloading, as well as the wrapping
-of templates (see the "<a href="SWIGPlus.html">Swig Plus</a>" section on templates)
+of templates (see the "<a href="SWIGPlus.html">Swig and C++</a>" section on templates)
 is shown in the following <tt>.i</tt> example is used, given an STL vector class:
 
 <p>
