@@ -39,7 +39,7 @@ static String& indent(String& s, char *sp = (char*)tab4) {
 //
 // Constructor
 // ---------------------------------------------------------------------
-RUBY::RUBY(void) { 
+RUBY::RUBY(void) {
   module = 0;
   modvar = 0;
   feature = 0;
@@ -146,7 +146,7 @@ void RUBY::parse() {
   headers();
 
   // typedef void *VALUE
-  DataType value; 
+  DataType value;
   strcpy(value.name, "void");
   value.type = T_VOID;
   value.is_pointer = 1;
@@ -356,6 +356,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   char *tm;
   String cleanup, outarg;
   WrapperFunction  f;
+  int i;
 
   // Ruby needs no destructor wrapper
   if (current == DESTRUCTOR)
@@ -395,7 +396,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   int numreq = 0;
   int numoptreal = 0;
-  for (int i = start; i < l->nparms; i++) {
+  for (i = start; i < l->nparms; i++) {
     if (!l->get(i)->ignore) {
       if (i >= l->nparms - numopt) numoptreal++;
       else numreq++;
@@ -409,7 +410,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     f.def << "int argc, VALUE *argv, VALUE self";
   } else {
     f.def << "VALUE self";
-    for (int i = start; i < l->nparms; i++) {
+    for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
 	f.def << ", VALUE varg" << i;
       }
@@ -419,7 +420,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Emit all of the local variables for holding arguments.
   if (vararg) {
-    for (int i = start; i < l->nparms; i++) {
+    for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
 	String s;
 	s << "varg" << i;
@@ -449,7 +450,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   if (vararg) {
     f.code << tab4 << "rb_scan_args(argc, argv, \""
 	   << (numarg-numoptreal) << numoptreal << "\"";
-    for (int i = start; i < l->nparms; i++) {
+    for (i = start; i < l->nparms; i++) {
       if (!l->get(i)->ignore) {
 	f.code << ", &varg" << i;
       }
@@ -461,7 +462,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
   // to get arguments
   int j = 0;                // Total number of non-optional arguments
 
-  for (int i = 0; i < pcount ; i++) {
+  for (i = 0; i < pcount ; i++) {
     Parm &p = (*l)[i];         // Get the ith argument
     source = "";
     target = "";
@@ -615,7 +616,7 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     // Hack this into a pointer
     t->is_pointer++;
     t->remember();
-    getf.code << tab4 << "_val = SWIG_NewPointerObj((void *)&" << name 
+    getf.code << tab4 << "_val = SWIG_NewPointerObj((void *)&" << name
 	      << ", \"" << t->print_mangle() << "\");\n";
     t->is_pointer--;
   } else {
@@ -725,7 +726,7 @@ char *RUBY::validate_const_name(char *name) {
 // ---------------------------------------------------------------------
 // RUBY::declare_const(char *name, char *iname, DataType *type, char *value)
 //
-// Makes a constant. 
+// Makes a constant.
 //              name = Name of the constant
 //              iname = Scripting language name of constant
 //              type = Datatype of the constant
@@ -832,7 +833,7 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
 //              type = Datatype of the C value
 //              value = C value (as a string)
 //              str = resulting code (as a string)
-//              raw = value is raw string (not quoted) ? 
+//              raw = value is raw string (not quoted) ?
 // ---------------------------------------------------------------------
 int RUBY::to_VALUE(DataType *type, char *value, String& str, int raw) {
   str = "";
@@ -1026,7 +1027,7 @@ void RUBY::cpp_close_class() {
 // ----------------------------------------------------------------------
 // void RUBY::cpp_inherit(char **baseclass, int mode)
 //
-// Inherit attributes from given baseclass.  
+// Inherit attributes from given baseclass.
 //
 // INPUT:
 //     baseclass       = NULL terminate list of baseclasses
