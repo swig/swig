@@ -33,6 +33,7 @@ static int      lang_init = 0;
 static int      Abstract = 0;
 static int      has_constructor = 0;
 static int      has_destructor = 0;
+static int      has_copy = 0;
 static int      private_constructor = 0;
 static int      private_destructor = 0;
 static int      base_default_constructor = 0;
@@ -763,10 +764,14 @@ void Language::classDeclaration(Node *n) {
     cplus_mode = CPLUS_PUBLIC;
   }
 
-  this->cpp_class_decl(classname,iname, Char(kind));
+  if (name) {
+    this->cpp_class_decl(Char(name),iname, Char(kind));
+  } else {
+    this->cpp_class_decl(classname,iname, Char(kind));
+  }
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
-
+    
   if (!ImportMode) {
     this->cpp_open_class(classname,iname,Char(kind),strip);
   }
