@@ -280,7 +280,6 @@ RUBY::top(Node *n) {
 	 "}\n",
 	 NULL);
   Printf(f_init,"\n");
-  klass = new RClass();
 
   Language::top(n);
 
