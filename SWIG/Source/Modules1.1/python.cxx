@@ -698,16 +698,9 @@ public:
     }
 
     if ((shadow) && (SwigType_isconst(t))) {
-	if (in_class) {
-	  Node* parent = parentNode(n);
-	  String *pname = Getattr(parent,"sym:name");
-	  String* mname = Getattr(n,"member:name");
-	  Printf(f_shadow_stubs,"%s.%s = %s.%s\n", pname, mname, global_name, iname);
-	} else {
+	if (!in_class) {
 	  Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
 	}
-	
-	
     }
 
     wname = Swig_name_wrapper(iname);
@@ -1140,6 +1133,26 @@ public:
       }
     }
     return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * staticmembervariableHandler()
+   * ------------------------------------------------------------ */
+
+  virtual int staticmembervariableHandler(Node *n) {
+    String *symname;
+    SwigType *t;
+    
+    Language::staticmembervariableHandler(n);
+    if (shadow) {
+      t = Getattr(n,"type");
+      symname = Getattr(n,"sym:name");
+      if (SwigType_isconst(t)) {
+	Printf(f_shadow,"%s%s = %s.%s.%s\n", tab4, symname, module, global_name, Swig_name_member(class_name,symname));      
+      }
+    }
+    return SWIG_OK;
+
   }
 
   /* ------------------------------------------------------------
