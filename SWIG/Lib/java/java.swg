@@ -684,7 +684,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %}
 
 %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
-  public static long getCPtr($javaclassname obj) {
+  protected static long getCPtr($javaclassname obj) {
     return obj.swigCPtr;
   }
 %}

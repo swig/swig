@@ -5,6 +5,9 @@
 
 %typemap(javaimports) SWIGTYPE * "import java.math.*;";
 %typemap(javacode) Farewell * %{
+  public static $javaclassname CreateNullPointer() {
+    return new $javaclassname();
+  }
   public void saybye(BigDecimal num_times) {
     // BigDecimal requires the java.math library
   }
@@ -20,6 +23,10 @@ import java.lang.*; // for Exception
 %typemap(javainterfaces) Greeting * "EventListener";
 %typemap(javacode) Greeting * %{
   // Pure Java code generated using %typemap(javacode) 
+  public static $javaclassname CreateNullPointer() {
+    return new $javaclassname();
+  }
+
   public void sayhello() {
     $javaclassname.cheerio(new $javaclassname());
   }

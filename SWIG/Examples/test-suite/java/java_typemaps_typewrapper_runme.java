@@ -16,8 +16,8 @@ public class java_typemaps_typewrapper_runme {
 
   public static void main(String argv[]) {
 
-    SWIGTYPE_p_Greeting greet = new SWIGTYPE_p_Greeting();
-    SWIGTYPE_p_Farewell bye = new SWIGTYPE_p_Farewell();
+    SWIGTYPE_p_Greeting greet = SWIGTYPE_p_Greeting.CreateNullPointer();
+    SWIGTYPE_p_Farewell bye = SWIGTYPE_p_Farewell.CreateNullPointer();
 
     // Check that pure Java methods have been added
     greet.sayhello();
@@ -25,7 +25,7 @@ public class java_typemaps_typewrapper_runme {
 
     // Check that SWIGTYPE_p_Greeting is derived from Exception
     try {
-      throw new SWIGTYPE_p_Greeting();
+      throw SWIGTYPE_p_Greeting.CreateNullPointer();
     } catch (SWIGTYPE_p_Greeting g) {
         String msg = g.getMessage(); 
     }
