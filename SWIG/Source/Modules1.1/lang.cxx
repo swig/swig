@@ -1342,8 +1342,8 @@ int Language::constructorDeclaration(Node *n) {
       } else {
 	if (Getattr(over,"copy_constructor")) over = Getattr(over,"sym:nextSibling");
 	if (over != n) {
-	  String *oname = NewStringf("%s::%s", SwigType_namestr(ClassName), SwigType_namestr(name));
-	  String *cname = NewStringf("%s::%s", SwigType_namestr(ClassName), SwigType_namestr(Getattr(over,"name")));
+	  String *oname = NewStringf("%s", SwigType_namestr(name));
+	  String *cname = NewStringf("%s", SwigType_namestr(Getattr(over,"name")));
 	  SwigType *decl = Getattr(n,"decl");
 	  Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
 		       "Overloaded constructor ignored.  %s\n", SwigType_str(decl,oname));
