@@ -18,6 +18,8 @@ namespace std {
 
 %template(DoubleVector) std::vector<double>;
 
+%template(SizeVector) std::vector<size_t>;
+
 %inline %{
 typedef float Real;
 %}
