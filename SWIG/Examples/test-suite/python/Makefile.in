@@ -4,6 +4,7 @@
 #######################################################################
 
 LANGUAGE     = python
+PYTHON       = python
 SCRIPTSUFFIX = _runme.py
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
@@ -64,7 +65,7 @@ LIBS       = -L.
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH python $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean: remove the generated .py file

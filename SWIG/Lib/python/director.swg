@@ -1,3 +1,5 @@
+#ifndef SWIG_DIRECTOR_PYTHON_HEADER_
+#define SWIG_DIRECTOR_PYTHON_HEADER_
 /***********************************************************************
  * director.swg
  *
@@ -190,3 +192,4 @@ namespace Swig {
 #endif /* __cplusplus */
 
 
+#endif
