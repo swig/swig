@@ -210,7 +210,7 @@ String *partial_arg(String *s, String *p) {
 }
 
 int
-Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
+Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope) {
   List *patchlist, *cpatchlist, *typelist;
   String *templateargs;
   String *tname;
@@ -364,7 +364,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
     if (bases) {
       Iterator b;
       for (b = First(bases); b.item; b = Next(b)) {
-	String *qn = Swig_symbol_type_qualify(b.item,0);
+	String *qn = Swig_symbol_type_qualify(b.item,tscope);
 	Clear(b.item);
 	Append(b.item,qn);
       }
@@ -387,7 +387,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 
 
 void
-Swig_cparse_template_defargs(Parm *parms, Parm *targs) {
+Swig_cparse_template_defargs(Parm *parms, Parm *targs, Symtab *tscope) {
   if (Len(parms) < Len(targs)) {
     Parm *lp = parms;
     Parm *p = lp;
@@ -403,7 +403,7 @@ Swig_cparse_template_defargs(Parm *parms, Parm *targs) {
 	Parm *cp;
 	Parm *ta = targs;
 	Parm *p = parms;
-	SwigType *nt  = Swig_symbol_typedef_reduce(value,0);
+	SwigType *nt  = Swig_symbol_typedef_reduce(value,tscope);
 	while(p && ta) {
 	  String *name = Getattr(ta,"name");
 	  String *value = Getattr(p,"value");
@@ -412,7 +412,7 @@ Swig_cparse_template_defargs(Parm *parms, Parm *targs) {
 	  p = nextSibling(p);
 	  ta = nextSibling(ta);
 	}
-	cp = NewParm(Swig_symbol_type_qualify(nt,0),0);
+	cp = NewParm(Swig_symbol_type_qualify(nt,tscope),0);
 	set_nextSibling(lp,cp);
 	lp = cp;
 	tp = nextSibling(tp);
@@ -432,7 +432,7 @@ Swig_cparse_template_defargs(Parm *parms, Parm *targs) {
  * ----------------------------------------------------------------------------- */
 
 static Node *
-template_locate(String *name, Parm *tparms) {
+template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Node   *n;
   String *tname, *rname = 0;
   Node   *templ;
@@ -445,12 +445,12 @@ template_locate(String *name, Parm *tparms) {
   parms = CopyParmList(tparms);
 
   /* Search for generic template */
-  templ = Swig_symbol_clookup_local(name,0);
+  templ = Swig_symbol_clookup(name,0);
 
   /* Add default values from generic template */
   if (templ) {
     targs = Getattr(templ,"templateparms");
-    Swig_cparse_template_defargs(parms, targs);
+    Swig_cparse_template_defargs(parms, targs, tscope);
   }
   
 
@@ -459,8 +459,8 @@ template_locate(String *name, Parm *tparms) {
   while (p) {
     SwigType *ty = Getattr(p,"type");
     if (ty) {
-      SwigType *rt = Swig_symbol_typedef_reduce(ty,0);
-      SwigType *nt = Swig_symbol_type_qualify(rt,0);
+      SwigType *rt = Swig_symbol_typedef_reduce(ty,tscope);
+      SwigType *nt = Swig_symbol_type_qualify(rt,tscope);
       Setattr(p,"type",nt);
       Delete(rt);
     }
@@ -616,9 +616,9 @@ template_locate(String *name, Parm *tparms) {
  * ----------------------------------------------------------------------------- */
 
 Node *
-Swig_cparse_template_locate(String *name, Parm *tparms) {
+Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Node *n = 0;
-  n = template_locate(name, tparms); /* this function does what we want for templated classes */
+  n = template_locate(name, tparms, tscope); /* this function does what we want for templated classes */
 
   if (n) {
     int isclass = 0;
