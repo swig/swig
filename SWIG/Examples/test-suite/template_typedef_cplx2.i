@@ -11,14 +11,14 @@ typedef std::complex<double> cmplx;
 %}
   
 %inline %{
-  typedef cmplx complex;
+  typedef cmplx Complex;
 %}
 
 #else
 
 %inline %{
 #include <complex>
-  typedef std::complex<double> complex;
+  typedef std::complex<double> Complex;
 %}
 
 #endif
@@ -82,31 +82,31 @@ typedef std::complex<double> cmplx;
     };
 
     template<>
-    struct arith_traits< complex, complex >
+    struct arith_traits< Complex, Complex >
     {
     
-      typedef complex argument_type;
-      typedef complex result_type;
-      static const char* const arg_type = "complex";
-      static const char* const res_type = "complex";
+      typedef Complex argument_type;
+      typedef Complex result_type;
+      static const char* const arg_type = "Complex";
+      static const char* const res_type = "Complex";
     };
 
     template<>
-    struct arith_traits< complex, double >
+    struct arith_traits< Complex, double >
     {
       typedef double argument_type;
-      typedef complex result_type;
+      typedef Complex result_type;
       static const char* const arg_type = "double";
-      static const char* const res_type = "complex";
+      static const char* const res_type = "Complex";
     };
 
     template<>
-    struct arith_traits< double, complex >
+    struct arith_traits< double, Complex >
     {
       typedef double argument_type;
-      typedef complex result_type;
+      typedef Complex result_type;
       static const char* const arg_type = "double";
-      static const char* const res_type = "complex";
+      static const char* const res_type = "Complex";
     };
 
     template <class AF, class RF, class AG, class RG>
@@ -130,34 +130,34 @@ namespace vfncs {
   %template() arith_traits<double, double >;
   %template(make_Identity_double) make_Identity<double >;
 
-  %template(UnaryFunction_complex_complex) UnaryFunction<complex, complex >;  
-  %template(ArithUnaryFunction_complex_complex) ArithUnaryFunction<complex, complex >;  
+  %template(UnaryFunction_complex_complex) UnaryFunction<Complex, Complex >;  
+  %template(ArithUnaryFunction_complex_complex) ArithUnaryFunction<Complex, Complex >;  
 
-  %template() unary_func_traits<complex, complex >;
-  %template() arith_traits<complex, complex >;
-  %template(make_Identity_complex) make_Identity<complex >;
+  %template() unary_func_traits<Complex, Complex >;
+  %template() arith_traits<Complex, Complex >;
+  %template(make_Identity_complex) make_Identity<Complex >;
 
   /* [beazley] Added this part */
-  %template() unary_func_traits<double,complex>;
-  %template(UnaryFunction_double_complex) UnaryFunction<double,complex>;
-  %template(ArithUnaryFunction_double_complex) ArithUnaryFunction<double,complex>;
+  %template() unary_func_traits<double,Complex>;
+  %template(UnaryFunction_double_complex) UnaryFunction<double,Complex>;
+  %template(ArithUnaryFunction_double_complex) ArithUnaryFunction<double,Complex>;
 
   /* */
 
-  %template() arith_traits<complex, double >;
-  %template() arith_traits<double, complex >;
+  %template() arith_traits<Complex, double >;
+  %template() arith_traits<double, Complex >;
 
   %template(make_Multiplies_double_double_complex_complex)
-    make_Multiplies<double, double, complex, complex>;
+    make_Multiplies<double, double, Complex, Complex>;
 
   %template(make_Multiplies_double_double_double_double)
     make_Multiplies<double, double, double, double>;
 
   %template(make_Multiplies_complex_complex_complex_complex)
-    make_Multiplies<complex, complex, complex, complex>;
+    make_Multiplies<Complex, Complex, Complex, Complex>;
 
   %template(make_Multiplies_complex_complex_double_double)
-    make_Multiplies<complex, complex, double, double>;
+    make_Multiplies<Complex, Complex, double, double>;
 
 }
 
