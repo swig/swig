@@ -255,6 +255,11 @@ case $host in
    *) GUILE_SO=$SO;;
 esac
 
+AC_SUBST(MZSCHEME_SO)
+case $host in
+   *) MZSCHEME_SO=.so;;
+esac
+
 AC_SUBST(TCL_LDSHARED)
 case $host in
    *-*-darwin*) TCL_LDSHARED="gcc -dynamiclib -flat_namespace -undefined suppress";;
