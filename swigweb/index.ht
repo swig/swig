@@ -30,8 +30,7 @@ in the SWIG1.3 series of releases.  If you are concerned about
 stability or are a first-time user, you may want to download some
 variant of SWIG1.1 instead.  Caveat--SWIG1.1 may not be compatible
 with recent releases of certain scripting languages such as Perl 5.6
-and Guile.  Note: These changes only pertain to the implementation of
-SWIG (the new version continues to support C++ wrappers).
+and Guile. 
 
 <p>
 SWIG is an all volunteer effort.  We are always looking for fearless people with 
@@ -39,6 +38,11 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<P>
+<b>2001/12/10</b> The <a href="Doc1.3">development documentation</a> for SWIG1.3 has been extensively updated.  Not yet finished, but includes coverage of most
+new SWIG features including the redesigned typemap system and
+improved exception handling.             
 
 <p>
 <b>2001/10/31</b> Announcing <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SwigWiki</a>.   
