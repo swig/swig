@@ -3301,25 +3301,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  Delete(targs);
 			} else {
 			  /* Need to resolve exact specialization name */
-			  /* This needs to be rewritten */
-			  ParmList *tparms;
-			  String *fname;
-			  Parm *p;
-			  fname = SwigType_templateprefix(tname);
-			  tparms = SwigType_function_parms(tname);
 			  /* add default args from generic template */
-			  Swig_cparse_template_defargs(tparms, Getattr(tempn,"templateparms"),0);
-			  Append(fname,"<(");
-			  p = tparms;
-			  while (p){
-			    SwigType *type = Getattr(p,"type");
-			    SwigType *ttr = Swig_symbol_typedef_reduce(type ? type : Getattr(p,"value") ,0);
-			    ttr = Swig_symbol_type_qualify(ttr,0);
-			    Append(fname,ttr);
-			    p = nextSibling(p);
-			    if (p) Putc(',',fname);
-			  }
-			  Append(fname,")>");
+			  String *fname = Swig_cparse_template_deftype(tname,0);
 			  Swig_symbol_cadd(fname,$$);
 			}
 		      }  else if ($$) {

@@ -428,6 +428,59 @@ Swig_cparse_template_defargs(Parm *parms, Parm *targs, Symtab *tscope) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_template_deftype()
+ *
+ * Apply default args to generic template type
+ * ----------------------------------------------------------------------------- */
+String*
+Swig_cparse_template_deftype(SwigType *type, Symtab *tscope) {
+  String *prefix  = SwigType_prefix(type);
+  String *base    = SwigType_base(type);
+  String *tprefix = SwigType_templateprefix(base);
+  String *targs   = SwigType_templateargs(base);
+  String *tsuffix = SwigType_templatesuffix(base);
+  ParmList *tparms = SwigType_function_parms(targs);
+  Node *tempn = Swig_symbol_clookup_local(tprefix,tscope);
+  if (tempn) {
+    ParmList *tnargs = Getattr(tempn,"templateparms");
+    Parm *p;
+    /* Printf(stderr,"deftype type %s %s %s\n", tprefix, targs, tsuffix);*/
+    Append(tprefix,"<(");
+    Swig_cparse_template_defargs(tparms, tnargs,tscope);
+    p = tparms;
+    while (p) {
+      SwigType *ptype = Getattr(p,"type");
+      SwigType *ttr = Swig_symbol_typedef_reduce(ptype ? ptype : Getattr(p,"value") ,tscope);
+      SwigType *ttq = Swig_symbol_type_qualify(ttr,tscope);
+      if (SwigType_istemplate(ttq)) {
+	SwigType *t = Swig_cparse_template_deftype(ttq, tscope);
+	Delete(ttq);
+	ttq = t;
+      }	
+      Append(tprefix,ttq);
+      p = nextSibling(p);
+      if (p) Putc(',',tprefix);
+      Delete(ttr);
+      Delete(ttq);
+    }
+    Append(tprefix,")>");
+    Append(tprefix,tsuffix);
+    Append(prefix,tprefix);
+    /* Printf(stderr,"deftype default %s \n", tprefix); */
+    type = Copy(prefix);
+  } else {
+    type = Copy(type);
+  }
+  
+  Delete(prefix);
+  Delete(base);
+  Delete(tprefix);
+  Delete(tsuffix);
+  Delete(targs);
+  Delete(tparms);
+  return type;
+}
 
 /* -----------------------------------------------------------------------------
  * template_locate()
