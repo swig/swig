@@ -5,13 +5,13 @@ SWIG Tutorial
 
 <p>
 So you want to get going in a hurry?  To illustrate the use of SWIG,
-suppose you have some C functions you want added to Tcl, Perl, Python and Java.
+suppose you have some C functions you want added to Tcl, Perl, Python, Java and C#.
 Specifically, let's say you have them in a file 'example.c'
 
 <ul><tt><pre>
 /* File : example.c */
 
-#include &lt;time.h&gt
+#include &lt;time.h&gt;
 double My_variable = 3.0;
 
 int fact(int n) {
@@ -132,7 +132,7 @@ SWIG will also generate JNI code for accessing C/C++ code from Java. Here is an 
 <blockquote><tt><pre>
 $ swig -java example.i
 $ gcc -c example.c example_wrap.c -I/c/jdk1.3.1/include -I/c/jdk1.3.1/include/win32
-$ gcc -shared example.o  example_wrap.o -Wl,--add-stdcall-alias  -o example.dll
+$ gcc -shared example.o  example_wrap.o -mno-cygwin -Wl,--add-stdcall-alias  -o example.dll
 $ cat main.java
 public class main {
   public static void main(String argv[]) {
@@ -147,6 +147,31 @@ $ java main
 3.0
 120
 Mon Mar  4 18:20:31  2002
+$
+</pre></tt></blockquote>
+
+<h3> Building a C# module </h3>
+SWIG will also generate code for accessing C/C++ code from C# using PInvoke. Here is an example building a C# module (shown for Linux, see the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl?SwigFaq/SharedLibraries">SWIG Wiki Shared Libraries</a> page for help with other operating systems). It uses the open source <a href="http://www.southern-storm.com.au/portable_net.html">DotGNU Portable.NET</a> C# compiler which runs on most Unix systems, but works equally well using other C# compilers:
+
+<blockquote><tt><pre>
+$ swig -csharp  example.i
+$ gcc -c -fpic  example.c example_wrap.c
+$ gcc -shared example.o  example_wrap.o   -o libexample.so
+$ cscc -o runme *.cs
+$ cat runme.cs
+using System;
+public class runme {
+    static void Main() {
+        Console.WriteLine(example.My_variable);
+        Console.WriteLine(example.fact(5));
+        Console.WriteLine(example.get_time());
+    }
+}
+$ ilrun runme
+3
+120
+Tue May 13 10:45:45 2003
+
 $
 </pre></tt></blockquote>
 
