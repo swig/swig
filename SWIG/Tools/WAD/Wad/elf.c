@@ -224,9 +224,9 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
   vaddr = (unsigned long) ptr;
 
   nsymtab = wad_elf_section_byname(wo,".symtab");
-  if (nsymtab < 0) return 0;
+  if (nsymtab < 0) goto dynsym;
   nstrtab = wad_elf_section_byname(wo,".strtab");
-  if (nstrtab < 0) return 0;
+  if (nstrtab < 0) goto dynsym;
   
   symtab_size = wad_elf_section_size(wo,nsymtab);
   sym = (Elf32_Sym *) wad_elf_section_data(wo,nsymtab);
@@ -239,7 +239,15 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
     if (ELF32_ST_TYPE(sym[i].st_info) == STT_FILE) {
       localfile = name;
     }
-    if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
+    if (wad_debug_mode & DEBUG_SYMBOL_SEARCH) {
+      printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
+    }
+
+    if (((base + sym[i].st_value) <= vaddr) && (vaddr <= (base+sym[i].st_value + sym[i].st_size))) {
+#ifdef WAD_LINUX
+      /* If the section index is 0, the symbol is undefined */
+      if (sym[i].st_shndx == 0) continue;
+#endif
       ws->value = sym[i].st_value;
       if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {
 	ws->file = localfile;
@@ -250,8 +258,9 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
       ws->name = name;
       return name;
     }
-
   }
+
+ dynsym:
 
   /* If we didn't find it in the .symtab section. Maybe it's in the .dynsym, .dynstr section */
   
@@ -271,8 +280,14 @@ wad_elf_find_symbol(WadObjectFile *wo, void *ptr, unsigned long base, WadSymbol 
     if (ELF32_ST_TYPE(sym[i].st_info) == STT_FILE) {
       localfile = name;
     }
-    /*    printf("%x(%x): %s   %x + %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size); */
-    if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
+    if (wad_debug_mode & DEBUG_SYMBOL_SEARCH) {
+      printf("%x(%x): %s   %x + %x, %x, %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size, sym[i].st_info, sym[i].st_shndx);
+    }
+    if (((base + sym[i].st_value) <= vaddr) && (vaddr <= (base+sym[i].st_value + sym[i].st_size))) {
+#ifdef WAD_LINUX
+      /* If the section index is 0, the symbol is undefined */
+      if (sym[i].st_shndx == 0) continue;
+#endif
       ws->value = sym[i].st_value;
       if (ELF32_ST_BIND(sym[i].st_info) == STB_LOCAL) {
 	ws->file = localfile;

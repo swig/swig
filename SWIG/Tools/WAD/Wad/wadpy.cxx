@@ -155,7 +155,14 @@ static void handler(int signo, WadFrame *frame, char *ret) {
       if (f->line_number > 0) {
 	sprintf(temp,", line %d", f->line_number);
 	strcat(message,temp);
-	fline = f;
+	{
+	  int fd;
+	  fd = open(SRCFILE(f), O_RDONLY);
+	  if (fd > 0) {
+	    fline = f;
+	  } 
+	  close(fd);
+	}
       }
     } else {
       if (strlen(fd+f->obj_off)) {
@@ -251,3 +258,5 @@ extern "C"
 void initlibwadpy() {
   Py_InitModule((char *)"libwadpy",wadmethods);
 }
+
+

@@ -27,6 +27,11 @@ char *wad_arg_string(WadFrame *frame) {
   int     i;
   WadFrame *nf;
 
+#ifdef WAD_LINUX
+  strcat(str,"");
+  return str;
+#endif
+
   if (frame->size)
     nf = (WadFrame *) (((char *) frame) + frame->size);
   else
@@ -97,6 +102,7 @@ char *wad_arg_string(WadFrame *frame) {
 
 char *wad_strip_dir(char *name) {
   char *c;
+  /*  printf("strip: '%s'\n", name); */
   c = name + strlen(name);
   while (c != name) {
     if (*c == '/') {
@@ -202,7 +208,14 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
       printf(" in '%s'", wad_strip_dir(fd+f->src_off));
       if (f->line_number > 0) {
 	printf(", line %d", f->line_number);
-	fline = f;
+	{
+	  int fd;
+	  fd = open(SRCFILE(f), O_RDONLY);
+	  if (fd > 0) {
+	    fline = f;
+	  } 
+	  close(fd);
+	}
       }
     } else {
       if (strlen(fd+f->obj_off)) {

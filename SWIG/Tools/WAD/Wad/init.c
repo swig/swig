@@ -46,11 +46,29 @@ void wad_init() {
     wad_debug_mode |= DEBUG_RETURN;
   }
 
-#ifndef WAD_LINUX
+  if (getenv("WAD_DEBUG_SYMBOL_SEARCH")) {
+    wad_debug_mode |= DEBUG_SYMBOL_SEARCH;
+  }
+
+  if (getenv("WAD_DEBUG_INIT")) {
+    wad_debug_mode |= DEBUG_INIT;
+  }
+
+  if (getenv("WAD_NOSTACK")) {
+    wad_debug_mode |= DEBUG_NOSTACK;
+  }
+
+  if (getenv("WAD_ONESHOT")) {
+    wad_debug_mode |= DEBUG_ONESHOT;
+  }
+
+  if (wad_debug_mode & DEBUG_INIT) {
+    printf("WAD: initializing\n");
+  }
+
   if (!init) {
     wad_signal_init();
     wad_object_init();
   }
-#endif
   init = 1;
 }

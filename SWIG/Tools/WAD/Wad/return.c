@@ -29,7 +29,7 @@ void wad_set_return(const char *name, long value) {
 }
 
 void wad_set_returns(WadReturnFunc *rf) {
-  int i;
+  int i = 0;
   while (strlen(rf[i].name)) {
     wad_set_return(rf[i].name, rf[i].value);
     i++;

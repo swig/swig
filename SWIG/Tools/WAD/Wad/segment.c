@@ -99,7 +99,7 @@ wad_segment_read() {
     s->size = ws.size;
     s->offset = ws.offset;
     if (wad_debug_mode & DEBUG_SEGMENT) {
-      printf("wad_segment: read : %08x-%08x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->mappath);
+      printf("wad_segment: read : %08x-%08x, base=%x in %s\n", s->vaddr, ((char *) s->vaddr) + s->size, s->base, s->mappath);
     }
     s++;
   }

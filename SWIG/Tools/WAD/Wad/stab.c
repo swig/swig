@@ -19,7 +19,7 @@ typedef struct Stab {
   unsigned        n_strx;         /* index into file string table */
   unsigned char   n_type;         /* type flag (N_TEXT,..)  */
   char            n_other;        /* used by N_SLINE stab */
-  short           n_desc;         /* see stabs documentation */
+  unsigned short  n_desc;         /* see stabs documentation */
   unsigned        n_value;        /* value of symbol (or sdb offset) */ 
 } Stab;
 
@@ -62,6 +62,7 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
 
   s = (Stab *) sp;            /* Stabs data      */
   ns = size/sizeof(Stab);     /* number of stabs */
+
   slen = strlen(wsym->name);
 
   /* Reset the debug information section */
@@ -72,27 +73,39 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
   debug->nargs = 0;
   for (i = 0; i < ns; i++, s++) {
     /*#define DEBUG_DEBUG */
-    if (wad_debug_mode & DEBUG_STABS)
+    if (wad_debug_mode & DEBUG_STABS) {
+      /*      printf("   %10d %10x %10d %10d %10d: '%x'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
+	      stabstr+s->n_strx); */
       printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
-		    stabstr+s->n_strx);
-    
-    if (s->n_type == 0) {
+	     stabstr+s->n_strx);
+      
+    }
+    if ((s->n_type == 0)) { /* && (s->n_desc >= 0)) { */
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */
+
       if (wad_search_stab(s+1,s->n_desc*sizeof(Stab), stabstr, wsym, offset,debug)) return 1;
+
+      /* On solaris, each stabs section seem to increment the stab string pointer.  On Linux,
+         the linker seems to do a certain amount of optimization that results in a single
+         string table. */
+
+#ifdef WAD_SOLARIS
       stabstr += s->n_value;     /* Update the string table location*/
+#endif
       i += s->n_desc;
       s += s->n_desc;
       debug->objfile[0] = 0;
       debug->srcfile[0] = 0;
       debug->line_number = -1;
       debug->found = 0;
+      continue;
     } else if (s->n_type == 0x64) {
       if (debug->found) return 1;    /* New file and we already found what we wanted */
       /* Source file specification */
       /* Look for directory */
       file = stabstr+s->n_strx;
-      if (file[strlen(file)] == '/') {
+      if (strlen(file) && (file[strlen(file)-1] == '/')) {
 	strcpy(debug->srcfile,file);
       } else {
 	strcat(debug->srcfile,file);
