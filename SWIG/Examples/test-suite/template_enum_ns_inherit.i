@@ -9,6 +9,12 @@
     struct Interface
     {
     };
+
+    template <Polarization P, class C>
+    struct Module
+    {
+    };
+
   }
  
 %}                                                 
@@ -16,6 +22,7 @@
 namespace oss
 {
   %template(Interface_UP) Interface<UnaryPolarization>;
+  %template(Module_UPIUP) Module<UnaryPolarization,Interface<UnaryPolarization> >;
 }
  
 %inline %{
@@ -33,6 +40,9 @@ namespace oss
       {
       };
  
+     struct HModule1 : Module<UnaryPolarization, Interface<UnaryPolarization> > {
+ };
+
     }
   }
 %}                                   
