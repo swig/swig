@@ -75,7 +75,8 @@ C_TEST_CASES += \
 	preproc_1 \
 	nested \
 	typemap_subst \
-	enum
+	enum \
+	sneaky1
 
 MULTI_CPP_TEST_CASES += \
 	imports
