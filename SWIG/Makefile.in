@@ -114,7 +114,7 @@ check-aliveness:
 	$(skip-ruby) || ./$(TARGET) -ruby -help
 
 TCL_EXAMPLES = class constants enum funcptr pointer reference simple value variables
-PERL5_EXAMPLES = class constants funcptr pointer reference simple value variables pointer-cxx
+PERL5_EXAMPLES = class constants funcptr pointer reference simple value variables
 PYTHON_EXAMPLES = class constants enum funcptr pointer reference shadow simple value variables 
 JAVA_EXAMPLES = class constants enum native reference simple typemap
 GUILE_EXAMPLES = constants matrix simple port test-suite
@@ -321,7 +321,7 @@ check: check-aliveness check-examples check-test-suite check-gifplot-example che
 #####################################################################
 
 clean: clean-objects clean-examples clean-test-suite
-	
+
 clean-objects:
 	@for i in $(SOURCEDIRS) ; \
 	do \
