@@ -39,6 +39,6 @@ public class virtual_poly_runme {
     // since they fail:
     //
     NDouble ddc = virtual_poly.NDouble_dynamic_cast(dc);
-    NInt idc = virtual_poly.NInt_dynamic_cast(dc);
+    NInt dic = virtual_poly.NInt_dynamic_cast(ic);
   }
 }
