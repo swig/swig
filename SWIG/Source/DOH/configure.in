@@ -1,7 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Include/doh.h)
-AM_INIT_AUTOMAKE([doh], 1.0, nosubst)
-AC_PREREQ(2.13)
+AC_PREREQ(2.0)
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)
@@ -35,9 +34,6 @@ AC_MSG_RESULT($MACHDEP)
 AC_PROG_CC
 AC_PROG_RANLIB
 
-dnl Initialize maintainer mode
-AM_MAINTAINER_MODE
-
 AC_SUBST(AR)
 AC_CHECK_PROGS(AR, ar aal, ar)
 
@@ -45,4 +41,4 @@ dnl Checks for header files.
 AC_HEADER_STDC
 dnl Checks for library functions.
 
-AC_OUTPUT(Makefile Doh/Makefile Example/Makefile Include/Makefile)
+AC_OUTPUT(Makefile Doh/Makefile)

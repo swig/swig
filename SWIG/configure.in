@@ -1,7 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(Source/Swig/swig.h)
-AM_INIT_AUTOMAKE([swig], 2.0, nosubst)
-AC_PREREQ(2.13)
+AC_PREREQ(2.0)
 
 # Set name for machine-dependent library files
 AC_SUBST(MACHDEP)
@@ -35,9 +34,6 @@ AC_MSG_RESULT($MACHDEP)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
-
-dnl Initialize maintainer mode
-AM_MAINTAINER_MODE
 
 dnl Checks for programs.
 
@@ -451,10 +447,6 @@ AC_SUBST(PERL5EXT)
 
 AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
 
-AC_ARG_ENABLE(experiment, [  --enable-experiment	  Compile experimental code],
-[experiment=true], [experiment=false])
-AM_CONDITIONAL(EXPERIMENT, $experiment)
-
 if test ! -r Source/DOH/configure; then
 	cd Source/DOH
 	autoconf
@@ -469,7 +461,7 @@ fi
    
 AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
 
-AC_OUTPUT(Makefile Source/Makefile Source/Swig/Makefile 
+AC_OUTPUT(Makefile Source/Swig/Makefile 
     Source/Preprocessor/Makefile Source/SWIG1.1/Makefile 
     Source/Modules1.1/Makefile Source/LParse/Makefile 
-    Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile)
+    Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile Source/Include/swigconfig.h)
