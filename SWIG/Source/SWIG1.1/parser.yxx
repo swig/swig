@@ -100,6 +100,7 @@ static char           *Callback = 0;
 #define  STORAGE_EXTERN_C   2
 #define  STORAGE_STATIC     3
 #define  STORAGE_VIRTUAL    4
+#define  STORAGE_FRIEND     5
 
 /* Import modes */
 #define  IMPORT_MODE        1
@@ -143,6 +144,14 @@ static List *typelist(Parm *p) {
    return l;
  }
 
+static Parm *nonvoid_parms(Parm *p) {
+  if (p) {
+    SwigType *t = Gettype(p);
+    if (SwigType_type(t) == T_VOID) return 0;
+  }
+  return p;
+}
+
 /* -----------------------------------------------------------------------------
  * emit_extern_func()
  * 
@@ -174,11 +183,6 @@ static void emit_extern_func(char *decl, SwigType *t, ParmList *L, int extern_ty
     /*    Printf(f,"extern \"C\" %s", SwigType_str(t,0));
 	  Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
     Printf(f,"extern \"C\" %s;\n", SwigType_str(ty,decl));
-    break;
-  case 3:
-    /* This is a little hacky */
-    Printf(f,"%s", SwigType_str(t,0));
-    Printf(f,"%s(%s)\n", decl, ParmList_str(L));
     break;
   default:
     break;
@@ -220,6 +224,7 @@ static int promote(int t1, int t2) {
 
 /* Generate the scripting name of an object using the %name directive */
 static char *make_name(char *name) {
+  static String *tmp = 0;
   /* Check to see if the name is in the hash */
   if (!name_hash) name_hash = NewHash();
   char *nn = GetChar(name_hash,name);
@@ -228,7 +233,16 @@ static char *make_name(char *name) {
     Rename_true = 0;
     return yy_rename;
   }
-  return name;
+  if (strstr(name,"::")) {
+    if (!tmp) tmp = NewString("");
+    Clear(tmp);
+    if (strncmp(name,"::",2) == 0) name = name + 2;
+    Append(tmp,name);
+    Replace(tmp,"::","_", DOH_REPLACE_ANY);
+    return Char(tmp);
+  } else {
+    return name;
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -293,12 +307,12 @@ c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, Parm
 	lang->declare_const(name,iname,cbty,name);
       } else {
 	create_constant(Char(cbname),cbty,name);
-	lang->create_function(name,iname,ty,parms);
+	lang->create_function(name,iname,ty,nonvoid_parms(parms));
       }
       Delete(cbty);
       Delete(cbname);
     } else {
-      lang->create_function(name,iname,ty,parms);
+      lang->create_function(name,iname,ty,nonvoid_parms(parms));
     }
   } else {
     /* Variable declaration */
@@ -332,8 +346,10 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
   char *iname;
   SwigType *ty;
   init_language();
-  if (cplus_mode != CPLUS_PUBLIC) return;
 
+  if (cplus_mode != CPLUS_PUBLIC) return;
+  if (storage == STORAGE_FRIEND) return;
+  /*  Printf(stdout,"vardecl: %s %s %s %s\n", id, type, decltype, parms); */
   ty = Copy(type);
   iname = make_name(id);
   if (iname == id) iname = 0;
@@ -343,7 +359,7 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
     SwigType_push(ty,decltype);
     if (storage == STORAGE_STATIC) {
       /* Static member function */
-      cplus_static_func(id,iname,ty,parms);
+      cplus_static_func(id,iname,ty,nonvoid_parms(parms));
     } else {
       int is_virtual = 0;
       if (storage == STORAGE_VIRTUAL) {
@@ -351,7 +367,7 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
 	/* Check for pure virtual */
 	if (val && Cmp(val,"0") == 0) is_virtual = PURE_VIRTUAL;
       }
-      cplus_member_func(id,iname,ty,parms,is_virtual);
+      cplus_member_func(id,iname,ty,nonvoid_parms(parms),is_virtual);
     }
   } else {
     /* A member variable */
@@ -616,6 +632,7 @@ end_class(SwigType *endtype, char *endname) {
     SwigType  *type;
     String    *defarg;
     ParmList  *parms;
+    short      have_parms;
   } decl;
   SwigType     *type;
   String       *str;
@@ -630,7 +647,7 @@ end_class(SwigType *endtype, char *endname) {
 %token <id> POUND 
 %token <id> STRING
 %token <loc> INCLUDE IMPORT INSERT
-%token <str> CHARCONST
+%token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
@@ -644,6 +661,7 @@ end_class(SwigType *endtype, char *endname) {
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR SWIGTEMPLATE
 %token LESSTHAN GREATERTHAN MODULO NEW DELETE
 %token TYPES
+%token NONID DSTAR
 %token <ivalue> TEMPLATE
 %token <str> OPERATOR
 
@@ -679,6 +697,7 @@ end_class(SwigType *endtype, char *endname) {
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <id>       typemap_type;
 %type <str>      template_parms;
+%type <str>      idcolon idcolontail;
 
 %%
 
@@ -1494,10 +1513,12 @@ template_parms  : parms {
 
 /* Operator overloading catch */
 
-cpp_other      : storage_class type declarator DCOLON OPERATOR {
-	       Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
-		skip_decl();
-		Delete($2);
+cpp_other      : storage_class type abstract_declarator OPERATOR LPAREN parms RPAREN cpp_end {
+                   Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$4);
+	     }
+
+               | storage_class type OPERATOR LPAREN parms RPAREN cpp_end {
+                   Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number,$3);
 	     }
              ;
 
@@ -1532,7 +1553,7 @@ cpp_member   : cpp_varfunc_decl
              | cpp_destructor_decl
              | cpp_protection_decl
              | cpp_enum_decl
-             | cpp_unsupported
+             | cpp_operator
              | c_typedef_decl
              | cpp_swig_directives
              | cpp_nested
@@ -1588,6 +1609,7 @@ cpp_varfunc_tail : SEMI { Clear(CCode); }
 
 cpp_storage_class : STATIC { $$ = STORAGE_STATIC; }
                   | VIRTUAL { $$ = STORAGE_VIRTUAL; }
+                  | FRIEND { $$ = STORAGE_FRIEND; }
                   ;
 
 /* Possibly a constructor */
@@ -1596,7 +1618,7 @@ cpp_constructor_decl :  ID LPAREN parms RPAREN ctor_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  iname = make_name($1);
 		  if (iname == $1) iname = 0;
-		  cplus_constructor($1,iname, $3);
+		  cplus_constructor($1,iname, nonvoid_parms($3));
 		}
 		Delete($3);
 	      }
@@ -1655,13 +1677,12 @@ cpp_enum_decl : ENUM ename LBRACE cpp_enumlist RBRACE SEMI {
 	      }
               ;
 
-/* A friend :   Illegal */
-cpp_unsupported : FRIEND {
-		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
-		skip_decl();
-	      }
-
 /* An operator: Illegal */
+cpp_operator  : cpp_storage_class type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
+                   if ($1 != STORAGE_FRIEND) {
+		     Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number, $4);
+		   }
+	      }
               | type parameter_declarator OPERATOR LPAREN parms RPAREN cpp_end {
 		Printf(stderr,"%s:%d. Operator '%s' not supported (ignored).\n", input_file, line_number, $3);
 	      }
@@ -1833,7 +1854,7 @@ storage_class  : EXTERN {
 
 parms          : parm ptail {
                   SwigType *pt = Gettype($1);
-		  if (SwigType_type(pt) != T_VOID) {
+		  if (1) { //(SwigType_type(pt) != T_VOID) {
 		    Setnext($1,$2);
 		    $$ = $1;
 		  } else {
@@ -1868,7 +1889,7 @@ parm           : type parameter_declarator {
 def_args       : EQUAL definetype { 
                   $$ = $2; 
                }
-               | EQUAL AND ID {
+               | EQUAL AND idcolon {
 		 $$.val = NewStringf("&%s",$3);
 		 $$.rawval = 0;
 		 $$.type = T_USER;
@@ -1960,18 +1981,64 @@ declarator :  pointer direct_declarator {
 	       Delete($2.type);
 	     }
            }
+           | idcolon DSTAR direct_declarator { 
+	     
+	     $$ = $3;
+	     SwigType *t = NewString("");
+	     SwigType_add_memberpointer(t,$1);
+	     if ($$.type) {
+	       SwigType_push(t,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = t;
+           }
+           | pointer idcolon DSTAR direct_declarator { 
+	     $$ = $4;
+	     SwigType *t = NewString("");
+	     SwigType_add_memberpointer(t,$2);
+	     SwigType_push($1,t);
+	     if ($$.type) {
+	       SwigType_push($1,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = $1;
+	     Delete(t);
+	   }
+           | pointer idcolon DSTAR AND direct_declarator { 
+	     $$ = $5;
+	     SwigType_add_memberpointer($1,$2);
+	     SwigType_add_reference($1);
+	     if ($$.type) {
+	       SwigType_push($1,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = $1;
+	   }
+           | idcolon DSTAR AND direct_declarator { 
+	     $$ = $4;
+	     SwigType *t = NewString("");
+	     SwigType_add_memberpointer(t,$1);
+	     SwigType_add_reference(t);
+	     if ($$.type) {
+	       SwigType_push(t,$$.type);
+	       Delete($$.type);
+	     } 
+	     $$.type = t;
+	   }
            ;
-
-direct_declarator : ID template_decl {
+             
+direct_declarator : idcolon template_decl {
   /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
                  if (strlen($2)) {
 		       $$.id = Char(NewStringf("%s%s",$1,$2));
 		     } else {
-		       $$.id = $1;
+		       $$.id = Char($1);
 		     }
 		     $$.type = 0;
 		     $$.parms = 0;
+		     $$.have_parms = 0;
                   }
+
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
                   | LPAREN pointer direct_declarator RPAREN {
 		    $$ = $3;
@@ -1981,6 +2048,17 @@ direct_declarator : ID template_decl {
 		    }
 		    $$.type = $2;
                   }
+                  | LPAREN idcolon DSTAR direct_declarator RPAREN {
+		    SwigType *t;
+		    $$ = $4;
+		    t = NewString("");
+		    SwigType_add_memberpointer(t,$2);
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = t;
+		    }
                   | direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
@@ -2011,14 +2089,17 @@ direct_declarator : ID template_decl {
 		    t = NewString("");
 		    SwigType_add_function(t,l);
 		    Delete(l);
+		    if (!$$.have_parms) {
+		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
 		    if (!$$.type) {
 		      $$.type = t;
 		    } else {
-		      SwigType_push(t,$$.type);
+		      SwigType_push(t, $$.type);
 		      Delete($$.type);
 		      $$.type = t;
 		    }
-	            $$.parms = $3;
 		  }
                   ;
 
@@ -2026,6 +2107,7 @@ abstract_declarator : pointer {
 		    $$.type = $1;
                     $$.id = 0;
 		    $$.parms = 0;
+		    $$.have_parms = 0;
                   }
                   | pointer direct_abstract_declarator { 
                      $$ = $2;
@@ -2057,8 +2139,35 @@ abstract_declarator : pointer {
                   | AND { 
                     $$.id = 0;
                     $$.parms = 0;
+		    $$.have_parms = 0;
                     $$.type = NewString("");
 		    SwigType_add_reference($$.type);
+                  }
+                  | idcolon DSTAR { 
+		    $$.type = NewString("");
+                    SwigType_add_memberpointer($$.type,$1);
+                    $$.id = 0;
+                    $$.parms = 0;
+		    $$.have_parms = 0;
+		   } 
+                  | pointer idcolon DSTAR { 
+                    $$.type = $1;
+		    $$.id = 0;
+		    $$.parms = 0;
+		    $$.have_parms = 0;
+		    SwigType *t = NewString("");
+		    SwigType_add_memberpointer(t,$2);
+		    SwigType_push($$.type,t);
+		    Delete(t);
+                  }
+                  | pointer idcolon DSTAR direct_abstract_declarator { 
+		    $$ = $4;
+		    SwigType_add_memberpointer($1,$2);
+		    if ($$.type) {
+		      SwigType_push($1,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $1;
                   }
                   ;
 
@@ -2088,12 +2197,14 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		    $$.type = NewString("");
 		    $$.id = 0;
 		    $$.parms = 0;
+		    $$.have_parms = 0;
 		    SwigType_add_array($$.type,(char*)"");
                   }
                   | LBRACKET expr RBRACKET { 
 		    $$.type = NewString("");
 		    $$.id = 0;
 		    $$.parms = 0;
+		    $$.have_parms = 0;
 		    SwigType_add_array($$.type,$2.val);
 		  }
                   | LPAREN abstract_declarator RPAREN {
@@ -2113,7 +2224,10 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 		      Delete($$.type);
 		      $$.type = t;
 		    }
-		    $$.parms = $3;
+		    if (!$$.have_parms) {
+		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
                     Delete(l);
 		  }
                   | LPAREN parms RPAREN {
@@ -2122,6 +2236,7 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
                     l = typelist($2);
                     SwigType_add_function($$.type,l);
 		    $$.parms = $2;
+		    $$.have_parms = 1;
 		    $$.id = 0;
                     Delete(l);
                   }
@@ -2187,11 +2302,12 @@ type_right     : TYPE_INT { $$ = $1; }
 		  $$ = $1;
 		  SwigType_add_qualifier($$,$2);
      	       }
-               | ID template_decl { 
+
+               | idcolon template_decl { 
                    $$ = NewStringf("%s%s",$1,$2); 
                }
-               | ID DCOLON ID     { $$ = NewStringf("%s::%s", $1,$3); }
-               | DCOLON ID        { $$ = NewString($2); }
+/*               | ID DCOLON ID     { $$ = NewStringf("%s::%s", $1,$3); }
+		 | DCOLON ID        { $$ = NewString($2); } */
                ;
 
 /* Optional signed types */
@@ -2298,14 +2414,10 @@ expr           :  NUM_INT { $$ = $1; }
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_INT;
 	       }
-               | ID {
-		 $$.val = NewString($1);
+               | idcolon {
+		 $$.val = $1;
 		 $$.type = T_INT;
                }
-               | ID DCOLON ID {
-		 $$.val = NewStringf("%s::%s",$1,$3);
-		 $$.type = T_INT;
-		 }
                | expr PLUS expr {
 		 $$.val = NewStringf("%s+%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
@@ -2448,8 +2560,6 @@ cpp_const      : CONST {}
                | empty {}
                ;
 
-/* Constructor initializer */
-
 ctor_end       : cpp_const ctor_initializer SEMI { Clear(CCode); }
                | cpp_const ctor_initializer LBRACE { skip_balanced('{','}'); }
                ;
@@ -2490,12 +2600,37 @@ idstring       : ID { $$ = $1; }
                | STRING { $$ = $1; }
                ;
 
+idcolon        : ID idcolontail { 
+                   $$ = NewStringf("%s%s", $1, $2);
+		   Delete($2);
+               }
+               | NONID DCOLON ID idcolontail { 
+		 $$ = NewStringf("::%s%s",$3,$4);
+                 Delete($4);
+               }
+               | ID {
+		 $$ = NewString($1);
+               }      
+               | NONID DCOLON ID {
+		 $$ = NewStringf("::%s",$3);
+               }
+               ;
+
+idcolontail    : DCOLON ID idcolontail {
+                   $$ = NewStringf("::%s%s",$2,$3);
+		   Delete($3);
+               }
+              | DCOLON ID {
+                   $$ = NewStringf("::%s",$2);
+               }
+               ;
+
 empty          :   ;
 
 %%
 
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (const char *) {
-   Printf(stderr,"Syntax error\n");
+    Printf(stderr,"Syntax error\n");
 }
 
