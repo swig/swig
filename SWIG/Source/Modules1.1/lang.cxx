@@ -598,6 +598,7 @@ int Language::cDeclaration(Node *n) {
       SwigType *td = SwigType_pop_function(tc);
       String   *oname;
       String   *cname;
+      int       warn = 1;
       if (CurrentClass) {
 	oname = NewStringf("%s::%s",ClassName,name);
 	cname = NewStringf("%s::%s",ClassName,Getattr(over,"name"));
@@ -605,12 +606,16 @@ int Language::cDeclaration(Node *n) {
 	oname = NewString(name);
 	cname = NewString(Getattr(over,"name"));
       }
-      Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
-	     input_file,line_number, SwigType_str(td,oname));
       
       SwigType *tc2 = Copy(Getattr(over,"decl"));
       SwigType *td2 = SwigType_pop_function(tc2);
-      Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(td2,cname));
+
+      if (warn) {
+	Printf(stderr,"%s:%d. Overloaded declaration ignored.  %s\n",
+	       input_file,line_number, SwigType_str(td,oname));
+	
+	Printf(stderr,"%s:%d. Previous declaration is %s\n", Getfile(over),Getline(over), SwigType_str(td2,cname));
+      }
       Delete(tc2);
       Delete(td2);
       Delete(tc);
