@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+
+11/23/2003: mkoeppe (Matthias Koeppe)
+	    [MzScheme] Update the configure check for the dynext object to work
+	    with MzScheme 205.
+
 11/20/2003: mmatus
 	    Fixed the include/import error reported by Kerim Borchaev,
 	    where two files with names like
