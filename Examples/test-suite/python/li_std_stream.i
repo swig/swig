@@ -1,13 +1,26 @@
 %module li_std_stream
 
+%inline %{
+  struct A;  
+%}
+
 %include <std_iostream.i>
+%include <std_sstream.i>
 
 
-%pythoncallback(1) A::bar;
+
+%callback(1) A::bar;
 
 %inline %{
 
-  struct A 
+  struct B {
+    virtual ~B()
+    {
+    }
+    
+  };
+  
+  struct A : B
   {
     void __add__(int a)
     {
@@ -25,8 +38,22 @@
     {
       return pf(a);
     }
-    
-  };
-  
 
+
+    std::ostream& __rlshift__(std::ostream& out)
+    {
+      out << "A class";
+      return out;
+    }    
+  };
 %}
+
+%extend std::basic_ostream<char, std::char_traits<char> >{
+  std::basic_ostream<char, std::char_traits<char> >& 
+    operator<<(const A& a)
+    {
+      *self << "A class";
+      return *self;
+    }
+}
+

@@ -406,3 +406,5 @@ voidtest_runme.py
 wrapmacro.py
 wrapmacro_runme.py
 li_std_stream.py
+swigobject.py
+smart_pointer_member.py

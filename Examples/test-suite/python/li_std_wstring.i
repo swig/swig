@@ -3,7 +3,6 @@
 %include <std_wstring.i>
 
 
-%template(wstring) std::basic_string<wchar_t>;
 %inline %{
 
 struct A : std::wstring 

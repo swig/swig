@@ -19,3 +19,8 @@ if xstr1 != xstr2:
 
 s = str(a.this)
 r = repr(a.this)
+
+v1 = v_ptr(a)
+v2 = v_ptr(a)
+if long(v1) != long(v2):
+  raise RuntimeError

@@ -1,10 +1,14 @@
 import li_std_stream as std
 
-std.cout << 2345 << " " << 1.435 << std.endl
-std.endl(std.cout)
 
 
 a = std.A()
 
-a.bar(2)
-a.foo(4, a.bar)
+o = std.ostringstream()
+
+o << a << " " << 2345 << " " << 1.435
+
+
+if o.str() !=  "A class 2345 1.435":
+  print "\"%s\"" % (o.str(),)
+  raise RuntimeError

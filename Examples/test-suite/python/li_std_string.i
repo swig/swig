@@ -2,7 +2,6 @@
 %include <std_basic_string.i>
 %include <std_string.i>
 
-%template(string) std::basic_string<char>;
 %inline %{
 
 struct A : std::string 
@@ -70,6 +69,19 @@ void test_throw() throw(std::string){
   static std::string x = "x";
   
   throw x;
+}
+
+
+std::basic_string<char> test_value_basic1(std::basic_string<char> x) {
+   return x;
+}
+
+std::basic_string<char,std::char_traits<char> > test_value_basic2(std::basic_string<char,std::char_traits<char> > x) {
+   return x;
+}
+
+std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_basic3(std::basic_string<char,std::char_traits<char>,std::allocator<char> > x) {
+   return x;
 }
 
 %}
