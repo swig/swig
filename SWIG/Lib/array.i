@@ -73,7 +73,7 @@ onto the C 'int' datatype.
   static void int_destroy(int *array) {
     if (array) {
 #ifdef __cplusplus
-      delete array;
+      delete array [];
 #else
       free(array);
 #endif
@@ -142,7 +142,7 @@ int int_set(int *array, int index, int value);
   static void float_destroy(float *array) {
     if (array) {
 #ifdef __cplusplus
-      delete array;
+      delete array [];
 #else
       free(array);
 #endif
@@ -184,7 +184,7 @@ int int_set(int *array, int index, int value);
   static void double_destroy(double *array) {
     if (array) {
 #ifdef __cplusplus
-      delete array;
+      delete array [];
 #else
       free(array);
 #endif
@@ -328,7 +328,7 @@ static void string_destroy(char **array) {
             i++;
       }          	
 #ifdef __cplusplus
-     delete array;
+     delete array [];
 #else
      free(array);
 #endif
