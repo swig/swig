@@ -94,7 +94,8 @@ SWIG_RegisterType (const char *type, const char *prettyname)
 
 /* Register two data types and their mapping with the type checker. */
 SWIGSTATIC void
-SWIG_RegisterMapping (const char *origtype, const char *newtype, void *(*cast)(void *))
+SWIG_RegisterMapping (const char *origtype, const char *newtype,
+		      swig_converter_func cast)
 {
   size_t t = SWIG_RegisterType(origtype, NULL);
 

@@ -82,7 +82,7 @@
  %typemap (guile, ignore)      C_NAME *OUTPUT (C_NAME temp)
    {$target = &temp;}
  %typemap (guile, argout)      C_NAME *OUTPUT
-   {GUILE_APPEND_RESULT(C_TO_SCM(*$target));}
+   {SWIG_APPEND_VALUE(C_TO_SCM(*$target));}
  %typemap (guile, argoutdoc)   C_NAME *OUTPUT "($arg <SCM_NAME>)";
  %typemap (guile, in)          C_NAME *BOTH = C_NAME *INPUT;
  %typemap (guile, indoc)       C_NAME *BOTH = C_NAME *INPUT;
@@ -95,8 +95,8 @@
 %enddef
 
  SIMPLE_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
- SIMPLE_MAP(char, GSWIG_scm2char, gh_char2scm, char);
- SIMPLE_MAP(unsigned char, GSWIG_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(char, gh_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
  SIMPLE_MAP(int, gh_scm2int, gh_int2scm, integer);
  SIMPLE_MAP(short, gh_scm2int, gh_int2scm, integer);
  SIMPLE_MAP(long, gh_scm2long, gh_long2scm, integer);
@@ -107,8 +107,8 @@
  SIMPLE_MAP(size_t, gh_scm2ulong, gh_ulong2scm, integer);
  SIMPLE_MAP(float, gh_scm2double, gh_double2scm, real);
  SIMPLE_MAP(double, gh_scm2double, gh_double2scm, real);
- SIMPLE_MAP(char *, GSWIG_scm2str, gh_str02scm, string);
- SIMPLE_MAP(const char *, GSWIG_scm2str, gh_str02scm, string);
+ SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
+ SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
 
 /* GSWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
@@ -126,7 +126,7 @@
 
 %typemap (varin) char *, const char * {
     if ($target) free($target);
-    $target = GSWIG_scm2str($source);
+    $target = SWIG_scm2str($source);
 }
 
 /* Void */

@@ -48,7 +48,7 @@
      "$target = &temp;";
 
 %typemap(argout) PTRTYPE *OUTPUT
-     "GUILE_APPEND_RESULT(SWIG_Guile_MakePtr(*$target, $*descriptor));"; 
+     "SWIG_APPEND_VALUE(SWIG_Guile_MakePtr(*$target, $*descriptor));"; 
 
 %typemap(argoutdoc) PTRTYPE *OUTPUT "<SCM_TYPE>";
 
