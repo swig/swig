@@ -1,8 +1,70 @@
 Version 1.3.22 (in progress)
 ==================================
 
+06/03/2004: wsfulton
+            Patch to fix wrapping of templated methods. ISO compliant compilers, like
+            Comeau and GCC-3.4.0, don't like the template specifier that SWIG was generating
+            when calling the method. This fix may break some non standard compliant compilers,
+            for example, Sun workshop compilers prior to version 6.2.p2. Patch submitted
+            by Bill Clarke.
+
+06/03/2004: wsfulton
+            [Java, C#] Undocumented special variable $imclassname removed.
+            New special variable $module is replaced by the module name, as specified
+            by %module or -module commandline option. $imclassname can be created from $module.
+
+06/03/2004: wsfulton
+            [C#] Same as for Java below. The new typemaps are named differently, namely,
+            csbody and csbody_derived. The deprecated typemaps are csgetcptr and
+            csptrconstructormodifiers.
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+06/03/2004: wsfulton
+            [Java] Typemap changes for the Java proxy / typewrapper and enum classes. A new
+            typemap called javabody contains the essential support code for generation into the body
+            of these classes. There is also a new javabody_derived typemap which is used instead for
+            wrapped classes that have a wrapped base class. The code is basically, the getCPtr()
+            method and swigCPtr and swigCMemOwn member variables. These used to be hard coded
+            with no way to modify the code. The introduction of this typemap makes it possible for
+            the user to tailor nearly every aspect of the code generation.
+            The exception now is the code for director classes.
+
+            The javagetcptr and javaptrconstructormodifiers typemaps are deprecated and are
+            no longer used as the code that these generated can be put in the more flexible
+            javabody and javabody_derived typemaps.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+06/03/2004: wsfulton
+            [Java, C#] The contents of the class modifier typemaps and pragmas have changed.
+            They must now include the class type. Previously 'class' was hard coded.
+            This change enables flexibility into what type of class is generated,
+            for example the proxy class could be an interface instead of a class.
+
+            For Java this affects the javaclassmodifiers typemap and the jniclassclassmodifiers
+            and moduleclassmodifiers pragmas.
+
+            For C# this affects the csclassmodifiers typemap and the imclassclassmodifiers
+            and moduleclassmodifiers pragmas.
+
+            Unless you have overridden the default versions of these typemaps or pragmas, you
+            shouldn't be affected. However, if you have, upgrading is easy, for example
+
+                class Foo {};
+                %typemap(javaclassmodifiers) Foo "public final"
+
+            must now be:
+
+                class Foo {};
+                %typemap(javaclassmodifiers) Foo "public final class"
+
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
 05/31/2004: wsfulton
-            Fix for exception specifications that are references. Problem reported by
+            Fix for C++ exception specifications that are references. Problem reported by
             Oren Miller. Also improves the generated exception declarations in the
             catch handler for pointers - a pointer is used instead of a reference to
             a pointer. Added default throws typemaps for SWIGTYPE &, SWIGTYPE * and
