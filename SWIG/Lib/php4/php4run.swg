@@ -216,8 +216,10 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
      } else goto type_error; // can't find property _cPtr
    } else if (z->type==IS_RESOURCE) {
      return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty TSRMLS_CC);
-   } else c = Z_STRVAL_P(z); // was not object or resource
-   return _SWIG_ConvertPtr(c,ptr,ty);
+   } else if (z->type==IS_STRING) {
+     c = Z_STRVAL_P(z); 
+     return _SWIG_ConvertPtr(c,ptr,ty);
+   } else goto type_error;
 
 type_error:
 
