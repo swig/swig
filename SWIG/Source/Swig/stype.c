@@ -191,6 +191,25 @@ SwigType_add_array(SwigType *t, String *size) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_pop_arrays()
+ *
+ * Pop all arrays off as a single item
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_pop_arrays(SwigType *t) {
+  String *ta;
+  if (!SwigType_isarray(t)) return 0;
+  ta = NewString("");
+  while (SwigType_isarray(t)) {
+    SwigType *td = SwigType_pop(t);
+    Append(ta,td);
+    Delete(td);
+  }
+  return ta;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_add_reference()
  *
  * Adds a reference constructor to a type.
@@ -1168,8 +1187,8 @@ String *SwigType_manglestr_default(SwigType *s) {
   /*  if (SwigType_istypedef(s) && SwigType_issimple(s))
     result = Copy(s);
     else */
-    result = SwigType_ltype(s);
-  Replace(result,"struct ","", DOH_REPLACE_ANY);
+  result = SwigType_ltype(s);
+  Replace(result,"struct ","", DOH_REPLACE_ANY);     /* This might be problematic */
   Replace(result,"class ","", DOH_REPLACE_ANY);
   Replace(result,"union ","", DOH_REPLACE_ANY);
   c = Char(result);
