@@ -32,7 +32,7 @@
 %typemap(in,parse="b") signed char "";
 
 %typemap(in) unsigned int, unsigned short, unsigned long, unsigned char 
-	"$1 = ($1_ltype) PyInt_AsLong($input);
+        "$1 = ($1_ltype) PyInt_AsLong($input);
          if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in) long long 
@@ -82,25 +82,25 @@
 /* Const primitive references.  Passed by value */
 
 %typemap(in) const int & (int temp),
-	     const short & (short temp),
+             const short & (short temp),
              const long  & (long temp),
              const unsigned int & (unsigned int temp),
              const unsigned short & (unsigned short temp),
              const unsigned long & (unsigned long temp),
              const signed char & (signed char temp),
              const unsigned char & (unsigned char temp)
-	"temp = ($*1_ltype) PyInt_AsLong($input);
+        "temp = ($*1_ltype) PyInt_AsLong($input);
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const bool & (bool temp)
-	"temp = PyInt_AsLong($input) ? true : false;
+        "temp = PyInt_AsLong($input) ? true : false;
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
 %typemap(in) const float & (float temp),
-	     const double & (double temp)
-	"temp = ($*1_ltype) PyFloat_AsDouble($input);
+             const double & (double temp)
+        "temp = ($*1_ltype) PyFloat_AsDouble($input);
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
@@ -423,41 +423,41 @@
  *
  *****************************************************************************/
 
-/* --- Inverse arguments --- */
+/* directorin typemaps */
 
 /* Primitive datatypes.  These only supply a parse code to PyObject_CallMethod */
 
-%typemap(inv,parse="i") int "";
-%typemap(inv,parse="h") short "";
-%typemap(inv,parse="l") long "";
-%typemap(inv,parse="b") signed char "";
-%typemap(inv,parse="f") float "";
-%typemap(inv,parse="d") double "";
-%typemap(inv,parse="s") char* "";
-%typemap(inv,parse="i") bool "";
-%typemap(inv,parse="i") enum SWIGTYPE "";
+%typemap(directorin,parse="i") int "";
+%typemap(directorin,parse="h") short "";
+%typemap(directorin,parse="l") long "";
+%typemap(directorin,parse="b") signed char "";
+%typemap(directorin,parse="f") float "";
+%typemap(directorin,parse="d") double "";
+%typemap(directorin,parse="s") char* "";
+%typemap(directorin,parse="i") bool "";
+%typemap(directorin,parse="i") enum SWIGTYPE "";
 
-%typemap(inv,parse="l") unsigned int, unsigned short, unsigned long, unsigned char "(long) $1_name";
-	
-%typemap(inv) long long
-	"$input = PyLong_FromLongLong($1_name);";
-%typemap(inv) unsigned long long
-	"$input = PyLong_FromUnsignedLongLong($1_name);";
+%typemap(directorin,parse="l") unsigned int, unsigned short, unsigned long, unsigned char "(long) $1_name";
+        
+%typemap(directorin) long long
+        "$input = PyLong_FromLongLong($1_name);";
+%typemap(directorin) unsigned long long
+        "$input = PyLong_FromUnsignedLongLong($1_name);";
 
-%typemap(inv, parse="l") int *INV, long* INV, 
-			 unsigned int *INV, unsigned long *INV, 
-			 short *INV, unsigned short *INV, 
-			 char *INV, unsigned char *INV
-			 "(long) *$1_name";
-%typemap(inv, parse="f") float *INV "*$1_name";
-%typemap(inv, parse="d") double *INV "*$1_name";
+%typemap(directorin, parse="l") int *DIRECTORIN, long* DIRECTORIN, 
+                         unsigned int *DIRECTORIN, unsigned long *DIRECTORIN, 
+                         short *DIRECTORIN, unsigned short *DIRECTORIN, 
+                         char *DIRECTORIN, unsigned char *DIRECTORIN
+                         "(long) *$1_name";
+%typemap(directorin, parse="f") float *DIRECTORIN "*$1_name";
+%typemap(directorin, parse="d") double *DIRECTORIN "*$1_name";
 
-%typemap(inv, parse="O") PyObject* "";
+%typemap(directorin, parse="O") PyObject* "";
 
-%typemap(inv, parse="l") std::size_t "(long) $input";
+%typemap(directorin, parse="l") std::size_t "(long) $input";
 
 /* // this is rather dangerous
-%typemap(inv) SWIGTYPE  {
+%typemap(directorin) SWIGTYPE  {
 {
   $input = SWIG_NewPointerObj((void *) &$1_name, $&1_descriptor, $owner);
 }
@@ -465,68 +465,68 @@
 */
 
 /* no can do... see python.cxx
-%typemap(inv) DIRECTORTYPE * {
-	{
-		__DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
-		if (!proxy) {
-			$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
-		} else {
-			$input = proxy->__get_self();
-		}
-	}
+%typemap(directorin) DIRECTORTYPE * {
+        {
+                __DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
+                if (!proxy) {
+                        $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+                } else {
+                        $input = proxy->__get_self();
+                }
+        }
 }
-%typemap(inv) SWIGTYPE * {
-		$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+%typemap(directorin) SWIGTYPE * {
+                $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
 }
 */
 
 /* // not currently needed, see python.cxx
-%typemap(inv) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
-	$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, $owner);
+%typemap(directorin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+        $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, $owner);
 }
-%typemap(inv, parse="s") void "0";
+%typemap(directorin, parse="s") void "0";
 */
 
 
-/* --- Outverse arguments --- */
+/* --- directorout typemaps --- */
 
-%define OUTV_TYPEMAP(type, converter)
-%typemap(argoutv) type *OUTV
+%define DIRECTOROUT_TYPEMAP(type, converter)
+%typemap(directorargout) type *DIRECTOROUT
    "*$result = (type) converter($input);
    if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
-%typemap(outv) type 
+%typemap(directorout) type 
    "$result = (type) converter($input);
    if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
-%typemap(outv) type &OUTV = type
+%typemap(directorout) type &DIRECTOROUT = type
 %enddef
 
-OUTV_TYPEMAP(char, PyInt_AsLong);
-OUTV_TYPEMAP(unsigned char, PyInt_AsLong);
-OUTV_TYPEMAP(short, PyInt_AsLong);
-OUTV_TYPEMAP(unsigned short, PyInt_AsLong);
-OUTV_TYPEMAP(int, PyInt_AsLong);
-OUTV_TYPEMAP(unsigned int, PyInt_AsLong);
-OUTV_TYPEMAP(long, PyInt_AsLong);
-OUTV_TYPEMAP(unsigned long, PyInt_AsLong);
-OUTV_TYPEMAP(long long, PyLong_AsLongLong);
-OUTV_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
-OUTV_TYPEMAP(float, PyFloat_AsDouble);
-OUTV_TYPEMAP(double, PyFloat_AsDouble);
-OUTV_TYPEMAP(bool, PyInt_AsLong);
-OUTV_TYPEMAP(PyObject *, );
-OUTV_TYPEMAP(char *, PyString_AsString);
-OUTV_TYPEMAP(std::size_t, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(char, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(unsigned char, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(short, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(unsigned short, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(int, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(unsigned int, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(long, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(unsigned long, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(long long, PyLong_AsLongLong);
+DIRECTOROUT_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
+DIRECTOROUT_TYPEMAP(float, PyFloat_AsDouble);
+DIRECTOROUT_TYPEMAP(double, PyFloat_AsDouble);
+DIRECTOROUT_TYPEMAP(bool, PyInt_AsLong);
+DIRECTOROUT_TYPEMAP(PyObject *, );
+DIRECTOROUT_TYPEMAP(char *, PyString_AsString);
+DIRECTOROUT_TYPEMAP(std::size_t, PyInt_AsLong);
 
 /* Object returned by value. Convert from a pointer */
-%typemap(outv) SWIGTYPE  ($&ltype argp)
+%typemap(directorout) SWIGTYPE  ($&ltype argp)
        "if ((SWIG_ConvertPtr($input,(void **) &argp, $&descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\"); $result = *argp;";
 
-%typemap(outv) SWIGTYPE *, 
-               SWIGTYPE &, 
-               SWIGTYPE [] 
+%typemap(directorout) SWIGTYPE *, 
+                      SWIGTYPE &, 
+                      SWIGTYPE [] 
        "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
 
-%typemap(outv) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+%typemap(directorout) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
 
 
 
@@ -569,22 +569,22 @@ OUTV_TYPEMAP(std::size_t, PyInt_AsLong);
  * ------------------------------------------------------------ */
 
 %typecheck(SWIG_TYPECHECK_INTEGER)
-	 int, short, long,
- 	 unsigned int, unsigned short, unsigned long,
-	 signed char, unsigned char,
-	 long long, unsigned long long,
-	 const int &, const short &, const long &,
- 	 const unsigned int &, const unsigned short &, const unsigned long &,
-	 const long long &, const unsigned long long &,
-	 enum SWIGTYPE,
+         int, short, long,
+         unsigned int, unsigned short, unsigned long,
+         signed char, unsigned char,
+         long long, unsigned long long,
+         const int &, const short &, const long &,
+         const unsigned int &, const unsigned short &, const unsigned long &,
+         const long long &, const unsigned long long &,
+         enum SWIGTYPE,
          bool, const bool & 
 {
   $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
-	float, double,
-	const float &, const double &
+        float, double,
+        const float &, const double &
 {
   $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }

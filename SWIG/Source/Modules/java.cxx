@@ -781,7 +781,7 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("jni", l, f);
     Swig_typemap_attach_parms("jtype", l, f);
     if (director_method) {
-      Setattr(n, "tmap:inv", Swig_typemap_lookup_new("inv", n, "", 0));
+      Setattr(n, "tmap:directorin", Swig_typemap_lookup_new("directorin", n, "", 0));
       Swig_typemap_attach_parms("javadirectorin", l, 0);
     }
 
@@ -1037,7 +1037,7 @@ class JAVA : public Language {
 
       Printf(f->code, "} else {\n");
 
-      if ((tm= Getattr(n, "tmap:inv")) != NULL && (jdescrip = Getattr(n, "tmap:inv:parse")) != NULL) {
+      if ((tm= Getattr(n, "tmap:directorin")) != NULL && (jdescrip = Getattr(n, "tmap:directorin:parse")) != NULL) {
         String *jni_canon = canonicalJNIFDesc(jdescrip, n, proxy_class_name);
 
         Delete(jdescrip);
@@ -1087,8 +1087,8 @@ class JAVA : public Language {
 
         Delete(jdescrip);
       } else {
-        Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                     "No or improper inv typemap defined for %s\n", c_return_type);
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", c_return_type);
       }
 
       Printf(f->code, "  }\n");
@@ -2690,7 +2690,7 @@ class JAVA : public Language {
     Swig_typemap_attach_parms("out", l, w);
     Swig_typemap_attach_parms("jni", l, w);
     Swig_typemap_attach_parms("jtype", l, w);
-    Swig_typemap_attach_parms("inv", l, 0);
+    Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("javadirectorin", l, 0);
 
     /* Get the JNI field descriptor for this return type */
@@ -2706,16 +2706,16 @@ class JAVA : public Language {
         Delete(jretval_decl);
       }
 
-      if ((tm = Swig_typemap_lookup_new("inv", tp, "", 0)) != NULL
-          && (jdesc = Getattr(tp, "tmap:inv:parse")) != NULL) {
+      if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
+          && (jdesc = Getattr(tp, "tmap:directorin:parse")) != NULL) {
         String *jnidesc_canon;
 
         jnidesc_canon = canonicalJNIFDesc(jdesc, n, jniret_type);
         Append(jniret_desc, jnidesc_canon);
         Delete(jnidesc_canon);
       } else {
-        Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                     "No or improper inv typemap defined for %s\n", SwigType_str(jniret_type,0));
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
         output_director = false;
       }
 
@@ -2729,16 +2729,16 @@ class JAVA : public Language {
     {
       String *jdesc;
 
-      if ((tm = Swig_typemap_lookup_new("inv", retpm, "", 0)) != NULL
-          && (jdesc = Getattr(retpm, "tmap:inv:parse")) != NULL) {
+      if ((tm = Swig_typemap_lookup_new("directorin", retpm, "", 0)) != NULL
+          && (jdesc = Getattr(retpm, "tmap:directorin:parse")) != NULL) {
         String *jnidesc_canon;
 
         jnidesc_canon = canonicalJNIFDesc(jdesc, n, return_type);
         Append(classret_desc, jnidesc_canon);
         Delete(jnidesc_canon);
       } else {
-        Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                     "No or improper inv typemap defined for %s\n", SwigType_str(jniret_type,0));
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(jniret_type,0));
         output_director = false;
       }
     }
@@ -2805,8 +2805,8 @@ class JAVA : public Language {
       Parm *tp = NewParm(classname, empty_str);
       String *jdesc;
 
-      if ((tm = Swig_typemap_lookup_new("inv", tp, "", 0)) != NULL
-          && (jdesc = Getattr(tp, "tmap:inv:parse")) != NULL) {
+      if ((tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
+          && (jdesc = Getattr(tp, "tmap:directorin:parse")) != NULL) {
         String *jni_canon;
           
         jni_canon = canonicalJNIFDesc(jdesc, n, classname);
@@ -2814,8 +2814,8 @@ class JAVA : public Language {
         Delete(jni_canon);
         Delete(tm);
       } else {
-        Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                     "No or improper inv typemap defined for %s\n", SwigType_str(classname, 0));
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                     "No or improper directorin typemap defined for %s\n", SwigType_str(classname, 0));
         output_director = false;
       }
 
@@ -2865,10 +2865,10 @@ class JAVA : public Language {
         Wrapper_add_local(w, arg, c_decl);
 
         /* Add input marshalling code and update JNI field descriptor */
-        if ((desc_tm = Swig_typemap_lookup_new("inv", tp, "", 0)) != NULL
-            && (jdesc = Getattr(tp, "tmap:inv:parse")) != NULL) {
-          if ((tm = Getattr(p, "tmap:inv")) != NULL
-              && (cdesc = Getattr(p, "tmap:inv:parse")) != NULL) {
+        if ((desc_tm = Swig_typemap_lookup_new("directorin", tp, "", 0)) != NULL
+            && (jdesc = Getattr(tp, "tmap:directorin:parse")) != NULL) {
+          if ((tm = Getattr(p, "tmap:directorin")) != NULL
+              && (cdesc = Getattr(p, "tmap:directorin:parse")) != NULL) {
             String *jni_canon;
           
             jni_canon = canonicalJNIFDesc(jdesc, n, c_param_type);
@@ -2927,16 +2927,16 @@ class JAVA : public Language {
 
             p = Getattr(p, "tmap:in:next");
           } else {
-            Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                         "No or improper inv typemap defined for %s\n", SwigType_str(pt, 0));
+            Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                         "No or improper directorin typemap defined for %s\n", SwigType_str(pt, 0));
             output_director = false;
             p = nextSibling(p);
           }
 
           Delete(desc_tm);
         } else {
-          Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number, 
-                       "No or improper inv typemap defined for %s\n", SwigType_str(c_param_type, 0));
+          Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, 
+                       "No or improper directorin typemap defined for %s\n", SwigType_str(c_param_type, 0));
           output_director = false;
           p = nextSibling(p);
         }

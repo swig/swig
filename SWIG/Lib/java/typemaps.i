@@ -76,10 +76,10 @@ In Java you could then use it like this:
 %typemap(in) CTYPE *INPUT, CTYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
-%typemap(inv,parse=JNIDESC) CYTPE &INPUT
+%typemap(directorin,parse=JNIDESC) CYTPE &INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) &$1; %}
 
-%typemap(inv,parse=JNIDESC) CTYPE *INPUT
+%typemap(directorin,parse=JNIDESC) CTYPE *INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) $1; %}
 
 %typemap(typecheck) CTYPE *INPUT = CTYPE;
@@ -220,12 +220,12 @@ value in the single element array. In Java you would use it like this:
   $1 = &temp; 
 }
 
-%typemap(inv,parse=JNIDESC) CTYPE &OUTPUT
+%typemap(directorin,parse=JNIDESC) CTYPE &OUTPUT
 %{ *(($&1_ltype) $input = &$1; %}
 
-%typemap(inv,parse=JNIDESC) CTYPE *OUTPUT
+%typemap(directorin,parse=JNIDESC) CTYPE *OUTPUT
 %{
-#error "Need to provide OUT inv typemap, CTYPE array length is unknown"
+#error "Need to provide OUT directorin typemap, CTYPE array length is unknown"
 %}
 
 %typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
@@ -354,12 +354,12 @@ of the function return value. This difference is due to Java being a typed langu
   $1 = ($1_ltype) JCALL2(Get##JAVATYPE##ArrayElements, jenv, $input, 0); 
 }
 
-%typemap(inv,parse=JNIDESC) CTYPE &INOUT
+%typemap(directorin,parse=JNIDESC) CTYPE &INOUT
 %{ *(($&1_ltype)&$input) = &$1; %}
 
-%typemap(inv,parse=JNIDESC) CTYPE *INOUT, CTYPE &INOUT
+%typemap(directorin,parse=JNIDESC) CTYPE *INOUT, CTYPE &INOUT
 {
-#error "Need to provide INOUT inv typemap, CTYPE array length is unknown"
+#error "Need to provide INOUT directorin typemap, CTYPE array length is unknown"
 }
 
 %typemap(argout) CTYPE *INOUT, CTYPE &INOUT

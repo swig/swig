@@ -225,7 +225,7 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
   if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
-%typemap(inv,parse=JNIDESC) CTYPE[ANY] 
+%typemap(directorin,parse=JNIDESC) CTYPE[ANY] 
 %{$input = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}

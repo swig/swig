@@ -43,10 +43,10 @@
 <li><a href="#n25">Overriding Methods in Ocaml</a>
 <li><a href="#n26">Director Usage Example</a>
 <li><a href="#n27">Creating director objects</a>
-<li><a href="#n28">Typemaps for directors, <tt>inv, outv, argoutv</tt></a>
-<li><a href="#n29"><tt>inv</tt> typemap</a>
-<li><a href="#n30"><tt>outv</tt> typemap</a>
-<li><a href="#n31"><tt>argoutv</tt> typemap</a>
+<li><a href="#n28">Typemaps for directors, <tt>directorin, directorout, directorargout</tt></a>
+<li><a href="#n29"><tt>directorin</tt> typemap</a>
+<li><a href="#n30"><tt>directorout</tt> typemap</a>
+<li><a href="#n31"><tt>directorargout</tt> typemap</a>
 </ul>
 <li><a href="#n32">Exceptions</a>
 </ul>
@@ -839,51 +839,51 @@ consequently trigger an exception when any method is called on the object
 after that point (the actual raise is from an inner function used by
 new_derived_object, and throws NotObject).
 
-<a name="n28"></a><H4>16.2.5.5 Typemaps for directors, <tt>inv, outv, argoutv</tt></H4>
+<a name="n28"></a><H4>16.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
 
 
 <p>
-Special typemaps exist for use with directors, the <tt>inv, outv, argoutv</tt>
+Special typemaps exist for use with directors, the <tt>directorin, directorout, directorargout</tt>
 are used in place of <tt>in, out, argout</tt> typemaps, except that their
 direction is reversed.  They provide for you to provide argout values, as
 well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </P>
-<a name="n29"></a><H4>16.2.5.6 <tt>inv</tt> typemap</H4>
+<a name="n29"></a><H4>16.2.5.6 <tt>directorin</tt> typemap</H4>
 
 
 <p>
-The <tt>inv</tt> typemap is used when you will receive arguments from a call
+The <tt>directorin</tt> typemap is used when you will receive arguments from a call
 made by C++ code to you, therefore, values will be translated from C++ to
 ocaml.  You must provide some valid C_obj value.  This is the value your ocaml
-code receives when you are called.  In general, a simple <tt>inv</tt> typemap
+code receives when you are called.  In general, a simple <tt>directorin</tt> typemap
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<a name="n30"></a><H4>16.2.5.7 <tt>outv</tt> typemap</H4>
+<a name="n30"></a><H4>16.2.5.7 <tt>directorout</tt> typemap</H4>
 
 
 <p>
-The <tt>outv</tt> typemap is used when you will send an argument from your
-code back to the C++ caller.  That is; outv specifies a function return
+The <tt>directorout</tt> typemap is used when you will send an argument from your
+code back to the C++ caller.  That is; directorout specifies a function return
 conversion.  You can usually use the same body as an <tt>in</tt> typemap
 for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<a name="n31"></a><H4>16.2.5.8 <tt>argoutv</tt> typemap</H4>
+<a name="n31"></a><H4>16.2.5.8 <tt>directorargout</tt> typemap</H4>
 
 
 <p>
 C++ allows function arguments which are by pointer (*) and by reference (&)
 to receive a value from the called function, as well as sending one there.
-Sometimes, this is the main purpose of the argument given.  <tt>argoutv</tt>
+Sometimes, this is the main purpose of the argument given.  <tt>directorargout</tt>
 typemaps allow your caml code to emulate this by specifying additional return
 values to be put into the output parameters.  The SWIG ocaml module is a bit
 loose in order to make code eaiser to write.  In this case, your return to
 the caller must be a list containing the normal function return first, followed
 by any argout values in order.  These argout values will be taken from the
-list and assigned to the values to be returned to C++ through argoutv typemaps.
+list and assigned to the values to be returned to C++ through directorargout typemaps.
 In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
