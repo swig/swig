@@ -15,4 +15,4 @@ all::
 clean::
 	rm -f *_wrap* my-guile *~ .~* core
 
-
+check: all

@@ -16,4 +16,4 @@ static::
 clean::
 	rm -f *_wrap* *.o my_tclsh *~ .~* core *.so *.sl
 
-
+check: all

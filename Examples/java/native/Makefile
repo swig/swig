@@ -14,4 +14,4 @@ java::
 clean::
 	rm -f *_wrap* example.java *.class *.o *~ .~* core *.so *.sl so_locations
 
-
+check: all

@@ -14,3 +14,4 @@ java::
 clean::
 	rm -f *_wrap* *.o core *~ *.so *.class example.java
 
+check: all

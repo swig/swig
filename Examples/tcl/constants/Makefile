@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SRCS       = 
+SRCS       =
 TARGET     = my_tclsh
 DLTARGET   = example
 INTERFACE  = example.i
@@ -16,4 +16,4 @@ static::
 clean::
 	rm -f *_wrap* *.o my_tclsh *~ .~* core *.so *.sl
 
-
+check: all

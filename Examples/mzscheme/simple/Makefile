@@ -10,3 +10,4 @@ all::
 clean::
 	rm -f *_wrap* *.o core *~ *.so
 
+check: all
