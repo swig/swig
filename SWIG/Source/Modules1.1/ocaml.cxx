@@ -441,14 +441,14 @@ class OCAML : public Language {
 //----------------------------------------------------------------------
 
     String *get_function_name( Node *n ) {
-	String *name = Getattr(n,"name");
+	String *name = Getattr(n,"origname");
 	char *fname;
 	const char *prefix = 
 	    in_constructor ? 
 	    (in_copyconst ? "copy_" : "new_") :
 	    in_destructor ? "delete_" : "";
 
-	if( !name ) name = Getattr(n,"origname");
+	if( !name ) name = Getattr(n,"name");
 	fname = Char(name);
 
 	String *out = NewString(prefix);
@@ -768,7 +768,7 @@ class OCAML : public Language {
 	int numreq;
 	int is_static = 1;
 
-	if( in_vwrap > VWRAP_GET ) return SWIG_OK;
+	// if( in_vwrap > VWRAP_GET ) return SWIG_OK;
 	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
 	    in_vwrap = VWRAP_GET;
 
