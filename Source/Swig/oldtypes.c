@@ -69,13 +69,13 @@ DataType *NewDataType(int t) {
     break;
   }
   ty->_type = t;
-  ty->is_pointer = 0;
-  ty->implicit_ptr = 0;
+  ty->_is_pointer = 0;
+  ty->_implicit_ptr = 0;
   ty->_qualifier = 0;
   ty->_is_reference = 0;
-  ty->status = 0;
+  ty->_status = 0;
   ty->_arraystr = 0;
-  ty->id = type_id++;
+  ty->_id = type_id++;
   return ty;
 }
  	
@@ -83,13 +83,13 @@ DataType *CopyDataType(DataType *t) {
   DataType *ty = (DataType *) malloc(sizeof(DataType));
   ty->_type = t->_type;
   strcpy(ty->_name,t->_name);
-  ty->is_pointer = t->is_pointer;
-  ty->implicit_ptr = t->implicit_ptr;
+  ty->_is_pointer = t->_is_pointer;
+  ty->_implicit_ptr = t->_implicit_ptr;
   ty->_qualifier = Swig_copy_string(t->_qualifier);
   ty->_is_reference = t->_is_reference;
-  ty->status = t->status;
+  ty->_status = t->_status;
   ty->_arraystr = Swig_copy_string(t->_arraystr);
-  ty->id = t->id;
+  ty->_id = t->_id;
   return ty;
 }
 
@@ -100,10 +100,10 @@ void DelDataType(DataType *t) {
 }
 
 int   DataType_type(DataType *t) {
-  if ((t->_type == T_CHAR) && (t->is_pointer == 1)) return T_STRING;
+  if ((t->_type == T_CHAR) && (t->_is_pointer == 1)) return T_STRING;
   if (t->_arraystr) return T_ARRAY;
   if (t->_is_reference) return T_REFERENCE;
-  if (t->is_pointer) return T_POINTER;
+  if (t->_is_pointer) return T_POINTER;
   return t->_type;
 }
 
@@ -139,6 +139,18 @@ void DataType_add_reference(DataType *t) {
 
 int DataType_is_reference(DataType *t) {
   return t->_is_reference;
+}
+
+int DataType_is_pointer(DataType *t) {
+  return t->_is_pointer;
+}
+
+void DataType_add_pointer(DataType *t) {
+  t->_is_pointer++;
+}
+
+void DataType_del_pointer(DataType *t) {
+  t->_is_pointer--;
 }
 
 void DataType_Setname(DataType *t, char *n) {
@@ -204,13 +216,13 @@ void DataType_primitive(DataType *t) {
     strcpy(t->_name,"UNKNOWN");
     break;
   }
-  t->implicit_ptr = 0;           /* Gets rid of typedef'd pointers */
+  t->_implicit_ptr = 0;           /* Gets rid of typedef'd pointers */
   if (t->_qualifier) {
     free(t->_qualifier);
     t->_qualifier = 0;
   }
   t->_qualifier = 0;
-  t->status = 0;
+  t->_status = 0;
 }
 
 /* --------------------------------------------------------------------
@@ -242,8 +254,8 @@ char *DataType_mangle_default(DataType *t) {
       if ((*c == ' ') || (*c == ':') || (*c == '<') || (*c == '>')) *(d++) = '_';
       else *(d++) = *c;
   }
-  if ((t->is_pointer-t->implicit_ptr)) *(d++) = '_';
-  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
+  if ((t->_is_pointer-t->_implicit_ptr)) *(d++) = '_';
+  for (i = 0; i < (t->_is_pointer-t->_implicit_ptr); i++)
     *(d++) = 'p';
 
   *d = 0;
@@ -277,24 +289,24 @@ char *DataType_str(DataType *t, DOHString_or_char *name) {
   int i;
 
   ri = ri % 8;
-  if (t->_arraystr) t->is_pointer--;
-  if (t->_is_reference) t->is_pointer--;
+  if (t->_arraystr) t->_is_pointer--;
+  if (t->_is_reference) t->_is_pointer--;
   if (t->_qualifier) {
     sprintf(result[ri],"%s %s", t->_qualifier, t->_name);
   } else {
     sprintf(result[ri],"%s ", t->_name);
   }
 
-  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++) {
+  for (i = 0; i < (t->_is_pointer-t->_implicit_ptr); i++) {
     strcat(result[ri],"*");
   }
   if (t->_is_reference) strcat(result[ri],"&");
   if (name) strcat(result[ri],Char(name));
   if (t->_arraystr) {
     strcat(result[ri],t->_arraystr);
-    t->is_pointer++;
+    t->_is_pointer++;
   }
-  if (t->_is_reference) t->is_pointer++;
+  if (t->_is_reference) t->_is_pointer++;
   return result[ri++];
 }
 
@@ -319,16 +331,16 @@ char *DataType_lstr(DataType *ty, DOHString_or_char *name) {
   int i;
   DataType *t = ty;
   
-  if (ty->status & STAT_REPLACETYPE) {
+  if (ty->_status & STAT_REPLACETYPE) {
     t = CopyDataType(ty);
     DataType_typedef_replace(t);    /* Replace the type with its typedef value */
   }
   ri = ri % 8;
   sprintf(result[ri],"%s ", t->_name);
-  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
+  for (i = 0; i < (t->_is_pointer-t->_implicit_ptr); i++)
     strcat(result[ri],"*");
 
-  if (ty->status & STAT_REPLACETYPE) {
+  if (ty->_status & STAT_REPLACETYPE) {
     DelDataType(t);
   }
   if (name) {
@@ -346,7 +358,7 @@ char *DataType_lstr(DataType *ty, DOHString_or_char *name) {
 DataType *DataType_ltype(DataType *t) {
 
   DataType *ty = CopyDataType(t);
-  if (ty->status & STAT_REPLACETYPE) {
+  if (ty->_status & STAT_REPLACETYPE) {
     DataType_typedef_replace(ty);    /* Replace the type with its typedef value */
   }
   if (ty->_qualifier) {
@@ -377,7 +389,7 @@ char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
   strcpy(result[ri],"");
   if (ty->_arraystr) {
     t = ty;
-    if (ty->status & STAT_REPLACETYPE) {
+    if (ty->_status & STAT_REPLACETYPE) {
       t = CopyDataType(ty);
       DataType_typedef_replace(t);
     }
@@ -395,15 +407,15 @@ char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
       if (ndim > 1) {
 	/* a Multidimensional array.  Provide a special cast for it */
 	char *oldarr = 0;
-	int oldstatus = ty->status;
-	t->status = t->status & (~STAT_REPLACETYPE);
-	t->is_pointer--;
+	int oldstatus = ty->_status;
+	t->_status = t->_status & (~STAT_REPLACETYPE);
+	t->_is_pointer--;
 	oldarr = t->_arraystr;
 	t->_arraystr = 0;
 	sprintf(result[ri],"(%s", DataType_str(t,0));
 	t->_arraystr = oldarr;
-	t->is_pointer++;
-	t->status = oldstatus;
+	t->_is_pointer++;
+	t->_status = oldstatus;
 	strcat(result[ri]," (*)");
 	c = t->_arraystr;
 	while (*c) {
@@ -415,7 +427,7 @@ char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
 	strcat(result[ri],")");
       }
     }
-    if (ty->status & STAT_REPLACETYPE) {
+    if (ty->_status & STAT_REPLACETYPE) {
       DelDataType(t);
     }
   } else if (ty->_qualifier) {
@@ -575,8 +587,8 @@ int DataType_typedef_add(DataType *t,char *tname, int mode) {
   /* Make a new datatype that we will place in our hash table */
 
   nt = CopyDataType(t);
-  nt->implicit_ptr = (t->is_pointer-t->implicit_ptr);  /* Record if mapped type is a pointer*/
-  nt->is_pointer = (t->is_pointer-t->implicit_ptr);    /* Adjust pointer value to be correct */
+  nt->_implicit_ptr = (t->_is_pointer-t->_implicit_ptr);  /* Record if mapped type is a pointer*/
+  nt->_is_pointer = (t->_is_pointer-t->_implicit_ptr);    /* Adjust pointer value to be correct */
   DataType_typedef_resolve(nt,0);                      /* Resolve any other mappings of this type */
   
   /* Add this type to our hash table */
@@ -633,9 +645,9 @@ void DataType_typedef_resolve(DataType *t, int level) {
   while (s >= 0) {
     if ((td = (DataType *) GetVoid(typedef_hash[s],t->_name))) {
       t->_type = td->_type;
-      t->is_pointer += td->is_pointer;
-      t->implicit_ptr += td->implicit_ptr;
-      t->status = t->status | td->status;
+      t->_is_pointer += td->_is_pointer;
+      t->_implicit_ptr += td->_implicit_ptr;
+      t->_status = t->_status | td->_status;
 
       /* Check for constness, and replace type name if necessary*/
 
@@ -643,7 +655,7 @@ void DataType_typedef_resolve(DataType *t, int level) {
 	if (strcmp(td->_qualifier,"const") == 0) {
 	  strcpy(t->_name,td->_name);
 	  t->_qualifier = Swig_copy_string(td->_qualifier);
-	  t->implicit_ptr -= td->implicit_ptr;
+	  t->_implicit_ptr -= td->_implicit_ptr;
 	}
       }
       return;
@@ -669,8 +681,8 @@ void DataType_typedef_replace (DataType *t) {
 
   if ((td = (DataType *) GetVoid(typedef_hash[scope],t->_name))) {
     t->_type = td->_type;
-    t->is_pointer = td->is_pointer;
-    t->implicit_ptr -= td->implicit_ptr;
+    t->_is_pointer = td->_is_pointer;
+    t->_implicit_ptr -= td->_implicit_ptr;
     strcpy(t->_name, td->_name);
     if (td->_arraystr) {
       if (t->_arraystr) {
@@ -713,7 +725,7 @@ void DataType_typedef_updatestatus(DataType *t, int newstatus) {
 
   DataType *nt;
   if ((nt = (DataType *) GetVoid(typedef_hash[scope],t->_name))) {
-    nt->status = newstatus;
+    nt->_status = newstatus;
   }
 }
 
@@ -1080,14 +1092,14 @@ static char *
 check_equivalent(DataType *t) {
   EqEntry *e1, *e2;
   static DOHString *out = 0;
-  int    npointer = t->is_pointer;
+  int    npointer = t->_is_pointer;
   char  *m;
   DOHString *k;
 
   if (!out) out = NewString("");
   Clear(out);
 
-  while (t->is_pointer >= t->implicit_ptr) {
+  while (t->_is_pointer >= t->_implicit_ptr) {
     m = Swig_copy_string(DataType_manglestr(t));
 
     if (!te_init) typeeq_init();
@@ -1099,9 +1111,9 @@ check_equivalent(DataType *t) {
 	e2 = e1->next;
 	while (e2) {
 	  if (e2->type) {
-	    e2->type->is_pointer += (npointer - t->is_pointer);
+	    e2->type->_is_pointer += (npointer - t->_is_pointer);
 	    Printf(out,"{ \"%s\",", DataType_manglestr(e2->type));
-	    e2->type->is_pointer -= (npointer - t->is_pointer);
+	    e2->type->_is_pointer -= (npointer - t->_is_pointer);
 	    if (e2->cast) 
 	      Printf(out,"%s}, ", e2->cast);
 	    else
@@ -1113,9 +1125,9 @@ check_equivalent(DataType *t) {
       k = Nextkey(typeeq_hash);
     }
     free(m);
-    t->is_pointer--;
+    t->_is_pointer--;
   }
-  t->is_pointer = npointer;
+  t->_is_pointer = npointer;
   Printf(out,"{0}");
   return Char(out);
 }

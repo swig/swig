@@ -590,11 +590,11 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // User defined.   This is an error.
 	  
 	case T_USER:
-	  pt->is_pointer++;
+	  DataType_add_pointer(pt);
 	  DataType_remember(pt);
 	  Putc('p',argstr);
 	  Printv(args, ",&", target, ", SWIGTYPE", DataType_manglestr(pt), 0);
-	  pt->is_pointer--;
+	  DataType_del_pointer(pt);
 	  break;
 	  
 	case T_STRING:
@@ -690,12 +690,12 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Okay. We're returning malloced memory at this point.
 	// Probably dangerous, but who said safety was a good thing?
 	
-	d->is_pointer++;
+	DataType_add_pointer(d);
 	DataType_remember(d);
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
 	       DataType_manglestr(d), "));\n", 0);
 	
-	d->is_pointer--;
+	DataType_del_pointer(d);
 	break;
 	
     case T_STRING:
@@ -787,12 +787,12 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     Printv(set->def, "static char *_swig_", DataType_manglestr(t), "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
 
     Printv(get->def, "static char *_swig_", DataType_manglestr(t), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
-    t->is_pointer++;
+    DataType_add_pointer(t);
     Wrapper_add_localv(get,"addr",DataType_str(t,0),"addr",0);
     Wrapper_add_localv(set,"addr",DataType_str(t,0),"addr",0);
     Printv(set->code, tab4, "addr = (", DataType_lstr(t,0), ") clientData;\n", 0);
     Printv(get->code, tab4, "addr = (", DataType_lstr(t,0), ") clientData;\n", 0);
-    t->is_pointer--;
+    DataType_del_pointer(t);
     Wrapper_add_local(set, "value", "char *value");
     Wrapper_add_local(get, "value", "Tcl_Obj *value");
 
@@ -822,7 +822,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       break;
     case T_USER:
       // User defined type.  We return it as a pointer
-      t->is_pointer++;
+      DataType_add_pointer(t);
       DataType_remember(t);
       Printv(set->code, tab4, "{\n",
 	     tab8, "void *ptr;\n",
@@ -833,7 +833,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	     tab4, "}\n",
 	     0);
       
-      t->is_pointer--;
+      DataType_del_pointer(t);
       break;
     case T_STRING:
       Printv(set->code, tab4, "if (*addr) free(*addr);\n",
@@ -899,12 +899,12 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       
     case T_USER:
       Wrapper_add_local(get,"value", "Tcl_Obj *value");
-      t->is_pointer++;
+      DataType_add_pointer(t);
       DataType_remember(t);
       Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", DataType_manglestr(t), ");\n",
 	     tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     tab4, "Tcl_DecrRefCount(value);\n",0);
-      t->is_pointer--;
+      DataType_del_pointer(t);
       break;
       
     case T_STRING:
@@ -1001,7 +1001,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
       sprintf(var_name,"%s_char",var_name);
       t = NewDataType(T_CHAR);
-      t->is_pointer = 1;
+      DataType_add_pointer(t);
       link_variable(var_name,name,t);
       DelDataType(t);
       break;
@@ -1019,7 +1019,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
       sprintf(var_name,"%s_char",var_name);
       t = NewDataType(T_CHAR);
-      t->is_pointer = 1;
+      DataType_add_pointer(t);
       link_variable(var_name,name,t);
       DelDataType(t);
       break;
@@ -1031,10 +1031,10 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       break;
 	
     case T_CHAR:
-      type->is_pointer++;
+      DataType_add_pointer(type);
       Printf(f_header,"static %s %s = \"%s\";\n", DataType_lstr(type,0), var_name, value);
       link_variable(var_name,name,type);
-      type->is_pointer--;
+      DataType_del_pointer(type);
       break;
 
     case T_STRING:
@@ -1052,7 +1052,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
 	Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(DataType_manglestr(type))+ 20);
       
       t = NewDataType(T_CHAR);
-      t->is_pointer = 1;
+      DataType_add_pointer(t);
       DataType_remember(type);
       Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 	     var_name, var_name, DataType_manglestr(type));
@@ -1258,7 +1258,7 @@ void TCL8::cpp_close_class() {
     t = NewDataType(T_USER);
     sprintf(temp,"%s%s", class_type, real_classname);
     DataType_Setname(t,temp);
-    t->is_pointer = 1;
+    DataType_add_pointer(t);
 
     if (have_destructor) {
       Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n", 0);
@@ -1401,7 +1401,7 @@ void TCL8::add_typedef(DataType *t, char *name) {
 
   // First check to see if there aren't too many pointers
 
-  if (t->is_pointer > 1) return;
+  if (DataType_is_pointer(t) > 1) return;
   if (Getattr(hash,name)) return;      // Already added
 
   // Now look up the datatype in our shadow class hash table

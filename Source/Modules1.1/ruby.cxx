@@ -178,8 +178,7 @@ void RUBY::parse() {
   // typedef void *VALUE
   DataType *value = NewDataType(T_VOID);
   DataType_Setname(value,"void");
-  value->is_pointer = 1;
-  value->implicit_ptr = 0;
+  DataType_add_pointer(value);
   DataType_typedef_add(value,(char*)"VALUE",0);
 
   yyparse();       // Run the SWIG parser
@@ -683,11 +682,11 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
     Delete(s);
   } else if (DataType_type(t) == T_USER) {
     // Hack this into a pointer
-    t->is_pointer++;
+    DataType_add_pointer(t);
     DataType_remember(t);
     Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
 	   ", \"", DataType_manglestr(t), "\");\n", 0);
-    t->is_pointer--;
+    DataType_del_pointer(t);
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	    input_file,line_number,DataType_str(t,0));
@@ -715,13 +714,13 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
       Printv(setf->code,s,"\n",0);
       Delete(s);
     } else if (DataType_type(t) == T_USER) {
-      t->is_pointer++;
+      DataType_add_pointer(t);
       Wrapper_add_localv(setf,"temp",DataType_lstr(t,0), "temp",0);
       Printv(setf->code, tab4, "temp = (", DataType_lstr(t,0), ")",
 	     "SWIG_ConvertPtr(_val, \"", DataType_manglestr(t), "\");\n",
 	     0);
       Printv(setf->code, tab4, name, " = *temp;\n",0);
-      t->is_pointer--;
+      DataType_del_pointer(t);
     } else {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,DataType_str(t,0));
@@ -876,11 +875,11 @@ char *RUBY::ruby_typemap_lookup(char *op, DataType *type, char *pname, char *sou
       && strcmp(DataType_Getname(type), "VALUE") == 0) {
     Printf(s,"$target = $source;");
   } else if (strcmp("out", op) == 0 && (DataType_Gettypecode(type) == T_USER) &&
-	     type->is_pointer == 1 && cls) {
+	     (DataType_is_pointer(type) == 1) && cls) {
     const char *vname = (current == CONSTRUCTOR ? "self" : Char(cls->vname));
     Printv(s, "$target = Wrap_", cls->cname, "(", vname, ", $source);",0);
   } else if (strcmp("in", op)==0 && (DataType_Gettypecode(type) == T_USER) &&
-	     type->is_pointer == 1 && cls) {
+	     (DataType_is_pointer(type) == 1) && cls) {
     Printv(s, "Get_", cls->cname, "($source, $target);", 0);
   } else {
     tm = typemap_lookup(op, typemap_lang, type, pname, source, target, f);

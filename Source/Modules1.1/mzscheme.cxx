@@ -260,13 +260,13 @@ throw_unhandled_mzscheme_type_error (DataType *d)
   Printf (stderr, "ERROR: Unhandled MZSCHEME type error.\n");
   Printf (stderr, "        type %d\n", DataType_Gettypecode(d));
   Printf (stderr, "        name %s\n", DataType_Getname(d));
-  Printf (stderr, "  is_pointer %d\n", d->is_pointer);
-  Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
+  Printf (stderr, "  is_pointer %d\n", DataType_is_pointer(d));
+  /*  Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr); */
   Printf (stderr, "is_reference %d\n", DataType_is_reference(d));
-  Printf (stderr, "      status %d\n", d->status);
+  /*  Printf (stderr, "      status %d\n", d->status); */
   /*  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
       Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : "")); */
-  Printf (stderr, "          id %d\n", d->id);
+  /*  Printf (stderr, "          id %d\n", d->id); */
 
   Printf (stderr, "\n\nBAILING...\n"); // for now -ttn
   abort();                              // for now -ttn
@@ -346,7 +346,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
       }
       // no typemap found
       // assume it's a Scheme_Object containing the C pointer
-      else if (pt->is_pointer) {
+      else if (DataType_is_pointer(pt)) {
         get_pointer (proc_name, i, pt, f);
       }
       // no typemap found and not a pointer
@@ -399,7 +399,7 @@ MZSCHEME::create_function (char *name, char *iname, DataType *d, ParmList *l)
   }
   // no typemap found and not void then create a Scheme_Object holding
   // the C pointer and return it
-  else if (d->is_pointer) {
+  else if (DataType_is_pointer(d)) {
     Printv(f->code,
 	   tab4,
 	   "swig_result = swig_make_c_pointer(",
@@ -535,7 +535,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
       Printf(f_wrappers, "%s\n", tm2);
       Delete(tm2);
     }
-    else if (t->is_pointer) {
+    else if (DataType_is_pointer(t)) {
       if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t\t _temp = SCHEME_STR_VAL(argv[0]);\n");
         Printf (f_wrappers, "\t\t _len = SCHEME_STRLEN_VAL(argv[0]);\n");
@@ -563,7 +563,7 @@ MZSCHEME::link_variable (char *name, char *iname, DataType *t)
                               t, name, name, (char*)"swig_result"))) {
       Printf (f_wrappers, "%s\n", tm);
     }
-    else if (t->is_pointer) {
+    else if (DataType_is_pointer(t)) {
       if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t swig_result = scheme_make_string(%s);\n", name);
       } else {
@@ -702,8 +702,9 @@ MZSCHEME::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
       // Print the type.
       Printv(usage," <", DataType_Getname(pt), 0);
-      if (pt->is_pointer) {
-	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {
+      if (DataType_is_pointer(pt)) {
+	/* for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) { */
+	for (int j = 0; j < DataType_is_pointer(pt); j++) {
 	  Putc('*', usage);
 	}
       }
@@ -753,8 +754,9 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
 
       // Print the type.
       Printv(param," $",DataType_Getname(pt), 0);
-      if (pt->is_pointer) {
-	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) {
+      if (DataType_is_pointer(pt)) {
+	/* for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) {*/
+	for (j = 0; j < DataType_is_pointer(pt) - 1; j++) {
 	  Putc('*',param);
 	}
       }

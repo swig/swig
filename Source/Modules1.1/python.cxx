@@ -779,9 +779,9 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	  Printf(arglist,"&%s",source);
-	  pt->is_pointer++;
+	  DataType_add_pointer(pt);
 	  get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
-	  pt->is_pointer--;
+	  DataType_del_pointer(pt);
 	  noarg = 1;
 	  break;
 
@@ -900,10 +900,10 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       break;
       
     case T_USER :
-      d->is_pointer++;
+      DataType_add_pointer(d);
       DataType_remember(d);
       Printv(f->code,tab4, "resultobj = SWIG_NewPointerObj((void *)result, SWIGTYPE", DataType_manglestr(d), ");\n",0);
-      d->is_pointer--;
+      DataType_del_pointer(d);
       break;
 
     case T_STRING:
@@ -982,7 +982,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
     
     // Check return code for modification
-    if ((Getattr(hash,DataType_Getname(d))) && (d->is_pointer <=1)) {
+    if ((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) <=1)) {
       need_wrapper = 1;
       munge_return = 1;
     }
@@ -1008,8 +1008,8 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
 	  if (!have_output) {
 	    Printv(func, tab4, "if val: val = ", GetChar(hash,DataType_Getname(d)), "Ptr(val)", 0);
-	    if (((Getattr(hash,DataType_Getname(d))) && (d->is_pointer < 1)) ||
-		((Getattr(hash,DataType_Getname(d))) && (d->is_pointer == 1) && NewObject))
+	    if (((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) < 1)) ||
+		((Getattr(hash,DataType_Getname(d))) && (DataType_is_pointer(d) == 1) && NewObject))
 	      Printf(func, "; val.thisown = 1\n");
 	    else
 	      Printf(func,"\n");
@@ -1127,11 +1127,11 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 		 0);
 	  break;
 	case T_USER:
-	  t->is_pointer++;
+	  DataType_add_pointer(t);
 	  Wrapper_add_localv(setf,"temp",DataType_lstr(t,0),"temp",0);
 	  get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf->code,(char*)"1");
 	  Printv(setf->code, tab4, name, " = *temp;\n", 0);
-	  t->is_pointer--;
+	  DataType_del_pointer(t);
 	  break;
 
 	case T_STRING:
@@ -1219,13 +1219,13 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	break;
       case T_USER:
 	// Hack this into a pointer
-	t->is_pointer++;
+	DataType_add_pointer(t);
 	DataType_remember(t);
 	Printv(getf->code,
 	       tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
 	       ", SWIGTYPE", DataType_manglestr(t), ");\n",
 	       0);
-	t->is_pointer--;
+	DataType_del_pointer(t);
 	break;
       case T_STRING:
 	Printv(getf->code,
@@ -1261,7 +1261,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Output a shadow variable.  (If applicable and possible)
     // ----------------------------------------------------------
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
-      if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) {
+      if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
 	Printv(vars,
 	       iname, " = ", GetChar(hash,DataType_Getname(t)), "Ptr(", module, ".", global_name,
 	       ".", iname, ")\n",
@@ -1694,7 +1694,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     if (strcmp(realname,"__repr__") == 0) 
       have_repr = 1;
 
-    if (!((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <=1)) && !noopt) {
+    if (!((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <=1)) && !noopt) {
       Printv(imethod,
 	     class_name, ".", realname, " = new.instancemethod(", module, ".", Swig_name_member(class_name,realname), ", None, ", class_name, ")\n",
 	     0);
@@ -1714,12 +1714,12 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
 	Printv(pyclass, tab8, "val = apply(", module, ".", Swig_name_member(class_name,realname), ",args)\n",0);
       
       // Check to see if the return type is an object
-      if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) {
+      if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
 	if (!typemap_check((char*)"out",typemap_lang,t,Swig_name_member(class_name,realname))) {
 	  if (!have_output) {
 	    Printv(pyclass, tab8, "if val: val = ", GetChar(hash,DataType_Getname(t)), "Ptr(val) ", 0);
-	    if (((Getattr(hash,DataType_Getname(t))) && (t->is_pointer < 1)) ||
-		((Getattr(hash,DataType_Getname(t))) && (t->is_pointer == 1) && NewObject))
+	    if (((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) < 1)) ||
+		((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) == 1) && NewObject))
 	      Printf(pyclass, "; val.thisown = 1\n");
 	    else 
 	      Printf(pyclass,"\n");
@@ -1982,7 +1982,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     
     // Figure out if we've seen this datatype before
     
-    if ((Getattr(hash,DataType_Getname(t))) && (t->is_pointer <= 1)) inhash = 1;
+    if ((Getattr(hash,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) inhash = 1;
     
     // Now write some code to set the variable
     if (Status & STAT_READONLY) {
@@ -2052,7 +2052,7 @@ void PYTHON::add_typedef(DataType *t, char *name) {
 
   // First check to see if there aren't too many pointers
 
-  if (t->is_pointer > 1) return;
+  if (DataType_is_pointer(t) > 1) return;
 
   if (Getattr(hash,name)) return;      // Already added
 

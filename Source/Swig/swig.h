@@ -49,15 +49,15 @@
 #define MAX_NAME 96
 
 typedef struct DataType {
-  int         _type;           /* SWIG Type code */
-  char        _name[MAX_NAME]; /* Name of type   */
-  int         is_pointer;      /* Is this a pointer */
-  int         implicit_ptr;    /* Implicit ptr */
-  int         _is_reference;   /* A C++ reference type */
-  int         status;          /* Is this datatype read-only? */
-  char        *_qualifier;     /* A qualifier string (ie. const). */
-  char        *_arraystr;      /* String containing array part */
-  int         id;              /* type identifier (unique for every type). */
+  int         _type;            /* SWIG Type code */
+  char        _name[MAX_NAME];  /* Name of type   */
+  int         _is_pointer;       /* Is this a pointer */
+  int         _implicit_ptr;    /* Implicit ptr */
+  int         _is_reference;    /* A C++ reference type */
+  int         _status;          /* Is this datatype read-only? */
+  char        *_qualifier;      /* A qualifier string (ie. const). */
+  char        *_arraystr;       /* String containing array part */
+  int         _id;              /* type identifier (unique for every type). */
 } DataType;
 
 extern DataType *NewDataType(int type);
@@ -79,8 +79,11 @@ extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);    /* C
 extern char     *DataType_manglestr(DataType *t);                           /* Mangled type name        */
 extern DataType *DataType_ltype(DataType *);                                /* Create local type object */
 
-void    DataType_add_reference(DataType *t);
-int     DataType_is_reference(DataType *t);
+void             DataType_add_reference(DataType *t);
+int              DataType_is_reference(DataType *t);
+int              DataType_is_pointer(DataType *t);
+void             DataType_add_pointer(DataType *t);
+void             DataType_del_pointer(DataType *t);
 
 /* -- Old type interface. This is going away -- */
 
