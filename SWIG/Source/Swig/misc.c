@@ -53,6 +53,18 @@ Swig_banner(File *f) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_section()
+ * 
+ * Print a comment denoting a section of wrapper code 
+ * ----------------------------------------------------------------------------- */
+
+void Swig_section(File *f, const String_or_char *name) {
+  Printf(f,"/* -----------------------------------------------------------------------------\n");
+  Printf(f," * %s\n", name);
+  Printf(f," * ----------------------------------------------------------------------------- */\n");
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_temp_result()
  *
  * This function is used to return a "temporary" result--a result that is only

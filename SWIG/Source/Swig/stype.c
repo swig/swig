@@ -1220,7 +1220,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[scope_level],base);
+    type = Getattr(scopes[level],base);
     if (type) break;
     level--;
   }
@@ -1264,7 +1264,7 @@ int SwigType_istypedef(SwigType *t) {
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[scope_level],base);
+    type = Getattr(scopes[level],base);
     if (type) {
       return 1;
     }

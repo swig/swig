@@ -29,6 +29,9 @@ typedef  DOH     Hash;
 typedef  DOH     List;
 typedef  DOH     String_or_char;
 typedef  DOH     File;
+typedef  DOH     Parm;
+typedef  DOH     ParmList;
+typedef  DOH     Node;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
    for backwards compatibility with older modules --- */
@@ -47,8 +50,9 @@ typedef  DOH     File;
 #define   T_CHAR       12
 #define   T_USER       13
 #define   T_VOID       14
-#define   T_LONGLONG   15
-#define   T_ULONGLONG  16
+#define   T_ENUM       15
+#define   T_LONGLONG   16
+#define   T_ULONGLONG  17
 #define   T_STRING     20
 #define   T_POINTER    21
 #define   T_REFERENCE  22
@@ -74,6 +78,8 @@ extern String  *Swig_swiglib_get();
 extern void     Swig_register_filebyname(const String_or_char *filename, File *outfile);
 extern File    *Swig_filebyname(const String_or_char *filename);
 
+#define OUTFILE(x)   Swig_filebyname(x)
+
 #ifdef MACSWIG
 #  define SWIG_FILE_DELIMETER  ":"
 #else
@@ -84,6 +90,7 @@ extern File    *Swig_filebyname(const String_or_char *filename);
 
 extern void     Swig_init_args(int argc, char **argv);
 extern void     Swig_mark_arg(int n);
+extern int      Swig_check_marked(int n);
 extern void     Swig_check_options();
 extern void     Swig_arg_error();
 
@@ -153,6 +160,7 @@ extern void         SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_AT           45
 #define   SWIG_TOKEN_DOLLAR       46
 #define   SWIG_TOKEN_CODEBLOCK    47
+#define   SWIG_TOKEN_RSTRING      48
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
@@ -165,7 +173,7 @@ extern void        SwigType_del_pointer(SwigType *t);
 extern void        SwigType_add_array(SwigType *t, String_or_char *size);
 extern void        SwigType_add_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
-extern void        SwigType_add_function(SwigType *t, List *parms);
+extern void        SwigType_add_function(SwigType *t, ParmList *parms);
 extern List       *SwigType_split(SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
@@ -212,12 +220,10 @@ extern void        SwigType_emit_type_table(File *f_headers, File *f_table);
 /* Parameters are really just hidden behind a DOH object.  The following
    interface will probably be simplified even further. */
 
-typedef DOH Parm;
-
 extern Parm       *NewParm(SwigType *type, String_or_char *n);
 extern Parm       *CopyParm(Parm *p);
 
-typedef DOH   ParmList;
+
 
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
@@ -228,18 +234,39 @@ extern String     *ParmList_protostr(ParmList *);
 /* --- Parse tree support --- */
 
 typedef struct {
-   char *name;
+   const char *name;
    int  (*action)(DOH *obj, void *clientdata);
 } SwigRule;
 
-extern void Swig_dump_tags(DOH *obj, DOH *root);
-extern void Swig_add_rule(String_or_char *, int (*action)(DOH *, void *));
+
+#define SWIG_OK       1
+#define SWIG_NORULE   0
+#define SWIG_ERROR   -1
+
+extern void Swig_add_rule(const String_or_char *, int (*action)(DOH *, void *));
 extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
+extern int  Swig_tag_check(DOH *obj, const String_or_char *tagname);
 extern int  Swig_emit(DOH *obj, void *clientdata);
-extern void Swig_cut_node(DOH *obj);
+extern int  Swig_emit_all(DOH *obj, void *clientdata);
+extern void Swig_set_callback(DOH *obj, void (*cb)(void *clientdata), void *clientdata);
+extern void (*Swig_set_trace(DOH *obj, void (*cb)(DOH *, DOH *), DOH *arg))(DOH *, DOH *);
+extern void Swig_remove_trace(DOH *obj);
+extern void Swig_node_cut(DOH *obj);
+extern void Swig_node_insert(DOH *node, DOH *newnode);
+extern void Swig_node_temporary(DOH *node);
+extern void Swig_node_ignore(DOH *node);
+extern void Swig_node_append_child(DOH *node, DOH *cld);
+extern int  Swig_count_nodes(DOH *node);
+
 extern DOH *Swig_next(DOH *obj);
 extern DOH *Swig_prev(DOH *obj);
+
+/* Debugging of parse trees */
+extern void Swig_debug_emit(int);
+extern void Swig_dump_tags(DOH *obj, DOH *root);
+extern void Swig_dump_tree(DOH *obj);
+extern void Swig_dump_rules();
 
 /* -- Wrapper function Object */
 
@@ -288,6 +315,7 @@ extern DOH       *Swig_map_match(Hash *ruleset, Hash *parms, int *nmatch);
 /* --- Misc --- */
 extern char      *Swig_copy_string(const char *c);
 extern void       Swig_banner(File *f);
+extern void       Swig_section(File *f, const String_or_char *s);
 extern DOH       *Swig_temp_result(DOH *x);
 extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
@@ -362,15 +390,15 @@ extern Wrapper   *Swig_cvarget_wrapper(String_or_char *varname,
 /* --- Legacy Typemap API (somewhat simplified) --- */
 
 extern void   Swig_typemap_init();
-extern void   Swig_typemap_register(char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
-extern void   Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname,
+extern void   Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *name, String_or_char *code, ParmList *locals);
+extern void   Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname,
 				SwigType *ttype, String_or_char *tname);
-extern void   Swig_typemap_clear(char *op, SwigType *type, String_or_char *name);
+extern void   Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name);
 extern void   Swig_typemap_apply(SwigType *tm_type, String_or_char *tmname, SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_clear_apply(SwigType *type, String_or_char *pname);
 extern void   Swig_typemap_debug();
-extern Hash  *Swig_typemap_search(char *op, SwigType *type, String_or_char *pname);
-extern char  *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
+extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname);
+extern char  *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source, String_or_char *target, Wrapper *f);
 extern void   Swig_typemap_new_scope();
 extern Hash  *Swig_typemap_pop_scope();
 
@@ -386,15 +414,26 @@ extern void   Swig_except_clear();
 #define Getvalue(x)        Getattr(x,"value")
 #define Getlname(x)        Getattr(x,"lname")
 #define Getignore(x)       GetInt(x,"ignore")
+#define Getparms(x)        Getattr(x,"parms")
+#define Gettag(x)          Getattr(x,"tag")
+#define Getparent(x)       Getattr(x,"parent")
 
-#define Settype(x,v)       Setattr(x,"type",x)
+#define Settype(x,v)       Setattr(x,"type",v)
 #define Setname(x,v)       Setattr(x,"name",v)
 #define Setlname(x,v)      Setattr(x,"lname",v)
 #define Setvalue(x,v)      Setattr(x,"value", v)
 #define Setignore(x,v)     SetInt(x,"ignore",v)
+#define Settag(x,v)        Setattr(x,"tag",v)
+#define Setparms(x,v)      Setattr(x,"parms", v)
+#define Setparent(x,p)     Setattr(x,"parent",p)
 
 #define Getnext(x)         Getattr(x,"next")
 #define Setnext(x,n)       Setattr(x,"next",n)
+#define Getprev(x)         Getattr(x,"prev")
+#define Setprev(x,n)       Setattr(x,"prev",n)
+
+#define Getchild(x)        Getattr(x,"child")
+#define Setchild(x,c)      Setattr(x,"child",c)
 
 #endif
 
