@@ -29,6 +29,24 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 ****   Typemap environments.  Stay tuned.
 
+****   Merge "in" and "ignore" typemaps into a single "in" typemap.
+       This would solve a variety of subtle problems with multiple
+       argument typemaps and other typemap code.   I propose to merge
+       the typemaps by making "ignore" a typemap attribute.
+       For example:
+
+           %typemap(in,ignore="1") int *OUTPUT (int temp) {
+                $1 = &temp;
+           }
+
+       This merging makes a lot of sense because "in" and "ignore"
+       typemaps both deal with input argument handling and they are
+       meant to be mutually exclusive of each other.   By unifying
+       into a single typemap, you fix the mutual exclusion problem
+       (since there is only one typemap).  I also think it makes
+       more sense to think of an "ignored" argument as a input value
+       property.
+
 ****   Implement "throws" typemaps for all of the target languages.
        Partly implemented for Tcl, Perl, Python, Ruby, Java.
 
