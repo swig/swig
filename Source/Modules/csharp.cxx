@@ -495,11 +495,6 @@ class CSHARP : public Language {
     if (!is_void_return)
       Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
 
-    Printv(imclass_class_code, 
-           "\n  [DllImport(\"",module_class_name,"\", EntryPoint=\"CSharp_",overloaded_name,"\")]\n", NIL);
-
-    Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
-
     Printv(f->def, " DllExport ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
@@ -507,7 +502,24 @@ class CSHARP : public Language {
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
+
+    // Parameter overloading
     Setattr(n,"wrap:parms",l);
+    Setattr(n,"wrap:name", wname);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
+    if (Getattr(n,"sym:overloaded")) {
+      // Emit warnings for the few cases that can't be overloaded in C# and give up on generating wrapper
+        Swig_overload_check(n);
+        if (Getattr(n, "overload:ignore"))
+          return SWIG_OK;
+    }
+
+    Printv(imclass_class_code, 
+           "\n  [DllImport(\"",module_class_name,"\", EntryPoint=\"CSharp_",overloaded_name,"\")]\n", NIL);
+
+    Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
+
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -708,14 +720,6 @@ class CSHARP : public Language {
     /* Dump the function out */
     if(!native_function_flag)
       Wrapper_print(f,f_wrappers);
-
-    Setattr(n,"wrap:name", wname);
-
-    /* Emit warnings for the few cases that can't be overloaded in C# */
-    if (Getattr(n,"sym:overloaded")) {
-      if (!Getattr(n,"sym:nextSibling"))
-        Swig_overload_rank(n);
-    }
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
@@ -1237,6 +1241,9 @@ class CSHARP : public Language {
 
     if(!proxy_flag) return;
 
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
+    if (Getattr(n, "overload:ignore")) return;
+
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
         l = nextSibling(l);
@@ -1419,6 +1426,10 @@ class CSHARP : public Language {
     int       i;
 
     Language::constructorHandler(n);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in C#
+    if (Getattr(n, "overload:ignore"))
+      return SWIG_OK;
 
     if(proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
@@ -1874,9 +1885,14 @@ class CSHARP : public Language {
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
+    String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen,"w");
-    String *swigtype = NewString("");
+    if(!f_swigtype) {
+      Printf(stderr,"Unable to open %s\n", filen);
+      SWIG_exit(EXIT_FAILURE);
+    } 
+    Delete(filen); filen = NULL;
 
     // Emit banner and package name
     emitBanner(f_swigtype);
@@ -1923,7 +1939,6 @@ class CSHARP : public Language {
         Printv(f_swigtype, swigtype, NIL);
 
         Close(f_swigtype);
-        Delete(filen);
         Delete(swigtype);
   }
 

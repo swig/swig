@@ -768,7 +768,6 @@ class JAVA : public Language {
     if (!is_void_return)
       Wrapper_add_localv(f,"jresult", c_return_type, "jresult = 0",NIL);
 
-    Printf(imclass_class_code, "  public final static native %s %s(", im_return_type, overloaded_name);
     Printv(f->def, "JNIEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
 
     // Usually these function parameters are unused - The code below ensures
@@ -782,7 +781,20 @@ class JAVA : public Language {
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l,f);
+
+    // Parameter overloading
     Setattr(n,"wrap:parms",l);
+    Setattr(n,"wrap:name", wname);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Java
+    if (Getattr(n,"sym:overloaded")) {
+      // Emit warnings for the few cases that can't be overloaded in Java and give up on generating wrapper
+        Swig_overload_check(n);
+        if (Getattr(n, "overload:ignore"))
+          return SWIG_OK;
+    }
+
+    Printf(imclass_class_code, "  public final static native %s %s(", im_return_type, overloaded_name);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -989,14 +1001,6 @@ class JAVA : public Language {
     /* Dump the function out */
     if(!native_function_flag)
       Wrapper_print(f,f_wrappers);
-
-    Setattr(n,"wrap:name", wname);
-
-    /* Emit warnings for the few cases that can't be overloaded in Java */
-    if (Getattr(n,"sym:overloaded")) {
-      if (!Getattr(n,"sym:nextSibling"))
-        Swig_overload_rank(n);
-    }
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
@@ -1597,6 +1601,9 @@ class JAVA : public Language {
 
     if(!proxy_flag) return;
 
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Java
+    if (Getattr(n, "overload:ignore")) return;
+
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
         l = nextSibling(l);
@@ -1737,6 +1744,10 @@ class JAVA : public Language {
     bool      feature_director = (parentNode && Swig_directorclass(n));
 
     Language::constructorHandler(n);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Java
+    if (Getattr(n, "overload:ignore"))
+      return SWIG_OK;
 
     if(proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
@@ -2163,9 +2174,14 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
+    String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.java", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen,"w");
-    String *swigtype = NewString("");
+    if(!f_swigtype) {
+      Printf(stderr,"Unable to open %s\n", filen);
+      SWIG_exit(EXIT_FAILURE);
+    } 
+    Delete(filen); filen = NULL;
 
     // Emit banner and package name
     emitBanner(f_swigtype);
@@ -2212,7 +2228,6 @@ class JAVA : public Language {
         Printv(f_swigtype, swigtype, NIL);
 
         Close(f_swigtype);
-        Delete(filen);
         Delete(swigtype);
   }
 
