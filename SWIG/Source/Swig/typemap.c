@@ -1541,6 +1541,7 @@ void replace_embedded_typemap(String *s, Wrapper *f) {
 	  Swig_typemap_attach_parms(method,first,0);
 	  {
 	    String *tm;
+	    int     match = 0;
 	    char attr[64];
 	    sprintf(attr,"tmap:%s",Char(method));
 	    
@@ -1559,7 +1560,11 @@ void replace_embedded_typemap(String *s, Wrapper *f) {
 		Replace(s,tmp,tm, DOH_REPLACE_ANY);
 		Delete(tm);
 		Delete(vars);
+		match = 1;
 	      }
+	    }
+	    if (!match) {
+	      Swig_error(Getfile(s),Getline(s),"No typemap found for %s\n", tmp);
 	    }
 	  }
 	}
