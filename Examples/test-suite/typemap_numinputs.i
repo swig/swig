@@ -16,12 +16,12 @@
 
 %typemap(argout) (int *OUTPUT)
 {
-  temp$argnum;
+  ++temp$argnum;
 }
 
 %typemap(argout, numinputs=1) (char *STR, int LEN)
 {
-  temp$argnum;
+  ++temp$argnum;
 }
 
 %typemap(in) int hello
