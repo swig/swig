@@ -189,3 +189,29 @@ namespace a
 }
  
 %}
+
+#pragma SWIG nowarn=312
+
+%inline %{
+  class Ala {
+  public : 
+    Ala() {}
+    class Ola {
+    public:
+      Ola() {}
+    };
+    
+    template <class T>
+    static void hi() 
+    {
+    }
+  };
+%}
+
+%rename(Ala__Ola) Ala::Ola;
+class Ala::Ola {
+public:
+  Ola() {}
+};
+
+%template(hi) Ala::hi<int>;
