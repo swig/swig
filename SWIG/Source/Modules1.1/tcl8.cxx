@@ -87,6 +87,7 @@ public:
     Preprocessor_define("SWIGTCL8 1", 0);
     SWIG_typemap_lang("tcl8");
     SWIG_config_file("tcl8.swg");
+    allow_overloading();
   }
 
   /* ------------------------------------------------------------
@@ -190,7 +191,8 @@ public:
     String   *iname = Getattr(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
     ParmList *parms = Getattr(n,"parms");
-    
+    String   *overname = 0;
+
     Parm            *p;
     int              i;
     String          *tm;
@@ -202,7 +204,11 @@ public:
     
     char             source[64];
     
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
+    if (Getattr(n,"sym:overloaded")) {
+      overname = Getattr(n,"sym:overname");
+    } else {
+      if (!addSymbol(iname,n)) return SWIG_ERROR;
+    }
     
     incode  = NewString("");
     cleanup = NewString("");
@@ -211,8 +217,13 @@ public:
     args    = NewString("");
     
     f = NewWrapper();
+    String  *wname = Swig_name_wrapper(iname);
+    if (overname) {
+      Append(wname, overname);
+    }
+    Setattr(n,"wrap:name",wname);
     Printv(f->def,
-	   "static int\n ", Swig_name_wrapper(iname), "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	   "static int\n ", wname, "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	   NULL);
     
     /* Print out variables for storing arguments. */
@@ -220,7 +231,8 @@ public:
     
     /* Attach standard typemaps */
     emit_attach_parmmaps(parms,f);
-    
+    Setattr(n,"wrap:parms",parms);
+
     /* Get number of require and total arguments */
     num_arguments = emit_num_arguments(parms);
     num_required  = emit_num_required(parms);
@@ -382,9 +394,39 @@ public:
     /* Dump out the function */
     Wrapper_print(f,f_wrappers);
     
-    /* Register the function with Tcl */
-    Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", NULL);
-    
+    if (!Getattr(n,"sym:overloaded")) {
+      /* Register the function with Tcl */
+      Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", NULL);
+    } else {
+      if (!Getattr(n,"sym:nextSibling")) {
+	/* Emit overloading dispatch function */
+
+	int maxargs;
+	String *tmp = NewString("");
+	String *dispatch = Swig_overload_dispatch(n,"return %s(clientData, interp, objc, objv);",&maxargs);
+	
+	/* Generate a dispatch wrapper for all overloaded functions */
+
+	Wrapper *df      = NewWrapper();
+	String  *dname   = Swig_name_wrapper(iname);
+
+	Printv(df->def,	
+	       "static int\n", dname,
+	       "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
+	       NULL);
+	Printf(df->code,"Tcl_Obj *CONST *argv = objv+1;\n");
+	Printf(df->code,"int argc = objc-1;\n");
+	Printv(df->code,dispatch,"\n",NULL);
+	Printf(df->code,"Tcl_SetResult(interp,(char *) \"No matching function for overloaded '%s'\", TCL_STATIC);\n", iname);
+	Printf(df->code,"return TCL_ERROR;\n");
+	Printv(df->code,"}\n",NULL);
+	Wrapper_print(df,f_wrappers);
+	Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", dname, ", NULL},\n", NULL);
+	DelWrapper(df);
+	Delete(dispatch);
+	Delete(dname);
+      }
+    }
     
     Delete(incode);
     Delete(cleanup);
@@ -656,7 +698,9 @@ public:
 
     realname = iname ? iname : name;
     rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
-    Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NULL);
+    if (!Getattr(n,"sym:nextSibling")) {
+      Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NULL);
+    }
     Delete(rname);
     return SWIG_OK;
   }

@@ -51,7 +51,7 @@
 %typemap(in,parse="i") enum SWIGTYPE "";
 
 /* Unknown type.  We convert from a pointer */
-%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,0) != TCL_OK)) return TCL_ERROR;
+%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor,1) != TCL_OK)) return TCL_ERROR;
                                         $1 = *argp; ";
 
 /* Special constant variations.   These typemaps can be used to parse objects that are both constants
@@ -316,7 +316,7 @@
 
 %typemap(varin) SWIGTYPE * {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,0) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = ($1_type) temp;
@@ -324,7 +324,7 @@
 
 %typemap(varin) SWIGTYPE & {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,0) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
     return (char*)"Type error. Expected $1_ltype";
   }
   $1 = *(($&1_type) temp);
@@ -332,7 +332,7 @@
 
 %typemap(varin) SWIGTYPE {
   void *temp;
-  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor,0) != TCL_OK) {
+  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor,1) != TCL_OK) {
     return (char*)"Type error. Expected $&1_ltype";
   }
   $1 = *(($&1_type) temp);
@@ -340,7 +340,7 @@
 
 %typemap(varin) SWIGTYPE [] {
    void *temp;
-   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,0) != TCL_OK) {
+   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,1) != TCL_OK) {
       return (char *)"Type error. Expected $1_ltype";
    }
    memmove((void *) $1,temp,$1_size*sizeof($1_basetype));
@@ -390,6 +390,74 @@
 %typemap(varin)    size_t = long;
 %typemap(varout)   size_t = long;
 %typemap(consttab) size_t = long;
+
+
+
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(10)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE 
+{
+  long tmp;
+  if (Tcl_GetLongFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
+  else $1 = 1;
+}
+
+%typecheck(20)
+	float, double,
+	const float &, const double &
+{
+  double tmp;
+  if (Tcl_GetDoubleFromObj(NULL,$input,&tmp) == TCL_ERROR) $1 = 0;
+  else $1 = 1;
+}
+
+%typecheck(30) char {
+  char *tmp;
+  int   len;
+  tmp = Tcl_GetStringFromObj($input,&len);
+  (len == 1) ? 1 : 0;
+}
+
+%typecheck(31) char * {
+  $1 = 1;
+}
+
+%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $1_descriptor, 0) == TCL_ERROR) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(0) SWIGTYPE {
+  void *ptr;
+  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, $&1_descriptor, 0) == TCL_ERROR) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
+
+%typecheck(1) void * {
+  void *ptr;
+  if (SWIG_ConvertPtr(interp, $input, (void **) &ptr, 0, 0) == TCL_ERROR) {
+    $1 = 0;
+  } else {
+    $1 = 1;
+  }
+}
 
 // Some special reserved words in classes
 
