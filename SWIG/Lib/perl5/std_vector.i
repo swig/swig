@@ -216,6 +216,9 @@ namespace std {
         }
       public:
         vector(unsigned int size = 0);
+        vector(unsigned int size, const T& value);
+        vector(const vector<T> &);
+
         unsigned int size() const;
         bool empty() const;
         void clear();
@@ -383,8 +386,8 @@ namespace std {
             }
         }
       public:
-        vector();
-        vector(unsigned int size, const T& value=T());
+        vector(unsigned int size = 0);
+        vector(unsigned int size, T value);
         vector(const vector<T> &);
 
         unsigned int size() const;
