@@ -766,9 +766,13 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
           $*n_ltype
     */
 
-    if (SwigType_ispointer(type)) {
+    if (SwigType_ispointer(type) || (SwigType_isarray(type))) {
       star_type = Copy(type);
-      SwigType_del_pointer(star_type);
+      if (SwigType_isarray(star_type)) {
+	Delete(SwigType_pop(star_type));
+      } else {
+	SwigType_del_pointer(star_type);
+      }
       ts = SwigType_str(star_type,0);
       if (index == 1) {
 	Replace(s, "$*type", ts, DOH_REPLACE_ANY);
