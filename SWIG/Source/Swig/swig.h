@@ -68,6 +68,7 @@ extern int      SwigScanner_skip_balanced(SwigScanner *, int startchar, int endc
 extern void     SwigScanner_set_location(SwigScanner *, DOH *file, int line);
 extern DOH     *SwigScanner_get_file(SwigScanner *);
 extern int      SwigScanner_get_line(SwigScanner *);
+extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 
 #define   SWIG_MAXTOKENS          512
 #define   SWIG_TOKEN_LPAREN        1  
