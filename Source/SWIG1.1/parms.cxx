@@ -437,25 +437,6 @@ void ParmList::print_args(FILE *f) {
 }
 
 // -------------------------------------------------------------------
-// int check_defined()
-//
-// Checks to see if all of the datatypes are defined.
-// -------------------------------------------------------------------
-
-int ParmList::check_defined() {
-  int   a = 0;
-  int   i;
-  for (i = 0; i < nparms; i++) {
-    if (parms[i]) {
-      a+=parms[i]->t->check_defined();
-    }
-  }
-  if (a) return 1;
-  else return 0;
-}
-
-
-// -------------------------------------------------------------------
 // void ParmList::sub_parmnames(String &s)
 //
 // Given a string, this function substitutes all of the parameter

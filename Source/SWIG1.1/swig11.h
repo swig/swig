@@ -165,9 +165,6 @@ public:
 #define MAX_NAME 96
 
 class DataType {
-private:
-  static Hash       *typedef_hash[MAXSCOPE];
-  static int         scope;
 public:
   int         type;          // SWIG Type code
   char        name[MAX_NAME];      // Name of type
@@ -204,14 +201,15 @@ public:
 static int   is_typedef(char *name);                // See if this is a typedef
   void       typedef_updatestatus(int newstatus);   // Change status of a typedef
 static void  init_typedef(void);                    // Initialize typedef manager   
-static void  merge_scope(Hash *h);                  // Functions for managing scoping of datatypes
-static void  new_scope(Hash *h = 0); 
-static Hash *collapse_scope(char *);
-  int        check_defined();                       // Check to see if type is defined by a typedef.
+static void  merge_scope(void *h);                  // Functions for managing scoping of datatypes
+static void  new_scope(void *h = 0); 
+static void  *collapse_scope(char *);
   void       remember();
+static void       record_base(char *derived, char *base);
 };
 
 #define STAT_REPLACETYPE   2
+#define STAT_VISIT         4
 
 /************************************************************************
  * class Parm
@@ -278,7 +276,6 @@ public:
   void   print_types(FILE *f);     // Print list of datatypes
   void   print_types(String &f);   // Generate list of datatypes.
   void   print_args(FILE *f);      // Print argument list				     
-  int    check_defined();          // Checks to make sure the arguments are defined
   void   sub_parmnames(String &s); // Remaps real parameter names in code fragment
 };
 

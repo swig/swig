@@ -537,11 +537,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     if (DocOnly) 
       remove(fn_runtime);
 
-    // Check for undefined types that were used.
-
-    if (Verbose)
-      type_undefined_check();
-
     if (checkout) {
       // File was checked out from the SWIG library.   Remove it now
       remove(input_file);

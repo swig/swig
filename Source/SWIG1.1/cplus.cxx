@@ -311,8 +311,6 @@ public:
     } else {
       lang->cpp_member_func(name, iname, t, l);
     }
-    l->check_defined();
-    t->check_defined();
     delete l;
     delete t;
   }
@@ -361,7 +359,6 @@ public:
       l = new ParmList(parms);
       update_parms(l);
       lang->cpp_constructor(name,iname,l);
-      l->check_defined();
       delete l;
     } else {
       if (Verbose) {
@@ -464,7 +461,6 @@ public:
     } else {
       lang->cpp_static_var(name,iname,t);
     }
-    t->check_defined();
     Status = old_status;
     delete t;
   }
@@ -526,7 +522,6 @@ public:
     input_file = file;
     ccode = code;
     lang->cpp_declare_const(name,iname,type,value);
-    type->check_defined();
   }
 
   void inherit(int mode) {
@@ -560,7 +555,7 @@ public:
   int          line;                  // Line number
   char        **baseclass;            // Base classes (if any)
   Hash        *local;                 // Hash table for local types
-  Hash        *scope;                 // Local scope hash table
+  void        *scope;                 // Local scope hash table
   DocEntry    *de;                    // Documentation entry of class
   CPP_member  *members;               // Linked list of members
   CPP_class   *next;                  // Next class
@@ -1089,6 +1084,7 @@ void cplus_generate_types(char **baseclass) {
       } else {
 	typeeq_derived(bc->classname, current_class->classname,temp3.get());
       }
+      DataType::record_base(current_class->classname, bc->classname);
       // Now traverse the hierarchy some more
       cplus_generate_types(bc->baseclass);
     }
@@ -2599,7 +2595,7 @@ void cplus_register_type(char *tname) {
 };
 
 // -----------------------------------------------------------------------------
-// void cplus_register_scope(Hash *h) 
+// void cplus_register_scope(void *h) 
 // 
 // Saves the scope associated with a particular class.  It will be needed
 // later if anything inherits from us.
@@ -2611,7 +2607,7 @@ void cplus_register_type(char *tname) {
 // Side Effects : Saves h with current class
 // -----------------------------------------------------------------------------
 
-void cplus_register_scope(Hash *h) {
+void cplus_register_scope(void *h) {
   if (current_class) {
     current_class->scope = h;
   }
