@@ -293,7 +293,7 @@ class CSHARP : public Language {
 
       // Start writing out the Java JNI class
       if(Len(package) > 0)
-        Printf(f_java, "package %s;\n\n", package);
+        Printf(f_java, "//package %s;\n\n", package);
 
       emitBanner(f_java);
       if(jniclass_imports)
@@ -332,7 +332,7 @@ class CSHARP : public Language {
 
       // Start writing out the Java module class
       if(Len(package) > 0)
-        Printf(f_module, "package %s;\n\n", package);
+        Printf(f_module, "//package %s;\n\n", package);
 
       emitBanner(f_module);
       if(module_imports)
@@ -1155,7 +1155,7 @@ class CSHARP : public Language {
       emitBanner(f_shadow);
 
       if(Len(package) > 0)
-        Printf(f_shadow, "package %s;\n\n", package);
+        Printf(f_shadow, "//package %s;\n\n", package);
 
       Clear(shadow_classdef);
       Clear(shadow_code);
@@ -1913,7 +1913,7 @@ class CSHARP : public Language {
     // Emit banner and package name
     emitBanner(f_swigtype);
     if(Len(package) > 0)
-      Printf(f_swigtype, "package %s;\n\n", package);
+      Printf(f_swigtype, "//package %s;\n\n", package);
 
     // Pure Java baseclass and interfaces
     const String *pure_java_baseclass = javaTypemapLookup("javabase", type, WARN_NONE);
