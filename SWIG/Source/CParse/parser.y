@@ -385,7 +385,17 @@ void add_symbols_copy(Node *n) {
       if (Getattr(n,"requires_symtab")) {
 	Swig_symbol_newscope();
 	Swig_symbol_setscopename(name);
+	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
       }
+      if (Strcmp(nodeType(n),"class") == 0) {
+	inclass = 1;
+	if (Strcmp(Getattr(n,"kind"),"class") == 0) {
+	  cplus_mode = CPLUS_PRIVATE;
+	} else {
+	  cplus_mode = CPLUS_PUBLIC;
+	}
+      }
+
       if (Strcmp(nodeType(n),"extend") == 0) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
@@ -397,9 +407,13 @@ void add_symbols_copy(Node *n) {
       if (Getattr(n,"requires_symtab")) {
 	Setattr(n,"symtab", Swig_symbol_popscope());
 	Delattr(n,"requires_symtab");
+	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
       }
       if (add_oldname) {
 	Delete(add_oldname);
+      }
+      if (Strcmp(nodeType(n),"class") == 0) {
+	inclass = 0;
       }
       add_oldname = 0;
     } else {
@@ -846,7 +860,7 @@ void canonical_template(String *s) {
  * ====================================================================== */
 
 program        :  interface {
-		   Setattr($1,"classes",classes);
+		   Setattr($1,"classes",classes); 
 		   Setattr($1,"name",ModuleName);
 		   check_extensions();
 	           top = $1;
@@ -1802,6 +1816,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      Setfile($$,cparse_file);
 		      Setline($$,cparse_line);
 		      Delete(temparms);
+
 		      add_symbols_copy($$);
 		      
 		      if (Strcmp(nodeType($$),"class") == 0) {
