@@ -208,6 +208,7 @@ CPP_TEST_CASES += \
 	template_ns_scope \
 	template_qualifier \
 	template_qualifier \
+	template_ref_type \
 	template_rename \
 	template_retvalue \
 	template_specialization \
