@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.20 (December 8, 2003)
+Version: 1.3.20 (December 17, 2003)
 
 $Header$
 
@@ -175,7 +175,7 @@ configuration information that impacts the way that they have to be built.
 However, if you want to build the runtime libraries in their "default" 
 configuration, type this:
 
-     % make runtime
+     % make -k runtime
      % make install-runtime
 
 The libraries aren't needed to use SWIG or to run most of the
@@ -188,8 +188,8 @@ Notes:
     before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
 
-OS X Installation
-=================
+Macintosh OS X Installation
+============================
 SWIG is known to work on various flavors of OS X.  Follow the Unix installation
 instructions above.   However, as of this writing, there is still great deal of
 inconsistency with how shared libaries are handled by various scripting languages
@@ -239,6 +239,10 @@ don't intend to use these features in your own programs.
 Note: The test-suite currently contains around 250 tests.  If you
 have many different target languages installed and a slow machine, it
 might take more than an hour to run the test-suite.
+
+Note: Some of the tests and examples may depend on SWIG runtime libraries.
+These are not built by default.  Type 'make -k runtime' to build the libraries
+if needed.
 
 Examples
 ========
