@@ -1361,7 +1361,8 @@ public:
 
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
-        if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
+        if (/*directorbase &&*/ !constructor && !destructor 
+	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
           Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
 	  if (dirprot_mode() && !is_public(n)) {
@@ -1391,7 +1392,7 @@ public:
 
     /* This part below still needs cleanup */
 
-  /* Return the function value */
+    /* Return the function value */
     if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
       Replaceall(tm,"$source", "result");
       Replaceall(tm,"$target", "resultobj");
