@@ -243,6 +243,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	name = Getattr(tp,"name");
 	value = Getattr(p,"value");
 	tydef = Getattr(p,"typedef");
+
 	if (name) {
 	  if (!value) {
 	    value = Getattr(p,"type");
@@ -270,8 +271,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist,i);
-	    Replace(s,name,value, DOH_REPLACE_ID);
+	    /*	    Replace(s,name,value, DOH_REPLACE_ID); */
+	    /*	    Printf(stdout,"name = '%s', s = '%s' --> ", name, s); */
+	    SwigType_typename_replace(s,name,value);
 	    SwigType_typename_replace(s,tbase,iname);
+	    /*	    Printf(stdout,"'%s'\n", s); */
 	  }
 	  
 	  if (!tydef) {
