@@ -111,3 +111,32 @@ if (overload() != 50):
   raise RuntimeError, ("overload(const char *)")
 
 
+# everything put in a namespace
+if (nsoverload("hi") != 1000):
+  raise RuntimeError, ("nsoverload()")
+
+if (nsoverload(1) != 1010):
+  raise RuntimeError, ("nsoverload(int t)")
+
+if (nsoverload(1, 1) != 1020):
+  raise RuntimeError, ("nsoverload(int t, const int &)")
+
+if (nsoverload(1, "hello") != 1030):
+  raise RuntimeError, ("nsoverload(int t, const char *)")
+
+if (nsoverload(k) != 1010):
+  raise RuntimeError, ("nsoverload(Klass t)")
+
+if (nsoverload(k, k) != 1020):
+  raise RuntimeError, ("nsoverload(Klass t, const Klass &)")
+
+if (nsoverload(k, "hello") != 1030):
+  raise RuntimeError, ("nsoverload(Klass t, const char *)")
+
+if (nsoverload(10.0, "hi") != 1040):
+  raise RuntimeError, ("nsoverload(double t, const char *)")
+
+if (nsoverload() != 1050):
+  raise RuntimeError, ("nsoverload(const char *)")
+
+
