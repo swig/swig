@@ -514,6 +514,22 @@ public:
       }
     }
 
+    if (!Getattr(n,"allocate:has_new")) {
+      /* No destructor was defined.  We need to check a few things here too */
+      List *bases = Getattr(n,"bases");
+      int allows_new = 1;
+
+      for (int i = 0; i < Len(bases); i++) {
+	Node *n = Getitem(bases,i);
+	/* If base class does not allow default destructor, we don't allow it either */
+	if (Getattr(n,"allocate:has_new")) {
+	  allows_new = !Getattr(n,"allocate:nonew");
+	}
+      }
+      if (!allows_new) {
+	Setattr(n,"allocate:nonew","1");
+      }
+    }
 
     /* Check if base classes allow smart pointers, but might be hidden */
     if (!Getattr(n,"allocate:smartpointer")) {
@@ -569,14 +585,20 @@ public:
 
       String *name = Getattr(n,"name");
       if (cplus_mode != PUBLIC) {
-	/* Look for a private assignment operator */
 	if (Strcmp(name,"operator =") == 0) {
+	  /* Look for a private assignment operator */
 	  Setattr(inclass,"allocate:has_assign","1");
 	  Setattr(inclass,"allocate:noassign","1");
+	} else if (Strcmp(name,"operator new") == 0) {
+	  /* Look for a private new operator */
+	  Setattr(inclass,"allocate:has_new","1");
+	  Setattr(inclass,"allocate:nonew","1");
 	}
       } else {
 	if (Strcmp(name,"operator =") == 0) {
 	  Setattr(inclass,"allocate:has_assign","1");
+	} else if (Strcmp(name,"operator new") == 0) {
+	  Setattr(inclass,"allocate:has_new","1");
 	}
 	/* Look for smart pointer operator */
 	if ((Strcmp(name,"operator ->") == 0) && (!Getattr(n,"feature:ignore"))) {
