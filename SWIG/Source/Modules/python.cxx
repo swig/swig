@@ -1129,6 +1129,7 @@ public:
     bool pure_virtual = false;
     int status = SWIG_OK;
     int idx;
+    String* xdecref = NewString("");
 
     if (Cmp(storage,"virtual") == 0) {
       if (Cmp(value,"0") == 0) {
@@ -1255,6 +1256,7 @@ public:
 	  Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
 	  Printv(arglist, source, NIL);
 	  Putc('O', parse_args);
+	  Printf(xdecref,"Py_XDECREF(%s);\n", source);
 	} else {
 	  Printf(parse_args, "%s", parse);
 	  Replaceall(tm, "$input", pname);
@@ -1313,6 +1315,7 @@ public:
 	    Printf(wrap_args,   "Py_INCREF(%s);\n", source);
 	    Printf(wrap_args, "}\n");
 	    Delete(director);
+	    Printf(xdecref,"Py_XDECREF(%s);\n", source);
 	    Printv(arglist, source, NIL);
 	  } else {
 	    Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
@@ -1320,6 +1323,7 @@ public:
 	           source, nonconst, mangle); 
 	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
 	    //       source, nonconst, base);
+	    Printf(xdecref,"Py_XDECREF(%s);\n", source);
 	    Printv(arglist, source, NIL);
 	  }
 	  Putc('O', parse_args);
@@ -1373,6 +1377,7 @@ public:
     } else {
       Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", NULL);\n", pyname);
     }
+    Printv(xdecref, "Py_XDECREF(result);\n", NULL);
     if (dirprot_mode() && is_protected(n))
       Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
@@ -1464,7 +1469,8 @@ public:
       }
     }
 
-    Printf(w->code, "Py_XDECREF(result);\n");
+    Printv(w->code, xdecref, NULL);
+    Delete(xdecref);
 
     /* any existing helper functions to handle this? */
     if (!is_void) {
