@@ -17,6 +17,61 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/11/2002: mmatus
+	    Static const members initialized during declaration, and
+	    only them, ie:
+
+	    struct A
+	    {		 
+		static const int a = 1 ;  // this one
+		static const int b;       // not this one
+            };     
+
+	    are emitted like constants (equivalent to enums or explicit
+	    %constant).
+	    
+	    This is because they cannot be added directly to 'cvar'
+	    since they lack the needed reference (well, you can force
+	    them to have a real reference, but in an ugly way which
+	    goes completely again the original purpose of initialize
+	    them during declaration in the first place, you also have
+	    to deal with extra linking matters, and it take a while to
+	    figure out what is the problem and how to solve it).
+	    
+	    Please test it with your preferred target language, and not
+	    only the code generation, but really run the example in
+	    the test-suite (static-const-member-2.i) because the
+	    problem and the solution cannot be "fully" appreciated
+	    until you try to load the module and run it.	    
+
+08/11/2002: mmatus
+	    [python] Now static const members can be accessed in a more
+	    natural way, ie, if you have
+
+	    struct A
+             {		 
+		typedef unsigned int viewflags;
+		static const viewflags forward_field  = 1 << 0;
+		static const viewflags backward_field = 1 << 1;
+            };     
+	    
+	    now you can do:
+
+		print A.backward_field
+
+	    and also
+
+	        a = A()
+		print a.forward_field
+
+08/11/2002: mmatus
+	    [python] Common code in the __setattr__/__getattr__ now
+	    goes to two "free" methods at the beginning of the proxy
+	    file, from where each class use it. This change reduces
+	    the size of the proxy file, specially if you wrap a lot of
+	    small classes in one module (up to 33% in some cases),
+	    making it faster to load too.
+
 08/09/2002: beazley
             [Perl5] If a function that returns char * returns NULL,
             undef is returned to the Perl interpreter.
