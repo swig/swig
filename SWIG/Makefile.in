@@ -49,7 +49,7 @@ CParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/CParse; $(MAKE)
 
 swig.spec: swig.spec.in config.status
-	@cd $(SOURCE) && CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
+	CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
