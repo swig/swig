@@ -39,6 +39,10 @@
 
 #else
 
+
+%{
+%}
+
 %inline 
 {
   complex Conj(complex a)
@@ -46,7 +50,8 @@
     return conj(a);
   }
 
-  float_complex Conjf(float_complex a)
+
+  complex float Conjf(float complex a)
   {
     return conj(a);
   }

@@ -148,8 +148,8 @@
 //
 %apply const int& { const Hello&  };
 
-%apply long { pint };
-%apply const long& { const pint& };
+%apply void* { pint };
+%apply const void*& { const pint& };
   
 
 //
@@ -162,7 +162,7 @@
   typedef char namet[5];
   typedef char* pchar;
   typedef const char* pcharc;
-  typedef int* pint;
+  typedef char* pint;
 
   char* const def_pchar = (char *const)"hello";
   const char* const def_pcharc = "hija";
