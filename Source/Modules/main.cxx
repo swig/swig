@@ -393,13 +393,13 @@ void SWIG_getoptions(int argc, char *argv[])
 	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-version") == 0) {
- 	      fprintf(stderr,"\nSWIG Version %s\n", PACKAGE_VERSION);
-	      fprintf(stderr,"Copyright (c) 1995-1998\n");
-	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
-              fprintf(stderr,"Copyright (c) 1998-2004\n");
-	      fprintf(stderr,"University of Chicago\n");
-	      fprintf(stderr,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
-	      fprintf(stderr,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
+	      fprintf(stdout,"\nSWIG Version %s\n", PACKAGE_VERSION);
+	      fprintf(stdout,"Copyright (c) 1995-1998\n");
+	      fprintf(stdout,"University of Utah and the Regents of the University of California\n");
+	      fprintf(stdout,"Copyright (c) 1998-2004\n");
+	      fprintf(stdout,"University of Chicago\n");
+	      fprintf(stdout,"Compiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
+	      fprintf(stdout,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	      SWIG_exit (EXIT_SUCCESS);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path
@@ -521,8 +521,8 @@ void SWIG_getoptions(int argc, char *argv[])
             Swig_error_msg_format(EMF_MICROSOFT);
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage1,stderr);
-	    fputs(usage2,stderr);
+	    fputs(usage1,stdout);
+	    fputs(usage2,stdout);
 	    Swig_mark_arg(i);
 	    help = 1;
 	  }
@@ -640,7 +640,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   
   if (help) {
-    Printf(stderr,"\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
+    Printf(stdout,"\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
     SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
   }
 
