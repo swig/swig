@@ -105,7 +105,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
   int   nbytes = 0;
   char  encoder[128], *ec = 0;
 
-  memset (newformat, 0, sizeof (char *));
+  memset (newformat, 0, sizeof (newformat));
 
   while (*p) {
     switch(state) {
