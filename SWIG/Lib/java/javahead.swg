@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so 
+ * that the same typemaps can be used to generate code that will compile under both languages. */
 #ifdef __cplusplus
 #   define JCALL0(func, jenv) jenv->func()
 #   define JCALL1(func, jenv, ar1) jenv->func(ar1)
@@ -102,7 +104,7 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
 }
 
 /* Array support is a combination of macros and functions. It may initially do your head in following 
- * it but it avoids code bloat and aids maintainability. */
+ * it but it reduces code bloat and aids maintainability. */
 #define SWIG_JavaArrayIn(CTYPE, GETARRAYELEMENTS) \
   int i; \
   jsize sz; \
@@ -269,7 +271,24 @@ jdoubleArray SWIG_JavaArrayOutDouble(JNIEnv *jenv, double *result, jsize sz) {
 #ifdef __cplusplus
 /* bool[] support */
 int SWIG_JavaArrayInBool(JNIEnv *jenv, jboolean **jarr, bool **carr, jbooleanArray input) {
-  SWIG_JavaArrayIn(bool, GetBooleanArrayElements)
+  int i;
+  jsize sz;
+  if (!input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
+    return 0;
+  }
+  sz = JCALL1(GetArrayLength, jenv, input);
+  *jarr = JCALL2(GetBooleanArrayElements, jenv, input, 0);
+  if (!*jarr)
+    return 0;
+  *carr = (bool*) calloc(sz, sizeof(bool));
+  if (!*carr) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
+    return 0;
+  }
+  for (i=0; i<sz; i++)
+    (*carr)[i] = ((*jarr)[i] != 0);
+  return 1;
 }
 void SWIG_JavaArrayArgoutBool(JNIEnv *jenv, jboolean *jarr, bool *carr, jbooleanArray input) {
   SWIG_JavaArrayArgout(jboolean, ReleaseBooleanArrayElements)
