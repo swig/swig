@@ -14,16 +14,16 @@ The purpose of the C# module is to offer an automated way of accessing existing 
 The wrapper code implementation uses the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
 The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
 PINVOKE is part of the ECMA/ISO C# specification.
+Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using Mono and Portable.NET.
 
 <p>
-The C# module is one of the more recently added language modules to SWIG and consequently is missing some functionality available in some other SWIG modules.
 The C# module is very similar to the Java module, so until some documentation has been written,
 please use the <a href="Java.html#Java">Java documentation</a> as a guide to using SWIG with C#.
 The rest of this chapter should be read in conjunction with the Java documentation as it lists the main differences.
 
 <p>
 Director support (virtual method callbacks into C#) has not yet been implemented and is the main missing feature compared to Java.
-The other missing feature is the lack of typemaps for wrapping STL code as well as a few minor utility typemaps in the various.i library.
+Less of the STL is supported and there are also a few minor utility typemaps in the various.i library which are missing.
 
 <p>
 
