@@ -20,6 +20,9 @@ Foo *launder(Foo *f) {
 #ifndef SWIG_DIRECTORS
 class SWIG_DIRECTOR_EXCEPTION {};
 class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
+  #ifndef SWIG_fail
+    #define SWIG_fail
+  #endif
 #endif
 
 %}
