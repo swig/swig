@@ -1,7 +1,7 @@
 <?
 
 # Plot a 3D function
-dl("libgifplot.so");
+require "gifplot.php";
 
 # Here is the function to plot
 function func($x, $y) {

@@ -1,8 +1,8 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -I../../Include
+SWIGOPT    = -I../../Include -noproxy
 SRCS       =
-TARGET     = libgifplot
+TARGET     = php_gifplot
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot -lm
 INCLUDE    = -I../../Include
