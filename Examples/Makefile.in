@@ -765,11 +765,12 @@ ruby_clean:
 # -------------------------------------------------------------------
 
 PHP4_INCLUDE = @PHP4INC@
+PHP4_SO      = @PHP4_SO@
 
 php4: $(SRCS)
 	$(SWIG) -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(PHP4_SO)
 
 # --------------------------------------------------------------------
 # Build a PHP4 dynamically loadable module (C++)
@@ -778,7 +779,7 @@ php4: $(SRCS)
 php4_cpp: $(SRCS)
 	$(SWIG) -php4 -cppext cxx -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(PHP4_SO)
 
 # ---------------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG Runtime lib
@@ -789,12 +790,12 @@ PHP4_RUNTIME=-L$(RUNTIMEDIR) -lswigphp4@release_suffix@
 php4_multi: $(SRCS)
 	$(SWIG) -noruntime -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) -o $(TARGET)module$(PHP4_SO)
 
 php4_multi_cpp: $(SRCS)
 	$(SWIG) -noruntime -c++ -php4 -cppext cxx $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(PHP4_SO)
 
 # -----------------------------------------------------------------
 # Running a PHP4 example
