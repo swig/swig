@@ -446,6 +446,22 @@ int Language::typemapDirective(Node *n) {
   String *code   = Getattr(n,"code");
   Parm   *kwargs = Getattr(n,"kwargs");
   Node   *items  = firstChild(n);
+  static  int  namewarn = 0;
+
+
+    if (Strstr(code,"$source") || (Strstr(code,"$target"))) {
+      Printf(stderr,"%s:%d.  Warning.  Deprecated typemap feature ($source/$target).\n", Getfile(n), Getline(n));
+      if (!namewarn) {
+	Printf(stderr,
+"swig:  The use of $source and $target in a typemap declaration is deprecated.\n\
+swig:  For typemaps related to argument input (in,ignore,default,arginit,check), replace\n\
+swig:  $source by $input and $target by $1.   For typemaps related to return values (out,\n\
+swig:  argout,ret,except), replace $source by $1 and $target by $result.  See the file\n\
+swig:  Doc/Manual/Typemaps.html for complete details.\n");
+	namewarn = 1;
+      }
+    }
+  }
   while (items) {
     Parm     *pattern   = Getattr(items,"pattern");
     Parm     *parms     = Getattr(items,"parms");
