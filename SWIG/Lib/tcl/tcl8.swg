@@ -338,6 +338,14 @@
   $1 = *(($&1_type) temp);
 }
 
+%typemap(varin) SWIGTYPE [] {
+   void *temp;
+   if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor,0) != TCL_OK) {
+      return (char *)"Type error. Expected $1_ltype";
+   }
+   memmove((void *) $1,temp,$1_size*sizeof($1_basetype));
+}
+   
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE

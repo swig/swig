@@ -16,6 +16,66 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+06/30/2002: beazley
+            Supplied array variable typemaps for Tcl module.   If you have a
+            variable like this:
+
+                int foo[10];
+
+            then a set function like this is generated:
+
+                void foo_set(int *x) {
+                   memmove(foo,x,10*sizeof(int));
+                }
+
+06/30/2002: beazley
+            New %fragment directive.   When writing typemaps, it can be easy to
+            get carried away and write a lot of code.  However, doing so causes
+            tremendous code bloat.   A common way to solve this is to write 
+            helper functions.  For example:
+
+                %{
+                void some_helper_function() {
+                     ...
+                }
+                %}
+
+                %typemap(in) type {
+                   some_helper_function(...);
+                }
+
+            The only problem with this is that the wrapper file gets polluted
+            with helper functions even if they aren't used.    To fix this,
+            a new fragment directive is available.  For example:
+
+               %fragment("type_helper","header") %{
+                  void some_helper_function() {
+                      ...
+                  }
+               %}
+
+               %typemap(in, fragment="type_header") type {
+                   some_helper_function(...);
+               }
+
+            In this case, the code fragment is only emitted if the typemap is
+            actually used.   A similar capability is provided for declaration
+            annotation and the %feature directive.  For example:
+
+               %feature("fragment","type_header")  SomeDeclaration;
+
+            The first argument to %fragment is the fragment name.  The second argument
+            is the file section where the fragment should be emitted.  
+
+            The primary use of this directive is for writers of language modules
+            and advanced users wanting to streamline typemap code.
+
+            *** EXPERIMENTAL NEW FEATURE ***
+
+06/30/2002: beazley
+            Supplied memberin typemaps for all arrays in an attempt to eliminate
+            confusion about their use.
+
 06/29/2002: beazley
             Experimental support for smart-pointers.  When a class defines
             operator->() like this
@@ -27,7 +87,7 @@ Version 1.3.14 (In progress)
                };
 
             SWIG locates class Bar and tries to wrap its member variables and
-            methods as part of Foo.  For example, if part was defined like this:
+            methods as part of Foo.  For example, if Bar was defined like this:
 
                class Bar {
                public:

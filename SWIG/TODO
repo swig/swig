@@ -52,7 +52,7 @@ CORE:
 
         -  Does anyone inherit from existing modules?
 
-****   We should either add "memberin" typemaps for all arrays or
+[DONE] We should either add "memberin" typemaps for all arrays or
        eliminate this typemap altogether.  There is really only 
        one way to handle this case.  
 
@@ -69,7 +69,7 @@ CORE:
        simply as a stop-gap measure (since no language modules support
        overloading).    We would keep the the existing %rename support.
 
-***    Support for smart-pointers and proxies.  This is primarily to
+[DONE] Support for smart-pointers and proxies.  This is primarily to
        support classes that implement the -> operator and which are used
        to dispatch on another class.   I think it would be cool if
        SWIG could automatically detect and handle this case.   For example, 
@@ -314,3 +314,4 @@ Other
 -----
 
 ****   Bring Tiger's .NET/CLR module online.
+
