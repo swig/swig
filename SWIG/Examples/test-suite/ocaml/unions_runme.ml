@@ -1,5 +1,6 @@
 (* Test the unions example... *)
 
+open Swig
 open Unions 
 
 let a = new_SmallStruct C_void

@@ -1,3 +1,4 @@
+open Swig
 open Class_ignore
 
 let a = new_Bar C_void

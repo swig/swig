@@ -1,5 +1,6 @@
 (* Stolen from ruby test cases *)
 
+open Swig
 open Sneaky1
 
 let x = Sneaky1._add (C_list [ C_int 3; C_int 4 ])

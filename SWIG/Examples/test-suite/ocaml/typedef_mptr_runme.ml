@@ -1,3 +1,4 @@
+open Swig
 open Typedef_mptr
 
 let soci x = (string_of_int (get_int x))

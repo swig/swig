@@ -1,3 +1,4 @@
+open Swig
 open Voidtest
 
 let _ = _globalfunc C_void 
