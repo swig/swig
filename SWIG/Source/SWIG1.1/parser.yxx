@@ -513,7 +513,7 @@ static void dump_nested(char *parent) {
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
-%type <type>     type opt_signed opt_unsigned strict_type;
+%type <type>     type type_right opt_signed opt_unsigned strict_type strict_type_right;
 %type <ivalue>   cpp_vend;
 %type <ilist>    base_list inherit;
 %type <dtype>    definetype def_args;
@@ -1229,6 +1229,12 @@ pragma        : PRAGMA LPAREN ID RPAREN ID EQUAL pragma_arg {
 		  lang->pragma($3,$5,0);
 		}
 	      }
+              | PRAGMA ID {
+		if (!WrapExtern) {
+		  swig_pragma((char *)"swig",$2,0);
+		}
+	      }
+
                ;
 
 pragma_arg    : STRING { $$ = $1; }
@@ -1408,12 +1414,20 @@ typemap_parameter_declarator : declarator typemap_args {
             ;
 
 
-declarator : pointer direct_declarator {
+declarator :  pointer direct_declarator {
               $$ = $2;
               SwigType_push($1,$$.type);
 	      Delete($$.type);
 	      $$.type = $1;
            }
+/*           | type_qualifier direct_declarator {
+              $$ = $2;
+	      $$.type = NewString("");
+	      SwigType_add_qualifier($$.type,$1);
+	      SwigType_push($$.type,$2.type);
+	      Delete($2.type);
+	   }
+*/
            | direct_declarator {
               $$ = $1;
            }
@@ -1527,7 +1541,14 @@ type_qualifier : CONST { $$ = "const"; }
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
-type           : TYPE_INT {
+type           : type_qualifier type_right {
+                   $$ = $2;
+		   SwigType_add_qualifier($$,$1);
+               }
+               | type_right { $$ = $1; }
+               ;
+
+type_right      : TYPE_INT {
                    $$ = $1;
                }
                | TYPE_SHORT opt_int {
@@ -1571,9 +1592,9 @@ type           : TYPE_INT {
 		 $$ = NewStringf("%s%s",$1,$2);
 		 free($1);
 	       }
-               | CONST type {
-		  $$ = $2;
-		  SwigType_add_qualifier($$,(char*)"const");
+               | type_right type_qualifier {
+		  $$ = $1;
+		  SwigType_add_qualifier($$,$2);
      	       }
                | cpptype ID {
 		 $$ = NewStringf("%s %s",$1,$2);
@@ -1596,7 +1617,14 @@ type           : TYPE_INT {
 
 /* type specification without ID symbol.   Used in some cases to prevent shift-reduce conflicts */
 
-strict_type    : TYPE_INT {
+strict_type    : type_qualifier strict_type_right {
+                   $$ = $2;
+		   SwigType_add_qualifier($$,$1);
+               }
+               | strict_type_right { $$ = $1; }
+               ;
+
+strict_type_right    : TYPE_INT {
                    $$ = $1;
                }
                | TYPE_SHORT opt_int {
@@ -1634,9 +1662,9 @@ strict_type    : TYPE_INT {
                | TYPE_TYPEDEF template_decl {
 		 $$ = NewStringf("%s%s", $1,$2);
 	       }
-               | CONST type {
-		  $$ = $2;
-		  SwigType_add_qualifier($$,(char*)"const");
+               | type_right type_qualifier {
+		  $$ = $1;
+		  SwigType_add_qualifier($$,$2);
      	       }
                | cpptype ID {
 		 $$ = NewStringf("%s %s", $1, $2);
@@ -1789,8 +1817,8 @@ expr           :  NUM_INT {
                   $$.id = $1;
 		  $$.type = T_ULONG;
 	       }
-               |  SIZEOF LPAREN type abstract_declarator RPAREN {
-  		  SwigType_push($3,$4);
+               |  SIZEOF LPAREN type parameter_declarator RPAREN {
+  		  SwigType_push($3,$4.type);
 		  $$.id = (char *) malloc(strlen(Char(SwigType_str($3,0)))+9);
 		  sprintf($$.id,"sizeof(%s)", Char(SwigType_str($3,0)));
 		  $$.type = T_INT;
@@ -2510,6 +2538,11 @@ cpp_pragma    : PRAGMA LPAREN ID RPAREN ID EQUAL pragma_arg {
 		if (!WrapExtern) {
 		  swig_pragma($3,$5,0);
 		  cplus_add_pragma($3,$5,0);
+		}
+	      }
+              | PRAGMA ID {
+		if (!WrapExtern) {
+		  swig_pragma((char *)"swig",$2,0);
 		}
 	      }
               ;
