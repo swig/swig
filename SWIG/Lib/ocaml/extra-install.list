@@ -1,2 +1,2 @@
 # see top-level Makefile.in
-libswigocaml.h
+# libswigocaml is not needed anymore.

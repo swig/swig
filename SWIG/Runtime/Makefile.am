@@ -29,9 +29,6 @@ endif
 if !SKIP_PHP4
 lib_LTLIBRARIES += libswigphp4.la
 endif
-if !SKIP_OCAML
-lib_LTLIBRARIES += libswigocaml.la
-endif
 if !SKIP_PIKE
 lib_LTLIBRARIES += libswigpike.la
 endif
@@ -130,21 +127,6 @@ libswigphp4_la_CFLAGS   = -DSWIG_GLOBAL $(PHP4_INCLUDE)
 
 libphp4.c: $(SWIG_TYPECHECK) $(PHP4_RUNTIME)
 	cat $(SWIG_TYPECHECK) $(PHP4_RUNTIME) > libphp4.c
-
-# ----------------------------------------------------------------------
-# Ocaml run-time library
-# ----------------------------------------------------------------------
-
-OCAML_INCLUDE = @OCAMLINC@ -I$(SWIGLIB)/ocaml
-OCAML_RUNTIME = $(SWIGLIB)/ocaml/libswigocaml.swg
-OCAML_DLNK    = 
-
-libswigocaml_la_SOURCES = libocaml.c
-libswigocaml_la_LDFLAGS = -no-undefined $(RELEASE_SUFFIX_LIBTOOL) $(OCAML_DLNK)
-libswigocaml_la_CFLAGS  = -DSWIG_GLOBAL $(OCAML_INCLUDE)
-
-libocaml.c: $(OCAML_RUNTIME)
-	cat $(OCAML_RUNTIME) > libocaml.c
 
 # ----------------------------------------------------------------------
 # Pike run-time library
