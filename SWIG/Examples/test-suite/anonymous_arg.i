@@ -5,8 +5,7 @@
 
 %module anonymous_arg
 
-void foo(int = 7771);
-
-%{
+%inline %{
+  void foo(int = 7771);
   void foo(int x) {}
 %}
