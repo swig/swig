@@ -3,7 +3,7 @@
 //
 // Change this to #if 1 to test the 'test'
 //
-#if 1
+#if 0
 
 %inline %{
   typedef float complex;
