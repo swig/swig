@@ -4,9 +4,9 @@
 // However, if it works for Python, things should be working for other
 // modules.
 
-%module minherit
+%module(ruby_minherit="1") minherit
 
-#ifdef SWIGPYTHON
+#if defined(SWIGPYTHON) || defined(SWIGRUBY)
 
 %inline %{
 
@@ -72,9 +72,4 @@ int wget(SpamPtr f) {
 %}
 
 #endif
-
-
-
-
-   
 
