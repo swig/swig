@@ -1039,15 +1039,22 @@ fi
 AC_SUBST(PHP4)
 
 AC_MSG_CHECKING(for PHP4 header files)
-dirs="/usr/include/php /usr/local/include/php /usr/include/php4 /usr/local/include/php4 /usr/local/apache/php"
-for i in $dirs; do
-	if test -r $i/php_config.h -o -r $i/php_version.h; then
-		AC_MSG_RESULT($i)
-		PHP4EXT="$i"
-		PHP4INC="-I$PHP4EXT -I$PHP4EXT/Zend -I$PHP4EXT/main -I$PHP4EXT/TSRM"
-		break;
-	fi
-done
+PHP4CONFIG="${PHP4}-config"
+PHP4INC="`$PHP4CONFIG --includes 2>/dev/null`"
+if test "$PHP4INC"; then
+	AC_MSG_RESULT($PHP4INC)
+else
+	dirs="/usr/include/php /usr/local/include/php /usr/include/php4 /usr/local/include/php4 /usr/local/apache/php"
+	for i in $dirs; do
+		echo $i
+		if test -r $i/php_config.h -o -r $i/php_version.h; then
+			AC_MSG_RESULT($i)
+			PHP4EXT="$i"
+			PHP4INC="-I$PHP4EXT -I$PHP4EXT/Zend -I$PHP4EXT/main -I$PHP4EXT/TSRM"
+			break;
+		fi
+	done
+fi
 if test -z "$PHP4INC"; then
 	AC_MSG_RESULT(not found)
 fi
