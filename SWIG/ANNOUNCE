@@ -1,31 +1,32 @@
 
-*** ANNOUNCE : SWIG1.3 (Alpha 5) ***
+*** ANNOUNCE: SWIG 1.3.6 ***
 
-September 22, 2000
+July 9, 2001
 
 Overview
 --------
+
 We're pleased to announce the next installment of the SWIG1.3
-redevelopment effort.  This release represents a reasonably stable
-snapshot of the CVS repository that has undergone extensive testing
-and debugging.  However, this release also represents work in progress
-so there may be obscure bugs and problems that we haven't found yet.
-Please send us your feedback.
+redevelopment effort.  This release represents a new stable release of
+SWIG, aiming to replace versions 1.1p5 and 1.1-883.  It has been
+derived from the reasonably stable release 1.3a5; many bugs have been
+fixed since, the Java module has been brought back into action, and
+the Guile module has been improved a lot.
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://download.sourceforge.net/swig/swig1.3a5.tar.gz
+     http://download.sourceforge.net/swig/
 
 What's new?
 -----------
 On the surface, this release still looks a lot like SWIG1.1p5 except
 that a lot of bugs have been fixed and the language modules tend to
 generate smaller and more efficient wrappers. New modules have also
-been added to support Ruby and Mzscheme. In addition, Python, Perl,
+been added to support Java, Ruby and Mzscheme. In addition, Python, Perl,
 and Guile support has been enhanced to support new releases such as
-Python1.6 and Perl5.6.
+Python1.6 and Perl5.6. 
 
 Under the hood, you will find that this release is an almost complete
 reimplementation of SWIG's internals.  In fact the only code that
@@ -41,8 +42,7 @@ What's broken?
 --------------
 As this is a work in progress, a number of features are still missing
 or incomplete.  The documentation system is still missing and won't be
-reimplemented for some time.  The Java module is also temporarily out
-of service for this release.  In addition, C++ programmers who make
+reimplemented for some time. C++ programmers who make
 extensive use of typemaps may encounter a few strange problems
 (although SWIG will generate warning messages).
 
@@ -68,6 +68,5 @@ David Beazley
 Thien-Thi Nguyen
 Matthias Köppe
 Masaki Fukushima
-Harco de Hilster
 Loic Dachary
-Oleg Tolmatcev
+William Fulton

@@ -265,7 +265,7 @@ DohvPrintf(DOH *so, const char *format, va_list ap)
 	doh = va_arg(ap, DOH *);
 	if (DohCheck(doh)) {
 	  /* Is a DOH object. */
- 	  if (DohIsString(doh) && (ObjType(doh) == DOHTYPE_STRING)) {
+ 	  if (DohIsString(doh)) {
 	    Sval = doh;
 	  } else {
 	    Sval = Str(doh);
@@ -470,10 +470,10 @@ DohSplit(DOH *in, char *chs, int nsplits) {
   int c;
   
   list = NewList();
-
-  if (DohIsString(in)) {
+  /*  if (String_check(in)) {
     Seek(in,0,SEEK_SET);
   }
+  */
 
   while (1) {
     str = NewString("");

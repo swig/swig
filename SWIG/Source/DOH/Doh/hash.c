@@ -427,8 +427,6 @@ static DOH *
 CopyHash(DOH *ho) {
     Hash *h, *nh;
     HashNode *n;
-    DOH *nho;
-    
     int   i;
     h = (Hash *) ObjData(ho);
     nh = (Hash *) DohMalloc(sizeof(Hash));
@@ -444,16 +442,15 @@ CopyHash(DOH *ho) {
     nh->file = h->file;
     if (nh->file) Incref(nh->file);
 
-    nho = DohObjMalloc(DOHTYPE_HASH, nh);
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
-		Hash_setattr(nho, n->key, n->object);
+		Hash_setattr(nh, n->key, n->object);
 		n = n->next;
 	    }
 	}
     }
-    return nho;
+    return DohObjMalloc(DOHTYPE_HASH, nh);
 }
 
 
@@ -549,4 +546,3 @@ NewHash() {
     h->line = 0;
     return DohObjMalloc(DOHTYPE_HASH,h);
 }
-

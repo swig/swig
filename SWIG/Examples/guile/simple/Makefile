@@ -1,4 +1,3 @@
-CC     = gcc
 SRCS   = example.c
 TARGET = my-guile
 IFILE  = example.i
@@ -9,7 +8,6 @@ all::
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
 		IFILE=$(IFILE)			\
-		CC=$(CC)			\
 	    sub-all
 
 clean::

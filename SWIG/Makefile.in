@@ -17,45 +17,65 @@ CXX         = @CXX@
 LIBS        = @LIBS@
 AR          = @AR@
 RANLIB      = @RANLIB@
-LINKFORSHARED = @LINKFORSHARED@
 
 # Note: Files in `SWIG_LIB' are machine independent so we use `prefix'
 # instead of `exec_prefix' or, derivatively, `libdir'.
-SWIG_LIB    = $(prefix)/lib/swig1.3
+SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
-TARGET      = swig
+RELEASESUFFIX = @release_suffix@
+TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: Modules1.1 Swig Modules Preprocessor LParse DOH
+swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH
 	$(CXX) -o $(TARGET) \
-	$(SOURCE)/Modules/libmodules.a \
 	$(SOURCE)/Modules1.1/libmodules11.a \
-	$(SOURCE)/LParse/liblparse.a \
+	$(SOURCE)/SWIG1.1/libswig11.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
 	$(SOURCE)/DOH/libdoh.a \
 	$(LIBS)
 
-Modules1.1:
+experiment: Swig Preprocessor LParse DOH Modules
+	$(CXX) -o $(TARGET) \
+	$(SOURCE)/Experiment/libexp.a \
+	$(SOURCE)/LParse/liblparse.a \
+	$(SOURCE)/Preprocessor/libcpp.a \
+	$(SOURCE)/Modules/libmodules.a \
+	$(SOURCE)/Swig/libswig.a \
+	$(SOURCE)/DOH/libdoh.a \
+	$(LIBS)
+
+SWIG1.1: Source/Include/swigconfig.h
+	@cd $(SOURCE)/SWIG1.1; $(MAKE)
+
+Modules1.1: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Modules1.1; $(MAKE)
 
-Swig:
+Swig: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Swig; $(MAKE)
 
-Preprocessor:
+Preprocessor: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Preprocessor; $(MAKE)
 
-LParse:
+LParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/LParse; $(MAKE)
 
-DOH:
+DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
 
-Modules:
+Modules: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Modules; $(MAKE)
 
-.PHONY: Modules1.1 Modules Swig Preprocessor LParse DOH
+.PHONY: SWIG1.1 Modules1.1 Swig Preprocessor LParse \
+        Experiment Swim SWILL DOH Swithe
+
+# Config file must be generated at make time, rather than at configure
+# time because it paths need to be substituted.
+
+Source/Include/swigconfig.h: Source/Include/swigconfig.h.in Makefile.in config.status
+	sed 's|@-swig_lib-@|$(SWIG_LIB)|g;s|@-exec_prefix-@|$(exec_prefix)|g;s|@-release_suffix-@|$(RELEASESUFFIX)|g' Source/Include/swigconfig.h.in > $@
+
 
 #####################################################################
 # Runtime libraries
@@ -77,56 +97,122 @@ skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 
 chk-swiglib = @ROOT_DIR@/Lib
-chk = $(MAKE) SWIG_LIB=$(chk-swiglib) check
+chk = $(MAKE) -k -s SWIG_LIB=$(chk-swiglib) SWIG=@ROOT_DIR@/$(TARGET) check
 
 check-aliveness:
-	test -x ./swig
-	./swig -version
-	./swig -help
-	$(skip-tcl) || ./swig -tcl -help
-	$(skip-perl) || ./swig -perl -help
-	$(skip-python) || ./swig -python -help
-	$(skip-java) || ./swig -java -help
-	$(skip-guile) || ./swig -guile -help
-	$(skip-mzscheme) || ./swig -mzscheme -help
-	$(skip-ruby) || ./swig -ruby -help
+	test -x ./$(TARGET)
+	./$(TARGET) -version
+	./$(TARGET) -help
+	$(skip-tcl) || ./$(TARGET) -tcl -help
+	$(skip-perl) || ./$(TARGET) -perl -help
+	$(skip-python) || ./$(TARGET) -python -help
+	$(skip-java) || ./$(TARGET) -java -help
+	$(skip-guile) || ./$(TARGET) -guile -help
+	$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
+	$(skip-ruby) || ./$(TARGET) -ruby -help
 
-check-examples:
-	$(skip-tcl) || (cd Examples/tcl/class && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/constants && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/pointer && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/reference && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/simple && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/value && $(chk))
-	$(skip-tcl) || (cd Examples/tcl/variables && $(chk))
-	$(skip-perl) || (cd Examples/perl5/class && $(chk))
-	$(skip-perl) || (cd Examples/perl5/constants && $(chk))
-	$(skip-perl) || (cd Examples/perl5/pointer && $(chk))
-	$(skip-perl) || (cd Examples/perl5/reference && $(chk))
-	$(skip-perl) || (cd Examples/perl5/simple && $(chk))
-	$(skip-perl) || (cd Examples/perl5/value && $(chk))
-	$(skip-perl) || (cd Examples/perl5/variables && $(chk))
-	$(skip-python) || (cd Examples/python/class && $(chk))
-	$(skip-python) || (cd Examples/python/constants && $(chk))
-	$(skip-python) || (cd Examples/python/pointer && $(chk))
-	$(skip-python) || (cd Examples/python/reference && $(chk))
-	$(skip-python) || (cd Examples/python/simple && $(chk))
-	$(skip-python) || (cd Examples/python/value && $(chk))
-	$(skip-python) || (cd Examples/python/variables && $(chk))
-	$(skip-java) || (cd Examples/java/native && $(chk))
-	$(skip-java) || (cd Examples/java/simple && $(chk))
-	$(skip-java) || (cd Examples/java/typemap && $(chk))
-	$(skip-guile) || (cd Examples/guile/matrix && $(chk))
-	$(skip-guile) || (cd Examples/guile/simple && $(chk))
-	$(skip-guile) || (cd Examples/guile/port && $(chk))
-	$(skip-mzscheme) || (cd Examples/mzscheme/simple && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/class && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/constants && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/pointer && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/reference && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/simple && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/value && $(chk))
-	$(skip-ruby) || (cd Examples/ruby/variables && $(chk))
+TCL_EXAMPLES = class constants enum funcptr pointer reference simple value variables
+PERL5_EXAMPLES = class constants funcptr pointer reference simple value variables pointer-cxx
+PYTHON_EXAMPLES = class constants enum funcptr pointer reference shadow simple value variables 
+JAVA_EXAMPLES = class constants enum native reference simple typemap
+GUILE_EXAMPLES = matrix simple port test-suite
+MZSCHEME_EXAMPLES = simple
+RUBY_EXAMPLES = class constants enum funcptr pointer reference simple value variables
+
+check-examples: check-tcl-examples check-perl5-examples check-python-examples \
+		check-java-examples check-guile-examples check-mzscheme-examples \
+		check-ruby-examples
+
+check-tcl-examples:
+	@if $(skip-tcl); then			\
+	  echo Skipping Tcl tests;		\
+	else					\
+	  passed=true;				\
+	  for a in $(TCL_EXAMPLES); do		\
+	    echo Checking Examples/tcl/$$a;	\
+	    (cd Examples/tcl/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-perl5-examples:
+	@if $(skip-perl); then			\
+	  echo Skipping Perl tests;		\
+	else					\
+	  passed=true;				\
+	  for a in $(PERL5_EXAMPLES); do	\
+	    echo Checking Examples/perl5/$$a;	\
+	    (cd Examples/perl5/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-python-examples:
+	@if $(skip-python); then			\
+	  echo Skipping Python tests;			\
+	else						\
+	  passed=true;					\
+	  for a in $(PYTHON_EXAMPLES); do		\
+	    echo Checking Examples/python/$$a;		\
+	    (cd Examples/python/$$a && $(chk))		\
+	    || passed=false;				\
+	  done;						\
+	  test $$passed = true;				\
+	fi
+
+check-java-examples:
+	@if $(skip-java); then			\
+	  echo Skipping Java tests;		\
+	else					\
+	  passed=true;				\
+	  for a in $(JAVA_EXAMPLES); do		\
+	    echo Checking Examples/java/$$a;	\
+	    (cd Examples/java/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-guile-examples:
+	@if $(skip-guile); then			\
+	  echo Skipping Guile tests;		\
+	else					\
+	  passed=true;				\
+	  for a in $(GUILE_EXAMPLES); do	\
+	    echo Checking Examples/guile/$$a;	\
+	    (cd Examples/guile/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
+check-mzscheme-examples:
+	@if $(skip-mzscheme); then			\
+	  echo Skipping MzScheme tests;			\
+	else						\
+	  passed=true;					\
+	  for a in $(MZSCHEME_EXAMPLES); do		\
+	    echo Checking Examples/mzscheme/$$a;	\
+	    (cd Examples/mzscheme/$$a && $(chk))	\
+	    || passed=false;				\
+	  done;						\
+	  test $$passed = true;				\
+	fi
+
+check-ruby-examples:
+	@if $(skip-ruby); then			\
+	  echo Skipping Ruby tests;		\
+	else					\
+	  passed=true;				\
+	  for a in $(RUBY_EXAMPLES); do		\
+	    echo Checking Examples/ruby/$$a;	\
+	    (cd Examples/ruby/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
 
 Examples/GIFPlot/libgifplot.a:
 	cd Examples/GIFPlot/Lib ; $(MAKE)
@@ -136,12 +222,14 @@ check-gifplot-example: Examples/GIFPlot/libgifplot.a
 	$(skip-perl) || (cd Examples/GIFPlot/Perl/simple && $(chk))
 	$(skip-perl) || (cd Examples/GIFPlot/Perl/shadow && $(chk))
 	$(skip-python) || (cd Examples/GIFPlot/Python/full && $(chk))
+	$(skip-python) || (cd Examples/GIFPlot/Python/shadow && $(chk))
 	$(skip-python) || (cd Examples/GIFPlot/Python/simple && $(chk))
 	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/full && $(chk))
 	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/mandel && $(chk))
 	$(skip-tcl) || (cd Examples/GIFPlot/Tcl/simple && $(chk))
 	$(skip-guile) || (cd Examples/GIFPlot/Guile/full && $(chk))
 	$(skip-guile) || (cd Examples/GIFPlot/Guile/simple && $(chk))
+	$(skip-java) || (cd Examples/GIFPlot/Java && $(chk))
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/full && $(chk))
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/simple && $(chk))
 	$(skip-ruby) || (cd Examples/GIFPlot/Ruby/shadow && $(chk))
@@ -150,12 +238,7 @@ check-c++-examples:
 	$(skip-python) || (cd Examples/C++/Python && $(chk))
 	$(skip-java) || (cd Examples/C++/Java && $(chk))
 
-check-xml:
-	cd Examples/xml && $(chk)
-
-check: check-aliveness \
-       check-examples check-gifplot-example check-c++-examples \
-       check-xml
+check: check-aliveness check-examples check-gifplot-example check-c++-examples
 
 #####################################################################
 # CLEAN
@@ -169,7 +252,7 @@ clean:
 	   fi \
 	done;
 	@cd Runtime; $(MAKE) clean
-	rm -f swig
+	rm -f $(TARGET)
 
 distclean-dead = config.status config.log config.cache \
 		 @configure_substituted_files@
@@ -192,64 +275,64 @@ install: install-main install-lib install-runtime
 
 install-main:
 	@echo "Installing $(BIN_DIR)/swig"
-	@$(MKINSTDIRS) $(BIN_DIR)
-	@if [ -f swig.exe ]; then					\
-		$(INSTALL_PROGRAM) swig.exe $(BIN_DIR)/swig.exe;	\
-	else								\
-		$(INSTALL_PROGRAM) swig $(BIN_DIR)/swig;		\
+	@$(MKINSTDIRS) $(DESTDIR)$(BIN_DIR)
+	@if [ -f swig.exe ]; then						\
+		$(INSTALL_PROGRAM) swig.exe $(DESTDIR)$(BIN_DIR)/swig.exe;	\
+	else									\
+		$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/$(TARGET);	\
 	fi
 
 install-lib:
 	@echo "Installing the SWIG library"
-	@$(MKINSTDIRS) $(SWIG_LIB)
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
 #	cd $(SWIG_LIB); rm -rf *
 #	The following line has `*.swg' removed -- add it back if needed.
 	@cd $(srcdir)/Lib; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/$$i"; \
-            ../$(INSTALL_DATA) $$i $(SWIG_LIB)/$$i; \
+            ../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/tcl
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/tcl
 	@cd $(srcdir)/Lib/tcl; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/tcl/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/tcl/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/tcl/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/perl5
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/perl5
 	@cd $(srcdir)/Lib/perl5; for i in *.i *.swg Makefile.pl; \
 	    do \
 	    echo "Installing Lib/perl5/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/perl5/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/perl5/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/python
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/python
 	@cd $(srcdir)/Lib/python; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/python/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/python/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/python/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/guile
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/guile
 	@cd $(srcdir)/Lib/guile; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/guile/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/guile/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/guile/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/java
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/java
 	@cd $(srcdir)/Lib/java; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/java/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/java/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/java/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/mzscheme
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/mzscheme
 	@cd $(srcdir)/Lib/mzscheme; for i in *.i *.swg; \
 	    do \
 	    echo "Installing Lib/mzscheme/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/mzscheme/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/mzscheme/$$i; \
 	    done;
-	@$(MKINSTDIRS) $(SWIG_LIB)/ruby
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/ruby
 	@cd $(srcdir)/Lib/ruby; for i in *.i *.swg Makefile.swig extconf.rb; \
 	    do \
 	    echo "Installing Lib/ruby/$$i"; \
-            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/ruby/$$i; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/ruby/$$i; \
 	    done;
 
 install-runtime:

@@ -23,15 +23,4 @@
 const int     iconst = 37;
 const double  fconst = 3.14;
 
-%constant(double) PI = 3.14159;
-
-/* Test address of operator */
-
-%{
-static double  blah = 1.2345;
-%}
-
-%constant(double *) blahptr = &blah;
-
-
 

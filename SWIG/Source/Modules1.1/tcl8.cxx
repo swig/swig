@@ -11,12 +11,14 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swig11.h"
+#include "mod11.h"
 #include "tcl8.h"
 #include <ctype.h>
+#include "swigconfig.h"
 
 static char *usage = (char*)"\
 Tcl 8.0 Options (available with -tcl)\n\
+     -ldflags        - Print runtime libraries to link with\n\
      -module name    - Set name of module\n\
      -prefix name    - Set a prefix to be appended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace. \n\
@@ -40,8 +42,6 @@ static int        have_destructor;
 static String    *class_name = 0;
 static String    *class_type = 0;
 static String    *real_classname = 0;
-static Hash      *class_methods = 0;
-static Hash      *class_attributes = 0;
 static Hash      *repeatcmd = 0;
 
 
@@ -52,13 +52,20 @@ static Hash      *repeatcmd = 0;
 void
 TCL8::parse_args(int argc, char *argv[]) {
   int i;
-  Swig_swiglib_set("tcl");
+  strcpy(LibDir,"tcl");
 
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-prefix") == 0) {
 	    if (argv[i+1]) {
 	      prefix = NewString(argv[i+1]);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
+	      i++;
+	    } else Swig_arg_error();
+	  } else if (strcmp(argv[i],"-module") == 0) {
+	    if (argv[i+1]) {
+	      set_module(argv[i+1]);
 	      Swig_mark_arg(i);
 	      Swig_mark_arg(i+1);
 	      i++;
@@ -71,6 +78,9 @@ TCL8::parse_args(int argc, char *argv[]) {
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
+	  } else if (strcmp (argv[i], "-ldflags") == 0) {
+	    printf("%s\n", SWIG_TCL_RUNTIME);
+	    SWIG_exit (EXIT_SUCCESS);
 	  }
       }
   }
@@ -86,22 +96,23 @@ TCL8::parse_args(int argc, char *argv[]) {
 
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
-  Swig_set_config_file("tcl8.swg");
+  typemap_lang = (char*)"tcl8";
+  SWIG_config_file("tcl8.swg");
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::initialize()
+ * TCL8::parse()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::initialize(String *modname) {
+TCL8::parse() {
 
   mod_init   = NewString("");
   cmd_info   = NewString("");
   var_info   = NewString("");
+  methods    = NewString("");
+  attributes = NewString("");
   repeatcmd  = NewHash();
-  class_methods = NewHash();
-  class_attributes = NewHash();
 
   Swig_banner(f_runtime);
 
@@ -109,22 +120,32 @@ TCL8::initialize(String *modname) {
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
-  if (Swig_insert_file("common.swg",f_runtime) == -1) {
+  /*  if (Swig_insert_file("common.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
-    Swig_exit (EXIT_FAILURE);
+    SWIG_exit (EXIT_FAILURE);
   }
   if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
-    Swig_exit (EXIT_FAILURE);
+    SWIG_exit (EXIT_FAILURE);
   }
-  if (!module) module = NewString(modname);
+  */
+  yyparse();
+}
+
+/* -----------------------------------------------------------------------------
+ * TCL8::set_module()
+ * ----------------------------------------------------------------------------- */
+
+void
+TCL8::set_module(char *mod_name) {
+  char *c;
+
+  if (module) return;
+  module = NewString(mod_name);
 
   /* Fix capitalization for Tcl */
-  char *c = Char(module);
-  while (c && *c) {
-    *c = (char) tolower(*c);
-    c++;
-  }
+  for (c = Char(module); *c; c++) *c = (char) tolower(*c);
+
   /* Now create an initialization function */
   init_name = NewStringf("%s_Init",module);
   c = Char(init_name);
@@ -138,7 +159,23 @@ TCL8::initialize(String *modname) {
   } else {
     prefix = NewString("");
   }
+}
 
+/* -----------------------------------------------------------------------------
+ * TCL8::initialize()
+ * ----------------------------------------------------------------------------- */
+
+void
+TCL8::initialize() {
+
+  if ((!ns_name) && (nspace)) {
+    Printf(stderr,"Tcl error.   Must specify a namespace.\n");
+    SWIG_exit (EXIT_FAILURE);
+  }
+  if (!init_name) {
+    Printf(stderr,"*** Error. No module name specified.\n");
+    SWIG_exit (EXIT_FAILURE);
+  }
   Printf(f_header,"#define SWIG_init    %s\n", init_name);
   if (!module) module = NewString("swig");
   Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
@@ -198,7 +235,7 @@ TCL8::close(void) {
   Printf(f_init,"}\n");
 
   Printf(f_init,"for (i = 0; swig_variables[i].name; i++) {\n");
-  Printf(f_init,"Tcl_SetVar(interp, (char *) swig_variables[i].name, \"\", TCL_GLOBAL_ONLY);\n");
+  Printf(f_init,"Tcl_SetVar(interp, (char *) swig_variables[i].name, (char *) \"\", TCL_GLOBAL_ONLY);\n");
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);\n");
   Printf(f_init,"}\n");
@@ -216,7 +253,7 @@ TCL8::close(void) {
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::create_command(String *cname, String *iname) {
+TCL8::create_command(char *cname, char *iname) {
 
   String *wname = Swig_name_wrapper(cname);
   Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", wname, ", NULL},\n", 0);
@@ -232,21 +269,13 @@ TCL8::create_command(String *cname, String *iname) {
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::function(DOH *node) {
-  char *name, *iname;
-  SwigType *d;
-  ParmList *l;
+TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm            *p;
   int              pcount,i,j;
   char            *tm;
   Wrapper         *f;
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              numopt= 0;
-
-  name = GetChar(node,"name");
-  iname = GetChar(node,"scriptname");
-  d = Getattr(node,"type");
-  l = Getattr(node,"parms");
 
   incode  = NewString("");
   cleanup = NewString("");
@@ -255,12 +284,12 @@ TCL8::function(DOH *node) {
   args    = NewString("");
 
   f = NewWrapper();
-  Printv(f,
-	 "static int\n ", Swig_name_wrapper(iname), "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {\n",
+  Printv(f->def,
+	 "static int\n ", Swig_name_wrapper(iname), "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {",
 	 0);
 
   /* Print out variables for storing arguments. */
-  pcount = emit_args(node, f);
+  pcount = emit_args(d, l, f);
   numopt = check_numopt(l);
 
   /* Extract parameters. */
@@ -371,8 +400,8 @@ TCL8::function(DOH *node) {
 	    break;
 	  }
 	default :
-	  Printf(stderr,"%s:%d: Unable to use type %s as a function argument.\n",
-		 Getfile(node), Getline(node), SwigType_str(pt,0));
+	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
+		 input_file, line_number, SwigType_str(pt,0));
 	  break;
 	}
       }
@@ -401,18 +430,18 @@ TCL8::function(DOH *node) {
   }
 
   Printf(argstr,":%s\"",usage_string(iname,d,l));
-  Printv(f,
+  Printv(f->code,
 	 "if (SWIG_GetArgs(interp, objc, objv,", argstr, args, ") == TCL_ERROR) return TCL_ERROR;\n",
 	 0);
 
-  Printv(f,incode,0);
+  Printv(f->code,incode,0);
 
   /* Now write code to make the function call */
-  emit_func_call(node,f);
+  emit_func_call(name,d,l,f);
 
   /* Return value if necessary  */
   if ((tm = Swig_typemap_lookup((char*)"out",d,name,(char*)"result",(char*)"tcl_result",0))) {
-    Printf(f,"%s\n", tm);
+    Printf(f->code,"%s\n", tm);
   } else {
     switch(SwigType_type(d)) {
       case T_BOOL:
@@ -424,17 +453,17 @@ TCL8::function(DOH *node) {
       case T_USHORT:
       case T_ULONG:
       case T_UCHAR:
-	Printv(f, "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));\n",0);
+	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));\n",0);
 	break;
 
 	/* Is a single character.  We return it as a string */
       case T_CHAR :
-	Printv(f, "Tcl_SetObjResult(interp,Tcl_NewStringObj(&result,1));\n",0);
+	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(&result,1));\n",0);
 	break;
 
       case T_DOUBLE :
       case T_FLOAT :
-	Printv(f, "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));\n",0);
+	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));\n",0);
 	break;
 
       case T_USER :
@@ -443,18 +472,18 @@ TCL8::function(DOH *node) {
 	   Probably dangerous, but safe programming is for wimps. */
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
-	Printv(f, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
+	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
 	       SwigType_manglestr(d), "));\n", 0);
 
 	SwigType_del_pointer(d);
 	break;
 
     case T_STRING:
-	Printv(f, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
+	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
 	break;
     case T_POINTER: case T_REFERENCE: case T_ARRAY:
 	SwigType_remember(d);
-	Printv(f, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
+	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
 	       SwigType_manglestr(d), "));\n",
 	       0);
 	break;
@@ -463,36 +492,36 @@ TCL8::function(DOH *node) {
       break;
 
     default :
-      Printf(stderr,"%s:%d. Unable to use return type %s in function %s.\n",
-	     Getfile(node), Getline(node), SwigType_str(d,0), name);
+      Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
+	     input_file, line_number, SwigType_str(d,0), name);
       break;
     }
   }
 
   /* Dump output argument code */
-  Printv(f,outarg,0);
+  Printv(f->code,outarg,0);
 
   /* Dump the argument cleanup code */
-  Printv(f,cleanup,0);
+  Printv(f->code,cleanup,0);
 
   /* Look for any remaining cleanup */
   if (NewObject) {
     if ((tm = Swig_typemap_lookup((char*)"newfree",d,iname,(char*)"result",(char*)"",0))) {
-      Printf(f,"%s\n", tm);
+      Printf(f->code,"%s\n", tm);
     }
   }
 
   if ((tm = Swig_typemap_lookup((char*)"ret",d,name,(char*)"result",(char*)"",0))) {
-    Printf(f,"%s\n", tm);
+    Printf(f->code,"%s\n", tm);
   }
-  Printv(f, "return TCL_OK;\n}\n", 0);
+  Printv(f->code, "return TCL_OK;\n}", 0);
 
   /* Substitute the cleanup code */
-  Replace(f,"$cleanup",cleanup,DOH_REPLACE_ANY);
-  Replace(f,"$name", iname, DOH_REPLACE_ANY);
+  Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
+  Replace(f->code,"$name", iname, DOH_REPLACE_ANY);
 
   /* Dump out the function */
-  Printf(f_wrappers,"%s",f);
+  Wrapper_print(f,f_wrappers);
 
   /* Register the function with Tcl */
   Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", Swig_name_wrapper(iname), ", NULL},\n", 0);
@@ -502,20 +531,18 @@ TCL8::function(DOH *node) {
   Delete(outarg);
   Delete(argstr);
   Delete(args);
-  Delete(f);
+  DelWrapper(f);
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::variable()
+ * TCL8::link_variable()
  * ----------------------------------------------------------------------------- */
 
 static Hash      *setf = 0;
 static Hash      *getf = 0;
 
 void
-TCL8::variable(DOH *node) {
-  char *name, *iname;
-  SwigType *t;
+TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
   String *setname;
   String *getname;
@@ -525,20 +552,16 @@ TCL8::variable(DOH *node) {
   int setable = 1;
   int tc;
 
-  name = GetChar(node,"name");
-  iname = GetChar(node,"scriptname");
-  t = Getattr(node,"type");
-
   if (!setf) setf = NewHash();
   if (!getf) getf = NewHash();
 
   /* See if there were any typemaps */
   if (Swig_typemap_search((char *)"varin",t,name) || (Swig_typemap_search((char*)"varout",t,name))) {
-    Printf(stderr,"%s:%d. Warning. varin/varout typemap methods not supported.",
-	    Getfile(node), Getline(node));
+    Printf(stderr,"%s : Line %d. Warning. varin/varout typemap methods not supported.",
+	    input_file, line_number);
   }
 
-  if (ReadOnly) readonly = 1;
+  if (Status & STAT_READONLY) readonly = 1;
   isarray = SwigType_isarray(t);
   tc = SwigType_type(t);
   setname = Getattr(setf,t);
@@ -552,23 +575,23 @@ TCL8::variable(DOH *node) {
     getname = NewStringf("swig_%s_get", Swig_string_mangle(t));
     get = NewWrapper();
     set = NewWrapper();
-    Printv(set, "static char *", setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {\n",0);
-    Printv(get, "static char *", getname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {\n",0);
+    Printv(set->def, "static char *", setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
 
+    Printv(get->def, "static char *", getname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
     SwigType *lt = Swig_clocal_type(t);
     if ((tc != T_USER) && (!isarray))
       SwigType_add_pointer(lt);
     Wrapper_add_localv(get,"addr",SwigType_lstr(lt,"addr"),0);
     Wrapper_add_localv(set,"addr",SwigType_lstr(lt,"addr"),0);
-    Printv(set, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
-    Printv(get, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
+    Printv(set->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
+    Printv(get->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
     if ((tc != T_USER) && (!isarray))
       SwigType_del_pointer(lt);
     Delete(lt);
     Wrapper_add_local(set, "value", "char *value");
     Wrapper_add_local(get, "value", "Tcl_Obj *value");
 
-    Printv(set, "value = Tcl_GetVar2(interp, name1, name2, flags);\n",
+    Printv(set->code, "value = Tcl_GetVar2(interp, name1, name2, flags);\n",
 	              "if (!value) return NULL;\n", 0);
 
     switch(tc) {
@@ -579,9 +602,9 @@ TCL8::variable(DOH *node) {
     case T_UCHAR:
     case T_SCHAR:
     case T_BOOL:
-      Printv(set, "*(addr) = (", SwigType_str(t,0), ") atol(value);\n", 0);
+      Printv(set->code, "*(addr) = (", SwigType_str(t,0), ") atol(value);\n", 0);
       Wrapper_add_local(get,"value","Tcl_Obj *value");
-      Printv(get,
+      Printv(get->code,
 	     "value = Tcl_NewIntObj((int) *addr);\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     "Tcl_DecrRefCount(value);\n",
@@ -590,9 +613,9 @@ TCL8::variable(DOH *node) {
 
     case T_UINT:
     case T_ULONG:
-      Printv(set, "*(addr) = (", SwigType_str(t,0), ") strtoul(value,0,0);\n",0);
+      Printv(set->code, "*(addr) = (", SwigType_str(t,0), ") strtoul(value,0,0);\n",0);
       Wrapper_add_local(get,"value","Tcl_Obj *value");
-      Printv(get,
+      Printv(get->code,
 	     "value = Tcl_NewIntObj((int) *addr);\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     "Tcl_DecrRefCount(value);\n",
@@ -601,9 +624,9 @@ TCL8::variable(DOH *node) {
 
     case T_FLOAT:
     case T_DOUBLE:
-      Printv(set, "*(addr) = (", SwigType_str(t,0), ") atof(value);\n",0);
+      Printv(set->code, "*(addr) = (", SwigType_str(t,0), ") atof(value);\n",0);
       Wrapper_add_local(get,"value","Tcl_Obj *value");
-      Printv(get,
+      Printv(get->code,
 	     "value = Tcl_NewDoubleObj((double) *addr);\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     "Tcl_DecrRefCount(value);\n",
@@ -611,9 +634,9 @@ TCL8::variable(DOH *node) {
       break;
 
     case T_CHAR:
-      Printv(set, "*(addr) = *value;\n",0);
+      Printv(set->code, "*(addr) = *value;\n",0);
       Wrapper_add_local(get,"temp", "char temp[2]");
-      Printv(get, "temp[0] = *addr; temp[1] = 0;\n",
+      Printv(get->code, "temp[0] = *addr; temp[1] = 0;\n",
 	     "Tcl_SetVar2(interp,name1,name2,temp,flags);\n",
 	     0);
       break;
@@ -622,7 +645,7 @@ TCL8::variable(DOH *node) {
       /* User defined type.  We return it as a pointer */
       SwigType_add_pointer(t);
       SwigType_remember(t);
-      Printv(set, "{\n",
+      Printv(set->code, "{\n",
 	     "void *ptr;\n",
 	     "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", SwigType_manglestr(t), ") != TCL_OK) {\n",
 	     "return \"Type Error\";\n",
@@ -635,7 +658,7 @@ TCL8::variable(DOH *node) {
       Wrapper_add_local(get,"value", "Tcl_Obj *value");
       SwigType_add_pointer(t);
       SwigType_remember(t);
-      Printv(get,  "value = SWIG_NewPointerObj(addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
+      Printv(get->code,  "value = SWIG_NewPointerObj(addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     "Tcl_DecrRefCount(value);\n",0);
       SwigType_del_pointer(t);
@@ -643,11 +666,11 @@ TCL8::variable(DOH *node) {
       break;
 
     case T_STRING:
-      Printv(set, "if (*addr) free(*addr);\n",
+      Printv(set->code, "if (*addr) free(*addr);\n",
 	     "*addr = (char *) malloc(strlen(value)+1);\n",
 	     "strcpy(*addr,value);\n",
 	     0);
-      Printv(get, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
+      Printv(get->code, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
       break;
 
     case T_ARRAY:
@@ -661,16 +684,16 @@ TCL8::variable(DOH *node) {
 	if (SwigType_type(ta) == T_CHAR) {
 	  String *dim = SwigType_array_getdim(aop,0);
 	  if (dim && Len(dim)) {
-	    Printf(set, "strncpy(addr,value,%s);\n", dim);
+	    Printf(set->code, "strncpy(addr,value,%s);\n", dim);
 	    setable = 1;
-	    readonly = ReadOnly;
+	    readonly = Status & STAT_READONLY;
 	  }
-	  Printv(get, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
+	  Printv(get->code, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
 	} else {
-	  Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", Getfile(node), Getline(node), name);
+	  Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
 	  Wrapper_add_local(get,"value","Tcl_Obj *value");
 	  SwigType_remember(t);
-	  Printv(get,
+	  Printv(get->code,
 		 "value = SWIG_NewPointerObj(addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
 		 "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 		 "Tcl_DecrRefCount(value);\n",
@@ -683,7 +706,7 @@ TCL8::variable(DOH *node) {
 
     case T_POINTER: case T_REFERENCE:
       SwigType_remember(t);
-      Printv(set,  "{\n",
+      Printv(set->code,  "{\n",
 	     "void *ptr;\n",
 	     "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", SwigType_manglestr(t), ") != TCL_OK) {\n",
 	     "return \"Type Error\";\n",
@@ -693,7 +716,7 @@ TCL8::variable(DOH *node) {
 	     0);
 
       Wrapper_add_local(get,"value","Tcl_Obj *value");
-      Printv(get,
+      Printv(get->code,
 	     "value = SWIG_NewPointerObj(*addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	     "Tcl_DecrRefCount(value);\n",
@@ -707,16 +730,16 @@ TCL8::variable(DOH *node) {
       Printf(stderr,"TCL8::link_variable. Unknown type %s!\n", SwigType_str(t,0));
       break;
     }
-    Printv(set, "return NULL;\n", "}\n",0);
-    Printv(get, "return NULL;\n", "}\n",0);
-    Printf(f_wrappers,"%s",get);
+    Printv(set->code, "return NULL;\n", "}\n",0);
+    Printv(get->code, "return NULL;\n", "}\n",0);
+    Wrapper_print(get,f_wrappers);
     Setattr(getf,Copy(t),getname);
     if (setable) {
-      Printf(f_wrappers,"%s",set);
+      Wrapper_print(set,f_wrappers);
       Setattr(setf,Copy(t),setname);
     }
-    Delete(get);
-    Delete(set);
+    DelWrapper(get);
+    DelWrapper(set);
   }
   Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) ", isarray ? "" : "&", name, ",", getname, ",", 0);
 
@@ -724,11 +747,11 @@ TCL8::variable(DOH *node) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
-      Printf(ro, "static char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {\n");
-      Printv(ro, "return \"Variable is read-only\";\n", "}\n", 0);
-      Printf(f_wrappers,"%s",ro);
+      Printf(ro->def, "static char *swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
+      Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", 0);
+      Wrapper_print(ro,f_wrappers);
       readonlywrap = 1;
-      Delete(ro);
+      DelWrapper(ro);
     }
     Printf(var_info, "swig_readonly},\n");
   } else {
@@ -737,26 +760,17 @@ TCL8::variable(DOH *node) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::constant()
+ * TCL8::declare_const()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::constant(DOH *node) {
-  char   *name;
-  SwigType *type;
-  char   *value;
-  int OldStatus = ReadOnly;
+TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
+  int OldStatus = Status;
   SwigType *t;
   char      var_name[256];
   char     *tm;
   String   *rvalue;
-  ReadOnly = 1;
-  DOH      *nnode;
-
-  name = GetChar(node,"name");
-  type = Getattr(node,"type");
-  value = GetChar(node,"value");
-  nnode = Copy(node);
+  Status = STAT_READONLY;
 
   /* Make a static variable */
   sprintf(var_name,"_wrap_const_%s",name);
@@ -775,8 +789,7 @@ TCL8::constant(DOH *node) {
     switch(SwigType_type(type)) {
     case T_BOOL: case T_INT: case T_DOUBLE:
       Printf(f_header,"static %s %s = %s;\n", SwigType_str(type,0), var_name, value);
-      Setattr(nnode,"name",var_name);
-      variable(nnode);
+      link_variable(var_name,name,type);
       break;
 
     case T_SHORT:
@@ -793,9 +806,7 @@ TCL8::constant(DOH *node) {
       sprintf(var_name,"%s_char",var_name);
       t = NewString("char");
       SwigType_add_pointer(t);
-      Setattr(nnode,"name",var_name);
-      Setattr(nnode,"type",t);
-      variable(nnode);
+      link_variable(var_name,name,t);
       Delete(t);
       break;
 
@@ -814,31 +825,25 @@ TCL8::constant(DOH *node) {
       sprintf(var_name,"%s_char",var_name);
       t = NewSwigType(T_CHAR);
       SwigType_add_pointer(t);
-      Setattr(nnode,"name",var_name);
-      Setattr(nnode,"type",t);
-      variable(nnode);
+      link_variable(var_name,name,t);
       Delete(t);
       break;
 
     case T_FLOAT:
       Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
-      Setattr(nnode,"name",var_name);
-      variable(nnode);
+      link_variable(var_name,name,type);
       break;
 
     case T_CHAR:
       SwigType_add_pointer(type);
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      Setattr(nnode,"name",var_name);
-      Setattr(nnode,"type",type);
-      variable(nnode);
+      link_variable(var_name,name,type);
       SwigType_del_pointer(type);
       break;
 
     case T_STRING:
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
-      Setattr(nnode,"name",var_name);
-      variable(nnode);
+      link_variable(var_name,name,type);
       break;
 
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
@@ -855,20 +860,17 @@ TCL8::constant(DOH *node) {
       Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
 	     var_name, var_name, SwigType_manglestr(type));
       sprintf(var_name,"%s_char",var_name);
-      Setattr(nnode,"type",t);
-      Setattr(nnode,"name",var_name);
-      variable(nnode);
+      link_variable(var_name,name,t);
       Delete(t);
       break;
 
     default:
-      Printf(stderr,"%s:%d. Unsupported constant value.\n", Getfile(node), Getline(node));
+      Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
       break;
     }
   }
   Delete(rvalue);
-  Delete(nnode);
-  ReadOnly = OldStatus;
+  Status = OldStatus;
 }
 
 /* -----------------------------------------------------------------------------
@@ -918,27 +920,12 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * TCL8::nativefunction();
+ * TCL8::add_native()
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::nativefunction(DOH *node) {
-  char *name;
-  char *funcname;
-
-  name = GetChar(node,"scriptname");
-  funcname = GetChar(node,"name");
-
-  if ((Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,p.p.Tcl_Obj).int", node) == 0) ||
-      (Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,a().p.Tcl_Obj).int", node) == 0)) {
-    Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
-  }
-
-  if ((Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,p.p.char).int", node) == 0) ||
-      (Swig_proto_cmp("f(ClientData,p.Tcl_Interp,int,a().p.char).int", node) == 0)) {
-    Printf(f_init,"\t Tcl_CreateCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
-  }
-    
+TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
+  Printf(f_init,"\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",name, funcname);
 }
 
 /* -----------------------------------------------------------------------------
@@ -946,31 +933,25 @@ TCL8::nativefunction(DOH *node) {
  * ----------------------------------------------------------------------------- */
 
 void
-TCL8::cpp_open_class(DOH *node) {
-  this->Language::cpp_open_class(node);
-
-  char *classname = GetChar(node,"name");
-  char *rename = GetChar(node,"scriptname");
-  char *ctype = GetChar(node,"classtype");
-  int   strip = GetInt(node,"strip");
-  
+TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
+  this->Language::cpp_open_class(classname,rename,ctype,strip);
   if (shadow) {
     static int included_object = 0;
     if (!included_object) {
       if (Swig_insert_file("object.swg",f_header) == -1) {
 	Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
-	Swig_exit (EXIT_FAILURE);
+	SWIG_exit (EXIT_FAILURE);
       }
       included_object = 1;
     }
 
-    attributes = NewString("");
-    /*    Printf(attributes, "static swig_attribute swig_");
-	  Printv(attributes, classname, "_attributes[] = {\n", 0); */
+    Clear(attributes);
+    Printf(attributes, "static swig_attribute swig_");
+    Printv(attributes, classname, "_attributes[] = {\n", 0);
 
-    methods = NewString("");
-    /*    Printf(methods,"static swig_method swig_");
-	  Printv(methods, classname, "_methods[] = {\n", 0); */
+    Clear(methods);
+    Printf(methods,"static swig_method swig_");
+    Printv(methods, classname, "_methods[] = {\n", 0);
 
     have_constructor = 0;
     have_destructor = 0;
@@ -1005,18 +986,12 @@ TCL8::cpp_close_class() {
       Printf(code,"}\n");
     }
 
-    Printf(code,"static swig_method swig_");
-    Printv(code, real_classname, "_methods[] = {\n", 0);
+    Printf(methods, "    {0,0}\n};\n");
     Printv(code,methods,0);
-    Printf(code, "    {0,0}\n};\n");
-    Setattr(class_methods,real_classname,methods);
 
-    Printf(code, "static swig_attribute swig_");
-    Printv(code, real_classname, "_attributes[] = {\n", 0);
+    Printf(attributes, "    {0,0,0}\n};\n");
     Printv(code,attributes,0);
-    Printf(code, "    {0,0,0}\n};\n");
-    Setattr(class_attributes,real_classname,attributes);
-    
+
     Printv(code, "static swig_class _wrap_class_", class_name, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
 
@@ -1038,16 +1013,13 @@ TCL8::cpp_close_class() {
   Delete(code);
 }
 
-void TCL8::cpp_memberfunction(DOH *node) {
-  char *name, *iname;
+void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   char *realname;
   char temp[1024];
   String  *rname;
-  
-  this->Language::cpp_memberfunction(node);
-  if (shadow) {
-    name = GetChar(node,"name");
-    iname = GetChar(node,"scriptname");
+
+  this->Language::cpp_member_func(name,iname,t,l);
+  if (shadow && !is_multiple_definition()) {
     realname = iname ? iname : name;
     /* Add stubs for this member to our class handler function */
 
@@ -1059,17 +1031,14 @@ void TCL8::cpp_memberfunction(DOH *node) {
   }
 }
 
-void TCL8::cpp_variable(DOH *node) {
-  char *name, *iname;
+void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
   char *realname;
   char temp[1024];
   String *rname;
 
-  this->Language::cpp_variable(node);
+  this->Language::cpp_variable(name, iname, t);
 
-  if (shadow) {
-    name = GetChar(node,"name");
-    iname = GetChar(node,"scriptname");
+  if (shadow && !is_multiple_definition()) {
     realname = iname ? iname : name;
     Printv(attributes, tab4, "{ \"-", realname, "\",", 0);
 
@@ -1079,7 +1048,7 @@ void TCL8::cpp_variable(DOH *node) {
     if (!rname) rname = Swig_name_wrapper(temp);
     Printv(attributes, rname, ", ", 0);
 
-    if (!ReadOnly) {
+    if (!(Status & STAT_READONLY)) {
       strcpy(temp, Char(Swig_name_set(Swig_name_member(class_name,realname))));
       rname = Getattr(repeatcmd,temp);
       if (!rname) rname = Swig_name_wrapper(temp);
@@ -1091,30 +1060,13 @@ void TCL8::cpp_variable(DOH *node) {
 }
 
 void
-TCL8::cpp_constructor(DOH *node) {
-  this->Language::cpp_constructor(node);
+TCL8::cpp_constructor(char *name, char *iname, ParmList *l) {
+  this->Language::cpp_constructor(name,iname,l);
   have_constructor = 1;
 }
 
 void
-TCL8::cpp_destructor(DOH *node) {
-  this->Language::cpp_destructor(node);
+TCL8::cpp_destructor(char *name, char *newname) {
+  this->Language::cpp_destructor(name,newname);
   have_destructor = 1;
-}
-
-void
-TCL8::cpp_inherit(List *bases) {
-  String *b;
-  Printf(stdout,"bases = %s\n", bases);
-  for (b = Firstitem(bases); b; b = Nextitem(bases)) {
-    Printf(stdout,"base: %s\n", b);
-    String *s = Getattr(class_methods,b);
-    if (s) {
-      Append(methods,s);
-    }
-    s = Getattr(class_attributes,b);
-    if (s) {
-      Append(attributes,s);
-    }
-  }
 }

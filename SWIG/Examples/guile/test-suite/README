@@ -1,0 +1,7 @@
+This directory contains a test suite for SWIG.  The idea is that
+whenever a bug in SWIG is discovered, we add a test that fails,
+showing the bug.  When we believe to have fixed the bug, we can check
+whether test works.  The tests are kept here when the bug is fixed --
+so we can make sure that the bug (or related bugs) don't creep back
+into SWIG.
+

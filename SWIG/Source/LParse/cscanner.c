@@ -48,7 +48,7 @@ static int map[][2] = {
   { SWIG_TOKEN_BACKSLASH, -1 },
   { SWIG_TOKEN_ENDLINE, -1},
   { SWIG_TOKEN_STRING, STRING },
-  { SWIG_TOKEN_POUND, -1 },
+  { SWIG_TOKEN_POUND, POUND },
   { SWIG_TOKEN_PERCENT, -1 },
   { SWIG_TOKEN_COLON, COLON },
   { SWIG_TOKEN_DCOLON, DCOLON },
@@ -67,7 +67,6 @@ static int map[][2] = {
   { SWIG_TOKEN_DOLLAR, -1},
   { SWIG_TOKEN_CODEBLOCK, HBLOCK},
   { SWIG_TOKEN_ILLEGAL, SWIG_TOKEN_ILLEGAL},
-  { SWIG_TOKEN_RSTRING, SWIG_TOKEN_RSTRING},
   { SWIG_TOKEN_LAST, -1},
   {0,0},
 };
@@ -320,19 +319,13 @@ yylex1(void) {
       LParse_error(0,0,"Illegal character '%s'\n", text);
       return yylex1();
     }
-    if ((l1 == STRING) || (l1 == CHARCONST) || (l1 == SWIG_TOKEN_RSTRING)) {
+    if (l1 == STRING) {
       yylval.tok.text = NewString(yytext+1);
-      Setfile(yylval.tok.text,yylval.tok.filename);
-      Setline(yylval.tok.text,yylval.tok.line);
       Delitem(yylval.tok.text,DOH_END);
     }
     if ((l1 == HBLOCK) || (l1 == NUM_INT) || (l1 == NUM_FLOAT) || (l1 == NUM_UNSIGNED) || (l1 == NUM_LONG) || (l1 == NUM_ULONG))  {
       yylval.tok.text = NewString(yytext);
     }
-    if (l1 == SWIG_TOKEN_RSTRING) {
-      return (TYPE_TYPESTRING);
-    }
-
     if (l1 == ID) {
       /* Look for keywords now */
       if (strcmp(yytext,"int") == 0) return(TYPE_INT);
@@ -357,7 +350,7 @@ yylex1(void) {
 	if (strcmp(yytext,"public") == 0) return(PUBLIC);
 	if (strcmp(yytext,"protected") == 0) return(PROTECTED);
 	if (strcmp(yytext,"friend") == 0) return(FRIEND);
-	if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
+	if (strcmp(yytext,"virtual") == 0) return(lparse_yylex());
 	if (strcmp(yytext,"operator") == 0) return(OPERATOR);
 	if (strcmp(yytext,"throw") == 0) return(THROW);
 	if (strcmp(yytext,"inline") == 0) return(lparse_yylex());
@@ -380,7 +373,6 @@ yylex1(void) {
       if (strcmp(yytext,"static") == 0) return(STATIC);
       if (strcmp(yytext,"extern") == 0) return(EXTERN);
       if (strcmp(yytext,"const") == 0) return(CONST);
-      if (strcmp(yytext,"typedef") == 0) return(TYPEDEF);
       if (strcmp(yytext,"struct") == 0) {
 	yylval.tok.text = NewString(yytext);
 	return(STRUCT);
@@ -391,34 +383,56 @@ yylex1(void) {
       }
       if (strcmp(yytext,"enum") == 0) return(ENUM);
       if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
+      if (strcmp(yytext,"defined") == 0) return(DEFINED);
       
       /* Ignored keywords  */
       if (strcmp(yytext,"volatile") == 0) return(lparse_yylex());
 
       /* SWIG directives */
-      if (yytext[0] == '%') {
-	if (strcmp(yytext,"%module") == 0) return(MODULE);
-	if (strcmp(yytext,"%constant") == 0) return (CONSTANT);
-	if (strcmp(yytext,"%file") == 0) return(FILEDIRECTIVE);
-	if (strcmp(yytext,"%insert") == 0) return (INSERT);
-	if (strcmp(yytext,"%macro") == 0) return(MACRO);
-	if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
-	if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
-	if (strcmp(yytext,"%inline") == 0) return(INLINE);
-	if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
-	if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-	if (strcmp(yytext,"%echo") == 0) return(ECHO);
-	if (strcmp(yytext,"%apply") == 0) return(APPLY);
-	if (strcmp(yytext,"%clear") == 0) return(CLEAR);
-	if (strcmp(yytext,"%scope") == 0) return(SCOPE);
-	if (strcmp(yytext,"%types") == 0) return(TYPES);
-      }
+      if (strcmp(yytext,"%module") == 0) return(MODULE);
+      if (strcmp(yytext,"%constant") == 0) return (CONSTANT);
+      if (strcmp(yytext,"%type") == 0) return (TYPE);
+      if (strcmp(yytext,"%init") == 0)  return(INIT);
+      if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
+      if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
+      if (strcmp(yytext,"%readonly") == 0) return(READONLY);
+      if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
+      if (strcmp(yytext,"%name") == 0) return(NAME);
+      if (strcmp(yytext,"%rename") == 0) return(RENAME);
+      if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
+      if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
+      if (strcmp(yytext,"%checkout") == 0) return(CHECKOUT);
+      if (strcmp(yytext,"%macro") == 0) return(MACRO);
+      if (strcmp(yytext,"%section") == 0) return(SECTION);
+      if (strcmp(yytext,"%subsection") == 0) return(SUBSECTION);
+      if (strcmp(yytext,"%subsubsection") == 0) return(SUBSUBSECTION);
+      if (strcmp(yytext,"%title") == 0) return(TITLE);
+      if (strcmp(yytext,"%style") == 0) return(STYLE);
+      if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
+      if (strcmp(yytext,"%typedef") == 0) return(TYPEDEF);
+      if (strcmp(yytext,"typedef") == 0) return(TYPEDEF);
+      if (strcmp(yytext,"%alpha") == 0) return(ALPHA_MODE);
+      if (strcmp(yytext,"%raw") == 0) return(RAW_MODE);
+      if (strcmp(yytext,"%text") == 0) return(TEXT);
+      if (strcmp(yytext,"%native") == 0) return(NATIVE);
+      if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
+      if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
+      if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
+      if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
+      if (strcmp(yytext,"%inline") == 0) return(INLINE);
+      if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
+      if (strcmp(yytext,"%except") == 0) return(EXCEPT);
+      if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
+      if (strcmp(yytext,"%echo") == 0) return(ECHO);
+      if (strcmp(yytext,"%new") == 0) return(NEW);
+      if (strcmp(yytext,"%apply") == 0) return(APPLY);
+      if (strcmp(yytext,"%clear") == 0) return(CLEAR);
+      if (strcmp(yytext,"%doconly") == 0) return(DOCONLY);
+      if (strcmp(yytext,"%map") == 0) return(MAP);
+
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */
       yylval.tok.text = NewString(yytext);
-      Setfile(yylval.tok.text, yylval.tok.filename);
-      Setline(yylval.tok.text, yylval.tok.line);
-
       /*      if (strict_type && LParse_typedef_check(yylval.tok.text)) {
 	return TYPE_TYPEDEF;
 	}*/

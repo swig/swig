@@ -482,7 +482,6 @@ extern "C" {
 %}
 %typemap(ruby,in) FILE *READ {
     OpenFile *of;
-    Check_Type($source, T_FILE);
     GetOpenFile($source, of);
     rb_io_check_readable(of);
     $target = GetReadFile(of);
@@ -490,14 +489,12 @@ extern "C" {
 }
 %typemap(ruby,in) FILE *READ_NOCHECK {
     OpenFile *of;
-    Check_Type($source, T_FILE);
     GetOpenFile($source, of);
     rb_io_check_readable(of);
     $target = GetReadFile(of);
 }
 %typemap(ruby,in) FILE *WRITE {
     OpenFile *of;
-    Check_Type($source, T_FILE);
     GetOpenFile($source, of);
     rb_io_check_writable(of);
     $target = GetWriteFile(of);

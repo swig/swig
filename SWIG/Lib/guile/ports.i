@@ -11,6 +11,7 @@
   #endif
   #include <stdio.h>
   #include <errno.h>
+  #include <unistd.h>
 %}
 
 /* Feed FILE * arguments from file ports */

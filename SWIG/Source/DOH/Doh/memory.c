@@ -42,10 +42,8 @@ static int      pools_initialized = 0;
 static void
 CreatePool() {
   Pool *p = 0;
-  p = (Pool *) DohMalloc(sizeof(Pool));
-  assert(p);
-  p->ptr = (DohBase *) DohMalloc(sizeof(DohBase)*PoolSize);
-  assert(p->ptr);
+  assert((p = (Pool *) DohMalloc(sizeof(Pool))));
+  assert((p->ptr = (DohBase *) DohMalloc(sizeof(DohBase)*PoolSize)));
   p->len = PoolSize;
   p->blen = PoolSize*sizeof(DohBase);
   p->current = 0;

@@ -1,5 +1,7 @@
 /* File : vector.c */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include "vector.h"
 
 Vector *createv(double x, double y, double z, double w) {

@@ -157,6 +157,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   int    newref = 0;
 
   if (!obj || (obj == Py_None)) {
+    *ptr = 0;
     return 0;
   }
 #ifdef SWIG_COBJECT_TYPES
@@ -193,10 +194,10 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   if (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) {
-      if (newref) { Py_DECREF(obj); }
+      if (newref) Py_DECREF(obj);
       return 0;
     } else {
-      if (newref) { Py_DECREF(obj); }
+      if (newref) Py_DECREF(obj);
       goto type_error;
     }
   }
@@ -212,7 +213,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
     c++;
   }
   *ptr = (void *) p;
-  if (newref) { Py_DECREF(obj); }
+  if (newref) Py_DECREF(obj);
 #endif
 
 #ifdef SWIG_COBJECT_TYPES

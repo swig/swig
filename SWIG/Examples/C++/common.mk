@@ -18,7 +18,7 @@ INCLUDE = -I$(TOP)/../Lib -I../class -I../typemaps  -I$(TOP)/../Lib
 
 check:: all
 	bad_status="" ; \
-	for i in $(TESTS); do \
+	tests="$(TESTS)"; for i in $$tests; do \
 	  LD_LIBRARY_PATH=. PYTHONPATH=. CLASSPATH=./$(JAR) ; \
 	  ( $(PYTHON) $$i && echo "$$i: PASSED" ) || echo "$$i: FAILED"; \
 	done

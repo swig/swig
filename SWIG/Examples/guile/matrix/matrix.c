@@ -1,4 +1,6 @@
 /*   FILE : matrix.c : some simple 4x4 matrix operations */
+#include <stdlib.h>
+#include <stdio.h>
 
 double **new_matrix() {
 

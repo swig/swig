@@ -1,27 +1,84 @@
 						-*- outline -*-
 
-* for 1.3a4 release
+* for release 1.3.6
 
-** [ttn] add test-suite based on Examples
+** Testing
 
-[open] The behavior of SWIG with respect to call/return-by-value needs
-       to be verified for all language modules.   Previously, the
+* for release 1.3.7
+
+** Discuss the %pragma directive syntax change from CVS head.  
+   Why is the syntax changing all the time?  Can't we just stick to
+   the syntax in 1.3a5? 
+
+** Maybe port other parser-related stuff from CVS head
+
+** Maybe get the 10/14/00 changes from CVS head
+
+** Fix all the bugs on SourceForge
+
+** Incorporate all the patches on SourceForge
+
+** Make a proper test suite with both language-independent and language-dependent tests.
+   The directories Examples/guile/test-suite, Examples/perl5/pointer-cxx, Examples/C++
+   contain some material that can be used.
+
+* eventually
+
+**     Revive the documentation
+
+**     Maybe use libtool rather than all the home-grown compile/link stuff
+
+**     The behavior of SWIG with respect to call/return-by-value needs
+       to be verified for all language modules.  Previously, the
        parser automatically performed the conversion of pass-by-value
        to pass-by-reference.  Unfortunately, this confused typemap
        handling and other aspects of the system.   I have removed
        this behavior.  However, in doing so, the handling of user
        defined types is passed on to the language modules.
 
-[open] All of the SWIG 1.1p5 examples need to be verified.  Changes
+**     All of the SWIG 1.1p5 examples need to be verified.  Changes
        in type handling and internal data structures may have broken
        a variety of things.
 
-* for 1.3a6 release
+** [Guile] New %pragma "documentation", which allows to attach documentation
+   strings to a procedure.
 
-** [mkoeppe] Merge Guile and MzScheme from the "mkoeppe-1-3-a5-patches" branch
+** [Guile] Maybe support keyword args
 
-* for 1.3b1 release
+** [Guile] Maybe support GOOPS shadow classes
 
-* for 1.3b2 release
+** [Guile] Support garbage collection.
 
-* for 2.x release
+*** %new annotation decides whether a pointer smob can be gc'ed.
+
+*** New smob type `swig-gc'; instances created with
+    SWIG_Guile_MakeCollectablePtr.  %new versions of the pointer
+    typemaps use this function rather than SWIG_Guile_MakePtr.
+
+*** New typemaps "destructor", "gcmarker".  Their values are taken as
+    identifiers for functions taking one argument: a pointer to the
+    object to be destroyed, or whose SCM-valued subobjects are to be
+    marked.  After creating the pointer equivalence table, we iterate
+    again over the remembered pointer types, emitting code that puts
+    the functions into our type table.  No additional functions are
+    generated.
+
+*** The default for all pointer types would be: 
+    %typemap(destructor) SWIGPOINTER * "free";
+
+*** A special annotation, e.g. FREED, can be attached to the arguments
+    of destructor functions, so that explicitly freed structs won't be
+    collected by the GC again. Like this:
+
+    %typemap(argout) SWIGPOINTER *FREED {
+      smob-tag($source) = swig; /* non-gc */
+      smob-data($source) = NULL;
+    }
+    void free_foo(struct foo *FREED);
+    
+** Make a tricky header file defining annotations invisible to the C compiler. 
+   The idea is to prepare one file that serves both as a C header file 
+   and a SWIG interface file.
+
+   void add(SWIG_OUTPUT(int) *z, int x, int y)
+

@@ -1,6 +1,6 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig -shadow
-SWIGOPT    = -I../Include
+SWIG       = $(TOP)/../swig
+SWIGOPT    = -I../Include -shadow
 SRCS       =
 TARGET     = libjgifplot
 INTERFACE  = gifplot.i
@@ -11,6 +11,7 @@ all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDE='$(INCLUDE)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java
+	javac *.java
 
 clean::
 	rm -f *_wrap* *.o *~ *.so .~* core *.gif *.class ColorMap.java FrameBuffer.java Plot2D.java Plot3D.java gifplot.java

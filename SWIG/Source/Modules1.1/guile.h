@@ -32,24 +32,41 @@ private:
   char   *package;
   enum {
     GUILE_LSTYLE_SIMPLE,                // call `SWIG_init()'
-    GUILE_LSTYLE_LTDLMOD,               // "native" guile?
+    GUILE_LSTYLE_PASSIVE,               // passive linking (no module code)
+    GUILE_LSTYLE_MODULE,                // native guile module linking (Guile >= 1.4.1)
+    GUILE_LSTYLE_LTDLMOD_1_4,		// old (Guile <= 1.4) dynamic module convention
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
   File  *procdoc;
+  enum {
+    GUILE_1_4,
+    PLAIN,
+    TEXINFO
+  } docformat;
   int	 emit_setters;
   int    struct_member;
+  String *before_return;
+  String *pragma_name;
+  String *exported_symbols;
   void   emit_linkage(char *module_name);
-
+  void   write_doc(const String *proc_name,
+		   const String *signature,
+		   const String *doc);
 public :
   GUILE ();
   void parse_args (int, char *argv[]);
-  void initialize(String *module);
-  void function (DOH *node);
-  void variable (DOH *node);
-  void constant (DOH *node);
+  void parse ();
+  void create_function (char *, char *, SwigType *, ParmList *);
+  void link_variable (char *, char *, SwigType *);
+  void declare_const (char *, char *, SwigType *, char *);
+  void initialize ();
+  void headers (void);
   void close (void);
-  void create_command (String *, String *) { };
-  void cpp_variable(DOH *node);
+  void set_module(char *);
+  void set_init (char *);
+  void create_command (char *, char *) { };
+  void cpp_variable(char *name, char *iname, SwigType *t);
+  void pragma(char *lang, char *cmd, char *value);
 };
 
 /* guile.h ends here */

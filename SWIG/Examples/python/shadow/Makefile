@@ -1,17 +1,18 @@
 TOP        = ../..
-SWIG       = $(TOP)/../swig -shadow
+SWIG       = $(TOP)/../swig
 CXXSRCS    = example.cxx
 TARGET     = examplec
 INTERFACE  = example.i
 LIBS       = -lm
+SWIGOPT    = -shadow
 
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python_cpp
+	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python_cpp
 
 static::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	TARGET='mypython' INTERFACE='$(INTERFACE)' python_cpp_static
+	SWIGOPT='$(SWIGOPT)' TARGET='mypython' INTERFACE='$(INTERFACE)' python_cpp_static
 
 clean::
 	rm -f *_wrap* *.o *~ *.so mypython *.pyc .~* core

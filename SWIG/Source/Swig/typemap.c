@@ -45,14 +45,9 @@ static char *parm_key(String_or_char *pname) {
  * Create a new typemap scope
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_new_scope(Hash *oldscope) {
+void Swig_typemap_new_scope() {
   tm_scope++;
-  if (!oldscope) {
-    typemaps[tm_scope] = NewHash();
-  } else {
-    typemaps[tm_scope] = oldscope;
-    DohIncref(oldscope);
-  }
+  typemaps[tm_scope] = NewHash();
 }
 
 /* -----------------------------------------------------------------------------
@@ -64,12 +59,7 @@ void Swig_typemap_new_scope(Hash *oldscope) {
 Hash *
 Swig_typemap_pop_scope() {
   if (tm_scope > 0) {
-    if (Len(typemaps[tm_scope])) {
-      return typemaps[tm_scope--];
-    } else {
-      Delete(typemaps[tm_scope--]);
-      return 0;
-    }
+    return Swig_temp_result(typemaps[tm_scope--]);
   }
   return 0;
 }
@@ -81,7 +71,7 @@ Swig_typemap_pop_scope() {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals) {
+Swig_typemap_register(char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals) {
   char *key;
   Hash *tm;
   Hash *tm1;
@@ -158,7 +148,7 @@ Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname, 
+Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname, 
 		  SwigType *ttype, String_or_char *tname) {
 
   Hash *tm=0, *tm1;
@@ -183,7 +173,7 @@ Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sna
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name) {
+Swig_typemap_clear(char *op, SwigType *type, String_or_char *name) {
   Hash *tm;
 
   tm = Swig_typemap_get(type,name,tm_scope);
@@ -202,7 +192,7 @@ Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *nam
 static void merge_attributes(Hash *target, Hash *source) {
   String *key;
   for (key = Firstkey(source); key; key = Nextkey(source)) {
-    /*    if (Getattr(target,key)) continue; */
+    if (Getattr(target,key)) continue;
     Setattr(target,key,Getattr(source,key));
   }
 }
@@ -279,7 +269,7 @@ static SwigType *strip_arrays(SwigType *type) {
  * ----------------------------------------------------------------------------- */
 
 Hash *
-Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name) {
+Swig_typemap_search(char *op, SwigType *type, String_or_char *name) {
   Hash *result = 0, *tm, *tm1, *tma;
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
@@ -339,7 +329,14 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
     if (!primitive)
       primitive = SwigType_default(type);
     tm = Getattr(typemaps[ts],primitive);
-    if (tm) {
+    if (tm && cname) {
+      tm1 = Getattr(tm,cname);
+      if (tm1) {
+	result = Getattr(tm1,op);          /* See if there is a type-name match */
+	if (result) goto ret_result;
+      }
+    }
+    if (tm) {			/* See if there is simply a type match */
       result = Getattr(tm,op);
       if (result) goto ret_result;
     }
@@ -407,7 +404,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
  * Perform a typemap lookup (ala SWIG1.1)
  * ----------------------------------------------------------------------------- */
 
-char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source,
+char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *source,
 			  String_or_char *target, Wrapper *f) 
 {
   Hash   *tm;
@@ -439,7 +436,7 @@ char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_ch
       DOHString *dim = SwigType_array_getdim(type,i);
       sprintf(temp,"$dim%d",i);
       if (f)
-	Replace(Getattr(f,"locals"),temp,dim, DOH_REPLACE_ANY);
+	Replace(f->locals,temp,dim, DOH_REPLACE_ANY);
       Replace(s,temp,dim,DOH_REPLACE_ANY);
     }
   }

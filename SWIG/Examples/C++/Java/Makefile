@@ -17,4 +17,15 @@ clean::
 
 PYTHON = jpython
 
-TESTS = $(wildcard ../test_repo/*.py)
+TESTS = 
+
+# We haven't checked for JPython in the configure step, so don't run
+# any tests that require it.
+
+# ../test_repo/constructor.py  \
+# 	../test_repo/constructor_user_type.py \
+# 	../test_repo/inheritence_map_to_base_class.py \
+# 	../test_repo/object_method.py \
+# 	../test_repo/object_method_user_type.py \
+# 	../test_repo/primitive_method.py \
+# 	../test_repo/primitive_method_user_type.py

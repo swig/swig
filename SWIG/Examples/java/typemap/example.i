@@ -18,11 +18,11 @@ void f1(char *s) {
 }
 
 void f2(char *s) {
-  return f1(s);
+  f1(s);
 }
 
 void f3(char *s) {
-  return f1(s);
+  f1(s);
 }
 
 %}

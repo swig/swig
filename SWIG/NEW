@@ -187,7 +187,7 @@ and it is simpler to implement than the old string based approach.
 6. New Features
 ---------------
 
-6.1 Java module added (although broken in SWIG1.3a4)
+6.1 Java module added
 
 6.2 Ruby module added
 

@@ -61,18 +61,6 @@ Swig_mark_arg(int n) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_check_marked()
- *
- * Checks to see if argument has been picked up.
- * ----------------------------------------------------------------------------- */
-
-int
-Swig_check_marked(int n) {
-  assert((n>=0) && (n < numargs));
-  return marked[n];
-}
-
-/* -----------------------------------------------------------------------------
  * Swig_check_options()
  * 
  * Checkers for unprocessed command line options and errors.
@@ -111,6 +99,8 @@ Swig_arg_error() {
   Printf(stderr,"Use 'swig -help' for available options.\n");
   exit(1);
 }
+
+
 	
 		
 

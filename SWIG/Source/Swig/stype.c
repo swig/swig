@@ -199,16 +199,16 @@ SwigType_add_qualifier(SwigType *t, String *qual) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_function(SwigType *t, ParmList *parms) {
+SwigType_add_function(SwigType *t, List *parms) {
   String *pstr;
+  int        i,l;
 
   Insert(t,0,").");
   pstr = NewString("f(");
-
-  while (parms) {
-    Printf(pstr,"%s",Gettype(parms));
-    parms = Getnext(parms);
-    if (parms)
+  l = Len(parms);
+  for (i = 0; i < l; i++) {
+    Printf(pstr,"%s",Getitem(parms,i));
+    if (i < (l-1))
       Putc(',',pstr);
   }
   Insert(t,0,pstr);
@@ -812,6 +812,8 @@ SwigType_lstr(SwigType *s, const String_or_char *id)
       Append(result,")");
       Delete(parms);
     } else if (SwigType_isqualifier(element)) {
+    } else if (SwigType_isenum(element)) {
+      Insert(result,0," int ");
     } else {
       Insert(result,0," ");
       Insert(result,0,element);
@@ -1057,18 +1059,6 @@ String *SwigType_manglestr(SwigType *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_strip_qualifiers()
- *
- * Rips all qualifiers out of a type.
- * ----------------------------------------------------------------------------- */
-
-void SwigType_strip_qualifiers(SwigType *ty) {
-  /* Sick hack alert */
-  Replace(ty,"q(const).","", DOH_REPLACE_ANY);
-  Replace(ty,"q(volatile).", "", DOH_REPLACE_ANY);
-}
-
-/* -----------------------------------------------------------------------------
  * Scope handling
  *
  * These functions are used to manipulate typedefs and scopes.
@@ -1096,32 +1086,14 @@ static void init_scopes() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
-  int i;
-  String *qname;
   init_scopes();
   if (Getattr(scopes[scope_level],name)) return -1;
   if (Cmp(type,name) == 0) {
     return 0;
   }
-  i = scope_level;
-  qname = NewString(name);
-  while (i >= 0) {
-    String *sname;
-    /*    Printf(stdout,"Adding typedef [%d] : '%s' -> '%s'\n", i, qname, type); */
-    Setattr(scopes[i],qname,type);
-    if (i > 0) {
-      sname = scopenames[i];
-      if (sname) {
-	qname = NewStringf("%s::%s",sname,qname);
-      }
-    }
-    i--;
-  }
 
-  /*  Setattr(scopes[scope_level],name,type); */
-  /* Need to modify this to include all scopes */
-
-  if (default_cache) 
+  Setattr(scopes[scope_level],name,type);
+  if (default_cache)
     Delattr(default_cache,type);
   return 0;
 }
@@ -1177,7 +1149,7 @@ void SwigType_set_scope_name(String_or_char *name) {
  * Merges the contents of one scope into the current scope.
  * ----------------------------------------------------------------------------- */
 
-void SwigType_merge_scope(Hash *scope, String *prefix) {
+void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
   String *name;
   String *key;
   String *type;
@@ -1191,7 +1163,7 @@ void SwigType_merge_scope(Hash *scope, String *prefix) {
     } else {
       name = NewString(key);
     }
-    SwigType_typedef(type,name);
+    Setattr(scopes[scope_level],name,type);
     key = Nextkey(scope);
   }
 }
@@ -1199,7 +1171,8 @@ void SwigType_merge_scope(Hash *scope, String *prefix) {
 /* -----------------------------------------------------------------------------
  * SwigType_pop_scope()
  *
- * Pop off the last scope.  Returns the hash table for the scope that was popped off.
+ * Pop off the last scope and perform a merge operation.  Returns the hash
+ * table for the scope that was popped off.
  * ----------------------------------------------------------------------------- */
 
 Hash *SwigType_pop_scope() {
@@ -1209,9 +1182,8 @@ Hash *SwigType_pop_scope() {
   if (scope_level == 0) return 0;
   prefix = scopenames[scope_level];
   s = scopes[scope_level--];
-  if (Len(s)) return s;
-  Delete(s);
-  return 0;
+  SwigType_merge_scope(s,prefix);
+  return s;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -1229,10 +1201,11 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   init_scopes();
   base = SwigType_base(t);
+
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[level],base);
+    type = Getattr(scopes[scope_level],base);
     if (type) break;
     level--;
   }
@@ -1276,7 +1249,7 @@ int SwigType_istypedef(SwigType *t) {
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
-    type = Getattr(scopes[level],base);
+    type = Getattr(scopes[scope_level],base);
     if (type) {
       return 1;
     }
@@ -1358,6 +1331,8 @@ int SwigType_type(SwigType *t)
   if (strcmp(c,"double") == 0) return T_DOUBLE;
   if (strcmp(c,"void") == 0) return T_VOID;
   if (strcmp(c,"bool") == 0) return T_BOOL;
+  if (strcmp(c,"long long") == 0) return T_LONGLONG;
+  if (strcmp(c,"unsigned long long") == 0) return T_ULONGLONG;
   if (strncmp(c,"enum ",5) == 0) return T_INT;
   /* Hmmm. Unknown type */
   if (SwigType_istypedef(t)) {

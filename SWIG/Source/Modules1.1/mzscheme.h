@@ -34,10 +34,14 @@ private:
 
 public :
   void parse_args (int, char *argv[]);
-  void initialize(String *module);
-  void function (DOH *node);
-  void variable (DOH *node);
-  void constant (DOH *node);
+  void parse ();
+  void create_function (char *, char *, SwigType *, ParmList *);
+  void link_variable (char *, char *, SwigType *);
+  void declare_const (char *, char *, SwigType *, char *);
+  void initialize ();
+  void headers (void);
   void close (void);
-  void create_command (String *, String *) { };
+  void set_module (char *);
+  void set_init (char *);
+  void create_command (char *, char *) { };
 };

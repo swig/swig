@@ -19,7 +19,7 @@
 %include "cpptest.H"
 
 #ifdef SWIGJAVA
-%pragma(java) module="
+%pragma(java) modulecode="
 static {
 	System.loadLibrary(\"cpptest\");
 }";

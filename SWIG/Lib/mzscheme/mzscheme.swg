@@ -1,4 +1,4 @@
-#include <escheme.h>
+/* -*-c-*- */
 
 typedef struct swig_proxy {
     Scheme_Type type;

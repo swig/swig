@@ -1,4 +1,3 @@
-CC     = gcc
 SRCS   = port.c
 TARGET = port
 IFILE  = port.i
@@ -10,7 +9,6 @@ all::
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
 		IFILE=$(IFILE)			\
-		CC=$(CC)			\
 		MODULE=$(MODULE)		\
 	  sub-all
 

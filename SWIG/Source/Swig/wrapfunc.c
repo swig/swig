@@ -19,25 +19,42 @@ static char cvsroot[] = "$Header$";
 #include "swig.h"
 #include <ctype.h>
 
-#include "dohobj.h"
+/* -----------------------------------------------------------------------------
+ * NewWrapper()
+ *
+ * Create a new wrapper function object.
+ * ----------------------------------------------------------------------------- */
 
-typedef struct {
-  Hash      *attr;        /* Attributes */
-  Hash      *localh;      /* Hash of local variable names */
-  String    *code;        /* Code string */
-} WrapObj;
+Wrapper *
+NewWrapper() {
+  Wrapper *w;
+  w = (Wrapper *) malloc(sizeof(Wrapper));
+  w->localh = NewHash();
+  w->locals = NewString("");
+  w->code = NewString("");
+  w->def = NewString("");
+  w->_type = 0;
+  w->_parms = 0;
+  w->_name = 0;
+  return w;
+}
 
 /* -----------------------------------------------------------------------------
  * DelWrapper()
+ *
+ * Delete a wrapper function object.
  * ----------------------------------------------------------------------------- */
 
-static void
-DelWrapper(DOH *wo) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
+void
+DelWrapper(Wrapper *w) {
   Delete(w->localh);
+  Delete(w->locals);
   Delete(w->code);
-  Delete(w->attr);
-  DohFree(w);
+  Delete(w->def);
+  Delete(w->_type);
+  Delete(w->_parms);
+  Delete(w->_name);
+  free(w);
 }
 
 /* -----------------------------------------------------------------------------
@@ -122,39 +139,20 @@ Wrapper_pretty_print(String *str, File *f) {
 
 
 /* -----------------------------------------------------------------------------
- * Wrapper_str()
+ * Wrapper_print()
  *
- * Create a string representation of the wrapper function.
+ * Print out a wrapper function.  Does pretty printing as well.
  * ----------------------------------------------------------------------------- */
 
-static String *
-Wrapper_str(DOH *wo) {
-  String *s, *s1;
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  s = NewString(w->code);
-  s1 = NewString("");
+void 
+Wrapper_print(Wrapper *w, File *f) {
+  String *str;
 
-  /* Replace the first '{' with a brace followed by local variable definitions */
-  Replace(s,"{", Getattr(w->attr,"locals"), DOH_REPLACE_FIRST);
-  Wrapper_pretty_print(s,s1);
-  Delete(s);
-  return s1;
-}
-
-/* -----------------------------------------------------------------------------
- * Wrapper_dump()
- * 
- * Serialize on out
- * ----------------------------------------------------------------------------- */
-
-static int
-Wrapper_dump(DOH *wo, DOH *out) {
-  String *s;
-  int len;
-  s = Wrapper_str(wo);
-  len = Dump(s,out);
-  Delete(s);
-  return len;
+  str = NewString("");
+  Printf(str,"%s\n", w->def);
+  Printf(str,"%s\n", w->locals);
+  Printf(str,"%s\n", w->code);
+  Wrapper_pretty_print(str,f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -165,14 +163,13 @@ Wrapper_dump(DOH *wo, DOH *out) {
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_add_local(Wrapper *wo, const String_or_char *name, const String_or_char *decl) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
+Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
   /* See if the local has already been declared */
   if (Getattr(w->localh,name)) {
     return -1;
   }
   Setattr(w->localh,name,decl);
-  Printf(Getattr(w->attr,"locals"),"%s;\n", decl);
+  Printf(w->locals,"%s;\n", decl);
   return 0;
 }
 
@@ -185,12 +182,11 @@ Wrapper_add_local(Wrapper *wo, const String_or_char *name, const String_or_char 
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_add_localv(Wrapper *wo, const String_or_char *name, ...) {
+Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
   va_list ap;
   int     ret;
   String *decl;
   DOH       *obj;
-  WrapObj *w = (WrapObj *) ObjData(wo);
   decl = NewString("");
   va_start(ap,name);
 
@@ -202,7 +198,7 @@ Wrapper_add_localv(Wrapper *wo, const String_or_char *name, ...) {
   }
   va_end(ap);
 
-  ret = Wrapper_add_local(wo,name,decl);
+  ret = Wrapper_add_local(w,name,decl);
   Delete(decl);
   return ret;
 }
@@ -214,8 +210,7 @@ Wrapper_add_localv(Wrapper *wo, const String_or_char *name, ...) {
  * ----------------------------------------------------------------------------- */
 
 int
-Wrapper_check_local(Wrapper *wo, const String_or_char *name) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
+Wrapper_check_local(Wrapper *w, const String_or_char *name) {
   if (Getattr(w->localh,name)) {
     return 1;
   }
@@ -230,22 +225,22 @@ Wrapper_check_local(Wrapper *wo, const String_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 char *
-Wrapper_new_local(Wrapper *wo, const String_or_char *name, const String_or_char *decl) {
+Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
   int i;
-  char      *ret;
   String *nname = NewString(name);
   String *ndecl = NewString(decl);
-  WrapObj *w = (WrapObj *) ObjData(wo);
+  char      *ret;
+
   i = 0;
 
-  while (Wrapper_check_local(wo,nname)) {
+  while (Wrapper_check_local(w,nname)) {
     Clear(nname);
     Printf(nname,"%s%d",name,i);
     i++;
   }
   Replace(ndecl, name, nname, DOH_REPLACE_ID);
   Setattr(w->localh,nname,ndecl);
-  Printf(Getattr(w->attr,"locals"),"%s;\n", ndecl);
+  Printf(w->locals,"%s;\n", ndecl);
   ret = Char(nname);
   Delete(nname);
   Delete(ndecl);
@@ -262,12 +257,11 @@ Wrapper_new_local(Wrapper *wo, const String_or_char *name, const String_or_char 
  * ----------------------------------------------------------------------------- */
 
 char *
-Wrapper_new_localv(Wrapper *wo, const String_or_char *name, ...) {
+Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
   va_list ap;
   char *ret;
   String *decl;
   DOH       *obj;
-  WrapObj *w = (WrapObj *) ObjData(wo);
   decl = NewString("");
   va_start(ap,name);
 
@@ -279,188 +273,71 @@ Wrapper_new_localv(Wrapper *wo, const String_or_char *name, ...) {
   }
   va_end(ap);
 
-  ret = Wrapper_new_local(wo,name,decl);
+  ret = Wrapper_new_local(w,name,decl);
   Delete(decl);
   return ret;
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_Getattr()
+ * Wrapper_Gettype()
  * ----------------------------------------------------------------------------- */
 
-static DOH *
-Wrapper_getattr(Wrapper *wo, DOH *k) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Getattr(w->attr,k);
+SwigType *
+Wrapper_Gettype(Wrapper *w) {
+  return w->_type;
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_Delattr()
+ * Wrapper_Settype()
  * ----------------------------------------------------------------------------- */
 
-static int
-Wrapper_delattr(Wrapper *wo, DOH *k) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  Delattr(w->attr,k);
-  return 0;
+void
+Wrapper_Settype(Wrapper *w, SwigType *t) {
+  Delete(w->_type);
+  w->_type = NewString(t);
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_Setattr()
+ * Wrapper_Getparms()
  * ----------------------------------------------------------------------------- */
 
-static int
-Wrapper_setattr(Wrapper *wo, DOH *k, DOH *obj) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Setattr(w->attr,k,obj);
+ParmList *
+Wrapper_Getparms(Wrapper *w) {
+  return w->_parms;
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_firstkey()
+ * Wrapper_Setparms()
  * ----------------------------------------------------------------------------- */
 
-static DOH *
-Wrapper_firstkey(Wrapper *wo) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Firstkey(w->attr);
+void
+Wrapper_Setparms(Wrapper *w, ParmList *l) {
+  Delete(w->_parms);
+  w->_parms = l;
+  DohIncref(l);
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_firstkey()
+ * Wrapper_Getname()
  * ----------------------------------------------------------------------------- */
 
-static DOH *
-Wrapper_nextkey(Wrapper *wo) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Nextkey(w->attr);
-}
-
-/* File methods.   These simply operate on the code string */
-
-static int
-Wrapper_read(Wrapper *wo, void *buffer, int nbytes) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Read(w->code,buffer,nbytes);
-}
-
-static int
-Wrapper_write(Wrapper *wo, void *buffer, int nbytes) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Write(w->code,buffer,nbytes);
-}
-
-static int
-Wrapper_putc(Wrapper *wo, int ch) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Putc(ch, w->code);
-}
-
-static int
-Wrapper_getc(Wrapper *wo) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Getc(w->code);
-}
-
-static int
-Wrapper_ungetc(Wrapper *wo, int ch) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Ungetc(ch, w->code);
-}
-
-static int
-Wrapper_seek(Wrapper *wo, long offset, int whence) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Seek(w->code, offset, whence);
-}
-
-static long
-Wrapper_tell(Wrapper *wo) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Tell(w->code);
-}
-
-/* String method */
-
-static int Wrapper_replace(DOH *wo, DOH *tok, DOH *rep, int flags) {
-  WrapObj *w = (WrapObj *) ObjData(wo);
-  return Replace(w->code, tok, rep, flags);
+char *
+Wrapper_Getname(Wrapper *w) {
+  return Char(w->_name);
 }
 
 /* -----------------------------------------------------------------------------
- * type information
+ * Wrapper_Setname()
  * ----------------------------------------------------------------------------- */
 
-static DohHashMethods WrapperHashMethods = {
-  Wrapper_getattr,
-  Wrapper_setattr,
-  Wrapper_delattr,
-  Wrapper_firstkey,
-  Wrapper_nextkey,
-};
-
-static DohFileMethods WrapperFileMethods = {
-  Wrapper_read, 
-  Wrapper_write,
-  Wrapper_putc,
-  Wrapper_getc,
-  Wrapper_ungetc,
-  Wrapper_seek,
-  Wrapper_tell,
-  0,              /* close */
-};
-
-static DohStringMethods WrapperStringMethods = {
-  Wrapper_replace,
-  0,
-};
-
-static DohObjInfo WrapperType = {
-    "Wrapper",          /* objname */
-    DelWrapper,         /* doh_del */
-    0,                  /* doh_copy */
-    0,                  /* doh_clear */
-    Wrapper_str,        /* doh_str */
-    0,                  /* doh_data */
-    0,                  /* doh_dump */
-    0,                  /* doh_len */
-    0,                  /* doh_hash    */
-    0,                  /* doh_cmp */
-    0,                  /* doh_setfile */
-    0,                  /* doh_getfile */
-    0,                  /* doh_setline */
-    0,                  /* doh_getline */
-    &WrapperHashMethods, /* doh_mapping */
-    0,                   /* doh_sequence */
-    &WrapperFileMethods, /* doh_file */
-    &WrapperStringMethods, /* doh_string */
-    0,                /* doh_positional */
-    0,
-};
-
-/* -----------------------------------------------------------------------------
- * NewWrapper()
- *
- * Create a new wrapper function object.
- * ----------------------------------------------------------------------------- */
-
-#define DOHTYPE_WRAPPER   0xa
-
-Wrapper *
-NewWrapper() {
-  WrapObj *w;
-  static int init = 0;
-  if (!init) {
-    DohRegisterType(DOHTYPE_WRAPPER, &WrapperType);
-    init = 1;
-  }
-  w = (WrapObj *) DohMalloc(sizeof(WrapObj));
-  w->localh = NewHash();
-  w->code = NewString("");
-  w->attr= NewHash();
-  Setattr(w->attr,"locals","{\n");
-  Setattr(w->attr,"wrapcode", w->code);
-  return DohObjMalloc(DOHTYPE_WRAPPER, w);
+void
+Wrapper_Setname(Wrapper *w, String_or_char *n) {
+  Delete(w->_name);
+  w->_name = NewString(n);
 }
+
+
+
 
 
 

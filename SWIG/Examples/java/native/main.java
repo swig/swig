@@ -15,5 +15,6 @@ public class main {
     long p = example.point_create(1, 2);
     System.out.println("auto wrapped  : " + example.point_toString1(p));
     System.out.println("manual wrapped: " + example.point_toString2(p));
+    example.free(p); //clean up c allocated memory
   }
 }

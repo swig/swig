@@ -988,9 +988,9 @@ Preprocessor_parse(DOH *s)
 	      /*	      Printf(stdout,"checking '%s'\n", v1); */
 	      if (!check_id(v1)) {
 		if (Len(comment) == 0)
-		  Printf(ns,"%%constant %s = %s;\n", Getattr(m,"name"), v1);
+		  Printf(ns,"%%constant %s %s;\n", Getattr(m,"name"), v1);
 		else
-		  Printf(ns,"%%constant %s = %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
+		  Printf(ns,"%%constant %s %s; /*%s*/\n", Getattr(m,"name"),v1,comment);
 		cpp_lines--;
 	      }
 	      Delete(v1);
@@ -1093,7 +1093,7 @@ Preprocessor_parse(DOH *s)
   	  fn = get_filename(value);
 	  s1 = cpp_include(fn);
 	  if (s1) {
-  	    Printf(ns,"%%file(\"include\") \"%s\" {\n", Swig_last_file());
+  	    Printf(ns,"%%includefile \"%s\" {\n", Swig_last_file());
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
   	    Printf(ns,"\n}\n");
@@ -1169,7 +1169,7 @@ Preprocessor_parse(DOH *s)
 	    if (s1) {
   	      add_chunk(ns,chunk,allow);
   	      copy_location(s,chunk);
-  	      Printf(ns,"%%file(\"%s\") \"%s\" {\n", Char(decl)+1, Swig_last_file());
+  	      Printf(ns,"%sfile \"%s\" {\n", decl, Swig_last_file());
 	      if ((Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
 		Preprocessor_define("WRAPEXTERN 1", 0);
 	      }

@@ -29,7 +29,6 @@ void   yyerror (char *s);
 #include "preprocessor.h"
 
 static DOH      *top = 0;
-static Hash     *class_hash = 0;
 
 /* Pre-created attribute name objects.  Used to improve parsing performance */
 
@@ -47,8 +46,6 @@ static DOH      *ATTR_STORAGE = 0;
 static DOH      *TAG_ENUMVALUE = 0;
 static DOH      *TAG_FUNCTION = 0;
 static DOH      *TAG_VARIABLE = 0;
-
-static int       pure_virtual = 0;
 
  /* Set parent node of a collection of children */
  static void setparent(DOH *parent, DOH *child) {
@@ -105,38 +102,23 @@ static int       pure_virtual = 0;
      DohIntern(ATTR_PARM);
      ATTR_STORAGE = NewString("storage");
      DohIntern(ATTR_STORAGE);
-     TAG_ENUMVALUE = NewString("c:enumvalue");
+     TAG_ENUMVALUE = NewString("enumvalue");
      DohIntern(TAG_ENUMVALUE);
-     TAG_FUNCTION = NewString("c:function");
+     TAG_FUNCTION = NewString("function");
      DohIntern(TAG_FUNCTION);
-     TAG_VARIABLE = NewString("c:variable");
+     TAG_VARIABLE = NewString("variable");
      DohIntern(TAG_VARIABLE);
 
    }
    LParse_push(str);
    top = 0;
-   class_hash = NewHash();
    tp = NewHash();
-   Setattr(tp, "tag", "swig:top");
+   Setattr(tp, "tag", "includefile");
    Setattr(tp, ATTR_NAME, Getfile(str));
    yyparse();
    Setattr(tp, ATTR_CHILD, top);
    setparent(tp,top);
    create_backlinks(tp);
-
-   {
-     DOH *key;
-     key = Firstkey(class_hash);
-     while (key) {
-       DOH *node, *tag;
-       node = Getattr(class_hash,key);
-       tag = Gettag(node);
-       if (Cmp(tag,"swig:addmethods") == 0) {
-	 Printf(stderr,"%s:%d. Warning. Added methods for '%s' ignored.\n", Getfile(node),Getline(node),Getname(node));
-       }
-       key = Nextkey(class_hash);
-     }
-   }
    return tp;
  }
 
@@ -147,6 +129,24 @@ static int       pure_virtual = 0;
    Setline(o,line);
    Setfile(o,file);
    return o;
+ }
+
+ /* Take a parameter list and produce a type object */
+ static DOH *parmstotype(DOH *parms) {
+   int i, l;
+   DOH *p, *r;
+   DOHList *ty;
+
+   ty = NewList();
+   p = parms;
+   while (p) {
+     Append(ty,Getattr(p,ATTR_TYPE));
+     p = Getattr(p,ATTR_NEXT);
+   }
+   r = NewString("");
+   SwigType_add_function(r,ty);
+   Delete(ty);
+   return r;
  }
 
 #ifdef NEED_ALLOC
@@ -207,11 +207,6 @@ static int promote(int t1, int t2) {
     DOH   *array;
     DOH   *parms;
   } tmname;
-  struct {
-    DOH   *name;
-    DOH   *array;
-    DOH   *stars;
-  } sdecl;
 };
 
 /* Literals */
@@ -222,24 +217,25 @@ static int promote(int t1, int t2) {
 
 /* C Symbols */
 
-%token <tok> LPAREN RPAREN LBRACE RBRACE COMMA SEMI PERIOD LBRACKET RBRACKET EQUAL COLON
+%token <tok> LPAREN RPAREN LBRACE RBRACE COMMA SEMI PERIOD LBRACKET RBRACKET EQUAL COLON POUND 
 
 /* C keywords */
-%token <tok> CONST ENUM EXTERN SIZEOF STATIC STRUCT TYPEDEF UNION 
+%token <tok> CONST DEFINED ENUM EXTERN SIZEOF STATIC STRUCT TYPEDEF UNION 
 
 /* C++ keywords */
-%token <tok> VIRTUAL CLASS FRIEND OPERATOR PRIVATE PROTECTED PUBLIC TEMPLATE THROW 
+%token <tok> CLASS FRIEND OPERATOR PRIVATE PROTECTED PUBLIC TEMPLATE THROW 
 
 /* Objective C keywords */
 %token <tok> OC_INTERFACE OC_END OC_PUBLIC OC_PRIVATE OC_PROTECTED OC_CLASS OC_IMPLEMENT OC_PROTOCOL
 
 /* C Types */
-%token <tok> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPESTRING
+%token <tok> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL
 
 /* SWIG directives */
-%token <tok> ADDMETHODS APPLY CLEAR CONSTANT ECHO EXCEPT SCOPE
-%token <tok> ILLEGAL FILEDIRECTIVE INLINE MACRO MODULE NAME PRAGMA INSERT
-%token <tok> TYPEMAP TYPES
+%token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
+%token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA
+%token <tok> RAW_MODE READONLY READWRITE RENAME RUNTIME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
+%token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER MAP
 
 /* Operators */
 %left <tok> LOR
@@ -254,8 +250,8 @@ static int promote(int t1, int t2) {
 %left <tok> UMINUS NOT LNOT
 %left <tok> DCOLON
 
-%type <tok>    idstring template_decl cpptype expr definetype def_args storage_spec pragma_arg ename tm_code
-%type <node>   parm parms ptail stars
+%type <tok>    idstring template_decl cpptype expr definetype def_args storage_spec pragma_arg ename
+%type <node>   file_include_type parm parms ptail idlist stylelist styletail stars
 %type <node>   array array2
 %type <node>   type strict_type opt_signed opt_unsigned
 %type <decl>   declaration 
@@ -263,14 +259,13 @@ static int promote(int t1, int t2) {
 %type <node>   tm_args tm_parm tm_tail tm_list
 %type <tmname> tm_name
 %type <tok>    tm_method
-%type <node>   statement swig_directive c_declaration constant_directive
-%type <node>   file_include code_block except_directive pragma_directive typemap_directive scope_directive type_directive
-%type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist
+%type <node>   statement swig_directive c_declaration
+%type <node>   file_include code_block doc_directive except_directive pragma_directive modifier_directive native_directive typemap_directive map_directive
+%type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist map_element
 %type <nodelist>   enumlist interface
 %type <node>   inherit base_list
 %type <tok>    base_specifier access_specifier cpp_end ctor_end opt_id
 %type <node>   cpp_decl cpp_class cpp_other
-%type <sdecl>  starparm
 
 %%
 
@@ -283,7 +278,7 @@ program        : interface {
                ;
 
 interface      : interface statement { 
-                   DOH *o, *o2 = 0;
+                   DOH *o, *o2;
 		   if (!$1.node) {
 		     $$.node = $2;
 		     o = $2;
@@ -315,6 +310,13 @@ interface      : interface statement {
 
 statement      : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; }
+               | LBRACE interface RBRACE {
+		 $$ = new_node("scope",$1.filename,$1.line);
+		 if ($2.node) {
+		   Setattr($$,ATTR_CHILD,$2.node);
+		   setparent($$,$2.node);
+		 }
+               }
                | SEMI { $$ = 0; }
                | error { $$ = 0; }
                ;
@@ -323,7 +325,7 @@ statement      : swig_directive { $$ = $1; }
  *                          -- SWIG DIRECTIVES --
  * ============================================================================= */
 swig_directive : MODULE idstring {
-                   $$ = new_node("swig:module",$1.filename,$1.line);
+                   $$ = new_node("moduledirective",$1.filename,$1.line);
 		   Setattr($$,ATTR_NAME,$2.text);
                }
                | MACRO ID COMMA STRING COMMA NUM_INT LBRACE {
@@ -334,25 +336,16 @@ swig_directive : MODULE idstring {
 		 LParse_set_location($7.filename,$7.line-1);
                  $$ = $9.node;
 	       }
-               | constant_directive {
-		 $$ = $1;
-               }
-               | echo_directive { $$ = 0; }
-               | file_include { $$ = $1; }
-               | code_block { $$ = $1; }
-               | except_directive { $$ = $1; }
-               | pragma_directive { $$ = $1; }
-               | typemap_directive { $$ = $1; }
-               | scope_directive {$$ = $1; }
-               | type_directive { $$ = $1; }
-               ;
-
-constant_directive:
-                CONSTANT ID EQUAL definetype SEMI {
-		  $$ = new_node("swig:constant",$2.filename, $2.line);
+               | RENAME ID ID SEMI { 
+		 $$  = new_node("renamedirective",$2.filename,$2.line);
+		 Setattr($$,"oldname",$2.text);
+		 Setattr($$,"newname",$3.text);
+	       }
+               | CONSTANT ID definetype SEMI {
+		  $$ = new_node("constant",$2.filename, $2.line);
 		  Setattr($$,ATTR_NAME,$2.text);
-		  Setattr($$,ATTR_VALUE,$4.text);
-		  switch($4.ivalue) {
+		  Setattr($$,ATTR_VALUE,$3.text);
+		  switch($3.ivalue) {
 		  case LPARSE_T_DOUBLE:
 		    Setattr($$,ATTR_TYPE,"double");
 		    break;
@@ -382,99 +375,138 @@ constant_directive:
 		    break;
 		  case LPARSE_T_CHAR:
 		    Setattr($$,ATTR_TYPE,"char");
-		    Delitem($4.text,0);
-		    Delitem($4.text,DOH_END);
 		    break;
 		  case LPARSE_T_STRING:
-		    Setattr($$,ATTR_TYPE,"p.char");
+		    Setattr($$,ATTR_TYPE,"*.char");
 		    break;
 		  default:
 		    break;
 		  }
                }
-               | CONSTANT LPAREN parm RPAREN ID def_args SEMI {
-		 $$ = new_node("swig:constant", $5.filename, $5.line);
-		 Setattr($$,ATTR_NAME,$5.text);
-		 Setattr($$,ATTR_VALUE,$6.text);
-		 Setattr($$,ATTR_TYPE,Gettype($3));
-               }
+               | echo_directive { $$ = 0; }
+               | file_include { $$ = $1; }
+               | code_block { $$ = $1; }
+               | doc_directive { $$ = $1; }
+               | except_directive { $$ = $1; }
+               | pragma_directive { $$ = $1; }
+               | modifier_directive { $$ = $1; }
+               | native_directive { $$ = $1; }
+               | typemap_directive { $$ = $1; }
+               | map_directive { $$ = $1; }
+               | TYPE ID idlist SEMI { $$ = 0; }
                ;
 
-scope_directive: SCOPE LBRACE interface RBRACE {
-		 $$ = new_node("swig:scope",$1.filename,$1.line);
-		 if ($3.node) {
-		   Setattr($$,ATTR_CHILD,$3.node);
-		   setparent($$,$3.node);
-		 }
-               }
-               | SCOPE LPAREN idstring RPAREN LBRACE interface RBRACE {
-                 $$ = new_node("swig:scope",$1.filename,$1.line);
-                 if ($6.node) {
-                   Setattr($$,ATTR_CHILD,$6.node);
-		   Setattr($$,ATTR_NAME,$3.text);
-                   setparent($$,$6.node);
-                 }
-               }
-               ;
-
-echo_directive:  ECHO HBLOCK { 
-		 char line[32];
-		 sprintf(line,"%d",Getline($2.text));
-		 Replace($2.text,"$file",Getfile($2.text),DOH_REPLACE_ANY);
-		 Replace($2.text,"$line",line, DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", $2.text); 
-                 }
-               | ECHO STRING { 
-		 char line[32];
-		 sprintf(line,"%d",Getline($2.text));
-		 Replace($2.text,"$file",Getfile($2.text),DOH_REPLACE_ANY);
-		 Replace($2.text,"$line",line, DOH_REPLACE_ANY);
-                 Printf(stderr,"%s\n", $2.text);
-                 }
+echo_directive:  ECHO HBLOCK { Printf(stderr,"%s\n", $2.text); }
+               | ECHO STRING { Printf(stderr,"%s\n", $2.text); }
                ;
 
 /* -- File inclusion directives -- */
 
-file_include   : FILEDIRECTIVE LPAREN STRING RPAREN STRING LBRACE {
-		    $1.data = new_node("swig:file",$1.filename,$1.line);
-                    Setattr($1.data,ATTR_NAME,$5.text);
-		    Setattr($1.data,ATTR_TYPE,$3.text);
-		    LParse_set_location($5.text,0);
+file_include   : file_include_type STRING LBRACE {
+                    Setattr($1,ATTR_NAME,$2.text);
+		    $$ = $1;
+		    LParse_set_location($2.text,0);
                } interface RBRACE {
-		    LParse_set_location($6.filename,$6.line + 1);
-		    $$ = $1.data;
-		    if ($8.node) {
-		      Setattr($$,ATTR_CHILD,$8.node);
-		      setparent($$,$8.node);
+		    LParse_set_location($3.filename,$3.line + 1);
+		    if ($5.node) {
+		      Setattr($$,ATTR_CHILD,$5.node);
+		      setparent($$,$5.node);
 		    }
                }
-              ;
+
+file_include_type : INCLUDE { $$ = new_node("includefile",$1.filename,$1.line); }
+               | WEXTERN { $$ = new_node("externfile",$1.filename,$1.line); }
+               | IMPORT { $$ = new_node("importfile", $1.filename,$1.line); }
+               ;
+
+/* -- Modifier directives -- */
+
+modifier_directive : READONLY { $$ = new_node("readonlydirective",$1.filename, $1.line); }
+               | READWRITE    { $$ = new_node("readwritedirective",$1.filename,$1.line); }
+               | NAME LPAREN idstring RPAREN { 
+		 $$ = new_node("namedirective",$3.filename,$3.line);
+		 Setattr($$,ATTR_NAME,$3.text);
+	       }
+               | NEW { 
+		 $$ = new_node("newdirective",$1.filename,$1.line);
+	       }
+               ;
 
 /* -- Code inclusion directives -- */
 
-code_block    : INSERT LPAREN idstring RPAREN STRING {
-                  $$ = new_node("swig:insert", $1.filename, $1.line);
-		  Setattr($$,"filename", $5.text);
-		  Setattr($$,"section",$3.text);
+code_block    : HBLOCK {
+		 $$ = new_node("headerblock",$1.filename,$1.line);
+		 Setattr($$,"code", $1.text);
                }
-               | INSERT LPAREN idstring RPAREN HBLOCK {
-		 $$ = new_node("swig:insert",$1.filename, $1.line);
-		 Setattr($$,"section",$3.text);
-		 Setattr($$,"code",$5.text);
+               | WRAPPER HBLOCK {
+                 $$ = new_node("wrapperblock",$2.filename,$2.line);
+                 Setattr($$,"code",$2.text);
+	       }
+               | INIT HBLOCK {
+                 $$ = new_node("initblock",$2.filename,$2.line);
+                 Setattr($$,"code",$2.text);
                }
-              | HBLOCK {
-                 $$ = new_node("swig:insert",$1.filename, $1.line);
-                 Setattr($$,"code",$1.text);
-	      }
-              | INLINE HBLOCK {
+               | INLINE HBLOCK {
 		 DOH *pp;
-		 $$ = new_node("swig:insert",$2.filename,$2.line);
+		 $$ = new_node("headerblock",$2.filename,$2.line);
 		 Setattr($$,"code", $2.text);
 		 Seek($2.text,0,SEEK_SET);
 		 pp = Preprocessor_parse($2.text);
 		 Seek(pp,0,SEEK_SET);
 		 LParse_push(pp);
 	       }
+               | RUNTIME HBLOCK {
+                 $$ = new_node("runtimeblock",$2.filename,$2.line);
+                 Setattr($$,"code",$2.text);
+	       }
+               ;
+
+/* -- Documentation directives -- */
+
+doc_directive  : DOC_ENABLE { $$ = 0; }
+               | DOC_DISABLE { $$ = 0; }
+
+/* %title directive */
+
+               | TITLE STRING styletail { $$ = 0; }
+
+/* %section directive */
+
+               | SECTION STRING styletail { $$ = 0; }
+
+/* %subsection directive */
+               | SUBSECTION STRING styletail { $$ = 0; }
+
+/* %subsubsection directive */
+               | SUBSUBSECTION STRING styletail { $$ = 0; }
+
+/* %text directive */
+
+               | TEXT HBLOCK { $$ = 0; }
+
+/* Disable code generation */
+               | DOCONLY { $$ = 0; }
+
+/* %style directive.   This applies to all current styles */
+
+               | STYLE stylelist { $$ = 0; }
+
+/* %localstyle directive.   This applies only to the current style */
+
+               | LOCALSTYLE stylelist { $$ = 0; }
+
+/* Documentation style list */
+
+stylelist      : ID stylearg styletail { $$ = 0; }
+               ;
+
+styletail      : styletail COMMA ID stylearg { $$ = 0; }
+               | empty { $$ = 0; }
+               ;
+
+stylearg       : EQUAL NUM_INT { }
+               | EQUAL STRING { }
+               | empty { }
                ;
 
 idstring       : ID { $$ = $1; }
@@ -487,70 +519,76 @@ idstring       : ID { $$ = $1; }
 except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
                   DOH  *t;
 		  t = LParse_skip_balanced('{','}');
-		  $$ = new_node("swig:exception",$1.filename,$1.line);
+		  $$ = new_node("exceptiondirective",$1.filename,$1.line);
 		  Setattr($$,"lang",$3.text);
 		  Setattr($$,"code",t);
-		  LParse_error($1.filename,$1.line,"Warning. Language specifier in %%except is now ignored.\n");
                 }
 
-/* A Generic Exception (no language specified) */
+/* A Generic Exception (no language specified */
                | EXCEPT LBRACE {
                    DOH *t;
 		   t = LParse_skip_balanced('{','}');
-		   $$ = new_node("swig:exception",$1.filename,$1.line);
+		   $$ = new_node("exceptiondirective",$1.filename,$1.line);
 		   Setattr($$,"code",t);
                }
 
 /* Clear an exception */
                | EXCEPT LPAREN ID RPAREN SEMI {
-		 $$ = new_node("swig:exception",$1.filename,$1.line);
+		 $$ = new_node("exceptiondirective",$1.filename,$1.line);
 		 Setattr($$,"lang",$3.text);
-		 LParse_error($1.filename,$1.line,"Warning. Language specifier in %%except is now ignored.\n");
 	       }
 
 /* Generic clear */
                | EXCEPT SEMI {
-		 $$ = new_node("swig:exception",$1.filename,$1.line);
+		 $$ = new_node("exceptiondirective",$1.filename,$1.line);
 	       }
                ; 
 
-pragma_directive :  PRAGMA idstring pragma_arg SEMI {
-                  $$ = new_node("swig:pragma",$1.filename,$1.line);
+pragma_directive :  PRAGMA ID pragma_arg {
+                  $$ = new_node("pragmadirective",$1.filename,$1.line);
 		  Setattr($$,ATTR_NAME,$2.text);
 		  Setattr($$,ATTR_VALUE,$3.text);
     	       }
-               | PRAGMA LPAREN idstring RPAREN idstring pragma_arg SEMI {
-		 $$ = new_node("swig:pragma",$1.filename,$1.line);
+               | PRAGMA LPAREN ID RPAREN ID pragma_arg {
+		 $$ = new_node("pragmadirective",$1.filename,$1.line);
 		 Setattr($$,ATTR_NAME,$5.text);
 		 Setattr($$,"lang",$3.text);
 		 Setattr($$,ATTR_VALUE,$6.text);
 	       }
                ;
 
-pragma_arg     : idstring {
-                  $$.text = $1.text;
-               }
-               | EQUAL idstring {
+pragma_arg     : EQUAL definetype {
                   $$.text = $2.text;
-                  /* print warning message here */
-               }
-               | HBLOCK {
-		 $$.text = $1.text;
                }
                | empty { 
                   $$.text = 0;
                }  
                ;
 
+
+/* A native wrapper function */
+
+native_directive : NATIVE LBRACE interface RBRACE {
+                      $$ = new_node("nativedirective",$1.filename,$1.line);
+		      if ($3.node) {
+			Setattr($$,ATTR_CHILD,$3.node);
+			setparent($$,$3.node);
+		      }
+                }
+                ;
+
+
 /* -- Typemap directives -- */
 
 
-typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
+typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list LBRACE {
                       DOH *o, *prev = 0, *t, *l;
-		      t = $8.text;
+		      int i;
+		      t = LParse_skip_balanced('{','}');
 		      $$ = 0;
-		      for (l = $7; l; l = Getnext(l)) {
-			o = new_node("swig:typemap",$1.filename, $1.line);
+		      for (i = 0; i < Len($7); i++) {
+			l = Getitem($7,i);
+			o = new_node("typemap",$1.filename, $1.line);
 			Setattr(o,"lang",$3.text);
 			Setattr(o,"method",$5.text);
 			Setattr(o,"code",t);
@@ -566,13 +604,14 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
                   }
 
 /* Create a new typemap in current language */
-               | TYPEMAP LPAREN tm_method RPAREN tm_list tm_code {
+               | TYPEMAP LPAREN tm_method RPAREN tm_list LBRACE {
                    DOH *o, *t, *l, *prev = 0;
-		   /*		   t = LParse_skip_balanced('{','}');*/
-		   t = $6.text;
+		   int i;
+		   t = LParse_skip_balanced('{','}');
 		   $$ = 0;
-		   for (l = $5; l; l = Getnext(l)) {
-		     o = new_node("swig:typemap",$1.filename, $1.line);
+		   for (i = 0; i < Len($5); i++) {
+		     l = Getitem($5,i);
+		     o = new_node("typemap",$1.filename, $1.line);
 		     Setattr(o,"method",$3.text);
 		     Setattr(o,"code",t);
 		     Setattr(o,ATTR_NAME,Getattr(l,ATTR_NAME));
@@ -588,9 +627,11 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 
                | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list SEMI {
 		   DOH *o, *l, *prev = 0;
+		   int i;
 		   $$ = 0;
-		   for (l = $7; l; l = Getnext(l)) {
-		      o = new_node("swig:typemap",$1.filename, $1.line);
+		   for (i = 0; i < Len($7); i++) {
+		      l = Getitem($7,i);
+		      o = new_node("typemap",$1.filename, $1.line);
 		      Setattr(o,"lang",$3.text);
 		      Setattr(o,"method",$5.text);
 		      Setattr(o,ATTR_NAME,Getattr(l,ATTR_NAME));
@@ -605,9 +646,11 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 
                | TYPEMAP LPAREN tm_method RPAREN tm_list SEMI {
                    DOH *o, *l, *prev = 0;
+		   int i;
 		   $$ = 0;
-		   for (l = $5; l; l = Getnext(l)) {
-		     o = new_node("swig:typemap",$1.filename, $1.line);
+		   for (i = 0; i < Len($5); i++) {
+		     l = Getitem($5,i);
+		     o = new_node("typemap",$1.filename, $1.line);
 		     Setattr(o,"method",$3.text);
 		     Setattr(o,ATTR_NAME,Getattr(l,ATTR_NAME));
 		     Setattr(o,ATTR_TYPE,Getattr(l,ATTR_TYPE));
@@ -621,9 +664,11 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 
                | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list EQUAL tm_parm SEMI {
 		 DOH *o, *l, *prev = 0;
+		 int i;
 		 $$ = 0;
-		 for (l = $7; l ; l = Getnext(l)) {
-		   o = new_node("swig:typemap",$1.filename, $1.line);
+		 for (i = 0; i < Len($7); i++) {
+		   l = Getitem($7,i);
+		   o = new_node("typemapcopy",$1.filename, $1.line);
 		   Setattr(o,"method", $5.text);
 		   Setattr(o,"lang", $3.text);
 		   Setattr(o,ATTR_NAME, Getattr(l,ATTR_NAME));
@@ -641,9 +686,11 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 
                | TYPEMAP LPAREN tm_method RPAREN tm_list EQUAL tm_parm SEMI {
 		 DOH *o, *l, *prev = 0;
+		 int i;
 		 $$ = 0;
-		 for (l = $5; l; l = Getnext(l)) {
-		   o = new_node("swig:typemap",$1.filename, $1.line);
+		 for (i = 0; i < Len($5); i++) {
+		   l = Getitem($5,i);
+		   o = new_node("typemapcopy",$1.filename, $1.line);
 		   Setattr(o,"method", $3.text);
 		   Setattr(o,ATTR_NAME, Getattr(l,ATTR_NAME));
 		   Setattr(o,ATTR_TYPE, Getattr(l,ATTR_TYPE));
@@ -659,7 +706,7 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 /* Apply directive */
 
                | APPLY tm_parm LBRACE tm_list RBRACE {
-		 $$ = new_node("swig:apply",$1.filename, $1.line);
+		 $$ = new_node("applydirective",$1.filename, $1.line);
 		 Setattr($$,ATTR_NAME,Getattr($2,ATTR_NAME));
 		 Setattr($$,ATTR_TYPE,Getattr($2,ATTR_TYPE));
 		 Setattr($$,ATTR_PARMS,$4);
@@ -668,16 +715,8 @@ typemap_directive: TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list tm_code {
 /* Clear directive */
 
 	       | CLEAR tm_list SEMI {
-		 $$ = new_node("swig:clear",$1.filename, $1.line);
+		 $$ = new_node("cleardirective",$1.filename, $1.line);
 		 Setattr($$,ATTR_PARMS,$2);
-	       }
-               ;
-
-tm_code        : STRING {
-                 $$.text = $1.text;
-               }
-               | LBRACE {
-                 $$.text = LParse_skip_balanced('{','}');
 	       }
                ;
 
@@ -691,26 +730,20 @@ tm_method      : ID {
 
 
 tm_list        : tm_parm tm_tail {
-                 if ($2) {
-		   Setattr($1,ATTR_NEXT,$2);
-                   Setattr($2,ATTR_PREV,$1);
-		 }
-                 $$ = $1;
+                 Insert($2,0,$1);
+		 $$ = $2;
 		}
                ;
 
 tm_tail        : COMMA tm_parm tm_tail {
-                 if ($3) {
-                   Setattr($2,ATTR_NEXT,$3);
-                   Setattr($3,ATTR_PREV,$2);
-                 }
-                 $$ = $2;
+                 Insert($3,0,$2);
+                 $$ = $3;
                 }
-               | empty { $$ = 0; }
+               | empty { $$ = NewList(); }
                ;
 
 tm_parm        : type tm_name {
-                    $$ = new_node("tmparm",Getfile($2.name),Getline($2.name));
+                    $$ = NewHash();
 		    if ($2.array) {
 		      SwigType_push($1,$2.array);
 		    }
@@ -721,7 +754,7 @@ tm_parm        : type tm_name {
 		      Setattr($$,ATTR_PARMS,$2.parms);
                 }
                 | type stars tm_name {
-		  $$ = new_node("tmparm",Getfile($3.name),Getline($3.name));
+		  $$ = NewHash();
 		  SwigType_push($1,$2);
 		  if ($3.array) {
 		    SwigType_push($1,$3.array);
@@ -733,7 +766,7 @@ tm_parm        : type tm_name {
 		    Setattr($$,ATTR_PARMS,$3.parms);
 		}
                 | type AND tm_name {
-		  $$ = new_node("tmparm",Getfile($3.name),Getline($3.name));
+		  $$ = NewHash();
 		  SwigType_add_reference($1);
 		  if ($3.array) {
 		    SwigType_push($1,$3.array);
@@ -744,33 +777,6 @@ tm_parm        : type tm_name {
 		  if ($3.parms)
 		    Setattr($$,ATTR_PARMS,$3.parms);
 		}
-                | type LPAREN stars tm_name RPAREN LPAREN parms RPAREN {
-		  $$ = new_node("tmparm", Getfile($4.name),Getline($4.name));
-		  SwigType_add_function($1,$7);
-		  SwigType_push($1,$3);
-		  if ($4.array) {
-		    SwigType_push($1,$4.array);
-		  }
-		  if ($4.name)
-		    Setattr($$,ATTR_NAME,$4.name);
-		  Setattr($$,ATTR_TYPE,$1);
-		  if ($4.parms)
-		    Setattr($$,ATTR_PARMS,$4.parms);
-                }
-                | type stars LPAREN stars tm_name RPAREN LPAREN parms RPAREN {
-		  SwigType_push($1,$2);
-		  $$ = new_node("tmparm", Getfile($5.name),Getline($5.name));
-		  SwigType_add_function($1,$8);
-		  SwigType_push($1,$4);
-		  if ($5.array) {
-		    SwigType_push($1,$5.array);
-		  }
-		  if ($5.name)
-		    Setattr($$,ATTR_NAME,$5.name);
-		  Setattr($$,ATTR_TYPE,$1);
-		  if ($5.parms)
-		    Setattr($$,ATTR_PARMS,$5.parms);
-                }
 		;
 
 tm_name         : ID tm_args {
@@ -803,11 +809,101 @@ tm_args         : LPAREN parms RPAREN {
                 }
                 ;
 
-type_directive  : TYPES LPAREN parms RPAREN SEMI {
-                   $$ = new_node("swig:types",$1.filename,$1.line);
-		   Setattr($$,"parms",$3);
+
+map_directive   : MAP ID LPAREN parms RPAREN LBRACE map_element RBRACE {
+                   $$ = new_node("map", $1.filename, $1.line);
+                   Setattr($$,ATTR_NAME,$2.text);
+		   Setattr($$,ATTR_PARMS,$4);
+
+		   /* Uh.  Okay, this is a little nasty.  We're going to take the
+		      children and split them into rules and locals */
+
+		   {
+		     DOHHash *rules;
+		     DOHHash *children = 0;
+		     DOHHash *node, *nnode, *pnode;
+		     rules = NewHash();
+
+		     node = $7;
+		     children = node;
+		     pnode = 0;
+		     while (node) {
+		       nnode = Getattr(node,"next");
+		       if (Cmp(Getattr(node,"tag"),"maprule") == 0) {
+			 Setattr(rules,Getattr(node,"name"),Getattr(node,"code"));
+			 if (pnode) {
+			   if (nnode) 
+			     Setattr(pnode,"next",nnode);
+			   else
+			     Delattr(pnode,"next");
+			 } else {
+			   children = nnode;
+			 }
+			 Delete(node);
+		       } else {
+			 pnode = node;
+		       }
+		       node = nnode;
+		     }
+		     Setattr($$,"rules",rules);
+		     if (children) {
+		       Setattr($$,ATTR_CHILD,children);
+		       setparent($$,children);
+		     }
+		   }
                 }
                 ;
+
+map_element     :  variable_decl map_element {
+                    DOH *o, *o2;
+                    $$ = $1;
+		    o = $1;
+                    while (o) {
+                      o2 = o;
+                      o = Getattr(o,ATTR_NEXT);
+                    }
+                    Setattr(o2,ATTR_NEXT,$2);
+                }
+               |  function_decl map_element {
+                    DOH *o, *o2;
+                    $$ = $1;
+		    o = $1;
+                    while (o) {
+                      o2 = o;
+                      o = Getattr(o,ATTR_NEXT);
+                    }
+                    Setattr(o2,ATTR_NEXT,$2);
+                }
+                | STRING COLON LBRACE {
+                    DOH *text = LParse_skip_balanced('{','}');
+		    Delitem(text,0);
+		   Delitem(text,DOH_END);
+
+                    $$ = new_node("maprule",$1.filename, $1.line);
+		    Setattr($$,ATTR_NAME,$1.text);
+		    Setattr($$,"code",text);
+		    $1.text = $$;
+		} map_element {
+		  $$ = $1.text;
+		  if ($5)
+		    Setattr($$,ATTR_NEXT,$5);
+		}
+                | STRING COLON STRING SEMI {
+                    $$ = new_node("maprule",$1.filename, $1.line);
+		    Setattr($$,ATTR_NAME,$1.text);
+		    Setattr($$,"code",$3.text);
+		    $1.text = $$;
+		} map_element {
+		  $$ = $1.text;
+		  if ($6)
+		    Setattr($$,ATTR_NEXT,$6);
+		}
+                | empty {
+                    $$ = 0;
+                }
+                ;
+
+
 /* =============================================================================
  *                       -- C Declarations -- 
  * ============================================================================= */
@@ -901,10 +997,6 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		  }
 		  if ($7.text)
 		    Setattr($$,"code",$7.text);
-		  if (pure_virtual) {
-		    SetInt($$,"abstract",1);
-		    pure_virtual = 0;
-		  }
 		}
 
 /* Possibly a constructor */
@@ -923,27 +1015,18 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 	      }
 
 /* A C++ destructor */
-              | storage_spec NOT ID LPAREN parms RPAREN cpp_end {
-		$$ = new_node("c:destructor",$3.filename,$3.line);
-		Setattr($$,ATTR_NAME,$3.text);
-		if ($7.text) {
-		  Setattr($$,"code",$7.text);
-		}
-		if (pure_virtual) {
-		  SetInt($$,"abstract",1);
-		  pure_virtual = 0;
-		}
-		if ($1.ivalue) {
-		  Setattr($$,ATTR_STORAGE,$1.text);
+              | NOT ID LPAREN parms RPAREN cpp_end {
+		$$ = new_node("destructor",$2.filename,$2.line);
+		Setattr($$,ATTR_NAME,$2.text);
+		if ($6.text) {
+		  Setattr($$,"code",$6.text);
 		}
 	      }
-              | storage_spec NOT ID LPAREN parms RPAREN cpp_const SEMI {
-		$$ = new_node("c:destructor",$3.filename,$3.line);
-		Setattr($$,ATTR_NAME,$3.text);
-		if ($1.ivalue) {
-		  Setattr($$,ATTR_STORAGE,$1.text);
-		}
+              | NOT ID LPAREN parms RPAREN cpp_const SEMI {
+		$$ = new_node("destructor",$2.filename,$2.line);
+		Setattr($$,ATTR_NAME,$2.text);
 	      }
+
               ;
 
 /* Allow lists of variables and functions to be built up */
@@ -981,10 +1064,6 @@ storage_spec    : EXTERN {
                    $$.ivalue = 1;
 		   $$.text = NewStringf("extern \"%s\"", $2.text);
 	       }
-               | VIRTUAL {
-                   $$.ivalue = 1;
-                   $$.text = NewString("virtual");
-               }
                | STATIC {
 		 $$.ivalue = 1;
 		 $$.text = NewString("static");
@@ -1004,8 +1083,8 @@ cpp_const      : CONST {}
 /* Enumerations */
 
 enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
-                    $$ = new_node("c:enum", $2.filename,$2.line);
-		    Setattr($$,ATTR_NAME,$3.text);
+                    $$ = new_node("enum", $2.filename,$2.line);
+		    Setattr($$,ATTR_NAME,$2.text);
 		    Setattr($$,ATTR_CHILD,$5.node);
 		    setparent($$,$5.node);
 		    /* Add typename */
@@ -1014,14 +1093,14 @@ enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
 /* A typdef'd enum.  Pretty common in C headers */
 
                | TYPEDEF ENUM ename LBRACE enumlist RBRACE ID SEMI { 
-   		   $$ = new_node("c:enum",$2.filename,$2.line);
+   		   $$ = new_node("enum",$2.filename,$2.line);
 		   Setattr($$,ATTR_NAME,$3.text);
 		   Setattr($$,ATTR_CHILD,$5.node);
 		   setparent($$,$5.node);
 		   /* Add typedef for enum */
 		   {
 		     DOH *o;
-		     o = new_node("c:typedef",$7.filename,$7.line);
+		     o = new_node("typedef",$7.filename,$7.line);
 		     Setattr(o,ATTR_NAME,$7.text);
 		     Setattr(o,ATTR_TYPE,$3.text);
 		     Setattr($$,ATTR_NEXT,o);
@@ -1059,9 +1138,9 @@ edecl          :  ID {
                  ;
 		   
 typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
-                    DOH *t, *d, *o, *prev;
+                    DOH *t, *d, *o, *ty, *prev;
 		    int i;
-                    $$ = new_node("c:typedef", $1.filename,$1.line);
+                    $$ = new_node("typedef", $1.filename,$1.line);
 		    t = Copy($2);
 		    SwigType_push($2,$3.decl);
 		    if ($4) SwigType_push($2,$4);
@@ -1072,7 +1151,7 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 		    for (i = 0; i < Len($5); i++) {
 		      DOH *ty;
 		      d = Getitem($5,i);
-		      o = new_node("c:typedef",$1.filename,$1.line);
+		      o = new_node("typedef",$1.filename,$1.line);
 		      ty = Copy(t);
 		      SwigType_push(ty,Getattr(d,"decl"));
 		      SwigType_push(ty,Getattr(d,"array"));
@@ -1086,34 +1165,29 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 
 /* A rudimentary typedef involving function pointers */
 
-               | TYPEDEF type LPAREN starparm RPAREN LPAREN parms RPAREN SEMI {
-		 $$ = new_node("c:typedef", $1.filename,$1.line);
-		 SwigType_add_function($2,$7);
-		 if ($4.stars)
-		   SwigType_push($2,$4.stars);
-		 if ($4.array)
-		   SwigType_push($2,$4.array);
-		 Setattr($$,ATTR_NAME,$4.name);
+               | TYPEDEF type LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
+		 $$ = new_node("typedef", $1.filename,$1.line);
+		 SwigType_push($2,parmstotype($8));
+		 SwigType_push($2,$4);
+		 if ($5.array)
+		   SwigType_push($2,$5.array);
+		 Setattr($$,ATTR_NAME,$5.name);
 		 Setattr($$,ATTR_TYPE,$2);
 	       }
 
 /* A typedef involving function pointers again */
 
-               | TYPEDEF type stars LPAREN starparm RPAREN LPAREN parms RPAREN SEMI {
-		 $$ = new_node("c:typedef", $1.filename,$1.line);
+               | TYPEDEF type stars LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
+		 $$ = new_node("typedef", $1.filename,$1.line);
 		 SwigType_push($2,$3);
-		 SwigType_add_function($2,$8);
-		 if ($5.stars)
-		   SwigType_push($2,$5.stars);
-		 if ($5.array)
-		   SwigType_push($2,$5.array);
-		 Setattr($$,ATTR_NAME,$5.name);
+		 SwigType_push($2,parmstotype($9));
+		 SwigType_push($2,$5);
+		 if ($6.array)
+		   SwigType_push($2,$6.array);
+		 Setattr($$,ATTR_NAME,$6.name);
 		 Setattr($$,ATTR_TYPE,$2);
 		 }
                ;
-
-
-
 
 typedeflist   : COMMA declaration typedeflist {
                  DOH *o = NewHash();
@@ -1143,43 +1217,15 @@ typedeflist   : COMMA declaration typedeflist {
  *                        -- Feeble C++ (yuck) Parsing --
  * ============================================================================= */
 
-cpp_decl     : cpp_class { 
-		String *name;
-		DOH    *cls;
-		$$ = $1; 
-		/* Save a copy of the class */
-		name = Getattr($$,"altname");
-		if (!name) {
-		  name = Getname($$);
-		}
-		cls = Getattr(class_hash,name);
-		if (cls) {
-		  /* We already saw this class.  If the previous class really was a class,
-                     we'll generate an error.  If the class was an added method instead,
-                     we'll add those methods to our class */
-		  String *tag = Gettag(cls);
-		  if (Cmp(tag,"c:class") == 0) {
-		    /* Already saw this */
-		    Printf(stderr,"%s:%d. Class '%s' previously defined.\n", Getfile($$),Getline($$),name);
-		    $$ = 0;
-		  } else {
-		    /* Hmmm. Must have been an added method.  Attach to the end of my children */
-		    Swig_node_append_child($$,cls);
-		    Setattr(class_hash,name,$$);
-		  }
-		} else {
-		  Setattr(class_hash,name,$$);
-		}
-             }
+cpp_decl     : cpp_class { $$ = $1; }
              | cpp_other { $$ = $1; }
              ;
   
 cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id SEMI {
-                   $$ = new_node("c:class",$3.filename,$3.line);
+                   $$ = new_node("class",$3.filename,$3.line);
 		   Setattr($$,"classtype",$2.text);
 		   Setattr($$,ATTR_NAME,$3.text);
 		   Setattr($$,"bases", $4);
-		   Setattr($$,"namespace",$3.text);
 		   if ($6.node) {
 		     Setattr($$,ATTR_CHILD,$6.node);
 		     setparent($$,$6.node);
@@ -1190,7 +1236,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 	      }
 
               | storage_spec cpptype LBRACE interface RBRACE opt_id SEMI {
-		  $$ = new_node("c:class",$3.filename,$3.line);
+		  $$ = new_node("class",$3.filename,$3.line);
 		  Setattr($$,"classtype",$2.text);
 		  if ($4.node) {
 		    Setattr($$,ATTR_CHILD,$4.node);
@@ -1203,11 +1249,10 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 /* Class with a typedef */
 		
              | TYPEDEF cpptype ID inherit LBRACE interface RBRACE declaration typedeflist {
-	       $$ = new_node("c:class",$3.filename,$3.line);
+	       $$ = new_node("class",$3.filename,$3.line);
 	       Setattr($$,"classtype",$2.text);
 	       Setattr($$,ATTR_NAME,$3.text);
 	       Setattr($$,"bases",$4);
-	       Setattr($$,"namespace",$3.text);
 	       if ($6.node) {
 		 Setattr($$,ATTR_CHILD,$6.node);
 		 setparent($$,$6.node);
@@ -1219,7 +1264,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		 /* Go add a bunch of typedef declarations */
 		 DOH *o, *t, *prev, *d;
 		 int i;
-		 o = new_node("c:typedef",$3.filename,$3.line);
+		 o = new_node("typedef",$3.filename,$3.line);
 		 Setattr(o,ATTR_NAME,$8.id);
 		 t = Copy($3.text);
 		 SwigType_push(t,$8.decl);
@@ -1228,7 +1273,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 		 prev = o;
 		 for (i = 0; i < Len($9); i++) {
 		   d = Getitem($9,i);
-		   o = new_node("c:typedef",$3.filename,$3.line);
+		   o = new_node("typedef",$3.filename,$3.line);
 		   t = Copy($3.text);
 		   SwigType_push(t,Getattr(d,"decl"));
 		   SwigType_push(t,Getattr(d,"array"));
@@ -1244,7 +1289,7 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id S
 /* An unnamed struct with a typedef */
 
              | TYPEDEF cpptype LBRACE interface RBRACE declaration typedeflist {
-	       $$ = new_node("c:class",$3.filename,$3.line);
+	       $$ = new_node("class",$3.filename,$3.line);
 	       Setattr($$,"classtype",$2.text);
 	       if ($4.node) {
 		 Setattr($$,ATTR_CHILD,$4.node);
@@ -1295,15 +1340,12 @@ access_specifier :  PUBLIC { $$.text = NewString("public"); }
 
 cpp_end        : cpp_const LBRACE {  
                    $$.text = LParse_skip_balanced('{','}');
-		   pure_virtual = 0;
                }
                | EQUAL definetype SEMI {
                    $$.text = 0;
-		   pure_virtual = 1;
     	       }
 /*               | cpp_const { 
                    $$.text = 0;
-		   pure_virtual = 0;
    	       }
 */
                ;
@@ -1333,21 +1375,13 @@ mem_initializer : ID LPAREN { LParse_skip_balanced('(',')'); }
 
 cpp_other    :/* A dummy class name */
              storage_spec cpptype ID SEMI {
-                 DOH *o = new_node("c:classdecl",$4.filename,$4.line);
+                 DOH *o = new_node("classdecl",$4.filename,$4.line);
                  Setattr(o,ATTR_NAME,$3.text);
 	     }   
-             | PUBLIC COLON { 
-                 $$ = new_node("c:access",$1.filename,$1.line);
-                 Setattr($$,ATTR_NAME,"public");
-	     }
-             | PRIVATE COLON { 
-                 $$ = new_node("c:access",$1.filename,$1.line);
-                 Setattr($$,ATTR_NAME,"private");
-             }
-             | PROTECTED COLON {
-                 $$ = new_node("c:access",$1.filename,$1.line);
-                 Setattr($$,ATTR_NAME,"protected");
-             }
+
+             | PUBLIC COLON { $$ = new_node("public",$1.filename,$1.line); }
+             | PRIVATE COLON { $$ = new_node("private",$1.filename,$1.line); }
+             | PROTECTED COLON { $$ = new_node("protected",$1.filename,$1.line); }
 
              | FRIEND {
 	       LParse_skip_decl();
@@ -1371,37 +1405,14 @@ cpp_other    :/* A dummy class name */
 /* %addmethods directive */
 
              | ADDMETHODS opt_id LBRACE interface RBRACE { 
-	        $$ = new_node("swig:addmethods",$1.filename,$1.line);
+	        $$ = new_node("addmethods",$1.filename,$1.line);
+		if ($1.text)
+		  Setattr($$,ATTR_NAME,$1.text);
  		if ($4.node) {
 		  Setattr($$,ATTR_CHILD,$4.node);
 		  setparent($$,$4.node);
 		}
-		if ($2.text) {
-		  DOH *cls;
-		  Setattr($$,ATTR_NAME,$2.text);
-		  /* A named addmethods directive.   If not in a class. We have to save */
-		  cls = Getattr(class_hash,$2.text);
-		  if (cls) {
-		    /* Hmmm. A class or addmethods directive was already found */
-		    String *tag = Gettag(cls);
-		    if (Cmp(tag,"swig:addmethods") == 0) {
-		      /* We need to append our methods to previous methods */
-		      Swig_node_append_child(cls,$4.node);
-		      setparent(cls,$4.node);
-		      $$ = 0;
-		    } else {
-		      /* No. This must be a class.  We'll add ourselves to it */
-		      Swig_node_append_child(cls,$$);
-		      $$ = 0;
-		    }
-		  } else {
-		    /* Nothing previously defined. Save ourselves */
-		    Setattr(class_hash,$2.text,$$);
-		    $$ = 0;
-		  }
-		}
-	     }
-             ;
+             }
 
 opt_id       : ID { $$ = $1; }
              | empty { $$.text = 0; }
@@ -1463,7 +1474,7 @@ parm           : type pname {
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$2.filename, $2.line);
-		  SwigType_add_function($1,$7);
+		  SwigType_push($1,parmstotype($7));
 		  SwigType_push($1,$3);
 		  if ($4.array)
 		    SwigType_push($1,$4.array);
@@ -1475,7 +1486,7 @@ parm           : type pname {
                 | type stars LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$3.filename, $3.line);
 		  SwigType_push($1,$2);
-		  SwigType_add_function($1,$8);
+		  SwigType_push($1,parmstotype($8));
 		  SwigType_push($1,$4);
 		  if ($5.array)
 		    SwigType_push($1,$5.array);
@@ -1515,7 +1526,8 @@ pname          : ID def_args {
 
 def_args       : EQUAL definetype { $$ = $2; }
                | EQUAL AND ID {
-		 $$.text = NewStringf("&%s", $3.text);
+		 $$.text = NewString("");
+		 Printf($$.text,"&%s",$3.text);
 		 $$.ivalue = LPARSE_T_USER;
 	       }
                | EQUAL LBRACE {
@@ -1555,20 +1567,6 @@ declaration    : ID {
                }
                ;
 
-/* Used for typenames with or without pointers */
-
-starparm      : stars pname {
-		 $$.name = $2.name;
-		 $$.array = $2.array;
-		 $$.stars = $1;
-               }
-              | pname {
-                 $$.name = $1.name;          
-		 $$.array = $1.array;
-                 $$.stars = 0;
-              }
-              ;
-               
 stars :          STAR empty { 
                     $$ = NewString("");
 		    SwigType_add_pointer($$);
@@ -1603,7 +1601,6 @@ type           : TYPE_INT {  $$ = NewString("int"); }
                | TYPE_FLOAT { $$ = NewString("float"); }
                | TYPE_DOUBLE { $$ = NewString("double"); }
                | TYPE_VOID {  $$ = NewString("void"); }
-               | TYPE_TYPESTRING { $$ = $1.text; }
                | TYPE_SIGNED opt_signed { 
                  if ($2) $$ = $2;
 		 else {
@@ -1630,7 +1627,7 @@ type           : TYPE_INT {  $$ = NewString("int"); }
 		 $$ = NewStringf("%s %s", $1.text, $2.text);
 	       }
                | ID DCOLON ID {
-		 $$ = NewStringf("%s::%s",$1.text,$3.text);
+		 $$ = NewStringf("%s::%s",$1.text,$2.text);
                }
 /* This declaration causes a shift-reduce conflict.  Unresolved for now */
                | DCOLON ID {
@@ -1740,11 +1737,7 @@ definetype     :  expr {
                     $$.text = $1.text;
                     $$.ivalue = LPARSE_T_STRING;
 		}
-                | ID {
-		  $$.text = $1.text;
-                  $$.ivalue = LPARSE_T_ERROR;
-                }
-               ;
+                ;
   
 expr           :  NUM_INT { 
                   $$.text = $1.text;
@@ -1865,12 +1858,12 @@ expr           :  NUM_INT {
 		 }
 		 $$.ivalue = LPARSE_T_INT;
 	       }
-               | MINUS expr %prec UMINUS {
+               |  MINUS expr %prec UMINUS {
 		 $$.text = NewString("");
 		 Printf($$.text,"-%s", $2.text);
 		 $$.ivalue = $2.ivalue;
 	       }
-               | NOT expr {
+               |  NOT expr {
 		 $$.text = NewString("");
 		 Printf($$.text,"~%s", $2.text);
 		 if ($2.ivalue == LPARSE_T_DOUBLE) {
@@ -1883,6 +1876,14 @@ expr           :  NUM_INT {
 		 Printf($$.text,"(%s)", $2.text);
 		 $$.ivalue = $2.ivalue;
 	       }
+               ;
+
+idlist         : idlist COMMA ID {
+                   Append($$,$3.text);
+               }
+               | empty {
+                    $$ = NewList();
+               }
                ;
 
 empty          :   ;

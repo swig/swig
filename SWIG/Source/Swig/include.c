@@ -19,38 +19,7 @@ static char cvsroot[] = "$Header$";
 
 static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
-static int        bytes_read = 0;         /* Bytes read */
-static String    *swiglib = 0;            /* Location of SWIG library */
-static String    *lang_config = 0;        /* Language configuration file */
-
-/* This function sets the name of the configuration file */
-
-void Swig_set_config_file(const String_or_char *filename) {
-  lang_config = NewString(filename);
-}
-
-String *Swig_get_config_file() {
-  return lang_config;
-}
-
-
-/* -----------------------------------------------------------------------------
- * Swig_swiglib_set()
- * Swig_swiglib_get()
- *
- * Set the location of the SWIG library.  This isn't really used, by the
- * include mechanism, but rather as a query interface for language modules.
- * ----------------------------------------------------------------------------- */
-
-void
-Swig_swiglib_set(const String_or_char *sl) {
-  swiglib = NewString(sl);
-}
-
-String *
-Swig_swiglib_get() {
-  return swiglib;
-}
+static int           bytes_read = 0;         /* Bytes read */
 
 /* -----------------------------------------------------------------------------
  * Swig_add_directory()
@@ -98,11 +67,7 @@ Swig_search_path() {
   assert(slist);
   filename = NewString("");
   assert(filename);
-#ifdef MACSWIG
-  Printf(filename,"%s",SWIG_FILE_DELIMETER);
-#else
   Printf(filename,".%s", SWIG_FILE_DELIMETER);
-#endif
   Append(slist,filename);
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);
@@ -220,33 +185,7 @@ Swig_insert_file(const String_or_char *filename, File *outfile) {
   return 0;
 }
 
-/* -----------------------------------------------------------------------------
- * Swig_register_filebyname()
- *
- * Register a "named" file with the core.  Named files can become targets
- * for %insert directives and other SWIG operations.  This function takes
- * the place of the f_header, f_wrapper, f_init, and other global variables
- * in SWIG1.1
- * ----------------------------------------------------------------------------- */
 
-static Hash *named_files = 0;
 
-void
-Swig_register_filebyname(const String_or_char *filename, File *outfile) {
-  if (!named_files) named_files = NewHash();
-  Setattr(named_files, filename, outfile);
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_filebyname()
- *
- * Get a named file
- * ----------------------------------------------------------------------------- */
-
-File *
-Swig_filebyname(const String_or_char *filename) {
-  if (!named_files) return 0;
-  return Getattr(named_files,filename);
-}
 
 

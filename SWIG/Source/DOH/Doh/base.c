@@ -36,7 +36,7 @@ DohDelete(DOH *obj) {
 
   if (!obj) return;
   if (!DohCheck(b)) {
-    fputs("DOH: Fatal error. Attempt to delete a non-doh object.\n",stderr);
+    fprintf(stderr,"DOH: Fatal error. Attempt to delete a non-doh object.\n");
     abort();
   }
   if (b->flag_intern) return;
