@@ -17,7 +17,9 @@ CPP_TEST_CASES += \
 	implicittest \
 	lib_std_vectora \
 	lib_std_map \
-	std_containers
+	lib_std_wstring \
+	primitive_types \
+	std_containers \
 
 #
 # This test only works with modern C compilers
