@@ -44,6 +44,15 @@ GSWIG_scm2str (SCM s)
   return gh_scm2newstr (s, NULL);
 }
 
+/* SCM_CHAR and SCM_CHARP were introduced in Guile 1.4; the following is for
+   1.3.4 compatibility. */
+#ifndef SCM_CHAR
+#  define SCM_CHAR SCM_ICHR
+#endif
+#ifndef SCM_CHARP
+#  define SCM_CHARP SCM_ICHRP
+#endif
+
 /* This function replaces gh_scm2char, which is broken in Guile 1.4 */
 static char
 GSWIG_scm2char (SCM s)
