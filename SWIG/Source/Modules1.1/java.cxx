@@ -99,7 +99,7 @@ char *JAVA::SwigToJavaArrayType(SwigType *t) {
     case T_USHORT: return (char*)"Int";
     case T_INT: return (char*)"Int";
     case T_UINT: return (char*)"Long";
-    case T_LONG: return (char*)"Long";
+    case T_LONG: return (char*)"Int";
     case T_ULONG: return (char*)"Long";
     case T_FLOAT: return (char*)"Float";
     case T_DOUBLE: return (char*)"Double";
@@ -125,7 +125,7 @@ char *JAVA::JavaMethodSignature(SwigType *t, int ret, int inShadow) {
 	    case T_USHORT: return (char*)"[I";
 	    case T_INT:    return (char*)"[I";
 	    case T_UINT:   return (char*)"[J";
-	    case T_LONG:   return (char*)"[J";
+	    case T_LONG:   return (char*)"[I";
 	    case T_ULONG:  return (char*)"[J";
 	    case T_FLOAT:  return (char*)"[F";
 	    case T_DOUBLE: return (char*)"[D";
@@ -151,7 +151,7 @@ char *JAVA::JavaMethodSignature(SwigType *t, int ret, int inShadow) {
 	    case T_USHORT: return (char*)"I";
 	    case T_INT: return (char*)"I";
 	    case T_UINT: return (char*)"J";
-	    case T_LONG: return (char*)"J";
+	    case T_LONG: return (char*)"I";
 	    case T_ULONG: return (char*)"J";
 	    case T_FLOAT: return (char*)"F";
 	    case T_DOUBLE: return (char*)"D";
@@ -843,7 +843,6 @@ int JAVA::functionWrapper(Node *n) {
           }
           break;
         default:
-          Printf(stderr,"%s : Line %d. Error: Unknown typecode for type %s\n", input_file,line_number,SwigType_str(pt,0));
           break;
         }
       p = nextSibling(p);
@@ -857,7 +856,7 @@ int JAVA::functionWrapper(Node *n) {
     if ((tm = Getattr(p,"tmap:argout"))) {
       Replaceall(tm,"$source",source); /* deprecated */
       Replaceall(tm,"$target",target); /* deprecated */
-      Replaceall(tm,"$arg",source); // ??????????
+      Replaceall(tm,"$arg",source);
       Replaceall(tm,"$result","jresult");
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(outarg,tm,"\n",0);
@@ -1020,7 +1019,7 @@ int JAVA::functionWrapper(Node *n) {
   Replaceall(f->code,"$cleanup",cleanup);
 
   if(SwigType_type(t) != T_VOID)
-    Replaceall(f->code,"$null","0");
+    Replaceall(f->code,"$null","NULL");
   else
     Replaceall(f->code,"$null","");
 
