@@ -16,6 +16,7 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+
 07/26/2002: beazley
             Several directives now allow optional configuration parameters.
             These include:
@@ -110,6 +111,18 @@ Version 1.3.14 (In progress)
             are supported in a way that provides backwards compatibility with older
             Python versions.  In other words, proxy classes work with all versions
             of Python and only use new features when running on Python-2.2.
+
+
+07/25/2002: beazley
+            Modified %extend so that overloaded methods can be added.  For example:
+
+                %extend Foo {
+                     void bar(int x) { };
+                     void bar(char *s) { };
+                     ...
+                }
+
+            This works with both C++ *and* C.
 
 07/24/2002: cheetah (William Fulton)
             [Java] More new typemaps so that the Java proxy classes and type wrapper classes
