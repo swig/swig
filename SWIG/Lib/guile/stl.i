@@ -186,7 +186,7 @@ namespace std {
         }
         */
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -278,7 +278,7 @@ namespace std {
             delete [] data;
         }
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;
@@ -368,7 +368,7 @@ namespace std {
             delete [] data;
         }
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(length) size;
         unsigned int size() const;
         %rename("empty?") empty;

@@ -42,8 +42,8 @@
 (newline)
 
 ; ... or a wrapped std::vector<double>
-(define v (new-doublevector 4))
-(with-doublevector v (lambda (v i) (doublevector-set! v i (+ i 1))))
+(define v (new-doublevector))
+(map (lambda (i) (doublevector-push! v i)) '(1 2 3 4))
 (display (half v))
 (newline)
 

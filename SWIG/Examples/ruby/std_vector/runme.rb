@@ -22,8 +22,8 @@ puts
 
 # ... or a wrapped std::vector<double>
 
-v = Example::DoubleVector.new(4)
-0.upto(v.length-1) { |i| v[i] = i+1 }
+v = Example::DoubleVector.new
+[1,2,3,4].each { |i| v.push(i) }
 w = Example::half(v)
 0.upto(w.length-1) { |i| print w[i],"; " }
 puts

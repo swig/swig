@@ -191,7 +191,7 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
@@ -335,7 +335,7 @@ namespace std {
                                 PyInt_FromLong(long((($1_type &)$1)[i])));
         }
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
@@ -482,7 +482,7 @@ namespace std {
                                 PyFloat_FromDouble((($1_type &)$1)[i]));
         }
       public:
-        vector(unsigned int size);
+        vector(unsigned int size = 0);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;

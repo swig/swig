@@ -21,9 +21,9 @@ print example.half((1, 1.5, 2, 2.5, 3))
 
 # ... or a wrapped std::vector<double>
 
-v = example.DoubleVector(4)
-for i in range(len(v)):
-      v[i] = i+1
+v = example.DoubleVector()
+for i in [1,2,3,4]:
+      v.append(i)
 print example.half(v)
 
 
