@@ -409,3 +409,4 @@ li_std_stream.py
 swigobject.py
 smart_pointer_member.py
 cpp_broken.py namespace_union.py overload_complicated.py
+smart_pointer_extend.py
