@@ -134,6 +134,85 @@ namespace std {
                                 SWIG_MakePtr(x,$descriptor(T *)));
             }
         }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (gh_vector_p($input)) {
+                unsigned int size = gh_vector_length($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(0));
+                    T* x;
+                    if (SWIG_Guile_GetPtr(o,(void**) &x,
+                                          $descriptor(T *)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else if (gh_null_p($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (gh_pair_p($input)) {
+                /* check the first element only */
+                T* x;
+                SCM head = gh_car($input);
+                if (SWIG_Guile_GetPtr(head,(void**) &x,
+                                      $descriptor(T *)) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_Guile_GetPtr($input,(void **) &v, 
+                                      $&1_descriptor) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (gh_vector_p($input)) {
+                unsigned int size = gh_vector_length($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(0));
+                    if (SWIG_Guile_GetPtr(o,(void**) &x,
+                                          $descriptor(T *)) != -1)
+                        $1 = 1;
+                    else
+                        $1 = 0;
+                }
+            } else if (gh_null_p($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (gh_pair_p($input)) {
+                /* check the first element only */
+                T* x;
+                SCM head = gh_car($input);
+                if (SWIG_Guile_GetPtr(head,(void**) &x,
+                                      $descriptor(T *)) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                if (SWIG_Guile_GetPtr($input,(void **) &v, 
+                                      $1_descriptor) != -1)
+                    $1 = 1;
+                else
+                    $1 = 0;
+            }
+        }
       public:
         vector(unsigned int size = 0);
         %rename(length) size;
@@ -241,6 +320,63 @@ namespace std {
             for (unsigned int i=0; i<$1.size(); i++) {
                 SCM x = CONVERT_TO((($1_type &)$1)[i]);
                 gh_vector_set_x($result,gh_long2scm(i),x);
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+            /* native sequence? */
+            if (gh_vector_p($input)) {
+                unsigned int size = gh_vector_length($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(0));
+                    $1 = CHECK(o) ? 1 : 0;
+                }
+            } else if (gh_null_p($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (gh_pair_p($input)) {
+                /* check the first element only */
+                T* x;
+                SCM head = gh_car($input);
+                $1 = CHECK(head) ? 1 : 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                $1 = (SWIG_Guile_GetPtr($input,(void **) &v, 
+                                        $&1_descriptor) != -1) ? 1 : 0;
+            }
+        }
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
+                                          const vector<T>* {
+            /* native sequence? */
+            if (gh_vector_p($input)) {
+                unsigned int size = gh_vector_length($input);
+                if (size == 0) {
+                    /* an empty sequence can be of any type */
+                    $1 = 1;
+                } else {
+                    /* check the first element only */
+                    T* x;
+                    SCM o = gh_vector_ref($input,gh_ulong2scm(0));
+                    $1 = CHECK(o) ? 1 : 0;
+                }
+            } else if (gh_null_p($input)) {
+                /* again, an empty sequence can be of any type */
+                $1 = 1;
+            } else if (gh_pair_p($input)) {
+                /* check the first element only */
+                T* x;
+                SCM head = gh_car($input);
+                $1 = CHECK(head) ? 1 : 0;
+            } else {
+                /* wrapped vector? */
+                std::vector<T >* v;
+                $1 = (SWIG_Guile_GetPtr($input,(void **) &v, 
+                                        $1_descriptor) != -1) ? 1 : 0;
             }
         }
       public:

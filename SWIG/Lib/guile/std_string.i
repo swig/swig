@@ -22,6 +22,9 @@ namespace std {
 
     class string;
 
+    %typemap(typecheck) string = char *;
+    %typemap(typecheck) const string & = char *;
+
     %typemap(in) string (char* tempptr) {
         if (gh_string_p($input)) {
             tempptr = gh_scm2newstr($input, NULL);
