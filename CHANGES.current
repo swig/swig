@@ -1,6 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
 
+06/25/2003: mrose (Mark Rose)
+            [Python] Director typemap marshalling checks for null pointers when
+	    walking the parameter list instead of relying soley on the parameter
+	    count.  Cures a segfault that occured for multiple argument inv typemaps.
+	    Someone with more Swig experience should probably review this code.
+
 06/24/2003: mkoeppe (Matthias Koeppe)
 	    [Chicken] Don't emit calls to "C_check_for_interrupt",
 	    which may result in an endless loop.  Patch by felix@proxima-mt.de.
