@@ -3474,9 +3474,6 @@ class JAVA : public Language {
     Printf(f_directors_h, "\npublic:\n");
 /*    Printf(f_directors_h, "  virtual ~%s();\n", director_classname);*/
     Printf(f_directors_h, "  void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
-    Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
-    Printf(f_directors_h, "    return swig_override[n];\n");
-    Printf(f_directors_h, "  }\n");
 
     /* Emit the destructor (this is basically a hack for G++ and shared libraries, at
        least on the FreeBSD platform, if not for others. It also doesn't hurt to put
@@ -3543,10 +3540,15 @@ class JAVA : public Language {
     Printf(w->code, "bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
 
     int n_methods = curr_class_dmethod - first_class_dmethod;
-    Printf(f_directors_h, "protected:\n");
-    Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
 
     if (n_methods) {
+      /* Emit the swig_overrides() method and the swig_override array */
+      Printf(f_directors_h, "public:\n");
+      Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "    return (n < %d ? swig_override[n] : false);\n", n_methods);
+      Printf(f_directors_h, "  }\n");
+      Printf(f_directors_h, "protected:\n");
+      Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
 
       /* Emit the code to look up the class's methods, initialize the override array */
 
@@ -3561,6 +3563,11 @@ class JAVA : public Language {
       Printf(w->code, "    jenv->ExceptionClear();\n");
       Printf(w->code, "  }\n");
       Printf(w->code, "}\n");
+    } else {
+      Printf(f_directors_h, "public:\n");
+      Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "    return false;\n");
+      Printf(f_directors_h, "  }\n");
     }
 
     Printf(f_directors_h, "};\n\n");
