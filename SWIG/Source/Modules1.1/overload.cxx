@@ -92,7 +92,7 @@ Swig_overload_rank(Node *n) {
 	    if (Getattr(p2,"tmap:ignore")) {
 	      p2 = Getattr(p2,"tmap:ignore:next");
 	      continue;
-	  }
+	    }
 	    String *t1 = Getattr(p1,"tmap:typecheck:precedence");
 	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
@@ -111,6 +111,7 @@ Swig_overload_rank(Node *n) {
 	    if (t1 && t2) differ = Strcmp(t1,t2);
 	    else if (!t1 && t2) differ = 1;
 	    else if (t2 && !t1) differ = -1;
+	    else if (!t1 && !t2) differ = -1;
 	    if (differ > 0) {
 	      Overloaded t = nodes[i];
 	      nodes[i] = nodes[j];
@@ -177,7 +178,7 @@ Swig_overload_rank(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Swig_overload_dispatch(Node *n, int *maxargs) {
+Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
   int i,j;
   char tmp[256];
   *maxargs = 1;
@@ -228,7 +229,8 @@ Swig_overload_dispatch(Node *n, int *maxargs) {
       j++;
     }
     Printf(f,"if (_m) {\n");
-    Printf(f,"return %s($args);\n", Getattr(ni,"wrap:name"));
+    Printf(f,Char(fmt),Getattr(ni,"wrap:name"));
+    Printf(f,"\n");
     Printf(f,"}\n");
     Printf(f,"}\n");
   }

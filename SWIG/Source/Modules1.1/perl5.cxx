@@ -171,6 +171,7 @@ public:
     Preprocessor_define("SWIGPERL5 1", 0);
     SWIG_typemap_lang("perl5");
     SWIG_config_file("perl5.swg");
+    allow_overloading();
   }
 
   /* ------------------------------------------------------------
@@ -463,7 +464,8 @@ public:
     String *iname = Getattr(n,"sym:name");
     SwigType *d = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
-    
+    String   *overname = 0;
+
     Parm *p;
     int   i;
     Wrapper *f;
@@ -474,17 +476,26 @@ public:
     int    num_arguments, num_required;
     int    varargs = 0;
 
-    if (!addSymbol(iname,n)) return SWIG_ERROR;
-
+    if (Getattr(n,"sym:overloaded")) {
+      overname = Getattr(n,"sym:overname");
+    } else {
+      if (!addSymbol(iname,n)) return SWIG_ERROR;
+    }
 
     f       = NewWrapper();
     cleanup = NewString("");
     outarg  = NewString("");
 
-    Printv(f->def, "XS(", Swig_name_wrapper(iname), ") {\n", NULL);
+    String *wname = Swig_name_wrapper(iname);
+    if (overname) {
+      Append(wname,overname);
+    }
+    Setattr(n,"wrap:name",wname);
+    Printv(f->def, "XS(", wname, ") {\n", NULL);
 
     emit_args(d, l, f);
     emit_attach_parmmaps(l,f);
+    Setattr(n,"wrap:parms",l);
 
     num_arguments = emit_num_arguments(l);
     num_required  = emit_num_required(l);
@@ -650,68 +661,101 @@ public:
 
     /* Now register the function */
 
-  /*  Printf(f_init,"\t newXS((char *) \"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(iname)); */
-    Printf(command_tab,"{\"%s::%s\", %s},\n", cmodule, iname, Swig_name_wrapper(iname));
+    if (!Getattr(n,"sym:overloaded")) {
+      Printf(command_tab,"{\"%s::%s\", %s},\n", cmodule, iname, wname);
+    } else if (!Getattr(n,"sym:nextSibling")) {
+      /* Generate overloaded dispatch function */
+      int maxargs, ii;
+      String *tmp = NewString("");
+      String *dispatch = Swig_overload_dispatch(n,"(*PL_markstack_ptr++);SWIG_CALLXS(%s); return;",&maxargs);
+	
+      /* Generate a dispatch wrapper for all overloaded functions */
 
-    if (export_all) {
-      Printf(exported,"%s ", iname);
+      Wrapper *df       = NewWrapper();
+      String  *dname    = Swig_name_wrapper(iname);
+
+      Printv(df->def,	
+	     "XS(", dname, ") {\n", NULL);
+    
+      Wrapper_add_local(df,"dXSARGS", "dXSARGS");
+      Replaceid(dispatch,"argc","items");
+      for (ii = 0; ii < maxargs; ii++) {
+	char pat[128];
+	char rep[128];
+	sprintf(pat,"argv[%d]",ii);
+	sprintf(rep,"ST(%d)",ii);
+	Replaceall(dispatch,pat,rep);
+      }
+      Printv(df->code,dispatch,"\n",NULL);
+      Printf(df->code,"croak(\"No matching function for overloaded '%s'\");\n", iname);
+      Printf(df->code,"XSRETURN(0);\n");
+      Printv(df->code,"}\n",NULL);
+      Wrapper_print(df,f_wrappers);
+      Printf(command_tab,"{\"%s::%s\", %s},\n", cmodule, iname, dname);
+      DelWrapper(df);
+      Delete(dispatch);
+      Delete(dname);
     }
-
-
-    /* --------------------------------------------------------------------
-   * Create a stub for this function, provided it's not a member function
-   * -------------------------------------------------------------------- */
-
-    if ((blessed) && (!member_func)) {
-      int    need_stub = 0;
-      String *func = NewString("");
-
-      /* We'll make a stub since we may need it anyways */
-
-      Printv(func, "sub ", iname, " {\n",
-	     tab4, "my @args = @_;\n",
-	     NULL);
-
-      Printv(func, tab4, "my $result = ", cmodule, "::", iname, "(@args);\n", NULL);
-
-      /* Now check to see what kind of return result was found.
-       * If this function is returning a result by 'value', SWIG did an
-       * implicit malloc/new.   We'll mark the object like it was created
-       * in Perl so we can garbage collect it. */
-
-      if (is_shadow(d)) {
-	Printv(func, tab4, "return undef if (!defined($result));\n", NULL);
+    if (!Getattr(n,"sym:nextSibling")) {
+      if (export_all) {
+	Printf(exported,"%s ", iname);
+      }
       
-	/* If we're returning an object by value, put it's reference
-	   into our local hash table */
+      /* --------------------------------------------------------------------
+       * Create a stub for this function, provided it's not a member function
+       * -------------------------------------------------------------------- */
       
-	if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject) {
-	  Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NULL);
-	}
-      
-	/* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
-	Printv(func,
-	       tab4, "my %resulthash;\n",
-	       tab4, "tie %resulthash, ref($result), $result;\n",
-	       tab4, "return bless \\%resulthash, ref($result);\n",
-	       "}\n",
+      if ((blessed) && (!member_func)) {
+	int    need_stub = 0;
+	String *func = NewString("");
+	
+	/* We'll make a stub since we may need it anyways */
+	
+	Printv(func, "sub ", iname, " {\n",
+	       tab4, "my @args = @_;\n",
 	       NULL);
-      
-	need_stub = 1;
-      } else {
-	/* Hmmm.  This doesn't appear to be anything I know about */
-	Printv(func, tab4, "return $result;\n", "}\n", NULL);
+	
+	Printv(func, tab4, "my $result = ", cmodule, "::", iname, "(@args);\n", NULL);
+	
+	/* Now check to see what kind of return result was found.
+	 * If this function is returning a result by 'value', SWIG did an
+	 * implicit malloc/new.   We'll mark the object like it was created
+	 * in Perl so we can garbage collect it. */
+	
+	if (is_shadow(d)) {
+	  Printv(func, tab4, "return undef if (!defined($result));\n", NULL);
+	  
+	  /* If we're returning an object by value, put it's reference
+	     into our local hash table */
+	  
+	  if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject) {
+	    Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", NULL);
+	  }
+	  
+	  /* We're returning a Perl "object" of some kind.  Turn it into a tied hash */
+	  Printv(func,
+		 tab4, "my %resulthash;\n",
+		 tab4, "tie %resulthash, ref($result), $result;\n",
+		 tab4, "return bless \\%resulthash, ref($result);\n",
+		 "}\n",
+		 NULL);
+	  
+	  need_stub = 1;
+	} else {
+	  /* Hmmm.  This doesn't appear to be anything I know about */
+	  Printv(func, tab4, "return $result;\n", "}\n", NULL);
+	}
+	
+	/* Now check if we needed the stub.  If so, emit it, otherwise
+	 * Emit code to hack Perl's symbol table instead */
+	
+	if (need_stub) {
+	  Printf(func_stubs,"%s",func);
+	} else {
+	  Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NULL);
+	}
+	Delete(func);
       }
-
-      /* Now check if we needed the stub.  If so, emit it, otherwise
-       * Emit code to hack Perl's symbol table instead */
-
-      if (need_stub) {
-	Printf(func_stubs,"%s",func);
-      } else {
-	Printv(func_stubs,"*", iname, " = *", cmodule, "::", iname, ";\n", NULL);
-      }
-      Delete(func);
     }
     Delete(cleanup);
     Delete(outarg);
@@ -1190,7 +1234,7 @@ public:
     Language::memberfunctionHandler(n);
     member_func = 0;
 
-    if (blessed) {
+    if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
       func = NewString("");
   
       /* Now emit a Perl wrapper function around our member function, we might need
@@ -1333,7 +1377,7 @@ public:
     member_func = 1;
     Language::constructorHandler(n);
 
-    if (blessed) {
+    if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
       if ((Cmp(symname,class_name) == 0)) {
 	/* Emit a blessed constructor  */
 	Printf(pcode, "sub new {\n");
@@ -1395,7 +1439,7 @@ public:
     member_func = 1;
     Language::staticmemberfunctionHandler(n);
     member_func = 0;
-    if (blessed) {
+    if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
       String *symname = Getattr(n,"sym:name");
       SwigType *t = Getattr(n,"type");
       if (is_shadow(t)) {

@@ -29,7 +29,6 @@ static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 0;
 static  int           use_kw = 0;
-static  int           overload = 0;
 
 static  File         *f_runtime = 0;
 static  File         *f_header = 0;
@@ -94,9 +93,6 @@ public:
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i],"-overload") == 0) {
-	  overload = 1;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
 	} else if (strcmp (argv[i], "-ldflags") == 0) {
@@ -109,14 +105,9 @@ public:
     Preprocessor_define("SWIGPYTHON 1", 0);
     SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
-    if (overload) {
-      allow_overloading();
-      if (use_kw) {
-	Printf(stderr,"Can't use keyword arguments with overloading.  Disabled.\n");
-	use_kw = 0;
-      }
-    }
+    allow_overloading();
   }
+
 
   /* ------------------------------------------------------------
    * top()
@@ -278,7 +269,7 @@ public:
     int     num_arguments;
     int     varargs = 0;
 
-    if (overload && Getattr(n,"sym:overloaded")) {
+    if (Getattr(n,"sym:overloaded")) {
       overname = Getattr(n,"sym:overname");
     } else {
       if (!addSymbol(iname,n)) return SWIG_ERROR;
@@ -529,7 +520,7 @@ public:
     }
 
     /* Now register the function with the interpreter.   */
-    if (!Getattr(n,"sym:overloaded") || (!overload)) {
+    if (!Getattr(n,"sym:overloaded")) {
       add_method(iname, wname, use_kw);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
@@ -560,7 +551,7 @@ public:
 
     int maxargs;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n,&maxargs);
+    String *dispatch = Swig_overload_dispatch(n,"return %s(self,args);",&maxargs);
 	
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -902,7 +893,7 @@ public:
     Language::memberfunctionHandler(n);
     shadow = oldshadow;
 
-    if ((!overload) || (overload && !Getattr(n,"sym:nextSibling"))) {
+    if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
 	if (Strcmp(symname,"__repr__") == 0)
 	  have_repr = 1;
@@ -936,7 +927,7 @@ public:
     Language::constructorHandler(n);
     shadow = oldshadow;
 
-    if ((!overload) || (overload && !Getattr(n,"sym:nextSibling"))) {
+    if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
 	if (!have_constructor) {
 	  if (Getattr(n,"feature:shadow")) {
