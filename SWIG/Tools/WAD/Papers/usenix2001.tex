@@ -51,7 +51,7 @@ minus3pt\let\@listi\@listI}
 \date{}
 
 %make title bold and 14 pt font (Latex default is non-bold, 16 pt)
-\title{\Large \bf   An Embedded Error Recovery and Debugging Mechanism for Scripting Language Extensions}
+\title{\Large \bf   An Embedded Error Reporting and Debugging Mechanism for Scripting Language Extensions}
 
 %for single author (just remove % characters)
 \author{{David M.\ Beazley} \\
@@ -89,17 +89,17 @@ sophisticated application software.  One of the most useful features
 of these languages is their ability to easily interact with compiled
 languages such as C and C++.  Although this mixed language approach
 has many benefits, one of the greatest drawbacks is the complexity of
-debugging that results from using interpreted and compiled code in
-the same application.  In part, this is due to the fact that scripting
-language interpreters are unable to recover from catastrophic errors in
-compiled extension code. Furthermore, traditional C/C++ debuggers do
-not provide a satisfactory degree of integration with interpreted
+debugging that results from using interpreted and compiled code in the
+same application.  In part, this is due to the fact that scripting
+language interpreters are unable to recover from catastrophic errors
+in compiled extension code. Furthermore, traditional C/C++ debuggers
+do not provide a satisfactory degree of integration with interpreted
 languages.  This paper describes an experimental system in which fatal
 extension errors such as segmentation faults, bus errors, and failed
 assertions are handled as scripting language exceptions.  This system,
 which has been implemented as a general purpose shared library,
 requires no modifications to the target scripting language, introduces
-no performance overhead, and simplifies the debugging of mixed
+no performance penalty, and simplifies the debugging of mixed
 interpreted-compiled application software.
 }
 
@@ -110,7 +110,7 @@ introduced the Tcl scripting language at the 1990 USENIX technical
 conference \cite{ousterhout}.  Since then, scripting languages have
 been gaining in popularity as evidenced by the wide-spread use of
 systems such as Tcl, Perl, Python, Guile, PHP, and Ruby
-\cite{ousterhout,perl,python,guile,php,ruby}. 
+\cite{ousterhout,perl,python,guile,php,ruby}.
 
 In part, the success of modern scripting languages is due to their
 ability to be easily integrated with software written in compiled
@@ -130,7 +130,7 @@ A critical aspect of scripting-compiled code integration is the way in
 which it departs from traditional C/C++ development.  Rather than
 building large monolithic stand-alone applications, scripting
 languages strongly encourage the creation of modular software
-components.  As a result, scripted software tends to be constructed as
+components.  Because of this, scripted software tends to be constructed as
 a mix of dynamically loadable libraries, scripts, and third-party
 extension modules. In this sense, one might argue that the benefits of
 scripting are achieved at the expense of creating a somewhat more
@@ -141,7 +141,7 @@ associated with debugging programs that utilize multiple languages,
 dynamically loadable modules, and a sophisticated runtime environment.
 To address this problem, this paper describes an experimental system
 known as WAD (Wrapped Application Debugger) in which an embedded error
-recovery and debugging mechanism is added to common scripting
+reporting and debugging mechanism is added to common scripting
 languages.  This system converts catastrophic signals such as
 segmentation faults and failed assertions to exceptions that can be
 handled by the scripting language interpreter.  In doing so, it
@@ -171,8 +171,9 @@ NameError: doh
 
 In this case, a programmer might be able to apply a fix simply based
 on information in the traceback.  Alternatively, if the problem is
-more complicated, a script-level debugger can be used to provide more information.  In contrast,
-a failure in compiled extension code might produce the following result:
+more complicated, a script-level debugger can be used to provide more
+information.  In contrast, a failure in compiled extension code might
+produce the following result:
 
 \begin{verbatim}
 % python foo.py
@@ -180,21 +181,20 @@ Segmentation Fault (core dumped)
 \end{verbatim}
 
 In this case, the user has no idea of what has happened other
-than it appears to be ``very bad.'' Furthermore, script-level
+than it appears to be ``very bad.'' To make matters worse, script-level
 debuggers are unable to identify the problem since they also crash
 when the error occurs (they usually run in the same process as
 the interpreter).  A user might be able to narrow the source of the
 problem through trial-and-error techniques such as inserting print
-statements or commenting out sections of script code.  Unfortunately,
+statements or commenting out sections of script code.  However,
 neither of these techniques are very attractive for obvious reasons.
 
 Alternatively, a user could run the application under the control of a
-traditional debugger such as gdb \cite{gdb}. Unfortunately, this also has
-drawbacks.  First, even though the debugger provides information about the error,
-the debugger mostly provides information about the internal
-implementation of the scripting language interpreter.  Needless
-to say, this isn't very useful nor does it provide much insight as to
-where the error might have occurred within a script.  Second, 
+traditional debugger such as gdb \cite{gdb}.  Although this certainly provides
+some information about the error, the debugger mostly provides information about the
+internal implementation of the scripting language interpreter.
+Needless to say, this isn't very useful nor does it provide much insight as to
+where the error might have occurred within a script.  A related problem is that
 the structure of a scripted application tends to be much more complex
 than a traditional stand-alone program.  As a result, a user may not
 have a good sense of how to actually attach a C/C++ debugger to their
@@ -204,22 +204,23 @@ connections.  Because of this, it can be difficult to reproduce
 and identify certain types of catastrophic errors (especially if they
 depend on timing or peculiar sequences of events). Finally, this approach
 assumes that a programmer has a C/C++ development environment installed on
-their machine and that they know how to use a low-level
+their machine and that they know how to use a low-level C source
 debugger.  Unfortunately, neither of these assumptions may hold in practice.
 This is because scripting languages are often used to provide programmability to
 applications in which end-users might write scripts, yet would not be expected
 to write low-level C code.
 
-Even if a traditional debugger such as gdb were modified to
-provide better integration with scripting languages, it is not clear
-that this would be the most natural solution to the problem.
-For one, the whole notion of having to run a separate debugging process to debug
+Even if a traditional debugger such as gdb were modified to provide
+better integration with scripting languages, it is not clear that this
+would be the most natural solution to the problem.  For one, the whole
+notion of having to run a separate debugging process to debug
 extension code is unnatural when no such requirement exists for
-a script.  Furthermore, even if such a debugger existed, an inexperienced user may not
-have the expertise or inclination to use it.  Finally, 
-obscure fatal errors may occur long after an application has been deployed. 
-Unless the debugger is distributed along with the application in some manner, it will be
-extraordinary difficult to obtain useful diagnostics when such errors occur.
+scripts.  Furthermore, even if such a debugger existed, an
+inexperienced user may not have the expertise or inclination to use
+it.  Finally, obscure fatal errors may occur long after an application
+has been deployed.  Unless the debugger is distributed along with the
+application in some manner, it will be extraordinary difficult to
+obtain useful diagnostics when such errors occur.
 
 \begin{figure*}[t]
 {\small
@@ -253,34 +254,34 @@ SegFault: [ C stack trace ]
 \caption{Cross language traceback generated for a segmentation fault in a Python extension}
 \end{figure*}
 
-The easiest solution to the debugging problem is 
-to simply add as much error checking as possible.  Although this is never
+The current solution to the debugging problem is to take a proactive approach and simply add as
+much error checking as possible to extension code.  Although this is never
 a bad thing to do, it's usually not enough to completely eliminate the problem.
 For one, scripting languages are sometimes used to control hundreds
-of thousands to millions of lines of compiled code.  In this case, it is improbable
+of thousands to millions of lines of compiled code.  In this case, it is simply improbable
 that a programmer will be able to foresee every conceivable error.
-Second, scripting languages are often used to put new user interfaces on legacy software. In this
+In addition, scripting languages are often used to put new user interfaces on legacy software. In this
 case, scripting may introduce new modes of execution that cause a formerly ``bug-free''
 application to fail in an unexpected manner.  Finally, certain types
 of errors such as floating-point exceptions can be particularly
 difficult to eliminate because they might be generated algorithmically (e.g.,
-as the result of a numerical method). Therefore, even when a programmer has worked hard to eliminate
+as the result of instability in a numerical method). Therefore, even when a programmer has worked hard to eliminate
 crashes, there is always a small probability that a complex application
 will fail.
 
-\section{Embedded Error Recovery}
+\section{Embedded Error Reporting}
 
 Rather than modifying an existing debugger to support scripting
 languages, an alternative approach is to add a more powerful error
-handling and recovery mechanism to the scripting language interpreter.
-This approach has been implemented in the form of an
-experimental system known as WAD.  WAD
-is packaged as dynamically loadable shared library that can either be
-loaded as a scripting language extension or linked to existing
-extension modules as a library.  The core of the system is generic and
-requires no modifications to the scripting interpreter or existing
-extension modules.  Furthermore, the system does not introduce a performance penalty as it
-does not rely upon program instrumentation or tracing.
+handling and reporting mechanism to the scripting language
+interpreter.  This approach has been implemented in the form of an
+experimental system known as WAD.  WAD is packaged as dynamically
+loadable shared library that can either be loaded as a scripting
+language extension or linked to existing extension modules as a
+library.  The core of the system is generic and requires no
+modifications to the scripting interpreter or existing extension
+modules.  Furthermore, the system does not introduce a performance
+penalty as it does not rely upon program instrumentation or tracing.
 
 WAD works by converting fatal signals such as SIGSEGV,
 SIGBUS, SIGFPE, and SIGABRT into scripting language exceptions that contain
@@ -292,15 +293,15 @@ shown for Python and Tcl/Tk in Figures 1 and 2.  In this case, the user
 is given a very clear idea of what has happened without having
 to launch a separate debugger. 
 
-The advantage to this approach is that it provides
-more seamless integration between error handling
-in scripts and error handling in extensions.  In addition, it eliminates
-the most common debugging step that a developer is likely to perform
-in the event of a fatal error--running a separate debugger on a core
-file and typing 'where' to get a stack trace.  Finally, this allows
-end-users to provide extension writers with useful debugging
-information since they can supply a stack trace as opposed to a vague
-complaint that the program ``crashed.''
+The advantage to this approach is that it provides more seamless
+integration between error handling in scripts and error handling in
+extensions.  In addition, it eliminates the most common debugging step
+that a developer is likely to perform in the event of a fatal
+error--running a separate debugger on a core file and typing 'where'
+to get a stack trace.  Finally, this allows end-users to provide
+extension writers with useful debugging information since they can
+supply a stack trace as opposed to a vague complaint that the program
+``crashed.''
 
 \begin{figure*}[t]
 \begin{picture}(400,250)(0,0)
@@ -632,7 +633,7 @@ The severity of this problem depends greatly on the architecture and
 compiler.  For example, on the SPARC, register windows effectively
 solve the callee-save problem \cite{sparc}.  In this case, each stack frame has its own
 register window and the windows are flushed to the stack whenever a
-signal occurs.  Therefore, the recovery mechanism can examine the stack and
+signal occurs.  Therefore, the recovery mechanism can simply examine the stack and
 arrange to restore the registers to their proper values when control
 is returned.  Furthermore, certain conventions of the SPARC ABI resolve several related
 issues. For example, floating point registers are caller-saved
@@ -640,23 +641,40 @@ and the contents of the SPARC global registers are not guaranteed to be preserve
 across procedure calls (in fact, they are not even saved by {\tt setjmp}).
 
 On other platforms, the problem of register management becomes much
-more interesting.  One approach is to simply ignore the problem
-altogether and return to the interpreter with the registers in an
-essentially random state.  Surprisingly, this approach actually seems to work (although a considerable degree of
-caution might be in order).
-This is because the return of an error code tends to trigger
-a cascade of procedure returns within the implementation of the interpreter.
-As a result, the values of the registers are simply discarded and
-overwritten with restored values as the interpreter unwinds itself and prepares to handle an
-exception.  A better solution to this problem is to modify the recovery mechanism to discover and
-restore saved registers from the stack.  Unfortunately, there is
-no standardized way to know exactly where the registers might have been saved.
-Therefore, a heuristic scheme that examines the machine code for each procedure would
-have to be used to try and identify stack locations. This approach is used by gdb
-and other debuggers when they allow users to inspect register values
-within arbitrary stack frames \cite{gdb}.  However, this technique has 
-not yet been implemented in WAD due to its obvious implementation difficulty and the
-fact that the WAD prototype has primarily been developed for the SPARC.
+more interesting.  In this case, a heuristic approach that examines
+the machine code for each function on the call stack can be used to
+determine where the registers might have been saved.  This approach is
+used by gdb and other debuggers when they allow users to inspect
+register values within arbitrary stack frames \cite{gdb}.  Even though
+this sounds complicated to implement, the algorithm is greatly
+simplified by the fact that compilers usually generate code to store
+the callee-save registers immediately upon the entry to each function.
+In addition, this code is highly regular and easy to examine.  For instance, on
+i386-Linux, the callee-save registers can be fully restored by simply
+examining the first 12 bytes of the machine code for each function on
+the stack.  
+
+%
+% Include an example
+%
+
+% more interesting.  One approach is to simply ignore the problem
+% altogether and return to the interpreter with the registers in an
+% essentially random state.  Surprisingly, this approach actually seems to work (although a considerable degree of
+% caution might be in order).
+% This is because the return of an error code tends to trigger
+% a cascade of procedure returns within the implementation of the interpreter.
+% As a result, the values of the registers are simply discarded and
+% overwritten with restored values as the interpreter unwinds itself and prepares to handle an
+% exception.  A better solution to this problem is to modify the recovery mechanism to discover and
+% restore saved registers from the stack.  Unfortunately, there is
+% no standardized way to know exactly where the registers might have been saved.
+% Therefore, a heuristic scheme that examines the machine code for each procedure would
+% have to be used to try and identify stack locations. This approach is used by gdb
+% and other debuggers when they allow users to inspect register values
+% within arbitrary stack frames \cite{gdb}.  However, this technique has 
+% not yet been implemented in WAD due to its obvious implementation difficulty and the
+% fact that the WAD prototype has primarily been developed for the SPARC.
 
 As a fall-back, WAD can be configured to return control to a location
 previously specified with {\tt setjmp}.  Unfortunately, this either
@@ -664,6 +682,12 @@ requires modifications to the interpreter or its extension modules.
 Although this kind of instrumentation can be facilitated by automatic
 wrapper code generators, it is not a preferred solution and is
 not discussed further.
+
+\section{Making WAD Easy to Use}
+
+
+
+\section{Design and Portability Concerns}
 
 \section{Implementation Details}
 
@@ -721,6 +745,9 @@ platforms.  To further complicate matters, the recovery process itself is
 not thread-safe (i.e., it is not possible to concurrently handle fatal errors
 occurring different threads).
 
+% Add comment about global interpreter locks, free-threading
+%
+
 Third, certain types of errors may result in an unrecoverable crash.
 For example, if an application overwrites the heap, it may destroy
 critical data structures within the interpreter. 
@@ -728,11 +755,15 @@ Similarly,
 destruction of the call stack (via buffer overflow) makes it
 impossible for the recovery mechanism to create a stack-trace and
 return to the interpreter.  Although it might be possible to add a heuristic scheme for
-recovering a partial stack trace such as backward stack tracing, no such feature has been implemented
+recovering a partial stack trace such as backward stack tracing, no such feature has yet been implemented
 \cite{debug}.  Finally, memory management problems such as
 double-freeing of heap allocated memory can cause a system to fail in
 a way that bears little resemblance to the actual source of the
 problem.
+
+%
+% Add comments about what WAD does in this case?
+%
 
 Finally, there are a number of issues that pertain
 to the interaction of the recovery mechanism with the interpreter.
