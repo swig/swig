@@ -426,7 +426,7 @@ namespace std {
     specialize_stl_vector(unsigned short,gh_number_p,gh_scm2ulong,gh_ulong2scm);
     specialize_stl_vector(float,gh_number_p,gh_scm2double,gh_double2scm);
     specialize_stl_vector(double,gh_number_p,gh_scm2double,gh_double2scm);
-    specialize_stl_vector(string,gh_string_p,gh_scm2string,gh_string2scm);
+    specialize_stl_vector(std::string,gh_string_p,gh_scm2string,gh_string2scm);
 
 }
 

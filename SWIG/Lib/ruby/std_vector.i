@@ -367,7 +367,7 @@ namespace std {
     specialize_std_vector(unsigned long,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(double,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
     specialize_std_vector(float,SWIG_FLOAT_P,SWIG_NUM2DBL,rb_float_new);
-    specialize_std_vector(string,SWIG_STRING_P,SWIG_RB2STR,SWIG_STR2RB);
+    specialize_std_vector(std::string,SWIG_STRING_P,SWIG_RB2STR,SWIG_STR2RB);
 
 }
 
