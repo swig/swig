@@ -3620,8 +3620,14 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   virtual int abstractClassTest(Node *n) {
-    if (!Cmp(Getattr(n, "feature:director"), "1"))
-      return 0;
+    /*
+      This is not needed anymore, since Language::abstractClassTest
+      implements now a test considering the director case, which can
+      be abstract.
+
+      if (!Cmp(Getattr(n, "feature:director"), "1"))
+        return 0;
+    */
     return Language::abstractClassTest(n);
   }
 };   /* class JAVA */
