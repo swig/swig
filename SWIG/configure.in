@@ -947,6 +947,33 @@ AC_ARG_WITH(release-suffix,
 AC_SUBST(release_suffix)
 
 #----------------------------------------------------------------
+# Look for Pike
+#----------------------------------------------------------------
+
+# Identify the name of the Pike executable
+PIKEBIN=
+AC_ARG_WITH(pike,[  --with-pike=path       Set location of Pike executable],[ PIKEBIN="$withval"], [PIKEBIN=])
+if test -z "$PIKEBIN"; then
+	AC_CHECK_PROGS(PIKE, pike)
+else
+	PIKE="$PIKEBIN"
+fi
+
+AC_MSG_CHECKING(for Pike header files)
+if test -n "$PIKE"; then
+	PIKEPATHS=`$PIKE --show-paths 2>/dev/null`
+	AC_MSG_RESULT(/usr/local/pike/7.2.239/include/pike)
+	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
+else
+	AC_MSG_RESULT(could not figure out how to run Pike)
+	PIKEINCLUDE="-I/usr/local/pike/7.2.239/include/pike"
+fi
+
+AC_SUBST(PIKEINCLUDE)
+AC_SUBST(PIKECCDLFLAGS)
+AC_SUBST(PIKEDYNAMICLINKING)
+
+#----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
 

@@ -70,6 +70,7 @@ skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
 skip-php4	= [ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
 skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
+skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
 
 #####################################################################
 # Runtime libraries
@@ -84,6 +85,7 @@ runtime:
 	@-$(skip-mzscheme) || (cd Runtime; $(MAKE) mzscheme)
 	@-$(skip-php4) || (cd Runtime; $(MAKE) php4)
 	@-$(skip-ocaml) || (cd Runtime; $(MAKE) ocaml)
+	@-$(skip-pike) || (cd Runtime; $(MAKE) pike)
 
 #####################################################################
 # CHECK
@@ -108,6 +110,7 @@ check-aliveness:
 	@$(skip-ruby) || ./$(TARGET) -ruby -help
 	@$(skip-ocaml) || ./$(TARGET) -ocaml -help
 	@($skip-php4) || ./$(TARGET) -php4 -help
+	@$(skip-pike) || ./$(TARGET) -pike -help
 
 TCL_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
 PERL5_EXAMPLES = class constants constants2 funcptr import multimap pointer reference shadow simple value variables
@@ -118,10 +121,11 @@ MZSCHEME_EXAMPLES = multimap simple
 RUBY_EXAMPLES = class constants enum funcptr funcptr2 functor import import_template mpointer multimap operator overloading pointer reference simple template value variables
 OCAML_EXAMPLES = simple
 PHP4_EXAMPLES = class constants enum funcptr pointer reference shadow simple sync value variables
+PIKE_EXAMPLES = simple
 
 check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 		check-java-examples check-guile-examples check-mzscheme-examples \
-		check-ruby-examples check-ocaml-examples check-php4-examples
+		check-ruby-examples check-ocaml-examples check-php4-examples check-pike-examples
 
 check-tcl-examples:
 	@if $(skip-tcl); then			\
@@ -227,6 +231,19 @@ check-ocaml-examples:
 	  test $$passed = true;			\
 	fi
 
+check-pike-examples:
+	@if $(skip-pike); then			\
+	  echo skipping Pike $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(OCAML_EXAMPLES); do		\
+	    echo $(CHECK_CLEAN)ing Examples/pike/$$a;	\
+	    (cd Examples/pike/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
 check-php4-examples:
 	@if $(skip-php4); then			\
 	  echo skipping php4 $(CHECK_CLEAN);		\
@@ -324,6 +341,16 @@ check-ocaml-test-suite:
 	  test $$passed = true;			\
 	fi
 
+check-pike-test-suite:
+	@if $(skip-pike); then			\
+	  echo skipping Pike test-suite $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  (cd Examples/test-suite/pike && $(chk))	\
+	  || passed=false;			\
+	  test $$passed = true;			\
+	fi
+
 check-php4-test-suite:
 	@if $(skip-php4); then			\
 	  echo skipping php4 test-suite $(CHECK_CLEAN);		\
@@ -341,6 +368,7 @@ JAVA_GIFPLOT_EXAMPLES = full shadow simple
 GUILE_GIFPLOT_EXAMPLES = full simple
 RUBY_GIFPLOT_EXAMPLES = full shadow simple
 OCAML_GIFPLOT_EXAMPLES = full simple
+PIKE_GIFPLOT_EXAMPLES = simple
 PHP4_GIFPLOT_EXAMPLES = full simple
 
 check-gifplot-examples: check-tcl-gifplot check-perl-gifplot check-python-gifplot check-java-gifplot check-guile-gifplot check-ruby-gifplot check-ocaml-gifplot check-php4-gifplot
@@ -440,14 +468,27 @@ check-ocaml-gifplot: gifplot-library
 	  test $$passed = true;			\
 	fi
 
+check-pike-gifplot: gifplot-library
+	@if $(skip-pike); then			\
+	  echo skipping Pike $(CHECK_CLEAN);		\
+	else					\
+	  passed=true;				\
+	  for a in $(PIKE_GIFPLOT_EXAMPLES); do	\
+	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Pike/$$a;	\
+	    (cd Examples/GIFPlot/Pike/$$a && $(chk))	\
+	    || passed=false;			\
+	  done;					\
+	  test $$passed = true;			\
+	fi
+
 check-php4-gifplot: gifplot-library
 	@if $(skip-php4); then			\
 	  echo skipping php4 $(CHECK_CLEAN);		\
 	else					\
 	  passed=true;				\
 	  for a in $(PHP4_GIFPLOT_EXAMPLES); do	\
-	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/php4/$$a;	\
-	    (cd Examples/GIFPlot/php4/$$a && $(chk))	\
+	    echo $(CHECK_CLEAN)ing Examples/GIFPlot/Php/$$a;	\
+	    (cd Examples/GIFPlot/Php/$$a && $(chk))	\
 	    || passed=false;			\
 	  done;					\
 	  test $$passed = true;			\
@@ -511,9 +552,11 @@ clean-mzscheme-examples:
 clean-ruby-examples:
 	@$(MAKE) -k -s check-ruby-examples CHECK_CLEAN=clean
 
+clean-pike-examples:
+	@$(MAKE) -k -s check-pike-examples CHECK_CLEAN=clean
+
 clean-php4-examples:
 	@$(MAKE) -k -s check-php4-examples CHECK_CLEAN=clean
-
 
 clean-tcl-test-suite:
 	@$(MAKE) -k -s check-tcl-test-suite CHECK_CLEAN=clean
@@ -535,6 +578,9 @@ clean-mzscheme-test-suite:
 
 clean-ruby-test-suite:
 	@$(MAKE) -k -s check-ruby-test-suite CHECK_CLEAN=clean
+
+clean-pike-test-suite:
+	@$(MAKE) -k -s check-pike-test-suite CHECK_CLEAN=clean
 
 clean-php4-test-suite:
 	@$(MAKE) -k -s check-php4-test-suite CHECK_CLEAN=clean
@@ -632,6 +678,13 @@ install-lib:
 	    do \
 	    echo "Installing Lib/ocaml/$$i"; \
             ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/../../include/$$i; \
+	    done;
+
+	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)/pike
+	@cd $(srcdir)/Lib/pike; for i in *.swg; \
+	    do \
+	    echo "Installing Lib/pike/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(DESTDIR)$(SWIG_LIB)/pike/$$i; \
 	    done;
 
 install-runtime:

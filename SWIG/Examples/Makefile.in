@@ -623,3 +623,66 @@ php4_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -php4 $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+
+##################################################################
+#####                       Pike                            ######
+##################################################################
+
+# Make sure these locate your Pike installation
+PIKE_CFLAGS  = @PIKECCDLFLAGS@ -DHAVE_CONFIG_H
+PIKE_INCLUDE = @PIKEINCLUDE@
+PIKE_LIB     = @PIKELIB@
+PIKE_DLNK    = @PIKEDYNAMICLINKING@
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+pike: $(SRCS)
+	$(SWIG) -pike $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PIKE_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PIKE_DLNK) $(LIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+pike_cpp: $(SRCS)
+	$(SWIG) -c++ -pike $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PIKE_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PIKE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build a dynamically loadable module, linked against SWIG runtime lib
+# -----------------------------------------------------------------
+
+PIKE_RUNTIME=-L$(RUNTIMEDIR) -lswigpike@release_suffix@
+
+pike_multi: $(SRCS)
+	$(SWIG) -c -pike $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PIKE_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PIKE_RUNTIME) $(PIKE_DLNK) $(LIBS) -o $(TARGET)$(SO)
+
+pike_multi_cpp: $(SRCS)
+	$(SWIG) -c -c++ -pike $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PIKE_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PIKE_RUNTIME) $(PIKE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Pike interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+PIKE_LIBOPTS = @PIKELINK@ @LIBS@ $(SYSLIBS)
+
+pike_static: $(SRCS)
+	$(SWIG) -pike -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) $(PIKE_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(PIKE_INCLUDE) $(LIBS) -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)
+
+pike_cpp_static: $(SRCS)
+	$(SWIG) -c++ -pike -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
+	$(PIKE_INCLUDE) $(LIBS)  -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)

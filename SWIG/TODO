@@ -338,6 +338,19 @@ Guile
 Mzscheme
 --------
 
+Pike
+----
+
+*      Decide how to handle global variables (probably using something
+       like the Python module's cvar). Affects Examples/pike/simple.
+
+*      Fix PIKE::constructorHandler() so that it renames the constructor
+       interface name to create(). Also make sure that create() returns
+       void to Pike.
+
+*      Should investigate the possibility of generating .cmod files
+       in addition to straight C/C++ code for extensions.
+
 Documentation
 -------------
 
