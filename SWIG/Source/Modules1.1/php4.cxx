@@ -1574,7 +1574,6 @@ public:
       // Print function header; we only need to find property name if there
       // are properties for this class to look up...
       if (key || !base ) { // or if we are base class...
-        Printf(s_propget,"  pval presult;\n  presult.type = IS_NULL;\n");
         Printf(s_propget,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
