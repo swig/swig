@@ -785,12 +785,13 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   String *result;
   int     i,len;
 
- if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
+  if (!typedef_qualified_cache) typedef_qualified_cache = NewHash();
   result = Getattr(typedef_qualified_cache,t);
   if (result) {
     String *rc = Copy(result);
     return rc;
   }
+
   result = NewString("");
   elements = SwigType_split(t);
   len = Len(elements);
@@ -817,7 +818,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	    }
 	  }
 	} else {
-
 	  if (Swig_scopename_check(e)) {
 	    String *tqname;
 	    String *qlast;
@@ -832,7 +832,27 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	      Delete(tqname);
 	    }
 	    /* Automatic template instantiation might go here??? */
-
+	  } else {
+	    /* It's a bare name.  It's entirely possible, that the
+               name is part of a namespace. We'll check this by unrolling
+               out of the current scope */
+	    
+	    Typetab *cs = current_scope;
+	    while (cs) {
+	      String *qs = SwigType_scope_name(cs);
+	      if (Len(qs)) {
+		Append(qs,"::");
+	      }
+	      Append(qs,e);
+	      if (Getattr(scopes,qs)) {
+		Clear(e);
+		Append(e,qs);
+		Delete(qs);
+		break;
+	      }
+	      Delete(qs);
+	      cs = Getattr(cs,"parent");
+	    }
 	  }
 	}
 	if (isenum) e = isenum;
