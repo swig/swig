@@ -115,7 +115,8 @@ static int current;
 enum {
   NO_CPP,
   MEMBER_FUNC,
-  CONSTRUCTOR,
+  CONSTRUCTOR_NEW,
+  CONSTRUCTOR_INITIALIZE,
   DESTRUCTOR,
   MEMBER_VAR,
   CLASS_CONST,
@@ -401,10 +402,15 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 	   iname, "\", ", wname, ", ", argcs, ");\n", 0);
 
     break;
-  case CONSTRUCTOR:
+  case CONSTRUCTOR_NEW:
     Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
-	   ", \"new\", ", wname,  ", ", argcs, ");\n", 0);
+	   ", \"new\", ", wname, ", -1);\n", 0);
     Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
+    break;
+  case CONSTRUCTOR_INITIALIZE:
+    Printv(s, tab4, "rb_define_method(", klass->vname,
+	   ", \"initialize\", ", wname, ", ", argcs, ");\n", 0);
+    Replace(klass->init,"$initializer", s, DOH_REPLACE_ANY);
     break;
   case MEMBER_VAR:
     Append(temp,iname);
@@ -428,81 +434,20 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::functionWrapper()
+ * RUBY::marshalInputArgs(int numarg, int numreq, int start, Wrapper *f)
  *
- * Create a function declaration and register it with the interpreter.
+ * Checks each of the parameters in the parameter list for a "check"
+ * typemap and (if it finds one) inserts the typemapping code into
+ * the function wrapper.
  * --------------------------------------------------------------------- */
 
-int RUBY::functionWrapper(Node *n) {
-  char *name = GetChar(n,"name");
-  char *iname = GetChar(n,"sym:name");
-  SwigType *t = Getattr(n,"type");
-  ParmList *l = Getattr(n,"parms");
-  char source[256], target[256];
-  String *tm;
-  String *cleanup, *outarg;
-  Wrapper *f;
+void RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f) {
   int i;
-  Parm    *p;
-
-  /* Ruby needs no destructor wrapper */
-  if (current == DESTRUCTOR)
-    return SWIG_NOWRAP;
-
-  char mname[256], inamebuf[256];
-  int predicate = 0, need_result = 0;
-
-  cleanup = NewString("");
-  outarg = NewString("");
-  f = NewWrapper();
-
-  switch (current) {
-  case MEMBER_FUNC:
-  case MEMBER_VAR:
-  case STATIC_FUNC:
-    strcpy(mname, klass->strip(iname));
-    if (Getattr(klass->predmethods, mname)) {
-      predicate = 1;
-      sprintf(inamebuf,"%s?",iname);
-      iname = inamebuf;
-    }
-    break;
-  }
-  String *wname = make_wrapper_name(iname);
-
-  /* Emit arguments */
-  emit_args(t,l,f);
-
-  /* Calculate number of arguments */
-
-  /* Attach standard typemaps */
-  emit_attach_parmmaps(l,f);
-
-  /* Get number of arguments */
-  int numarg = emit_num_arguments(l);
-  int numreq = emit_num_required(l);
-
-  int start = 0;
-  int use_self = 0;
-  switch (current) {
-  case MEMBER_FUNC:
-  case MEMBER_VAR:
-    start=1;
-    use_self = 1;
-    break;
-  }
-
-  /* Generate wrapper safe for all argument list sizes */
+  Parm *p;
+  String *tm;
+  char source[256], target[256];
   
-  /* Now write the wrapper function itself */
-  Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", 0);
-
-  Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
-  Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
-
-  /* Now walk the function parameter list and generate code */
-  /* to get arguments */
-
+  int use_self = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
   for (i = 0, p = l; i < numarg; i++) {
     /* Skip ignored arguments */
@@ -541,8 +486,19 @@ int RUBY::functionWrapper(Node *n) {
       Printf(f->code,"}\n");
     }
   }
+}
 
-  /* Insert constraint checking code */
+/* ---------------------------------------------------------------------
+ * RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f)
+ *
+ * Checks each of the parameters in the parameter list for a "check"
+ * typemap and (if it finds one) inserts the typemapping code into
+ * the function wrapper.
+ * --------------------------------------------------------------------- */
+
+void RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f) {
+  Parm *p;
+  String *tm;
   for (p = l; p;) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replace(tm,"$target",Getattr(p,"lname"),DOH_REPLACE_ANY);
@@ -552,9 +508,19 @@ int RUBY::functionWrapper(Node *n) {
       p = nextSibling(p);
     }
   }
-  
-  /* Insert cleanup code */
-  for (i = 0, p = l; p; i++) {
+}
+
+/* ---------------------------------------------------------------------
+ * RUBY::insertCleanupCode(ParmList *l, String *cleanup)
+ *
+ * Checks each of the parameters in the parameter list for a "freearg"
+ * typemap and (if it finds one) inserts the typemapping code into
+ * the function wrapper.
+ * --------------------------------------------------------------------- */
+
+void RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
+  String *tm;
+  for (Parm *p = l; p; ) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Printv(cleanup,tm,"\n",0);
@@ -563,9 +529,20 @@ int RUBY::functionWrapper(Node *n) {
       p = nextSibling(p);
     }
   }
+}
 
-  /* Insert argument output code */
-  for (i=0,p = l; p;i++) {
+/* ---------------------------------------------------------------------
+ * RUBY::insertCleanupCode(ParmList *l, String *cleanup)
+ *
+ * Checks each of the parameters in the parameter list for a "argout"
+ * typemap and (if it finds one) inserts the typemapping code into
+ * the function wrapper.
+ * --------------------------------------------------------------------- */
+
+void RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
+  Parm *p;
+  String *tm;
+  for (Parm *p = l; p; ) {
     if ((tm = Getattr(p,"tmap:argout"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","vresult",DOH_REPLACE_ANY);
@@ -579,31 +556,126 @@ int RUBY::functionWrapper(Node *n) {
       p = nextSibling(p);
     }
   }
+}
+
+/* ---------------------------------------------------------------------
+ * RUBY::functionWrapper()
+ *
+ * Create a function declaration and register it with the interpreter.
+ * --------------------------------------------------------------------- */
+
+int RUBY::functionWrapper(Node *n) {
+  char *name = GetChar(n,"name");
+  char *iname = GetChar(n,"sym:name");
+  SwigType *t = Getattr(n,"type");
+  ParmList *l = Getattr(n,"parms");
+  String *tm;
+  String *cleanup, *outarg;
+  Wrapper *f;
+  int i;
+  Parm *p;
+
+  /* Ruby needs no destructor wrapper */
+  if (current == DESTRUCTOR)
+    return SWIG_NOWRAP;
+
+  char mname[256], inamebuf[256];
+  int predicate = 0, need_result = 0;
+
+  cleanup = NewString("");
+  outarg = NewString("");
+  f = NewWrapper();
+
+  switch (current) {
+  case MEMBER_FUNC:
+  case MEMBER_VAR:
+  case STATIC_FUNC:
+    strcpy(mname, klass->strip(iname));
+    if (Getattr(klass->predmethods, mname)) {
+      predicate = 1;
+      sprintf(inamebuf,"%s?",iname);
+      iname = inamebuf;
+    }
+    break;
+  }
+  String *wname = make_wrapper_name(iname);
+
+  /* Emit arguments */
+  if (current != CONSTRUCTOR_NEW) {
+    emit_args(t,l,f);
+  }
+
+  /* Calculate number of arguments */
+
+  /* Attach standard typemaps */
+  emit_attach_parmmaps(l,f);
+
+  /* Get number of arguments */
+  int numarg = emit_num_arguments(l);
+  int numreq = emit_num_required(l);
+  int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
+
+  /* Generate wrapper safe for all argument list sizes */
+  
+  /* Now write the wrapper function itself */
+  Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", 0);
+
+  if (current != CONSTRUCTOR_NEW) {
+    Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
+    Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
+  }
+
+  /* Now walk the function parameter list and generate code */
+  /* to get arguments */
+  if (current != CONSTRUCTOR_NEW) {
+    marshalInputArgs(l, numarg, numreq, start, f);
+  }
+
+  /* Insert constraint checking code */
+  insertConstraintCheckingCode(l, f);
+  
+  /* Insert cleanup code */
+  insertCleanupCode(l, cleanup);
+
+  /* Insert argument output code */
+  insertArgOutputCode(l, outarg, need_result);
 
   /* Now write code to make the function call */
-  emit_action(n,f);
+  if (current != CONSTRUCTOR_NEW) {
+    emit_action(n, f);
+  }
 
   int newobj = 0;
   if (NewObject || (Getattr(n,"feature:new"))) newobj = 1;
 
   /* Return value if necessary */
-  if (SwigType_type(t) != T_VOID) {
+  if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_NEW && current != CONSTRUCTOR_INITIALIZE) {
     need_result = 1;
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
     } else {
       tm = Swig_typemap_lookup_new("out",n,"result",0);
       if (tm) {
-	Replaceall(tm,"$result","vresult");
+        Replaceall(tm,"$result","vresult");
 	Replaceall(tm,"$source","result");
 	Replaceall(tm,"$target","vresult");
-	Replaceall(tm,"$owner", ((current == CONSTRUCTOR) || newobj) ? "1" : "0");
-	Printv(f->code, tm, "\n", 0);
+	Replaceall(tm,"$owner", newobj ? "1" : "0");
+        Printv(f->code, tm, "\n", 0);
       } else {
 	Printf(stderr,"%s : Line %d. No return typemap for datatype %s\n",
 	       input_file,line_number,SwigType_str(t,0));
       }
     }
+  }
+
+  /* Extra code needed for new and initialize methods */  
+  if (current == CONSTRUCTOR_NEW) {
+    need_result = 1;
+    Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(t)));
+    Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
+  } else if (current == CONSTRUCTOR_INITIALIZE) {
+    need_result = 1;
+    Printf(f->code, "DATA_PTR(self) = result;\n");
   }
 
   /* Dump argument output code; */
@@ -635,8 +707,14 @@ int RUBY::functionWrapper(Node *n) {
 
   /* Wrap things up (in a manner of speaking) */
   if (need_result) {
-    Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
-    Printv(f->code, tab4, "return vresult;\n}\n", 0);
+    if (current == CONSTRUCTOR_NEW) {
+      Printv(f->code, tab4, "return vresult;\n}\n", 0);
+    } else if (current == CONSTRUCTOR_INITIALIZE) {
+      Printv(f->code, tab4, "return self;\n}\n", 0);
+    } else {
+      Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
+      Printv(f->code, tab4, "return vresult;\n}\n", 0);
+    }
   } else {
     Printv(f->code, tab4, "return Qnil;\n}\n", 0);
   }
@@ -645,13 +723,15 @@ int RUBY::functionWrapper(Node *n) {
   Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   /* Emit the function */
-  Wrapper_print(f,f_wrappers);
+  Wrapper_print(f, f_wrappers);
 
   /* Now register the function with the language */
   create_command(name, iname, -1);
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
+  
+  /* Done */
   return SWIG_OK;
 }
 
@@ -861,6 +941,7 @@ int RUBY::classHandler(Node *n) {
   Replace(klass->includes,"$class", klass->vname, DOH_REPLACE_ANY);
   Printv(klass->init, klass->includes,0);
   Printv(klass->init, "$constructor",0);
+  Printv(klass->init, "$initializer",0);
 
   Printv(klass->header,
 	 "$markproto",
@@ -904,6 +985,7 @@ int RUBY::classHandler(Node *n) {
   Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
 	 "), \"new\");\n", 0);
   Replace(klass->init,"$constructor", s, DOH_REPLACE_ANY);
+  Replace(klass->init,"$initializer", "", DOH_REPLACE_ANY);
   Replace(klass->init,"$super", "rb_cObject", DOH_REPLACE_ANY);
 
   Printv(f_init,klass->init,0);
@@ -943,8 +1025,17 @@ int RUBY::memberfunctionHandler(Node *n) {
 
 int RUBY::constructorHandler(Node *n) {
   if (!klass->constructor_defined) {
-    current = CONSTRUCTOR;
+    /* First wrap the new singleton method */
+    current = CONSTRUCTOR_NEW;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
     Language::constructorHandler(n);
+    
+    /* Now do the instance initialize method */
+    current = CONSTRUCTOR_INITIALIZE;
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_initialize");
+    Language::constructorHandler(n);
+    
+    /* Done */
     current = NO_CPP;
     klass->constructor_defined = 1;
   } else {

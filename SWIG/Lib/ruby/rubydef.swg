@@ -51,6 +51,14 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own)
     return Data_Wrap_Struct(klass, 0, 0, ptr);
 }
 
+/* Create a new class instance (always owned) */
+SWIGRUNTIME(VALUE)
+SWIG_NewClassInstance(VALUE klass, swig_type_info *type)
+{
+    swig_class *sklass = (swig_class *) type->clientdata;
+    return Data_Wrap_Struct(klass, VOIDFUNC(sklass->mark), VOIDFUNC(sklass->destroy), 0);
+}
+
 /* Get type mangle from class name */
 SWIGRUNTIME(char *)
 SWIG_MangleStr(VALUE obj)

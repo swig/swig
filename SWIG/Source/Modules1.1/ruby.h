@@ -14,6 +14,10 @@ class RUBY : public Language {
  protected:
   virtual String *make_wrapper_name(char *cname);
   virtual char *validate_const_name(char *name);
+  void marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f);
+  void insertConstraintCheckingCode(ParmList *l, Wrapper *f);
+  void insertCleanupCode(ParmList *l, String *cleanup);
+  void insertArgOutputCode(ParmList *l, String *outarg, int& need_result);
  public:
   /* Virtual functions required by the SWIG parser */
   virtual void main(int, char *argv[]);
