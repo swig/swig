@@ -4,7 +4,7 @@ open Swig
 open Example
 
 let y = "\205\177"
-let z = _to_wstring_with_locale (C_list [ C_string y ; C_string Sys.argv.(1) ])
+let z = _to_wstring_with_locale '((y to string),(Sys.argv.(1) to string))
 
 let _ = 
   begin
