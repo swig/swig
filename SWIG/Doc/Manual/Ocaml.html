@@ -29,9 +29,9 @@
 <li><a href="#n15">C++ Class Example</a>
 <li><a href="#n16">Compiling the example</a>
 <li><a href="#n17">Sample Session</a>
-<li><a href="#n18">Director Classes</a>
 </ul>
-<li><a href="#n18">Exceptions</a>
+<li><a href="#n18">Director Classes</a>
+<li><a href="#n19">Exceptions</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -580,10 +580,25 @@ see a window containing the string "hi" in a button.
 
 <a name="n18"></a><H3>16.2.4 Director Classes</H3>
 
+
 Director classes are classes which allow Ocaml code to override the public
 methods of a C++ object.  This facility allows the user to use C++ libraries
 that require a derived class to provide application specific functionality in
 the context of an application or utility framework.
+<p>
+You can turn on director classes by using an optional module argument like
+this:
+<pre><blockquote><p>
+%module(directors="1")
+
+...
+
+// Turn on the director class for a specific class like this:
+%feature("director")
+class foo {
+  ...
+};
+</p></blockquote></pre>
 <p>
 Because the Ocaml language module treats C++ method calls as calls to a
 certain function, all you need to do is to define the function that will
@@ -686,7 +701,7 @@ is an option ref that will have its value extracted before becoming the
 consequently trigger an exception when any method is called on the object
 after that point (the actual raise is from an inner function used by
 new_derived_object, and throws NotObject).
-<a name="n18"></a><H3>16.2.4 Exceptions</H3>
+<a name="n19"></a><H3>16.2.5 Exceptions</H3>
 
 
 Catching exceptions is now supported using SWIG's %exception feature.  A simple
