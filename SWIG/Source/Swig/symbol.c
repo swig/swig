@@ -1029,7 +1029,7 @@ Swig_symbol_remove(Node *n) {
   Delattr(n,"sym:overloaded");
   return;
 
-
+#if 0
   symtab  = Getattr(n,"sym:symtab");        /* Get symbol table object */
   symtab  = Getattr(symtab,"csymtab");       /* Get actual hash table of symbols */
   symprev = Getattr(n,"csym:previousSibling");
@@ -1054,7 +1054,7 @@ Swig_symbol_remove(Node *n) {
   Delattr(n,"sym:symtab");
   Delattr(n,"csym:previousSibling");
   Delattr(n,"csym:nextSibling");
-
+#endif
 }
 
 /* -----------------------------------------------------------------------------

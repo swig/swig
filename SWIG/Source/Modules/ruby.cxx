@@ -1090,10 +1090,8 @@ public:
           int is_reference = SwigType_isreference_return(decl);
           if (is_pointer || is_reference) {
             String *type = Getattr(n, "type");
-            //Node *classNode = Swig_methodclass(n);
-            //Node *module = Getattr(classNode, "module");
-            Node *module = Getattr(parent, "module");
-            Node *target = Swig_directormap(module, type);
+            Node *modname = Getattr(parent, "module");
+            Node *target = Swig_directormap(modname, type);
             if (target) unwrap = true;
           }
           if (unwrap) {
@@ -2132,8 +2130,8 @@ public:
 	 * to SWIGTYPE) called DIRECTORTYPE?
 	 */
 	if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
-	  Node *module = Getattr(parent, "module");
-	  Node *target = Swig_directormap(module, parameterType);
+	  Node *modname = Getattr(parent, "module");
+	  Node *target = Swig_directormap(modname, parameterType);
 	  sprintf(source, "obj%d", idx++);
 	  String *nonconst = 0;
 	  /* strip pointer/reference --- should move to Swig/stype.c */
