@@ -1,6 +1,31 @@
 Version 1.3.18 (In progress)
 ============================
 
+02/24/2002: beazley
+            Fixed a subtle problem with the code that determined if a class is abstract
+            and can be instantiated.    If you had classes like this:
+
+                  struct A {
+                     virtual int foo(int) = 0;
+                  };
+                  struct B : virtual A {
+                     virtual int foo(int);
+                  };
+
+                  struct C : virtual A { 
+                  };
+
+                  /* Note order of base classes */	
+                  struct D : B, C { };    /* Ok */
+                  struct E : C, B { };    /* Broken */
+
+            then SWIG determined that it could instantiate D(), but not E().
+            This inconsistency arose from the depth-first search of the 
+            inheritance hierarchy to locate the implementations of virtual
+            methods.   This problem should now be fixed---SWIG will attempt
+            to locate any valid implementation of a virtual method by
+            traversing over the entire hierarchy.
+
 02/19/2003: cheetah (William Fulton)
             [Java] Fix for using enum typemaps. The Java final static variable type
             can be set using the jstype typemap, enabling enums to be mapped to 
