@@ -271,7 +271,7 @@ class Allocate : public Dispatcher {
       if (Strcmp(nodeType(c),"cdecl") == 0) {
 	if (!Getattr(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
-	  if (!((Cmp(storage,"static") == 0) || (Cmp(storage,"typedef") == 0))) {
+	  if (!((Cmp(storage,"typedef") == 0))) {
 	    String *name = Getattr(c,"name");
 	    String *symname = Getattr(c,"sym:name");
 	    Node   *e    = Swig_symbol_clookup_local(name,0);
