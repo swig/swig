@@ -105,7 +105,7 @@ let _ = Callback.register "caml_director_get_self" director_get_self
 let addr_of obj = (invoke obj) "&" C_void
 let _ = Callback.register "caml_obj_ptr" addr_of
 
-
+let convert_c_obj a = Obj.magic a
 
 let make_float f = C_float f
 let make_double f = C_double f
