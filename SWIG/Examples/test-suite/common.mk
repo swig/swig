@@ -79,6 +79,7 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
+	namespace_template \
 	namespace_typemap \
 	pointer_cxx \
 	pointer_reference \
@@ -94,6 +95,7 @@ CPP_TEST_CASES += \
 	template_const_ref \
 	template_forward \
 	template_inherit \
+	template_ns \
 	template_ns2 \
 	template_qualifier \
 	template_qualifier \
