@@ -245,7 +245,7 @@
 
 %typemap(varin) SWIGTYPE * {
         void *temp;
-        if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
+        if (SWIG_ConvertPtr($input, &temp, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
         $1 = ($1_ltype) temp;
@@ -268,25 +268,27 @@
 
 %typemap(varin) SWIGTYPE & {
         void *temp;
-        if (SWIG_ConvertPtr($input, (void **) &temp, $1_descriptor,0) < 0) {
+        if (SWIG_ConvertPtr($input, &temp, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
         $1 = *($1_ltype) temp;
 }
 
 %typemap(varin) void * {
-	if (SWIG_ConvertPtr($input, (void **) &$1, 0,0) < 0) {
+        void *temp;
+	if (SWIG_ConvertPtr($input, &temp, 0,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
+	$1 = temp;
 }
 
 /* Object passed by value. Convert to a pointer */
 %typemap(varin) SWIGTYPE {
-    $&1_ltype argp;
-    if (SWIG_ConvertPtr($input,(void **) &argp, $&1_descriptor,0) < 0) {
+    $&1_ltype temp;
+    if (SWIG_ConvertPtr($input,(void **) &temp, $&1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $&1_mangle");
     }
-    $1 = *argp;
+    $1 = *temp;
 }
 
 /* Member pointer */
