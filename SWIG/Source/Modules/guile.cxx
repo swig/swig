@@ -1617,11 +1617,15 @@ public:
     String *goops_name = goopsNameMapping(proc, short_class_name);
     
     Printv(goopscode, "  (", goops_name, " #:allocation #:virtual", NIL);
-    Printv(goopscode, " #:slot-ref ", primRenamer ? "primitive:" : "", 
-                      short_class_name, "-", proc, "-get", NIL);
+    /* GOOPS (at least in Guile 1.6.3) only accepts closures, not
+       primitive procedures for slot-ref and slot-set. */
+    Printv(goopscode, " #:slot-ref (lambda (obj) (",
+	   primRenamer ? "primitive:" : "", 
+	   short_class_name, "-", proc, "-get", " obj))", NIL);
     if (!Getattr(n,"feature:immutable")) {
-      Printv(goopscode, " #:slot-set! ", primRenamer ? "primitive:" : "", 
-                        short_class_name, "-", proc, "-set", NIL);
+      Printv(goopscode, " #:slot-set! (lambda (obj value) (",
+	     primRenamer ? "primitive:" : "", 
+	     short_class_name, "-", proc, "-set", " obj value))", NIL);
     } else {
       Printf(goopscode, " #:slot-set! (lambda (obj value) (error \"Immutable slot\"))");
     }
