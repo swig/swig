@@ -92,6 +92,7 @@ CPP_TEST_CASES += \
 	bools \
 	casts \
 	cast_operator \
+	char_strings \
 	class_ignore \
 	class_scope_weird \
 	const_const_2 \
