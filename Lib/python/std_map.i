@@ -39,8 +39,8 @@
             
       static PyObject *from(const map_type& map) {
 	size_type size = map.size();
-	int pysize = size <= INT_MAX ? (int) size : 0;
-	if (!pysize) {
+	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
 	  PyErr_SetString(PyExc_OverflowError,
 			  "map size not valid in python");
 	  Py_INCREF(Py_None);
@@ -89,8 +89,8 @@
     
     PyObject* keys() {
       Map::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
+      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
 	Py_INCREF(Py_None);
@@ -106,8 +106,8 @@
     
     PyObject* values() {
       Map::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
+      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
 	Py_INCREF(Py_None);
@@ -123,8 +123,8 @@
     
     PyObject* items() {
       Map::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
+      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
 	Py_INCREF(Py_None);
@@ -145,8 +145,8 @@
 
     PyObject* __iter__() {
       Map::size_type size = self->size();
-      int pysize = size <= INT_MAX ? (int) size : 0;
-      if (!pysize) {
+      int pysize = (size <= (Map::size_type) INT_MAX) ? (int) size : -1;
+      if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError,
 			"map size not valid in python");
 	Py_INCREF(Py_None);

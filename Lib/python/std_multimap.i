@@ -38,8 +38,8 @@
             
       static PyObject *from(const multimap_type& multimap) {
 	size_type size = multimap.size();
-	int pysize = size <= INT_MAX ? (int) size : 0;
-	if (!pysize) {
+	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
 	  PyErr_SetString(PyExc_OverflowError,
 			  "multimap size not valid in python");
 	  Py_INCREF(Py_None);
