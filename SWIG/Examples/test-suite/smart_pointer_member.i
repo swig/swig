@@ -1,12 +1,6 @@
 %module smart_pointer_member
 
 
-%extend Foo
-{
-  int extension(int i, int j) { return i; }
-  int extension(int i) { return i; }
-  int extension() { return 1; }
-}
 
 %inline %{
 
