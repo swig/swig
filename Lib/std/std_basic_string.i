@@ -1,5 +1,6 @@
 %include <exception.i>
 %include <std_container.i>
+%include <std_alloc.i>
 %include <std_char_traits.i>
 
 %{
@@ -8,7 +9,7 @@
 
 namespace std {
 
-  template <class _CharT, class _Traits =  char_traits<_CharT> > 
+  template <class _CharT, class _Traits =  std::char_traits<_CharT>, typename _Alloc = std::allocator<_CharT> > 
   class basic_string
   {
 #if !defined(SWIG_STD_MODERN_STL) || defined(SWIG_STD_NOMODERN_STL)
@@ -181,7 +182,7 @@ namespace std {
 
 #ifdef %swig_basic_string
     // Add swig/language extra methods
-    %swig_basic_string(std::basic_string<_CharT >);
+    %swig_basic_string(std::basic_string<_CharT, _Traits, _Alloc >);
 #endif
 
 #ifdef SWIG_EXPORT_ITERATOR_METHODS
@@ -223,27 +224,27 @@ namespace std {
     replace(iterator __i1, iterator __i2, const_iterator __k1, const_iterator __k2);
 #endif
 
-    std::basic_string<_CharT>& operator +=(const basic_string& v);
+    basic_string& operator +=(const basic_string& v);
 
     %newobject __add__;   
     %newobject __radd__;
     %extend {
 
-      std::basic_string<_CharT>* __add__(const basic_string& v) {
-	std::basic_string<_CharT>* res = new std::basic_string<_CharT>(*self);
+      std::basic_string<_CharT,_Traits,_Alloc >* __add__(const basic_string& v) {
+	std::basic_string<_CharT,_Traits,_Alloc >* res = new std::basic_string<_CharT,_Traits,_Alloc >(*self);
 	*res += v;      
 	return res;
       }
       
-      std::basic_string<_CharT>* __radd__(const basic_string& v) {
-	std::basic_string<_CharT>* res = new std::basic_string<_CharT>(v);
+      std::basic_string<_CharT,_Traits,_Alloc >* __radd__(const basic_string& v) {
+	std::basic_string<_CharT,_Traits,_Alloc >* res = new std::basic_string<_CharT,_Traits,_Alloc >(v);
 	*res += *self;      
 	return res;
       }
       
-      const std::basic_string<_CharT>& __str__() {
+      std::basic_string<_CharT,_Traits,_Alloc > __str__() {
 	return *self;
-      }    
+      }
 
       std::basic_ostream<_CharT, std::char_traits<_CharT> >&
 	__rlshift__(std::basic_ostream<_CharT, std::char_traits<_CharT> >& out) {

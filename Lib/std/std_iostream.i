@@ -11,7 +11,7 @@
 namespace std
 {
   // 27.6.2.1 Template class basic_ostream
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   class basic_ostream : virtual public basic_ios<_CharT, _Traits>
   {
   public:
@@ -33,22 +33,29 @@ namespace std
     // 27.6.2.5.3  basic_ostream::operator<<
     basic_ostream<_CharT, _Traits>&
     operator<<(basic_ostream<_CharT, _Traits>& (*__pf)(basic_ostream<_CharT, _Traits>&));
+
       
     basic_ostream<_CharT, _Traits>&
     operator<<(basic_ios<_CharT, _Traits>& (*__pf)(basic_ios<_CharT, _Traits>&));
-      
+
+
     basic_ostream<_CharT, _Traits>&
     operator<<(ios_base& (*__pf) (ios_base&));
     
     // 27.6.2.5.2 Arithmetic Inserters
+
     basic_ostream<_CharT, _Traits>& 
     operator<<(long __n);
+
+      
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned long __n);
+
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(bool __n);
+
     
     basic_ostream<_CharT, _Traits>& 
     operator<<(short __n);
@@ -56,8 +63,10 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned short __n);
 
+
     basic_ostream<_CharT, _Traits>& 
     operator<<(int __n);
+
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned int __n);
@@ -68,6 +77,8 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned long long __n);
 
+
+
     basic_ostream<_CharT, _Traits>& 
     operator<<(double __f);
 
@@ -77,11 +88,21 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     operator<<(long double __f);
 
+
     basic_ostream<_CharT, _Traits>& 
     operator<<(const void* __p);
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(basic_streambuf<_CharT, _Traits>* __sb);
+
+    %extend {
+      std::basic_ostream<_CharT, _Traits >& 
+	operator<<(const std::basic_string<_CharT,_Traits, std::allocator<_CharT> >& s)
+	{
+	  *self << s;
+	  return *self;
+	}
+    }
 
     // Unformatted output:
     basic_ostream<_CharT, _Traits>& 
@@ -103,18 +124,10 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     seekp(off_type, ios_base::seekdir);
 
-    %extend {
-      std::basic_ostream<_CharT, _Traits>& 
-	operator<<(const std::basic_string<_CharT>& s) 
-	{
-	  *self << s;
-	  return *self;
-	}
-    }
   };
 
   // 27.6.1.1 Template class basic_istream
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   class basic_istream : virtual public basic_ios<_CharT, _Traits>
   {
   public:
@@ -247,7 +260,7 @@ namespace std
   };  
 
   // 27.6.1.5 Template class basic_iostream
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   class basic_iostream
     : public basic_istream<_CharT, _Traits>, 
       public basic_ostream<_CharT, _Traits>
@@ -284,15 +297,15 @@ namespace std
   extern std::wostream wcerr;
   extern std::wostream wclog;
 
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
   endl(std::basic_ostream<_CharT, _Traits>&);
 
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
   ends(std::basic_ostream<_CharT, _Traits>&);
 
-  template<typename _CharT, typename _Traits>
+  template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
   flush(std::basic_ostream<_CharT, _Traits>&);
 }
