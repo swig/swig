@@ -17,6 +17,49 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 
+04/04/2002: beazley
+            Subtle change to structure data member access.  If you
+            have a structure like this:
+
+                struct Foo {
+                    Bar   b;
+                };
+
+            The accessor functions for b are generated as follows:
+
+            (1) If b is *not* defined as a structure or class:
+
+                Bar Foo_b_get(Foo *self) {
+                    return self->b;
+                }
+                void Foo_b_set(Foo *self, Bar value) {
+                    self->b = value;
+                }
+
+            (2) If b *is* defined as a structure or class:
+
+                Bar *Foo_b_get(Foo *self) {
+                    return &self->b;
+                }
+                void Foo_b_set(Foo *self, Bar *value) {
+                    self->b = *value;
+                }
+            See the "Structure data members" section of Doc/Manual/SWIG.html
+            for further details.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            This may break interfaces that relied on a lot of a undeclared
+            structure and class names.    To get the old behavior, simply
+            use a forward declaration such as "struct Bar;"
+            
+04/04/2002: beazley
+            C++ namespace support added.  SWIG supports all aspects of
+            namespaces including namespace, using, and namespace alias
+            declarations.    The default behavior of SWIG is to flatten
+            namespaces in the target language.  However, namespaces are
+            fully supported at the C++ level and in the type system.
+            See Doc/Manual/SWIGPlus.html for details on the implementation.
+     
 04/02/2002: cheetah (William Fulton)
             [Java] Sun has modified javac in jdk1.4 to no longer compile
             an import of an unnamed namespace. To fix this SWIG no longer 
@@ -105,14 +148,6 @@ Version 1.3.12 (In Progress)
             This approach is more like C++.   It's not clear that SWIG ever
             really supported the ANSI C anyways---using the same name would
             almost certainly generate a name-clash in the target language.
-
-            enum names are no longer placed in the symbol table.  For example:
-
-                enum Foo { ... };
-                
-                int Foo() { ... };   // OK!
-
-            This is okay in C and C++.  SWIG used to generate an error.
 
 03/22/2002: ljohnson (Lyle Johnson)
             [Ruby] Fixed [ 517302 ] for handling of renamed overloaded
