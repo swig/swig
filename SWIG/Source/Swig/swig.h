@@ -377,6 +377,8 @@ extern String    *Swig_string_escape(String *s);
 extern String    *Swig_string_mangle(String *s);
 extern String    *Swig_scopename_prefix(String *s);
 extern String    *Swig_scopename_base(String *s);
+extern int        Swig_scopename_check(String *s);
+
 extern void       Swig_init();
 extern void       Swig_warn(const char *filename, int line, const char *msg);
 

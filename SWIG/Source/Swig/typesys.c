@@ -378,7 +378,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     }
     if (!type) {
       /* Didn't find in this scope.   We need to do a little more searching */
-      if (Strstr(base,"::")) {
+      if (Swig_scopename_check(base)) {
 	/* A qualified name. */
 	nameprefix = Swig_scopename_prefix(base);
 	if (nameprefix) {
@@ -393,7 +393,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 	  /* Try to locate the name starting in the scope */
 	  namebase = Swig_scopename_base(base);
 	  type = typedef_resolve(s,namebase);
-	  if ((type) && (!Strstr(type,"::"))) {
+	  if ((type) && (!Swig_scopename_check(type))) {
 	    Typetab *rtab = resolved_scope;
 	    String *qname = Getattr(resolved_scope,"qname");
 	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
@@ -665,7 +665,7 @@ int SwigType_typedef_using(String_or_char *name) {
   Typetab *s;
   String *defined_name = 0;
 
-  if (!Strstr(name,"::")) return -1;     /* Not properly qualified */
+  if (!Swig_scopename_check(name)) return -1;     /* Not properly qualified */
   base   = Swig_scopename_base(name);
 
   /* See if the base is already defined in this scope */

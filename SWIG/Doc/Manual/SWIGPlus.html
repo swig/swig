@@ -2521,6 +2521,33 @@ the parser and type system in SWIG-1.3.12 and the preprocessor is no longer used
 that relied on preprocessing features in template expansion will no longer work.  However,
 SWIG still allows the # operator to be used to generate a string from a template argument.
 
+<p>
+<b>Compatibility Note</b>: In earlier versions of SWIG, the <tt>%template</tt> directive
+introduced a new class name.  This name could then be used with other directives.  For example:
+
+<blockquote>
+<pre>
+%template(vectori) vector&lt;int&gt;;
+%extend vectori {
+    void somemethod() { }
+};
+</pre>
+</blockquote>
+
+This behavior is no longer supported.  Instead, you should use the original template name
+as the class name.  For example:
+
+<blockquote>
+<pre>
+%template(vectori) vector&lt;int&gt;;
+%extend vector&lt;int&gt; {
+    void somemethod() { }
+};
+</pre>
+</blockquote>
+
+Similar changes apply to typemaps and other customization features.
+
 <a name="n24"></a><H2>5.17 Namespaces</H2>
 
 

@@ -213,19 +213,31 @@ String *Swig_string_mangle(String *s) {
 
 String *
 Swig_scopename_prefix(String *s) {
-  char tmp[512];
+  char tmp[1024];
   char   *c, *cc;
   if (!Strstr(s,"::")) return 0;
   strcpy(tmp,Char(s));
   c = tmp;
   cc = c;
-  while (c) {
-    c = strstr(c,"::");
-    if (c) {
+  while (*c) {
+    if (strncmp(c,"::",2) == 0) {
       cc = c;
       c += 2;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
     }
   }
+
   *cc = 0;
   if (cc != tmp) {
     return NewString(tmp);
@@ -243,20 +255,61 @@ Swig_scopename_prefix(String *s) {
 
 String *
 Swig_scopename_base(String *s) {
-  char tmp[512];
+  char tmp[1024];
   char   *c, *cc;
   if (!Strstr(s,"::")) return NewString(s);
   strcpy(tmp,Char(s));
   c = tmp;
   cc = c;
-  while (c) {
-    c = strstr(c,"::");
-    if (c) {
+
+  while (*c) {
+    if (strncmp(c,"::",2) == 0) {
       cc = c;
       c += 2;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
     }
   }
   return NewString(cc+2);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_scopename_check()
+ *
+ * Checks to see if a name is qualified with a scope name
+ * ----------------------------------------------------------------------------- */
+
+int Swig_scopename_check(String *s) {
+  char *c = Char(s);
+  if (!Strstr(s,"::")) return 0;
+  while (*c) {
+    if (strncmp(c,"::",2) == 0) {
+      return 1;
+    } else {
+      if (*c == '<') {
+	int level = 1;
+	c++;
+	while (*c && level) {
+	  if (*c == '<') level++;
+	  if (*c == '>') level--;
+	  c++;
+	}
+      } else {
+	c++;
+      }
+    }
+  }
+  return 0;
 }
 
 

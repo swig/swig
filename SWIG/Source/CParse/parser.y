@@ -1754,8 +1754,75 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
 template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
+		  Node *nspace = 0, *nspace_inner = 0;
+		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  $$ = 0;
+
+		  tscope = Swig_symbol_current();          /* Get the current scope */
+
+		  /* If the template name is qualified.  We need to create or lookup namespace entries */
+		  if (Swig_scopename_check($5)) {
+		    String *prefix, *base;
+		    Node   *ns;
+		    prefix = Swig_scopename_prefix($5);
+		    base = Swig_scopename_base($5);
+		    
+		    /* Try to locate the scope */
+		    ns = Swig_symbol_clookup(prefix,0);
+		    if (!ns) {
+		      Swig_error(cparse_file,cparse_line,"Undefined scope '%s'\n", prefix);
+		    } else {
+		      if (Strcmp(nodeType(ns),"namespace") != 0) {
+			Swig_error(cparse_file,cparse_line,"'%s' is not defined as namespace.\n", prefix);
+			ns = 0;
+		      } else {
+			/*			Swig_symbol_setscope(Getattr(ns,"symtab"));
+						Namespaceprefix = Swig_symbol_qualifiedscopename(0); */
+		      }
+		    }
+
+		    /* Create namespace nodes to enclose the template declaration */
+		    if (ns) {
+		      List *scopes;
+		      String *sname;
+		      String *name = NewString(prefix);
+		      scopes = NewList();
+		      while (name) {
+			String *tprefix;
+			String *base = Swig_scopename_base(name);
+			Insert(scopes,0,base);
+			tprefix = Swig_scopename_prefix(name);
+			Delete(name);
+			name = tprefix;
+		      }
+		      for (sname = Firstitem(scopes); sname; sname = Nextitem(scopes)) {
+			Node *ns1,*ns2;
+
+			ns1 = Swig_symbol_clookup(sname,0);
+			assert(ns1);
+			if (Strcmp(nodeType(ns1),"namespace") == 0) {
+			  if (Getattr(ns1,"alias")) {
+			    ns1 = Getattr(ns1,"namespace");
+			  }
+			} else {
+			  assert(0);
+			}
+			ns2 = new_node("namespace");
+			Setattr(ns2,"name",sname);
+			Setattr(ns2,"symtab", Getattr(ns1,"symtab"));
+			add_symbols(ns2);
+			Swig_symbol_setscope(Getattr(ns1,"symtab"));
+			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+			if (nspace_inner) {
+			  appendChild(nspace_inner,ns2);
+			}
+			nspace_inner = ns2;
+			if (!nspace) nspace = ns2;
+		      }
+		      $5 = base;
+		    }
+		  }
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
@@ -1851,6 +1918,12 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		      }
 		    }
 		  }
+		  if ($$ && nspace) {
+		    appendChild(nspace_inner,$$);
+		    $$ = nspace;
+		  }
+		  Swig_symbol_setscope(tscope);
+		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
                }
                ;
 

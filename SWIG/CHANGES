@@ -16,6 +16,46 @@ tree (maybe).
 
 Version 1.3.13 (In progress)
 ============================
+06/07/2002: beazley
+            Lessened the strictness of abstract class checking.  If you have code like this:
+
+                class Foo {
+                public:
+                   virtual int method() = 0;
+                };
+
+                class Bar : public Foo {
+                public:
+                    Bar();
+                   ~Bar();
+                };
+
+             SWIG will go ahead and generate constructor/destructors for Bar.  However, it will
+             also generate a warning message that "Bar" might be abstract (since method() isn't
+             defined).   In SWIG-1.3.12, SWIG refused to generate a constructor at all.
+
+06/07/2002: beazley
+            Change to %template directive.  If you specify something like this:
+
+                %template(vi) std::vector<int>;
+
+            It is *exactly* the same as this:
+ 
+                namespace std {
+                    %template(vi) vector<int>;
+                }
+
+            SWIG-1.3.12 tried to instantiate the template outside of the namespace
+            using some trick.  However, this was extremely problematic and full
+            holes.   This version is safer.
+
+06/07/2002: beazley
+            Fixed bug with scope qualification and templates.  For example:
+
+                 A<B::C>::DD
+
+            Before, this was separated as scopes A<B, C>, and DD.  Fixed now.
+
 06/06/2002: beazley
             Allow the following syntax: 
                

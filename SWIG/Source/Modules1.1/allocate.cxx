@@ -115,7 +115,8 @@ public:
 
     if (is_abstract_inherit(n)) {
       if (!Getattr(n,"abstract")) {
-	Setattr(n,"abstract",NewList());
+	Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. \n", Getattr(n,"name"));
+		     /*	Setattr(n,"abstract",NewList()); */
       }
     }
 

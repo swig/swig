@@ -109,7 +109,7 @@ class TypePass : public Dispatcher {
 		    String *sname = bname;
 		    /* Try to locate the base class.   We look in the symbol table and we chase 
 		       typedef declarations to get to the base class if necessary */
-		    Symtab *st = 0;
+		    Symtab *st = Getattr(cls,"sym:symtab");
 		    while (1) {
 			bcls = Swig_symbol_clookup(sname,st);
 			if (bcls) {

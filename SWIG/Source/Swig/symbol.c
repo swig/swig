@@ -627,22 +627,12 @@ symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, in
   if (!symtab) return 0;
   if (!prefix) {
     Node *n;
-    List *namelist;
-    int   i, len;
-
-    String *nname = NewString(name);
-    Replaceall(nname,"::",":");
-    namelist = Split(nname,":",-1);
-    prefix = NewString("");
-    len = Len(namelist);
-    for (i = 0; i < len - 1; i++) {
-      if (i > 0) Append(prefix,"::");
-      Append(prefix,Getitem(namelist,i));
-    }
-    name = Getitem(namelist,len-1);
-    n = symbol_lookup_qualified(name, symtab, prefix, local);
-    Delete(nname);
-    Delete(namelist);
+    String *bname;
+    String *prefix;
+    bname = Swig_scopename_base(name);
+    prefix = Swig_scopename_prefix(name);
+    n = symbol_lookup_qualified(bname,symtab,prefix,local);
+    Delete(bname);
     Delete(prefix);
     return n;
   } else {
@@ -703,12 +693,18 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
       hsym = n;
     }
   }
-
-  if (Strstr(name,"::")) {
+  
+  if (Swig_scopename_check(name)) {
     if (Strncmp(name,"::",2) == 0) s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
-    else s = symbol_lookup_qualified(name,hsym,0,0);
-    if (!s) {
-      return 0;
+    else {
+      String *prefix = Swig_scopename_prefix(name);
+      if (prefix) {
+	s = symbol_lookup_qualified(name,hsym,0,0);
+	Delete(prefix);
+	if (!s) {
+	  return 0;
+	}
+      }
     }
   }
   if (!s) {
@@ -751,7 +747,7 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
     h = Getattr(n,"csymtab");
   }
 
-  if (Strstr(name,"::")) {
+  if (Swig_scopename_check(name)) {
     if (Strncmp(name,"::",2) == 0) {
       s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
     } else {

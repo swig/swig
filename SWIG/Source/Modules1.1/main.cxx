@@ -478,6 +478,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     Node *top = Swig_cparse(cpps);
+
     Swig_process_types(top);
     Swig_default_allocators(top);
 
