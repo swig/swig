@@ -44,18 +44,22 @@ To use these, suppose you had a C function like this :
 
 You could wrap it with SWIG as follows :
         
-        %include typemaps.i
+        %include "typemaps.i"
         double fadd(double *INPUT, double *INPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include "typemaps.i"
         %apply double *INPUT { double *a, double *b };
         double fadd(double *a, double *b);
 
 In Java you could then use it like this:
         double answer = modulename.fadd(10.0, 20.0);
 
+There are no char *INPUT typemaps, however you can apply the signed char * typemaps instead:
+        %include "typemaps.i"
+        %apply signed char *INPUT {char *input};
+        void f(char *input);
 */
 
 %define INPUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JNIDESC)
@@ -81,6 +85,8 @@ In Java you could then use it like this:
 
 %typemap(directorin,descriptor=JNIDESC) CTYPE *INPUT
 %{ *(($&1_ltype) $input) = (JNITYPE *) $1; %}
+
+%typemap(freearg) CTYPE *INPUT, CTYPE &INPUT ""
 
 %typemap(typecheck) CTYPE *INPUT = CTYPE;
 %typemap(typecheck) CTYPE &INPUT = CTYPE;
@@ -172,12 +178,12 @@ returns the integer part in one of its parameters):
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include "typemaps.i"
         double modf(double x, double *OUTPUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include "typemaps.i"
         %apply double *OUTPUT { double *ip };
         double modf(double x, double *ip);
 
@@ -187,6 +193,10 @@ value in the single element array. In Java you would use it like this:
     double[] intptr = {0};
     double fraction = modulename.modf(5,intptr);
 
+There are no char *OUTPUT typemaps, however you can apply the signed char * typemaps instead:
+        %include "typemaps.i"
+        %apply signed char *OUTPUT {char *output};
+        void f(char *output);
 */
 
 /* Java BigInteger[] */
@@ -227,6 +237,8 @@ value in the single element array. In Java you would use it like this:
 %{
 #error "Need to provide OUT directorin typemap, CTYPE array length is unknown"
 %}
+
+%typemap(freearg) CTYPE *OUTPUT, CTYPE &OUTPUT ""
 
 %typemap(argout) CTYPE *OUTPUT, CTYPE &OUTPUT 
 {
@@ -307,12 +319,12 @@ For example, suppose you were trying to wrap the following function :
 
 You could wrap it with SWIG as follows :
 
-        %include typemaps.i
+        %include "typemaps.i"
         void neg(double *INOUT);
 
 or you can use the %apply directive :
 
-        %include typemaps.i
+        %include "typemaps.i"
         %apply double *INOUT { double *x };
         void neg(double *x);
 
@@ -328,6 +340,10 @@ The implementation of the OUTPUT and INOUT typemaps is different to other
 languages in that other languages will return the output value as part 
 of the function return value. This difference is due to Java being a typed language.
 
+There are no char *INOUT typemaps, however you can apply the signed char * typemaps instead:
+        %include "typemaps.i"
+        %apply signed char *INOUT {char *inout};
+        void f(char *inout);
 */
 
 %define INOUT_TYPEMAP(CTYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
@@ -364,6 +380,8 @@ of the function return value. This difference is due to Java being a typed langu
 {
 #error "Need to provide INOUT directorin typemap, CTYPE array length is unknown"
 }
+
+%typemap(freearg) CTYPE *INOUT, CTYPE &INOUT ""
 
 %typemap(argout) CTYPE *INOUT, CTYPE &INOUT
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
