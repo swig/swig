@@ -962,6 +962,71 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   return s;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_lookup_new()
+ *
+ * Attach one or more typemaps to a node
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f)
+{
+  SwigType *type;
+  String   *pname;
+  Hash     *tm;
+  String   *s = 0;
+  ParmList *locals;
+  ParmList *kw;
+  char     temp[256];
+  String   *symname;
+
+  type  = Getattr(node,"type");
+  if (!type) return 0;
+
+  pname = Getattr(node,"name");
+  tm = Swig_typemap_search(op,type,pname);
+  if (!tm) return 0;
+
+  s = Getattr(tm,"code");
+  if (!s) return 0;
+  s = Copy(s);             /* Make a local copy of the typemap code */
+
+  locals = Getattr(tm,"locals");
+  if (locals) locals = CopyParmList(locals);
+
+  typemap_replace_vars(s,locals,type,pname,(char *) lname,1);
+
+  if (locals && f) {
+    typemap_locals(s,locals,f,-1);
+  }
+  {
+    String *tmname = Getattr(tm,"typemap");
+    if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
+  }
+  Replace(s,"$name",pname,DOH_REPLACE_ANY);
+  
+  symname = Getattr(node,"sym:name");
+  if (symname) {
+    Replace(s,"$symname",symname, DOH_REPLACE_ANY);
+  }
+
+  Setattr(node,tmop_name(op),s);
+  if (locals) {
+    sprintf(temp,"%s:locals", Char(op));
+    Setattr(node,tmop_name(temp), locals);
+    Delete(locals);  
+  }
+
+  /* Attach kwargs */
+  kw = Getattr(tm,"kwargs");
+  while (kw) {
+    sprintf(temp,"%s:%s",Char(op),Char(Getattr(kw,"name")));
+    Setattr(node,tmop_name(temp), Getattr(kw,"value"));
+    kw = nextSibling(kw);
+  }
+  return s;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_typemap_attach_parms()
  *
@@ -1024,10 +1089,15 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
     /* Attach attributes to object */
     Setattr(firstp,tmop_name(op),s);           /* Code object */
 
+    if (locals) {
+      sprintf(temp,"%s:locals", Char(op));
+      Setattr(firstp,tmop_name(temp), locals);
+      Delete(locals);
+    }
+
     /* Attach a link to the next parameter.  Needed for multimaps */
     sprintf(temp,"%s:next",Char(op));
     Setattr(firstp,tmop_name(temp),p);
-    Delete(locals);
 
     /* Attach kwargs */
     kw = Getattr(tm,"kwargs");
