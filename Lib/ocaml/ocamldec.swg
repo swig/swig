@@ -89,6 +89,8 @@ CAMLextern int64 Int64_val(caml_value_t v);
 #	define SWIGSTATIC static
 #endif
 
+#define SWIG_NewPointerObj(p,type,flags) caml_val_ptr(p,type)
+
 #define SWIG_contract_assert(expr, msg) if(!(expr)) {failwith(msg);} else
 
     SWIGSTATIC int
