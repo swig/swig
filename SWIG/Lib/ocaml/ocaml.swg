@@ -46,6 +46,8 @@ SWIG_MakePtr(void *c_pointer, swig_type_info *type,
 	     char *delete_fn) {
     CAMLparam0();
     CAMLlocal1(v);
+    value *create_object = NULL;
+    char *type_name_buf = NULL;
     struct custom_block_contents *new_proxy;
 
     v = alloc_custom(&makeptr_custom_ops,
@@ -54,6 +56,19 @@ SWIG_MakePtr(void *c_pointer, swig_type_info *type,
     new_proxy->delete_fn = strdup( delete_fn );
     new_proxy->type = type;
     new_proxy->object = (void *) c_pointer;
+    if( type ) {
+	type_name_buf = (char *)malloc(strlen(type->str) +
+				       strlen("create_") +
+				       strlen("_instance") + 1);
+	strcpy(type_name_buf,"create_");
+	strcat(type_name_buf,type->str);
+	strcat(type_name_buf,"_instance");
+	create_object = caml_named_value(type_name_buf);
+	free(type_name_buf);
+    }
+    if( !create_object )
+	create_object = caml_named_value("create_void_instance");
+    v = callback( *create_object, v );
     CAMLreturn(v);
 }
 
@@ -61,9 +76,11 @@ SWIGSTATIC void *
 SWIG_MustGetPtr (value s, swig_type_info *type)
 {
     CAMLparam1(s);
-    struct custom_block_contents *proxy = 
-	(struct custom_block_contents *)(Data_custom_val(s));
-    void *v = proxy->object;
+    struct custom_block_contents *proxy;
+    void *v;
+    s = callback(Field(s,1),Field(s,0));
+    proxy = (struct custom_block_contents *)(Data_custom_val(s));
+    v = proxy->object;
     if( type && proxy->type ) {
 	if( !SWIG_TypeDynamicCast(type,&v) ) {
 	    static char staticbuf[1024];
