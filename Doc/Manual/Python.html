@@ -44,38 +44,48 @@
 <li><a href="#n30">Memory management</a>
 <li><a href="#n31">Python 2.2 and classic classes</a>
 </ul>
-<li><a href="#n32">Common customization features</a>
+<li><a href="#n32">Cross language polymorphism (experimental)</a>
 <ul>
-<li><a href="#n33">C/C++ helper functions</a>
-<li><a href="#n34">Adding additional Python code</a>
-<li><a href="#n35">Class extension with %extend</a>
-<li><a href="#n36">Exception handling with %exception</a>
+<li><a href="#n33">Command line options</a>
+<li><a href="#n34">Director classes</a>
+<li><a href="#n35">Ownership and object destruction</a>
+<li><a href="#n36">Exception unrolling</a>
+<li><a href="#n37">Overhead and code bloat</a>
+<li><a href="#n38">Typemaps</a>
+<li><a href="#n39">Miscellaneous</a>
 </ul>
-<li><a href="#n37">Tips and techniques</a>
+<li><a href="#n40">Common customization features</a>
 <ul>
-<li><a href="#n38">Input and output parameters</a>
-<li><a href="#n39">Simple pointers</a>
-<li><a href="#n40">Unbounded C Arrays</a>
-<li><a href="#n41">String handling</a>
-<li><a href="#n42">Arrays</a>
-<li><a href="#n43">String arrays</a>
-<li><a href="#n44">STL wrappers</a>
+<li><a href="#n41">C/C++ helper functions</a>
+<li><a href="#n42">Adding additional Python code</a>
+<li><a href="#n43">Class extension with %extend</a>
+<li><a href="#n44">Exception handling with %exception</a>
 </ul>
-<li><a href="#n45">Typemaps</a>
+<li><a href="#n45">Tips and techniques</a>
 <ul>
-<li><a href="#n46">What is a typemap?</a>
-<li><a href="#n47">Python typemaps</a>
-<li><a href="#n48">Typemap variables</a>
-<li><a href="#n49">Useful Python Functions</a>
+<li><a href="#n46">Input and output parameters</a>
+<li><a href="#n47">Simple pointers</a>
+<li><a href="#n48">Unbounded C Arrays</a>
+<li><a href="#n49">String handling</a>
+<li><a href="#n50">Arrays</a>
+<li><a href="#n51">String arrays</a>
+<li><a href="#n52">STL wrappers</a>
 </ul>
-<li><a href="#n50">Typemap Examples</a>
+<li><a href="#n53">Typemaps</a>
 <ul>
-<li><a href="#n51">Converting  Python list to a char ** </a>
-<li><a href="#n52">Expanding a Python object into multiple arguments</a>
-<li><a href="#n53">Using typemaps to return arguments</a>
-<li><a href="#n54">Mapping Python tuples into small arrays</a>
-<li><a href="#n55">Mapping sequences to C arrays</a>
-<li><a href="#n56">Pointer handling</a>
+<li><a href="#n54">What is a typemap?</a>
+<li><a href="#n55">Python typemaps</a>
+<li><a href="#n56">Typemap variables</a>
+<li><a href="#n57">Useful Python Functions</a>
+</ul>
+<li><a href="#n58">Typemap Examples</a>
+<ul>
+<li><a href="#n59">Converting  Python list to a char ** </a>
+<li><a href="#n60">Expanding a Python object into multiple arguments</a>
+<li><a href="#n61">Using typemaps to return arguments</a>
+<li><a href="#n62">Mapping Python tuples into small arrays</a>
+<li><a href="#n63">Mapping sequences to C arrays</a>
+<li><a href="#n64">Pointer handling</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -1899,7 +1909,55 @@ of static member functions.  In Python-2.2, they can be accessed via the
 class itself.  In Python-2.1 and earlier, they have to be accessed as a global
 function or through an instance (see the earlier section).
 
-<a name="n32"></a><H2>19.5 Common customization features</H2>
+<a name="n32"></a><H2>19.5 Cross language polymorphism (experimental)</H2>
+
+Proxy classes provide a more natural, object-oriented way to access
+extension classes. As described above, each proxy instance has an
+associated C++ instance, and method calls to the proxy are passed to the
+C++ instance transparently via C wrapper functions.
+
+<p> This arrangement is asymmetric in the sense that no corresponding
+mechanism exists to pass method calls down the inheritance chain from
+C++ to Python. In particular, if a C++ class has been extended in Python
+(by extending the proxy class), these extensions will not be visible
+from C++ code. Virtual method calls from C++ are thus not able access
+the lowest implementation in the inheritance chain.
+
+<p> Change have been made to SWIG 1.3.18 to address this problem and
+make the relationship between C++ classes and proxy classes more
+symmetric. To achieve this goal, new classes called directors are
+introduced at the bottom of the C++ inheritance chain. The job of the
+directors is to route method calls correctly, either to C++
+implementations higher in the inheritance chain or to Python
+implementations lower in the inheritance chain. The upshot is that C++
+classes can be extended in Python and from C++ these extensions look
+exactly like native C++ classes. Neither C++ code nor Python code needs
+to know where a particular method is implemented: the combination of
+proxy classes, director classes, and c wrapper functions takes care of
+all the cross-language method routing transparently.
+
+<a name="n33"></a><H3>19.5.1 Command line options</H3>
+
+
+<a name="n34"></a><H3>19.5.2 Director classes</H3>
+
+
+<a name="n35"></a><H3>19.5.3 Ownership and object destruction</H3>
+
+
+<a name="n36"></a><H3>19.5.4 Exception unrolling</H3>
+
+
+<a name="n37"></a><H3>19.5.5 Overhead and code bloat</H3>
+
+
+<a name="n38"></a><H3>19.5.6 Typemaps</H3>
+
+
+<a name="n39"></a><H3>19.5.7 Miscellaneous</H3>
+
+
+<a name="n40"></a><H2>19.6 Common customization features</H2>
 
 
 The last section presented the absolute basics of C/C++ wrapping. If you do nothing
@@ -1909,7 +1967,7 @@ types of functionality might be missing or the interface to certain functions mi
 be awkward.  This section describes some common SWIG features that are used
 to improve your the interface to an extension module.
 
-<a name="n33"></a><H3>19.5.1 C/C++ helper functions</H3>
+<a name="n41"></a><H3>19.6.1 C/C++ helper functions</H3>
 
 
 Sometimes when you create a module, it is missing certain bits of functionality. For
@@ -1980,7 +2038,7 @@ Admittedly, this is not the most elegant looking approach.  However, it works an
 hard to implement.  It is possible to clean this up using Python code, typemaps, and other
 customization features as covered in later sections.
 
-<a name="n34"></a><H3>19.5.2 Adding additional Python code</H3>
+<a name="n42"></a><H3>19.6.2 Adding additional Python code</H3>
 
 
 If writing support code in C isn't enough, it is also possible to write code in
@@ -2028,7 +2086,7 @@ soon enough.  For now, think of this example as an illustration of
 what can be done without having to rely on any of the more advanced
 customization features.
 
-<a name="n35"></a><H3>19.5.3 Class extension with %extend</H3>
+<a name="n43"></a><H3>19.6.3 Class extension with %extend</H3>
 
 
 One of the more interesting features of SWIG is that it can extend
@@ -2107,7 +2165,7 @@ Vector(12,14,16)
 <tt>%extend</tt> works with both C and C++ code.  It does not modify the underlying object
 in any way---the extensions only show up in the Python interface.
 
-<a name="n36"></a><H3>19.5.4 Exception handling with %exception</H3>
+<a name="n44"></a><H3>19.6.4 Exception handling with %exception</H3>
 
 
 If a C or C++ function throws an error, you may want to convert that error into a Python
@@ -2220,7 +2278,7 @@ PyExc_ZeroDivisionError
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html">SWIG Library</a> chapter.
 
-<a name="n37"></a><H2>19.6 Tips and techniques</H2>
+<a name="n45"></a><H2>19.7 Tips and techniques</H2>
 
 
 Although SWIG is largely automatic, there are certain types of wrapping problems that
@@ -2228,7 +2286,7 @@ require additional user input.    Examples include dealing with output parameter
 strings, binary data, and arrays.   This chapter discusses the common techniques for
 solving these problems.
 
-<a name="n38"></a><H3>19.6.1 Input and output parameters</H3>
+<a name="n46"></a><H3>19.7.1 Input and output parameters</H3>
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -2408,7 +2466,7 @@ void foo(Bar *OUTPUT);
 
 may not have the intended effect since <tt>typemaps.i</tt> does not define an OUTPUT rule for <tt>Bar</tt>.
 
-<a name="n39"></a><H3>19.6.2 Simple pointers</H3>
+<a name="n47"></a><H3>19.7.2 Simple pointers</H3>
 
 
 If you must work with simple pointers such as <tt>int *</tt> or <tt>double *</tt> and you don't want to use
@@ -2464,7 +2522,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</t
 
 See the <a href="Library.html">SWIG Library</a> chapter for further details.
 
-<a name="n40"></a><H3>19.6.3 Unbounded C Arrays</H3>
+<a name="n48"></a><H3>19.7.3 Unbounded C Arrays</H3>
 
 
 Sometimes a C function expects an array to be passed as a pointer.  For example,
@@ -2518,7 +2576,7 @@ On the other hand, this low-level approach is extremely efficient and
 well suited for applications in which you need to create buffers,
 package binary data, etc.
 
-<a name="n41"></a><H3>19.6.4 String handling</H3>
+<a name="n49"></a><H3>19.7.4 String handling</H3>
 
 
 If a C function has an argument of <tt>char *</tt>, then a Python string
@@ -2572,16 +2630,16 @@ If you need to return binary data, you might use the
 <tt>cstring.i</tt> library file.  The <tt>cdata.i</tt> library can
 also be used to extra binary data from arbitrary pointers.
 
-<a name="n42"></a><H3>19.6.5 Arrays</H3>
+<a name="n50"></a><H3>19.7.5 Arrays</H3>
 
 
-<a name="n43"></a><H3>19.6.6 String arrays</H3>
+<a name="n51"></a><H3>19.7.6 String arrays</H3>
 
 
-<a name="n44"></a><H3>19.6.7 STL wrappers</H3>
+<a name="n52"></a><H3>19.7.7 STL wrappers</H3>
 
 
-<a name="n45"></a><H2>19.7 Typemaps</H2>
+<a name="n53"></a><H2>19.8 Typemaps</H2>
 
 
 This section describes how you can modify SWIG's default wrapping behavior
@@ -2595,7 +2653,7 @@ part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface or if you want to elevate your guru status.
 
-<a name="n46"></a><H3>19.7.1 What is a typemap?</H3>
+<a name="n54"></a><H3>19.8.1 What is a typemap?</H3>
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -2693,7 +2751,7 @@ parameter is omitted):
 </pre>
 </blockquote>
 
-<a name="n47"></a><H3>19.7.2 Python typemaps</H3>
+<a name="n55"></a><H3>19.8.2 Python typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Python objects to C.
@@ -2725,7 +2783,7 @@ $ cat python.swg
 
 Additional typemap examples can also be found in the <tt>typemaps.i</tt> file.
 
-<a name="n48"></a><H3>19.7.3 Typemap variables</H3>
+<a name="n56"></a><H3>19.8.3 Typemap variables</H3>
 
 
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
@@ -2779,7 +2837,7 @@ properly assigned.
 The Python name of the wrapper function being created.
 </blockquote>
 
-<a name="n49"></a><H3>19.7.4 Useful Python Functions</H3>
+<a name="n57"></a><H3>19.8.4 Useful Python Functions</H3>
 
 
 When you write a typemap, you usually have to work directly with Python objects.
@@ -2876,14 +2934,14 @@ write me
 </pre>
 </blockquote>
 
-<a name="n50"></a><H2>19.8 Typemap Examples</H2>
+<a name="n58"></a><H2>19.9 Typemap Examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
-<a name="n51"></a><H3>19.8.1 Converting  Python list to a char ** </H3>
+<a name="n59"></a><H3>19.9.1 Converting  Python list to a char ** </H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -2956,7 +3014,7 @@ memory allocation is used to allocate memory for the array, the
 "freearg" typemap is used to later release this memory after the execution of
 the C function. 
 
-<a name="n52"></a><H3>19.8.2 Expanding a Python object into multiple arguments</H3>
+<a name="n60"></a><H3>19.9.2 Expanding a Python object into multiple arguments</H3>
 
 
 Suppose that you had a collection of C functions with arguments
@@ -3026,7 +3084,7 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 </pre>
 </blockquote>
 
-<a name="n53"></a><H3>19.8.3 Using typemaps to return arguments</H3>
+<a name="n61"></a><H3>19.9.3 Using typemaps to return arguments</H3>
 
 
 A common problem in some C programs is that values may be returned in
@@ -3104,7 +3162,7 @@ function can now be used as follows:
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n54"></a><H3>19.8.4 Mapping Python tuples into small arrays</H3>
+<a name="n62"></a><H3>19.9.4 Mapping Python tuples into small arrays</H3>
 
 
 In some applications, it is sometimes desirable to pass small arrays
@@ -3145,7 +3203,7 @@ Since our mapping copies the contents of a Python tuple into a C
 array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.<p>
 
-<a name="n55"></a><H3>19.8.5 Mapping sequences to C arrays</H3>
+<a name="n63"></a><H3>19.9.5 Mapping sequences to C arrays</H3>
 
 
 Suppose that you wanted to generalize the previous example to handle C
@@ -3224,7 +3282,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 </pre>
 </blockquote>
 
-<a name="n56"></a><H3>19.8.6 Pointer handling</H3>
+<a name="n64"></a><H3>19.9.6 Pointer handling</H3>
 
 
 Occasionally, it might be necessary to convert pointer values that have

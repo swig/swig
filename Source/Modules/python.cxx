@@ -376,6 +376,26 @@ public:
 
   virtual int top(Node *n) {
 
+    /* check if directors are enabled for this module.  note: this 
+     * is a "master" switch, without which no director code will be
+     * emitted.  %feature("director") statements are also required
+     * to enable directors for individual classes or methods.
+     *
+     * use %module(directors="1") modulename at the start of the 
+     * interface file to enable director generation.
+     */
+    {
+      Node *module = Getattr(n, "module");
+      if (module) {
+        Node *options = Getattr(module, "options");
+        if (options) {
+          if (Getattr(options, "directors")) {
+            allow_directors();
+          }
+        }
+      }
+    }
+
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
     String *outfile_h = Getattr(n, "outfile_h");
@@ -386,7 +406,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
     
-    if (CPlusPlus && directorsEnabled()) {
+    if (directorsEnabled()) {
       f_runtime_h = NewFile(outfile_h,"w");
       if (!f_runtime_h) {
         Printf(stderr,"*** Can't open '%s'\n", outfile_h);
@@ -422,11 +442,12 @@ public:
     module = Copy(Getattr(n,"name"));
     mainmodule = Getattr(n,"name");
 
-    if (CPlusPlus) {
+    if (directorsEnabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef __%s_WRAP_H__\n", module);
       Printf(f_directors_h, "#define __%s_WRAP_H__\n\n", module);
       Printf(f_directors_h, "class __DIRECTOR__;\n\n");
+      Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
       Printf(f_directors, " * C++ director class methods\n");
@@ -548,7 +569,7 @@ public:
     /* Close all of the files */
     Dump(f_header,f_runtime);
 
-    if (CPlusPlus && directorsEnabled()) {
+    if (directorsEnabled()) {
       Dump(f_directors, f_runtime);
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
@@ -844,7 +865,7 @@ public:
     // (the smart-pointer) and the director object (the "pointee") are
     // distinct.
 
-    if (CPlusPlus && directorsEnabled()) {
+    if (directorsEnabled()) {
       if (!is_smart_pointer()) {
         if (/*directorbase &&*/ hasVirtual && !constructor && isVirtual) {
           Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");

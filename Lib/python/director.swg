@@ -7,8 +7,6 @@
  * Author : Mark Rose (mrose@stm.lbl.gov)
  ************************************************************************/
 
-%insert(runtime) %{
-
 #ifdef __cplusplus
 
 #include <string>
@@ -179,5 +177,4 @@ int __DIRECTOR__::_up = 0;
 
 #endif /* __cplusplus */
 
-%}
 

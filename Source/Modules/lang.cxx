@@ -1599,12 +1599,6 @@ int Language::classDeclaration(Node *n) {
   }
   Setattr(n,"classtype", SwigType_namestr(ClassType));
 
-/*
-  if (CPlusPlus) {
-    classDirector(n);
-  }
-*/
-  
   InClass = 1;
   CurrentClass = n;
 
@@ -1616,7 +1610,7 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    if (CPlusPlus && directorsEnabled()) {
+    if (directorsEnabled()) {
       classDirector(n);
     }
     classHandler(n);
@@ -2105,7 +2099,7 @@ void Language::allow_directors(int val) {
  * ----------------------------------------------------------------------------- */
  
 int Language::directorsEnabled() const {
-  return directors;
+  return directors && CPlusPlus;
 }
 
 /* -----------------------------------------------------------------------------
