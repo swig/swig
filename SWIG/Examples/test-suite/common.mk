@@ -43,6 +43,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	lib_std_string \
+	private_assign \
 	bool_default \
 	constructor_value \
 	template_qualifier \
