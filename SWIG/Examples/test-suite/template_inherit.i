@@ -29,7 +29,12 @@ template<class T> char *invoke_blah(Foo<T> *x) {
 
 %template(FooInt) Foo<int>;
 %template(FooDouble) Foo<double>;
+%template(FooUInt) Foo<unsigned int>;
 %template(BarInt) Bar<int>;
 %template(BarDouble) Bar<double>;
+%template(BarUInt) Bar<unsigned>;
 %template(invoke_blah_int) invoke_blah<int>;
 %template(invoke_blah_double) invoke_blah<double>;
+%template(invoke_blah_uint) invoke_blah<int unsigned>;
+
+
