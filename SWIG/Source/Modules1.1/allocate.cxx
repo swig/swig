@@ -42,15 +42,30 @@ class Allocate : public Dispatcher {
       for (int i = 0; i < Len(abstract); i++) {
 	Node *nn = Getitem(abstract,i);
 	String *name = Getattr(nn,"name");
+	String *base_decl = Getattr(nn,"decl");
 	if (Strstr(name,"~")) continue;   /* Don't care about destructors */
+	int implemented = 0;
 	Node *dn = Swig_symbol_clookup(name,0);
 	if (!dn) {
 	  Printf(stdout,"node: %x '%s'. base: %x '%s'. member '%s'\n", n, Getattr(n,"name"), base, Getattr(base,"name"), name);
 	}
 	//	assert(dn);   // Assertion of doom
+	if (dn && !implemented) {
+	  String *local_decl = Getattr(dn,"decl");
+	  if (local_decl && !Strcmp(local_decl, base_decl)) {
+	    if (Getattr(dn,"abstract")) return 1;
+	    implemented++;
+	  }
+	  dn = Getattr(dn,"csym:nextSibling");
+	}
+	if (!implemented && (Getattr(nn,"abstract"))) {
+	  return 1;
+	}
+	/*
 	if (dn && (Getattr(dn,"abstract"))) {
 	  return 1;
 	} 
+	*/
       }
     }
     List *bases = Getattr(base,"bases");
