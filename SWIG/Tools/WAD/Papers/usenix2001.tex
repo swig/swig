@@ -4,7 +4,7 @@
 %make two column with no page numbering, default is 10 point
 %\documentstyle{article}
 \documentstyle[twocolumn,times]{article}
-%\pagestyle{empty}
+\pagestyle{empty}
 
 %set dimensions of columns, gap between columns, and space between paragraphs
 %\setlength{\textheight}{8.75in}
@@ -119,7 +119,7 @@ generation tools can be used
 to automatically produce bindings between existing code and a
 variety of scripting language environments
 \cite{swig,sip,pyfort,f2py,advperl,heidrich,vtk,gwrap,wrappy}.  As a result, a large number of
-programmers are using scripting languages to control
+programmers are now using scripting languages to control
 complex C/C++ programs or as a tool for re-engineering legacy
 software.  This approach is attractive because it allows programmers
 to benefit from the flexibility and rapid development of
@@ -136,7 +136,7 @@ Because of this, scripted software tends to rely heavily
 upon shared libraries, dynamic loading, scripts, and
 third-party extensions. In this sense, one might argue that the
 benefits of scripting are achieved at the expense of creating a
-more complicated and diverse development environment.
+more complicated development environment.
 
 A consequence of this complexity is an increased degree of difficulty
 associated with debugging programs that utilize multiple languages,
@@ -205,12 +205,11 @@ than a traditional stand-alone program.  As a result, a user may not
 have a good sense of how to actually attach an external debugger to their
 script.  In addition, execution may occur within a
 complex run-time environment involving events, threads, and network
-connections.  Because of this, it can be difficult to reproduce
+connections.  Because of this, it can be difficult for the user to reproduce
 and identify certain types of catastrophic errors if they depend on
 timing or unusual event sequences. Finally, this approach
-assumes that a programmer has a C development environment installed on
-their machine and that they know how to use a low-level source
-debugger.  Unfortunately, neither of these assumptions may hold in practice.
+requires a programmer to have a C development environment installed on
+their machine.  Unfortunately, this may not hold in practice.
 This is because scripting languages are often used to provide programmability to
 applications where end-users write scripts, but do not write low-level C code.
 
@@ -283,7 +282,7 @@ handling and reporting mechanism to the scripting language
 interpreter.  We have implemented this approach in the form of an
 experimental system known as WAD.  WAD is packaged as dynamically
 loadable shared library that can either be loaded as a scripting
-language extension or linked to existing extension modules as a
+language extension module or linked to existing extension modules as a
 library.  The core of the system is generic and requires no
 modifications to the scripting interpreter or existing extension
 modules.  Furthermore, the system does not introduce a performance
@@ -313,7 +312,7 @@ supply a stack trace as opposed to a vague complaint that the program
 \begin{picture}(400,250)(0,0)
 \put(50,-110){\special{psfile = tcl.ps hscale = 60 vscale = 60}}
 \end{picture}
-\caption{Dialog box with traceback information for a failed assertion in a Tcl/Tk extension}
+\caption{Dialog box with WAD generated traceback information for a failed assertion in a Tcl/Tk extension}
 \end{figure*}
 
 \section{Scripting Language Internals}
@@ -343,7 +342,6 @@ wrap_foo(ClientData clientData,
     /* Call a function */
 
     result = foo(args);
-
     /* Set result */
     ...
     if (success) {
@@ -370,8 +368,7 @@ NumberMethods ComplexMethods {
     complex_mul,
     complex_div,
     ...
-};
-\end{verbatim}
+};\end{verbatim}
 
 \noindent
 Once registered with the interpreter, the methods in this structure
@@ -406,7 +403,7 @@ interpreter.  Similarly, automatic wrapper generators such as SWIG can produce
 code to convert C++ exceptions and other C-related error handling
 schemes to scripting language errors \cite{swigexcept}. On the other
 hand, segmentation faults, failed assertions, and similar problems
-produce signals that cause the interpreter to crash.
+produce signals that cause the interpreter to abort execution.
 
 Most scripting languages provide limited support for Unix signal
 handling \cite{stevens}.  However, this support is not sufficiently advanced to
@@ -570,25 +567,6 @@ Unfortunately, no reference to the interpreter object is available in the
 signal handler nor is a reference to interpreter guaranteed to exist in
 the context of a function that generated the error.
 
-\begin{table}[t]
-\begin{center}
-\begin{tabular}{ll}
-Python symbol                 &   Error return value \\ \hline
-call\_builtin                 &   NULL \\
-PyObject\_Print               & -1 \\
-PyObject\_CallFunction        & NULL \\
-PyObject\_CallMethod          & NULL \\
-PyObject\_CallObject          & NULL \\
-PyObject\_Cmp                 & -1 \\
-PyObject\_DelAttrString       & -1 \\
-PyObject\_DelItem             & -1 \\
-PyObject\_GetAttrString       & NULL \\
-\end{tabular}
-\end{center}
-\label{returnpoints}
-\caption{A partial list of symbolic return locations in the Python interpreter}
-\end{table}
-
 To work around this problem, WAD implements a feature
 known as argument stealing.  When examining the call-stack, the signal
 handler has full access to all function arguments and local variables of each function
@@ -626,6 +604,27 @@ refers to the calling function, not the wrapper function itself.
 At this time, argument stealing is only applicable to simple types
 such as integers and pointers.  However, this appears to be adequate for generating
 scripting language errors.
+
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{ll}
+Python symbol                 &   Error return value \\ \hline
+call\_builtin                 &   NULL \\
+PyObject\_Print               & -1 \\
+PyObject\_CallFunction        & NULL \\
+PyObject\_CallMethod          & NULL \\
+PyObject\_CallObject          & NULL \\
+PyObject\_Cmp                 & -1 \\
+PyObject\_DelAttrString       & -1 \\
+PyObject\_DelItem             & -1 \\
+PyObject\_GetAttrString       & NULL \\
+\end{tabular}
+\end{center}
+
+\label{returnpoints}
+\caption{A partial list of symbolic return locations in the Python interpreter}
+\end{table}
 
 \section{Register Management}
 
@@ -712,7 +711,7 @@ As a fall-back, WAD could be configured to return control to a location
 previously specified with {\tt setjmp}.  Unfortunately, this either
 requires modifications to the interpreter or its extension modules.
 Although this kind of instrumentation could be facilitated by automatic
-wrapper code generators, it is not a preferred solution.
+wrapper code generators, it is not a preferred solution and is not discussed further.
 
 \section{Initialization}
 
@@ -726,20 +725,21 @@ enabled by linking it to an extension module as a shared
 library.  For instance:
 
 \begin{verbatim}
-% ld -shared ... -lwadpy
+% ld -shared $(OBJS) -lwadpy
 \end{verbatim}
 
-In this case, WAD initializes itself whenever the extension module is
+In this latter case, WAD initializes itself whenever the extension module is
 loaded.  The same shared library is used for both situations by making
 sure two types of initialization techniques are used.  First, an empty
 initialization function is written to make WAD appear like a proper
 scripting language extension module (although it adds no functions to
 the interpreter).  Second, the real initialization of the system is
 placed into the initialization section of the WAD shared library
-object file (the ``init'' section for ELF files).  This code always executes
-when a library is loaded by the dynamic loader.  A fairly portable way
-to force code into the initialization section is to use a C++
-statically constructed object like this:
+object file (the ``init'' section of ELF files).  This code always executes
+when a library is loaded by the dynamic loader is commonly used to
+properly initialize C++ objects.  Therefore, a fairly portable way
+to force code into the initialization section is to encapsulate the
+initialization in a C++ statically constructed object like this:
 
 \begin{verbatim}
 class InitWad {
@@ -765,7 +765,7 @@ is impossible if WAD is linked directly to an interpreter as
 its initialization process would execute before before the main program of the
 interpreter started.  However, 
 if you wanted to permanently add WAD to an interpreter, the problem is easily
-corrected by first removing the C++ initializer from WAD and then replacing it with an
+corrected by first removing the C++ initializer from WAD and then replacing it with an explicit
 initialization call someplace within the interpreter's startup function.
 
 \section{Exception Objects}
@@ -804,7 +804,7 @@ except SegFault,e:
 \end{verbatim}
 
 Inspection of the exception object also makes it possible to write post mortem
-script debuggers that merge the call stacks of the two languages together and
+script debuggers that merge the call stacks of the two languages and
 provide cross language diagnostics.  Figure 4 shows an
 example of a simple mixed language debugging session using the WAD
 post-mortem debugger (wpm) after an extension error has occurred in a
@@ -861,7 +861,7 @@ difficulties of accurately recovering register values).
         elif ty == 2:
 >>> \end{verbatim}
 }
-\caption{Cross-language debugging session in Python where user is walking up the call stack.}
+\caption{Cross-language debugging session in Python where a user is walking a mixed language call stack.}
 \end{figure*}
 
 \section{Implementation Details}
@@ -908,7 +908,7 @@ to port between different Unix systems.  For instance, code to read
 ELF object files and stabs debugging data is essentially identical for
 Linux and Solaris.  In addition, the high-level control logic is
 unchanged between platforms.  Platform specific differences primarily
-arise in the obvious places including the examination of CPU
+arise in the obvious places such as the examination of CPU
 registers, manipulation of the process context in the signal handler,
 reading virtual memory maps from /proc, and so forth.  Additional
 changes would also need to be made on systems with different object
@@ -924,10 +924,10 @@ Due to the heavy dependence on Unix signal handling, process
 introspection, and object file formats, it is unlikely that WAD could
 be easily ported to non-Unix systems such as Windows.  However, it may
 be possible to provide a similar capability using advanced features of
-structured exception handling \cite{seh}.  For instance, structured
+Windows structured exception handling \cite{seh}.  For instance, structured
 exception handlers can be used to catch hardware faults, they can
 receive process context information, and they can arrange to take
-corrective action.  
+corrective action much like the signal implementation described here.  
 
 \section{Modification of Interpreters?}
 
@@ -1038,13 +1038,13 @@ application may fail in a manner that does not represent the original
 programming error. It might also cause the WAD signal handler to be
 immediately reinvoked with a different process state--causing it to
 report information about a different type of failure.  To address
-these kinds of problems, WAD tries to create a tracefile {\tt
+these kinds of problems, WAD creates a tracefile {\tt
 wadtrace} in the current working directory that contains information
 about each error that it has handled.  If no recovery was possible, a
 programmer can look at this file to obtain all of the stack traces
-that were generated by WAD.
+that were generated.
 
-Finally, if an application is experiencing a very serious problem, WAD
+If an application is experiencing a very serious problem, WAD
 does not prevent a standard debugger from being attached to the
 process.  This is because the debugger overrides the current signal
 handling so that it can catch fatal errors.  As a result, even if WAD
@@ -1144,7 +1144,7 @@ mixed-mode debugging of Java and native methods using features of the
 Java Platform Debugger Architecture (JPDA) \cite{jpda}.  Mixed-mode
 debugging support for Java may also be supported in advanced debugging systems
 such as ICAT \cite{icat}.
-However, these systems do not appear to have taken the approach of
+However, none of these systems appear to have taken the approach of
 converting hardware faults into Java errors or exceptions.
 
 \section{Future Directions}
@@ -1160,7 +1160,7 @@ to recover partial debugging information from corrupted call stacks \cite{debug}
 A more interesting extension of this work would be to see how the
 exception handling approach of WAD could be incorporated with
 the integrated development environments and script-level debugging
-systems that have already been developed.  It would also be interesting
+systems that have already been developed.  For instance, it would be interesting
 to see if a graphical debugging front-end such as DDD could be modified
 to handle mixed-language stack traces within the context of a script-level debugger \cite{ddd}.   
 
@@ -1210,9 +1210,6 @@ reviewers and Rob Miller for their useful comments.
 \bibitem{ousterhout} J. K. Ousterhout, {\em Tcl: An Embeddable Command Language},
 Proceedings of the USENIX Association Winter Conference, 1990. p.133-146.
 
-\bibitem{ouster1} J. K. Ousterhout, {\em Scripting: Higher-Level Programming for the 21st Century},
-IEEE Computer, Vol 31, No. 3, p. 23-30, 1998.
-
 \bibitem{perl} L. Wall, T. Christiansen, and R. Schwartz, {\em Programming Perl}, 2nd. Ed.
 O'Reilly \& Associates, 1996.
 
@@ -1252,6 +1249,9 @@ Software/g-wrap}.
 
 \bibitem{wrappy} G. Couch, C. Huang, and T. Ferrin, {\em Wrappy :A Python Wrapper
 Generator for C++ Classes}, O'Reilly Open Source Software Convention, 1999.
+
+\bibitem{ouster1} J. K. Ousterhout, {\em Scripting: Higher-Level Programming for the 21st Century},
+IEEE Computer, Vol 31, No. 3, p. 23-30, 1998.
 
 \bibitem{gdb} R. Stallman and R. Pesch, {\em Using GDB: A Guide to the GNU Source-Level Debugger}.
 Free Software Foundation and Cygnus Support, Cambridge, MA, 1991.
@@ -1321,7 +1321,7 @@ IEEE Computer, Vol 20, No. 11, p. 75-89, 1987.
 
 \bibitem{pydebug} P. Stoltz, {\em PyDebug, a New Application for Integrated
 Debugging of Python with C and Fortran Extensions}, O'Reilly Open Source Software Convention,
-San Diego, 2001.
+San Diego, 2001 (to appear).
 
 \bibitem{jpda} Sun Microsystems, {\em Java Platform Debugger Architecture}, 
 http://java.sun.com/products/jpda
