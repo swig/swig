@@ -6,9 +6,7 @@
             (cadr initargs)
             (let ((ret (apply create initargs)))
               (if (instance? ret)
-		(begin
-		  (set-finalizer! ret (lambda (x) #t))
-                  (slot-ref ret 'swig-this))
+                (slot-ref ret 'swig-this)
                 ret)))))
 
 (define-class <swig-metaclass-$module> (<class>) (void))

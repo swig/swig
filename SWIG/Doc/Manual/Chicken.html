@@ -18,7 +18,7 @@
 <li><a href="#Chicken_nn5">Code Generation</a>
 <ul>
 <li><a href="#Chicken_nn6">Naming Conventions</a>
-<li><a href="#Chicken_nn7">Modules and Prefixes</a>
+<li><a href="#Chicken_nn7">Modules</a>
 <li><a href="#Chicken_nn8">Constants and Variables</a>
 <li><a href="#Chicken_nn9">Functions</a>
 </ul>
@@ -31,7 +31,7 @@
 </ul>
 <li><a href="#Chicken_nn15">Typemaps</a>
 <li><a href="#Chicken_nn16">Pointers</a>
-<li><a href="#Chicken_nn17">Unsupported features</a>
+<li><a href="#Chicken_nn17">Unsupported features and known problems</a>
 </ul>
 <!-- INDEX -->
 
@@ -125,9 +125,8 @@
       </blockquote>
 
       <p>
-      This will generate <tt>example_wrap.cxx</tt>,
-      <tt>example.scm</tt>, <tt>example-generic.scm</tt> and
-      <tt>example-clos.scm</tt>.  The basic Scheme code must be
+      This will generate <tt>example_wrap.cxx</tt> and
+      <tt>example.scm</tt>.  The basic Scheme code must be
       compiled to C using your system's CHICKEN compiler.
       </p>
 
@@ -150,21 +149,10 @@
 
     <p>
       Given a C variable, function or constant declaration named
-      <tt>Foo_Bar_to_Foo_Baz</tt>, the declaration will be available
+      <tt>Foo_Bar</tt>, the declaration will be available
       in CHICKEN as an identifier ending with
-      <tt>Foo-Bar-&gt;Foo-Baz</tt>.  That is, an underscore is converted
-      to a dash and '_to_' is converted to an arrow.
-
-      <br>
-
-      Additionally, there is a <em>mixed</em> mode that can be
-      specified with the <tt>-mixed</tt> option on the SWIG command
-      line.  In this mode, the above rules apply with the addition
-      that changes in case are indications to SWIG CHICKEN to place a
-      dash in the CHICKEN identifier and the name is converted to lowercase.
-      For example, a C declartaion
-      named <tt>someDeclaration_xyz</tt> will be available as the
-      CHICKEN identifier ending with <tt>some-declaration-xyz</tt>.
+      <tt>Foo-Bar</tt>.  That is, an underscore is converted
+      to a dash.
 
       <br>
 
@@ -172,41 +160,21 @@
       <tt>%rename</tt> SWIG directive in the SWIG interface file.
     </p>
 
-<H3><a name="Chicken_nn7"></a>17.2.2 Modules and Prefixes</H3>
+<H3><a name="Chicken_nn7"></a>17.2.2 Modules</H3>
 
 
-    <p>
-      SWIG CHICKEN does not use the standard CHICKEN module system
-      (which has been deprecated); instead, it uses a prefix system.
-      Specifying the module name as 'example' in SWIG CHICKEN can be
-      done using either of:
-    </p>
+      The name of the module must be declared one of two ways:
       <ul>
 	<li>Placing <tt>%module example</tt> in the SWIG interface
 	  file.</li>
 	<li>Using <tt>-module example</tt> on the SWIG command
 	  line.</li>
       </ul>
+      The generated example.scm file then exports <code>(declare (unit modulename))</code>
 
     <p>
-      CHICKEN will be able to access the module using the <tt>(declare
-	(uses <i>modulename</i>))</tt> CHICKEN Scheme form.
-
-      <br>
-
-      Normally, for a C declaration <tt>Foo_Bar</tt> with a module
-      name of 'example', the corresponding CHICKEN identifier will be
-      <tt>example:Foo-Bar</tt>.  <strong>The module name and a colon is
-      prefixed to the CHICKEN identifier</strong> (following normal
-      naming conventions).
-
-      <br>
-
-      You may explicitly override the prefix with the SWIG command
-      line option <tt>-prefix <i>whateverprefix</i></tt>, or you may
-      remove the prefix with the option <tt>-noprefix</tt>.
-
-    </p>
+      CHICKEN will be able to access the module using the <code>(declare
+	(uses <i>modulename</i>))</code> CHICKEN Scheme form.
 
 <H3><a name="Chicken_nn8"></a>17.2.3 Constants and Variables</H3>
 
@@ -278,23 +246,25 @@
       <p>
 
       CHICKEN has a modified version of TinyCLOS, which SWIG CHICKEN
-      uses in C++ mode.  SWIG CHICKEN generates a
-      <tt>xxx-generic.scm</tt> and a <tt>xxx-clos.scm</tt> file, which
-      contain TinyCLOS macros.  When using these macros, you will need
-      to <tt>(include "xxx-generic")</tt> all the generic macros your
-      program needs, and <strong>then</strong> <tt>(include
-      "xxx-clos")</tt> all the metaobject (class) macros your program
-      needs.
-      </p>
+      uses if the -proxy argument is given.  If -proxy is passed, then
+      the generated example.scm file will contain TinyCLOS class definitions.
+      A class named Foo is declared as &lt;Foo&gt;, and each member variable
+      is allocated a slot.  Member functions are exported as generic functions.
+
+      <p>
+      
+      Primitive symbols and functions (the interface that would be presented if
+      -proxy was not passed) are hidden and no longer accessable.  If the -unhideprimitive
+      command line argument is passed to SWIG, then the primitive symbols will be
+      available, but each will be prefixed by the string "primitive:"
 
       <p>
 
-      SWIG CHICKEN will call the destructor for all TinyCLOS objects
-      that are garbage-collected by CHICKEN.  It also allows access to
-      the underlying low-level Scheme procedures with (de)-marshaling
-      of any TinyCLOS parameters.  It is best to learn the TinyCLOS
-      system by running the <tt>Examples/chicken/class/</tt> example.
-
+      The exported symbol names can be controlled with the -closprefix and -useclassprefix arguments.
+      If -useclassprefix is passed to SWIG, every member function will be generated with the class name
+      as a prefix.  If the -closprefix mymod: argument is passed to SWIG, then the exported functions will
+      be prefixed by the string "mymod:".  If -useclassprefix is passed, -closprefix is ignored.
+      
       </p>
 
 <H2><a name="Chicken_nn11"></a>17.4 Compilation</H2>
@@ -347,6 +317,12 @@
       when compiling example.scm, csc compiles that into example.c!
     </p>
 
+    <p>
+      The test_script.scm should have <code>(load-library 'example "example.so")</code>
+      and <code>(declare (uses example))</code>.  As well, the path to example.so should
+      be accessable to the loader.  You might need to set LD_LIBRARY_PATH.
+    </p>
+
 <H3><a name="Chicken_nn14"></a>17.5.2 Static binary</H3>
 
 
@@ -367,139 +343,6 @@
       The Chicken module handles all types via typemaps. This information is
       read from <code>Lib/chicken/typemaps.i</code> and
       <code>Lib/chicken/chicken.swg</code>.
-    </p>
-
-    <p>
-      Two Chicken-specific typemaps are supported:
-      <code>clos_in</code> and <code>clos_out</code>.  They are for
-      converting TinyCLOS to and from low-level CHICKEN SWIG.  Here is
-      a quick example:
-    </p>
-
-      <blockquote>
-	<pre>
-/* Let "Shape" objects be converted back and forth from TinyCLOS into
-   low-level CHICKEN SWIG procedures */
-
-%typemap(clos_in) Shape * = SIMPLE_CLOS_OBJECT *;
-%typemap(clos_out) Shape * = SIMPLE_CLOS_OBJECT *;
-	</pre>
-      </blockquote>
-
-      The <code>SIMPLE_CLOS_OBJECT</code> will generally be all that
-      is needed ... the definition of this is as follows:
-
-      <blockquote>
-	<pre>
-/* TinyCLOS &lt;--&gt; Low-level CHICKEN */
-
-%typemap("clos_in") SIMPLE_CLOS_OBJECT * "(slot-ref $input (quote this))"
-%typemap("clos_out") SIMPLE_CLOS_OBJECT * "(make $class (quote this) $1)"
-	</pre>
-      </blockquote>
-
-      Now, in the example using "Shape" objects, all objects
-      instantiated from Shape or <em>any of its subclasses fully known
-      to SWIG</em> will have correct TinyCLOS representations based on
-      <code>SIMPLE_CLOS_OBJECT</code>.  SWIG "knows" the classes that
-      are exposed in the SWIG interface file; it "fully knows" only
-      those classes that are not forward declarations.
-
-      <br>
-
-      A real-world example of the "fully knows" problem is found in
-      the VTK visualization library.  All VTK classes are derived from
-      vtkObject.
-
-      <blockquote>
-	<pre>
-   /* FILE: vtkObject.h */
-   class vtkObject {
-      // ...
-   };
-	</pre>
-      </blockquote>
-
-      <blockquote>
-	<pre>
-   /* FILE: vtkWindow.h */
-   #include "vtkObject.h"
-
-   class vtkWindow : public vtkObject {
-      // ...
-   };
-	</pre>
-      </blockquote>
-
-      <blockquote>
-	<pre>
-   /* FILE: vtkViewport.h */
-   #include "vtkViewport.h"
-
-   class vtkViewport : public vtkObject {
-      // ...
-   };
-	</pre>
-      </blockquote>
-
-      <blockquote>
-	<pre>
-   /* FILE: vtkRenderWindow.h */
-   #include "vtkWindow.h"
-
-   class vtkRenderer;
-   class vtkRenderWindow : public vtkWindow {
-      // ...
-      virtual void AddRenderer (vtkRenderer *rendererArg);
-      // ...
-   };
-	</pre>
-      </blockquote>
-
-      <blockquote>
-	<pre>
-   /* FILE: vtkRenderer.h */
-   #include "vtkViewport.h"
-
-   class vtkRenderWindow;
-   class vtkRenderer : public vtkViewport {
-      // ...
-      void SetRenderWindow(vtkRenderWindow *);
-      // ...
-   };
-	</pre>
-      </blockquote>
-
-      <blockquote>
-	<pre>
-   /* FILE: vtk.i; SWIG interface file */
-   %typemap(clos_in) vtkObject * = SIMPLE_CLOS_OBJECT *;
-   %typemap(clos_out) vtkObject * = SIMPLE_CLOS_OBJECT *;
-   %include "vtkObject.h"
-   %include "vtkWindow.h"
-   %include "vtkViewport.h"
-   %include "vtkRenderWindow.h"
-   %include "vtkRenderer.h"
-	</pre>
-      </blockquote>
-
-    <p>
-    After SWIG processes <code>vtkObject.h</code> (from the
-    <tt>%include "vtkObject.h"</tt> line), SWIG will have the complete
-    definition of the <code>vtkObject</code> class because
-    <code>vtkObject</code> does not contain any references to any
-    other classes.  As it reads <code>vtkWindow.h</code> and
-    <code>vtkViewport.h</code>, it will already have the definition of
-    <code>vtkObject</code>, so it will not need a <code>clos_in</code>
-    or <code>clos_out</code> typemap for the <code>vtkWindow</code> or
-    <code>vtkViewport</code> subclasses of <code>vtkObject</code>.
-    However, by the time SWIG gets to <tt>%include
-    "vtkRenderWindow.h"</tt>, it will not have the definition for the
-    <code>vtkRenderer</code> class, even though it is used by
-    <code>vtkRenderWindow</code>.  We therefore <strong>must</strong>
-    put in <code>clos_in/clos_out</code> typemaps for
-    <code>vtkRenderer</code>.
-
     </p>
 
 <H2><a name="Chicken_nn16"></a>17.7 Pointers</H2>
@@ -535,11 +378,16 @@
       type.
     </p>
 
-<H2><a name="Chicken_nn17"></a>17.8 Unsupported features</H2>
+<H2><a name="Chicken_nn17"></a>17.8 Unsupported features and known problems</H2>
 
 
     <ul>
       <li>No exception handling.</li>
+      <li>No director support.</li>
+      <li>No support for c++ standard types like std::vector.</li>
+      <li>No support for automatic garbage collection of wrapped classes and structures. (Planned on adding in SWIG version 1.3.24) </li>
+      <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.24) </li>
+      <li>Problems with complicated function overloading. (Planned on fixing for 1.3.24)</li>
     </ul>
 
   </body>

@@ -604,9 +604,10 @@ SWIG_init(int argc, C_word closure, C_word continuation) {
         swig_type_list_handle = (swig_type_info **) C_block_item(sym, 0);
       }
     } else {
+      C_word *a = C_alloc(C_SIZEOF_POINTER + C_SIZEOF_INTERNED_SYMBOL(C_strlen(swig_type_ptr_name)));
       stable = C_new_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION, 16);
-      sym = C_intern_in(C_heaptop, C_strlen(swig_type_ptr_name), swig_type_ptr_name, stable);
-      C_mutate(&C_block_item(sym, 0), C_mpointer(C_heaptop, (void *) swig_type_list_handle));
+      sym = C_intern_in(&a, C_strlen(swig_type_ptr_name), swig_type_ptr_name, stable);
+      C_mutate(&C_block_item(sym, 0), C_mpointer(&a, (void *) swig_type_list_handle));
     }
     
     for (i = 0; swig_types_initial[i]; i++) {
