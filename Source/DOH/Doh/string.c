@@ -51,7 +51,8 @@ int     String_write(DOH *s, void *buffer, int length);
 int     String_seek(DOH *s, long offset, int whence);
 long    String_tell(DOH *s);
 int     String_printf(DOH *s, char *fmt, va_list ap);
-
+int     String_scanfv(DOH *s, char *fmt, va_list ap);
+    
 static DohSequenceMethods StringSeqMethods = {
   0,
   0,
@@ -68,6 +69,8 @@ static DohFileMethods StringFileMethods = {
   String_seek,
   String_tell,
   String_printf,
+  String_scanfv,
+  0,
 };
 
 static DohObjInfo StringType = {
@@ -155,6 +158,7 @@ CopyString(DOH *so) {
   str->str = (char *) malloc(max);
   memmove(str->str, s->str, max);
   str->maxsize= max;
+  str->len = s->len;
   return (DOH *) str;
 }
   
@@ -281,6 +285,15 @@ String_addchar(DOH *so, char c) {
   s->str[s->len] = 0;
 }
 
+/* Expand a string to accomodate a write */
+void
+String_expand(String *s, int width) {
+  if ((s->len + width) > (s->maxsize-1)) {
+    assert(s->str = (char *) realloc(s->str,(s->len + width)+1));
+    s->maxsize = s->len + width + 1;
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * void String_clear(DOH *s) - Clear a string
  * ----------------------------------------------------------------------------- */
@@ -299,80 +312,325 @@ String_clear(DOH *so)
 }
 
 /* -----------------------------------------------------------------------------
- * void String_appendfv(DOH *so, char *format, ...) - Append to string
+ * void String_appendfv(String *s, char *format, va_list ap) 
+ *
+ * Formats a string into s.   This is an incredibly gross hack.
  * -----------------------------------------------------------------------------*/
-
 void
 String_appendfv(DOH *so, char *format, va_list ap)
 {
-  char        *p, *sval;
-  String      *Sval;
-  DohBase     *b;
-  int         ival;
-  double      dval;
-  char        cval;
-  char        temp[64];
-  String      *s; 
-  
+  static char *fmt_codes = "dioxXucsSfeEgGpnbB";
+  int state = 0;
+  char *p = format;
+  char  newformat[256];
+  char *fmt;
+  char  temp[64];
+  int   widthval = 0;
+  int   precval = 0;
+  int   maxwidth;
+  char *w, *prec;
+  int   ivalue;
+  int   dvalue;
+  String *s;
+
   s = (String *) so;
-  
-  assert(s->refcount <= 1);
-  
-  for (p = format; *p; p++) {
-    if (*p != '%') {
-      String_addchar(s,*p);
-      continue;
-    }
-    switch(*++p) {
-    case 'c':
-      cval = va_arg(ap,char);
-      String_addchar(s,cval);
-      break;
-    case 'd':
-      ival = va_arg(ap,int);
-      sprintf(temp,"%d",ival);
-      add(s,temp);
-      break;
-    case 'x':
-      ival = va_arg(ap,int);
-      sprintf(temp,"%x", ival);
-      add(s,temp);
-      break;
-    case 'f':
-      dval = va_arg(ap,double);
-      sprintf(temp,"%f",dval);
-      add(s,temp);
-      break;
-    case 's':
-      Sval = va_arg(ap, String *);
-      if (String_check(Sval)) {
-	addstr(s,Sval);
-      } else {
-	add(s,(char *) Sval);
+
+  while (*p) {
+    switch(state) {
+    case 0:  /* Ordinary text */
+      if (*p != '%') {
+	String_addchar(s,*p);
+      } else{
+	fmt = newformat;
+	widthval = 0;
+	precval = 0;
+	*(fmt++) = *p;
+	state = 10;
       }
       break;
-    case 'o':
-      b = va_arg(ap, DohBase *);
-      Sval = Str(b);
-      addstr(s, Sval);
-      Delete(Sval);
+    case 10: /* Look for a width and precision */
+      if (isdigit(*p) && (*p != '0')) {
+	w = temp;
+	*(w++) = *p;
+	*(fmt++) = *p;
+	state = 20;
+      } else if (strchr(fmt_codes,*p)) {
+	/* Got one of the formatting codes */
+	p--;
+	state = 100;
+      } else if (*p == '*') {
+	/* Width field is specified in the format list */
+	widthval = va_arg(ap,int);
+	sprintf(temp,"%d",widthval);
+	for (w = temp; *w; w++) {
+	  *(fmt++) = *w;
+	}
+	state = 30;
+      } else if (*p == '%') {
+	String_addchar(s,*p);	
+	fmt = newformat;
+	state = 0;
+      } else {
+	*(fmt++) = *p;
+      }
       break;
       
-      /* Automatically deletes whatever object was passed */
-    case 'O':
-      b = va_arg(ap, DohBase *);
-      Sval = Str(b);
-      addstr(s, Sval);
-      Delete(Sval);
-      Delete(b);
+    case 20: /* Hmmm. At the start of a width field */
+      if (isdigit(*p)) {
+	*(w++) = *p;
+	*(fmt++) = *p;
+      } else if (strchr(fmt_codes,*p)) {
+	/* Got one of the formatting codes */
+	/* Figure out width */
+	*w = 0;
+	widthval = atoi(temp);
+	p--;
+	state = 100;
+      } else if (*p == '.') {
+	*w = 0;
+	widthval = atoi(temp);
+	w = temp;
+	*(fmt++) = *p;
+	state = 40;
+      } else {
+	/* ??? */
+	*w = 0;
+	widthval = atoi(temp);
+	state = 50;
+      }
       break;
-    default:
-      String_addchar(s,*p);
+
+    case 30:   /* Parsed a width from an argument.  Look for a . */
+      if (*p == '.') {
+	w = temp;
+	*(fmt++) = *p;
+	state = 40;
+      } else if (strchr(fmt_codes,*p)) {
+	/* Got one of the formatting codes */
+	/* Figure out width */
+	p--;
+	state = 100;
+      } else {
+	/* hmmm. Something else. */
+	state = 50;
+      }
+      break;
+
+    case 40:
+      /* Start of precision expected */
+      if (isdigit(*p) && (*p != '0')) {
+	*(fmt++) = *p;
+	*(w++) = *p;
+	state = 41;
+      } else if (*p == '*') {
+	/* Precision field is specified in the format list */
+	precval = va_arg(ap,int);
+	sprintf(temp,"%d",precval);
+	for (w = temp; *w; w++) {
+	  *(fmt++) = *w;
+	}
+	state = 50;
+      } else if (strchr(fmt_codes,*p)) {
+	p--;
+	state = 100;
+      } else {
+	*(fmt++) = *p;
+	state = 50;
+      }
+      break;
+    case 41:
+      if (isdigit(*p)) {
+	*(fmt++) = *p;
+	*(w++) = *p;
+      } else if (strchr(fmt_codes,*p)) {
+	/* Got one of the formatting codes */
+	/* Figure out width */
+	*w = 0;
+	precval = atoi(temp);
+	p--;
+	state = 100;
+      } else {
+	*w = 0;
+	precval = atoi(temp);
+	*(fmt++) = *p;
+	state = 50;
+      }
+      break;
+      /* Hang out, wait for format specifier */
+    case 50:
+      if (strchr(fmt_codes,*p)) {
+	p--;
+	state = 100;
+      } else {
+	*(fmt++) = *p;
+      }
+      break;
+    case 100:
+      /* Got a formatting code */
+      if (widthval < precval) maxwidth = precval;
+      else maxwidth = widthval;
+      if ((*p == 's') || (*p == 'S')) {       /* Null-Terminated string */
+	DOH    *doh;
+	String *Sval;
+	doh = va_arg(ap, DOH *);
+	if (DohCheck(doh)) {
+	  /* Is an object at least */
+	  if (String_check(doh)) {
+	    Sval = (String *) doh;
+	  } else {
+	    Sval = (String *) Str(doh);
+	  }
+	  maxwidth = maxwidth+strlen(newformat)+strlen(Sval->str);
+	  String_expand(s,maxwidth);
+	  *(fmt++) = 's';
+	  *fmt = 0;
+	  sprintf(s->str+s->len,newformat,Sval->str);
+	  s->len = s->len + strlen(s->str+s->len);
+	  if ((DOH *) Sval != doh) {
+	    Delete(Sval);
+	  }
+	  if (*p == 'S') {
+	    Delete(doh);
+	  }
+	} else {
+	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
+	  String_expand(s,maxwidth);
+	  *(fmt++) = 's';
+	  *fmt = 0;
+	  sprintf(s->str+s->len,newformat,doh);
+	  s->len = s->len + strlen(s->str+s->len);
+	}
+      } else if ((*p == 'b') || (*p == 'B')) {
+	/* Raw binary mode */
+	DOH    *doh, *Sval;
+	doh = va_arg(ap, DOH *);
+	if (DohCheck(doh)) {
+	  void *ptr;
+	  int   len;
+	  Sval = Str(doh);
+	  ptr = Data(Sval);
+	  len = Len(Sval);
+	  if ((widthval > 0) && (widthval < len)) len = widthval;
+	  String_expand(s,len);
+	  if (ptr) {
+	    memmove(s->str+s->len,ptr,len);
+	    s->len += len;
+	  }
+	  if (*p == 'B') {
+	    Delete(doh);
+	  }
+	  Delete(Sval);
+	} else {
+	  String_expand(s,widthval);
+	  memmove(s->str+s->len,doh,widthval);
+	  s->len+=widthval;
+	}
+      } else {
+	int ivalue;
+	double dvalue;
+	void  *pvalue;
+	*(fmt++) = *p;
+	*fmt = 0;
+	maxwidth = maxwidth+strlen(newformat)+64;
+	String_expand(s,maxwidth);
+	switch(*p) {
+	case 'd':
+	case 'i':
+	case 'o':
+	case 'u':
+	case 'x':
+	case 'X':
+	case 'c':
+	  ivalue = va_arg(ap,int);
+	  sprintf(s->str+s->len,newformat,ivalue);
+	  break;
+	case 'f':
+	case 'g':
+	case 'e':
+	case 'E':
+	case 'G':
+	  dvalue = va_arg(ap,double);
+	  sprintf(s->str+s->len,newformat,dvalue);
+	  break;
+	case 'p':
+	  pvalue = va_arg(ap,void *);
+	  sprintf(s->str+s->len,newformat,pvalue);	  
+	  break;
+	default:
+	  break;
+	}
+	s->len = s->len + strlen(s->str+s->len);
+      }
+      state = 0;
       break;
     }
+    p++;
+  }
+  if (state) {
+    *fmt = 0;
+    add(s,fmt);
   }
 }
 
+/* ----------------------------------------------------------------------
+ * int String_scanfv(DOH *doh, char *format, va_list ap)
+ *
+ * Do a string scanf.  Somewhat broken compared to C scanf.
+ * ---------------------------------------------------------------------- */
+
+int String_scanfv(DOH *doh, char *format, va_list ap) {
+  static char *fmt_chars = "diouxcsefgp";
+  String *s;
+  char    newformat[256];
+  char   *fmt;
+  char    *p;
+  int     state;
+  void    *ptr;
+  int     total = 0;
+  int     i;
+
+  s = (String *) doh;
+  state = 0;
+  p = format;
+  while (*p) {
+    switch(state) {
+    case 0:
+      if (*p == '%') {
+	fmt = newformat;
+	*(fmt++) = *p;
+	state = 10;
+      }
+      break;
+    case 10:
+      if (strchr(fmt_chars,*p)) {
+	int len;
+	*(fmt++) = *p;
+	*fmt = 0;
+	ptr = va_arg(ap, void *);
+	len = sscanf(s->str+s->sp,newformat,ptr);
+	for (i = 0; i < len; i++) {
+	  while (s->sp < s->len) {
+	    if (!isspace(s->str[s->sp])) break;
+	    s->sp++;
+	  }
+	  while (s->sp < s->len) {
+	    if (isspace(s->str[s->sp])) break;
+	    s->sp++;
+	  }
+	}
+	total += len;
+	state = 0;
+	fmt = newformat;
+      } else {
+	*(fmt++) = *p;
+      }
+      break;
+    }
+    p++;
+  }
+  return total;
+}      
+  
 void
 raw_insert(String *s, int pos, char *data, int len)
 {
@@ -465,7 +723,7 @@ DOH *
 String_str(DOH *so) {
     DOH *nstr;
     String *s = (String *) so;
-    nstr = NewString(s->str);
+    nstr = CopyString(s);
     return nstr;
 }
 
@@ -687,11 +945,3 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
     if (flags & DOH_REPLACE_FIRST) count = 1;
     replace_internal(str,Char(token),Char(rep),flags,str->str,count);
 }
-
-    
-
-
-
-
-
-

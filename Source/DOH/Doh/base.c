@@ -30,7 +30,7 @@ static DohObjInfo DohBaseType = {
   0,          /* doh_copy */
   0,          /* doh_clear */
   0,          /* doh_str */
-  0,          /* doh_aschar */
+  0,          /* doh_data */
   0,          /* doh_len */
   0,          /* doh_hash    */
   0,          /* doh_cmp */
@@ -43,6 +43,7 @@ static DohObjInfo DohBaseType = {
   { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 };
 
+/* Check if a Doh object */
 int DohCheck(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!b) return 0;
@@ -51,24 +52,10 @@ int DohCheck(DOH *obj) {
   return 1;
 }
 
-int DohIsMapping(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_mapping) return 1;
-  else return 0;
-}
-
-int DohIsSequence(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  if (!DohCheck(b)) return 0;
-  if (b->objinfo->doh_sequence) return 1;
-  else return 0;
-}
-
 /* -----------------------------------------------------------------------------
    String objects
 
-   The following structure maps raw char * entries to string objects.
+   The following structure maps raw char * entries to string objects.  
    ----------------------------------------------------------------------------- */
 
 typedef struct StringNode {
@@ -277,6 +264,13 @@ int DohCmp(DOH *obj1, DOH *obj2) {
  * Mapping Interface 
  * ---------------------------------------------------------------------- */
 
+int DohIsMapping(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  if (!DohCheck(b)) return 0;
+  if (b->objinfo->doh_mapping) return 1;
+  else return 0;
+}
+
 /* Get an attribute from an object */
 DOH *DohGetattr(DOH *obj, DOH *name) {
   DOH  *s;
@@ -292,6 +286,25 @@ DOH *DohGetattr(DOH *obj, DOH *name) {
   return 0;
 }
 
+/* Getattrf */
+int DohGetattrf(DOH *obj, DOH *name, char *format, ...) {
+  va_list ap;
+  int ret = 0;
+  DOH *item, *str;
+  item = DohGetattr(obj,name);
+  if (item) {
+    str = DohStr(item);
+    DohSeek(str,0,SEEK_SET);
+    va_start(ap,format);
+    ret = DohvScanf(str,format,ap);
+    va_end(ap);
+    Delete(str);
+    return ret;
+  } 
+  return ret;
+}
+
+
 /* Set an attribute in an object */
 int DohSetattr(DOH *obj, DOH *name, DOH *value) {
     int s;
@@ -306,6 +319,22 @@ int DohSetattr(DOH *obj, DOH *name, DOH *value) {
       printf("No setattr method defined for type '%s'\n", b->objinfo->objname);
     }
     return 0;
+}
+
+
+/* Setattrf */
+int DohSetattrf(DOH *obj, DOH *name, char *format, ...) {
+  va_list ap;
+  int ret = 0;
+  DOH *str;
+  str = NewString("");
+  Incref(str);
+  va_start(ap,format);
+  ret = DohvPrintf(str,format,ap);
+  va_end(ap);
+  DohSetattr(obj,name,str);
+  Delete(str);
+  return ret;
 }
 
 /* Delete an attribute from an object */
@@ -382,7 +411,14 @@ DOH *DohNextkey(DOH *obj) {
 
 /* ----------------------------------------------------------------------
  * Sequence Interface
- * ----------------------------------------------------------------------
+ * ---------------------------------------------------------------------- */
+
+int DohIsSequence(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  if (!DohCheck(b)) return 0;
+  if (b->objinfo->doh_sequence) return 1;
+  else return 0;
+}
 
 /* Get an item from an object */
 DOH *DohGetitem(DOH *obj, int index) {
@@ -579,7 +615,6 @@ int DohvPrintf(DOH *obj, char *format, va_list ap) {
   return -1;
 }
 
-
 /* Printf */
 int DohScanf(DOH *obj, char *format, ...) {
   va_list ap;
@@ -608,7 +643,6 @@ int DohvScanf(DOH *obj, char *format, va_list ap) {
   }
   return -1;
 }
-
 
 void DohInit(DOH *b) {
     DohBase *bs = (DohBase *) b;
