@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include "example.h"
 
-shape::shape() { }
-
 shape::~shape() { }
 
 bool shape::cover( double x, double y ) { return false; }
