@@ -84,11 +84,7 @@ SWIG_TypeRegister(swig_type_info *ti)
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
-
-      /* Make sure clientdata information is updated */
-      if (tc->clientdata) {
-	ti->clientdata = tc->clientdata;
-      }
+      if (tc->clientdata) ti->clientdata = tc->clientdata;	
       head = tc;
       next = tc->next;
       goto l1;
