@@ -7,6 +7,7 @@
 
 template<class T> class Foo {
 public:
+  virtual ~Foo() { }
   virtual char *blah() {
        return (char *) "Foo";
   }

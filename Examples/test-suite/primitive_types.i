@@ -347,6 +347,11 @@ macro(size_t,             pfx, sizet)
      : var_pchar(0), var_pcharc(0), var_pint(0)
    {
    }
+
+   virtual ~Test()
+   {
+   }
+   
    %test_prim_types_stc(stc_decl, stc);
    %test_prim_types(var_decl, var);
    var_decl(namet, var, namet);

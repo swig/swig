@@ -19,6 +19,8 @@
   template <FieldDim Dim>
     struct Base 
     {
+      virtual ~Base() {}
+      
       typedef unsigned int size_type;
       typedef Facet<Dim>* facet_ptr;
 

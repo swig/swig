@@ -7,7 +7,11 @@
 
 class Foo {
 public:
-    virtual int blah() = 0;
+  virtual ~Foo()
+  {
+  }
+  
+  virtual int blah() = 0;
 };
 
 class Bar : public Foo { };

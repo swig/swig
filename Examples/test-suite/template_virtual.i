@@ -11,6 +11,8 @@
     class A
     {
     public:
+      virtual ~A() { }
+
       virtual void say_hi() = 0; // only fails with pure virtual methods
  
       virtual void say_hello(); // this works fine

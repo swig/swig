@@ -9,6 +9,7 @@ class  MyHandle_Foo2 {
 
 class Foo2 { 
  public: 
+  virtual ~Foo2() {}
   virtual int sum(int i, int j) { return i+j; }
   static int sum(int i, int j, int k); 
 }; 

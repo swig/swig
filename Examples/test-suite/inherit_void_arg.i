@@ -4,6 +4,8 @@
 
 class A {
 public:
+        virtual ~A() { }
+  
 	virtual void f(void) = 0;
 };
 

@@ -15,6 +15,7 @@ private:
     int x;
 public:
     Foo() { x = 1; }
+    virtual ~Foo() {}
     virtual int  xget() {  return x; };
 };
 typedef Foo *FooPtr;
@@ -26,6 +27,7 @@ private:
     int y;
 public:
     Bar() { y = 2; }
+    virtual ~Bar() {}
     virtual int yget() { return y; }
 };
 

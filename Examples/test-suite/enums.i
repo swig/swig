@@ -23,4 +23,5 @@ bar2(enum foo2 x) {}
 void 
 bar3(foo3 x) {}
 
+
 %}
