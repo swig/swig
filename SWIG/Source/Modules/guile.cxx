@@ -55,8 +55,8 @@ Guile Options (available with -guile)\n\
                                modules.\n\
      -scmstub                - Output Scheme file with module declaration and\n\
                                exports; only with `passive' and `simple' linkage\n\
-     -gh                     - Use the gh_ Guile API. (Guile <= 1.8, default) \n\
-     -scm                    - Use the scm Guile API. (Guile >= 1.6) \n\
+     -gh                     - Use the gh_ Guile API. (Guile <= 1.8) \n\
+     -scm                    - Use the scm Guile API. (Guile >= 1.6, default) \n\
      -proxy                  - Export GOOPS class definitions\n\
      -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
@@ -109,7 +109,7 @@ static String *return_multi_doc = 0;
 
 static String *exported_symbols = 0;
 
-static int     use_scm_interface = 0;
+static int     use_scm_interface = 1;
 static int     exporting_destructor = 0;
 static String *swigtype_ptr = 0;
 
