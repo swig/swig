@@ -1,10 +1,8 @@
 						-*- outline -*-
 
-* for release 1.3.6
+* for release 1.3.7 (or 1.4.0?)
 
-** Testing
-
-* for release 1.3.7
+** Revive the documentation
 
 ** Discuss the %pragma directive syntax change from CVS head.  
    Why is the syntax changing all the time?  Can't we just stick to
@@ -12,19 +10,13 @@
 
 ** Maybe port other parser-related stuff from CVS head
 
-** Maybe get the 10/14/00 changes from CVS head
+** Maybe get the 10/14/00 ("output file handling and shadow classes") change from CVS head 
 
 ** Fix all the bugs on SourceForge
 
 ** Incorporate all the patches on SourceForge
 
-** Make a proper test suite with both language-independent and language-dependent tests.
-   The directories Examples/guile/test-suite, Examples/perl5/pointer-cxx, Examples/C++
-   contain some material that can be used.
-
-* eventually
-
-**     Revive the documentation
+* for the unstable 1.5 series
 
 **     Maybe use libtool rather than all the home-grown compile/link stuff
 

@@ -3,17 +3,852 @@ SWIG (Simplified Wrapper and Interface Generator)
 The Stable Development Branch
 =============================
 
-In this CVS branch "mkoeppe-1-3-a5-patches", fixes in the SWIG core
-and improvements to the language modules take place, starting from the
-relatively stable release 1.3a5.  It works towards the new stable
-release 1.3.6.
+In this CVS branch "rel-1-3", fixes in the SWIG core and improvements
+to the language modules take place, starting from the stable release
+1.3.6.
 
 This branch is also the basis for the "swig1.3" Debian package
 (currently unofficial, available from
 http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian). 
 
-Eventually this branch will be merged with the development on the
-trunk of the CVS tree.
+Eventually this branch will be merged back to the trunk of the CVS
+tree (maybe).
+
+
+Version 1.3.7  (September 3, 2001)
+==================================
+
+9/02/2001: beazley
+           Added special %ignore directive to ignore declarations.  This
+           feature works exactly like %rename.  For example:
+
+             %ignore  foo;        // Ignore all declarations foo
+             %ignore  ::foo;      // Only ignore foo in global scope
+             %ignore  Spam::foo;  // Only ignore in class Spam
+             %ignore  *::foo;     // Ignore in all classes
+
+           %ignore can also be parameterized.  For example:
+
+             %ignore foo(int);
+             %ignore ::foo(int);
+             %ignore Spam::foo(int);
+             %ignore *::foo(int);
+
+           *** NEW FEATURE ***
+            
+
+9/02/2001: cheetah (william fulton)
+           [Java] shadowcode pragma modified so that the code that is output 
+           in the shadow file is placed relative to where it is placed in the 
+           c/c++ code. This allows support for JavaDoc function comments. 
+
+9/01/2001: beazley
+           Fixed SF Patch [ #447791 ] Fix for python -interface option.
+           Submitted by Tarn Weisner Burton.
+
+9/01/2001: beazley
+           SWIG no longer generates default constructors/destructors
+           for a class if it only defines a private/protected constructor
+           or destructor or if any one of its base classes only has
+           private constructors/destructors.  This was reported in
+           SF Patch [ #444281 ] nonpublic/default/inhereted ctor/dtor
+           by Marcelo Matus.
+
+9/01/2001: beazley
+           Added patch to Perl5 module that allows constants to be
+           wrapped as constants that don't require the leading $.
+           This feature is enabled using the -const option.
+           Patch contributed by Rich Wales.
+           *** NEW FEATURE ***
+
+8/31/2001: beazley
+           Added parsing support for the 'volatile' type qualifier.
+           volatile doesn't mean anything to SWIG, but it is
+           needed to properly generate prototypes for declarations
+           that use it.  It's also been added to make the SWIG type
+           system more complete.
+           *** NEW FEATURE ***
+
+8/30/2001: beazley
+           Added support for parameterized %rename directive.  *** This
+           new feature can be used to greatly simplify the task of
+           resolving overloaded methods and functions. ***
+           
+           In prior versions of SWIG, the %rename directive was
+           used to consistently apply an identifier renaming. For 
+           example, if you said this:
+
+                %rename foo bar;
+
+           Every occurrence of 'foo' would be renamed to 'bar'. 
+           Although this works fine for resolving a conflict with a
+           target language reserved word, it is useless for
+           for dealing with overloaded methods.    This is because
+           all methods are simply renamed to the same thing 
+           (generating the same conflict as before).
+
+           Therefore, the only way to deal with overloaded methods
+           was to go through and individually rename them all using
+           %name.  For example:
+
+             class Foo {
+             public:
+                 virtual void bar(void);
+                 %name(bar_i) virtual void bar(int);
+                 ...
+             };
+
+           To make matters worse, you had to do this for all
+           derived classes too.
+
+             class Spam : public Foo {
+             public:
+                 virtual void bar(void);
+                 %name(bar_i) virtual void bar(int);
+                 ...
+             };
+
+           Needless to say, this makes it extremely hard to resolve
+           overloading without a lot of work and makes it almost
+           impossible to use SWIG on raw C++ .h files.
+
+           To fix this, %rename now accepts parameter declarators.
+           The syntax has also been changed slightly.  For example,
+           the following declaration renames all occurrences of 'bar(int)'
+           to 'bar_i', leaving any other occurrence of 'bar' alone.
+
+             %rename(bar_i) bar(int);
+
+           Using this feature, you can now selectively rename 
+           certain declarations in advance.  For example:
+
+             %rename(bar_i) bar(int);
+             %rename(bar_d) bar(double);
+
+             // Include raw C++ header    
+             %include "header.h"
+
+           When %rename is used in this manner, all occurrence of bar(int)
+           are renamed wherever they might occur.  More control is obtained
+           through explicit qualification. For example,
+
+              %rename(bar_i) ::bar(int);
+
+           only applies the renaming if bar(int) is defined in the global scope.
+           The declaration,
+     
+              %rename(bar_i) Foo::bar(int);
+
+           applies the renaming if bar(int) is defined in a class Foo.
+           This latter form also supports inheritance.  Therefore, if you
+           had a class like this:
+
+               class Spam : public Foo {
+               public:
+                   void bar(int);
+               }
+
+           The Spam::bar(int) method would also be renamed (since Spam 
+           is a subclass of Foo).   This latter feature makes it easy
+           for SWIG to apply a consistent renaming across an entire
+           class hierarchy simply by specifying renaming rules for
+           the base class.
+
+           A class wildcard of * can be used if you want to renaming
+           all matching members of all classes.  For example:
+
+              %rename(bar_i) *::bar(int);
+
+           will rename all members bar(int) that are defined in classes.
+           It will not renamed definitions of bar(int) in the global
+           scope.
+
+           The old use of %rename is still supported, but is somewhat
+           enhanced.  
+
+              %rename(foo) bar;      // Renames all occurrences of 'bar'.
+              %rename(foo) ::bar;    // Rename all 'bar' in global scope only.
+              %rename(foo) *::bar;   // Rename all 'bar' in classes only.
+              %rename(foo) Foo::bar; // Rename all 'bar' defined in class Foo.
+
+           *** NEW FEATURE ***
+
+8/30/2001: beazley
+           Added support for data-member to member-function 
+           transformation.  For example, suppose you had a
+           structure like this:
+
+                struct Vector {
+                    double x,y;
+                };
+
+           Now suppose that you wanted to access x and y 
+           through a member function interface instead 
+           of the usual SWIG behavior. For example:
+
+              f.set_x(3.4)      # instead of f.x = 3.4
+              x = f.get_x()     # instead of x = f.x
+
+           To do this, simply use the new %attributefunc
+           directive.  For example:
+
+              %attributefunc(get_%s,set_%s)
+              struct Vector {
+                 double x,y;
+              };
+              %noattributefunc
+
+           The arguments to %attributefunc are C-style printf
+           format strings that determine the naming convention
+           to use.  %s is replaced with the actual name of the
+           data member. SWIG provides a number of printf
+           extensions that might help.  For example, if you
+           wanted to title case all of the attributes, you
+           could do this:
+
+              %attributefunc(get%(title)s,set%(title)s);
+
+           This will turn an attribute 'bar' to 'getBar()' and 'setBar()'.
+
+           (someone requested this long ago, but I finally figured
+           how to implement it in a straightforward manner).
+           *** NEW FEATURE ***
+           
+8/30/2001: beazley
+           SWIG now automatically generates default constructors
+           and destructors if none are defined.  This used to be
+           enabled with a command line switch -make_default, but
+           most people want these functions anyways.  To turn
+           off this behavior use the -no_default option or include
+           the following pragma in the interface file:
+ 
+                 %pragma no_default;
+  
+           This may break certain interfaces that defined their
+           own constructors/destructors using the same naming
+           convention as SWIG.  If so, you will get duplicate
+           symbols when compiling the SWIG wrapper file.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+8/29/2001: beazley
+           Changes to Perl5 shadow class code generation.  Iterators
+           are no longer supported (FIRSTKEY, NEXTKEY).  Also, attribute
+           access has been changed to rely on inheritance in order
+           to provide better behavior across modules.  
+
+8/28/2001: beazley
+           Various obscure improvements to the type system and classes.
+           Strange declarations like this are now wrapped correctly
+           (i.e., the generated wrapper code doesn't cause the C++
+            compiler to die with a type error).
+
+            class Foo {
+            public:
+                 typedef double Real;
+                 Real foo(Real (*op)(Real,Real), Real x, Real y);
+            };
+
+           Inheritance of types is also handled correctly.
+           
+8/28/2001: beazley
+           Changes to class wrappers.   When SWIG sees two classes like this,
+ 
+           class X {
+           public:
+             void foo();
+             ...
+           }
+ 
+           class Y : public X {
+           public:
+             void bar();
+             ...
+           }
+ 
+           it now only generates two wrapper functions:
+ 
+             X_foo(X *x) { x->foo(); }
+             Y_bar(Y *y) { y->bar(); }
+ 
+           Unlike SWIG1.15, the foo() method does *not* propagate to a wrapper
+           function Y_foo(). Instead, the base class method X_foo() must be
+           used.
+
+           This change should not affect modules that use shadow classes, but
+           it might break modules that directly use the low-level C wrappers.
+           This change is being made for a number of reasons:
+
+               -  It greatly simplifies the implementation of SWIG--especially
+                  with anticipated future changes such as overloaded methods.
+
+               -  It results in substantially less wrapper code--especially
+                  for big C++ class hierarchies (inherited declarations
+                  are no longer copied into every single derived class).
+
+               -  It allows for better code generation across multiple
+                  SWIG generated modules (code isn't replicated in
+                  every single module).
+
+           *** POTENTIAL INCOMPATIBILITY ***                                    
+
+8/22/2001: cheetah (william fulton)
+           Provided some Windows documentation in the Win directory and some
+           Visual C++ project files for running examples on Windows.
+
+8/28/2001: mkoeppe
+	   [Guile] Handle renamed overloaded functions properly;
+	   thanks to Marc Zonzon <Marc.Zonzon@univ-rennes1.fr> for the
+	   patch.  See the new test case name_cxx.
+
+8/27/2001: mkoeppe
+	   [Tcl] Removed lots of warnings issued by the Sun Forte
+	   compilers, which were caused by mixing function pointers
+	   of different linkages (C++/C). 
+
+8/23/2001: mkoeppe
+	   Improved the MzScheme module by porting Guile's pointer
+	   type checking system and making type dispatch
+	   typemap-driven. 
+
+8/22/2001: beazley
+           Entirely new symbol table processing.   SWIG should be able to
+           report much better error messages for multiple declarations. 
+           Also, the new symbol table allows for overloaded functions
+           (although overloading isn't quite supported in the language
+           modules yet).
+
+8/22/2001: cheetah (william fulton)
+           * [Java] %new support added.
+           * [Java] Package JNI name refixed!
+
+8/19/2001: beazley
+           Python module modified to support pointers to C++ members.  This
+           is an experimental feature.
+           *** NEW FEATURE ***
+     
+8/19/2001: beazley
+           Added limited parsing and full type-system support for pointers to
+           members. None of SWIG's language modules really know how to deal with
+           this so this is really only provided for completeness and future
+           expansion.  Note: SWIG does not support pointers to members which 
+           are themselves pointers to members, references to pointers to members,
+           or other complicated declarations like this.
+           *** NEW FEATURE ***
+
+8/19/2001: beazley
+           SWIG is much better at parsing certain C++ declarations. Operators and
+           friends generally don't cause anymore syntax errors.  However, neither
+           are really supported.
+
+8/18/2001: beazley
+           Added *highly* experimental support for wrapping of C++
+           template declarations.  Since C++ templates are essentially
+           glorified macros and SWIG has a fully operational C 
+           preprocessor with macro support, the parser now converts
+           template declarations to macros.  For example, a function
+           template like this
+
+               template<class T> T max(T a, T b);
+
+           is internally converted into a macro like this:
+
+               %define %_template_max(__name,T)
+               %name(__name) T max(T a, T b);
+               %enddef
+
+           To instantiate a version of the template, a special %template declaration
+           is used like this:
+
+               %template(maxint) max<int>;          
+               %template(maxdouble) max<double>;
+
+           The parameter to the %template directive must be proper C identifier that's
+           used to uniquely name the resulting instantiation.   When used, the
+           the expanded macro looks like this:
+
+              %name(maxint) int max(int a, int b);
+              %name(maxdouble) double max(double a, double b);
+
+           A similar technique is used for template classes.   For instance:
+
+              template<class T> class vector {
+                 T *data;
+                 int sz;
+              public:
+                 vector(int nitems);
+                 T *get(int n);
+                 ...
+              };
+
+           Gets converted into a macro like this:
+
+              %define %_template_vector(__name, T)
+              %{
+              typedef vector<T> __name;
+              %}
+              class __name {
+                 T *data;
+                 int sz;
+              public:
+                 __name(int nitems);
+                 T *get(int n);
+                 ...
+              };
+              typedef __name vector<T>;
+              %enddef
+
+           An a specific instantiation is created in exactly the same way:
+
+             %template(intvec) vector<int>;
+
+           The resulting code parsed by SWIG is then:
+
+              %{
+              typedef vector<int> intvec;
+              %}
+              class intvec {
+                  int *data;
+                  int sz;
+              public:
+                  intvec(int nitems);
+                  int *get(int n);
+                  ...
+              };
+              typedef intvec vector<int>;
+
+           Note: the last typedef is non-standard C and is used by SWIG to provide
+           an association between the name "intvec" and the template type 
+           "vector<int>".
+
+           CAUTION:  This is an experimental feature and the first time SWIG has
+           supported C++ templates.   Error reporting is essential non-existent.
+           It will probably break in certain cases.
+           *** EXPERIMENTAL NEW FEATURE ****
+
+8/15/2001: beazley
+           Change to wrapping of multi-dimensional arrays.  Arrays
+           are now properly mapped to a pointer to an array of
+           one less dimension.  For example:
+
+                int [10];              -->  int *
+                int [10][20];          -->  int (*)[20];
+                int [10][20][30];      -->  int (*)[20][30];
+
+           This change may break certain SWIG extensions because
+           older versions simply mapped all arrays into a single
+           pointer such as "int *".   Although possibly unusual, 
+           the new version is correct in terms of the C type system.
+           *** POTENTIAL INCOMPATIBILITY ***
+    
+8/06/2001: cheetah (william fulton)
+           * [Java] Array setters generated for struct/class array members.
+
+8/13/2001: beazley
+           Many improvements to Tcl/Perl/Python modules to better
+           work with multiple interface files and the %import directive.
+
+8/13/2001: beazley
+           Fixed up the behavior of %import in the Python module.
+           SWIG no longer pollutes the module namespace by using
+           'from module import *' to refer to the other module. 
+           Instead, it does a proper 'import module'.   Also, SWIG
+           may work a lot better when importing modules that include
+           references to other imported modules.
+
+8/13/2001: mkoeppe
+	   Added new typemap substitutions, generalizing those of the
+	   Guile-specific 5/27/2001 changes: 
+	   * $descriptor is the same as SWIGTYPE$mangle, but also
+	     ensures that the type descriptor of this name gets
+	     defined.
+	   * $*type, $*ltype, $*mangle, $*descriptor are the same as
+	     the variants without star, but they REMOVE one level of
+	     pointers from the type. (This is only valid for pointer 
+	     types.)
+	   * $&type, $&ltype, $&mangle, $&descriptor are the same as
+	     the variants without ampersand, but they ADD one level of
+	     pointers to the type.
+	   The Guile-specific substitution $basedescriptor was removed
+	   because it was useless.
+
+8/12/2001: beazley
+           The %extern directive is now deprecated and withdrawn.  The
+           purpose of this directive was to import selected definitions
+           from other interface files and headers.  However, the same
+           functionality is better handled through %import.   This
+           leaves SWIG with two file inclusion directives:
+
+              %include filename     - Inserts into current interface
+              %import filename      - Import types and classes from 
+                                      another module
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+8/09/2001: beazley
+           Added new support for wrapping C/C++ callback functions. 
+           A common problem with some C libraries is that many
+           functions take a function pointer as an argument. For example:
+
+              int do_op(..., int (*op)(int,int), ...);
+
+           Unfortunately, the only way to call such a function is to
+           pass it a function pointer of some compatible type.  In
+           previous versions of SWIG, you had to solve this problem
+           with some really gross hacks.  For example, if you wanted to
+           use the following function as a callback,
+
+               int foo(int, int);
+
+           you had to install a pointer to it as a constant.  For example:
+
+               %constant int (*FOO)(int,int) = foo;
+
+           or 
+
+               const int (*FOO)(int,int) = foo;
+
+           or if you had a really old SWIG version:
+
+               typedef int (*OP_FUNC)(int,int);
+               int do_op(..., OP_FUNC, ...);
+               const OP_FUNC FOO = foo;
+
+           
+           Now, you can do one of two things:
+
+               %constant int foo(int,int);
+
+           This creates a constant 'foo' of type int (*)(int,int).
+           Alternatively, you can do this:
+
+               %callback("%s")
+               int foo(int,int);
+               int bar(int,int);
+               %nocallback
+
+           In this case, the functions are installed as constants where
+           the name is defined by the format string given to %callback().
+           If the names generated by the format string differ from the
+           actual function name, both a function wrapper and a callback 
+           constant are created.  For example:
+
+               %callback("%(upper)s")
+               int foo(int,int);
+               int bar(int,int);
+               %nocallback
+           
+           Creates two wrapper functions 'foo', 'bar' and additionally
+           creates two callback constants 'FOO', 'BAR'.
+
+           Note: SWIG still does not provide automatic support for 
+           writing callback functions in the target language.
+           *** NEW FEATURE ***
+
+8/06/2001: cheetah (william fulton)
+           * struct nesting fixes as per SF bug #447488.
+
+8/03/2001: beazley
+           The %name directive now applies to constants created with
+           #define and %constant.  However, most language modules
+           were never written to support this and will have to be
+           modified to make it work.  Tcl, Python, and Perl modules
+           are working now.
+           *** NEW FEATURE ***
+
+8/03/2001: beazley
+           Massive changes and simplification of C declaration parsing.
+           Although SWIG is still not a full C parser, its ability
+           to handle complex datatypes including pointers to functions
+           and pointers to arrays has been vastly improved.  
+
+8/03/2001: cheetah (william fulton)
+           * Distribution fixes: autoconf no longer needed to install SWIG.
+
+8/02/2001: beazley
+           Removed two undocumented parsing features.  SWIG no longer
+           supports out-of-class static function or variable
+           declarations.  For example:
+
+                static int Foo::bar;
+
+           This feature may return if there is sufficient demand. 
+           However, since SWIG is most often used with header files,
+           it is more likely for these definitions to be included
+           in the class definition.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+8/02/2001: cheetah (william fulton)
+	   * Cleanup of the GIFPlot examples. Upgraded Java GIFPlot example.
+
+8/01/2001: cheetah (william fulton)
+	   * [Java] Efficiency changes: _cPtr used where possible rather than
+	     getCPtr(). Bug fixes for inheritance - derived class sometimes
+	     didn't delete the c memory when _delete() was called.
+	   * [Java] Abstract c++ classes are wrapped with a java abstract shadow
+	     class. Also a pure virtual function is mapped with an abstract method.
+	   * The default output file has always been <module>_wrap.c. It is now
+	     <module>_wrap.cxx if the -c++ commandline option is passed to swig.
+	     This has been done as otherwise c++ code would appear in a c file.
+           *** POTENTIAL INCOMPATIBILITY *** 
+
+7/31/2001: beazley
+           Modified the %constant directive to be more C-like in syntax.
+           The syntax is now:
+
+                %constant NAME = VALUE;
+                %constant TYPE NAME = VALUE;
+ 
+           For example:
+
+                %constant Foo *Bar = &Spam;
+
+           A more subtle case is as follows:
+
+               %constant int (*FOO)(int,int) = blah;
+
+           *** POTENTIAL INCOMPATIBILITY ***  Modules that were using
+           the %constant directive directly will need to be modified.
+      
+7/30/2001: beazley
+           Removed obscure and undocumented form of the %inline directive:
+
+               %inline int blah(int a, int b) {
+                  ...
+               }
+
+           *** POTENTIAL INCOMPATIBILITY *** 
+           (note: this feature was never documented and is withdrawn)
+
+7/30/2001: beazley
+           Removed support for functions with no explicitly declared
+           return type.  For example:
+
+                  foo(int);
+
+           In C, such functions were implicitly assumed to return an 'int'.
+           In C++, this is illegal.  Either way, it's considered bad
+           style.  Removing support for this in SWIG will simplify
+           certain issues in parsing.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/30/2001: mkoeppe
+	   * Partial merge from the CVS trunk.  The Source/DOH directory
+	     and most of the Source/Swig directory is up-to-date now.
+	   * [Guile] %scheme is now a macro for %insert("scheme").  
+	     New syntax:  %scheme "FILENAME"; 
+	     New syntax:  %scheme %{ SCHEME-CODE %}
+	     New macros %multiple_values, %values_as_list,
+	     %values_as_vector. 
+
+7/29/2001: beazley
+           %readonly and %readwrite have been turned into SWIG pragmas.
+           %pragma(swig) readonly and %pragma(swig) readwrite.  Macros
+           are used to provide backwards compatibility.
+
+7/29/2001: beazley
+           Minor changes to %pragma directive.  %pragma must always
+           be directed to a specific language.  For example:
+
+              %pragma(swig) make_default;
+              %pragma(perl5) include = "blah.i";
+
+           Also extended the pragma directive to allow code blocks
+ 
+              %pragma(foo) code = %{
+                  ... some code ...
+              %}
+
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/29/2001: beazley
+           Change to the way 'const' variables are wrapped.  In 
+           previous versions of SWIG, a 'const' variable was
+           wrapped as a constant.   Now, 'const' variables are
+           wrapped as read-only variables.  There are several
+           reasons for making this change, mostly pertaining to
+           subtle details of how 'const' actually works. 
+
+           This will probably break old interfaces that used 'const'
+           to create constants.   As a replacement, consider using this:
+
+           const int a = 4;   ===>   %constant(int) a = 4;
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/29/2001: beazley
+           Reorganization and simplification of type parsing.
+           Types with 'const' should work correctly now.
+
+7/29/2001: beazley
+           Most swig directives related to the documentation system
+           are now deprecated.
+
+7/29/2001: beazley
+           Removed support for Objective-C in order to simplify
+           parser reconstruction.  Will return if there is sufficient
+           demand.
+           *** POTENTIAL INCOMPATIBILITY ***
+
+7/29/2001: beazley
+           Code inclusion has been modified in the parser.  A common
+           directive %insert is now used for everything.  This
+           inserts a file into the output:
+
+               %insert(header) "foo.swg"
+
+           This inserts some inline code into the output
+
+               %insert(header) %{
+                   ... some code ... 
+               %}
+
+           There are five predefined targets for the insert directive:
+
+               "header"    - Header section of wrapper file
+               "runtime"   - Runtime section of wrapper file
+               "wrapper"   - Wrapper section
+               "init"      - Initialization function
+               "null"      - Nothing. Discard.
+
+           The following directives are still supported, but are
+           now defined in terms of macros:
+
+               %{ ... %}           -> %insert(header)  %{ ... %}
+               %init %{ ... %}     -> %insert(init)    %{ ... %}
+               %wrapper %{ ... %}  -> %insert(wrapper) %{ ... %}
+               %runtime %{ ... %}  -> %insert(runtime) %{ ... %}
+
+           Language modules can define new named targets by using the
+           C API function Swig_register_filebyname() (see main.cxx).
+           For example, if you wanted to expose a shadow class file,
+           you could do this:
+
+              Swig_register_filebyname("shadow", f_shadow);
+
+           Then in the interface file:
+
+              %insert(shadow) %{ ... %}
+
+           Note: this change should not affect any old interfaces, but
+           does open up new possibilities for enhancements.
+
+7/29/2001: beazley
+           SWIG now always includes a standard library file 'swig.swg'.
+           This file defines a large number of macro definitions
+           that define the behavior of various SWIG directives.
+           Previously, all SWIG directives were handled as special
+           cases in the parser.  This made the parser a large 
+           bloated mess.  Now, the parser is stripped down to a few
+           simple directives and macros are used to handle everything else.
+
+7/26/2001: cheetah (william fulton)
+	   * Fixes for Sourceforge bug #444748 - new testcase cpp_static:
+	     [TCL] Class with just static member variable/function fix
+	     [Java] Fixed static variables support
+	     [Ruby] Static variables workaround removed
+
+7/27/2001: mkoeppe
+	   * stype.c (SwigType_default): Strip qualifiers first. The
+	     default type of "int * const" is now "SWIGPOINTER *".
+	   * main.cxx: Define "__cplusplus" in SWIG's preprocessor if
+	     in C++ mode.
+	   * [Guile]: Added some support for arrays and C++
+	     references, fixing the "constant_pointers" test case.
+	   * Moved most tests from the old Guile-specific test-suite
+	     to the new test-suite.  Also moved perl5/pointer-cxx
+	     example there.
+
+7/26/2001: cheetah (william fulton)
+	   * Test-suite added.
+	   * Initial testcases: constant_pointers cpp_enum defines
+	     sizeof_pointers unions virtual_destructor
+	   * Make clean improvements.
+
+7/24/2001: cheetah (william fulton)
+	   * [Java] Underscores in the package name and/or module name
+	   no longer give linking problems.
+
+7/17/2001: cheetah (william fulton)
+	   * More parser bug fixes for constant pointers
+
+7/19/2001: mkoeppe
+	   * [Guile] Aesthetic improvement in variable wrappers.
+
+7/18/2001: beazley
+           * Fixed core-dump problem in pointer library when 
+             freeing character arrays.
+             SF Bug [ #415837 ] pointer lib core dump
+
+7/18/2001: beazley
+           * Fixed problem with default destructors and shadow
+             classes.  SF bug #221128.
+
+7/18/2001: beazley
+           * To provide better line-number tracking in interfaces
+             with lots of macros, special locator comments are
+             now generated by the SWIG preprocessor.  For example:
+
+                 /*@foo.i,42,BLAH@*/expanded macro/*@@*/
+
+             The first /*@...@*/ sequence sets the context
+             to point to the macro code.  The /*@@*/ comment
+             terminates the context.  The SWIG parser should
+             ignore all of the locator comments as should
+             the C compiler (should such comments end up
+             in generated wrapper code).
+
+7/18/2001: mkoeppe
+	   * The parser now handles severely constified types in
+	   typemaps.  This introduced a new shift/reduce conflict, but
+	   only with a heuristic function-pointer catch-all rule.  
+	   * [Guile]: Added typemaps for severely constified types. 
+	   * Fixed the "template-whitespace" problem by canonicalizing
+	     whitespace, especially around angle brackets and commas. 
+
+7/17/2001: mkoeppe
+	   * [Guile]: A Scheme file is emitted if the -scmstub FILE.SCM
+	   command-line option is used.  The %scheme directive
+	   (implemented as a macro for a pragma) allows to insert
+	   arbitrary code here.  In "simple" and "passive" linkage,
+	   the file gets filled with define-module and export
+	   declarations.
+
+7/17/2001: cheetah (william fulton)
+	   * Parser bug fix to support constant pointers, eg int* const ptr.
+	   Fixed everywhere - variables, parameters, return types etc. Note that
+	   when wrapping a constant pointer variable only the getter is generated.
+
+7/17/2001: mkoeppe
+	   * Fixed SF bug #441470 (#define X "//" would not be parsed,
+	     see test-suite entry "preproc-1"), reported by T. W. Burton
+	     <twburton@users.sf.net>.
+	   * Changed the type of character constants to "char", rather
+	     than "char *".  Changed the individual language modules
+	     to keep the old behaviour, except for the Guile module,
+	     where it is desired to make them Scheme characters.  This
+	     fixes SF bug #231409, test-suite entry "char-constant".
+	   * Applied patch for DOH/Doh/memory.c by Les Schaffer
+	     <schaffer@optonline.net> (avoid required side effects in
+	     assert). 
+
+7/17/2001: cheetah (william fulton)
+	   * Bug fix in parser for virtual destructor with void as parameter
+	   * Bug fix in parser #defines embedded within classes/structs/unions
+	   Consequently %constant can now also be placed within a struct/class/union.
+	   * Bug fix in parser to allow sizeof(*I_am_a_pointer) within a #define
+
+7/16/2001: mkoeppe
+	   * Added changes for the Macintosh contributed by Luigi
+	   Ballabio <ballabio@mac.com>. 
+	   * Some "const" fixes in the code.
+	   * [Guile]: Made the constant-wrapper functions much shorter.
+
+7/13/2001: mkoeppe
+	   * [Guile]: Some "const" fixes for Guile version 1.3.4.
+	   * Handle anonymous arguments with default values and static
+	     array members of classes.  Both bugs reported by Annalisa Terracina
+	     <annalisa.terracina@datamat.it>; see the files
+	     Examples/guile/test-suite/static-array-member.i and
+	     anonymous-arg.i.
 
 Version 1.3.6  (July 9, 2001)
 =============================

@@ -41,7 +41,7 @@ an abundance of spare time.
 <b>2001/09/03</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.7.tar.gz">SWIG-1.3.7</a> has been
 released. This is one of the most substantial enhancements to SWIG ever released.  Includes a more
 powerful parser, support for C++ templates, simplified wrapping of overloaded methods and more!
-This release also includes some updated documentation on the new features.
+This release also includes some updated documentation on the new features. See the <a href="download.html">download</a> page for release notes and versions for Windows and Macintosh.
 
 <p>
 <b>2001/08/30</b> A precompiled executable of SWIG-1.3.6 for Windows (<a
@@ -56,7 +56,7 @@ has been contributed by Luigi Ballabio.
 <p>
 <b>2001/07/10</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG-1.3.6</a> has been released.  This release includes substantial changes
 to the language modules and greatly improved support for Guile, Java, and 
-Ruby.  Please see the <a href="download.html">download page</a> for further details.
+Ruby.  Please see the <a href="download.html">download</a> page for further details.
 
 <p>
 <b>2000/10/14</b> A Macintosh port of SWIG1.3a5 (<a href="http://prdownloads.sourceforge.net/swig/MacSWIG1.3a5.sit.bin">macswig1.3a5</a>) has been contributed by Luigi Ballabio.
