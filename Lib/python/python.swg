@@ -60,7 +60,7 @@ extern PyObject *SWIG_newvarlink();
 extern void      SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
 extern _swig_type_info *SWIG_TypeRegister(_swig_type_info *);
 extern _swig_type_info *SWIG_TypeCheck(char *, _swig_type_info *);
-extern int              SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *);
+extern int              SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *, int);
 extern void             SWIG_MakePtr(char *c, void *, _swig_type_info *);
 extern PyObject        *SWIG_NewPointerObj(void *, _swig_type_info *);
 
@@ -245,7 +245,7 @@ SWIG_TypeCheck(char *c, _swig_type_info *ty) {
 
 /* Convert a pointer value */
 SWIGSTATICRUNTIME(int)
-SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty) {
+SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
   unsigned long p;
   register int d;
   _swig_type_info *tc;
@@ -305,7 +305,7 @@ cobject:
   return 0;
 
 type_error:
-  {
+  if (flags) {
     if (ty) {
       char *temp = (char *) malloc(64+strlen(ty->name));
       sprintf(temp,"Type error. Expected %s", ty->name);
@@ -314,8 +314,8 @@ type_error:
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
-    return -1;
   }
+  return -1;
 }
 
 /* Take a pointer and convert it to a string */
