@@ -607,8 +607,8 @@ public:
     }
 
     /* Set comparison with none for ConstructorToFunction */
-    // setSubclassInstanceCheck(NewString("CLASS_OF(self) != Qnil"));
-    setSubclassInstanceCheck(NewString("CLASS_OF(self) != cFoo.klass"));
+    setSubclassInstanceCheck(NewString("CLASS_OF(self) != Qnil")); // FIXME
+    // setSubclassInstanceCheck(NewString("CLASS_OF(self) != cFoo.klass"));
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
@@ -2082,8 +2082,7 @@ public:
     Parm *p, *ip;
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
-    String *type = NewString("PyObject");
-    SwigType_add_pointer(type);
+    String *type = NewString("VALUE");
     p = NewParm(type, NewString("self"));
     set_nextSibling(p, parms);
     parms = p;
@@ -2139,7 +2138,7 @@ public:
    * classDirectorMethod()
    *
    * Emit a virtual director method to pass a method call on to the 
-   * underlying Python object.
+   * underlying Ruby instance.
    *
    * --------------------------------------------------------------- */
 
@@ -2433,7 +2432,7 @@ public:
     /* check that have a wrapped Ruby object */
     Printv(w->code, "assert(__get_self() != Qnil);\n", NIL);
 
-    /* wrap complex arguments to PyObjects */
+    /* wrap complex arguments to VALUEs */
     Printv(w->code, wrap_args, NIL);
 
     /* pass the method call on to the Ruby object */
