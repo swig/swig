@@ -82,7 +82,7 @@ platform directory and type 'make install'.
 Notes:
 
    -  The Sun version of WAD has only been tested when compiled with the
-      Sun Workshop C/C++ compilers.   Although WAD works with other programs
+      Sun Workshop C/C++ compilers.   However WAD works with other programs
       that have been compiled with gcc.  If gcc is installed on your
       machine, you may want to set the following environment variables
       before running configure:
@@ -127,7 +127,7 @@ For scripting languages, WAD works in a similar manner--simply link
 your scripting language extension module with the appropriate WAD library
 (wadpy, wadtcl, wadpl).  For example:
 
-   % cc pymodule.o -lwadpy
+   % ld -G $(OBJS) -lwadpy -o pymodule.so
 
 When the scripting module is loaded into the interpreter, WAD should
 automatically initialize.
