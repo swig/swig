@@ -195,6 +195,7 @@ rest of your C/C++ application.
 The name of the wrapper file is derived from the name of the input file.  For example, if the
 input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
 To change this, you can use the <tt>-o</tt> option. 
+It is also possible to change the <a href="SWIG.html#output">output directory </a> that the Java files are generated into using <tt>-outdir</tt>.
 
 <a name="commandline"></a>
 <a name="n5"></a><H3>15.2.2 Additional Commandline Options</H3>
@@ -210,13 +211,13 @@ The following table list the additional commandline options available for the Ja
 </tr>
 
 <tr>
-<td>-package &lt;java package&gt;</td>
-<td>set the name of the package for the generated classes</td>
+<td>-package &lt;name&gt;</td>
+<td>set name of the Java package to &lt;name&gt;</td>
 </tr>
 
 <tr>
 <td>-noproxy</td>
-<td>Generate the low-level functional interface instead of proxy classes </td>
+<td>generate the low-level functional interface instead of proxy classes </td>
 </tr>
 
 </table>
@@ -348,7 +349,8 @@ $
 This error usually indicates that you forgot to include some object files or libraries in the linking of the native library file.  
 Make sure you compile both the SWIG wrapper file and the code you are wrapping into the native library file.  
 Also make sure you pass all of the required libraries to the linker.  
-You may get some more clues on unresolved symbols if you use the -verbose:jni commandline switch when running Java.
+The <tt>java -verbose:jni</tt> commandline switch is also a great way to get more information on unresolved symbols.
+One last piece of advice is to beware of the common faux pas of having more than one native library version in your path.
 <p>
 
 In summary, ensure that you are using the correct C/C++ compiler and linker combination and options for successful native library loading. 
@@ -532,7 +534,14 @@ The JNI (C/C++) code is generated into a file which also contains the module nam
 or </tt>example_wrap.c</tt>. These C or C++ files complete the contents of the module.
 <p>
 
-The generated Java classes can be placed into a Java package by using the -package commandline option.
+The generated Java classes can be placed into a Java package by using the <tt>-package</tt> commandline option.
+This is often combined with the <tt>-outdir</tt> to specify a package directory for generating the Java files.
+
+<blockquote><pre>
+swig -java -package com.bloggs.swig -outdir com/bloggs/swig example.i
+</pre></blockquote>
+
+SWIG won't create the directory, so make sure it exists beforehand.
 
 <a name="functions"></a>
 <a name="n16"></a><H3>15.3.2 Functions</H3>
