@@ -330,13 +330,13 @@ public:
     Language::top(n);
 
     /* Close language module */
-    Printf(methods,"\t { NULL, NULL }\n");
+    Printf(methods,"\t { NULL, NULL, 0, NULL }\n");
     Printf(methods,"};\n");
     Printf(f_wrappers,"%s\n",methods);
 
     SwigType_emit_type_table(f_runtime,f_wrappers);
 
-    Printf(const_code, "{0}};\n");
+    Printf(const_code, "{0, 0, 0, 0.0, 0, 0}};\n");
     Printf(f_wrappers,"%s\n",const_code);
     Printf(f_init,"}\n");
 
@@ -472,9 +472,9 @@ public:
 
   void add_method(String *name, String *function, int kw) {
     if (!kw)
-      Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS },\n", name, function);
+      Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS, NULL },\n", name, function);
     else
-      Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
+      Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, NULL },\n", name, function);
   }
   
   /* ------------------------------------------------------------
@@ -571,7 +571,7 @@ public:
       }
       Printv(f->def,
 	     "static PyObject *", wname,
-	     "(PyObject *self, PyObject *args, PyObject *kwargs) {",
+	     "(PyObject *, PyObject *args, PyObject *kwargs) {",
 	     NIL);
     }
     if (!allow_kwargs) {
