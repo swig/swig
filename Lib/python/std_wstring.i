@@ -1,4 +1,4 @@
-%include pywstrings.swg
+%include wchar.i
 %include std_basic_string.i
 
 /* wide strings */

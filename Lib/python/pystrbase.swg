@@ -1,0 +1,268 @@
+/* ------------------------------------------------------------
+ *  String typemaps for type Char (char or wchar_t)
+ * ------------------------------------------------------------ */
+
+%define %typemap_pystring(Char,
+			  SWIG_AsCharPtr,
+			  SWIG_AsCharPtrAndSize,
+			  SWIG_FromCharPtr,
+			  SWIG_AsNewCharPtr,
+			  SWIG_AsCharArray,
+			  SWIG_FromCharArray)
+/* in */
+
+%typemap(in,fragment=#SWIG_AsCharPtr)
+  Char *, Char const*, Char *const, Char const *const
+  "if (!SWIG_AsCharPtr($input, (Char**)&$1)) SWIG_fail;";
+
+%typemap(in,fragment=#SWIG_AsCharPtr) 
+  Char const*&, Char *const&, Char const *const & 
+{
+  $*ltype temp;
+  if (!SWIG_AsCharPtr($input, (Char**)&temp)) SWIG_fail;
+  $1 = &temp;
+}    
+
+/* out */
+
+%typemap(out,fragment=#SWIG_FromCharPtr)
+  Char *, Char const*, Char *const, Char const *const
+  "$result = SWIG_FromCharPtr($1);";
+
+%typemap(out,fragment=#SWIG_FromCharPtr)
+  Char *const &, Char const* &, Char const *const &
+  "$result = SWIG_FromCharPtr(*$1);";
+
+/* varin */
+
+%typemap(varin,fragment=#SWIG_AsNewCharPtr) Char *
+{
+  Char *cptr = 0;
+  if (!SWIG_AsNewCharPtr($input, &cptr)) {
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  if ($1) swig_delete_array($1);
+  $1 = cptr;
+}
+
+%typemap(varin,fragment=#SWIG_AsNewCharPtr,
+	 warning="451:Setting const Char * variable may leak memory") 
+  const Char *
+{
+  Char *cptr;
+  if (!SWIG_AsNewCharPtr($input, &cptr)) {    
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+  $1 = cptr;
+}
+
+/* varout */
+
+%typemap(varout,fragment=#SWIG_FromCharPtr)
+  Char*, Char const*, Char *const, Char const *const
+  "$result = SWIG_FromCharPtr($1);";
+
+/* constant */
+
+%typemap(constcode,fragment=#SWIG_FromCharPtr)
+  Char *, Char const*, Char * const, Char const* const
+  "PyDict_SetItemString(d,\"$symname\", SWIG_FromCharPtr($value));";
+
+/* directorin */
+
+%typemap(directorin,fragment=#SWIG_FromCharPtr)
+  Char *, Char const*, Char *const, Char const *const, 
+  Char const *&, Char *const &, Char const *const &
+  "$input = SWIG_NewPointerObj((Char*)($1_name), $descriptor(Char *), 0);"
+  /* "$input = SWIG_FromCharPtr($1_name);"; */
+
+
+/* directorout */
+
+%typemap(directorout,fragment=#SWIG_AsCharPtr)
+  Char *, Char const*, Char *const, Char const* const
+  "if (!SWIG_AsCharPtr($input, (Char**) &$result)) {
+      Swig::DirectorTypeMismatchException(\"Error converting Python object into Char*\");
+   }";
+
+%typemap(directorout,fragment=#SWIG_AsCharPtr)
+  Char const *&, Char *const &, Char const *const &
+{ 
+  Char* temp;
+  if (!SWIG_AsCharPtr($input, &temp)) {
+    Swig::DirectorTypeMismatchException("Error converting Python object into Char*");
+  }
+  $result = ($1_ltype) &temp;
+}
+
+/* typecheck */
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING,
+	 fragment=#SWIG_AsCharPtr) 
+  Char *, Char const*, Char *const, Char const *const, 
+  Char const*&, Char *const&, Char const *const & 
+ "$1 = SWIG_AsCharPtr($input, (Char **)(0));";
+
+/* throws */
+
+%typemap(throws,fragment=#SWIG_FromCharPtr)
+  Char *, Char const*, Char * const, Char const* const
+{
+  PyErr_SetObject(PyExc_RuntimeError, SWIG_FromCharPtr($1));
+  SWIG_fail;
+}
+
+
+/* ------------------------------------------------------------
+ *  Unknown size const Character array Char[ANY] handling
+ * ------------------------------------------------------------ */
+
+%typemap(in) Char [] = Char *;
+%typemap(in) const Char [] = Char *;
+%typemap(out) Char [] = Char *;
+%typemap(out) const Char [] = const Char *;
+%typemap(varout) Char [] = Char *;
+%typemap(varout) const Char [] = const Char *;
+%typemap(constcode) Char [] = Char *;
+%typemap(directorin) Char [] = Char *;
+%typemap(directorin) const Char [] = Char *;
+%typemap(directorout) Char [] = Char *;
+%typemap(typecheck) Char [] = Char *;
+%typemap(typecheck) const Char [] = Char *;
+
+%typemap(varin,fragment=#SWIG_AsCharArray) Char []
+{
+  if (!SWIG_AsCharArray($input, $1, sizeof($1))) {
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+}
+
+%typemap(varout,fragment=#SWIG_FromCharArray) const Char []
+ "$result = SWIG_FromCharArray($1, sizeof($1));";
+
+
+/* ------------------------------------------------------------
+ *  Fix size Character array Char[ANY] handling
+ * ------------------------------------------------------------ */
+
+/*  memberin and globalin typemaps  */
+
+%typemap(memberin) Char [ANY]
+{
+  if ($input) memcpy($1,$input,$1_dim0*sizeof(Char));
+  else memset($1,0,$1_dim0*sizeof(Char));
+}
+
+%typemap(globalin) Char [ANY]
+{
+  if ($input) memcpy($1,$input,$1_dim0*sizeof(Char));
+  else memset($1,0,$1_dim0*sizeof(Char));
+}
+
+/* in */
+
+%typemap(in,fragment=#SWIG_AsCharArray)
+  Char [ANY] (Char temp[$1_dim0]), 
+  const Char [ANY](Char temp[$1_dim0])
+{  
+  if (!SWIG_AsCharArray($input, temp, $1_dim0)) SWIG_fail;
+  $1 = temp;
+}
+
+%typemap(out,fragment=#SWIG_FromCharArray)
+  Char [ANY], const Char[ANY]
+  "$result = SWIG_FromCharArray($1, $1_dim0);";
+
+
+/* varin */
+
+%typemap(varin,fragment=#SWIG_AsCharArray) Char [ANY]
+{
+  if (!SWIG_AsCharArray($input, $1, $1_dim0)) {
+    PyErr_Clear();
+    PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
+    return 1;
+  }
+}
+
+/* varout */
+
+%typemap(varout,fragment=#SWIG_FromCharArray)
+  Char [ANY], const Char [ANY] 
+{
+  size_t size = $1_dim0;
+  //while (size && ($1[size - 1] == '\0')) --size;
+  $result = SWIG_FromCharArray($1, size);
+}
+
+/* constants */
+
+%typemap(constcode,fragment=#SWIG_FromCharArray)
+  Char [ANY], const Char [ANY]
+  "PyDict_SetItemString(d,\"$symname\", SWIG_FromCharArray($value, $value_dim0));";
+
+/* directorin */
+
+%typemap(directorin,fragment=#SWIG_FromCharArray)
+  Char [ANY], const Char [ANY] 
+  "$input = SWIG_FromCharArray($1_name, $1_dim0);";
+
+/* directorout */
+
+%typemap(directorout,fragment=#SWIG_AsCharArray)
+  Char [ANY], const Char [ANY] (Char temp[$result_dim0])
+{ 
+  if (!SWIG_AsCharArray($input, temp, $result_dim0)) {
+    Swig::DirectorTypeMismatchException("Error converting Python object into Char[$result_dim0]");
+  }
+  $result = temp;
+}
+
+/* typecheck */
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING,
+	 fragment=#SWIG_AsCharArray)  
+  Char [ANY], const Char[ANY]
+  "$1 = SWIG_AsCharArray($input, (Char *)0, $1_dim0);";
+
+/* throws */
+
+%typemap(throws,fragment=#SWIG_FromCharArray)
+  Char [ANY], const Char[ANY]
+{
+  PyErr_SetObject(PyExc_RuntimeError, SWIG_FromCharArray($1, $1_dim0));
+  SWIG_fail;
+}
+
+
+
+/* ------------------------------------------------------------
+ * --- String & length ---
+ * ------------------------------------------------------------ */
+
+/* Here len doesn't include the '0' terminator */
+%typemap(in, fragment=#SWIG_AsCharPtrAndSize) 
+  (Char *STRING, int LENGTH) (Char *buf, size_t size)
+{
+  int res = SWIG_AsCharPtrAndSize($input, &buf, &size);
+  if (!res) SWIG_fail;
+  $1 = ($1_ltype) buf;
+  $2 = ($2_ltype) size - 1;
+}
+
+/* Here size includes the '0' terminator */
+%typemap(in,fragment=#SWIG_AsCharPtrAndSize)
+  (Char *STRING, int SIZE) (Char *buf, size_t size)
+{
+  if (!SWIG_AsCharPtrAndSize($input, &buf, &size)) SWIG_fail;
+  $1 = ($1_ltype) buf;
+  $2 = ($2_ltype) size;
+}
+
+%enddef
