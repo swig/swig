@@ -103,6 +103,7 @@ static int             InClass = 0;
 #define  STORAGE_EXTERN     1
 #define  STORAGE_EXTERN_C   2
 #define  STORAGE_STATIC     3
+#define  STORAGE_VIRTUAL    4
 
 /* -----------------------------------------------------------------------------
  *                           Assist functions
@@ -120,6 +121,8 @@ my_cplus_declare_const(char *name, char *iname, SwigType *type, char *value) {
     cplus_declare_const(name,iname,type,value);
   }
 }
+
+
 
 /* Create a new typemap parameter */
 static TMParm *NewTMParm() {
@@ -266,6 +269,8 @@ static void create_function(int ext, char *name, SwigType *t, ParmList *l) {
   init_language();
   if (WrapExtern) return;        // External wrapper file. Ignore
 
+  if ((ext == STORAGE_STATIC) && (!Inline)) return;
+
   char *iname = make_name(name);
 
   // Check if symbol already exists
@@ -356,6 +361,52 @@ static void create_constant(char *name, SwigType *type, char *value) {
     }
   }
   scanner_clear_start();
+}
+/* Deal with C++ var/func declarations */
+
+static void
+my_cplus_varfunc_decl(int storage, String *type, char *id, String *decltype, ParmList *parms, String *val) {
+  char *iname;
+  SwigType *ty;
+  init_language();
+  if (cplus_mode != CPLUS_PUBLIC) return;
+
+  ty = Copy(type);
+  iname = make_name(id);
+  if (iname == id) iname = 0;
+  if (SwigType_isfunction(decltype)) {
+    /* A member function */
+    Delete(SwigType_pop(decltype));
+    SwigType_push(ty,decltype);
+
+    if (storage == STORAGE_STATIC) {
+      /* Static member function */
+      cplus_static_func(id,iname,ty,parms);
+    } else {
+      int is_virtual = 0;
+      if (storage == STORAGE_VIRTUAL) {
+	is_virtual = PLAIN_VIRTUAL;
+	/* Check for pure virtual */
+	if (val && Cmp(val,"0") == 0) is_virtual = PURE_VIRTUAL;
+      }
+      cplus_member_func(id,iname,ty,parms,is_virtual);
+    }
+  } else {
+    /* A member variable */
+    SwigType_push(ty,decltype);
+    int oldstatus = Status;
+    if (SwigType_isconst(ty)) {
+      Status |= STAT_READONLY;
+    }
+    if (storage == STORAGE_STATIC) {
+      /* static member variable */
+      cplus_static_var(id,iname,ty);
+    } else {
+      cplus_variable(id,iname,ty);
+    }
+    Status = oldstatus;
+  }
+  Delete(ty);
 }
 
 /* Structures for handling code fragments built for nested classes */
@@ -461,7 +512,7 @@ static void dump_nested(char *parent) {
     char      *id;
     SwigType  *type;
     String    *defarg;
-    ParmList  *tmargs;
+    ParmList  *parms;
   } decl;
   SwigType     *type;
   String       *str;
@@ -499,15 +550,15 @@ static void dump_nested(char *parent) {
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
-%type <ivalue>   storage_class;
-%type <pl>       parms typemap_args ptail;
+%type <ivalue>   storage_class cpp_storage_class;
+%type <pl>       parms  ptail;
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
 %type <type>     type type_right opt_signed opt_unsigned;
 %type <ivalue>   cpp_vend;
 %type <ilist>    base_list inherit;
-%type <dtype>    definetype def_args;
+%type <dtype>    definetype def_args initializer;
 %type <dtype>    etype;
 %type <dtype>    expr;
 %type <id>       ename ;
@@ -519,7 +570,7 @@ static void dump_nested(char *parent) {
 %type <loc>      includetype;
 %type <type>     pointer;
 %type <decl>     declarator direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
-%type <type>     abstract_declarator direct_abstract_declarator;
+%type <decl>     abstract_declarator direct_abstract_declarator;
 %type <id>       typemap_type;
 
 %%
@@ -570,9 +621,9 @@ declaration    : swig_directive
  *                           SWIG DIRECTIVES 
  * ====================================================================== */
   
-swig_directive :  addmethods_directive
+swig_directive : addmethods_directive 
                | apply_directive
-               | clear_directive
+ 	       | clear_directive
                | constant_directive
                | echo_directive
                | except_directive
@@ -586,7 +637,7 @@ swig_directive :  addmethods_directive
                | pragma_directive
                | rename_directive
                | typemap_directive
-               | types_directive
+               | types_directive 
                ;
 
 /* ------------------------------------------------------------
@@ -657,24 +708,6 @@ constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   SwigType_push($2,$3.type);
 		   create_constant($3.id,$2,Char($4.val));
 		 } 
-               }
-
-/* This is bogus. simplify later */
-
-               | CONSTANT type LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
-		 init_language();
-		 List *l = typelist($7);
-		 SwigType_add_function($2,l);
-		 SwigType_push($2,$4.type);
-		 create_constant($4.id,$2,Char($9.val));
-               }
-               | CONSTANT type abstract_declarator LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
-		 init_language();
-		 SwigType_push($2,$3);
-		 List *l = typelist($8);
-		 SwigType_add_function($2,l);
-		 SwigType_push($2,$5.type);
-		 create_constant($5.id,$2,Char($10.val));
                }
                ;
 
@@ -875,23 +908,29 @@ native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		   }
 		 }
 	       }
-               | NATIVE LPAREN ID RPAREN storage_class type declarator LPAREN parms RPAREN SEMI {
+               | NATIVE LPAREN ID RPAREN storage_class type declarator SEMI {
 		 if (!WrapExtern) {
 		   init_language();
-		   SwigType_push($6,$7.type);
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
+		   if (!SwigType_isfunction($7.type)) {
+		     Printf(stderr,"%s:%d. %%native declaration '%s' is not a function.\n", input_file,line_number, $7.id);
 		   } else {
-		     if ($5) {
-		       emit_extern_func($7.id, $6, $9, $5, f_header);
+		     Delete(SwigType_pop($7.type));
+		     /* Need check for function here */
+		     SwigType_push($6,$7.type);
+		     if (add_symbol($3)) {
+		       Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
+			      input_file, line_number, $3);
+		     } else {
+		       if ($5) {
+			 emit_extern_func($7.id, $6, $7.parms, $5, f_header);
+		       }
+		       lang->add_native($3,$7.id,$6,$7.parms);
 		     }
-		     lang->add_native($3,$7.id,$6,$9);
 		   }
 		 }
 		 Delete($6);
 		 Delete($7.type);
-		 Delete($9);
+		 Delete($7.parms);
 	       }
                ;
 
@@ -1042,14 +1081,12 @@ typemap_parm   : type typemap_parameter_declarator {
                   $$ = NewTMParm();
 		  SwigType_push($1,$2.type);
 		  $$->p = NewParm($1,$2.id);
-		  $$->args = $2.tmargs;
+		  $$->args = $2.parms;
+		  /*		  Printf(stdout,"type = %s\n", Gettype($$->p));
+		  Printf(stdout,"name = %s\n", Getname($$->p));
+		  Printf(stdout,"args = %s\n", $$->args); */
 		}
 		;
-
-typemap_args    : LPAREN parms RPAREN { $$ = $2; }
-                | empty { $$ = 0; }
-                ;
-
 
 /* ------------------------------------------------------------
    %types(parmlist); 
@@ -1070,76 +1107,68 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
  *                              C Parsing
  * ====================================================================== */
 
-c_declaration   : c_variable_decl
-                | c_function_decl
+c_declaration   : c_varfunc_decl
                 | c_enum_decl
-                | c_typedef_decl
+  	        | c_typedef_decl
 
 /* A an extern C type declaration.  Does nothing, but is ignored */
 
-               | EXTERN STRING LBRACE interface RBRACE { }
-
+                | EXTERN STRING LBRACE interface RBRACE { }
                 ;
 
 /* ------------------------------------------------------------
-   C variable declarations
+   A C global declaration of some kind (may be a variable or a function)
    ------------------------------------------------------------ */
 
-c_variable_decl : storage_class type declarator def_args {
+c_varfunc_decl  : storage_class type declarator initializer {
                     init_language();
-		    if ($1 == STORAGE_STATIC) {
-		    Active_static = 1;
-		    } else {
 		    if (Active_type) Delete(Active_type);
 		    Active_type = Copy($2);
 		    Active_extern = $1;
-		    SwigType_push($2,$3.type);
-		    create_variable($1,$3.id,$2);
+		    if ($1 == STORAGE_STATIC) Active_static = 1;
+		    /* A function declaration? */
+		    if (SwigType_isfunction($3.type)) {
+		      Delete(SwigType_pop($3.type));
+		      SwigType_push($2,$3.type);
+		      create_function($1,$3.id,$2,$3.parms);
+		    } else {
+		      SwigType_push($2,$3.type);
+		      create_variable($1,$3.id,$2);
 		    }
-		 } stail { 
-		    Active_static = 0;
-		    Delete($2);
+		 } varfunc_tail { 
+                    Active_static = 0;
+                    Delete($2);
 		    Delete($3.type);
+		    Delete($3.parms);
 		 }
                 ;
 
-/* ------------------------------------------------------------
-   C function declarations
-   ------------------------------------------------------------ */
+/* Allow lists of variables and functions to be built up */
 
-c_function_decl : storage_class type declarator LPAREN parms RPAREN cpp_const {
-		  init_language();
-		  if ($1 == STORAGE_STATIC) {
-		    Active_static = 1;
-		  } else {
-		    if (Active_type) Delete(Active_type);
-		    Active_type = Copy($2);
-		    Active_extern = $1;
-		    SwigType_push($2,$3.type);
-		    create_function($1, $3.id, $2, $5);
-		  }
-		  Delete($2);
-		  Delete($3.type);
-		  Delete($5);
-		} stail { 
-		  Active_static = 0;
-		}
+varfunc_tail   : SEMI { Clear(CCode); }
+               | COMMA declarator initializer {
+		 Clear(CCode);
+		 init_language();
+		 temp_typeptr = Copy(Active_type);
+		 if (SwigType_isfunction($2.type)) {
+		   Delete(SwigType_pop($2.type));
+		   SwigType_push(temp_typeptr,$2.type);
+		   create_function(Active_extern,$2.id,temp_typeptr,$2.parms);
+		 } else {
+		   SwigType_push(temp_typeptr,$2.type);
+		   create_variable(Active_extern, $2.id, temp_typeptr);
+		 }
+		 Delete(temp_typeptr);
+	       } varfunc_tail { }
+               | LBRACE { skip_brace(); }
+              ;
 
-/* A function declaration with code after it */
+initializer   : def_args { $$ = $1; }
+              | CONST { $$.val = 0; }
+              | THROW LPAREN parms RPAREN { $$.val = 0; }
+              | CONST THROW LPAREN parms RPAREN { $$.val = 0; }
+              ;
 
-                | storage_class type declarator LPAREN parms RPAREN func_end {
-		  init_language();
-		  if (($1 != STORAGE_STATIC) || ((($1 == STORAGE_STATIC) && (Inline) && (strlen(Char(CCode)))))) {
-		    SwigType_push($2,$3.type);
-		    create_function($1, $3.id, $2, $5);
-		  }
-		  Delete($2);
-		  Delete($3.type);
-	          Delete($5);
-		}
- 
-               ;
-         
 /* ------------------------------------------------------------
    enums
  * ------------------------------------------------------------ */
@@ -1188,71 +1217,18 @@ c_typedef_decl   : TYPEDEF type declarator {
 		   cplus_register_type($3.id);
 	       } typedeflist { };
 
-/* A rudimentary typedef involving function pointers */
-
-               | TYPEDEF type LPAREN parameter_declarator RPAREN LPAREN parms RPAREN SEMI {
-		   init_language();
-		   /* Typedef'd pointer */
-		   DOHList *l = typelist($7);
-		   SwigType_add_function($2,l);
-		   SwigType_push($2,$4.type);
-		   SwigType_typedef($2,$4.id);
-		   lang->add_typedef($2,$4.id);
-		   cplus_register_type($4.id);
-		   Delete($2);
-		   Delete($7);
-		   Delete(l);
-	       }
-
-/* A typedef involving function pointers again */
-
-               | TYPEDEF type abstract_declarator LPAREN parameter_declarator RPAREN LPAREN parms RPAREN SEMI {
-		   init_language();
-		   SwigType_push($2,$3);
-		   DOHList *l = typelist($8);
-		   SwigType_add_function($2,l);
-		   SwigType_push($2,$5.type);
-		   SwigType_typedef($2,$5.id);
-		   lang->add_typedef($2,$5.id);
-		   cplus_register_type($5.id);
-		   Delete($2);
-		   Delete($8);
-		   Delete(l);
-	       }
-               ;
-
 typedeflist   : COMMA declarator typedeflist {
-		  if (Active_typedef) {
-		    SwigType *t;
-		    t = Copy(Active_typedef);
-		    SwigType_push(t,$2.type);
-		    SwigType_typedef(t,$2.id);
-		    lang->add_typedef(t,$2.id);
-		    cplus_register_type($2.id);
-		    Delete(t);
+                   if (Active_typedef) {
+                      SwigType *t;
+  		      t = Copy(Active_typedef);
+		      SwigType_push(t,$2.type);
+		      SwigType_typedef(t,$2.id);
+		      lang->add_typedef(t,$2.id);
+		      cplus_register_type($2.id);
+		      Delete(t);
 		  }
               }
               | empty { }
-              ;
-
-/* Allow lists of variables and functions to be built up */
-
-stail          : SEMI { }
-               | COMMA declarator def_args {
-		 init_language();
-		 temp_typeptr = Copy(Active_type);
-		 SwigType_push(temp_typeptr,$2.type);
-		 create_variable(Active_extern, $2.id, temp_typeptr);
-		 Delete(temp_typeptr);
-	       } stail { }
-               | COMMA declarator LPAREN parms RPAREN cpp_const {
-		 init_language();
-		 temp_typeptr = Copy(Active_type);
-		 SwigType_push(temp_typeptr,$2.type);
-		 create_function(Active_extern, $2.id, temp_typeptr, $4);
-		 Delete(temp_typeptr);
-		 Delete($4);
-	       } stail { }
               ;
 
 
@@ -1377,8 +1353,12 @@ cpp_class_decl  :
 		  }
 		  free($4.names);
 		}
+		if (!Len($9.type)) {
+		  Delete($9.type);
+		  $9.type = 0;
+		}
 
-		if ($9.type > 0) {
+		if ($9.type) {
 		  Printf(stderr,"%s:%d.  typedef struct { } %s not supported properly. Winging it...\n", input_file, line_number, SwigType_str($9.type,$9.id));
 
 		}
@@ -1436,6 +1416,12 @@ cpp_class_decl  :
 	       InClass = 1;
               } cpp_members RBRACE declarator {
 		InClass = 0;
+
+		if (!Len($7.type)) {
+		  Delete($7.type);
+		  $7.type = 0;
+		}
+
 		if ($7.type) {
 		  Printf(stderr,"%s:%d. typedef %s {} %s not supported correctly. Will be ignored.\n", input_file, line_number, SwigType_str($7.type,$7.id));
 		  cplus_abort();
@@ -1474,7 +1460,6 @@ cpp_forward_class_decl : storage_class cpptype ID SEMI {
 	     }
              ;
 
-
 /* Operator overloading catch */
 
 cpp_other      : storage_class type declarator DCOLON OPERATOR {
@@ -1512,38 +1497,77 @@ cpp_members  : cpp_member cpp_members {}
              | empty { }
              ;
 
-cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
-                char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  SwigType_push($1,$2.type);
-		  iname = make_name($2.id);
-		  if (iname == $2.id) iname = 0;
-		  cplus_member_func($2.id, iname, $1,$4,0);
+/* ======================================================================
+ *                         C++ Class members
+ * ====================================================================== */
+
+/* A class member.  May be data or a function. Static or virtual as well */
+
+cpp_member   : cpp_varfunc_decl
+             | cpp_constructor_decl
+             | cpp_destructor_decl
+             | cpp_protection_decl
+             | cpp_enum_decl
+             | cpp_unsupported
+             | c_typedef_decl
+             | cpp_swig_directives
+             | cpp_nested
+             | cpp_unnamed
+             | cpp_member_class_decl
+             | SEMI
+             ;
+
+cpp_varfunc_decl:  cpp_storage_class type declarator initializer {
+                    if (Active_type) Delete(Active_type);
+		    Active_type = Copy($2);
+		    Active_extern = $1;
+                    my_cplus_varfunc_decl($1,$2,$3.id,$3.type,$3.parms,$4.val);
+		 } cpp_varfunc_tail { 
+                    Active_extern = 0;
+                    Delete($2);
+		    Delete($3.type);
+		    Delete($3.parms);
+		 }
+
+                | cpp_storage_class type declarator cpp_const LBRACE { 
+		  skip_brace();
+		  my_cplus_varfunc_decl($1,$2,$3.id,$3.type,$3.parms,0);
 		}
-		scanner_clear_start();
-		Delete($1);
-	        Delete($4);
-              }
 
-/* Virtual member function */
+                | type declarator initializer {
+		    if (Active_type) Delete(Active_type);
+		    Active_type = Copy($1);
+		    Active_extern = 0;
+		    my_cplus_varfunc_decl(0,$1,$2.id,$2.type,$2.parms,$3.val);
+		 } cpp_varfunc_tail { 
+                    Active_extern = 0;
+                    Delete($1);
+		    Delete($2.type);
+		    Delete($2.parms);
+		 }
+                | type declarator cpp_const LBRACE { 
+		  skip_brace();
+		  my_cplus_varfunc_decl(0,$1,$2.id,$2.type,$2.parms,0);
+		}
+                ;
 
-             |  VIRTUAL type declarator LPAREN parms RPAREN cpp_vend {
-	       char *iname;
-	       init_language();
-	       if (cplus_mode == CPLUS_PUBLIC) {
-		 SwigType_push($2,$3.type);
-		 iname = make_name($3.id);
-		 if (iname == $3.id) iname = 0;
-		 cplus_member_func($3.id,iname,$2,$5,$7 ? PURE_VIRTUAL : PLAIN_VIRTUAL);
-	       }
-	       scanner_clear_start();
-	       Delete($2);
-	       Delete($5);
-	     }
+/* Allow lists of variables and functions to be built up */
+
+cpp_varfunc_tail : SEMI { Clear(CCode); }
+                 | COMMA declarator initializer {
+		   temp_typeptr = Copy(Active_type);
+		   my_cplus_varfunc_decl(Active_extern,temp_typeptr,$2.id,$2.type,$2.parms,$3.val);
+		   Delete(temp_typeptr);
+	       } cpp_varfunc_tail { }
+              ;
+
+
+cpp_storage_class : STATIC { $$ = STORAGE_STATIC; }
+                  | VIRTUAL { $$ = STORAGE_VIRTUAL; }
+                  ;
 
 /* Possibly a constructor */
-              | ID LPAREN parms RPAREN ctor_end {
+cpp_constructor_decl :  ID LPAREN parms RPAREN ctor_end {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -1554,10 +1578,11 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 		scanner_clear_start();
 		Delete($3);
 	      }
+              ;
 
 /* A destructor (hopefully) */
 
-              | NOT ID LPAREN parms RPAREN cpp_end {
+cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -1582,68 +1607,12 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 		scanner_clear_start();
 		Delete($5);
 	      }
+              ;
 
-/* Member data */
 
-              | type declarator def_args {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (Active_type) Delete(Active_type);
-		  Active_type = Copy($1);
-		  SwigType_push($1,$2.type);
-		  iname = make_name($2.id);
-		  if (iname == $2.id) iname = 0;
-		  int oldstatus = Status;
-		  if (SwigType_isconst($1)) {
-		    Status |= STAT_READONLY;
-		  }
-		  cplus_variable($2.id,iname,$1);
-		  Status = oldstatus;
-		}
-		scanner_clear_start();
-		Delete($1);
-	      } cpp_tail { }
-
-/* Static Member data */
-
-              | STATIC type declarator def_args {
-		char *iname;
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  SwigType_push($2,$3.type);
-		  iname = make_name($3.id);
-		  if (iname == $3.id) iname = 0;
-		  int oldstatus = Status;
-		  if (SwigType_isconst($2)) {
-		    Status |= STAT_READONLY;
-		  }
-		  cplus_static_var($3.id,iname,$2);
-		  Status = oldstatus;
-		  if (Active_type) Delete(Active_type);
-		  Active_type = Copy($2);
-		}
-		scanner_clear_start();
-		Delete($2);
-	      } cpp_tail { }
-
-/* Static member function */
-
-              | STATIC type declarator LPAREN parms RPAREN cpp_end {
-		char *iname;
-		SwigType_push($2,$3.type);
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  iname = make_name($3.id);
-		  if (iname == $3.id) iname = 0;
-		  cplus_static_func($3.id, iname, $2, $5);
-		}
-		scanner_clear_start();
-		Delete($2);
-		Delete($5);
-	      }
 /* Turn on public: mode */
 
-              | PUBLIC COLON {
+cpp_protection_decl : PUBLIC COLON {
 		cplus_mode = CPLUS_PUBLIC;
 		scanner_clear_start();
 	      }
@@ -1661,6 +1630,49 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 		cplus_mode = CPLUS_PROTECTED;
 		scanner_clear_start();
 	      }
+              ;
+
+/* C++ Enum */
+
+cpp_enum_decl : ENUM ename LBRACE {scanner_clear_start();} cpp_enumlist RBRACE SEMI {
+		 // if ename was supplied.  Install it as a new integer datatype.
+		init_language();
+		if (cplus_mode == CPLUS_PUBLIC) {
+		  if ($2) {
+		    cplus_register_type($2);
+		    if (temp_type) Delete(temp_type);
+		    /*		    temp_type = NewSwigType(T_INT); */
+		    temp_type = NewStringf("enum %s",$2);
+		    SwigType_typedef(temp_type,$2);
+		    lang->add_typedef(temp_type,$2);
+		  }
+		}
+	      }
+              ;
+
+/* A friend :   Illegal */
+cpp_unsupported : FRIEND {
+		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
+		skip_decl();
+		scanner_clear_start();
+	      }
+
+/* An operator: Illegal */
+              | type abstract_declarator OPERATOR {
+		Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
+		skip_decl();
+		scanner_clear_start();
+	      }
+              ;
+
+/* Pragma directive */
+
+cpp_swig_directives: pragma_directive {
+		scanner_clear_start();
+	      }
+
+/* A constant (includes #defines) inside a class */
+              | constant_directive { }
 
 /* This is the new style rename */
 
@@ -1675,49 +1687,8 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
              } cpp_member {
                  NewObject = 0;
              }
+             ;
 
-/* C++ Enum */
-              | ENUM ename LBRACE {scanner_clear_start();} cpp_enumlist RBRACE SEMI {
-
-		 // if ename was supplied.  Install it as a new integer datatype.
-		init_language();
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($2) {
-		    cplus_register_type($2);
-		    if (temp_type) Delete(temp_type);
-		    /*		    temp_type = NewSwigType(T_INT); */
-		    temp_type = NewStringf("enum %s",$2);
-		    SwigType_typedef(temp_type,$2);
-		    lang->add_typedef(temp_type,$2);
-		  }
-		}
-	      }
-
-/* A friend :   Illegal */
-              | FRIEND {
-		Printf(stderr,"%s:%d. Friends are not allowed--members only! (ignored)\n", input_file, line_number);
-		skip_decl();
-		scanner_clear_start();
-	      }
-
-/* An operator: Illegal */
-              | type abstract_declarator OPERATOR {
-		Printf(stderr,"%s:%d. Operator overloading not supported (ignored).\n", input_file, line_number);
-		skip_decl();
-		scanner_clear_start();
-	      }
-
-/* A typedef inside a class */
-              | c_typedef_decl { }
-
-/* Pragma directive */
-
-              | pragma_directive {
-		scanner_clear_start();
-	      }
-
-/* A constant (includes #defines) inside a class */
-              | constant_directive { }
 
 
 /* ----------------------------------------------------------------------
@@ -1735,7 +1706,7 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 
 /* A struct sname { } id;  declaration */
 
-              | cpptype ID LBRACE { start_line = line_number; skip_brace();
+cpp_nested : cpptype ID LBRACE { start_line = line_number; skip_brace();
 	      } nested_decl SEMI {
 
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -1759,8 +1730,10 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 		  }
 		}
 	      }
+              ;
+
 /* An unnamed structure definition */
-              | cpptype LBRACE { start_line = line_number; skip_brace();
+cpp_unnamed : cpptype LBRACE { start_line = line_number; skip_brace();
               } declarator SEMI {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($1,"class") == 0) {
@@ -1782,40 +1755,20 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 
 		  }
 		}
-	      }
+	      } 
+              ;
+
 /* An empty class declaration */
-              | cpptype ID SEMI {
+cpp_member_class_decl : cpptype ID SEMI {
   		    if (cplus_mode == CPLUS_PUBLIC) {
                        cplus_register_type($2);
                     }
               }
-
-/* Other miscellaneous stuff */
-
-              | SEMI { }
               ;
 
 nested_decl   : declarator { $$ = $1;}
               | empty { $$.id = 0; }
               ;
-
-cpp_tail      : SEMI { }
-               | COMMA declarator def_args {
-		 init_language();
-		 if (cplus_mode == CPLUS_PUBLIC) {
-		   temp_typeptr = Copy(Active_type);
-		   SwigType_push(temp_typeptr,$2.type);
-		   int oldstatus = Status;
-		   if (SwigType_isconst(temp_typeptr)) {
-		     Status |= STAT_READONLY;
-		   }
-		   cplus_variable($2.id,(char *) 0, temp_typeptr);
-		   Status = oldstatus;
-		   Delete(temp_typeptr);
-		 }
-		 scanner_clear_start();
-	       } cpp_tail { }
-               ;
 
 cpp_end        : cpp_const SEMI {
 	            Clear(CCode);
@@ -1894,12 +1847,6 @@ storage_class  : EXTERN {
                }
                ;
 
-/* End of a function declaration.  Allows C++ "const" directive and inline code */
-
-func_end       : cpp_const LBRACE { skip_brace(); }
-               ;
-
-
 /* ------------------------------------------------------------------------------
    Function parameter lists
 
@@ -1936,31 +1883,6 @@ parm_type      : type parameter_declarator {
 		     Setvalue($$,$2.defarg);
 		}
 
-                /* pointer to function */
-
-                | type LPAREN parameter_declarator RPAREN LPAREN parms RPAREN def_args {
-		  List *l = typelist($6);
-                  SwigType_add_function($1,l);
-		  SwigType_push($1,$3.type);
-		  $$ = NewParm($1,$3.id);
-		  if ($8.val) {
-		    Setvalue($$,$8.val);
-		  }
-		  Delete(l);
-		}
-
-                | type abstract_declarator LPAREN parameter_declarator RPAREN LPAREN parms RPAREN def_args {
-		  List *l = typelist($7);
-		  SwigType_push($1,$2);
-                  SwigType_add_function($1,l);
-		  SwigType_push($1,$4.type);
-		  $$ = NewParm($1,$4.id);
-		  if ($9.val) {
-		    Setvalue($$,$9.val);
-		  }
-		  Delete(l);
-		}
-
                 | PERIOD PERIOD PERIOD {
                   Printf(stderr,"%s:%d. Variable length arguments not supported (ignored).\n", input_file, line_number);
 		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs");
@@ -1984,15 +1906,12 @@ def_args       : EQUAL definetype {
                | empty {$$.val = 0; $$.type = T_INT;}
                ;
 
-/* [ 7/28/01 ]  This code added to clean up the handling of pointers and qualifiers */
-
 parameter_declarator : declarator def_args {
                  $$ = $1;
 		 $$.defarg = $2.val;
             }
             | abstract_declarator def_args {
-              $$.type = $1;
-	      $$.id = 0;
+              $$ = $1;
               $$.defarg = $2.val;
             }
             | def_args {
@@ -2002,43 +1921,76 @@ parameter_declarator : declarator def_args {
             }
             ;
 
-typemap_parameter_declarator : declarator typemap_args {
+typemap_parameter_declarator : declarator {
                  $$ = $1;
-		 $$.tmargs = $2;
+		 if (SwigType_isfunction($1.type)) {
+		   Delete(SwigType_pop($1.type));
+		 } else {
+		   $$.parms = 0;
+		 }
             }
-            | abstract_declarator typemap_args {
-              $$.type = $1;
-	      $$.id = 0;
-              $$.tmargs = $2;
+            | abstract_declarator {
+              $$ = $1;
+	      if (SwigType_isfunction($1.type)) {
+		Delete(SwigType_pop($1.type));
+	      } else {
+		$$.parms = 0;
+	      }
             }
-            | typemap_args {
+            | empty {
    	      $$.type = 0;
               $$.id = 0;
-	      $$.tmargs = $1;
-            }
+	      $$.parms = 0;
+	      }
             ;
 
 
 declarator :  pointer direct_declarator {
               $$ = $2;
-              SwigType_push($1,$$.type);
-	      Delete($$.type);
+	      if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $1;
+           }
+           | pointer AND direct_declarator {
+              $$ = $3;
+	      SwigType_add_reference($1);
+              if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
 	      $$.type = $1;
            }
            | direct_declarator {
               $$ = $1;
+	      if (!$$.type) $$.type = NewString("");
+           }
+           | AND direct_declarator { 
+	     $$ = $2;
+	     $$.type = NewString("");
+	     SwigType_add_reference($$.type);
+	     if ($2.type) {
+	       SwigType_push($$.type,$2.type);
+	       Delete($2.type);
+	     }
            }
            ;
 
 direct_declarator : ID { 
        	             $$.id = $1;
 		     $$.type = 0;
+		     $$.parms = 0;
                   }
-                  | AND ID { 
-                     $$.id = $2;
-		     $$.type = NewString("");
-		     SwigType_add_reference($$.type);
-		  }
+/* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
+                  | LPAREN pointer direct_declarator RPAREN {
+		    $$ = $3;
+		    if ($$.type) {
+		      SwigType_push($2,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $2;
+                  }
                   | direct_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
@@ -2061,53 +2013,127 @@ direct_declarator : ID {
 		    }
 		    $$.type = t;
                   }
+                  | direct_declarator LPAREN parms RPAREN {
+	            List *l;
+		    SwigType *t;
+                    $$ = $1;
+                    l = typelist($3);
+		    t = NewString("");
+		    SwigType_add_function(t,l);
+		    Delete(l);
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+	            $$.parms = $3;
+		  }
                   ;
 
 abstract_declarator : pointer {
-		    $$ = $1;
+		    $$.type = $1;
+                    $$.id = 0;
+		    $$.parms = 0;
                   }
                   | pointer direct_abstract_declarator { 
-                     SwigType_push($1,$2);
-		     $$ = $1;
+                     $$ = $2;
+                     SwigType_push($1,$2.type);
+		     $$.type = $1;
+		     Delete($2.type);
+                  }
+                  | pointer AND direct_abstract_declarator {
+		    $$ = $3;
+		    SwigType_add_reference($1);
+		    if ($$.type) {
+		      SwigType_push($1,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $1;
                   }
                   | direct_abstract_declarator {
 		    $$ = $1;
                   }
+                  | AND direct_abstract_declarator {
+		    $$ = $2;
+		    $$.type = NewString("");
+		    SwigType_add_reference($$.type);
+		    if ($2.type) {
+		      SwigType_push($$.type,$2.type);
+		      Delete($2.type);
+		    }
+                  }
+                  | AND { 
+                    $$.id = 0;
+                    $$.parms = 0;
+                    $$.type = NewString("");
+		    SwigType_add_reference($$.type);
+                  }
                   ;
 
-direct_abstract_declarator : AND {
-		     $$ = NewString("");
-		     SwigType_add_reference($$);
-		  }
-                  | direct_abstract_declarator LBRACKET RBRACKET { 
+direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewString("");
 		    SwigType_add_array(t,(char*)"");
-		    if ($$) {
-		      SwigType_push(t,$$);
-		      Delete($$);
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
 		    }
-		    $$ = t;
+		    $$.type = t;
                   }
                   | direct_abstract_declarator LBRACKET expr RBRACKET { 
 		    SwigType *t;
 		    $$ = $1;
 		    t = NewString("");
 		    SwigType_add_array(t,$3.val);
-		    if ($$) {
-		      SwigType_push(t,$$);
-		      Delete($$);
+		    if ($$.type) {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
 		    }
-		    $$ = t;
+		    $$.type = t;
                   }
                   | LBRACKET RBRACKET { 
-		    $$ = NewString("");
-		    SwigType_add_array($$,(char*)"");
+		    $$.type = NewString("");
+		    $$.id = 0;
+		    $$.parms = 0;
+		    SwigType_add_array($$.type,(char*)"");
                   }
                   | LBRACKET expr RBRACKET { 
-		    $$ = NewString("");
-		    SwigType_add_array($$,$2.val);
+		    $$.type = NewString("");
+		    $$.id = 0;
+		    $$.parms = 0;
+		    SwigType_add_array($$.type,$2.val);
+		  }
+                  | LPAREN abstract_declarator RPAREN {
+                    $$ = $2;
+		  }
+                  | direct_abstract_declarator LPAREN parms RPAREN {
+	            List *l;
+		    SwigType *t;
+                    $$ = $1;
+                    l = typelist($3);
+		    t = NewString("");
+                    SwigType_add_function(t,l);
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t,$$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+		    $$.parms = $3;
+                    Delete(l);
+		  }
+                  | LPAREN parms RPAREN {
+	            List *l;
+                    $$.type = NewString("");
+                    l = typelist($2);
+                    SwigType_add_function($$.type,l);
+		    $$.parms = $2;
+		    $$.id = 0;
+                    Delete(l);
                   }
                   ;
 
