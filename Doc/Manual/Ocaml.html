@@ -29,6 +29,7 @@
 <li><a href="#n15">C++ Class Example</a>
 <li><a href="#n16">Compiling the example</a>
 <li><a href="#n17">Sample Session</a>
+<li><a href="#n18">Director Classes</a>
 </ul>
 <li><a href="#n18">Exceptions</a>
 </ul>
@@ -577,6 +578,114 @@ val hello : Qt.c_obj = C_obj <fun>
 In either case, assuming you have a working installation of QT, you will
 see a window containing the string "hi" in a button.  
 
+<a name="n18"></a><H3>16.2.4 Director Classes</H3>
+
+Director classes are classes which allow Ocaml code to override the public
+methods of a C++ object.  This facility allows the user to use C++ libraries
+that require a derived class to provide application specific functionality in
+the context of an application or utility framework.
+<p>
+Because the Ocaml language module treats C++ method calls as calls to a
+certain function, all you need to do is to define the function that will
+handle the method calls in terms of the public methods of the object, and
+any other relevant information.  The function <tt>new_derived_object</tt>
+uses a stub class to call your methods in place of the ones provided by the
+underlying implemenation.  The object you receive is the underlying object,
+so you are free to call any methods you want from within your derived method.
+Note that calls to the underlying object do not invoke Ocaml code.  You need
+to handle that yourself.
+<p>
+<tt>new_derived_object</tt> receives your function, the function that creates
+the underlying object, and any constructor arguments, and provides an
+object that you can use in any usual way.  When C++ code calls one of the
+object's methods, the object invokes the Ocaml function as if it had been
+invoked from Ocaml, allowing any method definitions to override the C++ ones.
+<p>
+In this example, I'll examine the objective caml code involved in providing
+an overloaded class.  This example is contained in Examples/ocaml/shapes.
+<p>
+<table border="1" bgcolor="#dddddd"><tr><th><center>example_prog.ml</center>
+</th></tr>
+<tr><td><pre>
+open Example
+
+...
+
+let triangle_class pts ob meth args =
+  match meth with
+      "cover" ->
+        (match args with
+             C_list [ x_arg ; y_arg ] ->
+               C_bool (point_in_triangle 
+                         pts (get_float x_arg) (get_float y_arg))
+           | _ -> raise (Failure "cover needs two double arguments."))
+    | _ -> (invoke ob) meth args ;;
+
+let triangle =
+  new_derived_object 
+    new_shape
+    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    C_void ;;
+
+let _ = _draw_shape_coverage (C_list [ triangle ; C_int 60 ; C_int 20 ]) ;;
+</pre></td></tr>
+</table>
+<p>
+This is the meat of what you need to do.  The actual "class" definition
+containing the overloaded method is defined in the function triangle_class.
+This is a lot like the class definitions emitted by SWIG, if you look at
+example.ml, which is generated when SWIG consumes example.i.  Basically,
+you are given the arguments as a c_obj and the method name as a string, and
+you must intercept the method you are interested in and provide whatever
+return value you need.  Bear in mind that the underlying C++ code needs the
+right return type, or an exception will be thrown.  This exception will
+generally be Failure, or NotObject.  That having been said, your method
+will be called whenever the underlying method that it depends on will be
+called, but only when the __up pointer is not set.  Therefore, if you need
+to rely on other methods from your own object, that you also have overrides
+for, you'll need to call them yourself, rather than relying on the normal
+method interface, because the underlying code won't call you back a second
+time.  This mechanism prevents infinite recursion on method calls, and allows
+the cathall case at the end of the example code to succeed in calling a method
+of the underlying object.
+<p>
+In the example, the draw_shape_coverage function plots the indicated number
+of points as either covered (<tt>x</tt>) or uncovered (<tt> </tt>) between
+0 and 1 on the X and Y axes.  Your shape implementation can provide any
+coverage map it likes, as long as it responds to the "cover" method call
+with a boolean return (the underlying method returns bool).  This might allow
+a tricky shape implementation, such as a boolean combination, to be expressed
+in a more effortless style in ocaml, while leaving the "engine" part of the
+program in C++.
+<p>
+The definition of the actual object triangle can be described this way:
+<pre><blockquote><p>
+let triangle =
+  new_derived_object 
+    new_shape
+    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    C_void
+</p></blockquote></pre>
+<p>
+The first argument to <tt>new_derived_object</tt>, new_shape is the method
+which returns a shape instance.  This function will be invoked with the 
+third argument will be appended to the argument list [ C_void ].  In the
+example, the actual argument list is sent as (C_list [ C_void ; C_void ]).
+The augmented constructor for a director class needs the first argument
+to determine whether it is being constructed as a derived object, or as
+an object of the indicated type only (in this case <tt>shape</tt>).  The
+Second argument is a closure that will be added to the final C_obj.  
+<p>
+The actual object passed to the self parameter of the director object will
+be a C_director_core, containing a c_obj option ref and a c_obj.  The
+c_obj provided is the same object that will be returned from new_derived
+object, that is, the object exposing the overridden methods.  The other part
+is an option ref that will have its value extracted before becoming the
+<tt>ob</tt> parameter of your class closure.  This ref will contain
+<tt>None</tt> if the C++ object underlying is ever destroyed, and will
+consequently trigger an exception when any method is called on the object
+after that point (the actual raise is from an inner function used by
+new_derived_object, and throws NotObject).
 <a name="n18"></a><H3>16.2.4 Exceptions</H3>
 
 
