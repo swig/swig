@@ -198,6 +198,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
 #endif
 
+  // Set the SWIG version value
+  String *vers;
+  vers = NewStringf("SWIG_VERSION 0x%02d%02d%02d", SWIG_MAJOR_VERSION, SWIG_MINOR_VERSION, SWIG_SPIN);
+  Preprocessor_define(vers,0);
+
   // Check for SWIG_LIB environment variable
 
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
