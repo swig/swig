@@ -156,10 +156,13 @@
 %typemap(out) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[]
      "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
 
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+     "Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp, (void *) $1, $1_descriptor,0));";
+
 %typemap(out) void "";
 
 /* Primitive types--return by value */
-%typemap(out) SWIGTYPE 
+%typemap(out) SWIGTYPE NOINSTANCE
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
@@ -180,7 +183,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype($1);
+  resultptr = new $1_ltype(($1_ltype &) $1);
   Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
 }
 #else
@@ -191,6 +194,8 @@
   Tcl_SetObjResult(interp,SWIG_NewInstanceObj(interp,(void*) resultptr, $&1_descriptor,1));
 }
 #endif
+
+%typemap(out) SWIGTYPE = SWIGTYPE INSTANCE;
 
 /* Special typemap for character array returns */
 %typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,-1));"
@@ -253,6 +258,7 @@
 
 %typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor,0);";
 %typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
+%typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj(interp, (void *) &$1, $&1_descriptor,0);";
 
 /* -- Variable input --- */
 
@@ -487,11 +493,11 @@
 
 #ifdef __cplusplus
 %rename("+")         *::operator+;
-%rename("u+")        *::operator+();     // Unary +
-%rename("u+")        *::operator+() const;     // Unary +
+//%rename("u+")        *::operator+();     // Unary +
+//%rename("u+")        *::operator+() const;     // Unary +
 %rename("-")         *::operator-;
-%rename("u-")        *::operator-();     // Unary -
-%rename("u-")        *::operator-() const;     // Unary -
+//%rename("u-")        *::operator-();     // Unary -
+//%rename("u-")        *::operator-() const;     // Unary -
 %rename("*")         *::operator*;
 %rename("/")         *::operator/;
 %rename("<<")        *::operator<<;
