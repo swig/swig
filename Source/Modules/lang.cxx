@@ -2588,7 +2588,8 @@ String * Language::getClassType() const {
 int Language::abstractClassTest(Node *n) {
   List *abstract = Getattr(n,"abstract");
   if (!abstract) return 0;
-  if (abstract && Cmp(Getattr(n, "feature:director"), "1")) return 1;
+  if (abstract && !directorsEnabled()) return 1;
+  if (Cmp(Getattr(n, "feature:director"), "1")) return 1;
   /*
     since now %feature("noabstract") is working, we check
     that the director is really not abstract.
