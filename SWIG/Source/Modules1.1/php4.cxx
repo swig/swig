@@ -1290,7 +1290,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-
+    SwigType *t = Getattr(n, "classtype");
     if(class_name) free(class_name);
     class_name = Swig_copy_string(GetChar(n, "name"));
 
@@ -1361,10 +1361,10 @@ public:
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
 	     "(_wrap_destroy_%s,NULL,SWIGTYPE%s->name,module_number);\n",
-	     shadow_classname, shadow_classname, SwigType_manglestr(n));
+	     shadow_classname, shadow_classname, SwigType_manglestr(t));
       // Now register with swig (clientdata) the resource type
       Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,le_swig_%s)\n",
-             SwigType_manglestr(n),shadow_classname);
+             SwigType_manglestr(t),shadow_classname);
       Printf(s_oinit,"// End of %s\n\n",shadow_classname);
 
     } else { // still need resource destructor
@@ -1372,7 +1372,7 @@ public:
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", class_name, class_name);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
 	     "(_wrap_destroy_%s,NULL,SWIGTYPE%s->name,module_number);\n",
-	     class_name, class_name, SwigType_manglestr(n));
+	     class_name, class_name, SwigType_manglestr(t));
     }
 
     Language::classHandler(n);
