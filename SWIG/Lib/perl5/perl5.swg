@@ -156,33 +156,33 @@
 
 /* References to primitive types.  Return by value */
 
-%typemap(out) int &, unsigned int &,
-              short &, unsigned short &,
-              long &, unsigned long &,
-              signed char &, unsigned char &,
-              bool &
+%typemap(out) const int &, const unsigned int &,
+              const short &, const unsigned short &,
+              const long &, const unsigned long &,
+              const signed char &, const unsigned char &,
+              const bool &
       "ST(argvi) = sv_newmortal();
        sv_setiv(ST(argvi++), (IV) *($1));";
 
-%typemap(out) float &, double & 
+%typemap(out) const float &, const double & 
       "ST(argvi) = sv_newmortal();
        sv_setnv(ST(argvi++), (double) *($1));";
 
-%typemap(out) long long & {
+%typemap(out) const long long & {
   char temp[256];
   sprintf(temp,"%lld", *($1));
   ST(argvi) = sv_newmortal();
   sv_setpv((SV*)ST(argvi++), temp);
 }
 
-%typemap(out) unsigned long long & {
+%typemap(out) const unsigned long long & {
   char temp[256];
   sprintf(temp,"%llu", *($1));
   ST(argvi) = sv_newmortal();
   sv_setpv((SV*)ST(argvi++), temp);
 }
 
-%typemap(out) char &
+%typemap(out) const char &
   "ST(argvi) = sv_newmortal();
    sv_setpvn((SV*)ST(argvi++), $1, 1);";
 

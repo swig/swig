@@ -43,11 +43,11 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE & { 
+%typemap(in) SWIGTYPE &, const SWIGTYPE & { 
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum);
 }
 
-%typemap(out) SWIGTYPE & {
+%typemap(out) SWIGTYPE &, const SWIGTYPE & {
   $result = SWIG_MakePtr ($1, $descriptor);
 }
 
@@ -163,7 +163,7 @@ SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL,
      temp = MZ_TO_C($input);
      $1 = &temp;
   }
-  %typemap(out) C_NAME & {
+  %typemap(out) const C_NAME & {
     $result = C_TO_MZ(*$1);
   }
 %enddef

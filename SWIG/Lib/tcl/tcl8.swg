@@ -193,30 +193,30 @@
 
 /* Primitive references */
 
-%typemap(out) int &, unsigned int &,
-              short &, unsigned short &,
-              long &, unsigned long &,
-              signed char &, unsigned char &,
-              bool &
+%typemap(out) const int &, const unsigned int &,
+              const short &, const unsigned short &,
+              const long &, const unsigned long &,
+              const signed char &, const unsigned char &,
+              const bool &
     "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) *($1)));";
 
-%typemap(out) float &, double & 
+%typemap(out) const float &, const double & 
     "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) *($1)));";
 
-%typemap(out) long long & {
+%typemap(out) const long long & {
   char temp[256];
   sprintf(temp,"%lld", *($1));
   Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
 }
 
-%typemap(out) unsigned long long &
+%typemap(out) const unsigned long long &
 {
   char temp[256];
   sprintf(temp,"%llu", *($1));
   Tcl_SetObjResult(interp,Tcl_NewStringObj(temp,-1));
 }
 
-%typemap(out) char &
+%typemap(out) const char &
    "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,1));";
 
 

@@ -114,12 +114,12 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE & {
+%typemap(in) SWIGTYPE &, const SWIGTYPE & {
   if (SWIG_Guile_GetPtr($input, (void **) &$1, $descriptor)!=0)
     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
 }
 
-%typemap(out) SWIGTYPE & {
+%typemap(out) SWIGTYPE &, const SWIGTYPE & {
   $result = SWIG_Guile_MakePtr ($1, $descriptor);
 }
 
@@ -195,7 +195,7 @@
       temp = SCM_TO_C($input);
       $1 = &temp;
   }
-  %typemap(out, doc="<" #SCM_NAME ">")  C_NAME & {
+  %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME & {
     $result = C_TO_SCM(*$1);
   }
 %enddef

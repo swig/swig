@@ -156,23 +156,23 @@
 
 /* References to primitive types.  Return by value */
 
-%typemap(out) int &, unsigned int &,
-              short &, unsigned short &,
-              long &, unsigned long &,
-              signed char &, unsigned char &,
-              bool &
+%typemap(out) const int &, const unsigned int &,
+              const short &, const unsigned short &,
+              const long &, const unsigned long &,
+              const signed char &, const unsigned char &,
+              const bool &
       "$result = PyInt_FromLong((long) *($1));";
 
-%typemap(out) float &, double & 
+%typemap(out) const float &, const double & 
       "$result = PyFloat_FromDouble((double) *($1));";
 
-%typemap(out) long long &
+%typemap(out) const long long &
       "$result = PyLong_FromLongLong(*($1));";
 
-%typemap(out) unsigned long long &
+%typemap(out) const unsigned long long &
       "$result = PyLong_FromUnsignedLongLong(*($1));";
 
-%typemap(out) char &
+%typemap(out) const char &
       "$result = PyString_FromStringAndSize($1,1);";
 
 /* --- Variable input --- */
