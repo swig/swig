@@ -1373,19 +1373,12 @@ public:
 
       shadow_c_vars = NewHash();
 
-DOH* key;
-key=Firstkey(n);
-while(key) {
-  Printf(stderr, "Class: %s\n",key);
-  key=Nextkey(n);
-}
       /* Deal with inheritance */
       List *baselist = Getattr(n, "bases");
       int class_count = 1;
 
       if(baselist) {
 	Node *base = Firstitem(baselist);
-
 	if(is_shadow(Getattr(base, "name"))) {
 	  Printf(this_shadow_baseclass, "%s", Getattr(base, "name"));
 	}
@@ -1411,53 +1404,94 @@ while(key) {
 
     if(shadow) {
       DOH *key;
-      int count;
-      Node *parent=Getattr(n,"parentnode");
+      int gcount, scount;
+      String	  *s_propget=NewString("");
+      String	  *s_propset=NewString("");
+      List *baselist = Getattr(n, "bases");
+      Node *base = NULL;
+
+      if (baselist) base=Firstitem(baselist);
+
       Printf(s_oinit,"// Define class %s\n"
 	     "INIT_OVERLOADED_CLASS_ENTRY(ce_swig_%s,\"%(lower)s\",%s_functions,"
 	     "NULL,_propget_%s,_propset_%s);\n",
 	     shadow_classname,shadow_classname,shadow_classname,
 	     shadow_classname,shadow_classname,shadow_classname);
-      Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
 
-      Printf(s_wrappers,"pval _propget_%s(zend_property_reference *property_reference) {\n",
-		shadow_classname);
-      Printf(s_wrappers,"  pval presult;\n  presult.type = IS_NULL;\n");
+      Printf(s_propget,"static pval _propget_%s(zend_property_reference *property_reference) {\n", shadow_classname);
+      Printf(s_header,"static pval _propget_%s(zend_property_reference *property_reference);\n", shadow_classname);
+
+      Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
+      Printf(s_header,"static int _propset_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
 
 //        int type;  /* read, write or r/w */
 //        zval *object;
 //        zend_llist *elements_list;
 
 
-      Printf(s_wrappers,"  /* get the property name */\n"
+      key = Firstkey(shadow_c_vars);
+      // Print function header; we only need to find property name if there
+      // are properties for this class to look up...
+      if (key) {
+        Printf(s_propget,"  pval presult;\n  presult.type = IS_NULL;\n");
+        Printf(s_propget,"  /* get the property name */\n"
                "  zend_llist_element *element = property_reference->elements_list->head;\n"
                "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
                "  char *propname=property->element.value.str.val;\n"
-               "  printf(\"======Read property %%s\\n\",propname);\n");
+               "  printf(\"======Read property %s:%%s\\n\",propname);\n",shadow_classname);
 
-      key = Firstkey(shadow_c_vars);
-      Printf(stderr,"\nShadow_c_vars\n=============\n");
-      count=0;
+        Printf(s_propset,"  /* get the property name */\n"
+               "  zend_llist_element *element = property_reference->elements_list->head;\n"
+               "  zend_overloaded_element *property=(zend_overloaded_element *)element->data;\n"
+               "  char *propname=property->element.value.str.val;\n"
+               "  printf(\"======Write property %s:%%s\\n\",propname);\n",shadow_classname);
+      } else {
+        if (base) {
+          Printf(s_propget,"  // No extra properties for subclass %s\n",shadow_classname);
+          Printf(s_propset,"  // No extra properties for subclass %s\n",shadow_classname);
+        } else {
+          Printf(s_propget,"  // No properties for base class %s\n",shadow_classname);
+          Printf(s_propset,"  // No properties for base class %s\n",shadow_classname);
+        }
+      }
+
+      gcount=0;
+      scount=0;
       while (key) {
-        if (count++) Printf(s_wrappers," else");
-        Printf(s_wrappers,"  if (strcmp(propname,\"%s\")==0) {\n"
+        if (gcount++) Printf(s_propget," else");
+        Printf(s_propget,"  if (strcmp(propname,\"%s\")==0) {\n"
                           "    //%s\n    return presult;\n"
                           "  }",Getattr(shadow_c_vars,key),key);
+
+        if (scount++) Printf(s_propset," else");
+        Printf(s_propset,"  if (strcmp(propname,\"%s\")==0) {\n"
+                          "    //%s\n    return 0;\n"
+                          "  }",Getattr(shadow_c_vars,key),key);
+
         key=Nextkey(shadow_c_vars);
       }
+
+      if (gcount) Printf(s_propget," else");
+      if (scount) Printf(s_propset," else");
+
       // If there is a parent class then chain it's handler else return null
-      if (count) Printf(s_wrappers," else ");
-      Printf(s_wrappers,  "{\n    //return null\n    return presult;\n  }\n");
+      if (base) {
+        Printf(s_propget,  "  {\n    // chain to base class\n"
+               "    return _propget_%s(property_reference);\n  }\n",
+               GetChar(base, "sym:name"));
+        Printf(s_propset,  "  {\n    // chain to base class\n"
+               "    return _propset_%s(property_reference, value);\n  }\n",
+               GetChar(base, "sym:name"));
+      } else {
+        Printf(s_propget,  "  {\n    //return null\n    return presult;\n  }\n");
+        Printf(s_propset,  "  {\n    //return null\n    return 0;\n  }\n");
+      }
+      Printf(s_propget,"}\n\n");
+      Printf(s_propset,"}\n\n");
 
-      Printf(s_wrappers,"}\n\n");
-
-      // == Write property setter ==
-      Printf(s_wrappers,"int _propset_%s(zend_property_reference *property_reference, pval *value) {\n",
-		shadow_classname);
-
-
-      Printf(s_wrappers,"  return 0;\n");
-      Printf(s_wrappers,"}\n\n");
+      // add wrappers to output code
+      Printf(s_wrappers,"// property handler for class %s\n",shadow_classname);
+      Printv(s_wrappers,s_propget,s_propset,NULL);
 
       // Save class in class table
       Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class(&ce_swig_%s))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",shadow_classname,shadow_classname,shadow_classname);
