@@ -793,54 +793,6 @@ check_id(DOH *s)
   }
   return 0;
 
-#ifdef OLD
-
-  while ((c = Getc(s)) != EOF) {
-    switch(state) {
-
-    case 0:
-      if (isdigit(c)) {
-	hasvalue =1;
-      }
-      else if (isidentifier(c)) return 1;
-      else if (c == '\"') {
-	skip_tochar(s,'\"',0);
-	hasvalue = 1;
-      } else if (c == '\'') {
-	skip_tochar(s,'\'',0);
-	hasvalue = 1;
-      } else if (c == '/') state = 3;
-
-      /* Checks for bad operators, symbols */
-      else if (c == ',') return 1;
-      else if (c == ';') return 1;
-
-      break;
-
-    case 3:
-      if (c == '*') state = 10;
-      else if (c == '/') state = 20;
-      else {
-	Ungetc(c,s);
-	state = 0;
-      }
-      break;
-    case 10:
-      if (c == '*') state = 11;
-      break;
-    case 11:
-      if (c == '/') state = 0;
-      else if (c != '*') state = 10;
-      break;
-    case 20:
-      if (c == '\n') state = 0;
-      break;
-    }
-  }
-  if (!hasvalue) return 1;
-  return 0;
-#endif
-
 }
 
 /* addline().  Utility function for adding lines to a chunk */
