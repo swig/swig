@@ -1,3 +1,7 @@
+10/24/2002: ttn
+	    [Methodology] Upgaded to libtool 1.4.3, presumably w/ better
+	    support for newish platforms (like MacOS X).
+
 10/21/2002: ttn
 	    Fixed Runtime/Makefile.in bug -- thanks to Richard Calmbach.
 
