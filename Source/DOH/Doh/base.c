@@ -560,11 +560,17 @@ DohTell(DOH *obj) {
 
 int
 DohGetc(DOH *obj) {
+  static DOH *lastdoh = 0;
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
+  if (obj == lastdoh) {
+    objinfo = dohtypes[b->type];
+    return (objinfo->doh_file->doh_getc)(b);
+  }
   if (DohCheck(obj)) {
     objinfo = dohtypes[b->type];
     if (objinfo->doh_file->doh_getc) {
+      lastdoh = obj;
       return (objinfo->doh_file->doh_getc)(b);
     }
     return EOF;
@@ -578,11 +584,18 @@ DohGetc(DOH *obj) {
 
 int
 DohPutc(int ch, DOH *obj) {
+  static DOH *lastdoh = 0;
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
+
+  if (obj == lastdoh) {
+    objinfo = dohtypes[b->type];
+    return (objinfo->doh_file->doh_putc)(b,ch);
+  }
   if (DohCheck(obj)) {
     objinfo = dohtypes[b->type];
     if (objinfo->doh_file->doh_putc) {
+      lastdoh = obj;
       return (objinfo->doh_file->doh_putc)(b,ch);
     }
     return EOF;
