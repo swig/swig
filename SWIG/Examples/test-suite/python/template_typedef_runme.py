@@ -10,15 +10,12 @@ try:
 except:
   raise RuntimeError
 
-
-
 try:
   e = make_Multiplies_float_float_float_float(d, d)
   a = e.this
 except:
   print e, "is not an instance"
   raise RuntimeError
-  
 
 try:
   f = make_Multiplies_real_real_real_real(c, c)
@@ -33,3 +30,4 @@ try:
 except:
   print g, "is not an instance"
   raise RuntimeError
+
