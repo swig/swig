@@ -75,7 +75,7 @@ Python Options (available with -python)\n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
      -new_repr       - Use more informative version of __repr__ in proxy classes\n\
-     -old_repr       - Use shorter version of __repr__ in proxy classes\n\
+     -old_repr       - Use shorter ald old version of __repr__ in proxy classes\n\
      -noexcept       - No automatic exception handling\n\
      -noh            - Don't generate the output header file\n\
      -noproxy        - Don't generate proxy classes \n\n";
@@ -157,6 +157,7 @@ public:
 	  Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
+	  apply = 0;
 	  classic = 0;
           modern = 1;
 	  Swig_mark_arg(i);
