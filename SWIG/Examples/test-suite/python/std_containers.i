@@ -79,7 +79,7 @@
     return v[index];
   }
 
-  std::pair<int,int> pident(const std::pair<int,int>& p) 
+  std::pair<int,double> pident(const std::pair<int,double>& p) 
   {
     return p;
   }
