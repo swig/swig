@@ -127,7 +127,7 @@ output values, in reverse order.
 %{  if (!checker ($input)) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Argument #$argnum is not of type 'type_'");
   }
-  temp = from_scheme ($input);
+  temp = ($*1_ltype) from_scheme ($input);
   $1 = &temp; %}
 
 %typemap(typecheck) type_ *INPUT = type_;
@@ -166,12 +166,12 @@ output values, in reverse order.
 INOUT_TYPEMAP(int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(enum SWIGTYPE, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLOWNUM);
-INOUT_TYPEMAP(long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned int, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(unsigned short, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
-INOUT_TYPEMAP(unsigned long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
-INOUT_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
+INOUT_TYPEMAP(unsigned long long, C_num_to_long, C_long_to_num, C_swig_is_long, (long), C_SIZEOF_FLONUM);
 INOUT_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 INOUT_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);

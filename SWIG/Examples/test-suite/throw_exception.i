@@ -10,6 +10,8 @@
 class Error {
 };
 
+void test_is_Error(Error *r) {}
+
 namespace Namespace {
   typedef Error ErrorTypedef;
   typedef const Error& ErrorRef;

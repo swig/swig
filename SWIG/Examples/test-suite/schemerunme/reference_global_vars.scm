@@ -13,12 +13,12 @@
 (if (not (char=? (value-char (var-char)) #\w))
   (begin (display "Runtime test 3 failed.\n") (exit 1)))
 
-(var-unsigned-char (createref-unsigned-char #\nl))
-(if (not (char=? (value-unsigned-char (var-unsigned-char)) #\nl))
+(var-unsigned-char (createref-unsigned-char #\newline))
+(if (not (char=? (value-unsigned-char (var-unsigned-char)) #\newline))
   (begin (display "Runtime test 4 failed.\n") (exit 1)))
 
-(var-signed-char (createref-signed-char #\nl))
-(if (not (char=? (value-signed-char (var-signed-char)) #\nl))
+(var-signed-char (createref-signed-char #\newline))
+(if (not (char=? (value-signed-char (var-signed-char)) #\newline))
   (begin (display "Runtime test 5 failed.\n") (exit 1)))
 
 (var-unsigned-short (createref-unsigned-short 10))
