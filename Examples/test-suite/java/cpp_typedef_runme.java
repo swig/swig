@@ -17,6 +17,10 @@ public class cpp_typedef_runme {
 
   public static void main(String argv[]) {
 
+    Foo f = new Foo();
+    SWIGTYPE_p_Bar pbar = f.bar();
+    pbar = Foo.sbar();
+
     Test test = new Test();
     UnnamedStruct unnamed = new UnnamedStruct();
     TypedefNamedStruct named = new TypedefNamedStruct();
