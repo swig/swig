@@ -934,8 +934,11 @@ class JAVA : public Language {
     }
 
     // Now write code to make the function call
-    if(!native_function_flag)
+    if(!native_function_flag) {
       emit_action(n,f);
+      // Handle exception classes specified in the "except" feature's "throws" attribute
+      addThrows(n, "feature:except", n);
+    }
 
     if (Cmp(nodeType(n), "constant") == 0)
       Swig_restore(n);
@@ -1250,7 +1253,8 @@ class JAVA : public Language {
    * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
    * Java static final variables are generated for these.
    * If the %javaconst(1) feature is used then the C constant value is used to initialise the Java final variable.
-   * If not, a JNI method is generated to get the C constant value for intialisation of the Java final variable.
+   * If not, a JNI method is generated to get the C constant value for initialisation of the Java final variable.
+   * However, if the %javaconstvalue feature is used, it overrides all other ways to generate the initialisation.
    * Also note that this method might be called for wrapping enum items (when the enum is using %javaconst(0)).
    * ------------------------------------------------------------------------ */
 
@@ -1307,7 +1311,12 @@ class JAVA : public Language {
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
     Printf(constants_code, "  public final static %s %s = ", return_type, itemname);
 
-    if (!const_feature_flag) {
+    // Check for the %javaconstvalue feature
+    String *value = Getattr(n,"feature:java:constvalue");
+
+    if (value) {
+      Printf(constants_code, "%s;\n", value);
+    } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
       if(classname_substituted_flag) {
@@ -2330,30 +2339,35 @@ class JAVA : public Language {
    * class call to obtain the enum value. The intermediary class and JNI methods to obtain
    * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
    * is one and hopefully it will compile as Java code - e.g. 20 as in: enum E{e=20};
+   * The %javaconstvalue feature overrides all other ways to generate the constant value.
    * The caller must delete memory allocated for the returned string.
    * ------------------------------------------------------------------------ */
 
   String *enumValue(Node *n) {
     String *symname = Getattr(n,"sym:name");
-    String *value = NULL;
 
-    // The %javaconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:java:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+    // Check for the %javaconstvalue feature
+    String *value = Getattr(n,"feature:java:constvalue");
 
-    if (const_feature_flag) {
-      // Use the C syntax to make a true Java constant and hope that it compiles as Java code
-      value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
-    } else {
-      // Get the enumvalue from a JNI call
-      if (!getCurrentClass()) {
-        // Strange hack to change the name
-        Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
-        constantWrapper(n);
-        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+    if (!value) {
+      // The %javaconst feature determines how the constant value is obtained
+      String *const_feature = Getattr(n,"feature:java:const");
+      bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+      if (const_feature_flag) {
+        // Use the C syntax to make a true Java constant and hope that it compiles as Java code
+        value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
       } else {
-        memberconstantHandler(n);
-        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+        // Get the enumvalue from a JNI call
+        if (!getCurrentClass()) {
+          // Strange hack to change the name
+          Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
+          constantWrapper(n);
+          value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+        } else {
+          memberconstantHandler(n);
+          value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+        }
       }
     }
     return value;
@@ -2550,11 +2564,14 @@ class JAVA : public Language {
 
   /* -----------------------------------------------------------------------------
    * addThrows()
+   *
+   * Adds exception classes to a throws list. The throws list is the list of classes
+   * that will form the Java throws clause. Mainly for checked exceptions.
    * ----------------------------------------------------------------------------- */
 
-  void addThrows(Node *n, const String *typemap, Node *parameter) {
-    // Get the comma separated throws clause - held in "throws" attribute in the typemap passed in
-    String *throws_attribute = NewStringf("%s:throws", typemap);
+  void addThrows(Node *n, const String *attribute, Node *parameter) {
+    // Get the comma separated exception classes for the throws clause - held in typemap/feature's "throws" attribute
+    String *throws_attribute = NewStringf("%s:throws", attribute);
     String *throws = Getattr(parameter,throws_attribute);
 
     if (throws) {
@@ -2597,6 +2614,8 @@ class JAVA : public Language {
 
   /* -----------------------------------------------------------------------------
    * generateThrowsClause()
+   *
+   * Generates throws clause for checked exception
    * ----------------------------------------------------------------------------- */
 
   void generateThrowsClause(Node *n, String *code) {
