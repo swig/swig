@@ -134,6 +134,16 @@ void swig_pragma(char *lang, char *name, char *value) {
   }
 }
 
+/* Create a type list from a set of parameters */
+static List *typelist(Parm *p) {
+   List *l = NewList();
+   while (p) {
+     Append(l,Gettype(p));
+     p = Getnext(p);
+   }
+   return l;
+ }
+
 /* -----------------------------------------------------------------------------
  * emit_extern_func()
  * 
@@ -141,27 +151,41 @@ void swig_pragma(char *lang, char *name, char *value) {
  * ----------------------------------------------------------------------------- */
 
 static void emit_extern_func(char *decl, SwigType *t, ParmList *L, int extern_type, DOHFile *f) {
+  SwigType *ty;
+  List     *tlist;
+  ty = Copy(t);
+  tlist = typelist(L);
+  SwigType_add_function(ty,tlist);
+
   switch(extern_type) {
   case 0:
-    Printf(f,"%s", SwigType_str(t,0));
-    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    /*    Printf(f,"%s", SwigType_str(t,0));
+	  Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
+    Printf(f,"%s",SwigType_str(ty,decl));
     break;
   case STORAGE_EXTERN:
+    /*
     Printf(f,"extern %s", SwigType_str(t,0));
     Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    */
+    Printf(f,"extern %s;\n", SwigType_str(ty,decl));
     break;
   case STORAGE_EXTERN_C:
   /* A C++ --- > C Extern */
-    Printf(f,"extern \"C\" %s", SwigType_str(t,0));
-    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    /*    Printf(f,"extern \"C\" %s", SwigType_str(t,0));
+	  Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
+    Printf(f,"extern \"C\" %s;\n", SwigType_str(ty,decl));
     break;
   case 3:
+    /* This is a little hacky */
     Printf(f,"%s", SwigType_str(t,0));
     Printf(f,"%s(%s)\n", decl, ParmList_str(L));
     break;
   default:
     break;
   }
+  Delete(ty);
+  Delete(tlist);
 }
 
 /* -----------------------------------------------------------------------------
@@ -557,16 +581,6 @@ end_class(SwigType *endtype, char *endname) {
   }
   cplus_mode = CPLUS_PUBLIC;
 }
-
-/* Create a type list from a set of parameters */
-static List *typelist(Parm *p) {
-   List *l = NewList();
-   while (p) {
-     Append(l,Gettype(p));
-     p = Getnext(p);
-   }
-   return l;
- }
  
 %}
 
