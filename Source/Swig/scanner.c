@@ -13,6 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
+static char cvsroot[] = "$Header$";
 
 #include "swigcore.h"
 

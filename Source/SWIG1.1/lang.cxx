@@ -16,6 +16,7 @@
 #include "internal.h"
 #include <ctype.h>
 
+static char cvsroot[] = "$Header$";
 
 // -----------------------------------------------------------------------
 // $Header$

@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <ctype.h>
 
+static char cvsroot[] = "$Header$";
+
 /*******************************************************************************
  * $Header$
  *

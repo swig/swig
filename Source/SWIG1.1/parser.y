@@ -32,6 +32,8 @@
 
 #define yylex yylex
 
+static char cvsroot[] = "$Header$";
+
 extern "C" int yylex();
 void   yyerror (char *s);       
     

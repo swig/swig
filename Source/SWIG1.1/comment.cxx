@@ -42,6 +42,8 @@
  *
  *******************************************************************************/
 
+static char cvstag[] = "$Header$";
+
 // -----------------------------------------------------------------------------
 // struct Comment
 // 
@@ -338,12 +340,6 @@ DocEntryList  *DocEntryList::doc_list = 0;
 //
 // Constructor.  Creates a new comment handler.  Sets up some default values
 // for comment handling. 
-// 
-// Inputs : None
-//
-// Output : New CommentHandler object.
-//
-// Side Effects : Sets default comment handling parameters.
 // -----------------------------------------------------------------------------
 
 CommentHandler::CommentHandler() {
@@ -362,13 +358,6 @@ CommentHandler::CommentHandler() {
 // 
 // Constructor.  Creates a new comment handler, but copies attributes from 
 // another handler.
-//
-// Inputs : 
-//          c   = A different comment handler.
-//
-// Output : A new CommentHandler object.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 CommentHandler::CommentHandler(CommentHandler *c) {
@@ -387,12 +376,6 @@ CommentHandler::CommentHandler(CommentHandler *c) {
 // 
 // Destructor.  Destroys a comment handler.  Does nothing interesting at the
 // moment.
-//
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 CommentHandler::~CommentHandler() {
@@ -415,8 +398,6 @@ CommentHandler::~CommentHandler() {
 //          line_num = Starting line number of the comment
 //          col      = Starting column of the comment
 //          file     = File in which the comment was located.
-//
-// Output : None
 //
 // Side Effects :
 //          Saves the comment in an internal linked list.
@@ -468,10 +449,6 @@ void CommentHandler::add_comment(char *text, int line_num, int col, char *file) 
 //
 // We will place the doc entry into our documentation list and then
 // check it to see if any comments are sitting around.
-// 
-// Inputs : d = Documentation Entry
-//
-// Output : None
 //
 // Side Effects :
 //          May attach comments to the documentation entry.  In this case,
@@ -498,14 +475,6 @@ void CommentHandler::set_entry(DocEntry *d) {
 // Checks all documentation entries and sees if there are any comments available.
 // If so, they are attached.  This function is usually only called upon completion
 // of parsing.
-//
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : 
-//          Removes documentation entries and comments from internal lists.
-//          
 // -----------------------------------------------------------------------------
 
 void CommentHandler::cleanup() {
@@ -553,15 +522,6 @@ void CommentHandler::cleanup() {
 //          untabify        - Strip tabs and convert them into spaces.
 //          ignore          - Ignore comments
 //          enable          - Enable comments
-//
-// Inputs :
-//          name            - Name of style parameter
-//          value           - Optional parameter value
-//
-// Output : None
-//
-// Side Effects : Changes style of comment handler object.
-//           
 // -----------------------------------------------------------------------------
 
 void CommentHandler::style(char *name, char *value) {
@@ -601,15 +561,6 @@ void CommentHandler::style(char *name, char *value) {
 //
 // Function for processing command line options given on the SWIG command line.
 // See the help string below for available options.
-// 
-// Inputs : 
-//          argc = Argument count
-//          argv = Argument strings
-//
-// Output : None
-//
-// Side Effects :
-//          Changes various style parameters for the top-level CommentHandler.
 // -----------------------------------------------------------------------------
 
 static char *comment_usage = "\

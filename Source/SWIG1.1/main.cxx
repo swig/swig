@@ -21,6 +21,8 @@
  *
  ***********************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #define WRAP
 
 #include "internal.h"

@@ -44,6 +44,8 @@
  *
  *************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #include "internal.h"
 #include <ctype.h>
 

@@ -46,17 +46,7 @@ static Hash    SymHash;   // SWIG Symbol table
 // -----------------------------------------------------------------------------
 // int add_symbol(char *name, DataType *type, char *value)
 // 
-// Adds a symbol to the symbol table. Returns -1 if symbol is already in the
-// table.
-//
-// Inputs :
-//          name     =  Symbol name
-//          type     =  Datatype (for constants).  Optional.
-//          value    =  Value string. Optional.
-//
-// Output : 0 on success, -1 if symbol already exists.
-//
-// Side Effects : None
+// Adds a symbol to the symbol table. Returns -1 if symbol is already in the table.
 // -----------------------------------------------------------------------------
 
 int add_symbol(char *name, DataType *type, char *value) {
@@ -86,12 +76,6 @@ int add_symbol(char *name, DataType *type, char *value) {
 // int lookup_symbol(char *name)
 // 
 // Checks to see if a symbol is in the symbol table.
-//
-// Inputs : name   = Symbol name
-//
-// Output : 0 if not found, 1 if found.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 int lookup_symbol(char *name) {
@@ -106,12 +90,6 @@ int lookup_symbol(char *name) {
 // DataType *lookup_symtype(char *name)
 // 
 // Returns the datatype of a symbol or NULL if not found.
-//
-// Inputs : name   = Symbol name
-//
-// Output : Datatype of symbol, NULL if not found.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 DataType *lookup_symtype(char *name) {
@@ -127,12 +105,6 @@ DataType *lookup_symtype(char *name) {
 // char *lookup_symvalue(char *name)
 // 
 // Returns the value associate with a symbol.
-//
-// Inputs : name = Symbol name
-//
-// Output : Symbol value (or NULL if not present).
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 char *lookup_symvalue(char *name) {
@@ -148,15 +120,6 @@ char *lookup_symvalue(char *name) {
 // int update_symbol(char *name, DataType *type, char *value)
 //
 // Updates a symbol (or create it) in the hash table.
-//
-// Inputs : 
-//          name   = Name of symbol
-//          type   = Datatype of symbol (optional)
-//          value  = Symbol value (optional)
-//
-// Output : 0
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 int update_symbol(char *name, DataType *type, char *value) {
@@ -185,12 +148,6 @@ int update_symbol(char *name, DataType *type, char *value) {
 // void remove_symbol(char *name)
 // 
 // Removes a symbol from the symbol table.
-//
-// Inputs : name = Symbol name.
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void remove_symbol(char *name) {
