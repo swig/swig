@@ -8,3 +8,7 @@ if preproc.define != 1:
 
 if preproc.defined != 1:
   raise RuntimeError
+
+if 2*preproc.one != preproc.two:
+  raise RuntimeError
+
