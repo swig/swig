@@ -369,11 +369,11 @@ extern DOH      *DohNone;
 #endif
 
 #ifdef NIL
-#under NIL
+#undef NIL
 #endif
 
 #define NIL  (char *) NULL
- 
+
 
 #endif /* DOH_H */
 
