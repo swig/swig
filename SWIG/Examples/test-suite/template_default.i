@@ -162,3 +162,26 @@ namespace ns1 {
   }
   
 %}
+
+
+%inline %{
+
+  namespace hi 
+  {
+    class CFoo
+    {
+    };
+    
+    template<class T1, class T2 = T1> class CTemplate
+    {
+    };
+    
+    typedef CTemplate<CFoo> TBla;                  // OK
+    typedef void (*TFunc1)(CFoo arg);              // OK
+    typedef void (*TFunc2)(CTemplate<CFoo> arg);   // crashes SWIG
+    typedef void (*TFunc3)(CTemplate<CFoo>* arg);  // crashes SWIG
+    
+
+    int foo(TFunc1 a, TFunc2 b, TFunc3 c);
+  }  
+%}
