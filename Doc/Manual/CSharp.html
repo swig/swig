@@ -35,7 +35,15 @@ When invoking SWIG use the <tt>-csharp</tt> command line option instead of <tt>-
 </li>
 
 <li>
-The <tt>-package</tt> command line option does not exist. The <tt>-namespace &lt;name&gt;</tt> commandline option will generate all code into the namespace specified by <tt>&lt;name&gt;</tt>.
+The <tt>-package</tt> command line option does not exist.
+</li>
+
+<li>
+The <tt>-namespace &lt;name&gt;</tt> commandline option will generate all code into the namespace specified by <tt>&lt;name&gt;</tt>.
+</li>
+
+<li>
+The <tt>-dllimport &lt;name&gt;</tt> commandline option specifies the name of the DLL for the <tt>DllImport</tt> attribute for every PInvoke method. If this commandline option is not given, the <tt>DllImport</tt> DLL name is the same as the module name. This option is useful for when one wants to invoke SWIG multiple times on different modules, yet compile all the resulting code into a single DLL.
 </li>
 
 <li>
@@ -129,6 +137,14 @@ $jnicall                    -&gt; $imcall
 </li>
 
 </ul>
+
+<p>
+<b><tt>$dllimport</tt></b><br>
+This is a C# only special variable that can be used in typemaps, pragmas, features etc.
+The special variable will get translated into the value specified by the <tt>-dllimport</tt> commandline option
+if specified, otherwise it is equivalent to the <b>$module</b> special variable.
+</p>
+
 The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
 
 <p>

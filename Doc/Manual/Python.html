@@ -87,6 +87,18 @@
 <li><a href="#Python_nn63">Mapping sequences to C arrays</a>
 <li><a href="#Python_nn64">Pointer handling</a>
 </ul>
+<li><a href="#Python_nn65">Docstring Features</a>
+<ul>
+<li><a href="#Python_nn66">Module docstring</a>
+<li><a href="#Python_nn67">%feature("autodoc")</a>
+<ul>
+<li><a href="#Python_nn68">%feature("autodoc", "0")</a>
+<li><a href="#Python_nn69">%feature("autodoc", "1")</a>
+<li><a href="#Python_nn70">%feature("autodoc", "docstring")</a>
+</ul>
+<li><a href="#Python_nn71">%feature("docstring")</a>
+</ul>
+<li><a href="#Python_nn72">Python Packages</a>
 </ul>
 <!-- INDEX -->
 
@@ -3857,6 +3869,7 @@ class object (if applicable).
 
 <H2><a name="Python_nn65"></a>26.10 Docstring Features</H2>
 
+
 Usign docstrings in Python code is becoming more and more important
 ans more tools are coming on the scene that take advantage of them,
 everything from full-blown documentaiton generators to class browsers
@@ -3879,6 +3892,7 @@ of your users much simpler.
 
 
 <H3><a name="Python_nn66"></a>26.10.1 Module docstring</H3>
+
 
 Python allows a docstring at the begining of the <tt>.py</tt> file
 before any other statements, and it is typically used to give a
@@ -3909,6 +3923,7 @@ layout of controls on a panel, etc. to be loaded from an XML file."
 
 <H3><a name="Python_nn67"></a>26.10.2 %feature("autodoc")</H3>
 
+
 As alluded to above SWIG will generate all the function and method
 proxy wrappers with just "*args" (or "*args, **kwargs" if the -keyword
 option is used) for a parameter list and will then sort out the
@@ -3931,7 +3946,8 @@ names, default values if any, and return type if any. There are also
 three options for autodoc controlled by the value given to the
 feature, described below.
 
-<H4>%feature("autodoc", "0")</H4>
+<H4><a name="Python_nn68"></a>26.10.2.1 %feature("autodoc", "0")</H4>
+
 
 When the "0" option is given then the types of the parameters will
 <em>not</em> be included in the autodoc string.  For example, given
@@ -3949,13 +3965,14 @@ Then Python code like this will be generated:
 <blockquote>
 <pre>
 def function_name(*args, **kwargs):
-    """function_name(x, y, foo=None, bar=None) -> bool"""
+    """function_name(x, y, foo=None, bar=None) -&gt; bool"""
     ...
 </pre>
 </blockquote>
 
 
-<H4>%feature("autodoc", "1")</H4>
+<H4><a name="Python_nn69"></a>26.10.2.2 %feature("autodoc", "1")</H4>
+
 
 When the "1" option is used then the parameter types <em>will</em> be
 used in the autodoc string.  In addition, an atempt is made to
@@ -3970,14 +3987,15 @@ this:
 <blockquote>
 <pre>
 def function_name(*args, **kwargs):
-    """function_name(int x, int y, Foo foo=None, Bar bar=None) -> bool"""
+    """function_name(int x, int y, Foo foo=None, Bar bar=None) -&gt; bool"""
     ...
 </pre>
 </blockquote>
 
 
 
-<H4>%feature("autodoc", "docstring")</H4>
+<H4><a name="Python_nn70"></a>26.10.2.3 %feature("autodoc", "docstring")</H4>
+
 
 Finally, there are times when the automatically generated autodoc
 string will make no sense for a Python programmer, particularly when a
@@ -3987,13 +4005,14 @@ generated string.  For example:
 
 <blockquote>
 <pre>
-%feature("autodoc", "GetPosition() -> (x, y)") GetPosition;
+%feature("autodoc", "GetPosition() -&gt; (x, y)") GetPosition;
 void GetPosition(int* OUTPUT, int* OUTPUT);
 </pre>
 </blockquote>
 
 
-<H3><a name="Python_nn68"></a>26.10.3 %feature("docstring")</H3>
+<H3><a name="Python_nn71"></a>26.10.3 %feature("docstring")</H3>
+
 
 In addition to the autodoc strings described above, you can also
 attach any arbitrary descriptive text to a node in the parse tree with
@@ -4020,7 +4039,8 @@ with more than one line.
 </pre>
 </blockquote>
 
-<H2><a name="Python_nn70"></a>26.11 Python Packages</H2>
+<H2><a name="Python_nn72"></a>26.11 Python Packages</H2>
+
 
 Using the <tt>package</tt> option of the <tt>%module</tt> directive
 allows you to specify what Python package that the module will be
