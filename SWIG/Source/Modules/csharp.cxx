@@ -1096,23 +1096,23 @@ class CSHARP : public Language {
     else
       tm = javaTypemapLookup("csdestruct_base", classDeclarationName, WARN_NONE);
 
-    // Emit the finalize and Dispose methods
-    if (*Char(destructor_call) && tm) {
-      Printv(destruct, tm, NIL);
-      Replaceall(destruct, "$jnicall", destructor_call);
-      // finalize method
-      Printv(shadow_classdef, 
-          javaTypemapLookup("csfinalize", classDeclarationName, WARN_NONE),
-          "\n",
-          NIL);
-      // Dispose method
-      if (*Char(destruct)) {
-        Printv(shadow_classdef, "  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
+    // Emit the Finalize and Dispose methods
+    if (tm) {
+      // Finalize method
+      if (*Char(destructor_call)) {
+        Printv(shadow_classdef, 
+            javaTypemapLookup("csfinalize", classDeclarationName, WARN_NONE),
+            "\n",
+            NIL);
       }
-    } else {
-      // Ensure method exists for derived class to call. Don't bother if the typemap doesn't exist.
-      if (tm && *Char(tm))
-        Printv(shadow_classdef, "\n  protected ", derived ? "override" : "virtual", " void Dispose() {\n  }\n", NIL);
+      // Dispose method
+      Printv(destruct, tm, NIL);
+      if (*Char(destructor_call))
+        Replaceall(destruct, "$jnicall", destructor_call);
+      else
+        Replaceall(destruct, "$jnicall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
+      if (*Char(destruct))
+        Printv(shadow_classdef, "  public ", derived ? "override" : "virtual", " void Dispose() ", destruct, "\n", NIL);
     }
     Delete(destruct);
 
