@@ -1,175 +1,48 @@
-/* typemaps.i --- guile-specific typemaps
-   Copyright (C) 2000 Matthias Koeppe <mkoeppe@saturn.Math.Uni-Magdeburg.DE>
+/* typemaps.i --- guile-specific typemaps -*- c -*-
+   Copyright (C) 2000 Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de>
 
    $Header$  */
 
-#define MK_SIMPLE_MAP(f) $target = f ($source)
+/* Basic types */
 
-#define SIMPLE_IN_MAP_SET(op)                                           \
-%typemap (guile, op) bool           { MK_SIMPLE_MAP (gh_scm2bool); }    \
-%typemap (guile, op) char           { MK_SIMPLE_MAP (gh_scm2char); }    \
-%typemap (guile, op) int            { MK_SIMPLE_MAP (gh_scm2int); }     \
-%typemap (guile, op) short          { MK_SIMPLE_MAP (gh_scm2int); }     \
-%typemap (guile, op) long           { MK_SIMPLE_MAP (gh_scm2long); }    \
-%typemap (guile, op) ptrdiff_t      { MK_SIMPLE_MAP (gh_scm2long); }    \
-%typemap (guile, op) unsigned int   { MK_SIMPLE_MAP (gh_scm2ulong); }   \
-%typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_scm2ulong); }   \
-%typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_scm2ulong); }   \
-%typemap (guile, op) size_t         { MK_SIMPLE_MAP (gh_scm2ulong); }   \
-%typemap (guile, op) float          { MK_SIMPLE_MAP (gh_scm2double); }  \
-%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_scm2double); }  \
-%typemap (guile, op) char *         { MK_SIMPLE_MAP (GSWIG_scm2str); }
+#define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)		\
+ %typemap (guile, in)          C_NAME "$target = SCM_TO_C($source);";	\
+ %typemap (guile, varin)       C_NAME "$target = SCM_TO_C($source);";	\
+ %typemap (guile, out)         C_NAME "$target = C_TO_SCM($source);";	\
+ %typemap (guile, varout)      C_NAME "$target = C_TO_SCM($source);";	\
+ %typemap (guile, indoc)       C_NAME "($ARG <SCM_NAME>)";		\
+ %typemap (guile, outdoc)      C_NAME "<SCM_NAME>";			\
+ %typemap (guile, in)          C_NAME *INPUT (C_NAME temp)		\
+ { temp = (C_NAME) C_TO_SCM($source); $target = &temp; }		\
+ %typemap (guile, indoc)       C_NAME *INPUT "($arg <SCM_NAME>)";	\
+ %typemap (guile, ignore)      C_NAME *OUTPUT (C_NAME temp)		\
+ { $target = &temp; }							\
+ %typemap (guile, argout)      C_NAME *OUTPUT				\
+ "GUILE_APPEND_RESULT(C_TO_SCM(*$target));";				\
+ %typemap (guile, argoutdoc)   C_NAME *OUTPUT "($ARG <SCM_NAME>)";	\
+ %typemap (guile, in)          C_NAME *BOTH = C_NAME *INPUT;		\
+ %typemap (guile, indoc)       C_NAME *BOTH = C_NAME *INPUT;		\
+ %typemap (guile, argout)      C_NAME *BOTH = C_NAME *OUTPUT;		\
+ %typemap (guile, argoutdoc)   C_NAME *BOTH = C_NAME *OUTPUT
 
-#define SIMPLE_OUT_MAP_SET(op)                                          \
-%typemap (guile, op) bool           { MK_SIMPLE_MAP (gh_bool2scm); }    \
-%typemap (guile, op) char           { MK_SIMPLE_MAP (gh_char2scm); }    \
-%typemap (guile, op) int            { MK_SIMPLE_MAP (gh_int2scm); }     \
-%typemap (guile, op) short          { MK_SIMPLE_MAP (gh_int2scm); }     \
-%typemap (guile, op) long           { MK_SIMPLE_MAP (gh_long2scm); }    \
-%typemap (guile, op) ptrdiff_t      { MK_SIMPLE_MAP (gh_long2scm); }    \
-%typemap (guile, op) unsigned int   { MK_SIMPLE_MAP (gh_ulong2scm); }   \
-%typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_ulong2scm); }   \
-%typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_ulong2scm); }   \
-%typemap (guile, op) size_t         { MK_SIMPLE_MAP (gh_ulong2scm); }   \
-%typemap (guile, op) float          { MK_SIMPLE_MAP (gh_double2scm); }  \
-%typemap (guile, op) double         { MK_SIMPLE_MAP (gh_double2scm); }  \
-%typemap (guile, op) char *         { MK_SIMPLE_MAP (gh_str02scm); }
+ SIMPLE_MAP(bool, gh_scm2bool, gh_bool2scm, boolean);
+ SIMPLE_MAP(char, gh_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(unsigned char, gh_scm2char, gh_char2scm, char);
+ SIMPLE_MAP(int, gh_scm2int, gh_int2scm, integer);
+ SIMPLE_MAP(short, gh_scm2int, gh_int2scm, integer);
+ SIMPLE_MAP(long, gh_scm2long, gh_long2scm, integer);
+ SIMPLE_MAP(ptrdiff_t, gh_scm2long, gh_long2scm, integer);
+ SIMPLE_MAP(unsigned int, gh_scm2ulong, gh_ulong2scm, integer);
+ SIMPLE_MAP(unsigned short, gh_scm2ulong, gh_ulong2scm, integer);
+ SIMPLE_MAP(unsigned long, gh_scm2ulong, gh_ulong2scm, integer);
+ SIMPLE_MAP(size_t, gh_scm2ulong, gh_ulong2scm, integer);
+ SIMPLE_MAP(float, gh_scm2double, gh_double2scm, real);
+ SIMPLE_MAP(double, gh_scm2double, gh_double2scm, real);
+ SIMPLE_MAP(char *, GSWIG_scm2str, gh_str02scm, string);
 
-/*
- * Declaration start here
- */
+/* Void */
 
-SIMPLE_IN_MAP_SET (in)
-SIMPLE_IN_MAP_SET (varin)
-
-SIMPLE_OUT_MAP_SET (out)
-SIMPLE_OUT_MAP_SET (varout)
-
-/* INPUT/OUTPUT/BOTH typemaps */
-
-%typemap(guile,in) double *INPUT(double temp)
-{
-    temp = gh_scm2double($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) float  *INPUT(float temp)
-{
-    temp = (float) gh_scm2double($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) int            *INPUT(int temp)
-{
-    temp = (int) gh_scm2int($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) short          *INPUT(short temp)
-{
-    temp = (short) gh_scm2int($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) long *INPUT(long temp), 
-		   ptrdiff_t *INPUT(long temp)
-{
-    temp = (long) gh_scm2long($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) unsigned int   *INPUT(unsigned int temp)
-{
-    temp = (unsigned int) gh_scm2ulong($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) unsigned short *INPUT(unsigned short temp)
-{
-    temp = (unsigned short) gh_scm2ulong($source);
-    $target = &temp;
-}
-
-%typemap(guile,in) unsigned long  *INPUT(unsigned long temp),
-		   size_t *INPUT(unsigned long temp)
-{
-    temp = (unsigned long) gh_scm2ulong($source);
-    $target = &temp;
-}
-%typemap(guile,in) unsigned char  *INPUT(unsigned char temp)
-{
-    temp = (unsigned char) gh_scm2char($source);
-    $target = &temp;
-}
-
-%typemap(guile,ignore) int            *OUTPUT(int temp),
-                       short          *OUTPUT(short temp),
-                       long           *OUTPUT(long temp),
-		       ptrdiff_t      *OUTPUT(ptrdiff_t temp),
-                       unsigned int   *OUTPUT(unsigned int temp),
-                       unsigned short *OUTPUT(unsigned short temp),
-                       unsigned long  *OUTPUT(unsigned long temp),
-		       size_t         *OUTPUT(size_t temp),
-                       unsigned char  *OUTPUT(unsigned char temp),
-                       float          *OUTPUT(float temp),
-                       double         *OUTPUT(double temp)
-{
-    $target = &temp;
-}
-
-%typemap(guile,argout) int            *OUTPUT,
-                       short          *OUTPUT
-{
-    GUILE_APPEND_RESULT(gh_int2scm(*$target));
-}
-
-%typemap(guile,argout) long           *OUTPUT,
-		       ptrdiff_t      *OUTPUT
-{
-    GUILE_APPEND_RESULT(gh_long2scm(*$target));
-}
-
-%typemap(guile,argout) unsigned int   *OUTPUT,
-		       unsigned short *OUTPUT,
-		       unsigned long  *OUTPUT,
-		       size_t         *OUTPUT
-{
-    GUILE_APPEND_RESULT(gh_ulong2scm(*$target));
-}
-
-%typemap(guile,argout) unsigned char  *OUTPUT
-{
-    GUILE_APPEND_RESULT(gh_char2scm(*$target));
-}
-
-%typemap(guile,argout) float    *OUTPUT,
-                       double   *OUTPUT
-{
-    GUILE_APPEND_RESULT(gh_double2scm(*$target));
-}
-
-%typemap(guile,in) int *BOTH = int *INPUT;
-%typemap(guile,in) short *BOTH = short *INPUT;
-%typemap(guile,in) long *BOTH = long *INPUT;
-%typemap(guile,in) ptrdiff_t *BOTH = ptrdiff_t *INPUT;
-%typemap(guile,in) unsigned *BOTH = unsigned *INPUT;
-%typemap(guile,in) unsigned short *BOTH = unsigned short *INPUT;
-%typemap(guile,in) unsigned long *BOTH = unsigned long *INPUT;
-%typemap(guile,in) size_t *BOTH = size_t *INPUT;
-%typemap(guile,in) unsigned char *BOTH = unsigned char *INPUT;
-%typemap(guile,in) float *BOTH = float *INPUT;
-%typemap(guile,in) double *BOTH = double *INPUT;
-
-%typemap(guile,argout) int *BOTH = int *OUTPUT;
-%typemap(guile,argout) short *BOTH = short *OUTPUT;
-%typemap(guile,argout) long *BOTH = long *OUTPUT;
-%typemap(guile,argout) ptrdiff_t *BOTH = ptrdiff_t *OUTPUT;
-%typemap(guile,argout) unsigned *BOTH = unsigned *OUTPUT;
-%typemap(guile,argout) unsigned short *BOTH = unsigned short *OUTPUT;
-%typemap(guile,argout) unsigned long *BOTH = unsigned long *OUTPUT;
-%typemap(guile,argout) size_t *BOTH = size_t *OUTPUT;
-%typemap(guile,argout) unsigned char *BOTH = unsigned char *OUTPUT;
-%typemap(guile,argout) float *BOTH = float *OUTPUT;
-%typemap(guile,argout) double *BOTH = double *OUTPUT;
+%typemap (guile, out) void "gswig_result = GH_UNSPECIFIED;";
+%typemap (guile, outdoc) void "";
 
 /* typemaps.i ends here */
