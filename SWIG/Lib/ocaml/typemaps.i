@@ -119,15 +119,10 @@
 %typemap(ignore) C_NAME *OUTPUT (C_NAME temp) {
     $1 = &temp;
 }
-%typemap(argout) C_NAME *OUTPUT {
-    value s;
-    s = C_TO_MZ(*$1);
-    SWIG_APPEND_VALUE(s);
-}
 %typemap(in) C_NAME *BOTH = C_NAME *INPUT;
-%typemap(argout) C_NAME *BOTH = C_NAME *OUTPUT;
+//%typemap(argout) C_NAME *BOTH = C_NAME *OUTPUT;
 %typemap(in) C_NAME *INOUT = C_NAME *INPUT;
-%typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
+//%typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
 %enddef
 
 SIMPLE_MAP(oc_bool, Val_bool, Int_val);
@@ -146,6 +141,8 @@ SIMPLE_MAP(float, copy_double, Double_val);
 SIMPLE_MAP(double, copy_double, Double_val);
 SIMPLE_MAP(char *, copy_string, String_val);
 SIMPLE_MAP(const char *, copy_string, String_val);
+SIMPLE_MAP(long long,copy_int64,Int64_val);
+SIMPLE_MAP(unsigned long long,copy_int64,Int64_val);
 
 /* Void */
 

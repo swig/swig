@@ -13,6 +13,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define alloc caml_alloc
 #include <caml/alloc.h>
 #include <caml/custom.h>
 #include <caml/mlvalues.h>
@@ -20,6 +21,7 @@ extern "C" {
 #include <caml/callback.h>
 #include <caml/fail.h>
 #include <caml/misc.h>
+#undef alloc
 
 #if defined(SWIG_NOINCLUDE)
 #	define SWIGSTATIC
@@ -43,19 +45,6 @@ swig_package_values(int num, value tuple);
   
 typedef struct SwigPtrType SwigPtrType;
 
-typedef struct swig_type_info {
-  const char  *name;
-  void *(*converter)(void *);
-  const char  *str;
-  SwigPtrType *ptrtype;
-} swig_type_info;
-
-SWIGSTATIC SwigPtrType *
-SWIG_RegisterType (const char *type, const char *prettyname);
-
-SWIGSTATIC void
-SWIG_RegisterMapping (const char *origtype, const char *newtype, void *(*cast)(void *));
-  
 SWIGSTATIC value
 SWIG_MakePtr(void *c_pointer, swig_type_info *type, void *delete_fn);
   
@@ -68,10 +57,6 @@ SWIG_MustGetPtr_ (value v,  swig_type_info *type,
   
 #define SWIG_MustGetPtr(s, type, argnum) \
   SWIG_MustGetPtr_(s, type, argnum)
-
-SWIGSTATIC
-void SWIG_RegisterTypes(swig_type_info **table,
-			swig_type_info **init);
 
 static value _wrap_delete_void( value );
 

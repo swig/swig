@@ -41,65 +41,6 @@ swigsort (const void *data1, const void *data2)
   return strcmp(type1->name, type2->name);
 }
 
-/* Register a new datatype with the type-checker */
-SWIGSTATIC SwigPtrType *
-SWIG_RegisterType (const char *type, const char *prettyname)
-{
-  int i;
-  struct SwigPtrType **t;
-
-  /* Allocate the pointer table if necessary */
-  if (!SwigPtrTbl) {
-    SwigPtrTbl = (SwigPtrType **) malloc(SwigPtrMax*sizeof(SwigPtrType *));
-    SwigPtrN = 0;
-  }
-  /* Grow the table if necessary */
-  if (SwigPtrN >= SwigPtrMax) {
-    SwigPtrMax = 2*SwigPtrMax;
-    SwigPtrTbl = (SwigPtrType **) realloc((char *) SwigPtrTbl,
-					  SwigPtrMax*sizeof(SwigPtrType *));
-  }
-  /* Look up type */
-  for (i = 0; i < SwigPtrN; i++)
-    if (strcmp(SwigPtrTbl[i]->name,type) == 0) {
-      if (prettyname!=NULL)
-	SwigPtrTbl[i]->prettyname = prettyname;
-      return SwigPtrTbl[i];
-    }
-  t = SwigPtrTbl + SwigPtrN;
-  *t = (SwigPtrType *) malloc(sizeof(SwigPtrType));
-  (*t)->name = type;
-  (*t)->prettyname = prettyname;
-  (*t)->cast = NULL;
-  SwigPtrN++;
-  SwigPtrSort = 0; 
-  return *t;
-}
-
-/* Register two data types and their mapping with the type checker. */
-SWIGSTATIC void
-SWIG_RegisterMapping (const char *origtype, const char *newtype, void *(*cast)(void *))
-{
-  struct SwigPtrType *t = SWIG_RegisterType(origtype, NULL);
-
-  if (newtype!=NULL) {
-    struct SwigPtrType *t1 = SWIG_RegisterType(newtype, NULL);
-    struct SwigCast *c;
-    /* Check for existing cast */
-    for (c = t->cast; c && c->type!=t1; c=c->next) /* nothing */;
-    if (c) {
-      if (cast) c->cast = cast;
-    }
-    else {
-      c = (struct SwigCast *) malloc(sizeof(struct SwigCast));
-      c->type = t1;
-      c->cast = cast;
-      c->next = t->cast;
-      t->cast = c;
-    }
-  }
-}
-
 /* Sort table */
 
 static void
@@ -134,37 +75,14 @@ SWIG_GetPtrType (const char *_t)
 /* Cast a pointer if possible; returns 1 if successful */
 
 static int
-SWIG_Cast (void *source, SwigPtrType *source_type,
-	   void **ptr, SwigPtrType *dest_type)
-{
-  if (dest_type != source_type) {
-    /* We have a type mismatch.  Will have to look through our type
-       mapping table to figure out whether or not we can accept this
-       datatype.  */
-    struct SwigCast *c;
-    for (c = dest_type->cast;
-	 c && c->type!=source_type; c = c->next) /* nothing */;
-    if (c) {
-      /* Get pointer value. */
-      if (c->cast) *ptr = (*(c->cast))(source);
-      else *ptr = source;
-      return -1;
-    }
-    /* Didn't find any sort of match for this data.
-       Get the pointer value and return false.  */
+SWIG_Cast (void *source, void **ptr) {
     *ptr = source;
     return 0;
-  } else {
-    /* Found a match on the first try.  Return pointer value.  */
-    *ptr = source;
-    return -1;
-  }
 }
 
 /* Function for getting a pointer value */
 
 static int swig_type;
-int swig_initialized_p = 0;
 
 static void generic_delete_fn( value v ) {
     struct swig_proxy *new_proxy;
@@ -196,9 +114,6 @@ SWIG_MakePtr(void *c_pointer, swig_type_info *type,
 		     100,10000);
     new_proxy = (struct swig_proxy *)(&Field(v,1));
     new_proxy->type = swig_type;
-#if 0
-    new_proxy->ptrtype = type->ptrtype;
-#endif
     new_proxy->delete_fn = (void (*)(value)) delete_fn;
     new_proxy->object = (void *) c_pointer;
     return v;
@@ -211,8 +126,7 @@ SWIG_GetPtr(value v, void **result, swig_type_info *type)
     struct swig_proxy *proxy = (struct swig_proxy *)(&Field(v,1));
 
     if (type) {
-	return !SWIG_Cast(proxy->object, proxy->ptrtype,
-			  result, type->ptrtype);
+	return !SWIG_Cast(proxy->object, result );
     }
     else {
 	*result = proxy->object;
@@ -232,21 +146,6 @@ SWIG_MustGetPtr_ (value s, swig_type_info *type, int argnum)
     }
 
     return result;
-}
-
-SWIGSTATIC
-void SWIG_RegisterTypes(swig_type_info **table,
-			swig_type_info **init)
-{
-    for (; *init; table++, init++) {
-	swig_type_info *type = *table = *init;
-	const char *origname = type->name;
-	/* Register datatype itself and store pointer back */
-	type->ptrtype = SWIG_RegisterType(origname, type->str);
-	/* Register compatible types */
-	for (type++; type->name; type++)
-	    SWIG_RegisterMapping(origname, type->name, type->converter);
-    }
 }
 
 static value
