@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+11/28/2003: beazley
+            Fixed  [ 850666 ] #include extra line added.  
+            This should fix some problems with getting correct line numbers on
+            error messages.
+
 11/26/2003: beazley
             Fixed another one of Marcelo's evil template bugs (infinite
             recursion). [ 849504 ] template and typedef -> inf. recursion.
