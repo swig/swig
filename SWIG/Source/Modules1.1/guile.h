@@ -34,7 +34,7 @@ private:
     GUILE_LSTYLE_LTDLMOD,               // "native" guile?
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
-  bool	 with_smobs;
+  int	 with_smobs;
   void   get_pointer(char *iname, int parm, DataType *t,
 		     WrapperFunction &f, const String &proc_name,
 		     int num_scheme_parm);
