@@ -47,6 +47,7 @@ typedef  DOH     File;
 #define   T_CHAR       12
 #define   T_USER       13
 #define   T_VOID       14
+#define   T_ENUM       15
 #define   T_STRING     20
 #define   T_POINTER    21
 #define   T_REFERENCE  22
@@ -65,6 +66,10 @@ extern String  *Swig_read_file(FILE *f);
 extern String  *Swig_include(const String_or_char *name);
 extern int      Swig_insert_file(const String_or_char *name, File *outfile);
 extern int      Swig_bytes_read();
+extern void     Swig_register_filebyname(const String_or_char *name, File *outfile);
+extern File    *Swig_filebyname(const String_or_char *name);
+
+#define OUTFILE(x)   Swig_filebyname(x)
 
 #define  SWIG_FILE_DELIMETER   "/"
 
