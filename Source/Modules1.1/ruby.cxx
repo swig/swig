@@ -176,6 +176,17 @@ void RUBY::parse_args(int argc, char *argv[]) {
   typemap_lang = (char*)"ruby";
 }
 
+
+static void insert_file(char *filename, File *file) {
+  if (Swig_insert_file(filename, file) == -1) {
+    Printf(stderr,
+	    "SWIG : Fatal error. "
+	    "Unable to locate %s. (Possible installation problem).\n",
+	    filename);
+    SWIG_exit(1);
+  }
+}
+
 // ---------------------------------------------------------------------
 // RUBY::parse()
 //
@@ -191,6 +202,8 @@ void RUBY::parse() {
   klass = 0;
   classes = NewHash();
   special_methods = NewHash();
+  other_extern = NewString("");
+  other_init = NewString("");
 
   // Python style special method name.
   // Basic
@@ -226,12 +239,18 @@ void RUBY::parse() {
   Setattr(special_methods, "__float__", "to_f");
   Setattr(special_methods, "__coerce__", "coerce");
 
-  printf("Generating wrappers for Ruby\n");
+  Swig_banner(f_header);
 
-  other_extern = NewString("");
-  other_init = NewString("");
+  Printf(f_header,"/* Implementation : RUBY */\n\n");
+  Printf(f_header,"#define SWIGRUBY\n");
 
-  headers();
+  insert_file((char*)"common.swg", f_header);
+  insert_file((char*)"ruby.swg", f_header);
+  if (NoInclude) {
+    insert_file((char*)"rubydec.swg", f_header);
+  } else {
+    insert_file((char*)"rubydef.swg", f_header);
+  }
 
   // typedef void *VALUE
   SwigType *value = NewSwigType(T_VOID);
@@ -294,33 +313,6 @@ void RUBY::set_module(char *mod_name) {
 }
 
 
-static void insert_file(char *filename, File *file) {
-  if (Swig_insert_file(filename, file) == -1) {
-    Printf(stderr,
-	    "SWIG : Fatal error. "
-	    "Unable to locate %s. (Possible installation problem).\n",
-	    filename);
-    SWIG_exit(1);
-  }
-}
-// ----------------------------------------------------------------------
-// RUBY::headers(void)
-//
-// Generate the appropriate header files for RUBY interface.
-// ----------------------------------------------------------------------
-void RUBY::headers(void) {
-  Swig_banner(f_header);
-  Printf(f_header,"/* Implementation : RUBY */\n\n");
-  Printf(f_header,"#define SWIGRUBY\n");
-
-  insert_file((char*)"ruby.swg", f_header);
-  if (NoInclude) {
-    insert_file((char*)"rubydec.swg", f_header);
-  } else {
-    insert_file((char*)"rubydef.swg", f_header);
-  }
-}
-
 // ---------------------------------------------------------------------
 // RUBY::initialize(void)
 //
@@ -345,11 +337,15 @@ void RUBY::initialize() {
 	 "extern \"C\"\n",
 	 "#endif\n",
 	 "void Init_", feature, "(void) {\n",
+	 "int i;\n",
 	 other_init,
+	 "\n",
 	 0);
 
   if (!toplevel) {
-    Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n", 0);
+    Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
+	   "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
+	   0);
   }
   Printf(f_init,"\n");
   klass = new RClass();
@@ -363,11 +359,15 @@ void RUBY::initialize() {
 // ---------------------------------------------------------------------
 void RUBY::close(void) {
   // Finish off our init function
-  Printf(f_init, "\n");
-#ifdef OLD
-  emit_ptr_equivalence(f_wrappers,f_init);
-#endif
+  Printv(f_init,
+	 "\n",
+	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
+	 "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n",
+	 "SWIG_define_class(_swig_types[i]);\n",
+	 "}\n",
+	 0);
   Printf(f_init,"}\n");
+  SwigType_emit_type_table(f_header,f_wrappers);
 }
 
 // ---------------------------------------------------------------------
@@ -736,7 +736,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     SwigType_add_pointer(t);
     SwigType_remember(t);
     Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
-	   ", \"", SwigType_manglestr(t), "\");\n", 0);
+	   ", SWIGTYPE", SwigType_manglestr(t), ");\n", 0);
     SwigType_del_pointer(t);
   } else {
     Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
@@ -764,10 +764,11 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
       Printv(setf->code,s,"\n",0);
       Delete(s);
     } else if (SwigType_type(t) == T_USER) {
+      SwigType_remember(t);
       SwigType_add_pointer(t);
       Wrapper_add_localv(setf,"temp",SwigType_lstr(t,0), "temp",0);
       Printv(setf->code, tab4, "temp = (", SwigType_lstr(t,0), ")",
-	     "SWIG_ConvertPtr(_val, \"", SwigType_manglestr(t), "\");\n",
+	     "SWIG_ConvertPtr(_val, SWIGTYPE", SwigType_manglestr(t), ");\n",
 	     0);
       Printv(setf->code, tab4, name, " = *temp;\n",0);
       SwigType_del_pointer(t);
@@ -1006,7 +1007,8 @@ int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
       Printv(str, "rb_str_new2(", value, ")", 0);
     break;
   case T_POINTER: case T_ARRAY: case T_REFERENCE:
-    Printv(str, "SWIG_NewPointerObj((void *)", value, ", \"", SwigType_manglestr(type), "\")", 0);
+    SwigType_remember(type);
+    Printv(str, "SWIG_NewPointerObj((void *)", value, ", SWIGTYPE", SwigType_manglestr(type), ")", 0);
     break;
   default:
     break;
@@ -1059,7 +1061,8 @@ int RUBY::from_VALUE(SwigType *type, char *value, String *str) {
     Printv(str, "STR2CSTR(", value, ")", 0);
     break;
   case T_POINTER: case T_ARRAY: case T_REFERENCE:
-    Printv(str, "(", SwigType_lstr(type,0), ")SWIG_ConvertPtr(", value, ", \"", SwigType_manglestr(type), "\")", 0);
+    SwigType_remember(type);
+    Printv(str, "(", SwigType_lstr(type,0), ")SWIG_ConvertPtr(", value, ", SWIGTYPE", SwigType_manglestr(type), ")", 0);
     break;
   default:
     break;
