@@ -33,7 +33,7 @@
 }
 	
 %typemap(in) void * {
-	if(SWIG_ConvertPtr(*$input, (void **) $1, 0) < 0) {
+	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0) < 0) {
 	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
 }
