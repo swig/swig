@@ -731,12 +731,12 @@ static Symtab *get_global_scope() {
 }
  
 
-static Node *nspace = 0;
-static Node *nspace_inner = 0;
-static String *resolve_namespace_class(String *cname) {
+static Node *nscope = 0;
+static Node *nscope_inner = 0;
+static String *resolve_node_scope(String *cname) {
   Symtab *gscope = 0;
-  nspace = 0;
-  nspace_inner = 0;
+  nscope = 0;
+  nscope_inner = 0;
   if (Swig_scopename_check(cname)) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
@@ -751,9 +751,9 @@ static String *resolve_namespace_class(String *cname) {
     if (!prefix || (Len(prefix) == 0)) {
       /* Use the global scope */
       if (!gscope) gscope = get_global_scope();
-      nspace = new_node("namespace");
-      Setattr(nspace,"symtab", gscope);
-      nspace_inner = nspace;
+      nscope = new_node("namespace");
+      Setattr(nscope,"symtab", gscope);
+      nscope_inner = nscope;
       return base;
     }
     /* Try to locate the scope */
@@ -765,9 +765,9 @@ static String *resolve_namespace_class(String *cname) {
 	Swig_error(cparse_file,cparse_line,"'%s' is not defined as a valid scope.\n", prefix);
 	ns = 0;
       } else {
-	Symtab *nscope = Getattr(ns,"symtab");
+	Symtab *nstab = Getattr(ns,"symtab");
 	String *tname = Swig_symbol_qualifiedscopename(0);
-	String *nname = Swig_symbol_qualifiedscopename(nscope);
+	String *nname = Swig_symbol_qualifiedscopename(nstab);
 	if (tname && (Strcmp(tname,nname) == 0)) {
 	  ns = 0;
 	  cname = base;
@@ -800,11 +800,13 @@ static String *resolve_namespace_class(String *cname) {
 	  } else {
 	    /* this is a class, or nested classes */
 	    si = Next(si);
+	    ns1 = Swig_symbol_clookup(sname,0);
 	    for (; si.item; si = Next(si)) {
 	      if (si.item) {
 		Printf(sname,"::%s",si.item);
 	      }
 	    }
+	    nscope_inner = Swig_symbol_clookup(sname,0);
 	    Printf(sname,"::%s",base);
 	    Delete(base);
 	    base = sname;
@@ -816,13 +818,13 @@ static String *resolve_namespace_class(String *cname) {
 	  add_symbols(ns2);
 	  Swig_symbol_setscope(Getattr(ns1,"symtab"));
 	  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-	  if (nspace_inner) {
-	    if (Getattr(nspace_inner,"symtab") != Getattr(ns2,"symtab")) {	      
-	      appendChild(nspace_inner,ns2);
+	  if (nscope_inner) {
+	    if (Getattr(nscope_inner,"symtab") != Getattr(ns2,"symtab")) {	      
+	      appendChild(nscope_inner,ns2);
 	    }
 	  }
-	  nspace_inner = ns2;
-	  if (!nspace) nspace = ns2;
+	  nscope_inner = ns2;
+	  if (!nscope) nscope = ns2;
 	}
 	cname = base;
       }
@@ -2194,10 +2196,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified.  We need to create or lookup namespace entries */
-		  $5 = resolve_namespace_class($5);
+		  $5 = resolve_node_scope($5);
 
 		  /*
-		    we use the new namespace entry 'nspace' only to
+		    we use the new namespace entry 'nscope' only to
 		    emit the template node. The template parameters are
 		    resolved in the current 'tscope'.
 		    
@@ -2379,11 +2381,11 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         }
 
                         /* all the overloaded templated functions are added into a linked list */
-                        if (nspace) {
+                        if (nscope) {
                           /* non-global namespace */
                           if (templnode) {
-                            appendChild(nspace_inner,templnode);
-                            $$ = nspace;
+                            appendChild(nscope_inner,templnode);
+                            $$ = nscope;
                           }
                         } else {
                           /* global namespace */
@@ -2732,8 +2734,8 @@ cpp_class_decl  :
 		   /* preserve the current scope */
 		   prev_symtab = Swig_symbol_current();
 		  
-		   /* If the class name is qualified.  We need to create or lookup namespace entries */
-		   $3 = resolve_namespace_class($3);
+		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
+		   $3 = resolve_node_scope($3);
 
                    class_rename = make_name($3,0);
 		   Classprefix = NewString($3);
@@ -2861,12 +2863,12 @@ cpp_class_decl  :
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 
 		 Classprefix = 0;
-		 if (nspace) {
-		   appendChild(nspace_inner,$$);
-		   Swig_symbol_setscope(Getattr(nspace_inner,"symtab"));
+		 if (nscope) {
+		   appendChild(nscope_inner,$$);
+		   Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   add_symbols($$);
-		   $$ = nspace;
+		   $$ = nscope;
 		   Swig_symbol_setscope(cscope);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   add_symbols($9);
