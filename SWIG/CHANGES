@@ -1,5 +1,11 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+4/11/00 : ttn
+	  Incorporated further Guile-support patch by Matthias Koeppe.
+	  Typemaps previously deleted have been re-added.  There is now
+	  exception handling (see Doc/engineering.html).  `SWIG_init' is now
+	  declared extern only for simple linkage.  Some bugs were fixed.
+
 4/06/00 : ttn
 	  Incorporated MzScheme support contributed by Oleg Tolmatcev.
 	  This includes new directories Lib/mzscheme and Examples/mzscheme.
@@ -11,7 +17,7 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 4/02/00 : ttn
 	  Incorporated new guilemain.i by Martin Froehlich.
-	  Incorporated guile-support rewrite patch by Matthias Koeppe.
+	  Incorporated Guile-support rewrite patch by Matthias Koeppe.
 	  The command line option "-with-smobs" enables implementation of
 	  pointer type handling using smobs, the canonical mechanism for
 	  defining new types in Guile.  Previous implementation (using
