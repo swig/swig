@@ -35,16 +35,9 @@ public :
   virtual int memberfunctionHandler(Node *n);
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
+  virtual int classHandler(Node *n);
 
   virtual void add_native(char *, char *, SwigType *, ParmList *);
-
-  // Stubs for processing C++ classes in Tcl
-
-  virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
-  virtual void cpp_close_class();
-  
-  virtual void cpp_inherit(char **bases, int);
-
   virtual int  validIdentifier(String *);
 };
 

@@ -29,7 +29,6 @@ static String     *var_tab = 0;                    /* Table of global variables 
 static String     *const_tab = 0;                  /* Constant table            */
 static String     *methods_tab = 0;                /* Methods table             */
 static String     *attr_tab = 0;                   /* Attribute table           */
-static String     *cpp_bases = 0;
 static String     *prefix = 0;
 static String     *module = 0;
 static int         nspace = 0;
@@ -40,7 +39,6 @@ static int         have_destructor;
 static String     *version = (String *) "0.0";
 
 static String     *class_name = 0;
-static String     *class_type = 0;
 static String     *real_classname = 0;
 
 static File       *f_header  = 0;
@@ -120,7 +118,6 @@ TCL8::top(Node *n) {
   cmd_tab        = NewString("");
   var_tab        = NewString("");
   methods_tab    = NewString("");
-  attr_tab       = NewString("");
   const_tab      = NewString("");
 
   Swig_banner(f_runtime);
@@ -548,41 +545,31 @@ TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
 }
 
 /* -----------------------------------------------------------------------------
- * C++ Handling
+ * classHandler()
  * ----------------------------------------------------------------------------- */
 
-void
-TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
-  this->Language::cpp_open_class(classname,rename,ctype,strip);
-  
-  Clear(attr_tab);
-  Printf(attr_tab, "static swig_attribute swig_");
-  Printv(attr_tab, classname, "_attributes[] = {\n", 0);
-  
-  Clear(methods_tab);
-  Printf(methods_tab,"static swig_method swig_");
-  Printv(methods_tab, classname, "_methods[] = {\n", 0);
+int
+TCL8::classHandler(Node *n) {
+  //cpp_open_class(char *classname, char *rename, char *ctype, int strip)
   
   have_constructor = 0;
   have_destructor = 0;
-  
-  Delete(class_name);
-  Delete(class_type);
-  Delete(real_classname);
-  cpp_bases = NewString("");
-  
-  class_name = rename ? NewString(rename) : NewString(classname);
-  class_type = strip  ? NewString("") : NewStringf("%s ",ctype);
-  real_classname = NewString(classname);
-}
 
-void
-TCL8::cpp_close_class() {
-  SwigType *t;
-  String *code = NewString("");
+  class_name = Getattr(n,"sym:name");
+  real_classname = Getattr(n,"name");
 
-  this->Language::cpp_close_class();
-  t = NewStringf("%s%s", class_type, real_classname);
+  attr_tab = NewString("");
+  Printf(attr_tab, "static swig_attribute swig_");
+  Printv(attr_tab, real_classname, "_attributes[] = {\n", 0);
+  
+  methods_tab = NewStringf("");
+  Printf(methods_tab,"static swig_method swig_");
+  Printv(methods_tab, real_classname, "_methods[] = {\n", 0);
+
+  /* Generate normal wrappers */
+  Language::classHandler(n);
+
+  SwigType *t = Copy(Getattr(n,"classtype"));
   SwigType_add_pointer(t);
   
   // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
@@ -590,47 +577,67 @@ TCL8::cpp_close_class() {
 
   // Register the class structure with the type checker
   Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), real_classname);
-  
   if (have_destructor) {
-    Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
+    Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
     if (CPlusPlus) {
-      Printv(code,"    delete (", SwigType_str(t,0), ") obj;\n",0);
+      Printv(f_wrappers,"    delete (", SwigType_str(t,0), ") obj;\n",0);
     } else {
-      Printv(code,"    free((char *) obj);\n",0);
+      Printv(f_wrappers,"    free((char *) obj);\n",0);
     }
-    Printf(code,"}\n");
+    Printf(f_wrappers,"}\n");
   }
   
   Printf(methods_tab, "    {0,0}\n};\n");
-  Printv(code,methods_tab,0);
+  Printv(f_wrappers,methods_tab,0);
   
   Printf(attr_tab, "    {0,0,0}\n};\n");
-  Printv(code,attr_tab,0);
+  Printv(f_wrappers,attr_tab,0);
   
-  /* Dump bases */
-  Printv(code,"static swig_class *swig_",real_classname,"_bases[] = {", cpp_bases,"0};\n", 0);
+  /* Handle inheritance */
   
-  Printv(code, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
+  String *base_class = NewString("");
+  List *baselist = Getattr(n,"bases");
+  if (baselist && Len(baselist)) {
+    Node *base = Firstitem(baselist);
+    while (base) {
+      String *bname = Getattr(base, "name");
+      if (!bname) {
+	base = Nextitem(baselist);
+	continue;
+      }
+      Printv(f_wrappers,"extern swig_class _wrap_class_", bname, ";\n", 0);
+      Printf(base_class,"&_wrap_class_%s",bname);
+      base = Nextitem(baselist);
+      Putc(',',base_class);
+    }
+  }
+
+  Printv(f_wrappers,"static swig_class *swig_",real_classname,"_bases[] = {", base_class,"0};\n", 0);
+  Delete(base_class);
+
+  Printv(f_wrappers, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
 	 "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
   
   if (have_constructor) {
-    Printf(code, "%s", Swig_name_wrapper(Swig_name_construct(class_name)));
+    Printf(f_wrappers,"%s", Swig_name_wrapper(Swig_name_construct(class_name)));
   } else {
-    Printf(code,"0");
+    Printf(f_wrappers,"0");
   }
   if (have_destructor) {
-    Printv(code, ", swig_delete_", class_name,0);
+    Printv(f_wrappers, ", swig_delete_", class_name,0);
   } else {
-    Printf(code,",0");
+    Printf(f_wrappers,",0");
   }
-  Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
-  Printf(f_wrappers,"%s",code);
+  Printv(f_wrappers, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
   Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", real_classname, "},\n", 0);
-
-
-
-  Delete(code);
+  Delete(t);
+  return SWIG_OK;
 }
+
+
+/* -----------------------------------------------------------------------------
+ * memberfunctionHandler()
+ * ----------------------------------------------------------------------------- */
 
 int TCL8::memberfunctionHandler(Node *n) {
   char *name = GetChar(n,"name");
@@ -647,6 +654,10 @@ int TCL8::memberfunctionHandler(Node *n) {
   Delete(rname);
   return SWIG_OK;
 }
+
+/* -----------------------------------------------------------------------------
+ * membervariableHandler()
+ * ----------------------------------------------------------------------------- */
 
 int TCL8::membervariableHandler(Node *n) {
     String   *symname = Getattr(n,"sym:name");
@@ -667,12 +678,20 @@ int TCL8::membervariableHandler(Node *n) {
     return SWIG_OK;
 }
 
+/* -----------------------------------------------------------------------------
+ * constructorHandler()
+ * ----------------------------------------------------------------------------- */
+
 int
 TCL8::constructorHandler(Node *n) {
   Language::constructorHandler(n);
   have_constructor = 1;
   return SWIG_OK;
 }
+
+/* -----------------------------------------------------------------------------
+ * destructorHandler()
+ * ----------------------------------------------------------------------------- */
 
 int
 TCL8::destructorHandler(Node *n) {
@@ -681,14 +700,6 @@ TCL8::destructorHandler(Node *n) {
   return SWIG_OK;
 }
 
-void
-TCL8::cpp_inherit(char **bases, int mode) {
-  this->Language::cpp_inherit(bases,mode);
-  for (int i=0;bases[i]; i++) {
-    Printv(f_wrappers,"extern swig_class _wrap_class_",bases[i],";\n",0);
-    Printf(cpp_bases,"&_wrap_class_%s,", bases[i]);
-  }
-}
 
 int TCL8::validIdentifier(String *s) {
   if (Strchr(s,' ')) return 0;

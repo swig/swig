@@ -40,6 +40,7 @@ extern  int       NoInclude;                        // NoInclude flag
 extern  int       error_count;
 extern  int       Verbose;
 extern  int       IsVirtual;
+extern  int       ImportMode;
 extern  int       Overloaded;
 extern  int       Abstract;
 
@@ -155,6 +156,7 @@ public:
   virtual void import_end();                      /* Done with import    */
   virtual int  validIdentifier(String *s);        /* valid identifier? */
 
+  // Attributes
 
 };
 

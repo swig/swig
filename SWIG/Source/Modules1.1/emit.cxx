@@ -202,7 +202,6 @@ void emit_action(Node *n, Wrapper *f) {
   if (!tm) {
     tm = Swig_except_lookup();
   }
-  
   if (tm) {
     Replaceall(tm,"$name",Getattr(n,"name"));
     Replaceall(tm,"$symname", Getattr(n,"sym:name"));

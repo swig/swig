@@ -29,19 +29,14 @@ class RUBY : public Language {
   virtual int memberfunctionHandler(Node *);
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
+  virtual int classHandler(Node *);
+  virtual int classforwardDeclaration(Node *);
 
-  virtual void set_module(char *);
+  virtual void set_module(char *);          /* Deprecated */
+
   virtual void add_native(char *, char *, SwigType *, ParmList *);
-  virtual void create_command(char *, char *, int);
 
-  /* C++ language extensions. */
-
-  virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
-  virtual void cpp_close_class();
-  virtual void cpp_inherit(char **baseclass, int mode = 0);
-
-  /* Declaration of a class, but not a full definition */
-  virtual void cpp_class_decl(char *, char *, char *);
+  virtual void create_command(char *, char *, int);   /* Deprecated */
 
   /* Pragma directive  */
   virtual void pragma(char *, char *, char *);

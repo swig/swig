@@ -21,12 +21,10 @@ static char cvsroot[] = "$Header$";
 
 static int      InClass = 0;          /* Parsing C++ or not */
 static String  *ClassName = 0;        /* This is the real name of the current class */
-static String  *ClassRename = 0;      /* This is non-NULL if the class has been renamed */
-static String  *ClassTag = 0;         /* Type of class (ie. union, struct, class)  */
 static String  *ClassPrefix = 0;      /* Class prefix */
 static String  *ClassType = 0;        /* Fully qualified type name to use */
        int      Abstract = 0;
-static int      ImportMode = 0;
+       int      ImportMode = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
@@ -195,7 +193,7 @@ static void cplus_inherit_types(Node *cls, String *clsname, int import) {
   for (i = 0; i < len; i++) {
     Node *n = Getitem(ilist,i);
     Node *bname = Getattr(n,"name");
-    Node *bclass = Getattr(n,"class");
+    Node *bclass = n; /* Getattr(n,"class"); */
     Hash *scopes = Getattr(bclass,"typescope");
     
     private_constructor |= GetInt(bclass,"has_private_constructor");
@@ -359,7 +357,6 @@ int Language::insertDirective(Node *n) {
   if (!ImportMode) {
     String *code     = Getattr(n,"code");
     String *section  = Getattr(n,"section");
-    String *filename = Getattr(n,"filename");
     File *f = 0;
     if (!section) {     /* %{ ... %} */
       f = Swig_filebyname("header");
@@ -367,14 +364,7 @@ int Language::insertDirective(Node *n) {
       f = Swig_filebyname(section);
     }
     if (f) {
-      if (code) {
-	Printf(f,"%s\n",code);
-      } else if (filename) {
-	if (Swig_insert_file(filename,f) < 0) {
-	  Printf(stderr,"%s:%d: Couldn't find '%s'. Possible installation problem.\n", input_file, line_number, filename);
-	  SWIG_exit (EXIT_FAILURE);
-	}
-      }
+      Printf(f,"%s\n",code);
     } else {
       Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, section);
     }
@@ -1110,21 +1100,19 @@ int Language::classDeclaration(Node *n) {
   String *unnamed = Getattr(n,"unnamed");
   String *storage = Getattr(n,"storage");
 
-
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
+
+  Swig_save(&n,"name",0);
+  Setattr(n,"name",classname);
 
   if (Cmp(kind,"class") == 0) {
     cplus_mode = CPLUS_PRIVATE;
   } else {
     cplus_mode = CPLUS_PUBLIC;
   }
-  if (name) {
-    this->cpp_class_decl(Char(name),iname, Char(kind));
-  } else {
-    this->cpp_class_decl(classname,iname, Char(kind));
-  }
+  classforwardDeclaration(n);
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
 
@@ -1132,7 +1120,15 @@ int Language::classDeclaration(Node *n) {
   if (unnamed && tdname && (Cmp(storage,"typedef") == 0)) {
     SwigType_typedef(unnamed,tdname);
   }
-    
+  
+  ClassName = NewString(classname);
+  ClassPrefix = NewString(iname);
+  if (strip) {
+    ClassType = NewString(classname);
+  } else {
+    ClassType = NewStringf("%s %s", kind, classname);
+  }
+  Setattr(n,"classtype", ClassType);
   if (!ImportMode) {
     this->cpp_open_class(classname,iname,Char(kind),strip);
   }
@@ -1150,30 +1146,13 @@ int Language::classDeclaration(Node *n) {
   }
 
   /* Call classHandler() here */
-
-  /* Emit all of the members */
-  Node *c;
-  for (c = firstChild(n); c; c = nextSibling(c)) {
-    emit_one(c);
-  }
-
-  cplus_mode = CPLUS_PUBLIC;
+  classHandler(n);
 
   if (Getattr(n,"has_base_default_constructor")) {
     Setattr(n,"has_default_constructor","1");
   }
 
   if (!ImportMode) {
-    if (GenerateDefault) {
-      if ((!Getattr(n,"has_constructor")) && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"has_base_default_constructor"))) {
-	/* Generate default constructor */
-	constructorDeclaration(n);
-      } 
-      if ((!Getattr(n,"has_destructor")) && (!Getattr(n,"has_private_destructor"))) {
-	/* Generate default destructor */
-	destructorDeclaration(n);
-      }
-    }
     char *baselist[256];
     int   i = 0;
     for (i = 0; i < Len(bases); i++) {
@@ -1187,6 +1166,10 @@ int Language::classDeclaration(Node *n) {
   Setattr(n,"typescope",ts);
   InClass = 0;
   CurrentClass = 0;
+  Delete(ClassType);     ClassType = 0;
+  Delete(ClassPrefix);   ClassPrefix = 0;
+  Delete(ClassName);     ClassName = 0;
+  Swig_restore(&n);
   return SWIG_OK;
 }
 
@@ -1201,15 +1184,15 @@ int Language::classHandler(Node *n) {
   for (c = firstChild(n); c; c = nextSibling(c)) {
     emit_one(c);
   }
-
   cplus_mode = CPLUS_PUBLIC;
-  if (GenerateDefault) {
-    if (!Getattr(n,"has_constructor") && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"base_default_constructor"))) {
-      constructorHandler(Getattr(n,"default_constructor"));
+  if (!ImportMode && GenerateDefault) {
+    if (!Getattr(n,"has_constructor") && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"has_base_default_constructor"))) {
+      /* Note: will need to change this to support different kinds of classes */
+      constructorHandler(CurrentClass);
       Setattr(n,"has_default_constructor","1");
     }
     if (!Getattr(n,"has_destructor") && (!Getattr(n,"has_private_destructor"))) {
-      destructorHandler(Getattr(n,"default_destructor"));
+      destructorHandler(CurrentClass);
     }
   }
   return SWIG_OK;
@@ -1392,29 +1375,6 @@ Language::add_native(char *, char *iname, SwigType *, ParmList *) {
  * ----------------------------------------------------------------------------- */
 
 void Language::cpp_open_class(char *classname, char *classrename, char *ctype, int strip) {
-
-  /* Copy the class name */
-
-  ClassName = NewString(classname);
-
-  /* Copy the class renaming */
-
-  if (classrename) {
-    ClassRename = NewString(classrename);
-  } else {
-    ClassRename = 0;           /* No renaming */
-  }
-
-  /* Set class prefix */
-  ClassPrefix = ClassRename ? ClassRename : ClassName;
-
-  /* Make the class type*/
-  if (strip) {
-    ClassTag = NewString("");
-  } else {
-    ClassTag = NewStringf("%s ", ctype);
-  }
-  ClassType = NewStringf("%s%s", ClassTag,ClassName);
 }
 
 /* -----------------------------------------------------------------------------

@@ -800,26 +800,13 @@ int RUBY::constantWrapper(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * void RUBY::cpp_open_class(char *classname, char *classrename, char *ctype, int strip)
- *
- * Open a new C++ class.
- *
- * INPUTS:
- *      name   = Real name of the C++ class
- *      rename = New name of the class (if %name was used)
- *      ctype  = Class type (struct, class, union, etc...)
- *      strip  = Flag indicating whether we should strip the
- *               class type off
- *
- * This function is in charge of creating a new class.  The SWIG parser has
- * already processed the entire class definition prior to calling this
- * function (which should simplify things considerably).
- *
+ * RUBY::classHandler()
  * ---------------------------------------------------------------------- */
 
-void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
-  this->Language::cpp_open_class(cname, rename, ctype, strip);
+int RUBY::classHandler(Node *n) {
 
+  char *cname = GetChar(n,"name");
+  char *rename = GetChar(n,"sym:name");
   klass = RCLASS(classes, cname);
 
   /* !!! Added by beazley. 8/29/01 */
@@ -827,25 +814,16 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
     klass = new RClass();
     SET_RCLASS(classes,cname,klass);
   }
-  String *valid_name = NewString((rename ? rename : cname));
+  String *valid_name = NewString(rename);
   validate_const_name(Char(valid_name));
   klass->set_name(cname,rename,Char(valid_name));
 
-  /* !!! */
-
-  if (strip) {
-    Clear(klass->type);
-    Append(klass->type, klass->cname);
-  } else {
-    Clear(klass->type);
-    Printv(klass->type, ctype, " ", klass->cname,0);
-  }
-
+  Clear(klass->type);
+  Printv(klass->type, Getattr(n,"classtype"), 0);
   Printv(klass->header, "\nstatic swig_class c", valid_name, ";\n", 0);
   Printv(klass->init, "\n", tab4, 0);
   Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
 	 ", \"", klass->name, "\", $super);\n", 0);
-
 
   {
     SwigType *tt = NewString(klass->name);
@@ -864,16 +842,21 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
 	 "$freeproto",
 	 0);
 
-}
+  Language::classHandler(n);
 
-/* ---------------------------------------------------------------------
- * void RUBY::cpp_close_class()
- *
- * Close the current class
- * --------------------------------------------------------------------- */
-
-void RUBY::cpp_close_class() {
-  this->Language::cpp_close_class();
+  /* Handle inheritance */
+  List *baselist = Getattr(n,"bases");
+  if (baselist && Len(baselist)) {
+    Node *base = Firstitem(baselist);
+    while (base) {
+      RClass *super = RCLASS(classes, Getattr(base,"name"));
+      if (super) {
+	Replaceall(klass->init,"$super",super->vname);
+	break;
+      }
+      base = Nextitem(baselist);
+    }
+  }
 
   Replace(klass->header,"$markfunc", "0", DOH_REPLACE_ANY);
   Replace(klass->header,"$markproto", "", DOH_REPLACE_ANY);
@@ -897,30 +880,7 @@ void RUBY::cpp_close_class() {
 
   Printv(f_init,klass->init,0);
   klass = 0;
-}
-
-/* ----------------------------------------------------------------------
- * void RUBY::cpp_inherit(char **baseclass, int mode)
- *
- * Inherit attributes from given baseclass.
- *
- * INPUT:
- *     baseclass       = NULL terminate list of baseclasses
- *
- * --------------------------------------------------------------------- */
-
-
-void RUBY::cpp_inherit(char **baseclass, int mode) {
-  if (!baseclass)
-    return;
-
-  for (int i = 0; baseclass[i]; i++) {
-    RClass *super = RCLASS(classes, baseclass[i]);
-    if (super) {
-      Replace(klass->init,"$super", super->vname , DOH_REPLACE_ANY);
-      break; /* ignore multiple inheritance */
-    }
-  }
+  return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
@@ -1060,14 +1020,17 @@ int RUBY::staticmembervariableHandler(Node *n) {
 }
 
 /* -----------------------------------------------------------------------
- * RUBY::cpp_class_decl(char *name, char *rename, char *type)
+ * RUBY::classforwardDeclaration()
  *
  * A forward class declaration
  * ----------------------------------------------------------------------- */
 
-void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
+int RUBY::classforwardDeclaration(Node *n) {
+  char *cname  = GetChar(n,"name");
+  char *rename = GetChar(n,"sym:name");
+  char *type   = GetChar(n,"kind");
+
   RClass *kls;
-  
   kls = RCLASS(classes,cname);
   if (!kls) {
     kls = new RClass();
@@ -1082,7 +1045,9 @@ void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
     sprintf(temp,"%s %s", type, cname);
     SET_RCLASS(classes,temp,kls);
   }
+  return SWIG_OK;
 }
+
 
 /* --------------------------------------------------------------------
  * void RUBY::pragma(char *target, char *var, char *value)

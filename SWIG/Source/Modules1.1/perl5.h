@@ -37,18 +37,12 @@ public :
   virtual int constructorHandler(Node *n);
   virtual int destructorHandler(Node *n);
 
+  virtual int classforwardDeclaration(Node *n);
+  virtual int classHandler(Node *n);
+
   virtual void add_native(char *, char *, SwigType *, ParmList *);
 
-  // Support for blessed perl thingies....
-
-  virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
-  virtual void cpp_close_class();
-
-
-  virtual void cpp_inherit(char **baseclass, int mode = 0);
-
-  virtual void cpp_class_decl(char *, char *, char *);
- virtual  void add_typedef(SwigType *t, char *name);
+  virtual  void add_typedef(SwigType *t, char *name);
   virtual void pragma(char *, char *, char *);
   virtual void import_start(char *filename);
   virtual void import_end();

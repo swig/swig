@@ -64,10 +64,7 @@ static  int        have_constructor = 0;
 static  int        have_destructor= 0;
 static  int        have_data_members = 0;
 static  String    *class_name = 0;            /* Name of the class (what Perl thinks it is) */
-static  String    *class_type = 0;            /* Type of class "struct", "class", "union"   */
 static  String    *real_classname = 0;        /* Real name of C/C++ class */
-static  String    *base_class = 0;            /* Base class (if using inheritance) */
-static  int class_renamed = 0;
 static  String   *fullclassname = 0;
 
 static  String   *pcode = 0;                 /* Perl code associated with each class */
@@ -952,12 +949,11 @@ PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
  ****************************************************************************/
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_open_class()
+ * PERL5::classHandler()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
+int
+PERL5::classHandler(Node *n) {
 
-  this->Language::cpp_open_class(classname, rname, ctype, strip);
   if (blessed) {
     have_constructor = 0;
     have_operators = 0;
@@ -965,20 +961,7 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     have_data_members = 0;
     operators = NewHash();
 
-    Delete(class_name);     class_name = 0;
-    Delete(class_type);     class_type =0;
-    Delete(real_classname); real_classname = 0;
-    Delete(base_class);     base_class = 0;
-    Delete(fullclassname);  fullclassname = 0;
-
-    /* If the class is being renamed to something else, use the renaming */
-    if (rname) {
-      class_name = NewString(rname);
-      class_renamed = 1;
-    } else {
-      class_name = NewString(classname);
-      class_renamed = 0;
-    }
+    class_name = Getattr(n,"sym:name");
 
     /* Use the fully qualified name of the Perl class */
     if (!compat) {
@@ -986,24 +969,15 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     } else {
       fullclassname = NewString(class_name);
     }
-    real_classname = NewString(classname);
-    if (base_class) Delete(base_class);
-    base_class =  0;
-    class_type = NewString(ctype);
+    real_classname = Getattr(n,"name");
     pcode = NewString("");
     blessedmembers = NewString("");
-
-    /* Add some symbols to the hash tables */
-    cpp_class_decl(Char(classname),Char(class_name),Char(ctype));
   }
-}
 
-/* -----------------------------------------------------------------------------
- * PERL5::cpp_close_class()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_close_class() {
+  /* Emit all of the members */
+  Language::classHandler(n);
 
+  /* Finish the rest of the class */
   if (blessed) {
     Printv(pm,
 	   "\n############# Class : ", fullclassname, " ##############\n",
@@ -1032,13 +1006,23 @@ PERL5::cpp_close_class() {
 
     Printv(pm, "@ISA = qw( ",realpackage, 0);
 
-    if (base_class) {
-      Printv(pm, " ", base_class, 0);
+    /* Handle inheritance */
+    List *baselist = Getattr(n,"bases");
+    if (baselist && Len(baselist)) {
+      Node *base = Firstitem(baselist);
+      while (base) {
+	String *bname = Getattr(base, "perl5:class");
+	if (!bname) {
+	  base = Nextitem(baselist);
+	  continue;
+	}
+	Printv(pm," ", bname, 0);
+	base = Nextitem(baselist);
+      }
     }
     Printf(pm, " );\n");
 
     /* Dump out a hash table containing the pointers that we own */
-
     Printf(pm, "%%OWNER = ();\n");
     if (have_data_members) {
       Printv(pm,
@@ -1047,7 +1031,6 @@ PERL5::cpp_close_class() {
     }
     if (have_data_members || have_destructor)
       Printf(pm, "%%ITERATORS = ();\n");
-
 
     /* Dump out the package methods */
 
@@ -1105,6 +1088,7 @@ PERL5::cpp_close_class() {
     }
     Delete(operators);     operators = 0;
   }
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1347,44 +1331,6 @@ PERL5::staticmembervariableHandler(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_inherit()
- * ------------------------------------------------------------------------------ */
-void
-PERL5::cpp_inherit(char **baseclass, int) {
-  char *bc;
-  int  i = 0, have_first = 0;
-  if (!blessed) {
-    this->Language::cpp_inherit(baseclass);
-    return;
-  }
-
-  /* Inherit variables and constants from base classes, but not
-     functions (since Perl can handle that okay). */
-
-  this->Language::cpp_inherit(baseclass, 0);
-
-  /* Now tell the Perl5 module that we're inheriting from base classes */
-
-  base_class = NewString("");
-  while (baseclass[i]) {
-    /* See if this is a class we know about */
-    String *b = NewString(baseclass[i]);
-    bc = Char(is_shadow(b));
-    Delete(b);
-    if (bc) {
-      if (have_first) Putc(' ', base_class);
-      Printf(base_class,bc);
-      have_first = 1;
-    }
-    i++;
-  }
-  if (!have_first) {
-    Delete(base_class);
-    base_class = 0;
-  }
-}
-
-/* -----------------------------------------------------------------------------
  * PERL5::memberconstantHandler()
  * ----------------------------------------------------------------------------- */
 int
@@ -1404,35 +1350,47 @@ PERL5::memberconstantHandler(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::cpp_class_decl()
+ * classforwardDeclaration()
  * ----------------------------------------------------------------------------- */
-void
-PERL5::cpp_class_decl(char *name, char *rename, char *type) {
+int
+PERL5::classforwardDeclaration(Node *n) {
+  String *name    = Getattr(n,"name");
+  String *symname = Getattr(n,"sym:name");
+  String *kind    = Getattr(n,"kind");
   String *stype;
   String *fullname;
   String *actualpackage;
   
   actualpackage = import_file ? import_file : realpackage;
 
+  if (!symname) {
+    Printf(stdout,"%s\n", name);
+    assert(symname);
+  }
+
   if (blessed) {
     stype = NewString(name);
     SwigType_add_pointer(stype);
-    if ((!compat) && (!strchr(rename,':'))) {
-      fullname = NewStringf("%s::%s",actualpackage,rename);
+    if ((!compat) && (!Strchr(symname,':'))) {
+      fullname = NewStringf("%s::%s",actualpackage,symname);
     } else {
-      fullname = NewString(rename);
+      fullname = NewString(symname);
     }
+    Setattr(n,"perl5:class", fullname);
     Setattr(classes,stype,fullname);
     Setattr(classes,name,fullname);
     Delete(stype);
-    if (strlen(type) > 0) {
-      stype = NewStringf("%s %s",type,name);
+    if (kind && (Len(kind) > 0)) {
+      stype = NewStringf("%s %s",kind,name);
       SwigType_add_pointer(stype);
       Setattr(classes,stype,fullname);
       Delete(stype);
     }
   }
+  return SWIG_OK;
 }
+
+
 
 /* -----------------------------------------------------------------------------
  * PERL5::add_typedef()
@@ -1442,7 +1400,8 @@ PERL5::add_typedef(SwigType *t, char *name) {
 
   if (!blessed) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)), (char *) "");
+    Setattr(classes,NewString(name), is_shadow(t));
+    /*    cpp_class_decl(name,Char(is_shadow(t)), (char *) ""); */
   }
 }
 

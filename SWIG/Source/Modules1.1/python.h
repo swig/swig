@@ -24,8 +24,8 @@
 class PYTHON : public Language {
 protected:
   void add_method(char *name, char *function, int kw);
+  String *pythoncode(String *code, const String *indent);
 public :
-
   // Don't change any of this
   virtual void main(int, char *argv[]);
   virtual int top(Node *); 
@@ -38,17 +38,14 @@ public :
   virtual int memberfunctionHandler(Node *);
   virtual int constructorHandler(Node *);
   virtual int destructorHandler(Node *);
+  virtual int classHandler(Node *);
+  virtual int classforwardDeclaration(Node *);
 
+  virtual int insertDirective(Node *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);
   virtual void import_start(char *);
   virtual void import_end();
 
-  // C++ extensions---for creating shadow classes
-  
-  virtual void cpp_open_class(char *classname, char *rname, char *ctype, int strip);
-  virtual void cpp_close_class();
-  virtual void cpp_inherit(char **baseclass, int mode = 0);
-  virtual void cpp_class_decl(char *, char *,char *);
 };
 
 #define PYSHADOW_MEMBER  0x2
