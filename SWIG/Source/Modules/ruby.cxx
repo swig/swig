@@ -459,6 +459,7 @@ public:
   void create_command(Node *n, const String_or_char *iname) {
 
     String *wname = Swig_name_wrapper(iname);
+    String *wname2 = Swig_name_wrapper(iname);
     if (CPlusPlus) {
       Insert(wname,0,"VALUEFUNC(");
       Append(wname,")");
@@ -480,7 +481,7 @@ public:
     case CONSTRUCTOR_ALLOCATE:
       Printv(s, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n", NIL);
       Printv(s, tab4, "rb_define_alloc_func(", klass->vname,
-	     ", ", wname, ");\n", NIL);
+	     ", ", wname2, ");\n", NIL);
       Printv(s, "#else\n", NIL);
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname,
 	     ", \"new\", ", wname, ", -1);\n", NIL);
@@ -515,6 +516,7 @@ public:
     Delete(temp);
     Delete(s);
     Delete(wname);
+    Delete(wname2);
   }
   
   /* ---------------------------------------------------------------------
@@ -770,15 +772,20 @@ public:
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
     /* Now write the wrapper function itself */
-    Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
-
     if (current != CONSTRUCTOR_ALLOCATE) {
+      Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
 	Printf(f->code,"if ((argc < %d) || (argc > %d))\n", numreq-start, numarg-start);
       } else {
 	Printf(f->code,"if (argc < %d)\n", numreq-start);
       }
       Printf(f->code,"rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc);\n",numreq-start);
+    } else {
+      Printf(f->def, "#ifdef HAVE_RB_DEFINE_ALLOC_FUNC\n");
+      Printv(f->def, "static VALUE\n", wname, "(VALUE self) {", NIL);
+      Printf(f->def, "#else\n");
+      Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
+      Printf(f->def, "#endif\n");
     }
 
     /* Now walk the function parameter list and generate code */
