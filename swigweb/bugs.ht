@@ -4,15 +4,20 @@ SWIG Bug Tracking
 
 <p>A <a href="http://sourceforge.net/bugs/?group_id=1645">bug-tracking system</a> for SWIG
 is located on <a href="http://sourceforge.net">SourceForge</a>. 
+Please log on to SourceForge before submitting a bug.
+Anonymous bug submitters won't be able to receive emails on the bug progress. 
+This might be a problem should we require further feedback on the bug.
 
-<p>
-Note: Bug tracking was moved to SourceForge on 7/2/2000.  Please report administrative
-problems to <a href="mailto:swig-dev@cs.uchicago.edu">swig-dev@cs.uchicago.edu.</a>
+<p/>
+Users who have found a bug and fixed it themselves can submit a
+<a href="http://sourceforge.net/patch/?group_id=1645">patch</a>.
+Please give the SWIG version or CVS snapshot date that the patch is against.
+Again, please log on to SourceForge before submitting patches.
 
-<p>
+<p/>
 Please note that due to time constraints, bug reports may not 
 receive an immediate response.
 If you have an urgent problem, you may want to
-post a message to the SWIG mailing list at <a href="mailto:swig@cs.uchicago.edu">swig@cs.uchicago.edu</a>
+post a message to the <a href="mail.html">swig</a> mailing list
 instead. 
 
