@@ -461,18 +461,18 @@ swig:  Doc/Manual/Typemaps.html for complete details.\n");
 	namewarn = 1;
       }
     }
-  }
-  while (items) {
-    Parm     *pattern   = Getattr(items,"pattern");
-    Parm     *parms     = Getattr(items,"parms");
-    if (code) {
-      Swig_typemap_register(method,pattern,code,parms,kwargs);
-    } else {
-      Swig_typemap_clear(method,pattern);
+    while (items) {
+      Parm     *pattern   = Getattr(items,"pattern");
+      Parm     *parms     = Getattr(items,"parms");
+      if (code) {
+	Swig_typemap_register(method,pattern,code,parms,kwargs);
+      } else {
+	Swig_typemap_clear(method,pattern);
+      }
+      items = nextSibling(items);
     }
-    items = nextSibling(items);
-  }
-  return SWIG_OK;
+    return SWIG_OK;
+
 }
 
 /* ----------------------------------------------------------------------
