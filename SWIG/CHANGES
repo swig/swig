@@ -17,6 +17,13 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 
+04/02/2002: cheetah (William Fulton)
+            [Java] Sun has modified javac in jdk1.4 to no longer compile
+            an import of an unnamed namespace. To fix this SWIG no longer 
+            generates the import for packageless classes.
+            http://developer.java.sun.com/developer/bugParade/bugs/4361575.html
+            As reported SF #538415.
+
 03/27/2002: ljohnson (Lyle Johnson)
             [Ruby] Added support for pointer-to-member, similar to that
             for the Python module. Remarkably similar. Also added a new
