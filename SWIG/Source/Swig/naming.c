@@ -30,6 +30,13 @@ Swig_name_register(String_or_char *method, String_or_char *format) {
   Setattr(naming_hash,method,format);
 }
 
+void
+Swig_name_unregister(String_or_char *method) {
+  if (naming_hash) {
+    Delattr(naming_hash,method);
+  }
+}
+
 static
 int name_mangle(String *r) {
   char  *c;

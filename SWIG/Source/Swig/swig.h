@@ -346,6 +346,7 @@ extern char     *Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...)
 /* --- Naming functions --- */
 
 extern void     Swig_name_register(String_or_char *method, String_or_char *format);
+extern void     Swig_name_unregister(String_or_char *method);
 extern String  *Swig_name_mangle(String_or_char *s);
 extern String  *Swig_name_wrapper(String_or_char *fname);
 extern String  *Swig_name_member(String_or_char *classname, String_or_char *mname);
