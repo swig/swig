@@ -2,6 +2,7 @@ import extend_placement
 
 foo = extend_placement.Foo()
 foo = extend_placement.Foo(1)
+foo = extend_placement.Foo(1,1)
 foo.spam()
 foo.spam("hello")
 foo.spam(1)
@@ -20,6 +21,7 @@ bar.spam(1,1,1)
 
 foo = extend_placement.FooTi()
 foo = extend_placement.FooTi(1)
+foo = extend_placement.FooTi(1,1)
 foo.spam()
 foo.spam("hello")
 foo.spam(1)

@@ -17,6 +17,10 @@ class Foo {
 public:
   Foo(){}
 
+#ifdef SWIG
+%extend { Foo(int a, int b) { return new Foo(); } }  
+#endif
+
   int spam() { return 1; }
   int spam(const char* c) { return 2; }
 };
@@ -61,6 +65,10 @@ template<class T>
 class FooT {
 public:
   FooT(){}
+
+#ifdef SWIG
+%extend { FooT(int a, int b) { return new FooT<T>(); } }  
+#endif
 
   int spam() { return 1; }
   int spam(const char* c) { return 2; }
