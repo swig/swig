@@ -6,7 +6,8 @@
   {    
     struct A 
     {
-      virtual int value(A*) = 0;    
+      virtual int value(A*) = 0;
+      int index;
     };    
     
     struct B : A 
@@ -21,6 +22,8 @@
     struct C
     {
       hi::B* operator->() const { return new hi::B(); }
+    private:
+      int index;
     };
   }
   

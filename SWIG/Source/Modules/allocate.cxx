@@ -103,11 +103,13 @@ class Allocate : public Dispatcher {
             // is, not the virtual method definition in a base class
             Setattr(c, "storage", "virtual");
             Setattr(c, "virtual:derived", "1"); 
-            // record the virtual base type in case some language
-            // needs it
             if (Strcmp(local_type, base_type) == 0) {
+	      // if the types are the same, then we can attemp
+	      // to eliminate the derived virtual method.
               if (virtual_elimination_mode) Setattr(c,"feature:ignore", "1");
             } else {
+	      // if the types are different, we record the original
+	      // virtual base type in case some language needs it.
               Setattr(c, "virtual:type", Getattr(temp, "type"));
             }
 
@@ -182,7 +184,9 @@ class Allocate : public Dispatcher {
     else return 0;
   }
 
-  /* Checks to see if a class is abstract through inheritance */
+  /* Checks to see if a class is abstract through inheritance,
+     and saves the first node that seems to be abstract.
+   */
   int is_abstract_inherit(Node *n, Node *base = 0, int first = 0) {
     if (!first && (base == n)) return 0;
     if (!base) {
@@ -235,7 +239,10 @@ class Allocate : public Dispatcher {
 	}
 	*/
 
-	if (!dn) return 1;
+	if (!dn) {
+	  Setattr(n,"abstract:firstnode",nn);
+	  return 1;
+	}
 	/*
 	if (dn && (Getattr(dn,"abstract"))) {
 	  return 1;
@@ -279,9 +286,10 @@ class Allocate : public Dispatcher {
 	    String *name = Getattr(c,"name");
 	    String *symname = Getattr(c,"sym:name");
 	    Node   *e    = Swig_symbol_clookup_local(name,0);
-	    if (e && !Getattr(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
-	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->() at %s:%d\n",
-			   name, Getfile(c),Getline(c));
+	    if (e && is_public(e) && !Getattr(e,"feature:ignore") && (Cmp(symname, Getattr(e,"sym:name")) == 0)) {
+	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(e),Getline(e),"Declaration of '%s' shadows declaration accessible via operator->(),\n",
+			   name);
+	      Swig_warning(WARN_LANG_DEREF_SHADOW,Getfile(c),Getline(c)," '%s' first declared here.\n", name);
 	    } else {
 	      /* Make sure node with same name doesn't already exist */
 	      int k;
@@ -427,7 +435,14 @@ public:
     if (is_abstract_inherit(n)) {
       if ((!Getattr(n,"abstract")) && ((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
 	if (!Getattr(n,"feature:notabstract")) {
-	  Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. No constructors generated. \n", SwigType_namestr(Getattr(n,"name")));
+	  Node *na = Getattr(n,"abstract:firstnode");
+	  Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
+		       "Class '%s' might be abstract, "
+		       "no constructors generated,\n",
+		       SwigType_namestr(Getattr(n,"name")));
+	  Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na),
+		       " method '%s' might not be implemented.",
+		       SwigType_namestr(Getattr(na,"name")));
 	  Setattr(n,"abstract",NewList());
 	}
       }
