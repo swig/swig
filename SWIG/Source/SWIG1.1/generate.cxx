@@ -486,21 +486,16 @@ void generate(Node *top) {
 
       int oldam = AddMethods;
       if (!InClass) {            /* Not in a class */
-
-	cplus_mode = CPLUS_PUBLIC;
-	InClass = 1;
-	cplus_set_class(Char(Getname(n)));
-	generate(firstChild(n));
-	InClass = 0;
-	cplus_unset_class();
-	AddMethods = oldam;
-
+	WARNING("addmethods directive outside of class!\n");
+	/* cplus_set_class(Char(Getname(n))); */
+	/* cplus_unset_class();*/
       } else {                  /* Inside a class */
-
+	int oldmode = cplus_mode;
 	AddMethods = 1;
+	cplus_mode = CPLUS_PUBLIC;
 	generate(firstChild(n));
 	AddMethods = oldam;
-
+	cplus_mode = oldmode;
       }
     } else if (strcmp(tag,"apply") == 0) {
       
@@ -843,7 +838,7 @@ void generate(Node *top) {
 
 void generate_all(Node *n) {
   generate(n);
-  /*  Swig_dump_tree(n); */
+  /*  Swig_dump_tree(n);*/
   if (lang_init) {
     cplus_cleanup();
     lang->close();

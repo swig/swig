@@ -52,6 +52,11 @@ extern void generate_all(Node *);
 static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 
+static Hash    *addmethods = 0;     /* Hash table of added methods */
+static Hash    *classes = 0;        /* Hash table of classes */
+static Symtab  *prev_symtab = 0;
+ static Node    *current_class = 0;
+
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
  * ----------------------------------------------------------------------------- */
@@ -140,7 +145,7 @@ static void add_symbols(Node *n) {
     Node *c = Swig_symbol_add(symname,n);
     if (c != n) {
       String *e = NewString("");
-      Printf(e,"%s:%d. Identifier '%s' redeclared.", Getfile(n),Getline(n),symname);
+      Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
       if (Cmp(symname,Getname(n))) {
 	Printf(e," (Renamed from '%s')", Getname(n));
       }
@@ -165,10 +170,43 @@ static void add_tag(Node *n) {
   Node *c = Swig_symbol_add_tag(symname, n);
   if (c != n) {
     String *e = NewString("");
-    Printf(e,"%s:%d. '%s' redeclared.\n", Getfile(n),Getline(n),symname);
+    Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(n),Getline(n),symname);
     Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(c),Getline(c), symname);
     Printf(stderr,"%s",e);
     Seterror(n,e);
+  }
+}
+
+/* Addmethods merge.  This function is used to handle the %addmethods directive
+   when it appears before a class definition.   To handle this, the %addmethods
+   actually needs to take precedence.  Therefore, we will selectively nuke symbols
+   from the current symbol table, replacing them with the added methods */
+
+static void merge_addmethods(Node *am) {
+  Node *n;
+  Node *csym;
+
+  n = firstChild(am);
+  while (n) {
+    String *symname;
+    symname = Getattr(n,"$symname");
+    DohIncref(symname);
+    if ((symname) && (!Geterror(n))) {
+      /* Remove node from its symbol table */
+      Swig_symbol_remove(n);
+      csym = Swig_symbol_add(symname,n);
+      if (csym != n) {
+	/* Conflict with previous definition.  Nuke previous definition */
+	String *e = NewString("");
+	Printf(e,"%s:%d. '%s' redeclared (ignored).\n", Getfile(csym),Getline(csym),symname);
+	Printf(e,"%s:%d. Previous definition of tag '%s'\n", Getfile(n),Getline(n), symname);
+	Printf(stderr,"%s",e);
+	Seterror(csym,e);
+	Swig_symbol_remove(csym);              /* Remove class definition */
+	Swig_symbol_add(symname,n);            /* Insert addmethods definition */
+      }
+    }
+    n = nextSibling(n);
   }
 }
 
@@ -474,10 +512,49 @@ swig_directive : addmethods_directive { $$ = $1; }
 
 addmethods_directive : ADDMETHODS ID LBRACE {
 	       cplus_mode = CPLUS_PUBLIC;
+	       if (!classes) classes = NewHash();
+	       if (!addmethods) addmethods = NewHash();
+	       Node *cls = Getattr(classes,$2);
+	       if (!cls) {
+		 /* No previous definition. Create a new scope */
+		 Node *am = Getattr(addmethods,$2);
+		 if (!am) {
+		   Swig_symbol_newscope();
+		   prev_symtab = 0;
+		 } else {
+		   prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		 }
+		 current_class = 0;
+	       } else {
+		 /* Previous class definition.  Use its symbol table */
+		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
+		 current_class = cls;
+	       }
 	     } cpp_members RBRACE {
                $$ = new_node("addmethods");
 	       Setname($$,$2);
-	       appendChild($$,$5);
+	       Setattr($$,"symtab",Swig_symbol_popscope());
+	       if (current_class) {
+		 /* We add the addmethods to the previously defined class */
+		 appendChild($$,$5);
+		 appendChild(current_class,$$);
+	       } else {
+		 /* We store the addmethods in the addmethods hash */
+		 Node *am = Getattr(addmethods,$2);
+		 if (am) {
+		   /* Append the members to the previous add methods */
+		   appendChild(am,$5);
+		 } else {
+		   appendChild($$,$5);
+		   Setattr(addmethods,$2,$$);
+		 }
+	       }
+	       if (prev_symtab) {
+		 Swig_symbol_setscope(prev_symtab);
+	       }
+	       current_class = 0;
+	       prev_symtab = 0;
+	       $$ = 0;
 	     }
              ;
 
@@ -1092,6 +1169,19 @@ cpp_class_decl  :
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"bases",$4);
 	       Swig_symbol_setscopename($3);
+	       
+	       /* This bit of code merges in a previously defined %addmethod directive (if any) */
+	       if (addmethods) {
+		 Node *am = Getattr(addmethods,$3);
+		 if (am) {
+		   merge_addmethods(am);
+		   appendChild($$,am);
+		   Delattr(addmethods,$3);
+		 }
+	       }
+	       if (!classes) classes = NewHash();
+	       Setattr(classes,$3,$$);
+
 	       Setattr($$,"symtab",Swig_symbol_popscope());
 	       yyrename = NewString(class_rename);
 	       appendChild($$,$7);
@@ -1148,7 +1238,7 @@ cpp_class_decl  :
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"storage",$1);
 	       Setattr($$,"unnamed",unnamed);
-	       appendChild($$,$5);
+
 	       Node *n = new_node("cdecl");
 	       Setname(n,$7.id);
 	       Setattr(n,"unnamed",unnamed);
@@ -1178,10 +1268,24 @@ cpp_class_decl  :
 		     Setattr($$,"tdname",name);
 		     if (!class_rename) class_rename = name;
 		     Swig_symbol_setscopename(name);
+
+		     /* Check for previous addmethods */
+		     if (addmethods) {
+		       Node *am = Getattr(addmethods,name);
+		       if (am) {
+			 /* Merge the addmethods into the symbol table */
+			 merge_addmethods(am);
+			 appendChild($$,am);
+			 Delattr(addmethods,name);
+		       }
+		     }
+		     if (!classes) classes = NewHash();
+		     Setattr(classes,name,$$);
 		   } else {
 		     Swig_symbol_setscopename((char*)"<unnamed>");
 		   }
 		 }
+		 appendChild($$,$5);
 		 appendChild($$,dump_nested(name));
 	       }
 	       /* Pop the scope */

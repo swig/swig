@@ -804,47 +804,6 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
 }
 
 // -----------------------------------------------------------------------------
-// void cplus_set_class(char *name)
-//
-// This function sets the current class to a given name.   If the class
-// doesn't exist, this function will create one.   If it already exists,
-// we'll just use that.
-//
-// This function is used primarily to add or manipulate an already
-// existing class, but in a different location.  For example :
-//
-//         %include "class.h"        // Grab some classes
-//         ...
-//         %addmethods MyClass {     // Add some members for shadow classes
-//               ... members ...
-//         }
-//
-// -----------------------------------------------------------------------------
-
-void cplus_set_class(char *name) {
-  
-  CPP_class *c;
-
-  // Look for a previous class definition
-
-  c = CPP_class::search(name);
-  if (c) {
-    current_class = c;
-    localtypes = c->local;
-  } else {
-    Printf(stderr,"%s:%d:  Warning class %s undefined.\n",input_file,line_number,name);
-    current_class = new CPP_class(name,0);
-    localtypes = current_class->local;
-  }
-}
-
-// This function closes a class open with cplus_set_class() 
-
-void cplus_unset_class() {
-  current_class = 0;
-}
-
-// -----------------------------------------------------------------------------
 // void cplus_class_close(char *name)
 //
 // Close a C++ class definition.   Up to this point, we've only been collecting
