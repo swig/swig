@@ -2,7 +2,7 @@
 
 %module "enums"
 
-// Suppress warning messages from the Ruby module for all of the following...
+/* Suppress warning messages from the Ruby module for all of the following.. */
 %warnfilter(801) boo;
 %warnfilter(801) hoo;
 %warnfilter(801) globalinstance1;
@@ -32,10 +32,10 @@ bar3(foo3 x) {}
 
 enum sad { boo, hoo = 5 };
 
-// Unnamed enum instance
+/* Unnamed enum instance */
 enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
 
-// Anonymous enum
+/* Anonymous enum */
 enum { AnonEnum1, AnonEnum2 = 100 };
 
 %}
