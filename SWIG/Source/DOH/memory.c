@@ -187,13 +187,13 @@ DohMemoryDebug(void) {
 	else if (p->ptr[i].type == &DohHashType) numhash++;
       }
     }
-    printf("    Pool %8x: size = %10d. used = %10d. free = %10d\n", p, p->len, nused, nfree);
+    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", p, p->len, nused, nfree);
     totsize += p->len;
     totused+= nused;
     totfree+= nfree;
     p = p->next;
   }
-  printf("\n    Total: size = %d, used = %d, free = %d\n", totsize, totused, totfree);
+  printf("\n    Total:          size = %10d, used = %10d, free = %10d\n", totsize, totused, totfree);
 
   printf("\nObject types\n");
   printf("    Strings   : %d\n", numstring);
