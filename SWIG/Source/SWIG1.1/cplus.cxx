@@ -188,6 +188,7 @@ public:
   char           *code;                  // Was there any supplied code?
   char           *base;                  // Base class where this was defined
   int            inherited;              // Was this member inherited?
+  int            overloaded;
   CPP_member     *next;                  // Next member (for building linked lists)
   int            id;                     // type id when created
   String        *signature;
@@ -200,6 +201,7 @@ public:
     code = 0;
     file = 0;
     next = 0;
+    overloaded = Overloaded;
   }
   virtual void   inherit(int) { };       // Inheritance rule (optional)
   virtual void   emit() = 0;             // Emit rule
@@ -267,6 +269,7 @@ public:
     NewObject = new_object;
     line_number = line;        // Restore line and file 
     input_file = file;
+    Overloaded = overloaded;
     ccode = code;
     IsVirtual = is_virtual;
 
@@ -301,6 +304,7 @@ public:
     iname = Swig_copy_string(i);
     parms = CopyParmList(l);
     new_method = AddMethods;
+    Overloaded = overloaded;
     inherited = 0;
     next = 0;
     line = line_number;
