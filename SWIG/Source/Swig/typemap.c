@@ -766,23 +766,26 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
           $*n_ltype
     */
 
-    if (SwigType_ispointer(type) || (SwigType_isarray(type))) {
+    if (SwigType_ispointer(type) || (SwigType_isarray(type)) || (SwigType_isreference(type))) {
       star_type = Copy(type);
-      if (SwigType_isarray(star_type)) {
-	Delete(SwigType_pop(star_type));
+      if (!SwigType_isreference(type)) {
+	if (SwigType_isarray(star_type)) {
+	  Delete(SwigType_pop(star_type));
+	} else {
+	  SwigType_del_pointer(star_type);
+	}
+	ts = SwigType_str(star_type,0);
+	if (index == 1) {
+	  Replace(s, "$*type", ts, DOH_REPLACE_ANY);
+	  replace_local_types(locals,"$*type",star_type);
+	}
+	sprintf(varname,"$*%d_type",index);
+	Replace(s,varname,ts,DOH_REPLACE_ANY);
+	replace_local_types(locals,varname,star_type);
+	Delete(ts);
       } else {
-	SwigType_del_pointer(star_type);
+	Delete(SwigType_pop(star_type));;
       }
-      ts = SwigType_str(star_type,0);
-      if (index == 1) {
-	Replace(s, "$*type", ts, DOH_REPLACE_ANY);
-	replace_local_types(locals,"$*type",star_type);
-      }
-      sprintf(varname,"$*%d_type",index);
-      Replace(s,varname,ts,DOH_REPLACE_ANY);
-      replace_local_types(locals,varname,star_type);
-      Delete(ts);
-      
       star_ltype = SwigType_ltype(star_type);
       ts = SwigType_str(star_ltype,0);
       if (index == 1) {

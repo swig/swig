@@ -94,7 +94,9 @@ static Node *copy_node(Node *n) {
       continue;
     }
     /* We do copy sym:name.  For templates */
-    if (Strcmp(key,"sym:name") == 0) {
+    if ((Strcmp(key,"sym:name") == 0) || 
+	(Strcmp(key,"sym:weak") == 0) ||
+	(Strcmp(key,"sym:typename") == 0)) {
       Setattr(nn,key, Copy(Getattr(n,key)));
       continue;
     }
@@ -326,15 +328,15 @@ static void add_symbols(Node *n) {
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	if ((c != n) && (!(Getattr(n,"sym:weak")))) {
+	if ((c != n) && (!(Getattr(n,"sym:weak") || (Getattr(c,"sym:typename") && inclass)))) {
 	  String *e = NewString("");
 	  Printf(e,"Identifier '%s' redeclared (ignored).", symname);
 	  if (Cmp(symname,Getattr(n,"name"))) {
-	    Printf(e," (Renamed from '%s')", Getattr(n,"name"));
+	    Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
 	  }
 	  Printf(e,"\n%s:%d: Previous declaration of '%s'", Getfile(c),Getline(c),symname);
 	  if (Cmp(symname,Getattr(c,"name"))) {
-	    Printf(e," (Renamed from '%s')", Getattr(c,"name"));
+	    Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
 	  }
 	  Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
 	  Setattr(n,"error",e);
@@ -1618,45 +1620,21 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 		  $$ = 0;
 
 		  /* We need to patch argument types to respect namespaces */
-		  if (0) {
-   	            args = NewString("");
-		    p = $7;
-		    while (p) {
-		      String *value = Getattr(p,"value");
-		      if (value) {
-			Printf(args,"%s",value);
-		      } else {
-			SwigType *ty = Getattr(p,"type");
-			if (ty) {
-			  ty = Swig_symbol_type_qualify(ty,0);
-			  Printf(args,"%s",SwigType_str(ty,0));
-			  Setattr(p,"type",ty);
-			}
-		      }
-		      p = nextSibling(p);
-		      if (p) {
-			Printf(args,",");
+		  p = $7;
+		  while (p) {
+		    if (!Getattr(p,"value")) {
+		      SwigType *ty = Getattr(p,"type");
+		      if (ty) {
+			ty = Swig_symbol_type_qualify(ty,0);
+			Setattr(p,"type",ty);
 		      }
 		    }
-		    templateargs = NewStringf("%s<%s>", $5, args);
-		    canonical_template(templateargs);
-		  } else {
-		    p = $7;
-		    while (p) {
-		      if (!Getattr(p,"value")) {
-			SwigType *ty = Getattr(p,"type");
-			if (ty) {
-			  ty = Swig_symbol_type_qualify(ty,0);
-			  Setattr(p,"type",ty);
-			}
-		      }
-		      p = nextSibling(p);
-		    }
-		    templateargs = NewString($5);
-		    SwigType_add_template(templateargs,$7);
-		    args = NewString("");
-		    SwigType_add_template(args,$7);
+		    p = nextSibling(p);
 		  }
+		  templateargs = NewString($5);
+		  SwigType_add_template(templateargs,$7);
+		  args = NewString("");
+		  SwigType_add_template(args,$7);
 		  
 		  /* Look for specialization first */
 		  n = Swig_symbol_clookup(templateargs,0);
@@ -1742,6 +1720,8 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GRE
 			Setattr($$,"sym:name", $3);
 			Delattr($$,"templatetype");
 			Setattr($$,"template","1");
+			Setfile($$,input_file);
+			Setline($$,line_number);
 			add_symbols_copy($$);
 			
 			if (Strcmp(nodeType($$),"class") == 0) {
@@ -3671,6 +3651,12 @@ exprcompound   : expr PLUS expr {
                  $$.val = NewStringf("!%s",$2.val);
 		 $$.type = T_ERROR;
 	       }
+               | type LPAREN {
+                 skip_balanced('(',')');
+		 $$.val = NewStringf("%s%s",$1,scanner_ccode);
+		 Clear(scanner_ccode);
+		 $$.type = T_INT;
+               }
                ;
 
 inherit        : raw_inherit {
@@ -3816,6 +3802,46 @@ idtemplate    : ID template_decl {
               }
               ;
 
+/*
+idcolonnt     : ID idcolontailnt { 
+                  $$ = 0;
+		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
+      	          Delete($2);
+               }
+               | NONID DCOLON ID idcolontailnt { 
+		 $$ = NewStringf("::%s%s",$3,$4);
+                 Delete($4);
+               }
+               | ID {
+		 $$ = NewString($1);
+   	       }     
+               | NONID DCOLON ID {
+		 $$ = NewStringf("::%s",$3);
+               }
+               | OPERATOR {
+                 $$ = NewString($1);
+	       }
+               | NONID DCOLON OPERATOR {
+                 $$ = NewStringf("::%s",$3);
+               }
+               ;
+
+idcolontailnt   : DCOLON ID idcolontailnt {
+                   $$ = NewStringf("::%s%s",$2,$3);
+		   Delete($3);
+               }
+               | DCOLON ID {
+                   $$ = NewStringf("::%s",$2);
+               }
+               | DCOLON OPERATOR {
+                   $$ = NewStringf("::%s",$2);
+               }
+               | DCNOT ID {
+		 $$ = NewStringf("::~%s",$2);
+               }
+               ;
+
+*/
 /* Concatenated strings */
 string         : string STRING { 
                    $$ = (char *) malloc(strlen($1)+strlen($2)+1);

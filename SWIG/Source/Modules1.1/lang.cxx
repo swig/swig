@@ -1338,8 +1338,8 @@ int Language::constructorDeclaration(Node *n) {
 	  } else {
 	    if (Getattr(over,"copy_constructor")) over = Getattr(over,"sym:nextSibling");
 	    if (over != n) {
-	      String *oname = NewStringf("%s::%s", ClassName, name);
-	      String *cname = NewStringf("%s::%s", ClassName, Getattr(over,"name"));
+	      String *oname = NewStringf("%s::%s", SwigType_namestr(ClassName), SwigType_namestr(name));
+	      String *cname = NewStringf("%s::%s", SwigType_namestr(ClassName), SwigType_namestr(Getattr(over,"name")));
 	      SwigType *decl = Getattr(n,"decl");
 	      Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
 			   "Overloaded constructor ignored.  %s\n", SwigType_str(decl,oname));
@@ -1352,7 +1352,7 @@ int Language::constructorDeclaration(Node *n) {
 	    }
 	  }
 	} else {
-	  if (name && (Cmp(name,ClassName))) {
+	  if (name && (Cmp(name,ClassName)) && !(Getattr(n,"template"))) {
 	    Swig_warning(WARN_LANG_RETURN_TYPE, input_file,line_number,"Function %s must have a return type.\n", 
 			 name);
 	    Swig_restore(&n);

@@ -362,8 +362,11 @@ PYTHON::functionWrapper(Node *n) {
 	Wrapper_add_localv(f, source, "PyObject *",source, " = 0", NULL);
 	Printf(arglist,"&%s",source);
 	if (i >= num_required)
-	  Printv(get_pointers, "if (", source, ")\n", NULL);
+	  Printv(get_pointers, "if (", source, ") {\n", NULL);
 	Printv(get_pointers,tm,"\n", NULL);
+	if (i >= num_required)
+	  Printv(get_pointers, "}\n", NULL);
+	
       } else {
 	Printf(parse_args,"%s",parse);
 	

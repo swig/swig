@@ -176,14 +176,19 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
     Parm *tp = Getattr(n,"templateparms");
     Parm *p  = tparms;
     while (p) {
-      String *name, *value, *tydef, *tmp, *tmpr;
+      String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
       int     sz, i;
 
       name = Getattr(tp,"name");
       value = Getattr(p,"value");
       tydef = Getattr(p,"typedef");
       assert(name);
-      if (!value) value = Getattr(p,"type");
+      if (!value) {
+	value = Getattr(p,"type");
+	valuestr = SwigType_str(value,0);
+      } else {
+	valuestr = Copy(value);
+      }
       assert(value);
       
       /*      Printf(stdout,"value = %s\n", value);
@@ -211,11 +216,12 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(cpatchlist,i);
 	Replace(s,tmp,tmpr, DOH_REPLACE_ID);
-	Replace(s,name,tydef, DOH_REPLACE_ID);
+	/*	Replace(s,name,tydef, DOH_REPLACE_ID); */
+	Replace(s,name,valuestr, DOH_REPLACE_ID);
       }
       Delete(tmp);
       Delete(tmpr);
-
+      Delete(valuestr);
       p = nextSibling(p);
       tp = nextSibling(tp);
       if (!p) p = tp;
