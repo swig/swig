@@ -7,18 +7,18 @@ extern int    gcd(int x, int y);
 
 %typemap(python,in) (int argc, char *argv[]) {
   int i;
-  if (!PyList_Check($source)) {
+  if (!PyList_Check($arg)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
     return NULL;
   }
-  $0 = PyList_Size($source);
+  $0 = PyList_Size($arg);
   if ($0 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
     return NULL;
   }
   $1 = (char **) malloc(($0+1)*sizeof(char *));
   for (i = 0; i < $0; i++) {
-    PyObject *s = PyList_GetItem($source,i);
+    PyObject *s = PyList_GetItem($arg,i);
     if (!PyString_Check(s)) {
       SWIG_exception(SWIG_ValueError, "List items must be strings");
       free($1);
@@ -32,12 +32,12 @@ extern int    gcd(int x, int y);
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(python,in) (char *bytes, int len) {
-  if (!PyString_Check($source)) {
+  if (!PyString_Check($arg)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
     return NULL;
   }
-  $0 = PyString_AsString($source);
-  $1 = PyString_Size($source);
+  $0 = PyString_AsString($arg);
+  $1 = PyString_Size($arg);
 }
 
 extern int count(char *bytes, int len, char c);
@@ -61,7 +61,7 @@ extern int count(char *bytes, int len, char c);
 %typemap(python,argout) (char *str, int len) {
    PyObject *o;
    o = PyString_FromStringAndSize($0,$1);
-   $target = t_output_helper($target,o);
+   $result = t_output_helper($result,o);
    free($0);
 }   
 
