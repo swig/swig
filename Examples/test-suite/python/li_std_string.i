@@ -1,4 +1,4 @@
-%module lib_std_string
+%module li_std_string
 %include <std_basic_string.i>
 %include <std_string.i>
 
