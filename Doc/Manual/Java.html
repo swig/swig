@@ -127,7 +127,7 @@ If you primarily want calls from C/C++ into Java then currently SWIG isn't parti
 
 Java is one of the few non-scripting language modules in SWIG.
 As SWIG utilizes the type safety that the Java language offers, it takes a somewhat different approach to that used for scripting languages.
-In particular the runtime type checking and runtime library are not used by Java.
+In particular runtime type checking and the runtime library are not used by Java.
 This should be borne in mind when reading the rest of the SWIG documentation.
 This chapter on Java is relatively self contained and will provide you with nearly everything you need for using SWIG and Java.
 However, the "<a href="SWIG.html">SWIG Basics</a>" chapter will be a useful read in conjunction with this one.
@@ -521,6 +521,7 @@ determines the name of some of the generated files in the module.
 The generated code consists of a <i>module class</i> file <tt>example.java</tt>, an
 <i>intermediary JNI class</i> file, <tt>exampleJNI.java</tt> as well as numerous other Java <i>proxy class</i> files.
 Each proxy class is named after the structs, unions and classes you are wrapping.
+You may also get a <i>constants interface</i> file if you are wrapping any enumerations or constants, for example <tt>exampleConstants.java</tt>.
 When choosing a module name, make sure you don't use the same name as one of the generated
 proxy class files nor a Java keyword. Sometimes a C/C++ type cannot be wrapped by a proxy class, for 
 example a pointer to a primitive type. In these situations a <i>type wrapper class</i> is generated.
@@ -655,7 +656,7 @@ To create a constant, use <tt>#define</tt> or the
 </blockquote>
 
 By default the generated static final variables are initialised by making a JNI call to get their value.
-The constants are generated into a constants interface and look like this:
+The constants are generated into the constants interface and look like this:
 
 <blockquote><pre>
 public interface exampleConstants {
@@ -670,9 +671,9 @@ public interface exampleConstants {
 These are runtime constants. They are not compiler constants that can, for example, be used 
 in a switch statement. This can be changed by using the <tt>%javaconst(flag)</tt> directive. It works like all
 the other <a href="Customization.html#features">%feature directives</a>. The default is <tt>%javaconst(0)</tt>. 
-It is possible to initialize all wrapped constants from pure Java code by placing a <tt>%javaconst(1)</tt> <b>before</b> SWIG parses any constants.
+It is possible to initialize all wrapped constants from pure Java code by placing a <tt>%javaconst(1)</tt> <b>before</b> SWIG parses the constants.
 Putting it at the top of your interface file would ensure this.
-Her is an example:
+Here is an example:
 
 <blockquote><pre>
 %javaconst(1);
@@ -702,14 +703,14 @@ are not wrapped as constants.
 
 <p>
 <b>Compatibility Note:</b> In SWIG-1.3.19 and earlier releases, the constants were generated into the module class and the constants interface didn't exist.
-Backwards compatibility is maintained as the module class implements the constants interface:
+Backwards compatibility is maintained as the module class implements the constants interface (even though some consider this type of interface implementation to be bad practice):
 <blockquote><pre>
 public class example implements exampleConstants {
 }
 </pre></blockquote>
 
-You thus have the choice of accessing these constants as either 
-<tt>example.LAGER</tt> or <tt>exampleConstants.LAGER</tt>.
+You thus have the choice of accessing these constants from either the module class or the constants interface, for example,
+<tt>example.EXPRESSION</tt> or <tt>exampleConstants.EXPRESSION</tt>.
 
 
 <a name="enumerations"></a>
@@ -800,8 +801,8 @@ example.fclose(f);
 </blockquote>
 
 C pointers in the Java module are stored in a Java <tt>long</tt> and cross the JNI boundary held within this 64 bit number.
-whereas other SWIG language modules use an encoding of the pointer in a string. 
-These scripting languages use the SWIG runtime type checker for type checking as they do not support static type checking by a compiler.
+Many other SWIG language modules use an encoding of the pointer in a string. 
+These scripting languages use the SWIG runtime type checker for dynamic type checking as they do not support static type checking by a compiler.
 In order to implement static type checking of pointers within Java, they are wrapped by a simple Java class. 
 In the example above the <tt>FILE *</tt> pointer is wrapped with a <i>type wrapper class </i> 
 called <tt>SWIGTYPE_p_FILE</tt>.
@@ -851,15 +852,6 @@ to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
 a NULL pointer if the conversion can't be performed.
 <p>
-
-C pointers in the Java module are held in a simple Java long, whereas other SWIG language modules use an encoding of the pointer in a string. 
-These scripting languages use the SWIG runtime type checker for type checking as they do not support static type checking by a compiler.
-The pointer is stored in a Java long which is a 64 bit number. 
-However most JVMs are 32 bit applications so any JNI code must also be compiled as 32 bit. 
-This means that the pointers in JNI code are also 32 bits. 
-What happens for various reasons is on big endian machines the pointer is stored in the high order 4bytes, whereas on little endian machines the pointer is stored in the low order 4bytes. 
-As a result, care must be taken if you intend to manipulate the pointer directly from Java. 
-
 
 <a name="structures"></a>
 <a name="n21"></a><H3>15.3.7 Structures</H3>
