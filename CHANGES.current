@@ -1,6 +1,32 @@
 Version 1.3.20 (In progress)
 ============================
 
+10/14/2003: beazley
+            Fixed a subtle problem with overloaded methods and smart pointers.
+            If a class has overloaded methods like this:
+
+                 class Foo {
+                 public:
+                     int bar(int x);
+                     static int bar(int x, int y);
+                 };
+
+            and the class is used as a smart pointer:
+
+                class FooPtr {
+                public:
+                     Foo *operator->();
+                };
+
+            The SWIG would try to expose the static member Foo::bar
+            through FooPtr---resulting bogus wrapper code and a compiler
+            error.
+
+            Due to the way in which overloading is handled, it is
+            extremely difficult to eliminate the static method in
+            this case.  Therefore, it is still exposed.  However,
+            the generated code now compiles and works.
+
 10/05/2003: mkoeppe (Matthias Koeppe)
 	    [Guile, MzScheme, Chicken]: Remove symbol clashes between
 	    the runtime libraries by renaming all extern common.swg
