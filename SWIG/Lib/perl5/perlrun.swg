@@ -190,10 +190,13 @@ static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (C
   mg->mg_virtual->svt_free = 0;
 }
 
+typedef XS(SwigPerlWrapper);
+typedef SwigPerlWrapper *SwigPerlWrapperPtr;
+
 /* Structure for command table */
 typedef struct {
-  const char   *name;
-  XSUBADDR_t    wrapper;
+  const char         *name;
+  SwigPerlWrapperPtr  wrapper;
 } swig_command_info;
 
 /* Structure for variable table */
