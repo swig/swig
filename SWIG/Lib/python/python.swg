@@ -19,17 +19,23 @@
 
 /* Primitive datatypes.  These only supply a parse code to PyTuple_ParseArgs */
 
-%typemap(in,parse="i") int, unsigned int "";
-%typemap(in,parse="h") short, unsigned short "";
-%typemap(in,parse="l") long, unsigned long "";
-%typemap(in,parse="b") signed char, unsigned char "";
+%typemap(in,parse="i") int "";
+%typemap(in,parse="h") short "";
+%typemap(in,parse="l") long "";
+%typemap(in,parse="b") signed char "";
+%typemap(in) unsigned int, unsigned short, unsigned long, unsigned char 
+	"$1 = ($1_ltype) PyInt_AsLong($input);
+         if (PyErr_Occurred()) return NULL;";
+
 %typemap(in,parse="f") float "";
 %typemap(in,parse="d") double "";
 %typemap(in,parse="c") char "";
 %typemap(in,parse="s") char * "";
 
+
 /* Boolean values.  Have to convert from a long since */
-%typemap(in) bool "$1 = (bool) PyInt_AsLong($input);";
+%typemap(in) bool "$1 = (bool) PyInt_AsLong($input);
+                   if (PyErr_Occurred()) return NULL;";
 
 /* Enum values. */
 %typemap(in,parse="i") enum SWIGTYPE "";
@@ -75,7 +81,7 @@
 %typemap(out) void "Py_INCREF(Py_None); $result = Py_None;";
 
 /* Special typemap for character array return values */
-%typemap(out) char [ANY], const char [ANY] "$target = PyString_FromString($source);";
+%typemap(out) char [ANY], const char [ANY] "$result = PyString_FromString($1);";
 
 /* Primitive types--return by value */
 %typemap(out) SWIGTYPE 
