@@ -10,13 +10,7 @@
 
 %include "exception.i"
 
-#ifdef SWIGCSHARP
-#define %genericexception %csexception
-#else
-#define %genericexception %exception
-#endif
-
-%genericexception std::deque::getitem {
+%exception std::deque::getitem {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -24,7 +18,7 @@
     }
 }
 
-%genericexception std::deque::setitem {
+%exception std::deque::setitem {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -32,15 +26,13 @@
     }
 }
 
-%genericexception std::deque::delitem  {
+%exception std::deque::delitem  {
     try {
         $action
     } catch (std::out_of_range& e) {
         SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }
-
-#undef %genericexception
 
 /* This macro defines all of the standard methods for a deque.  This
    is defined as a macro to simplify the task of specialization.  For
