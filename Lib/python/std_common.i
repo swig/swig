@@ -196,7 +196,7 @@ namespace swigpy {
     static bool asval(PyObject *obj, Type *val) {
       if (val) {
 	Type *p = 0;
-	int res = asptr(obj, &p);
+	int res = traits_asptr<Type>::asptr(obj, &p);
 	if (res && p) {
 	  typedef typename noconst_traits<Type>::noconst_type noconst_type;
 	  *(const_cast<noconst_type*>(val)) = *p;
@@ -206,7 +206,7 @@ namespace swigpy {
 	  return false;
 	}
       } else {
-	return asptr(obj, (Type **)(0));
+	return traits_asptr<Type>::asptr(obj, (Type **)(0));
       }
     }
   };
