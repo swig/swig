@@ -294,18 +294,29 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
     if (!SWIG_this)
       SWIG_this = PyString_InternFromString("this");
     obj = PyObject_GetAttr(obj,SWIG_this);
-    if ((!obj) || !(PyString_Check(obj))) goto type_error;
+    newref = 1;
+    if (!obj) goto type_error;
+    if (!PyString_Check(obj)) {
+      Py_DECREF(obj);
+      goto type_error;
+    }
   } 
   c = PyString_AsString(obj);
   p = 0;
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
     *ptr = (void *) 0;
-    if (strcmp(c,"NULL") == 0) return 0;
+    if (strcmp(c,"NULL") == 0) {
+      if (newref) Py_DECREF(obj);
+      return 0;
+    } else {
+      if (newref) Py_DECREF(obj);
+      goto type_error;
+    }
   }
   c++;
   /* Extract hex value from pointer */
-  while (d = *c) {
+  while ((d = *c)) {
     if ((d >= '0') && (d <= '9'))
       p = (p << 4) + (d - '0');
     else if ((d >= 'a') && (d <= 'f'))
@@ -315,6 +326,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, _swig_type_info *ty, int flags) {
     c++;
   }
   *ptr = (void *) p;
+  if (newref) Py_DECREF(obj);
 #endif
 
 #ifdef SWIG_COBJECT_TYPES
