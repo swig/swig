@@ -29,6 +29,15 @@
 #endif
 #endif
 
+/* attritbute passed for some compilers to avoid unused method warnings */
+#ifndef SWIGUNUSED
+#ifdef __GNUC__
+#define SWIGUNUSED __attribute__ ((unused)) 
+#else
+#define SWIGUNUSED 
+#endif
+#endif
+
 /*
   You can use the SWIGRUNTIME and SWIGRUNTIMEINLINE macros for
   creating a static or dynamic library from the swig runtime code.
@@ -37,13 +46,11 @@
   But only do this if is strictly necessary, ie, if you have problems
   with your compiler or so.
 */
+
 #ifndef SWIGRUNTIME
-#ifdef __GNUC__
-#define SWIGRUNTIME __attribute__ ((unused)) static
-#else
-#define SWIGRUNTIME static
+#define SWIGRUNTIME static SWIGUNUSED
 #endif
-#endif
+
 #ifndef SWIGRUNTIMEINLINE
 #define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
 #endif
