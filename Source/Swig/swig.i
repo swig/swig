@@ -1,14 +1,14 @@
 /* -*- c -*- */
-/* ------------------------------------------------------------------------- 
+/* -------------------------------------------------------------------------
  * swig.i
  *
  *     Interface file for the SWIG core.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *             Dustin Mitchell (djmitche@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  *
  * $Header$
  * ------------------------------------------------------------------------- */
@@ -32,7 +32,7 @@
 }
 
 %{
-   /* ------------------------------------------------------------------------- 
+   /* -------------------------------------------------------------------------
     * An extension type for DOH objects -- we could use shadow classes,
     * but this will be lots faster, and provide a slightly cleaner interface.
     * ------------------------------------------------------------------------- */
@@ -104,7 +104,7 @@
 
 
    /* --------------------------------------------------------------------- */
-   /* sequence methods 
+   /* sequence methods
     */
 
    static int Swig_PyDOH_length(PyDOH *self) {
@@ -122,7 +122,7 @@
       return NULL;
    }
 
-   static int Swig_PyDOH_ass_item(PyDOH *self, int index, 
+   static int Swig_PyDOH_ass_item(PyDOH *self, int index,
 				  PyObject *v) {
       int result;
       if (v)
@@ -132,9 +132,9 @@
 
       /* post an exception if necessary */
       if (result == -1)
-	 PyErr_SetObject(PyExc_KeyError, 
+	 PyErr_SetObject(PyExc_KeyError,
 			 PyInt_FromLong(index));
-	 
+
       return result;
    }
 
@@ -172,9 +172,9 @@
 	 Delattr(self->doh, Swig_PyDOH_as_DOH(k));
 
       if (result == -1)
-	 PyErr_SetObject(PyExc_KeyError, 
+	 PyErr_SetObject(PyExc_KeyError,
 			 k);
-	 
+
       return result;
    }
 
@@ -184,22 +184,22 @@
       (objobjargproc)Swig_PyDOH_ass_subscript
    };
 
-   
+
    /* --------------------------------------------------------------------- */
    /* named methods
     */
 
    static PyObject *Swig_PyDOH_Copy(PyDOH *self, PyObject *args) {
       DOH * _result;
-      
-      if(!PyArg_ParseTuple(args,":Copy")) 
+
+      if(!PyArg_ParseTuple(args,":Copy"))
 	 return NULL;
       _result = (DOH *)DohCopy(self->doh);
       return Swig_PyDOH_new(_result);
    }
 
    static PyObject *Swig_PyDOH_Clear(PyDOH *self, PyObject *args) {
-      if(!PyArg_ParseTuple(args,":Clear")) 
+      if(!PyArg_ParseTuple(args,":Clear"))
 	 return NULL;
       DohClear(self->doh);
       Py_INCREF(Py_None);
@@ -209,7 +209,7 @@
    static PyObject *Swig_PyDOH_SetScope(PyDOH *self, PyObject *args) {
       int  _arg1;
 
-      if(!PyArg_ParseTuple(args,"i:SetScope",&_arg1)) 
+      if(!PyArg_ParseTuple(args,"i:SetScope",&_arg1))
 	 return NULL;
       DohSetScope(self->doh,_arg1);
       Py_INCREF(Py_None);
@@ -222,7 +222,7 @@
       DOH * _arg1;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"O:Dump",&_obj1)) 
+      if(!PyArg_ParseTuple(args,"O:Dump",&_obj1))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       _result = (int )DohDump(self->doh,_arg1);
@@ -233,7 +233,7 @@
       PyObject * _resultobj;
       DOH * _result;
 
-      if(!PyArg_ParseTuple(args,":Firstkey")) 
+      if(!PyArg_ParseTuple(args,":Firstkey"))
 	 return NULL;
       _result = (DOH *)DohFirstkey(self->doh);
       _resultobj = Swig_PyDOH_new(_result);
@@ -244,7 +244,7 @@
       PyObject * _resultobj;
       DOH * _result;
 
-      if(!PyArg_ParseTuple(args,":Nextkey")) 
+      if(!PyArg_ParseTuple(args,":Nextkey"))
 	 return NULL;
       _result = (DOH *)DohNextkey(self->doh);
       _resultobj = Swig_PyDOH_new(_result);
@@ -257,7 +257,7 @@
       DOH * _arg1;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"O:GetInt",&_obj1)) 
+      if(!PyArg_ParseTuple(args,"O:GetInt",&_obj1))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       _result = (int )DohGetInt(self->doh,_arg1);
@@ -271,7 +271,7 @@
       DOH * _arg1;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"O:GetDouble",&_obj1)) 
+      if(!PyArg_ParseTuple(args,"O:GetDouble",&_obj1))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       _result = (double )DohGetDouble(self->doh,_arg1);
@@ -285,7 +285,7 @@
       DOH * _arg1;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"O:GetChar",&_obj1)) 
+      if(!PyArg_ParseTuple(args,"O:GetChar",&_obj1))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       _result = (char *)DohGetChar(self->doh,_arg1);
@@ -299,7 +299,7 @@
       int  _arg2;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"Oi:SetInt",&_obj1,&_arg2)) 
+      if(!PyArg_ParseTuple(args,"Oi:SetInt",&_obj1,&_arg2))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       DohSetInt(self->doh,_arg1,_arg2);
@@ -314,7 +314,7 @@
       double  _arg2;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"Od:SetDouble",&_obj1,&_arg2)) 
+      if(!PyArg_ParseTuple(args,"Od:SetDouble",&_obj1,&_arg2))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       DohSetDouble(self->doh,_arg1,_arg2);
@@ -330,7 +330,7 @@
       DOH * _arg2;
       PyObject * _obj2 = 0;
 
-      if(!PyArg_ParseTuple(args,"iO:Insertitem",&_arg1,&_obj2)) 
+      if(!PyArg_ParseTuple(args,"iO:Insertitem",&_arg1,&_obj2))
 	 return NULL;
       _arg2 = Swig_PyDOH_as_DOH(_obj2);
       _result = (int )DohInsertitem(self->doh,_arg1,_arg2);
@@ -342,7 +342,7 @@
       PyObject * _resultobj;
       DOH * _result;
 
-      if(!PyArg_ParseTuple(args,":Firstitem")) 
+      if(!PyArg_ParseTuple(args,":Firstitem"))
 	 return NULL;
       _result = (DOH *)DohFirstitem(self->doh);
       _resultobj = Swig_PyDOH_new(_result);
@@ -353,7 +353,7 @@
       PyObject * _resultobj;
       DOH * _result;
 
-      if(!PyArg_ParseTuple(args,":Nextitem")) 
+      if(!PyArg_ParseTuple(args,":Nextitem"))
 	 return NULL;
       _result = (DOH *)DohNextitem(self->doh);
       _resultobj = Swig_PyDOH_new(_result);
@@ -366,7 +366,7 @@
       int  _arg2;
       char * _arg1 = 0;
 
-      if(!PyArg_ParseTuple(args,"si:Write",&_arg1,&_arg2)) 
+      if(!PyArg_ParseTuple(args,"si:Write",&_arg1,&_arg2))
 	 return NULL;
       _result = (int )DohWrite(self->doh,_arg1,_arg2);
       _resultobj = Py_BuildValue("i",_result);
@@ -379,7 +379,7 @@
       int  _arg2;
       char *buffer;
 
-      if(!PyArg_ParseTuple(args,"i:Read",&_arg2)) 
+      if(!PyArg_ParseTuple(args,"i:Read",&_arg2))
 	 return NULL;
       buffer = DohMalloc(_arg2);
       if (!buffer) {
@@ -398,7 +398,7 @@
       long  _arg1;
       int  _arg2;
 
-      if(!PyArg_ParseTuple(args,"li:Seek",&_arg1,&_arg2)) 
+      if(!PyArg_ParseTuple(args,"li:Seek",&_arg1,&_arg2))
 	 return NULL;
       _result = (int )DohSeek(self->doh,_arg1,_arg2);
       _resultobj = Py_BuildValue("i",_result);
@@ -409,7 +409,7 @@
       PyObject * _resultobj;
       long  _result;
 
-      if(!PyArg_ParseTuple(args,":Tell")) 
+      if(!PyArg_ParseTuple(args,":Tell"))
 	 return NULL;
       _result = (long )DohTell(self->doh);
       _resultobj = Py_BuildValue("l",_result);
@@ -420,7 +420,7 @@
       PyObject * _resultobj;
       int  _result;
 
-      if(!PyArg_ParseTuple(args,":Getc")) 
+      if(!PyArg_ParseTuple(args,":Getc"))
 	 return NULL;
       _result = (int )DohGetc(self->doh);
       if (_result > 0) {
@@ -440,7 +440,7 @@
       int  _result;
       int  _arg0;
 
-      if(!PyArg_ParseTuple(args,"i:Putc",&_arg0)) 
+      if(!PyArg_ParseTuple(args,"i:Putc",&_arg0))
 	 return NULL;
       _result = (int )DohPutc(_arg0, self->doh);
       _resultobj = Py_BuildValue("i",_result);
@@ -452,7 +452,7 @@
       int  _result;
       int  _arg0;
 
-      if(!PyArg_ParseTuple(args,"iO:Ungetc",&_arg0)) 
+      if(!PyArg_ParseTuple(args,"iO:Ungetc",&_arg0))
 	 return NULL;
       _result = (int )DohUngetc(_arg0,self->doh);
       _resultobj = Py_BuildValue("i",_result);
@@ -463,7 +463,7 @@
       PyObject * _resultobj;
       int  _result;
 
-      if(!PyArg_ParseTuple(args,":Getline")) 
+      if(!PyArg_ParseTuple(args,":Getline"))
 	 return NULL;
       _result = (int )DohGetline(self->doh);
       _resultobj = Py_BuildValue("i",_result);
@@ -474,7 +474,7 @@
       PyObject * _resultobj;
       int  _arg1;
 
-      if(!PyArg_ParseTuple(args,"i:Setline",&_arg1)) 
+      if(!PyArg_ParseTuple(args,"i:Setline",&_arg1))
 	 return NULL;
       DohSetline(self->doh,_arg1);
       Py_INCREF(Py_None);
@@ -486,7 +486,7 @@
       PyObject * _resultobj;
       DOH * _result;
 
-      if(!PyArg_ParseTuple(args,":Getfile")) 
+      if(!PyArg_ParseTuple(args,":Getfile"))
 	 return NULL;
       _result = (DOH *)DohGetfile(self->doh);
       _resultobj = Swig_PyDOH_new(_result);
@@ -498,7 +498,7 @@
       DOH * _arg1;
       PyObject * _obj1 = 0;
 
-      if(!PyArg_ParseTuple(args,"O:Setfile",&_obj1)) 
+      if(!PyArg_ParseTuple(args,"O:Setfile",&_obj1))
 	 return NULL;
       _arg1 = Swig_PyDOH_as_DOH(_obj1);
       DohSetfile(self->doh,_arg1);
@@ -539,11 +539,11 @@
 
 
    /* --------------------------------------------------------------------- */
-   /* general methods 
+   /* general methods
     */
 
    static PyObject *Swig_PyDOH_getattr(PyDOH *self, char *name) {
-      return Py_FindMethod(Swig_PyDOH_methods, 
+      return Py_FindMethod(Swig_PyDOH_methods,
 			   (PyObject *)self, name);
    }
 
@@ -573,7 +573,7 @@
       return (long)Hashval(self->doh);
    }
 
-   static char PyDOH_docstring[] = 
+   static char PyDOH_docstring[] =
       "Interface to DOH objects from Python.  DOH objects behave largely\n\
 like Python objects, although some functionality may be different.";
 
@@ -678,9 +678,9 @@ extern int SuperString_check(DOH *);
 
 %subsection "Strings"
 /* String constructor */
-extern DOH   *NewString(char *c);
+extern DOH   *NewString(const char *c);
 /* Is this a string? */
-extern int    String_check(DOH *);
+extern int    String_check(const DOH *);
 
 %subsection "Files"
 /* File constructor */
@@ -696,7 +696,7 @@ extern DOH *NewFileFromFd(int fd);
 /* List constructor */
 extern DOH  *NewList();
 /* Is this a list? */
-extern int  List_check(DOH *);
+extern int  List_check(const DOH *);
 /* Sort a list */
 extern void List_sort(DOH *);
 
@@ -704,7 +704,7 @@ extern void List_sort(DOH *);
 /* Hash table constructor */
 extern DOH   *NewHash();
 /* Is this a hash table? */
-extern int    Hash_check(DOH *);
+extern int    Hash_check(const DOH *);
 /* Get a List of the keys in a hash table */
 extern DOH   *Hash_keys(DOH *);
 
