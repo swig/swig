@@ -455,9 +455,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fprintf (stdout, "Starting language-specific parse...\n");
       fflush (stdout);
     }
+
     Node *top = Swig_cparse(cpps);
-    Swig_default_allocators(top);
     Swig_process_types(top);
+    Swig_default_allocators(top);
 
     if (dump_typedef) {
       SwigType_print_scope();
