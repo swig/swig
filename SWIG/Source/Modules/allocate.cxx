@@ -36,31 +36,44 @@ class Allocate : public Dispatcher {
   int function_is_defined_in_bases(Node *c, Node *bases) {
     int i;
     Node *b, *temp;
-    String *name, *type, *decl;
-
+    String *name, *type, *local_decl, *base_decl;
     if (!bases)
       return 0;
     
     name = Getattr(c, "name");
     type = Getattr(c, "type");
-    decl = Getattr(c, "decl");
+    local_decl = Getattr(c, "decl");
+    if (local_decl) {
+      local_decl = SwigType_typedef_resolve_all(local_decl);
+    } else {
+      return 0;
+    }
 
     /* Width first search */
     for (int i = 0; i < Len(bases); i++) {
       b = Getitem(bases,i);
       temp = firstChild (b);
       while (temp) {
-	if ( (checkAttribute(temp, "storage", "virtual")) &&
-	     (checkAttribute(temp, "name", name)) &&
-	     (checkAttribute(temp, "type", type)) &&
-	     (checkAttribute(temp, "decl", decl)) ) {
-	  Setattr(c, "Tiger: defined_in_base", "1");
-	  Setattr(c, "feature:ignore", "1");
-	  return 1;
+	base_decl = Getattr(temp, "decl");
+	if (base_decl) {
+	  base_decl = SwigType_typedef_resolve_all(base_decl);
+	  
+	  if ( (checkAttribute(temp, "storage", "virtual")) &&
+	       (checkAttribute(temp, "name", name)) &&
+	       (checkAttribute(temp, "type", type)) &&
+	       (!Strcmp(local_decl, base_decl)) ) {
+	    Setattr(c, "Tiger: defined_in_base", "1");
+	    Setattr(c, "feature:ignore", "1");
+	    Delete(base_decl);
+	    Delete(local_decl);
+	    return 1;
+	  }
+	  Delete(base_decl);
 	}
 	temp = nextSibling(temp);
       }
     }
+    Delete(local_decl);
     for (int i = 0; i < Len(bases); i++) {
       b = Getitem(bases,i);
       if (function_is_defined_in_bases(c, Getattr(b, "bases")))
