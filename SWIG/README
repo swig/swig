@@ -1,12 +1,12 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 1.3.13 (June 17, 2002)
+Version: 1.3.15 (September 9, 2002)
 
 $Header$
 
 Tagline: SWIG is a compiler that integrates C and C++ with
          languages including Perl, Python, Tcl, Guile, Mzscheme,
-         Java, Ruby, and PHP.
+         Java, Ruby, PHP, and Ocaml.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -18,22 +18,26 @@ aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
- William Fulton (wsf@fultondesigns.co.uk)               (Java)
+ William Fulton (wsf@fultondesigns.co.uk)               (Java, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
- Loic Dachary (loic@ceic.com)                           (Perl5)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
- Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
- Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
  Richard Palmer (richard@magicality.org)                (PHP)
- Luigi Ballabio (ballabio@mac.com)                      (Macintosh port)
+ Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (Macintosh, STL wrapping)
  Sam Liddicott (saml@liddicott.com)                     (PHP)
+ Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
+
+Major contributors include:
+ Shibukawa Yoshiki                                      (Japanese Translation)
+ Marcelo Matus                                          (Evil C++ testing)
+ Loic Dachary                                           (Perl5)
+ Masaki Fukushima                                       (Ruby)
+ Thien-Thi Nguyen                                       (Testing/Misc)
 
 Past contributors include:
-
-Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
-Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
-(See CHANGES for a more complete list).
+ Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
+ Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
+ (See CHANGES for a more complete list).
 
 Up-to-date SWIG related information can be found at
 
@@ -42,7 +46,11 @@ Up-to-date SWIG related information can be found at
 A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
        http://swig.cs.uchicago.edu/cgi-bin/wiki.pl
- 
+
+Information about SWIG is also available in Japanese translation at
+
+       http://swig-jp.dyndns.org
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!                      IMPORTANT                         !!!!!!!
 !!!!!!!                                                        !!!!!!!
@@ -57,6 +65,10 @@ What's New?
 ===========
 The most notable changes since SWIG1.1 include the following:
 
+   - Support for C++ overloaded functions and methods.
+
+   - Support for C++ smart pointers.
+
    - Support for C++ namespaces
 
    - Support for C++ overloaded operators.
@@ -64,30 +76,13 @@ The most notable changes since SWIG1.1 include the following:
    - Support for C++ templates including member templates,
      specialization, and partial specialization.
 
-   - Improved support for overloaded functions/methods.
-
    - Parsing support for almost all C/C++ datatypes.
 
-   - Pointers to members are now supported in the parser
-     and by the Python module.
-
-   - Improved support for pointers to functions and callbacks.
-
-   - SWIG now has a full C preprocessor with macro expansion. 
+   - A full C preprocessor with macro expansion. 
      Includes C99 variadic macro support.
 
-   - Code generation for the Tcl and Python modules has been
-     substantially improved both in terms of size and runtime
-     efficiency (Perl5 is coming along too).
-
-   - The Guile module is stable. It represents C pointers as smobs and
-     supports the Guile module system and exceptions.
-
-   - Java, Ruby, MzScheme, PHP4 modules added.
-
-   - Redesigned implementation of typemaps.  Typemaps can now be defined
-     for groups of consecutive function arguments.  This has been a long
-     requested feature that now works.
+   - Java, Ruby, MzScheme, PHP4, OCAML, Pike, and XML modules added.
+     Guile module improved.
 
    - Better code generation.   SWIG is better able to make optimizations
      in order to generate less code.
@@ -98,17 +93,13 @@ The most notable changes since SWIG1.1 include the following:
 
    - Better Windows support.
 
-Here are a few missing features:
+If you used SWIG-1.1, a number of old features are missing from SWIG-1.3.
 
    - The SWIG1.1 documentation system is gone and hasn't been
      replaced yet.  This is on the long-term to-do list.
 
    - The Tcl7.x and Perl4 modules are deprecated and no longer
      included.
-
-   - The Perl5 module is need in some repair and may not work
-     with ActivePerl.  We are looking for volunteers to help us
-     with this.
 
    - A wide variety of old SWIG command-line options and
      obscure features are gone.
@@ -122,11 +113,11 @@ Here are a few missing features:
 
 Although we are making some attempt to preserve backwards
 compatibility with interfaces written for SWIG1.1, SWIG1.3
-incorporates a number of very substantial modifications to things such
-as type handling, typemaps, and wrapper code generation.  Therefore,
-if you are making extensive use of advanced SWIG features, interfaces
-written for SWIG1.1 may not work.  We apologize for the inconvenience,
-but these changes are needed in order to fix a number of annoying
+incorporates a number of very substantial modifications to type
+handling, typemaps, and wrapper code generation.  Therefore, if you
+are making extensive use of advanced SWIG features, interfaces written
+for SWIG1.1 may not work.  We apologize for the inconvenience, but
+these changes are needed in order to fix a number of annoying
 "features" in SWIG1.1.  Hopefully the list of new features will
 provide enough incentive for you to upgrade (and that the
 modifications to your interfaces will only be minor).
@@ -153,7 +144,6 @@ To build and install SWIG, simply type the following:
 
      % ./configure
      % make
-     % make -k check	# This step is optional (see note 3 below)
      % make install
 
 By default SWIG installs itself in /usr/local.  If you need to install SWIG in
@@ -162,7 +152,6 @@ to ./configure.  For example:
 
      % ./configure --prefix=/home/yourname/projects
      % make
-     % make -k check
      % make install
 
 Note: the directory given to --prefix must be an absolute pathname.  Do *NOT* use
@@ -186,26 +175,35 @@ Notes:
     before typing 'configure'.    In addition, a full build of SWIG requires
     the use of bison.
 
-(2) 'make -k check' is a new feature that requires at least one of the target
-    languages to be installed and which performs compile/link level testing
-    of the examples.  If it fails, it may mean that you have an uninstalled
-    language module or that the file 'Examples/Makefile' has been
-    incorrectly configured.  It may also fail due to compiler issues 
-    such as broken C++ compiler.  Even if 'make -k check' fails, there is a 
-    pretty good chance SWIG still works correctly---you will just have
-    to mess around with one of the examples and some makefiles first.
+Testing
+=======
+If you want to test SWIG before installation, type the following:
 
-(3) The testing suite executed by 'make -k check' is designed to stress-test
-    many parts of the implementation including obscure corner cases. If some
-    of these tests fail or generate warning messages, there is no reason for
-    alarm---the test may be related to some new SWIG feature or a difficult bug
-    that we're trying to resolve.  Chances are that SWIG will work just fine
-    for you.  
+    % make -k check
 
-    Note: SWIG's support for C++ is sufficiently advanced that certain
-    tests may fail on older C++ compilers (for instance if your compiler
-    does not support member templates).   These errors are harmless if you 
-    don't intend to use these features in your own programs.
+'make -k check' requires at least one of the target languages to be
+installed.  If it fails, it may mean that you have an uninstalled
+language module or that the file 'Examples/Makefile' has been
+incorrectly configured.  It may also fail due to compiler issues such
+as broken C++ compiler.  Even if 'make -k check' fails, there is a
+pretty good chance SWIG still works correctly---you will just have to
+mess around with one of the examples and some makefiles to get it to work.
+
+The testing suite executed by 'make -k check' is designed to stress-test
+many parts of the implementation including obscure corner cases. If some
+of these tests fail or generate warning messages, there is no reason for
+alarm---the test may be related to some new SWIG feature or a difficult bug
+that we're trying to resolve.  Chances are that SWIG will work just fine
+for you.  
+
+Note: SWIG's support for C++ is sufficiently advanced that certain
+tests may fail on older C++ compilers (for instance if your compiler
+does not support member templates).   These errors are harmless if you 
+don't intend to use these features in your own programs.
+
+Note: The test-suite currently contains more than 170 tests.  If you
+have many different target languages installed and a slow machine, it
+might take more than an hour to run the test-suite. 
 
 Examples
 ========
@@ -215,6 +213,15 @@ the file "Example/index.html".
 
 The Examples directory now includes Visual C++ project (.dsp) files for
 building some of the examples on Windows (new in SWIG1.3.7).
+
+Known Issues
+============
+The SWIG-1.3.15 release includes a number of substantial changes to existing
+language modules.  These changes include modifications to the build environment
+and the wrapper code itself.  Certain examples may not compile or may need
+minor changes to work.
+
+Please see the CHANGES file for a detailed list of changes.
 
 Troubleshooting
 ===============
@@ -228,7 +235,7 @@ files.  If after building SWIG, you get error messages like this,
 it means that SWIG has either been incorrectly configured or
 installed.  To fix this:
 
-    1.  Make sure you remembed to do a 'make install' and that
+    1.  Make sure you remembered to do a 'make install' and that
         the installation actually worked.  Make sure you have
         write permission on the install directory.
 
@@ -265,7 +272,6 @@ has some information on SWIG internals.
 
 Participate!
 ============
-
 Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, OS-X,
 and Windows). All contributions help.

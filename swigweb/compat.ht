@@ -56,7 +56,7 @@ The following scripting languages were supported in the final SWIG 1.1 release.
 
 <ul>
 <li> Tcl 8.0 and newer versions.
-<li> Python 1.3 and newer.
+<li> Python 1.5 and newer.
 <li> Perl 5.003 or newer.
 </ul>
 

@@ -75,9 +75,16 @@ SWIG provides wrapping support for almost all of ANSI C++.
 </ul>
 
 The only major C++ feature not currently supported by SWIG is the
-wrapping of nested classes--a problem we're working on.  SWIG also
+wrapping of nested classes--a problem we're working on. SWIG also
 does not allow C++ virtual methods to be implemented in the
 target language (a subtle feature that might be useful in certain projects).
+
+<p>
+C++ users who rely on advanced template programming techniques 
+(e.g., template meta-programming) should also be aware that SWIG
+currently requires manual instantiation of all template classes.
+Therefore, if your application somehow involves the instantiation of 50000
+template classes, your mileage might vary.
 
 <h3>Preprocessing</h3>
 
