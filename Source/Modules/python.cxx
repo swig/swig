@@ -502,8 +502,17 @@ public:
   
 
   int functionHandler(Node *n) {
-    if (Getattr(n,"feature:python:callback")) {
-      Setattr(n,"feature:callback","%s_cb_ptr");
+    String *pcb = Getattr(n,"feature:python:callback");
+    if (pcb && (Strcmp(pcb,"0") == 0)) {
+      Setattr(n,"feature:python:callback","");
+      pcb = 0;
+    }
+    if (pcb) {
+      if (Strcmp(pcb,"1") == 0) {
+	Setattr(n,"feature:callback","%s_cb_ptr");
+      } else {
+	Setattr(n,"feature:callback",pcb);
+      }
       autodoc_l dlevel = autodoc_level(Getattr(n, "feature:autodoc"));
       if (dlevel != NO_AUTODOC && dlevel > TYPES_AUTODOC) {
 	Setattr(n,"feature:autodoc","1");

@@ -108,6 +108,17 @@ These methods "may be called" if needed.
 
 */
 
-%define %pythoncallback(FLAG) %feature("python:callback",#FLAG) %enddef
-%define %nopythoncallback %feature("python:callback","") %enddef
+#define %pythoncallback(x) %feature("python:callback",`x`)
+#define %nopythoncallback %feature("python:callback","")
+
+/*  Support for the old %callback directive name */
+#ifdef %callback
+#undef %callback
+#endif
+#define %callback(x) %pythoncallback(x)
+
+#ifdef %nocallback
+#undef %nocallback
+#endif
+#define %nocallback %nopythoncallback; %feature("callback","")
 
