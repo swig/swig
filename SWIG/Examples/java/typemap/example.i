@@ -52,17 +52,17 @@ void f2(char *BYTE);
   jmethodID setLengthID;
   jstring js;
 
-  $target = NULL;
-  if($source != NULL) {
+  $1 = NULL;
+  if($input != NULL) {
     /* get the String from the StringBuffer */
-    sbufClass = (*jenv)->GetObjectClass(jenv, $source);
+    sbufClass = (*jenv)->GetObjectClass(jenv, $input);
     toStringID = (*jenv)->GetMethodID(jenv, sbufClass, "toString", "()Ljava/lang/String;");
-    js = (jstring) (*jenv)->CallObjectMethod(jenv, $source, toStringID);
+    js = (jstring) (*jenv)->CallObjectMethod(jenv, $input, toStringID);
     /* convert the String to a char * */
-    $target =  (char *)(*jenv)->GetStringUTFChars(jenv, js, 0); 
+    $1 =  (char *)(*jenv)->GetStringUTFChars(jenv, js, 0); 
     /* zero the original StringBuffer, so we can replace it with the result */
     setLengthID = (*jenv)->GetMethodID(jenv, sbufClass, "setLength", "(I)V");
-    (*jenv)->CallVoidMethod(jenv, $source, setLengthID, (jint) 0);
+    (*jenv)->CallVoidMethod(jenv, $input, setLengthID, (jint) 0);
   }
 }
 
@@ -71,12 +71,12 @@ void f2(char *BYTE);
   jclass sbufClass;
   jmethodID appendStringID;
 
-  if($target != NULL) {
+  if($result != NULL) {
     /* append the result to the empty StringBuffer */
-    sbufClass = (*jenv)->GetObjectClass(jenv, $source);
+    sbufClass = (*jenv)->GetObjectClass(jenv, $1);
     appendStringID = (*jenv)->GetMethodID(jenv, sbufClass, "append", "(Ljava/lang/String;)Ljava/lang/StringBuffer;");
-    (*jenv)->CallObjectMethod(jenv, $source, appendStringID, (*jenv)->NewStringUTF(jenv, $target));
-    if($source != NULL) (*jenv)->ReleaseStringUTFChars(jenv, $source, $target);
+    (*jenv)->CallObjectMethod(jenv, $1, appendStringID, (*jenv)->NewStringUTF(jenv, $result));
+    if($1 != NULL) (*jenv)->ReleaseStringUTFChars(jenv, $1, $result);
   }  
 }
 
