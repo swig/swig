@@ -1674,7 +1674,7 @@ public:
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
-    Printf(f_directors_h, "    __DIRECTOR__%s(PyObject* self, int __disown = 1);\n", classname);
+    Printf(f_directors_h, "    __DIRECTOR__%s(PyObject* self, int __disown = 0);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }
