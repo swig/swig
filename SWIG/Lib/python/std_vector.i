@@ -163,7 +163,10 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size, const T& value=T());
+	vector(const vector<T> &);
+
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
@@ -314,7 +317,10 @@ namespace std {
             }
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size, const T& value=T());
+	vector(const vector<T> &);
+
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
@@ -458,7 +464,9 @@ namespace std {
                                 CONVERT_TO((($1_type &)$1)[i]));
         }
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int size, const T& value=T());
+	vector(const vector<T> &);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
