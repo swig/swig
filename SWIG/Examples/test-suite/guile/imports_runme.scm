@@ -6,8 +6,8 @@
 ;; The SWIG modules have "passive" Linkage, i.e., they don't generate
 ;; Guile modules (namespaces) but simply put all the bindings into the
 ;; current module.  That's enough for such a simple test.
-(dynamic-call "scm_init_import_a_module" (dynamic-link "./libimport_a.so"))
-(dynamic-call "scm_init_import_b_module" (dynamic-link "./libimport_b.so"))
+(dynamic-call "scm_init_imports_a_module" (dynamic-link "./libimports_a.so"))
+(dynamic-call "scm_init_imports_b_module" (dynamic-link "./libimports_b.so"))
 
 (define x (new-B))
 

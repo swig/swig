@@ -23,3 +23,5 @@ explicit
 nested
 pure_virtual
 static_const_member
+imports
+*.class

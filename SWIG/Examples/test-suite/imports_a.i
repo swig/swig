@@ -3,12 +3,10 @@
    1.3a5:  Type information is not properly generated if a base class
    comes from an %import-ed file. */
 
-%module import_b
+%module imports_a
 
 %{ 
-#include "import_b.h" 
+  #include "imports_a.h" 
 %} 
 
-%import "import_a.i" 
-
-%include "import_b.h"  
+%include "imports_a.h"

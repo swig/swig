@@ -1,21 +1,21 @@
 
-# This is the import runtime testcase. 
+# This is the imports runtime testcase. 
 
 if { [ string match $tcl_platform(os) Windows* ] == 1 } {
-    if [ catch { load ./import_a.dll import_a} err_msg ] {    ;# Windows
+    if [ catch { load ./imports_a.dll imports_a} err_msg ] {    ;# Windows
         puts stderr "Could not load dll:\n$err_msg"
         exit 1
     }
-    if [ catch { load ./import_b.dll import_b} err_msg ] {    ;# Windows
+    if [ catch { load ./imports_b.dll imports_b} err_msg ] {    ;# Windows
         puts stderr "Could not load dll:\n$err_msg"
         exit 1
     }
 } else {
-    if [ catch { load ./import_a.so import_a} err_msg ] {
+    if [ catch { load ./imports_a.so imports_a} err_msg ] {
         puts stderr "Could not load shared object:\n$err_msg"
         exit 1
     }
-    if [ catch { load ./import_b.so import_b} err_msg ] {
+    if [ catch { load ./imports_b.so imports_b} err_msg ] {
         puts stderr "Could not load shared object:\n$err_msg"
 	exit 1
     }

@@ -67,7 +67,7 @@ C_TEST_CASES += \
 	nested
 
 MULTI_CPP_TEST_CASES += \
-	import
+	imports
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
 		 $(C_TEST_CASES:=.ctest) \
