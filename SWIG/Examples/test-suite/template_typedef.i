@@ -123,7 +123,6 @@ namespace vfncs {
 
   %template() arith_traits<real, float >;
   %template() arith_traits<float, real >;
-  %template() arith_traits<real, real >;
   %template() arith_traits<float, float >;
 
   %template(make_Multiplies_float_float_real_real)
