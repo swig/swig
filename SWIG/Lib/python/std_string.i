@@ -44,11 +44,11 @@ namespace std {
     }
 
     %typemap(out) string {
-        $result = PyString_FromString($1.c_str());
+        $result = PyString_FromStringAndSize($1.data(),$1.size());
     }
 
     %typemap(out) const string & {
-        $result = PyString_FromString($1->c_str());
+        $result = PyString_FromStringAndSize($1->data(),$1->size());
     }
 }
 

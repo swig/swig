@@ -20,7 +20,7 @@ double SwigNumber_AsDouble(PyObject* o) {
                             : double(PyLong_AsLong(o)));
 }
 PyObject* SwigString_FromString(const std::string& s) {
-    return PyString_FromString(s.c_str());
+    return PyString_FromStringAndSize(s.data(),s.size());
 }
 std::string SwigString_AsString(PyObject* o) {
     return std::string(PyString_AsString(o));
