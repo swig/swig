@@ -2,11 +2,11 @@ import string
 from template_typedef import *
 
 #
-# float case
+# double case
 #
 
 try:
-  d = make_Identity_float()
+  d = make_Identity_double()
   a = d.this
 except:
   print d, "is not an instance"
@@ -18,7 +18,7 @@ if string.find(s, 'ArithUnaryFunction') == -1:
   raise RuntimeError
 
 try:
-  e = make_Multiplies_float_float_float_float(d, d)
+  e = make_Multiplies_double_double_double_double(d, d)
   a = e.this
 except:
   print e, "is not an instance"
@@ -31,11 +31,11 @@ if string.find(s, 'ArithUnaryFunction') == -1:
 
 
 #
-# real case
+# complex case
 #
 
 try:
-  c = make_Identity_real()
+  c = make_Identity_complex()
   a = c.this
 except:
   print c, "is not an instance"
@@ -47,7 +47,7 @@ if string.find(s, 'ArithUnaryFunction') == -1:
   raise RuntimeError
 
 try:
-  f = make_Multiplies_real_real_real_real(c, c)
+  f = make_Multiplies_complex_complex_complex_complex(c, c)
   a = f.this
 except:
   print f, "is not an instance"
@@ -63,7 +63,7 @@ if string.find(s, 'ArithUnaryFunction') == -1:
 #
 
 try:
-  g = make_Multiplies_float_float_real_real(d, c)
+  g = make_Multiplies_double_double_complex_complex(d, c)
   a = g.this
 except:
   print g, "is not an instance"
@@ -74,3 +74,15 @@ if string.find(s, 'ArithUnaryFunction') == -1:
   print g, "is not an ArithUnaryFunction"
   raise RuntimeError
 
+
+try:
+  h = make_Multiplies_complex_complex_double_double(c, d)
+  a = h.this
+except:
+  print h, "is not an instance"
+  raise RuntimeError
+
+s = string.split('%s' % g)[1]
+if string.find(s, 'ArithUnaryFunction') == -1:
+  print g, "is not an ArithUnaryFunction"
+  raise RuntimeError

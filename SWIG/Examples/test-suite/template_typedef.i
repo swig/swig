@@ -3,25 +3,23 @@
 //
 // Change this to #if 1 to test the 'test'
 //
-#if 0
+#if 1
 
-#define real double
-%{
-#define real double
+%inline %{
+  typedef float complex;
 %}
 
 #else
 
 %inline %{
-  typedef double real;
+#include <complex>
+  typedef std::complex<double> complex;
 %}
 
 #endif
 
 
 %inline %{
-
-  //  typedef double real;
 
   namespace vfncs {
 
@@ -65,41 +63,41 @@
     };
 
     template<>
-    struct arith_traits< float, float >
+    struct arith_traits< double, double >
     {
     
-      typedef float argument_type;
-      typedef float result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "float";
+      typedef double argument_type;
+      typedef double result_type;
+      static const char* const arg_type = "double";
+      static const char* const res_type = "double";
     };
 
     template<>
-    struct arith_traits< real, real >
+    struct arith_traits< complex, complex >
     {
     
-      typedef real argument_type;
-      typedef real result_type;
-      static const char* const arg_type = "real";
-      static const char* const res_type = "real";
+      typedef complex argument_type;
+      typedef complex result_type;
+      static const char* const arg_type = "complex";
+      static const char* const res_type = "complex";
     };
 
     template<>
-    struct arith_traits< real, float >
+    struct arith_traits< complex, double >
     {
-      typedef float argument_type;
-      typedef real result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "real";
+      typedef double argument_type;
+      typedef complex result_type;
+      static const char* const arg_type = "double";
+      static const char* const res_type = "complex";
     };
 
     template<>
-    struct arith_traits< float, real >
+    struct arith_traits< double, complex >
     {
-      typedef float argument_type;
-      typedef real result_type;
-      static const char* const arg_type = "float";
-      static const char* const res_type = "real";
+      typedef double argument_type;
+      typedef complex result_type;
+      static const char* const arg_type = "double";
+      static const char* const res_type = "complex";
     };
 
     template <class AF, class RF, class AG, class RG>
@@ -113,44 +111,44 @@
 	ArithUnaryFunction<typename arith_traits< AF, AG >::argument_type,
 	                   typename arith_traits< RF, RG >::result_type>();
     }
-
   }
-  
 %}
 
 namespace vfncs {  
-  %template(UnaryFunction_float_float) UnaryFunction<float, float >;  
-  %template(ArithUnaryFunction_float_float) ArithUnaryFunction<float, float >;  
-  %template() unary_func_traits<float, float >;
-  %template() arith_traits<float, float >;
-  %template(make_Identity_float) make_Identity<float >;
+  %template(UnaryFunction_double_double) UnaryFunction<double, double >;  
+  %template(ArithUnaryFunction_double_double) ArithUnaryFunction<double, double >;  
+  %template() unary_func_traits<double, double >;
+  %template() arith_traits<double, double >;
+  %template(make_Identity_double) make_Identity<double >;
 
-  %template(UnaryFunction_real_real) UnaryFunction<real, real >;  
-  %template(ArithUnaryFunction_real_real) ArithUnaryFunction<real, real >;  
+  %template(UnaryFunction_complex_complex) UnaryFunction<complex, complex >;  
+  %template(ArithUnaryFunction_complex_complex) ArithUnaryFunction<complex, complex >;  
 
-  %template() unary_func_traits<real, real >;
-  %template() arith_traits<real, real >;
-  %template(make_Identity_real) make_Identity<real >;
+  %template() unary_func_traits<complex, complex >;
+  %template() arith_traits<complex, complex >;
+  %template(make_Identity_complex) make_Identity<complex >;
 
   /* [beazley] Added this part */
-  %template() unary_func_traits<float,real>;
-  %template(UnaryFunction_float_real) UnaryFunction<float,real>;
-  %template(ArithUnaryFunction_float_real) ArithUnaryFunction<float,real>;
+  %template() unary_func_traits<double,complex>;
+  %template(UnaryFunction_double_complex) UnaryFunction<double,complex>;
+  %template(ArithUnaryFunction_double_complex) ArithUnaryFunction<double,complex>;
 
   /* */
 
-  %template() arith_traits<real, float >;
-  %template() arith_traits<float, real >;
-  %template() arith_traits<float, float >;
+  %template() arith_traits<complex, double >;
+  %template() arith_traits<double, complex >;
 
-  %template(make_Multiplies_float_float_real_real)
-    make_Multiplies<float, float, real, real>;
+  %template(make_Multiplies_double_double_complex_complex)
+    make_Multiplies<double, double, complex, complex>;
 
-  %template(make_Multiplies_float_float_float_float)
-    make_Multiplies<float, float, float, float>;
+  %template(make_Multiplies_double_double_double_double)
+    make_Multiplies<double, double, double, double>;
 
-  %template(make_Multiplies_real_real_real_real)
-    make_Multiplies<real, real, real, real>;
+  %template(make_Multiplies_complex_complex_complex_complex)
+    make_Multiplies<complex, complex, complex, complex>;
+
+  %template(make_Multiplies_complex_complex_double_double)
+    make_Multiplies<complex, complex, double, double>;
 
 }
 
