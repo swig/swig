@@ -417,7 +417,6 @@ static int NAME(TYPE x) {
  *
  ************************************************************************/
 
-%{
 /* 
    SWIG_TEMPLATE_DISAMBIGUATOR is needed when wrapping template calls
    (cwrap.c:Swig_cfunction_call/Swig_cmethod_call), as in
@@ -430,6 +429,7 @@ static int NAME(TYPE x) {
       - gcc-3.4 forbids the use of 'template'.
       - gcc-3.2.3 produces internal errors if you use 'template'
 */
+%insert("runtime") %{
 #ifndef SWIG_TEMPLATE_DISAMBIGUATOR
 #  if defined(__SUNPRO_CC) 
 #    define SWIG_TEMPLATE_DISAMBIGUATOR template
@@ -437,5 +437,5 @@ static int NAME(TYPE x) {
 #    define SWIG_TEMPLATE_DISAMBIGUATOR 
 #  endif
 #endif
-
 %}
+
