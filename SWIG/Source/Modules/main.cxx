@@ -289,7 +289,6 @@ static void SWIG_dump_runtime() {
   runtime = NewFile(outfile, "w");
   if (!runtime) {
     Printf(stderr, "*** Unable to open '%s'\n", outfile);
-    Close(runtime);
     SWIG_exit(EXIT_FAILURE);
   }
 
