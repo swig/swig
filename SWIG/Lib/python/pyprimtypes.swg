@@ -269,7 +269,7 @@ SWIGINTERNSHORT PyObject*
 SWIGINTERN int
   SWIG_AsVal(signed char)(PyObject *obj, signed char *val)
 {
-  const char* errmsg = val ? "signed char" : 0;
+  const char* errmsg = val ? "signed char" : (char*) 0;
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, SCHAR_MIN, SCHAR_MAX, errmsg)) {
@@ -294,7 +294,7 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(short)(PyObject *obj, short *val)
 { 
-  const char* errmsg = val ? "short" : 0;
+  const char* errmsg = val ? "short" : (char*)0;
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, SHRT_MIN, SHRT_MAX, errmsg)) {
@@ -322,7 +322,7 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(int)(PyObject *obj, int *val)
 { 
-  const char* errmsg = val ? "int" : 0;
+  const char* errmsg = val ? "int" : (char*)0;
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, INT_MIN,INT_MAX, errmsg)) {
@@ -355,7 +355,7 @@ SWIGINTERNSHORT int
 SWIGINTERN int
   SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
 { 
-  const char* errmsg = val ? "unsigned int" : 0;
+  const char* errmsg = val ? "unsigned int" : (char*)0;
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, INT_MAX, errmsg)) {
@@ -395,7 +395,7 @@ SWIG_define(SWIG_From(unsigned int), SWIG_From(unsigned long))
 SWIGINTERN int
   SWIG_AsVal(unsigned char)(PyObject *obj, unsigned char *val)
 { 
-  const char* errmsg = val ? "unsigned char" : 0;
+  const char* errmsg = val ? "unsigned char" : (char*)0;
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, UCHAR_MAX,errmsg)) {
@@ -420,7 +420,7 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(unsigned short)(PyObject *obj, unsigned short *val)
 { 
-  const char* errmsg = val ? "unsigned short" : 0;
+  const char* errmsg = val ? "unsigned short" : (char*)0;
   unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj, &v)) {
     if (SWIG_CheckUnsignedLongInRange(v, USHRT_MAX, errmsg)) {
@@ -471,7 +471,7 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(float)(PyObject *obj, float *val)
 {
-  const char* errmsg = val ? "float" : 0;
+  const char* errmsg = val ? "float" : (char*)0;
   double v;
   if (SWIG_AsVal(double)(obj, &v)) {
     if (SWIG_CheckDoubleInRange(v, -FLT_MAX, FLT_MAX, errmsg)) {
@@ -505,7 +505,7 @@ SWIGINTERNSHORT PyObject*
 SWIGINTERN int
   SWIG_AsVal(char)(PyObject *obj, char *val)
 {
-  const char* errmsg = val ? "char" : 0;
+  const char* errmsg = val ? "char" : (char*)0;
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, CHAR_MIN,CHAR_MAX, errmsg)) {
@@ -537,7 +537,7 @@ SWIGINTERNSHORT PyObject*
 SWIGINTERN int
   SWIG_AsVal(wchar_t)(PyObject *obj, wchar_t *val)
 {
-  const char* errmsg = val ? "wchar_t" : 0;
+  const char* errmsg = val ? "wchar_t" : (char*)0;
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, WCHAR_MIN, WCHAR_MAX, errmsg)) {

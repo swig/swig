@@ -18,7 +18,7 @@ extern "C" {
 
 typedef struct swig_globalvar {   
   char       *name;                  /* Name of global variable */
-  PyObject *(*get_attr)(void);       /* Return the current value */
+  PyObject *(*get_attr)();           /* Return the current value */
   int       (*set_attr)(PyObject *); /* Set the value */
   struct swig_globalvar *next;
 } swig_globalvar;
