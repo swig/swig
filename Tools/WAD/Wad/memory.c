@@ -23,6 +23,7 @@ typedef struct _WadMemory {
 } WadMemory;
 
 static WadMemory *current = 0;                /* Current memory block        */
+static WadMemory *persistent = 0;             /* Persistent memory data      */
 static int        pagesize = 0;               /* System page size            */
 static int        devzero = 0;
 
@@ -92,6 +93,7 @@ void *wad_malloc(int nbytes) {
       /* Yep. Found a region */
       break;
     }
+    wm = wm->next;
   }
   if (!wm) {
     wad_printf("wad_malloc: new page\n", nbytes);
@@ -108,6 +110,24 @@ void *wad_malloc(int nbytes) {
 }  
 
 /* -----------------------------------------------------------------------------
+ * wad_pmalloc()
+ *
+ * Persistent memory allocation.   Allocates memory that will never be reclaimed.
+ * This is only really used to store information pertaining to object files.
+ * ----------------------------------------------------------------------------- */
+
+void *wad_pmalloc(int nbytes) {
+  void *ptr;
+  WadMemory *tmp;
+  tmp = current;
+  current = persistent;
+  ptr = wad_malloc(nbytes);
+  persistent = current;
+  current = tmp;
+  return ptr;
+}
+
+/* -----------------------------------------------------------------------------
  * wad_release_memory()
  *
  * Releases all memory previously allocated by wad_malloc()
@@ -119,7 +139,7 @@ void wad_release_memory() {
   wm = current;
   while (wm) {
     next = wm->next;
-    munmap(wm, wm->npages*pagesize);
+    munmap((char *) wm, wm->npages*pagesize);
     wm = next;
   }
   current = 0;
@@ -135,6 +155,14 @@ char *wad_strdup(const char *c) {
   char *t;
   if (!c) c = "";
   t = (char *) wad_malloc(strlen(c)+1);
+  strcpy(t,c);
+  return t;
+}
+
+char *wad_pstrdup(const char *c) {
+  char *t;
+  if (!c) c = "";
+  t = (char *) wad_pmalloc(strlen(c)+1);
   strcpy(t,c);
   return t;
 }

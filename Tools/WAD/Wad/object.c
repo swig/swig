@@ -4,6 +4,14 @@
  *     This file provides access to raw object files, executables, and
  *     library files.  Memory management is handled through mmap() to
  *     avoid the use of heap/stack space.
+ *
+ *     All of the files and objects created by this module persist
+ *     until the process exits.  Since WAD may be invoked multiple times
+ *     over the course of program execution, it makes little sense to keep
+ *     loading and unloading files---subsequent invocations of the handler
+ *     can simply used previously loaded copies.  Caveat: things probably
+ *     won't work right if a program is doing lots of low-level manipulation
+ *     of the dynamic loader.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -46,8 +54,8 @@ load_file(const char *path) {
     return 0;       /* Doesn't exist. Oh well */
   }
   if (wad_debug_mode & DEBUG_FILE) wad_printf("loaded.\n");
-  wf = (WadFile *) wad_malloc(sizeof(WadFile));
-  wf->path = wad_strdup(path);
+  wf = (WadFile *) wad_pmalloc(sizeof(WadFile));
+  wf->path = wad_pstrdup(path);
 
   /* Get file length */
   wf->size = lseek(fd,0,SEEK_END);
@@ -65,14 +73,13 @@ load_file(const char *path) {
   return wf;
 }
 
-
-
 static WadObjectFile *wad_objects = 0;              /* Linked list of object files */
 
 /* -----------------------------------------------------------------------------
  * wad_object_cleanup()
  *
- * Reset the object file loader 
+ * Reset the object file loader.  This unmaps the files themselves, but
+ * memory will leak for object files pointers themselves. 
  * ----------------------------------------------------------------------------- */
 
 void
@@ -98,7 +105,7 @@ wad_object_reset() {
  * wad_object_load()
  * 
  * Load an object file into memory using mmap.   Returns 0 if the object does
- * not exist or if there are no more object descriptor slots
+ * not exist or if we're out of memory.
  * ----------------------------------------------------------------------------- */
 
 WadObjectFile *
@@ -135,7 +142,7 @@ wad_object_load(const char *path) {
       wo = wad_arobject_load(realfile,objfile);
       if (wo) {
 	/* Reset the path */
-	wo->path = wad_strdup(path);
+	wo->path = wad_pstrdup(path);
 	return wo;
       }
     }
@@ -143,9 +150,8 @@ wad_object_load(const char *path) {
   wf = load_file(path);
   if (!wf) return 0;
 
-  wo = (WadObjectFile *) wad_malloc(sizeof(WadObjectFile));
-  wo->file = wf;
-  wo->path = wad_strdup(path);
+  wo = (WadObjectFile *) wad_pmalloc(sizeof(WadObjectFile));
+  wo->path = wad_pstrdup(path);
   wo->ptr = wf->addr;
   wo->len = wf->size;
   return wo;
@@ -154,7 +160,9 @@ wad_object_load(const char *path) {
 /* -----------------------------------------------------------------------------
  * wad_arobject_load()
  * 
- * Load an archive file object into memory using mmap.
+ * Load an object file stored in an archive file created with an archive.  The
+ * pathname should be the path of the .a file and robjname should be the name
+ * of the object file stored in the object file.
  * ----------------------------------------------------------------------------- */
 
 WadObjectFile *
@@ -227,8 +235,7 @@ wad_arobject_load(const char *arpath, const char *robjname) {
     /* Compare the names */
     if (strncmp(mname,objname,sobjname) == 0) {
       /* Found the archive */
-      wo = (WadObjectFile *) wad_malloc(sizeof(WadObjectFile));
-      wo->file = wf;
+      wo = (WadObjectFile *) wad_pmalloc(sizeof(WadObjectFile));
       wo->ptr = (void *) (arptr + offset);
       wo->len = msize;
       wo->path = 0;

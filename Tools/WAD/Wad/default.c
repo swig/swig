@@ -21,25 +21,20 @@
 char *wad_arg_string(WadFrame *frame) {
   static char str[1024];
   static char temp[64];
-  WadParm *wp;
+  WadLocal *wp;
   long    *stack;
   long    *nextstack;
   int     i;
   WadFrame *nf;
 
-  if (frame->size) {
-    nf = (WadFrame *) (((char *) frame) + frame->size);
-    if (nf->size == 0) nf = 0;
-  } else {
-    nf = 0;
-  }
+  nf = frame->next;
   if (nf) 
-    nextstack = STACK(nf);
+    nextstack = (long *) nf->psp;
   else
     nextstack = 0;
 
   str[0] = 0;
-  stack = STACK(frame);
+  stack = (long *) frame->psp;
 
 #ifdef WAD_LINUX
   if (!nf) {
@@ -62,15 +57,15 @@ char *wad_arg_string(WadFrame *frame) {
 #endif
   } else {
     /* We were able to get some argument information out the debugging table */
-    wp = ARGUMENTS(frame);
-    for (i = 0; i < frame->nargs; i++, wp++) {
+    wp = frame->args;
+    for (i = 0; i < frame->nargs; i++, wp = wp->next) {
       strcat(str,wp->name);
       strcat(str,"=");
 
       /* Try to figure out where the value is */
       if ((wp->loc == PARM_STACK) && nf) {
 	/* Parameter is located on the call stack */
-	unsigned long argloc = wp->value;    /* Location relative to frame pointer */
+	unsigned long argloc = wp->position;    /* Location relative to frame pointer */
 	if ((argloc & 0x3) == 0) {
 	  if (argloc >= 0) {
 	    /* Is word aligned, make some kind of attempt to print this out */
@@ -85,18 +80,19 @@ char *wad_arg_string(WadFrame *frame) {
 	}
       } else if (wp->loc == PARM_REGISTER) {
 #ifdef WAD_SOLARIS
-	if ((wp->value >= 24) && (wp->value < 32)) {
+	if ((wp->position >= 24) && (wp->position < 32)) {
 	  /* Value is located in the %in registers */
-	  sprintf(temp,"0x%x", stack[wp->value - 16]);
+	  sprintf(temp,"0x%x", stack[wp->position - 16]);
 	  strcat(str,temp);
-	} else if ((wp->value >= 8) && (wp->value < 16)) {
+	} else if ((wp->position >= 8) && (wp->position < 16)) {
 	  /* Value is located in the %on registers */
-	  sprintf(temp,"0x%x", frame->regs[wp->value]);
-	  strcat(str,temp);
-	} else if ((wp->value >= 16) && (wp->value < 24)) {
+	  /*	  sprintf(temp,"0x%x", frame->regs[wp->value]);
+		  strcat(str,temp); */
+	} else if ((wp->position >= 16) && (wp->position < 24)) {
 	  /* Value has been placed in the %ln registers */
+	  /*
 	  sprintf(temp,"0x%x", frame->regs[wp->value - 16]);
-	  strcat(str,temp);
+	  strcat(str,temp); */
 	}
 #endif
 #ifdef WAD_LINUX
@@ -202,24 +198,24 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
 
   /* Find the last exception frame */
 
-  while (!f->last) {
-    fd = fd + f->size;
-    f = (WadFrame *) fd;
+  while (f && !f->last) {
+    f = f->next;
   }
 
   /* Now work backwards */
-  fd = fd - f->lastsize;
-  f = (WadFrame *) fd;
-  while (1) {
-    fprintf(stderr,"#%-3d 0x%08x in %s(%s)", f->frameno, f->pc, *(fd + f->sym_off) ? fd+f->sym_off : "?", 
+  if (f) {
+    f = f->prev;
+  }
+  while (f) {
+    fprintf(stderr,"#%-3d 0x%08x in %s(%s)", f->frameno, f->pc, f->symbol ? f->symbol : "?", 
 	   wad_arg_string(f));
-    if (strlen(fd+f->src_off)) {
-      fprintf(stderr," in '%s'", wad_strip_dir(fd+f->src_off));
+    if (f->srcfile && strlen(f->srcfile)) {
+      fprintf(stderr," in '%s'", wad_strip_dir(f->srcfile));
       if (f->line_number > 0) {
 	fprintf(stderr,", line %d", f->line_number);
 	{
 	  int fd;
-	  fd = open(SRCFILE(f), O_RDONLY);
+	  fd = open(f->srcfile, O_RDONLY);
 	  if (fd > 0) {
 	    fline = f;
 	  } 
@@ -227,14 +223,12 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
 	}
       }
     } else {
-      if (strlen(fd+f->obj_off)) {
-	fprintf(stderr," from '%s'", fd+f->obj_off);
+      if (f->objfile && strlen(f->objfile)) {
+	fprintf(stderr," from '%s'", f->objfile);
       }
     }
     fprintf(stderr,"\n");
-    if (!f->lastsize) break;
-    fd = fd - f->lastsize;
-    f = (WadFrame *) fd;
+    f = f->prev;
   }
 
   if (fline) {
@@ -246,9 +240,9 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
     last  = fline->line_number + 2;
     if (first < 1) first = 1;
     
-    line = wad_load_source(SRCFILE(fline),first);
+    line = wad_load_source(fline->srcfile,first);
     if (line) {
-      fprintf(stderr,"\n%s, line %d\n\n", SRCFILE(fline),fline->line_number);
+      fprintf(stderr,"\n%s, line %d\n\n", fline->srcfile,fline->line_number);
       for (i = first; i <= last; i++) {
 	if (i == fline->line_number) fprintf(stderr," => ");
 	else                         fprintf(stderr,"    ");

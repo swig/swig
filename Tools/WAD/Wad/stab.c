@@ -12,9 +12,7 @@
 
 #include "wad.h"
 
-
 /* stabs data structure.   This appears to be somewhat universal. */
-
 typedef struct Stab {
   unsigned        n_strx;         /* index into file string table */
   unsigned char   n_type;         /* type flag (N_TEXT,..)  */
@@ -23,16 +21,42 @@ typedef struct Stab {
   unsigned        n_value;        /* value of symbol (or sdb offset) */ 
 } Stab;
 
-/* Match a stabs symbol name against a stab string (which may contain 
-   extra information delimetered by a colon */
+/* stabs data types used by this module */
 
-int match_stab_symbol(char *symbol, char *stabtext, int slen) {
-  /*  wad_printf("matching: %s -> %s\n", symbol, stabtext); */
+#define N_UNDF      0x0           /* undefined         */
+#define N_FUN       0x24          /* function          */
+#define N_OBJ       0x38          /* object file path  */
+#define N_RSYM      0x40          /* Register symbol   */
+#define N_SLINE     0x44          /* Source line       */
+#define N_SO        0x64          /* Source file name  */
+#define N_PSYM      0xa0          /* Parameter         */
+
+/* -----------------------------------------------------------------------------
+ * match_stab_symbol()
+ *
+ * Match a stabs symbol name against a stab string.  The stab string may contain
+ * extra information delimited by a colon which is not used in the comparsion.
+ * Returns 1 on match, 0 on mismatch.
+ * ----------------------------------------------------------------------------- */
+
+static int
+match_stab_symbol(char *symbol, char *stabtext, int slen) {
   if (strcmp(symbol,stabtext) == 0) {
     return 1;
   }
   if ((strncmp(symbol, stabtext, slen) == 0) && (*(stabtext+slen) == ':')) return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * scan_function()
+ *
+ * Collect stabs data for a function definition.
+ * ----------------------------------------------------------------------------- */
+
+static void
+scan_function(Stab *s, int ns, WadDebug *debug) {
+
 }
 
 /* Given a stabs data segment (obtained somehow), this function tries to
@@ -47,7 +71,6 @@ int match_stab_symbol(char *symbol, char *stabtext, int slen) {
 
    Note: If a symbol corresponds to a local symbol, it's entirely possible
    that the only stabs data we will find is a file specifier. In this case,
-   
  */
 
 int
@@ -59,6 +82,7 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
   int   i;
   char  *file, *lastfile = 0;
   int   chk = 0;
+  WadLocal *arg;
 
   s = (Stab *) sp;            /* Stabs data      */
   ns = size/sizeof(Stab);     /* number of stabs */
@@ -71,16 +95,16 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
   debug->objfile[0] = 0;
   debug->line_number = -1;
   debug->nargs = 0;
+  debug->args = 0;
+  debug->lastarg = 0;
+
   for (i = 0; i < ns; i++, s++) {
-    /*#define DEBUG_DEBUG */
     if (wad_debug_mode & DEBUG_STABS) {
-      /*      wad_printf("   %10d %10x %10d %10d %10d: '%x'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
-	      stabstr+s->n_strx); */
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
     }
-    if ((s->n_type == 0)) { /* && (s->n_desc >= 0)) { */
+    if ((s->n_type == N_UNDF)) { /* && (s->n_desc >= 0)) { */
       /* New stabs section.  We need to be a little careful here. Do a recursive 
 	 search of the subsection. */
 
@@ -100,7 +124,7 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
       debug->line_number = -1;
       debug->found = 0;
       continue;
-    } else if (s->n_type == 0x64) {
+    } else if (s->n_type == N_SO) {
       if (debug->found) return 1;    /* New file and we already found what we wanted */
       /* Source file specification */
       /* Look for directory */
@@ -116,13 +140,13 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
 	debug->found = 1;
       }
       lastfile = file;
-    } else if (s->n_type == 0x38) {
+    } else if (s->n_type == N_OBJ) {
       /* Object file specifier */
       if (debug->objfile[0]) {
 	strcat(debug->objfile,"/");
       }
       strcat(debug->objfile,stabstr+s->n_strx);
-    } else if (s->n_type == 0x24) {
+    } else if (s->n_type == N_FUN) {
       if (match_stab_symbol(wsym->name, stabstr+s->n_strx, slen)) {
 	if (!wsym->file || (strcmp(wsym->file,lastfile) == 0)) {
 	  infunc = 1;
@@ -134,13 +158,12 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
       } else {
 	infunc = 0;
       }
-    } else if (debug->found && (s->n_type == 0x44) && (infunc)) {
-
+    } else if (debug->found && (s->n_type == N_SLINE) && (infunc)) {
       /* Line number location */
       if (s->n_value < offset) {
 	debug->line_number = s->n_desc;
       } else return 1;
-    } else if (debug->found && ((s->n_type == 0xa0) || (s->n_type == 0x40)) && (infunc)) {
+    } else if (debug->found && ((s->n_type == N_PSYM) || (s->n_type == N_RSYM)) && (infunc)) {
       /* Parameter counting */
       char *pname;
       char *c;
@@ -153,41 +176,52 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
 	len = strlen(pname);
       }
 
-      /* Check if already used */
+      /* Check if the argument was already used */
       /* In this case, the first stab simply identifies an argument.  The second
          one identifies its location for the debugger */
 
-      if (debug->nargs > 0) {
+      if (debug->args) {
 	/* Need to do some fix up for linux here */
-	int i;
-	for (i = 0; i < debug->nargs; i++) {
-	  if ((strncmp(debug->parms[i].name, pname,len) == 0) && (strlen(debug->parms[i].name) == len)) {
+	WadLocal *a = debug->args;
+	while (a) {
+	  if ((strncmp(a->name,pname,len) == 0) && (strlen(a->name) == len)) {
 	    /* We already saw this argument.  Given a choice between a register and a stack
                argument.  We will choose the stack version */
-	    if (debug->parms[i].loc == PARM_STACK) {
+	    if (a->loc == PARM_STACK) {
 	      break;
 	    }
 	    /* Go ahead and use the new argument */
 	    if (s->n_type == 0x40)
-	      debug->parms[i].loc = PARM_REGISTER;
+	      a->loc = PARM_REGISTER;
 	    else
-	      debug->parms[i].loc = PARM_STACK;
-	    debug->parms[i].value = s->n_value;
+	      a->loc = PARM_STACK;
+	    a->position = s->n_value;
 	    break;
 	  }
+	  a = a->next;
 	}
-	if (i < debug->nargs) continue;   /* We got an argument match. Just skip to next stab */
+	if (a) continue; /* We got an argument match.  Just skip to the next stab */
       }
 
-      strncpy(debug->parms[debug->nargs].name,pname,len);
-      debug->parms[debug->nargs].name[len] = 0;
+      arg = (WadLocal *) wad_malloc(sizeof(WadLocal));
+      arg->name = (char *) wad_malloc(len+1);
+      strncpy(arg->name, pname, len);
+      arg->name[len] = 0;
       if (s->n_type == 0x40)
-	debug->parms[debug->nargs].loc = PARM_REGISTER;
+	arg->loc = PARM_REGISTER;
       else
-	debug->parms[debug->nargs].loc = PARM_STACK;
+	arg->loc = PARM_STACK;
 
-      debug->parms[debug->nargs].value = s->n_value;
-      debug->parms[debug->nargs].type = 0;             /* Not used yet */
+      arg->position = s->n_value;
+      arg->type = 0;
+      arg->next = 0;
+      if (debug->args) {
+	debug->lastarg->next = arg;
+	debug->lastarg = arg;
+      } else {
+	debug->args = arg;
+	debug->lastarg = arg;
+      }
       debug->nargs++;
     }
   }
