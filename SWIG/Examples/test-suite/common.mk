@@ -165,6 +165,7 @@ CPP_TEST_CASES += \
 	template_qualifier \
 	template_rename \
 	template_retvalue \
+	template_specialization \
 	template_static \
 	template_tbase_template \
 	template_type_namespace \
