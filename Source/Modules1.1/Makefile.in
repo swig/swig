@@ -32,8 +32,8 @@ SWIG_LIB = $(prefix)/lib/swig1.3
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
-WRAPOBJS = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o debug.o
-WRAPSRCS = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx debug.cxx
+WRAPOBJS = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o ascii.o html.o
+WRAPSRCS = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx ascii.cxx html.cxx
 
 TARGET  = ../swig
 CFLAGS  = @CFLAGS@ -DSWIG_LIB='"$(SWIG_LIB)"' -DSWIG_CC='"$(CC)"' @DEFS@

@@ -62,30 +62,30 @@ void TCL8::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      prefix = new char[strlen(argv[i+1])+2];
 	      strcpy(prefix, argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-module") == 0) {
 	    if (argv[i+1]) {
 	      set_module(argv[i+1],0);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-namespace") == 0) {
 	    nspace = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-old") == 0) {
 	    shadow = 0;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-noobject") == 0) {
 	    shadow = 0;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
@@ -1271,14 +1271,14 @@ char *TCL8::usage_const(char *name, DataType *, char *value) {
 }
     
 // -------------------------------------------------------------------
-// TCL8::add_native(char *name, char *funcname)
+// TCL8::add_native(char *name, char *funcname, DataType *t, ParmList *l)
 //
 // This adds an already written Tcl wrapper function to our
 // initialization function.
 // -------------------------------------------------------------------
 
 
-void TCL8::add_native(char *name, char *funcname) {
+void TCL8::add_native(char *name, char *funcname, DataType *, ParmList *) {
 
   fprintf(f_init,"\t Tcl_CreateCommand(%s, SWIG_prefix \"%s\", %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n",interp_name, name, funcname);
   

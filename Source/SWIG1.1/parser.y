@@ -159,9 +159,6 @@ static void init_language() {
     
     int oldignore = IgnoreDoc;
     IgnoreDoc = 1;
-    if (ConfigFile) {
-      include_file(ConfigFile);
-    }
     IgnoreDoc = oldignore;
   }
   lang_init = 1;
@@ -482,12 +479,11 @@ static void dump_nested(char *parent) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE DEFINE PERIOD
 %token CONST STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT 
-%token READONLY READWRITE NAME RENAME CHECKOUT ADDMETHODS PRAGMA 
+%token READONLY READWRITE NAME RENAME ADDMETHODS PRAGMA 
 %token CVALUE COUT
 %token ENUM ENDDEF MACRO 
 %token CLASS PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND OPERATOR THROW TEMPLATE
 %token NATIVE INLINE
-%token IFDEF IFNDEF ENDIF ELSE UNDEF IF DEFINED ELIF
 %token RAW_MODE ALPHA_MODE TEXT DOC_DISABLE DOC_ENABLE STYLE LOCALSTYLE
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR DOCONLY
 %token <ivalue> TITLE SECTION SUBSECTION SUBSUBSECTION 
@@ -511,7 +507,7 @@ static void dump_nested(char *parent) {
 %type <pl>       parms ptail;
 %type <p>        parm parm_type;
 %type <tmparm>   typemap_parm tm_list tm_tail;
-%type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method idstring;
+%type <id>       pname cpptype base_specifier access_specifier typemap_name tm_method;
 %type <type>     type opt_signed opt_unsigned strict_type;
 %type <decl>     declaration nested_decl;
 %type <ivalue>   stars;
@@ -607,15 +603,6 @@ statement      : INCLUDE STRING LBRACE {
 		 input_file = $1.filename;
 		 line_number = $1.line;
 	       }
-
-/* %checkout directive.  Like %include, but simply copies the file into the
-   current directory */
-
-                | CHECKOUT idstring {
-		 if ((checkout_file($2,$2)) == 0) {
-		   fprintf(stderr,"%s checked out from the SWIG library.\n",$2);
-		 }
-                }
 
 /* An unknown C preprocessor statement.  Just throw it away */
 
@@ -823,7 +810,7 @@ statement      : INCLUDE STRING LBRACE {
 			     input_file, line_number, $3);
 		   } else {
 		     doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
-		     lang->add_native($3,$6);
+		     lang->add_native($3,$6,0,0);
 		   }
 		 }
 	       }
@@ -839,7 +826,7 @@ statement      : INCLUDE STRING LBRACE {
 		       emit_extern_func($7.id, $6, $9, $5, f_header);
 		     }
 		     doc_entry = new DocDecl($3,doc_stack[doc_stack_top]);
-		     lang->add_native($3,$7.id);
+		     lang->add_native($3,$7.id,$6,$9);
 		   }
 		 }
 		 delete $6;
@@ -3817,11 +3804,6 @@ typemap_args    : LPAREN parms RPAREN {
                   tm_parm = 0;
                 }
                 ;
-
-idstring       : ID {$$ = $1;}
-               | STRING { $$ = $1;}
-               ;
-
 
 /* User defined directive */
 

@@ -27,9 +27,9 @@ static char cvsroot[] = "$Header$";
 #include "wrap.h"
 #include "tcl8.h"
 #include "perl5.h"
+#include "java.h"
 #include "python.h"
 #include "guile.h"
-#include "debug.h"
 #include "ascii.h"
 #include "html.h"
 #include "nodoc.h"
@@ -41,8 +41,12 @@ Target Language Options:\n\
      -tcl            - Generate Tcl wrappers.\n\
      -python         - Generate Python wrappers.\n\
      -perl5          - Generate Perl5 wrappers.\n\
-     -guile          - Generate Guile wrappers.\n\
-     -debug          - Parser debugging module.\n";
+     -java           - Generate Java wrappers.\n\
+     -guile          - Generate Guile wrappers.\n\n\
+Documentation Options\n\
+     -dascii         - ASCII documentation.\n\
+     -dhtml          - HTML documentation.\n\
+     -dnone          - No documentation.\n";
 
 #ifdef MACSWIG     
 static char *macmessage = "\
@@ -77,7 +81,7 @@ int Mac_main(int argc, char **argv) {
   Documentation *dd = new SWIG_DOC;
   extern int SWIG_main(int, char **, Language *, Documentation *);
 
-  init_args(argc,argv);
+  SWIG_init_args(argc,argv);
   
   // Get options
   for (i = 1; i < argc; i++) {
@@ -85,28 +89,39 @@ int Mac_main(int argc, char **argv) {
 	  if(strcmp(argv[i],"-tcl") == 0) {
 	      fprintf(stderr,"swig: -tcl option now implies -tcl8\n");
 	      dl = new TCL8;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-tcl8") == 0) {
 	      dl = new TCL8;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-python") == 0) {
 	      dl = new PYTHON;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-debug") == 0) {
-	      dl = new DEBUGLANG;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-guile") == 0) {
 	      dl = new GUILE;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
+	  } else if (strcmp(argv[i],"-java") == 0) {
+	      dl = new JAVA;
+	      SWIG_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dascii") == 0) {
+	      dd = new ASCII;
+	      SWIG_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dnone") == 0) {
+	      dd = new NODOC;
+	      SWIG_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dhtml") == 0) {
+	      dd = new HTML;
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  }
       }
   }
+  if (!dd) dd = new ASCII;
+
   SWIG_main(argc,argv,dl,dd);
   return 0;
 }

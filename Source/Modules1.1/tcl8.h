@@ -66,32 +66,32 @@ public :
     real_classname = 0;
     base_class = 0;
   };
-  void parse_args(int, char *argv[]);
-  void parse();
-  void create_function(char *, char *, DataType *, ParmList *);
-  void link_variable(char *, char *, DataType *);
-  void declare_const(char *, char *, DataType *, char *);
-  void initialize(void);
-  void headers(void);
-  void close(void);
-  void set_module(char *,char **);
-  void set_init(char *);
-  void add_native(char *, char *);
-  void pragma(char *,char *, char *);
-  void create_command(char *, char *);
+  virtual void parse_args(int, char *argv[]);
+  virtual void parse();
+  virtual void create_function(char *, char *, DataType *, ParmList *);
+  virtual void link_variable(char *, char *, DataType *);
+  virtual void declare_const(char *, char *, DataType *, char *);
+  virtual void initialize(void);
+  virtual void headers(void);
+  virtual void close(void);
+  virtual void set_module(char *,char **);
+  virtual void set_init(char *);
+  virtual void add_native(char *, char *, DataType *, ParmList *);
+  virtual void pragma(char *,char *, char *);
+  virtual void create_command(char *, char *);
 
   // Stubs for processing C++ classes in Tcl
 
-  void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
-  void cpp_close_class();
-  void cpp_member_func(char *name, char *iname, DataType *t, ParmList *l);
-  void cpp_variable(char *name, char *iname, DataType *t);
-  void cpp_constructor(char *name, char *iname, ParmList *l);
-  void cpp_destructor(char *name, char *newname);
-  void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
-  void cpp_declare_const(char *name, char *iname, DataType *type, char *value);
-  void add_typedef(DataType *, char *);
-  void cpp_class_decl(char *, char *, char *);
+  virtual void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
+  virtual void cpp_close_class();
+  virtual void cpp_member_func(char *name, char *iname, DataType *t, ParmList *l);
+  virtual void cpp_variable(char *name, char *iname, DataType *t);
+  virtual void cpp_constructor(char *name, char *iname, ParmList *l);
+  virtual void cpp_destructor(char *name, char *newname);
+  virtual void cpp_inherit(char **baseclass, int mode = INHERIT_ALL);
+  virtual void cpp_declare_const(char *name, char *iname, DataType *type, char *value);
+  virtual void add_typedef(DataType *, char *);
+  virtual void cpp_class_decl(char *, char *, char *);
 
 };
 

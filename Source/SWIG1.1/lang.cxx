@@ -51,16 +51,15 @@ void Language::create_command(char *, char *) {
 }
 
 // -----------------------------------------------------------------
-// void Language::add_native(char *targetlang, char *funcname)
+// void Language::add_native(char *name, char *iname, DataType *t, ParmList *l)
 //
-// Method for adding a native function
-// ----------------------------------------------------------------- 
+// Method for adding a native function with full argument info
+// default is to call the old-style add_native method
+// -----------------------------------------------------------------
 
 void
-Language::add_native(char *, char *funcname) {
-
-  fprintf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
-
+Language::add_native(char *, char *iname, DataType *, ParmList *) {
+  fprintf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
 }
 
 static char  *ClassName = 0;        // This is the real name of the current class
