@@ -2012,9 +2012,9 @@ public:
       if (argc > 0) {
         Wrapper_add_localv(w, "i", "int", "i", NIL);
         Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
-        Printf(w->code, "for (i = 0; i < %d; i++) {\n", argc);
-        Printv(w->code, "args.argv[i] = Qnil;\n", NIL);
-        Printv(w->code, "}\n", NIL);
+        for (int i = 0; i < argc; i++) {
+          Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
+        } 
       } else {
         Printv(w->code, "args.argv = 0;\n", NIL);
       }
@@ -2369,11 +2369,13 @@ public:
 
     /* any existing helper functions to handle this? */
     if (!is_void) {
+      String* rettype = SwigType_str(return_type, 0);      
       if (!SwigType_isreference(return_type)) {
-        Printf(w->code, "return c_result;\n");
+	Printf(w->code, "return (%s) c_result;\n", rettype);
       } else {
-        Printf(w->code, "return *c_result;\n");
+	Printf(w->code, "return (%s) *c_result;\n", rettype);
       }
+      Delete(rettype);
     }
 
     Printf(w->code, "}\n");
