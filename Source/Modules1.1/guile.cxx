@@ -553,7 +553,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   // Now have return value, figure out what to do with it.
 
   if (d->type == T_VOID)
-    f.code << tab4 << "gswig_result = GH_NOT_PASSED;\n";
+    f.code << tab4 << "gswig_result = GH_UNSPECIFIED;\n";
   else if ((tm = typemap_lookup ("out", typemap_lang,
                                  d, name, "_result", "gswig_result", &f))) {
     f.code << tm << "\n";
