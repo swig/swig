@@ -246,13 +246,13 @@ clean-gifplot:
 
 clean-test-suite:
 	@echo cleaning Examples/test-suite
-	@$(MAKE) -k -s all-test-suite ACTION=clean
+	@$(MAKE) -k -s check-test-suite ACTION=clean
 
 clean-%-examples:
 	@$(MAKE) -k -s check-$*-examples ACTION=clean
 
 clean-%-test-suite:
-	@$(MAKE) -k -s all-$*-test-suite ACTION=clean
+	@$(MAKE) -k -s check-$*-test-suite ACTION=clean
 
 clean-%-gifplot:
 	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
