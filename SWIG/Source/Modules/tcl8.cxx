@@ -763,6 +763,7 @@ public:
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
       Iterator b;
+      int index = 0;
       b = First(baselist);
       while (b.item) {
 	String *bname = Getattr(b.item, "name");
@@ -776,9 +777,15 @@ public:
           Printv( base_class_init , "    ", bname, "Ptr::constructor $ptr\n", NIL );
         } 
 	String *bmangle = Swig_name_mangle(bname);
-	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
-	Printf(base_class,"&_wrap_class_%s",bmangle);
+	//	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
+	//	Printf(base_class,"&_wrap_class_%s",bmangle);
+	Printf(base_class,"0");
+	/* Put code to register base classes in init function */
+	
+	Printf(f_init,"/* Register base : %s */\n", bmangle);
+	Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
 	b = Next(b);
+	index++;
 	Putc(',',base_class);
 	Delete(bmangle);
       }
