@@ -95,4 +95,63 @@ void MemoryLeakCheck() {
 }
 %}
 
-// test csconstruct  and all the csout typemaps
+// test exception pending in the csconstruct typemap
+%inline %{
+struct constructor {
+  constructor(std::string s) {}
+  constructor() throw(int) { throw 10; }
+};
+%}
+
+// test exception pending in the csout typemaps
+%typemap(out, canthrow=1) unsigned short ushorttest %{
+  $result = $1;
+  if ($result == 100) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException, "don't like 100");
+    return $null;
+  }
+%}
+%inline %{
+unsigned short ushorttest() { return 100; }
+%}
+
+// test exception pending in the csvarout/csvarin typemaps and canthrow attribute in unmanaged code typemaps
+%typemap(check, canthrow=1) int numberin, int InOutStruct::staticnumberin %{
+  if ($1 < 0) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException, "too small");
+    return $null;
+  }
+%}
+%typemap(out, canthrow=1) int numberout, int InOutStruct::staticnumberout %{
+  $result = $1;
+  if ($result > 10) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException, "too big");
+    return $null;
+  }
+%}
+%inline %{
+  int numberin;
+  int numberout;
+  struct InOutStruct {
+    int numberin;
+    int numberout;
+    static int staticnumberin;
+    static int staticnumberout;
+  };
+  int InOutStruct::staticnumberin;
+  int InOutStruct::staticnumberout;
+%}
+
+// test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
+%typemap(check, canthrow=1) int macrotest %{
+  if ($1 < 0) {
+    SWIG_exception(SWIG_IndexError, "testing SWIG_exception macro");
+    return $null;
+  }
+%}
+%inline %{
+  bool exception_macro_run_flag = false;
+  void exceptionmacrotest(int macrotest) {
+    exception_macro_run_flag = true;
+  }
+%}
