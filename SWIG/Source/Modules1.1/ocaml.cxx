@@ -1651,7 +1651,7 @@ class OCAML : public Language {
 		    "(%s_to_int f)\n"
 		    "let bits_%s _v_ f_list = "
 		    "List.filter (fun f -> check_%s_bit f _v_) f_list\n",
-		    mlname, mlname,
+		    name, mlname,
 		    mlname, mlname,
 		    mlname,
 		    mlname,
