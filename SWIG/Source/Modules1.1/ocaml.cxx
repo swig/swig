@@ -1574,15 +1574,14 @@ class OCAML : public Language {
     }
 
     int enumDeclaration(Node *n) {
-	String *name = 0;
+	String *name = Getattr(n,"name");
+	String *mlname = get_ml_method_name(n);
 	String *type = NewString("enum ");
 	String *type_str;
 
-	if( !Getattr(n,"name") ) return SWIG_OK;
+	if( !name ) return SWIG_OK;
 
-	name = get_ml_method_name(n);
-
-	Printf(type,"%s",name);
+	Printf(type,"%s",get_method_name(n));
 	type_str = mangle_type(type);
 
 	/* Produce the enum_to_int and int_to_enum functions */
@@ -1601,8 +1600,8 @@ class OCAML : public Language {
 	if( !mliout ) {
 	    Printf(f_pvariant_to_int,
 		   "let %s_to_int _v_ =\nmatch _v_ with\n"
-		   "`int x -> x\n",name);
-	    Printf(f_pvariant_from_int,"let int_to_%s _v_ =\n",name);
+		   "`int x -> x\n",mlname);
+	    Printf(f_pvariant_from_int,"let int_to_%s _v_ =\n",mlname);
 	}
 	
 	Printf(f_pvariant_def,"type %s =\n[ `int of int\n",type_str);
@@ -1623,20 +1622,20 @@ class OCAML : public Language {
 		    "(%s_to_int f)\n"
 		    "let bits_%s _v_ f_list = "
 		    "List.filter (fun f -> check_%s_bit f _v_) f_list\n",
-		    name, name,
-		    name, name,
-		    name,
-		    name,
-		    name, name,
-		    name,
-		    name,
-		    name );
+		    mlname, mlname,
+		    mlname, mlname,
+		    mlname,
+		    mlname,
+		    mlname, mlname,
+		    mlname,
+		    mlname,
+		    mlname );
 	    
 	    Printf( f_pvariant_from_int,
 		    "`int _v_\n"
 		    "let _ = Callback.register \"int_to_%s\" "
 		    "int_to_%s\n",
-		    name, name);
+		    name, mlname);
 	} else {
 	    Printf( f_pvariant_to_int,
 		    "val %s_to_int : %s -> int\n"
@@ -1644,11 +1643,11 @@ class OCAML : public Language {
 		    "val %s_bits : %s list -> %s\n"
 		    "val check_%s_bit : %s -> %s -> bool\n"
 		    "val bits_%s : %s -> %s list -> %s list\n",
-		    name, type_str,
-		    name, type_str, 
-		    name, type_str, type_str,
-		    name, type_str, type_str,
-		    name, type_str, type_str, type_str );
+		    mlname, type_str,
+		    mlname, type_str, 
+		    mlname, type_str, type_str,
+		    mlname, type_str, type_str,
+		    mlname, type_str, type_str, type_str );
 	}
 
 	return SWIG_OK;
