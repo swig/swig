@@ -90,7 +90,7 @@ static char cvsroot[] = "$Header$";
 
 static String pragma_include;
 
-static char *usage = "\
+static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -module name    - Set module name\n\
      -package name   - Set package prefix\n\
@@ -191,7 +191,7 @@ PERL5::parse_args(int argc, char *argv[]) {
 
   // Set name of typemaps
 
-  typemap_lang = "perl5";
+  typemap_lang = (char*)"perl5";
 
 }
 
@@ -654,7 +654,7 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
 // ----------------------------------------------------------------------
 
 void PERL5::create_command(char *cname, char *iname) {
-  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, name_wrapper(cname,""));
+  fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package, iname, name_wrapper(cname,(char*)""));
   if (export_all) {
     exported << iname << " ";
   }
@@ -683,7 +683,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Make a wrapper name for this
 
-  wname = name_wrapper(iname,"");
+  wname = name_wrapper(iname,(char*)"");
   
   // Now write the wrapper function itself....this is pretty ugly
 
@@ -693,7 +693,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   pcount = emit_args(d, l, f);
   numopt = l->numopt();
 
-  f.add_local("int","argvi = 0");
+  f.add_local((char*)"int",(char*)"argvi = 0");
 
   // Check the number of arguments
 
@@ -724,7 +724,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	f.code << tab4 << "if (items > " << j << ") {\n";
 
       // See if there is a type-map
-      if ((tm = typemap_lookup("in","perl5",p->t,p->name,source,target,&f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"perl5",p->t,p->name,source,target,&f))) {
 	f.code << tm << "\n";
 	f.code.replace("$argnum",argnum);
 	f.code.replace("$arg",source);
@@ -800,7 +800,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // typed pointer.
 	    
 	    sprintf(temp,"argument %d", i+1);
-	    get_pointer(iname,temp,source,target, p->t, f.code, "XSRETURN(1)");
+	    get_pointer(iname,temp,source,target, p->t, f.code, (char*)"XSRETURN(1)");
 	  }
 	}
       }
@@ -815,25 +815,25 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
     // Check to see if there is any sort of "build" typemap (highly complicated)
 
-    if ((tm = typemap_lookup("build","perl5",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"build",(char*)"perl5",p->t,p->name,source,target))) {
       build << tm << "\n";
       have_build = 1;
     }
 
     // Check if there is any constraint code
-    if ((tm = typemap_lookup("check","perl5",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"perl5",p->t,p->name,source,target))) {
       f.code << tm << "\n";
       f.code.replace("$argnum",argnum);
     }
     need_save = 0;
 
-    if ((tm = typemap_lookup("freearg","perl5",p->t,p->name,target,temp))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"perl5",p->t,p->name,target,temp))) {
       cleanup << tm << "\n";
       cleanup.replace("$argnum",argnum);
       cleanup.replace("$arg",temp);
       need_save = 1;
     }
-    if ((tm = typemap_lookup("argout","perl5",p->t,p->name,target,"ST(argvi)"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"perl5",p->t,p->name,target,(char*)"ST(argvi)"))) {
       String tempstr;
       tempstr = tm;
       tempstr.replace("$argnum",argnum);
@@ -855,7 +855,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   if (num_saved) {
     sprintf(temp,"_saved[%d]",num_saved);
-    f.add_local("SV *",temp);
+    f.add_local((char*)"SV *",temp);
   }
 
   // If there was a "build" typemap, we need to go in and perform a serious hack
@@ -885,7 +885,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   emit_func_call(name,d,l,f);
 
   // See if there was a typemap
-  if ((tm = typemap_lookup("out","perl5",d,iname,"_result","ST(argvi)"))) {
+  if ((tm = typemap_lookup((char*)"out",(char*)"perl5",d,iname,(char*)"_result",(char*)"ST(argvi)"))) {
     // Yep.  Use it instead of the default
     f.code << tm << "\n";
   } else if ((d->type != T_VOID) || (d->is_pointer)) {
@@ -905,7 +905,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	f.code << tab4 << "sv_setnv(ST(argvi++), (double) _result);\n";
 	break;
       case T_CHAR :
-	f.add_local("char", "_ctemp[2]");
+	f.add_local((char*)"char", (char*)"_ctemp[2]");
 	f.code << tab4 << "_ctemp[0] = _result;\n"
 	       << tab4 << "_ctemp[1] = 0;\n"
 	       << tab4 << "sv_setpv((SV*)ST(argvi++),_ctemp);\n";
@@ -950,12 +950,12 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   f.code << cleanup;
 
   if (NewObject) {
-    if ((tm = typemap_lookup("newfree","perl5",d,iname,"_result",""))) {
+    if ((tm = typemap_lookup((char*)"newfree",(char*)"perl5",d,iname,(char*)"_result",(char*)""))) {
       f.code << tm << "\n";
     }
   }
 
-  if ((tm = typemap_lookup("ret","perl5",d,iname,"_result",""))) {
+  if ((tm = typemap_lookup((char*)"ret",(char*)"perl5",d,iname,(char*)"_result",(char*)""))) {
       // Yep.  Use it instead of the default
       f.code << tm << "\n";
   }
@@ -966,7 +966,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Add the dXSARGS last
 
-  f.add_local("dXSARGS","");
+  f.add_local((char*)"dXSARGS",(char*)"");
 
   // Substitute the cleanup code
   f.code.replace("$cleanup",cleanup);
@@ -1017,7 +1017,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	String sourceNtarget;
 	sourceNtarget << "$args[" << i << "]";
 
-	if ((tm = typemap_lookup("perl5in","perl5",p->t,"",sourceNtarget,sourceNtarget)))
+	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget)))
 	  func << tm << "\n";
 	else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
 	  if (i >= (pcount - numopt))
@@ -1042,7 +1042,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     // implicit malloc/new.   We'll mark the object like it was created
     // in Perl so we can garbage collect it.
 
-    if ((tm = typemap_lookup("perl5out","perl5",d,"",name,"sv"))) {
+    if ((tm = typemap_lookup((char*)"perl5out",(char*)"perl5",d,(char*)"",name,(char*)"sv"))) {
       func << tm << "\n"
 	   << tab4 <<"return $result;\n"
 	   << "}\n";
@@ -1119,9 +1119,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
     setf.code << tab4 << "mg = mg;\n";
 
     /* Check for a few typemaps */
-    if ((tm = typemap_lookup("varin","perl5",t,"","sv",name))) {
+    if ((tm = typemap_lookup((char*)"varin",(char*)"perl5",t,(char*)"",(char*)"sv",name))) {
       setf.code << tm << "\n";
-    } else if ((tm = typemap_lookup("in","perl5",t,"","sv",name))) {
+    } else if ((tm = typemap_lookup((char*)"in",(char*)"perl5",t,(char*)"",(char*)"sv",name))) {
       setf.code << tm << "\n";
     } else {
       if (!t->is_pointer) {
@@ -1149,8 +1149,8 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	  // Get as a pointer value
 	  
 	  t->is_pointer++;
-	  setf.add_local("void","*_temp");
-	  get_pointer(iname,"value","sv","_temp", t, setf.code, "return(1)");
+	  setf.add_local((char*)"void",(char*)"*_temp");
+	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf.code, (char*)"return(1)");
 	  setf.code << tab4 << name << " = *(" << t->print_cast() << " _temp);\n";
 	  t->is_pointer--;
 	  break;
@@ -1162,7 +1162,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       } else {
 	// Have some sort of pointer type here, Process it differently
 	if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	  setf.add_local("char","*_a");
+	  setf.add_local((char*)"char",(char*)"*_a");
 	  setf.code << tab4 << "_a = (char *) SvPV(sv,PL_na);\n";
 	  
 	  if (CPlusPlus)
@@ -1175,8 +1175,8 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	} else {
 	  // Set the value of a pointer
 	  
-	  setf.add_local("void","*_temp");
-	  get_pointer(iname,"value","sv","_temp", t, setf.code, "return(1)");
+	  setf.add_local((char*)"void",(char*)"*_temp");
+	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf.code, (char*)"return(1)");
 	  setf.code << tab4 << name << " = " << t->print_cast() << " _temp;\n";
 	}
       }
@@ -1197,9 +1197,9 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 
   // Check for a typemap
   
-  if ((tm = typemap_lookup("varout","perl5",t,"",name, "sv"))) {
+  if ((tm = typemap_lookup((char*)"varout",(char*)"perl5",t,(char*)"",name, (char*)"sv"))) {
     getf.code << tm << "\n";
-  } else  if ((tm = typemap_lookup("out","perl5",t,"",name,"sv"))) {
+  } else  if ((tm = typemap_lookup((char*)"out",(char*)"perl5",t,(char*)"",name,(char*)"sv"))) {
     setf.code << tm << "\n";
   } else {
     if (!t->is_pointer) {
@@ -1217,7 +1217,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	vinit << tab4 << "sv_setnv(sv,(double)" << name << ");\n";
 	break;
       case T_CHAR :
-	getf.add_local("char","_ptemp[2]");
+	getf.add_local((char*)"char",(char*)"_ptemp[2]");
 	getf.code << tab4 << "_ptemp[0] = " << name << ";\n"
 		  << tab4 << "_ptemp[1] = 0;\n"
 		  << tab4 << "sv_setpv((SV*) sv, _ptemp);\n";
@@ -1230,7 +1230,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	// getf.code << tab4 << "sv_setref_pv((SV*) sv,\"" << t->print_mangle()
 	//  << "\", (void *) &" << name << ");\n";
 
-	getf.add_local("SV","*rsv");
+	getf.add_local((char*)"SV",(char*)"*rsv");
 	vinit << tab4 << "sv_setref_pv(sv,\"" << t->print_mangle() << "\",(void *) &" << name << ");\n";
 	t->is_pointer--;
 	
@@ -1247,7 +1247,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       else {
 	getf.code << tab4 << "rsv = SvRV(sv);\n"
 		  << tab4 << "sv_setiv(rsv,(IV) " << name << ");\n";
-	getf.add_local("SV","*rsv");
+	getf.add_local((char*)"SV",(char*)"*rsv");
 	vinit << tab4 << "sv_setref_pv(sv,\"" << t->print_mangle() << "\",(void *) 1);\n";
 
 	//getf.code << tab4 << "sv_setref_pv((SV*) sv,\"" << t->print_mangle()
@@ -1359,7 +1359,7 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
   static  int have_char_func = 0;
   static  int have_ref_func = 0;
 
-  if ((tm = typemap_lookup("const","perl5",type,name,value,name))) {
+  if ((tm = typemap_lookup((char*)"const",(char*)"perl5",type,name,value,name))) {
     fprintf(f_init,"%s\n",tm);
   } else {
     if ((type->type == T_USER) && (!type->is_pointer)) {
@@ -1706,7 +1706,7 @@ void PERL5::cpp_close_class() {
       // Output a FETCH method.  This is actually common to all classes
       pm << "sub FETCH {\n"
 	 << tab4 << "my ($self,$field) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << name_get(name_member("${field}",class_name,AS_IS),AS_IS) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << name_get(name_member((char*)"${field}",class_name,AS_IS),AS_IS) << "\";\n"
 	 << tab4 << "my $val = &$member_func($self);\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "return undef if (!defined($val));\n"
@@ -1721,7 +1721,7 @@ void PERL5::cpp_close_class() {
       
       pm << "sub STORE {\n"
 	 << tab4 << "my ($self,$field,$newval) = @_;\n"
-	 << tab4 << "my $member_func = \"" << package << "::" << name_set(name_member("${field}",class_name,AS_IS),AS_IS) << "\";\n"
+	 << tab4 << "my $member_func = \"" << package << "::" << name_set(name_member((char*)"${field}",class_name,AS_IS),AS_IS) << "\";\n"
 	 << tab4 << "if (exists $BLESSEDMEMBERS{$field}) {\n"
 	 << tab8 << "&$member_func($self,tied(%{$newval}));\n"
 	 << tab4 << "} else {\n"
@@ -1813,7 +1813,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       String sourceNtarget;
       sourceNtarget << "$args[" << i << "]";
 
-      if ((tm = typemap_lookup("perl5in","perl5",p->t,"",sourceNtarget,sourceNtarget)))
+      if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",p->t,(char*)"",sourceNtarget,sourceNtarget)))
 	func << tm << "\n";
       // Look up the datatype name here
       else if ((Getattr(classes,p->t->name)) && (p->t->is_pointer <= 1)) {
@@ -1842,7 +1842,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   // implicit malloc/new.   We'll mark the object like it was created
   // in Perl so we can garbage collect it.
 
-  if ((tm = typemap_lookup("perl5out","perl5",t,"",name,"sv"))) {
+  if ((tm = typemap_lookup((char*)"perl5out",(char*)"perl5",t,(char*)"",name,(char*)"sv"))) {
     func << tm << "\n"
 	 << tab4 <<"return $result;\n"
 	 << "}\n";

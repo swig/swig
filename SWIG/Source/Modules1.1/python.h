@@ -61,9 +61,9 @@ protected:
 public :
   PYTHON() {
     module = (char *) 0;
-    path = "python";     // Set this to subdirectory where language
+    path = (char*)"python";     // Set this to subdirectory where language
                                   // Dependent library files will be stored
-    global_name = "cvar";
+    global_name = (char*)"cvar";
     shadow = 0;
     have_defarg = 0;
     import_file = 0;

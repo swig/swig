@@ -39,7 +39,7 @@ static char cvsroot[] = "$Header$";
 #define SWIG_LANG PYTHON
 #endif
 
-static char  *usage = "\
+static char  *usage = (char*)"\
 swig <options> filename\n\n\
 Target Language Options:\n\
      -tcl            - Generate Tcl wrappers.\n\
