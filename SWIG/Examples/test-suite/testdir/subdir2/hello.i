@@ -1,5 +1,9 @@
-#ifndef __subdir2_hello_i__
-#define __subdir2_hello_i__
+#ifndef subdir2_hello_i_
+#define subdir2_hello_i_
+
+%{
+typedef char * TypedefString;
+%}
 
 
 %inline %{
@@ -8,7 +12,12 @@
   {
   };
 
+  TypedefString importtest2(TypedefString str) {
+    strcpy(str, "white");
+    return str;
+  }
+
 %}
 
 
-#endif //__subdir2_hello_i__
+#endif //subdir2_hello_i_

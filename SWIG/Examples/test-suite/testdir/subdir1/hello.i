@@ -1,5 +1,9 @@
-#ifndef __subdir1_hello_i__
-#define __subdir1_hello_i__
+#ifndef subdir1_hello_i_
+#define subdir1_hello_i_
+
+%{
+typedef int Integer;
+%}
 
 %inline %{
 
@@ -7,9 +11,13 @@
   {  
   };
 
+  Integer importtest1(Integer i) {
+    return i + 10;
+  }
+
 %}
   
 
 
 
-#endif //__subdir1_hello_i__
+#endif //subdir1_hello_i_
