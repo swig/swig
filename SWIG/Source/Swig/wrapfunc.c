@@ -211,6 +211,7 @@ Wrapper_new_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_
   
   Replace(ndecl, name, nname, DOH_REPLACE_ID);
   Setattr(w->localh,nname,ndecl);
+  Printf(w->locals,"%s;\n", ndecl);
   ret = Char(nname);
   Delete(nname);
   Delete(ndecl);
