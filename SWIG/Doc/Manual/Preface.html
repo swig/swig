@@ -105,7 +105,6 @@ about this can be obtained at:
 
 <a name="n6"></a><H2>0.5 Prerequisites</H2>
 
-
 This manual assumes that you know how to write C/C++ programs and that you
 have at least heard of scripting languages such as 
 Tcl, Python, and Perl. A detailed knowledge of these scripting
@@ -116,6 +115,15 @@ However, you should be reasonably familiar with the use of
 compilers, linkers, and makefiles since making
 scripting language extensions is somewhat more complicated than
 writing a normal C program.
+
+<p>
+Recent SWIG releases have become significantly more capable in
+their C++ handling--especially support for advanced features like
+namespaces, overloaded operators, and templates.  Whenever possible,
+this manual tries to cover the technicalities of this interface.
+However, this isn't meant to be a tutorial on C++ programming.   For many
+of the gory details, you will almost certainly want to consult a good C++ reference.  If you don't program
+in C++, you may just want to skip those parts of the manual.
 
 <a name="n7"></a><H2>0.6 Organization of this manual</H2>
 
@@ -179,7 +187,6 @@ Perl5 implementation. Kevin Butler contributed the first Windows NT
 port.
 
 <a name="n11"></a><H2>0.10 Bug reports</H2>
-
 
 Although every attempt has been made to make SWIG bug-free, we are also trying
 to make feature improvements that may introduce bugs.

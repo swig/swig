@@ -67,21 +67,47 @@ in scientific and engineering projects.
 
 <a name="n3"></a><H2>1.2 Why use SWIG?</H2>
 
+As stated in the previous section, the primary purpose of SWIG is to simplify
+the task of integrating C/C++ with other programming languages.  However, why would
+anyone want to do that?   To answer that question, it is useful to list a few strengths
+of C/C++ programming:
 
-Although C is great for high-performance number crunching and systems
-programming, trying to make an interactive and highly flexible C
-program is a pain.  Even though it is possible to build a user
-interface using command line options, a home grown command
-interpreter, or a graphical user interface, this often results in a
-program that is hard to extend, hard to modify, hard to port between
-platforms, and hard to use.  Furthermore, this sort of activity wastes
-a lot of development time because it usually diverts everyone's attention away
-from the real problem that they're trying to solve.
+<ul>
+<li>Excellent support for writing programming libraries.
+<li>High performance (number crunching, data processing, graphics, etc.).
+<li>Systems programming and systems integration.
+<li>Large user community and software base.
+</ul>
+
+Next, let's list a few problems with C/C++ programming
+
+<ul>
+<li>Writing a user interface is rather painful (i.e., consider programming with MFC, X11, GTK, or any number
+of other libraries).
+<li>Testing is time consuming (the compile/debug cycle).
+<li>Not easy to reconfigure or customize without recompilation.
+<li>Modularization can be tricky.
+<li>Security concerns (buffer overflow for instance).
+</ul>
+
+To address these limitations, many programmers have arrived at the
+conclusion that it is much easier to use different programming
+languages for different tasks.  For instance, writing a graphical user
+interface may be significantly easier in a scripting language like
+Python or Tcl (consider the reasons why millions of programmers have used languages like
+Visual Basic if you need more proof). An interactive interpreter might also serve as a
+useful debugging and testing tool.  Other languages like Java might
+greatly simplify the task of writing distributed computing software.
+The key point is that different programming languages offer different
+strengths and weaknesses.  Moreover, it is extremely unlikely that any
+programming is ever going to be perfect.  Therefore, by combining
+languages together, you can utilize the best features of each language
+and greatly simplify certain aspects of software development.
 
 <p>
-Many of the problems with C are due to the way in which 
-many programs are organized.  For example, a lot of programs
-are structured as follows:
+From the standpoint of C/C++, a lot of people use SWIG because they want to break
+out of the traditional monolithic C programming model which usually results
+in programs that resemble this:
 
 <p>
 <ul>
@@ -91,48 +117,19 @@ are structured as follows:
 which no-one really wants to touch).
 </ul>
 
-<p>
-In this case, the <tt>main()</tt> program may read command line
-options or simple commands from <tt>stdin</tt>.  However, modifying or
-extending the program to do something new requires changing the C
-code, recompiling, and testing. If you make a mistake, you need to
-repeat this cycle until things work.  Of course, as more and more
-features are added, the program usually turns into a horrible mess
-that is even more difficult to modify than before (although this
-undoubtedly increases the job security of the programmer).
+Instead of going down that route, incorporating C/C++ into a higher level language
+often results in a more modular design, less code, better flexibility, and increased
+programmer productivity.   
 
 <p>
-A common mistake is to assume that all of the problems with C can somehow be
-fixed by using a better C---perhaps an undebuggable
-language with unreadable syntax, complicated semantics, and nearly
-infinite compilation time.  This is an unfortunate.
-
-<P>
-Perhaps a better approach is to place your application under the control
-of a very high-level language such as a common scripting language
-interpreter.  High level languages excel at turning hard problems into
-easy tasks.   They also provide a nice framework for managing software components
-and gluing different systems together.  Not only that, they make it easy
-for users to configure the software to their liking and to program it to perform
-new tasks without ever having to touch a C/C++ compiler.  
-
-<p>
-SWIG simplifies the task of incorporating C++ code into a high-level
-programming environment.  Specifically, rather than creating a huge
-monolithic package, SWIG allows you to restructure your application as
-a collection of functions and variables that can be accessed from the
-convenience of a high-level language.  With this model, all of the
-functionality of your C program is retained.  The only difference is
-that the high-level program logic and control is now driven by the
-high-level language instead of a low level
-<tt>main()</tt> function.
-
-<p>
-SWIG tries to make the integration between scripting languages and C
-as painless as possible. This allows you to focus on the underlying C
-program and using the high-level scripting language interface, but not
+SWIG tries to make the problem of C/C++ integration as painless as possible.
+This allows you to focus on the underlying C
+program and using the high-level language interface, but not
 the tedious and complex chore of making the two languages talk to each
-other.<p>
+other.  At the same time, SWIG recognizes that all applications are different.  Therefore,
+it provides a wide variety of customization features that let you change almost
+every aspect of the language bindings.  This is the main reason why SWIG has such a large
+user manual ;-).
 <p>
 
 <a name="n4"></a><H2>1.3 A SWIG example</H2>
@@ -289,45 +286,7 @@ print $example::My_variable + 4.5, "\n";
 7.5
 </pre></blockquote>
 
-<a name="n10"></a><H3>1.3.6 Building libraries and modules</H3>
-
-
-In addition to generating wrapper code, SWIG provides extensive
-support for handling multiple files and building interface
-libraries. For example, our <tt>example.i</tt> file, could be used in
-another interface as follows :<p>
-
-<p>
-<blockquote><pre>%module foo
-%include example.i             // Get definitions from example.i
-
-... Now more declarations ...
-
-</pre></blockquote>
-In a large system, an interface might be built from a variety of pieces like this :<p>
-<p>
-<blockquote><pre>%module package
-
-%include network.i
-%include file.i
-%include graphics.i
-%include objects.i
-%include simulation.i
-
-</pre></blockquote>
-
-SWIG comes with a library of existing functions known as the SWIG
-library.  The library contains a mix of language independent and
-language dependent functionality.  For example, the file
-`<tt>array.i</tt>' provides access to C arrays while the file
-`<tt>wish.i</tt>' includes specialized code for rebuilding the Tcl
-wish interpreter.  Using the library, you can use existing modules to
-build up your own personalized environment for building interfaces.
-If changes are made to any of the components, they will appear
-automatically the next time SWIG is run. <p>
-
 <a name="n11"></a><H2>1.4 Supported C/C++ language features</H2>
-
 
 A primary goal of the SWIG project is to make the language binding
 process extremely easy.  Although a few simple examples have been shown,
@@ -348,7 +307,7 @@ major features include:
 <li>C++ smart pointers.
 </ul>
 
-Currently, the only C++ feature not supported is nested classes--a limitation
+Currently, the only major C++ feature not supported is nested classes--a limitation
 that will be removed in a future release.
 
 <p>
@@ -364,8 +323,7 @@ stresses the very limits of many C++ compilers.
 
 <a name="n12"></a><H2>1.5 Non-intrusive interface building</H2>
 
-
-When used as intended, SWIG requires minimal modification to
+When used as intended, SWIG requires minimal (if any) modification to
 existing C code. This makes SWIG extremely easy to use with existing
 packages and promotes software reuse and modularity. By making
 the C code independent of the high level interface, you can change the
@@ -384,6 +342,30 @@ defined entirely by the input to SWIG, not the resulting output
 file. While this approach may limit flexibility for hard-core hackers,
 it allows others to forget about the low-level implementation
 details.
+
+<H2>SWIG and freedom</h2>
+
+No, this isn't a special section on the sorry state of world politics.
+However, it may be useful to know that SWIG was written with a
+certain "philosophy" about programming---namely that programmers are
+smart and that tools should just stay out of their way.  Because of
+that, you will find that SWIG is extremely permissive in what it lets
+you get away with. In fact, you can use SWIG to go well beyond
+"shooting yourself in the foot" if dangerous programming is your goal.
+On the other hand, this kind of freedoom may be exactly what is needed
+to work with complicated and unusual C/C++ applications.
+
+<p>
+Ironically, the freedom that SWIG provides is countered by an
+extremely conservative approach to code generation. At it's core, SWIG
+tries to distill even the most advanced C++ code down to a small
+well-defined set of interface building techniques based on ANSI C
+programming.  Because of this, you will find that SWIG interfaces can
+be easily compiled by virtually every C/C++ compiler and that they can
+be used on any platform.  Again, this is an important part of staying out 
+of the programmer's way----the last thing any developer wants to do is
+to spend their time debugging the output of a tool that relies on 
+non-portable or unreliable programming features.
 
 <p><hr>
 
