@@ -19,6 +19,7 @@
 
 char cvsroot_parser_y[] = "$Header$";
 
+#include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"
 #include <ctype.h>
@@ -31,27 +32,9 @@ char cvsroot_parser_y[] = "$Header$";
  *                               Externals
  * ----------------------------------------------------------------------------- */
 
-extern int   yylex();
-extern void  yyerror (const char *e);
-
-/* scanner.cxx */
-
-extern int  cparse_line;
-extern int  cparse_start_line;
-extern void skip_balanced(int startchar, int endchar);
-extern void skip_decl(void);
-extern void scanner_check_typedef(void);
-extern void scanner_ignore_typedef(void);
-extern void scanner_last_id(int);
-extern void scanner_clear_rename(void);
-extern void start_inline(char *, int);
-extern String *scanner_ccode;
-extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
-extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms);
+int  yyparse();
 
 /* NEW Variables */
-
-extern void generate_all(Node *);
 
 static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
@@ -75,7 +58,7 @@ static int      dirprot_mode  = 0;
  * ----------------------------------------------------------------------------- */
 
 /* Called by the parser (yyparse) when an error is found.*/
-void yyerror (const char *e) {
+static void yyerror (const char *e) {
 }
 
 static Node *new_node(const String_or_char *tag) {
@@ -301,9 +284,6 @@ static String *name_warning(String *name,SwigType *decl) {
 
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
-
-extern void cparse_normalize_void(Node *);
-extern int need_protected(Node *n, int dirprot_mode);
 
 static void add_symbols(Node *n) {
   String *decl;
@@ -791,8 +771,6 @@ static Node *dump_nested(char *parent) {
 }
 
 Node *Swig_cparse(File *f) {
-  extern void scanner_file(File *);
-  extern int yyparse();
   scanner_file(f);
   top = 0;
   yyparse();
@@ -4778,9 +4756,6 @@ empty          :   ;
 
 SwigType *Swig_cparse_type(String *s) {
    String *ns;
-   extern void scanner_file(File *);
-   extern int yyparse();
-   extern void scanner_next_token(int);
    ns = NewStringf("%s;",s);
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
@@ -4794,9 +4769,6 @@ SwigType *Swig_cparse_type(String *s) {
 
 Parm *Swig_cparse_parm(String *s) {
    String *ns;
-   extern void scanner_file(File *);
-   extern int yyparse();
-   extern void scanner_next_token(int);
    ns = NewStringf("%s;",s);
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);

@@ -406,10 +406,7 @@ public:
 };
 
 
-extern "C"
-{
-  Language * swig_sexp( void )
-  {
-    return new Sexp();
-  }
+extern "C" Language *
+swig_sexp( void ) {
+  return new Sexp();
 }

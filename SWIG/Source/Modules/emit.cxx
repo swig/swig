@@ -16,8 +16,6 @@
 
 char cvsroot_emit_cxx[] = "$Header$";
 
-extern int       Swig_contract_mode_get();
-
 /* -----------------------------------------------------------------------------
  * emit_args()
  *

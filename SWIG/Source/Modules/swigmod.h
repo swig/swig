@@ -21,11 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 
-extern "C" {
 #include "swig.h"
-Hash  *Preprocessor_define(const String_or_char *str, int swigmacro);
-}
-
+#include "preprocessor.h"
 #include "swigwarn.h"
 
 #define NOT_VIRTUAL     0
@@ -309,11 +306,27 @@ ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */
 
-extern int is_public(Node* n); 
-extern int is_private(Node* n); 
-extern int is_protected(Node* n); 
-extern int is_member_director(Node* parentnode, Node* member); 
-extern int is_member_director(Node* member); 
+int is_public(Node* n); 
+int is_private(Node* n); 
+int is_protected(Node* n); 
+int is_member_director(Node* parentnode, Node* member); 
+int is_member_director(Node* member); 
+void Wrapper_virtual_elimination_mode_set(int);
+void Wrapper_director_protected_mode_set(int);
+
+
+/* Contracts */
+
+void Swig_contracts(Node *n);
+void Swig_contract_mode_set(int flag);
+int  Swig_contract_mode_get();
+
+/* Browser */
+
+void Swig_browser(Node *n, int);
+void Swig_default_allocators(Node *n);
+void Swig_process_types(Node *n);
+
 
 #endif
 

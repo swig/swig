@@ -25,11 +25,7 @@ char cvsroot_main_cxx[] = "$Header$";
 #endif
 
 #include "swigwarn.h"
-
-extern "C" {
-#include "preprocessor.h"
-}
-
+#include "cparse.h"
 #include <ctype.h>
 
 // Global variables
@@ -102,8 +98,7 @@ static String  *outdir = 0;
 // Checks the suffix of a file to see if we should emit extern declarations.
 // -----------------------------------------------------------------------------
 
-int
-check_suffix(char *name) {
+static int check_suffix(char *name) {
   char *c;
   if (!name) return 0;
   c = Swig_file_suffix(name);
@@ -123,8 +118,7 @@ check_suffix(char *name) {
 // Install all command line options as preprocessor symbols
 // ----------------------------------------------------------------------------- 
 
-static void
-install_opts(int argc, char *argv[]) {
+static void install_opts(int argc, char *argv[]) {
   int i;
   int noopt = 0;
   char *c;
@@ -201,16 +195,6 @@ void SWIG_config_cppext(const char *ext) {
   cpp_extension = (char *) ext;
 }
 
-extern  "C" Node *Swig_cparse(File *);
-extern  "C" void  Swig_cparse_cplusplus(int);
-extern  "C" void  Swig_cparse_debug_templates(int);
-extern  void Wrapper_virtual_elimination_mode_set(int);
-extern  void Wrapper_director_protected_mode_set(int);
-
-extern void Swig_contracts(Node *n);
-extern void Swig_contract_mode_set(int flag);
-extern int  Swig_contract_mode_get();
-
 int SWIG_main(int argc, char *argv[], Language *l) {
   int    i;
   char   *c;
@@ -222,7 +206,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     tm_debug = 0;
   char   *includefiles[256];
   int     includecount = 0;
-  extern  int check_suffix(char *);
   int     dump_tags = 0;
   int     dump_tree = 0;
   int     browse = 0;
@@ -232,13 +215,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     depend = 0;
   int     memory_debug = 0;
   int     allkw = 0;
-
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
-  extern void Swig_browser(Node *n, int);
-  extern void Swig_default_allocators(Node *n);
-  extern void Swig_process_types(Node *n);
-
 
   /* Initialize the SWIG core */
   Swig_init();

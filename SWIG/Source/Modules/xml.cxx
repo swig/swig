@@ -332,10 +332,7 @@ public:
 };
 
 
-extern "C"
-{
-	Language * swig_xml( void )
-	{
-		return new XML();
-	}
+extern "C" Language *
+swig_xml( void ) {
+        return new XML();
 }

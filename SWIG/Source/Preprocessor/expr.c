@@ -12,6 +12,7 @@
 
 char cvsroot_expr_c[] = "$Header$";
 
+#include "swig.h"
 #include "preprocessor.h"
 
 static SwigScanner *scan = 0;
