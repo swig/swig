@@ -3,7 +3,7 @@
    <annalisa.terracina@datamat.it> on 2001-07-03. 
 */
 
-%module test
+%module anonymous_arg
 
 void foo(int = 7771);
 
