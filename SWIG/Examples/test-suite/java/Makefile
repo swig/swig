@@ -8,13 +8,15 @@ SCRIPTSUFFIX = _runme.java
 
 CPP_TEST_CASES = \
 	java_constants \
-	java_typemaps_proxy
+	java_pragmas \
+	java_typemaps_proxy \
+	java_typemaps_typewrapper
 
 include ../common.mk
 
 # Overridden variables here
 TOP        = ../../..
-SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE) -package $*
+SWIGOPT    = -I$(TOP)/$(TEST_SUITE) -package $*
 #Target prefix cannot be used on Windows
 #TARGETPREFIX = lib
 
