@@ -133,6 +133,8 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-php4-test-suite			\
+	check-csharp-test-suite			\
+#	check-chicken-test-suite		\
 #	check-pike-test-suite
 
 check-%-test-suite:
@@ -200,6 +202,8 @@ all-test-suite:					\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-php4-test-suite			\
+	all-csharp-test-suite			\
+#	all-chicken-test-suite			\
 #	all-pike-test-suite
 
 all-%-test-suite:
@@ -219,6 +223,8 @@ broken-test-suite:				\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-php4-test-suite			\
+	broken-csharp-test-suite		\
+#	broken-chicken-test-suite		\
 #	broken-pike-test-suite
 
 broken-%-test-suite:
