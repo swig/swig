@@ -85,7 +85,8 @@
 {
   namespace swigpy {
     template <class PySeq, class K, class T >
-    void assign(const PySeq& pyseq, std::map<K,T > *map) {
+    inline void
+    assign(const PySeq& pyseq, std::map<K,T > *map) {
       typedef typename std::map<K,T>::value_type value_type;
       typename PySeq::const_iterator it = pyseq.begin();
       for (;it != pyseq.end(); ++it) {

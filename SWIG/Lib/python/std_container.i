@@ -103,10 +103,11 @@
 %{
   namespace swigpy {
     template <class PySeq, class Seq> 
-    void assign(const PySeq& pyseq, Seq* seq) {
+    inline void
+    assign(const PySeq& pyseq, Seq* seq) {
       seq->assign(pyseq.begin(), pyseq.end());
     }
-    
+
     template <class Seq, class T = typename Seq::value_type >
     struct traits_asptr_stdseq {
       typedef Seq sequence;

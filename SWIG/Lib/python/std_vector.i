@@ -73,6 +73,10 @@
 
 // exported classes
 
+#if !defined(SWIG_STD_MODERN_STL) || defined(SWIG_STD_NOMODERN_STL) 
+%ignore std::vector<bool>::flip();
+#endif
+
 namespace std {
 
   template<class T > class vector {

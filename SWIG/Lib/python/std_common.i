@@ -1,4 +1,14 @@
 //
+// Use the following macro with modern STL implementations
+//
+//#define SWIG_STD_MODERN_STL
+//
+// Use this to deactive the previous definition, when using gcc-2.95
+// or similar old compilers.
+//
+//#define SWIG_STD_NOMODERN_STL
+
+//
 // Define or uncomment the following macro to instantiate by default
 // all the basic std typemaps (std::pair<T,U>, std::vector<T>, etc)
 // for all the primitive C++ types (int, double, etc).
@@ -43,25 +53,12 @@
 
 %fragment("PyObject_var","header") 
 %{
-  namespace swigpy 
-  {
-    struct PyObject_var 
-    {
+  namespace swigpy {
+    struct PyObject_var {
       PyObject* ptr;
-      PyObject_var(PyObject* obj = 0)
-	: ptr(obj)
-      {
-      }
-      
-      ~PyObject_var()
-      {
-	if (ptr) Py_DECREF(ptr);
-      }
-      
-      operator PyObject*() 
-      {
-	return ptr;
-      }
+      PyObject_var(PyObject* obj = 0) : ptr(obj) { }      
+      ~PyObject_var() { if (ptr) Py_DECREF(ptr); }      
+      operator PyObject*() { return ptr; }
     };
   }
 %}
@@ -70,35 +67,27 @@
 %{
 namespace swigpy {  
   /*
+    type categories
+  */
+  struct pointer_category { };  
+  struct value_category { };
+
+  /*
     General traits that provides type_name and type_info
   */
-  template <class Type> struct traits
-  {
-  };
-  /*
-    type category
-  */
-  struct pointer_category
-  {
-  };
-  
-  struct value_category
-  {
-  };
-  
+  template <class Type> struct traits { };
+
   template <class Type>
   inline const char* type_name() {
     return traits<Type>::type_name();
   }
 
   template <class Type> 
-  struct traits_info
-  {
+  struct traits_info {
     static swig_type_info *type_query(std::string name) {
       name += " *";
       return SWIG_TypeQuery(name.c_str());
-    }
-    
+    }    
     static swig_type_info *type_info() {
       static swig_type_info *info = type_query(type_name<Type>());
       return info;
@@ -109,6 +98,22 @@ namespace swigpy {
   inline swig_type_info *type_info() {
     return traits_info<Type>::type_info();
   }
+
+  /*
+    Partial specialization for pointers
+  */
+  template <class Type> struct traits <Type *> {
+    typedef pointer_category category;
+    static std::string make_ptr_name(const char* name) {
+      std::string ptrname = name;
+      ptrname += " *";
+      return ptrname;
+    }    
+    static const char* type_name() {
+      static std::string name = make_ptr_name(swigpy::type_name<Type>());
+      return name.c_str();
+    }
+  };
 
   /*
     Traits that provides the from method
@@ -166,21 +171,17 @@ namespace swigpy {
   }
 
   template <class Type>
-  struct noconst_traits 
-  {
+  struct noconst_traits {
     typedef Type noconst_type;
   };
-  
 
   template <class Type>
-  struct noconst_traits<const Type>
-  {
+  struct noconst_traits<const Type> {
     typedef Type noconst_type;
   };
   
   template <class Type> 
-  struct traits_asval
-  {
+  struct traits_asval {
     static bool asval(PyObject *obj, Type *val) {
       if (val) {
 	Type *p = 0;
@@ -199,9 +200,7 @@ namespace swigpy {
     }
   };
 
-
-  template <class Type> struct traits_asval<Type*>
-  {
+  template <class Type> struct traits_asval<Type*> {
     static bool asval(PyObject *obj, Type **val) {
       if (val) {
 	Type *p = 0;
@@ -218,7 +217,6 @@ namespace swigpy {
       }
     }
   };
-
   
   template <class Type>
   inline bool asval(PyObject *obj, Type *val) {
@@ -226,13 +224,10 @@ namespace swigpy {
   }
 
   template <class Type, class Category> 
-  struct traits_as
-  {
-  };
+  struct traits_as { };
 
   template <class Type> 
-  struct traits_as<Type, value_category>
-  {
+  struct traits_as<Type, value_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type v;
       if (!obj || !asval(obj, &v)) {
@@ -249,8 +244,7 @@ namespace swigpy {
   };
 
   template <class Type> 
-  struct traits_as<Type, pointer_category>
-  {
+  struct traits_as<Type, pointer_category> {
     static Type as(PyObject *obj, bool throw_error) {
       Type *v = 0;
       int res = (obj ? asptr(obj, &v) : 0) && v;
@@ -283,21 +277,17 @@ namespace swigpy {
   }
 
   template <class Type, class Category> 
-  struct traits_check
-  {
-  };
+  struct traits_check { };
 
   template <class Type> 
-  struct traits_check<Type, value_category>
-  {
+  struct traits_check<Type, value_category> {
     static bool check(PyObject *obj) {
       return obj && asval(obj, (Type *)(0));
     }
   };
 
   template <class Type> 
-  struct traits_check<Type, pointer_category>
-  {
+  struct traits_check<Type, pointer_category> {
     static bool check(PyObject *obj) {
       return obj && asptr(obj, (Type **)(0));
     }
@@ -307,26 +297,6 @@ namespace swigpy {
   inline bool check(PyObject *obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
-
-  /*
-    Partial specialization for pointers
-  */
-  template <class Type> struct traits <Type *> {
-    typedef pointer_category category;
-
-    static std::string make_ptr_name(const char* name) 
-    {
-      std::string ptrname = name;
-      ptrname += " *";
-      return ptrname;
-    }
-    
-    static const char* type_name() 
-    {
-      static std::string name = make_ptr_name(swigpy::type_name<Type>());
-      return name.c_str();
-    }
-  };
 }
 %}
 
@@ -356,27 +326,25 @@ namespace swigpy {
 	    fragment=SWIG_AsVal_frag(__VA_ARGS__),
 	    fragment=SWIG_From_frag(__VA_ARGS__),
 	    fragment="StdTraits") {
-  namespace swigpy {
-    template <> struct traits<__VA_ARGS__ > {
-      typedef value_category category;
-      static const char* type_name() { return  #__VA_ARGS__; }
-    };
-    
-    template <>  struct traits_asval<__VA_ARGS__ > {   
-      typedef __VA_ARGS__ value_type;
-      static int asval(PyObject *obj, value_type *val) { 
-	return SWIG_AsVal(__VA_ARGS__)(obj, val);
-      }
-    };
-    
-    template <>  struct traits_from<__VA_ARGS__ > {
-      typedef __VA_ARGS__ value_type;
-      static PyObject *from(const value_type& val) {
-	return SWIG_From(__VA_ARGS__)(val);
-      }
-    };
-  }
- }
+namespace swigpy {
+  template <> struct traits<__VA_ARGS__ > {
+    typedef value_category category;
+    static const char* type_name() { return  #__VA_ARGS__; }
+  };  
+  template <>  struct traits_asval<__VA_ARGS__ > {   
+    typedef __VA_ARGS__ value_type;
+    static int asval(PyObject *obj, value_type *val) { 
+      return SWIG_AsVal(__VA_ARGS__)(obj, val);
+    }
+  };
+  template <>  struct traits_from<__VA_ARGS__ > {
+    typedef __VA_ARGS__ value_type;
+    static PyObject *from(const value_type& val) {
+      return SWIG_From(__VA_ARGS__)(val);
+    }
+  };
+}
+}
 %enddef
 
 %apply_cpptypes(%traits_ptypen);
@@ -512,7 +480,6 @@ namespace swigpy {
 %swig_order_type(float);
 %swig_order_type(double);
 %swig_order_type(char);
-
 
 //
 // Backward compatibility
