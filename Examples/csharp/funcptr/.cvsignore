@@ -1,0 +1,14 @@
+runme
+*_wrap.c
+*_wrap.cxx
+*.iltmp
+*.cs
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug
