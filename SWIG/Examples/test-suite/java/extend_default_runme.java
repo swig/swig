@@ -1,6 +1,6 @@
 
-import extend_default.*;
 import extend_default.Override;
+import extend_default.*;
 
 public class extend_default_runme {
   static {
