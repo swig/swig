@@ -43,6 +43,7 @@ static char *ocaml_usage = (char*)
      "-objects        - Use objects\n"
      "-onlyobjects    - Only export an object interface to a C++ object\n"
      "-classmod       - Treat classes as modules\n"
+     "-uncurried      - Create uncurried function applications\n"
      "-modwrap name   - Wrap in module 'Name'\n"
      "-mlout name     - Specify the ML output file name\n"
      "\n");
@@ -88,7 +89,8 @@ static int objects = 0;		 /* Use objects. */
 static int onlyobjects = 0;	 /* Do not export functions that back
 				    methods. */
 static int mliout = 0;		 /* Are we in .mli file */
-static int class_as_module = 0; /* Namespaces as modules */
+static int class_as_module = 0;  /* Namespaces as modules */
+static int curried = 1;          /* Curried */
 
 static String *classname = NULL; /* Name of the current class */
 
@@ -192,6 +194,10 @@ class OCAML : public Language {
 		}
 		else if (strcmp (argv[i], "-objects") == 0) {
 		    objects = 1;
+		    Swig_mark_arg (i);
+		}
+		else if (strcmp (argv[i], "-uncurried") == 0) {
+		    curried = 0;
 		    Swig_mark_arg (i);
 		}
 		else if (strcmp (argv[i], "-modwrap") == 0) {
@@ -836,70 +842,198 @@ class OCAML : public Language {
 
 	int numargs = emit_num_arguments(l);	
 	
-	if( mliout ) {
-	    if( numargs > 1 ) {
-		Printf( f_modclass, " : (" );
+	if( curried ) {
+	    if( mliout ) {
+		Printf( f_modclass, " : " );
+
+		p = l; if( p ) p = nextSibling(p);
+
+		while( p ) {
+		    SwigType *tcaml = process_type(Getattr(p,"type"));
+		    Printf(f_modclass,"%s",mangle_type(tcaml));
+		    p = nextSibling(p);
+		    if( p ) Printf(f_modclass," -> ");
+		}
+
+		Printf( f_modclass, " %s %s\n", 
+			numargs > 1 ? "->" : "",
+			mangle_type(dcaml) );
+	    } else {
+		Printf( f_modclass, " = %s (Obj.magic c_self)\n",
+			ml_function_name );
+	    }
+	} else {
+	    if( mliout ) {
+		if( numargs > 1 ) {
+		    Printf( f_modclass, " : (" );
+		    
+		    p = l; if( p ) p = nextSibling(p);
+		    while( p ) {
+			SwigType *tcaml = process_type(Getattr(p,"type"));
+			Printf(f_modclass, "%s", 
+			       mangle_type(tcaml));
+			p = nextSibling(p);
+			if( p ) Printf(f_modclass," * ");
+		    }
+		    
+		    Printf( f_modclass, ") -> %s\n",
+			    mangle_type(dcaml) );
+		} else {
+		    Printf( f_modclass, " : %s\n", 
+			    mangle_type(dcaml) );
+		}
+	    } else {
+		char x = 'a';
+		
+		if( numargs > 1 ) 
+		    Printf( f_modclass, " (" );
 		
 		p = l; if( p ) p = nextSibling(p);
 		while( p ) {
-		    SwigType *tcaml = process_type(Getattr(p,"type"));
-		    Printf(f_modclass, "%s", 
-			   mangle_type(tcaml));
+		    Printf(f_modclass, "%c", x);
+		    ++x;
 		    p = nextSibling(p);
-		    if( p ) Printf(f_modclass," * ");
-		    //Delete(tcaml);
+		    if( p ) Printf(f_modclass,",");
 		}
 		
-		Printf( f_modclass, ") -> %s\n",
-			mangle_type(dcaml) );
-	    } else {
-		Printf( f_modclass, " : %s\n", 
-			mangle_type(dcaml) );
+		Printf( f_modclass, "%s", numargs > 1 ? ")" : "" );
+		
+		Printf( f_modclass, " = %s ", 
+			ml_function_name );
+		
+		if( numargs != 1 )
+		    Printf( f_modclass, "(" );
+		if( numargs > 0 ) 
+		    Printf( f_modclass, "(Obj.magic c_self)" );
+		if( numargs > 1 ) 
+		    Printf( f_modclass, "," );
+		
+		x = 'a';
+		
+		p = l; if( p ) p = nextSibling(p);
+		while( p ) {
+		    Printf(f_modclass, "%c", x);
+		    ++x;
+		    p = nextSibling(p);
+		    if( p ) Printf(f_modclass,",");
+		}
+		
+		if( numargs != 1 ) 
+		    Printf( f_modclass, ")" );
+		
+		Printf( f_modclass, "\n" );
 	    }
-	} else {
-	    char x = 'a';
-	    
-	    if( numargs > 1 ) 
-		Printf( f_modclass, " (" );
-	    
-	    p = l; if( p ) p = nextSibling(p);
-	    while( p ) {
-		Printf(f_modclass, "%c", x);
-		++x;
-		p = nextSibling(p);
-		if( p ) Printf(f_modclass,",");
-	    }
-	    
-	    Printf( f_modclass, "%s", numargs > 1 ? ")" : "" );
-	    
-	    Printf( f_modclass, " = %s ", 
-		    ml_function_name );
-	    
-	    if( numargs != 1 )
-		Printf( f_modclass, "(" );
-	    if( numargs > 0 ) 
-		Printf( f_modclass, "(Obj.magic c_self)" );
-	    if( numargs > 1 ) 
-		Printf( f_modclass, "," );
-	    
-	    x = 'a';
-	    
-	    p = l; if( p ) p = nextSibling(p);
-	    while( p ) {
-		Printf(f_modclass, "%c", x);
-		++x;
-		p = nextSibling(p);
-		if( p ) Printf(f_modclass,",");
-	    }
-	    
-	    if( numargs != 1 ) 
-		Printf( f_modclass, ")" );
-	    
-	    Printf( f_modclass, "\n" );
 	}
 
 	Delete(ml_function_name);
 	Delete(ml_method_name);
+    }
+
+// ----------------------------------------------------------------------
+// createUncurriedFunctionWrapperHeader()
+// Create the wrapper function header (uncurried)
+// ----------------------------------------------------------------------
+
+    int createUncurriedFunctionHeader(Wrapper *f, String *wrap_name, Node *n) {
+	int i;
+	SwigType *d = Getattr(n,"type");
+	ParmList *l = Getattr(n,"parms");
+	Parm *p;
+	
+	// writing the function wrapper function
+	Printf(f->def, 
+	       "#ifdef __cplusplus\n"
+	       "extern \"C\"\n"
+	       "#endif\n"
+	       "value %s( value args )\n"
+	       "{\n"
+	       "\tCAMLparam1(args);\n", wrap_name);
+    }
+
+
+// ----------------------------------------------------------------------
+// createCurriedFunctionWrapperHeader()
+// Create the wrapper function header (uncurried)
+// ----------------------------------------------------------------------
+
+    int createCurriedFunctionHeader(Wrapper *f, String *wrap_name, Node *n) {
+	int i = 0;
+	SwigType *d = Getattr(n,"type");
+	ParmList *l = Getattr(n,"parms");
+	Parm *p;
+	int numargs;
+	int numreq;
+
+	numargs = emit_num_arguments(l);
+	numreq  = emit_num_required(l);
+
+	// writing the function wrapper function
+	Printf(f->def, 
+	       "#ifdef __cplusplus\n"
+	       "extern \"C\"\n"
+	       "#endif\n"
+	       "value %s_native(", wrap_name );
+	
+	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
+	    Printf(f->def,"value args%d%s",i,i==numargs-1?"":",");
+	}
+
+	Printf(f->def,
+	       ") {\n"
+	       "\tCAMLparam0();\n", wrap_name);
+
+	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
+	    if( i && (i % 5) == 0 )
+		Printf(f->def,
+		       "\tCAMLxparam5(args%d,args%d,args%d,args%d,args%d);\n",
+		       i-4,i-3,i-2,i-1,i);
+	}
+
+	int j;
+
+	if( i != numargs ) {
+	    Printf(f->def,"\tCAMLxparam%d(",i % 5);
+	    for( j = i - (i % 5); j < i; j++ ) {
+		Printf(f->def,"args%d%s",j,j==(i-1)?"":",");
+	    }
+
+	    Printf(f->def,");\n");
+	}
+    }
+
+// ----------------------------------------------------------------------
+// Create bytecode function wrapper...
+// ----------------------------------------------------------------------
+
+    int createCurriedBytecodeFunctionHeader(Wrapper *f, 
+					    String *wrap_name, Node *n) {
+	int i = 0;
+	SwigType *d = Getattr(n,"type");
+	ParmList *l = Getattr(n,"parms");
+	Parm *p;
+	int numargs;
+	int numreq;
+
+	numargs = emit_num_arguments(l);
+	numreq  = emit_num_required(l);
+
+	// writing the function wrapper function
+	Printf(f->code, 
+	       "#ifdef __cplusplus\n"
+	       "extern \"C\"\n"
+	       "#endif\n"
+	       "value %s_bytecode( value *args, int argn )\n"
+	       "{\n"
+	       "\treturn %s_native(", wrap_name, wrap_name );
+
+	for( i = 0, p = l; p; i++, p = nextSibling(p) ) {
+	    Printf(f->code,
+		   "args[%d]%s", i, i == numargs - 1 ? "":",");
+	}
+
+	Printf(f->code,
+	       ");\n"
+	       "}\n");
     }
 
 // ----------------------------------------------------------------------
@@ -954,15 +1088,11 @@ class OCAML : public Language {
 	    Delete(tcaml);
 	}
 
-	// writing the function wrapper function
-	Printf(f->def, 
-	       "#ifdef __cplusplus\n"
-	       "extern \"C\"\n"
-	       "#endif\n"
-	       "value %s( value args )\n"
-	       "{\n"
-	       "\tCAMLparam1(args);\n", wrap_name);
-    
+	if( curried ) 
+	    createCurriedFunctionHeader( f, wrap_name, n );
+	else
+	    createUncurriedFunctionHeader( f, wrap_name, n );
+
 	// Declare return variable and arguments
 	// number of parameters
 	// they are called arg0, arg1, ...
@@ -998,9 +1128,9 @@ class OCAML : public Language {
 	    arg = NewString("");
 
 	    if( numargs == 1 ) 
-		Printf(source, "args");
+		Printf(source, curried ? "args0" : "args");
 	    else 
-		Printf(source, "Field(args,%d)", i);
+		Printf(source, curried ? "args%d" : "Field(args,%d)", i);
 	    Printf(target, "%s",ln);
 	    Printv(arg, Getattr(p,"name"),0);
 
@@ -1025,21 +1155,26 @@ class OCAML : public Language {
 	
 	    if( numargs == 0 ) 
 		Printf(f_module," unit");
-	    else if( numargs != 1 ) Printf(f_module,"(");
+	    else if( numargs != 1 ) Printf(f_module,curried ? "" : "(");
 	
 	    for(p = l; p;) {
 		SwigType *tcaml = process_type(Getattr(p,"type"));
 		Printf(f_module, "%s", mangle_type(tcaml));
 		p = nextSibling(p);
-		if( p ) Printf(f_module," * ");
+		if( p ) Printf(f_module,curried ? " -> " : " * ");
 		//Delete(tcaml);
 	    }
 	
 	    if( numargs > 1 ) 
-		Printf(f_module,")");
+		Printf(f_module,curried ? "" : ")");
 	
-	    Printf(f_module, " -> %s = \"%s\"\n", mangle_type(dcaml), 
-		   wrap_name );
+	    if( curried ) 
+		Printf(f_module, " -> %s = \"%s_bytecode\" \"%s_native\"\n",
+		       mangle_type(dcaml),
+		       wrap_name, wrap_name );
+	    else
+		Printf(f_module, " -> %s = \"%s\"\n", mangle_type(dcaml), 
+		       wrap_name );
 	}
 
 	if( classmode ) {
@@ -1132,6 +1267,11 @@ class OCAML : public Language {
 
 	Printf(f->code, "\tCAMLreturn(swig_result);\n");
 	Printv(f->code, "}\n",0);
+
+	// If curried, create bytecode version
+
+	if( curried ) 
+	    createCurriedBytecodeFunctionHeader(f, wrap_name, n);
 
 	// Slightly ugly wrap-advance for get/set
 
