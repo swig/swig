@@ -978,9 +978,9 @@ public:
       /* Skip ignored arguments */
       {
         p=l;
-	while (checkAttribute(p,"tmap:in:numinputs","0")) {
-	  p = Getattr(p,"tmap:in:next");
-	}
+        while (Getattr(p,"tmap:ignore")) {
+  	p = Getattr(p,"tmap:ignore:next");
+        }
         SwigType *pt = Getattr(p,"type");
 
         Printf(df->code,
@@ -1087,8 +1087,8 @@ public:
 
     for (i = 0, p = l; i < num_arguments; i++) {
       /* Skip ignored arguments */
-      while (checkAttribute(p,"tmap:in:numinputs","0")) {
-	p = Getattr(p,"tmap:in:next");
+      while (Getattr(p,"tmap:ignore")) {
+	p = Getattr(p,"tmap:ignore:next");
       }
       SwigType *pt = Getattr(p,"type");
 
@@ -1448,17 +1448,22 @@ public:
 
       /* Deal with inheritance */
       List *baselist = Getattr(n, "bases");
-      int class_count = 1;
 
       if(baselist) {
+        int class_count = 0;
 	Node *base = Firstitem(baselist);
-	if(is_shadow(Getattr(base, "name"))) {
+
+	while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
+
+	if (base && is_shadow(Getattr(base, "name"))) {
+	  class_count++;
 	  Printf(this_shadow_baseclass, "%s", Getattr(base, "name"));
 	}
 
-	for(base = Nextitem(baselist); base; base = Nextitem(baselist)) {
-	  class_count++;
+	if (base) for(base = Nextitem(baselist); base; base = Nextitem(baselist)) {
+	  if (Getattr(base,"feature:ignore")) continue;
 	  if(is_shadow(Getattr(base, "name"))) {
+	    class_count++;
 	    Printf(this_shadow_multinherit, "%s ", Getattr(base, "name"));
 	  }
 	}
@@ -1514,6 +1519,8 @@ public:
       Printf(s_propset,"static int _propset_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
 
       if (baselist) base=Firstitem(baselist);
+      else base=NULL;
+      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
       key = Firstkey(shadow_set_vars);
 
       // Print function header; we only need to find property name if there
@@ -1547,12 +1554,14 @@ public:
       // try each base class handler, else set directly...
       if (base) {
         Printf(s_propset,  "  {\n    // chain to base class\n");
+        Printf(stderr,  "  {\n    // chain to base class %s\n",GetChar(base, "name"));
         while(base) {
           Printf(s_propset,"    if (_propset_%s(property_reference, value)==SUCCESS) return SUCCESS;\n",
                GetChar(base, "sym:name"));
 
           base=Nextitem(baselist);
-        }
+	  while (base && Getattr(base,"feature:ignore")) base=Nextitem(baselist);
+      }
         Printf(s_propset,"  }\n");
       }
       Printf(s_propset,"  return FAILURE;\n}\n\n");
@@ -1574,7 +1583,9 @@ public:
       Printf(s_header,"static int _propget_%s(zend_property_reference *property_reference, pval *value);\n", shadow_classname);
       Printf(s_propget,"static int _propget_%s(zend_property_reference *property_reference, pval *value) {\n", shadow_classname);
 
-      if (baselist) base=Firstitem(baselist);
+      if (baselist) base=Firstitem(baselist); 
+      else base=NULL;
+      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
       key = Firstkey(shadow_get_vars);
 
       // Print function header; we only need to find property name if there
@@ -1613,6 +1624,7 @@ public:
                GetChar(base, "sym:name"));
 
           base=Nextitem(baselist);
+	  while (base && Getattr(base,"feature:ignore")) base=Nextitem(baselist);
         }
         Printf(s_propget,"  }\n");
       }
@@ -1626,6 +1638,9 @@ public:
 
       // Save class in class table
       if (baselist) base=Firstitem(baselist);
+      else base=NULL;
+      while(base && Getattr(base,"feature:ignore")) base = Nextitem(baselist);
+
       if (base) {
         Printf(s_oinit,"if (! (ptr_ce_swig_%s=zend_register_internal_class_ex(&ce_swig_%s,&ce_swig_%s,NULL))) zend_error(E_ERROR,\"Error registering wrapper for class %s\");\n",
           shadow_classname,shadow_classname,GetChar(base, "sym:name"), shadow_classname);
