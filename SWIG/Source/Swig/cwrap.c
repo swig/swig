@@ -611,12 +611,11 @@ Swig_cmethod_wrapper(String_or_char *classname,
   fix_parm_names(l);
 
   tmp = NewStringf("%s(%s)", Swig_name_member(classname,methodname), ParmList_str(l));
-  Printf(w->def,"%s {", SwigType_str(rtype,tmp));
+  Printf(w->def,"%s ", SwigType_str(rtype,tmp));
   Delete(tmp);
 
-  /*  Printf(w->def,"%s %s(%s) {", SwigType_str(rtype,0), Swig_name_member(classname, methodname), ParmList_str(l)); */
-
   if (!code) {
+    Printf(w->def,"{");
     /* No code supplied.  Write a function manually */
     if (SwigType_type(rtype) != T_VOID) {
       Printf(w->code,"return ");
@@ -634,7 +633,6 @@ Swig_cmethod_wrapper(String_or_char *classname,
     Printf(w->code,"}\n");
   } else {
     Printv(w->code, code, "\n", 0);
-    Printf(w->code,"}\n");
   }
   Wrapper_Settype(w,rtype);
   Wrapper_Setparms(w,l);
