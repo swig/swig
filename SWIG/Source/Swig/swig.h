@@ -205,6 +205,7 @@ extern int         SwigType_isarray(SwigType *t);
 extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
 extern int         SwigType_isconst(SwigType *t);
+extern int         SwigType_issimple(SwigType *t);
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
 extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);

@@ -779,7 +779,7 @@ SwigType_array_type(SwigType *ty) {
  *     Arrays:        a().SWIGARRAY
  *     Types:         SWIGTYPE
  *     MemberPointer: m(SWIGMEMBER).SWIGPOINTER
- *
+ *     Enums:         enum SWIGENUM
  * ----------------------------------------------------------------------------- */
 
 static Hash *default_cache = 0;
@@ -812,6 +812,8 @@ SwigType *SwigType_default(SwigType *t) {
     def = NewString("a().SWIGARRAY");
   } else if (SwigType_ismemberpointer(r)) {
     def = NewString("m(SWIGMEMBER).SWIGPOINTER");
+  } else if (SwigType_isenum(r)) {
+    def = NewString("enum SWIGENUM");
   } else {
     def = NewString("SWIGTYPE");
   }
@@ -921,7 +923,6 @@ SwigType_ltype(SwigType *s) {
   List *elements;
   int nelements, i;
   int firstarray = 1;
-  int need_td = 0;
 
   result = NewString("");
   tc = Copy(s);
@@ -932,7 +933,7 @@ SwigType_ltype(SwigType *s) {
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
     td = SwigType_typedef_resolve(tc);
-    if (td && (SwigType_isconst(td)) || SwigType_isarray(td) || SwigType_isenum(td)) {
+    if (td && (SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isenum(td))) {
       /* We need to use the typedef type */
       Delete(tc);
       tc = td;
@@ -1174,7 +1175,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   while (*c) {
     if (*c == '<') *c = 'T';
     else if (*c == '>') *c = 't';
-    else if (!isalnum(*c)) *c = '_';
+    else if (!isalnum((int)*c)) *c = '_';
     c++;
   }
   Insert(result,0,"_");
@@ -1214,7 +1215,6 @@ static void init_scopes() {
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
   int level;
-  String *prefix;
   String *tdname;
 
   init_scopes();
@@ -1327,7 +1327,7 @@ Hash *SwigType_pop_scope() {
 
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
-  String *type;
+  String *type = 0;
   String *r;
   int level;
 
