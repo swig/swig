@@ -33,8 +33,7 @@ swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH
 	$(SOURCE)/SWIG1.1/libswig11.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/DOH/libdoh.a \
-	$(LIBS)
+	$(SOURCE)/DOH/libdoh.a
 
 experiment: Swig Preprocessor LParse DOH Modules
 	$(CXX) -o $(TARGET) \
