@@ -2,5 +2,6 @@ This directory contains the HTML for the SWIG users manual.
 
 All of this HTML is hand-written.  However, section numbering, indices,
 and the table of contents is generated automatically by the 'maketoc.py'
-script.
+script. The Makefile has further information on how the various alternative
+forms of the documentation is generated from the hand-written HTML.
 
