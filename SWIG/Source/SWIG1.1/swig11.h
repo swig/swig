@@ -175,9 +175,7 @@ public:
   virtual void import(char *filename);            /* Deprecated */
   virtual void import_start(char *modulename);    /* Import a new module */
   virtual void import_end();                      /* Done with import    */
-
-protected:
-  int is_multiple_definition(); // indicates whether the function has already been defined
+  virtual int  validIdentifier(String *s);        /* valid identifier? */
 };
 
 /* Emit functions */
