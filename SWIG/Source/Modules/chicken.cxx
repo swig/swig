@@ -1674,15 +1674,9 @@ void
 CHICKEN::addMethod(String *, String *scheme_name, String *function) 
 {
 #ifndef BINDING
-  /* unless Chicken is run in case-sensitive mode, all symbols need
-     to be lowercase.  Also, the symbols need the prefix. */
+  /* The symbols need the prefix. */
   String *sym = NewString(prefix);
   Append(sym, scheme_name);
-  char *s = Char(sym);
-  const int L = Len(sym);
-  for (int i=0; i < L; i++, s++) {
-    *s = tolower(*s);
-  }
 
   /* add symbol to Chicken internal symbol table */
   Printf(f_sym_size, "+C_SIZEOF_INTERNED_SYMBOL(%d)", Len(sym));    

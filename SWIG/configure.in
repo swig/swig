@@ -1213,6 +1213,22 @@ else
 CHICKEN="$CHICKEN"
 fi
 
+AC_ARG_WITH(chickencsc,[  --with-chickencsc=path  Set location of csc executable],[ CHICKEN_CSC="$withval"], [CHICKEN_CSC=])
+
+if test -z "$CHICKEN_CSC"; then
+AC_CHECK_PROGS(CHICKEN_CSC, csc)
+else
+CHICKEN_CSC="$CHICKEN_CSC"
+fi
+
+AC_ARG_WITH(chickencsi,[  --with-chickencsi=path  Set location of csi executable],[ CHICKEN_CSI="$withval"], [CHICKEN_CSI=])
+
+if test -z "$CHICKEN_CSI"; then
+AC_CHECK_PROGS(CHICKEN_CSI, csi)
+else
+CHICKEN_CSI="$CHICKEN_CSI"
+fi
+
 AC_ARG_WITH(chickencfg,[  --with-chickencfg=path  Set location of chicken-config],[ CHICKEN_CONFIG="$withval"], [CHICKEN_CONFIG=])
 
 if test -z "$CHICKEN_CONFIG"; then
@@ -1302,6 +1318,8 @@ if test -n "$CHICKEN_CONFIG" ; then
 fi # have CHICKEN_CONFIG
 
 AC_SUBST(CHICKEN)
+AC_SUBST(CHICKEN_CSC)
+AC_SUBST(CHICKEN_CSI)
 AC_SUBST(CHICKEN_CONFIG)
 AC_SUBST(CHICKENHOME)
 AC_SUBST(CHICKENOPTS)

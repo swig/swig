@@ -7,19 +7,7 @@ overload    -- C++ function overloading
 simple      -- the simple example from the user manual
 zlib        -- a wrapping of the zlib compression library
 
-Note that the examples in this directory build a special version of
-the CHICKEN interpreter (statically linked) which includes the wrapped
-functions in the top-level module.  Just run "make" in any example
-directory.
+You should be able to run make in each of the examples.  By default, a shared
+library will be built.  Run make check to execute the test.
 
-** If you have a platform that supports dynamic linking (most UNIXes
-** and Win32), then you can run "make module" in any example
-** directory.  This will create a dynamic module called
-** module.dll/module.so/module.shl (depending on your platform), which
-** you can use with the following:
-
-   (load-library 'precsi "module.dll")
-
-or
-
-   (load-library 'example "module.dll")
+You can uncomment a few lines in the Makefile to build a static test exe.

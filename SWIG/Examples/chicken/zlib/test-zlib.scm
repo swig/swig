@@ -1,5 +1,8 @@
 ;; run with './zlib test-zlib.scm'
 
+(declare (uses example))
+(declare (uses format))
+
 ;; Init zstream
 (define s (zlib:new-z-stream))
 (zlib:z-stream-zalloc-set s #f)

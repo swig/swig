@@ -1,5 +1,8 @@
 ;; This file demonstrates the overloading capabilities of SWIG
 
+(declare (uses example))
+(declare (uses tinyclos))
+
 ;; Low level
 ;; ---------
 
