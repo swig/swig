@@ -93,6 +93,12 @@ SWIG_Guile_GetPtr (SCM s, void **result, _swig_type_info *type);
 SWIGSTATIC SCM
 SWIG_Guile_MakePtr (void *ptr, _swig_type_info *type);
 
+/* Get arguments from an argument list */
+SWIGSTATIC void
+SWIG_Guile_GetArgs (SCM *dest, SCM rest,
+		    int reqargs, int optargs,
+		    const char *procname);
+
 #ifdef __cplusplus
 }
 #endif
