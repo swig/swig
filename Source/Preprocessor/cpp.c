@@ -139,6 +139,32 @@ void Preprocessor_ignore_missing(int a) {
  * SWIG macro semantics.
  * ----------------------------------------------------------------------------- */
 
+ 
+String_or_char *Macro_vararg_name(String_or_char *str,
+                                  String_or_char *line)
+{
+  String_or_char *argname, *varargname;
+  char *s, *dots;
+
+  argname = Copy(str);
+  s = Char(argname);
+  dots = strchr(s, '.');
+  if (!dots) return NULL;
+  if (strcmp(dots, "...") != 0) {
+    Swig_error(Getfile(line), Getline(line),
+               "Illegal macro argument name '%s'\n", str);  
+    return NULL;
+  }
+  if (dots == s) {
+      varargname = NewString("__VA_ARGS__");
+  } else {
+    *dots = '\0';
+    varargname = NewStringf(argname);
+  }
+  Delete(argname);
+  return varargname;
+}
+
 Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 {
   String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
@@ -200,20 +226,15 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* If there are any macro arguments, convert into a list */
   if (argstr) {
-    DOH *argname;
+    String *argname, *varargname;
     arglist = NewList();
     Seek(argstr,0,SEEK_SET);
     argname = NewString("");
     while ((c = Getc(argstr)) != EOF) {
       if (c == ',') {
-	/* Check for varargs */
-	if (Strstr(argname,".")) {
-	  if (Strcmp(argname,"...") != 0) {
-	    Swig_error(Getfile(str),Getline(str),"Illegal macro argument name '%s'\n", argname);
-	  } else {
-	    Append(arglist,"__VA_ARGS__");
-	    varargs = 1;
-	  }
+	varargname = Macro_vararg_name(argname, str);
+	if (varargname) {
+          Swig_error(Getfile(str),Getline(str),"Variable-length macro argument must be last parameter\n");	  
 	} else {
 	  Append(arglist,argname);
 	}
@@ -228,13 +249,11 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
     }
     if (Len(argname)) {
       /* Check for varargs */
-      if (Strstr(argname,".")) {
-	if (Strcmp(argname,"...") != 0) {
-	  Swig_error(Getfile(str),Getline(str),"Illegal macro argument name '%s'\n", argname);
-	} else {
-	  Append(arglist,"__VA_ARGS__");
-	  varargs = 1;
-	}
+      varargname = Macro_vararg_name(argname, str);
+      if (varargname) {
+	Append(arglist,varargname);
+	Delete(varargname);
+	varargs = 1;
       } else {
 	Append(arglist,argname);
       }
@@ -625,13 +644,17 @@ expand_macro(String_or_char *name, List *args)
 	}
 	Replace(ns,temp,rep, DOH_REPLACE_ANY);
       }
-      if (isvarargs) {
-	if ((Strcmp(aname,"__VA_ARGS__") == 0) && (Len(arg) == 0)) {
-	  /* Zero length __VA_ARGS__ macro argument.   We search for commas that might appear before and nuke them */
-	  char *a, *s, *t;
-	  s = Char(ns);
-	  a = strstr(s,"__VA_ARGS__");
-	  while (a) {
+      if (isvarargs && i == l-1 && Len(arg) == 0) {
+	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
+	char *a, *s, *t, *name;
+        int namelen;
+	s = Char(ns);
+        name = Char(aname);
+        namelen = Len(aname);
+	a = strstr(s,name);
+	while (a) {
+          if (!isidchar(a[namelen+1])) {
+          /* Matched the entire vararg name, not just a prefix */
 	    t = a-1;
 	    if (*t == '\002') {
 	      t--;
@@ -642,8 +665,8 @@ expand_macro(String_or_char *name, List *args)
 		} else break;
 	      }
 	    }
-	    a = strstr(a+11,"__VA_ARGS__");
 	  }
+	  a = strstr(a+namelen,name);
 	}
       }
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
