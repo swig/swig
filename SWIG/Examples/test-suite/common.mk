@@ -34,16 +34,28 @@ INTERFACE  = $*.i
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES = \
-constant_pointers \
-cpp_enum \
-cpp_static \
-virtual_destructor
+	constant_pointers \
+	cpp_enum \
+	cpp_static \
+	virtual_destructor \
+	cplusplus-throw \
+	pointer-reference \
+	casts \
+	template-whitespace \
+	anonymous-arg \
+	static-array-member
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES   = \
-defines \
-sizeof_pointer \
-unions
+	defines \
+	sizeof_pointer \
+	unions \
+	macro-2 \
+#	long-long \
+	const-const \
+	char-constant \
+	name \
+	preproc-1 
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) $(C_TEST_CASES:=.ctest)
 ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) $(C_TEST_CASES:=.clean)
