@@ -313,7 +313,7 @@ SWIGSTATICINLINE(int)
     PyErr_Clear();
   }
   if (val) {
-    PyErr_SetString(PyExc_TypeError, "a int is expected");
+    PyErr_SetString(PyExc_TypeError, "an int is expected");
   }
   return 0;    
 }
@@ -331,7 +331,7 @@ SWIGSTATICINLINE(int)
 	  fragment=SWIG_AsVal_frag(unsigned long)) {
 %#if UINT_MAX != ULONG_MAX
 SWIGSTATICINLINE(int)
-SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
+  SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
 { 
   const char* errmsg = val ? "unsigned int" : 0;
   unsigned long v;
@@ -420,10 +420,9 @@ SWIGSTATICINLINE(int)
 
 %fragment("SWIG_CheckDoubleInRange","header") {
 %#include <float.h>
-
 SWIGSTATICINLINE(int)
- SWIG_CheckDoubleInRange(double value, double min_value, 
-			 double max_value, const char* errmsg)
+  SWIG_CheckDoubleInRange(double value, double min_value, 
+			  double max_value, const char* errmsg)
 {
   if (value < min_value) {
     if (errmsg) {
