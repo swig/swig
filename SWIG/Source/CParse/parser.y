@@ -2954,12 +2954,14 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
                  $$ = new_node("cdecl");
                  Setattr($$,"type",$3);
 		 Setattr($$,"name",$2);
+
 		 SwigType_add_function($4,$6);
 		 if ($8.qualifier) {
 		   SwigType_push($4,$8.qualifier);
 		 }
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
+		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
               }
                | storage_class COPERATOR type AND LPAREN parms RPAREN cpp_vend {
@@ -2975,6 +2977,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 }
 		 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$6);
+		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
 	       }
 
@@ -2989,6 +2992,7 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		}
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
+		Setattr($$,"conversion_operator","1");
 		add_symbols($$);
               }
               ;

@@ -78,6 +78,13 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(patchlist,v);
     Append(cpatchlist,code);
     
+    if (Getattr(n,"conversion_operator")) {
+      Append(cpatchlist, Getattr(n,"name"));
+      if (Getattr(n,"sym:name")) {
+	Append(cpatchlist, Getattr(n,"sym:name"));
+      }
+    }
+    
     add_parms(Getattr(n,"parms"), cpatchlist, typelist);
   } else if (Strcmp(nodeType(n),"class") == 0) {
     /* Patch base classes */

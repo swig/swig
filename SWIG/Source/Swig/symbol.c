@@ -13,6 +13,7 @@ static char cvsroot[] = "$Header$";
 
 #include "swig.h"
 #include "swigwarn.h"
+#include <ctype.h>
 
 /* -----------------------------------------------------------------------------
  * Synopsis
@@ -1045,5 +1046,48 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
   Delete(base);
   Delete(prefix);
   return Copy(ty);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_string_qualify()
+ *
+ * This function takes a string and looks for identifiers.  Identifiers are
+ * then qualified according to scope rules.  This function is used in a number
+ * of settings including expression evaluation, scoping of conversion operators,
+ * and so forth.
+ * ----------------------------------------------------------------------------- */
+
+String *
+Swig_symbol_string_qualify(String *s, Symtab *st) {
+  char *c;
+  String *id, *r;
+  int     have_id = 0;
+
+  id = NewString("");
+  r = NewString("");
+  c = Char(s);
+  while (*c) {
+    if (isalpha(*c) || (*c == '_') || (*c == ':')) {
+      Putc(*c,id);
+      have_id = 1;
+    } else {
+      if (have_id) {
+	String *qid = Swig_symbol_type_qualify(id,st);
+	Append(r,qid);
+	Clear(id);
+	Delete(qid);
+	have_id = 0;
+      }
+      Putc(*c,r);
+    }
+    c++;
+  }
+  if (have_id) {
+    String *qid = Swig_symbol_type_qualify(id,st);
+    Append(r,qid);
+    Delete(qid);
+  }
+  Delete(id);
+  return r;
 }
 

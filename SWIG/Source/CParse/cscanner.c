@@ -1149,6 +1149,10 @@ int yylex(void) {
 	      Chop(s);
 	      yylval.str = s;
 	      while(Replaceall(s,"[ ", "["));
+	      if (isconversion) {
+		String *ns = Swig_symbol_string_qualify(s,0);
+		yylval.str = ns;
+	      }
 	      if (isconversion && !rename_active) {
 		char *t = Char(s) + 9;
 		if (!((strcmp(t,"new") == 0) || (strcmp(t,"delete") == 0) 

@@ -549,6 +549,11 @@ public:
 	}
 	normalize_parms(Getattr(n,"parms"));
 
+	/*	if (Getattr(n,"conversion_operator")) {
+	  String *name = Swig_symbol_string_qualify(Getattr(n,"name"),0);
+	  Setattr(n,"name",name);
+	}
+	*/
 	if (checkAttribute(n,"storage","typedef")) {
 	    String   *name = Getattr(n,"name");
 	    ty   = Getattr(n,"type");
@@ -585,7 +590,6 @@ public:
 		Delete(nname);
 	    }
 	}
-
 	clean_overloaded(n);
 	return SWIG_OK;
     }
