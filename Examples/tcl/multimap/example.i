@@ -4,6 +4,8 @@
 
 extern int    gcd(int x, int y);
 
+%typemap(tcl8,arginit) (int argc, char *argv[]) "$2 = 0;";
+
 %typemap(tcl8,in) (int argc, char *argv[]) {
   Tcl_Obj **listobjv = 0;
   int i;
