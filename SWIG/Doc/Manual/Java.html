@@ -1380,10 +1380,10 @@ public class Foo {
   }
 
   protected void finalize() {
-    _delete();
+    delete();
   }
 
-  public void _delete() {
+  public void delete() {
     if(swigCPtr != 0 && swigCMemOwn) {
       exampleJNI.delete_Foo(swigCPtr);
       swigCMemOwn = false;
@@ -1535,7 +1535,7 @@ If we call the factory function, then we have to manually delete the memory:
 <pre>
 Obj obj = Factory.createObj();   // obj.swigCMemOwn = false
 ...
-obj._delete();
+obj.delete();
 </pre>
 </blockquote>
 
@@ -1553,7 +1553,7 @@ public:
 </pre>
 </blockquote>
 
-No call to <code>_delete()</code> is needed as the garbage collector will make the C++ destructor call because <code>swigCMemOwn</code> is now true.
+No call to <code>delete()</code> is needed as the garbage collector will make the C++ destructor call because <code>swigCMemOwn</code> is now true.
 
 <blockquote>
 <pre>
@@ -1592,10 +1592,10 @@ public class Base {
   }
 
   protected void finalize() {
-    _delete();
+    delete();
   }
 
-  public void _delete() {
+  public void delete() {
     if(swigCPtr != 0 && swigCMemOwn) {
       exampleJNI.delete_Base(swigCPtr);
       swigCMemOwn = false;
@@ -1629,14 +1629,14 @@ public class Derived extends Base {
   }
 
   protected void finalize() {
-    _delete();
+    delete();
   }
 
-  public void _delete() {
+  public void delete() {
     if(swigCPtr != 0 && swigCMemOwn) {
       exampleJNI.delete_Derived(swigCPtr);
       swigCMemOwn = false;
-      super._delete();
+      super.delete();
     }
     swigCPtr = 0;
   }
@@ -1670,16 +1670,16 @@ There is a caveat and that is any C++ code will not know about your Java class <
 <a name="n53"></a><h4>14.8.13 Proxy classes and garbage collection</h4>
 
 
-By default each proxy class has a <code>_delete()</code> and <code>finalize()</code> methods. 
-The <code>finalize()</code> method calls <code>_delete()</code> which frees any malloc'd memory for wrapped C structs or calls the C++ class destructors. 
-The idea is for <code>_delete()</code> to be called when you have finished with the C/C++ object. 
-Ideally you need not call <code>_delete()</code>, but rather leave it to the garbage collector to call it from the finalizer. 
+By default each proxy class has a <code>delete()</code> and <code>finalize()</code> methods. 
+The <code>finalize()</code> method calls <code>delete()</code> which frees any malloc'd memory for wrapped C structs or calls the C++ class destructors. 
+The idea is for <code>delete()</code> to be called when you have finished with the C/C++ object. 
+Ideally you need not call <code>delete()</code>, but rather leave it to the garbage collector to call it from the finalizer. 
 The unfortunate thing is that Sun, in their wisdom, do not guarantee that the finalizers will be called. 
 When a program exits, the garbage collector does not always call the finalizers. 
 Depending on what the finalizers do and which operating system you use, this may or may not be a problem. 
 <p>
 
-If the <code>_delete()</code> call into JNI code is just for memory handling, there is not a problem when run on Windows and Unix. 
+If the <code>delete()</code> call into JNI code is just for memory handling, there is not a problem when run on Windows and Unix. 
 Say your JNI code creates memory on the heap which your finalizers will clean up, the finalizers may or may not be called before the program exits. 
 In Windows and Unix all memory that a process uses is returned to the system on exit, so this isn't a problem. 
 This is not the case in some operating systems like vxWorks. 
@@ -1715,18 +1715,18 @@ As the the shutdown hook is guaranteed you could also make a JNI call to clean u
 </li>
 <p>
 <li>
-Call the <code>_delete()</code> function manually. 
+Call the <code>delete()</code> function manually. 
 As a suggestion it may be a good idea to set the object to null so that should the object be inadvertantly used again a Java null pointer exception is thrown, the alternative would crash the JVM by using a null C pointer. 
 For example given a SWIG generated class A:
 <blockquote><pre>
 A myA = new A();
 // use myA ...
-myA._delete();
+myA.delete();
 // any use of myA here would crash the JVM 
 myA=null;
 // any use of myA here would cause a Java null pointer exception to be thrown
 </pre></blockquote>
-The SWIG generated code ensures that the memory is not deleted twice, in the event the finalizers get called in addition to the manual <code>_delete()</code> call.
+The SWIG generated code ensures that the memory is not deleted twice, in the event the finalizers get called in addition to the manual <code>delete()</code> call.
 </li>
 
 <p>
@@ -1793,6 +1793,63 @@ described.  However, sometimes this isn't enough to produce a nice module.  Cert
 types of functionality might be missing or the interface to certain functions might
 be awkward.  This section describes some common SWIG features that are used
 to improve the interface to existing C/C++ code.
+
+<a name="n27"></a><h3>18.4.1 C/C++ helper functions</h3>
+
+
+Sometimes when you create a module, it is missing certain bits of functionality. For
+example, if you had a function like this
+
+<blockquote>
+<pre>
+typedef struct Image {...};
+void set_transform(Image *im, double m[4][4]);
+</pre>
+</blockquote>
+
+it would be accessible from Java, but there may be no easy way to call it.
+The problem here is that there is no easy way to construct and manipulate a suitable
+<tt>double [4][4]</tt> value to use.   To fix this, you can write some extra C helper
+functions.  Just use the <tt>%inline</tt> directive. For example:
+
+<blockquote>
+<pre>
+%inline %{
+/* Note: double[4][4] is equivalent to a pointer to an array double (*)[4] */
+double (*new_mat44())[4] {
+   return (double (*)[4]) malloc(16*sizeof(double));
+}
+void free_mat44(double (*x)[4]) {
+   free(x);
+}
+void mat44_set(double x[4][4], int i, int j, double v) {
+   x[i][j] = v;
+}
+double mat44_get(double x[4][4], int i, int j) {
+   return x[i][j];
+}
+%}
+</pre>
+</blockquote>
+
+From Java, you could then write code like this:
+
+<blockquote>
+<pre>
+Image im = new Image();
+SWIGTYPE_p_a_4__double a = example.new_mat44();
+example.mat44_set(a,0,0,1.0);
+example.mat44_set(a,1,1,1.0);
+example.mat44_set(a,2,2,1.0);
+...
+example.set_transform(im,a);
+example.free_mat44(a);
+</pre>
+</blockquote>
+
+Admittedly, this is not the most elegant looking approach.  However, it works and it wasn't too
+hard to implement.  It is possible to improve on this using Java code, typemaps, and other
+customization features as covered in later sections, but sometimes helper functions are a quick and easy solution to difficult cases.  
 
 <a name="n29"></a><h3>18.4.3 Class extension with %extend</h3>
 
@@ -2749,7 +2806,7 @@ interfaces (extends) for Java class: empty default
 
 <tt>%typemap(javafinalize)</tt>
 <blockquote>
-the <tt>finalize()</tt> method (proxy classes only): default calls the <tt>_delete()</tt> method
+the <tt>finalize()</tt> method (proxy classes only): default calls the <tt>delete()</tt> method
 </blockquote>
 
 <tt>%typemap(javagetcptr)</tt>
@@ -2765,7 +2822,7 @@ In summary the contents of the typemaps make up a proxy class like this:
 [ javamodifiers typemap ] class proxyclassname extends [ javabase typemap ] implements [ javainterfaces typemap ] {
 [ javafinalize typemap ]
 ... SWIG generated constructors ...
-... SWIG generated _delete() method  ...
+... SWIG generated delete() method  ...
 [ javagetcptr typemap ]
 [ javacode typemap ]
 ... proxy functions ...
@@ -3331,7 +3388,7 @@ Java classes without any finalizers generally speed up code execution as there i
 %typemap(javafinalize) SWIGTYPE ""
 </pre></blockquote>
 
-However, you will have to be careful about memory management and make sure that you code in a call to the <tt>_delete()</tt> member function to free up the C/C++ object memory. This method calls the C++ destructor or <tt>free()</tt> for C code.
+However, you will have to be careful about memory management and make sure that you code in a call to the <tt>delete()</tt> member function to free up the C/C++ object memory. This method calls the C++ destructor or <tt>free()</tt> for C code.
 <p>
 
 If performance is really critical you can use the low-level functional interface which eliminates some of the overhead of going through the proxy classes (at the expense of coding simplicity).<p>
