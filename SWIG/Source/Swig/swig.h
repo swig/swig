@@ -186,6 +186,7 @@ extern void        SwigType_add_array(SwigType *t, String_or_char *size);
 extern void        SwigType_add_reference(SwigType *t);
 extern void        SwigType_add_qualifier(SwigType *t, String_or_char *qual);
 extern void        SwigType_add_function(SwigType *t, ParmList *parms);
+extern SwigType   *SwigType_pop_function(SwigType *t);
 extern List       *SwigType_split(SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
