@@ -1,13 +1,9 @@
+/* -*- c-indentation-style: gnu -*- */
 /******************************************************************************
  * Simplified Wrapper and Interface Generator  (SWIG)
  *
- * Author : David Beazley
- *
- * Department of Computer Science
- * University of Chicago
- * 1100 E 58th Street
- * Chicago, IL  60637
- * beazley@cs.uchicago.edu
+ * Author : Art Yerkes
+ * Modified from mzscheme.cxx : David Beazley
  *
  * Please read the file LICENSE for the copyright and terms by which SWIG
  * can be used and distributed.
@@ -64,13 +60,14 @@ static char *mltypes =
 "exception NotEnumType of c_obj\n"
 "exception LabelNotFromThisEnum of c_obj\n";
 static char *mllib = 
-"let fnhelper f arg =\n"
+"let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)\n"
+"let fnhelper fin f arg =\n"
 "  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in\n"
 "  match f args with\n"
 "    [] -> C_void\n"
-"  | [ x ] -> x\n"
+"  | [ x ] -> (if fin then Gc.finalise "
+"(fun x -> ignore ((invoke x) \"~\" C_void)) x) ; x\n"
 "  | lst -> C_list lst\n"
-"let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)\n"
 "let rec get_int x = \n"
 "  match x with\n"
 "    C_char c\n"
@@ -96,6 +93,7 @@ static char *mlilib =
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
+static int static_member_function = 0;
 static char *prefix=0;
 static String *classname=0;
 static String *module=0;
@@ -244,14 +242,7 @@ public:
 	    "#ifdef __cplusplus\n"
 	    "extern \"C\"\n"
 	    "#endif\n"
-	    "value _%s_set_delete_fn( value v, value f ) {\n"
-	    "  CAMLparam2(v,f);\n"
-	    "  struct custom_block_contents *new_proxy = \n"
-	    "    (struct custom_block_contents *)(Data_custom_val(v));\n"
-	    "  if( new_proxy->delete_fn )\n"
-	    "    free(new_proxy->delete_fn);\n"
-	    "  new_proxy->delete_fn = strdup(String_val(f));\n"
-	    "  CAMLreturn(Val_unit);\n"
+	    "value _delete_any_%s( value v, value f ) {\n"
 	    "}\n", module );
     
     Printf(f_enumtypes_type,"type c_enum_type = [ \n  `unknown\n" );
@@ -300,6 +291,9 @@ public:
     Dump(f_enumtypes_type,f_mlout);
     Dump(f_enumtypes_value,f_mlout);
     Printv(f_mlout,mltypes,NIL);
+    Printv(f_mlout,
+	   "external _delete_any : 'a -> unit = \"_delete_any_",module,"\"\n",
+	   NIL);
     Printv(f_mlout,mllib,NIL);
     Dump(f_mlbody,f_mlout);
     Dump(f_enum_to_int,f_mlout);
@@ -360,6 +354,7 @@ public:
     int i = 0;
     int numargs;
     int numreq;
+    int newobj = Getattr(n,"feature:new") ? 1 : 0;
     String *overname = 0;
 
     // Make a wrapper name for this
@@ -379,44 +374,43 @@ public:
     String *mangled_name = mangleNameForCaml(proc_name);
 
     if( classmode && in_constructor ) { // Emit constructor for object
-	String *mangled_name_nounder = 
-	    NewString((char *)(Char(mangled_name))+1);
-	Printf( f_class_ctors_end,
-	        "let _ = Callback.register \"create_%s_from_ptr\" "
-	        "create_%s_from_ptr\n"
-	        "let %s clst = _%s clst\n",
-	        classname, classname,
-	        mangled_name_nounder, mangled_name_nounder );
-	Printf(f_mlibody, 
-	       "val %s : c_obj -> c_obj\n",
-	        mangled_name_nounder );
-	Delete(mangled_name_nounder);
-    }
-
-    if( classmode && !in_constructor && !in_destructor) {
-	String *opname = Copy(Getattr(n,"name"));
+      String *mangled_name_nounder = 
+	NewString((char *)(Char(mangled_name))+1);
+      Printf( f_class_ctors_end,
+	      "let %s clst = _%s clst\n",
+	      mangled_name_nounder, mangled_name_nounder );
+      Printf(f_mlibody, 
+	     "val %s : c_obj -> c_obj\n",
+	     mangled_name_nounder );
+      Delete(mangled_name_nounder);
+    } else if( classmode && in_destructor ) {
+      Printf(f_class_ctors,
+	     "    \"~\", %s ;\n", mangled_name );
+    } else if( (classmode && !in_constructor && !in_destructor) ||
+	!static_member_function ) {
+      String *opname = Copy(Getattr(n,"name"));
 	
-	Replaceall(opname,"operator ","");
+      Replaceall(opname,"operator ","");
 
-	if( strstr( Char(mangled_name), "_get" ) ) {
-	    Printf(f_class_ctors,
-		   "    \"%s_get\", %s ;\n",
-		   opname, mangled_name );
-	} else if( strstr( Char(mangled_name), "_set" ) ) {
-	    Printf(f_class_ctors,
-		   "    \"%s_set\", %s ;\n",
-		   opname, mangled_name);
-	} else {
-	    Printf(f_class_ctors,
-		   "    \"%s\", %s ;\n",
-		   opname, mangled_name);
-	}
+      if( strstr( Char(mangled_name), "_get" ) ) {
+	Printf(f_class_ctors,
+	       "    \"%s_get\", %s ;\n",
+	       opname, mangled_name );
+      } else if( strstr( Char(mangled_name), "_set" ) ) {
+	Printf(f_class_ctors,
+	       "    \"%s_set\", %s ;\n",
+	       opname, mangled_name);
+      } else {
+	Printf(f_class_ctors,
+	       "    \"%s\", %s ;\n",
+	       opname, mangled_name);
+      }
 
-	Delete(opname);
-    }
+      Delete(opname);
+    } 
 
     if( classmode && in_constructor ) {
-	Setattr(seen_constructors,mangled_name,"true");
+      Setattr(seen_constructors,mangled_name,"true");
     }
 
     // writing the function wrapper function
@@ -467,47 +461,47 @@ public:
     // Now write code to extract the parameters (this is super ugly)
     
     for (i = 0, p = l; i < numargs; i++) {
-	/* Skip ignored arguments */
-	while (checkAttribute(p,"tmap:in:numinputs","0")) {
-	    p = Getattr(p,"tmap:in:next");
-	}
+      /* Skip ignored arguments */
+      while (checkAttribute(p,"tmap:in:numinputs","0")) {
+	p = Getattr(p,"tmap:in:next");
+      }
 
-	SwigType *pt = Getattr(p,"type");
-	String   *ln = Getattr(p,"lname");
+      SwigType *pt = Getattr(p,"type");
+      String   *ln = Getattr(p,"lname");
 	
-	// Produce names of source and target
-	Clear(source);
-	Clear(target);
-	Clear(arg);
-	Printf(source, "caml_list_nth(args,%d)", i);
-	Printf(target, "%s",ln);
-	Printv(arg, Getattr(p,"name"),NIL);
+      // Produce names of source and target
+      Clear(source);
+      Clear(target);
+      Clear(arg);
+      Printf(source, "caml_list_nth(args,%d)", i);
+      Printf(target, "%s",ln);
+      Printv(arg, Getattr(p,"name"),NIL);
 	
-	if (i >= numreq) {
-	    Printf(f->code,"if (caml_list_length(args) > %d) {\n",i);
-	}
-	// Handle parameter types.
-	if ((tm = Getattr(p,"tmap:in"))) {
-	    Replaceall(tm,"$source",source);
-	    Replaceall(tm,"$target",target);
-	    Replaceall(tm,"$input",source);
-	    Setattr(p,"emit:input",source);
-	    Printv(f->code, tm, "\n", NIL);
-	    p = Getattr(p,"tmap:in:next");
-	} else {
-	    // no typemap found
-	    // check if typedef and resolve
-	    throw_unhandled_ocaml_type_error (pt);
-	    p = nextSibling(p);
-	}
-	if (i >= numreq) {
-	    Printf(f->code,"}\n");
-	}
+      if (i >= numreq) {
+	Printf(f->code,"if (caml_list_length(args) > %d) {\n",i);
+      }
+      // Handle parameter types.
+      if ((tm = Getattr(p,"tmap:in"))) {
+	Replaceall(tm,"$source",source);
+	Replaceall(tm,"$target",target);
+	Replaceall(tm,"$input",source);
+	Setattr(p,"emit:input",source);
+	Printv(f->code, tm, "\n", NIL);
+	p = Getattr(p,"tmap:in:next");
+      } else {
+	// no typemap found
+	// check if typedef and resolve
+	throw_unhandled_ocaml_type_error (pt);
+	p = nextSibling(p);
+      }
+      if (i >= numreq) {
+	Printf(f->code,"}\n");
+      }
     }
     
     /* Insert constraint checking code */
     for (p = l; p;) {
-	if ((tm = Getattr(p,"tmap:check"))) {
+      if ((tm = Getattr(p,"tmap:check"))) {
 	Replaceall(tm,"$target",Getattr(p,"lname"));
 	Printv(f->code,tm,"\n",NIL);
 	p = Getattr(p,"tmap:check:next");
@@ -600,56 +594,61 @@ public:
     Wrapper_print(f, f_wrappers);
 
     if( Getattr(n,"sym:overloaded") ) {
-	if( !Getattr(n,"sym:nextSibling") ) {
-	    int maxargs;
-	    Wrapper *df = NewWrapper();
-	    String *dname = Swig_name_wrapper(iname);
-	    String *dispatch = 
-		Swig_overload_dispatch(n,"CAMLreturn(%s(args));\n",&maxargs);
+      if( !Getattr(n,"sym:nextSibling") ) {
+	int maxargs;
+	Wrapper *df = NewWrapper();
+	String *dname = Swig_name_wrapper(iname);
+	String *dispatch = 
+	  Swig_overload_dispatch(n,"CAMLreturn(%s(args));\n",&maxargs);
 
-	    Wrapper_add_local(df, "argv", "value *argv");
+	Wrapper_add_local(df, "argv", "value *argv");
 
-	    Printv(df->def,
-		   "#ifdef __cplusplus\n"
-		   "extern \"C\"\n"
-		   "#endif\n"
-		   "value ",dname,"(value args) {\n"
-		   "  CAMLparam1(args);\n"
-		   "  int i;\n"
-		   "  int argc = caml_list_length(args);\n",NIL);
-	    Printv( df->code,
-		    "argv = (value *)malloc( argc * sizeof( value ) );\n"
-		    "for( i = 0; i < argc; i++ ) {\n"
-		    "  argv[i] = caml_list_nth(args,i);\n"
-		    "  register_global_root( &argv[i] );\n"
-		    "}\n", NIL );
-	    Printv(df->code,dispatch,"\n",NIL);
-	    Printf(df->code,"failwith(\"No matching function for overloaded '%s'\");\n", iname);
-	    Printv(df->code,"}\n",NIL);
-	    Wrapper_print(df,f_wrappers);
+	Printv(df->def,
+	       "#ifdef __cplusplus\n"
+	       "extern \"C\"\n"
+	       "#endif\n"
+	       "value ",dname,"(value args) {\n"
+	       "  CAMLparam1(args);\n"
+	       "  int i;\n"
+	       "  int argc = caml_list_length(args);\n",NIL);
+	Printv( df->code,
+		"argv = (value *)malloc( argc * sizeof( value ) );\n"
+		"for( i = 0; i < argc; i++ ) {\n"
+		"  argv[i] = caml_list_nth(args,i);\n"
+		"  register_global_root( &argv[i] );\n"
+		"}\n", NIL );
+	Printv(df->code,dispatch,"\n",NIL);
+	Printf(df->code,"failwith(\"No matching function for overloaded '%s'\");\n", iname);
+	Printv(df->code,"}\n",NIL);
+	Wrapper_print(df,f_wrappers);
 
-	    Printf(f_mlbody, 
-		   "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
-		   "let %s = fnhelper %s_f\n",
-		   mangled_name, wname, mangled_name, mangled_name );
-	    if( !classmode || in_constructor || in_destructor ) 
-		Printf(f_mlibody,
-		       "(* overload *)\n"
-		       "val %s : c_obj -> c_obj\n", mangled_name );
-
-	    DelWrapper(df);
-	    Delete(dispatch);
-	    Delete(dname);
-	}
-    } else {
 	Printf(f_mlbody, 
 	       "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
-	       "let %s = fnhelper %s_f\n",
-	       mangled_name, wname, mangled_name, mangled_name );
-	if( !classmode || in_constructor || in_destructor ) 
-	    Printf(f_mlibody,
-		   "(* Non-overload *)\n"
-		   "val %s : c_obj -> c_obj\n", mangled_name );
+	       "let %s = fnhelper %s %s_f\n",
+	       mangled_name, wname, mangled_name, 
+	       newobj ? "true" : "false",
+	       mangled_name );
+	if( !classmode || in_constructor || in_destructor ||
+	    static_member_function ) 
+	  Printf(f_mlibody,
+		 "(* overload *)\n"
+		 "val %s : c_obj -> c_obj\n", mangled_name );
+
+	DelWrapper(df);
+	Delete(dispatch);
+	Delete(dname);
+      }
+    } else {
+      Printf(f_mlbody, 
+	     "external %s_f : c_obj list -> c_obj list = \"%s\"\n"
+	     "let %s = fnhelper %s %s_f\n",
+	     mangled_name, wname, mangled_name, newobj ? "true" : "false", 
+	     mangled_name );
+      if( !classmode || in_constructor || in_destructor ||
+	  static_member_function ) 
+	Printf(f_mlibody,
+	       "(* Non-overload *)\n"
+	       "val %s : c_obj -> c_obj\n", mangled_name );
     }
    
     Delete(proc_name);
@@ -674,109 +673,121 @@ public:
    * value.
    * ------------------------------------------------------------ */
 
-    virtual int variableWrapper(Node *n)  {
+  virtual int variableWrapper(Node *n)  {
 	
-	char *name  = GetChar(n,"name");
-	char *iname = GetChar(n,"sym:name");
-	SwigType *t = Getattr(n,"type");
+    char *name  = GetChar(n,"name");
+    char *iname = GetChar(n,"sym:name");
+    SwigType *t = Getattr(n,"type");
 	
-	String *proc_name = NewString("");
-	char  var_name[256];
-	String *tm;
-	String *tm2 = NewString("");;
-	String *argnum = NewString("0");
-	String *arg = NewString("Field(args,0)");
-	Wrapper *f;
+    String *proc_name = NewString("");
+    char  var_name[256];
+    String *tm;
+    String *tm2 = NewString("");;
+    String *argnum = NewString("0");
+    String *arg = NewString("Field(args,0)");
+    Wrapper *f;
 	
-	if (!addSymbol(iname,n)) return SWIG_ERROR;
+    if (!addSymbol(iname,n)) return SWIG_ERROR;
 	
-	f = NewWrapper();
+    f = NewWrapper();
 	
-	// evaluation function names
+    // evaluation function names
 	
-	strcpy(var_name, Char(Swig_name_wrapper(iname)));
+    strcpy(var_name, Char(Swig_name_wrapper(iname)));
 	
-	// Build the name for scheme.
-	Printv(proc_name, iname,NIL);
-	//Replaceall(proc_name, "_", "-");
+    // Build the name for scheme.
+    Printv(proc_name, iname,NIL);
+    //Replaceall(proc_name, "_", "-");
 	
-	if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
+    if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 	    
-	    Printf (f->def, 
-		    "#ifdef __cplusplus\n"
-		    "extern \"C\"\n"
-		    "#endif\n"
-		    "value %s(value args) {\n", var_name);
-	    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
+      Printf (f->def, 
+	      "#ifdef __cplusplus\n"
+	      "extern \"C\"\n"
+	      "#endif\n"
+	      "value %s(value args) {\n", var_name);
+      Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 	    
-	    Wrapper_add_local (f, "swig_result", "value swig_result");
+      Wrapper_add_local (f, "swig_result", "value swig_result");
 	    
-	    if (!Getattr(n,"feature:immutable")) {
-		/* Check for a setting of the variable value */
-		Printf (f->code, "if (args != Val_int(0)) {\n");
-		if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
-		    Replaceall(tm,"$source","args");
-		    Replaceall(tm,"$target",name);
-		    Replaceall(tm,"$input","args");
-		    Printv(f->code, tm, "\n",NIL);
-		} else {
-		    throw_unhandled_ocaml_type_error (t);
-		}
-		Printf (f->code, "}\n");
-	    }
-	    
-	    // Now return the value of the variable (regardless
-	    // of evaluating or setting)
-	    
-	    if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
-		Replaceall(tm,"$source",name);
-		Replaceall(tm,"$target","swig_result");
-		Replaceall(tm,"$result","swig_result");
-		Printf (f->code, "%s\n", tm);
-	    } else {
-		throw_unhandled_ocaml_type_error (t);
-	    }
-	    
-	    Printf (f->code, "\nreturn swig_result;\n");
-	    Printf (f->code, "#undef FUNC_NAME\n");
-	    Printf (f->code, "}\n");
-	    
-	    Wrapper_print (f, f_wrappers);
-	    
-	    // Now add symbol to the Ocaml interpreter
-	    
-	    if( Getattr( n, "feature:immutable" ) ) {
-		Printf( f_mlbody, 
-			"external __%s : c_obj -> c_obj = \"%s\"\n"
-			"let _%s = __%s C_void\n",
-			iname, var_name, iname, iname );
-		Printf( f_mlibody, "val _%s : c_obj\n", iname );
-		if( const_enum ) {
-		    Printf( f_enum_to_int, 
-			    " | `%s -> _%s\n", 
-			    iname, iname );
-		    Printf( f_int_to_enum, 
-			    " if y = (get_int _%s) then `%s else\n",
-			    iname, iname );
-		}
-	    } else {
-		Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-			iname, var_name );
-		Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
-			iname, var_name );
-	    }
+      if (!Getattr(n,"feature:immutable")) {
+	/* Check for a setting of the variable value */
+	Printf (f->code, "if (args != Val_int(0)) {\n");
+	if ((tm = Swig_typemap_lookup_new("varin",n,name,0))) {
+	  Replaceall(tm,"$source","args");
+	  Replaceall(tm,"$target",name);
+	  Replaceall(tm,"$input","args");
+	  Printv(f->code, tm, "\n",NIL);
 	} else {
-	    Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
-			 "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
+	  throw_unhandled_ocaml_type_error (t);
 	}
-
-	Delete(proc_name);
-	Delete(argnum);
-	Delete(arg);
-	Delete(tm2);
-	DelWrapper(f);
-	return SWIG_OK;
+	Printf (f->code, "}\n");
+      }
+	    
+      // Now return the value of the variable (regardless
+      // of evaluating or setting)
+	    
+      if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
+	Replaceall(tm,"$source",name);
+	Replaceall(tm,"$target","swig_result");
+	Replaceall(tm,"$result","swig_result");
+	Printf (f->code, "%s\n", tm);
+      } else {
+	throw_unhandled_ocaml_type_error (t);
+      }
+	    
+      Printf (f->code, "\nreturn swig_result;\n");
+      Printf (f->code, "#undef FUNC_NAME\n");
+      Printf (f->code, "}\n");
+	    
+      Wrapper_print (f, f_wrappers);
+	    
+      // Now add symbol to the Ocaml interpreter
+	    
+      if( Getattr( n, "feature:immutable" ) ) {
+	Printf( f_mlbody, 
+		"external __%s : c_obj -> c_obj = \"%s\"\n"
+		"let _%s = __%s C_void\n",
+		iname, var_name, iname, iname );
+	Printf( f_mlibody, "val _%s : c_obj\n", iname );
+	if( const_enum ) {
+	  Printf( f_enum_to_int, 
+		  " | `%s -> _%s\n", 
+		  iname, iname );
+	  Printf( f_int_to_enum, 
+		  " if y = (get_int _%s) then `%s else\n",
+		  iname, iname );
+	}
+      } else {
+	Printf( f_mlbody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+		iname, var_name );
+	Printf( f_mlibody, "external _%s : c_obj -> c_obj = \"%s\"\n",
+		iname, var_name );
+      }
+    } else {
+      Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number,
+		   "Unsupported variable type %s (ignored).\n", SwigType_str(t,0));
     }
+
+    Delete(proc_name);
+    Delete(argnum);
+    Delete(arg);
+    Delete(tm2);
+    DelWrapper(f);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * staticmemberfunctionHandler --
+   * Overridden to set static_member_function 
+   * ------------------------------------------------------------ */
+
+  virtual int staticmemberfunctionHandler( Node *n ) {
+    int rv;
+    static_member_function = 1;
+    rv = Language::staticmemberfunctionHandler( n );
+    static_member_function = 0;
+  }
 
   /* ------------------------------------------------------------
    * constantWrapper()
@@ -889,148 +900,154 @@ public:
     return 1;
   }
 
-    int constructorHandler(Node *n) {
-	int ret;
+  int constructorHandler(Node *n) {
+    int ret;
 
-	in_constructor = 1;
-	ret = Language::constructorHandler(n);
-	in_constructor = 0;
+    in_constructor = 1;
+    ret = Language::constructorHandler(n);
+    in_constructor = 0;
 
-	return ret;
-    }
+    return ret;
+  }
 
-    int destructorHandler(Node *n) {
-	int ret;
+  int destructorHandler(Node *n) {
+    int ret;
 
-	in_destructor = 1;
-	ret = Language::destructorHandler(n);
-	in_destructor = 0;
+    in_destructor = 1;
+    ret = Language::destructorHandler(n);
+    in_destructor = 0;
 	    
-	return ret;
-    }
+    return ret;
+  }
 
-    int copyconstructorHandler(Node *n) {
-	int ret;
+  int copyconstructorHandler(Node *n) {
+    int ret;
 
-	in_copyconst = 1;
-	in_constructor = 1;
-	ret = Language::copyconstructorHandler(n);
-	in_constructor = 0;
-	in_copyconst = 0;
+    in_copyconst = 1;
+    in_constructor = 1;
+    ret = Language::copyconstructorHandler(n);
+    in_constructor = 0;
+    in_copyconst = 0;
 
-	return ret;
-    }
+    return ret;
+  }
 
-    int classHandler( Node *n ) {
-	String *name = Getattr(n,"name");
-	String *mangled_sym_name = mangleNameForCaml(name);
+  int classHandler( Node *n ) {
+    String *name = Getattr(n,"name");
+    String *mangled_sym_name = mangleNameForCaml(name);
 
-	if( !name ) return SWIG_OK;
+    if( !name ) return SWIG_OK;
 
-	classname = mangled_sym_name;
+    classname = mangled_sym_name;
 
-	Printf(f_class_ctors,
-	       "let create_%s_from_ptr raw_ptr =\n"
-	       "  C_obj (let rec method_table = [\n"
-	       "    \"nop\", (fun args -> C_void) ;\n", 
-	       mangled_sym_name );
-	Printf(f_mlibody,
-	       "val create_%s_from_ptr : c_obj -> c_obj\n",
-	       mangled_sym_name );
+    Printf( f_class_ctors,
+	    "let create_%s_from_ptr raw_ptr =\n"
+	    "  C_obj (let rec method_table = [\n"
+	    "    \"nop\", (fun args -> C_void) ;\n",
+	    classname );
 
-	classmode = 1;
-	int rv = Language::classHandler(n);
-	classmode = 0;
+    Printf( f_mlibody,
+	    "val create_%s_from_ptr : c_obj -> c_obj\n",
+	    classname );
+
+    classmode = 1;
+    int rv = Language::classHandler(n);
+    classmode = 0;
 
 #if 0
-	Printf(f_mlibody, 
-	       "val delete_%s : c_obj -> unit\n",
-	       mangled_sym_name );
+    Printf(f_mlibody, 
+	   "val delete_%s : c_obj -> unit\n",
+	   mangled_sym_name );
 #endif
 
-	Printf(f_class_ctors,
-	       "    \"&\", (fun args -> raw_ptr) ;\n"
-	       "    \":classof\", (fun args -> (C_string \"%s\")) ;\n"
-	       "    \":methods\", "
-	       "(fun args -> C_list (List.map (fun (x,y) -> C_string x) "
-	       "method_table)) ] in\n"
-	       "  (fun mth arg ->\n"
-	       "    try\n"
-	       "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
-	       "        application \n"
-	       "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | v -> (C_list [ raw_ptr ; v ]))\n"
-	       "    with _ -> raise (BadMethodName (raw_ptr,mth))))\n",
-	       name );
-	
-	return rv;
-    }
+    Printf(f_class_ctors,
+	   "    \"&\", (fun args -> raw_ptr) ;\n"
+	   "    \":classof\", (fun args -> (C_string \"%s\")) ;\n"
+	   "    \":methods\", "
+	   "(fun args -> C_list (List.map (fun (x,y) -> C_string x) "
+	   "method_table)) ] in\n"
+	   "  (fun mth arg ->\n"
+	   "    try\n"
+	   "      let method_name,application = List.hd (List.filter (fun (x,y) -> x = mth) method_table) in\n"
+	   "        application \n"
+	   "          (match arg with C_list l -> (C_list (raw_ptr :: l)) | v -> (C_list [ raw_ptr ; v ]))\n"
+	   "    with _ -> raise (BadMethodName (raw_ptr,mth))))\n",
+	   name );
 
-    String *mangleNameForCaml( String *s ) {
-	String *out = Copy(s);
-	Replaceall(out," ","_");
-	Replaceall(out,"::","_");
-	Replaceall(out,",","_x_");
-	Replaceall(out,"+","__plus__");
-	Replaceall(out,"-","__minus__");
-	Replaceall(out,"<","__ldbrace__");
-	Replaceall(out,">","__rdbrace__");
-	Replaceall(out,"!","__not__");
-	Replaceall(out,"%","__mod__");
-	Replaceall(out,"^","__xor__");
-	Replaceall(out,"*","__star__");
-	Replaceall(out,"&","__amp__");
-	Replaceall(out,"|","__or__");
-	Replaceall(out,"(","__lparen__");
-	Replaceall(out,")","__rparen__");
-	Replaceall(out,"[","__lbrace__");
-	Replaceall(out,"]","__rbrace__");
-	Replaceall(out,"~","__bnot__");
-	Replaceall(out,"=","__equals__");
-	Replaceall(out,"/","__slash__");
-	return out;
-    }
+    Printf( f_class_ctors,
+	    "let _ = Callback.register \"create_%s_from_ptr\" "
+	    "create_%s_from_ptr\n",
+	    classname, classname );
+
+    return rv;
+  }
+
+  String *mangleNameForCaml( String *s ) {
+    String *out = Copy(s);
+    Replaceall(out," ","_");
+    Replaceall(out,"::","_");
+    Replaceall(out,",","_x_");
+    Replaceall(out,"+","__plus__");
+    Replaceall(out,"-","__minus__");
+    Replaceall(out,"<","__ldbrace__");
+    Replaceall(out,">","__rdbrace__");
+    Replaceall(out,"!","__not__");
+    Replaceall(out,"%","__mod__");
+    Replaceall(out,"^","__xor__");
+    Replaceall(out,"*","__star__");
+    Replaceall(out,"&","__amp__");
+    Replaceall(out,"|","__or__");
+    Replaceall(out,"(","__lparen__");
+    Replaceall(out,")","__rparen__");
+    Replaceall(out,"[","__lbrace__");
+    Replaceall(out,"]","__rbrace__");
+    Replaceall(out,"~","__bnot__");
+    Replaceall(out,"=","__equals__");
+    Replaceall(out,"/","__slash__");
+    return out;
+  }
     
-    /* Benedikt Grundmann inspired --> Enum wrap styles */
+  /* Benedikt Grundmann inspired --> Enum wrap styles */
 
-    int enumvalueDeclaration(Node *n) {
-	String *name = Getattr(n,"name");
+  int enumvalueDeclaration(Node *n) {
+    String *name = Getattr(n,"name");
 
-	if( const_enum && name && !Getattr(seen_enumvalues,name) ) {
-	    Printf( f_enumtypes_value,"| `%s\n", name );
-	    Setattr(seen_enumvalues,name,"true");
-	    Setattr(n,"feature:immutable","1");
+    if( const_enum && name && !Getattr(seen_enumvalues,name) ) {
+      Printf( f_enumtypes_value,"| `%s\n", name );
+      Setattr(seen_enumvalues,name,"true");
+      Setattr(n,"feature:immutable","1");
 
-	    return constantWrapper(n);
-	} else return SWIG_OK;
+      return constantWrapper(n);
+    } else return SWIG_OK;
+  }
+
+  int enumDeclaration(Node *n) {
+    String *name = Getattr(n,"name");
+
+    if( name && !Getattr(seen_enums,name) ) {
+      const_enum = 1;
+      Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", name );
+      Printf( f_int_to_enum, "| `%s -> C_enum (\n", name );
+      Printf( f_mlbody, 
+	      "let _ = Callback.register \"%s_marker\" (`%s)\n",
+	      name, name );
+      Printf( f_enumtypes_type,"| `%s\n", name );
+      Setattr(seen_enumvalues,name,"true");
     }
 
-    int enumDeclaration(Node *n) {
-	String *name = Getattr(n,"name");
-
-	if( name && !Getattr(seen_enums,name) ) {
-	    const_enum = 1;
-	    Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", name );
-	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", name );
-	    Printf( f_mlbody, 
-		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
-		    name, name );
-	    Printf( f_enumtypes_type,"| `%s\n", name );
-	    Setattr(seen_enumvalues,name,"true");
-	}
-
-	int ret = Language::enumDeclaration(n);
+    int ret = Language::enumDeclaration(n);
 	
-	if( const_enum ) {
-	    Printf( f_int_to_enum, "`int y)\n", name );
-	    Printf( f_enum_to_int, 
-		    "| `int (x : int) -> C_int x\n"
-		    "| _ -> raise (Failure \"Unknown enum tag\"))\n" );
-	}
-
-	const_enum = 0;
-	
-	return ret;
+    if( const_enum ) {
+      Printf( f_int_to_enum, "`int y)\n", name );
+      Printf( f_enum_to_int, 
+	      "| `int (x : int) -> C_int x\n"
+	      "| _ -> raise (Failure \"Unknown enum tag\"))\n" );
     }
+
+    const_enum = 0;
+	
+    return ret;
+  }
 };
   
 /* -------------------------------------------------------------------------
@@ -1041,5 +1058,4 @@ extern "C" Language *
 swig_ocaml(void) {
   return new OCAML();
 }
-
 
