@@ -39,9 +39,7 @@ extern  DOH       *f_header;                        // Headers
 extern  DOH       *f_wrappers;                      // Wrappers
 extern  DOH       *f_init;                          // Initialization code
 extern  FILE      *f_input;
-extern  char      InitName[256];
 extern  char      LibDir[512];                      // Library directory
-//extern  char     **InitNames;                       // List of other init functions
 extern  int       Status;                           // Variable creation status
 extern  int       yyparse();
 extern  int       line_number;
@@ -87,7 +85,7 @@ struct Pragma {
   Pragma  *next;
 };
 
-/* Real Language Class */
+/* Language Class */
 class Language {
 public:
   virtual void parse_args(int argc, char *argv[]) = 0;
