@@ -23,6 +23,8 @@ SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, swig_type_info *);
 SWIGEXPORT(Tcl_Obj *) SWIG_NewPackedObj(void *, int sz, swig_type_info *);
 SWIGEXPORT(int)       SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
 SWIGEXPORT(char *)    SWIG_PointerTypeFromString(char *c);
+SWIGEXPORT(void)      SWIG_Acquire(void *ptr);
+SWIGEXPORT(int)       SWIG_Disown(void *ptr);
 #else
 
 /* Pack binary data into a string */
@@ -270,6 +272,37 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
     va_end(ap);
     return TCL_ERROR;
   }
+}
+
+/* Object support */
+static Tcl_HashTable  swigobjectTable;
+static int            swigobjectTableinit = 0;
+
+/* Acquire ownership of a pointer */
+SWIGRUNTIME(void)
+SWIG_Acquire(void *ptr)
+{
+  Tcl_HashEntry *entryPtr;
+  int newobj;
+  if (!swigobjectTableinit) {
+    Tcl_InitHashTable(&swigobjectTable, TCL_ONE_WORD_KEYS);
+    swigobjectTableinit = 1;
+  }
+  entryPtr = Tcl_CreateHashEntry(&swigobjectTable, (char *) ptr, &newobj);
+}
+
+/* Disown a pointer.  Returns 1 if we owned it to begin with */
+SWIGRUNTIME(int)
+SWIG_Disown(void *ptr)
+{
+  Tcl_HashEntry *entryPtr;
+  if (!swigobjectTableinit) return 0;
+  entryPtr = Tcl_FindHashEntry(&swigobjectTable, (char *) ptr);
+  if (entryPtr) {
+    Tcl_DeleteHashEntry(entryPtr);
+    return 1;
+  } 
+  return 0;
 }
 
 #endif

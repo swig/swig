@@ -35,13 +35,15 @@ typedef struct swig_instance {
 
 static void SwigObjectDelete(ClientData clientData) {
   swig_instance *si = (swig_instance *) clientData;
-  if (si->destroy) {
-    if (si->classptr->destructor) {
-      (si->classptr->destructor)(si->thisvalue);
+  if (si) {
+    if ((si->destroy) && (SWIG_Disown(si->thisvalue))) {
+      if (si->classptr->destructor) {
+	(si->classptr->destructor)(si->thisvalue);
+      }
     }
+    Tcl_DecrRefCount(si->thisptr);
+    free(si);
   }
-  Tcl_DecrRefCount(si->thisptr);
-  free(si);
 }
 
 /* Function to invoke object methods given an instance */
@@ -65,6 +67,16 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     return TCL_ERROR;
   }
   method = Tcl_GetStringFromObj(objv[1],NULL);
+  if (strcmp(method,"acquire") == 0) {
+    inst->destroy = 1;
+    SWIG_Acquire(inst->thisvalue);
+    return TCL_OK;
+  } 
+  if (strcmp(method,"disown") == 0) {
+    inst->destroy = 0;
+    SWIG_Disown(inst->thisvalue);
+    return TCL_OK;
+  }
   cls = inst->classptr;
   while (cls) {
     meth = cls->methods;
@@ -105,8 +117,6 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	Tcl_SetObjResult(interp, Tcl_DuplicateObj(inst->thisptr));
 	return TCL_OK;
       }
-      /*      Tcl_SetResult(interp, (char *) "Invalid attribute.", TCL_STATIC);
-	      return TCL_ERROR; */
     } else if (strcmp(method, "configure") == 0) {
       int i;
       if (objc < 4) {
@@ -131,11 +141,6 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	  attr++;
 	}
 	i+=2;
-	/*	if (cls->attributes && !(attr->name)) {
-	  Tcl_SetResult(interp, (char *) "Invalid attribute name.", TCL_STATIC);
-	  return TCL_ERROR;
-	}
-	*/
       }
     }
     cls = inst->classptr->bases[bi++];
@@ -151,7 +156,8 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
   if (strcmp(method,"cget") == 0) {
       Tcl_SetResult(interp,(char *) "Invalid attribute name.", TCL_STATIC);
       return TCL_ERROR;
-  }    
+  }
+
   Tcl_SetResult(interp, (char *) "Invalid method. Must be one of: configure cget ", TCL_STATIC);
   cls = inst->classptr;
   bi = 0;
@@ -164,6 +170,20 @@ SwigMethodCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     cls = inst->classptr->bases[bi++];
   }
   return TCL_ERROR;
+}
+
+/* This function takes the current result and turns it into an object command */
+
+static int
+SwigObjectCmdResult(Tcl_Interp *interp, swig_class *classptr, void *thisvalue, int destroy) {
+  swig_instance  *newinst = 0;
+  newinst = (swig_instance *) malloc(sizeof(swig_instance));
+  newinst->thisptr = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
+  newinst->thisvalue = thisvalue;
+  newinst->classptr = classptr;
+  newinst->destroy = destroy;
+  Tcl_CreateObjCommand(interp, Tcl_GetStringResult(interp), (swig_wrapper_func) SwigMethodCmd, (ClientData) newinst, (swig_delete_func) SwigObjectDelete);
+  return TCL_OK;
 }
 
 /* Function to create objects */
@@ -229,22 +249,20 @@ SwigObjectCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_SetResult(interp, (char *) "No constructor available.", TCL_STATIC);
       return TCL_ERROR;
     }
-    if (!Tcl_GetCommandInfo(interp,name,&ci)) {
-      if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type)) == TCL_ERROR) {
-	Tcl_DecrRefCount(newObj);
-	return TCL_ERROR;
-      }
-      newinst = (swig_instance *) malloc(sizeof(swig_instance));
-      newinst->thisptr = newObj;
-      Tcl_IncrRefCount(newObj);
-      newinst->thisvalue = thisvalue;
-      newinst->classptr = classptr;
-      newinst->destroy = destroy;
-      Tcl_CreateObjCommand(interp,name, (swig_wrapper_func) SwigMethodCmd, (ClientData) newinst, (swig_delete_func) SwigObjectDelete);
-      return TCL_OK;
-    } else {
-      Tcl_SetResult(interp, (char *) "Object name already exists!", TCL_STATIC);
+    if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type)) == TCL_ERROR) {
+      Tcl_DecrRefCount(newObj);
       return TCL_ERROR;
     }
+    newinst = (swig_instance *) malloc(sizeof(swig_instance));
+    newinst->thisptr = newObj;
+    Tcl_IncrRefCount(newObj);
+    newinst->thisvalue = thisvalue;
+    newinst->classptr = classptr;
+    newinst->destroy = destroy;
+    if (destroy) SWIG_Acquire(thisvalue);
+    Tcl_CreateObjCommand(interp,name, (swig_wrapper_func) SwigMethodCmd, (ClientData) newinst, (swig_delete_func) SwigObjectDelete);
+    return TCL_OK;
 }
+
+
 
