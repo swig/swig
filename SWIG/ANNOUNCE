@@ -1,96 +1,103 @@
-*** ANNOUNCE: SWIG 1.3.12 ***
+*** ANNOUNCE: SWIG 1.3.14 ***
 
 http://www.swig.org
 
-June 17, 2002
+August 12, 2002
 
-We're pleased to announce SWIG 1.3.13, the latest installment in the
-SWIG development effort.  SWIG 1.3.13 is a milestone in the SWIG
-project--it is the first release that features a nearly complete C++
-type system including full support for namespaces, templates, and
-more.  Simply stated, SWIG-1.3.13 is more capable than ever.
+We're pleased to announce SWIG 1.3.14, the latest installment in the
+SWIG development effort.  SWIG-1.3.14 continues to push SWIG's
+support for C++ even further---SWIG now supports overloaded methods,
+smart pointers, and more.
 
 What is SWIG?
 -------------
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
-Guile, and Mzscheme.  Major applications of SWIG include generation of
-scripting language extension modules, rapid prototyping, testing, and
-user interface development for large C/C++ systems.  SWIG has been
-available for more than six years and it is used by thousands of
-developers--primarily in industry and research.
+Guile, Mzscheme, and Ocaml.  Major applications of SWIG include
+generation of scripting language extension modules, rapid prototyping,
+testing, and user interface development for large C/C++ systems.  SWIG
+has been available for more than six years and it is used by thousands
+of developers--primarily in industry and research.
 
-Although several tools appear to be similar to SWIG on the surface,
-SWIG is much more than a simple wrapper generator based on parsing C++
-declarations. In fact, the major advantage of SWIG is that it
-implements the full C++ type system and it is highly customizable.
-This allows SWIG to work with real applications and it allows SWIG to
-better understand the relationship between different program
-modules. Furthermore, there are very few restrictions on what can be
-wrapped by SWIG--in fact, it can generate bindings for nearly every
-C/C++ programming construct.
-
-New Features in 1.3.13
+New Features in 1.3.14
 ----------------------
-* C++ namespace support *
+* C++ overloading support *
 
-SWIG-1.3.13 provides full support for C++ namespaces including all C++
-namespace related declarations (using, namespace aliases, nested
-namespaces, etc.).  Namespace support is fully integrated into the
-type system, typemaps, customization features, and all other parts of
-SWIG.
+C++ overloaded methods and functions now work in most target languages.
+For instance, if you have functions like this:
 
-* Enhanced template support *
+    int foo(int x);
+    int foo(int x, int y);
+    int foo(char *s);
 
-Minimal C++ template support was available in earlier SWIG releases.
-SWIG-1.3.13 builds upon this and provides support for templates,
-member templates, template specialization, and template partial
-specialization.  These features have been used to provide new library
-modules for wrapping C++ strings and STL vectors.  More C++ library
-support will appear in later releases.
+You can call the functions naturally from the target language. For
+instance
 
-* Variable length arguments *
+    >>> foo(3)
+    >>> foo(3,4)
+    >>> foo("hello world")
 
-New directives and support is provided for wrapping C variable length
-argument functions.  
+SWIG supports overloading by generating a dynamic dispatch function
+that picks the appropriate function by examining the types of input
+arguments. The creation of this function does not depend on the
+order of declarations, is fully integrated into the SWIG typemap system,
+and is more powerful than the overloading systems built into 
+similar tools.
 
-* Refined PHP4 Module *
+* C++ Smart pointer support */
 
-Richard Palmer and Sam Lidicott have continued to improve the PHP4
-module.
+If a class implements operator->(), SWIG automatically makes all of
+the members of the returned object available.  For example, if you
+have classes like this:
 
-* Improved support on Cygwin *
+   struct Foo {
+      int x;
+      int blah();
+   }
 
-The Perl, Python, Tcl, Ruby and Java examples run out of the box on 
-Cygwin.
+   struct Bar {
+      int spam();
+      Foo *operator->();
+      ...
+   }
 
-* Warning framework *
+Then you can do things like this:
 
-Most SWIG warning messages can be controlled and error messages have
-been improved.
+   >>> b = Bar()   # Create a bar
+   >>> b.spam()    # Invokes Bar::spam()
+   >>> b.blah()    # Invokes Foo::blah()  (through operator->())
+   >>> b.x = 3     # Modifies Foo::x      (through operator->())
+
+This capability allows SWIG to work with smart-pointer classes.
+Templates are also fully supported.
+
+* Language module improvements *
+
+Many improvements have been made to the language modules.  Examples
+include support for Python 2.2 new-style classes, an improved
+Tcl object interface, changes to PHP and Java object wrapping, and
+more.
+
+* New Modules *
+
+A module for Ocaml has been added.  SWIG is also able to generate XML
+output using an XML module.
 
 * Bug fixes *
 
 Numerous bug fixes in many parts of SWIG. See the CHANGES file for 
 details.
 
-* Updated documentation *
-
-Continued updates of the SWIG Users Manual are included in this
-release. Almost all of the documentation is now up to date with
-SWIG-1.3.13 features.  However, a lot of the old documentation is
-still incomplete.  We're still working on this.
-
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.13.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.14.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.13.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.14.zip
 
 New Development Process
 -----------------------
