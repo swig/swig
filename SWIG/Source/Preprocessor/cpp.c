@@ -20,17 +20,17 @@ static char cvsroot[] = "$Header$";
 #include "preprocessor.h"
 #include <ctype.h>
 
-static DOHHash  *cpp = 0;                /* C preprocessor data */
+static Hash     *cpp = 0;                /* C preprocessor data */
 static int       include_all = 0;        /* Follow all includes */
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       single_include = 1;     /* Only include each file once */
 static int       silent_errors = 0;
 static int       fatal_errors = 0;         
-static DOHHash  *included_files = 0;
+static Hash     *included_files = 0;
 
 /* Handle an error */
 
-static void cpp_error(DOHString *file, int line, char *fmt, ...) {
+static void cpp_error(String *file, int line, char *fmt, ...) {
   va_list ap;
   if (silent_errors) return;
   va_start(ap,fmt);
@@ -64,7 +64,7 @@ isidchar(char c) {
 
 /* Skip whitespace */
 static void
-skip_whitespace(DOH *s, DOH *out) {
+skip_whitespace(File *s, File *out) {
   int c;
   while ((c = Getc(s)) != EOF) {
     if (!isspace(c)) {
@@ -76,7 +76,7 @@ skip_whitespace(DOH *s, DOH *out) {
 
 /* Skip to a specified character taking line breaks into account */
 static int
-skip_tochar(DOHFile *s, int ch, DOHFile *out) {
+skip_tochar(File *s, int ch, File *out) {
   int c;
   while ((c = Getc(s)) != EOF) {
     if (out) Putc(c,out);
@@ -96,8 +96,8 @@ copy_location(DOH *s1, DOH *s2) {
   Setline(s2,Getline(s1));
 }
 
-static DOHString *cpp_include(DOHString_or_char *fn) {
-  DOHString *s;
+static String *cpp_include(String_or_char *fn) {
+  String *s;
   if (single_include) {
     if (Getattr(included_files,fn)) return 0;
     Setattr(included_files,fn,fn);
@@ -116,7 +116,8 @@ static DOHString *cpp_include(DOHString_or_char *fn) {
  * void Preprocessor_cpp_init() - Initialize the preprocessor
  * ----------------------------------------------------------------------------- */
 void Preprocessor_init() {
-  DOHHash *s;
+  extern void Preprocessor_expr_init(void);
+  Hash *s;
   cpp = NewHash();
   s =   NewHash();
   Setattr(cpp,"symbols",s);
@@ -143,11 +144,11 @@ void Preprocessor_import_all(int a) {
  * SWIG macro semantics.
  * ----------------------------------------------------------------------------- */
 
-DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
+Hash *Preprocessor_define(String_or_char *str, int swigmacro)
 {
-  DOHString *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
-  DOHHash   *macro = 0, *symbols = 0, *m1;
-  DOHList   *arglist = 0;
+  String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
+  Hash   *macro = 0, *symbols = 0, *m1;
+  List   *arglist = 0;
   int c, line;
 
   assert(cpp);
@@ -164,8 +165,6 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
   }
   line = Getline(str);
   file = Getfile(str);
-
-  /*     Printf(stdout,"%s:%d '%s'\n", file,line,str); */
 
   /* Skip over any leading whitespace */
   skip_whitespace(str,0);
@@ -276,9 +275,9 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
  *
  * Undefines a macro.
  * ----------------------------------------------------------------------------- */
-void Preprocessor_undef(DOHString_or_char *str)
+void Preprocessor_undef(String_or_char *str)
 {
-  DOH *symbols;
+  Hash *symbols;
   assert(cpp);
   symbols = Getattr(cpp,"symbols");
   Delattr(symbols,str);
@@ -290,11 +289,11 @@ void Preprocessor_undef(DOHString_or_char *str)
  * Isolates macro arguments and returns them in a list.   For each argument,
  * leading and trailing whitespace is stripped (ala K&R, pg. 230).
  * ----------------------------------------------------------------------------- */
-static DOHList *
-find_args(DOHString *s)
+static List *
+find_args(String *s)
 {
-  DOHList   *args;
-  DOHString *str;
+  List   *args;
+  String *str;
   int   c, level;
   long  pos;
 
@@ -368,9 +367,9 @@ find_args(DOHString *s)
  * or bare.
  * ----------------------------------------------------------------------------- */
 
-static DOHString *
-get_filename(DOHString *str) {
-  DOHString *fn;
+static String *
+get_filename(String *str) {
+  String *fn;
   int  c;
 
   skip_whitespace(str,0);
@@ -399,8 +398,8 @@ get_filename(DOHString *str) {
 
 DOH *expanded_value = 0;
 
-static DOHString *
-expand_macro(DOHString_or_char *name, DOHList *args)
+static String *
+expand_macro(String_or_char *name, List *args)
 {
   DOH *symbols, *ns, *macro, *margs, *mvalue, *temp, *tempa, *e;
   DOH *Preprocessor_replace(DOH *);
@@ -506,8 +505,8 @@ expand_macro(DOHString_or_char *name, DOHList *args)
   Delete(ns);
   Delattr(macro,"*expanded*");
   if (Getattr(macro,"swigmacro")) {
-    DOHString *g;
-    DOHString *f = NewString("");
+    String *g;
+    String *f = NewString("");
     /*    Printf(f," %%macro \"%s\",\"%s\",%d\n ", name, Getfile(macro), Getline(macro)); */
     Seek(e,0,SEEK_SET);
     copy_location(macro,e);
@@ -791,7 +790,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Preprocessor_parse(DOH *s)
+ * Preprocessor_parse()
  *
  * Parses the string s.  Returns a new string containing the preprocessed version.
  *
@@ -803,12 +802,13 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
  *           included inline (with all preprocessor directives included).
  * ----------------------------------------------------------------------------- */
 
-DOH *
-Preprocessor_parse(DOH *s)
+String *
+Preprocessor_parse(File *s)
 {
-  DOH   *ns;             /* New string containing the preprocessed text */
-  DOH   *chunk, *symbols, *sval, *decl;
-  DOH   *id = 0, *value = 0, *comment = 0;
+  String  *ns;             /* New string containing the preprocessed text */
+  String  *chunk, *sval, *decl;
+  Hash    *symbols;
+  String  *id = 0, *value = 0, *comment = 0;
   int    i, state, val, e, c;
   int    start_line = 0;
   int    allow = 1;

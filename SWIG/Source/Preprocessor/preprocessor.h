@@ -19,17 +19,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-extern void  Preprocessor_expr_init(void);
-extern int   Preprocessor_expr(DOHString *s, int *error);
-extern char *Preprocessor_expr_error(void);
-extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
-extern void  Preprocessor_undef(DOHString_or_char *name);
-extern void  Preprocessor_init();
-extern DOH  *Preprocessor_parse(DOH *s);
-extern void  Preprocessor_include_all(int);
-extern void  Preprocessor_import_all(int);
-extern int   Preprocessor_errors(void);
+extern int     Preprocessor_expr(String *s, int *error);
+extern char   *Preprocessor_expr_error(void);
+extern Hash   *Preprocessor_define(String_or_char *str, int swigmacro);
+extern void    Preprocessor_undef(String_or_char *name);
+extern void    Preprocessor_init();
+extern String *Preprocessor_parse(File *s);
+extern void    Preprocessor_include_all(int);
+extern void    Preprocessor_import_all(int);
+extern int     Preprocessor_errors(void);
 
 #ifdef __cplusplus
 }
