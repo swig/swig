@@ -2155,6 +2155,15 @@ typemap_parameter_declarator : declarator {
                  $$ = $1;
 		 if (SwigType_isfunction($1.type)) {
 		   Delete(SwigType_pop_function($1.type));
+		 } else if (SwigType_isarray($1.type)) {
+		   SwigType *ta = SwigType_pop_arrays($1.type);
+		   if (SwigType_isfunction($1.type)) {
+		     Delete(SwigType_pop_function($1.type));
+		   } else {
+		     $$.parms = 0;
+		   }
+		   SwigType_push($1.type,ta);
+		   Delete(ta);
 		 } else {
 		   $$.parms = 0;
 		 }
@@ -2163,6 +2172,15 @@ typemap_parameter_declarator : declarator {
               $$ = $1;
 	      if (SwigType_isfunction($1.type)) {
 		Delete(SwigType_pop_function($1.type));
+	      } else if (SwigType_isarray($1.type)) {
+		SwigType *ta = SwigType_pop_arrays($1.type);
+		if (SwigType_isfunction($1.type)) {
+		  Delete(SwigType_pop_function($1.type));
+		} else {
+		  $$.parms = 0;
+		}
+		SwigType_push($1.type,ta);
+		Delete(ta);
 	      } else {
 		$$.parms = 0;
 	      }
