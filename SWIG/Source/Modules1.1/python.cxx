@@ -291,6 +291,7 @@ public:
     int     num_required;
     int     num_arguments;
     int     varargs = 0;
+    int     allow_kwargs = (use_kw || Getattr(n,"feature:kwargs")) ? 1 : 0;
 
     if (Getattr(n,"sym:overloaded")) {
       overname = Getattr(n,"sym:overname");
@@ -324,7 +325,7 @@ public:
       strcat(wname,Char(overname));
     }
 
-    if (!use_kw) {
+    if (!allow_kwargs || Getattr(n,"sym:overloaded")) {
       if (!varargs) {
 	Printv(f->def,
 	       "static PyObject *", wname,
@@ -335,6 +336,11 @@ public:
 	       "static PyObject *", wname, "__varargs__", 
 	       "(PyObject *self, PyObject *args, PyObject *varargs) {",
 	       NULL);
+      }
+      if (allow_kwargs) {
+	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number,
+		     "Can't use keyword arguments with overloaded functions.\n");
+	allow_kwargs = 0;
       }
     } else {
       if (varargs) {
@@ -347,8 +353,7 @@ public:
 	     "(PyObject *self, PyObject *args, PyObject *kwargs) {",
 	     NULL);
     }
-
-    if (!use_kw) {
+    if (!allow_kwargs) {
       Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
     } else {
       Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
@@ -412,7 +417,7 @@ public:
 
     /* finish argument marshalling */
     Printf(kwargs," NULL }");
-    if (use_kw) {
+    if (allow_kwargs) {
       Printv(f->locals,tab4, "char *kwnames[] = ", kwargs, ";\n", NULL);
     }
 
@@ -544,7 +549,7 @@ public:
 
     /* Now register the function with the interpreter.   */
     if (!Getattr(n,"sym:overloaded")) {
-      add_method(iname, wname, use_kw);
+      add_method(iname, wname, allow_kwargs);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
@@ -602,7 +607,7 @@ public:
     Printf(f->code,"return NULL;\n");
     Printv(f->code,"}\n",NULL);
     Wrapper_print(f,f_wrappers);
-    add_method(symname,wname,use_kw);
+    add_method(symname,wname,0);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
@@ -920,6 +925,7 @@ public:
 
     if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
+	int allow_kwargs = (use_kw || Getattr(n,"feature:kwargs")) ? 1 : 0;
 	if (Strcmp(symname,"__repr__") == 0)
 	  have_repr = 1;
 	
@@ -927,7 +933,7 @@ public:
 	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
 	  Printv(f_shadow,pycode,"\n",NULL);
 	} else {
-	  if (use_kw) {
+	  if (allow_kwargs && !Getattr(n,"sym:overloaded")) {
 	    Printv(f_shadow,tab4, "def ", symname, "(*args, **kwargs): ", NULL);
 	    Printv(f_shadow, "return apply(", module, ".", Swig_name_member(class_name,symname), ",args, kwargs)\n", NULL);
 	  } else {
@@ -970,12 +976,13 @@ public:
 
     if (!Getattr(n,"sym:nextSibling")) {
       if (shadow) {
+	int allow_kwargs = (use_kw || Getattr(n,"feature:kwargs")) ? 1 : 0;
 	if (!have_constructor) {
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
 	    Printv(f_shadow,pycode,"\n",NULL);
 	  } else {
-	    if (use_kw) {
+	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) {
 	      Printv(f_shadow, tab4, "def __init__(self,*args,**kwargs):\n", NULL);
 	      Printv(f_shadow, tab8, "self.this = apply(", module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
 	    }  else {
@@ -1000,13 +1007,13 @@ public:
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
 	    Printv(f_shadow_stubs,pycode,"\n",NULL);
 	  } else {
-	    if (use_kw)
+	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) 
 	      Printv(f_shadow_stubs, "def ", symname, "(*args,**kwargs):\n", NULL);
 	    else
 	      Printv(f_shadow_stubs, "def ", symname, "(*args):\n", NULL);
 	    
 	    Printv(f_shadow_stubs, tab4, "val = apply(", NULL);
-	    if (use_kw)
+	    if ((allow_kwargs) && (!Getattr(n,"sym:overloaded"))) 
 	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args,kwargs)\n", NULL);
 	    else
 	      Printv(f_shadow_stubs, module, ".", Swig_name_construct(symname), ",args)\n", NULL);
