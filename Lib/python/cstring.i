@@ -36,7 +36,7 @@
  */
 
 %define %cstring_bounded_output(TYPEMAP,MAX)
-%typemap(ignore) TYPEMAP(char temp[MAX+1]) {
+%typemap(in,numinputs=0) TYPEMAP(char temp[MAX+1]) {
    $1 = ($1_ltype) temp;
 }
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
@@ -61,7 +61,7 @@
  */
 
 %define %cstring_chunk_output(TYPEMAP,SIZE)
-%typemap(ignore) TYPEMAP(char temp[SIZE]) {
+%typemap(in,numinputs=0) TYPEMAP(char temp[SIZE]) {
    $1 = ($1_ltype) temp;
 }
 %typemap(argout,fragment="t_output_helper") TYPEMAP {
@@ -239,7 +239,7 @@
  */
 
 %define %cstring_output_allocate(TYPEMAP, RELEASE)
-%typemap(ignore) TYPEMAP($*1_ltype temp = 0) {
+%typemap(in,numinputs=0) TYPEMAP($*1_ltype temp = 0) {
    $1 = &temp;
 }
 
