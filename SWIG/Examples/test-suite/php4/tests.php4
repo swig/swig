@@ -9,6 +9,10 @@ class check {
     return TRUE;
   }
 
+  function classname($string,$object) {
+    if (! $string==($classname=get_class($object))) check::fail("Object: $object is of class %s not class %s",$classname,$string);
+  }
+
   function equal($a,$b,$message) {
     if (! $a===$b) return check::fail($message);
     return TRUE;
