@@ -4,15 +4,19 @@
 int foo() {
   return 3;
 }
+
 template <class T>
-  int foo(int x) {
-     return x;
+  int foo(T x) {
+     return (int)x;
   }
 
 template<class T>
   T max(T a, T b) { return  (a > b) ? a : b; }
 %}                                     
 
+
+%template(foo) foo<int>;
+%template(foo) foo<double>;
 
 %template(max) max<int>;
 %template(max) max<double>;
@@ -143,3 +147,52 @@ namespace space {
 %template(nsoverload) space::nsoverload<Klass>;
 %template(nsoverload) space::nsoverload<double>;
 
+
+%inline %{
+  namespace space 
+  {
+    template <class T>
+    struct Foo 
+    {
+      void bar(T t1) { }
+      void bar(T t1, T t2) { }
+      void bar(int a, int b, int c) { }
+    };
+    struct A
+    {
+      template <class Y>
+      static void fooT(Y y) { }
+
+    };
+
+  }
+  template <class T>
+    struct Bar
+    {
+      void foo(T t1) { }
+      void foo(T t1, T t2) { }
+      void foo(int a, int b, int c) { }
+      template <class Y>
+      void fooT(Y y) { }
+    };
+
+
+  struct B
+  {
+    template <class Y>
+    void barT(Y y) { }
+    
+  };
+  
+%}
+
+
+%template(Bar_d) Bar<double>;
+%template(Foo_d) space::Foo<double>;
+%template(foo) space::A::fooT<double>;
+%template(foo) space::A::fooT<int>;
+%template(foo) space::A::fooT<char>;
+
+%template(foo) B::barT<double>;
+%template(foo) B::barT<int>;
+%template(foo) B::barT<char>;

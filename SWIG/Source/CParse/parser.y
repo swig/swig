@@ -806,10 +806,17 @@ static String *resolve_node_scope(String *cname) {
 		Printf(sname,"::%s",si.item);
 	      }
 	    }
+	    if (!nscope) {
+	      nscope = new_node("namespace");
+	      Setattr(nscope,"symtab", get_global_scope());
+	    }
 	    nscope_inner = Swig_symbol_clookup(sname,0);
 	    Printf(sname,"::%s",base);
+	    Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
+   
 	    Delete(base);
 	    base = sname;
+
 	    break;
 	  }
 	  ns2 = new_node("namespace");
