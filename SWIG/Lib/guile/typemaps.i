@@ -275,6 +275,52 @@ typedef unsigned long SCM;
     $2 = ($2_ltype) temp;
 }
 
+
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+/* adapted from python.swg */
+
+%typecheck(SWIG_TYPECHECK_INTEGER)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+ 	 const unsigned int &, const unsigned short &, const unsigned long &,
+	 const long long &, const unsigned long long &,
+	 enum SWIGTYPE,
+         bool, const bool & 
+{
+  $1 = SCM_NFALSEP(scm_integer_p($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE)
+	float, double,
+	const float &, const double &
+{
+  $1 = SCM_NFALSEP(scm_real_p($input)) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_CHAR) char {
+  $1 = SCM_CHARP($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  $1 = SCM_STRINGP($input) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  $1 = !SWIG_Guile_GetPtr($input, &ptr, $1_descriptor);
+}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+  void *ptr;
+  $1 = !SWIG_Guile_GetPtr($input, &ptr, 0);
+}
+
 /* typemaps.i ends here */
 
 
