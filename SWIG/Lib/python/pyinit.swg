@@ -48,7 +48,6 @@ SWIGEXPORT(void) SWIG_init(void) {
     SWIG_Python_LookupTypePointer(&swig_type_list_handle);
 #  endif
 #endif
-    printf("%08x\n", swig_type_list_handle);
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }
