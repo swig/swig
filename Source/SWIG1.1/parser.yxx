@@ -1033,7 +1033,6 @@ statement      : INCLUDE STRING LBRACE {
 
                | TYPEMAP LPAREN ID COMMA tm_method RPAREN tm_list STRING {
 		   TMParm *p;
-                   skip_brace();
 		   p = $7;
 		   while (p) {
 		     if (strcmp($3,typemap_lang) == 0)
@@ -1052,7 +1051,6 @@ statement      : INCLUDE STRING LBRACE {
 		   FatalError();
 		 } else {
 		   TMParm *p;
-		   skip_brace();
 		   p = $5;
 		   while (p) {
 		     Swig_typemap_register($3,Gettype(p->p),Getname(p->p), $6, p->args);
