@@ -46,6 +46,7 @@ LIBPREFIX  = lib
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	derived_nested \
+	derived_byvalue \
 	multiple_inheritance \
 	namespace_union \
 	overload_complicated \
@@ -301,6 +302,7 @@ C_TEST_CASES += \
 	enums \
 	function_typedef \
 	inctest \
+	lextype \
 	lib_carrays \
 	lib_cdata \
 	lib_cmalloc \
