@@ -320,6 +320,7 @@
     if (!$input) return $null;
   }
 }
+
 %typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 %typemap(javadirectorin) char * "$jniinput"
@@ -523,7 +524,13 @@
   }
 }
 
-%typemap(directorin,descriptor="Ljava/lang/String;") char[ANY] "$input = JCALL1(NewStringUTF, jenv, $1_name);"
+%typemap(directorin, descriptor="Ljava/lang/String;") char[ANY] { 
+  $input = 0;
+  if ($1) {
+    $input = JCALL1(NewStringUTF, jenv, $1);
+    if (!$input) return $null;
+  }
+}
 
 %typemap(argout) char[ANY] ""
 %typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
