@@ -2994,7 +2994,7 @@ MODULA3 ():
     }
 
     generateThrowsClause (throws_hash, function_code);
-    Printf (function_code, " %s\n\n", tm ? tm : empty_string);
+    Printf (function_code, " %s\n\n", tm ? (const String *)tm : empty_string);
 
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
@@ -3727,7 +3727,7 @@ MODULA3 ():
       }
 
       Printf (function_code, " =\n%s%sBEGIN\n%s%sEND %s;\n\n",
-              hasContent (local_variables) ? "VAR\n" : empty_string,
+              hasContent (local_variables) ? "VAR\n" : "",
               local_variables, exc_handler, outarg, func_name);
 
       Delete (exc_handler);
