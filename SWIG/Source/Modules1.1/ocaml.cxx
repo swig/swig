@@ -42,6 +42,7 @@ static char *ocaml_usage = (char*)
      "-help           - Print this help\n"
      "-objects        - Use objects\n"
      "-onlyobjects    - Only export an object interface to a C++ object\n"
+     "-nsmod          - Treat classes and namespaces as modules\n"
      "-modwrap name   - Wrap in module 'Name'\n"
      "-mlout name     - Specify the ML output file name\n"
      "\n");
@@ -63,6 +64,7 @@ static int objects = 0;		 /* Use objects. */
 static int onlyobjects = 0;	 /* Do not export functions that back
 				    methods. */
 static int mliout = 0;		 /* Are we in .mli file */
+static int namespace_as_module = 0; /* Namespaces as modules */
 
 static String *classname = NULL; /* Name of the current class */
 
@@ -82,6 +84,7 @@ static String *f_wrappers = NULL;
 
 /* Ocaml output */
 static String *f_module = NULL;       /* Main body of the module file */
+static String *f_module_type = NULL;  /* Types */
 static String *f_module_file = NULL;  /* Module file itself */
 static String *f_modclass = NULL;     /* Class definitions */
 static String *f_pvariant_def = NULL; /* Polymorphic variant definition at
@@ -174,6 +177,10 @@ class OCAML : public Language {
 		    } else {
 			Swig_arg_error();
 		    }
+		} 
+		else if (strcmp (argv[i], "-nsmod") == 0) {
+		    namespace_as_module = 1;
+		    Swig_mark_arg(i);
 		}
 	    }
 	}
@@ -198,10 +205,10 @@ class OCAML : public Language {
 	else {
 	    if( Getattr(seen_types,rtype) ) {
 		Setattr(seen_types,Char(ntype),rtype);
-		Printf(f_module,"  type %s = %s\n", ntype, rtype );
+		Printf(f_module_type,"  type %s = %s\n", ntype, rtype );
 	    } else {
 		Setattr(seen_types,Char(ntype),ntype);
-		Printf(f_module,"  type %s\n", ntype );
+		Printf(f_module_type,"  type %s\n", ntype );
 	    }
 	}
     }
@@ -276,6 +283,7 @@ class OCAML : public Language {
 	
 	classname = NewString("");
 	f_module = NewString("");
+	f_module_type = NewString("");
 	
 	Printf(f_module_file,
 	       "(* -*- buffer-read-only: t -*- vi: set ro: *)\n");
@@ -293,13 +301,12 @@ class OCAML : public Language {
 	seen_names = NewHash();
 	seen_wrappers = NewHash();
 	seen_methods = NewHash();
-    
-	
+    	
 	int i;
 	
 	// I starts at one here to skip the _enum type.
 	for( i = 0; simple_types[i][0]; i++ ) {
-	    Printf(f_module, "type %s = %s\n", 
+	    Printf(f_module_type, "type %s = %s\n", 
 		   simple_types[i][0], simple_types[i][1] );
 	    Setattr(seen_types,simple_types[i][0],
 		    NewString(simple_types[i][1]));
@@ -363,6 +370,7 @@ class OCAML : public Language {
 	SwigType_emit_type_table (f_runtime, f_wrappers);
 	
 	Dump(f_pvariant_def,f_module_file);
+	Dump(f_module_type,f_module_file);
 	Dump(f_module,f_module_file);
 	Dump(f_modclass,f_module_file);
 	
@@ -415,7 +423,12 @@ class OCAML : public Language {
 	    Insert(out,0,"_");      // The '_' handling removes the
 	                            // possibility of overlapping names.
     }
-       
+
+    void ucase(String *out) {
+	if( !isupper((Char(out))[0]) )
+	    (Char(out))[0] = toupper((Char(out))[0]);
+    }
+
 // ---------------------------------------------------------------------
 // set_module(char *mod_name)
 //
@@ -464,6 +477,18 @@ class OCAML : public Language {
 	    Insert(out,0,classname);
 	}
 
+	/* Modules as namespaces essentially means that names are never
+	   qualified */
+	if( namespace_as_module ) {
+	    char *last_comp = strstr(Char(out),"::");
+	    if( !last_comp ) last_comp = Char(out);
+	    
+	    while( *last_comp == ':' ) last_comp++;
+	    String *newout = NewString(last_comp);
+	    Delete(out);
+	    out = newout;
+	}
+
 	Replaceall(out,"::","_");
 	Replaceall(out,"<","T_");
 	Replaceall(out,"(","P_");
@@ -484,12 +509,21 @@ class OCAML : public Language {
 
     String *get_ml_function_name( Node *n ) {
 	String *out = get_function_name(n);
+
+	char *operator_name = strstr(Char(Getattr(n,"name")),"operator ");
+	if( operator_name ) { // Handle this operator specially.
+	    Delete(out);
+	    out = NewString(operator_name + strlen("operator "));
+	    Insert(out,0,"(");
+	    Insert(out,strlen(Char(out)),"@)");
+	}
+	    
 	lcase(out);
 
 	return out;
     }
 
-    String *get_ml_method_name( Node *n ) {
+    String *get_method_name( Node *n ) {
 	char *fname = GetChar(n,"name");
 	char *last_comp = strstr(fname,"::");
 	if( !last_comp ) last_comp = fname;
@@ -513,6 +547,20 @@ class OCAML : public Language {
 	Replaceall(out,",","X");
 	Replaceall(out,".","O");
 	Replaceall(out," ","_");
+
+	return out;
+    }
+
+    String *get_ml_module_name( Node *n ) {
+	String *out = get_method_name(n);
+
+	ucase(out);
+
+	return out;
+    }
+
+    String *get_ml_method_name( Node *n ) {
+	String *out = get_method_name(n);
 
 	lcase(out);
 
@@ -1260,6 +1308,30 @@ class OCAML : public Language {
 	if( classname ) Delete(classname);
 	classname = get_ml_class_name(GetChar(n,"name"));
 
+	if( namespace_as_module ) {
+	    if( mliout ) 
+		Printf(f_module,
+		       "module %s : sig\n",
+		       get_ml_module_name(n));
+	    else
+		Printf(f_module,
+		       "module %s = struct\n",
+		       get_ml_module_name(n));
+	}
+
+	/* Overrides to re-order module specific stuff */
+	String *real_f_module = f_module;
+	f_module = NewString("");
+
+	String *real_f_pvariant_def = f_pvariant_def;
+	f_pvariant_def = NewString("");
+
+	String *real_f_pvariant_from_int = f_pvariant_from_int;
+	f_pvariant_from_int = NewString("");
+
+	String *real_f_pvariant_to_int = f_pvariant_to_int;
+	f_pvariant_to_int = NewString("");
+
 	if( strlen(Char(classname)) && objects ) {	
 	    classmode = 1;
 
@@ -1325,6 +1397,19 @@ class OCAML : public Language {
 	    rv = Language::classHandler(n);
 	}
 
+	Dump(f_pvariant_def,real_f_module);
+	Dump(f_module,real_f_module);
+	Dump(f_pvariant_from_int,real_f_module);
+	Dump(f_pvariant_to_int,real_f_module);
+
+	f_module = real_f_module;
+	f_pvariant_def = real_f_pvariant_def;
+	f_pvariant_from_int = real_f_pvariant_from_int;
+	f_pvariant_to_int = real_f_pvariant_to_int;
+
+	if( namespace_as_module ) 
+	    Printf(f_module,"end\n");
+
 	return rv;
     }
 
@@ -1358,7 +1443,25 @@ class OCAML : public Language {
     int namespaceDeclaration(Node *n) {
 	if(Getattr(n,"alias")) return SWIG_OK;
 	if(Getattr(n,"name")) {
-	    return emit_children(n);
+	    int rv;
+
+	    if( namespace_as_module ) {
+		if( mliout ) 
+		    Printf(f_module,
+			   "module %s : sig\n",
+			   get_ml_module_name(n));
+		else
+		    Printf(f_module,
+			   "module %s = struct\n",
+			   get_ml_module_name(n));
+	    }
+
+	    rv = emit_children(n);
+
+	    if( namespace_as_module )
+		Printf(f_module,"end\n");
+
+	    return rv;
 	} else return Language::namespaceDeclaration(n);
     }
 
