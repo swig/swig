@@ -38,10 +38,6 @@
   SWIG_Ruby_MangleStr(value)
 #define SWIG_CheckConvert(value, ty) \
   SWIG_Ruby_CheckConvert(value, ty)
-#define SWIG_PackData(c, ptr, sz) \
-  SWIG_Ruby_PackData(c, ptr, sz)
-#define SWIG_UnpackData(c, ptr, sz) \
-  SWIG_Ruby_UnpackData(c, ptr, sz)
 #define SWIG_NewPackedObj(ptr, sz, ty) \
   SWIG_Ruby_NewPackedObj(ptr, sz, ty)
 #define SWIG_ConvertPacked(obj, ptr, sz, ty, flags) \
