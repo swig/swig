@@ -41,7 +41,7 @@ static String    *class_name = 0;
 static String    *class_type = 0;
 static String    *real_classname = 0;
 static Hash      *repeatcmd = 0; 
-static Hash      *setget = 0;
+
 
 /* ----------------------------------------------------------------------------- 
  * TCL8::parse_args()
@@ -108,7 +108,6 @@ TCL8::parse() {
   methods    = NewString("");
   attributes = NewString("");
   repeatcmd  = NewHash();
-  setget     = NewHash();
 
   Swig_banner(f_runtime);
   
@@ -526,11 +525,22 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
  * TCL8::link_variable()
  * ----------------------------------------------------------------------------- */
 
+static Hash      *setf = 0;
+static Hash      *getf = 0;
+
 void
 TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
-  String *new_name = 0;
+  String *setname;
+  String *getname;
+
   int isarray = 0;
+  int readonly = 0;
+  int setable = 1;
+  int tc;
+
+  if (!setf) setf = NewHash();
+  if (!getf) getf = NewHash();
 
   /* See if there were any typemaps */
   if (Swig_typemap_search((char *)"varin",t,name) || (Swig_typemap_search((char*)"varout",t,name))) {
@@ -538,30 +548,32 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	    input_file, line_number);
   }
 
+  if (Status & STAT_READONLY) readonly = 1;
   isarray = SwigType_isarray(t);
-  if (isarray) {
-    Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
-    new_name = NewStringf("_swig_%s",name);
-    Printf(f_wrappers,"static %s = (%s) %s;\n", SwigType_lstr(t,new_name), SwigType_lstr(t,0), name);
-    name = Char(new_name);
-  }
+  tc = SwigType_type(t);
+  setname = Getattr(setf,t);
+  getname = Getattr(getf,t);
 
   /* Dump a collection of set/get functions suitable for variable tracing */
-  if (!Getattr(setget,SwigType_lstr(t,0))) {
-    Setattr(setget,SwigType_lstr(t,0),"1");
+  if (!getname) {
     Wrapper *get, *set;
+
+    setname = NewStringf("_swig_%s_set", Swig_string_mangle(t));
+    getname = NewStringf("_swig_%s_get", Swig_string_mangle(t));
     get = NewWrapper();
     set = NewWrapper();
-    Printv(set->def, "static char *_swig_", SwigType_manglestr(t), "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+    Printv(set->def, "static char *", setname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
 
-    Printv(get->def, "static char *_swig_", SwigType_manglestr(t), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+    Printv(get->def, "static char *", getname, "(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
     SwigType *lt = Swig_clocal_type(t);
-    SwigType_add_pointer(lt);
+    if ((tc != T_USER) && (!isarray))
+      SwigType_add_pointer(lt);
     Wrapper_add_localv(get,"addr",SwigType_lstr(lt,"addr"),0);
     Wrapper_add_localv(set,"addr",SwigType_lstr(lt,"addr"),0);
     Printv(set->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
     Printv(get->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
-    SwigType_del_pointer(lt);
+    if ((tc != T_USER) && (!isarray))
+      SwigType_del_pointer(lt);
     Delete(lt);
     Wrapper_add_local(set, "value", "char *value");
     Wrapper_add_local(get, "value", "Tcl_Obj *value");
@@ -569,7 +581,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     Printv(set->code, "value = Tcl_GetVar2(interp, name1, name2, flags);\n",
 	              "if (!value) return NULL;\n", 0);
 
-    switch(SwigType_type(t)) {
+    switch(tc) {
     case T_INT:
     case T_SHORT:
     case T_USHORT:
@@ -628,8 +640,8 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	     "*(addr) = *((", SwigType_lstr(t,0), ") ptr);\n",
 	     "}\n",
 	     0);
-      SwigType_del_pointer(t);
 
+      SwigType_del_pointer(t);
       Wrapper_add_local(get,"value", "Tcl_Obj *value");
       SwigType_add_pointer(t);
       SwigType_remember(t);
@@ -648,7 +660,36 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
       Printv(get->code, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
       break;
 
-    case T_POINTER: case T_ARRAY: case T_REFERENCE:
+    case T_ARRAY:
+      {
+	SwigType *aop;
+	SwigType *ta = Copy(t);
+	aop = SwigType_pop(ta);
+	/*	Printf(stdout,"'%s' '%s'\n", ta, aop);*/
+	if (SwigType_type(ta) == T_CHAR) {
+	  String *dim = SwigType_array_getdim(aop,0);
+	  if (dim && Len(dim)) {
+	    Printf(set->code, "strncpy(addr,value,%s);\n", dim);
+	  }
+	  Printv(get->code, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
+	} else {
+	  setable = 0;
+	  readonly = 1;
+	  Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
+	  Wrapper_add_local(get,"value","Tcl_Obj *value");
+	  SwigType_remember(t);
+	  Printv(get->code,
+		 "value = SWIG_NewPointerObj(addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
+		 "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
+		 "Tcl_DecrRefCount(value);\n",
+		 0);
+	}
+	Delete(ta);
+	Delete(aop);
+      }
+      break;
+
+    case T_POINTER: case T_REFERENCE:
       SwigType_remember(t);
       Printv(set->code,  "{\n",
 	     "void *ptr;\n",
@@ -660,7 +701,6 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	     0);
 
       Wrapper_add_local(get,"value","Tcl_Obj *value");
-      SwigType_remember(t);
       Printv(get->code,
 	     "value = SWIG_NewPointerObj(*addr, SWIGTYPE", SwigType_manglestr(t), ");\n",
 	     "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
@@ -678,27 +718,30 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     Printv(set->code, "return NULL;\n", "}\n",0);
     Printv(get->code, "return NULL;\n", "}\n",0);
     Wrapper_print(get,f_wrappers);
-    Wrapper_print(set,f_wrappers);
+    Setattr(getf,Copy(t),getname);
+    if (setable) {
+      Wrapper_print(set,f_wrappers);
+      Setattr(setf,Copy(t),setname);
+    }
     DelWrapper(get);
     DelWrapper(set);
   }
-  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) &", name, ", _swig_", SwigType_manglestr(t), "_get,", 0);
+  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) ", isarray ? "" : "&", name, ",", getname, ",", 0);
   
-  if ((Status & STAT_READONLY) || (isarray)) {
-    static int readonly = 0;
-    if (!readonly) {
+  if (readonly) {
+    static int readonlywrap = 0;
+    if (!readonlywrap) {
       Wrapper *ro = NewWrapper();
       Printf(ro->def, "static char *_swig_readonly(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {");
       Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", 0);
       Wrapper_print(ro,f_wrappers);
-      readonly = 1;
+      readonlywrap = 1;
       DelWrapper(ro);
     }
     Printf(var_info, "_swig_readonly},\n");
   } else {
-    Printv(var_info, "_swig_", SwigType_manglestr(t), "_set},\n",0);
+    Printv(var_info, setname, "},\n",0);
   }
-  Delete(new_name);
 }
 
 /* -----------------------------------------------------------------------------
