@@ -1610,7 +1610,7 @@ presented.  A key component of this wrapping is that structures and
 classes are wrapped by Python proxy classes.  This provides a very
 natural Python interface and allows SWIG to support a number of
 advanced features such as operator overloading.   However, a number
-of low-level details were ommitted.  This section provides a brief overview
+of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
 
 <h3>Proxy classes</h3>
@@ -1681,7 +1681,7 @@ view, it makes the class work normally:
 <pre>
 >>> f = example.Foo()
 >>> f.x = 3
->>> y = f.spam()
+>>> y = f.spam(5)
 </pre>
 </blockquote>
 
@@ -1809,7 +1809,7 @@ change the ownership of an object.  For instance, consider code like this:
 
 <blockquote>
 <pre>
-class Node * {
+class Node {
    Object *value;
 public:
    void set_value(Object *v) { value = v; }
@@ -2653,7 +2653,7 @@ int count(char c, char *str, int len);
 
 When a multi-argument typemap is defined, the arguments are always handled as a single
 Python object.  This allows the function to be used like this (notice how the length
-parameter is ommitted):
+parameter is omitted):
 
 <blockquote>
 <pre>
