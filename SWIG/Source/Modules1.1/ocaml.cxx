@@ -559,6 +559,8 @@ class OCAML : public Language {
 
     String *get_method_name( Node *n ) {
 	char *fname = GetChar(n,"name");
+	if( !fname )
+		return NewString("anonymous");
 	char *last_comp = strstr(fname,"::");
 	if( !last_comp ) last_comp = fname;
 
