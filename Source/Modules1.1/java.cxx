@@ -23,7 +23,7 @@
 
 #include <ctype.h>
 
-#include "swig.h"
+#include "swig11.h"
 #include "java.h"
 
 char bigbuf[1024];
@@ -301,36 +301,36 @@ void JAVA::parse_args(int argc, char *argv[]) {
       if (strcmp(argv[i],"-module") == 0) {
 	if (argv[i+1]) {
 	  set_module(argv[i+1],0);
-	  SWIG_mark_arg(i);
-	  SWIG_mark_arg(i+1);
+	  Swig_mark_arg(i);
+	  Swig_mark_arg(i+1);
 	  i++;
 	} else {
-	  SWIG_arg_error();
+	  Swig_arg_error();
 	}
       } else if (strcmp(argv[i],"-package") == 0) {
 	if (argv[i+1]) {
 	  package = new char[strlen(argv[i+1])+1];
           strcpy(package, argv[i+1]);
-	  SWIG_mark_arg(i);
-	  SWIG_mark_arg(i+1);
+	  Swig_mark_arg(i);
+	  Swig_mark_arg(i+1);
 	  i++;
 	} else {
-	  SWIG_arg_error();
+	  Swig_arg_error();
 	}
       } else if (strcmp(argv[i],"-shadow") == 0) {
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
         shadow = 1;
       } else if (strcmp(argv[i],"-jnic") == 0) {
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
         jnic = 1;
       } else if (strcmp(argv[i],"-finalize") == 0) {
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
         finalize = 1;
       } else if (strcmp(argv[i],"-rn") == 0) {
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
         useRegisterNatives = 1;
       } else if (strcmp(argv[i],"-jnicpp") == 0) {
-        SWIG_mark_arg(i);
+        Swig_mark_arg(i);
 	    jnic = 0;
       } else if (strcmp(argv[i],"-help") == 0) {
 	    fprintf(stderr,"%s\n", usage);
@@ -346,7 +346,7 @@ void JAVA::parse_args(int argc, char *argv[]) {
 
   // Add a symbol to the parser for conditional compilation
   // cpp::define("SWIGJAVA");
-  SWIG_cpp_define((void *) "SWIGJAVA 1",0);
+  Preprocessor_define((void *) "SWIGJAVA 1",0);
 
   // Add typemap definitions
   typemap_lang = "java";

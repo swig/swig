@@ -81,7 +81,7 @@ int Mac_main(int argc, char **argv) {
   Documentation *dd = new SWIG_DOC;
   extern int SWIG_main(int, char **, Language *, Documentation *);
 
-  SWIG_init_args(argc,argv);
+  Swig_init_args(argc,argv);
   
   // Get options
   for (i = 1; i < argc; i++) {
@@ -89,34 +89,34 @@ int Mac_main(int argc, char **argv) {
 	  if(strcmp(argv[i],"-tcl") == 0) {
 	      fprintf(stderr,"swig: -tcl option now implies -tcl8\n");
 	      dl = new TCL8;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-tcl8") == 0) {
 	      dl = new TCL8;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-perl5") == 0) {
 	      dl = new PERL5;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-python") == 0) {
 	      dl = new PYTHON;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-guile") == 0) {
 	      dl = new GUILE;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-java") == 0) {
 	      dl = new JAVA;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dascii") == 0) {
 	      dd = new ASCII;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dnone") == 0) {
 	      dd = new NODOC;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-dhtml") == 0) {
 	      dd = new HTML;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  }
       }
   }

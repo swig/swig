@@ -15,7 +15,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swigcore.h"
+#include "swig.h"
 
 /*******************************************************************************
  * $Header$
@@ -33,13 +33,13 @@ static DOH           *lastpath = 0;           /* Last file that was included */
 static int            bytes_read = 0;         /* Bytes read */
 
 /* -----------------------------------------------------------------------------
- * void SWIG_add_directory( DOH *dirname)
+ * void Swig_add_directory( DOH *dirname)
  *
  * Adds a directory to the SWIG search path.
  * ----------------------------------------------------------------------------- */
 
 void 
-SWIG_add_directory(DOH *dirname)
+Swig_add_directory(DOH *dirname)
 {
   if (!directories) directories = NewList();
   assert(directories);
@@ -51,13 +51,13 @@ SWIG_add_directory(DOH *dirname)
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_set_library(DOH *libname) 
+ * void Swig_set_library(DOH *libname) 
  *
  * Sets the language specific library name like 'tcl', 'perl5', 'python', etc...
  * ----------------------------------------------------------------------------- */
 
 void
-SWIG_set_library(DOH *libname)
+Swig_set_library(DOH *libname)
 {
   Delete(libdir);
   if (!String_check(libname)) {
@@ -68,35 +68,35 @@ SWIG_set_library(DOH *libname)
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_get_library()
+ * DOH *Swig_get_library()
  *
  * Gets the language specific name like 'tcl', 'perl5', etc...
  * ----------------------------------------------------------------------------- */
 DOH *
-SWIG_get_library() {
+Swig_get_library() {
   assert(libdir);
   return libdir;
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_last_file()
+ * DOH *Swig_last_file()
  * 
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
 
 DOH *
-SWIG_last_file() {
+Swig_last_file() {
   assert(lastpath);
   return lastpath;
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_search_path() 
+ * DOH *Swig_search_path() 
  * 
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
-DOH *SWIG_search_path() 
+DOH *Swig_search_path() 
 {
   DOH *filename;
   DOH *dirname;
@@ -107,32 +107,32 @@ DOH *SWIG_search_path()
   assert(slist);
   filename = NewString("");
   assert(filename);
-  Printf(filename,".%s", FILE_DELIMETER);
+  Printf(filename,".%s", SWIG_FILE_DELIMETER);
   Append(slist,filename);
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);
     if (libdir) {
       filename = NewString("");
       assert(filename);
-      Printf(filename,"%s%s%s%s", dirname, FILE_DELIMETER, libdir, FILE_DELIMETER);
+      Printf(filename,"%s%s%s%s", dirname, SWIG_FILE_DELIMETER, libdir, SWIG_FILE_DELIMETER);
       Append(slist,filename);
     }
     filename = NewString("");
     assert(filename);
-    Printf(filename, "%s%s", dirname, FILE_DELIMETER);
+    Printf(filename, "%s%s", dirname, SWIG_FILE_DELIMETER);
     Append(slist,filename);
   }
   return slist;
 }  
 
 /* -----------------------------------------------------------------------------
- * FILE *SWIG_open( DOH *name)           
+ * FILE *Swig_open( DOH *name)           
  *
  * Looks for a file and open it.
  * ----------------------------------------------------------------------------- */
 
 FILE *
-SWIG_open(DOH *name)
+Swig_open(DOH *name)
 {
   FILE    *f;
   DOH     *filename;
@@ -148,7 +148,7 @@ SWIG_open(DOH *name)
   assert(filename);
   f = fopen(Char(filename),"r");
   if (!f) {
-      spath = SWIG_search_path();
+      spath = Swig_search_path();
       for (i = 0; i < Len(spath); i++) {
 	  Clear(filename);
 	  Printf(filename,"%s%s", Getitem(spath,i), cname);
@@ -166,12 +166,12 @@ SWIG_open(DOH *name)
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_read_file(FILE *f)
+ * DOH *Swig_read_file(FILE *f)
  * 
  * Reads data from f and returns as a new string
  * ----------------------------------------------------------------------------- */
 
-DOH *SWIG_read_file(FILE *f) {
+DOH *Swig_read_file(FILE *f) {
   char buffer[4096];
   DOH *str = NewString("");
   assert(str);
@@ -183,19 +183,19 @@ DOH *SWIG_read_file(FILE *f) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *SWIG_include(DOH *name)
+ * DOH *Swig_include(DOH *name)
  *
  * Open a file and return it as a string.
  * ----------------------------------------------------------------------------- */
 
 DOH *
-SWIG_include(DOH *name) 
+Swig_include(DOH *name) 
 {
   FILE  *f;
   DOH    *str;
-  f = SWIG_open(name);
+  f = Swig_open(name);
   if (!f) return 0;
-  str = SWIG_read_file(f);
+  str = Swig_read_file(f);
   bytes_read = bytes_read + Len(str);
   fclose(f);
   Seek(str,0,SEEK_SET);

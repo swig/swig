@@ -25,7 +25,7 @@ static char cvsroot[] = "$Header$";
    and proper cleanup of things.
    ------------------------------------------------------------------------ */
 
-#include "swig.h"
+#include "internal.h"
 
 // ------------------------------------------------------------------------
 // Parm::Parm(DataType *type, char *n)

@@ -15,7 +15,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swigcore.h"
+#include "swig.h"
 
 /*******************************************************************************
  * $Header$
@@ -31,13 +31,13 @@ static int    numargs;
 static int   *marked;
 
 /* -----------------------------------------------------------------------------
- * void SWIG_init_args(int argc, char **argv)
+ * void Swig_init_args(int argc, char **argv)
  * 
  * Initializes the argument list. 
  * ----------------------------------------------------------------------------- */
 
 void
-SWIG_init_args(int argc, char **argv)
+Swig_init_args(int argc, char **argv)
 {
   int i;
   assert(argc > 0);
@@ -53,26 +53,26 @@ SWIG_init_args(int argc, char **argv)
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_mark_arg(int n)
+ * void Swig_mark_arg(int n)
  * 
  * Marks an argument as being parsed.  All modules should do this whenever they
  * parse a command line option.
  * ----------------------------------------------------------------------------- */
 
 void
-SWIG_mark_arg(int n) {
+Swig_mark_arg(int n) {
    assert(marked);
    assert((n >= 0) && (n < numargs)); 
    marked[n] = 1;
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_check_options()
+ * void Swig_check_options()
  * 
  * Checks for unparsed command line options.  If so, issues an error and exits.
  * ----------------------------------------------------------------------------- */
  
-void SWIG_check_options() {
+void Swig_check_options() {
     int error = 0;
     int i;
     assert(marked);
@@ -94,12 +94,12 @@ void SWIG_check_options() {
 }
 
 /* -----------------------------------------------------------------------------
- * void SWIG_arg_error()
+ * void Swig_arg_error()
  * 
  * Generates a generic error message and exits.
  * ----------------------------------------------------------------------------- */
 
-void SWIG_arg_error() {
+void Swig_arg_error() {
   Printf(stderr,"SWIG : Unable to parse command line options.\n");
   Printf(stderr,"Use 'swig -help' for available options.\n");
   exit(1);

@@ -31,7 +31,7 @@ static char cvsroot[] = "$Header$";
 #include <stdio.h>
 #include <ctype.h>
 
-#include "swigcpp.h"
+#include "preprocessor.h"
 
 class SwigException {};
 
@@ -104,7 +104,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 #endif
 
   // Initialize the preprocessor
-  SWIG_cpp_init();
+  Preprocessor_init();
 
   f_wrappers = 0;
   f_init = 0;
@@ -122,12 +122,12 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   // Set up some default symbols (available in both SWIG interface files
   // and C files)
 
-  SWIG_cpp_define((DOH *) "SWIG 1", 0);
+  Preprocessor_define((DOH *) "SWIG 1", 0);
 #ifdef MACSWIG
-  SWIG_cpp_define((DOH *) "SWIGMAC 1", 0);
+  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
 #endif
 #ifdef SWIGWIN32
-  SWIG_cpp_define((DOH *) "SWIGWIN32 1", 0);
+  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
 #endif
   
   // Check for SWIG_LIB environment variable
@@ -149,10 +149,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 #else
   sprintf(temp,"%s/config", LibDir);
 
-  SWIG_add_directory((DOH *) temp);
-  SWIG_add_directory((DOH *) "./swig_lib/config");
-  SWIG_add_directory((DOH *) LibDir);
-  SWIG_add_directory((DOH *) "./swig_lib");
+  Swig_add_directory((DOH *) temp);
+  Swig_add_directory((DOH *) "./swig_lib/config");
+  Swig_add_directory((DOH *) LibDir);
+  Swig_add_directory((DOH *) "./swig_lib");
   sprintf(InitName,"init_wrap");
 #endif
 
@@ -166,63 +166,63 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	  if (strncmp(argv[i],"-I",2) == 0) {
 	    // Add a new directory search path 
 	    includefiles[includecount++] = copy_string(argv[i]+2);
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
 	    Replace(d,(char*)"=",(char*)" ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
-	    SWIG_cpp_define((DOH *) d,0);
+	    Preprocessor_define((DOH *) d,0);
 	    // Create a symbol
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-strict") == 0) {
 	    if (argv[i+1]) {
 	      TypeStrict = atoi(argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-E") == 0) {
 	    cpp_only = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-verbose") == 0) || (strcmp(argv[i],"-v") == 0)) {
 	      Verbose = 1;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-nocomment") == 0) {
 	      ignorecomments = 1;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
-	      SWIG_mark_arg(i);  
+	      Swig_mark_arg(i);  
           } else if (strcmp(argv[i],"-objc") == 0) {
 	      ObjC = 1;
-              SWIG_mark_arg(i);
+              Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-make_default") == 0) {
 	    GenerateDefault = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
 	    SWIG_exit(0);
 	  } else if (strcmp(argv[i],"-o") == 0) {
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	      if (argv[i+1]) {
 		outfile_name = copy_string(argv[i+1]);
-		SWIG_mark_arg(i+1);
+		Swig_mark_arg(i+1);
 		i++;
 	      } else {
-		SWIG_arg_error();
+		Swig_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-d") == 0) {
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	      if (argv[i+1]) {
 		doc_file = copy_string(argv[i+1]);
-		SWIG_mark_arg(i+1);
+		Swig_mark_arg(i+1);
 		i++;
 	      } else {
-		SWIG_arg_error();
+		Swig_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-version") == 0) {
  	      fprintf(stderr,"\nSWIG Version %d.%d %s\n", SWIG_MAJOR_VERSION,
@@ -234,23 +234,23 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path 
 	    Append(libfiles,argv[i]+2);
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-co") == 0) {
 	    checkout = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-freeze") == 0) {
 	    freeze = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	    help = 1;
 	  }
       }
   }
 
   while (includecount > 0) {
-    SWIG_add_directory((DOH *) includefiles[--includecount]);
+    Swig_add_directory((DOH *) includefiles[--includecount]);
   }
     
   // Open up a comment handler
@@ -277,9 +277,9 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
   // Check all of the options to make sure we're cool.
   
-  SWIG_check_options();
+  Swig_check_options();
 
-  SWIG_set_library(LibDir);
+  Swig_set_library(LibDir);
 
   // If we made it this far, looks good. go for it....
 
@@ -297,7 +297,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     if (outfile_name)
       outfile = outfile_name;
     
-    s = SWIG_include(input_file);
+    s = Swig_include(input_file);
     if (!s) {
       fprintf(stderr,"Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
@@ -391,7 +391,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     
     // Define the __cplusplus symbol
     if (CPlusPlus) 
-      SWIG_cpp_define((DOH *) "__cplusplus 1", 0);
+      Preprocessor_define((DOH *) "__cplusplus 1", 0);
 
     // Open up files
 
@@ -401,13 +401,13 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       DOH *cpps;
       FILE *f;
       int i;
-      DOH *ds = SWIG_include(input_file);
+      DOH *ds = Swig_include(input_file);
       Seek(ds,0,SEEK_END);
       for (i = 0; i < Len(libfiles); i++) {
 	Printf(ds,"\n%%include \"%s\"\n", Getitem(libfiles,i));
       }
       Seek(ds,0,SEEK_SET);
-      cpps = SWIG_cpp_parse(ds);
+      cpps = Preprocessor_parse(ds);
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
 	while (freeze);

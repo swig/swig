@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
  * Module for creating Tcl 8.0 native wrapper functions. 
  ***********************************************************************/
 
-#include "swig.h"
+#include "swig11.h"
 #include "tcl8.h"
 #include <ctype.h>
 
@@ -62,30 +62,30 @@ void TCL8::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      prefix = new char[strlen(argv[i+1])+2];
 	      strcpy(prefix, argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-module") == 0) {
 	    if (argv[i+1]) {
 	      set_module(argv[i+1],0);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-namespace") == 0) {
 	    nspace = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-old") == 0) {
 	    shadow = 0;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-noobject") == 0) {
 	    shadow = 0;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
@@ -105,8 +105,8 @@ void TCL8::parse_args(int argc, char *argv[]) {
 
   // Create a symbol SWIGTCL
 
-  SWIG_cpp_define((void *) "SWIGTCL 1",0);
-  SWIG_cpp_define((void *) "SWIGTCL8 1", 0);
+  Preprocessor_define((void *) "SWIGTCL 1",0);
+  Preprocessor_define((void *) "SWIGTCL8 1", 0);
 
   // Set name of typemaps
 

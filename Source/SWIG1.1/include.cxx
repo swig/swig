@@ -20,7 +20,7 @@ static char cvsroot[] = "$Header$";
 #include <stdio.h>
 #include <ctype.h>
 
-extern "C" FILE *SWIG_open(void *);
+extern "C" FILE *Swig_open(void *);
 
 /*******************************************************************************
  * $Header$
@@ -105,7 +105,7 @@ void copy_data(FILE *f1, String &s2) {
 // -----------------------------------------------------------------------------
 int insert_file(char *name, FILE *f_out) {
   FILE  *f;
-  f = SWIG_open((void *) name);
+  f = Swig_open((void *) name);
   if (f) {
       copy_data(f,f_out);
       return 0;
@@ -136,7 +136,7 @@ void swig_append(char *filename, FILE *f) {
 // -----------------------------------------------------------------------------
 int get_file(char *name, String &str) {
   FILE  *f;
-  f = SWIG_open((void *) name);
+  f = Swig_open((void *) name);
   if (!f) {
     fprintf(stderr,"SWIG Error. Unable to find %s. Possible installation problem.\n",name);
     FatalError();

@@ -18,7 +18,7 @@
  * wrap.h
  ***********************************************************************/
 
-#include "swig.h"
+#include "swig11.h"
 
 #ifndef SWIG_LIB
 #define SWIG_LIB = "./swig_lib"

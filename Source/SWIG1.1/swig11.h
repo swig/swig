@@ -565,12 +565,11 @@ extern  void  swig_append(char *filename, FILE *);
 
 extern "C" {
   /* Option processing */
-  extern void SWIG_init_args(int argc, char **);
-  extern void SWIG_mark_arg(int n);
-  extern void SWIG_check_options();
-  extern void SWIG_arg_error();
-
-  extern void *SWIG_cpp_define(void *, int);
+  extern void Swig_init_args(int argc, char **);
+  extern void Swig_mark_arg(int n);
+  extern void Swig_check_options();
+  extern void Swig_arg_error();
+  extern void *Preprocessor_define(void *, int);
 }
 
 // -----------------------------------------------------------------------

@@ -15,9 +15,9 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swigcore.h"
+#include "swig.h"
 
-struct Scanner {
+struct SwigScanner {
   DOH           *text;                    /* Current token value */
   DOH           *scanobjs;                /* Objects being scanned */
   DOH           *str;                     /* Current object being scanned */
@@ -41,12 +41,12 @@ struct Scanner {
  * ----------------------------------------------------------------------------- */
 
 /* -----------------------------------------------------------------------------
- * Scanner *NewScanner() - Create a new scanner object. 
+ * SwigScanner *NewSwigScanner() - Create a new scanner object. 
  * ----------------------------------------------------------------------------- */
-Scanner *NewScanner() 
+SwigScanner *NewSwigScanner() 
 {
-  Scanner *s;
-  s = (Scanner *) malloc(sizeof(Scanner));
+  SwigScanner *s;
+  s = (SwigScanner *) malloc(sizeof(SwigScanner));
   s->line = 1;
   s->file = 0;
   s->nexttoken = -1;
@@ -61,9 +61,9 @@ Scanner *NewScanner()
 }
 
 /* -----------------------------------------------------------------------------
- * DelScanner(Scanner *s) -  Delete a Scanner object
+ * DelSwigScanner(SwigScanner *s) -  Delete a SwigScanner object
  * ----------------------------------------------------------------------------- */
-void DelScanner(Scanner *s)
+void DelSwigScanner(SwigScanner *s)
 {
   assert(s);
   Delete(s->scanobjs);
@@ -73,9 +73,9 @@ void DelScanner(Scanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_clear(Scanner *s) - Clear a scanner object
+ * SwigScanner_clear(SwigScanner *s) - Clear a scanner object
  * ----------------------------------------------------------------------------- */
-void Scanner_clear(Scanner *s) {
+void SwigScanner_clear(SwigScanner *s) {
   assert(s);
   Delete(s->str);
   Clear(s->text);
@@ -88,10 +88,10 @@ void Scanner_clear(Scanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_push(Scanner *s, DOH *txt) - Push text into the scanner
+ * SwigScanner_push(SwigScanner *s, DOH *txt) - Push text into the scanner
  * ----------------------------------------------------------------------------- */
 
-void Scanner_push(Scanner *s, DOH *txt)
+void SwigScanner_push(SwigScanner *s, DOH *txt)
 {
   assert(s && txt);
   Push(s->scanobjs,txt);
@@ -101,48 +101,48 @@ void Scanner_push(Scanner *s, DOH *txt)
   s->line = Getline(txt);
 }
 /* -----------------------------------------------------------------------------
- * Scanner_pushtoken(Scanner *s, int nt)
+ * SwigScanner_pushtoken(SwigScanner *s, int nt)
  *
  * Set the next processing token.
  * ----------------------------------------------------------------------------- */
 
-void Scanner_pushtoken(Scanner *s, int nt) {
+void SwigScanner_pushtoken(SwigScanner *s, int nt) {
   assert(s);
-  assert((nt >= 0) && (nt < MAXTOKENS));
+  assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_set_location(Scanner *s, DOH *file, int line)
+ * SwigScanner_set_location(SwigScanner *s, DOH *file, int line)
  * ----------------------------------------------------------------------------- */
 void
-Scanner_set_location(Scanner *s, DOH *file, int line)
+SwigScanner_set_location(SwigScanner *s, DOH *file, int line)
 {
   Setline(s->str,line);
   Setfile(s->str,file);
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_get_file(Scanner *s) - Get current file
+ * SwigScanner_get_file(SwigScanner *s) - Get current file
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Scanner_get_file(Scanner *s) {
+SwigScanner_get_file(SwigScanner *s) {
   return Getfile(s->str);
 }
 
 int
-Scanner_get_line(Scanner *s) {
+SwigScanner_get_line(SwigScanner *s) {
   return Getline(s->str);
 }
 
 /* -----------------------------------------------------------------------------
- * char nextchar(Scanner *s) 
+ * char nextchar(SwigScanner *s) 
  * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
 static char
-nextchar(Scanner *s)
+nextchar(SwigScanner *s)
 {
   char c[2] = {0,0};
   int nc;
@@ -165,12 +165,12 @@ nextchar(Scanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * void retract(Scanner *s, int n)
+ * void retract(SwigScanner *s, int n)
  *
  * Retract n characters
  * ----------------------------------------------------------------------------- */
 static void
-retract(Scanner *s, int n) {
+retract(SwigScanner *s, int n) {
   int i, l;
   char *str;
   
@@ -188,13 +188,13 @@ retract(Scanner *s, int n) {
 }
 
 /* -----------------------------------------------------------------------------
- * int look(Scanner *s)
+ * int look(SwigScanner *s)
  *
  * Get the next token.
  * ----------------------------------------------------------------------------- */
 
 static int
-look(Scanner *s) 
+look(SwigScanner *s) 
 {
     int      state;
     char     c = 0;
@@ -211,7 +211,7 @@ look(Scanner *s)
 	    /* Process delimeters */
 
 	    if (c == '\n') {
-		return TOKEN_ENDLINE;
+		return SWIG_TOKEN_ENDLINE;
 	    } else if (!isspace(c)) {
 	      retract(s,1);
 	      state = 1000;
@@ -231,29 +231,29 @@ look(Scanner *s)
       
 	    /* Look for single character symbols */
       
-	    else if (c == '(') return TOKEN_LPAREN;
-	    else if (c == ')') return TOKEN_RPAREN;
-	    else if (c == ';') return TOKEN_SEMI;
-	    else if (c == ',') return TOKEN_COMMA;
-	    else if (c == '*') return TOKEN_STAR;
-	    else if (c == '}') return TOKEN_RBRACE;
-	    else if (c == '{') return TOKEN_LBRACE;
+	    else if (c == '(') return SWIG_TOKEN_LPAREN;
+	    else if (c == ')') return SWIG_TOKEN_RPAREN;
+	    else if (c == ';') return SWIG_TOKEN_SEMI;
+	    else if (c == ',') return SWIG_TOKEN_COMMA;
+	    else if (c == '*') return SWIG_TOKEN_STAR;
+	    else if (c == '}') return SWIG_TOKEN_RBRACE;
+	    else if (c == '{') return SWIG_TOKEN_LBRACE;
 	    else if (c == '=') state = 33;
-	    else if (c == '+') return TOKEN_PLUS;
-	    else if (c == '-') return TOKEN_MINUS;
+	    else if (c == '+') return SWIG_TOKEN_PLUS;
+	    else if (c == '-') return SWIG_TOKEN_MINUS;
 	    else if (c == '&') state = 31;
 	    else if (c == '|') state = 32;
-	    else if (c == '^') return TOKEN_XOR;
+	    else if (c == '^') return SWIG_TOKEN_XOR;
 	    else if (c == '<') state = 60;
 	    else if (c == '>') state = 61;
-	    else if (c == '~') return TOKEN_NOT;
+	    else if (c == '~') return SWIG_TOKEN_NOT;
 	    else if (c == '!') state = 3;
-	    else if (c == '\\') return TOKEN_BACKSLASH;
-	    else if (c == '[') return TOKEN_LBRACKET;
-	    else if (c == ']') return TOKEN_RBRACKET;
-	    else if (c == '@') return TOKEN_AT;
-	    else if (c == '$') return TOKEN_DOLLAR;
-	    else if (c == '#') return TOKEN_POUND;
+	    else if (c == '\\') return SWIG_TOKEN_BACKSLASH;
+	    else if (c == '[') return SWIG_TOKEN_LBRACKET;
+	    else if (c == ']') return SWIG_TOKEN_RBRACKET;
+	    else if (c == '@') return SWIG_TOKEN_AT;
+	    else if (c == '$') return SWIG_TOKEN_DOLLAR;
+	    else if (c == '#') return SWIG_TOKEN_POUND;
 
 	    /* Look for multi-character sequences */
 	  
@@ -291,7 +291,7 @@ look(Scanner *s)
 		Append(s->text,"  ");
 	    } else {
 		retract(s,1);
-		return TOKEN_SLASH;
+		return SWIG_TOKEN_SLASH;
 	    }
 	    break;
 	case 10:  /* C++ style comment */
@@ -300,7 +300,7 @@ look(Scanner *s)
 		return 0;
 	    }
 	    if (c == '\n') {
-		return TOKEN_ENDLINE;
+		return SWIG_TOKEN_ENDLINE;
 	    } else {
 		state = 10;
 	    }
@@ -337,7 +337,7 @@ look(Scanner *s)
 		return 0;
 	    }
 	    if (c == '\"') {
-		return TOKEN_STRING;
+		return SWIG_TOKEN_STRING;
 	    } else if (c == '\\') {
 		state = 21;             /* Possibly an escape sequence. */
 		break;
@@ -350,43 +350,43 @@ look(Scanner *s)
 	    break;
 
 	case 3: /* Maybe a not equals */
-	    if ((c = nextchar(s)) == 0) return TOKEN_LNOT;
-	    else if (c == '=') return TOKEN_NOTEQUAL;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_LNOT;
+	    else if (c == '=') return SWIG_TOKEN_NOTEQUAL;
 	    else {
 		retract(s,1);
-		return TOKEN_LNOT;
+		return SWIG_TOKEN_LNOT;
 	    }
 	    break;
 
 	case 31: /* AND or Logical AND */
-	    if ((c = nextchar(s)) == 0) return TOKEN_AND;
-	    else if (c == '&') return TOKEN_LAND;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_AND;
+	    else if (c == '&') return SWIG_TOKEN_LAND;
 	    else {
 		retract(s,1);
-		return TOKEN_AND;
+		return SWIG_TOKEN_AND;
 	    }
 	    break;
 
 	case 32: /* OR or Logical OR */
-	    if ((c = nextchar(s)) == 0) return TOKEN_OR;
-	    else if (c == '|') return TOKEN_LOR;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_OR;
+	    else if (c == '|') return SWIG_TOKEN_LOR;
 	    else {
 		retract(s,1);
-		return TOKEN_OR;
+		return SWIG_TOKEN_OR;
 	    }
 	    break;
 
 	case 33: /* EQUAL or EQUALTO */
-	    if ((c = nextchar(s)) == 0) return TOKEN_EQUAL;
-	    else if (c == '=') return TOKEN_EQUALTO;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_EQUAL;
+	    else if (c == '=') return SWIG_TOKEN_EQUALTO;
 	    else {
 		retract(s,1);
-		return TOKEN_EQUAL;
+		return SWIG_TOKEN_EQUAL;
 	    }
 	    break;
 
 	case 4: /* A wrapper generator directive (maybe) */
-	    if (( c= nextchar(s)) == 0) return TOKEN_PERCENT;
+	    if (( c= nextchar(s)) == 0) return SWIG_TOKEN_PERCENT;
 	    if (c == '{') {
 		state = 40;   /* Include block */
 		Clear(s->text);
@@ -397,7 +397,7 @@ look(Scanner *s)
 	    else if (strchr(s->idstart,'%') && ((isalpha(c)) || (c == '_'))) state = 7;
 	    else {
 		retract(s,1);
-		return TOKEN_PERCENT;
+		return SWIG_TOKEN_PERCENT;
 	    }
 	    break;
 	  
@@ -416,7 +416,7 @@ look(Scanner *s)
 	    if (c == '}') {
 		Delitem(s->text,DOH_END);
 		Delitem(s->text,DOH_END);
-		return TOKEN_CODEBLOCK;
+		return SWIG_TOKEN_CODEBLOCK;
 	    } else {
 		state = 40;
 	    }
@@ -424,48 +424,48 @@ look(Scanner *s)
 
 	case 5: /* Maybe a double colon */
 
-	    if (( c = nextchar(s)) == 0) return TOKEN_COLON;
-	    if ( c == ':') return TOKEN_DCOLON;
+	    if (( c = nextchar(s)) == 0) return SWIG_TOKEN_COLON;
+	    if ( c == ':') return SWIG_TOKEN_DCOLON;
 	    else {
 		retract(s,1);
-		return TOKEN_COLON;
+		return SWIG_TOKEN_COLON;
 	    }
 	    break;
 
 	case 60: /* shift operators */
-	    if ((c = nextchar(s)) == 0) return TOKEN_LESSTHAN;
-	    if (c == '<') return TOKEN_LSHIFT;
-	    else if (c == '=') return TOKEN_LTEQUAL;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_LESSTHAN;
+	    if (c == '<') return SWIG_TOKEN_LSHIFT;
+	    else if (c == '=') return SWIG_TOKEN_LTEQUAL;
 	    else {
 		retract(s,1);
-		return TOKEN_LESSTHAN;
+		return SWIG_TOKEN_LESSTHAN;
 	    }
 	    break;
 	case 61: 
-	    if ((c = nextchar(s)) == 0) return TOKEN_GREATERTHAN;
-	    if (c == '>') return TOKEN_RSHIFT;
-	    else if (c == '=') return TOKEN_GTEQUAL;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_GREATERTHAN;
+	    if (c == '>') return SWIG_TOKEN_RSHIFT;
+	    else if (c == '=') return SWIG_TOKEN_GTEQUAL;
 	    else {
 		retract(s,1);
-		return TOKEN_GREATERTHAN;
+		return SWIG_TOKEN_GREATERTHAN;
 	    }
 	    break;
 	case 7: /* Identifier */
-	    if ((c = nextchar(s)) == 0) return TOKEN_ID;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_ID;
 	    if (isalnum(c) || (c == '_') || (c == '$')) {
 		state = 7;
 	    } else {
 		retract(s,1);
-		return TOKEN_ID;
+		return SWIG_TOKEN_ID;
 	    }
 	    break;
 	case 8: /* A numerical digit */
-	    if ((c = nextchar(s)) == 0) return TOKEN_INT;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
 	    if (c == '.') {state = 81;}
 	    else if ((c == 'e') || (c == 'E')) {state = 86;}
 	    else if ((c == 'f') || (c == 'F')) {
 		Delitem(s->text,DOH_END);
-		return TOKEN_FLOAT;
+		return SWIG_TOKEN_FLOAT;
 	    } else if (isdigit(c)) { state = 8;}
 	    else if ((c == 'l') || (c == 'L')) {
 		state = 87;
@@ -473,35 +473,35 @@ look(Scanner *s)
 		state = 88;
 	    } else {
 		retract(s,1);
-		return TOKEN_INT;
+		return SWIG_TOKEN_INT;
 	    }
 	    break;
 	case 81: /* A floating pointer number of some sort */
-	    if ((c = nextchar(s)) == 0) return TOKEN_DOUBLE;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_DOUBLE;
 	    if (isdigit(c)) state = 81;
 	    else if ((c == 'e') || (c == 'E')) state = 82;
 	    else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
 		Delitem(s->text,DOH_END);
-		return TOKEN_FLOAT;
+		return SWIG_TOKEN_FLOAT;
 	    } else {
 		retract(s,1);
-		return(TOKEN_DOUBLE);
+		return(SWIG_TOKEN_DOUBLE);
 	    }
 	    break;
 	case 82:
 	    if ((c = nextchar(s)) == 0) {
 		retract(s,1);
-		return TOKEN_INT;
+		return SWIG_TOKEN_INT;
 	    }
 	    if ((isdigit(c)) || (c == '-') || (c == '+')) state = 86;
 	    else {
 		retract(s,2);
-		return(TOKEN_INT);
+		return(SWIG_TOKEN_INT);
 	    }
 	    break;
 	case 83:
 	    /* Might be a hexidecimal or octal number */
-	    if ((c = nextchar(s)) == 0) return TOKEN_INT;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
 	    if (isdigit(c)) state = 84;
 	    else if ((c == 'x') || (c == 'X')) state = 85;
 	    else if (c == '.') state = 81;
@@ -511,12 +511,12 @@ look(Scanner *s)
 		state = 88;
 	    } else {
 		retract(s,1);
-		return TOKEN_INT;
+		return SWIG_TOKEN_INT;
 	    }
 	    break;
 	case 84:
 	    /* This is an octal number */
-	    if ((c = nextchar(s)) == 0) return TOKEN_INT;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
 	    if (isdigit(c)) state = 84;
 	    else if ((c == 'l') || (c == 'L')) {
 		state = 87;
@@ -524,12 +524,12 @@ look(Scanner *s)
 		state = 88;
 	    } else {
 		retract(s,1);
-		return TOKEN_INT;
+		return SWIG_TOKEN_INT;
 	    }
 	    break;
 	case 85:
 	    /* This is an hex number */
-	    if ((c = nextchar(s)) == 0) return TOKEN_INT;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_INT;
 	    if ((isdigit(c)) || (c=='a') || (c=='b') || (c=='c') ||
 		(c=='d') || (c=='e') || (c=='f') || (c=='A') ||
 		(c=='B') || (c=='C') || (c=='D') || (c=='E') ||
@@ -541,46 +541,46 @@ look(Scanner *s)
 		state = 88;
 	    } else {
 		retract(s,1);
-		return TOKEN_INT;
+		return SWIG_TOKEN_INT;
 	    }
 	    break;
 
 	case 86:
 	    /* Rest of floating point number */
       
-	    if ((c = nextchar(s)) == 0) return TOKEN_DOUBLE;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_DOUBLE;
 	    if (isdigit(c)) state = 86;
 	    else if ((c == 'f') || (c == 'F')) {
 		Delitem(s->text,DOH_END);
-		return TOKEN_FLOAT;
+		return SWIG_TOKEN_FLOAT;
 	    } else if ((c == 'l') || (c == 'L')) {
 		Delitem(s->text,DOH_END);
-		return TOKEN_DOUBLE;
+		return SWIG_TOKEN_DOUBLE;
 	    } else {
 		retract(s,1);
-		return TOKEN_DOUBLE;
+		return SWIG_TOKEN_DOUBLE;
 	    }
 	    break;
 
 	case 87 :
 	    /* A long integer of some sort */
-	    if ((c = nextchar(s)) == 0) return TOKEN_LONG;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_LONG;
 	    if ((c == 'u') || (c == 'U')) {
-		return TOKEN_ULONG;
+		return SWIG_TOKEN_ULONG;
 	    } else {
 		retract(s,1);
-		return TOKEN_LONG;
+		return SWIG_TOKEN_LONG;
 	    } 
 
 	    /* An unsigned number */
 	case 88:
 
-	    if ((c = nextchar(s)) == 0) return TOKEN_UINT;
+	    if ((c = nextchar(s)) == 0) return SWIG_TOKEN_UINT;
 	    if ((c == 'l') || (c == 'L')) {
-		return TOKEN_ULONG;
+		return SWIG_TOKEN_ULONG;
 	    } else {
 		retract(s,1);
-		return TOKEN_UINT;
+		return SWIG_TOKEN_UINT;
 	    } 
       
 	    /* A character constant */
@@ -590,7 +590,7 @@ look(Scanner *s)
 		return 0;
 	    }
 	    if (c == '\'') {
-		return(TOKEN_CHAR);
+		return(SWIG_TOKEN_CHAR);
 	    } else if (c == '\\') state = 91;
 	    break;
 
@@ -609,25 +609,25 @@ look(Scanner *s)
 	    if (isdigit(c)) state = 81;
 	    else {
 		retract(s,1);
-		return TOKEN_PERIOD;
+		return SWIG_TOKEN_PERIOD;
 	    }
 	    break;
       
 	    /* An illegal character */
 	default:
-	  return TOKEN_ILLEGAL;
+	  return SWIG_TOKEN_ILLEGAL;
 	}
     }
 }
 
 /* -----------------------------------------------------------------------------
- * int Scanner_token(Scanner *s)
+ * int SwigScanner_token(SwigScanner *s)
  *
  * Return the next token or 0 if at the end of the string
  * ----------------------------------------------------------------------------- */
 
 int
-Scanner_token(Scanner *s)
+SwigScanner_token(SwigScanner *s)
 {
     int t;
     Clear(s->text);
@@ -641,24 +641,24 @@ Scanner_token(Scanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Scanner_text(Scanner *s)
+ * DOH *SwigScanner_text(SwigScanner *s)
  *
  * Return the text associated with the last token returned.
  * ----------------------------------------------------------------------------- */
 DOH *
-Scanner_text(Scanner *s)
+SwigScanner_text(SwigScanner *s)
 {
     return s->text;
 }
 
 /* -----------------------------------------------------------------------------
- * void Scanner_skip_line(Scanner *s)
+ * void SwigScanner_skip_line(SwigScanner *s)
  *
  * Skips to the end of a line
  * ----------------------------------------------------------------------------- */
 
 void
-Scanner_skip_line(Scanner *s)
+SwigScanner_skip_line(SwigScanner *s)
 {
     char c;
     int done = 0;
@@ -674,14 +674,14 @@ Scanner_skip_line(Scanner *s)
 }
 
 /* -----------------------------------------------------------------------------
- * void Scanner_skip_balanced(Scanner *s, int start, int end)
+ * void SwigScanner_skip_balanced(SwigScanner *s, int start, int end)
  *
  * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
  * (...).  Ignores symbols inside comments or strings.
  * ----------------------------------------------------------------------------- */
 
 int 
-Scanner_skip_balanced(Scanner *s, int startchar, int endchar)
+SwigScanner_skip_balanced(SwigScanner *s, int startchar, int endchar)
 {
     char c;
     int  num_levels = 1;
