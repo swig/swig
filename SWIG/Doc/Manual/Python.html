@@ -39,6 +39,7 @@
 <li><a href="#Python_nn25">C++ namespaces</a>
 <li><a href="#Python_nn26">C++ templates</a>
 <li><a href="#Python_nn27">C++ Smart Pointers</a>
+<li><a href="#Python_nn27a">C++ Reference Counted Objects (ref/unref)</a>
 </ul>
 <li><a href="#Python_nn28">Further details on the Python class interface</a>
 <ul>
@@ -1905,6 +1906,148 @@ simply use the <tt>__deref__()</tt> method.  For example:
 &gt;&gt;&gt; f = p.__deref__()     # Returns underlying Foo *
 </pre>
 </div>
+
+
+<H3><a name="Python_nn27a"></a>26.3.15 C++ Reference Counted Objects (ref/unref)</H3>
+
+<p>
+Another usual idiom in C++ is the use of reference counted
+objects. Consider for example:
+
+<div class="code">
+<pre>
+class RCObj  {
+  // implement the ref counting mechanism
+  int add_ref();
+  int del_ref();
+  int ref_count();
+
+public:
+  virtual ~RCObj() = 0;
+
+  int ref() const {
+    return add_ref();
+  }
+
+  int unref() const   {
+    if (ref_count() == 0 || del_ref() == 0 ) {
+	delete this;
+	return 0;
+      } 
+    return ref_count();
+  }
+};
+
+
+class A : RCObj {
+public:
+  A();
+  int foo();
+};
+
+
+class B {
+  A *_a;
+
+public:
+  B(A *a) : _a(a) { 
+    a-&gt;ref(); 
+  }
+
+  ~B() { 
+    a-&gt;unref(); 
+  }
+};
+
+int main() {
+  A *a  = new A();
+  a->ref();           // 'a' is ref here
+
+  B *b1 = new B(a);   // 'a' is ref here
+  if (1 + 1 == 2) {
+    B *b2 = new B(a); // 'a' is ref here
+    delete b2;        // 'a' is unref, but not deleted   
+  }
+
+  delete b1;          // 'a' is unref, but not deleted   
+  a->unref();         // 'a' is unref and deleted
+}
+</pre>
+</div>
+
+<p>
+In the example above, the 'A' class instance 'a' is a reference counted
+object, which can't be deleted arbitrarily since it is shared between
+the objects 'b1' and 'b2'. 'A' is derived from an Reference Counted
+Object 'RCObj', which implements the ref/unref idiom.
+</p>
+
+<p>
+To tell SWIG that 'RCObj' and all its derived classes are reference
+counted objects, you use the "ref" and "unref" features. For example:
+</p>
+
+
+<div class="code">
+<pre>
+%module example
+...
+
+%feature("ref")   RCObj "$this->ref();"
+%feature("unref") RCObj "$this->unref();"
+
+%include "rcobj.h"
+%include "A.h"
+...
+</pre>
+</div>
+
+<p>
+where the code passed to the "ref" and "unref" methods will be
+executed as needed whenever a new object is passed to python, or when
+python tries to release the shadow object instance, respectively. 
+</p>
+
+<p> 
+In the python side, the use of a reference counted object is not
+different than any other regular instance:
+</p>
+
+<div class="targetlang">
+<pre>
+def create_A():
+  a = A()         # SWIG ref 'a' (new object is passed to python)
+  b1 = B(a)       # C++  ref 'a'
+  if 1 + 1 == 2:
+     b2 = B(a)    # C++ ref 'a'
+  return a        # 'b1' and 'b2' are released, C++ unref 'a' twice
+
+a = create_A()   
+exit              # 'a' is released, SWIG unref 'a'
+</pre>
+</div>
+
+<p>
+Note that the user doens't explicitly need to call 'a->ref()' nor 'a->unref()'
+(as neither 'delete a'). Instead, SWIG take cares of executing the "ref"
+and "unref" codes as needed.  If the user doesn't specify the
+"ref/unref" features, SWIG will produce a code equivalent to define
+them as:
+</p>
+
+<div class="code">
+<pre>
+%feature("ref")   ""
+%feature("unref") "delete $this;"
+</pre>
+</div>
+
+<p>
+In other words, SWIG will not do anything special when a new object
+is passed to python, and it will always 'delete' the object when
+python releases the shadow instance.
+</p>
+
 
 <H2><a name="Python_nn28"></a>26.4 Further details on the Python class interface</H2>
 
