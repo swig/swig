@@ -118,6 +118,7 @@ CPP_TEST_CASES += \
 	ignore_parameter \
 	import_nomodule \
 	inherit_missing \
+	inline_initializer \
 	kind \
 	lib_carrays \
 	lib_cdata \
