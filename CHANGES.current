@@ -1,6 +1,18 @@
 Version 1.3.20 (In progress)
 ============================
 09/01/2003: beazley
+            Fixed [ 797573 ] no way to rename classes coming from C structures.
+            This problem relates to renaming of anonymous structures with a
+            typedef.  For example: 
+
+                  %rename(Bar) Foo;
+                  typedef struct {
+                     ...
+                  } Foo;
+
+            Reported by Britton Leo Kerin.
+            
+09/01/2003: beazley
             Fixed [ 797576 ] -help seems to imply that only tcl-specific options exist.
             Added a comment to alert user to other options.
             Reported by Britton Leo Kerin.
