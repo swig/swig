@@ -29,7 +29,5 @@ public class arrays_global_twodim_runme {
           }
         }
       }
-
-      System.out.println("finished");
   }
 }
