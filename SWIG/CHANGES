@@ -7,12 +7,1829 @@ In this CVS branch "rel-1-3", fixes in the SWIG core and improvements
 to the language modules take place, starting from the stable release
 1.3.6.
 
-This branch is also the basis for the unofficial "swig1.3" Debian
-package that is available from:
-http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian
-
 Eventually this branch will be merged back to the trunk of the CVS
 tree (maybe).
+
+Version 1.3.17 (In progress)
+============================
+
+Due to the size of the CHANGES file, please add change entries to the
+file CHANGES.current.  It will be merged into this file before
+release.  -- Dave
+
+Version 1.3.16 (October 14, 2002)
+=================================
+
+10/13/2002: beazley
+            Fixed bug with %extend directive and %feature reported
+            by William Fulton.
+
+10/13/2002: beazley
+            Added OpenVMS build directory (vms).  Contributed by 
+            Jean-François Pieronne.
+
+10/09/2002: cheetah (William Fulton)
+            [Java] Added throws clause to the native functions in the JNI class.
+            The throws clause is the same as the one generated for proxy functions
+            and module class functions.
+
+09/27/2002: beazley
+            Fixed some problems with the %import directive and classes that
+            were defined but not wrapped.  Problem reported by Leslie Brooks,
+            Gerry Woods, and others.
+
+09/23/2002: cheetah (William Fulton)
+            [Java] Some error checking added:
+            1) OutOfMemoryException check in the char * typemaps. 
+            2) As SWIG treats pointers, references and passing by value all the
+            same, it is possible to pass a NULL pointer to a function that expects
+            an object passed by value or by reference. A NullPointerException is 
+            now thrown under this scenario.
+
+09/20/2002: ttn
+	    [Methodology] Reworked "make clean" and "make install"
+			  to be more table driven.
+	    [Docs] Explain how to extend "make install" w/ extra-install.list.
+
+09/15/2002: beazley
+            Deprecation of the "ignore" typemap.   The "ignore" typemap has
+            been deprecated in favor of a generalization of the "in" typemap.
+            To ignore an argument, use something like this instead:
+
+                %typemap(in,numinputs=0) int *output (int temp) {
+                     $1 = &temp;
+                }
+
+            This change fixes a number of subtle bugs related to the interaction
+            of the "in" and "ignore" typemaps (which were supposed to be
+            mutually exclusive).
+
+            The use of the numinputs argument is reserved for future expansion.
+            Currently, values >1 will generate an error.  However, future
+            releases of SWIG may utilize that to support multi-input typemaps.
+
+            %typemap(ignore) still works, but generates a warning message and is
+            translated to %typemap(in,numinputs=0).
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            *** NEW FEATURE ***
+
+09/15/2002: beazley
+            Fixed segmentation fault for unnamed structures.  For example:
+
+               typedef struct {
+               } *blah;
+
+
+            Reported by Roger Gibson.
+            Note: we might be able to generate wrappers in special cases.
+
+09/13/2002: beazley
+            Minor modification to generated wrapper functions.  Pointer arguments are now
+            always set to an initial value of 0.   Simplifies typemap writing and cleanup
+            code (since you can rely on zero-value initialization).   This also greatly
+            reduces the need to ever write an "arginit" typemap.
+
+09/12/2002: beazley
+            Minor enhancement to smart-pointer support.  If operator->()
+            is part of an ignored base class like this,
+
+                 %ignore Bar;
+
+                 class Foo {
+                 public:
+                     int blah();
+                 };
+
+                 class Bar {         /* Ignored */
+                 public:
+                     ...
+                     Foo *operator->();
+                     ...
+                 };
+
+                 class Spam : public Bar { };
+
+            then methods from Foo are still available.  For example,
+
+                 >>> s = Spam()
+                 >>> s.blah()
+                 0
+                 >>>
+
+             The only catch is that the operator->() itself is not available
+             (since it wasn't wrapped).   Therefore, there won't be any
+             __deref__() operation unless it is explicitly added to Spam
+             (either using %extend or just placing operator->() in the
+             definition of Spam).
+
+09/11/2002: ttn
+	    [Methodology] Reworked "make check" to be more table driven.
+	    [Docs] Docuemented methodology in Manual/Extending.html.
+
+09/11/2002: ttn
+	    [Docs] Prefixed Manual/*.html with "<!DOCTYPE html ...>" to
+	    pander dotingly to (over-)sensitive editors.
+
+09/10/2002: ttn
+	    [Guile] Converted Examples/guile/simple "make check"
+	    behavior to actually check execution results.  Reduced
+	    iteration counts so that the test doesn't take too long.
+
+09/10/2002: beazley
+            SWIG-1.3.15 released.
+
+
+Version 1.3.15 (September 9, 2002)
+==================================
+09/09/2002: beazley
+            Fixed nasty runtime type checking bug with subtypes and inheritance
+            and templates. 
+
+09/09/2002: cheetah (William Fulton)
+            [Java] Java exception classes for a method's throws clause can be generated by 
+            specifying them in a comma separated list in the throws attribute in any one
+            of the following typemaps: in, out, check, freearg, argout and throws. A classic
+            example would be to convert C++ exceptions into a standard Java exception:
+
+                %typemap(throws, throws="java.io.IOException") file_exception {
+                    jclass excep = jenv->FindClass("java/io/IOException");
+                    if (excep)
+                        jenv->ThrowNew(excep, _e.what());
+                    return $null; // or use SWIG_fail
+                }
+
+                class file_exception {...};
+                void open(const char *filename) throw(file_exception);
+
+            The Java method will then be declared with a throws clause:
+
+                public static void open(String filename) throws java.io.IOException {...}
+
+09/08/2002: mkoeppe
+	  * [Guile] Improved the documentation system.  The arglist no
+	    longer gets cluttered with type specification, making it
+	    more readable.  (Also the ILISP function C-u M-x
+	    `arglist-lisp' RET works better this way.)  The types of
+	    arguments are explained in an extra sentence after the
+	    arglist. 
+	    
+	    There are now two documentation-related typemap arguments:
+
+	        %typemap(in, doc="$NAME is a vector of integers", 
+			 arglist="$name")  int *VECTOR { ... }
+			 
+            The "arglist" texts of all arguments of a function make up
+	    its arglist in the documentation.  The "doc" texts of all
+	    arguments are collected to make a sentence that describes
+	    the types of the arguments.  Reasonable defaults are
+	    provided. 
+
+	    As usual, $name is substituted by the name of the
+	    argument. The new typemap variable $NAME is like $name,
+	    but marked-up as a variable.  This means that it is
+	    upper-cased; in TeXinfo mode ("-procdocformat texinfo") it
+	    comes out as @var{name}. 
+	    
+	    The directives %values_as_list, %values_as_vector,
+	    %multiple_values now also have an effect on the
+	    documentation. (This is achieved via the new pragmas
+	    return_nothing_doc, return_one_doc, return_multi_doc.)
+
+	    Documentation has also improved for variables that are
+	    wrapped as procedures-with-setters (command-line switch
+	    "-emit-setters").
+
+          * [Guile] Emit constants as _immutable_ variables.  (This
+            was broken recently.)
+
+09/07/2002: mkoeppe
+	    [Guile] Updated the typemaps in list-vector.i.
+
+09/07/2002: mkoeppe
+	    Short-circuit the typechecks for overloaded functions.
+	    (The changes in code generation are visible in the new
+	    testcase "overload_complicated".)
+
+09/06/2002: cheetah (William Fulton)
+            [Java] Solution for [ 596413 ]
+            New typemap so that the Java proxy classes and type wrapper classes
+            wrapper constructor modifier can be tailored by users. The default value is 
+            protected. Normally SWIG generates a constructor like this which can only 
+            be accessed within one package:
+
+              protected Bar(long cPtr, boolean cMemoryOwn) {
+              ...
+              }
+            
+            If you are using SWIG across multiple packages or want to use this constructor
+            anyway, it can now be accessed outside the package. To modify use for example:
+
+              %typemap(javaptrconstructormodifiers) SWIGTYPE "public"
+
+            to change to public for all proxy classes and similarly for all type wrapper classes:
+            
+              %typemap(javaptrconstructormodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "public"
+
+09/06/2002: cheetah (William Fulton)
+            [Java] Added throws typemaps for the Java module. C++ exceptions get converted into
+            java.lang.RuntimeException Java exceptions. 
+            
+            Warning: This may change from java.lang.Runtime exception in the future.
+
+09/05/2002: cheetah (William Fulton)
+            [Java] Fix for variables declared as references.
+
+09/05/2002: beazley
+            Fixed [ 605162 ] Typemap local variables. Reported by Lyle Johnson.
+
+09/05/2002: ljohnson (Lyle Johnson)
+            [Ruby] More updates to the Ruby module documentation, including
+	    a new typemap example that demonstrates how to collect key-value
+	    pairs from an argument list into a Hash.
+
+09/05/2002: beazley
+            Fixed bug with template expansion and constructors.
+
+                template<class T> class Foo {
+                public:
+                    Foo<T>() { }
+                };
+
+            The extra <T> in the constructor was carried through in the
+            name--causing runtime problems in generated modules.
+            Reported by Jordi Arnabat Benedicto.
+ 
+09/05/2002: mkoeppe
+	    [Guile] Support overloading.
+
+09/04/2002: ljohnson (Lyle Johnson)
+            [Ruby] Updated typemaps for long long and unsigned long long types
+	    to use Ruby 1.7 support for these types when available.
+
+09/04/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added output typemaps for const reference to primitive
+	    types.
+
+09/04/2002: mkoeppe
+	    [Guile] Fix pass-by-value typemaps.  Reported by Arno
+	    Peters via Debian bugtracking (#156902), patch by Torsten
+	    Landschoff <torsten@debian.org>.
+
+09/03/2002: samjam (Sam Liddicott)
+	    Better reference support.
+	    Functions that want a void** can take a NULL by reference and
+	    the void* will be made for you and then passed-by-reference
+
+	    Also all integer-class native types can be passed by reference
+	    where an int* or int& etc is needed
+
+09/03/2002: beazley
+            Changed the evaluation order of preprocessor macro arguments.
+            Arguments are now expanded by the preprocessor *before* they
+            are passed to macro expansion.  This fixes a subtle expansion
+            bug reported by Anthony Heading.
+
+09/03/2002: beazley
+            Fixed the file include order (again, apparently). See 2/27/99.
+
+09/02/2002: beazley
+            [Perl] Better exception handling support.  Since Perl error handling
+            relies on setjmp/longjmp, wrapper functions have been modified slightly
+            to provide an extra block scope:
+
+                XS(foo) {
+                   char _swigmsg[SWIG_MAX_ERRMSG] = "";
+                   const char *_swigerr = _swigmsg;
+                   {
+                      /* Normal wrapper function here */
+                      ...
+                      SWIG_croak("An error occurred\n");
+                      ...
+                      XSRETURN(argvi);      /* Successful return */
+                      fail:
+                        /* cleanup code */
+                   }
+                   croak(_swig_err);
+                }
+
+            The macro SWIG_croak(x) sets the value of _swigerr to x and
+            executes a "goto fail".  The whole wrapper function is enclosed
+            block scope to provide proper cleanup of C++ objects.  Since
+            croak executes a longjmp(), there is no way to properly reclaim
+            resources if this executes in the same scope as the wrapper
+            function.
+
+            The _swigmsg[] variable is normally unused, but can be used
+            to store small error messages using sprintf or snprintf. It
+            has a capacity of at least 256 bytes (SWIG_MAX_ERRMSG).
+            
+09/02/2002: beazley
+            [Tcl] Added better support for exceptions.  Instead of returning TCL_ERROR,
+            use the macro SWIG_fail to return with an error.  This ensures that
+            arguments are properly cleaned up.  Exception specifiers are now
+            handled by default.
+
+09/02/2002: ljohnson (Lyle Johnson)
+            [Ruby] The type-checking system for the Ruby module has had a flaw
+	    in that some types which should be considered equivalent
+	    weren't. This bug was best demonstrated by the inherit_missing.i
+	    test suite case, which defines a base class "Foo" that is
+	    subclassed by "Bar". The "Foo" class isn't actually wrapped (i.e.
+	    it's not directly accessible from Ruby) but we'd still like to be
+	    able to pass "Bar" instances to functions expecting Foos and have
+	    that work; it wasn't. The revised implementation (similar to that
+	    used for some other language modules) adds a new instance variable
+	    (__swigtype__) to each object that indicates its SWIG type;
+	    that is, each "Bar" instance will now have a string instance
+	    variable called "__swigtype__" whose value is "_p_Bar".
+
+            Unless developers were taking advantage of this low-level
+	    implementation detail, they shouldn't notice any compatibility
+	    problems; nevertheless, I'm marking it as a "potential
+	    incompatibility".
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+09/01/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed SF Bug #603199.
+
+08/08/2002: cheetah (William Fulton)
+            [Java] Added OUTPUT, INPUT and INOUT typemaps in typemaps.i for C++ 
+            references.
+
+08/27/2002: mkoeppe
+	    [Guile] Fixed error in "lib_std_vector" testcase and
+	    compiler warning in "lib_cdata" testcase.
+
+08/27/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added the "%mixin" directive, which allows the user to
+	    specify a comma-separated list of module names to mix-in to a
+	    class. So, for example, if you'd like to specify that Ruby's
+	    Enumerable module should be mixed-in to your class Foo, you'd
+	    write:
+	    
+	        %mixin Foo "Enumerable";
+		
+            or to specify that the modules Fee, Fie and Fo should be mixed
+	    in to Foo:
+	    
+	        %mixin Foo "Fee,Fie,Fo";
+		
+	    *** NEW FEATURE ***
+
+08/27/2002: ljohnson (Lyle Johnson)
+            [Ruby] Modified the %alias directive so that multiple aliases
+	    can be specified for an instance method by using a comma-separated
+	    list of aliases.
+
+08/27/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added "throw" typemaps for the Ruby module.
+
+08/26/2002: beazley
+            Two new command line options for printing dependencies.
+            'swig -M' lists all file dependencies.  'swig -MM' lists
+            dependencies, but excludes files in the SWIG library. 
+            Example:
+
+               % swig -M -python example.i
+               example_wrap.cxx: \
+                /u0/beazley/Projects/lib/swig1.3/swig.swg \
+                /u0/beazley/Projects/lib/swig1.3/python/python.swg \
+                example.i \
+                example.h 
+
+               % swig -MM -python example.i
+               example_wrap.cxx: \
+                example.i \
+                example.h 
+
+            *** NEW FEATURE ***
+
+08/26/2002: beazley
+            Fixed [ 597599 ] union in class: incorrect scope.
+            Reported by Art Yerkes.
+
+08/26/2002: beazley
+            Fixed [ 600132 ] Default argument with namespace. 
+            Reported by Shibukawa Yoshiki.
+ 
+08/24/2002: beazley
+            Automatic C++ exception handling enabled for all language modules.    This is
+            pretty simple.  If you have a class like this:
+
+                class Foo {
+                };
+                class Bar {
+                public:
+                    void blah() throw(Foo);
+                }
+
+            then the generated wrapper code looks like this:
+
+                  wrap_Bar_blah() {
+                       ...
+                       try {
+                           arg1->blah();
+                       } 
+                       catch (Foo &_e) {
+                           /* "throw" typemap code inserted. $1 = _e */
+                       }
+                       catch (...) {
+                          throw;
+                       }
+                  }
+            The "throw" typemap can be used to raise an error in the target 
+            language.  It can do anything.  Here is a very simple example:
+
+                 %typemap("throw") Foo {
+                     PyErr_SetString(PyExc_RuntimeError, "Foo exception");
+                     return NULL;
+                 }
+
+            To make this work in each language module, simply define a few default
+            "throw" typemaps for SWIGTYPE, SWIGTYPE *, int, const char *, and a
+            few common exception types.   That's all there is to it.
+
+            Automatic exception handling can be disabled using -noexcept or
+            setting the NoExcept global variable to 1.
+            *** NEW FEATURE ***
+
+08/23/2002: beazley
+            [ Python ]
+            Automatic translation of C++ exception specifications into error handling code.
+            For example:
+ 
+                class Foo {
+                };
+                class Bar {
+                public:
+                    void blah() throw(Foo);
+                }
+
+            In this case, Foo is wrapped as a classic-style class (compatible
+            with exception handling).  Furthermore, you can write Python code
+            like this:
+
+                b = Bar()
+                try:
+                    b.blah();
+                except Foo,e:     # Note use of exception class here!
+                    # Handle Foo error
+                    ...
+
+            The object "e" in the exception handler is just a wrapped Foo
+            object.  Access it like a normal object.
+
+            If an exception is not wrapped as a class, a RuntimeError
+            exception is raised.  The argument to this exception is
+            the exception object.  For example:
+ 
+                class Bar {
+                public:
+                    void blah() throw(int);
+                }
+
+                b = Bar()
+                try:
+                   b.blah();
+                except RuntimeError,e:
+                   print e.args[0]       # Integer exception value
+
+            Comments:
+
+                -  If a class is used as an exception, it *must* be wrapped
+                   as a Python classic-style class (new classes don't work).
+
+                -  Automatic exception handling is compatible with %exception.
+
+                -  Use -noexcept to turn off this feature.
+
+                -  The newly introduced "throw" typemap is used to raise
+                   Python errors (naturally).
+
+            *** EXPERIMENTAL NEW FEATURE ***
+
+08/23/2002: beazley
+            Information from throw() specifiers is now stored in the parse
+            tree.  For example:
+
+                class Foo {
+                public:
+                     int blah() throw(spam,bar);
+                }
+
+            The stored information is fully corrected for namespaces and works
+            with templates.  Uses will follow.
+            
+08/22/2002: beazley
+            Exception handling code is no longer applied to member access
+            function.  For example, in this code
+
+                %exception {
+                   try {
+                      $action
+                   } catch(whatever) {
+                      ...
+                   }
+                }
+
+                class Foo {
+                public:
+                    int x;
+                    ...
+                }
+
+            The exception handling code is not applied to accessor functions
+            for Foo::x.   This should reduce the amount of extra code
+            generated.
+
+            Caveat:  Exception handling code *is* used when attributes are
+            accessed through a smart-pointer or a synthesized attributed
+            added with %extend is used.
+
+08/22/2002: beazley
+            Made more patches to hopefully eliminate problems when compiling SWIG 
+            as a 64-bit executable.
+
+08/22/2002: beazley
+            Fixed a bug with const reference members, variables, and static members.
+            For example:
+
+                  class Foo {
+                  public:
+                       static const int &ref;
+                  };
+
+            SWIG was trying to generate "set" functions which wouldn't compile. 
+
+08/21/2002: beazley
+            Made the warning message for "Class X might abstract" off by default.
+            Enable with -Wall.
+
+08/21/2002: beazley
+            Refined handling of const and non-const overloaded methods.  If
+            a class defines a method like this:
+
+                class Foo {
+                public:
+                    int bar(int);
+                    int bar(int) const;
+                }
+
+            Then the non-const method is *always* selected in overloading and
+            the const method silently discarded.  If running with -Wall, a warning
+            message will be generated.
+
+08/19/2002: beazley
+            Better support for using declarations and inheritance.   Consider this:
+
+                class Foo {
+                public:
+                      int blah(int x);
+                };
+
+                class Bar {
+                public:
+                      double blah(double x);
+                };
+
+                class FooBar : public Foo, public Bar {
+                public:
+                      char *blah(char *x);
+                      using Foo::blah;
+                      using Bar::blah;
+                };
+
+            Now SWIG wraps FooBar::blah as an overloaded method that uses all
+            accessible versions of blah().  See section 15.2.2 in Stroustrup, 3rd Ed.
+
+            SWIG also supports access change through using declarations.  For example:
+
+                class Foo {
+                protected:
+                     int x;
+                     int blah(int x);
+                };
+
+                class Bar : public Foo {
+                public:
+                     using Foo::x;
+                     using Foo::blah;
+                };
+
+
+            Caveat:   SWIG does not actually check to see if declarations imported
+            via 'using' are in the inheritance hierarchy.  If this occurs, the
+            wrapper code won't compile anyways---not sure it's worth worrying about.
+          
+08/18/2002: beazley
+            Modified overloading dispatch to not include nodes with an "error" attribute.
+            A language module can set this if a node couldn't be wrapped and you don't want
+            it included in the dispatch function.
+
+08/18/2002: beazley
+            Enhancement to overloaded function dispatch.   The dispatcher is now aware of
+            inheritance relationships.   For example:
+
+                   class Foo { };
+                   class Bar : public Foo { };
+                    
+                   void spam(Foo *f);
+                   void spam(Bar *b);
+
+            In this case, the dispatcher re-orders the functions so that spam(Bar *b) is
+            checked first---it is more specific than spam(Foo *f).
+
+08/17/2002: beazley
+            Added -Werror command line option.   If supplied, warning messages are treated
+            as errors and SWIG will return a non-zero exit code.
+
+08/17/2002: beazley
+            Fixed [ 596135 ] Typedef of reference can't compile.  For example:
+
+                 typedef int &IntRef;
+                 void foo(IntRef i);
+
+            SWIG-1.3.14 generated code that wouldn't compile.
+
+Version 1.3.14 (August 12, 2002)
+================================
+
+08/11/2002: mmatus
+	    Static const members initialized during declaration, and
+	    only them, ie:
+
+	    struct A
+	    {		 
+		static const int a = 1 ;  // this one
+		static const int b;       // not this one
+            };     
+
+	    are emitted like constants (equivalent to enums or
+	    explicit %constant).
+	    
+	    This is because they cannot be added directly to 'cvar'
+	    since they lack the needed reference (well, you can force
+	    them to have a real reference, but in an ugly way which
+	    goes completely again the original purpose of initialize
+	    them during declaration, you also have to deal with extra
+	    linking matters, and it take a while to figure out what is
+	    the problem and how to solve it).
+	    
+	    Please test it with your preferred target language, and
+	    not only the code generation, but really run the example
+	    in the test-suite (static-const-member-2.i) because the
+	    problem and the solution cannot be "fully" appreciated
+	    until you try to load the module and run it.
+
+	    In some target languages (python specially), this can
+	    produces a difference in the way that the static constant
+	    members 'a' and 'b' are internally wrapped. Hopefully,
+	    they still can be accessed in the same way.
+
+
+08/11/2002: mmatus
+	    [python] Now static const members can be accessed in a more
+	    natural way, ie, if you have
+
+	    struct A
+             {		 
+		typedef unsigned int viewflags;
+		static const viewflags forward_field = 0;
+		static const viewflags backward_field;
+            };     
+	    
+	    now you can do:
+
+		print A.backward_field
+
+	    and also
+
+	        a = A()
+		print a.forward_field
+		
+	    Note that if the static const members don't have an
+	    initializer (like backward_field), still you can access
+	    them in the same way in the python side, but the
+	    implementation is a quite different: backward_field will
+	    still appear in the cvar entity, and also, you are 
+	    responsible to initialize it in some code unit, and link it
+	    properly. forward_field, by the other hand, will not
+	    appear in the cvar entity but only as a A member, similar
+	    to what happen with enum or %constant members.
+
+08/11/2002: mmatus
+	    [python] Common code in the __setattr__/__getattr__ now
+	    goes to two "free" methods at the beginning of the proxy
+	    file, from where each class use it. This change reduces
+	    the size of the proxy file, specially if you wrap a lot of
+	    small classes in one module (up to 33% in some cases),
+	    making it faster to load too.
+
+08/09/2002: beazley
+            [Perl5] If a function that returns char * returns NULL,
+            undef is returned to the Perl interpreter.
+ 
+08/09/2002: beazley
+            Fix to conversion operators and namespaces.  For example:
+
+                namespace ns {
+                    struct Foo { };
+                    struct Bar {
+                        operator Foo*();
+                    };
+                }
+
+            In the wrapper code, SWIG was using ->operator Foo*()
+            when it should have been using ->operator ns::Foo*().
+
+            Note: if using %rename with a conversion operator, you
+            might have to do this:
+
+               %rename(toFooPtr) ns::operator ns::Foo*();
+                                      //      ^^^^ note extra qualifier
+               namespace ns {
+                    ...
+
+            
+08/09/2002: beazley
+            [Python] Minor enhancement to 'const' variable declarations. 
+            Normally const declarations are wrapped as read-only variables
+            accessible only through the cvar attribute (see SWIG.html for
+            a discussion of why).  However, in many programs, "const" 
+            declarations may just be constants---making the cvar. access
+            awkward.  To fix this, "const" declarations are now available
+            both through cvar. and as a simple name.  For example:
+
+                 const int FOO = 42;
+
+            In Python:
+
+                 >>> print example.cvar.FOO
+                 42
+                 >>> print example.FOO
+                 42
+
+            Note: There are cases where the value of a "const" variable
+            might change.  For example:
+
+                 char *const BAR = "Hello World";
+
+            In this case, the pointer itself can not change, but the 
+            data being pointed to could be modified.  In these situations,
+            cvar.BAR should be accessed to obtained the current value.
+
+08/08/2002: beazley
+            [Python] Fixed generation of the proxy code (.py files) to more
+            closely follow the order of declarations as they appear in
+            the .i file.   In the past, all of the class wrappers appeared
+            first, followed by function stubs, inserted Python code, and
+            other details.
+
+08/08/2002: cheetah (William Fulton)
+            [Java] Proxy method _delete() changed to delete(). There shouldn't ever
+            be a wrapped function called delete() as it is a C++ keyword and there
+            is no such thing as a member function in C.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+            Backwards compatibility can be achieved by adding the function back in
+            for all proxy classes:
+            %typemap(javacode) SWIGTYPE %{
+              public void _delete() {
+                delete();
+              }
+            %}
+
+            Java backwards compatibility summary
+            ------------------------------------
+
+            There are a number of changes that have been made in improving the Java module 
+            for ver 1.3.14.  If at all possible change your code to take advantages of the 
+            improvements. If you were using proxy classes you may not notice any backwards 
+            compatibility issues. Here is an example which will help with most backwards 
+            compatibility problems where it is not possible to modify the code that uses
+            the generated output:
+
+            Replace:
+                %module modulename
+
+            With:
+                %module (jniclassname="modulename") modulename;
+                %typemap(javacode) SWIGTYPE %{
+                    public long getCPtr$javaclassname() {
+                        return swigCPtr;
+                    }
+                    public void _delete() {
+                      delete();
+                    }
+                %}
+                %pragma(java) jniclassclassmodifiers="public";
+
+            The proxy constructors that took parameters (long cPtr, boolean cMemoryOwn)
+            were public and are now protected. If you were making use of these then you'll 
+            have to modify your code and the best solution would be to use the new type 
+            wrapper classes.
+
+            The other main areas are the pragmas and global variable wrapping. Replace 
+            the pragmas with one of the new directives or typemaps mentioned below and use
+            %rename on the variables.
+
+            If you were not using proxy classes, you will have to define a jstype typemap
+            as well as a jtype typemap.
+
+08/08/2002: cheetah (William Fulton)
+            [Java] Fix for wrapping two dimension array variables.
+
+08/07/2002: beazley
+            [Python,Tcl]
+            Object management now has a much better sense of ownership.
+            Ownership bits is changed whenever an object is stored in a
+            global variable or structure member.  For example:
+
+                struct Foo {
+                    int val;
+                    Foo *next;
+                };
+
+            Now in Python
+
+               >>> f = Foo()
+               >>> f.thisown
+               1
+               >>> g = Foo()
+               >>> g.next = f          # Assign a pointer
+               >>> f.thisown           # Notice ownership change
+               0
+               >>>
+
+            This scheme is mostly a conservative heuristic designed to 
+            provide segmentation faults.  It could cause a memory leak
+            if ownership is changed unnecessarily.  In this case, you can
+            either write a typemap (that doesn't change ownership), or
+            manually set the thisown attribute back to 1.
+
+08/07/2002: beazley
+            [Tcl] Major usability improvements to the object interface.
+            Suppose you had code like this:
+
+                 struct Foo { 
+                     int x;
+                     int spam();
+                 };
+
+                 void  blah(Foo *f);
+
+            In past versions of SWIG, you could create objects and use
+            them like this:
+
+                % Foo f
+                % f configure -x 3
+                % f spam
+                37
+    
+            The only problem is that if you tried to call blah(), it didn't
+            work:
+
+                % blah f
+                Type Error. Expected _p_Foo
+                %
+
+            Instead, you had to do this:
+
+                % blah [f cget -this]
+  
+            SWIG now automatically extracts the -this pointer, avoiding this
+            problem.  This means that saying "blah f" is perfectly legal and
+            everything will still work normally.
+
+            Caveat: Since pointer strings start with a leading underscore (_),
+            don't use this in object names.  For example:
+
+                % Foo _f 
+                % blah _f        # Potential crash
+
+            Objects now have a -thisown attribute that shows the ownership.
+            This builds upon the CHANGES 11/24/2001 entry.
+
+08/07/2002: samjam, Sam Liddicott
+            Properly implemented pointer system using php resources.
+            Still need to work out whether or not to let script-users call
+            destructors directly
+
+08/06/2002: beazley
+            Upgraded mzscheme module to support version 201 and added
+            overloading support.
+
+08/05/2002: beazley
+            Added parsing support for extra grouping (in very limited cases).
+            For example:
+
+                    typedef int (FuncPtr)(int, double);
+
+            *** EXPERIMENTAL ***
+            
+08/03/2002: ljohnson (Lyle Johnson)
+            [Ruby] Updates to typemaps.i as those done previously for Perl,
+            Python and Tcl modules. Now supports reference types with INPUT,
+            OUTPUT and INOUT typemaps.
+
+08/02/2002: beazley
+            New library file cstring.i added.  Provides macros for
+            manipulating char * data.
+ 
+08/02/2002: beazley
+            Deprecated the %new directive.  Use %newobject instead.  For
+            example:
+
+               %newobject foo;
+               ...
+               char *foo();
+
+            %newobject follows the same rules as %rename, %ignore, %feature,
+            etc.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+08/01/2002: cheetah (William Fulton)
+            [Java] New attribute 'jniclassname' for the module directive allows a way of
+            changing the JNI class name from the default which uses the modulename with JNI
+            appended after it.
+
+                %module (jniclassname="name") modulename
+
+            If 'name' is the same as 'modulename' then the module class name gets changed
+            from 'modulename' to modulenameModule.
+
+08/01/2002: beazley
+            Fixed problem with file include order.  Language specific
+            directories should take precedence over generic directories.
+            For example:  "swig_lib/python/foo.i" should be loaded before
+            "swig_lib/foo.i".    I thought this was the case already, but
+            apparently it has been broken for quite some time.
+
+08/01/2002: beazley
+            Added std_deque.i library file.  Work in progress.
+
+08/01/2002: beazley
+            [Python,Tcl,Perl]
+            Improvements to typemaps.i.  INPUT/INOUT typemaps perform better
+            error checking.  Typemaps are now supplied for references like 
+            int &OUTPUT, double &INOUT, etc.
+          
+08/01/2002: beazley
+            [Python] Deprecated the T_* and L_* typemaps in typemaps.i.
+            Multiple return values are always placed in a tuple. Deprecated
+            the BOTH typemaps.  This is now INOUT (e.g., int *INOUT).
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+
+08/01/2002: beazley
+            Deprecated the array.i, carray.i, and timer.i library files.
+
+08/01/2002: beazley
+            Deprecated the pointer.i library file.  Use cpointer.i instead.
+            *** POTENTIAL INCOMPATIBILITY ***
+            
+08/01/2002: cheetah (William Fulton)
+            [Java] For consistency the global variable getters and setters use the JavaBean 
+            property design pattern like member variables always have. This means if you are 
+            wrapping a variable called foo, the getter is called getFoo() and the setter is 
+            called setFoo(). Before the recent changes to the Java module the getters and 
+            setters were called get_foo() and set_foo(). If you really want the original 
+            function names use the %rename directive like this: %rename(_foo) Foo;
+
+07/31/2002: beazley
+            Fixed casting problem with multiple inheritance.  If you had this,
+
+                  class foo {};
+                  class bar : public foo {};
+                  class baz : public foo {};
+                  class spam : public bar, public baz {};
+
+            then the wrappers wouldn't compile due to an ambiguous cast.
+            Reported by Art Yerkes.
+
+07/30/2002: cheetah (William Fulton)
+            [Java] Due to new static typechecking all pointers held in a Java long are part of 
+            the internal workings and this pointer value in the Java long has become abstracted
+            data. The type wrapper constructor and getCPtr() methods are as such protected.
+            If you need to mess around with pointers from Java or for example create a proxy 
+            class or type wrapper class around a null pointer, add a function/constructor 
+            to do so with the %javacode typemap. You can also make getCPtr() public again with
+            the %javagetcptr typemap.
+
+07/30/2002: cheetah (William Fulton)
+            [Java] Fixes for %typemap(ignore). In particular when ignoring the last parameter
+            in a function. Also for all parameters in constructors. These mods have also fixed
+            multi-argument typemaps for proxy classes - SF 581791.
+
+07/30/2002: cheetah (William Fulton)
+            [Java] %newobject (replacement for %new) now implemented for Java. 
+
+07/29/2002: beazley
+            Fixed problem with typemap copies, %apply, and %clear inside
+            C++ namespaces.
+
+07/28/2002: cheetah (William Fulton)
+            [Java] The JNI class now has package access as the class modifier
+            has been changed from "public" to nothing. This has been done
+            as this class is now more for the internal workings of SWIG since the module
+            class has static type checking for all types.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+            Backwards compatibility can be achieved by using the %jniclassclassmodifier 
+            pragma to change it back to "public".
+
+07/28/2002: cheetah (William Fulton)
+            [Java] Proxy/Shadow classes are generated by default. The -proxy and 
+            -shadow command line options are deprecated. If you want to use the 
+            low-level functional interface then use the new -noproxy commandline option.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+07/28/2002: cheetah (William Fulton)
+            [Java] Remaining pragmas shakeup. These were the remaining pragmas and their
+            new names where changed:
+
+            modulebase
+            modulecode
+            moduleclassmodifiers
+            moduleimport => moduleimports
+            moduleinterface => moduleinterfaces
+
+            The moduleimports works slightly differently to how the moduleimport pragma worked. 
+            Now it actually takes code which gets placed before the class definition so the 
+            whole import statement has to be given, for example:
+
+            %pragma(java) moduleimports=%{
+            import java.io.*;
+            import java.math.*;
+            %}
+
+            The moduleinterfaces is slightly different to the old moduleinterface in that if 
+            more than one interface is required they must be comma separated in one use of 
+            the pragma, for example:
+
+            %pragma(java) moduleinterfaces="Serializable, MyInterface"
+
+            These last two pragmas are consistent with the javainterfaces and javaimports 
+            typemap.
+
+            A similar set of pragmas has been introduced, namely:
+
+            jniclassbase
+            jniclasscode
+            jniclassclassmodifiers
+            jniclassimport
+            jniclassinterface
+
+            These work in the same way as their module counterparts. Note that previously
+            the moduleXXX pragmas worked on the old module class which is now called the
+            JNI class (the class with the native functions). The jniclassXXX pragmas now 
+            work on the new module class (the class that has all the global functions and
+            global variable getters and setters when using proxy classes, plus all other
+            remaining functions when using the low-level procedural interface).
+
+            In summary the contents of the pragmas make up a class like this:
+
+            <jniclassimports>
+            <jniclassmodifiers> class modulename extends <jniclassbase> implements <jniclassinterfaces> {
+                <jniclasscode>
+                ... SWIG generated functions ...
+            }
+}
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+07/28/2002: cheetah (William Fulton)
+            [Java] Deprecated modulemethodmodifiers pragma and replaced with 
+            a better %feature based directive called %javamethodmodifiers.
+            A useful example would be for synchronisation in multi-threaded apps:
+
+            %javamethodmodifiers foo(int a) "public synchronized";
+
+            Changes this function from the default ("public") to "public synchronized".
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+07/26/2002: beazley
+            Several directives now allow optional configuration parameters.
+            These include:
+
+                %module(name="value", name="value", ...) modulename
+                %import(name="value", ...) "filename.i"
+                %extend(name="value", ...) classname {
+                   ...
+                }
+
+            These currently have no effect and are reserved for
+            future expansion.
+               
+07/26/2002: beazley
+            Enhancements to smart-pointer handling.  SWIG only provides
+            extra support for a smart-pointer if operator->() returns
+            a proper pointer.  For example:
+
+                 Foo *operator->();
+
+            If operator->() returns an object by value or reference,
+            then SWIG examines the returned object to see if it also
+            implements operator->().  If so, SWIG chases operator->()
+            until it can find one that returns a pointer.  This allows
+            cases like this to work:
+
+                 class Foo {
+                 public:
+                     void blah();
+                 };
+
+                 class Bar {
+                   ...
+                   Foo *operator->();
+                   ...
+                 };
+
+                 class Spam {
+                   ...
+                   Bar operator->();
+                   ...
+                 };
+
+            For example:
+
+                 >>> s = Spam()
+                 >>> s.blah()      # Invokes Foo::blah()
+
+            The s.blah() call actually invokes:
+
+                  ((s.operator->()).operator->())->blah();
+ 
+07/26/2002: beazley
+            Fixed a bug with typedef and references.  For example:
+
+                 typedef Foo & FooRef;
+                 FooRef blah();
+
+            Previous versions of SWIG generated code that wouldn't
+            compile.
+
+07/25/2002: beazley
+            Wrapping of static methods has been improved in proxy classes.  In older
+            versions of SWIG, if you had this:
+
+                  class Foo {
+                  public:
+                     static void bar();
+                  };
+
+            The static method was only available as a function Foo_bar().  For example:
+
+                  >>> Foo_bar()
+
+            Now, the static method can also be invoked through an instance like this:
+
+                  >>> f = Foo()
+                  >>> f.bar()        # Invokes static method
+
+            This works with all versions of Python.  Additionally, for Python-2.2,
+            the static method can be invoked as:
+
+                  >>> Foo.bar()
+
+            The old-style function is still support for backwards compatibility. If
+            you care about making your code across different versions of Python,
+            either use Foo_bar() or access the method through an instance.
+ 
+07/25/2002: beazley
+            Changes to the Python module.  Proxy classes now utilize new Python-2.2
+            features including properties and static methods.  However, these features
+            are supported in a way that provides backwards compatibility with older
+            Python versions.  In other words, proxy classes work with all versions
+            of Python and only use new features when running on Python-2.2.
+
+
+07/25/2002: beazley
+            Modified %extend so that overloaded methods can be added.  For example:
+
+                %extend Foo {
+                     void bar(int x) { };
+                     void bar(char *s) { };
+                     ...
+                }
+
+            This works with both C++ *and* C.
+
+07/24/2002: cheetah (William Fulton)
+            [Java] More new typemaps so that the Java proxy classes and type wrapper classes
+            can be further tailored by users. These are the default code for generating the 
+            finalize() methods (proxy classes only) and the getCPtr() methods for proxy 
+            classes and type wrapper classes:
+
+            %typemap(javafinalize) SWIGTYPE %{
+              protected void finalize() {
+                _delete();
+              }
+            %}
+            
+            %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+              public static long getCPtr($javaclassname obj) {
+                return obj.swigCPtr;
+              }
+            %}
+
+            The javagetcptr typemap will enable users to handle Java null by overriding
+            this typemap - a requested feature.
+
+            The -nofinalize commandline option has been deprecated. The javafinalize
+            typemap is more powerful as it will allow the removal of the finalize methods 
+            for all or any one or more particular proxy class.
+
+07/23/2002: cheetah (William Fulton)
+            [Java] The getCPtrXXX() function has been changed to a static function and
+            is now of the form:
+
+            protected static long getCPtr(XXX obj) {...}
+
+            This is a requested change which will allow Java null pointers to be used as null
+            can be passed in for obj. However, to achieve this the appropriate code must be
+            written using the new javagetcptr typemap directive.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+            Backwards compatibility can be achieved by adding this function back in using the
+            new javacode typemap:
+
+            %typemap(javacode) SWIGTYPE %{
+
+              // SWIG-1.3.12 and SWIG-1.3.13
+              public long getCPtr$javaclassname() {
+                return swigCPtr;
+              }
+              // SWIG-1.3.11 and earlier
+              public long getCPtr() {
+                return swigCPtr;
+              }
+
+            %}
+
+
+07/23/2002: cheetah (William Fulton)
+            [Java] New directive to control constant code generation - %javaconst.
+            The default handling for handling constants is to get the value through
+            a JNI call, eg
+
+            #define YELLOW 5
+            #define BIG 1234LL
+
+            results in:
+
+            public final static int YELLOW = modulename.get_YELLOW();
+            public final static long BIG = modulename.get_BIG();
+
+            Earlier versions of the Java module initialised the value using the C value:
+
+            public final static int YELLOW = 5;
+            public final static long BIG = 1234LL;
+
+            This works in most cases, but the value for BIG won't compile as 1234LL is not
+            valid Java code and this is one of the reasons why the default is now to get the 
+            values through a JNI call. The side effect is that these 'constants' cannot be used 
+            in switch statements. The %javaconst directive allows one to specify the
+            way the constant value is initialised and works like other %feature
+            directives, eg
+
+            %javaconst(0);     // all constants from this point on are initialised using the C value
+            %javaconst(1) BIG; // just BIG initialised using JNI call (must be parsed before BIG is defined)
+
+07/23/2002: beazley
+            *** IMPORTANT CHANGES TO THE PYTHON MODULE ***
+
+            (1) The Python module now enables shadow/proxy classes by default.
+            This means that two files are always created by SWIG.  For
+            instance, if you have this:
+
+                 // file: foo.i
+                 %module foo
+                 ...
+
+            Then swig generates two files "foo_wrap.c" and "foo.py".
+
+            (2) The name of the low-level C extension module has been changed
+            to start with a leading underscore.   This means that you have
+            to compile the module as follows:
+
+                $ cc -c -I/usr/local/include/python2.2 foo_wrap.c
+                $ cc -shared foo_wrap.o $(OBJS) -o _foo.so
+                                                   ^^^^
+                                                   note extra underscore
+
+            This naming scheme is consistent with other Python modules that
+            utilize extension code.  For instance, the socket module consists
+            of "_socket.so" and "socket.py".  In previous versions of SWIG,
+            the shared object file was named "foocmodule.so".
+
+            (3) A new directive can be used to insert Python code into
+            the corresponding .py file.  For example:
+
+                %pythoncode %{
+                def foo():
+                    print "Hello World"
+                %}
+
+             This directive allows you to create modules as a mix of C and Python.
+             Python code is seamlessly added to the module.
+
+            (4) The -shadow command line option is deprecated.  This is turned on
+            by default.
+
+            (5) To disable the generation of the extra python file, use the "-noproxy"
+            command line option.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            This change will likely break the build environment of projects that
+            utilize shadow classes.   To fix this, you probably only need to
+            change the name of the target .so file.  For example, if you have
+            Makefile information like this:
+
+                   TARGET = examplecmodule.so
+
+            Just change it to:
+
+                   TARGET = _example.so
+
+            *** DOCUMENTATION UPDATE ***
+            The file Doc/Manual/Python.html has been updated to describe these changes.
+
+
+07/23/2002: beazley
+            Added -noextern option.   If supplied, SWIG will not generate
+            extra extern declarations.  This is sometimes an issue on 
+            non-unix platforms.
+
+07/23/2002: beazley
+            Added a warning for ignored friend functions.
+
+07/23/2002: beazley
+            Fixed [ 574498 ] -proxy and %include "pointer.i" clash.
+            Reported by David Creasy.
+
+07/23/2002: beazley
+            Fixed [ 576103 ] global destruction warning with shadow.
+            Perl extensions should no longer report the warning
+
+               "Use of uninitialized value during global destruction."
+ 
+            when running with "perl -w".  Reported by
+            Brett Williams.
+
+07/23/2002: beazley
+            In C++ mode, SWIG now always defines namespace std.  By default,
+            it's empty.  However, this will silence errors from programs
+            that include statements such as "using namespace std;".
+            This fixes Bug [ 584017 ] using namespace std generates error.
+            Reported by Joseph Winston.
+
+07/22/2002: beazley
+            Added a new warning message for %apply.  If you use %apply but no typemaps
+            are defined, you will get a warning message.  This should help with
+            problems like this:
+
+                   %apply char *OUTPUT { ... };
+
+            In old versions of SWIG, this silently did nothing.  Now you get an error like this:
+  
+                   file:line. Warning. Can't apply (char *OUTPUT). No typemaps are defined.
+
+07/22/2002: cheetah (William Fulton)
+            [Java] Started Java pragma deprecation. Replacements use %typemap based 
+            directives and enable proxy classes and the new type wrapper classes to be 
+            tailored in various ways. These are the new typemaps:
+            
+            %typemap(javabase)           - base (extends) for Java class
+            %typemap(javaclassmodifiers) - class modifiers for the Java class: default is "public"
+            %typemap(javacode)           - java code is copied verbatim to the Java class
+            %typemap(javaimports)        - import statements for Java class
+            %typemap(javainterfaces)     - interfaces (extends) for Java class
+            
+            And these are the %pragma directives being deprecated:
+            allshadowbase
+            allshadowclassmodifiers
+            allshadowcode
+            allshadowimport
+            allshadowinterface
+            shadowbase
+            shadowclassmodifiers
+            shadowcode
+            shadowimport
+            shadowinterface
+            
+            Note that it is possible to target a particular proxy class:
+            %typemap(javaimports) Foo "import java.util.*";
+            or a particular type wrapper class:
+            %typemap(javaimports) double* "import java.math.*";
+            Note that $javaclassname in these typemaps are substituted with either the proxy 
+            classname when using proxy classes or the SWIGTYPE class name.
+
+07/18/2002: cheetah (William Fulton)
+            [Java] Java module overhaul to implement static type checking of all 
+            types. 
+            
+            1) Changes when using Java Proxy classes
+            ----------------------------------------
+
+            Previously when wrapping global functions: 
+
+            class SomeClass{};
+            void foo(SomeClass* s);
+            SomeClass* bar();
+
+            The native method prototypes used a long for pointers and looked like this:
+
+            public class modulename  {
+                ...
+                public final static native void foo(long jarg1);
+                public final static native long bar();
+            }
+
+            and unlike member functions of a C++ class there was no wrapper around the native calls 
+            to make the use of them more user friendly. They would be used from Java like this:
+
+            SomeClass s = new SomeClass(modulename.bar(), false);
+            modulename.foo(s.getCPtrSomeClass());
+
+            Note that the following will have the same effect, but then it would not have 
+            been possible to call any proxy member functions in SomeClass:
+
+            long s = modulename.bar();
+            modulename.foo(s);
+
+            Now wrapper functions are generated:
+
+            public class modulename  {
+                public static void foo(SomeClass s) {
+                    // calls the native function
+                }
+
+                public static SomeClass bar() {
+                    // calls the native function
+                }
+            }
+
+            Which means these functions can now be used more naturally with proxy classes:
+
+            SomeClass s = modulename.bar();
+            modulename.foo(s);
+
+            2) Changes when not using Java Proxy classes
+            --------------------------------------------
+
+            The so called low-level interface was rather low-level indeed. The 
+            new static type checking implementation makes it less so but it remains a
+            functional interface to the C/C++ world. Proxy classes are the obvious way to use
+            SWIG generated code, but for those who want a functional interface all non-primitive
+            types now have a simple Java class wrapper around the C/C++ type. Pointers and
+            references to primitive types are also wrapped by type wrapper classes. The type
+            wrapper classnames are based on the SWIG descriptors used by the other language 
+            modules. For example:
+
+            C/C++ type      Java type wrapper class name
+            ----------      ----------------------------
+            int*            SWIGTYPE_p_int
+            double**        SWIGTYPE_p_p_double
+            SomeClass*      SWIGTYPE_p_SomeClass
+            SomeClass&      SWIGTYPE_p_SomeClass
+            SomeClass       SWIGTYPE_p_SomeClass
+
+            Note that everything wrapped by SWIG is accessed via a pointer even when wrapping 
+            functions that pass by value or reference. So the previous example would now be 
+            used like this:
+
+            SWIGTYPE_p_SomeClass s = example.bar();
+            example.foo(s);
+
+            Note that typedefs that SWIG knows about are resolved, so that if one has 
+
+            class Foo{};
+            typedef Foo Bar;
+
+            then any use of Bar will require one to use SWIGTYPE_p_Foo;
+
+            Some considerations:
+            Make sure you make a firm decision to use either proxy classes or the functional 
+            interface early on as the classnames are different.
+
+            3) Pointers and non-parsed types
+            --------------------------------
+            Sometimes SWIG cannot generate a proxy class. This occurs when the definition of 
+            a type is not parsed by SWIG, but is then used as a variable or a parameter. 
+            For example,
+
+            void foo(Snazzy sds);
+
+            If SWIG has not parsed Snazzy it handles it simply as a pointer to a Snazzy.
+            The Java module gives it a type wrapper class around the pointer and calls it 
+            SWIGTYPE_p_Snazzy. In other words it handles it in the same manner as types are 
+            handled in the low-level functional interface. This approach is used for all 
+            non-proxy classes, eg all pointer to pointers and pointers to primitive types.
+
+            4) Backwards compatibility
+            -----------------------
+            Backwards compatibility is not an issue if you have been using proxy classes and 
+            no global variables/functions. Otherwise some changes will have to be made. 
+            The native methods still exist but they are now in a JNI class, which is called 
+            modulenameJNI. As this class is really part of the internal workings,
+            it should not be required so the class has become protected. Some pragmas/directives
+            will hopefully be added to help with backwards compatibility.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+07/18/2002: beazley
+            Modified wrapping of uninstantiated templates returned by
+            value.  Just to be safe, they are now wrapped by SwigValueWrapper<>
+            just in case they don't define a default constructor.  This
+            would be used if you had code like this
+
+                 Foo<int> blah();
+                 void     moreblah(Foo<int> x);
+
+            but you didn't instantiate Foo<int> using %template.  
+            We should probably add a warning for this.
+
+07/17/2002: beazley
+            Added an error check to detect shadowed template paramaters.
+            For example:
+
+                  template<class T> class Foo {
+                  public:
+                        int T;
+                  };
+
+            This results in an error, not a warning.  This warning is
+            also needed to fix some rather insidious problems like
+            this:
+
+                 struct T {
+                      int  blah;
+                 };
+
+                 template<class T> class Foo {
+                 public:
+                      typedef T Traits;    // Which T is this????
+                 };
+
+            In this case, the template parameter T shadows the outer
+            structure (which is what you want).
+
+07/16/2002: beazley
+            Improved support for templates with integer arguments.  SWIG is
+            much more aware of situations such as this:
+
+                const int Size = 100;
+
+                %template(Foo100) Foo<100>;
+                void bar(Foo<Size> *x);   // Knows that Foo<Size> is the same as Foo<100>;
+
+07/15/2002: beazley
+            Fixed bug with %feature/%ignore/%rename and namespaces.
+            For example:
+
+                %ignore Foo::Bar
+                namespace Foo {
+                     class Bar {
+                     ...
+                     };
+                }
+
+            Reported by Marcelo Matus.
+
+07/09/2002: beazley
+            Added parsing support for constructors that try to catch
+            exceptions in initializers.   For example:
+
+              class Foo {
+                 Bar b;
+              public:
+                 Foo(int x) try 
+                     : b(x) { ... }
+                 catch(int) {
+                     ...
+                 }
+              }
+
+            This has no effect on the generated wrappers.  However, the try and catch
+            parts of the declaration are ignored.  See Stroustrup, 3rd Ed, section 
+            14.4.6.1 for details.
+                   
+07/06/2002: beazley
+            Fixed bug in template symbol table management.  This fixes
+            two bugs.  First, mixing abstract methods, templates, and 
+            inheritance no longer generates a failed assertion.
+ 
+                template <class T>
+                class A {
+                public:
+                   virtual void foo() = 0;
+                };
+ 
+               template <class T>
+               class B : public A<T>
+               {
+               };
+               %template(A_int) A<int>;
+               %template(B_int) B<int>;
+
+            This fix also fixes a subtle problem with default values and
+            templates.  For example:
+
+               template <class C>
+               struct B {
+                   typedef unsigned int size_type;
+                   static const size_type nindex = static_cast<size_type>(-1);
+                   void foo(size_type index = nindex);
+               };
+
+            Bugs reported by Marcelo Matus.
+
+
+07/05/2002: ljohnson (Lyle Johnson)
+            [Ruby] Changed the definition of the SWIG_ConvertPtr() function
+	    for the SWIG/Ruby runtime support so that it looks like the
+	    Python version. If the last argument (flags) is non-zero,
+	    SWIG_ConvertPtr() will raise an exception for type mismatches
+	    as before. If flags is zero, this function will return -1 for
+	    type mismatches without raising an exception. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR RUBY MODULE ***
+
+07/04/2002: beazley
+            Overloaded functions/methods/constructors now work in many language
+            modules.  The support is completely transparent--just call the
+            function normally and SWIG will dispatch to the correct implementation.
+            There are a variety of issues associated with this.  Please refer
+            to the overloading section of Doc/Manual/SWIGPlus.html for details.
+            *** NEW FEATURE ***
+            
+07/04/2002: beazley
+            Fixed a bug with namespaces, enums, and templates.  For example:
+
+               namespace hello {
+                  enum Hello { Hi, Hola };
+ 
+                  template <Hello H>
+                      struct traits
+                      {
+                          typedef double value_type;
+                      };
+ 
+                 traits<Hi>::value_type say_hi()
+                 {
+                    return traits<Hi>::value_type(1);
+                 }
+               }
+            SWIG wasn't generating wrappers that properly qualified 
+            traits<Hi>.  Reported by Marcelo Matus.         
+
+06/30/2002: beazley
+            Supplied array variable typemaps for Tcl module.   If you have a
+            variable like this:
+
+                int foo[10];
+
+            then a set function like this is generated:
+
+                void foo_set(int *x) {
+                   memmove(foo,x,10*sizeof(int));
+                }
+
+06/30/2002: beazley
+            New %fragment directive.   When writing typemaps, it can be easy to
+            get carried away and write a lot of code.  However, doing so causes
+            tremendous code bloat.   A common way to solve this is to write 
+            helper functions.  For example:
+
+                %{
+                void some_helper_function() {
+                     ...
+                }
+                %}
+
+                %typemap(in) type {
+                   some_helper_function(...);
+                }
+
+            The only problem with this is that the wrapper file gets polluted
+            with helper functions even if they aren't used.    To fix this,
+            a new fragment directive is available.  For example:
+
+               %fragment("type_helper","header") %{
+                  void some_helper_function() {
+                      ...
+                  }
+               %}
+
+               %typemap(in, fragment="type_header") type {
+                   some_helper_function(...);
+               }
+
+            In this case, the code fragment is only emitted if the typemap is
+            actually used.   A similar capability is provided for declaration
+            annotation and the %feature directive.  For example:
+
+               %feature("fragment","type_header")  SomeDeclaration;
+
+            The first argument to %fragment is the fragment name.  The second argument
+            is the file section where the fragment should be emitted.  
+
+            The primary use of this directive is for writers of language modules
+            and advanced users wanting to streamline typemap code.
+
+            *** EXPERIMENTAL NEW FEATURE ***
+
+06/30/2002: beazley
+            Supplied memberin typemaps for all arrays in an attempt to eliminate
+            confusion about their use.
+
+06/29/2002: beazley
+            Experimental support for smart-pointers.  When a class defines
+            operator->() like this
+
+               class Foo {
+                  ...
+                  Bar *operator->();
+                  ...
+               };
+
+            SWIG locates class Bar and tries to wrap its member variables and
+            methods as part of Foo.  For example, if Bar was defined like this:
+
+               class Bar {
+               public:
+                    int x;
+                    int spam();
+               };
+
+            You could do this (in the target language):
+
+              f = Foo()
+              f.x = 4            # Accesses Bar::x
+              f.spam()           # Accesses Bar::spam
+
+            The primary use of this feature is to emulate the behavior of C++
+            smart-pointers---which allow attributes to accessed transparently
+            through operator->.
+
+            This feature is supported automatically in SWIG---no special directives
+            are needed.   To disable this behavior.  Use %ignore to ignore 
+            operator->.
+            *** NEW FEATURE ***
+
+06/26/2002: beazley
+            Deprecated the %except directive.   %exception should be used instead.
+
+06/25/2002: beazley
+            Major cleanup of the modules directory.  Eliminated most
+            header files, consolidated module code into single files.
+
+06/24/2002: beazley
+            Reworked the instantiation of language modules.  All language
+            modules must now define a factory function similar to this:
+
+                extern "C" Language *
+                swig_python(void) {
+                   return new PYTHON();
+                }
+
+            This function is then placed in a table and associated with
+            a command line option in swigmain.cxx.  
+
+            This approach has a number of benefits.  It decouples the 
+            SWIG main program from having to know about the class
+            definitions for each module.  Also, by using a factory
+            function, it will be easier to implement dynamic loading
+            of modules (simply load the file and invoke the factory
+            function).
+
+06/24/2002: beazley
+            Fixed syntax error for reference conversions.  For example:
+
+                     operator Foo &();
+
+06/24/2002: beazley
+            Fixed syntax error for operator new[] and operator delete[].
+
+06/24/2002: beazley
+            Fixed code generation problem for constants and default arguments
+            involving templates.
+
+06/19/2002: ljohnson (Lyle Johnson)
+            [Ruby] Fixed a bug for the '-feature' command line argument;
+            that setting was effectively being ignored and so the feature
+            name was always set equal to the module name.
+
+06/17/2002: beazley
+            Fixed problems with static members and enums in templates.
 
 Version 1.3.13 (June 17, 2002)
 ==============================
@@ -1025,6 +2842,9 @@ Version 1.3.12 (June 2, 2002)
                 return swigCPtr;
               }
             %}
+
+            Please see entry dated 07/23/2002 to see how to do this after the deprecation
+            of the allshadowcode pragma.
 
             *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
 
