@@ -16,8 +16,13 @@ public class director_string_runme {
 
     B b = new B("hello");
 
-    b.get(0);
-    b.get_first();
+    String s;
+
+    s = b.call_get_first();
+    if (!s.equals("B.get_first")) throw new RuntimeException("call_get_first() failed");
+
+    s = b.call_get(0);
+    if (!s.equals("B.get: hello")) throw new RuntimeException("get(0) failed");
   }
 }
 
@@ -26,11 +31,11 @@ class B extends A {
       super(first);
     }
     public String get_first() {
-      return get(0);
+      return "B.get_first";
     }
   
     public String get(int n) {
-      return super.get(n);
+      return "B.get: " + super.get(n);
     }
 }
 
