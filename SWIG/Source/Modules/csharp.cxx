@@ -185,6 +185,14 @@ class CSHARP : public Language {
 
   virtual int top(Node *n) {
 
+    // Get any options set in the module directive
+    Node* optionsnode = Getattr( Getattr(n,"module"), "options");
+
+    if (optionsnode) {
+        if (Getattr(optionsnode,"imclassname"))
+          imclass_name = Copy(Getattr(optionsnode,"imclassname"));
+    }
+
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
 
@@ -202,13 +210,10 @@ class CSHARP : public Language {
     Swig_register_filebyname("wrapper",f_wrappers);
     Swig_register_filebyname("runtime",f_runtime);
     Swig_register_filebyname("init",f_init);
+
     swig_types_hash = NewHash();
 
     // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
-    Node* optionsnode = Getattr( Getattr(n,"module") ,"options");
-    if (optionsnode)
-        if (Getattr(optionsnode,"imclassname"))
-          imclass_name = Copy(Getattr(optionsnode,"imclassname"));
     if (!imclass_name) {
       imclass_name = NewStringf("%sPINVOKE", Getattr(n,"name"));
       module_class_name = Copy(Getattr(n,"name"));
@@ -219,7 +224,6 @@ class CSHARP : public Language {
       else
         module_class_name = Copy(Getattr(n,"name"));
     }
-
 
     imclass_class_code = NewString("");
     proxy_class_def = NewString("");
@@ -232,7 +236,7 @@ class CSHARP : public Language {
     module_baseclass = NewString("");
     module_interfaces = NewString("");
     module_imports = NewString("");
-    module_class_modifiers = NewString("public");
+    module_class_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     upcasts_code = NewString("");
@@ -282,7 +286,7 @@ class CSHARP : public Language {
 
       if (Len(imclass_class_modifiers) > 0)
         Printf(f_im, "%s ", imclass_class_modifiers);
-      Printf(f_im, "class %s ", imclass_name);
+      Printf(f_im, "%s ", imclass_name);
 
       if (imclass_baseclass && *Char(imclass_baseclass))
           Printf(f_im, ": %s ", imclass_baseclass);
@@ -322,7 +326,7 @@ class CSHARP : public Language {
 
       if (Len(module_class_modifiers) > 0)
         Printf(f_module, "%s ", module_class_modifiers);
-      Printf(f_module, "class %s ", module_class_name);
+      Printf(f_module, "%s ", module_class_name);
 
       if (module_baseclass && *Char(module_baseclass))
           Printf(f_module, ": %s ", module_baseclass);
@@ -337,8 +341,7 @@ class CSHARP : public Language {
       Printv(f_module, module_class_code, NIL);
 
       // Write out all the global constants
-      if (Len(module_class_constants_code) != 0 )
-        Printv(f_module, module_class_constants_code, NIL);
+      Printv(f_module, module_class_constants_code, NIL);
 
       // Finish off the class
       Printf(f_module, "}\n");
@@ -716,6 +719,7 @@ class CSHARP : public Language {
     Printf(imclass_class_code, ")");
     generateThrowsClause(n, imclass_class_code);
     Printf(imclass_class_code, ";\n");
+
     Printf(f->def,") {");
 
     if(!is_void_return)
@@ -850,7 +854,7 @@ class CSHARP : public Language {
         Printv(enum_code,
             (enum_feature == ProperEnum) ? 
             "\n" :
-            typemapLookup("csgetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
+            typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
             typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
             "}\n",
             "\n",
@@ -1094,6 +1098,10 @@ class CSHARP : public Language {
     return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------------
+   * insertDirective()
+   * ----------------------------------------------------------------------------- */
+
   virtual int insertDirective(Node *n) {
     String *code = Getattr(n,"code");
     Replaceall(code, "$module", module_class_name);
@@ -1222,7 +1230,7 @@ class CSHARP : public Language {
         typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $csclassname",       // Class name and base class
+        " $csclassname",       // Class name and base class
         (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ?
         " : " : 
         "",
@@ -1232,20 +1240,10 @@ class CSHARP : public Language {
         ", " :
         "",
         pure_interfaces,
-        " {\n",
-        "  private IntPtr swigCPtr;\n",  // Member variables for memory handling
-        derived ? 
-        "" : 
-        "  protected bool swigCMemOwn;\n",
-        "\n",
-        "  ",
-        typemapLookup("csptrconstructormodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
-        " $csclassname(IntPtr cPtr, bool cMemoryOwn) ", // Constructor used for wrapping pointers
-        derived ? 
-        ": base($imclassname.$csclassnameTo$baseclass(cPtr), cMemoryOwn) {\n" : 
-        "{\n    swigCMemOwn = cMemoryOwn;\n",
-        "    swigCPtr = cPtr;\n",
-        "  }\n",
+        " {",
+        derived ?
+        typemapLookup("csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) : // main body of class
+        typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
         NIL);
 
     if(!have_default_constructor_flag) { // All proxy classes need a constructor
@@ -1294,9 +1292,8 @@ class CSHARP : public Language {
     Delete(attributes);
     Delete(destruct);
 
-    // Emit various other methods
+    // Emit extra user code
     Printv(proxy_class_def, 
-        typemapLookup("csgetcptr", typemap_lookup_type, WARN_CSHARP_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
         typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
         "\n",
         NIL);
@@ -1305,31 +1302,24 @@ class CSHARP : public Language {
     Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
     Replaceall(proxy_class_def,  "$csclassname", proxy_class_name);
 
-    Replaceall(proxy_class_def,  "$baseclass", baseclass);
-    Replaceall(proxy_class_code, "$baseclass", baseclass);
-
-    Replaceall(proxy_class_def,  "$imclassname", imclass_name);
-    Replaceall(proxy_class_code, "$imclassname", imclass_name);
+    Replaceall(proxy_class_def,  "$module", module_class_name);
+    Replaceall(proxy_class_code, "$module", module_class_name);
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(imclass_cppcasts_code,"\n  [DllImport(\"", module_class_name, "\", EntryPoint=\"CSharp_", proxy_class_name ,"To", baseclass ,"\")]\n", NIL);
-      Printv(imclass_cppcasts_code,"  public static extern IntPtr ",
-          "$csclassnameTo$baseclass(IntPtr objectRef);\n",
-          NIL);
+      Printv(imclass_cppcasts_code,"\n  [DllImport(\"", module_class_name, "\", EntryPoint=\"CSharp_", proxy_class_name ,"Upcast", "\")]\n", NIL);
+      Printf(imclass_cppcasts_code,"  public static extern IntPtr $csclassnameUpcast(IntPtr objectRef);\n");
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
-      Replaceall(imclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(upcasts_code,
-          "DllExport $cbaseclass * SWIGSTDCALL CSharp_$imclazznameTo$imbaseclass",
+          "DllExport $cbaseclass * SWIGSTDCALL CSharp_$imclazznameUpcast",
           "($cclass *objectRef) {\n",
           "    return ($cbaseclass *)objectRef;\n"
           "}\n",
           "\n",
           NIL); 
- 
-      Replaceall(upcasts_code, "$imbaseclass", baseclass);
+
       Replaceall(upcasts_code, "$cbaseclass",  c_baseclass);
       Replaceall(upcasts_code, "$imclazzname", proxy_class_name);
       Replaceall(upcasts_code, "$cclass",      c_classname);
@@ -1380,6 +1370,7 @@ class CSHARP : public Language {
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
+
     Language::classHandler(n);
 
     if (proxy_flag) {
@@ -1509,7 +1500,7 @@ class CSHARP : public Language {
 
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
@@ -1522,7 +1513,7 @@ class CSHARP : public Language {
 
     Printv(imcall, imclass_name, ".", intermediary_function_name, "(", NIL);
     if (!static_flag)
-      Printv(imcall, "swigCPtr", NIL);
+      Printf(imcall, "swigCPtr");
 
     emit_mark_varargs(l);
 
@@ -1669,7 +1660,7 @@ class CSHARP : public Language {
       String *imcall = NewString("");
 
       const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-      methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+      methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
       methodmods = methodmods ? methodmods : public_string;
       Printf(proxy_class_code, "  %s %s(", methodmods, proxy_class_name);
       Printv(imcall, " : this(", imclass_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
@@ -1922,7 +1913,7 @@ class CSHARP : public Language {
 
     /* Start generating the function */
     const String *methodmods = Getattr(n,"feature:cs:methodmodifiers");
-    methodmods = methodmods ? methodmods : (is_protected(n) ? protected_string : public_string);
+    methodmods = methodmods ? methodmods : (!is_public(n) ? protected_string : public_string);
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
@@ -2242,7 +2233,7 @@ class CSHARP : public Language {
         typemapLookup("csimports", type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $csclassname",       // Class name and base class
+        " $csclassname",       // Class name and base class
         (*Char(pure_baseclass) || *Char(pure_interfaces)) ?
         " : " : 
         "",
@@ -2251,32 +2242,21 @@ class CSHARP : public Language {
         ", " :
         "",
         pure_interfaces,
-        " {\n",
-        "  private IntPtr swigCPtr;\n",
-        "\n",
-        "  ",
-        typemapLookup("csptrconstructormodifiers", type, WARN_CSHARP_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
-        " $csclassname(IntPtr cPtr, bool bFutureUse) {\n", // Constructor used for wrapping pointers
-        "    swigCPtr = cPtr;\n",
-        "  }\n",
-        "\n",
-        "  protected $csclassname() {\n", // Default constructor
-        "    swigCPtr = IntPtr.Zero;\n",
-        "  }\n",
-        typemapLookup("csgetcptr", type, WARN_CSHARP_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        " {",
+        typemapLookup("csbody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF), // main body of class
         typemapLookup("cscode", type, WARN_NONE), // extra C# code
         "}\n",
         Len(namespce) > 0 ?
-        "\n}\n" :
-        "",
+          "\n}\n" :
+          "",
         NIL);
 
-        Replaceall(swigtype, "$csclassname", classname);
-        Replaceall(swigtype, "$module", module_class_name);
-        Printv(f_swigtype, swigtype, NIL);
+    Replaceall(swigtype, "$csclassname", classname);
+    Replaceall(swigtype, "$module", module_class_name);
+    Printv(f_swigtype, swigtype, NIL);
 
-        Close(f_swigtype);
-        Delete(swigtype);
+    Close(f_swigtype);
+    Delete(swigtype);
   }
 
   /* -----------------------------------------------------------------------------
