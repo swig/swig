@@ -945,9 +945,13 @@ class CSHARP : public Language {
         if (!Getattr(n,"_last")) // Only the first enum item has this attribute set
           Printf(enum_code, ",\n");
         Printf(enum_code, "  %s", symname);
-        if (Getattr(n,"enumvalue")) {
-          // Note that the enum value must be a true constant and cannot be set from a PINVOKE call, thus no support for %csconst(0)
-          String *value = Getattr(n,"enumvalue");
+
+        // Check for the %csconstvalue feature
+        String *value = Getattr(n,"feature:cs:constvalue");
+
+        // Note that the enum value must be a true constant and cannot be set from a PINVOKE call, thus no support for %csconst(0)
+        value = value ? value : Getattr(n,"enumvalue");
+        if (value) {
           Printf(enum_code, " = %s", value);
         }
       } else {
@@ -1001,7 +1005,8 @@ class CSHARP : public Language {
    * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
    * C# static const variables are generated for these.
    * If the %csconst(1) feature is used then the C constant value is used to initialise the C# const variable.
-   * If not, a PINVOKE method is generated to get the C constant value for intialisation of the C# const variable.
+   * If not, a PINVOKE method is generated to get the C constant value for initialisation of the C# const variable.
+   * However, if the %csconstvalue feature is used, it overrides all other ways to generate the initialisation.
    * Also note that this method might be called for wrapping enum items (when the enum is using %csconst(0)).
    * ------------------------------------------------------------------------ */
 
@@ -1055,10 +1060,15 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-    Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
+      const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+      Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
-    if (!const_feature_flag) {
+    // Check for the %csconstvalue feature
+    String *value = Getattr(n,"feature:cs:constvalue");
+
+    if (value) {
+      Printf(constants_code, "%s;\n", value);
+    } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the C# variable from C through a PINVOKE call.
 
       if(classname_substituted_flag) {
@@ -2062,30 +2072,35 @@ class CSHARP : public Language {
    * class call to obtain the enum value. The intermediary class and PINVOKE methods to obtain
    * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
    * is one and hopefully it will compile as C# code - e.g. 20 as in: enum E{e=20};
+   * The %csconstvalue feature overrides all other ways to generate the constant value.
    * The caller must delete memory allocated for the returned string.
    * ------------------------------------------------------------------------ */
 
   String *enumValue(Node *n) {
     String *symname = Getattr(n,"sym:name");
-    String *value = NULL;
 
-    // The %csconst feature determines how the constant value is obtained
-    String *const_feature = Getattr(n,"feature:cs:const");
-    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+    // Check for the %csconstvalue feature
+    String *value = Getattr(n,"feature:cs:constvalue");
 
-    if (const_feature_flag) {
-      // Use the C syntax to make a true C# constant and hope that it compiles as C# code
-      value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
-    } else {
-      // Get the enumvalue from a PINVOKE call
-      if (!getCurrentClass()) {
-        // Strange hack to change the name
-        Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
-        constantWrapper(n);
-        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+    if (!value) {
+      // The %csconst feature determines how the constant value is obtained
+      String *const_feature = Getattr(n,"feature:cs:const");
+      bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+      if (const_feature_flag) {
+        // Use the C syntax to make a true C# constant and hope that it compiles as C# code
+        value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
       } else {
-        memberconstantHandler(n);
-        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+        // Get the enumvalue from a PINVOKE call
+        if (!getCurrentClass()) {
+          // Strange hack to change the name
+          Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
+          constantWrapper(n);
+          value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+        } else {
+          memberconstantHandler(n);
+          value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+        }
       }
     }
     return value;
