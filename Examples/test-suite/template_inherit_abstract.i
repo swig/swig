@@ -21,6 +21,8 @@
       template <class C> 
       struct Module : C, ModuleBase 
       { 
+	virtual ~Module() {}
+
         protected: 
         Module() {}
       }; 
