@@ -124,6 +124,11 @@ namewarn_add(char *name, SwigType *decl, char *warning) {
 
 static void
 rename_inherit(String *base, String *derived) {
+
+  Swig_name_object_inherit(rename_hash,base,derived);
+  Swig_name_object_inherit(namewarn_hash,base,derived);
+
+#if 0
   String *key;
   String *bprefix;
   String *dprefix;
@@ -182,6 +187,8 @@ rename_inherit(String *base, String *derived) {
       }
     }
   }
+#endif
+
 }
 
 /* Generate the symbol table name for an object */
