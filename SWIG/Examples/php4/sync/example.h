@@ -1,5 +1,5 @@
-char *s = "Test";
-int x = 42;
+extern char *s;
+extern int x;
 
 class Sync {
 	public:
