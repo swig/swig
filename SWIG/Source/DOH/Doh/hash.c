@@ -53,7 +53,7 @@ static DOH *find_key(char *c) {
     if (d < 0) r = r->left;
     else r = r->right;
   }
-  /*   fprintf(stderr,"Interning '%s'\n", c); */
+  fprintf(stderr,"Interning '%s'\n", c);
   r = (KeyValue *) DohMalloc(sizeof(KeyValue));
   r->cstr = (char *) DohMalloc(strlen(c)+1);
   strcpy(r->cstr,c);
@@ -144,35 +144,6 @@ Hash_clear(DOH *ho) {
     h->nitems = 0;
 }
 
-/* -----------------------------------------------------------------------------
- * Hash_scope()
- *
- * Change the scope of the hash table.
- * ----------------------------------------------------------------------------- */
-
-static void
-Hash_scope(DOH *ho, int s) {
-    Hash *h;
-    HashNode *n;
-    int i;
-    h = (Hash *) ho;
-    if (h->flags & DOH_FLAG_SETSCOPE) return;
-    if (s < h->scope) h->scope = s;
-    h->flags = h->flags | DOH_FLAG_SETSCOPE;
-    if (h->scope != s) {
-      for (i = 0; i < h->hashsize; i++) {
-	if ((n = h->hashtable[i])) {
-	  while (n) {
-	    Setscope(n->object,s);
-	    Setscope(n->key,s);
-	    n = n->next;
-	  }
-	}
-      }
-    }
-    h->flags = h->flags & ~DOH_FLAG_SETSCOPE;
-}
-
 /* resize the hash table */
 static void resize(Hash *h) {
     HashNode   *n, *next, **table;
@@ -235,6 +206,7 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     if (!DohCheck(k)) k = find_key(k);
     if (!DohCheck(obj)) {
       obj = NewString((char *) obj);
+      Decref(obj);
     }
     h = (Hash *) ho;
     hv = (Hashval(k)) % h->hashsize;
@@ -259,8 +231,6 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     }
     /* Add this to the table */
     n = NewNode(k,obj);
-    Setscope(n->key,h->scope);
-    Setscope(n->object,h->scope);
     if (prev) prev->next = n;
     else h->hashtable[hv] = n;
     h->nitems++;
@@ -504,7 +474,7 @@ static DohObjInfo HashType = {
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
     Hash_clear,      /* doh_clear */
-    Hash_scope,      /* doh_scope */
+    0,               /* doh_scope */
     Hash_str,        /* doh_str */
     0,               /* doh_data */
     0,               /* doh_dump */

@@ -84,9 +84,10 @@ DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohDelete %x\n",obj);
   if (!DohCheck(b)) return;
+  assert(b->objinfo);
   if (b->flags & DOH_FLAG_INTERN) return;
   b->refcount--;
-  if (b->refcount == 0) {
+  if (b->refcount <= 0) {
     if (b->objinfo->doh_del) (b->objinfo->doh_del)(obj); 
   }
 }
@@ -143,27 +144,6 @@ DohClear(DOH *obj) {
     return;
   }
   DohTrace(DOH_UNSUPPORTED, "No clear method defined for type '%s'\n", b->objinfo->objname);
-}
-
-/* ----------------------------------------------------------------------------- 
- * DohSetScope()
- *
- * Manually change the scope level of an object.
- * ----------------------------------------------------------------------------- */
-
-void
-DohSetScope(DOH *obj, int s) {
-  DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohScope %x\n",obj);
-  if (!DohCheck(b)) {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Scope.\n",obj);
-    return;
-  }
-  if (b->objinfo->doh_scope) {
-    (b->objinfo->doh_scope)(obj,s);
-    return;
-  }
-  if (s < b->scope) b->scope = s;
 }
 
 /* -----------------------------------------------------------------------------
