@@ -522,7 +522,7 @@ int Language::typemapDirective(Node *n) {
   static  int  namewarn = 0;
     
 
-  if (Strstr(code,"$source") || (Strstr(code,"$target"))) {
+  if (code && (Strstr(code,"$source") || (Strstr(code,"$target")))) {
     Swig_warning(WARN_TYPEMAP_SOURCETARGET,Getfile(n),Getline(n),"Deprecated typemap feature ($source/$target).\n");
     if (!namewarn) {
       Swig_warning(WARN_TYPEMAP_SOURCETARGET, Getfile(n), Getline(n),
@@ -537,7 +537,9 @@ Doc/Manual/Typemaps.html for complete details.\n");
 
   /* Replace $descriptor() macros */
 
-  Swig_cparse_replace_descriptor(code);
+  if (code) {
+    Swig_cparse_replace_descriptor(code);
+  }
 
   while (items) {
     Parm     *pattern   = Getattr(items,"pattern");
