@@ -1,10 +1,12 @@
 abstract_inherit
 abstract_inherit_ok
 abstract_signature
+abstract_typedef
 abstract_typedef2
 abstract_virtual
 add_link
 anonymous_arg
+anonymous_bitfield
 argout
 arrayptr
 arrayref
@@ -43,6 +45,10 @@ default_ns
 default_ref
 defineop
 defines
+director_basic
+director_exception
+director_finalizer
+director_unroll
 dynamic_cast
 enum
 enum_plus
@@ -81,6 +87,7 @@ lib_std_string
 lib_std_vector
 lib_typemaps
 long_long
+long_long_apply
 macro_2
 member_template
 minherit
@@ -119,6 +126,7 @@ ret_by_value
 rname
 sizeof_pointer
 smart_pointer_const
+smart_pointer_const2
 smart_pointer_multi
 smart_pointer_multi_typedef
 smart_pointer_not
@@ -145,6 +153,7 @@ template_default2
 template_default_arg
 template_default_inherit
 template_default_qualify
+template_default_vw
 template_enum
 template_enum_ns_inherit
 template_enum_typedef
@@ -205,4 +214,4 @@ varargs
 virtual_destructor
 voidtest
 
-*.class
+*runme
