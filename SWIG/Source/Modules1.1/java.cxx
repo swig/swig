@@ -1084,14 +1084,14 @@ class JAVA : public Language {
         javaTypemapLookup("javafinalize", shadow_classname, WARN_NONE), // finalize method
         "\n",
         *Char(destructor_call) ? 
-        "  public void _delete() {\n" :
-        "  protected void _delete() {\n",
+        "  public void delete() {\n" :
+        "  protected void delete() {\n",
         "    if(swigCPtr != 0 && swigCMemOwn) {\n",
         destructor_call,
         "",
         "      swigCMemOwn = false;\n",
         derived ?    // Zero all pointers up any inheritance hierarchy
-        "      super._delete();\n" : 
+        "      super.delete();\n" : 
         "",
         "    }\n",
         "    swigCPtr = 0;\n",

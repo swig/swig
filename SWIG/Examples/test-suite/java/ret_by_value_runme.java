@@ -27,7 +27,7 @@ public class ret_by_value_runme {
     }
 
     // Delete memory manually, it should not be deleted again by the test class finalizer
-    tst._delete();
+    tst.delete();
   }
 }
 

@@ -24,7 +24,7 @@ public class java_typemaps_proxy_runme {
     bye.saybye(new java.math.BigDecimal(java.math.BigInteger.ONE));
 
     // No finalize method so may as well delete manually
-    bye._delete();
+    bye.delete();
 
     // Check that Greeting is derived from Exception
     try {

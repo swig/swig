@@ -61,8 +61,8 @@ public class main {
     
     // Note: this invokes the virtual destructor
     // You could leave this to the garbage collector
-    c._delete();
-    s._delete();
+    c.delete();
+    s.delete();
     
     System.out.println( Shape.getNshapes() + " shapes remain" );
     System.out.println( "Goodbye" );

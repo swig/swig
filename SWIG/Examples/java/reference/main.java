@@ -32,13 +32,13 @@ public class main {
     System.out.println( "    a+b = " + c.print() );
     
     // Note: Unless we free the result, a memory leak will occur if the -noproxy commandline
-    // is used as the proxy classes define finalizers which call the _delete() method. When
+    // is used as the proxy classes define finalizers which call the delete() method. When
     // -noproxy is not specified the memory management is controlled by the garbage collector.
-    // You can still call _delete(). It will free the c++ memory immediately, but not the 
+    // You can still call delete(). It will free the c++ memory immediately, but not the 
     // Java memory! You then must be careful not to call any member functions as it will 
     // use a NULL c pointer on the underlying c++ object. We set the Java object to null
     // which will then throw a Java exception should we attempt to use it again.
-    c._delete();
+    c.delete();
     c = null;
     
     // ----- Create a vector array -----
@@ -72,8 +72,8 @@ public class main {
     // ----- Clean up -----
     // This could be omitted. The garbage collector would then clean up for us.
     System.out.println( "Cleaning up" );
-    va._delete();
-    a._delete();
-    b._delete();
+    va.delete();
+    a.delete();
+    b.delete();
   }
 }
