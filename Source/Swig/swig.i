@@ -13,6 +13,10 @@
  * $Header$
  * ------------------------------------------------------------------------- */
 
+/* todo: implement callable stuff -- ternaryfunc? */
+/* todo: new DOH type to wrap Python objects. geesh. */
+/* todo: Delattr -> return errors */
+
 %module swig
 
 %{
@@ -30,7 +34,7 @@
 %{
 /* ------------------------------------------------------------------------- 
  * An extension type for DOH objects -- we could use shadow classes,
- * but this will be lots faster.
+ * but this will be lots faster, and provide a slightly cleaner interface.
  * ------------------------------------------------------------------------- */
 
    typedef struct PyDOH {
@@ -38,11 +42,27 @@
       DOH *doh;
    } PyDOH;
 
-   staticforward PyTypeObject PyDOHType;
+   staticforward PyTypeObject PyDOHSequenceType, PyDOHMappingType;
 
-   /* methods */
+   /* --------------------------------------------------------------------- */
+   /* meta-functions
+    */
+
+   /* Given a DOH object, return an equivalent PyObject.  Note that
+      when the PyObject is destroyed, the DOH's reference count will
+      decrease; thus this is refcount-safe on both the DOH and Python
+      sides. */
    static PyObject * Swig_PyDOH_new(DOH *in) {
-      PyDOH *self = PyObject_NEW(PyDOH, &PyDOHType);
+      PyDOH *self;
+      if (!in)
+      {
+	 Incref(Py_None);
+	 return Py_None;
+      }
+      if (DohIsMapping(in))
+	 self = PyObject_NEW(PyDOH, &PyDOHMappingType);
+      else
+	 self = PyObject_NEW(PyDOH, &PyDOHSequenceType);
       if (!self) return (PyObject *)self;
       self->doh = in;
       Incref(in);		/* increase the DOH refcount */
@@ -55,19 +75,187 @@
    }
 
    static int Swig_PyDOH_check(void *self) {
-      return (((PyObject *)self)->ob_type == &PyDOHType);
+      return ((PyObject *)self)->ob_type == &PyDOHMappingType
+	 || ((PyObject *)self)->ob_type == &PyDOHSequenceType;
+   }
+
+   /* Given a PyObject, return an equivalent DOH object */
+   static PyDOH *Swig_PyDOH_as_DOH(PyObject *source)
+      {
+	 DOH *target;
+
+	 if (Swig_PyDOH_check(source))
+	    target = ((PyDOH *)source)->doh;
+	 else if (PyString_Check(source))
+	    target = (DOH *)PyString_AsString(source);
+	 else if (PySequence_Check(source))
+	    printf("Sequence -> NULL\n"), target = NULL;
+	 else if (PyMapping_Check(source))
+	    printf("Mapping -> NULL\n"), target = NULL;
+	 else if (PyNumber_Check(source))
+	    target = (DOH *)source;
+	 else if (PyFile_Check(source))
+	    target = (DOH *)PyFile_AsFile(source);
+	 else
+	    printf("?? -> NULL\n"), target = NULL;
+
+	 return target;
+      }
+
+
+   /* --------------------------------------------------------------------- */
+   /* sequence methods 
+    */
+
+   static int Swig_PyDOH_length(PyDOH *self) {
+      return Len(self->doh);	/* also a mapping method */
+   }
+
+   static PyObject *Swig_PyDOH_item(PyDOH *self, int index) {
+      DOH *r = Getitem(self->doh, index);
+
+      if (r)
+	 return Swig_PyDOH_new(r);
+
+      /* return an exception */
+      PyErr_SetObject(PyExc_KeyError, PyInt_FromLong(index));
+      return NULL;
+   }
+
+   static int Swig_PyDOH_ass_item(PyDOH *self, int index, 
+				   PyObject *v) {
+      int result;
+      if (v)
+	 result = Setitem(self->doh, index, Swig_PyDOH_as_DOH(v));
+      else			/* NULL v => delete item */
+	 result = Delitem(self->doh, index);
+
+      /* post an exception if necessary */
+      if (result == -1)
+	 PyErr_SetObject(PyExc_KeyError, 
+			 PyInt_FromLong(index));
+	 
+      return result;
+   }
+
+   static PySequenceMethods Swig_PyDOH_as_sequence = {
+      (inquiry)Swig_PyDOH_length,
+      (binaryfunc)NULL,		/* sq_concat */
+      (intargfunc)NULL,		/* sq_repeat */
+      (intargfunc)Swig_PyDOH_item,
+      (intintargfunc)NULL,	/* sq_slice */
+      (intobjargproc)Swig_PyDOH_ass_item,
+      (intintobjargproc)NULL	/* sq_ass_slice */
+   };
+
+
+   /* --------------------------------------------------------------------- */
+   /* Mapping methods
+    */
+
+   static PyObject *Swig_PyDOH_subscript(PyDOH *self, PyObject *k) {
+      DOH *r = Getattr(self->doh, Swig_PyDOH_as_DOH(k));
+      if (r)
+	 return Swig_PyDOH_new(r);
+
+      PyErr_SetObject(PyExc_KeyError, k);
+      return NULL;
+   }
+
+   static int Swig_PyDOH_ass_subscript(PyDOH *self, PyObject *k,
+					PyObject *v) {
+      int result = 0;
+      if (v)
+	 result = Setattr(self->doh, Swig_PyDOH_as_DOH(k),
+			  Swig_PyDOH_as_DOH(v));
+      else
+	 Delattr(self->doh, Swig_PyDOH_as_DOH(k));
+
+      if (result == -1)
+	 PyErr_SetObject(PyExc_KeyError, 
+			 k);
+	 
+      return result;
+   }
+
+   static PyMappingMethods Swig_PyDOH_as_mapping = {
+      (inquiry)Swig_PyDOH_length,
+      (binaryfunc)Swig_PyDOH_subscript,
+      (objobjargproc)Swig_PyDOH_ass_subscript
+   };
+
+   
+   /* --------------------------------------------------------------------- */
+   /* named methods
+    */
+
+
+
+   /* --------------------------------------------------------------------- */
+   /* general methods 
+    */
+   static PyObject *Swig_PyDOH_getattr(PyDOH *self, char *name) {
+      DOH *r = Getattr(self->doh, name);
+      if (r)
+	 return Swig_PyDOH_new(r);
+      else {
+	 PyErr_SetString(PyExc_KeyError, name);
+	 return NULL;
+      }
+   }
+
+   static int Swig_PyDOH_setattr(PyDOH *self, char *name, PyObject *v) {
+      printf("setattr\n");
+      return Setattr(self->doh, name, Swig_PyDOH_as_DOH(v));
+   }
+
+   static int Swig_PyDOH_cmp(PyDOH *self, PyObject *other) {
+      printf("cmp\n");
+      return Cmp(self->doh, Swig_PyDOH_as_DOH(other));
    }
 
    static PyObject *Swig_PyDOH_repr(PyDOH *self) {
-      return PyString_FromString(Char(self->doh));
+      char *str = Char(self->doh);
+      char buffer[1024] = "";
+
+      str = Char(self->doh);
+      if (!str) {
+	 /* give up! */
+	 sprintf(buffer, "<DOH *0x%08x>", self->doh);
+	 str = buffer;
+      }
+
+      return PyString_FromString(str);
+   }
+
+   static long Swig_PyDOH_hash(PyDOH *self) {
+      printf("hash\n");
+      return (long)Hashval(self->doh);
+   }
+
+   static PyObject *Swig_PyDOH_getattro(PyDOH *self, PyObject *name) {
+      DOH *r = Getattr(self->doh, Swig_PyDOH_as_DOH(name));
+      if (r)
+	 return Swig_PyDOH_new(r);
+      else {
+	 PyErr_SetObject(PyExc_KeyError, name);
+	 return NULL;
+      }
+   }
+
+   static int Swig_PyDOH_setattro(PyDOH *self, PyObject *name,
+				  PyObject *v) {
+      printf("setattro\n");
+      return Setattr(self->doh, Swig_PyDOH_as_DOH(name),
+		     Swig_PyDOH_as_DOH(v));
    }
 
    static char PyDOH_docstring[] = 
-" Interface to DOH objects from Python.  DOH objects behave largely\n\
- like Python objects, although some functionality may be different.";
+"Interface to DOH objects from Python.  DOH objects behave largely\n\
+like Python objects, although some functionality may be different.";
 
-   /* Type object */
-   static PyTypeObject PyDOHType = {
+   /* Type objects (one for mappings, one for everything else) */
+   static PyTypeObject PyDOHSequenceType = {
       PyObject_HEAD_INIT(&PyType_Type)
       0,
       "DOH",
@@ -75,19 +263,45 @@
       0,
       (destructor)Swig_PyDOH_delete,
       (printfunc)0,
-      (getattrfunc)0,
-      (setattrfunc)0,
-      (cmpfunc)0,
+      (getattrfunc)Swig_PyDOH_getattr,
+      (setattrfunc)Swig_PyDOH_setattr,
+      (cmpfunc)Swig_PyDOH_cmp,
+      (reprfunc)Swig_PyDOH_repr,
+
+      0,			/* tp_as_number */
+      &Swig_PyDOH_as_sequence,
+      0,			/* tp_as_mapping */
+      (hashfunc)Swig_PyDOH_hash,
+      (ternaryfunc)0,		/* tp_call */
+      (reprfunc)0,		/* tp_str */
+      (getattrofunc)Swig_PyDOH_getattro,
+      (setattrofunc)Swig_PyDOH_setattro,
+      0,			/* tp_as_buffer */
+      0,			/* tp_xxx4 */
+      PyDOH_docstring
+   };
+
+   static PyTypeObject PyDOHMappingType = {
+      PyObject_HEAD_INIT(&PyType_Type)
+      0,
+      "DOH_hash",
+      sizeof(PyDOH),
+      0,
+      (destructor)Swig_PyDOH_delete,
+      (printfunc)0,
+      (getattrfunc)Swig_PyDOH_getattr,
+      (setattrfunc)Swig_PyDOH_setattr,
+      (cmpfunc)Swig_PyDOH_cmp,
       (reprfunc)Swig_PyDOH_repr,
 
       0,			/* tp_as_number */
       0,			/* tp_as_sequence */
-      0,			/* tp_as_mapping */
-      (hashfunc)0,		/* tp_hash */
+      &Swig_PyDOH_as_mapping,
+      (hashfunc)Swig_PyDOH_hash,
       (ternaryfunc)0,		/* tp_call */
       (reprfunc)0,		/* tp_str */
-      (getattrofunc)0,		/* tp_getattro */
-      (setattrofunc)0,		/* tp_setattro */
+      (getattrofunc)Swig_PyDOH_getattro,
+      (setattrofunc)Swig_PyDOH_setattro,
       0,			/* tp_as_buffer */
       0,			/* tp_xxx4 */
       PyDOH_docstring
@@ -95,20 +309,7 @@
 %}
 
 %typemap(python,in) DOH * {
-   if (Swig_PyDOH_check($source))
-      $target = ((PyDOH *)$source)->doh, printf("PyDOH\n");
-   else if (PyString_Check($source))
-      $target = (DOH *)PyString_AsString($source), printf("String\n");
-   else if (PySequence_Check($source))
-      $target = 0, printf("Sequence\n");
-   else if (PyMapping_Check($source))
-      $target = 0, printf("Mapping\n");
-   else if (PyNumber_Check($source))
-      $target = (DOH *)$source, printf("Number\n");
-   else if (PyFile_Check($source))
-      $target = (DOH *)PyFile_AsFile($source), printf("File\n");
-   else
-      $target = (DOH *)NULL;	/* do better later? */
+   $target = Swig_PyDOH_as_DOH($source);
 }
 
 %typemap(python,out) DOH * {
