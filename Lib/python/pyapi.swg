@@ -11,17 +11,12 @@ extern "C" {
  * ----------------------------------------------------------------------------- */
 
 #ifndef SWIGINTERN
-#define SWIGINTERN static 
+#  define SWIGINTERN static SWIGUNUSED
 #endif
 
 #ifndef SWIGINTERNSHORT
-#ifdef __cplusplus
-#define SWIGINTERNSHORT static inline 
-#else /* C case */
-#define SWIGINTERNSHORT static 
-#endif /* __cplusplus */
+#  define SWIGINTERNSHORT SWIGINTERN SWIGINLINE
 #endif
-
 
 /*
   Exception handling in wrappers

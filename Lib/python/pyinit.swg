@@ -279,7 +279,6 @@ extern "C"
 SWIGEXPORT(void) SWIG_init(void) {
   static PyObject *SWIG_globals = 0; 
   PyObject *m, *d;
-  int       i;
   if (!SWIG_globals) SWIG_globals = SWIG_newvarlink();
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
