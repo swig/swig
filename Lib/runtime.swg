@@ -7,6 +7,11 @@
 #include <swigrun.swg>
 #include <python/pyrun.swg>    // or using your favorite language 
 #include <runtime.swg>
+
+   For perl, the following
+#include <swigrun.swg>
+#include <perl5/perlrun.swg>
+#include <runtime.swg>
  
  * -----------------------------------------------------------------------------*/
 
