@@ -5,6 +5,8 @@
 //
 // Guile implementation
 
+%apply size_t { std::size_t };
+
 #define SWIG_bool2scm(b) gh_bool2scm(b ? 1 : 0)
 #define SWIG_string2scm(s) gh_str02scm(s.c_str())
 

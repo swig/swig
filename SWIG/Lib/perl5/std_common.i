@@ -5,6 +5,8 @@
 //
 // Perl implementation
 
+%apply size_t { std::size_t };
+
 %{
 #include <string>
 
