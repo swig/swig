@@ -19,7 +19,7 @@ PERLSRCS   = wadpl.cxx
 PERLOBJS   = wadpl.o
 
 # C Compiler
-CC = gcc -Wall
+CC = gcc
 CFLAGS = #-fpic
 
 # C++ Compiler
