@@ -35,6 +35,7 @@ CHICKEN Options (available with -chicken)\n\
      -useclassprefix        - Prepend the class name to all clos identifiers\n\
      -unhideprimitive       - Unhide the primitive: symbols\n\
      -nounit                - Do not (declare (unit ...)) in scheme file\n\
+     -noclosuses            - Do not (declare (uses ...)) in scheme file\n\
      -nocollection          - Do not register pointers with chicken garbage\n\
                               collector and export destructors\n\
 \n"
@@ -59,6 +60,7 @@ static  String       *closcode = 0;
 /* some options */
 static int           declare_unit = 1;
 static int           no_collection = 0;
+static int           clos_uses = 1;
 
 /* C++ Support + Clos Classes */
 static int           clos = 0;
@@ -116,7 +118,7 @@ protected:
 
   String *runtimeCode();
   String *defaultExternalRuntimeFilename();
-  String *buildClosFunctionCall(List *types, char *format, String_or_char *funcName, int method_specialize);
+  String *buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname);
 };
 
 /* -----------------------------------------------------------------------
@@ -179,6 +181,9 @@ CHICKEN::main(int argc, char *argv[])
           Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-nounit") == 0) {
 	  declare_unit = 0;
+	  Swig_mark_arg(i);
+      } else if (strcmp(argv[i],"-noclosuses") == 0) {
+	  clos_uses = 0;
 	  Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-nocollection") == 0) {
           no_collection = 1;
@@ -287,7 +292,7 @@ CHICKEN::top(Node *n)
   if (declare_unit)
     Printv(f_scm,"(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm,"(declare \n",
-	 tab4, "(hide swig-init)\n",
+	 tab4, "(hide swig-init swig-init-return)\n",
 	 tab4, "(foreign-declare \"C_extern void swig_", module, "_init(C_word,C_word,C_word) C_noret;\"))\n", NIL);
   Printv(f_scm,"(define swig-init (##core#primitive \"swig_", module,
 	 "_init\"))\n", NIL);
@@ -469,7 +474,7 @@ CHICKEN::functionWrapper(Node *n)
                           any_specialized_arg = true;
                           Delete(class_name);
                       } else {
-                          Append(function_arg_types, "^^##primitive$$");
+                          Append(function_arg_types, "<top>");
                       }
                   }
               }
@@ -631,16 +636,11 @@ CHICKEN::functionWrapper(Node *n)
 
         if (!any_specialized_arg) {
             method_def = NewString("");
-            Printv(method_def, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")\n", NIL);
+            Printv(method_def, "(define ", clos_name, " ", chickenPrimitiveName(scmname), ")", NIL);
         } else { 
-          String *fmt = NewStringf("(define-method (%s %%s) %%s)\n", clos_name);
-          method_def = buildClosFunctionCall(function_arg_types, 
-                                                     Char(fmt),
-                                                     chickenPrimitiveName(scmname),
-                                                     1);
-          Delete(fmt);
+          method_def = buildClosFunctionCall(function_arg_types, clos_name, chickenPrimitiveName(scmname));
         }
-        Printv(clos_methods, method_def, NIL);
+        Printv(clos_methods, method_def, "\n", NIL);
         Delete(clos_name);
         Delete(method_def);
     }
@@ -1060,22 +1060,22 @@ CHICKEN::classHandler(Node *n)
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs ", NIL);
       if (constructor_arg_types) {
-        String *func_call = buildClosFunctionCall(constructor_arg_types,
-                                                  "(lambda (%s) %s)",
-                                                  chickenPrimitiveName(constructor_name),
-                                                  0);
-        Printf(clos_methods, "%s", func_call);
+        String *initfunc_name = NewStringf("%s@@SWIG@initmethod", class_name);
+        String *func_call = buildClosFunctionCall(constructor_arg_types, initfunc_name, chickenPrimitiveName(constructor_name));
+        Printf(clos_methods, "%s)\n)\n", initfunc_name);
+        Printf(clos_methods, "(declare (hide %s))\n", initfunc_name);
+        Printf(clos_methods, "%s\n", func_call);
         Delete(func_call);
+        Delete(initfunc_name);
         Delete(constructor_arg_types);
         constructor_arg_types = 0;
       } else if (constructor_dispatch) {
-        Printf(clos_methods, "%s", constructor_dispatch);
+        Printf(clos_methods, "%s)\n)\n", constructor_dispatch);
         Delete(constructor_dispatch);
         constructor_dispatch = 0;
       } else {
-        Printf(clos_methods, "%s", chickenPrimitiveName(constructor_name));
+        Printf(clos_methods, "%s)\n)\n", chickenPrimitiveName(constructor_name));
       }
-      Printf(clos_methods, ")\n)\n");
       Delete(constructor_name);
       constructor_name = 0;
   } else {
@@ -1240,7 +1240,7 @@ int CHICKEN::destructorHandler(Node *n) {
 
 int CHICKEN::importDirective(Node *n) {
   String *modname = Getattr(n, "module");
-  if (modname) {
+  if (modname && clos_uses) {
     
     // Find the module node for this imported module.  It should be the
     // first child but search just in case.
@@ -1259,7 +1259,7 @@ int CHICKEN::importDirective(Node *n) {
   return Language::importDirective(n);
 }
 
-String *CHICKEN::buildClosFunctionCall(List *types, char *format, String_or_char *funcName, int method_specialize) {
+String *CHICKEN::buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname) {
   String *method_signature = NewString("");
   String *func_args = NewString("");
   String *func_call = NewString("");
@@ -1267,45 +1267,33 @@ String *CHICKEN::buildClosFunctionCall(List *types, char *format, String_or_char
   Iterator arg_type;
   int arg_count = 0;
   int optional_arguments = 0;
-  int first_argument = 1;
 
   for (arg_type = First(types); arg_type.item; arg_type = Next(arg_type)) {
     if (Strcmp(arg_type.item, "^^##optional$$") == 0) {
       optional_arguments = 1;
-    } else if (Strcmp(arg_type.item, "^^##primitive$$") == 0) {
-      if (first_argument)
-        Printf(method_signature, " (arg%i <top>)", arg_count);
-      else
-        Printf(method_signature, " arg%i", arg_count);
-
-      Printf(func_args, " arg%i", arg_count);
-      first_argument = 0;
     } else {
-      first_argument = 0;
-      if (method_specialize) {
-        Printf(method_signature, " (arg%i %s)", arg_count, arg_type.item);
+      Printf(method_signature, " (arg%i %s)", arg_count, arg_type.item);
+      if (Strcmp(arg_type.item, "<top>") == 0) {
+        Printf(func_args, " arg%i", arg_count);
       } else {
-        Printf(method_signature, " arg%i", arg_count);
+        Printf(func_args, " (slot-ref arg%i 'swig-this)", arg_count);
       }
-      Printf(func_args, " (slot-ref arg%i 'swig-this)", arg_count);
     }
     arg_count++;
   }
 
   if (optional_arguments) {
-    Printf(func_call, "(apply %s %s args)", funcName, func_args);
-    Printf(method_signature, " . args");
+    Printf(func_call, "(define-method (%s %s . args) (apply %s %s args))", 
+                      closname, method_signature, funcname, func_args);
   } else {
-    Printf(func_call, "(%s %s)", funcName, func_args);
+    Printf(func_call, "(define-method (%s %s) (%s %s))", 
+                      closname, method_signature, funcname, func_args);
   }
 
-  String *ret = NewStringf(format, method_signature, func_call);
-  
   Delete(method_signature);
   Delete(func_args);
-  Delete(func_call);
 
-  return ret;
+  return func_call;
 }
 
 extern "C" {
@@ -1431,27 +1419,20 @@ CHICKEN::dispatchFunction(Node *n)
       
       Iterator f;
       List *prev = 0;
-      int has_empty_call = 0;
       int all_primitive = 1;
 
       /* first check for duplicates and an empty call */
-      String *method_name = NewString(clos_name);
       String *newlist = NewList();
       for (f = First(flist); f.item; f = Next(f)) {
         /* check if cur is a duplicate of prev */
         if (prev && compareTypeLists(f.item, prev) == 0) {
-          Delete(f.item);
-        } else if (Len(f.item) == 0) {
-          has_empty_call = 1;
-          Delete(method_name);
-          method_name = NewStringf("%s@SWIG@multireal", clos_name);
           Delete(f.item);
         } else {
           Append(newlist, f.item);
           prev = f.item;
           Iterator j;
           for (j = First(f.item); j.item; j = Next(j)) {
-            if (Strcmp(j.item, "^^##optional$$") != 0 && Strcmp(j.item, "^^##primitive$$") != 0)
+            if (Strcmp(j.item, "^^##optional$$") != 0 && Strcmp(j.item, "<top>") != 0)
               all_primitive = 0;
           }
         }
@@ -1460,25 +1441,17 @@ CHICKEN::dispatchFunction(Node *n)
       flist = newlist;
       
       if (all_primitive) {
-        Printf(clos_methods, "(define %s %s)\n", method_name, chickenPrimitiveName(scmname));
+        Printf(clos_methods, "(define %s %s)\n", clos_name, chickenPrimitiveName(scmname));
       } else {
         for (f = First(flist); f.item; f = Next(f)) {
           /* now export clos code for argument */
-          String *fmt = NewStringf("(define-method (%s %%s) %%s)\n", method_name);
-          String *func_call = buildClosFunctionCall(f.item, Char(fmt), chickenPrimitiveName(scmname), 1);
-          Printf(clos_methods, "%s", func_call);
+          String *func_call = buildClosFunctionCall(f.item, clos_name, chickenPrimitiveName(scmname));
+          Printf(clos_methods, "%s\n", func_call);
           Delete(f.item);
           Delete(func_call);
         }
-      
-        if (has_empty_call) {
-            Printf(clos_methods, "(declare (hide %s))\n", method_name);
-            Printf(clos_methods, "(define (%s . args) (if (null? args) (%s) (apply %s@SWIG@multireal args)))\n",
-                                 clos_name, chickenPrimitiveName(scmname), clos_name);
-        }
       }
 
-      Delete(method_name);
       Delete(clos_name);
       Delete(flist);
     }
