@@ -582,16 +582,18 @@ $result = C_SCHEME_UNDEFINED;
 extern "C" {
 #endif
 /* Chicken initialization function */
-SWIGEXPORT(void) $realmodule_swig_init(int, C_word, C_word) C_noret;
+SWIGEXPORT(void) SWIG_init(int, C_word, C_word) C_noret;
 #ifdef __cplusplus
 }
 #endif
 %}
 
+%insert(closprefix) "swigclosprefix.scm"
+
 %insert(init) %{
 /* CHICKEN initialization function */
 SWIGEXPORT(void)
-$realmodule_swig_init(int argc, C_word closure, C_word continuation) {
+SWIG_init(int argc, C_word closure, C_word continuation) {
   static int       typeinit = 0;
   int       i;
   C_word sym;
@@ -615,6 +617,9 @@ $realmodule_swig_init(int argc, C_word closure, C_word continuation) {
     
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+    }
+    for (i = 0; swig_types_initial[i]; i++) {
+      SWIG_PropagateClientData(swig_types[i]);
     }
     typeinit = 1;
     ret = C_SCHEME_TRUE;

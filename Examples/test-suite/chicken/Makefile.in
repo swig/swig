@@ -17,7 +17,7 @@ SO           = @SO@
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -noprefix
+SWIGOPT +=
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -39,7 +39,7 @@ SWIGOPT += -noprefix
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(CHICKEN_CSI) $*$(SO) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean

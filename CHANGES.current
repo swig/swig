@@ -1,6 +1,19 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/16/2004: wuzzeb (John Lenz)
+            [CHICKEN]
+	    - Completly change how chicken.cxx handles CLOS and generic code.
+	      chicken no longer exports -clos.scm and -generic.scm.  The clos
+	      code is exported directly into the module.scm file if -proxy is passed.
+	    - The code now always exports a unit.  Running the test-suite is now
+	      majorly broken, and needs to be fixed.
+	    - CLOS now generates virtual slots for member variables similar to how
+	      GOOPS support works in the guile module.
+	    - chicken no longer prefixes symbols by the module name, and no longer
+	      forces all names to lower case.  It now has -useclassprefix and -closprefix
+	      similar to how guile handles GOOPS names.
+
 10/16/2004: wsfulton
             Templated functions with default arguments working with new default argument
             wrapping approach. The new approach no longer fails with the following default
