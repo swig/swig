@@ -1720,7 +1720,7 @@ The following C++ features are not currently supported :<p>
 <li>Function overloading (without renaming)
 <li>Nested classes
 <li>Namespaces
-<li>Complicated templates
+<li>Complicated templates (probably)
 </ul>
 
 <p>
@@ -1947,6 +1947,7 @@ the full C++ code has been omitted.<p>
 
 class Shape {
 public:
+        double x,y;
 	virtual double area() = 0;
 	virtual double perimeter() = 0;
 	void    set_location(double x, double y);
@@ -1996,8 +1997,26 @@ results can be accomplished by simply using the <tt>Shape_area</tt>
 function on either object.<p>
 
 <p>
-Shadow classes, described shortly, can also be used to provide a more
-class-like scripting language interface.
+One important point concerning inheritance is that the low-level
+accessor functions are only generated for classes in which they are
+actually declared.  For instance, in the above example, the method
+<tt>set_location()</tt> is only accessible as
+<tt>Shape_set_location()</tt> and not as
+<tt>Circle_set_location()</tt> or <tt>Square_set_location()</tt>.  Of
+course, the <tt>Shape_set_location()</tt> function will accept any
+kind of object derived from Shape.  Similarly, accessor functions for
+the attributes <tt>x</tt> and <tt>y</tt> are generated as
+<tt>Shape_x_get()</tt>, <tt>Shape_x_set()</tt>,
+<tt>Shape_y_get()</tt>, and <tt>Shape_y_set()</tt>.  Functions such as
+<tt>Circle_x_get()</tt> are not available--instead you should use
+<tt>Shape_x_get()</tt>.
+
+
+<p>
+Although the low-level C-like interface is functional, most language
+modules also produce a higher level OO interface using a technique
+known as shadow classing.  This approach is described shortly and can be
+used to provide a more natural C++ interface.
 
 <h3> Renaming</h3>
 
@@ -2917,6 +2936,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : August 18, 2001</address>
+<address>SWIG 1.3 - Last Modified : August 30, 2001</address>
 </body>
 </html>
