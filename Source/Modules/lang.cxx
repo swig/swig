@@ -1637,7 +1637,7 @@ int Language::classDeclaration(Node *n) {
     ClassType = NewStringf("%s %s", kind, classname);
   }
   Setattr(n,"classtype", SwigType_namestr(ClassType));
-
+  Setattr(n,"classtypeobj", Copy(ClassType));
   InClass = 1;
   CurrentClass = n;
 
