@@ -59,6 +59,7 @@ static int Super_len(DOH *s);
 static int Super_cmp(DOH *, DOH *);
 static int Super_hash(DOH *s);
 static void Super_clear(DOH *s);
+static void Super_scope(DOH *s, int sc);
 static int Super_insert(DOH *s, int pos, DOH *DOH);
 static int Super_delitem(DOH *s, int where);
 static DOH *Super_str(DOH *s);
@@ -141,10 +142,11 @@ static DohObjInfo SuperType =
    DelSuper,			/* doh_del */
    CopySuper,			/* doh_copy */
    Super_clear,			/* doh_clear */
-   0,				/* doh_scope */
+   Super_scope,			/* doh_scope */
    Super_str,			/* doh_str */
    Super_data,			/* doh_data */
    Super_dump,			/* doh_dump */
+   0,				/* doh_load */
    Super_len,			/* doh_len */
    Super_hash,			/* doh_hash    */
    Super_cmp,			/* doh_cmp */
@@ -391,6 +393,20 @@ Super_hash(DOH *so)
    s->hashkey = h;
    return h;
 }  
+
+/* -------------------------------------------------------------------------
+ * void Super_clear(DOH *s) - Clear a Super
+ * ------------------------------------------------------------------------- */
+
+static void
+Super_scope(DOH *o, int sc)
+{
+   Super *s = (Super *)o;
+   int i;
+
+   for (i = 0; i < s->numtags; i++)
+      Setscope(s->tags[i].filename, sc);
+}
 
 /* -------------------------------------------------------------------------
  * void Super_clear(DOH *s) - Clear a Super
@@ -1486,13 +1502,13 @@ static void annotate(DOH *hyd)
 
 int main(int argc, char **argv)
 {
-   DOH *a = NewSuper("aaa\naaa", "a", 10);
-   DOH *b = NewSuper("bbb", "b", 20);
-   DOH *c = NewSuper("cc\ncc", "c", 30);
-   DOH *d = NewSuper("dd\ndd", "d", 40);
+   DOH *a = NewSuperString("aaa\naaa", "a", 10);
+   DOH *b = NewSuperString("bbb", "b", 20);
+   DOH *c = NewSuperString("cc\ncc", "c", 30);
+   DOH *d = NewSuperString("dd\ndd", "d", 40);
 
-   DOH *r = NewSuper("repl", "repl", 50);
-   DOH *r2 = NewSuper("LPER", "lepr", 60);
+   DOH *r = NewSuperString("repl", "repl", 50);
+   DOH *r2 = NewSuperString("LPER", "lepr", 60);
 
    Insert(a, 6, b);
    Insert(a, 5, c);

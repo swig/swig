@@ -96,13 +96,13 @@ static char cvstag[] = "$Header$";
    (*) If a Name's underlying type is known, then its child field
    points to that type. */
    
-#define Swig_Type_Int 1
-#define Swig_Type_Float 2
-#define Swig_Type_Void 3
-#define Swig_Type_Char 4
-#define Swig_Type_Name 5
-#define Swig_Type_Enum 6
-#define Swig_Type_Struct 7
+#define Swig_Type_Int 0
+#define Swig_Type_Float 1
+#define Swig_Type_Void 2
+#define Swig_Type_Char 3
+#define Swig_Type_Name 4
+#define Swig_Type_Enum 5
+#define Swig_Type_Struct 6
 
 /* Constructors
 
@@ -112,17 +112,17 @@ static char cvstag[] = "$Header$";
    volatile (which characteristic more accurately applies to its
    child, although this is a matter of interpretation). */
 
-#define Swig_Type_Array 11
-#define Swig_Type_Function 12
-#define Swig_Type_Pointer 13
+#define Swig_Type_Array 7
+#define Swig_Type_Function 8
+#define Swig_Type_Pointer 9
 
 /* Subtypes 
 
    A Struct may either be a Struct or a Union -- since SWIG handles
    them similarly, this is considered a subtype. */
 
-#define Swig_Subtype_Struct 1
-#define Swig_Subtype_Union 2
+#define Swig_Type_Subtype_Struct 1
+#define Swig_Type_Subtype_Union 2
 
 /* (for results of comparisons) */
 
@@ -146,10 +146,10 @@ typedef struct Swig_Type_tag
    DOH **attributes;
    short width;
    short exp_width;
-   int is_const : 1;
-   int is_volatile : 1;
-   int is_signed : 1;
-   int is_unsigned : 1;
+   int is_const;
+   int is_volatile;
+   int is_signed;
+   int is_unsigned;
 
    int hashkey;
 } Swig_Type_tag;
@@ -173,17 +173,16 @@ typedef struct Swig_Type_node
 
 /* shorthand */
 #define ROOT Swig_Type_root
-static Swig_Type_children Swig_Type_root;
+static Swig_Type_children Swig_Type_root = NULL;
 
 /* =========================================================================
  * utility function declarations
  * ========================================================================= */
 
 /* Take one step down into the children, creating a new node if
-   necessary. */
+   necessary. If parent is NULL, add to the root. */
 static Swig_Type_node *
-Swig_Type_step(Swig_Type_node *parent, Swig_Type_children children, 
-	       Swig_Type_tag *tag);
+Swig_Type_step(Swig_Type_node *parent, Swig_Type_tag *tag);
 
 /* Make sure that this is a real DOH string, not a (char *). */
 static DOH *
@@ -191,6 +190,10 @@ Swig_Type_make_string(DOH *in);
 
 /* the smallest n such that i < 2**n */
 static int Swig_Type_bit_count(unsigned int i);
+
+/* return a string of tag's flags, possibly including signs */
+static DOH *
+Swig_Type_tag_flags(Swig_Type_tag *tag, int do_signs);
 
 /* =========================================================================
  * Swig_Type_tag DOH type declaration
@@ -219,8 +222,9 @@ static DohObjInfo Swig_Type_tag_Type =
    Swig_Type_tag_str,		/* doh_str */
    0,				/* doh_data */
    0,				/* doh_dump */
+   0,				/* doh_load */
    0,				/* doh_len */
-   Swig_Type_tag_hash,		/* doh_hash    */
+   Swig_Type_tag_hash,		/* doh_hash */
    Swig_Type_tag_cmp,		/* doh_cmp */
    0,				/* doh_mapping */
    0,				/* doh_sequence */
@@ -253,8 +257,9 @@ static DohObjInfo Swig_Type_node_Type =
    Swig_Type_node_str,		/* doh_str */
    0,				/* doh_data */
    0,				/* doh_dump */
+   0,				/* doh_load */
    0,				/* doh_len */
-   Swig_Type_node_hash,		/* doh_hash    */
+   Swig_Type_node_hash,		/* doh_hash */
    Swig_Type_node_cmp,		/* doh_cmp */
    0,				/* doh_mapping */
    0,				/* doh_sequence */
@@ -270,17 +275,25 @@ static DohObjInfo Swig_Type_node_Type =
 
 /* -------------------------------------------------------------------------
  * static Swig_Type_node *
- * Swig_Type_step(Swig_Type_children children, Swig_Type_tag *tag);
+ * Swig_Type_step(Swig_Type_node *parent, Swig_Type_children children, 
+ *                Swig_Type_tag *tag);
  * -------------------------------------------------------------------------
  * Take a step down the tree, creating a new node if necessary, and
  * return a pointer to the node we arrive at.
  * ------------------------------------------------------------------------- */
 
 static Swig_Type_node *
-Swig_Type_step(Swig_Type_node *parent, Swig_Type_children children, 
-	       Swig_Type_tag *tag)
+Swig_Type_step(Swig_Type_node *parent, Swig_Type_tag *tag)
 {
-   DOH *subnode = Getattr(children, tag);
+   Swig_Type_children children;
+   DOH *subnode;
+
+   if (parent) children = parent->children;
+   else if (ROOT) children = ROOT;
+   else children = ROOT = NewHash();
+		  
+   subnode = Getattr(children, tag);
+   
    if (!subnode) {
       subnode = Swig_Type_node_new(tag, parent);
       Setattr(children, tag, subnode);
@@ -321,6 +334,28 @@ static int Swig_Type_bit_count(unsigned int i)
    while (i)
       n++, i >>= 1;
    return n;
+}
+
+/* -------------------------------------------------------------------------
+ * static DOH *
+ * Swig_Type_tag_flags(Swig_Type_tag *tag, int do_signs);
+ * ------------------------------------------------------------------------- */
+
+static DOH *
+Swig_Type_tag_flags(Swig_Type_tag *tag, int do_signs)
+{
+   char * fmt = "%s";
+   DOH *s = NewString("[");
+   Seek(s, 0, SEEK_END);
+
+   if (tag->is_const) Printf(s, fmt, "const"), fmt = " %s";
+   if (tag->is_volatile) Printf(s, fmt, "volatile"), fmt = " %s";
+   if (do_signs && tag->is_signed) Printf(s, fmt, "signed"), fmt = " %s";
+   if (do_signs && tag->is_unsigned) Printf(s, fmt, "unsigned"), fmt = " %s";
+
+   Printf(s, "]");
+
+   return s;
 }
 
 /* =========================================================================
@@ -365,7 +400,65 @@ Swig_Type_tag_new(short type, short subtype,
 
 static DOH *Swig_Type_tag_str(DOH *o)
 {
-   return o, "tag_str";
+   Swig_Type_tag *tag = TagData(o);
+   DOH *s = NewString("");
+   Seek(s, 0, SEEK_END);
+   
+   switch (tag->type)
+   {
+   case Swig_Type_Int:
+      Printf(s, "Int(%d, %s)", tag->width,
+	     Swig_Type_tag_flags(tag, 1));
+      break;
+   case Swig_Type_Float:
+      Printf(s, "Float(%d ** %d, %s)", 
+	     tag->width, tag->exp_width,
+	     Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Void:
+      Printf(s, "Void");
+      break;
+   case Swig_Type_Char:
+      Printf(s, "Char(%d, %s)", tag->width,
+	     Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Name:
+      Printf(s, "Name('%s', %s)", tag->name,
+	     Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Enum:
+      Printf(s, "Enum(");
+      if (tag->name)
+	 Printf(s, "'%s', ", tag->name);
+      if (tag->attributes)
+	 Printf(s, "%s, ", tag->attributes);
+      Printf(s, "%s)", Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Struct:
+      if (tag->subtype == Swig_Type_Subtype_Struct)
+	 Printf(s, "Struct(");
+      else
+	 Printf(s, "Union(");
+      if (tag->name)
+	 Printf(s, "'%s', ", tag->name);
+      if (tag->attributes)
+	 Printf(s, "%s, ", tag->attributes);
+      Printf(s, "%s)", Swig_Type_tag_flags(tag, 0));
+      break;
+   case Swig_Type_Array:
+      if (tag->attributes)
+	 Printf(s, "Array (%s)", tag->attributes);
+      Printf(s, "Array of ");
+      break;
+   case Swig_Type_Function:
+      Printf(s, "Function (%s) returning ", tag->attributes);
+      break;
+   case Swig_Type_Pointer:
+      Printf(s, "Pointer %s to ", Swig_Type_tag_flags(tag, 0));
+      break;
+   }
+
+   return s;
 }
 
 /* -------------------------------------------------------------------------
@@ -389,8 +482,7 @@ static int Swig_Type_tag_hash(DOH *o)
 	 (tag->is_const << 4) +
 	 (tag->is_volatile << 5) +
 	 (tag->is_signed << 6) +
-	 (tag->is_unsigned << 7); /* I wonder what the optimizer will
-				     do with this.. */
+	 (tag->is_unsigned << 7);
       break;
    case Swig_Type_Float:
       tag->hashkey = 
@@ -562,9 +654,142 @@ static int Swig_Type_tag_cmp(DOH *o1, DOH *o2)
    return TAGS_EQ;
 }
 
+/* =========================================================================
+ * Swig_Type_node DOH type implementation
+ * ========================================================================= */
+
+/* -------------------------------------------------------------------------
+ * static DOH *
+ * Swig_Type_NewXXX( <varies> );
+ * ------------------------------------------------------------------------- 
+ * Public constructors for various sorts of types (types of sorts?)
+ * ------------------------------------------------------------------------- */
+
+DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile, 
+		      int is_signed, int is_unsigned)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Int, 0,
+					   NULL, NULL,
+					   width, 0,
+					   is_const, is_volatile,
+					   is_signed, is_unsigned));
+}
+
+DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
+			int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Float, 0,
+					   NULL, NULL,
+					   width, exp_width,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewVoid()
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Void, 0,
+					   NULL, NULL,
+					   0, 0,
+					   0, 0,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewChar(int width, int is_const, int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Char, 0,
+					   NULL, NULL,
+					   width, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewName(DOH *name, int is_const, int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Name, 0,
+					   name, NULL,
+					   0, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewEnum(DOH *name, DOH *body, 
+		       int is_const, int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Name, 0,
+					   name, body,
+					   0, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewStruct(DOH *name, DOH *body, 
+			 int is_const, int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Struct, 
+					   Swig_Type_Subtype_Struct,
+					   name, body,
+					   0, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewUnion(DOH *name, DOH *body, 
+			int is_const, int is_volatile)
+{
+   return Swig_Type_step(NULL, 
+			 Swig_Type_tag_new(Swig_Type_Struct, 
+					   Swig_Type_Subtype_Union,
+					   name, body,
+					   0, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewArray(DOH *size, DOH *parent)
+{
+   return Swig_Type_step(parent, 
+			 Swig_Type_tag_new(Swig_Type_Array, 
+					   0,
+					   0, size,
+					   0, 0,
+					   0, 0,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewFunction(DOH *parameters, DOH *parent)
+{
+   return Swig_Type_step(parent, 
+			 Swig_Type_tag_new(Swig_Type_Function, 
+					   0,
+					   0, parameters,
+					   0, 0,
+					   0, 0,
+					   0, 0));
+}
+
+DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent)
+{
+   return Swig_Type_step(parent, 
+			 Swig_Type_tag_new(Swig_Type_Pointer, 
+					   0,
+					   0, 0,
+					   0, 0,
+					   is_const, is_volatile,
+					   0, 0));
+}
+
 /* -------------------------------------------------------------------------
  * static DOH *
  * Swig_Type_node_new(DOH *tag, DOH *parent);
+ * ------------------------------------------------------------------------- 
+ * private, 'real' constructor
  * ------------------------------------------------------------------------- */
 
 static DOH *
@@ -576,7 +801,7 @@ Swig_Type_node_new(DOH *tag, DOH *parent)
    n->objinfo = &Swig_Type_node_Type;
 
    n->parent = parent;
-   n->tag = tag;
+   n->tag = tag; Incref(tag);
    n->children = NewHash();
    n->hashkey = -1;
 
@@ -594,9 +819,11 @@ Swig_Type_node_str(DOH *o)
    Swig_Type_node *n = (Swig_Type_node *)o;
    DOH *s = NewString("");
    if (n->parent)
-      Printf(s, "%s %s", n->tag, n->parent);
+      Printf(s, "%s%s", n->tag, n->parent);
    else
-      return Str(n->tag);
+      Printf(s, "%s", Str(n->tag));
+
+   return s;
 }
 
 /* -------------------------------------------------------------------------
@@ -612,7 +839,11 @@ Swig_Type_node_hash(DOH *o)
 
    n->hashkey = Hashval(n->tag);
    if (n->parent)
-      n->hashkey += Hashval(n->parent);
+   {
+      int hvp = Hashval(n->parent);
+
+      n->hashkey += (hvp << 12) + (hvp >> 12);
+   }
 
    if (n->hashkey == -1) n->hashkey = 1;
    
@@ -644,3 +875,41 @@ Swig_Type_node_cmp(DOH *o1, DOH *o2)
    else
       return TAGS_EQ;
 }
+
+#ifdef TYPE_TEST
+#include <stdio.h>
+int main(int argc, char **argv)
+{
+   int i;
+   DOH *node[10];
+   DOH *key;
+
+   node[0] = Swig_Type_NewInt(8, 0, 0, 1, 0);
+   node[1] = Swig_Type_NewPointer(0, 1, node[0]);
+   node[2] = Swig_Type_NewPointer(1, 0, node[1]);
+   node[3] = Swig_Type_NewArray(NULL, node[2]);
+
+   node[4] = Swig_Type_NewInt(8, 0, 0, 1, 0);
+   node[5] = Swig_Type_NewPointer(0, 1, node[4]);
+   node[6] = Swig_Type_NewPointer(1, 1, node[5]);
+   node[7] = Swig_Type_NewArray(NULL, node[6]);
+   
+   node[8] = Swig_Type_NewVoid();
+   node[9] = Swig_Type_NewVoid();
+   node[9] = Swig_Type_NewPointer(0, 1, node[9]);
+   node[9] = Swig_Type_NewPointer(1, 1, node[9]);
+   node[9] = Swig_Type_NewPointer(1, 0, node[9]);
+   node[9] = Swig_Type_NewPointer(0, 0, node[9]);
+
+   Printf(stdout, "Address\t\tHashvalue\tType\n");
+   for (i = 0; i < 10; i++)
+      Printf(stdout, "0x%08x\t0x%08x\t%s\n", node[i],
+	     Hashval(node[i]), node[i]);
+
+   Printf(stdout, "\nROOT (0x%08x):\n", ROOT);
+   for (key = Firstkey(ROOT); key; key = Nextkey(ROOT))
+      Printf(stdout, "%s : %s\n", key, Getattr(ROOT, key));
+
+   return 0;
+}
+#endif
