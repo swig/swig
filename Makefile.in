@@ -317,6 +317,8 @@ install-main:
 lib-languages = tcl perl5 python guile java mzscheme ruby php4 ocaml \
 	pike chicken csharp modula3 allegrocl
 
+lib-modules = std
+
 install-lib:
 	@echo "Installing the SWIG library"
 	@$(MKINSTDIRS) $(DESTDIR)$(SWIG_LIB)
@@ -325,7 +327,7 @@ install-lib:
 	    echo "Installing $(DESTDIR)$(SWIG_LIB)/$$i";	\
             $(INSTALL_DATA) $$file $(DESTDIR)$(SWIG_LIB)/$$i;	\
 	    done;
-	@for lang in $(lib-languages);				\
+	@for lang in $(lib-languages) $(lib-modules);		\
 	    do							\
 	    echo "Installing language specific files for $$lang"; \
 	    dst=$(DESTDIR)$(SWIG_LIB)/$$lang;			\
