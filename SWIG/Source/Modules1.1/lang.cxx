@@ -639,6 +639,8 @@ int Language::cDeclaration(Node *n) {
     Swig_restore(&n);
     return SWIG_OK;
   } else if (Cmp(storage,"friend") == 0) {
+    Swig_warning(WARN_LANG_FRIEND_IGNORE, Getfile(n), Getline(n),
+		 "friend function '%s' ignored.\n", name);
     return SWIG_NOWRAP;
   } 
 
