@@ -1,6 +1,9 @@
 %{
 /* Auxiliar swig  macros that appear in the header */
 
+#define SWIG_OLDPTR  1
+#define SWIG_NEWPTR  2
+
 #ifdef __cplusplus
 #define SWIGSTATICINLINE(a) static inline a
 #define SWIGSTATIC(a) static a

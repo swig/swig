@@ -572,7 +572,7 @@ _apply_macro(Macro, bool, __VA_ARGS__);
 %define %apply_cpptypes(Macro,...)
 %apply_otypes(Macro, __VA_ARGS__)
 _apply_macro(Macro, bool, __VA_ARGS__);
-_apply_macro(Macro, std::string, __VA_ARGS__);
+_apply_macro(Macro, std::basic_string<char>, __VA_ARGS__);
 _apply_macro(Macro, std::complex<float>, __VA_ARGS__);
 _apply_macro(Macro, std::complex<double>, __VA_ARGS__);
 %enddef

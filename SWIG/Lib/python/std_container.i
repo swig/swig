@@ -134,7 +134,7 @@
 	      sequence *pseq = new sequence();
 	      assign(pyseq, pseq);
 	      *seq = pseq;
-	      return 2;
+	      return SWIG_NEWPTR;
 	    } else {
 	      return pyseq.check();
 	    }
