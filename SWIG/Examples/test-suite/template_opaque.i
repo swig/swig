@@ -14,7 +14,7 @@
 %inline {
 namespace A {
   struct OpaqueStruct;
-  typedef struct OpaqueStruct OpaqueType;
+  typedef OpaqueStruct OpaqueType;
   typedef std::vector<OpaqueType> OpaqueVectorType;
   
   void FillVector(OpaqueVectorType& v) 

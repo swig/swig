@@ -2,6 +2,10 @@
 
 %module extend_default
 
+%warnfilter(302) Override::over; 
+%warnfilter(302) Override::overload; 
+%warnfilter(302) Override::ride; 
+
 // %extend before the class definition
 %extend Before {
   Before(int i = -1, double d = -1.0) { 
@@ -85,9 +89,6 @@ struct OverAfter {
 };
 %}
 
-
-#pragma SWIG nowarn=-302
-//%warnfilter(302) over; // why doesn't this work?
 
 // %extend overrides the class definition
 %extend Override {

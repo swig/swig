@@ -146,7 +146,7 @@
 //
 // These applies shouldn't be needed ....!!
 //
-%apply const int& { const Hello&  };
+//%apply const int& { const Hello&  };
 
 %apply void* { pint };
 %apply const void*& { const pint& };
@@ -154,6 +154,10 @@
 
 //
 // Some simple types
+%apply char FIXSIZE[ANY] {char fixsize[8]};
+
+  
+		    
 %inline %{
   enum Hello {
     Hi, Hola
@@ -170,7 +174,8 @@
   const namet def_namet = {'h','o',0, 'l','a'};
 
   extern namet gbl_namet;
-  
+
+  char fixsize[8] =  {'h','o',0, 'l','a', 0, 0, 0};
 %}
 
 
@@ -382,6 +387,16 @@ macro(size_t,             pfx, sizet)
     }
     
   };
+  
+  typedef Foo* foo_ptr;
+  
+  foo_ptr fptr_val(foo_ptr a) {
+    return a;
+  }
+
+  const foo_ptr& fptr_ref(const foo_ptr& a) {
+    return a;
+  }
   
   
  struct Test 

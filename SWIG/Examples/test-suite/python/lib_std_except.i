@@ -1,6 +1,6 @@
 %module lib_std_except
 
-%include "std_except.i"
+%include <std_except.i>
 
 
 %inline %{

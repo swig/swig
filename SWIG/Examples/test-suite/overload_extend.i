@@ -4,7 +4,10 @@
 %typemap(default) double y "$1=1000;";
 #endif
 
-#pragma SWIG nowarn=-302
+%warnfilter(302) Foo::test; 
+
+
+
 %extend Foo {
     int test() { return 0; }
     int test(int x) { x = 0; return 1; }

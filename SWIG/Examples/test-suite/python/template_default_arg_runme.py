@@ -2,7 +2,7 @@ import template_default_arg
 
 
 helloInt = template_default_arg.Hello_int()
-helloInt.foo(Hello_int.Hi.hi)
+helloInt.foo(template_default_arg.Hello_int.hi)
 
 
 x = template_default_arg.X_int()

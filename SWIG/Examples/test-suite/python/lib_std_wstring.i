@@ -1,6 +1,6 @@
 %module lib_std_wstring
-
-%include "std_wstring.i"
+%include <std_basic_string.i>
+%include <std_wstring.i>
 
 
 %template(wstring) std::basic_string<wchar_t>;
