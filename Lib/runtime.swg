@@ -11,13 +11,13 @@
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_TypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) {
-  swig_module_info *module = SWIG_Runtime_GetModule(clientdata);
+  swig_module_info *module = SWIG_GetModule(clientdata);
   return SWIG_TypeQueryModule(module, module, name);
 }
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_MangledTypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) {
-  swig_module_info *module = SWIG_Runtime_GetModule(clientdata);
+  swig_module_info *module = SWIG_GetModule(clientdata);
   return SWIG_MangledTypeQueryModule(module, module, name);
 }
 
@@ -25,13 +25,13 @@ SWIG_MangledTypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) 
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_TypeQuery(const char *name) {
-  swig_module_info *module = SWIG_Runtime_GetModule();
+  swig_module_info *module = SWIG_GetModule();
   return SWIG_TypeQueryModule(module, module, name);
 }
 
 SWIGRUNTIMEINLINE swig_type_info *
 SWIG_MangledTypeQuery(const char *name) {
-  swig_module_info *module = SWIG_Runtime_GetModule();
+  swig_module_info *module = SWIG_GetModule();
   return SWIG_MangledTypeQueryModule(module, module, name);
 }
 
