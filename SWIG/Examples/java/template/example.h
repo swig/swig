@@ -19,7 +19,7 @@ template<class T> class vector {
     v[index] = val;
   }
 #ifdef SWIG
-  %addmethods {
+  %extend {
     T getitem(int index) {
       return self->get(index);
     }

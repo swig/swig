@@ -2,6 +2,8 @@
 
 %module typedef_mptr
 
+#ifdef SWIGPYTHON
+
 %inline %{
 
 class Foo {
@@ -24,6 +26,7 @@ Integer do_op(Foo *f, Integer x, Integer y, Integer (FooObj::*op)(Integer, Integ
     return f->do_op(x,y,op);
 }
 %}
+#endif
 
 #ifdef SWIGPYTHON
 %constant int (Foo::*add)(int,int) = &Foo::add;
