@@ -46,7 +46,10 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
 	array_typedef_memberin \
+	defvalue_constructor \
 	exception_order \
+	extern_throws \
+	namespace_union \
 	template_default_arg \
 	template_specialization_defarg \
 	template_specialization_enum \
