@@ -329,10 +329,13 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
 
   if (!namehash) return 0;
 
-  if ((decl) && (SwigType_isqualifier(decl))) {
+
+  /* DB: This removed to more tightly control feature/name matching */
+  /*  if ((decl) && (SwigType_isqualifier(decl))) {
     ncdecl = strchr(Char(decl),'.');
     ncdecl++;
   }
+  */
 
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
