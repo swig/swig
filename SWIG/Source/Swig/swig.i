@@ -717,7 +717,11 @@ extern FILE *Swig_open(DOH *name);
 extern DOH  *Swig_read_file(FILE *file);
 extern DOH  *Swig_include(DOH *name);
 
+#ifdef MACSWIG
+#define  SWIG_FILE_DELIMETER   ":"
+#else
 #define  SWIG_FILE_DELIMETER   "/"
+#endif
 
 %section "Command Line Parsing"
 

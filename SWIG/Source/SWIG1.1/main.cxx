@@ -15,7 +15,9 @@
 static char cvsroot[] = "$Header$";
 
 #include "internal.h"
+#ifndef MACSWIG
 #include "swigconfig.h"
+#endif
 
 #include <time.h>
 #include <stdlib.h>
@@ -190,11 +192,17 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
 
+#ifdef MACSWIG
+  sprintf(temp,"%s:config", LibDir);
+  Swig_add_directory((DOH *) ":swig_lib:config");
+  Swig_add_directory((DOH *) ":swig_lib");
+#else
   sprintf(temp,"%s/config", LibDir);
-  Swig_add_directory((DOH *) temp);
   Swig_add_directory((DOH *) "./swig_lib/config");
-  Swig_add_directory((DOH *) LibDir);
   Swig_add_directory((DOH *) "./swig_lib");
+#endif
+  Swig_add_directory((DOH *) temp);
+  Swig_add_directory((DOH *) LibDir);
   sprintf(InitName,"init_wrap");
 
   libfiles = NewList();
@@ -292,7 +300,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Add language dependent directory to the search path
   {
     DOH *rl = NewString("");
+#ifdef MACSWIG
+    Printf(r1,"%s:%s", SwigLib,LibDir);
+#else
     Printf(rl,"%s/%s", SwigLib,LibDir);
+#endif    
     Swig_add_directory(rl);
   }
 

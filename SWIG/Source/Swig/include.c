@@ -87,7 +87,11 @@ Swig_search_path() {
   assert(slist);
   filename = NewString("");
   assert(filename);
+#ifdef MACSWIG
+  Printf(filename,"%s",SWIG_FILE_DELIMETER);
+#else
   Printf(filename,".%s", SWIG_FILE_DELIMETER);
+#endif
   Append(slist,filename);
   for (i = 0; i < Len(directories); i++) {
     dirname =  Getitem(directories,i);

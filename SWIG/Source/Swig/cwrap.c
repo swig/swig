@@ -41,8 +41,9 @@ Swig_cparm_name(Parm *p, int i) {
 
 String *
 Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
-  String *decl;
+  String *decl = 0;
 
+  /*  *((char *) decl) = 'x';*/
   decl = NewString("");
   switch(SwigType_type(t)) {
   case T_USER:
