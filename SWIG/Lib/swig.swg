@@ -243,22 +243,4 @@ public:
 %}
 %enddef
 
-/* Pragmas for default-overloading promotion -- experimental, will remove */
-
-#define %promote(_x,_y)        %pragma(swig)   promote=`_x`"="`_y`
-
-%promote(int, 1);
-%promote(short,1);
-%promote(long,1);
-%promote(signed char,1);
-%promote(long long, 1);
-%promote(unsigned int, 1);
-%promote(unsigned long, 1);
-%promote(unsigned long long, 1);
-%promote(unsigned char, 1);
-%promote(float, 3);
-%promote(double,3);
-%promote(bool, 1);
-%promote(char,4);
-%promote(p.char,5);
 

@@ -392,8 +392,45 @@
  * PyObject *  - Just pass straight through unmodified
  * ------------------------------------------------------------ */
 
-%typemap(python,in)   PyObject * "$1 = $input;";
-%typemap(python,out)  PyObject * "$result = $1;";
+%typemap(in)   PyObject * "$1 = $input;";
+%typemap(out)  PyObject * "$result = $1;";
+
+/* ------------------------------------------------------------
+ * Type-checking typemaps
+ * ------------------------------------------------------------ */
+
+%typemap(typecheck,precedence="1")
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long 
+{
+  valid = PyInt_Check($input) ? 1 : 0;
+}
+
+%typemap(typecheck,precedence="4")
+	float, double
+{
+  valid = PyNumber_Check($input) ? 1 : 0;
+}
+
+%typemap(typecheck,precedence="6") char {
+  
+
+}
+
+%typemap(typecheck, precedence="7") char * {
+  valid = PyString_Check($input) ? 1 : 0;
+}
+
+%typemap(typecheck) SWIGTYPE * {
+  void *ptr;
+  if (SWIG_ConvertPtr($input, (void **) &ptr, $1_descriptor, 0) == -1) {
+    valid = 0;
+  } else {
+    valid = 1;
+  }
+}
 
 /* ------------------------------------------------------------
  * Overloaded operator support
