@@ -34,7 +34,7 @@ public :
 
   /* Java module methods */
   void emit_classdef();
-  void emit_shadow_classdef();
+  void emit_shadow_classdef(char* c_classname,char* c_baseclassname);
   char *JNICALL(DOHString_or_char *func);
   char *makeValidJniName(const char *name);
   char *JavaMethodSignature(SwigType *t, int ret, int inShadow);

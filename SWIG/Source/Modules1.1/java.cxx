@@ -49,7 +49,6 @@ static int    enum_flag = 0; // Set to 1 when wrapping an enum
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
-static int    abstract_class_flag = 0;
 static int    jnic = -1;          // 1: use c syntax jni; 0: use c++ syntax jni
 static int    nofinalize = 0;          // for generating finalize methods
 static int    useRegisterNatives = 0;        // Set to 1 when doing stuff with register natives
@@ -72,6 +71,8 @@ static String *module_class_modifiers = 0; //class modifiers for module class ov
 static String *all_shadow_class_modifiers = 0; //class modifiers for all shadow classes overriden by %pragma
 static String *this_shadow_class_modifiers = 0; //class modifiers for shadow class overriden by %pragma
 static String *module_method_modifiers = 0; //native method modifiers overridden by %pragma
+static String *wrapper_conversion_code = 0; //C++ casts for inheritance hierarchies JNI code
+static String *module_conversion_code = 0; //C++ casts up inheritance hierarchies module Java code
 
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 /* Return NULL if not otherwise the shadow name */
@@ -317,6 +318,8 @@ int JAVA::top(Node *n) {
   all_shadow_class_modifiers = NewString("");
   module_import = NewString("");
   module_method_modifiers = NewString("public final static");
+  module_conversion_code = NewString("");
+  wrapper_conversion_code = NewString("");
 
   Swig_banner(f_runtime);               // Print the SWIG banner message
   Printf(f_runtime,"/* Implementation : Java */\n\n");
@@ -380,12 +383,18 @@ int JAVA::top(Node *n) {
   if (strlen(Char(module_constants_code)) != 0 )
     Printv(f_java, "  // enums and constants\n", module_constants_code, NULL);
 
+  Printv(f_java,module_conversion_code,NULL);
+
   // Finish off the java class
   Printf(f_java, "}\n");
   fclose(f_java);
 
   if(useRegisterNatives)
 	writeRegisterNatives();
+  
+  if(wrapper_conversion_code)
+    Printv(f_wrappers,wrapper_conversion_code,NULL);
+  
 
   Delete(shadow_classes); shadow_classes = NULL;
   Delete(shadow_classdef); shadow_classdef = NULL;
@@ -403,6 +412,8 @@ int JAVA::top(Node *n) {
   Delete(all_shadow_class_modifiers); all_shadow_class_modifiers = NULL;
   Delete(module_import); module_import = NULL;
   Delete(module_method_modifiers); module_method_modifiers = NULL;
+  Delete(wrapper_conversion_code); wrapper_conversion_code = NULL;
+  Delete(module_conversion_code); module_conversion_code = NULL;
 
   /* Close all of the files */
   Dump(f_header,f_runtime);
@@ -460,6 +471,7 @@ void JAVA::emit_classdef() {
     Printf(f_java, "{\n", module);
     if (module_extra_code)
       Printv(f_java, module_extra_code, NULL);
+
   }
   classdef_emitted = 1;
 }
@@ -854,7 +866,6 @@ int JAVA::constantWrapper(Node *n) {
         Replaceall(javaclassname, "enum ", "");
         Replaceall(tm,"$javaclassname", javaclassname);
         if (!Len(tm)) {
-//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(type,0));
           Printf(java_type,"long");
         }
         else
@@ -1030,109 +1041,129 @@ void JAVA::pragma(char *lang, char *code, char *value) {
   Delete(strvalue);
 }
 
-void JAVA::emit_shadow_classdef() {
-  String* baseclass = NULL;
-
-  // Import statements
-  if(all_shadow_import)
-    Printf(shadow_classdef, "%s", all_shadow_import);
-  if(this_shadow_import)
-    Printf(shadow_classdef, "%s", this_shadow_import);
-  Printf(shadow_classdef, "\n");
-
-  // Class modifiers
-  if (this_shadow_class_modifiers && *Char(this_shadow_class_modifiers))
-    Printv(shadow_classdef, this_shadow_class_modifiers, NULL);
-  else if (all_shadow_class_modifiers && *Char(all_shadow_class_modifiers))
-    Printv(shadow_classdef, all_shadow_class_modifiers, NULL);
-  else
-    Printv(shadow_classdef, "public", NULL);
-  if (abstract_class_flag)
-    Printv(shadow_classdef, " abstract", NULL);
-  Printf(shadow_classdef, " class $class ");
+void JAVA::emit_shadow_classdef(char* c_classname,char* c_baseclassname) {
 
   // Inherited classes
-  if(this_shadow_baseclass && *Char(this_shadow_baseclass)) {
-    Printf(shadow_classdef, "extends %s ", this_shadow_baseclass);
+  String* baseclass = NULL; 
+  if(this_shadow_baseclass && *Char(this_shadow_baseclass)) 
     baseclass = this_shadow_baseclass;
-  }
   if(all_shadow_baseclass && *Char(all_shadow_baseclass)) {
-    Printf(shadow_classdef, "extends %s ", all_shadow_baseclass);
-    baseclass = all_shadow_baseclass;
+    if (baseclass)
+      Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in Java.\n", shadow_classname);
+    else
+      baseclass = all_shadow_baseclass;
   }
 
-  // Implemented interfaces
-  if(this_shadow_interfaces && *Char(this_shadow_interfaces))
-    Printv(shadow_classdef, this_shadow_interfaces, " ", NULL);
-  Printf(shadow_classdef, "{\n");
+  int derived = baseclass && is_shadow(baseclass); 
 
-  //Display warning on attempt to use multiple inheritance
-  char* search_str = Char(shadow_classdef);
-  int count = 0;
-  while((search_str = strstr(search_str, "extends"))) {
-    search_str += strlen("extends");
-    count++;
-  }
-  if (count > 1)
-    Printf(stderr, "Warning for shadow class %s: Multiple inheritance is not supported in Java.\n", shadow_classname);
+  // Macro apology. Hopefully it makes the code easier to read.
+#define IF_EXISTS_ELSE(str, str_default) ((str && *Char(str))?str: str_default)
+#define IF_EXISTS(str) IF_EXISTS_ELSE(str,"")
 
-  // Different code depending on whether or not the base class is a SWIG shadow class
-  if (baseclass && is_shadow(baseclass)) {
-    Printv(shadow_classdef,
-      "  public $class(long cPointer, boolean cMemoryOwn) {\n",
-      "    super(cPointer, cMemoryOwn);\n",
+  Printv(shadow_classdef,
+    IF_EXISTS(all_shadow_import),
+    IF_EXISTS(this_shadow_import),
+    "\n",
+    IF_EXISTS_ELSE(this_shadow_class_modifiers,
+      IF_EXISTS_ELSE(all_shadow_class_modifiers,
+        "public")),
+    " class $class ",
+    derived ? 
+        "extends " : 
+        "",
+    IF_EXISTS(baseclass),
+    IF_EXISTS(this_shadow_interfaces), // Interfaces
+    "{\n",
+    "  private long swigCPtr;\n", 
+    derived ? 
+        "" : 
+        "  protected boolean swigNeedsDelete;\n",
+    "\n",
+    "  public $class(long cPtr, boolean needsDelete){\n", // Constructor used for wrapping pointers
+    derived ? 
+        "    super($module.$classTo$baseclass(cPtr), needsDelete);\n" : 
+        "    swigNeedsDelete = needsDelete;\n",
+    "    swigCPtr = cPtr;\n",
+    "  }\n",
+    "\n", NULL);
+
+  if(!have_default_constructor) {
+    Printv(shadow_classdef, 
+      "  protected $class() {\n",
+      "    this(0, false);\n", 
       "  }\n",
       "\n", NULL);
-
-    if(!have_default_constructor) {
-      Printv(shadow_classdef, 
-        "  protected $class() {\n",
-        "  }\n",
-        "\n", NULL);
-    }
-    // Control which super constructor is called - we don't want 2 malloc/new c/c++ calls
-    Replace(shadow_code, "$superconstructorcall", "    super(0, false);\n", DOH_REPLACE_ANY);
-  }
-  else {
-    Printv(shadow_classdef,
-      "  protected long _cPtr;\n",
-      "  protected boolean _cMemOwn;\n",
-      "\n",
-      "  public $class(long cPointer, boolean cMemoryOwn) {\n",
-      "    _cPtr = cPointer;\n",
-      "    _cMemOwn = cMemoryOwn;\n",
-      "  }\n",
-      "\n",
-      "  public long getCPtr() {\n",
-      "    return _cPtr;\n",
-      "  }\n",
-      "\n", NULL);
-
-    if(!have_default_constructor) {
-      Printv(shadow_classdef, 
-        "  protected $class() {\n",
-        "    _cPtr = 0;\n",
-        "    _cMemOwn = false;\n",
-        "  }\n",
-        "\n", NULL);
-    }
-    // No explicit super constructor call as this class does not have a SWIG base class.
-    Replace(shadow_code, "$superconstructorcall", "", DOH_REPLACE_ANY);
   }
 
+  Printv(shadow_classdef,
+    "  public long getCPtr$class(){\n",  // Get ptr to an instance
+    "    return swigCPtr;\n",
+    "  }\n",
+    "\n", 
+    NULL);
+
+#undef IF_EXISTS
+#undef IF_EXISTS_ELSE
+
+  // Substitute various strings into the above template
+  Replace(shadow_code,     "$class", shadow_classname, DOH_REPLACE_ANY);
   Replace(shadow_classdef, "$class", shadow_classname, DOH_REPLACE_ANY);
+
+  Replace(shadow_classdef, "$baseclass", baseclass, DOH_REPLACE_ANY);
+  Replace(shadow_code,     "$baseclass", baseclass, DOH_REPLACE_ANY);
+
+  Replace(shadow_classdef, "$module", module, DOH_REPLACE_ANY);
+  Replace(shadow_code,     "$module", module, DOH_REPLACE_ANY);
+
+  Replace(shadow_code,     "$superdelete", (derived ? "      super._delete();\n" : ""), DOH_REPLACE_ANY);
 
   if (all_shadow_extra_code)
     Printv(shadow_classdef, all_shadow_extra_code, NULL);
 
   if (this_shadow_extra_code)
     Printv(shadow_classdef, this_shadow_extra_code, NULL);
+
+  // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
+  if(derived){
+    Printv(module_conversion_code,"  ", module_method_modifiers, " native long ",
+        "$classTo$baseclass(long jarg1);\n",
+        NULL);
+    Replace(module_conversion_code, "$class", shadow_classname, DOH_REPLACE_ANY);
+    Replace(module_conversion_code, "$baseclass", baseclass, DOH_REPLACE_ANY);
+
+    Printv(wrapper_conversion_code,
+        "extern \"C\" {\n",
+        "  JNIEXPORT jlong JNICALL",
+        " Java_$jnipkgstr$jnimodule_$jniclassTo$jnibaseclass",
+        "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+        "    jlong baseptr = 0;\n"
+        "    *($cbaseclass **)&baseptr = ($cclass *)*(void**)&jarg1;\n"
+        "    return baseptr;\n"
+        " }\n",
+        "}\n",
+        NULL); 
+
+    char *jnimodule    = makeValidJniName(module);
+    char *jniclass     = makeValidJniName(shadow_classname);
+    char *jnibaseclass = makeValidJniName(Char(baseclass));
+    Replace(wrapper_conversion_code, "$jnibaseclass",jnibaseclass, DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$cbaseclass",  c_baseclassname, DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$jniclass",    jniclass,  DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$cclass",      c_classname, DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$jnipkgstr",   c_pkgstr,  DOH_REPLACE_ANY);
+    Replace(wrapper_conversion_code, "$jnimodule",   jnimodule, DOH_REPLACE_ANY);
+    free(jnibaseclass);
+    free(jniclass);
+    free(jnimodule);
+  }
 }
 
 int JAVA::classHandler(Node *n) {
 
+  char *classname = GetChar(n,"name");
+  char *baseclassname = (char*)"";
+
   if (shadow) {
-    char *classname = GetChar(n,"name");
     char *rename = GetChar(n,"sym:name");
     char *ctype  = GetChar(n,"kind");
     
@@ -1155,7 +1186,6 @@ int JAVA::classHandler(Node *n) {
     Clear(shadow_classdef);
     Clear(shadow_code);
     
-    abstract_class_flag = 0;
     have_default_constructor = 0;
     shadow_constants_code = NewString("");
     this_shadow_baseclass =  NewString("");
@@ -1175,16 +1205,18 @@ int JAVA::classHandler(Node *n) {
     if (baselist) {
       Node *base = Firstitem(baselist);
       String *basename = is_shadow(Getattr(base,"name"));
-      if (basename)
+      if (basename){
         Printv(this_shadow_baseclass, basename, NULL);
+        baseclassname = Char(Getattr(base,"name"));
+      }
       base = Nextitem(baselist);
       if (base) {
         Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
       }
     }
 
-    emit_shadow_classdef();
-
+    emit_shadow_classdef(classname,baseclassname);
+    
     Printv(f_shadow, shadow_classdef, shadow_code, NULL);
 
     // Write out all the enums and constants
@@ -1274,10 +1306,8 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
   if ((tm = Swig_typemap_lookup_new("jstype",n,"",0))) {
     String *javaclassname = is_shadow(SwigType_base(Getattr(n,"type")));
     Replaceall(tm,"$javaclassname", javaclassname);
-    if (!Len(tm)) {
-//      Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(t,0));
+    if (!Len(tm))
       Printf(shadowrettype,"long");
-    }
     else
       Printf(shadowrettype,"%s", tm);
   } else {
@@ -1287,8 +1317,6 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
   Printf(shadow_code, "  public ");
   if (static_flag)
     Printf(shadow_code, "static ");
-  if (is_virtual == PURE_VIRTUAL)
-    Printf(shadow_code, "abstract ");
   Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
   if(SwigType_type(t) == T_ARRAY && is_shadow(get_array_type(t))) {
@@ -1305,7 +1333,7 @@ void JAVA::javashadowfunctionHandler(Node* n, int is_virtual) {
 
   Printv(nativecall, module, ".", java_function_name, "(", NULL);
   if (!static_flag)
-    Printv(nativecall, "_cPtr", NULL);
+    Printv(nativecall, "swigCPtr", NULL);
 
   /* Get number of required and total arguments */
   num_arguments = emit_num_arguments(l);
@@ -1335,10 +1363,8 @@ DelWrapper(f);
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
         String *javaclassname = is_shadow(SwigType_base(pt));
         Replaceall(tm,"$javaclassname", javaclassname);
-        if (!Len(tm)) {
-//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(pt,0));
+        if (!Len(tm))
           Printf(javaparamtype, "long");
-        }
         else
           Printf(javaparamtype, "%s", tm);
         jstypep = Getattr(jstypep,"tmap:jstype:next");
@@ -1360,12 +1386,12 @@ DelWrapper(f);
       if(SwigType_type(pt) == T_ARRAY && is_shadow(get_array_type(pt))) {
         Printv(user_arrays, tab4, "long[] $arg_cArray = new long[$arg.length];\n", NULL);
         Printv(user_arrays, tab4, "for (int i=0; i<$arg.length; i++)\n", NULL);
-        Printv(user_arrays, tab4, "  $arg_cArray[i] = $arg[i].getCPtr();\n", NULL);
+        Printv(user_arrays, tab4, "  $arg_cArray[i] = $arg[i].getCPtr",is_shadow(SwigType_base(pt)),"();\n", NULL);
         Replace(user_arrays, "$arg", pn, DOH_REPLACE_ANY);
 
         Printv(nativecall, arg, "_cArray", NULL);
       } else if (is_shadow(pt)) {
-        Printv(nativecall, arg, ".getCPtr()", NULL);
+        Printv(nativecall, arg, ".getCPtr",is_shadow(SwigType_base(pt)),"()", NULL);
       } else Printv(nativecall, arg, NULL);
       /* Add to java shadow function header */
       if (gencomma >= 2)
@@ -1421,16 +1447,10 @@ DelWrapper(f);
     Printf(nativecall,");\n");
   }
 
-  if (is_virtual == PURE_VIRTUAL) {
-    Printf(shadow_code, ");\n\n");
-    abstract_class_flag = 1;
-  }
-  else {
-    Printf(shadow_code, ") {\n");
-    Printv(shadow_code, user_arrays, NULL);
-    Printf(shadow_code, "    %s", nativecall);
-    Printf(shadow_code, "  }\n\n");
-  }
+  Printf(shadow_code, ") {\n");
+  Printv(shadow_code, user_arrays, NULL);
+  Printf(shadow_code, "    %s", nativecall);
+  Printf(shadow_code, "  }\n\n");
 
   Delete(shadowrettype);
   Delete(nativecall);
@@ -1456,12 +1476,8 @@ int JAVA::constructorHandler(Node *n) {
   
     Printf(shadow_code, "  public %s(", shadow_classname);
   
-    Printv(nativecall, "$superconstructorcall", NULL); // Super call for filling in later.
-    if (iname != NULL)
-      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(iname), "(", NULL);
-    else
-      Printv(nativecall, tab4, "_cPtr = ", module, ".", Swig_name_construct(shadow_classname), "(", NULL);
-  
+    Printv(nativecall, "    this(", module, ".", Swig_name_construct(iname), "(", NULL);
+    
     int pcount = ParmList_len(l);
     if(pcount == 0)  // We must have a default constructor
       have_default_constructor = 1;
@@ -1484,18 +1500,17 @@ int JAVA::constructorHandler(Node *n) {
         sprintf(arg,"arg%d",i);
       }
   
-      if(is_shadow(pt)) {
-        Printv(nativecall, arg, ".getCPtr()", NULL);
-      } else Printv(nativecall, arg, NULL);
+      if(is_shadow(pt))
+        Printv(nativecall, arg, ".getCPtr", is_shadow(SwigType_base(pt)), "()", NULL);
+      else 
+        Printv(nativecall, arg, NULL);
   
       /* Get the java type of the parameter */
       if ((tm = Getattr(jstypep,"tmap:jstype"))) {
         String *javaclassname = is_shadow(SwigType_base(pt));
         Replaceall(tm,"$javaclassname", javaclassname);
-        if (!Len(tm)) {
-//          Printf(stderr, "Warning: could not determine Java type for %s\n", SwigType_str(pt,0));
+        if (!Len(tm))
           Printf(javaparamtype, "long");
-        }
         else
           Printf(javaparamtype, "%s", tm);
         jstypep = Getattr(jstypep,"tmap:jstype:next");
@@ -1516,10 +1531,7 @@ int JAVA::constructorHandler(Node *n) {
     }
   
     Printf(shadow_code, ") {\n");
-    Printv(nativecall,
-  	  ");\n",
-  	  tab4, "_cMemOwn = true;\n",
-  	  NULL);
+    Printf(nativecall, "), true);\n");
   
     Printf(shadow_code, "%s", nativecall);
     Printf(shadow_code, "  }\n\n");
@@ -1539,11 +1551,13 @@ int JAVA::destructorHandler(Node *n) {
     }
   
     Printf(shadow_code, "  public void _delete() {\n");
-    Printf(shadow_code, "    if(_cPtr!=0 && _cMemOwn) {\n");
-    Printf(shadow_code, "      %s.%s(_cPtr);\n", module, Swig_name_destroy(shadow_classname));
-    Printf(shadow_code, "      _cPtr = 0;\n");
+    Printf(shadow_code, "    if(swigCPtr != 0 && swigNeedsDelete) {\n");
+    Printf(shadow_code, "      %s.%s(swigCPtr);\n", module, Swig_name_destroy(shadow_classname));
+    Printf(shadow_code, "      swigNeedsDelete = false;\n");
+    Printf(shadow_code, "$superdelete"); // Zero all pointers up any inheritance hierarchy
     Printf(shadow_code, "    }\n");
-    Printf(shadow_code, "  }\n\n");
+    Printf(shadow_code, "    swigCPtr = 0;\n");
+    Printf(shadow_code, "  }\n");
   }
   return SWIG_OK;
 }
