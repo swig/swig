@@ -34,6 +34,8 @@
 %typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
   "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
 
+%typemap(in) void *
+  "if ((SWIG_ConvertPtr(interp, $input, (void **) &$1, 0,SWIG_POINTER_EXCEPTION | $disown) != TCL_OK)) SWIG_fail;";
 
 /* For bools, we first convert to an integer and then to a bool.  There
    is no guarantee that a bool is the same size as an int so we have to do this */
