@@ -223,7 +223,7 @@ public:
 	Printf(f_directors_h, "#include <map>\n");
 	Printf(f_directors_h, "#include <string>\n\n");
       }
-      Printf(f_directors_h, "class Swig::Director;\n\n");
+      /* Printf(f_directors_h, "class Swig::Director;\n\n"); */
       Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -1009,7 +1009,11 @@ public:
       Printf(setf->code,"    return 0;\n");
     } else {
       /* Is a readonly variable.  Issue an error */
-      Printf(setf->def,"static int %s_set(PyObject *) {", wname);
+      if (CPlusPlus) {
+	Printf(setf->def,"static int %s_set(PyObject *) {", wname);
+      } else {
+	Printf(setf->def,"static int %s_set(PyObject *_val) {", wname);
+      }
       Printv(setf->code,
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
@@ -1394,7 +1398,7 @@ public:
       Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
 
     if (Len(parse_args) > 0) {
-      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", \"%s\" %s);\n", pyname, parse_args, arglist);
+      Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", \"(%s)\" %s);\n", pyname, parse_args, arglist);
     } else {
       Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), \"%s\", NULL);\n", pyname);
     }
