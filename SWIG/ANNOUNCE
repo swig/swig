@@ -2,13 +2,13 @@
 
 http://www.swig.org
 
-June 2, 2002
+June 17, 2002
 
-We're pleased to announce SWIG 1.3.12, the latest installment in the
-SWIG development effort.  SWIG 1.3.12 is a milestone in the SWIG
+We're pleased to announce SWIG 1.3.13, the latest installment in the
+SWIG development effort.  SWIG 1.3.13 is a milestone in the SWIG
 project--it is the first release that features a nearly complete C++
 type system including full support for namespaces, templates, and
-more.  Simply stated, SWIG-1.3.12 is more capable than ever.
+more.  Simply stated, SWIG-1.3.13 is more capable than ever.
 
 What is SWIG?
 -------------
@@ -31,11 +31,11 @@ modules. Furthermore, there are very few restrictions on what can be
 wrapped by SWIG--in fact, it can generate bindings for nearly every
 C/C++ programming construct.
 
-New Features in 1.3.12
+New Features in 1.3.13
 ----------------------
 * C++ namespace support *
 
-SWIG-1.3.12 provides full support for C++ namespaces including all C++
+SWIG-1.3.13 provides full support for C++ namespaces including all C++
 namespace related declarations (using, namespace aliases, nested
 namespaces, etc.).  Namespace support is fully integrated into the
 type system, typemaps, customization features, and all other parts of
@@ -44,7 +44,7 @@ SWIG.
 * Enhanced template support *
 
 Minimal C++ template support was available in earlier SWIG releases.
-SWIG-1.3.12 builds upon this and provides support for templates,
+SWIG-1.3.13 builds upon this and provides support for templates,
 member templates, template specialization, and template partial
 specialization.  These features have been used to provide new library
 modules for wrapping C++ strings and STL vectors.  More C++ library
@@ -79,18 +79,18 @@ details.
 
 Continued updates of the SWIG Users Manual are included in this
 release. Almost all of the documentation is now up to date with
-SWIG-1.3.12 features.  However, a lot of the old documentation is
+SWIG-1.3.13 features.  However, a lot of the old documentation is
 still incomplete.  We're still working on this.
 
 Availability:
 -------------
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-1.3.12.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-1.3.13.tar.gz
 
 Within the next day, a Windows version will also be made available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-1.3.12.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-1.3.13.zip
 
 New Development Process
 -----------------------
