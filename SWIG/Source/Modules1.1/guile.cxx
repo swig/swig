@@ -158,9 +158,6 @@ GUILE::parse ()
 void
 GUILE::set_module (char *mod_name, char **)
 {
-  if (Verbose)
-    printf ("%s;mod_name=\"%s\"\n", __PRETTY_FUNCTION__, mod_name);
-
   if (module) {
     printf ("module already set (%s), returning\n", module);
     return;
@@ -182,9 +179,6 @@ void
 GUILE::set_init (char *iname)
 {
   abort ();                             // for now -ttn
-  if (Verbose)
-    printf ("%s;iname=\"%s\"\n", __PRETTY_FUNCTION__, iname);
-
   set_module (iname, 0);
 }
 
@@ -197,11 +191,6 @@ GUILE::set_init (char *iname)
 void
 GUILE::headers (void)
 {
-  if (Verbose) {
-    printf ("%s\n", __PRETTY_FUNCTION__);
-    fprintf (f_header, "/* %s */\n", __PRETTY_FUNCTION__);
-  }
-
   emit_banner (f_header);
 
   fprintf (f_header, "/* Implementation : GUILE */\n\n");
@@ -244,11 +233,6 @@ GUILE::initialize (void)
 {
   int i;
 
-  if (Verbose) {
-    printf ("%s\n", __PRETTY_FUNCTION__);
-    fprintf (f_header, "/* %s */\n", __PRETTY_FUNCTION__);
-  }
-
 #ifdef OLD_STYLE_WILL_GO_AWAY
   if (InitNames) {
     i = 0;
@@ -273,11 +257,6 @@ GUILE::close (void)
 {
   String module_name;
   String module_func;
-
-  if (Verbose) {
-    printf ("%s\n", __PRETTY_FUNCTION__);
-    fprintf (f_init, "/* %s */\n", __PRETTY_FUNCTION__);
-  }
 
   emit_ptr_equivalence (f_init);
   fprintf (f_init, "}\n\n");
@@ -317,10 +296,6 @@ void
 GUILE::get_pointer (char *iname, int parm, DataType *t,
 		    WrapperFunction &f)
 {
-  if (Verbose)
-    printf ("%s;iname=\"%s\";parm=%d;t=%p\n",
-	    __PRETTY_FUNCTION__, iname, parm, t);
-
   // Pointers are read as hex-strings with encoded type information
   f.code << tab4 << "_tempc = gh_scm2newstr (s_" << parm << ", &_len);\n";
   f.code << tab4 << "if (SWIG_GetPtr (_tempc, (void **) &_arg" << parm;
@@ -398,10 +373,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   String outarg;
   int have_build = 0;
   String build;
-
-  if (Verbose)
-    printf ("%s;name=\"%s\";iname=\"%s\",d=%p,l=%p\n",
-	    __PRETTY_FUNCTION__, name, iname, d, l);
 
   // Make a wrapper name for this
   char * wname = name_wrapper (iname, prefix);
@@ -607,10 +578,6 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   char  var_name[256];
   char  *tm;
   char  *tm2 = typemap_lookup ("varout", "guile", t, name, name, "scmresult");
-
-  if (Verbose)
-    printf ("%s;name=\"%s\";iname=\"%s\";t=%p\n",
-	    __PRETTY_FUNCTION__, name, iname, t);
 
   // evaluation function names
 
@@ -901,9 +868,6 @@ void
 GUILE::usage_var (char *iname, DataType *t, String &usage)
 {
   char temp[1024], *c;
-
-  if (Verbose)
-    printf ("%s;iname=\"%s\";t=%p\n", __PRETTY_FUNCTION__, iname, t);
 
   usage << "(" << iname << " [value])";
   if (!((t->type != T_USER) || (t->is_pointer))) {
