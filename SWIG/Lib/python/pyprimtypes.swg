@@ -580,7 +580,9 @@ SWIGINTERN int
   if (SWIG_AsVal(int)(obj, &res)) {    
     if (val) *val = res ? true : false;
     return 1;
-  }
+  } else {
+    PyErr_Clear();
+  }  
   if (val) {
     SWIG_type_error("bool", obj);
   }
