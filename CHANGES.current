@@ -1,6 +1,38 @@
 Version 1.3.23 (working version)
 =================================
 
+12/05/2004: mmatus
+	    - Finishing the fixes for templates + default template
+	      args + specializations.
+
+            - [Python] Now we use the new templates + default template
+	      args in the std/STL library. That means the internal
+	      swig files are getting uglier since we now support the
+	      original declarations:
+
+	        template<class _Tp, class _Alloc = std::allocator< _Tp > >
+		class vector {
+		....
+		};
+	      	     
+                template<class _Key, class _Tp, class _Compare = std::less<_Key >,
+	        class _Alloc = std::allocator<std::pair<const _Key, _Tp > > >
+                class map {
+		....
+		};
+ 
+              and the user can use the %template directive as
+
+	        %template() std::vector<int>;
+	        %template() std::vector<int, std::allocator<int> >;
+	        %template() std::vector<int, MyAllocator<int> >;
+
+              Now we are closer to the cleaning/rewriting of the
+	      python std/STL support, such that we recover support for
+	      MSVC++ 6.0, and we can add support for other languages
+	      too.
+
+
 12/02/2004: wsfulton
             [Java] Fix for directors when wrapping methods using a member enum
             and typesafe/proper enums enabled.
