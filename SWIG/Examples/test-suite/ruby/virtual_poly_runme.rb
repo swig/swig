@@ -13,10 +13,10 @@ raise RuntimeError if d.get != dc.get
 raise RuntimeError if i.get != ic.get
 
 #
-# dynamic cast working ('nnumber' returns a NNumber)
+# 'narrowing' working ('nnumber' returns a NNumber)
 #
-ddc = Virtual_poly.NDouble_dynamic_cast(dc.nnumber)
+ddc = Virtual_poly::NDouble.narrow(dc.nnumber)
 raise RuntimeError if d.get != ddc.get 
 
-dic = Virtual_poly.NInt_dynamic_cast(ic.nnumber)
+dic = Virtual_poly::NInt.narrow(ic.nnumber)
 raise RuntimeError if i.get != dic.get

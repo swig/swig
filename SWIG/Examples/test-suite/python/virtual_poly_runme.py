@@ -15,15 +15,20 @@ if d.get() != dc.get():
 if i.get() != ic.get():
   raise RuntimeError
 
+virtual_poly.incr(ic)
+
+if (i.get() + 1) != ic.get():
+  raise RuntimeError
+
+
 
 #
-# here this dynamic_cast is not needed at all,
-# but works fine anyway ('nnumber()' returns a NNumber).
+# 'narrowing' also works
 #
-ddc = virtual_poly.NDouble_dynamic_cast(dc.nnumber())
+ddc = virtual_poly.NDouble_narrow(d.nnumber())
 if d.get() != ddc.get():
   raise RuntimeError
 
-dic = virtual_poly.NInt_dynamic_cast(ic.nnumber())
+dic = virtual_poly.NInt_narrow(i.nnumber())
 if i.get() != dic.get():
   raise RuntimeError
