@@ -1,5 +1,15 @@
 Version 1.3.18 (In progress)
 ============================
+03/11/2003: beazley
+            Fixed subtle bug in the application of SwigValueWrapper<> to
+            template classes with default constructors.  Reported by
+            Bruce Lowery.
+
+03/11/2003: beazley
+            The $descriptor(type) variable is now expanded in code supplied to
+            %extend.  This is useful for certain kinds of advanced wrapping 
+            (especially container classes).
+
 03/11/2003: luigi
             Support for std::map.
             (a) Integration with scripting language (a la std::vector) for
