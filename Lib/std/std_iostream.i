@@ -6,18 +6,6 @@
 #include <iostream>
 %}
 
-namespace std 
-{
-  %feature("immutable") cin;
-  %feature("immutable") cout;
-  %feature("immutable") cerr;
-  %feature("immutable") clog;
-  
-  %feature("immutable") wcin;
-  %feature("immutable") wcout;
-  %feature("immutable") wcerr;
-  %feature("immutable") wclog;
-}
 
 namespace std
 {

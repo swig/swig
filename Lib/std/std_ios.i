@@ -146,6 +146,12 @@ namespace std {
   protected:
     ios_base();
 
+  //50.  Copy constructor and assignment operator of ios_base
+  private:
+    ios_base(const ios_base&);
+
+    ios_base& 
+    operator=(const ios_base&);
   };
 
   template<typename _CharT, typename _Traits >
