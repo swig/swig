@@ -1190,8 +1190,6 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
     /* look qualified names first, such as
        
          int *Foo::foo(int bar)   ->  Foo::foo
-                                  ->  *::foo
-                                  ->  Foo::*
     */
     String *qname = NewStringf("%s::%s",qsn,pname);
     tm = Swig_typemap_search(op,type,qname,&mtype);
