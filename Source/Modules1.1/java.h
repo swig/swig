@@ -5,49 +5,7 @@
 // ------------------------------------------------------------------------
 
 class JAVA : public Language {
-private:
-  char         *module;          // Name of the module
-  char         *java_path;
-  char         *package;         // Name of the package
-  char         *c_pkgstr;         // Name of the package
-  char         *jni_pkgstr;         // Name of the package
-  char         *shadow_classname;
-  char         *jimport;
-  char         *method_modifiers;
-  FILE         *f_java;
-  FILE         *f_shadow;
-  int          shadow;
-  DOH         *shadow_classes;
-  String       shadow_classdef;
-  char         *shadow_name;
-  char         *shadow_baseclass;
-  int          classdef_emitted;
-  int          shadow_classdef_emitted;
-  int          have_default_constructor;
-  int          native_func;           // Set to 1 when wrapping a native function
-  int          member_func;           // Set to 1 when wrapping a member function
-  int          jnic;          // 1: use c syntax jni; 0: use c++ syntax jni
-  int          finalize;          // generate finalize methods
-  int          useRegisterNatives;        // Set to 1 when doing stuff with register natives
-  String       registerNativesList;
-
-
 public :
-  JAVA() {
-    module = NULL;
-    package = NULL;
-    java_path = (char*)"java";
-    f_java = f_shadow = NULL;
-    native_func = shadow = member_func = 0;
-    jimport = shadow_name = shadow_baseclass = NULL;
-    method_modifiers = (char*)"public final static";
-    jnic = -1;
-    useRegisterNatives=0;
-    finalize=0;
-    shadow_classes = NewHash();
-    classdef_emitted = 0;
-    shadow_classdef_emitted = 0;
-  };
 
   // Virtual functions required by the SWIG parser
 
@@ -80,8 +38,7 @@ public :
   /* Java Module methods */
   void emit_classdef();
   void emit_shadow_classdef();
-  char *JNICALL(char *func);
-  char *JNICALL(String& func);
+  char *JNICALL(DOHString_or_char *func);
   char *SwigTcToJniType(DataType *t, int ret);
   char *SwigTcToJavaType(DataType *t, int ret, int inShadow);
   char *SwigTcToJniScalarType(DataType *t);
