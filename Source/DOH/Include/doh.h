@@ -204,6 +204,8 @@ extern DOHString   *NewStringf(const DOH *fmt, ...);
 
 extern DOHFile *NewFile(DOH *file, char *mode);
 extern DOHFile *NewFileFromFile(FILE *f);
+extern DOHFile *NewFileFromFd(int fd);
+
 extern int  DohCopyto(DOHFile *input, DOHFile *output);
 
 #define Copyto DohCopyto
