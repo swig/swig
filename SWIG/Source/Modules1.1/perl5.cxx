@@ -34,6 +34,8 @@ Perl5 Options (available with -perl5)\n\
      -compat         - Compatibility mode.\n\n";
 
 static String *import_file = 0;
+static List   *import_stack = 0;
+
 static String *smodule = 0;
 static int     compat = 0;
 
@@ -164,11 +166,12 @@ PERL5::parse() {
   exported       = NewString("");
   magic          = NewString("");
   pragma_include = NewString("");
+  import_stack   = NewList();
 
   Swig_banner(f_runtime);
-
+  
   if (NoInclude) {
-    Printf(f_header,"#define SWIG_NOINCLUDE\n");
+    Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
 
   if (Swig_insert_file("common.swg", f_runtime) == -1) {
@@ -184,23 +187,40 @@ PERL5::parse() {
 }
 
 
+
+/* -----------------------------------------------------------------------------
+ * PERL5::import_start(char *modname)
+ * ----------------------------------------------------------------------------- */
+
+void
+PERL5::import_start(char *modname) {
+  if (blessed) {
+    Printf(f_pm,"require %s;\n", modname);
+  }
+  /* Save the old module */
+  if (import_file) {
+    Append(import_stack,import_file);
+  }
+  import_file = NewString(modname);
+}
+
+void 
+PERL5::import_end() {
+  Delete(import_file);
+  if (Len(import_stack)) {
+    import_file = Copy(Getitem(import_stack,Len(import_stack)-1));
+    Delitem(import_stack,Len(import_stack)-1);
+  } else {
+    import_file = 0;
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * PERL5::set_module()
  * ----------------------------------------------------------------------------- */
 void
 PERL5::set_module(char *mod_name) {
-  if (import_file) {
-    if (!(Cmp(import_file,input_file+strlen(input_file)-Len(import_file)))) {
-      if (blessed) {
-	Printf(f_pm,"require %s;\n", mod_name);
-      }
-      Delete(import_file);
-      import_file = 0;
-    }
-  }
-
   if (module) return;
-
   module = NewString(mod_name);
 
   /* Create a C module name and put it in 'cmodule' */
@@ -327,15 +347,6 @@ PERL5::initialize()
 	 tab4, "return 0;\n",
 	 "}\n",
 	 0);
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::import()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::import(char *filename) {
-  if (import_file) Delete(import_file);
-  import_file = NewString(filename);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1847,12 +1858,15 @@ void
 PERL5::cpp_class_decl(char *name, char *rename, char *type) {
   String *stype;
   String *fullname;
+  String *actualpackage;
+  
+  actualpackage = import_file ? import_file : realpackage;
 
   if (blessed) {
     stype = NewString(name);
     SwigType_add_pointer(stype);
     if ((!compat) && (!strchr(rename,':'))) {
-      fullname = NewStringf("%s::%s",realpackage,rename);
+      fullname = NewStringf("%s::%s",actualpackage,rename);
     } else {
       fullname = NewString(rename);
     }
