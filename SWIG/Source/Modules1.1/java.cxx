@@ -1478,12 +1478,6 @@ void JAVA::addclasstypemaps(Node *n) {
   typemapApply(swigtype, class_tmap, name, reference, 0); //%apply SWIGTYPE &CLASS {name&};
   typemapApply(swigtype, array_tmap, name, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {name*[ANY]};
 
-  /* Below matches a few typedef cases */
-  if (Cmp(shadowclassname, name) != 0) {
-    typemapApply(swigtype, class_tmap, shadowclassname, pointer, 0);   //%apply SWIGTYPE *CLASS {shadowclassname*};
-    typemapApply(swigtype, class_tmap, shadowclassname, reference, 0); //%apply SWIGTYPE &CLASS {shadowclassname&};
-    typemapApply(swigtype, array_tmap, shadowclassname, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {shadowclassname*[ANY]};
-  }
   /* More typemap applying to match types declared with the kind eg struct, union or class.
      For example when type is declared as 'struct name'. */
   if (kind && (Len(kind) > 0)) {
@@ -1492,14 +1486,6 @@ void JAVA::addclasstypemaps(Node *n) {
     typemapApply(swigtype, class_tmap, namewithkind, reference, 0); //%apply SWIGTYPE &CLASS {kind name&};
     typemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind name*[ANY]};
     Delete(namewithkind);
-    /* Below matches a few typedef cases */
-    if (Cmp(shadowclassname, name) != 0) {
-      String *namewithkind = NewStringf("%s %s",kind, shadowclassname);
-      typemapApply(swigtype, class_tmap, namewithkind, pointer, 0);   //%apply SWIGTYPE *CLASS {kind shadowclassname*};
-      typemapApply(swigtype, class_tmap, namewithkind, reference, 0); //%apply SWIGTYPE &CLASS {kind shadowclassname&};
-      typemapApply(swigtype, array_tmap, namewithkind, pointer, 1);   //%apply SWIGTYPE *ARRAYSOFCLASSPOINTERS[ANY] {kind shadowclassname*[ANY]};
-      Delete(namewithkind);
-    }
   }
   Delete(class_tmap);
   Delete(array_tmap);
