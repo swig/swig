@@ -246,6 +246,7 @@ void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   Parm *p;
   int   pcount;
+  int   reqargs;
   char  wname[256];
   char  source[64];
   char  target[64];
@@ -297,10 +298,14 @@ void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   p = l->get_first();
+  reqargs = pcount - l->numopt();
   while (p != 0) {
     // Produce names of source and target
     sprintf(source,"s_%d",i);
     sprintf(target,"_arg%d",i);
+
+    if (i >= reqargs)
+      fprintf(f_wrappers,"  if (!SCM_UNBNDP(s_%d)) {\n", i);
 
     if ((tm = typemap_lookup("in","guile",p->t,p->name,source,target))) {
       // Yep.  Use it instead of the default
@@ -383,6 +388,10 @@ void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
       // Yep.  Use it instead of the default
       cleanup << tm << "\n";
     }
+
+    if (i >= reqargs)
+      fprintf(f_wrappers,"  }\n");
+
     p = l->get_next();
     i++;
   }
@@ -469,8 +478,8 @@ void GUILE::create_function(char *name, char *iname, DataType *d, ParmList *l)
   fprintf(f_wrappers,"}\n");
 
   // Now register the function
-  fprintf(f_init,"\t gh_new_procedure(\"%s\", _wrap_gscm_%s, %d, 0, 0);\n", 
-          iname, wname, pcount);
+  fprintf(f_init,"\t gh_new_procedure(\"%s\", _wrap_gscm_%s, %d, %d, 0);\n", 
+          iname, wname, reqargs, pcount-reqargs);
 
   // Make a documentation entry for this
 
