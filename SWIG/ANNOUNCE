@@ -40,7 +40,7 @@ namespaces, etc.).  Namespace support is fully integrated into the
 type system, typemaps, customization features, and all other parts of
 SWIG.
 
-* Expanded template support */
+* Expanded template support *
 
 Minimal C++ template support was available in earlier SWIG releases.
 SWIG-1.3.12 builds upon this and provides support for templates,
@@ -49,7 +49,7 @@ specialization.  These features have been used to provide new library
 modules for wrapping C++ strings and STL vectors.  More C++ library
 support will appear in later releases.
 
-* Variable length arguments */
+* Variable length arguments *
 
 New directives and support is provided for wrapping C variable length
 argument functions.  
