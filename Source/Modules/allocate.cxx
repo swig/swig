@@ -64,7 +64,6 @@ class Allocate : public Dispatcher {
 
   /* Checks if a virtual function is the same as inherited from the bases */
   int function_is_defined_in_bases(Node *c, Node *bases) {
-    int i;
     Node *b, *temp;
     String *name, *type, *local_decl, *base_decl;
     if (!bases)
@@ -104,8 +103,8 @@ class Allocate : public Dispatcher {
       }
     }
     Delete(local_decl);
-    for (int i = 0; i < Len(bases); i++) {
-      b = Getitem(bases,i);
+    for (int j = 0; j < Len(bases); j++) {
+      b = Getitem(bases,j);
       if (function_is_defined_in_bases(c, Getattr(b, "bases")))
 	return 1;
     }
