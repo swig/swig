@@ -37,14 +37,20 @@ std::string& test_reference_out() {
 
 void test_throw() throw(std::string){
   static std::string x = "x";
-  
   throw x;
 }
 
 void test_const_reference_throw() throw(const std::string &){
   static std::string x = "x";
-  
   throw x;
+}
+
+void test_pointer_throw() throw(std::string *) {
+  throw new std::string("foo");
+}
+
+void test_const_pointer_throw() throw(const std::string *) {
+  throw new std::string("foo");
 }
 
 %}
