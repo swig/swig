@@ -1,6 +1,30 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/30/2004: mmatus
+	    - [ruby] Directors fixes:
+	      - enums and std::strings are working now (several
+	        reports in bug track system)
+	      - added patch 1025861 for director + exceptions
+		
+              *** Attention ***: ruby with directors + protected
+              members work with version 1.7+. Older versions seems to
+              have a broken signature for'rb_protect'.
+		
+	      If you need to use an old version, look at
+
+	      http://excruby.sourceforge.net/docs/html/ruby__hacks_8hpp-source.html
+  	      for workarounds.
+	      
+            - [ruby] Fix memory allocation problem in typemap (bug 1037259)
+
+	    - [tcl] Fix (enums|constants) + namespace option 
+	            (reported by jason.m.surprise@intel.com).
+
+            - [perl] Add patch 962168 for multiple inheretance
+	    
+	    - Fix 'defined' as variable name.
+
 10/29/2004: wsfulton
             Seg fault fix for global scope operator used for friend methods:
 
@@ -76,9 +100,10 @@ Version 1.3.23 (in progress)
                 dirprot mode),
 
 	      - detection of really needed protected declarations
-                (members and constructors), now, even if you don't use
-                the 'dirprot' mode, swig will wrap what is minimally
-                needed (and protected) for the code to compile.
+                (members and constructors) now is done automatically.
+                Even if you don't use the 'dirprot' mode, swig will
+                wrap what is minimally needed (and protected) for the
+                code to compile.
 		
 		what is public, as usual, is always wrapped, and if
 		you use the 'dirport'
