@@ -752,7 +752,7 @@ CHICKEN::functionWrapper(Node *n)
       Replaceall(tm,"$input",Getattr(p,"emit:input"));
       selectOutOneOrMany(tm, result_list_len > 1);
       Append(l_out, tm);
-      p = Getattr(p,"tmp:argout:next");
+      p = Getattr(p,"tmap:argout:next");
     } else {
       p = nextSibling(p);
     }
