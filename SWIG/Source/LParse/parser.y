@@ -421,14 +421,14 @@ file_include_type : INCLUDE { $$ = new_node("includefile",$1.filename,$1.line); 
 
 /* -- Modifier directives -- */
 
-modifier_directive : READONLY { $$ = new_node("readonlydirective",$1.filename, $1.line); }
-               | READWRITE    { $$ = new_node("readwritedirective",$1.filename,$1.line); }
+modifier_directive : READONLY { $$ = new_node("readonly",$1.filename, $1.line); }
+               | READWRITE    { $$ = new_node("readwrite",$1.filename,$1.line); }
                | NAME LPAREN idstring RPAREN { 
-		 $$ = new_node("namedirective",$3.filename,$3.line);
+		 $$ = new_node("name",$3.filename,$3.line);
 		 Setattr($$,ATTR_NAME,$3.text);
 	       }
                | NEW { 
-		 $$ = new_node("newdirective",$1.filename,$1.line);
+		 $$ = new_node("new",$1.filename,$1.line);
 	       }
                ;
 
