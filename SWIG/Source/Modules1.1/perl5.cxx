@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------
  * perl5.cxx
  *
  *     Generate Perl5 wrappers
@@ -7,10 +7,11 @@
  *             Loic Dachary (loic@ceic.com)
  *             David Fletcher
  *             Gary Holt
+ *             Jason Stewart (jason@openinformatics.com)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
  * See the file LICENSE for information on usage and redistribution.
- * ----------------------------------------------------------------------------- */
+ * ------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
 
@@ -23,7 +24,6 @@ static char cvsroot[] = "$Header$";
 static char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -namespace name - Set top-level namespace\n\
      -static         - Omit code related to dynamic loading.\n\
      -proxy          - Create proxy classes.\n\
      -const          - Wrap constants as constants and not variables (implies -shadow).\n\
@@ -35,9 +35,7 @@ static int           export_all = 0;
 //
 // module
 //   set by the %module directive, e.g. "Xerces". It will determine
-//   the name of the .pm file. and will be used to set the package
-//   namespace in the .pm file, as well as the name of the
-//   initialization methods in the glue library
+//   the name of the .pm file, and the dynamic library.
 //
 static String       *module = 0;
 //
@@ -53,13 +51,6 @@ static String       *fullmodule = 0;
 //   module with a 'c' appended
 //
 static String       *cmodule = 0; 
-//
-// namespace
-//   set by the -namespace flag, this sets the top-level namespace
-//   for the entire build. I.e. if you want your module to be XML::Xerces
-//   specify %module Xerces, and use -namespace XML
-//
-static String       *pkg_namespace = 0;
 
 static String       *command_tab = 0;
 static String       *constant_tab = 0;
@@ -124,34 +115,11 @@ PERL5::main(int argc, char *argv[]) {
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if(strcmp(argv[i],"-package") == 0) {
-	    if (argv[i+1]) {
-	      pkg_namespace = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	      Printf(stderr,"*** -package is depricated use -namespace instead'\n");
-	    } else {
-	      Swig_arg_error();
-	    }
-          } else if(strcmp(argv[i],"-namespace") == 0) {
-            if (argv[i+1]) {
-              pkg_namespace = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-            } else {
-              Swig_arg_error();
-            }
+	    Printf(stderr,"*** -package is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n");
+	    SWIG_exit(EXIT_FAILURE);
           } else if(strcmp(argv[i],"-interface") == 0) {
-            if (argv[i+1]) {
-              pkg_namespace = NewString(argv[i+1]);
-              Swig_mark_arg(i);
-              Swig_mark_arg(i+1);
-              i++;
-	      Printf(stderr,"*** -interface is depricated use -namespace instead'\n");
-            } else {
-              Swig_arg_error();
-            }
+	    Printf(stderr,"*** -interface is no longer supported\n*** use the directive '%module A::B::C' in your interface file instead\n*** see the Perl section in the manual for details.\n");
+	    SWIG_exit(EXIT_FAILURE);
 	  } else if (strcmp(argv[i],"-exportall") == 0) {
 	      export_all = 1;
 	      Swig_mark_arg(i);
@@ -232,14 +200,11 @@ PERL5::top(Node *n) {
   /* If we're in blessed mode, change the package name to "packagec" */
 
   if (blessed) {
-    fullmodule = pkg_namespace ? NewStringf("%s::%s", pkg_namespace,module) 
-                               : module;
-    cmodule = pkg_namespace ? NewStringf("%s::%sc", pkg_namespace,module) 
-                            : NewStringf("%sc",module);
+    cmodule = NewStringf("%sc",module);
   } else {
-    fullmodule = module;
-    cmodule = module;
+    cmodule = NewString(module);
   }
+  fullmodule = NewString(module);
 
   /* Create a .pm file
    * Need to strip off any prefixes that might be found in
