@@ -628,9 +628,9 @@ AC_MSG_CHECKING(for java include file jni.h)
 AC_ARG_WITH(javaincl, [  --with-javaincl=path    Set location of Java include directory], [JAVAINCDIR="$withval"], [JAVAINCDIR=])
 
 if test -z "$JAVAINCDIR"; then
-  JAVAINCDIR="/usr/jdk*/include /usr/local/jdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
-  # Add in default installation directory on Windows and others for cygwin
-  JAVAINCDIR="$JAVAINCDIR /cygdrive/c/jdk*/include /cygdrive/d/jdk*/include"
+  JAVAINCDIR="/usr/j2sdk*/include /usr/local/j2sdk*/include /usr/jdk*/include /usr/local/jdk*/include /opt/j2sdk*/include /opt/jdk*/include /usr/java/include /usr/local/java/include /opt/java/include /usr/include/java /usr/local/include/java /usr/include/kaffe /usr/local/include/kaffe /usr/include /usr/local/include"
+  # Add in default installation directory on Windows for cygwin
+  JAVAINCDIR="$JAVAINCDIR /cygdrive/c/j2sdk*/include /cygdrive/d/j2sdk*/include /cygdrive/c/jdk*/include /cygdrive/d/jdk*/include"
 fi
 
 JAVAINC=""
