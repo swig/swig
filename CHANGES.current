@@ -1,5 +1,28 @@
 Version 1.3.25 (In progress)
 ============================
+Dec/19: mmatus
+	- Fix typemap search, now the "out" typemap search is done as follows
+
+	     int *Foo::foo(int bar)   ->  int *Foo::foo(int bar)
+	                              ->  int *Foo::foo
+	                              ->  int *foo(int bar)
+	                              ->  int *foo
+	                              ->  int *
+
+           then, now you can be more specific, and define
+
+	  /* apply only for  'Foo::foo' method */
+          %typemap(out) int * Foo::foo(int *bar) ...; 
+
+	  /* apply for all 'foo' functions/methods */
+          %typemap(out) int * foo(int *bar) ...; 
+
+          %inline {
+            struct Foo {
+	       int *foo(int *bar);
+            };
+          }
+	  
 
 Dec/15: mmatus
 	- More fixes for templates and template default args.
