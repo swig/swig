@@ -102,26 +102,29 @@ static SCM swig_symbol = SCM_EOL;
 SWIGRUNTIME(SCM)
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
-  SCM smob;
-  swig_guile_clientdata *cdata = (swig_guile_clientdata *) type->clientdata;
-  if (owner)
-    SCM_NEWSMOB2(smob, swig_collectable_tag, ptr, (void *) type);
-  else
-    SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
+  if (ptr == NULL)
+    return SCM_EOL;
+  else {
+    SCM smob;
+    swig_guile_clientdata *cdata = (swig_guile_clientdata *) type->clientdata;
+    if (owner)
+      SCM_NEWSMOB2(smob, swig_collectable_tag, ptr, (void *) type);
+    else
+      SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
 
-  if (!cdata || SCM_NULLP(cdata->goops_class) || swig_make_func == SCM_EOL ) {
-    return smob;
-  } else {
-    /* the scm_make() C function only handles the creation of gf, methods and classes (no instances)
-       the (make ...) function is later redefined in goops.scm.  So we need to lookup and
-       call that function */
-    return scm_apply(
-      swig_make_func,
-      scm_list_3(
-        cdata->goops_class,
-        swig_keyword,
-        smob),
-      SCM_EOL);
+    if (!cdata || SCM_NULLP(cdata->goops_class) || swig_make_func == SCM_EOL ) {
+      return smob;
+    } else {
+      /* the scm_make() C function only handles the creation of gf,
+	 methods and classes (no instances) the (make ...) function is
+	 later redefined in goops.scm.  So we need to call that
+	 Scheme function. */
+      return scm_apply(swig_make_func,
+		       scm_list_3(cdata->goops_class,
+				  swig_keyword,
+				  smob),
+		       SCM_EOL);
+    }
   }
 }
 
