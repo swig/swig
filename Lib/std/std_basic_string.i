@@ -9,7 +9,7 @@
 
 namespace std {
 
-  template <class _CharT, class _Traits =  std::char_traits<_CharT>, typename _Alloc = std::allocator<_CharT> > 
+  template <class _CharT, class _Traits = char_traits<_CharT>, typename _Alloc = allocator<_CharT> > 
   class basic_string
   {
 #if !defined(SWIG_STD_MODERN_STL) || defined(SWIG_STD_NOMODERN_STL)

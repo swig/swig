@@ -77,8 +77,6 @@ namespace std
     basic_ostream<_CharT, _Traits>& 
     operator<<(unsigned long long __n);
 
-
-
     basic_ostream<_CharT, _Traits>& 
     operator<<(double __f);
 
@@ -87,7 +85,6 @@ namespace std
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(long double __f);
-
 
     basic_ostream<_CharT, _Traits>& 
     operator<<(const void* __p);
@@ -279,23 +276,23 @@ namespace std
     ~basic_iostream();    
   };
 
-  typedef basic_ostream<char, std::char_traits<char> > ostream ;
-  typedef basic_istream<char, std::char_traits<char> > istream;
-  typedef basic_iostream<char, std::char_traits<char> > iostream;
+  typedef basic_ostream<char> ostream ;
+  typedef basic_istream<char> istream;
+  typedef basic_iostream<char> iostream;
 
-  typedef basic_ostream<wchar_t, std::char_traits<wchar_t> >  wostream;
-  typedef basic_istream<wchar_t, std::char_traits<wchar_t> >  wistream;
-  typedef basic_iostream<wchar_t, std::char_traits<wchar_t> > wiostream;
+  typedef basic_ostream<wchar_t>  wostream;
+  typedef basic_istream<wchar_t>  wistream;
+  typedef basic_iostream<wchar_t> wiostream;
 
-  extern std::istream cin;
-  extern std::ostream cout;
-  extern std::ostream cerr;
-  extern std::ostream clog;
+  extern istream cin;
+  extern ostream cout;
+  extern ostream cerr;
+  extern ostream clog;
 
-  extern std::wistream wcin;
-  extern std::wostream wcout;
-  extern std::wostream wcerr;
-  extern std::wostream wclog;
+  extern wistream wcin;
+  extern wostream wcout;
+  extern wostream wcerr;
+  extern wostream wclog;
 
   template<typename _CharT, typename _Traits = char_traits<_CharT> >
   std::basic_ostream<_CharT, _Traits>& 
@@ -311,13 +308,13 @@ namespace std
 }
 
 namespace std {
-  %template(ostream) basic_ostream<char, std::char_traits<char> >;
-  %template(istream) basic_istream<char, std::char_traits<char> >;
-  %template(iostream) basic_iostream<char, std::char_traits<char> >;
+  %template(ostream) basic_ostream<char>;
+  %template(istream) basic_istream<char>;
+  %template(iostream) basic_iostream<char>;
 
-  %template(wostream) basic_ostream<wchar_t, std::char_traits<wchar_t> >;
-  %template(wistream) basic_istream<wchar_t, std::char_traits<wchar_t> >;
-  %template(wiostream) basic_iostream<wchar_t, std::char_traits<wchar_t> >;  
+  %template(wostream) basic_ostream<wchar_t>;
+  %template(wistream) basic_istream<wchar_t>;
+  %template(wiostream) basic_iostream<wchar_t>;  
 
   %template(endl) endl<char, std::char_traits<char> >;
   %template(ends) ends<char, std::char_traits<char> >;

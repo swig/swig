@@ -4,9 +4,9 @@
 
 namespace std
 {
-  %std_comp_methods(basic_string<char, std::char_traits<char>, std::allocator<char> >);
-  typedef basic_string<char, std::char_traits<char>, std::allocator<char> > string;
+  %std_comp_methods(basic_string<char>);
+  typedef basic_string<char> string;
 }
 
 
-%template(string) std::basic_string<char, std::char_traits<char>, std::allocator<char> >;
+%template(string) std::basic_string<char>;

@@ -247,8 +247,8 @@ namespace std {
 }
 
 namespace std {
-  %template(ios) basic_ios<char, std::char_traits<char> >;
-  %template(wios) basic_ios<wchar_t, std::char_traits<wchar_t> >;
+  %template(ios) basic_ios<char>;
+  %template(wios) basic_ios<wchar_t>;
 }
 
   
