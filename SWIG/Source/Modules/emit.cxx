@@ -360,7 +360,22 @@ void replace_args(Parm *p, String *s) {
     p = nextSibling(p);
   }
 }
- 
+
+/* replace_contract_args.  This function replaces argument names in contract
+   specifications.   Used in conjunction with the %contract directive. */
+
+static
+void replace_contract_args(Parm *cp, Parm *rp, String *s) {
+  while (cp && rp) {
+    String *n = Getattr(cp,"name");
+    if (n) {
+      Replace(s,n,Getattr(rp,"lname"), DOH_REPLACE_ID);
+    }
+    cp = nextSibling(cp);
+    rp = nextSibling(rp);
+  }
+} 
+
 /* -----------------------------------------------------------------------------
  * int emit_action()
  *
@@ -413,8 +428,7 @@ void emit_action(Node *n, Wrapper *f) {
   /* Preassert -- EXPERIMENTAL */
   tm = Getattr(n,"feature:preassert");
   if (tm) {
-    p = Getattr(n,"parms");
-    replace_args(p,tm);
+    replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
     Printv(f->code,tm,"\n",NIL);
   }
 
@@ -465,8 +479,7 @@ void emit_action(Node *n, Wrapper *f) {
   /* Postassert - EXPERIMENTAL */
   tm = Getattr(n,"feature:postassert");
   if (tm) {
-    p = Getattr(n,"parms");
-    replace_args(p,tm);
+    replace_contract_args(Getmeta(tm,"parms"), Getattr(n,"parms"),tm);
     Printv(f->code,tm,"\n",NIL);
   }
 }
