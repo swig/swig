@@ -3029,7 +3029,7 @@ class JAVA : public Language {
       /* Make sure that we return something in the case of a pure
        * virtual method call for syntactical reasons. */
       if (!is_void)
-        Printf(w->code, "return %s;", qualified_return);
+        Printf(w->code, "return 0;");
       else
         Printf(w->code, "return;\n");
     }
@@ -3307,7 +3307,7 @@ class JAVA : public Language {
     /* emit code */
     if (status == SWIG_OK && output_director) {
       if(!is_void) {
-        Replaceall(w->code,"$null", qualified_return);
+        Replaceall(w->code,"$null", "0");
       } else
         Replaceall(w->code,"$null","");
       Wrapper_print(w, f_directors);
