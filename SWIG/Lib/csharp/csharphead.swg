@@ -139,8 +139,8 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(SWIG_CSharpExc
     }
 
     public static void Set(Exception e) {
-      if (pendingException != null)
-        throw new Exception("Throwing exceptions from unmanaged code has gone broken down");
+      if (pendingException != null) // Checks for missing pending exception code
+        throw new Exception("FATAL: An earlier pending exception from unmanaged code was missed and thus not thrown (" + pendingException.ToString() + ")", e); // unmanaged code destructors may not be called
       pendingException = e;
       lock(typeof($modulePINVOKE)) {
         numExceptionsPending++;
