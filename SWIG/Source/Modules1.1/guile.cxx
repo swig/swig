@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
  * Definitions for adding functions to Guile 3.0
  ***********************************************************************/
 
-#include "swig.h"
+#include "swig11.h"
 #include "guile.h"
 
 static char *guile_usage = "\
@@ -55,7 +55,7 @@ void GUILE::parse_args(int argc, char *argv[]) {
   }
   // Add a symbol for this module
 
-  SWIG_cpp_define((void *) "SWIGGUILE",0);
+  Preprocessor_define((void *) "SWIGGUILE",0);
 
   // Set name of typemaps
 

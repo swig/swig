@@ -13,7 +13,7 @@
  * can be used and distributed.
  *******************************************************************************/
 
-#include "swig.h"
+#include "swig11.h"
 #include "ascii.h"
 #include <ctype.h>
 

@@ -24,7 +24,7 @@ static char cvsroot[] = "$Header$";
  **************************************************************************/
 
 
-#include "swig.h"
+#include "swig11.h"
 #include "python.h"
 
 // Structures for managing doc strings
@@ -68,38 +68,38 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      module = new char[strlen(argv[i+1])+2];
 	      strcpy(module, argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i+=1;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    } 
 	  } else if (strcmp(argv[i],"-globals") == 0) {
 	    if (argv[i+1]) {
 	      global_name = new char[strlen(argv[i+1])+1];
 	      strcpy(global_name, argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    shadow = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-docstring") == 0) {
 	    docstring = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {
 	    use_kw = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
       }
   }
   // Create a symbol for this language
-  SWIG_cpp_define((void *) "SWIGPYTHON", 0);
+  Preprocessor_define((void *) "SWIGPYTHON", 0);
 
   // Set name of typemaps
 

@@ -85,7 +85,7 @@ static char cvsroot[] = "$Header$";
  *      loading into Perl.
  ***********************************************************************/
 
-#include "swig.h"
+#include "swig11.h"
 #include "perl5.h"
 
 static String pragma_include;
@@ -127,11 +127,11 @@ PERL5::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      package = new char[strlen(argv[i+1])+1];
 	      strcpy(package, argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-module") == 0) {
 	    if (argv[i+1]) {
@@ -139,21 +139,21 @@ PERL5::parse_args(int argc, char *argv[]) {
 	      strcpy(module, argv[i+1]);
 	      cmodule = module;
 	      cmodule.replace(":","_");
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-exportall") == 0) {
 	      export_all = 1;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-static") == 0) {
 	      is_static = 1;
-	      SWIG_mark_arg(i);
+	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    blessed = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-hide") == 0) {
 	    if (argv[i+1]) {
 	      hide = new char[strlen(argv[i+1])+1];
@@ -161,24 +161,24 @@ PERL5::parse_args(int argc, char *argv[]) {
 	      chide = hide;
 	      chide.replace(":","_");
 	      hidden = 1;
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-alt-header") == 0) {
 	    if (argv[i+1]) {
 	      alt_header = copy_string(argv[i+1]);
-	      SWIG_mark_arg(i);
-	      SWIG_mark_arg(i+1);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
-	      SWIG_arg_error();
+	      Swig_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-compat") == 0) {
 	    compat = 1;
-	    SWIG_mark_arg(i);
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
@@ -186,8 +186,8 @@ PERL5::parse_args(int argc, char *argv[]) {
   }
   // Add a symbol for this module
 
-  SWIG_cpp_define((void *) "SWIGPERL 1", 0);
-  SWIG_cpp_define((void *) "SWIGPERL5 1", 0);
+  Preprocessor_define((void *) "SWIGPERL 1", 0);
+  Preprocessor_define((void *) "SWIGPERL5 1", 0);
 
   // Set name of typemaps
 

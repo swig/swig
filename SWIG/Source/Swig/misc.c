@@ -15,7 +15,7 @@
 
 static char cvsroot[] = "$Header$";
 
-#include "swigcore.h"
+#include "swig.h"
 
 /* -----------------------------------------------------------------------------
  * $Header$

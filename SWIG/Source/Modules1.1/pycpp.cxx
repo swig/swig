@@ -25,7 +25,7 @@ static char cvsroot[] = "$Header$";
  **************************************************************************/
 
 
-#include "swig.h"
+#include "swig11.h"
 #include "python.h"
 
 static  String   *setattr;
