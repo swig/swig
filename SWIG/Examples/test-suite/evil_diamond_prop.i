@@ -1,9 +1,9 @@
-%module evil_diamond_prop
+%module(ruby_minherit="1") evil_diamond_prop
 
 %warnfilter(801) foo;		// Ruby, wrong class name
 %warnfilter(801) bar;		// Ruby, wrong class name
 %warnfilter(801) baz;		// Ruby, wrong class name
-%warnfilter(801,802,813) spam;	// Ruby, wrong class name; Ruby & Java, multiple inheritance
+%warnfilter(801,813) spam;	// Ruby, wrong class name; Ruby & Java, multiple inheritance
 
 %inline %{
 

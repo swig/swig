@@ -1,10 +1,10 @@
 // This module tests default constructor generation under a
 // number of different conditions
 
-%module default_constructor
+%module(ruby_minherit="1") default_constructor
 
-%warnfilter(802, 813) EB; /* Ruby, Java multiple inheritance */
-%warnfilter(802, 813) AD; /* Ruby, Java multiple inheritance */
+%warnfilter(813) EB; /* Ruby, Java multiple inheritance */
+%warnfilter(813) AD; /* Ruby, Java multiple inheritance */
 %warnfilter(510) F; /* friend function */
 
 %inline %{

@@ -1,6 +1,6 @@
-%module using_composition
+%module(ruby_minherit="1") using_composition
 
-%warnfilter(802, 813) FooBar;   // Ruby, Java multiple inheritance
+%warnfilter(813) FooBar;   // Ruby, Java multiple inheritance
 
 %inline %{
 class Foo {

@@ -5,9 +5,7 @@
    as in this file:
 */
 
-%module pure_virtual
-
-%warnfilter(802) E; /* Ruby, multiple inheritance */
+%module(ruby_minherit="1") pure_virtual
 
 %nodefault C;
 %nodefault E;
