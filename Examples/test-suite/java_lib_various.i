@@ -10,7 +10,7 @@
 %apply char **STRING_OUT { char **string_ptr };
 
 %{
-char *langs[] = { "Hungarian", "Afrikaans", "Norwegian", 0 };
+char *langs[] = { (char *)"Hungarian", (char *)"Afrikaans", (char *)"Norwegian", NULL };
 %}
 
 %immutable languages; /* TODO: fix, because there is a problem with setters */
@@ -33,7 +33,7 @@ int check_animals(char **received) {
 }
 
 char **get_names() {
-    static char *values[] = { "Dave", "Mike", "Susan", "John", "Michelle", 0};
+    static char *values[] = { (char *)"Dave", (char *)"Mike", (char *)"Susan", (char *)"John", (char *)"Michelle", NULL};
     return &values[0];
 }
 
