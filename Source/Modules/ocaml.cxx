@@ -64,13 +64,6 @@ static  File         *f_class_ctors_end = 0;
 static  File         *f_enum_to_int = 0;
 static  File         *f_int_to_enum = 0;
 
-extern String *method_decl(SwigType *s, const String_or_char *id, List *args, 
-			   int strip, int values);
-extern String *Swig_method_call(String_or_char *name, ParmList *parms);
-extern String *Swig_csuperclass_call(String* base, String* method, 
-				     ParmList* l);
-extern String *Swig_class_declaration(Node *n, String *name);
-
 class OCAML : public Language {
 public:
 
@@ -1353,13 +1346,13 @@ public:
 	String *target;
 	String *pclassname = NewStringf("SwigDirector_%s", classname);
 	String *qualified_name = NewStringf("%s::%s", pclassname, name);
-	target = method_decl(decl, qualified_name, l, 0, 0);
+	target = Swig_method_decl(decl, qualified_name, l, 0, 0);
 	String *rtype = SwigType_str(type, 0);
 	Printf(w->def, "%s %s {", rtype, target);
 	Delete(qualified_name);
 	Delete(target);
 	/* header declaration */
-	target = method_decl(decl, name, l, 0, 1);
+	target = Swig_method_decl(decl, name, l, 0, 1);
 	Printf(declaration, "    virtual %s %s;\n", rtype, target);
 	Delete(target);
     
@@ -1636,7 +1629,7 @@ public:
 	    Wrapper *w = NewWrapper();
 	    String *call;
 	    String *basetype = Getattr(parent, "classtype");
-	    String *target = method_decl(decl, classname, parms, 
+	    String *target = Swig_method_decl(decl, classname, parms, 
 					 0, 0);
 	    call = Swig_csuperclass_call(0, basetype, superparms);
 	    Printf( w->def, 
@@ -1650,7 +1643,7 @@ public:
     
 	/* constructor header */
 	{
-	    String *target = method_decl(decl, classname, 
+	    String *target = Swig_method_decl(decl, classname, 
 					 parms, 0, 1);
 	    Printf(f_directors_h, "    %s;\n", target);
 	    Delete(target);
