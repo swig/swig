@@ -116,7 +116,7 @@ SWIG_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 	else
 	  return -1;
       }
-      *ptr = SWIG_TypeCast(tc, ptr);
+      *ptr = SWIG_TypeCast(tc, *ptr);
     }
   }
   return 0;
