@@ -270,7 +270,16 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
   if (!p) return func;
   Append(func,self);
   pt = Getattr(p,"type");
-  Replaceall(func,"this", SwigType_rcaststr(pt, Swig_cparm_name(p,0)));
+
+  /* If the method is invoked through a dereferenced pointer, we don't add any casts
+     (needed for smart pointers).  Otherwise, we cast to the appropriate type */
+
+  if (Strstr(func,"*this")) {
+    Replaceall(func,"this", Swig_cparm_name(p,0));
+  } else {
+    Replaceall(func,"this", SwigType_rcaststr(pt, Swig_cparm_name(p,0)));
+  }
+
   if (SwigType_istemplate(name)) {
       Printf(func,"template %s(", nname);
   } else {
