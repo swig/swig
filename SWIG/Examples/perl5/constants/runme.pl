@@ -1,4 +1,4 @@
-# file: example.pl
+# file: runme.pl
 
 use example;
 
