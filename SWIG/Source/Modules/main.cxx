@@ -95,6 +95,7 @@ static const char *usage2 = (const char*)"\
 // Local variables
 static int     freeze = 0;
 static String  *lang_config = 0;
+static char    *hpp_extension = (char *) "h";
 static char    *cpp_extension = (char *) "cxx";
 static String  *outdir = 0;
 static String  *xmlout = 0;
@@ -338,7 +339,13 @@ void SWIG_getoptions(int argc, char *argv[])
 	    Swig_mark_arg(i);
 	    if (argv[i+1]) {
 	      outfile_name = Swig_copy_string(argv[i+1]);
-	      if (!outfile_name_h) outfile_name_h = Swig_copy_string(outfile_name);
+	      if (!outfile_name_h) {
+		char *ext = strrchr(outfile_name, '.');
+		String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
+		Printf(basename, ".%s", hpp_extension);
+		outfile_name_h = Swig_copy_string(Char(basename));
+		Delete(basename);
+	      }
 	      Swig_mark_arg(i+1);
 	      i++;
 	    } else {
@@ -774,13 +781,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Setattr(top,"outfile", NewStringf("%s_wrap.c", Swig_file_basename(input_file)));
 	  }
 	} else {
-          char *ext = strrchr(outfile_name, '.');
-          String *basename = ext ? NewStringWithSize(outfile_name,ext-outfile_name) : NewString(outfile_name);
 	  Setattr(top,"outfile", outfile_name);
-          Delete(basename);
 	}
 	if (!outfile_name_h) {
-	  Setattr(top,"outfile_h", NewStringf("%s_wrap.h", Swig_file_basename(input_file)));
+	  Setattr(top,"outfile_h", NewStringf("%s_wrap.%s", Swig_file_basename(input_file),hpp_extension));
 	} else {
 	  Setattr(top,"outfile_h", outfile_name_h);
 	}
