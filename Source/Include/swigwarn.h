@@ -47,6 +47,7 @@
 
 #define WARN_PP_MISSING_FILE          201
 #define WARN_PP_EVALUATION            202
+#define WARN_PP_INCLUDEALL_IMPORTALL  203
 
 /* -- C/C++ Parser -- */
 
