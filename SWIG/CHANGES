@@ -14,6 +14,13 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/22/2001: beazley
+           Entirely new symbol table processing.   SWIG should be able to
+           report much better error messages for multiple declarations. 
+           Also, the new symbol table allows for overloaded functions
+           (although overloading isn't quite supported in the language
+           modules yet).
+
 8/22/2001: cheetah (william fulton)
            * [Java] %new support added.
            * [Java] Package JNI name refixed!
