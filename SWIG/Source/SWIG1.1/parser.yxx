@@ -75,7 +75,6 @@ static int     module_init = 0;    /* Indicates whether the %module name was giv
 static int     lang_init = 0;      /* Indicates if the language has been initialized */
 
        int            Error = 0;
-static char           temp_name[128];
 static SwigType      *temp_typeptr = 0, *temp_type = 0;
 static char           yy_rename[256];
 static int            Rename_true = 0;
@@ -116,13 +115,6 @@ my_cplus_declare_const(char *name, char *iname, SwigType *type, char *value) {
   } else {
     cplus_declare_const(name,iname,type,value);
   }
-}
-
-/* Create a new typemap parameter */
-static TMParm *NewTMParm() {
-  TMParm *tmp = (TMParm *) malloc(sizeof(TMParm));
-  tmp->next = 0;
-  return tmp;
 }
 
 /* --------------------------------------------------------------------------
@@ -325,7 +317,6 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
       Status |= STAT_READONLY;
     }
     if (storage == STORAGE_STATIC) {
-      /* static member variable */
       cplus_static_var(id,iname,ty);
     } else {
       cplus_variable(id,iname,ty);
@@ -444,16 +435,22 @@ static void dump_nested(char *parent) {
 
 static char  *cpp_name = 0;
 static char  *cpp_type = 0;
-static char **cpp_bases = 0;
-static int    cpp_nbases = 0;
+static char  *cpp_bases[256];
+static int   cpp_nbases = 0;
 
 static void 
-start_class(char *cpptype, char *name, char **bases, int nbases) 
+start_class(char *cpptype, char *name, List *bases)
 {
   char *iname;
+  int  i;
   init_language();
   SwigType_new_scope();
-  
+
+  /* Rip apart the bases list */
+  cpp_nbases = bases ? Len(bases) : 0;
+  for (i = 0; i < cpp_nbases; i++) {
+    cpp_bases[i] = Char(Getitem(bases,i));
+  }
   iname = make_name(name);
   if (strlen(iname)) {
     if (add_symbol(iname)) {
@@ -471,14 +468,12 @@ start_class(char *cpptype, char *name, char **bases, int nbases)
   else
     cplus_mode = CPLUS_PUBLIC;
   // Merge scope from base classes
-  if (nbases) 
-    cplus_inherit_scope(nbases,bases);
+  if (cpp_nbases) 
+    cplus_inherit_scope(cpp_nbases,cpp_bases);
   InClass = 1;
   cpp_type = cpptype;
   if (strlen(name)) cpp_name = name;
   else cpp_name = 0;
-  cpp_bases = bases;
-  cpp_nbases = nbases;
 }
 
 /* ----------------------------------------------------------------------
@@ -498,13 +493,8 @@ end_class(SwigType *endtype, char *endname) {
   else
     Active_typedef = NewStringf("%s", endname);
 
-  if (cpp_bases) {
-    int j;
+  if (cpp_nbases) {
     cplus_inherit(cpp_nbases,cpp_bases);
-    for (j = 0; j < cpp_nbases; j++) {
-      if (cpp_bases[j]) free(cpp_bases[j]);
-    }
-    free(cpp_bases);
   }
 
   if (cpp_name)
@@ -535,14 +525,11 @@ end_class(SwigType *endtype, char *endname) {
     cplus_register_type(en);
     Delete(ty);
   }
-
   cplus_mode = CPLUS_PUBLIC;
 }
 
-
 /* Create a type list from a set of parameters */
-
- static List *typelist(Parm *p) {
+static List *typelist(Parm *p) {
    List *l = NewList();
    while (p) {
      Append(l,Gettype(p));
@@ -553,18 +540,9 @@ end_class(SwigType *endtype, char *endname) {
  
 %}
 
-/* The type of each node in the parse tree
-   must be one of the elements of the union
-   given below.  This is used to derive the
-   C++ declaration for "yylval" that appears
-   in parser.tab.h. */
-
 %union {
   char  *id;
-  struct InitList {
-    char **names;
-    int    count;
-  } ilist;
+  List  *bases;
   struct Define {
     String *val;
     String *rawval;
@@ -626,7 +604,7 @@ end_class(SwigType *endtype, char *endname) {
 %type <id>       cpptype base_specifier access_specifier tm_method;
 %type <type>     type type_right opt_signed opt_unsigned;
 %type <ivalue>   cpp_vend;
-%type <ilist>    base_list inherit;
+%type <bases>    base_list inherit;
 %type <dtype>    definetype def_args initializer;
 %type <dtype>    etype;
 %type <dtype>    expr;
@@ -1140,10 +1118,11 @@ tm_tail        : COMMA typemap_parm tm_tail {
                ;
 
 typemap_parm   : type typemap_parameter_declarator {
-                  $$ = NewTMParm();
 		  SwigType_push($1,$2.type);
+                  $$ = (TMParm *) malloc(sizeof(TMParm));
 		  $$->p = NewParm($1,$2.id);
 		  $$->args = $2.parms;
+		  $$->next = 0;
                 }
 		;
 
@@ -1285,7 +1264,7 @@ cpp_class_decl  :
 
 /* A class/struct/union  definition */
              storage_class cpptype ID inherit LBRACE {
-               start_class($2,$3,$4.names,$4.count);
+               start_class($2,$3,$4);
 	       nested_list = 0;
               } cpp_members RBRACE {
 	       end_class(0,0);
@@ -1294,7 +1273,7 @@ cpp_class_decl  :
 /* Class with a typedef */
 
              | TYPEDEF cpptype ID inherit LBRACE {
-	       start_class($2,$3,$4.names,$4.count);
+	       start_class($2,$3,$4);
 	       nested_list = 0;
               } cpp_members RBRACE declarator {
 		end_class($9.type,$9.id);
@@ -1303,7 +1282,7 @@ cpp_class_decl  :
 /* An unnamed struct with a typedef */
 
              | TYPEDEF cpptype LBRACE {
-	       start_class($2,"",0,0);
+	       start_class($2,"",0);
 	       nested_list = 0;
               } cpp_members RBRACE declarator {
 		end_class($7.type,$7.id);
@@ -2209,71 +2188,30 @@ expr           :  NUM_INT { $$ = $1; }
 	       }
                ;
 
-inherit        : COLON base_list {
-		   $$ = $2;
-                }
-                | empty {
-                   $$.names = (char **) 0;
-		   $$.count = 0;
-                }
+inherit        : COLON base_list { $$ = $2; }
+                | empty { $$ = 0; }
                 ;
 
 base_list      : base_specifier {
-                   int i;
-                   $$.names = (char **) malloc(NI_NAMES*sizeof(char *));
-		   $$.count = 0;
-		   for (i = 0; i < NI_NAMES; i++){
-		     $$.names[i] = (char *) 0;
-		   }
-                   if ($1) {
-                       $$.names[$$.count] = Swig_copy_string($1);
-                       $$.count++;
-		   }
+	           $$ = NewList();
+	           if ($1) Append($$,$1);
                }
 
                | base_list COMMA base_specifier {
                    $$ = $1;
-                   if ($3) {
-		     $$.names[$$.count] = Swig_copy_string($3);
-		     $$.count++;
-		   }
+                   if ($3) Append($$,$3);
                }
                ;
 
-base_specifier : ID {
-                  Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",
-			  input_file,line_number,$1);
+base_specifier : opt_virtual ID {
+                  Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",input_file,line_number,$2);
 		  $$ = (char *) 0;
                }
-               | VIRTUAL ID {
-                  Printf(stderr,"%s:%d. No access specifier given for base class %s (ignored).\n",
-			  input_file,line_number,$2);
-		  $$ = (char *) 0;
-	       }
-	       | VIRTUAL access_specifier ID {
+	       | opt_virtual access_specifier opt_virtual ID {
 		 if (strcmp($2,"public") == 0) {
-		   $$ = $3;
+		   $$ = $4;
 		 } else {
-		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
-			   input_file,line_number,$2);
-		   $$ = (char *) 0;
-		 }
-               }
-               | access_specifier ID {
-		 if (strcmp($1,"public") == 0) {
-		   $$ = $2;
-		 } else {
-		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
-			   input_file,line_number,$1);
-		   $$ = (char *) 0;
-		 }
-	       }
-               | access_specifier VIRTUAL ID {
-                 if (strcmp($1,"public") == 0) {
-		   $$ = $3;
-		 } else {
-		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n",
-			   input_file,line_number,$1);
+		   Printf(stderr,"%s:%d. %s inheritance not supported (ignored).\n", input_file,line_number,$2);
 		   $$ = (char *) 0;
 		 }
                }
@@ -2288,6 +2226,10 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
 cpptype        : CLASS { $$ = (char*)"class"; }
                | STRUCT { $$ = (char*)"struct"; }
                | UNION {$$ = (char*)"union"; }
+               ;
+
+opt_virtual    : VIRTUAL
+               | empty
                ;
 
 cpp_const      : CONST {}
@@ -2331,9 +2273,7 @@ template_decl : LESSTHAN {
 		     Replace(CCode,">"," >", DOH_REPLACE_ANY);
                    $$ = Char(CCode);
                  }
-               | empty {
-                   $$ = (char*)"";
-               }
+               | empty { $$ = (char*)"";  }
                ;
 
 idstring       : ID { $$ = $1; }
@@ -2347,5 +2287,4 @@ empty          :   ;
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (const char *) {
 }
-
 
