@@ -188,7 +188,7 @@ SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
   do {
-    if (sv_derived_from(rv, s->name)) {
+    if (sv_derived_from(rv, (char *) s->name)) {
       if (s == ty->next) return s;
       /* Move s to the top of the linked list */
       s->prev->next = s->next;
@@ -338,19 +338,19 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
 
 SWIGRUNTIME(void)
 SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT const char *error) {
-  if (error) sv_setpv(get_sv("@", TRUE), error);
+  if (error) sv_setpv(perl_get_sv("@", TRUE), error);
 }
 
 SWIGRUNTIME(void)
 SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT SV *error) {
-  if (error) sv_setsv(get_sv("@", TRUE), error);
+  if (error) sv_setsv(perl_get_sv("@", TRUE), error);
 }
 
 SWIGRUNTIME(void)
 SWIG_Perl_SetErrorf(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  sv_vsetpvfn(get_sv("@", TRUE), fmt, strlen(fmt), &args, Null(SV**), 0, Null(bool*));
+  sv_vsetpvfn(perl_get_sv("@", TRUE), fmt, strlen(fmt), &args, Null(SV**), 0, Null(bool*));
   va_end(args);
 }
 
