@@ -1338,7 +1338,7 @@ Preprocessor_parse(String *s)
 	    }
   	    s2 = Preprocessor_parse(s1);
   	    addline(ns,s2,allow);
-  	    Printf(ns,"\n]\n");
+  	    Printf(ns,"\n]");
 	    if (dirname) {
 	      Swig_pop_directory();
 	    }
@@ -1468,7 +1468,7 @@ Preprocessor_parse(String *s)
 		Preprocessor_undef("WRAPEXTERN");
 	      }
   	      addline(ns,s2,allow);
-  	      Printf(ns,"\n]\n");
+  	      Printf(ns,"\n]");
 	      Delete(s2);
 	      Delete(s1);
   	    }
