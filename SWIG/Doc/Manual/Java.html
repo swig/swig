@@ -702,7 +702,8 @@ public interface exampleConstants {
 }
 </pre></blockquote>
 
-These are runtime constants. They are not compiler constants that can, for example, be used 
+Note that SWIG has inferred the C type and used an appropriate Java type that will fit the range of all possible values for the C type.
+By default SWIG generates <b>runtime constants</b>. They are not <b>compiler constants</b> that can, for example, be used 
 in a switch statement. This can be changed by using the <tt>%javaconst(flag)</tt> directive. It works like all
 the other <a href="Customization.html#features">%feature directives</a>. The default is <tt>%javaconst(0)</tt>. 
 It is possible to initialize all wrapped constants from pure Java code by placing a <tt>%javaconst(1)</tt> <b>before</b> SWIG parses the constants.
@@ -712,22 +713,62 @@ Here is an example:
 <blockquote><pre>
 %javaconst(1);
 %javaconst(0) BIG;
-#define BIG 1000LL
+%javaconst(0) LARGE;
+
 #define EXPRESSION (0x100+5)
+#define BIG 1000LL
+#define LARGE 2000ULL
 </pre></blockquote>
 
 generates:
 
 <blockquote><pre>
 public interface exampleConstants {
-  public final static long BIG = exampleJNI.get_BIG();
   public final static int EXPRESSION = (0x100+5);
+  public final static long BIG = exampleJNI.get_BIG();
+  public final static java.math.BigInteger LARGE = exampleJNI.get_LARGE();
 }
 </pre></blockquote>
 
-Be careful using the <tt>%javaconst(1)</tt> directive as not all C code will compile as Java code. For example the 
-<tt>1000LL</tt> value for the <tt>BIG</tt> constant above would not generate valid Java code. 
-The example demonstrates how you can target particular constants (<tt>BIG</tt>) with <tt>%javaconst</tt>.
+Note that SWIG has inferred the C <tt>long long</tt> type from <tt>BIG</tt> and used an appropriate Java type (<tt>long</tt>) as
+a Java <tt>long</tt> is the smallest sized Java type that will take all possible values for a C <tt>long long</tt>.
+Similarly for <tt>LARGE</tt>.
+
+<p>
+
+Be careful using the <tt>%javaconst(1)</tt> directive as not all C code will compile as Java code. For example neither the 
+<tt>1000LL</tt> value for <tt>BIG</tt> nor <tt>2000ULL</tt> for <tt>LARGE</tt> above would generate valid Java code. 
+The example demonstrates how you can target particular constants (<tt>BIG</tt> and <tt>LARGE</tt>) with <tt>%javaconst</tt>.
+SWIG doesn't use <tt>%javaconst(1)</tt> as the default as it tries to generate code that will always compile.
+However, using a <tt>%javaconst(1)</tt> at the top of your interface file is strongly recommended as the preferred compile time constants
+will be generated and most C constants will compile as Java code and in anycase the odd constant that doesn't can be fixed using <tt>%javaconst(0)</tt>.
+<p>
+
+There is an alternative directive which can be used for these rare constant values that won't compile as Java code.
+This is the <tt>%javaconstvalue(value)</tt> directive, where <tt>value</tt> is a Java code replacement for the C constant and can be either a string or a number.
+This is useful if you do not want to use either the parsed C value nor a JNI call,
+such as when the C parsed value will not compile as Java code and a compile time constant is required.
+The same example demonstrates this:
+
+<blockquote><pre>
+%javaconst(1);
+%javaconstvalue("new java.math.BigInteger(\"2000\")") LARGE;
+%javaconstvalue(1000) BIG;
+
+#define EXPRESSION (0x100+5)
+#define BIG 1000LL
+#define LARGE 2000ULL
+</pre></blockquote>
+
+Note the string quotes for <tt>"2000"</tt> are escaped. The following is then generated:
+
+<blockquote><pre>
+public interface exampleConstants {
+  public final static int EXPRESSION = (0x100+5);
+  public final static long BIG = 1000;
+  public final static java.math.BigInteger LARGE = new java.math.BigInteger("2000");
+}
+</pre></blockquote>
 
 <p>
 Note:  declarations declared as <tt>const</tt> are wrapped as read-only variables and
@@ -783,11 +824,11 @@ public interface exampleConstants {
 }
 </pre></blockquote>
 
-The <tt>%javaconst(flag)</tt> directive introduced in the previous section on constants can also be used with enums,
-thereby allowing the enum values to be used in Java switch statements. 
+The <tt>%javaconst(flag)</tt> and <tt>%javaconst(value)</tt> directive introduced in the previous section on constants can also be used with enums.
 As is the case for constants, the default is <tt>%javaconst(0)</tt> as not all C values will compile as Java code.
-However, it is recommended to add in a <tt>%javaconst(1)</tt> directive at the top of your 
+However, it is strongly recommended to add in a <tt>%javaconst(1)</tt> directive at the top of your 
 interface file as it is only on very rare occasions that this will produce code that won't compile under Java.
+Using <tt>%javaconst(1)</tt> will ensure compile time constants are generated, thereby allowing the enum values to be used in Java switch statements. 
 Example usage:
 
 <blockquote>
@@ -843,7 +884,7 @@ public final class Beverage {
 </pre>
 </blockquote>
 
-See <a href="#typesafe_enums_classes">Typesafe enum classes</a> to see the ommitted support methods.
+See <a href="#typesafe_enums_classes">Typesafe enum classes</a> to see the omitted support methods.
 Note that the enum item with an initializer (LAGER) is initialized with the enum value obtained via a JNI call.
 However, as with anonymous enums and constants, use of the <tt>%javaconst</tt> directive is strongly recommended to change this behaviour:
 
@@ -874,6 +915,7 @@ The generated code is easier to read and more efficient as a true constant is us
 As is the case for constants, the default is <tt>%javaconst(0)</tt> as not all C values will compile as Java code.
 However, it is recommended to add in a <tt>%javaconst(1)</tt> directive at the top of your 
 interface file as it is only on very rare occasions that this will produce code that won't compile under Java.
+The <tt>%javaconstvalue(value)</tt> directive can also be used for typesafe enums.
 Note that global enums are generated into a Java class within whatever package you are using.
 C++ enums defined within a C++ class are generated into a static final inner Java class within the Java proxy class.
 
@@ -931,10 +973,11 @@ public enum Beverage {
 </pre>
 </blockquote>
 
-See <a href="#proper_enums_classes">Proper Java enum classes</a> to see the ommitted support methods.
+See <a href="#proper_enums_classes">Proper Java enum classes</a> to see the omitted support methods.
 The generated Java enum has numerous additional methods to support enums with initializers, such as <tt>LAGER</tt> above.
 Note that as with the typesafe enum pattern, enum items with initializers are by default initialized with the enum value obtained via a JNI call.
 However, this is not the case above as we have used the recommended <tt>%javaconst(1)</tt> to avoid the JNI call.
+The <tt>%javaconstvalue(value)</tt> directive covered in the <a href="#constants">Constants</a> section can also be used for proper Java enums.
 
 The additional support methods need not be generated if none of the enum items have initializers and this is covered later in the 
 <a href="#simpler_enum_classes">Simpler Java enums for enums without initializers</a> section.
@@ -973,6 +1016,7 @@ public final class Beverage {
 
 As is the case previously, the default is <tt>%javaconst(0)</tt> as not all C/C++ values will compile as Java code.
 However, again it is recommended to add in a <tt>%javaconst(1)</tt> directive.
+and the <tt>%javaconstvalue(value)</tt> directive covered in the <a href="#constants">Constants</a> section can also be used for type unsafe enums.
 Note that global enums are generated into a Java class within whatever package you are using.
 C++ enums defined within a C++ class are generated into a static final inner Java class within the Java proxy class.
 
