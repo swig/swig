@@ -82,11 +82,14 @@ namespace std {
                 $1 = std::vector<T >(size);
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    T* x = (T*) SWIG_ConvertPtr(o, $descriptor(T *));
+                    T* x;
+		    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
                     (($1_type &)$1)[i] = *x;
                 }
             } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
+	        void *ptr;
+                SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 1);
+                $1 = *(($&1_type) ptr);
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -97,11 +100,12 @@ namespace std {
                 $1 = &temp;
                 for (unsigned int i=0; i<size; i++) {
                     VALUE o = RARRAY($input)->ptr[i];
-                    T* x = (T*) SWIG_ConvertPtr(o, $descriptor(T *));
+                    T* x;
+		    SWIG_ConvertPtr(o, (void **) &x, $descriptor(T *), 1);
                     temp[i] = *x;
                 }
             } else {
-                $1 = ($1_ltype) SWIG_ConvertPtr($input,$1_descriptor);
+                SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);
             }
         }
         %typemap(out) vector<T> {
@@ -176,7 +180,9 @@ namespace std {
                                  " (expected vector<" #T ">)");
                 }
             } else {
-                $1 = *(($&1_type) SWIG_ConvertPtr($input,$&1_descriptor));
+	        void *ptr;
+                SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 1);
+                $1 = *(($&1_type) ptr);
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp),
@@ -195,7 +201,7 @@ namespace std {
                                  " (expected vector<" #T ">)");
                 }
             } else {
-                $1 = ($1_ltype) SWIG_ConvertPtr($input,$1_descriptor);
+                SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);
             }
         }
         %typemap(out) vector<T> {

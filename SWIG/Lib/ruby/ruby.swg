@@ -50,15 +50,16 @@
 %typemap(in) SWIGTYPE *,
              SWIGTYPE &,
              SWIGTYPE []
-	"$1 = ($1_ltype) SWIG_ConvertPtr($input, $1_descriptor);"
+	"SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
 
 /* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void *
-        "$1 = (void *) SWIG_ConvertPtr($input, 0);";
+        "SWIG_ConvertPtr($input, &$1, 0, 1);";
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE {
-   $&1_ltype ptr = ($&1_ltype) SWIG_ConvertPtr($input,$&1_descriptor);
+   $&1_ltype ptr;
+   SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 1);
    if (ptr) $1 = *ptr;
 }
 
@@ -234,17 +235,18 @@
 
 %typemap(varin) SWIGTYPE *,
                 SWIGTYPE &
-	"$1 = ($1_ltype) SWIG_ConvertPtr($input, $1_descriptor);"
+	"SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor, 1);"
 
 %typemap(varin) SWIGTYPE [] {
 	rb_raise(rb_eRuntimeError, "Array $name is readonly");
 }
 
 %typemap(varin) void *
-        "$1 = (void *) SWIG_ConvertPtr($input, 0);";
+        "SWIG_ConvertPtr($input, &$1, 0, 1);";
 
 %typemap(varin) SWIGTYPE {
-   $&1_ltype ptr = ($&1_ltype) SWIG_ConvertPtr($input,$&1_descriptor);
+   $&1_ltype ptr;
+   SWIG_ConvertPtr($input, (void **) &ptr, $&1_descriptor, 1);
    if (ptr) $1 = *ptr;
 }
 
@@ -329,18 +331,14 @@
 
 %typemap(constant) SWIGTYPE (CLASS::*) "rb_define_const($module, \"$symname\", SWIG_NewPackedObj((void *) &$1, sizeof($type), $1_descriptor));";
 
-/* Typedef declaration for VALUE.  This is provided to make VALUE typemaps */
+/* ------------------------------------------------------------
+ * typedef & typemaps for VALUE (passed through unmodified)
+ * ------------------------------------------------------------ */
+
 typedef unsigned long VALUE;
 
 %typemap(ruby,in)  VALUE  "$1 = $input;";
 %typemap(ruby,out) VALUE  "$result = $1;";
-
-//%typemap(ruby,varin) char * "
-//  Check_Type($source, T_STRING);
-//  if ($target) free((char*)$target);
-//  $target = xmalloc(RSTRING($source)->len + 1);
-//  strncpy((char*)$target, STR2CSTR($source), RSTRING($source)->len + 1);";
-
 
 /* ------------------------------------------------------------
  * String & length
@@ -355,6 +353,53 @@ typedef unsigned long VALUE;
 /* Some ANSI C typemaps */
 
 %apply long { size_t };
+
+/* ------------------------------------------------------------
+ * Typechecking rules
+ * ------------------------------------------------------------ */
+
+%typecheck(10)
+	 int, short, long,
+ 	 unsigned int, unsigned short, unsigned long,
+	 signed char, unsigned char,
+	 long long, unsigned long long,
+	 const int &, const short &, const long &,
+	const unsigned int &, const unsigned short &, const unsigned long &,
+	const long long &, const unsigned long long &,
+	enum SWIGTYPE 
+{
+  $1 = ((TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
+}
+
+%typecheck(20)
+	float, double,
+	const float &, const double &
+{
+  $1 = ((TYPE($input) == T_FLOAT) || (TYPE($input) == T_FIXNUM) || (TYPE($input) == T_BIGNUM)) ? 1 : 0;
+}
+
+%typecheck(30) char {
+  $1 = (TYPE($input) == T_STRING && (RSTRING($input)->len == 1)) ? 1 : 0;
+}
+
+%typecheck(31) char * {
+  $1 = (TYPE($input) == T_STRING) ? 1 : 0;
+}
+
+%typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+  void *ptr;
+  $1 = (SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) == -1) ? 0 : 1;
+}
+
+%typecheck(0) SWIGTYPE {
+  void *ptr;
+  $1 = (SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) == -1) ? 0 : 1;
+}
+
+%typecheck(1) void * {
+  void *ptr;
+  $1 = (SWIG_ConvertPtr($input, &ptr, 0, 0) == -1) ? 0 : 1;
+}
 
 /* ------------------------------------------------------------
  * Overloaded operator support

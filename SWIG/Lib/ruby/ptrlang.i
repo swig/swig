@@ -60,7 +60,7 @@ static VALUE ptrvalue(VALUE _PTRVALUE, int index, char *type) {
   char     *s;
   VALUE obj;
 
-  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+  SWIG_ConvertPtr(_PTRVALUE, &ptr, 0, 1);
 
   /* If no datatype was passed, try a few common datatypes first */
   if (!type) {
@@ -233,7 +233,7 @@ static VALUE ptrset(VALUE _PTRVALUE, VALUE _RBVALUE, int index, char *type) {
   void     *ptr;
   VALUE obj;
 
-  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+  SWIG_ConvertPtr(_PTRVALUE, &ptr, 0, 1);
 
   /* If no datatype was passed, try a few common datatypes first */
   if (!type) {
@@ -304,7 +304,7 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
   VALUE obj;
   swig_type_info *type;
 
-  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+  SWIG_ConvertPtr(_PTRVALUE, &ptr, 0, 1);
 
   /* Check to see what kind of object _PTRVALUE is */
   
@@ -346,7 +346,7 @@ static VALUE ptradd(VALUE _PTRVALUE, int offset) {
 VALUE ptrfree(VALUE _PTRVALUE) {
   void *ptr;
 
-  ptr = SWIG_ConvertPtr(_PTRVALUE,0);
+  SWIG_ConvertPtr(_PTRVALUE, &ptr, 0, 1);
   
   /* Check to see if this pointer is a char ** */
   if (SWIG_CheckConvert(_PTRVALUE,SWIG_POINTER_char_pp)) {

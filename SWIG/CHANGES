@@ -16,6 +16,16 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+07/05/2002: ljohnson (Lyle Johnson)
+            [Ruby] Changed the definition of the SWIG_ConvertPtr() function
+	    for the SWIG/Ruby runtime support so that it looks like the
+	    Python version. If the last argument (flags) is non-zero,
+	    SWIG_ConvertPtr() will raise an exception for type mismatches
+	    as before. If flags is zero, this function will return -1 for
+	    type mismatches without raising an exception. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR RUBY MODULE ***
+
 07/04/2002: beazley
             Fixed a bug with namespaces, enums, and templates.  For example:
 
