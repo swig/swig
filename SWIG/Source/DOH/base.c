@@ -193,6 +193,51 @@ DohCmp(const DOH *obj1, const DOH *obj2) {
 }
 
 /* -----------------------------------------------------------------------------
+ * DohFirst()
+ * ----------------------------------------------------------------------------- */
+
+DohIterator
+DohFirst(DOH *obj) {
+  DohIterator iter;
+  DohBase     *b;
+  DohObjInfo  *binfo;
+
+  b = (DohBase *) obj;
+  if (DohCheck(b)) {
+    binfo = b->type;
+    if (binfo->doh_first) {
+      return (binfo->doh_first)(b);
+    }
+  }
+  iter.object  = 0;
+  iter.item    = 0;
+  iter.key     = 0;
+  return iter;
+}
+
+/* -----------------------------------------------------------------------------
+ * DohNext()
+ * ----------------------------------------------------------------------------- */
+
+DohIterator
+DohNext(DohIterator iter) {
+  DohIterator niter;
+
+  if (iter.object) {
+    DohBase *b;
+    DohObjInfo *binfo;
+    
+    b = (DohBase *) iter.object;
+    binfo = b->type;
+    if (binfo->doh_next) {
+      return (binfo->doh_next)(iter);
+    }
+  }
+  niter = iter;
+  return niter;
+}
+
+/* -----------------------------------------------------------------------------
  * DohIsMapping()
  * ----------------------------------------------------------------------------- */
 int
@@ -249,35 +294,7 @@ DohDelattr(DOH *obj, const DOH *name) {
 }
 
 /* -----------------------------------------------------------------------------
- * DohFirstkey()
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohFirstkey(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo = b->type;
-  if (objinfo->doh_hash && objinfo->doh_hash->doh_firstkey) {
-    return (objinfo->doh_hash->doh_firstkey)(b);
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * DohNextkey()
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohNextkey(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo = b->type;
-  if (objinfo && objinfo->doh_hash->doh_nextkey) {
-    return (objinfo->doh_hash->doh_nextkey)(b);
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * DohNextkey()
+ * DohKeys()
  * ----------------------------------------------------------------------------- */
 
 DOH *
@@ -472,34 +489,6 @@ DohDelslice(DOH *obj, int sindex, int eindex) {
     return (objinfo->doh_list->doh_delslice)(b,sindex,eindex);
   }
   return -1;
-}
-
-/* -----------------------------------------------------------------------------
- * DohFirstitem()
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohFirstitem(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo = b->type;
-  if (objinfo->doh_list && objinfo->doh_list->doh_firstitem) {
-    return (objinfo->doh_list->doh_firstitem)(b);
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * DohNextitem()
- * ----------------------------------------------------------------------------- */
-
-DOH *
-DohNextitem(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
-  DohObjInfo *objinfo = b->type;
-  if (objinfo->doh_list && objinfo->doh_list->doh_nextitem) {
-    return (objinfo->doh_list->doh_nextitem)(b);
-  }
-  return 0;
 }
 
 /* -----------------------------------------------------------------------------

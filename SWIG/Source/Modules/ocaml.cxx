@@ -1338,19 +1338,19 @@ public:
 	/* Handle up-casts in a nice way */
 	List *baselist = Getattr(n,"bases");
 	if (baselist && Len(baselist)) {
-	    Node *base = Firstitem(baselist);
-	    while (base) {
-		String *bname = Getattr(base, "ocaml:ctor");
-		if (bname) {
-		    Printv(f_class_ctors,
-			   "   \"::",bname,"\", (fun args -> "
-			   "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
-		    Printv( base_classes, "create_", bname, "_from_ptr ;\n", 
-			    NIL );
-		}
-
-		base = Nextitem(baselist);
+	  Iterator b;
+	  b = First(baselist);
+	  while (b.item) {
+	    String *bname = Getattr(b.item, "ocaml:ctor");
+	    if (bname) {
+	      Printv(f_class_ctors,
+		     "   \"::",bname,"\", (fun args -> "
+		     "create_",bname,"_from_ptr raw_ptr) ;\n",NIL);
+	      Printv( base_classes, "create_", bname, "_from_ptr ;\n", 
+		      NIL );
 	    }
+	    b = Next(b);
+	  }
 	}    
     
 	Replaceall(this_class_def,"$classname",classname);

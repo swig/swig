@@ -29,20 +29,16 @@ typedef struct {
   DOH    *(*doh_getattr)(DOH *obj, DOH *name);               /* Get attribute */
   int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);   /* Set attribute */
   int     (*doh_delattr)(DOH *obj, DOH *name);               /* Del attribute */
-  DOH    *(*doh_firstkey)(DOH *obj);                         /* First key     */
-  DOH    *(*doh_nextkey)(DOH *obj);                          /* Next key      */
   DOH    *(*doh_keys)(DOH *obj);                             /* All keys as a list */
 } DohHashMethods;
 
 /* List objects */
 typedef struct {
-  DOH      *(*doh_getitem)(DOH *obj, int index);             /* Get item      */
-  int       (*doh_setitem)(DOH *obj, int index, DOH *value); /* Set item      */
-  int       (*doh_delitem)(DOH *obj, int index);             /* Delete item   */
-  int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
-  int       (*doh_delslice)(DOH *obj, int sindex, int eindex);   /* Delete slice  */
-  DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */
-  DOH      *(*doh_nextitem)(DOH *obj);
+  DOH      *(*doh_getitem)(DOH *obj, int index);               /* Get item      */
+  int       (*doh_setitem)(DOH *obj, int index, DOH *value);   /* Set item      */
+  int       (*doh_delitem)(DOH *obj, int index);               /* Delete item   */
+  int       (*doh_insitem)(DOH *obj, int index, DOH *value);   /* Insert item   */
+  int       (*doh_delslice)(DOH *obj, int sindex, int eindex); /* Delete slice  */
 } DohListMethods;
 
 /* File methods */
@@ -87,6 +83,10 @@ typedef struct DohObjInfo {
   /* Compare */
   int        (*doh_cmp)(DOH *obj1, DOH *obj2);
 
+  /* Iterators */
+  DohIterator (*doh_first)(DOH *obj);
+  DohIterator (*doh_next)(DohIterator );
+
   /* Positional */
   void       (*doh_setfile)(DOH *obj, DOHString_or_char *file);
   DOH       *(*doh_getfile)(DOH *obj);
@@ -105,14 +105,15 @@ typedef struct {
   void       *data;                 /* Data pointer */
   DohObjInfo *type;             
   void       *meta;                 /* Meta data */
-  int     flag_intern   : 1;        /* Interned object */
-  int     flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
-  int     flag_user     : 1;        /* User flag */
-  int     flag_usermark : 1;        /* User marked */
-  int     refcount      : 28;       /* Reference count (max 16 million) */
+  int        flag_intern   : 1;        /* Interned object */
+  int        flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
+  int        flag_user     : 1;        /* User flag */
+  int        flag_usermark : 1;        /* User marked */
+  int        refcount      : 28;       /* Reference count (max 16 million) */
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
+
 #define Decref(a)         if (a) ((DohBase *) a)->refcount--
 #define Incref(a)         if (a) ((DohBase *) a)->refcount++
 #define Refcount(a)       ((DohBase *) a)->refcount
@@ -124,7 +125,7 @@ typedef struct {
 #define ObjType(a)        ((DohBase *)a)->type
 
 extern DOH     *DohObjMalloc(DohObjInfo *type, void *data); /* Allocate a DOH object */
-extern void     DohObjFree(DOH *ptr);               /* Free a DOH object     */
+extern void     DohObjFree(DOH *ptr);                       /* Free a DOH object     */
 
 #endif /* DOHINT_H */
 

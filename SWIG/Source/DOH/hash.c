@@ -28,9 +28,7 @@ typedef struct Hash {
   int   line;
   HashNode          **hashtable;
   int                 hashsize;
-  int                 currentindex;
   int                 nitems;
-  HashNode           *current;
 } Hash;
 
 /* Key interning structure */
@@ -288,11 +286,6 @@ Hash_delattr(DOH *ho, DOH *k) {
 	    } else {
 		h->hashtable[hv] = n->next;
 	    }
-	    /* Need to check for iterator location */
-	    if (n == h->current) {
-	      h->current = prev;                   /* Move back to previous node.  When next is called, will move to next node */
-	      if (!h->current) h->currentindex--;  /* No previous node.  Move back one slot */
-	    }
 	    DelNode(n);
 	    h->nitems--;
 	    return 1;
@@ -303,63 +296,53 @@ Hash_delattr(DOH *ho, DOH *k) {
     return 0;
 }
 
-/* General purpose iterators */
-static HashNode *
-hash_first(DOH *ho) {
-    Hash *h = (Hash *) ObjData(ho);
-    h->currentindex = 0;
-    h->current = 0;
-    while ((h->currentindex < h->hashsize) && !h->hashtable[h->currentindex])
-	h->currentindex++;
-    if (h->currentindex >= h->hashsize) return 0;
-    h->current = h->hashtable[h->currentindex];
-    return h->current;
+static DohIterator
+Hash_firstiter(DOH *ho) {
+  DohIterator iter;
+  Hash *h = (Hash *) ObjData(ho);
+  iter.object = ho;
+  iter._current = 0;
+  iter.item = 0;
+  iter.key = 0;
+  iter._index = 0;   /* Index in hash table */
+  while ((iter._index < h->hashsize) && !h->hashtable[iter._index])
+    iter._index++;
+
+  if (iter._index >= h->hashsize) {
+    return iter;
+  }
+  iter._current = h->hashtable[iter._index];
+  iter.item = ((HashNode *) iter._current)->object;
+  iter.key = ((HashNode *) iter._current)->key;
+  
+  /* Actually save the next slot in the hash.  This makes it possible to
+     delete the item being iterated over without trashing the universe */
+  iter._current = ((HashNode*)iter._current)->next;
+  return iter;
 }
 
-static HashNode *
-hash_next(DOH *ho) {
-    Hash *h = (Hash *) ObjData(ho);
-    if (h->currentindex < 0) return hash_first(ho);
-
-    /* Try to move to the next entry */
-    if (h->current) {
-      h->current = h->current->next;
+static DohIterator
+Hash_nextiter(DohIterator iter) {
+  Hash *h = (Hash *) ObjData(iter.object);
+  if (!iter._current) {
+    iter._index++;
+    while ((iter._index < h->hashsize) && !h->hashtable[iter._index]) {
+      iter._index++;
     }
-    if (h->current) {
-	return h->current;
+    if (iter._index >= h->hashsize) {
+      iter.item = 0;
+      iter.key = 0;
+      iter._current = 0;
+      return iter;
     }
-    h->currentindex++;
-    while ((h->currentindex < h->hashsize) && !h->hashtable[h->currentindex])
-	h->currentindex++;
-    if (h->currentindex >= h->hashsize) return 0;
-    h->current = h->hashtable[h->currentindex];
-    return h->current;
-}
+    iter._current = h->hashtable[iter._index];
+  }
+  iter.key = ((HashNode *) iter._current)->key;
+  iter.item = ((HashNode *) iter._current)->object;
 
-/* -----------------------------------------------------------------------------
- * Hash_firstkey()
- *
- * Return first hash-table key.
- * ----------------------------------------------------------------------------- */
-
-static DOH *
-Hash_firstkey(DOH *ho) {
-    HashNode *hn = hash_first(ho);
-    if (hn) return hn->key;
-    return 0;
-}
-
-/* -----------------------------------------------------------------------------
- * Hash_nextkey()
- *
- * Return next hash table key.
- * ----------------------------------------------------------------------------- */
-
-static DOH *
-Hash_nextkey(DOH *ho) {
-    HashNode *hn = hash_next(ho);
-    if (hn) return hn->key;
-    return 0;
+  /* Store the next node to iterator on */
+  iter._current = ((HashNode*)iter._current)->next;
+  return iter;
 }
 
 /* -----------------------------------------------------------------------------
@@ -371,13 +354,11 @@ Hash_nextkey(DOH *ho) {
 static DOH *
 Hash_keys(DOH *so) {
   DOH *keys;
-  DOH *k;
+  Iterator i;
 
   keys = NewList();
-  k = Firstkey(so);
-  while (k) {
-    Append(keys,k);
-    k = Nextkey(so);
+  for (i = First(so); i.key; i = Next(i)) {
+    Append(keys,i.key);
   }
   return keys;
 }
@@ -451,8 +432,6 @@ CopyHash(DOH *ho) {
     for (i = 0; i < nh->hashsize; i++) {
 	nh->hashtable[i] = 0;
     }
-    nh->currentindex = -1;
-    nh->current = 0;
     nh->nitems = 0;
     nh->line = h->line;
     nh->file = h->file;
@@ -512,8 +491,6 @@ static DohHashMethods HashHashMethods = {
   Hash_getattr,
   Hash_setattr,
   Hash_delattr,
-  Hash_firstkey,
-  Hash_nextkey,
   Hash_keys,
 };
 
@@ -528,6 +505,8 @@ DohObjInfo DohHashType = {
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
+    Hash_firstiter,             /* doh_first    */
+    Hash_nextiter,               /* doh_next     */
     Hash_setfile,               /* doh_setfile */
     Hash_getfile,               /* doh_getfile */
     Hash_setline,               /* doh_setline */
@@ -556,8 +535,6 @@ DohNewHash() {
     for (i = 0; i < h->hashsize; i++) {
 	h->hashtable[i] = 0;
     }
-    h->currentindex = -1;
-    h->current = 0;
     h->nitems = 0;
     h->file = 0;
     h->line = 0;

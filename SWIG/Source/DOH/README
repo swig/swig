@@ -31,6 +31,8 @@ First(obj)              Return first object (iterator)
 Next(obj)               Return next object
 Dump(obj,out)           Serialize on out
 Load(in)                Unserialize from in
+First(obj)              Iterator
+Next(iter)              Next iterator
 
 Mapping Operations (for hash table behavior)
 --------------------------------------------

@@ -338,8 +338,8 @@ class CSHARP : public Language {
     Printf(f_wrappers,"#endif\n");
 
     // Output a C# type wrapper class for each SWIG type
-    for (String *swig_type = Firstkey(swig_types_hash); swig_type; swig_type = Nextkey(swig_types_hash)) {
-      emitTypeWrapperClass(swig_type, Getattr(swig_types_hash, swig_type));
+    for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+      emitTypeWrapperClass(swig_type.key, swig_type.item);
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
@@ -948,16 +948,16 @@ class CSHARP : public Language {
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
     if (baselist) {
-      Node *base = Firstitem(baselist);
-      c_baseclassname = Getattr(base,"name");
+      Iterator base = First(baselist);
+      c_baseclassname = Getattr(base.item,"name");
       baseclass = Copy(getProxyName(c_baseclassname));
       if (baseclass){
-        c_baseclass = SwigType_namestr(Getattr(base,"name"));
+        c_baseclass = SwigType_namestr(Getattr(base.item,"name"));
       }
-      base = Nextitem(baselist);
-      if (base) {
+      base = Next(base);
+      if (base.item) {
         Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, Getattr(base,"name"));
+            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, Getattr(base.item,"name"));
       }
     }
 
@@ -1951,8 +1951,8 @@ class CSHARP : public Language {
 
       // Add the exception classes to the node throws list, but don't duplicate if already in list
       if (temp_classes_list && Len(temp_classes_list) > 0) {
-        for (String *cls = Firstitem(temp_classes_list); cls; cls = Nextitem(temp_classes_list)) {
-          String *exception_class = NewString(cls);
+        for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
+          String *exception_class = NewString(cls.item);
           Replaceall(exception_class," ","");  // remove spaces
           Replaceall(exception_class,"\t",""); // remove tabs
           if (Len(exception_class) > 0) {
@@ -1962,8 +1962,8 @@ class CSHARP : public Language {
 
             // Don't duplicate the C# exception class in the throws clause
             bool found_flag = false;
-            for (String *item = Firstitem(throws_list); item; item = Nextitem(throws_list)) {
-              if (Strcmp(item, exception_class) == 0)
+            for (Iterator item = First(throws_list); item.item; item = Next(item)) {
+              if (Strcmp(item.item, exception_class) == 0)
                 found_flag = true;
             }
             if (!found_flag)
@@ -1985,10 +1985,10 @@ class CSHARP : public Language {
     // Add the throws clause into code
     List *throws_list = Getattr(n,"csharp:throwslist");
     if (throws_list) {
-      String *cls = Firstitem(throws_list);
-      Printf(code, " throws %s", cls);
-      while ( (cls = Nextitem(throws_list)) )
-        Printf(code, ", %s", cls);
+      Iterator cls = First(throws_list);
+      Printf(code, " throws %s", cls.item);
+      while ( (cls = Next(cls)).item)
+        Printf(code, ", %s", cls.item);
     }
   }
 

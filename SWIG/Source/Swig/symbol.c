@@ -1118,15 +1118,15 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	String *tprefix, *tsuffix;
 	SwigType *qprefix;
 	List   *targs;
-	String  *tparm;
+	Iterator ti;
 	tprefix = SwigType_templateprefix(e);
 	tsuffix = SwigType_templatesuffix(e);
 	qprefix = Swig_symbol_type_qualify(tprefix,st);
 	targs = SwigType_parmlist(e);
 	Printf(qprefix,"<(");
-	for (tparm = Firstitem(targs); tparm;) {
-	  String *qparm = Swig_symbol_type_qualify(tparm,st);
-	  /*	  Printf(stdout,"qparm = '%s', tparm = '%s'\n", qparm, tparm);*/
+	for (ti = First(targs); ti.item;) {
+	  String *qparm = Swig_symbol_type_qualify(ti.item,st);
+	  /*	  Printf(stdout,"qparm = '%s', tparm = '%s'\n", qparm, ti.item);*/
 	  while (1) {
 	    /* It is possible for an integer to show up here.  If so, we need to evaluate it */
 	    {
@@ -1155,8 +1155,8 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
 	    }
 	  }
 	  Append(qprefix,qparm);
-	  tparm = Nextitem(targs);
-	  if (tparm) {
+	  ti = Next(ti);
+	  if (ti.item) {
 	    Putc(',',qprefix);
 	  }
 	  Delete(qparm);
@@ -1175,14 +1175,14 @@ Swig_symbol_type_qualify(SwigType *t, Symtab *st) {
       }
       Append(result,e);
     } else if (SwigType_isfunction(e)) {
+      Iterator pi;
       List *parms = SwigType_parmlist(e);
       String *s = NewString("f(");
-      String *p;
-      p = Firstitem(parms);
-      while (p) {
-	Append(s,Swig_symbol_type_qualify(p,st));
-	p = Nextitem(parms);
-	if (p) {
+      pi = First(parms);
+      while (pi.item) {
+	Append(s,Swig_symbol_type_qualify(pi.item,st));
+	pi = Next(pi);
+	if (pi.item) {
 	  Append(s,",");
 	}
       }
@@ -1269,7 +1269,7 @@ Swig_symbol_string_qualify(String *s, Symtab *st) {
   r = NewString("");
   c = Char(s);
   while (*c) {
-    if (isalpha(*c) || (*c == '_') || (*c == ':')) {
+    if (isalpha((int)*c) || (*c == '_') || (*c == ':')) {
       Putc(*c,id);
       have_id = 1;
     } else {

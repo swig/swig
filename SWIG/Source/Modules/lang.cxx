@@ -1392,9 +1392,9 @@ int Language::unrollVirtualMethods(Node *n,
   // recurse through all base classes to build the vtable
   List* bl = Getattr(n, "bases");
   if (bl) {
-    Node* bi;
-    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
-      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor);
+    Iterator bi;
+    for (bi = First(bl); bi.item; bi = Next(bi)) {
+      unrollVirtualMethods(bi.item, parent, vm, default_director, virtual_destructor);
     }
   }
   // find the methods that need directors
@@ -1503,9 +1503,10 @@ int Language::classDirectorConstructors(Node *n) {
 int Language::classDirectorMethods(Node *n) {
   Node *vtable = Getattr(n, "vtable");
   Node *item;
-  String *key;
-  for (key = Firstkey(vtable); key != 0; key = Nextkey(vtable)) { 
-    item = Getattr(vtable, key);
+  Iterator k;
+
+  for (k = First(vtable); k.key; k = Next(k)) {
+    item = k.item;
     String *method = Getattr(item, "methodNode");
     String *fqname = Getattr(item, "fqName");
     if (classDirectorMethod(method, n, fqname) == SWIG_OK) {
@@ -1656,9 +1657,9 @@ int Language::classHandler(Node *n) {
     List *methods = Getattr(n,"allocate:smartpointer");
     cplus_mode = CPLUS_PUBLIC;
     SmartPointer = CWRAP_SMART_POINTER;
-    Node *c;
-    for (c = Firstitem(methods); c; c= Nextitem(methods)) {
-      emit_one(c);
+    Iterator c;
+    for (c = First(methods); c.item; c= Next(c)) {
+      emit_one(c.item);
     }
     SmartPointer = 0;
   }

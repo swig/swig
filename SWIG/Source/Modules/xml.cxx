@@ -137,10 +137,10 @@ public:
 		print_indent(0);
 		Printf( out, "<attributelist id=\"%ld\" addr=\"%x\" >\n", ++id, obj );
 		indent_level += 4;
-
-		k = Firstkey(obj);
-		while (k)
-		{
+		Iterator ki;
+		ki = First(obj);
+		while (ki.key) {
+		  k = ki.key;
 			if ((Cmp(k,"nodeType") == 0)
 			|| (Cmp(k,"firstChild") == 0)
 			|| (Cmp(k,"lastChild") == 0)
@@ -202,7 +202,7 @@ public:
 					Delete(ck);
 				}
 			}
-			k = Nextkey(obj);
+			ki = Next(ki);
 		}
 		indent_level -= 4;
 		print_indent(0);
@@ -261,11 +261,11 @@ public:
 		print_indent(0);
 		Printf( out, "<baselist id=\"%ld\" addr=\"%x\" >\n", ++id, p );
 		indent_level += 4;
-		String *s;
-		for (s = Firstitem(p); s; s = Nextitem(p))
+		Iterator s;
+		for (s = First(p); s.item; s = Next(s))
 		{
 			print_indent(0);
-			Printf( out, "<base name=\"%s\" id=\"%ld\" addr=\"%x\" />\n", s, ++id, s );
+			Printf( out, "<base name=\"%s\" id=\"%ld\" addr=\"%x\" />\n", s.item, ++id, s.item );
 		}
 		indent_level -= 4;
 		print_indent(0);
@@ -304,16 +304,16 @@ public:
 		Printf( out, "<%s id=\"%ld\" addr=\"%x\" >\n", markup, ++id, p );
 		Xml_print_attributes( p );
 		indent_level += 4;
-		Node * n = Firstitem( p );
-		while(n)
+		Iterator n = First(p);
+		while(n.key)
 		{
 			print_indent(0);
-			Printf( out, "<%ssitem id=\"%ld\" addr=\"%x\" >\n", markup, ++id, n );
-			Xml_print_attributes( n );
+			Printf( out, "<%ssitem id=\"%ld\" addr=\"%x\" >\n", markup, ++id, n.item );
+			Xml_print_attributes( n.item );
 			Printf( out, "</%ssitem >\n", markup );
 			print_indent(0);
 			Printf( out, " />\n" );
-			n = Nextkey(p);
+			n = Next(n);
 		}
 		indent_level -= 4;
 		print_indent(0);

@@ -44,8 +44,6 @@
 #define DohGetattr         DOH_NAMESPACE(Getattr)
 #define DohSetattr         DOH_NAMESPACE(Setattr)
 #define DohDelattr         DOH_NAMESPACE(Delattr)
-#define DohFirstkey        DOH_NAMESPACE(Firstkey)
-#define DohNextkey         DOH_NAMESPACE(Nextkey)
 #define DohKeys            DOH_NAMESPACE(Keys)
 #define DohGetInt          DOH_NAMESPACE(GetInt)
 #define DohGetDouble       DOH_NAMESPACE(GetDouble)
@@ -60,8 +58,6 @@
 #define DohDelitem         DOH_NAMESPACE(Delitem)
 #define DohInsertitem      DOH_NAMESPACE(Insertitem)
 #define DohDelslice        DOH_NAMESPACE(Delslice)
-#define DohFirstitem       DOH_NAMESPACE(Firstitem)
-#define DohNextitem        DOH_NAMESPACE(Nextitem)
 #define DohWrite           DOH_NAMESPACE(Write)
 #define DohRead            DOH_NAMESPACE(Read)
 #define DohSeek            DOH_NAMESPACE(Seek)
@@ -113,7 +109,9 @@
 #define DohHashType        DOH_NAMESPACE(HashType)
 #define DohFileType        DOH_NAMESPACE(FileType)
 #define DohVoidType        DOH_NAMESPACE(VoidType)
-
+#define DohIterator        DOH_NAMESPACE(Iterator)
+#define DohFirst           DOH_NAMESPACE(First)
+#define DohNext            DOH_NAMESPACE(Next)
 #endif
 
 #include <stdio.h>
@@ -142,6 +140,16 @@ typedef void DOH;
 #define DOH_END            -2
 #define DOH_CUR            -3
 #define DOH_CURRENT        -3
+
+/* Iterator objects */
+
+typedef struct {
+  void   *key;             /* Current key (if any)       */
+  void   *item;            /* Current item               */
+  void   *object;          /* Object being iterated over */
+  void   *_current;        /* Internal use */
+  int    _index;           /* Internal use */
+} DohIterator;
 
 /* Memory management */
 
@@ -176,8 +184,6 @@ extern void          DohIncref(DOH *obj);
 extern DOH          *DohGetattr(DOH *obj, const DOHString_or_char *name);
 extern int           DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_char *value);
 extern int           DohDelattr(DOH *obj, const DOHString_or_char *name);
-extern DOH          *DohFirstkey(DOH *obj);
-extern DOH          *DohNextkey(DOH *obj);
 extern DOH          *DohKeys(DOH *obj);
 extern int           DohGetInt(DOH *obj, const DOHString_or_char *name);
 extern double        DohGetDouble(DOH *obj, const DOHString_or_char *name);
@@ -194,8 +200,6 @@ extern int           DohSetitem(DOH *obj, int index, const DOHObj_or_char *value
 extern int           DohDelitem(DOH *obj, int index);
 extern int           DohInsertitem(DOH *obj, int index, const DOHObj_or_char *value);
 extern int           DohDelslice(DOH *obj, int sindex, int eindex);
-extern DOH          *DohFirstitem(DOH *obj);
-extern DOH          *DohNextitem(DOH *obj);
 
 /* File methods */
 
@@ -207,7 +211,11 @@ extern int           DohGetc(DOHFile *obj);
 extern int           DohPutc(int ch, DOHFile *obj);
 extern int           DohUngetc(int ch, DOHFile *obj);
 
-  /* Positional */
+/* Iterators */
+extern DohIterator   DohFirst(DOH *obj);
+extern DohIterator   DohNext(DohIterator x);
+
+/* Positional */
 
 extern int           DohGetline(DOH *obj);
 extern void          DohSetline(DOH *obj, int line);
@@ -321,8 +329,6 @@ extern void      DohMemoryDebug(void);
 #define Append(s,x)        DohInsertitem(s,DOH_END,x)
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
-#define Firstkey           DohFirstkey
-#define Nextkey            DohNextkey
 #define Data               DohData
 #define Char               (char *) Data
 #define Cmp                DohCmp
@@ -349,8 +355,6 @@ extern void      DohMemoryDebug(void);
 #define SetDouble          DohSetDouble
 #define SetChar            DohSetattr
 #define SetVoid            DohSetVoid
-#define Firstitem          DohFirstitem
-#define Nextitem           DohNextitem
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
@@ -378,6 +382,9 @@ extern void      DohMemoryDebug(void);
 #define Getmark            DohGetmark
 #define None               DohNone
 #define Call               DohCall
+#define First              DohFirst
+#define Next               DohNext
+#define Iterator           DohIterator
 #endif
 
 #ifdef NIL

@@ -725,13 +725,12 @@ expand_macro(String_or_char *name, List *args)
  * ----------------------------------------------------------------------------- */
 
 List *evaluate_args(List *x) {
-  String *a;
+  Iterator i;
   String *Preprocessor_replace(String *);
-
   List *nl = NewList();
-  
-  for (a = Firstitem(x); a; a = Nextitem(x)) {
-    Append(nl,Preprocessor_replace(a));
+
+  for (i = First(x); i.item; i = Next(i)) {
+    Append(nl,Preprocessor_replace(i.item));
   }
   return nl;
 }

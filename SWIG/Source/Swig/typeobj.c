@@ -695,9 +695,10 @@ ParmList *
 SwigType_function_parms(SwigType *t) {
   List *l = SwigType_parmlist(t);
   Hash *p, *pp = 0, *firstp = 0;
-  DOH  *obj;
-  for (obj = Firstitem(l); obj; obj = Nextitem(l)) {
-    p = NewParm(obj,0);
+  Iterator o;
+
+  for (o = First(l); o.item; o = Next(o)) {
+    p = NewParm(o.item,0);
     if (!firstp) firstp = p;
     if (pp) {
       set_nextSibling(pp,p);
@@ -963,7 +964,7 @@ SwigType_strip_qualifiers(SwigType *t) {
   static Hash *memoize_stripped = 0;
   SwigType *r;
   List     *l;
-  SwigType *e;
+  Iterator  ei;
 
   if (!memoize_stripped) memoize_stripped = NewHash();
   r = Getattr(memoize_stripped,t);
@@ -971,9 +972,10 @@ SwigType_strip_qualifiers(SwigType *t) {
   
   l = SwigType_split(t);
   r = NewString("");
-  for (e = Firstitem(l); e; e = Nextitem(l)) {
-    if (SwigType_isqualifier(e)) continue;
-    Append(r,e);
+  
+  for (ei = First(l);ei.item; ei = Next(ei)) {
+    if (SwigType_isqualifier(ei.item)) continue;
+    Append(r,ei.item);
   }
   Delete(l);
   {

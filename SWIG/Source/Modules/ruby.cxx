@@ -511,19 +511,20 @@ public:
     List *modules = Split(module,':',INT_MAX);
     if (modules != 0 && Len(modules) > 0) {
       String *mv = 0;
-      String *m = Firstitem(modules);
-      while (m != 0) {
-        if (Len(m) > 0) {
+      Iterator m;
+      m = First(modules);
+      while (m.item) {
+        if (Len(m.item) > 0) {
 	  if (mv != 0) {
             Printv(f_init, tab4, modvar,
-	      " = rb_define_module_under(", modvar, ", \"", m, "\");\n", NIL);
+	      " = rb_define_module_under(", modvar, ", \"", m.item, "\");\n", NIL);
 	  } else {
             Printv(f_init, tab4, modvar,
-	      " = rb_define_module(\"", m, "\");\n", NIL);
+	      " = rb_define_module(\"", m.item, "\");\n", NIL);
 	    mv = NewString(modvar);
 	  }
 	}
-	m = Nextitem(modules);
+	m = Next(m);
       }
       Delete(mv);
       Delete(modules);
@@ -767,18 +768,18 @@ public:
       List *modules = Split(mod_name,':',INT_MAX);
       if (modules != 0 && Len(modules) > 0) {
         String *last = 0;
-	String *m = Firstitem(modules);
-	while (m != 0) {
-	  if (Len(m) > 0) {
-	    String *cap = NewString(m);
+	Iterator m = First(modules);
+	while (m.item) {
+	  if (Len(m.item) > 0) {
+	    String *cap = NewString(m.item);
 	    (Char(cap))[0] = toupper((Char(cap))[0]);
 	    if (last != 0) {
 	      Append(module, "::");
 	    }
 	    Append(module, cap);
-	    last = m;
+	    last = m.item;
 	  }
-	  m = Nextitem(modules);
+	  m = Next(m);
 	}
 	if (feature == 0) {
 	  feature = Copy(last);
@@ -809,12 +810,12 @@ public:
     if (aliasv) {
       List *aliases = Split(aliasv,',',INT_MAX);
       if (aliases && Len(aliases) > 0) {
-	String *alias = Firstitem(aliases);
-	while (alias) {
-          if (Len(alias) > 0) {
-            Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
+	Iterator alias = First(aliases);
+	while (alias.item) {
+          if (Len(alias.item) > 0) {
+            Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
 	  }
-	  alias = Nextitem(aliases);
+	  alias = Next(alias);
 	}
       }
       Delete(aliases);
@@ -1707,12 +1708,12 @@ public:
     if (mixin) {
       List *modules = Split(mixin,',',INT_MAX);
       if (modules && Len(modules) > 0) {
-	String *mod = Firstitem(modules);
-	while (mod) {
-          if (Len(mod) > 0) {
-            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod);
+	Iterator mod = First(modules);
+	while (mod.item) {
+          if (Len(mod.item) > 0) {
+            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod.item);
 	  }
-	  mod = Nextitem(modules);
+	  mod = Next(mod);
 	}
       }
       Delete(modules);
@@ -1722,9 +1723,9 @@ public:
   void handleBaseClasses(Node *n) {
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
-      Node *base = Firstitem(baselist);
-      while (base) {
-        String *basename = Getattr(base,"name");
+      Iterator base = First(baselist);
+      while (base.item) {
+        String *basename = Getattr(base.item,"name");
         String *basenamestr = SwigType_namestr(basename);
         RClass *super = RCLASS(classes, Char(basenamestr));
         Delete(basenamestr);
@@ -1747,14 +1748,14 @@ public:
           }
           Delete(btype);
         }
-        base = Nextitem(baselist);
+        base = Next(base);
         if (!multipleInheritance) {
           /* Warn about multiple inheritance for additional base class(es) listed */
-          while (base) {
+          while (base.item) {
             basename = Getattr(n,"name");
             Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number, 
                          "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", basename, basename);
-            base = Nextitem(baselist);
+            base = Next(base);
           }
         }
       }

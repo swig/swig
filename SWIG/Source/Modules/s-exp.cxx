@@ -258,13 +258,13 @@ public:
       open_paren(NIL);
       for (; obj; obj = nextSibling(obj)) {
 	if (DohIsMapping(obj)) {
-	  DOH *k;
+	  Iterator k;
 	  open_paren(NIL);
-	  for (k = Firstkey(obj); k; k = Nextkey(obj)) {
-	    if (!internal_key_p(k)) {
-	      DOH *value = Getattr(obj, k);
-	      Sexp_print_as_keyword(k);
-	      Sexp_print_value_of_key(value, k);
+	  for (k = First(obj); k.key; k = Next(k)) {
+	    if (!internal_key_p(k.key)) {
+	      DOH *value = Getattr(obj, k.key);
+	      Sexp_print_as_keyword(k.key);
+	      Sexp_print_value_of_key(value, k.key);
 	      print_lazy_whitespace();
 	    }
 	  }	
@@ -295,16 +295,16 @@ public:
 	}
 	
 	else if (DohIsMapping(obj)) {
-	  DOH *k;
+	  Iterator k;
 	  open_paren(NIL);
-	  for (k = Firstkey(obj); k; k = Nextkey(obj)) {
-	    if (!internal_key_p(k)) {
-	      DOH *value = Getattr(obj, k);
+	  for (k = First(obj); k.key; k = Next(k)) {
+	    if (!internal_key_p(k.key)) {
+	      DOH *value = Getattr(obj, k.key);
 	      flush_parens();
 	      open_paren(NIL);
-	      Sexp_print_doh(k);
+	      Sexp_print_doh(k.key);
 	      Printf(out, " . ");
-	      Sexp_print_value_of_key(value, k);
+	      Sexp_print_value_of_key(value, k.key);
 	      close_paren();
 	    }
 	  }
@@ -341,18 +341,18 @@ public:
   void Sexp_print_plist_noparens(DOH *obj)
   {
     /* attributes map names to objects */
-    String *k;
+    Iterator k;
     bool first;
-    for (k = Firstkey(obj), first = true; k; k = Nextkey(obj), first=false) {
-      if (!internal_key_p(k)) {
-	DOH *value = Getattr(obj, k);
+    for (k = First(obj), first = true; k.key; k = Next(k), first=false) {
+      if (!internal_key_p(k.key)) {
+	DOH *value = Getattr(obj, k.key);
 	flush_parens();
 	if (!first) {
 	  Printf(out, " ");
 	}
-	Sexp_print_as_keyword(k);
+	Sexp_print_as_keyword(k.key);
 	/* Print value */
-	Sexp_print_value_of_key(value, k);
+	Sexp_print_value_of_key(value, k.key);
       }
     }
   }

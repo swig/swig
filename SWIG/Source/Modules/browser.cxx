@@ -41,8 +41,10 @@ class Browser : public Dispatcher {
     if (!Getmeta(obj,"visible")) return;
     String *os = NewString("");
     String *k;
-    k = Firstkey(obj);
-    while (k) {
+    Iterator ki;
+    ki = First(obj);
+    while (ki.key) {
+      k = ki.key;
       if ((Cmp(k,"nodeType") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
 	  (Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) || 
 	  (Cmp(k,"previousSibling") == 0) || (*(Char(k)) == '$')) {
@@ -71,7 +73,7 @@ class Browser : public Dispatcher {
 	  Printf(os,"<a href=\"data.html?n=0x%x\">?</a> %-12s - 0x%x\n", Getattr(obj,k), k, Getattr(obj,k));
 	}
       }
-      k = Nextkey(obj);
+      ki = Next(ki);
     }
     Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
     Delete(os);
@@ -241,10 +243,12 @@ void raw_data(FILE *out, Node *obj) {
   if (!obj) return;
   if (DohIsMapping(obj)) {
     String *k;
+    Iterator ki;
     String *os = NewString("");
     Printf(os,"Hash {\n");
-    k = Firstkey(obj);
-    while (k) {
+    ki = First(obj);
+    while (ki.key) {
+      k = ki.key;
       DOH *o;
       const char *trunc = "";
       if (DohIsString(Getattr(obj,k))) {
@@ -258,7 +262,7 @@ void raw_data(FILE *out, Node *obj) {
       } else {
 	Printf(os,"    <a href=\"data.html?n=0x%x\">?</a> %-12s - 0x%x\n", Getattr(obj,k), k, Getattr(obj,k));
       }
-      k = Nextkey(obj);
+      ki = Next(ki);
     }
     Printf(os,"}\n");
     Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));

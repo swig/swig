@@ -121,9 +121,9 @@ class TypePass : public Dispatcher {
     while (nn) {
       Swig_symbol_setscope(nn->symtab);
       SwigType_set_scope(nn->typescope);
-      SwigType *t;
-      for (t = Firstitem(nn->normallist); t; t = Nextitem(nn->normallist)) {
-	normalize_type(t);
+      Iterator t;
+      for (t = First(nn->normallist); t.item; t = Next(t)) {
+	normalize_type(t.item);
       }
       Delete(nn->normallist);
       np = nn->next;

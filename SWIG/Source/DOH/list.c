@@ -16,7 +16,6 @@ char cvsroot_list_c[] = "$Header$";
 typedef struct List {
     int          maxitems;        /* Max size  */
     int          nitems;          /* Num items */
-    int          iter;            /* Iterator  */
     DOH         *file;
     int          line;
     DOH        **items;
@@ -46,7 +45,6 @@ CopyList(DOH *lo) {
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
     nl->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
-    nl->iter = 0;
     for (i = 0; i < l->nitems; i++) {
 	nl->items[i] = l->items[i];
 	Incref(nl->items[i]);
@@ -195,12 +193,19 @@ List_set(DOH *lo, int n, DOH *val) {
  * Return the first item in the list.
  * ----------------------------------------------------------------------------- */
 
-static DOH *
+static DohIterator
 List_first(DOH *lo) {
-    List *l = (List *) ObjData(lo);
-    l->iter = 0;
-    if (l->iter >= l->nitems) return 0;
-    return l->items[l->iter];
+  DohIterator iter;
+  List *l = (List *) ObjData(lo);
+  iter.object = lo;
+  iter._index = 0;
+  iter.key = 0;
+  if (l->nitems > 0) {
+    iter.item = l->items[0];
+  } else {
+    iter.item = 0;
+  }
+  return iter;
 }
 
 /* -----------------------------------------------------------------------------
@@ -209,12 +214,17 @@ List_first(DOH *lo) {
  * Return the next item in the list.
  * ----------------------------------------------------------------------------- */
 
-static DOH *
-List_next(DOH *lo) {
-    List *l = (List *) ObjData(lo);
-    l->iter++;
-    if (l->iter >= l->nitems) return 0;
-    return l->items[l->iter];
+static DohIterator
+List_next(DohIterator iter) {
+  List *l = (List *) ObjData(iter.object);
+  iter._index = iter._index + 1;
+  if (iter._index >= l->nitems) {
+    iter.item = 0;
+    iter.key = 0;
+  } else {
+    iter.item = l->items[iter._index];
+  }
+  return iter;
 }
 
 /* -----------------------------------------------------------------------------
@@ -300,8 +310,6 @@ static DohListMethods ListListMethods = {
   List_remove,
   List_insert,
   0,                /* delslice */
-  List_first,
-  List_next,
 };
 
 DohObjInfo DohListType = {
@@ -315,6 +323,8 @@ DohObjInfo DohListType = {
     List_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
+    List_first,               /* doh_first    */
+    List_next,               /* doh_next     */
     List_setfile,               /* doh_setfile */
     List_getfile,               /* doh_getfile */
     List_setline,               /* doh_setline */
@@ -346,7 +356,6 @@ DohNewList() {
     for (i = 0; i < MAXLISTITEMS; i++) {
 	l->items[i] = 0;
     }
-    l->iter = 0;
     l->file = 0;
     l->line = 0;
     return DohObjMalloc(&DohListType,l);

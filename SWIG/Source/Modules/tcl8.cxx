@@ -661,17 +661,18 @@ public:
     String *base_class = NewString("");
     List *baselist = Getattr(n,"bases");
     if (baselist && Len(baselist)) {
-      Node *base = Firstitem(baselist);
-      while (base) {
-	String *bname = Getattr(base, "name");
-	if ((!bname) || Getattr(base,"feature:ignore") || (!Getattr(base,"module"))) {
-	  base = Nextitem(baselist);
+      Iterator b;
+      b = First(baselist);
+      while (b.item) {
+	String *bname = Getattr(b.item, "name");
+	if ((!bname) || Getattr(b.item,"feature:ignore") || (!Getattr(b.item,"module"))) {
+	  b = Next(b);
 	  continue;
 	}
 	String *bmangle = Swig_name_mangle(bname);
 	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
 	Printf(base_class,"&_wrap_class_%s",bmangle);
-	base = Nextitem(baselist);
+	b = Next(b);
 	Putc(',',base_class);
 	Delete(bmangle);
       }
