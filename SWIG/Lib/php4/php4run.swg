@@ -31,6 +31,13 @@ extern "C" {
 }
 #endif
 
+// used to wrap returned objects in so we know whether they are newobject
+// and need freeing, or not
+typedef struct _swig_object_wrapper {
+  void * ptr;
+  int newobject;
+} swig_object_wrapper;
+
 // local scope self_constructors are set to 1 inside function wrappers
 // which are also class constructors, so that the php4.swg output typemaps
 // know whether or not to wrap returned objects in this_ptr or a new object
@@ -73,14 +80,18 @@ SWIG_SetPointerChar(char **c, void *ptr, swig_type_info *type) {
    *c = estrdup(data);
 }
 
-#define SWIG_SetPointerZval(a,b,c) SWIG_ZTS_SetPointerZval(a,b,c, SWIG_module_entry TSRMLS_CC)
+#define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d, SWIG_module_entry TSRMLS_CC)
 
 SWIGRUNTIME(void)
-SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, zend_module_entry* module_entry TSRMLS_DC) {
+SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject, zend_module_entry* module_entry TSRMLS_DC) {
+  swig_object_wrapper *value=NULL;
   // No need to call SWIG_MakePtr here!
   if (type->clientdata) {
     if (! (*(int *)(type->clientdata))) zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
-    ZEND_REGISTER_RESOURCE(z, ptr, *(int *)(type->clientdata));
+    value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
+    value->ptr=ptr;
+    value->newobject=newobject;
+    ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
     return;
   } else { // have to deal with old fashioned string pointer?
            // but this should not get this far
@@ -175,11 +186,13 @@ SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **p
 // It uses SWIG_ZTS_ConvertResourceData to do the real work.
 SWIGRUNTIME(int)
 SWIG_ZTS_ConvertResourcePtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
-  void * p;
+  swig_object_wrapper *value;
+  void *p;
   int type;
   char *type_name;
 
-  p = (void *) zend_list_find(z->value.lval,&type);
+  value = (swig_object_wrapper *) zend_list_find(z->value.lval,&type);
+  p = value->ptr;
   if (type==-1) return -1;
 
   type_name=zend_rsrc_list_get_rsrc_type(z->value.lval);

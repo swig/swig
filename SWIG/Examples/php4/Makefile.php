@@ -9,6 +9,7 @@ all: check
 
 check: BUILD.sh
 	./BUILD.sh
+#	SWIG=$(SWIG) ./BUILD.sh
 
 # This one is fun!  How do we know what shouldn't be there?
 clean:

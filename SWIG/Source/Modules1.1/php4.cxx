@@ -914,12 +914,13 @@ public:
     char *iname = GetChar(n,"sym:name");
     SwigType *d = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
+    int newobject = (Getattr(n,"feature:new"))?1:0;
     Parm *p;
     char source[256],target[256],temp[256],argnum[32],args[32];
     int i,numopt;
     String *tm;
     Wrapper *f;
-    int num_saved = 0;
+    int num_saved = (Getattr(n,"feature:new"))?1:0;
     String *cleanup, *outarg;
     bool mvr=(shadow && variable_wrapper_flag && !enum_flag);
     bool mvrset=0;
@@ -966,6 +967,9 @@ public:
       Printf(df->def,"// This function is designed to be called by the zend list destructors to typecast and do the actual destruction\n"
                      "void %s(zend_rsrc_list_entry *rsrc, const char *type_name TSRMLS_DC) {\n",destructorname);
 
+      Wrapper_add_localv(df, "value", "swig_object_wrapper *value=(swig_object_wrapper *) rsrc->ptr", NULL);
+      Wrapper_add_localv(df, "ptr", "void *ptr=value->ptr", NULL);
+      Wrapper_add_localv(df, "newobject", "int newobject=value->newobject", NULL);
       // Magic spell nicked from further down.
       emit_args(d, l, df);
       emit_attach_parmmaps(l,f);
@@ -980,8 +984,9 @@ public:
         SwigType *pt = Getattr(p,"type");
 
         Printf(df->code,
-	     "  // should we do type checking? How do I get SWIG_ type name?\n"
-	     "  SWIG_ZTS_ConvertResourceData(rsrc->ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n"
+             "  efree(value);\n"
+             "  if (! newobject) return; // can't delete it!\n"
+	     "  SWIG_ZTS_ConvertResourceData(ptr,rsrc->type,type_name,(void **) &arg1,SWIGTYPE%s TSRMLS_CC);\n"
 	     "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
 	     ,SwigType_manglestr(pt), shadow_classname);
       }
@@ -1154,6 +1159,7 @@ public:
 	Replaceall(tm,"$input",Getattr(p,"lname"));
 	Replaceall(tm,"$target","return_value");
 	Replaceall(tm,"$result","return_value");
+
 	String *in = Getattr(p,"emit:input");
 	if (in) {
 	  sprintf(temp,"_saved[%d]", num_saved);
@@ -1199,6 +1205,7 @@ public:
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
+      Replaceall(tm,"$owner", newobject ? "1" : "0");
       Printf(f->code, "%s\n", tm);
       // are we returning a wrapable object?
       // I don't know if this test is comlete, I nicked it
@@ -1271,7 +1278,7 @@ public:
    * variableWrapper()
    * ------------------------------------------------------------ */
 
-  virtual int variableWrapper(Node *n) {
+  virtual int OLDvariableWrapper(Node *n) {
     char *name = GetChar(n,"name");
     char *iname = GetChar(n,"sym:name");
     SwigType *t = Getattr(n,"type");

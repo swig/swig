@@ -26,7 +26,7 @@
 
 	echo "\nNow I'm going to clean up the return result\n";
 
-	free($r);
+#	free($r);
 
 	echo "Good\n";
 

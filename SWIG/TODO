@@ -269,7 +269,7 @@ PHP
 
 *      Fix "reference" example
 
-*      Work out when we can but shouldn't dispose of objects because the
+[DONE] Work out when we can but shouldn't dispose of objects because the
        creator will. See "value" example
 
 *      Get class properties to work, and global vars to work both ways

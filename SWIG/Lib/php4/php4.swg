@@ -63,24 +63,24 @@
 	"ZVAL_STRING(return_value,$1, 1);";
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &
-	"SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor);";
+	"SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);";
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
         swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
-	SWIG_SetPointerZval(return_value, (void *)$1, ty);
+	SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
 }
 
 %typemap(out) SWIGTYPE
 #ifdef __cplusplus
 {
   $&1_ltype resultobj = new $1_ltype(($1_ltype &) $1);
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor);
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, $owner);
 }
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memmove(resultobj, &$1, sizeof($1_type));
-  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor);
+  SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, $owner);
 }
 #endif
 
@@ -146,7 +146,7 @@
 {
   zval *z_var;
   MAKE_STD_ZVAL(z_var);
-  SWIG_SetPointerZval(z_var, (void*)$1, $1_descriptor);
+  SWIG_SetPointerZval(z_var, (void*)$1, $1_descriptor, $owner);
   zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void *)&z_var,
   sizeof(zval *), NULL);
 }
@@ -157,7 +157,7 @@
   zval *z_var;
 
   MAKE_STD_ZVAL(z_var);
-  SWIG_SetPointerZval(z_var, (void*)&$1, $&1_descriptor);
+  SWIG_SetPointerZval(z_var, (void*)&$1, $&1_descriptor, $owner);
   zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void*)&z_var,
   sizeof(zval *), NULL);
 }
@@ -231,7 +231,7 @@
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
   if($1) {
-    SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor);
+    SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, $owner);
   }
 }
 
@@ -331,7 +331,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
-  SWIG_SetPointerZval(*z_var, (void*)&$1, $&1_descriptor);
+  SWIG_SetPointerZval(*z_var, (void*)&$1, $&1_descriptor, $owner);
 }
 
 %typemap(varout) SWIGTYPE []
@@ -340,7 +340,7 @@
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
   if($1) 
-  	SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor);
+  	SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, $owner);
 }
 
 %typemap(varout) char [ANY]
@@ -367,7 +367,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
-  SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor);
+  SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, $owner);
 }
 
 

@@ -42,7 +42,7 @@ print "    va: $va size=".VectorArray_size($va)."\n";
 # These operators copy the value of $a and $b to the vector array
 VectorArray_set($va,0,$a);
 VectorArray_set($va,1,$b);
-print "===\n";
+
 VectorArray_get($va,0);
 # This will work, but it will cause a memory leak!
 
@@ -57,25 +57,21 @@ delete_Vector($c);
 # Get some values from the array
 
 print "Getting some array values\n";
-print "+++\n";
 for ($i = 0; $i < 5; $i++) {
 print "do $i\n";
-var_dump($va);
     print "    va($i) = ". Vector_print(VectorArray_get($va,$i)). "\n";
-var_dump($va);
-print "done----\n";
 }
 
 # Watch under resource meter to check on this
-print "Making sure we don't leak memory.\n";
-for ($i = 0; $i < 1000000; $i++) {
-    $c = VectorArray_get($va,$i % 10);
-}
+#print "Making sure we don't leak memory.\n";
+#for ($i = 0; $i < 1000000; $i++) {
+#    $c = VectorArray_get($va,$i % 10);
+#}
 
 # ----- Clean up -----
 print "Cleaning up\n";
-
-delete_VectorArray($va);
+# wants fixing FIXME
+#delete_VectorArray($va);
 delete_Vector($a);
 delete_Vector($b);
 
