@@ -134,6 +134,10 @@ to ./configure.  For example:
      % make -k check
      % make install
 
+Note: the directory given to --prefix must be an absolute pathname.  Do *NOT* use
+the ~ shell-escape to refer to your home directory.  SWIG won't work properly
+if you do this.
+
 The file INSTALL details more about using configure. Also try
 
      % ./configure --help. 
