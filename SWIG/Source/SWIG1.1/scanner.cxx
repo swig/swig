@@ -749,7 +749,7 @@ int yylook(void) {
 	    return 0;
 	  }
 	  if (c == '}') {
-	    yylval.id = Char(header);
+	    yylval.str = NewString(header);
 	    return(HBLOCK);
 	  } else {
 	    Putc('%',header);
@@ -799,8 +799,6 @@ int yylook(void) {
 	  if (c == '.') {state = 81;}
 	  else if ((c == 'e') || (c == 'E')) {state = 86;}
 	  else if ((c == 'f') || (c == 'F')) {
-             yytext[yylen] = 0;
-	     yylval.id = Swig_copy_string(yytext);
 	     return(NUM_FLOAT);
 	  }
 	  else if (isdigit(c)) { state = 8;}
@@ -810,8 +808,6 @@ int yylook(void) {
 	    state = 88;
 	  } else {
 	      retract(1);
-	      yytext[yylen] = 0;
-	      yylval.id = Swig_copy_string(yytext);
 	      return(NUM_INT);
 	    }
 	  break;
@@ -820,13 +816,9 @@ int yylook(void) {
 	  if (isdigit(c)) state = 81;
 	  else if ((c == 'e') || (c == 'E')) state = 82;
           else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  }
 	  break;
@@ -836,7 +828,6 @@ int yylook(void) {
 	  else {
 	    retract(2);
 	    yytext[yylen-1] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -852,8 +843,6 @@ int yylook(void) {
 	    state = 88;
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -867,8 +856,6 @@ int yylook(void) {
 	    state = 88;
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -886,8 +873,6 @@ int yylook(void) {
 	    state = 88;
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_INT);
 	  }
 	  break;
@@ -898,13 +883,9 @@ int yylook(void) {
 	  if ((c = nextchar()) == 0) return (0);
 	  if (isdigit(c)) state = 86;
           else if ((c == 'f') || (c == 'F') || (c == 'l') || (c == 'L')) {
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_FLOAT);
 	  }
 	  /* Parse a character constant. ie. 'a' */
@@ -914,13 +895,9 @@ int yylook(void) {
 	  /* A long integer of some sort */
 	  if ((c = nextchar()) == 0) return (0);
 	  if ((c == 'u') || (c == 'U')) {
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_ULONG);
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_LONG);
 	  }
 
@@ -928,13 +905,9 @@ int yylook(void) {
 	  /* An unsigned integer of some sort */
 	  if ((c = nextchar()) == 0) return (0);
 	  if ((c == 'l') || (c == 'L')) {
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_ULONG);
 	  } else {
 	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_UNSIGNED);
 	  }
 
@@ -945,7 +918,7 @@ int yylook(void) {
 	    get_escape();
 	  } else if (c == '\'') {
 	    yytext[yylen-1] = 0;
-	    yylval.id = Swig_copy_string(yytext+1);
+	    yylval.str = NewString(yytext+1);
 	    return(CHARCONST);
 	  }
 	  break;
@@ -1021,7 +994,15 @@ extern "C" int yylex(void) {
 
     switch(l) {
 
-      case ID:
+    case NUM_INT:
+    case NUM_FLOAT:
+    case NUM_ULONG:
+    case NUM_LONG:
+    case NUM_UNSIGNED:
+      yylval.str = NewString(yytext);
+      break;
+
+    case ID:
 
 	if (yytext[0] != '%') {
 	  /* Look for keywords now */
