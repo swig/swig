@@ -212,6 +212,7 @@ public:
 	       "    _object = types.ObjectType\n",
 	       "    _newclass = 1\n",
 	       "except AttributeError:\n",
+	       "    class _object : pass\n",
 	       "    _newclass = 0\n",
 	       "\n\n",
 	       NULL);
