@@ -153,7 +153,7 @@
   }
 }
 /* free resource once finished using */
-%typemap(java,argout) const string & {
+%typemap(java,freearg) const string & {
   delete $target;
 }
 
