@@ -111,7 +111,7 @@ typedef struct DohObjInfo {
   void      (*doh_del)(DOH *obj);              /* Delete object      */
   DOH      *(*doh_copy)(DOH *obj);             /* Copy and object    */
   void      (*doh_clear)(DOH *obj);            /* Clear an object    */
-  void      (*doh_reserved)(void);             /* Reserved           */
+  void      (*doh_scope)(DOH *obj, int sc);    /* Scope              */
 
   /* Output methods */
   DOH       *(*doh_str)(DOH *obj);             /* Make a full string */
