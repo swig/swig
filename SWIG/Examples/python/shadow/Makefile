@@ -1,10 +1,10 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 CXXSRCS    = example.cxx
-TARGET     = examplec
+TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = -shadow
+SWIGOPT    = 
 
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \

@@ -14,8 +14,8 @@
 %feature("shadow") bar(int) {
 def bar(*args):
     if len(args) == 3:
-        return apply(examplec.Foo_bar_id,args)
-    return apply(examplec.Foo_bar,args)
+        return apply(_example.Foo_bar_id,args)
+    return apply(_example.Foo_bar,args)
 }
 
 %include "example.h"

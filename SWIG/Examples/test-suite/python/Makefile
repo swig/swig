@@ -9,8 +9,8 @@ SCRIPTSUFFIX = _runme.py
 include ../common.mk
 
 # Overridden variables here
-TARGETSUFFIX = c
-SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
+TARGETSUFFIX = 
+SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -41,3 +41,9 @@ run_testcase = \
 
 clean:
 	@rm -f *_wrap* *.o *~ *.so *.dll *.pyc .~* core
+
+
+
+
+
+

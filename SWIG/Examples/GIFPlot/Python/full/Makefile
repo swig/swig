@@ -1,6 +1,6 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -I../../Include
+SWIGOPT    = -I../../Include 
 SRCS       =
 TARGET     = gifplot
 INTERFACE  = gifplot.i

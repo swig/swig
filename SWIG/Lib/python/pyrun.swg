@@ -8,6 +8,8 @@
  * Author : David Beazley (beazley@cs.uchicago.edu)
  ************************************************************************/
 
+#include "Python.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

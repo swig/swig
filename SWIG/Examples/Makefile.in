@@ -245,7 +245,7 @@ PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
 python: $(SRCS)
 	$(SWIG) -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o _$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -254,7 +254,7 @@ python: $(SRCS)
 python_cpp: $(SRCS)
 	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o _$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build a dynamically loadable module, linked against SWIG Runtime lib
@@ -265,12 +265,12 @@ PYTHON_RUNTIME=-L$(RUNTIMEDIR) -lswigpy@release_suffix@
 python_multi: $(SRCS)
 	$(SWIG) -c -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) -o _$(TARGET)$(SO)
 
 python_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o _$(TARGET)$(SO)
 
 
 # -----------------------------------------------------------------

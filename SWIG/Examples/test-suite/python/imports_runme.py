@@ -1,8 +1,9 @@
 # This is the import runtime testcase.
 
-import imports_ac
-import imports_bc
+import _imports_a
+import _imports_b
 import sys
 
-x = imports_bc.new_B()
-imports_ac.A_hello(x)
+x = _imports_b.new_B()
+_imports_a.A_hello(x)
+

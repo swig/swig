@@ -27,7 +27,7 @@ static  String       *module = 0;
 static  String       *mainmodule = 0;
 static  String       *interface = 0;
 static  String       *global_name = 0;
-static  int           shadow = 0;
+static  int           shadow = 1;
 static  int           use_kw = 0;
 
 static  File         *f_runtime = 0;
@@ -53,7 +53,7 @@ Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -interface name - Set the lib name\n\
      -keyword        - Use keyword arguments\n\
-     -proxy          - Generate proxy classes. \n\n";
+     -noproxy        - Don't generate proxy classes. \n\n";
 
 class PYTHON : public Language {
 public:
@@ -89,6 +89,9 @@ public:
 	  }
 	} else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
 	  shadow = 1;
+	  Swig_mark_arg(i);
+	} else if ((strcmp(argv[i],"-noproxy") == 0)) {
+	  shadow = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
@@ -149,12 +152,12 @@ public:
 
     char  filen[256];
 
-    /* If shadow classing is enabled, we're going to change the module name to "modulec" */
+    /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (shadow) {
       sprintf(filen,"%s%s.py", Swig_file_dirname(outfile), Char(module));
-      // If we don't have an interface then change the module name X to Xc
+      // If we don't have an interface then change the module name X to _X
       if (interface) module = interface;
-      else Append(module,"c");
+      else Insert(module,0,"_");
       if ((f_shadow = NewFile(filen,"w")) == 0) {
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit (EXIT_FAILURE);
@@ -162,6 +165,8 @@ public:
       f_shadow_stubs = NewString("");
 
       Swig_register_filebyname("shadow",f_shadow);
+      Swig_register_filebyname("python",f_shadow);
+
       Printf(f_shadow,"# This file was created automatically by SWIG.\n");
       Printf(f_shadow,"import %s\n", module);
 

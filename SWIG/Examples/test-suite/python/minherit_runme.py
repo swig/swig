@@ -1,6 +1,5 @@
 
 import minherit
-import minheritc
 
 a = minherit.Foo()
 b = minherit.Bar()
@@ -62,3 +61,11 @@ if minherit.xget(cc) != 1 or minherit.yget(cc) != 2 or minherit.zget(cc) != 3:
 
 if minherit.xget(dd) != 1 or minherit.yget(dd) != 2 or minherit.zget(dd) != 3 or minherit.wget(dd) != 4:
     raise RuntimeError, "Bad attribute value %d %d %d %d" % (minherit.xget(dd), minherit.yget(dd), minherit.zget(dd), minherit.wget(dd))
+
+
+
+
+
+
+
+

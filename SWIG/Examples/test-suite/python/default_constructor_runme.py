@@ -1,6 +1,6 @@
-import default_constructorc
+import _default_constructor
 
-dc = default_constructorc
+dc = _default_constructor
 
 a = dc.new_A
 del_a = dc.delete_A

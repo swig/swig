@@ -15,7 +15,8 @@
 
 /* Special directive for shadow code */
 
-#define %shadow  %insert("shadow")
+#define %shadow      %insert("shadow")
+#define %pythoncode  %insert("python")
 
 /* -----------------------------------------------------------------------------
  *                          standard typemaps

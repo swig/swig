@@ -8,6 +8,8 @@
 #include "example.h"
 %}
 
+%rename(cprint) print;
+
 class Vector {
 public:
     Vector(double x, double y, double z);

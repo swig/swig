@@ -1,5 +1,7 @@
 # Plot a 3D function
-from gifplot import *
+# This example uses the low-level C interface.
+
+from _gifplot import *
 from math import *
 
 # Here is the function to plot

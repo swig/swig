@@ -1,7 +1,7 @@
 
-import enumc
+import _enum
 
-enumc.bar2(1)
-enumc.bar3(1)
-enumc.bar1(1)
+_enum.bar2(1)
+_enum.bar3(1)
+_enum.bar1(1)
 

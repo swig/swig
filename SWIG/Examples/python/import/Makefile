@@ -1,18 +1,18 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -c -shadow 
+SWIGOPT    = -c
 #If your system requires linking with the runtime libraries then set the directory location here
 RUNTIMEDIR = 
 
 all::
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='basec' INTERFACE='base.i' python_multi_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='base' INTERFACE='base.i' python_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='fooc' INTERFACE='foo.i' python_multi_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='foo' INTERFACE='foo.i' python_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='barc' INTERFACE='bar.i' python_multi_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='bar' INTERFACE='bar.i' python_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spamc' INTERFACE='spam.i' python_multi_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spam' INTERFACE='spam.i' python_multi_cpp
 
 
 clean::
