@@ -170,6 +170,7 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
     
     if (!a_inclass || (Cmp(a_storage,"friend") == 0)) {
       /* check declaration */
+
       String *a_decl = (Getattr(a,"decl"));
       String *b_decl = (Getattr(b,"decl"));
       if (Cmp(a_decl, b_decl) == 0) {
@@ -216,8 +217,12 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
 
 int need_redefined_warn(Node* a, Node* b, int InClass)
 {
-  String *a_storage = Getattr(a,"storage");
-  String *b_storage = Getattr(b,"storage");
+  String *a_symname = Getattr(a,"sym:name");
+  String *b_symname = Getattr(b,"sym:name");
+  /* always send a warning if a 'rename' is involved */
+  if ((a_symname && Cmp(a_symname,Getattr(a,"name")))
+      || (b_symname && Cmp(b_symname,Getattr(b,"name"))))
+    return 1;
 
   return !are_equivalent_nodes(a, b, InClass);
 }

@@ -232,10 +232,17 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Initialize the SWIG core */
   Swig_init();
   
-  /* Suppress warning messages for private inheritance, preprocessor evaluation, 
-     might be abstract, and overloaded const */
+  /* Suppress warning messages for private inheritance, preprocessor
+     evaluation, might be abstract, overloaded const, and ...
 
-  Swig_warnfilter("202,309,403,512,321",1);
+     WARN_PP_EVALUATION            202
+     WARN_PARSE_PRIVATE_INHERIT    309
+     WARN_TYPE_ABSTRACT            403
+     WARN_LANG_OVERLOAD_CONST      512
+     WARN_PARSE_BUILTIN_NAME       321
+     WARN_PARSE_REDUNDANT          322
+  */
+  Swig_warnfilter("202,309,403,512,321,322",1);
 
   // Initialize the preprocessor
   Preprocessor_init();

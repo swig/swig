@@ -1,5 +1,8 @@
 %module redefined
 
+/* no redundant warnings */
+#pragma SWIG nowarn=-322
+
 #if 1
  //
  // All these repeated declarations are not redefinitions,
@@ -19,31 +22,38 @@
 
 %inline %{
 
-#define REPEATED 1
-#define REPEATED 1
+#define REDUNDANT 1
+#define REDUNDANT 1
 
 #define MACROREP(x) x
 #define MACROREP(x) x
 
+  class Hello;
+  class Hello;
+  
   typedef int Int;
   typedef int Int;
 
   int hello(int);
-  inline int hello(int) { return 0; };
+  inline int hello(int);
   
-  struct Hello 
+  class B;
+  
+  struct A
   {
     typedef int Int;
     typedef int Int;
-    friend int hello(int);    
+    friend int foo(A*, B*);    
   };
 
-  struct Hello2
+  struct B
   {
     typedef int Int;
     typedef int Int;
-    friend int hello(int);
+    friend int foo(A*, B*);
   };
+
+  inline int foo(A*, B*) { return 0; };
   
 %}
 
@@ -51,12 +61,14 @@
 #else
 
 //
-// the %extend directive ALWAYS emits redefined warnings,
-// since it is not only introducing a declaration, but a redefinition.
+// the %extend and %rename directive ALWAYS emit redefined warnings,
+// since they are not C/C++/CPP standard.
 //
 %extend Hello {
   int hi(int) { return 0; };
 }
+
+%rename(chao) hi(int);
 
 //
 // All these repeated declarations are really redefinitions,
@@ -69,8 +81,8 @@
 
 %inline %{
 
-#define REPEATED 1
-#define REPEATED 2
+#define REDEFINED 1
+#define REDEFINED 2
 
 #define MACROREP(x) x
 #define MACROREP(x) x*2
@@ -78,6 +90,8 @@
   typedef int Int;
   typedef double Int;
 
+  int hi(int);
+  int chao(int);
   int hello(int);
   inline double hello(int) { return 0; };
   
