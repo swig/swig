@@ -278,20 +278,17 @@ guile_cpp: $(SRCS)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
 # -----------------------------------------------------------------
 
-GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(TKINTER) $(SYSLIBS)
+GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
 
 guile_static: $(SRCS)
-	$(SWIG) -guile -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -lguilemain.i $(SWIGOPT) $(INTERFACE)
 	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
 	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
 
 guile_static_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -lguilemain.i $(SWIGOPT) $(INTERFACE)
 	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
 	$(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)
 
