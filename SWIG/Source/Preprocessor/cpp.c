@@ -1092,6 +1092,7 @@ Preprocessor_parse(DOH *s)
   	Putc(c,decl);
   	state = 110;
       } else {
+	Putc('%',chunk);
   	Putc(c,chunk);
   	state = 1;
       }
