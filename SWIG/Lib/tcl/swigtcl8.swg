@@ -68,19 +68,19 @@ typedef struct swig_instance {
 #ifdef SWIG_NOINCLUDE
 SWIGEXPORT(char *)    SWIG_PackData(char *c, void *ptr, int sz);
 SWIGEXPORT(char *)    SWIG_UnpackData(char *c, void *ptr, int sz);
-SWIGEXPORT(int)       SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *);
-SWIGEXPORT(int)       SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *);
-SWIGEXPORT(int)       SWIG_ConvertPacked(Tcl_Interp *, Tcl_Obj *, void *, int sz, swig_type_info *, int);
-SWIGEXPORT(void)      SWIG_MakePtr(char *, void *, swig_type_info *);
-SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, swig_type_info *);
-SWIGEXPORT(Tcl_Obj *) SWIG_NewPackedObj(void *, int sz, swig_type_info *);
+SWIGEXPORT(int)       SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *,int flags);
+SWIGEXPORT(int)       SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *, int flags);
+SWIGEXPORT(int)       SWIG_ConvertPacked(Tcl_Interp *, Tcl_Obj *, void *, int sz, swig_type_info *, int flags);
+SWIGEXPORT(void)      SWIG_MakePtr(char *, void *, swig_type_info *, int flags);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, swig_type_info *, int flags);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewPackedObj(void *, int sz, swig_type_info *, int flags);
 SWIGEXPORT(int)       SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
 SWIGEXPORT(char *)    SWIG_PointerTypeFromString(char *c);
 SWIGEXPORT(void)      SWIG_Acquire(void *ptr);
 SWIGEXPORT(int)       SWIG_Disown(void *ptr);
 SWIGEXPORT(void)      SWIG_InstallConstants(Tcl_Interp *interp, struct swig_const_info constants[]);
 SWIGEXPORT(Tcl_Obj *) SWIG_GetConstant(const char *key);
-SWIGEXPORT(Tcl_Obj *) SWIG_NewInstanceObj(Tcl_Interp *interp, void *, swig_type_info *, int);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewInstanceObj(Tcl_Interp *interp, void *, swig_type_info *, int flags);
 SWIGEXPORT(int)       SWIG_ObjectConstructor(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
 SWIGEXPORT(int)       SWIG_MethodCommand(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
 SWIGEXPORT(void)      SWIG_ObjectDelete(ClientData);
@@ -126,7 +126,7 @@ SWIG_UnpackData(char *c, void *ptr, int sz) {
 
 /* Convert a pointer value */
 SWIGRUNTIME(int)
-SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty)
+SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty, int flags)
 {
   swig_type_info *tc;
   /* Pointer values must start with leading underscore */
@@ -147,14 +147,15 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
     }
     *ptr = SWIG_TypeCast(tc,(void *) *ptr);
   }
+  flags = 0;
   return TCL_OK;
 }
 
 /* Convert a pointer value */
 SWIGRUNTIME(int)
-SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty)
+SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty, int flags)
 {
-  return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty);
+  return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty, flags);
 }
 
 /* Convert a pointer value */
@@ -176,7 +177,7 @@ SWIG_PointerTypeFromString(char *c) {
 
 /* Convert a packed value value */
 SWIGRUNTIME(int)
-SWIG_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int errors) {
+SWIG_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
   char  *c;
   
@@ -194,9 +195,9 @@ SWIG_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_typ
 
 type_error:
 
-  if (errors) {
+  if (flags) {
     if (ty) {
-      Tcl_SetResult(interp, (char *) "Type error. Expect ", TCL_STATIC);
+      Tcl_SetResult(interp, (char *) "Type error. Expected ", TCL_STATIC);
       Tcl_AppendElement(interp, (char *) ty->name);
       return TCL_ERROR;
     } else {
@@ -210,7 +211,7 @@ type_error:
 
 /* Take a pointer and convert it to a string */
 SWIGRUNTIME(void) 
-SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
+SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty, int flags) {
   if (ptr) {
     *(c++) = '_';
     c = SWIG_PackData(c,&ptr,sizeof(void *));
@@ -218,26 +219,28 @@ SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
   } else {
     strcpy(c,(char *)"NULL");
   }
+  flags = 0;
 }
 
 /* Create a new pointer object */
 SWIGRUNTIME(Tcl_Obj *)
-SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
+SWIG_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   Tcl_Obj *robj;
   char result[512];
-  SWIG_MakePtr(result,ptr,type);
+  SWIG_MakePtr(result,ptr,type,flags);
   robj = Tcl_NewStringObj(result,-1);
   return robj;
 }
 
 SWIGRUNTIME(Tcl_Obj *)
-SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
+SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type, int flags) {
   char result[1024];
   char *r = result;
   if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
   *(r++) = '_';
   r = SWIG_PackData(r,ptr,sz);
   strcpy(r,type->name);
+  flags = 0;
   return Tcl_NewStringObj(result,-1);
 }
 
@@ -268,10 +271,10 @@ SWIG_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
       obj = Tcl_NewStringObj((char *) constants[i].pvalue,-1);
       break;
     case SWIG_TCL_POINTER:
-      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype);
+      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_TCL_BINARY:
-      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype),0);
       break;
     default:
       obj = 0;
@@ -364,7 +367,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
 	break;
       case 'p': case 'P':
 	ty = (swig_type_info *) va_arg(ap, void *);
-	if (SWIG_ConvertPtr(interp, obj, (void **) vptr, ty) == TCL_ERROR) goto argerror;
+	if (SWIG_ConvertPtr(interp, obj, (void **) vptr, ty,0) == TCL_ERROR) goto argerror;
 	break;
       case 'o': case 'O':
 	*((Tcl_Obj **)vptr) = objv[argno+1];
@@ -657,7 +660,7 @@ SWIG_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
       Tcl_SetResult(interp, (char *) "No constructor available.", TCL_STATIC);
       return TCL_ERROR;
     }
-    if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type)) == TCL_ERROR) {
+    if (SWIG_ConvertPtr(interp,newObj, (void **) &thisvalue, *(classptr->type),0) == TCL_ERROR) {
       Tcl_DecrRefCount(newObj);
       return TCL_ERROR;
     }
@@ -677,22 +680,22 @@ SWIG_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 /* This function takes the current result and turns it into an object command */
 SWIGRUNTIME(Tcl_Obj *)
-SWIG_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *type, int own) {
-  Tcl_Obj *robj = SWIG_NewPointerObj(thisvalue, type);
+SWIG_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *type, int flags) {
+  Tcl_Obj *robj = SWIG_NewPointerObj(thisvalue, type,0);
   /* Check to see if this pointer belongs to a class or not */
   if ((type->clientdata) && (interp)) {
     Tcl_CmdInfo    ci;
     char          *name;
     name = Tcl_GetStringFromObj(robj,NULL);
-    if (!Tcl_GetCommandInfo(interp,name, &ci) || (own)) {
+    if (!Tcl_GetCommandInfo(interp,name, &ci) || (flags)) {
       swig_instance *newinst = (swig_instance *) malloc(sizeof(swig_instance));
       newinst->thisptr = Tcl_DuplicateObj(robj);
       Tcl_IncrRefCount(newinst->thisptr);
       newinst->thisvalue = thisvalue;
       newinst->classptr = (swig_class *) type->clientdata;
-      newinst->destroy = own;
+      newinst->destroy = flags;
       newinst->cmdtok = Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(robj,NULL), (swig_wrapper_func) SWIG_MethodCommand, (ClientData) newinst, (swig_delete_func) SWIG_ObjectDelete);
-      if (own) {
+      if (flags) {
 	SWIG_Acquire(thisvalue);
       }
     }

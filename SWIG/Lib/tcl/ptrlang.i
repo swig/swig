@@ -51,7 +51,7 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, const char *t
     if (strlen(type) == 0) type = 0;
   }
   s = ptrvalue;
-  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0,0) != TCL_OK) {
     Tcl_SetResult(interp, (char *) "Type error in ptrvalue. Argument is not a valid pointer value.", TCL_STATIC);
     return TCL_ERROR;
   }
@@ -59,19 +59,19 @@ static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, const char *t
   /* If no datatype was passed, try a few common datatypes first */
   if (!type) {
     /* No datatype was passed.   Type to figure out if it's a common one */
-    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
+    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p,0) == TCL_OK) {
       type = "int";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p,0) == TCL_OK) {
       type = "double";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p,0) == TCL_OK) {
       type = "short";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p,0) == TCL_OK) {
       type = "long";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p,0) == TCL_OK) {
       type = "float";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p,0) == TCL_OK) {
       type = "char";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp,0) == TCL_OK) {
       type = "char *";
     } else {
       type = "unknown";
@@ -219,7 +219,7 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelem
   } 
   /* Create the pointer value */
 
-  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,cast));
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,cast,0));
   return TCL_OK;
 }
 
@@ -235,7 +235,7 @@ static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, co
   char     *s;
 
   s = ptrvalue;
-  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0,0) != TCL_OK) {
     Tcl_SetResult(interp, (char *) "Type error in ptrset. Argument is not a valid pointer value.",
 		  TCL_STATIC);
     return TCL_ERROR;
@@ -246,19 +246,19 @@ static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, co
   if (!type) {
 
     /* No datatype was passed.   Type to figure out if it's a common one */
-    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
+    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p,0) == TCL_OK) {
       type = "int";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p,0) == TCL_OK) {
       type = "double";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p,0) == TCL_OK) {
       type = "short";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p,0) == TCL_OK) {
       type = "long";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p,0) == TCL_OK) {
       type = "float";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p,0) == TCL_OK) {
       type = "char";
-    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp) == TCL_OK) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp,0) == TCL_OK) {
       type = "char *";
     } else {
       type = "unknown";
@@ -331,25 +331,25 @@ static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
 
   /* Try to handle a few common datatypes first */
 
-  if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p,0) == TCL_OK) {
     ptr = (void *) (((int *) ptr) + offset);
     type = SWIG_POINTER_int_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p,0) == TCL_OK) {
     ptr = (void *) (((double *) ptr) + offset);
     type = SWIG_POINTER_double_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p,0) == TCL_OK) {
     ptr = (void *) (((short *) ptr) + offset);
     type = SWIG_POINTER_short_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p,0) == TCL_OK) {
     ptr = (void *) (((long *) ptr) + offset);
     type = SWIG_POINTER_long_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) { 
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p,0) == TCL_OK) { 
     ptr = (void *) (((float *) ptr) + offset);
     type = SWIG_POINTER_float_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p,0) == TCL_OK) {
     ptr = (void *) (((char *) ptr) + offset);
     type = SWIG_POINTER_char_p;
-  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) == TCL_OK) {
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,0,0) == TCL_OK) {
     ptr = (void *) (((char *) ptr) + offset);
     stype.name = SWIG_PointerTypeFromString(s);
     type = &stype;
@@ -357,7 +357,7 @@ static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
     Tcl_SetResult(interp, (char *) "Type error in ptradd. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
-  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,type));
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,type,0));
   return TCL_OK;
 }
 
@@ -372,13 +372,13 @@ int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
   char *s;
 
   s = ptrvalue;
-  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0) != TCL_OK) {
+  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0,0) != TCL_OK) {
     Tcl_SetResult(interp, (char *) "Type error in ptrfree. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
 
   /* Check to see if this pointer is a char ** */
-  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&junk,SWIG_POINTER_char_pp) == TCL_OK) {
+  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&junk,SWIG_POINTER_char_pp,0) == TCL_OK) {
     char **c = (char **) ptr;
     if (c) {
       int i = 0;
