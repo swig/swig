@@ -23,6 +23,14 @@ long long ll;
 unsigned long long ull;
 %}
 
+#ifdef SWIGJAVA
+/* Prevent LL and ULL from appearing in Java code */
+#define LL 
+#define ULL
+/* Can't initialise BigInteger with a number :( */
+%ignore lconst2;
+#endif
+
 %constant long long  lconst1 = 1234567890LL;
 %constant unsigned long long lconst2 = 1234567890ULL;
 
