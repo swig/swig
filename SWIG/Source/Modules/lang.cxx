@@ -1454,7 +1454,7 @@ int Language::classDirectorDisown(Node *n) {
   String *action = NewString("");
   Printv(action, "{\n",
                  "Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n",
-                 "if (director) director->__disown();\n",
+                 "if (director) director->swig_disown();\n",
 		 "}\n",
 		 NULL);
   Setattr(disown, "wrap:action", action);
