@@ -29,11 +29,10 @@
 <li><a href="#n16">Constants</a>
 <li><a href="#n17">Enumerations</a>
 <li><a href="#n18">Pointers</a>
-<li><a href="#n19">Arrays</a>
 <li><a href="#n20">Structures</a>
 <li><a href="#n21">C++ classes</a>
 <li><a href="#n22">C++ inheritance</a>
-<li><a href="#n23">Pointers, references and pass by value</a>
+<li><a href="#n23">Pointers, references, arrays and pass by value</a>
 <li><a href="#n24">C++ overloaded functions</a>
 <li><a href="#n25">C++ namespaces</a>
 <li><a href="#n26">C++ templates</a>
@@ -62,13 +61,14 @@
 <li><a href="#n39">C/C++ helper functions</a>
 <li><a href="#n40">Class extension with %extend</a>
 <li><a href="#n41">Exception handling with %exception</a>
+<li><a href="#n941">Method access with %javamethodmodifiers</a>
 </ul>
 <li><a href="#n42">Tips and techniques</a>
 <ul>
 <li><a href="#n43">Input and output parameters using primitive pointers and references</a>
 <li><a href="#n44">Simple pointers</a>
+<li><a href="#n19">Wrapping C arrays with Java arrays</a>
 <li><a href="#n45">Unbounded C Arrays</a>
-<li><a href="#n46">More on C arrays using the SWIG library</a>
 </ul>
 <li><a href="#n47">Java typemaps</a>
 <ul>
@@ -91,6 +91,7 @@
 </ul>
 <li><a href="#n62">Odds and ends</a>
 <ul>
+<li><a href="#n961">JavaDoc comments</a>
 <li><a href="#n63">Functional interface without proxy classes</a>
 <li><a href="#n64">Dynamic linking problems</a>
 <li><a href="#n65">Using your own JNI functions</a>
@@ -639,61 +640,6 @@ This means that the pointers in JNI code are also 32 bits.
 What happens for various reasons is on big endian machines the pointer is stored in the high order 4bytes, whereas on little endian machines the pointer is stored in the low order 4bytes. 
 As a result, care must be taken if you intend to manipulate the pointer directly from Java. 
 
-<a name="n19"></a><H3>15.3.7 Arrays</H3>
-
-
-SWIG will handle arrays and are simple to use.  Let's consider an example:
-
-<blockquote>
-<pre>
-int array[4];
-void populate(int x[]) {
-    int i;
-    for (i=0; i<4; i++)
-        x[i] = 100 + i;
-}
-</pre>
-</blockquote>
-
-These one dimensional arrays can then be used as if they were Java arrays:
-
-<blockquote>
-<pre>
-int[] array = new int[3];
-example.populate(array);
-
-System.out.print("array: ");
-for (int i=0; i&lt;array.length; i++)
-    System.out.print(array[i] + " ");
-
-example.setArray(array);
-
-int[] global_array = example.getArray();
-
-System.out.print("\nglobal_array: ");
-for (int i=0; i&lt;array.length; i++)
-    System.out.print(global_array[i] + " ");
-</pre>
-</blockquote>
-
-Java arrays are always passed by reference, so any changes a function makes to the array will be seen by the calling function. 
-Here is the output after running this code:
-
-<blockquote>
-<pre>
-array: 100 101 102 103 0 0
-global_array: 100 101 102 103
-</pre>
-</blockquote>
-
-Note that for assigning array variables the length of the C variable is used, so as the example demonstrates it is possible to use a Java array that is bigger than the C code will cope with.
-Only the number of elements in the C array will be used.
-However, if the Java array is not large enough then you are likely to get a segmentation fault or access violation, just like you would in C.
-When arrays are used in functions like <tt>populate</tt>, the size of the C array passed to the function is determined by the size of the Java array.
-Please be aware that using arrays is not efficient as all the elements are copied from the Java array to a C array whenever the array is passed to and from JNI code.
-There is an array library which can also be used and this approach is covered later.
-
-<p>
 
 <a name="n20"></a><H3>15.3.8 Structures</H3>
 
@@ -750,8 +696,8 @@ released and a new value created.   If this is not the behavior you want, you wi
 a typemap (described later).
 
 <p>
-If a structure contains arrays, access to those arrays is managed in a similar manner as global arrays.
-Consider this example:
+If a structure contains arrays, access to those arrays is managed through pointers.  For
+example, consider this:
 
 <blockquote>
 <pre>
@@ -766,16 +712,28 @@ If accessed in Java, you will see behavior like this:
 <blockquote>
 <pre>
 Bar b = new Bar();
-int[] x1 = new int[16];
-for (int i=0; i&lt;x1.length; i++)
-    x1[i] = 99;
-b.setX(x1);
-int[] x2 = b.getX();
+SWIGTYPE_p_int x = b.getX();
 </pre>
 </blockquote>
 
-The two integer arrays, <tt>x1</tt> and <tt>x2</tt> are two different arrays but are of the same size and the same member values.
-<p>
+This pointer can be passed around to functions that expect to receive
+an <tt>int *</tt> (just like C).   You can also set the value of an array member using
+another pointer.  For example:
+
+<blockquote>
+<pre>
+Bar b = new Bar();
+SWIGTYPE_p_int x = b.getX();
+Bar c = new Bar();
+c.setX(x);                    // Copy contents of b.x to c.x
+</pre>
+</blockquote>
+
+For array assignment (setters not getters), SWIG copies the entire contents of the array starting with the data pointed
+to by <tt>b.x</tt>.   In this example, 16 integers would be copied.  Like C, SWIG makes
+no assumptions about bounds checking---if you pass a bad pointer, you may get a segmentation
+fault or access violation.
+Array access can be changed from this default to use Java arrays and this is covered later.
 
 <p>
 When a member of a structure is itself a structure, it is handled as a
@@ -929,7 +887,7 @@ then the Java function <tt>spam()</tt> accepts instances of <tt>Foo</tt> or inst
 Note that Java does not support multiple inheritance so any multiple inheritance in the C++ code is not going to work. 
 A warning is given when multiple inheritance is detected and only the first base class is used. 
 
-<a name="n23"></a><H3>15.3.11 Pointers, references and pass by value</H3>
+<a name="n23"></a><H3>15.3.11 Pointers, references, arrays and pass by value</H3>
 
 
 In C++, there are many different ways a function might receive
@@ -940,6 +898,7 @@ and manipulate objects.  For example:
 void spam1(Foo *x);      // Pass by pointer
 void spam2(Foo &x);      // Pass by reference
 void spam3(Foo x);       // Pass by value
+void spam4(Foo x[]);     // Array of objects
 </pre>
 </blockquote>
 
@@ -955,6 +914,7 @@ Foo f = new Foo();  // Create a Foo
 example.spam1(f);   // Ok. Pointer
 example.spam2(f);   // Ok. Reference
 example.spam3(f);   // Ok. Value.
+example.spam4(f);   // Ok. Array (1 element)
 </pre>
 </blockquote>
 
@@ -2146,11 +2106,32 @@ public:
 </blockquote>
 
 The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also visa versa.
-It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#n53">typemaps for both C and C++ compilation</a> section. 
+It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#n53">Typemaps for both C and C++ compilation</a> section. 
 
 <p>
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html">SWIG Library</a> chapter.
+
+<a name="n941"></a><H3>15.5.4 Method access with %javamethodmodifiers</H3>
+
+A Java feature called <tt>%javamethodmodifiers</tt> can be used to change the method modifiers from the default <tt>public</tt>. It applies to both module class methods and proxy class methods. For example:
+
+<blockquote>
+<pre>
+%javamethodmodifiers protect_me() "protected";
+void protect_me();
+</pre>
+</blockquote>
+
+Will produce the method in the module class with protected access.
+
+<blockquote>
+<pre>
+protected static void protect_me() {
+  exampleJNI.protect_me();
+}
+</pre>
+</blockquote>
 
 <a name="n42"></a><H2>15.6 Tips and techniques</H2>
 
@@ -2355,6 +2336,62 @@ System.out.println("3 + 4 = " + result);
 
 See the <a href="Library.html">SWIG Library</a> chapter for further details.
 
+<a name="n19"></a><H3>15.6.0 Wrapping C arrays with Java arrays</H3>
+
+SWIG can wrap arrays in a more natural Java manner than the default by using the <tt>arrays_java.i</tt> library file. 
+Let's consider an example:
+
+<blockquote>
+<pre>
+%include "arrays_java.i";
+int array[4];
+void populate(int x[]) {
+    int i;
+    for (i=0; i<4; i++)
+        x[i] = 100 + i;
+}
+</pre>
+</blockquote>
+
+These one dimensional arrays can then be used as if they were Java arrays:
+
+<blockquote>
+<pre>
+int[] array = new int[4];
+example.populate(array);
+
+System.out.print("array: ");
+for (int i=0; i&lt;array.length; i++)
+    System.out.print(array[i] + " ");
+
+example.setArray(array);
+
+int[] global_array = example.getArray();
+
+System.out.print("\nglobal_array: ");
+for (int i=0; i&lt;array.length; i++)
+    System.out.print(global_array[i] + " ");
+</pre>
+</blockquote>
+
+Java arrays are always passed by reference, so any changes a function makes to the array will be seen by the calling function. 
+Here is the output after running this code:
+
+<blockquote>
+<pre>
+array: 100 101 102 103
+global_array: 100 101 102 103
+</pre>
+</blockquote>
+
+Note that for assigning array variables the length of the C variable is used, so it is possible to use a Java array that is bigger than the C code will cope with.
+Only the number of elements in the C array will be used.
+However, if the Java array is not large enough then you are likely to get a segmentation fault or access violation, just like you would in C.
+When arrays are used in functions like <tt>populate</tt>, the size of the C array passed to the function is determined by the size of the Java array.
+<p>
+Please be aware that the typemaps in this library are not efficient as all the elements are copied from the Java array to a C array whenever the array is passed to and from JNI code.
+There is an alternative approach using the SWIG array library and this is covered in the next.
+
 <a name="n45"></a><H3>15.6.3 Unbounded C Arrays</H3>
 
 
@@ -2372,10 +2409,11 @@ int sumitems(int *first, int nitems) {
 </pre>
 </blockquote>
 
-One of the ways to do this is to apply the array typemaps that come with SWIG:
+One of the ways to wrap this is to apply the Java array typemaps that come in the <tt>arrays_java.i</tt> library file:
 
 <blockquote>
 <pre>
+%include "arrays_java.i"
 %apply int[ANY] {int *};
 </pre>
 </blockquote>
@@ -2406,7 +2444,7 @@ Sum = 49995000
 This approach is probably the most natural way to use arrays.
 However, it suffers from performance problems when using large arrays as a lot of copying
 of the elements occurs in transferring the array from the Java world to the C++ world.
-An alternative approach to using Java arrays for C arrays is to use the SWIG library file <tt>carrays.i</tt>.
+An alternative approach to using Java arrays for C arrays is to use an alternative SWIG library file <tt>carrays.i</tt>.
 This approach can be more efficient for large arrays as the array is accessed one element at a time.
 For example:
 
@@ -2478,43 +2516,6 @@ Needless to say, this approach is not going to suit all applications.
 On the other hand, this low-level approach is extremely efficient and
 well suited for applications in which you need to create buffers,
 package binary data, etc.
-
-<a name="n46"></a><H3>15.6.4 More on C arrays using the SWIG library</H3>
-
-
-The previous section shows how unbounded C arrays can be used with the SWIG array library.
-The library can also be used when the array syntax is used.
-The default array typemaps must be cleared first:
-
-<blockquote>
-<pre>
-%clear int[ANY];
-
-int sumitems(int first[], int nitems);
-int bloggs[10];
-
-%include "carrays.i"
-%array_functions(int, intArray);
-%}
-</pre>
-</blockquote>
-
-A Java example:
-
-<blockquote>
-<pre>
-SWIGTYPE_p_int bloggs = example.getBloggs();
-for (int i=0; i<10000; i++) {                           // Set some values
-  example.intArray_setitem(bloggs,i,i);
-}
-
-int sum = example.sumitems(bloggs,10000);
-System.out.println("Sum = " + sum);
-</pre>
-</blockquote>
-
-Note that the <tt>getBloggs()</tt> function gets a pointer to the <tt>Bloggs</tt> array. 
-If you were to use the generated <tt>setBloggs(SWIGTYPE_p_int value)</tt> function all the elements in <tt>Bloggs</tt> would be set from an array assuming the pointer in <tt>value</tt> points to an array of equal size to <tt>Bloggs</tt>.
 
 <a name="n47"></a><H2>15.7 Java typemaps</H2>
 
@@ -2631,34 +2632,33 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </tr>
 
 <tr>
-<td>char *</td>
+<td>char *<br>char []</td>
 <td>String</td>
 <td>jstring</td>
 </tr>
 
 </table>
 <br>
-Arrays are implemented using the same mappings, for example a C array, <tt>unsigned short[SIZE]</tt>, is mapped to a Java array, <tt>int[SIZE]</tt>. 
-Note that SWIG treats the C <tt>char</tt> type as a character and <tt>char *</tt> as a string. 
+Note that SWIG wraps the C <tt>char</tt> type as a character. Pointers and arrays of this type are wrapped as strings. 
 The <tt>signed char</tt> type can be used if you want to treat <tt>char</tt> as a signed number rather than a character.
 Also note that all const references to primitive types are treated as if they are passed by value.
 <p>
 
 Given the following C function:
 <blockquote> <pre>
-void func(unsigned short a, char *b, const long &c, double d[], unsigned long long e);
+void func(unsigned short a, char *b, const long &c, unsigned long long d);
 </blockquote> </pre>
 The module class method would be:
 <blockquote> <pre>
-public static void func(int a, String b, int c, double[] d, java.math.BigInteger e) {...}
+public static void func(int a, String b, int c, java.math.BigInteger d) {...}
 </blockquote> </pre>
 The JNI class would use the same types:
 <blockquote> <pre>
-public final static native void func(int jarg1, String jarg2, int jarg3, double[] jarg4, java.math.BigInteger jarg5);
+public final static native void func(int jarg1, String jarg2, int jarg3, java.math.BigInteger jarg4);
 </blockquote> </pre>
 and the JNI function would look like this:
 <blockquote> <pre>
-JNIEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls, jint jarg1, jstring jarg2, jint jarg3, jdoubleArray jarg4, jobject jarg5) {...}
+JNIEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls, jint jarg1, jstring jarg2, jint jarg3, jobject jarg4) {...}
 </blockquote> </pre>
 <p>
 
@@ -2910,9 +2910,36 @@ is released afterwards</td>
 <td>string <br>wstring</td>
 <td>[unnamed]</td>
 <td>std_string.i</td>
-<td>input<br> ouput</td>
+<td>input<br> output</td>
 <td>String</td>
 <td>Use for std::string mapping to Java String.</td>
+</tr>
+
+<tr>
+<td>arrays of primitive types</td>
+<td>[unnamed]</td>
+<td>arrays_java.i</td>
+<td>input<br> output</td>
+<td>arrays of primitive Java types</td>
+<td>Use for mapping C arrays to Java arrays.</td>
+</tr>
+
+<tr>
+<td>arrays of classes/structs/unions</td>
+<td>JAVA_ARRAYSOFCLASSES macro</td>
+<td>arrays_java.i</td>
+<td>input<br> output</td>
+<td>arrays of proxy classes</td>
+<td>Use for mapping C arrays to Java arrays.</td>
+</tr>
+
+<tr>
+<td>arrays of enums</td>
+<td>ARRAYSOFENUMS</td>
+<td>arrays_java.i</td>
+<td>input<br> output</td>
+<td>int[]</td>
+<td>Use for mapping C arrays to Java arrays.</td>
 </tr>
 </table>
 
@@ -3744,8 +3771,56 @@ This example contains some useful functionality which you may want in your code.
 
 
 
-
 <a name="n62"></a><H2>15.9 Odds and ends</H2>
+
+<a name="n961"></a><H3>15.9.0 JavaDoc comments</H3>
+
+The SWIG documentation system is currently deprecated. 
+When it is resurrected JavaDoc comments will be fully supported. 
+If you can't wait for the full documentation system a couple of workarounds are available. 
+The <tt>%javamethodmodifiers</tt> feature can be used for adding proxy class method comments and module class method comments. 
+The "javaimports" typemap can be hijacked for adding in proxy class JavaDoc comments. 
+The <tt>jniclassimports</tt> or <tt>jniclassclassmodifiers</tt> pragmas can also be used for adding JNI class comments and likewise the <tt>moduleimports</tt> or <tt>moduleclassmodifiers</tt> pragmas for the module class. 
+Here is an example adding in a proxy class and method comment:
+
+<blockquote>
+<pre>
+%javamethodmodifiers Barmy::lose_marbles() "
+  /**
+    * Calling this method will make you mad.
+    * Use with &lt;b&gt;utmost&lt;/b&gt; caution. 
+    */
+  public";
+
+%typemap(javaimports) Barmy "
+/** The crazy class. Use as a last resort. */"
+
+class Barmy {
+public:
+  void lose_marbles() {}
+};
+</pre>
+</blockquote>
+
+Note the "public" added at the end of the <tt>%javamethodmodifiers</tt> as this is the default for this feature. 
+The generated proxy class with JavaDoc comments is then as follows:
+<blockquote>
+<pre>
+/** The crazy class. Use as a last resort. */
+public class Barmy {
+...
+  /**
+    * Calling this method will make you mad.
+    * Use with &lt;b&gt;utmost&lt;/b&gt; caution. 
+    */
+  public void lose_marbles() {
+    ...
+  }
+...
+}
+</pre>
+</blockquote>
+
 
 
 <a name="n63"></a><H3>15.9.1 Functional interface without proxy classes</H3>
@@ -3861,8 +3936,7 @@ This directive is only really useful if you want to mix your own JNI code and th
 <a name="n66"></a><H3>15.9.4 Performance concerns and hints</H3>
 
 
-If you're directly manipulating huge arrays of complex objects from Java, performance may suffer greatly.  
-In these cases, you should consider implementing the functions in C or think of ways to optimize the problem. 
+If you're directly manipulating huge arrays of complex objects from Java, performance may suffer greatly when using the array functions in <tt>arrays_java.i</tt>.
 Try and minimise the expensive JNI calls to C/C++ functions, perhaps by using temporary Java variables instead of accessing the information directly from the C/C++ object.<p>
 
 Java classes without any finalizers generally speed up code execution as there is less for the garbage collector to do. Finalizer generation can be stopped by using an empty <tt>javafinalize</tt> typemap: 
