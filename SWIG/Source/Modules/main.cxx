@@ -32,14 +32,6 @@ extern "C" {
 
 #include <ctype.h>
 
-#ifndef SWIG_LIB
-#define SWIG_LIB "/usr/local/lib/swig1.3"
-#endif
-
-#ifndef SWIG_CC
-#define SWIG_CC "CC"
-#endif
-
 // Global variables
 
     char       LibDir[512];                      // Library directory
@@ -227,9 +219,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
 #endif
 
-  // Set the SWIG version value
-  String *vers;
-  vers = NewStringf("SWIG_VERSION 0x%02d%02d%02d", SWIG_MAJOR_VERSION, SWIG_MINOR_VERSION, SWIG_SPIN);
+  // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
+  String *package_version = NewString(PACKAGE_VERSION);
+  char *token = strtok(Char(package_version), ".");
+  String *vers = NewString("SWIG_VERSION 0x");
+  int count = 0;
+  while (token) {
+    int len = strlen(token);
+    assert(len == 1 || len == 2);
+    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
+    token = strtok(NULL, ".");
+    count++;
+  }
+  Delete(package_version);
+  assert(count == 3); // Check version format is correct
+
   Preprocessor_define(vers,0);
 
   // Check for SWIG_LIB environment variable
@@ -314,13 +318,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 		Swig_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-version") == 0) {
- 	      fprintf(stderr,"\nSWIG Version %s\n",
-		      SWIG_VERSION);
+ 	      fprintf(stderr,"\nSWIG Version %s\n", PACKAGE_VERSION);
 	      fprintf(stderr,"Copyright (c) 1995-1998\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
               fprintf(stderr,"Copyright (c) 1998-2002\n");
 	      fprintf(stderr,"University of Chicago\n");
-	      fprintf(stderr,"\nCompiled with %s\n", SWIG_CC);
+	      fprintf(stderr,"Compiled with %s\n", SWIG_CXX);
+	      fprintf(stderr,"\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	      SWIG_exit (EXIT_SUCCESS);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path
