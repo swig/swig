@@ -117,7 +117,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        Bar should still allow access to Blah * through operator->().
 
-**     Virtual function optimization.  If you have two classes like this:
+[DONE] Virtual function optimization.  If you have two classes like this:
 
           class Foo {
           public:
@@ -131,6 +131,8 @@ defer  ready to go.  The primary obstacle lies in the target language
 
        Then SWIG ought to be able to reuse the wrapper for Foo::blah as
        Bar::blah.   This should result in much smaller extension modules.
+
+       This feature is now enabled using the -fvirtual option.
 
 **     Restoration of the documentation system.
 
@@ -156,7 +158,7 @@ Build
 ****   Make sure there are tests for *ALL* library files in the test-suite.
        A number of files appear to be broken in SWIG-1.3.13.
 
-***    Move the Source/Modules1.1 directory into the Source/Modules directory
+[DONE] Move the Source/Modules1.1 directory into the Source/Modules directory
        and deprecate Modules1.1.
 
 Library
@@ -379,8 +381,8 @@ Documentation
 Other
 -----
 
-****   Bring Tiger's .NET/CLR module online.
+[DONE] Bring Tiger's .NET/CLR module online.
 
-****   Learn more wicked Jazz chords.
-
+*****  Learn more wicked Jazz chords.
+       (in progress)
 
