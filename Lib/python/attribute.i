@@ -79,7 +79,7 @@
     return get;
   }
   template <class C>
-  inline type Class ##_## attr ## _set(C *t, const type& val) {
+  inline void Class ##_## attr ## _set(C *t, const type& val) {
     set;
   }
 %}
@@ -87,9 +87,11 @@
 
 %define %attribute(Class, type, attr, get, ...) 
 #if #__VA_ARGS__ != ""
-  %_attribute(Class, type, attr, t->get(), t->__VA_ARGS__(val)) 
+  %_attribute(SWIG_arg(Class), SWIG_arg(type),
+	      attr, t->get(), t->__VA_ARGS__(val)) 
 #else
-  %_attribute(Class, type, attr, t->get(), 
+  %_attribute(SWIG_arg(Class), SWIG_arg(type),
+	      attr, t->get(), 
 	      std::cerr << "'attr' is a read-only attribute" << std::endl);
 #endif
 %enddef
@@ -106,7 +108,7 @@
     return t->ref_name();
   }
   template <class C>
-  inline type Class ##_## attr ## _set(C *t, const type& val) {
+  inline void Class ##_## attr ## _set(C *t, const type& val) {
      t->ref_name() = val;
   }
 %}
@@ -114,8 +116,8 @@
 
 %define %attribute_ref(Class, type, attr, ...) 
 #if #__VA_ARGS__ == ""
-%_attribute_ref(Class, type, attr, attr) 
+%_attribute_ref(SWIG_arg(Class), SWIG_arg(type), attr, attr) 
 #else
-%_attribute_ref(Class, type, attr, __VA_ARGS__)
+%_attribute_ref(SWIG_arg(Class), SWIG_arg(type), attr, __VA_ARGS__)
 #endif
 %enddef
