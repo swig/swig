@@ -71,8 +71,11 @@ static void set_typemap(int tm_scope, SwigType* type, Hash* tm)
     /* Printf(stderr,"settm %s %s\n", type, dtype);*/
     type = dtype; 
     Delete(ty);
+  } else {
+    dtype = Copy(type);
+    type = dtype;
   }
-  Setattr(typemaps[tm_scope],Copy(type),tm);
+  Setattr(typemaps[tm_scope],type,tm);
   Delete(dtype);
 }
 
@@ -113,6 +116,7 @@ static String *tmop_name(const String_or_char *op) {
   if (s) return s;
   s = NewStringf("tmap:%s",op);
   Setattr(names,op_without_object_identity,s);
+  Delete(s);
   return s;
 }
 
@@ -490,6 +494,8 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
     }
     ts--;
   }
+  Delete(ssig);
+  Delete(dsig);
   return match;
 }
 
@@ -1209,18 +1215,23 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   pname = Getattr(node,"name");
 
 #if 0
-  /* removed for now as it breaks old code and introduces inconsistencies and adds about 25% to the execution time of the test-suite - WSF */
-  This is my plan to fix this longer term:
-  The following debug shows that some typemap lookups use fully qualified names and some do not.
+  /* removed for now as it breaks old code and introduces
+  inconsistencies and adds about 25% to the execution time of the
+  test-suite - WSF This is my plan to fix this longer term: The
+  following debug shows that some typemap lookups use fully qualified
+  names and some do not.
 
 Printf(stdout, "Swig_typemap_lookup %s [%s %s]\n", op, type, pname ? pname : "NONAME");
 
-  So even the current typemap lookups are inconsistent.
-  The "name" attribute is often changed, particularly in lang.cxx. I hope to either remove this name changing to fix this or introduce
-  a new attribute to use for the name.  Possibly introduce a new attribute called fqname - fully qualified name, that holds the name
-  to use for the Swig_typemap_search.  If this typemap search fails then use the unqualified name.
-  Need to check non-simple return types, eg pointers/references.
-  
+  So even the current typemap lookups are inconsistent.  The "name"
+  attribute is often changed, particularly in lang.cxx. I hope to
+  either remove this name changing to fix this or introduce a new
+  attribute to use for the name.  Possibly introduce a new attribute
+  called fqname - fully qualified name, that holds the name to use for
+  the Swig_typemap_search.  If this typemap search fails then use the
+  unqualified name.  Need to check non-simple return types, eg
+  pointers/references.
+  */
   st = Getattr(node,"sym:symtab");
   qsn = st ? Swig_symbol_qualifiedscopename(st) : 0;
   if (qsn && Len(qsn)) {
@@ -1693,7 +1704,6 @@ static void replace_embedded_typemap(String *s) {
 		/* Do the replacement */
 		Replace(s,tmp,tm, DOH_REPLACE_ANY);
 		Delete(tm);
-		Delete(vars);
 		match = 1;
 	      }
 	    }
@@ -1701,9 +1711,12 @@ static void replace_embedded_typemap(String *s) {
 	      Swig_error(Getfile(s),Getline(s),"No typemap found for %s\n", tmp);
 	    }
 	  }
-	}
+	}	
       }
       Replace(s,tmp,"<embedded typemap>", DOH_REPLACE_ANY);
+      Delete(vars);
+      Delete(tmp);      
+      Delete(l);
     }
   }
 }

@@ -959,6 +959,7 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname,global_scope,0,0,0);
       }
+      Delete(nname);
     } else {
       String *prefix = Swig_scopename_prefix(name);
       if (prefix) {
