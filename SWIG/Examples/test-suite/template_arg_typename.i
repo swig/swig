@@ -14,7 +14,7 @@
 			     
   {
     typedef UnaryFunction<ArgType, bool> base;
-    BoolUnaryFunction(const typename base::vptr_type* vptrf);
+    BoolUnaryFunction(const typename base::vptr_type* vptrf) {}
 
   };
 
