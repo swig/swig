@@ -390,9 +390,9 @@ raw_insert(String *s, int pos, char *data, int len)
     }
     memmove(s->str+pos+len, s->str+pos, (s->len - pos));
     memcpy(s->str+pos,data,len);
-    if (s->sp >= s->len) {
+    if (s->sp >= pos) {
       int i;
-      s->sp = s->len;
+
 #ifdef DOH_STRING_UPDATE_LINES
       for (i = 0; i < len; i++) {
 	if (data[i] == '\n') s->line++;
@@ -400,6 +400,7 @@ raw_insert(String *s, int pos, char *data, int len)
 #endif
       s->sp+=len;
     }
+
     s->len += len; 
     s->str[s->len] = 0;
 }  
