@@ -764,7 +764,11 @@ public:
       if (value) {
         if (Strcmp(value, "NULL") == 0)
           value = NewString("None");
-        else {
+        else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
+          value = NewString("True");
+	else if (Strcmp(value, "false") == 0 || Strcmp(value, "FALSE") == 0)
+          value = NewString("False");        
+	else {
           lookup = Swig_symbol_clookup(value, 0);
           if (lookup)
             value = Getattr(lookup, "sym:name");
