@@ -1,6 +1,6 @@
 <?php
 
-	dl("libexample.so");
+	require "example.php";
 
 	/* Try to set the values of some global variables */
 
