@@ -32,6 +32,11 @@
 #define %readonly    %pragma(swig) readonly;
 #define %readwrite   %pragma(swig) readwrite;
 
+/* Directives for callback functions */
+
+#define %callback(x) %pragma(swig) callback=`x`;
+#define %nocallback  %pragma(swig) nocallback;
+
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
