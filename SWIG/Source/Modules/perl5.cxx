@@ -17,6 +17,8 @@ char cvsroot_perl5_cxx[] = "$Header$";
 
 #include "swigmod.h"
 
+#include <ctype.h>
+
 static const char *usage = (char*)"\
 Perl5 Options (available with -perl5)\n\
      -static         - Omit code related to dynamic loading\n\
@@ -1230,7 +1232,15 @@ public:
 	//      fprintf(stderr,"Found member_func operator: %s\n", symname);
       }
 
-      Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
+      if (Getattr(n,"feature:shadow")) {
+	String *plcode = perlcode(Getattr(n,"feature:shadow"),0);
+	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name,symname));
+	Replaceall(plcode,"$action" ,plaction);
+	Delete(plaction);
+	Printv(pcode,plcode,NIL);
+      } else {
+	Printv(pcode,"*",symname," = *", cmodule, "::", Swig_name_member(class_name,symname), ";\n", NIL);
+      }
     }
     return SWIG_OK;
   }
@@ -1291,22 +1301,30 @@ public:
     Language::constructorHandler(n);
 
     if ((blessed) && (!Getattr(n,"sym:nextSibling"))) {
-      if ((Cmp(symname,class_name) == 0)) {
-	/* Emit a blessed constructor  */
-	Printf(pcode, "sub new {\n");
+      if (Getattr(n,"feature:shadow")) {
+        String *plcode = perlcode(Getattr(n,"feature:shadow"),0);
+        String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name,symname));
+	Replaceall(plcode,"$action" ,plaction);
+        Delete(plaction);
+        Printv(pcode,plcode,NIL);
       } else {
-	/* Constructor doesn't match classname so we'll just use the normal name  */
-	Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
+	if ((Cmp(symname,class_name) == 0)) {
+	  /* Emit a blessed constructor  */
+	  Printf(pcode, "sub new {\n");
+	} else {
+	  /* Constructor doesn't match classname so we'll just use the normal name  */
+	  Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
+	}
+
+	Printv(pcode,
+	       tab4, "my $pkg = shift;\n",
+	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n",
+	       tab4, "bless $self, $pkg if defined($self);\n",
+	       "}\n\n",
+	       NIL);
+
+	have_constructor = 1;
       }
-
-      Printv(pcode,
-	     tab4, "my $pkg = shift;\n",
-	     tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n",
-	     tab4, "bless $self, $pkg if defined($self);\n",
-	     "}\n\n",
-	     NIL);
-
-      have_constructor = 1;
     }
     member_func = 0;
     return SWIG_OK;
@@ -1321,18 +1339,26 @@ public:
     member_func = 1;
     Language::destructorHandler(n);
     if (blessed) {
-      Printv(pcode,
-	     "sub DESTROY {\n",
-	     tab4, "return unless $_[0]->isa('HASH');\n",
-	     tab4, "my $self = tied(%{$_[0]});\n",
-	     tab4, "return unless defined $self;\n",
-	     tab4, "delete $ITERATORS{$self};\n",
-	     tab4, "if (exists $OWNER{$self}) {\n",
-	     tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
-	     tab8, "delete $OWNER{$self};\n",
-	     tab4, "}\n}\n\n",
-	     NIL);
-      have_destructor = 1;
+      if (Getattr(n,"feature:shadow")) {
+        String *plcode = perlcode(Getattr(n,"feature:shadow"),0);
+        String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name,symname));
+	Replaceall(plcode,"$action" ,plaction);
+        Delete(plaction);
+        Printv(pcode,plcode,NIL);
+      } else {
+	Printv(pcode,
+	       "sub DESTROY {\n",
+	       tab4, "return unless $_[0]->isa('HASH');\n",
+	       tab4, "my $self = tied(%{$_[0]});\n",
+	       tab4, "return unless defined $self;\n",
+	       tab4, "delete $ITERATORS{$self};\n",
+	       tab4, "if (exists $OWNER{$self}) {\n",
+	       tab8,  cmodule, "::", Swig_name_destroy(symname), "($self);\n",
+	       tab8, "delete $OWNER{$self};\n",
+	       tab4, "}\n}\n\n",
+	       NIL);
+	have_destructor = 1;
+      }
     }
     member_func = 0;
     return SWIG_OK;
@@ -1429,6 +1455,62 @@ public:
     return Language::pragmaDirective(n);
   }
 
+  /* ------------------------------------------------------------
+   * perlcode()     - Output perlcode code into the shadow file
+   * ------------------------------------------------------------ */
+
+  String *perlcode(String *code, const String *indent) {
+    String *out = NewString("");
+    String *temp;
+    char   *t;
+    if (!indent) indent = "";
+
+    temp = NewString(code);
+
+    t = Char(temp);
+    if (*t == '{') {
+      Delitem(temp,0);
+      Delitem(temp,DOH_END);
+    }
+
+    /* Split the input text into lines */
+    List *clist = DohSplitLines(temp);
+    Delete(temp);
+    int   initial = 0;
+    String *s = 0;
+    Iterator si;
+    /* Get the initial indentation */
+    
+    for (si = First(clist); si.item; si = Next(si)) {
+      s = si.item;
+      if (Len(s)) {
+	char *c = Char(s);
+	while (*c) {
+	  if (!isspace(*c)) break;
+	  initial++;
+	  c++;
+	}
+	if (*c && !isspace(*c)) break;
+	else {
+	  initial = 0;
+	}
+      }
+    }
+    while (si.item) {
+      s = si.item;
+      if (Len(s) > initial) {
+	char *c = Char(s);
+	c += initial;
+	Printv(out,indent,c,"\n",NIL);
+      } else {
+	Printv(out,"\n",NIL);
+      }
+      si = Next(si);
+    }
+    Delete(clist);
+    return out;
+  }
+  
   /* ------------------------------------------------------------
    * insertDirective()
    * 
