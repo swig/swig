@@ -10,6 +10,8 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
+static char cvsroot[] = "$Header$";
+
 #include "swig.h"
 
 /* -----------------------------------------------------------------------------
@@ -244,7 +246,6 @@ void SwigType_push(DOHString *t, DOHString *cons)
   if (!cons) return;
   if (!Len(cons)) return;
   if (Len(t)) {
-    int len;
     char *c = Char(cons);
     if (c[strlen(c)-1] != '.')
       Insert(t,0,".");
@@ -534,10 +535,9 @@ DOHString *
 SwigType_cstr(DOHString *s, DOHString_or_char *id)
 {
   DOHString *result;
-  DOHString *element, *nextelement;
+  DOHString *element = 0, *nextelement;
   DOHList *elements;
   int nelements, i;
-  char *c;
 
   if (id) {
     result = NewString(Char(id));
@@ -616,7 +616,7 @@ static DOHHash   *scopes[MAX_SCOPE];            /* List representing the current
 static DOHString *scopenames[MAX_SCOPE];        /* Names of the various scopes         */
 static int      scope_level = 0;
 
-static init_scopes() {
+static void init_scopes() {
   if (type_scopes) return;
   type_scopes = NewHash();
   scopes[scope_level] = NewHash();

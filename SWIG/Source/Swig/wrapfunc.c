@@ -17,6 +17,7 @@
 static char cvsroot[] = "$Header$";
 
 #include "swig.h"
+#include <ctype.h>
 
 /* -----------------------------------------------------------------------------
  * NewWrapper()
@@ -32,6 +33,9 @@ NewWrapper() {
   w->locals = NewString("");
   w->code = NewString("");
   w->def = NewString("");
+  w->_type = 0;
+  w->_parms = 0;
+  w->_name = 0;
   return w;
 }
 
@@ -47,6 +51,9 @@ DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
+  if (w->_type) DelDataType(w->_type);
+  if (w->_parms) DelParmList(w->_parms);
+  if (w->_name) Delete(w->_name);
   free(w);
 }
 
@@ -142,6 +149,7 @@ Wrapper_add_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_
   }
   Setattr(w->localh,name,decl);
   Printf(w->locals,"%s;\n", decl);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -248,4 +256,62 @@ Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
   Delete(decl);
   return ret;
 }
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Gettype()
+ * ----------------------------------------------------------------------------- */
+
+DataType *
+Wrapper_Gettype(Wrapper *w) {
+  return w->_type;
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Settype()
+ * ----------------------------------------------------------------------------- */
+
+void
+Wrapper_Settype(Wrapper *w, DataType *t) {
+  if (w->_type) DelDataType(w->_type);
+  w->_type = CopyDataType(t);
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Getparms()
+ * ----------------------------------------------------------------------------- */
+
+ParmList *
+Wrapper_Getparms(Wrapper *w) {
+  return w->_parms;
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Setparms()
+ * ----------------------------------------------------------------------------- */
+
+void
+Wrapper_Setparms(Wrapper *w, ParmList *l) {
+  if (w->_parms) DelParmList(w->_parms);
+  w->_parms = CopyParmList(l);
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Getname()
+ * ----------------------------------------------------------------------------- */
+
+char *
+Wrapper_Getname(Wrapper *w) {
+  return Char(w->_name);
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_Setname()
+ * ----------------------------------------------------------------------------- */
+
+void
+Wrapper_Setname(Wrapper *w, DOHString_or_char *n) {
+  if (w->_name) Delete(w->_name);
+  w->_name = NewString(n);
+}
+
 
