@@ -157,10 +157,12 @@ public:
     SwigType_emit_type_table (f_runtime, f_wrappers);
     if (!noinit) {
     Printf(f_init, "Scheme_Object *scheme_reload(Scheme_Env *env) {\n");
-	Printf(f_init, "\tScheme_Env *menv = env;\n");
-	if (declaremodule) {
-		Printf(f_init, "\tmenv = scheme_primitive_module(scheme_intern_symbol(\"%s\"), env);\n", module);
-	}
+    if (declaremodule) {
+      Printf(f_init, "\tScheme_Env *menv = scheme_primitive_module(scheme_intern_symbol(\"%s\"), env);\n", module);
+    }
+    else {
+      Printf(f_init, "\tScheme_Env *menv = env;\n");
+    }
     Printf(f_init, "%s\n", Char(init_func_def));
 	if (declaremodule) {
 		Printf(f_init, "\tscheme_finish_primitive_module(menv);\n");
