@@ -1,5 +1,8 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+2/10/00 : The documentation system has been removed. However, it is likely
+          to return at some point in the future.
+
 2/1/00  : Added a number of performance enhancements to the Python shadow
           classing and type-checking code.  Contributed by Vadim Chugunov.
 
