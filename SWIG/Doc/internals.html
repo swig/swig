@@ -648,15 +648,15 @@ repeated calls without making any copies.
 [TODO]
 
 <a name="7" href="#i7">
-<h2>7. C/C++ Wrapper Support Functions</h2>
+<h2>7. The C/C++ Wrapping Layer</h2>
 </a>
 
 Added: Dave Beazley (July 22, 2000)
 
 <p>
-When generating wrappers, SWIG tries to provide a mostly
-seamless with the original code.  However, there are a number of
-problematic features of C/C++ that are handled in the following manner:
+When SWIG generates wrappers, it tries to provide a mostly seamless integration
+with the original code.  However, there are a number of problematic features
+of C/C++ programs that complicate this interface. 
 
 <ul>
 <li><b>Passing and returning structures by value.</b>  When used, SWIG converts
@@ -711,10 +711,84 @@ that return a reference.
 qualifiers from the interface presented to the target language.
 Besides, what in the heck is "const" in Perl anyways?
 
+<p>
+<li><b>Instance Methods</b>.   Method invocations are handled as a function call in which
+a pointer to the object (the "this" pointer) appears as the first argument.  For example, in
+the following class:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    double bar(double);
+};
+</pre>
+</blockquote>
+
+The "bar" method is wrapped by a function like this:
+
+<blockquote>
+<pre>
+double Foo_bar(Foo *self, double arg0) {
+   return self->bar(arg0);
+}
+</pre>
+</blockquote>
+
+<p>
+<li><b>Structure/class data members</b>.  Data members are handled by creating a pair
+of wrapper functions that set and get the value respectively.   For example:
+
+<blockquote>
+<pre>
+struct Foo {
+    int x;
+};
+</pre>
+</blockquote>
+
+gets wrapped as follows:
+
+<blockquote>
+<pre>
+int Foo_x_get(Foo *self) {
+    return self->x;
+}
+int Foo_x_set(Foo *self, int value) {
+    return (self->x = value);
+}
+</pre>
+</blockquote>
+
+<p>
+<li><b>Constructors</b>.  Constructors for C/C++ data structures are wrapped by
+a function like this:
+
+<blockquote>
+<pre>
+Foo *new_Foo() {
+    return new Foo;
+}
+</pre>
+</blockquote>
+Note: For C, new objects are created using the calloc() function.
+
+<p>
+<li><b>Destructors</b>.  Destructors for C/C++ data structures are wrapper like this:
+
+<blockquote>
+<pre>
+void delete_Foo(Foo *self) {
+    delete self;
+}
+</pre>
+</blockquote>
+Note: For C, objects are destroyed using free().
+
 </ul>
 
-All of these transformations are handled by a collection of functions found
-in the file <tt>Source/Swig/cwrap.c</tt>.
+The creation of wrappers and various type transformations are handled by a collection of functions
+found in the file <tt>Source/Swig/cwrap.c</tt>.
 
 <ul>
 <li>
@@ -723,6 +797,11 @@ This function creates a string containing the declaration of a local variable wi
 type <tt>t</tt>, name <tt>name</tt>, and default value <tt>value</tt>.  This local
 variable is stripped of all qualifiers and will be a pointer if the type is a reference
 or user defined type.
+
+<p>
+<li>
+<tt>DataType *Swig_clocal_type(DataType *t)</tt><br>
+Returns a type object corresponding to the type string produced by the Swig_clocal() function.
 
 <p>
 <li><tt>char *Swig_clocal_deref(DataType *t, char *name)</tt><br>
@@ -758,17 +837,20 @@ result, <tt>resultname</tt> is the name of the result variable, and <tt>decl</tt
 a string that contains the C code which produces the result.
 
 <p>
-<li><tt>char *Swig_cfunction(char *name, ParmList *parms)</tt>
+<li><tt>Wrapper *Swig_cfunction_wrapper(char *fname, DataType *rtype, ParmList *parms, char *code)</tt><br>
+Create a wrapper around a normal function declaration.  <tt>fname</tt> is the name of the wrapper,
+<tt>rtype</tt> is the return type, <tt>parms</tt> are the function parameters, and <tt>code</tt> is a
+string containing the code in the function body.
+
+<p>
+<li><tt>Wrapper *Swig_cmethod_wrapper(char *classname, char *methodname, DataType *rtype, DataType *parms, char *code)</tt><br>
+
+<p>
+<li><tt>char *Swig_cfunction_call(char *name, ParmList *parms)</tt>
 This function produces a string containing the code needed to call a C function.
 The string that is produced contains all of the transformations needed to convert
 pass-by-value into pass-by-reference as well as handle C++ references.  Produces
 a string like "name(arg0, arg1, ..., argn)".
-
-<p>
-<li><tt>char *Swig_cmethod(char *name, ParmList *parms)</tt>
-This function produces a string containing the code needed to call a C++ class
-method.  <tt>parms</tt> should be a complete list of arguments where the first
-argument is the "this" variable.  Produces a string like "arg0->name(arg1, ..., argn)".
 
 </ul>
 
