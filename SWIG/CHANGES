@@ -42,7 +42,6 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	   The Guile-specific substitution $basedescriptor was removed
 	   because it was useless.
 
->>>>>>> 1.73.2.69.2.39
 8/12/2001: beazley
            The %extern directive is now deprecated and withdrawn.  The
            purpose of this directive was to import selected definitions
