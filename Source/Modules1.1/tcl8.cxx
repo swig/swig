@@ -529,10 +529,21 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 void
 TCL8::link_variable(char *name, char *iname, SwigType *t) {
 
+  String *new_name = 0;
+  int isarray = 0;
+
   /* See if there were any typemaps */
   if (Swig_typemap_search((char *)"varin",t,name) || (Swig_typemap_search((char*)"varout",t,name))) {
     Printf(stderr,"%s : Line %d. Warning. varin/varout typemap methods not supported.",
 	    input_file, line_number);
+  }
+
+  isarray = SwigType_isarray(t);
+  if (isarray) {
+    Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
+    new_name = NewStringf("_swig_%s",name);
+    Printf(f_wrappers,"static %s = (%s) %s;\n", SwigType_lstr(t,new_name), SwigType_lstr(t,0), name);
+    name = Char(new_name);
   }
 
   /* Dump a collection of set/get functions suitable for variable tracing */
@@ -673,7 +684,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   }
   Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) &", name, ", _swig_", SwigType_manglestr(t), "_get,", 0);
   
-  if (Status & STAT_READONLY) {
+  if ((Status & STAT_READONLY) || (isarray)) {
     static int readonly = 0;
     if (!readonly) {
       Wrapper *ro = NewWrapper();
@@ -687,6 +698,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
   } else {
     Printv(var_info, "_swig_", SwigType_manglestr(t), "_set},\n",0);
   }
+  Delete(new_name);
 }
 
 /* -----------------------------------------------------------------------------

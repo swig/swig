@@ -842,7 +842,6 @@ statement      : INCLUDE STRING LBRACE {
                | HBLOCK {
 		 if (!WrapExtern) {
 		   $1[strlen($1) - 1] = 0;
-//		   Printf(f_header,"#line %d \"%s\"\n", start_line, input_file);
 		   Printf(f_header, "%s\n", $1);
 		 }
 	       }
@@ -858,7 +857,6 @@ statement      : INCLUDE STRING LBRACE {
 
                | WRAPPER HBLOCK {
                  if (!WrapExtern) {
-		   init_language();
 		   $2[strlen($2) - 1] = 0;
 		   Printf(f_wrappers,"%s\n",$2);
 		 }
@@ -875,7 +873,6 @@ statement      : INCLUDE STRING LBRACE {
 
                | INIT HBLOCK {
 		 if (!WrapExtern) {
-		   init_language();
 		   $2[strlen($2) -1] = 0;
 		   Printf(f_init,"%s\n", $2);
 		 }
@@ -952,12 +949,9 @@ statement      : INCLUDE STRING LBRACE {
 /* Module directive */
 
                | MODULE ID initlist {
-		   if ($3.count)
-		     lang->set_module($2);
-		   else
-		     lang->set_module($2);
-		   module_init = 1;
-		   init_language();
+		 lang->set_module($2);
+		 module_init = 1;
+		 init_language();
 		 for (i = 0; i < $3.count; i++)
 		   if ($3.names[i]) free($3.names[i]);
 		 free($3.names);
