@@ -2309,13 +2309,17 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 
 
 pointer    : STAR type_qualifier pointer { 
-               $$ = $3;  
+               $$ = NewString("");
                SwigType_add_pointer($$);
 	       SwigType_push($$,$2);
+	       SwigType_push($$,$3);
+	       Delete($3);
            }
            | STAR pointer {
-	     $$ = $2;
+	     $$ = NewString("");
 	     SwigType_add_pointer($$);
+	     SwigType_push($$,$2);
+	     Delete($2);
 	     } 
            | STAR type_qualifier { 
 	     	$$ = NewString("");	
