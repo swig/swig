@@ -43,13 +43,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
-	template_ns4 \
-	template_tbase_template \
-	template_base_template \
-	template_ns_inherit \
-	template_default \
-	template_ns3 \
-	template_rename \
 	add_link \
 	anonymous_arg \
 	arrays_global \
@@ -96,14 +89,21 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	template \
+	template_base_template \
 	template_classes \
 	template_const_ref \
+	template_default \
 	template_forward \
 	template_inherit \
 	template_ns \
 	template_ns2 \
+	template_ns3 \
+	template_ns4 \
+	template_ns_inherit \
 	template_qualifier \
 	template_qualifier \
+	template_rename \
+	template_tbase_template \
 	template_whitespace \
 	typedef_funcptr \
 	typedef_inherit \
