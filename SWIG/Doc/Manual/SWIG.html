@@ -2111,7 +2111,7 @@ You can make a <tt>Vector</tt> look alot like a class by writing a SWIG interfac
 %extend Vector {             // Attach these functions to struct Vector
 	Vector(double x, double y, double z) {
 		Vector *v;
-		v = (Vector *v) malloc(sizeof(Vector));
+		v = (Vector *) malloc(sizeof(Vector));
 		v-&gt;x = x;
 		v-&gt;y = y;
 		v-&gt;z = z;
