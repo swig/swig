@@ -654,9 +654,6 @@ public:
     int     allow_kwargs = (use_kw || Getattr(n,"feature:kwargs")) ? 1 : 0;
 
     /* member of a director class? */
-    int director = Swig_directormethod(n);
-    int directorbase = Swig_directorbase(n);
-    Node *classNode = Swig_methodclass(n);
     String *nodeType = Getattr(n, "nodeType");
     int constructor = (!Cmp(nodeType, "constructor")); 
     String *storage   = Getattr(n,"storage");
@@ -1380,7 +1377,6 @@ public:
 	 * to SWIGTYPE) called DIRECTORTYPE?
 	 */
 	if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
-	  String *base = SwigType_base(ptype);
 	  Node *module = Getattr(parent, "module");
 	  Node *target = Swig_directormap(module, ptype);
 	  sprintf(source, "obj%d", idx++);
