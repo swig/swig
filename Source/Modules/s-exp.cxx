@@ -43,6 +43,9 @@ public:
 	    fputs( usage, stderr );
 	  }
       }
+
+      // Add a symbol to the parser for conditional compilation
+      Preprocessor_define("SWIGSEXP 1",0);
   }
 
   DOHHash *print_circle_hash;
