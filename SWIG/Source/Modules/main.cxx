@@ -128,6 +128,8 @@ static DOH    *libfiles = 0;
 static DOH    *cpps = 0 ;
 static String  *dependencies_file = 0;
 static File    *f_dependencies_file = 0;
+static int     external_runtime = 0;
+static String *external_runtime_name = 0;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -269,6 +271,56 @@ void SWIG_getfeatures(const char *c)
   Delete(name);
 }
 
+/* This function handles the -external-runtime command option */
+static void SWIG_dump_runtime() {
+  String *outfile;
+  File *runtime;
+  String *s;
+
+  outfile = external_runtime_name;
+  if (!outfile) {
+    outfile = lang->defaultExternalRuntimeFilename();
+    if (!outfile) {
+      Printf(stderr, "*** Please provide a filename for the external runtime\n");
+      SWIG_exit(EXIT_FAILURE);
+    }
+  }
+
+  runtime = NewFile(outfile, "w");
+  if (!runtime) {
+    Printf(stderr, "*** Unable to open '%s'\n", outfile);
+    Close(runtime);
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  Swig_banner(runtime);
+  
+  s = Swig_include_sys("swigrun.swg");
+  if (!s) {
+    Printf(stderr, "*** Unable to open 'swigrun.swg'\n");
+    Close(runtime);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(runtime, "%s", s);
+  Delete(s);
+
+  s = lang->runtimeCode();
+  Printf(runtime, "%s", s);
+  Delete(s);
+
+  s = Swig_include_sys("runtime.swg");
+  if (!s) {
+    Printf(stderr, "*** Unable to open 'runtime.swg'\n");
+    Close(runtime);
+    SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(runtime, "%s", s);
+  Delete(s);
+  
+  Close(runtime);
+  SWIG_exit(EXIT_SUCCESS);
+}
+
 void SWIG_getoptions(int argc, char *argv[]) 
 {
   int    i;
@@ -341,6 +393,14 @@ void SWIG_getoptions(int argc, char *argv[])
 	      Swig_mark_arg(i);
 	      Swig_warning(WARN_DEPRECATED_OPTC, "SWIG",1, "-c, -runtime, -noruntime command line options are deprecated.\n");
 	      SwigRuntime = 2;
+	  } else if (strcmp(argv[i], "-external-runtime") == 0) {
+              external_runtime = 1;
+              Swig_mark_arg(i);
+              if (argv[i+1]) {
+                external_runtime_name = NewString(argv[i+1]);
+                Swig_mark_arg(i+1);
+                i++;
+              }
           } else if ((strcmp(argv[i],"-make_default") == 0) || (strcmp(argv[i],"-makedefault") == 0)) {
 	    GenerateDefault = 1;
 	    Swig_mark_arg(i);
@@ -645,7 +705,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
 
   // Check all of the options to make sure we're cool.
-  Swig_check_options();
+  // Don't check for an input file if -external-runtime is passed
+  Swig_check_options(external_runtime ? 0 : 1);
 
   install_opts(argc, argv);
 
@@ -673,6 +734,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout,"   %s\n", s.item);
     }
   }
+
+  // handle the -external-runtime argument
+  if (external_runtime)
+    SWIG_dump_runtime();
 
   // If we made it this far, looks good. go for it....
 

@@ -224,6 +224,8 @@ public:
   virtual  Node *enumLookup(SwigType *s);                   /* Enum lookup       */
   virtual  int  abstractClassTest(Node *n);	            /* Is class really abstract? */
   virtual  int  is_assignable(Node *n);	                   /* Is variable assignable? */
+  virtual  String *runtimeCode();                          /* returns the language specific runtime code */
+  virtual  String *defaultExternalRuntimeFilename();       /* the default filename for the external runtime */
   
   /* Allow director related code generation */
   void allow_directors(int val = 1);

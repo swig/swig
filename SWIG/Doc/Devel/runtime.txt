@@ -3,7 +3,7 @@ needs to implement to take advantage of the run time type system.  I assume you
 have read the run-time section of the Typemaps chapter in the SWIG
 documentation.
 
-Last updated: January 23, 2005
+Last updated: February 23, 2005
 
 The file we are concerned with here should be named langrun.swg.  A good example
 of a simple file is the Lib/mzscheme/mzrun.swg file.  First, a few requirements
@@ -30,6 +30,13 @@ these function names
 
 6) You need to call void SWIG_InitializeModule(void *clientdata) from your init
 function.
+
+7) You need to implement the runtimeCode() and defaultExternalRuntimeFilename()
+functions inside module.cxx.  runtimeCode should return all the language
+specific runtime code as a string, and defaultExternalRuntimeFilename should
+return a string for the default name of the external runtime header.  This is
+usually "swigpyrun.h", where "py" is replaced by the language name.  These
+two functions are used by the -external-runtime argument.
 
 -------------------------------------------------------------------------------
 Required Functions

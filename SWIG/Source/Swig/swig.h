@@ -132,7 +132,7 @@ extern char    *Swig_file_dirname(const String_or_char *filename);
 extern void     Swig_init_args(int argc, char **argv);
 extern void     Swig_mark_arg(int n);
 extern int      Swig_check_marked(int n);
-extern void     Swig_check_options();
+extern void     Swig_check_options(int check_input);
 extern void     Swig_arg_error();
 
 /* --- Scanner Interface --- */

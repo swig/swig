@@ -79,11 +79,12 @@ Swig_check_marked(int n) {
  * ----------------------------------------------------------------------------- */
  
 void
-Swig_check_options() {
+Swig_check_options(int check_input) {
     int error = 0;
     int i;
+    int max = check_input ? numargs - 1 : numargs;
     assert(marked);
-    for (i = 1; i < numargs-1; i++) {
+    for (i = 1; i < max; i++) {
       if (!marked[i]) {
 	Printf(stderr,"swig error : Unrecognized option %s\n", args[i]);
 	error=1;
@@ -93,7 +94,7 @@ Swig_check_options() {
       Printf(stderr,"Use 'swig -help' for available options.\n");
       exit(1);
     }
-    if (marked[numargs-1]) {
+    if (check_input && marked[numargs-1]) {
       Printf(stderr,"Must specify an input file. Use -help for available options.\n");
       exit(1);
     }

@@ -2470,6 +2470,19 @@ public:
       p = nextSibling(p);
     }
   }
+
+  String *runtimeCode() {
+    String *s = Swig_include_sys("rubydef.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'rubydef.swg'\n");
+      s = NewString("");
+    }
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    return NewString("swigrubyrun.h");
+  }
 };  /* class RUBY */
   
 /* -----------------------------------------------------------------------------

@@ -798,6 +798,19 @@ public:
     }
     return 1;
   }
+
+  String *runtimeCode() {
+    String *s = Swig_include_sys("mzrun.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'mzrun.swg'\n");
+      s = NewString("");
+    }
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    return NewString("swigmzrun.h");
+  }
 };
   
 /* -----------------------------------------------------------------------------

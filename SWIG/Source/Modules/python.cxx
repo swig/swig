@@ -2470,6 +2470,20 @@ public:
     }
     return SWIG_OK;
   }
+
+  virtual String *runtimeCode() {
+    String *s = Swig_include_sys("pyrun.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'pyrun.swg'\n");
+      s = NewString("");
+    }
+    return s;
+  }
+
+  virtual String *defaultExternalRuntimeFilename() {
+    return NewString("swigpyrun.h");
+  }
+
 };
 
 /* ---------------------------------------------------------------

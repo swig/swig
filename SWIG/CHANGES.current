@@ -1,6 +1,14 @@
 Version 1.3.25 (In progress)
 ============================
 
+02/23/2005: wuzzeb (John Lenz)
+	    Added -external-runtime argument.  This argument is used to dump
+	    out all the code needed for external access to the runtime system,
+	    and it replaces including the files directly.  This change adds
+	    two new virtual functions to the Language class, which are used
+	    to find the language specific runtime code.  I also updated
+	    all languages that use the runtime to implement these two functions.
+
 02/22/2005: mmatus 
 	    Fix %template + private error SF#1099976.
 

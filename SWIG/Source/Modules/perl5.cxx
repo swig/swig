@@ -1527,6 +1527,19 @@ public:
     }
     return SWIG_OK;
   }
+
+  String *runtimeCode() {
+    String *s = Swig_include_sys("perlrun.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'perlrun.swg'\n");
+      s = NewString("");
+    }
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    return NewString("swigperlrun.h");
+  }
 };
   
 /* -----------------------------------------------------------------------------
