@@ -1762,12 +1762,22 @@ int Language::classDirectorInit(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorDestructor(Node *n) {
-  if (Getattr(n,"throw")) {	
-    File *f_directors_h = Swig_filebyname("director_h");
-    String *classname= Swig_class_name(getCurrentClass());
-    Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw () {}\n", classname);
-    Delete(classname);
+  /* 
+     Always emit the virtual destructor in the declaration and in the
+     compilation unit.  Been explicit here can't make any damage, and
+     can solve some nasty C++ compiler problems.
+  */
+  File *f_directors = Swig_filebyname("director");
+  File *f_directors_h = Swig_filebyname("director_h");
+  String *classname= Swig_class_name(getCurrentClass());
+  if (Getattr(n,"throw")) {
+    Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
+    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() throw () {}\n", classname, classname);
+  } else {
+    Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
+    Printf(f_directors, "SwigDirector_%s::~SwigDirector_%s() {}\n", classname, classname);
   }
+  Delete(classname);
   return SWIG_OK;
 }
 
