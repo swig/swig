@@ -3,7 +3,6 @@ This testcase checks that unions can be set and read.
 */
 
 %module unions
-%pragma make_default
 
 %inline %{
 

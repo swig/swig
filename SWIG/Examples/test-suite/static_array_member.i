@@ -5,7 +5,7 @@
 
 %module static_array_member
 
-%pragma no_default
+%nodefault;
 class RB {
   static char *rberror[];
 };

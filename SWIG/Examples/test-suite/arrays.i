@@ -3,7 +3,6 @@ This test case tests that various types of arrays are working.
 */
 
 %module arrays
-%pragma make_default
 
 %inline %{
 #define ARRAY_LEN 2

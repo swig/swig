@@ -19,7 +19,7 @@
 #ifndef GIFPLOT_H
 
 #ifdef SWIG
-%pragma no_default
+%nodefault;
 #endif
 
 /* Pixel is 8-bits */

@@ -5,7 +5,6 @@ Also tests reported error when a #define placed in a deeply embedded struct/unio
 */
 
 %module nested
-%pragma make_default
 
 %inline %{
 
