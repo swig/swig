@@ -83,6 +83,7 @@ extern void wad_signalhandler(int, siginfo_t *, void *);
 extern void wad_signal_init();
 extern void wad_set_return(const char *name, long value);
 extern void wad_set_return_value(long value);
+extern void wad_set_return_func(void (*f)(void));
 
 extern int  wad_elf_check(WadObjectFile *wo);
 extern void wad_elf_debug(WadObjectFile *wo);
