@@ -26,7 +26,7 @@ public:
   virtual ~SWIG_DIRECTOR_EXCEPTION() { }
 };
 
-/* type mismatch in the return value from a ocaml method call */
+/* type mismatch in the return CAML_VALUE from a ocaml method call */
 class SWIG_DIRECTOR_TYPE_MISMATCH: public SWIG_DIRECTOR_EXCEPTION {
 public:
   SWIG_DIRECTOR_TYPE_MISMATCH(const char* msg="") {
@@ -57,7 +57,7 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION { };
 class __DIRECTOR__ {
 private:
     /* pointer to the wrapped ocaml object */
-    value _self;
+    CAML_VALUE _self;
     /* flag indicating whether the object is owned by ocaml or c++ */
     mutable int _disown;
     /* shared flag for breaking recursive director calls */
@@ -90,7 +90,7 @@ public:
     }
     
     /* wrap a ocaml object, optionally taking ownership */
-    __DIRECTOR__(value self, int disown): _self(self), _disown(disown) {
+    __DIRECTOR__(CAML_VALUE self, int disown): _self(self), _disown(disown) {
 	register_global_root(&_self);
     }
     
@@ -103,7 +103,7 @@ public:
     }
     
     /* return a pointer to the wrapped ocaml object */
-    value __get_self() const { 
+    CAML_VALUE __get_self() const { 
 	return callback(*caml_named_value("caml_director_get_self"),_self); 
     }
 

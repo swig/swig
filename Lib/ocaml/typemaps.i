@@ -11,74 +11,34 @@
 
 /* Pointers */
 
-%typemap(ocaml,in) void * {
+%typemap(in) void ""
+
+%typemap(out) void "$result = Val_int(0);"
+
+%typemap(in) void * {
     $1 = caml_ptr_val($input,$descriptor);
 }
 
-%typemap(ocaml,varin) void * {
+%typemap(varin) void * {
     $1 = ($ltype)caml_ptr_val($input,$descriptor);
 }
 
-%typemap(ocaml,in)  char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
-    $1 = ($ltype)caml_string_val($input);
-}
-
-%typemap(ocaml,varin)  char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
-    $1 = ($ltype)caml_string_val($input);
-}
-
-%typemap(ocaml,out) void * {
+%typemap(out) void * {
     $result = caml_val_ptr($1,$descriptor);
 }
 
-%typemap(ocaml,varout) void * {
+%typemap(varout) void * {
     $result = caml_val_ptr($1,$descriptor);
 }
-
-%typemap(ocaml,out) char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
-    $result = caml_val_string($1);
-}
-
-%typemap(ocaml,varout) char *, signed char *, unsigned char *, const char *, const signed char *, const unsigned char * {
-    $result = caml_val_string($1);
-}
-
-%typemap(ocaml,in) SWIGTYPE * {
-    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
-}
-
-%typemap(ocaml,out) SWIGTYPE * {
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)$1,$1_descriptor);
-    }
-}
-
-%typemap(ocaml,varin) SWIGTYPE * {
-    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
-}
-
-%typemap(ocaml,varout) SWIGTYPE * {
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)$1,$1_descriptor);
-    }
-}
-
-/* C++ References */
 
 #ifdef __cplusplus
 
-%typemap(ocaml,in) SWIGTYPE & {
+%typemap(in) SWIGTYPE & {
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
-%typemap(ocaml,out) SWIGTYPE & {
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
+%typemap(out) SWIGTYPE & {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *) $1,$1_descriptor));
     } else {
@@ -87,8 +47,8 @@
 }
 
 #if 0
-%typemap(ocaml,argout) SWIGTYPE & {
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
+%typemap(argout) SWIGTYPE & {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
 	swig_result =
 	    caml_list_append(swig_result,
@@ -102,15 +62,15 @@
 }
 #endif
 
-%typemap(ocaml,argout) const SWIGTYPE & { }
+%typemap(argout) const SWIGTYPE & { }
 
-%typemap(ocaml,in) SWIGTYPE {
+%typemap(in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
-%typemap(ocaml,out) SWIGTYPE {
+%typemap(out) SWIGTYPE {
     void *temp = new $ltype($1);
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     *(($ltype *)temp) = $1;
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
@@ -121,13 +81,13 @@
 
 #else
 
-%typemap(ocaml,in) SWIGTYPE {
+%typemap(in) SWIGTYPE {
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
-%typemap(ocaml,out) SWIGTYPE {
+%typemap(out) SWIGTYPE {
     void *temp = calloc(1,sizeof($ltype));
-    value *fromval = caml_named_value("create_$ntype_from_ptr");
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
     *(($ltype *)temp) = $1;
     if( fromval ) {
 	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
@@ -140,20 +100,6 @@
 
 #endif
 
-/* Arrays */
-
-/* Enums */
-%typemap(ocaml,in) enum SWIGTYPE {
-    $1 = ($type)caml_long_val_full($input,"$type_marker");
-}
-
-%typemap(ocaml,varin) enum SWIGTYPE {
-    $1 = ($type)caml_long_val_full($input,"$type_marker");
-}
-
-%typemap(ocaml,out) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
-%typemap(ocaml,varout) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
-
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */
 
@@ -164,17 +110,11 @@
 %typemap(varin) C_NAME {
     $1 = MZ_TO_C($input);
 }
-%typemap(memberin) C_NAME {
-    $1 = MZ_TO_C($input);
-}
 %typemap(out) C_NAME {
     $result = C_TO_MZ($1);
 }
 %typemap(varout) C_NAME {
     $result = C_TO_MZ($1);
-}
-%typemap(memberout) C_NAME {
-    $resunt = C_TO_MZ($1);
 }
 %typemap(in) C_NAME *INPUT ($*1_ltype temp) {
     temp = ($*1_ltype) MZ_TO_C($input);
@@ -225,5 +165,97 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Pass through value */
 
-%typemap (in) value "$1=$input;";
-%typemap (out) value "$result=$1;";
+%typemap (in) value,caml::value,CAML_VALUE "$1=$input;";
+%typemap (out) value,caml::value,CAML_VALUE "$result=$1;";
+
+/* Arrays */
+
+%typemap(in) ArrayCarrier * {
+    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
+}
+
+%typemap(out) ArrayCarrier * {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)$1,$1_descriptor);
+    }
+}
+
+#if 0
+%include "carray.i"
+#endif
+
+/* Handle char arrays as strings */
+
+%define %char_ptr_in(how)
+%typemap(how)  char *, signed char *, unsigned char * {
+    $1 = ($ltype)caml_string_val($input);
+}
+%typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
+    char *temp = caml_string_val($input);
+    strncpy((char *)$1,temp,$1_dim0);
+}
+%enddef
+
+%char_ptr_in(in);
+%char_ptr_in(varin);
+%char_ptr_in(outv);
+
+%define %char_ptr_out(how) 
+%typemap(how) 
+    char *, signed char *, unsigned char *, 
+    const char *, const signed char *, const unsigned char * {
+    $result = caml_val_string((char *)$1);
+}
+%typemap(how)
+    char [ANY], signed char [ANY], unsigned char [ANY],
+    const char [ANY], const signed char [ANY], const unsigned char [ANY] {
+    $result = caml_val_string_len((char *)$1,(int)$1_size);
+}
+%enddef
+
+%char_ptr_out(out);
+%char_ptr_out(varout);
+%char_ptr_out(invv);
+
+%typemap(in) SWIGTYPE * {
+    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
+}
+
+%typemap(out) SWIGTYPE * {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)$1,$1_descriptor);
+    }
+}
+
+%typemap(varin) SWIGTYPE * {
+    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
+}
+
+%typemap(varout) SWIGTYPE * {
+    CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    if( fromval ) {
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
+    } else {
+	$result = caml_val_ptr ((void *)$1,$1_descriptor);
+    }
+}
+
+/* C++ References */
+
+/* Enums */
+%typemap(in) enum SWIGTYPE {
+    $1 = ($type)caml_long_val_full($input,"$type_marker");
+}
+
+%typemap(varin) enum SWIGTYPE {
+    $1 = ($type)caml_long_val_full($input,"$type_marker");
+}
+
+%typemap(out) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
+%typemap(varout) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"
