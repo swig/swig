@@ -266,7 +266,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   libfiles = NewList();
 
   /* Check for SWIG_FEATURES environment variable */
-  if (c = getenv("SWIG_FEATURES")) {
+  if ((c = getenv("SWIG_FEATURES"))) {
     while (*c!='\0') {
       while ((*c)==' ') {
 	c++;

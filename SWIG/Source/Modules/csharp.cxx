@@ -1242,7 +1242,6 @@ class CSHARP : public Language {
     SwigType  *t = Getattr(n,"type");
     ParmList  *l = Getattr(n,"parms");
     String    *java_function_name = Getattr(n,"java:funcname");
-    String    *java_shadow_function_name = Getattr(n,"java:shadowfuncname");
     String    *tm;
     Parm      *p;
     int       i;
@@ -1285,7 +1284,6 @@ class CSHARP : public Language {
       if (!(variable_wrapper_flag && i==0)) 
       {
         SwigType *pt = Getattr(p,"type");
-        String   *javaparamtype = NewString("");
 
         /* Get the type of the first parameter */
         if ((tm = Getattr(p,"tmap:jstype"))) {
