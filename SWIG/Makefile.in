@@ -15,6 +15,7 @@ CC          = @CC@
 CFLAGS      = @CFLAGS@
 CXX         = @CXX@
 LIBS        = @LIBS@
+SWIGLIBS    = @SWIGLIBS@
 AR          = @AR@
 RANLIB      = @RANLIB@
 
@@ -33,7 +34,7 @@ swig: Modules1.1 Swig Preprocessor CParse DOH runtime
 	$(SOURCE)/CParse/libcparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
-	$(SOURCE)/DOH/libdoh.a
+	$(SOURCE)/DOH/libdoh.a @SWIGLIBS@
 
 Modules1.1: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Modules1.1; $(MAKE)
