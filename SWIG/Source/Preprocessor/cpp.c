@@ -77,9 +77,9 @@ copy_location(DOH *s1, DOH *s2) {
   Setline(s2,Getline(s1));
 }
 
-static String *cpp_include(String_or_char *fn) {
+static String *cpp_include(String_or_char *fn, int sysfile) {
   String *s;
-  s = Swig_include(fn);
+  s = sysfile ? Swig_include_sys(fn) : Swig_include(fn);
   if (s && single_include) {
     String *file = Getfile(s);
     if (Getattr(included_files,file)) {
@@ -484,7 +484,7 @@ find_args(String *s)
  * ----------------------------------------------------------------------------- */
 
 static String *
-get_filename(String *str) {
+get_filename(String *str, int* sysfile) {
   String *fn;
   int  c;
 
@@ -492,9 +492,11 @@ get_filename(String *str) {
   fn = NewString("");
   copy_location(str,fn);
   c = Getc(str);
+  *sysfile = 0;
   if (c == '\"') {
     while (((c = Getc(str)) != EOF) && (c != '\"')) Putc(c,fn);
   } else if (c == '<') {
+    *sysfile = 1;
     while (((c = Getc(str)) != EOF) && (c != '>'))  Putc(c,fn);
   } else {
     Putc(c,fn);
@@ -1363,10 +1365,10 @@ Preprocessor_parse(String *s)
       } else if (Cmp(id,"include") == 0) {
   	if (((include_all) || (import_all)) && (allow)) {
   	  String *s1, *s2, *fn;
-	  char *dirname;
+	  char *dirname; int sysfile = 0;
   	  Seek(value,0,SEEK_SET);
-  	  fn = get_filename(value);
-	  s1 = cpp_include(fn);
+  	  fn = get_filename(value, &sysfile);
+	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all) 
 	      Printf(ns,"%%includefile \"%s\" [\n", Swig_last_file());
@@ -1375,7 +1377,7 @@ Preprocessor_parse(String *s)
 
 	    /* See if the filename has a directory component */
 	    dirname = Swig_file_dirname(Swig_last_file());
-	    if (!strlen(dirname)) dirname = 0;
+	    if (sysfile || !strlen(dirname)) dirname = 0;
 	    if (dirname) {
 	      dirname[strlen(dirname)-1] = 0;   /* Kill trailing directory delimeter */
 	      Swig_push_directory(dirname);
@@ -1478,7 +1480,7 @@ Preprocessor_parse(String *s)
   	if ((Cmp(decl,"%include") == 0) || (Cmp(decl,"%import") == 0) || (Cmp(decl,"%extern") == 0)) {
   	  /* Got some kind of file inclusion directive  */
   	  if (allow) {
-  	    DOH *s1, *s2, *fn, *opt;
+  	    DOH *s1, *s2, *fn, *opt; int sysfile = 0;
 
 	    if (Cmp(decl,"%extern") == 0) {
 	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s),Getline(s),"%%extern is deprecated. Use %%import instead.\n");
@@ -1486,8 +1488,8 @@ Preprocessor_parse(String *s)
 	      Printf(decl,"%%import");
 	    }
 	    opt = get_options(s);
-  	    fn = get_filename(s);
-	    s1 = cpp_include(fn);
+  	    fn = get_filename(s, &sysfile);
+	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
 	      char *dirname;
   	      add_chunk(ns,chunk,allow);
@@ -1498,7 +1500,7 @@ Preprocessor_parse(String *s)
 		Preprocessor_define("SWIGIMPORT 1", 0);
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
-	      if (!strlen(dirname)) dirname = 0;
+	      if (sysfile || !strlen(dirname)) dirname = 0;
 	      if (dirname) {
 		dirname[strlen(dirname)-1] = 0;   /* Kill trailing directory delimeter */
 		Swig_push_directory(dirname);

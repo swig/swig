@@ -59,6 +59,7 @@ static const char *usage1 = (const char*)"\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -help           - This output\n\
      -I<dir>         - Look for SWIG files in <dir>\n\
+     -I-             - Don't search the current directory\n\
      -ignoremissing  - Ignore missing include files\n\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
@@ -343,7 +344,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Get options
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
-	  if (strncmp(argv[i],"-I",2) == 0) {
+	  if (strncmp(argv[i],"-I-",3) == 0) {
+	    // Don't push/pop directories
+	    Swig_set_push_dir(0);
+	    Swig_mark_arg(i);
+	  } else if (strncmp(argv[i],"-I",2) == 0) {
 	    // Add a new directory search path
 	    includefiles[includecount++] = Swig_copy_string(argv[i]+2);
 	    Swig_mark_arg(i);
@@ -633,12 +638,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	SWIG_exit (EXIT_FAILURE);
       }
       fclose(df);
-      Printf(fs,"%%include \"swig.swg\"\n");
+      Printf(fs,"%%include <swig.swg>\n");
       if (allkw) {
-	Printf(fs,"%%include \"allkw.swg\"\n");
+	Printf(fs,"%%include <allkw.swg>\n");
       }
       if (lang_config) {
-	Printf(fs,"\n%%include \"%s\"\n", lang_config);
+	Printf(fs,"\n%%include <%s>\n", lang_config);
       }
       Printf(fs,"%%include \"%s\"\n", Swig_last_file());
       for (i = 0; i < Len(libfiles); i++) {
