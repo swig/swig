@@ -209,7 +209,7 @@ static void _SWIG_exception(JNIEnv *jenv, int code, const char *msg) {
   char exception_path[512];
   const char *classname;
   const char *class_package = "java/lang";
-  
+  jclass excep;
 
   switch(code) {
   case SWIG_MemoryError:
@@ -241,13 +241,11 @@ static void _SWIG_exception(JNIEnv *jenv, int code, const char *msg) {
     break;
   }
   sprintf(exception_path, "%s/%s", class_package, classname);
-  jclass excep;
-  jenv->ExceptionClear();
-  excep = jenv->FindClass(exception_path);
+
+  JCALL0(ExceptionClear, jenv);
+  excep = JCALL1(FindClass, jenv, exception_path);
   if (excep)
-  {
-    jenv->ThrowNew(excep, msg);
-  }
+    JCALL2(ThrowNew, jenv, excep, msg);
 }
 #define SWIG_exception(a,b) { _SWIG_exception(jenv, a,b); }
 %}
