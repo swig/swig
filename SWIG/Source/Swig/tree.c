@@ -481,8 +481,7 @@ Swig_node_append_child(DOH *node, DOH *chd) {
   c = Getattr(node,"child");
   if (!c) {
     Setattr(node,"child",chd);
-    Setattr(chd,"parent",node);
-    return;
+    goto set_child;
   }
   while (c) {
     pc = c;
@@ -490,7 +489,12 @@ Swig_node_append_child(DOH *node, DOH *chd) {
   }
   Setattr(pc,"next",chd);
   Setattr(chd,"prev",pc);
-  Setattr(chd,"parent",node);
+
+ set_child:
+  while (chd) {
+    Setattr(chd,"parent",node);
+    chd = Getnext(chd);
+  }
 }
 
 /* -----------------------------------------------------------------------------

@@ -428,6 +428,7 @@ String *SwigType_parm(SwigType *t) {
 
 int SwigType_ispointer(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"p.",2) == 0) {
     return 1;
@@ -437,6 +438,7 @@ int SwigType_ispointer(SwigType *t) {
 
 int SwigType_ismemberpointer(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"m(",2) == 0) {
     return 1;
@@ -446,6 +448,7 @@ int SwigType_ismemberpointer(SwigType *t) {
 
 int SwigType_isreference(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"r.",2) == 0) {
     return 1;
@@ -455,6 +458,7 @@ int SwigType_isreference(SwigType *t) {
 
 int SwigType_isarray(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"a(",2) == 0) {
     return 1;
@@ -464,7 +468,7 @@ int SwigType_isarray(SwigType *t) {
 
 int SwigType_isfunction(SwigType *t) {
   char *c;
-
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"f(",2) == 0) {
     return 1;
@@ -474,6 +478,7 @@ int SwigType_isfunction(SwigType *t) {
 
 int SwigType_isqualifier(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"q(",2) == 0) {
     return 1;
@@ -483,6 +488,7 @@ int SwigType_isqualifier(SwigType *t) {
 
 int SwigType_isconst(SwigType *t) {
   char *c;
+  if (!t) return 0;
   c = Char(t);
   if (strncmp(c,"q(const)",8) == 0) {
     return 1;
@@ -492,6 +498,7 @@ int SwigType_isconst(SwigType *t) {
 
 int SwigType_isenum(SwigType *t) {
   char *c = Char(t);
+  if (!t) return 0;
   if (strncmp(c,"enum ",5) == 0) {
     return 1;
   }
