@@ -37,6 +37,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	constover \
         default_constructor \
 	constant_pointers \
 	cpp_enum \
