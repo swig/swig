@@ -38,7 +38,9 @@ SWIGIMPORT(int)         SWIG_Python_AddErrMesg(const char* mesg, int infront);
 SWIGIMPORT(int)         SWIG_Python_ArgFail(int argnum);
 SWIGIMPORT(void)        SWIG_Python_TypeError(const char *type, PyObject *obj);
 SWIGIMPORT(void)        SWIG_Python_NullRef(const char *type);
-  
+
+SWIGRUNTIME(void)       SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle);
+
 #else /* SWIG_NOINCLUDE */
 
 /* -----------------------------------------------------------------------------
@@ -546,6 +548,31 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
     }
   }
 }
+
+
+/* -----------------------------------------------------------------------------
+ * Lookup type pointer 
+ * ----------------------------------------------------------------------------- */
+SWIGRUNTIME(void)
+SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
+  PyObject *module, *pointer;
+  void *type_pointer;
+
+  /* first check if module already created */
+  type_pointer = PyCObject_Import("swig_runtime_data", "type_pointer");
+  if (type_pointer) {
+    *type_list_handle = (swig_type_info **) type_pointer;
+  } else {
+    PyErr_Clear();
+    /* create a new module and variable */
+    module = Py_InitModule("swig_runtime_data", NULL);
+    pointer = PyCObject_FromVoidPtr((void *) (*type_list_handle), NULL);
+    if (pointer && module) {
+      PyModule_AddObject(module, "type_pointer", pointer);
+    }
+  }
+}
+
 #endif /* SWIG_NOINCLUDE */
 
 
