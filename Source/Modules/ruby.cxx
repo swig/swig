@@ -429,6 +429,26 @@ public:
     return SWIG_NOWRAP;
   }
 
+  /**
+   * Process the comma-separated list of aliases (if any).
+   */
+  void defineAliases(Node *n, const String_or_char *iname) {
+    String *aliasv = Getattr(n,"feature:alias");
+    if (aliasv) {
+      List *aliases = Split(aliasv,',',INT_MAX);
+      if (aliases && Len(aliases) > 0) {
+	String *alias = Firstitem(aliases);
+	while (alias) {
+          if (Len(alias) > 0) {
+            Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
+	  }
+	  alias = Nextitem(aliases);
+	}
+      }
+      Delete(aliases);
+    }
+  }
+  
   /* ---------------------------------------------------------------------
    * create_command(Node *n, char *iname)
    *
@@ -485,21 +505,7 @@ public:
       break;
     }
     
-    /* Process the comma-separated list of aliases (if any) */
-    String *aliasv = Getattr(n,"feature:alias");
-    if (aliasv) {
-      List *aliases = Split(aliasv,',',INT_MAX);
-      if (aliases && Len(aliases) > 0) {
-	String *alias = Firstitem(aliases);
-	while (alias) {
-          if (Len(alias) > 0) {
-            Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias, "\", \"", iname, "\");\n", NIL);
-	  }
-	  alias = Nextitem(aliases);
-	}
-      }
-      Delete(aliases);
-    }
+    defineAliases(n, iname);
 
     Delete(temp);
     Delete(s);
