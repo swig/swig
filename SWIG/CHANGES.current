@@ -1,6 +1,10 @@
 Version 1.3.18 (In progress)
 ============================
 
+01/08/2003: ttn
+	    [xml] Fix string-replacement ordering buglet.
+	    Thanks to Gary Herron.
+
 12/23/2002: cheetah (William Fulton)
             Further build changes:
             - The SWIG executable is now built using a single Makefile.
@@ -9,7 +13,7 @@ Version 1.3.18 (In progress)
             - Automake 1.7.2 and Autoconf 2.54 minimum versions are needed to build SWIG from CVS.
             - Running ./autogen.sh now installs Autoconf/Automake support files into
               Tools/config and these files are no longer stored in CVS.
-            - Bug fixes in 'make install' for systems using .exe executable extension and 
+            - Bug fixes in 'make install' for systems using .exe executable extension and
               ./configure --with-release-suffix=whatever
 
 12/16/2002: cheetah (William Fulton)
@@ -18,7 +22,7 @@ Version 1.3.18 (In progress)
             - Autoconf support files moved to Tools/config.
 
 12/16/2002: cheetah (William Fulton)
-            Modifications to run on MacOS, submitted by Bernard Desgraupes. 
+            Modifications to run on MacOS, submitted by Bernard Desgraupes.
             Mainly ensuring generated files are output in the appropriate directory for
             some modules.
 
@@ -36,21 +40,21 @@ Version 1.3.18 (In progress)
             - SWIG web address added to -version commandline option.
 
 12/11/2002: beazley
-            Minor fix to Tcl dynamic cast typemaps. Reported by 
+            Minor fix to Tcl dynamic cast typemaps. Reported by
             Kristopher Blom.
 
 12/10/2002: beazley
-            Fixed subtle template argument replace bug.  Reported by 
+            Fixed subtle template argument replace bug.  Reported by
             Chris Flatley.
 
 12/10/2002: beazley
             Reverted CHANGES 09/03/2002, preprocessor argument evaluation.  Arguments
             are not evaluated during collection, K&R, p. 230.
- 
+
 12/06/2002: beazley
-            Fixed [ 649022 ] Compilation problems with KAI/KCC 
+            Fixed [ 649022 ] Compilation problems with KAI/KCC
 
 12/02/2002: beazley
             SWIG 'rel-1-3' CVS branch merged back into the main branch.
- 
+
 
