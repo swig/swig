@@ -1,3 +1,5 @@
+%module port
+
 %include guilemain.i
 
 /* Include the required FILE * typemaps */
