@@ -252,19 +252,23 @@ static void add_symbols(Node *n) {
       n = nextSibling(n);
       continue;
     }
-    Node *c = Swig_symbol_add(symname,n);
-    if (c != n) {
-      String *e = NewString("");
-      Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
-      if (Cmp(symname,Getname(n))) {
-	Printf(e," (Renamed from '%s')", Getname(n));
+    if (Cmp(symname,"$ignore") == 0) {
+      Seterror(n,NewString("ignored"));
+    } else {
+      Node *c = Swig_symbol_add(symname,n);
+      if (c != n) {
+	String *e = NewString("");
+	Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
+	if (Cmp(symname,Getname(n))) {
+	  Printf(e," (Renamed from '%s')", Getname(n));
+	}
+	Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
+	if (Cmp(symname,Getname(c))) {
+	  Printf(e," (Renamed from '%s')", Getname(c));
+	}
+	Printf(stderr,"%s\n",e);
+	Seterror(n,e);
       }
-      Printf(e,"\n%s:%d. Previous declaration of '%s'", Getfile(c),Getline(c),symname);
-      if (Cmp(symname,Getname(c))) {
-	Printf(e," (Renamed from '%s')", Getname(c));
-      }
-      Printf(stderr,"%s\n",e);
-      Seterror(n,e);
     }
     n = nextSibling(n);
   }
@@ -277,6 +281,11 @@ static void add_tag(Node *n) {
     symname = GetChar(n,"unnamed");
   }
   if (!symname) return;
+  if (Cmp(symname,"$ignore") == 0) {
+    Seterror(n,NewString("ignored"));
+    return;
+  }
+
   Node *c = Swig_symbol_add_tag(symname, n);
   if (c != n) {
     String *e = NewString("");
