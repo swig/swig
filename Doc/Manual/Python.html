@@ -3325,7 +3325,7 @@ previous example:
   if (PyList_Check($input)) {
     int i;
     $1 = PyList_Size($input);
-    $2 = (char **) malloc((size+1)*sizeof(char *));
+    $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i &lt; $1; i++) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
