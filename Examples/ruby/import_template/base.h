@@ -3,7 +3,7 @@
 template<class T> class Base {
  public:
      Base() { };
-    ~Base() { };
+     virtual ~Base() { };
      virtual const char * A() const {
          return "Base::A";
      }
