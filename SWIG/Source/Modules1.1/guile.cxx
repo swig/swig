@@ -886,31 +886,31 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 
   if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
-    Printf (f_wrappers, "static SCM %s(SCM s_0)\n{\n", var_name);
+    Printf (f->def, "static SCM\n%s(SCM s_0)\n{\n", var_name);
 
     /* Define the scheme name in C. This define is used by several Guile
        macros. */
-    Printv(f_wrappers, "#define FUNC_NAME \"", proc_name, "\"\n", 0);
+    Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
 
-    Printf (f_wrappers, "\t SCM gswig_result;\n");
+    Wrapper_add_local (f, "gswig_result", "SCM gswig_result");
 
     if (!(Status & STAT_READONLY)) {
       /* Check for a setting of the variable value */
-      Printf (f_wrappers, "\t if (s_0 != GH_NOT_PASSED) {\n");
-      if (guile_do_typemap(f_wrappers, "varin",
+      Printf (f->code, "if (s_0 != GH_NOT_PASSED) {\n");
+      if (guile_do_typemap(f->code, "varin",
 			   t, name, (char*) "s_0", name, 1, name, f, 0)) {
 	/* nothing */
       }
       else {
 	throw_unhandled_guile_type_error (t);
       }
-      Printf (f_wrappers, "\t}\n");
+      Printf (f->code, "}\n");
     }
 
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if (guile_do_typemap (f_wrappers, "varout",
+    if (guile_do_typemap (f->code, "varout",
 			  t, name, name, (char*)"gswig_result",
 			  0, name, f, 1)) {
       /* nothing */
@@ -918,9 +918,11 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     else {
       throw_unhandled_guile_type_error (t);
     }
-    Printf (f_wrappers, "\t return gswig_result;\n");
-    Printf (f_wrappers, "#undef FUNC_NAME\n");
-    Printf (f_wrappers, "}\n\n");
+    Printf (f->code, "\nreturn gswig_result;\n");
+    Printf (f->code, "#undef FUNC_NAME\n");
+    Printf (f->code, "}\n");
+
+    Wrapper_print (f, f_wrappers);
 
     // Now add symbol to the Guile interpreter
 
