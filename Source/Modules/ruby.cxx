@@ -81,7 +81,7 @@ static String *Swig_class_name(Node *n) {
 /* Swig_director_declaration()
  *
  * Generate the full director class declaration, complete with base classes.
- * e.g. "class __DIRECTOR__myclass: public myclass, public __DIRECTOR__ {"
+ * e.g. "class __DIRECTOR__myclass: public myclass, public Swig::Director {"
  *
  */
 
@@ -90,7 +90,7 @@ static String *Swig_director_declaration(Node *n) {
   String *directorname = NewStringf("__DIRECTOR__%s", classname);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
-  Printf(declaration, " : public %s, public __DIRECTOR__ {\n", base);
+  Printf(declaration, " : public %s, public Swig::Director {\n", base);
   Delete(classname);
   Delete(directorname);
   return declaration;
@@ -672,7 +672,7 @@ public:
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef __%s_WRAP_H__\n", module);
       Printf(f_directors_h, "#define __%s_WRAP_H__\n\n", module);
-      Printf(f_directors_h, "class __DIRECTOR__;\n\n");
+      Printf(f_directors_h, "class Swig::Director;\n\n");
       Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -1259,8 +1259,8 @@ public:
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
         if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
-          Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");
-          Printf(f->code, "director = dynamic_cast<__DIRECTOR__*>(arg1);\n");
+          Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+          Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
           Printf(f->code, "if (director && (director->__get_self() == self)) director->__set_up();\n");
 	}
       }
@@ -1312,8 +1312,8 @@ public:
             if (target) unwrap = true;
           }
           if (unwrap) {
-            Wrapper_add_local(f, "resultdirector", "__DIRECTOR__ *resultdirector = 0");
-            Printf(f->code, "resultdirector = dynamic_cast<__DIRECTOR__*>(result);\n");
+            Wrapper_add_local(f, "resultdirector", "Swig::Director *resultdirector = 0");
+            Printf(f->code, "resultdirector = dynamic_cast<Swig::Director *>(result);\n");
             Printf(f->code, "if (resultdirector) {\n");
             Printf(f->code, "  vresult = resultdirector->__get_self();\n");
             Printf(f->code, "} else {\n"); 
@@ -2100,7 +2100,7 @@ public:
       String *basetype = Getattr(parent, "classtype");
       String *target = method_decl(decl, classname, parms, 0, 0);
       call = Swig_csuperclass_call(0, basetype, superparms);
-      Printf(w->def, "%s::%s: %s, __DIRECTOR__(self, __disown) { }", classname, target, call);
+      Printf(w->def, "%s::%s: %s, Swig::Director(self, __disown) { }", classname, target, call);
       Delete(target);
       Wrapper_print(w, f_directors);
       Delete(call);
@@ -2126,7 +2126,7 @@ public:
     Wrapper *w;
     classname = Swig_class_name(n);
     w = NewWrapper();
-    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(VALUE self, bool __disown) : __DIRECTOR__(self, __disown) { }", classname, classname);
+    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(VALUE self, bool __disown) : Swig::Director(self, __disown) { }", classname, classname);
     Wrapper_print(w, f_directors);
     DelWrapper(w);
     Printf(f_directors_h, "    __DIRECTOR__%s(VALUE self, bool __disown = true);\n", classname);
@@ -2165,7 +2165,7 @@ public:
 
       // Function body
       Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
-      Wrapper_add_localv(body, "args", "swig_body_args *", "args", "= reinterpret_cast<swig_body_args *>(data)", NIL);
+      Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
       Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
       Printf(body->code, "%s++;\n", depthCountName, NIL);
       Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
@@ -2183,7 +2183,7 @@ public:
       Printv(rescue->code, "}", NIL);
       
       // Main code
-      Wrapper_add_localv(w, "args", "swig_body_args", "args", NIL);
+      Wrapper_add_localv(w, "args", "Swig::body_args", "args", NIL);
       Printv(w->code, "args.recv = __get_self();\n", NIL);
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
@@ -2374,9 +2374,9 @@ public:
 	  String *mangle = SwigType_manglestr(parameterType);
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
-	    Wrapper_add_localv(w, director, "__DIRECTOR__ *", director, "= 0", NIL);
+	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
 	    Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	    Printf(wrap_args, "%s = dynamic_cast<__DIRECTOR__*>(%s);\n", director, nonconst);
+	    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Printf(wrap_args, "} else {\n");
@@ -2417,7 +2417,7 @@ public:
     /* direct call to superclass if _up is set */
     Printf(w->code, "if (__get_up()) {\n");
     if (pure_virtual) {
-    	Printf(w->code, "throw SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION();\n");
+    	Printf(w->code, "throw Swig::DirectorPureVirtualException();\n");
     } else {
     	if (is_void) {
     	  Printf(w->code, "%s;\n", Swig_method_call(super,l));
@@ -2448,7 +2448,7 @@ public:
     if (outputs > 1) {
       Wrapper_add_local(w, "output", "VALUE output");
       Printf(w->code, "if (TYPE(result) != T_ARRAY) {\n");
-      Printf(w->code, "throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Ruby method failed to return an array.\");\n");
+      Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
       Printf(w->code, "}\n");
     }
 

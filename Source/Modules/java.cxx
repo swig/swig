@@ -350,7 +350,7 @@ class JAVA : public Language {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef __%s_WRAP_H__\n", module);
       Printf(f_directors_h, "#define __%s_WRAP_H__\n\n", module);
-      Printf(f_directors_h, "class __DIRECTOR__;\n\n");
+      Printf(f_directors_h, "class Swig::Director;\n\n");
 
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -3157,7 +3157,7 @@ class JAVA : public Language {
       String *target = method_decl(decl, classname, parms, 0, 0);
       String *call = Swig_csuperclass_call(0, basetype, superparms);
 
-      Printf(w->def, "%s::%s: %s, __DIRECTOR__(jenv) {", classname, target, call);
+      Printf(w->def, "%s::%s: %s, Swig::Director(jenv) {", classname, target, call);
       Printf(w->code, "/* NOP */\n");
       Printf(w->code, "}\n");
       Wrapper_print(w, f_directors);
@@ -3191,7 +3191,7 @@ class JAVA : public Language {
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(JNIEnv *jenv): __DIRECTOR__(jenv) {",
+      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(JNIEnv *jenv): Swig::Director(jenv) {",
              classname, classname);
       Printf(w->code, "}\n");
       Wrapper_print(w, f_directors);

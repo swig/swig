@@ -467,7 +467,7 @@
 /* no can do... see python.cxx
 %typemap(directorin) DIRECTORTYPE * {
         {
-                __DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
+                SwigDirector::$1_ltype proxy = dynamic_cast<SwigDirector::$1_ltype>($1_name);
                 if (!proxy) {
                         $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
                 } else {
@@ -493,10 +493,10 @@
 %define DIRECTOROUT_TYPEMAP(type, converter)
 %typemap(directorargout) type *DIRECTOROUT
    "*$result = (type) converter($input);
-   if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
+   if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using converter\");";
 %typemap(directorout) type 
    "$result = (type) converter($input);
-   if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
+   if (PyErr_Occurred()) throw Swig::DirectorTypeMismatchException(\"Error converting Python object using converter\");";
 %typemap(directorout) type &DIRECTOROUT = type
 %enddef
 
@@ -519,14 +519,14 @@ DIRECTOROUT_TYPEMAP(std::size_t, PyInt_AsLong);
 
 /* Object returned by value. Convert from a pointer */
 %typemap(directorout) SWIGTYPE  ($&ltype argp)
-       "if ((SWIG_ConvertPtr($input,(void **) &argp, $&descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\"); $result = *argp;";
+       "if ((SWIG_ConvertPtr($input,(void **) &argp, $&descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\"); $result = *argp;";
 
 %typemap(directorout) SWIGTYPE *, 
                       SWIGTYPE &, 
                       SWIGTYPE [] 
-       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
 
-%typemap(directorout) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+%typemap(directorout) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
 
 
 

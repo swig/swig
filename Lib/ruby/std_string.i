@@ -62,7 +62,7 @@ namespace std {
         if (TYPE($input) == T_STRING)
             $result = std::string(StringValuePtr($input));
         else
-            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+            throw Swig::DirectorTypeMismatchException("string expected");
     }
     
     %typemap(directorout) const string & (std::string temp) {
@@ -70,7 +70,7 @@ namespace std {
             temp = std::string(StringValuePtr($input));
             $result = &temp;
         } else {
-            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+            throw Swig::DirectorTypeMismatchException("string expected");
         }
     }
 

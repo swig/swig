@@ -1210,7 +1210,7 @@ directive to indicate what action should be taken when a Ruby exception is raise
 The following code should suffice in most cases:
 
 <blockquote><pre>%feature("director:except") {
-    throw SWIG_DIRECTOR_METHOD_EXCEPTION($error);
+    throw Swig::DirectorMethodException($error);
 }
 </pre></blockquote> 
 

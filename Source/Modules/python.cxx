@@ -78,7 +78,7 @@ String *Swig_class_name(Node *n) {
 /* Swig_director_declaration()
  *
  * Generate the full director class declaration, complete with base classes.
- * e.g. "class __DIRECTOR__myclass: public myclass, public __DIRECTOR__ {"
+ * e.g. "class __DIRECTOR__myclass: public myclass, public Swig::Director {"
  *
  */
 
@@ -87,7 +87,7 @@ String *Swig_director_declaration(Node *n) {
   String *directorname = NewStringf("__DIRECTOR__%s", classname);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
-  Printf(declaration, ": public %s, public __DIRECTOR__ {\n", base);
+  Printf(declaration, ": public %s, public Swig::Director {\n", base);
   Delete(classname);
   Delete(directorname);
   return declaration;
@@ -451,7 +451,7 @@ public:
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "#ifndef __%s_WRAP_H__\n", module);
       Printf(f_directors_h, "#define __%s_WRAP_H__\n\n", module);
-      Printf(f_directors_h, "class __DIRECTOR__;\n\n");
+      Printf(f_directors_h, "class Swig::Director;\n\n");
       Swig_insert_file("director.swg", f_directors);
       Printf(f_directors, "\n\n");
       Printf(f_directors, "/* ---------------------------------------------------\n");
@@ -870,8 +870,8 @@ public:
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
         if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
-          Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");
-          Printf(f->code, "director = dynamic_cast<__DIRECTOR__*>(arg1);\n");
+          Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+          Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
           Printf(f->code, "if (director && (director->__get_self()==obj0)) director->__set_up();\n");
 	}
       }
@@ -923,8 +923,8 @@ public:
 	if (target) unwrap = 1;
       }
       if (unwrap) {
-      	Wrapper_add_local(f, "resultdirector", "__DIRECTOR__ *resultdirector = 0");
-	Printf(f->code, "resultdirector = dynamic_cast<__DIRECTOR__*>(result);\n");
+      	Wrapper_add_local(f, "resultdirector", "Swig::Director *resultdirector = 0");
+	Printf(f->code, "resultdirector = dynamic_cast<Swig::Director *>(result);\n");
 	Printf(f->code, "if (resultdirector) {\n");
 	Printf(f->code, "  resultobj = resultdirector->__get_self();\n");
 	Printf(f->code, "  Py_INCREF(resultobj);\n");
@@ -1413,9 +1413,9 @@ public:
 	  String *mangle = SwigType_manglestr(ptype);
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
-	    Wrapper_add_localv(w, director, "__DIRECTOR__ *", director, "= 0", NIL);
+	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
 	    Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
-	    Printf(wrap_args, "%s = dynamic_cast<__DIRECTOR__*>(%s);\n", director, nonconst);
+	    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Printf(wrap_args, "} else {\n");
@@ -1458,7 +1458,7 @@ public:
     /* direct call to superclass if _up is set */
     Printf(w->code, "if (__get_up()) {\n");
     if (pure_virtual) {
-    	Printf(w->code, "throw SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION();\n");
+    	Printf(w->code, "throw Swig::DirectorPureVirtualException();\n");
     } else {
     	if (is_void) {
     	  Printf(w->code, "%s;\n", Swig_method_call(super,l));
@@ -1509,7 +1509,7 @@ public:
     if (outputs > 1) {
       Wrapper_add_local(w, "output", "PyObject *output");
       Printf(w->code, "if (!PyTuple_Check(result)) {\n");
-      Printf(w->code, "throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Python method failed to return a tuple.\");\n");
+      Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Python method failed to return a tuple.\");\n");
       Printf(w->code, "}\n");
     }
 
@@ -1636,7 +1636,7 @@ public:
       String *basetype = Getattr(parent, "classtype");
       String *target = method_decl(decl, classname, parms, 0, 0);
       call = Swig_csuperclass_call(0, basetype, superparms);
-      Printf(w->def, "%s::%s: %s, __DIRECTOR__(self, __disown) { }", classname, target, call);
+      Printf(w->def, "%s::%s: %s, Swig::Director(self, __disown) { }", classname, target, call);
       Delete(target);
       Wrapper_print(w, f_directors);
       Delete(call);
@@ -1666,7 +1666,7 @@ public:
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(PyObject* self, int __disown): __DIRECTOR__(self, __disown) { }", classname, classname);
+      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(PyObject* self, int __disown): Swig::Director(self, __disown) { }", classname, classname);
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }

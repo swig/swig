@@ -121,15 +121,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH(
-                                                  "vector<" #T "> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $&descriptor,1) != -1){
                 $result = *v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
@@ -183,14 +182,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $descriptor,1) != -1){
                 $result = v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
             }
         }
         %typemap(out) vector<T> {
@@ -403,14 +402,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "*> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "*> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $&descriptor,1) != -1){
                 $result = *v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "*> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "*> expected");
             }
         }
         %typemap(in) const vector<T*>& (std::vector<T*> temp,
@@ -464,14 +463,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "*> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "*> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $descriptor,1) != -1){
                 $result = v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "*> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "*> expected");
             }
         }
         %typemap(out) vector<T*> {
@@ -678,14 +677,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $&descriptor,1) != -1){
                 $result = *v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
@@ -735,14 +734,14 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
                                        $descriptor,1) != -1){
                 $result = v;
             } else {
-                throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                throw Swig::DirectorTypeMismatchException("vector<" #T "> expected");
             }
         }
         %typemap(out) vector<T> {

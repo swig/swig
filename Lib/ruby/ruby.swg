@@ -425,7 +425,7 @@
 /* no can do... see python.cxx
 %typemap(directorin) DIRECTORTYPE * {
         {
-                __DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
+                SwigDirector::$1_ltype proxy = dynamic_cast<SwigDirector::$1_ltype>($1_name);
                 if (!proxy) {
                         $input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
                 } else {
@@ -474,9 +474,9 @@ DIRECTOROUT_TYPEMAP(bool, RTEST);
 %typemap(directorout) SWIGTYPE *, 
                       SWIGTYPE &, 
                       SWIGTYPE [] 
-       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
 
-%typemap(directorout) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+%typemap(directorout) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
 
 /* ---------------------------------------------------------------------
  * typedef & typemaps for VALUE (passed through unmodified and unchecked)
