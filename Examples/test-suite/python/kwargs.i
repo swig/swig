@@ -52,3 +52,23 @@
 
 %template(templatedfunction) templatedfunction<int>;
 
+
+// Deafult args with references
+%inline
+%{
+
+  typedef int size_type;
+  
+  struct Hello 
+  {
+    static const size_type hello = 3;
+  };
+  
+  
+  
+  int rfoo( const size_type& x = Hello::hello, const Hello& y = Hello() )
+  {
+    return x;
+  }
+  
+%}
