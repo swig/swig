@@ -1,5 +1,12 @@
 Version 1.3.16 (In progress)
 ==================================
+10/13/2002: beazley
+            Fixed bug with %extend directive and %feature reported
+            by William Fulton.
+
+10/13/2002: beazley
+            Added OpenVMS build directory (vms).  Contributed by 
+            Jean-François Pieronne.
 
 10/09/2002: cheetah (William Fulton)
             [Java] Added throws clause to the native functions in the JNI class.
