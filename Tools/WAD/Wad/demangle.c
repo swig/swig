@@ -12,6 +12,8 @@
 
 #include "wad.h"
 
+static char cvs[] = "$Header$";
+
 char *wad_cplus_demangle(WadSymbol *ws) {
   static char buffer[4096];
   strcpy(buffer,ws->name);

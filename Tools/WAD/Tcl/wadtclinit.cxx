@@ -1,3 +1,4 @@
+static char cvs[] = "$Header$";
 
 extern "C" void tclwadinit();
 
