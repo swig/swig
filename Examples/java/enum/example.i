@@ -5,7 +5,8 @@
 #include "example.h"
 %}
 
-%pragma make_default
+/* Force the generated Java code to use the C enum values rather than making a JNI call */
+%javaconst(1);
 
 /* Let's just grab the original header file here */
 

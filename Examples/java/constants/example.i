@@ -1,6 +1,9 @@
 /* File : example.i */
 %module example
 
+/* Force the generated Java code to use the C constant values rather than making a JNI call */
+%javaconst(1);
+
 /* A few preprocessor macros */
 
 #define    ICONST      42
