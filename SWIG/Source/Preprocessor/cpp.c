@@ -705,7 +705,10 @@ check_id(DOH *s)
     switch(state) {
 
     case 0:
-      if (isdigit(c)) state = 1;
+      if (isdigit(c)) {
+	hasvalue =1;
+	state = 1;
+      }
       else if (isidentifier(c)) return 1;
       else if (c == '\"') {
 	skip_tochar(s,'\"',0);
