@@ -707,27 +707,29 @@ public:
    * Process all of the arguments passed into the scripting language
    * method and convert them into C/C++ function arguments using the
    * supplied typemaps.
-   *
-   * The 'start' argument indicates which of the C/C++ function arguments
-   * produced here corresponds to the first value in Ruby's argv[] array.
-   * The value of start is either zero or one. If start is zero, then
-   * the first argument (with name arg1) is based on the value of argv[0].
-   * If start is one, then arg1 is based on the value of argv[1].
    * --------------------------------------------------------------------- */
   
-  void marshalInputArgs(Node *n, ParmList *l, int numarg, int numreq, int start, String *kwargs, bool allow_kwargs, Wrapper *f) {
+  void marshalInputArgs(Node *n, ParmList *l, int numarg, int numreq, String *kwargs, bool allow_kwargs, Wrapper *f) {
     int i;
     Parm *p;
     String *tm;
     String *source;
     String *target;
 
-    assert((start == 0) || (start == 1));
-
     source = NewString("");
     target = NewString("");
 
-    int use_self = (current == MEMBER_FUNC || current == MEMBER_VAR || (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n))) ? 1 : 0;
+    bool use_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
+
+    /**
+     * The 'start' value indicates which of the C/C++ function arguments
+     * produced here corresponds to the first value in Ruby's argv[] array.
+     * The value of start is either zero or one. If start is zero, then
+     * the first argument (with name arg1) is based on the value of argv[0].
+     * If start is one, then arg1 is based on the value of argv[1].
+     */
+    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || use_director) ? 1 : 0;
+
     int varargs = emit_isvarargs(l);
 
     Printf(kwargs,"{ ");
@@ -743,14 +745,8 @@ public:
 
       /* First argument is a special case */
       if (i == 0) {
-        if (use_self)
-          Printv(source,"self",NIL);
-        else {
-          assert(start == 0);
-          Printv(source,"argv[0]",NIL);
-        }
+        Printv(source, (start == 0) ? "argv[0]" : "self", NIL);
       } else {
-        assert(i >= start);
         Printf(source,"argv[%d]",i-start);
       }
 
@@ -1007,7 +1003,7 @@ public:
     /* Now walk the function parameter list and generate code */
     /* to get arguments */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      marshalInputArgs(n, l, numarg, numreq, start, kwargs, allow_kwargs, f);
+      marshalInputArgs(n, l, numarg, numreq, kwargs, allow_kwargs, f);
     }
 
     // FIXME?
