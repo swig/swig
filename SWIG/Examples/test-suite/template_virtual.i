@@ -15,7 +15,7 @@
 
       virtual void say_hi() = 0; // only fails with pure virtual methods
  
-      virtual void say_hello(); // this works fine
+      virtual void say_hello() {} // this works fine
  
     protected:
       A() { }  // defined protected as swig generates constructor by default
