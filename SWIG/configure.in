@@ -88,7 +88,7 @@ if test -z "$LDSHARED"
 then
 	case $ac_sys_system/$ac_sys_release in
 	AIX*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
-        CYGWIN*) 
+        CYGWIN*)
             if test "$GCC" = yes; then
                 LDSHARED="$CC -shared"
             else
@@ -692,7 +692,7 @@ fi
 
 # java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a Cygwin built executable
 case $ac_sys_system/$ac_sys_release in
-CYGWIN*) 
+CYGWIN*)
     if test "$GCC" = yes; then
         JAVADYNAMICLINKING=" -Wl,--add-stdcall-alias"
     else
@@ -1048,7 +1048,7 @@ AC_SUBST(release_suffix)
 # an 'install-sh' script in the Examples directory?
 ###########
 
-AC_CONFIG_SUBDIRS(Source/DOH Tools)
+AC_CONFIG_SUBDIRS(Tools)
 
 # NOTE: The following ref to `Source' should NOT be prefixed w/ `$srcdir/'.
 # We can remove it if `Source' ever has a generated file but not before.
@@ -1058,12 +1058,14 @@ dnl We use the following in `AC_OUTPUT' and "make distclean".
 configure_substituted_files=`echo	\
     Examples/Makefile			\
     Examples/guile/Makefile		\
-    Examples/GIFPlot/Makefile	\
+    Examples/GIFPlot/Makefile		\
     Examples/GIFPlot/Lib/Makefile	\
     Makefile				\
     Runtime/Makefile			\
     Source/Include/swigver.h		\
     Source/CParse/Makefile		\
+    Source/DOH/Makefile			\
+    Source/DOH/Doh/Makefile		\
     Source/Modules1.1/Makefile		\
     Source/Preprocessor/Makefile	\
     Source/Swig/Makefile		\
