@@ -321,74 +321,18 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
-/* This is a hack.
- * Note that SwigValueWrapper should only be generated for value types which are classes and
- * the class does not have a default constructor. It is also used for templated classes
- * which havn't been passed to SWIG for parsing in case the class does not have a default
- * constructor. Tip (SWIG-1.3.22 as of writing): Get SWIG to parse your templated class and
- * use the %template directive (unnamed or not) to help SWIG decide whether or not
- * SwigValueWrapper should be used, for example 
- * %template() std::auto_ptr<int>; // unnamed %template does not generate any proxy classes
+/* -----------------------------------------------------------------------------
+ * cplus_value_type()
  *
- * Upate: We turn the logic back, 
- * now we don't use the wrapper only when:
- *  1.- We are not in CPlusPlus, ie, is C code
- *  2.- Is not a user type, ie, is int,short, ....
- *  3.- Is a class, but we are sure that has a default constructor.
+ * Returns the alternative value type needed in C++ for class value
+ * types. When swig is not sure about using a plain $ltype value,
+ * since the class doesn't have a default constructor, or it can't be
+ * assigned, you will get back 'SwigValueWrapper<type >'.
  *
- * any other case means we have no idea about what is going on, so, 
- * we play safe and weuse the wrapper.
- *
- * Now there are two ways to know if there is a default_constructor:
- *  1.- swig detects it and set allocate:default_constructor
- *  2.- the user specify it by using %feature("novaluewrapper"),
- *      just for the very ugly corner cases of opaque types, in that
- *      case the user need to type
- *
- *        class MyOpaqueClass;
- *        %feature("novaluewrapper") MyOpaqueClass;
- */
-SwigType *cplus_value_type(SwigType *t) {
-  Node *n = 0;
-  SwigType *w = 0;
-  int use_wrapper = 1;
-  if (CPlusPlus) {
-    SwigType *ftd = SwigType_typedef_resolve_all(t);
-    SwigType *td = SwigType_strip_qualifiers(ftd);
-    if (SwigType_type(td) == T_USER) {
-      if ((n = Swig_symbol_clookup(td,0))) {
-	if (((Strcmp(nodeType(n),"class") == 0) 
-	    && !Getattr(n,"allocate:noassign")
-	    && (Getattr(n,"allocate:default_constructor")))
-	    || (Getattr(n,"feature:novaluewrapper"))) {
-	  use_wrapper = Getattr(n,"feature:valuewrapper") ? 1 : 0;
-	}
-      }
-    } else {
-      use_wrapper = 0;
-    }    
-    if (use_wrapper) {
-      String *name = SwigType_str(t,0);
-      w = NewStringf("SwigValueWrapper< %s >",name);
-      Delete(name);
-    }
-    Delete(ftd);
-    Delete(td);    
-  }
-  return w;
-}
+ * ----------------------------------------------------------------------------- */
 
-/* Patch C++ pass-by-value */
-void Language::patch_parms(Parm *p) {
-  while (p) {
-    SwigType *t = Getattr(p,"type");
-    SwigType *s = cplus_value_type(t);
-    if (s) {
-      Setattr(p,"alttype",s);
-      Delete(s);
-    }
-    p = nextSibling(p);
-  }
+SwigType *cplus_value_type(SwigType *t) {
+  return SwigType_alttype(t, 0);
 }
 
 static Node *first_nontemplate(Node *n) {
@@ -943,7 +887,6 @@ int
 Language::functionHandler(Node *n) {
   Parm *p;
   p = Getattr(n,"parms");
-  if (CPlusPlus) patch_parms(p);
   if (!CurrentClass) {
     globalfunctionHandler(n);
   } else {
@@ -1250,7 +1193,9 @@ Language::membervariableHandler(Node *n) {
 
     /* Create a function to set the value of the variable */
     
-    if (!Getattr(n,"feature:immutable")) {
+    int assignable = is_assignable(n);
+
+    if (assignable) {
       int       make_wrapper = 1;
       String *tm = 0;
       String *target = 0;
@@ -1261,7 +1206,6 @@ Language::membervariableHandler(Node *n) {
       int flags = Extend | SmartPointer;
       //if (CPlusPlus) flags |= CWRAP_VAR_REFERENCE;
       Swig_MembersetToFunction(n,ClassType, flags);
-      if (CPlusPlus) patch_parms(Getattr(n,"parms"));
       if (!Extend) {
 	/* Check for a member in typemap here */
 
@@ -1295,7 +1239,6 @@ Language::membervariableHandler(Node *n) {
     /* Emit get function */
     {
       Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer);
-      if (CPlusPlus) patch_parms(Getattr(n,"parms"));
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }
@@ -2122,11 +2065,7 @@ int
 Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler",n,"?name","*sym:name","?type","?parms",NIL);
   String *symname = Getattr(n,"sym:name");
-  String *mrename;
-  Parm   *parms = Getattr(n,"parms");
-
-  mrename = Swig_name_construct(symname);
-  if (CPlusPlus) patch_parms(parms);
+  String *mrename = Swig_name_construct(symname);
   Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor_code, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
@@ -2143,10 +2082,7 @@ int
 Language::copyconstructorHandler(Node *n) {
   Swig_require("copyconstructorHandler",n,"?name","*sym:name","?type","?parms", NIL);
   String *symname = Getattr(n,"sym:name");
-  String *mrename;
-  Parm   *parms = Getattr(n,"parms");
-  if (CPlusPlus) patch_parms(parms);
-  mrename = Swig_name_copyconstructor(symname);
+  String *mrename = Swig_name_copyconstructor(symname);
   Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor_code,
 			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
@@ -2294,12 +2230,12 @@ int Language::variableWrapper(Node *n) {
   String *name   = Getattr(n,"name");
 
   /* If no way to set variables.  We simply create functions */
-  if (!Getattr(n,"feature:immutable")) {
+  int assignable = is_assignable(n);
+  if (assignable) {
     int make_wrapper = 1;
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n);
-    if (CPlusPlus) patch_parms(Getattr(n,"parms"));
 
     Setattr(n,"sym:name", Swig_name_set(symname));
 
@@ -2326,7 +2262,6 @@ int Language::variableWrapper(Node *n) {
     Setattr(n,"name",name);
   }
   Swig_VargetToFunction(n);
-  if (CPlusPlus) patch_parms(Getattr(n,"parms"));
   Setattr(n,"sym:name", Swig_name_get(symname));
   functionWrapper(n);
   Swig_restore(n);
@@ -2630,4 +2565,26 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
     argc_template_string = Copy(argc);
     Delete(argv_template_string);
     argv_template_string = Copy(argv);
+}
+
+int Language::is_assignable(Node *n)
+{
+  if (Getattr(n,"feature:immutable")) return 0;
+  SwigType *type = Getattr(n,"type");
+  Node *cn = 0;
+  SwigType *ftd = SwigType_typedef_resolve_all(type);
+  SwigType *td = SwigType_strip_qualifiers(ftd);
+  if (SwigType_type(td) == T_USER) {
+    if ((cn = Swig_symbol_clookup(td,0))) {
+      if ((Strcmp(nodeType(cn),"class") == 0)) {
+	if (Getattr(cn,"allocate:noassign")) {
+	  Setattr(n,"feature:immutable","1");
+	  return 0;
+	} else {
+	  return 1;
+	}
+      }    
+    }
+  }
+  return 1;
 }
