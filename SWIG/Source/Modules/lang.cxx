@@ -816,8 +816,13 @@ int Language::cDeclaration(Node *n) {
       if (!NoExtern) {
 	if (f_header) {
 	  if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
-	    Printf(f_header,"extern %s", SwigType_str(ty,name));
+	    /* we don't need the 'extern' part in the C/C++ declaration,
+	       and it produces some problems when namespace and SUN
+	       Studio is used.
 
+	       Printf(f_header,"extern %s", SwigType_str(ty,name));
+	    */
+	    Printf(f_header,"%s", SwigType_str(ty,name));
 	    {
 	      DOH *t = Getattr(n,"throws");
 	      if (t) {
@@ -832,7 +837,8 @@ int Language::cDeclaration(Node *n) {
 	    }
 	    Printf(f_header,";\n");
 	  } else if (Cmp(storage,"externc") == 0) {
-	    Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
+	    /* here 'extern "C"' is needed */
+	    Printf(f_header, "extern \"C\" %s;\n", SwigType_str(ty,name));
 	  }
 	}
       }
