@@ -14,9 +14,7 @@
 %insert(runtime) "ocamldec.swg"
 
 /* Type registration */
-#if 0
 %insert(init) "typeregister.swg"
-#endif
 
 /*#ifndef SWIG_NOINCLUDE*/
 %insert(runtime) "ocaml.swg"
