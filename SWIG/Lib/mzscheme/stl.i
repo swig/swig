@@ -342,12 +342,8 @@ namespace std {
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
-                    if (SCHEME_DBLP(o))
-                        (($1_type &)$1)[i] = SCHEME_DBL_VAL(o);
-                    else if (SCHEME_RATIONALP(o))
-                        (($1_type &)$1)[i] = scheme_rational_to_double(o);
-                    else if (SCHEME_INTP(o))
-                        (($1_type &)$1)[i] = double(SCHEME_INT_VAL(o));
+                    if (SCHEME_REALP(o))
+                        (($1_type &)$1)[i] = scheme_real_to_double(o);
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<double>", 
                                           $argnum, argc, argv);
@@ -361,12 +357,8 @@ namespace std {
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    if (SCHEME_DBLP(head))
-                        $1.push_back(SCHEME_DBL_VAL(head));
-                    else if (SCHEME_RATIONALP(head))
-                        $1.push_back(scheme_rational_to_double(head));
-                    else if (SCHEME_INTP(head))
-                        $1.push_back(double(SCHEME_INT_VAL(head)));
+                    if (SCHEME_REALP(head))
+                        $1.push_back(scheme_real_to_double(head));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<double>", 
                                           $argnum, argc, argv);
@@ -385,12 +377,8 @@ namespace std {
                 Scheme_Object** items = SCHEME_VEC_ELS($input);
                 for (unsigned int i=0; i<size; i++) {
                     Scheme_Object* o = items[i];
-                    if (SCHEME_DBLP(o))
-                        temp[i] = SCHEME_DBL_VAL(o);
-                    else if (SCHEME_RATIONALP(o))
-                        temp[i] = scheme_rational_to_double(o);
-                    else if (SCHEME_INTP(o))
-                        temp[i] = double(SCHEME_INT_VAL(o));
+                    if (SCHEME_REALP(o))
+                        temp[i] = scheme_real_to_double(o);
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<double>", 
                                           $argnum, argc, argv);
@@ -406,12 +394,8 @@ namespace std {
                 while (!SCHEME_NULLP(tail)) {
                     head = scheme_car(tail);
                     tail = scheme_cdr(tail);
-                    if (SCHEME_DBLP(head))
-                        temp.push_back(SCHEME_DBL_VAL(head));
-                    else if (SCHEME_RATIONALP(head))
-                        temp.push_back(scheme_rational_to_double(head));
-                    else if (SCHEME_INTP(head))
-                        temp.push_back(double(SCHEME_INT_VAL(head)));
+                    if (SCHEME_REALP(head))
+                        temp.push_back(scheme_real_to_double(head));
                     else
                         scheme_wrong_type(FUNC_NAME, "vector<double>", 
                                           $argnum, argc, argv);
