@@ -32,6 +32,7 @@ static const char *usage = (char*)"\
 Tcl 8 Options (available with -tcl)\n\
      -itcl           - Enable ITcl support\n\
      -ldflags        - Print runtime libraries to link with\n\
+     -nosafe         - Leave out SafeInit module function.\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace\n\
      -pkgversion     - Set package version\n\n";
@@ -55,6 +56,7 @@ static String     *class_name = 0;
 
 static int    have_attributes;
 static int    have_methods;
+static int    nosafe = 0;
 
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
@@ -111,6 +113,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-itcl") == 0) {
 	  itcl = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nosafe") == 0) {
+	  nosafe = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
@@ -234,13 +239,19 @@ public:
     
     /* Close the init function and quit */
     Printf(f_init,"return TCL_OK;\n}\n");
-    
+
+    if (!nosafe) {
+      Printf(f_init,"SWIGEXPORT(int) %(title)s_SafeInit(Tcl_Interp *interp) {\n", module );
+      Printf(f_init,"    return SWIG_init(interp);\n");
+      Printf(f_init,"}\n");
+    }
+
     if (itcl) {
       Printv(f_shadow, f_shadow_stubs, "\n",NIL);
       Close(f_shadow);
       Delete(f_shadow);
     }
-    
+
     /* Close all of the files */
     Printv(f_runtime, f_header, f_wrappers,NIL);
     Wrapper_pretty_print(f_init,f_runtime);
