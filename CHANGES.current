@@ -1,6 +1,15 @@
 Version 1.3.20 (In progress)
 ============================
 
+06/29/2003: cheetah (William Fulton)
+            [Java, C#] SF #670949 request. The destructor wrapper function name is now 
+            configurable.  A new attribute called methodname in the 
+            javadestruct/javadestruct_derived (Java) or csdestruct/csdestruct_derived (C#)
+            typemaps specifies the method name. For example in Java the destructor is 
+            wrapped by default with the delete method:
+
+                %typemap(javadestruct, methodname="delete") SWIGTYPE {...}
+
 06/27/2003: cheetah (William Fulton)
             [Java, C#] The throws attribute for adding exception classes to the throws
             clause also now works with the following typemaps: 
