@@ -11,12 +11,13 @@ notes related to each example.
 
 The Examples directory is currently quite incomplete because it
 is being reorganized.  A more complete set of examples can be found
-in the SWIG1.1p5 distribution (most of which should still work with 
+in the SWIG1.1p5 distribution (most of which should still work with
 SWIG1.3).
 
 Note: All of the examples rely upon the Makefile in this directory.
 You may need to edit it to reflect the configuration of your machine
 in case the configure script guesses incorrect settings.
+
 
 *** Special note concering C++ ***
 
@@ -38,8 +39,12 @@ the rules of thumb for making C++ work:
 
  -  RTM (sorry)
 
-     
 
+*** Special note for SWIG Maintainers ***
 
-
-
+When you add an example, consider arranging for the example to be also
+useful as part of the SWIG testing framework.  To do this, include in
+the example makefile a target "check" ("check: all" is sufficient for a
+first pass), and add an invocation to ../Makefile.in under target
+"check-examples" (or whatever is appropriate).  Later, we can add or
+expand the actions under target "check" to do more in-depth testing.
