@@ -24,3 +24,12 @@ bv[3]= 0
 
 if bv[0] != bv[2]:
     raise RuntimeError,"bad std::vector<bool> mapping"
+
+b = B(5)
+va = VecA([b,b,b,b])
+if va[0].f(1) != 6:
+    raise RuntimeError,"bad std::vector<A*> mapping"
+
+b.val = 7
+if va[3].f(1) != 8:
+    raise RuntimeError,"bad std::vector<A*> mapping"
