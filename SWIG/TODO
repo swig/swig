@@ -213,7 +213,7 @@ Ruby
 [DONE] Add support for defining nested modules. This should work like it does
        for the SWIG Perl module.
 
-**     In a post to the SWIG users' mailing list (June 5: "Multiple Inheritance
+[DONE] In a post to the SWIG users' mailing list (June 5: "Multiple Inheritance
        and Ruby"), Brett Williams suggested a workaround for supporting
        multiple inheritance in the Ruby module. I'm quoting it here since
        the idea may be best implemented at the core level for reuse by other
@@ -257,24 +257,6 @@ Ruby
        basic inheritance relationships wouldn't be true at the Ruby level,
        e.g. Derived#is_a?(Base1) would return true but Derived#is_a?(Base2)
        would return false.
-
-**     A related suggestion from Brett Williams (and perhaps an alternative
-       to the previously described workaround for MI) is to provide a
-       variant of the %extend directive that allows you to pretend that these
-       functions should be treated as if they were in the class definition,
-       i.e.:
-
-	   %define ADD_ART_PROP_METHODS(classname)
-	   %extend classname {
-	     void AddArtProperty(const String &key, const String &val);
-	     String GetArtProperty(const String &key) const;
-	     const PropertyVector *GetArtProperties() const;
-	   };
-	   %enddef
-
-       As written, SWIG would expect you to have provided functions with
-       names classname_AddArtProperty(), etc. somewhere else in the wrapper
-       code. We'd prefer that it somehow knew to call the function directly.
 
 *      Add some special directives to automatically rename declarations to
        or from CamelCase.

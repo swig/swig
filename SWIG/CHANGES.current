@@ -1,6 +1,13 @@
 Version 1.3.20 (In progress)
 ============================
 04/25/2003: ljohnson (Lyle Johnson)
+            [Ruby] Added a kind of limited support for multiple inheritance,
+            activated using the -minherit command-line option. I've also updated
+            the "C++ Inheritance" section of the Ruby documentation to discuss
+            how this works, and its limitations. Also also modified the minherit.i
+            test case to run against this.
+
+04/25/2003: ljohnson (Lyle Johnson)
             [Ruby] Added the -globalmodule command-line option for the Ruby
             module, for wrapping stuff into the global module (Kernel) instead
             of a nested module. Updated documentation accordingly.
