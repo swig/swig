@@ -1,5 +1,21 @@
 Version 1.3.20 (In progress)
 ============================
+05/11/2003: cheetah (William Fulton)
+            [C# and Java] Fix to the following typemaps:
+
+            javabase, javainterfaces, javaimports, javaclassmodifiers,
+            javaptrconstructormodifiers, javafinalize, javagetcptr & javacode.
+
+            These are the typemaps for modifying/generating proxy classes.
+            Previously the typemaps would use the proxy class name and not the 
+            C++ type, which was inconsistent with all other typemaps. 
+
+            In most circumstances the proxy class name and the C++ class name/type 
+            is the same except for classes in namespace, templated classes etc. so
+            this shouldn't affect most cases.
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA and C# MODULES ***
+
 05/01/2003: beazley
             Fixed problem with return by value, const, and private constructors.
             For example:
