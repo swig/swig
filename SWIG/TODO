@@ -275,7 +275,8 @@ Java
 ----
 
 **     Vararg typemaps
-**     $javaconst(1) option for enums - so that no JNI call is necessary to 
+
+[DONE] $javaconst(1) option for enums - so that no JNI call is necessary to 
        get the value of the enum.
 
 PHP
