@@ -1,21 +1,19 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-
-# You might have to include some options like -R or -Xlinker -rpath to
-# tell the linker where -lswigtcl8 is located.
- 
-LIBS       = -lswigtcl8
 SWIGOPT    = -c 
+#If your system requires linking with the runtime libraries then set the directory location here
+RUNTIMEDIR = 
 
 all::
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' tcl_cpp
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='foo' INTERFACE='foo.i' tcl_cpp
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='bar' INTERFACE='bar.i' tcl_cpp
-	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' tcl_cpp
+	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='base' INTERFACE='base.i' tcl_multi_cpp
+	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='foo' INTERFACE='foo.i' tcl_multi_cpp
+	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='bar' INTERFACE='bar.i' tcl_multi_cpp
+	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spam' INTERFACE='spam.i' tcl_multi_cpp
+	
 
 
 clean::

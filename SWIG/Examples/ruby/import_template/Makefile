@@ -1,21 +1,18 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-
-# You might have to include some options like -R or -Xlinker -rpath to
-# tell the linker where -lswigrb is located.
-
-LIBS       = -lswigrb
 SWIGOPT    = -c
+#If your system requires linking with the runtime libraries then set the directory location here
+RUNTIMEDIR = 
  
 all::
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='base' INTERFACE='base.i' ruby_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='base' INTERFACE='base.i' ruby_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='foo' INTERFACE='foo.i' ruby_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='foo' INTERFACE='foo.i' ruby_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='bar' INTERFACE='bar.i' ruby_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='bar' INTERFACE='bar.i' ruby_multi_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' ruby_cpp
+	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spam' INTERFACE='spam.i' ruby_multi_cpp
 
 clean::
 	@rm -f *_wrap* *.o *~ *.so *.dll .~* core
