@@ -214,7 +214,7 @@ DOHHash *Preprocessor_define(DOHString_or_char *str, int swigmacro)
   }
 
   if (!swigmacro) {
-    Replace(macrovalue,"\\\n"," ", DOH_REPLACE_ANY);
+    Replace(macrovalue,"\\\n"," ", DOH_REPLACE_NOQUOTE);
   }
   /* Get rid of whitespace surrounding # */
   Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE);
