@@ -1,11 +1,12 @@
-%module("tpltreduc") template_typedef_ptr
+%module("templatereduce") template_typedef_ptr
+%module("templatereduce") template_typedef_ptr
 
  /*
-   Use the "tpltreduc" to force swig to reduce the temaplate
-   typedef as much as possible.
+   Use the "templatereduce" option to force swig to reduce the
+   temaplate typedef as much as possible.
    
-   This fix cases like this one, but it can prevent some
-   typemaps for working.
+   This fix cases like the one in this file, but it can prevent some
+   typemaps for working as expected.
 
  */
 

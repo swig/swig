@@ -53,7 +53,7 @@ static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
 static int      compact_default_args = 0;
-static int      template_typedef_reduction = 0;
+static int      template_reduce = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -1625,8 +1625,8 @@ module_directive: MODULE options idstring {
 		     */
 		     dirprot_mode = 1;
 		   } 
-		   if (Getattr($2,"tpltreduc")) {
-		     template_typedef_reduction = 1;
+		   if (Getattr($2,"templatereduce")) {
+		     template_reduce = 1;
 		   }
 		 }
 		 if (!ModuleName) ModuleName = NewString($3);
@@ -2134,7 +2134,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		    if (!value) {
 		      SwigType *ty = Getattr(p,"type");
 		      if (ty) {
-			if (template_typedef_reduction) {
+			if (template_reduce) {
 			  SwigType *rty = Swig_symbol_typedef_reduce(ty,0);
 			  ty = Swig_symbol_type_qualify(rty,0);
 			  Setattr(p,"type",ty);
