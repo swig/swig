@@ -1261,6 +1261,7 @@ Language::membervariableHandler(Node *n) {
       int flags = Extend | SmartPointer;
       //if (CPlusPlus) flags |= CWRAP_VAR_REFERENCE;
       Swig_MembersetToFunction(n,ClassType, flags);
+      if (CPlusPlus) patch_parms(Getattr(n,"parms"));
       if (!Extend) {
 	/* Check for a member in typemap here */
 
@@ -1294,6 +1295,7 @@ Language::membervariableHandler(Node *n) {
     /* Emit get function */
     {
       Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer);
+      if (CPlusPlus) patch_parms(Getattr(n,"parms"));
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }
@@ -2297,6 +2299,8 @@ int Language::variableWrapper(Node *n) {
     String *tm = Swig_typemap_lookup_new("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n);
+    if (CPlusPlus) patch_parms(Getattr(n,"parms"));
+
     Setattr(n,"sym:name", Swig_name_set(symname));
 
     /*    String *tm = Swig_typemap_lookup((char *) "globalin",type,name,name,Swig_cparm_name(0,0),name,0);*/
@@ -2322,6 +2326,7 @@ int Language::variableWrapper(Node *n) {
     Setattr(n,"name",name);
   }
   Swig_VargetToFunction(n);
+  if (CPlusPlus) patch_parms(Getattr(n,"parms"));
   Setattr(n,"sym:name", Swig_name_get(symname));
   functionWrapper(n);
   Swig_restore(n);
