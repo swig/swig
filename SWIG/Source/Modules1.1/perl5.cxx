@@ -104,6 +104,8 @@ static char *import_file = 0;
 static char *smodule = 0;
 static int   compat = 0;
 
+static Hash symbols;
+
 // ---------------------------------------------------------------------
 // PERL5::parse_args(int argc, char *argv[])
 //
@@ -1791,7 +1793,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
     realname = iname;
 
   cname << class_name << "::" << realname;
-  if (add_symbol(cname.get(),0,0)) {
+  if ((symbols.add(cname.get(),0)) == -1) {
     return;    // Forget it, we saw this function already
   }
 
@@ -1915,7 +1917,7 @@ void PERL5::cpp_variable(char *name, char *iname, DataType *t) {
 
   if (blessed) {
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(),0,0)) {
+    if ((symbols.add(cname.get(),0)) == -1) {
       return;    // Forget it, we saw this already
     }
 	
@@ -1968,7 +1970,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     }
 
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(),0,0)) {
+    if ((symbols.add(cname.get(),0)) == -1) {
       return;    // Forget it, we saw this already
     }
     if ((strcmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
@@ -2137,7 +2139,7 @@ void PERL5::cpp_declare_const(char *name, char *iname, DataType *type, char *val
       realname = iname;
 
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(),0,0)) {
+    if ((symbols.add(cname.get(),0)) == -1) {
       return;    // Forget it, we saw this already
     }
 

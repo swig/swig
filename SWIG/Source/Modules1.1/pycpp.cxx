@@ -50,6 +50,8 @@ static  String   base_getattr;
 static  String   base_setattr;
 static  int      class_renamed = 0;
 
+static  Hash     symbols;
+
 // --------------------------------------------------------------------------
 // PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip)
 //
@@ -151,7 +153,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
     
     // Check to see if we've already seen this
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(), 0,0)) {
+    if ((symbols.add(cname.get(),0)) == -1) {
       return;   // Forget it, already saw it
     }
     
@@ -228,7 +230,7 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
     
     // Check to see if we've already seen this
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(), 0,0)) {
+    if ((symbols.add(cname.get(), 0)) == -1) {
       return;   // Forget it, already seen it
     }
 
@@ -437,7 +439,7 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     // Check to see if we've already seen this
 
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(), 0,0)) {
+    if ((symbols.add(cname.get(), 0)) == -1) {
       return;   // Forget it, already seen it
     }
     
@@ -486,7 +488,7 @@ void PYTHON::cpp_declare_const(char *name, char *iname, DataType *type, char *va
     // Check to see if we've already seen this
 
     cname << class_name << "::" << realname;
-    if (add_symbol(cname.get(), 0,0)) {
+    if ((symbols.add(cname.get(), 0)) == -1) {
       return;   // Forget it, already seen it
     }
     
