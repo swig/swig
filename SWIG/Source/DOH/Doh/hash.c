@@ -214,6 +214,14 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     prev = 0;
     while (n) {
       if (Cmp(n->key,k) == 0) {
+	
+	/* Node already exists.  Just replace its contents */
+	Delete(n->object);
+	n->object = obj;
+	Incref(obj);
+	return 0;
+
+	/* old code - remove
 	HashNode *nn;
 	if (prev) {
 	  prev->next = n->next;
@@ -223,7 +231,8 @@ Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
 	nn = n->next;
 	DelNode(n);
 	h->nitems--;
-	n = nn;
+	n = nn; */
+
       } else {
 	prev = n;
 	n = n->next;
@@ -279,10 +288,16 @@ Hash_delattr(DOH *ho, DOH *k) {
     while (n) {
 	if (Cmp(n->key, k) == 0) {
 	    /* Found it, kill it */
+
 	    if (prev) {
 		prev->next = n->next;
 	    } else {
 		h->hashtable[hv] = n->next;
+	    }
+	    /* Need to check for iterator location */
+	    if (n == h->current) {
+	      h->current = prev;                   /* Move back to previous node.  When next is called, will move to next node */
+	      if (!h->current) h->currentindex--;  /* No previous node.  Move back one slot */
 	    }
 	    DelNode(n);
 	    h->nitems--;
@@ -313,7 +328,9 @@ hash_next(DOH *ho) {
     if (h->currentindex < 0) return hash_first(h);
 
     /* Try to move to the next entry */
-    h->current = h->current->next;
+    if (h->current) {
+      h->current = h->current->next;
+    }
     if (h->current) {
 	return h->current;
     }
