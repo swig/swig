@@ -72,8 +72,9 @@ special client/server code as you do with RPC-like systems.
 <li><b>SWIG does not define a protocol nor is it a component
 framework.</b> SWIG does not define mechanisms or enforce rules
 regarding the way in which software components are supposed to
-interact with each other.  All it does is provide the glue needed to
-hook C code to other languages.
+interact with each other.  Nor is it a specialized runtime library
+or alternative scripting language API.  SWIG is merely a code generator
+that provides the glue necessary to hook C/C++ to other languages.
 
 <p> <li><b>Designed to work with existing C/C++ code</b>.  SWIG
 requires little, if any, modifications to existing code.  For the most
@@ -86,6 +87,20 @@ allow you to blow your whole leg off.  SWIG does not enforce any rules related t
 morality.
 </ul>
 
+It is also worth noting that even though SWIG is occasionally compared
+to other more specialized scripting language extension building tools
+(e.g., Perl XS, Python bgen, etc.), its primary audience is C/C++
+programmers who want to add a scripting language component to their
+applications.  Because of this, SWIG tends to have a slightly
+different focus than tools designed to build small modules for
+widespread use in a scripting language distribution.  In particular,
+SWIG tends to provide much greater support for C/C++ while
+deemphasizing most of the low-level details related to the internal
+operation of the target language.  In contrast, tools specialized to a
+particular language allow for a greater degree of customization
+(although they are often much more difficult to use).
+
+<p>
 A number of <a href="doc.html">papers and tutorials</a> describing SWIG are available.
 You can also view a simple <a href="tutorial.html">tutorial</a> to see an
 example of SWIG in action, or check out how other people are using SWIG
@@ -94,6 +109,6 @@ in their <a href="projects.html">projects</a>.
 <p>
 SWIG has been freely available in various forms since February, 1996
 and a large number of developers have made contributions.  Today, SWIG
-remains an all-volunteer effort.  Approximately 560 people subscribe
+remains an all-volunteer effort.  Approximately 700 people subscribe
 to the SWIG mailing list (swig@cs.uchicago.edu) and a public CVS
 repository is available at the University of Chicago. 
