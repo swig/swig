@@ -127,11 +127,11 @@ PERL5::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      package = new char[strlen(argv[i+1])+1];
 	      strcpy(package, argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-module") == 0) {
 	    if (argv[i+1]) {
@@ -139,21 +139,21 @@ PERL5::parse_args(int argc, char *argv[]) {
 	      strcpy(module, argv[i+1]);
 	      cmodule = module;
 	      cmodule.replace(":","_");
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-exportall") == 0) {
 	      export_all = 1;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-static") == 0) {
 	      is_static = 1;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    blessed = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-hide") == 0) {
 	    if (argv[i+1]) {
 	      hide = new char[strlen(argv[i+1])+1];
@@ -161,24 +161,24 @@ PERL5::parse_args(int argc, char *argv[]) {
 	      chide = hide;
 	      chide.replace(":","_");
 	      hidden = 1;
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-alt-header") == 0) {
 	    if (argv[i+1]) {
 	      alt_header = copy_string(argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-compat") == 0) {
 	    compat = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
@@ -1574,12 +1574,12 @@ char *PERL5::usage_const(char *iname, DataType *, char *value) {
 }
 
 // -----------------------------------------------------------------------
-// PERL5::add_native(char *name, char *funcname)
+// PERL5::add_native(char *name, char *funcname, DataType *, ParmList *)
 //
 // Add a native module name to Perl5.
 // -----------------------------------------------------------------------
 
-void PERL5::add_native(char *name, char *funcname) {
+void PERL5::add_native(char *name, char *funcname, DataType *, ParmList *) {
   fprintf(f_init,"\t newXS(\"%s::%s\", %s, file);\n", package,name, funcname);
   if (export_all)
     exported << name << " ";

@@ -1,29 +1,5 @@
 #######################################################################
 # $Header$
-# Simplified Wrapper and Interface Generator (SWIG)
-# 
-# Makefile for version 1.0 Final
-# Dave Beazley
-# August 1, 1996
-#
-# This makefile is now mostly constructed by ./configure.
-#
-# $Log$
-# Revision 1.2  2000/01/12 04:56:27  beazley
-# Removed latex
-#
-# Revision 1.1  2000/01/11 20:08:16  beazley
-# First checkin
-#
-# Revision 1.2  1999/11/14 02:42:56  beazley
-# Initial 1.3 checkin
-#
-# Revision 1.1.1.1  1999/02/28 02:00:51  beazley
-# Swig1.1
-#
-# Revision 1.1  1996/08/12 01:55:02  dmb
-# Initial revision
-#
 #######################################################################
 
 #.KEEP_STATE:
@@ -63,13 +39,13 @@ AR      = @AR@
 # Normally, you shouldn't have to change anything below this point     #
 ########################################################################
 
-LIBOBJS = main.o scanner.o symbol.o include.o types.o parms.o emit.o newdoc.o ascii.o \
-          html.o cplus.o lang.o hash.o sstring.o wrapfunc.o getopt.o comment.o \
+LIBOBJS = main.o scanner.o symbol.o types.o include.o parms.o emit.o newdoc.o \
+          cplus.o lang.o hash.o sstring.o wrapfunc.o comment.o \
           typemap.o naming.o
 
 LIBSRCS = main.cxx scanner.cxx symbol.cxx include.cxx types.cxx parms.cxx emit.cxx \
-	  newdoc.cxx ascii.cxx html.cxx cplus.cxx lang.cxx hash.cxx \
-          sstring.cxx wrapfunc.cxx getopt.cxx comment.cxx typemap.cxx naming.cxx
+	  newdoc.cxx cplus.cxx lang.cxx hash.cxx \
+          sstring.cxx wrapfunc.cxx comment.cxx typemap.cxx naming.cxx
 
 PARSER   = parser.y
 INCLUDE  = -I../Include -I. -I../Core -I../Preprocessor -I../DOH/Include

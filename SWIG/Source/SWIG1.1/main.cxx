@@ -26,9 +26,6 @@ static char cvsroot[] = "$Header$";
 #define WRAP
 
 #include "internal.h"
-#include "ascii.h"
-#include "html.h"
-#include "nodoc.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -39,14 +36,9 @@ static char cvsroot[] = "$Header$";
 class SwigException {};
 
 static char *usage = "\
-\nDocumentation Options\n\
-     -dascii         - ASCII documentation.\n\
-     -dhtml          - HTML documentation.\n\
-     -dnone          - No documentation.\n\n\
-General Options\n\
+\nGeneral Options\n\
      -c              - Produce raw wrapper code (omit support code)\n\
      -c++            - Enable C++ processing\n\
-     -ci             - Check a file into the SWIG library\n\
      -co             - Check a file out of the SWIG library\n\
      -d docfile      - Set name of the documentation file.\n\
      -Dsymbol        - Define a symbol (for conditional compilation)\n\
@@ -56,10 +48,8 @@ General Options\n\
      -nocomment      - Ignore all comments (for documentation).\n\
      -o outfile      - Set name of the output file.\n\
      -objc           - Enable Objective C processing\n\
-     -stat           - Print statistics\n\
      -strict n       - Set pointer type-checking strictness\n\
      -swiglib        - Report location of SWIG library and exit\n\
-     -t typemap_file - Use a typemap file.\n\
      -v              - Run in verbose mode\n\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
@@ -90,7 +80,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   int    i;
   char   *c;
   extern  FILE   *LEX_in;
-  extern  void   add_directory(char *);
   extern  char   *get_time();
   char    temp[512];
   char    infile[512];
@@ -100,13 +89,13 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   int     help = 0;
   int     ignorecomments = 0;
   int     checkout = 0;
-  int     checkin = 0;
   int     cpp_only = 0;
   char   *typemap_file = 0;
   char   *includefiles[256];
   int     includecount = 0;
   extern  void check_suffix(char *);
   extern  void scanner_file(FILE *);
+  DOH    *libfiles = 0;
 
 #ifdef MACSWIG
   try {
@@ -153,10 +142,7 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   add_directory(":swig_lib");
 #else
   sprintf(temp,"%s/config", LibDir);
-  add_directory(temp);
-  add_directory("./swig_lib/config");
-  add_directory(LibDir);
-  add_directory("./swig_lib");
+
   SWIG_add_directory((DOH *) temp);
   SWIG_add_directory((DOH *) "./swig_lib/config");
   SWIG_add_directory((DOH *) LibDir);
@@ -165,6 +151,8 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 #endif
 
   sprintf(InitName,"init_wrap");  
+
+  libfiles = NewList();
 
   // Initialize the preprocessor
   SWIG_cpp_init();
@@ -175,85 +163,64 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	  if (strncmp(argv[i],"-I",2) == 0) {
 	    // Add a new directory search path 
 	    includefiles[includecount++] = copy_string(argv[i]+2);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
 	    DOH *d = NewString(argv[i]+2);
 	    String_replace(d,"="," ", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
 	    SWIG_cpp_define(d,0);
 	    // Create a symbol
 	    add_symbol(argv[i]+2, (DataType *) 0, (char *) 0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-strict") == 0) {
 	    if (argv[i+1]) {
 	      TypeStrict = atoi(argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-E") == 0) {
 	    cpp_only = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if ((strcmp(argv[i],"-verbose") == 0) || (strcmp(argv[i],"-v") == 0)) {
 	      Verbose = 1;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-dascii") == 0) {
-	      doc = new ASCII;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-dnone") == 0) {
-	      doc = new NODOC;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-dhtml") == 0) {
-	      doc = new HTML;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-nocomment") == 0) {
 	      ignorecomments = 1;
-	      mark_arg(i);
-	  } else if (strcmp(argv[i],"-stat") == 0) {
-	      Stats=1;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
-	      mark_arg(i);  
+	      SWIG_mark_arg(i);  
           } else if (strcmp(argv[i],"-objc") == 0) {
 	      ObjC = 1;
-              mark_arg(i);
+              SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c") == 0) {
 	      NoInclude=1;
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-make_default") == 0) {
 	    GenerateDefault = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
 	    SWIG_exit(0);
 	  } else if (strcmp(argv[i],"-o") == 0) {
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	      if (argv[i+1]) {
 		outfile_name = copy_string(argv[i+1]);
-		mark_arg(i+1);
+		SWIG_mark_arg(i+1);
 		i++;
 	      } else {
-		arg_error();
+		SWIG_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-d") == 0) {
-	      mark_arg(i);
+	      SWIG_mark_arg(i);
 	      if (argv[i+1]) {
 		doc_file = copy_string(argv[i+1]);
-		mark_arg(i+1);
+		SWIG_mark_arg(i+1);
 		i++;
 	      } else {
-		arg_error();
-	      }
-	  } else if (strcmp(argv[i],"-t") == 0) {
-	      mark_arg(i);
-	      if (argv[i+1]) {
-		typemap_file = copy_string(argv[i+1]);
-		mark_arg(i+1);
-		i++;
-	      } else {
-		arg_error();
+		SWIG_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-version") == 0) {
  	      fprintf(stderr,"\nSWIG Version %d.%d %s\n", SWIG_MAJOR_VERSION,
@@ -264,17 +231,14 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 	      SWIG_exit(0);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path 
-	    library_add(argv[i]+2);
-	    mark_arg(i);
+	    Append(libfiles,argv[i]+2);
+	    SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-co") == 0) {
 	    checkout = 1;
-	    mark_arg(i);
-	  } else if (strcmp(argv[i],"-ci") == 0) {
-	    checkin = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	    help = 1;
 	  }
       }
@@ -282,13 +246,8 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
   while (includecount > 0) {
     SWIG_add_directory((DOH *) includefiles[includecount]);
-    add_directory(includefiles[--includecount]);
   }
     
-  // Create a new documentation handler
-
-  if (doc == 0) doc = new ASCII;  
-
   // Open up a comment handler
 
   comment_handler = new CommentHandler();
@@ -313,7 +272,9 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
   // Check all of the options to make sure we're cool.
   
-  check_options();
+  SWIG_check_options();
+
+  SWIG_set_library(LibDir);
 
   // If we made it this far, looks good. go for it....
 
@@ -326,33 +287,29 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
   // If the user has requested to check out a file, handle that
 
   if (checkout) {
-    int stat;
+    DOH *s;
     char *outfile = input_file;
     if (outfile_name)
       outfile = outfile_name;
-    stat = checkout_file(input_file,outfile);
-    if (!stat) {
-      fprintf(stderr,"%s checked out from the SWIG library\n",input_file);
+    
+    s = SWIG_include(input_file);
+    if (!s) {
+      fprintf(stderr,"Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
-      FILE * f = fopen(input_file,"r");
+      FILE *f = fopen(outfile,"r");
       if (f) {
-	fprintf(stderr,"Unable to check-out %s. File already exists.\n", input_file);
 	fclose(f);
+	fprintf(stderr,"File '%s' already exists. Checkout aborted.\n", outfile);
       } else {
-	fprintf(stderr,"Unable to check-out %s\n", input_file);
+	f = fopen(outfile,"w");
+	if (!f) {
+	  fprintf(stderr,"Unable to create file '%s'\n", outfile);
+	} else {
+	  fprintf(stderr,"'%s' checked out from the SWIG library.\n", input_file);
+	  fputs(Char(s),f);
+	  fclose(f);
+	}
       }
-    }
-  } else if (checkin) {
-    // Try to check-in a file to the SWIG library
-    int stat;
-    char *outname = input_file;
-    if (outfile_name)
-      outname = outfile_name;
-    stat = checkin_file(SwigLib, LibDir, input_file, outname);
-    if (!stat) {
-      fprintf(stderr,"%s checked-in to %s/%s/%s\n", input_file, SwigLib, LibDir, outname);
-    } else {
-      fprintf(stderr,"Unable to check-in %s to %s/%s\n", input_file, SwigLib, LibDir);
     }
   } else {
     doctitle->file = copy_string(input_file);
@@ -434,7 +391,12 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     {
       DOH *cpps;
       FILE *f;
+      int i;
       DOH *ds = SWIG_include(input_file);
+      Seek(ds,0,SEEK_END);
+      for (i = 0; i < Len(libfiles); i++) {
+	Printf(ds,"\n%%include \"%s\"\n", Getitem(libfiles,i));
+      }
       Seek(ds,0,SEEK_SET);
       cpps = SWIG_cpp_parse(ds);
       if (cpp_only) {
@@ -451,9 +413,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       SWIG_exit(0);
     }
     
-    // Add to the include list
-    add_iname(infilename);
-
     // Initialize the scanner
     LEX_in = f_input;
     scanner_file(LEX_in);
@@ -505,16 +464,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
     // Define the __cplusplus symbol
     if (CPlusPlus)
       add_symbol("__cplusplus",0,0);           
-
-
-    // Load up the typemap file if given
-
-    if (typemap_file) {
-      if (include_file(typemap_file) == -1) {
-	fprintf(stderr,"Unable to locate typemap file %s.  Aborting.\n", typemap_file);
-	SWIG_exit(1);
-      }
-    }
 
     // If in Objective-C mode.  Load in a configuration file
 
@@ -568,13 +517,6 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
 
     if (Verbose)
       type_undefined_check();
-
-    if (Stats) {
-      fprintf(stderr,"Wrapped %d functions\n", Stat_func);
-      fprintf(stderr,"Wrapped %d variables\n", Stat_var);
-      fprintf(stderr,"Wrapped %d constants\n", Stat_const);
-      type_undefined_check();
-    }
 
     if (checkout) {
       // File was checked out from the SWIG library.   Remove it now

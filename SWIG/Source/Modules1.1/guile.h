@@ -39,17 +39,17 @@ public :
      module = 0;
      guile_path = "guile";
   }
-  void parse_args(int, char *argv[]);
-  void parse();
-  void create_function(char *, char *, DataType *, ParmList *);
-  void link_variable(char *, char *, DataType *);
-  void declare_const(char *, char *, DataType *, char *);
-  void initialize();
-  void headers(void);
-  void close(void);
-  void set_module(char *, char **);
-  void set_init(char *);
-  void create_command(char *, char *) { };
+  virtual void parse_args(int, char *argv[]);
+  virtual void parse();
+  virtual void create_function(char *, char *, DataType *, ParmList *);
+  virtual void link_variable(char *, char *, DataType *);
+  virtual void declare_const(char *, char *, DataType *, char *);
+  virtual void initialize();
+  virtual void headers(void);
+  virtual void close(void);
+  virtual void set_module(char *, char **);
+  virtual void set_init(char *);
+  virtual void create_command(char *, char *) { };
 };
 
 

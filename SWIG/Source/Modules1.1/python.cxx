@@ -68,31 +68,31 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 	    if (argv[i+1]) {
 	      module = new char[strlen(argv[i+1])+2];
 	      strcpy(module, argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i+=1;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    } 
 	  } else if (strcmp(argv[i],"-globals") == 0) {
 	    if (argv[i+1]) {
 	      global_name = new char[strlen(argv[i+1])+1];
 	      strcpy(global_name, argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    shadow = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
           } else if (strcmp(argv[i],"-docstring") == 0) {
 	    docstring = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {
 	    use_kw = 1;
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  }
@@ -1496,12 +1496,12 @@ char *PYTHON::usage_const(char *iname, DataType *, char *value) {
 }
 
 // -----------------------------------------------------------------------
-// PYTHON::add_native(char *name, char *funcname)
+// PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *)
 //
 // Add a native module name to the methods list.
 // -----------------------------------------------------------------------
 
-void PYTHON::add_native(char *name, char *funcname) {
+void PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *) {
   add_method(name, funcname);
   if (shadow) {
     func << name << " = " << module << "." << name << "\n\n";

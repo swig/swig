@@ -395,7 +395,7 @@ public:
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name,char **mod_list) = 0;
   virtual void set_init(char *init_name);
-  virtual void add_native(char *, char *);
+  virtual void add_native(char *name, char *iname, DataType *t, ParmList *l);
   virtual char *type_mangle(DataType *t) {
     return t->print_mangle_default();
   }
@@ -557,22 +557,19 @@ extern void cplus_support_doc(String &f);
 
 /* Function for building search directories */
 
-extern  void  add_directory(char *dirname);
 extern  int   insert_file(char *, FILE *);
 extern  int   get_file(char *filename, String &str);
-extern  int   checkout_file(char *filename, char *dest);
-extern  int   checkin_file(char *dir, char *lang, char *source, char *dest);
-extern  int   include_file(char *filename);
+extern  void  swig_append(char *filename, FILE *);
 
-/* Miscellaneous */
+/* These are in the new core */
 
-extern void check_options();
-extern void init_args(int argc, char **);
-extern void mark_arg(int n);
-extern void arg_error();
-
-extern void library_add(char *name);
-extern void library_insert();
+extern "C" {
+  /* Option processing */
+  extern void SWIG_init_args(int argc, char **);
+  extern void SWIG_mark_arg(int n);
+  extern void SWIG_check_options();
+  extern void SWIG_arg_error();
+}
 
 // -----------------------------------------------------------------------
 //  Class for Creating Wrapper Functions

@@ -132,7 +132,6 @@ void scanner_file(FILE *f) {
 void scanner_close() {
 
   InFile *p;
-  static int lib_insert = 0;
   fclose(LEX_in);
   if (!in_head) return;
   p = in_head->prev;
@@ -148,15 +147,6 @@ void scanner_close() {
   }
   delete in_head;
   in_head = p;
-
-  // if LEX_in is NULL it means we're done with the interface file. We're now
-  // going to grab all of the library files.
-
-  if ((!LEX_in) && (!lib_insert)) {
-    library_insert();
-    lib_insert = 1;
-  }
-
 }
 
 /**************************************************************
@@ -810,60 +800,13 @@ int yylook(void) {
 	  break;
 
 	case 3: /* a CPP directive */
-
 	  if (( c= nextchar()) == 0) return 0;
 	  if (c == '\n') {
 	    retract(1);
 	    yytext[yylen] = 0;
 	    yylval.id = yytext;
 	    return(POUND);
-	  } else if ((c == ' ') || (c == '\t')) {  // Ignore white space after # symbol
-	    yytext[yylen] = 0;
-	    yylen--;
-	    state = 3;
-	  } else {
-	    yytext[yylen] = 0;
-	    state = 31;
 	  }
-	  break;
-	case 31:
-	  if ((c = nextchar()) == 0) return 0;
-	  if ((c == ' ') || (c == '\t') || (c=='\n')) {
-	    retract(1);
-	    yytext[yylen] = 0;
-	    if (strcmp(yytext,"#define") == 0) {
-	      in_define = 1;
-	      define_first_id = 1;
-	      return(DEFINE);
-	    } else if (strcmp(yytext,"#ifdef") == 0) {
-	      return(IFDEF);
-	    } else if (strcmp(yytext,"#ifndef") == 0) {
-	      return(IFNDEF);
-	    } else if (strcmp(yytext,"#else") == 0) {
-	      return(ELSE);
-	    } else if (strcmp(yytext,"#endif") == 0) {
-	      return(ENDIF);
-	    } else if (strcmp(yytext,"#undef") == 0) {
-	      return(UNDEF);
-	    } else if (strcmp(yytext,"#if") == 0) {
-	      return(IF);
-	    } else if (strcmp(yytext,"#elif") == 0) {
-	      return(ELIF);
-	    } else {
-	      /* Some kind of "unknown CPP directive.  Skip to end of the line */
-	      state = 32;
-	    }
-	  }
-	  break;
-	case 32:
-	  if ((c = nextchar()) == 0) return 0;
-	  if (c == '\n') {
-	    retract(1);
-	    yytext[yylen] = 0;
-	    yylval.id = yytext;
-	    return(POUND);
-	  }
-	  state = 32;
 	  break;
 
 	case 4: /* A wrapper generator directive (maybe) */
@@ -1281,7 +1224,6 @@ extern "C" int yylex(void) {
 	if (strcmp(yytext,"union") == 0) return(UNION);
 	if (strcmp(yytext,"enum") == 0) return(ENUM);
 	if (strcmp(yytext,"sizeof") == 0) return(SIZEOF);
-	if (strcmp(yytext,"defined") == 0) return(DEFINED);
 
 	// Ignored keywords 
 
@@ -1296,9 +1238,8 @@ extern "C" int yylex(void) {
 	if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
 	if (strcmp(yytext,"%name") == 0) return(NAME);
         if (strcmp(yytext,"%rename") == 0) return(RENAME);
-	if (strcmp(yytext,"%include") == 0) return(INCLUDE);
-	if (strcmp(yytext,"%extern") == 0) return(WEXTERN);
-        if (strcmp(yytext,"%checkout") == 0) return(CHECKOUT);
+	if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
+	if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
 	if (strcmp(yytext,"%val") == 0) return(CVALUE);
 	if (strcmp(yytext,"%out") == 0) return(COUT);
 	if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
@@ -1336,18 +1277,12 @@ extern "C" int yylex(void) {
 	if (strcmp(yytext,"%native") == 0) return(NATIVE);
 	if (strcmp(yytext,"%disabledoc") == 0) return(DOC_DISABLE);
 	if (strcmp(yytext,"%enabledoc") == 0) return(DOC_ENABLE);
-	if (strcmp(yytext,"%ifdef") == 0) return(IFDEF);
-	if (strcmp(yytext,"%else") == 0) return(ELSE);
-	if (strcmp(yytext,"%ifndef") == 0) return(IFNDEF);
-	if (strcmp(yytext,"%endif") == 0) return(ENDIF);
-	if (strcmp(yytext,"%if") == 0) return(IF);
-	if (strcmp(yytext,"%elif") == 0) return(ELIF);
 	if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
 	if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
 	if (strcmp(yytext,"%inline") == 0) return(INLINE);
 	if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
 	if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-	if (strcmp(yytext,"%import") == 0) return(IMPORT);
+	if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
 	if (strcmp(yytext,"%echo") == 0) return(ECHO);
         if (strcmp(yytext,"%new") == 0) return(NEW);
 	if (strcmp(yytext,"%apply") == 0) return(APPLY);

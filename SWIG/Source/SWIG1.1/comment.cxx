@@ -583,61 +583,61 @@ void CommentHandler::parse_args(int argc, char **argv) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-Sbefore") == 0) {
 	    this->style("before",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Safter") == 0) {
 	    this->style("after",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Schop_top") == 0) {
 	    if (argv[i+1]) {
 	      this->style("chop_top",argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-Schop_bottom") == 0) {
 	    if (argv[i+1]) {
 	      this->style("chop_bottom",argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-Schop_left") == 0) {
 	    if (argv[i+1]) {
 	      this->style("chop_left",argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-Schop_right") == 0) {
 	    if (argv[i+1]) {
 	      this->style("chop_right",argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-Sskip") == 0) {
 	    if (argv[i+1]) {
 	      this->style("skip",argv[i+1]);
-	      mark_arg(i);
-	      mark_arg(i+1);
+	      SWIG_mark_arg(i);
+	      SWIG_mark_arg(i+1);
 	      i++;
 	    } else {
-	      arg_error();
+	      SWIG_arg_error();
 	    }
 	  } else if (strcmp(argv[i],"-Suntabify") == 0) {
 	    this->style("untabify",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Stabify") == 0) {
 	    this->style("tabify",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Signore") == 0) {
 	    this->style("ignore",0);
 	  } else if (strcmp(argv[i],"-help") == 0) {

@@ -269,22 +269,22 @@ void DocEntry::parse_args(int argc, char **argv) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-Ssort") == 0) {
 	    this->style("sort",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Snosort") == 0) {
 	    this->style("nosort",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Sinfo") == 0) {
 	    this->style("info",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Snoinfo") == 0) {
 	    this->style("noinfo",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Spre") == 0) {
 	    this->style("pre",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-Sformat") == 0) {
 	    this->style("format",0);
-	    mark_arg(i);
+	    SWIG_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(doc_usage,stderr);
 	  }
