@@ -168,7 +168,10 @@ following module-system hack:
 <p>SWIG can also generate this Scheme stub (from
 <code>define-module</code> up to <code>export</code>)
 semi-automagically if you pass it the command-line argument
-<code>-scmstub <var>foo.scm</var></code>.  Since SWIG doesn't know how
+<code>-scmstub</code>.  The code will be exported in a file called
+<code><i>module</i>.scm</code> in the directory specified by <code>-outdir</code>
+or the current directory if <code>-outdir</code> is not specified.  
+Since SWIG doesn't know how
 to load your extension module (with <code>dynamic-link</code> or
 <code>load-extension</code>), you need to supply this
 information by including a directive like this in the interface file:
@@ -178,7 +181,7 @@ information by including a directive like this in the interface file:
 </pre>
 </blockquote>
 (The <code>%scheme</code> directive allows to insert arbitrary Scheme
-code into the generated file <code><var>foo.scm</var></code>; it is
+code into the generated file <code><var>module.scm</var></code>; it is
 placed between the <code>define-module</code> form and the
 <code>export</code> form.)
 </ul>
@@ -434,7 +437,8 @@ The first word of data is the pointer to the object and the second word of data 
 structure describing this type.  This is a lot easier than the GH interface above because we can store
 a pointer to the type info structure right in the type.  With the GH interface, there was not enough
 room in the smob to store two whole words of data so we needed to store part of the "swig_type_info address"
-in the smob tag.</p>
+in the smob tag.  If a generated GOOPS module has been loaded, smobs will be wrapped by the corresponding
+GOOPS class.</p>
 
 
 <a name="n16"></a><H3>14.6.3 Garbage Collection</H3>
@@ -537,7 +541,7 @@ struct members, the procedures <code>(<var>struct</var>-<var>member</var>-get
 pointer)</code> and <code>(<var>struct-member</var>-set pointer
 value)</code> are <em>not</em> generated.
 
-<a name="n20"></a><h2>14.10 GOOPS</h2>
+<a name="n20"></a><h2>14.10 GOOPS Shadow Classes</h2>
 <p>SWIG can also generate classes and generic functions for use with
 Guile's Object-Oriented Programming System (GOOPS).  GOOPS is a
 sophisticated object system in the spirit of the Common Lisp Object
@@ -546,10 +550,10 @@ System (CLOS).
 <p>GOOPS support is
 only available with the new SCM interface (enabled with the
 <code>-scm</code> command-line option of SWIG).  To enable GOOPS
-support, pass the <code>-goops module.scm</code> command argument to
+support, pass the <code>-shadow</code> argument to
 swig.  This will export the GOOPS wrapper definitions into the
-<code>module.scm</code> file.  GOOPS support requires either passive
-or module linkage.</p>
+<code><i>module</i>.scm</code> file in the directory specified by -outdir or the
+current directory.  GOOPS support requires either passive or module linkage.</p>
 
 <p>The generated file will contain definitions of GOOPS classes mimicking the C++ class hierarchy.
 <p>Enabling GOOPS support implies <code>-emit-setters</code>.
@@ -640,7 +644,7 @@ the future the following will be valid <code>(make &lt;Foo&gt; #:a 5 #:b 4)</cod
 </pre></blockquote>
 This is a valid SWIG file it will work as you think it will for primitive support, but the generated
 GOOPS file will be broken.  Since the <code>someFunc</code> definition is parsed by SWIG before all the
-declerations in foo.h, the generated GOOPS file will contain the definition of <code>someFunc()</code>
+declarations in foo.h, the generated GOOPS file will contain the definition of <code>someFunc()</code>
 before the definition of &lt;Foo&gt;.  The generated GOOPS file would look like
 <blockquote><pre>;;...
 
@@ -662,7 +666,7 @@ Notice that &lt;Foo&gt; is used before it is defined.  The fix is to just put th
 <p>As you can see in the example above, there are potential naming conflicts.  The default exported
 accessor for the <code>Foo::a</code> variable is named <code>a</code>.  The name of the wrapper global 
 function is <code>getFooPlus</code>.
-If the <code>-useclassprefix</code> option is passed to swig, the name of all accesors and member 
+If the <code>-useclassprefix</code> option is passed to swig, the name of all accessors and member 
 functions will be prepended with the class name.  So the accessor will be called <code>Foo-a</code> and 
 the member functions will be called <code>Foo-getMultBy</code>.  Also, if the 
 <code>-goopsprefix goops:</code> argument is passed to swig, every identifier will be prefixed by 
@@ -674,13 +678,16 @@ module</code>) or in the scmstub file (if <code>-Linkage passive -scmstub</code>
 guile-module is the swig-module name (given on the command line with the -module argument or with the 
 %module directive) concatenated with the string "-primitive".  For
 example, if <code>%module Test</code> is set in the swig interface file, the name of the guile-module in 
-the scmstub or <code>-Linkage module</code> will be <code>Test-primitive</code>.  
+the scmstub or <code>-Linkage module</code> will be <code>Test-primitive</code>.  Also, the scmstub
+file will be named <code>Test-primitive.scm</code>.
 The string "primitive" can be changed by the <code>-primsuffix</code> swig
 argument.  So the same interface, with the <code>-primsuffix base</code> will produce a module called 
 <code>Test-base</code>. 
-The second generated guile-module contains all the GOOPS class definitions and is located in whatever 
-file is given with the <code>-goops</code> argument.  The name of this guile-module is the name of the 
-swig-module (given on the command line or with the <code>%module</code> directive).</p><p>
+The second generated guile-module contains all the GOOPS class definitions and is located in
+a file named <i>module</i>.scm in the directory specified with -outdir or the current directory.
+The name of this guile-module is the name of the
+swig-module (given on the command line or with the <code>%module</code> directive).
+In the previous example, the GOOPS definitions will be in a file named Test.scm.</p><p>
 
 </p><p>Because of the naming conflicts, you can't in general use both the <code>-primitive</code> and the GOOPS 
 guile-modules at the same time.  To do this, you need to rename the exported symbols from one or both 
@@ -726,12 +733,12 @@ Produces the following code at the top of the generated GOOPS guile-module
 <code>Module-primitive.scm</code> (with <i>primitive</i> replaced with whatever is given with the <code>-primsuffix</code>
 argument.  The code to load the <code>.so</code> library should be located in the <code>%scheme</code> directive, 
 which will then be added to the scmstub file.
-Swig will automaticly generate the line <code>(use-modules (<i>Package</i> <i>Module-primitive</i>))</code>
+Swig will automatically generate the line <code>(use-modules (<i>Package</i> <i>Module-primitive</i>))</code>
 into the GOOPS guile-module.  So if <i>Module-primitive.scm</i> is on the autoload path for guile, the
 <code>%goops</code> directive can be empty.  Otherwise, the <code>%goops</code> directive should contain 
 whatever code is needed to load the <i>Module-primitive.scm</i> file into guile.</li>
 <blockquote><pre>%scheme %{ (load-extension "./foo.so" "scm_init_my_modules_foo_module") %}
-// only include the following definition if (my modules foo) can not be loaded automaticly
+// only include the following definition if (my modules foo) can not be loaded automatically
 %goops %{ 
   (primitive-load "/path/to/foo-primitive.scm") 
   (primitive-load "/path/to/Swig/common.scm")
@@ -750,7 +757,7 @@ Produces the following code at the top of the generated GOOPS guile-module
 </pre></blockquote>
 
 <li><b>Module Linkage</b>: This is very similar to passive linkage with a scmstub file.
-Swig will also automaticly generate the line <code>(use-modules 
+Swig will also automatically generate the line <code>(use-modules 
 (<i>Package</i> <i>Module-primitive</i>))</code> into the GOOPS guile-module.  Again the <code>%goops</code>
 directive should contain whatever code is needed to get that module loaded into guile.</li>
 <blockquote><pre>%goops %{ (load-extension "./foo.so" "scm_init_my_modules_foo_module") %}
@@ -780,7 +787,7 @@ SWIG installed, you will need to include the common.swg file along with the inst
 derived from classes in <code>mod1</code>, the generated GOOPS file for <code>mod2</code> will declare
 the correct superclasses.  The only problem is that since <code>mod2</code> uses symbols from
 <code>mod1</code>, the <code>mod2</code> GOOPS file must include a <code>(use-modules (mod2))</code>.
-Currently, SWIG does not automaticlly export this line;  it must be included in the <code>%goops</code>
+Currently, SWIG does not automatically export this line;  it must be included in the <code>%goops</code>
 directive of <code>mod2</code>.  Maybe in the future SWIG can detect dependencies and export this line.
 (how do other language modules handle this problem?)</p>
 
