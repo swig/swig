@@ -1,17 +1,15 @@
 %wrapper %{
-;; allegrocl.swg
 ;; $Id$
 
 (eval-when (compile eval)
 
-  ;; Customize this (in your swig interface definition file, not here)
-  ;; if you want to change how the name is defined in Lisp.  This
-  ;; function will be called at least twice per symbol, so keep this
-  ;; in mind if your customized function has side effects.
-
-  (defun identifier-convert-null (id &key type)
-    (declare (ignore type))
-    (intern id))
+;;; You can define your own identifier converter if you want.
+;;; Use the -identifier-converter command line argument to
+;;; specify its name. 
+  
+(defun identifier-convert-null (id &key type)
+  (declare (ignore type))
+  (intern id))
 
 (defun identifier-convert-lispify (cname &key type)
   (assert (stringp cname))
@@ -43,5 +41,5 @@
 
 
 
-    ) ;; eval-when
+) ;; eval-when
 %}
