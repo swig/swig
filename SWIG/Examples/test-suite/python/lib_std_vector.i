@@ -58,14 +58,19 @@ void halve_in_place(std::vector<double>& v) {
 namespace Test {
 struct A {
     virtual ~A() {}    
-    virtual void f(const int i) const = 0;
+    virtual int f(const int i) const = 0;
 };
 
 struct B : public A {
-    void f(const int i) const
-    { std::cout << "B::f(int)\n"; }
+  int val;
+  
+  B(int i = 0) : val(i)
+  {
+  }
+  
+  int f(const int i) const { return i + val; }
 };
 } 
 %}
-%template(VecB) std::vector<Test::B>; // works
-%template(VecA) std::vector<Test::A*>; // Does not work
+%template(VecB) std::vector<Test::B>; 
+%template(VecA) std::vector<Test::A*>; 
