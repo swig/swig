@@ -353,6 +353,16 @@ void PYTHON::initialize_cmodule(void)
   fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
   fprintf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
   fprintf(f_init,"\t d = PyModule_GetDict(m);\n");
+
+  String init;
+  init << tab4 << "{\n"
+       << tab8 << "int i;\n"
+       << tab8 << "for (i = 0; _swig_types_initial[i]; i++) {\n"
+       << tab8 << tab4 << "_swig_types[i] = SWIG_TypeRegister(_swig_types_initial[i]);\n"
+       << tab8 << "}\n"
+       << tab4 << "}\n";
+  fprintf(f_init,"%s", init.get());
+
 }
 
 
