@@ -62,7 +62,7 @@ s = "hello world"
 
 b = lib_std_string.B("hi")
 
-b.name = "hello"
+b.name = lib_std_string.string("hello")
 if b.name != "hello":
   raise RuntimeError, "bad string mapping"
 

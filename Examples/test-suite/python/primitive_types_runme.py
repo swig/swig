@@ -179,7 +179,7 @@ if def_namet != 'ho\0la':
 
 t.var_namet = def_namet
 if t.var_namet != def_namet:
-  print "bad namet", t.var_namet
+  print "bad namet", t.var_namet, def_namet
   raise RuntimeError
 
 t.var_namet = 'holac'

@@ -63,7 +63,7 @@ s = "hello world"
 
 b = lib_std_wstring.B("hi")
 
-b.name = u"hello"
+b.name = lib_std_wstring.wstring(u"hello")
 if b.name != "hello":
   raise RuntimeError, "bad string mapping"
 
