@@ -1851,6 +1851,7 @@ public:
   virtual int classHandler(Node *n) {
     int oldclassic = classic;
     int oldmodern  = modern;
+    File   *f_shadow_file = f_shadow;
 
     if (shadow) {
 
@@ -1932,6 +1933,10 @@ public:
     /* Emit all of the members */
 
     in_class = 1;
+
+    /* Overide the shadow file so we can capture its methods */
+    f_shadow = NewString(""); 
+
     Language::classHandler(n);
     in_class = 0;
 
@@ -1955,36 +1960,40 @@ public:
 	Delete(ct);
       }
       if (!have_constructor) {
-	Printv(f_shadow,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NIL);
+	Printv(f_shadow_file,tab4,"def __init__(self): raise RuntimeError, \"No constructor defined\"\n",NIL);
       }
 
       if (!have_repr) {
 	/* Supply a repr method for this class  */
           if (new_repr) {
-              Printv(f_shadow,
+              Printv(f_shadow_file,
                  tab4, "def __repr__(self):\n",
                  tab8, "return \"<%s.%s; proxy of ", CPlusPlus ? "C++ " : "C ", real_classname," instance at %s>\" % (self.__class__.__module__, self.__class__.__name__, self.this,)\n",
                  NIL);
           }
           else {
-              Printv(f_shadow,
+              Printv(f_shadow_file,
 	         tab4, "def __repr__(self):\n",
   	         tab8, "return \"<C ", real_classname," instance at %s>\" % (self.this,)\n",
 	         NIL);
           }
       }
+      
+      /* Now emit methods */
+      Printv(f_shadow_file, f_shadow, NIL);
+
       /* Now the Ptr class */
-      Printv(f_shadow,
+      Printv(f_shadow_file,
   	     "\nclass ", class_name, "Ptr(", class_name, "):\n",
              tab4, "def __init__(self, this):\n", NIL);
       if (!modern) {
-        Printv(f_shadow,
+        Printv(f_shadow_file,
                tab8, "_swig_setattr(self, ", class_name, ", 'this', this)\n",
                tab8, "if not hasattr(self,\"thisown\"): _swig_setattr(self, ", class_name, ", 'thisown', 0)\n",
                tab8, "_swig_setattr(self, ", class_name, ",self.__class__,", class_name, ")\n",
                NIL);
       } else {
-        Printv(f_shadow,
+        Printv(f_shadow_file,
                tab8, "self.this = this\n",
                tab8, "if not hasattr(self,\"thisown\"): self.thisown = 0\n",
                tab8, "self.__class__ = ", class_name, "\n", NIL);
@@ -1992,13 +2001,17 @@ public:
   	     //	   tab8,"except AttributeError: self.this = this\n"
       }
 
-      Printf(f_shadow,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
+      Printf(f_shadow_file,"%s.%s_swigregister(%sPtr)\n", module, class_name, class_name,0);
       shadow_indent = 0;
-      Printf(f_shadow,"%s\n", f_shadow_stubs);
+      Printf(f_shadow_file,"%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
     }
     classic = oldclassic;
     modern  = oldmodern;
+
+    /* Restore shadow file back to original version */
+    f_shadow = f_shadow_file;
+
     return SWIG_OK;
   }
 
@@ -2024,6 +2037,9 @@ public:
 	
 	if (Getattr(n,"feature:shadow")) {
 	  String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
+	  String *pyaction = NewStringf("%s.%s", module, Swig_name_member(class_name,symname));
+	  Replaceall(pycode,"$action", pyaction);
+	  Delete(pyaction);
 	  Printv(f_shadow,pycode,"\n",NIL);
 	} else {
 
@@ -2122,6 +2138,9 @@ public:
 	if (!have_constructor) {
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),tab4);
+	    String *pyaction = NewStringf("%s.%s",module, Swig_name_construct(symname));
+	    Replaceall(pycode,"$action", pyaction);
+	    Delete(pyaction);
 	    Printv(f_shadow,pycode,"\n",NIL);
 	  } else {
 	    String *pass_self = NewString("");
@@ -2165,6 +2184,9 @@ public:
 
 	  if (Getattr(n,"feature:shadow")) {
 	    String *pycode = pythoncode(Getattr(n,"feature:shadow"),"");
+	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(symname));
+	    Replaceall(pycode,"$action", pyaction);
+	    Delete(pyaction);
 	    Printv(f_shadow_stubs,pycode,"\n",NIL);
 	  } else {
 
@@ -2195,12 +2217,20 @@ public:
     Language::destructorHandler(n);
     shadow = oldshadow;
     if (shadow) {
-      Printv(f_shadow, tab4, "def __del__(self, destroy=", module, ".", Swig_name_destroy(symname), "):\n", NIL);
-      if ( have_addtofunc(n) )
-        Printv(f_shadow, tab8, addtofunc(n), "\n", NIL);
-      Printv(f_shadow, tab8, "try:\n", NIL);
-      Printv(f_shadow, tab4, tab8, "if self.thisown: destroy(self)\n", NIL);
-      Printv(f_shadow, tab8, "except: pass\n", NIL);
+      if (Getattr(n,"feature:shadow")) {
+	String *pycode = pythoncode(Getattr(n,"feature:shadow"), tab4);
+	String *pyaction = NewStringf("%s.%s", module, Swig_name_destroy(symname));
+	Replaceall(pycode, "$action", pyaction);
+	Delete(pyaction);
+	Printv(f_shadow,pycode,"\n", NIL);
+      } else {
+	Printv(f_shadow, tab4, "def __del__(self, destroy=", module, ".", Swig_name_destroy(symname), "):\n", NIL);
+	if ( have_addtofunc(n) )
+	  Printv(f_shadow, tab8, addtofunc(n), "\n", NIL);
+	Printv(f_shadow, tab8, "try:\n", NIL);
+	Printv(f_shadow, tab4, tab8, "if self.thisown: destroy(self)\n", NIL);
+	Printv(f_shadow, tab8, "except: pass\n", NIL);
+      }
     }
     return SWIG_OK;
   }
