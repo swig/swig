@@ -179,7 +179,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   DOH    *cpps = 0 ;
   extern  void Swig_contracts(Node *n);
   extern void Swig_browser(Node *n, int);
-  extern  void Swig_default_allocators(Node *n);
+  extern void Swig_default_allocators(Node *n);
 
   /* Initialize the SWIG core */
   Swig_init();

@@ -82,7 +82,7 @@ public:
 	for (int i = 0; i < Len(bases); i++) {
 	  Node *n = Getitem(bases,i);
 	  /* If base class does not allow default constructor, we don't allow it either */
-	  if (!Getattr(n,"allocate:default_constructor")) {
+	  if (!Getattr(n,"allocate:default_constructor") && (!Getattr(n,"allocate:default_base_constructor"))) {
 	    allows_default = 0;
 	  }
 	}
@@ -99,8 +99,8 @@ public:
 
       for (int i = 0; i < Len(bases); i++) {
 	Node *n = Getitem(bases,i);
-	/* If base class does not allow default constructor, we don't allow it either */
-	if (!Getattr(n,"allocate:default_destructor")) {
+	/* If base class does not allow default destructor, we don't allow it either */
+	if (!Getattr(n,"allocate:default_destructor") && (!Getattr(n,"allocate:default_base_destructor"))) {
 	  allows_destruct = 0;
 	}
       }
@@ -135,8 +135,10 @@ public:
     if (!ParmList_numrequired(parms)) {
       /* Class does define a default constructor */
       /* However, we had better see where it is defined */
-      if (cplus_mode != PRIVATE) {
+      if (cplus_mode == PUBLIC) {
 	Setattr(inclass,"allocate:default_constructor","1");
+      } else if (cplus_mode == PROTECTED) {
+	Setattr(inclass,"allocate:default_base_constructor","1");
       }
     }
     /* Class defines some kind of constructor. May or may not be public */
@@ -150,6 +152,8 @@ public:
     Setattr(inclass,"allocate:has_destructor","1");
     if (cplus_mode == PUBLIC) {
       Setattr(inclass,"allocate:default_destructor","1");
+    } else if (cplus_mode == PROTECTED) {
+      Setattr(inclass,"allocate:default_base_destructor","1");
     }
     return SWIG_OK;
   }

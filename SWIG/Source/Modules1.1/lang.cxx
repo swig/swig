@@ -208,7 +208,7 @@ SwigType *cplus_value_type(SwigType *t) {
   if (!ClassHash) return 0;
   SwigType *td = SwigType_typedef_resolve_all(t);
   if ((n = Getattr(ClassHash,td))) {
-    if (Getattr(n,"has_default_constructor")) return 0;
+    if (Getattr(n,"allocate:default_constructor")) return 0;
     String *s = NewStringf("SwigValueWrapper<%s>",t);
     return s;
   }
@@ -268,10 +268,6 @@ void swig_pragma(char *lang, char *name, char *value) {
 static void cplus_inherit_types(Node *cls, String *clsname, int import) {
   List *ilist = Getattr(cls,"bases");
 
-  int private_constructor = GetInt(cls,"has_private_constructor");
-  int private_destructor = GetInt(cls,"has_private_destructor");
-  int base_default_constructor = GetInt(cls,"has_base_default_constructor");
-
   if (!ilist) return;
   int len = Len(ilist);
   int i;
@@ -280,11 +276,6 @@ static void cplus_inherit_types(Node *cls, String *clsname, int import) {
     Node *bname = Getattr(n,"name");
     Node *bclass = n; /* Getattr(n,"class"); */
     Hash *scopes = Getattr(bclass,"typescope");
-    
-    private_constructor |= GetInt(bclass,"has_private_constructor");
-    private_destructor |= GetInt(bclass,"has_private_destructor");
-    base_default_constructor &= GetInt(bclass,"has_default_constructor");
-
     SwigType_inherit(clsname,bname);
     if (!import) {
       String *btype = Copy(bname);
@@ -292,17 +283,11 @@ static void cplus_inherit_types(Node *cls, String *clsname, int import) {
       SwigType_remember(btype);
       Delete(btype);
     }
-    if (scopes)
+    if (scopes) {
       SwigType_merge_scope(scopes);
+    }
     cplus_inherit_types(bclass,clsname,import);
   }
-  if (!base_default_constructor) {
-    Delattr(cls,"has_base_default_constructor");
-  }
-  if (private_constructor)
-    Setattr(cls,"has_private_constructor","1");
-  if (private_destructor)
-    Setattr(cls,"has_private_destructor","1");
 }
 
 /* ----------------------------------------------------------------------
@@ -1241,9 +1226,6 @@ int Language::classDeclaration(Node *n) {
 
   Abstract = GetInt(n,"abstract");
 
-  if (!Abstract)
-    Setattr(n,"has_base_default_constructor","1");
-
   /* Inherit type definitions into the class */
   if (CPlusPlus && name) {
     cplus_inherit_types(n,name,ImportMode);
@@ -1254,10 +1236,6 @@ int Language::classDeclaration(Node *n) {
     classHandler(n);
   else
     Language::classHandler(n);
-
-  if (Getattr(n,"has_base_default_constructor")) {
-    Setattr(n,"has_default_constructor","1");
-  }
 
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
@@ -1281,12 +1259,11 @@ int Language::classHandler(Node *n) {
 
   cplus_mode = CPLUS_PUBLIC;
   if (!ImportMode && GenerateDefault) {
-    if (!Getattr(n,"has_constructor") && (!Getattr(n,"has_private_constructor")) && (Getattr(n,"has_base_default_constructor"))) {
+    if (!Getattr(n,"has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
       constructorHandler(CurrentClass);
-      Setattr(n,"has_default_constructor","1");
     }
-    if (!Getattr(n,"has_destructor") && (!Getattr(n,"has_private_destructor"))) {
+    if (!Getattr(n,"has_destructor") && (Getattr(n,"allocate:default_destructor"))) {
       destructorHandler(CurrentClass);
     }
   }
@@ -1309,37 +1286,12 @@ int Language::constructorDeclaration(Node *n) {
   String *name = Getattr(n,"name");
   Parm   *parms = Getattr(n,"parms");
 
-  /* If a class defines a constructor, it overrides any default constructors in the base. 
-     Note: constructors are not inherited  */
-
-  Delattr(CurrentClass,"has_base_default_constructor");
-
-  /* Private/protected inheritance check.   We can't generate a constructor
-     in this case, but need to record some information so that derived classes
-     don't try to generate default constructors */
-
-  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) {
-    if (!Getattr(CurrentClass,"has_constructor")) {
-      if (cplus_mode == CPLUS_PRIVATE) {
-	Setattr(CurrentClass,"has_private_constructor","1");
-      } else {
-	/* Protected mode: class has a default constructor, but it's not accessible directly */
-	if (!ParmList_numrequired(parms)) {
-	  Setattr(CurrentClass,"has_default_constructor","1");
-	}
-      }
-    }
-    Setattr(CurrentClass,"has_constructor","1");
-    return SWIG_NOWRAP;
-  }
-  Delattr(CurrentClass,"has_private_constructor");
+  if (!CurrentClass) return SWIG_NOWRAP;
+  if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
-  /* Check for default constructor.  A class has a default constructor if it 
-     has a constructor that will accept no arguments */
-  if (!(AddMethods) && (ParmList_numrequired(parms) == 0)) {
-    Setattr(CurrentClass,"has_default_constructor","1");
-  }
+  /* Only create a constructor if the class is not abstract */
+
   if (!Abstract) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
@@ -1390,14 +1342,8 @@ Language::constructorHandler(Node *n) {
 
 int Language::destructorDeclaration(Node *n) {
 
-  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) {
-    Setattr(CurrentClass,"has_destructor","1");
-    if (cplus_mode == CPLUS_PRIVATE)
-      Setattr(CurrentClass,"has_private_destructor","1");
-    return SWIG_NOWRAP;
-  }
-  if (!AddMethods) 
-    Delattr(CurrentClass,"has_private_destructor");
+  if (!CurrentClass) return SWIG_NOWRAP;
+  if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
   char *c = GetChar(n,"name");
