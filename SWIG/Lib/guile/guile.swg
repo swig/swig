@@ -252,7 +252,7 @@ void SWIG_Guile_RegisterTypes(_swig_type_info **table)
     _swig_type_info *type = *table;
     char *origname = type->name;
     /* Register datatype itself and store pointer back */
-    type->tag = SWIG_RegisterType(origname, NULL /* FIXME: prettyname */);
+    type->tag = SWIG_RegisterType(origname, type->str);
     /* Register compatible types */
     for (type++; type->name; type++)
       SWIG_RegisterMapping(origname, type->name, type->converter);
