@@ -231,7 +231,7 @@ class JAVA : public Language {
           Swig_mark_arg(i);
           Printf(stderr,"Deprecated command line option: -jnicpp. C++ JNI calling convention now used when -c++ specified.\n");
         } else if (strcmp(argv[i],"-help") == 0) {
-          Printf(stderr,"%s\n", usage);
+          Printf(stdout,"%s\n", usage);
         }
       }
     }

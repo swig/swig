@@ -213,8 +213,8 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stderr, "Allegro CL Options:\n");
-      fprintf(stderr, 
+      fprintf(stdout, "Allegro CL Options (available with -allegrocl)\n");
+      fprintf(stdout, 
 	      "    -identifier-converter <type or funcname>\n"
 	      "\tSpecifies the type of conversion to do on C identifiers to convert\n"
 	      "\tthem to symbols.  There are two built-in converters:  'null' and\n"

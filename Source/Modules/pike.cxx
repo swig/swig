@@ -86,7 +86,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i],"-help") == 0) {
-	  fputs(usage,stderr);
+	  fputs(usage,stdout);
 	}
       }
     }

@@ -129,7 +129,7 @@ CHICKEN::main(int argc, char *argv[])
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
-	fputs(chicken_usage, stderr);
+	fputs(chicken_usage, stdout);
 	SWIG_exit(0);
       } 
       else if (strcmp(argv[i],"-proxy") == 0) {

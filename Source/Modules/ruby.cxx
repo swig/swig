@@ -240,7 +240,7 @@ public:
             Swig_arg_error();
           }
 	} else if (strcmp(argv[i],"-help") == 0) {
-	  Printf(stderr,"%s\n", usage);
+	  Printf(stdout,"%s\n", usage);
 	}
       }
     }

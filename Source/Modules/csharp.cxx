@@ -169,7 +169,7 @@ class CSHARP : public Language {
           Swig_mark_arg(i);
           proxy_flag = false;
         } else if (strcmp(argv[i],"-help") == 0) {
-          Printf(stderr,"%s\n", usage);
+          Printf(stdout,"%s\n", usage);
         }
       }
     }
