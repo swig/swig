@@ -260,6 +260,7 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_extend \
 	using_inherit \
+	using_pointers \
 	using_private \
 	using_protected \
 	valuewrapper \
