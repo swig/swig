@@ -273,5 +273,6 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 %inline %{
 int endif = 0;
 int define = 0;
-int defined = 0;
+/* this is not working */
+/* int defined = 0; */
 %}
