@@ -43,7 +43,9 @@
 	
 %typemap(in) void * %{
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, 0) < 0) {
-	  zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
+	  /* Allow NULL from php for void* */
+	  if ((*$input)->type==IS_NULL) $1=0;
+	  else zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s", $argnum-argbase, $1_descriptor->name);
 	}
 %}
 
@@ -73,7 +75,7 @@
 %typemap(argout) void **, void *& %{
   if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
     if(! PZVAL_IS_REF(*$arg)) {
-      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference: [argout void**, void*&]",$argnum-argbase);
     } else {
       SWIG_SetPointerZval(*$arg, (void *) ptr$argnum, $*1_descriptor, 1);
     }
@@ -154,10 +156,11 @@
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     /* So... we didn't get a ref or ptr, but can it be reasonably 
        co-erced into what we were looking for a ref of or ptr to? */
-    if ((*$input)->type==IS_STRING ||
-        (*$input)->type==IS_LONG ||
-        (*$input)->type==IS_BOOL ||
-        (*$input)->type==IS_DOUBLE) {
+    if (PZVAL_IS_REF(*$input) &&
+        ((*$input)->type==IS_STRING ||
+         (*$input)->type==IS_LONG ||
+         (*$input)->type==IS_BOOL ||
+         (*$input)->type==IS_DOUBLE)) {
       TYPE_IN($input);
       intr = ($*1_ltype) (*$input)->value.lval;
       $1 = &intr;
@@ -173,7 +176,7 @@
 %typemap(argout) TYPES *, TYPES & %{
   if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
     if(! PZVAL_IS_REF(*$arg)) {
-      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference",$argnum-argbase);
+      zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference [argout TYPES *, TYPES &]",$argnum-argbase);
     } else {
        TYPE_OUT(*$arg,intr$argnum);	
     }
@@ -191,6 +194,10 @@
 %typemap_in_out(signed char,convert_to_long_ex,ZVAL_LONG)
 %typemap_in_out(unsigned char,convert_to_long_ex,ZVAL_LONG)
 %typemap_in_out(enum SWIGTYPE,convert_to_long_ex,ZVAL_LONG)
+
+%typemap(argout) char [ANY] {
+	ZVAL_STRINGL($arg,$1, $1_dim0, 1);
+}
 
 /* Global variables - add the variable to PHP */
 

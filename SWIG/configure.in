@@ -867,6 +867,9 @@ AC_CHECK_PROGS(PHP4, php, php4)
 else
 PHP4="$PHP4BIN"
 fi
+
+AC_SUBST(PHP4)
+
 AC_MSG_CHECKING(for PHP4 header files)
 dirs="/usr/include/php /usr/local/include/php /usr/local/apache/php"
 for i in $dirs; do

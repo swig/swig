@@ -74,7 +74,7 @@ skip-java	= [ -z "@JAVA@" -o -z "@JAVAC@" -o -z "@JAVAINC@" ]
 skip-guile	= [ -z "@GUILEINCLUDE@" -o -z "@GUILELIB@" ]
 skip-mzscheme	= [ -z "@MZC@" ]
 skip-ruby	= [ -z "@RUBY@" -o -z "@RUBYINCLUDE@" -o -z "@RUBYLIB@" ]
-skip-php4	= [ -z "@PHP4BIN@" -o -z "@PHP4INC@" ]
+skip-php4	= [ -z "@PHP4@" -o -z "@PHP4INC@" ]
 skip-ocaml      = [ -z "@OCAMLBIN@" -o -z "@OCAMLINC@" ]
 skip-pike       = [ -z "@PIKE@" -o -z "@PIKEINCLUDE@" ]
 
