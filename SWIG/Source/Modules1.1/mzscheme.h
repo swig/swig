@@ -31,7 +31,7 @@ private:
   char   *module;
   char   *package;
   int    linkage;
-  void   get_pointer(char *iname, int parm, DataType *t, WrapperFunction &f);
+  void   get_pointer(String &name, int parm, DataType *t, WrapperFunction &f);
   void   usage_var(char *, DataType *, String &usage);
   void   usage_func(char *, DataType *, ParmList *, String &usage);
   void   usage_returns(char *, DataType *, ParmList *, String &usage);

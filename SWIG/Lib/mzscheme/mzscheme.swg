@@ -5,10 +5,7 @@ typedef struct swig_proxy {
     void *object;
 } swig_proxy;
 
-Scheme_Object *swig_make_c_pointer(void *, char*);
-void *swig_get_c_pointer(Scheme_Object *, char *);
-
-Scheme_Object *swig_make_c_pointer(void *c_pointer, char *type_name) {
+static Scheme_Object *swig_make_c_pointer(void *c_pointer, char *type_name) {
     swig_proxy *new_proxy;
     new_proxy = (swig_proxy *) scheme_malloc(sizeof(swig_proxy));
     new_proxy->type = scheme_make_type(type_name);
@@ -17,11 +14,16 @@ Scheme_Object *swig_make_c_pointer(void *c_pointer, char *type_name) {
     return (Scheme_Object *) new_proxy;
 }
 
-void *swig_get_c_pointer(Scheme_Object *so, char *c_type) {
+/* returns 1 on success, 0 otherwise */
+static int swig_get_c_pointer(Scheme_Object *so, char *c_type, void **c_ptr) {
     Scheme_Type st = SCHEME_TYPE(so);
     char *type_name = scheme_get_type_name(st);
+    int err = 1;
     if(strcmp(type_name, c_type))
-    scheme_signal_error("wrong type in foreign object %s", type_name);
+	err = 0;
+    else
+	*c_ptr = ((swig_proxy *) so)->object;
 
-    return (void *) ((swig_proxy *) so)->object;
+    return err;
 }
+
