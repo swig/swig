@@ -204,7 +204,7 @@ namespace std{
 			}
 			else {
 			    self->erase(first,end);
-			    if (i+1 <= self->size()) 
+			    if (i+1 <= int(self->size())) 
 			    {
 				first = self->begin();
 				for (int k=0;k<i;k++)

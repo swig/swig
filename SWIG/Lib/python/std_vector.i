@@ -121,7 +121,8 @@ namespace std {
                         Py_DECREF(o);
                     } else {
                         Py_DECREF(o);
-                        throw SWIG_DIRECTOR_TYPE_MISMATCH("vector<" #T "> expected");
+                        throw SWIG_DIRECTOR_TYPE_MISMATCH(
+                                                  "vector<" #T "> expected");
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
@@ -306,8 +307,9 @@ namespace std {
                 if (j<0) j = size+j;
                 if (i<0) i = 0;
                 if (j>size) j = size;
-                std::vector<T > tmp(j-i);
-                std::copy(self->begin()+i,self->begin()+j,tmp.begin());
+                std::vector<T > tmp;
+                tmp.reserve(j-i);
+                tmp.insert(tmp.begin(),self->begin()+i,self->begin()+j);
                 return tmp;
             }
             void __setitem__(int i, const T& x) {
@@ -902,7 +904,7 @@ namespace std {
     specialize_std_vector(unsigned short,PyInt_Check,\
                           PyInt_AsLong,PyInt_FromLong);
     specialize_std_vector(unsigned long,PyLong_Check,\
-                          PyLong_AsUnsignedLong,PyLong_UnsignedLong);
+                          PyLong_AsUnsignedLong,PyLong_FromUnsignedLong);
     specialize_std_vector(double,SwigNumber_Check,\
                           SwigNumber_AsDouble,PyFloat_FromDouble);
     specialize_std_vector(float,SwigNumber_Check,\
