@@ -168,7 +168,7 @@ SWIG_PackData(char *c, void *ptr, int sz) {
 /* Unpack binary data from a string */
 SWIGRUNTIME(char *)
 SWIG_UnpackData(char *c, void *ptr, int sz) {
-  register unsigned char uu;
+  register unsigned char uu = 0;
   register int d;
   unsigned char *u = (unsigned char *) ptr;
   int i;
@@ -234,16 +234,16 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   if (*c != '_') {
     *ptr = (void *) 0;
     if (strcmp(c,"NULL") == 0) {
-      if (newref) Py_DECREF(obj);
+      if (newref) { Py_DECREF(obj); }
       return 0;
     } else {
-      if (newref) Py_DECREF(obj);
+      if (newref) { Py_DECREF(obj); }
       goto type_error;
     }
   }
   c++;
   c = SWIG_UnpackData(c,ptr,sizeof(void *));
-  if (newref) Py_DECREF(obj);
+  if (newref) { Py_DECREF(obj); }
 #endif
 
 #ifdef SWIG_COBJECT_TYPES

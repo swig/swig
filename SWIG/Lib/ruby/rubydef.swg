@@ -135,7 +135,7 @@ SWIG_PackData(char *c, void *ptr, int sz) {
 /* Unpack binary data from a string */
 SWIGRUNTIME(char *)
 SWIG_UnpackData(char *c, void *ptr, int sz) {
-  register unsigned char uu;
+  register unsigned char uu = 0;
   register int d;
   unsigned char *u = (unsigned char *) ptr;
   int i;
