@@ -20,8 +20,8 @@ namespace simuPOP
   {
     Pop m_pop;
     Operator(int a):m_pop(a){}
-    virtual void func() const 
-    { std::cout << m_pop.m_a << std::endl; }
+    virtual int func() const 
+    { return m_pop.m_a; }
   };
 
   // derived operator, output double of pop.m_a
@@ -29,8 +29,8 @@ namespace simuPOP
   struct DerivedOperator: public Operator<Pop>
   {
     DerivedOperator(int a):Operator<Pop>(a){}
-    virtual void func() const 
-    { std::cout << 2*this->m_pop.m_a << std::endl; }
+    virtual int func() const 
+    { return 2*this->m_pop.m_a; }
   };
 }
 }
