@@ -22,6 +22,7 @@
 %include "php4/php4kw.swg"
 %include "pike/pikekw.swg"
 %include "python/pythonkw.swg"
+%include "ocaml/ocamlkw.swg"
 %include "ruby/rubykw.swg"
 %include "tcl/tcl8kw.swg"
 
