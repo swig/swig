@@ -25,19 +25,40 @@ try:
   error = 1
 except:
   error = 0
-if error:  raise RuntimeError,"ignore is not working"
+if error:  raise RuntimeError,"Foo::Foo ignore is not working"
 
 try:
   f = default_args.Foo(1,2)
   error = 1
 except:
   error = 0
-if error:  raise RuntimeError,"ignore is not working"
+if error:  raise RuntimeError,"Foo::Foo ignore is not working"
 
 try:
   f = default_args.Foo(1,2,3)
   error = 1
 except:
   error = 0
-if error:  raise RuntimeError,"ignore is not working"
+if error:  raise RuntimeError,"Foo::Foo ignore is not working"
+
+try:
+  m = f.meth(1)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"Foo::meth ignore is not working"
+
+try:
+  m = f.meth(1,2)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"Foo::meth ignore is not working"
+
+try:
+  m = f.meth(1,2,3)
+  error = 1
+except:
+  error = 0
+if error:  raise RuntimeError,"Foo::meth ignore is not working"
 
