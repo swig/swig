@@ -283,7 +283,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
       hv=GvHVn(gv);
       hv_store_ent(hv, obj, newSViv(1), 0);
     }
-    sv_magic((SV *)hash, (SV *)obj, PERL_MAGIC_tied, Nullch, 0);
+    sv_magic((SV *)hash, (SV *)obj, 'P', Nullch, 0);
     SvREFCNT_dec(obj);
     self=newRV_noinc((SV *)hash);
     sv_setsv(sv, self);
