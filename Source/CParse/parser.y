@@ -399,7 +399,8 @@ static void add_symbols(Node *n) {
 	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
 	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
 	    }
-	    Printf(e,"%s\n%s:%d:%s\n",en,Getfile(c),Getline(c),ec);
+	    Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
+		   Getfile(c),Getline(c),ec);
 	    Setattr(n,"error",e);
 	    Delete(en);
 	    Delete(ec);
@@ -544,11 +545,12 @@ static void merge_extensions(Node *cls, Node *am) {
 	String *e = NewString("");
 	String *en = NewString("");
 	String *ec = NewString("");
-	Printf(ec,"Identifier '%s' redefined by %extend (ignored),\n", symname);
-	Printf(en,"%%extend definition of '%s'.", symname);
-	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym), Getline(csym), "%s\n", ec);
-	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n), "%s\n", en);
-	Printf(e,"%s\n%s:%d:%s\n", ec, Getfile(n), Getline(n), en);
+	Printf(ec,"Identifier '%s' redefined by %%extend (ignored),",symname);
+	Printf(en,"%%extend definition of '%s'.",symname);
+	Swig_warning(WARN_PARSE_REDEFINED,Getfile(csym),Getline(csym),"%s\n",ec);
+	Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
+	Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(csym),Getline(csym),ec, 
+	       Getfile(n),Getline(n),en);
 	Setattr(csym,"error",e);
 	Delete(en);
 	Delete(ec);
