@@ -29,12 +29,12 @@
 <li><a href="#n15">Constants</a>
 <li><a href="#n16">Pointers</a>
 <li><a href="#n17">Structures</a>
-<li><a href="#n18">C++ classes</a>
-<li><a href="#n19">C++ inheritance</a>
-<li><a href="#n20">C++ overloaded functions</a>
+<li><a href="#n18">C++ Classes</a>
+<li><a href="#n19">C++ Inheritance</a>
+<li><a href="#n20">C++ Overloaded Functions</a>
 <li><a href="#n21">C++ Operators</a>
-<li><a href="#n22">C++ namespaces</a>
-<li><a href="#n23">C++ templates</a>
+<li><a href="#n22">C++ Namespaces</a>
+<li><a href="#n23">C++ Templates</a>
 <li><a href="#n24">C++ Smart Pointers</a>
 </ul>
 <li><a href="#n25">Input and output parameters</a>
@@ -688,7 +688,7 @@ Ale
 3
 </pre></blockquote>
 
-<a name="n19"></a><H3>20.3.8 C++ inheritance</H3>
+<a name="n19"></a><H3>20.3.8 C++ Inheritance</H3>
 
 
 The SWIG type-checker is fully aware of C++ inheritance.  Therefore, if you have
@@ -739,11 +739,13 @@ void spam(Parent *f);
 then the function <tt>spam()</tt> accepts <tt>Parent</tt>* or a pointer to any
 class derived from <tt>Parent</tt>.<p>
 
-The Ruby module for SWIG currently doesn't support multiple inheritance (although
-this may change before the final SWIG 2.0 release). This doesn't
-mean that you can't wrap C++ classes which are derived from multiple bas classes, it
-simply means that only the first base class listed is considered. So if your SWIG
-interface file contains a declaration like this:
+Until recently, the Ruby module for SWIG didn't support multiple inheritance, and
+this is still the default behavior. This doesn't mean that you can't wrap C++ classes
+which inherit from multiple base classes; it simply means that only the <b>first</b>
+base class listed in the class declaration is considered, and any additional base
+classes are ignored.
+
+As an example, consider a SWIG interface file with a declaration like this:
 
 <blockquote>
 <pre>
@@ -754,11 +756,11 @@ class Derived : public Base1, public Base2
 </pre>
 </blockquote>
 
-then the resulting Ruby class (<tt>Derived</tt>) will only consider <tt>Base1</tt> as
+For this case, the resulting Ruby class (<tt>Derived</tt>) will only consider <tt>Base1</tt> as
 its superclass. It won't inherit any of <tt>Base2</tt>'s member functions or data
 and it won't recognize <tt>Base2</tt> as an "ancestor" of <tt>Derived</tt> (i.e.
-the <em>is_a?</em> relationship would fail). For any additional base classes, you'll
-see a warning message like:
+the <em>is_a?</em> relationship would fail). When SWIG processes this interface file,
+you'll see a warning message like:
 
 <blockquote>
 <pre>
@@ -766,7 +768,76 @@ example.i:5: Warning(802): Warning for Derived: Base Base2 ignored. Multiple inh
 </pre>
 </blockquote>
 
-<a name="n20"></a><H3>20.3.9 C++ overloaded functions</H3>
+Starting with SWIG 1.3.20, the Ruby module for SWIG provides limited support
+for multiple inheritance. Because the approach for dealing with multiple inheritance
+introduces some limitations, this is an optional feature that you can activate with
+the <tt>-minherit</tt> command-line option:
+
+<blockquote><pre>$ <b>swig -c++ -ruby -minherit example.i</b></pre></blockquote>
+
+Using our previous example, if your SWIG interface file contains a declaration like this:
+
+<blockquote>
+<pre>
+class Derived : public Base1, public Base2
+{
+    ...
+};
+</pre>
+</blockquote>
+
+and you run SWIG with the <tt>-minherit</tt> command-line option, then you will
+end up with a Ruby class <tt>Derived</tt> that appears to "inherit" the member
+data and functions from both <tt>Base1</tt> and <tt>Base2</tt>.
+What actually happens is that three different top-level classes are created,
+with Ruby's <tt>Object</tt> class as their superclass. Each of these classes
+defines a nested module named <tt>Impl</tt>, and it's in these nested <tt>Impl</tt> modules
+that the actual instance methods for the classes are defined, i.e.
+
+<blockquote><pre>
+class Base1
+  module Impl
+    # Define Base1 methods here
+  end
+  include Impl
+end
+
+class Base2
+  module Impl
+    # Define Base2 methods here
+  end
+  include Impl
+end
+
+class Derived
+  module Impl
+    include Base1::Impl
+    include Base2::Impl
+    # Define Derived methods here
+  end
+  include Impl
+end
+</pre></blockquote>
+
+Observe that after the nested <tt>Impl</tt> module for a class is defined, it is
+mixed-in to the class itself. Also observe that the <tt>Derived::Impl</tt> module
+first mixes-in its base classes' <tt>Impl</tt> modules, thus "inheriting" all of
+their behavior.<p>
+
+The primary drawback is that, unlike the default mode of operation, neither
+<tt>Base1</tt> nor <tt>Base2</tt> is a true superclass of <tt>Derived</tt> anymore:
+
+<blockquote><pre>
+obj = Derived.new
+obj.is_a? Base1    # this will return false...
+obj.is_a? Base2    # ... and so will this
+</pre></blockquote>
+
+In most cases, this is not a serious problem since objects of type <tt>Derived</tt>
+will otherwise behave as though they inherit from both <tt>Base1</tt> and <tt>Base2</tt>
+(i.e. they exhibit <a href="http://c2.com/cgi/wiki?DuckTyping">"Duck Typing"</a>).
+
+<a name="n20"></a><H3>20.3.9 C++ Overloaded Functions</H3>
 
 
 C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
