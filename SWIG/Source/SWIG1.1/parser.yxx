@@ -527,12 +527,12 @@ static void dump_nested(char *parent) {
 
 %%
 
-/* -----------------------------------------------------------------------------
+/* ======================================================================
  *                          High-level Interface file
  *
  * An interface is just a sequence of declarations which may be SWIG directives
  * or normal C declarations.
- * ----------------------------------------------------------------------------- */
+ * ====================================================================== */
 
 program        :  interface {
                    cplus_cleanup();    /* Dump all of the C++ classes */
@@ -553,39 +553,173 @@ interface      : interface declaration {
 
 declaration    : swig_directive { }
                | c_declaration { }
+
                ;
 
 
-/* -----------------------------------------------------------------------------
+/* ======================================================================
  *                           SWIG DIRECTIVES 
- * ----------------------------------------------------------------------------- */
+ * ====================================================================== */
   
-swig_directive : module_directive
-               | include_directive
-               | name_directive
-               | rename_directive
-               | new_directive
-               | native_directive
-               | insert_directive
-               | inline_directive
-               | echo_directive
-               | types_directive
-               | typemap_directive
+swig_directive :  addmethods_directive
                | apply_directive
-               | except_directive
-               | pragma_directive
+               | clear_directive
                | constant_directive
+               | echo_directive
+               | except_directive
+               | include_directive
+               | inline_directive
+               | insert_directive
+               | module_directive
+               | name_directive
+               | native_directive
+               | new_directive
+               | pragma_directive
+               | rename_directive
+               | typemap_directive
+               | types_directive
                ;
 
 /* ------------------------------------------------------------
-    %module modname
-    %module "modname"
+   %addmethods classname { ... } 
    ------------------------------------------------------------ */
 
-module_directive: MODULE idstring {
-		 lang->set_module($2);
-		 module_init = 1;
+addmethods_directive : ADDMETHODS ID LBRACE {
+	       cplus_mode = CPLUS_PUBLIC;
+	       cplus_set_class($2);
+	       scanner_clear_start();
+	       AddMethods = 1;
+	       InClass = 1;
+	     } added_members RBRACE {
+	       InClass = 0;
+	       cplus_unset_class();
+	       AddMethods = 0;
+	     }
+             ;
+
+/* ------------------------------------------------------------
+   %apply
+   ------------------------------------------------------------ */
+
+apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
+		 TMParm *p;
+		 p = $4;
+		 while(p) {
+		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
+		   p = p->next;
+		 }
+		 free($4);
+		 Delete($2->args);
+		 free($2);
+               };
+
+/* ------------------------------------------------------------
+   %clear
+   ------------------------------------------------------------ */
+
+clear_directive : CLEAR tm_list SEMI {
+		 TMParm *p;
+		 p = $2;
+		 while (p) {
+		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
+/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
+		   p = p->next;
+		 }
+               }
+               ;
+
+/* ------------------------------------------------------------
+   %constant name = value;
+   %constant type name = value;
+   ------------------------------------------------------------ */
+
+constant_directive :  CONSTANT ID EQUAL definetype SEMI {
+		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
+		     init_language();
+		     temp_typeptr = NewSwigType($4.type);
+		     create_constant($2, temp_typeptr, $4.id);
+		     Delete(temp_typeptr);
+		   }
+	       }
+
+               | CONSTANT type declarator def_args SEMI {
+		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
+		   init_language();
+		   SwigType_push($2,$3.type);
+		   create_constant($3.id,$2,$4.id);
+		 } 
+               }
+
+/* This is bogus. simplify later */
+
+               | CONSTANT type LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
 		 init_language();
+		 List *l = typelist($7);
+		 SwigType_add_function($2,l);
+		 SwigType_push($2,$4.type);
+		 create_constant($4.id,$2,$9.id);
+               }
+               | CONSTANT type abstract_declarator LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
+		 init_language();
+		 SwigType_push($2,$3);
+		 List *l = typelist($8);
+		 SwigType_add_function($2,l);
+		 SwigType_push($2,$5.type);
+		 create_constant($5.id,$2,$10.id);
+               }
+               ;
+
+/* ------------------------------------------------------------
+   %echo "text"
+   %echo %{ ... %}
+   ------------------------------------------------------------ */
+
+echo_directive : ECHO HBLOCK {
+		 char temp[64];
+		 String *s = NewString($2);
+		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", line_number);
+		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", s);
+		 Delete(s);
+	       }
+               | ECHO STRING {
+		 char temp[64];
+		 String *s = NewString($2);
+		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
+		 sprintf(temp,"%d", line_number);
+		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", s);
+		 Delete(s);
+               }
+               ;
+
+/* ------------------------------------------------------------
+   %except(lang) { ... }
+   %except { ... }
+   %except(lang);   
+   %except;
+   ------------------------------------------------------------ */
+
+except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
+                    skip_brace();
+		    if (strcmp($3,typemap_lang) == 0) {
+		      Swig_except_register(CCode);
+		    }
+		    free($3);
+	       }
+
+               | EXCEPT LBRACE {
+                    skip_brace();
+		    Swig_except_register(CCode);
+               }
+
+               | EXCEPT LPAREN ID RPAREN SEMI {
+		 Swig_except_clear();
+               }
+
+               | EXCEPT SEMI {
+		 Swig_except_clear();
 	       }
                ;
 
@@ -619,77 +753,30 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
                | IMPORT  { $$.type = (char *) "import"; }
                ;
 
-
 /* ------------------------------------------------------------
-   %name(newname)    declaration
-   %name("newname")  declaration
+   %inline %{ ... %}
    ------------------------------------------------------------ */
 
-name_directive : NAME LPAREN idstring RPAREN {
-		 strcpy(yy_rename,$3);
-		 Rename_true = 1;
-               }
-               | NAME LPAREN RPAREN {
-		   Printf(stderr,"%s:%d. Missing argument to %%name directive.\n",
-			   input_file, line_number);
-		   FatalError();
-	       }
-               ;
-
-/* ------------------------------------------------------------
-   %rename identifier newname;
-   %rename identifier "newname";
-   ------------------------------------------------------------ */
-
-rename_directive : RENAME ID idstring SEMI {
-		 if (!name_hash) name_hash = NewHash();
-		 Setattr(name_hash,$2,$3);
-	       }
-               ;
-/* ------------------------------------------------------------ 
-   %new declaration
-   ------------------------------------------------------------ */
-
-new_directive : NEW {
-		 NewObject = 1;
-	       } declaration {
-		 NewObject = 0;
-               }
-               ;
-
-/* ------------------------------------------------------------
-   %native(scriptname) name;
-   %native(scriptname) type name (parms);
-   ------------------------------------------------------------ */
-
-native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
+inline_directive : INLINE HBLOCK {
 		 if (!WrapExtern) {
+		   File *f;
 		   init_language();
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
-		   } else {
-		     lang->add_native($3,$6,0,0);
+		   $2[strlen($2) - 1] = 0;
+		   f = Swig_filebyname("header");
+		   if (f) {
+		     Printf(f, "%s\n", $2);
+		     /* Need to run through the preprocessor */
+		     DOH *cpps;
+		     DOH *s = NewString($2);
+		     Setline(s,start_line);
+		     Setfile(s,input_file);
+		     Seek(s,0,SEEK_SET);
+		     cpps = Preprocessor_parse(s);
+		     start_inline(Char(cpps), start_line);
+		     Delete(s);
+		     Delete(cpps);
 		   }
 		 }
-	       }
-               | NATIVE LPAREN ID RPAREN storage_class type declarator LPAREN parms RPAREN SEMI {
-		 if (!WrapExtern) {
-		   init_language();
-		   SwigType_push($6,$7.type);
-		   if (add_symbol($3)) {
-		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
-			     input_file, line_number, $3);
-		   } else {
-		     if ($5) {
-		       emit_extern_func($7.id, $6, $9, $5, f_header);
-		     }
-		     lang->add_native($3,$7.id,$6,$9);
-		   }
-		 }
-		 Delete($6);
-		 Delete($7.type);
-		 Delete($9);
 	       }
                ;
 
@@ -738,70 +825,131 @@ insert_directive : HBLOCK {
                ;
 
 /* ------------------------------------------------------------
-   %inline %{ ... %}
+    %module modname
+    %module "modname"
    ------------------------------------------------------------ */
 
-inline_directive : INLINE HBLOCK {
+module_directive: MODULE idstring {
+		 lang->set_module($2);
+		 module_init = 1;
+		 init_language();
+	       }
+               ;
+
+/* ------------------------------------------------------------
+   %name(newname)    declaration
+   %name("newname")  declaration
+   ------------------------------------------------------------ */
+
+name_directive : NAME LPAREN idstring RPAREN {
+		 strcpy(yy_rename,$3);
+		 Rename_true = 1;
+               }
+               | NAME LPAREN RPAREN {
+		   Printf(stderr,"%s:%d. Missing argument to %%name directive.\n",
+			   input_file, line_number);
+		   FatalError();
+	       }
+               ;
+
+
+/* ------------------------------------------------------------
+   %native(scriptname) name;
+   %native(scriptname) type name (parms);
+   ------------------------------------------------------------ */
+
+native_directive : NATIVE LPAREN ID RPAREN storage_class ID SEMI {
 		 if (!WrapExtern) {
-		   File *f;
 		   init_language();
-		   $2[strlen($2) - 1] = 0;
-		   f = Swig_filebyname("header");
-		   if (f) {
-		     Printf(f, "%s\n", $2);
-		     /* Need to run through the preprocessor */
-		     DOH *cpps;
-		     DOH *s = NewString($2);
-		     Setline(s,start_line);
-		     Setfile(s,input_file);
-		     Seek(s,0,SEEK_SET);
-		     cpps = Preprocessor_parse(s);
-		     start_inline(Char(cpps), start_line);
-		     Delete(s);
-		     Delete(cpps);
+		   if (add_symbol($3)) {
+		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
+			     input_file, line_number, $3);
+		   } else {
+		     lang->add_native($3,$6,0,0);
 		   }
 		 }
 	       }
-               ;
-
-/* ------------------------------------------------------------
-   %echo "text"
-   %echo %{ ... %}
-   ------------------------------------------------------------ */
-
-echo_directive : ECHO HBLOCK {
-		 char temp[64];
-		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
-		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", s);
-		 Delete(s);
+               | NATIVE LPAREN ID RPAREN storage_class type declarator LPAREN parms RPAREN SEMI {
+		 if (!WrapExtern) {
+		   init_language();
+		   SwigType_push($6,$7.type);
+		   if (add_symbol($3)) {
+		     Printf(stderr,"%s:%d. Name of native function %s conflicts with previous declaration (ignored)\n",
+			     input_file, line_number, $3);
+		   } else {
+		     if ($5) {
+		       emit_extern_func($7.id, $6, $9, $5, f_header);
+		     }
+		     lang->add_native($3,$7.id,$6,$9);
+		   }
+		 }
+		 Delete($6);
+		 Delete($7.type);
+		 Delete($9);
 	       }
-               | ECHO STRING {
-		 char temp[64];
-		 String *s = NewString($2);
-		 Replace(s,"$file",input_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", line_number);
-		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
-		 Printf(stderr,"%s\n", s);
-		 Delete(s);
+               ;
+
+
+/* ------------------------------------------------------------ 
+   %new declaration
+   ------------------------------------------------------------ */
+
+new_directive : NEW {
+		 NewObject = 1;
+	       } declaration {
+		 NewObject = 0;
                }
                ;
 
+
 /* ------------------------------------------------------------
-   %types(parmlist); 
+   %pragma(lang) name=value
+   %pragma(lang) name
+   %pragma name = value
+   %pragma name
    ------------------------------------------------------------ */
 
-types_directive : TYPES LPAREN parms RPAREN SEMI {
-	            Parm *p = $3;
-                    while (p) {
-		      SwigType *t = Gettype(p);
-		      SwigType_remember(t);
-		      p = Getnext(p);
-		    }
-		    Delete($3);
-               }
+pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
+		 if (!WrapExtern) {
+		   swig_pragma($2,$3,$5);
+		   if (InClass) {  /* Hack. Fix me */
+		     cplus_add_pragma($2,$3,$5);
+		   } else {
+		     lang->pragma($2,$3,$5);
+		   }
+		 }
+	       }
+              | PRAGMA pragma_lang ID {
+		if (!WrapExtern) {
+		  swig_pragma($2,$3,0);
+		  if (InClass) {    /* Hack. Fix me */
+		    cplus_add_pragma($2,$3,0); 
+		  } else {
+		    lang->pragma($2,$3,0);
+		  }
+		}
+	      }
+              ;
+
+pragma_arg    : STRING { $$ = $1; }
+              | HBLOCK { 
+                  $$ = $1;
+                  $$[strlen($$)-1] = 0;
+	      }
+
+pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
+              | empty { $$ = (char *) "swig"; }
+              ;
+
+/* ------------------------------------------------------------
+   %rename identifier newname;
+   %rename identifier "newname";
+   ------------------------------------------------------------ */
+
+rename_directive : RENAME ID idstring SEMI {
+		 if (!name_hash) name_hash = NewHash();
+		 Setattr(name_hash,$2,$3);
+	       }
                ;
 
 /* ------------------------------------------------------------
@@ -900,146 +1048,24 @@ typemap_args    : LPAREN parms RPAREN { $$ = $2; }
 
 
 /* ------------------------------------------------------------
-   %apply
-   %clear
+   %types(parmlist); 
    ------------------------------------------------------------ */
 
-apply_directive : APPLY typemap_parm LBRACE tm_list RBRACE {
-		 TMParm *p;
-		 p = $4;
-		 while(p) {
-		   Swig_typemap_apply(Gettype($2->p),Getname($2->p),Gettype(p->p),Getname(p->p));
-		   p = p->next;
-		 }
-		 free($4);
-		 Delete($2->args);
-		 free($2);
-               }
-
-	       | CLEAR tm_list SEMI {
-		 TMParm *p;
-		 p = $2;
-		 while (p) {
-		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
-/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
-		   p = p->next;
-		 }
-               }
-               ;
-
-/* ------------------------------------------------------------
-   %except(lang) { ... }
-   %except { ... }
-   %except(lang);   
-   %except;
-   ------------------------------------------------------------ */
-
-except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
-                    skip_brace();
-		    if (strcmp($3,typemap_lang) == 0) {
-		      Swig_except_register(CCode);
+types_directive : TYPES LPAREN parms RPAREN SEMI {
+	            Parm *p = $3;
+                    while (p) {
+		      SwigType *t = Gettype(p);
+		      SwigType_remember(t);
+		      p = Getnext(p);
 		    }
-		    free($3);
-	       }
-
-               | EXCEPT LBRACE {
-                    skip_brace();
-		    Swig_except_register(CCode);
-               }
-
-               | EXCEPT LPAREN ID RPAREN SEMI {
-		 Swig_except_clear();
-               }
-
-               | EXCEPT SEMI {
-		 Swig_except_clear();
-	       }
-               ;
-
-/* ------------------------------------------------------------
-   %pragma(lang) name=value
-   %pragma(lang) name
-   %pragma name = value
-   %pragma name
-   ------------------------------------------------------------ */
-
-pragma_directive : PRAGMA pragma_lang ID EQUAL pragma_arg {
-		 if (!WrapExtern) {
-		   swig_pragma($2,$3,$5);
-		   if (InClass) {  /* Hack. Fix me */
-		     cplus_add_pragma($2,$3,$5);
-		   } else {
-		     lang->pragma($2,$3,$5);
-		   }
-		 }
-	       }
-              | PRAGMA pragma_lang ID {
-		if (!WrapExtern) {
-		  swig_pragma($2,$3,0);
-		  if (InClass) {    /* Hack. Fix me */
-		    cplus_add_pragma($2,$3,0); 
-		  } else {
-		    lang->pragma($2,$3,0);
-		  }
-		}
-	      }
-              ;
-
-pragma_arg    : STRING { $$ = $1; }
-              | HBLOCK { 
-                  $$ = $1;
-                  $$[strlen($$)-1] = 0;
-	      }
-
-pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
-              | empty { $$ = (char *) "swig"; }
-              ;
-
-
-/* ------------------------------------------------------------
-   %constant name = value;
-   %constant type name = value;
-   ------------------------------------------------------------ */
-
-constant_directive :  CONSTANT ID EQUAL definetype SEMI {
-		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
-		     init_language();
-		     temp_typeptr = NewSwigType($4.type);
-		     create_constant($2, temp_typeptr, $4.id);
-		     Delete(temp_typeptr);
-		   }
-	       }
-
-               | CONSTANT type declarator def_args SEMI {
-		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
-		   init_language();
-		   SwigType_push($2,$3.type);
-		   create_constant($3.id,$2,$4.id);
-		 } 
-               }
-
-/* This is bogus. simplify later */
-
-               | CONSTANT type LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
-		 init_language();
-		 List *l = typelist($7);
-		 SwigType_add_function($2,l);
-		 SwigType_push($2,$4.type);
-		 create_constant($4.id,$2,$9.id);
-               }
-               | CONSTANT type abstract_declarator LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
-		 init_language();
-		 SwigType_push($2,$3);
-		 List *l = typelist($8);
-		 SwigType_add_function($2,l);
-		 SwigType_push($2,$5.type);
-		 create_constant($5.id,$2,$10.id);
+		    Delete($3);
                }
                ;
 
-/* -----------------------------------------------------------------------------
+
+/* ======================================================================
  *                              C Parsing
- * ----------------------------------------------------------------------------- */
+ * ====================================================================== */
 
 /* A variable declaration */
 
@@ -1058,14 +1084,6 @@ c_declaration   : storage_class type declarator def_args {
                      Active_static = 0;
 		     Delete($2);
 		     Delete($3.type);
-		}
-
-/* Global variable that smells like a function pointer */
-
-                | storage_class strict_type LPAREN STAR {
-                   skip_decl();
-		   Printf(stderr,"%s:%d. Function pointers not currently supported.\n",
-			   input_file, line_number);
 		}
 
 /* A function declaration */
@@ -2185,21 +2203,6 @@ cpp_other    :/* A dummy class name */
 		       input_file, line_number);
 	       skip_decl();
 	     }
-
-/* %addmethods directive used outside of a class definition */
-
-             | ADDMETHODS ID LBRACE {
-	       cplus_mode = CPLUS_PUBLIC;
-	       cplus_set_class($2);
-	       scanner_clear_start();
-	       AddMethods = 1;
-	       InClass = 1;
-	     } added_members RBRACE {
-	       InClass = 0;
-	       cplus_unset_class();
-	       AddMethods = 0;
-	     }
-             ;
 
 added_members : cpp_member cpp_members { }
               | empty { }
