@@ -46,6 +46,7 @@ CPP_TEST_BROKEN = \
 	abstract_typedef \
 	namespace_nested \
 	template_default_arg \
+	template_specialization_defarg \
 	using_namespace
 
 CPP_TEST_CASES += $(CPP_TEST_BROKEN)
