@@ -18,6 +18,11 @@ release.  However, this hasn't been tested for quite some time and
 your mileage might vary.  For the best results, consider using Python
 2.0 or newer.
 
+<p>
+This chapter covers most SWIG features, but in less depth than is found
+in earlier chapters.  At the very least, make sure you also read the "<a href="SWIG.html">SWIG Basics</a>"
+chapter.
+
 <h2>Preliminaries</h2>
 
 To build a Python module, run SWIG using the <tt>-python</tt> option :<p>
@@ -26,7 +31,7 @@ To build a Python module, run SWIG using the <tt>-python</tt> option :<p>
 <blockquote><pre>$ swig -python example.i
 </pre></blockquote>
 
-If building a C++ extension, add the <tt>-c++</tt> option like this:
+If building a C++ extension, add the <tt>-c++</tt> option:
 
 <p>
 <blockquote><pre>$ swig -c++ -python example.i
@@ -40,8 +45,8 @@ need to compile this file and link it with the rest of your program.
 
 <h3>Getting the right header files</h3>
 
-In order to compile the wrapper code, the compiler needs several Python
-header files.  These files are most commonly contained in a directory such as
+In order to compile the wrapper code, the compiler needs the <tt>Python.h</tt> header file.
+This file is usually contained in a directory such as 
 
 <p>
 <blockquote><pre>/usr/local/include/python2.0
@@ -96,7 +101,7 @@ The name of the module is specified using the <tt>%module</tt> directive or the
 
 <h3>Static linking</h3>
 
-An alternative approach is to dynamic linking is to rebuild the Python
+An alternative approach to dynamic linking is to rebuild the Python
 interpreter with your extension module added to it.  In the past,
 this approach was sometimes necesssary due to limitations in dynamic loading
 support on certain machines.  However, the situation has improved greatly
@@ -148,8 +153,7 @@ a built-in part of the interpreter.
 <p>
 
 <b>Comment:</b> In practice, you should probably try to avoid static
-linking if possible. Although this was sometimes necessary five years
-ago, it rarely seems necessary now.  Some programmers may be inclined
+linking if possible. Some programmers may be inclined
 to use static linking in the interest of getting better performance.
 However, the performance gained by static linking tends to be rather
 minimal in most situations (and quite frankly not worth the extra
@@ -209,7 +213,7 @@ ImportError: ./examplemodule.so: undefined symbol: fact
 This error usually indicates that you forgot to include some object
 files or libraries in the linking of the shared library file.  Make
 sure you compile both the SWIG wrapper file and your original program
-into a shared library file.  Make sure you pass all of the proper libraries
+into a shared library file.  Make sure you pass all of the required libraries
 to the linker.
 
 <p>
@@ -284,7 +288,7 @@ compiler.  For example:
 % g++ -shared example.o example_wrap.o -o examplemodule.so
 </pre></blockquote>
 
-However, in addition to this, you may need to include additional library
+In addition to this, you may need to include additional library
 files to make it work.  For example, if you are using the Sun C++ compiler on
 Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 
@@ -301,17 +305,17 @@ probably need to do some experimentation.
 <p>
 Sometimes people have suggested that it is necessary to relink the
 Python interpreter using the C++ compiler to make C++ extension modules work.
-However, in the experience of this author, this has never actually appeared to be
-necessary.   Relinking the interpreter with C++ really only includes the special run-time
-libraries described above---as long as you link your extension modules with these libraries,
-you shouldn't have to rebuild Python.
+In the experience of this author, this has never actually appeared to be
+necessary.   Relinking the interpreter with C++ really only includes the 
+special run-time libraries described above---as long as you link your extension 
+modules with these libraries, it should not be necessary to rebuild Python.
 
 <p>
 If you aren't entirely sure about the linking of a C++ extension, you
-might be able to investigate one of your existing C++ programs.  On
-many machines, the <tt>ldd</tt> command will list library
-dependencies.  This should give you some clues about what you might
-have to include when you link your module. For example:
+might look at an existing C++ program.  On many Unix machines, the
+<tt>ldd</tt> command will list library dependencies.  This should give
+you some clues about what you might have to include when you link your
+extension module. For example:
 
 <blockquote>
 <pre>
@@ -326,19 +330,17 @@ $
 
 <p>
 As a final complication, a major weakness of C++ is that it does not
-define any sort of standard for binary linking.  This means that C++
-code compiled by different compilers will not link together properly
-as libraries nor is the memory layout of classes and data structures
-implemented in any kind of portable manner.  In monolithic C++
-applications, these problems rarely surface.  However, in Python, it
-is certainly possible for different extension modules to be compiled
-with different C++ compilers.  As long as these modules are
-self-contained, this may not matter.  However, if these modules start
-sharing data, you will need to worry if you want to avoid segmentation
-faults and other erratic program behavior.  A popular solution to this
-problem is to use a more formal component linking standard such
-as COM (in which case, the use of SWIG might not be necessary since
-there are other Python utilities that can be used to access COM components).
+define any sort of standard for binary linking of libraries.  This
+means that C++ code compiled by different compilers will not link
+together properly as libraries nor is the memory layout of classes and
+data structures implemented in any kind of portable manner.  In a
+monolithic C++ program, this problem may be unnoticed.  However, in Python, it
+is possible for different extension modules to be compiled with
+different C++ compilers.  As long as these modules are self-contained,
+this probably won't matter.  However, if these modules start sharing data,
+you will need to take steps to avoid segmentation faults and other
+erratic program behavior.   If working with lots of software components, you
+might want to investigate using a more formal standard such as COM.
 
 <h3>Compiling for 64-bit platforms</h3>
 
@@ -1149,12 +1151,11 @@ Now, in Python:
 </pre>
 </blockquote>
 
-<h2> Exception handling </h2>
+<h2>Simple exception handling </h2>
 
 The SWIG <tt>%exception</tt> directive can be used to define a
-user-definable exception handler in charge of converting exceptions in
-your C/C++ program into Python exceptions.  The chapter on exception
-handling contains more details, but suppose you have a C++ class like
+user-definable exception handler that can convert C/C++ errors into Python exceptions.
+The chapter on exception handling contains more details, but suppose you have a C++ class like
 the following :<p>
 
 <blockquote><pre>
@@ -1186,7 +1187,6 @@ class DoubleArray {
       else
         throw RangeError();
     }
-
     // Set an item in the array and perform bounds checking.
     void setitem(int i, double val) {
       if ((i &gt;= 0) &amp;&amp; (i &lt; n))
@@ -1198,14 +1198,16 @@ class DoubleArray {
   };
 </pre></blockquote>
 <p>
-The functions associated with this class can throw a range exception
-for an out-of-bounds array access.  We can catch this in our Python
-extension by specifying the following in an interface file :<p>
+
+Since several methods in this class can throw an exception
+for an out-of-bounds access, you might want to catch
+this in the Python extension by writing the following in an
+interface file:
 
 <p>
-<blockquote><pre>%except(python) {
+<blockquote><pre>%exception {
   try {
-    $function
+    $action
   }
   catch (RangeError) {
     PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
@@ -1213,76 +1215,203 @@ extension by specifying the following in an interface file :<p>
   }
 }
 
+class DoubleArray {
+...
+};
 </pre></blockquote>
-When the C++ class throws a RangeError exception, our wrapper
-functions will catch it, turn it into a Python exception, and allow a
-graceful death as opposed to just having some sort of mysterious
-program crash.  Since SWIG's exception handling is user-definable, we
-are not limited to C++ exception handling.  Please see the chapter on
-exception handling for more details and using the <tt>exception.i</tt>
-library for writing language-independent exception handlers.<p>
+
+The exception handling code is inserted directly into generated wrapper
+functions.  The <tt>$action</tt> variable is replaced with the C/C++
+code being executed by the wrapper.  When an exception handler
+is defined, errors can be caught and used to gracefully raise a Python
+exception instead of forcing the entire program to terminate with an uncaught
+error.
 
 <p>
-Python exceptions can be raised using the <tt>PyErr_SetString()</tt>
-function as shown above.  The following types of exceptions may be used
-as the first argument:
+As shown, the exception handling code will be added to every wrapper function.
+Since this is somewhat inefficient.  You might consider refining the 
+exception handler to only apply to specific methods like this:
 
 <blockquote>
 <pre>
+%exception getitem {
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
+    return NULL;
+  }
+}
+
+%exception setitem {
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
+    return NULL;
+  }
+}
+</pre>
+</blockquote>
+
+In this case, the exception handler is only attached to methods and functions
+named <tt>getitem</tt> and <tt>setitem</tt>.
+
+<p>
+If you had a lot of different methods, you can avoid extra typing by using a macro.
+For example:
+
+<blockquote>
+<pre>
+%define RANGE_ERROR
+{
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
+    return NULL;
+  }
+}
+%enddef
+
+%exception getitem RANGE_ERROR;
+%exception setitem RANGE_ERROR;
+</pre>
+</blockquote>
+
+Since SWIG's exception handling is user-definable, you are not limited to C++ exception handling.
+See the chapter on "<a href="Exceptions.html">Exception Handling</a>" for more examples.
+
+<p>
+When raising a Python exception from C, use the <tt>PyErr_SetString()</tt>
+function as shown above.  The following exception types can be used as the first argument.
+
+<blockquote>
+<pre>
+PyExc_ArithmeticError
+PyExc_AssertionError
 PyExc_AttributeError
+PyExc_EnvironmentError
 PyExc_EOFError
-PyExc_IOError
+PyExc_Exception
+PyExc_FloatingPointError
 PyExc_ImportError
 PyExc_IndexError
+PyExc_IOError
 PyExc_KeyError
 PyExc_KeyboardInterrupt
+PyExc_LookupError
 PyExc_MemoryError
+PyExc_NameError
+PyExc_NotImplementedError
+PyExc_OSError
 PyExc_OverflowError
 PyExc_RuntimeError
+PyExc_StandardError
 PyExc_SyntaxError
 PyExc_SystemError
 PyExc_TypeError
+PyExc_UnicodeError
 PyExc_ValueError
 PyExc_ZeroDivisionError
 </pre>
 </blockquote>
 
-<h2> Remapping C datatypes with typemaps</h2>
+These exceptions are actually organized into an hierarchy as shown below.  Consult the Python
+Essential Reference for more details (shameless plug):
 
-This section describes how SWIG's treatment of various C/C++ datatypes
-can be remapped using the SWIG <tt>%typemap</tt> directive.  While not
-required, this section assumes some familiarity with Python's C API.
-The reader is advised to consult the Python reference manual or one of
-the books on Python.  A glance at the chapter on SWIG typemaps will
-also be useful.  <p>
+<blockquote>
+<pre>
+PyExc_Exception
+    PyExc_SystemExit
+    PyExc_StandardError
+       PyExc_ArithmeticError
+           PyExc_FloatingPointError
+           PyExc_OverflowError
+           PyExc_ZeroDivisionError
+       PyExc_AssertionError
+       PyExc_AttributeError
+       PyExc_EnvironmentError
+           PyExc_IOError  
+           PyExc_OSError
+       PyExc_EOFError
+       PyExc_ImportError
+       PyExc_KeyboardInterrupt
+       PyExc_LookupError
+           PyExc_IndexError
+           PyExc_KeyError
+       PyExc_MemoryError
+       PyExc_NameError
+       PyExc_RuntimeError
+           PyExc_NotImplementedError
+       PyExc_SyntaxError
+       PyExc_SystemError
+       PyExc_TypeError
+       PyExc_ValueError
+           PyExc_UnicodeError
+</pre>
+</blockquote>
+
+<p>
+<b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the following syntax:
+<blockquote>
+<pre>
+%except(python) {
+  try {
+    $action
+  }
+  catch (RangeError) {
+    PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
+    return NULL;
+  }
+}
+</pre>
+</blockquote>
+
+This is still supported, but is deprecated.  In may be eliminated in future release.
+
+<h2>Typemaps</h2>
+
+This section describes how you can modify SWIG's default wrapping behavior
+for various C/C++ datatypes using the <tt>%typemap</tt> directive.   This
+is an advanced topic that assumes familiarity with the Python C API as well
+as the material in the "<a href="Typemaps.html">Typemaps</a>" chapter.
+
+<p>
+Before proceeding, it should be stressed that typemaps are not a required 
+part of using SWIG---the default wrapping behavior is enough in most cases.
+Typemaps are only used if you want to change some aspect of the primitive
+C-Python interface.
 
 <h3> What is a typemap?</h3>
 
-A typemap is mechanism by which SWIG's processing of a particular C
-datatype can be overridden.  A simple typemap might look like this
-:<p>
+A typemap is nothing more than a code generation rule that is attached to 
+a specific C datatype.   For example, to convert integers from Python to C,
+you might define a typemap like this:
 <p>
 <blockquote><pre>%module example
 
-%typemap(python,in) int {
-	$target = (int) PyLong_AsLong($source);
-	printf("Received an integer : %d\n",$target);
+%typemap(in) int {
+	$1 = (int) PyLong_AsLong($input);
+	printf("Received an integer : %d\n",$1);
 }
 extern int fact(int n);
 </pre></blockquote>
+
 <p>
-Typemaps require a language name, method name, datatype, and
-conversion code.  For Python, "python" should be used as the language
-name. The "in" method in this example refers to an input argument of a
-function. The datatype `int' tells SWIG that we are remapping
-integers.  The supplied code is used to convert from a <tt>PyObject
-*</tt> to the corresponding C datatype.  Within the supporting C code,
-the variable <tt>$source</tt> contains the source data (the
-<tt>PyObject</tt> in this case) and <tt>$target</tt> contains the
-destination of a conversion.  <p>
+Typemaps are always defined for some specific aspect of code generation.
+In this case, the "in" parameter refers to the conversion of input arguments
+to C/C++.  The datatype <tt>int</tt> is the datatype to which the typemap
+will be applied.  The supplied code is used to convert values.  In this
+code a number of special variable prefaced by a <tt>$</tt> are used.  The
+<tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
+The <tt>$input</tt> variable is the input object of type <tt>PyObject *</tt>.
 <p>
-When this example is compiled into a Python module, it will operate as
-follows :<p>
+When this example is compiled into a Python module, it operates as follows:
+
 <p>
 <blockquote><pre>&gt;&gt;&gt; from example import *
 &gt;&gt;&gt; fact(6)
@@ -1290,81 +1419,287 @@ Received an integer : 6
 720
 </pre></blockquote>
 <p>
-A full discussion of typemaps can be found in the main SWIG users
-reference.  We will primarily be concerned with Python typemaps
-here.<p>
 
-<h3> Python typemaps</h3>
+In this example, the typemap is applied to all occurrences of the <tt>int</tt> datatype.
+You can refine this by supplying an optional parameter name.  For example:
 
-The following typemap methods are available to Python modules :<p>
+<blockquote><pre>%module example
+
+%typemap(in) int n {
+	$1 = (int) PyLong_AsLong($input);
+	printf("n = %d\n",$1);
+}
+extern int fact(int n);
+</pre></blockquote>
+
+In this case, the typemap code is only attached to arguments that exactly match <tt>int n</tt>.
+
 <p>
-<tt>%typemap(python,in)	</tt>Converts Python objects to input function arguments<p>
-<tt>%typemap(python,out)</tt>	Converts return value of a C function to a Python object<p>
-<tt>%typemap(python,varin)	</tt>Assigns a global variable from a Python object<p>
-<tt>%typemap(python,varout)</tt>	Returns a global variable as a Python object<p>
-<tt>%typemap(python,freearg)</tt>	Cleans up a function argument (if necessary)<p>
-<tt>%typemap(python,argout)</tt>	Output argument processing<p>
-<tt>%typemap(python,ret)</tt>	Cleanup of function return values<p>
-<tt>%typemap(python,const)</tt>	Creation of Python constants<p>
-<tt>%typemap(memberin)</tt>	Setting of C++ member data<p>
-<tt>%typemap(memberout)</tt>	Return of C++ member data<p>
-<tt>%typemap(python,check)</tt>	Checks function input values.<p>
+The application of a typemap to specific datatypes and argument names involves
+more than simple text-matching--typemaps are fully integrated into the
+SWIG type-system.   When you define a typemap for <tt>int</tt>, that typemap
+applies to <tt>int</tt> and qualified variations such as <tt>const int</tt>.  In addition,
+the typemap system follows <tt>typedef</tt> declarations.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) int n {
+	$1 = (int) PyLong_AsLong($input);
+	printf("n = %d\n",$1);
+}
+typedef int Integer;
+extern int fact(Integer n);    // Above typemap is applied
+</pre>
+</blockquote>
+
+However, the matching of <tt>typedef</tt> only occurs in one direction.  If you
+defined a typemap for <tt>Integer</tt>, it is not applied to arguments of
+type <tt>int</tt>.
+
+<h3>Python typemaps</h3>
+
+The previous section illustrated an "in" typemap for converting Python objects to C.
+A variety of different typemap methods are defined by the Python module.  For example,
+to convert a C integer back into a Python object, you might define an "out" typemap
+like this:
+
+<blockquote>
+<pre>
+%typemap(out) int {
+    $result = PyInt_FromLong((long) $1);
+}
+</pre>
+</blockquote>
+
+The following list details all of the typemap methods that can be used by the Python module:
+<p>
+<tt>%typemap(in)	</tt>
+<blockquote>
+Converts Python objects to input function arguments<p>
+</blockquote>
+
+<tt>%typemap(out)</tt>
+<blockquote>
+Converts return value of a C function to a Python object<p>
+</blockquote>
+
+<tt>%typemap(varin)</tt>
+<blockquote>
+Assigns a C global variable from a Python object<p>
+</blockquote>
+
+<tt>%typemap(varout)</tt>
+<blockquote>
+Returns a C global variable as a Python object<p>
+</blockquote>
+
+<tt>%typemap(freearg)</tt>
+<blockquote>
+Cleans up a function argument (if necessary)<p>
+</blockquote>
+
+<tt>%typemap(argout)</tt>
+<blockquote>
+Output argument processing<p>
+</blockquote>
+
+<tt>%typemap(ret)</tt>
+<blockquote>
+Cleanup of function return values<p>
+</blockquote>
+
+<tt>%typemap(consttab)</tt>
+<blockquote>
+Creation of Python constants (constant table)<p>
+</blockquote>
+
+<tt>%typemap(constcode)</tt> 
+<blockquote>
+Creation of Python constants (init function)
+</blockquote>
+
+<tt>%typemap(memberin)</tt>
+<blockquote>
+Setting of C++ member data<p>
+</blockquote>
+
+<tt>%typemap(globalin)</tt>
+<blockquote>
+Setting of C global variables<p>
+</blockquote>
+
+<tt>%typemap(check)</tt>
+<blockquote>
+Checks function input values.<p>
+</blockquote>
+
+<tt>%typemap(default)</tt>
+<blockquote>
+Set a default value for an argument (making it optional).
+</blockquote>
+
+<tt>%typemap(ignore)</tt>
+<blockquote>
+Ignore an argument, but initialize its value.
+</blockquote>
+
+<tt>%typemap(arginit)</tt>
+<blockquote>
+Initialize an argument to a value before any conversions occur.
+</blockquote>
+
+Examples of these methods will appear in a moment.
 
 <h3> Typemap variables</h3>
 
-The following variables may be used within the C code used in a typemap:<p>
-<p>
-<tt>$source</tt>	Source value of a conversion<p>
-<tt>$target</tt>	Target of conversion (where the result should be stored)<p>
-<tt>$type</tt>	C datatype being remapped<p>
-<tt>$mangle</tt>	Mangled version of data (used for pointer type-checking)<p>
-<tt>$value</tt>	Value of a constant (const typemap only)<p>
-
-<h3> Name based type conversion</h3>
-
-Typemaps are based both on the datatype and an optional name attached
-to a datatype.  For example :<p>
-<p>
-<blockquote><pre>%module foo
-
-// This typemap will be applied to all char ** function arguments
-%typemap(python,in) char ** { ... }
-
-// This typemap is applied only to char ** arguments named `argv'
-%typemap(python,in) char **argv { ... }
-
-</pre></blockquote>
-In this example, two typemaps are applied to the <tt>char **</tt>
-datatype.  However, the second typemap will only be applied to
-arguments named `<tt>argv</tt>'.  A named typemap will always override
-an unnamed typemap.<p>
-<p>
-Due to the name-based nature of typemaps, it is important to note that
-typemaps are independent of typedef declarations.  For example :<p>
+Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
+A full list of variables can be found in the "<a href="Typemaps.html">Typemaps</a>" chapter.
+This is a list of the most common variables:
 
 <p>
-<blockquote><pre>%typemap(python, in) double {
-	... get a double ...
-}
-void foo(double);            // Uses the above typemap
-typedef double Real;
-void bar(Real);              // Does not use the above typemap (double != Real)
+<tt>$1</tt>
+<blockquote>
+A C local variable corresponding to the actual type specified in the
+<tt>%typemap</tt> directive.  For input values, this is a C local variable
+that's supposed to hold an argument value.  For output values, this is
+the raw result that's supposed to be returned to Python.
+</blockquote>
 
-</pre></blockquote>
+<p>
+<tt>$input</tt>
+<blockquote>
+ A <tt>PyObject *</tt> holding a raw Python object with an argument or variable value.
+</blockquote>
 
-To get around this problem, the <tt>%apply</tt> directive can be used
-as follows :<p>
+<p>
+<tt>$result</tt>
+<blockquote>
+ A <tt>PyObject *</tt> that holds the result to be returned to Python.
+</blockquote>
+<p>
 
-<blockquote><pre>
-%typemap(python,in) double {
-	... get a double ...
-}
-void foo(double);
+<tt>$1_name</tt>
+<blockquote>
+  The parameter name that was matched.
+</blockquote>
+<p>
 
-typedef double Real;         // Uses typemap
-%apply double { Real };      // Applies all "double" typemaps to Real.
-void bar(Real);              // Now uses the same typemap.
-</pre></blockquote>
+<tt>$1_type</tt>
+<blockquote>
+  The actual C datatype matched by the typemap.
+</blockquote>
+<p>
+
+<tt>$1_ltype</tt>
+<blockquote>
+An assignable version of the datatype matched by the typemap (a type that can appear on the left-hand-side of
+a C assignment operation).  This type is stripped of qualifiers and may be an altered version of <tt>$1_type</tt>.
+All arguments and local variables in wrapper functions are declared using this type so that their values can be
+properly assigned.
+</blockquote>
+
+<tt>$symname</tt>
+<blockquote>
+ The Python name of the wrapper function being created.
+</blockquote>
+
+<h3> Useful Functions</h3>
+
+When you write a typemap, you usually have to work directly with Python objects.
+The following functions may prove to be useful.
+
+<p>
+<b>Python Integer Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyInt_FromLong(long l);
+long      PyInt_AsLong(PyObject *);
+int       PyInt_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Python Floating Point Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyFloat_FromDouble(double);
+double    PyFloat_AsDouble(PyObject *);
+int       PyFloat_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Python String Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyString_FromString(char *);
+PyObject *PyString_FromStringAndSize(char *, lint len);
+int       PyString_Size(PyObject *);
+char     *PyString_AsString(PyObject *);
+int       PyString_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Python List Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyList_New(int size);
+int       PyList_Size(PyObject *list);
+PyObject *PyList_GetItem(PyObject *list, int i);
+int       PyList_SetItem(PyObject *list, int i, PyObject *item);
+int       PyList_Insert(PyObject *list, int i, PyObject *item);
+int       PyList_Append(PyObject *list, PyObject *item);
+PyObject *PyList_GetSlice(PyObject *list, int i, int j);
+int       PyList_SetSlice(PyObject *list, int i, int , PyObject *list2);
+int       PyList_Sort(PyObject *list);
+int       PyList_Reverse(PyObject *list);
+PyObject *PyList_AsTuple(PyObject *list);
+int       PyList_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Python Tuple Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyTuple_New(int size);
+int       PyTuple_Size(PyObject *);
+PyObject *PyTuple_GetItem(PyObject *, int i);
+int       PyTuple_SetItem(PyObject *, int i, pyObject *item);
+PyObject *PyTuple_GetSlice(PyObject *t, int i, int j);
+int       PyTuple_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Python Dictionary Functions</b>
+
+<blockquote>
+<pre>
+write me
+</pre>
+</blockquote>
+
+<b>Python File Conversion Functions</b>
+
+<blockquote>
+<pre>
+PyObject *PyFile_FromFile(FILE *f);
+FILE     *PyFile_AsFile(PyObject *);
+int       PyFile_Check(PyObject *);
+</pre>
+</blockquote>
+
+<b>Abstract Object Interface</b>
+
+<blockquote>
+<pre>
+write me
+</pre>
+</blockquote>
+
+
 
 <h3> Converting  Python list to a char ** </h3>
 
@@ -1643,88 +1978,6 @@ array using the <tt>ANY</tt> keyword as follows :<p>
 
 <p>
 During code generation, <tt>$dim0</tt> will be filled in with the real array dimension.  <p>
-
-<h3> Useful Functions</h3>
-
-When writing typemaps, it is often necessary to work directly with
-Python objects instead of using the conventional
-<tt>PyArg_ParseTuple()</tt> function that is usually used when writing
-Python extensions.  However, there are a number of useful Python
-functions available for you to use.<p>
-
-<b>Python Integer Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyInt_FromLong(long l);
-long      PyInt_AsLong(PyObject *);
-int       PyInt_Check(PyObject *);
-</pre>
-</blockquote>
-
-<b>Python Floating Point  Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyFloat_FromDouble(double);
-double    PyFloat_AsDouble(PyObject *);
-int       PyFloat_Check(PyObject *);
-</pre>
-</blockquote>
-
-<b>Python String Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyString_FromString(char *);
-PyObject *PyString_FromStringAndSize(char *, lint len);
-int       PyString_Size(PyObject *);
-char     *PyString_AsString(PyObject *);
-int       PyString_Check(PyObject *);
-</pre>
-</blockquote>
-
-<b>Python List Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyList_New(int size);
-int       PyList_Size(PyObject *list);
-PyObject *PyList_GetItem(PyObject *list, int i);
-int       PyList_SetItem(PyObject *list, int i, PyObject *item);
-int       PyList_Insert(PyObject *list, int i, PyObject *item);
-int       PyList_Append(PyObject *list, PyObject *item);
-PyObject *PyList_GetSlice(PyObject *list, int i, int j);
-int       PyList_SetSlice(PyObject *list, int i, int , PyObject *list2);
-int       PyList_Sort(PyObject *list);
-int       PyList_Reverse(PyObject *list);
-PyObject *PyList_AsTuple(PyObject *list);
-int       PyList_Check(PyObject *);
-</pre>
-</blockquote>
-
-<b>Python Tuple Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyTuple_New(int size);
-int       PyTuple_Size(PyObject *);
-PyObject *PyTuple_GetItem(PyObject *, int i);
-int       PyTuple_SetItem(PyObject *, int i, pyObject *item);
-PyObject *PyTuple_GetSlice(PyObject *t, int i, int j);
-int       PyTuple_Check(PyObject *);
-</pre>
-</blockquote>
-
-<b>Python File Conversion Functions</b>
-
-<blockquote>
-<pre>
-PyObject *PyFile_FromFile(FILE *f);
-FILE     *PyFile_AsFile(PyObject *);
-int       PyFile_Check(PyObject *);
-</pre>
-</blockquote>
 
 <h3> Standard  typemaps</h3>
 
@@ -2505,7 +2758,7 @@ destructors were available in the SWIG interface file.  The Python
 destructor will only call a C/C++ destructor if <tt>self.thisown</tt>
 is set.<p>
 
-<h3> Member data</h3>
+<h3>Member data</h3>
 
 Member data of an object is accessed through Python's
 <tt>__getattr__</tt> and <tt>__setattr__</tt> methods.<p>
@@ -2792,6 +3045,6 @@ the module you used in the SWIG interface file.<p>
 
 <p><hr>
 
-<address>SWIG 1.1 - Last Modified : Mon Aug  4 10:47:07 1997</address>
+<address>SWIG 1.3 - Last Modified : December 21, 2001</address>
 </body>
 </html>

@@ -1375,16 +1375,62 @@ Tcl 8, everything is now a Tcl object so a more precise set of
 functions is required. Given the alpha-release status of Tcl 8, the
 functions described here may change in future releases.<p>
 
-<center>
-<img src="ch10.table.1.png"><br>
-<img src="ch10.table.2.png"><br>
-<img src="ch10.table.3.png"><br>
-<img src="ch10.table.4.png"><br>
-<img src="ch10.table.5.png"><br>
-<img src="ch10.table.6.png"><br>
-<img src="ch10.table.7.png">
-</center><p>
 <p>
+<b>Integers</b>
+
+<blockquote>
+<pre>
+Tcl_Obj   *Tcl_NewIntObj(int Value);
+void       Tcl_SetIntObj(Tcl_Obj *obj, int Value);
+int        Tcl_GetIntFromObj(Tcl_Interp *, Tcl_Obj *obj, int *ip);
+</pre>
+</blockquote>
+
+<b>Floating Point</b>
+
+<blockquote>
+<pre>
+Tcl_Obj  *Tcl_NewDoubleObj(double Value);
+void      Tcl_SetDoubleObj(Tcl_Obj *obj, double value);
+int       Tcl_GetDoubleFromObj(Tcl_Interp *, Tcl_Obj *o, double *dp);
+</pre>
+</blockquote>
+
+<b>Strings</b>
+
+<blockquote>
+<pre>
+Tcl_Obj  *Tcl_NewStringObj(char *str, int len);
+void      Tcl_SetStringObj(Tcl_Obj *obj, char *str, int len);
+char     *Tcl_GetStringFromObj(Tcl_Obj *obj, int *len);
+void      Tcl_AppendToObj(Tcl_Obj *obj, char *str, int len);
+</pre>
+</blockquote>
+
+<b>Lists</b>
+
+<blockquote>
+<pre>
+Tcl_Obj  *Tcl_NewListObj(int objc, Tcl_Obj *objv);
+int       Tcl_ListObjAppendList(Tcl_Interp *, Tcl_Obj *listPtr, Tcl_Obj *elemListPtr);
+int       Tcl_ListObjAppendElement(Tcl_Interp *, Tcl_Obj *listPtr, Tcl_Obj *element);
+int       Tcl_ListObjGetElements(Tcl_Interp *, Tcl_Obj *listPtr, int *objcPtr, Tcl_Obj ***objvPtr);
+int       Tcl_ListObjLength(Tcl_Interp *, Tcl_Obj *listPtr, int *intPtr);
+int       Tcl_ListObjIndex(Tcl_Interp *, Tcl_Obj *listPtr, int index, Tcl_Obj_Obj **objptr);
+int       Tcl_ListObjReplace(Tcl_Interp *, Tcl_Obj *listPtr, int first, int count, int objc, Tcl_Obj *objv);
+</pre>
+</blockquote>
+
+<b>Objects</b>
+
+<blockquote>
+<pre>
+Tcl_Obj *Tcl_DuplicateObj(Tcl_Obj *obj);
+void     Tcl_IncrRefCount(Tcl_Obj *obj);
+void     Tcl_DecrRefCount(Tcl_Obj *obj);
+int      Tcl_IsShared(Tcl_Obj *obj);
+</pre>
+</blockquote>
 
 <h3> Standard  typemaps</h3>
 
@@ -1392,21 +1438,81 @@ The following typemaps show how to convert a few common kinds of
 objects between Tcl and C (and to give a better idea of how typemaps
 work)<p>
 
-<center>
-<img src="ch10.table.8.png"><br>
-<img src="ch10.table.9.png"><br>
-<img src="ch10.table.10.png"><br>
-<img src="ch10.table.11.png">
-</center><p>
+
+<b>Integer conversion</b>
+
+<blockquote>
+<pre>
+%typemap(in) int, short, long {
+   int temp;
+   if (Tcl_GetIntFromObj(interp, $input, &temp) == TCL_ERROR)
+      return TCL_ERROR;
+   $1 = ($1_ltype) temp;
+}
+</pre>
+</blockquote>
+
 <p>
+<blockquote>
+<pre>
+%typemap(out) int, short, long {
+   Tcl_SetIntObj($result,(int) $1);
+}
+</pre>
+</blockquote>
+
+<b>Floating point conversion</b>
+
+<blockquote>
+<pre>
+%typemap(in) float, double {
+   double temp;
+   if (Tcl_GetDoubleFromObj(interp, $input, &temp) == TCL_ERROR)
+       return TCL_ERROR;
+   $1 = ($1_ltype) temp;
+}
+</pre>
+</blockquote>
+
+<p>
+<blockquote>
+<pre>
+%typemap(out) float, double {
+   Tcl_SetDoubleObj($result, $1);
+}
+</pre>
+</blockquote>
+
+<b>String Conversion</b>
+
+<blockquote>
+<pre>
+%typemap(in) char * {
+   int len;
+   $1 = Tcl_GetStringFromObj(interp, &len);
+   }
+}
+</pre>
+</blockquote>
+
+<p>
+<blockquote>
+<pre>
+%typemap(out) char * {
+   Tcl_SetStringObj($result,$1);
+}
+</pre>
+</blockquote>
 
 <h3> Pointer handling</h3>
+
+<b>REWRITE THIS!</B>
+<p>
 
 SWIG pointers are mapped into Python strings containing the
 hexadecimal value and type.  The following functions can be used to
 create and read pointer values.<p>
 
-<center><img src="ch10.table.12.png"></center><p>
 <p>
 These functions can be used in typemaps as well. For example, the
 following typemap makes an argument of "<tt>char *buffer</tt>" accept
