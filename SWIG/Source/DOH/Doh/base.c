@@ -831,6 +831,21 @@ int DohReplace(DOH *src, DOH *token, DOH *rep, int flags) {
   return 0;
 }
 
+void DohChop(DOH *src) {
+  DohBase *b = (DohBase *) src;
+  DohError(DOH_CALLS, "DohChop %x\n", src);
+  if (DohIsString(src)) {
+    if (b->objinfo->doh_string->doh_chop) {
+      (b->objinfo->doh_string->doh_chop)(src);
+    }
+  }
+  if (DohCheck(b)) {
+    DohError(DOH_UNSUPPORTED, "No chop method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    DohError(DOH_UNKNOWN,"Unknown object %x passed to Chop\n", b);
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Callable methods
  * ----------------------------------------------------------------------------- */
