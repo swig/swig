@@ -100,7 +100,7 @@ libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNT
 # ----------------------------------------------------------------------
 
 RUBY_INCLUDE = @RUBYINCLUDE@
-RUBY_RUNTIME = $(SWIGLIB)/ruby/ruby.swg
+RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg
 
 # Ruby shared
 
