@@ -44,108 +44,58 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
-	template_arg_typename \
-	template_type_namespace \
-	template_construct \
-	template_typedef \
-	template_typedef_cplx \
-	arrays_scope \
-	enum_var \
-	union_scope \
-	default_ns \
-	throw_exception \
-	argout \
-	using_protected \
-	using_private \
-	using_extend \
-	using_inherit \
-	using_composition \
-	overload_subtype \
-	typedef_reference \
-	using2 \
-	using1 \
-	typemap_ns_using \
-	abstract_inherit_ok \
 	abstract_inherit \
-	conversion_ns_template \
-	conversion \
-	conversion_namespace \
-	extend_template_ns \
-	extend_template \
-	rename_scope \
-	valuewrapper_base \
-	smart_pointer_rename \
-	grouping \
-	enum_scope_template \
-	enum_scope \
-	lib_std_deque \
-	evil_diamond \
-	evil_diamond_ns \
-	evil_diamond_prop \
-	constructor_explicit \
-	lib_typemaps \
-	typemap_namespace \
-	ignore_parameter \
-	smart_pointer_const \
-	smart_pointer_overload \
-	smart_pointer_multi_typedef \
-	smart_pointer_typedef \
-	smart_pointer_simple \
-	smart_pointer_not \
-	smart_pointer_multi \
-	overload_extend \
-	template_default2 \
-	template_enum_typedef \
-	template_inherit_abstract \
-	template_default_qualify \
-	template_enum_ns_inherit \
-	template_int_const \
-	return_value_scope \
-	template_retvalue \
-	template_ns_scope \
-	constructor_exception \
-	template_arg_scope \
-	template_ns_enum2 \
-	overload_template \
-	overload_copy \
-	overload_simple \
-	overload_complicated \
-	cpp_enum_scope \
-	rename_default \
-	template_default_inherit \
-	template_virtual \
-	template_ns_enum \
-	template_enum \
-	template_static \
+	abstract_inherit_ok \
 	add_link \
 	anonymous_arg \
+	argout \
 	arrays_global \
 	arrays_global_twodim \
+	arrays_scope \
 	bool_default \
 	casts \
 	class_ignore \
 	const_const_2 \
 	constant_pointers \
 	constover \
+	constructor_exception \
+	constructor_explicit \
 	constructor_value \
+	conversion \
+	conversion_namespace \
+	conversion_ns_template \
 	cplusplus_throw \
 	cpp_enum \
+	cpp_enum_scope \
 	cpp_enum_scope \
 	cpp_namespace \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
 	default_constructor \
+	default_ns \
 	default_ref \
 	dynamic_cast \
+	enum_scope \
+	enum_scope_template \
+	enum_var \
+	evil_diamond \
+	evil_diamond_ns \
+	evil_diamond_prop \
 	explicit \
+	extend_template \
+	extend_template_ns \
+	grouping \
+	ignore_parameter \
 	inherit_missing \
 	kind \
 	lib_carrays \
 	lib_cdata \
 	lib_cpointer \
+	lib_std_deque \
 	lib_std_string \
 	lib_std_vector \
+	lib_typemaps \
 	member_template \
 	minherit \
 	name_cxx \
@@ -154,43 +104,92 @@ CPP_TEST_CASES += \
 	namespace_extend \
 	namespace_template \
 	namespace_typemap \
+	overload_complicated \
+	overload_copy \
+	overload_extend \
+	overload_simple \
+	overload_subtype \
+	overload_template \
 	pointer_reference \
 	primitive_ref \
 	private_assign \
 	pure_virtual \
 	rename_default \
+	rename_default \
+	rename_scope \
+	return_value_scope \
 	rname \
+	smart_pointer_const \
+	smart_pointer_multi \
+	smart_pointer_multi_typedef \
+	smart_pointer_not \
+	smart_pointer_overload \
+	smart_pointer_rename \
+	smart_pointer_simple \
+	smart_pointer_typedef \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
 	template \
+	template_arg_scope \
+	template_arg_typename \
 	template_base_template \
 	template_classes \
 	template_const_ref \
+	template_construct \
 	template_default \
+	template_default2 \
+	template_default_inherit \
+	template_default_qualify \
+	template_enum \
+	template_enum_ns_inherit \
+	template_enum_typedef \
 	template_forward \
 	template_inherit \
+	template_inherit_abstract \
+	template_int_const \
 	template_ns \
 	template_ns2 \
 	template_ns3 \
 	template_ns4 \
+	template_ns_enum \
+	template_ns_enum2 \
 	template_ns_inherit \
+	template_ns_scope \
 	template_qualifier \
 	template_qualifier \
 	template_rename \
+	template_retvalue \
+	template_static \
 	template_tbase_template \
+	template_type_namespace \
+	template_typedef \
+	template_typedef_cplx \
+	template_virtual \
 	template_whitespace \
+	throw_exception \
 	typedef_funcptr \
 	typedef_inherit \
 	typedef_mptr \
+	typedef_reference \
 	typedef_scope \
+	typemap_namespace \
+	typemap_ns_using \
 	typename \
+	union_scope \
+	using1 \
+	using2 \
+	using_composition \
+	using_extend \
+	using_inherit \
+	using_private \
+	using_protected \
+	valuewrapper_base \
 	virtual_destructor \
 	voidtest
 
 # C test cases. (Can be run individually using make testcase.ctest.)
 C_TEST_CASES += \
-	overload_extendc \
 	arrayptr \
 	arrays \
 	char_constant \
@@ -208,6 +207,7 @@ C_TEST_CASES += \
 	macro_2 \
 	name \
 	nested \
+	overload_extendc \
 	preproc_1 \
 	preproc_2 \
 	ret_by_value \
