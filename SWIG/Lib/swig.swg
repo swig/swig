@@ -403,7 +403,7 @@ static int NAME(TYPE x) {
 %enddef
 
 
-/* Auxiliar methods for assigning unnamed type C++ variables, where
+/* Auxiliary methods for assigning unnamed type C++ variables, where
    swig doesn't know the casting type, but C++ can derived it:
 
      struct Foo { enum {Hi, Hello } hola; };
@@ -411,6 +411,7 @@ static int NAME(TYPE x) {
 %insert("runtime") %{
 #ifdef __cplusplus
 template <class T, class V>
+inline
 void swig_assign_unnamed(T& eval, const V& val)
 {
   eval = static_cast<T>(val);
