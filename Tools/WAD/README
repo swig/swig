@@ -9,3 +9,41 @@ beazley@cs.uchicago.edu
 Copyright (C) 2000
 University of Chicago
 All Rights Reserved
+
+
+1. Introduction
+
+WAD is an embedded error-recovery mechanism that allows fatal errors
+such as SIGSEGV, SIGBUS, and SIGFPE to converted into exceptions for
+use in scripting languages and similar systems.
+
+
+Debugging Modes
+---------------
+The following WAD debugging modes can be set through the use of environment
+variables:
+
+WAD_DEBUG_SEGMENT       -  Displays information about the virtual memory
+                           map and mapping of addresses to segments.
+
+WAD_DEBUG_SYMBOL        -  Symbol table mapping.
+
+WAD_DEBUG_OBJECT        -  Loading/Unloading of object files.
+
+WAD_DEBUG_FILE          -  Loading/Unloading of raw files.
+
+WAD_DEBUG_HOLD          -  Freezes WAD before it returns from the signal handler.
+                           Useful if you need to attach a debugger to WAD itself.
+
+WAD_DEBUG_STABS         -  Display stabs data.
+
+WAD_DEBUG_RETURN        -  Display information about WAD return points.
+
+WAD_DEBUG_SYMBOL_SEARCH -  Display all symbols in the symbol table that are
+                           searched.
+
+WAD_DEBUG_INIT          -  Print initialization information.
+
+WAD_NOSTACK             -  Do NOT use an alternative signal handling stack.
+                           This may be necessary on certain Linux systems when
+                           threads are being used.
