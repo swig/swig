@@ -17,7 +17,7 @@ AC_PREREQ(2.54)
 ## (The alternative is to check into cvs and consequently distribute
 ## another copy of install-sh, but that way lies madness.)
 
-cp ${srcdir}/../install-sh ${srcdir}
+cp config/install-sh ${srcdir}
 chmod +x ${srcdir}/install-sh
 AC_CONFIG_AUX_DIR(.)
 
