@@ -73,6 +73,7 @@ os.system("cd "+dirname+"; autoconf")
 os.system("cd "+dirname+"/Source/DOH; autoconf")
 os.system("cd "+dirname+"/Tools; autoconf")
 os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
+os.system("cd "+dirname+"/Tools/WAD; autoconf")
 os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
 # Build documentation
