@@ -35,6 +35,7 @@ extern FILE       *Swig_open(const DOHString_or_char *name);
 extern DOHString  *Swig_read_file(FILE *f);
 extern DOHString  *Swig_include(const DOHString_or_char *name);
 extern int         Swig_insert_file(const DOHString_or_char *name, DOHFile *outfile);
+extern int         Swig_bytes_read();
 
 #define  SWIG_FILE_DELIMETER   "/"
 
