@@ -27,21 +27,21 @@ static char cvsroot[] = "$Header$";
 #include "guile.h"
 
 static char *guile_usage = "\
-WARNING: Guile support is undergoing large changes and is\n\
-         likely to be broken.  Please use with care.\n\
-\n\
 Guile Options (available with -guile)\n\
      -module name    - Set base name of module\n\
-     -prefix name    - Set a prefix to be appended to all name\n\
-     -package name   - Set the path of the module\n\
-     -linkage lstyle - Produce code using linkage protocol LSTYLE\n\
+     -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
+     -package name   - Set the path of the module [default NULL]\n\
+     -Linkage lstyle - Use linkage protocol LSTYLE [default `ltdlmod']\n\
 \n\
   The module option does not create a guile module with a separate name\n\
-  space.  It specifies the name of the initialization function and is \n\
+  space.  It specifies the name of the initialization function and is\n\
   called a module here so that it is compadible with the rest of SWIG.\n\
 \n\
   When unspecified, the default LSTYLE is `ltdlmod' for libtool ltdl\n\
   modules.  Other LSTYLE values are: `hobbit' for hobbit modules.\n\
+\n\
+  WARNING: Guile support is undergoing large changes and is\n\
+           likely to be broken.  Please use with care.\n\
 \n";
 
 #define GUILE_LSTYLE_LTDLMOD 0          // "native" guile?
@@ -53,11 +53,16 @@ Guile Options (available with -guile)\n\
 
 GUILE::GUILE ()
 {
-  prefix = NULL;
+  // Set global vars
+
+  typemap_lang = "guile";
+
+  // Set class vars
+
+  prefix = "gswig_";
   module = NULL;
-  package = "";
+  package = NULL;
   linkage = GUILE_LSTYLE_LTDLMOD;
-  guile_path = "guile";
 }
 
 // ---------------------------------------------------------------------
@@ -69,9 +74,9 @@ GUILE::GUILE ()
 void
 GUILE::parse_args (int argc, char *argv[])
 {
-  int i;
+  int i, orig_len;
 
-  sprintf (LibDir, "%s", guile_path);
+  sprintf (LibDir, "%s", "guile");
 
   // Look for certain command line options
   for (i = 1; i < argc; i++) {
@@ -82,8 +87,8 @@ GUILE::parse_args (int argc, char *argv[])
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
-	  prefix = new char[strlen(argv[i + 1]) + 2];
-	  strcpy(prefix, argv[i + 1]);
+	  prefix = new char[strlen (argv[i + 1]) + 2];
+	  strcpy (prefix, argv[i + 1]);
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  i++;
@@ -94,7 +99,7 @@ GUILE::parse_args (int argc, char *argv[])
       else if (strcmp (argv[i], "-package") == 0) {
 	if (argv[i + 1]) {
 	  package = new char[strlen (argv[i + 1]) + 2];
-	  strcpy(package, argv [i + 1]);
+	  strcpy (package, argv [i + 1]);
 	  Swig_mark_arg (i);
 	  Swig_mark_arg (i + 1);
 	  i++;
@@ -112,7 +117,10 @@ GUILE::parse_args (int argc, char *argv[])
 	  Swig_arg_error();
 	}
       }
-      else if (strcmp (argv[i], "-linkage") == 0) {
+      /* Bogus upcase requirement due to top-level parsing not respecting
+         language specification.  Top-level should stop when it sees "-guile"
+         or other languages.  */
+      else if (strcmp (argv[i], "-Linkage") == 0) {
         if (argv[i + 1]) {
           if (0 == strcmp (argv[i + 1], "ltdlmod"))
             linkage = GUILE_LSTYLE_LTDLMOD;
@@ -130,23 +138,17 @@ GUILE::parse_args (int argc, char *argv[])
     }
   }
 
-  // If a prefix has been specified make sure it ends in a '_'
+  // Make sure `prefix' ends in an underscore
 
-  if (prefix) {
-    if (prefix[strlen (prefix)] != '_') {
-      prefix[strlen (prefix) + 1] = 0;
-      prefix[strlen (prefix)] = '_';
-    }
-  } else
-    prefix = "gswig_";
+  orig_len = strlen (prefix);
+  if (prefix[orig_len] != '_') {
+    prefix[1 + orig_len] = 0;
+    prefix[orig_len] = '_';
+  }
 
   // Add a symbol for this module
 
   Preprocessor_define ((void *) "SWIGGUILE",0);
-
-  // Set name of typemaps
-
-  typemap_lang = "guile";
 }
 
 // --------------------------------------------------------------------
@@ -166,8 +168,21 @@ GUILE::parse ()
 
   // Run the parser
 
-  yyparse();
+#ifdef SICK_AND_WRONG
+  {                                     // ttn hack
+    char *tmp_file_name = "TMPSWIG";
+    char *orig_input_file = input_file;
+    FILE *ttn_hack = fopen (tmp_file_name, "w");
 
+    fprintf (ttn_hack, "%%include guile/typemaps.i\n");
+    fclose (ttn_hack);
+    input_file = tmp_file_name;
+    yyparse();
+    remove (tmp_file_name);
+    input_file = orig_input_file;
+  }
+#endif /* SICK_AND_WRONG */
+  yyparse();
 }
 
 // ---------------------------------------------------------------------
@@ -277,46 +292,48 @@ GUILE::initialize (void)
 // Wrap things up.  Close initialization function.
 // ---------------------------------------------------------------------
 
-void
-GUILE::close (void)
+static void
+emit_linkage (String &module_name, int linkage)
 {
-  String module_name;
-  String module_func;
+  String module_func ("");
 
-  emit_ptr_equivalence (f_init);
-  fprintf (f_init, "}\n\n");
-
-  module_name = "";
-  module_name << package << " " << module;
-
-  // First turn any '_' into spaces
-  module_name.replace ("_", " ");
-
-  // Now strip the extra space.
-  module_name.strip();
-
-  // Build the module function name.
   module_func = "";
   module_func << module_name;
-  module_func.replace (" ", "_");
   module_func.replace ("-", "_");
 
   switch (linkage) {
-  case GUILE_LSTYLE_HOBBIT:
-    "scm_init_" >> module_func;
-    break;
   case GUILE_LSTYLE_LTDLMOD:
+    module_func.replace ("/", "_");
     "scm_init" >> module_func;
     module_func << "_module";
+    break;
+  case GUILE_LSTYLE_HOBBIT:
+    module_func.replace ("/", "_slash_");
+    "scm_init_" >> module_func;
+    fprintf (f_init, "\n/* Linkage: hobbit */\n");
+    fprintf (f_init, "SCM\n%s (void)\n{\n", module_func.get());
+    fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
+             module_name.get());
+    fprintf (f_init, "}\n");
     break;
   default:
     abort();                            // for now
   }
+}
 
-  fprintf (f_init, "void %s(void)\n{\n", module_func.get());
-  fprintf (f_init, "    scm_register_module_xxx(\"%s\",SWIG_init);\n",
-           module_name.get());
-  fprintf (f_init, "}\n");
+void
+GUILE::close (void)
+{
+  // emit_ptr_equivalence (f_init);
+  fprintf (f_init, "}\n\n");
+
+  String module_name ("");
+  if (package)
+    module_name << package << "/" << module;
+  else
+    module_name << module;
+
+  emit_linkage (module_name, linkage);
 }
 
 // ----------------------------------------------------------------------
@@ -397,7 +414,8 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   String build;
 
   // Make a wrapper name for this
-  char * wname = name_wrapper (iname, prefix);
+  char * wname = new char [strlen (prefix) + strlen (iname) + 2];
+  sprintf (wname, "%s%s", prefix, iname);
 
   // Build the name for scheme.
   proc_name = "";
@@ -474,7 +492,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     if ((tm = typemap_lookup ("check", typemap_lang,
                               p.t, p.name, source, target, &f))) {
-      // Yep.  Use it instead of the default
       f.code << tm << "\n";
       mreplace (f.code, argnum, arg, proc_name);
     }
@@ -483,7 +500,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     if ((tm = typemap_lookup ("argout", typemap_lang,
                               p.t, p.name, source, target, &f))) {
-      // Yep.  Use it instead of the default
       outarg << tm << "\n";
       mreplace (outarg, argnum, arg, proc_name);
     }
@@ -492,7 +508,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     if ((tm = typemap_lookup ("freearg", typemap_lang,
                               p.t, p.name, source, target, &f))) {
-      // Yep.  Use it instead of the default
       cleanup << tm << "\n";
       mreplace (cleanup, argnum, arg, proc_name);
     }
@@ -546,7 +561,6 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   if ((tm = typemap_lookup ("ret", typemap_lang,
                             d, name, "_result", "", &f))) {
-    // Yep.  Use it instead of the default
     f.code << tm << "\n";
     mreplace (f.code, argnum, arg, proc_name);
   }
@@ -567,7 +581,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 // GUILE::link_variable(char *name, char *iname, DataType *d)
 //
 // Create a link to a C variable.
-// This creates a single function _wrap_gswig_var_varname().
+// This creates a single function PREFIX_var_VARNAME().
 // This function takes a single optional argument.   If supplied, it means
 // we are setting this variable to some value.  If omitted, it means we are
 // simply evaluating this variable.  Either way, we return the variables
@@ -584,7 +598,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
 
   // evaluation function names
 
-  sprintf (var_name, "_wrap_%svar_%s", prefix, iname);
+  sprintf (var_name, "%svar_%s", prefix, iname);
 
   // Build the name for scheme.
   proc_name = "";
@@ -696,7 +710,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
 
   // Make a static variable;
 
-  sprintf (var_name, "_wrap_const_%s", name);
+  sprintf (var_name, "%sconst_%s", prefix, name);
 
   // Build the name for scheme.
   proc_name = "";
@@ -722,7 +736,6 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   }
   if ((tm = typemap_lookup ("const", typemap_lang, type, name,
                             rvalue.get(), name))) {
-    // Yep.  Use it instead of the default
     fprintf (f_init, "%s\n", tm);
   } else {
     // Create variable and assign it a value
