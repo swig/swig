@@ -18,11 +18,11 @@ replace versions 1.1p5 and 1.1-883. The guilty parties working on this
 are:
 
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core)
- Loic Dachary (loic@ceic.com)                           (Perl5)
  William Fulton (wsf@fultondesigns.co.uk)               (Java)
+ Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
+ Loic Dachary (loic@ceic.com)                           (Perl5)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
- Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
 
 Past contributors (see the CHANGES file for a complete list):
 
@@ -33,9 +33,30 @@ Up-to-date SWIG related information can be found at
 
         http://www.swig.org
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!                      IMPORTANT                         !!!!!!!
+!!!!!!!                                                        !!!!!!!
+!!!!!!! Previous SWIG users should read the documentation      !!!!!!!
+!!!!!!! file Doc/Manual/SWIG.html before trying to use SWIG1.3 !!!!!!!
+!!!!!!! on existing SWIG interfaces.  This is the most current !!!!!!!
+!!!!!!! documentation that describes new 1.3 features and      !!!!!!!
+!!!!!!! incompatibilities.                                     !!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 What's New?
 ===========
 Here are the most notable changes (so far):
+
+   - Support for C++ templates.
+
+   - Improvement support for overloaded functions/methods.
+
+   - Parsing support for virtually all C/C++ datatypes.
+
+   - Pointers to members are now supported in the parser
+     and by the Python module.
+
+   - Improved support for pointers to functions and callbacks.
 
    - SWIG now has a full C preprocessor.
 
@@ -76,8 +97,8 @@ very substantial modifications to things such as type handling,
 typemaps, and wrapper code generation.  Therefore, if you are making
 extensive use of advanced SWIG features, interfaces written for
 SWIG1.1 may not work.  We apologize for the inconvenience, but these
-changes are needed in order to remove a variety of annoying "features"
-of SWIG1.1.
+changes are needed in order to fix a number of annoying "features"
+in SWIG1.1.
 
 In addition, SWIG1.3 makes no attempt to be compatible with SWIG1.1 at
 the C++ API level so language modules written for SWIG1.1 will most
@@ -85,7 +106,7 @@ definitely not work with this release.
 
 The files NEW and CHANGES describe in some detail all of the important
 changes that have been made to the system.  Experienced users would be
-advised to read this.
+well advised to read this.
 
 Windows
 =======
@@ -133,13 +154,23 @@ The Examples directory contains a variety of examples of using SWIG
 and it has some browsable documentation.  Simply point your browser to
 the file "Example/index.html".
 
+The Examples directory now includes Visual C++ project files for
+building some of the examples on Windows (new in SWIG1.3.7).
+
 Documentation
 =============
-No user documentation is currently included in this release.  However,
-most of the documentation for SWIG1.1 still applies.  This can be
-obtained on http://www.swig.org.
+The Doc/Manual directory contains the most recent set of updated
+documentation for this release.  As this is an unstable development
+release, the documentation is not quite up to date and is being worked
+on.  We are working on it, but there is a lot of documentation and it
+is going to take time to complete. Please be patient.
 
-There is some technical documentation available in the Doc subdirectory.
+! The most up-to-date information concerning new features in SWIG1.3 is the
+! file Doc/Manual/SWIG.html.
+
+There is some technical documentation available in the Doc/Devel 
+subdirectory.  This is not necessarily up-to-date, but it has some
+information on SWIG internals.
 
 Participate!
 ============
@@ -148,6 +179,10 @@ Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, and
 Windows). All contributions help.
 
-Contributions of new language modules will also be accepted.
+If you would like to join the SWIG development team or contribute a
+language module to the distribution, please contact beazley@cs.uchicago.edu.
 
  -- The SWIG Maintainers
+
+
+
