@@ -5,8 +5,8 @@
 srcdir = @srcdir@
 VPATH  = @srcdir@
 
-SRCS          = test.c
-OBJS          = test.o
+SRCS          = init.c test.c
+OBJS          = init.o test.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@

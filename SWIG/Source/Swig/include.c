@@ -21,6 +21,26 @@ static List      *directories = 0;        /* List of include directories */
 static String    *lastpath = 0;           /* Last file that was included */
 static int           bytes_read = 0;         /* Bytes read */
 
+static String    *swiglib = 0;            /* Location of SWIG library */
+
+/* -----------------------------------------------------------------------------
+ * Swig_swiglib_set()
+ * Swig_swiglib_get()
+ *
+ * Set the location of the SWIG library.  This isn't really used, by the
+ * include mechanism, but rather as a query interface for language modules.
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_swiglib_set(const String_or_char *sl) {
+  swiglib = NewString(sl);
+}
+
+String *
+Swig_swiglib_get() {
+  return swiglib;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_add_directory()
  *
