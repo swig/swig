@@ -15,13 +15,14 @@
 </ul>
 <li><a href="#n5">SWIG Windows Examples</a>
 <ul>
-<li><a href="#n6">Instructions for using the Examples with Visual C++</a>
+<li><a href="#n6">Instructions for using the Examples with Visual Studio</a>
 <ul>
 <li><a href="#n7">Python</a>
 <li><a href="#n8">TCL</a>
 <li><a href="#n9">Perl</a>
 <li><a href="#n10">Java</a>
 <li><a href="#n11">Ruby</a>
+<li><a href="#n110">C#</a>
 </ul>
 <li><a href="#n12">Instructions for using the Examples with other compilers</a>
 </ul>
@@ -90,23 +91,28 @@ Note that the runtime libraries can also be built on Cygwin and is automatically
 Using Microsoft Visual C++ is the most common approach to compiling and linking SWIG's output. 
 The Examples directory has a few Visual C++ project files (.dsp files). 
 These were produced by Visual C++ 6, although they should also work in Visual C++ 5. 
-These project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
-Alternatively run the <a href="#examples_cygwin">examples using Cygwin</a>.<p>
+Later versions of Visual Studio should also be able to open and convert these project files.
+The C# examples come with .NET 2003 solution (.sln) and project files instead of Visual C++ 6 project files.
+The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
+Alternatively run the <a href="#examples_cygwin">examples using Cygwin</a>.
+<p>
 
 More information on each of the examples is available with the examples distributed with SWIG (Examples/index.html).
 
-<a name="n6"></a><H3>2.2.1 Instructions for using the Examples with Visual C++</H3>
+<a name="n6"></a><H3>2.2.1 Instructions for using the Examples with Visual Studio</H3>
 
 
 Ensure the SWIG executable is as supplied in the SWIG root directory in order for the examples to work. 
-Each language requires some environment variables to be set <b>before</b> running Visual C++. 
+Most languages require some environment variables to be set <b>before</b> running Visual C++. 
 Note that Visual C++ must be re-started to pick up any changes in environment variables. 
 Open up an example .dsp file, Visual C++ will create a workspace for you (.dsw file). 
 Ensure the Release build is selected then do a Rebuild All from the Build menu.
 The required environment variables are displayed with their current values. <p>
 
-The list of required environment variables for each module language is also listed below.  They are usually set from the Control Panel and System properties, but this depends on which flavour of Windows you are running. If you don't want to use environment variables then change all occurences of the environment variables in the .dsp files with hard coded values.
-If you are interested in how the project files are set up have a look at the section on building extensions for your chosen language module.
+The list of required environment variables for each module language is also listed below.
+They are usually set from the Control Panel and System properties, but this depends on which flavour of Windows you are running.
+If you don't want to use environment variables then change all occurences of the environment variables in the .dsp files with hard coded values.
+If you are interested in how the project files are set up there is explanatory information in some of the language module's documentation.
 
 <a name="n7"></a><H4>2.2.1.1 Python</H4>
 
@@ -162,6 +168,11 @@ Example using Ruby 1.6.4:<br>
 RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32<br>
 RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib<br>
 </tt>
+
+<a name="n110"></a><H4>2.2.1.6 C#</H4>
+The C# examples do not require any environment variables to be set as a C# project file is included.
+Just open up the .sln solution file in Visual Studio .NET 2003 and do a Rebuild All from the Build menu.
+The accompanying C# and C++ project file are automatically used by the solution file.
 
 <a name="n12"></a><H3>2.2.2 Instructions for using the Examples with other compilers</H3>
 
