@@ -1,6 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
 
+09/10/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Fix memory leaks in the "list-vector.i" typemaps.
+
 09/09/2003: mkoeppe (Matthias Koeppe)
 	    [Chicken] Use C_mk_bool rather than C_mkbool.  This fixes
 	    the wrapping of boolean values for Chicken 1.10 and newer.
