@@ -144,9 +144,9 @@ SwigType *NewSwigType(int t) {
     return NewString("void");
     break;
   default :
-    return NewString("");
     break;
   }
+  return NewString("");
 }
 
 /* -----------------------------------------------------------------------------
