@@ -8,5 +8,5 @@ makeweb:
 	python makeweb.py
 
 rsync:
-	rsync -rv --cvs-exclude --rsh="ssh" . $(USERNAME)@shell.sf.net:/home/groups/s/sw/swig/swigweb
+	rsync -r --cvs-exclude --rsh="ssh" . $(USERNAME)@shell.sf.net:/home/groups/s/sw/swig/swigweb
 
