@@ -1034,9 +1034,19 @@ x    shadowinterface - interfaces (extends) for the shadow class
 	   "    }\n",
 	   "    swigCPtr = 0;\n",
 	   "  }\n\n",
-	   "  public long getCPtr$class(){\n",  // Function to access C pointer
-	   "    return swigCPtr;\n",
-	   "  }\n",
+	   "  public static long getCPtr($class obj) {\n",  // Function to access C pointer
+	   "    return obj.swigCPtr;\n",
+       /*
+	   "  }\n\n",
+       "  public boolean equals($class obj) {\n",
+       "    return obj.swigCPtr == this.swigCPtr;\n",
+       "  }\n\n",
+       "  public int hashCode() {\n",
+       "  System.out.println(\"hashcode: \" + java.util.Integer.toHexString((int)(swigCPtr >> 32)));\n",
+       "//    return (int)swigCPtr; // Little Endian\n",
+       "    return (int)(swigCPtr >> 32); // Big Endian\n",
+       */
+       "  }\n",
 	   NULL);
 
     // Extra Java code
@@ -1088,8 +1098,9 @@ x    shadowinterface - interfaces (extends) for the shadow class
       /*
       if (!shadow) {
         Printv(module_class_code, 
-          "  public static $baseclass SWIG$classTo$baseclass($class self) {\n",
-          "    return new $baseclass($jniclass.SWIG$classTo$baseclass(self.getCPtr$class()), false);\n",
+          "  public static $baseclass SWIG$classTo$baseclass($class obj) {\n",
+//          "    return new $baseclass($jniclass.SWIG$classTo$baseclass(obj.getCPtr$class()), false);\n",
+          "    return new $baseclass($jniclass.SWIG$classTo$baseclass($class.getCPtr(obj)), false);\n",
           "  }\n",
           "\n",
           NULL);
@@ -1317,7 +1328,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
 	  if (gencomma)
 	    Printf(nativecall, ", ");
 
-      String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall);
+      String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
 
 	  /* Add to java shadow function header */
 	  if (gencomma >= 2)
@@ -1429,7 +1440,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
                     "No jstype typemap defined for %s\n", SwigType_str(pt,0));
         }
 
-        String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall);
+        String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
 
 	/* Add to java shadow function header */
 	Printf(shadow_code, "%s %s", javaparamtype, arg);
@@ -1631,7 +1642,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
   
-    Printf(module_class_code, "  public static %s %s(", shadowrettype, overloaded_name);
+    Printf(module_class_code, "  public static %s %s(", shadowrettype, Getattr(n,"sym:name"));
   
     if(SwigType_type(t) == T_ARRAY && is_shadow(getArrayType(t))) {
       Printf(nativecall, "long[] cArray = ");
@@ -1684,7 +1695,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
       if (gencomma)
         Printf(nativecall, ", ");
 
-      String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall);
+      String *arg = generateShadowParameters(n, p, i, is_java_class, user_arrays, nativecall, javaparamtype);
 
       /* Add to java shadow function header */
       if (gencomma >= 2)
@@ -1810,7 +1821,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
    * Return:
    * arg - a unique parameter name
    */
-  String *generateShadowParameters(Node *n, Parm *p, int arg_num, int is_java_class, String *user_arrays, String *nativecall) {
+  String *generateShadowParameters(Node *n, Parm *p, int arg_num, int is_java_class, String *user_arrays, String *nativecall, String* javaparamtype) {
 
     SwigType *pt = Getattr(p,"type");
 
@@ -1829,14 +1840,11 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     if(SwigType_type(pt) == T_ARRAY && is_shadow(getArrayType(pt))) {
       Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NULL);
       Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NULL);
-      Printv(user_arrays, "      $arg_cArray[i] = $arg[i].getCPtr",is_shadow(getArrayType(pt)),"();\n", NULL);
+      Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NULL);
       Replace(user_arrays, "$arg", arg, DOH_REPLACE_ANY);
       Printv(nativecall, arg, "_cArray", NULL);
     } else if (is_java_class) {
-      if (is_shadow(pt))
-        Printv(nativecall, arg, ".getCPtr",is_shadow(pt),"()", NULL);
-      else
-        Printv(nativecall, arg, ".getCPtr()", NULL);
+        Printv(nativecall, javaparamtype,".getCPtr(",arg,")", NULL);
     } else 
       Printv(nativecall, arg, NULL);
 
@@ -1865,8 +1873,8 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
            "    swigCPtr = 0;\n",
            "  }\n",
            "\n",
-           "  public long getCPtr(){\n",  // Function to access C pointer
-           "    return swigCPtr;\n",
+           "  public static long getCPtr(", classname, " obj) {\n",  // Function to access C pointer
+           "    return obj.swigCPtr;\n",
            "  }\n",
            "}",
            NULL);
