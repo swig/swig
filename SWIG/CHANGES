@@ -3,6 +3,13 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+7/20/00 : beazley
+          Deprecated the %val and %out directives.  These directives
+          shouldn't really be necessary since typemaps can be used
+          to achieve similar results.   This also cleans up the
+          handling of types and parameters quite a bit.
+          *** POTENTIAL INCOMPATIBILITY ***
+          
 7/20/00 : ttn
 	  Fixed unspecified-module bug in Guile support and removed
 	  more non-"with-smobs" functionality using patches submitted
