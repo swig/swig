@@ -69,6 +69,37 @@ Swig_add_directory(const String_or_char *dirname) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_push_directory()
+ *
+ * Inserts a directory at the front of the SWIG search path.  This is used by
+ * the preprocessor to grab files in the same directory as other included files.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_push_directory(const String_or_char *dirname) {
+  if (!directories) directories = NewList();
+  assert(directories);
+  if (!DohIsString(dirname)) {
+    dirname = NewString((char *) dirname);
+    assert(dirname);
+  }
+  Insert(directories, 0, dirname);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_pop_directory()
+ *
+ * Pops a directory off the front of the SWIG search path.  This is used by
+ * the preprocessor.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_pop_directory() {
+  if (!directories) return;
+  Delitem(directories,0);
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_last_file()
  * 
  * Returns the full pathname of the last file opened. 
