@@ -177,6 +177,7 @@ cparse_template_expand(Node *n, String *tname, String *rname, String *templatear
     Append(typelist, Getattr(n,"type"));
     Append(typelist, Getattr(n,"decl"));
     add_parms(Getattr(n,"parms"), cpatchlist, typelist);
+    add_parms(Getattr(n,"kwargs"), cpatchlist, typelist);
     add_parms(Getattr(n,"pattern"), cpatchlist, typelist);
     add_parms(Getattr(n,"throws"), cpatchlist, typelist);
     cn = firstChild(n);
@@ -329,7 +330,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	    tydef = value;
 	  }
 	  tmp = NewStringf("#%s",name);
-	  tmpr = NewStringf("\"%s\"", value);
+	  tmpr = NewStringf("\"%s\"", valuestr);
 	  
 	  sz = Len(cpatchlist);
 	  for (i = 0; i < sz; i++) {
