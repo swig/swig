@@ -1147,7 +1147,12 @@ Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   varref = flags & CWRAP_VAR_REFERENCE;  
 
   if (flags & CWRAP_SMART_POINTER) {
-    self = NewString("(*this)->");
+    if (checkAttribute(n, "storage", "static")) {
+      String *base = Getattr(n,"classname"); 
+      self = NewStringf("%s::", base);
+    } else {
+      self = NewString("(*this)->");
+    }
   }
 
   name = Getattr(n,"name");
