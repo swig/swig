@@ -391,7 +391,7 @@ void skip_decl(void) {
 static void get_escape() {
   int result = 0;
   int state = 0;
-  char  c;
+  int c;
 
   while(1) {
     c = nextchar();
@@ -495,7 +495,7 @@ static void get_escape() {
 int yylook(void) {
 
     int      state;
-    char     c = 0;
+    int      c = 0;
 
     state = 0;
     yylen = 0;
@@ -512,11 +512,11 @@ int yylook(void) {
 	  if (c == '\n') {
 	    state = 0;
 	    yylen = 0;
-	    last_id = 0;
+	    /*	    last_id = 0;*/
 	  } else if (isspace(c) || (c=='\\')) {
 	    state = 0;
 	    yylen = 0;
-	    last_id = 0;
+	    /*	    last_id = 0; */
 	  }
 
 	  else if ((isalpha(c)) || (c == '_')) state = 7;
