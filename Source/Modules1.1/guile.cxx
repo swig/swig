@@ -772,6 +772,8 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
     Printf (f_header, "static %s %s = ", SwigType_lstr(type,0), var_name);
     if (SwigType_type(type) == T_STRING) {
       Printf (f_header, "\"%s\";\n", value);
+    } else if (SwigType_type(type) == T_CHAR) {
+      Printf (f_header, "\'%s\';\n", value);      
     } else {
       Printf (f_header, "%s;\n", value);
     }

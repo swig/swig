@@ -340,6 +340,99 @@ void skip_decl(void) {
     }
   }
 }
+
+/* This function is called when a backslash is found in a string */
+static void get_escape() {
+  int result = 0;
+  int state = 0;
+  char  c;
+  
+  while(1) {
+    c = nextchar();
+    if (c == 0) break;
+    switch(state) {
+    case 0:
+      if (c == 'n') {
+	yytext[yylen-1] = '\n';
+	return;
+      }
+      if (c == 'r') {
+	yytext[yylen-1] = '\r';
+	return;
+      }
+      if (c == 't') {
+	yytext[yylen-1] = '\t';
+	return;
+      }
+      if (c == 'a') {
+	yytext[yylen-1] = '\a';
+	return;
+      }
+      if (c == 'b') {
+	yytext[yylen-1] = '\b';
+	return;
+      }
+      if (c == 'f') {
+	yytext[yylen-1] = '\f';
+	return;
+      }
+      if (c == '\\') {
+	yytext[yylen-1] = '\\';
+	return;
+      }
+      if (c == 'v') {
+	yytext[yylen-1] = '\v';
+	return;
+      }
+      if (c == 'e') {
+	yytext[yylen-1] = '\e';
+	return;
+      }
+      if (c == '\'') {
+	yytext[yylen-1] = '\'';
+	return;
+      }
+      if (c == '\"') {
+	yytext[yylen-1] = '\"';
+	return;
+      }
+      if (c == '0') {
+	state = 10;
+      }
+      else if (c == 'x') {
+	state = 20;
+      } else {
+	yytext[yylen-1] = '\\';
+	yytext[yylen] = c;
+	yylen++;
+	return;
+      }
+      break;
+    case 10:
+      if (!isdigit(c)) {
+	retract(1);
+	yytext[yylen-1] = (char) result;
+	return;
+      }
+      result = (result << 3) + (c - '0');
+      yylen--;
+      break;
+    case 20:
+      if (!isxdigit(c)) {
+	retract(1);
+	yytext[yylen-1] = (char) result;
+	return;
+      }
+      if (isdigit(c)) 
+	result = (result << 4) + (c - '0');
+      else 
+	result = (result << 4) + (10 + tolower(c) - 'a');
+      yylen--;
+      break;
+    }
+  }
+  return;
+}
       
 /**************************************************************
  * int yylook()
@@ -361,7 +454,7 @@ int yylook(void) {
 	switch(state) {
 
 	case 0 :
-	  if((c = nextchar()) == 0) return(0);
+	  if((c = nextchar()) == 0) return (0);
 
 	  /* Process delimeters */
 
@@ -513,15 +606,10 @@ int yylook(void) {
 	    yylval.id = Swig_copy_string(yytext+1);
 	    return(STRING);
 	  } else if (c == '\\') {
-	    state = 21;             /* Possibly an escape sequence. */
+	    yylen--;
+	    get_escape();
 	    break;
 	  } else state = 2;
-	  break;
-	case 21: /* An escape sequence. get next character, then go
-		    back to processing strings */
-
-	  if ((c = nextchar()) == 0) return 0;
-	  state = 2;
 	  break;
 
 	case 3: /* a CPP directive */
@@ -760,18 +848,15 @@ int yylook(void) {
 
 	case 9:
 	  if ((c = nextchar()) == 0) return (0);
-	  if (c == '\\') state = 91;
-	  else if (c == '\'') {
+	  if (c == '\\') {
+	    yylen--;
+	    get_escape();
+	  } else if (c == '\'') {
 	    yytext[yylen-1] = 0;
 	    yylval.id = Swig_copy_string(yytext+1);
 	    return(CHARCONST);
 	  }
 	  break;
-	case 91:
-	  if ((c = nextchar()) == 0) return 0;
-	  state = 9;
-	  break;
-
 
 	case 100:
 	  if ((c = nextchar()) == 0) return (0);

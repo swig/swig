@@ -41,7 +41,7 @@ public :
   void initialize ();
   void headers (void);
   void close (void);
-  void set_module (char *, char **);
+  void set_module (char *);
   void set_init (char *);
   void create_command (char *, char *) { };
 };
