@@ -126,14 +126,14 @@ SWIG_AsCharArray(PyObject *obj, char *val, size_t size)
   }
   if (val) {
     PyErr_Format(PyExc_TypeError, 
-		 "a char array of maximum size %ld is expected", 
-		 size);
+		 "a char array of maximum size %lud is expected", 
+		 (unsigned long) size);
   }
   return 0;
 }
 %}
 
-%fragment("SWIG_FromCharArray","header") %{
+%fragment("SWIG_FromCharArray","header") {
 SWIGSTATICINLINE(PyObject *)
 SWIG_FromCharArray(const char* carray, size_t size)
 {
@@ -144,7 +144,7 @@ SWIG_FromCharArray(const char* carray, size_t size)
     return PyString_FromStringAndSize(carray, swig_numeric_cast(size,int));
   }
 }
-%}
+}
 
 /* ------------------------------------------------------------
  *  The plain char * handling

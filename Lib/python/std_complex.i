@@ -1,7 +1,8 @@
-#ifndef SWIG_STD_COMPLEX_I_
-#define SWIG_STD_COMPLEX_I_
+/*
+ *  STD C++ complex typemaps
+ */
 
-%include complex_common.i
+%include <pycomplex.swg>
 
 %{
 #include <complex> 
@@ -19,5 +20,3 @@
 %typemap_primitive(SWIG_CCode(CPLXDBL), std::complex<double>);
 %typemap_primitive(SWIG_CCode(CPLXFLT), std::complex<float>);
 
-
-#endif //SWIG_STD_COMPLEX_I_

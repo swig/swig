@@ -1,4 +1,4 @@
-%include std_common.i
+%include <std_common.i>
 
 /*
   The %implict macro allows a SwigType to be accepted

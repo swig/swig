@@ -4,4 +4,4 @@
 
 %types(wchar_t *);
 
-%include pywstrings.swg
+%include <pywstrings.swg>

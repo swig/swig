@@ -1,5 +1,5 @@
-%include exception.i
-%include std_container.i
+%include <exception.i>
+%include <std_container.i>
 
 %{
 #include <string>

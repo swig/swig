@@ -2,7 +2,7 @@
 // std::set
 // Python implementation
 
-%include std_container.i
+%include <std_container.i>
 
 // Set
 
@@ -84,7 +84,15 @@
   namespace swigpy {
     template <class PySeq, class T> 
     void assign(const PySeq& pyseq, std::set<T>* seq) {
+#ifdef SWIG_STD_NOINSERT_TEMPLATE_STL
+      typedef typename PySeq::value_type value_type;
+      typename PySeq::const_iterator it = pyseq.begin();
+      for (;it != pyseq.end(); ++it) {
+	seq->insert(seq->end(),(value_type)(*it));
+      }
+#else
       seq->insert(pyseq.begin(), pyseq.end());
+#endif
     }
 
     template <class T>

@@ -1,4 +1,4 @@
-%include std_common.i
+%include <std_common.i>
 
 %{
 #include <utility>

@@ -1,6 +1,6 @@
 //
-// Use this macro if you prefer to preserve the size of char 
-// arrays, ie
+// Use the macro SWIG_PRESERVE_CARRAY_SIZE if you prefer to preserve
+// the size of char arrays, ie
 //  ------------------------------------------
 //       C Side             =>   Python Side
 //  ------------------------------------------
@@ -176,9 +176,14 @@
 }
 
 %typemap(out,fragment=#SWIG_FromCharArray)
-  Char [ANY], const Char[ANY]
-  "$result = SWIG_FromCharArray($1, $1_dim0);";
-
+  Char [ANY], const Char[ANY] 
+{
+  size_t size = $1_dim0;
+%#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($1[size - 1] == '\0')) --size;
+%#endif
+  $result = SWIG_FromCharArray($1, size);
+}
 
 /* varin */
 
@@ -197,9 +202,9 @@
   Char [ANY], const Char [ANY] 
 {
   size_t size = $1_dim0;
-#ifndef SWIG_PRESERVE_CARRAY_SIZE
+%#ifndef SWIG_PRESERVE_CARRAY_SIZE
   while (size && ($1[size - 1] == '\0')) --size;
-#endif
+%#endif
   $result = SWIG_FromCharArray($1, size);
 }
 
@@ -207,13 +212,25 @@
 
 %typemap(constcode,fragment=#SWIG_FromCharArray)
   Char [ANY], const Char [ANY]
-  "PyDict_SetItemString(d,\"$symname\", SWIG_FromCharArray($value, $value_dim0));";
+{
+  size_t size = $value_dim0;
+%#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($value[size - 1] == '\0')) --size;
+%#endif
+  PyDict_SetItemString(d,"$symname", SWIG_FromCharArray($value,size));
+}
 
 /* directorin */
 
 %typemap(directorin,fragment=#SWIG_FromCharArray)
   Char [ANY], const Char [ANY] 
-  "$input = SWIG_FromCharArray($1_name, $1_dim0);";
+{
+  size_t size = $1_dim0;
+%#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($1_name[size - 1] == '\0')) --size;
+%#endif
+  $input = SWIG_FromCharArray($1_name, size);
+}
 
 /* directorout */
 
@@ -238,11 +255,53 @@
 %typemap(throws,fragment=#SWIG_FromCharArray)
   Char [ANY], const Char[ANY]
 {
-  PyErr_SetObject(PyExc_RuntimeError, SWIG_FromCharArray($1, $1_dim0));
+  size_t size = $1_dim0;
+%#ifndef SWIG_PRESERVE_CARRAY_SIZE
+  while (size && ($1[size - 1] == '\0')) --size;
+%#endif
+  PyErr_SetObject(PyExc_RuntimeError, SWIG_FromCharArray($1, size));
   SWIG_fail;
 }
 
+/* -------------------------------------------------------------------
+ * --- Really fix size Char arrays, including '\0'chars at the end ---
+ * ------------------------------------------------------------------- */
 
+%typemap(varout,fragment=#SWIG_FromCharArray)
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
+{
+  size_t size = $1_dim0;
+  $result = SWIG_FromCharArray($1, size);
+}
+
+%typemap(out,fragment=#SWIG_FromCharArray)
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
+{
+  size_t size = $1_dim0;
+  $result = SWIG_FromCharArray($1, size);
+}
+
+%typemap(constcode,fragment=#SWIG_FromCharArray)
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
+{
+  size_t size = $value_dim0;
+  PyDict_SetItemString(d,"$symname", SWIG_FromCharArray($value,size));
+}
+
+%typemap(directorin,fragment=#SWIG_FromCharArray)
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
+{
+  size_t size = $1_dim0;
+  $input = SWIG_FromCharArray($1_name, size);
+}
+
+%typemap(throws,fragment=#SWIG_FromCharArray)
+  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
+{
+  size_t size = $1_dim0;
+  PyErr_SetObject(PyExc_RuntimeError, SWIG_FromCharArray($1, size));
+  SWIG_fail;
+}
 
 /* ------------------------------------------------------------
  * --- String & length ---
