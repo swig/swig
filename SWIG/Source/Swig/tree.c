@@ -149,6 +149,37 @@ appendChild(Node *node, Node *chd) {
 }
 
 /* -----------------------------------------------------------------------------
+ * deleteNode()
+ *
+ * Deletes a node.
+ * ----------------------------------------------------------------------------- */
+
+void
+deleteNode(Node *n) {
+  Node *parent;
+  Node *prev;
+  Node *next;
+
+  parent = parentNode(n);
+  prev = previousSibling(n);
+  next = nextSibling(n);
+  if (prev) {
+    set_nextSibling(prev,next);
+  } else {
+    if (parent) {
+      set_firstChild(parent,next);
+    }
+  }
+  if (next) {
+    set_previousSibling(next,prev);
+  } else {
+    if (parent) {
+      set_lastChild(parent,prev);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_require()
  * ----------------------------------------------------------------------------- */
 

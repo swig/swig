@@ -279,11 +279,14 @@ static void add_symbols(Node *n) {
 
   /* Don't add symbols for private/protected members */
   if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
-    Swig_symbol_add(0, n);       /* Add to C symbol table */
-    if (cplus_mode == CPLUS_PRIVATE) {
-      Setattr(n,"access", "private");
-    } else {
-      Setattr(n,"access", "protected");
+    while (n) {
+      Swig_symbol_add(0, n);       /* Add to C symbol table */
+      if (cplus_mode == CPLUS_PRIVATE) {
+	Setattr(n,"access", "private");
+      } else {
+	Setattr(n,"access", "protected");
+      }
+      n = nextSibling(n);
     }
     return;
   }
@@ -757,7 +760,7 @@ void canonical_template(String *s) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
-%token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
+%token NAME RENAME NAMEWARN EXTEND IMPLEMENTS PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token USING
@@ -792,7 +795,7 @@ void canonical_template(String *s) {
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
-%type <node>     types_directive template_directive warn_directive ;
+%type <node>     types_directive template_directive warn_directive implements_directive ;
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl;
@@ -901,6 +904,7 @@ swig_directive : extend_directive { $$ = $1; }
                | constant_directive { $$ = $1; }
                | echo_directive { $$ = $1; }
                | except_directive { $$ = $1; }
+               | implements_directive { $$ = $1; }
                | include_directive { $$ = $1; }
                | inline_directive { $$ = $1; }
                | insert_directive { $$ = $1; }
@@ -1110,6 +1114,60 @@ except_directive : EXCEPT LPAREN ID RPAREN LBRACE {
 		 $$ = new_node("except");
 	       }
                ;
+
+
+/* ------------------------------------------------------------
+   %implements(class) class;       ** EXPERIMENTAL - UNDOCUMENTED **
+   ------------------------------------------------------------ */
+
+ implements_directive : IMPLEMENTS LPAREN idcolon RPAREN idcolon SEMI {
+	       Node *cls, *n;
+	       n = Swig_symbol_clookup($3,0);
+	       cls= Swig_symbol_clookup($5,0);
+	       $$ = 0;
+	       if (!n) {
+		 Swig_error(cparse_file,cparse_line,"Nothing known about class '%s'\n", $3);
+	       } else if (!cls) {
+		 Swig_error(cparse_file,cparse_line,"Nothing known about class '%s'\n", $5);		 
+	       } else {
+		 String *nt = nodeType(n);
+		 if (Strcmp(nt,"template") == 0) nt = Getattr(n,"templatetype");
+		 if (Strcmp(nt,"class") != 0) {
+		   Swig_error(cparse_file,cparse_line,"'%s' is not a class (%s).\n", $3,nt);
+		 } else {
+		   /* Implementation of %implements */
+		   Node *chd;
+		   Node *c = copy_node(n);
+		   
+		   Swig_print_node(c);
+		   Printf(stdout, "*****\n");
+
+		   chd = firstChild(c);
+		   while (chd) {
+		     if ((Getattr(chd,"access") || (Strcmp(nodeType(chd),"cdecl") != 0))) {
+		       Node *nc = nextSibling(chd);
+		       deleteNode(chd);
+		       chd = nc;
+		     } else {
+		       chd = nextSibling(chd);
+		     }
+		   }
+		   Swig_print_node(c);
+		   cplus_mode = CPLUS_PUBLIC;
+		   $$ = new_node("access");
+		   Setattr($$,"kind","public");
+		   appendChild(cls,$$);
+		   $$ = 0;
+		   {
+		     Node *stab = Swig_symbol_setscope(Getattr(cls,"symtab"));
+		     appendChild(cls,firstChild(c));
+		     add_symbols_copy(firstChild(c));
+		     if (stab) Swig_symbol_setscope(stab);
+		   }
+		 }
+	       }
+             }
+             ;
 
 /* ------------------------------------------------------------
    %includefile "filename" [ declarations ] 

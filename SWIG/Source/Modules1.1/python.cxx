@@ -45,7 +45,7 @@ Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -interface name - Set the lib name\n\
      -keyword        - Use keyword arguments\n\
-     -shadow         - Generate shadow classes. \n\n";
+     -proxy          - Generate proxy classes. \n\n";
 
 /* -----------------------------------------------------------------------------
  * PYTHON::main()
@@ -76,7 +76,7 @@ PYTHON::main(int argc, char *argv[]) {
 	    } else {
 	      Swig_arg_error();
 	    }
-	  } else if (strcmp(argv[i],"-shadow") == 0) {
+	  } else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
 	    shadow = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {

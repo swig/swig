@@ -23,7 +23,7 @@ static char cvsroot[] = "$Header$";
 
 static char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
-	-shadow		- Create shadow classes.\n\
+	-proxy		- Create proxy classes.\n\
 	-dlname name	- Set module prefix.\n\
 	-make		- Create simple makefile.\n\
 	-phpfull	- Create full make files.\n\
@@ -195,7 +195,7 @@ PHP4::main(int argc, char *argv[]) {
 	       } else {
 		  Swig_arg_error();
 	       }
-	    }  else if(strcmp(argv[i], "-shadow") == 0) {
+	    }  else if((strcmp(argv[i], "-shadow") == 0) || (strcmp(argv[i],"-proxy") == 0)) {
 		shadow = 1;
 		Swig_mark_arg(i);
 	    } else if(strcmp(argv[i], "-make") == 0) {

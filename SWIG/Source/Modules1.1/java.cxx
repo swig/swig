@@ -15,8 +15,8 @@
 static char *usage = (char*)"\
 Java Options\n\
      -package <name>  - set name of the package\n\
-     -shadow          - generate shadow classes\n\
-     -nofinalize      - do not generate finalize methods in shadow classes\n";
+     -proxy           - generate proxy classes\n\
+     -nofinalize      - do not generate finalize methods in proxy classes\n";
 
 static  File         *f_java = 0;
 static  File         *f_shadow = 0;
@@ -117,7 +117,7 @@ void JAVA::main(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i],"-shadow") == 0) {
+      } else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
 	    Swig_mark_arg(i);
         shadow = 1;
       } else if (strcmp(argv[i],"-jnic") == 0) {

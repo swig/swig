@@ -317,6 +317,7 @@ extern String     *ParmList_protostr(ParmList *);
 #define  set_lastChild(x,v)        Setattr(x,"lastChild",v)
 
 extern void appendChild(Node *node, Node *child);
+extern void deleteNode(Node *node);
 
 extern int  Swig_require(Node **node, ...);
 extern int  Swig_save(Node **node,...);
