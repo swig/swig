@@ -2956,6 +2956,7 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_catch_decl { $$ = 0; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
+             | anonymous_bitfield { $$ = 0; }
              | SEMI { $$ = 0; }
              ;
 
@@ -3257,6 +3258,8 @@ cpp_vend       : cpp_const SEMI {
                }
                ;
 
+
+anonymous_bitfield : storage_class type COLON NUM_INT SEMI { };
 
 /* ====================================================================== 
  *                       PRIMITIVES
