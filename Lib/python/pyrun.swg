@@ -39,6 +39,11 @@
 #define SWIG_POINTER_DISOWN        0x2
 
 
+/* Add PyOS_snprintf for old Pythons */
+#if PY_VERSION_HEX < 0x02020000
+#define PyOS_snprintf snprintf
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,7 +51,6 @@ extern "C" {
 /* -----------------------------------------------------------------------------
  * Create a new pointer string 
  * ----------------------------------------------------------------------------- */
-
 #ifndef SWIG_BUFFER_SIZE
 #define SWIG_BUFFER_SIZE 1024
 #endif
@@ -69,6 +73,7 @@ SWIGRUNTIME int
 PySwigObject_print(PySwigObject *v, FILE *fp, int flags)
 {
   char result[SWIG_BUFFER_SIZE];
+  flags = flags;
   if (SWIG_PackVoidPtr(result, v->ptr, v->desc, sizeof(result))) {
     fputs("<Swig Object at ", fp); fputs(result, fp); fputs(">", fp);
     return 0; 
@@ -267,6 +272,7 @@ SWIGRUNTIME int
 PySwigPacked_print(PySwigPacked *v, FILE *fp, int flags)
 {
   char result[SWIG_BUFFER_SIZE];
+  flags = flags;
   fputs("<Swig Packed ", fp); 
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))) {
     fputs("at ", fp); 
@@ -510,7 +516,7 @@ SWIG_Python_ArgFail(int argnum)
   if (PyErr_Occurred()) {
     /* add information about failing argument */
     char mesg[256];
-    sprintf(mesg, "argument number %d:", argnum);
+    PyOS_snprintf(mesg, sizeof(mesg), "argument number %d:", argnum);
     return SWIG_Python_AddErrMesg(mesg, 1);
   } else {
     return 0;
