@@ -515,7 +515,6 @@ NewHash() {
     int   i;
     h = (Hash *) DohObjMalloc(sizeof(Hash));
     h->objinfo = &HashType;
-    DohXInit(h);
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
     for (i = 0; i < h->hashsize; i++) {
