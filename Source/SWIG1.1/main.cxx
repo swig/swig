@@ -1,15 +1,15 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * main.cxx
  *
  *     Main entry point to the SWIG core.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2000.  The University of Chicago
  * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
  *                           University of California.
  *
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -24,7 +24,7 @@ static char cvsroot[] = "$Header$";
 
 #include "preprocessor.h"
 
-#ifndef SWIG_LIB   
+#ifndef SWIG_LIB
 #define SWIG_LIB "/usr/local/lib/swig1.3"
 #endif
 
@@ -34,14 +34,14 @@ static char cvsroot[] = "$Header$";
 
 // Global variables
 
-    FILE      *f_runtime;          
+    FILE      *f_runtime;
     FILE      *f_header;                        // Some commonly used
     FILE      *f_wrappers;                      // FILE pointers
     FILE      *f_init;
     FILE      *f_input;
-    char      InitName[256];             
+    char      InitName[256];
     char      LibDir[512];                      // Library directory
-    int       Status; 
+    int       Status;
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
     int        ObjC = 0;
@@ -131,7 +131,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   lang = l;
   Status = 0;
-  
+
   DataType::init_typedef();         // Initialize the type handler
 
   // Set up some default symbols (available in both SWIG interface files
@@ -145,7 +145,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 #ifdef SWIGWIN32
   Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
 #endif
-  
+
   // Check for SWIG_LIB environment variable
 
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
@@ -153,7 +153,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   } else {
       strcpy(LibDir,c);
   }
-  
+
   SwigLib = copy_string(LibDir);        // Make a copy of the real library location
 
   sprintf(temp,"%s/config", LibDir);
@@ -169,7 +169,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if (strncmp(argv[i],"-I",2) == 0) {
-	    // Add a new directory search path 
+	    // Add a new directory search path
 	    includefiles[includecount++] = copy_string(argv[i]+2);
 	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-D",2) == 0) {
@@ -185,7 +185,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-c++") == 0) {
 	      CPlusPlus=1;
-	      Swig_mark_arg(i);  
+	      Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-objc") == 0) {
 	      ObjC = 1;
               Swig_mark_arg(i);
@@ -208,14 +208,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 		Swig_arg_error();
 	      }
 	  } else if (strcmp(argv[i],"-version") == 0) {
- 	      fprintf(stderr,"\nSWIG Version %d.%d %s\n", SWIG_MAJOR_VERSION,
-		      SWIG_MINOR_VERSION, SWIG_SPIN);
+ 	      fprintf(stderr,"\nSWIG Version %s %s\n",
+		      SWIG_VERSION, SWIG_SPIN);
 	      fprintf(stderr,"Copyright (c) 1995-98\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
 	      fprintf(stderr,"\nCompiled with %s\n", SWIG_CC);
 	      SWIG_exit(0);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
-	    // Add a new directory search path 
+	    // Add a new directory search path
 	    Append(libfiles,argv[i]+2);
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-co") == 0) {
@@ -264,7 +264,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     char *outfile = input_file;
     if (outfile_name)
       outfile = outfile_name;
-    
+
     s = Swig_include(input_file);
     if (!s) {
       fprintf(stderr,"Unable to locate '%s' in the SWIG library.\n", input_file);
@@ -285,12 +285,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
     }
   } else {
-    // Check the suffix for a .c file.  If so, we're going to 
+    // Check the suffix for a .c file.  If so, we're going to
     // declare everything we see as "extern"
-    
+
     ForceExtern = check_suffix(infilename);
-    // Strip off suffix 
-    
+    // Strip off suffix
+
     c = infilename + strlen(infilename);
     while (c != infilename) {
       if (*c == '.') {
@@ -300,7 +300,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	c--;
       }
     }
-    
+
     if (!outfile_name) {
       sprintf(fn_runtime,"%s_wrap.c",infilename);
       strcpy(infile,infilename);
@@ -338,9 +338,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     sprintf(fn_header,"%s%s_wrap.head", output_dir,infile);
     sprintf(fn_wrapper,"%s%s_wrap.wrap",output_dir,infile);
     sprintf(fn_init,"%s%s_wrap.init",output_dir,infile);
-    
+
     // Define the __cplusplus symbol
-    if (CPlusPlus) 
+    if (CPlusPlus)
       Preprocessor_define((DOH *) "__cplusplus 1", 0);
 
     // Run the preprocessor
@@ -368,12 +368,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fwrite(Char(cpps),1, Len(cpps), f);
       fclose(f);
     }
-    
+
     if ((f_input = fopen(fn_cpp,"r")) == 0) {
       fprintf(stderr,"Unable to open %s\n", fn_cpp);
       SWIG_exit(0);
     }
-    
+
     // Initialize the scanner
     LEX_in = f_input;
     scanner_file(LEX_in);
@@ -399,14 +399,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fprintf(stderr,"Unable to open %s\n",fn_init);
       exit(0);
     }
-    
+
     // Set up the typemap for handling new return strings
     {
       DataType *temp_t = new DataType(T_CHAR);
       temp_t->is_pointer++;
-      if (CPlusPlus) 
+      if (CPlusPlus)
 	typemap_register("newfree",typemap_lang,temp_t,"","delete [] $source;\n",0);
-      else 
+      else
 	typemap_register("newfree",typemap_lang,temp_t,"","free($source);\n",0);
 
       delete temp_t;
@@ -424,7 +424,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       */
     }
 
-    // Pass control over to the specific language interpreter    
+    // Pass control over to the specific language interpreter
 
     lang->parse();
 
@@ -435,11 +435,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     insert_file(fn_header, f_runtime);
     insert_file(fn_wrapper,f_runtime);
     insert_file(fn_init,f_runtime);
-    
+
     fclose(f_runtime);
-    
+
     // Remove temporary files
-    
+
     remove(fn_cpp);
     remove(fn_header);
     remove(fn_wrapper);
@@ -491,7 +491,7 @@ void SWIG_exit(int) {
 // --------------------------------------------------------------------------
 
 void swig_pragma(char *name, char *value) {
-  
+
   if (strcmp(name,"make_default") == 0) {
     GenerateDefault = 1;
   }

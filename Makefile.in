@@ -56,7 +56,7 @@ Modules1.1:
 Swig:
 	@cd $(SOURCE)/Swig; $(MAKE)
 
-Preprocessor: 
+Preprocessor:
 	@cd $(SOURCE)/Preprocessor; $(MAKE)
 
 LParse:
@@ -95,7 +95,7 @@ clean:
 	@cd Runtime; $(MAKE) clean
 	rm -f swig
 
- 
+
 #####################################################################
 # TARGETS: install & friends
 #####################################################################
@@ -173,3 +173,24 @@ install-lib:
 
 install-runtime:
 	@cd Runtime; $(MAKE) install
+
+############################################################################
+# DIST and other maintenance
+############################################################################
+
+# distribution directory
+dd = @PACKAGE@-@VERSION@
+
+dist:
+	@echo 'Dave, what do you want to do w/ "make dist"?'
+	@echo 'See Makefile.in target "dist-suggested" for an idea.'
+	@echo '    --thi'
+	false
+
+dist-suggested:
+	rm -rf $(dd) $(dd).tar.gz
+	cvs export -d $(dd) -r HEAD SWIG
+	tar cf - $(dd) | gzip --best > $(dd).tar.gz
+	rm -rf $(dd)
+
+# Makefile ends here

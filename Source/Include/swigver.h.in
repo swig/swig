@@ -1,0 +1,5 @@
+
+/* SWIG version information */
+
+#define SWIG_VERSION "@SWIG_VERSION@"
+#define SWIG_SPIN "@SWIG_SPIN@"
