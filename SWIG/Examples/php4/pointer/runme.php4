@@ -1,4 +1,4 @@
-<?
+<?php
 
 	require "example.php";
 
@@ -6,9 +6,11 @@
 
 	print "Testing the pointer library\n";
 
-	$a = ptrcreate("int", 37);
-	$b = ptrcreate("int", 42);
-	$c = ptrcreate("int");
+	$a = new_intp();
+	$b = new_intp();
+	$c = new_intp();
+	intp_assign($a,37);
+	intp_assign($b,42);
 
 	print "	a = $a\n";
 	print "	b = $b\n";
@@ -23,9 +25,9 @@
 	print "	37 + 42 = $r\n";
 
 	# Clean up the pointers
-	ptrfree($a);
-	ptrfree($b);
-	ptrfree($c);
+	delete_intp($a);
+	delete_intp($b);
+	delete_intp($c);
 
 	# Now try the typemap library
 	# This should be much easier. Now how it is no longer
