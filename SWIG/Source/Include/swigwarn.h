@@ -137,6 +137,7 @@
 #define WARN_TYPEMAP_UNDEF            465
 #define WARN_TYPEMAP_VAR_UNDEF        466
 #define WARN_TYPEMAP_TYPECHECK        467
+#define WARN_TYPEMAP_THROW            468
 
 /* -- General code generation -- */
 

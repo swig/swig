@@ -309,6 +309,7 @@ void emit_action(Node *n, Wrapper *f) {
   String *wrap;
   Parm   *p;
   SwigType *rt;
+  ParmList *throws = Getattr(n,"throws");
 
   /* Look for fragments */
   {
@@ -354,6 +355,13 @@ void emit_action(Node *n, Wrapper *f) {
 
   /* Exception handling code */
 
+  /* If we are in C++ mode and there is a throw specifier. We're going to
+     enclose the block in a try block */
+
+  if (throws) {
+    Printf(f->code,"try {\n");
+  }
+
   /* Look for except typemap (Deprecated) */
   tm = Swig_typemap_lookup_new("except",n,"result",0);
 
@@ -372,6 +380,24 @@ void emit_action(Node *n, Wrapper *f) {
   } else {
     Printv(f->code, action, "\n",NIL);
   }
+
+  if (throws) {
+    Printf(f->code,"}\n");
+    for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
+      String *em = Swig_typemap_lookup_new("throw",ep,"_e",0);
+      if (em) {
+	Printf(f->code,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
+	Printv(f->code,em,"\n",NIL);
+	Printf(f->code,"return NULL;\n");
+	Printf(f->code,"}\n");
+      } else {
+	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n),
+		     "No 'throw' typemap defined for exception type '%s'\n", Getattr(ep,"type"));
+      }
+    }
+    Printf(f->code,"catch(...) { throw; }\n");
+  }
+
   /* Postassert - EXPERIMENTAL */
   tm = Getattr(n,"feature:postassert");
   if (tm) {

@@ -52,6 +52,7 @@ extern "C" {
     int        NoInclude = 0;
     int        Verbose = 0;
     int        NoExtern = 0;
+    int        NoExcept = 0;
 
 extern "C" {
 extern String  *ModuleName;
@@ -70,6 +71,7 @@ static char *usage = (char*)"\
      -l<ifile>       - Include SWIG library file.\n\
      -makedefault    - Create default constructors/destructors (the default)\n\
      -nodefault      - Do not generate constructors/destructors\n\
+     -noexcept       - Do not wrap exception specifiers.\n\
      -noextern       - Do not generate extern declarations.\n\
      -module         - Set module name\n\
      -o outfile      - Set name of the output file.\n\
@@ -287,6 +289,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
           } else if ((strcmp(argv[i],"-no_default") == 0) || (strcmp(argv[i],"-nodefault") == 0)) {
 	    GenerateDefault = 0;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-noexcept") == 0) {
+	    NoExcept = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-noextern") == 0) {
 	    NoExtern = 1;

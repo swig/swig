@@ -42,7 +42,6 @@ static  String       *class_name;
 static  String       *shadow_indent = 0;
 static  int           in_class = 0;
 static  int           classic = 0;
-static  int           no_except = 0;
 
 /* C++ Support + Shadow Classes */
 
@@ -103,9 +102,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i],"-noexcept") == 0) {
-	  no_except = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
@@ -308,7 +304,6 @@ public:
     String  *iname = Getattr(n,"sym:name");
     SwigType *d    = Getattr(n,"type");
     ParmList *l    = Getattr(n,"parms");
-    ParmList *throws  = Getattr(n,"throws");
 
     Parm    *p;
     int     i;
@@ -516,30 +511,9 @@ public:
 	p = nextSibling(p);
       }
     }
-
-    /* If we are in C++ mode and their are exceptions.  We're going to
-       enclose the block in a try block */
-
-    if (throws && !Getattr(n,"feature:except")) {
-      Printf(f->code,"try {\n");
-    }
       
     /* Emit the function call */
     emit_action(n,f);
-
-    if (throws && !Getattr(n,"feature:except")) {
-      Printf(f->code,"}\n");
-      for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
-	String *em = Swig_typemap_lookup_new("throw",ep,"_e",0);
-	if (em) {
-	  Printf(f->code,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"_e"));
-	  Printv(f->code,em,"\n",NIL);
-	  Printf(f->code,"return NULL;\n");
-	  Printf(f->code,"}\n");
-	}
-      }
-      Printf(f->code,"catch(...) { throw; }\n");
-    }
 
     /* This part below still needs cleanup */
 
@@ -876,7 +850,7 @@ public:
       have_constructor = 0;
       have_repr = 0;
       
-      if (!no_except && Getattr(n,"cplus:exceptionclass")) {
+      if (Getattr(n,"cplus:exceptionclass")) {
 	classic = 1;
       }
       if (Getattr(n,"feature:classic")) classic = 1;
@@ -908,21 +882,11 @@ public:
       }
       Printv(f_shadow,"class ", class_name, NIL);
 
-      String *excbase = 0;
-      /*      if (!no_except && Getattr(n,"cplus:exceptionclass")) {
-	if (Len(base_class)) {
-	  excbase = NewString(",Exception");
-	} else {
-	  excbase = NewString("(Exception)");
-	}
-	}*/
       if (Len(base_class)) {
-	Printf(f_shadow,"(%s%s)", base_class,excbase);
+	Printf(f_shadow,"(%s)", base_class);
       } else {
 	if (!classic) {
 	  Printf(f_shadow,"(_object)");
-	} else {
-	  Printf(f_shadow,"%s",excbase);
 	}
       }
       Printf(f_shadow,":\n");

@@ -40,6 +40,7 @@ extern  int       NoInclude;                        // NoInclude flag
 extern  int       Verbose;
 extern  int       IsVirtual;
 extern  int       ImportMode;
+extern  int       NoExcept;                         // -no_except option
 
 /* Miscellaneous stuff */
 
