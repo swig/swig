@@ -9,6 +9,9 @@
 #include <string.h>
 #include <assert.h>
 
+typedef double Real;
+typedef Real Float;
+
 /* A simple segmentation fault on an uninitialized pointer */
 int seg_crash() {
   int *a = 0;

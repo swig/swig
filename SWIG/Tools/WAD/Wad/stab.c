@@ -77,30 +77,88 @@ static int thash(char *name) {
 static void type_add(char *name, char *value) {
   int h;
   stabtype *s;
+  char      sc =0;
+  char     *v;
+  char     *vr;
+  char     *split;
+
   if (!stab_type_init) {
     init_hash();
     stab_type_init = 1;
   }
+
+  /* Split the "value" up into a type name and a value */
+  
+  split = strchr(value,'=');
+  if (value[0] != '(') split = 0;
+  if (split) {
+    sc = *split;
+    v = value;
+    *split = 0;
+    vr = split+1;
+  } else {
+    v = value;
+    sc = 0;
+    vr = 0;
+  }
+
   h = thash(name);
   s = lnames[h];
   while (s) {
     if (strcmp(s->name,name) == 0) {
-      if (strcmp(s->value,value) == 0) {
+      if (strcmp(s->value,v) == 0) {
 	return;
       }
-      s->value = (char *) wad_strdup(value);
-      return;
+      s->value = (char *) wad_strdup(v);
+      goto add_more;
     }
     s = s->next;
   }
   s = (stabtype *) wad_malloc(sizeof(stabtype));
   s->name = wad_strdup(name);
-  s->value = wad_strdup(value);
+  s->value = wad_strdup(v);
   s->next = lnames[h];
   lnames[h] = s;
-}
-  
 
+  /* Now take a look at the value.   If it is contains other types, we might be able to define more stuff */
+ add_more:
+  if (vr) {
+    /* There is a mapping to another type */
+    /*    printf("adding '%s', '%s'\n", v, vr); */
+    type_add(v,vr);
+  }
+}
+
+static
+char *type_resolve(char *name) {
+  int h;
+  stabtype *s;
+  h = thash(name);
+  s = lnames[h];
+  while(s) {
+    if (strcmp(s->name,name) == 0) {
+      return type_resolve(s->value);
+    }
+    s = s->next;
+  }
+  return name;
+}  
+
+static void types_print() {
+  stabtype *s;
+  int i;
+  for (i = 0; i < HASH_SIZE; i++) {
+    s = lnames[i];
+    while (s) {
+      printf("%20s  %s\n", s->name, s->value);
+      s = s->next;
+    }
+  }
+}
+
+void wad_stab_debug() {
+  /*  types_print();*/
+}
 
 /* -----------------------------------------------------------------------------
  * match_stab_symbol()
@@ -135,6 +193,7 @@ stab_symbol(Stab *s, char *stabstr) {
   char *str;
   char *pstr;
   char name[1024]; 
+  char value[65536];
   int a;
 
   str = stabstr+s->n_strx;
@@ -143,12 +202,13 @@ stab_symbol(Stab *s, char *stabstr) {
   
   strncpy(name,str, pstr-str);
   name[(int)(pstr-str)] = 0;
-  if (pstr[1] == 't') {
+  if ((pstr[1] == 't') || (pstr[1] == 'p') || (pstr[1] == 'r')) {
     /* A stabs type definition */
-    /*    wad_printf("stab lsym:  other=%d, desc=%d, value=%d, str='%s'\n", s->n_other,s->n_desc,s->n_value,
+    /*    printf("stab lsym:  other=%d, desc=%d, value=%d, str='%s'\n", s->n_other,s->n_desc,s->n_value,
 	  stabstr+s->n_strx); */
     /*    wad_printf("name = '%s', pstr='%s'\n", name, pstr+2); */
-    type_add(name,pstr+2);
+    strcpy(value,pstr+2);
+    type_add(name,value);
   }
 }
 
@@ -183,6 +243,9 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
     if (s->n_type == N_LBRAC) {
       get_parms = 0;
     }
+    if (s->n_type == N_LSYM) {
+      stab_symbol(s,stabstr);
+    }
 
     if (s->n_type == N_SLINE) {
       get_parms = 0;
@@ -203,7 +266,10 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	} else {
 	  len = strlen(pname);
 	}
-	
+	/* Get type information */
+
+	stab_symbol(s,stabstr);
+
 	/* Check if the argument was already used */
 	/* In this case, the first stab simply identifies an argument.  The second
 	   one identifies its location for the debugger */
@@ -249,6 +315,16 @@ scan_function(Stab *s, char *stabstr, int ns, WadFrame *f) {
 	}
 	arg->type = 0;
 	arg->next = 0;
+	{
+	  char tname[128];
+	  char *t = tname;
+	  c+=2;
+	  while ((*c) && (*c != '=')) {
+	    *t++ = *c++;
+	  }
+	  *t = 0;
+	  /*	  printf("type_resolve '%s' -> '%s'\n", tname, type_resolve(tname));*/
+	}
 	if (f->debug_args) {
 	  f->debug_lastarg->next = arg;
 	  f->debug_lastarg = arg;
@@ -302,13 +378,11 @@ wad_search_stab(void *sp, int size, char *stabstr, WadFrame *f) {
   objfile[0] = 0;
 
   for (i = 0; i < ns; i++, s++) {
-    /*
-    if (wad_debug_mode & DEBUG_STABS) {
+    /*    if (wad_debug_mode & DEBUG_STABS) {
       wad_printf("   %10d %10x %10d %10d %10d: '%s'\n", s->n_strx, s->n_type, s->n_other, s->n_desc, s->n_value, 
 	     stabstr+s->n_strx);
       
-    }
-    */
+	     } */
     if (s->n_type == N_LSYM) {
       stab_symbol(s,stabstr);
       continue;
