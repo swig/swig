@@ -1107,6 +1107,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   String   *pname;
   Hash     *tm;
   String   *s = 0;
+  String   *sdef = 0;
   ParmList *locals;
   ParmList *kw;
   char     temp[256];
@@ -1114,18 +1115,24 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   String   *cname = 0;
   String   *clname = 0;
 
+  /* special case, we need to check for 'ref' call 
+     and set the defaul code 'sdef' */
+  if (Cmp(op,"newfree") == 0) { 
+    sdef = Swig_ref_call(node, lname);
+  }
+
   type  = Getattr(node,"type");
-  if (!type) return 0;
+  if (!type) return sdef;
 
   pname = Getattr(node,"name");
   tm = Swig_typemap_search(op,type,pname,&mtype);
-  if (!tm) return 0;
+  if (!tm) return sdef;
 
   s = Getattr(tm,"code");
-  if (!s) return 0;
+  if (!s) return sdef;
 
   /* Empty typemap. No match */
-  if (Cmp(s,"pass") == 0) return 0;
+  if (Cmp(s,"pass") == 0) return sdef;
 
   s = Copy(s);             /* Make a local copy of the typemap code */
 
@@ -1216,6 +1223,12 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (cname) Delete(cname);
   if (clname) Delete(clname);
   if (mtype) Delete(mtype);
+  if (sdef) { /* put 'ref' and 'newfree' codes together */
+    String *p = NewStringf("%s\n%s", sdef, s);
+    Delete(s);
+    Delete(sdef);
+    s = p;
+  }
   return s;
 }
 
