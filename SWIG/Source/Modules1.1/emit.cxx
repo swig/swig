@@ -77,7 +77,7 @@ void emit_args(SwigType *rt, ParmList *l, Wrapper *f) {
       Parm *np;
       Replace(tm,"$target", Getattr(p,"lname"), DOH_REPLACE_ANY);
       Printv(f->code,tm,"\n",0);
-      np = Getattr(p,"tmap:default:next");
+      np = Getattr(p,"tmap:ignore:next");
 
       /* Deprecate this part later */
       while (p && (p != np)) {
