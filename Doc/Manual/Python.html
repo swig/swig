@@ -2329,6 +2329,7 @@ the methods one() and two() (but not three()):
 %feature("director") Foo;
 class Foo {
 public:
+    Foo(int foo);
     virtual void one();
     virtual void two();
 };
@@ -2340,7 +2341,27 @@ public:
 </pre>
 </div>
 
+<p>
+then at the python side you can define
+</p>
+
+<div class="targetlang">
+<pre>
+import mymodule
+
+class MyFoo(mymodule.Foo):
+  def __init__(self, foo):
+     mymodule.Foo(self, foo)  
+
+  def one(self):
+     print "one from python"
+</pre>
+</div>
+
+
 <H3><a name="Python_nn34"></a>26.5.2 Director classes</H3>
+
+ 
 
 
 <p>
