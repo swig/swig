@@ -2,7 +2,9 @@ Version 1.3.25 (In progress)
 ============================
 
 03/31/2005: wsfulton
-            Turned on extra template features previously only available to Python.
+            Turned on extra template features for all languages which were
+            previously only available to Python.
+
             This enables typemaps defined within a templated class to be used as
             expected. Requires %template on the templated class, %template() will
             also pick up the typemaps. Example:
