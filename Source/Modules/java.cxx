@@ -2784,9 +2784,9 @@ class JAVA : public Language {
    * 
    * --------------------------------------------------------------- */
 
-  String *canonicalizeJNIDescriptor(String *descriptor_in, SwigType *type) {
-    Parm   *tp = NewParm(type, "");
-    String *pkg_path = Swig_typemap_lookup_new("javapackage", tp, "", 0);
+  String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
+    String *pkg_path = Swig_typemap_lookup_new("javapackage", p, "", 0);
+    SwigType *type = Getattr(p,"type");
 
     if (pkg_path && Len(pkg_path) != 0) {
       Replaceall(pkg_path, ".", "/");
@@ -2806,7 +2806,6 @@ class JAVA : public Language {
 
     if (pkg_path != package_path)
       Delete(pkg_path);
-    Delete(tp);
 
     return descriptor_out;
   }
@@ -2930,7 +2929,7 @@ class JAVA : public Language {
             && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
           String *jnidesc_canon;
 
-          jnidesc_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
+          jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
           Append(jniret_desc, jnidesc_canon);
           Delete(jnidesc_canon);
         } else {
@@ -2957,7 +2956,7 @@ class JAVA : public Language {
         String *jnidesc_canon;
 
         // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
-        jnidesc_canon = canonicalizeJNIDescriptor(jdesc, adjustedreturntype);
+        jnidesc_canon = canonicalizeJNIDescriptor(jdesc, adjustedreturntypeparm);
         Append(classret_desc, jnidesc_canon);
         Delete(jnidesc_canon);
       } else {
@@ -3039,7 +3038,7 @@ class JAVA : public Language {
           && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) != NULL) {
         String *jni_canon;
           
-        jni_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
+        jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
         Append(jnidesc, jni_canon);
         Delete(jni_canon);
         Delete(tm);
@@ -3093,7 +3092,7 @@ class JAVA : public Language {
               && (cdesc = Getattr(p, "tmap:directorin:descriptor")) != NULL) {
             String *jni_canon;
           
-            jni_canon = canonicalizeJNIDescriptor(jdesc, Getattr(tp,"type"));
+            jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
             Append(jnidesc, jni_canon);
             Delete(jni_canon);
 
@@ -3125,7 +3124,7 @@ class JAVA : public Language {
                 } else
                   Printv(imcall_args, ln, NIL);
 
-                jni_canon = canonicalizeJNIDescriptor(cdesc, Getattr(p,"type"));
+                jni_canon = canonicalizeJNIDescriptor(cdesc, p);
                 Append(classdesc, jni_canon);
                 Delete(jni_canon);
               } else {
