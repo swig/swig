@@ -1188,6 +1188,10 @@ static void default_arguments(Node *n) {
           if (templatetype) Setattr(new_function,"templatetype",Copy(templatetype));
           if (symtypename) Setattr(new_function,"sym:typename",Copy(symtypename));
           if (templateparms) Setattr(new_function,"templateparms",CopyParmList(templateparms));
+        } else if (Strcmp(nodeType(function),"constructor") == 0) {
+          /* only copied for constructors as this is not a user defined feature - it is hard coded in the parser */
+          Node *featurenew = Getattr(function,"feature:new");
+          if (featurenew) Setattr(new_function,"feature:new",Copy(featurenew));
         }
 
         add_symbols(new_function);
