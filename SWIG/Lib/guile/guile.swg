@@ -259,6 +259,28 @@ void SWIG_Guile_RegisterTypes(_swig_type_info **table)
   }    
 }
 
+SWIGSTATIC void
+SWIG_Guile_GetArgs (SCM *dest, SCM rest,
+		    int reqargs, int optargs,
+		    const char *procname)
+{
+  int i;
+  for (i = 0; i<reqargs; i++) {
+    if (!SCM_CONSP(rest))
+      scm_wrong_num_args(gh_str02scm(procname));
+    *dest++ = SCM_CAR(rest);
+    rest = SCM_CDR(rest);
+  }
+  for (i = 0; i<optargs && SCM_CONSP(rest); i++) {
+    *dest++ = SCM_CAR(rest);
+    rest = SCM_CDR(rest);
+  }
+  for (; i<optargs; i++)
+    *dest++ = GH_NOT_PASSED;
+  if (!SCM_NULLP(rest))
+    scm_wrong_num_args(gh_str02scm(procname));
+}
+
 #ifdef __cplusplus
 }
 #endif

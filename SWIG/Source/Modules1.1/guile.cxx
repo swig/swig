@@ -639,11 +639,23 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   Wrapper_print (f, f_wrappers);
 
   if (numargs > 10) {
-    // Guile would complain: too many args
-    Printf(stderr,
-            "%s : Line %d. Warning. Too many arguments in Guile wrapper "
-            "for function %s (max. 10).\n",
-            input_file, line_number, name);
+    int i;
+    /* gh_new_procedure would complain: too many args */
+    /* Build a wrapper wrapper */
+    Printv(f_wrappers, "static SCM\n", wname,"_rest (SCM rest)\n", 0);
+    Printv(f_wrappers, "{\n", 0);
+    Printf(f_wrappers, "SCM arg[%d];\n", numargs);
+    Printf(f_wrappers, "SWIG_Guile_GetArgs (arg, rest, %d, %d, \"%s\");\n",
+	   numargs-numopt, numopt, proc_name);
+    Printv(f_wrappers, "return ", wname, "(", 0);
+    Printv(f_wrappers, "arg[0]", 0);
+    for (i = 1; i<numargs; i++)
+      Printf(f_wrappers, ", arg[%d]", i);
+    Printv(f_wrappers, ");\n", 0);
+    Printv(f_wrappers, "}\n", 0);
+    /* Register it */
+    Printf (f_init, "\t gh_new_procedure(\"%s\", %s_rest, 0, 0, 1);\n",
+             proc_name, wname, numargs-numopt, numopt);
   }
   else {
     // Now register the function
