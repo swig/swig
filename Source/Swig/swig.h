@@ -118,6 +118,37 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
+/* --- Type system --- */
+
+#define   SWIG_TYPE_BYTE          1
+#define   SWIG_TYPE_UBYTE         2
+#define   SWIG_TYPE_SHORT         3
+#define   SWIG_TYPE_USHORT        4
+#define   SWIG_TYPE_INT           5
+#define   SWIG_TYPE_UINT          6
+#define   SWIG_TYPE_LONG          7
+#define   SWIG_TYPE_ULONG         8
+#define   SWIG_TYPE_LONGLONG      9
+#define   SWIG_TYPE_ULONGLONG    10
+#define   SWIG_TYPE_FLOAT        11
+#define   SWIG_TYPE_DOUBLE       12
+#define   SWIG_TYPE_QUAD         13
+#define   SWIG_TYPE_CHAR         14
+#define   SWIG_TYPE_WCHAR        15
+#define   SWIG_TYPE_VOID         16
+#define   SWIG_TYPE_ENUM         17
+#define   SWIG_TYPE_VARARGS      18
+#define   SWIG_TYPE_TYPEDEF      19
+
+#define   SWIG_TYPE_POINTER      50
+#define   SWIG_TYPE_REFERENCE    51
+#define   SWIG_TYPE_FUNCTION     52
+#define   SWIG_TYPE_ARRAY        53
+#define   SWIG_TYPE_RECORD       54
+#define   SWIG_TYPE_NAME         55
+
+DOH *NewSwigType(int tc, DOH *value);
+
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
 
