@@ -47,7 +47,7 @@ class CSHARP : public Language {
   String *variable_name; //Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
-  String *package; // Package name
+  String *namespce; // Optional namespace name
   String *imclass_imports; //intermediary class imports from %pragma
   String *module_imports; //module imports from %pragma
   String *imclass_baseclass; //inheritance for intermediary class class from %pragma
@@ -98,7 +98,7 @@ class CSHARP : public Language {
     variable_name(NULL),
     proxy_class_constants_code(NULL),
     module_class_constants_code(NULL),
-    package(NULL),
+    namespce(NULL),
     imclass_imports(NULL),
     module_imports(NULL),
     imclass_baseclass(NULL),
@@ -142,10 +142,10 @@ class CSHARP : public Language {
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-        if (strcmp(argv[i],"-package") == 0) {
+        if (strcmp(argv[i],"-namespace") == 0) {
           if (argv[i+1]) {
-            package = NewString("");
-            Printf(package, argv[i+1]);
+            namespce = NewString("");
+            Printf(namespce, argv[i+1]);
             Swig_mark_arg(i);
             Swig_mark_arg(i+1);
             i++;
@@ -219,7 +219,7 @@ class CSHARP : public Language {
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
     imclass_interfaces = NewString("");
-    imclass_class_modifiers = NewString(""); // package access only to the intermediary class by default
+    imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
     module_baseclass = NewString("");
     module_interfaces = NewString("");
@@ -228,7 +228,7 @@ class CSHARP : public Language {
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     upcasts_code = NewString("");
-    if (!package) package = NewString("");
+    if (!namespce) namespce = NewString("");
 
     Swig_banner(f_runtime);               // Print the SWIG banner message
 
@@ -263,11 +263,12 @@ class CSHARP : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the intermediary class
-      if(Len(package) > 0)
-        Printf(f_im, "//package %s;\n\n", package);
-
+      // Start writing out the intermediary class file
       emitBanner(f_im);
+
+      if(Len(namespce) > 0)
+        Printf(f_im, "namespace %s {\n", namespce);
+
       if(imclass_imports)
         Printf(f_im, "%s\n", imclass_imports);
 
@@ -288,6 +289,7 @@ class CSHARP : public Language {
 
       // Finish off the class
       Printf(f_im, "}\n");
+      Printf(f_im, Len(namespce) > 0 ?  "\n}\n" : "");
       Close(f_im);
     }
 
@@ -301,11 +303,12 @@ class CSHARP : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the module class
-      if(Len(package) > 0)
-        Printf(f_module, "//package %s;\n\n", package);
-
+      // Start writing out the module class file
       emitBanner(f_module);
+
+      if(Len(namespce) > 0)
+        Printf(f_module, "namespace %s {\n", namespce);
+
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
 
@@ -328,6 +331,7 @@ class CSHARP : public Language {
 
       // Finish off the class
       Printf(f_module, "}\n");
+      Printf(f_module, Len(namespce) > 0 ?  "\n}\n" : "");
       Close(f_module);
     }
 
@@ -361,7 +365,7 @@ class CSHARP : public Language {
     Delete(imclass_imports); imclass_imports = NULL;
     Delete(imclass_cppcasts_code); imclass_cppcasts_code = NULL;
     Delete(upcasts_code); upcasts_code = NULL;
-    Delete(package); package = NULL;
+    Delete(namespce); namespce = NULL;
 
     /* Close all of the files */
     Dump(f_header,f_runtime);
@@ -1139,10 +1143,11 @@ class CSHARP : public Language {
       }
       Delete(filen); filen = NULL;
 
+      // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      if(Len(package) > 0)
-        Printf(f_proxy, "//package %s;\n\n", package);
+      if(Len(namespce) > 0)
+        Printf(f_proxy, "namespace %s {\n", namespce);
 
       Clear(proxy_class_def);
       Clear(proxy_class_code);
@@ -1164,6 +1169,7 @@ class CSHARP : public Language {
         Printv(f_proxy, "  // enums and constants\n", proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
+      Printf(f_proxy, Len(namespce) > 0 ?  "\n}\n" : "");
       Close(f_proxy);
       f_proxy = NULL;
 
@@ -1894,10 +1900,11 @@ class CSHARP : public Language {
     } 
     Delete(filen); filen = NULL;
 
-    // Emit banner and package name
+    // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
-    if(Len(package) > 0)
-      Printf(f_swigtype, "//package %s;\n\n", package);
+
+    if(Len(namespce) > 0)
+      Printf(f_swigtype, "namespace %s {\n", namespce);
 
     // Pure C# baseclass and interfaces
     const String *pure_baseclass = typemapLookup("csbase", type, WARN_NONE);
@@ -1932,7 +1939,9 @@ class CSHARP : public Language {
         typemapLookup("csgetcptr", type, WARN_CSHARP_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
         typemapLookup("cscode", type, WARN_NONE), // extra C# code
         "}\n",
-        "\n",
+        Len(namespce) > 0 ?
+        "\n}\n" :
+        "",
         NIL);
 
         Replaceall(swigtype, "$csclassname", classname);
@@ -2046,7 +2055,7 @@ extern "C" Language * swig_csharp(void) {
 
 const char *CSHARP::usage = (char*)"\
 C# Options (available with -csharp)\n\
-     -package <name> - set name of the assembly to <name>\n\
+     -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
 \n";
