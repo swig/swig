@@ -37,7 +37,9 @@ extern void format_string(char *);
 extern void swig_pragma(char *, char *);
 
 #include "internal.h"
+extern "C" {
 #include "preprocessor.h"
+}
 
 #ifdef NEED_ALLOC
 void *alloca(unsigned n) {
@@ -75,8 +77,8 @@ static char           *DefArg = 0;             // Default argument hack
 static char           *ConstChar = 0;          // Used to store raw character constants
 static ParmList       *tm_parm = 0;            // Parameter list used to hold typemap parameters
 static Hash            name_hash;              // Hash table containing renamings
-       char           *objc_construct = "new"; // Objective-C constructor
-       char           *objc_destruct = "free"; // Objective-C destructor
+       char           *objc_construct = (char *) "new"; // Objective-C constructor
+       char           *objc_destruct = (char *) "free"; // Objective-C destructor
 
 /* Some macros for building constants */
 
@@ -1043,25 +1045,25 @@ statement      : INCLUDE STRING LBRACE {
 /* An exception definition */
                | EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_brace();
-                    fragment_register("except",$3, CCode);
+                    fragment_register((char *)"except",$3, CCode);
 		    delete $3;
 	       }
 
 /* A Generic Exception (no language specified */
                | EXCEPT LBRACE {
                     skip_brace();
-                    fragment_register("except",typemap_lang, CCode);
+                    fragment_register((char *) "except",typemap_lang, CCode);
                }
 
 /* Clear an exception */
 
                | EXCEPT LPAREN ID RPAREN SEMI {
-                     fragment_clear("except",$3);
+                     fragment_clear((char *) "except",$3);
                }
 
 /* Generic clear */
                | EXCEPT SEMI {
-                     fragment_clear("except",typemap_lang);
+                     fragment_clear((char *) "except",typemap_lang);
 	       }
    
 /* Miscellaenous stuff */
@@ -1326,7 +1328,7 @@ ptail          : COMMA parm ptail {
 
 parm           : parm_type {
                   $$ = $1;
-		  if (typemap_check("ignore",typemap_lang,$$->t,$$->name))
+		  if (typemap_check((char *)"ignore",typemap_lang,$$->t,$$->name))
 		    $$->ignore = 1;
                }
                | parm_specifier_list parm_type {
@@ -1400,9 +1402,9 @@ parm_type      : type pname {
 		}
                 | PERIOD PERIOD PERIOD {
                   fprintf(stderr,"%s : Line %d. Variable length arguments not supported (ignored).\n", input_file, line_number);
-		  $$ = new Parm(new DataType(T_INT),"varargs");
+		  $$ = new Parm(new DataType(T_INT),(char *) "varargs");
 		  $$->t->type = T_ERROR;
-		  $$->name = copy_string("varargs");
+		  $$->name = copy_string((char*)"varargs");
 		  strcpy($$->t->name,"<varargs>");
 		  FatalError();
 		}
@@ -2128,11 +2130,11 @@ cpp_class    :
 	       if ((!CPlusPlus) && (strcmp($2,"class") == 0))
 		 fprintf(stderr,"%s : Line %d. *** WARNING ***. C++ mode is disabled (enable using -c++)\n", input_file, line_number);
 	       
-	       iname = make_name("");
+	       iname = make_name((char*)"");
 	       if (strlen(iname))
-		 cplus_open_class("", iname, $2);
+		 cplus_open_class((char *)"", iname, $2);
 	       else
-		 cplus_open_class("",0,$2);
+		 cplus_open_class((char *) "",0,$2);
 	       if (strcmp($2,"class") == 0)
 		 cplus_mode = CPLUS_PRIVATE;
 	       else
@@ -2363,7 +2365,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		      int oldstatus = Status;
 		      char *tm;
 		      if ($1->status & STAT_READONLY) {
-			if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+			if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 			  Status = Status | STAT_READONLY;
 		      }
 		      iname = make_name($2.id);
@@ -2375,7 +2377,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		    char *tm = 0;
 		    int oldstatus = Status;
 		    if ($1->status & STAT_READONLY) {
-		      if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+		      if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 			Status = Status | STAT_READONLY;
 		    }
 		    iname = make_name($2.id);
@@ -2399,7 +2401,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  $1->is_pointer += $2.is_pointer + 1;
 		  $1->is_reference = $2.is_reference;
 		  $1->arraystr = copy_string(ArrayString);
-		  if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+		  if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		    Status = STAT_READONLY;
 		  
 		  iname = make_name($2.id);
@@ -2651,7 +2653,7 @@ cpp_tail      : SEMI { }
 		   temp_typeptr = new DataType(Active_type);
 		   temp_typeptr->is_pointer += $2.is_pointer;
 		   if (temp_typeptr->status & STAT_READONLY) {
-		     if (!(tm = typemap_lookup("memberin",typemap_lang,temp_typeptr,$2.id,"",""))) 
+		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,temp_typeptr,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
 		   }
 		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
@@ -2668,7 +2670,7 @@ cpp_tail      : SEMI { }
 		 if (cplus_mode == CPLUS_PUBLIC) {
 		   temp_typeptr = new DataType(Active_type);
 		   temp_typeptr->is_pointer += $2.is_pointer;
-		   if (!(tm = typemap_lookup("memberin",typemap_lang,temp_typeptr,$2.id,"",""))) 
+		   if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,temp_typeptr,$2.id,(char*)"",(char*)""))) 
 		     Status = Status | STAT_READONLY;
 		   if (temp_typeptr->status & STAT_READONLY) Status = Status | STAT_READONLY;
 		   cplus_variable($2.id,(char *) 0,temp_typeptr);		
@@ -2803,15 +2805,15 @@ base_specifier : ID {
                }
                ;                               
 
-access_specifier :  PUBLIC { $$ = "public"; }
-               | PRIVATE { $$ = "private"; }
-               | PROTECTED { $$ = "protected"; }
+access_specifier :  PUBLIC { $$ = (char*)"public"; }
+               | PRIVATE { $$ = (char*)"private"; }
+               | PROTECTED { $$ = (char*)"protected"; }
                ;
               
   
-cpptype        : CLASS { $$ = "class"; }
-               | STRUCT { $$ = "struct"; }
-               | UNION {$$ = "union"; }
+cpptype        : CLASS { $$ = (char*)"class"; }
+               | STRUCT { $$ = (char*)"struct"; }
+               | UNION {$$ = (char*)"union"; }
                ;
 
 cpp_const      : CONST {} 
@@ -2859,7 +2861,7 @@ objective_c    : OC_INTERFACE ID objc_inherit {
 		     FatalError();
 		   }
 		   scanner_clear_start();
-		   cplus_open_class($2, (char *) 0, "");     // Open up a new C++ class
+		   cplus_open_class($2, (char *) 0, (char*)"");     // Open up a new C++ class
                 } LBRACE objc_data RBRACE objc_methods OC_END { 
 		  if ($3) {
 		      char *inames[1];
@@ -2887,11 +2889,11 @@ objective_c    : OC_INTERFACE ID objc_inherit {
                | OC_CLASS ID initlist SEMI {
 		 char *iname = make_name($2);
                  init_language();
-                 lang->cpp_class_decl($2,iname,"");
+                 lang->cpp_class_decl($2,iname,(char*)"");
 		 for (int i = 0; i <$3.count; i++) {
 		   if ($3.names[i]) {
 		     iname = make_name($3.names[i]);
-		     lang->cpp_class_decl($3.names[i],iname,"");
+		     lang->cpp_class_decl($3.names[i],iname,(char*)"");
 		     delete [] $3.names[i];
 		   }
 		 } 
@@ -2911,7 +2913,7 @@ objc_protolist : LESSTHAN { skip_template();
                    $$ = CCode.get();
                  }
                | empty {
-                   $$ = "";
+                   $$ = (char*)"";
                }
                ;
                  
@@ -2959,7 +2961,7 @@ objc_var       : type declaration {
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
 		   if ($1->status & STAT_READONLY) {
-		     if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
@@ -2980,7 +2982,7 @@ objc_var       : type declaration {
 		   $1->is_reference = $2.is_reference;
 		   $1->arraystr = copy_string(ArrayString);
 		   if ($1->status & STAT_READONLY) {
-		     if (!(tm = typemap_lookup("memberin",typemap_lang,$1,$2.id,"",""))) 
+		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
@@ -3004,7 +3006,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
 		   if (t->status & STAT_READONLY) {
-		     if (!(tm = typemap_lookup("memberin",typemap_lang,t,$2.id,"",""))) 
+		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,t,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
@@ -3025,7 +3027,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   t->is_reference = $2.is_reference;
 		   t->arraystr = copy_string(ArrayString);
 		   if (t->status & STAT_READONLY) {
-		     if (!(tm = typemap_lookup("memberin",typemap_lang,t,$2.id,"",""))) 
+		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,t,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
 		   }
 		   iname = make_name($2.id);
@@ -3145,7 +3147,7 @@ objc_args      : objc_args objc_separator objc_arg_type ID {
                }
                ;
 
-objc_separator : COLON { $$ = copy_string(":"); }
+objc_separator : COLON { $$ = copy_string((char*)":"); }
                | ID COLON { $$ = new char[strlen($1)+2]; 
                     strcpy($$,$1);
 		    strcat($$,":");
@@ -3201,7 +3203,7 @@ tm_method      : ID {
                  $$ = $1;
                } 
                | CONST {
-                 $$ = copy_string("const");
+                 $$ = copy_string((char*)"const");
                }
                ;
 
