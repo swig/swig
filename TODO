@@ -156,11 +156,8 @@ Build
 ****   Make sure there are tests for *ALL* library files in the test-suite.
        A number of files appear to be broken in SWIG-1.3.13.
 
-***    Move the Source/Modules1.1 directory into the Source/Modules directory and
-       deprecate Modules1.1.
-
-*      Upgrade autoconf? This will definitely help for Windows. The later the
-       version the better.
+***    Move the Source/Modules1.1 directory into the Source/Modules directory
+       and deprecate Modules1.1.
 
 Library
 -------
