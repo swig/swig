@@ -150,8 +150,14 @@ class Allocate : public Dispatcher {
 
     //if (checkAttribute(member, "storage", "virtual"))
     {
+      int old_mode = virtual_elimination_mode;
+      if (is_member_director(member, classnode))
+	virtual_elimination_mode = 0;
+      
       if (function_is_defined_in_bases(member, bases))
 	defined = 1;
+
+      virtual_elimination_mode = old_mode;
     }
 
     if (defined)
