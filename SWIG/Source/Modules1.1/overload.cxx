@@ -175,6 +175,17 @@ Swig_overload_rank(Node *n) {
  *
  * Generate a dispatch function.  argc is assumed to hold the argument count.
  * argv is the argument vector.
+ *
+ * Note that for C++ class member functions, Swig_overload_dispatch() assumes
+ * that argc includes the "self" argument and that the first element of argv[]
+ * is the "self" argument. So for a member function:
+ *
+ *     Foo::bar(int x, int y, int z);
+ *
+ * the argc should be 4 (not 3!) and the first element of argv[] would be
+ * the appropriate scripting language reference to "self". For regular
+ * functions (and static class functions) the argc and argv only include
+ * the regular function arguments.
  * ----------------------------------------------------------------------------- */
 
 String *
