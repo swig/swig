@@ -318,8 +318,7 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
     if ((SwigType_type(pt) != T_VOID)) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Swig_cparm_name(p,i);
-      String *rcaststr = (!cparse_cplusplus && SwigType_isenum(rpt)) 
-	? Copy(pname): SwigType_rcaststr(rpt, pname);
+      String *rcaststr = SwigType_rcaststr(rpt, pname);
 
       if (comma) {
 	Printf(func, ",%s", rcaststr);
