@@ -9,11 +9,11 @@
  ************************************************************************/
 
 #include <stdlib.h>
+#include "Python.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "Python.h"
 
 #define SWIG_PY_INT     1
 #define SWIG_PY_FLOAT   2
