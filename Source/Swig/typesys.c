@@ -507,39 +507,42 @@ static Typetab  *resolved_scope = 0;
 static SwigType *
 typedef_resolve(Typetab *s, String *base) {
   Hash     *ttab;
-  SwigType *type;
+  SwigType *type = 0;
   List     *inherit;
   Typetab  *parent;
 
   /* if (!s) return 0; *//* now is checked bellow */
   /* Printf(stdout,"Typetab %s : %s\n", Getattr(s,"name"), base);  */
 
-  if (Getmark(s)) return 0;
-  Setmark(s,1);
+  if (!Getmark(s)) {
+    Setmark(s,1);
 
-  ttab = Getattr(s,k_typetab);
-  type = Getattr(ttab,base);
-  if (type) {
-    resolved_scope = s;
-    Setmark(s,0);
-    return type;
-  }
-  /* Hmmm. Not found in my scope.  It could be in an inherited scope */
-  inherit = Getattr(s,k_inherit);
-  if (inherit) {
-    int i,len;
-    len = Len(inherit);
-    for (i = 0; i < len; i++) {
-      type = typedef_resolve(Getitem(inherit,i), base);
-      if (type) {
-	Setmark(s,0);
-	return type;
+    ttab = Getattr(s,k_typetab);
+    type = Getattr(ttab,base);
+    if (type) {
+      resolved_scope = s;
+      Setmark(s,0);
+    } else {
+      /* Hmmm. Not found in my scope.  It could be in an inherited scope */
+      inherit = Getattr(s,k_inherit);
+      if (inherit) {
+        int i,len;
+        len = Len(inherit);
+        for (i = 0; i < len; i++) {
+          type = typedef_resolve(Getitem(inherit,i), base);
+          if (type) {
+            Setmark(s,0);
+            break;
+          }
+        }
+      }
+      if (!type) {
+        parent = Getattr(s,k_parent);
+        type = parent ? typedef_resolve(parent, base) : 0;
+        Setmark(s,0);
       }
     }
   }
-  parent = Getattr(s,k_parent);
-  type = parent ? typedef_resolve(parent, base) : 0;
-  Setmark(s,0);
   return type;
 }
 
