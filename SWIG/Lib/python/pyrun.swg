@@ -101,27 +101,35 @@ PySwigObject_str(PySwigObject *v)
 SWIGRUNTIME PyObject *
 PySwigObject_long(PySwigObject *v)
 {
-  return PyLong_FromUnsignedLong((unsigned long) v->ptr);
+  return PyLong_FromVoidPtr(v->ptr);
+}
+
+SWIGRUNTIME PyObject *
+PySwigObject_format(PySwigObject *v, const char* fmt)
+{
+  PyObject *res = NULL;
+  PyObject *args = PyTuple_New(1);
+  if (args && (PyTuple_SetItem(args, 0, PySwigObject_long(v)) == 0)) {
+    PyObject *ofmt = PyString_FromString(fmt);
+    if (ofmt) {
+      res = PyString_Format(ofmt,args);
+      Py_DECREF(ofmt);
+    }
+    Py_DECREF(args);
+  }  
+  return res;
 }
 
 SWIGRUNTIME PyObject *
 PySwigObject_oct(PySwigObject *v)
 {
-  char buf[100];
-  unsigned long x = (unsigned long)v->ptr;
-  if (x == 0)
-    strncpy(buf, "0",sizeof(buf));
-  else
-    PyOS_snprintf(buf, sizeof(buf), "0%lo", x);
-  return PyString_FromString(buf);
+  return PySwigObject_format(v,"%o");
 }
 
 SWIGRUNTIME PyObject *
 PySwigObject_hex(PySwigObject *v)
 {
-  char buf[100];
-  PyOS_snprintf(buf, sizeof(buf), "%p", v->ptr);
-  return PyString_FromString(buf);
+  return PySwigObject_format(v,"%x");
 }
 
 SWIGRUNTIME int
