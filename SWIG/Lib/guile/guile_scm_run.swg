@@ -2,7 +2,7 @@
  * -----------------------------------------------------------------------
  * swig_lib/guile/guile_scm_run.swg
  *
- * Author: John Lenz <jelenz@students.wisc.edu>
+ * Author: John Lenz <jelenz@wisc.edu>
  * ----------------------------------------------------------------------- */
 
 #include <libguile.h>
@@ -17,6 +17,11 @@ extern "C" {
 typedef SCM (*swig_guile_proc)();
 typedef SCM (*guile_destructor)(SCM);
 
+typedef struct swig_guile_clientdata {
+  guile_destructor destroy;
+  SCM goops_class;
+} swig_guile_clientdata;
+
 #define SWIG_scm2str(s) SWIG_scm2newstr(s, NULL)
 
 #define SWIG_malloc(size) \
@@ -29,6 +34,8 @@ typedef SCM (*guile_destructor)(SCM);
   SWIG_Guile_MustGetPtr(s, type, argnum, flags, FUNC_NAME)
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_Guile_NewPointerObj((void*)ptr, type, owner)
+#define SWIG_PropagateClientData(type) \
+  SWIG_Guile_PropagateClientData(type)
 
 #ifdef SWIG_NOINCLUDE
 
@@ -47,6 +54,9 @@ SWIGIMPORT(void *) SWIG_Guile_MustGetPtr(SCM s, swig_type_info *type, int argnum
 SWIGIMPORT(SCM) SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner);
 /* Get arguments from an argument list */
 SWIGIMPORT(int) SWIG_Guile_GetArgs(SCM *dest, SCM rest, int reqargs, int optargs, const char *procname);
+/* Propagate client data to equivalent types */
+SWIGIMPORT(void) 
+SWIG_Guile_PropagateClientData(swig_type_info *type);
 
 #else
 
@@ -69,14 +79,38 @@ SWIG_scm2newstr(SCM str, size_t *len) {
 
 static scm_t_bits swig_tag = 0;
 static scm_t_bits swig_collected_tag = 0;
+static SCM swig_make_func = SCM_EOL;
+static SCM swig_keyword = SCM_EOL;
+static SCM swig_symbol = SCM_EOL;
+
+#define SWIG_Guile_GetSmob(x) \
+  ( SCM_NNULLP(x) && SCM_INSTANCEP(x) && SCM_NFALSEP(scm_slot_exists_p(x, swig_symbol)) \
+      ? scm_slot_ref(x, swig_symbol) : (x) )
 
 SWIGRUNTIME(SCM)
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
+  SCM smob;
+  swig_guile_clientdata *cdata = (swig_guile_clientdata *) type->clientdata;
   if (owner)
-    SCM_RETURN_NEWSMOB2(swig_collected_tag, ptr, (void *) type);
+    SCM_NEWSMOB2(smob, swig_collected_tag, ptr, (void *) type);
   else
-    SCM_RETURN_NEWSMOB2(swig_tag, ptr, (void *) type);
+    SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
+
+  if (!cdata || SCM_NULLP(cdata->goops_class) || swig_make_func == SCM_EOL ) {
+    return smob;
+  } else {
+    /* the scm_make() C function only handles the creation of gf, methods and classes (no instances)
+       the (make ...) function is later redefined in goops.scm.  So we need to lookup and
+       call that function */
+    return scm_apply(
+      swig_make_func,
+      scm_list_3(
+        cdata->goops_class,
+        swig_keyword,
+        smob),
+      SCM_EOL);
+  }
 }
 
 /* Return 0 if successful. */
@@ -85,22 +119,24 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
   swig_type_info *cast;
   swig_type_info *from;
-  if (SCM_NULLP(s)) {
+  SCM smob = SWIG_Guile_GetSmob(s);
+
+  if (SCM_NULLP(smob)) {
     *result = NULL;
     return 0;
-  } else if (SCM_SMOB_PREDICATE(swig_tag, s) || SCM_SMOB_PREDICATE(swig_collected_tag, s)) {
-    from = (swig_type_info *) SCM_CELL_WORD_2(s);
+  } else if (SCM_SMOB_PREDICATE(swig_tag, smob) || SCM_SMOB_PREDICATE(swig_collected_tag, smob)) {
+    from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return 1;
     if (type) {
       cast = SWIG_TypeCheck((char*)from->name, type);
       if (cast) {
-        *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(s));
+        *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob));
         return 0;
       } else {
         return 1;
       }
     } else {
-      *result = (void *) SCM_CELL_WORD_1(s);
+      *result = (void *) SCM_CELL_WORD_1(smob);
       return 0;
     }
   }
@@ -124,7 +160,9 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 static int
 print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  swig_type_info *type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
+  swig_type_info *type;
+  
+  type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
     scm_puts((char *) "#<swig ", port);
     if (type->str != NULL)
@@ -144,7 +182,9 @@ print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 static int
 print_collected_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
-  swig_type_info *type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
+  swig_type_info *type;
+
+  type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
     scm_puts((char *) "#<collected swig ", port);
     if (type->str != NULL)
@@ -176,7 +216,7 @@ free_swig(SCM A)
   swig_type_info *type = (swig_type_info *) SCM_CELL_WORD_2(A);
   if (type) {
     if (type->clientdata)
-      ((guile_destructor)type->clientdata)(A);
+      ((swig_guile_clientdata *)type->clientdata)->destroy(A);
   } 
   return 0;
 }
@@ -196,6 +236,11 @@ SWIG_Guile_Init ()
     scm_set_smob_equalp(swig_collected_tag, equalp_swig);
     scm_set_smob_free(swig_collected_tag, free_swig);
   }
+      
+  swig_make_func = scm_permanent_object(
+  scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
+  swig_keyword = scm_permanent_object(scm_c_make_keyword("init-smob"));
+  swig_symbol = scm_permanent_object(scm_str2symbol("swig-smob"));
 }
 
 SWIGRUNTIME(int)
@@ -222,6 +267,29 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   if (!SCM_NULLP(rest))
     scm_wrong_num_args(scm_makfrom0str((char *) procname));
   return num_args_passed;
+}
+
+/* This function will propagate the clientdata field of type to
+* any new swig_type_info structures that have been added into the list
+* of equivalent types.  It is like calling
+* SWIG_TypeClientData(type, clientdata) a second time.
+*/
+SWIGRUNTIME(void) 
+SWIG_Guile_PropagateClientData(swig_type_info *type) {
+  swig_type_info *equiv = type->next;
+  swig_type_info *tc;
+  if (!type->clientdata) return;
+  while (equiv) {
+    if (!equiv->converter) {
+      tc = swig_type_list;
+      while (tc) {
+        if ((strcmp(tc->name, equiv->name) == 0) && !tc->clientdata)
+          SWIG_TypeClientData(tc, type->clientdata);
+        tc = tc->prev;
+      }
+    }
+    equiv = equiv->next;
+  }
 }
 
 #endif
