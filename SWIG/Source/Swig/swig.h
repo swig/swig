@@ -484,7 +484,7 @@ extern     int    Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
 extern     void   Swig_typemap_clear_apply(ParmList *pattern);
 extern     void   Swig_typemap_debug();
 
-extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *pname, SwigType **matchtype);
+extern Hash  *Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_char *pname, SwigType **matchtype);
 extern Hash  *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch);
 extern String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *lname,
 				  String_or_char *source, String_or_char *target, Wrapper *f);

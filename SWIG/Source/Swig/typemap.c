@@ -512,7 +512,7 @@ static SwigType *strip_arrays(SwigType *type) {
  * ----------------------------------------------------------------------------- */
 
 Hash *
-Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name, SwigType **matchtype) {
+Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_char *name, SwigType **matchtype) {
   Hash *result = 0, *tm, *tm1, *tma;
   Hash *backup = 0;
   SwigType *noarrays = 0;
@@ -520,7 +520,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
   SwigType *ctype = 0;
   int ts;
   int isarray;
-  String *cname = 0;
+  const String *cname = 0;
   SwigType *unstripped = 0;
   String   *tmop = tmop_name(op);
 
