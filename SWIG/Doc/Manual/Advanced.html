@@ -59,7 +59,7 @@ Consider for a moment the following two interface files :<p>
 class a {
 public:
 	a();
-	~a();
+	virtual ~a();
 	void foo(double);
 };
 
@@ -141,11 +141,11 @@ void *__embedfunc(void *);
 
 </pre></blockquote>
 <p>
-Now, run SWIG and compile as follows:<p>
+Now, assuming you have built the <a href="Modules.html">runtime library</a> as <tt>swigruntcl</tt>, run SWIG and compile as follows:<p>
 <p>
 <blockquote><pre>
 % <b>swig -c -tcl mytclsh.i</b>
-% <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigtcl8 -ldl -lm \
+% <b>gcc mytclsh_wrap.c -I/usr/local/include -L/usr/local/lib -ltcl -lswigruntcl -ldl -lm \
       -o tclsh</b>
 </pre></blockquote>
 This produces a new executable "<tt>tclsh</tt>" that contains a copy of the SWIG runtime library. The weird <tt>__embedfunc()</tt> function is needed to force the functions in the runtime library to be included in the final executable.<p>
@@ -157,7 +157,7 @@ To make new dynamically loadable SWIG modules, simply compile as follows :<p>
 % <b>gcc -c example_wrap.c -I/usr/local/include</b>
 % <b>ld -shared example_wrap.o -o example.so</b>
 </pre></blockquote>
-Linking against the <tt>swigtcl8</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded. 
+Linking against the <tt>swigruntcl</tt> library is no longer necessary as all of the functions are now included in the <tt>tclsh</tt> executable and will be resolved when your module is loaded. 
 However, some operating systems, like Windows, will still require linking with the libraries so that there are no unresolved symbols.<p>
 <p>
 2.  Using shared library versions of the runtime library<p>
@@ -168,7 +168,8 @@ If supported on your machine, the runtime libraries will be built as shared libr
 % <b>ld -shared example_wrap.o -o libexample.so</b>             # Irix
 % <b>gcc -shared example_wrap.o -o libexample.so</b>            # Linux
 % <b>ld -G example_wrap.o -o libexample.so</b>                  # Solaris
-&gt; <b>cl /LD example_wrap.obj /o example.dll swigtcl8.lib tcl83.lib /link /LIBPATH:c:\SWIG\Runtime /LIBPATH:c:\Tcl\lib</b> # Windows VC++
+&gt; <b>cl /LD example_wrap.obj /o example.dll swigruntcl.lib tcl83.lib
+ /link /LIBPATH:PathToRuntimeLibrary /LIBPATH:c:\Tcl\lib</b> # Windows VC++
 </pre></blockquote>
 
 In order for the <tt>libexample.so</tt> library to work, it needs to be placed in a location where the dynamic loader can find it. 
@@ -183,10 +184,10 @@ If the shared library file is not in any of these directories, it results in an 
 On most machines, you can change the loader search path by changing the path (Windows) or environment variable <tt>LD_LIBRARY_PATH</tt> (Unix), e.g.<p>
 <p>
 <blockquote><pre>% <b>setenv LD_LIBRARY_PATH .:/home/beazley/packages/lib</b></pre></blockquote>
-A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker (see the man page). For example:<p>
+A somewhat better approach is to link your module with the proper path encoded. This is typically done using the `<tt>-rpath</tt>' or `<tt>-R</tt>' option to your linker on Unix (see the man page). For example:<p>
 <p>
 <blockquote><pre>% <b>ld -shared example_wrap.o example.o -rpath /home/beazley/packages/lib \
-       -L/home/beazley/packages/lib -lswigtcl8.so -o example.so</b>
+       -L/home/beazley/packages/lib -lswigruntcl.so -o example.so</b>
 </pre></blockquote>
 The <tt>-rpath</tt> option encodes the location of shared libraries into your modules and gets around having to set the <tt>LD_LIBRARY_PATH</tt> variable.<p>
 <p>
