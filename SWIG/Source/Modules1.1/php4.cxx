@@ -634,8 +634,6 @@ PHP4::top(Node *n) {
   	"}\n",
 	module);
 
-  /* Start variable init function (to be put in module init function) */
-  //?What are these 2 comments for now?
   /* We have to register the constants before they are (possibly) used
    * by the pointer typemaps. This all needs re-arranging really as
    * things are being called in the wrong order
