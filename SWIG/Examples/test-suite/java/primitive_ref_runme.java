@@ -50,7 +50,7 @@ public class primitive_ref_runme {
     if (primitive_ref.ref_double(3.5) != 3.5) {
         System.err.println( "ref_double failed!" );
     }
-    if (primitive_ref.ref_char((byte)'x') != 'x') {
+    if (primitive_ref.ref_char('x') != 'x') {
         System.err.println( "ref_char failed!" );
     }
     if (primitive_ref.ref_longlong(3) != '3') {

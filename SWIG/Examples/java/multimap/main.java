@@ -23,7 +23,7 @@ public class main {
     example.gcdmain(args);
     
     // Call the count function
-    System.out.println(example.count("Hello World", (byte)'l'));
+    System.out.println(example.count("Hello World", 'l'));
     
     // Call the capitalize function
     String[] capitalizeMe = {"hello world"};

@@ -24,7 +24,7 @@ public class main {
     example.set_ulvar(654321);
     example.set_scvar((byte)-13);
     example.set_ucvar((short)251);
-    example.set_cvar((byte)'S');
+    example.set_cvar('S');
     example.set_fvar((float)3.14159);
     example.set_dvar(2.1828);
     example.set_strvar("Hello World");

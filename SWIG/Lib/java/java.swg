@@ -10,7 +10,7 @@
 
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
-%typemap(jni) char,               const char &               "jbyte"
+%typemap(jni) char,               const char &               "jchar"
 %typemap(jni) signed char,        const signed char &        "jbyte"
 %typemap(jni) unsigned char,      const unsigned char &      "jshort"
 %typemap(jni) short,              const short &              "jshort"
@@ -27,7 +27,7 @@
 %typemap(jni) void                                           "void"
 
 %typemap(jtype) bool,               const bool &               "boolean"
-%typemap(jtype) char,               const char &               "byte"
+%typemap(jtype) char,               const char &               "char"
 %typemap(jtype) signed char,        const signed char &        "byte"
 %typemap(jtype) unsigned char,      const unsigned char &      "short"
 %typemap(jtype) short,              const short &              "short"
@@ -44,7 +44,7 @@
 %typemap(jtype) void                                           "void"
 
 %typemap(jstype) bool,               const bool &               "boolean"
-%typemap(jstype) char,               const char &               "byte"
+%typemap(jstype) char,               const char &               "char"
 %typemap(jstype) signed char,        const signed char &        "byte"
 %typemap(jstype) unsigned char,      const unsigned char &      "short"
 %typemap(jstype) short,              const short &              "short"
@@ -188,7 +188,7 @@
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(out) bool           %{ $result = (jboolean)$1; %}
-%typemap(out) char           %{ $result = (jbyte)$1; %}
+%typemap(out) char           %{ $result = (jchar)$1; %}
 %typemap(out) signed char    %{ $result = (jbyte)$1; %}
 %typemap(out) unsigned char  %{ $result = (jshort)$1; %}
 %typemap(out) short          %{ $result = (jshort)$1; %}
@@ -280,7 +280,7 @@ $1 = &temp;
 %}
 
 %typemap(out) const bool &           %{ $result = (jboolean)*$1; %}
-%typemap(out) const char &           %{ $result = (jbyte)*$1; %}
+%typemap(out) const char &           %{ $result = (jchar)*$1; %}
 %typemap(out) const signed char &    %{ $result = (jbyte)*$1; %}
 %typemap(out) const unsigned char &  %{ $result = (jshort)*$1; %}
 %typemap(out) const short &          %{ $result = (jshort)*$1; %}
