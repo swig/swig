@@ -10,7 +10,11 @@
          $1 = &temp;";
 
 
-%typemap(directorout) enum SWIGTYPE "$result = NUM2INT($input);";
+%typemap(directorout) enum SWIGTYPE "$result = ($1_ltype) NUM2INT($input);";
+%typemap(directorout) const enum SWIGTYPE & ($*1_ltype temp)
+        "temp = ($*1_ltype) NUM2INT($input);
+         $result = &temp;";
+
 
 /* --- Output typemaps --- */
 %typemap(out) enum SWIGTYPE "$result = INT2NUM($1);";
@@ -18,6 +22,7 @@
 %typemap(out) const enum SWIGTYPE & "$result = INT2NUM((long) *($1));";
 
 %typemap(directorin) enum SWIGTYPE "$input = INT2NUM($1);";
+%typemap(directorin) const enum SWIGTYPE& "$input = INT2NUM($1);";
 
 /* --- Variable Input --- */
 
