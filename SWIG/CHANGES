@@ -16,6 +16,37 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+12/08/2001:beazley
+           Fixed [ #459614 ] SWIG with multiple TCL interpreters.
+
+12/08/2001:beazley
+           Fixed [ #417141 ] rubydec.swg is wrong
+           Reported by Paul Brannan.
+
+12/08/2001:beazley
+           Fixed [ #410557 ] Problem with %addmethods on NT.
+           Reported by Magnus Ljung.
+
+12/08/2001:beazley
+           Fixed [ #445233 ] Enhancement: handle access change.
+           SWIG now parses (but ignores) C++ access changes for the
+           the following:
+
+             class A {
+             protected:
+                void something() { }
+             public:
+                A() {}
+             };
+
+             class B : private A {
+             public:
+                B() : A() { }
+             protected:
+                A::something;    <---- Parsed, but ignored
+             };
+ 
+           Suggested by Krzysztof Kozminski.
 
 12/08/2001: cheetah (william fulton)
            Fix for Ruby to work using Visual C++.
