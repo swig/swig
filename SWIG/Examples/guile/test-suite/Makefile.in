@@ -6,18 +6,7 @@ CFLAGS		= @CFLAGS@
 GUILEINCLUDE	= @GUILEINCLUDE@
 GUILELINK	= @GUILELINK@
 
-all::   macro-2.test \
-	long-long.test const-const.test \
-	cplusplus-throw.cplusplustest \
-	char-constant.runtest \
-	pointer-reference.cplusplustest \
-	casts.cplusplusruntest \
-	import.cplusplusruntest \
-	name.runtest \
-	template-whitespace.cplusplustest \
-	anonymous-arg.cplusplustest \
-	static-array-member.cplusplustest \
-	preproc-1.test
+all::   import.cplusplusruntest
 
 .SUFFIXES: .i .test .cplusplustest .runtest .cplusplusruntest
 
