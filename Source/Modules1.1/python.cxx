@@ -456,8 +456,7 @@ void PYTHON::close(void)
 // --------------------------------------------------------------------
 void PYTHON::close_cmodule(void)
 {
-  extern void emit_type_table();
-  emit_type_table();
+  emit_type_table(f_runtime);
   /*  emit_ptr_equivalence(f_init); */
   Printf(const_code, "{0}};\n");
   
@@ -680,13 +679,16 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   
   i = 0;
   j = 0;
-  numopt = ParmList_numopt(l);        // Get number of optional arguments
+  numopt = check_numopt(l);        // Get number of optional arguments
   if (numopt) have_defarg = 1;
   p = ParmList_first(l);
 
   Printf(kwargs,"{ ");
   while (p != 0) {
-    
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
+    char     *pv = Parm_Getvalue(p);
+
     // Generate source and target strings
     sprintf(source,"_obj%d",i);
     sprintf(target,"_arg%d",i);
@@ -702,15 +704,15 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Putc('|',parse_args);
       }
 
-      if (strlen(p->name)) {
-	Printf(kwargs,"\"%s\",", p->name);
+      if (strlen(pn)) {
+	Printf(kwargs,"\"%s\",", pn);
       } else {
 	Printf(kwargs,"\"arg%d\",", j+1);
       }
 
       // Look for input typemap
       
-      if ((tm = typemap_lookup((char*)"in",(char*)"python",p->t,p->name,source,target,f))) {
+      if ((tm = typemap_lookup((char*)"in",(char*)"python",pt,pn,source,target,f))) {
 	Putc('O',parse_args);
 	Wrapper_add_localv(f, source, "PyObject *",source,0);
 	Printf(arglist,"&%s",source);
@@ -724,10 +726,10 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
 	// Check if this parameter is a pointer.  If not, we'll get values
 
-	if (!p->t->is_pointer) {
+	if (!pt->is_pointer) {
 	  // Extract a parameter by "value"
 	
-	  switch(p->t->type) {
+	  switch(pt->type) {
 	  
 	    // Handle integers here.  Usually this can be done as a single
 	    // case if you appropriate cast things.   However, if you have
@@ -759,16 +761,16 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    {
 	      char tempb[128];
 	      char tempval[128];
-	      if (p->defvalue) {
-		sprintf(tempval, "(int) %s", p->defvalue);
+	      if (pv) {
+		sprintf(tempval, "(int) %s", pv);
 	      }
 	      sprintf(tempb,"tempbool%d",i);
 	      Putc('i',parse_args);
-	      if (!p->defvalue)
+	      if (!pv)
 		Wrapper_add_localv(f,tempb,"int",tempb,0);
 	      else
 		Wrapper_add_localv(f,tempb,"int",tempb, "=",tempval,0);
-	      Printv(get_pointers, tab4, target, " = ", DataType_print_cast(p->t), " ", tempb, ";\n", 0);
+	      Printv(get_pointers, tab4, target, " = ", DataType_print_cast(pt), " ", tempb, ";\n", 0);
 	      Printf(arglist,"&%s",tempb);
 	    }
 	  break;
@@ -787,20 +789,20 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Unsupported data type
 	    
 	  default :
-	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(p->t));
+	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(pt));
 	    break;
 	  }
 	  
 	  // Emit code for parameter list
 	  
-	  if ((p->t->type != T_VOID) && (p->t->type != T_BOOL))
+	  if ((pt->type != T_VOID) && (pt->type != T_BOOL))
 	    Printf(arglist,"&_arg%d",i);
 	  
 	} else {
 	  
 	  // Is some other kind of variable.   
 	  
-	  if ((p->t->type == T_CHAR) && (p->t->is_pointer == 1)) {
+	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
 	    Putc('s',parse_args);
 	    Printf(arglist,"&_arg%d",i);
 	  } else {
@@ -815,24 +817,24 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
 	    Printf(arglist,"&%s",source);
-	    get_pointer(iname, temp, source, target, p->t, get_pointers, (char*)"NULL");
+	    get_pointer(iname, temp, source, target, pt, get_pointers, (char*)"NULL");
 	  }
 	}
       }
       j++;
     }
     // Check if there was any constraint code
-    if ((tm = typemap_lookup((char*)"check",(char*)"python",p->t,p->name,source,target))) {
+    if ((tm = typemap_lookup((char*)"check",(char*)"python",pt,pn,source,target))) {
       Printf(check,"%s\n",tm);
       Replace(check,"$argnum", argnum, DOH_REPLACE_ANY);
     }
     // Check if there was any cleanup code
-    if ((tm = typemap_lookup((char*)"freearg",(char*)"python",p->t,p->name,target,source))) {
+    if ((tm = typemap_lookup((char*)"freearg",(char*)"python",pt,pn,target,source))) {
       Printf(cleanup,"%s\n",tm);
       Replace(cleanup,"$argnum", argnum, DOH_REPLACE_ANY);
       Replace(cleanup,"$arg",source, DOH_REPLACE_ANY);
     }
-    if ((tm = typemap_lookup((char*)"argout",(char*)"python",p->t,p->name,target,(char*)"_resultobj"))) {
+    if ((tm = typemap_lookup((char*)"argout",(char*)"python",pt,pn,target,(char*)"_resultobj"))) {
       Printf(outarg,"%s\n", tm);
       Replace(outarg,"$argnum",argnum,DOH_REPLACE_ANY);
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
@@ -1413,15 +1415,17 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
   i = 0;
   p = ParmList_first(l);
   while (p != 0) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
     if (!p->ignore) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
-      if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	if (strlen(p->name) > 0) {
-	  Printf(temp,"%s",p->name);
+      if ((pt->type != T_VOID) || (pt->is_pointer)) {
+	if (strlen(pn) > 0) {
+	  Printf(temp,"%s",pn);
 	} else {
-	  Printf(temp,"%s", DataType_print_type(p->t));
+	  Printf(temp,"%s", DataType_print_type(pt));
 	}
       }
       p = ParmList_next(l);

@@ -155,16 +155,18 @@ static void update_parms(ParmList *l) {
   Parm *p;
   p = ParmList_first(l);
   while (p) {
-    update_local_type(p->t);
+    DataType *pt = Parm_Gettype(p);
+    char     *pvalue = Parm_Getvalue(p);
+
+    update_local_type(pt);
 
     // Check for default arguments
 
-    if ((p->defvalue) && (localtypes)) {
+    if ((pvalue) && (localtypes)) {
       char *s;
-      s = (char *) GetChar(localtypes,p->defvalue);
+      s = (char *) GetChar(localtypes,pvalue);
       if (s) {
-	delete p->defvalue;
-	p->defvalue = copy_string(s);
+	Parm_Setvalue(p,s);
       }
     }
     p = ParmList_next(l);
@@ -714,7 +716,6 @@ char *cplus_base_class(char *name) {
 
 void cplus_open_class(char *name, char *rname, char *ctype) {
 
-  extern void typeeq_derived(char *, char *, char *cast=0);
   char temp[256];
   CPP_class *c;
 
@@ -756,8 +757,8 @@ void cplus_open_class(char *name, char *rname, char *ctype) {
     if (strlen(name)) {
       if (strlen(ctype) > 0) {
 	sprintf(temp,"%s %s", ctype, name);   
-	typeeq_derived(temp,name);       // Map "struct foo" to "foo"
-	typeeq_derived(name,temp);       // Map "foo" to "struct foo"
+	typeeq_derived(temp,name,0);       // Map "struct foo" to "foo"
+	typeeq_derived(name,temp,0);       // Map "foo" to "struct foo"
       }
     }
   }
@@ -952,7 +953,6 @@ void cplus_generate_types(char **baseclass) {
   DOHString *cfunc;
   DOHString *temp3;
   char temp1[512], temp2[512];
-  extern void typeeq_derived(char *, char *, char *);
 
   if (!baseclass) {
     return;
@@ -1544,7 +1544,8 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	i = 0;
 	p = ParmList_first(l);
 	while (p != 0) {
-	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+	  DataType *pt = Parm_Gettype(p);
+	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	    Printf(wrap,",_swigarg%d",i);
 	    i++;
 	  }
@@ -1560,8 +1561,9 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	i = 0;
 	p = ParmList_first(l);
 	while(p != 0) {
-	  if (ObjCClass) Printf(wrap," %s", p->objc_separator);
-	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+	  DataType *pt = Parm_Gettype(p);
+	  /*	  if (ObjCClass) Printf(wrap," %s", p->objc_separator); */
+	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	    Printf(wrap,"_swigarg%d",i);
 	    i++;
 	  }
@@ -1593,18 +1595,19 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	  
 	  p = ParmList_first(l);
 	  while (p != 0) {
-	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+	    DataType *pt = Parm_Gettype(p);
+	    if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	      Printf(wrap,",");
-	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
-		p->t->is_pointer--;
+	      if ((p->call_type & CALL_REFERENCE) || (pt->is_reference)) {
+		pt->is_pointer--;
 	      } 
-	      Printf(wrap, DataType_print_full(p->t));
-	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
-		p->t->is_pointer++;
-	           if (p->t->is_reference)
+	      Printf(wrap, DataType_print_full(pt));
+	      if ((p->call_type & CALL_REFERENCE) || (pt->is_reference)) {
+		pt->is_pointer++;
+	           if (pt->is_reference)
 		     Printf(wrap,"&");
 	      }
-	      Printf(wrap," %s", p->name);
+	      Printf(wrap," %s", Parm_Getname(p));
 	    }
 	    p = ParmList_next(l);
 	  }
@@ -1618,14 +1621,17 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       
       newparms = CopyParmList(l);
       p = NewParm(0,0);
-      p->t = NewDataType(0);
-      p->t->type = T_USER;
-      p->t->is_pointer = 1;
-      p->t->id = cpp_id;
+      {
+	DataType *pt = NewDataType(0);
+	pt->type = T_USER;
+	sprintf(pt->name,"%s%s", classtype,classname);
+	pt->is_pointer = 1;
+	pt->id = cpp_id;
+	Parm_Settype(p,pt);
+	DelDataType(pt);
+      }
       p->call_type = 0;
-      
-      sprintf(p->t->name,"%s%s", classtype,classname);
-      p->name = (char*)"self";
+      Parm_Setname(p,(char*)"self");
       ParmList_insert(newparms,p,0);       // Attach parameter to beginning of list
       
       // Now wrap the thing.  The name of the function is iname
@@ -1762,16 +1768,17 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	// Walk down the parameter list and Spit out arguments
 	p = ParmList_first(l);
 	while (p != 0) {
-	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	    if (p->t->is_reference) {
-	      p->t->is_pointer--;
+	  DataType *pt = Parm_Gettype(p);
+	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
+	    if (pt->is_reference) {
+	      pt->is_pointer--;
 	    } 
-	    Printf(wrap, DataType_print_full(p->t));
-	    if (p->t->is_reference) {
-	      p->t->is_pointer++;
+	    Printf(wrap, DataType_print_full(pt));
+	    if (pt->is_reference) {
+	      pt->is_pointer++;
 	      Printf(wrap, "&");
 	    }
-	    Printf(wrap," %s", p->name);
+	    Printf(wrap," %s", Parm_Getname(p));
 	  }
 	  p = ParmList_next(l);
 	  if (p) Printf(wrap, ",");
@@ -1802,12 +1809,14 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	  i = 0;
 	  p = ParmList_first(l);
 	  while(p != 0) {
-	    Printf(wrap," %s", p->objc_separator);
-	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	      if (p->t->is_reference) {
+	    DataType *pt = Parm_Gettype(p);
+	    /*Printf(wrap," %s", p->objc_separator); */
+	    Printf(wrap," ");
+	    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+	      if (pt->is_reference) {
 		Printf(wrap,"*");
 	      }
-	      Printf(wrap,p->name);
+	      Printf(wrap,Parm_Getname(p));
 	      i++;
 	    }
 	    p = ParmList_next(l);
@@ -1914,13 +1923,17 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     
     l = NewParmList();
     p = NewParm(0,0);
-    p->t = NewDataType(0);
-    p->t->type = T_USER;
-    p->t->is_pointer = 1;
-    p->t->id = cpp_id;
+    {
+      DataType *pt = NewDataType(0);
+      pt->type = T_USER;
+      pt->is_pointer = 1;
+      pt->id = cpp_id;
+      sprintf(pt->name,"%s%s", classtype, classname);
+      Parm_Settype(p,pt);
+      DelDataType(pt);
+    }
     p->call_type = 0;
-    sprintf(p->t->name,"%s%s", classtype, classname);
-    p->name = (char*)"self";
+    Parm_Setname(p,(char*)"self");
     ParmList_insert(l,p,0);
     
     type = NewDataType(0);
@@ -2009,8 +2022,9 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       i = 0;
       p = ParmList_first(l);
       while (p != 0) {
-	if (ObjCClass) Printf(fcall," %s", p->objc_separator);
-	if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+	DataType *pt = Parm_Gettype(p);
+	/*	if (ObjCClass) Printf(fcall," %s", p->objc_separator); */
+	if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	  Printf(wrap,"_swigarg%d",i);
 
 	  // Emit an argument in the function call if in C++ mode
@@ -2041,13 +2055,15 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       
 	p = ParmList_first(l);
 	while (p != 0) {
-	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+	  DataType *pt = Parm_Gettype(p);
+	  
+	  if ((pt->type != T_VOID) || (pt->is_pointer)) {
 	    if (p->call_type & CALL_REFERENCE) {
-	      p->t->is_pointer--;
+	      pt->is_pointer--;
 	    }
-	    Printf(wrap, DataType_print_real(p->t,p->name));
+	    Printf(wrap, DataType_print_real(pt,Parm_Getname(p)));
 	    if (p->call_type & CALL_REFERENCE) {
-	      p->t->is_pointer++;
+	      pt->is_pointer++;
 	    }
 	    p = ParmList_next(l);
 	    if (p) {
@@ -2226,13 +2242,18 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
       l = NewParmList();
       p = NewParm(0,0);
-      p->t =  NewDataType(0);
-      p->t->type = T_USER;
-      p->t->is_pointer = 1;
-      p->t->id = cpp_id;
+      {
+	DataType *pt = NewDataType(0);
+	pt->type = T_USER;
+	pt->is_pointer = 1;
+	pt->id = cpp_id;
+	sprintf(pt->name,"%s%s", classtype,classname);
+	Parm_Settype(p,pt);
+	DelDataType(pt);
+      }
+      Parm_Setname(p,(char*)"self");
       p->call_type = 0;	
-      p->name = (char*)"self";
-      sprintf(p->t->name,"%s%s", classtype,classname);
+
       ParmList_insert(l,p,0);
 
       if ((type->type == T_USER) && (!type->is_pointer)) {
@@ -2446,24 +2467,32 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       
       l = NewParmList();
       p = NewParm(0,0);
-      p->t = CopyDataType(type);
-      p->t->is_reference = 0;
+      {
+	DataType *pt = CopyDataType(type);
+	pt->is_reference = 0;
+	pt->id = cpp_id;
+	if ((type->type == T_USER) && (!type->is_pointer)) pt->is_pointer++;
+	Parm_Settype(p,pt);
+	DelDataType(pt);
+      }
       p->call_type = 0;	
-      p->t->id = cpp_id;
-      if ((type->type == T_USER) && (!type->is_pointer)) p->t->is_pointer++;
       if (mrename) 
-	p->name = mrename;
+	Parm_Setname(p,mrename);
       else
-	p->name = mname;
+	Parm_Setname(p,mname);
       ParmList_insert(l,p,0);
       p = NewParm(0,0);
-      p->t =  NewDataType(0);
-      p->t->type = T_USER;
+      {
+	DataType *pt = NewDataType(0);
+	pt->type = T_USER;
+	pt->is_pointer = 1;
+	pt->id = cpp_id;
+	sprintf(pt->name,"%s%s", classtype,classname);
+	Parm_Settype(p,pt);
+	DelDataType(pt);
+      }
       p->call_type = 0;	
-      p->t->is_pointer = 1;
-      p->t->id = cpp_id;
-      sprintf(p->t->name,"%s%s", classtype,classname);
-      p->name = (char*)"self";
+      Parm_Setname(p,(char*)"self");
       ParmList_insert(l,p,0);
       
       if ((type->type == T_USER) && (!type->is_pointer)) {

@@ -191,7 +191,7 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
   Parm *p;
   int   i;
   char *tm;
-
+  DataType *pt;
   // Declare the return variable
 
   if ((rt->type != T_VOID) || (rt->is_pointer)) {
@@ -213,35 +213,38 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
   i = 0;
   p = ParmList_first(l);
   while (p != 0) {
-    if ((p->t->type != T_VOID) || (p->t->is_pointer))  {
+    pt = Parm_Gettype(p);
+    if ((pt->type != T_VOID) || (pt->is_pointer))  {
       char *temp = emit_local(i);
       // Figure out default values
-      if (((p->t->is_reference) && (p->defvalue)) ||
-	  ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE) && (p->defvalue))) {
-	Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp," = (", DataType_print_type(p->t), ") &", p->defvalue,0);
+      char *pvalue = Parm_Getvalue(p);
+      char *pname = Parm_Getname(p);
+      if (((pt->is_reference) && (pvalue)) ||
+	  ((pt->type == T_USER) && (p->call_type == CALL_REFERENCE) && (pvalue))) {
+	Wrapper_add_localv(f,temp, DataType_print_type(pt), temp," = (", DataType_print_type(pt), ") &", pvalue,0);
       } else {
 	char deftmp[1024];
-	if (p->defvalue) {
-	  Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp, " = (", DataType_print_type(p->t), ") ", p->defvalue, 0);
+	if (pvalue) {
+	  Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, " = (", DataType_print_type(pt), ") ", pvalue, 0);
 	} else {
-	  Wrapper_add_localv(f,temp, DataType_print_type(p->t), temp, 0);
+	  Wrapper_add_localv(f,temp, DataType_print_type(pt), temp, 0);
 	}
 
-	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,f);
+	tm = typemap_lookup((char*)"arginit", typemap_lang, pt,pname,(char*)"",temp,f);
 	if (tm) {
 	  Printv(f->code,tm,"\n",0);
 	}
       }
       // Check for ignore or default typemaps
-      tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,f);
+      tm = typemap_lookup((char*)"default",typemap_lang,pt,pname,(char*)"",temp,f);
       if (tm)
 	Printv(f->code,tm,"\n",0);
-      tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,f);
+      tm = typemap_lookup((char*)"ignore",typemap_lang,pt,pname,(char*)"",temp,f);
       if (tm) {
 	Printv(f->code,tm,"\n",0);
 	p->ignore = 1;
       }
-      tm = typemap_check((char*)"build",typemap_lang,p->t,p->name);
+      tm = typemap_check((char*)"build",typemap_lang,pt,pname);
       if (tm) {
 	p->ignore = 1;
       }
@@ -316,12 +319,13 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   i = 0;
   p = ParmList_first(l);
   while(p != 0) {
-    if ((p->t->type != T_VOID) || (p->t->is_pointer)){
-      Printf(fcall,DataType_print_arraycast(p->t));
-      if ((!p->t->is_reference) && (p->call_type & CALL_VALUE))
+    DataType *pt = Parm_Gettype(p);
+    if ((pt->type != T_VOID) || (pt->is_pointer)){
+      Printf(fcall,DataType_print_arraycast(pt));
+      if ((!pt->is_reference) && (p->call_type & CALL_VALUE))
 	Printf(fcall, "&");
       if ((!(p->call_type & CALL_VALUE)) &&
-	  ((p->t->is_reference) || (p->call_type & CALL_REFERENCE)))
+	  ((pt->is_reference) || (p->call_type & CALL_REFERENCE)))
 	Printf(fcall, "*");
       Printf(fcall, emit_local(i));
       i++;
@@ -458,9 +462,9 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
       l = NewParmList();
       p = NewParm(t,0);
-      if ((t->type == T_USER) && (!t->is_pointer)) p->t->is_pointer++;
-      p->name = new char[1];
-      p->name[0] = 0;
+      DataType *pt = Parm_Gettype(p);
+      if ((t->type == T_USER) && (!t->is_pointer)) pt->is_pointer++;
+      Parm_Setname(p,(char*)"");
       ParmList_append(l,p);
 
       new_name = copy_string(Swig_name_set(name));

@@ -21,7 +21,6 @@ extern    int           ForceExtern;
 extern    int           WrapExtern;
 extern    void         *CCode;
 extern    int           GenerateDefault;
-extern    int           type_id;
 extern    char         *objc_construct;
 extern    char         *objc_destruct;
 

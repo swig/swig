@@ -205,6 +205,131 @@ extern DOH        *Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename,
 extern char *Swig_copy_string(const char *c);
 extern void  Swig_banner(DOHFile *f);
 
+/* --- Legacy DataType interface.  This is being replaced --- */
+
+#define    T_INT       1
+#define    T_SHORT     2
+#define    T_LONG      3
+#define    T_UINT      4
+#define    T_USHORT    5
+#define    T_ULONG     6
+#define    T_UCHAR     7
+#define    T_SCHAR     8
+#define    T_BOOL      9
+#define    T_DOUBLE    10
+#define    T_FLOAT     11
+#define    T_CHAR      12
+#define    T_USER      13
+#define    T_VOID      14
+#define    T_SYMBOL    98
+#define    T_ERROR     99
+
+/* These types are now obsolete, but defined for backwards compatibility */
+
+#define    T_SINT      90
+#define    T_SSHORT    91
+#define    T_SLONG     92
+
+#define MAX_NAME 96
+
+typedef struct DataType {
+  int         type;            /* SWIG Type code */
+  char        name[MAX_NAME];  /* Name of type   */
+  char        is_pointer;      /* Is this a pointer */
+  char        implicit_ptr;    /* Implicit ptr */
+  char        is_reference;    /* A C++ reference type */
+  char        status;          /* Is this datatype read-only? */
+  char        *_qualifier;     /* A qualifier string (ie. const). */
+  char        *_arraystr;      /* String containing array part */
+  int         id;              /* type identifier (unique for every type). */
+} DataType;
+
+extern DataType *NewDataType(int type);
+extern DataType *CopyDataType(DataType *type);
+extern void      DelDataType(DataType *type);
+
+extern char     *DataType_qualifier(DataType *);
+extern void      DataType_set_qualifier(DataType *, char *q);
+extern char     *DataType_arraystr(DataType *);
+extern void      DataType_set_arraystr(DataType *, char *a);
+
+extern void      DataType_primitive(DataType *);
+extern char     *DataType_print_type(DataType *);
+extern char     *DataType_print_full(DataType *);
+extern char     *DataType_print_cast(DataType *);
+extern char     *DataType_print_mangle(DataType *);
+extern char     *DataType_print_real(DataType *, char *local);
+extern char     *DataType_print_arraycast(DataType *);
+extern char     *DataType_print_mangle_default(DataType *);
+extern void      DataType_set_mangle(char *(*m)(DataType *));
+extern int       DataType_array_dimensions(DataType *);
+extern char     *DataType_get_dimension(DataType *, int);
+
+/* Typedef support */
+extern int       DataType_typedef_add(DataType *, char *name, int mode);
+extern void      DataType_typedef_resolve(DataType *, int level);
+extern void      DataType_typedef_replace(DataType *);
+extern int       DataType_is_typedef(char *name);
+extern void      DataType_updatestatus(DataType *, int newstatus);
+extern void      DataType_init_typedef();
+extern void      DataType_merge_scope(DOHHash *h);
+extern void      DataType_new_scope(DOHHash *h);
+extern void     *DataType_collapse_scope(char *name);
+extern void      DataType_remember(DataType *);
+extern void      DataType_record_base(char *derived, char *base);
+
+extern int       type_id;
+extern void      emit_ptr_equivalence(DOHFile *tablef, DOHFile *initf);
+extern void      emit_type_table(DOHFile *out);
+extern void      typeeq_derived(char *n1, char *n2, char *cast);
+extern void      typeeq_addtypedef(char *name, char *eqname, DataType *t);
+
+#define STAT_REPLACETYPE   2
+
+/* --- Deprecated parameter list structure */
+
+#define CALL_VALUE      0x01
+#define CALL_REFERENCE  0x02
+#define CALL_OUTPUT     0x04
+
+typedef struct Parm {
+  DataType   *_type;            /* Datatype of this parameter */
+  int        call_type;         /* Call type (value or reference or value) */
+  char       *_name;            /* Name of parameter (optional) */
+  char       *_defvalue;        /* Default value (as a string) */
+  int        ignore;            /* Ignore flag */
+} Parm;
+
+extern Parm     *NewParm(DataType *type, char *n);
+extern Parm     *CopyParm(Parm *p);
+extern void      DelParm(Parm *p);
+extern void      Parm_Settype(Parm *p, DataType *t);
+extern DataType *Parm_Gettype(Parm *p);
+extern void      Parm_Setname(Parm *p, char *name);
+extern char     *Parm_Getname(Parm *p);
+extern void      Parm_Setvalue(Parm *p, char *value);
+extern char     *Parm_Getvalue(Parm *p);
+
+typedef struct ParmList {
+  int     maxparms;               /* Max parms possible in current list  */
+  Parm  **parms;                  /* Pointer to parms array */
+  int     current_parm;           /* Internal state for get_first,get_next */
+  int     nparms;                 /* Number of parms in list */
+} ParmList;
+
+extern ParmList *NewParmList();
+extern ParmList *CopyParmList(ParmList *);
+extern void      DelParmList(ParmList *);
+extern Parm     *ParmList_get(ParmList *l, int pos);
+extern void      ParmList_append(ParmList *, Parm *);
+extern void      ParmList_insert(ParmList *, Parm *, int);
+extern void      ParmList_del(ParmList *, int);
+extern int       ParmList_numarg(ParmList *);
+extern Parm     *ParmList_first(ParmList *);
+extern Parm     *ParmList_next(ParmList *);
+extern void      ParmList_print_types(ParmList*,DOHFile *f);
+extern void      ParmList_print_args(ParmList *, DOHFile *f);
+
 #endif
 
 

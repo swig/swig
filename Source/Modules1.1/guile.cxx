@@ -324,7 +324,7 @@ GUILE::emit_linkage (char *module_name)
 void
 GUILE::close (void)
 {
-  emit_ptr_equivalence (f_init);
+  emit_ptr_equivalence (f_wrappers,f_init);
   Printf (f_init, "}\n\n");
   char module_name[256];
 
@@ -428,9 +428,11 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int i = 0;
   int first_arg = 1;
   for (p = ParmList_first(l); p != 0; ++i, p = ParmList_next(l)) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
     if (p->ignore)
       continue;
-    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+    if ((pt->type != T_VOID) || (pt->is_pointer)) {
       if (!first_arg)
 	Printf(f->def,", ");
       Printf(f->def,"SCM s_%d", i);
@@ -458,28 +460,30 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
   int j = 0;
   for (i = 0; i < pcount; ++i) {
     Parm *p = ParmList_get(l,i);
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
 
     // Produce names of source and target
     sprintf(source,"s_%d",i);
     sprintf(target,"_arg%d",i);
     sprintf(argnum,"%d",i);
-    strcpy(arg,p->name);
+    strcpy(arg,pn);
 
     // Handle parameter types.
 
     if (p->ignore)
-      Printv(f->code, "/* ", p->name, " ignored... */\n", 0);
+      Printv(f->code, "/* ", pn, " ignored... */\n", 0);
     else {
       ++numargs;
       if ((tm = typemap_lookup ((char*)"in", typemap_lang,
-                                p->t, p->name, source, target, f))) {
+                                pt, pn, source, target, f))) {
 	Printv(f->code,tm,"\n",0);
         mreplace (f->code, argnum, arg, proc_name);
       }
-      else if (p->t->is_pointer)
-        get_pointer (iname, i, p->t, f, proc_name, numargs);
+      else if (pt->is_pointer)
+        get_pointer (iname, i, pt, f, proc_name, numargs);
       else {
-        throw_unhandled_guile_type_error (p->t);
+        throw_unhandled_guile_type_error (pt);
       }
       ++j;
     }
@@ -487,7 +491,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Check if there are any constraints.
 
     if ((tm = typemap_lookup ((char*)"check", typemap_lang,
-                              p->t, p->name, source, target, f))) {
+                              pt, pn, source, target, f))) {
       Printv(f->code,tm,"\n",0);
       mreplace (f->code, argnum, arg, proc_name);
     }
@@ -495,7 +499,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Pass output arguments back to the caller.
 
     if ((tm = typemap_lookup ((char*)"argout", typemap_lang,
-                              p->t, p->name, source, target, f))) {
+                              pt, pn, source, target, f))) {
       Printv(outarg,tm,"\n",0);
       mreplace (outarg, argnum, arg, proc_name);
     }
@@ -503,7 +507,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     // Free up any memory allocated for the arguments.
 
     if ((tm = typemap_lookup ((char*)"freearg", typemap_lang,
-                              p->t, p->name, source, target, f))) {
+                              pt, pn, source, target, f))) {
       Printv(cleanup, tm, "\n", 0);
       mreplace (cleanup, argnum, arg, proc_name);
     }
@@ -807,26 +811,28 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
   // Now go through and print parameters
 
   for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
 
     if (p->ignore)
       continue;
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+    if ((pt->type != T_VOID) || (pt->is_pointer)) {
 
       // Print the type.
-      Printv(usage, " <", p->t->name, 0);
-      if (p->t->is_pointer) {
-	for (int j = 0; j < (p->t->is_pointer - p->t->implicit_ptr); j++) {
+      Printv(usage, " <", pt->name, 0);
+      if (pt->is_pointer) {
+	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {
 	  Putc('*', usage);
 	}
       }
       Putc('>',usage);
 
       // Print the name if it exists.
-      if (strlen (p->name) > 0) {
-	Printv(usage," ", p->name, 0);
+      if (strlen (pn) > 0) {
+	Printv(usage," ", pn, 0);
       }
     }
   }
@@ -854,19 +860,21 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
   // go through and see if any are output.
 
   for (p = ParmList_first(l); p != 0; p = ParmList_next(l)) {
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
 
-    if (strcmp (p->name,"BOTH") && strcmp (p->name,"OUTPUT"))
+    if (strcmp (pn,"BOTH") && strcmp (pn,"OUTPUT"))
       continue;
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
+    if ((pt->type != T_VOID) || (pt->is_pointer)) {
       ++have_param;
 
       // Print the type.
-      Printv(param," $", p->t->name, 0);
-      if (p->t->is_pointer) {
-	for (j = 0; j < (p->t->is_pointer - p->t->implicit_ptr - 1); j++) {
+      Printv(param," $", pt->name, 0);
+      if (pt->is_pointer) {
+	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) {
 	  Putc('*', param);
 	}
       }

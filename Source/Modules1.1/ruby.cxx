@@ -309,7 +309,7 @@ void RUBY::initialize() {
 void RUBY::close(void) {
   // Finish off our init function
   Printf(f_init, "\n");
-  emit_ptr_equivalence(f_init);
+  emit_ptr_equivalence(f_wrappers,f_init);
   Printf(f_init,"}\n");
 }
 
@@ -428,7 +428,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   // Get number of arguments
   int numarg = ParmList_numarg(l);
-  int numopt = ParmList_numopt(l);
+  int numopt = check_numopt(l);
   int numignore = l->nparms - numarg;
   int start = 0;
   int use_self = 0;
@@ -511,6 +511,8 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 
   for (i = 0; i < pcount ; i++) {
     Parm *p = ParmList_get(l,i);
+    DataType *pt = Parm_Gettype(p);
+    char     *pn = Parm_Getname(p);
 
     // Produce string representation of source and target arguments
     int selfp = (use_self && i == 0);
@@ -529,7 +531,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       }
 
       // Get typemap for this argument
-      tm = ruby_typemap_lookup((char*)"in",p->t,p->name,source,target,f);
+      tm = ruby_typemap_lookup((char*)"in",pt,pn,source,target,f);
       if (tm) {
 	DOHString *s = NewString(tm);
 	indent(s,tab);
@@ -538,7 +540,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
 	Delete(s);
       } else {
 	Printf(stderr,"%s : Line %d. No typemapping for datatype %s\n",
-		input_file,line_number, DataType_print_type(p->t));
+		input_file,line_number, DataType_print_type(pt));
       }
       if (j >= (pcount-numopt))
 	Printv(f->code, tab4, "} \n");
@@ -546,7 +548,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check to see if there was any sort of a constaint typemap
-    tm = ruby_typemap_lookup((char*)"check",p->t,p->name,source,target);
+    tm = ruby_typemap_lookup((char*)"check",pt,pn,source,target);
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
@@ -556,7 +558,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
     }
 
     // Check if there was any cleanup code (save it for later)
-    tm = ruby_typemap_lookup((char*)"freearg",p->t,p->name,target,source);
+    tm = ruby_typemap_lookup((char*)"freearg",pt,pn,target,source);
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
@@ -565,7 +567,7 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       Delete(s);
     }
 
-    tm = ruby_typemap_lookup((char*)"argout",p->t,p->name,target,(char*)"vresult");
+    tm = ruby_typemap_lookup((char*)"argout",pt,pn,target,(char*)"vresult");
     if (tm) {
       DOHString *s = NewString(tm);
       indent(s);
