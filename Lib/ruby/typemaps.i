@@ -66,9 +66,9 @@ or you can use the %apply directive :
 */
 
 %define INPUT_TYPEMAP(type, converter)
-%typemap(in) type *INPUT(type temp), type &INPUT(type temp)
+%typemap(in) type *INPUT($*1_ltype temp), type &INPUT($*1_ltype temp)
 {
-    temp = (type) converter($input);
+    temp = ($*1_ltype) converter($input);
     $1 = &temp;
 }
 %typemap(typecheck) type *INPUT = type;
@@ -138,7 +138,7 @@ output values.
 %include "fragments.i"
 		
 %define OUTPUT_TYPEMAP(type, converter, convtype)
-%typemap(in,numinputs=0) type *OUTPUT(type temp), type &OUTPUT(type temp) "$1 = &temp;";
+%typemap(in,numinputs=0) type *OUTPUT($*1_ltype temp), type &OUTPUT($*1_ltype temp) "$1 = &temp;";
 %typemap(argout, fragment="output_helper") type *OUTPUT, type &OUTPUT {
    VALUE o = converter(convtype (*$1));
    $result = output_helper($result, o);
