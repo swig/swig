@@ -114,36 +114,14 @@ static Hash   *namewarn_hash = 0;
 
 static void
 rename_add(char *name, SwigType *decl, char *newname) {
-  Hash *n;
   if (!rename_hash) rename_hash = NewHash();
-  n = Getattr(rename_hash,name);
-  if (!n) {
-    n = NewHash();
-    Setattr(rename_hash,name,n);
-  }
-  /* Add a renaming based on the declarator */
-  if (!decl) {
-    Setattr(n,NewString("*"),newname);	
-  } else {
-    Setattr(n,Copy(decl),newname);
-  }
+  Swig_name_object_set(rename_hash,name,decl,NewString(newname));
 }
 
 static void
 namewarn_add(char *name, SwigType *decl, char *warning) {
-  Hash *n;
   if (!namewarn_hash) namewarn_hash = NewHash();
-  n = Getattr(namewarn_hash,name);
-  if (!n) {
-    n = NewHash();
-    Setattr(namewarn_hash,name,n);
-  }
-  /* Add a renaming based on the declarator */
-  if (!decl) {
-    Setattr(n,NewString("*"),warning);	
-  } else {
-    Setattr(n,Copy(decl),warning);
-  }
+  Swig_name_object_set(namewarn_hash,name,decl,NewString(warning));
 }
 
 static void
@@ -206,21 +184,9 @@ rename_inherit(String *base, String *derived) {
   }
 }
 
-static String *get_name(Hash *n, String *decl) {
-  String *rn = 0; 
-  if (!n) return 0;
-  if (decl) {
-    rn = Getattr(n,decl);
-  }
-  if (!rn) rn = Getattr(n,"*");
-  return rn;
-}
-
 /* Generate the symbol table name for an object */
-static char *make_name(char *name,String *decl) {
-  String *tname = 0;
+static char *make_name(char *name,SwigType *decl) {
   String *rn = 0;
-  Node *n = 0;
   if (yyrename) {
     String *s = yyrename;
     yyrename = 0;
@@ -229,30 +195,7 @@ static char *make_name(char *name,String *decl) {
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (!rename_hash) return name;
-
-  if (Classprefix) {
-    if (Len(Classprefix)) {
-      tname = NewStringf("%s::%s",Classprefix,name);
-      n = Getattr(rename_hash,tname);
-      rn = get_name(n,decl);
-      Delete(tname);
-    }
-    if (!rn) {
-      tname = NewStringf("*::%s",name);
-      n = Getattr(rename_hash,tname);
-      rn = get_name(n,decl);
-      Delete(tname);
-    }
-  } else {
-    tname = NewStringf("::%s",name);
-    n = Getattr(rename_hash,tname);
-    rn = get_name(n,decl);
-    Delete(tname);
-  }
-  if (!rn) {
-    n = Getattr(rename_hash,name);
-    rn = get_name(n,decl);
-  }
+  rn = Swig_name_object_get(rename_hash, Classprefix, name, decl);
   if (!rn) return name;
   return Char(rn);
 }
@@ -264,38 +207,13 @@ static String *make_unnamed() {
 }
 
 /* Generate the symbol table name for an object */
-static char *name_warning(char *name,String *decl) {
-  String *tname = 0;
+static char *name_warning(char *name,SwigType *decl) {
   String *rn = 0;
-  Node *n = 0;
   if (!name) return 0;
 
   /* Check to see if the name is in the hash */
   if (!namewarn_hash) return 0;
-
-  if (Classprefix) {
-    if (Len(Classprefix)) {
-      tname = NewStringf("%s::%s",Classprefix,name);
-      n = Getattr(namewarn_hash,tname);
-      rn = get_name(n,decl);
-      Delete(tname);
-    }
-    if (!rn) {
-      tname = NewStringf("*::%s",name);
-      n = Getattr(namewarn_hash,tname);
-      rn = get_name(n,decl);
-      Delete(tname);
-    }
-  } else {
-    tname = NewStringf("::%s",name);
-    n = Getattr(namewarn_hash,tname);
-    rn = get_name(n,decl);
-    Delete(tname);
-  }
-  if (!rn) {
-    n = Getattr(namewarn_hash,name);
-    rn = get_name(n,decl);
-  }
+  rn = Swig_name_object_get(namewarn_hash, Classprefix,name,decl);
   if (!rn) return 0;
   return Char(rn);
 }
