@@ -55,3 +55,24 @@ namespace hi  {
  
 
 %}
+
+
+%feature("director") MyClass;
+
+%inline %{
+
+typedef void NT;
+
+class MyClass {
+public:
+  virtual void method(NT *)
+  {
+  }
+  
+  virtual ~MyClass()
+  {
+  }
+  
+};
+
+%}

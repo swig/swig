@@ -1,5 +1,6 @@
 %module features
 
+
 // This testcase checks that %feature is working for templates and non user supplied constructors/destructors
 
 // If the default %exception is used it will not compile. It shouldn't get used.
@@ -69,6 +70,11 @@ public:
 %template(TemplateInt) Template<int>; 
 
 
+%exception {
+// default %exception
+}
+
+
 %newobject One::getSquare() const; 
 
 %inline %{
@@ -97,9 +103,6 @@ char *foo() {return 0;}
 %}
 
 
-%exception {
-// default %exception
-}
 
 %exception std::Vector::get {
 // get %exception
@@ -115,7 +118,7 @@ namespace std {
 #ifdef SWIG
         %extend {
             T& get(int i) {
-                throw std::out_of_range("Vector index out of range");
+                throw 1;
             }
         }
 #endif
