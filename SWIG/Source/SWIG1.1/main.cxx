@@ -77,6 +77,34 @@ static char *usage = "\
      -version        - Print SWIG version number\n\
      -help           - This output.\n\n";
 
+// -----------------------------------------------------------------------------
+// check_suffix(char *name)
+// 
+// Checks the suffix of a file to see if we should emit extern declarations.
+// -----------------------------------------------------------------------------
+
+int 
+check_suffix(char *name) {
+  char *c;
+  if (!name) return 0;
+  if (strlen(name) == 0) return 0;
+  c = name+strlen(name)-1;
+  while (c != name) {
+    if (*c == '.') break;
+    c--;
+  }
+  if (c == name) return 0;
+  if ((strcmp(c,".c") == 0) ||
+      (strcmp(c,".C") == 0) ||
+      (strcmp(c,".cc") == 0) ||
+      (strcmp(c,".cxx") == 0) ||
+      (strcmp(c,".c++") == 0) ||
+      (strcmp(c,".cpp") == 0)) {
+    return 1;
+  }
+  return 0;
+}
+
 //-----------------------------------------------------------------
 // main()
 //
@@ -342,10 +370,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     sprintf(fn_wrapper,"%s%s_wrap.wrap",output_dir,infile);
     sprintf(fn_init,"%s%s_wrap.init",output_dir,infile);
 
-    printf("%s\n", input_file);
-    printf("%s\n", fn_cpp);
-    printf("%s\n", fn_wrapper);
-    printf("%s\n", fn_init);
+    //    printf("%s\n", input_file);
+    //    printf("%s\n", fn_cpp);
+    //    printf("%s\n", fn_wrapper);
+    //    printf("%s\n", fn_init);
 
     // Define the __cplusplus symbol
     if (CPlusPlus)
@@ -440,9 +468,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     fclose(f_wrappers);
     fclose(f_init);
 
-    insert_file(fn_header, f_runtime);
-    insert_file(fn_wrapper,f_runtime);
-    insert_file(fn_init,f_runtime);
+    Swig_insert_file(fn_header, f_runtime);
+    Swig_insert_file(fn_wrapper,f_runtime);
+    Swig_insert_file(fn_init,f_runtime);
 
     fclose(f_runtime);
 

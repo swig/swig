@@ -28,7 +28,7 @@ static int            bytes_read = 0;         /* Bytes read */
  * ----------------------------------------------------------------------------- */
 
 void 
-Swig_add_directory(DOH *dirname) {
+Swig_add_directory(const DOH *dirname) {
   if (!directories) directories = NewList();
   assert(directories);
   if (!String_check(dirname)) {
@@ -86,7 +86,7 @@ Swig_search_path() {
  * ----------------------------------------------------------------------------- */
 
 FILE *
-Swig_open(DOH *name) {
+Swig_open(const DOH *name) {
   FILE    *f;
   DOH     *filename;
   DOH     *spath = 0;
@@ -143,7 +143,7 @@ Swig_read_file(FILE *f) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-Swig_include(DOH *name) {
+Swig_include(const DOH *name) {
   FILE  *f;
   DOH    *str;
   f = Swig_open(name);
@@ -157,7 +157,23 @@ Swig_include(DOH *name) {
   return str;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_insert_file()
+ *
+ * Copies the contents of a file into another file
+ * ----------------------------------------------------------------------------- */
 
+int
+Swig_insert_file(const DOH *filename, DOH *outfile) {
+  char buffer[4096];
+  int  nbytes;
+  FILE *f = Swig_open(filename);
+  if (!f) return -1;
+  while ((nbytes = Read(f,buffer,4096)) > 0) {
+    Write(outfile,buffer,nbytes);
+  }
+  return 0;
+}
 
 
 

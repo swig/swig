@@ -213,7 +213,7 @@ GUILE::headers (void)
   // Write out hex conversion functions
 
   if (!NoInclude) {
-    if (insert_file ("guile.swg", f_header) == -1) {
+    if (Swig_insert_file ("guile.swg", f_header) == -1) {
       fprintf (stderr, "SWIG : Fatal error.  ");
       fprintf (stderr, "Unable to locate 'guile.swg' in SWIG library.\n");
       SWIG_exit (1);

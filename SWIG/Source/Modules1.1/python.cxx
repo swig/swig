@@ -262,7 +262,7 @@ void PYTHON::headers(void)
   if (NoInclude) 
     fprintf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
-  if (insert_file("python.swg", f_runtime) == -1) {
+  if (Swig_insert_file("python.swg", f_runtime) == -1) {
     fprintf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
     SWIG_exit(1);
   }
@@ -1455,8 +1455,14 @@ void PYTHON::pragma(char *lang, char *cmd, char *value) {
 	} else if (strcmp(cmd,"include") == 0) {
 	  if (shadow) {
 	    if (value) {
-	      if (get_file(value,pragma_include) == -1) {
-		fprintf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number, value);
+	      FILE *f = Swig_open(value);
+	      if (!f) {
+		fprintf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
+	      } else {
+		char buffer[4096];
+		while (fgets(buffer,4095,f)) {
+		  pragma_include << buffer;
+		}
 	      }
 	    }
 	  }

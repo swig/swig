@@ -404,7 +404,7 @@ void JAVA::headers(void)
 
   // Include header file code fragment into the output
   // if (file::include("java.swg",f_header) == -1) {
-  if (insert_file("java.swg",f_header) == -1) {
+  if (Swig_insert_file("java.swg",f_header) == -1) {
     fprintf(stderr,"Fatal Error. Unable to locate 'java.swg'.\n");
     SWIG_exit(1);
   }

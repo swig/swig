@@ -28,12 +28,13 @@ extern "C" {
 
 /* --- File interface --- */
 
-extern void  Swig_add_directory(DOH *dirname);
+extern void  Swig_add_directory(const DOH *dirname);
 extern DOH  *Swig_last_file();
 extern DOH  *Swig_search_path();
-extern FILE *Swig_open(DOH *name);
+extern FILE *Swig_open(const DOH *name);
 extern DOH  *Swig_read_file(FILE *f);
-extern DOH  *Swig_include(DOH *name);
+extern DOH  *Swig_include(const DOH *name);
+extern int   Swig_insert_file(const DOH *name, DOH *outfile);
 
 #define  SWIG_FILE_DELIMETER   "/"
 
