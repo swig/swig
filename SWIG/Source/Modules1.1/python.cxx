@@ -17,6 +17,7 @@ static char cvsroot[] = "$Header$";
 static  String       *const_code = 0;
 static  String       *shadow_methods = 0;
 static  String       *module = 0;              
+static  String       *interface = 0;
 static  String       *global_name = 0;
 static  int           shadow = 0;
 static  int           have_defarg = 0;
@@ -38,6 +39,7 @@ static char *usage = (char *)"\
 Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -module name    - Set module name\n\
+     -interface name - Set the lib name\n\
      -keyword        - Use keyword arguments\n\
      -noopt          - No optimized shadows (pre 1.5.2)\n\
      -opt            - Optimized shadow classes (1.5.2 or later)\n\
@@ -71,6 +73,18 @@ PYTHON::parse_args(int argc, char *argv[]) {
 	    } else {
 	      Swig_arg_error();
 	    } 
+
+	  /* Added edz@bsn.com */
+          } else if(strcmp(argv[i],"-interface") == 0) {
+            if (argv[i+1]) {
+              interface = NewString(argv[i+1]);
+              Swig_mark_arg(i);
+              Swig_mark_arg(i+1);
+              i++;
+            } else {
+              Swig_arg_error();
+            }
+	  /* end added */
 	  } else if (strcmp(argv[i],"-globals") == 0) {
 	    if (argv[i+1]) {
 	      global_name = NewString(argv[i+1]);
@@ -190,14 +204,22 @@ PYTHON::initialize(void) {
   }
   /* If shadow classing is enabled, we're going to change the module name to "modulec" */
   if (shadow) {
+
     sprintf(filen,"%s%s.py", output_dir, Char(module));
+    // If we don't have an interface then change the module name X to Xc
+    if (! interface)
     Append(module,"c");
     if ((f_shadow = fopen(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit(0);
     }
     Printf(f_shadow,"# This file was created automatically by SWIG.\n");
-    Printf(f_shadow,"import %s\n", module);
+    Printf(f_shadow,"import %s\n", interface ? interface : module);
+
+    // Include some information in the code 
+    Printf(f_header,"\n/*-----------------------------------------------\n              @(target):= %s.so\n\
+  ------------------------------------------------*/\n", interface ? interface : module);
+
     if (!noopt)
       Printf(f_shadow,"import new\n");
   }

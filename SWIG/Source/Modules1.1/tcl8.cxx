@@ -116,7 +116,7 @@ TCL8::parse() {
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
-  if (Swig_insert_file("common.swg",f_runtime) == -1) {
+  /*  if (Swig_insert_file("common.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
@@ -124,6 +124,7 @@ TCL8::parse() {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
     SWIG_exit(1);
   }
+  */
   yyparse();
 }
 
@@ -543,12 +544,14 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     Printv(set->def, "static char *_swig_", SwigType_manglestr(t), "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
 
     Printv(get->def, "static char *_swig_", SwigType_manglestr(t), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
-    SwigType_add_pointer(t);
-    Wrapper_add_localv(get,"addr",SwigType_lstr(t,0),"addr",0);
-    Wrapper_add_localv(set,"addr",SwigType_lstr(t,0),"addr",0);
-    Printv(set->code, "addr = (", SwigType_lstr(t,0), ") clientData;\n", 0);
-    Printv(get->code, "addr = (", SwigType_lstr(t,0), ") clientData;\n", 0);
-    SwigType_del_pointer(t);
+    SwigType *lt = Swig_clocal_type(t);
+    SwigType_add_pointer(lt);
+    Wrapper_add_localv(get,"addr",SwigType_lstr(lt,"addr"),0);
+    Wrapper_add_localv(set,"addr",SwigType_lstr(lt,"addr"),0);
+    Printv(set->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
+    Printv(get->code, "addr = (", SwigType_lstr(lt,0), ") clientData;\n", 0);
+    SwigType_del_pointer(lt);
+    Delete(lt);
     Wrapper_add_local(set, "value", "char *value");
     Wrapper_add_local(get, "value", "Tcl_Obj *value");
 

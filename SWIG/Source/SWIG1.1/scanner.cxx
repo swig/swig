@@ -1007,9 +1007,9 @@ extern "C" int yylex(void) {
 
 	// Misc keywords
 
-	if (strcmp(yytext,"static") == 0) return(STATIC);
 	if (strcmp(yytext,"extern") == 0) return(EXTERN);
 	if (strcmp(yytext,"const") == 0) return(CONST);
+	if (strcmp(yytext,"static") == 0) return(STATIC);
 	if (strcmp(yytext,"struct") == 0) return(STRUCT);
 	if (strcmp(yytext,"union") == 0) return(UNION);
 	if (strcmp(yytext,"enum") == 0) return(ENUM);
@@ -1031,6 +1031,8 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%init") == 0)  return(INIT);
 	  if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
 	  if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
+	  if (strcmp(yytext,"%header") == 0) return(HEADER);
+	  if (strcmp(yytext,"%insert") == 0) return(INSERT);
 	  if (strcmp(yytext,"%readonly") == 0) return(READONLY);
 	  if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
 	  if (strcmp(yytext,"%name") == 0) return(NAME);

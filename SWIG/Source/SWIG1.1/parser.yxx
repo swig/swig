@@ -475,9 +475,9 @@ static void dump_nested(char *parent) {
 };
 
 %token <id> ID 
-%token <id> HBLOCK WRAPPER POUND RUNTIME
+%token <id> HBLOCK WRAPPER POUND RUNTIME HEADER
 %token <id> STRING
-%token <loc> INCLUDE IMPORT WEXTERN SWIGMACRO
+%token <loc> INCLUDE IMPORT WEXTERN SWIGMACRO INSERT
 %token <id> NUM_INT NUM_FLOAT CHARCONST NUM_UNSIGNED NUM_LONG NUM_ULONG
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_TYPEDEF TYPE_RAW
@@ -841,13 +841,19 @@ statement      : INCLUDE STRING LBRACE {
 
                | HBLOCK {
 		 if (!WrapExtern) {
-		   init_language();
 		   $1[strlen($1) - 1] = 0;
 //		   Printf(f_header,"#line %d \"%s\"\n", start_line, input_file);
 		   Printf(f_header, "%s\n", $1);
 		 }
 	       }
 
+               | HEADER HBLOCK {
+                 if (!WrapExtern) {
+		   $2[strlen($1) - 2] = 0;
+		   Printf(f_header, "%s\n", $2);
+		 }
+	       }
+ 
 /* Super-secret undocumented for people who really know what's going on feature */
 
                | WRAPPER HBLOCK {
@@ -875,6 +881,28 @@ statement      : INCLUDE STRING LBRACE {
 		 }
 	       }
 
+               | INSERT LPAREN ID RPAREN STRING {
+	         if (!WrapExtern) {
+		   File *f = 0;
+		   if (strcmp($3,"headers") == 0) {
+		     f = f_header;
+		   } else if (strcmp($3,"runtime") == 0) {
+		     f = f_runtime;
+		   } else if (strcmp($3,"wrappers") == 0) {
+		     f = f_wrappers;
+		   } else if (strcmp($3,"init") == 0) {
+		     f = f_init;
+		   }
+		   if (!f) {
+		     Printf(stderr,"%s:%d: Unknown target '%s' for %%insert directive.\n", input_file, line_number, $3);
+		   } else {
+		     if (Swig_insert_file($5,f) < 0) {
+		       Printf(stderr,"%s:%d: Couldn't find '%s'. Possible installation problem.\n", input_file, line_number, $5);
+		       SWIG_exit(1);
+		     }
+		   }
+		 }
+               }
 /* Inline block */
                | INLINE HBLOCK {
 		 if (!WrapExtern) {
@@ -2383,7 +2411,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (Active_type) Delete(Active_type);
 		  Active_type = Copy($1);
-		  add_pointers($1, $2.is_pointer + 1);
+		  add_pointers($1, $2.is_pointer);
 		  if ($2.is_reference) SwigType_add_reference($1);
 		  SwigType_push($1,ArrayString);
 		  iname = make_name($2.id);
@@ -3309,4 +3337,8 @@ void yyerror (char *) {
   //  Printf(stderr,"%s : Line %d. Syntax error.\n", input_file, line_number);
   //  error_recover();
 }
+
+
+
+
 
