@@ -7,9 +7,121 @@
 %runtime "common.swg"
 %runtime "swigtcl8.swg"
 
-// Typemap for character array returns
+/* -----------------------------------------------------------------------------
+ *                     --- standard typemaps ---
+ * ----------------------------------------------------------------------------- */
 
-%typemap(tcl8,out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
+/* Input arguments */
+
+/* For primitive types, the Tcl module uses a special function
+
+   SWIG_GetArgs(Tcl_Interp *, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...)
+
+   The fmt field contains special conversion characters i,h,l,b,f,d,c,p, and o
+   that are used to marshal different types.   The parse codes below correspond
+   to these special codes */
+
+%typemap(in,parse="i") int, unsigned int "";
+%typemap(in,parse="h") short, unsigned short "";
+%typemap(in,parse="l") long, unsigned long "";
+%typemap(in,parse="b") signed char, unsigned char "";
+%typemap(in,parse="f") float "";
+%typemap(in,parse="d") double "";
+%typemap(in,parse="c") char "";
+%typemap(in,parse="s") char * "";
+
+/* The "p" parse code is used for normal pointer conversion */
+%typemap(in,parse="p") SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "";
+
+/* For bools, we first convert to an integer and then to a bool.  There
+   is no guarantee that a bool is the same size as an int so we have to do this */
+
+%typemap(in) bool (int tempb) "if (Tcl_GetIntFromObj(interp,$input,&tempb) == TCL_ERROR) return TCL_ERROR;
+                               $1 = (bool) tempb;";
+
+
+/* Enum parsing.  Note: internally SWIG converts enums to/from integers so it's okay to use
+   the "i" parse code here */
+
+%typemap(in,parse="i") enum SWIGTYPE "";
+
+/* Unknown type.  We convert from a pointer */
+%typemap(in) SWIGTYPE ($&1_ltype argp) "if ((SWIG_ConvertPtr(interp, $input, (void **) &argp, $&1_descriptor) != TCL_OK)) return TCL_ERROR;
+                                        $1 = *argp; ";
+
+
+
+/* Special constant variations.   These typemaps can be used to parse objects that are both constants
+   or values. A Hash table lookup will occur. */
+
+%typemap(in,parse="I") int CONSTANT, unsigned int CONSTANT "";
+%typemap(in,parse="H") short CONSTANT, unsigned short CONSTANT "";
+%typemap(in,parse="L") long CONSTANT, unsigned long CONSTANT "";
+%typemap(in,parse="B") signed char CONSTANT, unsigned char CONSTANT "";
+%typemap(in,parse="F") float CONSTANT "";
+%typemap(in,parse="D") double CONSTANT "";
+%typemap(in,parse="C") char CONSTANT "";
+%typemap(in,parse="S") char * CONSTANT "";
+%typemap(in,parse="P") SWIGTYPE *CONSTANT, SWIGTYPE &CONSTANT, SWIGTYPE CONSTANT [] "";
+%typemap(in,parse="I") enum SWIGTYPE CONSTANT "";
+
+/* Output values */
+
+%typemap(out) bool, int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, enum SWIGTYPE
+     "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) $1));";
+
+%typemap(out) char 
+     "Tcl_SetObjResult(interp,Tcl_NewStringObj(&$1,1));";
+
+%typemap(out) float, double
+     "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) $1));";
+
+%typemap(out) char *
+     "Tcl_SetObjResult(interp,Tcl_NewStringObj($1,-1));";
+
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
+     "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) $1, $1_descriptor));";
+
+%typemap(out) void "";
+
+/* Primitive types--return by value */
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype($1);
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor));
+}
+#else
+{
+  $&1_ltype resultptr;
+  resultptr = ($&1_ltype) malloc(sizeof($1_type));
+  memmove(resultptr, &$1, sizeof($1_type));
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj((void*) resultptr, $&1_descriptor));
+}
+#endif
+
+/* Special typemap for character array returns */
+%typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
+
+
+/* --- Constants --- */
+
+%typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
+       { SWIG_TCL_INT,     (char *)"$name", (long) $value, 0, 0, 0}
+
+%typemap(consttab) float, double
+       { SWIG_TCL_FLOAT,   (char*)"$name", 0, (double) $value, 0, 0}
+
+%typemap(consttab) char, char *
+       { SWIG_TCL_STRING,  (char*)"$name", 0, 0, (void *)"$value", 0}
+
+%typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+       { SWIG_TCL_POINTER, (char*)"$name", 0, 0, (void *)$value, &$1_descriptor}
+
+%typemap(consttab) SWIGTYPE (CLASS::*) 
+       { SWIG_TCL_BINARY,  (char *)"$name", sizeof($type), 0, (void *)&$value, &$1_descriptor}
+
 
 // Some special reserved words in classes
 

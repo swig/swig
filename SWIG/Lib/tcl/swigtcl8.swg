@@ -7,10 +7,29 @@
 #include <tcl.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Constant table */
+
+#define SWIG_TCL_INT     1
+#define SWIG_TCL_FLOAT   2
+#define SWIG_TCL_STRING  3
+#define SWIG_TCL_POINTER 4
+#define SWIG_TCL_BINARY  5
+
+/* Constant information structure */
+typedef struct swig_const_info {
+    int type;
+    char *name;
+    long lvalue;
+    double dvalue;
+    void   *pvalue;
+    swig_type_info **ptype;
+} swig_const_info;
 
 #ifdef SWIG_NOINCLUDE
 SWIGEXPORT(char *)    SWIG_PackData(char *c, void *ptr, int sz);
@@ -25,6 +44,9 @@ SWIGEXPORT(int)       SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const c
 SWIGEXPORT(char *)    SWIG_PointerTypeFromString(char *c);
 SWIGEXPORT(void)      SWIG_Acquire(void *ptr);
 SWIGEXPORT(int)       SWIG_Disown(void *ptr);
+SWIGEXPORT(void)      SWIG_InstallConstants(Tcl_Interp *interp, struct swig_const_info constants[]);
+SWIGEXPORT(Tcl_Obj *) SWIG_GetConstant(const char *key);
+
 #else
 
 /* Pack binary data into a string */
@@ -182,16 +204,72 @@ SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   return Tcl_NewStringObj(result,-1);
 }
 
+static Tcl_HashTable   swigconstTable;
+static int             swigconstTableinit = 0;
+
+/* Install Constants */
+SWIGRUNTIME(void)
+SWIG_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
+  int i;
+  Tcl_Obj *obj;
+  Tcl_HashEntry *entryPtr;
+  int            newobj;
+
+  if (!swigconstTableinit) {
+    Tcl_InitHashTable(&swigconstTable, TCL_STRING_KEYS);
+    swigconstTableinit = 1;
+  }
+  for (i = 0; constants[i].type; i++) {
+    switch(constants[i].type) {
+    case SWIG_TCL_INT:
+      obj = Tcl_NewIntObj(constants[i].lvalue);
+      break;
+    case SWIG_TCL_FLOAT:
+      obj = Tcl_NewDoubleObj(constants[i].dvalue);
+      break;
+    case SWIG_TCL_STRING:
+      obj = Tcl_NewStringObj((char *) constants[i].pvalue,-1);
+      break;
+    case SWIG_TCL_POINTER:
+      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype);
+      break;
+    case SWIG_TCL_BINARY:
+      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
+      break;
+    default:
+      obj = 0;
+      break;
+    }
+    if (obj) {
+      Tcl_ObjSetVar2(interp,Tcl_NewStringObj(constants[i].name,-1), NULL, obj, TCL_GLOBAL_ONLY);
+      entryPtr = Tcl_CreateHashEntry(&swigconstTable, constants[i].name, &newobj);
+      Tcl_SetHashValue(entryPtr, (ClientData) obj);
+    }
+  }
+}
+
+SWIGRUNTIME(Tcl_Obj *)
+SWIG_GetConstant(const char *key) {
+  Tcl_HashEntry *entryPtr;
+  if (!swigconstTableinit) return 0;
+  entryPtr = Tcl_FindHashEntry(&swigconstTable, key);
+  if (entryPtr) {
+    return (Tcl_Obj *) Tcl_GetHashValue(entryPtr);
+  }
+  printf("Searching %s\n", key);
+  return 0;
+}
+
 /* Get arguments */
 SWIGRUNTIME(int)
 SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...)
 {
   int        argno = 0, opt = 0, tempi;
-  int        us = 0;
   double     tempd;
   const char *c;
   va_list    ap;
   void      *vptr;
+  Tcl_Obj   *obj = 0;
   swig_type_info *ty;
 
   va_start(ap,fmt);
@@ -209,47 +287,49 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
 	return TCL_OK;
       }
     }
+
     vptr = va_arg(ap,void *);
     if (vptr) {
-      us = 0;
-      if (*c == 'u') {
-	us = 1;
-	c++;
+      if (isupper(*c)) {
+	obj = SWIG_GetConstant(Tcl_GetStringFromObj(objv[argno+1],0));
+	if (!obj) obj = objv[argno+1];
+      } else {
+	obj = objv[argno+1];
       }
       switch(*c) {
-      case 'i':
-      case 'l':
-      case 'h':
-      case 'b':
-	if (Tcl_GetIntFromObj(interp,objv[argno+1],&tempi) != TCL_OK) goto argerror;
-	if (*c == 'i') *((int *)vptr) = tempi;
-	else if (*c == 'l') *((long *)vptr) = tempi;
-	else if (*c == 'h') *((short*)vptr) = tempi;
-	else if (*c == 'b') *((unsigned char *)vptr) = tempi;
+      case 'i': case 'I':
+      case 'l': case 'L':
+      case 'h': case 'H':
+      case 'b': case 'B':
+	if (Tcl_GetIntFromObj(interp,obj,&tempi) != TCL_OK) goto argerror;
+	if ((*c == 'i') || (*c == 'I')) *((int *)vptr) = tempi;
+	else if ((*c == 'l') || (*c == 'L')) *((long *)vptr) = tempi;
+	else if ((*c == 'h') || (*c == 'H')) *((short*)vptr) = tempi;
+	else if ((*c == 'b') || (*c == 'B')) *((unsigned char *)vptr) = tempi;
 	break;
-      case 'f':
-      case 'd':
-	if (Tcl_GetDoubleFromObj(interp,objv[argno+1],&tempd) != TCL_OK) goto argerror;
-	if (*c == 'f') *((float *) vptr) = tempd;
-	else if (*c == 'd') *((double*) vptr) = tempd;
+      case 'f': case 'F':
+      case 'd': case 'D':
+	if (Tcl_GetDoubleFromObj(interp,obj,&tempd) != TCL_OK) goto argerror;
+	if ((*c == 'f') || (*c == 'F')) *((float *) vptr) = tempd;
+	else if ((*c == 'd') || (*c == 'D')) *((double*) vptr) = tempd;
 	break;
-      case 's':
+      case 's': case 'S':
 	if (*(c+1) == '#') {
 	  int *vlptr = (int *) va_arg(ap, void *);
-	  *((char **) vptr) = Tcl_GetStringFromObj(objv[argno+1], vlptr);
+	  *((char **) vptr) = Tcl_GetStringFromObj(obj, vlptr);
 	  c++;
 	} else {
-	  *((char **)vptr) = Tcl_GetStringFromObj(objv[argno+1],NULL);
+	  *((char **)vptr) = Tcl_GetStringFromObj(obj,NULL);
 	}
 	break;
-      case 'c':
-	*((char *)vptr) = *(Tcl_GetStringFromObj(objv[argno+1],NULL));
+      case 'c': case 'C':
+	*((char *)vptr) = *(Tcl_GetStringFromObj(obj,NULL));
 	break;
-      case 'p':
+      case 'p': case 'P':
 	ty = (swig_type_info *) va_arg(ap, void *);
-	if (SWIG_ConvertPtr(interp, objv[argno+1], (void **) vptr, ty) == TCL_ERROR) goto argerror;
+	if (SWIG_ConvertPtr(interp, obj, (void **) vptr, ty) == TCL_ERROR) goto argerror;
 	break;
-      case 'o':
+      case 'o': case 'O':
 	*((Tcl_Obj **)vptr) = objv[argno+1];
 	break;
       default:
@@ -267,7 +347,7 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
  argerror:
   {
     char temp[32];
-    sprintf(temp,"%d", argno);
+    sprintf(temp,"%d", argno+1);
     Tcl_AppendResult(interp,strchr(fmt,':'), " argument ", temp, NULL);
     va_end(ap);
     return TCL_ERROR;
@@ -325,7 +405,6 @@ typedef struct {
   char * (*get)(ClientData, Tcl_Interp *, char *, char *, int);
   char * (*set)(ClientData, Tcl_Interp *, char *, char *, int);
 } swig_var_info;
-
 
 #ifdef __cplusplus
 }
