@@ -650,7 +650,7 @@ Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   set_nextSibling(parms,p);
 
   /* If the type is a pointer or reference.  We mark it with a special wrap:disown attribute */
-  if (SwigType_check_decl(ty,"p.")) {
+  if (SwigType_check_decl(type,"p.")) {
     Setattr(p,"wrap:disown","1");
   }
   Delete(p);
