@@ -1,6 +1,8 @@
 #include "example.h"
 #include <stdio.h>
 
+int x = 42;
+char *s = "Test";
 
 void Sync::printer(void) {
 
