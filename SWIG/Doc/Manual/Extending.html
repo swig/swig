@@ -55,10 +55,13 @@ This chapter describes SWIG's internal organization and the process by which
 new target languages can be developed.    First, a brief word of warning---SWIG
 has been undergoing a massive redevelopment effort that has focused extensively
 on its internal organization.   The information in this chapter is mostly up to
-date, but changes are ongoing.   Expect to find a few inconsistencies.
+date, but changes are ongoing.   Expect a few inconsistencies.
+
+<p>
+Also, this chapter is not meant to be a hand-holding tutorial.  As a starting point,
+you should probably look at one of SWIG's existing modules.
 
 <a name="n3"></a><H2>20.2 Prerequisites</H2>
-
 
 In order to extend SWIG, it is useful to have the following background:
 
@@ -76,6 +79,12 @@ compilers course) to better understand certain parts of the system.  A
 number of books will also be useful.  For example, "The C Programming
 Language" by Kernighan and Ritchie (a.k.a, "K&R") and the "C++
 Annotated Reference Manual" by Stroustrup (a.k.a, the "ARM") will be of great use.
+
+<p>
+Also, it is useful to keep in mind that SWIG primarily operates as an
+extension of the C++ <em>type</em> system.  At first glance, this might not be
+obvious, but almost all SWIG directives as well as the low-level generation of
+wrapper code are driven by C++ datatypes.
 
 <a name="n4"></a><H2>20.3 The Big Picture</H2>
 
@@ -95,8 +104,9 @@ mechanism that is fully integrated with the C++ type system.
 generation, most declarations can be annotated with special features.
 For example, you can make a variable read-only, you can ignore a
 declaration, you can rename a member function, you can add exception
-handling, and so forth.  Virtually all of these features are are built on top of a low-level
+handling, and so forth.  Virtually all of these customizations are built on top of a low-level
 declaration annotator that can attach arbitrary attributes to any declaration.
+Code generation modules can look for these attributes to guide the wrapping process.
 
 <p>
 <li><b>Class extension</b>. SWIG allows classes and structures to be extended with new
@@ -132,18 +142,19 @@ does not produce any output nor does it interact with the target
 language module as it runs.  SWIG is not a one-pass compiler.
 
 <p>
-<li>A type normalization pass is made. This adjusts all of the C++ typenames to properly
+<li>A type-checking pass is made. This adjusts all of the C++ typenames to properly
 handle namespaces, typedefs, nested classes, and other issues related to type scoping.
 
 <p>
-<li>A semantic pass is made on the parse tree to collect information related to
-properties of the C++ interface.   For example, this pass would determine whether or not a class allows
-a default constructor.
+<li>A semantic pass is made on the parse tree to collect information
+related to properties of the C++ interface.  For example, this pass
+would determine whether or not a class allows a default constructor.
 
 <p>
-<li>A code generation pass is made using a specific target language module.  This phase
-is responsible for generating the actual wrapper code.  All of SWIG's user-defined modules are
-invoked during this stage of compilation.
+<li>A code generation pass is made using a specific target language
+module.  This phase is responsible for generating the actual wrapper
+code.  All of SWIG's user-defined modules are invoked during this
+stage of compilation.
 </ul>
 
 The next few sections briefly describe some of these stages.
@@ -199,8 +210,8 @@ of <tt>swig.swg</tt> looks like this:
 </blockquote>
 
 The fact that most of the standard SWIG directives are macros is
-intended to simplify the implementation of the parser.  For instance,
-rather than having to support dozens of special grammar rules, it is
+intended to simplify the implementation of the internals.  For instance,
+rather than having to support dozens of special directives, it is
 easier to have a few basic primitives such as <tt>%feature</tt> or
 <tt>%insert</tt>.
 
@@ -214,17 +225,17 @@ file depends on the target language and is usually something like <tt>python.swg
 or <tt>perl5.swg</tt>.
 
 <p>
-As a debugging aide, the text that SWIG feeds to its C++ parser can be obtained by running
-<tt>swig -E interface.i</tt>.   This output probably isn't too useful in general, but it
-will show how macros have been expanded as well as everything else that goes into
-the low-level construction of the wrapper code. 
+As a debugging aide, the text that SWIG feeds to its C++ parser can be
+obtained by running <tt>swig -E interface.i</tt>.  This output
+probably isn't too useful in general, but it will show how macros have
+been expanded as well as everything else that goes into the low-level
+construction of the wrapper code.
 
 <a name="n7"></a><H3>20.4.2 Parsing</H3>
 
 
 The current C++ parser handles a subset of C++.  Most incompatibilities with C are due to
-subtle aspects of how SWIG parses declarations.  Specifically, SWIG expects all C/C++ declarations
-to follow this general form:
+subtle aspects of how SWIG parses declarations.  Specifically, SWIG expects all C/C++ declarations to follow this general form:
 
 <blockquote>
 <pre>
@@ -243,9 +254,9 @@ body of code enclosed in braces <tt>{ ... }</tt>.
 
 <p>
 This declaration format covers most common C++ declarations. However, the C++ standard
-is somewhat more flexible in the placement of the pieces.  For example, it is technically legal, although
-unusual to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
-doesn't bother to deal with this (although it could probably be modified if there is sufficient demand).
+is somewhat more flexible in the placement of the parts.  For example, it is technically legal, although
+uncommon to write something like <tt>int typedef const a</tt> in your program.   SWIG simply
+doesn't bother to deal with this case.
 
 <P>
 The other significant difference between C++ and SWIG is in the
@@ -268,15 +279,12 @@ instead of an identifier.
 SWIG does not operate in this manner--any legal identifier can be used
 as a type name.  The reason for this is primarily motivated by the use
 of SWIG with partially defined data.  Specifically, 
-SWIG is supposed to be easy to use on interfaces with missing type information.  On a
-more practical level however, the introduction of typenames would
-greatly complicate other parts of SWIG such as the parsing of SWIG
-directives (many of which also rely upon identifier names).
+SWIG is supposed to be easy to use on interfaces with missing type information.
 
 <p>
 Because of the different treatment of typenames, the most serious
-limitation of the SWIG parser is that it can't process type declarations in
-which an extra (and unnecessary) grouping operator is used.  For example:
+limitation of the SWIG parser is that it can't process type declarations where
+an extra (and unnecessary) grouping operator is used.  For example:
 
 <blockquote>
 <pre>
@@ -310,7 +318,6 @@ arguments).
 
 <a name="n8"></a><H3>20.4.3 Parse Trees</H3>
 
-
 The SWIG parser produces a complete parse tree of the input file before any wrapper code
 is actually generated.  Each item in the tree is known as a "Node".   Each node is identified
 by a symbolic tag.   Furthermore, a node may have an arbitrary number of children.
@@ -332,122 +339,7 @@ $ <b>swig -c++ -python -dump_tags example.i</b>
  . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
  . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
  . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:20)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:21)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:22)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:23)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:23)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:24)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:24)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:25)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:25)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:26)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:26)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:29)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:29)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:32)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:32)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:42)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:45)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:45)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:46)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:46)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:49)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:49)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:59)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:61)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:62)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:62)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:63)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:63)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:66)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:69)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:69)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:72)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:72)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:75)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:84)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:84)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:105)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:114)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:124)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:124)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:137)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:137)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:154)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:154)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:164)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:164)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:173)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:182)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:182)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:191)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:191)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:200)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:200)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:205)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:208)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:211)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:214)
- . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:217)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:217)
+...
  . top . include (example.i:6)
  . top . include . module (example.i:2)
  . top . include . insert (example.i:6)
@@ -674,13 +566,12 @@ $ swig -c++ -python -dump_tree example.i
 
 <a name="n9"></a><H3>20.4.4 Attribute namespaces</H3>
 
-
-When attributes are added to parse tree nodes, their names may be
-prepended with a namespace qualifier.  For example, the attributes
+Attributes of parse tree nodes are often prepended with a namespace qualifier.
+For example, the attributes
 <tt>sym:name</tt> and <tt>sym:symtab</tt> are attributes related to
 symbol table management and are prefixed with <tt>sym:</tt>.  As a
-general rule, only very general attributes such as types, names, and so
-forth appear without a prefix.
+general rule, only those attributes which are directly related to the raw declaration
+appear without a prefix (type, name, declarator, etc.).
 
 <p>
 Target language modules may add additional attributes to nodes to assist the generation
@@ -689,7 +580,6 @@ that matches the name of the target language.  For example, <tt>python:foo</tt> 
 <tt>perl:foo</tt>.
 
 <a name="n10"></a><H3>20.4.5 Symbol Tables</H3>
-
 
 During parsing, all symbols are managed in the space of the target
 language.  The <tt>sym:name</tt> attribute of each node contains the symbol name
@@ -770,7 +660,6 @@ example.i:5. Previous declaration is foo_i(int )
 
 <a name="n11"></a><H3>20.4.6 The %feature directive</H3>
 
-
 A number of SWIG directives such as <tt>%exception</tt> are implemented using the
 low-level <tt>%feature</tt> directive.  For example:
 
@@ -795,7 +684,7 @@ public:
 
 The behavior of <tt>%feature</tt> is very easy to describe--it simply
 attaches a new attribute to any parse tree node that matches the
-given prototype.   When a feature is added, it shows up in the <tt>feature:</tt> namespace.
+given prototype.   When a feature is added, it shows up as an attribute in the <tt>feature:</tt> namespace.
 You can see this when running with the <tt>-dump_tree</tt> option.   For example:
 
 <blockquote>
@@ -813,12 +702,12 @@ You can see this when running with the <tt>-dump_tree</tt> option.   For example
 </blockquote>
 
 Feature names are completely arbitrary and a target language module can be
-programmed to respond to any name that it wishes.  The data stored in a feature attribute
-is usually just a raw unparsed string.   For example, the exception code above is simply
+programmed to respond to any feature name that it wants to recognized.  The 
+data stored in a feature attribute is usually just a raw unparsed string.   
+For example, the exception code above is simply
 stored without any modifications.
 
 <a name="n12"></a><H3>20.4.7 Code Generation</H3>
-
 
 Language modules work by defining handler functions that know how to respond to
 different types of parse-tree nodes.  These handlers simply look at the
@@ -853,9 +742,7 @@ sym:name    : bar
 </pre>
 </blockquote>
 
-To produce wrapper code, this "cdecl" node undergoes a number of transformations.  First, the
-node is recognized as a function declaration.   This adjusts some of the type information--specifically,
-the declarator is joined with the base datatype to produce this:
+To produce wrapper code, this "cdecl" node undergoes a number of transformations.  First, the node is recognized as a function declaration.   This adjusts some of the type information--specifically, the declarator is joined with the base datatype to produce this:
 
 <blockquote>
 <pre>
@@ -929,7 +816,6 @@ The role of these functions is described shortly.
 
 <a name="n13"></a><H3>20.4.8 SWIG and XML</H3>
 
-
 Much of SWIG's current parser design was originally motivated by
 interest in using XML to represent SWIG parse trees.  Although XML is
 not currently used in any direct manner, the parse tree structure, use
@@ -938,19 +824,17 @@ by aspects of XML parsing.  Therefore, in trying to understand SWIG's
 internal data structures, it may be useful keep XML in the back of
 your mind as a model.
 
-<p>
-<B>**** Under Construction ****</b>
-
-
-
 <a name="n14"></a><H2>20.5 Primitive Data Structures</H2>
 
-
 Most of SWIG is constructed using three basic data structures:
-strings, hashes, and lists.  These data structures are dynamic like
+strings, hashes, and lists.  These data structures are dynamic in same way as
 similar structures found in many scripting languages.  For instance,
 you can have containers (lists and hash tables) of mixed types and
 certain operations are polymorphic.
+
+<p>
+This section briefly describes the basic structures so that later
+sections of this chapter make more sense.
 
 <p>
 When describing the low-level API, the following type name conventions are
@@ -965,7 +849,7 @@ used:
 <li><tt>Object</tt>.  Any object (string, hash, list, etc.)
 </ul>
 
-In most cases, other typenames are simply aliases for one of these 
+In most cases, other typenames in the source are aliases for one of these 
 primitive types.   Specifically:
 
 <blockquote>
@@ -980,7 +864,6 @@ typedef Hash   Typetab;
 </blockquote>
 
 <a name="n15"></a><H3>20.5.1 Strings</H3>
-
 
 <p>
 <b><tt>String *NewString(const String_or_char *val)</tt></b>
@@ -1019,13 +902,13 @@ Returns the length of the string.
 <p>
 <b><tt>char *Char(String_or_char *s)</tt></b>
 <blockquote>
-Returns a pointer to the first character in the string.
+Returns a pointer to the first character in a string.
 </blockquote>
 
 <p>
 <b><tt>void Append(String *s, String_or_char *t)</tt></b>
 <blockquote>
-Appends <tt>t</tt> to the end of <tt>s</tt>.
+Appends <tt>t</tt> to the end of string <tt>s</tt>.
 </blockquote>
 
 <p>
@@ -1087,9 +970,7 @@ DOH_REPLACE_FIRST     - Replace first occurrence only.
 Returns the number of replacements made (if any).
 </blockquote>
 
-
 <a name="n16"></a><H3>20.5.2 Hashes</H3>
-
 
 <p>
 <b><tt>Hash *NewHash()</tt></b>
@@ -1164,7 +1045,6 @@ Returns the list of hash table keys.
 
 
 <a name="n17"></a><H3>20.5.3 Lists</H3>
-
 
 <p>
 <b><tt>List *NewList()</tt></b>
@@ -1249,7 +1129,6 @@ and is used to create a String object.
 
 <a name="n18"></a><H3>20.5.4 Common operations</H3>
 
-
 The following operations are applicable to all datatypes.
 
 <p>
@@ -1292,9 +1171,9 @@ Gets the line number associated with <tt>x</tt>.
 
 <a name="n19"></a><H3>20.5.5 I/O</H3>
 
-
 Special I/O functions are used for all internal I/O.  These operations
-work on C <tt>FILE *</tt> objects, special File objects, and String objects.
+work on C <tt>FILE *</tt> objects, String objects, and special <tt>File</tt> objects
+(which are merely a wrapper around <tt>FILE *</tt>).
 
 <p>
 <b><tt>int Printf(String_or_FILE *f, const char *fmt, ...)</tt></b>
@@ -1368,7 +1247,7 @@ SWIG containers (lists, hashes, etc.).
 <p>
 <b><tt>File *NewFileFromFile(FILE *f)</tt></b>
 <blockquote>
-Create a File object wrapper around an existing <tt>FILE</tt> object.
+Create a File object wrapper around an existing <tt>FILE *</tt> object.
 </blockquote>
 
 <p>
@@ -1378,7 +1257,7 @@ Closes a file.  Has no effect on strings.
 </blockquote>
 
 The use of the above I/O functions and strings play a critical role in SWIG.   It is
-common to see small code fragments of code generated kind of like this:
+common to see small code fragments of code generated using code like this:
 
 <blockquote>
 <pre>
@@ -1396,15 +1275,202 @@ Printf(f, "%s\n", s);
 
 Similarly, the preprocessor and parser all operate on string-files.
 
-<a name="n20"></a><H2>20.6 Type system</H2>
+<h2>Navigating and manipulating parse trees</h2>
 
+Parse trees are built as collections of hash tables.   Each node is a hash table in which
+arbitrary attributes can be stored.  Certain attributes in the hash table provide links to
+other parse tree nodes.   The following macros can be used to move around the parse tree.
+
+<p>
+<b><tt>String *nodeType(Node *n)</tt></b>
+<blockquote>
+Returns the node type tag as a string.  The returned string indicates the type of parse
+tree node.
+</blockquote>
+
+<p>
+<b><tt>Node *nextSibling(Node *n)</tt></b>
+<blockquote>
+Returns the next node in the parse tree.  For example, the next C declaration.
+</blockquote>
+
+<p>
+<b><tt>Node *previousSibling(Node *n)</tt></b>
+<blockquote>
+Returns the previous node in the parse tree.  For example, the previous C declaration.
+</blockquote>
+
+<p>
+<b><tt>Node *firstChild(Node *n)</tt></b>
+<blockquote>
+Returns the first child node.  For example, if <tt>n</tt> was a C++ class node, this would
+return the node for the first class member.
+</blockquote>
+
+<p>
+<b><tt>Node *lastChild(Node *n)</tt></b>
+<blockquote>
+Returns the last child node.   You might use this if you wanted to append a new
+node to the of a class.
+</blockquote>
+
+<p>
+<b><tt>Node *parentNode(Node *n)</tt></b>
+<blockquote>
+Returns the parent of node <tt>n</tt>.  Use this to move up the pass tree.
+</blockquote>
+
+The following macros can be used to change all of the above attributes.  
+Normally, these functions are only used by the parser.  Changing them without
+knowing what you are doing is likely to be dangerous.
+
+<p>
+<b><tt>void set_nodeType(Node *n, const String_or_char)</tt></b>
+<blockquote>
+Change the node type.
+tree node.
+</blockquote>
+
+<p>
+<b><tt>void set_nextSibling(Node *n, Node *s)</tt></b>
+<blockquote>
+Set the next sibling.
+</blockquote>
+
+<p>
+<b><tt>void set_previousSibling(Node *n, Node *s)</tt></b>
+<blockquote>
+Set the previous sibling.
+</blockquote>
+
+<p>
+<b><tt>void set_firstChild(Node *n, Node *c)</tt></b>
+<blockquote>
+Set the first child node.
+</blockquote>
+
+<p>
+<b><tt>void set_lastChild(Node *n, Node *c)</tt></b>
+<blockquote>
+Set the last child node.
+</blockquote>
+
+<p>
+<b><tt>void set_parentNode(Node *n, Node *p)</tt></b>
+<blockquote>
+Set the parent node.
+</blockquote>
+
+The following utility functions are used to alter the parse tree (at your own risk)
+
+<p>
+<b><tt>void appendChild(Node *parent, Node *child)</tt></b>
+<blockquote>
+Append a child to <tt>parent</tt>.  The appended node becomes the last child.
+</blockquote>
+
+<p>
+<b><tt>void deleteNode(Node *node)</tt></b>
+<blockquote>
+Deletes a node from the parse tree.  Deletion reconnects siblings and properly updates
+the parent so that sibling nodes are unaffected.
+</blockquote>
+
+<h2>Working with attributes</h2>
+
+Since parse tree nodes are just hash tables, attributes are accessed using the <tt>Getattr()</tt>,
+<tt>Setattr()</tt>, and <tt>Delattr()</tt> operations.  For example:
+
+<blockquote>
+<pre>
+int functionHandler(Node *n) {
+    String *name    = Getattr(n,"name");
+    String *symname = Getattr(n,"sym:name");
+    SwigType *type  = Getattr(n,"type");
+    ...
+}
+</pre>
+</blockquote>
+
+New attributes can be freely attached to a node as needed.   However, when new attributes
+are attached during code generation, they should be prepended with a namespace prefix. 
+For example:
+
+<blockquote>
+<pre>
+...
+Setattr(n,"python:docstring", doc);     /* Store docstring */
+...
+</pre>
+</blockquote>
+
+Changing the values of existing attributes is allowed and is sometimes done to implement
+node transformations.   However, if a function/method modifies a node, it is required to restore
+modified attributes to their original values.  To simplify the task of saving/restoring attributes,
+the following functions are used:
+
+<p>
+<b><tt>int Swig_save(Node **n, const char *name1, const char *name2, ..., NULL)</tt></b>
+<blockquote>
+Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>. 
+Copies of the attributes are stored internally on a stack in the SWIG core.   If an attribute
+name refers to a non-existent attribute, the function merely records the fact that the attribute
+is missing.
+</blockquote>
+
+<p>
+<b><tt>int Swig_restore(Node **n)</tt></b>
+<blockquote>
+Restores the attributes saved by the previous call to <tt>Swig_save()</tt>.  Those
+attributes that were supplied to <tt>Swig_save()</tt> will be restored to their
+original values.
+</blockquote>
+
+The <tt>Swig_save()</tt> and <tt>Swig_restore()</tt> functions must always be used as a pair.
+That is, every call to <tt>Swig_save()</tt> must have a matching call to <tt>Swig_restore()</tt>.
+Calls can be nested if necessary.  Here is an example that shows how the functions might be used:
+
+<blockquote>
+<pre>
+int variableHandler(Node *n) {
+    Swig_save(&n,"type","sym:name",0);
+    String *symname = Getattr(n,"sym:name");
+    SwigType *type  = Getattr(n,"type");
+    ...
+    Append(symname,"_global");         // Change symbol name
+    SwigType_add_pointer(type);        // Add pointer
+    ...
+    generate wrappers
+    ...
+    Swig_restore(&n);                  // Restore original values
+    return SWIG_OK;
+}
+</pre>
+</blockquote>
+
+<p>
+<b><tt>int Swig_require(Node **n, const char *name1, const char *name2, ..., NULL)</tt></b>
+<blockquote>
+This is an enhanced version of <tt>Swig_save()</tt> that adds error checking.  If an attribute
+name is not present in <tt>n</tt>, a failed assertion results and SWIG terminates with a fatal
+error.  Optionally, if an attribute name is specified as "*<em>name</em>", a copy of the
+attribute is saved as with <tt>Swig_save()</tt>.  If an attribute is specified as "?<em>name</em>",
+the attribute is optional.   <tt>Swig_restore()</tt> must always be called after using this
+function.
+</blockquote>
+
+The <tt>Swig_save()</tt>, <tt>Swig_require()</tt>, and <tt>Swig_restore()</tt> have
+built-in consistency checks that verify proper nesting of calls.  The node pointer <tt>Node **n</tt>
+must refer to a stack-allocated local variable.  The use of these functions is
+generally only required when performing node transformations. 
+
+<a name="n20"></a><H2>20.6 Type system</H2>
 
 SWIG implements the complete C++ type system including typedef, inheritance,
 pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 
 <a name="n21"></a><H3>20.6.1 String encoding of types</H3>
-
 
 <p>
 All types in SWIG consist of a base datatype and a collection of type
@@ -1493,7 +1559,6 @@ string concatenation.
 
 <a name="n22"></a><H3>20.6.2 Type construction</H3>
 
-
 The following functions are used to construct types.  You should use
 these functions instead of trying to build the type strings yourself.
 
@@ -1538,6 +1603,14 @@ Adds a pointer to a member of class <tt>cls</tt> to <tt>ty</tt>.
 <b><tt>void SwigType_add_function(SwigType *ty, ParmList *p)</tt></b>
 <blockquote>
 Adds a function to <tt>ty</tt>.  <tt>p</tt> is a linked-list of parameter
+nodes as generated by the parser. See the section on parameter lists
+for details about the representation.
+</blockquote>
+
+<p>
+<b><tt>void SwigType_add_template(SwigType *ty, ParmList *p)</tt></b>
+<blockquote>
+Adds a template to <tt>ty</tt>.  <tt>p</tt> is a linked-list of parameter
 nodes as generated by the parser. See the section on parameter lists
 for details about the representation.
 </blockquote>
@@ -1740,20 +1813,385 @@ Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
 will consist only of primitive typenames.
 </blockquote>
 
+<h3>Lvalues</h3>
+
+When generating wrapper code, it is necessary to emit datatypes that can
+be used on the left-hand side of an assignment operator (an lvalue). However,
+not all C datatypes can be used in this way---especially arrays and 
+const-qualified types.  To generate a type that can be used as an lvalue,
+use the following function:
+
+<p>
+<b><tt>SwigType *SwigType_ltype(SwigType *ty)</tt></b>
+<blockquote>
+Converts type <tt>ty</tt> to a type that can be used as an lvalue in
+assignment.  The resulting type is stripped of qualifiers and arrays are
+converted to a pointers.  
+</blockquote>
+
+The creation of lvalues is fully aware of typedef and other aspects
+of the type system.  Therefore, the creation of an lvalue may result in
+unexpected results.  Here are a few examples:
+
+<blockquote>
+<pre>
+typedef double Matrix4[4][4];
+Matrix4 x;    // type = 'Matrix4', ltype='p.a(4).double'
+
+typedef const char * Literal;
+Literal y;    // type = 'Literal', ltype='p.char'
+</pre>
+</blockquote>
+
 <a name="n25"></a><H3>20.6.5 Output functions</H3>
 
+The following functions produce strings that are suitable for output.
 
-<a name="n26"></a><H2>20.7 Parse Tree Navigation</H2>
+<p>
+<b><tt>String *SwigType_str(SwigType *ty, String_or_char *id = 0)</tt></b>
+<blockquote>
+Generates a C string for a datatype.  <tt>id</tt> is an optional declarator.
+For example, if <tt>ty</tt> is "p.f(int).int" and <tt>id</tt> is "foo", then
+this function produces "<tt>int (*foo)(int)</tt>".   This function is
+used to convert string-encoded types back into a form that is valid C syntax.
+</blockquote>
 
+<p>
+<b><tt>String *SwigType_lstr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<blockquote>
+This is the same as <tt>SwigType_str()</tt> except that the result
+is generated from the type's lvalue (as generated from SwigType_ltype).
+</blockquote>
+
+<p>
+<b><tt>String *SwigType_lcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<blockquote>
+Generates a casting operation that converts from type <tt>ty</tt> to its
+lvalue.  <tt>id</tt> is an optional name to include in the cast.  For example,
+if <tt>ty</tt> is "<tt>q(const).p.char</tt>" and <tt>id</tt> is "<tt>foo</tt>",
+this function produces the string "<tt>(char *) foo</tt>".
+</blockquote>
+
+<p>
+<b><tt>String *SwigType_rcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<blockquote>
+Generates a casting operation that converts from a type's lvalue to a
+type equivalent to <tt>ty</tt>. <tt>id</tt> is an optional name to
+include in the cast.  For example, if <tt>ty</tt> is
+"<tt>q(const).p.char</tt>" and <tt>id</tt> is "<tt>foo</tt>", this
+function produces the string "<tt>(const char *) foo</tt>".
+</blockquote>
+
+<p>
+<b><tt>String *SwigType_manglestr(SwigType *ty)</tt></b>
+<blockquote>
+Generates a mangled string encoding of type <tt>ty</tt>.   The
+mangled string only contains characters that are part of a valid
+C identifier.   The resulting string is used in various parts of
+SWIG, but is most commonly associated with type-descriptor objects
+that appear in wrappers (e.g., <tt>SWIGTYPE_p_double</tt>).
+</blockquote>
+
+<h2>Parameters</h2>
+
+Several type-related functions involve parameter lists.  These include
+functions and templates.  Parameter list are represented as a list of
+nodes with the following attributes:
+
+<blockquote>
+<pre>
+"type"        -  Parameter type  (required)
+"name"        -  Parameter name  (optional)
+"value"       -  Initializer     (optional)
+</pre>
+</blockquote>
+
+Typically parameters are denoted in the source by using a typename of
+<tt>Parm *</tt> or <tt>ParmList *</tt>.  To walk a parameter list, simply use
+code like this:
+
+<blockquote>
+<pre>
+Parm *parms;
+Parm *p;
+for (p = parms; p; p = nextSibling(p)) {
+    SwigType *type  = Getattr(p,"type");
+    String   *name  = Getattr(p,"name");
+    String   *value = Getattr(p,"value");
+    ...
+}
+</pre>
+</blockquote>
+
+Note: this code is exactly the same as what you would use to walk parse tree nodes.
+
+<p>
+An empty list of parameters is denoted by a NULL pointer.
+
+<p>
+Since parameter lists are fairly common, the following utility functions are provided
+to manipulate them:
+
+<p>
+<b><tt>Parm  *CopyParm(Parm *p);</tt></b>
+<blockquote>
+Copies a single parameter.
+</blockquote>
+
+<p>
+<b><tt>ParmList  *CopyParmList(ParmList *p);</tt></b>
+<blockquote>
+Copies an entire list of parameters.
+</blockquote>
+
+<p>
+<b><tt>int ParmList_len(ParmList *p);</tt></b>
+<blockquote>
+Returns the number of parameters in a parameter list.
+</blockquote>
+
+<p>
+<b><tt>String *ParmList_str(ParmList *p);</tt></b>
+<blockquote>
+Converts a parameter list into a C string.  For example,
+produces a string like "<tt>(int *p, int n, double x);</tt>".
+</blockquote>
+
+<p>
+<b><tt>String *ParmList_protostr(ParmList *p);</tt></b>
+<blockquote>
+The same as <tt>ParmList_str()</tt> except that parameter names are not
+included.  Used to emit prototypes.
+</blockquote>
+
+<p>
+<b><tt>int ParmList_numrequired(ParmList *p);</tt></b>
+<blockquote>
+Returns the number of required (non-optional) arguments in <tt>p</tt>.
+</blockquote>
 
 <a name="n27"></a><H2>20.8 Writing a Language Module</H2>
 
+This section briefly outlines the steps needed to create a bare-bones
+language module.  For more advanced techniques, you should look at the implementation
+of existing modules.   Since the code is relatively easy to read, this section
+describes the creation of a minimal Python module.   You should be able to extrapolate
+this to other languages.
+
+<h3>Execution model</h3>
+
+Code generation modules are defined by inheriting from the <tt>Language</tt> class,
+currently defined in the <tt>Source/Modules1.1</tt> directory of SWIG.  Starting from
+the parsing of command line options, all aspects of code generation are controlled by
+different methods of the <tt>Language</tt> that must be defined by your module.
+
+<h3>Starting out</h3>
+
+To define a new module, first create a dummy class like this:
+
+<blockquote>
+<pre>
+class Python : public Language {
+public:
+    virtual void main(int argc, char *argv[]);
+    virtual int  top(Node *n);
+};
+</pre>
+</blockquote>
+
+Give your language class a reasonable name (usually the same as the target language).
+Create a header file such as "<tt>python.h</tt>" that contains the class declaration.
+Create a file "<tt>python.cxx</tt>" that contains the class definition.   For now, it
+is probably easier to place all of these files in the <tt>Source/Modules1.1</tt> directory
+of the SWIG distribution.
+
+<p>
+In the <tt>.cxx</tt> file, provide dummy implementations of the two methods.
+
+<blockquote>
+<pre>
+#include "swig11.h'
+#include "python.h"
+
+void Python::main(int argc, char *argv[]) {
+   printf("I'm the Python module.\n");
+}
+
+int Python::top(Node *n) {
+   printf("Generating code.\n");
+   return SWIG_OK;
+}
+</blockquote>
+</pre>
+
+<p>
+To add your module to SWIG, modify the file <tt>Source/Modules1.1/Makefile.in</tt> to
+include the additional source files.   In addition, modify the file
+<tt>Source/Modules1.1/swigmain.cxx</tt> with an additional command line option that
+activites the module.    Read the source---it's straightforward.
+
+<p>
+Rebuild SWIG with your module added.    Try running it with the command-line option that
+activates your module.  For example, <tt>swig -python foo.i</tt>.   The messages from your
+new module should appear.
+
+<h3>Command line options</h3>
+
+When SWIG starts, the command line options are passed to your language module.  This occurs 
+before any other processing occurs (preprocessing, parsing, etc.).   To capture the
+command line options, simply use code similar to this:
+
+<blockquote>
+<pre>
+void Language::main(int argc, char *argv[]) {
+  for (int i = 1; i < argc; i++) {
+      if (argv[i]) {
+          if(strcmp(argv[i],"-interface") == 0) {
+            if (argv[i+1]) {
+              interface = NewString(argv[i+1]);
+              Swig_mark_arg(i);
+              Swig_mark_arg(i+1);
+              i++;
+            } else {
+              Swig_arg_error();
+            }
+	  } else if (strcmp(argv[i],"-globals") == 0) {
+	    if (argv[i+1]) {
+	      global_name = NewString(argv[i+1]);
+	      Swig_mark_arg(i);
+	      Swig_mark_arg(i+1);
+	      i++;
+	    } else {
+	      Swig_arg_error();
+	    }
+	  } else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
+	    shadow = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-keyword") == 0) {
+	    use_kw = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-help") == 0) {
+	    fputs(usage,stderr);
+	  }
+          ...
+      }
+  }
+}
+</pre>
+</blockquote>
+
+The exact set of options depends on what you want to do in your module.   Generally,
+you would use the options to change code generation modes or to print diagnostic information.
+
+<p>
+If a module recognizes an option, it should always call <tt>Swig_mark_arg()</tt>
+to mark the option as valid.   If you forget to do this, SWIG will terminate with an
+unrecognized command line option error.
+
+<h3>Configuration and preprocessing</h3>
+
+In addition to looking at command line options, the <tt>main()</tt> method is responsible
+for some initial configuration of the SWIG library and preprocessor.   To do this,
+insert some code like this:
+
+<blockquote>
+<pre>
+void main(int argc, char *argv[]) {
+   ... command line options ...
+
+   /* Set language-specific subdirectory in SWIG library */
+   SWIG_library_directory("python"); 
+
+   /* Set language-specific preprocessing symbol */
+   Preprocessor_define("SWIGPYTHON 1", 0);
+   
+   /* Set language-specific configuration file */
+   SWIG_config_file("python.swg");
+
+   /* Set typemap language (historical) */
+   SWIG_typemap_lang("python");
+}
+</pre>
+</blockquote>
+
+The above code does several things--it registers the name of the 
+language module with the core, it supplies some preprocessor macro definitions
+for use in input files (so that they can determine the target language), and
+it registers a start-up file.   In this case, the file <tt>python.swg</tt> will
+be parsed before any part of the user-supplied input file.
+
+<p>
+Before proceeding any further, create a directory for your module in the SWIG
+library (The <tt>Lib</tt> directory).   Now, create a configuration file in the
+directory.  For example, <tt>python.swg</tt>.  
+
+<p>
+Just to review, your language module should now consist of three files--a header
+file <tt>python.h</tt>, an implementation file <tt>python.cxx</tt>, and a
+configuration file <tt>python.swg</tt>.
+
+<h3>Entry point to code generation</h3>
+
+SWIG is a multi-pass compiler.  Once the <tt>main()</tt> method has
+been invoked, the language module does not execute again until
+preprocessing, parsing, and a variety of semantic analysis passes have
+been performed.  When the core is ready to start generating wrappers,
+it invokes the <tt>top()</tt> method of your language class.  The
+argument to <tt>top</tt> is a single parse tree node that corresponds to
+the top of the entire parse tree.
+
+<p>
+To get the code generation process started, the <tt>top()</tt> procedure needs
+to do several things:
+
+<ul>
+<li>Initialize the wrapper code output.
+<li>Set the module name.
+<li>Emit common initialization code.
+<li>Emit code for all of the child nodes.
+<li>Finalize the wrapper module and cleanup.
+</ul>
+
+<p>
+An outline of <tt>top()</tt> might be as follows:
+
+<blockquote>
+<pre>
+int Python::top(Node *n) {
+
+   /* Get the module name */
+   String *module = Getattr(n,"name");  
+
+   /* Get the output file name */
+   String *outfile = Getattr(n,"outfile");
+
+   /* Initialize I/O (see next section) */
+   ...
+
+   /* Output module initialization code */
+   ...
+
+   /* Emit code for children */
+   Language::top(n); 
+
+   ...
+   /* Cleanup files */
+   ...
+
+   return SWIG_OK;
+}
+</blockquote>
+</pre>
+
+<h3>Module I/O and wrapper skeleton</h3>
+
+<h3>Low-level code generators</h3>
 
 <a name="n28"></a><H2>20.9 Typemaps</H2>
 
+<h3>Proxy classes</h3>
 
 <a name="n29"></a><H2>20.10 Guide to parse tree nodes</H2>
-
 
 This section describes the different parse tree nodes and their attributes.
 
