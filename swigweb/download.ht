@@ -3,10 +3,10 @@ Download SWIG
 <img src="images/download.png" alt="Download">
 
 <p>
-Soureforge is now the primary site for SWIG distributions.
+SoureForge is now the primary site for SWIG distributions.
 
 <ul>
-<Li><a href="http://sourceforge.net/project/showfiles.php?group_id=1645">All releases</a>.
+<li><a href="http://sourceforge.net/project/showfiles.php?group_id=1645">All releases</a>.
 <li><a href="ftp://swig.sourceforge.net/pub/swig/">Older stuff</a>.
 </ul>
 
@@ -33,20 +33,21 @@ Note : If you received SWIG on CD-ROM, you may want to upgrade to the latest rel
 
 <h3> The Latest Release </h3>
 
-<b>Note (1/18/00) </b>SWIG1.1p5 has a number of compilation issues
+<b>Note (2000/01/18) </b>SWIG1.1p5 has a number of compilation issues
 with ANSI C++ compilers and will probably generate a lot of compiler
 warnings.  Sorry.
 
 <p>
 <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG 1.3.6</a>
-is the latest development release (7/10/01). View the <a href="release.html">release notes</a>. 
+is the latest development release (2001/07/10). View the <a href="release.html">release notes</a>. A Macintosh port (macswig-1.3.6) and a Windows executable (swigwin-1.3.6) are also available from the 
+SourceForge <a href="http://sourceforge.net/project/showfiles.php?group_id=1645">releases</a> area.
 
 <p>
 <a href="http://prdownloads.sourceforge.net/swig/swig1.1p5.tar.gz">SWIG 1.1p5</a>
-is the latest stable release (2/5/98). 
+is the latest stable release (1998/02/05). 
 
 <p>
-<a href="http://prdownloads.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1-883</a> is the last maintenance version of SWIG1.1 (12/99).  This isn't really a
+<a href="http://prdownloads.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1-883</a> is the last maintenance version of SWIG1.1 (December 1999).  This isn't really a
 "release", but the last nightly build that was completed before 
 development work shifted to SWIG1.3.  It fixes a number of bugs in
 SWIG1.1p5.
