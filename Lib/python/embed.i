@@ -56,18 +56,18 @@ extern "C" {
 /* Now define our own version of it.
    Hopefully someone does not have more than 1000 built-in modules */
 
-struct _inittab _SwigImport_Inittab[1000];       
+struct _inittab SWIG_Import_Inittab[1000];       
 
 static int  swig_num_modules = 0;
 
 /* Function for adding modules to Python */
 
 static void swig_add_module(char *name, void (*initfunc)()) {
-	_SwigImport_Inittab[swig_num_modules].name = name;
-	_SwigImport_Inittab[swig_num_modules].initfunc = initfunc;
+	SWIG_Import_Inittab[swig_num_modules].name = name;
+	SWIG_Import_Inittab[swig_num_modules].initfunc = initfunc;
 	swig_num_modules++;
-	_SwigImport_Inittab[swig_num_modules].name = (char *) 0;
-	_SwigImport_Inittab[swig_num_modules].initfunc = 0;
+	SWIG_Import_Inittab[swig_num_modules].name = (char *) 0;
+	SWIG_Import_Inittab[swig_num_modules].initfunc = 0;
 }				
 
 /* Function to add all of Python's build in modules to our interpreter */
@@ -104,7 +104,7 @@ extern struct _inittab *PyImport_Inittab;
 int
 main(int argc, char **argv) {
 	swig_add_builtin();
-	PyImport_Inittab = _SwigImport_Inittab;
+	PyImport_Inittab = SWIG_Import_Inittab;
 	return Py_Main(argc,argv);
 }
 
