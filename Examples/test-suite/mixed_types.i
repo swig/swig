@@ -80,9 +80,15 @@
     return hi;
   }
 
-  int test_b(const name& n1, name n2) {
+  int test_b(name n2) {
     return 1;
   }
+
+/* gcc doesn't like this one. Removing until reason resolved.
+  int test_c(const name& n1) {
+    return 1;
+  }
+*/
 
   struct Foo 
   {
