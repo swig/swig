@@ -11,7 +11,7 @@
 # Note the # and " are escaped
 HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage swig16.png --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: maketoc check generate all clean
+.PHONY: maketoc check generate all clean validate test
 
 all: maketoc check generate
 
@@ -54,6 +54,7 @@ test:
 	  grep "href=\".*\.html\"" Sections.html
 	  all=`sed '/^#/d' chapters`; for a in $$all; do grep -l "href=\".*\.html\"" $$a; done;
 
+# Validating using the WDG offline validator - http://www.htmlhelp.com/tools/validator/offline/
 validate:
-	  all=`sed '/^#/d' chapters`; for a in $$all; do /home/william/builds/wdg_validate/validate --emacs $$a; done;
+	  all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
 
