@@ -574,9 +574,9 @@ SWIG_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
       }
       if (strcmp(attrname, "-thisown") == 0) {
 	if (SWIG_Thisown(inst->thisvalue)) {
-	  Tcl_SetResult(interp,"1",TCL_STATIC);
+	  Tcl_SetResult(interp,(char*)"1",TCL_STATIC);
 	} else {
-	  Tcl_SetResult(interp,"0",TCL_STATIC);
+	  Tcl_SetResult(interp,(char*)"0",TCL_STATIC);
 	}
 	return TCL_OK;
       }
