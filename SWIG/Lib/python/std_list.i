@@ -124,7 +124,10 @@ namespace std {
     typedef value_type reference;
     typedef value_type const_reference;
 
+    %traits_swigtype(T);
+
     %fragment(SWIG_Traits_frag(std::list<T* >), "header",
+	      fragment=SWIG_Traits_frag(T),
 	      fragment="StdListTraits") {
       namespace swigpy {
 	template <>  struct traits<std::list<T* > > {
