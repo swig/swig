@@ -297,6 +297,24 @@ Swig_symbol_current() {
   return current_symtab;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_alias()
+ *
+ * Makes an alias for a symbol in the global symbol table.
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
+  String *qname;
+  qname = Swig_symbol_qualifiedscopename(current_symtab);
+  if (qname) {
+    Printf(qname,"::%s", aliasname);
+  } else {
+    qname = NewString(aliasname);
+  }
+  Setattr(symtabs,qname,s);
+}
+
 /* ----------------------------------------------------------------------------- 
  * Swig_symbol_add()
  *

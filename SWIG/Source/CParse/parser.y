@@ -2151,6 +2151,12 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
                 $1 = Swig_symbol_current();
 		h = Swig_symbol_clookup($2,0);
 		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
+		  if (Getattr(h,"alias")) {
+		    h = Getattr(h,"namespace");
+		    Printf(stderr, "%s:%d. Namespace alias '%s' not allowed here. Assuming '%s'\n",
+			   input_file, line_number, $2, Getattr(h,"name"));
+		    $2 = Getattr(h,"name");
+		  }
 		  Swig_symbol_setscope(Getattr(h,"symtab"));
 		} else {
 		  Swig_symbol_newscope();
@@ -2187,10 +2193,30 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       add_symbols($$);
              }
-             | NAMESPACE idcolon EQUAL idcolon SEMI {
+             | NAMESPACE ID EQUAL idcolon SEMI {
+	       /* Namespace alias */
+	       Node *n;
 	       $$ = new_node("namespace");
 	       Setattr($$,"name",$2);
 	       Setattr($$,"alias",$4);
+	       n = Swig_symbol_clookup($4,0);
+	       if (!n) {
+		 Printf(stderr,"%s:%d. Unknown namespace '%s'\n", input_file, line_number, $4);
+		 $$ = 0;
+	       } else {
+		 if (Strcmp(nodeType(n),"namespace") != 0) {
+		   Printf(stderr,"%s:%d. '%s' is not a namespace\n",input_file, line_number, $4);
+		   $$ = 0;
+		 } else {
+		   while (Getattr(n,"alias")) {
+		     n = Getattr(n,"namespace");
+		   }
+		   Setattr($$,"namespace",n);
+		   add_symbols($$);
+		   /* Set up a scope alias */
+		   Swig_symbol_alias($2,Getattr(n,"symtab"));
+		 }
+	       }
              }
              ;
 

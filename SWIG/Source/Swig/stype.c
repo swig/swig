@@ -1257,7 +1257,6 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
   String *tdname;
   String *sname;
   Hash   *s;
-
   init_scopes();
   if (Getattr(type_scope,name)) return -1;
 

@@ -263,6 +263,7 @@ extern Node   *Swig_symbol_clookup_local(String_or_char *symname, Symtab *tab);
 extern String *Swig_symbol_qualified(Node *node);
 extern Node   *Swig_symbol_isoverloaded(Node *node);
 extern void    Swig_symbol_remove(Node *node);
+extern void    Swig_symbol_alias(String_or_char *aliasname, Symtab *tab);
 
 /* --- Parameters and Parameter Lists --- */
 

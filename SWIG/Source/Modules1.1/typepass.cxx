@@ -34,13 +34,54 @@ class TypePass : public Dispatcher {
   Hash   *classhash;
   List  *normalize;
 
-  /* Normalize a parameter list */
+  /* Normalize a type. Replaces type with fully qualified version */
 
+  void normalize_type(SwigType *ty) {
+#ifdef OLD    
+    /* If the type is qualified, we might have to check for an alias */
+    if (Strstr(ty,"::")) {
+      /* Try to resolve the type by looking in the symbol table    */
+
+      /* Note: All typedef and class definitions are in the symbol table
+         so this is guaranteed to exist if it is a valid type */
+
+      /* Note: There might be some issues with types not processed yet */
+
+      Node *n = Swig_symbol_clookup(ty,0);
+      if (n) {
+	String *name = Getattr(n,"name");
+	if (name) {
+	  Clear(ty);	  
+	  /* If type is fully qualified, we simply use the name */
+	  if (Strstr(name,"::")) {
+	    Append(ty,name);
+	  } else {
+	    /* The type is not fully qualified yet.  We need to use the scope name */
+	    String *qn = Swig_symbol_qualified(n);
+	    if (Len(qn)) {
+	      Printf(ty,"%s::%s",qn,name);
+	    } else {
+	      Append(ty,name);
+	    }
+	  }
+	  return;
+	}
+      }
+    }
+#endif
+    
+    SwigType *qty = SwigType_typedef_qualified(ty);
+    Clear(ty);
+    Append(ty,qty);
+    Delete(qty);
+  }
+  
+  /* Normalize a parameter list */
+  
   void normalize_parms(ParmList *p) {
     while (p) {
       SwigType *ty = Getattr(p,"type");
-      SwigType *qty = SwigType_typedef_qualified(ty);
-      Setattr(p,"type", qty);
+      normalize_type(ty);
       p = nextSibling(p);
     }
   }
@@ -53,6 +94,14 @@ class TypePass : public Dispatcher {
     }
   }
 
+  /* Walk through entries in normalize list and patch them up */
+  void normalize_list() {
+      SwigType *t;
+      for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
+	normalize_type(t);
+      }
+  }
+  
   /* generate C++ inheritance type-relationships */
   void cplus_inherit_types(Node *cls, String *clsname) {
 
@@ -68,15 +117,11 @@ class TypePass : public Dispatcher {
 	  String *sname = bname;
 	  /* Typedef resolve the name */
 	  while (sname) {
-	    bcls = Getattr(classhash,sname);
-	    Symtab *bscp = Swig_symbol_cscope(sname, Getattr(cls,"sym:symtab"));
-	    if (bscp) {
-	      String *qname = Swig_symbol_qualifiedscopename(bscp);
-	      if (qname) {
-		bcls = Getattr(classhash,qname);
-		Delete(qname);
-	      }
-	      if (bcls) {
+	    bcls = Swig_symbol_clookup(sname,0);
+	    if (bcls) {
+	      if (Strcmp(nodeType(bcls),"class") != 0) {
+		bcls = 0;
+	      } else {
 		if (!ilist) ilist = NewList();
 		Append(ilist,bcls);
 		break;
@@ -189,18 +234,10 @@ public:
     inclass = n;
     emit_children(n);
 
-    /* Walk through entries in normalize list and patch them up */
-    {
-      SwigType *t;
-      for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
-	SwigType *nt = SwigType_typedef_qualified(t);
-	Clear(t);
-	Append(t,nt);
-	Delete(nt);
-      }
-      Delete(normalize);
-      normalize = olist;
-    }
+    /* Normalize deferred types */
+    normalize_list();
+    Delete(normalize);
+    normalize = olist;
 
     inclass = oldinclass;
     Hash *ts = SwigType_pop_scope();
@@ -245,18 +282,9 @@ public:
       nsname = Swig_symbol_qualified(Getattr(n,"symtab"));
       emit_children(n);
 
-      /* Walk through entries in normalize list and patch them up */
-      {
-	SwigType *t;
-	for (t = Firstitem(normalize); t; t = Nextitem(normalize)) {
-	  SwigType *nt = SwigType_typedef_qualified(t);
-	  Clear(t);
-	  Append(t,nt);
-	  Delete(nt);
-	}
-	Delete(normalize);
-	normalize = olist;
-      }
+      normalize_list();
+      Delete(normalize);
+      normalize = olist;
 
       Delete(nsname);
       nsname = oldnsname;
@@ -291,10 +319,11 @@ public:
 
     /* Normalize types. */
     SwigType *ty = Getattr(n,"type");
-    Setattr(n,"type",SwigType_typedef_qualified(ty));
+    normalize_type(ty);
     SwigType *decl = Getattr(n,"decl");
-    if (decl) 
-      Setattr(n,"decl", SwigType_typedef_qualified(decl));
+    if (decl) {
+      normalize_type(decl);
+    }
     normalize_parms(Getattr(n,"parms"));
 
     String *storage = Getattr(n,"storage");
