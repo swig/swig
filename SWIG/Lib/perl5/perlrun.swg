@@ -124,14 +124,49 @@ extern "C" {
 #ifndef PERL_OBJECT
 extern int SWIG_ConvertPtr(SV *, void **, swig_type_info *, int flags);
 extern void SWIG_MakePtr(SV *, void *, swig_type_info *, int flags);
+swig_type_info *SWIG_TypeCheckRV(SV *rv, swig_type_info *ty);
 #else
 extern int SWIG_ConvertPtr_(CPerlObj *, SV *, void **, swig_type_info *,int flags);
 extern void SWIG_MakePtr_(CPerlObj *, SV *, void *, swig_type_info *, int flags);
+swig_type_info * SWIG_TypeCheckRV_(CPerlObj *pPerl, SV *rv, swig_type_info *ty);
 #define SWIG_ConvertPtr(a,b,c,d) SWIG_ConvertPtr_(pPerl,a,b,c,d)
 #define SWIG_MakePtr(a,b,c,d) SWIG_MakePtr_(pPerl,a,b,c,d)
+#define SWIG_TypeCheckRV(a,b,c) SWIG_TypeCheckRV_(pPerl,a,b,c)
 #endif
 
 #else
+ 
+#ifndef PERL_OBJECT
+SWIGRUNTIME(swig_type_info *)
+SWIG_TypeCheckRV(SV *rv, swig_type_info *ty)
+#else
+#define SWIG_TypeCheckRV(a,b,c) SWIG_TypeCheckRV_(pPerl,a,b,c)
+SWIGRUNTIME(swig_type_info *)
+SWIG_TypeCheckRV_(CPerlObj *pPerl, SV *rv, swig_type_info *ty)
+#endif
+{
+  swig_type_info *s;
+  if (!ty) return 0;        /* Void pointer */
+  s = ty->next;             /* First element always just a name */
+  do {
+    if (sv_derived_from(rv, s->name)) {
+      if (s == ty->next) return s;
+      /* Move s to the top of the linked list */
+      s->prev->next = s->next;
+      if (s->next) {
+	s->next->prev = s->prev;
+      }
+      /* Insert s as second element in the list */
+      s->next = ty->next;
+      if (ty->next) ty->next->prev = s;
+      ty->next = s;
+      s->prev = ty;  /**/
+      return s;
+    }
+    s = s->next;
+  } while (s && (s != ty->next));
+  return 0;  
+}
 
 /* Function for getting a pointer value */
 
@@ -144,7 +179,6 @@ SWIGRUNTIME(int)
 SWIG_ConvertPtr_(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int flags)
 #endif
 {
-  char *_c;
   swig_type_info *tc;
   void *voidptr = (void *)0;
 
@@ -192,8 +226,7 @@ SWIG_ConvertPtr_(CPerlObj *pPerl, SV *sv, void **ptr, swig_type_info *_t, int fl
   }
   if (_t) {
     /* Now see if the types match */      
-    _c = HvNAME(SvSTASH(SvRV(sv)));
-    tc = SWIG_TypeCheck(_c,_t);
+    tc = SWIG_TypeCheckRV(sv,_t);
     if (!tc) {
       *ptr = voidptr;
       return -1;
