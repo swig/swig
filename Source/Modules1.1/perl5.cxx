@@ -143,6 +143,41 @@ static  DOHString   *modinit = 0;
 static  DOHString   *modextern = 0;
 static  DOHString   *pragma_include = 0;
 
+
+
+// Perl specific type mangler function
+static char *
+type_mangle(DataType *t) {
+  static char result[128];
+  int   i;
+  char *r, *c;
+
+  if (blessed) {
+
+    // Check to see if we've blessed this datatype
+
+    if ((Getattr(classes,t->name)) && (t->is_pointer <= 1)) {
+
+      // This is a blessed class.  Return just the type-name 
+      strcpy(result, GetChar(classes,t->name));
+      return result;
+    }
+  }
+      
+  r = result;
+  c = t->name;
+
+  for ( c = t->name; *c; c++,r++) {
+      *r = *c;
+  }
+  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++, r++) {
+    strcpy(r,"Ptr");
+    r+=2;
+  }
+  *r = 0;
+  return result;
+}
+
 // ---------------------------------------------------------------------
 // PERL5::parse_args(int argc, char *argv[])
 //
@@ -257,6 +292,8 @@ PERL5::parse() {
   modinit = NewString("");
   modextern = NewString("");
   pragma_include = NewString("");
+
+  DataType_set_mangle(type_mangle);
 
   // Print out PERL5 specific headers
   
@@ -646,45 +683,6 @@ void PERL5::close(void)
   Printf(f_pm,"1;\n");
   fclose(f_pm);
   Delete(base);
-}
-
-// ----------------------------------------------------------------------
-// char *PERL5::type_mangle(DataType *t)
-//
-// Mangles a datatype into a Perl5 name compatible with xsubpp type
-// T_PTROBJ.
-// ----------------------------------------------------------------------
-
-char *
-PERL5::type_mangle(DataType *t) {
-  static char result[128];
-  int   i;
-  char *r, *c;
-
-  if (blessed) {
-
-    // Check to see if we've blessed this datatype
-
-    if ((Getattr(classes,t->name)) && (t->is_pointer <= 1)) {
-
-      // This is a blessed class.  Return just the type-name 
-      strcpy(result, GetChar(classes,t->name));
-      return result;
-    }
-  }
-      
-  r = result;
-  c = t->name;
-
-  for ( c = t->name; *c; c++,r++) {
-      *r = *c;
-  }
-  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++, r++) {
-    strcpy(r,"Ptr");
-    r+=2;
-  }
-  *r = 0;
-  return result;
 }
 
 // ----------------------------------------------------------------------

@@ -351,9 +351,15 @@ char *DataType_print_mangle_default(DataType *t) {
 // This is kind of ugly but needed for each language to support a
 // custom name mangling mechanism.  (ie. Perl5).
 
+static char *(*mangler)(DataType *t) = DataType_print_mangle_default;
+
 char *DataType_print_mangle(DataType *t) {
   // Call into target language for name mangling.
-  return lang->type_mangle(t);
+  return (*mangler)(t);
+}
+
+void DataType_set_mangle(char *(*m)(DataType *t)) {
+  mangler = m;
 }
 
 // --------------------------------------------------------------------
@@ -485,7 +491,7 @@ void DataType_typedef_add(DataType *t,char *tname, int mode) {
       }
   }
   // Call into the target language with this typedef
-  lang->add_typedef(t,tname);
+  /*  lang->add_typedef(t,tname); */
 }
 
 // --------------------------------------------------------------------

@@ -909,6 +909,7 @@ statement      : INCLUDE STRING LBRACE {
 		     temp_type->implicit_ptr = 0;
 		     sprintf(temp_type->name,"int");
 		     DataType_typedef_add(temp_type,$3,1);
+		     lang->add_typedef(temp_type,$3);
 		   }
 	       }
 
@@ -922,6 +923,7 @@ statement      : INCLUDE STRING LBRACE {
 		   sprintf(temp_type->name,"int");
 		   Active_typedef = CopyDataType(temp_type);
 		   DataType_typedef_add(temp_type,$8,1);
+		   lang->add_typedef(temp_type,$8);
 	       } typedeflist { }
 
 /* -----------------------------------------------------------------
@@ -1143,6 +1145,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   Active_typedef = CopyDataType($2);
 		   $2->is_pointer += $3.is_pointer;
 		   DataType_typedef_add($2, $3.id,0);
+		   lang->add_typedef($2,$3.id);
 		   /* If this is %typedef, add it to the header */
 		   if ($1) 
 		     fprintf(f_header,"typedef %s %s;\n", DataType_print_full($2), $3.id);
@@ -1163,6 +1166,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->type = T_USER;
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$5,1);
+		   lang->add_typedef($2,$5);
 		   cplus_register_type($5);
 		 DelDataType($2);
 		 delete $5;
@@ -1185,6 +1189,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->type = T_USER;
 		   $2->is_pointer = 1;
 		   DataType_typedef_add($2,$6,1);
+		   lang->add_typedef($2,$6);
 		   cplus_register_type($6);
 		 DelDataType($2);
 		 delete $6;
@@ -1204,6 +1209,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer++;
 		   $2->arraystr = copy_string(Char(ArrayString));
 		   DataType_typedef_add($2,$3.id,0);
+		   lang->add_typedef($2,$3.id);
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
 
@@ -1226,6 +1232,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t = CopyDataType(Active_typedef);
 		    t->is_pointer += $2.is_pointer;
 		    DataType_typedef_add(t,$2.id,0);
+		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
 		    DelDataType(t);
 		  }
@@ -1237,6 +1244,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t->is_pointer += $2.is_pointer + 1;
 		    t->arraystr = copy_string(Char(ArrayString));
 		    DataType_typedef_add(t,$2.id,0);
+		    lang->add_typedef(t,$2.id);
 		    cplus_register_type($2.id);
 		    DelDataType(t);
     		    fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap.\n",input_file,line_number, $2.id);
@@ -2119,12 +2127,14 @@ cpp_class    :
 		  cplus_class_close($9.id); 
 		}
 		// Create a typedef in global scope
-		if ($9.is_pointer == 0)
+		if ($9.is_pointer == 0) {
 		  DataType_typedef_add(Active_typedef,$9.id,0);
-		else {
+		  lang->add_typedef(Active_typedef,$9.id);
+		} else {
 		  DataType *t = CopyDataType(Active_typedef);
 		  t->is_pointer += $9.is_pointer;
 		  DataType_typedef_add(t,$9.id,0);
+		  lang->add_typedef(t,$9.id);
 		  cplus_register_type($9.id);
 		  DelDataType(t);
 		}
@@ -2507,6 +2517,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		    temp_type->implicit_ptr = 0;
 		    sprintf(temp_type->name,"int");
 		    DataType_typedef_add(temp_type,$2,1); 
+		    lang->add_typedef(temp_type,$2);
 		  }
 		}
 	      }

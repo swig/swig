@@ -40,7 +40,6 @@ public :
   virtual void set_init(char *);
   virtual void add_native(char *, char *, DataType *, ParmList *);
   virtual void create_command(char *, char *);
-  virtual char *type_mangle(DataType *);
 
   // Support for blessed perl thingies....
 
