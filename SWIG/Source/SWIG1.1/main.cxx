@@ -402,6 +402,10 @@ int SWIG_main(int argc, char *argv[], Language *l, Documentation *d) {
       FILE *f;
       int i;
       DOH *ds = Swig_include(input_file);
+      if (!ds) {
+	Printf(stderr,"Unable to find '%s'\n", input_file);
+	SWIG_exit(1);
+      }
       Seek(ds,0,SEEK_END);
       for (i = 0; i < Len(libfiles); i++) {
 	Printf(ds,"\n%%include \"%s\"\n", Getitem(libfiles,i));
