@@ -3,6 +3,7 @@
 // unsigned long long types work.
 
 using System;
+using long_longNamespace;
 
 public class long_long_runme {
 

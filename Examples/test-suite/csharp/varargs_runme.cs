@@ -1,6 +1,7 @@
 // varargs test
 
 using System;
+using varargsNamespace;
 
 public class varargs_runme {
 

@@ -1,4 +1,5 @@
 using System;
+using sneaky1Namespace;
 
 public class runme
 {
