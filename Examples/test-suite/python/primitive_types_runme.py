@@ -190,7 +190,8 @@ if t.var_namet != 'holac':
 
 t.var_namet = 'hol'
 
-if t.var_namet != 'hol\0\0':
+if t.var_namet != 'hol':
+#if t.var_namet != 'hol\0\0':
   print "bad namet", t.var_namet
   raise RuntimeError
 

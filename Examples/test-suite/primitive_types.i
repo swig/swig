@@ -125,6 +125,8 @@
   namet gbl_namet;
 
 %}
+
+
 //
 // adding applies for incomplete swig type MyInt
 //
