@@ -656,6 +656,7 @@ public:
     /* member of a director class? */
     String *nodeType = Getattr(n, "nodeType");
     int constructor = (!Cmp(nodeType, "constructor")); 
+    int destructor = (!Cmp(nodeType, "destructor")); 
     String *storage   = Getattr(n,"storage");
     int isVirtual = (Cmp(storage,"virtual") == 0);
 
@@ -869,7 +870,7 @@ public:
 
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
-        if (/*directorbase &&*/ !constructor && isVirtual) {
+        if (/*directorbase &&*/ !constructor && !destructor && isVirtual) {
           Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");
           Printf(f->code, "director = dynamic_cast<__DIRECTOR__*>(arg1);\n");
           Printf(f->code, "if (director && (director->__get_self()==obj0)) director->__set_up();\n");
@@ -1467,11 +1468,13 @@ public:
     /* wrap complex arguments to PyObjects */
     Printv(w->code, wrap_args, NIL);
 
+    String  *pyname = Getattr(n,"sym:name");
+
     /* pass the method call on to the Python object */
     if (Len(parse_args) > 0) {
-      Printf(w->code, "result = PyObject_CallMethod(__get_self(), \"%s\", \"%s\" %s);\n", name, parse_args, arglist);
+      Printf(w->code, "result = PyObject_CallMethod(__get_self(), \"%s\", \"%s\" %s);\n", pyname, parse_args, arglist);
     } else {
-      Printf(w->code, "result = PyObject_CallMethod(__get_self(), \"%s\", NULL);\n", name);
+      Printf(w->code, "result = PyObject_CallMethod(__get_self(), \"%s\", NULL);\n", pyname);
     }
 
     /* exception handling */
