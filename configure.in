@@ -647,6 +647,7 @@ AC_OUTPUT(
     Source/SWIG1.3/Makefile
     Source/Swig/Makefile
     Source/Swim/Makefile
+    Source/Swithe/Makefile
     Source/Xmlparse/Makefile
     )
 
