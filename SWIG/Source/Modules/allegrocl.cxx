@@ -360,10 +360,9 @@ int ALLEGROCL :: classDeclaration(Node *n) {
     Printf(stderr, " (name: %s)\n", name);
     SWIG_exit(EXIT_FAILURE);
   }
-  
+
   Printf(f_cl, 
-	 "(ff:def-foreign-type #.(%s \"%s\" :type :type)\n (:struct\n", 
-	 identifier_converter,
+	 "(swig-def-foreign-type \"%s\"\n (:struct\n", 
 	 name);
   
   for (c=firstChild(n); c; c=nextSibling(c)) {
