@@ -105,6 +105,89 @@
 %typemap(out) char [ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
 
 
+/* --- Variable output --- */
+
+%typemap(varget) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+    "$result = Tcl_NewIntObj((long) $1);";
+
+%typemap(varget) double,float "$result = Tcl_NewDoubleObj((double) $1);";
+%typemap(varget) char * "$result = Tcl_NewStringObj((char*) $1,-1);";
+%typemap(varget) char [ANY] "$result = Tcl_NewStringObj((char *) $1,-1);";
+%typemap(varget) char "$result = Tcl_NewStringObj(&$1,1);";
+%typemap(varget) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor);";
+%typemap(varget) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor);";
+
+/* -- Variable input --- */
+
+%typemap(varset) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+{
+  long temp;
+  if (Tcl_GetLongFromObj(interp, $input, &temp) != TCL_OK) {
+    return "Type error. expected an integer";
+  }
+  $1 = ($1_type) temp;
+}
+
+%typemap(varset) double, float {
+  double temp;
+  if (Tcl_GetDoubleFromObj(interp, $input, &temp) != TCL_OK) {
+    return "Type error. expected a double.";
+  }
+  $1 = ($1_type) temp;
+}
+
+%typemap(varset) char *
+#ifdef __cplusplus
+{
+  char  *temp = Tcl_GetStringFromObj($input,NULL);
+  if ($1) delete [] $1;
+  $1 = ($1_type) new char[strlen(temp)+1];
+  strcpy((char *) $1,temp);
+}
+#else
+{
+  char  *temp = Tcl_GetStringFromObj($input,NULL);
+  if ($1) free((char*)$1);
+  $1 = ($1_type) malloc(strlen(temp)+1);
+  strcpy((char *) $1,temp);
+}
+#endif
+
+%typemap(varset) char [ANY] {
+  char *temp = Tcl_GetStringFromObj($input,NULL);
+  strncpy((char*)$1,temp,$1_dim0);
+}
+
+%typemap(varset) char 
+{
+  char *temp = Tcl_GetStringFromObj($input,NULL);
+  $1 = *temp;
+}
+
+%typemap(varset) SWIGTYPE * {
+  void *temp;
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
+    return "Type error. Expected $1_ltype";
+  }
+  $1 = ($1_type) temp;
+}
+
+%typemap(varset) SWIGTYPE & {
+  void *temp;
+  if (SWIG_ConvertPtr(interp,$input,&temp,$1_descriptor) != TCL_OK) {
+    return "Type error. Expected $1_ltype";
+  }
+  $1 = *(($&1_type) temp);
+}
+
+%typemap(varset) SWIGTYPE {
+  void *temp;
+  if (SWIG_ConvertPtr(interp,$input,&temp,$&1_descriptor) != TCL_OK) {
+    return "Type error. Expected $&1_ltype";
+  }
+  $1 = *(($&1_type) temp);
+}
+
 /* --- Constants --- */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
@@ -153,3 +236,55 @@
 #endif
 
 
+/* This initialization code exports the module initialization function */
+
+%header %{
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef MAC_TCL
+#pragma export on
+#endif
+SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
+#ifdef MAC_TCL
+#pragma export off
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+%}
+
+/* Start the initialization function */
+
+%init %{
+SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
+    int i;
+    if (interp == 0) return TCL_ERROR;
+#ifdef USE_TCL_STUBS
+    if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
+      return TCL_ERROR;
+    }
+#endif
+
+    Tcl_PkgProvide(interp, SWIG_name, SWIG_version);
+
+#ifdef SWIG_namespace
+    Tcl_Eval(interp, "namespace eval " SWIG_namespace " { }");
+#endif
+    for (i = 0; swig_types_initial[i]; i++) {
+      swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+    }
+    for (i = 0; swig_commands[i].name; i++) {
+      Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, (swig_wrapper_func) swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);
+    }
+    for (i = 0; swig_variables[i].name; i++) {
+      Tcl_SetVar(interp, (char *) swig_variables[i].name, (char *) "", TCL_GLOBAL_ONLY);
+      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_READS | TCL_GLOBAL_ONLY, swig_variables[i].get, (ClientData) swig_variables[i].addr);
+      Tcl_TraceVar(interp, (char *) swig_variables[i].name, TCL_TRACE_WRITES | TCL_GLOBAL_ONLY, swig_variables[i].set, (ClientData) swig_variables[i].addr);
+    }
+    SWIG_InstallConstants(interp, swig_constants);
+%}
+
+/* Note: the initialization function is closed after all code is generated */
