@@ -261,10 +261,10 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 SWIGRUNTIME(char *)
 SWIG_PackData(char *c, void *ptr, int sz) {
   static char hex[17] = "0123456789abcdef";
-  int i;
   unsigned char *u = (unsigned char *) ptr;
+  const unsigned char *eu =  u + sz;
   register unsigned char uu;
-  for (i = 0; i < sz; i++,u++) {
+  for (; u != eu; ++u) {
     uu = *u;
     *(c++) = hex[(uu & 0xf0) >> 4];
     *(c++) = hex[uu & 0xf];
@@ -278,8 +278,8 @@ SWIG_UnpackData(char *c, void *ptr, int sz) {
   register unsigned char uu = 0;
   register int d;
   unsigned char *u = (unsigned char *) ptr;
-  int i;
-  for (i = 0; i < sz; i++, u++) {
+  const unsigned char *eu =  u + sz;
+  for (; u != eu; ++u) {
     d = *(c++);
     if ((d >= '0') && (d <= '9'))
       uu = ((d - '0') << 4);
