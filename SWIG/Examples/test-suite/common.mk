@@ -67,14 +67,14 @@ C_TEST_CASES += \
 	nested
 
 MULTI_CPP_TEST_CASES += \
-	import 
+	import
 
 ALL_TEST_CASES = $(CPP_TEST_CASES:=.cpptest) \
 		 $(C_TEST_CASES:=.ctest) \
 		 $(MULTI_CPP_TEST_CASES:=.multicpptest)
 ALL_CLEAN      = $(CPP_TEST_CASES:=.clean) \
 		 $(C_TEST_CASES:=.clean) \
-		 $(MULTI_CPP_TEST_CASES:=.multicpptest)
+		 $(MULTI_CPP_TEST_CASES:=.clean)
 
 #######################################################################
 # The following applies for all module languages
@@ -86,19 +86,31 @@ check: all
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
-	TARGET="$(TARGETPREFIX)$*$(TRAGETSUFFIX)" INTERFACE="$*.i" $(LANGUAGE)_cpp
+	TARGET="$(TARGETPREFIX)$*$(TRAGETSUFFIX)" INTERFACE="$*.i" \
+	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(TOP)/Makefile CSRCS="$(CSRCS)" SWIG="$(SWIG)" \
 	INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" $(LANGUAGE)
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
+	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
 	for f in `cat ../$*.list` ; do \
 	  $(MAKE) -f $(TOP)/Makefile CXXSRCS="$(CXXSRCS)" SWIG="$(SWIG)" \
 	  INCLUDE="$(INCLUDE)" SWIGOPT="$(SWIGOPT)" RUNTIMEDIR="$(RUNTIMEDIR)" \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" $(LANGUAGE)_multi_cpp; \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
+	  $(LANGUAGE)$(VARIANT)_multi_cpp; \
 	done
+
+setup = \
+	@if [ -f $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then		  \
+	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
+	fi;
+
+
 
 #######################################################################
 # Clean

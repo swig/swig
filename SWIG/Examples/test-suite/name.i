@@ -22,4 +22,5 @@ void foo_1() {}
 int bar_1 = 17;
 %}
 
+%name("Baz_2")
 %constant int Baz_1 = 47;

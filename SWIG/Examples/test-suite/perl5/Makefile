@@ -4,6 +4,8 @@
 #######################################################################
 
 LANGUAGE   = perl5
+SCRIPTSUFFIX = _runme.pl
+
 include ../common.mk
 
 # Overridden variables here
@@ -24,9 +26,6 @@ SWIGOPT    = -shadow -I$(TOP)/$(TEST_SUITE)
 	$(setup) \
 	($(swig_and_compile_multi_cpp); ); \
 	$(run_testcase)
-
-setup = \
-	@echo Checking testcase $* under $(LANGUAGE);
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.pl appended after the testcase name.

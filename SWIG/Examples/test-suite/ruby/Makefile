@@ -4,6 +4,8 @@
 #######################################################################
 
 LANGUAGE   = ruby
+SCRIPTSUFFIX = _runme.rb
+
 include ../common.mk
 
 # Overridden variables here
@@ -19,8 +21,10 @@ include ../common.mk
 	($(swig_and_compile_c); ); \
 	$(run_testcase)
 
-setup = \
-	@echo Checking testcase $* under $(LANGUAGE);
+%.multicpptest: 
+	$(setup) \
+	($(swig_and_compile_multi_cpp); ); \
+	$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.rb appended after the testcase name.

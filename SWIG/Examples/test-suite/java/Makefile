@@ -4,6 +4,8 @@
 #######################################################################
 
 LANGUAGE   = java
+SCRIPTSUFFIX = _runme.java
+
 include ../common.mk
 
 # Overridden variables here
@@ -24,9 +26,13 @@ TARGETPREFIX = lib
 
 # Makes a directory for the testcase if it does not exist
 setup = \
-	@echo Checking testcase $* under $(LANGUAGE);	\
-	if [ ! -d $* ]; then \
-		mkdir $*; \
+	@if [ -f $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then		  \
+	  echo "Checking testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "Checking testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+		mkdir $*;						  \
 	fi;
 
 # Compiles java files then runs the testcase. A testcase is only run if
