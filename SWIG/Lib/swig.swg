@@ -44,8 +44,8 @@
 
 /* Experimental */
 
-#define %callback(x) %feature("callback") `x`;
-#define %nocallback  %feature("callback","");
+#define %callback(x) %feature("callback",`x`)
+#define %nocallback  %feature("callback","")
 
 /* Directives for attribute functions */
 

@@ -1,13 +1,12 @@
 %module callback
 
-%pythoncallback(1);
-%pythoncallback(1) foo;
-%pythoncallback(1) A::bar;
-%pythoncallback(1) A::foom;
-%pythoncallback(1) foo_T;
+%callback(1) foo;
+%callback(1) foof;
+%callback(1) A::bar;
+%callback(1) A::foom;
+%callback("%s_Cb_Ptr") foo_T;  // old style, still works.
 
 %inline %{
-
 
   int foo(int a) {
     return a;
