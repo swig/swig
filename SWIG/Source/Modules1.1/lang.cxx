@@ -264,7 +264,7 @@ SwigType *cplus_value_type(SwigType *t) {
 }
 
 /* Patch C++ pass-by-value */
-static void patch_parms(Parm *p) {
+void Language::patch_parms(Parm *p) {
   while (p) {
     SwigType *t = Getattr(p,"type");
     SwigType *s = cplus_value_type(t);

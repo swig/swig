@@ -188,18 +188,10 @@ public:
   virtual  Node *symbolLookup(String *s);          /* Symbol lookup     */
   virtual  Node *classLookup(SwigType *s);         /* Class lookup      */
 
-  /* ----------------------------------------------------------------------
-   !! Deprecated interface.   These functions are going away as soon
-   !! we get around to it.
-   * ----------------------------------------------------------------------*/
-
-  // Pragma directive
-
- private:
-
-  // Attributes
-
-  // Private data
+ protected:
+  /* Patch C++ pass-by-value */
+  static void patch_parms(Parm *p);
+  
  private:
   Hash   *symbols;
   Hash   *classtypes;
