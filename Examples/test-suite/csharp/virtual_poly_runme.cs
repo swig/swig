@@ -22,6 +22,7 @@ public class runme {
 
         NDouble ddc = NDouble.narrow(dc);
         NInt dic = NInt.narrow(ic);
+        dc = ddc; ic = dic; // warning suppression
 
         virtual_poly.incr(ic);
         if ( (i.get() + 1) != ic.get() )

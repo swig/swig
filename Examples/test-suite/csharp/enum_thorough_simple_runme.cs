@@ -7,8 +7,8 @@ public class runme {
       // Anonymous enums
       int i = enum_thorough_simple.AnonEnum1;
       if (enum_thorough_simple.ReallyAnInteger != 200) throw new Exception("Test Anon 1 failed");
-      int j = enum_thorough_simple.AnonSpaceEnum1;
-      int k = AnonStruct.AnonStructEnum1;
+      i += enum_thorough_simple.AnonSpaceEnum1;
+      i += AnonStruct.AnonStructEnum1;
     }
     {
       int red = enum_thorough_simple.red;
