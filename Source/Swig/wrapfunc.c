@@ -51,28 +51,22 @@ DelWrapper(Wrapper *w) {
 }
 
 /* -----------------------------------------------------------------------------
- * Wrapper_print()
+ * Wrapper_pretty_print()
  *
- * Print out a wrapper function.  Does pretty printing as well.
+ * Formats a wrapper function and fixes up the indentation.
  * ----------------------------------------------------------------------------- */
 
 void 
-Wrapper_print(Wrapper *w, DOHFile *f) {
-  DOHString *str, *ts;
+Wrapper_pretty_print(DOHString *str, DOHFile *f) {
+  DOHString *ts;
   int level = 0;
   int c, i;
   int empty = 1;
 
-  str = NewString("");
   ts = NewString("");
-  Printf(str,"%s\n", w->def);
-  Printf(str,"%s\n", w->locals);
-  Printf(str,"%s\n", w->code);
-
   Seek(str,0, SEEK_SET);
   Clear(ts);
   while ((c = Getc(str)) != EOF) {
-
     if (c == '{') {
       Putc(c,ts);
       Putc('\n',ts);
@@ -105,13 +99,32 @@ Wrapper_print(Wrapper *w, DOHFile *f) {
       Clear(ts);
       empty = 1;
     } else {
-      Putc(c,ts);
-      empty = 0;
+      if (!empty || !isspace(c)) {
+	Putc(c,ts);
+	empty = 0;
+      }
     }
   }
   Delete(ts);
-  Delete(str);
   Printf(f,"\n");
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_print()
+ *
+ * Print out a wrapper function.  Does pretty printing as well.
+ * ----------------------------------------------------------------------------- */
+
+void 
+Wrapper_print(Wrapper *w, DOHFile *f) {
+  DOHString *str;
+
+  str = NewString("");
+  Printf(str,"%s\n", w->def);
+  Printf(str,"%s\n", w->locals);
+  Printf(str,"%s\n", w->code);
+  Wrapper_pretty_print(str,f);
 }
 
 /* -----------------------------------------------------------------------------
