@@ -284,6 +284,7 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *);
 %init %{
 SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
     int i;
+    static int added_types = 0;
     if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS
     if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
@@ -296,8 +297,11 @@ SWIGEXPORT(int) SWIG_init(Tcl_Interp *interp) {
 #ifdef SWIG_namespace
     Tcl_Eval(interp, "namespace eval " SWIG_namespace " { }");
 #endif
-    for (i = 0; swig_types_initial[i]; i++) {
-      swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+    if (!added_types) {
+       for (i = 0; swig_types_initial[i]; i++) {
+          swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
+       }
+       added_types = 1;
     }
     for (i = 0; swig_commands[i].name; i++) {
       Tcl_CreateObjCommand(interp, (char *) swig_commands[i].name, (swig_wrapper_func) swig_commands[i].wrapper, swig_commands[i].clientdata, NULL);
