@@ -116,3 +116,7 @@ void tclwadinit() {
 int Wad_Init(Tcl_Interp *interp) {
   return TCL_OK;
 }
+
+int Wadtcl_Init(Tcl_Interp *interp) {
+  return TCL_OK;
+}
