@@ -588,10 +588,12 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     if ((tm = Getattr(p,"tmap:in"))) {
       Replace(tm,"$target",target, DOH_REPLACE_ANY);
       Replace(tm,"$source",source, DOH_REPLACE_ANY);
-      Replace(tm,"$arg", source, DOH_REPLACE_ANY);
+      Replace(tm,"$input", source, DOH_REPLACE_ANY);
+      Setattr(p,"emit:input",source);       /* Save input location */
       Printf(f->code,"%s\n",tm);
       p = Getattr(p,"tmap:in:next");
     } else {
+      Setattr(p,"emit:input",source);
       switch(SwigType_type(pt)) {
       case T_BOOL:
       case T_INT :
@@ -660,8 +662,8 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   for (i = 0, p = l; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      sprintf(source,"ST(%d)",i);
-      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Printv(cleanup,tm,"\n",0);
       p = Getattr(p,"tmap:freearg:next");
     } else {
@@ -676,10 +678,13 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","ST(argvi)",DOH_REPLACE_ANY);
       Replace(tm,"$result","ST(argvi)",DOH_REPLACE_ANY);
-      sprintf(temp,"_saved[%d]", num_saved);
-      Replace(tm,"$arg",temp, DOH_REPLACE_ANY);
-      Printf(f->code,"_saved[%d] = ST(%d);\n", num_saved,i);
-      num_saved++;
+      String *in = Getattr(p,"emit:input");
+      if (in) {
+	sprintf(temp,"_saved[%d]", num_saved);
+	Replace(tm,"$arg",temp, DOH_REPLACE_ANY);
+	Printf(f->code,"_saved[%d] = %s;\n", num_saved, in);
+	num_saved++;
+      }
       Printv(outarg,tm,"\n",0);
       p = Getattr(p,"tmap:argout:next");
     } else {

@@ -437,7 +437,8 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       /*      Printf(stdout,":::\n%s\n:::\n",tm); */
       Replace(tm,"$source",source,DOH_REPLACE_ANY);   /* Deprecated */
       Replace(tm,"$target",ln,DOH_REPLACE_ANY);       /* Deprecated */
-      Replace(tm,"$arg", source, DOH_REPLACE_ANY);
+      Replace(tm,"$input", source, DOH_REPLACE_ANY);
+      Setattr(p,"emit:input", source);   /* Save the location of the object */
       Putc('O',parse_args);
       Wrapper_add_localv(f, source, "PyObject *",source, " = 0", 0);
       Printf(arglist,"&%s",source);
@@ -591,6 +592,8 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     if ((tm = Getattr(p,"tmap:argout"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","resultobj",DOH_REPLACE_ANY);
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Printv(outarg,tm,"\n",0);
       p = Getattr(p,"tmap:argout:next");
     } else {

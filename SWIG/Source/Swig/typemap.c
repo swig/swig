@@ -847,7 +847,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
   if (locals && f) {
     typemap_locals(type,pname,s,locals,f);
   }
-  typemap_replace_vars(s,type,pname,lname,0);
+  typemap_replace_vars(s,type,pname,lname,1);
    
   /* Now perform character replacements */
   Replace(s,"$source",source,DOH_REPLACE_ANY);
@@ -911,12 +911,12 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 	typemap_locals(type,pname,s,locals,f);
       }
 
-      typemap_replace_vars(s,type,pname,lname,i);
+      typemap_replace_vars(s,type,pname,lname,i+1);
       p = nextSibling(p);
     }
 
     /* Replace the argument number */
-    sprintf(temp,"%d",argnum);
+    sprintf(temp,"%d",argnum+1);
     Replace(s,"$argnum",temp, DOH_REPLACE_ANY);
 
     /* Attach attributes to object */

@@ -328,13 +328,15 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
     if ((tm = Getattr(p,"tmap:in"))) {
       Replace(tm,"$target",ln,DOH_REPLACE_ANY);
       Replace(tm,"$source",source,DOH_REPLACE_ANY);
-      Replace(tm,"$arg",source,DOH_REPLACE_ANY);
+      Replace(tm,"$input",source,DOH_REPLACE_ANY);
+      Setattr(p,"emit:input",source);
       Putc('o',argstr);
       Printf(args,",0");
       Printf(incode,"%s\n", tm);
       p = Getattr(p,"tmap:in:next");
       continue;
     } else {
+      Setattr(p,"emit:input",source);
       switch(SwigType_type(pt)) {
       case T_INT:
       case T_UINT:
@@ -447,8 +449,6 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   for (i = 0, p = l; p; i++) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
-      sprintf(source,"objv[%d]",i+1);
-      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
       Printv(cleanup,tm,"\n",0);
       p = Getattr(p,"tmap:freearg:next");
     } else {
@@ -462,8 +462,8 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       Replace(tm,"$source",Getattr(p,"lname"),DOH_REPLACE_ANY);
       Replace(tm,"$target","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
       Replace(tm,"$result","(Tcl_GetObjResult(interp))",DOH_REPLACE_ANY);
-      sprintf(source,"objv[%d]",i+1);
-      Replace(tm,"$arg",source, DOH_REPLACE_ANY);
+      Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
+      Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
       Printv(outarg,tm,"\n",0);
       p = Getattr(p,"tmap:argout:next");
     } else {
