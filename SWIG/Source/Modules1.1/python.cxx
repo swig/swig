@@ -680,7 +680,7 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
 	  if (!have_output) {
 	    Printv(func, tab4, "if val: val = ", is_shadow(d), "Ptr(val)", 0);
-	    if ((!SwigType_ispointer(d)) || NewObject)
+	    if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject)
 	      Printf(func, "; val.thisown = 1\n");
 	    else
 	      Printf(func,"\n");
@@ -1326,7 +1326,7 @@ PYTHON::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 	if (!Swig_typemap_search((char*)"out",t,Swig_name_member(class_name,realname))) {
 	  if (!have_output) {
 	    Printv(pyclass, tab8, "if val: val = ", is_shadow(t), "Ptr(val) ", 0);
-	    if ((!SwigType_ispointer(t) || NewObject)) {
+	    if (((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject)) {
 	      Printf(pyclass, "; val.thisown = 1\n");
 	    } else {
 	      Printf(pyclass,"\n");

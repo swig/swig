@@ -837,7 +837,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       /* If we're returning an object by value, put it's reference
          into our local hash table */
 
-      if ((!SwigType_ispointer(d)) || NewObject) {
+      if ((!SwigType_ispointer(d) && !SwigType_isreference(d)) || NewObject) {
 	Printv(func, tab4, "$", is_shadow(d), "::OWNER{$result} = 1;\n", 0);
       }
 
@@ -1607,7 +1607,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
       /* If we're returning an object by value, put it's reference
          into our local hash table */
   
-      if (!SwigType_ispointer(t) || NewObject) {
+      if ((!SwigType_ispointer(t) && !SwigType_isreference(t)) || NewObject) {
         Printv(func, tab4, "$", is_shadow(t), "::OWNER{$result} = 1; \n", 0);
       }
   
