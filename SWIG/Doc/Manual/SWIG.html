@@ -27,6 +27,7 @@ following options and a filename like this:
 -ruby                 Generate Ruby wrappers
 -java                 Generate Java wrappers
 -mzscheme             Generate mzscheme wrappers
+-php                  Generate PHP wrappers
 -c++                  Enable C++ parsing
 -I<em>dir</em>                 Add a directory to the file include path
 -l<em>file</em>                Include a SWIG library file.
@@ -96,13 +97,13 @@ output file can be changed using the <tt>-o</tt> option.  In certain
 cases, file suffixes are used by the compiler to determine the source
 language (C, C++, etc.). Therefore, you have to use the
 <tt>-o</tt> option to change the suffix of the SWIG-generated wrapper
-file (if needed). For example:
+file if you want something different than the default. For example:
 
 <blockquote><pre>
 $ swig -c++ -python -o example_wrap.cpp example.i</pre></blockquote>
 
 <p>
-It is important to note that the output file created by SWIG normally
+The output file created by SWIG normally
 contains everything that is needed to construct a extension module
 for the target scripting language. SWIG is not a stub compiler nor is
 usually necessary to edit the output file (and if you look at the output,
@@ -343,7 +344,7 @@ datatype is mapped as a one-character ASCII string. <p>
 
 <p>
 The <tt>bool</tt> datatype is cast to and from an integer value of 0
-and 1.<p>
+and 1 unless the target language provides a special boolean type.<p>
 
 <p>
 Some care is required when working with large integer values. Most
@@ -398,11 +399,15 @@ binary data (although typemaps can be used to handle this).
 <p>
 At this time, SWIG does not provide any special support for Unicode or
 wide-character strings (the C <tt>wchar_t</tt> type).  This is a
-delicate topic that is quite complex and poorly understood by many
-programmers.  For those scripting languages that provide Unicode
-support, Unicode strings are often implicitly converted to an 8-bit
-representation such as UTF-8 whenever they are mapped to the <tt>char
-*</tt> type (in which case the SWIG interface will probably work).
+delicate topic that is poorly understood by many programmers and not
+implemented in a consistent manner across languages.  For those
+scripting languages that provide Unicode support, Unicode strings are
+often available in an 8-bit representation such as UTF-8 that can be
+mapped to the <tt>char *</tt> type (in which case the SWIG interface
+will probably work).  If the program you are wrapping uses Unicode,
+there is no guarantee that Unicode characters in the target language
+will use the same internal representation (e.g., UCS-2 vs. UCS-4).
+You may need to write some special conversion functions.
 
 <h3>Global Variables</h3>
 
@@ -1909,7 +1914,7 @@ target scripting language--especially when shadow classes are used.  For instanc
 <p>
 <blockquote><pre># Perl5 script for accessing nested member
 $o = CreateObject();                    # Create an object somehow
-$o-&gt;{intRep}-&gt;{ivalue} = 7                # Change value of o.intRep.ivalue
+$o-&gt;{intRep}-&gt;{ivalue} = 7              # Change value of o.intRep.ivalue
 </pre></blockquote>
 
 <p>
@@ -1948,7 +1953,8 @@ the following function is generated instead:
 <blockquote>
 <pre>
 static int
-_wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+_wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp, 
+                   int objc, Tcl_Obj *CONST objv[]) {
     struct Vector *arg1 ;
     double result ;
     
@@ -2482,8 +2488,8 @@ translate directly to a scripting language environment because it
 relies on static type-checking and compile-time binding of
 methods--neither of which map to the dynamic
 environment of an interpreter.  For example,
-in Python, it is simply impossible to define three entirely different
-versions of a function with exactly the same name in the same scope.    The repeated
+in Python, Perl, and Tcl, it is simply impossible to define three entirely different
+versions of a function with exactly the same name within the same scope.    The repeated
 definitions simply replace previous definitions.
 
 <p>
@@ -2508,7 +2514,7 @@ Although this certainly works, it is extremely annoying to explicitly
 annotate every class with a bunch of <tt>%name</tt> directives like that.  It fact,
 it's so annoying that this really isn't a viable solution at all (except in
 cases where there is very little overloading).  Dave sincerely apologizes for ever
-thinking that this approach was a good idea--however, let's try to forget the past and move on.
+thinking that this approach was good enough--however, let's try to forget the past and move on.
 
 <p>
 <li><b>Name Mangling</b>.  Another approach to overloading would be to
@@ -2731,7 +2737,7 @@ Alas, what to do about overloading?
 Although it would be nice to support an advanced wrapping technique
 such as dynamic dispatch or trial execution, both of these techniques
 are difficult (if not impossible) to implement in a completely general
-manner that would work in all situations and in all combinations of
+manner that would work in all situations and with all combinations of
 SWIG customization features.  Therefore, rather than generate wrappers
 that only work some of the time, SWIG takes a slightly different
 approach.
@@ -4166,6 +4172,6 @@ version and wrapping that instead.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : November 28, 2001</address>
+<address>SWIG 1.3 - Last Modified : December 9, 2001</address>
 </body>
 </html>
