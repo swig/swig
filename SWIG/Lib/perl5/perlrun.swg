@@ -45,7 +45,7 @@ extern "C" {
 
 /* Macros for low-level exception handling */
 #define SWIG_fail      goto fail
-#define SWIG_croak(x)  while ((_swigerr = (const char *) x)) goto fail
+#define SWIG_croak(x)  { if ((_swigerr = (const char *) x)) goto fail; }
 #define SWIG_MAX_ERRMSG 256
 
 /* Note: SwigMagicFuncHack is a typedef used to get the C++
