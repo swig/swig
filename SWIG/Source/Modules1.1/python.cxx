@@ -183,30 +183,26 @@ public:
 
       // Python-2.2 object hack
 
-      if (!classic) {
-	Printv(f_shadow,"class ", "_swig_object_base:\n", NULL);
-      } else {
-	Printv(f_shadow,"class ", "_swig_object:\n", NULL);
-      }
 
       Printv(f_shadow,
-	     tab4, "def _swig_setattr(self,class_type,name,value):\n",
-	     tab8, "if (name == \"this\"):\n",
-	     tab8, tab4, "if isinstance(value, class_type):\n",
-	     tab8, tab8, "self.__dict__[name] = value.this\n",
-	     tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
-	     tab8, tab8, "del value.thisown\n",
-	     tab8, tab8, "return\n",
+	     "def _swig_setattr(self,class_type,name,value):\n",
+	     tab4, "if (name == \"this\"):\n",
+	     tab4, tab4, "if isinstance(value, class_type):\n",
+	     tab4, tab8, "self.__dict__[name] = value.this\n",
+	     tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
+	     tab4, tab8, "del value.thisown\n",
+	     tab4, tab8, "return\n",
 	     //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
-	     tab8, "method = class_type.__swig_setmethods__.get(name,None)\n",
-	     tab8, "if method: return method(self,value)\n",
-	     tab8, "self.__dict__[name] = value\n\n",
+	     tab4, "method = class_type.__swig_setmethods__.get(name,None)\n",
+	     tab4, "if method: return method(self,value)\n",
+	     tab4, "self.__dict__[name] = value\n\n",
 	     NULL);
 
-      Printv(f_shadow, tab4, "def _swig_getattr(self,class_type,name):\n",
-	     tab8, "method = class_type.__swig_getmethods__.get(name,None)\n",
-	     tab8, "if method: return method(self)\n",
-	     tab8, "raise AttributeError,name\n\n",
+      Printv(f_shadow,
+	     "def _swig_getattr(self,class_type,name):\n",
+	     tab4, "method = class_type.__swig_getmethods__.get(name,None)\n",
+	     tab4, "if method: return method(self)\n",
+	     tab4, "raise AttributeError,name\n\n",
 	     NULL);
 
       if (!classic) {
@@ -215,9 +211,7 @@ public:
 	       "try:\n",
 	       "    _object = types.ObjectType\n",
 	       "    _newclass = 1\n",
-	       "    class _swig_object(_swig_object_base, _object): pass\n",
 	       "except AttributeError:\n",
-	       "    _swig_object = _swig_object_base\n",
 	       "    _newclass = 0\n",
 	       "\n\n",
 	       NULL);
@@ -884,10 +878,8 @@ public:
       if (Len(base_class)) {
 	Printf(f_shadow,"(%s)", base_class);
       } else {
-	if (classic && !oldclassic) {
-	  Printf(f_shadow,"(_swig_object_base)");
-	} else {
-	  Printf(f_shadow,"(_swig_object)");
+	if (!classic) {
+	  Printf(f_shadow,"(_object)");
 	}
       }
       Printf(f_shadow,":\n");
@@ -898,7 +890,7 @@ public:
       }
       
       Printv(f_shadow,
-	     tab4, "__setattr__ = lambda self, name, value: self._swig_setattr(", class_name, ", name, value)\n",
+	     tab4, "__setattr__ = lambda self, name, value: _swig_setattr(self, ", class_name, ", name, value)\n",
 	     NULL);
 
       Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NULL);
@@ -907,7 +899,7 @@ public:
       }
       
       Printv(f_shadow,
-	     tab4, "__getattr__ = lambda self, name: self._swig_getattr(", class_name, ", name)\n",
+	     tab4, "__getattr__ = lambda self, name: _swig_getattr(self, ", class_name, ", name)\n",
 	     NULL);
     }
 
