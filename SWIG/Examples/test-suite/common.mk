@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	smart_pointer_const \
 	smart_pointer_overload \
 	smart_pointer_multi_typedef \
 	smart_pointer_typedef \

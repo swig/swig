@@ -1,5 +1,7 @@
 %module smart_pointer_overload
 
+#ifndef SWIG_NO_OVERLOAD
+
 %inline %{
 struct Foo {
    int x;
@@ -18,4 +20,5 @@ public:
 };
 %}
 
+#endif
 
