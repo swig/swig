@@ -8,10 +8,10 @@
    }; 
    template <Test T>   
    struct Bar { 
-     operator int();
-     operator int&();
-     operator Foo<T>(); 
-     operator Foo<T>&(); 
+     operator int() { return 0; }
+     operator int&() { static int num = 0; return num; }
+     operator Foo<T>() { return Foo<T>(); }
+     operator Foo<T>&() { return *(new Foo<T>()); }
    }; 
   } 
 %} 
