@@ -89,6 +89,7 @@ CPP_TEST_CASES += \
 	default_ns \
 	default_ref \
 	dynamic_cast \
+	enum_plus \
 	enum_scope \
 	enum_scope_template \
 	enum_var \
