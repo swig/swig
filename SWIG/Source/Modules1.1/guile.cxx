@@ -731,7 +731,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   /* Define the scheme name in C. This define is used by several Guile
      macros. */
-  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"\n", 0);
+  Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", 0);
 
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
