@@ -23,10 +23,10 @@ char cvsroot_parms_c[] = "$Header$";
 /* ------------------------------------------------------------------------
  * NewParm()
  *
- * Create a new parameter from datatype 'type' and name 'n'.
+ * Create a new parameter from datatype 'type' and name 'name'.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, const String_or_char *n) {
+Parm *NewParm(SwigType *type, const String_or_char *name) {
   Parm *p = NewHash();
   
   if (type) {
@@ -34,7 +34,23 @@ Parm *NewParm(SwigType *type, const String_or_char *n) {
     Setattr(p,"type",ntype);
     Delete(ntype);
   }
-  Setattr(p,"name",n);
+  Setattr(p,"name",name);
+  return p;
+}
+
+/* ------------------------------------------------------------------------
+ * NewParmFromNode()
+ *
+ * Create a new parameter from datatype 'type' and name 'name'.
+ * Sets the file and line number for the parameter for error handling by
+ * making a (shallow) copy of file and line number from Node 'n'.
+ * ------------------------------------------------------------------------ */
+
+Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
+  Parm *p = NewParm(type, name);
+  Setfile(p, Getfile(n));
+  Setline(p, Getline(n));
+  
   return p;
 }
 
