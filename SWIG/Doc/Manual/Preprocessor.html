@@ -312,6 +312,14 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 
 SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the code.
 
+<p>
+
+<a name="n5"></a><H2>6.4 Viewing preprocessor output</H2>
+Like many compilers, SWIG supports a <tt>-E</tt> command line option to display the output from the preprocessor.
+When the <tt>-E</tt> switch is used, SWIG will not generate any wrappers.
+Instead the results after the preprocessor has run are displayed.
+This might be useful as an aid to debugging and viewing the results of macro expansions.
+
 <p><hr>
 
 <address>SWIG 1.3 - Last Modified : March 9, 2003</address>
