@@ -13,7 +13,7 @@
       
 %}
 
-  
+
 %inline {
 namespace A {
   struct OpaqueStruct;

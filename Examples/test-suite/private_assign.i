@@ -19,3 +19,17 @@
    }
 %}
 
+
+#ifdef SWIGPYTHON
+
+// This case only works in python
+%inline %{
+   struct Bar : Foo 
+   {
+   };
+   
+   Bar bar;
+   
+%}
+
+#endif

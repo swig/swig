@@ -3,6 +3,10 @@
 /* 
  *  Opaque types
  */
+
+%feature("valuewrapper") C;
+class C;
+
 %{
 template<typename T> class TemplateClass {
 public:
@@ -36,6 +40,17 @@ class B;
  */
 %feature("valuewrapper") D;
 class D;
+
+
+%feature("valuewrapper") A;
+class A;
+
+%feature("valuewrapper") TemplateClass<A>;
+%feature("valuewrapper") TemplateClass<C>;
+template<class A> class TemplateClass;
+
+%feature("valuewrapper") BB;
+class BB;
 
 
 %inline %{
@@ -134,3 +149,103 @@ public:
 };
 
 %}
+
+%{
+class Foobar
+{
+public:
+  Foobar()
+  {
+  }
+  
+  char *foo_method()
+  {
+  }
+  
+};
+
+class Quux
+{
+public:
+  Quux()
+  {
+  }
+  
+  Foobar method()
+  {
+  }
+  
+};
+%}
+
+%feature("novaluewrapper") Foobar;
+class Foobar;
+
+
+class Quux {
+public:
+  Quux();
+  
+  Foobar method();
+
+  
+};
+
+
+#if defined(SWIGPYTHON) 
+
+/*
+  This case can't be fixed by using the valuewrapper feature and the
+  old mechanismbut it works fine with the new mechanism 
+*/
+
+%{
+ 
+  // Template primitive type, only visible in C++
+  template <class T>
+  struct Param
+  {
+    T val;
+
+
+    Param(T v): val(v) {
+    }
+    
+    operator T() const { return val; }
+  };
+
+%}
+
+/*
+  Several languages have 'not 100% safe' typemaps, 
+  where the following %applies  don't work. 
+*/
+%apply int { Param<int> };
+%apply const int& { const Param<int>& };
+
+%apply double { Param<double> };
+%apply const double& { const Param<double>& };
+
+%inline %{
+
+  template <class T>
+  T getv(const Param<T>& p) 
+  {
+    return p.val;
+  }
+
+  template <class T>
+  Param<T> getp(const T& v)
+  {
+    return  Param<T>(v);
+  }
+  
+%}
+  
+%template(getv_i) getv<int>;
+%template(getp_i) getp<int>;
+
+%template(getv_d) getv<double>;
+%template(getp_d) getp<double>;
+
+#endif
