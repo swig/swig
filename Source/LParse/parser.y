@@ -704,7 +704,7 @@ tm_tail        : COMMA tm_parm tm_tail {
                ;
 
 tm_parm        : type tm_name {
-                    $$ = NewHash();
+                    $$ = new_node("tmparm",Getfile($2.name),Getline($2.name));
 		    if ($2.array) {
 		      SwigType_push($1,$2.array);
 		    }
@@ -715,7 +715,7 @@ tm_parm        : type tm_name {
 		      Setattr($$,ATTR_PARMS,$2.parms);
                 }
                 | type stars tm_name {
-		  $$ = NewHash();
+		  $$ = new_node("tmparm",Getfile($3.name),Getline($3.name));
 		  SwigType_push($1,$2);
 		  if ($3.array) {
 		    SwigType_push($1,$3.array);
@@ -727,7 +727,7 @@ tm_parm        : type tm_name {
 		    Setattr($$,ATTR_PARMS,$3.parms);
 		}
                 | type AND tm_name {
-		  $$ = NewHash();
+		  $$ = new_node("tmparm",Getfile($3.name),Getline($3.name));
 		  SwigType_add_reference($1);
 		  if ($3.array) {
 		    SwigType_push($1,$3.array);
