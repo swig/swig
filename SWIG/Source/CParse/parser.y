@@ -681,12 +681,14 @@ static Node *dump_nested(char *parent) {
     ret = retx;
 
     /* Insert a forward class declaration */
+    /* Disabled: [ 597599 ] union in class: incorrect scope 
     retx = new_node("classforward");
     Setattr(retx,"kind",n->kind);
     Setattr(retx,"name",Copy(n->type));
     Setattr(retx,"sym:name", make_name(n->type,0));
     set_nextSibling(retx,ret);
     ret = retx; 
+    */
 
     /* Make all SWIG created typedef structs/unions/classes unnamed else 
        redefinition errors occur - nasty hack alert.*/
