@@ -613,10 +613,12 @@ public:
     SwigType_add_pointer(t);
   
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    SwigType_remember(t);
+    // SwigType_remember(t);
+    String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
+    SwigType_remember_clientdata(t,wrap_class);
 
     // Register the class structure with the type checker
-    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname);
+    /*    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_classname); */
     if (have_destructor) {
       Printv(f_wrappers, "static void swig_delete_", class_name, "(void *obj) {\n", NULL);
       if (destructor_action) {
