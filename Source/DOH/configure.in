@@ -41,4 +41,4 @@ dnl Checks for header files.
 AC_HEADER_STDC
 dnl Checks for library functions.
 
-AC_OUTPUT(Makefile Doh/Makefile Test/Makefile)
+AC_OUTPUT(Makefile Doh/Makefile )
