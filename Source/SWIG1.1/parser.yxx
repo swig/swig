@@ -1782,6 +1782,7 @@ edecl          :  ID {
 // OLD		   create_constant($1, temp_typeptr, $4.id);
                    create_constant($1, temp_typeptr, $1);
 		   delete temp_typeptr;
+  	           scanner_ignore_typedef();
                  }
                  | empty { }
                  ;
