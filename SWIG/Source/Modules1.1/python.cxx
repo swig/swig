@@ -198,9 +198,9 @@ PYTHON::import_end() {
 void
 PYTHON::add_method(char *name, char *function, int kw) {
   if (!kw)
-    Printf(methods,"\t { \"%s\", %s, METH_VARARGS },\n", name, function);
+    Printf(methods,"\t { (char *)\"%s\", %s, METH_VARARGS },\n", name, function);
   else
-    Printf(methods,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
+    Printf(methods,"\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", name, function);
 }
 
 /* -----------------------------------------------------------------------------
@@ -248,7 +248,7 @@ PYTHON::initialize(void) {
   Printf(f_init,"PyObject *m, *d;\n");
   Printf(f_init,"int i;\n");
   Printf(f_init,"SWIG_globals = SWIG_newvarlink();\n");
-  Printf(f_init,"m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
+  Printf(f_init,"m = Py_InitModule((char*)\"%s\", %sMethods);\n", module, module);
   Printf(f_init,"d = PyModule_GetDict(m);\n");
   Printv(f_init,
 	 "for (i = 0; swig_types_initial[i]; i++) {\n",
@@ -385,9 +385,9 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   /* Write code to extract function parameters. */
   pcount = emit_args(d, l, f);
   if (!use_kw) {
-    Printf(parse_args,"    if(!PyArg_ParseTuple(args,\"");
+    Printf(parse_args,"    if(!PyArg_ParseTuple(args,(char *)\"");
   } else {
-    Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,\"");
+    Printf(parse_args,"    if(!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)\"");
     Printf(arglist,",kwnames");
   }
 
@@ -717,7 +717,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
        Python dictionary. */
 
     if (!have_globals) {
-      Printf(f_init,"\t PyDict_SetItemString(d,\"%s\", SWIG_globals);\n",global_name);
+      Printf(f_init,"\t PyDict_SetItemString(d,(char*)\"%s\", SWIG_globals);\n",global_name);
       have_globals=1;
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printv(vars, global_name, " = ", module, ".", global_name, "\n", 0);
@@ -957,7 +957,7 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 
     /* Now add this to the variable linking mechanism */
 
-    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,(char*)\"%s\",%s_get, %s_set);\n", iname, wname, wname);
 
     /* Output a shadow variable.  (If applicable and possible) */
     if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
@@ -987,27 +987,27 @@ PYTHON::declare_const(char *name, char *iname, SwigType *type, char *value) {
     case T_SHORT: case T_USHORT:
     case T_LONG: case T_ULONG:
     case T_SCHAR: case T_UCHAR:
-      Printv(const_code, tab4, "{ SWIG_PY_INT,     \"", iname, "\", (long) ", value, ", 0, 0, 0},\n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_INT,   (char*)\"", iname, "\", (long) ", value, ", 0, 0, 0},\n", 0);
       break;
     case T_DOUBLE:
     case T_FLOAT:
-      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   \"", iname, "\", 0, (double) ", value, ", 0,0},\n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_FLOAT,   (char*)\"", iname, "\", 0, (double) ", value, ", 0,0},\n", 0);
       break;
     case T_CHAR :
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
+      Printf(const_code,"    { SWIG_PY_STRING, (char*)\"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
       break;
     case T_STRING:
-      Printf(const_code,"    { SWIG_PY_STRING, \"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
+      Printf(const_code,"    { SWIG_PY_STRING, (char*)\"%s\", 0, 0, (void *) \"%s\", 0 }, \n", iname, value);
       break;
     case T_POINTER: case T_ARRAY: case T_REFERENCE:
       SwigType_remember(type);
-      Printv(const_code, tab4, "{ SWIG_PY_POINTER, \"", iname, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
+      Printv(const_code, tab4, "{ SWIG_PY_POINTER, (char*)\"", iname, "\", 0, 0, (void *) ", value, ", &SWIGTYPE", SwigType_manglestr(type), "}, \n", 0);
       break;
     case T_MPOINTER: {
       String *wname = Copy(Swig_name_wrapper(iname));
       SwigType_remember(type);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type,wname), value);
-      Printv(f_init, tab4, "PyDict_SetItemString(d, \"", iname, "\", SWIG_NewPackedObj((void *) &", wname,
+      Printv(f_init, tab4, "PyDict_SetItemString(d, (char*)\"", iname, "\", SWIG_NewPackedObj((void *) &", wname,
 	     ", sizeof(", SwigType_str(type,0), "), SWIGTYPE", SwigType_manglestr(type), "));\n", 0);
     }
       break;
