@@ -1,0 +1,4 @@
+This directory contains examples for Guile.
+
+simple   - The simple example from the user manual.
+matrix   - A very simple Matrix example.
