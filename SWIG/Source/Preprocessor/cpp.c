@@ -495,12 +495,12 @@ expand_macro(DOHString_or_char *name, DOHList *args)
   if (Getattr(macro,"swigmacro")) {
     DOHString *g;
     DOHString *f = NewString("");
-    Printf(f,"%%macro %s, \"%s\", %d {\n", name, Getfile(macro), Getline(macro));
+    /*    Printf(f,"%%macro(\"%s\",\"%s\",%d) ", name, Getfile(macro), Getline(macro)); */
     Seek(e,0,SEEK_SET);
     copy_location(macro,e);
     g = Preprocessor_parse(e);
-    Printf(f,"%s\n", g);
-    Printf(f,"}\n");
+    Printf(f,"%s", g);
+    /*    Printf(f," %%endmacro "); */
     Delete(g);
     Delete(e);
     e = f;
