@@ -47,8 +47,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 CPP_TEST_BROKEN += \
 	array_typedef_memberin \
 	defvalue_constructor \
-	director_nested \
-	director_protected \
 	exception_order \
 	namespace_union \
 	smart_pointer_namespace2 \
@@ -116,6 +114,8 @@ CPP_TEST_CASES += \
 	director_finalizer \
 	director_unroll \
 	director_wombat \
+	director_nested \
+	director_protected \
 	dynamic_cast \
 	enum_plus \
 	enum_scope \

@@ -697,8 +697,11 @@ int Language::cDeclaration(Node *n) {
   File   *f_header = 0;
   SwigType *ty, *fullty;
 
-  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
-  
+
+  if (CurrentClass && (cplus_mode == CPLUS_PRIVATE)) return SWIG_NOWRAP;
+  if ((cplus_mode == CPLUS_PROTECTED) && 
+      (!director_protected_mode || !is_member_director(CurrentClass,n))) return SWIG_NOWRAP;
+
   if (Cmp(storage,"typedef") == 0) {
     Swig_save("cDeclaration",n,"type",NIL);
     SwigType *t = Copy(type);
@@ -1712,7 +1715,36 @@ int Language::classHandler(Node *n) {
 
   /* emit director disown method */
   if (hasDirector) {
-  	classDirectorDisown(n);
+    classDirectorDisown(n);
+
+    /* emit all the protected virtual members as needed */
+    Node *vtable = Getattr(n, "vtable");
+    String* symname = Getattr(n, "sym:name");
+    Node *item;
+    Iterator k;    
+    int old_mode = cplus_mode;
+    cplus_mode =  CPLUS_PROTECTED;
+    for (k = First(vtable); k.key; k = Next(k)) {
+      item = k.item;
+      String* director = Getattr(item,"director");
+      Node *method = Getattr(item, "methodNode");
+      Node* parentnode = Getattr(method, "parentNode");
+      String* methodname = Getattr(method,"sym:name");
+      String* wrapname = NewStringf("%s_%s", symname,methodname);
+      if (!Getattr(symbols,wrapname) 
+	  && !Cmp(director,"1") 
+	  && (n != parentnode) 
+	  && is_protected(method)) {
+	Node* m = Copy(method);
+	Setattr(m,"parentNode", n);
+	/* ugly trick, to avoid an uglier one later on emit.*/
+	Replace(Getattr(m,"decl"),"q(const).","",1);
+	cDeclaration(m);
+	Delete(m);
+      }
+      Delete(wrapname);
+    }
+    cplus_mode = old_mode;
   }
 
   return SWIG_OK;

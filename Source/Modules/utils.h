@@ -24,12 +24,17 @@ int is_protected(Node* n)
 }
 
 inline 
-int is_member_director(Node* classnode, Node* member) 
+int is_member_director(Node* parentnode, Node* member) 
 {
-  int class_director = !Cmp(Getattr(classnode,"feature:director"), "1");
+  int parent_director = !Cmp(Getattr(parentnode,"feature:director"), "1");
   int cdecl_nodirector = !Cmp(Getattr(member,"feature:nodirector"),"1");
-  return class_director && !cdecl_nodirector;
+  return parent_director && !cdecl_nodirector;
 }
 
+inline 
+int is_member_director(Node* member) 
+{
+  return is_member_director(Getattr(member, "parentNode"), member);
+}
 
 #endif //__Modules_utils_h__
