@@ -183,6 +183,7 @@ void DohObjFree(DOH *ptr) {
   Fragment *f;
   extern int doh_debug_level;
 
+
   if (!DohCheck(ptr)) {
     DohError(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
     return;                  /* Oh well.  Guess we're leaky */
@@ -246,7 +247,8 @@ void DohFree(void *ptr) {
   int size;
   size = *((int *) (cptr - 8));
   free(cptr-8);
-  _DohMemoryCurrent -= (size+8);
+  _DohMemoryCurrent = _DohMemoryCurrent - (size+8);
+  /*  printf("Free %x %d\n", ptr, size);*/
 }
 
 /* -----------------------------------------------------------------------------
