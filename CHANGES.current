@@ -2,6 +2,12 @@ Version 1.3.23 (in progress)
 ==================================
 
 09/10/2004: wsfulton
+            Patch from Bill Clarke which fixes spurious preprocessor bug which
+            shows on Solaris and gcc, eg:
+                Warning(202): Could not evaluate '!defined(SWIGJAVA) &&
+                !(defined(SWIGCSHARP)'
+
+09/10/2004: wsfulton
             Restored multiple build directories for the test-suite. Patch from
             Bill Clarke.
 
