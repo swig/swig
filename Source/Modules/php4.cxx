@@ -22,15 +22,17 @@ char cvsroot_php4_cxx[] = "$Header$";
 
 static const char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
-	-cppext		- cpp file extension (default to .cpp)\n\
-	-proxy		- Create proxy classes.\n\
-	-dlname name	- Set module prefix.\n\
-	-make		- Create simple makefile.\n\
-	-phpfull	- Create full make files.\n\
-	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
-	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n\
-	-withc libs	- With -phpfull makes extra c files in Makefile.in\n\
-	-withcxx libs	- With -phpfull makes extra c++ files in Makefile.in\n\n";
+     -ldflags        - Print runtime libraries to link with\n\
+     -cppext		- cpp file extension (default to .cpp)\n\
+     -proxy		- Create proxy classes.\n\
+     -dlname name	- Set module prefix.\n\
+     -make		- Create simple makefile.\n\
+     -phpfull	- Create full make files.\n\
+     -withincs libs	- With -phpfull writes needed incs in config.m4\n\
+     -withlibs libs	- With -phpfull writes needed libs in config.m4\n\n\
+     -withc libs	- With -phpfull makes extra c files in Makefile.in\n\
+     -withcxx libs	- With -phpfull makes extra c++ files in Makefile.in\n\
+\n";
 
 static int constructors=0;
 static String *NOTCLASS=NewString("Not a class");
@@ -308,6 +310,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if(strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stderr);
+	} else if (strcmp (argv[i], "-ldflags") == 0) {
+	  printf("%s\n", SWIG_PHP_RUNTIME);
+	  SWIG_exit (EXIT_SUCCESS);
 	}
       }
     }
