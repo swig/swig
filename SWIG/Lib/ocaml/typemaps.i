@@ -74,35 +74,17 @@
 #ifdef __cplusplus
 
 %typemap(ocaml,in) SWIGTYPE & {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor));
+    $1 = ($ltype) caml_ptr_val($input,$descriptor);
 }
 
 %typemap(ocaml,out) SWIGTYPE & {
-    value *fromval = caml_named_value("create_$ltype_from_ptr");
+    value *fromval = caml_named_value("create_$*1_ltype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)& $1,$descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *) $1,$descriptor));
     } else {
-	$result = caml_val_ptr ((void *)& $1,$descriptor);
+	$result = caml_val_ptr ((void *) $1,$descriptor);
     }
 }
-
-#if 0
-
-%typemap(ocaml,in) SWIGTYPE {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor));
-}
-
-%typemap(ocaml,out) SWIGTYPE {
-    $&1_type temp = new $type(($1_ltype &) $1 );
-    value *fromval = caml_named_value("create_$ltype_from_ptr");
-    if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
-    } else {
-	$result = caml_val_ptr ((void *)temp,$descriptor);
-    }
-}
-
-#endif
 
 #else
 

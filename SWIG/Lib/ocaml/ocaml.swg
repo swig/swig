@@ -182,6 +182,9 @@ static value caml_list_append( value lst, value elt ) {
     lh = Val_unit;
     v = Val_unit;
 
+    /* Appending C_void should have no effect */
+    if( !Is_block(elt) ) return lst;
+
     while( lst && Is_block(lst) ) {
 	if( v && v != Val_unit ) {
 	    vt = alloc_tuple(2);

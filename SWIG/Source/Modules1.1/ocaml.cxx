@@ -572,6 +572,7 @@ public:
     
     Printv(f->code, 
 	   tab4, "swig_result = caml_list_append(swig_result,rv);\n"
+	   tab4, "free( argv );\n"
 	   tab4, "if( lenv == 0 )\n"
 	   tab4, "{\n"
 	   tab4, tab4, "CAMLreturn(Val_unit);\n",
@@ -591,7 +592,9 @@ public:
 	Wrapper *df = NewWrapper();
 	String *dname = Swig_name_wrapper(iname);
 	String *dispatch = 
-	  Swig_overload_dispatch(n,"CAMLreturn(%s(args));\n",&maxargs);
+	  Swig_overload_dispatch(n,
+				 "free(argv);\nCAMLreturn(%s(args));\n",
+				 &maxargs);
 
 	Wrapper_add_local(df, "argv", "value *argv");
 
@@ -607,7 +610,6 @@ public:
 		"argv = (value *)malloc( argc * sizeof( value ) );\n"
 		"for( i = 0; i < argc; i++ ) {\n"
 		"  argv[i] = caml_list_nth(args,i);\n"
-		"  register_global_root( &argv[i] );\n"
 		"}\n", NIL );
 	Printv(df->code,dispatch,"\n",NIL);
 	Printf(df->code,"failwith(\"No matching function for overloaded '%s'\");\n", iname);
