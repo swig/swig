@@ -1,4 +1,4 @@
-// Test to check the exception classes in the throws attribute of the typemaps is working
+// Test to check the exception classes in the throws attribute of the typemaps and except feature is working
 
 %module java_throws
 
@@ -14,6 +14,7 @@
         jclass excep = jenv->FindClass("java/lang/NoSuchFieldException");
         if (excep)
             jenv->ThrowNew(excep, "Value of 10 not acceptable");
+        return $null;
     }
 }
 
@@ -73,3 +74,61 @@ void fileFunction(char* someFileArgument) {}
 %inline %{
 int ioTest() { return 0; }
 %}
+
+// except feature (%javaexception) specifying a checked exception class for the throws clause
+%typemap(javabase) MyException "Throwable";
+%inline %{
+    struct MyException {
+        MyException(const char *msg) {}
+    };
+%}
+
+%define JAVAEXCEPTION(METHOD)
+%javaexception("MyException") METHOD %{
+try {
+    $action
+} catch (MyException) {
+    jclass excep = jenv->FindClass("java_throws/MyException");
+    if (excep)
+        jenv->ThrowNew(excep, "exception message");
+    return $null;
+}
+%}
+%enddef
+
+JAVAEXCEPTION(FeatureTest::FeatureTest) // doesn't seem to work
+JAVAEXCEPTION(FeatureTest::method)
+JAVAEXCEPTION(FeatureTest::staticMethod)
+
+%inline %{
+    struct FeatureTest {
+        static void staticMethod() {
+            throw MyException("no message");
+        }
+        void method() {
+            throw MyException("no message");
+        }
+    };
+%}
+
+// Mixing except feature and typemaps when both generate a class for the throws clause
+%typemap(in, throws="ClassNotFoundException") int both { 
+    $1 = (int)$input;
+}
+%javaexception("MyException , NoSuchFieldException") globalFunction %{
+try {
+    $action
+} catch (MyException) {
+    jclass excep = jenv->FindClass("java_throws/MyException");
+    if (excep)
+        jenv->ThrowNew(excep, "exception message");
+    return $null;
+}
+%}
+
+%inline %{
+    void globalFunction(int both) {
+        throw MyException("no message");
+    }
+%}
+
