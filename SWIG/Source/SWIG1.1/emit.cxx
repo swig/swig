@@ -95,7 +95,7 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"result",(char*)""))) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
-  } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
+  } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->_id))) {
     Printv(f->code,tm,0);
     Replace(f->code,"$name",decl,DOH_REPLACE_ANY);
   } else {

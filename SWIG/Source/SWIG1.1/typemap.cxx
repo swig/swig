@@ -226,8 +226,8 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
 
   int old_status;
   if (!str) str = NewString("");
-  old_status = type->status;
-  type->status = 0;
+  old_status = type->_status;
+  type->_status = 0;
   Clear(str);
 
   if (ary)
@@ -235,7 +235,7 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
   else
     Printv(str, lang, DataType_str(type,0), pname, suffix,0);
 
-  type->status = old_status;
+  type->_status = old_status;
   return Char(str);
 }
 
@@ -334,7 +334,6 @@ void typemap_register(char *op, char *lang, char *type, char *pname,
   DataType *temp;
   temp = NewDataType(0);
   DataType_Setname(temp,type);
-  temp->is_pointer = 0;
   DataType_Settypecode(temp,T_USER);
   typemap_register(op,lang,temp,pname,getcode,args);
   DelDataType(temp);
@@ -356,7 +355,7 @@ void typemap_register_default(char *op, char *lang, int type, int ptr, char *arr
 
   /* Create a raw datatype from the arguments */
 
-  t->is_pointer = ptr;
+  t->_is_pointer = ptr;
   DataType_set_arraystr(t,arraystr);
 
   /* Now, go register this as a default type */
@@ -412,12 +411,12 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
   /* First check to see if exactly this array has been mapped */
 
   key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
-  tm = typemap_search(key,type->id);
+  tm = typemap_search(key,type->_id);
 
   /* Check for unnamed array of specific dimensions */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
   } 
 
   if (!tm) {
@@ -439,10 +438,10 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
       }
       DataType_set_arraystr(type, Char(tempastr));
       key = typemap_string(lang,type,pname,DataType_arraystr(type),op);
-      tm = typemap_search(key,type->id);
+      tm = typemap_search(key,type->_id);
       if (!tm) {
 	key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
-	tm = typemap_search(key,type->id);
+	tm = typemap_search(key,type->_id);
       }
       DataType_set_arraystr(type,origarr);
       if (tm) {
@@ -501,7 +500,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
         
 	/* Have a real parameter here */
         if (DataType_arraystr(tt)) {
-	  tt->is_pointer--;
+	  DataType_del_pointer(tt);
 	  Printf(str,"%s%s",pn, DataType_arraystr(tt));
 	} 
         else {
@@ -512,18 +511,18 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
         if (strcmp(DataType_Getname(pt),"$basetype")==0) {
           /* use $basetype */
-          char temp_ip = tt->is_pointer;
-          char temp_ip1 = tt->implicit_ptr;
-          tt->is_pointer = 0;
-          tt->implicit_ptr = 0;
+          char temp_ip = tt->_is_pointer;
+          char temp_ip1 = tt->_implicit_ptr;
+          tt->_is_pointer = 0;
+          tt->_implicit_ptr = 0;
           new_name = Wrapper_new_localv(f,str, DataType_str(tt,0), str, 0);
-          tt->is_pointer = temp_ip;
-          tt->implicit_ptr = temp_ip1;
+          tt->_is_pointer = temp_ip;
+          tt->_implicit_ptr = temp_ip1;
         } 
         else 
           new_name = Wrapper_new_localv(f,str, DataType_str(tt,str), 0);
 
-	if (DataType_arraystr(tt)) tt->is_pointer++;
+	if (DataType_arraystr(tt)) tt->_is_pointer++;
 	/* Substitute  */
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
@@ -598,7 +597,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   /* Check for named argument */
   if (!tm) {
     key = typemap_string(lang,type,pname,0,op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
     if (tm)
       Printf(str,"%s",tm->code);
   }
@@ -606,7 +605,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   /* Check for unnamed type */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",0,op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
     if (tm)
       Printf(str,"%s", tm->code);
   }
@@ -624,17 +623,17 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   }
   /* Print base type (without any pointers) */
   {
-    char temp_ip = realtype->is_pointer;
-    char temp_ip1 = realtype->implicit_ptr;
-    realtype->is_pointer = 0;
-    realtype->implicit_ptr = 0;
+    char temp_ip = realtype->_is_pointer;
+    char temp_ip1 = realtype->_implicit_ptr;
+    realtype->_is_pointer = 0;
+    realtype->_implicit_ptr = 0;
     char *bt = DataType_str(realtype,0);
     if (bt[strlen(bt)-1] == ' ') 
       bt[strlen(bt)-1] = 0;
     Replace(str,"$basetype",bt,DOH_REPLACE_ANY);
     Replace(str,"$basemangle",DataType_manglestr(realtype), DOH_REPLACE_ANY);
-    realtype->is_pointer = temp_ip;
-    realtype->implicit_ptr = temp_ip1;
+    realtype->_is_pointer = temp_ip;
+    realtype->_implicit_ptr = temp_ip1;
   }
   
   Replace(str,"$mangle",DataType_manglestr(realtype), DOH_REPLACE_ANY);
@@ -686,8 +685,8 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
     /* The idea : We're going to cycle through applications and
        drop pointers off until we get a match.    */
 
-    while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
-      type->is_pointer -= drop_pointer;
+    while (drop_pointer <= (type->_is_pointer - type->_implicit_ptr)) {
+      type->_is_pointer -= drop_pointer;
       tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
       /* No mapping was found.  See if the name has been mapped with %apply */
@@ -704,7 +703,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  if (!newarray) newarray = NewString("");
 	  if (*(m->name)) ppname = m->name;
 	  else ppname = pname;
-	  m->type->is_pointer += drop_pointer;
+	  m->type->_is_pointer += drop_pointer;
 
 	  /* Copy old array string (just in case) */
 	  
@@ -737,15 +736,15 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  DataType_set_arraystr(m->type,oldary);
 	  if (oldary)
 	    free(oldary);
-	  m->type->is_pointer -= drop_pointer;
+	  m->type->_is_pointer -= drop_pointer;
 	  if (result) {
-	    type->is_pointer += drop_pointer;
+	    type->_is_pointer += drop_pointer;
 	    return result;
 	  }
 	  m = m->next;
 	}
       }
-      type->is_pointer += drop_pointer;
+      type->_is_pointer += drop_pointer;
       drop_pointer++;
     }
   }
@@ -764,7 +763,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
     if ((tc == T_USER) || (tc == T_POINTER)) {
       /* Still no result, go even more primitive */
       DataType_Settypecode(t, T_USER);
-      t->is_pointer = 1;
+      t->_is_pointer = 1;
       DataType_set_arraystr(t,0);
       DataType_primitive(t);
       result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
@@ -799,25 +798,25 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
    *
    *  if (type->arraystr) {
    *    key = typemap_string(lang,type,pname,type->arraystr,op);
-   *    tm = typemap_search(key,type->id);
+   *    tm = typemap_search(key,type->_id);
    *  } */
 
   /* Check for named argument */
   if (!tm) {
     key = typemap_string(lang,type,pname,0,op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
   }
 
   /* Check for unnamed array */
   if ((!tm) && (DataType_arraystr(type))) {
     key = typemap_string(lang,type,(char*)"",DataType_arraystr(type),op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
   } 
 
   /* Check for unname type */
   if (!tm) {
     key = typemap_string(lang,type,(char*)"",0,op);
-    tm = typemap_search(key,type->id);
+    tm = typemap_search(key,type->_id);
   }
   if (!tm) return 0;
   
@@ -848,8 +847,8 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
      /* The idea : We're going to cycle through applications and
 	drop pointers off until we get a match.    */
 
-    while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
-      type->is_pointer -= drop_pointer;
+    while (drop_pointer <= (type->_is_pointer - type->_implicit_ptr)) {
+      type->_is_pointer -= drop_pointer;
       tstr = DataType_str(type,0);
       sprintf(temp,"%s$%s",tstr,ppname);
       /* No mapping was found.  See if the name has been mapped with %apply */
@@ -867,7 +866,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  if (!newarray) newarray = NewString("");
 	  if (*(m->name)) ppname = m->name;
 	  else ppname = pname;
-	  m->type->is_pointer += drop_pointer;
+	  m->type->_is_pointer += drop_pointer;
 	  if (DataType_arraystr(m->type))
 	    oldary = Swig_copy_string(DataType_arraystr(m->type));
 	  else
@@ -894,15 +893,15 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  result = typemap_check_internal(op,lang,m->type,ppname);
 	  DataType_set_arraystr(m->type,oldary);
 	  if (oldary) free(oldary);
-	  m->type->is_pointer -= drop_pointer;
+	  m->type->_is_pointer -= drop_pointer;
 	  if (result) {
-	    type->is_pointer += drop_pointer;
+	    type->_is_pointer += drop_pointer;
 	    return result;
 	  }
 	  m = m->next;
 	}
       }
-      type->is_pointer += drop_pointer;
+      type->_is_pointer += drop_pointer;
       drop_pointer++;
     }
   }
@@ -921,7 +920,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
     if ((tc == T_USER) || (tc == T_POINTER)) {
       /* Still no result, go even more primitive */
       DataType_Settypecode(t,T_USER);
-      t->is_pointer = 1;
+      t->_is_pointer = 1;
       DataType_set_arraystr(t,0);
       DataType_primitive(t);
       result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
@@ -972,7 +971,7 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
   /* Try to locate a previous typemap */
 
   key = typemap_string(lang,stype,sname,DataType_arraystr(stype),op);
-  tm = typemap_search(key,stype->id);
+  tm = typemap_search(key,stype->_id);
   if (!tm) return;
   if (strcmp(DataType_Getname(ttype),"PREVIOUS") == 0) {
     /* Pop back up to the previous typemap (if any) */

@@ -146,6 +146,7 @@ static  DOHString   *pragma_include = 0;
 
 
 // Perl specific type mangler function
+#ifdef OLD
 static char *
 type_mangle(DataType *t) {
   static char result[128];
@@ -176,6 +177,7 @@ type_mangle(DataType *t) {
   *r = 0;
   return result;
 }
+#endif
 
 // ---------------------------------------------------------------------
 // PERL5::parse_args(int argc, char *argv[])
@@ -292,7 +294,7 @@ PERL5::parse() {
   modextern = NewString("");
   pragma_include = NewString("");
 
-  DataType_set_mangle(type_mangle);
+  /*  DataType_set_mangle(type_mangle);*/
 
   // Print out PERL5 specific headers
   
@@ -840,10 +842,10 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	case T_USER:
 	  
-	  pt->is_pointer++;
+	  DataType_add_pointer(pt);
 	  sprintf(temp,"argument %d", i+1);
 	  get_pointer(iname, temp, source, target, pt, f->code, (char *)"XSRETURN(1)");
-	  pt->is_pointer--;
+	  DataType_del_pointer(pt);
 	  break;
 
 	case T_STRING:
@@ -945,11 +947,11 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Return a complex type by value
 	
       case T_USER:
-	d->is_pointer++;
+	DataType_add_pointer(d);
 	Printv(f->code,
 	       tab4, "sv_setref_pv(ST(argvi++),\"",(hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_manglestr(d),
 	       "\", (void *) result);\n", 0);
-	d->is_pointer--;
+	DataType_del_pointer(d);
 	break;
 	
       case T_STRING:
@@ -1047,7 +1049,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
 	if ((tm = typemap_lookup((char*)"perl5in",(char*)"perl5",pt,(char*)"",sourceNtarget,sourceNtarget))) {
 	  Printf(func,"%s\n", tm);
-	} else if ((Getattr(classes,DataType_Getname(pt))) && (pt->is_pointer <= 1)) {
+	} else if ((Getattr(classes,DataType_Getname(pt))) && (DataType_is_pointer(pt) <= 1)) {
 	  if (i >= (pcount - numopt))
 	    Printf(func,"    if (scalar(@args) >= %d) {\n    ", i);
 	  Printf(func,"    $args[%d] = tied(%%{$args[%d]});\n", i, i);
@@ -1075,14 +1077,14 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	     "}\n",
 	     0);
 
-    } else if ((Getattr(classes,DataType_Getname(d))) && (d->is_pointer <=1)) {
+    } else if ((Getattr(classes,DataType_Getname(d))) && (DataType_is_pointer(d) <=1)) {
 
       Printv(func, tab4, "return undef if (!defined($result));\n", 0);
 
       // If we're returning an object by value, put it's reference
       // into our local hash table
 
-      if ((d->is_pointer == 0) || ((d->is_pointer == 1) && NewObject)) {
+      if ((!DataType_is_pointer(d))|| ((DataType_is_pointer(d) == 1) && NewObject)) {
 	char *name = GetChar(classes,DataType_Getname(d));
 	if (hidden) 
 	  Printv(func, tab4, "$", realpackage, "::", name, "::OWNER{$result} = 1;\n", 0);
@@ -1182,11 +1184,11 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	// Add support for User defined type here
 	// Get as a pointer value
 	
-	t->is_pointer++;
+	DataType_add_pointer(t);
 	Wrapper_add_local(setf,"_temp", "void *_temp");
 	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
 	Printv(setf->code, tab4, name, " = *((", DataType_str(t,0), ") _temp);\n", 0);
-	t->is_pointer--;
+	DataType_del_pointer(t);
 	break;
 
       case T_STRING:
@@ -1263,7 +1265,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	     0);
       break;
     case T_USER:
-      t->is_pointer++;
+      DataType_add_pointer(t);
       Printv(getf->code,
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
@@ -1271,7 +1273,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       
       Wrapper_add_local(getf,"rsv","SV *rsv");
       Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_manglestr(t), "\",(void *) &", name, ");\n",0);
-      t->is_pointer--;
+      DataType_del_pointer(t);
       
       break;
 
@@ -1311,7 +1313,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
   //     2.  Otherwise, just hack Perl's symbol table
   
   if (blessed) {
-    if ((Getattr(classes,DataType_Getname(t))) && (t->is_pointer <= 1)) {
+    if ((Getattr(classes,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
       Printv(var_stubs,
 	     "\nmy %__", iname, "_hash;\n",
 	     "tie %__", iname, "_hash,\"", GetChar(classes,DataType_Getname(t)), "\", $",
@@ -1454,7 +1456,7 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
   }
 
   if (blessed) {
-    if ((Getattr(classes,DataType_Getname(type))) && (type->is_pointer <= 1)) {
+    if ((Getattr(classes,DataType_Getname(type))) && (DataType_is_pointer(type) <= 1)) {
       Printv(var_stubs,
 	     "\nmy %__", name, "_hash;\n",
 	     "tie %__", name, "_hash,\"", GetChar(classes,DataType_Getname(type)), "\", $",
@@ -1876,7 +1878,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 	Printf(func,"%s\n",tm);
       }
       // Look up the datatype name here
-      else if ((Getattr(classes,DataType_Getname(pt))) && (pt->is_pointer <= 1)) {
+      else if ((Getattr(classes,DataType_Getname(pt))) && (DataType_is_pointer(pt) <= 1)) {
 	// Yep.   This smells alot like an object, patch up the arguments
 
 	if (i >= (pcount - numopt))
@@ -1910,14 +1912,14 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
 	   "}\n",
 	   0);
 
-  } else if ((Getattr(classes,DataType_Getname(t))) && (t->is_pointer <=1)) {
+  } else if ((Getattr(classes,DataType_Getname(t))) && (DataType_is_pointer(t) <=1)) {
     
     Printv(func,tab4, "return undef if (!defined($result));\n", 0);
 
     // If we're returning an object by value, put it's reference
     // into our local hash table
 
-    if ((t->is_pointer == 0) || ((t->is_pointer == 1) && NewObject)) {
+    if ((DataType_is_pointer(t) == 0) || ((DataType_is_pointer(t) == 1) && NewObject)) {
       char *name = GetChar(classes,DataType_Getname(t));
       if (hidden)
 	Printv(func, tab4, "$", realpackage, "::", name, "::OWNER{$result} = 1;\n", 0);
@@ -1995,7 +1997,7 @@ void PERL5::cpp_variable(char *name, char *iname, DataType *t) {
 
     // Now we need to generate a little Perl code for this
 
-    if ((Getattr(classes,DataType_Getname(t))) && (t->is_pointer <= 1)) {
+    if ((Getattr(classes,DataType_Getname(t))) && (DataType_is_pointer(t) <= 1)) {
 
       // This is a Perl object that we have already seen.  Add an
       // entry to the members list
@@ -2074,7 +2076,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       DataType *pt = Gettype(p);
       // Look up the datatype name here
       
-      if ((Getattr(classes,DataType_Getname(pt))) && (pt->is_pointer <= 1)) {
+      if ((Getattr(classes,DataType_Getname(pt))) && (DataType_is_pointer(pt) <= 1)) {
 	
 	// Yep.   This smells alot like an object, patch up the arguments
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
@@ -2267,7 +2269,7 @@ void PERL5::add_typedef(DataType *t, char *name) {
 
   // First check to see if there aren't too many pointers
 
-  if (t->is_pointer > 1) return;
+  if (DataType_is_pointer(t) > 1) return;
 
   if (Getattr(classes,name)) return;      // Already added
 

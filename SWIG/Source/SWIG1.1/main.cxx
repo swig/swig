@@ -456,7 +456,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     // Set up the typemap for handling new return strings
     {
       DataType *temp_t = NewDataType(T_CHAR);
-      temp_t->is_pointer++;
+      DataType_add_pointer(temp_t);
       if (CPlusPlus)
 	typemap_register((char*)"newfree",typemap_lang,temp_t,(char*)"",(char*)"delete [] $source;\n",0);
       else

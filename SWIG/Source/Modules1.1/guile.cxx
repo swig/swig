@@ -395,13 +395,13 @@ throw_unhandled_guile_type_error (DataType *d)
   Printf (stderr, "ERROR: Unhandled GUILE type error.\n");
   Printf (stderr, "        type %d\n", DataType_type(d));
   Printf (stderr, "        name %s\n", DataType_Getname(d));
-  Printf (stderr, "  is_pointer %d\n", d->is_pointer);
-  Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
+  Printf (stderr, "  is_pointer %d\n", DataType_is_pointer(d));
+  /*  Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);*/ 
   Printf (stderr, "is_reference %d\n", DataType_is_reference(d));
-  Printf (stderr, "      status %d\n", d->status);
+  /*  Printf (stderr, "      status %d\n", d->status); */
   /*  Printf (stderr, "   qualifier %s\n", (d->qualifier ? d->qualifier : ""));
       Printf (stderr, "    arraystr %s\n", (d->arraystr ? d->arraystr : ""));*/
-  Printf (stderr, "          id %d\n", d->id);
+  /*  Printf (stderr, "          id %d\n", d->id);*/
 
   Printf (stderr, "\n\nBAILING...\n"); // for now -ttn
   abort();                              // for now -ttn
@@ -489,7 +489,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 	Printv(f->code,tm,"\n",0);
         mreplace (f->code, argnum, arg, proc_name);
       }
-      else if (pt->is_pointer)
+      else if (DataType_is_pointer(pt))
         get_pointer (iname, i, pt, f, proc_name, numargs);
       else {
         throw_unhandled_guile_type_error (pt);
@@ -536,7 +536,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
     Printv(f->code,tm,"\n",0);
     mreplace (f->code, argnum, arg, proc_name);
   }
-  else if (d->is_pointer) {
+  else if (DataType_is_pointer(d)) {
     /* MK: I would like to use SWIG_Guile_MakePtr here to save one type
        look-up. */
     Printv(f->code, tab4,
@@ -656,7 +656,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
                                    t, name, (char*)"s_0", name))) {
       Printf (f_wrappers, "%s\n", tm);
     }
-    else if (t->is_pointer) {
+    else if (DataType_is_pointer(t)) {
       if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
         Printf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
@@ -691,7 +691,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
                               t, name, name, (char*)"gswig_result"))) {
       Printf (f_wrappers, "%s\n", tm);
     }
-    else if (t->is_pointer) {
+    else if (DataType_is_pointer(t)) {
       if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
       } else {
@@ -831,8 +831,9 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
       // Print the type.
       Printv(usage, " <", DataType_Getname(pt), 0);
-      if (pt->is_pointer) {
-	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {
+      if (DataType_is_pointer(pt)) {
+	/*	for (int j = 0; j < (pt->is_pointer - pt->implicit_ptr); j++) {*/
+	for (int j = 0; j < DataType_is_pointer(pt); j++) {
 	  Putc('*', usage);
 	}
       }
@@ -881,8 +882,9 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
       // Print the type.
       Printv(param," $", DataType_Getname(pt), 0);
-      if (pt->is_pointer) {
-	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) {
+      if (DataType_is_pointer(pt)) {
+	/*	for (j = 0; j < (pt->is_pointer - pt->implicit_ptr - 1); j++) { */
+	for (j = 0; j < DataType_is_pointer(pt) - 1; j++) {
 	  Putc('*', param);
 	}
       }

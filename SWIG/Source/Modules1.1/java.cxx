@@ -71,7 +71,7 @@ static  int          useRegisterNatives = 0;        // Set to 1 when doing stuff
 static  DOHString   *registerNativesList = 0;
 
 char *JAVA::SwigTcToJniType(DataType *t, int ret) {
-  if(t->is_pointer == 1) {
+  if(DataType_is_pointer(t) == 1) {
 	  switch(DataType_Gettypecode(t)) {
 	    case T_INT:		return (char*)"jintArray";
 	    case T_SHORT:	return (char*)"jshortArray";
@@ -88,7 +88,7 @@ char *JAVA::SwigTcToJniType(DataType *t, int ret) {
 	    case T_VOID:	
 	    case T_USER:	return (char*)"jlong";
 	  }
-  } else if(t->is_pointer > 1) {
+  } else if(DataType_is_pointer(t) > 1) {
     if(ret)
 	return (char*)"jlong";
     else return (char*)"jlongArray";
@@ -115,7 +115,7 @@ char *JAVA::SwigTcToJniType(DataType *t, int ret) {
 }
 
 char *JAVA::SwigTcToJavaType(DataType *t, int ret, int inShadow) {
-  if(t->is_pointer == 1) {
+  if(DataType_is_pointer(t) == 1) {
 	  switch(DataType_Gettypecode(t)) {
 	    case T_INT:    return (char*)"int []";
 	    case T_SHORT:  return (char*)"short []";
@@ -134,7 +134,7 @@ char *JAVA::SwigTcToJavaType(DataType *t, int ret, int inShadow) {
                          return GetChar(shadow_classes,DataType_Getname(t));
                        else return (char*)"long";
 	  }
-  } else if(t->is_pointer > 1) {
+  } else if(DataType_is_pointer(t) > 1) {
     if(ret)
 	  return (char*)"long";
     else return (char*)"long []";
@@ -161,7 +161,7 @@ char *JAVA::SwigTcToJavaType(DataType *t, int ret, int inShadow) {
 }
 
 char *JAVA::SwigTcToJniScalarType(DataType *t) {
-  if(t->is_pointer == 1) {
+  if(DataType_is_pointer(t) == 1) {
     switch(DataType_Gettypecode(t)) {
 	    case T_INT: return (char*)"Int";
 	    case T_SHORT: return (char*)"Short";
@@ -187,7 +187,7 @@ char *JAVA::SwigTcToJniScalarType(DataType *t) {
 }
 
 char *JAVA::JavaMethodSignature(DataType *t, int ret, int inShadow) {
-  if(t->is_pointer == 1) {
+  if(DataType_is_pointer(t) == 1) {
 	  switch(DataType_Gettypecode(t)) {
 	   case T_INT:    return (char*)"[I";
 	    case T_SHORT:  return (char*)"[S";
@@ -206,7 +206,7 @@ char *JAVA::JavaMethodSignature(DataType *t, int ret, int inShadow) {
                          return GetChar(shadow_classes,DataType_Getname(t));
                        else return (char*)"J";
 	  }
-  } else if(t->is_pointer > 1) {
+  } else if(DataType_is_pointer(t) > 1) {
     if(ret) return (char*)"J";
     else return (char*)"[J";
   } else {
@@ -638,27 +638,27 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	Printf(f->code,"%s\n", tm);
 	Replace(f->code,"$arg",source, DOH_REPLACE_ANY);
       } else {
-        if(!pt->is_pointer)
+        if(!DataType_is_pointer(pt))
 	  Printv(f->code, tab4, target, " = (", DataType_lstr(pt,0), ") ", source, ";\n", 0);
-        else if((DataType_Gettypecode(pt) == T_VOID && pt->is_pointer == 1) ||
-	        (DataType_Gettypecode(pt) == T_USER && pt->is_pointer == 1)) {
-            pt->is_pointer++;
+        else if((DataType_Gettypecode(pt) == T_VOID && (DataType_is_pointer(pt) == 1)) ||
+	        (DataType_Gettypecode(pt) == T_USER && (DataType_is_pointer(pt) == 1))) {
+            DataType_add_pointer(pt);
 	    Printv(f->code, tab4, target, " = *(", DataType_lstr(pt,0), ")&", source, ";\n", 0);
-            pt->is_pointer--;
+            DataType_del_pointer(pt);
         } else {
           if(DataType_type(pt) == T_STRING) {
 	    Printv(f->code, tab4, target, " = (", source, ") ? (char *)", JNICALL((char*)"GetStringUTFChars"), source, ", 0) : NULL;\n", 0);
           } else {
             char *scalarType = SwigTcToJniScalarType(pt);
 
-            pt->is_pointer--;
-            const char *basic_jnitype = (pt->is_pointer > 0) ? "jlong" : SwigTcToJniType(pt, 0);
+            DataType_del_pointer(pt);
+            const char *basic_jnitype = (DataType_is_pointer(pt) > 0) ? "jlong" : SwigTcToJniType(pt, 0);
             char *ctype = DataType_lstr(pt,0);
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      Printf(stderr, "\'%s\' does not have a in/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
 	    };
-            pt->is_pointer++;
+            DataType_add_pointer(pt);
 
 	    DOHString *basic_jniptrtype = NewStringf("%s*",basic_jnitype);
             DOHString *source_length = NewStringf("%s%s)", JNICALL((char*)"GetArrayLength"), source);
@@ -672,12 +672,12 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    Printv(f->code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
 	    Printv(f->code, tab4, target, " = (", DataType_lstr(pt,0), ") malloc(", target_length, " * sizeof(", ctype, "));\n", 0);
 	    Printv(f->code, tab4, "for(i=0; i<", target_length, "; i++)\n", 0);
-	    if(pt->is_pointer > 1) {
+	    if(DataType_is_pointer(pt) > 1) {
 	      Printv(f->code, tab8, target, "[i] = *(", DataType_lstr(pt,0), ")&", target_copy, "[i];\n", 0);
 	    } else {
-              pt->is_pointer--;
+              DataType_del_pointer(pt);
 	      Printv(f->code, tab8, target, "[i] = (", DataType_lstr(pt,0), ")", target_copy, "[i];\n", 0); 
-	      pt->is_pointer++;
+	      DataType_add_pointer(pt);
 	    }
 	    Delete(scalarFunc);
 	    Delete(source_length);
@@ -706,25 +706,25 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
     } else {
        // if(pt->is_pointer && pt->type != T_USER &&  pt->type != T_VOID) {
-       if(pt->is_pointer) {
+       if(DataType_is_pointer(pt)) {
          if(DataType_type(pt) == T_STRING) {
 	   Printv(outarg, tab4, "if(", target,") ", JNICALL((char*)"ReleaseStringUTFChars"), source, ", ", target, ");\n", 0);
-         } else if(((DataType_Gettypecode(pt) == T_VOID) && pt->is_pointer == 1) ||
-                ((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer == 1)) {
+         } else if(((DataType_Gettypecode(pt) == T_VOID) && DataType_is_pointer(pt) == 1) ||
+                ((DataType_Gettypecode(pt) == T_USER) && DataType_is_pointer(pt) == 1)) {
 	   // nothing to do
          } else {
             char *scalarType = SwigTcToJniScalarType(pt);
 
-            pt->is_pointer--;
-            const char *basic_jnitype = (pt->is_pointer > 0) ? "jlong" : SwigTcToJniType(pt, 0);
+            DataType_del_pointer(pt);
+            const char *basic_jnitype = (DataType_is_pointer(pt) > 0) ? "jlong" : SwigTcToJniType(pt, 0);
             char *ctype = DataType_lstr(pt,0);
 	    if(scalarType == NULL || basic_jnitype == NULL) {
 	      Printf(stderr, "\'%s\' does not have a argout/jni typemap, and is not a basic type.\n", ctype);
     	      SWIG_exit(1);
 	    };
-            pt->is_pointer++;
+            DataType_add_pointer(pt);
 	    Printf(outarg, "    for(i=0; i< %d; i++)\n", target_length);
-	    if(pt->is_pointer > 1) {
+	    if(DataType_is_pointer(pt) > 1) {
 	      Printv(outarg, tab8, "*(", DataType_lstr(pt,0), ")&", target_copy, "[i] = ",  target, "[i];\n", 0);
 	    } else {
 	      Printv(outarg, tab8, target_copy, "[i] = (", basic_jnitype, ") ", target, "[i];\n", 0); 
@@ -761,25 +761,27 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       Printf(f->code,"%s\n", tm);
     } else {
       if(DataType_type(t) == T_USER) { /* return by value */
-	    t->is_pointer=2;
+	DataType_add_pointer(t);
+	DataType_add_pointer(t);
 	    Printv(f->code, tab4, "*(", DataType_lstr(t,0), ")&_jresult = result;\n", 0);
-	    t->is_pointer=0;
-      } else if(t->is_pointer == 0 && (DataType_Gettypecode(t) != T_USER)) {
+	    DataType_del_pointer(t);
+	    DataType_del_pointer(t);
+      } else if(DataType_is_pointer(t) == 0 && (DataType_Gettypecode(t) != T_USER)) {
 	Printv(f->code, tab4, "_jresult = (", jnirettype, ") result;\n", 0);
-      } else if(((DataType_Gettypecode(t) == T_VOID) && t->is_pointer == 1) ||
-	        ((DataType_Gettypecode(t) == T_USER) && t->is_pointer == 1)) {
-	    t->is_pointer++;
+      } else if(((DataType_Gettypecode(t) == T_VOID) && DataType_is_pointer(t) == 1) ||
+	        ((DataType_Gettypecode(t) == T_USER) && DataType_is_pointer(t) == 1)) {
+	    DataType_add_pointer(t);
 	    Printv(f->code, tab4, "*(", DataType_lstr(t,0), ")&_jresult = result;\n", 0);
-	    t->is_pointer--;
+	    DataType_del_pointer(t);
       } else {
         if(DataType_type(t) == T_STRING) {
 	  Printv(f->code, tab4, "if(result != NULL)\n", 0);
           Printv(f->code, tab8, "_jresult = (jstring)", JNICALL((char*)"NewStringUTF"),  "result);\n", 0);
         } else {
 	  Printf(stderr,"%s : Line %d. Warning: no return typemap for datatype %s\n", input_file,line_number,DataType_str(t,0));
-	    t->is_pointer++;
+	    DataType_add_pointer(t);
 	    Printv(f->code, tab4, "*(", DataType_lstr(t,0), ")&_jresult = result;\n", 0);
-	    t->is_pointer--;
+	    DataType_del_pointer(t);
         }
       }
     }
@@ -871,7 +873,7 @@ void JAVA::declare_const(char *name, char *iname, DataType *type, char *value) {
     Printf(jfile,"  %s\n\n", str);
     Delete(str);
   } else {
-    if((type->is_pointer == 0)) {
+    if((DataType_is_pointer(type) == 0)) {
       char *jtype = typemap_lookup((char*)"jtype", typemap_lang, type, name, name, iname);
       if(!jtype) jtype = SwigTcToJavaType(type, 0, 0);
       if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {
@@ -947,7 +949,7 @@ void JAVA::add_typedef(DataType *t, char *name) {
   
   // First check to see if there aren't too many pointers
 
-  if (t->is_pointer > 1) return;
+  if (DataType_is_pointer(t) > 1) return;
 
   if(Getattr(shadow_classes,name)) return;      // Already added
 
@@ -1059,7 +1061,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   char *javarettype = JavaTypeFromTypemap((char*)"jtype", typemap_lang, t, iname);
   if(!javarettype) javarettype = SwigTcToJavaType(t, 1, 0);
   char *shadowrettype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, t, iname);
-  if(!shadowrettype && (DataType_Gettypecode(t) == T_USER) && t->is_pointer <= 1) {
+  if(!shadowrettype && (DataType_Gettypecode(t) == T_USER) && DataType_is_pointer(t) <= 1) {
     shadowrettype = GetChar(shadow_classes,DataType_Getname(t));
   }
 
@@ -1087,7 +1089,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       sprintf(arg,"arg%d",i);
     }
 
-      if((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1 && Getattr(shadow_classes,DataType_Getname(pt))) {
+      if((DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1) && Getattr(shadow_classes,DataType_Getname(pt))) {
 	Printv(nativecall, ", ", arg, "._self", 0);
       } else Printv(nativecall, ", ", arg, 0);
 
@@ -1095,7 +1097,7 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       if(!jtype) jtype = SwigTcToJavaType(pt, 0, 0);
 
       char *jstype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, pt, pn);
-      if(!jstype && (DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1) {
+      if(!jstype && (DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1)) {
 	    jstype = GetChar(shadow_classes,DataType_Getname(pt));
       }
 
@@ -1131,7 +1133,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   char *javarettype = JavaTypeFromTypemap((char*)"jtype", typemap_lang, t, iname);
   if(!javarettype) javarettype = SwigTcToJavaType(t, 1, 0);
   char *shadowrettype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, t, iname);
-  if(!shadowrettype && (DataType_Gettypecode(t) == T_USER) && t->is_pointer <= 1) {
+  if(!shadowrettype && (DataType_Gettypecode(t) == T_USER) && (DataType_is_pointer(t) <= 1)) {
     shadowrettype = GetChar(shadow_classes,DataType_Getname(t));
   }
 
@@ -1162,7 +1164,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
 
     if(gencomma) Printf(nativecall,", ");
 
-    if((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1 && Getattr(shadow_classes,DataType_Getname(pt))) {
+    if((DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1) && Getattr(shadow_classes,DataType_Getname(pt))) {
       Printv(nativecall, arg, "._self", 0);
     } else Printv(nativecall,arg,0);
 
@@ -1172,7 +1174,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
     if(!jtype) jtype = SwigTcToJavaType(pt, 0, 0);
 
     char *jstype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, pt, pn);
-    if(!jstype && (DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1) {
+    if(!jstype && (DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1)) {
 	  jstype = GetChar(shadow_classes, DataType_Getname(pt));
     }
 
@@ -1232,14 +1234,14 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
     if(!jtype) jtype = SwigTcToJavaType(pt, 0, 0);
 
     char *jstype = JavaTypeFromTypemap((char*)"jstype", typemap_lang, pt, pn);
-    if(!jstype && (DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1) {
+    if(!jstype && (DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1)) {
 	  jstype = GetChar(shadow_classes, DataType_Getname(pt));
     }
 
     // Add to java function header
     Printf(f_shadow, "%s %s", (jstype) ? jstype : jtype, arg);
 
-    if((DataType_Gettypecode(pt) == T_USER) && pt->is_pointer <= 1 && Getattr(shadow_classes,DataType_Getname(pt))) {
+    if((DataType_Gettypecode(pt) == T_USER) && (DataType_is_pointer(pt) <= 1) && Getattr(shadow_classes,DataType_Getname(pt))) {
 	Printv(nativecall,arg, "._self", 0);
     } else Printv(nativecall, arg, 0);
 
