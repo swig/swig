@@ -6,26 +6,22 @@ SWIG CVS
 <p>
 
 <p>
-SWIG is currently undergoing a large redevelopment effort.
-Development versions of SWIG are available through a public
-CVS repository.    To use this interface you will need to install
-CVS 1.9 or newer.   The SWIG development machine is currently
-running cvs-1.10.   Use of the CVS repository is not recommended except for
-advanced users.
+Development versions of SWIG are available through the CVS server located at SourceForge.
 
+<p>
 <h3> Disclaimer </h3>
 
 The CVS release represents work in progress and is not guaranteed to compile on your machine or be functional in any
 manner. 
 
-<h3> To check out the latest version </h3>
+<h3>To check out the latest version </h3>
 
 <ol>
 <li> Set the location of CVSROOT
 
 <p>
 <pre>
- % setenv CVSROOT :pserver:cvs@swig.cs.uchicago.edu:/cvsroot
+ % setenv CVSROOT :pserver:anonymous@cvs.sourceforge.net:/cvsroot/swig
 </pre>
 <p>
 (Alternatively, you can use the -d option to CVS)
@@ -36,10 +32,9 @@ manner.
 <p>
 <pre>
 % cvs login
-CVS password: &lt;enter 'cvs' here&gt
+CVS password: &lt;press enter here&gt
 </pre>
 <p>
-The password to the cvs account is 'cvs'.
 
 <p>
 <li>The latest development version of SWIG can be retrieved using
@@ -63,7 +58,7 @@ The password to the cvs account is 'cvs'.
 </ol>
 
 <b>Note:</b> The CVS repository is read-only so the system will not 
-accept code modifications at this time.
+accept code modifications unless you are a developer.
 
 <h3> Required Tools </h3>
 
