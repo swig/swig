@@ -1,6 +1,24 @@
 Version 1.3.18 (In progress)
 ============================
 
+03/06/2003: mrose (Mark Rose)
+            Merged the cross-language polymorphism patch.  When enabled, C++ 
+	    "proxy" classes (called directors) for each specified C++ class.  
+	    Directors pass method calls from C++ to Python, similar to the way 
+	    the usual proxy (shadow) classes pass method calls from Python to 
+	    C++.  Together, these two types of proxies allow C++ classes that 
+	    are extended in Python to behave just like ordinary C++ classes and 
+	    be used in C++ like native objects.  
+	    
+	    This feature is still very experimental and is disabled by default.
+	    To enable director support, specify '-fdirectors' on the SWIG command
+	    line or in the SWIG_FEATURES environment variable.  In the interface
+	    file, add %feature("director") to generate directors for all classes
+	    that have virtual methods.  
+	    
+	    See http://stm.lbl.gov/~tm2/swig/ProxyDoc.html for more details.
+	    
+
 03/03/2003: beazley
             Fixed a small glitch in typemap local variable replacement.  If you had
             a typemap like this:

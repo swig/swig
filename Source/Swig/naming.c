@@ -341,6 +341,40 @@ String *Swig_name_destroy(const String_or_char *classname) {
   return r;
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_disown()
+ *
+ * Returns the name of the accessor function used to disown an object.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_disown(const String_or_char *classname) {
+  String *r;
+  String *f;
+  String *rclassname;
+  char *cname;
+  rclassname = SwigType_namestr(classname);
+  r = NewString("");
+  if (!naming_hash) naming_hash = NewHash();
+  f = Getattr(naming_hash,"disown");
+  if (!f) {
+    Append(r,"disown_%c");
+  } else {
+    Append(r,f);
+  }
+
+  cname = Char(rclassname);
+  if ((strncmp(cname,"struct ", 7) == 0) ||
+      ((strncmp(cname,"class ", 6) == 0)) ||
+      ((strncmp(cname,"union ", 6) == 0))) {
+    cname = strchr(cname, ' ')+1;
+  }
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
+  Delete(rclassname);
+  return r;
+}
+
+
 /* -----------------------------------------------------------------------------
  * Swig_name_object_set()
  *

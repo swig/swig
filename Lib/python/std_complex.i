@@ -64,6 +64,47 @@ SwigComplex_AsComplexDouble(PyObject *o)
   %typemap(out) const Complex & {
     $result = PyComplex_FromDoubles($1->real(), $1->imag());
   }
+  
+  // C++ proxy class typemaps
+
+  %typemap(inv) complex<T> {
+    $input =  PyComplex_FromDoubles($1_name.real(), $1_name.imag());
+  }
+  
+  %typemap(inv) const complex<T> & {
+    $inupt =  PyComplex_FromDoubles($1_name->real(), $1_name->imag());
+  }
+  
+  %typemap(outv) complex<T> {
+    if (PyComplex_Check($input)) {
+      $result = std::complex<T>(PyComplex_RealAsDouble($input),
+			   PyComplex_ImagAsDouble($input));
+    } else if (PyFloat_Check($input)) {
+      $result = std::complex<T>(PyFloat_AsDouble($input), 0);
+    } else if (PyInt_Check($input)) {
+      $result = std::complex<T>(PyInt_AsLong($input), 0);
+    }
+    else {
+      throw SWIG_DIRECTOR_TYPE_MISMATCH("Expected a complex");
+    }
+  }  
+  
+  %typemap(outv) const complex<T>& (std::complex<T> temp) {
+    if (PyComplex_Check($input)) {
+      temp = std::complex<T>(PyComplex_RealAsDouble($input),
+			     PyComplex_ImagAsDouble($input));
+      $result = &temp;
+    } else if (PyFloat_Check($input)) {
+      temp = std::complex<T>(PyFloat_AsDouble($input), 0);
+      $result = &temp;
+    } else if (PyInt_Check($input)) {
+      temp = std::complex<T>(PyInt_AsLong($input), 0);
+      $result = &temp;
+    } else {	
+      throw SWIG_DIRECTOR_TYPE_MISMATCH("Expected a complex");
+    }
+  }
+  
 
 %enddef  
      

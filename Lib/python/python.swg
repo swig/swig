@@ -22,6 +22,126 @@
  *                          standard typemaps
  * ----------------------------------------------------------------------------- */
 
+
+/*****************************************************************************
+ *
+ * Inverse argument typemaps are for marshaling C/C++ parameters to call Python
+ * methods from C++ proxy wrapper classes.
+ *
+ *****************************************************************************/
+
+/* --- Inverse arguments --- */
+
+/* Primitive datatypes.  These only supply a parse code to PyObject_CallMethod */
+
+%typemap(inv,parse="i") int "";
+%typemap(inv,parse="h") short "";
+%typemap(inv,parse="l") long "";
+%typemap(inv,parse="b") signed char "";
+%typemap(inv,parse="f") float "";
+%typemap(inv,parse="d") double "";
+%typemap(inv,parse="s") char* "";
+%typemap(inv,parse="i") bool "";
+
+%typemap(inv,parse="l") unsigned int, unsigned short, unsigned long, unsigned char "(long) $1_name";
+	
+%typemap(inv) long long
+	"$input = PyLong_FromLongLong($1_name);";
+%typemap(inv) unsigned long long
+	"$input = PyLong_FromUnsignedLongLong($1_name);";
+
+%typemap(inv, parse="l") int *INV, long* INV, 
+			 unsigned int *INV, unsigned long *INV, 
+			 short *INV, unsigned short *INV, 
+			 char *INV, unsigned char *INV
+			 "(long) *$1_name";
+%typemap(inv, parse="f") float *INV "*$1_name";
+%typemap(inv, parse="d") double *INV "*$1_name";
+
+%typemap(inv, parse="O") PyObject* "";
+
+/*
+%typemap(inv, parse="s") SWIGTYPE  {
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+}
+}
+*/
+
+/* no can do... see python.cxx
+%typemap(inv) DIRECTORTYPE * {
+	{
+		__DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
+		if (!proxy) {
+			$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+		} else {
+			$input = proxy->__get_self();
+		}
+		assert($input);
+	}
+}
+%typemap(inv) SWIGTYPE * {
+		$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+}
+*/
+
+/*
+%typemap(inv, parse="s") void "0";
+*/
+/*
+%typemap(inv) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+	$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, $owner);
+}
+*/
+
+
+/* --- Outverse arguments --- */
+
+%define OUTV_TYPEMAP(type, converter)
+%typemap(argoutv) type *OUTV
+   "*$result = (type) converter($input);
+   if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
+%typemap(outv) type 
+   "$result = (type) converter($input);
+   if (PyErr_Occurred()) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Error converting Python object using converter\");";
+%typemap(outv) type &OUTV = type
+%enddef
+
+OUTV_TYPEMAP(char, PyInt_AsLong);
+OUTV_TYPEMAP(unsigned char, PyInt_AsLong);
+OUTV_TYPEMAP(short, PyInt_AsLong);
+OUTV_TYPEMAP(unsigned short, PyInt_AsLong);
+OUTV_TYPEMAP(int, PyInt_AsLong);
+OUTV_TYPEMAP(unsigned int, PyInt_AsLong);
+OUTV_TYPEMAP(long, PyInt_AsLong);
+OUTV_TYPEMAP(unsigned long, PyInt_AsLong);
+OUTV_TYPEMAP(long long, PyLong_AsLongLong);
+OUTV_TYPEMAP(unsigned long long, PyLong_AsUnsignedLongLong);
+OUTV_TYPEMAP(float, PyFloat_AsDouble);
+OUTV_TYPEMAP(double, PyFloat_AsDouble);
+OUTV_TYPEMAP(bool, PyInt_AsLong);
+OUTV_TYPEMAP(PyObject *, );
+OUTV_TYPEMAP(char *, PyString_AsString);
+
+
+%typemap(outv) SWIGTYPE *, 
+               SWIGTYPE &, 
+               SWIGTYPE [] 
+       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+
+%typemap(outv) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+
+
+
+/*****************************************************************************
+ *
+ * End of C++ proxy wrapper typemaps.
+ *
+ *****************************************************************************/
+
+
 /* --- Input arguments --- */
 
 /* Primitive datatypes.  These only supply a parse code to PyTuple_ParseArgs */
@@ -493,6 +613,11 @@
   } else {
     $1 = 1;
   }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) PyObject *
+{
+  $1 = ($input != 0);
 }
 
 /* ------------------------------------------------------------

@@ -50,5 +50,26 @@ namespace std {
     %typemap(out) const string & {
         $result = PyString_FromStringAndSize($1->data(),$1->size());
     }
+    
+    %typemap(inv, parse="s") string, const string &, string & "$1_name.c_str()";
+
+    %typemap(inv, parse="s") string *, const string * "$1_name->c_str()";
+    
+    %typemap(outv) string {
+        if (PyString_Check($input))
+            $result = std::string(PyString_AsString($input));
+        else
+            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+    }
+    
+    %typemap(outv) const string & (std::string temp) {
+        if (PyString_Check($input)) {
+            temp = std::string(PyString_AsString($input));
+            $result = &temp;
+        } else {
+            throw SWIG_DIRECTOR_TYPE_MISMATCH("string expected");
+        }
+    }
+
 }
 
