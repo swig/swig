@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Advanced"></a>29 Advanced Topics</H1>
+<H1><a name="Advanced"></a>30 Advanced Topics</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#Advanced_nn2">Creating multi-module packages</a>
@@ -32,7 +32,7 @@
 
 <b>Caution: This chapter is under repair!</b>
 
-<H2><a name="Advanced_nn2"></a>29.1 Creating multi-module packages</H2>
+<H2><a name="Advanced_nn2"></a>30.1 Creating multi-module packages</H2>
 
 
 <p>
@@ -43,7 +43,7 @@ SWIG can be used to create packages consisting of many different modules. Howeve
 This chapter doesn't apply to those languages that use static type checking, rather than runtime type checking, such as Java and C#.
 </p>
 
-<H3><a name="Advanced_nn3"></a>29.1.1 Runtime support (and potential problems)</H3>
+<H3><a name="Advanced_nn3"></a>30.1.1 Runtime support (and potential problems)</H3>
 
 
 <p>
@@ -59,7 +59,7 @@ If you create a system consisting of many modules, each one will have an identic
 This duplication of runtime libraries is usually harmless since there are no namespace conflicts and memory overhead is minimal. However, there is serious problem related to the fact that modules do not share type-information.  This is particularly a problem when working with C++ (as described next).
 </p>
 
-<H3><a name="Advanced_nn4"></a>29.1.2 Why doesn't C++ inheritance work between modules?</H3>
+<H3><a name="Advanced_nn4"></a>30.1.2 Why doesn't C++ inheritance work between modules?</H3>
 
 
 <p>
@@ -127,7 +127,7 @@ The type information listed shows the acceptable values for various C datatypes.
 Unfortunately, this problem is inherent in the method by which SWIG makes modules.  When we made the "a" module, we had no idea what derived classes might be used at a later time. However, it's impossible to produce the proper type information until after we know all of the derived classes.   A nice problem to be sure, but one that can be fixed by making all modules share a single copy of the SWIG run-time library.
 </p>
 
-<H3><a name="Advanced_nn5"></a>29.1.3 The SWIG runtime library</H3>
+<H3><a name="Advanced_nn5"></a>30.1.3 The SWIG runtime library</H3>
 
 
 To reduce overhead and to fix type-handling problems, it is possible to share the SWIG run-time functions between multiple modules.
@@ -153,7 +153,7 @@ In this configuration, the runtime library manages all datatypes and other infor
 <b>Compatibility Note:</b> In SWIG-1.3.19 and earlier releases, SWIG built the runtime libraries by default and attempted to install them with the SWIG installation. This had numerous limitations, not least, the version of the target language was tied to what was detected at installation time and would not necessarily be the version the user required.
 </p>
 
-<H3><a name="Advanced_nn6"></a>29.1.4 A few dynamic loading gotchas</H3>
+<H3><a name="Advanced_nn6"></a>30.1.4 A few dynamic loading gotchas</H3>
 
 
 <p>
@@ -261,7 +261,7 @@ The <tt>-rpath</tt> option encodes the location of shared libraries into your mo
 If all else fails, pull up the man pages for your linker and start playing around.
 </p>
 
-<H2><a name="Advanced_nn7"></a>29.2 Dynamic Loading of C++ modules</H2>
+<H2><a name="Advanced_nn7"></a>30.2 Dynamic Loading of C++ modules</H2>
 
 
 <p>
@@ -284,14 +284,14 @@ While the process of building C++ modules is, by no means, and exact science, he
 The SWIG distribution contains some additional documentation about C++ modules in the Doc directory as well.
 </p>
 
-<H2><a name="Advanced_nn8"></a>29.3 Inside the SWIG type-checker</H2>
+<H2><a name="Advanced_nn8"></a>30.3 Inside the SWIG type-checker</H2>
 
 
 <p>
 The SWIG runtime type-checker plays a critical role in the correct operation of SWIG modules.   It not only checks the validity of pointer types, but also manages C++ inheritance, and performs proper type-casting of pointers when necessary.  This section provides some insight into what it does, how it works, and why it is the way it is.
 </p>
 
-<H3><a name="Advanced_nn9"></a>29.3.1 Type equivalence</H3>
+<H3><a name="Advanced_nn9"></a>30.3.1 Type equivalence</H3>
 
 
 <p>
@@ -394,7 +394,7 @@ E =&gt; { }
 The encoding reflects the class hierarchy. For example, any object of type "A" will also accept objects of type B,C, and E because these are all derived from A.  However, it is not legal to go the other way. For example, a function operating on a object from class E will not accept an object from class A.
 </p>
 
-<H3><a name="Advanced_nn10"></a>29.3.2 Type casting</H3>
+<H3><a name="Advanced_nn10"></a>30.3.2 Type casting</H3>
 
 
 <p>
@@ -414,7 +414,7 @@ void *EtoA(void *ptr) {
 All pointers are internally represented as void *, but conversion functions are always invoked when pointer values are converted between base and derived classes in a C++ class hierarchy.
 </p>
 
-<H3><a name="Advanced_nn11"></a>29.3.3 Why a name based approach?</H3>
+<H3><a name="Advanced_nn11"></a>30.3.3 Why a name based approach?</H3>
 
 
 <p>
@@ -431,7 +431,7 @@ SWIG uses a name-based approach to type-checking for a number of reasons :
 An alternative to a name based scheme would be to generate type-signatures based on the structure of a datatype.   Such a scheme would result in perfect type-checking, but I think it would also result in a very confusing scripting language module.  For this reason, I see SWIG sticking with the name-based approach--at least for the foreseeable future.
 </p>
 
-<H3><a name="Advanced_nn12"></a>29.3.4 Performance of the type-checker</H3>
+<H3><a name="Advanced_nn12"></a>30.3.4 Performance of the type-checker</H3>
 
 
 <p>
