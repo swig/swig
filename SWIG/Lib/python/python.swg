@@ -63,7 +63,8 @@
 
 /* Additional check for null references */
 %typemap(in) SWIGTYPE & 
-       "if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1 || $1 == NULL) { PyErr_SetString(PyExc_TypeError,\"null reference\"); SWIG_fail; }"
+       "if ((SWIG_ConvertPtr($input,(void **) &$1, $1_descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) SWIG_fail;
+        if ($1 == NULL) { PyErr_SetString(PyExc_TypeError,\"null reference\"); SWIG_fail; }"
 
 /* Void pointer.  Accepts any kind of pointer */
 %typemap(in) void * "if ((SWIG_ConvertPtr($input,(void **) &$1, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) SWIG_fail;"
