@@ -6,7 +6,8 @@
 %module static_array_member
 
 %nodefault;
+%inline %{
 class RB {
   static char *rberror[];
 };
-
+%}
