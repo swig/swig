@@ -1,6 +1,22 @@
 Version 1.3.20 (In progress)
 ============================
 11/25/2003: beazley
+            Fixed [ 756552 ] missing default argument class scope with "|".
+            This is really only a band-aid fix for use of class-enums in
+            expressions.  For example:
+
+                  class A {
+                  public:
+                     enum Flag { flag1 = 0x1, flag2 = 0x2 };
+                     void foo(int x = flag1 | flag2);
+                  };
+
+            Note: there are still some (more subtle) cases that are broken,
+            but hard to fix due to an issue with template expansion. Will
+            address later.
+            Reported by Dmitry Mironov.
+
+11/25/2003: beazley
             Incorporated [ 840878 ] support for %inline { ... } (PATCH).
             This adds support for the following:
 
