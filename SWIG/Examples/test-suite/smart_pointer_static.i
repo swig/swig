@@ -19,4 +19,5 @@ class Foo2 {
 int Foo2::sum(int i, int j, int k) {
   return i+j+k;
 }
+Foo2 * MyHandle_Foo2::operator -> () { return new Foo2(); }
 %}
