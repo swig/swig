@@ -134,7 +134,7 @@
 		       const C_TYPE *VECTORINPUT,
 		       C_TYPE *LISTINPUT, 
 		       const C_TYPE *LISTINPUT
-       "if ($target!=NULL) SWIG_free($target);";
+       {if ($target!=NULL) SWIG_free($target);}
 
      /* On the Scheme side, the argument is a vector or a list, so say
 	so in the arglist documentation. */

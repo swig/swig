@@ -26,7 +26,7 @@
 #define SWIG_GetPtr(s, result, type) \
   SWIG_Guile_GetPtr(s, result, type)
 #define SWIG_MustGetPtr(s, type, argnum) \
-  SWIG_Guile_MustGetPtr_(s, type, argnum, FUNC_NAME)
+  SWIG_Guile_MustGetPtr(s, type, argnum, FUNC_NAME)
 #define SWIG_MakePtr(ptr, type) \
   SWIG_Guile_MakePtr(ptr, type)
 

@@ -212,8 +212,8 @@ SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
 }
 
 SWIGSTATIC void *
-SWIG_Guile_MustGetPtr_ (SCM s, swig_type_info *type,
-			int argnum, const char *func_name)
+SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
+		       int argnum, const char *func_name)
 {
   void *result;
   if (SWIG_Guile_GetPtr(s, &result, type)) {
