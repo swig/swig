@@ -3239,6 +3239,7 @@ class JAVA : public Language {
    * classDirectorDisown()
    * ------------------------------------------------------------------*/
   virtual int classDirectorDisown(Node *n) {
+    (void)n;
     return SWIG_OK;
   }
     
@@ -3272,7 +3273,7 @@ class JAVA : public Language {
    * director-based class.
    * ----------------------------------------------------------------------------- */
 
-  virtual int JAVA::abstractClassTest(Node *n) {
+  virtual int abstractClassTest(Node *n) {
     if (!Cmp(Getattr(n, "feature:director"), "1"))
       return 0;
     return Language::abstractClassTest(n);

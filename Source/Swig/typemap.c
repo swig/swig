@@ -15,7 +15,7 @@ char cvsroot_typemap_c[] = "$Header$";
 #include "cparse.h"
 #include <ctype.h>
 
-static void replace_embedded_typemap(String *s, Wrapper *f);
+static void replace_embedded_typemap(String *s);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
@@ -683,7 +683,7 @@ Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch
  * ----------------------------------------------------------------------------- */
 
 static
-void replace_local_types(ParmList *p, String *name, String *rep) {
+void replace_local_types(ParmList *p, const String *name, const String *rep) {
   SwigType *t;
   while (p) {
     t = Getattr(p,"type");
@@ -1072,7 +1072,7 @@ String *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_
     typemap_locals(s,locals,f,-1);
   }
 
-  replace_embedded_typemap(s,f);   
+  replace_embedded_typemap(s);   
 
   /* Now perform character replacements */
   Replace(s,"$source",source,DOH_REPLACE_ANY);
@@ -1150,7 +1150,7 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
   if (locals && f) {
     typemap_locals(s,locals,f,-1);
   }
-  replace_embedded_typemap(s,f);
+  replace_embedded_typemap(s);
   /*  {
     String *tmname = Getattr(tm,"typemap");
     if (tmname) Replace(s,"$typemap",tmname, DOH_REPLACE_ANY);
@@ -1348,7 +1348,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
       typemap_locals(s,locals,f,argnum);
     }
 
-    replace_embedded_typemap(s,f);   
+    replace_embedded_typemap(s);   
 
     /* Replace the argument number */
     sprintf(temp,"%d",argnum);
@@ -1379,7 +1379,7 @@ Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f)
 }
 
 /* -----------------------------------------------------------------------------
- * replace_embedded_typemap()
+ * split_embedded()
  *
  * This function replaces the special variable $typemap(....) with typemap
  * code.  The general form of $typemap is as follows:
@@ -1462,7 +1462,7 @@ static void split_var(String *s, String **name, String **value) {
   }
 }
 
-static void replace_embedded_typemap(String *s, Wrapper *f) {
+static void replace_embedded_typemap(String *s) {
   while (Strstr(s,"$TYPEMAP(")) {
 
     /* Gather the argument */

@@ -70,10 +70,6 @@ static  File         *f_int_to_enum = 0;
 class OCAML : public Language {
 public:
 
-    int validIdentifier( String *s ) {
-	return true;
-    }
-
     String *Swig_class_name(Node *n) {
 	String *name;
 	name = Copy(Getattr(n, "sym:name"));

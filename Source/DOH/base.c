@@ -94,7 +94,7 @@ DohStr(const DOH *obj) {
     if (objinfo->doh_str) {
       return (objinfo->doh_str)(b);
     }
-    sprintf(buffer,"<Object '%s' at %p>", objinfo->objname, b);
+    sprintf(buffer,"<Object '%s' at %p>", objinfo->objname, (void *)b);
     return NewString(buffer);
   } else {
     return NewString(obj);

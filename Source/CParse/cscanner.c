@@ -269,9 +269,10 @@ void start_inline(char *text, int line) {
  * Inserts a comment into a documentation entry.
  **************************************************************/
 
+/*
 void yycomment(char *a, int b, int c) {
 }
-
+*/
 
 /* -----------------------------------------------------------------------------
  * skip_balanced()

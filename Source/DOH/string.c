@@ -520,6 +520,8 @@ end_quote(char *s)
 static char *
 match_simple(char *base, char *s, char *token, int tokenlen)
 {
+  (void)base;
+  (void)tokenlen;
   return strstr(s,token);
 }
 
@@ -561,6 +563,7 @@ match_identifier_begin(char *base, char *s, char *token, int tokenlen)
 static char *
 match_identifier_end(char *base, char *s, char *token, int tokenlen)
 {
+  (void)base;
   while (s) {
     s = strstr(s,token);
     if (!s) return 0;

@@ -139,7 +139,7 @@ DohObjFree(DOH *ptr) {
   DohBase  *b, *meta;
   b = (DohBase *) ptr;
   if (b->flag_intern) return;
-  meta = b->meta;
+  meta = (DohBase *)b->meta;
   b->data = (void *) FreeList;
   b->meta = 0;
   b->type = 0;
@@ -187,7 +187,7 @@ DohMemoryDebug(void) {
 	else if (p->ptr[i].type == &DohHashType) numhash++;
       }
     }
-    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", p, p->len, nused, nfree);
+    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *)p, p->len, nused, nfree);
     totsize += p->len;
     totused+= nused;
     totfree+= nfree;
