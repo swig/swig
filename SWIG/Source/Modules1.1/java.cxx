@@ -753,6 +753,7 @@ int JAVA::functionWrapper(Node *n) {
     if ((tm = Getattr(p,"tmap:check"))) {
       Replaceall(tm,"$target",target); /* deprecated */
       Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+      Replaceall(tm,"$input",Getattr(p,"emit:input"));
       Printv(f->code,tm,"\n",0);
       p = Getattr(p,"tmap:check:next");
     } else {
@@ -911,15 +912,17 @@ int JAVA::functionWrapper(Node *n) {
 	    Printf(f->code,"memmove(resultobj,&result,sizeof(%s));\n", SwigType_str(t,0));
 	  }
 	  SwigType_add_pointer(t);
-	  SwigType_remember(t);
+//	  SwigType_remember(t);
 	  Wrapper_add_local(f,"resultobj", SwigType_lstr(t,"resultobj"));
 	  SwigType_del_pointer(t);
           Printv(f->code, tab4, "*(", SwigType_lstr(t,0), "**)&jresult = resultobj;\n", 0);
           break;
         case T_POINTER:
         case T_REFERENCE:
+          SwigType_add_pointer(t);
           // Nasty casting. This has proved to cover all pointer cases so far including a pointer to an array.
-          Printv(f->code, tab4, "jresult = *(", jnirettype, "*)&result;\n", 0);
+          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), ")&jresult = result;\n", 0);
+          SwigType_del_pointer(t);
           break;
         case T_ARRAY:
             {
@@ -1015,6 +1018,11 @@ int JAVA::functionWrapper(Node *n) {
 
   /* Substitute the cleanup code */
   Replaceall(f->code,"$cleanup",cleanup);
+
+  if(SwigType_type(t) != T_VOID)
+    Replaceall(f->code,"$null","0");
+  else
+    Replaceall(f->code,"$null","");
 
   /* Dump the function out */
   if(!native_func)
