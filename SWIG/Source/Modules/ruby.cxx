@@ -195,6 +195,8 @@ public:
 	   "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n",
 	   "  return Qnil;\n",
 	   "}\n", NIL);
+    director_multiple_inheritance = 0;
+    director_language = 1;
   }
   
   /* ---------------------------------------------------------------------
@@ -226,6 +228,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-minherit") == 0) {
           multipleInheritance = true;
+	  director_multiple_inheritance = 1;
 	  Swig_mark_arg(i);
         } else if (strcmp(argv[i],"-prefix") == 0) {
           if (argv[i+1]) {
@@ -354,6 +357,7 @@ public:
         }
         if (Getattr(options, "ruby_minherit")) {
           multipleInheritance = true;
+	  director_multiple_inheritance = 1;
         }
       }
     }
