@@ -177,24 +177,27 @@
 
 /* directorin typemaps */
 
-%typemap(directorin) int            "$input = INT2NUM($1);";
-%typemap(directorin) short          "$input = INT2NUM($1);";
-%typemap(directorin) long           "$input = LONG2NUM($1);";
-%typemap(directorin) signed char    "$input = INT2NUM($1);";
-%typemap(directorin) float          "$input = rb_float_new($1);";
-%typemap(directorin) double         "$input = rb_float_new($1);";
-%typemap(directorin) bool           "$input = $1 ? Qtrue : Qfalse;";
-
-%typemap(directorin) unsigned int   "$input = UINT2NUM($1);";
-%typemap(directorin) unsigned short "$input = UINT2NUM($1);";
-%typemap(directorin) unsigned long  "$input = ULONG2NUM($1);";
-%typemap(directorin) unsigned char  "$input = UINT2NUM($1);";
+%typemap(directorin) int           , const int&             "$input = INT2NUM($1);";
+%typemap(directorin) short         , const short&           "$input = INT2NUM($1);";
+%typemap(directorin) long          , const long&            "$input = LONG2NUM($1);";
+%typemap(directorin) signed char   , const signed char&     "$input = INT2NUM($1);";
+%typemap(directorin) float         , const float&           "$input = rb_float_new($1);";
+%typemap(directorin) double        , const double&          "$input = rb_float_new($1);";
+%typemap(directorin) bool          , const bool&            "$input = $1 ? Qtrue : Qfalse;";
+%typemap(directorin) unsigned int  , const unsigned int&    "$input = UINT2NUM($1);";
+%typemap(directorin) unsigned short, const unsigned short&  "$input = UINT2NUM($1);";
+%typemap(directorin) unsigned long , const unsigned long&   "$input = ULONG2NUM($1);";
+%typemap(directorin) unsigned char , const unsigned char&   "$input = UINT2NUM($1);";
 
 /* --- directorout typemaps --- */
 
 %define DIRECTOROUT_TYPEMAP(type, converter)
 %typemap(directorargout) type *DIRECTOROUT "*$result = (type) converter($input);";
 %typemap(directorout) type "$result = (type) converter($input);";
+%typemap(directorout) const type& {
+  $basetype temp = converter($input);
+  $result = &temp;
+}
 %typemap(directorout) type &DIRECTOROUT = type
 %enddef
 
