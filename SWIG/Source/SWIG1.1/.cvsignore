@@ -3,3 +3,4 @@ y.tab.*
 parser.h
 parser.cxx
 
+*.flc
