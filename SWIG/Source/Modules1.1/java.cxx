@@ -786,11 +786,11 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
         case T_VOID:
           break;
         case T_USER:
-          Printv(f->code, tab4, target, " = *(", SwigType_lstr(pt,0), "**)&", source, ";\n", 0);
+          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt,0), "*)*(void**)&", source, ";\n", 0);
           break;
         case T_POINTER:
         case T_REFERENCE:
-          Printv(f->code, tab4, target, " = *(", SwigType_lstr(pt,0), "*)&", source, ";\n", 0);
+          Printv(f->code, tab4, target, " = (", SwigType_lstr(pt,0), ")*(void**)&", source, ";\n", 0);
           break;
         case T_ARRAY:
           {
@@ -954,7 +954,8 @@ void JAVA::create_function(char *name, char *iname, SwigType *t, ParmList *l)
           break;
         case T_POINTER:
         case T_REFERENCE:
-          Printv(f->code, tab4, "*(", SwigType_lstr(t,0), "*)&jresult = result;\n", 0);
+          // Nasty casting. This has proved to cover all pointer cases so far including a pointer to an array.
+          Printv(f->code, tab4, "jresult = *(", jnirettype, "*)&result;\n", 0);
           break;
         case T_ARRAY:
             {
