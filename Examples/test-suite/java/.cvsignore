@@ -24,6 +24,7 @@ bool_default
 casts
 cast_operator
 char_constant
+char_strings
 class_ignore
 class_scope_weird
 constant_pointers
