@@ -332,7 +332,7 @@ public:
     Printf(f_wrappers,"%s",type_table);
     Delete(type_table);
 
-    Printf(constant_tab,"{0}\n};\n");
+    Printf(constant_tab,"{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers,constant_tab,NIL);
 
     Printf(f_wrappers,"#ifdef __cplusplus\n}\n#endif\n");
@@ -342,7 +342,7 @@ public:
     Printf(f_init,"}\n");
 
     /* Finish off tables */
-    Printf(variable_tab, "{0}\n};\n");
+    Printf(variable_tab, "{0,0,0,0}\n};\n");
     Printv(f_wrappers,variable_tab,NIL);
 
     Printf(command_tab,"{0,0}\n};\n");
