@@ -73,10 +73,10 @@
 <li><a href="#n47">Java typemaps</a>
 <ul>
 <li><a href="#n48">Default primitive type mappings</a>
-<li><a href="#n49">bit JVMs</a>
+<li><a href="#n49">Sixty four bit JVMs</a>
 <li><a href="#n50">What is a typemap?</a>
 <li><a href="#n51">Typemaps for mapping C/C++ types to Java types</a>
-<li><a href="#n52">Typemap variables</a>
+<li><a href="#n52">Java special variables</a>
 <li><a href="#n53">Typemaps for both C and C++ compilation</a>
 <li><a href="#n54">Java code typemaps</a>
 </ul>
@@ -85,7 +85,7 @@
 <li><a href="#n56">Converting Java String arrays to char ** </a>
 <li><a href="#n57">Expanding a Java object to multiple arguments</a>
 <li><a href="#n58">Using typemaps to return arguments</a>
-<li><a href="#n59">Pointer handling</a>
+<li><a href="#n59">Adding Java downcasts to polymorphic return types</a>
 <li><a href="#n60">Adding an equals method to the Java classes</a>
 <li><a href="#n61">Void pointers, null pointers and a common Java base class</a>
 </ul>
@@ -93,7 +93,7 @@
 <ul>
 <li><a href="#n63">Functional interface without proxy classes</a>
 <li><a href="#n64">Dynamic linking problems</a>
-<li><a href="#n65">Using your own JNI methods</a>
+<li><a href="#n65">Using your own JNI functions</a>
 <li><a href="#n66">Performance concerns and hints</a>
 <li><a href="#n67">Known bugs</a>
 </ul>
@@ -578,7 +578,9 @@ example.fclose(f);
 </pre>
 </blockquote>
 
-Underneath the covers, pointers to C/C++ objects traverse the JNI boundary held in a Java <tt>long</tt>. 
+C pointers in the Java module are stored in a Java <tt>long</tt> and cross the JNI boundary held within this 64 bit number.
+whereas other SWIG language modules use an encoding of the pointer in a string. 
+These scripting languages use the SWIG runtime type checker for type checking as they do not support static type checking by a compiler.
 In order to implement static type checking of pointers within Java, they are wrapped by a simple Java class. 
 In the example above the <tt>FILE *</tt> pointer is wrapped with a <i>type wrapper class </i> 
 called <tt>SWIGTYPE_p_FILE</tt>.
@@ -593,8 +595,12 @@ As much as you might be inclined to modify a pointer value directly
 from Java, don't.  The value is not necessarily the
 same as the logical memory address of the underlying object.  The value will
 vary depending on the native byte-ordering of the platform (i.e.,
-big-endian vs. little-endian).  By design it is also not possible to manually cast
-a pointer to a new type by using Java casts as it is particularly dangerous when
+big-endian vs. little-endian).  
+Most JVMs are 32 bit applications so any JNI code must also be compiled as 32 bit. 
+The net result is pointers in JNI code are also 32 bits and 
+are stored in the high order 4 bytes on big-endian machines and in the low order 4 bytes on little-endian machines. 
+By design it is also not possible to manually cast
+a pointer to a new type by using Java casts as it is particularly dangerous especially when
 casting C++ objects.  If you need to cast a pointer or
 change its value, consider writing some helper functions instead.  For
 example:
@@ -624,6 +630,14 @@ to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
 a NULL pointer if the conversion can't be performed.
 <p>
+
+C pointers in the Java module are held in a simple Java long, whereas other SWIG language modules use an encoding of the pointer in a string. 
+These scripting languages use the SWIG runtime type checker for type checking as they do not support static type checking by a compiler.
+The pointer is stored in a Java long which is a 64 bit number. 
+However most JVMs are 32 bit applications so any JNI code must also be compiled as 32 bit. 
+This means that the pointers in JNI code are also 32 bits. 
+What happens for various reasons is on big endian machines the pointer is stored in the high order 4bytes, whereas on little endian machines the pointer is stored in the low order 4bytes. 
+As a result, care must be taken if you intend to manipulate the pointer directly from Java. 
 
 <a name="n19"></a><H3>15.3.7 Arrays</H3>
 
@@ -1278,7 +1292,7 @@ int Foo_spam(Foo *f, int num, Foo* foo) {
 </blockquote>
 
 These procedural function names don't actually exist, but their functionality appears inside the generated
-JNI functions. The JNI function have to follow a particular naming convention so the function names are actually:
+JNI functions. The JNI functions have to follow a particular naming convention so the function names are actually:
 
 <blockquote>
 <pre>
@@ -1365,7 +1379,7 @@ The pragma code appears in the generated JNI class where you would expect:
 [ jniclassimports pragma ]
 [ jniclassmodifiers pragma ] class jniclassname extends [ jniclassbase pragma ] implements [ jniclassinterfaces pragma ] {
 [ jniclasscode pragma ]
-... SWIG generated native functions ...
+... SWIG generated native methods ...
 }
 </pre>
 </blockquote>
@@ -2102,10 +2116,10 @@ void *malloc(size_t nbytes);
 
 No declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
 The <tt> $action </tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
-The <tt> return $null; </tt> handles all JNI function return types, namely those that have a void return and those that do not. 
-This is useful for typemaps that will be used in JNI functions returning all return types. 
+The <tt> return $null; </tt> handles all native method return types, namely those that have a void return and those that do not. 
+This is useful for typemaps that will be used in native method returning all return types. 
 See the section on
-<a href="#n52">Typemap variables</a> for further explanation.
+<a href="#n52">Java special variables</a> for further explanation.
 
 <p>
 C++ exceptions are also easy to handle.  
@@ -2617,7 +2631,7 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </tr>
 
 <tr>
-<td>char*</td>
+<td>char *</td>
 <td>String</td>
 <td>jstring</td>
 </tr>
@@ -2625,7 +2639,7 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </table>
 <br>
 Arrays are implemented using the same mappings, for example a C array, <tt>unsigned short[SIZE]</tt>, is mapped to a Java array, <tt>int[SIZE]</tt>. 
-Note that SWIG treats the C <tt>char</tt> type as a character and <tt>char*</tt> as a string. 
+Note that SWIG treats the C <tt>char</tt> type as a character and <tt>char *</tt> as a string. 
 The <tt>signed char</tt> type can be used if you want to treat <tt>char</tt> as a signed number rather than a character.
 Also note that all const references to primitive types are treated as if they are passed by value.
 <p>
@@ -2653,7 +2667,7 @@ There is no perfect mapping between Java and C as Java doesn't support all the u
 However, the mappings allow the full range of values for each C type from Java. 
 <p>
 
-<a name="n49"></a><H3>15.7.2 bit JVMs</H3>
+<a name="n49"></a><H3>15.7.2 Sixty four bit JVMs</H3>
 
 
 If you are using a 64 bit JVM you may have to override the C long, but probably not C int default mappings. 
@@ -2779,18 +2793,34 @@ The most important of these implement the mapping of C/C++ types to Java types. 
 </tr>
 
 <tr>
-<td>typemap(jni)</td>
-<td>JNI types. These provide the default mapping of types from C/C++ to JNI for use in the JNI code.</td>
+<td>jni</td>
+<td>JNI types. These provide the default mapping of types from C/C++ to JNI for use in the JNI (C/C++) code.</td>
 </tr>
 
 <tr>
-<td>typemap(jtype)</td>
+<td>jtype</td>
 <td>Java JNI class types. These provide the default mapping of types from C/C++ to Java for use in the JNI class.</td>
 </tr>
 
 <tr>
-<td>typemap(jstype)</td>
+<td>jstype</td>
 <td>Java types. These provide the default mapping of types from C/C++ to Java for use in the Java module class, proxy classes and type wrapper classes.</td>
+</tr>
+
+<tr>
+<td>javain</td>
+<td>Conversion from jstype to jtype. 
+    These are Java code typemaps which transform the type used in the Java module class, proxy classes and type wrapper classes (as specified in the jstype typemap)
+    to the type used in the Java JNI class (as specified in the jtype typemap).
+    In other words the typemap provides the conversion to the native method call parameter types.</td>
+</tr>
+
+<tr>
+<td>javaout</td>
+<td>Conversion from jtype to jstype.
+    These are Java code typemaps which transform the type used in the Java JNI class (as specified in the jtype typemap) to 
+    the Java type used in the Java module class, proxy classes and type wrapper classes (as specified in the jstype typemap).
+    In other words the typemap provides the conversion from the native method call return type. </td>
 </tr>
 </table>
 
@@ -2838,7 +2868,7 @@ is released afterwards</td>
 <td>various.i</td>
 <td>output</td>
 <td>String[]</td>
-<td>&amp;char*
+<td>&amp;char *
 <br>the argument is the address of an '\0' terminated string</td>
 </tr>
 
@@ -2887,13 +2917,17 @@ is released afterwards</td>
 </table>
 
 <p>
-If a %typemap(in) is written, a %typemap(freearg) and %typemap(argout) may also need to be written. 
-This is because some types have a default 'freearg' and/or 'argout' typemap which may need overriding. 
-The 'freearg' typemap sometimes releases memory allocated by the 'in' typemap. 
-The 'argout' typemap sometimes sets values in function parameters which are passed by reference in Java. 
+If you are writing your own typemaps to handle a particular type, you will normally have to write a collection of them. 
 Take a look at the default typemaps in <tt>java.swg</tt>.</li>
+<p>
+The "jni", "jtype" and "jstype" typemaps are usually defined together to handle the Java to C/C++ type mapping.
+An "in" typemap is usually accompanied by a "javain" typemap and likewise an "out" typemap with a "javaout" typemap.
+If an "in" typemap is written, a "freearg" and "argout" typemap may also need to be written. 
+as some types have a default "freearg" and/or "argout" typemap which may need overriding. 
+The "freearg" typemap sometimes releases memory allocated by the "in" typemap. 
+The "argout" typemap sometimes sets values in function parameters which are passed by reference in Java. 
 
-<a name="n52"></a><H3>15.7.5 Typemap variables</H3>
+<a name="n52"></a><H3>15.7.5 Java special variables</H3>
 
 
 The standard SWIG special variables are available for use within typemaps as described in the <a href=Typemaps.html>Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>,<tt>$result</tt> etc.
@@ -2901,6 +2935,7 @@ The standard SWIG special variables are available for use within typemaps as des
 <p>
 The Java module uses a few additional special variables:
 <p>
+
 <b><tt>$javaclassname</tt></b><br>
 <tt>$javaclassname</tt> is similar to <tt>$1_type</tt>. It expands to the class name for use in Java. 
 When wrapping a union, struct or class, it expands to the Java proxy class name.
@@ -2942,6 +2977,52 @@ JNIEXPORT jobject JNICALL Java_jnifn(...) {
       return NULL;
     }
   ...
+}
+</pre></blockquote>
+
+<b><tt>$javainput, $jnicall and $owner</tt></b><br>
+The $javainput special variable is used in "javaout" typemaps and $jnicall and $owner are used in "javain" typemaps.
+$jnicall is analogous to $action in %exception. It is replaced by the call to the native method in the JNI class.
+$owner is replaced by either <tt>true</tt> if %newobject has been used, otherwise <tt>false</tt>.
+$javainput is analogous to the $input special variable. It is replaced by the parameter name.
+<p>
+
+Here is an example:
+
+<blockquote><pre>
+%typemap(javain) Class "Class.getCPtr($javainput)"
+%typemap(javain) unsigned short "$javainput"
+%typemap(javaout) Class * {
+    return new Class($jnicall, $owner);
+  }
+
+%inline %{
+    class Class {...};
+    Class * bar(Class cls, unsigned short ush) { return new Class(); };
+%}
+</pre></blockquote>
+
+The generated proxy code is then:
+
+<blockquote><pre>
+public static Class bar(Class cls, int ush) {
+  return new Class(exampleJNI.bar(Class.getCPtr(cls), ush), false);
+}
+</pre></blockquote>
+
+Here $javainput has been replaced by <tt>cls</tt> and <tt>ush</tt>. $jnicall has been replaced by 
+the native method call, <tt>exampleJNI.bar(...)</tt> and $owner has been replaced by <tt>false</tt>.
+If %newobject is used by adding the following at the beginning of our example:
+
+<blockquote><pre>
+%newobject bar(Class cls, unsigned short ush);
+</pre></blockquote>
+
+The generated code constructs the return type using <tt>true</tt> indicating the proxy class <tt>Class</tt> is responsible for destroying the C++ memory allocated for it in <tt>bar</tt>:
+
+<blockquote><pre>
+public static Class bar(Class cls, int ush) {
+  return new Class(exampleJNI.bar(Class.getCPtr(cls), ush), true);
 }
 </pre></blockquote>
 
@@ -3097,15 +3178,15 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 %module example
 
 /* This tells SWIG to treat char ** as a special case when used as a parameter in a function call */
-%typemap(in) char** (jint size) {
+%typemap(in) char ** (jint size) {
     int i = 0;
     size = (*jenv)-&gt;GetArrayLength(jenv, $input);
     $1 = (char **) malloc((size+1)*sizeof(char *));
     /* make a copy of each string */
     for (i = 0; i&lt;size; i++) {
         jstring j_string = (jstring)(*jenv)-&gt;GetObjectArrayElement(jenv, $input, i);
-        const char* c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
-        $1[i] = malloc(strlen((c_string)+1)*sizeof(const char*));
+        const char * c_string = (*jenv)-&gt;GetStringUTFChars(jenv, j_string, 0);
+        $1[i] = malloc(strlen((c_string)+1)*sizeof(const char *));
         strcpy($1[i], c_string);
         (*jenv)-&gt;ReleaseStringUTFChars(jenv, j_string, c_string);
         (*jenv)-&gt;DeleteLocalRef(jenv, j_string);
@@ -3114,7 +3195,7 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 }
 
 /* This cleans up the memory we malloc'd before the function call */
-%typemap(freearg) char** {
+%typemap(freearg) char ** {
     int i;
     for (i=0; i&lt;size$argnum-1; i++)
       free($1[i]);
@@ -3122,7 +3203,7 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 }
 
 /* This allows a C function to return a char ** as a Java String array */
-%typemap(out) char** {
+%typemap(out) char ** {
     int i;
     int len=0;
     jstring temp_string;
@@ -3140,9 +3221,15 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 }
 
 /* These 3 typemaps tell SWIG what JNI and Java types to use */
-%typemap(jni) char** "jobjectArray"
-%typemap(jtype) char** "String[]"
-%typemap(jstype) char** "String[]"
+%typemap(jni) char ** "jobjectArray"
+%typemap(jtype) char ** "String[]"
+%typemap(jstype) char ** "String[]"
+
+/* These 2 typemaps handle the conversion of the jtype to jstype typemap type and visa versa */
+%typemap(javain) char ** "$javainput"
+%typemap(javaout) char ** {
+    return $jnicall;
+  }
 
 /* Now a few test functions */
 %inline %{
@@ -3247,8 +3334,8 @@ previous example's typemaps:
     /* make a copy of each string */
     for (i = 0; i<$1; i++) {
         jstring j_string = (jstring)(*jenv)->GetObjectArrayElement(jenv, $input, i);
-        const char* c_string = (*jenv)->GetStringUTFChars(jenv, j_string, 0);
-        $2[i] = malloc(strlen((c_string)+1)*sizeof(const char*));
+        const char * c_string = (*jenv)->GetStringUTFChars(jenv, j_string, 0);
+        $2[i] = malloc(strlen((c_string)+1)*sizeof(const char *));
         strcpy($2[i], c_string);
         (*jenv)->ReleaseStringUTFChars(jenv, j_string, c_string);
         (*jenv)->DeleteLocalRef(jenv, j_string);
@@ -3266,6 +3353,8 @@ previous example's typemaps:
 %typemap(jni) (int argc, char **argv) "jobjectArray"
 %typemap(jtype) (int argc, char **argv) "String[]"
 %typemap(jstype) (int argc, char **argv) "String[]"
+
+%typemap(javain) (int argc, char **argv) "$javainput"
 </pre>
 </blockquote>
 
@@ -3287,22 +3376,31 @@ example.foo(new String[]{"red", "green", "blue", "white"});
 <a name="n58"></a><H3>15.8.3 Using typemaps to return arguments</H3>
 
 
-A common problem in some C programs is that values may be returned in arguments rather than in the return value of a function. 
-The typemaps.i file defines INPUT, OUTPUT and INOUT typemaps which can be used to solve some instances of this problem. 
+A common problem in some C programs is that values may be returned in function parameters rather than in the return value of a function. 
+The <tt>typemaps.i</tt> file defines INPUT, OUTPUT and INOUT typemaps which can be used to solve some instances of this problem. 
 This library file uses an array as a means of moving data to and from Java when wrapping a C function that takes non const pointers or non const references as parameters. <p>
 
 Now we are going to outline an alternative approach to using arrays for C pointers. 
-The INOUT typemap uses a double[] array for receiving and returning the double* parameters. 
-In this approach we are able to use a Java class myDouble instead of double[] arrays where the C pointer double* is required. 
+The INOUT typemap uses a <tt>double[]</tt> array for receiving and returning the <tt>double*</tt> parameters. 
+In this approach we are able to use a Java class <tt>myDouble</tt> instead of <tt>double[]</tt> arrays where the C pointer <tt>double*</tt> is required. 
+Here is our example function:
 
 <blockquote><pre>
 /* Returns a status value and two values in out1 and out2 */
 int spam(double a, double b, double *out1, double *out2);
 </pre></blockquote>
 
-If we define a structure 'MyDouble' containing a double and use some typemaps we can solve this problem, for example we could put the following through SWIG:
+If we define a structure <tt>MyDouble</tt> containing a <tt>double</tt> member variable and use some typemaps we can solve this problem. For example we could put the following through SWIG:
 <blockquote><pre>
 %module example
+
+/* Define a new structure to use instead of double * */
+%inline %{
+typedef struct {
+    double value;
+} MyDouble;
+%}
+
 
 %{
 /* Returns a status value and two values in out1 and out2 */
@@ -3314,44 +3412,36 @@ int spam(double a, double b, double *out1, double *out2) {
 };
 %}
 
-/* Define a new structure to use instead of double* */
-%inline %{
-typedef struct {
-    double value;
-} MyDouble;
-%}
-
 /* 
-This typemap will make any double* function parameters with name 'OutValue' take an
-argument of MyDouble instead of double*. This will 
-allow the calling function to read the double* value after returning from the function.
+This typemap will make any double * function parameters with name <tt>OUTVALUE</tt> take an
+argument of MyDouble instead of double *. This will 
+allow the calling function to read the double * value after returning from the function.
 */
-%typemap(in) double *OutValue {
-    jclass clazz = jenv-&gt;FindClass("MyDouble");
-    jfieldID fid = jenv-&gt;GetFieldID(clazz, "swigCPtr", "J");
-    jlong cPtr = jenv-&gt;GetLongField($input, fid);
-    MyDouble* pMyDouble = NULL;
-    *(MyDouble*)&pMyDouble = *(MyDouble*)&cPtr;
-    $1 = &pMyDouble-&gt;value;
+%typemap(in) double *OUTVALUE {
+    jclass clazz = jenv->FindClass("MyDouble");
+    jfieldID fid = jenv->GetFieldID(clazz, "swigCPtr", "J");
+    jlong cPtr = jenv->GetLongField($input, fid);
+    MyDouble *pMyDouble = NULL;
+    *(MyDouble *)&pMyDouble = *(MyDouble *)&cPtr;
+    $1 = &pMyDouble->value;
 }
 
-/* This tells SWIG what Java type to use */
-%typemap(jtype) double* OutValue "MyDouble"
-%typemap(jstype) double* OutValue "MyDouble"
+%typemap(jtype) double *OUTVALUE "MyDouble"
+%typemap(jstype) double *OUTVALUE "MyDouble"
+%typemap(jni) double *OUTVALUE "jobject"
 
-/* This tells SWIG what the matching JNI type for the Java type is */
-%typemap(jni) double* OutValue "jobject"
+%typemap(javain) double *OUTVALUE "$javainput"
 
 /* Now we apply the typemap to the named variables */
-%apply double* OutValue { double *out1, double* out2 };
+%apply double *OUTVALUE { double *out1, double *out2 };
 int spam(double a, double b, double *out1, double *out2);
 </pre></blockquote>
 
 Note that the C++ JNI calling convention has been used this time and so must be compiled as C++ and the -c++ commandline must be passed to SWIG. 
 JNI error checking has been omitted for clarity.<p>
 
-What the typemaps do are make the named double* function parameters use our new MyDouble wrapper structure. 
-The 'in' typemap takes this structure, gets the C++ pointer to it, is then able to get the 'double value' member variable to pass to the C++ <tt>spam</tt> function. 
+What the typemaps do are make the named <tt>double*</tt> function parameters use our new <tt>MyDouble</tt> wrapper structure. 
+The "in" typemap takes this structure, gets the C++ pointer to it, takes the <tt>double value</tt> member variable and passes it to the C++ <tt>spam</tt> function. 
 In Java, when the function returns, we use the SWIG created <tt>getValue()</tt> function to get the output value. 
 The following Java program demonstrates this:
 <blockquote><pre>
@@ -3383,19 +3473,182 @@ $ java main
 1 12.0  340.0
 </pre></blockquote>
 
-<a name="n59"></a><H3>15.8.4 Pointer handling</H3>
+<a name="n59"></a><H3>15.8.4 Adding Java downcasts to polymorphic return types</H3>
 
+SWIG support for polymorphism works in that the appropriate virtual function is called. However, the default generated code does not allow for downcasting. 
+Let's examine this with the follow code:
 
-C pointers in the Java module are held in a simple Java long, whereas other SWIG language modules use an encoding of the pointer in a string. 
-These scripting languages use the SWIG runtime type checker for type checking as they do not support static type checking by a compiler.
-The pointer is stored in a Java long which is a 64 bit number. 
-However most JVMs are 32 bit applications so any JNI code must also be compiled as 32 bit. 
-This means that the pointers in JNI code are also 32 bits. 
-What happens for various reasons is on big endian machines the pointer is stored in the high order 4bytes, whereas on little endian machines the pointer is stored in the low order 4bytes. 
-As a result, care must be taken if you intend to manipulate the pointer directly from Java. 
+<blockquote><pre>
+%include "std_string.i"
+
+#include &lt;iostream&gt;
+using namespace std;
+class Vehicle {
+public:
+    virtual void start() = 0;
+...
+};
+
+class Ambulance : public Vehicle {
+    string vol;
+public:
+    Ambulance(string volume) : vol(volume) {}
+    virtual void start() {
+        cout << "Ambulance started" << endl;
+    }
+    void sound_siren() {
+        cout << vol << " siren sounded!" << endl;
+    }
+...
+};
+</pre></blockquote>
+
+If we execute the following Java code:
+
+<blockquote><pre>
+Vehicle vehicle = example.vehicle_factory();
+vehicle.start();
+
+Ambulance ambulance = (Ambulance)vehicle;
+ambulance.sound_siren();
+</pre></blockquote>
+
+We get:
+
+<blockquote><pre>
+Ambulance started
+java.lang.ClassCastException
+        at main.main(main.java:16)
+</pre></blockquote>
+
+Even though we know from examination of the C++ code that <tt>vehicle_factory</tt> returns an object of type <tt>Ambulance</tt>, 
+we are not able to use this knowledge to perform the downcast in Java.
+This occurs because the runtime type information is not completely passed from C++ to Java when returning the type from <tt>vehicle_factory</tt>.
+Usually this is not a problem as virtual functions, as in the case of <tt>start</tt> work. 
+There are a few solutions to getting downcasts to work.
+<p>
+
+The first is not to use a Java cast but a call to C++ to make the cast. Add this to your code:
+<blockquote><pre>
+%exception Ambulance::dynamic_cast(Vehicle *vehicle) {
+    $action
+    if (!result) {
+        jclass excep = jenv->FindClass("java/lang/ClassCastException");
+        if (excep) {
+            jenv->ThrowNew(excep, "dynamic_cast exception");
+        }
+    }
+}
+%extend Ambulance {
+    static Ambulance *dynamic_cast(Vehicle *vehicle) {
+        return dynamic_cast<Ambulance *>(vehicle);
+    }
+};
+</pre></blockquote>
+
+It would then be used from Java like this
+
+<blockquote><pre>
+Ambulance ambulance = Ambulance.dynamic_cast(vehicle);
+ambulance.sound_siren();
+</pre></blockquote>
+Should <tt>vehicle</tt> not be of type <tt>ambulance</tt> then a Java <tt>ClassCastException</tt> is thrown.
+The next solution is a purer solution in that Java downcasts can be performed on the types.
+Add the following before the definition of <tt>vehicle_factory</tt>:
+
+<blockquote><pre>
+%typemap(out) Vehicle * {
+    Ambulance *downcast = dynamic_cast<Ambulance *>($1);
+    *(Ambulance **)&$result = downcast;
+}
+
+%typemap(javaout) Vehicle * {
+    return new Ambulance($jnicall, $owner);
+  }
+</pre></blockquote>
+
+Here we are using our knowledge that <tt>vehicle_factory</tt> always returns type <tt>Ambulance</tt> so that the Java proxy is created as a type <tt>Ambulance</tt>.
+If <tt>vehicle_factory</tt> can manufacture any type of <tt>Vehicle</tt> and we want to be able to downcast using Java casts for any of these types, then a different approach is needed.
+Consider expanding our example with a new Vehicle type and a more flexible factory function:
+
+<blockquote><pre>
+class FireEngine : public Vehicle {
+public:
+    FireEngine() {}
+    void roll_out_hose() {
+        cout << "Hose rolled out" << endl;
+    }
+ ...
+};
+Vehicle *vehicle_factory(int vehicle_number) {
+    if (vehicle_number == 0)
+        return new Ambulance("Very loud");
+    else
+        return new FireEngine();
+}
+</pre></blockquote>
+
+To be able to downcast with this sort of Java code:
+
+<blockquote><pre>
+FireEngine fireengine = (FireEngine)example.vehicle_factory(1);
+fireengine.roll_out_hose();
+Ambulance ambulance = (Ambulance)example.vehicle_factory(0);
+ambulance.sound_siren();
+</pre></blockquote>
+
+the following typemaps will achieve this. 
+Note that in this case, the Java class is constructed using JNI code rather than passing a pointer across the JNI boundary in a Java long for construction in Java code.
+
+<blockquote><pre>
+%typemap(jni) Vehicle * "jobject"
+%typemap(jtype) Vehicle * "Vehicle"
+%typemap(jstype) Vehicle * "Vehicle"
+%typemap(javaout) Vehicle * {
+    return $jnicall;
+  }
+
+%typemap(out) Vehicle * {
+    Ambulance *ambulance = dynamic_cast<Ambulance *>($1);
+    FireEngine *fireengine = dynamic_cast<FireEngine *>($1);
+    if (ambulance) {
+        // call the Ambulance(long cPtr, boolean cMemoryOwn) constructor
+        jclass clazz = jenv->FindClass("Ambulance");
+        if (clazz) {
+            jmethodID mid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
+            if (mid) {
+                jlong cptr = 0;
+                *(Ambulance **)&cptr = ambulance; 
+                $result = jenv->NewObject(clazz, mid, cptr, false);
+            }
+        }
+    } else if (fireengine) {
+        // call the FireEngine(long cPtr, boolean cMemoryOwn) constructor
+        jclass clazz = jenv->FindClass("FireEngine");
+        if (clazz) {
+            jmethodID mid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
+            if (mid) {
+                jlong cptr = 0;
+                *(FireEngine **)&cptr = fireengine; 
+                $result = jenv->NewObject(clazz, mid, cptr, false);
+            }
+        }
+    }
+    else {
+        cout << "Unexpected type " << endl;
+    }
+
+    if (!$result)
+        cout << "Failed to create new java object" << endl;
+}
+</pre></blockquote>
+
+Better error handling would need to be added into this code. 
+There are other solutions to this problem, but this last example demonstrates some more involved JNI code.
+SWIG usually generates code which constructs the proxy classes using Java code as it is easier to handle error conditions and is faster. 
+Note that the JNI code above uses a number of string lookups to call a constructor, whereas this would not occur using byte compiled Java code.
 
 <a name="n60"></a><H3>15.8.5 Adding an equals method to the Java classes</H3>
-
 
 When a pointer is returned from a JNI function, it is wrapped using a new Java proxy class or type wrapper class. 
 Even when the pointers are the same, it will not be possible to know that the two Java classes containing those pointers are actually the same object.
@@ -3573,19 +3826,19 @@ If you are using the examples that ship with SWIG, then the Examples/Makefile mu
 The SWIG installation package makes a best attempt at getting these correct but does not get it right 100% of the time.
 The <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">SWIG Wiki</a> also has some settings for commonly used compiler and operating system combinations.
 
-<a name="n65"></a><H3>15.9.3 Using your own JNI methods</H3>
+<a name="n65"></a><H3>15.9.3 Using your own JNI functions</H3>
 
 
 Perhaps you have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions? This can be accomplished using the <tt>%native</tt> directive or the <tt>%ignore</tt> directive depending on what you want. <p>
 
-If you don't want SWIG to wrap your JNI function as you have written the Java native function declaration in addition to the JNI function, simply use the <tt>%ignore</tt> directive. <p>
+If you don't want SWIG to wrap your JNI function as you have written the Java native method declaration in addition to the JNI function, simply use the <tt>%ignore</tt> directive. <p>
         
 Alternatively you may want SWIG to help out and do some work by using the <tt>%native</tt> directive, for example:
 
 <blockquote><pre>
 %typemap (jtype) SomeCType "SomeJavaClass";
 %typemap (jstype) SomeCType "SomeJavaClass";
-%native (HandRolledJavaName) int HandRolledCName(long, char*, SomeCType);
+%native (HandRolledJavaName) int HandRolledCName(long, char *, SomeCType);
 %{
 JNIEXPORT jint JNICALL
 Java_modulename_HandRolled ( JNIEnv *jenv, jclass jcls, jint net, jstring path, jobject SomeJavaClass)
@@ -3595,14 +3848,14 @@ Java_modulename_HandRolled ( JNIEnv *jenv, jclass jcls, jint net, jstring path, 
 %}
 </pre></blockquote>
 
-No C/C++ code will be generated and the <tt>Java_modulename_HandRolled</tt> function will be unmodified and accessible using the SWIG generated Java native function call which will look something like this:
+No C/C++ code will be generated and the <tt>Java_modulename_HandRolled</tt> function will be unmodified and accessible using the SWIG generated Java native method call which will look something like this:
 
 <blockquote><pre>
   public final static native int HandRolledJavaName(int jarg1, String jarg2, SomeJavaClass jarg3);
 </pre></blockquote>
 
 What is happening here is the <tt>%native</tt> directive is telling SWIG to generate the module Java native method declaration, but not the JNI C code for a (possibly non-existent) C function called <tt>HandRolledCName</tt>. 
-To accomplish this SWIG needs to be told about the mapping of (possibly non-existent) C types to Java types, either using the built in mapping (char* -&gt; String) or the supplied one using the jtype typemap (SomeCType -&gt; SomeJavaClass). 
+To accomplish this SWIG needs to be told about the mapping of (possibly non-existent) C types to Java types, either using the built in mapping (char * -&gt; String) or the supplied one using the jtype typemap (SomeCType -&gt; SomeJavaClass). 
 This directive is only really useful if you want to mix your own JNI code and the SWIG generated code into one C/C++ file or mix your own JNI function calls into a SWIG generated Java class.
 
 <a name="n66"></a><H3>15.9.4 Performance concerns and hints</H3>
