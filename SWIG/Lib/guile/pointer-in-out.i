@@ -42,7 +42,7 @@
     $1 = &temp;
 }
 
-%typemap(ignore) PTRTYPE *OUTPUT(PTRTYPE temp) 
+%typemap(in, numinputs=0) PTRTYPE *OUTPUT(PTRTYPE temp) 
      "$1 = &temp;";
 
 %typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT

@@ -121,7 +121,7 @@
 	whose addresses we pass to the C function.  We ignore both
 	arguments for Scheme. */
 
-     %typemap(ignore) (int *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
+     %typemap(in,numinputs=0) (int *VECTORLENOUTPUT, C_TYPE **VECTOROUTPUT)
                         (int arraylentemp, C_TYPE *arraytemp),
                       (int *LISTLENOUTPUT, C_TYPE **LISTOUTPUT)
                         (int arraylentemp, C_TYPE *arraytemp),
@@ -254,14 +254,14 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 	initialize the array length to 0 but save its address for a
 	later change.  */
      
-     %typemap(ignore) int PARALLEL_VECTORLENINPUT (int *_global_vector_length),
+     %typemap(in,numinputs=0) int PARALLEL_VECTORLENINPUT (int *_global_vector_length),
 		      size_t PARALLEL_VECTORLENINPUT (size_t *_global_vector_length)
      {		      
        $1 = 0;
        _global_vector_length = &$1;
      }
 
-     %typemap(ignore) int PARALLEL_LISTLENINPUT (int *_global_list_length),   
+     %typemap(in,numinputs=0) int PARALLEL_LISTLENINPUT (int *_global_list_length),   
 		      size_t PARALLEL_LISTLENINPUT (int *_global_list_length)
      {		      
        $1 = 0;
@@ -335,7 +335,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
         address as the ...LENOUTPUT argument for the C function and
         "ignore" the ...LENOUTPUT argument for Scheme.  */
 
-     %typemap(ignore) int *PARALLEL_VECTORLENOUTPUT (int _global_arraylentemp),
+     %typemap(in,numinputs=0) int *PARALLEL_VECTORLENOUTPUT (int _global_arraylentemp),
 		      size_t *PARALLEL_VECTORLENOUTPUT (size_t _global_arraylentemp),
 		      int *PARALLEL_LISTLENOUTPUT   (int _global_arraylentemp),
 		      size_t *PARALLEL_LISTLENOUTPUT   (size_t _global_arraylentemp)
@@ -343,7 +343,7 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, gh_str02scm, string
 
      /* We also need to ignore the ...OUTPUT argument. */
 
-     %typemap(ignore) C_TYPE **PARALLEL_VECTOROUTPUT (C_TYPE *arraytemp),
+     %typemap(in,numinputs=0) C_TYPE **PARALLEL_VECTOROUTPUT (C_TYPE *arraytemp),
 		      C_TYPE **PARALLEL_LISTOUTPUT   (C_TYPE *arraytemp)
        "$1 = &arraytemp;";
 
