@@ -1406,13 +1406,13 @@ public:
     /* Emit the function call */
     if (directorsEnabled()) {
       Printf(f->code, "try {\n");
+      Printf(f->code, "  Swig::UnknownExceptionHandler dh;\n");
     }
     
     emit_action(n,f);
 
     if (directorsEnabled()) {
       Printf(f->code, "} catch (Swig::DirectorException& e) {\n");
-      Printf(f->code, "  SWIG_Python_AddErrMesg(e.getMessage(), 1);\n");
       Printf(f->code, "  SWIG_fail;\n");
       Printf(f->code, "}\n");
     }
@@ -2758,7 +2758,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   /* direct call to superclass if _up is set */
   Printf(w->code, "if (swig_get_up()) {\n");
   if (pure_virtual) {
-    Printf(w->code, "throw Swig::DirectorPureVirtualException();\n");
+    Printf(w->code,
+	   "Swig::DirectorPureVirtualException::raise(\"%s.\");\n",Swig_method_call(super,l));
   } else {
     if (is_void) {
       Printf(w->code, "%s;\n", Swig_method_call(super,l));
@@ -2779,7 +2780,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printf(w->code, "swig_set_inner(\"%s\", true);\n", name);
 
   Printf(w->code, "if (!swig_get_self()) {\n");
-  Printf(w->code, "  throw Swig::DirectorException(\"Swig director 'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
+  Printf(w->code, "  Swig::DirectorException::raise(\"'self' unitialized, maybe you forgot to call %s.__init__.\");\n", classname);
   Printf(w->code, "}\n");  
   if (Len(parse_args) > 0) {
     Printf(w->code, "result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", pyname, parse_args, arglist);
@@ -2802,7 +2803,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Printv(w->code, Str(tm), "\n", NIL);
   } else {
     Printf(w->code, "  if (error != NULL) {\n");
-    Printf(w->code, "    throw Swig::DirectorMethodException(\"Swig director error detected when calling %s.%s.\\n\");\n", 
+    Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling %s.%s.\\n\");\n", 
 	   classname, pyname);
     Printf(w->code, "  }\n");
   }
@@ -2824,7 +2825,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   if (outputs > 1) {
     Wrapper_add_local(w, "output", "PyObject *output");
     Printf(w->code, "if (!PyTuple_Check(result)) {\n");
-    Printf(w->code, "throw Swig::DirectorTypeMismatchException(\"Python method failed to return a tuple.\");\n");
+    Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Python method %s.%sfailed to return a tuple.\");\n",
+	   classname, pyname);
     Printf(w->code, "}\n");
   }
 

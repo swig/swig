@@ -76,58 +76,71 @@ swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
   return 1;
 }
 
-SWIGINTERN PyTypeObject varlinktype = {
-  PyObject_HEAD_INIT(0)              
-  0,                                  /* Number of items in variable part (ob_size) */
-  (char *)"swigvarlink",              /* Type name (tp_name) */
-  sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
-  0,                                  /* Itemsize (tp_itemsize) */
-  0,                                  /* Deallocator (tp_dealloc) */ 
-  (printfunc) swig_varlink_print,     /* Print (tp_print) */
-  (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
-  (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
-  0,                                  /* tp_compare */
-  (reprfunc) swig_varlink_repr,       /* tp_repr */
-  0,                                  /* tp_as_number */
-  0,                                  /* tp_as_sequence */
-  0,                                  /* tp_as_mapping */
-  0,                                  /* tp_hash */
-  0,                                  /* tp_call */
-  0,                                  /* tp_str */
-  0,                                  /* tp_getattro */
-  0,                                  /* tp_setattro */
-  0,                                  /* tp_as_buffer */
-  0,                                  /* tp_flags */
-  0,                                  /* tp_doc */
+SWIGINTERN PyTypeObject*
+swig_varlink_type() {
+  static char varlink__doc__[] = "Swig var link object";
+  static PyTypeObject varlink_type
+#if !defined(__cplusplus)
+  ;
+  static int type_init = 0;  
+  if (!type_init) {
+    PyTypeObject tmp
+#endif
+      = {
+      PyObject_HEAD_INIT(&PyType_Type)
+      0,                                  /* Number of items in variable part (ob_size) */
+      (char *)"swigvarlink",              /* Type name (tp_name) */
+      sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
+      0,                                  /* Itemsize (tp_itemsize) */
+      0,                                  /* Deallocator (tp_dealloc) */ 
+      (printfunc) swig_varlink_print,     /* Print (tp_print) */
+      (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
+      (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
+      0,                                  /* tp_compare */
+      (reprfunc) swig_varlink_repr,       /* tp_repr */
+      0,                                  /* tp_as_number */
+      0,                                  /* tp_as_sequence */
+      0,                                  /* tp_as_mapping */
+      0,                                  /* tp_hash */
+      0,                                  /* tp_call */
+      0,                                  /* tp_str */
+      0,                                  /* tp_getattro */
+      0,                                  /* tp_setattro */
+      0,                                  /* tp_as_buffer */
+      0,                                  /* tp_flags */
+      varlink__doc__,                     /* tp_doc */
 #if PY_VERSION_HEX >= 0x02000000
-  0,                                  /* tp_traverse */
-  0,                                  /* tp_clear */
+      0,                                  /* tp_traverse */
+      0,                                  /* tp_clear */
 #endif
 #if PY_VERSION_HEX >= 0x02010000
-  0,                                  /* tp_richcompare */
-  0,                                  /* tp_weaklistoffset */
+      0,                                  /* tp_richcompare */
+      0,                                  /* tp_weaklistoffset */
 #endif
 #if PY_VERSION_HEX >= 0x02020000
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
+      0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* tp_iter -> tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
-  0,                                  /* tp_del */
+      0,                                  /* tp_del */
 #endif
 #ifdef COUNT_ALLOCS
-  0,0,0,0                             /* tp_alloc -> tp_next */
+      0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
-};
+    };
+#if !defined(__cplusplus)
+    varlink_type = tmp;
+    type_init = 1;
+  }
+#endif
+  return &varlink_type;
+}
 
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = PyMem_NEW(swig_varlinkobject,1);
+  swig_varlinkobject *result = PyObject_NEW(swig_varlinkobject, swig_varlink_type());
   if (result) {
-    varlinktype.ob_type = &PyType_Type;    /* Patch varlinktype into a PyType */
-    result->ob_type = &varlinktype;
     result->vars = 0;
-    result->ob_refcnt = 0;
-    Py_INCREF((PyObject *) result);
   }
   return ((PyObject*) result);
 }
@@ -222,13 +235,15 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	char *ndoc = (char*)malloc(ldoc + lptr + 10);
 	if (ndoc) {
 	  char *buff = ndoc;
-	  void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue: (void *)(ci->lvalue);
-	  strncpy(buff, methods[i].ml_doc, ldoc);
-	  buff += ldoc;
-	  strncpy(buff, "swig_ptr: ", 10);
-	  buff += 10;
-	  SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
-	  methods[i].ml_doc = ndoc;
+	  void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue : 0;
+	  if (ptr) {
+	    strncpy(buff, methods[i].ml_doc, ldoc);
+	    buff += ldoc;
+	    strncpy(buff, "swig_ptr: ", 10);
+	    buff += 10;
+	    SWIG_PackVoidPtr(buff, ptr, ty->name, lptr);
+	    methods[i].ml_doc = ndoc;
+	  }
 	}
       }
     }

@@ -288,13 +288,13 @@
 %typemap(directorout) SWIGTYPE ($&ltype argp)
  "if (!$input || (SWIG_ConvertPtr($input, (void **)(&argp),
 		       $&descriptor, SWIG_POINTER_EXCEPTION | $disown)) == -1)
-    throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");
+    Swig::DirectorTypeMismatchException::raise(\"Pointer conversion failed.\");
   $result = *argp;";
 
 %typemap(directorout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
  "if (!$input || (SWIG_ConvertPtr($input,(void **)(&$result),
 		       $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1)
-    throw Swig::DirectorTypeMismatchException(\"Pointer conversion failed.\");";
+    Swig::DirectorTypeMismatchException::raise(\"Pointer conversion failed.\");";
 
 
 /* ------------------------------------------------------------
