@@ -630,6 +630,17 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
               jobjectArray
 %{ $result = $1; %}
 
+
+/* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
+ * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
+%typemap(typecheck,precedence="1") unsigned char, short                                         "" /* Java short */
+%typemap(typecheck,precedence="2") unsigned short, int, long, enum SWIGTYPE                     "" /* Java int */
+%typemap(typecheck,precedence="3") unsigned int, unsigned long, long long                       "" /* Java long */
+%typemap(typecheck,precedence="4") unsigned char[ANY], short[ANY]                               "" /* Java short[] */
+%typemap(typecheck,precedence="5") unsigned short[ANY], int[ANY], long[ANY], enum SWIGTYPE[ANY] "" /* Java int[] */
+%typemap(typecheck,precedence="6") unsigned int[ANY], unsigned long[ANY], long long[ANY]        "" /* Java long[] */
+
+
 /* Some ANSI C typemaps */
 
 %apply long { size_t };
