@@ -37,6 +37,7 @@ static char cvsroot[] = "$Header$";
 static int silence = 0;            /* Silent operation */
 static String *filter = 0;         /* Warning filter */
 static int warnall = 0;
+static int   nwarning = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_warning()
@@ -87,6 +88,7 @@ Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt
       Printf(stderr,"%s:%d: Warning: ", filename, line, wnum);
     }
     Printf(stderr,"%s",msg);
+    nwarning++;
   }
   Delete(out);
   va_end(ap);
@@ -118,13 +120,13 @@ Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_numerrors()
+ * Swig_error_count()
  *
  * Returns number of errors received.
  * ----------------------------------------------------------------------------- */
 
 int
-Swig_numerrors(void) {
+Swig_error_count(void) {
   return nerrors;
 }
 
@@ -138,6 +140,7 @@ void
 Swig_error_silent(int s) {
   silence = s;
 }
+
 
 /* -----------------------------------------------------------------------------
  * Swig_warnfilter()
@@ -181,4 +184,15 @@ Swig_warnall(void) {
   warnall = 1;
 }
 
+
+/* ----------------------------------------------------------------------------- 
+ * Swig_warn_count()
+ *
+ * Return the number of warnings
+ * ----------------------------------------------------------------------------- */
+
+int
+Swig_warn_count(void) {
+  return nwarning;
+}
 

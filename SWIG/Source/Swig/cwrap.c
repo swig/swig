@@ -98,7 +98,8 @@ Swig_wrapped_var_deref(SwigType *t, String_or_char *name) {
   if (SwigType_isclass(t)) {
     return NewStringf("*%s",name);
   } else {
-    return SwigType_rcaststr(t,name);
+    String *r = SwigType_rcaststr(t,name);
+    return r;
   }
 }
 

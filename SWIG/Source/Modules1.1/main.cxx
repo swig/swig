@@ -187,6 +187,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     browse = 0;
   int     dump_typedef = 0;
   int     dump_classes = 0;
+  int     werror = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -345,6 +346,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-Wall") == 0) {
 	    Swig_mark_arg(i);
 	    Swig_warnall();
+	  } else if (strcmp(argv[i],"-Werror") == 0) {
+	    werror = 1;
+	    Swig_mark_arg(i);
 	  } else if (strncmp(argv[i],"-w",2) == 0) {
 	    Swig_mark_arg(i);
 	    Swig_warnfilter(argv[i]+2,1);
@@ -478,7 +482,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
       Seek(fs,0,SEEK_SET);
       cpps = Preprocessor_parse(fs);
-      if (Swig_numerrors()) {
+      if (Swig_error_count()) {
 	SWIG_exit(EXIT_FAILURE);
       }
       if (cpp_only) {
@@ -552,7 +556,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
   if (tm_debug) Swig_typemap_debug();
   while (freeze);
-  return Swig_numerrors();
+  if ((werror) && (Swig_warn_count())) {
+    return Swig_warn_count();
+  }
+  return Swig_error_count();
 }
 
 // --------------------------------------------------------------------------

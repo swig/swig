@@ -951,7 +951,7 @@ declaration    : swig_directive { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
-		  if (!Swig_numerrors()) {
+		  if (!Swig_error_count()) {
 		    static int last_error_line = -1;
 		    if (last_error_line != cparse_line) {
 		      Swig_error(cparse_file, cparse_line,"Syntax error in input.\n");
