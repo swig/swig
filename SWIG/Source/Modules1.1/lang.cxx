@@ -1139,7 +1139,7 @@ int Language::enumDeclaration(Node *n) {
 int Language::enumvalueDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-  Swig_require(&n,"name", "?value",NULL);
+  Swig_require(&n,"*name", "?value",NULL);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
   String *tmpValue;
