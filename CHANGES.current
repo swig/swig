@@ -1,5 +1,22 @@
 Version 1.3.18 (In progress)
 ============================
+
+03/20/2003: beazley
+            Incorporated [ 696516 ] Enabling exception processing for data member access.
+            In some compilers, attribute access can generate exceptions.  However,
+            SWIG ordinarily assumes that no exceptions will be raised.  To disable this,
+            use the %feature("allowexcept").  For example:
+
+                  %feature("allowexcept") Foo::x;
+                  ...
+                  class Foo {
+                  public:
+                      int x;     /* Exception handling enabled */
+                      ...
+                  };
+
+            Patch contributed by Yakov Markovitch. 
+ 
 03/20/2003: beazley
             Incorporated Patch. [ 701860 ] Improve Performance (python proxies).
             Gives a performance boost to proxy class code and the management of the
