@@ -56,11 +56,8 @@ typedef struct {
   SWIG_JavaExceptionCodes code;
   const char *java_exception;
 } SWIG_JavaExceptions_t;
-
-#if defined(SWIG_NOINCLUDE)
-void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
-#else
 %}
+
 %insert(runtime) {
 void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg) {
   jclass excep;
@@ -86,9 +83,8 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
     JCALL2(ThrowNew, jenv, excep, msg);
 }
 }
-%insert(runtime) %{
-#endif
 
+%insert(runtime) %{
 /* Contract support */
 
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
