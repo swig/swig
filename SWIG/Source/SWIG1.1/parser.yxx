@@ -320,6 +320,16 @@ static void merge_addmethods(Node *am) {
   }
 }
 
+ static void check_addmethods() {
+   String *key;
+   if (!addmethods) return;
+   for (key = Firstkey(addmethods); key; key = Nextkey(addmethods)) {
+     Node *n = Getattr(addmethods,key);
+     Printf(stderr,"%s:%d. %%addmethods defined for an undeclared class %s.\n",
+	    Getfile(n),Getline(n),key);
+   }
+ }
+
 /* Check a set of declarations to see if any are pure-abstract */
 
  static int pure_abstract(Node *n) {
@@ -586,6 +596,7 @@ static Node *dump_nested(char *parent) {
 program        :  interface {
 		   Setattr($1,"classes",classes);
 		   Setname($1,ModuleName);
+		   check_addmethods();
 		   lang->top($1);
                }
                ;
