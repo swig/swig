@@ -248,6 +248,41 @@ void wad_stack_debug(WadFrame *frame) {
 }
 
 
+/* -----------------------------------------------------------------------------
+ * wad_steal_outarg()
+ *
+ * Steal an output argument
+ * ----------------------------------------------------------------------------- */
+
+long 
+wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error) {
+  long *regs;
+  WadFrame *lastf = 0;
+
+  *error = 0;
+  /* Start searching */
+  while (f) {
+    if (f->sym_name && (strcmp(f->sym_name,symbol) == 0)) {
+      /* Got a match */
+      if (lastf) {
+#ifdef WAD_SOLARIS
+	regs = (long *) lastf->stack;
+	return regs[8+argno];
+#endif
+#ifdef WAD_LINUX
+	regs = (long *) f->stack;
+	return regs[argno+2];
+#endif
+      }
+    }
+    lastf = f;
+    f = f->next;
+  }
+  *error = -1;
+  return 0;
+}
+
+
 
 
 

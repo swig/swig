@@ -349,6 +349,7 @@ dnl We use the following in `AC_OUTPUT' and "make distclean".
 configure_substituted_files=`echo	\
     Wad/Makefile			\
     Python/Makefile    \
+    Tcl/Makefile \
     Test/Makefile  \
     Prebuilt/linux/Makefile \
     Prebuilt/solaris/Makefile \
