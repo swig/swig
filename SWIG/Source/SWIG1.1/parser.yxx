@@ -104,19 +104,6 @@ static int             InClass = 0;
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
 
-/* Create a C++ constant */
-static void 
-my_cplus_declare_const(char *name, char *iname, SwigType *type, char *value) {
-  String *tval;
-  if (value) {
-    tval = NewStringf("%(escape)s",value);
-    cplus_declare_const(name,iname,type,Char(tval));
-    Delete(tval);
-  } else {
-    cplus_declare_const(name,iname,type,value);
-  }
-}
-
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -324,6 +311,22 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
     Status = oldstatus;
   }
   Delete(ty);
+}
+
+/* Create a C++ constant */
+static void 
+cplus_enum_const(char *name, SwigType *type, char *value) {
+  String *tval;
+  char *iname;
+  iname = make_name(name);
+  if (name == iname) iname = 0;
+  if (value) {
+    tval = NewStringf("%(escape)s",value);
+    cplus_declare_const(name,iname,type,Char(tval));
+    Delete(tval);
+  } else {
+    cplus_declare_const(name,iname,type,value);
+  }
 }
 
 /* Structures for handling code fragments built for nested classes */
@@ -599,7 +602,7 @@ static List *typelist(Parm *p) {
 
 %type <ivalue>   storage_class cpp_storage_class;
 %type <pl>       parms  ptail;
-%type <p>        parm parm_type;
+%type <p>        parm;
 %type <tmparm>   typemap_parm tm_list tm_tail;
 %type <id>       cpptype base_specifier access_specifier tm_method;
 %type <type>     type type_right opt_signed opt_unsigned;
@@ -1604,39 +1607,22 @@ cpp_enumlist   :  cpp_enumlist COMMA cpp_edecl {}
                ;
 
 cpp_edecl      :  ID {
-		 if (cplus_mode == CPLUS_PUBLIC) {
+		  if (cplus_mode == CPLUS_PUBLIC) {
 		   temp_typeptr = NewSwigType(T_INT);
-		   my_cplus_declare_const($1, (char *) 0, temp_typeptr, (char *) 0);
+		   cplus_enum_const($1, temp_typeptr, (char *) 0);
 		   Delete(temp_typeptr);
-		 }
-}
+  		  }
+                 }
                  | ID EQUAL etype {
 		   if (cplus_mode == CPLUS_PUBLIC) {
 		     temp_typeptr = NewSwigType(T_INT);
-		     my_cplus_declare_const($1,(char *) 0, temp_typeptr,(char *) 0);
-		     // OLD : Bug with value     my_cplus_declare_const($1,(char *) 0, temp_typeptr,$3.id);
+		     cplus_enum_const($1, temp_typeptr,(char *) 0);
 		     Delete(temp_typeptr);
 		   }
 		 }
-                 | NAME LPAREN ID RPAREN ID {
-		   if (cplus_mode == CPLUS_PUBLIC) {
-		     temp_typeptr = NewSwigType(T_INT);
-		     my_cplus_declare_const($5, $3, temp_typeptr, (char *) 0);
-		     Delete(temp_typeptr);
-		   }
-		 }
-                 | NAME LPAREN ID RPAREN ID EQUAL etype {
-		     if (cplus_mode == CPLUS_PUBLIC) {
-		       temp_typeptr = NewSwigType(T_INT);
-		       my_cplus_declare_const($5,$3, temp_typeptr, (char *) 0);
-		       Delete(temp_typeptr);
-		     }
-		 }
+                 | name_directive { }
                  | empty { }
                  ;
-
-
-
 
 /* ====================================================================== 
  *                       PRIMITIVES
@@ -1685,12 +1671,8 @@ ptail          : COMMA parm ptail {
                | empty { $$ = 0; }
                ;
 
-parm           : parm_type {
-                  $$ = $1;
-               }
 
-
-parm_type      : type parameter_declarator {
+parm           : type parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParm($1,$2.id);
 		   if ($2.defarg)
@@ -2073,7 +2055,7 @@ ename          :  ID { $$ = $1; }
                |  empty { $$ = (char *) 0;}
                ;
 
-/* SWIG enum list. */
+/* SWIG enum list */
 
 enumlist       :  enumlist COMMA edecl {}
                |  edecl {}
