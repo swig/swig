@@ -3212,6 +3212,29 @@ valptail       : COMMA valparm valptail {
 
 valparm        : parm {
 		  $$ = $1;
+		  {
+		    /* We need to make a possible adjustment for integer parameters. */
+		    SwigType *type;
+		    Node     *n = 0;
+
+		    while (!n) {
+		      type = Getattr($1,"type");
+		      n = Swig_symbol_clookup(type,0);     /* See if we can find a node that matches the typename */
+		      if ((n) && (Strcmp(nodeType(n),"cdecl") == 0)) {
+			SwigType *decl = Getattr(n,"decl");
+			if (!SwigType_isfunction(decl)) {
+			  String *value = Getattr(n,"value");
+			  if (value) {
+			    Setattr($1,"type",Copy(value));
+			    n = 0;
+			  }
+			}
+		      } else {
+			break;
+		      }
+		    }
+		  }
+		  
                } 
                | exprnum {
                   $$ = NewParm(0,0);
