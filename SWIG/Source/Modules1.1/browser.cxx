@@ -29,9 +29,9 @@ class Browser : public Dispatcher {
       v = 1;
     }
     if (v) {
-      swill_fprintf(out,"<a name=\"n%x\"></a>[<a href=\"hide.html#n%x?node=0x%x&hn=0x%x\">-</a>] ",  n, n, t, n);
+      Printf(out,"<a name=\"n%x\"></a>[<a href=\"hide.html?node=0x%x&hn=0x%x#n%x\">-</a>] ",  n, t, n,n);
     } else {
-      swill_fprintf(out,"<a name=\"n%x\"></a>[<a href=\"show.html#n%x?node=0x%x&hn=0x%x\">+</a>] ",  n, n, t, n);
+      Printf(out,"<a name=\"n%x\"></a>[<a href=\"show.html?node=0x%x&hn=0x%x#n%x\">+</a>] ",  n, t, n,n);
     }
   }
   void show_attributes(Node *obj) {
@@ -63,7 +63,7 @@ class Browser : public Dispatcher {
       }
       k = Nextkey(obj);
     }
-    swill_fprintf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
+    Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
     Delete(os);
   }
 
@@ -75,20 +75,20 @@ public:
     char *name = GetChar(n,"name");
 
     show_checkbox(view_top, n);
-    swill_fprintf(out,"<b><a href=\"index.html?node=0x%x\">%s</a></b>", n, tag);
+    Printf(out,"<b><a href=\"index.html?node=0x%x\">%s</a></b>", n, tag);
     if (name) {
-      swill_fprintf(out," (%s)", name);
+      Printf(out," (%s)", name);
     }
-    swill_fprintf(out,".  %s:%d\n", file, line);
-    swill_fprintf(out,"<br>");
+    Printf(out,".  %s:%d\n", file, line);
+    Printf(out,"<br>");
     Dispatcher::emit_one(n);
     return SWIG_OK;
   }
   virtual int emit_children(Node *n) {
     if (Getmeta(n,"visible")) {
-      swill_fprintf(out,"<blockquote>\n");
+      Printf(out,"<blockquote>\n");
       Dispatcher::emit_children(n);
-      swill_fprintf(out,"</blockquote>\n");
+      Printf(out,"</blockquote>\n");
     }
     return SWIG_OK;
   }
@@ -147,7 +147,7 @@ static Browser *browse = 0;
 
 void exit_handler(FILE *f) {
   browser_exit = 1;
-  swill_fprintf(f,"Terminated.\n");
+  Printf(f,"Terminated.\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -157,31 +157,27 @@ void exit_handler(FILE *f) {
 static void display(FILE *f, Node *n) {
   /* Print standard HTML header */
   
-  swill_fprintf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
-  swill_fprintf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
-  swill_fprintf(f,"[ <a href=\"exit.html\">Exit</a> ]");
-  swill_fprintf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
+  Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
   if (n != tree_top) {
-    swill_fprintf(f," [ <a href=\"index.html?node=0x%x\">Up</a> ]", parentNode(n));
+    Printf(f," [ <a href=\"index.html?node=0x%x\">Up</a> ]", parentNode(n));
   }
-  swill_fprintf(f,"<br><hr><p>\n");
+  Printf(f,"<br><hr><p>\n");
 
   out = f;
 
   browse->emit_one(n);
 
   /* Print standard footer */
-  swill_fprintf(f,"<br><hr></BODY></HTML>\n");
+  Printf(f,"<br><hr></BODY></HTML>\n");
 
 }
 
 void node_handler(FILE *f) {
-  char *ns = swill_getvar("node");
   Node *n = 0;
-  if (ns) {
-    n = (Node *) strtoul(ns,0,0);
-  }
-  if (!n) {
+  if (!swill_getargs("p(node)", &n)) {
     n = tree_top;
   }
   view_top = n;
@@ -194,10 +190,9 @@ void node_handler(FILE *f) {
  * ---------------------------------------------------------------------- */
 
 void hide_handler(FILE *f) {
-  char *ns = swill_getvar("hn");
   Node *n = 0;
-  if (ns) {
-    n = (Node *) strtoul(ns,0,0);
+  if (!swill_getargs("p(hn)", &n)) {
+    n = 0;
   }
   if (n) {
     Delmeta(n,"visible");
@@ -206,10 +201,9 @@ void hide_handler(FILE *f) {
 }
 
 void show_handler(FILE *f) {
-  char *ns = swill_getvar("hn");
   Node *n = 0;
-  if (ns) {
-    n = (Node *) strtoul(ns,0,0);
+  if (!swill_getargs("p(hn)", &n)) {
+    n = 0;
   }
   if (n) {
     Setmeta(n,"visible","1");
@@ -240,12 +234,12 @@ void raw_data(FILE *out, Node *obj) {
       k = Nextkey(obj);
     }
     Printf(os,"}\n");
-    swill_fprintf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
+    Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
     Delete(os);
   } else if (DohIsString(obj)) {
     String *o = Str(obj);
     Replaceall(o,"<","&lt;");
-    swill_fprintf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(o));
+    Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(o));
     Delete(o);
   } else if (DohIsSequence(obj)) {
     int i;
@@ -267,27 +261,26 @@ void raw_data(FILE *out, Node *obj) {
       }
     }
     Printf(os,"\n]\n");
-    swill_fprintf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
+    Printf(out,"<FONT color=\"#660000\"><pre>\n%s</pre></FONT>\n", Char(os));
     Delete(os);
   }
 }
 
 void data_handler(FILE *f) {
-  char *ns = swill_getvar("n");
-  DOH  *n = 0;
-  if (ns) {
-    n = (DOH *) strtoul(ns,0,0);
+  DOH *n = 0;
+  if (!swill_getargs("p(n)", &n)) {
+    n = 0;
   }
-  swill_fprintf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
-  swill_fprintf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
-  swill_fprintf(f,"[ <a href=\"exit.html\">Exit</a> ]");
-  swill_fprintf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
-  swill_fprintf(f,"<br><hr><p>\n");
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
+  Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
+  Printf(f,"<br><hr><p>\n");
   if (n) {
     raw_data(f,n);
   }
   /* Print standard footer */
-  swill_fprintf(f,"<br><hr></BODY></HTML>\n");
+  Printf(f,"<br><hr></BODY></HTML>\n");
 }
 #endif
 
@@ -314,6 +307,8 @@ Swig_browser(Node *top, int port) {
   swill_handle("hide.html", hide_handler,0);
   swill_handle("show.html", show_handler,0);
   swill_handle("data.html", data_handler,0);
+
+  swill_netscape("index.html");
 
   while (!browser_exit) {
     swill_serve();
