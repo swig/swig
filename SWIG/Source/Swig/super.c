@@ -64,18 +64,18 @@ static int Super_insert(DOH *s, int pos, DOH *DOH);
 static int Super_delitem(DOH *s, int where);
 static DOH *Super_str(DOH *s);
 static int Super_read(DOH *s, void *buffer, int length);
- static int Super_write(DOH *s, void *buffer, int length);
+static int Super_write(DOH *s, void *buffer, int length);
 static int Super_seek(DOH *s, long offset, int whence);
 static long Super_tell(DOH *s);
- static int Super_putc(DOH *s, int ch);
+static int Super_putc(DOH *s, int ch);
 static int Super_getc(DOH *s);
 static int Super_ungetc(DOH *s, int ch);
- static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
+static int Super_replace(DOH *str, DOH *token, DOH *rep, int flags);    
 static void Super_setfile(DOH *s, DOH *f);
 static void Super_setline(DOH *s, int);
 static DOH * Super_getfile(DOH *s);
 static int Super_getline(DOH *s);
- static void Super_chop(DOH *str);
+static void Super_chop(DOH *str);
 
 /* internal functions */
 
@@ -638,7 +638,10 @@ Super_putc(DOH *so, int ch)
 	 s->str = (char *) DohRealloc(s->str, s->maxsize);
 	 assert(s->str);
       }
+
+      printf("Append %c\n", ch);
       s->str[s->len++] = ch;
+      s->tags[s->numtags-1].length++;
       s->str[s->len] = 0;
    }
    else
@@ -703,6 +706,20 @@ Super_ungetc(DOH *so, int ch)
 static int 
 Super_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 {
+   if (SuperString_check(rep))
+      Super_raw_replace((Super *)stro, Char(token), flags, 
+			Super_super_insert2, (DOH *)rep, 0, 0, 0);
+   else if (String_check(rep))
+   {
+      Seek(rep, 0, SEEK_SET);
+      Super_raw_replace((Super *)stro, Char(token), flags,
+			Super_string_insert, (DOH *)rep, Len(rep),
+			Getfile(rep), Getline(rep));
+   }
+   else
+      Super_raw_replace((Super *)stro, Char(token), flags,
+			Super_string_insert, (DOH *)Char(rep), Len(rep),
+			0, 0);
 }
 
 /* -------------------------------------------------------------------------
@@ -801,11 +818,27 @@ Super_move(Super *s, int delta)
       {
 	 int remaining = s->tags[s->curtag].length - curtag_offset;
       
-	 if (delta > remaining)
+	 if (delta >= remaining)
 	 {
+	    s->curtag++;
+
+	    /* usually, if we're at the end of a tag, we want to be at
+	       the beginning of the next one.  But if we're at the end
+	       of the string, we want to be at the end of the last
+	       tag, as a special case. */
+	    if (s->curtag == s->numtags)
+	    {
+	       --s->curtag;
+	       curtag_offset = s->tags[s->curtag].length;
+	       line = s->tags[s->curtag].line + 
+		  Super_count_newlines(s->str + s->sp, remaining);
+	       s->sp += remaining;
+
+	       break;
+	    }
+
 	    delta -= remaining;
 	    s->sp += remaining;
-	    s->curtag++;
 	    line = s->tags[s->curtag].line;
 	    curtag_offset = 0;
 	 }
@@ -980,8 +1013,8 @@ Super_string_insert(Super *s, int pos, char *str, int len,
    if (len == 0) len = strlen(str);
    if (len == 0) return;
 
-   if (pos < 0) pos = 0;
-   else if (pos > s->len) pos = s->len;
+   if (pos == DOH_END || pos > s->len) pos = s->len;
+   else if (pos < 0) pos = 0;
 
    tag = Super_get_tag(s, pos, &offset);
 
@@ -1072,8 +1105,8 @@ Super_super_insert(Super *s, int pos, Super *str)
    s->hashkey = -1;
   
    /* normalize the inputs */
-   if (pos < 0) pos = 0;
-   else if (pos > s->len) pos = s->len;
+   if (pos == DOH_END || pos > s->len) pos = s->len;
+   else if (pos < 0) pos = 0;
   
    len = str->len;
    if (len == 0) return;
@@ -1207,6 +1240,10 @@ Super_rr_append_chunk(int start, int len)
    }
    else	/* avoid zero-length final tag */
    {
+      /* note: if this makes final_tag == initial_tag, that's OK -- we
+	 swap final_tag before initial_tag, and we don't try to change
+	 final here, so we'll just end up doing a bit of extra
+	 swapping.  If that didn't make sense, don't worry about it. */
       final_tag--;
       final = rr_original->tags[final_tag];
       new_final = final;
@@ -1218,8 +1255,8 @@ Super_rr_append_chunk(int start, int len)
 
    /* OK, now we swap in our new tags, offset the tags and str fields
       appropriately, set the lengths correctly, and call insert. */
-   rr_original->tags[initial_tag] = new_initial;
    rr_original->tags[final_tag] = new_final;
+   rr_original->tags[initial_tag] = new_initial;
    rr_original->numtags = final_tag - initial_tag + 1;
    rr_original->tags += initial_tag;
    rr_original->len = len;
@@ -1227,12 +1264,13 @@ Super_rr_append_chunk(int start, int len)
    
    Super_super_insert(rr_dest, DOH_END, rr_original); /* easy!? */
 
+   /* and swap things back in the opposite order. */
    rr_original->str -= start;
    rr_original->len = old_len;
    rr_original->tags -= initial_tag;
    rr_original->numtags = old_numtags;
-   rr_original->tags[final_tag] = final;
    rr_original->tags[initial_tag] = initial;
+   rr_original->tags[final_tag] = final;
 }
 
 static int
@@ -1269,7 +1307,8 @@ Super_raw_replace(Super *str, char *token, int flags,
 	 /* copy the unchanged stuff from the original */
 	 Super_rr_append_chunk(lastmatch_end - rr_original->str,
 			       match - lastmatch_end);
-	    
+
+	 printf("(*insert): '%*s'\n", Len(rep), Char(rep));
 	 /* and now insert the replacement */
 	 (*insert)(rr_dest, DOH_END, (char *)rep, 
 		   rep_len, rep_fn, rep_line);
@@ -1392,11 +1431,26 @@ Super_raw_replace(Super *str, char *token, int flags,
 #ifdef SUPER_TEST
 #include <stdio.h>
 
-static void annotate(DOH *hyd, int pos)
+static void dump_tags(DOH *so)
+{
+   Super *s = (Super *)so;
+   int tag = 0;
+   int pos = 0;
+   while (tag < s->numtags)
+   {
+      Printf(stdout, "TAG %d: %d to %d (%d bytes), starting at '%s':%d\n",
+	     tag, pos, pos + s->tags[tag].length - 1, s->tags[tag].length, 
+	     s->tags[tag].filename, s->tags[tag].line);
+      pos += s->tags[tag].length;
+      tag++;
+   }
+}
+
+static void annotate(DOH *hyd)
 {
   int len, i;
   len = Len(hyd);
-  for (i = pos; i < len; i++)
+  for (i = 0; i < len; i++)
     {
       DOH *file;
       int line;
@@ -1427,14 +1481,12 @@ static void annotate(DOH *hyd, int pos)
 
 int main(int argc, char **argv)
 {
-   DOH *abcd = NewSuper("AB\nCD", "abcd", 20);
-   DOH *ijkl = NewSuper("IJ\nKL\nMN", "ijkl", 30);
-   char buffer[] = "XXXX";
+   DOH *abcd = NewSuper("pot", "pot", 20);
+   DOH *ijkl = NewSuper("foohashbar", "ijkl", 30);
 
-   Insert(ijkl, 6, abcd);
-   Seek(ijkl, atoi(argv[1]), SEEK_SET);
-/*     Write(ijkl, buffer, 3); */
-   annotate(ijkl, atoi(argv[2]));
+   Replace(ijkl, "hash", abcd, 0);
+   dump_tags(ijkl);
+   annotate(ijkl);
 
    return 0;
 }
