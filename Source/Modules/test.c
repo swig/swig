@@ -9,6 +9,7 @@
 #include "preprocessor.h"
 #include "lparse.h"
 
+#ifdef OLDSTUFF
 /* -------- Module variables ------- */
 
 #define CPLUS_PUBLIC    1
@@ -640,6 +641,7 @@ void test_init() {
   config_top = LParse_parse(pconfig);
 }
 
+#endif
 
 
 

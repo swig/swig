@@ -26,11 +26,11 @@ tag        : "scope"
 syntax     : { statements }
 attributes : None. "child" attribute contains nodes within the scope.
 
-tag        : "moduledirective"
+tag        : "module"
 syntax     : %module idstring
 attributes : "name"      -  Module name
 
-tag        : "renamedirective"
+tag        : "rename"
 syntax     : %rename id1 id2;
 attributes : "oldname"   -  Old name (id1)
              "newname"   -  New name (id2)

@@ -325,7 +325,7 @@ statement      : swig_directive { $$ = $1; }
  *                          -- SWIG DIRECTIVES --
  * ============================================================================= */
 swig_directive : MODULE idstring {
-                   $$ = new_node("moduledirective",$1.filename,$1.line);
+                   $$ = new_node("module",$1.filename,$1.line);
 		   Setattr($$,ATTR_NAME,$2.text);
                }
                | MACRO ID COMMA STRING COMMA NUM_INT LBRACE {
@@ -337,7 +337,7 @@ swig_directive : MODULE idstring {
                  $$ = $9.node;
 	       }
                | RENAME ID ID SEMI { 
-		 $$  = new_node("renamedirective",$2.filename,$2.line);
+		 $$  = new_node("rename",$2.filename,$2.line);
 		 Setattr($$,"oldname",$2.text);
 		 Setattr($$,"newname",$3.text);
 	       }
