@@ -88,7 +88,7 @@ void more(List *l) {
     int    i;
     void   **newitems;
   
-    newitems = (void **) malloc(l->maxitems*2*sizeof(void *));
+    newitems = (void **) DohMalloc(l->maxitems*2*sizeof(void *));
     for (i = 0; i < l->maxitems; i++) {
 	newitems[i] = l->items[i];
     }
@@ -96,7 +96,7 @@ void more(List *l) {
 	newitems[i] = (void *) 0;
     }
     l->maxitems *= 2;
-    free(l->items);
+    DohFree(l->items);
     l->items = newitems;
 }
 
@@ -121,12 +121,12 @@ DOH *
 NewList() {
     List *l;
     int   i;
-    l = (List *) DohMalloc(sizeof(List));
+    l = (List *) DohObjMalloc(sizeof(List));
     DohInit(l);
     l->objinfo = &ListType;
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
-    l->items = (void **) malloc(l->maxitems*sizeof(void *));
+    l->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
     for (i = 0; i < MAXLISTITEMS; i++) {
 	l->items[i] = 0;
     }
@@ -143,12 +143,12 @@ CopyList(DOH *lo) {
     List *l,*nl;
     int i;
     l = (List *) lo;
-    nl = (List *) DohMalloc(sizeof(List));
+    nl = (List *) DohObjMalloc(sizeof(List));
     DohInit(nl);
     nl->objinfo = l->objinfo;
     nl->nitems = l->nitems;
     nl->maxitems = l->maxitems;
-    nl->items = (void **) malloc(l->maxitems*sizeof(void *));
+    nl->items = (void **) DohMalloc(l->maxitems*sizeof(void *));
     nl->iter = 0;
     for (i = 0; i < l->maxitems; i++) {
 	nl->items[i] = l->items[i];
@@ -172,8 +172,8 @@ DelList(DOH *lo) {
     for (i = 0; i < l->nitems; i++) {
 	Delete(l->items[i]);
     }
-    free(l->items);
-    DohFree(l);
+    DohFree(l->items);
+    DohObjFree(l);
 }
 
 /* -----------------------------------------------------------------------------

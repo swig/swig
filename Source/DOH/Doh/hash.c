@@ -56,7 +56,7 @@ int    Hash_len(DOH *h);
 
 static HashNode *NewNode(DOH *k, void *obj) 
 {
-    HashNode *hn = (HashNode *) malloc(sizeof(HashNode));
+    HashNode *hn = (HashNode *) DohMalloc(sizeof(HashNode));
     hn->key = k;
     Incref(hn->key);
     hn->object = obj;
@@ -69,7 +69,7 @@ static void DelNode(HashNode *hn)
 {
     Delete(hn->key);
     Delete(hn->object);
-    free(hn);
+    DohFree(hn);
 }
 
 
@@ -121,10 +121,10 @@ int Hash_check(DOH *so) {
 DOH *NewHash() {
     Hash *h;
     int   i;
-    h = (Hash *) DohMalloc(sizeof(Hash));
+    h = (Hash *) DohObjMalloc(sizeof(Hash));
     DohInit(h);
     h->hashsize = HASH_INIT_SIZE;
-    h->hashtable = (HashNode **) malloc(h->hashsize*sizeof(HashNode *));
+    h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
     for (i = 0; i < h->hashsize; i++) {
 	h->hashtable[i] = 0;
     }
@@ -146,11 +146,11 @@ DOH *CopyHash(DOH *ho) {
     DOH *key;
 
     h = (Hash *) ho;
-    nh = (Hash *) DohMalloc(sizeof(Hash));
+    nh = (Hash *) DohObjMalloc(sizeof(Hash));
     DohInit(nh);
 
     nh->hashsize = h->hashsize;
-    nh->hashtable = (HashNode **) malloc(nh->hashsize*sizeof(HashNode *));
+    nh->hashtable = (HashNode **) DohMalloc(nh->hashsize*sizeof(HashNode *));
     for (i = 0; i < nh->hashsize; i++) {
 	nh->hashtable[i] = 0;
     }
@@ -190,8 +190,8 @@ void DelHash(DOH *ho)
 	    }
 	}
     }
-    free(h->hashtable);
-    DohFree(h);
+    DohFree(h->hashtable);
+    DohObjFree(h);
 }
 
 /* -----------------------------------------------------------------------------
@@ -244,7 +244,7 @@ static void resize(Hash *h) {
 	p = p + 2;
     }
   
-    table = (HashNode **) malloc(newsize*sizeof(HashNode *));
+    table = (HashNode **) DohMalloc(newsize*sizeof(HashNode *));
     for (i = 0; i < newsize; i++ ) {
 	table[i] = 0;
     }
@@ -262,7 +262,7 @@ static void resize(Hash *h) {
 	    n = next;
 	}
     }
-    free(h->hashtable);
+    DohFree(h->hashtable);
     h->hashtable = table;
 }
 

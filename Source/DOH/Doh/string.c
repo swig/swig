@@ -142,7 +142,7 @@ NewString(char *s)
 {
     int l, max;
     String *str;
-    str = (String *) DohMalloc(sizeof(String));
+    str = (String *) DohObjMalloc(sizeof(String));
     DohInit(str);
     str->objinfo = &StringType;
     str->hashkey = -1;
@@ -155,7 +155,7 @@ NewString(char *s)
       l = (int) strlen(s);
       if ((l+1) > max) max = l+1;
     }
-    str->str = (char *) malloc(max);
+    str->str = (char *) DohMalloc(max);
     str->maxsize = max;
     if (s) {
 	strcpy(str->str,s);
@@ -176,7 +176,7 @@ CopyString(DOH *so) {
   int l, max;
   String *str;
   s = (String *) so;
-  str = (String *) DohMalloc(sizeof(String));
+  str = (String *) DohObjMalloc(sizeof(String));
   DohInit(str);
   str->objinfo = &StringType;
   str->hashkey = -1;
@@ -185,7 +185,7 @@ CopyString(DOH *so) {
   str->line = 1;
   str->pbi = 0;
   max = s->maxsize;
-  str->str = (char *) malloc(max);
+  str->str = (char *) DohMalloc(max);
   memmove(str->str, s->str, max);
   str->maxsize= max;
   str->len = s->len;
@@ -201,8 +201,8 @@ DelString(DOH *so) {
   String *s;
   s = (String *) so;
   assert(s->refcount <= 0);
-  free(s->str);
-  DohFree(s);
+  DohFree(s->str);
+  DohObjFree(s);
 }
 
 /* -----------------------------------------------------------------------------
@@ -293,7 +293,7 @@ add(String *s, const char *newstr) {
   if (newlen >= s->maxsize-1) {
     newmaxsize = 2*s->maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    assert(s->str = (char *) realloc(s->str,newmaxsize));
+    assert(s->str = (char *) DohRealloc(s->str,newmaxsize));
     s->maxsize = newmaxsize;
   }
   strcpy(s->str+s->len,newstr);
@@ -311,7 +311,7 @@ addstr(String *s, String *s1) {
   if (newlen >= s->maxsize-1) {
     newmaxsize = 2*s->maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    assert(s->str = (char *) realloc(s->str,newmaxsize));
+    assert(s->str = (char *) DohRealloc(s->str,newmaxsize));
     s->maxsize = newmaxsize;
   }
   memmove(s->str+s->len,s1->str,s1->len);
@@ -327,7 +327,7 @@ String_addchar(DOH *so, char c) {
   String *s = (String *) so;
   s->hashkey = -1;
   if ((s->len+1) > (s->maxsize-1)) {
-    assert(s->str = (char *) realloc(s->str,2*s->maxsize));
+    assert(s->str = (char *) DohRealloc(s->str,2*s->maxsize));
     s->maxsize *= 2;
   }
   s->str[s->len] = c;
@@ -342,7 +342,7 @@ String_addchar(DOH *so, char c) {
 void
 String_expand(String *s, int width) {
   if ((s->len + width) > (s->maxsize-1)) {
-    assert(s->str = (char *) realloc(s->str,(s->len + width)+1));
+    assert(s->str = (char *) DohRealloc(s->str,(s->len + width)+1));
     s->maxsize = s->len + width + 1;
   }
 }
@@ -381,7 +381,7 @@ raw_insert(String *s, int pos, char *data, int len)
     /* See if there is room to insert the new data */
 
     while (s->maxsize <= s->len+len) {
-	assert(s->str = (char *) realloc(s->str,2*s->maxsize));
+	assert(s->str = (char *) DohRealloc(s->str,2*s->maxsize));
 	s->maxsize *= 2;
     }
     memmove(s->str+pos+len, s->str+pos, (s->len - pos));
@@ -482,7 +482,7 @@ String_write(DOH *so, void *buffer, int len) {
   s->hashkey = -1;
   newlen = s->sp + len+1;
   if (newlen > s->maxsize) {
-    assert(s->str = (char *) realloc(s->str,newlen));
+    assert(s->str = (char *) DohRealloc(s->str,newlen));
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
@@ -622,7 +622,7 @@ void replace_internal(String *str, char *token, char *rep, int flags, char *star
     t = strstr(c,token);
     if (t) {
 	str->len = 0;
-	str->str = (char *) malloc(str->maxsize);
+	str->str = (char *) DohMalloc(str->maxsize);
 	if (start) {
 	    char temp = *start;
 	    *start = 0;
@@ -697,7 +697,7 @@ void replace_internal(String *str, char *token, char *rep, int flags, char *star
 	} else {
 	    add(str,t);
 	}
-	free(s);
+	DohFree(s);
     }
 }
 

@@ -214,7 +214,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  if ((maxwidth + 1) < OBUFLEN) {
 	    stemp = obuffer;
 	  } else {
-	    stemp = (char *) malloc(maxwidth+1);
+	    stemp = (char *) DohMalloc(maxwidth+1);
 	  }
 	  nbytes+=sprintf(stemp,newformat,Data(Sval));
 	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
@@ -225,7 +225,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	    Delete(doh);
 	  }
 	  if (stemp != obuffer) {
-	    free(stemp);
+	    DohFree(stemp);
 	  }
 	} else {
 	  maxwidth = maxwidth+strlen(newformat)+strlen((char *) doh);
@@ -234,12 +234,12 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  if ((maxwidth+1) < OBUFLEN) {
 	    stemp = obuffer;
 	  } else {
-	    stemp = (char *) malloc(maxwidth + 1);
+	    stemp = (char *) DohMalloc(maxwidth + 1);
 	  }
 	  nbytes+=sprintf(stemp,newformat,doh);
 	  if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
 	  if (stemp != obuffer) {
-	    free(stemp);
+	    DohFree(stemp);
 	  }
 	}
       } else {
@@ -253,7 +253,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	if (maxwidth < OBUFLEN)
 	  stemp = obuffer;
 	else 
-	  stemp = (char *) malloc(maxwidth+1);
+	  stemp = (char *) DohMalloc(maxwidth+1);
 	switch(*p) {
 	case 'd':
 	case 'i':
@@ -281,7 +281,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
 	  break;
 	}
 	if (Writen(so,stemp,strlen(stemp)) < 0) return -1;
-	if (stemp != obuffer) free(stemp);
+	if (stemp != obuffer) DohFree(stemp);
       }
       state = 0;
       break;
