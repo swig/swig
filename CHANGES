@@ -3,6 +3,46 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 4 (not yet released)
 ======================================
 
+7/23/00 : beazley
+          Typemaps have been modified to key off of the real datatypes
+          used in the interface file.  This means that typemaps for
+          "const char *" and "char *" will be difference as will typemaps
+          for "Vector" and "Vector *."
+          *** POTENTIAL INCOMPATIBILITY ***
+          This is likely to break interfaces that rely on the odd type
+          handling behavior of typemaps in SWIG1.1--especially with
+          respect to interfaces involving pass-by-value.
+
+7/23/00 : beazley
+          Modified the parser so that variable declarations of the form 
+          "const type *a" are handled as variables, not constants.
+          Note: SWIG1.1 handled this case erroneously because 
+          const char *a is a pointer variable that can be reassigned.
+          *** POTENTIAL INCOMPATIBILITY ***
+          Note: just because this is the "right" way to do things,
+          doesn't mean it's the most appropriate interpretation.
+          I suspect that many C programmers might use 'const char *' 
+          with the intent of creating a constant, without realizing
+          that they've created a reassignable global variable.
+
+7/23/00 : beazley
+          The C/C++ wrapping layer has been completely redesigned and
+          reimplemented.  This change should iron out a few rough 
+          spots with the handling of datatypes.  In addition, the
+          wrapper code is somewhat cleaner.  
+          *** POTENTIAL INCOMPATIBILITY ***
+          This change may break interfaces that involve
+          subtle corner-cases with typemaps and the %addmethods 
+          directive since some of these features had somewhat 
+          type handling behavior in SWIG1.1.
+
+7/23/00 : beazley
+          The "memberin" and "memberout" typemaps are gone for the
+          moment, but they might return as soon as I figure out
+          how to integrate them with some of the streamlined C wrapper
+          functions.
+          *** POTENTIAL INCOMPATIBILITY ***
+
 7/22/00 : beazley
           A variety of old type handling functions such as print_type(),
           print_full(), print_mangle(), etc... are gone and have been
