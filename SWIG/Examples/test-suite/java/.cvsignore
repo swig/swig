@@ -1,4 +1,5 @@
 anonymous_arg
+arrays
 casts
 char_constant
 const_const
@@ -24,4 +25,5 @@ nested
 pure_virtual
 static_const_member
 imports
+typemap_subst
 *.class
