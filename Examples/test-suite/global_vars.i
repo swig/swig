@@ -2,12 +2,10 @@
 
 %inline %{
 
-
   struct A 
   {
     int x;
-  };
-  
+  };  
 
   A a;
   A *ap;
@@ -16,7 +14,13 @@
 
   int x;
   int *xp;
-  void *vp;
-  
+  int& c = x;
 
+  void *vp;
+
+  enum Hello { Hi, Hola };
+
+  Hello h;
+  Hello *hp;
+  Hello &hr = h;
 %}

@@ -178,10 +178,27 @@ namespace ns1 {
     
     typedef CTemplate<CFoo> TBla;                  // OK
     typedef void (*TFunc1)(CFoo arg);              // OK
-    typedef void (*TFunc2)(CTemplate<CFoo> arg);   // crashes SWIG
-    typedef void (*TFunc3)(CTemplate<CFoo>* arg);  // crashes SWIG
-    
+    typedef void (*TFunc2)(CTemplate<CFoo> arg);   // OK
+    typedef void (*TFunc3)(CTemplate<CFoo>* arg);  // OK
 
     int foo(TFunc1 a, TFunc2 b, TFunc3 c);
   }  
 %}
+
+
+%include std_vector.i
+
+%{
+#include <vector>
+%}
+
+%inline %{
+void g(std::vector<double>* s = 0) {}
+void q(double = 0) {}
+%}
+
+
+%constant void (*Bf)(std::vector<double> *p = 0) = g; 
+%constant void (*Cf)(double = 0) = q; 
+
+
