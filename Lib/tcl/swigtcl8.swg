@@ -404,10 +404,10 @@ SWIG_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fm
       case 'h': case 'H':
       case 'b': case 'B':
 	if (Tcl_GetLongFromObj(interp,obj,&tempi) != TCL_OK) goto argerror;
-	if ((*c == 'i') || (*c == 'I')) *((int *)vptr) = tempi;
-	else if ((*c == 'l') || (*c == 'L')) *((long *)vptr) = tempi;
-	else if ((*c == 'h') || (*c == 'H')) *((short*)vptr) = tempi;
-	else if ((*c == 'b') || (*c == 'B')) *((unsigned char *)vptr) = tempi;
+	if ((*c == 'i') || (*c == 'I')) *((int *)vptr) = (int)tempi;
+	else if ((*c == 'l') || (*c == 'L')) *((long *)vptr) = (long)tempi;
+	else if ((*c == 'h') || (*c == 'H')) *((short*)vptr) = (short)tempi;
+	else if ((*c == 'b') || (*c == 'B')) *((unsigned char *)vptr) = (unsigned char)tempi;
 	break;
       case 'f': case 'F':
       case 'd': case 'D':
