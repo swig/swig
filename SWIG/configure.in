@@ -1089,6 +1089,10 @@ fi
 
 AC_MSG_CHECKING(for Ocaml header files)
 dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
+dir="`$OCAMLC -where 2>/dev/null`"
+if test "$dir"; then
+	dirs="$dir/caml $dirs"
+fi
 for i in $dirs; do
 	if test -r $i/mlvalues.h; then
 		AC_MSG_RESULT($i)
