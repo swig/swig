@@ -1,5 +1,9 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+4/06/00 : ttn
+	  Incorporated MzScheme support contributed by Oleg Tolmatcev.
+	  This includes new directories Lib/mzscheme and Examples/mzscheme.
+
 4/03/00 : ttn
 	  Added Examples/guile and children.  This is an adaptation of
 	  the same-named directory from the SWIG-1.1p5 distribution.
