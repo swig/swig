@@ -79,6 +79,10 @@ Foo *launder(Foo *f);
   {
   };
 %}
+
+%feature("director") Bar;
+
+
 %inline %{
   struct Exception1
   {
