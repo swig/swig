@@ -1773,8 +1773,8 @@ cpp_class_decl  :
 		   if ($4) {
 		     int i;
 		     for (i = 0; i < Len($4); i++) {
-		       Node *n = Getitem($4,i);
-		       rename_inherit(Getattr(n,"name"),$3);
+		       String *n = Getitem($4,i);
+		       rename_inherit(n,$3);
 		     }
 		   }
 
@@ -1795,8 +1795,8 @@ cpp_class_decl  :
 		 Setline($$,start_line);
 		 Setattr($$,"name",$3);
 		 Setattr($$,"kind",$2);
-		 Setattr($$,"bases",$4);
-		 
+		 Setattr($$,"baselist",$4);
+
 		 /* Check for pure-abstract class */
 		 if (pure_abstract($7)) {
 		   SetInt($$,"abstract",1);
@@ -3158,27 +3158,20 @@ cast_type_right:  primitive_type { $$ = $1; }
 
 
 inherit        : raw_inherit {
-		 $$ = 0;
+		 $$ = $1;
                  if ($1) {
+		   /* Patch names for templates */
 		   String *name;
                    for (name = Firstitem($1); name; name = Nextitem($1)) {
-		     Node *cls = 0;
 		     if (classes) {
 		       /* The name might be the same as a template map */
 		       if (templatemaps) {
 			 String *altname = Getattr(templatemaps,name);
-			 if (altname) name = altname;
+			 if (altname) {
+			   Clear(name);
+			   Append(name,altname);
+			 }
 		       }
-		       cls = Getattr(classes,name);
-		     }
-		     if (!cls) {
-		       Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", input_file, line_number, name);
-		       if (Strchr(name,'<')) {
-			 Printf(stderr,"%s:%d. Maybe you forgot to instantiate '%s' using %%template.\n", input_file, line_number, name);
-		       }
-		     } else {
-		       if (!$$) $$ = NewList();
-		       Append($$,cls);
 		     }
 		   }
 		 }
@@ -3208,6 +3201,8 @@ base_specifier : opt_virtual idcolon {
 		 $$ = 0;
 	         if (strcmp($2,"public") == 0) {
 		   $$ = $4;
+		   Setfile($$, input_file);
+		   Setline($$, line_number);
 		 }
                }
                ;
