@@ -1408,7 +1408,7 @@ stail          : SEMI { }
 		   Printf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
 		   FatalError();
 		 } else {
-		   if (SwigType_isconst(temp_typeptr)) {
+		   if (SwigType_isconst(temp_typeptr) && !$2.is_post_type_const) {
 		     create_constant($2.id, temp_typeptr, $4.id);
 		   } else {
 		     create_variable(Active_extern, $2.id, temp_typeptr, &$2);
@@ -2521,7 +2521,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  add_pointers($2,$3.is_pointer);
+		  add_declaration_types($2, &$3, 0);
 		  iname = make_name($3.id);
 		  if (iname == $3.id) iname = 0;
 		  cplus_static_var($3.id,iname,$2);

@@ -14,6 +14,9 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+7/17/2001: cheetah (william fulton)
+	   * More parser bug fixes for constant pointers
+
 7/19/2001: mkoeppe
 	   * [Guile] Aesthetic improvement in variable wrappers.
 
