@@ -36,12 +36,14 @@ static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
 static int static_member_function = 0;
+static int generate_sizeof = 0;
 static char *prefix=0;
 static char *ocaml_path=(char*)"ocaml";
 static String *classname=0;
 static String *module=0;
 static String *init_func_def = 0;
 static String *f_classtemplate = 0;
+static String *name_qualifier = 0;
 
 static  Hash         *seen_enums = 0;
 static  Hash         *seen_enumvalues = 0;
@@ -176,7 +178,7 @@ public:
 
     virtual int top(Node *n) {
 	/* Set comparison with none for ConstructorToFunction */
-	setSubclassInstanceCheck(NewString("argv[0] != Val_unit"));
+	setSubclassInstanceCheck(NewString("caml_list_nth(args,0) != Val_unit"));
 
 	/* check if directors are enabled for this module.  note: this 
 	 * is a "master" switch, without which no director code will be
@@ -193,6 +195,9 @@ public:
 		if (options) {
 		    if (Getattr(options, "directors")) {
 			allow_directors();
+		    }
+		    if (Getattr(options, "sizeof")) {
+			generate_sizeof = 1;
 		    }
 		}
 	    }
@@ -438,10 +443,11 @@ public:
 	String *storage = Getattr(n,"storage");
 	int isVirtual = !Cmp(storage,"virtual");
 	String *overname = 0;
+	bool isOverloaded = Getattr(n,"sym:overloaded") ? true : false;
 
 	// Make a wrapper name for this
 	String *wname = Swig_name_wrapper(iname);
-	if (Getattr(n,"sym:overloaded")) {
+	if (isOverloaded) {
 	    overname = Getattr(n,"sym:overname");
 	} else {
 	    if (!addSymbol(iname,n)) return SWIG_ERROR;
@@ -517,17 +523,18 @@ public:
 	// adds local variables
 	Wrapper_add_local(f, "args", "CAMLparam1(args)");
 	Wrapper_add_local(f, "ret" , "SWIG_CAMLlocal2(swig_result,rv)");
-	Wrapper_add_local(f, "_len", "int _len");
-	Wrapper_add_local(f, "lenv", "int lenv = 1");
-	Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
-	Wrapper_add_local(f, "argv", "CAML_VALUE *argv");
-	Wrapper_add_local(f, "i"   , "int i");
+	Wrapper_add_local(f, "_v"  , "int _v = 0");
+	if( isOverloaded ) {
+	    Wrapper_add_local(f, "i"   , "int i");
+	    Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
+	    Wrapper_add_local(f, "argv", "CAML_VALUE *argv");
 
-	Printv( f->code,
-		"argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
-		"for( i = 0; i < argc; i++ ) {\n"
-		"  argv[i] = caml_list_nth(args,i);\n"
-		"}\n", NIL );
+	    Printv( f->code,
+		    "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
+		    "for( i = 0; i < argc; i++ ) {\n"
+		    "  argv[i] = caml_list_nth(args,i);\n"
+		    "}\n", NIL );
+	}
 
 	// Declare return variable and arguments
 	// number of parameters
@@ -701,29 +708,24 @@ public:
 	// Wrap things up (in a manner of speaking)
     
 	Printv(f->code, 
-	       tab4, "swig_result = caml_list_append(swig_result,rv);\n"
-	       tab4, "free( argv );\n"
-	       tab4, "if( lenv == 0 )\n"
-	       tab4, "{\n"
-	       tab4, tab4, "CAMLreturn(Val_unit);\n",
-	       tab4, "}\n"
-	       tab4, "else\n"
-	       tab4, "{\n",
-	       tab4, tab4, "CAMLreturn(swig_result);\n", 
-	       tab4, "}\n", NIL);
-	Printf(f->code, "#undef FUNC_NAME\n");
+	       tab4, "swig_result = caml_list_append(swig_result,rv);\n", NIL);
+	if( isOverloaded )
+	    Printv(f->code, "free(argv);\n");
+	Printv(f->code,
+	       tab4, "CAMLreturn(swig_result);\n", NIL );
 	Printv(f->code, "}\n",NIL);
     
 	Wrapper_print(f, f_wrappers);
 
-	if( Getattr(n,"sym:overloaded") ) {
+	if( isOverloaded ) {
 	    if( !Getattr(n,"sym:nextSibling") ) {
 		int maxargs;
 		Wrapper *df = NewWrapper();
 		String *dname = Swig_name_wrapper(iname);
 		String *dispatch = 
 		    Swig_overload_dispatch(n,
-					   "free(argv);\nCAMLreturn(%s(args));\n",
+					   "free(argv);\n"
+					   "CAMLreturn(%s(args));\n",
 					   &maxargs);
 
 		Wrapper_add_local(df, "argv", "CAML_VALUE *argv");
@@ -877,7 +879,6 @@ public:
 	    }
 	    
 	    Printf (f->code, "\nreturn swig_result;\n");
-	    Printf (f->code, "#undef FUNC_NAME\n");
 	    Printf (f->code, "}\n");
 	    
 	    Wrapper_print (f, f_wrappers);
@@ -942,9 +943,12 @@ public:
 	String *name    = Getattr(n,"feature:symname");
 	SwigType *type  = Getattr(n,"type");
 	String   *value = Getattr(n,"value");
+	String   *qvalue = Getattr(n,"qualified:value");
 	String   *rvalue = NewString("");
 	String   *temp = 0;
-	
+
+	if( qvalue ) value = qvalue;
+
 	if( !name ) {
 	    name = mangleNameForCaml(Getattr(n,"name"));
 	    Insert(name,0,"_swig_wrap_");
@@ -1055,6 +1059,14 @@ public:
 	}
     }
 
+    bool isSimpleType( String *name ) {
+	char *ch = Char(name);
+
+	return 
+	    !(strchr(ch,'(') || strchr(ch,'<') || 
+	      strchr(ch,')') || strchr(ch,'>'));
+    }
+
     /* classHandler
      * 
      * Create a "class" definition for ocaml.  I thought quite a bit about
@@ -1120,6 +1132,11 @@ public:
      * I can't think of a more elegant way of converting a C_obj fun to a
      * pointer than "operator &"... 
      *
+     * Added a 'sizeof' that will allow you to do the expected thing.
+     * This should help users to fill buffer structs and the like (as is
+     * typical in windows-styled code).  It's only enabled if you give
+     * %feature(sizeof) and then, only for simple types.
+     *
      * Overall, carrying the list of methods and base classes has worked well.
      * It allows me to give the Ocaml user introspection over their objects.
      */
@@ -1132,6 +1149,7 @@ public:
 	String *old_class_ctors = f_class_ctors;
 	String *base_classes = NewString("");
 	f_class_ctors = NewString("");
+	bool sizeof_feature = generate_sizeof && isSimpleType(name);
 	
 	if( !name ) return SWIG_OK;
 
@@ -1140,6 +1158,25 @@ public:
 	int rv = Language::classHandler(n);
 	classmode = false;
 
+	if( sizeof_feature ) {
+	    Printf( f_wrappers, 
+		    "SWIGEXT CAML_VALUE _wrap_%s_sizeof( CAML_VALUE args ) {\n"
+		    "    CAMLparam1(args);\n"
+		    "    CAMLreturn(Val_int(sizeof(%s)));\n"
+		    "}\n",
+		    mangled_sym_name, name_normalized );
+	    
+	    Printf( f_mlbody, "external __%s_sizeof : unit -> int = "
+		    "\"_wrap_%s_sizeof\"\n",
+		    classname, mangled_sym_name );
+	}
+
+
+	/* Insert sizeof operator for concrete classes */
+	if( sizeof_feature ) {
+	    Printv(f_class_ctors, "\"sizeof\" , (fun args -> C_int (__",
+		   classname, "_sizeof ())) ;\n", NIL);
+	}
 	/* Handle up-casts in a nice way */
 	List *baselist = Getattr(n,"bases");
 	if (baselist && Len(baselist)) {
@@ -1227,17 +1264,53 @@ public:
 	return out;
     }
     
+    String *fully_qualify_enum_name( Node *n, String *name ) {
+	Node *parent = 0;
+	String *fully_qualified_name = NewString("");
+	String *parent_type = 0;
+
+	parent = parentNode(n);
+	while( parent ) {
+	    parent_type = nodeType(parent);
+	    if( Getattr(parent,"name") ) {
+		String *parent_copy = 
+		    NewStringf("%s::",Getattr(parent,"name"));
+		if( !Cmp(parent_type,"class") || 
+		    !Cmp(parent_type,"namespace") ) 
+		    Insert(fully_qualified_name,0,parent_copy);
+		Delete(parent_copy);
+	    }
+	    if( !Cmp( parent_type, "class" ) ) break;
+	    parent = parentNode(parent);
+	}
+
+	Printf( fully_qualified_name, "%s", name );
+
+	return normalizeTemplatedClassName(fully_qualified_name);
+    }
+
     /* Benedikt Grundmann inspired --> Enum wrap styles */
 
     int enumvalueDeclaration(Node *n) {
 	String *name = Getattr(n,"name");
+	String *qvalue = 0;
+
+	if( name_qualifier ) {
+	    qvalue = Copy(name_qualifier);
+	    Printv( qvalue, name, NIL );
+	}
 
 	if( const_enum && name && !Getattr(seen_enumvalues,name) ) {
 	    Setattr(seen_enumvalues,name,"true");
 	    Setattr(n,"feature:immutable","1");
 	    Setattr(n,"feature:enumvalue","1");
-	    String *evname = NewString( name );
+
+	    if( qvalue ) 
+		Setattr(n,"qualified:value",qvalue);
+
+	    String *evname = SwigType_manglestr(qvalue);
 	    Insert( evname, 0, "SWIG_ENUM_" );
+
 	    Setattr(n,"feature:enumvname",name);
 	    Setattr(n,"feature:symname",evname);
 	    Delete( evname );
@@ -1247,18 +1320,50 @@ public:
 	} else return SWIG_OK;
     }
 
+    /* -------------------------------------------------------------------
+     * This function is a bit uglier than it deserves.
+     *
+     * I used to direct lookup the name of the enum.  Now that certain fixes
+     * have been made in other places, the names of enums are now fully
+     * qualified, which is a good thing, overall, but requires me to do
+     * some legwork.
+     *
+     * The other thing that uglifies this function is the varying way that
+     * typedef enum and enum are handled.  I need to produce consistent names,
+     * which means looking up and registering by typedef and enum name. */
     int enumDeclaration(Node *n) {
-	String *name = Getattr(n,"type");
+	String *name = Getattr(n,"name");
+	String *fully_qualified_name = fully_qualify_enum_name(n,name);
+	bool seen_enum = false;
+	if( name_qualifier ) 
+	    Delete(name_qualifier);
+	name_qualifier = fully_qualify_enum_name(n,NewString(""));
+	
+	seen_enum = name ? 
+	    (Getattr(seen_enums,fully_qualified_name) ? true : false) : false;
 
-	if( name && !Getattr(seen_enums,name) ) {
-	    const_enum = 1;
+	if( name && !seen_enum ) {
+	    const_enum = true;
 	    Printf( f_enum_to_int, "| `%s -> (match (y : c_enum_tag) with\n", name );
 	    Printf( f_int_to_enum, "| `%s -> C_enum (\n", name );
+	    /* * * * A note about enum name resolution * * * *
+	     * This code should now work, but I think we can do a bit better.
+	     * The problem I'm having is that swig isn't very precise about
+	     * typedef name resolution.  My opinion is that SwigType_typedef
+	     * resolve_all should *always* return the enum tag if one exists,
+	     * rather than the admittedly friendlier enclosing typedef.
+	     * 
+	     * This would make one of the cases below unnecessary. 
+	     * * * */
 	    Printf( f_mlbody, 
-		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
-		    name, name );
+		    "let _ = Callback.register \"%s_marker\" (`%s)\n"
+		    "let _ = Callback.register \"enum %s_marker\" (`%s)\n",
+		    fully_qualified_name, name,
+		    fully_qualified_name, name );
+
 	    Printf( f_enumtypes_type,"| `%s\n", name );
-	    Setattr(seen_enumvalues,name,"true");
+	    Insert(fully_qualified_name,0,"enum ");
+	    Setattr(seen_enums,fully_qualified_name,n);
 	}
 
 	int ret = Language::enumDeclaration(n);
@@ -1270,7 +1375,7 @@ public:
 		    "| _ -> raise (Failure \"Unknown enum tag\"))\n" );
 	}
 
-	const_enum = 0;
+	const_enum = false;
 	
 	return ret;
     }
@@ -1709,6 +1814,40 @@ public:
     int classDirectorEnd( Node *n ) {
 	Printf( f_directors_h, "};\n\n" );
 	return Language::classDirectorEnd( n );
+    }
+
+    /* ---------------------------------------------------------------------
+     * typedefHandler
+     *
+     * This is here in order to maintain the correct association between
+     * typedef names and enum names. 
+     *
+     * Since I implement enums as polymorphic variant tags, I need to call
+     * back into ocaml to evaluate them.  This requires a string that can
+     * be generated in the typemaps, and also at SWIG time to be the same
+     * string.  The problem that arises is that SWIG variously generates
+     * enum e_name_tag
+     * e_name_tag
+     * e_typedef_name
+     * for
+     * typedef enum e_name_tag { ... } e_typedef_name;
+     * 
+     * Since I need these strings to be consistent, I must maintain a correct
+     * association list between typedef and enum names.
+     * --------------------------------------------------------------------- */
+    int typedefHandler( Node *n ) {
+        String *type = Getattr(n,"type");
+	Node *enum_node = type ? 
+	    Getattr(seen_enums,type) : 0;
+	if( enum_node ) {
+	    String *name = Getattr(enum_node,"name");
+
+	    Printf( f_mlbody, 
+		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
+		    Getattr(n,"name"), name );
+	    
+	}
+	return SWIG_OK;
     }
 };
 
