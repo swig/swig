@@ -225,10 +225,18 @@
 %typemap(varin)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
 %typemap(varin)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
 
-%typemap(varin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
-	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
+%typemap(varin) SWIGTYPE *, SWIGTYPE [] {
+        if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
             croak("Type error in argument $argnum of $symname. Expected $1_mangle");
         }
+}
+
+%typemap(varin) SWIGTYPE & {
+        void *temp;
+        if (SWIG_ConvertPtr($input, (void **) &temp, $1_descriptor,0) < 0) {
+            croak("Type error in argument $argnum of $symname. Expected $1_mangle");
+        }
+        $1 = *($1_ltype) temp;
 }
 
 %typemap(varin) void * {
@@ -357,8 +365,11 @@
 //%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
 //    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
 
-%typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  
+%typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
     "sv_setiv(SvRV($result),(IV) $1);"; 
+
+%typemap(varout,type="$1_descriptor") SWIGTYPE &
+    "sv_setiv(SvRV($result),(IV) &$1);"; 
 
 //%typemap(varout) SWIGTYPE
 //    "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
