@@ -466,6 +466,10 @@ extern String    *Swig_cppdestructor_call(Node *n);
 extern String    *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self);
 extern String    *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self);
 
+extern String    *Swig_extension_code(const String *function_name,
+ParmList *parms, SwigType* return_type, const String *code, int cplusplus);
+extern int        Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType* return_type, const String *code, int cplusplus);
+
 /* --- Transformations --- */
 
 extern int        Swig_MethodToFunction(Node *n, String *classname, int flags);

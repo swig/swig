@@ -1106,14 +1106,7 @@ Language::staticmemberfunctionHandler(Node *n) {
 
     if (!defaultargs && code) {
       /* Hmmm. An added static member.  We have to create a little wrapper for this */
-      String *body;
-      String *parmstring = CPlusPlus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
-      String *tmp = NewStringf("%s(%s)", cname, parmstring);
-      body = SwigType_str(type,tmp);
-      Printv(body,code,"\n",NIL);
-      Setattr(n,"wrap:code",body);
-      Delete(tmp);
-      Delete(body);
+      Swig_add_extension_code(n, cname, parms, type, code, CPlusPlus);
     }
   }
 
