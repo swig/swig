@@ -805,7 +805,7 @@ GUILE::variableWrapper(Node *n)
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-",DOH_REPLACE_ANY);
 
-  if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
+   if (1 || (SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
     Printf (f->def, "static SCM\n%s(SCM s_0)\n{\n", var_name);
 
