@@ -1,0 +1,46 @@
+#######################################################################
+# $Header$
+# Simplified Wrapper and Interface Generator (SWIG)
+# 
+#######################################################################
+
+TARGET     = swig
+SHELL  = /bin/sh
+CC     = @CC@
+CXX    = @CXX@
+LIBS   =
+
+#
+#
+#
+
+DIRS       = DOH Core Preprocessor SWIG1.1 Modules1.1
+SWIGOBJS   = SWIG1.1/*.o Modules1.1/*.o
+
+swig: objs
+	$(CXX) $(SWIGOBJS) $(LIBS) -o $(TARGET)
+
+objs:		
+	@for i in $(DIRS); \
+	do \
+          cd $$i; $(MAKE); cd .. ;\
+        done;
+
+clean:
+	@for i in $(DIRS); \
+	do \
+          cd $$i; $(MAKE) clean; cd ..; \
+        done;
+	rm -f swig
+
+nuke: 	clean
+	@cd SWIG; $(MAKE) nuke
+	@cd Modules; $(MAKE) nuke
+	@cd Examples; $(MAKE) nuke
+	@cd Tests; $(MAKE) clean
+	@cd Runtime; $(MAKE) clean
+	rm -f Makefile Makefile.template config.*
+
+
+
+
