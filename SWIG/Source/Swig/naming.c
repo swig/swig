@@ -279,6 +279,82 @@ String *Swig_name_destroy(String_or_char *classname) {
   return Swig_temp_result(r);
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_set()
+ *
+ * Sets an object associated with a name and optional declarators. 
+ * ----------------------------------------------------------------------------- */
+
+void 
+Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) {
+  DOH *n;
+  n = Getattr(namehash,name);
+  if (!n) {
+    n = NewHash();
+    Setattr(namehash,name,n);
+  }
+  /* Add an object based on the declarator value */
+  if (!decl) {
+    Setattr(n,NewString("*"),object);
+  } else {
+    Setattr(n,Copy(decl),object);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_object_get()
+ *
+ * Return an object associated with an optional class prefix, name, and 
+ * declarator.   This function operates according to name matching rules
+ * described for the %rename directive in the SWIG manual.
+ * ----------------------------------------------------------------------------- */
+
+static DOH *get_object(Hash *n, String *decl) {
+  DOH *rn = 0;
+  if (!n) return 0;
+  if (decl) {
+    rn = Getattr(n,decl);
+  }
+  if (!rn) rn = Getattr(n,"*");
+  return rn;
+}
+
+DOH *
+Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
+  String *tname;
+  DOH    *rn = 0;
+  Hash   *n;
+
+  /* Perform a class-based lookup (if class prefix supplied) */
+  if (prefix) {
+    if (Len(prefix)) {
+      tname = NewStringf("%s::%s",prefix,name);
+      n = Getattr(namehash,tname);
+      rn = get_object(n,decl);
+      Delete(tname);
+    }
+    /* A wildcard-based class lookup */
+    if (!rn) {
+      tname = NewStringf("*::%s",name);
+      n = Getattr(namehash,tname);
+      rn = get_object(n,decl);
+      Delete(tname);
+    }
+  } else {
+    /* Lookup in the global namespace only */
+    tname = NewStringf("::%s",name);
+    n = Getattr(namehash,tname);
+    rn = get_object(n,decl);
+    Delete(tname);
+  }
+  /* Catch-all */
+  if (!rn) {
+    n = Getattr(namehash,name);
+    rn = get_object(n,decl);
+  }
+  return rn;
+}
+
 
 
 

@@ -338,6 +338,8 @@ extern String  *Swig_name_get(String_or_char *vname);
 extern String  *Swig_name_set(String_or_char *vname);
 extern String  *Swig_name_construct(String_or_char *classname);
 extern String  *Swig_name_destroy(String_or_char *classname);
+extern void     Swig_name_object_set(Hash *namehash, String_or_char *name, SwigType *decl, DOH *object);
+extern DOH     *Swig_name_object_get(Hash *namehash, String_or_char *prefix, String_or_char *name, SwigType *decl);
 
 /* --- Mapping interface --- */
 
