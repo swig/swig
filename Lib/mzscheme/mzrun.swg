@@ -14,21 +14,35 @@
 extern "C" {
 #endif
 
+/* Common SWIG API */
+  
+#define SWIG_ConvertPtr(s, result, type, flags) \
+  SWIG_MzScheme_ConvertPtr(s, result, type, flags)
+#define SWIG_NewPointerObj(ptr, type, owner) \
+  SWIG_MzScheme_NewPointerObj((void *)ptr, type, owner)
+#define SWIG_MustGetPtr(s, type, argnum, flags) \
+  SWIG_MzScheme_MustGetPtr(s, type, argnum, flags, FUNC_NAME, argc, argv)
+
+/* MzScheme-specific SWIG API */
+  
+#define SWIG_malloc(size) SWIG_MzScheme_Malloc(size, FUNC_NAME)
+#define SWIG_free(mem) free(mem)
+
 #define MAXVALUES 6
 #define swig_make_boolean(b) (b ? scheme_true : scheme_false)
 
 #ifdef SWIG_NOINCLUDE
 
-SWIGIMPORT(void) SWIG_Mzscheme_Init();
+SWIGIMPORT(void) SWIG_MzScheme_Init();
 /* If there is a type-mismatch, return nonzero; on success, return 0.  */
-SWIGIMPORT(int) SWIG_Mzscheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags);
+SWIGIMPORT(int) SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags);
 /* If there is a type-mismatch, signal a wrong-type-arg error for the given argument number. */
-SWIGIMPORT(void *) SWIG_Mzscheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
+SWIGIMPORT(void *) SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
                                             int argnum, int flags, const char *func_name,
                                             int argc, Scheme_Object **argv);
-SWIGIMPORT(Scheme_Object *) SWIG_Mzscheme_NewPointerObj(void *ptr, swig_type_info *type, int owner);
-SWIGIMPORT(void *) SWIG_Mzscheme_Malloc(size_t size, const char *func_name);
-SWIGIMPORT(Scheme_Object *) SWIG_Mzscheme_PackageValues(int num, Scheme_Object **values);
+SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner);
+SWIGIMPORT(void *) SWIG_MzScheme_Malloc(size_t size, const char *func_name);
+SWIGIMPORT(Scheme_Object *) SWIG_MzScheme_PackageValues(int num, Scheme_Object **values);
 
 #else
 
@@ -53,7 +67,7 @@ static void mz_free_swig(void *p, void *data) {
 }
 
 SWIGRUNTIME(Scheme_Object *)
-SWIG_Mzscheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
+SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
   struct swig_mz_proxy *new_proxy;
   new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
   new_proxy->mztype = swig_type;
@@ -66,7 +80,7 @@ SWIG_Mzscheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
 }
 
 SWIGRUNTIME(int) 
-SWIG_Mzscheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
+SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
   swig_type_info *cast;
 
   if (SCHEME_NULLP(s)) {
@@ -91,18 +105,18 @@ SWIG_Mzscheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
 }
 
 SWIGRUNTIME(void *) 
-SWIG_Mzscheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
+SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
                          int argnum, int flags, const char *func_name,
                          int argc, Scheme_Object **argv) {
   void *result;
-  if (SWIG_Mzscheme_ConvertPtr(s, &result, type, flags)) {
+  if (SWIG_MzScheme_ConvertPtr(s, &result, type, flags)) {
     scheme_wrong_type(func_name, type->str ? type->str : "void *", argnum, argc, argv);
   }
   return result;
 }
 
 SWIGRUNTIME(void)
-SWIG_Mzscheme_Init() {
+SWIG_MzScheme_Init() {
   if (!swig_mz_initialized) {
     swig_type = scheme_make_type((char *)"swig");
     swig_mz_initialized = 1;
@@ -110,7 +124,7 @@ SWIG_Mzscheme_Init() {
 }
 
 SWIGRUNTIME(void *) 
-SWIG_Mzscheme_Malloc(size_t size, const char *func_name) {
+SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   void *p = malloc(size);
   if (p == NULL) {
     scheme_signal_error("swig-memory-error");
@@ -118,7 +132,7 @@ SWIG_Mzscheme_Malloc(size_t size, const char *func_name) {
 }
 
 SWIGIMPORT(Scheme_Object *) 
-SWIG_Mzscheme_PackageValues(int num, Scheme_Object **values) {
+SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
     /* ignore first value if void */
     if (num > 0 && SCHEME_VOIDP(values[0]))
 	num--, values++;
