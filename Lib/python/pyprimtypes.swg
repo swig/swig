@@ -49,7 +49,7 @@
 %}
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(unsigned long)(PyObject *obj, unsigned long *val) 
 {
   if (PyInt_Check(obj)) {
@@ -78,7 +78,7 @@ SWIGSTATICINLINE(int)
 
 %fragment("SWIG_CheckLongInRange","header",
 	  fragment="<limits.h>") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_CheckLongInRange(long value, long min_value, long max_value,
 			const char *errmsg)
 {
@@ -103,7 +103,7 @@ SWIGSTATICINLINE(int)
 
 %fragment("SWIG_CheckUnsignedLongInRange","header",
 	  fragment="<limits.h>") {
-SWIGSTATICINLINE(int)
+SWIGINTERNSHORT int
   SWIG_CheckUnsignedLongInRange(unsigned long value,
 				unsigned long max_value,
 				const char *errmsg) 
@@ -122,7 +122,7 @@ SWIGSTATICINLINE(int)
 
 
 %fragment(SWIG_AsVal_frag(double),"header") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(double)(PyObject *obj, double *val)
 {
   if (PyFloat_Check(obj)) {
@@ -151,7 +151,7 @@ SWIGSTATICINLINE(int)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(long)(PyObject * obj, long* val)
 {
   if (PyInt_Check(obj)) {
@@ -178,7 +178,7 @@ SWIGSTATICINLINE(int)
 
 %fragment(SWIG_From_frag(long long),"header",
 	  fragment="<limits.h>") {
-SWIGSTATICINLINE(PyObject* )
+SWIGINTERNSHORT PyObject* 
   SWIG_From(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
@@ -190,7 +190,7 @@ SWIGSTATICINLINE(PyObject* )
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
 	  fragment="<limits.h>") {
-SWIGSTATICINLINE(PyObject* )
+SWIGINTERNSHORT PyObject* 
   SWIG_From(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
@@ -200,7 +200,7 @@ SWIGSTATICINLINE(PyObject* )
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(long long)(PyObject *obj, long long *val)
 {
   if (PyLong_Check(obj)) {
@@ -226,7 +226,7 @@ SWIGSTATICINLINE(int)
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
   if (PyLong_Check(obj)) {
@@ -254,7 +254,7 @@ SWIGSTATICINLINE(int)
 }
 
 %fragment(SWIG_From_frag(unsigned long),"header") {
-SWIGSTATICINLINE(PyObject* )
+SWIGINTERNSHORT PyObject* 
   SWIG_From(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
@@ -266,7 +266,7 @@ SWIGSTATICINLINE(PyObject* )
 %fragment(SWIG_AsVal_frag(signed char),"header",
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(signed char)(PyObject *obj, signed char *val)
 {
   const char* errmsg = val ? "signed char" : 0;
@@ -291,7 +291,7 @@ SWIGSTATICINLINE(int)
 %fragment(SWIG_AsVal_frag(short),"header",
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(short)(PyObject *obj, short *val)
 { 
   const char* errmsg = val ? "short" : 0;
@@ -319,7 +319,7 @@ SWIGSTATICINLINE(int)
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
 %#if INT_MAX != LONG_MAX
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(int)(PyObject *obj, int *val)
 { 
   const char* errmsg = val ? "int" : 0;
@@ -340,7 +340,7 @@ SWIGSTATICINLINE(int)
   return 0;    
 }
 %#else
-SWIGSTATICINLINE(int)
+SWIGINTERNSHORT int
   SWIG_AsVal(int)(PyObject *obj, int *val)
 {
   return SWIG_AsVal(long)(obj,(long*)val);
@@ -352,7 +352,7 @@ SWIGSTATICINLINE(int)
 	  fragment="SWIG_CheckUnsignedLongInRange",
 	  fragment=SWIG_AsVal_frag(unsigned long)) {
 %#if UINT_MAX != ULONG_MAX
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
 { 
   const char* errmsg = val ? "unsigned int" : 0;
@@ -371,7 +371,7 @@ SWIGSTATICINLINE(int)
   return 0;    
 }
 %#else
-SWIGSTATICINLINE(unsigned int)
+SWIGINTERNSHORT unsigned int
   SWIG_AsVal(unsigned int)(PyObject *obj, unsigned int *val)
 {
   return SWIG_AsVal(unsigned long)(obj,(unsigned long *)val);
@@ -392,7 +392,7 @@ SWIG_define(SWIG_From(unsigned int), SWIG_From(unsigned long))
 %fragment(SWIG_AsVal_frag(unsigned char),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long),
 	  fragment="SWIG_CheckUnsignedLongInRange") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(unsigned char)(PyObject *obj, unsigned char *val)
 { 
   const char* errmsg = val ? "unsigned char" : 0;
@@ -417,7 +417,7 @@ SWIGSTATICINLINE(int)
 %fragment(SWIG_AsVal_frag(unsigned short),"header",
 	  fragment="SWIG_CheckUnsignedLongInRange",
 	  fragment=SWIG_AsVal_frag(unsigned long)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(unsigned short)(PyObject *obj, unsigned short *val)
 { 
   const char* errmsg = val ? "unsigned short" : 0;
@@ -442,7 +442,7 @@ SWIGSTATICINLINE(int)
 
 %fragment("SWIG_CheckDoubleInRange","header") {
 %#include <float.h>
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_CheckDoubleInRange(double value, double min_value, 
 			  double max_value, const char* errmsg)
 {
@@ -468,7 +468,7 @@ SWIGSTATICINLINE(int)
 %fragment(SWIG_AsVal_frag(float),"header",
 	  fragment="SWIG_CheckDoubleInRange",
 	  fragment=SWIG_AsVal_frag(double)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(float)(PyObject *obj, float *val)
 {
   const char* errmsg = val ? "float" : 0;
@@ -491,7 +491,7 @@ SWIGSTATICINLINE(int)
 }
 
 %fragment(SWIG_From_frag(char),"header") {
-SWIGSTATICINLINE(PyObject*)
+SWIGINTERNSHORT PyObject*
   SWIG_From(char)(char c) 
 { 
   return PyString_FromStringAndSize(&c,1);
@@ -502,7 +502,7 @@ SWIGSTATICINLINE(PyObject*)
 	  fragment="SWIG_AsCharArray",
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(char)(PyObject *obj, char *val)
 {
   const char* errmsg = val ? "char" : 0;
@@ -522,7 +522,7 @@ SWIGSTATICINLINE(int)
 }
 
 %fragment(SWIG_From_frag(wchar_t),"header") {
-SWIGSTATICINLINE(PyObject*)
+SWIGINTERNSHORT PyObject*
   SWIG_From(wchar_t)(wchar_t c) 
 { 
   return PyUnicode_FromWideChar(&c, 1);
@@ -534,7 +534,7 @@ SWIGSTATICINLINE(PyObject*)
 	  fragment="SWIG_CheckLongInRange",
 	  fragment=SWIG_AsVal_frag(long)) {
 #include <wchar.h>
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(wchar_t)(PyObject *obj, wchar_t *val)
 {
   const char* errmsg = val ? "wchar_t" : 0;
@@ -554,7 +554,7 @@ SWIGSTATICINLINE(int)
 }
 
 %fragment(SWIG_From_frag(bool),"header") {
-SWIGSTATICINLINE(PyObject*)
+SWIGINTERNSHORT PyObject*
   SWIG_From(bool)(bool value)
 {
   PyObject *obj = value ? Py_True : Py_False;
@@ -565,7 +565,7 @@ SWIGSTATICINLINE(PyObject*)
 
 %fragment(SWIG_AsVal_frag(bool),"header",
 	  fragment=SWIG_AsVal_frag(int)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(bool)(PyObject *obj, bool *val)
 {
   /*  if (val) *val = PyObject_IsTrue(obj); return 1; */

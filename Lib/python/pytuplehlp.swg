@@ -5,7 +5,8 @@
 */
 
 %fragment("t_output_helper","header") %{
-static PyObject* t_output_helper(PyObject* target, PyObject* o) {
+SWIGINTERN PyObject*
+t_output_helper(PyObject* target, PyObject* o) {
   if (!target) {
     target = o;
   } else if (target == Py_None) {  

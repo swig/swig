@@ -3,6 +3,22 @@ extern "C" {
 #endif
 
 /* -----------------------------------------------------------------------------
+ * for internal method declarations
+ * ----------------------------------------------------------------------------- */
+
+#ifndef SWIGINTERN
+#define SWIGINTERN static 
+#endif
+
+#ifndef SWIGINTERNSHORT
+#ifdef __cplusplus
+#define SWIGINTERNSHORT static inline 
+#else /* C case */
+#define SWIGINTERNSHORT static 
+#endif /* __cplusplus */
+#endif
+
+/* -----------------------------------------------------------------------------
  * SWIG API.
  * ----------------------------------------------------------------------------- */
     
@@ -104,7 +120,7 @@ typedef struct swig_const_info {
 /* -----------------------------------------------------------------------------
  * Lookup type pointer 
  * ----------------------------------------------------------------------------- */
-static void
+SWIGINTERN void
 SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
   PyObject *module, *pointer;
   void *type_pointer;

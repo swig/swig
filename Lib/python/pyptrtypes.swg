@@ -104,7 +104,7 @@
 %define %typemap_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, ...)
   %fragment(SWIG_AsVal_frag(__VA_ARGS__),"header",
 	    fragment=SWIG_AsPtr_frag(__VA_ARGS__)) %{
-  SWIGSTATICINLINE(int)
+  SWIGINTERNSHORT int
     SWIG_AsVal(__VA_ARGS__)(PyObject* obj, __VA_ARGS__ *val)
     {
       __VA_ARGS__ *v = (__VA_ARGS__ *)0;
@@ -119,7 +119,7 @@
   %}
   %fragment(SWIG_As_frag(__VA_ARGS__),"header",
 	    fragment=SWIG_AsVal_frag(__VA_ARGS__)) %{
-  SWIGSTATICINLINE(__VA_ARGS__)
+  SWIGINTERNSHORT __VA_ARGS__
     SWIG_As(__VA_ARGS__)(PyObject* obj)
     {
       __VA_ARGS__ v;

@@ -13,7 +13,7 @@ namespace std
 
 %fragment(SWIG_AsPtr_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_AsWCharPtrAndSize") {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsPtr(std::basic_string<wchar_t>)(PyObject* obj, std::wstring **val)
   {
     static swig_type_info* string_info = SWIG_TypeQuery("std::wstring *");
@@ -41,7 +41,7 @@ SWIGSTATICINLINE(int)
     }
   }
   
-SWIGSTATICINLINE(int)
+SWIGINTERNSHORT int
   SWIG_AsPtr(std::wstring)(PyObject* obj, std::wstring **val)
   {
     return SWIG_AsPtr(std::basic_string<wchar_t>)(obj, val);
@@ -50,12 +50,13 @@ SWIGSTATICINLINE(int)
 
 %fragment(SWIG_From_frag(std::basic_string<wchar_t>),"header",
 	  fragment="SWIG_FromWCharArray") {
-SWIGSTATICINLINE(PyObject*)
+SWIGINTERNSHORT PyObject*
   SWIG_From(std::basic_string<wchar_t>)(const std::wstring& s)
   {
     return SWIG_FromWCharArray(s.data(), s.size());
   }
-SWIGSTATICINLINE(PyObject*)
+
+SWIGINTERNSHORT PyObject*
   SWIG_From(std::wstring)(const std::wstring& s)
   {
     return SWIG_From(std::basic_string<wchar_t>)(s);
@@ -65,7 +66,7 @@ SWIGSTATICINLINE(PyObject*)
 
 %fragment(SWIG_AsVal_frag(std::wstring),"header",
           fragment=SWIG_AsPtr_frag(std::basic_string<wchar_t>)) {
-SWIGSTATICINLINE(int)
+SWIGINTERN int
   SWIG_AsVal(std::wstring)(PyObject* obj, std::wstring *val)
   {
     std::wstring *s;

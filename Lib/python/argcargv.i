@@ -4,7 +4,7 @@
 
 %fragment("SWIG_AsArgcArgv","header",
 	  fragment="SWIG_AsCharPtr") %{
-SWIGSTATIC(char**)
+SWIGINTERN char**
   SWIG_AsArgcArgv(PyObject* input,
 		  swig_type_info* ppchar_info,
 		  size_t* argc, int* owner)
