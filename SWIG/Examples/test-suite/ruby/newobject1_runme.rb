@@ -5,7 +5,7 @@ include Newobject1
 foo1 = Foo.makeFoo
 raise RuntimeError if Foo.fooCount != 1
 
-foo2 = Foo.makeFoo
+foo2 = foo1.makeMore
 raise RuntimeError if Foo.fooCount != 2
 
 foo1 = nil ; GC.start

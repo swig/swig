@@ -1,6 +1,14 @@
+/**
+ * The purpose of this test is to confirm that a language module
+ * correctly handles the case when C++ class member functions (of both
+ * the static and non-static persuasion) have been tagged with the
+ * %newobject directive.
+ */
+
 %module newobject1
 
 %newobject Foo::makeFoo();
+%newobject Foo::makeMore();
 
 %inline %{
 class Foo
@@ -15,8 +23,13 @@ protected:
         m_fooCount++;
     }
 public:
-    // Factory function
+    // Factory function (static)
     static Foo *makeFoo() {
+        return new Foo;
+    }
+    
+    // Factory function (regular)
+    Foo *makeMore() {
         return new Foo;
     }
     

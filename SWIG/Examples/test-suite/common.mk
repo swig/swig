@@ -105,7 +105,6 @@ CPP_TEST_CASES += \
 	namespace_template \
 	namespace_typemap \
 	newobject1 \
-	newobject3 \
 	overload_complicated \
 	overload_copy \
 	overload_extend \
@@ -213,7 +212,6 @@ C_TEST_CASES += \
 	name \
 	nested \
 	newobject2 \
-	newobject4 \
 	overload_extendc \
 	preproc_1 \
 	preproc_2 \

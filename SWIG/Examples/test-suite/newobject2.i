@@ -1,32 +1,23 @@
+/**
+ * The purpose of this test is to confirm that a language module
+ * correctly handles the case when a C function has been tagged with the
+ * %newobject directive.
+ */
+
 %module newobject2
-
-%nodefault Foo;
-
-%newobject makeFoo();
-
-#ifdef SWIGRUBY
-%freefunc Foo "free_Foo";
-#endif
 
 %{
 /* Global initialization (not wrapped) */
 int g_fooCount = 0;
 %}
 
-#ifdef SWIGRUBY
-%{
-void free_Foo(void *p) {
-    free(p);
-    g_fooCount--;
-}
-%}
-#endif
+%newobject makeFoo();
 
 %inline %{
-typedef struct {
-} Foo;
+/* Struct definition */
+typedef struct {} Foo;
 
-/* Factory function */
+/* Make one */
 Foo *makeFoo() {
     Foo *foo = (Foo *) malloc(sizeof(Foo));
     g_fooCount++;
@@ -38,3 +29,10 @@ int fooCount() {
     return g_fooCount;
 }
 %}
+
+%extend Foo {
+    ~Foo() {
+        free((void *) self);
+	g_fooCount--;
+    }
+}
