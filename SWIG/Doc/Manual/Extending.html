@@ -15,7 +15,7 @@ has been undergoing a massive redevelopment effort that has focused extensively
 on its internal organization.   The information in this chapter is mostly up to
 date, but changes are ongoing.   Expect to find a few inconsistencies.
 
-<h3>Prerequisites</h3>
+<h2>Prerequisites</h2>
 
 In order to extend SWIG, it is useful to have the following background:
 
@@ -34,10 +34,40 @@ number of books will also be useful.  For example, "The C Programming
 Language" by Kernighan and Ritchie (a.k.a, "K&R") and the "C++
 Annotated Reference Manual" by Stroustrup (a.k.a, the "ARM") will be of great use.
 
-<h3>High Level Overview</h3>
+<h2>The Big Picture</h2>
 
-When you run SWIG on an interface, processing is handled in stages by a
-few different system components:
+SWIG is a special purpose compiler that parses C++ declarations to
+generate wrapper code.  To make this conversion possible, SWIG makes
+three fundamental extensions to the C++ language:
+
+<ul>
+<li><b>Typemaps</b>. Typemaps are used to define the
+conversion/marshalling behavior of specific C++ datatypes.  All type conversion in SWIG is
+based on typemaps.  Furthermore, the association of typemaps to datatypes utilizes an advanced pattern matching
+mechanism that is fully integrated with the C++ type system.
+
+<p>
+<li><b>Declaration Annotation</b>. To customize wrapper code
+generation, most declarations can be annotated with special features.
+For example, you can make a variable read-only, you can ignore a
+declaration, you can rename a member function, you can add exception
+handling, and so forth.  Virtually all of these features are are built on top of a low-level
+declaration annotator that can attach arbitrary attributes to any declaration.
+
+<p>
+<li><b>Class extension</b>. SWIG allows classes and structures to be extended with new
+methods and attributes (the <tt>%extend</tt> directive).   This has the effect of altering 
+the API in the target language and can be used to generate OO interfaces to C libraries.
+</ul>
+
+It is important to emphasize that virtually all SWIG features reduce to one of these three
+fundamental concepts.  The type system and pattern matching rules also play a critical
+role in making the system work.  For example, both typemaps and declaration annotation are
+based on pattern matching and interact heavily with the underlying type system.
+
+<h2>Execution Model</h2>
+
+When you run SWIG on an interface, processing is handled in stages by a series of system components:
 
 <ul>
 <li>An integrated C preprocessor reads a collection of configuration
@@ -51,20 +81,29 @@ tracking is inserted.
 <p>
 <li>A C/C++ parser reads the preprocessed input and generates a full
 parse tree of all of the SWIG directives and C declarations found.
-For the most part, this tree includes information about everything that
-appeared in the input.  However, certain features such as C++
-templates and <tt>%rename</tt> directives are handled by the parser and
-may not appear in the resulting parse tree (at least not as special parse tree nodes).
-It is also important to emphasize that the parser does not produce any output nor does it interact
-with the target language module as it runs.   SWIG is not a one-pass compiler.
+The parser is responsible for many aspects of the system including
+renaming, declaration annotation, and template expansion.  However, the parser
+does not produce any output nor does it interact with the target
+language module as it runs.  SWIG is not a one-pass compiler.
 
 <p>
-<li>One or more code generation components walk the parse tree in
-order produce wrapper code.   All of SWIG's target languages are
-currently implemented in this stage of processing.
+<li>A type normalization pass is made. This adjusts all of the C++ typenames to properly
+handle namespaces, typedefs, nested classes, and other issues related to type scoping.
+
+<p>
+<li>A semantic pass is made on the parse tree to collect information related to
+properties of the C++ interface.   For example, this pass would determine whether or not a class allows
+a default constructor.
+
+<p>
+<li>A code generation pass is made using a specific target language module.  This phase
+is responsible for generating the actual wrapper code.  All of SWIG's user-defined modules are
+invoked during this stage of compilation.
 </ul>
 
-<h4>Preprocessing</h4>
+The next few sections briefly describe some of these stages.
+
+<h3>Preprocessing</h3>
 
 The preprocessor plays a critical role in the SWIG implementation.  This is because a lot
 of SWIG's processing and internal configuration is managed not by code written in C, but
@@ -97,29 +136,18 @@ of <tt>swig.swg</tt> looks like this:
 
 /* Access control directives */
 
-#define %readonly    %pragma(swig) readonly;
-#define %readwrite   %pragma(swig) readwrite;
+#define %immutable   %feature("immutable","1")
+#define %mutable     %feature("immutable")
 
 /* Directives for callback functions */
 
-#define %callback(x) %pragma(swig) callback=`x`;
-#define %nocallback  %pragma(swig) nocallback;
-
-/* Directives for attribute functions */
-
-#define %attributefunc(_x,_y)  %pragma(swig)   attributefunction=`_x`":"`_y`;
-#define %noattributefunc       %pragma(swig)   noattributefunction;
+#define %callback(x) %feature("callback") `x`;
+#define %nocallback  %feature("callback");
 
 /* %ignore directive */
 
 #define %ignore         %rename($ignore)
 #define %ignorewarn(x)  %rename("$ignore:" x)
-
-/* Generation of default constructors/destructors */
-
-#define %nodefault     %pragma nodefault
-#define %makedefault   %pragma makedefault
-
 ...
 </pre>
 </blockquote>
@@ -127,7 +155,7 @@ of <tt>swig.swg</tt> looks like this:
 The fact that most of the standard SWIG directives are macros is
 intended to simplify the implementation of the parser.  For instance,
 rather than having to support dozens of special grammar rules, it is
-easier to have a few basic primitives such as <tt>%pragma</tt> or
+easier to have a few basic primitives such as <tt>%feature</tt> or
 <tt>%insert</tt>.
 
 <p>
@@ -140,63 +168,12 @@ file depends on the target language and is usually something like <tt>python.swg
 or <tt>perl5.swg</tt>.
 
 <p>
-Although the SWIG preprocessor is intended to mimic the behavior of
-the C preprocessor, it is not meant to be a direct replacement.
-Instead, its behavior is adapted for use with SWIG and it provides a
-number of a non-standard extensions:
-
-<ul>
-<li>File inclusion directives such as <tt>#include &lt;stdio.h&gt;</tt> are ignored by default.
-<P>
-<li>When files are included, they are enclosed in a SWIG file-scope block that looks like this:
-<blockquote>
-<pre>
-%includefile "example.i" {
-...
-}
-</pre>
-</blockquote>
-These blocks are used during parsing and code generation to track the
-relationship between all of the files that were included or imported
-into an interface.  This is especially important when SWIG is being
-used to create a collection of interrelated extension modules.
-
-<p>
-<li>Preprocessing is disabled inside any <tt>%{ ... %}</tt> block.
-
-<p>
-<li><tt>#define</tt> statements are examined to see if they might be constants.  If so, they are transformed into
-<tt>%constant</tt> declarations for the parser.    A <tt>#define</tt> statement is assumed to be a constant if it
-does not contain any unresolved identifier names when expanded.
-
-<p>
-<li>Macro expansion supports the non-standard <tt>`x`</tt> operator.   This converts <tt>x</tt> into a quoted string unless
-it is already a quoted string (in which case it remains quoted).   This is sometimes used to define SWIG directives
-that support both quoted and non-quoted arguments.
-
-<p>
-<li>Macro names can start with '%'.  This allows SWIG directives to be defined as macros.
-
-<p>
-<li>Macros can be defined using <tt>%define</tt> and <tt>%enddef</tt>.  For example:
-<blockquote>
-<pre>
-%define FOO(a,b)
-...
-%enddef
-</pre>
-</blockquote>
-These macros differ from C preprocessor macros in two respects. First, they can span multiple lines.  Second,
-when the macros are expanded, the expanded text is re-parsed by the preprocessor.
-</ul>
-
-<p>
 As a debugging aide, the text that SWIG feeds to its C++ parser can be obtained by running
 <tt>swig -E interface.i</tt>.   This output probably isn't too useful in general, but it
 will show how macros have been expanded as well as everything else that goes into
 the low-level construction of the wrapper code. 
 
-<h4>Parsing</h4>
+<h3>Parsing</h3>
 
 The current C++ parser handles a subset of C++.  Most incompatibilities with C are due to
 subtle aspects of how SWIG parses declarations.  Specifically, SWIG expects all C/C++ declarations
@@ -284,7 +261,7 @@ interprets the above code as an abstract declarator for a function
 returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 
-<h4>Parse Trees</h4>
+<h3>Parse Trees</h3>
 
 The SWIG parser produces a complete parse tree of the input file before any wrapper code
 is actually generated.  Each item in the tree is known as a "Node".   Each node is identified
@@ -461,7 +438,7 @@ of the output.
 
 <p>
 The contents of each parse tree node consist of a collection of attribute/value
-pairs.  Internally, the nodes are simply stored as a hash table.  A display of
+pairs.  Internally, the nodes are simply represented by hash tables.  A display of
 the parse-tree structure can be obtained using <tt>swig -dump_tree</tt>. For example:
 
 <blockquote>
@@ -647,7 +624,7 @@ $ swig -c++ -python -dump_tree example.i
 </pre>
 </blockquote>
 
-<h4>Attribute namespaces</h4>
+<h3>Attribute namespaces</h3>
 
 When attributes are added to parse tree nodes, their names may be
 prepended with a namespace qualifier.  For example, the attributes
@@ -662,7 +639,7 @@ of wrapper code.  The convention for doing this is to place these attributes in 
 that matches the name of the target language.  For example, <tt>python:foo</tt> or
 <tt>perl:foo</tt>.
 
-<h4>Symbol Tables</h4>
+<h3>Symbol Tables</h3>
 
 During parsing, all symbols are managed in the space of the target
 language.  The <tt>sym:name</tt> attribute of each node contains the symbol name
@@ -741,10 +718,10 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </blockquote>
 
-<h4>The %feature directive</h4>
+<h3>The %feature directive</h3>
 
 A number of SWIG directives such as <tt>%exception</tt> are implemented using the
-lower-level <tt>%feature</tt> directive.  For example:
+low-level <tt>%feature</tt> directive.  For example:
 
 <blockquote>
 <pre>
@@ -789,7 +766,7 @@ programmed to respond to any name that it wishes.  The data stored in a feature 
 is usually just a raw unparsed string.   For example, the exception code above is simply
 stored without any modifications.
 
-<h4>Code Generation</h4>
+<h3>Code Generation</h3>
 
 Language modules work by defining handler functions that know how to respond to
 different types of parse-tree nodes.  These handlers simply look at the
@@ -891,15 +868,14 @@ public :
   virtual int  classHandler(Node *);
   virtual int  classforwardDeclaration(Node *);
   virtual int  insertDirective(Node *);
-  virtual void import_start(char *);
-  virtual void import_end();
+  virtual int  importDirective(Node *);
 };
 </pre>
 </blockquote>
 
-The role of these functions are described shortly.
+The role of these functions is described shortly.
 
-<h4>SWIG and XML</h4>
+<h3>SWIG and XML</h3>
 
 Much of SWIG's current parser design was originally motivated by
 interest in using XML to represent SWIG parse trees.  Although XML is
@@ -909,19 +885,12 @@ by aspects of XML parsing.  Therefore, in trying to understand SWIG's
 internal data structures, it may be useful keep XML in the back of
 your mind as a model.
 
-<h4>Summary so far</h4>
-
-SWIG is a multi-pass compiler that works by building a complete parse tree of
-input files.   These parse trees are structured as a hierarchy of nodes
-with arbitrary attributes.   Language modules are created by writing
-special handlers for different types of parse tree nodes.
-
 <p>
-The rest of this chapter describes some of the internal data structures and 
-various code generation tasks in more detail.
+<B>**** Under Construction ****</b>
 
 
-<h2>Basic Data Structures</h2>
+
+<h2>Primitive Data Structures</h2>
 
 Most of SWIG is constructed using three basic data structures:
 strings, hashes, and lists.  These data structures are dynamic like
@@ -1263,7 +1232,7 @@ objects and report errors.
 Gets the line number associated with <tt>x</tt>.
 </blockquote>
 
-<h2>I/O</h2>
+<h3>I/O</h3>
 
 Special I/O functions are used for all internal I/O.  These operations
 work on C <tt>FILE *</tt> objects, special File objects, and String objects.
@@ -1710,6 +1679,12 @@ will consist only of primitive typenames.
 <h3>Output functions</h3>
 
 
+<h2>Parse Tree Navigation</h2>
+
+<h2>Writing a Language Module</h2>
+
+<h2>Typemaps</h2>
+
 <h2>Guide to parse tree nodes</h2>
 
 This section describes the different parse tree nodes and their attributes.
@@ -1939,7 +1914,7 @@ Top of the parse tree.
 </blockquote>
 
 <p>
-<b>include</b>
+<b>import</b>
 <blockquote>
 %import directive.
 

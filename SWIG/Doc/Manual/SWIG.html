@@ -1836,15 +1836,29 @@ command line option.  For example:
 <blockquote><pre>swig -no_default example.i 
 
 </pre></blockquote>
-or<p>
+or
 <p>
 <blockquote><pre>%module foo
 ...
-%nodefault        // Don't create default constructors/destructors
+%nodefault;        // Don't create default constructors/destructors
 ... declarations ...
-%makedefault      // Reenable default constructors/destructors
-
+%makedefault;      // Reenable default constructors/destructors
 </pre></blockquote>
+
+If you need more precise control, <tt>%nodefault</tt> can selectively target individual structure 
+definitions.  For example:
+
+<blockquote>
+<pre>
+%nodefault Foo;          // No default constructor/destructors for Foo
+...
+struct Foo {             // No default generated.
+};
+
+struct Bar {             // Default constructor/destructor generated.
+};
+</pre>
+</blockquote>
 
 <b>Compatibility note:</b> Prior to SWIG-1.3.7, SWIG did not generate default constructors
 or destructors unless you explicitly turned them on using <tt>-make_default</tt>. 

@@ -16,6 +16,40 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/20/2002: beazley
+            %nodefault and %makedefault directives now require a trailing semicolon.
+            For example:
+
+                %nodefault;
+                ...
+                %makedefault;
+
+            In addition both directives can take a class name.  For example:
+
+                %nodefault Foo;
+
+                class Foo {   /* No default constructor/destructor */
+                };
+
+                class Bar {  /* Default constructor/destructor generated */
+                };
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            If you don't use the trailing semicolon, things will mysteriously break.
+
+05/20/2002: beazley
+            More improvements to type system handling.  SWIG now correctly handles
+            template names and parameters in a namespace. For example:
+
+                namespace foo {
+                    template<class T> class bar { };
+                    typedef int Integer;
+
+                    void blah(bar<Integer> *x);
+                };
+
+            In the generated code, all of the typenames are properly qualified.
+
 05/17/2002: cheetah (William Fulton)
             [Java] deprecated broken -jnic and -jnicpp commandline options. The C or C++ 
             JNI calling convention is now determined from the -c++ commandline option.
