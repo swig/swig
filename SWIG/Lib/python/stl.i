@@ -53,7 +53,7 @@ namespace std {
 
 // __getitem__ is required to raise an IndexError for for-loops to work
 // other methods which can raise are made to throw an IndexError as well
-%exception __getitem__ {
+%exception std::vector::__getitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -61,7 +61,7 @@ namespace std {
     }
 }
 
-%exception __setitem__ {
+%exception std::vector::__setitem__ {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -69,7 +69,7 @@ namespace std {
     }
 }
 
-%exception __delitem__  {
+%exception std::vector::__delitem__  {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -77,7 +77,7 @@ namespace std {
     }
 }
 
-%exception pop  {
+%exception std::vector::pop  {
     try {
         $action
     } catch (std::out_of_range& e) {
@@ -127,11 +127,12 @@ namespace std {
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
                 $1 = std::vector<T>(size);
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
+                // swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<size; i++) {
                     T* x;
                     PyObject* o = PySequence_GetItem($input,i);
-                    if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
+                    // if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
+                    if ((SWIG_ConvertPtr(o,(void **)&x,$descriptor(T *),0)) != -1) {
                         (($1_type &)$1)[i] = *x;
                         Py_DECREF(o);
                     } else {
@@ -150,9 +151,9 @@ namespace std {
             }
         }
         %typemap(in) const vector<T>& (std::vector<T> temp,
-                                          std::vector<T>* v),
+                                       std::vector<T>* v),
                      const vector<T>* (std::vector<T> temp,
-                                          std::vector<T>* v) {
+                                       std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
