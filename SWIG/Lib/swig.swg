@@ -45,6 +45,7 @@
 /* %ignore directive */
 
 #define %ignore   %rename($ignore)
+#define %ignorewarn(x)  %rename("$ignore:" x)
 
 /* Generation of default constructors/destructors */
 
@@ -53,8 +54,10 @@
 
 /* Default handling of certain overloaded operators */
 
-%ignore operator new;         /* No wrappers for new operator */
-%ignore operator delete;      /* No wrappers for delete operator */
+#ifdef __cplusplus
+%ignorewarn("operator new ignored")     operator new;
+%ignorewarn("operator delete ignored")  operator delete;
+#endif
 
 /* Set up the typemap for handling new return strings */
 
