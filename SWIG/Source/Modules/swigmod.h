@@ -214,11 +214,14 @@ public:
   /* Allow director related code generation */
   void allow_directors(int val = 1);
 
-  /* Allow director protected members related code generation */
-  void allow_dirprot(int val = 1);
-  
   /* Return true if directors are enabled */
   int directorsEnabled() const;
+
+  /* Allow director protected members related code generation */
+  void allow_dirprot(int val = 1);  
+
+  /* Returns the dirprot mode */
+  int dirprot_mode() const;  
 
   /* Set none comparison string */
   void setSubclassInstanceCheck(String *s);

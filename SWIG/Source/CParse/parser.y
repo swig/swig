@@ -49,6 +49,11 @@ extern String *scanner_ccode;
 extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
 extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms);
 
+extern int Swig_need_protected();
+
+ 
+ 
+
 /* NEW Variables */
 
 extern void generate_all(Node *);
@@ -68,6 +73,7 @@ static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
+static int      dirprot_mode  = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -149,6 +155,19 @@ static Node *copy_node(Node *n) {
   }
   return nn;
 }
+
+/* Detects when we need to record protected member information.*/
+static int need_protected(Node* n)
+{
+  if (!(Swig_need_protected() || dirprot_mode)) return 0;
+
+  //
+  // Here detect if 'n' is a function.
+  //
+  return (Strcmp(nodeType(n),"cdecl") == 0) 
+    && (Len(Getattr(n,"decl")) > 0);
+}
+
 
 /* -----------------------------------------------------------------------------
  *                              Variables
@@ -315,11 +334,7 @@ static void add_symbols(Node *n) {
   if (inclass && (cplus_mode == CPLUS_PRIVATE)) {
     while (n) {
       Swig_symbol_add(0, n);       /* Add to C symbol table */
-      if (cplus_mode == CPLUS_PRIVATE) {
-	Setattr(n,"access", "private");
-      } else {
-	Setattr(n,"access", "protected");
-      }
+      Setattr(n,"access", "private");
       if (add_only_one) break;
       n = nextSibling(n);
     }
@@ -328,15 +343,14 @@ static void add_symbols(Node *n) {
   while (n) {
     String *symname;
     if (inclass && (cplus_mode == CPLUS_PROTECTED)) {
-      if (Strcmp(nodeType(n),"constructor") == 0) {
-	if (!Getattr(n,"access")) {	  
-	  Swig_symbol_add(0, n);       /* Add to C symbol table */
-	  Setattr(n,"access", "protected");
-	}
+      Setattr(n,"access", "protected");
+      if (!need_protected(n)) {
+	/* Only add to C symbol table and continue */
+	Swig_symbol_add(0, n); 
+	if (add_only_one) break;
 	n = nextSibling(n);
 	continue;
       }
-      Setattr(n,"access", "protected");
     }
     if (Getattr(n,"sym:name")) {
       n = nextSibling(n);
@@ -385,7 +399,7 @@ static void add_symbols(Node *n) {
 	    Setattr(n,"sym:name",symname);
 	  } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
 	    Setattr(n,"sym:name",symname);
-	  } else {
+	  } else  {
 	    String *e = NewString("");
 	    Printf(e,"Identifier '%s' redeclared (ignored).", symname);
 	    if (Cmp(symname,Getattr(n,"name"))) {
@@ -1390,6 +1404,8 @@ module_directive: MODULE options idstring {
                  $$ = new_node("module");
 		 Setattr($$,"name",$3);
 		 if ($2) Setattr($$,"options",$2);
+		 if ($2 && Getattr($2,"directors") && Getattr($2,"dirprot"))
+		   dirprot_mode = 1;
 		 if (!ModuleName) ModuleName = NewString($3);
 		 if (!module_node) module_node = $$;
 	       }

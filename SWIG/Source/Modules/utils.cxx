@@ -21,9 +21,15 @@ int is_protected(Node* n)
 
 int is_member_director(Node* parentnode, Node* member) 
 {
-  int parent_director = parentnode && checkAttribute(parentnode,"feature:director","1");
-  int cdecl_nodirector = checkAttribute(member,"feature:nodirector","1");
-  return parent_director && !cdecl_nodirector;
+  if (checkAttribute(member,"director","1")) return 1;
+  if (parentnode && checkAttribute(member, "storage", "virtual")) {
+    int parent_director = checkAttribute(parentnode,"feature:director","1");
+    int cdecl_director = parent_director || checkAttribute(member,"feature:director","1");
+    int cdecl_nodirector = checkAttribute(member,"feature:nodirector","1");
+    return cdecl_director && !cdecl_nodirector;
+  } else {
+    return 0;
+  }
 }
 
 int is_member_director(Node* member) 

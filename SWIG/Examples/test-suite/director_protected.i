@@ -12,6 +12,8 @@
 
 %newobject *::create();
 
+%rename(a) Bar::hello;
+
 %inline {
 class Foo {
 public:
@@ -20,12 +22,20 @@ public:
     return "Foo::pong();" + ping();
   }
 protected:
+  Foo() {}  
 
   virtual std::string ping() = 0;
 
+  virtual std::string pang() 
+  {
+    return "Foo::pang();"; 
+  }
+
   void hellom() {}
 
-  virtual void used() {}  
+  virtual std::string used() {
+    return pang() + pong();
+  }
 };
 
 class Bar : public Foo 
@@ -48,9 +58,18 @@ protected:
   std::string ping() { 
     return "Bar::ping();"; 
   };
+
+  enum Hello {hola, chao};
+
+  static int a;
+  static const int b;
   
   int hi;
   void him() {}
+
+private:
+  int c;
+
 };
  
  
