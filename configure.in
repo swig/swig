@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(Core/swigcore.h)
+AC_INIT(Source/Core/swigcore.h)
 AC_PREREQ(2.0)
 
 # Set name for machine-dependent library files
@@ -168,5 +168,8 @@ fi
 AC_MSG_RESULT($RPATH)
 AC_SUBST(RPATH)
 
-
-AC_OUTPUT(Makefile Core/Makefile DOH/Doh/Makefile DOH/Makefile Preprocessor/Makefile SWIG1.1/Makefile Modules1.1/Makefile)
+# Note we write DOH's Makefiles for it -- if it has any special configure
+# stuff, we're going to skip it!
+AC_OUTPUT(Makefile Source/Core/Makefile Source/DOH/Doh/Makefile 
+    Source/DOH/Makefile Source/Preprocessor/Makefile Source/SWIG1.1/Makefile
+    Source/Modules1.1/Makefile)
