@@ -652,6 +652,7 @@ int Language::cDeclaration(Node *n) {
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
       f_header = Swig_filebyname("header");
+#ifndef NOEXTERN
       if (f_header) {
 	if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
 	  Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
@@ -659,6 +660,7 @@ int Language::cDeclaration(Node *n) {
 	  Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
 	}
       }
+#endif
     }
     /* This needs to check qualifiers */
     if (SwigType_isqualifier(ty)) {
@@ -680,8 +682,10 @@ int Language::cDeclaration(Node *n) {
     if (!CurrentClass) {
       if ((Cmp(storage,"extern") == 0) || ForceExtern) {
 	f_header = Swig_filebyname("header");
+#ifndef NOEXTERN
 	if (f_header)
 	  Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+#endif
       }
     }
     if (SwigType_isconst(ty)) {
@@ -1384,6 +1388,16 @@ int Language::accessDeclaration(Node *n) {
   } else if (Cmp(kind,"protected") == 0) {
     cplus_mode = CPLUS_PROTECTED;
   }
+  return SWIG_OK;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::namespaceDeclaration()
+ * ----------------------------------------------------------------------------- */
+
+int Language::namespaceDeclaration(Node *n) {
+  if (Getattr(n,"alias")) return SWIG_OK;
+  emit_children(n);
   return SWIG_OK;
 }
 

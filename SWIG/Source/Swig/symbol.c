@@ -644,7 +644,11 @@ Swig_symbol_remove(Node *n) {
 String *
 Swig_symbol_qualified(Node *n) {
   Hash *symtab;
-  symtab = Getattr(n,"sym:symtab");
+  if (Strcmp(nodeType(n),"symboltable") == 0) {
+    symtab = n;
+  } else {
+    symtab = Getattr(n,"sym:symtab");
+  }
   if (!symtab) return NewString("");
   return Swig_symbol_qualifiedscopename(symtab);
 }

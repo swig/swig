@@ -31,7 +31,6 @@ class TypePass : public Dispatcher {
   String *module;
   int    importmode;
   String *nsname;
-  String *classname;
   Hash   *classhash;
   List  *normalize;
 
@@ -131,7 +130,6 @@ public:
     inclass = 0;
     normalize = 0;
     nsname = 0;
-    classname = 0;
     classhash = Getattr(n,"classes");
     emit_children(n);
     return SWIG_OK;
@@ -207,12 +205,24 @@ public:
     Hash *ts = SwigType_pop_scope();
     Setattr(n,"typescope",ts);
     Setattr(n,"module",module);
+
+    /* If in a namespace, patch the class name */
+    if (nsname) {
+      String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));
+      Setattr(n,"name",nname);
+    }
     return SWIG_OK;
   }
   virtual int namespaceDeclaration(Node *n) {
+    static int warn = 0;
     String *name = Getattr(n,"name");
     String *alias = Getattr(n,"alias");
     
+    if (!warn) {
+      Printf(stderr,"%s:%d. Warning. C++ namespace support is experimental and under development.\n", Getfile(n), Getline(n));
+      warn = 1;
+    }
+
     if (alias) {
       /* Namespace alias */
       return SWIG_OK;
@@ -229,8 +239,7 @@ public:
 	}
       }
       String *oldnsname = nsname;
-      nsname = Swig_symbol_qualified(n);
-
+      nsname = Swig_symbol_qualified(Getattr(n,"symtab"));
       emit_children(n);
 
       Delete(nsname);
@@ -273,18 +282,24 @@ public:
     normalize_parms(Getattr(n,"parms"));
 
     String *storage = Getattr(n,"storage");
-    if (!storage) return SWIG_OK;
-    if (!(Strcmp(storage,"typedef") == 0)) {
-      return SWIG_OK;
+    if (storage && Strcmp(storage,"typedef") == 0) {
+      String   *name = Getattr(n,"name");
+      ty   = Getattr(n,"type");
+      decl = Getattr(n,"decl");
+      
+      SwigType *t = Copy(ty);
+      SwigType_push(t,decl);
+      SwigType_typedef(t,name);
     }
-
-    String   *name = Getattr(n,"name");
-    ty   = Getattr(n,"type");
-    decl = Getattr(n,"decl");
-
-    SwigType *t = Copy(ty);
-    SwigType_push(t,decl);
-    SwigType_typedef(t,name);
+    /* If namespaces are active.  We need to patch the name with a namespace prefix */
+    if (nsname && !inclass) {
+      String *name = Getattr(n,"name");
+      if (name) {
+	String *nname = NewStringf("%s::%s", nsname, name);
+	Setattr(n,"name", nname);
+	Delete(nname);
+      }
+    }
     return SWIG_OK;
   }
 
@@ -309,9 +324,22 @@ public:
       }
     }
     normalize_parms(Getattr(n,"parms"));
+    /* If in a namespace, patch the class name */
+    if (nsname) {
+      String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));
+      Setattr(n,"name",nname);
+    }
     return SWIG_OK;
   }
 
+  virtual int destructorDeclaration(Node *n) {
+    /* If in a namespace, patch the class name */
+    if (nsname) {
+      String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));
+      Setattr(n,"name",nname);
+    }
+    return SWIG_OK;
+  }
   virtual int constantDirective(Node *n) {
     SwigType *ty = Getattr(n,"type");
     if (ty) {
