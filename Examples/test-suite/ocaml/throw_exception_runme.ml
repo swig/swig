@@ -1,5 +1,6 @@
 (* Throw exception test *)
 
+open Swig
 open Throw_exception
 
 let x = new_Foo C_void ;;

@@ -1,3 +1,4 @@
+open Swig
 open Name 
 
 let _ = if (get_int _Baz_2) - (get_int (_bar_2 C_void)) == 30 

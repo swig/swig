@@ -1,3 +1,4 @@
+open Swig
 open Newobject1
 
 exception RuntimeError of string * int

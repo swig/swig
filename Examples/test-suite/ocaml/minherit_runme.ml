@@ -1,4 +1,5 @@
 (* Stolen from the python tests *)
+open Swig
 open Minherit
 
 let a = new_Foo C_void
