@@ -35,13 +35,13 @@ private:
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
   void   get_pointer(char *iname, int parm, DataType *t,
-		     WrapperFunction &f, const String &proc_name,
+		     WrapperFunction &f, DOHString_or_char *proc_name,
 		     int num_scheme_parm);
-  void   usage_var(char *, DataType *, String &usage);
-  void   usage_func(char *, DataType *, ParmList *, String &usage);
-  void   usage_returns(char *, DataType *, ParmList *, String &usage);
-  void   usage_const(char *, DataType *, char *, String &usage);
-  void   emit_linkage(String &module_name);
+  void   usage_var(char *, DataType *, DOHString *usage);
+  void   usage_func(char *, DataType *, ParmList *, DOHString *usage);
+  void   usage_returns(char *, DataType *, ParmList *, DOHString *usage);
+  void   usage_const(char *, DataType *, char *, DOHString *usage);
+  void   emit_linkage(char *module_name);
 
 public :
   GUILE ();
