@@ -267,8 +267,8 @@ class Allocate : public Dispatcher {
 	c = nextSibling(c);
 	continue;
       }
-      if (Strcmp(nodeType(c),"extend") == 0) {
-	Append(methods,c);
+      if (!isconst && (Strcmp(nodeType(c),"extend") == 0)) {
+	methods = smart_pointer_methods(c, methods, isconst);
       } else if (Strcmp(nodeType(c),"cdecl") == 0) {
 	if (!Getattr(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
