@@ -122,7 +122,7 @@ SWIG_AsWCharArray(PyObject *obj, wchar_t *val, size_t size)
   }
   if (val) {
     PyErr_Format(PyExc_TypeError, 
-		 "a wchar_t array of maximum size %d is expected", 
+		 "a wchar_t array of maximum size %ld is expected", 
 		 size);
   }
   return 0;
