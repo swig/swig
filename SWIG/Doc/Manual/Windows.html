@@ -78,7 +78,7 @@ If you are interested in how the project files are set up have a look at the sec
 
 
 <b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains python.h<br>
-<b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking with<p>
+<b><tt>PYTHON_LIB</tt></b> : Set this to the python library including path for linking<p>
 Example using Python 2.1.1:<br>
 <tt>
 PYTHON_INCLUDE: d:\python21\include<br>
@@ -89,7 +89,7 @@ PYTHON_LIB: d:\python21\libs\python21.lib<br>
 
 
 <b><tt>TCL_INCLUDE</tt></b> : Set this to the directory containing tcl.h<br>
-<b><tt>TCL_LIB</tt></b> : Set this to the TCL library including path for linking with<p>
+<b><tt>TCL_LIB</tt></b> : Set this to the TCL library including path for linking<p>
 Example using ActiveTcl 8.3.3.3	<br>
 <tt>
 TCL_INCLUDE: d:\tcl\include<br>
@@ -99,10 +99,12 @@ TCL_LIB: d:\tcl\lib\tcl83.lib<br>
 <a name="n8"></a><H4>2.2.1.3 Perl</H4>
 
 
-<b><tt>PERL5_INCLUDE</tt></b> : Set this to the directory containing perl.h and perl.lib<br>
+<b><tt>PERL5_INCLUDE</tt></b> : Set this to the directory containing perl.h<br>
+<b><tt>PERL5_LIB</tt></b> : Set this to the Perl library including path for linking<p>
 Example using nsPerl 5.004_04:<p>
 <tt>
 PERL5_INCLUDE: D:\nsPerl5.004_04\lib\CORE<br>
+PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib<br>
 </tt>
 
 <a name="n9"></a><H4>2.2.1.4 Java</H4>
@@ -120,7 +122,7 @@ JAVA_BIN: d:\jdk1.3\bin<br>
 
 
 <b><tt>RUBY_INCLUDE</tt></b> : Set this to the directory containing ruby.h<br>
-<b><tt>RUBY_LIB</tt></b> : Set this to the ruby library including path for linking with<p>
+<b><tt>RUBY_LIB</tt></b> : Set this to the ruby library including path for linking<p>
 Example using Ruby 1.6.4:<br>
 <tt>
 RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32<br>
