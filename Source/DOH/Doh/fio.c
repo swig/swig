@@ -13,13 +13,16 @@
  * can be used and distributed.
  ****************************************************************************/
 
-#include "dohint.h"
+static char cvsroot[] = "$Header:";
 
 /* -----------------------------------------------------------------------------
  * fio.c
  *
- * Support for formatted I/O via fprintf, fscanf.
+ * This file provides support for formatted I/O via fprint style
+ * functions.
  * ----------------------------------------------------------------------------- */
+
+#include "dohint.h"
 
 #define OBUFLEN  512
 
@@ -38,7 +41,7 @@ static int Writen(DOH *out, void *buffer, int len) {
 /* -----------------------------------------------------------------------------
  * void DohEncoding(char *name, DOH *(*fn)(DOH *s))
  *
- * Register a printf encoding method. 
+ * Register a printf named encoding method. 
  * ----------------------------------------------------------------------------- */
 
 static DOH *encodings = 0;

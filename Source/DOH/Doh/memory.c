@@ -13,6 +13,8 @@
  * can be used and distributed.
  ****************************************************************************/
 
+static char cvsroot[] = "$Header$";
+
 #include "dohint.h"
 
 #ifndef DOH_POOL_SIZE
