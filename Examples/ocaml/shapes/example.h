@@ -3,7 +3,6 @@
 
 class shape {
 public:
-  shape();
   virtual ~shape();
   virtual bool cover( double x, double y ); // does this shape cover this point?
 };
