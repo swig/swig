@@ -176,8 +176,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
             Tcl_Obj **listobjv;
             int       nitems;
-            int       i;
-            T*         temp;
+            T*        temp;
             std::vector<T> *v;
             
             if(SWIG_ConvertPtr($input, (void **) &v, \
@@ -193,7 +192,7 @@ namespace std {
                     if (nitems == 0)
                         $1 = 1;
                 //check the first value to see if it is of correct type
-                    else if ((SWIG_ConvertPtr(listobjv[i],
+                    else if ((SWIG_ConvertPtr(listobjv[0],
                                               (void **) &temp, 
                                               $descriptor(T *),0)) != 0)
                         $1 = 0;
@@ -206,7 +205,6 @@ namespace std {
                                           const vector<T>* {
             Tcl_Obj **listobjv;
             int       nitems;
-            int       i;
             T*         temp;
             std::vector<T> *v;
 
@@ -223,7 +221,7 @@ namespace std {
                     if (nitems == 0)
                         $1 = 1;
                 //check the first value to see if it is of correct type
-                    else if ((SWIG_ConvertPtr(listobjv[i],
+                    else if ((SWIG_ConvertPtr(listobjv[0],
                                               (void **) &temp,
                                               $descriptor(T *),0)) != 0)
                         $1 = 0;
