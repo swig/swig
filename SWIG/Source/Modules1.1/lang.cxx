@@ -1262,6 +1262,12 @@ int Language::classDeclaration(Node *n) {
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
+
+  if (!classname) {
+    Swig_warning(WARN_LANG_CLASS_UNNAMED, input_file, line_number, "Can't generate wrappers for unnamed struct/class.\n");
+    return SWIG_NOWRAP;
+  }
+
   /* Check symbol name for template.   If not renamed. Issue a warning */
   /*    Printf(stdout,"sym:name = %s\n", symname); */
 

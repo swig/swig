@@ -57,7 +57,7 @@ Swig_clocal(SwigType *t, String_or_char *name, String_or_char *value) {
     if (value) {
       Printf(decl,"%s = (%s) &%s_defvalue", SwigType_lstr(t,name), SwigType_lstr(t,0), name);
     } else {
-      Printf(decl,"%s", SwigType_lstr(t,name));
+      Printf(decl,"%s = 0", SwigType_lstr(t,name));
     }
     break;
   case T_VOID:
@@ -127,6 +127,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
   String  *lname;
   SwigType *altty;
   String  *type;
+  int      tycode;
 
   i = 0;
   while (p != 0) {
@@ -137,7 +138,8 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       pvalue = Getattr(p,"value");
       altty = Getattr(p,"alttype");
       type  = Getattr(p,"type");
-      if (SwigType_type(type) == T_REFERENCE) {
+      tycode = SwigType_type(type);
+      if (tycode == T_REFERENCE) {
 	if (pvalue) {
 	  String *defname, *defvalue;
 	  defname = NewStringf("%s_defvalue", lname);
@@ -146,6 +148,8 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  Delete(defname);
 	  Delete(defvalue);
 	}
+      }  else if (!pvalue && (tycode == T_POINTER)) {
+	pvalue = (String *) "0";
       }
       if (!altty) {
 	local  = Swig_clocal(pt,lname,pvalue);
