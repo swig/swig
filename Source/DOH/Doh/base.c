@@ -24,66 +24,25 @@ static DohObjInfo DohBaseType = {
   0,                /* doh_data */
   0,                /* doh_dump */
   0,                /* doh_load */
-  0,                /* doh_len */
+  0,                /* doh_len     */
   0,                /* doh_hash    */
-  0,                /* doh_cmp */
+  0,                /* doh_cmp     */
   0,                /* doh_mapping */
-  0,                /* doh_list */
-  0,                /* doh_file  */
-  0,                /* doh_string */
-  0,                /* doh_callable */
-  0,                /* doh_positional */
-  0,                /* reserved5 */
-  0,                /* reserved6 */
-  0,                /* user1 */
-  0,                /* user2 */
-  0,                /* user3 */
-  0,                /* user4 */
+  0,                /* doh_list    */
+  0,                /* doh_file    */
+  0,                /* doh_string  */
+  0,                /* reserved1   */
+  0,                /* reserved2   */
 };
-
-static int    doh_debug_level = 0;
-
-/* -----------------------------------------------------------------------------
- * DohTrace()
- *
- * This function is used to print tracing information during debugging.
- * ----------------------------------------------------------------------------- */
-
-void
-DohTrace(int level, char *fmt, ...) {
-  va_list ap;
-  va_start(ap,fmt);
-  if (level & doh_debug_level) {
-    printf("DOH %x:", level);
-    vprintf(fmt,ap);
-  }
-  va_end(ap);
-}
-
-/* -----------------------------------------------------------------------------
- * DohDebug()
- *
- * Set the DOH tracing level.
- * ----------------------------------------------------------------------------- */
-
-void
-DohDebug(int d) {
-  doh_debug_level = d;
-}
 
 /* -----------------------------------------------------------------------------
  * DohDelete()
- *
- * Delete an object by decreasing its reference count. Calls the object
- * destructor if the reference count is zero after the decrement.
  * ----------------------------------------------------------------------------- */
 
 void
 DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohDelete %x\n",obj);
   if (!DohCheck(b)) return;
-  assert(b->objinfo);
   if (b->flags & DOH_FLAG_INTERN) return;
   b->refcount--;
   if (b->refcount <= 0) {
@@ -93,185 +52,125 @@ DohDelete(DOH *obj) {
 
 /* -----------------------------------------------------------------------------
  * DohIntern()
- *
- * Flips the intern bit on an object forcing it to be never be garbage collected.
  * ----------------------------------------------------------------------------- */
 
 void
 DohIntern(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohIntern %x\n", obj);
-  if (!DohCheck(b)) return;
   b->flags = b->flags | DOH_FLAG_INTERN;
 }
 
 /* -----------------------------------------------------------------------------
  * DohCopy()
- *
- * Make a copy of an object.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohCopy(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohCopy %x\n",obj);
-  if (!DohCheck(b)) {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Copy.\n", obj);
-    return 0;
-  }
-  if (b->objinfo->doh_copy) return (b->objinfo->doh_copy)(b);
-  DohTrace(DOH_UNSUPPORTED,"No copy method defined for type '%s'\n", b->objinfo->objname);
-  return 0;
+  if (b->objinfo->doh_copy)
+    return (b->objinfo->doh_copy)(b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohClear()
- *
- * Clear the contents of an object.
  * ----------------------------------------------------------------------------- */
 
 void
 DohClear(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohClear %x\n",obj);
-  if (!DohCheck(b)) {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Clear.\n",obj);
-    return;
-  }
-  if (b->objinfo->doh_clear) {
+  if (b->objinfo->doh_clear)
     (b->objinfo->doh_clear)(obj);
-    return;
-  }
-  DohTrace(DOH_UNSUPPORTED, "No clear method defined for type '%s'\n", b->objinfo->objname);
 }
 
 /* -----------------------------------------------------------------------------
  * DohStr()
- *
- * Create a string representation of an object.  If the object has no str method
- * a generic representation of the form <Object 'name' at %x> is created.
- * Non-DOH objects are assumed to
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohStr(const DOH *obj) {
-  DOH *s;
+  char buffer[512];
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohStr %x\n",obj);
   if (DohCheck(b)) {
     if (b->objinfo->doh_str) {
       return (b->objinfo->doh_str)(b);
     }
-    s = NewString("<Object ");
-    Printf(s,"'%s' at %x>", b->objinfo->objname, b);
-    Seek(s,0,SEEK_SET);
-    return s;
+    sprintf(buffer,"<Object '%s' at %x>", b->objinfo->objname, b);
+    return NewString(buffer);
   } else {
-    DohTrace(DOH_CONVERSION, "Creating new string from unknown object %x (assuming char *).\n", obj);
     return NewString(obj);
   }
 }
 
 /* -----------------------------------------------------------------------------
  * DohDump()
- *
- * Serialize an object onto an output stream.
  * ----------------------------------------------------------------------------- */
 
 int
 DohDump(const DOH *obj, DOH *out) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohDump %x, %x\n",obj,out);
-  if (DohCheck(obj)) {
-    if (b->objinfo->doh_dump) {
-      return (b->objinfo->doh_dump)(b,out);
-    }
-    DohTrace(DOH_UNSUPPORTED,"No dump method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Dump.\n",obj);
+  if (b->objinfo->doh_dump) {
+    return (b->objinfo->doh_dump)(b,out);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohLen()
- *
- * Return the length of an object. If a non-DOH object is passed, strlen()
- * is invoked on it.
  * ----------------------------------------------------------------------------- */
 int
 DohLen(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohLen %x\n",obj);
   if (!b) return 0;
   if (DohCheck(b)) {
     if (b->objinfo->doh_len) {
       return (b->objinfo->doh_len)(b);
     }
-    DohTrace(DOH_UNSUPPORTED, "No len method defined for type '%s'\n", b->objinfo->objname);
+    return 0;
   } else {
-    DohTrace(DOH_CONVERSION, "Using strlen() on unknown object %x.\n", obj);
     return strlen((char *) obj);
   }
-  return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohHashVal()
- *
- * Compute the integer hash value of an object. Only needed for objects that
- * need to serve as a keys.
  * ----------------------------------------------------------------------------- */
 
 int
 DohHashval(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohHashval %x\n",obj);
   if (DohCheck(b)) {
     if (b->objinfo->doh_hash) {
       return (b->objinfo->doh_hashval)(b);
     }
-    DohTrace(DOH_UNSUPPORTED,"No hash method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Hashval.\n", obj);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohData()
- *
- * Return pointer to the raw data stored inside an object (when applicable).
  * ----------------------------------------------------------------------------- */
 
 void *
 DohData(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohData %x\n",obj);
   if (DohCheck(obj)) {
     if (b->objinfo) {
       if (b->objinfo->doh_data) {
 	return (b->objinfo->doh_data)(b);
       }
     }
-    DohTrace(DOH_UNSUPPORTED,"No data method defined for type '%s'\n", b->objinfo->objname);
     return 0;
   }
-  DohTrace(DOH_CONVERSION, "Unknown object %x passed to Data being returned as-is.\n", obj);
-  return (char *) obj;
+  return (void *) obj;
 }
 
 /* -----------------------------------------------------------------------------
  * DohCmp()
- *
- * Compare two objects.  If either of the objects are non-DOH objects, the
- * objects are compared using strcmp().
  * ----------------------------------------------------------------------------- */
 
 int
 DohCmp(const DOH *obj1, const DOH *obj2) {
   DohBase *b1, *b2;
-  DohTrace(DOH_CALLS,"DohCmp %x, %x\n",obj1,obj2);
   b1 = (DohBase *) obj1;
   b2 = (DohBase *) obj2;
   if ((!DohCheck(b1)) || (!DohCheck(b2))) {
@@ -280,18 +179,11 @@ DohCmp(const DOH *obj1, const DOH *obj2) {
   if (b1->objinfo->doh_cmp) {
     return (b1->objinfo->doh_cmp)(b1,b2);
   }
-  DohTrace(DOH_UNSUPPORTED,"No cmp method defined for type '%s'\n", b1->objinfo->objname);
   return 1;
 }
 
-/* ----------------------------------------------------------------------
- * Mapping Interface
- * ---------------------------------------------------------------------- */
-
 /* -----------------------------------------------------------------------------
  * DohIsMapping()
- *
- * Return 1 if an object defines a mapping interface.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -304,129 +196,75 @@ DohIsMapping(const DOH *obj) {
 
 /* -----------------------------------------------------------------------------
  * DohGetattr()
- *
- * Get an attribute from a mapping object.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohGetattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohGetattr %x, %x\n",obj,name);
-  if (DohIsMapping(b)) {
-    if (b->objinfo->doh_hash->doh_getattr) {
-      return (b->objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
-    }
-  }
-  if (DohCheck(b)) {
-    DohTrace(DOH_UNSUPPORTED,"No getattr method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Getattr.\n", obj);
+  if (b->objinfo->doh_hash->doh_getattr) {
+    return (b->objinfo->doh_hash->doh_getattr)(b,(DOH *) name);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohSetattr()
- *
- * Set an attribute in a mapping object.
  * ----------------------------------------------------------------------------- */
 
 int
 DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohSetattr %x, %x, %x\n",obj,name, value);
-  if (DohIsMapping(b)) {
-    if (b->objinfo->doh_hash->doh_setattr) {
-      return (b->objinfo->doh_hash->doh_setattr)(b,(DOH *) name,(DOH *) value);
-    }
-  }
-  if (DohCheck(b)) {
-    DohTrace(DOH_UNSUPPORTED, "No setattr method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Setattr\n", obj);
+  if (b->objinfo->doh_hash->doh_setattr) {
+    return (b->objinfo->doh_hash->doh_setattr)(b,(DOH *) name,(DOH *) value);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohDelattr()
- *
- * Delete an attribute in a mapping object.
  * ----------------------------------------------------------------------------- */
 
 void
 DohDelattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohDelattr %x, %x\n",obj,name);
-  if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_hash->doh_delattr) {
-      (b->objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
-      return;
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED, "No delattr method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Delattr\n",obj);
+  if (b->objinfo->doh_hash->doh_delattr) {
+    (b->objinfo->doh_hash->doh_delattr)(b,(DOH *) name);
   }
 }
 
 /* -----------------------------------------------------------------------------
  * DohFirstkey()
- *
- * Return the first key value in a mapping object.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohFirstkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohFirstkey %x\n",obj);
-  if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_hash->doh_firstkey) {
-      return (b->objinfo->doh_hash->doh_firstkey)(obj);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No firstkey method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohFirstkey\n",obj);
+  if (b->objinfo->doh_hash->doh_firstkey) {
+    return (b->objinfo->doh_hash->doh_firstkey)(obj);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohNextkey()
- *
- * Return the next key in a mapping object.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohNextkey(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohNextkey %x\n",obj);
-  if (DohIsMapping(obj)) {
-    if (b->objinfo->doh_hash->doh_nextkey) {
-      return (b->objinfo->doh_hash->doh_nextkey)(obj);
-    }
+  if (b->objinfo->doh_hash->doh_nextkey) {
+    return (b->objinfo->doh_hash->doh_nextkey)(obj);
   }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No nextkey method defined for type '%s'\n", b->objinfo->objname);
-    } else {
-      DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohNextkey\n",obj);
-    }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohGetInt()
- *
- * Return an element as an integer.
  * ----------------------------------------------------------------------------- */
 
 int
 DohGetInt(DOH *obj, const DOH *name) {
   DOH *val;
-  DohTrace(DOH_CALLS,"DohGetInt %x, %x\n",obj,name);
   val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
@@ -437,14 +275,11 @@ DohGetInt(DOH *obj, const DOH *name) {
 
 /* -----------------------------------------------------------------------------
  * DohGetDouble()
- *
- * Return an element as a double.
  * ----------------------------------------------------------------------------- */
 
 double
 DohGetDouble(DOH *obj, const DOH *name) {
   DOH *val;
-  DohTrace(DOH_CALLS,"DohGetDouble %x, %x\n",obj,name);
   val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
@@ -455,14 +290,11 @@ DohGetDouble(DOH *obj, const DOH *name) {
 
 /* -----------------------------------------------------------------------------
  * DohGetChar()
- *
- * Return an element as a char *
  * ----------------------------------------------------------------------------- */
 
 char *
 DohGetChar(DOH *obj, const DOH *name) {
   DOH *val;
-  DohTrace(DOH_CALLS,"DohGetChar %x, %x\n",obj,name);
   val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
@@ -473,14 +305,11 @@ DohGetChar(DOH *obj, const DOH *name) {
 
 /* -----------------------------------------------------------------------------
  * DohGetVoid()
- *
- * Returns an element as a void *
  * ----------------------------------------------------------------------------- */
 
 void *
 DohGetVoid(DOH *obj, const DOH *name) {
   DOH *val;
-  DohTrace(DOH_CALLS,"DohGetVoid %x, %x\n",obj,name);
   val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   return (void *) Data(val);
@@ -488,14 +317,11 @@ DohGetVoid(DOH *obj, const DOH *name) {
 
 /* -----------------------------------------------------------------------------
  * DohSetInt()
- *
- * Set an attribute as an integer
  * ----------------------------------------------------------------------------- */
 
 void
 DohSetInt(DOH *obj, const DOH *name, int value) {
   DOH *temp;
-  DohTrace(DOH_CALLS,"DohSetInt %x, %x, %d\n", obj, name, value);
   temp = NewString("");
   Printf(temp,"%d",value);
   Setattr(obj,(DOH *) name,temp);
@@ -503,14 +329,11 @@ DohSetInt(DOH *obj, const DOH *name, int value) {
 
 /* -----------------------------------------------------------------------------
  * DohSetDouble()
- *
- * Set an attribute as a double
  * ----------------------------------------------------------------------------- */
 
 void
 DohSetDouble(DOH *obj, const DOH *name, double value) {
   DOH *temp;
-  DohTrace(DOH_CALLS,"DohSetDouble %x, %x, %g\n", obj, name, value);
   temp = NewString("");
   Printf(temp,"%0.17f",value);
   Setattr(obj,(DOH *) name,temp);
@@ -518,40 +341,28 @@ DohSetDouble(DOH *obj, const DOH *name, double value) {
 
 /* -----------------------------------------------------------------------------
  * DohSetChar()
- *
- * Set an attribute as a string.
  * ----------------------------------------------------------------------------- */
 
 void
 DohSetChar(DOH *obj, const DOH *name, char *value) {
   DOH *temp;
-  DohTrace(DOH_CALLS,"DohSetChar %x, %x, %g\n", obj, name, value);
   temp = NewString(value);
   Setattr(obj,(DOH *) name,temp);
 }
 
 /* -----------------------------------------------------------------------------
  * DohSetVoid()
- *
- * Set an attribute as a void
  * ----------------------------------------------------------------------------- */
 
 void
 DohSetVoid(DOH *obj, const DOH *name, void *value) {
   DOH *temp;
-  DohTrace(DOH_CALLS,"DohSetChar %x, %x, %g\n", obj, name, value);
   temp = NewVoid(value,0);
   Setattr(obj,(DOH *) name,temp);
 }
 
-/* ----------------------------------------------------------------------
- * Sequence Interface
- * ---------------------------------------------------------------------- */
-
 /* -----------------------------------------------------------------------------
  * DohIsSequence()
- *
- * Return 1 if an object supports sequence methods.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -564,148 +375,83 @@ DohIsSequence(const DOH *obj) {
 
 /* -----------------------------------------------------------------------------
  * DohGetitem()
- *
- * Return an item from a sequence.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohGetitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohGetitem %x, %d\n",obj,index);
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_getitem) {
-      return (b->objinfo->doh_list->doh_getitem)(obj,index);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No getitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohGetitem\n",obj);
+  if (b->objinfo->doh_list->doh_getitem) {
+    return (b->objinfo->doh_list->doh_getitem)(obj,index);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohSetitem()
- *
- * Set an item in a sequence.
  * ----------------------------------------------------------------------------- */
 
 int
 DohSetitem(DOH *obj, int index, const DOH *value) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohSetitem %x, %d, %x\n",obj,index, value);
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_setitem) {
-      return (b->objinfo->doh_list->doh_setitem)(obj,index,(DOH *) value);
-    }
+  if (b->objinfo->doh_list->doh_setitem) {
+    return (b->objinfo->doh_list->doh_setitem)(obj,index,(DOH *) value);
   }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No setitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohSetitem\n",obj);
-  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohDelitem()
- *
- * Delete an item in a sequence.
  * ----------------------------------------------------------------------------- */
 
 int
 DohDelitem(DOH *obj, int index) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohDelitem %x, %d\n",obj,index);
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_delitem) {
-      return (b->objinfo->doh_list->doh_delitem)(obj,index);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No delitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohDelitem\n",obj);
+  if (b->objinfo->doh_list->doh_delitem) {
+    return (b->objinfo->doh_list->doh_delitem)(obj,index);
   }
 }
 
 /* -----------------------------------------------------------------------------
  * DohInsertitem()
- *
- * Insert an item into a sequence.
  * ----------------------------------------------------------------------------- */
 
 int
 DohInsertitem(DOH *obj, int index, const DOH *value) {
   int  no = 0;
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohInsertitem %x, %d, %x\n",obj,index, value);
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_insitem) {
-      return (b->objinfo->doh_list->doh_insitem)(obj,index,(DOH *) value);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No insitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohInsertitem\n",obj);
+  if (b->objinfo->doh_list->doh_insitem) {
+    return (b->objinfo->doh_list->doh_insitem)(obj,index,(DOH *) value);
   }
 }
 
 /* -----------------------------------------------------------------------------
  * DohFirstitem()
- *
- * Get the first item in a sequence
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohFirstitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohFirstitem %x\n");
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_firstitem) {
-      return (b->objinfo->doh_list->doh_firstitem)(obj);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No firstitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohFirstitem\n",obj);
+  if (b->objinfo->doh_list->doh_firstitem) {
+    return (b->objinfo->doh_list->doh_firstitem)(obj);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohNextitem()
- *
- * Get the next item in a sequence.
  * ----------------------------------------------------------------------------- */
 
 DOH *
 DohNextitem(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohNextitem %x\n");
-  if (DohIsSequence(obj)) {
-    if (b->objinfo->doh_list->doh_nextitem) {
-      return (b->objinfo->doh_list->doh_nextitem)(obj);
-    }
-  }
-  if (DohCheck(obj)) {
-    DohTrace(DOH_UNSUPPORTED,"No nextitem method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to DohNextitem\n",obj);
+  if (b->objinfo->doh_list->doh_nextitem) {
+    return (b->objinfo->doh_list->doh_nextitem)(obj);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * File methods
- * ----------------------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------
  * DohIsFile()
- *
- * Return 1 if an object supports file methods.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -718,197 +464,136 @@ DohIsFile(const DOH *obj) {
 
 /* -----------------------------------------------------------------------------
  * DohRead()
- *
- * Read bytes from an object.  Implicitly converts to a FILE *.
  * ----------------------------------------------------------------------------- */
 
 int
 DohRead(DOH *obj, void *buffer, int length) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohRead %x, %x, %d\n",obj,buffer,length);
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_read) {
+  if (DohCheck(obj)) {
+    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_read)) {
       return (b->objinfo->doh_file->doh_read)(obj,buffer,length);
     }
-  } else if (!DohCheck(b)) {
-    /* Hmmm.  Not a file.  Maybe it's a real FILE */
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohRead\n",b);
-    return fread(buffer,1,length,(FILE *) b);
+    return -1;
   }
-  DohTrace(DOH_UNSUPPORTED,"No read method defined for type '%s'\n", b->objinfo->objname);
-  return -1;
+  /* Hmmm.  Not a file.  Maybe it's a real FILE */
+  return fread(buffer,1,length,(FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohWrite()
- *
- * Write bytes to an object. Implicitly converts to a FILE *
  * ----------------------------------------------------------------------------- */
 
 int
 DohWrite(DOH *obj, void *buffer, int length) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohWrite %x, %x, %d\n",obj,buffer,length);
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_write) {
+  if (DohCheck(obj)) {
+    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_write)) {
       return (b->objinfo->doh_file->doh_write)(obj,buffer,length);
     }
+    return -1;
   }
-  if (!DohCheck(b)) {
-    /* Hmmm.  Not a file.  Maybe it's a real FILE */
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohWrite\n",b);
-    return fwrite(buffer,1,length,(FILE *) b);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No write method defined for type '%s'\n", b->objinfo->objname);
-  return -1;
+  /* Hmmm.  Not a file.  Maybe it's a real FILE */
+  return fwrite(buffer,1,length,(FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohSeek()
- *
- * Seek to a new position.
  * ----------------------------------------------------------------------------- */
 
 int
 DohSeek(DOH *obj, long offset, int whence) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohSeek %x, %d, %d\n",obj,offset,whence);
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_seek) {
+  if (DohCheck(obj)) {
+    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_seek)) {
       return (b->objinfo->doh_file->doh_seek)(obj,offset,whence);
     }
+    return -1;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohSeek\n",b);
-    return fseek((FILE *) b, offset, whence);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No seek method defined for type '%s'\n", b->objinfo->objname);
-  return -1;
+  return fseek((FILE *) b, offset, whence);
 }
 
 /* -----------------------------------------------------------------------------
  * DohTell()
- *
- * Return current file pointer.
  * ----------------------------------------------------------------------------- */
 
 long
 DohTell(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohTell %x\n",obj);
-  if (DohIsFile(obj)) {
-    if (b->objinfo->doh_file->doh_tell) {
+  if (DohCheck(obj)) {
+    if ((b->objinfo->doh_file) && (b->objinfo->doh_file->doh_tell)) {
       return (b->objinfo->doh_file->doh_tell)(obj);
     }
+    return -1;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohTell\n",b);
-    return ftell((FILE *) b);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No tell method defined for type '%s'\n", b->objinfo->objname);
-  return -1;
+  return ftell((FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohGetc()
- *
- * Return a character
  * ----------------------------------------------------------------------------- */
 
 int
 DohGetc(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohGetc %x\n",obj);
-  if (DohIsFile(obj)) {
+  if (DohCheck(obj)) {
     if (b->objinfo->doh_file->doh_getc) {
       return (b->objinfo->doh_file->doh_getc)(obj);
     }
+    return EOF;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohGetc\n",b);
-    return fgetc((FILE *) b);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No getc method defined for type '%s'\n", b->objinfo->objname);
-  return EOF;
+  return fgetc((FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohPutc()
- *
- * Put a character.
  * ----------------------------------------------------------------------------- */
 
 int
 DohPutc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohPutc '%c',%x\n",ch,obj);
-  if (DohIsFile(obj)) {
+  if (DohCheck(obj)) {
     if (b->objinfo->doh_file->doh_putc) {
       return (b->objinfo->doh_file->doh_putc)(obj,ch);
     }
+    return EOF;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohPutc\n",b);
-    return fputc(ch,(FILE *) b);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No putc method defined for type '%s'\n", b->objinfo->objname);
-  return EOF;
+  return fputc(ch,(FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohUngetc()
- *
- * Put a character back on the input stream.
  * ----------------------------------------------------------------------------- */
 
 int
 DohUngetc(int ch, DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohUngetc '%c',%x\n",ch,obj);
-  if (DohIsFile(obj)) {
+  if (DohCheck(obj)) {
     if (b->objinfo->doh_file->doh_ungetc) {
       return (b->objinfo->doh_file->doh_ungetc)(obj,ch);
     }
+    return EOF;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohUngetc\n",b);
-    return ungetc(ch,(FILE *) b);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No ungetc method defined for type '%s'\n", b->objinfo->objname);
-  return EOF;
+  return ungetc(ch,(FILE *) b);
 }
 
 /* -----------------------------------------------------------------------------
  * DohClose()
- *
- * Close a file object.
  * ----------------------------------------------------------------------------- */
 
 int
 DohClose(DOH *obj) {
   DohBase *b = (DohBase *) obj;
-  DohTrace(DOH_CALLS,"DohClose %x\n",obj);
-  if (DohIsFile(obj)) {
+  if (DohCheck(obj)) {
     if (b->objinfo->doh_file->doh_close) {
       return (b->objinfo->doh_file->doh_close)(obj);
     }
+    return 0;
   }
-  if (!DohCheck(b)) {
-    DohTrace(DOH_CONVERSION,"Unknown object %x converted to FILE * in DohClose\n",b);
-    return fclose((FILE *) obj);
-  }
-  DohTrace(DOH_UNSUPPORTED,"No close method defined for type '%s'\n", b->objinfo->objname);
-  return 0;
+  return fclose((FILE *) obj);
 }
 
 /* -----------------------------------------------------------------------------
- * String methods
- * ----------------------------------------------------------------------------- */
-
-/* -----------------------------------------------------------------------------
  * DohIsString()
- *
- * Return 1 if an object supports string methods.
  * ----------------------------------------------------------------------------- */
 
 int
@@ -921,53 +606,35 @@ DohIsString(const DOH *obj) {
 
 /* -----------------------------------------------------------------------------
  * DohReplace()
- *
- * Perform string replacement.
  * ----------------------------------------------------------------------------- */
 
 int
 DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags) {
   DohBase *b = (DohBase *) src;
-  DohTrace(DOH_CALLS, "DohReplace %x\n", src);
   if (DohIsString(src)) {
     if (b->objinfo->doh_string->doh_replace) {
       return (b->objinfo->doh_string->doh_replace)(src,(DOH *) token, (DOH *) rep,flags);
     }
-  }
-  if (DohCheck(b)) {
-    DohTrace(DOH_UNSUPPORTED, "No replace method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Replace\n", b);
   }
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * DohChop()
- *
- * Chop whitespace at the end of a string.
  * ----------------------------------------------------------------------------- */
 
 void
 DohChop(DOH *src) {
   DohBase *b = (DohBase *) src;
-  DohTrace(DOH_CALLS, "DohChop %x\n", src);
   if (DohIsString(src)) {
     if (b->objinfo->doh_string->doh_chop) {
       (b->objinfo->doh_string->doh_chop)(src);
     }
   }
-  if (DohCheck(b)) {
-    DohTrace(DOH_UNSUPPORTED, "No chop method defined for type '%s'\n", b->objinfo->objname);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Chop\n", b);
-  }
 }
 
 /* -----------------------------------------------------------------------------
  * DohInit()
- *
- * Initialize an object.
  * ----------------------------------------------------------------------------- */
 
 void
@@ -982,34 +649,23 @@ DohInit(DOH *b) {
 
 /* -----------------------------------------------------------------------------
  * DohSetFile()
- *
- * Set file location (default method).
  * ----------------------------------------------------------------------------- */
 void
 DohSetfile(DOH *ho, DOH *file) {
   DohBase *h = (DohBase *) ho;
-  if (DohCheck(h)) {
-    if (!DohCheck(file)) file = NewString(file);
-    h->file = file;
-    Incref(h->file);
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Setfile.\n",h);
-  }
+  if (!h) return;
+  if (!DohCheck(file)) file = NewString(file);
+  h->file = file;
+  Incref(h->file);
 }
 
 /* -----------------------------------------------------------------------------
  * DohGetFile()
  * ----------------------------------------------------------------------------- */
-
 DOH *
 DohGetfile(DOH *ho) {
-  DohBase *h = (DohBase *) ho;
-  if (DohCheck(h)) {
-    return h->file;
-  } else {
-    DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Getfile.\n", h);
-  }
-  return 0;
+  if (!ho) return 0;
+  return ((DohBase *)ho)->file;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1017,12 +673,8 @@ DohGetfile(DOH *ho) {
  * ----------------------------------------------------------------------------- */
 void
 DohSetline(DOH *ho, int l) {
-  DohBase *h = (DohBase *) ho;
-  if (DohCheck(h)) {
-    h->line = l;
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to Setline.\n", h);
-  }
+  if (!ho) return;
+  ((DohBase *) ho)->line = l;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1030,13 +682,8 @@ DohSetline(DOH *ho, int l) {
  * ----------------------------------------------------------------------------- */
 int
 DohGetline(DOH *ho) {
-  DohBase *h = (DohBase *) ho;
-  if (DohCheck(h)) {
-    return h->line;
-  } else {
-    DohTrace(DOH_UNKNOWN, "Unknown object %x passed to GetLine.\n", h);
-  }
-  return -1;
+  if (!ho) return 0;
+  return ((DohBase *)ho)->line;
 }
 
 

@@ -116,26 +116,26 @@ typedef struct DohObjInfo {
   /* Compare */
   int        (*doh_cmp)(DOH *obj1, DOH *obj2);
 
-  DohHashMethods     *doh_hash;             /* Mapping methods    */
-  DohListMethods     *doh_list;                /* List methods   */
+  DohHashMethods     *doh_hash;                /* Hash methods       */
+  DohListMethods     *doh_list;                /* List methods       */
   DohFileMethods     *doh_file;                /* File methods       */
   DohStringMethods   *doh_string;              /* String methods     */
+  void               *reserved1;
   void               *reserved2;
-  void               *reserved3;
-  void               *reserved4;
-  void               *reserved5;
-  void               *reserved6;
-  void               *user1;
-  void               *user2;
-  void               *user3;
-  void               *user4;
 } DohObjInfo;
 
 /* Memory management */
 
-  extern void   *DohMalloc(size_t size);             /* Allocate memory       */
-  extern void   *DohRealloc(void *, size_t size);    /* Reallocate memory     */
-  extern void    DohFree(DOH *ptr);                  /* Free memory           */
+#ifndef DohMalloc
+#define DohMalloc malloc
+#endif
+#ifndef DohRealloc
+#define DohRealloc realloc
+#endif
+#ifndef DohFree
+#define DohFree free
+#endif
+
   extern void   *DohObjMalloc(size_t size);          /* Allocate a DOH object */
   extern void    DohObjFree(DOH *ptr);               /* Free a DOH object     */
   extern void    DohInit(DOH *obj);                  /* Initialize an object  */
@@ -208,9 +208,6 @@ typedef struct DohObjInfo {
   extern DOH    *DohReadline(DOHFile *in);
 
   /* Miscellaneous */
-
-  extern void    DohTrace(int level, char *fmt,...);
-  extern void    DohDebug(int d);
 
   extern int     DohIsMapping(const DOH *obj);
   extern int     DohIsSequence(const DOH *obj);

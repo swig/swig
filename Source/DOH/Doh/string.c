@@ -420,7 +420,6 @@ String_insert(DOH *so, int pos, DOH *str)
     int     len;
     s = (String *) so;
     if (!DohCheck(str)) {
-      DohTrace(DOH_CONVERSION,"Unknown object %x being inserted as char * in String_insert.\n", str);
       c = (char *) str;
       len = strlen(c);
     } else {

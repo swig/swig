@@ -172,8 +172,7 @@ static void resize(Hash *h) {
 	table[i] = 0;
     }
 
-    /* Walk down the old set of nodes */
-
+    /* Walk down the old set of nodes and re-place */
     h->hashsize = newsize;
     for (i = 0; i < oldsize; i++) {
 	n = h->hashtable[i];
@@ -525,7 +524,3 @@ NewHash() {
     h->nitems = 0;
     return (DOH *) h;
 }
-
-
-
-
