@@ -23,77 +23,77 @@ extern "C" {
 
 extern int add_symbol(char *name);
 
-// -----------------------------------------------------------------
-// void Language::set_init(char *iname)
-//
-// Called to make an initialization function by %init (obsolete)
-// ----------------------------------------------------------------- 
+/* -----------------------------------------------------------------
+ * void Language::set_init(char *iname)
+ *
+ * Called to make an initialization function by %init (obsolete)
+ * -----------------------------------------------------------------  */
 
 void Language::set_init(char *iname) {
   set_module(iname,0);
 }
 
-// -----------------------------------------------------------------
-// void Language::create_command(char *cname, char *iname
-//
-// Method for adding a previous wrapped C function.
-// ----------------------------------------------------------------- 
+/* -----------------------------------------------------------------
+ * void Language::create_command(char *cname, char *iname
+ *
+ * Method for adding a previous wrapped C function.
+ * -----------------------------------------------------------------  */
 
 void Language::create_command(char *, char *) {
   fprintf(stderr,"SWIG Warning. No command creation procedure defined.\n");
   fprintf(stderr,"C++ inheritance may not work correctly.\n");
 }
 
-// -----------------------------------------------------------------
-// void Language::add_native(char *name, char *iname, DataType *t, ParmList *l)
-//
-// Method for adding a native function with full argument info
-// default is to call the old-style add_native method
-// -----------------------------------------------------------------
+/* -----------------------------------------------------------------
+ * void Language::add_native(char *name, char *iname, DataType *t, ParmList *l)
+ *
+ * Method for adding a native function with full argument info
+ * default is to call the old-style add_native method
+ * ----------------------------------------------------------------- */
 
 void
 Language::add_native(char *, char *iname, DataType *, ParmList *) {
   fprintf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, iname);
 }
 
-static char  *ClassName = 0;        // This is the real name of the current class
-static char  *ClassRename = 0;      // This is non-NULL if the class has been renamed
-static char  *ClassType = 0;        // Type of class (ie. union, struct, class) 
+static char  *ClassName = 0;        /* This is the real name of the current class */
+static char  *ClassRename = 0;      /* This is non-NULL if the class has been renamed */
+static char  *ClassType = 0;        /* Type of class (ie. union, struct, class)  */
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_open_class(char *classname, char *classrename, char *ctype, int strip)
-//
-// Open a new C++ class.
-//
-// INPUTS:
-//      classname          = Real name of the C++ class
-//      classrename        = New name of the class (if %name was used)
-//      ctype              = Class type (struct, class, union, etc...)
-//      strip              = Flag indicating whether we should strip the class type off
-//
-// This function is in charge of creating a new class.   The SWIG parser has
-// already processed the entire class definition prior to calling this
-// function (which should simplify things considerably).
-//
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_open_class(char *classname, char *classrename, char *ctype, int strip)
+ *
+ * Open a new C++ class.
+ *
+ * INPUTS:
+ *      classname          = Real name of the C++ class
+ *      classrename        = New name of the class (if %name was used)
+ *      ctype              = Class type (struct, class, union, etc...)
+ *      strip              = Flag indicating whether we should strip the class type off
+ *
+ * This function is in charge of creating a new class.   The SWIG parser has
+ * already processed the entire class definition prior to calling this
+ * function (which should simplify things considerably).
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_open_class(char *classname, char *classrename, char *ctype, int strip) {
 
-  // Copy the class name
+  /* Copy the class name */
 
   if (ClassName) free(ClassName);
   ClassName = Swig_copy_string(classname);
 
-  // Copy the class renaming
+  /* Copy the class renaming */
 
   if (ClassRename) free(ClassRename);
   if (classrename) {
     ClassRename = Swig_copy_string(classrename);
   } else {
-    ClassRename = 0;           // No renaming
+    ClassRename = 0;           /* No renaming */
   }
 
-  // Make the class type
+  /* Make the class type*/
 
   if (ClassType) free(ClassType);
   ClassType = (char *) malloc(strlen(ctype)+2);
@@ -101,58 +101,58 @@ void Language::cpp_open_class(char *classname, char *classrename, char *ctype, i
   else sprintf(ClassType,"%s ",ctype);
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_close_class()
-//
-// Close the current class
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_close_class()
+ *
+ * Close the current class
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_close_class() {
 
 
-  // Doesn't really do anything 
+  /* Doesn't really do anything  */
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l)
-//
-// Method for adding C++ member function
-//
-// INPUTS:
-//      name        - name of the member function
-//      iname       - renaming (if given)
-//      t           - Return datatype
-//      l           - Parameter list
-//
-// By default, we're going to create a function of the form :
-//
-//         Foo_bar(this,args)
-//
-// Where Foo is the classname, bar is the member name and the this pointer is
-// explicitly attached to the beginning.
-//
-// The renaming only applies to the member function part, not the full classname.
-//
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l)
+ *
+ * Method for adding C++ member function
+ *
+ * INPUTS:
+ *      name        - name of the member function
+ *      iname       - renaming (if given)
+ *      t           - Return datatype
+ *      l           - Parameter list
+ *
+ * By default, we're going to create a function of the form :
+ *
+ *         Foo_bar(this,args)
+ *
+ * Where Foo is the classname, bar is the member name and the this pointer is
+ * explicitly attached to the beginning.
+ *
+ * The renaming only applies to the member function part, not the full classname.
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
-  char       cname[256];       // Name of the C function
+  char       cname[256];       /* Name of the C function */
   char       new_name[256];
   char       *prefix;
 
-  // Generate the C wrapper function name and interpreter name of this function
+  /* Generate the C wrapper function name and interpreter name of this function*/
   
-  // Set the classname prefix
+  /* Set the classname prefix */
   if (ClassRename) {
     prefix = ClassRename;
   } else {
     prefix = ClassName;
   }
 
-  // Generate the C wrapper name for this method
+  /* Generate the C wrapper name for this method */
   
   if (AddMethods) {
-    char *bc = cplus_base_class(name);         // Get base class name of this method
+    char *bc = cplus_base_class(name);          /* Get base class name of this method */
     if (bc)
       strcpy(cname, Swig_name_member(bc,name));
     else
@@ -161,7 +161,7 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
     strcpy(cname, Swig_name_member(ClassName,name));
   }
 
-  // Create the actual function name
+  /* Create the actual function name */
 
   if (iname) {
     strcpy(new_name, Swig_name_member(prefix,iname));
@@ -169,7 +169,7 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
     strcpy(new_name, Swig_name_member(prefix,name));
   }
 
-  // Now do a symbol table lookup on it :
+  /* Now do a symbol table lookup on it : */
 
   if (add_symbol(new_name)) {
     fprintf(stderr,"%s : Line %d. Function %s (member %s) multiply defined (2nd definition ignored).\n",
@@ -179,16 +179,16 @@ void Language::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l
   cplus_emit_member_func(ClassName, ClassType, ClassRename, name, iname, t, l, AddMethods);
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_constructor(char *name, char *iname, ParmList *l)
-//
-// Method for adding C++ member constructor
-//
-// INPUTS:
-//      name           - Name of the constructor (usually same as classname)
-//      iname          - Renamed version
-//      l              - parameters
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_constructor(char *name, char *iname, ParmList *l)
+ *
+ * Method for adding C++ member constructor
+ *
+ * INPUTS:
+ *      name           - Name of the constructor (usually same as classname)
+ *      iname          - Renamed version
+ *      l              - parameters
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
 
@@ -200,7 +200,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
     return;
   }
 
-  // Set the prefix
+  /* Set the prefix */
 
   if (ClassRename)
     prefix = ClassRename;
@@ -212,7 +212,7 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
   else
     cname = Swig_name_construct(prefix);
 
-  // Add this function to the SWIG symbol table
+  /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
     fprintf(stderr,"%s : Line %d. Constructor %s multiply defined (2nd definition ignored).\n",
@@ -220,22 +220,22 @@ void Language::cpp_constructor(char *name, char *iname, ParmList *l) {
     return;
   }
 
-  // Call our default method
+  /* Call our default method */
 
   cplus_emit_constructor(ClassName, ClassType, ClassRename, name, iname, l, AddMethods);
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_destructor(char *name, char *iname)
-//
-// Method for adding C++ member destructor
-//
-// INPUT:
-//     name        -  Name of the destructor (classname)
-//     iname       -  Renamed destructor
-//
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_destructor(char *name, char *iname)
+ *
+ * Method for adding C++ member destructor
+ *
+ * INPUT:
+ *     name        -  Name of the destructor (classname)
+ *     iname       -  Renamed destructor
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_destructor(char *name, char *iname) {
 
@@ -246,7 +246,7 @@ void Language::cpp_destructor(char *name, char *iname) {
   else
     cname = Swig_name_destroy(ClassName);
 
-  // Add this function to the SWIG symbol table
+  /* Add this function to the SWIG symbol table */
 
   if (add_symbol(cname)) {
     fprintf(stderr,"%s : Line %d. Destructor %s multiply defined (2nd definition ignored).\n",
@@ -255,33 +255,33 @@ void Language::cpp_destructor(char *name, char *iname) {
   }
 
 
-  // Call our default method
+  /* Call our default method */
 
   cplus_emit_destructor(ClassName, ClassType, ClassRename, name, iname, AddMethods);
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cleanup()
-//
-// Perform any necessary cleanup after reaching end of interface file
-// ---------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * void Language::cleanup()
+ *
+ * Perform any necessary cleanup after reaching end of interface file
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_cleanup() {
 
-  // This doesn't do anything (well, not be default)
+  /* This doesn't do anything (well, not be default) */
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_inherit(char **baseclass, int mode)
-//
-// Inherit attributes from given baseclass.  
-//
-// INPUT:
-//     baseclass       = NULL terminate list of baseclasses
-//
-// ---------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * void Language::cpp_inherit(char **baseclass, int mode)
+ *
+ * Inherit attributes from given baseclass.  
+ *
+ * INPUT:
+ *     baseclass       = NULL terminate list of baseclasses
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_inherit(char **baseclass, int mode) {
   
@@ -295,23 +295,23 @@ void Language::cpp_inherit(char **baseclass, int mode) {
   }
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_variable(char *name, char *iname, DataType *t)
-//
-// Wrap a C++ data member
-//
-// INPUTS :
-//      name       = Name of the C++ member
-//     iname       = Name as used in the interpreter
-//         t       = Datatype
-//
-// This creates a pair of functions to set/get the variable of a member.
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_variable(char *name, char *iname, DataType *t)
+ *
+ * Wrap a C++ data member
+ *
+ * INPUTS :
+ *      name       = Name of the C++ member
+ *     iname       = Name as used in the interpreter
+ *         t       = Datatype
+ *
+ * This creates a pair of functions to set/get the variable of a member.
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_variable(char *name, char *iname, DataType *t) {
   char *prefix, *cname;
 
-  // Set the class prefix
+  /* Set the class prefix */
   
   if (ClassRename) {
     prefix = ClassRename;
@@ -324,36 +324,36 @@ void Language::cpp_variable(char *name, char *iname, DataType *t) {
   else
     cname = Swig_name_get(Swig_name_member(prefix,name));
 
-  // Check the symbol table
+  /* Check the symbol table */
 
   if (add_symbol(cname)) {
     fprintf(stderr,"%s : Line %d. Variable %s multiply defined (2nd definition ignored).\n", input_file, line_number, cname);
     return;
   }
 
-  // Create a function to set the value of the variable
+  /* Create a function to set the value of the variable */
 
   if (!(Status & STAT_READONLY)) {
     cplus_emit_variable_set(ClassName, ClassType, ClassRename, name, iname, t, AddMethods);
   }
 
-  // Create a function to get the value of a variable
+  /* Create a function to get the value of a variable */
 
   cplus_emit_variable_get(ClassName,ClassType, ClassRename, name, iname, t, AddMethods);
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l)
-//
-// Wrap a static C++ function
-//
-// INPUTS:
-//      name           = Real name of the function
-//     iname           = New name in interpreter
-//      t              = Return datatype
-//      l              = Parameters
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l)
+ *
+ * Wrap a static C++ function
+ *
+ * INPUTS:
+ *      name           = Real name of the function
+ *     iname           = New name in interpreter
+ *      t              = Return datatype
+ *      l              = Parameters
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
 
@@ -361,14 +361,14 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
   char  *mname;
   char  *cname;
 
-  // Set the classname prefix
+  /* Set the classname prefix */
   
   if (ClassRename) 
     prefix = ClassRename;
   else
     prefix = ClassName;
 
-  // Set the member function name
+  /* Set the member function name */
 
   if (iname)
     mname = iname;
@@ -377,7 +377,7 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
 
   cname = Swig_name_member(prefix,mname);
 
-  // Now do a symbol table lookup on it :
+  /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
     if (ObjCClass)
@@ -392,18 +392,18 @@ void Language::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_declare_const(char *name, char *iname, DataType *t, char *value)
-//
-// Create a C++ constant
-//
-// INPUTS :
-//       name          = Real name of the constant
-//       iname         = new name
-//       t             = Datatype
-//       value         = value as a string
-//
-// ---------------------------------------------------------------------------------
+/* ----------------------------------------------------------------------------- 
+ * void Language::cpp_declare_const(char *name, char *iname, DataType *t, char *value)
+ *
+ * Create a C++ constant
+ *
+ * INPUTS :
+ *       name          = Real name of the constant
+ *       iname         = new name
+ *       t             = Datatype
+ *       value         = value as a string
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *value)
 {
@@ -413,7 +413,7 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
   char  *new_value;
   char  *prefix;
 
-  // Set the classname prefix
+  /* Set the classname prefix */
   
   if (ClassRename) {
     prefix = ClassRename;
@@ -421,14 +421,14 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
     prefix = ClassName;
   }
 
-  // Set the constant name
+  /* Set the constant name */
 
   if (iname)
     cname = Swig_name_member(prefix,iname);
   else
     cname = Swig_name_member(prefix,name);
 
-  // Now do a symbol table lookup on it :
+  /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
     fprintf(stderr,"%s : Line %d. Constant %s (member %s) multiply defined (2nd definition ignored).\n",
@@ -436,11 +436,11 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
     return;
   }
 
-  // Form correct C++ name
+  /* Form correct C++ name */
 
   sprintf(mname,"%s::%s",ClassName,name);
 
-  // Declare a constant
+  /* Declare a constant */
   if (!value) {
     new_value = (char *) malloc(strlen(ClassName)+strlen(name)+3);
     sprintf(new_value,"%s::%s",ClassName,name);
@@ -455,17 +455,17 @@ void Language::cpp_declare_const(char *name, char *iname, DataType *type, char *
   }
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_static_var(char *name, char *iname, DataType *t)
-//
-// Wrap a static C++ variable
-//
-// INPUT :
-//      name        = name of the variable
-//     iname        = interpreter name
-//         t        = Datatype
-//
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_static_var(char *name, char *iname, DataType *t)
+ *
+ * Wrap a static C++ variable
+ *
+ * INPUT :
+ *      name        = name of the variable
+ *     iname        = interpreter name
+ *         t        = Datatype
+ *
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_static_var(char *name, char *iname, DataType *t) {
 
@@ -473,7 +473,7 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
   char  mname[256];
   char  *prefix;
 
-  // Set the classname prefix
+  /* Set the classname prefix */
   
   if (ClassRename) {
     prefix = ClassRename;
@@ -481,14 +481,14 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
     prefix = ClassName;
   }
 
-  // Create the variable name
+  /* Create the variable name */
   
   if (iname) 
     cname = Swig_name_member(prefix,iname);
   else
     cname = Swig_name_member(prefix,name);
 
-  // Now do a symbol table lookup on it :
+  /* Now do a symbol table lookup on it : */
 
   if (add_symbol(cname)) {
     fprintf(stderr,"%s : Line %d. Variable %s (member %s) multiply defined (2nd definition ignored).\n",
@@ -496,69 +496,69 @@ void Language::cpp_static_var(char *name, char *iname, DataType *t) {
     return;
   }
 
-  // Form correct C++ name
+  /* Form correct C++ name */
 
   sprintf(mname,"%s::%s",ClassName,name);
 
-  // Link with this variable
+  /* Link with this variable */
 
   lang->link_variable(mname,cname,t);
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::cpp_class_decl(char *classtype, char *classrename, char *classname)
-//
-// A forward class declaration
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_class_decl(char *classtype, char *classrename, char *classname)
+ *
+ * A forward class declaration
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_class_decl(char *, char *, char *) {
 
-  // Does nothing by default
+  /* Does nothing by default */
 
 }
 
-// -----------------------------------------------------------------------------
-// void Language::cpp_pragma(Pragma *plist)
-//
-// Handler C++ pragmas
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::cpp_pragma(Pragma *plist)
+ *
+ * Handler C++ pragmas
+ * ----------------------------------------------------------------------------- */
 
 void Language::cpp_pragma(Pragma *) {
-  // Does nothing by default
+  /* Does nothing by default */
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::add_typedef(DataType *t, char *name)
-//
-// Process a typedef declaration.
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::add_typedef(DataType *t, char *name)
+ *
+ * Process a typedef declaration.
+ * ----------------------------------------------------------------------------- */
 
 void Language::add_typedef(DataType *, char *) {
 
 }
 
 
-// ---------------------------------------------------------------------------------
-// void Language::pragma(char *target, char *var, char *value)
-//
-// A pragma declaration
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::pragma(char *target, char *var, char *value)
+ *
+ * A pragma declaration
+ * ----------------------------------------------------------------------------- */
 
 void Language::pragma(char *, char *, char *) {
 
-  // Does nothing by default
+  /* Does nothing by default */
 
 }
 
-// ---------------------------------------------------------------------------------
-// void Language::import(char *filename)
-//
-// An import directive
-// ---------------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * void Language::import(char *filename)
+ *
+ * An import directive
+ * ----------------------------------------------------------------------------- */
 
 void Language::import(char *) {
 
-  // Does nothing by default
+  /* Does nothing by default */
 
 }
 
