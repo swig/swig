@@ -417,14 +417,14 @@
 /* directorin typemaps */
 
 /* Primitive datatypes.  These only supply a parse code to PyObject_CallMethod */
-%define %typemapdirectorin_pyfunc(type, _pyfunc)
-%typemap(directorin) _type "$input = _pyfunc(($1_ltype) $1_name);";
-%typemap(directorin) _type "$input = _pyfunc(($*1_ltype) $1_name);";
+%define %typemapdirectorin_pyfunc(type, pyfunc)
+%typemap(directorin) type "$input = pyfunc(($1_ltype) $1_name);";
+%typemap(directorin) type "$input = pyfunc(($*1_ltype) $1_name);";
 %enddef
 
-%define %typemapdirectorin_parse(_type, _parse)
-  %typemap(directorin,parse=_parse) _type "($1_ltype) $1_name";
-  %typemap(directorin,parse=_parse) const _type& "($*1_ltype) $1_name";
+%define %typemapdirectorin_parse(type, p)
+  %typemap(directorin,parse=p) type "($1_ltype) $1_name";
+  %typemap(directorin,parse=p) const type& "($*1_ltype) $1_name";
 %enddef
 
 %typemapdirectorin_parse(bool,           "i");
@@ -606,7 +606,7 @@ DIRECTOROUT_TYPEMAP(PyObject *, );
 %typecheck_pyfunc(UINT16,  unsigned short,     SPyObj_AsUnsignedShort);
 %typecheck_pyfunc(INT32,   int,                SPyObj_AsInt);
 %typecheck_pyfunc(UINT32,  unsigned int,       SPyObj_AsUnsignedInt);
-%typecheck_pyfunc(INTEGER, unsigned long,      SPyObj_AsUnsginedLong);
+%typecheck_pyfunc(INTEGER, unsigned long,      SPyObj_AsUnsignedLong);
 %typecheck_pyfunc(INTEGER, unsigned long long, SPyObj_AsUnsignedLongLong);
 %typecheck_pyfunc(CHAR,    char,               SPyObj_AsChar);
 %typecheck_pyfunc(FLOAT,   float,              SPyObj_AsFloat);
