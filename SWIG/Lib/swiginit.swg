@@ -47,7 +47,7 @@ SWIGRUNTIME void
 SWIG_InitializeModule(void *clientdata) {
   swig_type_info *type, *ret;
   swig_cast_info *cast;
-  int i;
+  size_t i;
   swig_module_info *module_head;
   static int init_run = 0;
 
@@ -123,7 +123,7 @@ SWIG_InitializeModule(void *clientdata) {
 */
 SWIGRUNTIME void
 SWIG_PropagateClientData() {
-  int i;
+  size_t i;
   swig_cast_info *equiv;
   static int init_run = 0;
 
