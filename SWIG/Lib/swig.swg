@@ -18,6 +18,7 @@
 #define %section        %warn "110:%section is deprecated" /##/
 #define %subsection     %warn "111:%subsection is deprecated" /##/
 #define %subsubsection  %warn "112:%subsubsection is deprecated" /##/
+#define %new            %warn "117:%new is deprecated. Use %newobject"
 #define %text           %insert("null")
 
 /* Code insertion directives such as %wrapper %{ ... %} */
