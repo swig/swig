@@ -6,19 +6,23 @@
 // and _strbuf_in which should be part of the in typemap for the same argument
 // They share knowledge of the "force" temporary variable.
 // You probably don't want to make direct use of _strbuf_out or _strbuf_in but
-// you may want strbufsize_in_out which uses these
-%define _strbuf_out(BUFFER)
-  //out blah
+// you may want strbufsize_inout which uses these
+%define _strbuf_out(BUFFER,SIZE)
   if (force$argnum) {  /* pass back arg$argnum through params ($arg) if we can */
     if(! PZVAL_IS_REF(*$arg)) {
       zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference [argout TYPES *, TYPES &]",$argnum-argbase);
     } else {
-      //ZVAL_STRINGL(*$arg,&BUFFER$argnum, $1_dim0, 1);
-      ZVAL_STRING(*$arg,(char *)&BUFFER$argnum, 1);
+      #if SIZE
+      ZVAL_STRINGL(*$arg,BUFFER$argnum, SIZE, 1);
+      #else
+      ZVAL_STRING(*$arg,BUFFER$argnum, 1);
+      #endif
     }
   }  
 %enddef
+
 %define _strbuf_in(BUFFER)
+  // _strbuf_in 
   if (PZVAL_IS_REF(*$input)) {
     force=1;
     convert_to_string_ex($input);
@@ -30,30 +34,51 @@
   }
 %enddef
 
-// strbufsize_in_out defines a typemap which
-// Example: strbufsize_in_out(UCHAR FAR * szErrorMsg, SWORD cbErrorMsgMax,1024)
+// strbufsize_inout defines a typemap which
+// Example: strbufsize_inout(UCHAR FAR * szErrorMsg, SWORD cbErrorMsgMax,1024)
 // defines a typeemap for UCHAR FAR * szErrorMsg, SWORD cbErrorMsgMax with a
 // max buffer size of 1024
-%define strbufsize_in_out(BUFFER,SIZE,MAXSIZE)
+%define strbufsize_inout(BUFFER,SIZE,MAXSIZE)
 %typemap(in) (BUFFER, SIZE) ($*1_ltype temp[MAXSIZE], int force) {
-  //in blah
   $1=temp;
   $2=sizeof(temp);
-_strbuf_in(temp)
+  _strbuf_in(temp)
 }
 %typemap(argout) (BUFFER, SIZE) {
-_strbuf_out(temp)
+  _strbuf_out((char *)temp,strlen(temp))
 }
 %enddef
 
-%define strbuf_in_out(BUFFER,MAXSIZE)
+// char array can be in/out, though the passed string may not be big enough...
+// so we have to size it
+// e.g. Do: strarray_inout(char [ANY])
+%define strarray_inout(TYPE) 
+%typemap(in) TYPE ($*1_ltype temp[$1_dim0], int force) %{
+        $1=temp;
+        _strbuf_in(temp)
+%}
+%typemap(argout) TYPE %{
+        _strbuf_out((char *)temp,$1_dim0);
+%}
+%enddef
+
+%define strarraysize_inout(TYPE,SIZE) 
+%typemap(in) TYPE ($*1_ltype temp[SIZE], int force) %{
+        $1=temp;
+        _strbuf_in(temp)
+%}
+%typemap(argout) TYPE %{
+        _strbuf_out((char *)temp,SIZE);
+%}
+%enddef
+
+%define strbuf_inout(BUFFER,MAXSIZE)
 %typemap(in) (BUFFER) ($*1_ltype temp[MAXSIZE], int force) {
-  //in blah
   $1=temp;
-_strbuf_in(temp)
+  _strbuf_in(temp)
 }
 %typemap(argout) (BUFFER) {
-_strbuf_out(temp)
+  _strbuf_out(temp,strlen(temp))
 }
 %enddef
 
@@ -68,7 +93,7 @@ _strbuf_out(temp)
 %define %typemap_inout_ord(TYPES,TYPE_IN,TYPE_OUT)
 %typemap(in) TYPES * ($*1_ltype intr, int force), 
              TYPES & ($*1_ltype intr, int force) %{
-   /* in_out typemap for TYPES using TYPE_IN and TYPE_OUT */
+   /* inout typemap for TYPES using TYPE_IN and TYPE_OUT */
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     /* So... we didn't get a ref or ptr, but can it be reasonably 
        co-erced into what we were looking for a ref of or ptr to? */

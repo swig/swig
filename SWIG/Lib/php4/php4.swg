@@ -7,7 +7,7 @@
 
 %runtime "common.swg"		// common type checking code
 %runtime "php4run.swg"		// Php4 runtime functions
-%include "utils.i"
+%include "utils.i"		// building blocks
 
 /* Typemaps for input parameters by value */
 
@@ -31,10 +31,15 @@
 	$1 = ($1_ltype) Z_DVAL_PP($input);
 %}
 
-%typemap(in) char *, char [ANY] %{
+// char * is input only normally
+%typemap(in) char * %{
 	convert_to_string_ex($input);
 	$1 = ($1_ltype) Z_STRVAL_PP($input);
 %}
+
+// char array can be in/out, though the passed string may not be big enough...
+// so we have to size it
+strarray_inout(char [ANY])
 
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & %{
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
