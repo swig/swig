@@ -496,8 +496,6 @@ get_options(String *str) {
  * of error occurred.
  * ----------------------------------------------------------------------------- */
 
-DOH *expanded_value = 0;
-
 static String *
 expand_macro(String_or_char *name, List *args)
 {
@@ -574,11 +572,7 @@ expand_macro(String_or_char *name, List *args)
   /* Tag the macro as being expanded.   This is to avoid recursion in
      macro expansion */
 
-  if (!expanded_value) {
-    expanded_value = NewString("");
-    DohIntern(expanded_value);
-  }
-  Setattr(macro,"*expanded*",expanded_value);
+
 
   temp = NewString("");
   tempa = NewString("");
@@ -586,7 +580,9 @@ expand_macro(String_or_char *name, List *args)
     l = Len(margs);
     for (i = 0; i < l; i++) {
       DOH *arg, *aname;
+      String *reparg;
       arg = Getitem(args,i);           /* Get an argument value */
+      reparg = Preprocessor_replace(arg);
       aname = Getitem(margs,i);        /* Get macro argument name */
       if (strstr(Char(ns),"\001")) {
 	/* Try to replace a quoted version of the argument */
@@ -596,7 +592,6 @@ expand_macro(String_or_char *name, List *args)
 	Printf(tempa,"\"%s\"",arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ANY);
       }
-
       /* Non-standard macro expansion.   The value `x` is replaced by a quoted
 	 version of the argument except that if the argument is already quoted
 	 nothing happens */
@@ -637,17 +632,23 @@ expand_macro(String_or_char *name, List *args)
 	  }
 	}
       }
-      Replace(ns, aname, arg, DOH_REPLACE_ID);
+      /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
+      Replace(ns, aname, reparg, DOH_REPLACE_ID);
+      /*      Replace(ns, "\003", arg, DOH_REPLACE_ANY);*/
+      Delete(reparg);
     }
   }
   Replace(ns,"\002","",DOH_REPLACE_ANY);    /* Get rid of concatenation tokens */
   Replace(ns,"\001","#",DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
 
   /* Expand this macro even further */
+  Setattr(macro,"*expanded*","1"); 
+
   e = Preprocessor_replace(ns);
 
-  Delete(ns);
   Delattr(macro,"*expanded*");
+  Delete(ns);
+
   if (Getattr(macro,"swigmacro")) {
     String *g;
     String *f = NewString("");
