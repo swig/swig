@@ -54,6 +54,7 @@ static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
 static int      compact_default_args = 0;
 static int      template_reduce = 0;
+static int      cparse_externc = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -309,6 +310,7 @@ static String *name_warning(Node *n,String *name,SwigType *decl) {
 static int is_friend(Node *n) {
  return Cmp(Getattr(n,"storage"),"friend") == 0;
 }
+
 
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
@@ -1011,6 +1013,16 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
   Delete(name);
 }
 
+
+/* check if a function declaration is a plain C object */
+static int is_cfunction(Node *n) {
+  if (!cparse_cplusplus || cparse_externc) return 1;
+  if (Cmp(Getattr(n,"storage"),"externc") == 0) {
+    return 1;
+  }
+  return 0;
+}
+
 /* If the Node is a function with parameters, check to see if any of the parameters
  * have default arguments. If so create a new function for each defaulted argument. 
  * The additional functions form a linked list of nodes with the head being the original Node n. */
@@ -1020,7 +1032,10 @@ static void default_arguments(Node *n) {
   /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
     (one wrapped method per function irrespective of number of default arguments) */
   if (function) {
-    if (compact_default_args || !cparse_cplusplus || Getattr(function,"feature:compactdefaultargs") || Getattr(function,"feature:kwargs")) {
+    if (compact_default_args 
+	|| is_cfunction(function) 
+	|| Getattr(function,"feature:compactdefaultargs") 
+	|| Getattr(function,"feature:kwargs")) {
       ParmList *p = Getattr(function,"parms");
       if (p) 
         Setattr(p,"compactdefargs", "1"); /* mark parameters for special handling */
@@ -2403,18 +2418,28 @@ c_declaration   : c_decl {
                 | c_enum_decl { $$ = $1; }
                 | c_enum_forward_decl { $$ = $1; }
                            
-/* A an extern C type declaration.  Does nothing, but is ignored */
+/* A an extern C type declaration, disable cparse_cplusplus if needed. */
 
-                | EXTERN string LBRACE interface RBRACE { 
+                | EXTERN string LBRACE {
 		  if (Strcmp($2,"C") == 0) {
+		    cparse_externc = 1;
+		  }
+		} interface RBRACE {
+		  cparse_externc = 0;
+		  if (Strcmp($2,"C") == 0) {
+		    Node *n = firstChild($5);
 		    $$ = new_node("extern");
 		    Setattr($$,"name",$2);
-		    appendChild($$,firstChild($4));
+		    appendChild($$,n);
+		    while (n) {
+		      Setattr(n,"storage","externc");
+		      n = nextSibling(n);
+		    }
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (using extern \"C\").\n", $2);
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
 		    $$ = new_node("extern");
-		    Setattr($$,"name","C");
-		    appendChild($$,firstChild($4));
+		    Setattr($$,"name",$2);
+		    appendChild($$,firstChild($5));
 		  }
                 }
                 ;
@@ -3776,8 +3801,8 @@ storage_class  : EXTERN { $$ = "extern"; }
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
 		   } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\" (using extern \"C\").\n", $2);
-		     $$ = "externc";
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		     $$ = 0;
 		   }
                }
                | STATIC { $$ = "static"; }
