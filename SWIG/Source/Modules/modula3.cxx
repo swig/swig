@@ -127,6 +127,7 @@ char cvsroot_modula3_cxx[] =
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
+// toupper, tolower, isalpha
 #include <ctype.h>
 
 const char usageArgDir[] =
@@ -488,13 +489,18 @@ MODULA3 ():
       if ((c == '_') || (c == ':')) {
         cap = true;
       } else {
-        if (cap) {
-          m3sym[i] = toupper (c);
+        if (isdigit(c)) {
+          m3sym[i] = c;
+          cap = true;
         } else {
-          m3sym[i] = tolower (c);
+          if (cap) {
+            m3sym[i] = toupper (c);
+          } else {
+            m3sym[i] = tolower (c);
+          }
+          cap = false;
         }
         i++;
-        cap = false;
       }
     }
     m3sym[i] = 0;
@@ -886,13 +892,13 @@ MODULA3 ():
           String *name = getQualifiedName (child);
           String *m3name = nameToModula3 (name, true);
           /*don't know how to get the original C type identifiers */
-          String *arguments = createCSignature (child);
+          //String *arguments = createCSignature (child);
           Printf (file, "%%rename(\"%s\") %s;\n", m3name, name);
           /*Printf(file, "%%rename(\"%s\") %s %s(%s);\n",
              m3name, Getattr(n,"type"), name, arguments); */
           Delete (name);
           Delete (m3name);
-          Delete (arguments);
+          //Delete (arguments);
         }
       }
       scanRename (file, child);
@@ -3942,6 +3948,9 @@ MODULA3 ():
     return (arguments);
   }
 
+/* not used any longer
+    - try SwigType_str if required again */
+#if 0
   /* -----------------------------------------------------------------------------
    * createCSignature()
    *
@@ -3964,6 +3973,7 @@ MODULA3 ():
     }
     return arguments;
   }
+#endif
 
   /* -----------------------------------------------------------------------------
    * emitTypeWrapperClass()
