@@ -41,8 +41,9 @@ sneaky1
 static_array_member
 static_const_member
 template
-template_whitespace
 template_inherit
+template_classes
+template_whitespace
 typemap_subst
 typename
 unions
