@@ -385,6 +385,100 @@
 
 %typemap(constant) SWIGTYPE (CLASS::*) "rb_define_const($module, \"$symname\", SWIG_NewPackedObj((void *) &$1, sizeof($type), $1_descriptor));";
 
+/*****************************************************************************
+ *
+ * Inverse argument typemaps are for marshaling C/C++ parameters to call Python
+ * methods from C++ proxy wrapper classes.
+ *
+ *****************************************************************************/
+
+/* --- Inverse arguments --- */
+
+/* Primitive datatypes */
+
+%typemap(inv) int            "$input = INT2NUM($1);";
+%typemap(inv) short          "$input = INT2NUM($1);";
+%typemap(inv) long           "$input = LONG2NUM($1);";
+%typemap(inv) signed char    "$input = INT2NUM($1);";
+%typemap(inv) float          "$input = rb_float_new($1);";
+%typemap(inv) double         "$input = rb_float_new($1);";
+%typemap(inv) char*          "$input = rb_str_new2($1);";
+%typemap(inv) bool           "$input = $1 ? Qtrue : Qfalse;";
+
+%typemap(inv) unsigned int   "$input = UINT2NUM($1);";
+%typemap(inv) unsigned short "$input = UINT2NUM($1);";
+%typemap(inv) unsigned long  "$input = ULONG2NUM($1);";
+%typemap(inv) unsigned char  "$input = UINT2NUM($1);";
+	
+%typemap(inv) VALUE          "$input = $1;";
+
+/*
+%typemap(inv, parse="s") SWIGTYPE  {
+{
+  $&1_ltype resultptr;
+  resultptr = new $1_ltype(($1_ltype &) $1);
+  $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
+}
+}
+*/
+
+/* no can do... see python.cxx
+%typemap(inv) DIRECTORTYPE * {
+	{
+		__DIRECTOR__$1_ltype proxy = dynamic_cast<__DIRECTOR__$1_ltype>($1_name);
+		if (!proxy) {
+			$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+		} else {
+			$input = proxy->__get_self();
+		}
+		assert($input);
+	}
+}
+%typemap(inv) SWIGTYPE * {
+		$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, 0);
+}
+*/
+
+/*
+%typemap(inv, parse="s") void "0";
+*/
+/*
+%typemap(inv) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+	$input = SWIG_NewPointerObj((void *) $1_name, $1_descriptor, $owner);
+}
+*/
+
+
+/* --- Outverse arguments --- */
+
+%define OUTV_TYPEMAP(type, converter)
+%typemap(argoutv) type *OUTV "*$result = (type) converter($input);";
+%typemap(outv) type "$result = (type) converter($input);";
+%typemap(outv) type &OUTV = type
+%enddef
+
+OUTV_TYPEMAP(char, NUM2INT);
+OUTV_TYPEMAP(unsigned char, NUM2UINT);
+OUTV_TYPEMAP(short, NUM2INT);
+OUTV_TYPEMAP(unsigned short, NUM2INT);
+OUTV_TYPEMAP(int, NUM2INT);
+OUTV_TYPEMAP(unsigned int, NUM2INT);
+OUTV_TYPEMAP(long, NUM2INT);
+OUTV_TYPEMAP(unsigned long, NUM2INT);
+OUTV_TYPEMAP(long long, NUM2INT);
+OUTV_TYPEMAP(unsigned long long, NUM2INT);
+OUTV_TYPEMAP(float, NUM2DBL);
+OUTV_TYPEMAP(double, NUM2DBL);
+OUTV_TYPEMAP(bool, RTEST);
+
+
+%typemap(outv) SWIGTYPE *, 
+               SWIGTYPE &, 
+               SWIGTYPE [] 
+       "if ((SWIG_ConvertPtr($input,(void **) &$result, $descriptor,SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+
+%typemap(outv) void * "if ((SWIG_ConvertPtr($input,(void **) &$result, 0, SWIG_POINTER_EXCEPTION | $disown )) == -1) throw SWIG_DIRECTOR_TYPE_MISMATCH(\"Pointer conversion failed.\");";
+
 /* ---------------------------------------------------------------------
  * typedef & typemaps for VALUE (passed through unmodified and unchecked)
  * --------------------------------------------------------------------- */
