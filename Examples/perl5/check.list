@@ -6,6 +6,7 @@ funcptr
 import
 mpointer
 multimap
+multiple_inheritance
 pointer
 reference
 simple
