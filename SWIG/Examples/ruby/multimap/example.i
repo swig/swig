@@ -37,7 +37,8 @@ extern int gcdmain(int argc, char *argv[]);
   if (TYPE($input) != T_STRING) {
     SWIG_exception(SWIG_ValueError, "Expected a string");
   }
-  $1 = rb_str2cstr($input,&$2);
+  $1 = STR2CSTR($input);
+  $2 = RSTRING($input)->len;
 }
 
 extern int count(char *bytes, int len, char c);
@@ -50,7 +51,8 @@ extern int count(char *bytes, int len, char c);
   if (TYPE($input) != T_STRING) {
     SWIG_exception(SWIG_ValueError,"Expected a string");
   }
-  temp = rb_str2cstr($input,&$2);
+  temp = STR2CSTR($input);
+  $2 = RSTRING($input)->len;
   $1 = (char *) malloc($2+1);
   memmove($1,temp,$2);
 }

@@ -378,9 +378,8 @@ typedef unsigned long VALUE;
  * ------------------------------------------------------------ */
 
 %typemap(in) (char *STRING, int LENGTH) {
-    int temp;
-    $1 = ($1_ltype) rb_str2cstr($input,&temp);
-    $2 = ($2_ltype) temp;
+    $1 = ($1_ltype) STR2CSTR($input);
+    $2 = ($2_ltype) RSTRING($input)->len;
 }
 
 /* Some ANSI C typemaps */
