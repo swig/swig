@@ -12,6 +12,13 @@ support files often define new SWIG directives or provide utility
 functions that can be used to access parts of the standard C and C++ libraries.
 This chapter provides a reference to the current set of supported library files.
 
+<p>
+<b>Compatibility note:</b> Older versions of SWIG included a number of
+library files for manipulating pointers, arrays, and other structures.  Most
+these files are now deprecated and have been removed from the distribution.
+Alternative libraries provide similar functionality.  Please read this chapter
+carefully if you used the old libraries.
+
 <h2>The %include directive and library search path</h2>
 
 Library files are included using the <tt>%include</tt> directive.
@@ -33,9 +40,10 @@ for language-specific implementations of library files.
 You can override the location of the SWIG library by setting the
 <tt>SWIG_LIB</tt> environment variable.<p>
 
-<h2>Arrays and Pointers</h2>
+<h2>C Arrays and Pointers</h2>
 
 This section describes library modules for manipulating simple C arrays and pointers. 
+
 <h3>cpointer.i</h3>
 
 The <tt>cpointer.i</tt> module defines macros that can be used to used
@@ -107,17 +115,18 @@ Now, in Python:
 <p>
 <b><tt>%pointer_class(type,name)</tt></b>
 <blockquote>
-Encapsulates a pointer of <tt>type *</tt> inside a class-based interface.  This
+Wraps a pointer of <tt>type *</tt> inside a class-based interface.  This
 interface is as follows:
 
 <blockquote>
 <pre>
 struct name {
-   name(type value = 0);         // Create pointer object
-  ~name();                       // Delete pointer object
-   void assign(type value);      // Assign value
-   type value();                 // Get value
-   type *cast();                 // Cast the pointer to original type.
+   name(type value = 0);               // Create pointer object
+  ~name();                             // Delete pointer object
+   void assign(type value);            // Assign value
+   type value();                       // Get value
+   type *cast();                       // Cast the pointer to original type.
+   static name *FromPointer(type *);   // Create class wrapper from existing pointer
 };
 </pre>
 </blockquote>
@@ -191,6 +200,151 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 
 <P>
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
+
+<h3>carrays.i</h3>
+
+This module deines macros that assist in wrapping ordinary C pointers as arrays.
+The module does not provide any safety or an extra layer of wrapping--it merely
+provides functionality for creating, destroying, and modifying the contents of
+raw C array data.
+
+<p>
+<b><tt>%array_functions(type,name)</tt></b>
+<blockquote>
+Creates four functions.
+
+<p>
+<tt>type *new_name(int nelements, type value = 0)</tt>
+<blockquote>
+Creates a new array of objects of type <tt>type</tt>.   <tt>value</tt> is an optional initial
+value assigned to each element.
+</blockquote>
+
+<p>
+<tt>type *delete_name(type *ary)</tt>
+<blockquote>
+Deletes an array.
+</blockquote>
+
+<p>
+<tt>type name_getitem(type *ary, int index)</tt>
+<blockquote>
+Returns the value <tt>ary[index]</tt>.
+</blockquote>
+
+<p>
+<tt>void name_setitem(type *ary, int index, type value)</tt>
+<blockquote>
+Assigns <tt>ary[index] = value</tt>.
+</blockquote>
+When using this macro, <tt>type</tt> may be any type and <tt>name</tt>
+must be a legal identifier in the target language.  <tt>name</tt>
+should not correspond to any other name used in the interface file.
+</blockquote>
+
+<p>
+Here is an example of <tt>%array_functions()</tt>.  Suppose you had a 
+function like this:
+
+<blockquote>
+<pre>
+void print_array(double x[10]) {
+   int i;
+   for (i = 0; i < 10; i++) {
+      printf("[%d] = %g\n", i, x[i]);
+   }
+}
+</pre>
+</blockquote>
+
+To wrap it, you might write this:
+
+<blockquote>
+<pre>
+%module example
+
+%include "carrays.i"
+%array_functions(double, doubleArray);
+
+void print_array(double x[10]);
+</pre>
+</blockquote>
+
+Now, in a scripting language, you might write this:
+
+<blockquote>
+<pre>
+a = new_doubleArray(10)           # Create an array
+for i in range(0,10):
+    doubleArray_setitem(a,i,2*i)  # Set a value
+print_array(a)                    # Pass to C
+delete_doubleArray(a)             # Destroy array
+</pre>
+</blockquote>
+
+<p>
+<p>
+<b><tt>%array_class(type,name)</tt></b>
+<blockquote>
+Wraps a pointer of <tt>type *</tt> inside a class-based interface.  This
+interface is as follows:
+
+<blockquote>
+<pre>
+struct name {
+   name(int nelements, type value = 0);    // Create an array
+  ~name();                                 // Delete array
+   type getitem(int index);                // Return item
+   void setitem(index, type value);        // Set item
+   type *cast();                           // Cast to original type
+   static name *FromPointer(type *);       // Create class wrapper from existing pointer
+};
+</pre>
+</blockquote>
+
+When using this macro, <tt>type</tt> is restricted to a simple type
+name like <tt>int</tt> or <tt>float</tt>. Pointers and
+other complicated types are not allowed.  <tt>name</tt> must be a
+valid identifier not already in use.  When a pointer is wrapped as a class,
+it can be transparently passed to any functions that expects the pointer.
+
+</blockquote>
+
+<p>
+When combined with proxy classes, the <tt>%array_class()</tt> macro can be especially useful. 
+For example:
+
+<blockquote>
+<pre>
+%module example
+%include "carrays.i"
+%array_class(double, doubleArray);
+
+void print_array(double x[10]);
+</pre>
+</blockquote>
+
+Allows you to do this:
+
+<blockquote>
+<pre>
+import example
+c = example.doubleArray(10)  # Create double[10]
+for i in range(0,10):
+    c[i] = 2*i               # Assign values
+example.print_array(c)       # Pass to C
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> These macros do not encapsulate C arrays inside a special data structure
+or proxy. There is no bounds checking or safety of any kind.   If you want this,
+you should consider using a special array object rather than a bare pointer.
+
+<p>
+<b>Note:</b> <tt>%array_functions()</tt> and <tt>%array_class()</tt> should not be
+used with types of <tt>char</tt> or <tt>char *</tt>.
+
 <p><hr>
 <address>SWIG 1.3 - Last Modified : May 22, 2002</address>
 </body>
