@@ -99,7 +99,7 @@ namespace std {
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $&1_descriptor,1) != -1){
+                                       $&1_descriptor,0) != -1) {
                 $1 = *v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
@@ -131,7 +131,7 @@ namespace std {
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $1_descriptor,1) != -1){
+                                       $1_descriptor,0) != -1) {
                 $1 = v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
@@ -316,7 +316,7 @@ namespace std {
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $&1_descriptor,1) != -1){
+                                       $&1_descriptor,0) != -1) {
                 $1 = *v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
@@ -348,7 +348,7 @@ namespace std {
                     }
                 }
             } else if (SWIG_ConvertPtr($input,(void **) &v, 
-                                       $1_descriptor,1) != -1){
+                                       $1_descriptor,0) != -1) {
                 $1 = v;
             } else {
                 PyErr_SetString(PyExc_TypeError,"vector<" #T "> expected");
