@@ -128,6 +128,9 @@ Version 1.3.17 (In progress)
             as previously. This change is only of concern to those who have written their own typemaps as
             you will then most likely have to write your own javain and javaout typemaps.
 
+            The javaout typemap also makes it possible to use a Java downcast to be used on abstract 
+            proxy base classes. See the Java documentation on dynamic_cast.
+
             *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
 
 10/24/2002: ttn

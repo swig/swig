@@ -68,6 +68,13 @@ defer  ready to go.  The primary obstacle lies in the target language
        to properly transfer control out of a wrapper function while
        reclaiming resources.
 
+***    Better targeting of output typemaps. For example:
+       It is not possible to target an output typemap for function
+       Foo::func() and not Bar::func(). Output typemaps need to support
+       syntax something along the lines of:
+
+             %typemap(out) int *Foo::func { ... }
+
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
        nodes to be identified.  For example:
@@ -263,8 +270,7 @@ Ruby
 Java
 ----
 
-*      Consider using typemaps for proxy class code generation. [partially
-       implemented]
+[DONE] Consider using typemaps for proxy class code generation.
 
 PHP
 ---
