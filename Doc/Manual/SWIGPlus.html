@@ -249,7 +249,7 @@ static void print(List *l);
 
 <p>
 To generate wrappers for this class, SWIG first reduces the class to a collection of low-level C-style
-accessor functions.   The next few sections describe this process.  Later parts of the chapter decribe a higher
+accessor functions.   The next few sections describe this process.  Later parts of the chapter describe a higher
 level interface based on proxy classes.
 </p>
 
@@ -377,7 +377,7 @@ pure virtual methods.  Here are some examples:
 <pre>
 class Bar {
 public:
-     Bar();               // Not wrappped.  Bar is abstract.
+     Bar();               // Not wrapped.  Bar is abstract.
      virtual void spam(void) = 0; 
 };
 
@@ -2860,16 +2860,40 @@ public:
 };
 ...
 
-%template(barint)    Foo::bar&lt;int&gt;;
-%template(bardouble) Foo::bar&lt;double&gt;;
+%template(bari) Foo::bar&lt;int&gt;;
+%template(bard) Foo::bar&lt;double&gt;;
 </pre>
 </div>
+
+<p>
+In this case, the <tt>%extend</tt> directive is not needed, and
+<tt>%template</tt> does the exactly same job, i.e., it adds two new
+methods to the Foo class. 
+</p>
 
 
 <p>
 Note: because of the way that templates are handled, the <tt>%template</tt> directive
 must always appear <em>after</em> the definition of the template to be expanded.
 </p>
+
+<p>
+Now, if your target language supports overloading, you can even try
+</p>
+
+<div class="code">
+<pre>
+%template(bar) Foo::bar&lt;int&gt;;
+%template(bar) Foo::bar&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+and since the two new wrapped methods have the same name 'bar', they will be
+overloaded, and when called, the correct method will be dispatched
+depending on the argument type.
+</p>
+
 
 <p>
 When used with members, the <tt>%template</tt> directive may be placed in another
@@ -2888,9 +2912,9 @@ public:
 
 // Expand a few member templates
 %extend Foo {
-     %template(bari) bar&lt;int&gt;;
-     %template(bard) bar&lt;double&gt;;
-};
+  %template(bari) bar&lt;int&gt;;
+  %template(bard) bar&lt;double&gt;;
+}
 
 // Create some wrappers for the template
 %template(Fooi) Foo&lt;int&gt;;
@@ -2950,16 +2974,39 @@ Alternatively, you could expand the constructor template in selected instantiati
 %template(pairii) pair&lt;int,int&gt;;
 %template(pairdd) pair&lt;double,double&gt;;
 
-// Create a conversion constructor from int to double
+// Create a default constructor only 
+%extend pair&lt;int,int&gt; {
+   %template(paird) pair&lt;int,int&gt;;         // Default constructor
+};
+
+// Create default and conversion constructors 
 %extend pair&lt;double,double&gt; {
-   %template(pairdd_from_pairii) pair&lt;int,int&gt;;   // Conversion constructor
+   %template(paird) pair&lt;double,dobule&gt;;   // Default constructor
+   %template(pairc) pair&lt;int,int&gt;;         // Conversion constructor
+};
+</pre>
+</div>
+
+
+<p>And if your target language supports overloading, then you can try
+instead:
+</p>
+
+<div class="code">
+<pre>
+// Create default and conversion constructors 
+%extend pair&lt;double,double&gt; {
+   %template(pair) pair&lt;double,dobule&gt;;   // Default constructor
+   %template(pair) pair&lt;int,int&gt;;         // Conversion constructor
 };
 </pre>
 </div>
 
 <p>
-Admittedly, this isn't very pretty or automatic.  However, it's probably
-better than nothing--well, maybe.
+In this case, the default and conversion constructors have the same
+name. Hence, Swig will overload them and define an unique visible
+constructor, that will dispatch the proper call depending on the argument
+type.
 </p>
 
 <p>
@@ -4370,3 +4417,10 @@ is the reference document we use to guide a lot of SWIG's C++ support.
 
 </body>
 </html>
+
+<!--  LocalWords:  destructors Enums Namespaces const SWIG's STL OO adaptor tcl
+ -->
+<!--  LocalWords:  debuggable cxx OBJS Wiki accessor nodefault makedefault
+ -->
+<!--  LocalWords:  notabstract CopyFoo
+ -->
