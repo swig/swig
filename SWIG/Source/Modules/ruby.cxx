@@ -1232,10 +1232,10 @@ public:
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {
         if (multipleInheritance) {
-          Replaceall(tm, "$module", klass->vname);
+          Replaceall(tm, "$module", klass->mImpl);
           Printv(klass->init, tm, "\n", NIL);
         } else {
-          Replaceall(tm, "$module", klass->mImpl);
+          Replaceall(tm, "$module", klass->vname);
           Printv(klass->init, tm, "\n", NIL);
         }
       } else {
