@@ -944,7 +944,7 @@ int RUBY::classHandler(Node *n) {
 
   char *cname = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
-
+  
   if (SwigType_istemplate(cname)) {
     cname = Char(SwigType_namestr(cname));
   }
@@ -990,7 +990,11 @@ int RUBY::classHandler(Node *n) {
   if (baselist && Len(baselist)) {
     Node *base = Firstitem(baselist);
     while (base) {
-      RClass *super = RCLASS(classes, Getattr(base,"name"));
+      char *basename = Char(Getattr(base,"name"));
+      if (SwigType_istemplate(basename)) {
+        basename = Char(SwigType_namestr(basename));
+      }
+      RClass *super = RCLASS(classes, basename);
       if (super) {
         Printv(f_wrappers,"extern swig_class c", super->name, ";\n", NULL);
 	Replaceall(klass->init,"$super",super->vname);
