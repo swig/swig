@@ -1,6 +1,20 @@
 Version 1.3.22 (in progress)
 ==================================
 
+02/12/2004: cheetah (William Fulton)
+            [Java, C#] Patch submitted by Bill Hoffman which prevents SWIG from crashing
+            when a file for the typewrapper class cannot be opened.
+
+02/11/2004: cheetah (William Fulton)
+            [Java, C#] Overloading changes:
+              - Methods which are overloaded in const only no longer generate Java
+                code that won't compile - the first method parsed is used and a
+                warning is displayed. Note that this behaviour is slightly different
+                to the scripting languages which always uses the non-const method.
+              - Warning messages 509 and 512 replaced by new warning number 516, which 
+                is more relevant to these statically typed languages as the overloaded
+                methods aren't 'shadowed', they are ignored.
+
 01/23/2004: mkoeppe (Matthias Koeppe)
 	    [Guile] Replace the "known_classes" hash table by a node
 	    attribute.  Methods of classes in C++ namespaces now get
