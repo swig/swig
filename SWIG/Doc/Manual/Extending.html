@@ -626,15 +626,159 @@ $ swig -c++ -python -dump_tree example.i
 </pre>
 </blockquote>
 
+<h4>Symbol Tables</h4>
+
+During parsing, all symbols are managed in the space of the target
+language.  The <tt>sym:name</tt> of each node contains the symbol name
+selected by the parser.  Normally, <tt>sym:name</tt> and <tt>name</tt>
+are the same.  However, the <tt>%rename</tt> directive can be used to
+change the value of <tt>sym:name</tt>.  You can see the effect of
+<tt>%rename</tt> by trying it on a simple interface and dumping the
+parse tree.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_i) foo(int);
+%rename(foo_d) foo(double);
+
+void foo(int);
+void foo(double);
+void foo(Bar *b);
+</pre>
+</blockquote>
+
+Now, running SWIG:
+
+<blockquote>
+<pre>
+$ swig -dump_tree example.i
+...
+            +++ cdecl ----------------------------------------
+            | sym:name     - "foo_i"
+            | name         - "foo"
+            | decl         - "f(int)."
+            | parms        - int 
+            | type         - "void"
+            | sym:symtab   - 0x40165078
+            | 
+            +++ cdecl ----------------------------------------
+            | sym:name     - "foo_d"
+            | name         - "foo"
+            | decl         - "f(double)."
+            | parms        - double 
+            | type         - "void"
+            | sym:symtab   - 0x40165078
+            | 
+            +++ cdecl ----------------------------------------
+            | sym:name     - "foo"
+            | name         - "foo"
+            | decl         - "f(p.Bar)."
+            | parms        - Bar *
+            | type         - "void"
+            | sym:symtab   - 0x40165078
+</pre>
+</blockquote>
+
+All symbol-related conflicts and complaints about overloading are based on <tt>sym:name</tt> values.
+For instance, the following example uses <tt>%rename</tt> in reverse to generate a name clash.
+
+<blockquote>
+<pre>
+%rename(foo) foo_i(int);
+%rename(foo) foo_d(double;
+
+void foo_i(int);
+void foo_d(double);
+void foo(Bar *b);
+</pre>
+</blockquote>
+
+When you run SWIG on this you now get:
+
+<blockquote>
+<pre>
+$ ./swig example.i
+example.i:6. Overloaded declaration ignored.  foo_d(double )
+example.i:5. Previous declaration is foo_i(int )
+example.i:7. Overloaded declaration ignored.  foo(Bar *)
+example.i:5. Previous declaration is foo_i(int )
+</pre>
+</blockquote>
+
 <h4>Code Generation</h4>
 
-Language modules work by attaching handler functions to different
-types of parse-tree nodes.  These handlers simply look at the
-attributes of each node in order to produce low-level code.
+Language modules work by defining handler functions that know how to respond to
+different types of parse-tree nodes.  These handlers simply look at the
+attributes of each node in order to produce low-level code. 
 
 <p>
-However, the picture is actually a little more complicated than this.   In certain
-cases, parse tree nodes are transformed.   
+In reality, the generation of code is somewhat more subtle than simply
+invoking handler functions.  This is because parse-tree nodes might be
+transformed. For example, suppose you are wrapping a class like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    virtual int *bar(int x);
+};
+</pre>
+</blockquote>
+
+When the parse constructs a node for the member <tt>bar</tt>, it creates a raw "cdecl" node with the following
+attributes:
+
+<blockquote>
+<pre>
+nodeType    : cdecl
+name        : bar
+type        : int
+decl        : f(int).p
+parms       : int x
+storage     : virtual
+sym:name    : bar
+</pre>
+</blockquote>
+
+To produce wrapper code, this "cdecl" node undergoes a number of transformations.  First, the
+node is recognized as a function declaration.   This adjusts some of the type information--specifically,
+the declarator is joined with the base datatype to produce this:
+
+<blockquote>
+<pre>
+nodeType    : cdecl
+name        : bar
+type        : p.int        &lt;-- Notice change in return type
+decl        : f(int).p
+parms       : int x
+storage     : virtual
+sym:name    : bar
+</pre>
+</blockquote>
+
+Next, the context dictates that the node is really a member function.  This produces a transformation to a
+low-level accessor function like this:
+
+<blockquote>
+<pre>
+nodeType    : cdecl
+name        : bar
+type        : int.p
+decl        : f(int).p
+parms       : Foo *self, int x            &lt;-- Added parameter
+storage     : virtual
+wrap:action : result = (arg1)->bar(arg2)  &lt;-- Action code added
+sym:name    : Foo_bar                     &lt;-- Symbol name changed
+</pre>
+</blockquote>
+
+In this transformation, notice how an additional parameter was added to the parameter list and how the
+symbol name of the node has suddenly changed into the accessor naming scheme.   A small fragment of code has
+also been generated--notice how the <tt>wrap:action</tt> attribute defines the access to the underlying method.
+This final form of the node is then used to generate a wrapper.
+
+
+
 
 <p>
 <hr>
