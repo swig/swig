@@ -53,7 +53,7 @@ namespace test {
 	return NULL;
     }
 }
-%typemap(freearg) complex * {
+%typemap(freearg) test::complex * {
     delete $1;
 }
 #endif
@@ -185,6 +185,26 @@ namespace test {
     }
 %}
 
+namespace Split {
+#ifdef SWIGPYTHON
+    %typemap(in) PosInteger {
+	$1 = PyInt_AsLong($input);
+	if ($1 < 0) {
+	    PyErr_SetString(PyExc_ValueError,"domain error\n");
+	    return NULL;
+	}
+    }	
+#endif
+};
+    
+%inline %{
+    namespace Split {
+	typedef int PosInteger;
+	PosInteger ttest1(PosInteger x) {
+	    return x;
+	};
+    }
+%}
 
 
 

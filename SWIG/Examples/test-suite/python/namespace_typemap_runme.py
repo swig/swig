@@ -75,3 +75,8 @@ if ctest11(c) != r:
 if ctest12(c) != r:
     raise RuntimeError
 
+try:
+    ttest1(-14)
+    raise RuntimeError
+except ValueError:
+    pass
