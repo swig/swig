@@ -9,8 +9,11 @@
 
 /* Typemaps for input parameters */
 
-%typemap(in)  int, unsigned int, unsigned short, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
+%typemap(in)  int, short, long, signed char, bool, enum SWIGTYPE
        "$1 = ($1_ltype) SvIV($input);";
+
+%typemap(in) unsigned int, unsigned short, unsigned long, unsigned char
+	"$1 = ($1_ltype) SvUV($input);";
 
 %typemap(in)  char
        "$1 = ($1_ltype) *SvPV($input,PL_na);";
@@ -19,7 +22,7 @@
        "$1 = ($1_ltype) SvNV($input);\n";
 
 %typemap(in)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
-%typemap(in)  long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+%typemap(in)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
 
 %typemap(in) char *
        "if (!SvOK((SV*) $input)) $1 = 0;
@@ -55,13 +58,16 @@
 %typemap(in) const int & (int temp),
 	     const short & (short temp),
              const long  & (long temp),
-             const unsigned int & (unsigned int temp),
-             const unsigned short & (unsigned short temp),
-             const unsigned long & (unsigned long temp),
              const signed char & (signed char temp),
-             const unsigned char & (unsigned char temp),
              const bool & (bool temp)
 	"temp = ($*1_ltype) SvIV($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned int & (unsigned int temp),
+             const unsigned short & (unsigned short temp),
+             const unsigned long & (unsigned long temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) SvUV($input);
          $1 = &temp;";
 
 %typemap(in) const float & (float temp),
@@ -85,9 +91,13 @@
 
 /* Typemap for output values */
 
-%typemap(out) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(out) int, short, long, signed char, bool, enum SWIGTYPE 
     "ST(argvi) = sv_newmortal();
      sv_setiv(ST(argvi++), (IV) $1);";
+
+%typemap(out) unsigned int, unsigned short, unsigned long, unsigned char
+    "ST(argvi) = sv_newmortal();
+     sv_setuv(ST(argvi++), (UV) $1);";
 
 %typemap(out) float, double
     "ST(argvi) = sv_newmortal();
@@ -156,13 +166,20 @@
 
 /* References to primitive types.  Return by value */
 
-%typemap(out) const int &, const unsigned int &,
-              const short &, const unsigned short &,
-              const long &, const unsigned long &,
-              const signed char &, const unsigned char &,
+%typemap(out) const int &, 
+              const short &,
+              const long &,
+              const signed char &,
               const bool &
       "ST(argvi) = sv_newmortal();
        sv_setiv(ST(argvi++), (IV) *($1));";
+
+%typemap(out) const unsigned int &,
+              const unsigned short &,
+              const unsigned long &,
+              const unsigned char &
+      "ST(argvi) = sv_newmortal();
+       sv_setuv(ST(argvi++), (UV) *($1));";
 
 %typemap(out) const float &, const double & 
       "ST(argvi) = sv_newmortal();
@@ -227,8 +244,11 @@
 
 /* --- Typemaps for variable output --- */
 
-%typemap(varout) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE 
+%typemap(varout) int, short, long, signed char,  bool, enum SWIGTYPE 
     "sv_setiv($result, (IV) $1);";
+
+%typemap(varout) unsigned int, unsigned short, unsigned long, unsigned char
+    "sv_setuv($result, (UV) $1);";
 
 %typemap(varout) float, double
     "sv_setnv($result, (double) $1);";
@@ -300,7 +320,7 @@
  * ANSI C typemaps
  * ------------------------------------------------------------ */
 
-%apply long { size_t };
+%apply unsigned long { size_t };
 
 
 /* Export the SWIG initialization function */
