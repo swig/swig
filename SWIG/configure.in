@@ -39,6 +39,7 @@ dnl Checks for programs.
 
 AC_SUBST(AR)
 AC_CHECK_PROGS(AR, ar aal, ar)
+AC_CHECK_PROGS(AUTOCONF, autoconf, "")
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -450,9 +451,39 @@ if test "$PERL" != nope; then
 
 AC_SUBST(PERL5EXT)
 
-# Note we write DOH's Makefiles for it -- if it has any special configure
-# stuff, we're going to skip it!
-AC_OUTPUT(Makefile Source/Swig/Makefile Source/DOH/Doh/Makefile 
-    Source/DOH/Makefile Source/Preprocessor/Makefile Source/SWIG1.1/Makefile
+IMPORTED_DIRS="Source/SWILL/ Source/DOH/"
+
+# execute configure for our imported directories
+for dir in $IMPORTED_DIRS; do
+    if test -d $dir; then
+	echo Configuring in $dir -- $0 $ac_configure_args
+	cd $dir
+	# re-autoconf if necessary
+	if test ! -x configure; then $AUTOCONF; fi
+	if test configure -ot configure.in; then $AUTOCONF; fi
+	if test ! -f config.cache; then cp ../../config.cache .; fi
+	$0 $ac_configure_args
+	cd ../../
+    fi
+done
+
+AC_OUTPUT(Makefile Source/Swig/Makefile 
+    Source/Preprocessor/Makefile Source/SWIG1.1/Makefile 
     Source/Modules1.1/Makefile Source/LParse/Makefile 
-    Source/Experiment/Makefile Examples/Makefile)
+    Source/Experiment/Makefile Examples/Makefile, [
+
+# execute config.status for DOH and for SWILL, our imported directories
+for dir in $IMPORTED_DIRS; do
+    if test -d $dir; then
+	echo $0: Entering directory $dir
+	cd $dir
+	$0 "$@"
+	echo $0: Leaving directory $dir
+	cd ../../
+    fi
+done
+],
+[
+AUTOCONF=$AUTOCONF
+IMPORTED_DIRS="$IMPORTED_DIRS"
+])
