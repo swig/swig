@@ -17,15 +17,15 @@
 %inline %{
 class Bar {
 public:
-   char *foo(int)      { return "Bar::foo-int"; }
-   char *foo(double)   { return "Bar::foo-double"; }
-   char *foo(short)    { return "Bar::foo-short"; }
-   char *foo(unsigned) { return "Bar::foo-unsigned"; }
+   char *foo(int)      { return (char *) "Bar::foo-int"; }
+   char *foo(double)   { return (char *) "Bar::foo-double"; }
+   char *foo(short)    { return (char *) "Bar::foo-short"; }
+   char *foo(unsigned) { return (char *) "Bar::foo-unsigned"; }
 };
 
-char *foo(int)      { return "foo-int"; }
-char *foo(double)   { return "foo-double"; }
-char *foo(short)    { return "foo-short"; }
-char *foo(unsigned) { return "foo-unsigned"; }
+char *foo(int)      { return (char *) "foo-int"; }
+char *foo(double)   { return (char *) "foo-double"; }
+char *foo(short)    { return (char *) "foo-short"; }
+char *foo(unsigned) { return (char *) "foo-unsigned"; }
 
 %}
