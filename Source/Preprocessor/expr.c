@@ -13,9 +13,7 @@
  * can be used and distributed.
  ****************************************************************************/
 
-static char cvsroot[] = "$Header$";
-
-#include "swigcpp.h"
+#include "swigcore.h"
 
 /* -----------------------------------------------------------------------------
  * expr.c
@@ -218,6 +216,22 @@ int SWIG_expr(DOH *s, int *error) {
 	*error = 1;
 	return 0;
       }
+      if ((token == TOKEN_INT) || (token == TOKEN_UINT) || (token == TOKEN_LONG) || (token == TOKEN_ULONG)) {
+	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
+	stack[sp].value = (long) atol(Char(Scanner_text(scan)));
+	stack[sp].op = EXPR_VALUE;
+      } else if (token == TOKEN_PLUS) { }
+       else if ((token == TOKEN_MINUS) || (token == TOKEN_LNOT) || (token==TOKEN_NOT)) {
+	if (token == TOKEN_MINUS) token = EXPR_UMINUS;
+	stack[sp].value = token;
+	stack[sp++].op = EXPR_OP;
+	stack[sp].op = EXPR_TOP;
+      } else if ((token == TOKEN_LPAREN)) {
+	stack[sp++].op = EXPR_GROUP;
+	stack[sp].op = EXPR_TOP;
+	stack[sp].value = 0;
+      } else if (token == TOKEN_ENDLINE) { }
+      else goto syntax_error;
       break;
     case EXPR_VALUE:
       /* A value is on the stack.   We may reduce or evaluate depending on what the next token is */
