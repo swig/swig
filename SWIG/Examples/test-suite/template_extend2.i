@@ -1,6 +1,9 @@
 // Another evil Luigi test
 %module template_extend2
 
+%warnfilter(801) Baz<long>;	// Ruby, wrong class name
+%warnfilter(801) Baz<double>;	// Ruby, wrong class name
+
 %{
 namespace Quux {  
 template <class T> class Baz {}; 
