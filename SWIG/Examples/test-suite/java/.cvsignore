@@ -2,6 +2,7 @@ add_link
 anonymous_arg
 arrayptr
 arrays
+arrays_global
 casts
 char_constant
 constant_pointers
@@ -11,6 +12,7 @@ const_const_2
 cplusplus_throw
 cpp_enum
 cpp_enum_scope
+cpp_nodefault
 cpp_static
 CVS
 default_constructor
@@ -21,6 +23,7 @@ explicit
 imports
 imports_runme
 kind
+long_long
 macro_2
 minherit
 name
@@ -31,6 +34,7 @@ pointer_reference
 preproc_1
 preproc_2
 pure_virtual
+ret_by_value
 rname
 sizeof_pointer
 sneaky1
