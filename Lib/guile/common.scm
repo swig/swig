@@ -16,41 +16,27 @@
 (define-class <swig-metaclass> (<class>)
   (new-function #:init-value #f))
 
-(define-method (compute-get-n-set (class <swig-metaclass>) s)
-  (case (slot-definition-allocation s)
-    ((#:swig-virtual)
-      (list
-        ;getter
-        (let ((func (get-keyword #:slot-ref (slot-definition-options s) #f)))
-          (lambda (x) (func (slot-ref x 'smob))))
-        ;setter
-        (let ((func (get-keyword #:slot-set! (slot-definition-options s) #f)))
-          (lambda (x val) (func (slot-ref x 'smob) val)))))
-    ((#:swig-virtual-class)
-      (list
-        ;getter
-        (let ((func  (get-keyword #:slot-ref (slot-definition-options s) #f))
-              (class (get-keyword #:class    (slot-definition-options s) #f)))
-          (lambda (x) (make class #:init-smob (func (slot-ref x 'smob)))))
-        ;setter
-        (let ((func (get-keyword #:slot-set! (slot-definition-options s) #f)))
-          (lambda (x val) (func (slot-ref x 'smob) (slot-ref val 'smob))))))
-    (else (next-method))))
-
 (define-method (initialize (class <swig-metaclass>) initargs)
   (slot-set! class 'new-function (get-keyword #:new-function initargs #f))
   (next-method))
 
-(define-class <swig> ()
-  (smob #:init-value #f)
-  #:metaclass <swig-metaclass>)
+(define-class <swig> () 
+  (swig-smob #:init-value #f)
+  #:metaclass <swig-metaclass>
+)
 
 (define-method (initialize (obj <swig>) initargs)
   (next-method)
-  (let ((arg (get-keyword #:init-smob initargs #f)))
-    (if arg
-      (slot-set! obj 'smob arg)
-      (slot-set! obj 'smob (apply (slot-ref (class-of obj) 'new-function) 
-                                  (get-keyword #:args initargs '()))))))
-
+  (slot-set! obj 'swig-smob
+    (let ((arg (get-keyword #:init-smob initargs #f)))
+      (if arg
+        arg
+        (let ((ret (apply (slot-ref (class-of obj) 'new-function) (get-keyword #:args initargs '()))))
+          ;; if the class is registered with runtime environment,
+          ;; new-Function will return a <swig> goops class.  In that case, extract the smob
+          ;; from that goops class and set it as the current smob.
+          (if (slot-exists? ret 'swig-smob)
+            (slot-ref ret 'swig-smob)
+            ret))))))
+                                              
 (export <swig-metaclass> <swig>)
