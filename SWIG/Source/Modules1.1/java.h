@@ -29,17 +29,17 @@ public :
   virtual void set_module(char *);                 /* Deprecated */
   virtual void pragma(char *lang, char *code, char *value);
 
+private:
   /* Java module enums */
   enum type_additions {none, pointer, reference};
 
   /* Java module methods */
-  void emit_classdef();
-  void emit_shadow_classdef(char* c_classname,char* c_baseclassname);
-  char *JNICALL(DOHString_or_char *func);
+  void emitClassDef();
+  void emitShadowClassDef(Node *);
+  char *jniCall(DOHString_or_char *func);
   char *makeValidJniName(const char *name);
-  char *JavaMethodSignature(SwigType *t, int ret, int inShadow);
+  char *javaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
-  void javashadowfunctionHandler(Node* n, int is_virtual);
-  void TypemapApply(String *swigtype, String *tmap, String *name, type_additions additions, int array_flag);
-
+  void javaShadowFunctionHandler(Node* n, int is_virtual);
+  void typemapApply(String *swigtype, String *tmap, String *name, type_additions additions, int array_flag);
 };
