@@ -857,10 +857,10 @@ PHP4::functionWrapper(Node *n) {
   // merely the thing that actually knows how to destroy...
   if (shadow && destructor) {
     Printf(f->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
-    // What makes me so sure emit_action will use the name arg1??
-    // What makes me so sure I know the TYPE?  [%s * arg1=NULL;]
-    // Why do I not have $1_descriptor and so pass NULL to _SWIG_ConvertPtr ?
-    Printf(f->code,"  %s * arg1=NULL;\n"
+    // Magic spell nicked from further down.
+    emit_args(d, l, f);
+
+    Printf(f->code,
       "  // should we do type checking? How do I get SWIG_ type name?\n"
       "  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &arg1,NULL);\n"
       "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
@@ -1081,8 +1081,9 @@ PHP4::functionWrapper(Node *n) {
         SwigToPhpType(d, iname, shadowrettype, shadow);
  
         Printf(f->code, 
-			"zval *obj; MAKE_STD_ZVAL(obj);\n"
-			"zval *_cPtr; MAKE_STD_ZVAL(_cPtr);\n"
+			"zval *obj, *_cPtr;\n"
+                        "MAKE_STD_ZVAL(obj);\n"
+			"MAKE_STD_ZVAL(_cPtr);\n"
 			"*_cPtr = *return_value;\n"
 			"INIT_ZVAL(*return_value);\n"
                         "object_init_ex(obj,ptr_ce_swig_%s);\n"
