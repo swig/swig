@@ -248,7 +248,7 @@ String_cmp(DOH *so1, DOH *so2)
     if (s2->len < maxlen) maxlen = s2->len;
     c1 = s1->str;
     c2 = s2->str;
-    for (i = 0; i < maxlen; i++) {
+    for (i = 0; i < maxlen; i++,c1++,c2++) {
       if (*c1 != *c2) break;
     }
     if (i < maxlen) {
@@ -268,7 +268,7 @@ int String_hash(DOH *so) {
   String *s = (String *) so;
   char *c;
   int   i, h = 0, len;
-  /*  if (s->hashkey >= 0) return s->hashkey; */
+  if (s->hashkey >= 0) return s->hashkey;
   c = s->str;
   len = s->len > 50 ? 50 : s->len;
   for (i = 0; i < len; i++) {
@@ -716,3 +716,4 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
     if (flags & DOH_REPLACE_FIRST) count = 1;
     replace_internal(str,Char(token),Char(rep),flags,str->str,count);
 }
+
