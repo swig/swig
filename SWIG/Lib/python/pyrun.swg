@@ -209,7 +209,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
 #ifdef SWIG_COBJECT_TYPES
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
-      SWIG_this = PyString_InternFromString("this");
+      SWIG_this = PyString_FromString("this");
     pyobj = obj;
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
@@ -226,7 +226,7 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
 #else
   if (!(PyString_Check(obj))) {
     if (!SWIG_this)
-      SWIG_this = PyString_InternFromString("this");
+      SWIG_this = PyString_FromString("this");
     pyobj = obj;
     obj = PyObject_GetAttr(obj,SWIG_this);
     newref = 1;
