@@ -204,7 +204,7 @@ extern ParmList   *SwigType_function_parms(SwigType *t);
 extern List       *SwigType_split(SwigType *t);
 extern String     *SwigType_pop(SwigType *t);
 extern void        SwigType_push(SwigType *t, SwigType *s);
-extern List       *SwigType_parmlist(SwigType *p);
+extern List       *SwigType_parmlist(const SwigType *p);
 extern String     *SwigType_parm(String *p);
 extern String     *SwigType_str(SwigType *s, const String_or_char *id);
 extern String     *SwigType_lstr(SwigType *s, const String_or_char *id);
@@ -220,15 +220,15 @@ extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
 extern int         SwigType_isconst(SwigType *t);
 extern int         SwigType_issimple(SwigType *t);
-extern int         SwigType_isvarargs(SwigType *t);
-extern int         SwigType_istemplate(SwigType *t);
+extern int         SwigType_isvarargs(const SwigType *t);
+extern int         SwigType_istemplate(const SwigType *t);
 extern int         SwigType_isenum(SwigType *t);
 extern int         SwigType_check_decl(SwigType *t, const String_or_char *decl);
 extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
 extern String     *SwigType_base(SwigType *t);
-extern String     *SwigType_namestr(SwigType *t);
+extern String     *SwigType_namestr(const SwigType *t);
 extern String     *SwigType_templateprefix(SwigType *t);
-extern String     *SwigType_templatesuffix(SwigType *t);
+extern String     *SwigType_templatesuffix(const SwigType *t);
 extern String     *SwigType_templateargs(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
 extern int         SwigType_array_ndim(SwigType *t);
@@ -358,16 +358,16 @@ extern char     *Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...)
 
 /* --- Naming functions --- */
 
-extern void     Swig_name_register(String_or_char *method, String_or_char *format);
-extern void     Swig_name_unregister(String_or_char *method);
-extern String  *Swig_name_mangle(String_or_char *s);
-extern String  *Swig_name_wrapper(String_or_char *fname);
-extern String  *Swig_name_member(String_or_char *classname, String_or_char *mname);
-extern String  *Swig_name_get(String_or_char *vname);
-extern String  *Swig_name_set(String_or_char *vname);
-extern String  *Swig_name_construct(String_or_char *classname);
-extern String  *Swig_name_copyconstructor(String_or_char *classname);
-extern String  *Swig_name_destroy(String_or_char *classname);
+extern void     Swig_name_register(const String_or_char *method, const String_or_char *format);
+extern void     Swig_name_unregister(const String_or_char *method);
+extern String  *Swig_name_mangle(const String_or_char *s);
+extern String  *Swig_name_wrapper(const String_or_char *fname);
+extern String  *Swig_name_member(const String_or_char *classname, const String_or_char *mname);
+extern String  *Swig_name_get(const String_or_char *vname);
+extern String  *Swig_name_set(const String_or_char *vname);
+extern String  *Swig_name_construct(const String_or_char *classname);
+extern String  *Swig_name_copyconstructor(const String_or_char *classname);
+extern String  *Swig_name_destroy(const String_or_char *classname);
 
 /* --- parameterized rename functions --- */
 

@@ -487,7 +487,7 @@ void SwigType_push(SwigType *t, String *cons)
  * Splits a comma separated list of components into strings.
  * ----------------------------------------------------------------------------- */
 
-List *SwigType_parmlist(String *p) {
+List *SwigType_parmlist(const String *p) {
   DOH     *item;
   List *list;
   char *c;
@@ -695,12 +695,12 @@ int SwigType_issimple(SwigType *t) {
   return 1;
 }
 
-int SwigType_isvarargs(SwigType *t) {
+int SwigType_isvarargs(const SwigType *t) {
   if (Strcmp(t,"v(...)") == 0) return 1;
   return 0;
 }
 
-int SwigType_istemplate(SwigType *t) {
+int SwigType_istemplate(const SwigType *t) {
   if (Strstr(t,"<(")) return 1;
   return 0;
 }
@@ -839,7 +839,7 @@ SwigType_templateprefix(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_templatesuffix(SwigType *t) {
+SwigType_templatesuffix(const SwigType *t) {
   char *c;
   c = Char(t);
   while (*c) {
@@ -1064,7 +1064,7 @@ SwigType *SwigType_default(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *
-SwigType_namestr(SwigType *t) {
+SwigType_namestr(const SwigType *t) {
   String *r;
   String *suffix;
   List   *p;
