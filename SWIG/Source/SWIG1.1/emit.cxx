@@ -105,9 +105,9 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
   if (!fcall) fcall = NewString(Swig_cfunction_call(decl,l));
 
   if (CPlusPlus) {
-    Swig_cppresult(f, t, "result", Char(fcall));
+    Swig_cppresult(f, t, (char*)"result", Char(fcall));
   } else {
-    Swig_cresult(f, t, "result", Char(fcall));
+    Swig_cresult(f, t, (char*)"result", Char(fcall));
   }
   Delete(fcall);
   fcall = 0;
