@@ -1,0 +1,6 @@
+AC_INIT(ltmain.sh)
+
+AC_OUTPUT_COMMANDS([$srcdir/ltconfig --enable-dlopen $srcdir/ltmain.sh],
+                   [srcdir=$srcdir])
+
+AC_OUTPUT()
