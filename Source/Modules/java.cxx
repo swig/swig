@@ -1048,6 +1048,7 @@ class JAVA : public Language {
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
+    String *classDeclarationName = Getattr(n,"classDeclaration:name");
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -1061,7 +1062,7 @@ class JAVA : public Language {
       base = Nextitem(baselist);
       if (base) {
         Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, Getattr(base,"name"));
+            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, Getattr(base,"name"));
       }
     }
 
@@ -1070,20 +1071,20 @@ class JAVA : public Language {
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    const String *pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
+    const String *pure_java_baseclass = javaTypemapLookup("javabase", classDeclarationName, WARN_NONE);
     if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
+          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, pure_java_baseclass);
     }
 
     // Pure Java interfaces
-    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", shadow_classname, WARN_NONE);
+    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", classDeclarationName, WARN_NONE);
 
     // Start writing the shadow class
     Printv(shadow_classdef,
-        javaTypemapLookup("javaimports", shadow_classname, WARN_NONE), // Import statements
+        javaTypemapLookup("javaimports", classDeclarationName, WARN_NONE), // Import statements
         "\n",
-        javaTypemapLookup("javaclassmodifiers", shadow_classname, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        javaTypemapLookup("javaclassmodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $javaclassname",       // Class name and bases
         (derived || *Char(pure_java_baseclass)) ?
         " extends " : 
@@ -1101,7 +1102,7 @@ class JAVA : public Language {
         "  protected boolean swigCMemOwn;\n",
         "\n",
         "  ",
-        javaTypemapLookup("javaptrconstructormodifiers", shadow_classname, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        javaTypemapLookup("javaptrconstructormodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
         " $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
         derived ? 
         "    super($jniclassname.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
@@ -1120,7 +1121,7 @@ class JAVA : public Language {
     }
 
     Printv(shadow_classdef, 
-        javaTypemapLookup("javafinalize", shadow_classname, WARN_NONE), // finalize method
+        javaTypemapLookup("javafinalize", classDeclarationName, WARN_NONE), // finalize method
         "\n",
         *Char(destructor_call) ? 
         "  public void delete() {\n" :
@@ -1135,8 +1136,8 @@ class JAVA : public Language {
         "    }\n",
         "    swigCPtr = 0;\n",
         "  }\n",
-        javaTypemapLookup("javagetcptr", shadow_classname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        javaTypemapLookup("javacode", shadow_classname, WARN_NONE), // extra Java code
+        javaTypemapLookup("javagetcptr", classDeclarationName, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        javaTypemapLookup("javacode", classDeclarationName, WARN_NONE), // extra Java code
         "\n",
         NIL);
 

@@ -1017,6 +1017,7 @@ class CSHARP : public Language {
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
+    String *classDeclarationName = Getattr(n,"classDeclaration:name");
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -1030,7 +1031,7 @@ class CSHARP : public Language {
       base = Nextitem(baselist);
       if (base) {
         Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s: Base %s ignored. Multiple inheritance is not supported in C#.\n", shadow_classname, Getattr(base,"name"));
+            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, Getattr(base,"name"));
       }
     }
 
@@ -1039,20 +1040,20 @@ class CSHARP : public Language {
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    const String *pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
+    const String *pure_java_baseclass = javaTypemapLookup("javabase", classDeclarationName, WARN_NONE);
     if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s: Base %s ignored. Multiple inheritance is not supported in C#.\n", shadow_classname, pure_java_baseclass);
+          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", classDeclarationName, pure_java_baseclass);
     }
 
     // Pure Java interfaces
-    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", shadow_classname, WARN_NONE);
+    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", classDeclarationName, WARN_NONE);
 
     // Start writing the shadow class
     Printv(shadow_classdef,
-        javaTypemapLookup("javaimports", shadow_classname, WARN_NONE), // Import statements
+        javaTypemapLookup("javaimports", classDeclarationName, WARN_NONE), // Import statements
         "\n",
-        javaTypemapLookup("javaclassmodifiers", shadow_classname, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        javaTypemapLookup("javaclassmodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $javaclassname : ",       // Class name and bases
         baseclass,
         pure_java_baseclass,
@@ -1070,7 +1071,7 @@ class CSHARP : public Language {
         "  protected bool swigCMemOwn;\n",
         "\n",
         "  ",
-        javaTypemapLookup("javaptrconstructormodifiers", shadow_classname, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        javaTypemapLookup("javaptrconstructormodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
         " $javaclassname(IntPtr cPtr, bool cMemoryOwn) ", // Constructor used for wrapping pointers
         derived ? 
         ": base($jniclassname.$javaclassnameTo$baseclass(cPtr), cMemoryOwn) {\n" : 
@@ -1088,8 +1089,9 @@ class CSHARP : public Language {
     }
 
     Printv(shadow_classdef, 
-        derived?javaTypemapLookup("cildisposeoverride", shadow_classname, WARN_NONE):
-            javaTypemapLookup("cildispose", shadow_classname, WARN_NONE), // finalize method
+        derived ?
+            javaTypemapLookup("cildisposeoverride", classDeclarationName, WARN_NONE) :
+            javaTypemapLookup("cildispose", classDeclarationName, WARN_NONE), // finalize method
         "\n",
         *Char(destructor_call) ? "  protected " : "  private ", 
         derived ? "override" : "virtual",
@@ -1104,8 +1106,8 @@ class CSHARP : public Language {
         "    }\n",
         "    swigCPtr = IntPtr.Zero;\n",
         "  }\n",
-        javaTypemapLookup("javagetcptr", shadow_classname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        javaTypemapLookup("javacode", shadow_classname, WARN_NONE), // extra Java code
+        javaTypemapLookup("javagetcptr", classDeclarationName, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        javaTypemapLookup("javacode", classDeclarationName, WARN_NONE), // extra Java code
         "\n",
         NIL);
 
