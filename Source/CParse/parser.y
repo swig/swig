@@ -4358,9 +4358,9 @@ exprcompound   : expr PLUS expr {
 		 $$.type = $2.type;
 	       }
                | PLUS expr %prec UMINUS {
-                 $$.val = NewStringf("%s",$2.val);
+                 $$.val = NewStringf("+%s",$2.val);
 		 $$.type = $2.type;
-	       }
+  	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
 		 $$.type = $2.type;
