@@ -495,6 +495,12 @@ Write your own object manager in Java. You could derive all SWIG classes from a 
 <h2>
 Dynamic Linking Problems</h2>
 The code to load a native library is <code>System.loadLibrary("name")</code>. Commonly this will fail and it can be due to a number of reasons. The most common is an incorrect naming of the native library for the name passed to the <code>loadLibrary</code> function. The text passed to the <code>loadLibrary</code> function must not include the the extension name in the text, that is <i>.dll</i> or <i>.so</i>. The text must be <i>name</i> and not <i>libname</i> for all platforms. On Windows the native library must then be called <i>name.dll</i> and on Unix it must be called <i>libname.so</i>. If you are debugging using <code> java -debug</code>, then the native library must be called <i>name_g.dll</i> on Windows and <i>libname_g.so</i> on Unix.
+<br><br>
+Avoid putting underscores in your module name:
+<blockquote> <pre>
+%module this_is_likely_to_cause_linking_problems
+%module ThisWillNotCauseLinkingProblems 
+</pre> </blockquote>
 
 <h2>
 Tips</h2>
