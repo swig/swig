@@ -148,7 +148,7 @@ SWIG's parsing behavior in some manner.
 <p>
 Since SWIG directives are not legal C syntax, it is generally not
 possible to include them in header files.  However, SWIG directives can be
-included in C source files using conditional compilation like this:
+included in C header files using conditional compilation like this:
 
 <blockquote><pre>
 /* header.h  --- Some header file */
@@ -165,14 +165,14 @@ it is parsing an input file.
 
 <h3>Parser Limitations</h3>
 
-Although SWIG can parse many common C/C++ declarations, it does not
+Although SWIG can parse most common C/C++ declarations, it does not
 provide a complete C/C++ parser implementation.  Most of these
 limitations pertain to complicated type declarations and advanced C++
-features.  Specifically, the following features are not supported:
+features.  Specifically, the following features are not currently supported:
 
 <p>
 <ul>
-<li>Non-conventional type declarations are generally not supported.
+<li>Non-conventional type declarations.
 For example, SWIG does not support declarations such as the following
 (even though this is legal C):
 
@@ -186,16 +186,15 @@ int (foo)(int,int);
 </pre>
 </blockquote>
 
-In practice, very few (if any) C programmers actually write code like
-is since it is never really shown in standard programming texts.  However,
-if you're feeling particularly obfuscated, be aware that unusual C declarations
-may not parse.
+In practice, few (if any) C programmers actually write code like
+is since this style is never featured in programming books.  However,
+if you're feeling particularly obfuscated, you can certainly break SWIG.
 
 <p>
 <li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
 is not recommended.  Even though SWIG can parse C++ class declarations,
 it does not know how to parse declarations that are decoupled from their
-class definition.  For example:
+original class definition.  For example:
 
 <blockquote>
 <pre>
@@ -207,7 +206,7 @@ int foo::bar(int) {
 </blockquote>
 
 <li>Other advanced features of C++ such as templates, namespaces, and operator
-overloading are not supported. Please see the section on using SWIG
+overloading are not currently supported. Please see the section on using SWIG
 with C++ for more information.
 </ul> <p>
 
@@ -222,11 +221,13 @@ over offending code.  For example:
 </pre>
 </blockquote>
 
+Alternatively, you can just delete the offending code from the interface file.
+
 <h2>Wrapping Simple C Declarations</h2>
 
-When SWIG encounters simple C declarations, it builds an extension module whose
-functionality closely matches the way that these declarations would be used
-in a C program.   For example, consider the following interface file:
+SWIG wraps simple C declarations by creating an interface that closely matches
+the way in which the declarations would be used in a C program.
+For example, consider the following interface file:
 
 <p>
 <blockquote><pre>%module example
@@ -275,17 +276,20 @@ Or in Python:
 
 Whenever possible, SWIG tries to closely match the underlying C/C++
 code. However, due to subtle differences between languages, run-time
-environments, and semantics, it is not always possible to do so.  This
-section describes how SWIG addresses some of these issues.
+environments, and semantics, it is not always possible to do so.   The
+next few sections describes various aspects of this mapping.
 
+<h3>Basic Type Handling</h3>
 
-<h3>Integers</h3>
+In order to build an interface, SWIG has to convert C/C++ datatypes to
+equivalent types in the target language.  Generally speaking, scripting languages provide
+a more limited set of types than C.  Therefore, this process involves a certain
+amount of type coercion.
 
-Scripting languages generally only provide a single integer type that 
-corresponds to the <tt>int</tt> or <tt>long</tt> datatype in C.   When
-integral datatypes are encountered in the interface file, they are
-are mapped to scripting language integers.   The following list shows
-all of the C datatypes that are handled as integers:
+<p>
+Most scripting languages provide a single integer type that is implemented using
+the <tt>int</tt> or <tt>long</tt> datatype in C.   The following list shows
+all of the C datatypes that SWIG will convert to and from integers in the target language:
 
 <p>
 <blockquote><pre>int
@@ -301,18 +305,17 @@ bool
 </pre></blockquote>
 
 <p>
-When a value is converted from C, it is cast into the type used by the
-target scripting language.  Thus, a 16 bit short in C may be promoted
-to a 32 bit integer.  When integers are converted in the other
-direction, the value is cast back into the original C type.  The value
-will be silently truncated if it is too large to fit into the
-corresponding C datatype. 
+When an integral value is converted from C, a cast is used to convert it to
+the representation in the target language.
+Thus, a 16 bit short in C may be promoted to a 32 bit integer.  When integers are 
+converted in the other direction, the value is cast back into the original C type.  
+If the value is too large to fit, it is silently truncated.
 <!-- Dave: Maybe we should fix this -->
 
 <p>
 <tt>unsigned char</tt> and <tt>signed char</tt> are special cases that
-are handled as integers. Normally, the <tt>char</tt> datatype is mapped
-as a one-character ASCII string. <p>
+are handled as small 8-bit integers. Normally, the <tt>char</tt>
+datatype is mapped as a one-character ASCII string. <p>
 
 <p>
 The <tt>bool</tt> datatype is cast to and from an integer value of 0
@@ -320,7 +323,7 @@ and 1.<p>
 
 <p>
 Some care is required when working with large integer values. Most
-scripting languages use 32 bit integers so mapping a 64 bit long
+scripting languages use 32-bit integers so mapping a 64-bit long
 integer may lead to truncation errors. Similar problems may arise with
 32 bit unsigned integers (which may appear as large negative
 numbers). As a rule of thumb, the <tt>int</tt> datatype and all
@@ -330,13 +333,12 @@ need to carefully check the correct operation of your program after
 it has been wrapped with SWIG.
 
 <p>
-The C datatype <tt>long long</tt> is not currently supported by SWIG
-because its size almost always exceeds the integer precision available in
-most scripting language interpreters (it's also not supported by all 
-C compilers).   This limitation may be eliminated in a future release.
+Although the SWIG parser supports the 'long long' datatype, very few language
+modules currently support it.  This is because 'long long' usually exceeds the
+precision available in the target language.  This limitation may be 
+eliminated in future SWIG releases.
 
-<h3> Floating Point</h3>
-
+<p>
 SWIG recognizes the following floating point types :<p>
 
 <blockquote><pre>
@@ -350,8 +352,7 @@ representation of floats in the target language. This is almost always
 a C <tt>double</tt>. The rarely used datatype of "long double" is not
 supported by SWIG.<p>
 
-<h3> Character Strings</h3>
-
+<p>
 The <tt>char</tt> datatype is mapped into a NULL terminated ASCII
 string with a single character. When used in a scripting language it
 shows up as a tiny string containing the character value. When
@@ -362,47 +363,25 @@ char value. Thus if the value "foo" is assigned to a
 
 <p>
 The <tt>char *</tt> datatype is handled as a NULL-terminated ASCII
-string. SWIG maps this into a character string in the target scripting
+string. SWIG maps this into a 8-bit character string in the target scripting
 language. SWIG converts character strings in the target language to
 NULL terminated strings before passing them into C/C++. It is illegal
-for these strings to have embedded NULL bytes.  However, there are
-several different ways to work around this problem.
+for these strings to have embedded NULL bytes.   Therefore, the <tt>char *</tt> datatype
+is not generally suitable for passing binary data (although SWIG's behavior
+can be modified to handle this).
 
 <p>
-The <tt>signed char</tt> and <tt>unsigned char</tt> datatypes are
-mapped into integer values. The following example illustrates the
-mapping of <tt>char</tt> datatypes.<p>
-
-<tt></tt><p>
-<blockquote><pre><tt>%{
-#include &lt;stdio.h&gt;
-#include &lt;ctype.h&gt;
-#include &lt;string.h&gt;
-signed char sum(signed char a, signed char b) { return a+b;}
-%}
-
-int  strcmp(char *, char *);
-char toupper(char);
-signed char sum(signed char a, signed char b);
-</tt></pre></blockquote>
-
-<p>
-A Tcl script using these functions (and the resulting output) might be
-as follows.<p>
-
-<p>
-<blockquote><pre>tclsh &gt; strcmp Mike John
-1
-tclsh &gt; toupper g
-G
-tclsh &gt; sum 17 -8
-9
-</pre></blockquote>
+At this time, SWIG does not provide any special support for Unicode or
+wide-character strings (the C <tt>wchar_t</tt> type).  This is a
+delicate topic that is quite complex and poorly understood.  For
+scripting languages that provide Unicode support, Unicode strings may
+be implicitly converted to an 8-bit representation such as UTF-8 (in
+which case the SWIG interface will probably work).
 
 <h3>Global Variables</h3>
 
-SWIG attempts to map C/C++ global variables into scripting language
-variables. For example,<p>
+Whenever possible, SWIG maps C/C++ global variables into scripting language
+variables.  For example,
 
 <p>
 <blockquote><pre>%module example
@@ -415,27 +394,35 @@ results in a scripting language variable like this:
 
 <p>
 <blockquote><pre># Tcl
-set foo [3.5] 			;# Set foo to 3.5
-puts $foo			;# Print the value of foo
+set foo [3.5]                   ;# Set foo to 3.5
+puts $foo                       ;# Print the value of foo
 
 # Python
-cvar.foo = 3.5			;# Set foo to 3.5
-print cvar.foo			;# Print value of foo
+cvar.foo = 3.5                  ;# Set foo to 3.5
+print cvar.foo                  ;# Print value of foo
 
 # Perl
-$foo = 3.5;			;# Set foo to 3.5
-print $foo,"\n";			;# Print value of foo
+$foo = 3.5;                     ;# Set foo to 3.5
+print $foo,"\n";                ;# Print value of foo
 
 </pre></blockquote>
 
-Whenever the scripting language variable is used, the underlying C global
-variable is accessed.   Furthermore, if a global variable has been declared 
-as <tt>const</tt> it will only support read-only access.
+Whenever the scripting language variable is used, the underlying C
+global variable is accessed in some manner.  Although SWIG makes every
+attempt to make global variables work like scripting language
+variables, it is not always possible to do so.  For instance, in
+Python, all global variables must be accessed through a special
+variable object known as 'cvar' (shown above).  Other languages may
+convert variables to a pair of accessor functions.  For example, the
+Java module generates a pair of functions <tt>double get_foo()</tt>
+and <tt>set_foo(double val)</tt> that are used to manipulate the
+value.
 
 <p>
-As it turns out, support for global variables
-is one of the most complicated implementation aspects of SWIG.   Consult
-the chapter on a specific scripting language to find more information.
+Finally, if a global variable has been declared as <tt>const</tt>, it
+only supports read-only access.  Note: this behavior is new to SWIG-1.3.
+Earlier versions of SWIG incorrectly handled 'const' and created
+constants instead.
 
 <h3> Constants</h3>
 
@@ -452,7 +439,7 @@ interface file shows a few valid constant declarations :<p>
 enum boolean {NO=0, YES=1};
 enum months {JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG,
              SEP, OCT, NOV, DEC};
-%constant(double) BLAH  42.37;
+%constant double BLAH = 42.37;
 #define F_CONST (double) 5            // A floating pointer constant with cast
 #define PI_4 PI/4
 #define FLAGS 0x04 | 0x08 | 0x40
@@ -464,7 +451,8 @@ by syntax. For example, a number with a decimal point is assumed to be
 floating point.   In addition, SWIG must be able to fully resolve all of the
 symbols used in a <tt>#define</tt> in order for a constant to actually be
 created.    This restriction is necessary because <tt>#define</tt> is also
-used to define preprocessor macros.  For example:
+used to define preprocessor macros that are most definitely not meant to be part of the scripting
+language interface.  For example:
 
 <blockquote>
 <pre>
@@ -474,10 +462,10 @@ EXTERN void foo();
 </pre>
 </blockquote>
 
-Clearly in this case, we probably don't want to create a constant called 
-<tt>EXTERN</tt> (what would the value be?).  SWIG knows how to handle
-this case, and will not create constants for macros that do not appear to be
-constants. 
+In this case, we probably don't want to create a constant called 
+<tt>EXTERN</tt> (what would the value be?).  Generally speaking,
+SWIG will not create constants for macros unless the value can
+be completely determined.
 
 <p>
 The use of constant expressions is allowed, but SWIG does not evaluate
@@ -493,12 +481,55 @@ into code needed to add the constants to a scripting language. It
 needs the original enumeration declaration in order to get the correct
 enum values as assignd by the C compiler.
 
-<h2> Pointers and complex objects</h2>
+<p>
+The %constant directive is used to more precisely create constants
+corresponding to different C datatypes.  Although it is not usually 
+not needed for simple values, it is more useful when working with
+pointers and other more complex datatypes.
 
-As we all know, most C programs have much more than just integers,
-floating point numbers, and character strings. There may be pointers,
-arrays, structures, and other objects floating around. Fortunately,
-this is usually not a problem for SWIG.<p>
+<h3>A brief word about <tt>const</tt></h3>
+
+A common confusion with C programming is the semantic meaning of the
+<tt>const</tt> qualifier in declarations--especially when it is mixed
+with pointers and other type modifiers (in fact, the author is
+ashamed to admit that he botched the handling of <tt>const</tt> in
+earlier SWIG versions).
+
+<p>
+Starting with SWIG-1.3, all variable declarations, regardless of any use
+of <tt>const</tt>, are wrapped as global variables.   If a declaration happens to be
+declared as <tt>const</tt>, it is wrapped as a read-only variable. To tell if a variable is
+<tt>const</tt> or not, you need to look at the right-most occurrence of the <tt>const</tt>
+qualifier.   If the right-most <tt>const</tt> occurs after all other type modifiers
+(such as pointers), then the variable is <tt>const</tt>.  Otherwise, it is not.
+
+<p>
+Here are some examples of <tt>const</tt> declarations.
+
+<blockquote>
+<pre>
+const char a;           // A constant character
+char const b;           // A constant character (the same)
+char *const c;          // A constant pointer to a character
+const char *const d;    // A constant pointer to a constant character
+</pre>
+</blockquote>
+
+Here is an example of a declaration that is not <tt>const</tt>:
+
+<blockquote>
+<pre>
+const char *e;          // A pointer to a constant character.  The pointer
+                        // may be modified.
+</pre>
+</blockquote>
+
+<h2>Pointers and complex objects</h2>
+
+Most C programs have many more types than integers, floats, and
+character strings.  Usually, there are tons of pointers, arrays,
+structures, and other types of objects floating around.   This section
+discusses this topic.
 
 <h3> Simple pointers</h3>
 
@@ -509,15 +540,15 @@ double ***
 char **
 </pre></blockquote>
 <p>
-can be used freely in an interface file. SWIG encodes pointers into a
+are fully supported by SWIG.  SWIG encodes pointers into a
 representation containing the actual value of the pointer and a string
 representing the datatype. Thus, the SWIG representation of the above
 pointers (in Tcl), might look like the following :<p>
 
 <p>
-<blockquote><pre>_10081012_int_p
-_1008e124_double_ppp
-_f8ac_char_pp
+<blockquote><pre>_10081012_p_int
+_1008e124_ppp_double
+_f8ac_pp_char
 </pre></blockquote>
 
 <p>
@@ -525,72 +556,58 @@ A NULL pointer is represented by the string "NULL" or the value 0
 encoded with type information.<p>
 
 <p>
-All pointers are treated as opaque objects by SWIG. A pointer may be
-returned by a function and passed around to other C functions as
-needed. For all practical purposes, the scripting language interface
-works in exactly the same way as you would write a C program (well,
-with a few limitations).<p>
+All pointers are treated as opaque objects by SWIG. Thus, a pointer
+may be returned by a function and passed around to other C functions
+as needed.  For all practical purposes, the scripting language
+interface works in exactly the same way as you would manipulate the
+pointer in a C program with the exception that the pointer can't be
+dereferenced without additional information.
+
 <p>
-The scripting language representation of a pointer should never be
-manipulated directly (although nothing prevents this). SWIG does not
+The scripting language representation of a pointer value should never be
+manipulated directly (although nothing prevents this). Furthermore, SWIG does not
 normally map pointers into high-level objects such as associative
-arrays or lists (for example, it might be desirable to convert an
+arrays or lists (for example, converting an
 <tt>int *</tt> into an list of integers). There are several reasons
-for this :<p>
+why SWIG does not do this:<p>
 
 <p>
 <ul>
-<li>Adding special cases would make SWIG more complicated and
-difficult to maintain.
-
 <li>There is not enough information in a C declaration to properly map
 pointers into higher level constructs. For example, an <tt>int *</tt>
 may indeed be an array of integers, but if it contains one million
 elements, converting it into a Tcl, Perl, or Python list would
 probably be an extremely bad idea.
 
-<li>By treating all pointers equally, it is easy to know what you're
-going to get when you create an interface (pointers are treated in a
-consistent manner).
+<p>
+<li>The underlying semantics associated with a pointer is not known
+by SWIG.   For instance, an <tt>int *</tt> might not be an array at all--perhaps it
+is an output value!
+
+<P>
+<li>By handling all pointers in a consistent manner, the implementation of SWIG is greatly
+simplified and less prone to error.
 </ul>
 <p>
-As it turns out, you can remap any C datatype to behave in new ways so
-these rules are not set in stone. Interested readers should look at
-the chapter on typemaps.<p>
 
 <h3> Run time pointer type checking</h3>
 
-By allowing pointers to be manipulated interactively in a scripting
-language, we have effectively bypassed the type-checker in the C/C++
-compiler. By encoding pointer values with a datatype, SWIG is able to
-perform run-time type-checking in order to prevent mysterious system
-crashes and other anomalies. By default, SWIG uses a strict-type
-checking model that checks the datatype of all pointers before passing
-them to C/C++. However, you can change the handling of pointers using
-the <tt>-strict</tt> option:<p>
+By allowing pointers to be manipulated from a scripting language, extension modules
+effectively bypass compile-time type checking in the C/C++
+compiler.  To prevent errors, a type signature is encoded into all
+pointer values and is used to perform run-time type checking.  This
+type-checking process is an integral part of SWIG and can not be
+disabled or modified without using typemaps (described in later
+chapters).
 
 <p>
-<blockquote><pre>-strict 0			No type-checking (living on the edge)
--strict 1			Generate warning messages (somewhat annoying)
--strict 2			Strict type checking (the default)
-
-</pre></blockquote>
-
-Strict type checking is the recommended default since is the most
-reliable and most closely follows the type checking rules of C. In
-fact, at this time, the other two modes should be considered to be
-outdated SWIG features that are supported, but no longer necessary.<p>
-
-<p>
-By default, SWIG allows "NULL" pointers to be passed to C/C++. This
-has the potential to crash code and cause other problems if you are
-not careful. Checks can be placed on certain values to prevent this
-but this requires the use of typemaps (described in later
-chapters).<p>
-
-<p>
-Like C, it should also be noted that functions involving <tt>void</tt>
-pointers can accept any kind of pointer object.<p>
+Like C, <tt>void *</tt> will accept any kind of pointer.  Furthermore,
+<tt>NULL</tt> pointers can be passed to any function that expects to
+receive a pointer.  Although this has the potential to crash code and
+cause other problems, <tt>NULL</tt> pointers are also sometimes used
+as sentinel values or to denote a missing/empty value.  Therefore,
+SWIG prefers to leave NULL-pointer checking up to the extension 
+module.
 
 <h3> Derived types, structs, and classes</h3>
 
@@ -598,7 +615,9 @@ For everything else (structs, classes, arrays, etc...) SWIG applies a
 very simple rule :<p>
 
 <p>
-All complex datatypes are pointers<p>
+<center>
+<b>Everything else is a pointer</b>
+</center>
 
 <p>
 In other words, SWIG manipulates everything else by reference. This
@@ -644,72 +663,81 @@ In this case <tt>f1</tt>,<tt> f2</tt>, and <tt>buffer</tt> are all
 opaque objects containing C pointers. It doesn't matter what value
 they contain--our program works just fine without this knowledge.<p>
 
-<h3> What happens when SWIG encounters an unknown datatype?</h3>
+<h3>Undefined datatypes</h3>
 
 When SWIG encounters an unknown datatype, it automatically assumes
-that it is some sort of complex datatype. For example, suppose the
-following function appeared in a SWIG input file:<p>
+that it is a complex datatype. For example, suppose the following
+function appeared in a SWIG input file:<p>
 
 <p>
 <blockquote><pre>void matrix_multiply(Matrix *a, Matrix *b, Matrix *c);
 </pre></blockquote>
 <p>
 
-SWIG has no idea what a "<tt>Matrix</tt>" is so it will assume that
-you know what you are doing and map it into a pointer. This makes
-perfect sense because the underlying C function is using pointers in
-the first place. Unlike C or C++, SWIG does not actually care whether
-<tt>Matrix</tt> has been previously defined in the interface file or
-not. While this may sound strange, it makes it possible for SWIG to
-generate interfaces from only partial information. In many cases, you
-may not care what a <tt>Matrix</tt> really is as long as you can pass
-references to one around in the scripting language interface. The
-downside to this relaxed approach is that typos may go completely
-undetected by SWIG. You can also end up shooting yourself in the foot,
-but presumably you've passed your programming safety course if you've
-made it this far.<p>
+SWIG has no idea what a "<tt>Matrix</tt>" is.  However, it is obviously
+a pointer to something so SWIG generates a wrapper using its generic pointer
+handling code. 
 
 <p>
-As a debugging tool, SWIG will report a list of used, but undefined
-datatypes, if you run it with the <tt>-stat</tt> option.<p>
+Unlike C or C++, SWIG does not actually care whether <tt>Matrix</tt>
+has been previously defined in the interface file or not.  Although
+this may sound strange, this allows SWIG to generate interfaces from
+only partial or limited information. In some cases, you may not care
+what a <tt>Matrix</tt> really is as long as you can pass references to
+one around in the scripting language interface.
 
 <p>
-<blockquote><pre>[beazley@guinness SWIG1.1b6]$ swig -stat matrix.i
-Making wrappers for Tcl
-Wrapped 1 functions
-Wrapped 0 variables
-Wrapped 0 constants
-The following datatypes were used, but undefined.
-     Matrix
-[beazley@guinness SWIG1.1b6]$
-</pre></blockquote>
+An important detail to mention is that SWIG will gladly generate
+wrappers for interfaces where there are unspecified type names.
+However, <b>all unspecified types are wrapped as pointers!</b>.  
+For example, consider the following declaration:
+
+<blockquote>
+<pre>
+void foo(size_t num);
+</pre>
+</blockquote>
+
+If <tt>size_t</tt> is undefined, SWIG is going to generate wrappers
+that try to work with a type <tt>size_t *</tt> (this is described shortly).
+As a result, the scripting interface might behave strangely.  For example:
+
+<blockquote>
+<pre>
+foo(40);
+TypeError: expected a _p_size_t.
+</pre>
+</blockquote>
+
+The only way to fix this is to define new type names using <tt>typedef</tt>.
+
+<!-- We might want to add an error reporting flag to swig -->
 
 <h3>Typedef</h3>
 
-<tt>typedef</tt> can be used to remap datatypes within SWIG. For example :<p>
+Like C, <tt>typedef</tt> can be used to create new type names. For example:
 <p>
 <blockquote><pre>typedef unsigned int size_t;
 
 </pre></blockquote>
 
-This makes SWIG treat <tt>size_t</tt> like an unsigned int. Use of
-<tt>typedef</tt> is fairly critical in most applications. Without it,
-SWIG would consider <tt>size_t</tt> to be a complex object (which
-would be incorrectly converted into a pointer).<p>
+Use of <tt>typedef</tt> is fairly critical in most applications. Without it,
+SWIG considers <tt>size_t</tt> to be a complex object and will arrange to
+manipulate it as a pointer---which is probably not want you intended.
 
-<h2> Getting down to business</h2>
+<h2>Practicalities</h2>
 
 So far, you know just about everything you need to know to use SWIG to
 build interfaces. In fact, using nothing but basic datatypes and
 opaque pointers it is possible to build scripting language interfaces
-to most kinds of C/C++ packages. However, as the novelty wears off,
-you will want to do more. This section describes SWIG's treatment of
-more sophsticated issues.<p>
+to a wide variety of C/C++ libraries. However, as the novelty wears off,
+you will probably want to do more. This section describes a number of more
+sophisticated issues.
 
 <h3> Passing complex datatypes by value</h3>
 
 Unfortunately, not all C programs manipulate complex objects by
-reference. When encountered, SWIG will transform the corresponding
+reference. When encountered, SWIG transform the corresponding
 C/C++ declaration to use references instead. For example, suppose you
 had the following function :<p>
 
@@ -718,7 +746,7 @@ had the following function :<p>
 </pre></blockquote>
 
 <p>
-SWIG will transform this function call into the equivalent of the
+SWIG transform this function call into the equivalent of the
 following :<p>
 
 <p>
@@ -728,7 +756,7 @@ following :<p>
 </pre></blockquote>
 
 <p>
-In the scripting language<tt>, dot_product</tt> will now take
+In the scripting language<tt>, dot_product</tt> now takes
 references to Vectors instead of Vectors, although you may not notice
 the change. <p>
 
@@ -769,10 +797,8 @@ or if using C++ :<p>
 SWIG is forced to create a new object and return a reference to it. It
 is up to the user to delete the returned object when it is no longer
 in use. When used improperly, this can lead to memory leaks and other
-problems. Personally, I'd rather live with a potential memory leak
-than forbid the use of such a function. Needless to say, some care is
-probably in order (you need to be aware of this behavior in any
-case). <p>
+problems. Needless to say, some care is probably in order (you need to 
+be aware of this behavior in any case). <p>
 
 <h3> Linking to complex variables</h3>
 
@@ -797,19 +823,16 @@ Vector *unit_i_set(Vector *value) {
 <p>
 Returning a reference to the variable makes it accessible like any
 other object of this type. When setting the value, we simply make a
-copy of some other Vector reference. Again some caution is in order. A
+copy of another object. Again some caution is in order. A
 global variable created in this manner will show up as a reference in
 the target scripting language. It would be an extremely bad idea to
-free or destroy such a reference. Similarly, one can run into problems
-when copying complex C++ objects in this manner. Fortunately, in
-well-written modular code, excessive use (or abuse) of global
-variables is rare.<p>
+free or destroy such a reference. Similarly, you might run into problems
+if a C++ object doesn't define a proper copy constructor.
 
 <h3> Arrays</h3>
 
-The use of arrays in the current version of SWIG is supported, but
-with caution. If simple arrays appear, they will be mapped into a
-pointer representation. Thus, the following declarations :<p>
+Arrays are fully supported by SWIG, but they are always handled as pointers instead
+of a special array object or list.  Thus, the following declarations :<p>
 
 <p>
 <blockquote><pre>int foobar(int a[40]);
@@ -818,12 +841,12 @@ void transpose(double a[20][20]);
 </pre></blockquote>
 
 <p>
-will be processed as if they were declared like this:<p>
+are processed as if they were really declared like this:
 
 <p>
 <blockquote><pre>int foobar(int *a);
 void grok(char **argv);
-void transpose(double (*a)[20]);
+void transpose(double *a);
 </pre></blockquote>
 
 <p>
@@ -834,12 +857,9 @@ they can be used in similar ways). Rather, <tt>a[][]</tt> is mapped to
 reader is encouraged to dust off their C book and look at the section
 on arrays before using them with SWIG.<p>
 
-<p>
-Be aware that use of arrays may cause compiler warnings or errors when
-compiling SWIG generated modules. While every attempt has been made to
-eliminate these problems, handling of arrays can be somewhat
-problematic due to the subtle differences between an array and a
-pointer.<p>
+Like C, SWIG does not perform array bounds or shape checking.  When an array is wrapped,
+any pointer to an appropriate type will be accepted.   It is up to the
+user to make sure the pointer points a suitably allocated region of memory. 
 
 <h3> Creating read-only variables</h3>
 
@@ -905,47 +925,6 @@ SWIG does not perform any checks to see if the functions it adds are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
 avoid these problems.<p>
-
-<h3> Overriding call by reference</h3>
-
-SWIG is quite literal in its interpretation of datatypes. If you give
-it a pointer, it will use pointers. For example, if you're trying to
-call a function in a Fortran library (through its C interface) all
-function parameters will have to be passed by reference. Similarly,
-some C functions may use pointers in unusual ways. The <tt>%val</tt>
-directive can be used to change the calling mechanism for a C
-function. For example :<p>
-
-<p>
-<blockquote><pre>// interface.i
-%{
-#include &lt;time.h&gt;
-%}
-
-typedef long time_t;
-time_t time(time_t *t);
-struct tm *localtime(%val time_t *t);
-char *asctime(struct tm *);
-
-</pre></blockquote>
-
-The <tt>localtime()</tt> function takes a pointer to a <tt>time_t</tt>
-value, but we have forced it to take a value instead in order to match
-up nicely with the return value of the <tt>time()</tt> function. When
-used in Perl, this allows us to do something like this :<p>
-
-<blockquote><pre>
-$t = time(0);
-$tm = localtime($t); # Note passing $t by value here
-print $asctime($tm);
-
-</pre></blockquote>
-
-Internally, the <tt>%val</tt> directive creates a temporary
-variable. The argument value is stored in this variable and a function
-call is made using a pointer to the temporary variable. Of course, if
-the function returns a value in this temporary variable, it will be
-lost forever. <p>
 
 <h3> Default/optional arguments</h3>
 
