@@ -63,7 +63,7 @@ struct swig_module {
 
 swig_module  modules[] = {  
   {"-chicken",   swig_chicken,   "CHICKEN"},
-  {"-csharp",    swig_csharp,    "CSharp"},
+  {"-csharp",    swig_csharp,    "C#"},
   {"-guile",     swig_guile,     "Guile"},
   {"-java",      swig_java,      "Java"},
   {"-mzscheme",  swig_mzscheme,  "Mzscheme"},
