@@ -8,10 +8,6 @@
  *     type-expansion.  All types are fully qualified with namespace prefixes
  *     and other information needed for compilation.
  *
- *     This module also handles the %varargs directive by looking for
- *     "feature:varargs" and substituting ... with an alternative set of
- *     arguments.
- * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2002.  The University of Chicago
@@ -558,26 +554,6 @@ class TypePass : private Dispatcher {
       Delattr(n,"throws");
     }
 
-    /* Search for var args */
-    if (Getattr(n,"feature:varargs")) {
-      ParmList *v = Getattr(n,"feature:varargs");
-      Parm     *p = Getattr(n,"parms");
-      Parm     *pp = 0;
-      while (p) {
-	SwigType *t = Getattr(p,"type");
-	if (Strcmp(t,"v(...)") == 0) {
-	  if (pp) {
-	    set_nextSibling(pp,Copy(v));
-	  } else {
-	    Setattr(n,"parms", Copy(v));
-	  }
-	  break;
-	}
-	pp = p;
-	p = nextSibling(p);
-      }
-    }
-
     /* Normalize types. */
     SwigType *ty = Getattr(n,"type");
     normalize_type(ty);
@@ -638,25 +614,6 @@ class TypePass : private Dispatcher {
       Delattr(n,"throws");
     }
 
-    /* Search for var args */
-    if (Getattr(n,"feature:varargs")) {
-      ParmList *v = Getattr(n,"feature:varargs");
-      Parm     *p = Getattr(n,"parms");
-      Parm     *pp = 0;
-      while (p) {
-	SwigType *t = Getattr(p,"type");
-	if (Strcmp(t,"v(...)") == 0) {
-	  if (pp) {
-	    set_nextSibling(pp,Copy(v));
-	  } else {
-	    Setattr(n,"parms", Copy(v));
-	  }
-	  break;
-	}
-	pp = p;
-	p = nextSibling(p);
-      }
-    }
     normalize_parms(Getattr(n,"parms"));
     normalize_parms(Getattr(n,"throws"));
       
