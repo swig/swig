@@ -1,5 +1,8 @@
 %module namespace_nested
 
+%warnfilter(801) hello::hi::hi0;	/* Ruby, wrong class name */
+%warnfilter(801) oss::hi1<hello::Hi0 >;	/* Ruby, wrong class name */
+
 %inline %{
   namespace hello
   {  

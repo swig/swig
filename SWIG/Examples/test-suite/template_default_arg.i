@@ -1,5 +1,6 @@
 %module template_default_arg
 
+%warnfilter(801) hi;	/* Ruby, wrong class name */
 
 %inline %{
   template <class T>

@@ -1,5 +1,8 @@
 %module using_namespace
 
+%warnfilter(801) hi::hi0;	/* Ruby, wrong class name */
+%warnfilter(801) hi::hi1;	/* Ruby, wrong class name */
+
 %warnfilter(802, 813) Hi<hello::Hello, hi::hi0>; // Ruby, Java multiple inheritance
 
 %inline %{
