@@ -1468,7 +1468,12 @@ String *SwigType_manglestr_default(SwigType *s) {
   char *c;
   String *result,*base;
   SwigType *lt;
+  SwigType *ss = 0;
 
+  if (SwigType_istemplate(s)) {
+    ss = SwigType_typedef_resolve_all(s);
+    s = ss;
+  }
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
@@ -1505,6 +1510,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   Insert(result,0,"_");
   Delete(lt);
   Delete(base);
+  if (ss) Delete(ss);
   return result;
 }
 
