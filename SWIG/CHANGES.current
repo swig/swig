@@ -1,5 +1,53 @@
 Version 1.3.16 (In progress)
 ==================================
+09/15/2002: beazley
+            Fixed segmentation fault for unnamed structures.  For example:
+
+               typedef struct {
+               } *blah;
+
+
+            Reported by Roger Gibson.
+            Note: we might be able to generate wrappers in special cases.
+               
+09/13/2002: beazley
+            Minor modification to generated wrapper functions.  Pointer arguments are now
+            always set to an initial value of 0.   Simplifies typemap writing and cleanup
+            code (since you can rely on zero-value initialization).   This also greatly
+            reduces the need to ever write an "arginit" typemap.
+
+09/12/2002: beazley
+            Minor enhancement to smart-pointer support.  If operator->()
+            is part of an ignored base class like this,
+
+                 %ignore Bar;
+
+                 class Foo {
+                 public:
+                     int blah();
+                 };
+
+                 class Bar {         /* Ignored */
+                 public:
+                     ...
+                     Foo *operator->();
+                     ...
+                 };
+
+                 class Spam : public Bar { };
+ 
+            then methods from Foo are still available.  For example,
+ 
+                 >>> s = Spam()
+                 >>> s.blah()
+                 0
+                 >>>
+
+             The only catch is that the operator->() itself is not available
+             (since it wasn't wrapped).   Therefore, there won't be any
+             __deref__() operation unless it is explicitly added to Spam
+             (either using %extend or just placing operator->() in the
+             definition of Spam).
 
 09/11/2002: ttn
 	    [Methodology] Reworked "make check" to be more table driven.
