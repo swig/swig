@@ -43,6 +43,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	constructor_exception \
+	template_arg_scope \
 	default_ns \
 	template_ns_enum2 \
 	overload_template \
