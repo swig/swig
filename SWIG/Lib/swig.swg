@@ -71,6 +71,9 @@
 /* Warnings */
 #define %warnfilter(...) %feature("warnfilter",`__VA_ARGS__`)
 
+/* Warnings used in typemaps. Macro names are the same as those in swigwarn.h but prefixed by SWIG_. */
+%define SWIG_WARN_TYPEMAP_THREAD_UNSAFE "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
+
 /* Contract support - Experimental and undocumented */
 
 #define %contract    %feature("contract")
