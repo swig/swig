@@ -16,6 +16,78 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+
+08/07/2002: beazley
+            [Python,Tcl]
+            Object management now has a much better sense of ownership.
+            Ownership bits is changed whenever an object is stored in a
+            global variable or structure member.  For example:
+
+                struct Foo {
+                    int val;
+                    Foo *next;
+                };
+
+            Now in Python
+
+               >>> f = Foo()
+               >>> f.thisown
+               1
+               >>> g = Foo()
+               >>> g.next = f          # Assign a pointer
+               >>> f.thisown           # Notice ownership change
+               0
+               >>>
+
+            This scheme is mostly a conservative heuristic designed to 
+            provide segmentation faults.  It could cause a memory leak
+            if ownership is changed unnecessarily.  In this case, you can
+            either write a typemap (that doesn't change ownership), or
+            manually set the thisown attribute back to 1.
+
+08/07/2002: beazley
+            [Tcl] Major usability improvements to the object interface.
+            Suppose you had code like this:
+
+                 struct Foo { 
+                     int x;
+                     int spam();
+                 };
+
+                 void  blah(Foo *f);
+
+            In past versions of SWIG, you could create objects and use
+            them like this:
+
+                % Foo f
+                % f configure -x 3
+                % f spam
+                37
+    
+            The only problem is that if you tried to call blah(), it didn't
+            work:
+
+                % blah f
+                Type Error. Expected _p_Foo
+                %
+
+            Instead, you had to do this:
+
+                % blah [f cget -this]
+  
+            SWIG now automatically extracts the -this pointer, avoiding this
+            problem.  This means that saying "blah f" is perfectly legal and
+            everything will still work normally.
+
+            Caveat: Since pointer strings start with a leading underscore (_),
+            don't use this in object names.  For example:
+
+                % Foo _f 
+                % blah _f        # Potential crash
+
+            Objects now have a -thisown attribute that shows the ownership.
+            This builds upon the CHANGES 11/24/2001 entry.
+
 08/07/2002: samjam, Sam Liddicott
             Properly implemented pointer system using php resources.
             Still need to work out whether or not to let script-users call
