@@ -67,7 +67,6 @@
 <li><a href="#n44">Operator overloading</a>
 <ul>
 <li><a href="#n45">An example (putting everything together)</a>
-<li><a href="#n46">Expanding the example</a>
 <li><a href="#n47">STL Vector to Ruby Array</a>
 </ul>
 <li><a href="#n48">Advanced Topics</a>
@@ -732,19 +731,19 @@ All of the usual Ruby utility methods work normally:
 
 <blockquote>
 <pre>
-irb(main):001:0> <b>b = Bar.new</b>
+irb(main):001:0> <b>c = Child.new</b>
 #&lt;Bar:0x4016efd4>
-irb(main):002:0> <b>b.instance_of? Bar</b>
+irb(main):002:0> <b>c.instance_of? Child</b>
 true
-irb(main):003:0> <b>b.instance_of? Foo</b>
+irb(main):003:0> <b>b.instance_of? Parent</b>
 false
-irb(main):004:0> <b>b.is_a? Bar</b>
+irb(main):004:0> <b>b.is_a? Child</b>
 true
-irb(main):005:0> <b>b.is_a? Foo</b>
+irb(main):005:0> <b>b.is_a? Parent</b>
 true
-irb(main):006:0> <b>Bar < Foo</b>
+irb(main):006:0> <b>Child < Parent</b>
 true
-irb(main):007:0> <b>Bar > Foo</b>
+irb(main):007:0> <b>Child > Parent</b>
 false
 </pre>
 </blockquote>
@@ -1433,7 +1432,7 @@ following in an interface file:
   try {
     $action
   }
-  catch (RangeError) {
+  catch (const RangeError&) {
     static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);
     rb_raise(cpperror, "Range error.");
   }
@@ -1460,7 +1459,7 @@ exception handler to only apply to specific methods like this:
   try {
     $action
   }
-  catch (RangeError) {
+  catch (const RangeError&) {
     static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);
     rb_raise(cpperror, "Range error in getitem.");
   }
@@ -1470,7 +1469,7 @@ exception handler to only apply to specific methods like this:
   try {
     $action
   }
-  catch (RangeError) {
+  catch (const RangeError&) {
     static VALUE cpperror = rb_define_class("CPPError", rb_eStandardError);
     rb_raise(cpperror, "Range error in setitem.");
   }
@@ -1488,72 +1487,11 @@ exception handling.  See the chapter on <a href="Customization.html">Customizati
 Features</a> for more examples.
 
 <p>
-When raising a Ruby exception from C, use the <tt>rb_raise()</tt>
+When raising a Ruby exception from C/C++, use the <tt>rb_raise()</tt>
 function as shown above. The first argument passed to <tt>rb_raise()</tt> is
 the exception type. You can raise a custom exception type (like the <tt>cpperror</tt> example
-shown above) or one of the built-in Ruby exception types, listed here:
-
-<blockquote>
-<pre>
-rb_eException
-rb_eStandardError
-rb_eSystemExit
-rb_eInterrupt
-rb_eSignal
-rb_eFatal
-rb_eArgError
-rb_eEOFError
-rb_eIndexError
-rb_eRangeError
-rb_eIOError
-rb_eRuntimeError
-rb_eSecurityError
-rb_eSystemCallError
-rb_eTypeError
-rb_eZeroDivError
-rb_eNotImpError
-rb_eNoMemError
-rb_eNoMethodError
-rb_eFloatDomainError
-
-rb_eScriptError
-rb_eNameError
-rb_eSyntaxError
-rb_eLoadError
-
-</pre>
-</blockquote>
-
-These exceptions are actually organized into an hierarchy as shown below.
-
-<blockquote>
-<pre>
-Exception          - rb_eException
-Fatal              - rb_eFatal
-Interrupt          - rb_eInterrupt
-NoMemoryError      - rb_eNoMemError
-Signal             - rb_eSignal
-ScriptError        - rb_eScriptError
-  LoadError        - rb_eLoadError
-  NameError        - rb_eNameError
-  NotImpError      - rb_eNotImpError
-  SyntaxError      - rb_eSyntaxError
-  NoMethodError    - rb_eNoMethodError
-StandardError      - rb_eStandardError
-  ArgError         - rb_eArgError
-  FloatDomainError - rb_eFloatDomainError
-  IndexError       - rb_eIndexError
-  IOError          - rb_eIOError
-    EOFError       - rb_eEOFError
-  SecurityError    - rb_eSecurityError
-  RuntimeError     - rb_eRuntimeError
-  SystemCallError  - rb_eSystemCallError
-  TypeError        - rb_eTypeError
-  ZeroDivError     - rb_eZeroDivError
-  RangeError       - rb_eRangeError
-SystemExit
-</pre>
-</blockquote>
+shown above) or one of the built-in Ruby exception types. For a list of the standard
+Ruby exception classes, consult a Ruby reference such as <a href="http://www.rubycentral.com/book"><em>Programming Ruby</em></a>.
 
 <hr>
 <a name="n29"></a><H2>20.6 Typemaps</H2>
@@ -1578,12 +1516,13 @@ a specific C datatype.   For example, to convert integers from Ruby to C,
 you might define a typemap like this:
 <p>
 <blockquote><pre>
+%module example
 
-%module Example
 %typemap(in) int {
   $1 = (int) NUM2INT($input);
   printf("Received an integer : %d\n",$1);
 }
+
 extern int fact(int n);
 </pre></blockquote>
 
@@ -1596,13 +1535,16 @@ code a number of special variables prefaced by a <tt>$</tt> are used.  The
 <tt>$1</tt> variable is placeholder for a local variable of type <tt>int</tt>.
 The <tt>$input</tt> variable is the input Ruby object.
 <p>
-When this example is compiled into a Ruby module, it operates as follows:
+When this example is compiled into a Ruby module, the following sample code:
 
 <p>
 <blockquote><pre>
 require 'example'
+
 puts Example.fact(6)
----- Prints
+</pre></blockquote>
+prints the result:
+<blockquote><pre>
 Received an integer : 6
 720
 </pre></blockquote>
@@ -1817,7 +1759,7 @@ The Ruby name of the wrapper function being created.
 
 When you write a typemap, you usually have to work directly with Ruby objects.
 The following functions may prove to be useful.  (These functions plus many
-more can be found in the "Programming Ruby" book written by David Thomas
+more can be found in <a href="http://www.rubycentral.com/book"><em>Programming Ruby</em></a>, by David Thomas
 and Andrew Hunt.)
 
 <p>
@@ -2411,13 +2353,10 @@ __ge__        - &gt;=
 
 Note that although SWIG supports the <tt>__eq__</tt> magic method name for defining an equivalence operator, there is no separate method for handling <i>inequality</i> since Ruby parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 
-<a name="n45"></a><H3>20.7.1 An example (putting everything together)</H3>
+<a name="n45"></a><H3>20.7.1 Example: Using Standard SWIG Library Modules</H3>
 
-
-One way to illustrate the use of operator overloading, as well as the wrapping
-of templates (see the "<a href="SWIGPlus.html">SWIG and C++</a>" section on
-templates) is shown in the following <tt>.i</tt> example is used, given an
-STL vector class:
+The following example illustrates how to use two of the standard SWIG library modules
+(the <tt>std_string.i</tt> and <tt>std_vector.i</tt> modules).
 
 <p>
 <blockquote><pre>
@@ -2474,48 +2413,7 @@ irb(main):014:0> <b>s_list[0]</b>
 </pre></blockquote>
 <p>
 
-<a name="n46"></a><H3>20.7.2 Expanding the example</H3>
-
-
-To expand on the previous example, the following shows how to create a vector
-of a C++ class object:
-
-<blockquote><pre>
-class CPP_Object;
-%template(CPP_ObjectPtrVector)  vector&lt;CPP_Object*&gt;;
-
-%extend CPP_ObjectPtrVector {
-  void each () {
-    CPP_ObjectPtrVector::iterator i1 = self-&gt;begin();
-    CPP_ObjectPtrVector::iterator i1end = self-&gt;end();
-    for ( ; i1 != i1end; i1++) 
-      rb_yield(Data_Wrap_Struct(cCPP_Object.klass, NULL, NULL, *i1));
-  }
-}
-</pre></blockquote>
-
-Notice that the SWIG interface has created a <tt>cCPP_Object</tt> that is of
-type <tt>swig_class</tt>.  This is an implementation detail that only works for
-SWIG 1.3.11; for previous versions of SWIG the data type of
-<tt>cCPP_Object</tt> was <tt>VALUE</tt>.
-
-<p>
-<blockquote><pre>
-typedef struct {
-  VALUE  klass;
-  void (*mark)(void *);
-  void (*destroy)(void *);
-} swig_class;
-</pre></blockquote>
-
-Thus, to access the pointer to the <tt>CPP_Object</tt>, the variable
-<tt>klass</tt> is used.<p>
-
-Also note that the call to <tt>Data_Wrap_Struct()</tt> sets the <tt>free</tt>
-parameter for <tt>CPP_Object</tt> to <tt>NULL</tt>.  That is done because C++,
-  owns the object and thus should free it, not Ruby.
-
-<a name="n47"></a><H3>20.7.3 STL Vector to Ruby Array</H3>
+<a name="n47"></a><H3>20.7.3 Example: STL Vector to Ruby Array</H3>
 
 
 Another use for macros and type maps is to create a Ruby array from a STL
