@@ -161,16 +161,6 @@ static Parm *nonvoid_parms(Parm *p) {
   return p;
 }
 
-/* Check if a proper C/C++ identifier */
-static int is_identifier(String *s) {
-  char *c = Char(s);
-  while (*c) {
-    if (!(isalnum(*c) || (*c == '_') || (*c == ':'))) return 0;
-    c++;
-  }
-  return 1;
-}
-
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
@@ -555,8 +545,8 @@ void Language::cDeclaration(Node *n) {
     Printf(stderr,"%s:%d. Warning. Qualified declaration %s ignored.\n", input_file, line_number, name);    
     return;
   }
-  
-  if (symname && !is_identifier(symname) && (Cmp(symname,name) == 0)) {
+
+  if (symname && !validIdentifier(symname)) {
     Printf(stderr,"%s:%d. Warning. Can't wrap %s unless renamed to a valid identifier.\n",
 	   input_file, line_number, symname);
     return;
@@ -1408,11 +1398,11 @@ void Language::import_end() {
   /*  Printf(stdout,"end import\n"); */
 }
 
-/* -----------------------------------------------------------------------------
- * Language::is_multiple_definition()
- * ----------------------------------------------------------------------------- */
-
-int Language::is_multiple_definition() {
-  WARNING("lang->is_multiple_definition() is useless with new symbol table handling. Remove.");
-  return 0;
+int Language::validIdentifier(String *s) {
+  char *c = Char(s);
+  while (*c) {
+    if (!(isalnum(*c) || (*c == '_'))) return 0;
+    c++;
+  }
+  return 1;
 }
