@@ -153,6 +153,9 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual void main(int argc, char *argv[]) {
+    /* Set location of SWIG library */
+    SWIG_library_directory("ruby");
+    
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -175,15 +178,14 @@ public:
 	}
       }
     }
-    /* Set location of SWIG library */
-    SWIG_library_directory("ruby");
-    
+
     /* Add a symbol to the parser for conditional compilation */
-    Preprocessor_define((void *) "SWIGRUBY 1", 0);
+    Preprocessor_define("SWIGRUBY 1", 0);
     
     /* Add typemap definitions */
     SWIG_typemap_lang("ruby");
     SWIG_config_file("ruby.swg");
+    allow_overloading();
   }
 
   /* ---------------------------------------------------------------------
@@ -607,8 +609,6 @@ public:
     SwigType *t = Getattr(n,"type");
     ParmList *l = Getattr(n,"parms");
     String *tm;
-    String *cleanup, *outarg;
-    Wrapper *f;
     
     char mname[256], inamebuf[256];
     int need_result = 0;
@@ -616,10 +616,18 @@ public:
     /* Ruby needs no destructor wrapper */
     if (current == DESTRUCTOR)
       return SWIG_NOWRAP;
+    
+    String *overname = 0;
+    if (Getattr(n, "sym:overloaded")) {
+      overname = Getattr(n, "sym:overname");
+    } else {
+      if (!addSymbol(iname, n))
+        return SWIG_ERROR;
+    }
 
-    cleanup = NewString("");
-    outarg = NewString("");
-    f = NewWrapper();
+    String *cleanup = NewString("");
+    String *outarg = NewString("");
+    Wrapper *f = NewWrapper();
 
     switch (current) {
     case MEMBER_FUNC:
@@ -629,23 +637,27 @@ public:
       break;
     }
   
-    // Rename predicate methods
+    /* Rename predicate methods */
     if (Getattr(n, "feature:predicate")) {
       sprintf(inamebuf,"%s?",iname);
       iname = inamebuf;
     }
 
-    String *wname = Swig_name_wrapper(iname);
+    /* Determine the name of the SWIG wrapper function */
+    char wname[256];
+    strcpy(wname, Char(Swig_name_wrapper(iname)));
+    if (overname) {
+      strcat(wname, Char(overname));
+    }
   
-  /* Emit arguments */
+    /* Emit arguments */
     if (current != CONSTRUCTOR_ALLOCATE) {
       emit_args(t,l,f);
     }
 
-    /* Calculate number of arguments */
-
-  /* Attach standard typemaps */
-    emit_attach_parmmaps(l,f);
+    /* Attach standard typemaps */
+    emit_attach_parmmaps(l, f);
+    Setattr(n, "wrap:parms", l);
 
     /* Get number of arguments */
     int numarg = emit_num_arguments(l);
@@ -654,9 +666,7 @@ public:
 
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR) ? 1 : 0;
 
-  /* Generate wrapper safe for all argument list sizes */
-  
-  /* Now write the wrapper function itself */
+    /* Now write the wrapper function itself */
     Printv(f->def, "static VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NULL);
 
     if (current != CONSTRUCTOR_ALLOCATE) {
@@ -728,7 +738,7 @@ public:
     if (current != CONSTRUCTOR_ALLOCATE)
       Printv(f->code,cleanup,NULL);
 
-  /* Look for any remaining cleanup.  This processes the %new directive */
+    /* Look for any remaining cleanup.  This processes the %new directive */
     if (newobj) {
       tm = Swig_typemap_lookup_new("newfree",n,"result",0);
       if (tm) {
@@ -764,16 +774,58 @@ public:
     /* Emit the function */
     Wrapper_print(f, f_wrappers);
 
-    /* Now register the function with the language */
-    create_command(n, iname);
+    /* Now register the function with the interpreter */
+    if (!Getattr(n, "sym:overloaded")) {
+      create_command(n, iname);
+    } else {
+      Setattr(n, "wrap:name", wname);
+      if (!Getattr(n, "sym:nextSibling"))
+        dispatchFunction(n);
+    }
+    
     Delete(cleanup);
     Delete(outarg);
     DelWrapper(f);
   
-  /* Done */
     return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * dispatchFunction()
+   * ------------------------------------------------------------ */
+   
+  void dispatchFunction(Node *n) {
+    /* Last node in overloaded chain */
+
+    int maxargs;
+    String *tmp = NewString("");
+    String *dispatch = Swig_overload_dispatch(n, "return %s(argc, argv, self);", &maxargs);
+	
+    /* Generate a dispatch wrapper for all overloaded functions */
+
+    Wrapper *f       = NewWrapper();
+    String  *symname = Getattr(n, "sym:name");
+    String  *wname   = Swig_name_wrapper(symname);
+
+    Printv(f->def,	
+	   "static VALUE ", wname,
+	   "(int argc, VALUE *argv, VALUE self) {",
+	   NULL);
+    
+    Replaceall(dispatch, "$args", "argc, argv, self");
+    Printv(f->code, dispatch, "\n", NULL);
+    Printf(f->code, "rb_raise(rb_eArgError, \"No matching function for overloaded '%s'\");\n", symname);
+    Printf(f->code,"return Qnil;\n");
+    Printv(f->code, "}\n", NULL);
+    Wrapper_print(f, f_wrappers);
+    create_command(n, Char(symname));
+
+    DelWrapper(f);
+    Delete(dispatch);
+    Delete(tmp);
+    Delete(wname);
+  }
+  
   /* ---------------------------------------------------------------------
    * variableWrapper()
    * --------------------------------------------------------------------- */

@@ -388,17 +388,17 @@ typedef unsigned long VALUE;
 
 %typecheck(0) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   void *ptr;
-  $1 = (SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) == -1) ? 0 : 1;
+  $1 = (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0) != -1) ? 1 : 0;
 }
 
 %typecheck(0) SWIGTYPE {
   void *ptr;
-  $1 = (SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) == -1) ? 0 : 1;
+  $1 = (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, $&1_descriptor, 0) != -1) ? 1 : 0;
 }
 
 %typecheck(1) void * {
   void *ptr;
-  $1 = (SWIG_ConvertPtr($input, &ptr, 0, 0) == -1) ? 0 : 1;
+  $1 = (TYPE($input) == T_DATA && SWIG_ConvertPtr($input, &ptr, 0, 0) != -1) ? 1 : 0;
 }
 
 /* ------------------------------------------------------------
