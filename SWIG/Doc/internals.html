@@ -472,7 +472,7 @@ operations that allow them to be used interchangably with DOH file objects.
 <h2>3. Types and Typemaps</h2>
 </a>
 
-Revised: Dave Beazley (7/22/00)
+Revised: Dave Beazley (8/14/00)
 
 <p>
 The representation and manipulation of types is currently in the
@@ -482,7 +482,7 @@ manipulate datatypes.  These functions are different than in
 SWIG1.1 and may change names in the final SWIG1.3 release.
 
 <ul>
-<li><tt>DataType_str(DataType *t, char *name)</tt>.<br>
+<li><tt>SwigType_str(SwigType *t, char *name)</tt>.<br>
  This function produces the exact string 
 representation of the datatype <tt>t</tt>.  <tt>name</tt> is an optional parameter that 
 specifies a declaration name.   This is used when dealing with more complicated datatypes
@@ -490,7 +490,7 @@ such as arrays and pointers to functions where the output might look something l
 "<tt>int (*name)(int, double)</tt>".
 
 <p>
-<li><tt>DataType_lstr(DataType *t, char *name)</tt>.<br>
+<li><tt>SwigType_lstr(SwigType *t, char *name)</tt>.<br>
 This function produces a string
 representation of a datatype that can be safely be assigned a value (i.e., can be used as the
 "lvalue" of an expression).   To do this, qualifiers such as "const", arrays, and references
@@ -512,7 +512,7 @@ of which must be reassignable types since they are the targets of conversions fr
 representation. 
 
 <p>
-<li><tt>DataType_rcaststr(DataType *t, char *name)</tt>.
+<li><tt>SwigType_rcaststr(SwigType *t, char *name)</tt>.
 <br>  This function produces a string
 that casts a type produced by the <tt>lstr()</tt> function to the type produced by the
 <tt>str()</tt> function.  You might view it as the inverse of lstr().   This function only produces
@@ -533,7 +533,7 @@ double &a                     (double &) *name
 
 
 <p>
-<li><tt>DataType_lcaststr(DataType *t, char *name)</tt>.
+<li><tt>SwigType_lcaststr(SwigType *t, char *name)</tt>.
 <br>  This function produces a string
 that casts a type produced by the <tt>str()</tt> function to the type produced by the
 <tt>lstr()</tt> function.  This function only produces
@@ -553,13 +553,12 @@ double &a                     (double *) &name
 </blockquote>
 
 <p>
-<li><tt>DataType_manglestr(DataType *t)</tt>. <br>
+<li><tt>SwigType_manglestr(SwigType *t)</tt>. <br>
 Produces a type-string that is used to identify this datatype in the target scripting language.
-Usually this string looks something like "<tt>_double_pp</tt>" although the target language
+Usually this string looks something like "<tt>_p_p_double</tt>" although the target language
 may redefine the output for its own purposes.  Normally this function strips all qualifiers,
 references, and arrays---producing a mangled version of the type produced by the <tt>lstr()</tt> function.
 </ul>
-
 
 The following example illustrates the intended use of the above functions when creating wrapper
 functions using shorthand pseudocode.   Suppose you had a function like this:
