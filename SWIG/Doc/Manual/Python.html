@@ -176,7 +176,7 @@ int fact(int n);
 To build a Python module, run SWIG using the <tt>-python</tt> option :
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -python example.i
 </pre></div>
 
@@ -184,7 +184,7 @@ $ swig -python example.i
 If building a C++ extension, add the <tt>-c++</tt> option:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c++ -python example.i
 </pre></div>
 
@@ -212,7 +212,7 @@ In order to compile the C/C++ wrappers, the compiler needs the <tt>Python.h</tt>
 This file is usually contained in a directory such as 
 </p>
 
-<div class="code"><pre>
+<div class="diagram"><pre>
 /usr/local/include/python2.0
 </pre></div>
 
@@ -222,7 +222,7 @@ typical.  If you are not entirely sure where Python is installed, you
 can run Python to find out.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 $ python
 Python 2.1.1 (#1, Jul 23 2001, 14:36:06)
@@ -241,10 +241,10 @@ Type "copyright", "credits" or "license" for more information.
 <p>
 The preferred approach to building an extension module is to compile it into
 a shared object file or DLL.   To do this, you need to compile your program
-using comands like this (shown for Linux):
+using commands like this (shown for Linux):
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -python example.i
 $ gcc -c -fPIC example.c
 $ gcc -c -fPIC example_wrap.c -I/usr/local/include/python2.0
@@ -290,7 +290,7 @@ module actually consists of two files; <tt>socket.py</tt> and
 <p>
 An alternative approach to dynamic linking is to rebuild the Python
 interpreter with your extension module added to it.  In the past,
-this approach was sometimes necesssary due to limitations in dynamic loading
+this approach was sometimes necessary due to limitations in dynamic loading
 support on certain machines.  However, the situation has improved greatly
 over the last few years and you should not consider this approach 
 unless there is really no other option.
@@ -326,7 +326,7 @@ contains everything needed to rebuild Python. To rebuild the interpreter,
 you simply do something like this:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -python example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
@@ -369,7 +369,7 @@ To use your module, simply use the Python <tt>import</tt> statement. If
 all goes well, you will be able to this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 $ python
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; example.fact(4)
@@ -381,7 +381,7 @@ $ python
 A common error received by first-time users is the following:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 Traceback (most recent call last):
@@ -403,7 +403,7 @@ don't forget the leading underscore (_).
 Another possible error is the following:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 Traceback (most recent call last):
@@ -427,7 +427,7 @@ wrapper code with the rest of your application when creating the extension modul
 Another common error is something similar to the following:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 Traceback (most recent call last):
   File "example.py", line 3, in ?
@@ -458,7 +458,7 @@ the <tt>%ignore</tt> directive to ignore the declaration.
 Finally, suppose that your extension module is linked with another library like this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib <b>-lfoo</b> \
       -o _example.so
@@ -470,7 +470,7 @@ If the <tt>foo</tt> library is compiled as a shared library, you might encounter
 problem when you try to use your module:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 Traceback (most recent call last):
@@ -489,7 +489,7 @@ there are several things you can do.  First, you can recompile your extension
 module with extra path information. For example, on Linux you can do this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ gcc -shared example.o example_wrap.o -L/home/beazley/projects/lib -lfoo \
       <b>-Xlinker -rpath /home/beazley/projects/lib </b> \
@@ -505,7 +505,7 @@ a noticeable performance impact on all other applications that you run.
 To set it only for Python, you might want to do this instead:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ env LD_LIBRARY_PATH=/home/beazley/projects/lib python
 </pre>
@@ -533,11 +533,26 @@ On most machines, C++ extension modules should be linked using the C++
 compiler.  For example:
 </p>
 
-<div class="code"><pre>
-% swig -c++ -python example.i
-% g++ -c example.cxx
-% g++ -c example_wrap.cxx -I/usr/local/include/python2.0
-% g++ -shared example.o example_wrap.o -o _example.so
+<div class="shell"><pre>
+$ swig -c++ -python example.i
+$ g++ -c example.cxx
+$ g++ -c example_wrap.cxx -I/usr/local/include/python2.0
+$ g++ -shared example.o example_wrap.o -o _example.so
+</pre></div>
+
+<p>
+On some platforms, you could also need to generate
+position-independent code (PIC), by using a compiler option such as -fPIC.
+Notably, the x86_64 (Opteron and EM64T) platform requires it, and when
+using the GNU Compiler Suite, you will need to modify the previous example
+as follows:
+</p>
+
+<div class="shell"><pre>
+$ swig -c++ -python example.i
+$ g++ -fPIC -c example.cxx
+$ g++ -fPIC -c example_wrap.cxx -I/usr/local/include/python2.0
+$ g++ -shared example.o example_wrap.o -o _example.so
 </pre></div>
 
 <p>
@@ -546,11 +561,11 @@ files to make it work.  For example, if you are using the Sun C++ compiler on
 Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 </p>
 
-<div class="code"><pre>
-% swig -c++ -python example.i
-% CC -c example.cxx
-% CC -c example_wrap.cxx -I/usr/local/include/python2.0
-% CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o _example.so -lCrun
+<div class="shell"><pre>
+$ swig -c++ -python example.i
+$ CC -c example.cxx
+$ CC -c example_wrap.cxx -I/usr/local/include/python2.0
+$ CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o _example.so -lCrun
 </pre></div>
 
 <p>
@@ -575,14 +590,13 @@ you some clues about what you might have to include when you link your
 extension module. For example:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 $ ldd swig
         libstdc++-libc6.1-1.so.2 =&gt; /usr/lib/libstdc++-libc6.1-1.so.2 (0x40019000)
         libm.so.6 =&gt; /lib/libm.so.6 (0x4005b000)
         libc.so.6 =&gt; /lib/libc.so.6 (0x40077000)
         /lib/ld-linux.so.2 =&gt; /lib/ld-linux.so.2 (0x40000000)
-$
 </pre>
 </div>
 
@@ -626,6 +640,16 @@ code, you will be forced to use the same linking standard as used by
 that software.  This may prevent the use of 64-bit extensions.  It may
 also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
+</p>
+
+<p> On the Linux x86_64 platform (Opteron or EM64T), besides of the
+required compiler option -fPIC discussed above, you will need to be
+careful about the libraries you link with or the library path you
+use. In general, a Linux distribution will have two set of libraries,
+one for native x86_64 programs (under /usr/lib64), and another for 32
+bits compatibility (under /usr/lib). Also, the compiler options -m32
+and -m64 allow you to choose the desired binary format for your python
+extension.
 </p>
 
 <H3><a name="Python_nn12"></a>26.2.9 Building Python Extensions under Windows</H3>
@@ -691,8 +715,8 @@ To run your new Python extension, simply run Python
 and use the <tt>import</tt> command as normal. For example :
 </p>
 
-<div class="code"><pre>
-MSDOS &gt; python
+<div class="targetlang"><pre>
+$ python
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; print example.fact(4)
 24
@@ -756,7 +780,7 @@ creates a built-in function <tt>example.fact(n)</tt> that works exactly
 like you think it does:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; print example.fact(4)
 24
@@ -772,7 +796,7 @@ mechanism is somewhat different than you might expect due to the way that
 Python assignment works.  When you type the following in Python
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 a = 3.4
 </pre></div>
 
@@ -780,7 +804,7 @@ a = 3.4
 "a" becomes a name for an object containing the value 3.4. If you later type
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 b = a
 </pre></div>
 
@@ -813,7 +837,7 @@ extern double density;
 Now look at the Python interface:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; # Print out value of a C global variable
 &gt;&gt;&gt; print example.cvar.My_variable
@@ -829,7 +853,7 @@ If you make an error in variable assignment, you will receive an
 error message.  For example:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; example.cvar.density = "Hello"
 Traceback (most recent call last):
   File "&lt;stdin&gt;", line 1, in ?
@@ -877,8 +901,8 @@ If you would like to access variables using a name other than "<tt>cvar</tt>", i
 changed using the <tt>-globals</tt> option :
 </p>
 
-<div class="code"><pre>
-% swig -python -globals myvar example.i
+<div class="shell"><pre>
+$ swig -python -globals myvar example.i
 </pre></div>
 
 <p>
@@ -934,10 +958,10 @@ generate code that prevents this.  You will just have to be careful.
 
 <H3><a name="Python_nn18"></a>26.3.5 Pointers</H3>
 
-
 <p>
-C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no problem working with
-incomplete type information.  Here is a rather simple interface:
+C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no
+problem working with incomplete type information.  Here is a rather
+simple interface:
 </p>
 
 <div class="code">
@@ -954,7 +978,7 @@ int fclose(FILE *);
 When wrapped, you will be able to use the functions in a natural way from Python. For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; f = example.fopen("junk","w")
@@ -966,14 +990,12 @@ When wrapped, you will be able to use the functions in a natural way from Python
 <p>
 If this makes you uneasy, rest assured that there is no
 deep magic involved.  Underneath the covers, pointers to C/C++ objects are
-simply represented as opaque values--normally an encoded character
-string like this:
+simply represented as opaque values using an especial python container object:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; print f
-_c0671108_p_FILE
-&gt;&gt;&gt;
+&lt;Swig Object at _08a71808_p_FILE&gt;
 </pre></div>
 
 <p>
@@ -983,61 +1005,56 @@ dereference the pointer from Python. Of course, that isn't much of a concern in 
 </p>
 
 <p>
-As an alternative to strings, SWIG can encode pointers as a
-Python CObject type.  CObjects are rarely discussed in most Python books
-or documentation.  However, this is a special built-in type that can be
-used to hold raw C pointer values.   Internally, a CObject is just a container
-that holds a raw <tt>void *</tt> along with some additional information such 
-as a type-string.
+In older versions of Swig (1.3.22 or older), pointers were represented
+using a plain string object. If you have an old package that still
+requires that representation, or you just feel nostalgic, you can
+always retreive it by casting the pointer object to a string:
 </p>
 
-<p>
-If you want to use CObjects instead of strings, compile the SWIG wrapper
-code with the <tt>-DSWIG_COBJECT_TYPES</tt> option.  For example:
-</p>
-
-<div class="code"><pre>
-% swig -python example.i
-% gcc -c example.c
-% gcc -c -DSWIG_COBJECT_TYPES example_wrap.c -I/usr/local/include/python2.0
-% gcc -shared example.o example_wrap.o -o _example.so
+<div class="targetlang"><pre>
+&gt;&gt;&gt; print str(f)
+_c0671108_p_FILE
 </pre></div>
 
 <p>
-The choice of whether or not to use strings or CObjects is mostly a matter
-of personal preference.  There is no significant performance difference between
-using one type or the other (strings actually appear to be ever-so-slightly faster
-on the author's machine).  Although CObjects feel more natural to some programmers,
-a disadvantage of this approach is that it makes debugging more difficult.  For example,
-if you are using CObjects, you will get code that works like this:
+Also, if you need to pass the raw pointer value to some external
+python library, you can do it by casting the pointer object to an
+integer:
 </p>
 
-<div class="code">
+<div class="targetlang"><pre>
+&gt;&gt;&gt; print int(f)
+135833352
+</pre></div>
+
+<p>
+However, the inverse operation is not possible, i.e., you can't build
+a Swig pointer object from a raw integer value.
+</p>
+
+<p>
+Note also that the '0' or NULL pointer is always represented by
+<tt>None</tt>, no matter what type swig is addressing. In the
+previous example, you can call:
+</p>
+
+<div class="targetlang">
 <pre>
-&gt;&gt;&gt; import example
-&gt;&gt;&gt; f = example.fopen("junk","w")
-&gt;&gt;&gt; f
-&lt;PyCObject object at 0x80c5e60&gt;
-&gt;&gt;&gt; 
+&gt;&gt;&gt; example.fclose(None)
 </pre>
 </div>
 
 <p>
-Notice how no clues regarding the actual type of <tt>f</tt> is shown. On the other hand,
-the string representation produces the following:
+and that will be equivalent to the following, but not really useful, C
+code:
 </p>
 
 <div class="code">
 <pre>
-&gt;&gt;&gt; f
-'_c0671108_p_FILE'
-&gt;&gt;&gt;
+FILE *f = NULL;
+fclose(f);
 </pre>
 </div>
-
-<p>
-For either pointer representation, the NULL pointer is represented by <tt>None</tt>.
-</p>
 
 <p>
 As much as you might be inclined to modify a pointer value directly
@@ -1046,12 +1063,10 @@ same as the logical memory address of the underlying object.  Instead
 it is the raw byte encoding of the pointer value.  The encoding will
 vary depending on the native byte-ordering of the platform (i.e.,
 big-endian vs. little-endian).  Similarly, don't try to manually cast
-a pointer to a new type by simply replacing the type-string.  This
-may not work like you expect, it is particularly dangerous when
-casting C++ objects, and it won't work if you switch to a new pointer
-representation such as CObjects.  If you need to cast a pointer or
-change its value, consider writing some helper functions instead.  For
-example:
+a pointer to a new type by simply replacing the type-string.  This may
+not work like you expect, it is particularly dangerous when casting
+C++ objects.  If you need to cast a pointer or change its value,
+consider writing some helper functions instead.  For example:
 </p>
 
 <div class="code">
@@ -1100,7 +1115,7 @@ struct Vector {
 is used as follows:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.5
 &gt;&gt;&gt; v.y = 7.2
@@ -1118,7 +1133,7 @@ If you print out the value of <tt>v</tt> in the above example, you will see
 something like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; print v
 &lt;C Vector instance at _18e31408_p_Vector&gt;
@@ -1132,7 +1147,7 @@ The pointer to the C object can be found in the the <tt>.this</tt>
 attribute.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; print v.this
 _18e31408_p_Vector
@@ -1187,7 +1202,7 @@ struct Bar {
 If accessed in Python, you will see behavior like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = example.Bar()
 &gt;&gt;&gt; print b.x
@@ -1202,7 +1217,7 @@ an <tt>int *</tt> (just like C).   You can also set the value of an array member
 another pointer.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; c = example.Bar()
 &gt;&gt;&gt; c.x = b.x             # Copy contents of b.x to c.x
@@ -1237,7 +1252,7 @@ struct Bar {
 Now, suppose that you access the <tt>f</tt> attribute of <tt>Bar</tt> like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = Bar()
 &gt;&gt;&gt; x = b.f
@@ -1261,7 +1276,7 @@ Because the pointer points inside the structure, you can modify the contents and
 everything works just like you would expect. For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = Bar()
 &gt;&gt;&gt; b.f.a = 3               # Modify attribute of structure member
@@ -1294,7 +1309,7 @@ public:
 you can use it in Python like this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; l = example.List()
 &gt;&gt;&gt; l.insert("Ale")
 &gt;&gt;&gt; l.insert("Stout")
@@ -1333,7 +1348,7 @@ public:
 In Python, the static member can be access in three different ways:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; example.Spam_foo()    # Spam::foo()
 &gt;&gt;&gt; s = example.Spam()
@@ -1352,7 +1367,7 @@ Static member variables are currently accessed as global variables.  This means,
 they are accessed through <tt>cvar</tt> like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; print example.cvar.Spam_bar
 7
@@ -1384,7 +1399,7 @@ those classes are wrapped into a hierarchy of Python classes that reflect the sa
 structure.   All of the usual Python utility functions work normally:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = Bar()
 &gt;&gt;&gt; instance(b,Foo)
@@ -1426,8 +1441,9 @@ and manipulate objects.  For example:
 <pre>
 void spam1(Foo *x);      // Pass by pointer
 void spam2(Foo &amp;x);      // Pass by reference
-void spam3(Foo x);       // Pass by value
-void spam4(Foo x[]);     // Array of objects
+void spam3(const Foo &amp;x);// Pass by const reference
+void spam4(Foo x);       // Pass by value
+void spam5(Foo x[]);     // Array of objects
 </pre>
 </div>
 
@@ -1439,13 +1455,14 @@ together in the wrapper code.  For instance, if you actually had the
 above functions, it is perfectly legal to do this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = Foo()           # Create a Foo
 &gt;&gt;&gt; spam1(f)            # Ok. Pointer
 &gt;&gt;&gt; spam2(f)            # Ok. Reference
-&gt;&gt;&gt; spam3(f)            # Ok. Value.
-&gt;&gt;&gt; spam4(f)            # Ok. Array (1 element)
+&gt;&gt;&gt; spam3(f)            # Ok. Const reference
+&gt;&gt;&gt; spam4(f)            # Ok. Value.
+&gt;&gt;&gt; spam5(f)            # Ok. Array (1 element)
 </pre>
 </div>
 
@@ -1456,17 +1473,21 @@ functions like this,
 
 <div class="code">
 <pre>
-Foo *spam5();
-Foo &amp;spam6();
-Foo  spam7();
+Foo *spam6();
+Foo &amp;spam7();
+Foo  spam8();
+const Foo &amp;spam9();
 </pre>
 </div>
 
 <p>
 then all three functions will return a pointer to some <tt>Foo</tt> object.
-Since the third function (spam7) returns a value, newly allocated memory is used 
+Since the third function (spam8) returns a value, newly allocated memory is used 
 to hold the result and a pointer is returned (Python will release this memory 
-when the return value is garbage collected).
+when the return value is garbage collected). The fourth case (spam9)
+which returns a const reference, in most of the cases will be 
+treated as a returning value, and it will follow the same
+allocation/deallocation process.
 </p>
 
 <H3><a name="Python_nn23"></a>26.3.10 C++ overloaded functions</H3>
@@ -1488,7 +1509,7 @@ void foo(char *c);
 You can use them in Python in a straightforward manner:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo(3)           # foo(int)
 &gt;&gt;&gt; foo("Hello")     # foo(char *c)
@@ -1514,7 +1535,7 @@ public:
 you can write Python code like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = Foo()          # Create a Foo
 &gt;&gt;&gt; g = Foo(f)         # Copy f
@@ -1548,7 +1569,7 @@ void foo(Bar &amp;b);
 If declarations such as these appear, you will get a warning message like this:
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
 at example.i:11.
@@ -1626,7 +1647,7 @@ public:
 When wrapped, it works like you expect:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; c = Complex(3,4)
 &gt;&gt;&gt; d = Complex(7,8)
@@ -1707,7 +1728,7 @@ namespace foo {
 it works in Python as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; example.fact(3)
@@ -1784,7 +1805,7 @@ struct pair {
 In Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; p = example.pairii(3,4)
@@ -1866,7 +1887,7 @@ For example:
 Now, in Python, everything should just "work":
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; p = example.CreateFoo()          # Create a smart-pointer somehow
 &gt;&gt;&gt; p.x = 3                          # Foo::x
@@ -1879,7 +1900,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 simply use the <tt>__deref__()</tt> method.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = p.__deref__()     # Returns underlying Foo *
 </pre>
@@ -1950,7 +1971,7 @@ Using these wrappers, SWIG generates a high-level Python proxy class (also known
 for Python 2.2):
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 import _example
 
@@ -1973,7 +1994,7 @@ member variable access to that object using the low-level accessor functions.   
 view, it makes the class work normally:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; f.x = 3
@@ -2017,7 +2038,7 @@ public:
 In Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; f.thisown
@@ -2046,7 +2067,7 @@ public:
 
 <br>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; s = f.spam()
@@ -2086,7 +2107,7 @@ When wrapped in Python, careful observation will reveal that ownership changes w
 is assigned to a global variable.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; f.thisown
@@ -2103,7 +2124,7 @@ In this case, C is now holding a reference to the object---you probably don't wa
 Similarly, this occurs for members.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; g = example.Foo()
@@ -2139,7 +2160,7 @@ public:
 Now, consider the following Python code:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; v = Object()           # Create an object
 &gt;&gt;&gt; n = Node()             # Create a node
@@ -2163,7 +2184,7 @@ you're lucky, you will only get a segmentation fault.
 To work around this, it is always possible to flip the ownership flag. For example,
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; v.thisown = 0
 </pre>
@@ -2447,7 +2468,7 @@ public:
 
 <br>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; c = FooContainer()
 &gt;&gt;&gt; a = Foo().__disown()__
@@ -2653,7 +2674,7 @@ it would be accessible from Python, but there may be no easy way to call it.
 For example, you might get errors like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
 ...   [1,0,0,0],
@@ -2697,7 +2718,7 @@ double mat44_get(double x[4][4], int i, int j) {
 From Python, you could then write code like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = new_mat44()
 &gt;&gt;&gt; mat44_set(a,0,0,1.0)
@@ -2748,7 +2769,7 @@ In this example, <tt>set_transform()</tt> provides a high-level Python interface
 low-level helper functions.  For example, this code now seems to work:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = [
 ...   [1,0,0,0],
@@ -2810,7 +2831,7 @@ struct Vector {
 Now, in Python
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; v = example.Vector(2,3,4)
 &gt;&gt;&gt; print v
@@ -2842,7 +2863,7 @@ For example, if you wanted to overload a Python operator, you might do this:
 Use it like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; v = example.Vector(2,3,4)
@@ -2889,7 +2910,7 @@ void *malloc(size_t nbytes);
 In Python,
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = example.malloc(2000000000)
 Traceback (most recent call last):
@@ -3040,7 +3061,7 @@ int  sub(int *INPUT, int *INPUT);
 In Python, this allows you to pass simple values.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = add(3,4)
 &gt;&gt;&gt; print a
@@ -3103,7 +3124,7 @@ void negate(int *INOUT);
 In Python, a mutated parameter shows up as a return value.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = negate(3)
 &gt;&gt;&gt; print a
@@ -3148,7 +3169,7 @@ int send_message(char *text, int *success);
 When used in Python, the function will return multiple values.  
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 bytes, success = send_message("Hello World")
 if not success:
@@ -3186,7 +3207,7 @@ void get_dimensions(Matrix *m, int *rows, *columns);
 Now, in Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; r,c = get_dimensions(m)
 </pre>
@@ -3244,7 +3265,7 @@ int   intp_value(int *x);
 In Python, you would use the functions like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = new_intp()
 &gt;&gt;&gt; print result
@@ -3260,7 +3281,7 @@ _108fea8_p_int
 If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</tt>, the interface is more class-like.
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = intp()
 &gt;&gt;&gt; add(3,4,result)
@@ -3310,7 +3331,7 @@ can be passed around as a simple pointer like <tt>int *</tt> or <tt>double *</tt
 For instance, you will be able to do this in Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = intArray(10000000)         # Array of 10-million integers
 &gt;&gt;&gt; for i in xrange(10000):        # Set some values
@@ -3347,7 +3368,11 @@ can be passed as input.  For example:
 <pre>
 // C
 void foo(char *s);
+</pre>
+</div>
 
+<div class="targetlang">
+<pre>
 # Python
 &gt;&gt;&gt; foo("Hello")
 </pre>
@@ -3388,7 +3413,7 @@ int parity(char *data, int size, int initial);
 Now in Python:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; parity("e\x09ffss\x00\x00\x01\nx", 0)
 </pre>
@@ -3459,7 +3484,7 @@ The <tt>$input</tt> variable is the input object of type <tt>PyObject *</tt>.
 When this example is compiled into a Python module, it operates as follows:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; from example import *
 &gt;&gt;&gt; fact(6)
 Received an integer : 6
@@ -3528,7 +3553,7 @@ Python object.  This allows the function to be used like this (notice how the le
 parameter is omitted):
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; example.count('e','Hello World')
 1
@@ -3832,7 +3857,7 @@ When this module is compiled, the wrapped C function now operates as
 follows :
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; from argv import *
 &gt;&gt;&gt; print_args(["Dave","Mike","Mary","Jane","John"])
 argv[0] = Dave
@@ -3870,7 +3895,7 @@ In the previous example, a typemap was written to pass a Python list as the <tt>
 allows the function to be used from Python as follows:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo(4, ["foo","bar","spam","1"])
 </pre>
@@ -3924,7 +3949,7 @@ With the above typemap in place, you will find it no longer necessary
 to supply the argument count.  This is automatically set by the typemap code.  For example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 &gt;&gt;&gt; foo(["foo","bar","spam","1"])
 </pre>
@@ -4011,7 +4036,7 @@ stores its output value, it will simply be placed in this local variable.  As a 
 function can now be used as follows:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; a = spam(4,5)
 &gt;&gt;&gt; print a
 (0, 2.45, 5.0)
@@ -4058,7 +4083,7 @@ This allows our <tt>set_direction</tt> function to be called from
 Python as follows :
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 &gt;&gt;&gt; set_direction((0.5,0.0,1.0,-0.25))
 </pre></div>
 
@@ -4357,7 +4382,7 @@ bool function_name(int x, int y, Foo* foo=NULL, Bar* bar=NULL);
 Then Python code like this will be generated:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 def function_name(*args, **kwargs):
     """function_name(x, y, foo=None, bar=None) -&gt; bool"""
@@ -4381,7 +4406,7 @@ parameter types with the "1" option will result in Python code like
 this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 def function_name(*args, **kwargs):
     """function_name(int x, int y, Foo foo=None, Bar bar=None) -&gt; bool"""
@@ -4423,7 +4448,7 @@ docstring and they are output together.  If the docstring is all on a
 single line then it is output like this::
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 """This is the docstring"""
 </pre>
@@ -4433,7 +4458,7 @@ single line then it is output like this::
 Otherwise, to aid readability it is output like this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 """
 This is a multi-line docstring
@@ -4472,3 +4497,12 @@ different than its own.
 
 </body>
 </html>
+
+<!--  LocalWords:  polymorphism Typemaps STL typemap typemaps Docstring autodoc
+ -->
+<!--  LocalWords:  docstring SWIG's cxx py GCC linux DLL gcc fPIC Wiki Xlinker
+ -->
+<!--  LocalWords:  examplemodule DHAVE CONFIG lpython lm ldl mypython lsocket
+ -->
+<!--  LocalWords:  lnsl lpthread distutils enums namespaces
+ -->
