@@ -1,12 +1,12 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * preprocessor.h
  *
  *     SWIG preprocessor module.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  *
  * $Header$
  * ----------------------------------------------------------------------------- */
@@ -20,6 +20,7 @@
 extern "C" {
 #endif
 
+extern void  Preprocessor_expr_init(void);
 extern int   Preprocessor_expr(DOHString *s, int *error);
 extern char *Preprocessor_expr_error(void);
 extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
