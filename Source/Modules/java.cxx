@@ -3211,8 +3211,8 @@ class JAVA : public Language {
             Append(declaration, ", ");
           }
 
-          Printf(w->def, "%s", Getattr(p, "type"));
-          Printf(declaration, "%s", Getattr(p, "type"));
+          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"),0));
+          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"),0));
         }
       }
 
