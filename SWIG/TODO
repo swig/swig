@@ -88,11 +88,22 @@ defer  ready to go.  The primary obstacle lies in the target language
 [DONE] Investigate the enhancement of exception handling to match against exceptions
        specified with throw specifiers.
 
+***    Add attributes to the %feature directive. Something like:
+
+       %feature("except", throws="OutOfMemoryException") 
+
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
        nodes to be identified.  For example:
 
              %feature("foo", nodetype="class") Foo { ... some code ... };
+
+       Also desirable for the Java module to specify the classes to go in the
+       throw clause:
+
+             %feature("except", throws="OutOfMemoryException") Foo { 
+                ... code which throws the OutOfMemoryException ... 
+             };
 
        Consider use of wildcards.   Namespace/nested scope support in
        %feature is currently weak.  It works, but is fragile.  Consider
