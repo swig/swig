@@ -1,26 +1,3 @@
-# This is a -*- shell-script -*- sourced by configure
+# This is a -*- shell-script -*- that used to be sourced by configure
+# Intentionally empty now
 
-# Commentary:
-#
-# This file is included in the distribution.
-#
-# The variable `devrelease_today' is the version suffix "u-DATE-TIME".
-# This ensures a version w/ second resolution, great for developers, but
-# unnecessary for release.  The "u" is for "unstable".  For release,
-# remove (or comment out) the `devrelease_today' component of var
-# `SWIG_MINOR_VERSION', do "make dist", and then add `devrelease_today'
-# back again.
-
-devrelease_today=u-`date +%Y%m%d-%H%M`
-
-SWIG_MAJOR_VERSION=1
-SWIG_MINOR_VERSION=3
-SWIG_SPIN=18
-
-SWIG_VERSION=$SWIG_MAJOR_VERSION.$SWIG_MINOR_VERSION.$SWIG_SPIN$devrelease_today
-
-# For autoconf.
-VERSION=$SWIG_VERSION
-PACKAGE=swig
-
-# VERSION ends here
