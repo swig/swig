@@ -1,6 +1,25 @@
 Version 1.3.22 (September 1, 2004)
 ==================================
 
+08/31/2004: mmatus 
+	    [Python] Incompatibility reported by Bill Clarke (llib@computer.org):
+	    
+	    If you are using Sun Studio 8 (and possibly earlier
+	    versions) to compile the output produced by swig
+	    1.3.22rc1, and you are using C++ and STL templates then
+	    you need to use either "-runtime" or "-noruntime".  If you
+	    use neither of these options then you will probably get
+	    compiler errors when trying to compile the wrapper file;
+	    the error message will be like this: The name
+	    SWIG_Python_ConvertPtr[...] is unusable in static
+	    swigpy::traits_asptr[...]  If you get this error message,
+	    you need to regenerate your wrapper file using 'swig
+	    -runtime' or 'swig -noruntime'.
+
+	    You shouldn't get this problem with Sun Studio 9.
+
+            *** POTENTIAL INCOMPATIBILITY FOR PYTHON MODULE ***
+	    
 08/26/2004: wsfulton
             [Perl] Applied #932333 from Ikegami Tsutomu. Fixes long long *OUTPUT
             and unsigned long long *OUTPUT typemaps in typemaps.i.
