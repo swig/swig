@@ -177,6 +177,26 @@ String *Swig_string_lower(String *s) {
   }
   return ns;
 }
+
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_title()
+ *
+ * Takes a string object and convets it to all lower.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_title(String *s) {
+  String *ns;
+  int first = 1;
+  int c;
+  ns = NewString("");
+  
+  while ((c = Getc(s)) != EOF) {
+    Putc(first ? toupper(c) : tolower(c),ns);
+    first = 0;
+  }
+  return ns;
+}
      
 /* -----------------------------------------------------------------------------
  * Swig_string_mangle()
@@ -205,6 +225,7 @@ Swig_init() {
   DohEncoding("escape", Swig_string_escape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
+  DohEncoding("title", Swig_string_title);
   Swig_typemap_init();
 
 }
