@@ -47,14 +47,14 @@
     }
     
 
-    virtual std::string do_step()  = 0;
+    virtual std::string do_step() const = 0;
   };  
   
   template <class C>
     class FooBar : public Bar
     {
     public:
-      virtual C get_value() = 0;
+      virtual C get_value() const = 0;
     };
 %}
 

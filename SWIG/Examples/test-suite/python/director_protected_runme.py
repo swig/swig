@@ -35,20 +35,20 @@ try:
 except:
   raise RuntimeError," bad FooBar::pong"
 
-private=1  
+protected=1  
 try:
   b.ping()
-  private=0
+  protected=0
 except:
   pass
-if not private:
-  raise  RuntimeError,"Boo::ping is private"
+if not protected:
+  raise  RuntimeError,"Boo::ping is protected"
   
-private=1  
+protected=1  
 try:
   f.ping()
-  private=0
+  protected=0
 except:
   pass
-if not private:
-  raise  RuntimeError,"Foo::ping is private"
+if not protected:
+  raise  RuntimeError,"Foo::ping is protected"

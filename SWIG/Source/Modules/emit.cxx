@@ -13,6 +13,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include "utils.h"
 
 char cvsroot_emit_cxx[] = "$Header$";
 
@@ -365,6 +366,27 @@ void emit_action(Node *n, Wrapper *f) {
   if (!action)
     action = Getattr(n,"wrap:action");
   assert(action != 0);
+
+  if (is_protected(n) && is_member_director(n)) {
+    /* We need to add an extra dynamic_cast to
+       access the director class, where the virtual
+       methods are all public */
+    Node* parent = Getattr(n,"parentNode");
+    String* symname = Getattr(parent, "sym:name");
+    String* classtype = Getattr(parent,"classtype");    
+    String* dirname = NewStringf("SwigDirector_%s", symname);
+    String* dirdecl = NewStringf("%s *darg1 = 0", dirname);    
+    Wrapper_add_local(f, "darg1", dirdecl);
+    Printf(f->code, "darg1 = dynamic_cast<%s *>(arg1);\n",dirname);
+    /* Maybe here a more detailed diagnostic can de added,
+     such as trying to access a protected member, but it seems
+     it is not easy to do it for all the languages at once*/
+    Printf(f->code, "if (!darg1) return NULL;\n");
+    Replaceall(action,"arg1","darg1");
+    Replaceall(action,classtype,dirname);
+    Delete(dirname);
+    Delete(dirdecl);
+  }
 
   /* Get the return type */
 
