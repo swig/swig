@@ -29,7 +29,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 ****   Typemap environments.  Stay tuned.
 
-****   Merge "in" and "ignore" typemaps into a single "in" typemap.
+[DONE] Merge "in" and "ignore" typemaps into a single "in" typemap.
        This would solve a variety of subtle problems with multiple
        argument typemaps and other typemap code.   I propose to merge
        the typemaps by making "ignore" a typemap attribute.
