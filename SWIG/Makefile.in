@@ -16,13 +16,10 @@ BIN_DIR     = @bindir@
 TARGET      = swig@release_suffix@@EXEEXT@
 SOURCE      = Source
 
-swig: source swig.spec
+swig: source
 
 source:
 	@cd $(SOURCE) && $(MAKE)
-
-swig.spec: $(srcdir)/swig.spec.in config.status
-	@CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
 .PHONY: source
 
@@ -398,7 +395,7 @@ dist-suggested:
 	tar cf - $(dd) | gzip --best > $(dd).tar.gz
 	rm -rf $(dd)
 
-srcrpm: swig.spec
+srcrpm:
 	rm -fr $(srpm) $(srpm).src.rpm
 	cvs export -d $(srpm) -r HEAD SWIG
 	cp swig.spec $(srpm)
