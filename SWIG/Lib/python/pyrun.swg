@@ -1,5 +1,5 @@
 /***********************************************************************
- * python.swg
+ * pyrun.swg
  *
  *     This file contains the runtime support for Python modules
  *     and includes code for managing global variables and pointer
@@ -7,8 +7,6 @@
  *
  * Author : David Beazley (beazley@cs.uchicago.edu)
  ************************************************************************/
-
-#include "Python.h"
 
 #ifdef __cplusplus
 extern "C" {
