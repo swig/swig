@@ -15,23 +15,27 @@
 
 char cvsroot_php4_cxx[] = "$Header$";
 
+#include "swigmod.h"
+
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
+
 #include <ctype.h>
 
-#include "swigmod.h"
-#include "swigconfig.h"
 
 static const char *usage = (char*)"\
 PHP4 Options (available with -php4)\n\
      -ldflags        - Print runtime libraries to link with\n\
-     -cppext		- cpp file extension (default to .cpp)\n\
-     -proxy		- Create proxy classes.\n\
-     -dlname name	- Set module prefix.\n\
-     -make		- Create simple makefile.\n\
-     -phpfull	- Create full make files.\n\
-     -withincs libs	- With -phpfull writes needed incs in config.m4\n\
-     -withlibs libs	- With -phpfull writes needed libs in config.m4\n\n\
-     -withc libs	- With -phpfull makes extra c files in Makefile.in\n\
-     -withcxx libs	- With -phpfull makes extra c++ files in Makefile.in\n\
+     -cppext		 - cpp file extension (default to .cpp)\n\
+     -noproxy        - Don't generate proxy classes.\n\
+     -dlname name	 - Set module prefix.\n\
+     -make		     - Create simple makefile.\n\
+     -phpfull	     - Create full make files.\n\
+     -withincs libs	 - With -phpfull writes needed incs in config.m4\n\
+     -withlibs libs	 - With -phpfull writes needed libs in config.m4\n\n\
+     -withc libs	 - With -phpfull makes extra c files in Makefile.in\n\
+     -withcxx libs	 - With -phpfull makes extra c++ files in Makefile.in\n\
 \n";
 
 static int constructors=0;
