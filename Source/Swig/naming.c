@@ -404,7 +404,7 @@ Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object) 
   }
   /* Add an object based on the declarator value */
   if (!decl) {
-    Setattr(n,NewString("*"),object);
+    Setattr(n,"*",object);
   } else {
     Setattr(n,Copy(decl),object);
   }

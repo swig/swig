@@ -869,7 +869,8 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	String *isenum = 0;
 	if (SwigType_isenum(e)) {
 	  isenum = NewString("enum ");
-	  e = NewString(Char(e)+5);
+	  ty = NewString(Char(e)+5);
+	  e = ty;
 	}
 	resolved_scope = 0;
 	if (typedef_resolve(current_scope,e)) {
@@ -917,11 +918,10 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	    }
 	  }
 	}
-
 	if (isenum) {
           Insert(e,0,isenum);
+	  Delete(isenum);
         }
-
       } else {
 	/* Template.  We need to qualify template parameters as well as the template itself */
 	String *tprefix, *qprefix;
@@ -1289,7 +1289,12 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	  use_wrapper = 1;
 	}
       }
-      if (use_wrapper) w = NewStringf("SwigValueWrapper<%s >",SwigType_str(td,0));
+      if (use_wrapper) {
+	String *str = SwigType_str(td,0);
+	w = NewStringf("SwigValueWrapper<%s >",str);
+	Delete(str);
+      }
+      
       Delete(td);
     }
     return w;
@@ -1414,6 +1419,7 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
     lt = SwigType_ltype(t);
   }
   Setattr(r_ltype, mt, lt);
+  Delete(lt);
   fr = SwigType_typedef_resolve_all(t);     /* Create fully resolved type */
   qr = SwigType_typedef_qualified(fr);
   Delete(fr);
@@ -1455,7 +1461,9 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
 	assert(0);
       } 
     } else {
-      Setattr(r_clientdata, fr, NewString(clientdata));
+      String *cstr = NewString(clientdata);
+      Setattr(r_clientdata, fr, cstr);
+      Delete(cstr);
     }
   }
 
@@ -1588,18 +1596,22 @@ static Hash   *conversions = 0;
 void
 SwigType_inherit(String *derived, String *base, String *cast) {
   Hash *h;
+  String *dd = 0;
+  String *bb = 0;
   if (!subclass) subclass = NewHash();
   
   /* Printf(stdout,"'%s' --> '%s'  '%s'\n", derived, base, cast); */
 
   if (SwigType_istemplate(derived)) {
     String *ty = SwigType_typedef_resolve_all(derived);
-    derived = SwigType_typedef_qualified(ty);
+    dd = SwigType_typedef_qualified(ty);
+    derived = dd;
     Delete(ty);
   }
   if (SwigType_istemplate(base)) {
     String *ty = SwigType_typedef_resolve_all(base);
-    base = SwigType_typedef_qualified(ty);
+    bb = SwigType_typedef_qualified(ty);
+    base = bb;
     Delete(ty);
   }
 
@@ -1614,6 +1626,8 @@ SwigType_inherit(String *derived, String *base, String *cast) {
     Setattr(h,derived, cast ? cast : (void *) "");
   }
 
+  Delete(dd);
+  Delete(bb);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1659,6 +1673,7 @@ SwigType_issubtype(SwigType *t1, SwigType *t2) {
 void SwigType_inherit_equiv(File *out) {
   String *ckey;
   String *prefix, *base;
+  String *mprefix, *mkey;
   Hash   *sub;
   Hash   *rh;
   List   *rlist;
@@ -1694,15 +1709,21 @@ void SwigType_inherit_equiv(File *out) {
       prefix= SwigType_prefix(rk.key);
       Append(prefix,bk.key);
       /*      Printf(stdout,"set %x = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
-      Setattr(rh,SwigType_manglestr(prefix),prefix);
-      ckey = NewStringf("%s+%s",SwigType_manglestr(prefix), SwigType_manglestr(rk.key));
+      mprefix = SwigType_manglestr(prefix);
+      Setattr(rh,mprefix,prefix);
+      mkey = SwigType_manglestr(rk.key);
+      ckey = NewStringf("%s+%s",mprefix, mkey);
       if (!Getattr(conversions,ckey)) {
-	String *convname = NewStringf("%sTo%s", SwigType_manglestr(prefix), SwigType_manglestr(rk.key));
+	String *convname = NewStringf("%sTo%s", mprefix, mkey);
+	String *lkey = SwigType_lstr(rk.key,0);
+	String *lprefix = SwigType_lstr(prefix,0);
 	Printf(out,"static void *%s(void *x) {\n", convname);
-	Printf(out,"    return (void *)((%s) %s ((%s) x));\n", SwigType_lstr(rk.key,0), Getattr(sub,bk.key), SwigType_lstr(prefix,0));
+	Printf(out,"    return (void *)((%s) %s ((%s) x));\n", lkey, Getattr(sub,bk.key), lprefix);
 	Printf(out,"}\n");
 	Setattr(conversions,ckey,convname);
 	Delete(ckey);	
+	Delete(lkey);
+	Delete(lprefix);
 
 	/* This inserts conversions for typedefs */
 	{
@@ -1716,7 +1737,7 @@ void SwigType_inherit_equiv(File *out) {
 
 	      /* Make sure this name equivalence is not due to inheritance */
 	      if (Cmp(prefix, Getattr(r,rrk.key)) == 0) {
-		rkeymangle = SwigType_manglestr(rk.key);
+		rkeymangle = Copy(mkey);
 		ckey = NewStringf("%s+%s", rrk.key, rkeymangle);
 		if (!Getattr(conversions, ckey)) {
 		  Setattr(conversions, ckey, convname);
@@ -1739,6 +1760,8 @@ void SwigType_inherit_equiv(File *out) {
 	Delete(convname);
       }
       Delete(prefix);
+      Delete(mprefix);
+      Delete(mkey);
       bk = Next(bk);
     }
     rk = Next(rk);

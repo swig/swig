@@ -30,7 +30,9 @@ Parm *NewParm(SwigType *type, const String_or_char *n) {
   Parm *p = NewHash();
   
   if (type) {
-    Setattr(p,"type", Copy(type));
+    SwigType *ntype = Copy(type);
+    Setattr(p,"type",ntype);
+    Delete(ntype);
   }
   Setattr(p,"name",n);
   return p;
@@ -41,41 +43,56 @@ Parm *NewParm(SwigType *type, const String_or_char *n) {
  * ------------------------------------------------------------------------ */
 
 Parm *CopyParm(Parm *p) {
-  SwigType *t;
-  String   *name;
-  String   *lname;
-  String   *value;
-  String   *ignore;
-  String   *alttype;
-  String   *byname;
-  String   *compactdefargs;
+  Parm     *np = NewHash();
+  SwigType *t = Getattr(p,"type");
+  String   *name = Getattr(p,"name");
+  String   *lname = Getattr(p,"lname");
+  String   *value = Getattr(p,"value");
+  String   *ignore = Getattr(p,"ignore");
+  String   *alttype = Getattr(p,"alttype");
+  String   *byname = Getattr(p, "arg:byname");
+  String   *compactdefargs = Getattr(p, "compactdefargs");
 
-  Parm *np = NewHash();
-  t = Getattr(p,"type");
-  name = Getattr(p,"name");
-  lname = Getattr(p,"lname");
-  value = Getattr(p,"value");
-  ignore = Getattr(p,"ignore");
-  alttype = Getattr(p,"alttype");
-  byname = Getattr(p, "arg:byname");
-  compactdefargs = Getattr(p, "compactdefargs");
-
-  if (t) 
-    Setattr(np,"type",Copy(t));
-  if (name)
-    Setattr(np,"name",Copy(name));
-  if (lname)
-    Setattr(np,"lname", Copy(lname));
-  if (value)
-    Setattr(np,"value", Copy(value));
-  if (ignore)
-    Setattr(np,"ignore", Copy(ignore));
-  if (alttype) 
-    Setattr(np,"alttype", Copy(alttype));
-  if (byname)
-    Setattr(np, "arg:byname", Copy(byname));
-  if (compactdefargs)
-    Setattr(np, "compactdefargs", Copy(compactdefargs));
+  if (t) {
+    SwigType *nt = Copy(t);
+    Setattr(np,"type",nt);
+    Delete(nt);
+  }
+  if (name) {
+    String *str = Copy(name);
+    Setattr(np,"name",str);
+    Delete(str);
+  }
+  if (lname) {
+    String *str = Copy(lname);
+    Setattr(np,"lname", str);
+    Delete(str);
+  }
+  if (value) {
+    String *str = Copy(value);
+    Setattr(np,"value", str);
+    Delete(str);
+  }
+  if (ignore) {
+    String *str = Copy(ignore);
+    Setattr(np,"ignore", str);
+    Delete(str);
+  }
+  if (alttype) {
+    String *str = Copy(alttype);
+    Setattr(np,"alttype", str);
+    Delete(str);
+  }
+  if (byname) {
+    String *str = Copy(byname);
+    Setattr(np, "arg:byname", str);
+    Delete(str);
+  }
+  if (compactdefargs) {
+    String *str = Copy(compactdefargs);    
+    Setattr(np, "compactdefargs", str);
+    Delete(str);
+  }
       
   Setfile(np,Getfile(p));
   Setline(np,Getline(p));
@@ -99,6 +116,7 @@ CopyParmList(ParmList *p) {
     np = CopyParm(p);
     if (pp) {
       set_nextSibling(pp,np);
+      Delete(np);      
     } else {
       fp = np;
     }
@@ -280,6 +298,7 @@ ParmList *ParmList_copy_all_except_last_parm(ParmList *p) {
     newparm = CopyParm(p);
     if (pp) {
       set_nextSibling(pp,newparm);
+      Delete(newparm);
     } else {
       fp = newparm;
     }

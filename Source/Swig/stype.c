@@ -386,6 +386,7 @@ SwigType *SwigType_default(SwigType *t) {
       def = r;
       return def;
     }
+    Delete(q);
   }
   if (Strcmp(r,"p.SWIGTYPE") == 0) {
     def = NewString("SWIGTYPE");
@@ -502,14 +503,17 @@ SwigType_namestr(const SwigType *t) {
   p = SwigType_parmlist(t);
   sz = Len(p);
   for (i = 0; i < sz; i++) {
-    Append(r,SwigType_str(Getitem(p,i),0));
+    String *str = SwigType_str(Getitem(p,i),0);
+    Append(r,str);
     if ((i+1) < sz) Putc(',',r);
+    Delete(str);
   }
   Putc(' ',r);
   Putc('>',r);
   suffix = SwigType_templatesuffix(t);
   Append(r,suffix);
   Delete(suffix);
+  Delete(p);
 #if 0
   if (SwigType_istemplate(r)) {
     SwigType *rr = SwigType_namestr(r);
@@ -835,6 +839,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       for (j = 0; j < plen; j++) {
 	p = SwigType_str(Getitem(parms,j),0);
 	Append(result,p);
+	Delete(p);
 	if (j < (plen-1)) Append(result,",");
       }
       Append(result,")");
@@ -886,7 +891,9 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
   if (SwigType_isarray(s)) {
     Printf(result,"(%s)%s", SwigType_lstr(s,0),name);
   } else if (SwigType_isreference(s)) {
-    Printf(result,"(%s)", SwigType_str(s,0));
+    String *str = SwigType_str(s,0);
+    Printf(result,"(%s)", str);
+    Delete(str);
     if (name) 
       Printv(result,name,NIL);
   } else if (SwigType_isqualifier(s)) {
@@ -1044,6 +1051,7 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   }
   Clear(t);
   Append(t,nt);
+  Delete(elem);
 }
 
 /* -----------------------------------------------------------------------------
