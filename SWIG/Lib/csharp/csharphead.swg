@@ -45,7 +45,7 @@ static SWIG_CSharpExceptions_t SWIG_csharp_exceptions[] = {
 
 static void SWIG_CSharpThrowException(SWIG_CSharpExceptionCodes code, const char *msg) {
   SWIG_CSharpExceptionCallback_t callback = SWIG_csharp_exceptions[SWIG_CSharpException].callback;
-  if (code >=0 && (size_t)code < sizeof(SWIG_csharp_exceptions)/sizeof(SWIG_CSharpExceptionCodes)) {
+  if (code >=0 && (size_t)code < sizeof(SWIG_csharp_exceptions)/sizeof(SWIG_CSharpExceptions_t)) {
     callback = SWIG_csharp_exceptions[code].callback;
   }
   callback(msg);
