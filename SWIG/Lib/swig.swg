@@ -29,8 +29,11 @@
 
 /* Access control directives */
 
-#define %readonly    %pragma(swig) readonly;
-#define %readwrite   %pragma(swig) readwrite;
+#define %readonly    %echo "$file:$line. Warning. %readonly is deprecated. Use %immutable; " %feature("immutable","1");
+#define %readwrite   %echo "$file:$line. Warning. %readwrite is deprecated. Use %mutable; " %feature("immutable");
+
+#define %immutable   %feature("immutable","1")
+#define %mutable     %feature("immutable")
 
 /* Directives for callback functions */
 
