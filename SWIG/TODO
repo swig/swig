@@ -31,6 +31,8 @@
        in type handling and internal data structures may have broken
        a variety of things.
 
+** [Guile] Rename slot setters from CLASS-SLOT-set to CLASS-SLOT-set!
+
 ** [Guile] Maybe support keyword args
 
 ** [Guile] Maybe support GOOPS shadow classes
