@@ -184,13 +184,40 @@ public:
       // Python-2.2 object hack
 
       if (!classic) {
+	Printv(f_shadow,"class ", "_swig_object_base:\n", NULL);
+      } else {
+	Printv(f_shadow,"class ", "_swig_object:\n", NULL);
+      }
+
+      Printv(f_shadow,
+	     tab4, "def _swig_setattr(self,class_type,name,value):\n",
+	     tab8, "if (name == \"this\"):\n",
+	     tab8, tab4, "if isinstance(value, class_type):\n",
+	     tab8, tab8, "self.__dict__[name] = value.this\n",
+	     tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
+	     tab8, tab8, "del value.thisown\n",
+	     tab8, tab8, "return\n",
+	     //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
+	     tab8, "method = class_type.__swig_setmethods__.get(name,None)\n",
+	     tab8, "if method: return method(self,value)\n",
+	     tab8, "self.__dict__[name] = value\n\n",
+	     NULL);
+
+      Printv(f_shadow, tab4, "def _swig_getattr(self,class_type,name):\n",
+	     tab8, "method = class_type.__swig_getmethods__.get(name,None)\n",
+	     tab8, "if method: return method(self)\n",
+	     tab8, "raise AttributeError,name\n\n",
+	     NULL);
+
+      if (!classic) {
 	Printv(f_shadow,
 	       "import types\n",
 	       "try:\n",
 	       "    _object = types.ObjectType\n",
 	       "    _newclass = 1\n",
+	       "    class _swig_object(_swig_object_base, _object): pass\n",
 	       "except AttributeError:\n",
-	       "    class _object: pass\n",
+	       "    _swig_object = _swig_object_base\n",
 	       "    _newclass = 0\n",
 	       "\n\n",
 	       NULL);
@@ -671,7 +698,16 @@ public:
     }
 
     if ((shadow) && (SwigType_isconst(t))) {
-      Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
+	if (in_class) {
+	  Node* parent = parentNode(n);
+	  String *pname = Getattr(parent,"sym:name");
+	  String* mname = Getattr(n,"member:name");
+	  Printf(f_shadow_stubs,"%s.%s = %s.%s\n", pname, mname, global_name, iname);
+	} else {
+	  Printf(f_shadow_stubs,"%s = %s.%s\n", iname, global_name, iname);
+	}
+	
+	
     }
 
     wname = Swig_name_wrapper(iname);
@@ -855,36 +891,30 @@ public:
       if (Len(base_class)) {
 	Printf(f_shadow,"(%s)", base_class);
       } else {
-	if (!classic) {
-	  Printf(f_shadow,"(_object)");
+	if (classic && !oldclassic) {
+	  Printf(f_shadow,"(_swig_object_base)");
+	} else {
+	  Printf(f_shadow,"(_swig_object)");
 	}
       }
       Printf(f_shadow,":\n");
 
       Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NULL);
-      Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
-
+      if (Len(base_class)) {
+	Printf(f_shadow,"%sfor _s in [%s]: __swig_setmethods__.update(_s.__swig_setmethods__)\n",tab4,base_class);
+      }
+      
       Printv(f_shadow,
-	     tab4, "def __setattr__(self,name,value):\n",
-	     tab8, "if (name == \"this\"):\n",
-	     tab8, tab4, "if isinstance(value,", class_name, "):\n",
-	     tab8, tab8, "self.__dict__[name] = value.this\n",
-	     tab8, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n",
-	     tab8, tab8, "del value.thisown\n",
-	     tab8, tab8, "return\n",
-	     //	   tab8, "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n",
-	     tab8, "method = ", class_name, ".__swig_setmethods__.get(name,None)\n",
-	     tab8, "if method: return method(self,value)\n",
-	     tab8, "self.__dict__[name] = value\n\n",
+	     tab4, "__setattr__ = lambda self, name, value: self._swig_setattr(", class_name, ", name, value)\n",
 	     NULL);
 
       Printv(f_shadow,tab4,"__swig_getmethods__ = {}\n",NULL);
-      Printf(f_shadow,"%sfor _s in [%s]: __swig_getmethods__.update(_s.__swig_getmethods__)\n",tab4,base_class);
-
-      Printv(f_shadow, tab4, "def __getattr__(self,name):\n",
-	     tab8, "method = ", class_name, ".__swig_getmethods__.get(name,None)\n",
-	     tab8, "if method: return method(self)\n",
-	     tab8, "raise AttributeError,name\n\n",
+      if (Len(base_class)) {
+	Printf(f_shadow,"%sfor _s in [%s]: __swig_getmethods__.update(_s.__swig_getmethods__)\n",tab4,base_class);
+      }
+      
+      Printv(f_shadow,
+	     tab4, "__getattr__ = lambda self, name: self._swig_getattr(", class_name, ", name)\n",
 	     NULL);
     }
 

@@ -1109,6 +1109,7 @@ Language::staticmembervariableHandler(Node *n)
   mrename = Swig_name_member(ClassPrefix, symname);
   cname = NewStringf("%s::%s", ClassName,name);
 
+  Setattr(n,"member:name", name);
   Setattr(n,"sym:name",mrename);
   Setattr(n,"name", cname);
   
