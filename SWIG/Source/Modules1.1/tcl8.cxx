@@ -92,6 +92,7 @@ TCL8::parse_args(int argc, char *argv[]) {
   Preprocessor_define((void *) "SWIGTCL 1",0);
   Preprocessor_define((void *) "SWIGTCL8 1", 0);
   typemap_lang = (char*)"tcl8";
+  SWIG_config_file("tcl8.swg");
 }
 
 /* ----------------------------------------------------------------------------- 
