@@ -26,9 +26,13 @@ struct StructWithEnums {
 
 
  struct Foo
- {
+ {   
    enum {Hi, Hello } hola;
    
+   Foo() 
+     : hola(Hello)
+   {
+   }
  };
 
 %}
