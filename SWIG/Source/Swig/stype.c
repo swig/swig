@@ -1235,19 +1235,13 @@ String *SwigType_manglestr(SwigType *s) {
  * These functions are used to manipulate typedefs and scopes.
  * ----------------------------------------------------------------------------- */
 
-#define MAX_SCOPE 8
-
-static Hash   *type_scopes = 0;              /* Hash table of scope names           */
-static Hash   *scopes[MAX_SCOPE];            /* List representing the current scope */
-static String *scopenames[MAX_SCOPE];        /* Names of the various scopes         */
-static int      scope_level = 0;
+static Hash  *type_scope = 0;
+static Hash  *global_scope = 0;
 
 static void init_scopes() {
-  if (type_scopes) return;
-  type_scopes = NewHash();
-  scopes[scope_level] = NewHash();
-  scopenames[scope_level] = NewString("");
-  Setattr(type_scopes,"::",scopes[scope_level]);
+  if (type_scope) return;
+  type_scope = NewHash();
+  global_scope = NewHash();
 }
 
 /* -----------------------------------------------------------------------------
@@ -1259,26 +1253,27 @@ static void init_scopes() {
 int SwigType_typedef(SwigType *type, String_or_char *name) {
   int level;
   String *tdname;
+  String *sname;
+  Hash   *s;
 
   init_scopes();
-  if (Getattr(scopes[scope_level],name)) return -1;
+  if (Getattr(type_scope,name)) return -1;
   if (Cmp(type,name) == 0) {
     return 0;
   }
-  level = scope_level;
+  s = type_scope;
   tdname = NewString(name);
-  while (level >= 0) {
-    Setattr(scopes[level],Copy(tdname),type);
-    if (Len(scopenames[level])) {
+  while (s) {
+    Setattr(s,Copy(tdname),type);
+    sname = Getmeta(s,"scopename");
+    if (sname) {
       Insert(tdname,0,"::");
-      Insert(tdname,0,scopenames[level]);
+      Insert(tdname,0,sname);
     } else {
       break;
     }
-    level--;
+    s = Getmeta(s,"parentscope");
   }
-  if (default_cache)
-    Delattr(default_cache,type);
   return 0;
 }
 
@@ -1289,10 +1284,11 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_new_scope() {
+  Hash *s;
   init_scopes();
-  scope_level++;
-  scopes[scope_level] = NewHash();
-  scopenames[scope_level] = NewString("");
+  s = NewHash();
+  Setmeta(s,"parentscope",type_scope);
+  type_scope = s;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1302,30 +1298,20 @@ void SwigType_new_scope() {
  * ----------------------------------------------------------------------------- */
 
 void SwigType_reset_scopes() {
-  Delete(type_scopes);
-  type_scopes = 0;
+  type_scope = 0;
   init_scopes();
 }
 
 /* -----------------------------------------------------------------------------
  * SwigType_set_scope_name()
  *
- * Set the name of the current scope.  Note: this will create an entry in the
- * type_scopes hash.
+ * Set the name of the current scope.
  * ----------------------------------------------------------------------------- */
 
 void SwigType_set_scope_name(String_or_char *name) {
   String *key;
-  int i;
   init_scopes();
-  scopenames[scope_level] = NewString(Char(name));
-  Setmeta(scopes[scope_level],"scopename", scopenames[scope_level]);
-  key = NewString("");
-  for (i = 1; i <= scope_level; i++) {
-    Append(key,scopenames[scope_level]);
-    if (i < scope_level) Append(key,"::");
-  }
-  Setattr(type_scopes,key,scopes[scope_level]);
+  Setmeta(type_scope,"scopename",NewString(name));
 }
 
 /* -----------------------------------------------------------------------------
@@ -1337,14 +1323,36 @@ void SwigType_set_scope_name(String_or_char *name) {
 void SwigType_merge_scope(Hash *scope) {
   String *key;
   String *type;
+  List   *super;
+  Hash   *s;
+  String *sname, *tdname;
 
   init_scopes();
   key = Firstkey(scope);
   while (key) {
     type = Getattr(scope,key);
-    SwigType_typedef(type,key);
+    tdname = NewString(key);
+    s = type_scope;
+    while (s) {
+      sname = Getmeta(s,"scopename");
+      if (sname) {
+	Insert(tdname,0,"::");
+	Insert(tdname,0,sname);
+      } else {
+	break;
+      }
+      s = Getmeta(s,"parentscope");
+      Setattr(s,Copy(tdname),type);
+    }
     key = Nextkey(scope);
   }
+
+  super = Getmeta(type_scope,"inherits");
+  if (!super) {
+    super = NewList();
+    Setmeta(type_scope,"inherits",super);
+  }
+  Append(super,scope);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1355,11 +1363,16 @@ void SwigType_merge_scope(Hash *scope) {
  * ----------------------------------------------------------------------------- */
 
 Hash *SwigType_pop_scope() {
-  Hash *s;
+  Hash *s, *s1;
   init_scopes();
-  if (scope_level == 0) return 0;
-  s = scopes[scope_level--];
-  return s;
+  s = Getmeta(type_scope,"parentscope");
+  if (!s) {
+    type_scope = 0;
+    return 0;
+  }
+  s1 = type_scope;
+  type_scope = s;
+  return s1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1370,11 +1383,8 @@ Hash *SwigType_pop_scope() {
 
 void
 SwigType_push_scope(Hash *h) {
-  Hash *s;
   init_scopes();
-  scope_level++;
-  scopenames[scope_level] = Getmeta(h,"scopename");
-  scopes[scope_level] = h;
+  type_scope = h;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1386,10 +1396,10 @@ SwigType_push_scope(Hash *h) {
 void SwigType_print_scope() {
   String *key;
   init_scopes();
-  Printf(stdout,"Type scope (%d) = %s\n", scope_level, scopenames[scope_level]);
+  Printf(stdout,"Type scope (%x)\n", type_scope);
   Printf(stdout,"-------------------------------------------------------------\n");
-  for (key = Firstkey(scopes[scope_level]); key; key = Nextkey(scopes[scope_level])) {
-    Printf(stdout,"%40s -> %s\n", key, Getattr(scopes[scope_level],key));
+  for (key = Firstkey(type_scope); key; key = Nextkey(type_scope)) {
+    Printf(stdout,"%40s -> %s\n", key, Getattr(type_scope,key));
   }
 }
 
@@ -1400,32 +1410,54 @@ void SwigType_print_scope() {
  * typedef mapping.
  * ----------------------------------------------------------------------------- */
 
+static Hash *last_resolved = 0;
+static SwigType *typedef_resolve(Hash *s, String *base) {
+  String *type = 0;
+  String *r;
+  List   *super;
+
+  while (s) {
+    /* See if we know about this type */
+    type = Getattr(s,base);
+    if (type) {
+      last_resolved = s;
+      return type;
+    }
+    if (s != global_scope) {
+      super = Getmeta(s,"inherits");
+      if (super) {
+	int i;
+	int n = Len(super);
+	for (i = 0; i < n; i++) {
+	  type = typedef_resolve(Getitem(super,i),base);
+	  if (type) return type;
+	}
+      }
+      s = Getmeta(s,"parentscope");
+    } else {
+      s = 0;
+    }
+  }
+  return 0;
+}
+
 SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
   String *r;
-  int level;
+  Hash   *s;
 
   init_scopes();
   base = SwigType_base(t);
-  level = scope_level;
-
+  s = type_scope;
   if (Strncmp(base,"::",2) == 0) {
-    level = 0;
+    s = global_scope;
     Delitem(base,0);
     Delitem(base,0);
   }
-
-  while (level >= 0) {
-    /* See if we know about this type */
-    type = Getattr(scopes[level],base);
-    if (type) break;
-    level--;
-  }
+  type = typedef_resolve(s,base);
   Delete(base);
-  if (level < 0) {
-    return 0;
-  }
+  if (!type) return 0;
   r = SwigType_prefix(t);
   Append(r,type);
   return r;
@@ -1460,8 +1492,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   List   *elements;
   String *result;
   int     i,len;
-  int     level;
-  init_scopes();
+  String  *name;
 
   result = NewString("");
   elements = SwigType_split(t);
@@ -1469,17 +1500,18 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements,i);
     if (SwigType_issimple(e)) {
-      level = scope_level;
-      while (level >= 0) {
-	if (Getattr(scopes[level],e)) {
-	  if (Len(scopenames[level])) {
+      if (typedef_resolve(type_scope,e)) {
+	Hash    *s;
+	s = last_resolved;
+	while (s) {
+	  if ((name = Getmeta(s,"scopename"))) {
 	    Insert(e,0,"::");
-	    Insert(e,0,scopenames[level]);
+	    Insert(e,0,name);
 	  } else {
 	    break;
 	  }
+	  s = Getmeta(s,"parentscope");
 	}
-	level--;
       }
       if (Strncmp(e,"::",2) == 0) {
 	Delitem(e,0);
@@ -1517,24 +1549,19 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 
 int SwigType_istypedef(SwigType *t) {
   String *base, *type;
-  int level;
+  Hash   *s;
 
   init_scopes();
   base = SwigType_base(t);
-  level = scope_level;
+  s = type_scope;
   if (Strncmp(base,"::",2) == 0) {
-    level = 0;
+    s = global_scope;;
     Delitem(base,0);
     Delitem(base,0);
   }
-  while (level >= 0) {
-    /* See if we know about this type */
-    type = Getattr(scopes[level],base);
-    if (type) {
-      Delete(base);
-      return 1;
-    }
-    level--;
+  if (typedef_resolve(s,base)) {
+    Delete(base);
+    return 1;
   }
   Delete(base);
   return 0;
