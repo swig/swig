@@ -747,7 +747,7 @@ CHICKEN_MAIN =
 
 # SWIG produces $(ISRCS) (the C wrapper file) 
 # and $(CHICKEN_GENERATED_SCHEME) (the Scheme wrapper file):
-CHICKEN_GENERATED_SCHEME = `echo $(INTERFACE:.i=.scm) | sed 's/_/-/g'`
+CHICKEN_GENERATED_SCHEME = $(INTERFACE:.i=.scm)
 CHICKEN_COMPILED_SCHEME = $(INTERFACE:.i=_chicken.c)
 CHICKEN_COMPILED_OBJECT = $(CHICKEN_COMPILED_SCHEME:.c=.@OBJEXT@)
 
