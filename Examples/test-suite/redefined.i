@@ -35,7 +35,7 @@
   typedef int Int;
 
   int hello(int);
-  inline int hello(int);
+  inline int hello(int) { return 0; }
   
   class B;
   
@@ -93,7 +93,7 @@
   int hi(int);
   int chao(int);
   int hello(int);
-  inline double hello(int) { return 0; };
+  inline double hello(int) { return 0; }
   
   struct Hello 
   {
