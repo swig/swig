@@ -4,6 +4,11 @@ Version 1.3 Alpha 5
 ===================
 
 9/19/00 : beazley
+          [Python] Python module generates more efficient code for
+          creating the return value of a wrapper function. Modification
+          suggested by Jon Travis.
+
+9/19/00 : beazley
           Library files specified with the -l option are now included at the
           end of the interface file (reverting to the old behavior).
 
