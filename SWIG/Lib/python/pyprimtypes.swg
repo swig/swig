@@ -475,7 +475,7 @@ SWIGINTERN int
   double v;
   if (SWIG_AsVal(double)(obj, &v)) {
     if (SWIG_CheckDoubleInRange(v, -FLT_MAX, FLT_MAX, errmsg)) {
-      if (val) *val = v;
+      if (val) *val = SWIG_numeric_cast(v, float);
       return 1;
     } else {
       return 0;
@@ -509,7 +509,7 @@ SWIGINTERN int
   long v;
   if (SWIG_AsVal(long)(obj, &v)) {
     if (SWIG_CheckLongInRange(v, CHAR_MIN,CHAR_MAX, errmsg)) {
-      if (val) *val = v;
+      if (val) *val = SWIG_numeric_cast(v, char);
       return 1;
     } else {
       return 0;
@@ -568,7 +568,6 @@ SWIGINTERNSHORT PyObject*
 SWIGINTERN int
   SWIG_AsVal(bool)(PyObject *obj, bool *val)
 {
-  /*  if (val) *val = PyObject_IsTrue(obj); return 1; */
   if (obj == Py_True) {
     if (val) *val = true;
     return 1;
@@ -579,7 +578,7 @@ SWIGINTERN int
   }
   int res = 0;
   if (SWIG_AsVal(int)(obj, &res)) {    
-    if (val) *val = (bool)res;
+    if (val) *val = res ? true : false;
     return 1;
   }
   if (val) {
