@@ -3,10 +3,15 @@
 //
 // Change this to #if 1 to test the 'test'
 //
-#if 0
+#if 1
 
+%{
+#include <complex>
+typedef std::complex<double> cmplx;
+%}
+  
 %inline %{
-  typedef float complex;
+  typedef cmplx complex;
 %}
 
 #else
