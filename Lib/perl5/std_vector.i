@@ -419,9 +419,11 @@ namespace std {
     %enddef
 
     specialize_std_vector(bool,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(char,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(int,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(short,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(long,SvIOK,SvIVX,sv_setiv);
+    specialize_std_vector(unsigned char,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(unsigned int,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(unsigned short,SvIOK,SvIVX,sv_setiv);
     specialize_std_vector(unsigned long,SvIOK,SvIVX,sv_setiv);

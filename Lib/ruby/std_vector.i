@@ -503,9 +503,11 @@ namespace std {
     %enddef
 
     specialize_std_vector(bool,SWIG_BOOL_P,SWIG_RB2BOOL,SWIG_BOOL2RB);
+    specialize_std_vector(char,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(int,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(short,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(long,FIXNUM_P,FIX2INT,INT2NUM);
+    specialize_std_vector(unsigned char,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(unsigned int,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(unsigned short,FIXNUM_P,FIX2INT,INT2NUM);
     specialize_std_vector(unsigned long,FIXNUM_P,FIX2INT,INT2NUM);

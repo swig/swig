@@ -422,9 +422,12 @@ namespace std {
     %enddef
 
     specialize_std_vector(bool, Tcl_GetBoolFromObj, Tcl_NewBooleanObj);
+    specialize_std_vector(char, Tcl_GetIntFromObj,Tcl_NewIntObj);
     specialize_std_vector(int, Tcl_GetIntFromObj,Tcl_NewIntObj);
     specialize_std_vector(short, SwigInt_As<short>, Tcl_NewIntObj);
     specialize_std_vector(long, SwigInt_As<long>, Tcl_NewIntObj);
+    specialize_std_vector(unsigned char, 
+                          SwigInt_As<unsigned int>, Tcl_NewIntObj);
     specialize_std_vector(unsigned int, 
                           SwigInt_As<unsigned int>, Tcl_NewIntObj);
     specialize_std_vector(unsigned short, 

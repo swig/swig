@@ -422,9 +422,11 @@ namespace std {
     %enddef
 
     specialize_stl_vector(bool,gh_boolean_p,gh_scm2bool,SWIG_bool2scm);
+    specialize_stl_vector(char,gh_number_p,gh_scm2long,gh_long2scm);
     specialize_stl_vector(int,gh_number_p,gh_scm2long,gh_long2scm);
     specialize_stl_vector(long,gh_number_p,gh_scm2long,gh_long2scm);
     specialize_stl_vector(short,gh_number_p,gh_scm2long,gh_long2scm);
+    specialize_stl_vector(unsigned char,gh_number_p,gh_scm2ulong,gh_ulong2scm);
     specialize_stl_vector(unsigned int,gh_number_p,gh_scm2ulong,gh_ulong2scm);
     specialize_stl_vector(unsigned long,gh_number_p,gh_scm2ulong,gh_ulong2scm);
     specialize_stl_vector(unsigned short,gh_number_p,gh_scm2ulong,gh_ulong2scm);
