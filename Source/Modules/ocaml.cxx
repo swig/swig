@@ -30,6 +30,7 @@ static const char *usage = (char*)
     ("Ocaml Options (available with -ocaml)\n"
      "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
      "-where          - Emit library location\n"
+     "-suffix <name>  - Change .cxx to something else\n"
      "\n");
 
 static int classmode = 0;
@@ -114,6 +115,14 @@ public:
 		    } else {
 			Swig_arg_error();
 		    }
+		} else if (strcmp (argv[i], "-suffix") == 0) {
+		    if (argv[i + 1]) {
+			SWIG_config_cppext( argv[i+1] );
+			Swig_mark_arg (i);
+			Swig_mark_arg (i+1);
+			i++;
+		    } else
+			Swig_arg_error();
 		}
 	    }
 	}
