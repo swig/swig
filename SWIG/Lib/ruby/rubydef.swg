@@ -36,45 +36,43 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own)
 {
     char *klass_name;
     swig_class *sklass;
-
     VALUE klass;
+    VALUE obj;
+    
     if (!ptr)
 	return Qnil;
     
     if (type->clientdata) {
       sklass = (swig_class *) type->clientdata;
-      return Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
+      obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
+    } else {
+      klass_name = (char *) malloc(4 + strlen(type->name) + 1);
+      sprintf(klass_name, "TYPE%s", type->name);
+      klass = rb_const_get(_mSWIG, rb_intern(klass_name));
+      free((void *) klass_name);
+      obj = Data_Wrap_Struct(klass, 0, 0, ptr);
     }
-    klass_name = (char *) malloc(4 + strlen(type->name) + 1);
-    sprintf(klass_name, "TYPE%s", type->name);
-    klass = rb_const_get(_mSWIG, rb_intern(klass_name));
-    free((void *) klass_name);
-    return Data_Wrap_Struct(klass, 0, 0, ptr);
+    rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
+    return obj;
 }
 
 /* Create a new class instance (always owned) */
 SWIGRUNTIME(VALUE)
 SWIG_NewClassInstance(VALUE klass, swig_type_info *type)
 {
+    VALUE obj;
     swig_class *sklass = (swig_class *) type->clientdata;
-    return Data_Wrap_Struct(klass, VOIDFUNC(sklass->mark), VOIDFUNC(sklass->destroy), 0);
+    obj = Data_Wrap_Struct(klass, VOIDFUNC(sklass->mark), VOIDFUNC(sklass->destroy), 0);
+    rb_iv_set(obj, "__swigtype__", rb_str_new2(type->name));
+    return obj;
 }
 
 /* Get type mangle from class name */
 SWIGRUNTIME(char *)
 SWIG_MangleStr(VALUE obj)
 {
-  char *c;
-
-  if (!rb_obj_is_kind_of(obj, _cSWIG_Pointer))
-    return 0;
-
-  c = rb_class2name(rb_class_of(obj));
-  c += strlen(c);
-  while (*(--c) != ':');
-  /* skip ":TYPE" */
-  c += 5;
-  return c;
+  VALUE stype = rb_iv_get(obj, "__swigtype__");
+  return STR2CSTR(stype);
 }
 
 /* Convert a pointer value */
