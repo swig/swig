@@ -36,23 +36,23 @@ extern "C" {
 
 /* Internal C/C++ API */
 #ifdef __cplusplus
-#define SWIG_new_array(size,Type) (new Type[(size)])
+#define SWIG_new_array(size,...) (new __VA_ARGS__[(size)])
 #define SWIG_delete(cptr) delete cptr
 #define SWIG_delete_array(cptr) delete[] cptr
-#define SWIG_const_cast(a,Type) const_cast<Type >(a)
-#define SWIG_static_cast(a,Type) static_cast<Type >(a)
-#define SWIG_reinterpret_cast(a,Type) reinterpret_cast<Type >(a)
-#define SWIG_new_copy(ptr,Type) (new Type(*ptr))
-#define SWIG_numeric_cast(a,Type) static_cast<Type >(a)
+#define SWIG_const_cast(a,...) const_cast<__VA_ARGS__ >(a)
+#define SWIG_static_cast(a,...) static_cast<__VA_ARGS__ >(a)
+#define SWIG_reinterpret_cast(a,...) reinterpret_cast<__VA_ARGS__ >(a)
+#define SWIG_new_copy(ptr,...) (new __VA_ARGS__(*ptr))
+#define SWIG_numeric_cast(a,...) static_cast<__VA_ARGS__ >(a)
 #else /* C case */
-#define SWIG_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define SWIG_new_array(size,...) ((__VA_ARGS__*) malloc((size)*sizeof(__VA_ARGS__)))
 #define SWIG_delete(cptr) free((char*)cptr)
 #define SWIG_delete_array(cptr) free((char*)cptr)
-#define SWIG_const_cast(a,Type) (Type)(a)
-#define SWIG_static_cast(a,Type) (Type)(a)
-#define SWIG_reinterpret_cast(a,Type) (Type)(a)
-#define SWIG_numeric_cast(a,Type) (Type)(a)
-#define SWIG_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
+#define SWIG_const_cast(a,...) (__VA_ARGS__)(a)
+#define SWIG_static_cast(a,...) (__VA_ARGS__)(a)
+#define SWIG_reinterpret_cast(a,...) (__VA_ARGS__)(a)
+#define SWIG_numeric_cast(a,...) (__VA_ARGS__)(a)
+#define SWIG_new_copy(ptr,...)  ((__VA_ARGS__*)memcpy(malloc(sizeof(__VA_ARGS__)),ptr,sizeof(__VA_ARGS__)))
 #endif /* __cplusplus */
 
 /*
