@@ -52,7 +52,6 @@ static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
 static int      dirprot_mode  = 0;
-static int      tempext_mode  = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -2331,7 +2330,12 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   unnamed = make_unnamed();
 		   ty = NewStringf("enum %s", unnamed);
 		   Setattr($$,"unnamed",unnamed);
-		   Setattr($$,"name",$7.id);
+                   /* name is not set for unnamed enum instances, e.g. enum { foo } Instance; */
+		   if ($1 && Cmp($1,"typedef") == 0) {
+		     Setattr($$,"name",$7.id);
+                   } else {
+		     Setattr($$,"unnamedinstance","1");
+                   }
 		   Setattr($$,"storage",$1);
 		 }
 		 if ($7.id && Cmp($1,"typedef") == 0) {
