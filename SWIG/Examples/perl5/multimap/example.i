@@ -5,6 +5,8 @@
 
 extern int    gcd(int x, int y);
 
+%typemap(perl5,arginit) (int argc, char *argv[]) "$2 = 0;";
+
 %typemap(perl5,in) (int argc, char *argv[]) {
   AV *tempav;
   SV **tv;
