@@ -1,7 +1,7 @@
 <?
 
 # Plot a 3D function
-dl("gifplot.so");
+dl("libgifplot.so");
 
 # Here is the function to plot
 function func($x, $y) {
