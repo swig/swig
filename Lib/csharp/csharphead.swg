@@ -93,38 +93,38 @@ static void SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExceptionArgumentC
 extern "C" 
 #endif
 DllExport void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
-                                                SWIG_CSharpExceptionCallback_t application,
-                                                SWIG_CSharpExceptionCallback_t arithmetic,
-                                                SWIG_CSharpExceptionCallback_t divideByZero, 
-                                                SWIG_CSharpExceptionCallback_t indexOutOfRange, 
-                                                SWIG_CSharpExceptionCallback_t invalidOperation,
-                                                SWIG_CSharpExceptionCallback_t io,
-                                                SWIG_CSharpExceptionCallback_t nullReference,
-                                                SWIG_CSharpExceptionCallback_t outOfMemory, 
-                                                SWIG_CSharpExceptionCallback_t overflow, 
-                                                SWIG_CSharpExceptionCallback_t system) {
-  SWIG_csharp_exceptions[SWIG_CSharpApplicationException].callback = application;
-  SWIG_csharp_exceptions[SWIG_CSharpArithmeticException].callback = arithmetic;
-  SWIG_csharp_exceptions[SWIG_CSharpDivideByZeroException].callback = divideByZero;
-  SWIG_csharp_exceptions[SWIG_CSharpIndexOutOfRangeException].callback = indexOutOfRange;
-  SWIG_csharp_exceptions[SWIG_CSharpInvalidOperationException].callback = invalidOperation;
-  SWIG_csharp_exceptions[SWIG_CSharpIOException].callback = io;
-  SWIG_csharp_exceptions[SWIG_CSharpNullReferenceException].callback = nullReference;
-  SWIG_csharp_exceptions[SWIG_CSharpOutOfMemoryException].callback = outOfMemory;
-  SWIG_csharp_exceptions[SWIG_CSharpOverflowException].callback = overflow;
-  SWIG_csharp_exceptions[SWIG_CSharpSystemException].callback = system;
+                                                SWIG_CSharpExceptionCallback_t applicationCallback,
+                                                SWIG_CSharpExceptionCallback_t arithmeticCallback,
+                                                SWIG_CSharpExceptionCallback_t divideByZeroCallback, 
+                                                SWIG_CSharpExceptionCallback_t indexOutOfRangeCallback, 
+                                                SWIG_CSharpExceptionCallback_t invalidOperationCallback,
+                                                SWIG_CSharpExceptionCallback_t ioCallback,
+                                                SWIG_CSharpExceptionCallback_t nullReferenceCallback,
+                                                SWIG_CSharpExceptionCallback_t outOfMemoryCallback, 
+                                                SWIG_CSharpExceptionCallback_t overflowCallback, 
+                                                SWIG_CSharpExceptionCallback_t systemCallback) {
+  SWIG_csharp_exceptions[SWIG_CSharpApplicationException].callback = applicationCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpArithmeticException].callback = arithmeticCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpDivideByZeroException].callback = divideByZeroCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpIndexOutOfRangeException].callback = indexOutOfRangeCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpInvalidOperationException].callback = invalidOperationCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpIOException].callback = ioCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpNullReferenceException].callback = nullReferenceCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpOutOfMemoryException].callback = outOfMemoryCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpOverflowException].callback = overflowCallback;
+  SWIG_csharp_exceptions[SWIG_CSharpSystemException].callback = systemCallback;
 }
 
 #ifdef __cplusplus
 extern "C" 
 #endif
 DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
-                                                SWIG_CSharpExceptionArgumentCallback_t argument,
-                                                SWIG_CSharpExceptionArgumentCallback_t argumentNull,
-                                                SWIG_CSharpExceptionArgumentCallback_t argumentOutOfRange) {
-  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentException].callback = argument;
-  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentNullException].callback = argumentNull;
-  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentOutOfRangeException].callback = argumentOutOfRange;
+                                                SWIG_CSharpExceptionArgumentCallback_t argumentCallback,
+                                                SWIG_CSharpExceptionArgumentCallback_t argumentNullCallback,
+                                                SWIG_CSharpExceptionArgumentCallback_t argumentOutOfRangeCallback) {
+  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentException].callback = argumentCallback;
+  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentNullException].callback = argumentNullCallback;
+  SWIG_csharp_exceptions_argument[SWIG_CSharpArgumentOutOfRangeException].callback = argumentOutOfRangeCallback;
 }
 %}
 
@@ -134,20 +134,20 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     public delegate void ExceptionDelegate(string message);
     public delegate void ExceptionArgumentDelegate(string message, string paramName);
 
-    static ExceptionDelegate applicationDelegate = new ExceptionDelegate(ThrowApplicationException);
-    static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(ThrowArithmeticException);
-    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(ThrowDivideByZeroException);
-    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(ThrowIndexOutOfRangeException);
-    static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(ThrowInvalidOperationException);
-    static ExceptionDelegate ioDelegate = new ExceptionDelegate(ThrowIOException);
-    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(ThrowNullReferenceException);
-    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(ThrowOutOfMemoryException);
-    static ExceptionDelegate overflowDelegate = new ExceptionDelegate(ThrowOverflowException);
-    static ExceptionDelegate systemDelegate = new ExceptionDelegate(ThrowSystemException);
+    static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
+    static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
+    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
+    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
+    static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
+    static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
+    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
+    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(SetPendingOutOfMemoryException);
+    static ExceptionDelegate overflowDelegate = new ExceptionDelegate(SetPendingOverflowException);
+    static ExceptionDelegate systemDelegate = new ExceptionDelegate(SetPendingSystemException);
 
-    static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(ThrowArgumentException);
-    static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(ThrowArgumentNullException);
-    static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(ThrowArgumentOutOfRangeException);
+    static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(SetPendingArgumentException);
+    static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(SetPendingArgumentNullException);
+    static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(SetPendingArgumentOutOfRangeException);
 
     [DllImport("$dllimport", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
     public static extern void SWIGRegisterExceptionCallbacks_$module(
@@ -168,44 +168,44 @@ DllExport void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 ExceptionArgumentDelegate argumentNullDelegate,
                                 ExceptionArgumentDelegate argumentOutOfRangeDelegate);
 
-    static void ThrowApplicationException(string message) {
+    static void SetPendingApplicationException(string message) {
       SWIGPendingException.Set(new System.ApplicationException(message));
     }
-    static void ThrowArithmeticException(string message) {
+    static void SetPendingArithmeticException(string message) {
       SWIGPendingException.Set(new System.ArithmeticException(message));
     }
-    static void ThrowDivideByZeroException(string message) {
+    static void SetPendingDivideByZeroException(string message) {
       SWIGPendingException.Set(new System.DivideByZeroException(message));
     }
-    static void ThrowIndexOutOfRangeException(string message) {
+    static void SetPendingIndexOutOfRangeException(string message) {
       SWIGPendingException.Set(new System.IndexOutOfRangeException(message));
     }
-    static void ThrowInvalidOperationException(string message) {
+    static void SetPendingInvalidOperationException(string message) {
       SWIGPendingException.Set(new System.InvalidOperationException(message));
     }
-    static void ThrowIOException(string message) {
+    static void SetPendingIOException(string message) {
       SWIGPendingException.Set(new System.IO.IOException(message));
     }
-    static void ThrowNullReferenceException(string message) {
+    static void SetPendingNullReferenceException(string message) {
       SWIGPendingException.Set(new System.NullReferenceException(message));
     }
-    static void ThrowOutOfMemoryException(string message) {
+    static void SetPendingOutOfMemoryException(string message) {
       SWIGPendingException.Set(new System.OutOfMemoryException(message));
     }
-    static void ThrowOverflowException(string message) {
+    static void SetPendingOverflowException(string message) {
       SWIGPendingException.Set(new System.OverflowException(message));
     }
-    static void ThrowSystemException(string message) {
+    static void SetPendingSystemException(string message) {
       SWIGPendingException.Set(new System.SystemException(message));
     }
 
-    static void ThrowArgumentException(string message, string paramName) {
+    static void SetPendingArgumentException(string message, string paramName) {
       SWIGPendingException.Set(new System.ArgumentException(message, paramName));
     }
-    static void ThrowArgumentNullException(string message, string paramName) {
+    static void SetPendingArgumentNullException(string message, string paramName) {
       SWIGPendingException.Set(new System.ArgumentNullException(paramName, message));
     }
-    static void ThrowArgumentOutOfRangeException(string message, string paramName) {
+    static void SetPendingArgumentOutOfRangeException(string message, string paramName) {
       SWIGPendingException.Set(new System.ArgumentOutOfRangeException(paramName, message));
     }
 
