@@ -3502,26 +3502,28 @@ def_args       : EQUAL definetype {
 		    $$.throws = 0;
 		  }
                }
-               | EQUAL AND idcolon {
-		 Node *n = Swig_symbol_clookup($3,0);
+               | EQUAL AND declarator {
+		 Node *n = Swig_symbol_clookup($3.id,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (Getattr(n,"access")) {
 		     if (cplus_mode == CPLUS_PUBLIC) {
-		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3);
+		       Swig_warning(WARN_PARSE_PRIVATE, cparse_file, cparse_line,"'%s' is private in this context.\n", $3.id);
 		       Swig_warning(WARN_PARSE_BAD_DEFAULT, cparse_file, cparse_line,"Can't set default argument value (ignored)\n");
 		     }
 		     $$.val = 0;
 		   } else {
 		     if (q) {
-		       $$.val = NewStringf("&%s::%s", q,Getattr(n,"name"));
+		       String *temp = NewStringf("%s::%s", q, Getattr(n,"name"));
+		       $$.val = NewStringf("&%s", SwigType_str($3.type,temp));
 		       Delete(q);
+		       Delete(temp);
 		     } else {
-		       $$.val = NewStringf("&%s", $3);
+		       $$.val = NewStringf("&%s", SwigType_str($3.type,$3.id));
 		     }
 		   }
 		 } else {
-		   $$.val = NewStringf("&%s",$3);
+		   $$.val = NewStringf("&%s",SwigType_str($3.type,$3.id));
 		 }
 		 $$.rawval = 0;
 		 $$.type = T_USER;
