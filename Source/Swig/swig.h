@@ -335,6 +335,8 @@ extern String     *ParmList_str(ParmList *);
 extern String     *ParmList_str_defaultargs(ParmList *);
 extern String     *ParmList_protostr(ParmList *);
 extern int         ParmList_is_compactdefargs(ParmList *p);
+extern int         ParmList_has_defaultargs(ParmList *p);
+extern ParmList   *ParmList_copy_all_except_last_parm(ParmList *p);
 
 /* --- Parse tree support --- */
 
