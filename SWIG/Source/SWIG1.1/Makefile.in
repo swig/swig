@@ -43,10 +43,12 @@ $(TARGET): $(OBJS)
 parser.o: parser.cxx
 	$(CXX) $(INCLUDE) $(CFLAGS) $< -c -o parser.o
 
-parser.cxx: $(PARSER)
+parser.cxx parser.h: $(PARSER)
 	$(YACC) @YFLAGS@ $(PARSER)
 	@cp y.tab.h parser.h
 	@cp y.tab.c parser.cxx
+
+scanner.o: parser.h
 
 parser::
 	@cp y.tab.c.bison parser.cxx
