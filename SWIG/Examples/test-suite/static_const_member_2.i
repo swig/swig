@@ -16,7 +16,7 @@
        static const viewflags backward_field = 1 << 1;
        static const viewflags cavity_flags;
        static viewflags flags;
-
+       static const int &reftest;
      };     
 
      template <class T>
@@ -29,6 +29,13 @@
  }
 
 %} 
+
+%{
+
+int refvalue = 42;
+const int &oss::modules::CavityPackFlags::reftest = refvalue;
+
+%}
 
 %{
   using oss::modules::CavityPackFlags;
