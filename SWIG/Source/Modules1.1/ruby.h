@@ -42,9 +42,6 @@ class RUBY : public Language {
   virtual void set_module(char *);          /* Deprecated */
 
   virtual void create_command(char *, char *, int);   /* Deprecated */
-
-  /* Pragma directive  */
-  virtual void pragma(char *, char *, char *);
 };
 
 /*

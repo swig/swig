@@ -38,9 +38,6 @@ class RClass {
   String *header;
   String *init;
 
-  String *aliases;
-  String *includes;
-  Hash *freemethods;
   int constructor_defined;
   int destructor_defined;
 
@@ -53,9 +50,6 @@ class RClass {
     prefix = NewString("");
     header = NewString("");
     init = NewString("");
-    aliases = NewString("");
-    includes = NewString("");
-    freemethods = NewHash();
     constructor_defined = 0;
     destructor_defined = 0;
   }
@@ -67,9 +61,6 @@ class RClass {
     Delete(prefix);
     Delete(header);
     Delete(init);
-    Delete(aliases);
-    Delete(includes);
-    Delete(freemethods);
     Delete(temp);
   }
 
@@ -724,11 +715,6 @@ int RUBY::functionWrapper(Node *n) {
     }
   }
 
-  /* free pragma */
-  if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname)) {
-    Printv(f->code, tab4, "DATA_PTR(self) = 0;\n", NULL);
-  }
-
   /* Special processing on return value. */
   tm = Swig_typemap_lookup_new("ret",n,"result",0);
   if (tm) {
@@ -971,8 +957,6 @@ int RUBY::classHandler(Node *n) {
     Delete(tt);
   }
 
-  Replace(klass->includes,"$class", klass->vname, DOH_REPLACE_ANY);
-  Printv(klass->init, klass->includes,NULL);
   Printv(klass->init, "$constructor",NULL);
   Printv(klass->init, "$initializer",NULL);
 
@@ -1016,9 +1000,6 @@ int RUBY::classHandler(Node *n) {
   Replace(klass->header,"$freeproto", "", DOH_REPLACE_ANY);
 
   Printv(f_header, klass->header,NULL);
-
-  Replace(klass->aliases,"$class", klass->vname, DOH_REPLACE_ANY);
-  Printv(klass->init, klass->aliases,NULL);
 
   String *s = NewString("");
   Printv(s, tab4, "rb_undef_method(CLASS_OF(", klass->vname,
@@ -1212,49 +1193,6 @@ int RUBY::classforwardDeclaration(Node *n) {
     SET_RCLASS(classes,temp,kls);
   }
   return SWIG_OK;
-}
-
-
-/* --------------------------------------------------------------------
- * void RUBY::pragma(char *target, char *var, char *value)
- *
- * A pragma declaration
- * -------------------------------------------------------------------- */
-
-void RUBY::pragma(char *lang, char *cmd, char *value) {
-  if (strcmp(lang, "ruby") != 0)
-    return;
-
-  if (strcmp(cmd, "free") == 0) {
-    char name[64];
-    if (sscanf(value, " %s ", name) != 1) {
-      Printf(stderr, "%s : Line %d. Invalid free pragma.\n",
-	      input_file, line_number);
-      return;
-    }
-    Setattr(klass->freemethods, name, name);
-  } else if (strcmp(cmd, "include") == 0) {
-    char name[64];
-    if (sscanf(value, " %s ", name) != 1) {
-      Printf(stderr, "%s : Line %d. Invalid include pragma.\n",
-	      input_file, line_number);
-      return;
-    }
-    Printv(klass->includes,tab4, "rb_include_module($class, ",
-	   "rb_eval_string(\"", name, "\"));\n", 0);
-  } else if (strcmp(cmd, "alias") == 0) {
-    char alias[64], name[64];
-    if (sscanf(value, " %s %s ", alias, name) != 2) {
-      Printf(stderr, "%s : Line %d. Invalid alias pragma.\n",
-	      input_file, line_number);
-      return;
-    }
-    Printv(klass->aliases, tab4, "rb_define_alias($class, ",
-	   "\"", alias, "\", \"", name, "\");\n", 0);
-  } else {
-    Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
-	    input_file, line_number);
-  }
 }
 
 /*
