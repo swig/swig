@@ -92,19 +92,26 @@ following options and a filename like this:
 <p>
 <blockquote><pre>swig [ <em>options</em> ] filename
 
--tcl                  Generate Tcl wrappers
--perl                 Generate Perl5 wrappers
--python               Generate Python wrappers
+-chicken              Generate CHICKEN wrappers
+-csharp               Generate C# wrappers
 -guile                Generate Guile wrappers
--ruby                 Generate Ruby wrappers
 -java                 Generate Java wrappers
--mzscheme             Generate mzscheme wrappers
+-mzscheme             Generate Mzscheme wrappers
+-ocaml                Generate Ocaml wrappers
+-perl                 Generate Perl wrappers
 -php                  Generate PHP wrappers
+-pike                 Generate Pike wrappers
+-python               Generate Python wrappers
+-ruby                 Generate Ruby wrappers
+-sexp                 Generate Lisp S-Expressions wrappers
+-tcl                  Generate Tcl wrappers
+-xml                  Generate XML wrappers
 -c++                  Enable C++ parsing
 -I<em>dir</em>                 Add a directory to the file include path
 -l<em>file</em>                Include a SWIG library file.
 -c                    Generate raw wrapper code (omit supporting code)
 -o <em>outfile</em>            Name of output file
+-outdir <em>dir</em>           Set language specific files output directory
 -module <em>name</em>          Set the name of the SWIG module
 -D<em>symbol</em>              Define a preprocessor symbol
 -version              Show SWIG version number
@@ -113,7 +120,8 @@ following options and a filename like this:
 
 </pre></blockquote>
 
-Additional options are often defined for each target language.  A full list
+This is a subset of commandline options.
+Additional options are also defined for each target language.  A full list
 can be obtained by typing <tt>swig -help</tt> or <tt>swig
 -<em>lang</em> -help</tt>.
 
@@ -164,11 +172,13 @@ parsed or interpreted by SWIG.  The <tt>%{...%}</tt> syntax and
 semantics in SWIG is analogous to that of the declarations section
 used in input files to parser generation tools such as yacc or bison.
 
+<a name="output"></a>
 <a name="n4"></a><H3>4.1.2 SWIG Output</H3>
 
 
 The output of SWIG is a C/C++ file that contains all of the wrapper
-code needed to build an extension module.  By default, an input file
+code needed to build an extension module.  SWIG may generate some
+additional files depending on the target language. By default, an input file
 with the name <tt>file.i</tt> is transformed into a file
 <tt>file_wrap.c</tt> or <tt>file_wrap.cxx</tt> (depending on whether
 or not the <tt>-c++</tt> option has been used).  The name of the
@@ -182,13 +192,30 @@ file if you want something different than the default. For example:
 $ swig -c++ -python -o example_wrap.cpp example.i</pre></blockquote>
 
 <p>
-The output file created by SWIG normally
+The C/C++ output file created by SWIG often
 contains everything that is needed to construct a extension module
-for the target scripting language. SWIG is not a stub compiler nor is
+for the target scripting language. SWIG is not a stub compiler nor is it
 usually necessary to edit the output file (and if you look at the output,
 you probably won't want to).      To build the final extension module, the
 SWIG output file is compiled and linked with the rest of your C/C++
 program to create a shared library. 
+
+<p>
+Many target languages will also generate proxy class files in the
+target language. The default output directory for these language 
+specific files is the same directory as the generated C/C++ file. This can
+can be modified using the <tt>-outdir</tt> option. For example:
+
+<blockquote><pre>
+$ swig -c++ -python -outdir pyfiles -o cppfiles/example_wrap.cpp example.i
+</pre></blockquote>
+
+If the directories <tt>cppfiles</tt> and <tt>pyfiles</tt> exist, the following
+will be generated:
+<blockquote><pre>
+cppfiles/example_wrap.cpp
+pyfiles/example.py
+</pre></blockquote>
 
 <a name="n5"></a><H3>4.1.3 Comments</H3>
 
@@ -2626,6 +2653,6 @@ The bottom line: don't do this.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : May 25, 2002</address>
+<address>SWIG 1.3 - Last Modified : August 7, 2003</address>
 </body>
 </html>
