@@ -43,21 +43,16 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
-	template_const_ref \
-	lib_std_string \
-	private_assign \
-	bool_default \
-	constructor_value \
-	template_qualifier \
-	namespace_extend \
 	add_link \
 	anonymous_arg \
 	arrays_global \
+	bool_default \
 	casts \
 	class_ignore \
 	const_const_2 \
 	constant_pointers \
 	constover \
+	constructor_value \
 	cplusplus_throw \
 	cpp_enum \
 	cpp_enum_scope \
@@ -74,15 +69,19 @@ CPP_TEST_CASES += \
 	lib_carrays \
 	lib_cdata \
 	lib_cpointer \
+	lib_std_string \
+	lib_std_vector \
 	member_template \
 	minherit \
 	name_cxx \
 	name_inherit \
 	namespace_enum \
+	namespace_extend \
 	namespace_typemap \
 	pointer_cxx \
 	pointer_reference \
 	primitive_ref \
+	private_assign \
 	pure_virtual \
 	rename_default \
 	rname \
@@ -90,8 +89,10 @@ CPP_TEST_CASES += \
 	static_const_member \
 	template \
 	template_classes \
+	template_const_ref \
 	template_inherit \
 	template_ns2 \
+	template_qualifier \
 	template_qualifier \
 	template_whitespace \
 	typedef_funcptr \
