@@ -1,7 +1,7 @@
 <?php
 
 require "tests.php4";
-require "abstract_inherit_ok.php";
+require "abstract_inherit.php";
 
 check::classes("Spam");
 $spam=new Spam();
