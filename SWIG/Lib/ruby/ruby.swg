@@ -252,13 +252,53 @@ typedef unsigned long VALUE;
 
 %apply long { size_t };
 
-/* Overloaded operator support */
+/* ------------------------------------------------------------
+ * Overloaded operator support
+ * ------------------------------------------------------------ */
 
 #ifdef __cplusplus
 
-%rename(__add__)	*::operator+;
-%rename(__sub__)	*::operator-;
-%rename(__mul__)	*::operator*;
-%rename(__div__)	*::operator/;
+%rename(__add__)      *::operator+;
+%rename(__pos__)      *::operator+();
+%rename(__sub__)      *::operator-;
+%rename(__neg__)      *::operator-();
+%rename(__mul__)      *::operator*;
+%rename(__div__)      *::operator/;
+%rename(__mod__)      *::operator%;
+%rename(__lshift__)   *::operator<<;
+%rename(__rshift__)   *::operator>>;
+%rename(__and__)      *::operator&;
+%rename(__or__)       *::operator|;
+%rename(__xor__)      *::operator^;
+%rename(__invert__)   *::operator~;
+%rename(__lt__)       *::operator<;
+%rename(__le__)       *::operator<=;
+%rename(__gt__)       *::operator>;
+%rename(__ge__)       *::operator>=;
+%rename(__eq__)       *::operator==;
+%rename(__ne__)       *::operator!=;
+
+/* Special cases */
+%rename(__call__)     *::operator();
+
+/* Ignored operators */
+%ignorewarn("operator+= ignored") operator+=;
+%ignorewarn("operator-= ignored") operator-=;
+%ignorewarn("operator*= ignored") operator*=;
+%ignorewarn("operator/= ignored") operator/=;
+%ignorewarn("operator%= ignored") operator%=;
+%ignorewarn("operator<<= ignored") operator<<=;
+%ignorewarn("operator>>= ignored") operator>>=;
+%ignorewarn("operator&= ignored") operator&=;
+%ignorewarn("operator|= ignored") operator|=;
+%ignorewarn("operator^= ignored") operator^=;
+%ignorewarn("operator= ignored") operator=;
+%ignorewarn("operator++ ignored") operator++;
+%ignorewarn("operator-- ignored") operator--;
+%ignorewarn("operator&& ignored") operator&&;
+%ignorewarn("operator|| ignored") operator||;
+%ignorewarn("operator-> ignored") operator->;
+%ignorewarn("operator->* ignored") operator->*;
+%ignorewarn("operator[] ignored (consider using %addmethods)") operator[];
 
 #endif /* __cplusplus */

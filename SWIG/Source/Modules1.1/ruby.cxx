@@ -211,29 +211,39 @@ int RUBY::top(Node *n) {
   Setattr(special_methods, "__cmp__", "<=>");
   Setattr(special_methods, "__hash__", "hash");
   Setattr(special_methods, "__nonzero__", "nonzero?");
+  
   /* Callable */
   Setattr(special_methods, "__call__", "call");
+  
   /* Collection */
   Setattr(special_methods, "__len__", "length");
   Setattr(special_methods, "__getitem__", "[]");
   Setattr(special_methods, "__setitem__", "[]=");
-  /* Numeric */
+  
+  /* Operators */
   Setattr(special_methods, "__add__", "+");
+  Setattr(special_methods, "__pos__", "+@");
   Setattr(special_methods, "__sub__", "-");
+  Setattr(special_methods, "__neg__", "-@");
   Setattr(special_methods, "__mul__", "*");
   Setattr(special_methods, "__div__", "/");
   Setattr(special_methods, "__mod__", "%");
-  Setattr(special_methods, "__divmod__", "divmod");
-  Setattr(special_methods, "__pow__", "**");
   Setattr(special_methods, "__lshift__", "<<");
   Setattr(special_methods, "__rshift__", ">>");
   Setattr(special_methods, "__and__", "&");
-  Setattr(special_methods, "__xor__", "^");
   Setattr(special_methods, "__or__", "|");
-  Setattr(special_methods, "__neg__", "-@");
-  Setattr(special_methods, "__pos__", "+@");
-  Setattr(special_methods, "__abs__", "abs");
+  Setattr(special_methods, "__xor__", "^");
   Setattr(special_methods, "__invert__", "~");
+  Setattr(special_methods, "__lt__", "<");
+  Setattr(special_methods, "__le__", "<=");
+  Setattr(special_methods, "__gt__", ">");
+  Setattr(special_methods, "__ge__", ">=");
+  Setattr(special_methods, "__eq__", "==");
+
+  /* Other numeric */
+  Setattr(special_methods, "__divmod__", "divmod");
+  Setattr(special_methods, "__pow__", "**");
+  Setattr(special_methods, "__abs__", "abs");
   Setattr(special_methods, "__int__", "to_i");
   Setattr(special_methods, "__float__", "to_f");
   Setattr(special_methods, "__coerce__", "coerce");
