@@ -258,7 +258,7 @@ void PYTHON::print_methods() {
 void PYTHON::headers(void)
 {
 
-  emit_banner(f_runtime);
+  Swig_banner(f_runtime);
 
   fprintf(f_runtime,"/* Implementation : PYTHON */\n\n");
   fprintf(f_runtime,"#define SWIGPYTHON\n");

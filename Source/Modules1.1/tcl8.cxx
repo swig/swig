@@ -233,7 +233,7 @@ void TCL8::set_init(char *iname) {
 void TCL8::headers(void)
 {
 
-  emit_banner(f_runtime);
+  Swig_banner(f_runtime);
   
   // Include a Tcl configuration file for Unix,Mac,Wintel.
 

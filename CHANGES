@@ -1,5 +1,17 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+Version 1.3 Alpha 3 (June 18, 2000)
+===================================
+
+6/18/00 : beazley
+          Removed the naming.cxx, hash.cxx, and symbol.cxx files from
+          the SWIG1.1 directory.   Continued to migrate things away
+          from the C++ base (although there's still a lot of work to do).
+
+6/17/00 : beazley
+          Added a few more examples to the Examples directory.  Still
+          need to do a lot of work on this.
+
 6/16/00 : beazley
           Added -includeall to follow all #include statements in the
           preprocessor.

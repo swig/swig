@@ -290,7 +290,7 @@ void PERL5::set_init(char *iname) {
 void PERL5::headers(void)
 {
 
-  emit_banner(f_header);
+  Swig_banner(f_header);
 
   if (!alt_header) {
     if (Swig_insert_file("headers.swg", f_header) == -1) {

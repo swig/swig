@@ -53,6 +53,7 @@ Swig_banner(DOHFile *f) {
  * changes to this file unless you know what you are doing--modify the SWIG \n\
  * interface file instead. \n\
  * ----------------------------------------------------------------------------- */\n\n", SWIG_VERSION, SWIG_SPIN);
+
 }
 
   
