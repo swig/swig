@@ -13,6 +13,8 @@ static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
+extern DohObjInfo DohHashType;
+
 /* Hash node */
 typedef struct HashNode {
     DOH                  *key;
@@ -456,7 +458,7 @@ CopyHash(DOH *ho) {
     nh->file = h->file;
     if (nh->file) Incref(nh->file);
 
-    nho = DohObjMalloc(DOHTYPE_HASH, nh);
+    nho = DohObjMalloc(&DohHashType, nh);
     for (i = 0; i < h->hashsize; i++) {
 	if ((n = h->hashtable[i])) {
 	    while (n) {
@@ -510,7 +512,7 @@ static DohHashMethods HashHashMethods = {
   Hash_nextkey,
 };
 
-static DohObjInfo HashType = {
+DohObjInfo DohHashType = {
     "Hash",          /* objname */
     DelHash,         /* doh_del */
     CopyHash,        /* doh_copy */
@@ -544,10 +546,6 @@ NewHash() {
     Hash *h;
     int   i;
     static int init = 0;
-    if (!init) {
-      DohRegisterType(DOHTYPE_HASH, &HashType);
-      init = 1;
-    }
     h = (Hash *) DohMalloc(sizeof(Hash));
     h->hashsize = HASH_INIT_SIZE;
     h->hashtable = (HashNode **) DohMalloc(h->hashsize*sizeof(HashNode *));
@@ -559,5 +557,5 @@ NewHash() {
     h->nitems = 0;
     h->file = 0;
     h->line = 0;
-    return DohObjMalloc(DOHTYPE_HASH,h);
+    return DohObjMalloc(&DohHashType,h);
 }

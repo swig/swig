@@ -231,19 +231,12 @@ static DohObjInfo DohFileType = {
  * Create a new file from a given filename and mode.
  * ----------------------------------------------------------------------------- */
 
-static int init = 0;
-
 DOH *
 NewFile(DOH *fn, const char *mode)
 {
   DohFile *f;
   FILE *file;
   char *filename;
-
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
 
   filename = Char(fn);
   file = fopen(filename,mode);
@@ -257,7 +250,7 @@ NewFile(DOH *fn, const char *mode)
   f->filep = file;
   f->fd = 0;
   f->closeondel = 1;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -270,17 +263,12 @@ DOH *
 NewFileFromFile(FILE *file) 
 {
   DohFile *f;
-
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
   f = (DohFile *) DohMalloc(sizeof(DohFile));
   if (!f) return 0;
   f->filep = file;
   f->fd = 0;
   f->closeondel = 0;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }
 
 /* -----------------------------------------------------------------------------
@@ -293,14 +281,10 @@ DOH *
 NewFileFromFd(int fd)
 {
   DohFile *f;
-  if (!init) {
-    DohRegisterType(DOHTYPE_FILE, &DohFileType);
-    init = 1;
-  }
   f = (DohFile *) DohMalloc(sizeof(DohFile));
   if (!f) return 0;
   f->filep = 0;
   f->fd = fd;
   f->closeondel = 0;
-  return DohObjMalloc(DOHTYPE_FILE,f);
+  return DohObjMalloc(&DohFileType,f);
 }

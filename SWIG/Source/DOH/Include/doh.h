@@ -115,6 +115,11 @@ extern void    DohSetfile(DOH *obj, DOH *file);
 extern int     DohReplace(DOHString *src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags);
 extern void    DohChop(DOHString *src);
 
+/* Meta-variables */
+extern DOH    *DohGetmeta(DOH *, const DOH *);
+extern int     DohSetmeta(DOH *, const DOH *, const DOH *value);
+extern int     DohDelmeta(DOH *, const DOH *);
+
   /* Utility functions */
 
 extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
@@ -183,6 +188,9 @@ extern int     DohIsFile(const DOH *obj);
 #define Readline           DohReadline
 #define Replace            DohReplace
 #define Chop               DohChop
+#define Getmeta            DohGetmeta
+#define Setmeta            DohSetmeta
+#define Delmeta            DohDelmeta
 
 #endif
 

@@ -93,13 +93,14 @@ typedef struct DohObjInfo {
 } DohObjInfo;
 
 typedef struct {
-  void   *data;                     /* Data pointer */
-  unsigned int type     : 4;        /* Object type (max 16 -- deal with it) */
+  void       *data;                 /* Data pointer */
+  DohObjInfo *type;             
+  void       *meta;                 /* Meta data */
   int     flag_intern   : 1;        /* Interned object */
   int     flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
   int     flag_user     : 1;        /* User flag */
   int     flag_reserved : 1;        /* Reserved flag */
-  int     refcount      : 24;       /* Reference count (max 16 million) */
+  int     refcount      : 28;       /* Reference count (max 16 million) */
 } DohBase;
 
 /* Macros for decrefing and increfing (safe for null objects). */
@@ -113,17 +114,8 @@ typedef struct {
 #define ObjGetMark(a)    ((DohBase *)a)->flag_marked
 #define ObjType(a)       ((DohBase *)a)->type
 
-extern DOH     *DohObjMalloc(int type, void *data); /* Allocate a DOH object */
+extern DOH     *DohObjMalloc(DohObjInfo *type, void *data); /* Allocate a DOH object */
 extern void     DohObjFree(DOH *ptr);               /* Free a DOH object     */
-extern void     DohRegisterType(int type, DohObjInfo *objinfo);
-
-#define MAX_DOHTYPE     16
-
-#define DOHTYPE_STRING   1
-#define DOHTYPE_LIST     2
-#define DOHTYPE_HASH     3
-#define DOHTYPE_VOID     4
-#define DOHTYPE_FILE     5
 
 #endif /* DOHOBJ_H */
 

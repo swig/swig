@@ -105,7 +105,7 @@ DohIntern(DOH *obj) {
  * ---------------------------------------------------------------------- */
 
 DOH *
-DohObjMalloc(int type, void *data) {
+DohObjMalloc(DohObjInfo *type, void *data) {
   DohBase *obj;
   if (!pools_initialized) InitPools();
   if (FreeList) {
@@ -121,6 +121,7 @@ DohObjMalloc(int type, void *data) {
   }
   obj->type = type;
   obj->data = data;
+  obj->meta = 0;
   obj->refcount = 1;
   obj->flag_intern = 0;
   obj->flag_marked = 0;
@@ -137,6 +138,10 @@ DohObjFree(DOH *ptr) {
   b = (DohBase *) ptr;
   if (b->flag_intern) return;
   b->data = (void *) FreeList;
+  if (b->meta) {
+    Delete(b->meta);
+    b->meta = 0;
+  }
   b->type = 0;
   FreeList = b;
 }

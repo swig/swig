@@ -22,6 +22,8 @@ typedef struct List {
     DOH        **items;
 } List;
 
+extern DohObjInfo DohListType;
+
 /* Doubles amount of memory in a list */
 static 
 void more(List *l) {
@@ -52,7 +54,7 @@ CopyList(DOH *lo) {
     nl->file = l->file;
     if (nl->file) Incref(nl->file);
     nl->line = l->line;
-    return DohObjMalloc(DOHTYPE_LIST, nl);
+    return DohObjMalloc(&DohListType, nl);
 }
 
 /* -----------------------------------------------------------------------------
@@ -319,7 +321,7 @@ static DohListMethods ListListMethods = {
   List_sort
 };
 
-static DohObjInfo ListType = {
+DohObjInfo DohListType = {
     "List",          /* objname */
     DelList,         /* doh_del */
     CopyList,        /* doh_copy */
@@ -354,11 +356,6 @@ DOH *
 NewList() {
     List *l;
     int   i;
-    static int init = 0;
-    if (!init) {
-      DohRegisterType(DOHTYPE_LIST, &ListType);
-      init = 1;
-    }
     l = (List *) DohMalloc(sizeof(List));
     l->nitems = 0;
     l->maxitems = MAXLISTITEMS;
@@ -369,5 +366,6 @@ NewList() {
     l->iter = 0;
     l->file = 0;
     l->line = 0;
-    return DohObjMalloc(DOHTYPE_LIST,l);
+    return DohObjMalloc(&DohListType,l);
 }
+

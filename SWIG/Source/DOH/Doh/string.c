@@ -14,9 +14,7 @@ static char cvsroot[] = "$Header$";
 
 #include "dohint.h"
 
-#ifndef DOH_STRING_UPDATE_LINES
-#define DOH_STRING_UPDATE_LINES
-#endif
+DohObjInfo DohStringType;
 
 typedef struct String {
   DOH           *file;
@@ -74,7 +72,7 @@ CopyString(DOH *so) {
   str->maxsize= max;
   str->len = s->len;
   str->str[str->len] = 0;
-  return DohObjMalloc(DOHTYPE_STRING,str);
+  return DohObjMalloc(&DohStringType,str);
 }
 
 /* -----------------------------------------------------------------------------
@@ -800,7 +798,7 @@ static DohStringMethods StringStringMethods = {
   String_chop,
 };
 
-static DohObjInfo StringType = {
+DohObjInfo DohStringType = {
     "String",          /* objname */
     DelString,         /* doh_del */
     CopyString,        /* doh_copy */
@@ -836,11 +834,6 @@ NewString(const DOH *so)
     int l = 0, max;
     String *str;
     char *s;
-    static int init = 0;
-    if (!init) {
-      DohRegisterType(DOHTYPE_STRING, &StringType);
-      init = 1;
-    }
     if (DohCheck(so)) s = Char(so);
     else s = (char *) so;
     str = (String *) DohMalloc(sizeof(String));
@@ -863,7 +856,7 @@ NewString(const DOH *so)
 	str->str[0] = 0;
 	str->len = 0;
     }
-    return DohObjMalloc(DOHTYPE_STRING,str);
+    return DohObjMalloc(&DohStringType,str);
 }
 
 /* -----------------------------------------------------------------------------
