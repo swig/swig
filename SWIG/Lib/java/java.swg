@@ -959,6 +959,16 @@
     super.delete();
   }
 
+%typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE {
+    swigCMemOwn = false;
+    $jnicall;
+  }
+
+%typemap(directordisconnect_derived, methodname="swigDirectorDisconnect") SWIGTYPE {
+    swigCMemOwn = false;
+    $jnicall;
+  }
+
 /* Java specific directives */
 #define %javaconst(flag)            %feature("java:const","flag")
 #define %javaconstvalue(value)      %feature("java:constvalue",value)

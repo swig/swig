@@ -30,22 +30,28 @@ namespace Swig {
         return env;
       }
 
+      /* Disconnect director from Java object */
+      void swig_disconnect_director_self(const char *disconn_method) {
+        if (swig_self) {
+          JNIEnv *jenv = swig_acquire_jenv();
+          jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(swig_self), disconn_method, "()V");
+          if (disconn_meth) {
+            jenv->CallVoidMethod(swig_self, disconn_meth);
+          } else {
+            jenv->ExceptionClear();
+          }
+          jenv->DeleteGlobalRef(swig_self);
+          swig_self = (jobject) NULL;
+        }
+      }
+
     public:
       Director(JNIEnv *jenv) : swig_jvm((JavaVM *) NULL), swig_self(NULL) {
         /* Acquire the Java VM pointer */
         jenv->GetJavaVM(&swig_jvm);
       }
 
-      /* Remove the Java object global lock at destruction */
       virtual ~Director() {
-        if (swig_self) {
-          JNIEnv *jenv = swig_acquire_jenv();
-          jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(swig_self), "swigDirectorDisconnect", "()V");
-          if (disconn_meth)
-            jenv->CallVoidMethod(swig_self, disconn_meth);
-          jenv->DeleteGlobalRef(swig_self);
-          swig_self = (jobject) NULL;
-        }
       }
 
       /* Set swig_self and get Java global reference on object */
