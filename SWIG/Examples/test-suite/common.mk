@@ -189,6 +189,7 @@ CPP_TEST_CASES += \
 	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
+	smart_pointer_member \
 	smart_pointer_multi \
 	smart_pointer_multi_typedef \
 	smart_pointer_namespace \
