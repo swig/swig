@@ -735,10 +735,13 @@ int Language::cDeclaration(Node *n) {
   if (cplus_mode != CPLUS_PUBLIC) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
-    if (!isfriend) {
-      /* and for protected/private members, we check what director needs */
-      if ((cplus_mode == CPLUS_PRIVATE) && (IsVirtual != PURE_VIRTUAL)) return SWIG_NOWRAP; 
-      if (!(dirprot_mode() && is_member_director(CurrentClass,n)))
+    if (!isfriend ) {
+      /* and for protected/private members, we check what director
+	 needs. The private members will only be considered if they
+	 are pure virtuals */
+      int need_nopublic = dirprot_mode() && 
+	(is_protected(n) || (is_private(n) && (Cmp(Getattr(n,"value"),"0") == 0)));
+      if (!(need_nopublic && is_member_director(CurrentClass,n)))
 	return SWIG_NOWRAP;
     }
   }
@@ -1788,7 +1791,7 @@ int Language::classDeclaration(Node *n) {
     int ndir = checkAttribute(n, "feature:director", "1") || director_mode;
     int nndir = checkAttribute(n, "feature:nodirector", "1");
     /* 'nodirector' has precedence over 'director' */
-    int dir = (ndir || nndir) ? (ndir && !nndir) : 1;
+    int dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     if (directorsEnabled() && dir) {
       classDirector(n);
     }
@@ -1864,8 +1867,8 @@ int Language::classHandler(Node *n) {
 	Node* parentnode = Getattr(method, "parentNode");
 	String* methodname = Getattr(method,"sym:name");
 	String* wrapname = NewStringf("%s_%s", symname,methodname);
+	/* only pure virtual abstract private methods are needed */
 	int need_private = (is_private(method) 
-			    && (Cmp(Getattr(method,"storage"),"virtual") == 0) 
 			    && (Cmp(Getattr(method,"value"),"0") == 0));
 	if (!Getattr(symbols,wrapname) 
 	    && !Cmp(director,"1") 
