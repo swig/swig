@@ -2265,7 +2265,7 @@ cpp_member   :  type declarator LPAREN parms RPAREN cpp_end {
 
 /* Static Member data */
 
-              | STATIC type declarator {
+              | STATIC type declarator def_args {
 		char *iname;
 		init_language();
 		if (cplus_mode == CPLUS_PUBLIC) {
