@@ -26,6 +26,16 @@ to customize SWIG's type handling in order to handle these situations. In partic
 underlying type system and typemaps, an advanced customization
 feature, are presented.
 
+<p>
+Before jumping in, it should be emphasized that typemaps are an
+advanced customization feature that provide access to some of SWIG's
+internals and low-level code generator.  Furthermore, typemaps are
+generally not required to build a simple interface when first starting
+out.  Therefore, the material in this chapter will appeal more to
+users who have already built a few simple interfaces, but would like 
+incorporate a few more advanced features.
+
+
 <h2>The Problem</h2>
 
 Suppose that you wanted to provide a scripting language wrapper
@@ -92,8 +102,7 @@ _000f4248_p_p_char
 
 Needless to say, even though this works, it isn't the most user friendly interface.
 It would be much nicer if you could simply make a list
-of strings work like a <tt>char **</tt>.    Even if you could make the wrapper
-code accept a list of strings like this,
+of strings work like a <tt>char **</tt>.    For example:
 
 <blockquote>
 <pre> 
@@ -101,7 +110,7 @@ code accept a list of strings like this,
 </pre>
 </blockquote>
 
-it would be even better if the <tt>argc</tt> parameter could be ommitted and determined implicitly.  For example:
+An even better approach might implicitly set the <tt>argc</tt> parameter and allow the following:
 
 <blockquote>
 <pre>
@@ -109,7 +118,7 @@ it would be even better if the <tt>argc</tt> parameter could be ommitted and det
 </pre>
 </blockquote>
 
-Similar problems to this also arise when creating wrappers for small
+Similar sorts of problems also arise when creating wrappers for small
 arrays, output values, and certain kinds of data structures.
 
 <p>
@@ -127,8 +136,21 @@ void foo(double *x, double *y, double *r);
 
 it's not obvious what the arguments are supposed to represent.
 Are they single values?  Are they arrays?  Is a result stored in one
-of the arguments?  The only thing that SWIG really knows is that they
-are pointers. Any further interpretation requires a little more information.
+of the arguments?  
+
+<p>
+Even in our earlier example, there are many possible
+interpretations of the <tt>char *argv[]</tt> argument.  For example, is the
+array supposed to be NULL-terminated?  Are the elements of the array modified
+by the underlying C function?  Does the first element have any special meaning such
+as the name of a program?  
+
+<p>
+The only thing that SWIG really knows about both of these cases is
+that the argument is some kind of pointer (and in fact, SWIG is
+perfectly happy to generate code that simply passes pointers
+around).  Any further interpretation of the pointer's meaning requires
+a little more information.
 
 <h2>Typemaps</h2>
 
@@ -161,7 +183,7 @@ of the predefined typemaps contained in the file <tt>typemaps.i</tt>
 %module example
 %include "typemaps.i"
 
-%apply double *OUTPUT { double *result; }
+%apply double *OUTPUT { double *result };
 extern void add(double a, double b, double *result);
 </pre></blockquote>
 
@@ -253,9 +275,9 @@ than one value such as a function that returns both a result and a status
 code to indicate success. The <tt>typemaps.i</tt> file contains a variety of rules for 
 managing such pointers to the primitive C datatypes.
 
-<h3>Input Methods</h3>
+<h3>Input parameters</h3>
 <p>
-The following methods instruct SWIG that a pointer really only holds a single
+The following typemaps instruct SWIG that a pointer really only holds a single
 input value:
 
 <blockquote><pre>
@@ -294,7 +316,7 @@ When the function is used in the scripting language interpreter, it will work li
 result = add(3,4)
 </pre></blockquote>
 
-<h3>Output Methods</h3>
+<h3>Output parameters</h3>
 
 The following typemap rules tell SWIG that pointer is the output value of a
 function. When used, you do not need to supply the argument when
@@ -333,10 +355,26 @@ In this case, only a single output value is returned, but this is not
 a restriction.  An arbitrary number of output values can be returned by applying
 the output rules to more than one argument (as shown previously).
 
-<h3>Input/Output Methods</h3>
+<p>
+If the function also returns a value, it is returned along with the argument. For example,
+if you had this:
+
+<blockquote><pre>
+extern int foo(double a, double b, double *OUTPUT);
+</pre></blockquote>
+
+The function will return two values like this:
+
+<blockquote>
+<pre>
+iresult, dresult = foo(3.5, 2)
+</pre>
+</blockquote>
+
+<h3>Input/Output parameters</h3>
 
 When a pointer serves as both an input and output value you can use
-the following methods :<p>
+the following typemaps :<p>
 
 <blockquote><pre>
 int *INOUT
@@ -390,7 +428,7 @@ SWIG.  Backwards compatibility is preserved, but deprecated.
 <h3>Using different names</h3>
 
 As previously shown, the <tt>%apply</tt> directive can be used to apply the <tt>INPUT</tt>, <tt>OUTPUT</tt>, and
-<tt>INOUT</tt> rules to different argument names.  For example:
+<tt>INOUT</tt> typemaps to different argument names.  For example:
 
 <p>
 <blockquote><pre>// Make double *result an output value
@@ -410,6 +448,9 @@ To clear a rule, the <tt>%clear</tt> directive is used:
 <blockquote><pre>%clear double *result;
 %clear Int32 *in, long *x;
 </pre></blockquote>
+
+Typemap declarations are lexically scoped so a typemap takes effect from the point of definition to the end of the
+file or a matching <tt>%clear</tt> declaration.
 
 <h2>Applying constraints to input values</h2>
 
@@ -572,7 +613,6 @@ by the following rules:
 <li>All qualifiers (<tt>const</tt>, <tt>volatile</tt>, etc.) are stripped.
 <li>C++ References are converted to pointers.
 <li>Arrays are converted to a pointer to an array of one less dimension.
-<li>Objects manipulated by value are converted to a pass by reference.
 </ul>
 
 For example:
@@ -581,8 +621,7 @@ For example:
 <pre>
 type                    ltype
 ----------------------  --------------------
-primitive               primitive        (Note: int, double, float, short, etc..)
-object                  object *         (Objects passed/returned by value)
+object                  object       
 object *                object *
 const object *          object *
 const object * const    object *
@@ -1091,7 +1130,7 @@ to that type.  For example, you can see how <tt>$1</tt> is replaced by <tt>arg0<
 related to returning a result, <tt>$1</tt> is set to the local variable holding
 the raw result of the function call (in this case, the variable <tt>result</tt>).
 
-<h2> Writing typemap code</h2>
+<h2>Writing typemap code</h2>
 
 The conversion code supplied to a typemap needs to follow a few
 conventions described here.<p>
@@ -1383,6 +1422,55 @@ If necessary, type related substitutions can also be used when declaring locals.
 </blockquote>
 
 <p>
+There is one word of caution about declaring local variables in this manner. If you declare a local variable
+using a type substitution such as <tt>$1_ltype temp</tt>, it won't work like you expect for arrays and certain
+kinds of pointers.   For example, if you wrote this,
+
+<blockquote>
+<pre>
+%typemap(in) int [10][20] {
+   $1_ltype temp;
+}
+</pre>
+</blockquote>
+
+then the declaration of <tt>temp</tt> will be expanded as 
+
+<blockquote>
+<pre>
+int (*)[20] temp;
+</pre>
+</blockquote>
+
+This is illegal C syntax and won't compile.  There is currently no
+straightforward way to work around this problem in SWIG due to the way
+that typemap code is expanded and processed.  However, one possible workaround
+is to simply pick an alternative type such as <tt>void *</tt> and use
+casts to get the correct type when needed.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) int [10][20] {
+   void *temp;
+   ...
+   (($1_ltype) temp)[i][j] = x;    /* set a value */
+   ...
+}
+</pre>
+</blockquote>
+
+Another approach, which only works for arrays is to use the <tt>$1_basetype</tt> substitution.  For example:
+
+<blockquote>
+<pre>
+%typemap(in) int [10][20] {
+   $1_basetype temp[10][20];
+   ...
+   temp[i][j] = x;    /* set a value */
+   ...
+}
+</pre>
+</blockquote>
 
 <h2>Typemaps for arrays</h2>
 
@@ -1630,7 +1718,6 @@ struct SomeObject {
 
 In many cases, it is desirable to marshal this data into a string in the target language.  To do this,
 you might consider write some typemaps like this:
-
 
 
 <h2> Implementing constraints with typemaps</h2>
@@ -1909,6 +1996,79 @@ This kind of technique can be used to hook into scripting-language matrix packag
 Numeric Python.  However, it should also be stressed that some care is in order.  For example,
 when crossing languages you may need to worry about issues such as row-major vs. column-major
 ordering (and perform conversions if needed).
+
+<h2>The default typemaps</h2>
+
+Most SWIG language modules use typemaps to define the default behavior of the C primitive types.  This
+is entirely straightforward.  For example, a set of typemaps are written like this:
+
+<blockquote>
+<pre>
+%typemap(in) int   "convert an int";
+%typemap(in) short "convert a short";
+%typemap(in) float "convert a float";
+...
+</pre>
+</blockquote>
+
+Since typemap matching follows all <tt>typedef</tt> declarations, any sort of type that is
+mapped to a primitive type through <tt>typedef</tt> will be picked up by one of these primitive typemaps.
+
+<P>
+The default behavior for pointers, arrays, references, and other kinds of types are handled by
+specifying rules for variations of the reserved <tt>SWIGTYPE</tt> type.   For example:
+
+<blockquote>
+<pre>
+%typemap(in) SWIGTYPE *            { ... default pointer handling ...         }
+%typemap(in) SWIGTYPE &            { ... default reference handling ...       }
+%typemap(in) SWIGTYPE []           { ... default array handling ...           }
+%typemap(in) enum SWIGTYPE         { ... default handling for enum values ... }
+%typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...  } 
+</pre>
+</blockquote>
+
+These rules match any kind of pointer, reference, or array--even when
+multiple levels of indirection or multiple array dimensions are used.
+Therefore, if you wanted to change SWIG's default handling for all
+types of pointers, you would simply redefine the rule for <tt>SWIGTYPE
+*</tt>.
+
+<p>
+Finally, the following typemap rule is used to match against simple types that don't match any other rules:
+
+<blockquote>
+<pre>
+%typemap(in) SWIGTYPE   { ... handle an unknown type ... }
+</pre>
+</blockquote>
+
+This typemap is important because it is the rule that gets triggered
+when call or return by value is used.  For instance, if you have a
+declaration like this:
+
+<blockquote>
+<pre>
+double dot_product(Vector a, Vector b);
+</pre>
+</blockquote>
+
+The <tt>Vector</tt> type will usually just get matched against
+<tt>SWIGTYPE</tt>. The default implementation of <tt>SWIGTYPE</tt> is
+to convert the value into pointers (as described in chapter 3).
+
+<p>
+By redefining <tt>SWIGTYPE</tt> it may be possible to implement other
+behavior.  For example, if you cleared all typemaps for
+<tt>SWIGTYPE</tt>, SWIG simply won't wrap any unknown datatype (which might
+be useful for debugging).   Alternatively, you might modify SWIGTYPE to marshal
+objects into strings instead of converting them to pointers.
+
+<p>
+The best way to explore the default typemaps is to look at the ones
+already defined for a particular language module.  Typemaps
+definitions are usually found in the SWIG library in a file such as
+<tt>python.swg</tt>, <tt>tcl8.swg</tt>, etc.
 
 <h2>More about <tt>%apply</tt> and <tt>%clear</tt></h2>
 
