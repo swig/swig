@@ -221,6 +221,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   if (c) {
     /* Yes. It does.  We *only* support overloaded functions */
     decl = Getdecl(c);
+    if (Cmp(nodeType(n),nodeType(c))) return c;
     if (!SwigType_isfunction(decl)) {
       /* Symbol table conflict */
       return c;
