@@ -9,6 +9,8 @@ RPATH       = @RPATH@
 SO          = @SO@
 CCSHARED    = @CCSHARED@
 LDSHARED    = @LDSHARED@
+YACC        = @YACC@
+
 INCLUDE     = -I. -I../Swig -I../DOH/Include -I../Preprocessor
 
 SRCS = cscanner.c type.c
