@@ -175,7 +175,6 @@ namespace std {
         unsigned int size() const;
         %rename("empty?") empty;
         bool empty() const;
-        %rename("clear!") clear;
         void clear();
         %rename(push) push_back;
         void push_back(const T& x);
@@ -206,8 +205,8 @@ namespace std {
             void each() {
                 swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<self->size(); i++) {
-                    T* x = new T((*self)[i]);
-                    rb_yield(SWIG_NewPointerObj((void *) x, type, 1));
+                    T* x = &((*self)[i]);
+                    rb_yield(SWIG_NewPointerObj((void *) x, type, 0));
                 }
             }
         }
@@ -322,7 +321,6 @@ namespace std {
         unsigned int size() const;
         %rename("empty?") empty;
         bool empty() const;
-        %rename("clear!") clear;
         void clear();
         %rename(push) push_back;
         void push_back(T x);
