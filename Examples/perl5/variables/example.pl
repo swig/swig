@@ -23,7 +23,7 @@ $example::name   = "Bill";
 
 # Now print out the values of the variables
 
-print "Variables (values printed from Python)";
+print "Variables (values printed from Perl)\n";
 
 print "ivar      = $example::ivar\n";
 print "svar      = $example::svar\n";
