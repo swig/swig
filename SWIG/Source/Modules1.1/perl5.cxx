@@ -144,8 +144,8 @@ PERL5::main(int argc, char *argv[]) {
       }
   }
 
-  Preprocessor_define((void *) "SWIGPERL 1", 0);
-  Preprocessor_define((void *) "SWIGPERL5 1", 0);
+  Preprocessor_define("SWIGPERL 1", 0);
+  Preprocessor_define("SWIGPERL5 1", 0);
   SWIG_typemap_lang("perl5");
   SWIG_config_file("perl5.swg");
 }

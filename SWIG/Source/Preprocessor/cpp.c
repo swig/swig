@@ -132,13 +132,14 @@ void Preprocessor_ignore_missing(int a) {
  * SWIG macro semantics.
  * ----------------------------------------------------------------------------- */
 
-Hash *Preprocessor_define(String_or_char *str, int swigmacro)
+Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 {
   String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
   Hash   *macro = 0, *symbols = 0, *m1;
   List   *arglist = 0;
   int c, line;
   int    varargs = 0;
+  String_or_char *str = (String_or_char *) _str;
 
   assert(cpp);
   assert(str);

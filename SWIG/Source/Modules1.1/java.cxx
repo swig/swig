@@ -273,7 +273,7 @@ void JAVA::main(int argc, char *argv[]) {
   }
 
   // Add a symbol to the parser for conditional compilation
-  Preprocessor_define((void *) "SWIGJAVA 1",0);
+  Preprocessor_define("SWIGJAVA 1",0);
 
   // Add typemap definitions
   SWIG_typemap_lang("java");

@@ -84,8 +84,8 @@ TCL8::main(int argc, char *argv[]) {
 	  }
       }
   }
-  Preprocessor_define((void *) "SWIGTCL 1",0);
-  Preprocessor_define((void *) "SWIGTCL8 1", 0);
+  Preprocessor_define("SWIGTCL 1",0);
+  Preprocessor_define("SWIGTCL8 1", 0);
   SWIG_typemap_lang("tcl8");
   SWIG_config_file("tcl8.swg");
 }

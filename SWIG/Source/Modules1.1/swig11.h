@@ -22,7 +22,7 @@
 
 extern "C" {
 #include "swig.h"
-extern DOH  *Preprocessor_define(DOHString_or_char *str, int swigmacro);
+extern Hash  *Preprocessor_define(const String_or_char *str, int swigmacro);
 }
 
 #include "swigwarn.h"

@@ -197,7 +197,7 @@ GUILE::main (int argc, char *argv[])
   }
 
   /* Add a symbol for this module */
-  Preprocessor_define ((void *) "SWIGGUILE",0);
+  Preprocessor_define ("SWIGGUILE 1",0);
 
   /* Read in default typemaps */
   SWIG_config_file("guile.i");

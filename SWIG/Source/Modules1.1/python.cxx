@@ -91,7 +91,7 @@ PYTHON::main(int argc, char *argv[]) {
       }
   }
   if (!global_name) global_name = NewString("cvar");
-  Preprocessor_define((void *) "SWIGPYTHON 1", 0);
+  Preprocessor_define("SWIGPYTHON 1", 0);
   SWIG_typemap_lang("python");
   SWIG_config_file("python.swg");
 }

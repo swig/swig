@@ -91,7 +91,7 @@ MZSCHEME::main (int argc, char *argv[])
 
   // Add a symbol for this module
 
-  Preprocessor_define ((void *) "SWIGMZSCHEME",0);
+  Preprocessor_define ("SWIGMZSCHEME 1",0);
 
   // Set name of typemaps
 
