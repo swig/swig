@@ -25,9 +25,9 @@ class RClass {
  private:
   String *temp;
  public:
-  String *name;    // class name (renamed)
-  String *cname;   // original C class/struct name
-  String *vname;   // variable name
+  String *name;    /* class name (renamed) */
+  String *cname;   /* original C class/struct name */
+  String *vname;   /* variable name */
   String *type;
   String *prefix;
   String *header;
@@ -93,13 +93,11 @@ class RClass {
 static char *usage = (char*)"\
 Ruby Options (available with -ruby)\n\
      -module name    - Set module name\n\
-     -toplevel       - Do not define module\n\
      -feature name   - Set feature name (used by `require')\n";
 
 static  char *module;
 static  char *modvar;
 static  char *feature;
-static  int toplevel;
 static  String *other_extern = 0;
 static  String *other_init = 0;
 static  char *import_file;
@@ -117,21 +115,22 @@ enum {
   STATIC_VAR
 };
 
-static  Hash *classes;		// key=cname val=RClass
-static  RClass *klass;		// Currently processing class
-static  Hash *special_methods;	// Python style special method name table
+static  Hash *classes;		/* key=cname val=RClass */
+static  RClass *klass;		/* Currently processing class */
+static  Hash *special_methods;	/* Python style special method name table */
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
 
-// ---------------------------------------------------------------------
-// RUBY::parse_args(int argc, char *argv[])
-//
-// Parse command line options and initializes variables.
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::parse_args(int argc, char *argv[])
+ *
+ * Parse command line options and initializes variables.
+ * --------------------------------------------------------------------- */
+
 void RUBY::parse_args(int argc, char *argv[]) {
-  // Look for certain command line options
+  /* Look for certain command line options */
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i],"-module") == 0) {
@@ -154,25 +153,18 @@ void RUBY::parse_args(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i],"-toplevel") == 0) {
-	toplevel = 1;
-	Swig_mark_arg(i);
       } else if (strcmp(argv[i],"-help") == 0) {
 	Printf(stderr,"%s\n", usage);
       }
     }
   }
-  // Check consistency
-  if (module && toplevel)
-    Swig_arg_error();
-
-  // Set location of SWIG library
+  /* Set location of SWIG library */
   strcpy(LibDir,"ruby");
 
-  // Add a symbol to the parser for conditional compilation
+  /* Add a symbol to the parser for conditional compilation */
   Preprocessor_define((void *) "SWIGRUBY", 0);
 
-  // Add typemap definitions
+  /* Add typemap definitions */
   typemap_lang = (char*)"ruby";
 }
 
@@ -187,16 +179,16 @@ static void insert_file(char *filename, File *file) {
   }
 }
 
-// ---------------------------------------------------------------------
-// RUBY::parse()
-//
-// Start parsing an interface file.
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::parse()
+ *
+ * Start parsing an interface file.
+ * --------------------------------------------------------------------- */
+
 void RUBY::parse() {
   module = 0;
   modvar = 0;
   feature = 0;
-  toplevel = 0;
   import_file = 0;
   current = NO_CPP;
   klass = 0;
@@ -205,20 +197,20 @@ void RUBY::parse() {
   other_extern = NewString("");
   other_init = NewString("");
 
-  // Python style special method name.
-  // Basic
+  /* Python style special method name. */
+  /* Basic */
   Setattr(special_methods, "__repr__", "inspect");
   Setattr(special_methods, "__str__", "to_s");
   Setattr(special_methods, "__cmp__", "<=>");
   Setattr(special_methods, "__hash__", "hash");
   Setattr(special_methods, "__nonzero__", "nonzero?");
-  // Callable
+  /* Callable */
   Setattr(special_methods, "__call__", "call");
-  // Collection
+  /* Collection */
   Setattr(special_methods, "__len__", "length");
   Setattr(special_methods, "__getitem__", "[]");
   Setattr(special_methods, "__setitem__", "[]=");
-  // Numeric
+  /* Numeric */
   Setattr(special_methods, "__add__", "+");
   Setattr(special_methods, "__sub__", "-");
   Setattr(special_methods, "__mul__", "*");
@@ -252,27 +244,28 @@ void RUBY::parse() {
     insert_file((char*)"rubydef.swg", f_header);
   }
 
-  // typedef void *VALUE
+  /* typedef void *VALUE */
   SwigType *value = NewSwigType(T_VOID);
   SwigType_setbase(value,(char*)"void");
   SwigType_add_pointer(value);
   SwigType_typedef(value,(char*)"VALUE");
 
-  yyparse();       // Run the SWIG parser
+  yyparse();       /* Run the SWIG parser */
   Delete(value);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::set_module(char *mod_name)
-//
-// Sets the module name.  Does nothing if it's already set (so it can
-// be overridden as a command line option).
-//----------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::set_module(char *mod_name)
+ *
+ * Sets the module name.  Does nothing if it's already set (so it can
+ * be overridden as a command line option).
+ *---------------------------------------------------------------------- */
+
 
 void RUBY::set_module(char *mod_name) {
   if (import_file) {
     Printf(f_init, "%srb_f_require(Qnil, rb_str_new2(\"%s\"));\n", tab4, mod_name);
-    free(import_file);  // Note: was allocated from C
+    free(import_file);  /* Note: was allocated from C */
     import_file = 0;
   }
 
@@ -285,52 +278,34 @@ void RUBY::set_module(char *mod_name) {
 
   module = new char[strlen(mod_name)+1];
   strcpy(module, mod_name);
-  // module name must be a constant.
+  /* module name must be a constant. */
   module[0] = toupper(module[0]);
 
   modvar = new char[1+strlen(module)+1];
   modvar[0] = 'm';
   strcpy(modvar+1, module);
-
-#ifdef OLD
-  if (mod_list) {
-    Printv(other_extern,
-	   "#ifdef __cplusplus\n",
-	   "extern \"C\" {\n",
-	   "#endif\n",
-	   0);
-    for (int i = 0; mod_list[i] != NULL; i++) {
-      Printv(other_extern, "extern void Init_", mod_list[i], "(void);\n", 0);
-      Printv(other_init, tab4, "Init_", mod_list[i], "();\n", 0);
-    }
-    Printv(other_extern,
-	   "#ifdef __cplusplus\n",
-	   "}\n",
-	   "#endif\n",
-	   0);
-  }
-#endif /* OLD */
 }
 
 
-// ---------------------------------------------------------------------
-// RUBY::initialize(void)
-//
-// Produces an initialization function.   Assumes that the module
-// name has already been specified.
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::initialize(void)
+ *
+ * Produces an initialization function.   Assumes that the module
+ * name has already been specified.
+ * --------------------------------------------------------------------- */
+
 void RUBY::initialize() {
   if (!module) {
     Printf(stderr,"SWIG : *** Warning. No module name specified.\n");
-    set_module((char*)"swig");         // Pick a default name
+    set_module((char*)"swig");         /* Pick a default name */
   }
 
   Printf(f_header,"#define SWIG_init    Init_%s\n", feature);
   Printf(f_header,"#define SWIG_name    \"%s\"\n\n", module);
-  if (!toplevel) Printf(f_header,"static VALUE %s;\n", modvar);
+  Printf(f_header,"static VALUE %s;\n", modvar);
   Printf(f_header,"\n%s\n", other_extern);
 
-  // Start generating the initialization function
+  /* Start generating the initialization function */
   Printv(f_init,
 	 "\n",
 	 "#ifdef __cplusplus\n",
@@ -342,23 +317,22 @@ void RUBY::initialize() {
 	 "\n",
 	 0);
 
-  if (!toplevel) {
-    Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
-	   "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
-	   0);
-  }
+  Printv(f_init, tab4, modvar, " = rb_define_module(\"", module, "\");\n",
+	 "_mSWIG = rb_define_module_under(", modvar, ", \"SWIG\");\n",
+	 0);
   Printf(f_init,"\n");
   klass = new RClass();
 }
 
-// ---------------------------------------------------------------------
-// RUBY::close(void)
-//
-// Finish the initialization function. Close any additional files and
-// resources in use.
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::close(void)
+ *
+ * Finish the initialization function. Close any additional files and
+ * resources in use.
+ * --------------------------------------------------------------------- */
+
 void RUBY::close(void) {
-  // Finish off our init function
+  /* Finish off our init function */
   Printv(f_init,
 	 "\n",
 	 "for (i = 0; _swig_types_initial[i]; i++) {\n",
@@ -370,12 +344,13 @@ void RUBY::close(void) {
   SwigType_emit_type_table(f_header,f_wrappers);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::make_wrapper_name(char *cname)
-//
-// Creates a name for a wrapper function
-//              cname = Name of the C function
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::make_wrapper_name(char *cname)
+ *
+ * Creates a name for a wrapper function
+ *              cname = Name of the C function
+ * --------------------------------------------------------------------- */
+
 String *RUBY::make_wrapper_name(char *cname) {
   return Swig_name_wrapper(cname);
 }
@@ -388,14 +363,15 @@ RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
   Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::create_command(char *cname, char *iname)
-//
-// Creates a new command from a C function.
-//              cname = Name of the C function
-//              iname = Name of function in scripting language
-//              argc  = Number of arguments
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::create_command(char *cname, char *iname)
+ *
+ * Creates a new command from a C function.
+ *              cname = Name of the C function
+ *              iname = Name of function in scripting language
+ *              argc  = Number of arguments
+ * --------------------------------------------------------------------- */
+
 void RUBY::create_command(char *cname, char *iname, int argc) {
   String *wname = make_wrapper_name(cname);
   if (CPlusPlus) {
@@ -436,13 +412,8 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 	   ", \"", iname, "\", ", wname, ", ", argcs, ");\n", 0);
     break;
   default:
-    if (toplevel) {
-      Printv(s, tab4, "rb_define_global_function(\"",
-	     iname, "\", ", wname, ", ", argcs, ");\n",0);
-    } else {
-      Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
-	     iname, "\", ", wname, ", ", argcs, ");\n",0);
-    }
+    Printv(s, tab4, "rb_define_module_function(", modvar, ", \"",
+	   iname, "\", ", wname, ", ", argcs, ");\n",0);
     Printv(f_init,s,0);
     break;
   }
@@ -450,15 +421,16 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
   Delete(temp);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::create_function(char *name, char *iname, SwigType *d, ParmList *l)
-//
-// Create a function declaration and register it with the interpreter.
-//              name = Name of real C function
-//              iname = Name of function in scripting language
-//              t = Return datatype
-//              l = Function parameters
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+ *
+ * Create a function declaration and register it with the interpreter.
+ *              name = Name of real C function
+ *              iname = Name of function in scripting language
+ *              t = Return datatype
+ *              l = Function parameters
+ * --------------------------------------------------------------------- */
+
 void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   char source[256], target[256];
   char *tm;
@@ -466,7 +438,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   Wrapper *f;
   int i;
 
-  // Ruby needs no destructor wrapper
+  /* Ruby needs no destructor wrapper */
   if (current == DESTRUCTOR)
     return;
 
@@ -491,7 +463,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     break;
   }
 
-  // Get number of arguments
+  /* Get number of arguments */
   int numarg = ParmList_numarg(l);
   int numopt = check_numopt(l);
 
@@ -518,7 +490,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
   int vararg = (numoptreal != 0);
 
-  // Now write the wrapper function itself
+  /* Now write the wrapper function itself */
   Printv(f->def, "static VALUE\n", wname, "(", 0);
   if (vararg) {
     Printv(f->def, "int argc, VALUE *argv, VALUE self",0);
@@ -534,7 +506,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   }
   Printf(f->def,") {");
 
-  // Emit all of the local variables for holding arguments.
+  /* Emit all of the local variables for holding arguments. */
   if (vararg) {
     p = l;
     for (i = 0; i < start; i++) p = Getnext(p);
@@ -549,7 +521,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
   Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
   int pcount = emit_args(t,l,f);
 
-  // Emit count to check the number of arguments
+  /* Emit count to check the number of arguments */
   if (vararg) {
     Printf(f->code,"    rb_scan_args(argc, argv, \"%d%d\"", (numarg-numoptreal), numoptreal);
     p = l;
@@ -562,16 +534,16 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     Printf(f->code,");\n");
   }
 
-  // Now walk the function parameter list and generate code
-  // to get arguments
-  int j = 0;                // Total number of non-optional arguments
+  /* Now walk the function parameter list and generate code */
+  /* to get arguments */
+  int j = 0;                /* Total number of non-optional arguments */
 
   p = l;
   for (i = 0; i < pcount ; i++, p = Getnext(p)) {
     SwigType *pt = Gettype(p);
     String   *pn = Getname(p);
 
-    // Produce string representation of source and target arguments
+    /* Produce string representation of source and target arguments */
     int selfp = (use_self && i == 0);
     if (selfp)
       strcpy(source,"self");
@@ -582,12 +554,12 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
     if (!Getignore(p)) {
       char *tab = (char*)tab4;
-      if (j >= (pcount-numopt)) { // Check if parsing an optional argument
+      if (j >= (pcount-numopt)) { /* Check if parsing an optional argument */
 	Printf(f->code,"    if (argc > %d) {\n", j -  start);
 	tab = (char*)tab8;
       }
 
-      // Get typemap for this argument
+      /* Get typemap for this argument */
       tm = ruby_typemap_lookup((char*)"in",pt,pn,source,target,f);
       if (tm) {
 	String *s = NewString(tm);
@@ -603,7 +575,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       j++;
     }
 
-    // Check to see if there was any sort of a constaint typemap
+    /* Check to see if there was any sort of a constaint typemap */
     tm = ruby_typemap_lookup((char*)"check",pt,pn,source,target);
     if (tm) {
       String *s = NewString(tm);
@@ -612,7 +584,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
       Delete(s);
     }
 
-    // Check if there was any cleanup code (save it for later)
+    /* Check if there was any cleanup code (save it for later) */
     tm = ruby_typemap_lookup((char*)"freearg",pt,pn,target,source);
     if (tm) {
       String *s = NewString(tm);
@@ -630,11 +602,11 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
   }
 
-  // Now write code to make the function call
+  /* Now write code to make the function call */
   emit_func_call(name,t,l,f);
 
 
-  // Return value if necessary
+  /* Return value if necessary */
   if (SwigType_type(t) != T_VOID) {
     if (predicate) {
       Printv(f->code, tab4, "vresult = (result ? Qtrue : Qfalse);\n", 0);
@@ -651,13 +623,13 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
   }
 
-  // Dump argument output code;
+  /* Dump argument output code; */
   Printv(f->code,outarg,0);
 
-  // Dump the argument cleanup code
+  /* Dump the argument cleanup code */
   Printv(f->code,cleanup,0);
 
-  // Look for any remaining cleanup.  This processes the %new directive
+  /* Look for any remaining cleanup.  This processes the %new directive */
   if (NewObject) {
     tm = ruby_typemap_lookup((char*)"newfree",t,name,(char*)"result",(char*)"");
     if (tm) {
@@ -667,61 +639,57 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
     }
   }
 
-  // free pragma
+  /* free pragma */
   if (current == MEMBER_FUNC && Getattr(klass->freemethods, mname)) {
     Printv(f->code, tab4, "DATA_PTR(self) = 0;\n", 0);
   }
 
-  // Special processing on return value.
+  /* Special processing on return value. */
   tm = ruby_typemap_lookup((char*)"ret",t,name,(char*)"result",(char*)"");
   if (tm) {
     String *s = NewString(tm);
     Printv(f->code,s,"\n", 0);
   }
 
-  // Wrap things up (in a manner of speaking)
+  /* Wrap things up (in a manner of speaking) */
   Printv(f->code, tab4, "return vresult;\n}\n", 0);
 
-  // Substitute the cleanup code
+  /* Substitute the cleanup code */
   Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
-  // Emit the function
+  /* Emit the function */
   Wrapper_print(f,f_wrappers);
 
-  // Now register the function with the language
+  /* Now register the function with the language */
   create_command(name, iname, (vararg ? -1 : numarg));
   Delete(cleanup);
   Delete(outarg);
   DelWrapper(f);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::link_variable(char *name, char *iname, SwigType *t)
-//
-// Create a link to a C variable.
-//              name = Name of C variable
-//              iname = Name of variable in scripting language
-//              t = Datatype of the variable
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::link_variable(char *name, char *iname, SwigType *t)
+ *
+ * Create a link to a C variable.
+ *              name = Name of C variable
+ *              iname = Name of variable in scripting language
+ *              t = Datatype of the variable
+ * --------------------------------------------------------------------- */
+
 void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   char *tm;
   
   String *getfname, *setfname;
   Wrapper *getf, *setf;
-  int mod_attr = 0;
 
   getf = NewWrapper();
   setf = NewWrapper();
 
-  // module attribute?
-  if (current == STATIC_VAR || !toplevel)
-    mod_attr = 1;
-
-  // create getter
+  /* create getter */
   getfname = NewString(Swig_name_get(name));
   Replace(getfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
   Printv(getf->def, "static VALUE\n", getfname, "(", 0);
-  if (mod_attr) Printf(getf->def, "VALUE self");
+  Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
   Wrapper_add_local(getf,"_val","VALUE _val");
   tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
@@ -732,7 +700,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     Printv(getf->code,s,"\n", 0);
     Delete(s);
   } else if (SwigType_type(t) == T_USER) {
-    // Hack this into a pointer
+    /* Hack this into a pointer */
     SwigType_add_pointer(t);
     SwigType_remember(t);
     Printv(getf->code, tab4, "_val = SWIG_NewPointerObj((void *)&", name,
@@ -748,13 +716,10 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   if (Status & STAT_READONLY) {
     setfname = NewString("NULL");
   } else {
-    // create setter
+    /* create setter */
     setfname = NewString(Swig_name_set(name));
     Replace(setfname,"::", "_", DOH_REPLACE_ANY); /* FIXME: Swig_name_get bug? */
-    if (mod_attr)
-      Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
-    else
-      Printv(setf->def, "static void\n", setfname, "(", 0);
+    Printv(setf->def, "static VALUE\n", setfname, "(VALUE self, ", 0);
     Printf(setf->def, "VALUE _val) {");
     tm = ruby_typemap_lookup((char*)"varin",t,name,(char*)"_val",name);
     if (!tm)
@@ -776,13 +741,12 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
       Printf(stderr,"%s: Line %d. Unable to link with variable type %s\n",
 	      input_file,line_number,SwigType_str(t,0));
     }
-    if (mod_attr)
-      Printv(setf->code, tab4, "return _val;\n",0);
+    Printv(setf->code, tab4, "return _val;\n",0);
     Printf(setf->code,"}\n");
     Wrapper_print(setf,f_wrappers);
   }
 
-  // define accessor method
+  /* define accessor method */
   if (CPlusPlus) {
     Insert(getfname,0,"VALUEFUNC(");
     Append(getfname,")");
@@ -793,7 +757,7 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   String *s = NewString("");
   switch (current) {
   case STATIC_VAR:
-    // C++ class variable
+    /* C++ class variable */
     Printv(s,
 	   tab4, "rb_define_singleton_method(", klass->vname, ", \"",
 	   klass->strip(iname), "\", ", getfname, ", 0);\n",
@@ -807,25 +771,17 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
     Printv(klass->init,s,0);
     break;
   default:
-    // C global variable
-    if (toplevel) {
-      // wrapped in Ruby global variable
-      Printv(s,
-	     tab4, "rb_define_virtual_variable(\"", iname, "\", ",
-	     getfname, ", ", setfname, ");\n",
-	     0);
-    } else {
-      // wrapped in Ruby module attribute
+    /* C global variable */
+    /* wrapped in Ruby module attribute */
+    Printv(s,
+	   tab4, "rb_define_singleton_method(", modvar, ", \"",
+	   iname, "\", ", getfname, ", 0);\n",
+	   0);
+    if (!(Status & STAT_READONLY)) {
       Printv(s,
 	     tab4, "rb_define_singleton_method(", modvar, ", \"",
-	     iname, "\", ", getfname, ", 0);\n",
+	     iname, "=\", ", setfname, ", 1);\n",
 	     0);
-      if (!(Status & STAT_READONLY)) {
-	Printv(s,
-	       tab4, "rb_define_singleton_method(", modvar, ", \"",
-	       iname, "=\", ", setfname, ", 1);\n",
-	       0);
-      }
     }
     Printv(f_init,s,0);
     Delete(s);
@@ -838,11 +794,12 @@ void RUBY::link_variable(char *name, char *iname, SwigType *t) {
 }
 
 
-// ---------------------------------------------------------------------
-// RUBY::validate_const_name(char *name)
-//
-// Validate constant name.
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::validate_const_name(char *name)
+ *
+ * Validate constant name.
+ * --------------------------------------------------------------------- */
+
 char *RUBY::validate_const_name(char *name) {
   if (!name || name[0] == '\0')
     return name;
@@ -862,15 +819,16 @@ char *RUBY::validate_const_name(char *name) {
   return name;
 }
 
-// ---------------------------------------------------------------------
-// RUBY::declare_const(char *name, char *iname, SwigType *type, char *value)
-//
-// Makes a constant.
-//              name = Name of the constant
-//              iname = Scripting language name of constant
-//              type = Datatype of the constant
-//              value = Constant value (as a string)
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::declare_const(char *name, char *iname, SwigType *type, char *value)
+ *
+ * Makes a constant.
+ *              name = Name of the constant
+ *              iname = Scripting language name of constant
+ *              type = Datatype of the constant
+ *              value = Constant value (as a string)
+ * --------------------------------------------------------------------- */
+
 void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
   char *tm;
 
@@ -885,10 +843,7 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
       Replace(str,"$module", klass->vname, DOH_REPLACE_ANY);
       Printv(klass->init, str, "\n", 0);
     } else {
-      if (toplevel)
-	Replace(str,"$module", "rb_cObject", DOH_REPLACE_ANY);
-      else
-	Replace(str,"$module", modvar, DOH_REPLACE_ANY);
+      Replace(str,"$module", modvar, DOH_REPLACE_ANY);
       Printf(f_init,"%s\n", str);
     }
     Delete(str);
@@ -898,17 +853,18 @@ void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
   }
 }
 
-// ---------------------------------------------------------------------
-// RUBY::ruby_typemap_lookup(char *op, SwigType *type, char *pname, char *source, char *target, WrapperFunction *f = 0)
-//
-// Ruby specific typemap_lookup.
-//              op     = string code for type of mapping
-//              type   = the datatype
-//              pname  = an optional parameter name
-//              source = a string with the source variable
-//              target = a string containing the target value
-//              f      = a wrapper function object (optional)
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::ruby_typemap_lookup(char *op, SwigType *type, char *pname, char *source, char *target, WrapperFunction *f = 0)
+ *
+ * Ruby specific typemap_lookup.
+ *              op     = string code for type of mapping
+ *              type   = the datatype
+ *              pname  = an optional parameter name
+ *              source = a string with the source variable
+ *              target = a string containing the target value
+ *              f      = a wrapper function object (optional)
+ * --------------------------------------------------------------------- */
+
 char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname, char *source, char *target, Wrapper *f) {
   static String *s = 0;
   char *tm;
@@ -966,15 +922,16 @@ char *RUBY::ruby_typemap_lookup(char *op, SwigType *type, String_or_char *pname,
   return Char(s);
 }
 
-// ---------------------------------------------------------------------
-// RUBY::to_VALUE(SwigType *type, char *value, literal)
-//
-// Makes a VALUE (as a string)
-//              type = Datatype of the C value
-//              value = C value (as a string)
-//              str = resulting code (as a string)
-//              raw = value is raw string (not quoted) ?
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::to_VALUE(SwigType *type, char *value, literal)
+ *
+ * Makes a VALUE (as a string)
+ *              type = Datatype of the C value
+ *              value = C value (as a string)
+ *              str = resulting code (as a string)
+ *              raw = value is raw string (not quoted) ?
+ * --------------------------------------------------------------------- */
+
 int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
   Clear(str);
   switch(SwigType_type(type)) {
@@ -1018,14 +975,15 @@ int RUBY::to_VALUE(SwigType *type, char *value, String *str, int raw) {
   return 1;
 }
 
-// ---------------------------------------------------------------------
-// RUBY::from_VALUE(SwigType *type, char *value)
-//
-// extract VALUE
-//              type  = Datatype of the C value
-//              value = Ruby VALUE (as a string)
-//              str   = resulting code (as a string)
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::from_VALUE(SwigType *type, char *value)
+ *
+ * extract VALUE
+ *              type  = Datatype of the C value
+ *              value = Ruby VALUE (as a string)
+ *              str   = resulting code (as a string)
+ * --------------------------------------------------------------------- */
+
 int RUBY::from_VALUE(SwigType *type, char *value, String *str) {
   Clear(str);
   switch(SwigType_type(type)) {
@@ -1071,23 +1029,24 @@ int RUBY::from_VALUE(SwigType *type, char *value, String *str) {
   return 1;
 }
 
-// ----------------------------------------------------------------------
-// void RUBY::cpp_open_class(char *classname, char *classrename, char *ctype, int strip)
-//
-// Open a new C++ class.
-//
-// INPUTS:
-//      name   = Real name of the C++ class
-//      rename = New name of the class (if %name was used)
-//      ctype  = Class type (struct, class, union, etc...)
-//      strip  = Flag indicating whether we should strip the
-//               class type off
-//
-// This function is in charge of creating a new class.  The SWIG parser has
-// already processed the entire class definition prior to calling this
-// function (which should simplify things considerably).
-//
-// ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * void RUBY::cpp_open_class(char *classname, char *classrename, char *ctype, int strip)
+ *
+ * Open a new C++ class.
+ *
+ * INPUTS:
+ *      name   = Real name of the C++ class
+ *      rename = New name of the class (if %name was used)
+ *      ctype  = Class type (struct, class, union, etc...)
+ *      strip  = Flag indicating whether we should strip the
+ *               class type off
+ *
+ * This function is in charge of creating a new class.  The SWIG parser has
+ * already processed the entire class definition prior to calling this
+ * function (which should simplify things considerably).
+ *
+ * ---------------------------------------------------------------------- */
+
 void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
   this->Language::cpp_open_class(cname, rename, ctype, strip);
 
@@ -1103,13 +1062,8 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
 
   Printv(klass->header, "\nVALUE ", klass->vname, ";\n", 0);
   Printv(klass->init, "\n", tab4, 0);
-  if (toplevel) {
-    Printv(klass->init, klass->vname, " = rb_define_class(",
-	   "\"", klass->name, "\", $super);\n", 0);
-  } else {
-    Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
-	   ", \"", klass->name, "\", $super);\n", 0);
-  }
+  Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar,
+	 ", \"", klass->name, "\", $super);\n", 0);
   Replace(klass->includes,"$class", klass->vname, DOH_REPLACE_ANY);
   Printv(klass->init, klass->includes,0);
   Printv(klass->init, "$constructor",0);
@@ -1135,11 +1089,12 @@ void RUBY::cpp_open_class(char *cname, char *rename, char *ctype, int strip) {
 
 }
 
-// ---------------------------------------------------------------------
-// void RUBY::cpp_close_class()
-//
-// Close the current class
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * void RUBY::cpp_close_class()
+ *
+ * Close the current class
+ * --------------------------------------------------------------------- */
+
 void RUBY::cpp_close_class() {
   this->Language::cpp_close_class();
 
@@ -1164,15 +1119,16 @@ void RUBY::cpp_close_class() {
   klass = 0;
 }
 
-// ----------------------------------------------------------------------
-// void RUBY::cpp_inherit(char **baseclass, int mode)
-//
-// Inherit attributes from given baseclass.
-//
-// INPUT:
-//     baseclass       = NULL terminate list of baseclasses
-//
-// ---------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * void RUBY::cpp_inherit(char **baseclass, int mode)
+ *
+ * Inherit attributes from given baseclass.
+ *
+ * INPUT:
+ *     baseclass       = NULL terminate list of baseclasses
+ *
+ * --------------------------------------------------------------------- */
+
 
 void RUBY::cpp_inherit(char **baseclass, int mode) {
   if (!baseclass)
@@ -1182,65 +1138,68 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
     RClass *super = RCLASS(classes, baseclass[i]);
     if (super) {
       Replace(klass->init,"$super", super->vname, DOH_REPLACE_ANY);
-      break; // ignore multiple inheritance
+      break; /* ignore multiple inheritance */
     }
   }
 }
 
-// ----------------------------------------------------------------------
-// void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l)
-//
-// Method for adding C++ member function
-//
-// INPUTS:
-//      name        - name of the member function
-//      iname       - renaming (if given)
-//      t           - Return datatype
-//      l           - Parameter list
-//
-// By default, we're going to create a function of the form :
-//
-//         Foo_bar(this,args)
-//
-// Where Foo is the classname, bar is the member name and the this pointer
-// is explicitly attached to the beginning.
-//
-// The renaming only applies to the member function part, not the full
-// classname.
-//
-// ---------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l)
+ *
+ * Method for adding C++ member function
+ *
+ * INPUTS:
+ *      name        - name of the member function
+ *      iname       - renaming (if given)
+ *      t           - Return datatype
+ *      l           - Parameter list
+ *
+ * By default, we're going to create a function of the form :
+ *
+ *         Foo_bar(this,args)
+ *
+ * Where Foo is the classname, bar is the member name and the this pointer
+ * is explicitly attached to the beginning.
+ *
+ * The renaming only applies to the member function part, not the full
+ * classname.
+ *
+ * --------------------------------------------------------------------- */
+
 void RUBY::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   current = MEMBER_FUNC;
   this->Language::cpp_member_func(name, iname, t, l);
   current = NO_CPP;
 }
 
-// ---------------------------------------------------------------------
-// void RUBY::cpp_constructor(char *name, char *iname, ParmList *l)
-//
-// Method for adding C++ member constructor
-//
-// INPUTS:
-//      name     - Name of the constructor (usually same as classname)
-//      iname    - Renamed version
-//      l        - parameters
-// --------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * void RUBY::cpp_constructor(char *name, char *iname, ParmList *l)
+ *
+ * Method for adding C++ member constructor
+ *
+ * INPUTS:
+ *      name     - Name of the constructor (usually same as classname)
+ *      iname    - Renamed version
+ *      l        - parameters
+ * -------------------------------------------------------------------- */
+
 void RUBY::cpp_constructor(char *name, char *iname, ParmList *l) {
   current = CONSTRUCTOR;
   this->Language::cpp_constructor(name, iname, l);
   current = NO_CPP;
 }
 
-// ---------------------------------------------------------------------
-// void RUBY::cpp_destructor(char *name, char *iname)
-//
-// Method for adding C++ member destructor
-//
-// INPUT:
-//     name        -  Name of the destructor (classname)
-//     iname       -  Renamed destructor
-//
-// --------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * void RUBY::cpp_destructor(char *name, char *iname)
+ *
+ * Method for adding C++ member destructor
+ *
+ * INPUT:
+ *     name        -  Name of the destructor (classname)
+ *     iname       -  Renamed destructor
+ *
+ * -------------------------------------------------------------------- */
+
 void RUBY::cpp_destructor(char *name, char *newname) {
   current = DESTRUCTOR;
   this->Language::cpp_destructor(name, newname);
@@ -1280,53 +1239,56 @@ void RUBY::cpp_destructor(char *name, char *newname) {
   Delete(freebody);
 }
 
-// ---------------------------------------------------------------------
-// void RUBY::cpp_variable(char *name, char *iname, SwigType *t)
-//
-// Wrap a C++ data member
-//
-// INPUTS :
-//      name       = Name of the C++ member
-//     iname       = Name as used in the interpreter
-//         t       = Datatype
-//
-// This creates a pair of functions to set/get the variable of a member.
-// --------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * void RUBY::cpp_variable(char *name, char *iname, SwigType *t)
+ *
+ * Wrap a C++ data member
+ *
+ * INPUTS :
+ *      name       = Name of the C++ member
+ *     iname       = Name as used in the interpreter
+ *         t       = Datatype
+ *
+ * This creates a pair of functions to set/get the variable of a member.
+ * -------------------------------------------------------------------- */
+
 void RUBY::cpp_variable(char *name, char *iname, SwigType *t) {
   current = MEMBER_VAR;
   this->Language::cpp_variable(name, iname, t);
   current = NO_CPP;
 }
 
-// -----------------------------------------------------------------------
-// void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l)
-//
-// Wrap a static C++ function
-//
-// INPUTS:
-//      name           = Real name of the function
-//     iname           = New name in interpreter
-//      t              = Return datatype
-//      l              = Parameters
-// ----------------------------------------------------------------------
+/* -----------------------------------------------------------------------
+ * void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l)
+ *
+ * Wrap a static C++ function
+ *
+ * INPUTS:
+ *      name           = Real name of the function
+ *     iname           = New name in interpreter
+ *      t              = Return datatype
+ *      l              = Parameters
+ * ---------------------------------------------------------------------- */
+
 void RUBY::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
   current = STATIC_FUNC;
   this->Language::cpp_static_func(name, iname, t, l);
   current = NO_CPP;
 }
 
-// ----------------------------------------------------------------------
-// void RUBY::cpp_declare_const(char *name, char *iname, SwigType *t, char *value)
-//
-// Create a C++ constant
-//
-// INPUTS :
-//       name          = Real name of the constant
-//       iname         = new name
-//       t             = Datatype
-//       value         = value as a string
-//
-// ---------------------------------------------------------------------
+/* ----------------------------------------------------------------------
+ * void RUBY::cpp_declare_const(char *name, char *iname, SwigType *t, char *value)
+ *
+ * Create a C++ constant
+ *
+ * INPUTS :
+ *       name          = Real name of the constant
+ *       iname         = new name
+ *       t             = Datatype
+ *       value         = value as a string
+ *
+ * --------------------------------------------------------------------- */
+
 
 void RUBY::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
   current = CLASS_CONST;
@@ -1334,28 +1296,30 @@ void RUBY::cpp_declare_const(char *name, char *iname, SwigType *type, char *valu
   current = NO_CPP;
 }
 
-// ---------------------------------------------------------------------
-// void RUBY::cpp_static_var(char *name, char *iname, SwigType *t)
-//
-// Wrap a static C++ variable
-//
-// INPUT :
-//      name        = name of the variable
-//     iname        = interpreter name
-//         t        = Datatype
-//
-// ---------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * void RUBY::cpp_static_var(char *name, char *iname, SwigType *t)
+ *
+ * Wrap a static C++ variable
+ *
+ * INPUT :
+ *      name        = name of the variable
+ *     iname        = interpreter name
+ *         t        = Datatype
+ *
+ * --------------------------------------------------------------------- */
+
 void RUBY::cpp_static_var(char *name, char *iname, SwigType *t) {
   current = STATIC_VAR;
   this->Language::cpp_static_var(name, iname, t);
   current = NO_CPP;
 }
 
-// -----------------------------------------------------------------------
-// RUBY::cpp_class_decl(char *name, char *rename, char *type)
-//
-// A forward class declaration
-// -----------------------------------------------------------------------
+/* -----------------------------------------------------------------------
+ * RUBY::cpp_class_decl(char *name, char *rename, char *type)
+ *
+ * A forward class declaration
+ * ----------------------------------------------------------------------- */
+
 void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
   String *valid_name = NewString((rename ? rename : cname));
   validate_const_name(Char(valid_name));
@@ -1373,11 +1337,12 @@ void RUBY::cpp_class_decl(char *cname, char *rename, char *type) {
   Delete(valid_name);
 }
 
-// --------------------------------------------------------------------
-// void RUBY::pragma(char *target, char *var, char *value)
-//
-// A pragma declaration
-// --------------------------------------------------------------------
+/* --------------------------------------------------------------------
+ * void RUBY::pragma(char *target, char *var, char *value)
+ *
+ * A pragma declaration
+ * -------------------------------------------------------------------- */
+
 void RUBY::pragma(char *lang, char *cmd, char *value) {
   if (strcmp(lang, "ruby") != 0)
     return;
@@ -1426,11 +1391,12 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// RUBY::cpp_pragma(Pragma *plist)
-//
-// Handle C++ pragmas
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * RUBY::cpp_pragma(Pragma *plist)
+ *
+ * Handle C++ pragmas
+ * ----------------------------------------------------------------------------- */
+
 
 void RUBY::cpp_pragma(Pragma *plist) {
   while (plist) {
@@ -1439,11 +1405,12 @@ void RUBY::cpp_pragma(Pragma *plist) {
   }
 }
 
-// ---------------------------------------------------------------------
-// RUBY::import(char *filename)
-//
-// Imports a SWIG module as a separate file.
-//----------------------------------------------------------------------
+/* ---------------------------------------------------------------------
+ * RUBY::import(char *filename)
+ *
+ * Imports a SWIG module as a separate file.
+ *---------------------------------------------------------------------- */
+
 
 void RUBY::import(char *filename) {
   if (import_file) free(import_file);
