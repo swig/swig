@@ -1426,6 +1426,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
+
   c = Char(result);
   while (*c) {
     if (!isalnum((int)*c)) *c = '_';
@@ -1445,6 +1446,12 @@ String *SwigType_manglestr_default(SwigType *s) {
   while (*c) {
     if (*c == '<') *c = 'T';
     else if (*c == '>') *c = 't';
+    else if (*c == '*') *c = 'p';
+    else if (*c == '[') *c = 'a';
+    else if (*c == ']') *c = 'A';
+    else if (*c == '&') *c = 'R';
+    else if (*c == '(') *c = 'f';
+    else if (*c == ')') *c = 'F';
     else if (!isalnum((int)*c)) *c = '_';
     c++;
   }

@@ -37,8 +37,7 @@ Swig_name_unregister(String_or_char *method) {
   }
 }
 
-static
-int name_mangle(String *r) {
+static int name_mangle(String *r) {
   char  *c;
   int    special;
   special = 0;

@@ -179,10 +179,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   cpatchlist = NewList();
   typelist = NewList();
 
-
   {
     String *tmp = NewString("");
-    SwigType_add_template(tmp,tparms);
+    if (tparms) {
+      SwigType_add_template(tmp,tparms);
+    }
     templateargs = Copy(tmp);
     Delete(tmp);
   }
@@ -205,7 +206,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   {
     Parm *tp = Getattr(n,"templateparms");
     Parm *p  = tparms;
-    while (p) {
+    while (p && tp) {
       String *name, *value, *valuestr, *tydef, *tmp, *tmpr;
       int     sz, i;
 
@@ -280,6 +281,36 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * cparse_template_partial()
+ *
+ * Search for a template partial specialization that might match
+ * ----------------------------------------------------------------------------- */
 
+Node *
+Swig_cparse_template_partial(String *name, Parm *parms) {
+  Node   *n;
+  String *tname;
+  Parm   *p;
+  char   tmp[32];
+  int    i = 1;
+
+  tname = NewStringf("%s<(",name);
+  p = parms;
+  while (p) {
+    String *t = SwigType_default(Getattr(p,"type"));
+    sprintf(tmp,"$%d",i);
+    Replaceid(t,"SWIGTYPE",tmp);
+    Replaceid(t,"SWIGENUM",tmp);
+    Printf(tname,"%s",t);
+    p = nextSibling(p);
+    if (p) Putc(',',tname);
+  }
+  Printf(tname,")>");
+  /*  Printf(stdout,"Searching for '%s'\n", tname); */
+  n = Swig_symbol_clookup_local(tname,0);
+  Delete(tname);
+  return n;
+}
 
 

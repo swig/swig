@@ -45,6 +45,7 @@ extern void scanner_last_id(int);
 extern void start_inline(char *, int);
 extern String *scanner_ccode;
 extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms);
+extern Node *Swig_cparse_template_partial(String *name, ParmList *tparms);
 
 /* NEW Variables */
 
@@ -1688,7 +1689,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		  String *sargs;
 		  String *tds;
 		  String *cpps;
-		  
+		  int     specialized = 0;
 		  $$ = 0;
 
 		  /* We need to patch argument types to respect namespaces */
@@ -1710,130 +1711,114 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN idcolonnt LESSTHAN valpa
 		  
 		  /* Look for specialization first */
 		  n = Swig_symbol_clookup_local(templateargs,0);
-		  /*		  Printf(stdout,"checking %s\n", templateargs); */
-		  if (n) {
-		    /* Whoa. Found a specialization.   We just insert into to
-                       the parse tree here */
-		    if (Getattr(n,"specialization")) {
-		      if (!Getattr(n,"specialization_wrapped")) {
-			$$ = n;
-			yyrename = $3;
-			Delattr($$,"sym:name");
-			add_symbols($$);
-			Setattr($$,"specialization_wrapped","1");
-		      } else {
-			Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,cparse_file, cparse_line, "Template '%s' was already wrapped as '%s' (ignored)\n", 
-				     SwigType_namestr(templateargs), Getattr(n,"sym:name"));
-			$$ = 0;
-		      }
-		    } else {
-			if (Strcmp(nodeType(n),"constructor") != 0) {
-			    Swig_warning(WARN_PARSE_TEMPLATE_REPEAT,cparse_file, cparse_line, "Template '%s' was already wrapped as '%s' (ignored)\n", 
-					 SwigType_namestr(templateargs), Getattr(n,"sym:name"));
-			    $$ = 0;
-			} else {
-			    n = 0;
-			}
-		    }
-		  } 
 		  if (!n) {
 		    Delete(args);
 		    Delete(templateargs);
-
-		    /* Try to locate the template node */
-		    n = Swig_symbol_clookup($5,0);
-		    if (n && (Strcmp(nodeType(n),"template") == 0)) {
-		      Parm *tparms = Getattr(n,"templateparms");
-		      if (ParmList_len($7) > ParmList_len(tparms)) {
-			Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
-		      } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
-			Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
-		      } else {
-			int  def_supplied = 0;
-			/* Expand the template */
-			ParmList *temparms = CopyParmList(tparms);
-			ts = NewString("");
-			/* Create typedef's and arguments */
-			p = $7;
-			tp = temparms;
-			while (p) {
-			  String *value = Getattr(p,"value");
-			  if (def_supplied) {
-			    Setattr(p,"default","1");
-			  }
-			  if (value) {
-			    Setattr(tp,"value",value);
-			  } else {
-			    SwigType *ty = Getattr(p,"type");
-			    if (ty) {
-			      tds = NewStringf("__swigtmpl%d",templatenum);
-			      templatenum++;
-			      Setattr(tp,"typedef",tds);
-			      Setattr(tp,"type",ty);
-
-			      /* Probably need namespace check here */
-			      Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
-			      Delete(tds);
-			    }
-			  }
-			  p = nextSibling(p);
-			  tp = nextSibling(tp);
-			  if (!p) {
-			    p = tp;
-			    def_supplied = 1;
+		    n = Swig_cparse_template_partial($5,$7);
+		  } else {
+		    specialized = 1;
+		  }
+		  /* Try to locate the template node */
+		  if (!n) {
+		    n = Swig_symbol_clookup_local($5,0);
+		  }
+		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
+		    Parm *tparms = Getattr(n,"templateparms");
+		    if (!specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
+		      Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
+		    } else if (!specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
+		      Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
+		    } else {
+		      int  def_supplied = 0;
+		      /* Expand the template */
+		      ParmList *temparms;
+		      if (specialized) temparms = CopyParmList($7);
+		      else temparms = CopyParmList(tparms);
+		      ts = NewString("");
+		      /* Create typedef's and arguments */
+		      p = $7;
+		      tp = temparms;
+		      while (p) {
+			String *value = Getattr(p,"value");
+			if (def_supplied) {
+			  Setattr(p,"default","1");
+			}
+			if (value) {
+			  Setattr(tp,"value",value);
+			} else {
+			  SwigType *ty = Getattr(p,"type");
+			  if (ty) {
+			    tds = NewStringf("__swigtmpl%d",templatenum);
+			    templatenum++;
+			    Setattr(tp,"typedef",tds);
+			    Setattr(tp,"type",ty);
+			    
+			    /* Probably need namespace check here */
+			    Printf(ts,"typedef %s;\n", SwigType_str(ty,tds));
+			    Delete(tds);
 			  }
 			}
-			/*			Printf(stderr,"TEMPL: %s %s\n", nodeType(n), Getattr(n,"templatetype")); */
-			$$ = copy_node(n);
-			/* We need to set the node name based on name used to instantiate */
-			Setattr($$,"name",$5);
-			Delattr($$,"sym:typename");
-			Swig_cparse_template_expand($$,$3,temparms);
-			Delete(temparms);
-			Setattr($$,"sym:name", $3);
-			Delattr($$,"templatetype");
-			Setattr($$,"template","1");
-			Setfile($$,cparse_file);
-			Setline($$,cparse_line);
-			add_symbols_copy($$);
-			
-			if (Strcmp(nodeType($$),"class") == 0) {
-			  /* Merge in addmethods for this class */
-
-			  /* !!! This may be broken.  We may have to
-                             add the addmethods at the beginning of
-                             the class */
-
-			  if (extendhash) {
-			    String *clsname = Getattr($$,"name");
-			    Node *am = Getattr(extendhash,clsname);
-			    if (am) {
-			      merge_extensions(am);
-			      appendChild($$,am);
-			      Delattr(extendhash,clsname);
-			    }
-			  }
-			  /* Add to classes hash */
-			  if (!classes) classes = NewHash();
-			  Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
-			}
-			/* Make a code insertion block to include typedefs */
-			if (0) {
-			  Node *ins = new_node("insert");
-			  Setattr(ins,"code",ts);
-			  Delete(ts);
-			  set_nextSibling(ins,$$);
-			  $$ = ins;
+			p = nextSibling(p);
+			tp = nextSibling(tp);
+			if (!p) {
+			  p = tp;
+			  def_supplied = 1;
 			}
 		      }
-		    } else {
-		      if (n) {
-			Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
+		      /*			Printf(stderr,"TEMPL: %s %s\n", nodeType(n), Getattr(n,"templatetype")); */
+		      $$ = copy_node(n);
+		      /* We need to set the node name based on name used to instantiate */
+		      Setattr($$,"name",$5);
+		      if (!specialized) {
+			Delattr($$,"sym:typename");
 		      } else {
-			Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", $5);
+			Setattr($$,"sym:typename","1");
+		      }
+		      Swig_cparse_template_expand($$,$3,temparms);
+		      Delete(temparms);
+		      Setattr($$,"sym:name", $3);
+		      Delattr($$,"templatetype");
+		      Setattr($$,"template","1");
+		      Setfile($$,cparse_file);
+		      Setline($$,cparse_line);
+		      add_symbols_copy($$);
+		      
+		      if (Strcmp(nodeType($$),"class") == 0) {
+			/* Merge in addmethods for this class */
+			
+			/* !!! This may be broken.  We may have to
+			   add the addmethods at the beginning of
+			   the class */
+			
+			if (extendhash) {
+			  String *clsname = Getattr($$,"name");
+			  Node *am = Getattr(extendhash,clsname);
+			  if (am) {
+			    merge_extensions(am);
+			    appendChild($$,am);
+			    Delattr(extendhash,clsname);
+			  }
+			}
+			/* Add to classes hash */
+			if (!classes) classes = NewHash();
+			Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
+		      }
+		      /* Make a code insertion block to include typedefs */
+		      if (0) {
+			Node *ins = new_node("insert");
+			Setattr(ins,"code",ts);
+			Delete(ts);
+			set_nextSibling(ins,$$);
+			$$ = ins;
 		      }
 		    }
- 		  }
+		  } else {
+		    if (n) {
+		      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", $5, nodeType(n));
+		    } else {
+		      Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", $5);
+		    }
+		  }
                }
                ;
 
@@ -2310,9 +2295,37 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 		      /* Check if the class is a template specialization */
 		      if (($$) && (Strstr(Getattr($$,"name"),"<")) && (Strncmp(Getattr($$,"name"),"operator ",9) != 0)) {
 			Setattr($$,"specialization","1");
+			Setattr($$,"templatetype",nodeType($$));
+			set_nodeType($$,"template");
+			/* Template partial specialization */
+			if (($3) && ($5)) {
+			  if (!Getattr($$,"sym:weak")) {
+			    Setattr($$,"sym:typename","1");
+			  }
+			  Setattr($$,"templateparms",$3);
+			  Delattr($$,"specialization");
+			  Setattr($$,"partialspecialization","1");
+			  /* Create a specialized name for matching */
+			  {
+			    Parm *p = $3;
+			    String *fname = NewString(Getattr($$,"name"));
+			    char   tmp[32];
+			    int    i = 1;
+			    while (p) {
+			      String *n = Getattr(p,"name");
+			      if (!n) n= Getattr(p,"type");
+			      if (n) {
+				sprintf(tmp,"$%d",i);
+				Replaceid(fname,n,tmp);
+			      }
+			      i++;
+			      p = nextSibling(p);
+			    }
+			    Swig_symbol_cadd(fname,$$);
+			  }
+			}
 			$$ = 0; /* Do not place in parse tree, only a template specialization */
-		      }
-		      if ($$) {
+		      }  else {
 			  Setattr($$,"templatetype",nodeType($5));
 			  set_nodeType($$,"template");
 			  Setattr($$,"templateparms", $3);
@@ -2322,16 +2335,21 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			  add_symbols($$);
 			  /* We also place a fully parameterized version in the symbol table */
 			  {
-			    String *fname = NewString(Getattr($$,"name"));
-			    SwigType_add_template(fname,$3);
+			    Parm *p;
+			    String *fname = NewStringf("%s<(",Getattr($$,"name"));
+			    p = $3;
+			    while (p) {
+			      String *n = Getattr(p,"name");
+			      if (!n) n = Getattr(p,"type");
+			      Printf(fname,"%s", n);
+			      p = nextSibling(p);
+			      if (p) Putc(',',fname);
+			    }
+			    Printf(fname,")>");
 			    Swig_symbol_cadd(fname,$$);
 			  }
-		      } else {
-			  if (($3) && ($5)) {
-			    Swig_warning(WARN_PARSE_TEMPLATE_PARTIAL,cparse_file, cparse_line,"Template partial specialization not supported.\n");
-			  }
 		      }
-                }
+                  }
                 /* Forward template class declaration */
 /*                | TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_forward_class_decl { 
                      $$ = 0; 
@@ -2590,7 +2608,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		 /* Check for template names.  If the class is a template
                     and the constructor is missing the template part, we
                     add it */
-		 {
+		 /*		 {
 		   char *c = Strstr(Classprefix,"<");
 		   if (c) {
 		     if (!Strstr($2,"<")) {
@@ -2598,6 +2616,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		     }
 		   }
 		 }
+		 */
 		 Setattr($$,"name",$2);
 		 Setattr($$,"parms",$4);
 		 SwigType_add_function(decl,$4);
@@ -2619,7 +2638,8 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       /* Check for template names.  If the class is a template
 		  and the constructor is missing the template part, we
 		  add it */
-	       {
+
+	       /*	       {
 		 char *c = Strstr(Classprefix,"<");
 		 if (c) {
 		   if (!Strstr($2,"<")) {
@@ -2627,6 +2647,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 		   }
 		 }
 	       }
+	       */
 	       Setattr($$,"name",NewStringf("~%s",$2));
 	       if (Len(scanner_ccode)) {
 		 Setattr($$,"code",Copy(scanner_ccode));

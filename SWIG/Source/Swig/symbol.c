@@ -724,12 +724,13 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
     return 0;
   }
   /* Check if s is a 'using' node */
-  while (Strcmp(nodeType(s),"using") == 0) {
-    s = Swig_symbol_clookup(Getattr(s,"uname"), Getattr(s,"sym:symtab"));
-    if (!s) {
+  while (s && Strcmp(nodeType(s),"using") == 0) {
+    Node *ss;
+    ss = Swig_symbol_clookup(Getattr(s,"uname"), Getattr(s,"sym:symtab"));
+    if (!ss) {
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,"uname"));
     }
-    /* s = Getattr(s,"node"); */
+    s = ss;
   }
   return s;
 }
@@ -737,6 +738,8 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
 Node *
 Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   Hash *h, *hsym;
+  Node *s = 0;
+
   if (!n) {
     hsym = current_symtab;
     h = ccurrent;
@@ -750,13 +753,24 @@ Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
   }
 
   if (Strstr(name,"::")) {
-    if ((Strncmp(name,"::",2) == 0)  && (hsym == global_scope)) {
-      return symbol_lookup_qualified(Char(name)+2,hsym,0,1);
+    if (Strncmp(name,"::",2) == 0) {
+      s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
     } else {
-      return symbol_lookup_qualified(name,hsym,0,1);
+      s = symbol_lookup_qualified(name,hsym,0,0);
     }
   }
-  return Getattr(h,name);
+  if (!s)
+    s = symbol_lookup(name,hsym);
+  if (!s) return 0;
+  /* Check if s is a 'using' node */
+  while (s && Strcmp(nodeType(s),"using") == 0) {
+    Node *ss = Swig_symbol_clookup_local(Getattr(s,"uname"), Getattr(s,"sym:symtab"));
+    if (!ss) {
+      Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", Getattr(s,"uname"));
+    }
+    s = ss;
+  }
+  return s;
 }
 
 /* -----------------------------------------------------------------------------
