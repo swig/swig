@@ -124,15 +124,15 @@ namespace std {
 namespace std {
     
     template<class T> class vector {
-        %typemap(in) vector<Type> (std::vector<Type>* v) {
+        %typemap(in) vector<T> (std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
                 $1.resize(size);
-                swig_type_info* type = SWIG_TypeQuery("Type");
+                swig_type_info* type = SWIG_TypeQuery("T");
                 for (unsigned int i=0; i<size; i++) {
-                    Type* x;
+                    T* x;
                     PyObject* o = PySequence_GetItem($input,i);
                     if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
                         (($1_type &)$1)[i] = *x;
@@ -140,7 +140,7 @@ namespace std {
                     } else {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
-                                        "vector<" "Type" "> expected");
+                                        "vector<" "T" "> expected");
                         return NULL;
                     }
                 }
@@ -148,23 +148,23 @@ namespace std {
                                        $1_descriptor,1) != -1){
                 $1 = *v;
             } else {
-                PyErr_SetString(PyExc_TypeError,"vector<" "Type" "> expected");
+                PyErr_SetString(PyExc_TypeError,"vector<" "T" "> expected");
                 return NULL;
             }
         }
-        %typemap(in) const vector<Type>& (std::vector<Type> temp,
-                                          std::vector<Type>* v),
-                     const vector<Type>* (std::vector<Type> temp,
-                                          std::vector<Type>* v) {
+        %typemap(in) const vector<T>& (std::vector<T> temp,
+                                          std::vector<T>* v),
+                     const vector<T>* (std::vector<T> temp,
+                                          std::vector<T>* v) {
             if (PyTuple_Check($input) || PyList_Check($input)) {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
                 temp.resize(size);
                 $1 = &temp;
-                swig_type_info* type = SWIG_TypeQuery("Type");
+                swig_type_info* type = SWIG_TypeQuery("T");
                 for (unsigned int i=0; i<size; i++) {
-                    Type* x;
+                    T* x;
                     PyObject* o = PySequence_GetItem($input,i);
                     if ((SWIG_ConvertPtr(o,(void **) &x, type,0)) != -1) {
                         temp[i] = *x;
@@ -172,7 +172,7 @@ namespace std {
                     } else {
                         Py_DECREF(o);
                         PyErr_SetString(PyExc_TypeError,
-                                        "vector<" "Type" "> expected");
+                                        "vector<" "T" "> expected");
                         return NULL;
                     }
                 }
@@ -180,21 +180,21 @@ namespace std {
                                        $1_descriptor,1) != -1){
                 $1 = v;
             } else {
-                PyErr_SetString(PyExc_TypeError,"vector<" "Type" "> expected");
+                PyErr_SetString(PyExc_TypeError,"vector<" "T" "> expected");
                 return NULL;
             }
         }
-        %typemap(out) vector<Type> {
+        %typemap(out) vector<T> {
             $result = PyTuple_New($1.size());
-            swig_type_info* type = SWIG_TypeQuery("Type");
+            swig_type_info* type = SWIG_TypeQuery("T");
             for (unsigned int i=0; i<$1.size(); i++) {
-                Type* ptr = new Type((($1_type &)$1)[i]);
+                T* ptr = new T((($1_type &)$1)[i]);
                 PyTuple_SetItem($result,i,
                                 SWIG_NewPointerObj((void *) ptr, type, 1));
             }
         }
       public:
-        vector(unsigned int size, T fill);
+        vector(unsigned int size, const T& fill);
         %rename(__len__) size;
         unsigned int size() const;
         %rename(__nonzero__) empty;
