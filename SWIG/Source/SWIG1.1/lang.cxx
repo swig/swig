@@ -572,7 +572,7 @@ void Language::cDeclaration(Node *n) {
 	Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
       }
     }
-    Delete(SwigType_pop(ty));
+    Delete(SwigType_pop_function(ty));
 
     /* Static functions */
     if (Cmp(storage,"static") == 0) {

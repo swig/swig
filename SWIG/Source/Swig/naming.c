@@ -324,6 +324,12 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
   String *tname;
   DOH    *rn = 0;
   Hash   *n;
+  char   *ncdecl = 0;
+
+  if ((decl) && (SwigType_isqualifier(decl))) {
+    ncdecl = strchr(Char(decl),'.');
+    ncdecl++;
+  }
 
   /* Perform a class-based lookup (if class prefix supplied) */
   if (prefix) {
@@ -331,6 +337,7 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
       tname = NewStringf("%s::%s",prefix,name);
       n = Getattr(namehash,tname);
       rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
       Delete(tname);
     }
     /* A wildcard-based class lookup */
@@ -338,6 +345,7 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
       tname = NewStringf("*::%s",name);
       n = Getattr(namehash,tname);
       rn = get_object(n,decl);
+      if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
       Delete(tname);
     }
   } else {
@@ -345,12 +353,14 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
     tname = NewStringf("::%s",name);
     n = Getattr(namehash,tname);
     rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
     Delete(tname);
   }
   /* Catch-all */
   if (!rn) {
     n = Getattr(namehash,name);
     rn = get_object(n,decl);
+    if ((!rn) && ncdecl) rn = get_object(n,ncdecl);
   }
   return rn;
 }
