@@ -159,7 +159,7 @@ check-gifplot:					\
 
 check-%-gifplot: gifplot-library
 	@passed=true;						\
-	up=`Tools/capitalize $*`;				\
+	up=`$(srcdir)/Tools/capitalize $*`;			\
 	dir="Examples/GIFPlot/$$up";				\
 	if $(skip-$*); then					\
 	  echo skipping $$up $(ACTION);				\
