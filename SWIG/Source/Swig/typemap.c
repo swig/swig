@@ -1206,9 +1206,12 @@ String *Swig_typemap_lookup_new(const String_or_char *op, Node *node, const Stri
  * If this hash (tm) contains a linked list of parameters under its "kwargs"
  * attribute, add keys for each of those named keyword arguments to this
  * parameter for later use.
+ * For example, attach the typemap attributes to p:
+ * %typemap(in, foo="xyz") ...
+ * A new attribute called "tmap:in:foo" with value "xyz" is attached to p.
  * ----------------------------------------------------------------------------- */
 
-static void
+void
 Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
   String *temp = NewString("");
   Parm *kw = Getattr(tm,"kwargs");
