@@ -33,5 +33,5 @@ unset($handle);
 //voidhandle($handle);
 //check::isnull($handle,'$handle not null');
 
-echo $_SERVER[argv][0]." ok\n";
+check::done();
 ?>
