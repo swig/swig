@@ -29,6 +29,7 @@ public:
     cplus_mode = PUBLIC;
     inclass = 0;
     emit_children(n);
+    return SWIG_OK;
   }
 
   virtual int importDirective(Node *n) { return emit_children(n); }
