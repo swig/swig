@@ -17,6 +17,59 @@ tree (maybe).
 Version 1.3.14 (In progress)
 ============================
 
+08/09/2002: beazley
+            [Perl5] If a function that returns char * returns NULL,
+            undef is returned to the Perl interpreter.
+ 
+08/09/2002: beazley
+            Fix to conversion operators and namespaces.  For example:
+
+                namespace ns {
+                    struct Foo { };
+                    struct Bar {
+                        operator Foo*();
+                    };
+                }
+
+            In the wrapper code, SWIG was using ->operator Foo*()
+            when it should have been using ->operator ns::Foo*().
+
+            Note: if using %rename with a conversion operator, you
+            might have to do this:
+
+               %rename(toFooPtr) ns::operator ns::Foo*();
+                                      //      ^^^^ note extra qualifier
+               namespace ns {
+                    ...
+
+            
+08/09/2002: beazley
+            [Python] Minor enhancement to 'const' variable declarations. 
+            Normally const declarations are wrapped as read-only variables
+            accessible only through the cvar attribute (see SWIG.html for
+            a discussion of why).  However, in many programs, "const" 
+            declarations may just be constants---making the cvar. access
+            awkward.  To fix this, "const" declarations are now available
+            both through cvar. and as a simple name.  For example:
+
+                 const int FOO = 42;
+
+            In Python:
+
+                 >>> print example.cvar.FOO
+                 42
+                 >>> print example.FOO
+                 42
+
+            Note: There are cases where the value of a "const" variable
+            might change.  For example:
+
+                 char *const BAR = "Hello World";
+
+            In this case, the pointer itself can not change, but the 
+            data being pointed to could be modified.  In these situations,
+            cvar.BAR should be accessed to obtained the current value.
+
 08/08/2002: beazley
             [Python] Fixed generation of the proxy code (.py files) to more
             closely follow the order of declarations as they appear in
