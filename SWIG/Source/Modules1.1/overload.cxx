@@ -233,8 +233,12 @@ Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
       if (tm) {
 	Replaceid(tm,Getattr(pj,"lname"),"_v");
 	Replaceall(tm,"$input", tmp);
+	if (j >= num_required)
+	  Printf(f,"if (argc > %d) {\n",j);
 	Printv(f,tm,"\n",NULL);
-	Printf(f,"_m &= _v;\n");
+        Printf(f,"_m &= _v;\n");
+	if (j >= num_required)
+	  Printf(f,"}\n",j);
       }
       Parm *pk = Getattr(pj,"tmap:in:next");
       if (pk) pj = pk;
