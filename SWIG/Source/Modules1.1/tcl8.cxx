@@ -830,6 +830,9 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_DOUBLE:
 	set.code << tab4 << "*(addr) = " << t->print_cast() << "atof(value);\n";
 	break;
+      case T_CHAR:  /* Single character. */
+	set.code << tab4 << "*(addr) = *value;\n";
+	break;
       case T_USER:
 	// User defined type.  We return it as a pointer
 	t->is_pointer++;
@@ -845,15 +848,25 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	t->is_pointer--;
 	break;
       default:
-	fprintf(stderr,"Unknown type!\n");
+	fprintf(stderr,"Unknown type %d!\n", t->type);
 	break;
       }
     } else {
       if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
-	if (CPlusPlus) {
-	}
-	/* A character string */
+	set.code << tab4 << "if (*addr) free(*addr);\n"
+		 << tab4 << "*addr = (char *) malloc(strlen(value)+1);\n"
+		 << tab4 << "strcpy(*addr,value);\n";
       } else {
+	// User defined type.  We return it as a pointer
+	t->remember();
+	set.code << tab4 << "{\n"
+		 << tab8 << "void *ptr;\n"
+		 << tab8 << "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE" << t->print_mangle() << ") != TCL_OK) {\n"
+		 << tab8 << tab4 << "return \"Type Error\";\n"
+		 << tab8 << "}\n"
+		 << tab8 << "*(addr) = " << t->print_cast() << " ptr;\n"
+		 << tab4 << "}\n";
+
 	/* A Pointer */
       }
     }
@@ -897,6 +910,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_USER:
 	get.add_local("Tcl_Obj *","value");
 	t->is_pointer++;
+	t->remember();
 	get.code << tab4 << "value = SWIG_NewPointerObj(addr, SWIGTYPE" << t->print_mangle() << ");\n"
 		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
 		 << tab4 << "Tcl_DecrRefCount(value);\n";
@@ -906,8 +920,18 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       default:
 	break;
       }
+    } else {
+      if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
+	get.code << tab4 << "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n";
+      } else {
+	get.add_local("Tcl_Obj *","value");
+	t->remember();
+	get.code << tab4 << "value = SWIG_NewPointerObj(*addr, SWIGTYPE" << t->print_mangle() << ");\n"
+		 << tab4 << "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n"
+		 << tab4 << "Tcl_DecrRefCount(value);\n";
+      }
     }
-	
+
     get.code << tab4 << "return NULL;\n"
 	     << "}\n";
     get.print(f_wrappers);
