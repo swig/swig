@@ -1,7 +1,8 @@
 Failed:
-pointer_cxx.cpptest
 template_ns4.cpptest
 Success:
+overload_extend.cpptest
+template_default2.cpptest
 template_enum_typedef.cpptest
 template_inherit_abstract.cpptest
 template_default_qualify.cpptest
@@ -59,6 +60,7 @@ namespace_enum.cpptest
 namespace_extend.cpptest
 namespace_template.cpptest
 namespace_typemap.cpptest
+pointer_cxx.cpptest
 pointer_reference.cpptest
 primitive_ref.cpptest
 private_assign.cpptest
@@ -88,6 +90,7 @@ typedef_scope.cpptest
 typename.cpptest
 virtual_destructor.cpptest
 voidtest.cpptest
+overload_extendc.ctest
 arrayptr.ctest
 arrays.ctest
 char_constant.ctest

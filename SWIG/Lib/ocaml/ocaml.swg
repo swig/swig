@@ -16,9 +16,9 @@ static void generic_delete_fn( value v ) {
     CAMLparam1(v);
     CAMLlocal1(x);
     struct custom_block_contents *new_proxy;
+    value *deleter = NULL;
 
     new_proxy = (struct custom_block_contents *)(Data_custom_val(v));
-    value *deleter = NULL;
     if( new_proxy->delete_fn ) 
 	deleter = caml_named_value(new_proxy->delete_fn);
     if( *deleter ) 
