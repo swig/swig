@@ -56,7 +56,7 @@ class JAVA : public Language {
   String *variable_name; //Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
-  String *package; // Package name
+  String *package; // Optional package name
   String *jnipackage; // Package name used in the JNI code
   String *package_path; // Package name used internally by JNI (slashes)
   String *imclass_imports; //intermediary class imports from %pragma
@@ -413,11 +413,12 @@ class JAVA : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the intermediary class
-      if(Len(package) > 0)
-        Printf(f_im, "package %s;\n\n", package);
-
+      // Start writing out the intermediary class file
       emitBanner(f_im);
+
+      if(Len(package) > 0)
+        Printf(f_im, "package %s;\n", package);
+
       if(imclass_imports)
         Printf(f_im, "%s\n", imclass_imports);
 
@@ -462,11 +463,12 @@ class JAVA : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the module class
-      if(Len(package) > 0)
-        Printf(f_module, "package %s;\n\n", package);
-
+      // Start writing out the module class file
       emitBanner(f_module);
+
+      if(Len(package) > 0)
+        Printf(f_module, "package %s;\n", package);
+
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
 
@@ -505,11 +507,12 @@ class JAVA : public Language {
       }
       Delete(filen); filen = NULL;
 
-      // Start writing out the Java constants interface
-      if(Len(package) > 0)
-        Printf(f_module, "package %s;\n\n", package);
-
+      // Start writing out the Java constants interface file
       emitBanner(f_module);
+
+      if(Len(package) > 0)
+        Printf(f_module, "package %s;\n", package);
+
       if(module_imports)
         Printf(f_module, "%s\n", module_imports);
 
@@ -1464,10 +1467,11 @@ class JAVA : public Language {
       }
       Delete(filen); filen = NULL;
 
+      // Start writing out the proxy class file
       emitBanner(f_proxy);
 
       if(Len(package) > 0)
-        Printf(f_proxy, "package %s;\n\n", package);
+        Printf(f_proxy, "package %s;\n", package);
 
       Clear(proxy_class_def);
       Clear(proxy_class_code);
@@ -2183,10 +2187,11 @@ class JAVA : public Language {
     } 
     Delete(filen); filen = NULL;
 
-    // Emit banner and package name
+    // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
+
     if(Len(package) > 0)
-      Printf(f_swigtype, "package %s;\n\n", package);
+      Printf(f_swigtype, "package %s;\n", package);
 
     // Pure Java baseclass and interfaces
     const String *pure_baseclass = typemapLookup("javabase", type, WARN_NONE);
