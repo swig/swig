@@ -34,8 +34,8 @@ static char cvsroot[] = "$Header$";
 #include "guile.h"
 #ifdef OLD
 #include "java.h"
-#include "mzscheme.h"
 #endif
+#include "mzscheme.h"
 #include "ruby.h"
 
 #include <ctype.h>
@@ -92,10 +92,10 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-java") == 0) {
 	      dl = new JAVA;
 	      Swig_mark_arg(i);
+#endif
 	  } else if (strcmp(argv[i],"-mzscheme") == 0) {
 	      dl = new MZSCHEME;
 	      Swig_mark_arg(i);
-#endif
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
