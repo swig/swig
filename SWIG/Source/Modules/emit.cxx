@@ -218,21 +218,24 @@ int emit_num_arguments(ParmList *parms) {
 /* -----------------------------------------------------------------------------
  * emit_num_required()
  *
- * Computes the number of required arguments.  This is function is safe for
+ * Computes the number of required arguments.  This function is safe for
  * use with multi-valued typemaps and knows how to skip over everything
- * properly.
+ * properly. Note that it does count parameters which have a default value.
  * ----------------------------------------------------------------------------- */
 
 int emit_num_required(ParmList *parms) {
   Parm *p = parms;
   int   nargs = 0;
+  Parm *first_default_arg = 0;
 
   while (p) {
     if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
       p = Getattr(p,"tmap:in:next");
     } else {
-      if (Getattr(p,"value")) break;
       if (Getattr(p,"tmap:default")) break;
+      if (Getattr(p,"value"))
+        if (!first_default_arg)
+          first_default_arg = p;
       nargs+= GetInt(p,"tmap:in:numinputs");
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");
@@ -242,21 +245,26 @@ int emit_num_required(ParmList *parms) {
     }
   }
 
-  /* Print message for non-default arguments */
-  while (p) {
-    if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
-      p = Getattr(p,"tmap:in:next");
-    } else {
-      if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
-	Swig_error(Getfile(p),Getline(p),"Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
-      }
-      if (Getattr(p,"tmap:in")) {
-	p = Getattr(p,"tmap:in:next");
+  /* Print error message for non-default arguments following default arguments */
+  /* The error message is printed more than once with most language modules, this ought to be fixed */
+  if (first_default_arg) {
+    p = first_default_arg;
+    while (p) {
+      if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
+        p = Getattr(p,"tmap:in:next");
       } else {
-	p = nextSibling(p);
+        if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
+          Swig_error(Getfile(p),Getline(p),"Non-optional argument '%s' follows an optional argument.\n",Getattr(p,"name"));
+        }
+        if (Getattr(p,"tmap:in")) {
+          p = Getattr(p,"tmap:in:next");
+        } else {
+          p = nextSibling(p);
+        }
       }
     }
   }
+
   /* DB 04/02/2003: Not sure this is necessary with tmap:in:numinputs */
   /*
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
