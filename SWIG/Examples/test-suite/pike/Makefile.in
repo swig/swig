@@ -3,14 +3,16 @@
 # Makefile for Pike test-suite
 #######################################################################
 
-LANGUAGE   = pike
+LANGUAGE     = pike
 SCRIPTSUFFIX = _runme.pike
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
-include ../common.mk
+include $(srcdir)/../common.mk
 
 # Overridden variables here
-TARGETSUFFIX = 
-SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -31,8 +33,8 @@ SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.pike appended after the testcase name.
 run_testcase = \
-	if [ -f $*\_runme.pike ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH pike $*\_runme.pike;) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH pike $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean: remove the generated .pike file
@@ -40,5 +42,5 @@ run_testcase = \
 	@rm -f $*.pike;
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile pike_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile pike_clean
 

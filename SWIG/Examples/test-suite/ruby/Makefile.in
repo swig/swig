@@ -3,12 +3,16 @@
 # Makefile for ruby test-suite
 #######################################################################
 
-LANGUAGE   = ruby
+LANGUAGE     = ruby
 SCRIPTSUFFIX = _runme.rb
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
-include ../common.mk
+include $(srcdir)/../common.mk
 
 # Overridden variables here
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -29,13 +33,12 @@ include ../common.mk
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
-	if [ -f $*\_runme.rb ]; then ( \
-	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH ruby $*\_runme.rb;) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
+	  env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH ruby $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
 # Clean
 %.clean:
 	
-
 clean:
-	$(MAKE) -f $(TOP)/Makefile ruby_clean
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile ruby_clean
