@@ -613,19 +613,25 @@ void DohDelitem(DOH *obj, int index) {
 /* Set an item in an object */
 void DohInsertitem(DOH *obj, int index, DOH *value) {
   DOH *value_obj;
+  int  no = 0;
   DohBase *b = (DohBase *) obj;
   DohError(DOH_CALLS,"DohInsertitem %x, %d, %x\n",obj,index, value);
   if (DohIsSequence(obj)) {
     if (!DohCheck(value)) {
       DohError(DOH_CONVERSION,"Unknown object %x being converted to a string in Insertitem.\n", value);
       value_obj = NewString(value);
+      no = 1;
+      Incref(value_obj);
     } else {
       value_obj = value;
     }
     if (b->objinfo->doh_sequence->doh_insitem) {
       (b->objinfo->doh_sequence->doh_insitem)(obj,index,value_obj);
-      return;
     }
+    if (no) {
+      Delete(value_obj);
+    }
+    return;
   }
   if (DohCheck(obj)) {
     DohError(DOH_UNSUPPORTED,"No insitem method defined for type '%s'\n", b->objinfo->objname);

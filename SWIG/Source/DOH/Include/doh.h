@@ -25,6 +25,9 @@
 #ifndef _DOH_H
 #define _DOH_H
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
