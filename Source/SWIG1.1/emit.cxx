@@ -43,12 +43,12 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
   Swig_cargs(f, l);
 
   i = 0;
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p != 0) {
-    lname  = Parm_Getlname(p);
-    pt     = Parm_Gettype(p);
-    pname  = Parm_Getname(p);
-    pvalue = Parm_Getvalue(p);
+    lname  = Getlname(p);
+    pt     = Gettype(p);
+    pname  = Getname(p);
+    pvalue = Getvalue(p);
 
     tm = typemap_lookup((char*)"arginit", typemap_lang, pt,pname,(char*)"",lname,f);
     if (tm) {
@@ -62,10 +62,10 @@ int emit_args(DataType *rt, ParmList *l, Wrapper *f) {
     tm = typemap_lookup((char*)"ignore",typemap_lang,pt,pname,(char*)"",lname,f);
     if (tm) {
       Printv(f->code,tm,"\n",0);
-      Parm_Setignore(p,1);
+      Setignore(p,1);
     }
     i++;
-    p = ParmList_next(l);
+    p = Nextitem(l);
   }
   return(i);
 }
@@ -135,21 +135,20 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, Wrapper *f) {
 
 /* How to assign a C allocated string */
 
-static char *c_str = (char *)" {\n\
+static char *c_str = (char *)"\
 if ($target) free($target);\n\
 $target = ($rtype) malloc(strlen($source)+1);\n\
 strcpy((char *)$target,$source);\n\
-return $ltype $target;\n\
-}\n";
+return $ltype $target;\n";
 
 /* How to assign a C allocated string */
 
-static char *cpp_str = (char *)" {\n\
+static char *cpp_str = (char *)"\
 if ($target) delete [] $target;\n\
 $target = ($rtype) (new char[strlen($source)+1]);\n\
 strcpy((char *)$target,$source);\n\
-return ($ltype) $target;\n\
-}\n";
+return ($ltype) $target;\n;";
+
 
 void emit_set_get(char *name, char *iname, DataType *t) {
 

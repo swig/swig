@@ -153,10 +153,10 @@ static void update_local_type(DataType *type) {
 
 static void update_parms(ParmList *l) {
   Parm *p;
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pvalue = Parm_Getvalue(p);
+    DataType *pt = Gettype(p);
+    char     *pvalue = Getvalue(p);
 
     update_local_type(pt);
 
@@ -166,10 +166,10 @@ static void update_parms(ParmList *l) {
       char *s;
       s = (char *) GetChar(localtypes,pvalue);
       if (s) {
-	Parm_Setvalue(p,s);
+	Setvalue(p,s);
       }
     }
-    p = ParmList_next(l);
+    p = Nextitem(l);
   }
 }
 
@@ -276,7 +276,7 @@ public:
     } else {
       lang->cpp_member_func(name, iname, t, l);
     }
-    DelParmList(l);
+    Delete(l);
     DelDataType(t);
     IsVirtual = 0;
   }
@@ -323,7 +323,7 @@ public:
       l = CopyParmList(parms);
       update_parms(l);
       lang->cpp_constructor(name,iname,l);
-      DelParmList(l);
+      Delete(l);
     }
   }
 };
@@ -1502,8 +1502,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
   if (!bc) bc = classname;
   if (strlen(bc) == 0) bc = classname;
 
-  Printf(key,"%s+",Wrapper_Getname(w));
-  ParmList_print_types(l,key);
+  Printf(key,"%s+%s",Wrapper_Getname(w), ParmList_protostr(l));
   if (!member_hash) member_hash = NewHash();
   if (Getattr(member_hash,key)) {
     prev_wrap = GetChar(member_hash,key);

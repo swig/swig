@@ -778,19 +778,19 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   i = 0;
   j = 0;
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p != 0) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representation of source and target arguments
     sprintf(source,"ST(%d)",j);
-    sprintf(target,"%s", Parm_Getlname(p));
+    sprintf(target,"%s", Getlname(p));
     sprintf(argnum,"%d",j+1);
 
     // Check to see if this argument is being ignored
 
-    if (!Parm_Getignore(p)) {
+    if (!Getignore(p)) {
       
       // If there are optional arguments, check for this
 
@@ -909,11 +909,11 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     }
     // If we needed a saved variable, we need to emit to emit some code for that
     // This only applies if the argument actually existed (not ignore)
-    if ((need_save) && (!Parm_Getignore(p))) {
+    if ((need_save) && (!Getignore(p))) {
       Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
       num_saved++;
     }
-    p = ParmList_next(l);
+    p = Nextitem(l);
     i++;
   }
 
@@ -1055,12 +1055,12 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
     // arguments to our function correspond to other Perl objects, we
     // need to extract them from a tied-hash table object.
 
-    Parm *p = ParmList_first(l);
+    Parm *p = Firstitem(l);
     int i = 0;
     while(p) {
-      DataType *pt = Parm_Gettype(p);
+      DataType *pt = Gettype(p);
 
-      if (!Parm_Getignore(p)) {
+      if (!Getignore(p)) {
 	// Look up the datatype name here
 	char sourceNtarget[256];
 	sprintf(sourceNtarget,"$args[%d]",i);
@@ -1078,7 +1078,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	}
 	i++;
       }
-      p = ParmList_next(l);
+      p = Nextitem(l);
     }
 
     Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", 0);
@@ -1534,12 +1534,12 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
   
   /* Now go through and print parameters */
 
-  p = ParmList_first(l);
+  p = Firstitem(l);
   i = 0;
   while (p != 0) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
-    if (!Parm_Getignore(p)) {
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
+    if (!Getignore(p)) {
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
       if ((pt->type != T_VOID) || (pt->is_pointer)) {
@@ -1550,14 +1550,14 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
 	}
       }
       i++;
-      p = ParmList_next(l);
+      p = Nextitem(l);
       if (p)
-	if (!Parm_Getignore(p))
+	if (!Getignore(p))
 	  Putc(',',temp);
     } else {
-      p = ParmList_next(l);
+      p = Nextitem(l);
       if (p) 
-	if ((i>0) && (!Parm_Getignore(p)))
+	if ((i>0) && (!Getignore(p)))
 	  Putc(',',temp);
     }
   }
@@ -1891,13 +1891,13 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   // arguments to our function correspond to other Perl objects, we
   // need to extract them from a tied-hash table object.
 
-  p = ParmList_first(l);
-  pcount = l->nparms;
+  p = Firstitem(l);
+  pcount = Len(l);
   numopt = check_numopt(l);
   i = 1;
   while(p) {
-    DataType *pt = Parm_Gettype(p);
-    if (!Parm_Getignore(p)) {
+    DataType *pt = Gettype(p);
+    if (!Getignore(p)) {
       char sourceNtarget[512];
       sprintf(sourceNtarget, "$args[%d]", i);
 
@@ -1917,7 +1917,7 @@ void PERL5::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       }
       i++;
     }
-    p = ParmList_next(l);
+    p = Nextitem(l);
   }
   
   // Okay.  We've made argument adjustments, now call into the package
@@ -2097,10 +2097,10 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     // arguments to our function correspond to other Perl objects, we
     // need to extract them from a tied-hash table object.
     
-    p = ParmList_first(l);
+    p = Firstitem(l);
     i = 0;
     while(p) {
-      DataType *pt = Parm_Gettype(p);
+      DataType *pt = Gettype(p);
       // Look up the datatype name here
       
       if ((Getattr(classes,pt->name)) && (pt->is_pointer <= 1)) {
@@ -2108,7 +2108,7 @@ void PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 	// Yep.   This smells alot like an object, patch up the arguments
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
       }
-      p = ParmList_next(l);
+      p = Nextitem(l);
       i++;
     }
     

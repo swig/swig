@@ -96,7 +96,7 @@ typedef struct {
   void   *data;                     /* Data pointer */
   int     type          : 4;        /* Object type (max 16 -- deal with it) */
   int     flag_intern   : 1;        /* Interned object */
-  int     flag_marked   : 1;        /* Mark flag */
+  int     flag_marked   : 1;        /* Mark flag. Used to avoid recursive loops in places */
   int     flag_user     : 1;        /* User flag */
   int     flag_reserved : 1;        /* Reserved flag */
   int     refcount      : 24;       /* Reference count (max 16 million) */

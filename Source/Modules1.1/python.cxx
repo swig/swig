@@ -679,22 +679,22 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   j = 0;
   numopt = check_numopt(l);        // Get number of optional arguments
   if (numopt) have_defarg = 1;
-  p = ParmList_first(l);
+  p = Firstitem(l);
 
   Printf(kwargs,"{ ");
   while (p != 0) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
-    char     *pv = Parm_Getvalue(p);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
+    char     *pv = Getvalue(p);
 
     // Generate source and target strings
     sprintf(source,"obj%d",i);
-    sprintf(target,Parm_Getlname(p));
+    sprintf(target,Getlname(p));
     sprintf(argnum,"%d",j+1);
 
     // Only consider this argument if it's not ignored
 
-    if (!Parm_Getignore(p)) {
+    if (!Getignore(p)) {
       Putc(',',arglist);
       // Add an optional argument separator if needed
     
@@ -782,7 +782,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	    Putc('O',parse_args);
 	    sprintf(source,"argo%d", i);
-	    sprintf(target,Parm_Getlname(p));
+	    sprintf(target,Getlname(p));
 	    sprintf(temp,"argument %d",i+1);
 	    
 	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
@@ -801,7 +801,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // Emit code for parameter list
 	  
 	  if ((pt->type != T_VOID) && (pt->type != T_BOOL) && (pt->type != T_USER))
-	    Printf(arglist,"&%s",Parm_Getlname(p));
+	    Printf(arglist,"&%s",Getlname(p));
 	  
 	} else {
 	  
@@ -809,7 +809,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  if ((pt->type == T_CHAR) && (pt->is_pointer == 1)) {
 	    Putc('s',parse_args);
-	    Printf(arglist,"&%s", Parm_Getlname(p));
+	    Printf(arglist,"&%s", Getlname(p));
 	  } else {
 	    
 	    // Have some sort of pointer variable.  Create a temporary local
@@ -817,7 +817,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	    Putc('O',parse_args);
 	    sprintf(source,"argo%d", i);
-	    sprintf(target,"%s",Parm_Getlname(p));
+	    sprintf(target,"%s",Getlname(p));
 	    sprintf(temp,"argument %d",i+1);
 	    
 	    Wrapper_add_localv(f,source,"PyObject *",source,"=0",0);
@@ -845,7 +845,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
       Replace(outarg,"$arg",source, DOH_REPLACE_ANY);
       have_output++;
     } 
-    p = ParmList_next(l);
+    p = Nextitem(l);
     i++;
   }
 
@@ -1417,11 +1417,11 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
   // You probably don't need to change this
 
   i = 0;
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p != 0) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
-    if (!Parm_Getignore(p)) {
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
+    if (!Getignore(p)) {
       i++;
       /* If parameter has been named, use that.   Otherwise, just print a type  */
 
@@ -1432,15 +1432,15 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
 	  Printf(temp,"%s", DataType_str(pt,0));
 	}
       }
-      p = ParmList_next(l);
+      p = Nextitem(l);
       if (p != 0) {
-	if (!Parm_Getignore(p))
+	if (!Getignore(p))
 	  Putc(',',temp);
       }
     } else {
-      p = ParmList_next(l);
+      p = Nextitem(l);
       if (p) {
-	if ((!Parm_Getignore(p)) && (i > 0))
+	if ((!Getignore(p)) && (i > 0))
 	  Putc(',',temp);
       }
     }

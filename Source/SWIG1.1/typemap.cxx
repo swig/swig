@@ -308,16 +308,16 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   
   if (args) {
     Parm *p;
-    p = ParmList_first(tm->args);
+    p = Firstitem(tm->args);
     while (p) {
-      char     *pn = Parm_Getname(p);
+      char     *pn = Getname(p);
       if (pn) {
 	//	printf("    %s %s\n", pt,pn);
       } else {
 	fprintf(stderr,"%s:%d:  Typemap error. Local variables must have a name\n",
 		input_file, line_number);
       }
-      p = ParmList_next(tm->args);
+      p = Nextitem(tm->args);
     }
   }
 }
@@ -481,10 +481,10 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
   Parm *p;
   char *new_name;
   
-  p = ParmList_first(l);
+  p = Firstitem(l);
   while (p) {
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
     if (pn) {
       if (strlen(pn) > 0) {
 	DOHString *str;
@@ -529,7 +529,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 	Replace(s,pn,new_name,DOH_REPLACE_ID);
       }
     }
-    p = ParmList_next(l);
+    p = Nextitem(l);
   }
   // If the original datatype was an array. We're going to go through and substitute
   // it's array dimensions
@@ -1123,10 +1123,11 @@ int check_numopt(ParmList *l) {
   int  n = 0;
   int  state = 0;
 
-  for (int i = 0; i < l->nparms; i++) {
-    DataType *pt = Parm_Gettype(l->parms[i]);
-    char *pn = Parm_Getname(l->parms[i]);
-    if (Parm_Getvalue(l->parms[i])) {
+  for (int i = 0; i < Len(l); i++) {
+    Parm *p = Getitem(l,i);
+    DataType *pt = Gettype(p);
+    char *pn = Getname(p);
+    if (Getvalue(p)) {
       n++;
       state = 1;
     } else if (typemap_check((char*)"default",typemap_lang,pt,pn)) {

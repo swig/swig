@@ -587,16 +587,16 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 
   // Now walk the function parameter list and generate code to get arguments
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = ParmList_get(l,i);        // Get the ith argument
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);        // Get the ith argument
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
     char *target_copy = NULL;
     char *target_length = NULL;
     char *local_i = NULL;
 
     // Produce string representation of source and target arguments
     sprintf(source,"jarg%d",i);
-    sprintf(target,"%s", Parm_Getlname(p));
+    sprintf(target,"%s", Getlname(p));
 
     char *jnitype = JavaTypeFromTypemap((char*)"jni", typemap_lang, pt, pn);
     if(!jnitype) jnitype = SwigTcToJniType(pt, 0);
@@ -606,7 +606,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
       Printv(javaParameterSignature, JavaMethodSignature(pt, 0, 0), 0);
     }
 
-    if(Parm_Getignore(p)) continue;
+    if(Getignore(p)) continue;
 
       // Add to java function header
       if(shadow && member_func) {
@@ -1067,12 +1067,12 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
   Printv(nativecall, module, ".", Swig_name_member(shadow_classname,iname), "(_self", 0);
 
-  int pcount = l->nparms;
+  int pcount = Len(l);
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = ParmList_get(l,i);         // Get the ith argument
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);         // Get the ith argument
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representation of source and target arguments
     if(pn && *(pn))
@@ -1139,13 +1139,13 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
   Printv(nativecall, module, ".", Swig_name_member(shadow_classname,iname), "(", 0);
 
-  int pcount = l->nparms;
+  int pcount = Len(l);
   int gencomma = 0;
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = ParmList_get(l,i);         // Get the ith argument
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);         // Get the ith argument
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representation of source and target arguments
     if(pn && *(pn))
@@ -1206,14 +1206,14 @@ void JAVA::cpp_constructor(char *name, char *iname, ParmList *l) {
   else
     Printv(nativecall, tab8, " _self = ", module, ".", Swig_name_construct(shadow_classname), "(", 0);
 
-  int pcount = l->nparms;
+  int pcount = Len(l);
   if(pcount == 0)  // We must have a default constructor
     have_default_constructor = 1;
 
   for (int i = 0; i < pcount ; i++) {
-    Parm *p = ParmList_get(l,i);       // Get the ith argument
-    DataType *pt = Parm_Gettype(p);
-    char     *pn = Parm_Getname(p);
+    Parm *p = Getitem(l,i);       // Get the ith argument
+    DataType *pt = Gettype(p);
+    char     *pn = Getname(p);
 
     // Produce string representation of source and target arguments
     if(pn && *(pn))
