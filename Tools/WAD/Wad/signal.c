@@ -401,6 +401,19 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   wad_string_debug();
   wad_memory_debug();
 
+  /* Before we do anything with callbacks, we are going
+     to attempt to dump a wad-core */
+  
+  {
+    int fd;
+    static int already = 0;
+    fd = open("wadtrace",O_WRONLY | O_CREAT | (already*O_APPEND) | ((already==0)*O_TRUNC),0666);
+    if (fd > 0) {
+      wad_dump_trace(fd,sig,origframe,retname);
+      close(fd);
+      already=1;
+    }
+  }
 
   if (sig_callback) {
     (*sig_callback)(sig,origframe,retname);

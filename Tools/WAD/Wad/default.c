@@ -255,31 +255,30 @@ wad_debug_make_strings(WadFrame *f) {
   }
 }
 
-/* -----------------------------------------------------------------------------
- * Default callback
- * ----------------------------------------------------------------------------- */
-
-void wad_default_callback(int signo, WadFrame *f, char *ret) {
+/* Dump trace to a file */
+void wad_dump_trace(int fd, int signo, WadFrame *f, char *ret) {
+  static char buffer[128];
   char  *srcstr = 0;
 
   switch(signo) {
   case SIGSEGV:
-    fprintf(stderr,"WAD: Segmentation fault.\n");
+    write(fd,"WAD: Segmentation fault.\n", 25);
     break;
   case SIGBUS:
-    fprintf(stderr,"WAD: Bus error.\n");
+    write(fd,"WAD: Bus error.\n",17);
     break;
   case SIGABRT:
-    fprintf(stderr,"WAD: Abort.\n");
+    write(fd,"WAD: Abort.\n",12);
     break;
   case SIGFPE:
-    fprintf(stderr,"WAD: Floating point exception.\n");
+    write(fd,"WAD: Floating point exception.\n", 31);
     break;
   case SIGILL:
-    fprintf(stderr,"WAD: Illegal instruction.\n");
+    write(fd,"WAD: Illegal instruction.\n", 26);
     break;
   default:
-    fprintf(stderr,"WAD: Signal %d\n", signo);
+    sprintf(buffer,"WAD: Signal %d\n", signo);
+    write(fd,buffer,strlen(buffer));
     break;
   }
   /* Find the last exception frame */
@@ -289,16 +288,24 @@ void wad_default_callback(int signo, WadFrame *f, char *ret) {
   }
 
   while (f) {
-    fputs(f->debug_str, stderr);
+    write(fd,f->debug_str,strlen(f->debug_str));
     if (f->debug_srcstr) {
       srcstr = f->debug_srcstr;
     }
     f = f->prev;
   }
   if (srcstr) {
-    fputs("\n", stderr);
-    fputs(srcstr,stderr);
-    fputs("\n", stderr);
+    write(fd,"\n",1);
+    write(fd,srcstr,strlen(srcstr));
+    write(fd,"\n",1);
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * Default callback
+ * ----------------------------------------------------------------------------- */
+
+void wad_default_callback(int signo, WadFrame *f, char *ret) {
+  wad_dump_trace(2,signo,f,ret);
 }
 
