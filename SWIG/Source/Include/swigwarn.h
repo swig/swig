@@ -18,6 +18,8 @@
 #ifndef _SWIGWARN_H
 #define _SWIGWARN_H 1
 
+#define WARN_NONE                     0
+
 /* -- Deprecated features -- */
 
 #define WARN_DEPRECATED_EXTERN        101
@@ -158,6 +160,8 @@
 #define WARN_JAVA_TYPEMAP_JTYPE_UNDEF   811
 #define WARN_JAVA_TYPEMAP_JSTYPE_UNDEF  812
 #define WARN_JAVA_MULTIPLE_INHERITANCE  813
+#define WARN_JAVA_TYPEMAP_GETCPTR_UNDEF 814
+#define WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF 815
 
 
 
