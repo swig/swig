@@ -238,17 +238,10 @@ String *Swig_string_mangle(String *s) {
     if (isalnum((int)c) || (c == '_')) {
       state = 1;
       if (space && (space == state)) {
-	Printf(result,"__b");
+	Printf(result,"_SS_");
       }
       space = 0;
-      if (c == '_' && *(pc + 1) == 'S' && *(pc + 2) == '_') {
-	/* '_S_' is use replaced because it is the special mangling symbol */
-	Printf(result,"_S_%02X",0);
-	pc += 3;
-	continue;
-      } else {
-	Printf(result,"%c",c);
-      }
+      Printf(result,"%c",c);
       
     } else {
       if (isspace((int)c)) {
@@ -339,9 +332,9 @@ String *Swig_string_mangle(String *s) {
 	break;
       }
       if (isalpha((int)c)) {
-	Printf(result,"_S_%c",(int)c);
+	Printf(result,"_S%c_",(int)c);
       } else{
-	Printf(result,"_S_%02X",(int)c);
+	Printf(result,"_S%02X_",(int)c);
       }
     }
     ++pc;
