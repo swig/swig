@@ -10,7 +10,7 @@ C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
 such as Perl, Python, Tcl/Tk, Ruby, Guile and MzScheme, however the list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
-non-scripting languages such as Java, OCAML and CHICKEN. SWIG is most
+non-scripting languages such as Java, OCAML, CHICKEN, and C#. SWIG is most
 commonly used to create high-level interpreted programming
 environments, user interfaces, and as a tool for testing and prototyping C/C++
 software.  SWIG may be freely used, distributed, and modified for commercial
@@ -27,6 +27,16 @@ and noncommercial use.
 
 <p>
 <h3>News</h3>
+
+<p>
+<b>2003/3/23</b> Dave wins an NSF CAREER award to, well, work on the next generation version of
+SWIG!  Read more about it <a href="nsf.html">here</a>.
+
+<p>
+<b>2003/3/23</b>
+<a href="http://prdownloads.sourceforge.net/swig/swig-1.3.18.tar.gz">SWIG-1.3.18</a> has been
+released.  This release includes a number of new language modules, new features, an improved
+build environment, and a lot of minor bug fixes.
 
 <p>
 <b>2002/11/27</b>
