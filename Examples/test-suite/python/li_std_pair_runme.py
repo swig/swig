@@ -47,3 +47,13 @@ p3 = li_std_pair.pairP3(a,a)
 if a.val != li_std_pair.p_identa(p1.this)[1].val:
   raise RuntimeError
   
+p = li_std_pair.IntPair(1,10)
+p.first = 1
+
+p = li_std_pair.paircA1(1,a)
+print 'f', p.first
+print 's', p.second
+
+p = li_std_pair.paircA2(1,a)
+pp = li_std_pair.pairiiA(1,p)
+

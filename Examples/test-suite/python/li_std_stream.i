@@ -1,4 +1,4 @@
-%module lib_std_stream
+%module li_std_stream
 
 %include <std_iostream.i>
 

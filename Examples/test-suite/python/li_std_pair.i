@@ -191,3 +191,11 @@ std::pair<int, int>
 #endif
 %}
 
+
+namespace std
+{
+  %template(paircA1) pair<const int, A*>;
+  %template(paircA2) pair<const int, const A*>;
+  %template(pairiiA) pair<int,pair<int, A*> >;
+}
+
