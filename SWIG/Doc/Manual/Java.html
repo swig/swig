@@ -1150,6 +1150,78 @@ int second = p.getSecond();
 Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.   
 
+<a name="n27"></a><H3>14.3.15 C++ Smart Pointers</H3>
+
+
+In certain C++ programs, it is common to use classes that have been wrapped by
+so-called "smart pointers."   Generally, this involves the use of a template class
+that implements <tt>operator->()</tt> like this:
+
+<blockquote>
+<pre>
+template&lt;class T&gt; class SmartPtr {
+   ...
+   T *operator->();
+   ...
+}
+</pre>
+</blockquote>
+
+Then, if you have a class like this,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     int x;
+     int bar();
+};
+</pre>
+</blockquote>
+
+A smart pointer would be used in C++ as follows:
+
+<blockquote>
+<pre>
+SmartPtr&lt;Foo&gt; p = CreateFoo();   // Created somehow (not shown)
+...
+p->x = 3;                        // Foo::x
+int y = p->bar();                // Foo::bar
+</pre>
+</blockquote>
+
+To wrap this in Java, simply tell SWIG about the <tt>SmartPtr</tt> class and the low-level
+<tt>Foo</tt> object.  Make sure you instantiate <tt>SmartPtr</tt> using <tt>%template</tt> if necessary.
+For example:
+
+<blockquote>
+<pre>
+%module example
+...
+%template(SmartPtrFoo) SmartPtr&lt;Foo&gt;;
+...
+</pre>
+</blockquote>
+
+Now, in Java, everything should just "work":
+
+<blockquote>
+<pre>
+SmartPtrFoo p = example.CreateFoo(); // Create a smart-pointer somehow
+p.setX(3);                           // Foo::x
+int y = p.bar();                     // Foo::bar
+</pre>
+</blockquote>
+
+If you ever need to access the underlying pointer returned by <tt>operator->()</tt> itself,
+simply use the <tt>__deref__()</tt> method.  For example:
+
+<blockquote>
+<pre>
+Foo f = p.__deref__();               // Returns underlying Foo *
+</pre>
+</blockquote>
+
 <a name="n27"></a><H2>14.4 Further details on the generated Java classes</H2>
 
 
