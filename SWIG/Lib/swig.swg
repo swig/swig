@@ -198,8 +198,8 @@ template<class T> class SwigValueWrapper {
 public:
     inline SwigValueWrapper() : tt(0) { }
     inline ~SwigValueWrapper() { if (tt) delete tt; } 
-    inline SwigValueWrapper& operator=(T t) {tt = new T(t); return *this;}
-    inline operator T&() const {return *tt;}
+    inline SwigValueWrapper& operator=(const T& t) { if (&t != this) tt = new T(t); return *this; }
+    inline operator T&() const { return *tt; }
     inline T *operator&() { return tt; }
 };                                                    
 #endif
@@ -212,7 +212,4 @@ public:
    mangle->dcast = (swig_dycast_func) func;
 %}
 %enddef
-
-
-
 
