@@ -1,4 +1,3 @@
-swig
-configure
-config.*
+configure config.*
 Makefile
+swig
