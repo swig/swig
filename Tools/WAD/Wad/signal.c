@@ -24,6 +24,16 @@
 #ifndef EIP
 #define EIP      14
 #endif
+#ifndef ESI
+#define ESI      5
+#endif
+#ifndef EDI
+#define EDI      4
+#endif
+#ifndef EBX
+#define EBX      8
+#endif
+
 #endif
 
 /* Signal handling stack */
@@ -103,6 +113,13 @@ static void nonlocalret() {
 #endif
 
 #ifdef WAD_LINUX
+
+/* Saved values of the machine registers */
+
+long   wad_saved_esi = 0;
+long   wad_saved_edi = 0;
+long   wad_saved_ebx = 0;
+
 static void nonlocalret() {
   asm("_returnsignal:");
   while (*nlr_p > 0) {
@@ -113,10 +130,107 @@ static void nonlocalret() {
   if (wad_nlr_func) 
     (*wad_nlr_func)();
 
+  /* Restore the registers */
+  asm("movl wad_saved_esi, %esi");
+  asm("movl wad_saved_edi, %edi");
+  asm("movl wad_saved_ebx, %ebx");
   asm("movl wad_nlr_value, %eax");
   asm("leave");
   asm("ret");
 }
+
+/* This function uses a heuristic to restore the callee-save registers on i386.
+   According to the Linux Assembly HOWTO, the %esi, %edi, %ebx, and %ebp registers
+   are callee-saved.  All others are caller saved.    To restore the callee-save
+   registers, we use the fact that the C compiler saves the callee-save registers
+   (if any) at the beginning of function execution.   Therefore, we can scan the
+   instructions at the start of each function in the stack trace to try and find
+   where they are. 
+
+   The following heuristic is used:
+
+   1. Each function starts with a preamble like this which saves the %ebp 
+      register:
+
+          55 89 e5       --->   push %ebp
+                                mov  %esp, %ebp
+
+   2. Next, space is allocated for local variables, using one of two schemes:
+ 
+          83 ec xx       --->  Less than 256 bytes of local storage
+                ^^^
+                length
+
+          81 ec xx xx xx xx  --> More than 256 bytes of local storage
+                ^^^^^^^^^^^
+                   length
+
+   3. After this, a collection of 1-byte stack push op codes might appear
+          
+          56      = pushl %esi
+          57      = pushl %edi
+          53      = pushl %ebx
+
+
+   Based on the size of local variable storage and the order in which 
+   the %esi, %edi, and %ebx registers are pushed on the stack, we can
+   determine where in memory the registers are saved and restore them to
+   their proper values.
+*/
+
+void wad_restore_i386_registers(WadFrame *f, int nlevels) {
+  WadFrame *lastf = f;
+  char     *fd = (char *) f;
+  int       localsize = 0;
+  unsigned char     *pc;
+  unsigned long     *saved;
+  int i, j;
+  int pci;
+  for (i = 0; i <= nlevels; i++) {
+
+    /* This gets the starting instruction for the stack frame */
+    pc = (unsigned char *) f->sym_base;
+    /*    printf("pc = %x, base = %x, %s\n", f->pc, f->sym_base, SYMBOL(f)); */
+    
+    /* Look for the standard prologue 0x55 0x89 0xe5 */
+    if ((pc[0] == 0x55) && (pc[1] == 0x89) && (pc[2] == 0xe5)) {
+      /* Determine the size */
+      pci = 3;
+      if ((pc[3] == 0x83) && (pc[4] == 0xec)) {
+	/*	printf("8-bit size\n");*/
+	localsize = (int) pc[5];
+	pci = 6;
+      } 
+      if ((pc[3] == 0x81) && (pc[4] == 0xec)) {
+	/*	printf("32-bit size\n"); */
+	localsize = (int) *((long *) (pc+5));
+	pci = 10;
+      }
+      saved = (long *) (f->fp - localsize - sizeof(long));
+      /*      printf("saved = %x, fp = %x\n", saved, f->fp);
+      printf("localsize = %d\n", localsize);
+      */
+      for (j = 0; j < 3; j++, saved--, pci++) {
+	if (pc[pci] == 0x57) {
+	  wad_saved_edi = *saved;
+	  /*	  printf("restored edi = %x\n", wad_saved_edi); */
+	}
+	else if (pc[pci] == 0x56) {
+	  wad_saved_esi = *saved;
+	  /*	  printf("restored esi = %x\n", wad_saved_esi); */
+	}
+	else if (pc[pci] == 0x53) {
+	  wad_saved_ebx = *saved;
+	  /*	  printf("restored ebx = %x\n", wad_saved_ebx); */
+	}
+	else break;
+      }
+    }
+    fd += f->size;
+    f = (WadFrame *) fd;
+  }
+}
+
 #endif
 
 void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
@@ -124,6 +238,11 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   greg_t  *npc;
   greg_t  *sp;
   greg_t  *fp;
+#ifdef WAD_LINUX
+  greg_t  *esi;
+  greg_t  *edi;
+  greg_t  *ebx;
+#endif
 
   unsigned long   addr;
   ucontext_t      *context;
@@ -163,6 +282,16 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   sp = &((context->uc_mcontext).gregs[ESP]);        /* Top of stack */
   fp = &((context->uc_mcontext).gregs[EBP]);        /* Stack base - frame pointer */
   pc = &((context->uc_mcontext).gregs[EIP]);        /* Current instruction */
+  esi = &((context->uc_mcontext).gregs[ESI]);       
+  edi = &((context->uc_mcontext).gregs[EDI]);       
+  ebx = &((context->uc_mcontext).gregs[EBX]);       
+  
+  wad_saved_esi = (unsigned long) (*esi);
+  wad_saved_edi = (unsigned long) (*edi);
+  wad_saved_ebx = (unsigned long) (*ebx);
+
+  /*  printf("esi = %x, edi = %x, ebx = %x\n", wad_saved_esi, wad_saved_edi, wad_saved_ebx); */
+
   /*   printf("&sp = %x, &pc = %x\n", sp, pc); */
 #endif
   
@@ -214,7 +343,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
       printf("    sp           = %x\n", frame->sp);
       printf("    fp           = %x\n", frame->fp);
       printf("    size         = %x\n", frame->stack_size);
-      printf("    pc           = %x\n", frame->pc);
+      printf("    pc           = %x (base = %x)\n", frame->pc, frame->sym_base);
       printf("    symbol       = '%s'\n", SYMBOL(frame));
       printf("    srcfile      = '%s'\n", SRCFILE(frame));
       printf("    objfile      = '%s'\n", OBJFILE(frame));
@@ -253,6 +382,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   if (found) {
     wad_nlr_levels = nlevels - 1;
+#ifdef WAD_LINUX
+    wad_restore_i386_registers(origframe, wad_nlr_levels);
+#endif
   } else {
     wad_nlr_levels = 0;
   }

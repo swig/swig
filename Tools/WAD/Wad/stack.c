@@ -136,6 +136,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       /*      if (symname) symname = wad_cplus_demangle(&wsym); */
 
       value = wsym.value;
+      
 
       /* Build up some information about the exception frame */
       frame.frameno = n;
@@ -145,6 +146,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       frame.sp = p_sp;
       frame.nargs = -1;
       frame.arg_off = 0;
+      frame.sym_base = value + (long) ws->base;
       n++;
       if (symname) {
 	symsize = strlen(symname)+1;
@@ -322,8 +324,14 @@ long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error) {
     if (strcmp(SYMBOL(f),symbol) == 0) {
       /* Got a match */
       if (lastf) {
+#ifdef WAD_SOLARIS
 	regs = STACK(lastf);
 	return regs[8+argno];
+#endif
+#ifdef WAD_LINUX
+	regs = STACK(f);
+	return regs[argno+2];
+#endif
       }
     }
     lastf = f;
@@ -333,4 +341,10 @@ long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error) {
   *error = -1;
   return 0;
 }
+
+
+
+
+
+
 
