@@ -136,7 +136,10 @@ check-examples:
 	$(skip-ruby) || (cd Examples/ruby/constants ; $(chk))
 	$(skip-ruby) || (cd Examples/ruby/simple ; $(chk))
 
-check-gifplot-example:
+Examples/GIFPlot/libgifplot.a:
+	cd Examples/GIFPlot/Lib ; $(MAKE)
+
+check-gifplot-example: Examples/GIFPlot/libgifplot.a
 	$(skip-perl) || (cd Examples/GIFPlot/Perl/full ; $(chk))
 	$(skip-perl) || (cd Examples/GIFPlot/Perl/simple ; $(chk))
 	$(skip-perl) || (cd Examples/GIFPlot/Perl/shadow ; $(chk))
