@@ -316,19 +316,23 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
   while (p) {
     SwigType *pt = Getattr(p,"type");
     if ((SwigType_type(pt) != T_VOID)) {
+      SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Swig_cparm_name(p,i);
-      String *rcaststr = SwigType_rcaststr(pt, pname);
+      String *rcaststr = (!cparse_cplusplus && SwigType_isenum(rpt)) 
+	? Copy(pname): SwigType_rcaststr(rpt, pname);
+
       if (comma) {
 	Printf(func, ",%s", rcaststr);
       } else {
 	Printf(func, "%s", rcaststr);
       }
+      Delete(rpt);
       Delete(pname);
       Delete(rcaststr);
       comma = 1;
       i++;
     }
-    p = nextSibling(p);
+    p = nextSibling(p);    
   }
   Printf(func,")");
   return func;
