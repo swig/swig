@@ -1207,13 +1207,25 @@ Language::membervariableHandler(Node *n) {
     
     int assignable = is_assignable(n);
 
+    if (SmartPointer) {
+      if (!Getattr(n,"classname")) {
+	Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
+      }
+    }
+    
+    
     if (assignable) {
       int       make_wrapper = 1;
       String *tm = 0;
       String *target = 0;
       if (!Extend) {
 	if (SmartPointer) {
-	  target = NewStringf("(*%s)->%s", Swig_cparm_name(0,0),name);
+	  if (checkAttribute(n, "storage", "static")) {
+	    String *base = Getattr(n,"classname"); 
+	    target = NewStringf("%s::%s", base,name);
+	  } else {
+	    target = NewStringf("(*%s)->%s",Swig_cparm_name(0,0),name);
+	  }
 	} else {
 	  target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 	}	
@@ -1254,7 +1266,7 @@ Language::membervariableHandler(Node *n) {
     }
     /* Emit get function */
     {
-      Swig_MembergetToFunction(n,ClassType,Extend | SmartPointer);
+      Swig_MembergetToFunction(n,ClassType, Extend | SmartPointer);
       Setattr(n,"sym:name",  mrename_get);
       functionWrapper(n);
     }

@@ -52,6 +52,5 @@
 
 %{
   const int Foo::z = 3;
-  const int Foo::zz;
   int Foo::zx;
 %}
