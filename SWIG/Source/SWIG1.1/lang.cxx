@@ -650,14 +650,15 @@ void Language::classDeclaration(Node *n) {
   String *symname = Getsymname(n);
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
+  int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
+  this->cpp_class_decl(classname,iname, Char(kind));
   if (ImportMode) {
-    if (name) this->cpp_class_decl(Char(name),iname,Char(kind));
     return;
   }
   SwigType_new_scope();
   if (name) SwigType_set_scope_name(name);
-  this->cpp_open_class(classname,iname,Char(kind),(tdname || CPlusPlus) ? 1 : 0);
+  this->cpp_open_class(classname,iname,Char(kind),strip);
   InClass = 1;
   Abstract = GetInt(n,"abstract");
   has_constructor = 0;
