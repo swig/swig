@@ -10,7 +10,7 @@ Version 1.3.15 (In progress)
             of the following typemaps: in, out, check, freearg, argout and throws. A classic
             example would be to convert C++ exceptions into a standard Java exception:
 
-                %typemap("throw", throws="java.io.IOException") file_exception {
+                %typemap(throws, throws="java.io.IOException") file_exception {
                     jclass excep = jenv->FindClass("java/io/IOException");
                     if (excep)
                         jenv->ThrowNew(excep, _e.what());
@@ -90,7 +90,7 @@ Version 1.3.15 (In progress)
               %typemap(javaptrconstructormodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "public"
 
 09/06/2002: cheetah (William Fulton)
-            [Java] Added "throw" typemaps for the Java module. C++ exceptions get converted into
+            [Java] Added throws typemaps for the Java module. C++ exceptions get converted into
             java.lang.RuntimeException Java exceptions. 
             
             Warning: This may change from java.lang.Runtime exception in the future.
