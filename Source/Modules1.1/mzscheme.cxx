@@ -59,7 +59,7 @@ MZSCHEME::parse_args (int argc, char *argv[])
     if (argv[i]) {
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (mzscheme_usage, stderr);
-	SWIG_exit (0);
+	SWIG_exit (EXIT_SUCCESS);
       }
       else if (strcmp (argv[i], "-prefix") == 0) {
 	if (argv[i + 1]) {
@@ -185,7 +185,7 @@ MZSCHEME::headers (void)
     if (Swig_insert_file ("mzscheme.swg", f_header) == -1) {
       Printf (stderr, "SWIG : Fatal error.  ");
       Printf (stderr, "Unable to locate 'mzscheme.swg' in SWIG library.\n");
-      SWIG_exit (1);
+      SWIG_exit (EXIT_FAILURE);
     }
   }
 }
@@ -734,7 +734,7 @@ MZSCHEME::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage
   int have_param = 0, j;
 
   param = NewString("");
-  
+
   Clear(usage);
   Printf(usage,"returns ");
 

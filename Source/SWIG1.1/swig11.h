@@ -59,7 +59,7 @@ extern  char      output_dir[512];                  // Output directory
 extern  int       Verbose;
 extern  int       IsVirtual;
 
-#define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit(1); }
+#define FatalError()   if ((error_count++) > 20) { fprintf(stderr,"Confused by earlier errors. Bailing out\n"); SWIG_exit (EXIT_FAILURE); }
 
 /* Miscellaneous stuff */
 

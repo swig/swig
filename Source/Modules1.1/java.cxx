@@ -21,7 +21,7 @@
  *******************************************************************************
 */
 
-/* !!!!!!! 
+/* !!!!!!!
  * DB 7/24/00:  Is there any way to clean up the implementation of this module?
  * I've tried to bring it as far as I can with core changes, but it's getting
  * to be a little rough.
@@ -85,7 +85,7 @@ char *JAVA::SwigTcToJniType(DataType *t, int ret) {
 	    case T_UCHAR:	return (char*)"jbyteArray";
 	    case T_SCHAR:	return (char*)"jbyteArray";
 	    case T_BOOL:	return (char*)"jbooleanArray";
-	    case T_VOID:	
+	    case T_VOID:
 	    case T_USER:	return (char*)"jlong";
 	  }
   } else if(DataType_is_pointer(t) > 1) {
@@ -275,7 +275,7 @@ void JAVA::writeRegisterNatives()
   Printf(f_wrappers,"JNINativeMethod nativeMethods[] = {\n");
   Printv(f_wrappers, registerNativesList, 0);
   Printf(f_wrappers, "};\n");
-  
+
   Printf(f_wrappers,"\nint numberOfNativeMethods=sizeof(nativeMethods)/sizeof(JNINativeMethod);\n\n");
 
   // The registerNatives function
@@ -428,7 +428,7 @@ void JAVA::headers(void)
   // if (file::include("java.swg",f_header) == -1) {
   if (Swig_insert_file("java.swg",f_header) == -1) {
     Printf(stderr,"Fatal Error. Unable to locate 'java.swg'.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
 }
 
@@ -439,7 +439,7 @@ void JAVA::headers(void)
 // name has already been specified.
 // ---------------------------------------------------------------------
 
-void JAVA::initialize() 
+void JAVA::initialize()
 {
   if (!module) {
     Printf(stderr,"*** Error. No module name specified.\n");
@@ -461,15 +461,15 @@ void JAVA::initialize()
   } else {
     package = c_pkgstr = jni_pkgstr = (char*)"";
   }
-    
+
   sprintf(bigbuf, "Java_%s%s", c_pkgstr, module);
   c_pkgstr = Swig_copy_string(bigbuf);
   sprintf(bigbuf, "%s_%%f", c_pkgstr);
   Swig_name_register((char*)"wrapper", Swig_copy_string(bigbuf));
   Swig_name_register((char*)"set", (char*)"set_%v");
   Swig_name_register((char*)"get", (char*)"get_%v");
-  Swig_name_register((char*)"member", (char*)"%c_%m"); 
- 
+  Swig_name_register((char*)"member", (char*)"%c_%m");
+
   // Generate the java class
   sprintf(bigbuf, "%s.java", module);
   if((f_java = fopen(bigbuf, "w")) == 0) {
@@ -551,7 +551,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   if(!classdef_emitted) emit_classdef();
 
   // Make a wrapper name for this function
-  
+
   char *jniname = makeValidJniName(iname);
   char *wname = Swig_name_wrapper(jniname);
   free(jniname);
@@ -632,7 +632,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 
       // Add to Jni function header
       Printv(f->def, ", ", jnitype, " ", source, 0);
-  
+
       // Get typemap for this argument
       tm = typemap_lookup((char*)"in",typemap_lang,pt,pn,source,target,f);
       if (tm) {
@@ -667,7 +667,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
             target_copy = Swig_copy_string(Wrapper_new_localv(f,target,Char(basic_jniptrtype), target, 0));
             target_length = Swig_copy_string(Wrapper_new_localv(f,target,"jsize", target, "=", Char(source_length),0));
             if(local_i == NULL) local_i = Swig_copy_string(Wrapper_new_local(f,"i","int i"));
-	    
+
 	    DOHString *scalarFunc = NewStringf("Get%sArrayElements",scalarType);
 
 	    Printv(f->code, tab4, target_copy, " = ", JNICALL(scalarFunc), source, ", 0);\n", 0);
@@ -677,7 +677,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	      Printv(f->code, tab8, target, "[i] = *(", DataType_lstr(pt,0), ")&", target_copy, "[i];\n", 0);
 	    } else {
               DataType_del_pointer(pt);
-	      Printv(f->code, tab8, target, "[i] = (", DataType_lstr(pt,0), ")", target_copy, "[i];\n", 0); 
+	      Printv(f->code, tab8, target, "[i] = (", DataType_lstr(pt,0), ")", target_copy, "[i];\n", 0);
 	      DataType_add_pointer(pt);
 	    }
 	    Delete(scalarFunc);
@@ -728,7 +728,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    if(DataType_is_pointer(pt) > 1) {
 	      Printv(outarg, tab8, "*(", DataType_lstr(pt,0), ")&", target_copy, "[i] = ",  target, "[i];\n", 0);
 	    } else {
-	      Printv(outarg, tab8, target_copy, "[i] = (", basic_jnitype, ") ", target, "[i];\n", 0); 
+	      Printv(outarg, tab8, target_copy, "[i] = (", basic_jnitype, ") ", target, "[i];\n", 0);
 	    }
 	    DOHString *scalarFunc = NewStringf("Release%sArrayElements",scalarType);
 	    Printv(outarg, tab4, JNICALL(scalarFunc), source, ", ", target_copy, ", 0);\n", 0);
@@ -755,7 +755,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   if(!native_func)
 	emit_func_call(name,t,l,f);
 
-  // Return value if necessary 
+  // Return value if necessary
 
   if((DataType_type(t) != T_VOID) && !native_func) {
     if ((tm = typemap_lookup((char*)"out",typemap_lang,t,iname,(char*)"result",(char*)"_jresult"))) {
@@ -809,18 +809,18 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   }
 
   // Wrap things up (in a manner of speaking)
-  if(DataType_type(t) != T_VOID) 
+  if(DataType_type(t) != T_VOID)
     Printv(f->code, tab4, "return _jresult;\n", 0);
   Printf(f->code, "}\n");
 
   // Substitute the cleanup code (some exception handlers like to have this)
   Replace(f->code,"$cleanup",cleanup, DOH_REPLACE_ANY);
- 
+
   // Emit the function
-  
+
   if(!native_func)
 	Wrapper_print(f,f_wrappers);
-  
+
  // If registerNatives is active, store the table entry for this method
   if (useRegisterNatives) {
     Printv(registerNativesList,
@@ -828,7 +828,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	   "\"", name, "\", \"(", javaParameterSignature, ")", javaReturnSignature, "\", ", wname,
 	   "},\n",
 	   0);
-	   
+
   }
 
   Delete(cleanup);
@@ -879,7 +879,7 @@ void JAVA::declare_const(char *name, char *iname, DataType *type, char *value) {
       if(!jtype) jtype = SwigTcToJavaType(type, 0, 0);
       if(strcmp(jname, value) == 0 || strstr(value,"::") != NULL) {
         Printf(stderr, "ignoring enum constant: %s\n", jname);
-      } else 
+      } else
         Printf(jfile, "  public final static %s %s = %s;\n\n", jtype, jname, value);
     } else {
       if(DataType_type(type) == T_STRING) {
@@ -947,7 +947,7 @@ void JAVA::pragma(char *lang, char *code, char *value) {
 
 void JAVA::add_typedef(DataType *t, char *name) {
   if(!shadow) return;
-  
+
   // First check to see if there aren't too many pointers
 
   if (DataType_is_pointer(t) > 1) return;
@@ -1109,9 +1109,9 @@ void JAVA::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) {
       }
   }
 
-  if((DataType_Gettypecode(t) != T_VOID) && shadowrettype) 
+  if((DataType_Gettypecode(t) != T_VOID) && shadowrettype)
     Printf(nativecall, "))");
-  
+
   Printf(nativecall,");\n");
 
   Printf(f_shadow, ") {\n");
@@ -1187,7 +1187,7 @@ void JAVA::cpp_static_func(char *name, char *iname, DataType *t, ParmList *l) {
   }
 
 
-  if((DataType_type(t) != T_VOID) && shadowrettype) 
+  if((DataType_type(t) != T_VOID) && shadowrettype)
     Printf(nativecall,"))");
 
   Printf(nativecall,");\n");
@@ -1314,7 +1314,7 @@ void JAVA::cpp_inherit(char **baseclass, int) {
 
   if(cnt > 1)
     Printf(stderr, "Warning: %s inherits from multiple base classes. Multiple inheritance is not supported.\n", shadow_classname);
- 
+
   shadow_baseclass = Swig_copy_string(*baseclass);
 }
 

@@ -237,7 +237,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Swig_mark_arg(i);
           } else if (strcmp(argv[i],"-swiglib") == 0) {
 	    printf("%s\n", LibDir);
-	    SWIG_exit(0);
+	    SWIG_exit (EXIT_SUCCESS);
 	  } else if (strcmp(argv[i],"-o") == 0) {
 	      Swig_mark_arg(i);
 	      if (argv[i+1]) {
@@ -253,7 +253,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      fprintf(stderr,"Copyright (c) 1995-98\n");
 	      fprintf(stderr,"University of Utah and the Regents of the University of California\n");
 	      fprintf(stderr,"\nCompiled with %s\n", SWIG_CC);
-	      SWIG_exit(0);
+	      SWIG_exit (EXIT_SUCCESS);
 	  } else if (strncmp(argv[i],"-l",2) == 0) {
 	    // Add a new directory search path
 	    Append(libfiles,argv[i]+2);
@@ -287,7 +287,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // Parse language dependent options
   lang->parse_args(argc,argv);
 
-  if (help) SWIG_exit(0);              // Exit if we're in help mode
+  if (help) SWIG_exit (EXIT_SUCCESS);    // Exit if we're in help mode
 
   // Check all of the options to make sure we're cool.
   Swig_check_options();
@@ -399,7 +399,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       String *ds = Swig_include(input_file);
       if (!ds) {
 	Printf(stderr,"Unable to find '%s'\n", input_file);
-	SWIG_exit(1);
+	SWIG_exit (EXIT_FAILURE);
       }
       if (lang_config) {
 	Printf(fs,"\n%%include \"%s\"\n", lang_config);
@@ -416,7 +416,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (cpp_only) {
 	Printf(stdout,"%s", cpps);
 	while (freeze);
-	SWIG_exit(0);
+	SWIG_exit (EXIT_SUCCESS);
       }
 
       // Initialize the scanner

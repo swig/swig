@@ -1,15 +1,15 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * scanner.cxx
  *
  *     SWIG1.1 tokenizer.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2000.  The University of Chicago
  * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
  *                           University of California.
  *
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -29,7 +29,7 @@ struct InFile {
   DOHFile *f;
   int     line_number;
   char   *in_file;
-  int     extern_mode;	
+  int     extern_mode;
   int     force_extern;
   int     inline_mode;
   struct InFile *prev;
@@ -40,7 +40,7 @@ InFile  *in_head;
 DOHFile *LEX_in = 0;
 static DOHString     *header = 0;
 static DOHString     *comment = 0;
-       DOHString     *CCode = 0;            // String containing C code 
+       DOHString     *CCode = 0;            // String containing C code
 static char           *yybuffer = 0;
 
 static char    yytext[YYBSIZE];
@@ -72,7 +72,7 @@ void scanner_init() {
 /**************************************************************
  * scanner_file(FILE *f)
  *
- * Start reading from new file 
+ * Start reading from new file
  **************************************************************/
 void scanner_file(DOHFile *f) {
   InFile *in;
@@ -80,7 +80,7 @@ void scanner_file(DOHFile *f) {
   in = (InFile *) malloc(sizeof(InFile));
   in->f = f;
   in->in_file = input_file;
-  in->extern_mode = WrapExtern;	
+  in->extern_mode = WrapExtern;
   in->force_extern = ForceExtern;
   in->inline_mode = 0;
   if (!in_head) in->prev = 0;
@@ -93,7 +93,7 @@ void scanner_file(DOHFile *f) {
 /**************************************************************
  * scanner_close()
  *
- * Close current input file and go to next 
+ * Close current input file and go to next
  **************************************************************/
 
 void scanner_close() {
@@ -127,7 +127,7 @@ void scanner_close() {
 
 char nextchar() {
     int c = 0;
-    
+
     while (LEX_in) {
       c = Getc(LEX_in);
       if (c == EOF) {
@@ -139,7 +139,7 @@ char nextchar() {
     if (!LEX_in) return 0;
     if (yylen >= YYBSIZE) {
       Printf(stderr,"** FATAL ERROR.  Buffer overflow in scanner.cxx.\nReport this to swig-dev@cs.uchicago.edu.\n");
-      SWIG_exit(1);
+      SWIG_exit (EXIT_FAILURE);
     }
     yytext[yylen] = c;
     yylen++;
@@ -165,7 +165,7 @@ void retract(int n) {
 
 /**************************************************************
  * start_inline(char *text, int line)
- * 
+ *
  * This grabs a chunk of text and tries to inline it into
  * the current file.  (This is kind of wild, but cool when
  * it works).
@@ -195,7 +195,7 @@ void start_inline(char *text, int line) {
 /**************************************************************
  * yycomment(char *, int line)
  *
- * Inserts a comment into a documentation entry.    
+ * Inserts a comment into a documentation entry.
  **************************************************************/
 
 void yycomment(char *, int, int) {
@@ -279,7 +279,7 @@ void skip_to_end(void) {
       break;
     case 1:
       if (isspace(c)) {
-	if (strncmp(yytext,"@end",4) == 0) return; 
+	if (strncmp(yytext,"@end",4) == 0) return;
 	else {
 	  yylen = 0;
 	  state = 0;
@@ -294,7 +294,7 @@ void skip_to_end(void) {
 	  input_file);
   FatalError();
   return;
-}  
+}
 
 /**************************************************************
  * void skip_decl(void)
@@ -302,8 +302,8 @@ void skip_to_end(void) {
  * This tries to skip over an entire declaration.   For example
  *
  *  friend ostream& operator<<(ostream&, const char *s);
- * 
- * or 
+ *
+ * or
  *  friend ostream& operator<<(ostream&, const char *s) { };
  *
  **************************************************************/
@@ -346,7 +346,7 @@ static void get_escape() {
   int result = 0;
   int state = 0;
   char  c;
-  
+
   while(1) {
     c = nextchar();
     if (c == 0) break;
@@ -427,9 +427,9 @@ static void get_escape() {
 	yytext[yylen-1] = (char) result;
 	return;
       }
-      if (isdigit(c)) 
+      if (isdigit(c))
 	result = (result << 4) + (c - '0');
-      else 
+      else
 	result = (result << 4) + (10 + tolower(c) - 'a');
       yylen--;
       break;
@@ -437,7 +437,7 @@ static void get_escape() {
   }
   return;
 }
-      
+
 /**************************************************************
  * int yylook()
  *
@@ -469,9 +469,9 @@ int yylook(void) {
 	    state = 0;
 	    yylen = 0;
 	  }
-	      
+
 	  /* Look for single character symbols */
-	      
+
 	  else if (c == '(') return (LPAREN);
 	  else if (c == ')') return (RPAREN);
 	  else if (c == ';') return (SEMI);
@@ -502,7 +502,7 @@ int yylook(void) {
           else if (c == '<') state = 60;
 	  else if (c == '>') state = 61;
 	  else if (c == '~') return (NOT);
-          else if (c == '!') return (LNOT);	                  
+          else if (c == '!') return (LNOT);
 	  else if (c == '\\') {
 	    state = 99;
 	  }
@@ -510,8 +510,8 @@ int yylook(void) {
 	  else if (c == ']') return (RBRACKET);
 
 	  /* Look for multi-character sequences */
-	  
-	  else if (c == '/') state = 1;    // Comment (maybe) 
+
+	  else if (c == '/') state = 1;    // Comment (maybe)
 	  else if (c == '\"') state = 2;   // Possibly a string
 	  else if (c == '#') state = 3;    // CPP
 	  else if (c == '%') state = 4;    // Directive
@@ -639,7 +639,7 @@ int yylook(void) {
 	    state = 99;
 	  }
 	  break;
-	  
+
 	case 40: /* Process an include block */
 	  if ((c = nextchar()) == 0) {
 	    Printf(stderr,"%s : EOF. Unterminated include block detected.\n", input_file);
@@ -689,7 +689,7 @@ int yylook(void) {
 	    return LESSTHAN;
 	  }
 	  break;
-	case 61: 
+	case 61:
 	  if ((c = nextchar()) == 0) return (0);
 	  if (c == '>') return RSHIFT;
 	  else {
@@ -834,7 +834,7 @@ int yylook(void) {
 	    yytext[yylen] = 0;
 	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_LONG);
-	  } 
+	  }
 
 	case 88:
 	  /* An unsigned integer of some sort */
@@ -848,7 +848,7 @@ int yylook(void) {
 	    yytext[yylen] = 0;
 	    yylval.id = Swig_copy_string(yytext);
 	    return(NUM_UNSIGNED);
-	  } 
+	  }
 
 	case 9:
 	  if ((c = nextchar()) == 0) return (0);
@@ -884,8 +884,8 @@ int yylook(void) {
 	    Printf(stderr,"%s : Line %d ::Illegal character '%c'=%d.\n",input_file, line_number,c,c);
 	    FatalError();
 	  }
-	  state = 0;	
-  	  Error = 1;	
+	  state = 0;
+  	  Error = 1;
 	  return(ILLEGAL);
 	}
     }
@@ -909,7 +909,7 @@ void scanner_ignore_typedef() {
  *************************************************************/
 
 extern "C" int yylex(void) {
-    
+
     int   l;
 
     if (!scan_init) {
@@ -917,10 +917,10 @@ extern "C" int yylex(void) {
       //      if (LEX_in == NULL) LEX_in = stdin;
       //      scanner_file(LEX_in);
     }
-    
+
     l = yylook();
 
-    /* We got some sort of non-white space object.  We set the start_line 
+    /* We got some sort of non-white space object.  We set the start_line
        variable unless it has already been set */
 
     if (!start_line) {
@@ -978,7 +978,7 @@ extern "C" int yylex(void) {
 	  return(TYPE_BOOL);
 	}
 	// C++ keywords
-	
+
 	if (CPlusPlus) {
 	  if (strcmp(yytext,"class") == 0) return(CLASS);
 	  if (strcmp(yytext,"private") == 0) return(PRIVATE);
@@ -1020,7 +1020,7 @@ extern "C" int yylex(void) {
 	  return(TYPEDEF);
 	}
 
-	// Ignored keywords 
+	// Ignored keywords
 
 	if (strcmp(yytext,"volatile") == 0) return(yylex());
 
@@ -1049,7 +1049,7 @@ extern "C" int yylex(void) {
 	  }
 	  if (strcmp(yytext,"%constant") == 0) return(CONSTANT);
 	  if (strcmp(yytext,"%macro") == 0) return(SWIGMACRO);
-	  
+
 	  if (strcmp(yytext,"%section") == 0) {
 	    yylval.ivalue = line_number;
 	    return(SECTION);
@@ -1065,7 +1065,7 @@ extern "C" int yylex(void) {
 	  if (strcmp(yytext,"%title") == 0) {
 	    yylval.ivalue = line_number;
 	    return(TITLE);
-	  } 
+	  }
 	  if (strcmp(yytext,"%style") == 0) return(STYLE);
 	  if (strcmp(yytext,"%localstyle") == 0) return(LOCALSTYLE);
 	  if (strcmp(yytext,"%typedef") == 0) {
@@ -1092,14 +1092,14 @@ extern "C" int yylex(void) {
 	}
 	  // Have an unknown identifier, as a last step, we'll
 	// do a typedef lookup on it.
-	
+
 	if (check_typedef) {
 	  if (SwigType_istypedef(yytext)) {
 	    yylval.type = NewString(yytext);
 	    return(TYPE_TYPEDEF);
 	  }
 	}
-	
+
 	yylval.id = Swig_copy_string(yytext);
 	return(ID);
       default:
