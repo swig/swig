@@ -18,4 +18,8 @@ gcdmain "gcdmain 42 105"
 set c [count "Hello World" l]
 puts $c
 
+# call capitalize
+
+set c [capitalize "helloworld"]
+puts $c
 

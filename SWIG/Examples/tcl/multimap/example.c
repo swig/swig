@@ -1,6 +1,7 @@
 /* File : example.c */
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 /* Compute the greatest common divisor of positive integers */
 int gcd(int x, int y) {
@@ -33,4 +34,20 @@ int count(char *bytes, int len, char c) {
     if (bytes[i] == c) count++;
   }
   return count;
+}
+
+void capitalize(char *str, int len) {
+  int i;
+  for (i = 0; i < len; i++) {
+    str[i] = toupper(str[i]);
+  }
+}
+
+void circle(double x, double y) {
+  double a = x*x + y*y;
+  if (a > 1.0) {
+    printf("Bad points %g, %g\n", x,y);
+  } else {
+    printf("Good points %g, %g\n", x,y);
+  }
 }
