@@ -1222,6 +1222,7 @@ int yylex(void) {
 	  if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	  if (strcmp(yytext,"%types") == 0) return(TYPES);
 	  if (strcmp(yytext,"%template") == 0) return (SWIGTEMPLATE);
+	  if (strcmp(yytext,"%endtemplate") == 0) return (ENDTEMPLATE);
 	}
 	/* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
