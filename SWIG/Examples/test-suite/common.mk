@@ -43,7 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_BROKEN = \
-	global_ns_arg \
+	cast_operator \
 	arrayref \
 	abstract_typedef \
 	namespace_nested \
@@ -102,6 +102,7 @@ CPP_TEST_CASES += \
 	explicit \
 	extend_template \
 	extend_template_ns \
+	global_ns_arg \
 	grouping \
 	ignore_parameter \
 	import_nomodule \
@@ -223,6 +224,7 @@ C_TEST_CASES += \
 	arrays \
 	char_constant \
 	const_const \
+	cpp_macro_noarg \
 	defineop \
 	defines \
 	enum \
