@@ -1,6 +1,127 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/18/2004: mmatus
+	    - %features "director"/"nodirector" now work as expected.
+            - General fixes in %feature to resolve function decl
+	      properly,
+	      
+	        %feature("hello") foo();
+	        char foo() ->  f()    // was working
+	        char *foo() -> f().p  // it wasn't
+ 
+
+            - Template + specialization + default template args now is
+	      working, (don't confuse with template + default arg
+	      values, that was solved before), now this ugly case is
+	      working:
+
+	        template <class T, class A = Alloc<T> >
+		struct Vector
+		{
+		   Vector(T a){}
+		};		   
+
+		template <>
+		struct Vector<double>
+		{
+		  Vector(){}
+		  int foo() { return 0; }
+                };
+
+	        %template(V_c) Vector<char, Alloc<char> >;
+	        %template(V_i) Vector<int>;    // picks Vector<int,Alloc<int> >
+	        %template(V_d) Vector<double>; // picks the specialization
+	      
+              this is needed for automatic STL support (later will
+              be).
+
+	    - Fix the template + typedef errors in test-suite, which
+              probably will fix another group of strange template +
+              namespaces + typedefs errors.
+
+	    - %warnfilter is working better now, parser.y tries to use
+	      them when needed.
+
+	    - **** New default type resolution method (stype.c) ***** 
+
+	       It preserves the original mixed types, then it goes 'backward'
+	       first deleting the qualifier, then the inner types		  
+    		 								  
+    		 typedef A *Aptr;						  
+    		 const Aptr&;						  
+    		 r.q(const).Aptr       -> r.q(const).p.SWIGTYPE		  
+    		 r.q(const).p.SWIGTYPE -> r.p.SWIGTYPE			  
+    		 r.p.SWIGTYPE          -> r.SWIGTYPE				  
+    		 r.SWIGTYPE            -> SWIGTYPE				  
+		 								  
+		 								  
+    		 enum Hello {};						  
+    		 const Hello& hi;						  
+    		 r.q(const).Hello          -> r.q(const).enum SWIGTYPE	  
+    		 r.q(const).enum SWIGTYPE  -> r.enum SWIGTYPE		  
+    		 r.enum SWIGTYPE           -> r.SWIGTYPE			  
+    		 r.SWIGTYPE                -> SWIGTYPE			  
+		 								  
+    		 int a[2][4];						  
+    		 a(2).a(4).int           -> a(ANY).a(ANY).SWIGTYPE		  
+    		 a(ANY).a(ANY).SWIGTYPE  -> a(ANY).a().SWIGTYPE		  
+    		 a(ANY).a().SWIGTYPE     -> a(ANY).p.SWIGTYPE		  
+    		 a(ANY).p.SWIGTYPE       -> a(ANY).SWIGTYPE			  
+    		 a(ANY).SWIGTYPE         -> a().SWIGTYPE			  
+    		 a().SWIGTYPE            -> p.SWIGTYPE			  
+    		 p.SWIGTYPE              -> SWIGTYPE
+
+	       before it always stops after finding ref/pointer/enum/array/etc.
+	       
+	       Now, then, you can define (use and apply) 'higher' typemaps such as:
+
+                  %typemap(in) SWIGTYPE* const&  
+	        %typemap(out) char FIXSIZE[ANY]
+                  %typemap(in) SWIGTYPE* const&  
+	        %typemap(in) const enum SWIGTYPE&
+	        %typemap(in) SWIGTYPE[ANY][ANY]
+	        %typemap(in) const char (&)[ANY]
+	       
+	      It is possible with this change that previous typemaps
+	      that were defined (but ignored), now will start to work.
+
+	      Also, it is necessary check for the '%typemap(varin) SWIGTYPE[]',
+	      before it was usually not defined (but char[] was),
+	      and that can produce some inconsistencies.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
+	      This change was needed for STL, since std::vector<enum Hello> 
+	      std::vector<A*>, etc, will always generate methods that
+	      mix const references with the vector type.
+
+	      Now that is working, all the std::container<T*>
+	      specialization will not be needed anymore, well, in
+	      theory. 
+
+	      In the practice, everythin is working as before until
+	      the proper mixed types are defined and the libraries
+	      simplified to use them.
+
+	    - Change the behavior of extern "java"/"fortran"/"etc", 
+	      now swig produces a warning, and use extern "C" instead.
+	      The warning can also be disable with the "-w 313" flag.
+	      (WARN_PARSE_UNDEFINED_EXTERN).
+
+	    - SwigValueWrapper is now more selective (lang.cxx).
+
+            [Perl/Tcl]
+	    - Fix some typemaps (perl/tcl) to work properly with
+	      SwigValueWrapper. This was not a problem with
+	      SwigValueWrapper, but with the typemaps that now are
+	      safe to use with %apply.
+
+	    [Python]
+	    - Fix %callbacks/%pythoncallback to work as before
+	      after the def args changes
+
+
 10/17/2004: arty
 	    [OCAML]
 	    - Tweak to enum typing for soundness in the presence of multiple
