@@ -42,9 +42,11 @@ if va[3].f(1) != 8:
 ip = PtrInt()
 ap = new_ArrInt(10)
 
-vi = IntPtrVector((ip,ap,None))
+ArrInt_setitem(ip,0,123)
+ArrInt_setitem(ap,2,123)
 
-if vi[1] != ap:
+vi = IntPtrVector((ip,ap,None))
+if ArrInt_getitem(vi[0],0) != ArrInt_getitem(vi[1],2):
     raise RuntimeError,"bad std::vector<int*> mapping"
     
 
