@@ -38,21 +38,25 @@ an abundance of spare time.
 <p>
 <h3>News</h3>
 <p>
-(7/16/01) A Macintosh port of <a
-href="http://prdownloads.sourceforge.net/swig/SWIG-1.3.6.sit">SWIG-1.3.6</a>
+<b>2001/08/30</b> A precompiled executable of SWIG-1.3.6 for Windows (<a
+href="http://prdownloads.sourceforge.net/swig/swigwin-1.3.6.zip">swigwin-1.3.6</a>) is now available.
+
+<p>
+<b>2001/07/16</b> A Macintosh port of SWIG-1.3.6 (<a
+href="http://prdownloads.sourceforge.net/swig/SWIG-1.3.6.sit">macswig-1.3.6</a>)
 has been contributed by Luigi Ballabio.
 
 <p>
-(7/10/01) <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG-1.3.6</a> has been released.  This release includes substantial changes
+<b>2001/07/10</b> <a href="http://prdownloads.sourceforge.net/swig/swig-1.3.6.tar.gz">SWIG-1.3.6</a> has been released.  This release includes substantial changes
 to the language modules and greatly improved support for Guile, Java, and 
-Ruby.  View the <a href="release.html">release notes</a>.
+Ruby.  Please see the <a href="download.html">download page</a> for further details.
 
 <p>
-(10/14/00) A Macintosh port of <a href="http://prdownloads.sourceforge.net/swig/MacSWIG1.3a5.sit.bin">SWIG1.3a5</a> has been contributed by Luigi Ballabio.
+<b>2000/10/14</b> A Macintosh port of SWIG1.3a5 (<a href="http://prdownloads.sourceforge.net/swig/MacSWIG1.3a5.sit.bin">macswig1.3a5</a>) has been contributed by Luigi Ballabio.
 
 
 <p>
-(9/22/00) <a
+<b>2000/09/22</b> <a
 href="http://prdownloads.sourceforge.net/swig/swig1.3a5.tar.gz">SWIG1.3a5</a>
 has been released.  This release has too many changes to list here,
 but it fixes a lot of bugs in SWIG1.3a3 and SWIG1.3a4, includes new language modules
@@ -61,14 +65,14 @@ unstable release and may not be suitable for first time users.
 Download <a href="http://prdownloads.sourceforge.net/swig/swig1.1-883.tar.gz">SWIG1.1</a> instead.
 
 <p>
-(7/10/00) A version of SWIG1.3a3 compiled for Windows NT has been contributed by
+<b>2000/07/10</b> A version of SWIG1.3a3 compiled for Windows NT has been contributed by
 Klaus Wiederänders.  Download <a href="http://prdownloads.sourceforge.net/swig/Swig1.3a3NT.zip">here</a>.
 
 <p>
-(7/2/00) Bug tracking has been moved to SourceForge. Please pardon our dust.
+<b>2000/07/02</b> Bug tracking has been moved to SourceForge. Please pardon our dust.
 
 <p>
-(6/18/00) <a href="http://prdownloads.sourceforge.net/swig/swig1.3a3.tar.gz">SWIG1.3a3</a> has been released. This fixes a number of bugs in 1.3a2 and
+<b>2000/06/18</b> <a href="http://prdownloads.sourceforge.net/swig/swig1.3a3.tar.gz">SWIG1.3a3</a> has been released. This fixes a number of bugs in 1.3a2 and
 includes more code cleanup. 
 
 <p>
