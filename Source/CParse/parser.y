@@ -1849,12 +1849,16 @@ module_directive: MODULE options idstring {
    ------------------------------------------------------------ */
 
 name_directive : NAME LPAREN idstring RPAREN {
+                 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file,cparse_line, 
+			      "%%name is deprecated.  Use %%rename instead (see docs).\n");
                  yyrename = NewString($3);
 		 $$ = 0;
                }
                | NAME LPAREN RPAREN {
-                   $$ = 0;
-		   Swig_error(cparse_file,cparse_line,"Missing argument to %%name directive.\n");
+		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file,cparse_line, 
+			      "%%name is deprecated.  Use %%rename instead (see docs).\n");
+		 $$ = 0;
+		 Swig_error(cparse_file,cparse_line,"Missing argument to %%name directive.\n");
 	       }
                ;
 
