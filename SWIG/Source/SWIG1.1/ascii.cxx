@@ -26,17 +26,10 @@
  *
  *******************************************************************************/
 
+static char cvstag[] = "$Header$";
+
 // -----------------------------------------------------------------------------
 // ASCII::ASCII()
-//
-// Constructor.  Initializes the ASCII module. 
-// 
-// Inputs : None
-//
-// Output : Documentation module object   
-//
-// Side Effects :
-//     Sets page-width and indentation.
 // -----------------------------------------------------------------------------
 
 ASCII::ASCII() {
@@ -50,16 +43,6 @@ ASCII::ASCII() {
 // 
 // Prints a string to the documentation file.  Performs line wrapping and
 // other formatting.
-//
-// Inputs :
-//          s      = NULL terminate ASCII string
-//          margin = Number of characters to be inserted on left side
-//          mode   = If set, text will be reformatted.  Otherwise, it's 
-//                   printed verbatim (with indentation).
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void ASCII::print_string(char *s, int margin, int mode) { 
@@ -154,13 +137,6 @@ void ASCII::print_string(char *s, int margin, int mode) {
 // void ASCII::print_decl(DocEntry *de)
 // 
 // Prints the documentation entry corresponding to a declaration
-//
-// Inputs : 
-//          de = Documentation entry (which should be for a declaration)
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void ASCII::print_decl(DocEntry *de) { 
@@ -198,13 +174,6 @@ void ASCII::print_decl(DocEntry *de) {
 //
 // Prints the documentation for a block of text.  Will strip any leading white
 // space from the text block.
-// 
-// Inputs : 
-//          de = Documentation entry of text
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void ASCII::print_text(DocEntry *de) {
@@ -221,13 +190,6 @@ void ASCII::print_text(DocEntry *de) {
 // void ASCII::title(DocEntry *de)
 // 
 // Sets the title of the documentation file.
-//
-// Inputs : 
-//          de = Documentation entry of the title.
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void ASCII::title(DocEntry *de) { 
@@ -260,15 +222,6 @@ void ASCII::title(DocEntry *de) {
 // 
 // Starts a new section.  Will underline major sections and subsections, but
 // not minor subsections.
-//
-// Inputs : 
-//          de      = Documentation entry of the section
-//          sectnum = Section number.
-//
-// Output : None
-//
-// Side Effects :
-//          Forces a new subsection to be created within the ASCII module.
 // -----------------------------------------------------------------------------
 
 void ASCII::newsection(DocEntry *de,int sectnum) {
@@ -326,13 +279,6 @@ void ASCII::newsection(DocEntry *de,int sectnum) {
 // 
 // Ends the current section.  It is an error to call this without having first
 // called newsection().
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : 
-//          Pops out of the current section, moving back into the parent section
 // -----------------------------------------------------------------------------
 
 void ASCII::endsection() {
@@ -344,12 +290,6 @@ void ASCII::endsection() {
 // 
 // Prints a small dashed line that is used to designate the end of C++ class
 // subsections.
-//
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void ASCII::separator() {
@@ -363,12 +303,6 @@ void ASCII::separator() {
 // void ASCII::init(char *filename)
 // 
 // Initializes the documentation module and opens up the documentation file.
-//
-// Inputs : filename = name of documentation file (without suffix)
-//
-// Output : None
-//
-// Side Effects : Opens the documentation file.
 // -----------------------------------------------------------------------------
 
 void ASCII::init(char *filename) {
@@ -388,12 +322,6 @@ void ASCII::init(char *filename) {
 // void ASCII::close() 
 //
 // Closes the documentation module.  This function should only be called once
-// 
-// Inputs : None
-//
-// Output : None
-//
-// Side Effects : Closes the documentation file.
 // -----------------------------------------------------------------------------
 
 void ASCII::close(void) {
@@ -409,14 +337,6 @@ void ASCII::close(void) {
 // 
 // Looks for style parameters that the user might have supplied using the
 // %style directive.   Unrecognized options are simply ignored.
-//
-// Inputs : 
-//          name    = name of the style parameter
-//          value   = value of the style parameter (optional)
-//
-// Output : None
-//
-// Side Effects : Can change internal settings of 'indent' and 'columns' members.
 // -----------------------------------------------------------------------------
 
 void ASCII::style(char *name, char *value) {
@@ -435,14 +355,6 @@ void ASCII::style(char *name, char *value) {
 // void ASCII::parse_args(int argc, char **argv) 
 // 
 // Function for processing options supplied on the SWIG command line.
-//
-// Inputs : 
-//          argc = Number of arguments
-//          argv = Argument strings
-//
-// Output : None
-//
-// Side Effects : May set various internal parameters.
 // -----------------------------------------------------------------------------
 
 static char *ascii_usage = "\

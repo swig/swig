@@ -14,9 +14,10 @@
  *******************************************************************************/
 
 #include "internal.h"
+
+static char cvsroot[] = "$Header$";
+
 /*******************************************************************************
- * $Header$
- *
  * File : emit.cxx
  *
  * This file contains some useful functions for emitting code that would be
@@ -29,12 +30,6 @@
 // void emit_banner(FILE *f)
 // 
 // Emits the SWIG identifying banner in the wrapper file
-//
-// Inputs : f   = FILE handle
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void emit_banner(FILE *f) {
@@ -80,10 +75,6 @@ void emit_banner(FILE *f) {
 //                              0   - No "extern"
 //                              1,2 -  Normal extern (C/C++)
 //          f           = FILE handle
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
@@ -146,11 +137,6 @@ void emit_extern_var(char *decl, DataType *t, int extern_type, FILE *f) {
 //                           2 - extern "C"
 //                           3 - Function declaration (with arg names)
 //          f           = FILE Handle
-//
-// Output : None
-//
-// Side Effects : None
-// 
 // -----------------------------------------------------------------------------
 
 void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FILE *f) {
@@ -220,12 +206,6 @@ void emit_extern_func(char *decl, DataType *t, ParmList *L, int extern_type, FIL
 // char *emit_local(int i)
 //
 // Returns the name of local variable for parameter i
-//
-// Inputs : i      = Parameter number
-//
-// Output : NULL terminated ASCII string
-//
-// Side Effects : Result is left in a static local variable.
 // -----------------------------------------------------------------------------
 
 char *emit_local(int i) {
@@ -245,18 +225,6 @@ char *emit_local(int i) {
 // _arg0, _arg1, _arg2, etc...
 //
 // Returns the number of parameters associated with a function.
-// 
-// Inputs :
-//          d     = Name of function
-//          rt    = Return type
-//          l     = Parameter list
-//          f     = FILE Handle
-//
-// Output : Number of function arguments 
-//
-// Side Effects : None
-//
-// Note : This function is obsolete.  Use emit_args below...
 // -----------------------------------------------------------------------------
 
 int emit_args(DataType *rt, ParmList *l, FILE *f) {
@@ -344,17 +312,6 @@ int emit_args(DataType *rt, ParmList *l, FILE *f) {
 // _arg0, _arg1, _arg2, etc...
 //
 // Returns the number of parameters associated with a function.
-// 
-// Inputs :
-//          d     = Name of function
-//          rt    = Return type
-//          l     = Parameter list
-//          f     = Wrapper function object
-//
-// Output : Number of function arguments 
-//
-// Side Effects : None
-//
 // -----------------------------------------------------------------------------
 
 int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
@@ -432,18 +389,6 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
 // int emit_func_call(char *decl, DataType *t, ParmList *l, FILE *f)
 //
 // Emits code for a function call.
-// 
-// Inputs :
-//           decl   = name of function
-//           t      = Return datatype
-//           l      = Parameter list
-//           f      = FILE Handle
-//
-// Output : None
-//
-// Side Effects : None
-//
-// Note : This function is obsolete
 // -----------------------------------------------------------------------------
 
 void emit_func_call(char *decl, DataType *t, ParmList *l, FILE *f) {
@@ -531,17 +476,6 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, FILE *f) {
 //     -  This function checks to see if any sort of exception mechanism
 //        has been defined.  If so, we emit the function call in an exception
 //        handling block.
-//
-// Inputs :
-//           decl   = name of function
-//           t      = Return datatype
-//           l      = Parameter list
-//           f      = WrapperFunction object
-//
-// Output : None
-//
-// Side Effects : None
-//
 // -----------------------------------------------------------------------------
 
 void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
@@ -643,12 +577,6 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
 // 
 // Emits the default C-code to handle pointers.   This is normally contained
 // in the SWIG library file 'swigptr.swg'
-//
-// Inputs : f   = FILE handle
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void emit_hex(FILE *f) {
@@ -696,16 +624,6 @@ void emit_hex(FILE *f) {
 // 2.  User_Defined
 //     Will assign value from a pointer. 
 //     Will return a pointer to current value.
-// 
-// 
-// Inputs :
-//          name    = Name of variable
-//          iname   = Renamed version of variable
-//          type    = Datatype of the variable
-//
-// Output : None
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 void emit_set_get(char *name, char *iname, DataType *t) {

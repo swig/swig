@@ -16,6 +16,8 @@
 #include "swig.h"
 #include "html.h"
 
+static char cvsroot[] = "$Header$";
+
 /*******************************************************************************
  * $Header$
  *

@@ -25,6 +25,8 @@
 #include "swig.h"
 #include "latex.h"
 
+static char cvsroot[] = "$Header$";
+
 // -------------------------------------------------------------------
 // LATEX::LATEX()
 //

@@ -15,6 +15,8 @@
 
 #include "internal.h"
 
+static char cvstag[] = "$Header$";
+
 /*******************************************************************************
  * $Header$
  *
@@ -113,6 +115,7 @@
  *
  *******************************************************************************/
 
+
 // Some status variables
 
 static int    Inherit_mode = 0;             // Set if we're inheriting members
@@ -139,12 +142,6 @@ void cplus_inherit_decl(char **);
 // 
 // Adds a new datatype to the local datatype hash.   This is used to handle
 // datatypes defined within a class.
-//
-// Inputs : Datatype to place in hash
-//
-// Output : None
-//
-// Side Effects : Updates localtypes hash.
 // -----------------------------------------------------------------------------
 
 static void add_local_type(char *type, char *classname) {
@@ -166,12 +163,6 @@ void add_local_type(DataType *type, char *classname) {
 // Checks to see whether this datatype is part of a class definition. If so,
 // we update the type-name by appending the class prefix to it.  Uses the
 // name stored in current_class unless unavailable.
-//
-// Inputs : type = Datatype
-//
-// Output : type is updated with a new name.
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 static void update_local_type(DataType *type) {
@@ -193,12 +184,6 @@ static void update_local_type(DataType *type) {
 //
 // Updates all of the parameters in a parameter list with the proper C++ prefix
 // (if neccessary).  
-//
-// Inputs : l = Parameter list
-//
-// Output : Parameter list l is updated (make sure its a copy!)
-//
-// Side Effects : None
 // -----------------------------------------------------------------------------
 
 static void update_parms(ParmList *l) {
@@ -786,8 +771,6 @@ char *cplus_base_class(char *name) {
 //          name      = Name of the class
 //          rname     = New name of the class (using %name() directive)
 //          ctype     = Class type ("class","struct", or "union")
-//
-// Output : None
 //
 // Side Effects :
 //          Creates a new class obect internally.

@@ -12,6 +12,9 @@
  * Please read the file LICENSE for the copyright and terms by which SWIG
  * can be used and distributed.
  *******************************************************************************/
+
+static char cvsroot[] = "$Header$";
+
 /**************************************************************************
  * $Header$
  *
