@@ -56,13 +56,13 @@ typedef struct _swig_type_info {
 
 #ifdef SWIG_NOINCLUDE
 
-extern PyObject *SWIG_newvarlink();
-extern void      SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
-extern _swig_type_info *SWIG_TypeRegister(_swig_type_info *);
-extern _swig_type_info *SWIG_TypeCheck(char *, _swig_type_info *);
-extern int              SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *, int);
-extern void             SWIG_MakePtr(char *c, void *, _swig_type_info *);
-extern PyObject        *SWIG_NewPointerObj(void *, _swig_type_info *);
+SWIGEXPORT(PyObject *)        SWIG_newvarlink();
+SWIGEXPORT(void)              SWIG_addvarlink(PyObject *, char *, PyObject *(*)(void), int (*)(PyObject *));
+SWIGEXPORT(_swig_type_info *) SWIG_TypeRegister(_swig_type_info *);
+SWIGEXPORT(_swig_type_info *) SWIG_TypeCheck(char *, _swig_type_info *);
+SWIGEXPORT(int)               SWIG_ConvertPtr(PyObject *, void **, _swig_type_info *, int);
+SWIGEXPORT(void)              SWIG_MakePtr(char *c, void *, _swig_type_info *);
+SWIGEXPORT(PyObject *)        SWIG_NewPointerObj(void *, _swig_type_info *);
 
 /* External declarations when using runtime libraries */
 
