@@ -448,7 +448,7 @@ Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *dec
       if (!rn) rn = get_object(n,0);
       Delete(tname);
       /* A template-based class lookup */
-      if (SwigType_istemplate(prefix)) {
+      if (!rn && SwigType_istemplate(prefix)) {
 	String *rname = SwigType_templateprefix(prefix);
 	tname = NewStringf("%s::%s",rname,name);
 	n = Getattr(namehash,tname);
