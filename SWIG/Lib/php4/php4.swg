@@ -207,7 +207,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), "$1",strlen("$1")+1, (void**)&z_var);
-  convert_to_string_ex($input);
+  convert_to_string_ex(z_var);
   if($1 != *((*z_var)->value.str.val)) {
     $1 = *((*z_var)->value.str.val);
   }
@@ -219,7 +219,7 @@
   char *s1;
 
   zend_hash_find(&EG(symbol_table), "$1", strlen("$1")+1, (void**)&z_var);
-  convert_to_string_ex($input);
+  convert_to_string_ex(z_var);
   s1 = Z_STRVAL_PP(z_var);
   if((s1 == NULL) || ($1 == NULL) || zend_binary_strcmp(s1, strlen(s1), $1, strlen($1))) {
     if(s1)
