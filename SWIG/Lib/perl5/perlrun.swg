@@ -321,7 +321,7 @@ static void
 static int
 SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
   swig_type_info *tc;
-  char  *c = 0;
+  const char  *c = 0;
 
   if ((!obj) || (!SvOK(obj))) return -1;
   c = SvPV(obj, PL_na);
