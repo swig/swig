@@ -63,6 +63,7 @@ typedef struct swig_class {
   swig_method        *methods;
   swig_attribute     *attributes;
   struct swig_class **bases;
+  char              **base_names;
 } swig_class;
 
 typedef struct swig_instance {
@@ -525,6 +526,11 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     bi = cls_stack_bi[cls_stack_top];
     cls = cls_stack[cls_stack_top];
     if (bi != -1) {
+      if (!cls->bases[bi] && cls->base_names[bi]) {
+        /* lookup and cache the base class */
+	swig_type_info *info = SWIG_TypeQuery(cls->base_names[bi]);
+	if (info) cls->bases[bi] = (swig_class *) info->clientdata;
+      }
       cls = cls->bases[bi];
       if (cls) {
         cls_stack_bi[cls_stack_top]++;

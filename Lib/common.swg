@@ -62,6 +62,7 @@ SWIGIMPORT(swig_type_info *) SWIG_TypeQuery(const char *);
 SWIGIMPORT(void)             SWIG_TypeClientData(swig_type_info *, void *);
 SWIGIMPORT(char *)           SWIG_PackData(char *, void *, int);
 SWIGIMPORT(char *)           SWIG_UnpackData(char *, void *, int);
+SWIGIMPORT(void)             SWIG_PropagateClientData(swig_type_info *type);
 
 #else
 
@@ -77,7 +78,7 @@ SWIG_TypeRegister(swig_type_info *ti) {
   while (tc) {
     if (strcmp(tc->name, ti->name) == 0) {
       /* Already exists in the table.  Just add additional types to the list */
-      if (tc->clientdata) ti->clientdata = tc->clientdata;
+      if (ti->clientdata) tc->clientdata = ti->clientdata;
       head = tc;
       next = tc->next;
       goto l1;
@@ -104,6 +105,7 @@ SWIG_TypeRegister(swig_type_info *ti) {
   }
   if (next) next->prev = head;
   head->next = next;
+
   return ret;
 }
 
@@ -283,6 +285,29 @@ SWIG_UnpackData(char *c, void *ptr, size_t sz) {
     *u = uu;
   }
   return c;
+}
+
+/* This function will propagate the clientdata field of type to
+* any new swig_type_info structures that have been added into the list
+* of equivalent types.  It is like calling
+* SWIG_TypeClientData(type, clientdata) a second time.
+*/
+SWIGRUNTIME(void) 
+SWIG_PropagateClientData(swig_type_info *type) {
+  swig_type_info *equiv = type->next;
+  swig_type_info *tc;
+  if (!type->clientdata) return;
+  while (equiv) {
+    if (!equiv->converter) {
+      tc = *swig_type_list_handle;
+      while (tc) {
+        if ((strcmp(tc->name, equiv->name) == 0) && !tc->clientdata)
+          SWIG_TypeClientData(tc, type->clientdata);
+        tc = tc->prev;
+      }
+    }
+    equiv = equiv->next;
+  }
 }
 
 #endif

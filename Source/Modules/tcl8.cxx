@@ -43,6 +43,7 @@ static int         nspace = 0;
 static String     *init_name = 0;
 static String     *ns_name = 0;
 static int         have_constructor;
+static String     *constructor_name;
 static int         have_destructor;
 static int         have_base_classes;
 static String     *destructor_action = 0;
@@ -747,6 +748,7 @@ public:
     /* Handle inheritance */
   
     String *base_class = NewString("");
+    String *base_class_names = NewString("");
 
     if( itcl ) {
       base_classes    = NewString("");
@@ -772,10 +774,11 @@ public:
 	//	Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
 	//	Printf(base_class,"&_wrap_class_%s",bmangle);
 	Printf(base_class,"0");
+	Printf(base_class_names,"\"%s *\",", SwigType_namestr(bname));
 	/* Put code to register base classes in init function */
 	
-	Printf(f_init,"/* Register base : %s */\n", bmangle);
-	Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
+	//Printf(f_init,"/* Register base : %s */\n", bmangle);
+	//Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
 	b = Next(b);
 	index++;
 	Putc(',',base_class);
@@ -885,13 +888,17 @@ public:
     };
 
     Printv(f_wrappers,"static swig_class *swig_",mangled_classname,"_bases[] = {", base_class,"0};\n", NIL);
+    Printv(f_wrappers,"static char *swig_",mangled_classname,"_base_names[] = {", base_class_names,"0};\n", NIL);
     Delete(base_class);
+    Delete(base_class_names);
 
     Printv(f_wrappers, "swig_class _wrap_class_", mangled_classname, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",NIL);
   
     if (have_constructor) {
-      Printf(f_wrappers,"%s", Swig_name_wrapper(Swig_name_construct(class_name)));
+      Printf(f_wrappers,"%s", Swig_name_wrapper(Swig_name_construct(constructor_name)));
+      Delete(constructor_name);
+      constructor_name = 0;
     } else {
       Printf(f_wrappers,"0");
     }
@@ -900,7 +907,8 @@ public:
     } else {
       Printf(f_wrappers,",0");
     }
-    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname,"_bases };\n", NIL);
+    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname,"_bases,",
+		         "swig_", mangled_classname, "_base_names };\n", NIL);
 
     if( !itcl ) {
       Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
@@ -1141,6 +1149,7 @@ public:
       }
     }
 
+    constructor_name = NewString(Getattr(n, "sym:name"));
     have_constructor = 1;
     return SWIG_OK;
   }

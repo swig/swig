@@ -42,8 +42,6 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_IsPointerOfType(object, type)
 #define SWIG_IsPointer(object) \
   SWIG_Guile_IsPointer(object)
-#define SWIG_PropagateClientData(type) \
-  SWIG_Guile_PropagateClientData(type)
 #define SWIG_contract_assert(expr, msg)				\
   if (!(expr))							\
     scm_error(scm_str2symbol("swig-contract-assertion-failed"),	\
@@ -67,9 +65,6 @@ SWIGIMPORT(void *) SWIG_Guile_MustGetPtr(SCM s, swig_type_info *type, int argnum
 SWIGIMPORT(SCM) SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner);
 /* Get arguments from an argument list */
 SWIGIMPORT(int) SWIG_Guile_GetArgs(SCM *dest, SCM rest, int reqargs, int optargs, const char *procname);
-/* Propagate client data to equivalent types */
-SWIGIMPORT(void) 
-SWIG_Guile_PropagateClientData(swig_type_info *type);
 /* Make a pointer object non-collectable */
 SWIGIMPORT(void)
 SWIG_Guile_MarkPointerNoncollectable(SCM s);
@@ -415,29 +410,6 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   if (!SCM_NULLP(rest))
     scm_wrong_num_args(scm_makfrom0str((char *) procname));
   return num_args_passed;
-}
-
-/* This function will propagate the clientdata field of type to
-* any new swig_type_info structures that have been added into the list
-* of equivalent types.  It is like calling
-* SWIG_TypeClientData(type, clientdata) a second time.
-*/
-SWIGRUNTIME(void) 
-SWIG_Guile_PropagateClientData(swig_type_info *type) {
-  swig_type_info *equiv = type->next;
-  swig_type_info *tc;
-  if (!type->clientdata) return;
-  while (equiv) {
-    if (!equiv->converter) {
-      tc = swig_type_list;
-      while (tc) {
-        if ((strcmp(tc->name, equiv->name) == 0) && !tc->clientdata)
-          SWIG_TypeClientData(tc, type->clientdata);
-        tc = tc->prev;
-      }
-    }
-    equiv = equiv->next;
-  }
 }
 
 #endif
