@@ -1,6 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
 04/28/2003: beazley
+            Fixed [ 723471 ] Wrapper_print() fails with preprocessor directives.
+
+04/28/2003: beazley
             Minor refinement of const static member variable handling 
             described in CHANGES 08/11/2002.   Previously, SWIG merely
             checked to see if there was an initializer in the declaration.
