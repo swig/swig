@@ -312,6 +312,7 @@ static void add_symbols(Node *n) {
       SwigType *fun = SwigType_pop_function(fdecl);
       symname = make_name(Getattr(n,"name"),fun);
       wrn = name_warning(symname,fun);
+
       Swig_features_get(features_hash,Namespaceprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
       Delete(fun);
@@ -323,7 +324,6 @@ static void add_symbols(Node *n) {
     if (strncmp(Char(symname),"$ignore",7) == 0) {
       char *c = Char(symname)+7;
       Setattr(n,"feature:ignore","1");
-      /*      Setattr(n,"error",NewString("ignored")); */
       if (strlen(c)) {
 	Swig_warning(0,Getfile(n), Getline(n), "%s\n",c+1);
       }
@@ -335,7 +335,6 @@ static void add_symbols(Node *n) {
       }
       if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	/*	if ((c != n) && (!(Getattr(n,"sym:weak") || (Getattr(c,"sym:typename") && inclass)))) { */
 	if (c != n) {
 	  if (Getattr(n,"sym:weak")) {
 	    Setattr(n,"sym:name",symname);
@@ -874,7 +873,7 @@ Node *Swig_cparse(File *f) {
 %type <decl>     abstract_declarator direct_abstract_declarator;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
-%type <id>       string;
+%type <id>       string stringnum ;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_vend;
 %type <ivalue>   rename_namewarn;
@@ -892,7 +891,7 @@ Node *Swig_cparse(File *f) {
 program        :  interface {
 		   Setattr($1,"classes",classes); 
 		   Setattr($1,"name",ModuleName);
-
+		   
 		   if ((!module_node) && ModuleName) {
 		     module_node = new_node("module");
 		     Setattr(module_node,"name",ModuleName);
@@ -4237,12 +4236,12 @@ options        : LPAREN kwargs RPAREN {
                | empty { $$ = 0; }
  
 /* Keyword arguments */
-kwargs         : idstring EQUAL string {
+kwargs         : idstring EQUAL stringnum {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
                }
-               | idstring EQUAL string COMMA kwargs {
+               | idstring EQUAL stringnum COMMA kwargs {
 		 $$ = NewHash();
 		 Setattr($$,"name",$1);
 		 Setattr($$,"value",$3);
@@ -4256,6 +4255,14 @@ kwargs         : idstring EQUAL string {
                  $$ = NewHash();
                  Setattr($$,"name",$1);
                  set_nextSibling($$,$3);
+               }
+               ;
+
+stringnum      : string {
+		 $$ = $1;
+               }
+               | exprnum {
+                 $$ = $1.val;
                }
                ;
 

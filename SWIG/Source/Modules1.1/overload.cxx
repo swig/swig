@@ -103,7 +103,13 @@ Swig_overload_rank(Node *n) {
 			   SwigType_str(Getattr(p2,"type"),0));
 	      nodes[j].error = 1;
 	    }
-	    if (t1 && t2) differ = Strcmp(t1,t2);
+	    if (t1 && t2) {
+	      int t1v, t2v;
+	      t1v = atoi(Char(t1));
+	      t2v = atoi(Char(t2));
+	      differ = t1v-t2v;
+	      /*	      differ = Strcmp(t1,t2); */
+	    }
 	    else if (!t1 && t2) differ = 1;
 	    else if (t2 && !t1) differ = -1;
 	    else if (!t1 && !t2) differ = -1;
