@@ -1,4 +1,6 @@
 %module cast_operator
+
+%rename(tochar) A::operator char*() const;
 %inline %{
 struct A 
 { 

@@ -1,6 +1,15 @@
 Version 1.3.18 (In progress)
 ============================
 02/27/2003: beazley
+            Fixed [ 653548 ] error parsing casting operator definition.
+            SWIG now ignores casting operators declared outside of a class.
+            For example:
+
+                inline A::operator char *() { ... }
+
+            Bug reported by Martin Casado.
+
+02/27/2003: beazley
             Added support for anonymous bit-fields.  For example:
 
                  struct Foo {
