@@ -7,12 +7,9 @@ LIBS       = -lm
 SWIGOPT    = 
 
 all::
-	$(SWIG) -co swigrun.swg
-	$(SWIG) -o pyrun.swg -co python/pyrun.swg  
-	$(SWIG) -o runtime.swg -co runtime.swg 
+	$(SWIG) -python -external-runtime
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python_cpp
-	rm -f *.swg
 
 static::
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
@@ -21,7 +18,7 @@ static::
 clean::
 	$(MAKE) -f $(TOP)/Makefile python_clean
 	rm -f $(TARGET).py
-	rm -f *.swg
+	rm -f swigpyrun.h
 
 check: all
 
