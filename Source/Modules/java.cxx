@@ -1101,8 +1101,8 @@ class JAVA : public Language {
     // Other constants are wrapped using a public final static [jstype] in Java.
     Printf(constants_code, "  public final static %s %s = ", return_type, ((proxy_flag && wrapping_member_flag) ? variable_name : symname));
 
-    if ((is_enum_item && Getattr(n,"enumvalue") == 0) || !const_feature_flag) {
-      // Enums without value and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
+    if (!const_feature_flag) {
+      // Default enum and constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
 
       if(classname_substituted_flag) // This handles function pointers using the %constant directive
         Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
@@ -1115,7 +1115,8 @@ class JAVA : public Language {
       enum_constant_flag = false;
     } else if (is_enum_item) {
       // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as Java code
-      Printf(constants_code, "%s;\n", Getattr(n,"enumvalue"));
+      const String *enumvalue = Getattr(n,"enumvalue") ? Getattr(n,"enumvalue") : Getattr(n,"enumvalueex");
+      Printf(constants_code, "%s;\n", enumvalue);
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
