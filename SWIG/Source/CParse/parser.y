@@ -3116,6 +3116,8 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                 $$ = 0; 
 	      } else {
 		$$ = new_node("classforward");
+		Setfile($$,cparse_file);
+		Setline($$,cparse_line);
 		Setattr($$,"kind",$2);
 		Setattr($$,"name",$3);
 		Setattr($$,"sym:weak", "1");
@@ -5053,6 +5055,8 @@ base_list      : base_specifier {
 
 base_specifier : opt_virtual idcolon {
 		 $$ = NewHash();
+		 Setfile($$,cparse_file);
+		 Setline($$,cparse_line);
 		 Setattr($$,"name",$2);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
 		   Setattr($$,"access","private");
@@ -5064,6 +5068,8 @@ base_specifier : opt_virtual idcolon {
                }
 	       | opt_virtual access_specifier opt_virtual idcolon {
 		 $$ = NewHash();
+		 Setfile($$,cparse_file);
+		 Setline($$,cparse_line);
 		 Setattr($$,"name",$4);
 		 Setattr($$,"access",$2);
 	         if (Strcmp($2,"public") != 0) {
