@@ -38,6 +38,16 @@ install:
         fi; \
 	done;
 
+uninstall: 
+	@echo "Uninstalling runtime libraries" 
+	@for i in $(LIBS); \
+	do \
+	if [ -f $$i ]; then \
+		echo $(LIBTOOL) --mode=uninstall /bin/rm -f $(DESTDIR)$(LIB_DIR)/$$i; \
+		$(LIBTOOL) --mode=uninstall /bin/rm -f $(DESTDIR)$(LIB_DIR)/$$i; \
+	fi; \
+	done; 
+
 clean::
 	rm -rf *.o *.lo *.la *.a *.c *.swg *~ core .libs
 

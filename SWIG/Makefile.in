@@ -539,6 +539,30 @@ install-lib:
 install-runtime:
 	@cd Runtime; $(MAKE) install
 
+
+##################################################################### 
+# TARGETS: uninstall & friends 
+##################################################################### 
+ 
+uninstall: uninstall-main uninstall-lib uninstall-runtime 
+	@echo "Uninstall complete" 
+ 
+uninstall-main: 
+	@echo "Uninstalling $(BIN_DIR)/swig" 
+	@if [ -f swig.exe ]; then                                               \
+		rm -f $(DESTDIR)$(BIN_DIR)/swig.exe;   \
+	else                                                                    \
+		rm -f $(DESTDIR)$(BIN_DIR)/$(TARGET);  \
+	fi 
+ 
+uninstall-lib: 
+	@echo "Uninstalling the SWIG library" 
+	rm -rf $(DESTDIR)$(SWIG_LIB)/; 
+ 
+uninstall-runtime: 
+	@cd Runtime; $(MAKE) uninstall 
+ 
+
 ############################################################################
 # DIST and other maintenance
 ############################################################################
