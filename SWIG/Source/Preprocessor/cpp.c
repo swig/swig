@@ -803,7 +803,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
  * ----------------------------------------------------------------------------- */
 
 String *
-Preprocessor_parse(File *s)
+Preprocessor_parse(String *s)
 {
   String  *ns;             /* New string containing the preprocessed text */
   String  *chunk, *sval, *decl;
@@ -818,6 +818,9 @@ Preprocessor_parse(File *s)
   int    cpp_lines = 0;
   int    cond_lines[256];
 
+  /* Blow away all carriage returns */
+  Replace(s,"\015","",DOH_REPLACE_ANY); 
+
   ns = NewString("");        /* Return result */
 
   decl = NewString("");
@@ -831,7 +834,6 @@ Preprocessor_parse(File *s)
 
   state = 0;
   while ((c = Getc(s)) != EOF) {
-    if (c == '\r') continue;  /* Lyle Johnson */
     switch(state) {
     case 0:        /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
@@ -1243,15 +1245,17 @@ Preprocessor_parse(File *s)
       Putc(c,value);
       if (c == '%') {
   	int i = 0;
-  	char *d = "enddef\n";
-  	for (i = 0; i < 7; i++) {
+  	char *d = "enddef";
+  	for (i = 0; i < 6; i++) {
   	  c = Getc(s);
   	  Putc(c,value);
   	  if (c != d[i]) break;
   	}
-  	if (i == 7) {
+	c = Getc(s);
+	Ungetc(c,s);
+  	if ((i == 6) && (isspace(c))) {
   	  /* Got the macro  */
-  	  for (i = 0; i < 8; i++) {
+  	  for (i = 0; i < 7; i++) {
   	    Delitem(value,DOH_END);
   	  }
   	  if (allow) {
