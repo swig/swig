@@ -1226,7 +1226,7 @@ class CSHARP : public Language {
    * ----------------------------------------------------------------------------- */
 
   void proxyClassFunctionHandler(Node *n) {
-    SwigType  *t = Getattr(n,"virtual:type") ?  Getattr(n,"virtual:type") : Getattr(n,"type"); 
+    SwigType  *t = Getattr(n,"type"); 
     ParmList  *l = Getattr(n,"parms");
     String    *intermediary_function_name = Getattr(n,"imfuncname");
     String    *proxy_function_name = Getattr(n,"proxyfuncname");
@@ -1253,8 +1253,13 @@ class CSHARP : public Language {
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup_new("cstype",n,"",0))) {
-      substituteClassname(t, tm);
+      // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
+      SwigType *virtualtype = Getattr(n,"virtual:type");
+      substituteClassname(virtualtype ? virtualtype : t, tm);
       Printf(return_type, "%s", tm);
+      if (virtualtype)
+        Swig_warning(WARN_CSHARP_COVARIANT_RET, input_file, line_number, 
+          "Covariant return types not supported in C#. Proxy method will return %s.\n", SwigType_str(virtualtype,0));
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, 
           "No cstype typemap defined for %s\n", SwigType_str(t,0));
