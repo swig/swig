@@ -54,6 +54,7 @@ class CSHARP : public Language {
   String *proxy_class_constants_code;
   String *module_class_constants_code;
   String *enum_code;
+  String *dllimport; // DllImport attribute name
   String *namespce; // Optional namespace name
   String *imclass_imports; //intermediary class imports from %pragma
   String *module_imports; //module imports from %pragma
@@ -106,6 +107,7 @@ class CSHARP : public Language {
     proxy_class_constants_code(NULL),
     module_class_constants_code(NULL),
     enum_code(NULL),
+    dllimport(NULL),
     namespce(NULL),
     imclass_imports(NULL),
     module_imports(NULL),
@@ -150,7 +152,17 @@ class CSHARP : public Language {
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-        if (strcmp(argv[i],"-namespace") == 0) {
+        if (strcmp(argv[i],"-dllimport") == 0) {
+          if (argv[i+1]) {
+            dllimport = NewString("");
+            Printf(dllimport, argv[i+1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i+1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i],"-namespace") == 0) {
           if (argv[i+1]) {
             namespce = NewString("");
             Printf(namespce, argv[i+1]);
@@ -241,6 +253,7 @@ class CSHARP : public Language {
     imclass_cppcasts_code = NewString("");
     upcasts_code = NewString("");
     if (!namespce) namespce = NewString("");
+    if (!dllimport) dllimport = Copy(module_class_name);
 
     Swig_banner(f_runtime);               // Print the SWIG banner message
 
@@ -292,6 +305,7 @@ class CSHARP : public Language {
 
       // Add the intermediary class methods
       Replaceall(imclass_class_code, "$module", module_class_name);
+      Replaceall(imclass_class_code, "$dllimport", dllimport);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
 
@@ -332,6 +346,9 @@ class CSHARP : public Language {
 
       Replaceall(module_class_code, "$module", module_class_name);
       Replaceall(module_class_constants_code, "$module", module_class_name);
+
+      Replaceall(module_class_code, "$dllimport", dllimport);
+      Replaceall(module_class_constants_code, "$dllimport", dllimport);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -531,7 +548,7 @@ class CSHARP : public Language {
     }
 
     Printv(imclass_class_code, 
-           "\n  [DllImport(\"",module_class_name,"\", EntryPoint=\"CSharp_",overloaded_name,"\")]\n", NIL);
+           "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", overloaded_name, "\")]\n", NIL);
 
     Printf(imclass_class_code, "  public static extern %s %s(", im_return_type, overloaded_name);
 
@@ -1111,6 +1128,7 @@ class CSHARP : public Language {
   virtual int insertDirective(Node *n) {
     String *code = Getattr(n,"code");
     Replaceall(code, "$module", module_class_name);
+    Replaceall(code, "$dllimport", dllimport);
     return Language::insertDirective(n);
   }
 
@@ -1311,9 +1329,12 @@ class CSHARP : public Language {
     Replaceall(proxy_class_def,  "$module", module_class_name);
     Replaceall(proxy_class_code, "$module", module_class_name);
 
+    Replaceall(proxy_class_def,  "$dllimport", dllimport);
+    Replaceall(proxy_class_code, "$dllimport", dllimport);
+
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
-      Printv(imclass_cppcasts_code,"\n  [DllImport(\"", module_class_name, "\", EntryPoint=\"CSharp_", proxy_class_name ,"Upcast", "\")]\n", NIL);
+      Printv(imclass_cppcasts_code,"\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", proxy_class_name ,"Upcast", "\")]\n", NIL);
       Printf(imclass_cppcasts_code,"  public static extern IntPtr $csclassnameUpcast(IntPtr objectRef);\n");
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
@@ -1386,6 +1407,11 @@ class CSHARP : public Language {
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+
+      Replaceall(proxy_class_def, "$dllimport", dllimport);
+      Replaceall(proxy_class_code, "$dllimport", dllimport);
+      Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
+
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the constants
@@ -2264,6 +2290,7 @@ class CSHARP : public Language {
 
     Replaceall(swigtype, "$csclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
+    Replaceall(swigtype, "$dllimport", dllimport);
     Printv(f_swigtype, swigtype, NIL);
 
     Close(f_swigtype);
@@ -2374,6 +2401,7 @@ extern "C" Language * swig_csharp(void) {
 
 const char *CSHARP::usage = (char*)"\
 C# Options (available with -csharp)\n\
+     -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
