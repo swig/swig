@@ -361,70 +361,168 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
   resolved_scope = 0;
 
   base = SwigType_base(t);
-  s = current_scope;
-  ttab = current_typetab;
-  if (Strncmp(base,"::",2) == 0) {
-    s = global_scope;
-    ttab = Getattr(s,"typetab");
-    Delitem(base,0);
-    Delitem(base,0);
-  }
-  /* Do a quick check in the local scope */
-  type = Getattr(ttab,base);
-  if (type) {
-    resolved_scope = s;
-  }
-  if (!type) {
-    /* Didn't find in this scope.   We need to do a little more searching */
-    if (Strstr(base,"::")) {
-      /* A qualified name. */
-      nameprefix = Swig_scopename_prefix(base);
-      if (nameprefix) {
-	/* Name had a prefix on it.   See if we can locate the proper scope for it */
-	s = find_scope(s,nameprefix);
-	/* Couldn't locate a scope for the type.  Bail */
-	if (!s) {
-	  Delete(base);
-	  Delete(nameprefix);
-	  return 0;
-	}
-	/* Try to locate the name starting in the scope */
-	namebase = Swig_scopename_base(base);
-	type = typedef_resolve(s,namebase);
-	if ((type) && (!Strstr(type,"::"))) {
-	  Typetab *rtab = resolved_scope;
-	  String *qname = Getattr(resolved_scope,"qname");
-	  /* If qualified *and* the typename is defined from the resolved scope, we qualify */
-	  if ((qname) && typedef_resolve(resolved_scope,type)) {
-	    type = Copy(type);
-	    Insert(type,0,"::");
-	    Insert(type,0,qname);
-	    newtype = 1;
-	  } 
-	  resolved_scope = rtab;
+
+  if (SwigType_issimple(base)) {
+    s = current_scope;
+    ttab = current_typetab;
+    if (Strncmp(base,"::",2) == 0) {
+      s = global_scope;
+      ttab = Getattr(s,"typetab");
+      Delitem(base,0);
+      Delitem(base,0);
+    }
+    /* Do a quick check in the local scope */
+    type = Getattr(ttab,base);
+    if (type) {
+      resolved_scope = s;
+    }
+    if (!type) {
+      /* Didn't find in this scope.   We need to do a little more searching */
+      if (Strstr(base,"::")) {
+	/* A qualified name. */
+	nameprefix = Swig_scopename_prefix(base);
+	if (nameprefix) {
+	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
+	  s = find_scope(s,nameprefix);
+	  /* Couldn't locate a scope for the type.  Bail */
+	  if (!s) {
+	    Delete(base);
+	    Delete(nameprefix);
+	    return 0;
+	  }
+	  /* Try to locate the name starting in the scope */
+	  namebase = Swig_scopename_base(base);
+	  type = typedef_resolve(s,namebase);
+	  if ((type) && (!Strstr(type,"::"))) {
+	    Typetab *rtab = resolved_scope;
+	    String *qname = Getattr(resolved_scope,"qname");
+	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
+	    if ((qname) && typedef_resolve(resolved_scope,type)) {
+	      type = Copy(type);
+	      Insert(type,0,"::");
+	      Insert(type,0,qname);
+	      newtype = 1;
+	    } 
+	    resolved_scope = rtab;
+	  }
+	} else {
+	  /* Name is unqualified. */
+	  type = typedef_resolve(s,base);
 	}
       } else {
 	/* Name is unqualified. */
 	type = typedef_resolve(s,base);
       }
-    } else {
-      /* Name is unqualified. */
-      type = typedef_resolve(s,base);
     }
-  }
-
+    
   /*  Printf(stdout,"+ %s --> %s\n", base,type); */
 
-  if (type && (Strcmp(base,type) == 0)) type = 0;
+    if (type && (Strcmp(base,type) == 0)) type = 0;
   /*  if (type && (Getmeta(type,"class"))) type = 0; */
 
-  if (namebase) Delete(namebase);
-  if (nameprefix) Delete(nameprefix);
-  Delete(base);
-  
-  if (!type) return 0;
+    /* If the type is a template, and no typedef was found, we need to check the
+     template arguments one by one to see if they can be resolved. */
 
+    if (!type && SwigType_istemplate(base)) {
+      List *tparms;
+      String *suffix;
+      int i,sz;
+      int rep = 0;
+      type = SwigType_templateprefix(base);
+      suffix = SwigType_templatesuffix(base);
+      Append(type,"<(");
+      tparms = SwigType_parmlist(base);
+      sz = Len(tparms);
+      for (i = 0; i < sz; i++) {
+	SwigType *tpr;
+	SwigType *tp = Getitem(tparms, i);
+	if (!rep) {
+	  tpr = SwigType_typedef_resolve(tp);
+	} else {
+	  tpr = 0;
+	}
+	if (tpr) {
+	  Append(type,tpr);
+	  rep = 1;
+	} else {
+	  Append(type,tp);
+	}
+	if ((i+1) < sz) Append(type,",");
+      }
+      Append(type,")>");
+      Append(type,suffix);
+      Delete(suffix);
+      Delete(tparms);
+      if (!rep) {
+	Delete(type);
+	type = 0;
+      }
+    }
+  
+    if (namebase) Delete(namebase);
+    if (nameprefix) Delete(nameprefix);
+  } else {
+    if (SwigType_isfunction(base)) {
+      List *parms;
+      int i,sz;
+      int rep = 0;
+      type = NewString("f(");
+      parms = SwigType_parmlist(base);
+      sz = Len(parms);
+      for (i = 0; i < sz; i++) {
+	SwigType *tpr;
+	SwigType *tp = Getitem(parms, i);
+	if (!rep) {
+	  tpr = SwigType_typedef_resolve(tp);
+	} else {
+	  tpr = 0;
+	}
+	if (tpr) {
+	  Append(type,tpr);
+	  rep = 1;
+	} else {
+	  Append(type,tp);
+	}
+	if ((i+1) < sz) Append(type,",");
+      }
+      Append(type,").");
+      Delete(parms);
+      if (!rep) {
+	Delete(type);
+	type = 0;
+      }
+    } else if (SwigType_ismemberpointer(base)) {
+      String *rt;
+      String *mtype = SwigType_parm(base);
+      rt = SwigType_typedef_resolve(mtype);
+      if (rt) {
+	type = NewStringf("m(%s).", rt);
+	Delete(rt);
+      }
+      Delete(mtype);
+    } else {
+      type = 0;
+    }
+  }
   r = SwigType_prefix(t);
+  if (!type) {
+    if (r && Len(r)) {
+      if ((Strstr(r,"f(") || (Strstr(r,"m(")))) {
+	SwigType *rt = SwigType_typedef_resolve(r);
+	if (rt) {
+	  Delete(r);
+	  Append(rt,base);
+	  Delete(base);
+	  /*	  Printf(stdout,"+ %s --> %s\n", t,rt); */
+	  return rt;
+	}
+      }
+    }
+    Delete(r);
+    Delete(base);
+    return 0;
+  }
+  Delete(base);
   Append(r,type);
   if (newtype) {
     Delete(type);
@@ -842,6 +940,7 @@ SwigType_inherit(String *derived, String *base) {
   Hash *h;
   if (!subclass) subclass = NewHash();
   
+  /*  Printf(stdout,"'%s' --> '%s'\n", derived, base); */
   h = Getattr(subclass,base);
   if (!h) {
     h = NewHash();

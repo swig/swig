@@ -1258,7 +1258,7 @@ int yylex(void) {
 	  }
 	  if (strcmp(yytext,"%native") == 0) return(NATIVE);
 	  if (strcmp(yytext,"%pragma") == 0) return(PRAGMA);
-	  if (strcmp(yytext,"%addmethods") == 0) return(ADDMETHODS);
+	  if (strcmp(yytext,"%extend") == 0) return(EXTEND);
 	  if (strcmp(yytext,"%inline") == 0) return(INLINE);
 	  if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
 	  if (strcmp(yytext,"%feature") == 0) return(FEATURE);

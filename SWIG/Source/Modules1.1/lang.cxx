@@ -102,8 +102,8 @@ int Dispatcher::emit_one(Node *n) {
 
     else if (strcmp(tag,"top") == 0) {
 	return top(n);
-    } else if (strcmp(tag,"addmethods") == 0) {
-	return addmethodsDirective(n);
+    } else if (strcmp(tag,"extend") == 0) {
+	return extendDirective(n);
     } else if (strcmp(tag,"apply") == 0) {
 	return applyDirective(n);
     } else if (strcmp(tag,"clear") == 0) {
@@ -158,7 +158,7 @@ int Dispatcher::emit_children(Node *n) {
    to fill in traversal code */
 
 int Dispatcher::defaultHandler(Node *) { return SWIG_OK; }
-int Dispatcher::addmethodsDirective(Node *n) { return defaultHandler(n); }
+int Dispatcher::extendDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::applyDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::clearDirective(Node *n) { return defaultHandler(n); }
 int Dispatcher::constantDirective(Node *n) { return defaultHandler(n); }
@@ -304,18 +304,18 @@ int Language::top(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::addmethodsDirective()
+ * Language::extendDirective()
  * ---------------------------------------------------------------------- */
 
-int Language::addmethodsDirective(Node *n) {
-    int oldam = AddMethods;
+int Language::extendDirective(Node *n) {
+    int oldam = Extend;
     int oldmode = cplus_mode;
-    AddMethods = 1;
+    Extend = 1;
     cplus_mode = CPLUS_PUBLIC;
 
     emit_children(n);
 
-    AddMethods = oldam;
+    Extend = oldam;
     cplus_mode = oldmode;
     return SWIG_OK;
 }
@@ -870,7 +870,7 @@ Language::memberfunctionHandler(Node *n) {
 
     String *fname = Swig_name_member(ClassPrefix, symname);
     /* Transformation */
-    Swig_MethodToFunction(n,ClassType, AddMethods);
+    Swig_MethodToFunction(n,ClassType, Extend);
     Setattr(n,"sym:name",fname);
     functionWrapper(n);
 
@@ -896,7 +896,7 @@ Language::staticmemberfunctionHandler(Node *n) {
     String   *code    = Getattr(n,"code");
     String   *cname, *mrename;
 
-    if (!AddMethods) {
+    if (!Extend) {
 	cname = NewStringf("%s::%s",ClassName,name);
     } else {
 	cname = Copy(Swig_name_member(ClassPrefix,name));    
@@ -906,7 +906,7 @@ Language::staticmemberfunctionHandler(Node *n) {
     Setattr(n,"name",cname);
     Setattr(n,"sym:name",mrename);
 
-    if ((AddMethods) && (code)) {
+    if ((Extend) && (code)) {
 	/* Hmmm. An added static member.  We have to create a little wrapper for this */
 	String *tmp = NewStringf("%s(%s)", cname, ParmList_str(parms));
 	String *wrap = SwigType_str(type,tmp);
@@ -982,12 +982,12 @@ Language::membervariableHandler(Node *n) {
 	    int       make_wrapper = 1;
 	    String *tm;
 	    String *target;
-	    if (!AddMethods) {
+	    if (!Extend) {
 		target = NewStringf("%s->%s", Swig_cparm_name(0,0),name);
 		tm = Swig_typemap_lookup_new("memberin",n,target,0);
 	    }
-	    Swig_MembersetToFunction(n,ClassType,AddMethods);
-	    if (!AddMethods) {
+	    Swig_MembersetToFunction(n,ClassType,Extend);
+	    if (!Extend) {
 		/* Check for a member in typemap here */
 
 		/* String *tm = Swig_typemap_lookup((char *) "memberin",type,name,target,Swig_cparm_name(0,1),target,0);*/
@@ -1019,7 +1019,7 @@ Language::membervariableHandler(Node *n) {
 	}
 	/* Emit get function */
 	{
-	    Swig_MembergetToFunction(n,ClassType,AddMethods);
+	    Swig_MembergetToFunction(n,ClassType,Extend);
 	    Setattr(n,"sym:name",  mrename_get);
 	    functionWrapper(n);
 	}
@@ -1038,7 +1038,7 @@ Language::membervariableHandler(Node *n) {
 	SwigType *vty;
 	p = NewParm(type,0);
 	gname = NewStringf(AttributeFunctionGet,symname);
-	if (!AddMethods) {
+	if (!Extend) {
 	    ActionFunc = Copy(Swig_cmemberget_call(name,type));
 	    cpp_member_func(Char(gname),Char(gname),type,0);
 	    Delete(ActionFunc);
@@ -1051,7 +1051,7 @@ Language::membervariableHandler(Node *n) {
 	if (!Getattr(n,"feature:immutable")) {
 	    gname = NewStringf(AttributeFunctionSet,symname);
 	    vty = NewString("void");
-	    if (!AddMethods) {
+	    if (!Extend) {
 		ActionFunc = Copy(Swig_cmemberset_call(name,type));
 		cpp_member_func(Char(gname),Char(gname),vty,p);
 		Delete(ActionFunc);
@@ -1234,11 +1234,11 @@ int Language::classDeclaration(Node *n) {
     ClassName = NewString(classname);
     ClassPrefix = NewString(iname);
     if (strip) {
-	ClassType = NewString(classname);
+      ClassType = NewString(classname);
     } else {
-	ClassType = NewStringf("%s %s", kind, classname);
+      ClassType = NewStringf("%s %s", kind, classname);
     }
-    Setattr(n,"classtype", ClassType);
+    Setattr(n,"classtype", SwigType_namestr(ClassType));
 
     InClass = 1;
     CurrentClass = n;
@@ -1376,7 +1376,7 @@ Language::constructorHandler(Node *n) {
 
     mrename = Swig_name_construct(symname);
 
-    Swig_ConstructorToFunction(n,ClassType,CPlusPlus,AddMethods);
+    Swig_ConstructorToFunction(n,ClassType,CPlusPlus,Extend);
     Setattr(n,"sym:name", mrename);
     functionWrapper(n);
     Delete(mrename);
@@ -1395,7 +1395,7 @@ Language::copyconstructorHandler(Node *n) {
   String *mrename;
 
   mrename = Swig_name_copyconstructor(symname);
-  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, AddMethods);
+  Swig_ConstructorToFunction(n,ClassType, CPlusPlus, Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -1452,7 +1452,7 @@ int Language::destructorHandler(Node *n) {
 
     mrename = Swig_name_destroy(csymname);
  
-    Swig_DestructorToFunction(n,ClassType,CPlusPlus,AddMethods);
+    Swig_DestructorToFunction(n,ClassType,CPlusPlus,Extend);
     Setattr(n,"sym:name", mrename);
     functionWrapper(n);
     Delete(mrename);

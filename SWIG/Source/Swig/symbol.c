@@ -365,7 +365,10 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
   }
 
   /* No symbol name defined.  We return. */
-  if (!symname) return n;
+  if (!symname) {
+    Setattr(n,"sym:symtab",current_symtab);
+    return n;
+  }
 
   /* If node is ignored. We don't proceed any further */
   if (Getattr(n,"feature:ignore")) return n;
@@ -604,7 +607,7 @@ Node *
 Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   Hash *hsym;
   Node *s = 0;
-
+  
   if (!n) {
     hsym = current_symtab;
   } else {
@@ -620,7 +623,9 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
   if (Strstr(name,"::")) {
     if (Strncmp(name,"::",2) == 0) s = symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
     else s = symbol_lookup_qualified(name,hsym,0,0);
-    if (!s) return 0;
+    if (!s) {
+      return 0;
+    }
   }
   if (!s) {
     while (hsym) {
@@ -630,8 +635,9 @@ Swig_symbol_clookup(String_or_char *name, Symtab *n) {
       if (!hsym) break;
     }
   }
-  if (!s) return 0;
-
+  if (!s) {
+    return 0;
+  }
   /* Check if s is a 'using' node */
   while (Strcmp(nodeType(s),"using") == 0) {
     s = Getattr(s,"node");

@@ -69,6 +69,9 @@ Parm *CopyParm(Parm *p) {
   if (alttype) 
     Setattr(np,"alttype", Copy(alttype));
       
+  Setfile(np,Getfile(p));
+  Setline(np,Getline(p));
+
   return np;
 }
 

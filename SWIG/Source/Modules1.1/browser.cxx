@@ -112,7 +112,7 @@ public:
     return SWIG_OK;
   }
 
-  virtual int addmethodsDirective(Node *n) {
+  virtual int extendDirective(Node *n) {
     show_attributes(n);
     emit_children(n);
     return SWIG_OK;

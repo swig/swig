@@ -945,6 +945,10 @@ int RUBY::classHandler(Node *n) {
   char *cname = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
 
+  if (SwigType_istemplate(cname)) {
+    cname = Char(SwigType_namestr(cname));
+  }
+
   klass = RCLASS(classes, cname);
 
   /* !!! Added by beazley. 8/29/01 */
@@ -1079,7 +1083,7 @@ int RUBY::constructorHandler(Node *n) {
     String *symname = Getattr(n,"sym:name");
     String *mrename = Swig_name_member(classname, symname);
     Setattr(n, "sym:name", mrename);
-    Swig_ConstructorToFunction(n, classname, CPlusPlus, AddMethods);
+    Swig_ConstructorToFunction(n, classname, CPlusPlus, Extend);
     current = STATIC_FUNC;
     functionWrapper(n);
     current = NO_CPP;
@@ -1106,7 +1110,7 @@ int RUBY::destructorHandler(Node *n) {
   Printv(freebody, "static void\n",
 	 freefunc, "(", klass->type, " *", Swig_cparm_name(0,0), ") {\n",
   	 tab4, NULL);
-  if (AddMethods) {
+  if (Extend) {
     Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", NULL);
   } else {
     /* When no addmethods mode, swig emits no destroy function. */
@@ -1191,6 +1195,10 @@ int RUBY::classforwardDeclaration(Node *n) {
   char *cname  = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
   char *type   = GetChar(n,"kind");
+
+  if (SwigType_istemplate(cname)) {
+    cname = Char(SwigType_namestr(cname));
+  }
 
   RClass *kls;
   kls = RCLASS(classes,cname);

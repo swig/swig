@@ -203,8 +203,8 @@ int emit_num_required(ParmList *parms) {
     if (Getattr(p,"tmap:ignore")) {
       p = Getattr(p,"tmap:ignore:next");
     } else {
-      if (Getattr(p,"value")) return nargs;
-      if (Getattr(p,"tmap:default")) return nargs;
+      if (Getattr(p,"value")) break;
+      if (Getattr(p,"tmap:default")) break;
       nargs++;
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");
@@ -213,7 +213,23 @@ int emit_num_required(ParmList *parms) {
       }
     }
   }
-  /* Might want an error message if any arguments that follow don't have defaults */
+  /* Print message for non-default arguments */
+  while (p) {
+    if (Getattr(p,"tmap:ignore")) {
+      p = Getattr(p,"tmap:ignore:next");
+    } else {
+      if (!Getattr(p,"value") && (!Getattr(p,"tmap:default"))) {
+	Printf(stderr,"%s:%d. Error. Non-optional argument '%s' follows an optional argument.\n",
+	       Getfile(p),Getline(p),Getattr(p,"name"));
+      }
+      if (Getattr(p,"tmap:in")) {
+	p = Getattr(p,"tmap:in:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  }
+
   if (parms && (p = Getattr(parms,"emit:varargs"))) {
     if (!nextSibling(p)) {
       nargs--;

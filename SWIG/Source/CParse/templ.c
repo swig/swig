@@ -32,14 +32,26 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist) {
 
 static int
 cparse_template_expand(Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+  static int expanded = 0;
+  int ret;
 
   if (!n) return 0;
   if (Getattr(n,"error")) return 0;
 
   if (Strcmp(nodeType(n),"template") == 0) {
     /* Change the node type back to normal */
-    set_nodeType(n,Getattr(n,"templatetype"));
-    return cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
+    if (!expanded) {
+      expanded = 1;
+      set_nodeType(n,Getattr(n,"templatetype"));
+      ret = cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
+      expanded = 0;
+      return ret;
+    } else {
+      set_nodeType(n,Getattr(n,"templatetype"));
+      ret = cparse_template_expand(n,tname, rname, templateargs, patchlist,typelist, cpatchlist);
+      set_nodeType(n,"template");
+      return ret;
+    }
   } else if (Strcmp(nodeType(n),"cdecl") == 0) {
     /* A simple C declaration */
     SwigType *t, *v, *d;
@@ -136,6 +148,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   cpatchlist = NewList();
   typelist = NewList();
 
+#if 0
   templateargs = NewString("< ");
   p = tparms;
   while (p) {
@@ -149,6 +162,14 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   }
   Printf(templateargs," >");
   canonical_template(templateargs);
+#else
+  {
+    String *tmp = NewString("");
+    SwigType_add_template(tmp,tparms);
+    templateargs = Copy(tmp);
+    Delete(tmp);
+  }
+#endif
 
   tname = Copy(Getattr(n,"name"));
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
@@ -180,6 +201,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
       /*      Printf(stdout,"value = %s\n", value);
       Printf(stdout,"tydef = %s\n", tydef);
       Printf(stdout,"name  = %s\n", name); */
+
       sz = Len(patchlist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(patchlist,i);
@@ -190,7 +212,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	String *s = Getitem(typelist,i);
 	Replace(s,name,value, DOH_REPLACE_ID);
 	SwigType_typename_replace(s,tname,iname);
-	canonical_template(s);
+	/*	canonical_template(s); */
       }
       if (!tydef) {
 	tydef = value;

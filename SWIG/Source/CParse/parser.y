@@ -53,7 +53,7 @@ extern void generate_all(Node *);
 
 static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
-static Hash    *addmethods = 0;     /* Hash table of added methods */
+static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
@@ -61,9 +61,7 @@ static Node    *current_class = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
-static int      templatemode = 0;
 static int      templatenum = 0;
-static Hash    *templatetypes = 0;
 static String  *templateargs = 0;
 
 int      ShowTemplates = 0;    /* Debugging mode */
@@ -274,7 +272,15 @@ static void add_symbols(Node *n) {
   String *decl;
   char *wrn = 0;
   /* Don't add symbols for private/protected members */
-  if (inclass && (cplus_mode != CPLUS_PUBLIC)) return;
+  if (inclass && (cplus_mode != CPLUS_PUBLIC)) {
+    Swig_symbol_add(0, n);       /* Add to C symbol table */
+    if (cplus_mode == CPLUS_PRIVATE) {
+      Setattr(n,"access", "private");
+    } else {
+      Setattr(n,"access", "protected");
+    }
+    return;
+  }
   while (n) {
     String *symname;
     if (Getattr(n,"sym:name")) {
@@ -317,9 +323,9 @@ static void add_symbols(Node *n) {
       if ((wrn) && (strlen(wrn))) {
 	Printf(stderr,"%s:%d. NameWarning. %s\n", Getfile(n), Getline(n), wrn);
       }
-      if (Strcmp(nodeType(n),"enum")) {
+      if (Strcmp(nodeType(n),"enum") != 0) {
 	c = Swig_symbol_add(symname,n);
-	if (c != n) {
+	if ((c != n)) {
 	  String *e = NewString("");
 	  Printf(e,"%s:%d. Identifier '%s' redeclared (ignored).", Getfile(n),Getline(n),symname);
 	  if (Cmp(symname,Getattr(n,"name"))) {
@@ -371,12 +377,12 @@ void add_symbols_copy(Node *n) {
   }
 }
 
-/* Addmethods merge.  This function is used to handle the %addmethods directive
-   when it appears before a class definition.   To handle this, the %addmethods
+/* Extension merge.  This function is used to handle the %extend directive
+   when it appears before a class definition.   To handle this, the %extend
    actually needs to take precedence.  Therefore, we will selectively nuke symbols
    from the current symbol table, replacing them with the added methods */
 
-static void merge_addmethods(Node *am) {
+static void merge_extensions(Node *am) {
   Node *n;
   Node *csym;
 
@@ -397,23 +403,23 @@ static void merge_addmethods(Node *am) {
 	Printf(stderr,"%s",e);
 	Setattr(csym,"error",e);
 	Swig_symbol_remove(csym);              /* Remove class definition */
-	Swig_symbol_add(symname,n);            /* Insert addmethods definition */
+	Swig_symbol_add(symname,n);            /* Insert extend definition */
       }
     }
     n = nextSibling(n);
   }
 }
 
-/* Check for unused %addmethods.  Special case, don't report unused
-   addmethods for templates */
+/* Check for unused %extend.  Special case, don't report unused
+   extensions for templates */
  
- static void check_addmethods() {
+ static void check_extensions() {
    String *key;
-   if (!addmethods) return;
-   for (key = Firstkey(addmethods); key; key = Nextkey(addmethods)) {
-     Node *n = Getattr(addmethods,key);
+   if (!extendhash) return;
+   for (key = Firstkey(extendhash); key; key = Nextkey(extendhash)) {
+     Node *n = Getattr(extendhash,key);
      if (!Strstr(key,"<")) {
-       Printf(stderr,"%s:%d. %%addmethods defined for an undeclared class %s.\n",
+       Printf(stderr,"%s:%d. %%extend defined for an undeclared class %s.\n",
 	      Getfile(n),Getline(n),key);
      }
    }
@@ -637,17 +643,6 @@ void canonical_template(String *s) {
   Replace(s,">"," >", DOH_REPLACE_ANY);
 }
 
-static void patch_template_type(String *s) {
-  if (templatetypes) {
-    if (Strstr(s,"__swig")) {
-      String *key;
-      for (key = Firstkey(templatetypes); key; key = Nextkey(templatetypes)) {
-	Replace(s,key,Getattr(templatetypes,key), DOH_REPLACE_ID);
-      }
-    }
-  }
-}
-
 %}
 
 %union {
@@ -704,7 +699,7 @@ static void patch_template_type(String *s) {
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST VOLATILE STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
-%token NAME RENAME NAMEWARN ADDMETHODS PRAGMA FEATURE VARARGS
+%token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW
 %token USING
@@ -718,6 +713,7 @@ static void patch_template_type(String *s) {
 %token <str> OPERATOR
 %token <str> COPERATOR
 
+%left  CAST
 %left  LOR
 %left  LAND
 %left  OR
@@ -732,7 +728,7 @@ static void patch_template_type(String *s) {
 %type <node>     program interface declaration swig_directive ;
 
 /* SWIG directives */
-%type <node>     addmethods_directive apply_directive clear_directive constant_directive ;
+%type <node>     extend_directive apply_directive clear_directive constant_directive ;
 %type <node>     echo_directive except_directive include_directive inline_directive ;
 %type <node>     insert_directive module_directive name_directive native_directive ;
 %type <node>     new_directive pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
@@ -754,14 +750,14 @@ static void patch_template_type(String *s) {
 %type <dtype>    initializer;
 %type <id>       storage_class;
 %type <pl>       parms  ptail rawparms varargs_parms ;
-%type <p>        parm;
+%type <p>        parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail;
 %type <id>       cpptype access_specifier;
 %type <node>     base_specifier
-%type <type>     type rawtype type_right cast_type cast_type_right;
+%type <type>     type rawtype type_right ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
-%type <dtype>    expr;
+%type <dtype>    expr exprnum exprcompound ;
 %type <id>       ename ;
 %type <id>       template_decl;
 %type <str>      type_qualifier cpp_const ;
@@ -793,7 +789,7 @@ static void patch_template_type(String *s) {
 program        :  interface {
 		   Setattr($1,"classes",classes);
 		   Setattr($1,"name",ModuleName);
-		   check_addmethods();
+		   check_extensions();
 	           top = $1;
                }
                ;
@@ -834,7 +830,7 @@ declaration    : swig_directive { $$ = $1; }
  *                           SWIG DIRECTIVES 
  * ====================================================================== */
   
-swig_directive : addmethods_directive { $$ = $1; }
+swig_directive : extend_directive { $$ = $1; }
                | apply_directive { $$ = $1; }
  	       | clear_directive { $$ = $1; }
                | constant_directive { $$ = $1; }
@@ -857,20 +853,28 @@ swig_directive : addmethods_directive { $$ = $1; }
                ;
 
 /* ------------------------------------------------------------
-   %addmethods classname { ... } 
+   %extend classname { ... } 
    ------------------------------------------------------------ */
 
-addmethods_directive : ADDMETHODS idcolon LBRACE {
+extend_directive : EXTEND idcolon LBRACE {
                Node *cls;
 	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
-	       if (!addmethods) addmethods = NewHash();
+	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($2);
 	       cls = Getattr(classes,clsname);
+	       /*	       Printf(stdout,"%s %x\n", clsname, cls);
+	       {
+		 String *key;
+		 for (key = Firstkey(classes); key; key = Nextkey(classes)) {
+		   Printf(stdout,"   %s\n", key);
+		 }
+	       }
+	       */
 	       if (!cls) {
 		 /* No previous definition. Create a new scope */
-		 Node *am = Getattr(addmethods,clsname);
+		 Node *am = Getattr(extendhash,clsname);
 		 if (!am) {
 		   Swig_symbol_newscope();
 		   prev_symtab = 0;
@@ -888,7 +892,7 @@ addmethods_directive : ADDMETHODS idcolon LBRACE {
 	       Delete(clsname);
 	     } cpp_members RBRACE {
                String *clsname;
-               $$ = new_node("addmethods");
+               $$ = new_node("extend");
 	       Setattr($$,"symtab",Swig_symbol_popscope());
 	       if (prev_symtab) {
 		 Swig_symbol_setscope(prev_symtab);
@@ -897,18 +901,18 @@ addmethods_directive : ADDMETHODS idcolon LBRACE {
                clsname = make_class_name($2);
 	       Setattr($$,"name",clsname);
 	       if (current_class) {
-		 /* We add the addmethods to the previously defined class */
+		 /* We add the extension to the previously defined class */
 		 appendChild($$,$5);
 		 appendChild(current_class,$$);
 	       } else {
-		 /* We store the addmethods in the addmethods hash */
-		 Node *am = Getattr(addmethods,clsname);
+		 /* We store the extensions in the extensions hash */
+		 Node *am = Getattr(extendhash,clsname);
 		 if (am) {
-		   /* Append the members to the previous add methods */
+		   /* Append the members to the previous extend methods */
 		   appendChild(am,$5);
 		 } else {
 		   appendChild($$,$5);
-		   Setattr(addmethods,clsname,$$);
+		   Setattr(extendhash,clsname,$$);
 		 }
 	       }
 	       current_class = 0;
@@ -1079,16 +1083,22 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
 
 inline_directive : INLINE HBLOCK {
                  String *cpps;
-                 $$ = new_node("insert");
-		 Setattr($$,"code",$2);
-		 /* Need to run through the preprocessor */
-		 Setline($2,start_line);
-		 Setfile($2,input_file);
-		 Seek($2,0,SEEK_SET);
-		 cpps = Preprocessor_parse($2);
-		 start_inline(Char(cpps), start_line);
-		 Delete($2);
-		 Delete(cpps);
+		 if (Namespaceprefix) {
+		   cparse_error(input_file, start_line, "Error. %%inline directive inside a namespace is disallowed.\n");
+
+		   $$ = 0;
+		 } else {
+		   $$ = new_node("insert");
+		   Setattr($$,"code",$2);
+		   /* Need to run through the preprocessor */
+		   Setline($2,start_line);
+		   Setfile($2,input_file);
+		   Seek($2,0,SEEK_SET);
+		   cpps = Preprocessor_parse($2);
+		   start_inline(Char(cpps), start_line);
+		   Delete($2);
+		   Delete(cpps);
+		 }
 	       }
                ;
 
@@ -1601,7 +1611,7 @@ types_directive : TYPES LPAREN parms RPAREN SEMI {
    %template(name) tname<args>;
    ------------------------------------------------------------ */
 
-template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATERTHAN SEMI {
+template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
 		  String *ts;
@@ -1613,30 +1623,46 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		  $$ = 0;
 
 		  /* We need to patch argument types to respect namespaces */
-
-		  args = NewString("");
-		  /* Make args from parms */
-		  p = $7;
-		  while (p) {
-		    String *value = Getattr(p,"value");
-		    if (value) {
-		      Printf(args,"%s",value);
-		    } else {
-		      SwigType *ty = Getattr(p,"type");
-		      if (ty) {
+		  if (0) {
+   	            args = NewString("");
+		    p = $7;
+		    while (p) {
+		      String *value = Getattr(p,"value");
+		      if (value) {
+			Printf(args,"%s",value);
+		      } else {
+			SwigType *ty = Getattr(p,"type");
+			if (ty) {
 			  ty = Swig_symbol_type_qualify(ty,0);
 			  Printf(args,"%s",SwigType_str(ty,0));
 			  Setattr(p,"type",ty);
+			}
+		      }
+		      p = nextSibling(p);
+		      if (p) {
+			Printf(args,",");
 		      }
 		    }
-		    p = nextSibling(p);
-		    if (p) {
-		      Printf(args,",");
+		    templateargs = NewStringf("%s<%s>", $5, args);
+		    canonical_template(templateargs);
+		  } else {
+		    p = $7;
+		    while (p) {
+		      if (!Getattr(p,"value")) {
+			SwigType *ty = Getattr(p,"type");
+			if (ty) {
+			  ty = Swig_symbol_type_qualify(ty,0);
+			  Setattr(p,"type",ty);
+			}
+		      }
+		      p = nextSibling(p);
 		    }
+		    templateargs = NewString($5);
+		    SwigType_add_template(templateargs,$7);
+		    args = NewString("");
+		    SwigType_add_template(args,$7);
 		  }
-		  templateargs = NewStringf("%s<%s>", $5, args);
-		  canonical_template(templateargs);
-
+		  
 		  /* Look for specialization first */
 		  n = Swig_symbol_clookup(templateargs,0);
 		  /*		  Printf(stdout,"checking %s\n", templateargs); */
@@ -1675,6 +1701,7 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 		      } else if (ParmList_len($7) < ParmList_numrequired(tparms)) {
 			Printf(stderr,"%s:%d. Not enough template parameters specified. %d required\n", input_file, line_number, ParmList_numrequired(tparms));
 		      } else {
+			int  def_supplied = 0;
 			/* Expand the template */
 			ParmList *temparms = CopyParmList(tparms);
 			ts = NewString("");
@@ -1683,6 +1710,9 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 			tp = temparms;
 			while (p) {
 			  String *value = Getattr(p,"value");
+			  if (def_supplied) {
+			    Setattr(p,"default","1");
+			  }
 			  if (value) {
 			    Setattr(tp,"value",value);
 			  } else {
@@ -1700,14 +1730,37 @@ template_directive: SWIGTEMPLATE LPAREN idstring RPAREN ID LESSTHAN parms GREATE
 			  }
 			  p = nextSibling(p);
 			  tp = nextSibling(tp);
-			  if (!p) p = tp;
+			  if (!p) {
+			    p = tp;
+			    def_supplied = 1;
+			  }
 			}
 			$$ = copy_node(n);
 			Swig_cparse_template_expand($$,$3,temparms);
 			Delete(temparms);
 			Setattr($$,"sym:name", $3);
 			add_symbols_copy($$);
+			
+			if (Strcmp(nodeType($$),"class") == 0) {
+			  /* Merge in addmethods for this class */
 
+			  /* !!! This may be broken.  We may have to
+                             add the addmethods at the beginning of
+                             the class */
+
+			  if (extendhash) {
+			    String *clsname = Getattr($$,"name");
+			    Node *am = Getattr(extendhash,clsname);
+			    if (am) {
+			      merge_extensions(am);
+			      appendChild($$,am);
+			      Delattr(extendhash,clsname);
+			    }
+			  }
+			  /* Add to classes hash */
+			  if (!classes) classes = NewHash();
+			  Setattr(classes,Swig_symbol_qualifiedscopename($$),$$);
+			}
 			/* Make a code insertion block to include typedefs */
 			{
 			  Node *ins = new_node("insert");
@@ -1988,14 +2041,14 @@ cpp_class_decl  :
 		 /* Check for pure-abstract class */
 		 Setattr($$,"abstract", pure_abstract($7));
 		 
-		 /* This bit of code merges in a previously defined %addmethod directive (if any) */
-		 if (addmethods) {
+		 /* This bit of code merges in a previously defined %extend directive (if any) */
+		 if (extendhash) {
 		   String *clsname = Swig_symbol_qualifiedscopename(0);
-		   Node *am = Getattr(addmethods,clsname);
+		   Node *am = Getattr(extendhash,clsname);
 		   if (am) {
-		     merge_addmethods(am);
+		     merge_extensions(am);
 		     appendChild($$,am);
-		     Delattr(addmethods,clsname);
+		     Delattr(extendhash,clsname);
 		   }
 		   Delete(clsname);
 		 }
@@ -2118,15 +2171,15 @@ cpp_class_decl  :
 		     n = nextSibling(n);
 		     set_nextSibling($$,n);
 
-		     /* Check for previous addmethods */
-		     if (addmethods) {
+		     /* Check for previous extensions */
+		     if (extendhash) {
 		       String *clsname = Swig_symbol_qualifiedscopename(0);
-		       Node *am = Getattr(addmethods,clsname);
+		       Node *am = Getattr(extendhash,clsname);
 		       if (am) {
-			 /* Merge the addmethods into the symbol table */
-			 merge_addmethods(am);
+			 /* Merge the extension into the symbol table */
+			 merge_extensions(am);
 			 appendChild($$,am);
-			 Delattr(addmethods,clsname);
+			 Delattr(extendhash,clsname);
 		       }
 		       Delete(clsname);
 		     }
@@ -2378,8 +2431,8 @@ cpp_members  : cpp_member cpp_members {
 		     $$ = $2;
 		   }
              }
-             | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
-	       $$ = new_node("addmethods");
+             | EXTEND LBRACE cpp_members RBRACE cpp_members {
+	       $$ = new_node("extend");
 	       appendChild($$,$3);
 	       set_nextSibling($$,$5);
 	     }
@@ -2414,6 +2467,8 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_nested { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
+             | cpp_template_decl { $$ = $1; }
+             | template_directive { $$ = $1; }
              | SEMI { $$ = 0; }
              ;
 
@@ -2645,6 +2700,7 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
              | typemap_directive { $$ = $1; }
              | apply_directive { $$ = $1; }
              | clear_directive { $$ = $1; }
+             | echo_directive { $$ = $1; }
              ;
 
 cpp_end        : cpp_const SEMI {
@@ -2727,22 +2783,71 @@ parm           : rawtype parameter_declarator {
 		  $$ = NewParm(t, 0);
 		  Setfile($$,input_file);
 		  Setline($$,line_number);
-
-
-		  /*
-                  cparse_error(input_file, line_number, "Variable length arguments not supported (ignored).\n");
-		  $$ = NewParm(NewSwigType(T_INT),(char *) "varargs"); */
-
 		}
 		;
 
+valparms        : rawvalparms {
+                 Parm *p;
+		 $$ = $1;
+		 p = $1;
+                 while (p) {
+		   if (Getattr(p,"type")) {
+		     Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
+		   }
+		   p = nextSibling(p);
+                 }
+               }
+    	       ;
+
+rawvalparms     : valparm valptail {
+		  if (1) { 
+		    set_nextSibling($1,$2);
+		    $$ = $1;
+		  } else {
+		    $$ = $2;
+		  }
+		}
+               | empty { $$ = 0; }
+               ;
+
+valptail       : COMMA valparm valptail {
+                 set_nextSibling($2,$3);
+		 $$ = $2;
+                }
+               | empty { $$ = 0; }
+               ;
+
+
+valparm        : parm {
+		  $$ = $1;
+               } 
+               | exprnum {
+                  $$ = NewParm(0,0);
+                  Setfile($$,input_file);
+		  Setline($$,line_number);
+		  Setattr($$,"value",$1.val);
+               }
+               | STRING {
+                  $$ = NewParm(0,0);
+                  Setfile($$,input_file);
+		  Setline($$,line_number);
+		  Setattr($$,"value",NewString($1));
+               }
+               ;
+ 
 def_args       : EQUAL definetype { 
                   Node *n;
                   $$ = $2; 
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
+		  if ($2.type == T_ERROR) {
+		    Printf(stderr,"%s:%d. Warning. Can't set default argument (ignored)\n", input_file, line_number);
+		    $$.val = 0;
+		    $$.rawval = 0;
+		  }
+		  /*
 		  n = Swig_symbol_clookup($2.val,0);
-		  if (n) {
+		  if 
 		    String *q = Swig_symbol_qualified(n);
 		    if (q) {
 		      $$.val = NewStringf("%s::%s",q,Getattr(n,"name"));
@@ -2751,16 +2856,23 @@ def_args       : EQUAL definetype {
 		      $$.val = NewString($2.val);
 		    }
 		  }
+		  */
                }
                | EQUAL AND idcolon {
 		 Node *n = Swig_symbol_clookup($3,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
-		   if (q) {
-		     $$.val = NewStringf("&%s::%s", q,Getattr(n,"name"));
-		     Delete(q);
+		   if (Getattr(n,"access")) {
+		     Printf(stderr,"%s:%d. Warning '%s' is private in this context.\n", input_file, line_number, $3);
+		     Printf(stderr,"%s:%d. Warning. Can't set default argument (ignored)\n", input_file, line_number);
+		     $$.val = 0;
 		   } else {
-		     $$.val = NewStringf("&%s", $3);
+		     if (q) {
+		       $$.val = NewStringf("&%s::%s", q,Getattr(n,"name"));
+		       Delete(q);
+		     } else {
+		       $$.val = NewStringf("&%s", $3);
+		     }
 		   }
 		 } else {
 		   $$.val = NewStringf("&%s",$3);
@@ -3153,7 +3265,7 @@ pointer    : STAR type_qualifier pointer {
            | STAR {
 	      $$ = NewString("");
 	      SwigType_add_pointer($$);
-	      }
+           }
            ;
 
 type_qualifier : type_qualifier_raw { 
@@ -3200,9 +3312,6 @@ type_right     : primitive_type { $$ = $1;
      	       }
 
                | idcolon {
-                  if (templatemode) {
-		    patch_template_type($1);
-		  }
 		  $$ = $1;
                }
                | cpptype idcolon { 
@@ -3314,7 +3423,7 @@ type_specifier : TYPE_INT {
                 }
                ;
 
-definetype     : { scanner_check_typedef(); } expr {
+definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
 		   $$.rawval = 0;
 		   scanner_ignore_typedef();
@@ -3399,23 +3508,71 @@ etype            : expr {
    this does allow us to parse many constant declarations.
  */
 
-expr           :  NUM_INT { $$ = $1; }
+expr           :  exprnum { $$ = $1; }
+               |  SIZEOF LPAREN type parameter_declarator RPAREN {
+  		  SwigType_push($3,$4.type);
+		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
+		  $$.type = T_INT;
+	       }
+               | exprcompound { $$ = $1; }
+               | type {
+		 Node *n;
+		 $$.val = $1;
+		 $$.type = T_INT;
+		 /* Check if value is in scope */
+		 n = Swig_symbol_clookup($1,0);
+		 if (n) {
+		   String *ns;
+		   if (Getattr(n,"access")) {
+		     Printf(stderr,"%s:%d. Warning '%s' is private in this context.\n", input_file, line_number, $1);
+		     $$.type = T_ERROR;
+
+		   }
+		   ns = Swig_symbol_qualified(n);
+		   if (ns && Len(ns)) {
+		     Insert($$.val,0,"::");
+		     Insert($$.val,0,ns);
+		     Delete(ns);
+		   }
+		 }
+               }
+
+/* grouping */
+               |  LPAREN expr RPAREN %prec CAST {
+   	            $$.val = NewStringf("(%s)",$2.val);
+		    $$.type = $2.type;
+   	       }
+
+/* A few common casting operations */
+
+               | LPAREN expr RPAREN expr %prec CAST {
+                 $$ = $4;
+		 $$.val = NewStringf("(%s) %s", $2.val, $4.val)
+ 	       }
+               | LPAREN expr pointer RPAREN expr %prec CAST {
+                 $$ = $5;
+		 $$.val = NewStringf("(%s %s) %s", $2.val, SwigType_str($3,0), $5.val);
+ 	       }
+               | LPAREN expr AND RPAREN expr %prec CAST {
+                 $$ = $5;
+		 $$.val = NewStringf("(%s &) %s", $2.val, $5.val);
+ 	       }
+               | LPAREN expr pointer AND RPAREN expr %prec CAST {
+                 $$ = $6;
+		 $$.val = NewStringf("(%s %s&) %s", $2.val, SwigType_str($3,0), $6.val);
+ 	       }
+               ;
+
+exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
                |  NUM_UNSIGNED { $$ = $1; }
                |  NUM_LONG { $$ = $1; }
                |  NUM_ULONG { $$ = $1; }
                |  NUM_LONGLONG { $$ = $1; }
                |  NUM_ULONGLONG { $$ = $1; }
-               |  SIZEOF LPAREN type parameter_declarator RPAREN {
-  		  SwigType_push($3,$4.type);
-		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
-		  $$.type = T_INT;
-	       }
-               | idcolon {
-		 $$.val = $1;
-		 $$.type = T_INT;
-               }
-               | expr PLUS expr {
+               ;
+
+exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s+%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
@@ -3471,37 +3628,7 @@ expr           :  NUM_INT { $$ = $1; }
                  $$.val = NewStringf("!%s",$2.val);
 		 $$.type = T_ERROR;
 	       }
-               |  LPAREN expr RPAREN {
-		 $$.val = NewStringf("(%s)",$2.val);
-		 $$.type = $2.type;
-	       }
-               | LPAREN cast_type parameter_declarator RPAREN expr %prec UMINUS {
-		 $$.val = $5.val;
-		 $$.type = $5.type;
-               }
                ;
-
-
-cast_type      : type_qualifier cast_type_right {
-                   $$ = $2;
-	           SwigType_push($$,$1);
-               }
-               | cast_type_right { $$ = $1; }
-               ;
-
-cast_type_right:  primitive_type { $$ = $1; }
-               | TYPE_BOOL { $$ = $1; }
-               | TYPE_VOID { $$ = $1; }
-               | cpptype ID { $$ = NewStringf("%s %s", $1, $2); }
-               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
-               | ENUM ID { $$ = NewStringf("enum %s", $2); }
-               | TYPE_RAW { $$ = $1; }
-               | cast_type_right type_qualifier {
-		  $$ = $1;
-	          SwigType_push($$,$2);
-     	       }
-               ;
-
 
 inherit        : raw_inherit {
 		 $$ = $1;
@@ -3587,20 +3714,17 @@ mem_initializer : ID LPAREN {
             	}
                 ;
 
-template_decl : LESSTHAN { 
+template_decl : LESSTHAN valparms GREATERTHAN { 
+  /*
                      String *s;
                      skip_balanced('<','>');
 		     s = Copy(scanner_ccode);
-		     if (templatetypes) {
-		       String *key;
-		       for (key = Firstkey(templatetypes); key; key = Nextkey(templatetypes)) {
-			 String *t = SwigType_str(Getattr(templatetypes,key),0);
-			 Replace(s,key,t, DOH_REPLACE_ID);
-			 Delete(t);
-		       }
-		     }
 		     canonical_template(s);
 		     $$ = Char(s);
+  */
+                     String *s = NewString("");
+                     SwigType_add_template(s,$2);
+                     $$ = Char(s);
                  }
                | empty { $$ = (char*)"";  }
                ;

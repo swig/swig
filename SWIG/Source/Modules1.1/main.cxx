@@ -43,7 +43,7 @@ extern "C" {
     char       LibDir[512];                      // Library directory
     Language  *lang;                            // Language method
     int        CPlusPlus = 0;
-    int        AddMethods = 0;                  // AddMethods flag
+    int        Extend = 0;                      // Extend flag
     int        NewObject = 0;                   // NewObject flag
     int        ForceExtern = 0;                 // Force extern mode
     int        GenerateDefault = 1;             // Generate default constructors

@@ -33,7 +33,7 @@ extern  char     *input_file;
 extern  int       line_number;
 extern  int       start_line;
 extern  int       CPlusPlus;                        // C++ mode
-extern  int       AddMethods;                       // AddMethods mode
+extern  int       Extend;                           // Extend mode
 extern  int       NewObject;                        // NewObject mode
 extern  int       NoInclude;                        // NoInclude flag
 extern  int       error_count;
@@ -60,12 +60,12 @@ class Dispatcher {
   virtual int  top(Node *n) = 0;
   
   /* SWIG directives */
-  
-  virtual int addmethodsDirective(Node *n);
+
   virtual int applyDirective(Node *n);
   virtual int clearDirective(Node *n);
   virtual int constantDirective(Node *n);
   virtual int exceptDirective(Node *n);
+  virtual int extendDirective(Node *n);
   virtual int importDirective(Node *n);
   virtual int includeDirective(Node *n);
   virtual int insertDirective(Node *n);
@@ -118,11 +118,12 @@ public:
   
   /* SWIG directives */
   
-  virtual int addmethodsDirective(Node *n);
+
   virtual int applyDirective(Node *n);
   virtual int clearDirective(Node *n);
   virtual int constantDirective(Node *n);
   virtual int exceptDirective(Node *n);
+  virtual int extendDirective(Node *n);
   virtual int importDirective(Node *n);
   virtual int includeDirective(Node *n);
   virtual int insertDirective(Node *n);

@@ -240,12 +240,12 @@ public:
     /* ------------------------------------------------------------
      * includeDirective()
      * externDirective()
-     * addmethodsDirective()
+     * extendDirective()
      * ------------------------------------------------------------ */ 
 
     virtual int includeDirective(Node *n) { return emit_children(n); }
     virtual int externDeclaration(Node *n) { return emit_children(n); }
-    virtual int addmethodsDirective(Node *n) { return emit_children(n); }
+    virtual int extendDirective(Node *n) { return emit_children(n); }
 
     /* ------------------------------------------------------------
      * classDeclaration()

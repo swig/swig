@@ -348,6 +348,36 @@ SwigType_function_parms(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_add_template()
+ *
+ * Adds a template to a type.   This template is encoded in the SWIG type
+ * mechanism and produces a string like this:
+ *
+ *  vector<int *> ----> "vector<(p.int)>"
+ * ----------------------------------------------------------------------------- */
+
+void
+SwigType_add_template(SwigType *t, ParmList *parms) {
+  String *pstr;
+  Parm   *p;
+
+  Append(t,"<(");
+  p = parms;
+  for (p = parms; p; p = nextSibling(p)) {
+    String *v;
+    if (Getattr(p,"default")) continue;
+    if (p != parms) Append(t,",");
+    v = Getattr(p,"value");
+    if (v) {
+      Append(t,v);
+    } else {
+      Append(t,Getattr(p,"type"));
+    }
+  }
+  Append(t,")>");
+}
+
+/* -----------------------------------------------------------------------------
  * static isolate_element()
  *
  * Isolate a single element of a type string (delimeted by periods)
@@ -360,8 +390,7 @@ isolate_element(char *c) {
     if (*c == '.') {
       Putc(*c,result);
       return result;
-    }
-    else if (*c == '(') {
+    } else if (*c == '(') {
       int nparen = 1;
       Putc(*c,result);
       c++;
@@ -649,12 +678,29 @@ int SwigType_isenum(SwigType *t) {
 int SwigType_issimple(SwigType *t) {
   char *c = Char(t);
   if (!t) return 0;
-  if (strchr(c,'.')) return 0;
+  while (*c) {
+    if (*c == '<') {
+      int nest = 1;
+      c++;
+      while (*c && nest) {
+	if (*c == '<') nest++;
+	if (*c == '>') nest--;
+	c++;
+      }
+    }
+    if (*c == '.') return 0;
+    c++;
+  }
   return 1;
 }
 
 int SwigType_isvarargs(SwigType *t) {
   if (Strcmp(t,"v(...)") == 0) return 1;
+  return 0;
+}
+
+int SwigType_istemplate(SwigType *t) {
+  if (Strstr(t,"<(")) return 1;
   return 0;
 }
 
@@ -669,8 +715,32 @@ SwigType *SwigType_base(SwigType *t) {
 
   c = Char(t);
   d = c + strlen(c);
+
+  /* Check for a type constructor */
+  if ((d > c) && (*(d-1) == '.')) d--;
+
   while (d > c) {
     d--;
+    if (*d == '>') {
+      /* Skip over template--that's part of the base name */
+      int ntemp = 1;
+      d--;
+      while ((d > c) && (ntemp > 0)) {
+	if (*d == '>') ntemp++;
+	if (*d == '<') ntemp--;
+	d--;
+      }
+    }
+    if (*d == ')') {
+      /* Skip over params */
+      int nparen = 1;
+      d--;
+      while ((d > c) && (nparen > 0)) {
+	if (*d == ')') nparen++;
+	if (*d == '(') nparen--;
+	d--;
+      }
+    }
     if (*d == '.') return NewString(d+1);
   }
   return NewString(c);
@@ -688,8 +758,32 @@ String *SwigType_prefix(SwigType *t) {
 
   c = Char(t);
   d = c + strlen(c);
+
+  /* Check for a type constructor */
+  if ((d > c) && (*(d-1) == '.')) d--;
+
   while (d > c) {
     d--;
+    if (*d == '>') {
+      int nest = 1;
+      d--;
+      while ((d > c) && (nest)) {
+	if (*d == '>') nest++;
+	if (*d == '<') nest--;
+	d--;
+      }
+    }
+    if (*d == ')') {
+      /* Skip over params */
+      int nparen = 1;
+      d--;
+      while ((d > c) && (nparen)) {
+	if (*d == ')') nparen++;
+	if (*d == '(') nparen--;
+	d--;
+      }
+    }
+
     if (*d == '.') {
       char t = *(d+1);
       *(d+1) = 0;
@@ -700,6 +794,67 @@ String *SwigType_prefix(SwigType *t) {
   }
   return NewString("");
 }
+
+
+
+/* -----------------------------------------------------------------------------
+ * SwigType_templateprefix()
+ *
+ * Returns the prefix before the first template definition.
+ * For example:
+ *
+ *     Foo<(p.int)>::bar
+ *
+ * Results in "Foo"
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_templateprefix(SwigType *t) {
+  char *c;
+  String *r;
+  String *s = Copy(t);
+  c = Char(s);
+  while (*c) {
+    if (*c == '<') {
+      *c = 0;
+      r = NewString(Char(s));
+      Delete(s);
+      return r;
+    }
+    c++;
+  }
+  return s;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_templatesuffix()
+ *
+ * Returns text after a template substitution.  Used to handle scope names
+ * for example:
+ *
+ *        Foo<(p.int)>::bar
+ *
+ * returns "::bar"
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_templatesuffix(SwigType *t) {
+  char *c;
+  c = Char(t);
+  while (*c) {
+    if ((*c == '<') && (*(c+1) == '(')) {
+      int nest = 1;
+      c++;
+      while (*c && nest) {
+	if (*c == '<') nest++;
+	if (*c == '>') nest--;
+	c++;
+      }
+      return NewString(c);
+    }
+    c++;
+  }
+  return NewString("");
+}
+
 
 /* -----------------------------------------------------------------------------
  * SwigType_strip_qualifiers()
@@ -871,6 +1026,55 @@ SwigType *SwigType_default(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_namestr()
+ *
+ * Returns a string of the base type.  Takes care of template expansions
+ * ----------------------------------------------------------------------------- */
+
+String *
+SwigType_namestr(SwigType *t) {
+  String *r;
+  String *suffix;
+  List   *p;
+  char   tmp[256];
+  char   *c, *d, *e;
+  int     i, sz;
+
+  if (!SwigType_istemplate(t)) return NewString(t);
+
+  c = Strstr(t,"<(");
+
+  d = Char(t);
+  e = tmp;
+  while (d != c) {
+    *(e++) = *(d++);
+  }
+  *e = 0;
+  r = NewString(tmp);
+  Putc('<',r);
+  
+  p = SwigType_parmlist(t);
+  sz = Len(p);
+  for (i = 0; i < sz; i++) {
+    Append(r,SwigType_str(Getitem(p,i),0));
+    if ((i+1) < sz) Putc(',',r);
+  }
+  Putc(' ',r);
+  Putc('>',r);
+  suffix = SwigType_templatesuffix(t);
+  Append(r,suffix);
+  Delete(suffix);
+#if 0
+  if (SwigType_istemplate(r)) {
+    SwigType *rr = SwigType_namestr(r);
+    Delete(r);
+    return rr;
+  }
+#endif
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_str(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
@@ -951,13 +1155,16 @@ SwigType_str(SwigType *s, const String_or_char *id)
       if (Strcmp(element,"v(...)") == 0) {
 	Insert(result,0,"...");
       } else {
+	String *bs = SwigType_namestr(element);
 	Insert(result,0," ");
-	Insert(result,0,element);
+	Insert(result,0,bs);
+	Delete(bs);
       }
     }
     element = nextelement;
   }
   Delete(elements);
+  Chop(result);
   return result;
 }
 
@@ -1158,8 +1365,10 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       Insert(result,0,element);
       clear = 0;
     } else {
+      String *bs = SwigType_namestr(element);
       Insert(result,0," ");
-      Insert(result,0,element);
+      Insert(result,0,bs);
+      Delete(bs);
     }
     element = nextelement;
   }
@@ -1209,21 +1418,38 @@ String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
 
 String *SwigType_manglestr_default(SwigType *s) {
   char *c;
-  String *result;
+  String *result,*base;
+  SwigType *lt;
 
-  result = SwigType_ltype(s);
-
-  Replace(result,"struct ","", DOH_REPLACE_ANY);     /* This might be problematic */
-  Replace(result,"class ","", DOH_REPLACE_ANY);
-  Replace(result,"union ","", DOH_REPLACE_ANY);
+  lt = SwigType_ltype(s);
+  result = SwigType_prefix(lt);
+  base = SwigType_base(lt);
   c = Char(result);
+  while (*c) {
+    if (!isalnum((int)*c)) *c = '_';
+    c++;
+  }
+  if (SwigType_istemplate(base)) {
+    String *b = SwigType_namestr(base);
+    Delete(base);
+    base = b;
+  }
+
+  Replace(base,"struct ","", DOH_REPLACE_ANY);     /* This might be problematic */
+  Replace(base,"class ","", DOH_REPLACE_ANY);
+  Replace(base,"union ","", DOH_REPLACE_ANY);
+
+  c = Char(base);
   while (*c) {
     if (*c == '<') *c = 'T';
     else if (*c == '>') *c = 't';
     else if (!isalnum((int)*c)) *c = '_';
     c++;
   }
+  Append(result,base);
   Insert(result,0,"_");
+  Delete(lt);
+  Delete(base);
   return result;
 }
 
@@ -1256,7 +1482,10 @@ SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     String *e = Getitem(elem,i);
     if (SwigType_issimple(e)) {
       if (Strcmp(e,pat) == 0) {
+	/* Broken for templates */
 	Replace(e,pat,rep,DOH_REPLACE_ANY);
+      } else if (SwigType_istemplate(e)) {
+
       }
     } else if (SwigType_isfunction(e)) {
       int j;

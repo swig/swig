@@ -244,14 +244,16 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
 
 String *
 Swig_cfunction_call(String_or_char *name, ParmList *parms) {
-  DOH *func;
+  String *func;
   int i = 0;
   int comma = 0;
   Parm *p = parms;
   SwigType *pt;
+  String  *nname;
 
   func = NewString("");
-  Printf(func,"%s(", name);
+  nname = SwigType_namestr(name);
+  Printf(func,"%s(", nname);
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
@@ -280,16 +282,17 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
 
 String *
 Swig_cmethod_call(String_or_char *name, ParmList *parms) {
-  DOH *func;
+  String *func, *nname;
   int i = 0;
   Parm *p = parms;
   SwigType *pt;
   int comma = 0;
 
   func = NewString("");
+  nname = SwigType_namestr(name);
   if (!p) return func;
   pt = Getattr(p,"type");
-  Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), name);
+  Printf(func,"(%s)->%s(", SwigType_rcaststr(pt,Swig_cparm_name(p,0)), nname);
   i++;
   p = nextSibling(p);
   while (p) {
@@ -305,6 +308,7 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms) {
     p = nextSibling(p);
   }
   Printf(func,")");
+  Delete(nname);
   return func;
 }
 
@@ -338,13 +342,15 @@ Swig_cconstructor_call(String_or_char *name) {
 
 String *
 Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
-  DOH *func;
+  String *func;
+  String *nname;
   int i = 0;
   int comma = 0;
   Parm *p = parms;
   SwigType *pt;
+  nname = SwigType_namestr(name);
   func = NewString("");
-  Printf(func,"new %s(", name);
+  Printf(func,"new %s(", nname);
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
@@ -358,6 +364,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
     p = nextSibling(p);
   }
   Printf(func,")");
+  Delete(nname);
   return func;
 }
 
@@ -372,7 +379,7 @@ Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
 
 String *
 Swig_cdestructor_call() {
-  DOH *func;
+  String *func;
   func = NewString("");
   Printf(func,"free((char *) %s)", Swig_cparm_name(0,0));
   return func;
@@ -389,7 +396,7 @@ Swig_cdestructor_call() {
 
 String *
 Swig_cppdestructor_call() {
-  DOH *func;
+  String *func;
 
   func = NewString("");
   Printf(func,"delete %s", Swig_cparm_name(0,0));
@@ -427,7 +434,7 @@ Swig_cmemberset_call(String_or_char *name, SwigType *type) {
 
 String *
 Swig_cmemberget_call(String_or_char *name, SwigType *t) {
-  DOH *func;
+  String *func;
 
   func = NewString("");
   Printf(func,"%s (%s->%s)", Swig_wrapped_var_assign(t,""),Swig_cparm_name(0,0), name);
@@ -446,6 +453,10 @@ Swig_MethodToFunction(Node *n, String *classname, int added) {
   ParmList *parms;
   SwigType *type;
   Parm     *p;
+
+  /* If node is a member template expansion, we don't allow added code */
+
+  if (Getattr(n,"templatetype")) added = 0;
 
   name      = Getattr(n,"name");
   qualifier = Getattr(n,"qualifier");
@@ -679,21 +690,24 @@ Swig_MembergetToFunction(Node *n, String *classname, int added) {
 
 int
 Swig_VarsetToFunction(Node *n) {
-  String   *name;
+  String   *name,*nname;
   ParmList *parms;
   SwigType *type, *ty;
 
   name = Getattr(n,"name");
   type = Getattr(n,"type");
 
+  nname = SwigType_namestr(name);
+
   ty = Swig_wrapped_var_type(type);
   parms = NewParm(ty,"value");
   Delete(ty);
   
-  Setattr(n,"wrap:action", NewStringf("%s = %s;\n", name, Swig_wrapped_var_deref(type,Swig_cparm_name(0,0))));
+  Setattr(n,"wrap:action", NewStringf("%s = %s;\n", nname, Swig_wrapped_var_deref(type,Swig_cparm_name(0,0))));
   Setattr(n,"type","void");
   Setattr(n,"parms",parms);
   Delete(parms);
+  Delete(nname);
   return SWIG_OK;
 }
 
@@ -705,17 +719,19 @@ Swig_VarsetToFunction(Node *n) {
 
 int
 Swig_VargetToFunction(Node *n) {
-  String   *name;
+  String   *name, *nname;
   SwigType *type, *ty;
 
   name = Getattr(n,"name");
   type = Getattr(n,"type");
 
+  nname = SwigType_namestr(name);
   ty = Swig_wrapped_var_type(type);
 
-  Setattr(n,"wrap:action", NewStringf("result = (%s) %s;\n", SwigType_lstr(ty,0), Swig_wrapped_var_assign(type,name)));
+  Setattr(n,"wrap:action", NewStringf("result = (%s) %s;\n", SwigType_lstr(ty,0), Swig_wrapped_var_assign(type,nname)));
   Setattr(n,"type",ty);
   Delattr(n,"parms");
+  Delete(nname);
   Delete(ty);
   return SWIG_OK;
 }
