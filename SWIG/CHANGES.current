@@ -2,6 +2,12 @@ Version 1.3.22 (in progress)
 ==================================
 
 01/23/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] Replace the "known_classes" hash table by a node
+	    attribute.  Methods of classes in C++ namespaces now get
+	    the proper specializer in the GOOPS declaration.
+	    Reported by rm@mh-freiburg.de.
+
+01/23/2004: mkoeppe (Matthias Koeppe)
 	    [Guile] Uniquify the argument names in GOOPS shadow method
 	    declarations.  Reported by rm@mh-freiburg.de.
 
