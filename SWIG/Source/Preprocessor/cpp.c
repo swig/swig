@@ -27,6 +27,7 @@ static int       ignore_missing = 0;
 static int       import_all = 0;         /* Follow all includes, but as %import statements */
 static int       imported_depth = 0;	 /* Depth of %imported files */
 static int       single_include = 1;     /* Only include each file once */
+static int       replace_defined = 0;
 static Hash     *included_files = 0;
 static List     *dependencies = 0;
 
@@ -833,7 +834,7 @@ Preprocessor_replace(DOH *s)
 	/* We found the end of a valid identifier */
 	Ungetc(c,s);
 	/* See if this is the special "defined" macro */
-	if (Cmp(id,"defined") == 0) {
+	if (replace_defined && Cmp(id,"defined") == 0) {
 	  DOH *args;
 	  /* See whether or not a paranthesis has been used */
 	  skip_whitespace(s,0);
@@ -1095,7 +1096,9 @@ Preprocessor_parse(String *s)
     case 0:        /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
       if (c == '#') {
+	replace_defined = 1;
 	add_chunk(ns,chunk,allow);
+	replace_defined = 0;
 	copy_location(s,chunk);
 	cpp_lines = 1;
 	state = 40;
@@ -1454,7 +1457,9 @@ Preprocessor_parse(String *s)
       }
       /* %#cpp -  an embedded C preprocessor directive (we strip off the %)  */
       else if (c == '#') {
+	replace_defined = 1;
 	add_chunk(ns,chunk,allow);
+	replace_defined = 0;
   	Putc(c,chunk);
   	state = 107;
       } else if (isidentifier(c)) {

@@ -268,3 +268,10 @@ inline const char* mangle ## #@__VA_ARGS__ () {
 #define one ONE
 #define two TWO
 #define three THREE(42)
+
+
+%inline %{
+int endif = 0;
+int define = 0;
+int defined = 0;
+%}
