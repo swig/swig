@@ -88,13 +88,13 @@ static int	have_default_constructor = 0;
 #define NATIVE_CONSTRUCTOR 1
 #define ALTERNATIVE_CONSTRUCTOR 2
 static int	native_constructor=0;
+static int	destructor=0;
 static int	native_func = 0;	// Set to 1 when wrapping a native function
 static int	enum_flag = 0; // Set to 1 when wrapping an enum
 static int	static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int	const_flag = 0; // Set to 1 when wrapping a const member variables
 static int	variable_wrapper_flag = 0; // Set to 1 when wrapping a member variable/enum/const
 static int	wrapping_member = 0;
-static int	written_base_class = 0; // XX hack to prevent base class duplicated
 
 static String *shadow_enum_code = 0;
 static String *php_enum_code = 0;
@@ -406,6 +406,16 @@ PHP4::top(Node *n) {
   s_oinit = NewString("/* oinit subsection */\n");
   pragma_phpinfo = NewString("");
 
+  if (0) Printf(s_vdecl,
+    "// This array is to shadow _swig_types\n"
+    "int _swig_type_size=sizeof(swig_types)/sizeof(swig_types[0]);\n"
+    "static int _extra_swig_types[_swig_type_size];\n"
+    "for(int i=0;i<_swig_type_size;i++) _extra_swig_types[i]=0;\n"
+    "// These macros are magic spells so we can map from typemap descriptor"
+    "// to whether or not it is a shadowed class (updates _extra_swig_types)"
+    "#define EXTRATYPE(descriptor) _EXTRATYPE(_extra_,descriptor)\n"
+    "#define _EXTRATYPE(prefix,arrayref) prefix ## arrayref\n");
+
 
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("runtime",f_runtime);
@@ -436,7 +446,7 @@ PHP4::top(Node *n) {
 #if defined(_WIN32) || defined(__WIN32__)
 	 dlname = NewStringf("%s.dll", module);
 #else
-	 dlname = NewStringf("lib%s.so", module);
+	 dlname = NewStringf("lib%s-php4.so", module);
 #endif
   }
 
@@ -768,21 +778,44 @@ PHP4::functionWrapper(Node *n) {
     Delete(member_function_name);
   }
 
-   /* If shadow not set all functions exported. If shadow set only
-    * non-wrapped functions exported ( the wrapped ones are accessed
-    * through the class. )
-   */
-
-  if(!shadow || !wrapping_member)
-	  create_command(iname, Char(Swig_name_wrapper(iname)));
-
   outarg = cleanup = NULL;
   f 	= NewWrapper();
   numopt = 0;
 
   outarg = NewString("");
 
+  // Special action for destructors under php.
+  // The real destructor is the resource list destructor, this is
+  // merely the thing that actually knows how to destroy...
+  if (destructor) {
+    Printf(f->def,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n",shadow_classname);
+    // What makes me so sure emit_action will use the name arg1??
+    // What makes me so sure I know the TYPE?  [%s * arg1=NULL;]
+    // Why do I not have $1_descriptor and so pass NULL to _SWIG_ConvertPtr ?
+    Printf(f->code,"  %s * arg1=NULL;\n"
+      "  // should we do type checking? How do I get SWIG_ type name?\n"
+      "  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &arg1,NULL);\n"
+      "  if (! arg1) zend_error(E_ERROR, \"%s resource already free'd\");\n"
+      ,class_name, shadow_classname);
+    emit_action(n,f);
+    Printf(f->code,
+      "  // now delete wrapped string pointer\n"
+      "  efree(rsrc->ptr);\n"
+      "  rsrc->ptr=NULL;\n"
+      "}\n");
+
+    Wrapper_print(f,s_wrappers);
+    return SWIG_OK;
+  }
+
+  /* If shadow not set all functions exported. If shadow set only
+   * non-wrapped functions exported ( the wrapped ones are accessed
+   * through the class. )
+  */
+  if(1 || !shadow || !wrapping_member)
+	  create_command(iname, Char(Swig_name_wrapper(iname)));
   Printv(f->def, "ZEND_NAMED_FUNCTION(" , Swig_name_wrapper(iname), ") {\n", NULL);
+
 
   emit_args(d, l, f);
   /* Attach standard typemaps */
@@ -800,10 +833,10 @@ PHP4::functionWrapper(Node *n) {
 
   // This generated code may be called 
   // 1) as an object method, or
-  // 2) as a class-method/functin (without a "this_ptr")
+  // 2) as a class-method/function (without a "this_ptr")
   // Option (1) has "this_ptr" for "this", option (2) needs it as
   // first parameter
-  // NOTE: possible we don't want to do this for constructors???
+  // NOTE: possible we ignore this_ptr as a param for native constructor
 
   if (native_constructor) {
     if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
@@ -969,7 +1002,7 @@ PHP4::functionWrapper(Node *n) {
 			"} else if (! this_ptr) ",shadow_classname);
       }
       {
-	Printf(f->code, "{\n// ALTERNATIVE Constructor, make an onject wrapper\n");
+	Printf(f->code, "{\n// ALTERNATIVE Constructor, make an object wrapper\n");
         // Make object 
         String *shadowrettype = NewString("");
         SwigToPhpType(d, iname, shadowrettype, shadow);
@@ -1205,16 +1238,14 @@ PHP4::emit_shadow_classdef() {
 		Printv(shadow_classdef, this_shadow_extra_code, NULL);
 }
 
-
-
 int PHP4::classHandler(Node *n) {
 
 	char bigbuf[1024];
 
 	if(class_name) free(class_name);
 	class_name = Swig_copy_string(GetChar(n, "name"));
-
 	if(shadow) {
+printf("CLASS HANDLER FOR %s %d %d\n",class_name,shadow,wrapping_member);
                 cs_entry = NewString("");
 		Printf(cs_entry,"// Function entries for %s\n"
                  "static zend_function_entry %s_functions[] = {\n"
@@ -1270,27 +1301,10 @@ int PHP4::classHandler(Node *n) {
 				Printf(stderr, "Error: %s inherits from multiple base classes(%s %s). Multiple inheritance is not directly supported by PHP4, SWIG may support it at some point in the future.\n", shadow_classname, base, this_shadow_multinherit);
 		} else { // XXX Must be base class ?
 } // we want to write this out even if it inherits I think.
+  // this next block used to be the "else" block, not called for inherited classes
+  // perhaps we needed to examing what the previous if() block does.
 		  /* Write out class init code */
-		  // NOTE: written_base_class NOW means ANY base class. 
-		  // i.e. we need to CG(active_class_entry) = NULL;
-		  // ready for the next class
 		  {
-//		    if (written_base_class) Printf(s_oinit,"CG(active_class_entry) = NULL;\n");
-//		    else Printf(s_oinit, "//WOT, NEW BASE_CLASS\n");
-		    written_base_class = 1;
-// This destructor should go somewhere else...
-Printf(s_vdecl,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s);\n",shadow_classname);
-Printf(s_wrappers,"static ZEND_RSRC_DTOR_FUNC(_wrap_destroy_%s) {\n"
-"  %s * obj=NULL;\n"
-"  // should we do type checking? How do I get SWIG_ type name?\n"
-"  _SWIG_ConvertPtr((char *) rsrc->ptr,(void **) &obj,NULL);\n"
-"  if (! obj) zend_error(E_ERROR, \"%s resource already free'd\");\n"
-"  delete obj;\n"
-"  // now delete wrapped string pointer\n"
-"  efree(rsrc->ptr);\n"
-"  rsrc->ptr=NULL;\n"
-"}\n",shadow_classname, class_name, shadow_classname);
-
 		    Printf(s_vdecl,
                     "static zend_class_entry ce_swig_%s;\n",shadow_classname);
 		    Printf(s_vdecl,
@@ -1429,7 +1443,10 @@ int PHP4::staticmembervariableHandler(Node *n) {
 	cpp_func(iname, d, 0, iname);
 	static_flag = 0;
 
+
+    Printf(f_h,"// BBBB\n");
 	create_command(iname, Char(Swig_name_wrapper(iname)));
+    Printf(f_h,"// bbbb\n");
 
 	f = NewWrapper();
 
@@ -1625,28 +1642,11 @@ int PHP4::constructorHandler(Node *n) {
 		String *nativecall = NewString("");
 		String *php_function_name = NewString(iname);
 		char arg[256];
-/* don't need to register constructors the slow way now */
+
 	// But we also need one per wrapped-class
 	if (cs_entry) Printf(cs_entry,
 	    "	ZEND_NAMED_FE(%(lower)s,\n"
 	    "		_wrap_new_%s, NULL)\n", php_function_name,iname);
-
-		 if (0) Printf(s_oinit, 
-		 "/*oggie{\nzend_function function;\n"
-		 "zend_internal_function *internal_function = "
-		 "(zend_internal_function *)&function;\n"
-		 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
-		 "internal_function->handler = _wrap_new_%s;\n"
-		 "internal_function->arg_types = NULL;\n"
-		 "internal_function->function_name=strdup(\"%(lower)s\");"
-		 "\nzend_hash_add(&CG(active_class_entry)->function_table, "
-		 "\"%(lower)s\", %d, &function, sizeof(zend_function),"
-		 "NULL);\n}*/\n",
-		 iname, php_function_name, php_function_name, 
-		 strlen(Char(php_function_name))+1);
-
-//		Printf(shadow_code, " function %s(", shadow_classname);
-//		Php only supports one constructor anyway...
 
 		Printf(shadow_code, " function %s(", php_function_name);
 		// If we are not a constructor and called as a class method
@@ -1725,56 +1725,17 @@ int PHP4::constructorHandler(Node *n) {
 }
 
 int PHP4::destructorHandler(Node *n) {
-
+        destructor=1;
 	Language::destructorHandler(n);
+        destructor=0;
 
-	if(shadow) {
-	  Printf(shadow_code,
-	  	" function _destroy() {\n"
-	  	"   if($this->_cPtr && $this->_cMemOwn) {\n"
-	  	"     %s::%s($this->_cPtr);\n"
-	  	"     $this->_cPtr = 0;\n"
-	  	"   }\n"
-	  	" }\n\n",
-		package, Swig_name_destroy(shadow_classname));
-
-	  if(!no_sync) {
-	    String *k;
-	    Printf(shadow_code," function _sync_c() {\n ");
-
-	    for(k = Firstkey(shadow_c_vars); k ; k = Nextkey(shadow_c_vars)) {
-		    Printf(shadow_code, "%s::%s($this->_cPtr, $this->%s);\n",
-			     	        package, k, 
-					Getattr(shadow_c_vars, k));
-	    }
-
-	    Printf(shadow_code, "\n}\n");
-
-	    Printf(shadow_code," function _sync_php() {\n");
-
-	    for(k = Firstkey(shadow_php_vars);k;k = Nextkey(shadow_php_vars)) {
-		    Printf(shadow_code, "$this->%s = %s::%s($this->_cPtr);\n",
-					 Getattr(shadow_php_vars, k),
-					 package, k);
-	    }
-
-	    Printf(shadow_code, "\n}\n");
-	  }
-
-	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
-/* NO need to register destructors the slow way any more... */
-	  if (0) Printf(s_oinit, 
-	  "{\nzend_function function;\n"
-	  "zend_internal_function *internal_function = "
-	  "(zend_internal_function *)&function;\n"
-	  "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
-	  "internal_function->handler = %s;\n"
-	  "internal_function->arg_types = NULL;\n"
-	  "internal_function->function_name = estrdup(\"%(lower)s\");\n"
-	  "zend_hash_add(&CG(active_class_entry)->function_table, "
-	  "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", 
-	  Swig_name_wrapper(iname), iname, iname, strlen(Char(iname))+1);
-	}
+            // Wots this bit doing?  Do we need equiv. in C code?
+//	    for(k = Firstkey(shadow_php_vars);k;k = Nextkey(shadow_php_vars)) {
+//		    Printf(shadow_code, "$this->%s = %s::%s($this->_cPtr);\n",
+//					 Getattr(shadow_php_vars, k),
+//					 package, k);
+//	    }
+//	  String *iname = Swig_name_destroy(GetChar(n, "sym:name"));
 
 	return SWIG_OK;
 }
@@ -1840,23 +1801,10 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name,
 	}
 
 	// But we also need one per wrapped-class
+//        Printf(f_h, "x ZEND_NAMED_FUNCTION(%s);\n", Swig_name_wrapper(handler_name));
 	if (cs_entry) Printf(cs_entry,
 	    "	ZEND_NAMED_FE(%s,\n"
 	    "		%s, NULL)\n", php_function_name,Swig_name_wrapper(handler_name));
-
-/* ONLY REGISTER IF IT IS NOT A SHADOW CLASS METHOD *** HELP */
-	if (0) Printf(s_oinit, 
-	 "{\nzend_function function;\n"
-	 "zend_internal_function *internal_function = "
-	 "(zend_internal_function *)&function;\n"
-	 "internal_function->type= ZEND_INTERNAL_FUNCTION;\n"
-	 "internal_function->handler = %s;\n"
-	 "internal_function->arg_types = NULL;\n"
-	 "internal_function->function_name = estrdup(\"%(lower)s\");\n"
-	 "zend_hash_add(&CG(active_class_entry)->function_table, "
-	 "\"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n",
-	 Swig_name_wrapper(handler_name), php_function_name, 
-	 php_function_name, strlen(Char(php_function_name))+1);
 
 	 if(variable_wrapper_flag && !no_sync)  { return; }
 
