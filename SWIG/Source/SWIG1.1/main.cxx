@@ -419,7 +419,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	SWIG_exit(0);
       }
 
-      // Initialize the scanner 
+      // Initialize the scanner
       Seek(cpps, 0, SEEK_SET);
       scanner_file(cpps);
     }
@@ -479,18 +479,18 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 }
 
 // --------------------------------------------------------------------------
-// SWIG_exit()
+// SWIG_exit(int exit_code)
 //
-// Fatal parser error. Exit and cleanup
+// Cleanup and either freeze or exit
 // --------------------------------------------------------------------------
 
-void SWIG_exit(int) {
+void SWIG_exit(int exit_code) {
   if (f_runtime) {
     fclose(f_runtime);
     remove(fn_runtime);
   }
   while (freeze);
-  exit(1);
+  exit (exit_code);
 }
 
 
