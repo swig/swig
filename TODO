@@ -288,7 +288,7 @@ Java
        at present. An overridden method for each default argument could be 
        generated thereby enabling one to call methods with default arguments.
 
-**     Implement idea from Dave Dribin email to the swig mailing list, 2 April 2003, 
+[DONE] Implement idea from Dave Dribin email to the swig mailing list, 2 April 2003, 
        where the global enums and constants are placed in an interface so that they 
        can be implemented by other Java classes. This will allow improved syntax when
        referring to the enums/constants:
@@ -402,8 +402,6 @@ Documentation
 
 Other
 -----
-
-[DONE] Bring Tiger's .NET/CLR module online.
 
 *****  Learn more wicked Jazz chords.
        (in progress)
