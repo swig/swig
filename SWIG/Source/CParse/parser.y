@@ -64,6 +64,7 @@ static String  *Classprefix = 0;
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static char    *last_cpptype = 0;
+static int      inherit_list = 0;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -855,7 +856,7 @@ void canonical_template(String *s) {
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
 %type <id>       string;
 %type <tparms>   template_parms;
-%type <ivalue>   cpp_vend;
+%type <dtype>    cpp_vend;
 %type <ivalue>   rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
 
@@ -2840,7 +2841,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 	       }
 		Setattr($$,"storage","virtual");
 		Setattr($$,"name",NewStringf("~%s",$3));
-		if ($7) {
+		if ($7.val) {
 		  Setattr($$,"value","0");
 		}
 		if (Len(scanner_ccode)) {
@@ -2857,6 +2858,9 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
                  Setattr($$,"type",$3);
 		 Setattr($$,"name",$2);
 		 SwigType_add_function($4,$6);
+		 if ($8.qualifier) {
+		   SwigType_push($4,$8.qualifier);
+		 }
 		 Setattr($$,"decl",$4);
 		 Setattr($$,"parms",$6);
 		 add_symbols($$);
@@ -2867,6 +2871,9 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		Setattr($$,"type",$3);
 		Setattr($$,"name",$2);
 		SwigType_add_function(t,$5);
+		if ($7.qualifier) {
+		  SwigType_push(t,$7.qualifier);
+		}
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		add_symbols($$);
@@ -3006,9 +3013,9 @@ cpp_end        : cpp_const SEMI {
                | cpp_const LBRACE { skip_balanced('{','}'); }
                ;
 
-cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$ = 0;  }
-               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$ = 1; }
-               | cpp_const LBRACE { skip_balanced('{','}'); $$ = 0; }
+cpp_vend       : cpp_const SEMI { Clear(scanner_ccode); $$.val = 0; $$.qualifier = $1; }
+               | cpp_const EQUAL definetype SEMI { Clear(scanner_ccode); $$.val = $3.val; $$.qualifier = $1;}
+               | cpp_const LBRACE { skip_balanced('{','}'); $$.val = 0; $$.qualifier = $1; }
                ;
 
 
@@ -3934,7 +3941,7 @@ inherit        : raw_inherit {
                }
                ;
 
-raw_inherit     : COLON base_list { $$ = $2; }
+raw_inherit     : COLON { inherit_list = 1; } base_list { $$ = $3; inherit_list = 0; }
                 | empty { $$ = 0; }
                 ;
 
@@ -3979,19 +3986,19 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
 
 cpptype        : CLASS { 
                    $$ = (char*)"class"; 
-		   last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = $$;
                }
                | STRUCT { 
                    $$ = (char*)"struct"; 
-		   last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = $$;
                }
                | UNION {
                    $$ = (char*)"union"; 
-		   last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = $$;
                }
                | TYPENAME { 
                    $$ = (char *)"typename"; 
-		   last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = $$;
                }
                ;
 

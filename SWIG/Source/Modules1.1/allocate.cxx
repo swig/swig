@@ -114,7 +114,7 @@ public:
        a base class */
 
     if (is_abstract_inherit(n)) {
-      if (!Getattr(n,"abstract")) {
+      if ((!Getattr(n,"abstract")) && ((Getattr(n,"allocate:public_constructor") || (!Getattr(n,"feature:nodefault") && !Getattr(n,"allocate:has_constructor"))))) {
 	Swig_warning(WARN_TYPE_ABSTRACT,Getfile(n),Getline(n),"Class '%s' might be abstract. \n", Getattr(n,"name"));
 		     /*	Setattr(n,"abstract",NewList()); */
       }
@@ -210,6 +210,9 @@ public:
 	}
 	/* Class defines some kind of constructor. May or may not be public */
 	Setattr(inclass,"allocate:has_constructor","1");
+	if (cplus_mode == PUBLIC) {
+	  Setattr(inclass,"allocate:public_constructor","1");
+	}
     }
 
     /* See if this is a copy constructor */
