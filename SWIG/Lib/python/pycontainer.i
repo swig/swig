@@ -13,12 +13,9 @@
 
 /**** The PySequence C++ Wrap ***/
 
-%{
+%insert(header) %{
 #if PY_VERSION_HEX < 0x02000000
 #define PySequence_Size PySequence_Length
-#endif
-#if PY_VERSION_HEX < 0x02020000
-#define PyObject_GetIter Py_INCREF
 #endif
 %}
 
@@ -565,9 +562,13 @@ namespace swigpy
       for (int j = 0; j < pysize; ++i, ++j) {
 	PyList_SetItem(keyList, j, swigpy::from(i->first));
       }
+%#if PY_VERSION_HEX >= 0x02020000
       PyObject* iter = PyObject_GetIter(keyList);
       Py_DECREF(keyList);
       return iter;
+%#else
+      return keyList;
+%#endif
     }
   }
 %enddef
