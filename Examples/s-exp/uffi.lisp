@@ -15,7 +15,7 @@
 
 (defvar *swig-source-directory* #p"/home/mkoeppe/s/swig1.3/")
 
-(defvar *swig-program* (merge-pathnames "swig-1.3" *swig-source-directory*))
+(defvar *swig-program* (merge-pathnames "swig" *swig-source-directory*))
 
 (defun run-swig (swig-interface-file-name &key directory-search-list module
 		 ignore-errors)
@@ -73,7 +73,7 @@ the terminating index into TYPE-STRING."
       ((prefix-match "r.")		; C++ reference
        (cons-and-recurse '& (+ start 2) end))
       ((prefix-match "a(")		; array
-       (let ((closing-paren (find #\) type-string
+       (let ((closing-paren (position #\) type-string
 				  :start (+ start 2)
 				  :end end)))
 	 (unless closing-paren
@@ -83,7 +83,7 @@ the terminating index into TYPE-STRING."
 	 (cons-and-recurse (list 'ARRAY (subseq type-string (+ start 2) closing-paren))
 			   (+ closing-paren 2) end)))
       ((prefix-match "q(")		; qualifier (const, volatile)
-       (let ((closing-paren (find #\) type-string
+       (let ((closing-paren (position #\) type-string
 				  :start (+ start 2)
 				  :end end)))
 	 (unless closing-paren
