@@ -224,7 +224,8 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type
       c = Tcl_GetStringFromObj(result, NULL);
       continue;
     }
-    if (flags & SWIG_POINTER_EXCEPTION)
+    Tcl_ResetResult(interp);
+    if (flags & SWIG_POINTER_EXCEPTION) 
       Tcl_SetResult(interp, (char *) "Type error. Expected a pointer", TCL_STATIC);
     return TCL_ERROR;
   }
@@ -237,6 +238,7 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type
       Tcl_AppendElement(interp, (char *) ty->name);
       return TCL_ERROR;
     } else if (!tc) {
+      Tcl_ResetResult(interp);
       return TCL_ERROR;
     }
     if (flags & SWIG_POINTER_DISOWN) {
