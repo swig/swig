@@ -102,6 +102,9 @@ int main(int argc, char **argv) {
 	  } else if (strcmp(argv[i],"-ruby") == 0) {
 	      dl = new RUBY;
 	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dnone") == 0) {
+	    Printf(stderr,"swig: Warning. -dnone option deprecated.\n");
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);
 	      Swig_mark_arg(i);
