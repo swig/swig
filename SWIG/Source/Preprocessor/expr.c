@@ -208,7 +208,9 @@ Preprocessor_expr(DOH *s, int *error) {
       }
       if ((token == SWIG_TOKEN_INT) || (token == SWIG_TOKEN_UINT) || (token == SWIG_TOKEN_LONG) || (token == SWIG_TOKEN_ULONG)) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
-	stack[sp].value = (long) atol(Char(SwigScanner_text(scan)));
+	char *c = Char(SwigScanner_text(scan));
+	stack[sp].value = (long) strtol(c,0,0);
+	/*	  stack[sp].value = (long) atol(Char(SwigScanner_text(scan))); */
 	stack[sp].op = EXPR_VALUE;
       } else if (token == SWIG_TOKEN_PLUS) { }
        else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_LNOT) || (token==SWIG_TOKEN_NOT)) {
