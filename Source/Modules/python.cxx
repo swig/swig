@@ -657,7 +657,6 @@ public:
     int director = Swig_directormethod(n);
     int directorbase = Swig_directorbase(n);
     Node *classNode = Swig_methodclass(n);
-    int hasVirtual = (classNode && (Getattr(classNode, "hasVirtual") != 0));
     String *nodeType = Getattr(n, "nodeType");
     int constructor = (!Cmp(nodeType, "constructor")); 
     String *storage   = Getattr(n,"storage");
@@ -873,7 +872,7 @@ public:
 
     if (directorsEnabled()) {
       if (!is_smart_pointer()) {
-        if (/*directorbase &&*/ hasVirtual && !constructor && isVirtual) {
+        if (/*directorbase &&*/ !constructor && isVirtual) {
           Wrapper_add_local(f, "director", "__DIRECTOR__ *director = 0");
           Printf(f->code, "director = dynamic_cast<__DIRECTOR__*>(arg1);\n");
           Printf(f->code, "if (director && (director->__get_self()==obj0)) director->__set_up();\n");
@@ -1459,7 +1458,7 @@ public:
     } else {
     	if (is_void) {
     	  Printf(w->code, "%s;\n", Swig_method_call(super,l));
-    	  Printf(w->code, "return;\n", Swig_method_call(super,l));
+    	  Printf(w->code, "return;\n");
 	} else {
     	  Printf(w->code, "return %s;\n", Swig_method_call(super,l));
 	}

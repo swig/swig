@@ -1343,24 +1343,7 @@ int Language::classDirectorDefaultConstructor(Node *n) {
   return SWIG_OK;
 }
 
-/* ----------------------------------------------------------------------
- * Language::tagDirectorBases()
- * ---------------------------------------------------------------------- */
 
-int Language::tagDirectorBases(Node *n) {
-  List* bl;
-  if (Getattr(n, "directorBase")) return SWIG_OK;
-  if (Getattr(n, "hasVirtual") == 0) return SWIG_OK;
-  Setattr(n, "directorBase", "1");
-  bl = Getattr(n, "bases");
-  if (bl) {
-    Node* bi;
-    for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
-      tagDirectorBases(bi);
-    }
-  }
-  return SWIG_OK;
-}
 
 /* ----------------------------------------------------------------------
  * Language::unrollVirtualMethods()
@@ -1370,31 +1353,19 @@ int Language::unrollVirtualMethods(Node *n,
                                    Node *parent, 
                                    Hash *vm, 
                                    int default_director, 
-                                   int &virtual_destructor, 
-                                   int &has_virtual) {
-  int only_virtual = (Getattr(parent, "director:nonvirtual") == 0);
+                                   int &virtual_destructor) { 
   int top = (n == parent);
-  has_virtual = 0;
   Node *ni;
   String *nodeType;
   String *storage;
   String *classname;
   String *decl;
-  // default_director < 0 turns off director generation for this class and all its superclasses
-  if (default_director >= 0) {
-    if (Getattr(n, "feature:director")) default_director = 1;
-    if (Getattr(n, "feature:nodirector")) default_director = -1;
-  }
   // recurse through all base classes to build the vtable
   List* bl = Getattr(n, "bases");
   if (bl) {
     Node* bi;
     for (bi = Firstitem(bl); bi; bi = Nextitem(bl)) {
-      int virtual_base = 0;
-      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor, virtual_base);
-      if (virtual_base) {
-        has_virtual = 1;
-      }
+      unrollVirtualMethods(bi, parent, vm, default_director, virtual_destructor);
     }
   }
   // find the methods that need directors
@@ -1405,37 +1376,20 @@ int Language::unrollVirtualMethods(Node *n,
     decl = Getattr(ni, "decl");
     if (!Cmp(nodeType, "cdecl") && SwigType_isfunction(decl)) {
       int is_virtual = storage && !Cmp(storage, "virtual");
-      if (is_virtual) has_virtual = 1;
       String* access = Getattr(ni, "access");
       if (!access || !Cmp(access, "public")) {
-        if (!only_virtual || is_virtual) {
+        if (is_virtual) {
           String *method_id;
           String *name = Getattr(ni, "name");
 	  method_id = NewStringf("%s|%s", name, decl);
-	  int director = default_director;
-	  if (director >= 0) {
-	  	if (Getattr(ni, "feature:director")) director = 1;
-	  	if (Getattr(ni, "feature:nodirector")) director = 0;
-	  }
-	  // if this method has a director in a base class, we must
-	  // either override it or remove it (otherwise the director
-	  // method will use the wrong class for superclass calls)
-	  if (Getattr(vm, method_id)) {
-	    if (director == 0) director = 1;
-	    else if (director < 0) {
-	      Delattr(vm, method_id);
-	    }
-	  }
-          if (director == 1) {
-            String *fqname = NewString("");
-            Printf(fqname, "%s::%s", classname, name);
-	    Hash *item = NewHash();
-	    Setattr(item, "fqName", fqname);
-	    Setattr(item, "methodNode", ni);
-	    Setattr(vm, method_id, item);
-            Delete(fqname);
-	    Delete(item);
-          }
+          String *fqname = NewString("");
+          Printf(fqname, "%s::%s", classname, name);
+	  Hash *item = NewHash();
+	  Setattr(item, "fqName", fqname);
+	  Setattr(item, "methodNode", ni);
+	  Setattr(vm, method_id, item);
+          Delete(fqname);
+	  Delete(item);
 	  Delete(method_id);
         }
       } 
@@ -1447,9 +1401,6 @@ int Language::unrollVirtualMethods(Node *n,
     }
     else {
     }
-  }
-  if (has_virtual) {
-    Setattr(n, "hasVirtual", "1");
   }
   return SWIG_OK;
 }
@@ -1565,8 +1516,7 @@ int Language::classDirector(Node *n) {
   }
   Hash* vtable = NewHash();
   int virtual_destructor = 0;
-  int has_virtual = 0;
-  unrollVirtualMethods(n, n, vtable, 0, virtual_destructor, has_virtual);
+  unrollVirtualMethods(n, n, vtable, 0, virtual_destructor);
   if (Len(vtable) > 0) {
     if (!virtual_destructor) {
       String *classtype = Getattr(n, "classtype");
@@ -1575,7 +1525,6 @@ int Language::classDirector(Node *n) {
 		   classtype);
     }
     Setattr(n, "vtable", vtable);
-    tagDirectorBases(n);
     classDirectorInit(n);
     classDirectorConstructors(n);
     classDirectorMethods(n);
@@ -1646,7 +1595,7 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    if (directorsEnabled()) {
+    if (directorsEnabled() && Getattr(n, "feature:director")) {
       classDirector(n);
     }
     classHandler(n);
