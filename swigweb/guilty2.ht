@@ -1,0 +1,197 @@
+Guilty Parties
+
+<p><img src="images/guilty.png" alt="Guilty Parties">
+
+<p>
+<b>Active Developers</b>
+
+<table cellpadding=0 cellspacing=8 width="100%" border=0>
+<tr>
+<td>
+<img src="images/Dave2.jpg"><br>
+<b>Dave Beazley (Chicago, Illinois).</b><br>
+SWIG core, type system, Python, Tcl, Perl.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Luigi Ballabio (Milano, Italy).</b><br>
+Macintosh port, STL libraries, Python.
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="images/fulton3.jpg"><br>
+<b>William Fulton (Bath, UK).</b> <br>
+Java module.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Lyle Johnson (Madison, Alabama).</b><br>
+Ruby module.
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="blank.jpg"><br>
+<b>Matthias Köppe (Magdeburg, Germany).</b> <br>
+Guile module.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Sam Liddicott (Wakefield, UK).</b>  <br>
+PHP module.
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="blank.jpg"><br>
+<b>Marcelo Matus (Tuscon, AZ).</b> <br>
+Evil C++ testing.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Richard Palmer.</b> <br>
+PHP module.
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="blank.jpg"><br>
+<b>Jason Stewart (Albuquerque, New Mexico).</b> <br>
+Perl module.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Klaus Wiederänders (Vienna, Austria).</b> <br>
+XML module.
+</td>
+</tr>
+
+<tr>
+<td>
+<img src="blank.jpg"><br>
+<b>Art Yerkes (Chicago, Illinois).</b> <br>
+OCAML module.
+</td>
+<td>
+<img src="blank.jpg"><br>
+<b>Shibukawa Yoshiki (Tokyo, Japan).</b> <br>
+Japanese translation.
+</td>
+</tr>
+</table>
+
+<p>
+<b>Students</b>
+<ul>
+<li>Songyan Feng (Chicago).
+<li>Xinghua Shi (Chicago). 
+<li>Jing Cao (Chicago).
+</ul>
+
+<p>
+<b>Major contributors</b>
+
+<ul>
+<li>Thien-Thi Nguyen 
+<li>Loic Dachary
+<li>Oleg Tolmatcev
+<li>Masaki Fukushima
+<li>Edward Zimmermann
+<li>David Ascher
+<li>John Buckman
+<li>Kevin Butler
+<li>Dominique Dumont
+<li>Pier Giorgio Esposito
+<li>David Fletcher
+<li>Gary Holt
+<li>Harco de Hilster
+<li>Dustin Mitchell
+<li>Ian Cooke
+<li>Hasan Baran Kovuk
+</ul>
+
+<p>
+<b>Bug reports and patches</b>
+<blockquote>
+Adam Hupp,
+Brad Clements,
+Brett Williams,
+Buck Hodges,
+Burkhard Kloss,
+Chia-Liang Kao,
+Craig Files, 
+Dennis Marsa,
+Dieter Baron,
+Drake Diedrich,
+Fleur Diana Dragan,
+Gary Pennington,
+Geoffrey Hort,
+Gerald Williams,
+Greg Anderson,
+Greg Kochanski,
+Greg Troxel,
+Henry Rowley.
+Irina Kotlova,
+Israel Taller,
+James Bailey,
+Jim Fulton,
+Joel Reed,
+Jon Travis,
+Junio Hamano,
+Karl Forner,
+Keith Davidson,
+Krzysztof Kozminski,
+Larry Virden, 
+Magnus Ljung,
+Marc Zonzon,
+Marcio Luis Teixeira
+Mark Howson,
+Micahel Scharf,
+Michel Sanner,
+Mike Romberg,
+Mike Simons,
+Mike Weiblen,
+Paul Brannan,
+Ram Bhamidipaty,
+Reinhard Fobbe,
+Rich Wales,
+Richard Salz,
+Robin Dunn,
+Roy Lecates,
+Rudy Albachten,
+Scott Drummonds
+Scott Michel, 
+Shaun Lowry,
+Steve Galser, 
+Tal Shalif,
+Tarn Weisner Burton,
+Tony Seward,
+Uwe Steinmann,
+Vadim Chugunov,
+Wyss Clemens,
+Zhong Ren. 
+</blockquote>
+
+<p><b>Friends</b>
+<ul>
+<li>The F street crew
+<li>Peter Lomdahl
+<li>Tim Germann
+<li>Chris Myers
+<li>John Schmidt
+<li>Paul Dubois
+<li>Kurtis Bleeker
+<li>Larry Virden
+<li>Peter-Pike Sloan
+<li>Patrick Tullmann
+</ul>
+
+Apologies to anyone missed....
+
+
+
