@@ -1,6 +1,82 @@
 Version 1.3.22 (in progress)
 ==================================
 
+05/20/2004: wsfulton
+            Unnamed enum global variables are now supported in addition
+            to the recently added support for unnamed enum member variables.
+            For example:
+
+                struct Foo {
+                  enum { enum1, enum2 } MemberInstance;
+                };
+                enum { enum3, enum4 } GlobalInstance;
+
+            The int typemaps are used for wrapping the get/set accessor methods.
+            If the sizeof an enum is not the same size as an int then setting the
+            variable will silently do nothing as the casts cannot be easily and portably
+            generated. If you need to solve this highly obscure situation, write
+            the assignment using the %exception feature.
+
+05/20/2004: wsfulton
+            [C#] C# enum wrapping mods. Similar to the Java module, enums can be wrapped using
+            one of 3 approaches:
+
+            1) Proper C# enums - use %include "enums.swg"
+            2) Typesafe enums - use %include "enumtypesafe.swg"
+            3) Simple constant integers (original approach) - use %include "enumsimple.swg"
+
+            See each of these files for further details. Each of these files use typemaps
+            and a new feature to control the generated code. The feature is:
+
+                %csenum(wrapapproach);
+
+            where wrapapproach should be one of: "proper", "typesafe", "typeunsafe" or "simple".
+            [No implementation deemed necessary for type unsafe enums].
+
+            The default approach is proper C# enums. Anonymous enums are always wrapped by
+            constant integers. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
+
+05/20/2004: wsfulton
+            [Java] Java enum support added. There are now 4 ways in which enums can be wrapped:
+
+            1) Proper Java enums - use %include "enums.swg"
+            2) Typesafe enums - use %include "enumtypesafe.swg"
+            3) Type unsafe enums (constant integers) - use %include "enumtypeunsafe.swg"
+            4) Simple constant integers (original approach) - use %include "enumsimple.swg"
+
+            See each of these files for further details. Each of these files use typemaps
+            and a new feature to control the generated code. The feature is:
+
+                %javaenum(wrapapproach);
+
+            where wrapapproach should be one of: "proper", "typesafe", "typeunsafe" or "simple".
+            The default typemaps will handle enums that may or may not have specified initial
+            values, for example ten is specified:
+
+                enum Numbers { zero, ten(10) };
+
+            However, the amount of generated Java code can be cut down, by modifying these typemaps
+            if none of the enums have initial values (proper Java enums and typesafe enums approach).
+            
+            The default approach is typesafe enums. Anonymous enums are always wrapped by
+            constant integers. 
+
+            *** POTENTIAL INCOMPATIBILITY FOR JAVA MODULE ***
+
+05/11/2004: wsfulton
+            [Java, C#] Fix bug using %rename on enum items and when using
+            %javaconst(1) / %csconst(1)
+            For example, the following used to generate code that wouldn't compile:
+
+                %rename(Obj) Object;
+                enum Grammar { Subject, Object };
+
+04/28/2004: wsfulton
+            [Java, C#] Minor fixes when using combinations of the 
+            javainterfaces, javabase, csinterfaces and csbase typemaps.
+
 05/18/2004: wsfulton
             [Java] JVM link failure on some systems fixed when using std_vector.i.
             Also adds default vector constructor for use from Java.
@@ -211,21 +287,6 @@ Version 1.3.22 (in progress)
                 }
 
             *** POTENTIAL INCOMPATIBILITY FOR C# MODULE ***
-
-            The original behaviour where constant integers are generated for each enum value
-            can be achieved by using the %csenumint(flag) feature. For example,
-
-                %csenumint(1);
-
-            for all enums. Or 
-
-                %csenumint(1) AnEnum;
-
-            which for the example above will generate:
-
-                public static void something(int e, int f) { ... }
-                public const int foo = 0;
-                public const int bar = foo + 1;
 
 04/07/2004: cheetah (William Fulton)
             Seg fault fix for empty enums, like
