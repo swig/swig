@@ -103,7 +103,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject,
    ptr calling making appropriate casting functions according to ty
    We don't use this any more */
 SWIGRUNTIME(int)
-_SWIG_ConvertPtr(char *c, void **ptr, swig_type_info *ty) {
+SWIG_ConvertPtr_(char *c, void **ptr, swig_type_info *ty) {
    register int d;
    unsigned long p;
    swig_type_info *tc;
@@ -231,7 +231,7 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
      return SWIG_ZTS_ConvertResourcePtr(z,ptr,ty TSRMLS_CC);
    } else if (z->type==IS_STRING) {
      c = Z_STRVAL_P(z); 
-     return _SWIG_ConvertPtr(c,ptr,ty);
+     return SWIG_ConvertPtr_(c,ptr,ty);
    } else goto type_error;
 
 type_error:
