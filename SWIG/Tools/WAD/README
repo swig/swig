@@ -133,7 +133,9 @@ WAD_ONESHOT             -  Disable WAD signal handler after first signal has
                            been received.
 
 
-5.  Documentation
+5.  Known Limitations
+
+6.  Documentation
 
 No official documentation exists at this time.  However, the Papers directory contains
 two conference papers that describe WAD's design and high-level operation.
