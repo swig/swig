@@ -41,10 +41,10 @@ extern "C" {
 static char *
 GSWIG_scm2str (SCM s)
 {
-  int len = scm_string_length (s);
-  return gh_scm2newstr (s, &len);
+  return gh_scm2newstr (s, NULL);
 }
 
+/* This function replaces gh_scm2char, which is broken in Guile 1.4 */
 static char
 GSWIG_scm2char (SCM s)
 {
