@@ -41,7 +41,7 @@
 #define SWIGRUNTIME static
 #endif
 #ifndef SWIGRUNTIMEINLINE
-#define SWIGRUNTIMEINLINE static SWIGINLINE
+#define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
 #endif
 
 #ifdef __cplusplus
@@ -152,7 +152,7 @@ SWIG_TypeRegisterTL(swig_type_info **tl, swig_type_info *ti) {
   Check the typename
 */
 SWIGRUNTIME swig_type_info *
-SWIG_TypeCheck(char *c, swig_type_info *ty) {
+SWIG_TypeCheck(const char *c, swig_type_info *ty) {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
@@ -284,8 +284,8 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
 /* 
    Unpack binary data from a string
 */
-SWIGRUNTIME char *
-SWIG_UnpackData(char *c, void *ptr, size_t sz) {
+SWIGRUNTIME const char *
+SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   register unsigned char *u = (unsigned char *) ptr;
   register const unsigned char *eu =  u + sz;
   for (; u != eu; ++u) {
@@ -345,6 +345,47 @@ SWIG_PackVoidPtr(char *buff, void *ptr, const char *name, size_t bsz) {
   if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
   strcpy(r,name);
   return buff;
+}
+
+SWIGRUNTIME const char *
+SWIG_UnpackVoidPtr(const char *c, void **ptr, const char *name) {
+  if (*c != '_') {
+    if (strcmp(c,"NULL") == 0) {
+      *ptr = (void *) 0;
+      return name;
+    } else {
+      return 0;
+    }
+  }
+  return SWIG_UnpackData(++c,ptr,sizeof(void *));
+}
+
+SWIGRUNTIME char *
+SWIG_PackDataName(char *buff, void *ptr, size_t sz, const char *name, size_t bsz) {
+  char *r = buff;
+  size_t lname = (name ? strlen(name) : 0);
+  if ((2*sz + 2 + lname) > bsz) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r,ptr,sz);
+  if (lname) {
+    strncpy(r,name,lname+1);
+  } else {
+    *r = 0;
+  }
+  return buff;
+}
+
+SWIGRUNTIME const char *
+SWIG_UnpackDataName(const char *c, void *ptr, size_t sz, const char *name) {
+  if (*c != '_') {
+    if (strcmp(c,"NULL") == 0) {
+      memset(ptr,0,sz);
+      return name;
+    } else {
+      return 0;
+    }
+  }
+  return SWIG_UnpackData(++c,ptr,sz);
 }
 
 #ifdef __cplusplus

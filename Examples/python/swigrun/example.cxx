@@ -3,7 +3,7 @@
 #include <Python.h>
 #include "swigrun.swg"
 #include "pyrun.swg"
-#include "pyrunalias.swg"
+#include "runtime.swg"
 
 #include "example.h"
 

@@ -29,6 +29,7 @@ CPP_TEST_CASES += \
 	nondynamic \
 	primitive_types \
 	std_containers \
+	swigobject
 
 C_TEST_CASES += \
 	file_test \
