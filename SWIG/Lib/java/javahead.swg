@@ -279,15 +279,5 @@ jbooleanArray SWIG_JavaArrayOutBool(JNIEnv *jenv, bool *result, jsize sz) {
 }
 #endif
 
-#ifdef __cplusplus
-template<class T> class SwigValueWrapper {
-    T* tt;
-public:
-    SwigValueWrapper() : tt(0) {}
-    SwigValueWrapper& operator=(T& t) {tt = &t; return *this;}
-    operator T() const {return *tt;};
-};                                                    
-#endif
-
 #endif /* SWIG_NOINCLUDE */
 

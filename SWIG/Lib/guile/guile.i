@@ -9,18 +9,6 @@
 %insert(runtime) "guile.swg"
 #endif
 
-%insert(runtime) %{
-#ifdef __cplusplus
-template<class T> class SwigValueWrapper {
-    T* tt;
-public:
-    SwigValueWrapper() : tt(0) {}
-    SwigValueWrapper& operator=(T& t) {tt = &t; return *this;}
-    operator T() const {return *tt;};
-};                                                    
-#endif
-%}
-
 #define %scheme	    %insert("scheme")
 
 #define %values_as_list   %pragma(guile) beforereturn = ""

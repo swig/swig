@@ -134,3 +134,72 @@
   else $1[0] = 0;
 }
 
+/*  
+ * This template wrapper is used to handle C++ objects that are passed or 
+ * returned by value.   Theis is necessary to handle objects that define
+ * no default-constructor (making it difficult for SWIG to properly declare
+ * local variables).
+ *
+ * The wrapper is used as follows.  First consider a function like this:
+ *
+ *      Vector cross_product(Vector a, Vector b)
+ *
+ * Now, if Vector is defined as a C++ class with no default constructor, 
+ * code is generated as follows:
+ *
+ *     Vector *wrap_cross_product(Vector *inarg1, Vector *inarg2) {
+ *          SwigValueWrapper<Vector>  arg1;
+ *          SwigValueWrapper<Vector>  arg2;
+ *          SwigValueWrapper<Vector> result;
+ *
+ *          arg1 = *inarg1;
+ *          arg2 = *inarg2;
+ *          ...            
+ *          result = cross_product(arg1,arg2);
+ *          ...
+ *          return new Vector(result);
+ *    }
+ *         
+ * In the wrappers, the template SwigValueWrapper simply provides a thin
+ * layer around a Vector *.  However, it does this in a way that allows
+ * the object to be bound after the variable declaration (which is not possible
+ * with the bare object when it lacks a default constructor).  
+ *
+ * An observant reader will notice that the code after the variable declarations
+ * is *identical* to the code used for classes that do define default constructors.
+ * Thus, this neat trick allows us to fix this special case without having to
+ * make massive changes to typemaps and other parts of the SWIG code generator.
+ *
+ * Note: this code is not included when SWIG runs in C-mode, when classes
+ * define default constructors, or when pointers and references are used.
+ * SWIG tries to avoid doing this except in very special circumstances.
+ *
+ * Note: This solution suffers from making a large number of copies
+ * of the underlying object.  However, this is needed in the interest of
+ * safety and in order to cover all of the possible ways in which a value
+ * might be assigned.  For example:
+ *
+ *       arg1 = *inarg1;       // Assignment from a pointer
+ *       arg1 = Vector(1,2,3); // Assignment from a value  
+ *
+ * This wrapping technique was suggested by William Fulton and is henceforth
+ * known as the "Fulton Transform" :-).
+ */
+
+#ifdef __cplusplus
+%insert("runtime") %{
+#ifdef __cplusplus
+template<class T> class SwigValueWrapper {
+    T *tt;
+public:
+    inline SwigValueWrapper() : tt(0) { }
+    inline ~SwigValueWrapper() { if (tt) delete tt; } 
+    inline SwigValueWrapper& operator=(T t) {tt = new T(t); return *this;}
+    inline operator T() const {return *tt;}
+    inline T *operator&() { return tt; }
+};                                                    
+#endif
+%}
+#endif
+
+
