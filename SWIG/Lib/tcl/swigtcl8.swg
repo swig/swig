@@ -798,15 +798,7 @@ typedef struct {
 
 /* Contract support */
 
-#define SWIG_preassert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-#define SWIG_postassert(expr, msg) if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-
-#define SWIG_inherit_preassert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-#define SWIG_inherit_postassert(expr, msg) if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-
-#define SWIG_invariant(expr, msg)       if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-#define SWIG_invariant_begin(expr, msg) if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
-#define SWIG_invariant_end(expr, msg)   if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
+#define SWIG_contract_assert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
 
 #ifdef __cplusplus
 }
