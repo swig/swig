@@ -154,7 +154,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
   // Form the application name
   if (!pname) pname = (char*)"";
-  sprintf(temp,"%s$%s",type->print_type(),pname);
+  sprintf(temp,"%s$%s",DataType_print_type(type),pname);
 
   // See if there is a method already defined
 
@@ -177,13 +177,13 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 
   if ((tm_type->arraystr) && (type->arraystr)) {
     char s[128],*t;
-    if (tm_type->array_dimensions() != type->array_dimensions()) {
+    if (DataType_array_dimensions(tm_type) != DataType_array_dimensions(type)) {
       fprintf(stderr,"%s:%d: Warning. Array types have different number of dimensions.\n",
 	      input_file,line_number);
     } else {
-      for (int i = 0; i < tm_type->array_dimensions(); i++) {
-	strcpy(s,tm_type->get_dimension(i));
-	t = type->get_dimension(i);
+      for (int i = 0; i < DataType_array_dimensions(tm_type); i++) {
+	strcpy(s,DataType_get_dimension(tm_type,i));
+	t = DataType_get_dimension(type,i);
 	if (strcmp(s,"ANY") != 0) {
 	  if (strcmp(s,t)) 
 	    fprintf(stderr,"%s:%d: Warning. Array typemap applied to an array of different size.\n",
@@ -209,7 +209,7 @@ void typemap_apply(DataType *tm_type, char *tm_name, DataType *type, char *pname
 void typemap_clear_apply(DataType *type, char *pname) {
   char temp[512];
   if (!pname) pname = (char*)"";
-  sprintf(temp,"%s$%s", type->print_type(), pname);
+  sprintf(temp,"%s$%s", DataType_print_type(type), pname);
   if (!application_hash) application_hash = NewHash();
   Delattr(application_hash,temp);
 }
@@ -231,9 +231,9 @@ static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, 
   Clear(str);
 
   if (ary)
-    Printv(str, lang, type->print_type(), pname, ary, suffix, 0);
+    Printv(str, lang, DataType_print_type(type), pname, ary, suffix, 0);
   else
-    Printv(str, lang, type->print_type(), pname, suffix,0);
+    Printv(str, lang, DataType_print_type(type), pname, suffix,0);
 
   type->status = old_status;
   return Char(str);
@@ -254,7 +254,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   char     temp[256];
   int      is_default = 0;
 
-  // printf("Registering : %s %s %s %s\n%s\n", op, lang, type->print_type(), pname, getcode);
+  // printf("Registering : %s %s %s %s\n%s\n", op, lang, DataType_print_type(type), pname, getcode);
 
   if (!typemap_hash) typemap_hash = NewHash();
 
@@ -262,7 +262,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
   // If this is a default typemap, downgrade the type!
 
   if (strcmp(pname,"SWIG_DEFAULT_TYPE") == 0) {
-    tm->type->primitive();   
+    DataType_primitive(tm->type);
     is_default = 1;
   }
 
@@ -425,7 +425,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
   if (!tm) {
     // We're going to go search for matches with the ANY tag
     DOHString *tempastr = NewString("");
-    ndim = type->array_dimensions();             // Get number of dimensions
+    ndim = DataType_array_dimensions(type);             // Get number of dimensions
     j = (1 << ndim) - 1;                         // Status bits
     for (i = 0; i < (1 << ndim); i++) {
       // Form an array string
@@ -433,7 +433,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
       k = j;
       for (n = 0; n < ndim; n++) {
 	if (k & 1) {
-	  Printf(tempastr,"[%s]",type->get_dimension(n));
+	  Printf(tempastr,"[%s]",DataType_get_dimension(type,n));
 	} else {
 	  Printf(tempastr,"[ANY]");
 	}
@@ -458,12 +458,12 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 	
   if (tm) {
     Printf(str,"%s",tm->code);
-    ndim = type->array_dimensions();
+    ndim = DataType_array_dimensions(type);
     sprintf(temp,"%d",ndim);
     Replace(str,"$ndim",temp, DOH_REPLACE_ANY);
     for (i = 0; i < ndim; i++) {
       sprintf(temp,"$dim%d",i);
-      Replace(str,temp,type->get_dimension(i), DOH_REPLACE_ANY);
+      Replace(str,temp,DataType_get_dimension(type,i), DOH_REPLACE_ANY);
     }
   }
   return tm;
@@ -516,12 +516,12 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = Wrapper_new_localv(f,str, tt->print_type(), str, 0);
+          new_name = Wrapper_new_localv(f,str, DataType_print_type(tt), str, 0);
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = Wrapper_new_localv(f,str, tt->print_full(), str, 0);
+          new_name = Wrapper_new_localv(f,str, DataType_print_full(tt), str, 0);
 
 	if (tt->arraystr) tt->is_pointer++;
 	// Substitute 
@@ -535,9 +535,9 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
 
   if (t->arraystr) {
     char temp[10];
-    for (int i = 0; i < t->array_dimensions(); i++) {
+    for (int i = 0; i < DataType_array_dimensions(t); i++) {
       sprintf(temp,"$dim%d",i);
-      Replace(f->locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
+      Replace(f->locals,temp,DataType_get_dimension(t,i), DOH_REPLACE_ANY);
     }
   }
 
@@ -616,7 +616,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   Replace(str,"$source",source,DOH_REPLACE_ANY);
   Replace(str,"$target",target,DOH_REPLACE_ANY);
-  Replace(str,"$type",realtype->print_type(),DOH_REPLACE_ANY);
+  Replace(str,"$type",DataType_print_type(realtype),DOH_REPLACE_ANY);
   if (realname) {
     Replace(str,"$parmname",realname,DOH_REPLACE_ANY);
   } else {
@@ -628,16 +628,16 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     char temp_ip1 = realtype->implicit_ptr;
     realtype->is_pointer = 0;
     realtype->implicit_ptr = 0;
-    char *bt = realtype->print_type();
+    char *bt = DataType_print_type(realtype);
     if (bt[strlen(bt)-1] == ' ') 
       bt[strlen(bt)-1] = 0;
     Replace(str,"$basetype",bt,DOH_REPLACE_ANY);
-    Replace(str,"$basemangle",realtype->print_mangle(), DOH_REPLACE_ANY);
+    Replace(str,"$basemangle",DataType_print_mangle(realtype), DOH_REPLACE_ANY);
     realtype->is_pointer = temp_ip;
     realtype->implicit_ptr = temp_ip1;
   }
   
-  Replace(str,"$mangle",realtype->print_mangle(), DOH_REPLACE_ANY);
+  Replace(str,"$mangle",DataType_print_mangle(realtype), DOH_REPLACE_ANY);
 
   // If there were locals and a wrapper function, replace
   if ((tm->args) && f) {
@@ -648,7 +648,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
   if ((tm->args) && !f) {
     if (!pname) pname = (char*)"";
     fprintf(stderr,"%s:%d: Warning. '%%typemap(%s,%s) %s %s' being applied with ignored locals.\n",
-	    input_file, line_number, lang,op, type->print_type(), pname);
+	    input_file, line_number, lang,op, DataType_print_type(type), pname);
   }
 
   // Return character string
@@ -688,7 +688,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
-      tstr = type->print_type();
+      tstr = DataType_print_type(type);
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
       m = (TmMethod *) GetVoid(application_hash,temp);
@@ -716,10 +716,10 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	  if ((m->type->arraystr) && (type->arraystr)) {
 	    // Build up the new array string
 	    Clear(newarray);
-	    for (int n = 0; n < m->type->array_dimensions(); n++) {
-	      char *d = m->type->get_dimension(n);
+	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
+	      char *d = DataType_get_dimension(m->type,n);
 	      if (strcmp(d,"ANY") == 0) {
-		Printf(newarray,"[%s]", type->get_dimension(n));
+		Printf(newarray,"[%s]", DataType_get_dimension(type,n));
 	      } else {
 		Printf(newarray,"[%s]", d);
 	      }
@@ -748,7 +748,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 
   if (!result) {
     DataType *t = new DataType(type);
-    t->primitive(); // Knock it down to its basic type
+    DataType_primitive(t); // Knock it down to its basic type
     result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     if (result) {
       delete t;
@@ -762,7 +762,7 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
       t->is_pointer = 1;
       if (t->arraystr) delete [] t->arraystr;
       t->arraystr = 0;
-      t->primitive();
+      DataType_primitive(t);
       result = typemap_lookup_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE",source,target,f);
     }
     delete t;
@@ -846,7 +846,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 
     while (drop_pointer <= (type->is_pointer - type->implicit_ptr)) {
       type->is_pointer -= drop_pointer;
-      tstr = type->print_type();
+      tstr = DataType_print_type(type);
       sprintf(temp,"%s$%s",tstr,ppname);
       // No mapping was found.  See if the name has been mapped with %apply
       if (!application_hash) application_hash = NewHash();
@@ -872,10 +872,10 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  if ((m->type->arraystr) && (type->arraystr)) {
 	    // Build up the new array string
 	    Clear(newarray);
-	    for (int n = 0; n < m->type->array_dimensions(); n++) {
-	      char *d = m->type->get_dimension(n);
+	    for (int n = 0; n < DataType_array_dimensions(m->type); n++) {
+	      char *d = DataType_get_dimension(m->type,n);
 	      if (strcmp(d,"ANY") == 0) {
-		Printf(newarray,"[%s]", type->get_dimension(n));
+		Printf(newarray,"[%s]", DataType_get_dimension(type,n));
 	      } else {
 		Printf(newarray,"[%s]", d);
 	      }
@@ -903,7 +903,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
   // If still no result, might have a default typemap
   if (!result) {
     DataType *t = new DataType(type);
-    t->primitive(); // Knock it down to its basic type
+    DataType_primitive(t); // Knock it down to its basic type
     result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     if (result) {
       delete t;
@@ -916,7 +916,7 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
       t->is_pointer = 1;
       if (t->arraystr) delete [] t->arraystr;
       t->arraystr = 0;
-      t->primitive();
+      DataType_primitive(t);
       result = typemap_check_internal(op,lang,t,(char*)"SWIG_DEFAULT_TYPE");
     }
     delete t;

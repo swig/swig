@@ -120,34 +120,37 @@ public:
   DataType(DataType *);
   DataType(int type);
   ~DataType();
-  void        primitive();   // Turn a datatype into its primitive type
-  char       *print_type();  // Return string containing datatype
-  char       *print_full();  // Return string with full datatype
-  char       *print_cast();  // Return string for type casting
-  char       *print_mangle();// Return mangled version of type
-  char       *print_real(char *local=0);  // Print the real datatype (as far as we can determine)
-  char       *print_arraycast(); // Prints an array cast
-  char       *print_mangle_default(); // Default mangling scheme
-
-  // Array query functions
-  int        array_dimensions();   // Return number of array dimensions (if any)
-  char       *get_dimension(int);  // Return string containing a particular dimension
-  char       *get_array();         // Returns the array string for a datatype
-
-  // typedef support
-
-  void       typedef_add(char *name, int mode = 0); // Add this type to typedef list
-  void       typedef_resolve(int level = 0);        // See if this type has been typedef'd
-  void       typedef_replace();                     // Replace this type with it's original type
-static int   is_typedef(char *name);                // See if this is a typedef
-  void       typedef_updatestatus(int newstatus);   // Change status of a typedef
-static void  init_typedef(void);                    // Initialize typedef manager
-static void  merge_scope(void *h);                  // Functions for managing scoping of datatypes
-static void  new_scope(void *h = 0);
-static void  *collapse_scope(char *);
-  void       remember();
-static void       record_base(char *derived, char *base);
 };
+
+
+extern DataType *NewDataType(int type);
+extern DataType *CopyDataType(DataType *type);
+extern void      DelDataType(DataType *type);
+
+extern void      DataType_primitive(DataType *);
+extern char     *DataType_print_type(DataType *);
+extern char     *DataType_print_full(DataType *);
+extern char     *DataType_print_cast(DataType *);
+extern char     *DataType_print_mangle(DataType *);
+extern char     *DataType_print_real(DataType *, char *local);
+extern char     *DataType_print_arraycast(DataType *);
+extern char     *DataType_print_mangle_default(DataType *);
+
+extern int       DataType_array_dimensions(DataType *);
+extern char     *DataType_get_dimension(DataType *, int);
+
+/* Typedef support */
+extern void      DataType_typedef_add(DataType *, char *name, int mode);
+extern void      DataType_typedef_resolve(DataType *, int level);
+extern void      DataType_typedef_replace(DataType *);
+extern int       DataType_is_typedef(char *name);
+extern void      DataType_updatestatus(DataType *, int newstatus);
+extern void      DataType_init_typedef();
+extern void      DataType_merge_scope(DOHHash *h);
+extern void      DataType_new_scope(DOHHash *h);
+extern void     *DataType_collapse_scope(char *name);
+extern void      DataType_remember(DataType *);
+extern void      DataType_record_base(char *derived, char *base);
 
 #define STAT_REPLACETYPE   2
 
@@ -336,7 +339,7 @@ public:
   virtual void set_init(char *init_name);
   virtual void add_native(char *name, char *iname, DataType *t, ParmList *l);
   virtual char *type_mangle(DataType *t) {
-    return t->print_mangle_default();
+    return DataType_print_mangle_default(t);
   }
   virtual void add_typedef(DataType *t, char *name);
   virtual void create_command(char *cname, char *iname);

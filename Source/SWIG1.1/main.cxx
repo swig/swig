@@ -168,7 +168,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   lang = l;
   Status = 0;
 
-  DataType::init_typedef();         // Initialize the type handler
+  DataType_init_typedef();         // Initialize the type handler
 
   // Set up some default symbols (available in both SWIG interface files
   // and C files)

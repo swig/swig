@@ -429,12 +429,12 @@ void TCL8::get_pointer(char *iname, char *srcname, char *src, char *dest,
 
   // Pointers are read as hex-strings with encoded type information
   
-  t->remember();
+  DataType_remember(t);
   Printv(f, tab4, "if ((SWIG_ConvertPtr(interp,", src, ",(void **) &", dest, ",",0);
 
   if (t->type == T_VOID) Printf(f, "0)) == TCL_ERROR) { return TCL_ERROR; }\n");
   else 
-    Printv(f, "SWIGTYPE", t->print_mangle(), ")) == TCL_ERROR) { return TCL_ERROR; }\n", 0);
+    Printv(f, "SWIGTYPE", DataType_print_mangle(t), ")) == TCL_ERROR) { return TCL_ERROR; }\n", 0);
 }
 
 // ----------------------------------------------------------------------
@@ -600,7 +600,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    
 	  default :
 	    Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
-		    input_file, line_number, p->t->print_type());
+		    input_file, line_number, DataType_print_type(p->t));
 	    break;
 	  }
 	} else {
@@ -612,9 +612,9 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    Putc('s',argstr);
 	    Printf(args,",&%s",target);
 	  } else {
-	    p->t->remember();
+	    DataType_remember(p->t);
 	    Putc('p',argstr);
-	    Printv(args, ",&", target, ", SWIGTYPE", p->t->print_mangle(), 0);
+	    Printv(args, ",&", target, ", SWIGTYPE", DataType_print_mangle(p->t), 0);
 	  }
 	}
       }
@@ -701,9 +701,9 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Probably dangerous, but who said safety was a good thing?
 	
 	d->is_pointer++;
-	d->remember();
+	DataType_remember(d);
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) _result,SWIGTYPE",
-	       d->print_mangle(), "));\n", 0);
+	       DataType_print_mangle(d), "));\n", 0);
 	
 	d->is_pointer--;
 	break;
@@ -711,7 +711,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Unknown type
       default :
 	Printf(stderr,"%s : Line %d: Unable to use return type %s in function %s.\n",
-		input_file, line_number, d->print_type(), name);
+		input_file, line_number, DataType_print_type(d), name);
 	break;
       }
     } else {
@@ -722,9 +722,9 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	// Return a character string
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,Tcl_NewStringObj(_result,-1));\n",0);
       } else {
-	d->remember();
+	DataType_remember(d);
 	Printv(f->code, tab4, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) _result,SWIGTYPE",
-	       d->print_mangle(), "));\n",
+	       DataType_print_mangle(d), "));\n",
 	       0);
       }
     }
@@ -790,19 +790,19 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
   }
 
   // Dump a collection of set/get functions suitable for variable tracing
-  if (!Getattr(setget,t->print_type())) {
-    Setattr(setget,t->print_type(),"1");
+  if (!Getattr(setget,DataType_print_type(t))) {
+    Setattr(setget,DataType_print_type(t),"1");
     Wrapper *get, *set;
     get = NewWrapper();
     set = NewWrapper();
-    Printv(set->def, "static char *_swig_", t->print_mangle(), "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+    Printv(set->def, "static char *_swig_", DataType_print_mangle(t), "_set(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
 
-    Printv(get->def, "static char *_swig_", t->print_mangle(), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
+    Printv(get->def, "static char *_swig_", DataType_print_mangle(t), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
     t->is_pointer++;
-    Wrapper_add_localv(get,"addr",t->print_type(),"addr",0);
-    Wrapper_add_localv(set,"addr",t->print_type(),"addr",0);
-    Printv(set->code, tab4, "addr = ", t->print_cast(), " clientData;\n", 0);
-    Printv(get->code, tab4, "addr = ", t->print_cast(), " clientData;\n", 0);
+    Wrapper_add_localv(get,"addr",DataType_print_type(t),"addr",0);
+    Wrapper_add_localv(set,"addr",DataType_print_type(t),"addr",0);
+    Printv(set->code, tab4, "addr = ", DataType_print_cast(t), " clientData;\n", 0);
+    Printv(get->code, tab4, "addr = ", DataType_print_cast(t), " clientData;\n", 0);
     t->is_pointer--;
     Wrapper_add_local(set, "value", "char *value");
     Wrapper_add_local(get, "value", "Tcl_Obj *value");
@@ -822,15 +822,15 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_UCHAR:
       case T_SCHAR:
       case T_BOOL:
-	Printv(set->code, tab4, "*(addr) = ", t->print_cast(), "atol(value);\n", 0);
+	Printv(set->code, tab4, "*(addr) = ", DataType_print_cast(t), "atol(value);\n", 0);
 	break;
       case T_UINT:
       case T_ULONG:
-	Printv(set->code, tab4, "*(addr) = ", t->print_cast(), "strtoul(value,0,0);\n",0);
+	Printv(set->code, tab4, "*(addr) = ", DataType_print_cast(t), "strtoul(value,0,0);\n",0);
 	break;
       case T_FLOAT:
       case T_DOUBLE:
-	Printv(set->code, tab4, "*(addr) = ", t->print_cast(), "atof(value);\n",0);
+	Printv(set->code, tab4, "*(addr) = ", DataType_print_cast(t), "atof(value);\n",0);
 	break;
       case T_CHAR:  /* Single character. */
 	Printv(set->code, tab4, "*(addr) = *value;\n",0);
@@ -838,13 +838,13 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_USER:
 	// User defined type.  We return it as a pointer
 	t->is_pointer++;
-	t->remember();
+	DataType_remember(t);
 	Printv(set->code, tab4, "{\n",
 	       tab8, "void *ptr;\n",
-	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", t->print_mangle(), ") != TCL_OK) {\n",
+	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_print_mangle(t), ") != TCL_OK) {\n",
 	       tab8, tab4, "return \"Type Error\";\n",
 	       tab8, "}\n",
-	       tab8, "*(addr) = *(", t->print_cast(), " ptr);\n",
+	       tab8, "*(addr) = *(", DataType_print_cast(t), " ptr);\n",
 	       tab4, "}\n",
 	       0);
 
@@ -862,13 +862,13 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	       0);
       } else {
 	// User defined type.  We return it as a pointer
-	t->remember();
+	DataType_remember(t);
 	Printv(set->code, tab4, "{\n",
 	       tab8, "void *ptr;\n",
-	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", t->print_mangle(), ") != TCL_OK) {\n",
+	       tab8, "if (SWIG_ConvertPtrFromString(interp,value,&ptr,SWIGTYPE", DataType_print_mangle(t), ") != TCL_OK) {\n",
 	       tab8, tab4, "return \"Type Error\";\n",
 	       tab8, "}\n",
-	       tab8, "*(addr) = ", t->print_cast(), " ptr;\n",
+	       tab8, "*(addr) = ", DataType_print_cast(t), " ptr;\n",
 	       tab4, "}\n",
 	       0);
 
@@ -918,8 +918,8 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_USER:
 	Wrapper_add_local(get,"value", "Tcl_Obj *value");
 	t->is_pointer++;
-	t->remember();
-	Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", t->print_mangle(), ");\n",
+	DataType_remember(t);
+	Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", DataType_print_mangle(t), ");\n",
 	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	       tab4, "Tcl_DecrRefCount(value);\n",0);
 	t->is_pointer--;
@@ -933,9 +933,9 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	Printv(get->code, tab4, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
       } else {
 	Wrapper_add_local(get,"value","Tcl_Obj *value");
-	t->remember();
+	DataType_remember(t);
 	Printv(get->code,
-	       tab4, "value = SWIG_NewPointerObj(*addr, SWIGTYPE", t->print_mangle(), ");\n",
+	       tab4, "value = SWIG_NewPointerObj(*addr, SWIGTYPE", DataType_print_mangle(t), ");\n",
 	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
 	       tab4, "Tcl_DecrRefCount(value);\n",
 	       0);
@@ -948,7 +948,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     DelWrapper(get);
     DelWrapper(set);
   }
-  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) &", name, ", _swig_", t->print_mangle(), "_get,", 0);
+  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) &", name, ", _swig_", DataType_print_mangle(t), "_get,", 0);
   
   if (Status & STAT_READONLY) {
     static int readonly = 0;
@@ -962,7 +962,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
     }
     Printf(var_info, "_swig_readonly},\n");
   } else {
-    Printv(var_info, "_swig_", t->print_mangle(), "_set},\n",0);
+    Printv(var_info, "_swig_", DataType_print_mangle(t), "_set},\n",0);
   }
 }
 
@@ -1005,7 +1005,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
     if (type->is_pointer == 0) {
       switch(type->type) {
       case T_BOOL: case T_INT: case T_SINT: case T_DOUBLE:
-	Printf(f_header,"static %s %s = %s;\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = %s;\n", DataType_print_type(type), var_name, value);
 	link_variable(var_name,name,type);
 	break;
       case T_SHORT:
@@ -1013,7 +1013,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       case T_SSHORT:
       case T_SCHAR:
       case T_SLONG:
-	Printf(f_header,"static %s %s = %s;\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = %s;\n", DataType_print_type(type), var_name, value);
 	Printf(f_header,"static char *%s_char;\n", var_name);
 	if (CPlusPlus)
 	  Printf(f_init,"\t %s_char = new char[32];\n",var_name);
@@ -1031,7 +1031,7 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       case T_USHORT:
       case T_ULONG:
       case T_UCHAR:
-	Printf(f_header,"static %s %s = %s;\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = %s;\n", DataType_print_type(type), var_name, value);
 	Printf(f_header,"static char *%s_char;\n", var_name);
 	if (CPlusPlus)
 	  Printf(f_init,"\t %s_char = new char[32];\n",var_name);
@@ -1048,13 +1048,13 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       case T_FLOAT:
 	type->type = T_DOUBLE;
 	strcpy(type->name,"double");
-	Printf(f_header,"static %s %s = %s (%s);\n", type->print_type(), var_name, type->print_cast(), value);
+	Printf(f_header,"static %s %s = %s (%s);\n", DataType_print_type(type), var_name, DataType_print_cast(type), value);
 	link_variable(var_name,name,type);
 	break;
 	
       case T_CHAR:
 	type->is_pointer++;
-	Printf(f_header,"static %s %s = \"%s\";\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = \"%s\";\n", DataType_print_type(type), var_name, value);
 	link_variable(var_name,name,type);
 	type->is_pointer--;
 	break;
@@ -1066,22 +1066,22 @@ void TCL8::declare_const(char *name, char *, DataType *type, char *value) {
       // Have some sort of pointer value here
       if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
 	// Character string
-	Printf(f_header,"static %s %s = \"%s\";\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = \"%s\";\n", DataType_print_type(type), var_name, value);
 	link_variable(var_name,name,type);
       } else {
 	// Something else.   Some sort of pointer value
-	Printf(f_header,"static %s %s = %s;\n", type->print_type(), var_name, value);
+	Printf(f_header,"static %s %s = %s;\n", DataType_print_type(type), var_name, value);
 	Printf(f_header,"static char *%s_char;\n", var_name);
 	if (CPlusPlus)
-	  Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) strlen(type->print_mangle())+ 20);
+	  Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) strlen(DataType_print_mangle(type))+ 20);
 	else
-	  Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(type->print_mangle())+ 20);
+	  Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) strlen(DataType_print_mangle(type))+ 20);
 	
 	t = new DataType(T_CHAR);
         t->is_pointer = 1;
-        type->remember(); 
+        DataType_remember(type);
 	Printf(f_init,"\t SWIG_MakePtr(%s_char, (void *) %s, SWIGTYPE%s);\n",
-		var_name, var_name, type->print_mangle());
+		var_name, var_name, DataType_print_mangle(type));
 	sprintf(var_name,"%s_char",var_name);
 	link_variable(var_name,name,t);
 	delete t;
@@ -1156,7 +1156,7 @@ char * TCL8::usage_string(char *iname, DataType *, ParmList *l) {
 	  Printf(temp,p->name);
 	}
 	else {
-	  Printf(temp,"{ %s }", p->t->print_type());
+	  Printf(temp,"{ %s }", DataType_print_type(p->t));
 	}
       }
       if (i >= (pcount-numopt))
@@ -1291,7 +1291,7 @@ void TCL8::cpp_close_class() {
 
     if (have_destructor) {
       Printv(code, "static void _swig_delete_", class_name, "(void *obj) {\n",
-	     tab4, Swig_name_destroy(real_classname), "((", t->print_type(), ") obj);\n",
+	     tab4, Swig_name_destroy(real_classname), "((", DataType_print_type(t), ") obj);\n",
 	     "}\n",0);
     }
 
@@ -1302,7 +1302,7 @@ void TCL8::cpp_close_class() {
     Printv(code,attributes,0);
 
     Printv(code, "static _swig_class _wrap_class_", class_name, " = { \"", class_name, 
-	   "\", &SWIGTYPE", t->print_mangle(), ",",0);
+	   "\", &SWIGTYPE", DataType_print_mangle(t), ",",0);
 
     if (have_constructor) {
       Printf(code, Swig_name_wrapper(Swig_name_construct(class_name)));

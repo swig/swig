@@ -706,12 +706,12 @@ void PERL5::get_pointer(char *iname, char *srcname, char *src, char *dest,
   
   if (t->type == T_VOID) Printf(f, "(char *) 0 )) {\n");
   else 
-    Printv(f, "\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), t->print_mangle(), "\")) {\n", 0);
+    Printv(f, "\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_print_mangle(t), "\")) {\n", 0);
 
   // Change this part to return an error.
   Printv(f,
 	 tab8, "croak(\"Type error in ", srcname,
-	 " of ", iname, ". Expected ", (hidden ? realpackage : ""), (hidden ? "::" : ""), t->print_mangle(), ".\");\n",
+	 " of ", iname, ". Expected ", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_print_mangle(t), ".\");\n",
 	 tab8, ret, ";\n",
 	 tab4, "}\n",
 	 0);
@@ -823,7 +823,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  case T_USHORT:
 	  case T_ULONG:
 	  case T_UCHAR:
-	    Printf(f->code,"    _arg%d = %sSvIV(ST(%d));\n", i, p->t->print_cast(),j);
+	    Printf(f->code,"    _arg%d = %sSvIV(ST(%d));\n", i, DataType_print_cast(p->t),j);
 	    break;
 	  case T_CHAR :
 
@@ -835,7 +835,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  
 	  case T_DOUBLE :
 	  case T_FLOAT :
-	    Printf(f->code,"    _arg%d = %s SvNV(ST(%d));\n", i, p->t->print_cast(), j);
+	    Printf(f->code,"    _arg%d = %s SvNV(ST(%d));\n", i, DataType_print_cast(p->t), j);
 	    break;
 	  
 	  // Void.. Do nothing.
@@ -851,7 +851,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Unsupported data type
 	    
 	  default :
-	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, p->t->print_type());
+	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, DataType_print_type(p->t));
 	    break;
 	  }
 	} else {
@@ -958,13 +958,13 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
       case T_USER:
 	d->is_pointer++;
 	Printv(f->code,
-	       tab4, "sv_setref_pv(ST(argvi++),\"",(hidden ? realpackage : ""), (hidden ? "::" : ""), d->print_mangle(),
+	       tab4, "sv_setref_pv(ST(argvi++),\"",(hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_print_mangle(d),
 	       "\", (void *) _result);\n", 0);
 	d->is_pointer--;
 	break;
 	
       default :
-	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
+	Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, DataType_print_type(d), name);
 	break;
       }
     } else {
@@ -978,7 +978,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	
       } else {
 	// Is an ordinary pointer type.
-	Printv(f->code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), d->print_mangle(),
+	Printv(f->code, tab4, "sv_setref_pv(ST(argvi++),\"", (hidden ? realpackage : ""), (hidden ? "::" : ""), DataType_print_mangle(d),
 	       "\", (void *) _result);\n", 0);
       }
     }
@@ -1185,11 +1185,11 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	case T_SHORT : case T_SSHORT : case T_USHORT:
 	case T_LONG : case T_SLONG : case T_ULONG:
 	case T_UCHAR: case T_SCHAR:
-	  Printv(setf->code,tab4, name, " = ", t->print_cast(), " SvIV(sv);\n", 0);
+	  Printv(setf->code,tab4, name, " = ", DataType_print_cast(t), " SvIV(sv);\n", 0);
 	  break;
 	case T_DOUBLE :
 	case T_FLOAT :
-	  Printv(setf->code, tab4, name, " = ", t->print_cast(), " SvNV(sv);\n", 0);
+	  Printv(setf->code, tab4, name, " = ", DataType_print_cast(t), " SvNV(sv);\n", 0);
 	  break;
 	case T_CHAR :
 	  Printv(setf->code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
@@ -1203,12 +1203,12 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	  t->is_pointer++;
 	  Wrapper_add_local(setf,"_temp", "void *_temp");
 	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	  Printv(setf->code, tab4, name, " = *(", t->print_cast(), " _temp);\n", 0);
+	  Printv(setf->code, tab4, name, " = *(", DataType_print_cast(t), " _temp);\n", 0);
 	  t->is_pointer--;
 	  break;
 	  
 	default :
-	  Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, t->print_type());
+	  Printf(stderr,"%s : Line %d.  Unable to link with datatype %s (ignored).\n", input_file, line_number, DataType_print_type(t));
 	  return;
 	}
       } else {
@@ -1233,7 +1233,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	  
 	  Wrapper_add_local(setf,"_temp","void *_temp");
 	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
-	  Printv(setf->code,tab4, name, " = ", t->print_cast(), " _temp;\n", 0);
+	  Printv(setf->code,tab4, name, " = ", DataType_print_cast(t), " _temp;\n", 0);
 	}
       }
     }
@@ -1288,7 +1288,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	       0);
 
 	Wrapper_add_local(getf,"rsv","SV *rsv");
-	Printv(vinit, tab4, "sv_setref_pv(sv,\"", t->print_mangle(), "\",(void *) &", name, ");\n",0);
+	Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_print_mangle(t), "\",(void *) &", name, ");\n",0);
 	t->is_pointer--;
 	
 	break;
@@ -1308,7 +1308,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	       0);
 
 	Wrapper_add_local(getf,"rsv","SV *rsv");
-	Printv(vinit, tab4, "sv_setref_pv(sv,\"", t->print_mangle(), "\",(void *) 1);\n",0);
+	Printv(vinit, tab4, "sv_setref_pv(sv,\"", DataType_print_mangle(t), "\",(void *) 1);\n",0);
       }
     }
   }
@@ -1472,7 +1472,7 @@ PERL5::declare_const(char *name, char *, DataType *type, char *value)
 	  have_ref_func = 1;
 	}
 	Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"", 
-	      type->print_mangle(), "\");\n", 0);
+	      DataType_print_mangle(type), "\");\n", 0);
       }
     }
   }
@@ -1539,7 +1539,7 @@ char *PERL5::usage_func(char *iname, DataType *, ParmList *l) {
 	if (strlen(p->name) > 0) {
 	  Printf(temp,"%s",p->name);
 	} else {
-	  Printf(temp,"%s",p->t->print_type());
+	  Printf(temp,"%s",DataType_print_type(p->t));
 	}
       }
       i++;

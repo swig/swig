@@ -1016,7 +1016,7 @@ void cplus_generate_types(char **baseclass) {
       } else {
 	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
       }
-      DataType::record_base(current_class->classname, bc->classname);
+      DataType_record_base(current_class->classname, bc->classname);
       // Now traverse the hierarchy some more
       cplus_generate_types(bc->baseclass);
     }
@@ -1585,7 +1585,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	  if (type->is_reference) {
 	    type->is_pointer--;
 	  }
-	  Printf(wrap,"%s", type->print_full());
+	  Printf(wrap,"%s", DataType_print_full(type));
 	  if (type->is_reference) {
 	    Printf(wrap,"&");
 	    type->is_pointer++;
@@ -1601,7 +1601,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
 		p->t->is_pointer--;
 	      } 
-	      Printf(wrap, p->t->print_full());
+	      Printf(wrap, DataType_print_full(p->t));
 	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
 		p->t->is_pointer++;
 	           if (p->t->is_reference)
@@ -1760,7 +1760,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	// Otherwise, assume the function has been written already and
 	// wrap it.
 	
-	Printv(wrap,"static ", type->print_full(), " ", cname, "(", 0);
+	Printv(wrap,"static ", DataType_print_full(type), " ", cname, "(", 0);
 	  
 	// Walk down the parameter list and Spit out arguments
 	p = ParmList_first(l);
@@ -1769,7 +1769,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	    if (p->t->is_reference) {
 	      p->t->is_pointer--;
 	    } 
-	    Printf(wrap, p->t->print_full());
+	    Printf(wrap, DataType_print_full(p->t));
 	    if (p->t->is_reference) {
 	      p->t->is_pointer++;
 	      Printf(wrap, "&");
@@ -1793,10 +1793,10 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	    
 	    if (type->is_reference) {
 	      type->is_pointer--;
-	      Printv(wrap, tab4, type->print_full(), "& _result = ",0);
+	      Printv(wrap, tab4, DataType_print_full(type), "& _result = ",0);
 	      type->is_pointer++;
 	    } else {
-	      Printv(wrap, tab4, type->print_type(), " _result = ", type->print_cast(), 0);
+	      Printv(wrap, tab4, DataType_print_type(type), " _result = ", DataType_print_cast(type), 0);
 	    }
 	  } else {
 	    Printf(wrap,tab4);
@@ -1819,7 +1819,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	  
 	  if ((type->type != T_VOID) || (type->is_pointer)) {
 	    if (type->is_reference) {
-	      Printv(wrap, tab4, "return ", type->print_cast(), " &_result;\n",0);
+	      Printv(wrap, tab4, "return ", DataType_print_cast(type), " &_result;\n",0);
 	    } else {
 	      Printv(wrap, tab4, "return _result;\n",0);
 	    }
@@ -2000,11 +2000,11 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       Printv(wrap, "#define ", iname, "(", 0);
       strcpy(cname,iname);
       if (ObjCClass) {
-	Printv(fcall, type->print_cast(), "[", classname, " ", mname,0);
+	Printv(fcall, DataType_print_cast(type), "[", classname, " ", mname,0);
       } else if (CPlusPlus) {
 	Printv(fcall, "new ", classname, "(", 0);
       } else {
-	Printv(fcall, type->print_cast(), " calloc(1,sizeof(", classtype, classname, "))", 0);
+	Printv(fcall, DataType_print_cast(type), " calloc(1,sizeof(", classtype, classname, "))", 0);
       }
 
       // Walk down the parameter list and spit out arguments
@@ -2048,7 +2048,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	    if (p->call_type & CALL_REFERENCE) {
 	      p->t->is_pointer--;
 	    }
-	    Printf(wrap, p->t->print_real(p->name));
+	    Printf(wrap, DataType_print_real(p->t,p->name));
 	    if (p->call_type & CALL_REFERENCE) {
 	      p->t->is_pointer++;
 	    }
@@ -2192,9 +2192,9 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 	if ((type->type == T_USER) && (!type->is_pointer)) {
 	  type->is_pointer++;
 	  if (tm) {
-	    Printv(wrap, "static ", type->print_type(), " ", cname, "(",  
+	    Printv(wrap, "static ", DataType_print_type(type), " ", cname, "(",  
 		   classtype, classname, " *obj) {\n",
-		   tab4, type->print_type(), " result;\n",
+		   tab4, DataType_print_type(type), " result;\n",
 		   tm, "\n",
 		   tab4, "return result;\n",
 		   "}\n",
@@ -2207,16 +2207,16 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 	  type->is_pointer--;
 	} else {
 	  if (tm) {
-	    Printv(wrap, "static ", type->print_type(), " ", cname, "(",
+	    Printv(wrap, "static ", DataType_print_type(type), " ", cname, "(",
 		   classtype, classname, " *obj) {\n",
-		   tab4, type->print_type(), " result;\n",
+		   tab4, DataType_print_type(type), " result;\n",
 		   tm, "\n",
 		   tab4, "return result;\n",
 		   "}\n",
 		   0);
 	  } else {
 	    Printv(wrap, "#define ", cname, "(_swigobj) (",0);
-	    if (!type->is_reference) Printf(wrap,type->print_cast());
+	    if (!type->is_reference) Printf(wrap,DataType_print_cast(type));
 	    else
 	      Printf(wrap,"&");
 	    Printv(wrap, " _swigobj->", mname, ")\n",0);
@@ -2380,8 +2380,8 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	    is_user = 1;
 	  }
 	  Printv(wrap,
-		 "static ", type->print_type(), " ", cname, "(",
-		 classtype, classname, " *obj, ", type->print_real((char*)"val"), ") {\n",
+		 "static ", DataType_print_type(type), " ", cname, "(",
+		 classtype, classname, " *obj, ", DataType_print_real(type,(char*)"val"), ") {\n",
 		 0);
 	  if (is_user) {
 	    type->is_pointer--;
@@ -2389,7 +2389,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	  Printv(wrap,tm,"\n",0);
 	  // Return the member
 	  if (is_user) type->is_pointer++;
-	  Printv(wrap, tab4, "return ", type->print_cast(), " val;\n",0);
+	  Printv(wrap, tab4, "return ", DataType_print_cast(type), " val;\n",0);
 	  if (is_user) type->is_pointer--;
 	  Printf(wrap,"}\n");
 	} else {
@@ -2413,8 +2413,8 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
 		char temp[512];
 		Printv(wrap,
-		       "static ", type->print_type(), " ", cname, "(",
-		       classtype, classname, " *obj, ", type->print_real((char*)"val"), ") {\n",
+		       "static ", DataType_print_type(type), " ", cname, "(",
+		       classtype, classname, " *obj, ", DataType_print_real(type,(char*)"val"), ") {\n",
 		       0);
 		sprintf(temp,"obj->%s",mname);
 		if (CPlusPlus) {
@@ -2562,7 +2562,7 @@ void cplus_inherit_scope(int count, char **baseclass) {
        bc = CPP_class::search(baseclass[i]);
       if (bc) {
 	if (bc->scope)
-	  DataType::merge_scope(bc->scope);
+	  DataType_merge_scope(bc->scope);
 
 	if (bc->local) {
 	  // Copy local symbol table

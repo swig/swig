@@ -111,67 +111,67 @@ DataType::~DataType() {
 }
 
 // --------------------------------------------------------------------
-// DataType::primitive()
+// DataType_primitive()
 //
 // Turns a datatype into its bare-bones primitive type.  Rarely used,
 // but sometimes used for typemaps.  Permanently alters the datatype!
 // --------------------------------------------------------------------
 
-void DataType::primitive() {
-  switch(type) {
+void DataType_primitive(DataType *t) {
+  switch(t->type) {
   case T_BOOL:
-    strcpy(name,"bool");
+    strcpy(t->name,"bool");
     break;
   case T_INT: case T_SINT:
-    strcpy(name,"int");
+    strcpy(t->name,"int");
     break;
   case T_SHORT: case T_SSHORT:
-    strcpy(name,"short");
+    strcpy(t->name,"short");
     break;
   case T_LONG: case T_SLONG:
-    strcpy(name,"long");
+    strcpy(t->name,"long");
     break;
   case T_CHAR: 
-    strcpy(name,"char");
+    strcpy(t->name,"char");
     break;
   case T_SCHAR:
-    strcpy(name,"signed char");
+    strcpy(t->name,"signed char");
     break;
   case T_UINT:
-    strcpy(name,"unsigned int");
+    strcpy(t->name,"unsigned int");
     break;
   case T_USHORT:
-    strcpy(name,"unsigned short");
+    strcpy(t->name,"unsigned short");
     break;
   case T_ULONG:
-    strcpy(name,"unsigned long");
+    strcpy(t->name,"unsigned long");
     break;
   case T_UCHAR:
-    strcpy(name,"unsigned char");
+    strcpy(t->name,"unsigned char");
     break;
   case T_FLOAT:
-    strcpy(name,"float");
+    strcpy(t->name,"float");
     break;
   case T_DOUBLE:
-    strcpy(name,"double");
+    strcpy(t->name,"double");
     break;
   case T_VOID:
-    strcpy(name,"void");
+    strcpy(t->name,"void");
     break;
   case T_USER:
-    strcpy(name,"USER");
+    strcpy(t->name,"USER");
     break;
   default:
-    strcpy(name,"UNKNOWN");
+    strcpy(t->name,"UNKNOWN");
     break;
   }
-  implicit_ptr = 0;          // Gets rid of typedef'd pointers
-  if (qualifier) {
-    delete qualifier;
-    qualifier = 0;
+  t->implicit_ptr = 0;          // Gets rid of typedef'd pointers
+  if (t->qualifier) {
+    delete t->qualifier;
+    t->qualifier = 0;
   }
-  qualifier = 0;
-  status = 0;
+  t->qualifier = 0;
+  t->status = 0;
 }
 
 // --------------------------------------------------------------------
@@ -187,22 +187,22 @@ void DataType::primitive() {
 // use this type as a valid type.  We'll substitute it's old name in.
 // --------------------------------------------------------------------
 
-char *DataType::print_type() {
+char *DataType_print_type(DataType *ty) {
   static char    result[8][256];
   static int    ri = 0;
 
-  DataType *t = this;
+  DataType *t = ty;
   
-  if (status & STAT_REPLACETYPE) {
-    t = new DataType(this);
-    t->typedef_replace();   // Upgrade type
+  if (ty->status & STAT_REPLACETYPE) {
+    t = new DataType(ty);
+    DataType_typedef_replace(t);   // Upgrade type
   }
   ri = ri % 8;
   sprintf(result[ri],"%s ", t->name);
   for (int i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
     strcat(result[ri],"*");
 
-  if (status & STAT_REPLACETYPE) {
+  if (ty->status & STAT_REPLACETYPE) {
     delete t;
   };
   return result[ri++];
@@ -213,16 +213,16 @@ char *DataType::print_type() {
 //
 // Prints full type, with qualifiers.
 // --------------------------------------------------------------------
-char *DataType::print_full() {
+char *DataType_print_full(DataType *t) {
   static char result[8][256];
   static int ri = 0;
 
   ri = ri % 8;
-  if (qualifier) {
-    sprintf(result[ri],"%s %s", qualifier, print_type());
+  if (t->qualifier) {
+    sprintf(result[ri],"%s %s", t->qualifier, DataType_print_type(t));
     return result[ri++];
   } else {
-    return print_type();
+    return DataType_print_type(t);
   }
 }
 
@@ -231,22 +231,22 @@ char *DataType::print_full() {
 //
 // Prints real type, with qualifiers and arrays if necessary.
 // --------------------------------------------------------------------
-char *DataType::print_real(char *local) {
+char *DataType_print_real(DataType *t, char *local) {
   static char  result[8][256];
   static int    ri = 0;
   int           oldstatus;
 
-  oldstatus = status;
-  status = status & (~STAT_REPLACETYPE);
+  oldstatus = t->status;
+  t->status = t->status & (~STAT_REPLACETYPE);
   ri = ri % 8;
-  if (arraystr) is_pointer--;
-  strcpy(result[ri], print_full());
+  if (t->arraystr) t->is_pointer--;
+  strcpy(result[ri], DataType_print_full(t));
   if (local) strcat(result[ri],local);
-  if (arraystr) {
-    strcat(result[ri],arraystr);
-    is_pointer++;
+  if (t->arraystr) {
+    strcat(result[ri],t->arraystr);
+    t->is_pointer++;
   }
-  status = oldstatus;
+  t->status = oldstatus;
   return result[ri++];
 }
 
@@ -256,12 +256,12 @@ char *DataType::print_real(char *local) {
 // Prints a cast.  (Basically just a type but with parens added).
 // --------------------------------------------------------------------
 
-char *DataType::print_cast() {
+char *DataType_print_cast(DataType *t) {
   static char   result[8][256];
   static int    ri = 0;
 
   ri = ri % 8;
-  sprintf(result[ri],"(%s)", print_type());
+  sprintf(result[ri],"(%s)", DataType_print_type(t));
   return result[ri++];
 }
 
@@ -272,17 +272,17 @@ char *DataType::print_cast() {
 // for multidimensional arrays.
 // --------------------------------------------------------------------
 
-char *DataType::print_arraycast() {
+char *DataType_print_arraycast(DataType *ty) {
   static char result[8][256];
   static int    ri = 0;
   int  ndim;
   char *c;
   DataType     *t;
 
-  t = this;
-  if (status & STAT_REPLACETYPE) {
-    t = new DataType(this);
-    t->typedef_replace();   // Upgrade type
+  t = ty;
+  if (ty->status & STAT_REPLACETYPE) {
+    t = new DataType(ty);
+    DataType_typedef_replace(t);   // Upgrade type
   }
 
   ri = ri % 8;
@@ -295,10 +295,10 @@ char *DataType::print_arraycast() {
     }
     if (ndim > 1) {
       // a Multidimensional array.  Provide a special cast for it
-      int oldstatus = status;
+      int oldstatus = ty->status;
       t->status = t->status & (~STAT_REPLACETYPE);
       t->is_pointer--;
-      sprintf(result[ri],"(%s", t->print_type());
+      sprintf(result[ri],"(%s", DataType_print_type(t));
       t->is_pointer++;
       t->status = oldstatus;
       strcat(result[ri]," (*)");
@@ -312,7 +312,7 @@ char *DataType::print_arraycast() {
       strcat(result[ri],")");
     }
   }
-  if (status & STAT_REPLACETYPE) {
+  if (ty->status & STAT_REPLACETYPE) {
     delete t;
   }
   return result[ri++];
@@ -326,7 +326,7 @@ char *DataType::print_arraycast() {
 // spaces and no weird characters).
 // --------------------------------------------------------------------
 
-char *DataType::print_mangle_default() {
+char *DataType_print_mangle_default(DataType *t) {
   static char   result[8][256];
   static int    ri = 0;
   int   i;
@@ -334,7 +334,7 @@ char *DataType::print_mangle_default() {
   char *d;
 
   ri = ri % 8;
-  c = name;
+  c = t->name;
 
   result[ri][0] = '_';
 
@@ -347,8 +347,8 @@ char *DataType::print_mangle_default() {
       if ((*c == ' ') || (*c == ':') || (*c == '<') || (*c == '>')) *(d++) = '_';
       else *(d++) = *c;
   }
-  if ((is_pointer-implicit_ptr)) *(d++) = '_';
-  for (i = 0; i < (is_pointer-implicit_ptr); i++)
+  if ((t->is_pointer-t->implicit_ptr)) *(d++) = '_';
+  for (i = 0; i < (t->is_pointer-t->implicit_ptr); i++)
     *(d++) = 'p';
 
   *d = 0;
@@ -358,22 +358,22 @@ char *DataType::print_mangle_default() {
 // This is kind of ugly but needed for each language to support a
 // custom name mangling mechanism.  (ie. Perl5).
 
-char *DataType::print_mangle() {
+char *DataType_print_mangle(DataType *t) {
   // Call into target language for name mangling.
-  return lang->type_mangle(this);
+  return lang->type_mangle(t);
 }
 
 // --------------------------------------------------------------------
-// int DataType::array_dimensions()
+// int DataType_array_dimensions()
 //
 // Returns the number of dimensions in an array or 0 if not an array.
 // --------------------------------------------------------------------
-int DataType::array_dimensions() {
+int DataType_array_dimensions(DataType *t) {
   char *c;
   int  ndim = 0;
 
-  if (!arraystr) return 0;
-  c = arraystr;
+  if (!t->arraystr) return 0;
+  c = t->arraystr;
   while (*c) {
     if (*c == '[') {
       ndim++;
@@ -384,24 +384,24 @@ int DataType::array_dimensions() {
 }
 
 // --------------------------------------------------------------------
-// char *DataType::get_dimension(int n)
+// char *DataType_get_dimension(int n)
 // 
 // Returns a string containing the value specified for dimension n.
 // --------------------------------------------------------------------
 
-char *DataType::get_dimension(int n) {
+char *DataType_get_dimension(DataType *t, int n) {
   static char dim[256];
   char  *c;
   char  *d = dim;
 
-  if (n >= array_dimensions()) {
+  if (n >= DataType_array_dimensions(t)) {
     *d = 0;
     return dim;
   }
   
   // Attemp to locate the right dimension
 
-  c = arraystr;
+  c = t->arraystr;
   while ((*c) && (n >= 0)) {
     if (*c == '[') n--;
     c++;
@@ -418,16 +418,6 @@ char *DataType::get_dimension(int n) {
 }
 
 // --------------------------------------------------------------------
-// char *DataType::get_array()
-//
-// Returns the array string for a datatype.
-// --------------------------------------------------------------------
-
-char *DataType::get_array() {
-  return arraystr;
-}
-
-// --------------------------------------------------------------------
 // typedef support.  This needs to be scoped.
 // --------------------------------------------------------------------
 
@@ -435,7 +425,7 @@ static DOHHash *typedef_hash[MAXSCOPE];
 static int      scope = 0;            // Current scope
 
 // -----------------------------------------------------------------------------
-// void DataType::init_typedef() 
+// void DataType_init_typedef() 
 // 
 // Inputs : None
 //
@@ -444,7 +434,7 @@ static int      scope = 0;            // Current scope
 // Side Effects : Initializes the typedef hash tables
 // -----------------------------------------------------------------------------
 
-void DataType::init_typedef() {
+void DataType_init_typedef() {
   int i;
   for (i = 0; i < MAXSCOPE; i++)
     typedef_hash[i] = 0;
@@ -454,7 +444,7 @@ void DataType::init_typedef() {
 }
 
 // --------------------------------------------------------------------
-// void DataType::typedef_add(char *typename, int mode = 0)
+// void DataType_typedef_add()
 //
 // Adds this datatype to the typedef hash table.  mode is an optional
 // flag that can be used to only add the symbol as a typedef, but not
@@ -463,9 +453,9 @@ void DataType::init_typedef() {
 // arrays, and enums.
 // --------------------------------------------------------------------
 
-void DataType::typedef_add(char *tname, int mode) {
+void DataType_typedef_add(DataType *t,char *tname, int mode) {
   char     *name1, *name2;
-  DataType *nt, t1;
+  DataType *nt, *t1;
   void typeeq_addtypedef(char *name, char *eqname, DataType *);
 
   // Check to see if this typedef already defined
@@ -480,11 +470,10 @@ void DataType::typedef_add(char *tname, int mode) {
 
   // Make a new datatype that we will place in our hash table
 
-  nt = new DataType(this);
-  nt->implicit_ptr = (is_pointer-implicit_ptr); // Record if mapped type is a pointer
-  nt->is_pointer = (is_pointer-implicit_ptr); // Adjust pointer value to be correct
-  nt->typedef_resolve();                   // Resolve any other mappings of this type
-  //  strcpy(nt->name,tname);              // Copy over the new name
+  nt = new DataType(t);
+  nt->implicit_ptr = (t->is_pointer-t->implicit_ptr); // Record if mapped type is a pointer
+  nt->is_pointer = (t->is_pointer-t->implicit_ptr); // Adjust pointer value to be correct
+  DataType_typedef_resolve(nt,0);                   // Resolve any other mappings of this type
   
   // Add this type to our hash table
   SetVoid(typedef_hash[scope],tname, (void *) nt);
@@ -492,20 +481,22 @@ void DataType::typedef_add(char *tname, int mode) {
   // Now add this type mapping to our type-equivalence table
 
   if (mode == 0) {
-      if ((type != T_VOID) && (strcmp(name,tname) != 0)) {
-	strcpy(t1.name,tname);
-	name2 = t1.print_mangle();
-	name1 = print_mangle();
-	typeeq_addtypedef(name1,name2,&t1);
-	typeeq_addtypedef(name2,name1,this);
+      if ((t->type != T_VOID) && (strcmp(t->name,tname) != 0)) {
+	t1 = new DataType();
+	strcpy(t1->name,tname);
+	name2 = DataType_print_mangle(t1);
+	name1 = DataType_print_mangle(t);
+	typeeq_addtypedef(name1,name2,t1);
+	typeeq_addtypedef(name2,name1,t);
+	delete t1;
       }
   }
   // Call into the target language with this typedef
-  lang->add_typedef(this,tname);
+  lang->add_typedef(t,tname);
 }
 
 // --------------------------------------------------------------------
-// void DataType::typedef_resolve(int level = 0)
+// void DataType_typedef_resolve(int level = 0)
 //
 // Checks to see if this datatype is in the typedef hash and
 // resolves it if necessary.   This will check all of the typedef
@@ -529,25 +520,25 @@ void DataType::typedef_add(char *tname, int mode) {
 // all future occurrences of "String" will really be "const char *".
 // --------------------------------------------------------------------
 
-void DataType::typedef_resolve(int level) {
+void DataType_typedef_resolve(DataType *t, int level) {
 
   DataType *td;
   int       s = scope - level;
 
   while (s >= 0) {
-    if ((td = (DataType *) GetVoid(typedef_hash[s],name))) {
-      type = td->type;
-      is_pointer += td->is_pointer;
-      implicit_ptr += td->implicit_ptr;
-      status = status | td->status;
+    if ((td = (DataType *) GetVoid(typedef_hash[s],t->name))) {
+      t->type = td->type;
+      t->is_pointer += td->is_pointer;
+      t->implicit_ptr += td->implicit_ptr;
+      t->status = t->status | td->status;
 
       // Check for constness, and replace type name if necessary
 
       if (td->qualifier) {
 	if (strcmp(td->qualifier,"const") == 0) {
-	  strcpy(name,td->name);
-	  qualifier = copy_string(td->qualifier);
-	  implicit_ptr -= td->implicit_ptr;
+	  strcpy(t->name,td->name);
+	  t->qualifier = copy_string(td->qualifier);
+	  t->implicit_ptr -= td->implicit_ptr;
 	}
       }
       return;
@@ -559,30 +550,30 @@ void DataType::typedef_resolve(int level) {
 }
 
 // --------------------------------------------------------------------
-// void DataType::typedef_replace()
+// void DataType_typedef_replace()
 //
 // Checks to see if this datatype is in the typedef hash and
 // replaces it with the hash entry. Only applies to current scope.
 // --------------------------------------------------------------------
 
-void DataType::typedef_replace () {
+void DataType_typedef_replace (DataType *t) {
   DataType *td;
   char   temp[512];
 
   temp[0] = 0;
 
-  if ((td = (DataType *) GetVoid(typedef_hash[scope],name))) {
-    type = td->type;
-    is_pointer = td->is_pointer;
-    implicit_ptr -= td->implicit_ptr;
-    strcpy(name, td->name);
+  if ((td = (DataType *) GetVoid(typedef_hash[scope],t->name))) {
+    t->type = td->type;
+    t->is_pointer = td->is_pointer;
+    t->implicit_ptr -= td->implicit_ptr;
+    strcpy(t->name, td->name);
     if (td->arraystr) {
-      if (arraystr) {
-	strcat(temp,arraystr);
-	delete arraystr;
+      if (t->arraystr) {
+	strcat(temp,t->arraystr);
+	delete t->arraystr;
       }
       strcat(temp,td->arraystr);
-      arraystr = copy_string(temp);
+      t->arraystr = copy_string(temp);
     }
   }
   // Not found, do nothing
@@ -590,13 +581,13 @@ void DataType::typedef_replace () {
 }
 
 // ---------------------------------------------------------------
-// int DataType::is_typedef(char *t)
+// int DataType_is_typedef(char *t)
 //
 // Checks to see whether t is the name of a datatype we know
 // about.  Returns 1 if there's a match, 0 otherwise
 // ---------------------------------------------------------------
 
-int DataType::is_typedef(char *t) {
+int DataType_is_typedef(char *t) {
   int s = scope;
   while (s >= 0) {
     if (Getattr(typedef_hash[s],t)) return 1;
@@ -606,24 +597,23 @@ int DataType::is_typedef(char *t) {
 }
 
 // ---------------------------------------------------------------
-// void DataType::typedef_updatestatus(int newstatus)
+// void DataType_typedef_updatestatus(int newstatus)
 //
 // Checks to see if this datatype is in the hash table.  If
 // so, we'll update its status.   This is sometimes used with
 // typemap handling.  Only applies to current scope.
 // ---------------------------------------------------------------
 
-void DataType::typedef_updatestatus(int newstatus) {
+void DataType_typedef_updatestatus(DataType *t, int newstatus) {
 
-  DataType *t;
-  if ((t = (DataType *) GetVoid(typedef_hash[scope],name))) {
-    t->status = newstatus;
+  DataType *nt;
+  if ((nt = (DataType *) GetVoid(typedef_hash[scope],t->name))) {
+    nt->status = newstatus;
   }
 }
 
-
 // -----------------------------------------------------------------------------
-// void DataType::merge_scope(Hash *h) 
+// void DataType_merge_scope(Hash *h) 
 // 
 // Copies all of the entries in scope h into the current scope.  This is
 // primarily done with C++ inheritance.
@@ -635,7 +625,7 @@ void DataType::typedef_updatestatus(int newstatus) {
 // Side Effects : Copies all of the entries in h to current scope.
 // -----------------------------------------------------------------------------
 
-void DataType::merge_scope(void *ho) {
+void DataType_merge_scope(void *ho) {
   DOHString *key;
   DataType *t, *nt;
   DOHHash *h = (DOHHash *) ho;
@@ -654,7 +644,7 @@ void DataType::merge_scope(void *ho) {
 }
 
 // -----------------------------------------------------------------------------
-// void DataType::new_scope(Hash *h = 0)
+// void DataType_new_scope(Hash *h = 0)
 //
 // Creates a new scope for handling typedefs.   This is used in C++ handling
 // to create typedef local to a class definition. 
@@ -666,16 +656,16 @@ void DataType::merge_scope(void *ho) {
 // Side Effects : Creates a new hash table and increments the scope counter
 // -----------------------------------------------------------------------------
 
-void DataType::new_scope(void *ho) {
+void DataType_new_scope(void *ho) {
   scope++;
   typedef_hash[scope] = NewHash();
   if (ho) {
-    merge_scope(ho);
+    DataType_merge_scope(ho);
   }
 }
 
 // -----------------------------------------------------------------------------
-// Hash *DataType::collapse_scope(char *prefix) 
+// Hash *DataType_collapse_scope(char *prefix) 
 // 
 // Collapses the current scope into the previous one, but applies a prefix to
 // all of the datatypes.   This is done in order to properly handle C++ stuff.
@@ -696,7 +686,7 @@ void DataType::new_scope(void *ho) {
 // Side Effects : Returns the hash table corresponding to the current scope
 // -----------------------------------------------------------------------------
 
-void *DataType::collapse_scope(char *prefix) {
+void *DataType_collapse_scope(char *prefix) {
   DataType *t,*nt;
   DOHString *key;
   char     *temp;
@@ -917,8 +907,8 @@ void typeeq_derived(char *n1, char *n2, char *cast=0) {
   t1.type = T_USER;
   strcpy(t.name,n1);
   strcpy(t1.name,n2);
-  name = t.print_mangle();
-  name2 = t1.print_mangle();
+  name = DataType_print_mangle(&t);
+  name2 = DataType_print_mangle(&t1);
   typeeq_add(name,name2, cast, &t1);
 }
 
@@ -936,8 +926,8 @@ void typeeq_mangle(char *n1, char *n2, char *cast=0) {
 
   strcpy(t.name,n1);
   strcpy(t1.name,n2);
-  name = t.print_mangle();
-  name2 = t1.print_mangle();
+  name = DataType_print_mangle(&t);
+  name2 = DataType_print_mangle(&t1);
   typeeq_add(name,name2,cast);
 }
 
@@ -985,7 +975,7 @@ check_equivalent(DataType *t) {
   Clear(out);
 
   while (t->is_pointer >= t->implicit_ptr) {
-    m = copy_string(t->print_mangle());
+    m = copy_string(DataType_print_mangle(t));
 
     if (!te_init) typeeq_init();
 
@@ -997,7 +987,7 @@ check_equivalent(DataType *t) {
 	while (e2) {
 	  if (e2->type) {
 	    e2->type->is_pointer += (npointer - t->is_pointer);
-	    Printf(out,"{ \"%s\",", e2->type->print_mangle());
+	    Printf(out,"{ \"%s\",", DataType_print_mangle(e2->type));
 	    e2->type->is_pointer -= (npointer - t->is_pointer);
 	    if (e2->cast) 
 	      Printf(out,"%s}, ", e2->cast);
@@ -1018,7 +1008,7 @@ check_equivalent(DataType *t) {
 }
 
 // -----------------------------------------------------------------------------
-// void DataType::record_base(char *derived, char *base)
+// void DataType_record_base(char *derived, char *base)
 //
 // Record base class information.  This is a hack to make runtime libraries
 // work across multiple files.
@@ -1026,7 +1016,7 @@ check_equivalent(DataType *t) {
 
 static DOHHash  *bases = 0;
 
-void DataType::record_base(char *derived, char *base)
+void DataType_record_base(char *derived, char *base)
 {
   DOHHash *nh;
   if (!bases) bases = NewHash();
@@ -1041,7 +1031,7 @@ void DataType::record_base(char *derived, char *base)
 }
 
 // ----------------------------------------------------------------------
-// void DataType::remember()
+// void DataType_remember()
 //
 // Marks a datatype as being used in the interface file.   We use this to
 // construct a big table of pointer values at the end.
@@ -1049,12 +1039,12 @@ void DataType::record_base(char *derived, char *base)
 
 static  DOHHash  *remembered = 0;
 
-void DataType::remember() {
+void DataType_remember(DataType *ty) {
   DOHHash *h;
-  DataType *t = new DataType(this);
+  DataType *t = new DataType(ty);
 
   if (!remembered) remembered = NewHash();
-  SetVoid(remembered, t->print_mangle(), t);
+  SetVoid(remembered, DataType_print_mangle(t), t);
 
   if (!bases) bases = NewHash();
   /* Now, do the base-class hack */
@@ -1065,8 +1055,8 @@ void DataType::remember() {
     while (key) {
       DataType *nt = new DataType(t);
       strcpy(nt->name,Char(key));
-      if (!Getattr(remembered,nt->print_mangle())) 
-	nt->remember();
+      if (!Getattr(remembered,DataType_print_mangle(nt))) 
+	DataType_remember(nt);
       delete nt;
       key = Nextkey(h);
     }
