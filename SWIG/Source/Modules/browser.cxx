@@ -12,6 +12,9 @@
 
 char cvsroot_browser_cxx[] = "$Header$";
 
+#ifndef MACSWIG
+#include "swigconfig.h"
+#endif
 #include "swigmod.h"
 
 #ifdef SWIG_SWILL
