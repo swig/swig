@@ -11,6 +11,7 @@
 %}
 
 namespace std {
+    %template() vector<short>;
     %template(IntVector) vector<int>;
     %template(BoolVector) vector<bool>;
 }
@@ -73,6 +74,14 @@ struct B : public A {
   int f(const int i) const { return i + val; }
 };
 } 
+
+std::vector<short> halfs(const std::vector<short>& v) {
+    std::vector<short> w(v);
+    for (std::vector<short>::size_type i=0; i<w.size(); i++)
+        w[i] /= 2;
+    return w;
+}
+
 %}
 %template(VecB) std::vector<Test::B>; 
 %template(VecA) std::vector<Test::A*>; 
