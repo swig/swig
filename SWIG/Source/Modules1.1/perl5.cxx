@@ -269,7 +269,7 @@ PERL5::top(Node *n) {
 	 "#else\n",
 	 "#define MAGIC_CLASS\n",
 	 "#endif\n",
-	 "SWIGCLASS_STATIC int swig_magic_readonly(SV *sv, MAGIC *mg) {\n",
+	 "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *sv, MAGIC *mg) {\n",
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "sv = sv; mg = mg;\n",
 	 tab4, "croak(\"Value is read-only.\");\n",
@@ -715,7 +715,7 @@ int PERL5::variableWrapper(Node *n)
   /* Create a Perl function for setting the variable value */
 
   if (!ReadOnly) {
-    Printf(setf->def,"SWIGCLASS_STATIC int %s(SV* sv, MAGIC *mg) {\n", set_name);
+    Printf(setf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC *mg) {\n", set_name);
     Printv(setf->code,
 	   tab4, "MAGIC_PPERL\n",
 	   tab4, "mg = mg;\n",
@@ -741,7 +741,7 @@ int PERL5::variableWrapper(Node *n)
 
   /* Now write a function to evaluate the variable */
 
-  Printf(getf->def,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
+  Printf(getf->def,"SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *mg) {\n", val_name);
   Printv(getf->code,
 	 tab4, "MAGIC_PPERL\n",
 	 tab4, "mg = mg;\n",
