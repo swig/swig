@@ -1,5 +1,10 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
+1/30/00 : loic
+	  Conditionaly compile experimental code with --enable-experiment
+	  configure flag.
+	  Fix .cvsignore to ignore configrue & yacc generated files
+
 1/28/00 : loic
 	  Apply automake everywhere
 	  Keep configure scripts so that people are not *forced* to autoconf
