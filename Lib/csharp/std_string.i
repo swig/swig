@@ -38,6 +38,10 @@ class string;
 
 %typemap(typecheck) string = char *;
 
+%typemap(throws) string %{
+  SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
+%}
+
 // const string &
 %typemap(ctype) const string & "char *"
 %typemap(imtype) const string & "string"
@@ -55,6 +59,10 @@ class string;
   }
 
 %typemap(typecheck) const string & = char *;
+
+%typemap(throws) const string & %{
+  SWIG_CSharpThrowException(SWIG_CSharpException, $1.c_str());
+%}
 
 }
 
