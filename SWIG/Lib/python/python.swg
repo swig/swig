@@ -4,9 +4,12 @@
  * Python configuration module.
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) "common.swg";
-%insert(runtime) "pyrun.swg";
+%insert(runtime) "common.swg";          // Common type-checking code
+%insert(runtime) "pyrun.swg";           // Python run-time code
 
+/* Special typemap for character array return values */
+
+%typemap(python,out) char [ANY], const char [ANY] "$target = PyString_FromString($source);";
 
 /* Overloaded operator support */
 

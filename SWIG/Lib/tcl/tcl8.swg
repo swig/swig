@@ -4,6 +4,10 @@
  * Tcl8 configuration module.
  * ----------------------------------------------------------------------------- */
 
-%insert(runtime) "common.swg";
-%insert(runtime) "swigtcl8.swg";
+%runtime "common.swg"
+%runtime "swigtcl8.swg"
+
+// Typemap for character array returns
+
+%typemap(tcl8,out) char [ANY], const char[ANY] "Tcl_SetObjResult(interp,Tcl_NewStringObj($source,-1));"
 
