@@ -23,34 +23,31 @@ Tcl 8 Options (available with -tcl)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -prefix name    - Set a prefix to be appended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace. \n\
-     -pkgversion     - Set package version.\n\
-     -noobject       - Omit code for object oriented interface.\n\n";
+     -pkgversion     - Set package version.\n\n";
 
-static String     *mod_init = 0;
-static String     *cmd_info = 0;
-static String     *var_info = 0;
-static String     *const_code = 0;
-static String     *methods = 0;
-static String     *attributes = 0;
+static String     *cmd_tab = 0;                    /* Table of command names    */
+static String     *var_tab = 0;                    /* Table of global variables */
+static String     *const_tab = 0;                  /* Constant table            */
+static String     *methods_tab = 0;                /* Methods table             */
+static String     *attr_tab = 0;                   /* Attribute table           */
 static String     *cpp_bases = 0;
 static String     *prefix = 0;
 static String     *module = 0;
-static int        nspace = 0;
-static int        shadow = 1;
-static String    *init_name = 0;
-static String    *ns_name = 0;
-static int        have_constructor;
-static int        have_destructor;
-static String    *version = 0;
+static int         nspace = 0;
+static String     *init_name = 0;
+static String     *ns_name = 0;
+static int         have_constructor;
+static int         have_destructor;
+static String     *version = (String *) "0.0";
 
-static String    *class_name = 0;
-static String    *class_type = 0;
-static String    *real_classname = 0;
+static String     *class_name = 0;
+static String     *class_type = 0;
+static String     *real_classname = 0;
 
-static File      *f_header  = 0;
-static File      *f_wrappers = 0;
-static File      *f_init = 0;
-static File      *f_runtime = 0;
+static File       *f_header  = 0;
+static File       *f_wrappers = 0;
+static File       *f_init = 0;
+static File       *f_runtime = 0;
 
 /* -----------------------------------------------------------------------------
  * TCL8::main()
@@ -58,11 +55,10 @@ static File      *f_runtime = 0;
 
 void
 TCL8::main(int argc, char *argv[]) {
-  int i;
   
   SWIG_library_directory("tcl");
 
-  for (i = 1; i < argc; i++) {
+  for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	  if (strcmp(argv[i],"-prefix") == 0) {
 	    if (argv[i+1]) {
@@ -81,9 +77,6 @@ TCL8::main(int argc, char *argv[]) {
 	  } else if (strcmp(argv[i],"-namespace") == 0) {
 	    nspace = 1;
 	    Swig_mark_arg(i);
-          } else if (strcmp(argv[i],"-noobject") == 0) {
-	    shadow = 0;
-	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	  } else if (strcmp (argv[i], "-ldflags") == 0) {
@@ -93,9 +86,7 @@ TCL8::main(int argc, char *argv[]) {
       }
   }
 
-  if (prefix) {
-    ns_name = Copy(prefix);
-  }
+  if (prefix) ns_name = Copy(prefix);
   if (prefix && Len(prefix))
     Append(prefix,"_");
 
@@ -131,12 +122,12 @@ TCL8::top(Node *n) {
   Swig_register_filebyname("init",f_init);
 
   /* Initialize some variables for the object interface */
-  mod_init   = NewString("");
-  cmd_info   = NewString("");
-  var_info   = NewString("");
-  methods    = NewString("");
-  attributes = NewString("");
-  const_code = NewString("");
+
+  cmd_tab        = NewString("");
+  var_tab        = NewString("");
+  methods_tab    = NewString("");
+  attr_tab       = NewString("");
+  const_tab      = NewString("");
 
   Swig_banner(f_runtime);
 
@@ -154,10 +145,6 @@ TCL8::top(Node *n) {
     Printf(stderr,"Tcl error.   Must specify a namespace.\n");
     SWIG_exit (EXIT_FAILURE);
   }
-  if (!init_name) {
-    Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
   Printf(f_header,"#define SWIG_init    %s\n", init_name);
   Printf(f_header,"#define SWIG_name    \"%s\"\n", module);
   if (nspace) {
@@ -166,27 +153,24 @@ TCL8::top(Node *n) {
   } else {
     Printf(f_header,"#define SWIG_prefix  \"%s\"\n", prefix);
   }
-  if (version) 
-    Printf(f_header,"#define SWIG_version \"%s\"\n", version);
-  else
-    Printf(f_header,"#define SWIG_version \"0.0\"\n");
+  Printf(f_header,"#define SWIG_version \"%s\"\n", version);
 
-  Printf(cmd_info, "\nstatic swig_command_info swig_commands[] = {\n");
-  Printf(var_info, "\nstatic swig_var_info swig_variables[] = {\n");
-  Printf(const_code, "\nstatic swig_const_info swig_constants[] = {\n");
+  Printf(cmd_tab, "\nstatic swig_command_info swig_commands[] = {\n");
+  Printf(var_tab, "\nstatic swig_var_info swig_variables[] = {\n");
+  Printf(const_tab, "\nstatic swig_const_info swig_constants[] = {\n");
 
   /* Start emitting code */
   Language::top(n);
 
   /* Done.  Close up the module */
 
-  Printv(cmd_info, tab4, "{0, 0, 0}\n", "};\n",0);
-  Printv(var_info, tab4, "{0,0,0,0}\n", "};\n",0);
-  Printv(const_code, tab4, "{0,0,0,0,0,0}\n", "};\n", 0);
+  Printv(cmd_tab, tab4, "{0, 0, 0}\n", "};\n",0);
+  Printv(var_tab, tab4, "{0,0,0,0}\n", "};\n",0);
+  Printv(const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", 0);
 
-  Printf(f_wrappers,"%s", cmd_info);
-  Printf(f_wrappers,"%s", var_info);
-  Printf(f_wrappers,"%s", const_code);
+  Printf(f_wrappers,"%s", cmd_tab);
+  Printf(f_wrappers,"%s", var_tab);
+  Printf(f_wrappers,"%s", const_tab);
 
   /* Dump the pointer equivalency table */
   SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -211,18 +195,9 @@ TCL8::top(Node *n) {
 
 void
 TCL8::set_module(char *mod_name) {
-  char *c;
-
   if (module) return;
-  module = NewString(mod_name);
-
-  /* Fix capitalization for Tcl */
-  for (c = Char(module); *c; c++) *c = (char) tolower(*c);
-
-  /* Now create an initialization function */
-  init_name = NewStringf("%s_Init",module);
-  c = Char(init_name);
-  *c = toupper(*c);
+  module    = NewStringf("%(lower)s", mod_name);
+  init_name = NewStringf("%(title)s_Init",module);
 
   if (!ns_name) ns_name = Copy(module);
 
@@ -237,11 +212,10 @@ TCL8::set_module(char *mod_name) {
 /* -----------------------------------------------------------------------------
  * TCL8::create_command()
  * ----------------------------------------------------------------------------- */
-
 void
 TCL8::create_command(char *cname, char *iname) {
   String *wname = Swig_name_wrapper(cname);
-  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", wname, ", NULL},\n", 0);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", wname, ", NULL},\n", 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -257,7 +231,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   String          *incode, *cleanup, *outarg, *argstr, *args;
   int              num_arguments = 0;
   int              num_required = 0;
-  char             source[64], target[64];
+  char             source[64];
 
   incode  = NewString("");
   cleanup = NewString("");
@@ -294,7 +268,6 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 
     /* Produce string representations of the source and target arguments */
     sprintf(source,"objv[%d]",i+1);
-    sprintf(target,"%s",Char(ln));
 
     if (i == num_required) Putc('|',argstr);
     if ((tm = Getattr(p,"tmap:in"))) {
@@ -418,7 +391,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Wrapper_print(f,f_wrappers);
 
   /* Register the function with Tcl */
-  Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", 0);
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), ", NULL},\n", 0);
 
   Delete(incode);
   Delete(cleanup);
@@ -491,7 +464,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     DelWrapper(setf);
   } 
 
-  Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", 0);
+  Printv(var_tab, tab4,"{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getname, ",", 0);
   if (readonly || ReadOnly) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
@@ -502,9 +475,9 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
       readonlywrap = 1;
       DelWrapper(ro);
     }
-    Printf(var_info, "(swig_variable_func) swig_readonly},\n");
+    Printf(var_tab, "(swig_variable_func) swig_readonly},\n");
   } else {
-    Printv(var_info, "(swig_variable_func) ", setname, "},\n",0);
+    Printv(var_tab, "(swig_variable_func) ", setname, "},\n",0);
   }
   
   Delete(setname);
@@ -528,7 +501,7 @@ TCL8::declare_const(char *name, char *iname, SwigType *type, char *value) {
   if ((tm = Swig_typemap_lookup((char*)"consttab",type,name,name,value,name,0))) {
     Replace(tm,"$name", iname, DOH_REPLACE_ANY);
     Replace(tm,"$value",value, DOH_REPLACE_ANY);
-    Printf(const_code,"%s,\n", tm);
+    Printf(const_tab,"%s,\n", tm);
     Delete(tm);
   } else if ((tm = Swig_typemap_lookup((char *)"constcode", type, name, name, value, name, 0))) {
     Replace(tm,"$name", iname, DOH_REPLACE_ANY);
@@ -557,26 +530,23 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   } else {
     Printf(temp,"%s ", iname);
   }
-
   /* Now go through and print parameters */
   i = 0;
   pcount = ParmList_len(l);
   numopt = check_numopt(l);
   for (p = l; p; p = nextSibling(p)) {
-    SwigType   *pt = Getattr(p,"type");
-    String  *pn = Getattr(p,"name");
+    
+    SwigType  *pt = Getattr(p,"type");
+    String    *pn = Getattr(p,"name");
 
     /* Only print an argument if not ignored */
     if (!Swig_typemap_search((char*)"ignore",pt,pn)) {
       if (i >= (pcount-numopt))
 	Putc('?',temp);
-      /* If parameter has been named, use that.   Otherwise, just print a type  */
-      if (SwigType_type(pt) != T_VOID) {
-	if (Len(pn) > 0) {
-	  Printf(temp, "%s",pn);
-	} else {
-	  Printf(temp,"%s", SwigType_str(pt,0));
-	}
+      if (Len(pn) > 0) {
+	Printf(temp, "%s",pn);
+      } else {
+	Printf(temp,"%s", SwigType_str(pt,0));
       }
       if (i >= (pcount-numopt))	Putc('?',temp);
       Putc(' ',temp);
@@ -602,36 +572,34 @@ TCL8::add_native(char *name, char *funcname, SwigType *, ParmList *) {
 void
 TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
   this->Language::cpp_open_class(classname,rename,ctype,strip);
-  if (shadow) {
-    static int included_object = 0;
-    if (!included_object) {
-      if (Swig_insert_file("object.swg",f_header) == -1) {
-	Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
-	SWIG_exit (EXIT_FAILURE);
-      }
-      included_object = 1;
+  static int included_object = 0;
+  if (!included_object) {
+    if (Swig_insert_file("object.swg",f_header) == -1) {
+      Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
+      SWIG_exit (EXIT_FAILURE);
     }
-
-    Clear(attributes);
-    Printf(attributes, "static swig_attribute swig_");
-    Printv(attributes, classname, "_attributes[] = {\n", 0);
-
-    Clear(methods);
-    Printf(methods,"static swig_method swig_");
-    Printv(methods, classname, "_methods[] = {\n", 0);
-
-    have_constructor = 0;
-    have_destructor = 0;
-
-    Delete(class_name);
-    Delete(class_type);
-    Delete(real_classname);
-    cpp_bases = NewString("");
-
-    class_name = rename ? NewString(rename) : NewString(classname);
-    class_type = strip  ? NewString("") : NewStringf("%s ",ctype);
-    real_classname = NewString(classname);
+    included_object = 1;
   }
+  
+  Clear(attr_tab);
+  Printf(attr_tab, "static swig_attribute swig_");
+  Printv(attr_tab, classname, "_attributes[] = {\n", 0);
+  
+  Clear(methods_tab);
+  Printf(methods_tab,"static swig_method swig_");
+  Printv(methods_tab, classname, "_methods[] = {\n", 0);
+  
+  have_constructor = 0;
+  have_destructor = 0;
+  
+  Delete(class_name);
+  Delete(class_type);
+  Delete(real_classname);
+  cpp_bases = NewString("");
+  
+  class_name = rename ? NewString(rename) : NewString(classname);
+  class_type = strip  ? NewString("") : NewStringf("%s ",ctype);
+  real_classname = NewString(classname);
 }
 
 void
@@ -640,50 +608,49 @@ TCL8::cpp_close_class() {
   String *code = NewString("");
 
   this->Language::cpp_close_class();
-  if (shadow) {
-    t = NewStringf("%s%s", class_type, real_classname);
-    SwigType_add_pointer(t);
-
-    // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
-    SwigType_remember(t);
-
-    if (have_destructor) {
-      Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
-      if (CPlusPlus) {
-	Printv(code,"    delete (", SwigType_str(t,0), ") obj;\n",0);
-      } else {
-	Printv(code,"    free((char *) obj);\n",0);
-      }
-      Printf(code,"}\n");
-    }
-
-    Printf(methods, "    {0,0}\n};\n");
-    Printv(code,methods,0);
-
-    Printf(attributes, "    {0,0,0}\n};\n");
-    Printv(code,attributes,0);
-
-    /* Dump bases */
-    Printv(code,"static swig_class *swig_",real_classname,"_bases[] = {", cpp_bases,"0};\n", 0);
-
-    Printv(code, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
-	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
-
-    if (have_constructor) {
-      Printf(code, "%s", Swig_name_wrapper(Swig_name_construct(class_name)));
+  t = NewStringf("%s%s", class_type, real_classname);
+  SwigType_add_pointer(t);
+  
+  // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
+  SwigType_remember(t);
+  
+  if (have_destructor) {
+    Printv(code, "static void swig_delete_", class_name, "(void *obj) {\n", 0);
+    if (CPlusPlus) {
+      Printv(code,"    delete (", SwigType_str(t,0), ") obj;\n",0);
     } else {
-      Printf(code,"0");
+      Printv(code,"    free((char *) obj);\n",0);
     }
-    if (have_destructor) {
-      Printv(code, ", swig_delete_", class_name,0);
-    } else {
-      Printf(code,",0");
-    }
-    Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
-    Printf(f_wrappers,"%s",code);
-
-    Printv(cmd_info, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", real_classname, "},\n", 0);
+    Printf(code,"}\n");
   }
+  
+  Printf(methods_tab, "    {0,0}\n};\n");
+  Printv(code,methods_tab,0);
+  
+  Printf(attr_tab, "    {0,0,0}\n};\n");
+  Printv(code,attr_tab,0);
+  
+  /* Dump bases */
+  Printv(code,"static swig_class *swig_",real_classname,"_bases[] = {", cpp_bases,"0};\n", 0);
+  
+  Printv(code, "swig_class _wrap_class_", real_classname, " = { \"", class_name,
+	 "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
+  
+  if (have_constructor) {
+    Printf(code, "%s", Swig_name_wrapper(Swig_name_construct(class_name)));
+  } else {
+    Printf(code,"0");
+  }
+  if (have_destructor) {
+    Printv(code, ", swig_delete_", class_name,0);
+  } else {
+    Printf(code,",0");
+  }
+  Printv(code, ", swig_", real_classname, "_methods, swig_", real_classname, "_attributes, swig_", real_classname,"_bases };\n", 0);
+  Printf(f_wrappers,"%s",code);
+  
+  Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SwigObjectCmd, &_wrap_class_", real_classname, "},\n", 0);
+
   Delete(code);
 }
 
@@ -692,13 +659,11 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   String  *rname;
 
   this->Language::cpp_member_func(name,iname,t,l);
-  if (shadow) {
-    realname = iname ? iname : name;
-    /* Add stubs for this member to our class handler function */
-    rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
-    Printv(methods, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
-    Delete(rname);
-  }
+  realname = iname ? iname : name;
+  /* Add stubs for this member to our class handler function */
+  rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
+  Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
+  Delete(rname);
 }
 
 void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
@@ -706,19 +671,17 @@ void TCL8::cpp_variable(char *name, char *iname, SwigType *t) {
   String *rname;
 
   this->Language::cpp_variable(name, iname, t);
-  if (shadow) {
-    realname = iname ? iname : name;
-    Printv(attributes, tab4, "{ \"-", realname, "\",", 0);
-    rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,realname)));
-    Printv(attributes, rname, ", ", 0);
+  realname = iname ? iname : name;
+  Printv(attr_tab, tab4, "{ \"-", realname, "\",", 0);
+  rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,realname)));
+  Printv(attr_tab, rname, ", ", 0);
+  Delete(rname);
+  if (!ReadOnly) {
+    rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,realname)));
+    Printv(attr_tab, rname, "},\n",0);
     Delete(rname);
-    if (!ReadOnly) {
-      rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name,realname)));
-      Printv(attributes, rname, "},\n",0);
-      Delete(rname);
-    } else {
-      Printf(attributes, "0 },\n");
-    }
+  } else {
+    Printf(attr_tab, "0 },\n");
   }
 }
 
@@ -737,26 +700,13 @@ TCL8::cpp_destructor(char *name, char *newname) {
 void
 TCL8::cpp_inherit(char **bases, int mode) {
   this->Language::cpp_inherit(bases,mode);
-  if (shadow) {
-    int i = 0;
-    while (bases[i]) {
-      Printv(f_wrappers,"extern swig_class _wrap_class_",bases[i],";\n",0);
-      Printf(cpp_bases,"&_wrap_class_%s,", bases[i]);
-      i++;
-    }
+  for (int i=0;bases[i]; i++) {
+    Printv(f_wrappers,"extern swig_class _wrap_class_",bases[i],";\n",0);
+    Printf(cpp_bases,"&_wrap_class_%s,", bases[i]);
   }
-}
-
-void
-TCL8::import_start(char *) {
-  /* Does nothing */
 }
 
 int TCL8::validIdentifier(String *s) {
-  char *c = Char(s);
-  while (*c) {
-    if (*c == ' ') return 0;
-    c++;
-  }
+  if (Strchr(s,' ')) return 0;
   return 1;
 }
