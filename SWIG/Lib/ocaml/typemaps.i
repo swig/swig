@@ -127,11 +127,11 @@
 
 /* Enums */
 %typemap(ocaml,in) enum SWIGTYPE {
-    $1 = caml_long_val_full($input,"$type_marker");
+    $1 = ($type)caml_long_val_full($input,"$type_marker");
 }
 
 %typemap(ocaml,varin) enum SWIGTYPE {
-    $1 = caml_long_val_full($input,"$type_marker");
+    $1 = ($type)caml_long_val_full($input,"$type_marker");
 }
 
 %typemap(ocaml,out) enum SWIGTYPE "$result = callback2(*caml_named_value(SWIG_MODULE \"_int_to_enum\"),*caml_named_value(\"$type_marker\"),Val_int($1));"

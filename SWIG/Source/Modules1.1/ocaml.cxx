@@ -223,7 +223,9 @@ public:
 	    "let enum_to_int x v =\n"
 	    "  match v with C_enum y -> (\n"
 	    "  match (x : c_enum_type) with\n"
-	    "   `unknown -> (match (y : c_enum_tag) with `int x -> C_int x)\n"
+	    "   `unknown -> (match (y : c_enum_tag) with\n"
+	    "     `int (x : int) -> C_int x\n"
+	    "   | _ -> (raise (LabelNotFromThisEnum v)))\n"
 	    );
 
     Printf( f_int_to_enum,
