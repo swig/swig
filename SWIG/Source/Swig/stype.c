@@ -632,6 +632,24 @@ String *SwigType_prefix(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_strip_qualifiers()
+ * 
+ * Strip all qualifiers from a type and return a new type
+ * ----------------------------------------------------------------------------- */
+
+SwigType *
+SwigType_strip_qualifiers(SwigType *t) {
+  List *l = SwigType_split(t);
+  SwigType *e;
+  SwigType *r = NewString("");
+  for (e = Firstitem(l); e; e = Nextitem(l)) {
+    if (SwigType_isqualifier(e)) continue;
+    Append(r,e);
+  }
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_array_ndim()
  *
  * Returns the number of dimensions of an array.
@@ -1398,8 +1416,8 @@ int SwigType_istypedef(SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_cmp()
  *
- * Compares two type-strings using all available typedef information.  Returns 0
- * if equal, 1 if not. 
+ * Compares two type-strings using all available typedef information.  Returns 1
+ * if equal, 0 if not. 
  * ----------------------------------------------------------------------------- */
 
 int SwigType_cmp(SwigType *tpat, SwigType *type) {
@@ -1409,20 +1427,20 @@ int SwigType_cmp(SwigType *tpat, SwigType *type) {
   p = Char(tpat);
   t = Char(type);
 
-  if (strcmp(p,t) == 0) return 0;
+  if (strcmp(p,t) == 0) return 1;
   
   r = SwigType_typedef_resolve(type);
   while (r) {
     t = Char(r);
     if (strcmp(p,t) == 0) {
       Delete(r);
-      return 0;
+      return 1;
     }
     s = SwigType_typedef_resolve(r);
     Delete(r);
     r = s;
   }
-  return 1;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------

@@ -205,6 +205,8 @@ extern int         SwigType_isfunction(SwigType *t);
 extern int         SwigType_isqualifier(SwigType *t);
 extern int         SwigType_isconst(SwigType *t);
 
+extern SwigType   *SwigType_strip_qualifiers(SwigType *t);
+
 extern String     *SwigType_base(SwigType *t);
 extern String     *SwigType_prefix(SwigType *t);
 extern void        SwigType_setbase(SwigType *t, String_or_char *name);
@@ -259,6 +261,7 @@ extern Parm       *CopyParm(Parm *p);
 extern ParmList   *CopyParmList(ParmList *);
 extern int         ParmList_len(ParmList *);
 extern int         ParmList_numarg(ParmList *);
+extern int         ParmList_numrequired(ParmList *);
 extern String     *ParmList_str(ParmList *);
 extern String     *ParmList_protostr(ParmList *);
 

@@ -105,6 +105,23 @@ int ParmList_numarg(ParmList *p) {
 }
 
 /* -----------------------------------------------------------------------------
+ * int ParmList_numrequired().  Return number of required arguments
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_numrequired(ParmList *p) {
+  int i = 0;
+  while (p) {
+    SwigType *t = Gettype(p);
+    String   *value = Getvalue(p);
+    if (value) return i;
+    if (!SwigType_cmp(t,"void")) i++;
+    else break;
+    p = nextSibling(p);
+  }
+  return i;
+}
+
+/* -----------------------------------------------------------------------------
  * int ParmList_len()
  * ----------------------------------------------------------------------------- */
 
