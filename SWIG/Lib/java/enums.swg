@@ -18,14 +18,9 @@
 
 %typecheck(SWIG_TYPECHECK_INT32) enum SWIGTYPE ""
 
-%typemap(javain) enum SWIGTYPE "$javainput.swigValue()"
-%typemap(javaout) enum SWIGTYPE {
-    return $javaclassname.swigToEnum($jnicall);
-  }
-
-%typemap(throws) enum SWIGTYPE {
+%typemap(throws) enum SWIGTYPE %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-}
+%}
 
 %typemap(javain) enum SWIGTYPE "$javainput.swigValue()"
 %typemap(javaout) enum SWIGTYPE {
