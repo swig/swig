@@ -35,11 +35,11 @@ swig.spec: $(srcdir)/swig.spec.in config.status
 #####################################################################
 
 skip-tcl	= test -n "@SKIP_TCL@"
-skip-perl	= test -n "@SKIP_PERL5@"
+skip-perl5	= test -n "@SKIP_PERL5@"
 skip-python	= test -n "@SKIP_PYTHON@"
 skip-java	= test -n "@SKIP_JAVA@"
-skip-guile	= test -n "@SKIP_GUILE@"
 skip-guilescm   = test -n "@SKIP_GUILESCM@"
+skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php4	= test -n "@SKIP_PHP4@"
@@ -67,7 +67,7 @@ check-aliveness:
 	./$(TARGET) -version
 	./$(TARGET) -help
 	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
-	@$(skip-perl)     || ./$(TARGET) -perl     -help
+	@$(skip-perl5)    || ./$(TARGET) -perl     -help
 	@$(skip-python)   || ./$(TARGET) -python   -help
 	@$(skip-java)     || ./$(TARGET) -java     -help
 	@$(skip-guile)    || ./$(TARGET) -guile    -help
@@ -81,7 +81,7 @@ check-aliveness:
 
 check-examples:					\
 	check-tcl-examples			\
-	check-perl-examples			\
+	check-perl5-examples			\
 	check-python-examples			\
 	check-java-examples			\
 	check-guile-examples			\
@@ -113,11 +113,11 @@ check-%-examples:
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-tcl-test-suite			\
-	check-perl-test-suite			\
+	check-perl5-test-suite			\
 	check-python-test-suite			\
 	check-java-test-suite			\
-	check-guile-test-suite			\
 	check-guilescm-test-suite		\
+	check-guile-test-suite			\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
@@ -132,9 +132,9 @@ check-%-test-suite:
 	if $(skip-$*); then						\
 	  echo skipping $* test-suite $(ACTION);			\
 	elif [ ! -d $$dir ]; then					\
-	  echo skipping $* test-suite $(ACTION) "(no dir $$dir)";	\
+	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
-	  (cd $$dir && $(chk))						\
+	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
 	  || passed=false;						\
 	fi;								\
 	test $$passed = true
@@ -145,7 +145,7 @@ gifplot-library:
 
 check-gifplot:					\
 	check-tcl-gifplot			\
-	check-perl-gifplot			\
+	check-perl5-gifplot			\
 	check-python-gifplot			\
 	check-java-gifplot			\
 	check-guile-gifplot			\
@@ -183,9 +183,10 @@ check: check-aliveness check-examples check-gifplot check-test-suite
 
 all-test-suite:					\
 	all-tcl-test-suite			\
-	all-perl-test-suite			\
+	all-perl5-test-suite			\
 	all-python-test-suite			\
 	all-java-test-suite			\
+	all-guilescm-test-suite			\
 	all-guile-test-suite			\
 	all-mzscheme-test-suite			\
 	all-ruby-test-suite			\
@@ -204,9 +205,10 @@ all-%-test-suite:
 
 broken-test-suite:				\
 	broken-tcl-test-suite			\
-	broken-perl-test-suite			\
+	broken-perl5-test-suite			\
 	broken-python-test-suite		\
 	broken-java-test-suite			\
+	broken-guilescm-test-suite		\
 	broken-guile-test-suite			\
 	broken-mzscheme-test-suite		\
 	broken-ruby-test-suite			\
@@ -232,19 +234,9 @@ clean-source:
 	@cd $(SOURCE); $(MAKE) -s clean
 	@rm -f $(TARGET)
 
-distclean-source:
-	@echo dist cleaning Source
-	@cd $(SOURCE); $(MAKE) -s distclean
-	@rm -f $(TARGET)
-
 clean-runtime:
 	@echo cleaning Runtime
 	@cd $(RUNTIME); $(MAKE) -s clean
-
-distclean-dead = config.status config.log config.cache swig.spec Makefile mkmf.log
-
-distclean: distclean-source clean-runtime clean-examples clean-gifplot clean-test-suite
-	rm -f $(distclean-dead)
 
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
@@ -254,17 +246,65 @@ clean-gifplot:
 
 clean-test-suite:
 	@echo cleaning Examples/test-suite
-	@$(MAKE) -k -s check-test-suite ACTION=clean
+	@$(MAKE) -k -s all-test-suite ACTION=clean
 
 clean-%-examples:
 	@$(MAKE) -k -s check-$*-examples ACTION=clean
 
 clean-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=clean
+	@$(MAKE) -k -s all-$*-test-suite ACTION=clean
 
 clean-%-gifplot:
 	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
 
+#####################################################################
+# DISTCLEAN
+#####################################################################
+
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
+
+distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite distclean-dead
+
+distclean-objects: distclean-source distclean-runtime
+
+distclean-source:
+	@echo dist cleaning Source
+	@cd $(SOURCE); $(MAKE) -s distclean
+	@rm -f $(TARGET)
+
+distclean-runtime:
+	@echo dist cleaning Runtime
+	@cd $(RUNTIME); $(MAKE) -s distclean
+
+distclean-test-suite:
+	@echo dist cleaning Examples/test-suite
+	@$(MAKE) -k -s noskip-test-suite ACTION=distclean
+
+noskip-test-suite:				\
+	noskip-tcl-test-suite			\
+	noskip-perl5-test-suite			\
+	noskip-python-test-suite		\
+	noskip-java-test-suite			\
+	noskip-guilescm-test-suite		\
+	noskip-guile-test-suite			\
+	noskip-mzscheme-test-suite		\
+	noskip-ruby-test-suite			\
+	noskip-ocaml-test-suite			\
+	noskip-php4-test-suite			\
+	noskip-pike-test-suite			\
+	noskip-csharp-test-suite		\
+	noskip-chicken-test-suite
+
+noskip-%-test-suite:
+	dir="Examples/test-suite/$*";					\
+	if [ ! -d $$dir ]; then						\
+	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
+	else								\
+	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
+	fi;
+
+distclean-dead:
+	rm -f $(DISTCLEAN-DEAD)
 
 #####################################################################
 # TARGETS: install & friends
