@@ -315,7 +315,7 @@ namespace std {
                     if (TYPE(o) == T_FLOAT)
                         temp[i] = NUM2DBL(o);
                     else if (FIXNUM_P(o))
-                        temp[i] = int(FIX2INT(o));
+                        temp[i] = double(FIX2INT(o));
                     else
                         rb_raise(rb_eTypeError,
                                  "wrong argument type"
