@@ -26,7 +26,7 @@ you might have an operator like this:
 
 <blockquote>
 <pre>
-Vector operator+(const Vector &a, const Vector &b) {
+Vector operator+(const Vector &amp;a, const Vector &amp;b) {
    Vector result;
    result.x = a.x + b.x;
    result.y = a.y + b.y;
@@ -40,7 +40,7 @@ or a function:
 
 <blockquote>
 <pre>
-Vector addv(const Vector &a, const Vector &b) {
+Vector addv(const Vector &amp;a, const Vector &amp;b) {
    Vector result;
    result.x = a.x + b.x;
    result.y = a.y + b.y;
@@ -67,7 +67,7 @@ The prototypical example is an operator like this:
 
 <blockquote>
 <pre>
-Vector &operator[](int index);
+Vector &amp;operator[](int index);
 </pre>
 </blockquote>
 
@@ -75,7 +75,7 @@ or a method:
 
 <blockquote>
 <pre>
-Vector &get(int index);
+Vector &amp;get(int index);
 </pre>
 </blockquote>
 
@@ -84,8 +84,8 @@ For functions returning references, a wrapper like this is created:
 <blockquote>
 <pre>
 Vector *wrap_Object_get(Object *self, int index) {
-    Vector &result = self->get(index);
-    return &result;
+    Vector &amp;result = self-&gt;get(index);
+    return &amp;result;
 }
 </pre>
 </blockquote>
@@ -107,10 +107,10 @@ class VectorArray {
 public:
  ...
    %addmethods {
-    Vector &get(int index) {
+    Vector &amp;get(int index) {
       return (*self)[index];
     }
-    void set(int index, Vector &a) {
+    void set(int index, Vector &amp;a) {
       (*self)[index] = a;
     }
    }

@@ -36,10 +36,10 @@ template<class T> class vector {
     v = new T[_sz];
     sz = _sz;
   }
-  T &get(int index) {
+  T &amp;get(int index) {
     return v[index];
   }
-  void set(int index, T &val) {
+  void set(int index, T &amp;val) {
     v[index] = val;
   }
 #ifdef SWIG
