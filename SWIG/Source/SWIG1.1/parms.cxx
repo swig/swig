@@ -16,6 +16,10 @@ static char cvsroot[] = "$Header$";
 
 #include "internal.h"
 
+extern "C" {
+  #include "doh.h"
+}
+
 // ------------------------------------------------------------------------
 // Parm::Parm(DataType *type, char *n)
 //
@@ -320,7 +324,7 @@ Parm * ParmList::get_next() {
 }
 
 // ---------------------------------------------------------------------
-// void ParmList::print_types(FILE *f)
+// void ParmList::print_types(DOHFile *f)
 //
 // Prints a comma separated list of all of the parameter types.
 // This is for generating valid C prototypes.   Has to do some
@@ -328,7 +332,7 @@ Parm * ParmList::get_next() {
 // variable has been set.
 // ----------------------------------------------------------------------
 
-void ParmList::print_types(FILE *f) {
+void ParmList::print_types(DOHFile *f) {
 
   int   is_pointer;
   int   pn;
@@ -338,58 +342,22 @@ void ParmList::print_types(FILE *f) {
     if (parms[pn]->t->is_reference) {
       if (parms[pn]->t->is_pointer) {
 	parms[pn]->t->is_pointer--;
-	fprintf(f,"%s&", parms[pn]->t->print_real());
+	Printf(f,"%s&", parms[pn]->t->print_real());
 	parms[pn]->t->is_pointer++;
       } else {
-	fprintf(f,"%s&", parms[pn]->t->print_real());
+	Printf(f,"%s&", parms[pn]->t->print_real());
       }
     } else {
       if (parms[pn]->call_type & CALL_VALUE) parms[pn]->t->is_pointer++;
       if (parms[pn]->call_type & CALL_REFERENCE) parms[pn]->t->is_pointer--;
-      fprintf(f,"%s", parms[pn]->t->print_real());
+      Printf(f,"%s", parms[pn]->t->print_real());
       parms[pn]->t->is_pointer = is_pointer;
     }
     pn++;
     if (pn < nparms)
-      fprintf(f,",");
+      Printf(f,",");
   }
 }
-
-
-// ---------------------------------------------------------------------
-// void ParmList::print_types(String &f)
-//
-// Generates a comma separated list of function types.   Is used in
-// C++ code generation when generating hash keys and for function overloading.
-// ----------------------------------------------------------------------
-
-void ParmList::print_types(String &f) {
-
-  int   is_pointer;
-  int   pn;
-  pn = 0;
-  while(pn < nparms) {
-    is_pointer = parms[pn]->t->is_pointer;
-    if (parms[pn]->t->is_reference) {
-      if (parms[pn]->t->is_pointer) {
-	parms[pn]->t->is_pointer--;
-	f << parms[pn]->t->print_real() << "&";
-	parms[pn]->t->is_pointer++;
-      } else {
-	f << parms[pn]->t->print_real() << "&";
-      }
-    } else {
-      if (parms[pn]->call_type & CALL_VALUE) parms[pn]->t->is_pointer++;
-      if (parms[pn]->call_type & CALL_REFERENCE) parms[pn]->t->is_pointer--;
-      f << parms[pn]->t->print_real();
-      parms[pn]->t->is_pointer = is_pointer;
-    }
-    pn++;
-    if (pn < nparms)
-      f << ",";
-  }
-}
-
 
 // ---------------------------------------------------------------------
 // void ParmList::print_args(FILE *f)
@@ -424,27 +392,3 @@ void ParmList::print_args(FILE *f) {
       fprintf(f,",");
   }
 }
-
-// -------------------------------------------------------------------
-// void ParmList::sub_parmnames(String &s)
-//
-// Given a string, this function substitutes all of the parameter
-// names with their internal representation.   Used in very special
-// kinds of typemaps.
-// -------------------------------------------------------------------
-
-void ParmList::sub_parmnames(String &s) {
-  Parm *p;  
-  extern char *emit_local(int i);
-  for (int i = 0; i < nparms; i++) {
-    p = get(i);
-    if (strlen(p->name) > 0) {
-      s.replaceid(p->name, emit_local(i));
-    }
-  }
-}
-
-  
-
-
-

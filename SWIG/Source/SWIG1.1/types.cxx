@@ -432,7 +432,7 @@ char *DataType::get_array() {
 // --------------------------------------------------------------------
 
 static DOHHash *typedef_hash[MAXSCOPE];
-static int   scope = 0;            // Current scope
+static int      scope = 0;            // Current scope
 
 // -----------------------------------------------------------------------------
 // void DataType::init_typedef() 
@@ -464,7 +464,7 @@ void DataType::init_typedef() {
 // --------------------------------------------------------------------
 
 void DataType::typedef_add(char *tname, int mode) {
-  char *name1, *name2;
+  char     *name1, *name2;
   DataType *nt, t1;
   void typeeq_addtypedef(char *name, char *eqname, DataType *);
 
@@ -708,11 +708,10 @@ void *DataType::collapse_scope(char *prefix) {
       while (key) {
 	t = (DataType *) GetVoid(typedef_hash[scope],key);
 	nt = new DataType(t);
-	temp = new char[strlen(prefix)+strlen(Char(key))+3];
+	temp = new char[strlen(prefix)+strlen(Char(key))+4];
 	sprintf(temp,"%s::%s",prefix,Char(key));
-	//	printf("creating %s\n", temp);
 	SetVoid(typedef_hash[scope-1],temp, (void *)nt);
-	delete temp;
+	delete [] temp;
 	key = Nextkey(typedef_hash[scope]);
       }
     }
@@ -860,15 +859,18 @@ void emit_ptr_equivalence(FILE *f) {
   EqEntry      *e1,*e2;
   DOH          *k;
   void         typeeq_standard();
-  String       ttable;
+  DOHString   *ttable;
 
   if (!te_init) typeeq_init();
 
-  ttable << "\
+  ttable = NewString("");
+
+  Printv(ttable,"\
 /*\n\
  * This table is used by the pointer type-checker\n\
  */\n\
-static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {\n";
+static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {\n",
+	 0);
 
   k = Firstkey(typeeq_hash);
   while (k) {
@@ -877,47 +879,26 @@ static struct { char *n1; char *n2; void *(*pcnv)(void *); } _swig_mapping[] = {
     // Walk through the equivalency list
     while (e2) {
       if (e2->cast) 
-	ttable << tab4 << "{ \"" << e1->name << "\",\"" << e2->name << "\"," << e2->cast << "},\n";
+	Printv(ttable,
+	       tab4, "{ \"", e1->name, "\",\"", e2->name, "\"," , e2->cast , "},\n",
+	       0);
       else
-	ttable << tab4 << "{ \"" << e1->name << "\",\"" << e2->name << "\",0},\n";
+	Printv(ttable,
+	       tab4, "{ \"", e1->name, "\",\"", e2->name, "\",0},\n",
+	       0);
+
       e2 = e2->next;
     }
     k = Nextkey(typeeq_hash);
   }
-  ttable << "{0,0,0}};\n";
-  fprintf(f_wrappers,"%s\n", ttable.get());
+  Printf(ttable,"{0,0,0}};\n");
+  fprintf(f_wrappers,"%s\n", Char(ttable));
   fprintf(f,"{\n");
   fprintf(f,"   int i;\n");
   fprintf(f,"   for (i = 0; _swig_mapping[i].n1; i++)\n");
   fprintf(f,"        SWIG_RegisterMapping(_swig_mapping[i].n1,_swig_mapping[i].n2,_swig_mapping[i].pcnv);\n");
   fprintf(f,"}\n");
-
-  String ctable;
-  ctable << "/*\n";
-  ctable << "typedef struct {\n"
-	 << "    const char *name; \n"
-	 << "    void *(*convert)(void *);\n"
-	 << "} SwigType;\n";
-
-  k = Firstkey(typeeq_hash);
-  while (k) {
-    e1 = (EqEntry *) GetVoid(typeeq_hash,k);
-    e2 = e1->next;
-    ctable << "static SwigType " << e1->name << "[] = {";
-    // Walk through the equivalency list
-    while (e2) {
-      ctable << "{ \"" << e2->name << "\", ";
-      if (e2->cast)
-	ctable << e2->cast << "},";
-      else
-	ctable << "0},";
-      e2 = e2->next;
-    }
-    ctable << "{0,0}};\n";
-    k = Nextkey(typeeq_hash);
-  }
-  ctable << "*/\n";
-  fprintf(f_wrappers,"%s\n", ctable.get());
+  Delete(ttable);
 }
 
 // ------------------------------------------------------------------------------
@@ -995,43 +976,45 @@ void typeeq_standard(void) {
 static char *
 check_equivalent(DataType *t) {
   EqEntry *e1, *e2;
-  static String out;
+  static DOHString *out = 0;
   int    npointer = t->is_pointer;
-  String m;
-  DOH   *k;
+  char  *m;
+  DOHString *k;
 
-  out = "";
+  if (!out) out = NewString("");
+  Clear(out);
+
   while (t->is_pointer >= t->implicit_ptr) {
-    m = t->print_mangle();
+    m = copy_string(t->print_mangle());
 
     if (!te_init) typeeq_init();
 
     k = Firstkey(typeeq_hash);
     while (k) {
       e1 = (EqEntry *) GetVoid(typeeq_hash,k);
-      /*      printf("'%s', '%s'\n", m.get(),e1->name); */
-      if (strcmp(m.get(),e1->name) == 0) {
+      if (strcmp(m,e1->name) == 0) {
 	e2 = e1->next;
 	while (e2) {
 	  if (e2->type) {
 	    e2->type->is_pointer += (npointer - t->is_pointer);
-	    out << "{ \"" << e2->type->print_mangle() << "\",";
+	    Printf(out,"{ \"%s\",", e2->type->print_mangle());
 	    e2->type->is_pointer -= (npointer - t->is_pointer);
 	    if (e2->cast) 
-	      out << e2->cast << "}, ";
+	      Printf(out,"%s}, ", e2->cast);
 	    else
-	      out << "0}, ";
+	      Printf(out,"0}, ");
 	  }
 	  e2 = e2->next;
 	}
       }
       k = Nextkey(typeeq_hash);
     }
+    delete [] m;
     t->is_pointer--;
   }
   t->is_pointer = npointer;
-  out << "{0}";
-  return out.get();
+  Printf(out,"{0}");
+  return Char(out);
 }
 
 // -----------------------------------------------------------------------------
@@ -1093,29 +1076,33 @@ void DataType::remember() {
 void
 emit_type_table() {
   DOH *key;
-  String types, table;
+  DOHString *types, *table;
   int i = 0;
 
   if (!remembered) remembered = NewHash();
 
-  table << "static _swig_type_info *_swig_types_initial[] = {\n";
+  table = NewString("");
+  types = NewString("");
+  Printf(table,"static _swig_type_info *_swig_types_initial[] = {\n");
   key = Firstkey(remembered);
   fprintf(f_runtime,"/* ---- TYPES TABLE (BEGIN) ---- */\n");
   while (key) {
     fprintf(f_runtime,"#define  SWIGTYPE%s _swig_types[%d] \n", Char(key), i);
-    types << "static _swig_type_info _swigt_" << Char(key) << "[] = {";
-    types << "{\"" << Char(key) << "\",0},";
-    types << "{\"" << Char(key) << "\",0},";
-    types << check_equivalent((DataType *)GetVoid(remembered,key)) << "};\n";
-    table << "_swigt_" << Char(key) << ", \n";
+    Printv(types,"static _swig_type_info _swigt_", Char(key), "[] = {", 0);
+    Printv(types,"{\"", Char(key), "\",0},", 0);
+    Printv(types, "{\"", Char(key), "\",0},", 0);
+    Printv(types, check_equivalent((DataType *)GetVoid(remembered,key)), "};\n", 0);
+    Printv(table, "_swigt_", Char(key), ", \n", 0);
     key = Nextkey(remembered);
     i++;
   }
 
-  table << "0\n};\n";
-  fprintf(f_wrappers,"%s\n", types.get());
-  fprintf(f_wrappers,"%s\n", table.get());
+  Printf(table, "0\n};\n");
+  fprintf(f_wrappers,"%s\n", Char(types));
+  fprintf(f_wrappers,"%s\n", Char(table));
   fprintf(f_runtime,"static _swig_type_info *_swig_types[%d];\n", i+1);
   fprintf(f_runtime,"/* ---- TYPES TABLE (END) ---- */\n\n");
+  Delete(types);
+  Delete(table);
 }
 

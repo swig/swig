@@ -74,6 +74,7 @@ public:
   String(const char *s);
   ~String();
   char  *get() const;
+  void  *doh() { return str; }
   friend String& operator<<(String&,const char *s);
   friend String& operator<<(String&,const int);
   friend String& operator<<(String&,const char);
@@ -232,10 +233,9 @@ public:
 
   Parm  *get_first();              // Get first parameter from list
   Parm  *get_next();               // Get next parameter from list
-  void   print_types(FILE *f);     // Print list of datatypes
-  void   print_types(String &f);   // Generate list of datatypes.
+
+  void   print_types(void *f);     // Print list of datatypes
   void   print_args(FILE *f);      // Print argument list
-  void   sub_parmnames(String &s); // Remaps real parameter names in code fragment
 };
 
 // Modes for different types of inheritance
@@ -452,7 +452,11 @@ public:
   String  locals;
   String  code;
   String  init;
-  void    print(FILE *f);
+  void    *_def;               /* Migration code */
+  void    *_locals;
+  void    *_code;
+  void    *_init;
+  void    print(void *f);
   void    print(String &f);
   void    add_local(char *type, char *name, char *defvalue = 0);
   char   *new_local(char *type, char *name, char *defvalue = 0);

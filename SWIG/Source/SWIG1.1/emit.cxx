@@ -219,29 +219,30 @@ int emit_args(DataType *rt, ParmList *l, WrapperFunction &f) {
       // Figure out default values
       if (((p->t->is_reference) && (p->defvalue)) ||
 	  ((p->t->type == T_USER) && (p->call_type == CALL_REFERENCE) && (p->defvalue))) {
-	String deftmp;
-	deftmp << "(" << p->t->print_type() << ") &" << p->defvalue;
-	f.add_local(p->t->print_type(),temp,deftmp.get());
+	char deftmp[1024];
+	sprintf(deftmp,"(%s) &%s", p->t->print_type(), p->defvalue);
+	f.add_local(p->t->print_type(),temp,deftmp);
       } else {
-	String deftmp;
-	char *dv = 0;
+	char deftmp[1024];
 	if (p->defvalue) {
-	  deftmp << "(" << p->t->print_type() << ") " << p->defvalue;
-	  dv = deftmp.get();
+	  sprintf(deftmp,"(%s) %s", p->t->print_type(), p->defvalue);
+	  f.add_local(p->t->print_type(), temp, deftmp);
+	} else {
+	  f.add_local(p->t->print_type(), temp, 0);
 	}
-	f.add_local(p->t->print_type(), temp, dv);
+
 	tm = typemap_lookup((char*)"arginit", typemap_lang, p->t,p->name,(char*)"",temp,&f);
 	if (tm) {
-	  f.code << tm << "\n";
+	  Printv(f._code,tm,"\n",0);
 	}
       }
       // Check for ignore or default typemaps
       tm = typemap_lookup((char*)"default",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm)
-	f.code << tm << "\n";
+	Printv(f._code,tm,"\n",0);
       tm = typemap_lookup((char*)"ignore",typemap_lang,p->t,p->name,(char*)"",temp,&f);
       if (tm) {
-	f.code << tm << "\n";
+	Printv(f._code,tm,"\n",0);
 	p->ignore = 1;
       }
       tm = typemap_check((char*)"build",typemap_lang,p->t,p->name);
@@ -274,12 +275,12 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
 
   int  i;
   Parm  *p;
-  String fcall;
-  String exc;
+  DOHString *fcall;
+  DOHString *exc;
   char *tm;
 
-//  f.code << "#line " << line_number << " \"" << input_file << "\"\n";
-  fcall << tab4;
+  fcall = NewString(tab4);
+  exc = NewString("");
 
   // First check if there is a return value
 
@@ -291,77 +292,78 @@ void emit_func_call(char *decl, DataType *t, ParmList *l, WrapperFunction &f) {
       // used properly.
 
       if (CPlusPlus) {
-	fcall << "_result = new " << t->print_type() << "(";
+	Printv(fcall, "_result = new ", t->print_type(), "(", 0);
       } else {
 	t->is_pointer++;
-	fcall << "_result = " << t->print_cast() << " malloc(sizeof(";
+	Printv(fcall, "_result = ", t->print_cast(), " malloc(sizeof(", 0);
 	t->is_pointer--;
-	fcall << t->print_type() << "));\n";
-	fcall << tab4 << "*(_result) = ";
+	Printv(fcall, t->print_type(), "));\n", 0);
+	Printv(fcall, tab4, "*(_result) = ", 0);
       }
     } else {
       // Check if this is a C++ reference
       if (t->is_reference) {
 	t->is_pointer--;
-	fcall << t->print_full() << "& _result_ref = ";
+	Printv(fcall, t->print_full(), "& _result_ref = ", 0);
 	t->is_pointer++;
       } else {
 
 	// Normal return value
-	fcall << "_result = " << t->print_cast();
+	Printv(fcall, "_result = ", t->print_cast(), 0);
       }
     }
   }
 
   // Now print out function call
-
-  fcall << decl << "(";
+  Printv(fcall, decl, "(", 0);
 
   i = 0;
   p = l->get_first();
   while(p != 0) {
     if ((p->t->type != T_VOID) || (p->t->is_pointer)){
-      fcall << p->t->print_arraycast();
+      Printf(fcall,p->t->print_arraycast());
       if ((!p->t->is_reference) && (p->call_type & CALL_VALUE))
-	fcall << "&";
+	Printf(fcall, "&");
       if ((!(p->call_type & CALL_VALUE)) &&
 	  ((p->t->is_reference) || (p->call_type & CALL_REFERENCE)))
-	fcall << "*";
-      fcall << emit_local(i);
+	Printf(fcall, "*");
+      Printf(fcall, emit_local(i));
       i++;
     }
     p = l->get_next();
     if (p != 0)
-      fcall << ",";
+      Printf(fcall,",");
   }
-  fcall << ")";
+  Printf(fcall,")");
 
   if ((t->type == T_USER) && (!t->is_pointer)) {
     if (CPlusPlus) {
-      fcall << ")";
+      Printf(fcall,")");
     }
   }
-  fcall << ";\n";
+  Printf(fcall,";\n");
 
   if (t->is_reference) {
-    fcall << tab4 << "_result = "<< t->print_cast() << " &_result_ref;\n";
+    Printv(fcall, tab4, "_result = ",  t->print_cast(), " &_result_ref;\n", 0);
   }
   // Check for exception handling
 
   if ((tm = typemap_lookup((char*)"except",typemap_lang,t,decl,(char*)"_result",(char*)""))) {
     // Found a type-specific mapping
-    exc << tm;
-    exc.replace("$function",fcall.get());
-    exc.replace("$name",decl);
-    f.code << exc;
+    Printv(exc,tm);
+    Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
+    Replace(exc,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f._code,exc,0);
   } else if ((tm = fragment_lookup((char*)"except",typemap_lang, t->id))) {
-    exc << tm;
-    exc.replace("$function",fcall.get());
-    exc.replace("$name",decl);
-    f.code << exc;
+    Printv(exc,tm);
+    Replace(exc,"$function",fcall,DOH_REPLACE_ANY);
+    Replace(exc,"$name",decl,DOH_REPLACE_ANY);
+    Printv(f._code,exc,0);
   } else {
-    f.code << fcall;
+    Printv(f._code,fcall,0);
   }
+  Delete(fcall);
+  Delete(exc);
 }
 
 // -----------------------------------------------------------------------------
@@ -401,9 +403,7 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
     Parm *p;
     ParmList *l;
-    String new_name;
-    String new_iname;
-    String wname;
+    char *new_name = 0, *new_iname = 0;
 
     // First write a function to set the variable of the variable
 
@@ -467,15 +467,15 @@ void emit_set_get(char *name, char *iname, DataType *t) {
       p->name[0] = 0;
       l->append(p);
 
-      new_name = Swig_name_set(name);
-      new_iname = Swig_name_set(iname);
+      new_name = copy_string(Swig_name_set(name));
+      new_iname = copy_string(Swig_name_set(iname));
 
       if ((t->type == T_USER) && (!t->is_pointer)) {
 	t->is_pointer++;
-	lang->create_function(new_name.get(), new_iname.get(), t, l);
+	lang->create_function(new_name, new_iname, t, l);
 	t->is_pointer--;
       } else {
-	lang->create_function(new_name.get(), new_iname.get(), t, l);
+	lang->create_function(new_name, new_iname, t, l);
       }
       delete l;
       delete p;
@@ -501,17 +501,22 @@ void emit_set_get(char *name, char *iname, DataType *t) {
 
     l = new ParmList;
 
-    new_name = Swig_name_get(name);
-    new_iname = Swig_name_get(iname);
+    if (new_name) delete [] new_name;
+    if (new_iname) delete [] new_iname;
+
+    new_name = copy_string(Swig_name_get(name));
+    new_iname = copy_string(Swig_name_get(iname));
 
     if ((t->type == T_USER) && (!t->is_pointer)) {
       t->is_pointer++;
-      lang->create_function(new_name.get(), new_iname.get(), t, l);
+      lang->create_function(new_name, new_iname, t, l);
       t->is_pointer--;
     } else {
-      lang->create_function(new_name.get(), new_iname.get(), t, l);
+      lang->create_function(new_name, new_iname, t, l);
     }
     delete l;
+    delete [] new_name;
+    delete [] new_iname;
 }
 
 

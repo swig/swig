@@ -71,8 +71,8 @@ static int            Active_extern = 0;       // Whether or not list is externa
 static int            Active_static = 0;
 static DataType       *Active_typedef = 0;     // Used for typedef lists
 static int            InArray = 0;             // Used when an array declaration is found 
-static String         ArrayString;             // Array type attached to parameter names
-static String         ArrayBackup;             // Array backup string
+static DOHString     *ArrayString = 0;         // Array type attached to parameter names
+static DOHString     *ArrayBackup = 0; 
 static char           *DefArg = 0;             // Default argument hack
 static char           *ConstChar = 0;          // Used to store raw character constants
 static ParmList       *tm_parm = 0;            // Parameter list used to hold typemap parameters
@@ -116,7 +116,11 @@ extern void cplus_add_pragma(char *, char *, char *);
 extern void cplus_set_class(char *);
 extern void cplus_unset_class();
 extern void cplus_abort();
-  
+
+void parser_init() {
+	ArrayString = NewString("");
+}  
+
 // ----------------------------------------------------------------------
 // static init_language()
 //
@@ -181,11 +185,12 @@ static char *make_name(char *name) {
   } else {
     // Now check to see if the name contains a $
     if (strchr(name,'$')) {
-      static String temp;
-      temp = "";
-      temp << name;
-      temp.replace("$","_S_");
-      return temp.get();
+      static DOHString *temp = 0;
+      if (!temp) temp= NewString("");
+      Clear(temp);
+      Append(temp,name);
+      Replace(temp,"$","_S_",DOH_REPLACE_ANY);
+      return Char(temp);
     } else {
       return name;
     }
@@ -312,7 +317,7 @@ void print_array() {
 // Structures for handling code fragments built for nested classes
 
 struct Nested {
-  String   code;         // Associated code fragment
+  DOHString *code;       // Associated code fragment
   int      line;         // line number where it starts
   char     *name;        // Name associated with this nested class
   DataType *type;        // Datatype associated with the name
@@ -347,7 +352,7 @@ static void dump_nested(char *parent) {
   Status = STAT_READONLY;
   while (n) {
     // Token replace the name of the parent class
-    n->code.replace("$classname",parent);
+    Replace(n->code, "$classname", parent, DOH_REPLACE_ANY);
 
     // Fix up the name of the datatype (for building typedefs and other stuff)
     sprintf(n->type->name,"%s_%s",parent,n->name);
@@ -357,10 +362,11 @@ static void dump_nested(char *parent) {
 
     // Dump the code to the scanner
 
-    fprintf(f_header,"\n%s\n", n->code.get());
-    start_inline(n->code.get(),n->line);
+    fprintf(f_header,"\n%s\n", Char(n->code));
+    start_inline(Char(n->code),n->line);
 
     n1 = n->next;
+    Delete(n->code);
     delete n;
     n = n1;
   }
@@ -548,7 +554,7 @@ statement      : INCLUDE STRING LBRACE {
 		    if ($4 > 0) {
 		      $2->is_pointer++;
 		      $2->status = STAT_READONLY;
-                      $2->arraystr = copy_string(ArrayString.get());
+                      $2->arraystr = copy_string(Char(ArrayString));
 		    }
 		    if ($3.is_reference) {
 		      fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
@@ -632,7 +638,7 @@ statement      : INCLUDE STRING LBRACE {
 
                 | STATIC type declaration LPAREN parms RPAREN func_end {
 		  if (Inline) {
-		    if (strlen(CCode.get())) {
+		    if (strlen(Char(CCode))) {
 		      init_language();
 		      $2->is_pointer += $3.is_pointer;
 		      $2->is_reference = $3.is_reference;
@@ -653,10 +659,10 @@ statement      : INCLUDE STRING LBRACE {
 		      fprintf(stderr,"%s : Line %d. Repeated %%inline directive.\n",input_file,line_number);
 		      FatalError();
 		    } else {
-		      if (strlen(CCode.get())) {
+		      if (strlen(Char(CCode))) {
 			fprintf(f_header,"static ");
 			emit_extern_func($3.id,$2,$5,3,f_header);
-			fprintf(f_header,"%s\n",CCode.get());
+			fprintf(f_header,"%s\n",Char(CCode));
 		      }
 		      create_function(0, $3.id, $2, $5);
 		    }
@@ -929,7 +935,7 @@ statement      : INCLUDE STRING LBRACE {
                    skip_brace();
 		   p = $7;
 		   while (p) {
-		     typemap_register($5,$3,p->p->t,p->p->name,CCode.get(),p->args);
+		     typemap_register($5,$3,p->p->t,p->p->name,Char(CCode),p->args);
 		     p = p->next;
                    }
 		   delete $3;
@@ -947,7 +953,7 @@ statement      : INCLUDE STRING LBRACE {
 		   skip_brace();
 		   p = $5;
 		   while (p) {
-		     typemap_register($3,typemap_lang,p->p->t,p->p->name,CCode.get(),p->args);
+		     typemap_register($3,typemap_lang,p->p->t,p->p->name,Char(CCode),p->args);
 		     p = p->next;
 		   }
 		 }
@@ -1052,14 +1058,14 @@ statement      : INCLUDE STRING LBRACE {
 /* An exception definition */
                | EXCEPT LPAREN ID RPAREN LBRACE {
                     skip_brace();
-                    fragment_register((char *)"except",$3, CCode.get());
+                    fragment_register((char *)"except",$3, Char(CCode));
 		    delete $3;
 	       }
 
 /* A Generic Exception (no language specified */
                | EXCEPT LBRACE {
                     skip_brace();
-                    fragment_register((char *) "except",typemap_lang, CCode.get());
+                    fragment_register((char *) "except",typemap_lang, Char(CCode));
                }
 
 /* Clear an exception */
@@ -1194,7 +1200,7 @@ typedef_decl   : TYPEDEF type declaration {
 		   $2->is_pointer += $3.is_pointer;
 		   // Turn this into a "pointer" corresponding to the array
 		   $2->is_pointer++;
-		   $2->arraystr = copy_string(ArrayString.get());
+		   $2->arraystr = copy_string(Char(ArrayString));
 		   $2->typedef_add($3.id);
 		   fprintf(stderr,"%s : Line %d. Warning. Array type %s will be read-only without a typemap\n",input_file,line_number, $3.id);
 		   cplus_register_type($3.id);
@@ -1227,7 +1233,7 @@ typedeflist   : COMMA declaration typedeflist {
 		    t = new DataType(Active_typedef);
 		    t->status = STAT_READONLY | STAT_REPLACETYPE;
 		    t->is_pointer += $2.is_pointer + 1;
-		    t->arraystr = copy_string(ArrayString.get());
+		    t->arraystr = copy_string(Char(ArrayString));
 		    t->typedef_add($2.id);
 		    cplus_register_type($2.id);
 		    delete t;
@@ -1264,7 +1270,7 @@ stail          : SEMI { }
 		 if ($3 > 0) {
 		   temp_typeptr->is_pointer++;
 		   temp_typeptr->status = STAT_READONLY;
-		   temp_typeptr->arraystr = copy_string(ArrayString.get());
+		   temp_typeptr->arraystr = copy_string(Char(ArrayString));
 		 }
 		 if ($2.is_reference) {
 		   fprintf(stderr,"%s : Line %d. Error. Linkage to C++ reference not allowed.\n", input_file, line_number);
@@ -1357,7 +1363,7 @@ parm_type      : type pname {
 		    if (InArray) {
 		      $1->is_pointer++;
 		      // Add array string to the type
-		      $1->arraystr = copy_string(ArrayString.get());
+		      $1->arraystr = copy_string(Char(ArrayString));
 		    } 
 		    $$ = new Parm($1,$2);
 		    $$->call_type = 0;
@@ -1378,7 +1384,7 @@ parm_type      : type pname {
 		   if (InArray) {
 		     $$->t->is_pointer++;
 		     // Add array string to the type
-		     $$->t->arraystr = copy_string(ArrayString.get());
+		     $$->t->arraystr = copy_string(Char(ArrayString));
 		    }
 		   delete $1;
 		   delete $3;
@@ -1500,20 +1506,20 @@ stars :          STAR empty { $$ = 1; }
 
 array :        LBRACKET  RBRACKET array2 {
 		 $$ = $3 + 1;
-		 "[]" >> ArrayString;
+                 Insert(ArrayString,0,"[]");		
               }
               | LBRACKET expr RBRACKET array2 {
                  $$ = $4 + 1;
-		 "]" >> ArrayString;
-		 $2.id >> ArrayString;
-		 "[" >> ArrayString;
+		 Insert(ArrayString,0,"]");
+		 Insert(ArrayString,0,$2.id);
+		 Insert(ArrayString,0,"[");
               }
 	      ;
 array2 :       array {
                  $$ = $1;
               }
               | empty { $$ = 0;
-                        ArrayString = "";
+	          Clear(ArrayString);
               }
 	      ;
 
@@ -2399,7 +2405,7 @@ cpp_member   :  type declaration LPAREN parms RPAREN cpp_end {
 		  Active_type = new DataType($1);
 		  $1->is_pointer += $2.is_pointer + 1;
 		  $1->is_reference = $2.is_reference;
-		  $1->arraystr = copy_string(ArrayString.get());
+		  $1->arraystr = copy_string(Char(ArrayString));
 		  if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		    Status = STAT_READONLY;
 		  
@@ -2567,8 +2573,9 @@ cpp_pragma    : PRAGMA ID stylearg {
 		      /* Generate some code for a new class */
 		    } else {
 		      Nested *n = new Nested;
-		      n->code << "typedef " << $1 << " " 
-			      << CCode.get() << " $classname_" << $5.id << ";\n";
+		      n->code = NewString("");
+		      Printv(n->code, "typedef ", $1, " ", 
+			      Char(CCode), " $classname_", $5.id, ";\n", 0);
 		      n->name = copy_string($5.id);
 		      n->line = start_line;
 		      n->type = new DataType;
@@ -2592,8 +2599,9 @@ cpp_pragma    : PRAGMA ID stylearg {
 		    /* Generate some code for a new class */
 
 		    Nested *n = new Nested;
-		    n->code << "typedef " << $1 << " " 
-			    << CCode.get() << " $classname_" << $4.id << ";\n";
+		    n->code = NewString("");
+		    Printv(n->code, "typedef ", $1, " " ,
+			    Char(CCode), " $classname_", $4.id, ";\n",0);
 		    n->name = copy_string($4.id);
 		    n->line = start_line;
 		    n->type = new DataType;
@@ -2906,10 +2914,10 @@ objc_inherit   : COLON ID objc_protolist { $$ = $2;}
 
 
 objc_protolist : LESSTHAN { skip_template(); 
-                   CCode.strip();           // Strip whitespace
+/*                   CCode.strip();           // Strip whitespace
 		   CCode.replace("<","< ");
-		   CCode.replace(">"," >");
-                   $$ = CCode.get();
+		   CCode.replace(">"," >"); */
+                   $$ = Char(CCode);
                  }
                | empty {
                    $$ = (char*)"";
@@ -2979,7 +2987,7 @@ objc_var       : type declaration {
 		   Active_type = new DataType($1);
 		   $1->is_pointer += $2.is_pointer;
 		   $1->is_reference = $2.is_reference;
-		   $1->arraystr = copy_string(ArrayString.get());
+		   $1->arraystr = copy_string(Char(ArrayString));
 		   if ($1->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,$1,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3024,7 +3032,7 @@ objc_vartail   : COMMA declaration objc_vartail {
 		   DataType *t = new DataType (Active_type);
 		   t->is_pointer += $2.is_pointer;
 		   t->is_reference = $2.is_reference;
-		   t->arraystr = copy_string(ArrayString.get());
+		   t->arraystr = copy_string(Char(ArrayString));
 		   if (t->status & STAT_READONLY) {
 		     if (!(tm = typemap_lookup((char*)"memberin",typemap_lang,t,$2.id,(char*)"",(char*)""))) 
 		       Status = Status | STAT_READONLY;
@@ -3222,7 +3230,7 @@ tm_tail        : COMMA typemap_parm tm_tail {
 typemap_parm   : type typemap_name {
 		    if (InArray) {
 		      $1->is_pointer++;
-		      $1->arraystr = copy_string(ArrayString.get());
+		      $1->arraystr = copy_string(Char(ArrayString));
 		    }
 		    $$ = new TMParm;
                     $$->p = new Parm($1,$2);
@@ -3239,7 +3247,7 @@ typemap_parm   : type typemap_name {
 		   $$->p->call_type = 0;
 		   if (InArray) {
 		     $$->p->t->is_pointer++;
-		     $$->p->t->arraystr = copy_string(ArrayString.get());
+		     $$->p->t->arraystr = copy_string(Char(ArrayString));
 		    }
 		   $$->args = tm_parm;
 		   delete $1;
@@ -3279,23 +3287,23 @@ typemap_name    : ID typemap_args {
                     InArray = 0;
                 }
                 | ID array  { 
-                    ArrayBackup = "";
-		    ArrayBackup << ArrayString;
+                    ArrayBackup = Copy(ArrayString);
                   } typemap_args {
                     $$ = $1;
                     InArray = $2;
-                    ArrayString = "";
-		    ArrayString << ArrayBackup;
+                    Clear(ArrayString);
+                    Append(ArrayString,ArrayBackup);
+		    Delete(ArrayBackup);
                 }
                 | array { 
-                    ArrayBackup = "";
-		    ArrayBackup << ArrayString;
+		    ArrayBackup = Copy(ArrayString);
 		} typemap_args {
 		    $$ = new char[1];
 		    $$[0] = 0;
 		    InArray = $1;
-                    ArrayString = "";
-                    ArrayString << ArrayBackup;
+                    Clear(ArrayString);
+                    Append(ArrayString,ArrayBackup);
+		    Delete(ArrayBackup);
 		}
                 | typemap_args { $$ = new char[1];
   	                  $$[0] = 0;

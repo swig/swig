@@ -36,6 +36,10 @@ extern "C" {
 WrapperFunction::WrapperFunction() {
   h = NewHash();
   localh = NewHash();
+  _def = def.doh();
+  _locals = locals.doh();
+  _code = code.doh();
+  _init = init.doh();
 }
 
 WrapperFunction::~WrapperFunction() {
@@ -47,38 +51,38 @@ WrapperFunction::~WrapperFunction() {
 // isolate the type name.  This is a hack (sorry).
 // -------------------------------------------------------------------
 
-static String type_ext;
+static char type_ext[512];
 static char *isolate_type_name(char *tname) {
-  static String s;
-  s = "";
+  static char s[512];
+  char *c = s;
+
   while ((*tname) && (isalnum(*tname) || (*tname == '_') || (*tname == '$') || (*tname == ' ') || (*tname == ':'))) {
-    s << *tname;
+    *(c++) = *tname;
     tname++;
   }
-  type_ext = "";
-  type_ext = tname;
-  return s.get();
+  *c = 0;
+  strcpy(type_ext,tname);
+  return s;
 }
 
 // -------------------------------------------------------------------
 // Print out a wrapper function.
 // -------------------------------------------------------------------
 
-void WrapperFunction::print(FILE *f) {
-  String *s;
+void WrapperFunction::print(DOHFile *f) {
+  DOHString *s;
   DOH  *key;
   
   key = Firstkey(localh);
   while (key) {
-    s = (String *) GetVoid(localh,key);
-    char *c = s->get();
-    c[strlen(c)-1] = 0;
-    locals << tab4 << c << ";\n";
+    s = Getattr(localh,key);
+    Delitem(s,DOH_END);
+    Printv(_locals,tab4,s,";\n",0);
     key = Nextkey(localh);
   }
-  fprintf(f,"%s\n",def.get());
-  fprintf(f,"%s",locals.get());
-  fprintf(f,"%s\n",code.get());
+  Printf(f,"%s\n",_def);
+  Printf(f,"%s",_locals);
+  Printf(f,"%s\n",_code);
 }
 
 // -------------------------------------------------------------------
@@ -86,14 +90,13 @@ void WrapperFunction::print(FILE *f) {
 // -------------------------------------------------------------------
 
 void WrapperFunction::print(String &f) {
-  String *s;
+  DOHString *s;
   DOH *key;
   key = Firstkey(localh);
   while (key) {
-    s = (String *) GetVoid(localh,key);
-    char *c = s->get();
-    c[strlen(c)-1] = 0;
-    locals << tab4 << c << ";\n";
+    s = Getattr(localh,key);
+    Delitem(s,DOH_END);
+    Printv(_locals,tab4,s,";\n",0);
     key = Nextkey(localh);
   }
 
@@ -139,21 +142,18 @@ void WrapperFunction::add_local(char *type, char *name, char *defarg) {
   // See if any wrappers have been generated with this type 
 
   char *tname = isolate_type_name(type);
-  String *lstr = (String *) GetVoid(localh,tname);
+  DOHString *lstr = Getattr(localh,tname);
   if (!lstr) {
-    lstr = new String;
-    *(lstr) << tname << " ";
-    SetVoid(localh,tname,lstr);
+    lstr = NewStringf("%s ", tname);
+    Setattr(localh,tname,lstr);
   }
   
   // Successful, write some wrapper code
 
   if (!defarg) {
-    *(lstr) << type_ext << name << ",";
-    // locals << tab4 << type << " " << name << ";\n";
+    Printv(lstr,type_ext,name,",",0);
   } else {
-    *(lstr) << type_ext << name << "=" << defarg << ",";
-    // locals << tab4 << type << " " << name << " = " << defarg << ";\n";
+    Printv(lstr,type_ext,name, "=", defarg, ",", 0);
   }
 }
 
@@ -168,54 +168,55 @@ void WrapperFunction::add_local(char *type, char *name, char *defarg) {
 
 char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
   char *new_type;
-  static String new_name;
+  static DOHString *new_name = 0;
   char *c;
   new_type = new char[strlen(type)+1];
 
+  if (!new_name) new_name = NewString("");
   strcpy(new_type,type);
-  new_name = "";
+  Clear(new_name);
   c = name;
   for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
-    new_name << *c;
+    Putc(*c,new_name);
 
   // Try to add a new local variable
-  if (Getattr(h,new_name.get())) {
+  if (Getattr(h,new_name)) {
     // Local variable already exists, try to generate a new name
     int i = 0;
-    new_name = "";
+    Clear(new_name);
     // This is a little funky.  We copy characters until we reach a nonvalid
     // identifier symbol, add a number, then append the rest.   This is
     // needed to properly handle arrays.
     c = name;
     for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
-      new_name << *c;
-    new_name << i;
-    while (Getattr(h,new_name.get())) {
+      Putc(*c,new_name);
+    Printf(new_name,"%d",i);
+    while (Getattr(h,new_name)) {
       i++;
       c = name;
-      new_name = "";
+      Clear(new_name);
       for (c = name; ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c)); c++)
-	new_name << *c;
-      new_name << i;
+	Putc(*c,new_name);
+      Printf(new_name,"%d",i);
     }
-    Setattr(h,new_name.get(),new_type);
+    Setattr(h,new_name,new_type);
   } else {
-    Setattr(h,new_name.get(),new_type);
+    Setattr(h,new_name,new_type);
   }
-  new_name << c;
+  Printf(new_name,"%s",c);
   // Successful, write some wrapper code
   if (!defarg)
-    locals << tab4 << type << " " << new_name << ";\n";
+    Printv(_locals,tab4,type, " ", new_name, ";\n");
   else
-    locals << tab4 << type << " " << new_name << " = " << defarg << ";\n";
+    Printv(_locals,tab4,type, " ", new_name, " = ", defarg, ";\n");
 
   // Need to strip off the array symbols now
 
-  c = new_name.get();
+  c = Char(new_name);
   while ((isalnum(*c) || (*c == '_') || (*c == '$')) && (*c))
     c++;
   *c = 0;
-  return new_name.get();
+  return Char(new_name);
 }
 
 // ------------------------------------------------------------------
