@@ -17,16 +17,84 @@ SWIG release.  The guilty parties working on this are:
   -  Harco de Hilster (Harco.de.Hilster@ATComputing.nl) (Java)
   -  Thien-Thi Nguyen (ttn@glug.org)                    (Guile)
 
-*** IMPORTANT NOTICE -- READ FIRST ***
+*** IMPORTANT NOTICE -- READ THIS NOW! ***
 
-If you downloaded this as a prepackaged release such as SWIG1.3a1,
-be advised that the code represents a snapshot of the most stable
-part of the SWIG CVS repository.  Currently, SWIG is undergoing a
-large redevelopment effort.  The SWIG1.3 series of releases such
-be considered to be transitional releases between SWIG1.1 and SWIG2.0.
+If you downloaded this as a prepackaged release such as SWIG1.3a1, be
+advised that this distribution represents a snapshot of the most
+stable part of the SWIG CVS repository.  Currently, SWIG is undergoing
+a large redevelopment effort.  The SWIG1.3 series of releases should
+be viewed as a transitional version leading to the eventual release 
+of SWIG2.0.
 
-General overview:
-=================
+Please report any errors and submit patches (if possible)!  We only
+have access to a limited variety of hardware (Linux, Solaris, and
+Windows) so every contribution helps.
+
+What's New?
+===========
+Here are the most notable changes (so far):
+
+   - SWIG now has a full C preprocessor.
+
+   - Code generation for the Tcl and Python modules has been
+     substantially improved both in terms of size and runtime
+     efficiency (Perl5 is coming along too).
+
+   - Java module is now included.
+
+   - A lot of minor bug fixes and cleanup.
+
+Here are a few missing features
+ 
+   - The SWIG1.1 documentation system is gone and hasn't been
+     replaced yet.  This is on the long-term to-do list.
+
+   - The Tcl7.x and Perl4 modules are deprecated and no longer
+     included.
+
+   - A wide variety of old SWIG command-line options and
+     obscure features are gone.
+
+Installation
+============
+To build and install SWIG, simply type the following:
+
+     % ./configure
+     % make
+     % make install
+
+In addition, if you need to build the runtime libraries, type
+the following before doing the 'make install' step above.
+
+     % make runtime
+
+If you don't know what the runtime libraries are, don't worry
+about this step.
+
+The Examples directory contains a few examples of using SWIG.
+
+Note:
+
+If you checked the code out via CVS, you will have to run autoconf
+before typing 'configure.'  In addition, a full build of SWIG requires
+the use of bison.
+
+Documentation
+=============
+No documentation is currently included in this release.  However, most
+of the documentation for SWIG1.1 still applies.  This can be obtained
+on http://www.swig.org.
+
+Participate!
+============
+We are looking for people who want to join the effort of getting this
+next release off the ground.  Please send me email for details.
+
+-- Dave (beazley@cs.uchicago.edu)
+
+
+Developer Information
+=====================
 The primary goal of future development is to make SWIG more modular,
 extensible, and easier to maintain.  To this end, the source code has
 been consolidated and reorganized with the Source directory.  Within
@@ -41,35 +109,12 @@ this directory, there are a number of different components:
 in ANSI C.  Please avoid C++ if at all possible. -- Dave ***
 
       DOH           - Object framework for the ANSI C core.
-      Core          - New SWIG core (ANSI C)
+      Swig          - New SWIG core (ANSI C)
       Preprocessor  - SWIG preprocessor module
-      Dustin        - Some Python stuff Dustin is working on.
-      SWILL         - An embedded web-server library
-      Swim          - The SWIG monitor project.
 
 Documentation for these components is weak or non-existent at this
 time. However, this should only matter if you are actually hacking
 on SWIG itself. Please bear with us.
-
-Installation
-============
-To build and install SWIG, simply type the following:
-
-     % ./configure
-     % make
-     % make install
-     
-If you checked the code out via CVS, you will have to run autoconf
-before typing 'configure.'  In addition, a full build of SWIG requires
-the use bison or yacc.
-
-Participate!
-============
-We are looking for people who want to join the effort of getting this
-next release off the ground.  Please send me email for details.
-
--- Dave (beazley@cs.uchicago.edu)
-
       
 
 
