@@ -66,7 +66,6 @@ typedef struct swig_const_info {
 #define SWIG_NewPackedObj(ptr, sz, type)              SWIG_Python_NewPackedObj(ptr, sz, type)
 #define SWIG_InstallConstants(d, constants)           SWIG_Python_InstallConstants(d, constants)
 
-
 #ifdef SWIG_NOINCLUDE
 
 /* -----------------------------------------------------------------------------
@@ -600,6 +599,30 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
     }
   }
 }
+
+#ifdef SWIG_DISABLE_RUNTIME
+/* lookup type pointer */
+SWIGRUNTIME(void)
+SWIG_Python_LookupTypePointer(swig_type_info ***type_list_handle) {
+  PyObject *module, *pointer;
+  void *type_pointer;
+
+  /* first check if module already created */
+  type_pointer = PyCObject_Import("swig_runtime_data", "type_pointer");
+  if (type_pointer) {
+    *type_list_handle = (swig_type_info **) type_pointer;
+  } else {
+    PyErr_Clear();
+    /* create a new module and variable */
+    module = Py_InitModule("swig_runtime_data", NULL);
+    pointer = PyCObject_FromVoidPtr((void *) (*type_list_handle), NULL);
+    if (pointer && module) {
+      PyModule_AddObject(module, "type_pointer", pointer);
+    }
+  }
+}
+#endif /* SWIG_DISABLE_RUNTIME */
+
 
 #endif /* SWIG_NOINCLUDE */
 
