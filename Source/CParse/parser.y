@@ -270,16 +270,19 @@ static String *make_unnamed() {
   return NewStringf("$unnamed%d$",unnamed);
 }
 
-/* Generate the symbol table name for an object */
-static String *name_warning(String *name,SwigType *decl) {
-  String *rn = 0;
-  if (!name) return 0;
+/* Return the node name when it requires to emit a name warning */
+extern int need_name_warning(Node *n);
+static String *name_warning(Node *n,String *name,SwigType *decl) {
+  /* Return in the obvious cases */
+  if (!namewarn_hash || !name || !need_name_warning(n)) return 0;
 
   /* Check to see if the name is in the hash */
-  if (!namewarn_hash) return 0;
-  rn = Swig_name_object_get(namewarn_hash, Namespaceprefix,name,decl);
-  if (!rn) return 0;
-  return rn;
+  return Swig_name_object_get(namewarn_hash,Namespaceprefix,name,decl);
+}
+
+/* Return if the node is a friend declaration */
+static int is_friend(Node *n) {
+ return Cmp(Getattr(n,"storage"),"friend") == 0;
 }
 
 /* Add declaration list to symbol table */
@@ -293,21 +296,21 @@ static void add_symbols(Node *n) {
     cparse_normalize_void(n);
   }
 
-  /* Don't add symbols for private/protected members */
-  if (inclass && (cplus_mode == CPLUS_PRIVATE)) {
-    while (n) {
-      Swig_symbol_add(0, n);       /* Add to C symbol table */
-      Setattr(n,"access", "private");
-      if (add_only_one) break;
-      n = nextSibling(n);
-    }
-    return;
-  }
   while (n) {
     String *symname;
-    if (inclass && (cplus_mode == CPLUS_PROTECTED)) {
-      Setattr(n,"access", "protected");
-      if (!need_protected(n, dirprot_mode)) {
+    /* for friends, we need to pop the scope once */
+    int isfriend = is_friend(n);
+    Symtab *class_scope = isfriend ? Swig_symbol_popscope() : 0;
+
+    if (!isfriend && inclass && (cplus_mode != CPLUS_PUBLIC)) {
+      int only_csymbol = 1;
+      if (cplus_mode == CPLUS_PROTECTED) {
+	Setattr(n,"access", "protected");
+	only_csymbol = !need_protected(n, dirprot_mode);
+      } else {
+	Setattr(n,"access", "private");
+      }
+      if (only_csymbol) {
 	/* Only add to C symbol table and continue */
 	Swig_symbol_add(0, n); 
 	if (add_only_one) break;
@@ -326,18 +329,26 @@ static void add_symbols(Node *n) {
 	symname = Getattr(n,"unnamed");
       }
       if (symname) {
-	wrn = name_warning(symname,0);
+	wrn = name_warning(n,symname,0);
 	Swig_features_get(features_hash, Namespaceprefix, Getattr(n,"name"), 0, n);
       }
     } else {
       SwigType *fdecl = Copy(decl);
       SwigType *fun = SwigType_pop_function(fdecl);
+
+      /* for friends, we need to disable the class prefix */
+      String* class_prefix = isfriend ? Namespaceprefix : 0;
+      if (isfriend) Namespaceprefix = 0;
+
       symname = make_name(Getattr(n,"name"),fun);
-      wrn = name_warning(symname,fun);
+      wrn = name_warning(n,symname,fun);
       
       Swig_features_get(features_hash,Namespaceprefix,Getattr(n,"name"),fun,n);
       Delete(fdecl);
       Delete(fun);
+      
+      /* restore the class prefix if needed */
+      if (isfriend) Namespaceprefix = class_prefix;
     }
     if (!symname) {
       n = nextSibling(n);
@@ -372,7 +383,9 @@ static void add_symbols(Node *n) {
 	    if (Cmp(symname,Getattr(c,"name"))) {
 	      Printf(e," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
 	    }
-	    Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
+	    /* avoid warning for friend declarations */
+	    if (!is_friend(n) && !is_friend(c))
+	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(n), Getline(n),"%s\n", e);
 	    Setattr(n,"error",e);
 	  }
 	}
@@ -380,6 +393,9 @@ static void add_symbols(Node *n) {
 	Setattr(n,"sym:name", symname);
       }
     }
+    /* restore the class scope if needed */
+    if (isfriend) Swig_symbol_setscope(class_scope);
+
     if (add_only_one) return;
     n = nextSibling(n);
   }
