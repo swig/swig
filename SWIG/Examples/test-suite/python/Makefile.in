@@ -17,11 +17,17 @@ CPP_TEST_CASES += \
 	file_test \
 	implicittest \
 	inplaceadd \
+	lib_std_except \
 	lib_std_vectora \
 	lib_std_map \
 	lib_std_wstring \
 	primitive_types \
+	nondynamic \
 	std_containers \
+
+C_TEST_CASES += \
+	file_test \
+	nondynamic
 
 #
 # This test only works with modern C compilers
