@@ -17,6 +17,7 @@ AH_BOTTOM([
 
 /* Values returned by SWIG when invoked with the -ldflags option */
 #define SWIG_GUILE_RUNTIME      "-L" LIBDIR " -lswigguile" RELEASE_SUFFIX
+#define SWIG_GUILESCM_RUNTIME   "-L" LIBDIR " -lswigguilescm" RELEASE_SUFFIX
 #define SWIG_MZSCHEME_RUNTIME   "-L" LIBDIR " -lswigmz" RELEASE_SUFFIX
 #define SWIG_PERL_RUNTIME       "-L" LIBDIR " -lswigpl" RELEASE_SUFFIX
 #define SWIG_PIKE_RUNTIME       "-L" LIBDIR " -lswigpike" RELEASE_SUFFIX
@@ -815,7 +816,7 @@ else
 fi
 AC_MSG_CHECKING(whether Guile's SCM_ API works)
 AC_LINK_IFELSE([#include <libguile.h>
-  int main() { SCM s; return SCM_STRING_LENGTH(s); }], GUILE_SCM_INTERFACE=1, )
+  int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }], GUILE_SCM_INTERFACE=1, )
 if test -n "$GUILE_SCM_INTERFACE" ; then
         AC_MSG_RESULT(yes)
 else

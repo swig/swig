@@ -172,7 +172,7 @@ public:
 	  }
 	}
 	else if (strcmp (argv[i], "-ldflags") == 0) {
-	  printf("%s\n", SWIG_GUILE_RUNTIME);
+	  printf("%s\n", use_scm_interface ? SWIG_GUILESCM_RUNTIME : SWIG_GUILE_RUNTIME);
 	  SWIG_exit (EXIT_SUCCESS);
 	}
 	else if (strcmp (argv[i], "-Linkage") == 0
