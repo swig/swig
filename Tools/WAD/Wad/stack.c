@@ -14,12 +14,22 @@
 #include <sys/mman.h>
 #include <dlfcn.h>
 
+#ifdef WAD_SOLARIS
+#define STACK_BASE   0xffbf0000
+#endif
+#ifdef WAD_LINUX
+#define STACK_BASE   0xc0000000
+#endif
+
 /* Given a stack pointer, this function performs a single level of stack 
    unwinding */
 
 static void
 stack_unwind(unsigned long *sp, unsigned long *pc, unsigned long *fp) {
 
+  if (wad_debug_mode & DEBUG_UNWIND) {
+    printf("::: stack unwind :  pc = %x, sp = %x, fp = %x\n", *pc, *sp, *fp);
+  }
 #ifdef WAD_SOLARIS
   *pc = *((unsigned long *) *sp+15);         /* %i7 - Return address  */
   *sp = *((unsigned long *) *sp+14);         /* %i6 - frame pointer   */
@@ -89,6 +99,8 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
 
     if (!ws) {
       /* If the stack is bad, we are really hosed here */
+      write(1,"Whoa. Stack is corrupted. Bailing out.\n", 39);
+      exit(1);
       break;
     }
     ws = wad_segment_find(segments, (void *) p_pc);
@@ -183,13 +195,14 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
       if (p_sp) {
 	stacksize = p_sp - p_lastsp;
       } else {
-#ifdef WAD_SOLARIS
-	stacksize = 0xffbf0000 - p_lastsp;    /* Sick hack alert. Need to get stack top from somewhere */
-#endif
-#ifdef WAD_LINUX
-	stacksize = 0xc0000000 - p_lastsp;
-#endif
+	stacksize = STACK_BASE - p_lastsp;    /* Sick hack alert. Need to get stack top from somewhere */
       }
+
+      /* Sanity check */
+      if ((p_sp + stacksize) > STACK_BASE) {
+	stacksize = STACK_BASE - p_sp;
+      }
+
       /* Set the frame pointer and stack size */
 
       /*      frame.fp = p_sp;  */
@@ -244,6 +257,7 @@ wad_stack_trace(unsigned long pc, unsigned long sp, unsigned long fp) {
   frame.size = 0;
   frame.last = 1;
   frame.lastsize = lastsize;
+  frame.stack_size = 0;
   write(ffile,&frame,sizeof(WadFrame));
   close(ffile);
 

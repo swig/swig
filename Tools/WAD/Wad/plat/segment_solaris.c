@@ -12,20 +12,20 @@
  * ----------------------------------------------------------------------------- */
 
 
-static FILE *
+static int
 segment_open() {
-  FILE *f;
-  f = fopen("/proc/self/map", "r");
+  int f;
+  f = open("/proc/self/map", O_RDONLY);
   return f;
 }
 
 static int
-segment_read(FILE *fs, WadSegment *s) {
+segment_read(int fs, WadSegment *s) {
   int     dz;
   int     n;
   prmap_t pmap;
 
-  n = fread(&pmap, sizeof(prmap_t), 1, fs);
+  n = read(fs, &pmap, sizeof(prmap_t));
   if (n <= 0) return 0;
   strncpy(s->mapname, pmap.pr_mapname, MAX_PATH);
   strcpy(s->mappath,"/proc/self/object/");

@@ -15,6 +15,8 @@
 #define STACK_SIZE 4*SIGSTKSZ
 char wad_sig_stack[STACK_SIZE];
 
+static wad_stacked_signal = 0;
+
 static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
 
 void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
@@ -28,10 +30,10 @@ void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
    return to the caller as if the function had actually completed
    normally. */
 
-static int            nlr_levels = 0;
-static volatile int  *volatile nlr_p = &nlr_levels;
-static long           nlr_value = 0;
-static void          (*nlr_func)(void) = 0;
+int            nlr_levels = 0;
+volatile int  *volatile nlr_p = &nlr_levels;
+long           nlr_value = 0;
+void          (*nlr_func)(void) = 0;
 
 /* Set the return value from another module */
 void wad_set_return_value(long value) {
@@ -117,9 +119,14 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 
   nlr_func = 0;
 
-  wad_object_init();
+  if (!wad_stacked_signal)
+    wad_object_init();
 
   context = (ucontext_t *) vcontext;
+
+  if (wad_debug_mode & DEBUG_SIGNAL) {
+    printf("WAD: siginfo = %x, context = %x\n", si, vcontext);
+  }
 
   /* Get some information about the current context */
 
@@ -144,13 +151,21 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   p_fp = (unsigned long) (*fp);
   /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp); */
 #endif
+  /*  printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);*/
 
+  if (wad_stacked_signal) {
+    printf("Fault in wad at pc = %x, sp = %x\n", p_pc, p_sp);
+    exit(1);
+  }
+  wad_stacked_signal++;
   frame = wad_stack_trace(p_pc, p_sp, p_fp);
   origframe =frame;
   if (!frame) {
     /* We're really hosed here */
+    wad_stacked_signal--;
     return;
   }
+
 
   if (wad_debug_mode & DEBUG_STACK) {
     /* Walk the exception frames and try to find a return point */
@@ -227,6 +242,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 #ifdef WAD_SOLARIS
     *(npc) = *(pc) + 4;
 #endif
+    wad_stacked_signal--;
     return;
   }
   exit(1);
