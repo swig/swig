@@ -158,16 +158,15 @@ int ParmList_len(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_str(ParmList *p) {
-  String *out;
-  SwigType *t;
-
-  out = NewString("");
+  String *out = NewString("");
   while(p) {
-    t = Getattr(p,"type");
-    Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
+    String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
+    Printf(out,"%s", pstr);
     p = nextSibling(p);
-    if (p)
+    if (p) {
       Printf(out,",");
+    }
+    Delete(pstr);
   }
   return out;
 }
@@ -179,20 +178,19 @@ String *ParmList_str(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_str_defaultargs(ParmList *p) {
-  String *out;
-  String *value;
-  SwigType *t;
-
-  out = NewString("");
+  String *out = NewString("");
   while(p) {
-    t = Getattr(p,"type");
-    Printf(out,"%s", SwigType_str(t,Getattr(p,"name")));
-    value = Getattr(p,"value");
-    if (value)
+    String *value = Getattr(p,"value");
+    String *pstr = SwigType_str(Getattr(p,"type"), Getattr(p,"name"));
+    Printf(out,"%s", pstr);
+    if (value) {
       Printf(out,"=%s", value);
+    }
     p = nextSibling(p);
-    if (p)
+    if (p) {
       Printf(out,",");
+    }
+    Delete(pstr);    
   }
   return out;
 }
@@ -204,20 +202,19 @@ String *ParmList_str_defaultargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 String *ParmList_protostr(ParmList *p) {
-  String *out;
-  SwigType *t;
-
-  out = NewString("");
+  String *out = NewString("");
   while(p) {
     if (Getattr(p,"hidden")) {
       p = nextSibling(p);
-      continue;
+    } else {
+      String *pstr = SwigType_str(Getattr(p,"type"), 0);
+      Printf(out,"%s", pstr);
+      p = nextSibling(p);
+      if (p) {
+	Printf(out,",");
+      }
+      Delete(pstr);
     }
-    t = Getattr(p,"type");
-    Printf(out,"%s", SwigType_str(t,0));
-    p = nextSibling(p);
-    if (p)
-      Printf(out,",");
   }
   return out;
 }
