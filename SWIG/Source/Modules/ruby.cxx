@@ -2016,7 +2016,7 @@ public:
         Printv(w->code, "args.argv = 0;\n", NIL);
       }
       Printf(w->code,
-        "result = rb_protect((VALUE(*)(VALUE)) %s, reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
+        "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName, rescueName);
       Printf(w->code,
         "if (status) {\n");
       Printf(w->code,
