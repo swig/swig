@@ -1415,7 +1415,7 @@ char *PYTHON::usage_func(char *iname, DataType *, ParmList *l) {
 	if (strlen(p->name) > 0) {
 	  Printf(temp,"%s",p->name);
 	} else {
-	  Printf(temp,"%s", p->t->print_type);
+	  Printf(temp,"%s", p->t->print_type());
 	}
       }
       p = l->get_next();
