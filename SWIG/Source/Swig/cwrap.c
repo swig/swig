@@ -173,15 +173,24 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
 	  SwigType *tvalue;
-	  String *defname, *defvalue, *rvalue;
+	  String *defname, *defvalue, *rvalue, *qvalue;
 	  rvalue = SwigType_typedef_resolve_all(pvalue);
+	  qvalue = SwigType_typedef_qualified(rvalue);
 	  defname = NewStringf("%s_defvalue", lname);
 	  tvalue = Copy(type);
 	  SwigType_del_reference(tvalue);
-	  defvalue = NewStringf("%s = %s", SwigType_lstr(tvalue,defname), rvalue);
+	  tycode = SwigType_type(tvalue);
+	  if (tycode != T_USER) {
+	    /* plain primitive type, we copy the the def value */
+	    defvalue = NewStringf("%s = %s", SwigType_lstr(tvalue,defname),qvalue);
+	  } else {
+	    /* user type, we copy the reference value */
+	    defvalue = NewStringf("%s = %s",SwigType_str(type,defname),qvalue);
+	  }
 	  Wrapper_add_localv(w,defname, defvalue, NIL);
 	  Delete(tvalue);
 	  Delete(rvalue);
+	  Delete(qvalue);
 	  Delete(defname);
 	  Delete(defvalue);
 	}
