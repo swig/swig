@@ -93,6 +93,9 @@ protected:
 
   String *chickenNameMapping(String *, String_or_char *);
   String *chickenPrimitiveName(String *);
+
+  String *runtimeCode();
+  String *defaultExternalRuntimeFilename();
 };
 
 /* -----------------------------------------------------------------------
@@ -1328,4 +1331,16 @@ CHICKEN::validIdentifier(String *s)
       }
     }
     return n;
+  }
+
+  String *CHICKEN::runtimeCode() {
+    String *s = Swig_include_sys("chickenrun.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'chickenrun.swg'\n");
+      s = NewString("");
+    }
+  }
+
+  String *CHICKEN::defaultExternalRuntimeFilename() {
+    return NewString("swigchickenrun.h");
   }

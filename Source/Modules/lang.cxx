@@ -2915,3 +2915,11 @@ int Language::is_assignable(Node *n)
   }
   return 1;
 }
+
+String *Language::runtimeCode() {
+  return NewString("");
+}
+
+String *Language::defaultExternalRuntimeFilename() {
+  return 0;
+}

@@ -1772,6 +1772,32 @@ public:
     }
     return 1;
   }
+
+  String *runtimeCode() {
+    String *s;
+    if (use_scm_interface) {
+      s = Swig_include_sys("guile_scm_run.swg");
+      if (!s) {
+        Printf(stderr, "*** Unable to open 'guile_scm_run.swg");
+        s = NewString("");
+      }
+    } else {
+      s = Swig_include_sys("guile_gh_run.swg");
+      if (!s) {
+        Printf(stderr, "*** Unable to open 'guile_gh_run.swg");
+        s = NewString("");
+      }
+    }
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    if (use_scm_interface) {
+      return NewString("swigguilerun.h");
+    } else {
+      return NewString("swigguileghrun.h");
+    }
+  }
 };
 
 /* -----------------------------------------------------------------------------

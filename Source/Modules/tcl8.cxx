@@ -1219,6 +1219,19 @@ public:
     }
     return Char(temp);
   }
+
+  String *runtimeCode() {
+    String *s = Swig_include_sys("swigtcl8.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'swigtcl8.swg'\n");
+      s = NewString("");
+    }
+    return s;
+  }
+
+  String *defaultExternalRuntimeFilename() {
+    return NewString("swigtclrun.h");
+  }
 };
 
 /* ----------------------------------------------------------------------

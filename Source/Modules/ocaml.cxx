@@ -1931,6 +1931,19 @@ public:
 	}
 	return SWIG_OK;
     }
+
+    String *runtimeCode() {
+      String *s = Swig_include_sys("ocaml.swg");
+      if (!s) {
+        Printf(stderr, "*** Unable to open 'ocaml.swg'\n");
+        s = NewString("");
+      }
+      return s;
+    }
+
+    String *defaultExternalRuntimeFilename() {
+      return NewString("swigocamlrun.h");
+    }
 };
 
 /* -------------------------------------------------------------------------

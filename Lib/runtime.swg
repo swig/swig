@@ -1,17 +1,9 @@
 /* -----------------------------------------------------------------------------*
    Standard SWIG API for use inside user code.
  
-   You need to include in your code as follow:
-
-#include <Python.h>            // or using your favorite language 
-#include <swigrun.swg>
-#include <python/pyrun.swg>    // or using your favorite language 
-#include <runtime.swg>
-
-   For perl, the following
-#include <swigrun.swg>
-#include <perl5/perlrun.swg>
-#include <runtime.swg>
+   Don't include this file directly, run the command
+   swig -python -external-runtime
+   Also, read the Modules chapter of the SWIG Manual.
  
  * -----------------------------------------------------------------------------*/
 
