@@ -66,6 +66,43 @@ typedef struct swig_type_info {
 static swig_type_info *swig_type_list = 0;
 static swig_type_info **swig_type_list_handle = &swig_type_list;
 
+/* 
+   Compare two type names skipping the space characters, therefore
+   "char*" == "char *" and "Class<int>" == "Class<int >", etc.
+
+   Return 0 when the two name types are equivalent, as in
+   strncmp, but skipping ' '.
+*/
+static int
+SWIG_TypeNameComp(const char *f1, const char *l1,
+		  const char *f2, const char *l2) {
+  for (;(f1 != l1) && (f2 != l2); ++f1, ++f2) {
+    while ((*f1 == ' ') && (f1 != l1)) ++f1;
+    while ((*f2 == ' ') && (f2 != l2)) ++f2;
+    if (*f1 != *f2) return *f1 - *f2;
+  }
+  return (l1 - f1) - (l2 - f2);
+}
+
+/*
+  Check type equivalence in a name list like <name1>|<name2>|...
+*/
+static int
+SWIG_TypeEquiv(const char *nb, const char *tb) {
+  int equiv = 0;
+  const char* te = tb + strlen(tb);
+  const char* ne = nb;
+  while (!equiv && *ne) {
+    for (nb = ne; *ne; ++ne) {
+      if (*ne == '|') break;
+    }
+    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
+    if (*ne) ++ne;
+  }
+  return equiv;
+}
+  
+
 /* Register a type mapping with the type-checking */
 static swig_type_info *
 SWIG_TypeRegister(swig_type_info *ti) {
@@ -73,7 +110,16 @@ SWIG_TypeRegister(swig_type_info *ti) {
   /* Check to see if this type has already been registered */
   tc = *swig_type_list_handle;
   while (tc) {
-    if (strcmp(tc->name, ti->name) == 0) {
+    /* check simple type equivalence */
+    int typeequiv = (strcmp(tc->name, ti->name) == 0);   
+    /* check full type equivalence, resolving typedefs */
+    if (!typeequiv) {
+      /* only if tc is not a typedef (no '|' on it) */
+      if (tc->str && ti->str && !strstr(tc->str,"|")) {
+	typeequiv = SWIG_TypeEquiv(ti->str,tc->str);
+      }
+    }
+    if (typeequiv) {
       /* Already exists in the table.  Just add additional types to the list */
       if (ti->clientdata) tc->clientdata = ti->clientdata;
       head = tc;
@@ -177,43 +223,6 @@ SWIG_TypePrettyName(const swig_type_info *type) {
     return type->name;
 }
 
-/* 
-   Compare two type names skipping the space characters, therefore
-   "char*" == "char *" and "Class<int>" == "Class<int >", etc.
-
-   Return 0 when the two name types are equivalent, as in
-   strncmp, but skipping ' '.
-*/
-static int
-SWIG_TypeNameComp(const char *f1, const char *l1,
-		  const char *f2, const char *l2) {
-  for (;(f1 != l1) && (f2 != l2); ++f1, ++f2) {
-    while ((*f1 == ' ') && (f1 != l1)) ++f1;
-    while ((*f2 == ' ') && (f2 != l2)) ++f2;
-    if (*f1 != *f2) return *f1 - *f2;
-  }
-  return (l1 - f1) - (l2 - f2);
-}
-
-/*
-  Check type equivalence in a name list like <name1>|<name2>|...
-*/
-static int
-SWIG_TypeEquiv(const char *nb, const char *tb) {
-  int equiv = 0;
-  const char* te = tb + strlen(tb);
-  const char* ne = nb;
-  while (!equiv && *ne) {
-    for (nb = ne; *ne; ++ne) {
-      if (*ne == '|') break;
-    }
-    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
-    if (*ne) ++ne;
-  }
-  return equiv;
-}
-  
-
 /* Search for a swig_type_info structure */
 static swig_type_info *
 SWIG_TypeQuery(const char *name) {
@@ -230,7 +239,8 @@ SWIG_TypeQuery(const char *name) {
 static void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_type_info *tc, *equiv;
-  if (ti->clientdata == clientdata) return;
+  if (ti->clientdata) return;
+  /* if (ti->clientdata == clientdata) return; */
   ti->clientdata = clientdata;
   equiv = ti->next;
   while (equiv) {

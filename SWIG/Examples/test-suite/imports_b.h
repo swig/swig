@@ -13,3 +13,19 @@ class B : public A
 
 A::MemberEnum global_test(A::MemberEnum e) { return e; }
 
+struct C : A
+{
+  typedef A a_type;
+
+  A* get_a(A* a)
+  {
+    return a;
+  }
+  
+  a_type* get_a_type(a_type* a)
+  {
+    return a;
+  }
+  
+};
+
