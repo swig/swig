@@ -1,6 +1,6 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.23
+Release: SWIG-1.3.24
 
 $Header$
 -----------------------------------------------------------------------------
@@ -30,8 +30,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        core, but it is important that we solve it.
 
 ****   Typemap environments.  Stay tuned.
-
-[DONE] Implement "throws" typemaps for all of the target languages.
 
 ***    "Nested" typemaps. The basic idea is similar to allowing one to 
        use $descriptor(T) for any T, rather than just $descriptor
@@ -103,10 +101,6 @@ defer  ready to go.  The primary obstacle lies in the target language
 
                $typemap(in,1=int foo, input=x)
 
-[DONE] Add attributes to the %feature directive. Something like:
-
-       %feature("except", throws="OutOfMemoryException")
-
 ***    Implement $fail special variable substitution in wrappers. Used
        to properly transfer control out of a wrapper function while
        reclaiming resources.
@@ -117,6 +111,10 @@ defer  ready to go.  The primary obstacle lies in the target language
        syntax something along the lines of:
 
              %typemap(out) int *Foo::func { ... }
+
+       Currently only globals functions can be targeted, like so:
+
+             %typemap(out) int *func { ... }
 
 ***    Rewrite declaration annotation to better unify %rename and related
        directives.  Add a selector mechanism that allows specific parse tree
@@ -146,15 +144,6 @@ defer  ready to go.  The primary obstacle lies in the target language
        they capture the same information so it is not necessary to have
        both.  The existence of two symbol management systems is mostly
        historical.
-
-[DONE] Add a warning for uninstantiated templates.  For example, if a function
-       using a template type, but that type hasn't been instantiated using
-       %template.
-
-[DONE] Fix template partial specialization matching rules.   SWIG does not
-       implement the proper C++ type deduction rules, but it does handle
-       the most common cases.   This is likely to be hard and implementing
-       it would really only be for completeness.
 
 Build
 -----
@@ -199,8 +188,6 @@ Tcl
 Ruby
 ----
 
-[DONE]   Add Ruby support for Mark Rose's polymorphism code.
-
 ****   The "Resource Management in Proxies" section of the "SWIG and C++"
        chapter discusses how proxies' ownership of their associated C++
        object can change, and the use of the special disown() and
@@ -215,22 +202,15 @@ Ruby
 Java
 ----
 
-[DONE] Default argument support. Default arguments are effectively ignored 
-       at present. An overridden method for each default argument could be 
-       generated thereby enabling one to call methods with default arguments.
 
 C#
 --
 
-[DONE] Wrap C/C++ enums with C# enums, currently they are wrapped with a C# int.
-
-****   Implement director support for C# so that virtual methods work seemlessly
+***    Implement director support for C# so that virtual methods work seemlessly
        when mixing C# and C++ code.
 
 ****   Fix exception handling. Currently memory leaks occur when a C# exception
        is thrown from C/C++.
-
-[DONE] Default argument support - see Java above.
 
 PHP
 ---
@@ -260,15 +240,11 @@ Guile
 
 **     Support keyword args.
 
-[DONE] Support GOOPS shadow classes.
-
 **     Director Support!
 
 **     Cleaner handling of multiple values.
        Use a typemap keyword argument "numoutputs" of "out" and
        "argout" to indicate how many values are returned.
-
-[DONE] Support garbage collection.
 
 **     Make SWIG's types first-class by using a separate smob type for
        SWIG type descriptors; enable reflection on types.  (Maybe
