@@ -578,6 +578,21 @@ DohGetChar(DOH *obj, const DOH *name) {
 }
 
 /* -----------------------------------------------------------------------------
+ * DohGetVoid()
+ *
+ * Returns an element as a void *
+ * ----------------------------------------------------------------------------- */
+
+void *
+DohGetVoid(DOH *obj, const DOH *name) {
+  DOH *val;
+  DohTrace(DOH_CALLS,"DohGetVoid %x, %x\n",obj,name);  
+  val = Getattr(obj,(DOH *) name);
+  if (!val) return 0;
+  return (void *) Data(val);
+}
+
+/* -----------------------------------------------------------------------------
  * DohSetInt()
  *
  * Set an attribute as an integer
@@ -618,6 +633,20 @@ DohSetChar(DOH *obj, const DOH *name, char *value) {
   DOH *temp;
   DohTrace(DOH_CALLS,"DohSetChar %x, %x, %g\n", obj, name, value);
   temp = NewString(value);
+  Setattr(obj,(DOH *) name,temp);
+}
+
+/* -----------------------------------------------------------------------------
+ * DohSetVoid()
+ *
+ * Set an attribute as a void
+ * ----------------------------------------------------------------------------- */
+
+void
+DohSetVoid(DOH *obj, const DOH *name, void *value) {
+  DOH *temp;
+  DohTrace(DOH_CALLS,"DohSetChar %x, %x, %g\n", obj, name, value);
+  temp = NewVoid(value,0);
   Setattr(obj,(DOH *) name,temp);
 }
 

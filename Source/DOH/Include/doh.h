@@ -172,6 +172,8 @@ typedef struct DohObjInfo {
   extern char   *DohGetChar(DOH *obj, const DOH *name);
   extern void    DohSetInt(DOH *obj, const DOH *name, int);
   extern void    DohSetDouble(DOH *obj, const DOH *name, double);
+  extern void   *DohGetVoid(DOH *obj, const DOH *name);
+  extern void    DohSetVoid(DOH *obj, const DOH *name, void *value);
 
   /* Sequence methods */
 
@@ -267,8 +269,11 @@ typedef struct DohObjInfo {
 #define GetInt             DohGetInt
 #define GetDouble          DohGetDouble
 #define GetChar            DohGetChar
+#define GetVoid            DohGetVoid
 #define SetInt             DohSetInt
 #define SetDouble          DohSetDouble
+#define SetChar            DohSetattr
+#define SetVoid            DohSetVoid
 #define Firstitem          DohFirstitem
 #define Nextitem           DohNextitem
 #define Readline           DohReadline
