@@ -23,6 +23,15 @@ public class director_abstract_runme {
       if (!a.pong().equals("Foo::pong();MyFoo::ping()")) {
           throw new RuntimeException ( "a.pong()" );
       }
+
+      BadFoo b = new BadFoo();
+      try {
+        b.ping();
+        System.out.println( "Test failed. An attempt to call a pure virtual method should throw an exception" );
+        System.exit(1);
+      }
+      catch (RuntimeException e) {
+      }
   }
 }
 
@@ -30,5 +39,8 @@ class MyFoo extends Foo {
     public String ping() {
         return "MyFoo::ping()";
     }
+}
+
+class BadFoo extends Foo {
 }
 
