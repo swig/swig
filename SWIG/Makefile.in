@@ -174,6 +174,12 @@ install-lib:
 	    echo "Installing Lib/mzscheme/$$i"; \
             ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/mzscheme/$$i; \
 	    done;
+	@$(MKINSTDIRS) $(SWIG_LIB)/ruby
+	@cd $(srcdir)/Lib/ruby; for i in *.i *.swg Makefile.swig extconf.rb; \
+	    do \
+	    echo "Installing Lib/ruby/$$i"; \
+            ../../$(INSTALL_DATA) $$i $(SWIG_LIB)/ruby/$$i; \
+	    done;
 
 install-runtime:
 	@cd Runtime; $(MAKE) install

@@ -32,6 +32,7 @@ static char cvsroot[] = "$Header$";
 #include "python.h"
 #include "guile.h"
 #include "mzscheme.h"
+#include "ruby.h"
 
 #include <ctype.h>
 
@@ -47,7 +48,8 @@ Target Language Options:\n\
      -perl5          - Generate Perl5 wrappers.\n\
      -java           - Generate Java wrappers.\n\
      -guile          - Generate Guile wrappers.\n\
-     -mzscheme       - Generate Mzscheme wrappers.\n";
+     -mzscheme       - Generate Mzscheme wrappers.\n\
+     -ruby           - Generate Ruby wrappers.\n";
 
 //-----------------------------------------------------------------
 // main()
@@ -86,6 +88,9 @@ int main(int argc, char **argv) {
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-mzscheme") == 0) {
 	      dl = new MZSCHEME;
+	      Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-ruby") == 0) {
+	      dl = new RUBY;
 	      Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	      fputs(usage,stderr);

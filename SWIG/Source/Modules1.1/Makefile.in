@@ -13,8 +13,8 @@ AR       = @AR@
 RANLIB   = @RANLIB@
 
 TARGET   = libmodules11.a
-OBJS     = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o mzscheme.o
-SRCS     = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx mzscheme.cxx
+OBJS     = swigmain.o tcl8.o perl5.o python.o pycpp.o guile.o java.o mzscheme.o ruby.o
+SRCS     = swigmain.cxx tcl8.cxx perl5.cxx python.cxx pycpp.cxx guile.cxx java.cxx mzscheme.cxx ruby.cxx
 INCLUDE  = -I$(srcdir)/../Include		\
 	   -I$(srcdir)/../SWIG1.1		\
 	   -I$(srcdir)/../SWIG1.3		\

@@ -15,7 +15,7 @@ necho() {
 
 # Script that attempts to produce different run-time libraries
 
-TARGET='perl5 python tcl'
+TARGET='perl5 python tcl ruby'
 
 echo "Building the SWIG runtime libraries."
 echo ""

@@ -1,6 +1,6 @@
 SWIG Examples
 
-The "perl5", "python", "tcl", "guile", "java", and "mzscheme"
+The "perl5", "python", "tcl", "guile", "java", "mzscheme", and "ruby"
 directories contain a very simple example.  The "GIFPlot" contains a
 more complicated example that illustrates some of SWIG's more advanced
 capabilities.

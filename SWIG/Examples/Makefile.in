@@ -338,6 +338,52 @@ mzscheme: $(SRCS)
 	mzc --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
 
 ##################################################################
+#####                       RUBY                            ######
+##################################################################
+
+# Make sure these locate your Ruby installation
+RUBY_INCLUDE= -DHAVE_CONFIG_H @RUBYINCLUDE@
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+ruby: $(SRCS)
+	$(SWIG) -ruby $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+ruby_cpp: $(SRCS)
+	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Ruby interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+RUBY_LIB     = @RUBYLIB@
+RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
+
+ruby_static: $(SRCS)
+	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(RUBY_INCLUDE) $(LIBS) -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
+
+ruby_static_cpp: $(SRCS)
+	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) \
+	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
+
+
+##################################################################
 #####                       SWIG                            ######
 ##################################################################
 
