@@ -11,4 +11,4 @@
 (expect-throw 'swig-contract-assertion-failed
 	      (test-prepost 4 -10))
 
-(quit)
+(exit 0)

@@ -61,6 +61,7 @@ static  String       *short_class_name  = 0;
 static  String       *clos_class_methods = 0;
 static  int          in_class = 0;
 static  int          have_constructor = 0;
+static  String       *constructor_name = 0;
 static  bool         exporting_destructor = false;
 static int           useclassprefix = 0;
 static String        *closprefix = 0;
@@ -1002,22 +1003,20 @@ CHICKEN::classHandler(Node *n)
 
   Printf(closcode, ")))\n");
 
-  String *newmethod = NewStringf("new-%s", short_class_name);
-
   if (have_constructor) {
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
-		       "  (swig-initialize obj initargs ", chickenPrimitiveName(newmethod), ")\n",
+		       "  (swig-initialize obj initargs ", chickenPrimitiveName(constructor_name), ")\n",
 		       ")\n",
                        NIL);
+      Delete(constructor_name);
+      constructor_name = 0;
   } else {
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs (lambda x #f)))\n",
 		       NIL);
   }
-
-  Delete(newmethod);
 
   Printf(closcode, "%s\n", clos_class_methods);
   Delete(clos_class_methods);
@@ -1159,6 +1158,10 @@ CHICKEN::constructorHandler(Node *n)
 {
   Language::constructorHandler(n);
   have_constructor = 1;
+  String *iname = Getattr(n,"sym:name");
+  if (constructor_name) Delete(constructor_name);
+  constructor_name = Swig_name_construct(iname);
+  Replaceall(constructor_name, "_", "-");
   return SWIG_OK;
 }
 
