@@ -199,6 +199,14 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   tname = Copy(Getattr(n,"name"));
   tbase = Swig_scopename_last(tname);
 
+  if (0) {
+    Parm *p = tparms;
+    while (p) {
+      Printf(stdout,"tparm: '%s' '%s'\n", Getattr(p,"name"), Getattr(p,"value"));
+      p = nextSibling(p);
+    }
+  }
+
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
 
   /* Set the name */
@@ -236,11 +244,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 		String *qrvalue;
 		String *rvalue = Getattr(rp,"value");
 		if (rvalue) {
-		  /*		  Printf(stdout,"rvalue = %s\n", rvalue); */
 		  Replace(rvalue,name,value, DOH_REPLACE_ID);
+		  /*
 		  qrvalue = Swig_symbol_type_qualify(rvalue,0);
 		  Setattr(rp,"value",qrvalue);
-		  Delete(qrvalue);
+		  Delete(qrvalue); */
 		  /*		  Printf(stdout,"qrvalue = %s\n", qrvalue); */
 		}
 		rp = nextSibling(rp);
