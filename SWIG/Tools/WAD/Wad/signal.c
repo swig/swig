@@ -15,33 +15,6 @@
 #define STACK_SIZE 4*SIGSTKSZ
 char wad_sig_stack[STACK_SIZE];
 
-/* Data structures for containing information about non-local returns */
-
-typedef struct nonlocal {
-  char symname[256];
-  long value;
-  struct nonlocal *next;
-} nonlocal;
-
-static nonlocal *return_points = 0;
-
-void wad_set_return(const char *name, long value) {
-  nonlocal *nl;
-  nl = (nonlocal *) malloc(sizeof(nonlocal));
-  strcpy(nl->symname,name);
-  nl->value = value;
-  nl->next = return_points;
-  return_points = nl;
-}
-
-void wad_set_returns(WadReturnFunc *rf) {
-  int i;
-  while (rf[i].name) {
-    wad_set_return(rf[i].name, rf[i].value);
-    i++;
-  }
-}
-
 static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
 
 void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
@@ -132,16 +105,11 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   framedata = (char *) frame;
 
   while (frame->size) {
-    nonlocal *nl = return_points;
-    nl = return_points;
-    while (nl) {
-      if (strcmp(framedata + frame->sym_off,nl->symname) == 0) {
-	found = 1;
-	nlr_value = nl->value;
-	retname = nl->symname;
-	break;
-      }
-      nl = nl->next;
+    WadReturnFunc *wr = wad_check_return(framedata+frame->sym_off);
+    if (wr) {
+      found = 1;
+      nlr_value = wr->value;
+      retname = wr->name;
     }
     framedata = framedata + frame->size;
     frame = (WadFrame *) framedata;
@@ -186,7 +154,7 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 /* -----------------------------------------------------------------------------
  * wad_signal_init()
  *
- * Reset the signal handler.
+ * Resets the signal handler.
  * ----------------------------------------------------------------------------- */
 
 void wad_signal_init() {

@@ -156,11 +156,12 @@ extern long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error);
 extern char *wad_arg_string(WadFrame *f);
 
 typedef struct {
-  const char *name;
+  char        name[128];
   long        value;
 } WadReturnFunc;
 
 extern void wad_set_returns(WadReturnFunc *rf);
+extern WadReturnFunc *wad_check_return(const char *name);
 
 /* --- Debugging Interface --- */
 
@@ -170,10 +171,10 @@ extern void wad_set_returns(WadReturnFunc *rf);
 #define DEBUG_OBJECT     0x8
 #define DEBUG_FILE       0x10
 #define DEBUG_HOLD       0x20
+#define DEBUG_RETURN     0x40
 
 extern int wad_debug_mode;
-
-
+extern char *wad_cplus_demangle(WadSymbol *wsym);
 
 
 #ifdef __cplusplus
