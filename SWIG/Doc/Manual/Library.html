@@ -555,7 +555,227 @@ char *cdata_<em>name</em>(int nitems)
 <b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
 Clearly they are unsafe.
 
+<h2>C++ Library</h2>
+
+The library modules in this section provide access to parts of the standard C++ library.
+All of these modules are new in SWIG-1.3.12 and are only the beginning phase of more complete
+C++ library support including support for the STL.  
+
+<h3>std_string.i</h3>
+
+The <tt>std_string.i</tt> library provides typemaps for converting C++ <tt>std::string</tt>
+objects to and from strings in the target scripting language.  For example:
+
+<blockquote>
+<pre>
+%module example
+%include "std_string.i"
+
+std::string foo();
+void        bar(const std::string &x);
+</pre>
+</blockquote>
+
+In the target language:
+
+<blockquote>
+<pre>
+x = foo();                # Returns a string object
+bar("Hello World");       # Pass string as std::string
+</pre>
+</blockquote>
+
+This module only supports types <tt>std::string</tt> and
+<tt>const std::string &</tt>.    Pointers and non-const references
+are left unmodified and returned as SWIG pointers.
+
+<p>
+This library file is fully aware of C++ namespaces.  If you export <tt>std::string</tt> or rename
+it with a typedef, make sure you include those declarations in your interface.  For example:
+
+<blockquote>
+<pre>
+%module example
+%include "std_string.i"
+
+using namespace std;
+typedef std::string String;
+...
+void foo(string s, const String &t);     // std_string typemaps still applied
+</pre>
+</blockquote>
+
+<b>Note:</b> The <tt>std_string</tt> library is incompatible with Perl on some platforms.
+We're looking into it.
+
+<h3>std_vector.i</h3>
+
+The <tt>std_vector.i</tt> library provides support for the C++ <tt>vector</tt> class in the STL.
+Using this library involves the use of the <tt>%template</tt> directive.  All you need to do is to
+instantiate different versions of <tt>vector</tt> for the types that you want to use.  For example:
+
+<blockquote>
+<pre>
+%module example
+%include "std_vector.i"
+
+namespace std {
+   %template(vectori) vector&lt;int>;
+   %template(vectord) vector&lt;double>;
+};
+</pre>
+</blockquote>
+
+When a template <tt>vector&lt;X></tt> is instantiated a number of things happen:
+
+<ul>
+<li>A class that exposes the C++ API is created in the target language .
+This can be used to create objects, invoke methods, etc.  This class is
+currently a subset of the real STL vector class.
+
+<p>
+<li>Input typemaps are defined for <tt>vector&lt;X></tt>, <tt>const vector&lt;X> &</tt>, and
+<tt>const vector&lt;X> *</tt>.  For each of these, a pointer <tt>vector&lt;X> *</tt> may be passed or
+a native list object in the target language. 
+
+<P>
+<li>An output typemap is defined for <tt>vector&lt;X></tt>.  In this case, the values in the
+vector are expanded into a list object in the target language.
+
+<p>
+<li>For all other variations of the type, the wrappers expect to receive a <tt>vector&lt;X> *</tt>
+object in the usual manner.
+
+<P>
+<li>An exception handler for <tt>std::out_of_range</tt> is defined. 
+
+<p>
+<li>Optionally, special methods for indexing, item retrieval, slicing, and element assignment
+may be defined.  This depends on the target language.
+</ul>
+
+<p>
+To illustrate the use of this library, consider the following functions:
+
+<blockquote>
+<pre>
+/* File : example.h */
+
+#include &lt;vector>
+#include &lt;algorithm>
+#include &lt;functional>
+#include &lt;numeric>
+
+double average(std::vector&lt;int> v) {
+    return std::accumulate(v.begin(),v.end(),0.0)/v.size();
+}
+
+std::vector&lt;double> half(const std::vector&lt;double>& v) {
+    std::vector&lt;double> w(v);
+    for (unsigned int i=0; i&lt;w.size(); i++)
+        w[i] /= 2.0;
+    return w;
+}
+
+void halve_in_place(std::vector&lt;double>& v) {
+    std::transform(v.begin(),v.end(),v.begin(),
+                   std::bind2nd(std::divides&lt;double>(),2.0));
+}
+</pre>
+</blockquote>
+
+To wrap with SWIG, you might write the following:
+
+<blockquote>
+<pre>
+%module example
+%{
+#include "example.h"
+%}
+
+%include "std_vector.i"
+// Instantiate templates used by example
+namespace std {
+   %template(IntVector) vector&lt;int>;
+   %template(DoubleVector) vector&lt;double>;
+}
+
+// Include the header file with above prototypes
+%include "example.h"
+</pre>
+</blockquote>
+
+Now, to illustrate the behavior in the scripting interpreter, consider this Python example:
+
+<blockquote>
+<pre>
+>>> from example import *
+>>> iv = IntVector(4)         # Create an vector&lt;int>
+>>> for i in range(0,4):
+...      iv[i] = i
+>>> average(iv)               # Call method
+1.5
+>>> average([0,1,2,3])        # Call with list
+1.5
+>>> half([1,2,3])             # Half a list
+(0.5,1.0,1.5)
+>>> halve_in_place([1,2,3])   # Oops
+Traceback (most recent call last):
+  File "&lt;stdin>", line 1, in ?
+TypeError: Type error. Expected _p_std__vectorTdouble_t
+>>> dv = DoubleVector(4)
+>>> for i in range(0,4):
+...       dv[i] = i
+>>> halve_in_place(dv)       # Ok
+>>> for i in dv:
+...       print i
+...
+0.0
+0.5
+1.0
+1.5
+>>> dv[20] = 4.5
+Traceback (most recent call last):
+  File "&lt;stdin>", line 1, in ?
+  File "example.py", line 81, in __setitem__
+    def __setitem__(*args): return apply(examplec.DoubleVector___setitem__,args)
+IndexError: vector index out of range
+>>>
+</pre>
+</blockquote>
+
+This library module is fully aware of C++ namespaces.  If you use vectors with other names, 
+make sure you include the appropriate <tt>using</tt> or typedef directives.  For example:
+
+<blockquote>
+<pre>
+%include "std_vector.i"
+
+namespace std {
+    %template(IntVector) vector&lt;int>;
+}
+
+using namespace std;
+typedef std::vector Vector;
+
+void foo(vector&lt;int> *x, const Vector &x);
+</pre>
+</blockquote>
+
+<p>
+<b>Note:</b> This module makes use of several advanced SWIG features including templatized typemaps
+and template partial specialization.  If you are tring to wrap other C++ code with templates, you
+might look at the code contained in <tt>std_vector.i</tt>.  Alternatively, you can show them the code
+if you want to make their head explode.
+
+<p>
+<b>Note:</b> This module is defined for all SWIG target languages.  However argument conversion 
+details and the public API exposed to the interpreter vary.
+
+<p>
+<b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.  
+
 <p><hr>
-<address>SWIG 1.3 - Last Modified : May 22, 2002</address>
+<address>SWIG 1.3 - Last Modified : May 29, 2002</address>
 </body>
 </html>
