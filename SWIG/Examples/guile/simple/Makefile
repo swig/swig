@@ -3,7 +3,9 @@ TARGET = my-guile
 IFILE  = example.i
 MKDIR  = ..
 
-all::
+all: $(TARGET)
+
+$(TARGET):
 	$(MAKE) -f $(MKDIR)/Makefile		\
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
@@ -11,6 +13,7 @@ all::
 	    sub-all
 
 clean::
-	rm -f *_wrap* my-guile *~ .~* core
+	rm -f *_wrap* $(TARGET) *~ .~* core
 
-check: all
+check: $(TARGET)
+	./$(TARGET) -s example.scm > /dev/null
