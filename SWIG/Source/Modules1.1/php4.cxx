@@ -37,7 +37,6 @@ static String *withlibs = 0;
 static String *withincs = 0;
 static String *outfile = 0;
 
-static String *f_cinit = 0;
 static String *f_oinit = 0;
 static String *f_init = 0;
 static String *f_entry = 0;
@@ -47,7 +46,6 @@ static char	*php_pkgstr;	// Name of the package
 static char *shadow_classname;
 static char *shadow_lc_classname; // lowercase version, we need it too often
 
-static Wrapper	*f_c;
 static Wrapper  *f_php;
 static int	gen_extra = 0;
 static int	gen_make = 0;
@@ -580,10 +578,7 @@ PHP4::top(Node *n) {
 
   /* Initialize the rest of the module */
 
-  f_c = NewWrapper();
-  f_php = NewWrapper();
-  Printf(f_c->def, "static void Swig_sync_c(void) {\n");
-  Printf(f_php->def, "static void Swig_sync_php(void) {\n");
+  f_php = NewWrapper();// wots this used for now?
   
   /* start the header section */
   Printf(s_header, php_header);
@@ -640,8 +635,6 @@ PHP4::top(Node *n) {
   /* holds all the per-class function entry sections */
   all_cs_entry = NewString("/* class entry subsection */\n");
   cs_entry = NULL;
-  Printf(s_entry, "static void Swig_sync_c(void);\n");
-  Printf(s_entry, "static void Swig_sync_php(void);\n\n");
 
   Printf(s_entry,"/* Every non-class user visible function must have an entry here */\n");
   Printf(s_entry,"function_entry %s_functions[] = {\n", module);
@@ -791,10 +784,7 @@ PHP4::top(Node *n) {
 
   Printv(f_runtime, s_header, NULL);
 
-  Printf(f_c->code, "\n}\n");
-  Printf(f_php->code, "\n}\n");
-
-  Wrapper_print(f_c, s_wrappers);
+//  Wrapper_print(f_c, s_wrappers);
   Wrapper_print(f_php, s_wrappers);
 
   Printf(s_header, "/* end header section */\n");
@@ -940,7 +930,7 @@ PHP4::functionWrapper(Node *n) {
 
   if (native_constructor) {
     if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
-    else Printf(f->code, "// ALTERNATIVE Constructor\n");
+    else Printf(f->code, "// ALTERNATIVE Constructor: %s\n",shadow_classname);
   }
   Printf(f->code,"// %s %s\n",iname, name);
 
@@ -954,8 +944,6 @@ PHP4::functionWrapper(Node *n) {
         "  // fake this_ptr as first arg (till we can work out how to do it better\n"
         "  args[argbase++]=&this_ptr;\n"
         "}\n");
-
-  Printf(f->code, "Swig_sync_c();\n\n");/* Keep PHP4 / C vars in sync */
 
   if(numopt > 0) {
     Wrapper_add_local(f, "arg_count", "int arg_count");
@@ -1102,7 +1090,8 @@ PHP4::functionWrapper(Node *n) {
                         "add_property_zval(this_ptr,\"_cPtr\",_cPtr);\n"
 			"} else if (! this_ptr) ",shadow_classname);
       }
-      {
+      { // THIS CODE only really needs writing out if the object to be returned
+	// Is being shadow-wrap-thingied
 	Printf(f->code, "{\n// ALTERNATIVE Constructor, make an object wrapper\n");
         // Make object 
         String *shadowrettype = NewString("");
@@ -1140,7 +1129,6 @@ PHP4::functionWrapper(Node *n) {
   Replaceall(f->code,"$cleanup",cleanup);
   Replaceall(f->code,"$symname",iname);
   
-  Printf(f->code, "\nSwig_sync_php();\n");
   Printf(f->code, "\n}");
   
   Wrapper_print(f,s_wrappers);
@@ -1171,6 +1159,7 @@ PHP4::variableWrapper(Node *n) {
 
   /* Now generate PHP -> C sync blocks */
   tm = Swig_typemap_lookup_new("varin", n, name, 0);
+/*
   if(tm) {
 	Replaceall(tm, "$symname", iname);
 	Printf(f_c->code, "%s\n", tm);
@@ -1178,9 +1167,9 @@ PHP4::variableWrapper(Node *n) {
 	Printf(stderr,"%s: Line %d, Unable to link with type %s\n", 
 		input_file, line_number, SwigType_str(t, 0), name);
   }
-
+*/
   /* Now generate C -> PHP sync blocks */
-
+/*
   if(!Getattr(n,"feature:immutable")) {
 
 	tm = Swig_typemap_lookup_new("varout", n, name, 0);
@@ -1192,7 +1181,7 @@ PHP4::variableWrapper(Node *n) {
 			input_file, line_number, SwigType_str(t, 0), name);
 	}
   }
-
+*/
   return SWIG_OK;
 }
 
@@ -1655,6 +1644,7 @@ int PHP4::constructorHandler(Node *n) {
 
 	if (shadow) native_constructor = (strcmp(iname, shadow_classname) == 0)?\
 		NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
+	else native_constructor=0;
 
 	Language::constructorHandler(n);
 
