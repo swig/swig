@@ -53,7 +53,7 @@ puts "     Tring to set 'path'";
 begin
   Example.path = "Whoa!"
   puts "Hey, what's going on?!?! This shouldn't work"
-rescue
+rescue NameError
   puts "Good."
 end
 
@@ -61,7 +61,7 @@ puts "     Trying to set 'status'";
 begin
   Example.status = 0
   puts "Hey, what's going on?!?! This shouldn't work"
-rescue
+rescue NameError
   puts "Good."
 end
 
