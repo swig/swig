@@ -197,10 +197,10 @@ class OCAML : public Language {
 	if( Getattr(seen_types,ntype) ) return;
 	else {
 	    if( Getattr(seen_types,rtype) ) {
-		Setattr(seen_types,ntype,rtype);
+		Setattr(seen_types,Char(ntype),rtype);
 		Printf(f_module,"  type %s = %s\n", ntype, rtype );
 	    } else {
-		Setattr(seen_types,ntype,ntype);
+		Setattr(seen_types,Char(ntype),ntype);
 		Printf(f_module,"  type %s\n", ntype );
 	    }
 	}
@@ -230,8 +230,7 @@ class OCAML : public Language {
 	processInterface( modfile, n );
 
 	String *tmp = NewString(Char(modfile));
-	Delete(modfile);
-	modfile = NewString("");
+	Clear(modfile);
 	Printf(modfile,"%si", tmp); // Append 'i' to make .mli
 	Delete(tmp);
 
@@ -653,7 +652,7 @@ class OCAML : public Language {
 		Printf(s, "_%s", c );
 	    }
 
-	    Setattr(seen_types,s,s);
+	    Setattr(seen_types,Char(s),s);
 
 	    return Copy(s);
 	} else
@@ -686,7 +685,7 @@ class OCAML : public Language {
 			   mangle_type(tcaml));
 		    p = nextSibling(p);
 		    if( p ) Printf(f_modclass," * ");
-		    Delete(tcaml);
+		    //Delete(tcaml);
 		}
 		
 		Printf( f_modclass, ") -> %s\n",
@@ -749,7 +748,7 @@ class OCAML : public Language {
     int functionWrapper(Node *n) {
 	// ML function name
 	SwigType *d = Getattr(n,"type");
-	SwigType *dcaml;
+	SwigType *dcaml = process_type(d);
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	Wrapper *f = NewWrapper();
@@ -765,11 +764,6 @@ class OCAML : public Language {
 	int numargs;
 	int numreq;
 
-	// Potentially, do type substitution
-	if( !d ) dcaml = NewString("int");
-	else dcaml = process_type(d);
-	if( !dcaml ) dcaml = NewString("int");
-
 	// Don't produce a 'set' for an immutable.
 	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
 	    in_vwrap = VWRAP_GET;
@@ -777,16 +771,16 @@ class OCAML : public Language {
 	// Make a function name
 	String *ml_function_name = uniqueify(seen_names,
 					     Char(get_ml_function_name(n)));
-	Setattr(seen_names,ml_function_name,ml_function_name);
+	Setattr(seen_names,Char(ml_function_name),ml_function_name);
 
 	// Make a wrapper name
 	String *wrap_name = uniqueify(seen_wrappers,
 				      Char(get_wrapper_name(n)));
-	Setattr(seen_wrappers,wrap_name,wrap_name);
+	Setattr(seen_wrappers,Char(wrap_name),wrap_name);
 
 	// Set the symbol name
-	Setattr(n,"sym:name",Char(wrap_name));
-	Setattr(n,"funcname",Char(ml_function_name));
+	Setattr(n,"sym:name",wrap_name);
+	Setattr(n,"funcname",ml_function_name);
 
 	// Output the return type and argument types if they don't
 	// exist already.
@@ -876,7 +870,7 @@ class OCAML : public Language {
 		Printf(f_module, "%s", mangle_type(tcaml));
 		p = nextSibling(p);
 		if( p ) Printf(f_module," * ");
-		Delete(tcaml);
+		//Delete(tcaml);
 	    }
 	
 	    if( numargs > 1 ) 
@@ -901,7 +895,7 @@ class OCAML : public Language {
 		method = NewString(str);
 
 		Setattr(n,"methodname",method);
-		Setattr(seen_methods,method_name,method_name);
+		Setattr(seen_methods,Char(method_name),method_name);
 
 		print_method( n );
 		Delete(method);
@@ -989,10 +983,7 @@ class OCAML : public Language {
 	//Delete(outarg);
 	Delete(cleanup);
 	Delete(build);
-	// I am getting a core dump because of this, but dcaml, as I
-	// understand it is always a Copy().  I may need to rethink the
-	// way I manage these objects.
-	//Delete(dcaml);
+	Delete(dcaml);
 	Delete(ml_function_name);
 	DelWrapper(f);
 
@@ -1135,14 +1126,16 @@ class OCAML : public Language {
     }
 
     int enumDeclaration(Node *n) {
-	String *name = get_ml_function_name(n);
+	String *name = 0;
 	String *type = NewString("enum ");
 	String *type_str;
 
-	Printf(type,"%s",Getattr(n,"name"));
-	type_str = mangle_type(type);
+	if( !Getattr(n,"name") ) return SWIG_OK;
 
-	if( !name || !strlen(Char(name)) ) return SWIG_OK;
+	name = get_ml_method_name(n);
+
+	Printf(type,"%s",name);
+	type_str = mangle_type(type);
 
 	/* Produce the enum_to_int and int_to_enum functions */
 	Printf(f_wrappers,
@@ -1203,7 +1196,7 @@ class OCAML : public Language {
 		    "val %s_bits : %s list -> %s\n"
 		    "val check_%s_bit : %s -> %s -> bool\n"
 		    "val bits_%s : %s -> %s list -> %s list\n",
-		    type_str, name, 
+		    name, type_str,
 		    name, type_str, 
 		    name, type_str, type_str,
 		    name, type_str, type_str,
@@ -1232,7 +1225,7 @@ class OCAML : public Language {
     
 	in_destructor = 1;
 	
-	Setattr( seen_deleters, name, wrap_name );
+	Setattr( seen_deleters, Char(name), wrap_name );
 
 	ret = Language::destructorHandler(n);
 	in_destructor = 0;
@@ -1319,7 +1312,7 @@ class OCAML : public Language {
 	    classmode = 0;
 
 	    String *cln = Copy(classname);
-	    Setattr(seen_classes,cln,cln);
+	    Setattr(seen_classes,Char(cln),cln);
 
 	    //Printf(stderr,"Adding class %s\n",cln);
 	} else {
