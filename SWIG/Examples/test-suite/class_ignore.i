@@ -17,3 +17,4 @@ char *do_blah(Foo *f) {
    return f->blah();
 }
 %}
+

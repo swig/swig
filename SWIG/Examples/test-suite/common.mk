@@ -39,6 +39,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	namespace_template \
+	pure_virtual \
 	class_ignore \
 	namespace_typemap \
 	cpp_namespace \
@@ -66,7 +68,6 @@ CPP_TEST_CASES += \
 	name_cxx \
 	pointer_cxx \
 	pointer_reference \
-	pure_virtual \
 	rname \
 	static_array_member \
 	static_const_member \
