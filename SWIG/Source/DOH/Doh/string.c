@@ -513,7 +513,9 @@ int replace_simple(String *str, char *token, char *rep, int flags, int count, ch
   register char *base;
   int i;
 
+
   /* Figure out if anything gets replaced */
+  if (!strlen(token)) return 0;
 
   base = str->str;
   tokenlen = strlen(token);
@@ -711,6 +713,7 @@ String_replace(DOH *stro, DOH *token, DOH *rep, int flags)
 {
     int count = -1;
     String *str = (String *) ObjData(stro);
+
     if (flags & DOH_REPLACE_FIRST) count = 1;
 
     if (flags & DOH_REPLACE_ID) {
