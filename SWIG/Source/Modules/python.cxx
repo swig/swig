@@ -12,6 +12,7 @@
 char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "cparse.h"
 
 #include <ctype.h>
 
@@ -131,6 +132,7 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-keyword") == 0) {
 	  use_kw = 1;
+          SWIG_cparse_set_compact_default_args(1);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-classic") == 0) {
 	  classic = 1;

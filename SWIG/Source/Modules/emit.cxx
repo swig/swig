@@ -220,22 +220,26 @@ int emit_num_arguments(ParmList *parms) {
  *
  * Computes the number of required arguments.  This function is safe for
  * use with multi-valued typemaps and knows how to skip over everything
- * properly. Note that it does count parameters which have a default value.
+ * properly. Note that parameters with default values are counted unless
+ * the compact default args option is on.
  * ----------------------------------------------------------------------------- */
 
 int emit_num_required(ParmList *parms) {
   Parm *p = parms;
   int   nargs = 0;
   Parm *first_default_arg = 0;
+  int   compactdefargs = ParmList_is_compactdefargs(p);
 
   while (p) {
     if (Getattr(p,"tmap:in") && checkAttribute(p,"tmap:in:numinputs","0")) {
       p = Getattr(p,"tmap:in:next");
     } else {
       if (Getattr(p,"tmap:default")) break;
-      if (Getattr(p,"value"))
+      if (Getattr(p,"value")) {
         if (!first_default_arg)
           first_default_arg = p;
+        if (compactdefargs) break;
+      }
       nargs+= GetInt(p,"tmap:in:numinputs");
       if (Getattr(p,"tmap:in")) {
 	p = Getattr(p,"tmap:in:next");

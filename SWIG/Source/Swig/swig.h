@@ -334,6 +334,7 @@ extern int         ParmList_numrequired(ParmList *);
 extern String     *ParmList_str(ParmList *);
 extern String     *ParmList_str_defaultargs(ParmList *);
 extern String     *ParmList_protostr(ParmList *);
+extern int         ParmList_is_compactdefargs(ParmList *p);
 
 /* --- Parse tree support --- */
 

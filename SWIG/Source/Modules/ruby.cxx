@@ -148,7 +148,6 @@ private:
   File *f_wrappers;
   File *f_init;
 
-  bool use_kw;
   bool useGlobalModule;
   bool multipleInheritance;
 
@@ -186,7 +185,6 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
-    use_kw = false;
     useGlobalModule = false;
     multipleInheritance = false;
   }
@@ -996,7 +994,7 @@ public:
     int  numarg = emit_num_arguments(l);
     int  numreq = emit_num_required(l);
     int  varargs = emit_isvarargs(l);
-    bool allow_kwargs = use_kw || Getattr(n,"feature:kwargs");
+    bool allow_kwargs = Getattr(n,"feature:kwargs");
     
     bool use_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
     int start = (current == MEMBER_FUNC || current == MEMBER_VAR || use_director) ? 1 : 0;

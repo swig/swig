@@ -47,7 +47,7 @@ static  int    num_brace = 0;
 static  int    last_brace = 0;
 static  int    last_id = 0;
 static  int    rename_active = 0;
-        int    cparse_cplusplus;
+        int    cparse_cplusplus = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
