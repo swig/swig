@@ -669,11 +669,26 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 %apply long { size_t };
 
 
-/* Java specific directives */
+/* Typemaps for code generation in proxy classes and Java type wrapper classes */
 
-#define %javaimports         %feature("java:imports")
-#define %javaclassmodifiers  %feature("java:classmodifiers")
-#define %javabase            %feature("java:base")
-#define %javainterfaces      %feature("java:interfaces")
-#define %javacode            %feature("java:code")
+%typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
+%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "public"
+%typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
+%typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
+%typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] ""
+
+%typemap(javafinalize) SWIGTYPE %{
+  protected void finalize() {
+    _delete();
+  }
+%}
+
+%typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+  public static long getCPtr($javaclassname obj) {
+    return obj.swigCPtr;
+  }
+%}
+
+/* Java specific directives */
+#define %javaconst(flag)     %feature("java:const","flag")
 

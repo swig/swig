@@ -14,8 +14,7 @@
 static char *usage = (char*)"\
 Java Options\n\
      -package <name>  - set name of the package\n\
-     -proxy           - generate proxy classes\n\
-     -nofinalize      - do not generate finalize methods in proxy classes\n";
+     -proxy           - generate proxy classes\n";
 
 static  Hash  *swig_types_hash = 0;
 static  File         *f_runtime = 0;
@@ -30,7 +29,6 @@ static int    enum_constant_flag = 0; // Set to 1 when wrapping an enum or const
 static int    static_flag = 0; // Set to 1 when wrapping a static functions or member variables
 static int    variable_wrapper_flag = 0; // Set to 1 when wrapping a nonstatic member variable
 static int    wrapping_member = 0; // Set to 1 when wrapping a member variable/enum/const
-static int    nofinalize = 0;          // for generating finalize methods
 
 static String *jniclass = 0;  // JNI class name
 static String *module_class_name = 0;  // module class name
@@ -60,7 +58,12 @@ static String *destructor_call = 0; //Destructor (delete) call if any
 enum type_additions {none, pointer, reference};
 
 class JAVA : public Language {
+    const String *empty_string;
+
 public:
+  JAVA() : 
+      empty_string(NewString("")) {
+  }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class */
   /* Return NULL if not otherwise the shadow name */
@@ -121,7 +124,7 @@ public:
 	  Printf(stderr,"Deprecated command line option: -jnic. C JNI calling convention now used when -c++ not specified.\n");
 	} else if (strcmp(argv[i],"-nofinalize") == 0) {
 	  Swig_mark_arg(i);
-	  nofinalize = 1;
+	  Printf(stderr,"Deprecated command line option: -nofinalize. Use the new javafinalize typemaps instead.\n");
 	} else if (strcmp(argv[i],"-jnicpp") == 0) {
 	  Swig_mark_arg(i);
 	  Printf(stderr,"Deprecated command line option: -jnicpp. C++ JNI calling convention now used when -c++ specified.\n");
@@ -308,7 +311,7 @@ public:
 
     // Output a Java class for each SWIG type
     for (String *swig_type = Firstkey(swig_types_hash); swig_type; swig_type = Nextkey(swig_types_hash)) {
-      emitJavaClass(Char(swig_type));
+      emitJavaClass(swig_type, Getattr(swig_types_hash, swig_type));
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
@@ -740,20 +743,6 @@ public:
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    // Enums are wrapped using a public final static int in Java.
-    // Other constants are wrapped using a public final static [jtype] in Java.
-    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((shadow && wrapping_member) ? shadow_variable_name : symname));
-
-    if(is_return_type_java_class)
-      Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass, Swig_name_get(symname));
-    else
-      Printf(constants_code, "%s.%s();\n", jniclass, Swig_name_get(symname));
-
-    if(shadow && wrapping_member)
-      Printv(shadow_constants_code, constants_code, NULL);
-    else
-      Printv(module_constants_code, constants_code, NULL);
-
     // Add the stripped quotes back in
     String *new_value = NewString("");
     Swig_save(&n,"value",NULL);
@@ -766,10 +755,33 @@ public:
       Setattr(n, "value", new_value);
     }
 
-    // Each constant and enum value is wrapped with a separate JNI function call
-    enum_constant_flag = 1;
-    variableWrapper(n);
-    enum_constant_flag = 0;
+    // enums are wrapped using a public final static int in java.
+    // Other constants are wrapped using a public final static [jstype] in Java.
+    Printf(constants_code, "  public final static %s %s = ", shadowrettype, ((shadow && wrapping_member) ? shadow_variable_name : symname));
+
+    // The %javaconst directive determines how the constant value is obtained
+    String *javaconst = Getattr(n,"feature:java:const");
+    if (Cmp(nodeType(n), "enumitem") == 0 || !javaconst || Cmp(javaconst, "0") == 0) {
+      // Enums and default constant handling will work with any type of C constant and initialises the Java variable from C through a JNI call.
+
+      if(is_return_type_java_class) // This handles function pointers using the %constant directive
+        Printf(constants_code, "new %s(%s.%s(), false);\n", shadowrettype, jniclass, Swig_name_get(symname));
+      else
+        Printf(constants_code, "%s.%s();\n", jniclass, Swig_name_get(symname));
+
+      // Each constant and enum value is wrapped with a separate JNI function call
+      enum_constant_flag = 1;
+      variableWrapper(n);
+      enum_constant_flag = 0;
+    } else {
+      // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
+      Printf(constants_code, "%s;\n", Getattr(n,"value"));
+    }
+
+    if(shadow && wrapping_member)
+      Printv(shadow_constants_code, constants_code, NULL);
+    else
+      Printv(module_constants_code, constants_code, NULL);
 
     Swig_restore(&n);
     Delete(new_value);
@@ -924,7 +936,6 @@ x    shadowinterface - interfaces (extends) for the shadow class
     String *c_baseclass = 0;
     String *baseclass = 0;
     String *c_baseclassname = 0;
-    String *empty_string = NewString("");
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -947,42 +958,23 @@ x    shadowinterface - interfaces (extends) for the shadow class
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    //
-    // can be improved by getting rid of empty string check when it gets emitted down below?? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    String* pure_java_baseclass = empty_string;
-    if (Getattr(n,"feature:java:base")) {
-      if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0)
-        Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-		   "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
-      else
-        pure_java_baseclass = Getattr(n,"feature:java:base");
+    const String* pure_java_baseclass = javaTypemapLookup("javabase", shadow_classname, WARN_NONE);
+    if (Len(pure_java_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
+            "Warning for %s: Base %s ignored. Multiple inheritance is not supported in Java.\n", shadow_classname, pure_java_baseclass);
     }
  
-  // Get any non-default class modifiers
-    String *class_modifiers = NULL;
-    if (Getattr(n,"feature:java:classmodifiers"))
-      class_modifiers = Copy(Getattr(n,"feature:java:classmodifiers"));
-    else
-      class_modifiers = NewString("public");
-
     // Pure Java interfaces
-    String *pure_java_interfaces = empty_string;
-    if (Getattr(n,"feature:java:interfaces"))
-      pure_java_interfaces = Getattr(n,"feature:java:interfaces");
-
-    // Import statements
-    String *imports = empty_string;
-    if (Getattr(n,"feature:java:imports"))
-      imports = Getattr(n,"feature:java:imports");
+    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", shadow_classname, WARN_NONE);
 
   // Start writing the shadow class
     Printv(shadow_classdef,
-       imports,                       // Import statements
+       javaTypemapLookup("javaimports", shadow_classname, WARN_NONE), // Import statements
 	   "\n",
-	   class_modifiers,               // Class modifiers
-	   " class $class ",              // Class name and bases
+       javaTypemapLookup("javaclassmodifiers", shadow_classname, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+	   " class $javaclassname",       // Class name and bases
 	   (derived || *Char(pure_java_baseclass)) ?
-	   "extends " : 
+	   " extends " : 
 	   "",
 	   baseclass,
 	   pure_java_baseclass,
@@ -990,37 +982,32 @@ x    shadowinterface - interfaces (extends) for the shadow class
          " implements " :
          "",
        pure_java_interfaces,
-	   "{\n",
+	   " {\n",
 	   "  private long swigCPtr;\n",  // Member variables for memory handling
 	   derived ? 
 	   "" : 
 	   "  protected boolean swigCMemOwn;\n",
 	   "\n",
-	   "  public $class(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
+	   "  public $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
 	   derived ? 
-	   "    super($jniclass.SWIG$classTo$baseclass(cPtr), cMemoryOwn);\n" : 
+	   "    super($jniclass.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
 	   "    swigCMemOwn = cMemoryOwn;\n",
 	   "    swigCPtr = cPtr;\n",
 	   "  }\n",
-	   "\n", NULL);
+	   NULL);
 
     if(!have_default_constructor) { // All Java classes need a constructor
       Printv(shadow_classdef, 
-	     "  protected $class() {\n",
+	     "\n",
+	     "  protected $javaclassname() {\n",
 	     "    this(0, false);\n", 
 	     "  }\n",
-	     "\n", NULL);
-    }
-
-    if(!nofinalize) {  // Memory handling functions
-      Printv(shadow_classdef, 
-	     "  protected void finalize() {\n",
-	     "    _delete();\n",
-	     "  }\n",
-	     "\n", NULL);
+	     NULL);
     }
 
     Printv(shadow_classdef, 
+       javaTypemapLookup("javafinalize", shadow_classname, WARN_NONE), // finalize method
+       "\n",
 	   *Char(destructor_call) ? 
 	   "  public void _delete() {\n" :
 	   "  protected void _delete() {\n",
@@ -1033,31 +1020,15 @@ x    shadowinterface - interfaces (extends) for the shadow class
 	   "",
 	   "    }\n",
 	   "    swigCPtr = 0;\n",
-	   "  }\n\n",
-	   "  public static long getCPtr($class obj) {\n",  // Function to access C pointer
-	   "    return obj.swigCPtr;\n",
-       /*
-	   "  }\n\n",
-       "  public boolean equals($class obj) {\n",
-       "    return obj.swigCPtr == this.swigCPtr;\n",
-       "  }\n\n",
-       "  public int hashCode() {\n",
-       "  System.out.println(\"hashcode: \" + java.util.Integer.toHexString((int)(swigCPtr >> 32)));\n",
-       "//    return (int)swigCPtr; // Little Endian\n",
-       "    return (int)(swigCPtr >> 32); // Big Endian\n",
-       */
-       "  }\n",
-	   NULL);
-
-    // Extra Java code
-    if (Getattr(n,"feature:java:code"))
-      Printv(shadow_classdef, Getattr(n,"feature:java:code"), NULL);
-
-    Printf(shadow_classdef, "\n");
+	   "  }\n",
+       javaTypemapLookup("javagetcptr", shadow_classname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+       javaTypemapLookup("javacode", shadow_classname, WARN_NONE), // extra Java code
+       "\n",
+       NULL);
 
     // Substitute various strings into the above template
-    Replaceall(shadow_code,     "$class", shadow_classname);
-    Replaceall(shadow_classdef, "$class", shadow_classname);
+    Replaceall(shadow_code,     "$javaclassname", shadow_classname);
+    Replaceall(shadow_classdef, "$javaclassname", shadow_classname);
 
     Replaceall(shadow_classdef, "$baseclass", baseclass);
     Replaceall(shadow_code,     "$baseclass", baseclass);
@@ -1068,9 +1039,9 @@ x    shadowinterface - interfaces (extends) for the shadow class
   // Add JNI code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if(derived){
       Printv(jniclass_cppcasts_code,"  ", jniclass_method_modifiers, " native long ",
-	     "SWIG$classTo$baseclass(long jarg1);\n",
+	     "SWIG$javaclassnameTo$baseclass(long jarg1);\n",
 	     NULL);
-      Replaceall(jniclass_cppcasts_code, "$class", shadow_classname);
+      Replaceall(jniclass_cppcasts_code, "$javaclassname", shadow_classname);
       Replaceall(jniclass_cppcasts_code, "$baseclass", baseclass);
 
       Printv(wrapper_conversion_code,
@@ -1098,15 +1069,14 @@ x    shadowinterface - interfaces (extends) for the shadow class
       /*
       if (!shadow) {
         Printv(module_class_code, 
-          "  public static $baseclass SWIG$classTo$baseclass($class obj) {\n",
-//          "    return new $baseclass($jniclass.SWIG$classTo$baseclass(obj.getCPtr$class()), false);\n",
-          "    return new $baseclass($jniclass.SWIG$classTo$baseclass($class.getCPtr(obj)), false);\n",
+          "  public static $baseclass SWIG$javaclassnameTo$baseclass($javaclassname obj) {\n",
+          "    return new $baseclass($jniclass.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
           "  }\n",
           "\n",
           NULL);
 
         Replaceall(module_class_code, "$baseclass",   baseclass);
-        Replaceall(module_class_code, "$class",       shadow_classname);
+        Replaceall(module_class_code, "$javaclassname",       shadow_classname);
         Replaceall(module_class_code, "$jniclass",    jniclass);
       }
       */
@@ -1116,8 +1086,7 @@ x    shadowinterface - interfaces (extends) for the shadow class
       Delete(jnijniclass);
     }
     Delete(baseclass);
-    Delete(class_modifiers);
-    Delete(empty_string);
+//    Delete(class_modifiers);
   }
 
   /* ----------------------------------------------------------------------
@@ -1800,7 +1769,7 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
         }
 
         // Add to hash table so that the SWIGTYPE Java classes can be created later
-        Setattr(swig_types_hash, descriptor, "");
+        Setattr(swig_types_hash, descriptor, type);
         Delete(descriptor);
         Delete(type);
       }
@@ -1851,36 +1820,74 @@ attribute set. Noticeable when javaShadowFunctionHandler is called from memberfu
     return arg;
   }
   
-  void emitJavaClass(String* classname) {
-    String *filen = NewStringf("%s.java", classname);
+  void emitJavaClass(String *javaclassname, SwigType *type) {
+    String *filen = NewStringf("%s.java", javaclassname);
     File *f_swigtype = NewFile(filen,"w");
+    String *swigtype = NewString("");
 
     // Emit banner and package name
     emitBanner(f_swigtype);
     if(Len(package) > 0)
       Printf(f_swigtype, "package %s;\n\n", package);
 
+    // Pure Java baseclass and interfaces
+    const String* pure_java_baseclass = javaTypemapLookup("javabase", javaclassname, WARN_NONE);
+    const String *pure_java_interfaces = javaTypemapLookup("javainterfaces", javaclassname, WARN_NONE);
+
     // Emit the class
-    Printv(f_swigtype, 
-           "public final class ", classname, " {\n", 
-           "  private long swigCPtr;\n",
-           "\n",
-           "  public ", classname, "(long cPtr, boolean bFutureUse) {\n", // Constructor which wraps the pointer held in a long
-           "    swigCPtr = cPtr;\n",
-           "  }\n",
-           "\n",
-           "  public ", classname, "() {\n", // Default constructor
-           "    swigCPtr = 0;\n",
-           "  }\n",
-           "\n",
-           "  public static long getCPtr(", classname, " obj) {\n",  // Function to access C pointer
-           "    return obj.swigCPtr;\n",
-           "  }\n",
-           "}",
-           NULL);
+    Printv(swigtype,
+       javaTypemapLookup("javaimports", javaclassname, WARN_NONE), // Import statements
+	   "\n",
+       javaTypemapLookup("javaclassmodifiers", javaclassname, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+	   " class $javaclassname",       // Class name and bases
+	   *Char(pure_java_baseclass) ?
+	   " extends " : 
+	   "",
+	   pure_java_baseclass,
+       *Char(pure_java_interfaces) ?  // Pure Java interfaces
+         " implements " :
+         "",
+       pure_java_interfaces,
+	   " {\n",
+	   "  private long swigCPtr;\n",
+	   "\n",
+	   "  public $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
+	   "    swigCPtr = cPtr;\n",
+	   "  }\n",
+       "\n",
+       "  public $javaclassname() {\n", // Default constructor
+       "    swigCPtr = 0;\n",
+       "  }\n",
+       javaTypemapLookup("javagetcptr", javaclassname, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+       javaTypemapLookup("javacode", javaclassname, WARN_NONE), // extra Java code
+       "}\n",
+       "\n",
+       NULL);
+
+    Replaceall(swigtype, "$javaclassname", javaclassname);
+    Printv(f_swigtype, swigtype, NULL);
 
     Close(f_swigtype);
     Delete(filen);
+    Delete(swigtype);
+  }
+
+  const String *javaTypemapLookup(const String *op, String *type, int warning) {
+    String *tm = NULL;
+    const String *code = NULL;
+
+    if((tm = Swig_typemap_search(op, type, NULL))) {
+      code = Getattr(tm,"code");
+    }
+
+    if (!code) {
+      code = empty_string;
+      if (warning)
+        Swig_warning(warning, input_file, line_number, 
+          "No %s typemap defined for %s\n", op, type);
+    }
+
+    return code;
   }
 
 };   /* class JAVA */
@@ -1906,10 +1913,14 @@ swig_java(void) {
  * change name of is_shadow()??
  * Change variable names to reflect new names that will go in documentation - eg JNI interface class.
  * Make all variables private not file scope
+ * Use nodeType(n), "constant") instead of other hack
  *
  * Generate SWIGAToB C++ casting functions for classes in inheritance chain when -noproxy being used. - tidy up emitShadowClassDefAndCPPCasts wrt shadow flag.
  *
  * change -shadow to -proxy (-noproxy) in all makefiles
+ * fix comment in -nofinalize deprecated commandline option
+ *
+ * Sort out javaTypemapLookup warnings
  *
  *         Possible to remove is_shadow and replace with SwigType_isclass() or classLookup ??
  *
@@ -1943,6 +1954,7 @@ swig_java(void) {
  *  dynamic_cast - use helper function, mentioned in python section on pointers.
  *  void* pointers - use wrapper constructor -> new SWIGTYPE_p_void(cls.getCPtr(), false);
  *  null pointers - use wrapper constructor -> new cls(0, false);
+ *  constants using %javaconst
  *
  *  the following pragmas have changed name from moduleXXX to jniclassXXX
     modulebase
@@ -1951,6 +1963,16 @@ swig_java(void) {
     moduleimport
     moduleinterface
     modulemethodmodifiers
+
+    Suggestions for documentation:
+       public boolean equals($javaclassname obj) {
+         return obj.swigCPtr == this.swigCPtr;
+       }
+       public int hashCode() {
+       System.out.println(\"hashcode: \" + java.util.Integer.toHexString((int)(swigCPtr >> 32)));
+         return (int)swigCPtr; // Little Endian
+         return (int)(swigCPtr >> 32); // Big Endian
+       }
  *
  * Incompatibilities:
  *  enums and constants in the module class have moved to the Primitive class
