@@ -350,6 +350,6 @@ static void SWIG_exception(int code, const char *msg) {
 %enddef
 
 
-#endif // __cplusplus
+#endif /* __cplusplus */
 
 /* exception.i ends here */
