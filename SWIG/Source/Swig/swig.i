@@ -27,15 +27,155 @@
    $target = PyFile_FromFile($source, "unknown", "?", fclose);
 }
 
-%typemap(python,in) DOH * {
-   $target = PyString_AsString($source);
+%{
+/* ------------------------------------------------------------------------- 
+ * An extension type for DOH objects -- we could use shadow classes,
+ * but this will be lots faster.
+ * ------------------------------------------------------------------------- */
 
+   typedef struct PyDOH {
+      PyObject_HEAD
+      DOH *doh;
+   } PyDOH;
+
+   staticforward PyTypeObject PyDOHType;
+
+   /* methods */
+   static PyObject * Swig_PyDOH_new(DOH *in) {
+      PyDOH *self = PyObject_NEW(PyDOH, &PyDOHType);
+      if (!self) return (PyObject *)self;
+      self->doh = in;
+      Incref(in);		/* increase the DOH refcount */
+      return (PyObject *)self;
+   }
+
+   static void Swig_PyDOH_delete(PyDOH *self) {
+      Delete(self->doh);		/* decrease the DOH refcount */
+      PyMem_DEL(self);
+   }
+
+   static int Swig_PyDOH_check(void *self) {
+      return (((PyObject *)self)->ob_type == &PyDOHType);
+   }
+
+   static PyObject *Swig_PyDOH_repr(PyDOH *self) {
+      return PyString_FromString(Char(self->doh));
+   }
+
+   static char PyDOH_docstring[] = 
+" Interface to DOH objects from Python.  DOH objects behave largely\n\
+ like Python objects, although some functionality may be different.";
+
+   /* Type object */
+   static PyTypeObject PyDOHType = {
+      PyObject_HEAD_INIT(&PyType_Type)
+      0,
+      "DOH",
+      sizeof(PyDOH),
+      0,
+      (destructor)Swig_PyDOH_delete,
+      (printfunc)0,
+      (getattrfunc)0,
+      (setattrfunc)0,
+      (cmpfunc)0,
+      (reprfunc)Swig_PyDOH_repr,
+
+      0,			/* tp_as_number */
+      0,			/* tp_as_sequence */
+      0,			/* tp_as_mapping */
+      (hashfunc)0,		/* tp_hash */
+      (ternaryfunc)0,		/* tp_call */
+      (reprfunc)0,		/* tp_str */
+      (getattrofunc)0,		/* tp_getattro */
+      (setattrofunc)0,		/* tp_setattro */
+      0,			/* tp_as_buffer */
+      0,			/* tp_xxx4 */
+      PyDOH_docstring
+   };
+%}
+
+%typemap(python,in) DOH * {
+   if (Swig_PyDOH_check($source))
+      $target = ((PyDOH *)$source)->doh, printf("PyDOH\n");
+   else if (PyString_Check($source))
+      $target = (DOH *)PyString_AsString($source), printf("String\n");
+   else if (PySequence_Check($source))
+      $target = 0, printf("Sequence\n");
+   else if (PyMapping_Check($source))
+      $target = 0, printf("Mapping\n");
+   else if (PyNumber_Check($source))
+      $target = (DOH *)$source, printf("Number\n");
+   else if (PyFile_Check($source))
+      $target = (DOH *)PyFile_AsFile($source), printf("File\n");
+   else
+      $target = (DOH *)NULL;	/* do better later? */
 }
+
 %typemap(python,out) DOH * {
-   $target = PyString_FromString(Char($source));
+   $target = Swig_PyDOH_new($source);
 }
 
 %title "SWIG", after
+
+%section "DOH Objects", before
+
+%subsection "Constants"
+
+/* The beginning of a sequence */
+#define DOH_BEGIN    -1
+/* The end of a sequence */
+#define DOH_END      -2
+/* The current point in a sequence */
+#define DOH_CUR      -3
+/* Synonymous with DOH_CUR */
+#define DOH_CURRENT  -3
+
+/* Replace any matches of the given text */
+#define   DOH_REPLACE_ANY         0x00
+/* Replace, but not inside of quotes */
+#define   DOH_REPLACE_NOQUOTE     0x01
+/* Replace only full identifiers */
+#define   DOH_REPLACE_ID          0x02
+/* Replace only the first match */
+#define   DOH_REPLACE_FIRST       0x04
+
+%subsection "SuperStrings"
+/* SuperString constructor */
+extern DOH *NewSuperString(char *string, DOH *filename, int firstline);
+/* Is this a SuperString? */
+extern int SuperString_check(DOH *);
+
+%subsection "Strings"
+/* String constructor */
+extern DOH   *NewString(char *c);
+/* Is this a string? */
+extern int    String_check(DOH *);
+
+%subsection "Files"
+/* File constructor */
+extern DOH *NewFile(DOH *file, char *mode);
+/* File constructor from Python file */
+extern DOH *NewFileFromFile(FILE *file);
+/* File constructor from a file descriptor */
+extern DOH *NewFileFromFd(int fd);
+/* Copy from file to file */
+%name(CopyTo) extern int  DohCopyto(DOH *input, DOH *output);
+
+%subsection "Lists"
+/* List constructor */
+extern DOH  *NewList();
+/* Is this a list? */
+extern int  List_check(DOH *);
+/* Sort a list */
+extern void List_sort(DOH *);
+
+%subsection "Hash tables"
+/* Hash table constructor */
+extern DOH   *NewHash();
+/* Is this a hash table? */
+extern int    Hash_check(DOH *);
+/* Get a List of the keys in a hash table */
+extern DOH   *Hash_keys(DOH *);
 
 %section "Files"
 
@@ -47,11 +187,6 @@ extern DOH  *Swig_read_file(FILE *file);
 extern DOH  *Swig_include(DOH *name);
 
 #define  SWIG_FILE_DELIMETER   "/"
-
-%section "Super Strings"
-
-extern DOH *NewSuper(char *string, DOH *filename, int firstline);
-extern int SuperString_check(DOH *string);
 
 %section "Command Line Parsing"
 

@@ -166,7 +166,7 @@ static DohObjInfo SuperType =
  * NewSuperString(const char *c) - Create a new SuperString
  * ------------------------------------------------------------------------- */
 DOH *
-NewSuper(char *s, DOH *filename, int firstline)
+NewSuperString(char *s, DOH *filename, int firstline)
 {
    int l = 0, max;
    Super *str;
@@ -1434,7 +1434,7 @@ Super_raw_replace(Super *str, char *token, int flags,
    return repcount;
 }
 
-#ifdef SUPER_TEST
+#if defined(SUPER_TEST)
 #include <stdio.h>
 
 static void dump_tags(DOH *so)
