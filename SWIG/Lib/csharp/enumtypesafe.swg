@@ -16,14 +16,15 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) const enum SWIGTYPE & ""
 
-%typemap(throws) const enum SWIGTYPE & %{
+%typemap(throws, canthrow=1) const enum SWIGTYPE & %{
   (void)$1;
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 %}
 
 %typemap(csin) const enum SWIGTYPE & "$csinput.swigValue"
-%typemap(csout) const enum SWIGTYPE & {
-    return $*csclassname.swigToEnum($imcall);
+%typemap(csout, excode=SWIGEXCODE) const enum SWIGTYPE & {
+    $*csclassname ret = $*csclassname.swigToEnum($imcall);$excode
+    return ret;
   }
 
 %typemap(csvarout) const enum SWIGTYPE & %{
@@ -42,14 +43,15 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) enum SWIGTYPE ""
 
-%typemap(throws) enum SWIGTYPE %{
+%typemap(throws, canthrow=1) enum SWIGTYPE %{
   (void)$1;
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 %}
 
 %typemap(csin) enum SWIGTYPE "$csinput.swigValue"
-%typemap(csout) enum SWIGTYPE {
-    return $csclassname.swigToEnum($imcall);
+%typemap(csout, excode=SWIGEXCODE) enum SWIGTYPE {
+    $csclassname ret = $csclassname.swigToEnum($imcall);$excode
+    return ret;
   }
 
 %typemap(csvarout) enum SWIGTYPE %{

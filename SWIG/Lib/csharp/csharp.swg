@@ -165,7 +165,7 @@ $1 = &temp; %}
 %typemap(out) const double &             %{ $result = *$1; %}
 
 /* Default handling. Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&1_type argp)
+%typemap(in, canthrow=1) SWIGTYPE ($&1_type argp)
 %{ argp = ($&1_ltype)$input; 
    if (!argp) {
      SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "Attempt to dereference null $1_type");
@@ -185,7 +185,7 @@ $1 = &temp; %}
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
 %typemap(in) SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
-%typemap(in) SWIGTYPE & %{ $1 = ($1_ltype)$input;
+%typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if(!$1) {
     SWIG_CSharpThrowException(SWIG_CSharpNullReferenceException, "$1_type reference is null");
   } %}
@@ -285,7 +285,7 @@ $1 = &temp; %}
 
 /* Exception handling */
 
-%typemap(throws) int, 
+%typemap(throws, canthrow=1) int, 
                  long, 
                  short, 
                  unsigned int, 
@@ -296,12 +296,12 @@ $1 = &temp; %}
   SWIG_CSharpThrowException(SWIG_CSharpException, error_msg);
 }
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
+%typemap(throws, canthrow=1) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
   (void)$1;
   SWIG_CSharpThrowException(SWIG_CSharpException, "C++ $1_type exception thrown");
 %}
 
-%typemap(throws) char * %{
+%typemap(throws, canthrow=1) char * %{
   SWIG_CSharpThrowException(SWIG_CSharpException, $1);
 %}
 
@@ -330,39 +330,95 @@ $1 = &temp; %}
 %typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$csclassname.getCPtr($csinput)"
 
 /* The csout typemap is used for converting function return types from the return type
- * used in the PInvoke class to the type returned by the proxy, module or type wrapper class. */
-%typemap(csout)   bool,               const bool &,
-                  char,               const char &,
-                  signed char,        const signed char &,
-                  unsigned char,      const unsigned char &,
-                  short,              const short &,
-                  unsigned short,     const unsigned short &,
-                  int,                const int &,
-                  unsigned int,       const unsigned int &,
-                  long,               const long &,
-                  unsigned long,      const unsigned long &,
-                  long long,          const long long &,
-                  unsigned long long, const unsigned long long &,
-                  float,              const float &,
-                  double,             const double & {
-    return $imcall;
+ * used in the PInvoke class to the type returned by the proxy, module or type wrapper class.
+ * The $excode special variable is replaced by the excode typemap attribute code if the
+ * method can throw any exceptions, otherwise replaced by nothing. */
+
+// Macro used by the $excode special variable
+%define SWIGEXCODE "\n    if ($modulePINVOKE.ExceptionPending) throw $modulePINVOKE.RetrievePendingException();" %enddef
+
+%typemap(csout, excode=SWIGEXCODE) bool,               const bool &               {
+    bool ret = $imcall;$excode
+    return ret;
   }
-%typemap(csout) char *, char[ANY], char[] {
-    return $imcall;
+%typemap(csout, excode=SWIGEXCODE) char,               const char &               {
+    char ret = $imcall;$excode
+    return ret;
   }
-%typemap(csout) void {
-    $imcall;
+%typemap(csout, excode=SWIGEXCODE) signed char,        const signed char &        {
+    sbyte ret = $imcall;$excode
+    return ret;
   }
-%typemap(csout) SWIGTYPE {
-    return new $&csclassname($imcall, true);
+%typemap(csout, excode=SWIGEXCODE) unsigned char,      const unsigned char &      {
+    byte ret = $imcall;$excode
+    return ret;
   }
-%typemap(csout) SWIGTYPE & {
-    return new $csclassname($imcall, $owner);
+%typemap(csout, excode=SWIGEXCODE) short,              const short &              {
+    short ret = $imcall;$excode
+    return ret;
   }
-%typemap(csout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
+%typemap(csout, excode=SWIGEXCODE) unsigned short,     const unsigned short &     {
+    ushort ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) int,                const int &                {
+    int ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) unsigned int,       const unsigned int &       {
+    uint ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) long,               const long &               {
+    int ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) unsigned long,      const unsigned long &      {
+    uint ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) long long,          const long long &          {
+    long ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) unsigned long long, const unsigned long long & {
+    ulong ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) float,              const float &              {
+    float ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) double,             const double &             {
+    double ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
+    string ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) void {
+    $imcall;$excode
+  }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE {
+    $&csclassname ret = new $&csclassname($imcall, true);$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE & {
+    $csclassname ret = new $csclassname($imcall, $owner);$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
     IntPtr cPtr = $imcall;
-    return (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);
+    $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+    return ret;
   }
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
+    IntPtr cPtr = $imcall;
+    $csclassname ret = (cPtr == IntPtr.Zero) ? null : new $csclassname(cPtr, $owner);$excode
+    return ret;
+  }
+
 
 /* Properties */
 %typemap(csvarin) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
@@ -484,8 +540,8 @@ $1 = &temp; %}
   }
 %}
 
-%typemap(csconstruct) SWIGTYPE %{: this(IntPtr.Zero, false) {
-    swigSetup($imcall, true);
+%typemap(csconstruct, excode=SWIGEXCODE) SWIGTYPE %{: this(IntPtr.Zero, false) {
+    swigSetup($imcall, true);$excode
   }
 %}
 
@@ -514,6 +570,8 @@ $1 = &temp; %}
 #define %csconstvalue(value)        %feature("cs:constvalue",value)
 #define %csenum(wrapapproach)       %feature("cs:enum","wrapapproach")
 #define %csmethodmodifiers          %feature("cs:methodmodifiers")
+#define %csexception                %feature("except",canthrow=1)
+#define %nocsexception              %feature("except","")
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
@@ -555,8 +613,9 @@ using System.Runtime.InteropServices;
 %typemap(imtype) char *, char[ANY], char[]   "IntPtr"
 %typemap(out) char[ANY], char[] %{ $result = $1; %}
 %typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).ptr"
-%typemap(csout) char *, char[ANY], char[] {
-    return System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);
+%typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
+    string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
+    return ret;
   }
 %typemap(csvarin) char *, char[ANY], char[] %{
     set {

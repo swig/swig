@@ -66,9 +66,18 @@ If you have used typedef to change type-names, you can also do this :
 
 %include exception.i
 
+#ifdef SWIGCSHARP
+// Required attribute for C# exception handling
+#define SWIGCSHARPCANTHROW , canthrow=1
+#else
+#define SWIGCSHARPCANTHROW
+#endif
+
+
 // Positive numbers
 
-%typemap(check) int               POSITIVE,
+%typemap(check SWIGCSHARPCANTHROW) 
+                int               POSITIVE,
                 short             POSITIVE,
                 long              POSITIVE,
                 unsigned int      POSITIVE,
@@ -87,7 +96,8 @@ If you have used typedef to change type-names, you can also do this :
 
 // Negative numbers
 
-%typemap(check) int               NEGATIVE,
+%typemap(check SWIGCSHARPCANTHROW) 
+                int               NEGATIVE,
                 short             NEGATIVE,
                 long              NEGATIVE,
                 unsigned int      NEGATIVE,
@@ -106,7 +116,8 @@ If you have used typedef to change type-names, you can also do this :
 
 // Nonzero numbers
 
-%typemap(check) int               NONZERO,
+%typemap(check SWIGCSHARPCANTHROW) 
+                int               NONZERO,
                 short             NONZERO,
                 long              NONZERO,
                 unsigned int      NONZERO,
@@ -125,7 +136,8 @@ If you have used typedef to change type-names, you can also do this :
 
 // Nonnegative numbers
 
-%typemap(check) int               NONNEGATIVE,
+%typemap(check SWIGCSHARPCANTHROW) 
+                int               NONNEGATIVE,
                 short             NONNEGATIVE,
                 long              NONNEGATIVE,
                 unsigned int      NONNEGATIVE,
@@ -144,7 +156,8 @@ If you have used typedef to change type-names, you can also do this :
 
 // Nonpositive numbers
 
-%typemap(check) int               NONPOSITIVE,
+%typemap(check SWIGCSHARPCANTHROW) 
+                int               NONPOSITIVE,
                 short             NONPOSITIVE,
                 long              NONPOSITIVE,
                 unsigned int      NONPOSITIVE,
@@ -163,7 +176,8 @@ If you have used typedef to change type-names, you can also do this :
                 
 // Non-NULL pointer
 
-%typemap(check) void *            NONNULL,
+%typemap(check SWIGCSHARPCANTHROW) 
+                void *            NONNULL,
                 Pointer           NONNULL
 {
   if (!$1) {
@@ -173,7 +187,8 @@ If you have used typedef to change type-names, you can also do this :
 
 // Aligned pointers
 
-%typemap(check) void *            ALIGN8,
+%typemap(check SWIGCSHARPCANTHROW) 
+                void *            ALIGN8,
                 Pointer           ALIGN8
 {
    long tmp;
@@ -183,7 +198,8 @@ If you have used typedef to change type-names, you can also do this :
    }
 }
 
-%typemap(check) void *            ALIGN4,
+%typemap(check SWIGCSHARPCANTHROW) 
+                void *            ALIGN4,
                 Pointer           ALIGN4
 {
    long tmp;
@@ -193,7 +209,8 @@ If you have used typedef to change type-names, you can also do this :
    }
 }
 
-%typemap(check) void *            ALIGN2,
+%typemap(check SWIGCSHARPCANTHROW) 
+                void *            ALIGN2,
                 Pointer           ALIGN2
 {
    long tmp;
