@@ -322,7 +322,7 @@
   }
 }
 
-%typemap(inv, parse="Ljava/lang/string;") char * { 
+%typemap(inv, parse="Ljava/lang/String;") char * { 
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, $1);
