@@ -200,11 +200,16 @@ public:
       if (mod) {
         Node *options = Getattr(mod, "options");
         if (options) {
+	  int dirprot = 0;	  
+          if (Getattr(options, "dirprot")) {
+	    dirprot = 1;
+          }
+          if (Getattr(options, "nodirprot")) {
+	    dirprot = 0;
+          }
           if (Getattr(options, "directors")) {
             allow_directors();
-          }
-          if (Getattr(options, "dirprot")) {
-	    allow_dirprot();
+	    if (dirprot) allow_dirprot();
           }
           mod_docstring = Getattr(options, "docstring");
           package = Getattr(options, "package");
