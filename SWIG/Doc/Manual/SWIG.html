@@ -2457,6 +2457,42 @@ The SWIG macro capability is a very quick and easy way to generate large amounts
 many of SWIG's advanced features and libraries are built using this mechanism (such as C++ template
 support).
 
+<h3>C99 Extensions</h3>
+
+SWIG-1.3.12 and newer releases support variadic preprocessor macros.  For example:
+
+<blockquote>
+<pre>
+#define DEBUGF(fmt,...)   fprintf(stderr,fmt,__VA_ARGS__)
+</pre>
+</blockquote>
+
+When used, any extra arguments to <tt>...</tt> are placed into the
+special variable <tt>__VA_ARGS__</tt>.   This also works with special SWIG
+macros defined using <tt>%define</tt>.
+
+<p>
+SWIG allows a variable number of arguments to be empty.  However, this often results
+in an extra comma (,) and syntax error in the resulting expansion. For example:
+
+<blockquote>
+<pre>
+DEBUGF("hello");   --> fprintf(stderr,"hello",);
+</pre>
+</blockquote>
+
+To get rid of the extra comma, use <tt>##</tt> like this:
+
+<blockquote>
+<pre>
+#define DEBUGF(fmt,...)   fprintf(stderr,fmt, ##__VA_ARGS__)
+</pre>
+</blockquote>
+
+<b>Comment:</b> It's not entirely clear how variadic macros might be useful to
+interface building.   However, they are used internally to implement a number of
+SWIG directives and are provided to make SWIG more compatible with C99 code.
+
 <h3>Preprocessing and %{ ... %} blocks</h3>
 
 The SWIG preprocessor does not process any text enclosed in a code block %{ ... %}.  Therefore,
