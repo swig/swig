@@ -73,11 +73,18 @@ $jnicall                    -> $imcall
 </li>
 
 </ul>
+An Additional special variable, $module, is replaced by the module name which is obtained from the
+<tt>%module</tt> directive or<tt> -module</tt> command line option.
+
+<p>
+Director support (callbacks into C#) have not yet been implemented.
 
 <p>
 The directory Examples/csharp has a number of examples. 
 If your SWIG installation went well Unix users should be able to type <tt>make</tt> in each example directory, 
-then <tt>ilrun runme</tt> (pnet C# compiler) or <tt>mono runme</tt> (Mono C# compiler) to see them running.
+then <tt>ilrun runme</tt> (pnet C# compiler) or <tt>mono runme</tt> (Mono C# compiler).
+Windows users can also get the examples working but need a Cygwin or Mingw environment for automatic configuration of the example makefiles.
+Any one of the three C# compilers (pnet, mono or Microsoft) can be detected from within a <a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> environment. 
 Some project files will be added soon for use with the Microsoft .NET C# compiler.
 
 </body>
