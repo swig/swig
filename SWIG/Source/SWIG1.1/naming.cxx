@@ -81,9 +81,9 @@ char *name_wrapper(char *fname, char *prefix, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("wrapper");
+  f = name_getformat((char*)"wrapper");
   if (!f) {
-    f = "_wrap_%p%f";                  // Default wrapper name
+    f = (char*)"_wrap_%p%f";                  // Default wrapper name
   }
   fmt = f;
   fmt.replace("%f",fname);
@@ -112,9 +112,9 @@ char *name_member(char *fname, char *classname, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("member");
+  f = name_getformat((char*)"member");
   if (!f) {
-    f = "%c_%f";
+    f = (char*)"%c_%f";
   }
   fmt = f;
   fmt.replace("%f",fname);
@@ -139,9 +139,9 @@ char *name_get(char *vname, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("get");
+  f = name_getformat((char*)"get");
   if (!f) {
-    f = "%v_get";
+    f = (char*)"%v_get";
   }
   fmt = f;
   fmt.replace("%v",vname);
@@ -162,9 +162,9 @@ char *name_set(char *vname, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("set");
+  f = name_getformat((char*)"set");
   if (!f) {
-    f = "%v_set";
+    f = (char*)"%v_set";
   }
   fmt = f;
   fmt.replace("%v",vname);
@@ -189,9 +189,9 @@ char *name_construct(char *classname, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("construct");
+  f = name_getformat((char*)"construct");
   if (!f) {
-    f = "new_%c";
+    f = (char*)"new_%c";
   }
   fmt = f;
   fmt.replace("%l",typemap_lang);
@@ -217,9 +217,9 @@ char *name_destroy(char *classname, int suppress) {
   static String fmt;
   char   *f;
 
-  f = name_getformat("destroy");
+  f = name_getformat((char*)"destroy");
   if (!f) {
-    f = "delete_%c";
+    f = (char*)"delete_%c";
   }
   fmt = f;
   fmt.replace("%l",typemap_lang);

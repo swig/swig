@@ -13,7 +13,9 @@
  * ----------------------------------------------------------------------------- */
 
 #include "internal.h"
+extern "C" {
 #include "doh.h"
+}
 
 static char cvsroot[] = "$Header$";
 

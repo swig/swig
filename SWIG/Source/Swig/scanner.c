@@ -100,7 +100,7 @@ SwigScanner_push(SwigScanner *s, DOHString *txt) {
   Push(s->scanobjs,txt);
   if (s->str) Delete(s->str);
   s->str = txt;
-  Incref(s->str);
+  DohIncref(s->str);
   s->line = Getline(txt);
 }
 
@@ -181,7 +181,7 @@ nextchar(SwigScanner *s)
     s->str = Getitem(s->scanobjs,0);
     if (s->str) {
       s->line = Getline(s->str);
-      Incref(s->str);
+      DohIncref(s->str);
     }
   }
   if (nc == '\n') s->line++;
