@@ -15,6 +15,100 @@ Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
 8/30/2001: beazley
+           Added support for parameterized %rename directive.  *** This
+           new feature can be used to greatly simplify the task of
+           resolving overloaded methods and functions. ***
+           
+           In prior versions of SWIG, the %rename directive was
+           used to consistently apply an identifier renaming. For 
+           example, if you said this:
+
+                %rename foo bar;
+
+           Every occurrence of 'foo' would be renamed to 'bar'. 
+           Although this works fine for resolving a conflict with a
+           target language reserved word, it is useless for
+           for dealing with overloaded methods.    This is because
+           all methods are simply renamed to the same thing 
+           (generating the same conflict as before).
+
+           Therefore, the only way to deal with overloaded methods
+           was to go through and individually rename them all using
+           %name.  For example:
+
+             class Foo {
+             public:
+                 virtual void bar(void);
+                 %name(bar_i) virtual void bar(int);
+                 ...
+             };
+
+           To make matters worse, you had to do this for all
+           derived classes too.
+
+             class Spam : public Foo {
+             public:
+                 virtual void bar(void);
+                 %name(bar_i) virtual void bar(int);
+                 ...
+             };
+
+           Needless to say, this makes it extremely hard to resolve
+           overloading without a lot of work and makes it almost
+           impossible to use SWIG on raw C++ .h files.
+
+           To fix this, %rename now accepts parameter declarators.
+           The syntax has also been changed slightly.  For example,
+           the following declaration renames all occurrences of 'bar(int)'
+           to 'bar_i', leaving any other occurrence of 'bar' alone.
+
+             %rename(bar_i) bar(int);
+
+           Using this feature, you can now selectively rename 
+           certain declarations in advance.  For example:
+
+             %rename(bar_i) bar(int);
+             %rename(bar_d) bar(double);
+
+             // Include raw C++ header    
+             %include "header.h"
+
+           When %rename is used in this manner, all occurrence of bar(int)
+           are renamed wherever they might occur.  More control is obtained
+           through explicit qualification. For example,
+
+              %rename(bar_i) ::bar(int);
+
+           only applies the renaming if bar(int) is defined inside a class.
+           The declaration,
+     
+              %rename(bar_i) Foo::bar(int);
+
+           applies the renaming if bar(int) is defined in a class Foo.
+           This latter form also supports inheritance.  Therefore, if you
+           had a class like this:
+
+               class Spam : public Foo {
+               public:
+                   void bar(int);
+               }
+
+           The Spam::bar(int) method would also be renamed (since Spam 
+           is a subclass of Foo).   This latter feature makes it easy
+           for SWIG to apply a consistent renaming across an entire
+           class hierarchy simply by specifying renaming rules for
+           the base class.
+
+           The old use of %rename is still supported, but is somewhat
+           enhanced.  
+
+              %rename(foo) bar;      // Renames all occurrences of 'bar'
+              %rename(foo) ::bar;    // Rename all 'bar' in a class
+              %rename(foo) Foo::bar; // Rename all 'bar' defined in class Foo.
+
+           *** NEW FEATURE ***
+
+8/30/2001: beazley
            Added support for data-member to member-function 
            transformation.  For example, suppose you had a
            structure like this:
