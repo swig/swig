@@ -372,9 +372,10 @@ an exception will be thrown.
 
 If this code were built into a toplevel, you could write:
 
+<blockquote><pre>
+
         Objective Caml version 3.04
 
-<blockquote><pre>
 # open Error ;;
 # Callback.register "{caml_error}" (fun unit -> print_endline "hi"; flush stdout) ;;
 - : unit = ()
