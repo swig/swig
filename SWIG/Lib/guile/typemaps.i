@@ -11,9 +11,11 @@
 %typemap (guile, op) int            { MK_SIMPLE_MAP (gh_scm2int); }     \
 %typemap (guile, op) short          { MK_SIMPLE_MAP (gh_scm2int); }     \
 %typemap (guile, op) long           { MK_SIMPLE_MAP (gh_scm2long); }    \
+%typemap (guile, op) ptrdiff_t      { MK_SIMPLE_MAP (gh_scm2long); }    \
 %typemap (guile, op) unsigned int   { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_scm2ulong); }   \
+%typemap (guile, op) size_t         { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) float          { MK_SIMPLE_MAP (gh_scm2double); }  \
 %typemap (guile, op) double         { MK_SIMPLE_MAP (gh_scm2double); }  \
 %typemap (guile, op) char *         { MK_SIMPLE_MAP (GSWIG_scm2str); }
@@ -24,9 +26,11 @@
 %typemap (guile, op) int            { MK_SIMPLE_MAP (gh_int2scm); }     \
 %typemap (guile, op) short          { MK_SIMPLE_MAP (gh_int2scm); }     \
 %typemap (guile, op) long           { MK_SIMPLE_MAP (gh_long2scm); }    \
+%typemap (guile, op) ptrdiff_t      { MK_SIMPLE_MAP (gh_long2scm); }    \
 %typemap (guile, op) unsigned int   { MK_SIMPLE_MAP (gh_ulong2scm); }   \
 %typemap (guile, op) unsigned short { MK_SIMPLE_MAP (gh_ulong2scm); }   \
 %typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_ulong2scm); }   \
+%typemap (guile, op) size_t         { MK_SIMPLE_MAP (gh_ulong2scm); }   \
 %typemap (guile, op) float          { MK_SIMPLE_MAP (gh_double2scm); }  \
 %typemap (guile, op) double         { MK_SIMPLE_MAP (gh_double2scm); }  \
 %typemap (guile, op) char *         { MK_SIMPLE_MAP (gh_str02scm); }
@@ -67,7 +71,8 @@ SIMPLE_OUT_MAP_SET (varout)
     $target = &temp;
 }
 
-%typemap(guile,in) long           *INPUT(long temp)
+%typemap(guile,in) long *INPUT(long temp), 
+		   ptrdiff_t *INPUT(long temp)
 {
     temp = (long) gh_scm2long($source);
     $target = &temp;
@@ -85,7 +90,8 @@ SIMPLE_OUT_MAP_SET (varout)
     $target = &temp;
 }
 
-%typemap(guile,in) unsigned long  *INPUT(unsigned long temp)
+%typemap(guile,in) unsigned long  *INPUT(unsigned long temp),
+		   size_t *INPUT(unsigned long temp)
 {
     temp = (unsigned long) gh_scm2ulong($source);
     $target = &temp;
@@ -99,9 +105,11 @@ SIMPLE_OUT_MAP_SET (varout)
 %typemap(guile,ignore) int            *OUTPUT(int temp),
                        short          *OUTPUT(short temp),
                        long           *OUTPUT(long temp),
+		       ptrdiff_t      *OUTPUT(ptrdiff_t temp),
                        unsigned int   *OUTPUT(unsigned int temp),
                        unsigned short *OUTPUT(unsigned short temp),
                        unsigned long  *OUTPUT(unsigned long temp),
+		       size_t         *OUTPUT(size_t temp),
                        unsigned char  *OUTPUT(unsigned char temp),
                        float          *OUTPUT(float temp),
                        double         *OUTPUT(double temp)
@@ -115,14 +123,16 @@ SIMPLE_OUT_MAP_SET (varout)
     GUILE_APPEND_RESULT(gh_int2scm(*$target));
 }
 
-%typemap(guile,argout) long           *OUTPUT
+%typemap(guile,argout) long           *OUTPUT,
+		       ptrdiff_t      *OUTPUT
 {
     GUILE_APPEND_RESULT(gh_long2scm(*$target));
 }
 
 %typemap(guile,argout) unsigned int   *OUTPUT,
 		       unsigned short *OUTPUT,
-		       unsigned long  *OUTPUT
+		       unsigned long  *OUTPUT,
+		       size_t         *OUTPUT
 {
     GUILE_APPEND_RESULT(gh_ulong2scm(*$target));
 }
@@ -141,9 +151,11 @@ SIMPLE_OUT_MAP_SET (varout)
 %typemap(guile,in) int *BOTH = int *INPUT;
 %typemap(guile,in) short *BOTH = short *INPUT;
 %typemap(guile,in) long *BOTH = long *INPUT;
+%typemap(guile,in) ptrdiff_t *BOTH = ptrdiff_t *INPUT;
 %typemap(guile,in) unsigned *BOTH = unsigned *INPUT;
 %typemap(guile,in) unsigned short *BOTH = unsigned short *INPUT;
 %typemap(guile,in) unsigned long *BOTH = unsigned long *INPUT;
+%typemap(guile,in) size_t *BOTH = size_t *INPUT;
 %typemap(guile,in) unsigned char *BOTH = unsigned char *INPUT;
 %typemap(guile,in) float *BOTH = float *INPUT;
 %typemap(guile,in) double *BOTH = double *INPUT;
@@ -151,9 +163,11 @@ SIMPLE_OUT_MAP_SET (varout)
 %typemap(guile,argout) int *BOTH = int *OUTPUT;
 %typemap(guile,argout) short *BOTH = short *OUTPUT;
 %typemap(guile,argout) long *BOTH = long *OUTPUT;
+%typemap(guile,argout) ptrdiff_t *BOTH = ptrdiff_t *OUTPUT;
 %typemap(guile,argout) unsigned *BOTH = unsigned *OUTPUT;
 %typemap(guile,argout) unsigned short *BOTH = unsigned short *OUTPUT;
 %typemap(guile,argout) unsigned long *BOTH = unsigned long *OUTPUT;
+%typemap(guile,argout) size_t *BOTH = size_t *OUTPUT;
 %typemap(guile,argout) unsigned char *BOTH = unsigned char *OUTPUT;
 %typemap(guile,argout) float *BOTH = float *OUTPUT;
 %typemap(guile,argout) double *BOTH = double *OUTPUT;
