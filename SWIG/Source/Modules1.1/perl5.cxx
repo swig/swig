@@ -27,7 +27,7 @@ Perl5 Options (available with -perl5)\n\
 
 static String *import_file = 0;
 static String *smodule = 0;
-static int   compat = 0;
+static int     compat = 0;
 
 static int           export_all = 0;
 static String       *package = 0;
@@ -48,10 +48,13 @@ static  Hash     *symbols = 0;
 static  int      have_constructor = 0;
 static  int      have_destructor= 0;
 static  int      have_data_members = 0;
-static  char     *class_name = 0;            /* Name of the class (what Perl thinks it is) */
-static  char     *class_type = 0;            /* Type of class "struct", "class", "union"   */
-static  char     *real_classname = 0;        /* Real name of C/C++ class */
+static  String   *class_name = 0;            /* Name of the class (what Perl thinks it is) */
+static  String   *class_type = 0;            /* Type of class "struct", "class", "union"   */
+static  String   *real_classname = 0;        /* Real name of C/C++ class */
 static  String   *base_class = 0;            /* Base class (if using inheritance) */
+static  int class_renamed = 0;
+static  String   *fullclassname = 0;
+
 static  String   *pcode = 0;                 /* Perl code associated with each class */
 static  String   *blessedmembers = 0;        /* Member data associated with each class */
 static  int      member_func = 0;            /* Set to 1 when wrapping a member function */
@@ -334,8 +337,26 @@ PERL5::close(void) {
 	 0);
 
   Printf(f_header,"%s\n", magic);
+  
+  String *type_table = NewString("");
+  SwigType_emit_type_table(f_runtime,type_table);
 
-  SwigType_emit_type_table(f_runtime,f_wrappers);
+  /* Patch the type table to reflect the names used by shadow classes */
+  if (blessed) {
+    SwigType *type;
+    for (type = Firstkey(classes); type; type = Nextkey(classes)) {
+      String *mangle = NewStringf("\"%s\"", SwigType_manglestr(type));
+      String *rep = NewStringf("\"%s\"", Getattr(classes,type));
+      Replace(type_table,mangle,rep,DOH_REPLACE_ANY);
+      Delete(mangle);
+      Delete(rep);
+    }
+  }
+
+  Printf(f_wrappers,"%s",type_table);
+  Delete(type_table);
+
+  Printf(stdout,"::: Perl shadow :::\n\n%s",classes);
 
   Printf(f_init,"\t ST(0) = &PL_sv_yes;\n");
   Printf(f_init,"\t XSRETURN(1);\n");
@@ -439,7 +460,8 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
     Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",0);
 
   Printv(f,
-	 "croak(\"Type error in ", srcname, " of ", iname,"\");\n",
+	 "croak(\"Type error in ", srcname, " of ", iname,". Expected %s\", SWIGTYPE",
+	 SwigType_manglestr(t), "->name);\n",
 	 ret, ";\n",
 	 "}\n",
 	 0);
@@ -636,7 +658,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
 	Printv(f->code,
-	       tab4, "sv_setref_pv(ST(argvi++), SWIGTYPE", SwigType_manglestr(d),"->name, (void *) result);\n", 0);
+	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
 	SwigType_del_pointer(d);
 	break;
 	
@@ -646,8 +668,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 
       case T_POINTER: case T_ARRAY: case T_REFERENCE:
 	SwigType_remember(d);
-	Printv(f->code, tab4, "sv_setref_pv(ST(argvi++), SWIGTYPE", SwigType_manglestr(d), "->name",
-	       ", (void *) result);\n", 0);
+	Printv(f->code, tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d), ");\n", 0);
 	break;
 
       default :
@@ -734,12 +755,14 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,0))) {
 	  Printf(func,"%s\n", tm);
 	} else if (is_shadow(pt)) {
+	  /*
 	  if (i >= (pcount - numopt))
 	    Printf(func,"    if (scalar(@args) >= %d) {\n    ", i);
 	  Printf(func,"    $args[%d] = tied(%%{$args[%d]});\n", i, i);
 	  if (i >= (pcount - numopt))
 	    Printf(func,"    }\n");
 	  need_stub = 1;
+	  */
 	}
 	i++;
       }
@@ -759,7 +782,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	     tab4, "return $result;\n",
 	     "}\n",
 	     0);
-
+      need_stub = 1;
     } else if (is_shadow(d)) {
       Printv(func, tab4, "return undef if (!defined($result));\n", 0);
 
@@ -937,7 +960,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	     0);
       
       Wrapper_add_local(getf,"rsv","SV *rsv");
-      Printv(vinit, tab4, "sv_setref_pv(sv, SWIGTYPE", SwigType_manglestr(t), "->name,(void *) &", name, ");\n",0);
+      Printv(vinit, tab4, "SWIG_MakePtr(sv, (void *) &", name, ",SWIGTYPE", SwigType_manglestr(t), ");\n",0);
       SwigType_del_pointer(t);
       
       break;
@@ -953,7 +976,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	     0);
       
       Wrapper_add_local(getf,"rsv","SV *rsv");
-      Printv(vinit, tab4, "sv_setref_pv(sv,SWIGTYPE", SwigType_manglestr(t), "->name,(void *) 1);\n",0);
+      Printv(vinit, tab4, "SWIG_MakePtr(sv,(void *) 1, SWIGTYPE", SwigType_manglestr(t), ");\n",0);
       break;
 
     default :
@@ -1117,13 +1140,13 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
   }
 
   if (blessed) {
-    if ((Getattr(classes,SwigType_base(type))) && (SwigType_ispointer(type) <= 1)) {
+    if (is_shadow(type)) {
       Printv(var_stubs,
 	     "\nmy %__", name, "_hash;\n",
-	     "tie %__", name, "_hash,\"", GetChar(classes,SwigType_base(type)), "\", $",
+	     "tie %__", name, "_hash,\"", is_shadow(type), "\", $",
 	     package, "::", name, ";\n",
 	     "$", name, "= \\%__", name, "_hash;\n",
-	     "bless $", name, ", ", GetChar(classes,SwigType_base(type)), ";\n",
+	     "bless $", name, ", ", is_shadow(type), ";\n",
 	     0);
     } else {
       Printv(var_stubs, "*",name," = *", package, "::", name, ";\n", 0);
@@ -1228,9 +1251,6 @@ PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
  ***
  ****************************************************************************/
 
-static int class_renamed = 0;
-static char fullclassname[1024] = "";
-
 /* -----------------------------------------------------------------------------
  * PERL5::cpp_open_class()
  * ----------------------------------------------------------------------------- */
@@ -1243,31 +1263,37 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     have_destructor = 0;
     have_data_members = 0;
 
+    Delete(class_name);     class_name = 0;
+    Delete(class_type);     class_type =0;
+    Delete(real_classname); real_classname = 0;
+    Delete(base_class);     base_class = 0;
+    Delete(fullclassname);  fullclassname = 0;
+    
     /* If the class is being renamed to something else, use the renaming */
     if (rname) {
-      class_name = Swig_copy_string(rname);
+      class_name = NewString(rname);
       class_renamed = 1;
     } else {
-      class_name = Swig_copy_string(classname);
+      class_name = NewString(classname);
       class_renamed = 0;
     }
 
     /* Use the fully qualified name of the Perl class */
     if (!compat) {
-      sprintf(fullclassname,"%s::%s", Char(realpackage),class_name);
+      fullclassname = NewStringf("%s::%s",realpackage,class_name);
     } else {
-      strcpy(fullclassname,class_name);
+      fullclassname = NewString(class_name);
     }
-    real_classname = Swig_copy_string(classname);
+    real_classname = NewString(classname);
     if (base_class) Delete(base_class);
     base_class =  0;
-    class_type = Swig_copy_string(ctype);
+    class_type = NewString(ctype);
     pcode = NewString("");
     blessedmembers = NewString("");
     member_keys = NewString("");
 
     /* Add some symbols to the hash tables */
-    cpp_class_decl(classname,fullclassname,ctype);
+    cpp_class_decl(Char(classname),Char(fullclassname),Char(ctype));
   }
 }
 
@@ -1297,14 +1323,14 @@ PERL5::cpp_close_class() {
 
     /* Dump out a hash table containing the pointers that we own */
 
-    Printf(pm, "%OWNER = ();\n");
+    Printf(pm, "%%OWNER = ();\n");
     if (have_data_members) {
       Printv(pm, 
 	     "%BLESSEDMEMBERS = (\n", blessedmembers, ");\n\n",
 	     0);
     }
     if (have_data_members || have_destructor)
-      Printf(pm, "%ITERATORS = ();\n");
+      Printf(pm, "%%ITERATORS = ();\n");
 
 
     /* Dump out the package methods */
@@ -1403,6 +1429,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   String  *cname;
   int      pcount, numopt;
   char    *tm;
+  int      need_wrapper = 0;
 
   member_func = 1;
   this->Language::cpp_member_func(name,iname,t,l);
@@ -1430,7 +1457,6 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
   Printv(func,
 	 "sub ", realname, " {\n",
 	 tab4, "my @args = @_;\n",
-         tab4, "$args[0] = tied(%{$args[0]});\n",
 	 0);
 
   /* Now we have to go through and patch up the argument list.  If any
@@ -1449,16 +1475,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 
       if ((tm = Swig_typemap_lookup((char*)"perl5in",pt,(char*)"",sourceNtarget,sourceNtarget,0))) {
 	Printf(func,"%s\n",tm);
-      }
-      else if (is_shadow(pt)) {
-	/* Yep.   This smells alot like an object, patch up the arguments */
-
-	if (i >= (pcount - numopt))
-	  Printf(func,"    if (scalar(@args) >= %d) {\n", i);
-
-	Printf(func,"    $args[%d] = tied(%%{$args[%d]});\n", i, i);
-	if (i >= (pcount - numopt))
-	  Printf(func,"    }\n");
+	need_wrapper = 1;
       }
       i++;
     }
@@ -1483,6 +1500,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 	   tab4,"return $result;\n",
 	   "}\n",
 	   0);
+    need_wrapper = 1;
 
   } else if (is_shadow(t)) {
     
@@ -1505,6 +1523,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
 	   "}\n",
 	   0);
 
+    need_wrapper = 1;
   } else {
 
     /* Hmmm.  This doesn't appear to be anything I know about so just 
@@ -1513,7 +1532,11 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     Printv(func, tab4,"return $result;\n", "}\n", 0);
   }
 
-  Printv(pcode,func,0);
+  if (need_wrapper) {
+    Printv(pcode,func,0);
+  } else {
+    Printv(pcode,"*",realname," = *", package, "::", Swig_name_member(class_name,realname), ";\n", 0);
+  }
   Delete(func);
   Delete(cname);
 }
@@ -1590,7 +1613,7 @@ void
 PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
   Parm *p;
   int   i;
-  char  *realname;
+  String *realname;
   String *cname;
 
   cname = NewString("perl5:constructor:");
@@ -1615,7 +1638,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       return;
     }
     Setattr(symbols,cname, cname);
-    if ((strcmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
+    if ((Cmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
       
       /* Emit a blessed constructor  */
 
@@ -1673,7 +1696,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
  * ----------------------------------------------------------------------------- */
 void 
 PERL5::cpp_destructor(char *name, char *newname) {
-  char *realname;
+  String *realname;
   member_func = 1;
   this->Language::cpp_destructor(name, newname);
 
@@ -1758,9 +1781,9 @@ PERL5::cpp_inherit(char **baseclass, int) {
  * ----------------------------------------------------------------------------- */
 void
 PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
-  char *realname;
+  String *realname;
   int   oldblessed = blessed;
-  char cname[256];
+  char  cname[256];
   
   /* Create a normal constant */
   blessed = 0;
@@ -1772,8 +1795,8 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
       realname = name;
     else
       realname = iname;
-
-    sprintf(cname,"%s::%s",class_name,realname);
+    
+    sprintf(cname,"%s::%s",Char(class_name),Char(realname));
     if (Getattr(symbols, cname)) {
       return; 
     }
@@ -1811,9 +1834,6 @@ void
 PERL5::add_typedef(SwigType *t, char *name) {
 
   if (!blessed) return;
-
-  /* First check to see if there aren't too many pointers */
-
   if (is_shadow(t)) {
     cpp_class_decl(name,Char(is_shadow(t)),"");    
   }
