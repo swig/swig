@@ -129,7 +129,7 @@ static int     freeze = 0;
 static String  *lang_config = 0;
 
 /* This function sets the name of the configuration file */
-void SWIG_config_file(String_or_char *filename) {
+void SWIG_config_file(const String_or_char *filename) {
   lang_config = NewString(filename);
 }
 
