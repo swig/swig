@@ -18,8 +18,11 @@ CPP_TEST_CASES += \
 	lib_std_vectora \
 	std_containers
 
-C_TEST_CASES += \
-	complextest
+#
+# This test only works with modern C compilers
+#
+#C_TEST_CASES += \
+#	complextest
 
 include $(srcdir)/../common.mk
 
