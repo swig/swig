@@ -79,6 +79,7 @@ These improvements include:
    - Support for C++ overloaded operators.
    - Support for C++ templates including member templates.
    - Support for C++ template specialization and partial specialization.
+   - Support for C++ friend declarations.
    - Parsing support for almost all C/C++ datatypes.
    - Automatic translation of C++ exception specifiers.
    - Contract support.
