@@ -1,6 +1,6 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.18    (Late Feb??? 2003)
+Release: SWIG-1.3.19
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -8,7 +8,7 @@ Release: SWIG-1.3.18    (Late Feb??? 2003)
 **      = Will implement if time.
 *       = Implement if bored (or deemed necessary).
 
-defer   = Implement in 1.3.17
+defer   = Implement in next version
 
 CORE:
 
@@ -277,8 +277,11 @@ Ruby
 
 Java
 ----
+**     Default argument support. Default arguments are effectively ignored 
+       at present. An overridden method for each default argument could be 
+       generated thereby enabling one to call methods with default arguments.
 
-**     Vararg typemaps
+[DONE] Vararg typemaps
 
 [DONE] $javaconst(1) option for enums - so that no JNI call is necessary to 
        get the value of the enum.
