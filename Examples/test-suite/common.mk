@@ -174,6 +174,7 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	struct_value \
 	template \
+	template_array_numeric \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
