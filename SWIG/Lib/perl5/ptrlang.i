@@ -60,7 +60,7 @@ static SV *_ptrvalue(SV *_PTRVALUE, int index, const char *type) {
   void     *ptr;
   SV       *obj = 0;
 
-  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0) < 0) {
+  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0,0) < 0) {
     croak("Type error it ptrvalue. Argument is not a valid pointer value.");
   } else {
     /* If no datatype was passed, try a few common datatypes first */
@@ -68,19 +68,19 @@ static SV *_ptrvalue(SV *_PTRVALUE, int index, const char *type) {
 
       /* No datatype was passed.   Type to figure out if it's a common one */
       
-      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
+      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p,0) >= 0) {
 	type = "int";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p,0) >= 0) {
 	type = "double";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p,0) >= 0) {
 	type = "short";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p,0) >= 0) {
 	type = "long";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p,0) >= 0) {
 	type = "float";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p,0) >= 0) {
 	type = "char";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp,0) >= 0) {
 	type = "char *";
       } else {
 	type = "unknown";
@@ -246,7 +246,7 @@ static SV *_ptrcreate(char *type, SV *value, int numelements) {
   
 
   obj = sv_newmortal();
-  SWIG_MakePtr(obj,ptr,cast);
+  SWIG_MakePtr(obj,ptr,cast,0);
   return obj;
 }
 
@@ -268,25 +268,25 @@ static void _ptrset(SV *_PTRVALUE, SV *value, int index, const char *type) {
   SV       *obj;
 
 
-  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0) < 0) {
+  if (SWIG_ConvertPtr(_PTRVALUE, &ptr, 0,0) < 0) {
     croak("Type error it ptrvalue. Argument is not a valid pointer value.");
   } else {
     /* If no datatype was passed, try a few common datatypes first */
     if (!type) {
       /* No datatype was passed.   Type to figure out if it's a common one */
-      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
+      if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p,0) >= 0) {
 	type = "int";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p,0) >= 0) {
 	type = "double";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p,0) >= 0) {
 	type = "short";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p,0) >= 0) {
 	type = "long";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p,0) >= 0) {
 	type = "float";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p,0) >= 0) {
 	type = "char";
-      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp) >= 0) {
+      } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_pp,0) >= 0) {
 	type = "char *";
       } else {
 	type = "unknown";
@@ -350,19 +350,19 @@ static SV *_ptradd(SV *_PTRVALUE, int offset) {
 
   /* Try to handle a few common datatypes first */
 
-  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p) >= 0) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_int_p,0) >= 0) {
     ptr = (void *) (((int *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_double_p,0) >= 0) {
     ptr = (void *) (((double *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_short_p,0) >= 0) {
     ptr = (void *) (((short *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_long_p,0) >= 0) {
     ptr = (void *) (((long *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_float_p,0) >= 0) {
     ptr = (void *) (((float *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,SWIG_POINTER_char_p,0) >= 0) {
     ptr = (void *) (((char *) ptr) + offset);
-  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0) >= 0) {
+  } else if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0,0) >= 0) {
     ptr = (void *) (((char *) ptr) + offset);
   } else {
     croak("Type error in ptradd. Argument is not a valid pointer value.");
@@ -389,13 +389,13 @@ void _ptrfree(SV *_PTRVALUE) {
 
   void *ptr, *junk;
 
-  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0) < 0) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&ptr,0,0) < 0) {
     croak("Type error in ptrfree. Argument is not a valid pointer value.");
     return;
   }
 
   /* Check to see if this pointer is a char ** */
-  if (SWIG_ConvertPtr(_PTRVALUE,&junk,SWIG_POINTER_char_pp) >= 0) {
+  if (SWIG_ConvertPtr(_PTRVALUE,&junk,SWIG_POINTER_char_pp,0) >= 0) {
     char **c = (char **) ptr;
     if (c) {
       int i = 0;
