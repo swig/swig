@@ -31,6 +31,7 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 %include "exception.i"
 %include "std_string.i"
 
+#ifdef SWIGPYTHON
 
 %feature("director:except") {
 	if ($error != NULL) {
@@ -43,6 +44,20 @@ class SWIG_DIRECTOR_METHOD_EXCEPTION: public SWIG_DIRECTOR_EXCEPTION {};
 	catch (SWIG_DIRECTOR_EXCEPTION &e) { SWIG_fail; }
 }
 
+#endif
+
+#ifdef SWIGRUBY
+
+%feature("director:except") {
+    throw SWIG_DIRECTOR_METHOD_EXCEPTION();
+}
+
+%exception {
+  try { $action }
+  catch (SWIG_DIRECTOR_EXCEPTION &e) { rb_raise(e.getType(), e.getMessage()); }
+}
+
+#endif
 
 %feature("director") Foo;
 

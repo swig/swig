@@ -13,13 +13,24 @@
 
 #include <string>
 
+struct swig_body_args
+{
+  VALUE recv;
+  ID id;
+  int argc;
+  VALUE *argv;
+};
+
 /* Base class for director exceptions */
 class SWIG_DIRECTOR_EXCEPTION {
 protected:
   std::string _msg;
+  VALUE _type;
+protected:
+  SWIG_DIRECTOR_EXCEPTION(const char* msg="") : _type(rb_eRuntimeError) {}
 public:
-  SWIG_DIRECTOR_EXCEPTION(const char* msg="") {}
   const char *getMessage() const { return _msg.c_str(); }
+  VALUE getType() const { return _type; }
   virtual ~SWIG_DIRECTOR_EXCEPTION() {}
 };
 
@@ -29,7 +40,7 @@ public:
   SWIG_DIRECTOR_TYPE_MISMATCH(const char* msg="") {
     _msg = "Swig director type mismatch: ";
     _msg += msg;
-    // PyErr_SetString(PyExc_TypeError, msg); // FIXME
+    _type = rb_eTypeError;
   }
 };
 

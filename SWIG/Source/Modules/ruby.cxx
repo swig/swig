@@ -2123,6 +2123,76 @@ public:
    *
    * --------------------------------------------------------------- */
 
+  void exceptionSafeMethodCall(Node *n, Wrapper *w, int argc, String *args) {
+
+    Wrapper *body = NewWrapper();
+    Wrapper *rescue = NewWrapper();
+
+    String *methodName = Getattr(n, "sym:name");
+    String *bodyName = NewStringf("%s_body", methodName);
+    String *rescueName = NewStringf("%s_rescue", methodName);
+
+    // Check for an exception typemap of some kind
+    String *tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
+    if (!tm) {
+      tm = Getattr(n, "feature:director:except");
+    }
+
+    if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0))
+    {
+      // Function body
+      Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
+      Wrapper_add_localv(body, "args", "swig_body_args *", "args", "= reinterpret_cast<swig_body_args *>(data)", NIL);
+      Printv(body->code, "return rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+      Printv(body->code, "}", NIL);
+      
+      // Exception handler
+      Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName); 
+      Replaceall(tm, "$error", "error");
+      Printv(rescue->code, Str(tm), "\n", NIL);
+      Printv(rescue->code, "}", NIL);
+      
+      // Main code
+      Wrapper_add_localv(w, "args", "swig_body_args", "args", NIL);
+      Printv(w->code, "args.recv = __get_self();\n", NIL);
+      Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
+      Printf(w->code, "args.argc = %d;\n", argc);
+      if (argc > 0) {
+        Wrapper_add_localv(w, "i", "int", "i", NIL);
+        Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
+        Printf(w->code, "for (i = 0; i < %d; i++) {\n", argc);
+        Printv(w->code, "args.argv[i] = Qnil;\n", NIL);
+        Printv(w->code, "}\n", NIL);
+      } else {
+        Printv(w->code, "args.argv = 0;\n", NIL);
+      }
+      Printf(w->code,
+        "result = rb_rescue2((VALUE(*)(ANYARGS)) %s, reinterpret_cast<VALUE>(&args), (VALUE(*)(ANYARGS)) %s, reinterpret_cast<VALUE>(&args), rb_eStandardError, 0);\n",
+        bodyName, rescueName);
+      if (argc > 0) {
+        Printv(w->code, "delete [] args.argv;\n", NIL);
+      }
+
+      // Dump wrapper code
+      Wrapper_print(body, f_directors);
+      Wrapper_print(rescue, f_directors);
+    }
+    else
+    {
+      if (argc > 0) {
+        Printf(w->code, "result = rb_funcall(__get_self(), rb_intern(\"%s\"), %d%s);\n", methodName, argc, args);
+      } else {
+        Printf(w->code, "result = rb_funcall(__get_self(), rb_intern(\"%s\"), 0, NULL);\n", methodName);
+      }
+    }
+
+    // Clean up
+    Delete(bodyName);
+    Delete(rescueName);
+    DelWrapper(body);
+    DelWrapper(rescue);
+  }
+  
   virtual int classDirectorMethod(Node *n, Node *parent, String *super) {
     int is_void = 0;
     int is_pointer = 0;
@@ -2188,7 +2258,6 @@ public:
     
     /* attach typemaps to arguments (C/C++ -> Ruby) */
     String *arglist = NewString("");
-    String* parse_args = NewString("");
 
     Swig_typemap_attach_parms("in", l, w);
     Swig_typemap_attach_parms("inv", l, w);
@@ -2213,31 +2282,20 @@ public:
 
       if (Getattr(p, "tmap:argoutv") != 0) outputs++;
       
-      String* pname = Getattr(p, "name");
-      String* ptype = Getattr(p, "type");
+      String* parameterName = Getattr(p, "name");
+      String* parameterType = Getattr(p, "type");
       
       Putc(',',arglist);
       if ((tm = Getattr(p, "tmap:inv")) != 0) {
-	String* parse = Getattr(p, "tmap:inv:parse");
-	if (!parse) {
-	  sprintf(source, "obj%d", idx++);
-	  Replaceall(tm, "$input", source);
-	  Replaceall(tm, "$owner", "0");
-	  Printv(wrap_args, tm, "\n", NIL);
-	  Wrapper_add_localv(w, source, "VALUE", source, "= 0", NIL);
-	  Printv(arglist, source, NIL);
-	  Putc('O', parse_args);
-	} else {
-	  Printf(parse_args, "%s", parse);
-	  Replaceall(tm, "$input", pname);
-	  Replaceall(tm, "$owner", "0");
-	  if (Len(tm) == 0) Append(tm, pname);
-	  Printf(arglist, "%s", tm);
-	}
+        sprintf(source, "obj%d", idx++);
+        Replaceall(tm, "$input", source);
+        Replaceall(tm, "$owner", "0");
+        Printv(wrap_args, tm, "\n", NIL);
+        Wrapper_add_localv(w, source, "VALUE", source, "= 0", NIL);
+        Printv(arglist, source, NIL);
 	p = Getattr(p, "tmap:inv:next");
 	continue;
-      } else
-      if (Cmp(ptype, "void")) {
+      } else if (Cmp(parameterType, "void")) {
 	/**
          * Special handling for pointers to other C++ director classes.
 	 * Ideally this would be left to a typemap, but there is currently no
@@ -2248,32 +2306,32 @@ public:
 	 * do something similar.  Perhaps a new default typemap (in addition
 	 * to SWIGTYPE) called DIRECTORTYPE?
 	 */
-	if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
+	if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
 	  Node *module = Getattr(parent, "module");
-	  Node *target = Swig_directormap(module, ptype);
+	  Node *target = Swig_directormap(module, parameterType);
 	  sprintf(source, "obj%d", idx++);
 	  String *nonconst = 0;
 	  /* strip pointer/reference --- should move to Swig/stype.c */
-	  String *nptype = NewString(Char(ptype)+2);
+	  String *nptype = NewString(Char(parameterType)+2);
 	  /* name as pointer */
-	  String *ppname = Copy(pname);
-	  if (SwigType_isreference(ptype)) {
+	  String *ppname = Copy(parameterName);
+	  if (SwigType_isreference(parameterType)) {
       	     Insert(ppname,0,"&");
 	  }
 	  /* if necessary, cast away const since Ruby doesn't support it! */
 	  if (SwigType_isconst(nptype)) {
-	    nonconst = NewStringf("nc_tmp_%s", pname);
-	    String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(ptype, 0), ppname);
-	    Wrapper_add_localv(w, nonconst, SwigType_lstr(ptype, 0), nonconst, nonconst_i, NIL);
+	    nonconst = NewStringf("nc_tmp_%s", parameterName);
+	    String *nonconst_i = NewStringf("= const_cast<%s>(%s)", SwigType_lstr(parameterType, 0), ppname);
+	    Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
 	    Delete(nonconst_i);
 	    Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-		         "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(ptype, pname), classname, name);
+		         "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(parameterType, parameterName), classname, name);
 	  } else {
 	    nonconst = Copy(ppname);
 	  }
 	  Delete(nptype);
 	  Delete(ppname);
-	  String *mangle = SwigType_manglestr(ptype);
+	  String *mangle = SwigType_manglestr(parameterType);
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
 	    Wrapper_add_localv(w, director, "__DIRECTOR__ *", director, "= 0", NIL);
@@ -2295,12 +2353,11 @@ public:
 	    //       source, nonconst, base);
 	    Printv(arglist, source, NIL);
 	  }
-	  Putc('O', parse_args);
 	  Delete(mangle);
 	  Delete(nonconst);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_INV_UNDEF, input_file, line_number,
-		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0), classname, name);
+		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(parameterType, 0), classname, name);
           status = SWIG_NOWRAP;
 	  break;
 	}
@@ -2338,27 +2395,8 @@ public:
     /* wrap complex arguments to PyObjects */
     Printv(w->code, wrap_args, NIL);
 
-    String  *pyname = Getattr(n,"sym:name");
-
     /* pass the method call on to the Ruby object */
-    if (Len(parse_args) > 0) {
-      Printf(w->code, "result = rb_funcall(__get_self(), rb_intern(\"%s\"), %d%s);\n", pyname, 0, arglist);
-    } else {
-      Printf(w->code, "result = rb_funcall(__get_self(), rb_intern(\"%s\"), 0, NULL);\n", pyname);
-    }
-
-    /* exception handling */
-    tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
-    if (!tm) {
-      tm = Getattr(n, "feature:director:except");
-    }
-    if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-      Printf(w->code, "if (result == NULL) {\n");
-      Printf(w->code, "  PyObject *error = PyErr_Occurred();\n");
-      Replaceall(tm, "$error", "error");
-      Printv(w->code, Str(tm), "\n", NIL);
-      Printf(w->code, "}\n");
-    }
+    exceptionSafeMethodCall(n, w, idx, arglist);
 
     /*
     * Ruby method may return a simple object, or an Array of objects.
@@ -2453,7 +2491,6 @@ public:
 
     /* clean up */
     Delete(wrap_args);
-    Delete(parse_args);
     Delete(arglist);
     Delete(rtype);
     Delete(return_type);
