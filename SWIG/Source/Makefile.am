@@ -46,6 +46,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/java.cxx		\
 		Modules/lang.cxx		\
 		Modules/main.cxx		\
+		Modules/modula3.cxx		\
 		Modules/module.cxx		\
 		Modules/mzscheme.cxx		\
 		Modules/ocaml.cxx		\

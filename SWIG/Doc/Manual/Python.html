@@ -5,7 +5,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>21 SWIG and Python</H1>
+<a name="n1"></a><H1>22 SWIG and Python</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Overview</a>
@@ -107,7 +107,7 @@ are covered in less depth than in earlier chapters.  At the
 very least, make sure you read the "<a href="SWIG.html">SWIG
 Basics</a>" chapter.
 
-<a name="n2"></a><H2>21.1 Overview</H2>
+<a name="n2"></a><H2>22.1 Overview</H2>
 
 
 To build Python extension modules, SWIG uses a layered approach in which
@@ -130,10 +130,10 @@ described.  Advanced customization features such as typemaps are then
 described followed by a discussion of low-level implementation
 details.
 
-<a name="n3"></a><H2>21.2 Preliminaries</H2>
+<a name="n3"></a><H2>22.2 Preliminaries</H2>
 
 
-<a name="n4"></a><H3>21.2.1 Running SWIG</H3>
+<a name="n4"></a><H3>22.2.1 Running SWIG</H3>
 
 
 Suppose that you defined a SWIG module such as the following:
@@ -174,7 +174,7 @@ To change this, you can use the <tt>-o</tt> option.   The name of the Python fil
 from the module name specified with <tt>%module</tt>.  If the module name is <tt>example</tt>, then
 a file <tt>example.py</tt> is created.
 
-<a name="n5"></a><H3>21.2.2 Getting the right header files</H3>
+<a name="n5"></a><H3>22.2.2 Getting the right header files</H3>
 
 
 In order to compile the C/C++ wrappers, the compiler needs the <tt>Python.h</tt> header file.
@@ -201,7 +201,7 @@ Type "copyright", "credits" or "license" for more information.
 </pre>
 </blockquote>
 
-<a name="n6"></a><H3>21.2.3 Compiling a dynamic module</H3>
+<a name="n6"></a><H3>22.2.3 Compiling a dynamic module</H3>
 
 
 The preferred approach to building an extension module is to compile it into
@@ -239,10 +239,10 @@ other Python extension modules.  For example, the <tt>socket</tt>
 module actually consists of two files; <tt>socket.py</tt> and
 <tt>_socket.so</tt>.  Many other built-in Python modules follow a similar convention.
 
-<a name="n7"></a><H3>21.2.4 Using distutils</H3>
+<a name="n7"></a><H3>22.2.4 Using distutils</H3>
 
 
-<a name="n8"></a><H3>21.2.5 Static linking</H3>
+<a name="n8"></a><H3>22.2.5 Static linking</H3>
 
 
 An alternative approach to dynamic linking is to rebuild the Python
@@ -310,7 +310,7 @@ appears to "work" with Python 2.1, no future support is guaranteed.
 If using static linking, you might want to rely on a different approach
 (perhaps using distutils).
 
-<a name="n9"></a><H3>21.2.6 Using your module</H3>
+<a name="n9"></a><H3>22.2.6 Using your module</H3>
 
 
 To use your module, simply use the Python <tt>import</tt> statement. If
@@ -445,7 +445,7 @@ Finally, you can use a command such as <tt>ldconfig</tt> (Linux) or
 system configuration (this requires root access and you will need to
 read the man pages).
 
-<a name="n10"></a><H3>21.2.7 Compilation of C++ extensions</H3>
+<a name="n10"></a><H3>22.2.7 Compilation of C++ extensions</H3>
 
 
 Compilation of C++ extensions has traditionally been a tricky problem.
@@ -518,7 +518,7 @@ you will need to take steps to avoid segmentation faults and other
 erratic program behavior.   If working with lots of software components, you
 might want to investigate using a more formal standard such as COM.
 
-<a name="n11"></a><H3>21.2.8 Compiling for 64-bit platforms</H3>
+<a name="n11"></a><H3>22.2.8 Compiling for 64-bit platforms</H3>
 
 
 On platforms that support 64-bit applications (Solaris, Irix, etc.),
@@ -541,7 +541,7 @@ that software.  This may prevent the use of 64-bit extensions.  It may
 also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 
-<a name="n12"></a><H3>21.2.9 Building Python Extensions under Windows</H3>
+<a name="n12"></a><H3>22.2.9 Building Python Extensions under Windows</H3>
 
 
 Building a SWIG extension to Python under Windows is roughly
@@ -623,14 +623,14 @@ compilers tends to be rather problematic.  For the latest information,
 you may want to consult the <a href="http://swig.cs.uchicago.edu/cgi-bin/wiki.pl">
 SWIG Wiki</a>.
 
-<a name="n13"></a><H2>21.3 A tour of basic C/C++ wrapping</H2>
+<a name="n13"></a><H2>22.3 A tour of basic C/C++ wrapping</H2>
 
 
 By default, SWIG tries to build a very natural Python interface
 to your C/C++ code.  Functions are wrapped as functions, classes are wrapped as classes, and so forth.
 This section briefly covers the essential aspects of this wrapping.
 
-<a name="n14"></a><H3>21.3.1 Modules</H3>
+<a name="n14"></a><H3>22.3.1 Modules</H3>
 
 
 The SWIG <tt>%module</tt> directive specifies the name of the Python
@@ -641,7 +641,7 @@ extension module <tt>_example.so</tt>. When choosing a
 module name, make sure you don't use the same name as a built-in
 Python command or standard module name.  
 
-<a name="n15"></a><H3>21.3.2 Functions</H3>
+<a name="n15"></a><H3>22.3.2 Functions</H3>
 
 
 Global functions are wrapped as new Python built-in functions.  For example,
@@ -662,7 +662,7 @@ like you think it does:<p>
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n16"></a><H3>21.3.3 Global variables</H3>
+<a name="n16"></a><H3>22.3.3 Global variables</H3>
 
 
 C/C++ global variables are fully supported by SWIG.  However, the underlying
@@ -774,7 +774,7 @@ module loaded. To prevent this, you might consider renaming
 that starts with a leading underscore. SWIG does not create <tt>cvar</tt>
 if there are no global variables in a module.<p>
 
-<a name="n17"></a><H3>21.3.4 Constants and enums</H3>
+<a name="n17"></a><H3>22.3.4 Constants and enums</H3>
 
 
 C/C++ constants are installed as Python objects containing the
@@ -808,7 +808,7 @@ of the constant could be accidentally reassigned to refer to some
 other object.  Unfortunately, there is no easy way for SWIG to
 generate code that prevents this.  You will just have to be careful.
 
-<a name="n18"></a><H3>21.3.5 Pointers</H3>
+<a name="n18"></a><H3>22.3.5 Pointers</H3>
 
 
 C/C++ pointers are fully supported by SWIG.  Furthermore, SWIG has no problem working with
@@ -940,7 +940,7 @@ to use the new C++ style casts.  For example, in the above code, the
 C-style cast may return a bogus result whereas as the C++-style cast will return
 <tt>None</tt> if the conversion can't be performed.
 
-<a name="n19"></a><H3>21.3.6 Structures</H3>
+<a name="n19"></a><H3>22.3.6 Structures</H3>
 
 
 If you wrap a C structure, it is wrapped by a Python class.  This provides
@@ -1103,7 +1103,7 @@ everything works just like you would expect. For example:
 </pre>
 </blockquote>
 
-<a name="n20"></a><H3>21.3.7 C++ classes</H3>
+<a name="n20"></a><H3>22.3.7 C++ classes</H3>
 
 
 C++ classes are wrapped by Python classes as well. For example, if you have this class,
@@ -1182,7 +1182,7 @@ they are accessed through <tt>cvar</tt> like this:
 
 </pre></blockquote>
 
-<a name="n21"></a><H3>21.3.8 C++ inheritance</H3>
+<a name="n21"></a><H3>22.3.8 C++ inheritance</H3>
 
 
 SWIG is fully aware of issues related to C++ inheritance.  Therefore, if you have
@@ -1228,7 +1228,7 @@ then the function <tt>spam()</tt> accepts <tt>Foo *</tt> or a pointer to any cla
 <p>
 It is safe to use multiple inheritance with SWIG.
 
-<a name="n22"></a><H3>21.3.9 Pointers, references, values, and arrays</H3>
+<a name="n22"></a><H3>22.3.9 Pointers, references, values, and arrays</H3>
 
 
 In C++, there are many different ways a function might receive
@@ -1275,7 +1275,7 @@ Since the third function (spam7) returns a value, newly allocated memory is used
 to hold the result and a pointer is returned (Python will release this memory 
 when the return value is garbage collected).
 
-<a name="n23"></a><H3>21.3.10 C++ overloaded functions</H3>
+<a name="n23"></a><H3>22.3.10 C++ overloaded functions</H3>
 
 
 C++ overloaded functions, methods, and constructors are mostly supported by SWIG.  For example,
@@ -1376,7 +1376,7 @@ first declaration takes precedence.
 <P>
 Please refer to the "SWIG and C++" chapter for more information about overloading. 
 
-<a name="n24"></a><H3>21.3.11 C++ operators</H3>
+<a name="n24"></a><H3>22.3.11 C++ operators</H3>
 
 
 Certain C++ overloaded operators can be handled automatically by SWIG.  For example,
@@ -1449,7 +1449,7 @@ Keep reading.
 Also, be aware that certain operators don't map cleanly to Python.  For instance,
 overloaded assignment operators don't map to Python semantics and will be ignored.
 
-<a name="n25"></a><H3>21.3.12 C++ namespaces</H3>
+<a name="n25"></a><H3>22.3.12 C++ namespaces</H3>
 
 
 SWIG is aware of C++ namespaces, but namespace names do not appear in
@@ -1508,7 +1508,7 @@ extension modules for each namespace separately.  If your program
 utilizes thousands of small deeply nested namespaces each with
 identical symbol names, well, then you get what you deserve.
 
-<a name="n26"></a><H3>21.3.13 C++ templates</H3>
+<a name="n26"></a><H3>22.3.13 C++ templates</H3>
 
 
 C++ templates don't present a huge problem for SWIG.  However, in order
@@ -1555,7 +1555,7 @@ Obviously, there is more to template wrapping than shown in this example.
 More details can be found in the <a href="SWIGPlus.html">SWIG and C++</a> chapter.   Some more complicated
 examples will appear later.
 
-<a name="n27"></a><H3>21.3.14 C++ Smart Pointers</H3>
+<a name="n27"></a><H3>22.3.14 C++ Smart Pointers</H3>
 
 
 In certain C++ programs, it is common to use classes that have been wrapped by
@@ -1627,7 +1627,7 @@ simply use the <tt>__deref__()</tt> method.  For example:
 </pre>
 </blockquote>
 
-<a name="n28"></a><H2>21.4 Further details on the Python class interface</H2>
+<a name="n28"></a><H2>22.4 Further details on the Python class interface</H2>
 
 
 In the previous section, a high-level view of Python wrapping was
@@ -1638,7 +1638,7 @@ advanced features such as operator overloading.   However, a number
 of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
 
-<a name="n29"></a><H3>21.4.1 Proxy classes</H3>
+<a name="n29"></a><H3>22.4.1 Proxy classes</H3>
 
 
 In the <a href="SWIG.html">"SWIG basics"</a> and <a href="SWIGPlus.html">"SWIG and C++"</a> chapters,
@@ -1715,7 +1715,7 @@ The fact that the class has been wrapped by a real Python class offers certain a
 you can attach new Python methods to the class and you can even inherit from it (something not supported
 by Python built-in types until Python 2.2).
 
-<a name="n30"></a><H3>21.4.2 Memory management</H3>
+<a name="n30"></a><H3>22.4.2 Memory management</H3>
 
 
 Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
@@ -1877,7 +1877,7 @@ To work around this, it is always possible to flip the ownership flag. For examp
 It is also possible to deal with situations like this using
 typemaps--an advanced topic discussed later.
 
-<a name="n31"></a><H3>21.4.3 Python 2.2 and classic classes</H3>
+<a name="n31"></a><H3>22.4.3 Python 2.2 and classic classes</H3>
 
 
 SWIG makes every attempt to preserve backwards compatibility with
@@ -1909,7 +1909,7 @@ of static member functions.  In Python-2.2, they can be accessed via the
 class itself.  In Python-2.1 and earlier, they have to be accessed as a global
 function or through an instance (see the earlier section).
 
-<a name="n32"></a><H2>21.5 Cross language polymorphism (experimental)</H2>
+<a name="n32"></a><H2>22.5 Cross language polymorphism (experimental)</H2>
 
 
 Proxy classes provide a more natural, object-oriented way to access
@@ -1937,7 +1937,7 @@ to know where a particular method is implemented: the combination of
 proxy classes, director classes, and C wrapper functions takes care of
 all the cross-language method routing transparently.
 
-<a name="n33"></a><H3>21.5.1 Enabling directors</H3>
+<a name="n33"></a><H3>22.5.1 Enabling directors</H3>
 
 
 The director feature is disabled by default.  To use directors you
@@ -2002,7 +2002,7 @@ public:
 </pre>
 </blockquote>
 
-<a name="n34"></a><H3>21.5.2 Director classes</H3>
+<a name="n34"></a><H3>22.5.2 Director classes</H3>
 
 
 For each class that has directors enabled, SWIG generates a new class
@@ -2075,7 +2075,7 @@ unmodified proxy classes, all methods are ultimately implemented in C++
 so there is no need for the extra overhead involved with routing the
 calls through Python.
 
-<a name="n35"></a><H3>21.5.3 Ownership and object destruction</H3>
+<a name="n35"></a><H3>22.5.3 Ownership and object destruction</H3>
 
 
 Memory management issues are slightly more complicated with directors
@@ -2135,7 +2135,7 @@ deleting all the Foo pointers it contains at some point.  Note that no hard
 references to the Foo objects remain in Python.
 <p>
 
-<a name="n36"></a><H3>21.5.4 Exception unrolling</H3>
+<a name="n36"></a><H3>22.5.4 Exception unrolling</H3>
 
 
 With directors routing method calls to Python, and proxies routing them
@@ -2187,7 +2187,7 @@ exception. Because the Python error state is still set when
 Swig::DirectorMethodException is thrown, Python will register the
 exception as soon as the C wrapper function returns.
 
-<a name="n37"></a><H3>21.5.5 Overhead and code bloat</H3>
+<a name="n37"></a><H3>22.5.5 Overhead and code bloat</H3>
 
 
 Enabling directors for a class will generate a new director method for
@@ -2217,7 +2217,7 @@ optimized by selectively enabling director methods (using the %feature
 directive) for only those methods that are likely to be extended in
 Python.
 
-<a name="n38"></a><H3>21.5.6 Typemaps</H3>
+<a name="n38"></a><H3>22.5.6 Typemaps</H3>
 
 
 Typemaps for input and output of most of the basic types from director
@@ -2233,10 +2233,10 @@ for std::string, std::vector, and std::complex, although there's no
 guarantee these are fully functional yet. 
 <p>
 
-<a name="n39"></a><H3>21.5.7 Miscellaneous</H3>
+<a name="n39"></a><H3>22.5.7 Miscellaneous</H3>
 
 
-<a name="n40"></a><H2>21.6 Common customization features</H2>
+<a name="n40"></a><H2>22.6 Common customization features</H2>
 
 
 The last section presented the absolute basics of C/C++ wrapping. If you do nothing
@@ -2246,7 +2246,7 @@ types of functionality might be missing or the interface to certain functions mi
 be awkward.  This section describes some common SWIG features that are used
 to improve your the interface to an extension module.
 
-<a name="n41"></a><H3>21.6.1 C/C++ helper functions</H3>
+<a name="n41"></a><H3>22.6.1 C/C++ helper functions</H3>
 
 
 Sometimes when you create a module, it is missing certain bits of functionality. For
@@ -2317,7 +2317,7 @@ Admittedly, this is not the most elegant looking approach.  However, it works an
 hard to implement.  It is possible to clean this up using Python code, typemaps, and other
 customization features as covered in later sections.
 
-<a name="n42"></a><H3>21.6.2 Adding additional Python code</H3>
+<a name="n42"></a><H3>22.6.2 Adding additional Python code</H3>
 
 
 If writing support code in C isn't enough, it is also possible to write code in
@@ -2365,7 +2365,7 @@ soon enough.  For now, think of this example as an illustration of
 what can be done without having to rely on any of the more advanced
 customization features.
 
-<a name="n43"></a><H3>21.6.3 Class extension with %extend</H3>
+<a name="n43"></a><H3>22.6.3 Class extension with %extend</H3>
 
 
 One of the more interesting features of SWIG is that it can extend
@@ -2444,7 +2444,7 @@ Vector(12,14,16)
 <tt>%extend</tt> works with both C and C++ code.  It does not modify the underlying object
 in any way---the extensions only show up in the Python interface.
 
-<a name="n44"></a><H3>21.6.4 Exception handling with %exception</H3>
+<a name="n44"></a><H3>22.6.4 Exception handling with %exception</H3>
 
 
 If a C or C++ function throws an error, you may want to convert that error into a Python
@@ -2557,7 +2557,7 @@ PyExc_ZeroDivisionError
 The language-independent <tt>exception.i</tt> library file can also be used
 to raise exceptions.  See the <a href="Library.html">SWIG Library</a> chapter.
 
-<a name="n45"></a><H2>21.7 Tips and techniques</H2>
+<a name="n45"></a><H2>22.7 Tips and techniques</H2>
 
 
 Although SWIG is largely automatic, there are certain types of wrapping problems that
@@ -2565,7 +2565,7 @@ require additional user input.    Examples include dealing with output parameter
 strings, binary data, and arrays.   This chapter discusses the common techniques for
 solving these problems.
 
-<a name="n46"></a><H3>21.7.1 Input and output parameters</H3>
+<a name="n46"></a><H3>22.7.1 Input and output parameters</H3>
 
 
 A common problem in some C programs is handling parameters passed as simple pointers.  For
@@ -2745,7 +2745,7 @@ void foo(Bar *OUTPUT);
 
 may not have the intended effect since <tt>typemaps.i</tt> does not define an OUTPUT rule for <tt>Bar</tt>.
 
-<a name="n47"></a><H3>21.7.2 Simple pointers</H3>
+<a name="n47"></a><H3>22.7.2 Simple pointers</H3>
 
 
 If you must work with simple pointers such as <tt>int *</tt> or <tt>double *</tt> and you don't want to use
@@ -2801,7 +2801,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type,name)</t
 
 See the <a href="Library.html">SWIG Library</a> chapter for further details.
 
-<a name="n48"></a><H3>21.7.3 Unbounded C Arrays</H3>
+<a name="n48"></a><H3>22.7.3 Unbounded C Arrays</H3>
 
 
 Sometimes a C function expects an array to be passed as a pointer.  For example,
@@ -2855,7 +2855,7 @@ On the other hand, this low-level approach is extremely efficient and
 well suited for applications in which you need to create buffers,
 package binary data, etc.
 
-<a name="n49"></a><H3>21.7.4 String handling</H3>
+<a name="n49"></a><H3>22.7.4 String handling</H3>
 
 
 If a C function has an argument of <tt>char *</tt>, then a Python string
@@ -2909,16 +2909,16 @@ If you need to return binary data, you might use the
 <tt>cstring.i</tt> library file.  The <tt>cdata.i</tt> library can
 also be used to extra binary data from arbitrary pointers.
 
-<a name="n50"></a><H3>21.7.5 Arrays</H3>
+<a name="n50"></a><H3>22.7.5 Arrays</H3>
 
 
-<a name="n51"></a><H3>21.7.6 String arrays</H3>
+<a name="n51"></a><H3>22.7.6 String arrays</H3>
 
 
-<a name="n52"></a><H3>21.7.7 STL wrappers</H3>
+<a name="n52"></a><H3>22.7.7 STL wrappers</H3>
 
 
-<a name="n53"></a><H2>21.8 Typemaps</H2>
+<a name="n53"></a><H2>22.8 Typemaps</H2>
 
 
 This section describes how you can modify SWIG's default wrapping behavior
@@ -2932,7 +2932,7 @@ part of using SWIG---the default wrapping behavior is enough in most cases.
 Typemaps are only used if you want to change some aspect of the primitive
 C-Python interface or if you want to elevate your guru status.
 
-<a name="n54"></a><H3>21.8.1 What is a typemap?</H3>
+<a name="n54"></a><H3>22.8.1 What is a typemap?</H3>
 
 
 A typemap is nothing more than a code generation rule that is attached to 
@@ -3030,7 +3030,7 @@ parameter is omitted):
 </pre>
 </blockquote>
 
-<a name="n55"></a><H3>21.8.2 Python typemaps</H3>
+<a name="n55"></a><H3>22.8.2 Python typemaps</H3>
 
 
 The previous section illustrated an "in" typemap for converting Python objects to C.
@@ -3062,7 +3062,7 @@ $ cat python.swg
 
 Additional typemap examples can also be found in the <tt>typemaps.i</tt> file.
 
-<a name="n56"></a><H3>21.8.3 Typemap variables</H3>
+<a name="n56"></a><H3>22.8.3 Typemap variables</H3>
 
 
 Within typemap code, a number of special variables prefaced with a <tt>$</tt> may appear.
@@ -3116,7 +3116,7 @@ properly assigned.
 The Python name of the wrapper function being created.
 </blockquote>
 
-<a name="n57"></a><H3>21.8.4 Useful Python Functions</H3>
+<a name="n57"></a><H3>22.8.4 Useful Python Functions</H3>
 
 
 When you write a typemap, you usually have to work directly with Python objects.
@@ -3213,14 +3213,14 @@ write me
 </pre>
 </blockquote>
 
-<a name="n58"></a><H2>21.9 Typemap Examples</H2>
+<a name="n58"></a><H2>22.9 Typemap Examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
 might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
-<a name="n59"></a><H3>21.9.1 Converting  Python list to a char ** </H3>
+<a name="n59"></a><H3>22.9.1 Converting  Python list to a char ** </H3>
 
 
 A common problem in many C programs is the processing of command line
@@ -3293,7 +3293,7 @@ memory allocation is used to allocate memory for the array, the
 "freearg" typemap is used to later release this memory after the execution of
 the C function. 
 
-<a name="n60"></a><H3>21.9.2 Expanding a Python object into multiple arguments</H3>
+<a name="n60"></a><H3>22.9.2 Expanding a Python object into multiple arguments</H3>
 
 
 Suppose that you had a collection of C functions with arguments
@@ -3363,7 +3363,7 @@ to supply the argument count.  This is automatically set by the typemap code.  F
 </pre>
 </blockquote>
 
-<a name="n61"></a><H3>21.9.3 Using typemaps to return arguments</H3>
+<a name="n61"></a><H3>22.9.3 Using typemaps to return arguments</H3>
 
 
 A common problem in some C programs is that values may be returned in
@@ -3441,7 +3441,7 @@ function can now be used as follows:
 &gt;&gt;&gt;
 </pre></blockquote>
 
-<a name="n62"></a><H3>21.9.4 Mapping Python tuples into small arrays</H3>
+<a name="n62"></a><H3>22.9.4 Mapping Python tuples into small arrays</H3>
 
 
 In some applications, it is sometimes desirable to pass small arrays
@@ -3482,7 +3482,7 @@ Since our mapping copies the contents of a Python tuple into a C
 array, such an approach would not be recommended for huge arrays, but
 for small structures, this approach works fine.<p>
 
-<a name="n63"></a><H3>21.9.5 Mapping sequences to C arrays</H3>
+<a name="n63"></a><H3>22.9.5 Mapping sequences to C arrays</H3>
 
 
 Suppose that you wanted to generalize the previous example to handle C
@@ -3561,7 +3561,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 </pre>
 </blockquote>
 
-<a name="n64"></a><H3>21.9.6 Pointer handling</H3>
+<a name="n64"></a><H3>22.9.6 Pointer handling</H3>
 
 
 Occasionally, it might be necessary to convert pointer values that have

@@ -22,19 +22,19 @@
 <li><a href="#n9">Perl</a>
 <li><a href="#n10">Java</a>
 <li><a href="#n11">Ruby</a>
-<li><a href="#n110">C#</a>
+<li><a href="#n12">C#</a>
 </ul>
-<li><a href="#n12">Instructions for using the Examples with other compilers</a>
+<li><a href="#n13">Instructions for using the Examples with other compilers</a>
 </ul>
-<li><a href="#n13">SWIG on Cygwin and MinGW</a>
+<li><a href="#n14">SWIG on Cygwin and MinGW</a>
 <ul>
-<li><a href="#n14">Building swig.exe on Windows</a>
+<li><a href="#n15">Building swig.exe on Windows</a>
 <ul>
-<li><a href="#n15">Building swig.exe using MinGW and MSYS</a>
-<li><a href="#n16">Building swig.exe using Cygwin</a>
-<li><a href="#n17">Building swig.exe alternatives</a>
+<li><a href="#n16">Building swig.exe using MinGW and MSYS</a>
+<li><a href="#n17">Building swig.exe using Cygwin</a>
+<li><a href="#n18">Building swig.exe alternatives</a>
 </ul>
-<li><a href="#n18">Running the examples on Windows using Cygwin</a>
+<li><a href="#n19">Running the examples on Windows using Cygwin</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -169,23 +169,25 @@ RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32<br>
 RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib<br>
 </tt>
 
-<a name="n110"></a><H4>2.2.1.6 C#</H4>
+<a name="n12"></a><H4>2.2.1.6 C#</H4>
+
+
 The C# examples do not require any environment variables to be set as a C# project file is included.
 Just open up the .sln solution file in Visual Studio .NET 2003 and do a Rebuild All from the Build menu.
 The accompanying C# and C++ project file are automatically used by the solution file.
 
-<a name="n12"></a><H3>2.2.2 Instructions for using the Examples with other compilers</H3>
+<a name="n13"></a><H3>2.2.2 Instructions for using the Examples with other compilers</H3>
 
 
 If you do not have access to Visual C++ you will have to set up project files / Makefiles for your chosen compiler. There is a section in each of the language modules detailing what needs setting up using Visual C++ which may be of some guidance. Alternatively you may want to use Cygwin as described in the following section.
 
-<a name="n13"></a><H2>2.3 SWIG on Cygwin and MinGW</H2>
+<a name="n14"></a><H2>2.3 SWIG on Cygwin and MinGW</H2>
 
 
 SWIG can also be compiled and run using <a href="http://www.cygwin.com">Cygwin</a> or <a href=http://www.mingw.org>MinGW</a> which provides a Unix like front end to Windows and comes free with gcc, an ANSI C/C++ compiler. However, this is not a recommended approach as the prebuilt executable is supplied. 
 
 <a name="swig_exe"></a>
-<a name="n14"></a><H3>2.3.1 Building swig.exe on Windows</H3>
+<a name="n15"></a><H3>2.3.1 Building swig.exe on Windows</H3>
 
 
 If you want to replicate the build of swig.exe that comes with the download, follow the MinGW instructions below.
@@ -193,7 +195,7 @@ This is not necessary to use the supplied swig.exe.
 This information is provided for those that want to modify the SWIG source code in a Windows environment. 
 Normally this is not needed, so most people will want to ignore this section. 
 
-<a name="n15"></a><H4>2.3.1.1 Building swig.exe using MinGW and MSYS</H4>
+<a name="n16"></a><H4>2.3.1.1 Building swig.exe using MinGW and MSYS</H4>
 
 
 <ul>
@@ -202,7 +204,7 @@ Normally this is not needed, so most people will want to ignore this section.
 </ul>
 
 
-<a name="n16"></a><H4>2.3.1.2 Building swig.exe using Cygwin</H4>
+<a name="n17"></a><H4>2.3.1.2 Building swig.exe using Cygwin</H4>
 
 
 Note that SWIG can also be built using Cygwin.
@@ -213,7 +215,7 @@ Note that the Cygwin environment will also allow one to regenerate the autotool 
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 <p>
 
-<a name="n17"></a><H4>2.3.1.3 Building swig.exe alternatives</H4>
+<a name="n18"></a><H4>2.3.1.3 Building swig.exe alternatives</H4>
 
 
 If you don't want to install Cygwin or MinGW, use a different compiler to build 
@@ -222,7 +224,7 @@ file in order to build swig.exe from the Visual C++ IDE.
 
 
 <a name="examples_cygwin"></a>
-<a name="n18"></a><H3>2.3.2 Running the examples on Windows using Cygwin</H3>
+<a name="n19"></a><H3>2.3.2 Running the examples on Windows using Cygwin</H3>
 
 
 The examples and test-suite work as successfully on Cygwin as on any other Unix operating system. 

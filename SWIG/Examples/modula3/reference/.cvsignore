@@ -1,0 +1,15 @@
+*.class
+*.java
+*_wrap.*
+*.i3
+*.m3
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+src
+Release
+Debug

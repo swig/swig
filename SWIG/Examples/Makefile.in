@@ -495,6 +495,31 @@ java_clean:
 	rm -f *.@OBJEXT@ *@JAVASO@ *_wrap* *~ .~* core @EXTRA_CLEAN@ *.class `find . -name \*.java | grep -v main.java`
 
 ##################################################################
+#####                      MODULA3                          ######
+##################################################################
+
+MODULA3_INCLUDE= @MODULA3INC@
+
+# ----------------------------------------------------------------
+# Build a modula3 dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+modula3: $(SRCS)
+	$(SWIG) -modula3 $(SWIGOPT) $(INTERFACE)
+#	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) \
+#       $(OBJS) $(IOBJS) $(LIBS)
+
+modula3_cpp: $(SRCS)
+	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACE)
+
+# -----------------------------------------------------------------
+# Cleaning the modula3 examples
+# -----------------------------------------------------------------
+
+modula3_clean:
+	rm -f *_wrap* *.i3 *.m3
+
+##################################################################
 #####                       MZSCHEME                        ######
 ##################################################################
 
