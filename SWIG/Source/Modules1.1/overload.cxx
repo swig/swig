@@ -139,6 +139,8 @@ Swig_overload_rank(Node *n) {
 		differ = 1;
 		break;
 	      }
+	    } else if (differ) {
+	      break;
 	    }
 	    if (Getattr(p1,"tmap:in:next")) {
 	      p1 = Getattr(p1,"tmap:in:next");
