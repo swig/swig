@@ -18,7 +18,7 @@ class RUBY : public Language {
   virtual int to_VALUE(SwigType *, char *, DOHString *, int = 0);
   virtual int from_VALUE(SwigType *, char *, DOHString *);
  public:
-  // Virtual functions required by the SWIG parser
+  /* Virtual functions required by the SWIG parser */
   virtual void parse_args(int, char *argv[]);
   virtual void parse();
   virtual void create_function(char *, char *, SwigType *, ParmList *);
@@ -31,7 +31,7 @@ class RUBY : public Language {
   virtual void create_command(char *, char *, int);
   virtual void import(char *);
 
-  // C++ language extensions.
+  /* C++ language extensions. */
   virtual void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l);
   virtual void cpp_constructor(char *name, char *iname, ParmList *l);
   virtual void cpp_destructor(char *name, char *newname);
@@ -43,10 +43,10 @@ class RUBY : public Language {
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
   virtual void cpp_static_var(char *name, char *iname, SwigType *t);
 
-  // Declaration of a class, but not a full definition
+  /* Declaration of a class, but not a full definition */
   virtual void cpp_class_decl(char *, char *, char *);
 
-  // Pragma directive 
+  /* Pragma directive  */
   virtual void pragma(char *, char *, char *);
   virtual void cpp_pragma(Pragma *);
 };

@@ -1,4 +1,17 @@
 //
+// Pointer library for Ruby
+//
+// $Header$
+//
+// Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
+// Copyright (C) 2000  Information-technology Promotion Agency, Japan
+//
+// Masaki Fukushima
+//
+// Originally derived from python/ptrlang.i
+//
+
+//
 // SWIG pointer conversion and utility library
 // 
 // Dave Beazley
