@@ -1,9 +1,13 @@
+/* -----------------------------------------------------------------------------
+ * java.swg
+ *
+ * Java typemaps
+ * ----------------------------------------------------------------------------- */
+
 
 %include "javahead.swg"
 
-/* Java typemaps.
- *
- * The jni, jtype and jstype typemaps work together and so there should be one of each. 
+/* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
  * The jtype typemap contains the Java type used in the Java module class. 
  * The jstype typemap contains the Java type used in the Java proxy class. */
@@ -647,8 +651,12 @@ $1 = &temp; %}
 %typemap(javaout) SWIGTYPE {
     return new $&javaclassname($jnicall, true);
   }
-%typemap(javaout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typemap(javaout) SWIGTYPE & {
     return new $javaclassname($jnicall, $owner);
+  }
+%typemap(javaout) SWIGTYPE *, SWIGTYPE [] {
+    long cPtr = $jnicall;
+    return (cPtr == 0) ? null : new $javaclassname(cPtr, $owner);
   }
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
@@ -667,7 +675,7 @@ $1 = &temp; %}
 
 %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
   protected static long getCPtr($javaclassname obj) {
-    return obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 

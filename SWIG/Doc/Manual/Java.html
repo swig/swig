@@ -33,6 +33,9 @@
 <li><a href="#n21">C++ classes</a>
 <li><a href="#n22">C++ inheritance</a>
 <li><a href="#n23">Pointers, references, arrays and pass by value</a>
+<ul>
+<li><a href="#n924">Null pointers</a>
+</ul>
 <li><a href="#n24">C++ overloaded functions</a>
 <li><a href="#n25">C++ namespaces</a>
 <li><a href="#n26">C++ templates</a>
@@ -87,7 +90,7 @@
 <li><a href="#n58">Using typemaps to return arguments</a>
 <li><a href="#n59">Adding Java downcasts to polymorphic return types</a>
 <li><a href="#n60">Adding an equals method to the Java classes</a>
-<li><a href="#n61">Void pointers, null pointers and a common Java base class</a>
+<li><a href="#n61">Void pointers and a common Java base class</a>
 </ul>
 <li><a href="#n62">Odds and ends</a>
 <ul>
@@ -933,6 +936,25 @@ then all three functions will return a pointer to some <tt>Foo</tt> object.
 Since the third function (spam7) returns a value, newly allocated memory is used 
 to hold the result and a pointer is returned (Java will release this memory 
 when the returned object's finalizer is run by the garbage collector).
+
+<a name="n924"></a><H4>15.3.11.1 Null pointers</H4>
+
+Working with null pointers is easy. 
+A Java <tt>null</tt> can be used whenever a method expects a proxy class or typewrapper class.
+However, it is not possible to pass null to C/C++ functions that take parameters by value or by reference. 
+If you try you will get a NullPointerException.
+
+<blockquote>
+<pre>
+example.spam1(null);   // Pointer - ok
+example.spam2(null);   // Reference - NullPointerException
+example.spam3(null);   // Value - NullPointerException
+example.spam4(null);   // Array - ok
+</pre>
+</blockquote>
+
+For <tt>spam1</tt> and <tt>spam4</tt> above the Java <tt>null</tt> gets translated into a NULL pointer for passing to the C/C++ function. 
+The converse also occurs, that is, NULL pointers are translated into <tt>null</tt> java objects when returned from a C/C++ function.
 
 <a name="n24"></a><H3>15.3.12 C++ overloaded functions</H3>
 
@@ -1842,8 +1864,8 @@ public class SWIGTYPE_p_int {
 
 The methods do not have public access, so by default it is impossible to do anything with objects of this class other than 
 pass them around. The methods in the class are part of the inner workings of SWIG. 
-If you need to mess around with pointers, even create a null pointer, you will have to use some typemaps specific to the Java module to achieve this.
-The section on <a href=#n47>Java typemaps</a> details how to specify a pure Java base class.
+If you need to mess around with pointers you will have to use some typemaps specific to the Java module to achieve this.
+The section on <a href=#n47>Java typemaps</a> details how to modify the generated code.
 
 <p>
 Note that if you use a pointer or reference to a proxy class in a function then no type wrapper class is generated because the proxy class can be used
@@ -3167,7 +3189,7 @@ The defaults can be overridden to tailor these classes and are often used to hid
 <pre>
 %typemap(javagetcptr) SWIGTYPE %{
   public static long getCPtr($javaclassname obj) {
-    return obj.swigCPtr;
+    return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 </pre>
@@ -3708,7 +3730,8 @@ System.out.println("foo1? " + foo1.equals(foo2));
 </pre>
 </blockquote>
 
-<a name="n61"></a><H3>15.8.6 Void pointers, null pointers and a common Java base class</H3>
+
+<a name="n61"></a><H3>15.8.6 Void pointers and a common Java base class</H3>
 
 
 One might wonder why the common code that SWIG emits for the proxy and type wrapper classes is not pushed into a base class. 
@@ -3727,10 +3750,6 @@ Here is an example which uses a common base class for all proxy classes and type
   protected long getPointer() {
     return swigCPtr;
   }
-
-  public static $javaclassname createNull() {
-    return new $javaclassname(0, false);
-  }
 %}
 </pre>
 </blockquote>
@@ -3742,10 +3761,6 @@ Define new base class called SWIG:
 <pre>
 public abstract class SWIG {
   protected abstract long getPointer();
-
-  public boolean isNull() {
-    return (getPointer() == 0);
-  }
 
   public boolean equals(Object obj) {
     boolean equal = false;
@@ -3764,8 +3779,6 @@ public abstract class SWIG {
 This example contains some useful functionality which you may want in your code. 
 <ul>
     <li> It has an <tt>equals()</tt> method. Unlike the previous example, the method code isn't replicated in all classes.
-    <li> It has an additional function in each class to determine whether a pointer is NULL.
-    <li> It enables void pointers to be created.
     <li> It also has a function which effectively implements a cast from the type of the proxy/type wrapper class to a void pointer. This is necessary for passing a proxy class or a type wrapper class to a function that takes a void pointer.
 </ul>
 

@@ -1,3 +1,9 @@
+/* -----------------------------------------------------------------------------
+ * javahead.swg
+ *
+ * Java support code
+ * ----------------------------------------------------------------------------- */
+
 
 /* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so 
  * that the same typemaps can be used for generating code for both C and C++. The SWIG preprocessor can expand
