@@ -22,6 +22,7 @@
 
 char cvsroot_swigmain_cxx[] = "$Header$";
 
+#include <ctype.h>
 #include "swigmod.h"
 
 /* Module factories.  These functions are used to instantiate 
@@ -97,11 +98,52 @@ swig_module  modules[] = {
 // Main program.    Initializes the files and starts the parser.
 //-----------------------------------------------------------------
 
+void SWIG_merge_envopt(const char *env, int oargc, char *oargv[],
+		       int *nargc, char ***nargv)
+{
+  if (!env) {
+    *nargc = oargc;
+    *nargv = oargv;
+    return;
+  }
 
-int main(int argc, char **argv) {
+  int argc = 1;
+  int arge = oargc + 1024;
+  char **argv = (char **) malloc(sizeof(char*)*(arge));
+  char *buffer = (char*)  malloc(2048);
+  char *b = buffer;
+  char *be = b + 1023;
+  const char *c = env;
+  while ((b != be) && *c && (argc < arge)) {
+    while (isspace(*c) && *c) ++c;
+    if (*c) {
+      argv[argc] = b;
+      ++argc;
+    }    
+    while ((b != be) && *c && !isspace(*c)) {
+      *(b++) = *(c++);
+    }
+    *b++ = 0;
+  }
+
+  argv[0] = oargv[0];
+  for (int i = 1; (i < oargc) && (argc < arge); ++i, ++argc) {
+    argv[argc] = oargv[i];
+  }
+
+  *nargc = argc;
+  *nargv = argv;
+}
+
+int main(int margc, char **margv) {
   int i;
   Language *dl = 0;
   ModuleFactory fac = 0;
+
+  int argc;
+  char **argv;
+
+  SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
 
 #ifdef MACSWIG
   SIOUXSettings.asktosaveonclose = false;
