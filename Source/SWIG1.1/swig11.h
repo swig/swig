@@ -262,7 +262,8 @@ extern "C" {
 
 extern  int   emit_args(SwigType *, ParmList *, Wrapper *f);
 extern  void  emit_func_call(char *, SwigType *, ParmList *, Wrapper *f);
-extern  void  SWIG_exit(int);
+extern  void  SWIG_exit(int);           /* use EXIT_{SUCCESS,FAILURE} */
 extern int     check_numopt(ParmList *);
 extern void   SWIG_config_file(const String_or_char *);
 
+/* swig11.h ends here */
