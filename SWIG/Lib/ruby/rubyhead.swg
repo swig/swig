@@ -12,22 +12,36 @@
                NUM2INT(n)), (short)0)\
 )
 
-#ifdef RUBY_METHOD_FUNC
-#  define VALUEFUNC(f) RUBY_METHOD_FUNC(f)
-#  define VOIDFUNC(f) ((RUBY_DATA_FUNC) f)
-#else
-#  ifdef __cplusplus
-#    if defined(_WIN32) && defined(_MSC_VER)
-#      define VALUEFUNC(f) ((VALUE (*)())f)
-#      define VOIDFUNC(f) ((void (*)(void *))f)
-#    else
-#      define VALUEFUNC(f) ((VALUE (*)(...))f)
-#      define VOIDFUNC(f) ((void (*)(...))f)
-#    endif
+/*
+ * Need to be very careful about how these macros are defined, especially
+ * when compiling C++ code or C code with an ANSI C compiler.
+ *
+ * VALUEFUNC(f) is a macro used to typecast a C function that implements
+ * a Ruby method so that it can be passed as an argument to API functions
+ * like rb_define_method() and rb_define_singleton_method().
+ *
+ * VOIDFUNC(f) is a macro used to typecast a C function that implements
+ * either the "mark" or "free" stuff for a Ruby Data object, so that it
+ * can be passed as an argument to API functions like Data_Wrap_Struct()
+ * and Data_Make_Struct().
+ */
+ 
+#ifdef __cplusplus
+#  ifndef RUBY_METHOD_FUNC /* These definitions should work for Ruby 1.4.6 */
+#    define VALUEFUNC(f) ((VALUE (*)()) f)
+#    define VOIDFUNC(f)  ((void (*)()) f)
 #  else
-#   define VALUEFUNC(f) (f)
-#   define VOIDFUNC(f) (f)
+#    ifndef ANYARGS /* These definitions should work for Ruby 1.6 */
+#      define VALUEFUNC(f) ((VALUE (*)()) f)
+#      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
+#    else /* These definitions should work for Ruby 1.7 */
+#      define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
+#      define VOIDFUNC(f)  ((RUBY_DATA_FUNC) f)
+#    endif
 #  endif
+#else
+#  define VALUEFUNC(f) (f)
+#  define VOIDFUNC(f) (f)
 #endif
 
 typedef struct {
