@@ -105,7 +105,10 @@ int need_protected(Node* n, int dirprot_mode)
     /* and the function is declared like virtual, or it has no
        storage. This eliminates typedef, static and so on. */ 
     return (!storage || (Strcmp(storage,"virtual") == 0));
+  } else if ((Strcmp(nodeType(n),"constructor") == 0)) {
+    return 1;
   }
+
   return 0;
 }
 
@@ -167,6 +170,8 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
 	|| (Cmp(b_storage, "static") == 0)) {
       if (Cmp(a_storage, b_storage) != 0) return 0;
     }
+
+    /* friend methods */
     
     if (!a_inclass || (Cmp(a_storage,"friend") == 0)) {
       /* check declaration */
@@ -181,10 +186,6 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
 	  /* check parameters */
 	  Parm *ap = (Getattr(a,"parms"));
 	  Parm *bp = (Getattr(b,"parms"));
-	  int la = Len(ap);
-	  int lb = Len(bp);
-	  
-	  if (la != lb) return 0;
 	  while (ap && bp) {
 	    SwigType *at = Getattr(ap,"type");
 	    SwigType *bt = Getattr(bp,"type");
@@ -192,7 +193,9 @@ int are_equivalent_nodes(Node* a, Node* b, int a_inclass)
 	    ap = nextSibling(ap);
 	    bp = nextSibling(bp);
 	  }
-          {
+	  if (ap || bp) {
+	    return 0;
+	  } else {
             Node *a_template = Getattr(a,"template");
             Node *b_template = Getattr(b,"template");
             /* Not equivalent if one is a template instantiation (via %template) and the other is a non-templated function */
