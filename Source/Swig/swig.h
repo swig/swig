@@ -39,7 +39,7 @@ extern DOH  *Swig_include(DOH *name);
 
 /* --- Super Strings --- */
 
-extern DOH *NewSuper(char *s, DOH *filename, int firstline);
+extern DOH *NewSuperString(char *s, DOH *filename, int firstline);
 extern int SuperString_check(DOH *s);
 
 /* --- Command line parsing --- */
