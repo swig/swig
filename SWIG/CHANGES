@@ -17,6 +17,12 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 05/08/2002: ljohnson (Lyle Johnson)
+            [Ruby] A copy constructor is now turned into a "clone"
+            instance method (see Dave's change for copy constructors
+            dated 4/7/2002). This seems like the appropriate thing
+            to do for Ruby code.
+
+05/08/2002: ljohnson (Lyle Johnson)
             [Ruby] Fixed [ 553864 ] Inline destructor code not written.
 
 05/08/2002: beazley

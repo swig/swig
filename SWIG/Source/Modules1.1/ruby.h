@@ -18,30 +18,49 @@ class RUBY : public Language {
   void insertCleanupCode(ParmList *l, String *cleanup);
   void insertArgOutputCode(ParmList *l, String *outarg, int& need_result);
   void create_command(Node *, char *);
+  void set_module(const char *module_name);
 
  public:
-  /* Virtual functions required by the SWIG parser */
-  virtual void main(int, char *argv[]);
-  virtual int top(Node *);
-  virtual int functionWrapper(Node *);
-  virtual int constantWrapper(Node *);
-  virtual int variableWrapper(Node *);
-  virtual int nativeWrapper(Node *);
+  /* Parse command line options */
   
-  /* Is this a valid identifier for Ruby? */
+  virtual void main(int argc, char *argv[]);
+  
+  /* Top of the parse tree */
+  
+  virtual int top(Node *n);
+  
+  /* C/C++ parsing */
+  
+  virtual int classforwardDeclaration(Node *n);
+
+  /* Function handlers */
+
+  virtual int memberfunctionHandler(Node *n);
+  virtual int staticmemberfunctionHandler(Node *n);
+
+  /* Variable handlers */
+  
+  virtual int membervariableHandler(Node *n);
+  virtual int staticmembervariableHandler(Node *n);
+  
+  /* C++ handlers */
+  
+  virtual int memberconstantHandler(Node *n);
+  virtual int constructorHandler(Node *n);
+  virtual int copyconstructorHandler(Node *n);
+  virtual int destructorHandler(Node *n);
+  virtual int classHandler(Node *n);
+  
+  /* Miscellaneous */
+
   virtual int validIdentifier(String *s);
 
-  virtual int staticmemberfunctionHandler(Node *);
-  virtual int staticmembervariableHandler(Node *);
-  virtual int membervariableHandler(Node *);
-  virtual int memberconstantHandler(Node *);
-  virtual int memberfunctionHandler(Node *);
-  virtual int constructorHandler(Node *);
-  virtual int destructorHandler(Node *);
-  virtual int classHandler(Node *);
-  virtual int classforwardDeclaration(Node *);
+  /* Low-level code generation */
 
-  virtual void set_module(char *);          /* Deprecated */
+  virtual int constantWrapper(Node *n);
+  virtual int variableWrapper(Node *n);
+  virtual int functionWrapper(Node *n);
+  virtual int nativeWrapper(Node *n);
 };
 
 /*

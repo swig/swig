@@ -131,7 +131,8 @@ static  Hash *special_methods;	/* Python style special method name table */
  * Parse command line options and initializes variables.
  * --------------------------------------------------------------------- */
 
-void RUBY::main(int argc, char *argv[]) {
+void
+RUBY::main(int argc, char *argv[]) {
   /* Look for certain command line options */
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
@@ -169,7 +170,8 @@ void RUBY::main(int argc, char *argv[]) {
  * RUBY::top()
  * --------------------------------------------------------------------- */
 
-int RUBY::top(Node *n) {
+int
+RUBY::top(Node *n) {
 
   /* Initialize all of the output files */
   String *outfile = Getattr(n,"outfile");
@@ -308,14 +310,15 @@ int RUBY::top(Node *n) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::set_module(char *mod_name)
+ * RUBY::set_module(const char *mod_name)
  *
  * Sets the module name.  Does nothing if it's already set (so it can
  * be overridden as a command line option).
  *---------------------------------------------------------------------- */
 
 
-void RUBY::set_module(char *mod_name) {
+void
+RUBY::set_module(const char *mod_name) {
   if (import_file) {
     Printf(f_init, "%srb_f_require(Qnil, rb_str_new2(\"%s\"));\n", tab4, mod_name);
     free(import_file);  /* Note: was allocated from C */
@@ -356,8 +359,8 @@ RUBY::nativeWrapper(Node *n) {
  *              iname = Name of function in scripting language
  * --------------------------------------------------------------------- */
 
-void RUBY::create_command(Node *n, char *iname) {
-
+void
+RUBY::create_command(Node *n, char *iname) {
 
   String *wname = Swig_name_wrapper(iname);
   if (CPlusPlus) {
@@ -422,7 +425,8 @@ void RUBY::create_command(Node *n, char *iname) {
  * the function wrapper.
  * --------------------------------------------------------------------- */
 
-void RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f) {
+void
+RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrapper *f) {
   int i;
   Parm *p;
   String *tm;
@@ -489,7 +493,8 @@ void RUBY::marshalInputArgs(ParmList *l, int numarg, int numreq, int start, Wrap
  * the function wrapper.
  * --------------------------------------------------------------------- */
 
-void RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f) {
+void
+RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f) {
   Parm *p;
   String *tm;
   for (p = l; p;) {
@@ -511,7 +516,8 @@ void RUBY::insertConstraintCheckingCode(ParmList *l, Wrapper *f) {
  * the function wrapper.
  * --------------------------------------------------------------------- */
 
-void RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
+void
+RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
   String *tm;
   for (Parm *p = l; p; ) {
     if ((tm = Getattr(p,"tmap:freearg"))) {
@@ -532,7 +538,8 @@ void RUBY::insertCleanupCode(ParmList *l, String *cleanup) {
  * the function wrapper.
  * --------------------------------------------------------------------- */
 
-void RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
+void
+RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
   Parm *p;
   String *tm;
   for (Parm *p = l; p; ) {
@@ -569,7 +576,8 @@ void RUBY::insertArgOutputCode(ParmList *l, String *outarg, int& need_result) {
  * (e.g. Thread#critical=).
  * --------------------------------------------------------------------- */
 
-int RUBY::validIdentifier(String *s) {
+int
+RUBY::validIdentifier(String *s) {
   char *c = Char(s);
   while (*c) {
     if ( !( isalnum(*c) || (*c == '_') || (*c == '?') || (*c == '!') || (*c == '=') ) ) return 0;
@@ -584,7 +592,8 @@ int RUBY::validIdentifier(String *s) {
  * Create a function declaration and register it with the interpreter.
  * --------------------------------------------------------------------- */
 
-int RUBY::functionWrapper(Node *n) {
+int
+RUBY::functionWrapper(Node *n) {
   char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
@@ -763,7 +772,8 @@ int RUBY::functionWrapper(Node *n) {
  * RUBY::variableWrapper()
  * --------------------------------------------------------------------- */
 
-int RUBY::variableWrapper(Node *n) {
+int
+RUBY::variableWrapper(Node *n) {
 
   char *name  = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
@@ -872,7 +882,8 @@ int RUBY::variableWrapper(Node *n) {
  * Validate constant name.
  * --------------------------------------------------------------------- */
 
-char *RUBY::validate_const_name(char *name, const char *reason) {
+char *
+RUBY::validate_const_name(char *name, const char *reason) {
   if (!name || name[0] == '\0')
     return name;
 
@@ -895,7 +906,8 @@ char *RUBY::validate_const_name(char *name, const char *reason) {
  * RUBY::constantWrapper()
  * --------------------------------------------------------------------- */
 
-int RUBY::constantWrapper(Node *n) {
+int
+RUBY::constantWrapper(Node *n) {
   Swig_require(&n, "*sym:name", "type", "value", NULL);
   
   char *iname     = GetChar(n,"sym:name");
@@ -939,7 +951,8 @@ int RUBY::constantWrapper(Node *n) {
  * RUBY::classHandler()
  * ---------------------------------------------------------------------- */
 
-int RUBY::classHandler(Node *n) {
+int
+RUBY::classHandler(Node *n) {
 
   char *cname = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
@@ -1052,7 +1065,8 @@ int RUBY::classHandler(Node *n) {
  *
  * --------------------------------------------------------------------- */
 
-int RUBY::memberfunctionHandler(Node *n) {
+int
+RUBY::memberfunctionHandler(Node *n) {
   current = MEMBER_FUNC;
   Language::memberfunctionHandler(n);
   current = NO_CPP;
@@ -1065,7 +1079,8 @@ int RUBY::memberfunctionHandler(Node *n) {
  * Method for adding C++ member constructor
  * -------------------------------------------------------------------- */
 
-int RUBY::constructorHandler(Node *n) {
+int
+RUBY::constructorHandler(Node *n) {
   if (!klass->constructor_defined) {
     /* First wrap the new singleton method */
     current = CONSTRUCTOR_NEW;
@@ -1078,6 +1093,7 @@ int RUBY::constructorHandler(Node *n) {
     Language::constructorHandler(n);
     
     /* Done */
+    Swig_name_unregister((String_or_char *) "construct");
     current = NO_CPP;
     klass->constructor_defined = 1;
   } else {
@@ -1095,11 +1111,38 @@ int RUBY::constructorHandler(Node *n) {
   return SWIG_OK;
 }
 
+/* ----------------------------------------------------------------------
+ * RUBY::copyconstructorHandler()
+ * ---------------------------------------------------------------------- */
+
+int
+RUBY::copyconstructorHandler(Node *n) {
+  Swig_require(&n,"?name","*sym:name","?type","?parms", NULL);
+  
+  String *classname = Getattr(n, "name");
+  String *symname = Getattr(n, "sym:name");
+  Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_clone");
+  String *mrename = Swig_name_copyconstructor(symname);
+  Swig_name_unregister((String_or_char *) "construct");
+
+  Setattr(n, "sym:name", mrename);
+  Swig_ConstructorToFunction(n, classname, CPlusPlus, Extend);
+  current = MEMBER_FUNC;
+  functionWrapper(n);
+  current = NO_CPP;
+  Delete(mrename);
+  
+  Swig_restore(&n);
+  
+  return SWIG_OK;
+}
+
 /* ---------------------------------------------------------------------
  * RUBY::destructorHandler()
  * -------------------------------------------------------------------- */
 
-int RUBY::destructorHandler(Node *n) {
+int
+RUBY::destructorHandler(Node *n) {
   char *name = GetChar(n,"name");
   current = DESTRUCTOR;
   Language::destructorHandler(n);
@@ -1162,7 +1205,8 @@ RUBY::membervariableHandler(Node *n) {
  * Wrap a static C++ function
  * ---------------------------------------------------------------------- */
 
-int RUBY::staticmemberfunctionHandler(Node *n) {
+int
+RUBY::staticmemberfunctionHandler(Node *n) {
   current = STATIC_FUNC;
   Language::staticmemberfunctionHandler(n);
   current = NO_CPP;
@@ -1176,8 +1220,8 @@ int RUBY::staticmemberfunctionHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 
-int RUBY::memberconstantHandler(Node *n) {
-
+int
+RUBY::memberconstantHandler(Node *n) {
   current = CLASS_CONST;
   Language::memberconstantHandler(n);
   current = NO_CPP;
@@ -1188,7 +1232,8 @@ int RUBY::memberconstantHandler(Node *n) {
  * void RUBY::staticmembervariableHandler()
  * --------------------------------------------------------------------- */
 
-int RUBY::staticmembervariableHandler(Node *n) {
+int
+RUBY::staticmembervariableHandler(Node *n) {
   current = STATIC_VAR;
   Language::staticmembervariableHandler(n);
   current = NO_CPP;
@@ -1201,7 +1246,8 @@ int RUBY::staticmembervariableHandler(Node *n) {
  * A forward class declaration
  * ----------------------------------------------------------------------- */
 
-int RUBY::classforwardDeclaration(Node *n) {
+int
+RUBY::classforwardDeclaration(Node *n) {
   char *cname  = GetChar(n,"name");
   char *rename = GetChar(n,"sym:name");
   char *type   = GetChar(n,"kind");
