@@ -213,12 +213,13 @@ namespace std {
 
         %rename(__len__) size;
         unsigned int size() const;
-        %rename(__nonzero__) empty;
-        bool empty() const;
         void clear();
         %rename(append) push_back;
         void push_back(const T& x);
         %extend {
+            bool __nonzero__() {
+                return !(self->empty());
+            }
             T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
@@ -427,12 +428,13 @@ namespace std {
 
         %rename(__len__) size;
         unsigned int size() const;
-        %rename(__nonzero__) empty;
-        bool empty() const;
         void clear();
         %rename(append) push_back;
         void push_back(T x);
         %extend {
+            bool __nonzero__() {
+                return !(self->empty());
+            }
             T pop() {
                 if (self->size() == 0)
                     throw std::out_of_range("pop from empty vector");
