@@ -338,8 +338,8 @@ yylex1(void) {
       if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
       if (strcmp(yytext,"%name") == 0) return(NAME);
       if (strcmp(yytext,"%rename") == 0) return(RENAME);
-      if (strcmp(yytext,"%include") == 0) return(INCLUDE);
-      if (strcmp(yytext,"%extern") == 0) return(WEXTERN);
+      if (strcmp(yytext,"%includefile") == 0) return(INCLUDE);
+      if (strcmp(yytext,"%externfile") == 0) return(WEXTERN);
       if (strcmp(yytext,"%checkout") == 0) return(CHECKOUT);
       if (strcmp(yytext,"%macro") == 0) return(MACRO);
       if (strcmp(yytext,"%section") == 0) return(SECTION);
@@ -361,7 +361,7 @@ yylex1(void) {
       if (strcmp(yytext,"%inline") == 0) return(INLINE);
       if (strcmp(yytext,"%typemap") == 0) return(TYPEMAP);
       if (strcmp(yytext,"%except") == 0) return(EXCEPT);
-      if (strcmp(yytext,"%import") == 0) return(IMPORT);
+      if (strcmp(yytext,"%importfile") == 0) return(IMPORT);
       if (strcmp(yytext,"%echo") == 0) return(ECHO);
       if (strcmp(yytext,"%new") == 0) return(NEW);
       if (strcmp(yytext,"%apply") == 0) return(APPLY);
