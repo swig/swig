@@ -4123,7 +4123,7 @@ allow the calling function to read the double * value after returning from the f
     jfieldID fid = jenv->GetFieldID(clazz, "swigCPtr", "J");
     jlong cPtr = jenv->GetLongField($input, fid);
     MyDouble *pMyDouble = NULL;
-    *(MyDouble *)&pMyDouble = *(MyDouble *)&cPtr;
+    *(MyDouble **)&pMyDouble = *(MyDouble **)&cPtr;
     $1 = &pMyDouble->value;
 }
 
