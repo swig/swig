@@ -13,23 +13,40 @@
       zend_error(E_WARNING, "Parameter %d of $symname wasn't passed by reference [argout TYPES *, TYPES &]",$argnum-argbase);
     } else {
       #if SIZE
+      // SIZE
       ZVAL_STRINGL(*$arg,BUFFER$argnum, SIZE, 1);
       #else
+      // Measure length
       ZVAL_STRING(*$arg,BUFFER$argnum, 1);
       #endif
     }
   }  
 %enddef
 
-%define _strbuf_in(BUFFER)
+%define 
+_strbuf_in(BUFFER)
   // _strbuf_in 
-  if (PZVAL_IS_REF(*$input)) {
-    force=1;
+  if(! SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
+    /* Using a _p_ SWIG pointer, so they will have to manage size themselves */
+    force=0;
+  } else if ((*$input)->type==IS_STRING ||
+             (*$input)->type==IS_LONG ||
+             /* Null passed by reference means we want a value back */
+             (*$input)->type==IS_NULL ||
+             (*$input)->type==IS_BOOL ||
+             (*$input)->type==IS_DOUBLE) {
+       
+    // Only pass back if we can...
+    if (PZVAL_IS_REF(*$input)) force=1;
+    else force=0;
+
     convert_to_string_ex($input);
     // Init temp buffer
     strncpy((char *)temp,Z_STRVAL_PP($input),sizeof(BUFFER));
+    $1=temp;
   } else {
     force=0;
+    $1=NULL;
     zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or at least something looking vaguely like a string hopefully passed by reference", $argnum-argbase, $1_descriptor->name);
   }
 %enddef
@@ -40,9 +57,8 @@
 // max buffer size of 1024
 %define strbufsize_inout(BUFFER,SIZE,MAXSIZE)
 %typemap(in) (BUFFER, SIZE) ($*1_ltype temp[MAXSIZE], int force) {
-  $1=temp;
-  $2=sizeof(temp);
   _strbuf_in(temp)
+  $2=sizeof(temp);
 }
 %typemap(argout) (BUFFER, SIZE) {
   _strbuf_out((char *)temp,strlen(temp))
@@ -54,7 +70,6 @@
 // e.g. Do: strarray_inout(char [ANY])
 %define strarray_inout(TYPE) 
 %typemap(in) TYPE ($*1_ltype temp[$1_dim0], int force) %{
-        $1=temp;
         _strbuf_in(temp)
 %}
 %typemap(argout) TYPE %{
@@ -64,7 +79,6 @@
 
 %define strarraysize_inout(TYPE,SIZE) 
 %typemap(in) TYPE ($*1_ltype temp[SIZE], int force) %{
-        $1=temp;
         _strbuf_in(temp)
 %}
 %typemap(argout) TYPE %{
@@ -74,8 +88,7 @@
 
 %define strbuf_inout(BUFFER,MAXSIZE)
 %typemap(in) (BUFFER) ($*1_ltype temp[MAXSIZE], int force) {
-  $1=temp;
-  _strbuf_in(temp)
+	_strbuf_in(temp)
 }
 %typemap(argout) (BUFFER) {
   _strbuf_out(temp,strlen(temp))

@@ -112,6 +112,7 @@ strarray_inout(char [ANY])
 %}
 
 %typemap(out) char %{
+	// out char
 	ZVAL_STRINGL(return_value,$1, 1, 1);
 %}
 
@@ -147,6 +148,7 @@ strarray_inout(char [ANY])
 /* Typemap for character array returns */
 
 %typemap(out) char [ANY] {
+        // out char any
 	ZVAL_STRINGL(return_value,$1, $1_dim0, 1);
 }
 
@@ -163,10 +165,6 @@ strarray_inout(char [ANY])
 %typemap_inout_ord(signed char,convert_to_long_ex,ZVAL_LONG)
 %typemap_inout_ord(unsigned char,convert_to_long_ex,ZVAL_LONG)
 %typemap_inout_ord(enum SWIGTYPE,convert_to_long_ex,ZVAL_LONG)
-
-%typemap(argout) char [ANY] {
-	ZVAL_STRINGL($arg,$1, $1_dim0, 1);
-}
 
 /* Global variables - add the variable to PHP */
 
@@ -253,6 +251,7 @@ strarray_inout(char [ANY])
  MAKE_STD_ZVAL(z_var);
  z_var->type = IS_STRING;
  if($1) {
+	// varinit char [ANY]
 	ZVAL_STRINGL(z_var,$1, $1_dim0, 1);
  }
  zend_hash_add(&EG(symbol_table), "$1", strlen("$1")+1, (void*)&z_var,
