@@ -156,7 +156,8 @@
         "$result = SWIG_NewPointerObj((void *) $1, $1_descriptor,$owner);";
 
 /* Dynamic casts */
-%typemap(out) SWIGTYPE*DYNAMIC, SWIGTYPE &DYNAMIC {
+
+%typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
         swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
         $result = SWIG_NewPointerObj((void *) $1, ty,$owner);
 }
@@ -166,6 +167,9 @@
 
 /* Void */
 %typemap(out) void "$result = Qnil;";
+
+/* Special typemap for character array return values */
+%typemap(out) char [ANY], const char [ANY] "$result = rb_str_new2($1);";
 
 /* Primitive types--return by value */
 %typemap(out) SWIGTYPE 
@@ -183,8 +187,6 @@
   $result = SWIG_NewPointerObj((void *) resultptr, $&1_descriptor, 1);
 }
 #endif
-
-%typemap(out) char [ANY] "$result = rb_str_new2($1);";
 
 /* References to primitive types.  Return by value */
 
@@ -232,6 +234,8 @@
 %typemap(varin) long long       "$1 = NUM2LL($input);";
 %typemap(varin) unsigned long long "$1 = NUM2ULL($input);";
 
+%typemap(varin) enum SWIGTYPE   "$1 = ($1_type) NUM2INT($input);";
+
 /* A string */
 #ifdef __cplusplus
 %typemap(varin) char * {
@@ -260,8 +264,20 @@
 
 #endif
 
+%typemap(varin) SWIGTYPE [ANY] {
+  void *temp;
+  int ii;
+  $1_basetype *b = 0;
+  if ((SWIG_ConvertPtr($input,(void **) &temp, $1_descriptor, 0)) == -1) {
+    rb_raise(rb_eTypeError, "C variable '$name ($1_ltype)'");
+  }
+  b = ($1_basetype *) $1;
+  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
+}
+
+/* Special case for string array variables */
 %typemap(varin) char [ANY]      "strncpy($1,StringValuePtr($input),$1_dim0);";
-%typemap(varin) enum SWIGTYPE   "$1 = ($1_type) NUM2INT($input);";
+
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
@@ -330,7 +346,8 @@
 /* Copy by value */
 %typemap(varout) SWIGTYPE "$result = SWIG_NewPointerObj((void *) &$1, $&1_descriptor, 1);";
 
-%typemap(varout) char [ANY] "$result = rb_str_new2($1);";
+/* Special typemap for character array return values */
+%typemap(varout) char [ANY], const char [ANY] "$result = rb_str_new2($1);";
 
 /* Member pointer */
 %typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor);";
