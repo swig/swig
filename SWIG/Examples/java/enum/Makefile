@@ -1,6 +1,6 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SRCS       = example.cxx
+CXXSRCS    = example.cxx
 TARGET     = libexample
 INTERFACE  = example.i
 SWIGOPT    = -shadow
@@ -8,7 +8,7 @@ SWIGOPT    = -shadow
 all::	java
 
 java::
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java_cpp
 	javac *.java
 
