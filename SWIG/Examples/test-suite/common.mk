@@ -38,12 +38,13 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Please keep test cases in alphabetical order.
 #
-# Exception: during development, recent tests may appear at the
-# top of the list since they are being used to fix bugs.
+# EXCEPTION: PLEASE PUT BROKEN TEST CASES AT THE TOP OF THIS LIST.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_CASES += \
+	namespace_nested \
+	using_namespace \
 	template_specialization \
 	default_cast \
 	import_nomodule \
@@ -106,7 +107,6 @@ CPP_TEST_CASES += \
 	name_inherit \
 	namespace_enum \
 	namespace_extend \
-	namespace_nested \
 	namespace_template \
 	namespace_typemap \
 	newobject1 \
@@ -192,7 +192,6 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_extend \
 	using_inherit \
-	using_namespace \
 	using_private \
 	using_protected \
 	valuewrapper_base \
