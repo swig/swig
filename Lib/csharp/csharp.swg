@@ -428,17 +428,28 @@ $1 = &temp; %}
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaptrconstructormodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "internal"
 
-%typemap(cildispose) SWIGTYPE %{
-  public virtual void Dispose() {
-    delete();
+%typemap(csfinalize) SWIGTYPE %{
+  protected override void Finalize() {
+    Dispose();
   }
 %}
 
-%typemap(cildisposeoverride) SWIGTYPE %{
-  public override void Dispose() {
-    delete();
+%typemap(csdestruct_base) SWIGTYPE {
+    if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
+      $jnicall;
+      swigCMemOwn = false;
+    }
+    swigCPtr = IntPtr.Zero;
   }
-%}
+
+%typemap(csdestruct_derived) SWIGTYPE {
+    if(swigCPtr != IntPtr.Zero && swigCMemOwn) {
+      $jnicall;
+      swigCMemOwn = false;
+    }
+    swigCPtr = IntPtr.Zero;
+    base.Dispose();
+  }
 
 %typemap(javagetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   internal static IntPtr getCPtr($javaclassname obj) {
