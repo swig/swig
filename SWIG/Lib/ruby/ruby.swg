@@ -630,4 +630,8 @@ typedef unsigned long VALUE;
 %ignorewarn("386:operator->* ignored") operator->*;
 %ignorewarn("389:operator[] ignored (consider using %extend)") operator[];
 
+/* ruby keywords */
+/* please test and activate */
+// %include "rubykw.swg"
+
 #endif /* __cplusplus */

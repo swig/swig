@@ -334,3 +334,7 @@ PIKE_MODULE_INIT
         swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }
 %}
+
+/* pike keywords */
+/* please test and activate */
+//%include "pikekw.swg"

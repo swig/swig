@@ -1,0 +1,54 @@
+#ifndef __pike_pikekw_swg__
+#define __pike_pikekw_swg__
+
+/* Warnings for Pike keywords */
+#define PIKEKW(x) %namewarn("314:" #x " is a pike keyword")  #x
+
+/*
+   from
+   http://www.http://docs.linux.cz/pike/tutorial_C.html
+
+*/
+
+
+PIKEKW(array);
+PIKEKW(break);
+PIKEKW(case);
+PIKEKW(catch);
+PIKEKW(continue);
+PIKEKW(default);
+PIKEKW(do);
+PIKEKW(else);
+PIKEKW(float);
+PIKEKW(for);
+PIKEKW(foreach);
+PIKEKW(function);
+PIKEKW(gauge);
+PIKEKW(if);
+PIKEKW(inherit);
+PIKEKW(inline);
+PIKEKW(int);
+PIKEKW(lambda);
+PIKEKW(mapping);
+PIKEKW(mixed);
+PIKEKW(multiset);
+PIKEKW(nomask);
+PIKEKW(object);
+PIKEKW(predef);
+PIKEKW(private);
+PIKEKW(program);
+PIKEKW(protected);
+PIKEKW(public);
+PIKEKW(return);
+PIKEKW(sscanf);
+PIKEKW(static);
+PIKEKW(switch);
+PIKEKW(typeof);
+PIKEKW(varargs);
+PIKEKW(void);
+PIKEKW(while);
+
+// Swig manages this one right 
+// PIKEKW(string);
+
+#endif //__pike_pikekw_swg__

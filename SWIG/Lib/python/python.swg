@@ -742,38 +742,8 @@ DIRECTOROUT_TYPEMAP(std::size_t, PyInt_AsLong);
 
 #endif
 
-/* Warnings for certain Python keywords */
-#define PYKW(x) %namewarn("314:" #x " is a python keyword")  #x
-
-PYKW(and);
-PYKW(assert);
-PYKW(break);
-PYKW(class);
-PYKW(continue);
-PYKW(def);
-PYKW(del);
-PYKW(elif);
-PYKW(else);
-PYKW(except);
-PYKW(exec);
-PYKW(finally);
-PYKW(for);
-PYKW(from);
-PYKW(global);
-PYKW(if);
-PYKW(import);
-PYKW(in);
-PYKW(is);
-PYKW(lambda);
-PYKW(not);
-PYKW(or);
-PYKW(pass);
-PYKW(print);
-PYKW(raise);
-PYKW(return);
-PYKW(try);
-PYKW(while);
-
+/* Warnings for Python keywords */
+%include "pythonkw.swg"
 
 /* The start of the Python initialization function */
 
