@@ -926,7 +926,7 @@ includetype    : INCLUDE { $$.type = (char *) "include"; }
                | IMPORT  { $$.type = (char *) "import"; }
                ;
 
-/* typemap method type */
+/* typemap method type (lang,method) or (method) */
 
 typemap_type   : ID COMMA tm_method {
                  if (strcmp($1,typemap_lang) == 0) {
@@ -952,7 +952,11 @@ c_declaration   : extern type declarator def_args {
 		    Active_type = Copy($2);
   		    Active_extern = $1;
        		    SwigType_push($2,$3.type);
-      		    create_variable($1,$3.id,$2);
+		    if (SwigType_isconst($2) && ($4.id)) {
+		      create_constant($3.id,$2,$4.id);
+		    } else {
+		      create_variable($1,$3.id,$2);
+		    }
                 } stail { }
 
 /* Global variable that smells like a function pointer */
@@ -1206,7 +1210,11 @@ stail          : SEMI { }
 		 init_language();
 		 temp_typeptr = Copy(Active_type);
 		 SwigType_push(temp_typeptr,$2.type);
-		 create_variable(Active_extern, $2.id, temp_typeptr);
+		 if (SwigType_isconst(temp_typeptr) && ($3.id)) {
+		   create_constant($2.id,temp_typeptr,$3.id);
+		 } else {
+		   create_variable(Active_extern, $2.id, temp_typeptr);
+		 }
 		 Delete(temp_typeptr);
 	       } stail { }
                | COMMA declarator LPAREN parms RPAREN cpp_const {
