@@ -477,6 +477,7 @@ void
 Swig_node_append_child(DOH *node, DOH *chd) {
   DOH *c;
   DOH *pc;
+  if (!chd) return;
   c = Getattr(node,"child");
   if (!c) {
     Setattr(node,"child",chd);
