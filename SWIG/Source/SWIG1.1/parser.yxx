@@ -53,6 +53,7 @@ extern void format_string(char *);
 extern void swig_pragma(char *, char *);
 
 #include "internal.h"
+#include "preprocessor.h"
 
 #ifdef NEED_ALLOC
 void *alloca(unsigned n) {
@@ -1054,7 +1055,17 @@ statement      : INCLUDE STRING LBRACE {
 		   init_language();
 		   $2[strlen($2) - 1] = 0;
 		   fprintf(f_header, "%s\n", $2);
-		   start_inline($2,start_line);
+		   {
+	              /* Need to run through the preprocessor */
+	              DOH *cpps;
+                      DOH *s = NewString($2);
+	              Setline(s,start_line);
+                      Setfile(s,input_file);
+                      cpps = Preprocessor_parse(s);
+                      start_inline(Char(cpps), start_line);
+		      Delete(s);
+		      Delete(cpps);
+		   }
 		 }
 	       }
 
