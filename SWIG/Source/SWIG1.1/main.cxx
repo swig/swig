@@ -42,7 +42,6 @@ extern "C" {
     DOH       *f_wrappers;                      // FILE pointers
     DOH       *f_init;
     FILE      *f_input;
-    char      InitName[256];
     char      LibDir[512];                      // Library directory
     int       Status;
     Language  *lang;                            // Language method
@@ -203,7 +202,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 #endif
   Swig_add_directory((DOH *) temp);
   Swig_add_directory((DOH *) LibDir);
-  sprintf(InitName,"init_wrap");
 
   libfiles = NewList();
 
