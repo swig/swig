@@ -153,13 +153,13 @@ Hash *Preprocessor_define(const String_or_char *_str, int swigmacro)
 
   /* First make sure that string is actually a string */
   if (DohCheck(str)) {
-    s = Copy(str);
+    s = NewString(str);
     copy_location(str,s);
     str = s;
   } else {
     str = NewString((char *) str);
-    Seek(str,0,SEEK_SET);
   }
+  Seek(str,0,SEEK_SET);
   line = Getline(str);
   file = Getfile(str);
 
@@ -893,7 +893,9 @@ check_id(DOH *s)
   }
 
   SwigScanner_clear(scan);
-  SwigScanner_push(scan,Copy(s));
+  s = Copy(s);
+  Seek(s,SEEK_SET,0);
+  SwigScanner_push(scan,s);
   while ((c = SwigScanner_token(scan))) {
     if ((c == SWIG_TOKEN_ID) || (c == SWIG_TOKEN_LBRACE) || (c == SWIG_TOKEN_RBRACE)) return 1;
   }
