@@ -400,58 +400,58 @@ distclean: clean
 	rm -f $(distclean-dead)
 
 clean-examples:
-	@make -k -s check-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-examples CHECK_CLEAN=clean
 
 clean-gifplot-examples:
-	@make -k -s check-gifplot-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-gifplot-examples CHECK_CLEAN=clean
 
 clean-test-suite:
 	@echo cleaning Examples/test-suite
-	@make -k -s check-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-test-suite CHECK_CLEAN=clean
 
 
 clean-tcl-examples:
-	@make -k -s check-tcl-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-tcl-examples CHECK_CLEAN=clean
 
 clean-perl5-examples:
-	@make -k -s check-perl5-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-perl5-examples CHECK_CLEAN=clean
 
 clean-python-examples:
-	@make -k -s check-python-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-python-examples CHECK_CLEAN=clean
 
 clean-java-examples:
-	@make -k -s check-java-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-java-examples CHECK_CLEAN=clean
 
 clean-guile-examples:
-	@make -k -s check-guile-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-guile-examples CHECK_CLEAN=clean
 
 clean-mzscheme-examples:
-	@make -k -s check-mzscheme-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-mzscheme-examples CHECK_CLEAN=clean
 
 clean-ruby-examples:
-	@make -k -s check-ruby-examples CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-ruby-examples CHECK_CLEAN=clean
 
 
 clean-tcl-test-suite:
-	@make -k -s check-tcl-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-tcl-test-suite CHECK_CLEAN=clean
 
 clean-perl5-test-suite:
-	@make -k -s check-perl5-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-perl5-test-suite CHECK_CLEAN=clean
 
 clean-python-test-suite:
-	@make -k -s check-python-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-python-test-suite CHECK_CLEAN=clean
 
 clean-java-test-suite:
-	@make -k -s check-java-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-java-test-suite CHECK_CLEAN=clean
 
 clean-guile-test-suite:
-	@make -k -s check-guile-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-guile-test-suite CHECK_CLEAN=clean
 
 clean-mzscheme-test-suite:
-	@make -k -s check-mzscheme-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-mzscheme-test-suite CHECK_CLEAN=clean
 
 clean-ruby-test-suite:
-	@make -k -s check-ruby-test-suite CHECK_CLEAN=clean
+	@$(MAKE) -k -s check-ruby-test-suite CHECK_CLEAN=clean
 
 
 
