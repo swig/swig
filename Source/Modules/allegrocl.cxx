@@ -57,7 +57,7 @@ String *strip_parens(String *string) {
 }
 
 
-String *convert_number(String *num_param, String *type) {
+String *convert_literal(String *num_param, String *type) {
 	String *num=strip_parens(num_param), *res;
 	char *s=Char(num);
 	
@@ -70,6 +70,15 @@ String *convert_number(String *num_param, String *type) {
 		}
 		Delete(num);
 		return updated;
+	}
+
+	if (SwigType_type(type) == T_CHAR) {
+		/* Use CL syntax for character literals */
+		return NewStringf("#\\%s", num_param);
+	}
+	else if (SwigType_type(type) == T_STRING) {
+		/* Use CL syntax for string literals */
+		return NewStringf("\"%s\"", num_param);
 	}
 	
 	if (Len(num) < 2 || s[0] != '0') {
@@ -323,7 +332,7 @@ int ALLEGROCL :: functionWrapper(Node *n) {
 
 int ALLEGROCL :: constantWrapper(Node *n) {
   String *type=Getattr(n, "type");
-  String *converted_value=convert_number(Getattr(n, "value"), type);
+  String *converted_value=convert_literal(Getattr(n, "value"), type);
   String *name=Getattr(n, "sym:name");
 
 #if 0
