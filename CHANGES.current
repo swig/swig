@@ -1,6 +1,9 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/09/2005: wsfulton
+            [Php] Memory leak fix for functions returning classes/structs by value.
+
 03/08/2005: wsfulton
             [Perl] Fix for Perl incorrectly taking memory ownership for return types that
             are typedefs to a struct/class pointer. Reported by Josh Cherry.
