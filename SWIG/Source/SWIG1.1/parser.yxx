@@ -111,7 +111,7 @@ static String *yyrename = 0;
 static Hash   *rename_hash = 0;
 
 static void
-rename_add(String *name, SwigType *decl, String *newname) {
+rename_add(char *name, SwigType *decl, char *newname) {
   Hash *n;
   
   if (!rename_hash) rename_hash = NewHash();
@@ -123,9 +123,11 @@ rename_add(String *name, SwigType *decl, String *newname) {
   
   /* Add a renaming based on the declarator */
   if (!decl) {
-    decl = NewString("*");
+    Setattr(n,NewString("*"),newname);	
+  } else {
+    Setattr(n,Copy(decl),newname);
   }
-  Setattr(n,decl,newname);
+
 }
 
 static void
@@ -170,7 +172,7 @@ static char *make_name(char *name,String *decl) {
   String *tname = 0;
   char   *hname = 0;
   String *rn;
-  Node *n;
+  Node *n = 0;
   if (yyrename) {
     String *s = yyrename;
     yyrename = 0;
