@@ -1,5 +1,20 @@
 Version 1.3.20 (In progress)
 ============================
+11/12/2003: beazley
+            [Python] When %feature("shadow") is used to add code to shadow
+            classes, the special variable $action expands to the name of the
+            underlying wrapper function that would have been called normally.
+
+11/12/2003: beazley
+            [Python] When generating proxy class code, SWIG emits a few
+            default methods for __repr__() and other Python special
+            methods.  Some of these methods are emitted after all of the
+            contents of a class. However, this makes it hard to override
+            the methods using %pythoncode and some other directives that
+            allow code to be inserted into a class.  These special methods
+            are now emitted into the code *before* all of the other methods.
+            Suggested by Eric Jones.
+ 
 11/11/2003: beazley
             Preprocessor enhancement.   For include statements like this:
 
