@@ -1,0 +1,17 @@
+SRCS   = 
+TARGET = my-guile
+IFILE  = example.i
+MKDIR  = ..
+
+all::
+	$(MAKE) -f $(MKDIR)/Makefile		\
+		SRCS='$(SRCS)'			\
+		TARGET=$(TARGET)		\
+		IFILE=$(IFILE)			\
+	    sub-all
+
+clean::
+	rm -f *_wrap* my-guile *~ .~* core
+
+check: all
+	./my-guile -s constants.scm
