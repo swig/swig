@@ -35,15 +35,12 @@ Note : If you received SWIG on CD-ROM, you may want to upgrade to the latest rel
 
 <p>
 <a
-href="http://prdownloads.sourceforge.net/swig/swig-1.3.20.tar.gz">SWIG
-1.3.20</a> is the latest development release (2003/12/17). View the <a
+href="http://prdownloads.sourceforge.net/swig/swig-1.3.21.tar.gz">SWIG
+1.3.21</a> is the latest development release (2004/01/11). View the <a
 href="release.html">release notes</a>.  Windows users should download
 <a
-href="http://prdownloads.sourceforge.net/swig/swigwin-1.3.20.zip">swigwin-1.3.20</a>
-which includes a prebuilt executable. A Macintosh port
-(macswig-1.3.20) also may be available from the SourceForge <a
-href="http://sourceforge.net/project/showfiles.php?group_id=1645">releases</a>
-area.
+href="http://prdownloads.sourceforge.net/swig/swigwin-1.3.21.zip">swigwin-1.3.21</a>
+which includes a prebuilt executable. 
 
 <p>
 <b>Note:</b> The following releases pertain to SWIG-1.1 which was a widely distributed release
