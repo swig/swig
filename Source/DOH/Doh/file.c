@@ -106,7 +106,7 @@ File_tell(DOH *fo) {
     return ftell(f->filep);
   } else if (f->fd) {
 #ifdef DOH_INTFILE
-    return tell(f->fd);
+    return lseek(f->fd, 0, SEEK_CUR);
 #endif
   }
   return -1;
