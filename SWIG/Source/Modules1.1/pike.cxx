@@ -451,7 +451,6 @@ public:
     
     Replaceall(dispatch,"$args","self,args");
     Printv(f->code,dispatch,"\n",NULL);
-    // Printf(f->code,"PyErr_SetString(PyExc_TypeError,\"No matching function for overloaded '%s'\");\n", symname);
     Printf(f->code,"No matching function for overloaded '%s'\n", symname);
     Printf(f->code,"return NULL;\n");
     Printv(f->code,"}\n",NULL);
@@ -609,6 +608,8 @@ public:
 
   /* ------------------------------------------------------------
    * memberfunctionHandler()
+   *
+   * Method for adding C++ member function
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
@@ -622,7 +623,17 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    return Language::constructorHandler(n);
+    /* First wrap the new singleton method */
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Language::constructorHandler(n);
+
+    /* Now do the instance initialize method */
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    Language::constructorHandler(n);
+
+    /* Done */
+    Swig_name_unregister((String_or_char *) "construct");
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
