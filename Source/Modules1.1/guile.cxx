@@ -360,7 +360,7 @@ GUILE::get_pointer (char *iname, int parm, DataType *t,
 {
   /* Pointers are smobs */
   Printf(f->code, "    if (SWIG_Guile_GetPtr_Str(s_%d,(void **) &_arg%d", parm, parm);
-  if (t->type == T_VOID)
+  if (DataType_type(t) == T_VOID)
     Printf(f->code, ", (char *) 0)) {\n");
   else
     Printv(f->code, ", \"", DataType_manglestr(t), "\")) {\n", 0);
@@ -393,7 +393,7 @@ throw_unhandled_guile_type_error (DataType *d)
 {
   fflush (stdout);
   Printf (stderr, "ERROR: Unhandled GUILE type error.\n");
-  Printf (stderr, "        type %d\n", d->type);
+  Printf (stderr, "        type %d\n", DataType_type(d));
   Printf (stderr, "        name %s\n", d->name);
   Printf (stderr, "  is_pointer %d\n", d->is_pointer);
   Printf (stderr, "implicit_ptr %d\n", d->implicit_ptr);
@@ -441,7 +441,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
     if (Getignore(p))
       continue;
-    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+    if (DataType_type(pt) != T_VOID) {
       if (!first_arg)
 	Printf(f->def,", ");
       Printf(f->def,"SCM s_%d", i);
@@ -529,7 +529,7 @@ GUILE::create_function (char *name, char *iname, DataType *d, ParmList *l)
 
   // Now have return value, figure out what to do with it.
 
-  if (d->type == T_VOID)
+  if (DataType_type(d) == T_VOID)
     Printv(f->code, tab4, "gswig_result = GH_UNSPECIFIED;\n", 0);
   else if ((tm = typemap_lookup ((char*)"out", typemap_lang,
                                  d, name, (char*)"result", (char*)"gswig_result", f))) {
@@ -631,11 +631,11 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
   proc_name = NewString(iname);
   Replace(proc_name,"_", "-",DOH_REPLACE_ANY);
 
-  if ((t->type != T_USER) || (t->is_pointer)) {
+  if (DataType_type(t) != T_USER) {
 
     Printf (f_wrappers, "SCM %s(SCM s_0) {\n", var_name);
 
-    if (!(Status & STAT_READONLY) && t->type == T_CHAR && t->is_pointer==1) {
+    if (!(Status & STAT_READONLY) && DataType_type(t) == T_STRING) {
       Printf (f_wrappers, "\t char *_temp;\n");
       Printf (f_wrappers, "\t int  _len;\n");
     }
@@ -657,7 +657,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
       Printf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
+      if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t\t _temp = gh_scm2newstr(s_0, &_len);\n");
         Printf (f_wrappers, "\t\t if (%s) { free(%s);}\n", name, name);
         Printf (f_wrappers, "\t\t %s = (char *) "
@@ -669,7 +669,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
         /* MK: I would like to use SWIG_Guile_GetPtr here */
         Printf (f_wrappers, "\t if (SWIG_Guile_GetPtr_Str(s_0, "
                  "(void **) &%s, ", name);
-        if (t->type == T_VOID)
+        if (DataType_type(t) == T_VOID)
           Printf (f_wrappers, "(char *) 0)) {\n");
         else
           Printf (f_wrappers, "\"%s\")) {\n", DataType_manglestr(t));
@@ -692,7 +692,7 @@ GUILE::link_variable (char *name, char *iname, DataType *t)
       Printf (f_wrappers, "%s\n", tm);
     }
     else if (t->is_pointer) {
-      if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
+      if (DataType_type(t) == T_STRING) {
         Printf (f_wrappers, "\t gswig_result = gh_str02scm(%s);\n", name);
       } else {
         // Is an ordinary pointer type.
@@ -748,7 +748,7 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
   proc_name = NewString(name);
   Replace(proc_name,"_", "-", DOH_REPLACE_ANY);
 
-  if ((type->type == T_USER) && (!type->is_pointer)) {
+  if (DataType_type(type) == T_USER) {
     Printf (stderr, "%s : Line %d.  Unsupported constant value.\n",
              input_file, line_number);
     return;
@@ -756,9 +756,9 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
 
   // See if there's a typemap
 
-  if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
+  if (DataType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"", value);
-  } else if ((type->type == T_CHAR) && (type->is_pointer == 0)) {
+  } else if (DataType_type(type) == T_CHAR) {
     rvalue = NewStringf("\'%s\'", value);
   } else {
     rvalue = NewString(value);
@@ -770,12 +770,11 @@ GUILE::declare_const (char *name, char *, DataType *type, char *value)
     // Create variable and assign it a value
 
     Printf (f_header, "static %s %s = ", DataType_lstr(type,0), var_name);
-    if ((type->type == T_CHAR) && (type->is_pointer <= 1)) {
+    if (DataType_type(type) == T_STRING) {
       Printf (f_header, "\"%s\";\n", value);
     } else {
       Printf (f_header, "%s;\n", value);
     }
-
     // Now create a variable declaration
 
     link_variable (var_name, name, type);
@@ -796,7 +795,7 @@ GUILE::usage_var (char *iname, DataType *t, DOHString *usage)
 {
 
   Printv(usage, "(", iname, " [value])", 0);
-  if (!((t->type != T_USER) || (t->is_pointer))) {
+  if ((DataType_type(t) == T_USER) || (DataType_type(t) == T_VOID)) {
     Printf(usage," - unsupported");
   }
 }
@@ -828,7 +827,7 @@ GUILE::usage_func (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+    if (DataType_type(pt) != T_VOID) {
 
       // Print the type.
       Printv(usage, " <", pt->name, 0);
@@ -877,7 +876,7 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
 
     // Print the type.  If the parameter has been named, use that as well.
 
-    if ((pt->type != T_VOID) || (pt->is_pointer)) {
+    if (DataType_type(pt) != T_VOID) {
       ++have_param;
 
       // Print the type.
@@ -892,9 +891,9 @@ GUILE::usage_returns (char *iname, DataType *d, ParmList *l, DOHString *usage)
   }
 
   // See if we stick on the function return type.
-  if (d->type != T_VOID || have_param == 0) {
+  if ((DataType_type(d) != T_VOID) || (have_param == 0)) {
     ++have_param;
-    if (d->type == T_VOID)
+    if (DataType_type(d) == T_VOID)
       Insert(param,0," unspecified ");
     else {
       Insert(param,0,"# ");
@@ -929,3 +928,5 @@ GUILE::usage_const (char *iname, DataType *, char *value, DOHString *usage)
 {
   Printv(usage, "(", iname, " ", value, ")", 0);
 }
+
+

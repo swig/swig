@@ -159,12 +159,11 @@ void emit_set_get(char *name, char *iname, DataType *t) {
   /* First write a function to set the variable of the variable */
   if (!(Status & STAT_READONLY)) {
 
-    if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
+    if (DataType_type(t) == T_STRING) {
       if (CPlusPlus)
 	code = cpp_str;
       else
 	code = c_str;
-      
     }
     w = Swig_cvarset_wrapper(name, t, code);
     Wrapper_print(w,f_header);

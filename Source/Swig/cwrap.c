@@ -48,25 +48,28 @@ Swig_clocal(DataType *t, DOHString_or_char *name, DOHString_or_char *value) {
 
   if (!decl) decl = NewString("");
   Clear(decl);
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      t->is_pointer++;
-      if (value) 
-	Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
-      else
-	Printf(decl,"%s", DataType_lstr(t,name));
-      t->is_pointer--;
-    } else if (t->is_reference) {
-      if (value) 
-	Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
-      else
-	Printf(decl,"%s", DataType_lstr(t,name));
-    } else {
-      if (value)
-	Printf(decl,"%s = %s", DataType_lstr(t,name), value);
-      else
-	Printf(decl,"%s", DataType_lstr(t,name));
-    }
+  switch(DataType_type(t)) {
+  case T_USER:
+    t->is_pointer++;
+    if (value) 
+      Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
+    else
+      Printf(decl,"%s", DataType_lstr(t,name));
+    t->is_pointer--;
+    break;
+  case T_REFERENCE:
+    if (value) 
+      Printf(decl,"%s = &%s", DataType_lstr(t,name), value);
+    else
+      Printf(decl,"%s", DataType_lstr(t,name));
+    break;
+  case T_VOID:
+    break;
+  default:
+    if (value)
+      Printf(decl,"%s = %s", DataType_lstr(t,name), value);
+    else
+      Printf(decl,"%s", DataType_lstr(t,name));
   }
   return Char(decl);
 }
@@ -81,16 +84,15 @@ Swig_clocal(DataType *t, DOHString_or_char *name, DOHString_or_char *value) {
 DataType *
 Swig_clocal_type(DataType *t) {
   DataType *ty;
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      t->is_pointer++;
-      ty = DataType_ltype(t);
-      t->is_pointer--;
-    } else {
-      ty = DataType_ltype(t);
-    }
-  } else {
+  switch(DataType_type(t)) {
+  case T_USER:
+    t->is_pointer++;
     ty = DataType_ltype(t);
+    t->is_pointer--;
+    break;
+  default:
+    ty = DataType_ltype(t);
+    break;
   }
   return ty;
 }
@@ -106,14 +108,17 @@ Swig_clocal_type(DataType *t) {
 char *
 Swig_clocal_deref(DataType *t, DOHString_or_char *name) {
   static char temp[256];
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      sprintf(temp,"*%s",Char(name));
-    } else {
-      sprintf(temp,DataType_rcaststr(t,name));
-    }
-  } else {
+  
+  switch(DataType_type(t)) {
+  case T_USER:
+    sprintf(temp,"*%s",Char(name));
+    break;
+  case T_VOID:
     strcpy(temp,"");
+    break;
+  default:
+    sprintf(temp,DataType_rcaststr(t,name));    
+    break;
   }
   return temp;
 }
@@ -127,14 +132,16 @@ Swig_clocal_deref(DataType *t, DOHString_or_char *name) {
 char *
 Swig_clocal_assign(DataType *t, DOHString_or_char *name) {
   static char temp[256];
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      sprintf(temp,"&%s",Char(name));
-    } else {
-      sprintf(temp,DataType_lcaststr(t,name));
-    }
-  } else {
+  switch(DataType_type(t)) {
+  case T_VOID:
     strcpy(temp,"");
+    break;
+  case T_USER:
+    sprintf(temp,"&%s",Char(name));    
+    break;
+  default:
+    sprintf(temp,DataType_lcaststr(t,name));    
+    break;
   }
   return temp;
 }
@@ -179,35 +186,39 @@ int Swig_cargs(Wrapper *w, ParmList *l) {
 
 void Swig_cresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_or_char *decl) {
   DOHString *fcall;
-
+  
   fcall = NewString("");
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      t->is_pointer++;
-      Printv(fcall, name, " = (", DataType_lstr(t,0), ") malloc(sizeof(", 0);
-      t->is_pointer--;
-      Printv(fcall, DataType_str(t,0), "));\n", 0);
-      Printv(fcall, "*(", name, ") = ", 0);
+  
+  if (DataType_type(t) != T_VOID)
+    Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);   
+
+  switch(DataType_type(t)) {
+  case T_VOID:
+    break;
+  case T_USER:
+    t->is_pointer++;
+    Printv(fcall, name, " = (", DataType_lstr(t,0), ") malloc(sizeof(", 0);
+    t->is_pointer--;
+    Printv(fcall, DataType_str(t,0), "));\n", 0);
+    Printv(fcall, "*(", name, ") = ", 0);
+    break;
+  case T_REFERENCE:
+    Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);    
+    break;
+  default:
+    /* Normal return value */
+    if (DataType_qualifier(t)) {
+      Printv(fcall, name, " = (", DataType_lstr(t,0), ")", 0);
     } else {
-      /* Is this a reference? */
-      if (t->is_reference) {
-	Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);
-      } else {
-	/* Normal return value */
-	if (DataType_qualifier(t)) {
-	  Printv(fcall, name, " = (", DataType_lstr(t,0), ")", 0);
-	} else {
-	  Printv(fcall, name, " = ", 0);
-	}
-      }
+      Printv(fcall, name, " = ", 0);
     }
+    break;
   }
 
   /* Now print out function call */
   Printv(fcall, decl, ";\n", 0);
 
-  if (t->is_reference) {
+  if (DataType_type(t) == T_REFERENCE) {
     Printv(fcall, name, " = (",  DataType_lstr(t,0), ") &_result_ref;\n", 0);
   }
 
@@ -228,31 +239,37 @@ void Swig_cppresult(Wrapper *w, DataType *t, DOHString_or_char *name, DOHString_
   DOHString *fcall;
 
   fcall = NewString("");
-  if ((t->type != T_VOID) || (t->is_pointer)) {
-    Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);
-    if ((t->type == T_USER) && (!t->is_pointer)) {
-      Printv(fcall, name, " = new ", DataType_str(t,0), "(", 0);
-    } else {
-      /* Is this a reference? */
-      if (t->is_reference) {
-	Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);
-      } else {
-	/* Normal return value */
-	Printv(fcall, name, " = ", DataType_lcaststr(t,""), 0);
-      }
-    }
+  if (DataType_type(t) != T_VOID)
+    Wrapper_add_localv(w,name, Swig_clocal(t,name,0), 0);   
+
+  switch(DataType_type(t)) {
+  case T_VOID:
+    break;
+  case T_USER:
+    Printv(fcall, name, " = new ", DataType_str(t,0), "(", 0);
+    break;
+  case T_REFERENCE:
+    Printv(fcall, DataType_str(t,"_result_ref")," = ", 0);
+    break;
+  default:
+    Printv(fcall, name, " = ", DataType_lcaststr(t,""), 0);
+    break;
   }
 
   /* Now print out function call */
   Printv(fcall, decl, 0);
-
-  if ((t->type == T_USER) && (!t->is_pointer)) {
-    Printf(fcall,")");
-  }
-  Printf(fcall,";\n");
-
-  if (t->is_reference) {
-    Printv(fcall, name, " = (",  DataType_lstr(t,0), ") &_result_ref;\n", 0);
+  
+  switch(DataType_type(t)) {
+  case T_USER:
+    Printf(fcall,");");
+    break;
+  case T_REFERENCE:
+    Printf(fcall,";\n");
+    Printv(fcall, name, " = (",  DataType_lstr(t,0), ") &_result_ref;\n", 0);    
+    break;
+  default:
+    Printf(fcall,";\n");
+    break;
   }
 
   if (Replace(w->code,"$function",fcall, DOH_REPLACE_ANY) == 0) {
@@ -442,7 +459,7 @@ Swig_cmemberset_call(DOHString_or_char *name, DataType *type) {
   if (!func) func = NewString("");
   Clear(func);
 
-  if ((type->type == T_USER) && (type->is_pointer == 0)) {
+  if (DataType_type(type) == T_USER) {
     Printf(func,"%s %s->%s; ", Swig_clocal_assign(type,""), Swig_cparm_name(0,0), name);
   } else {
     Printf(func,"%s ", Swig_clocal_assign(type,""));
@@ -566,7 +583,7 @@ Swig_cmethod_wrapper(DOHString_or_char *classname,
 
   if (!code) {
     /* No code supplied.  Write a function manually */
-    if ((rtype->type != T_VOID) || (rtype->is_pointer)) {
+    if (DataType_type(rtype) != T_VOID) {
       Printf(w->code,"return ");
     }
     

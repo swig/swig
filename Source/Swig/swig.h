@@ -24,27 +24,32 @@
 
 /* --- Legacy DataType interface.  This is being replaced --- */
 
-#define    T_INT       1
-#define    T_SHORT     2
-#define    T_LONG      3
-#define    T_UINT      4
-#define    T_USHORT    5
-#define    T_ULONG     6
-#define    T_UCHAR     7
-#define    T_SCHAR     8
-#define    T_BOOL      9
-#define    T_DOUBLE    10
-#define    T_FLOAT     11
-#define    T_CHAR      12
-#define    T_USER      13
-#define    T_VOID      14
+#define    T_INT        1
+#define    T_SHORT      2
+#define    T_LONG       3
+#define    T_UINT       4
+#define    T_USHORT     5
+#define    T_ULONG      6
+#define    T_UCHAR      7
+#define    T_SCHAR      8
+#define    T_BOOL       9
+#define    T_DOUBLE     10
+#define    T_FLOAT      11
+#define    T_CHAR       12
+#define    T_USER       13
+#define    T_VOID       14
+#define    T_STRING     20
+#define    T_POINTER    21
+#define    T_REFERENCE  22
+#define    T_ARRAY      23
+
 #define    T_SYMBOL    98
 #define    T_ERROR     99
 
 #define MAX_NAME 96
 
 typedef struct DataType {
-  int         type;            /* SWIG Type code */
+  int         _type;           /* SWIG Type code */
   char        name[MAX_NAME];  /* Name of type   */
   int         is_pointer;      /* Is this a pointer */
   int         implicit_ptr;    /* Implicit ptr */
@@ -59,6 +64,10 @@ extern DataType *NewDataType(int type);
 extern DataType *CopyDataType(DataType *type);
 extern void      DelDataType(DataType *type);
 
+int     DataType_type(DataType *t);
+int     DataType_Gettypecode(DataType *t);
+void    DataType_Settypecode(DataType *t, int type);
+
 /* -- New type interface -- */
 
 extern char     *DataType_str(DataType *, DOHString_or_char *name);         /* Exact datatype           */
@@ -68,12 +77,13 @@ extern char     *DataType_lcaststr(DataType *, DOHString_or_char *name);    /* C
 extern char     *DataType_manglestr(DataType *t);                           /* Mangled type name        */
 extern DataType *DataType_ltype(DataType *);                                /* Create local type object */
 
-/* -- Old type interface -- */
+/* -- Old type interface. This is going away -- */
 
 extern char     *DataType_qualifier(DataType *);
 extern void      DataType_set_qualifier(DataType *, char *q);
 extern char     *DataType_arraystr(DataType *);
 extern void      DataType_set_arraystr(DataType *, char *a);
+
 extern char     *DataType_mangle_default(DataType *t);                     /* Default name mangler */
 extern void      DataType_primitive(DataType *);
 extern void      DataType_set_mangle(char *(*m)(DataType *));
