@@ -28,16 +28,22 @@ public class java_lib_various_runme {
       if ( !got[i].equals(expected[i]) )
         throw new RuntimeException("Name failed " + i + " " + got[i] + "|" + expected[i]);
 
-    // STRING_ARRAY variable setter
-//    String newLangs[] = { "French", "Italian", "Spanish" };
-//    java_lib_various.setLanguages(newLangs);
-
     // STRING_ARRAY variable getter
     String langscheck[] = { "Hungarian", "Afrikaans", "Norwegian" };
     String langs[] = java_lib_various.getLanguages();
     for (int i=0; i<langs.length; i++)
       if ( !langs[i].equals(langscheck[i]) )
         throw new RuntimeException("Languages read failed " + i + " " + langs[i] + "|" + langscheck[i]);
+
+    // STRING_ARRAY variable setter
+    String newLangs[] = { "French", "Italian", "Spanish" };
+    java_lib_various.setLanguages(newLangs);
+
+    // STRING_ARRAY variable getter
+    langs = java_lib_various.getLanguages();
+    for (int i=0; i<langs.length; i++)
+      if ( !langs[i].equals(newLangs[i]) )
+        throw new RuntimeException("Languages verify failed " + i + " " + langs[i] + "|" + newLangs[i]);
 
     // STRING_RET test
     {
