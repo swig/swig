@@ -13,18 +13,24 @@
 
 
 
-<p>
-The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
-The wrapper code implementation uses the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
-The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
-PINVOKE is part of the ECMA/ISO C# specification.
-Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using Mono and Portable.NET.
-</p>
+<H2><a name="csharp_introduction"></a>Introduction</H2>
 
 <p>
-The C# module is very similar to the Java module, so until some documentation has been written,
+The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
+The wrapper code implementation uses C# and the Platform Invoke (PINVOKE) interface to access natively compiled C/C++ code.
+The PINVOKE interface has been chosen over Microsoft's Managed C++ interface as it is portable to both Microsoft Windows and non-Microsoft platforms.
+PINVOKE is part of the ECMA/ISO C# specification.
+It is also better suited for robust production environments due to the Managed C++ flaw called the
+<a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dv_vstechart/html/vcconMixedDLLLoadingProblem.asp">Mixed DLL Loading Problem</a>.
+Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
+<a href="http://www.mono-project.com/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
+</p>
+
+<H2><a name="csharp_differences_java"></a>Differences to the Java module</H2>
+<p>
+The C# module is very similar to the Java module, so until some more complete documentation has been written,
 please use the <a href="Java.html#Java">Java documentation</a> as a guide to using SWIG with C#.
-The rest of this chapter should be read in conjunction with the Java documentation as it lists the main differences.
+The rest of this section should be read in conjunction with the Java documentation as it lists the main differences.
 
 <p>
 Director support (virtual method callbacks into C#) has not yet been implemented and is the main missing feature compared to Java.
@@ -77,6 +83,7 @@ If it was used, it would generate an illegal runtime initialisation via a PINVOK
 C# doesn't support the notion of throws clauses.
 Therefore there is no 'throws' typemap attribute support for adding exception classes to a throws clause.
 Likewise there is no need for an equivalent to <tt>%javaexception</tt>.
+In fact, throwing C# exceptions works quite differently, see <a href="CSharp.html#csharp_exceptions">C# Exceptions></a> below.
 </li>
 
 <li>
@@ -158,10 +165,525 @@ The intermediary classname has <tt>PINVOKE</tt> appended after the module name i
 The directory <tt>Examples/csharp</tt> has a number of simple examples. 
 Visual Studio .NET 2003 solution and project files are available for compiling with the Microsoft .NET C# compiler on Windows.
 If your SWIG installation went well on a Unix environment and your C# compiler was detected, you should be able to type <tt>make</tt> in each example directory, 
-then <tt>ilrun runme</tt> (Portable.NET C# compiler) or <tt>mono runme</tt> (Mono C# compiler) to run the examples.
+then <tt>ilrun runme.exe</tt> (Portable.NET C# compiler) or <tt>mono runme.exe</tt> (Mono C# compiler) to run the examples.
 Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
+
+<H2><a name="csharp_exceptions"></a>C# Exceptions</H2>
+<p>
+It is possible to throw a C# Exception from C/C++ code.
+SWIG already provides the framework for throwing C# exceptions if it is able to detect that a C++ exception could be thrown.
+Automatically detecting that a C++ exception could be thrown is only possible when a C++ exception specification is used,
+see <a href="SWIGPlus.html#SWIGPlus_exception_specifications">Exception specifications</a>. 
+The <a href="Customization.html#exception">Exception handling with %exception</a> section details the <tt>%exception</tt> feature.
+Customised code for handling exceptions with or without a C++ exception specification is possible and the details follow.
+However anyone wishing to do this should be familiar with the contents of the sections referred to above.
+</p>
+
+<p>
+Unfortunately a C# exception cannot simply be thrown from unmanaged code for a variety of reasons.
+Most noteably being that throwing a C# exception results in exceptions being thrown across the C PInvoke interface and C does not understand exceptions.
+The design revolves around a C# exception being constructed and stored as a pending exception, to be thrown only when the unmanaged code has completed.
+Implementing this is a tad involved and there are thus some unusual typemap constructs.
+Some practical examples follow and they should be read in conjunction with the rest of this section.
+</p>
+
+<p>
+First some details about the design that must be followed.
+Each typemap or feature that generates <b>unmanaged code</b> supports an attribute called <tt>canthrow</tt>.
+This is simply a flag which when set indicates that the code in the typemap/feature has code which might want to throw a C# exception.
+The code in the typemap/feature can then raise a C# exception by calling one of the C functions,
+<tt>SWIG_CSharpSetPendingException()</tt> or <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>.
+When called, the function makes a callback into the managed world via a delegate.
+The callback creates and stores an exception ready for throwing when the unmanaged code has finished.
+The typemap/feature unmanaged code is then expected to force an immediate return from the unmanaged wrapper function,
+so that the pending managed exception can then be thrown.
+The support code has been carefully designed to be efficient as well as thread-safe.
+However to achieve the goal of efficiency requires some optional code generation in the <b>managed code</b> typemaps.
+Code to check for pending exceptions is generated if and only if the unmanaged code has code to set a pending exception,
+that is if the <tt>canthrow</tt> attribute is set.
+The optional managed code is generated using the <tt>excode</tt> typemap attribute and <tt>$excode</tt> special variable in the relevant managed code typemaps.
+Simply, if any relevant unmanaged code has the <tt>canthrow</tt> attribute set, then any occurrences of <tt>$excode</tt>
+is replaced with the code in the <tt>excode</tt> attribute.
+If the <tt>canthrow</tt> attribute is not set, then any occurrences of <tt>$excode</tt> are replaced with nothing.
+</p>
+
+<p>
+The prototypes for the <tt>SWIG_CSharpSetPendingException()</tt> and <tt>SWIG_CSharpSetPendingExceptionArgument()</tt> functions are
+</p>
+
+<div class="code">
+<pre>
+static void SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes code,
+                                           const char *msg);
+
+static void SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExceptionArgumentCodes code,
+                                                   const char *msg,
+                                                   const char *param_name);
+</pre>
+</div>
+
+<p>
+The first parameter defines which .NET exceptions can be thrown:
+</p>
+
+<div class="code">
+<pre>
+typedef enum {
+  SWIG_CSharpApplicationException,
+  SWIG_CSharpArithmeticException,
+  SWIG_CSharpDivideByZeroException,
+  SWIG_CSharpIndexOutOfRangeException,
+  SWIG_CSharpInvalidOperationException,
+  SWIG_CSharpIOException,
+  SWIG_CSharpNullReferenceException,
+  SWIG_CSharpOutOfMemoryException,
+  SWIG_CSharpOverflowException,
+  SWIG_CSharpSystemException
+} SWIG_CSharpExceptionCodes;
+
+typedef enum {
+  SWIG_CSharpArgumentException,
+  SWIG_CSharpArgumentNullException,
+  SWIG_CSharpArgumentOutOfRangeException,
+} SWIG_CSharpExceptionArgumentCodes;
+</pre>
+</div>
+
+<p>
+where, for example, <tt>SWIG_CSharpApplicationException</tt> corresponds to the .NET exception, <tt>ApplicationException</tt>.
+The <tt>msg</tt> and <tt>param_name</tt> parameters contain the C# exception message and parameter name associated with the exception.
+</p>
+
+
+<p>
+The <tt>%exception</tt> feature in C# has the <tt>canthrow</tt> attribute set.
+The <tt>%csnothrowexception</tt> feature is like <tt>%exception</tt>, but it does not have the <tt>canthrow</tt> attribute
+set so should only be used when a C# exception is not created.
+</p>
+
+
+<H3><a name="csharp_exception_example_check_typemap"></a>C# exception example using "check" typemap</H3>
+<p>
+Lets say we have the following simple C++ method:
+</p>
+
+
+<div class="code">
+<pre>
+void positivesonly(int number);
+</pre>
+</div>
+
+<p>
+and we want to check that the input <tt>number</tt> is always positive and if not throw a C# <tt>ArgumentOutOfRangeException</tt>.
+The "check" typemap is designed for checking input parameters. Below you will see the <tt>canthrow</tt> attribute is set because
+the code contains a call to <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>. The full example follows:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%typemap(check, canthrow=1) int number %{
+if ($1 &lt; 0) {
+  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+  return $null;
+}
+// SWIGEXCODE is a macro used by many other csout typemaps
+%define SWIGEXCODE "\n    if ($modulePINVOKE.SWIGPendingException.Pending) throw $modulePINVOKE.SWIGPendingException.Retrieve();" %enddef
+%typemap(csout, excode=SWIGEXCODE) void {
+    $imcall;$excode
+  }
+%}
+
+%inline %{
+
+void positivesonly(int number) {
+}
+
+%}
+</pre>
+</div>
+
+<p>
+When the following C# code is executed:
+</p>
+
+<div class="code">
+<pre>
+public class runme {
+    static void Main() {
+      example.positivesonly(-1);
+    }
+}
+</pre>
+</div>
+
+<p>
+The exception is thrown:
+</p>
+
+<div class="code">
+<pre>
+Unhandled Exception: System.ArgumentOutOfRangeException: only positive numbers accepted
+Parameter name: number
+in &lt;0x00034&gt; example:positivesonly (int)
+in &lt;0x0000c&gt; runme:Main ()
+</pre>
+</div>
+
+<p>
+Now let's analyse the generated code to gain a fuller understanding of the typemaps. The generated unmanaged C++ code is:
+</p>
+
+
+<div class="code">
+<pre>
+DllExport void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
+    int arg1 ;
+    
+    arg1 = (int)jarg1; 
+    
+    if (arg1 &lt; 0) {
+        SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+        return ;
+    }
+    
+    positivesonly(arg1);
+    
+}
+</pre>
+</div>
+
+<p>
+This largely comes from the "check" typemap. The managed code in the module class is:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static void positivesonly(int number) {
+    examplePINVOKE.positivesonly(number);
+    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+  }
+
+}
+</pre>
+</div>
+
+<p>
+This comes largely from the "csout" typemap. 
+</p>
+
+<p>
+The "csout" typemap is the same as the default void "csout" typemap so is not strictly necessary for the example.
+However, it is shown to demonstrate what managed output code typemaps should contain,
+that is, a <tt>$excode</tt> special variable and an <tt>excode</tt> attribute.
+Also note that <tt>$excode</tt> is expanded into the code held in the <tt>excode</tt> attribute.
+The <tt>$imcall</tt> as always expands into <tt>examplePINVOKE.positivesonly(number)</tt>.
+The exception support code in the intermediary class, <tt>examplePINVOKE</tt>, is not shown, but is contained within the inner classes,
+<tt>SWIGPendingException</tt> and <tt>SWIGExceptionHelper</tt> and is always generated.
+These classes can be seen in any of the generated wrappers.
+However, all that is required of a user is as demonstrated in the "csin" typemap above.
+That is, is to check <tt>SWIGPendingException.Pending</tt> and to throw the exception returned by <tt>SWIGPendingException.Retrieve()</tt>.
+</p>
+
+<p>
+If the "check" typemap did not exist, then
+the following module class would instead be generated:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static void positivesonly(int number) {
+    examplePINVOKE.positivesonly(number);
+  }
+
+}
+</pre>
+</div>
+
+<p>
+Here we see the pending exception checking code is omitted.
+In fact, the code above would be generated if the <tt>canthrow</tt> attribute was not in the "check" typemap, such as:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int number %{
+if ($1 &lt; 0) {
+  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, "only positive numbers accepted", "number");
+  return $null;
+}
+%}
+</pre>
+</div>
+
+<p>
+Note that if SWIG detects you have used <tt>SWIG_CSharpSetPendingException()</tt> or <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>
+without setting the <tt>canthrow</tt> attribute you will get a warning message similar to
+</p>
+
+<div class="code">
+<pre>
+example.i:21: Warning(845): Unmanaged code contains a call to a SWIG_CSharpSetPendingException
+method and C# code does not handle pending exceptions via the canthrow attribute.
+</pre>
+</div>
+<p>
+Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
+</P>
+
+<H3><a name="csharp_exception_example_percent_exception"></a>C# exception example using %exception</H3>
+<p>
+Let's consider a similar, but more common example that throws a C++ exception from within a wrapped function.
+We can use <tt>%exception</tt> as mentioned in <a href="Customization.html#exception">Exception handling with %exception</a>.
+</p>
+
+<div class="code">
+<pre>
+%exception negativesonly(int value) %{
+try {
+  $action
+} catch (std::out_of_range e) {
+  SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
+}
+%}
+
+%inline %{
+#include &lt;stdexcept&gt;
+void negativesonly(int value) {
+  if (value &gt;= 0)
+    throw std::out_of_range("number should be negative");
+}
+%}
+</pre>
+</div>
+
+<p>
+The generated unmanaged code this time catches the C++ exception and converts it into a C# <tt>ApplicationException</tt>.
+</p>
+
+<div class="code">
+<pre>
+DllExport void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
+    int arg1 ;
+    
+    arg1 = (int)jarg1; 
+    
+    try {
+        negativesonly(arg1);
+        
+    } catch (std::out_of_range e) {
+        SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, e.what());
+        return ;
+    }
+    
+}
+</pre>
+</div>
+
+<p>
+The managed code generated does check for the pending exception as mentioned earlier as the C# version of <tt>%exception</tt> has the <tt>canthrow</tt> attribute set by default:
+</p>
+
+<div class="code">
+<pre>
+  public static void negativesonly(int value) {
+    examplePINVOKE.negativesonly(value);
+    if (examplePINVOKE.SWIGPendingException.Pending) throw examplePINVOKE.SWIGPendingException.Retrieve();
+  }
+</pre>
+</div>
+
+<H3><a name="csharp_exception_example_exception_specifications"></a>C# exception example using exception specifications</H3>
+
+<p>
+When C++ exception specifications are used, SWIG is able to detect that the method might throw an exception.
+By default SWIG will automatically generate code to catch the exception and convert it into a managed <tt>ApplicationException</tt>,
+as defined by the default "throws" typemaps.
+The following example has a user supplied "throws" typemap which is used whenever an exception specification contains a <tt>std::out_of_range</tt>,
+such as the <tt>evensonly</tt> method below.
+</p>
+
+<div class="code">
+<pre>
+%typemap(throws, canthrow=1) std::out_of_range {
+  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, $1.what(), NULL);
+  return $null;
+}
+
+%inline %{
+#include <stdexcept>
+void evensonly(int input) throw (std::out_of_range) {
+  if (input%2 != 0)
+    throw std::out_of_range("number is not even");
+}
+%}
+</pre>
+</div>
+
+<p>
+Note that the type for the throws typemap is the type in the exception specification.
+SWIG generates a try catch block with the throws typemap code in the catch handler.
+</p>
+
+<div class="code">
+<pre>
+DllExport void SWIGSTDCALL CSharp_evensonly(int jarg1) {
+    int arg1 ;
+    
+    arg1 = (int)jarg1; 
+    try {
+        evensonly(arg1);
+    }
+    catch(std::out_of_range &amp;_e) {
+        {
+            SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, (&amp;_e)-&gt;what(), NULL);
+            return ;
+        }
+    }
+    
+}
+</pre>
+</div>
+
+<p>
+Multiple catch handlers are generated should there be more than one exception specifications declared.
+</p>
+
+<H3><a name="csharp_custom_application_exception"></a>Custom C# ApplicationException example</H3>
+
+<p>
+This example involves a user defined exception.
+The conventional .NET exception handling approach is to create a custom <tt>ApplicationException</tt> and throw it in your application.
+The goal in this example is to convert the STL <tt>std::out_of_range</tt> exception into one of these custom .NET exceptions.
+</p>
+
+
+<p>
+The default exception handling is quite easy to use as the <tt>SWIG_CSharpSetPendingException()</tt> and <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>
+methods are provided by SWIG.
+However, for a custom C# exception, the boiler plate code that supports these functions needs replicating.
+In essence this consists of some C/C++ code and C# code.
+The C/C++ code can be generated into the wrapper file using the <tt>%insert(runtime)</tt> directive and
+the C# code can be generated into the intermediary class using the <tt>imclasscode</tt> pragma as follows:
+
+</p>
+
+<div class="code">
+<pre>
+%insert(runtime) %{
+  // Code to handle throwing of C# CustomApplicationException from C/C++ code.
+  // The equivalent delegate to the callback, CSharpExceptionCallback_t, is CustomExceptionDelegate
+  // and the equivalent customExceptionCallback instance is customDelegate
+  typedef void (SWIGSTDCALL* CSharpExceptionCallback_t)(const char *);
+  CSharpExceptionCallback_t customExceptionCallback = NULL;
+
+  extern "C" DllExport void SWIGSTDCALL CustomExceptionRegisterCallback(CSharpExceptionCallback_t customCallback) {
+    customExceptionCallback = customCallback;
+  }
+
+  // Note that SWIG detects any method calls named starting with SWIG_CSharpSetPendingException for warning 845
+  static void SWIG_CSharpSetPendingExceptionCustom(const char *msg) {
+    customExceptionCallback(msg);
+  }
+%}
+
+%pragma(csharp) imclasscode=%{
+  class CustomExceptionHelper {
+    // C# delegate for the C/C++ customExceptionCallback
+    public delegate void CustomExceptionDelegate(string message);
+    static CustomExceptionDelegate customDelegate = new CustomExceptionDelegate(SetPendingCustomException);
+
+    [DllImport("$dllimport", EntryPoint="CustomExceptionRegisterCallback")]
+    public static extern void CustomExceptionRegisterCallback(CustomExceptionDelegate customCallback);
+
+    static void SetPendingCustomException(string message) {
+      SWIGPendingException.Set(new CustomApplicationException(message));
+    }
+
+    static CustomExceptionHelper() {
+      CustomExceptionRegisterCallback(customDelegate);
+    }
+  }
+  static CustomExceptionHelper exceptionHelper = new CustomExceptionHelper();
+%}
+</pre>
+</div>
+
+<p>
+The method stored in the C# delegate instance, <tt>customDelegate</tt> is what gets called by the C/C++ callback.
+However, the equivalent to the C# delegate, that is the C/C++ callback, needs to be assigned before any unmanaged code is executed.
+This is achieved by putting the initialisation code in the intermediary class.
+Recall that the intermediary class contains all the PInvoke methods, so the static variables in the intermediary class will be initialised
+before any of the PInvoke methods in this class are called.
+The <tt>exceptionHelper</tt> static variable ensures the C/C++ callback is initialised with the value in <tt>customDelegate</tt> by calling
+the <tt>CustomExceptionRegisterCallback</tt> method in the <tt>CustomExceptionHelper</tt> static constructor.
+Once this has been done, unmanaged code can make callbacks into the managed world as <tt>customExceptionCallback</tt> will be initialised with a valid callback/delegate.
+Any calls to <tt>SWIG_CSharpSetPendingExceptionCustom()</tt> will make the callback to create the pending exception in the same way that
+<tt>SWIG_CSharpSetPendingException()</tt> and <tt>SWIG_CSharpSetPendingExceptionArgument()</tt> does.
+In fact the method has been similarly named so that SWIG can issue the warning about missing <tt>canthrow</tt> attributes as discussed earlier.
+It is an invaluable warning as it is easy to forget the <tt>canthrow</tt> attribute when writing typemaps/features.
+</p>
+
+<p>
+The <tt>SWIGPendingException</tt> helper class is not shown, but is generated as an inner class into the intermediary class.
+It stores the pending exception in Thread Local Storage so that the exception handling mechanism is thread safe.
+</p>
+
+<p>
+The boiler plate code above must be used in addition to a handcrafted <tt>CustomApplicationException</tt>:
+</p>
+
+<div class="code">
+<pre>
+// Custom C# Exception
+class CustomApplicationException : System.ApplicationException {
+  public CustomApplicationException(string message) 
+    : base(message) {
+  }
+}
+</pre>
+</div>
+
+<p>
+and the SWIG interface code:
+</p>
+
+<div class="code">
+<pre>
+%typemap(throws, canthrow=1) std::out_of_range {
+  SWIG_CSharpSetPendingExceptionCustom($1.what());
+  return $null;
+}
+
+%inline %{
+void oddsonly(int input) throw (std::out_of_range) {
+  if (input%2 != 1)
+    throw std::out_of_range("number is not odd");
+}
+%}
+</pre>
+</div>
+
+<p>
+The "throws" typemap now simply calls our new <tt>SWIG_CSharpSetPendingExceptionCustom()</tt> function so that the exception can be caught, as such:
+</p>
+
+<div class="code">
+<pre>
+try {
+  example.oddsonly(2);
+} catch (CustomApplicationException e) {
+  ...
+}
+</pre>
+</div>
+
 </body>
 </html>
 
