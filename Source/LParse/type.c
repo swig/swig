@@ -150,7 +150,6 @@ LParseTypeStr(DOH *to) {
   int i;
   LParseType *t = (LParseType *) to;
   s = NewString("");
-  Printf(s,"(%d) - ", t->type);
   if (t->qualifier)
     Printf(s,"%s ",t->qualifier);
   Printf(s,"%s ",t->name);

@@ -201,7 +201,7 @@ static void real_objfree(DOH *ptr) {
   b = (DohBase *) ptr;
 
   if (!b->objinfo) {
-    DohError(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
+    DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
     return;   /* Improperly initialized object. leak some more */
   }
   f = (Fragment *) DohMalloc(sizeof(Fragment));
@@ -227,7 +227,7 @@ DohGarbageCollect() {
   DohBase *b, *b1;
   int ndeleted = 1;
 
-  DohError(DOH_MEMORY,"Garbage collecting.\n");
+  DohTrace(DOH_MEMORY,"Garbage collecting.\n");
   while (ndeleted) {
     ndeleted = 0;
     s = nscopes - 1;
@@ -255,7 +255,7 @@ DohGarbageCollect() {
       s--;
     }
   }
-  DohError(DOH_MEMORY,"Done garbage collecting.\n");
+  DohTrace(DOH_MEMORY,"Done garbage collecting.\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -338,12 +338,12 @@ void DohObjFree(DOH *ptr) {
   DohBase  *b;
 
   if (!DohCheck(ptr)) {
-    DohError(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
+    DohTrace(DOH_MEMORY,"DohObjFree. %x not a DOH object!\n", ptr);
     return;                  /* Oh well.  Guess we're leaky */
   }
   b = (DohBase *) ptr;
   if (!b->objinfo) {
-    DohError(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
+    DohTrace(DOH_MEMORY,"DohObjFree. %x not properly defined.  No objinfo structure.\n", ptr);
     return;   /* Improperly initialized object. leak some more */
   }
 }

@@ -29,6 +29,8 @@
 #define yynerrs lparse_yynerrs
  
 extern int lparse_yylex();
+extern void LParse_strict_type(int);
+
 void   yyerror (char *s);       
 
 #include "lparse.h"

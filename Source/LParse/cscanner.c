@@ -83,6 +83,8 @@ static int           remap[SWIG_MAXTOKENS];
 static int           cscan_init = 0;
 static int           cplusplus_mode = 0;
 static int           objc_mode = 0;
+static int           strict_type = 1;
+
 static SwigScanner  *cscanner = 0;
 
 /* -----------------------------------------------------------------------------
@@ -123,6 +125,10 @@ int LParse_line() {
 
 void LParse_set_location(DOH *file, int line) {
   SwigScanner_set_location(cscanner,file,line);
+}
+
+void LParse_strict_type(int i) {
+  strict_type = i;
 }
 
 /* -----------------------------------------------------------------------------
@@ -371,7 +377,7 @@ yylex1(void) {
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */
       yylval.tok.text = NewString(yytext);
-      if (LParse_typedef_check(yylval.tok.text)) {
+      if (strict_type && LParse_typedef_check(yylval.tok.text)) {
 	return TYPE_TYPEDEF;
       }
       return(ID);
