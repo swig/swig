@@ -650,7 +650,8 @@ using System.Runtime.InteropServices;
 %include "enums.swg"
 
 /*
-// Alternative char * typemaps
+// Alternative char * typemaps.
+// Warning the GC may collect the SWIGStringMarshal instance while the unmanaged code is executing, so these typemaps should be avoided.
 %pragma(csharp) imclasscode=%{
   public class SWIGStringMarshal {
     public readonly IntPtr ptr;
@@ -664,7 +665,7 @@ using System.Runtime.InteropServices;
 %}
 
 %typemap(imtype) char *, char[ANY], char[]   "IntPtr"
-%typemap(out) char[ANY], char[] %{ $result = $1; %}
+%typemap(out) char *, char[ANY], char[] %{ $result = $1; %}
 %typemap(csin) char *, char[ANY], char[] "new $modulePINVOKE.SWIGStringMarshal($csinput).ptr"
 %typemap(csout, excode=SWIGEXCODE) char *, char[ANY], char[] {
     string ret = System.Runtime.InteropServices.Marshal.PtrToStringAnsi($imcall);$excode
@@ -672,7 +673,7 @@ using System.Runtime.InteropServices;
   }
 %typemap(csvarin, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     set {
-      new $modulePINVOKE.SwigStringMarshal($imcall).ptr;$excode
+      $imcall;$excode
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) char *, char[ANY], char[] %{
     get {
