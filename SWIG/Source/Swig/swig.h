@@ -200,6 +200,13 @@ int Swig_Type_GetUnsigned(DOH *t);
 
 #endif
 
+  /* Parse tree support */
+
+extern void Swig_dump_tags(DOH *obj, DOH *root);
+extern void Swig_emit_rules(DOH *ruleset, DOH *context, DOH *node, 
+			    int (*actionhandler)(DOH *ruleset, DOH *context, DOH *node, DOH *action));
+extern DOH *Swig_match_rule(DOH *ruleset, DOH *nodelist);
+
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
 
