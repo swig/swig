@@ -58,6 +58,10 @@ f = open(dirname+"/configure.in","w")
 f.write(s)
 f.close()
 
+# Remove the debian directory -- it's not official
+
+os.system("rm -Rf "+dirname+"/debian");
+
 # Blow away all .cvsignore files
 
 print "Blowing away .cvsignore files"
