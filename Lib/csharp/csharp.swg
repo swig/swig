@@ -208,66 +208,76 @@ $1 = &temp; %}
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
  * that cannot be overloaded in C# as more than one C++ type maps to a single C# type */
 
-%typecheck(SWIG_TYPECHECK_BOOL) /* Java boolean */
+%typecheck(SWIG_TYPECHECK_BOOL)
     bool,
     const bool &
     ""
 
-%typecheck(SWIG_TYPECHECK_CHAR) /* Java char */
+%typecheck(SWIG_TYPECHECK_CHAR)
     char, 
     const char &
     ""
 
-%typecheck(SWIG_TYPECHECK_INT8) /* Java byte */
+%typecheck(SWIG_TYPECHECK_INT8)
     signed char,
     const signed char &
     ""
 
-%typecheck(SWIG_TYPECHECK_INT16) /* Java short */
+%typecheck(SWIG_TYPECHECK_UINT8)
     unsigned char, 
+    const unsigned char & 
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT16)
     short, 
-    const unsigned char &, 
     const short &
     ""
 
-%typecheck(SWIG_TYPECHECK_INT32) /* Java int */
+%typecheck(SWIG_TYPECHECK_UINT16)
     unsigned short, 
+    const unsigned short &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT32)
     int, 
     long, 
-    const unsigned short &, 
     const int &, 
     const long &
     ""
 
-%typecheck(SWIG_TYPECHECK_INT64) /* Java long */
+%typecheck(SWIG_TYPECHECK_UINT32)
     unsigned int, 
     unsigned long, 
-    long long, 
     const unsigned int &, 
-    const unsigned long &, 
+    const unsigned long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT64)
+    long long, 
     const long long &
     ""
 
-%typecheck(SWIG_TYPECHECK_INT128) /* Java BigInteger */
-    unsigned long long
+%typecheck(SWIG_TYPECHECK_UINT64)
+    unsigned long long,
+    const unsigned long long &
     ""
 
-%typecheck(SWIG_TYPECHECK_FLOAT) /* Java float */
+%typecheck(SWIG_TYPECHECK_FLOAT)
     float,
     const float &
     ""
 
-%typecheck(SWIG_TYPECHECK_DOUBLE) /* Java double */
+%typecheck(SWIG_TYPECHECK_DOUBLE)
     double,
     const double &
     ""
 
-%typecheck(SWIG_TYPECHECK_STRING) /* Java String */
+%typecheck(SWIG_TYPECHECK_STRING)
     char *,
     char[ANY]
     ""
 
-%typecheck(SWIG_TYPECHECK_POINTER) /* Default */
+%typecheck(SWIG_TYPECHECK_POINTER)
     SWIGTYPE, 
     SWIGTYPE *, 
     SWIGTYPE &, 
@@ -477,13 +487,12 @@ $1 = &temp; %}
     base.Dispose();
   }
 
-%typemap(csgetcptr) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-%}
 
 /* C# specific directives */
-#define %csconst(flag)     %feature("cs:const","flag")
-#define %csenum(wrapapproach)   %feature("cs:enum","wrapapproach")
-#define %csmethodmodifiers %feature("cs:methodmodifiers")
+#define %csconst(flag)              %feature("cs:const","flag")
+#define %csconstvalue(value)        %feature("cs:constvalue",value)
+#define %csenum(wrapapproach)       %feature("cs:enum","wrapapproach")
+#define %csmethodmodifiers          %feature("cs:methodmodifiers")
 
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
