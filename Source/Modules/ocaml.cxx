@@ -1398,27 +1398,27 @@ public:
 
     String *mangleNameForCaml( String *s ) {
 	String *out = Copy(s);
-	Replaceall(out," ","_");
-	Replaceall(out,"::","_");
-	Replaceall(out,",","_x_");
-	Replaceall(out,"+","__plus__");
-	Replaceall(out,"-","__minus__");
-	Replaceall(out,"<","__ldbrace__");
-	Replaceall(out,">","__rdbrace__");
-	Replaceall(out,"!","__not__");
-	Replaceall(out,"%","__mod__");
-	Replaceall(out,"^","__xor__");
-	Replaceall(out,"*","__star__");
-	Replaceall(out,"&","__amp__");
-	Replaceall(out,"|","__or__");
-	Replaceall(out,"(","__lparen__");
-	Replaceall(out,")","__rparen__");
-	Replaceall(out,"[","__lbrace__");
-	Replaceall(out,"]","__rbrace__");
-	Replaceall(out,"~","__bnot__");
-	Replaceall(out,"=","__equals__");
-	Replaceall(out,"/","__slash__");
-	Replaceall(out,".","__dot__");
+	Replaceall(out," ","_xx");
+	Replaceall(out,"::","_xx");
+	Replaceall(out,",","_x");
+	Replaceall(out,"+","_xx_plus");
+	Replaceall(out,"-","_xx_minus");
+	Replaceall(out,"<","_xx_ldbrace");
+	Replaceall(out,">","_xx_rdbrace");
+	Replaceall(out,"!","_xx_not");
+	Replaceall(out,"%","_xx_mod");
+	Replaceall(out,"^","_xx_xor");
+	Replaceall(out,"*","_xx_star");
+	Replaceall(out,"&","_xx_amp");
+	Replaceall(out,"|","_xx_or");
+	Replaceall(out,"(","_xx_lparen");
+	Replaceall(out,")","_xx_rparen");
+	Replaceall(out,"[","_xx_lbrace");
+	Replaceall(out,"]","_xx_rbrace");
+	Replaceall(out,"~","_xx_bnot");
+	Replaceall(out,"=","_xx_equals");
+	Replaceall(out,"/","_xx_slash");
+	Replaceall(out,".","_xx_dot");
 	return out;
     }
     
@@ -1817,15 +1817,17 @@ public:
 	set_nextSibling(p, parms_in_declaration);
 	parms_in_declaration = p;
 
-	for (ip = parms_in_declaration; nextSibling(ip); ) 
+	for (ip = parms_in_definition; nextSibling(ip); ) 
 	    ip = nextSibling(ip);
-
+#if 0
 	p = NewParm(NewString("bool"), NewString("disown"));
 	Setattr(p, "CAML_VALUE", "1");
-	Setattr(n, "director:postfix_args", p);
 	Setattr(p, "args:byname", "1");
 	Setattr(p, "value", "0");
-	set_nextSibling(ip, p);
+	Setattr(n, "director:postfix_args", p);
+#endif
+	/* set_nextSibling(ip, p); */
+
 
 	/* constructor */
 	{
@@ -1838,7 +1840,7 @@ public:
 					 0, 0);
 	    call = Swig_csuperclass_call(0, basetype, superparms);
 	    Printf( w->def, 
-		    "%s::%s: %s, Swig::Director(self, disown) { }", 
+		    "%s::%s: %s, Swig::Director(self) { }", 
 		    classname, target, call );
 	    Delete(target);
 	    Wrapper_print(w, f_directors);
@@ -1858,7 +1860,7 @@ public:
 	Delete(classname);
 	Delete(supername);
 	Delete(parms_in_definition);
-	Setattr(n, "parms", parms_in_definition );
+	/* Setattr(n, "parms", parms_in_definition ); */
 	return Language::classDirectorConstructor(n);
     }
 

@@ -62,7 +62,7 @@ namespace Swig {
 
     public:
       /* wrap a ocaml object, optionally taking ownership */
-      Director(CAML_VALUE self, bool disown) : swig_self(self), swig_disown_flag(disown) {
+      Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
         register_global_root(&swig_self);
       }
 
