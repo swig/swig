@@ -28,6 +28,7 @@ exception NotEnumType of c_obj
 exception LabelNotFromThisEnum of c_obj
 
 let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)
+let _ = Callback.register "swig_runmethod" invoke
 let fnhelper fin f arg =
   let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
     match f args with

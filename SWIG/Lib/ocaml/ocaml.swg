@@ -30,6 +30,12 @@ extern "C" {
     SWIG_Cast (void *source, swig_type_info *source_type,
 	       void **ptr, swig_type_info *dest_type)
     {
+	if( !source ) { // Special case for NULL.  This is a popular question
+	    // for other modules on the list, so I want an easy way out...
+	    *ptr = 0;
+	    return 0;
+	}
+
 #ifdef TYPE_CAST_VERBOSE
 	fprintf( stderr, "Trying to cast %s to %s\n", 
 		 source_type ? source_type->str : "<none>",
@@ -400,11 +406,26 @@ extern "C" {
 	void *outptr = NULL;
         swig_type_info *outdescr = NULL;
 
+	if( v == Val_unit ) {
+	    *out = 0;
+	    CAMLreturn(0);
+	}
 	if( !Is_block(v) ) return -1;
 	switch( Tag_val(v) ) {
+	case C_int:
+	    if( !caml_long_val( v ) ) {
+		*out = 0;
+		CAMLreturn(0);
+	    } else {
+		*out = 0;
+		CAMLreturn(1);
+	    }
+	    break;
 	case C_obj:
-	    return caml_ptr_val_internal
-		(callback(*caml_named_value("caml_obj_ptr"),v),out,descriptor);
+	    CAMLreturn
+		(caml_ptr_val_internal
+		 (callback(*caml_named_value("caml_obj_ptr"),v),
+		  out,descriptor));
 	case C_string:
 	    outptr = (void *)String_val(Field(v,0));
 	    break;
@@ -418,7 +439,7 @@ extern "C" {
 	    break;
 	}
 	
-	CAMLreturn(SWIG_GetPtr(outptr,out,descriptor,outdescr));
+	CAMLreturn(SWIG_GetPtr(outptr,out,outdescr,descriptor));
     }
 
     SWIGSTATIC void *caml_ptr_val( value v, swig_type_info *descriptor ) {
