@@ -3,7 +3,7 @@ SWIG       = $(TOP)/../swig
 SRCS       = example.c
 TARGET     = example
 INTERFACE  = example.i
-SWIGOPT    = -shadow
+SWIGOPT    =
 
 all::	java
 

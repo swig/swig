@@ -31,9 +31,9 @@ public class main {
     Vector c = example.addv(a,b);
     System.out.println( "    a+b = " + c.print() );
     
-    // Note: Unless we free the result, a memory leak will occur if the -proxy commandline
-    // is not used as the proxy classes define finalizers which call the _delete() method. When
-    // -proxy is specified the memory management is then controlled by the garbage collector.
+    // Note: Unless we free the result, a memory leak will occur if the -noproxy commandline
+    // is used as the proxy classes define finalizers which call the _delete() method. When
+    // -noproxy is not specified the memory management is controlled by the garbage collector.
     // You can still call _delete(). It will free the c++ memory immediately, but not the 
     // Java memory! You then must be careful not to call any member functions as it will 
     // use a NULL c pointer on the underlying c++ object. We set the Java object to null
@@ -53,7 +53,7 @@ public class main {
     va.set(0,a);
     va.set(1,b);
     
-    // This works, but it would cause a memory leak if -proxy wasn't specified!
+    // This works, but it would cause a memory leak if -noproxy was used!
     
     va.set(2,example.addv(a,b));
     

@@ -1,6 +1,6 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    =
+SWIGOPT    = -noproxy
 SRCS       =
 TARGET     = simple
 INTERFACE  = simple.i
