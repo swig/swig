@@ -471,10 +471,12 @@ if test ! -r Source/DOH/configure; then
 	cd ../..
 fi
 
-if test ! -r Source/SWILL/configure; then
-	cd Source/SWILL
-	autoconf
+if test -d Source/SWILL/SWILL; then
+  if test ! -r Source/SWILL/configure; then
+  	cd Source/SWILL
+  	autoconf
 	cd ../..
+  fi
 fi
 
 cd Tools; ./ltconfig --enable-dlopen ltmain.sh; cd ..
