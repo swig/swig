@@ -684,7 +684,7 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw*)
     if test "$GCC" = yes; then
-        JAVADYNAMICLINKING=" -Wl,--add-stdcall-alias"
+        JAVADYNAMICLINKING=" -mno-cygwin -Wl,--add-stdcall-alias"
     else
         JAVADYNAMICLINKING=""
     fi ;;
