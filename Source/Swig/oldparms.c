@@ -1,17 +1,17 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * parms.cxx
  *
  *     Parameter list class.
- *    
+ *
  * !!! This file is deprecated and is being replaced !!!
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1998-2000.  The University of Chicago
  * Copyright (C) 1995-1998.  The University of Utah and The Regents of the
  *                           University of California.
  *
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -118,11 +118,11 @@ CopyParmList(ParmList *l) {
   int i;
 
   if (l) {
-    nl = (ParmList *) malloc(sizeof(ParmList));    
+    nl = (ParmList *) malloc(sizeof(ParmList));
     nl->nparms = l->nparms;
     nl->maxparms = l->maxparms;
     nl->parms = (Parm **) malloc(l->maxparms*sizeof(Parm*));
-  
+
     for (i = 0; i < l->maxparms; i++) {
       if (l->parms[i])
 	nl->parms[i] = CopyParm(l->parms[i]);
@@ -138,9 +138,10 @@ CopyParmList(ParmList *l) {
 /* ------------------------------------------------------------------
  * DelParmList()
  * ------------------------------------------------------------------ */
-  
+
 void DelParmList(ParmList *l) {
   int i;
+  if (NULL == l) return;
   for (i = 0; i < l->maxparms; i++) {
     if (l->parms[i]) DelParm(l->parms[i]);
   }
@@ -201,12 +202,12 @@ void ParmList_insert(ParmList *l, Parm *p, int pos) {
   }
 
   /* Set new parameter */
-  
+
   l->parms[pos] = CopyParm(p);
   l->nparms++;
 
 }
-  
+
 /* ------------------------------------------------------------------
  * void ParmList_del()
  * ------------------------------------------------------------------ */
@@ -250,7 +251,7 @@ int ParmList_numarg(ParmList *l) {
   for (i = 0; i < l->nparms; i++) {
     if (!l->parms[i]->ignore)
       n++;
-  } 
+  }
   return n;
 }
 
