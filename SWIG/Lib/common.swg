@@ -120,7 +120,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
-  while (s) {
+  do {
     if (strcmp(s->name,c) == 0) {
       if (s == ty->next) return s;
       /* Move s to the top of the linked list */
@@ -135,7 +135,7 @@ SWIG_TypeCheck(char *c, swig_type_info *ty)
       return s;
     }
     s = s->next;
-  }
+  } while (s && (s != ty->next));
   return 0;
 }
 
