@@ -331,6 +331,9 @@ class OCAML : public Language {
 	    }
 	    
 	    Printf( f_init_fn,
+		    "#ifdef __cplusplus\n"
+		    "extern \"C\"\n"
+		    "#endif\n"
 		    "value _wrapper_init_fn(value v) {\n"
 		    "  CAMLparam1(v);\n");
 
