@@ -285,6 +285,25 @@ public:
     return SwigType_ispointer(SwigType_typedef_resolve_all(t));
   }
 
+  void oc_SwigType_del_reference(SwigType *t) {
+  char *c = Char(t);
+  if (strncmp(c,"q(",2) == 0) {
+    Delete(SwigType_pop(t));
+    c = Char(t);
+  }
+  if (strncmp(c,"r.",2)) {
+    printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
+    abort();
+  }
+  Replace(t,"r.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+  }
+
+  int
+  is_a_reference (SwigType *t)
+  {
+    return SwigType_isreference(SwigType_typedef_resolve_all(t));
+  }
+
   virtual int functionWrapper(Node *n) {
     char *iname = GetChar(n,"sym:name");
     SwigType *d = Getattr(n,"type");
@@ -1014,10 +1033,13 @@ public:
   }
     
   String *normalizeTemplatedClassName( String *name ) {
-    String *name_normalized = Copy(name);
+    String *name_normalized = SwigType_typedef_resolve_all(name);
 
     if( is_a_pointer(name_normalized) )
       SwigType_del_pointer( name_normalized );
+
+    if( is_a_reference(name_normalized) ) 
+      oc_SwigType_del_reference( name_normalized );
     
     Replaceall(name_normalized,"(","");
     Replaceall(name_normalized,")","");
