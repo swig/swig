@@ -291,7 +291,7 @@
 %ignorewarn("operator++ ignored") operator++;
 %ignorewarn("operator-- ignored") operator--;
 %ignorewarn("operator&& ignored") operator&&;
-%ignorewarn("operator|| ignored") operator&&;
+%ignorewarn("operator|| ignored") operator||;
 %ignorewarn("operator-> ignored") operator->;
 %ignorewarn("operator->* ignored") operator->*;
 %ignorewarn("operator[] ignored (consider using %addmethods)") operator[];
