@@ -176,7 +176,7 @@ public:
 	  }
 	  p = SwigType_str(type, name);
 	  Append(result,p);
-	  String* value = Getattr(parm, "value");
+	  String* value = Getattr(parm, "CAML_VALUE");
 	  if (values && (value != 0)) {
 	    Printf(result, " = %s", value);
 	  }
@@ -363,7 +363,7 @@ public:
 
   virtual int top(Node *n) {
     /* Set comparison with none for ConstructorToFunction */
-    SetNoneComparison( NewString( "$arg != Val_unit" ) );
+    SetNoneComparison( NewString( "argv[0] != Val_unit" ) );
 
     /* check if directors are enabled for this module.  note: this 
      * is a "master" switch, without which no director code will be
@@ -488,7 +488,7 @@ public:
 	    module );
     Printf( f_mlibody,
 	    "val int_to_enum : c_enum_type -> int -> c_obj\n" );
-    Printf( f_wrappers,
+    Printf( f_init,
 	    "SWIGEXT void f_%s_init() {\n"
 	    "%s"
 	    "}\n",
@@ -553,26 +553,41 @@ public:
    */
 
   void oc_SwigType_del_reference(SwigType *t) {
-  char *c = Char(t);
-  if (strncmp(c,"q(",2) == 0) {
-    Delete(SwigType_pop(t));
-    c = Char(t);
-  }
-  if (strncmp(c,"r.",2)) {
-    printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
-    abort();
-  }
-  Replace(t,"r.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+    char *c = Char(t);
+    if (strncmp(c,"q(",2) == 0) {
+      Delete(SwigType_pop(t));
+      c = Char(t);
+    }
+    if (strncmp(c,"r.",2)) {
+      printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
+      abort();
+    }
+    Replace(t,"r.","", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
   }
 
+  void oc_SwigType_del_array(SwigType *t) {
+    char *c = Char(t);
+    if (strncmp(c,"q(",2) == 0) {
+      Delete(SwigType_pop(t));
+      c = Char(t);
+    }
+    if (strncmp(c,"a(",1)) {
+      Delete(SwigType_pop(t));
+    }
+  }
+  
   /* 
    * Return true iff T is a reference type 
    */
 
   int
-  is_a_reference (SwigType *t)
-  {
+  is_a_reference (SwigType *t) {
     return SwigType_isreference(SwigType_typedef_resolve_all(t));
+  }
+
+  int
+  is_an_array (SwigType *t) {
+    return SwigType_isarray(SwigType_typedef_resolve_all(t));
   }
 
   /* ------------------------------------------------------------
@@ -678,8 +693,8 @@ public:
 
     // writing the function wrapper function
     Printv(f->def,
-	   "SWIGEXT value ", wname, " (", NIL);
-    Printv(f->def, "value args", NIL);
+	   "SWIGEXT CAML_VALUE ", wname, " (", NIL);
+    Printv(f->def, "CAML_VALUE args", NIL);
     Printv(f->def, ")\n{", NIL);
     
     /* Define the scheme name in C. This define is used by several
@@ -692,11 +707,11 @@ public:
     Wrapper_add_local(f, "_len", "int _len");
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "argc", "int argc = caml_list_length(args)");
-    Wrapper_add_local(f, "argv", "value *argv");
+    Wrapper_add_local(f, "argv", "CAML_VALUE *argv");
     Wrapper_add_local(f, "i"   , "int i");
 
     Printv( f->code,
-	    "argv = (value *)malloc( argc * sizeof( value ) );\n"
+	    "argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 	    "for( i = 0; i < argc; i++ ) {\n"
 	    "  argv[i] = caml_list_nth(args,i);\n"
 	    "}\n", NIL );
@@ -706,6 +721,7 @@ public:
     // they are called arg0, arg1, ...
     // the return value is called result
     
+    d = SwigType_typedef_qualified(d);
     emit_args(d, l, f);
     
     /* Attach the standard typemaps */
@@ -727,6 +743,7 @@ public:
 
       SwigType *pt = Getattr(p,"type");
       String   *ln = Getattr(p,"lname");
+      pt = SwigType_typedef_qualified(pt);
 	
       // Produce names of source and target
       Clear(source);
@@ -895,15 +912,15 @@ public:
 				 "free(argv);\nCAMLreturn(%s(args));\n",
 				 &maxargs);
 
-	Wrapper_add_local(df, "argv", "value *argv");
+	Wrapper_add_local(df, "argv", "CAML_VALUE *argv");
 
 	Printv(df->def,
-	       "SWIGEXT value ",dname,"(value args) {\n"
+	       "SWIGEXT CAML_VALUE ",dname,"(CAML_VALUE args) {\n"
 	       "  CAMLparam1(args);\n"
 	       "  int i;\n"
 	       "  int argc = caml_list_length(args);\n",NIL);
 	Printv( df->code,
-		"argv = (value *)malloc( argc * sizeof( value ) );\n"
+		"argv = (CAML_VALUE *)malloc( argc * sizeof( CAML_VALUE ) );\n"
 		"for( i = 0; i < argc; i++ ) {\n"
 		"  argv[i] = caml_list_nth(args,i);\n"
 		"}\n", NIL );
@@ -991,10 +1008,10 @@ public:
     if ((SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 	    
       Printf (f->def, 
-	      "SWIGEXT value %s(value args) {\n", var_name);
+	      "SWIGEXT CAML_VALUE %s(CAML_VALUE args) {\n", var_name);
       // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 	    
-      Wrapper_add_local (f, "swig_result", "value swig_result");
+      Wrapper_add_local (f, "swig_result", "CAML_VALUE swig_result");
 	    
       if (!Getattr(n,"feature:immutable")) {
 	/* Check for a setting of the variable value */
@@ -1291,26 +1308,29 @@ public:
 	   name );
 
     String *name_normalized = normalizeTemplatedClassName(name);
-
+    
     Printf( f_class_ctors,
 	    "let _ = Callback.register \"create_%s_from_ptr\" "
 	    "create_%s_from_ptr\n",
 	    name_normalized, classname );
 
     Setattr(n,"ocaml:ctor",classname);
-
+    
     return rv;
   }
-    
+  
   String *normalizeTemplatedClassName( String *name ) {
     String *name_normalized = SwigType_typedef_resolve_all(name);
-
+    
     if( is_a_pointer(name_normalized) )
       SwigType_del_pointer( name_normalized );
-
+    
     if( is_a_reference(name_normalized) ) 
       oc_SwigType_del_reference( name_normalized );
     
+    if( is_an_array(name_normalized) )
+      oc_SwigType_del_array( name_normalized );
+
     Replaceall(name_normalized,"(","");
     Replaceall(name_normalized,")","");
     return name_normalized;
@@ -1551,7 +1571,7 @@ public:
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
 	    Wrapper_add_localv(w, director, "__DIRECTOR__ *", director, "= 0", NIL);
-	    Wrapper_add_localv(w, source, "value", source, "= Val_unit", NIL);
+	    Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
 	    Printf(wrap_args, "%s = dynamic_cast<__DIRECTOR__*>(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
@@ -1562,7 +1582,7 @@ public:
 	    Delete(director);
 	    Printv(arglist, source, NIL);
 	  } else {
-	    Wrapper_add_localv(w, source, "value", source, "= Val_unit", NIL);
+	    Wrapper_add_localv(w, source, "CAML_VALUE", source, "= Val_unit", NIL);
 	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", 
 	           source, nonconst, mangle); 
 	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
@@ -1621,7 +1641,7 @@ public:
     }
     if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
       Printf(w->code, "if (result == NULL) {\n");
-      Printf(w->code, "  value error = *caml_named_value(\"director_except\");\n");
+      Printf(w->code, "  CAML_VALUE error = *caml_named_value(\"director_except\");\n");
       Replaceall(tm, "$error", "error");
       Printv(w->code, Str(tm), "\n", NIL);
       Printf(w->code, "}\n");
@@ -1734,7 +1754,7 @@ public:
     ParmList *superparms = CopyParmList(Getattr(n, "parms"));
     ParmList *parms_in_declaration = CopyParmList(superparms);
     ParmList *parms_in_definition = CopyParmList(superparms);
-    String *type = NewString("value");
+    String *type = NewString("CAML_VALUE");
 
     p = NewParm(type, NewString("self"));
     set_nextSibling(p, parms_in_definition);
@@ -1746,7 +1766,7 @@ public:
 
     for (ip = parms_in_declaration; nextSibling(ip); ) ip = nextSibling(ip);
     p = NewParm(NewString("int"), NewString("__disown"));
-    Setattr(p, "value", "1");
+    Setattr(p, "CAML_VALUE", "1");
     set_nextSibling(ip, p);
 
     /* constructor */
@@ -1793,11 +1813,11 @@ public:
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(value self, int __disown): __DIRECTOR__(self, __disown) { }", classname, classname);
+      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(CAML_VALUE self, int __disown): __DIRECTOR__(self, __disown) { }", classname, classname);
       Wrapper_print(w, f_directors);
       DelWrapper(w);
     }
-    Printf(f_directors_h, "    __DIRECTOR__%s(value self, int __disown = 1);\n", classname);
+    Printf(f_directors_h, "    __DIRECTOR__%s(CAML_VALUE self, int __disown = 1);\n", classname);
     Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }

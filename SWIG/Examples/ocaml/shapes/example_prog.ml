@@ -38,7 +38,7 @@ let triangle_class pts ob meth args =
 let triangle =
   new_derived_object 
     new_shape
-    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.0)))
+    (triangle_class ((0.0,0.0),(0.5,1.0),(1.0,0.6)))
     C_void ;;
 
 let _ = _draw_shape_coverage (C_list [ triangle ; C_int 60 ; C_int 20 ]) ;;
