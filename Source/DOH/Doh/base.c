@@ -49,7 +49,7 @@ static DohObjInfo DohBaseType = {
 };
 
 /* -----------------------------------------------------------------------------
-   String objects
+   String interning.    This is used for getattr,setattr functions.
 
    The following structure maps raw char * entries to string objects.  
    ----------------------------------------------------------------------------- */
@@ -308,7 +308,11 @@ int DohSetattr(DOH *obj, DOH *name, DOH *value) {
     DohBase *b = (DohBase *) obj;
     if (DohIsMapping(b)) {
       name_obj = find_internal(name);
-      value_obj = find_internal(value);
+      if (!DohCheck(value)) {
+	value_obj = NewString(value);
+      } else {
+	value_obj = value;
+      }
       if (b->objinfo->doh_mapping->doh_setattr) {
 	return (b->objinfo->doh_mapping->doh_setattr)(obj,name_obj,value_obj);
       }
@@ -434,7 +438,11 @@ void DohSetitem(DOH *obj, int index, DOH *value) {
   DOH *value_obj;
   DohBase *b = (DohBase *) obj;
   if (DohIsSequence(obj)) {
-    value_obj = find_internal(value);
+    if (!DohCheck(value)) {
+      value_obj = NewString(value);
+    } else {
+      value_obj = value;
+    }
     if (b->objinfo->doh_sequence->doh_setitem) {
       (b->objinfo->doh_sequence->doh_setitem)(obj,index,value_obj);
       return;
@@ -460,7 +468,11 @@ void DohInsertitem(DOH *obj, int index, DOH *value) {
   DOH *value_obj;
   DohBase *b = (DohBase *) obj;
   if (DohIsSequence(obj)) {
-    value_obj = find_internal(value);
+    if (!DohCheck(value)) {
+      value_obj = NewString(value);
+    } else {
+      value_obj = value;
+    }
     if (b->objinfo->doh_sequence->doh_insitem) {
       (b->objinfo->doh_sequence->doh_insitem)(obj,index,value_obj);
       return;
@@ -542,6 +554,11 @@ int DohRead(DOH *obj, void *buffer, int length) {
       return (b->objinfo->doh_file->doh_read)(obj,buffer,length);
     }
     printf("No read method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    /* Hmmm.  Not a file.  Maybe it's a real FILE */
+    if (!DohCheck(b)) {
+      return fread(buffer,length,1,(FILE *) b);
+    }
   }
   return -1;
 }
@@ -554,6 +571,10 @@ int DohWrite(DOH *obj, void *buffer, int length) {
       return (b->objinfo->doh_file->doh_write)(obj,buffer,length);
     }
     printf("No write method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(b)) {
+      return fwrite(buffer,length,1,(FILE *) b);
+    }
   }
   return -1;
 }
@@ -566,6 +587,10 @@ int DohSeek(DOH *obj, long offset, int whence) {
       return (b->objinfo->doh_file->doh_seek)(obj,offset,whence);
     }
     printf("No seek method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(b)) {
+      return fseek((FILE *) b, offset,whence);
+    }
   }
   return -1;
 }
@@ -578,6 +603,10 @@ long DohTell(DOH *obj) {
       return (b->objinfo->doh_file->doh_tell)(obj);
     }
     printf("No tell method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(b)) {
+      return ftell((FILE *) b);
+    }
   }
   return -1;
 }
@@ -595,18 +624,39 @@ int DohPrintf(DOH *obj, char *format, ...) {
       return ret;
     }
     printf("No printf method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(obj)) {
+      DOH *str;
+      str = NewString("");
+      va_start(ap,format);
+      DohvAppendf(str,format,ap);
+      va_end(ap);
+      ret = fprintf((FILE *) obj, "%s", Data(str));
+      Delete(str);
+      return ret;
+    }
   }
   return -1;
 }
 
 /* vPrintf */
 int DohvPrintf(DOH *obj, char *format, va_list ap) {
+  int ret;
   DohBase *b = (DohBase *) obj;
   if (DohIsFile(obj)) {
     if (b->objinfo->doh_file->doh_printf) {
       return (b->objinfo->doh_file->doh_printf)(obj,format,ap);
     }
     printf("No printf method defined for type '%s'\n", b->objinfo->objname);
+  } else {
+    if (!DohCheck(obj)) {
+      DOH  *str;
+      str = NewString("");
+      DohvAppendf(str,format,ap);
+      ret = fprintf((FILE *) obj, "%s", Data(str));
+      Delete(str);
+      return ret;
+    }
   }
   return -1;
 }
@@ -638,6 +688,19 @@ int DohvScanf(DOH *obj, char *format, va_list ap) {
     printf("No scanf method defined for type '%s'\n", b->objinfo->objname);
   }
   return -1;
+}
+
+int DohClose(DOH *obj) {
+  DohBase *b = (DohBase *) obj;
+  if (DohIsFile(obj)) {
+    if (b->objinfo->doh_file->doh_close) {
+      return (b->objinfo->doh_file->doh_close)(obj);
+    }
+  } else {
+    if (!DohCheck(obj)) {
+      fclose((FILE *) obj);
+    }
+  }
 }
 
 void DohInit(DOH *b) {
