@@ -17,6 +17,46 @@ tree (maybe).
 Version 1.3.10 (In progress)
 ============================
 
+10/11/2001:beazley
+           Modified the typemap matching code to discard qualifiers when
+           checking for a match.   For example, if you have a declaration
+           like this:
+
+                 void blah(const char *x);
+
+           The typemap checker checks for a match in the following order:
+
+                 const char *x
+                 const char *
+                 char *x
+                 char *
+
+           If typedef's are involved, qualifier stripping occurs before
+           typedef resolution.  So if you had this,
+
+                typedef char *string;
+                void blah(const string x);
+
+           typemap checking would be as follows:
+
+                const string x
+                const string
+                string x
+                string
+                const char *x
+                const char *
+                char *x
+                char *
+
+           The primary reason for this change is to simplify the implementation
+           of language modules.  Without qualifier stripping, one has to write
+           seperate typemaps for all variations of const and volatile (which
+           is a pain).
+
+           *** POTENTIAL INCOMPATIBILITY ***  Typemaps might be applied in
+           places where they weren't before.
+
+
 10/9/2001: beazley
            SWIG now generates wrappers that properly disambiguate
            overloaded methods that only vary in constness.  For
@@ -189,7 +229,7 @@ Version 1.3.10 (In progress)
            accessor function is actually set to an array.  This means
            that you can now write typemaps like this:
 
-              %typemap(python,out) char [ANY] {
+              %typemap(python,out) char [] {
                  $target = PyString_FromStringAndSize($source,$dim0);
               }
 
