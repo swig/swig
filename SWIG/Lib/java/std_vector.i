@@ -65,7 +65,8 @@ namespace std {
     template<class T> class vector {
         // add generic typemaps here
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int);
         unsigned int size() const;
         %rename(isEmpty) empty;
         bool empty() const;
@@ -97,7 +98,8 @@ namespace std {
     template<> class vector<T> {
         // add specialized typemaps here
       public:
-        vector(unsigned int size = 0);
+        vector();
+        vector(unsigned int);
         unsigned int size() const;
         %rename(isEmpty) empty;
         bool empty() const;
