@@ -118,7 +118,7 @@ InputName=foo
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 -shadow $(InputPath) 
+	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 
@@ -133,7 +133,7 @@ InputName=foo
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -noruntime -c++ -perl5 -shadow $(InputPath) 
+	..\..\..\swig -noruntime -c++ -perl5 $(InputPath) 
 	
 # End Custom Build
 

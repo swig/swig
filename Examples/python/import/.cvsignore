@@ -14,6 +14,7 @@ runtime.pyc
 example.dsw
 *.exp
 *.lib
+*.plg
 example.ncb
 example.opt
 example.plg
