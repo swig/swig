@@ -641,6 +641,7 @@ SwigType_array_type(SwigType *ty) {
  * Add, remove, and test for function types.
  * ----------------------------------------------------------------------------- */
 
+/* Returns the function type, t, constructed from the parameters, parms */
 void
 SwigType_add_function(SwigType *t, ParmList *parms) {
   String *pstr;
