@@ -36,14 +36,19 @@ static int check_implemented(Node *n) {
   while (n) {
     if (Strcmp(nodeType(n), "cdecl") == 0) {
       local_decl = Getattr(n,"decl");
-      if (local_decl) local_decl = SwigType_typedef_resolve_all(local_decl);
-      if (local_decl && (Strcmp(local_decl, search_decl) == 0)) {
-	if (!Getattr(n,"abstract")) {
-	  Delete(local_decl);
-	  return 1;
+      if (SwigType_isfunction(local_decl)) {
+	SwigType *decl1 = SwigType_typedef_resolve_all(local_decl);
+	SwigType *decl2 = SwigType_pop_function(decl1);
+	if (Strcmp(decl2, search_decl) == 0) {
+	  if (!Getattr(n,"abstract")) {
+	    Delete(decl1);
+	    Delete(decl2);
+	    return 1;
+	  }
 	}
+	Delete(decl1);
+	Delete(decl2);
       }
-      Delete(local_decl);
     }
     n = Getattr(n,"csym:nextSibling");
   }
@@ -174,9 +179,12 @@ class Allocate : public Dispatcher {
 	}
 	assert(dn != 0);   // Assertion of doom
 	*/
-	search_decl = base_decl;
+	if (SwigType_isfunction(base_decl)) {
+	  search_decl = SwigType_pop_function(base_decl);
+	}
 	Node *dn = Swig_symbol_clookup_local_check(name,0,check_implemented);
-
+	Delete(search_decl);
+	Delete(base_decl);
 	/*
 	while (dn && !implemented) {
 	  String *local_decl = Getattr(dn,"decl");
@@ -190,7 +198,7 @@ class Allocate : public Dispatcher {
 	}
 	*/
 
-	Delete(base_decl);
+
 
 	/*	if (!implemented && (Getattr(nn,"abstract"))) {
 	  return 1;
