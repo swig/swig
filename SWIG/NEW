@@ -2,7 +2,7 @@ New Features and Important Changes, v1.3
 
 Author(s) :  David Beazley
 
-January 31, 2002
+June 2, 2002
 
 1. Introduction
 ---------------
@@ -92,6 +92,11 @@ altered SWIG's old behavior.
      where you would like to make the two arguments operate as a single
      object in the target language.
 
+2.9  Types such as 'const int &', 'const double &', are passed as
+     values instead of pointers.
+
+2.10 C++ namespaces are now supported.
+
 3. Type checking
 ----------------
 
@@ -117,26 +122,28 @@ typemaps to handle pointers, here are the essential details:
 
 3.3  Instead of SWIG_GetPtr, a function of the following form is used:
 
-        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, swig_type_info *ty);
+        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, swig_type_info *ty, int flags);
 
      Note: the function name may differ in certain implementations (read
      the source). For example:
 
-        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, SWIGTYPE_p_p_int);
+        int SWIG_ConvertPtr(ScriptObj *o, void **ptr, SWIGTYPE_p_p_int,0);
 
      Passing a value of '0' for the type will accept any pointer. This
-     works kind of like 'void *'.
+     works kind of like 'void *'.  The flags argument is reserved for
+     future expansion.
 
 3.4. To create a pointer object, one uses a function similar to 
  
-        ScriptObj *SWIG_NewPointer(void *ptr, swig_type_info *ty);
+        ScriptObj *SWIG_NewPointer(void *ptr, swig_type_info *ty, int flags);
 
      It works in a similar manner:
 
-         p = SWIG_NewPointer(ptr, SWIGTYPE_p_p_int);
+         p = SWIG_NewPointer(ptr, SWIGTYPE_p_p_int, 0);
 
      You will have to read the source to get the exact function name
-     used.
+     used.  The flags argument is implementation specific and reserved
+     for future expansion.
 
 3.5. If, for whatever reason, you need to obtain the 'swig_type_info *'
      outside the context of a wrapper file, you can use the
@@ -190,6 +197,10 @@ and it is simpler to implement than the old string based approach.
 4.5 %checkout directive removed.
 
 4.6 %except and %new are deprecated.
+
+4.7 %readonly and %readwrite are deprecated.  Use %immutable instead.
+
+4.8 The %addmethods directive has been renamed to %extend.
 
 5. Language specific changes
 ----------------------------

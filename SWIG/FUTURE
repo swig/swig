@@ -1,13 +1,11 @@
-** DRAFT ** DRAFT ** DRAFT ** DRAFT ** DRAFT ** DRAFT ** DRAFT **
-
 SWIG-1.3.12, SWIG 2.0, and Beyond
-====================================
+=================================
 
-As the SWIG-1.3.12 releases nears, I thought I'd take a few moments of
+With the release of SWIG-1.3.12, I thought I'd take a few moments of
 everyone's time to talk about the past, the present, and the future of
-SWIG development.  I'm really quite excited about the upcoming release
+SWIG development.  I'm really quite excited about the current release
 because I think it represents a huge turning point in SWIG's
-development.  Furthermore, it is only the beginning of much bigger and
+development.  Furthermore, it is only the beginning of bigger and
 better things to come.  However, we definitely need your help.
 
 To put a little perspective on the discussion, I'd start with a few
@@ -18,23 +16,23 @@ project, it is significant in the context of SWIG.  As a point of
 comparison, there has been more SWIG development this year than in any
 other year of the project and more than in the previous three years
 combined.  This even includes the first few years of development in
-which there was also a lot of activity.  It is also worth noting that
-a lot of these recent changes have been extremely non-trivial (e.g.,
-templates, namespaces, type system, operators, etc.).  SWIG is now
-more capable than I ever imagined possible.
+which there was also a lot of activity.  Furthermore, many of the
+recent changes have been extremely non-trivial (e.g., templates,
+namespaces, type system, operators, etc.).  As a result, SWIG is more
+capable than I ever imagined possible.
 
 Regrettably, I must admit that I've been a little negligent in
 discussing the roadmap for where I thought this flurry of SWIG
 development was actually headed.  In part, this is because I've been
-buried in work.  However, I must confess that the real reason was that
-I didn't really know where we were going---except that in a time
-far far far away in the future, we might arrive at some kind of
-"stable" release with a version number other than "1.3.x".  Needless
-to say, that's not a very compelling story.
+buried in work.  However, the real reason is that I didn't really know
+where we were going---except that in a time far far far away in the
+future, we might arrive at some kind of "stable" release with a
+version number other than "1.3.x".  Needless to say, that's not a very
+compelling story.
 
-That said, I've spent quite a lot of time thinking about SWIG and
-trying to wrap my brain around it.  Specifically, just what is the
-primary focus of this project and what are we really trying to do?
+That said, I've spent a lot of time thinking about SWIG and trying to
+wrap my brain around it.  Specifically, just what is (or should be)
+the primary focus of this project and what are we really trying to do?
 That's what the rest of this message is about.
 
 SWIG Prehistory 
@@ -46,21 +44,23 @@ Alamos. Later that year, I became interested in extending the wrapper
 generator to support other scripting languages so it was rewritten in
 C++ and modified with multiple backends (Tcl, Perl, and Guile).  This
 led to a first public release in February, 1996.  Feedback from this
-release led to a series of enhancements and the release of SWIG
-1.0 in September 1996.
+release led to a series of enhancements and the release of SWIG 1.0 in
+September 1996.  Throughout this process, my intent was to create a
+tool that I would want to use---I never viewed the project as an
+CS experiment in programming languages or software engineering.
 
 SWIG 1.1
 --------
-SWIG-1.1 (June, 1997) was a series of enhancements to the initial
-release that were added in response to feedback at conferences and
-from users.  Shadow classes, exception handling, typemaps, and a
-number of more useful features were added.  However, the overall
-structure of the system was relatively unchanged from the initial
-release.  Following the release of 1.1, a series of patch releases
-were made.  This culminated in the release of SWIG-1.1p5 in February,
-1998.  Unfortunately, this release would remain the last "stable"
-release for quite a long time---in fact, it is still listed as the
-last "stable" release on the SWIG web page!
+SWIG-1.1 (June, 1997) represented a series of enhancements that were
+added in response to feedback at conferences and from users.  Shadow
+classes, exception handling, typemaps, and a number of more useful
+features were added.  However, the overall structure of the system was
+relatively unchanged from the initial version.  Following the release
+of 1.1, a series of minor patch releases were made.  This resulted in
+the release of SWIG-1.1p5 in February, 1998.  Unfortunately, this
+release would remain the last "stable" release for quite a long
+time---in fact, it is still listed as the last "stable" release on the
+SWIG web page!
 
 SWIG Hell
 ---------
@@ -73,27 +73,29 @@ problems appeared to be nothing short of impossible---requiring a
 total ground-up rewrite at best.  The only redeeming quality was that
 the system basically worked "well enough," it was extensively
 documented, and its flaws mostly known.  People could use it and there
-were work-arounds for most of the common problems.
+were work-arounds for most common problems.
 
 To deal with the design problem, there were at least four attempts to
 completely rewrite SWIG, some of which were attempted in parallel with
 the work on SWIG-1.1.  Unfortunately, none of these were ever
 completed. The primary problem was a strong "second system" effect and
-a desire to make SWIG do everything (somehow).  Clearly, this was a
-recipe for disaster. In fact, all such attempts to rewrite SWIG were
-eventually abandoned several years ago.  In hindsight, I think the
-real problem was that these rewrite efforts focused far too much
-attention on implementation technique rather than principles.  In
-short, the failure of these efforts was really due to a lack of
-clarity in understanding how SWIG ought to work.
+a desire to make SWIG do everything that one might conceivably want to
+do with a wrapper generator (somehow).  Clearly, this was a recipe for
+disaster. In fact, all such attempts to rewrite SWIG were eventually
+abandoned several years ago.  In hindsight, I think the real problem
+was that these rewrite efforts focused far too much attention on
+implementation technique rather than principles.  In short, the
+failure of these efforts was due to a lack of clarity in understanding
+how SWIG ought to work (regardless of how it was actually
+implemented).
 
 SWIG Restart (1.3a1-1.3a5)
 --------------------------
 Having languished for several years, the SWIG1.1p5 release had a
 growing pile of maintenance issues. It didn't work for newer versions
 of certain language modules and a lot of minor bug reports and feature
-requests had been building up.  With a lot of help from Loic Dachary
-and Thien-Thi Nguyen, we put together the 1.3a1 release (February,
+requests had been building up.  With a lot of help from Loic Dachary and
+Thien-Thi Nguyen, we put together the 1.3a1 release (February,
 2000).  This was mostly a bug fix release to 1.1p5 except that the
 preprocessor module from SWIG1.2 was added and a lot of minor
 enhancements were added.
@@ -104,9 +106,10 @@ work was all going on underneath the covers while we tried to keep
 SWIG in an operational state. The primary focus of this work was
 really one of cleanup.  Having given up on a total rewrite, perhaps
 we could settle with making the implementation incrementally better 
-than before.
+than before.  In addition this, Matthias Koppe jumped on board to 
+reimplement the Guile module and to make other improvements to the system.
 
-Another important aspect of these releases was that many parts of the
+An important aspect of these releases was that many parts of the
 system not directly related to wrapper code generation were removed.
 This included the documentation system and Objective-C support.  These
 were not removed because they weren't useful.  Instead, the
@@ -116,7 +119,7 @@ actually did.  Obective-C support was removed because it was tangled
 with C++ support in a way that was very difficult to understand and
 maintain.  The removal of these features was seen as a way to vastly
 simplify cleanup--and to buy some time where we could rethink their
-role in a future version.
+role in a future release.
 
 SWIG Redux (1.3.6-1.3.11)
 -------------------------
@@ -133,21 +136,21 @@ ourselves out of the tangled mess of earlier versions.  A huge number
 of long-standing bugs and difficult feature requests have also been
 resolved.
 
-The general theme of this development could best be described as an
+The general goal of this development could best be described as an
 attempt to reduce SWIG to an easily described set of general "ideas"
 about how it should operate.  Special SWIG directives have been
 eliminated or combined with others.  Different parts of the system have
 been better integrated.  Features not directly related to wrapper code
 generation have been removed and the system has become more
 focused. Changes in internal data structures and APIs have allowed
-SWIG to capture more information from interface files and to go after
+SWIG to capture more information from interface files and to resolve
 hard corner cases.  More often than not, these are things that you
 never notice unless you are an old user and you suddenly realize that
 a problem you had several years back has disappeared.
 
 Along with the destruction of old code, this work has quietly
 introduced a new core--the most significant features of which are a
-real C++ type system and multi-pass compilation.  More importantly,
+new C++ type system and multi-pass compilation.  More importantly,
 this work has really tried to provide a more principled foundation for
 future SWIG development.  However, just what is this "more principled
 foundation?"
@@ -155,12 +158,12 @@ foundation?"
 Convergence (1.3.12)
 --------------------
 With the upcoming 1.3.12 release, SWIG is about to take a big leap
-forward. And almost all of this is due to one realization---that
-almost every hard problem in past SWIG releases has been directly
-related to errors and limitations in its type system.  Types are the
-key to understanding the structure of C and C++ code.  They are at the
-heart of understanding advanced language features like namespaces,
-nested classes, and templates.  They are directly related to the data
+forward. Almost all of this is due to one realization---that almost
+every hard problem in past SWIG releases has been directly related to
+errors and limitations in its type system.  Types are the key to
+understanding the structure of C and C++ code.  They are at the heart
+of understanding advanced language features like namespaces, nested
+classes, and templates.  They are directly related to the data
 marshalling that occurs in wrappers.  Not only that, they interact
 with nearly every SWIG directive.  A proper type system *is* the
 necessary foundation for moving SWIG forward.
@@ -214,8 +217,8 @@ three extensions to the C++ type system:
       pattern matching mechanism.  All data conversion SWIG is
       defined by typemaps and is fully reconfigurable.
 
-   -  Declaration annotation. There are special directives that modify the 
-      wrapping behavior of individual declarations. Declarations
+   -  Declaration annotation. There are special directives that modify
+      the wrapping behavior of individual declarations. Declarations
       can be selectively identified and decorated with arbitrary
       attributes that affect wrapper generation.  Like typemaps, 
       declaration matching is fully integrated with the C++ type system. 
@@ -227,7 +230,7 @@ three extensions to the C++ type system:
       are part of the type system so class extension is naturally 
       integrated with the C++ type system as well (big surprise).
 
-And that's it. This is end-game of SWIG-1.3.x development.  When
+And that's it--this is the end-game of SWIG-1.3.x development.  When
 stabilized and documented it will become SWIG-2.0.
 
 The Bigger Picture
@@ -237,32 +240,33 @@ bigger picture.  SWIG is used by a surprising number of people in
 industry, government, and academia.  It's used to build systems used
 by millions of people every day.  It has even shown up in video games
 and other unlikely settings.  Although SWIG doesn't have the same
-visibility as many large projects, over 12000 people have downloaded
-SWIG-1.3.11 in the last 4 months.  Clearly someone is using it for
-something!  Because of this, I think it is important for us to work on
-moving SWIG towards a more solid foundation.  Doing so will give the
-system more credibility and long term viability---and it will be a lot
-nicer to use!
+visibility as many large software projects, over 12000 people have
+downloaded SWIG-1.3.11 in the last 4 months.  Clearly someone is using
+it for something!  Because of this, I think it is important for us to
+work on moving SWIG towards a more solid foundation.  Doing so will
+give the system more credibility and long term viability---and it will
+be a lot more fun to use!
 
 It's also worth nothing that there are some rather interesting CS
 connections at work here.  Extensions to the type system and typemaps
 have some interesting relations to work in programming languages.  The
 SWIG declaration annotation system and class extension feature seem
-strangely similar to work in the emerging area of Aspect Oriented
+oddly similar to work in the emerging area of Aspect Oriented
 Programming (AOP).  There are undoubtedly connections to other areas
-of software engineering and architecture.  
+of software engineering and architecture.
 
 The key point is that SWIG isn't going to connect to anything if
 no-one can quite describe what it is or how it works.
 
 SWIG-2.0 and the Future
 -----------------------
-SWIG-1.3.12 is, by no means, a finished product. There are bugs, the
-documentation is still incomplete, and there are parts of the code
-that are rather ugly.  We are also still working out a few very hard
-problems like nested classes, callback functions, and overloading.  A
-few old features are still missing (Objective-C, documentation).
-However, I believe the end of the 1.3.x series is near and achievable.
+SWIG-1.3.12 still represents work in progress. There are bugs, the
+documentation is still incomplete, and there are parts of the
+implementation that are rather ugly.  We are also still working out a
+few very hard problems like nested classes, callback functions, and
+overloading.  A few old features are still missing (Objective-C,
+documentation).  However, I believe the end of the 1.3.x series is
+near and achievable.
 
 Over the summer, a few more 1.3.x releases may appear but the current
 plan is to aim for a SWIG-2.0 release in September.  This release is
@@ -298,10 +302,10 @@ we need your help.
 
 -  We need help with documentation, examples, testing, libraries, and all
    sorts of other aspects of the release.  Even if you have never
-   written a SWIG language module or dived into its implementation, there
-   are many ways that you can help.  Consider writing a case study about how
-   you wrapped a big library.  Contribute tests that break the implementation
-   in horrible ways.  Help with the web page or FAQ.
+   written a SWIG language module or dived into its implementation,
+   there are many ways that you can help.  Consider writing a case study
+   about how you wrapped a big library.  Contribute tests that break the
+   implementation in horrible ways.  Help with the web page or FAQ.
 
 -  Most of the SWIG-1.3.x work has focused on the SWIG core.  However, as
    the 2.0 release nears, we will be working on a variety of enhancements
@@ -315,15 +319,9 @@ we need your help.
    SWIG-1.1 is no easy task, but we're more than willing to help.  It's
    not as bad as one might imagine.
 
--  We need testamonials.  If you have benefited from the use of SWIG,
-   let us tell people about it on the SWIG web page.  Personally, I don't
-   like spending my time on marketing, but a lot of interesting things are
-   happening.  The project will clearly benefit from being able to tell
-   others what people are doing with SWIG.
-
--  We are always looking for developers.  Subscribe to swig-dev@cs.uchicago.edu 
-   (http://mailman.cs.uchicago.edu/listinfo/swig-dev) or send me email to 
-   get involved.   
+-  We are always looking for developers.  Subscribe to
+   swig-dev@cs.uchicago.edu (http://mailman.cs.uchicago.edu/listinfo/swig-dev)
+   or send me email to get involved.
 
 Acknowledgements
 ----------------
@@ -333,3 +331,5 @@ I welcome any comments about this document and how we can make SWIG even
 better.
 
 Dave Beazley (beazley@cs.uchicago.edu)
+June 2, 2002
+

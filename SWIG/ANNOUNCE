@@ -5,7 +5,7 @@ http://www.swig.org
 June 1, 2002
 
 We're pleased to announce SWIG 1.3.12, the latest installment in the
-SWIG redevelopment effort.  SWIG 1.3.12 is a milestone in the SWIG
+SWIG development effort.  SWIG 1.3.12 is a milestone in the SWIG
 project--it is the first release that features a nearly complete C++
 type system including full support for namespaces, templates, and
 more.  Simply stated, SWIG-1.3.12 is more capable than ever.
@@ -19,16 +19,17 @@ Guile, and Mzscheme.  Major applications of SWIG include generation of
 scripting language extension modules, rapid prototyping, testing, and
 user interface development for large C/C++ systems.  SWIG has been
 available for more than six years and it is used by thousands of
-developers--primarily in industry.
+developers--primarily in industry and research.
 
 Although several tools appear to be similar to SWIG on the surface,
-SWIG is much more than a simple C++ declaration parser.  In fact, the
-major advantage of SWIG is that it implements the full C++ type system
-and it is highly customizable.  This allows SWIG to work with real
-applications and it allows SWIG to better understand the relationship
-between different program modules. Furthermore, there are very few
-restrictions on what can be wrapped by SWIG--in fact, it can generate
-bindings for nearly every C/C++ programming construct.
+SWIG is much more than a simple wrapper based on parsing C++
+declarations. In fact, the major advantage of SWIG is that it
+implements the full C++ type system and it is highly customizable.
+This allows SWIG to work with real applications and it allows SWIG to
+better understand the relationship between different program
+modules. Furthermore, there are very few restrictions on what can be
+wrapped by SWIG--in fact, it can generate bindings for nearly every
+C/C++ programming construct.
 
 New Features in 1.3.12
 ----------------------
@@ -40,7 +41,7 @@ namespaces, etc.).  Namespace support is fully integrated into the
 type system, typemaps, customization features, and all other parts of
 SWIG.
 
-* Expanded template support *
+* Enhanced template support *
 
 Minimal C++ template support was available in earlier SWIG releases.
 SWIG-1.3.12 builds upon this and provides support for templates,
@@ -77,8 +78,7 @@ details.
 * Updated documentation *
 
 Continued updates of the SWIG Users Manual are included in this
-release including entirely new sections on typemaps and exception
-handling.  Almost all of the documentation is now up to date with
+release. Almost all of the documentation is now up to date with
 SWIG-1.3.12 features.  However, a lot of the old documentation is
 still incomplete.  We're still working on this.
 
@@ -91,13 +91,6 @@ The release is available for download on Sourceforge at
 Within the next day, a Windows version will also be made available at
 
      http://prdownloads.sourceforge.net/swig/swigwin-1.3.12.zip
-
-Documentation
--------------
-This release contains partially updated documentation.  Almost all new
-SWIG features are described in the updated documentation.  The CHANGES
-file contains a detailed log of changes and the README file contains
-some additional information. 
 
 New Development Process
 -----------------------

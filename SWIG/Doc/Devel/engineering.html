@@ -81,15 +81,10 @@ observing the practices of other successful projects.
 
 All SWIG modules must be written in either ANSI C or one of the
 scripting languages for which SWIG can generate an interface (e.g.,
-Perl, Python, or Tcl).  <B>C++ is NOT an acceptable alternative and
-will not be utilized for any future development due to the fact that
-it is too complicated, too dogmatic, too problematic, and that Dave
-would rather take a bullet to the head than write one more line of
-code in this most decidedly unpleasant language. </B> Rare exceptions
-to this rule may be made if there is a justifiable need to interface
-an existing piece of software written in C++ into the SWIG module
-system.  Anyone who finds this rule to be unreasonable is more than
-welcome to go write their own wrapper generator--so there.
+Perl, Python, or Tcl).  C++ is currently being used to write
+SWIG modules, but it is only being utilized to avoid working with 
+a lot of pointers to functions.  <b>Advanced C++ features like namespaces, templates,
+and overloading should not be used.</b>.
 
 <p>
 Module writers should make every attempt to use only those functions
