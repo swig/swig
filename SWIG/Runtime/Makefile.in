@@ -100,6 +100,7 @@ libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNT
 # Ruby run-time library
 # ----------------------------------------------------------------------
 
+RUBY_CFLAGS  = @RUBYCCDLFLAGS@ -DHAVE_CONFIG_H
 RUBY_INCLUDE = @RUBYINCLUDE@
 RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg
 RUBY_DLNK    = @RUBYDYNAMICLINKING@
@@ -111,7 +112,7 @@ ruby: libswigrb$(RELEASESUFFIX).la
 libswigrb$(RELEASESUFFIX).la:
 	rm -f librb.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(RUBY_RUNTIME) $(SWIGLIB)/ruby/rubydef.swg >> librb.c
-	$(LIBTOOL) $(CC) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
+	$(LIBTOOL) $(CC) $(RUBY_CFLAGS) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
 	$(LIBTOOL) $(CC) -o libswigrb$(RELEASESUFFIX).la librb.lo -rpath $(LIB_DIR) $(RUBY_DLNK) -avoid-version 
 
 # ----------------------------------------------------------------------
