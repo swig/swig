@@ -1504,13 +1504,13 @@ void JAVA::cpp_close_class() {
   Delete(this_shadow_class_modifiers); this_shadow_class_modifiers = NULL;
 }
 
-int JAVA::memberfunctionDeclaration(Node *n) {
+int JAVA::memberfunctionHandler(Node *n) {
   char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
   SwigType *t = Getattr(n,"type");
   ParmList *l = Getattr(n,"parms");
 
-  Language::memberfunctionDeclaration(n);
+  Language::memberfunctionHandler(n);
 
   if (shadow) {
     char* realname = iname ? iname : name;
@@ -1521,9 +1521,9 @@ int JAVA::memberfunctionDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-int JAVA::staticmemberfunctionDeclaration(Node *n) {
+int JAVA::staticmemberfunctionHandler(Node *n) {
 
-  Language::staticmemberfunctionDeclaration(n);
+  Language::staticmemberfunctionHandler(n);
 
   if (shadow) {
     String *symname = Getattr(n,"sym:name");
@@ -1692,12 +1692,12 @@ DelWrapper(f);
   Delete(user_arrays);
 }
 
-int JAVA::publicconstructorDeclaration(Node *n) {
+int JAVA::constructorHandler(Node *n) {
 
   char *iname = GetChar(n,"sym:name");
   ParmList *l = Getattr(n,"parms");
 
-  Language::publicconstructorDeclaration(n);
+  Language::constructorHandler(n);
 
   if(shadow) {
     String *nativecall = NewString("");
@@ -1759,8 +1759,8 @@ int JAVA::publicconstructorDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-int JAVA::publicdestructorDeclaration(Node *n) {
-  Language::publicdestructorDeclaration(n);
+int JAVA::destructorHandler(Node *n) {
+  Language::destructorHandler(n);
 
   if(shadow) {
     if(!nofinalize) {
@@ -1818,7 +1818,7 @@ void JAVA::cpp_inherit(char **baseclass, int) {
   }
 }
 
-int JAVA::membervariableDeclaration(Node *n) {
+int JAVA::membervariableHandler(Node *n) {
   char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
 
@@ -1826,26 +1826,26 @@ int JAVA::membervariableDeclaration(Node *n) {
 
   wrapping_member = 1;
   variable_wrapper_flag = 1;
-  Language::membervariableDeclaration(n);
+  Language::membervariableHandler(n);
   wrapping_member = 0;
   variable_wrapper_flag = 0;
   return SWIG_OK;
 }
 
-int JAVA::staticmembervariableDeclaration(Node *n) {
+int JAVA::staticmembervariableHandler(Node *n) {
   shadow_variable_name = GetChar(n,"sym:name");
   wrapping_member = 1;
   static_flag = 1;
-  Language::staticmembervariableDeclaration(n);
+  Language::staticmembervariableHandler(n);
   wrapping_member = 0;
   static_flag = 0;
   return SWIG_OK;
 }
 
-int JAVA::memberconstantDeclaration(Node *n) {
+int JAVA::memberconstantHandler(Node *n) {
   shadow_variable_name = GetChar(n,"sym:name");
   wrapping_member = 1;
-  Language::memberconstantDeclaration(n);
+  Language::memberconstantHandler(n);
   wrapping_member = 0;
   return SWIG_OK;
 }

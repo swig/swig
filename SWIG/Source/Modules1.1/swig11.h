@@ -62,10 +62,6 @@ extern  int       Abstract;
 class Language {
 public:
 
-  /* ----------------------------------------------------------------------
-   * New interface.  SWIG-1.3.7 and newer versions
-   * ---------------------------------------------------------------------- */
-
   /* Parse command line options */
 
   virtual void main(int argc, char *argv[]);
@@ -104,26 +100,27 @@ public:
   virtual int destructorDeclaration(Node *n);
   virtual int accessDeclaration(Node *n);
 
-  /* Function events */
+  /* Function handlers */
 
-  virtual int functionDeclaration(Node *n);
-  virtual int globalfunctionDeclaration(Node *n);
-  virtual int memberfunctionDeclaration(Node *n);
-  virtual int staticmemberfunctionDeclaration(Node *n);
-  virtual int callbackfunctionDeclaration(Node *n);
+  virtual int functionHandler(Node *n);
+  virtual int globalfunctionHandler(Node *n);
+  virtual int memberfunctionHandler(Node *n);
+  virtual int staticmemberfunctionHandler(Node *n);
+  virtual int callbackfunctionHandler(Node *n);
 
-  /* Variable events */
+  /* Variable handlers */
 
-  virtual int variableDeclaration(Node *n);
-  virtual int globalvariableDeclaration(Node *n);
-  virtual int membervariableDeclaration(Node *n);
-  virtual int staticmembervariableDeclaration(Node *n);
+  virtual int variableHandler(Node *n);
+  virtual int globalvariableHandler(Node *n);
+  virtual int membervariableHandler(Node *n);
+  virtual int staticmembervariableHandler(Node *n);
 
-  /* Miscellaneous C++ */
+  /* Miscellaneous handlers */
 
-  virtual int memberconstantDeclaration(Node *n);
-  virtual int publicconstructorDeclaration(Node *n);
-  virtual int publicdestructorDeclaration(Node *n);
+  virtual int memberconstantHandler(Node *n);
+  virtual int constructorHandler(Node *n);
+  virtual int destructorHandler(Node *n);
+  virtual int classHandler(Node *n);
 
   /* Low-level code generation */
 

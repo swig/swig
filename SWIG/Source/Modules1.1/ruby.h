@@ -22,13 +22,13 @@ class RUBY : public Language {
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
 
-  virtual int staticmemberfunctionDeclaration(Node *);
-  virtual int staticmembervariableDeclaration(Node *);
-  virtual int membervariableDeclaration(Node *);
-  virtual int memberconstantDeclaration(Node *);
-  virtual int memberfunctionDeclaration(Node *);
-  virtual int publicconstructorDeclaration(Node *);
-  virtual int publicdestructorDeclaration(Node *);
+  virtual int staticmemberfunctionHandler(Node *);
+  virtual int staticmembervariableHandler(Node *);
+  virtual int membervariableHandler(Node *);
+  virtual int memberconstantHandler(Node *);
+  virtual int memberfunctionHandler(Node *);
+  virtual int constructorHandler(Node *);
+  virtual int destructorHandler(Node *);
 
   virtual void set_module(char *);
   virtual void add_native(char *, char *, SwigType *, ParmList *);

@@ -31,10 +31,10 @@ public :
   virtual int functionWrapper(Node *n);
   virtual int constantWrapper(Node *n);
   virtual int variableWrapper(Node *n);
-  virtual int membervariableDeclaration(Node *n);
-  virtual int memberfunctionDeclaration(Node *n);
-  virtual int publicconstructorDeclaration(Node *n);
-  virtual int publicdestructorDeclaration(Node *n);
+  virtual int membervariableHandler(Node *n);
+  virtual int memberfunctionHandler(Node *n);
+  virtual int constructorHandler(Node *n);
+  virtual int destructorHandler(Node *n);
 
   virtual void add_native(char *, char *, SwigType *, ParmList *);
 

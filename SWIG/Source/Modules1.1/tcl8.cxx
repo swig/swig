@@ -632,14 +632,14 @@ TCL8::cpp_close_class() {
   Delete(code);
 }
 
-int TCL8::memberfunctionDeclaration(Node *n) {
+int TCL8::memberfunctionHandler(Node *n) {
   char *name = GetChar(n,"name");
   char *iname = GetChar(n,"sym:name");
 
   char *realname;
   String  *rname;
 
-  Language::memberfunctionDeclaration(n);
+  Language::memberfunctionHandler(n);
 
   realname = iname ? iname : name;
   rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
@@ -648,11 +648,11 @@ int TCL8::memberfunctionDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-int TCL8::membervariableDeclaration(Node *n) {
+int TCL8::membervariableHandler(Node *n) {
     String   *symname = Getattr(n,"sym:name");
     String *rname;
 
-    Language::membervariableDeclaration(n);
+    Language::membervariableHandler(n);
     Printv(attr_tab, tab4, "{ \"-", symname, "\",", 0);
     rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name,symname)));
     Printv(attr_tab, rname, ", ", 0);
@@ -668,15 +668,15 @@ int TCL8::membervariableDeclaration(Node *n) {
 }
 
 int
-TCL8::publicconstructorDeclaration(Node *n) {
-  Language::publicconstructorDeclaration(n);
+TCL8::constructorHandler(Node *n) {
+  Language::constructorHandler(n);
   have_constructor = 1;
   return SWIG_OK;
 }
 
 int
-TCL8::publicdestructorDeclaration(Node *n) {
-  Language::publicdestructorDeclaration(n);
+TCL8::destructorHandler(Node *n) {
+  Language::destructorHandler(n);
   have_destructor = 1;
   return SWIG_OK;
 }

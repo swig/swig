@@ -86,8 +86,6 @@ void emit_one(Node *n) {
       lang->externDeclaration(n);
     } else if (strcmp(tag,"cdecl") == 0) {
       lang->cDeclaration(n);
-    } else if (strcmp(tag,"function") == 0) {
-      lang->functionDeclaration(n);
     } else if (strcmp(tag,"enum") == 0) {
       lang->enumDeclaration(n);
     } else if (strcmp(tag,"enumitem") == 0) {
@@ -602,7 +600,7 @@ int Language::cDeclaration(Node *n) {
     Delete(SwigType_pop_function(ty));
     DohIncref(type);
     Setattr(n,"type",ty);
-    functionDeclaration(n);
+    functionHandler(n);
     Setattr(n,"type",type);
     Delete(ty);
     Delete(type);
@@ -631,7 +629,7 @@ int Language::cDeclaration(Node *n) {
     }
     DohIncref(type);
     Setattr(n,"type",ty);
-    variableDeclaration(n);
+    variableHandler(n);
     Setattr(n,"type",type);
     Delete(ty);
     Delete(type);
@@ -642,30 +640,30 @@ int Language::cDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::functionDeclaration()
+ * Language::functionHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::functionDeclaration(Node *n) {
+Language::functionHandler(Node *n) {
   if (!InClass) {
-    globalfunctionDeclaration(n);
+    globalfunctionHandler(n);
   } else {
     String *storage   = Getattr(n,"storage");
     if (Cmp(storage,"static") == 0) {
-      staticmemberfunctionDeclaration(n);
+      staticmemberfunctionHandler(n);
     } else {
-      memberfunctionDeclaration(n);
+      memberfunctionHandler(n);
     }
   }
   return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
- * Language::globalfunctionDeclaration()
+ * Language::globalfunctionHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::globalfunctionDeclaration(Node *n) {
+Language::globalfunctionHandler(Node *n) {
 
   Swig_require(&n,"name","sym:name","type","?parms",0);
 
@@ -683,7 +681,7 @@ Language::globalfunctionDeclaration(Node *n) {
     String *cb = Getattr(n,"feature:callback");
     if (cb) {
       String   *cbname = NewStringf(cb,symname);
-      callbackfunctionDeclaration(n);
+      callbackfunctionHandler(n);
       if (Cmp(cbname, symname) == 0) {
 	Delete(cbname);
 	Swig_restore(&n);
@@ -700,11 +698,11 @@ Language::globalfunctionDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::callbackfunctionDeclaration()
+ * Language::callbackfunctionHandler()
  * ---------------------------------------------------------------------- */
 
 int 
-Language::callbackfunctionDeclaration(Node *n) {
+Language::callbackfunctionHandler(Node *n) {
   Swig_require(&n,"name","*sym:name","*type","?value",0);
   String *symname = Getattr(n,"sym:name");
   String *type    = Getattr(n,"type");
@@ -729,11 +727,11 @@ Language::callbackfunctionDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::memberfunctionDeclaration()
+ * Language::memberfunctionHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::memberfunctionDeclaration(Node *n) {
+Language::memberfunctionHandler(Node *n) {
 
   Swig_require(&n,"*name","*sym:name","*type","?parms","?value",0);
 
@@ -768,7 +766,7 @@ Language::memberfunctionDeclaration(Node *n) {
     Setattr(cb,"value", cbvalue);
     Setattr(cb,"name", name);
 
-    memberconstantDeclaration(n);
+    memberconstantHandler(n);
 
     Delete(cb);
     Delete(cbvalue);
@@ -794,11 +792,11 @@ Language::memberfunctionDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::staticmemberfunctionDeclaration()
+ * Language::staticmemberfunctionHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::staticmemberfunctionDeclaration(Node *n) {
+Language::staticmemberfunctionHandler(Node *n) {
 
   Swig_require(&n,"*name","*sym:name","*type",0);
   Swig_save(&n,"storage",0);
@@ -829,7 +827,7 @@ Language::staticmemberfunctionDeclaration(Node *n) {
     Delete(wrap);
   }
   Delattr(n,"storage");
-  globalfunctionDeclaration(n);
+  globalfunctionHandler(n);
 
   Delete(cname);
   Delete(mrename);
@@ -838,30 +836,30 @@ Language::staticmemberfunctionDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::variableDeclaration()
+ * Language::variableHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::variableDeclaration(Node *n) {
+Language::variableHandler(Node *n) {
   if (!InClass) {
-    globalvariableDeclaration(n);
+    globalvariableHandler(n);
   } else {
     String *storage = Getattr(n,"storage");
     if (Cmp(storage,"static") == 0) {
-      staticmembervariableDeclaration(n);
+      staticmembervariableHandler(n);
     } else {
-      membervariableDeclaration(n);
+      membervariableHandler(n);
     }
   }
   return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
- * Language::globalvariableDeclaration()
+ * Language::globalvariableHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::globalvariableDeclaration(Node *n) {
+Language::globalvariableHandler(Node *n) {
   String *storage = Getattr(n,"storage");
   if (Cmp(storage,"static") == 0) return SWIG_NOWRAP;
   variableWrapper(n);
@@ -869,11 +867,11 @@ Language::globalvariableDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::membervariableDeclaration()
+ * Language::membervariableHandler()
  * ---------------------------------------------------------------------- */
 
 int
-Language::membervariableDeclaration(Node *n) {
+Language::membervariableHandler(Node *n) {
 
   Swig_require(&n,"*name","*sym:name","*type",0);
   Swig_save(&n,"parms",0);
@@ -975,11 +973,11 @@ Language::membervariableDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::staticmembervariableDeclaration()
+ * Language::staticmembervariableHandler()
  * ---------------------------------------------------------------------- */
 
 int 
-Language::staticmembervariableDeclaration(Node *n)
+Language::staticmembervariableHandler(Node *n)
 {
   Swig_require(&n,"*name","*sym:name","*type",0);
 
@@ -1055,17 +1053,17 @@ int Language::enumvalueDeclaration(Node *n) {
   if (!InClass) {
     constantWrapper(n);
   } else {
-    memberconstantDeclaration(n);
+    memberconstantHandler(n);
   }
   Swig_restore(&n);
   return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------------- 
- * Language::memberconstantDeclaration()
+ * Language::memberconstantHandler()
  * ----------------------------------------------------------------------------- */
 
-int Language::memberconstantDeclaration(Node *n) {
+int Language::memberconstantHandler(Node *n) {
 
   Swig_require(&n,"*name","*sym:name","*value",0);
 
@@ -1146,6 +1144,8 @@ int Language::classDeclaration(Node *n) {
     cplus_inherit_types(n,name);
   }
 
+  /* Call classHandler() here */
+
   /* Emit all of the members */
   Node *c;
   for (c = firstChild(n); c; c = nextSibling(c)) {
@@ -1190,6 +1190,15 @@ int Language::classDeclaration(Node *n) {
   Hash *ts = SwigType_pop_scope();
   Setattr(n,"typescope",ts);
   InClass = 0;
+  return SWIG_OK;
+}
+
+/* ----------------------------------------------------------------------
+ * Language::classHandler()
+ * ---------------------------------------------------------------------- */
+
+int Language::classHandler(Node *n) {
+
   return SWIG_OK;
 }
 
@@ -1262,7 +1271,7 @@ int Language::constructorDeclaration(Node *n) {
 	       input_file, line_number, name);
 	return SWIG_NOWRAP;
       }
-      publicconstructorDeclaration(n);
+      constructorHandler(n);
     }
   }
   has_constructor = 1;
@@ -1270,11 +1279,11 @@ int Language::constructorDeclaration(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::publicconstructorDeclaration()
+ * Language::constructorHandler()
  * ---------------------------------------------------------------------- */
 
 int 
-Language::publicconstructorDeclaration(Node *n) {
+Language::constructorHandler(Node *n) {
   Swig_require(&n,"?name","*sym:name","?type","?parms",0);
   String *symname = Getattr(n,"sym:name");
   String *mrename;
@@ -1311,17 +1320,17 @@ int Language::destructorDeclaration(Node *n) {
   c = GetChar(n,"sym:name");
   if (c && (*c == '~')) Setattr(n,"sym:name",c+1);
 
-  publicdestructorDeclaration(n);
+  destructorHandler(n);
 
   has_destructor = 1;
   return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
- * Language::publicdestructorDeclaration()
+ * Language::destructorHandler()
  * ---------------------------------------------------------------------- */
 
-int Language::publicdestructorDeclaration(Node *n) {
+int Language::destructorHandler(Node *n) {
   Swig_require(&n,"?name","*sym:name",0);
   Swig_save(&n,"type","parms",0);
 

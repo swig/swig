@@ -1108,10 +1108,10 @@ PERL5::cpp_close_class() {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::memberfunctionDeclaration()
+ * PERL5::memberfunctionHandler()
  * ----------------------------------------------------------------------------- */
 int
-PERL5::memberfunctionDeclaration(Node *n) {
+PERL5::memberfunctionHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   SwigType *t   = Getattr(n,"type");
 
@@ -1119,7 +1119,7 @@ PERL5::memberfunctionDeclaration(Node *n) {
   int      need_wrapper = 0;
 
   member_func = 1;
-  Language::memberfunctionDeclaration(n);
+  Language::memberfunctionHandler(n);
   member_func = 0;
 
   if (blessed) {
@@ -1201,7 +1201,7 @@ PERL5::memberfunctionDeclaration(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::membervariableDeclaration()
+ * PERL5::membervariableHandler()
  *
  * Adds an instance member.   This is a little hairy because data members are
  * really added with a tied-hash table that is attached to the object.
@@ -1217,7 +1217,7 @@ PERL5::memberfunctionDeclaration(Node *n) {
  * is in the list, we tie it, otherwise, we just return the normal SWIG value.
  * ----------------------------------------------------------------------------- */
 
-int PERL5::membervariableDeclaration(Node *n) {
+int PERL5::membervariableHandler(Node *n) {
 
   char *symname = GetChar(n,"sym:name");
   SwigType *t  = Getattr(n,"type");
@@ -1225,7 +1225,7 @@ int PERL5::membervariableDeclaration(Node *n) {
   /* Emit a pair of get/set functions for the variable */
 
   member_func = 1;
-  Language::membervariableDeclaration(n);
+  Language::membervariableHandler(n);
   member_func = 0;
 
   if (blessed) {
@@ -1258,12 +1258,12 @@ int PERL5::membervariableDeclaration(Node *n) {
  * something that wasn't necessarily allocated by malloc or new
  * ----------------------------------------------------------------------------- */
 int
-PERL5::publicconstructorDeclaration(Node *n) {
+PERL5::constructorHandler(Node *n) {
 
   char *symname = GetChar(n,"sym:name");
 
   member_func = 1;
-  Language::publicconstructorDeclaration(n);
+  Language::constructorHandler(n);
 
   if (blessed) {
     if ((Cmp(symname,class_name) == 0)) {
@@ -1295,13 +1295,13 @@ PERL5::publicconstructorDeclaration(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::publicdestructorDeclaration()
+ * PERL5::destructorHandler()
  * ----------------------------------------------------------------------------- */
 int
-PERL5::publicdestructorDeclaration(Node *n) {
+PERL5::destructorHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   member_func = 1;
-  Language::publicdestructorDeclaration(n);
+  Language::destructorHandler(n);
   if (blessed) {
     Printv(pcode,
 	   "sub DESTROY {\n",
@@ -1320,11 +1320,11 @@ PERL5::publicdestructorDeclaration(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::staticmemberfunctionDeclaration()
+ * PERL5::staticmemberfunctionHandler()
  * ----------------------------------------------------------------------------- */
 int
-PERL5::staticmemberfunctionDeclaration(Node *n) {
-  Language::staticmemberfunctionDeclaration(n);
+PERL5::staticmemberfunctionHandler(Node *n) {
+  Language::staticmemberfunctionHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
     Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
@@ -1334,11 +1334,11 @@ PERL5::staticmemberfunctionDeclaration(Node *n) {
 
 
 /* -----------------------------------------------------------------------------
- * PERL5::staticmembervariableDeclaration()
+ * PERL5::staticmembervariableHandler()
  * ----------------------------------------------------------------------------- */
 int
-PERL5::staticmembervariableDeclaration(Node *n) {
-  Language::staticmembervariableDeclaration(n);
+PERL5::staticmembervariableHandler(Node *n) {
+  Language::staticmembervariableHandler(n);
   if (blessed) {
     String *symname = Getattr(n,"sym:name");
     Printv(pcode, "*", symname, " = *", package, "::", Swig_name_member(class_name,symname), ";\n", 0);
@@ -1385,16 +1385,16 @@ PERL5::cpp_inherit(char **baseclass, int) {
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::memberconstantDeclaration()
+ * PERL5::memberconstantHandler()
  * ----------------------------------------------------------------------------- */
 int
-PERL5::memberconstantDeclaration(Node *n) {
+PERL5::memberconstantHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   int   oldblessed = blessed;
 
   /* Create a normal constant */
   blessed = 0;
-  Language::memberconstantDeclaration(n);
+  Language::memberconstantHandler(n);
   blessed = oldblessed;
 
   if (blessed) {

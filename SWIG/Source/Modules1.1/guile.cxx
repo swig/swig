@@ -1003,18 +1003,18 @@ GUILE::constantWrapper(Node *n)
   return SWIG_OK;
 }
 
-int GUILE::membervariableDeclaration(Node *n)
+int GUILE::membervariableHandler(Node *n)
 {
   if (emit_setters) {
     struct_member = 1;
     Printf(f_init, "{\n");
-    Language::membervariableDeclaration(n);
+    Language::membervariableHandler(n);
     Printf(f_init, "}\n");
     struct_member = 0;
   }
   else {
     /* Only emit traditional VAR-get and VAR-set procedures */
-    Language::membervariableDeclaration(n);
+    Language::membervariableHandler(n);
   }
   return SWIG_OK;
 }

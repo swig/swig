@@ -701,17 +701,17 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::memberfunctionDeclaration()
+ * PYTHON::memberfunctionHandler()
  * ----------------------------------------------------------------------------- */
 int
-PYTHON::memberfunctionDeclaration(Node *n) {
+PYTHON::memberfunctionHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   int   oldshadow;
 
   /* Create the default member function */
   oldshadow = shadow;    /* Disable shadowing when wrapping member functions */
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::memberfunctionDeclaration(n);
+  Language::memberfunctionHandler(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -733,12 +733,12 @@ PYTHON::memberfunctionDeclaration(Node *n) {
  * PYTHON::constructorDeclaration()
  * ----------------------------------------------------------------------------- */
 int
-PYTHON::publicconstructorDeclaration(Node *n) {
+PYTHON::constructorHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   int   oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::publicconstructorDeclaration(n);
+  Language::constructorHandler(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -780,12 +780,12 @@ PYTHON::publicconstructorDeclaration(Node *n) {
  * PYTHON::cpp_destructor()
  * ----------------------------------------------------------------------------- */
 int
-PYTHON::publicdestructorDeclaration(Node *n) {
+PYTHON::destructorHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   int oldshadow = shadow;
 
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::publicdestructorDeclaration(n);
+  Language::destructorHandler(n);
   shadow = oldshadow;
   if (shadow) {
     Printv(pyclass, tab4, "def __del__(self,", module, "=", module, "):\n", 0);
@@ -919,15 +919,15 @@ PYTHON::cpp_inherit(char **baseclass,int) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::membervariableDeclaration()
+ * PYTHON::membervariableHandler()
  * ----------------------------------------------------------------------------- */
 int
-PYTHON::membervariableDeclaration(Node *n) {
+PYTHON::membervariableHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
 
   int   oldshadow = shadow;
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::membervariableDeclaration(n);
+  Language::membervariableHandler(n);
   shadow = oldshadow;
 
   if (shadow) {
@@ -942,14 +942,14 @@ PYTHON::membervariableDeclaration(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::memberconstantDeclaration()
+ * PYTHON::memberconstantHandler()
  * ----------------------------------------------------------------------------- */
 int
-PYTHON::memberconstantDeclaration(Node *n) {
+PYTHON::memberconstantHandler(Node *n) {
   char *symname = GetChar(n,"sym:name");
   int   oldshadow = shadow;
   if (shadow) shadow = shadow | PYSHADOW_MEMBER;
-  Language::memberconstantDeclaration(n);
+  Language::memberconstantHandler(n);
   shadow = oldshadow;
 
   if (shadow) {

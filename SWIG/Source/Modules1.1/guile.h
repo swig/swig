@@ -61,7 +61,7 @@ public :
   virtual int functionWrapper(Node *);
   virtual int constantWrapper(Node *);
   virtual int variableWrapper(Node *);
-  virtual int membervariableDeclaration(Node *);
+  virtual int membervariableHandler(Node *);
 
   void pragma(char *lang, char *cmd, char *value);
   int  validIdentifier(String *s);

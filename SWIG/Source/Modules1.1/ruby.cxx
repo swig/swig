@@ -924,7 +924,7 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
 }
 
 /* ----------------------------------------------------------------------
- * void RUBY::memberfunctionDeclaration()
+ * void RUBY::memberfunctionHandler()
  *
  * Method for adding C++ member function
  *
@@ -940,35 +940,35 @@ void RUBY::cpp_inherit(char **baseclass, int mode) {
  *
  * --------------------------------------------------------------------- */
 
-int RUBY::memberfunctionDeclaration(Node *n) {
+int RUBY::memberfunctionHandler(Node *n) {
   current = MEMBER_FUNC;
-  Language::memberfunctionDeclaration(n);
+  Language::memberfunctionHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::constructorDeclaration()
+ * void RUBY::constructorHandler()
  *
  * Method for adding C++ member constructor
  * -------------------------------------------------------------------- */
 
-int RUBY::publicconstructorDeclaration(Node *n) {
+int RUBY::constructorHandler(Node *n) {
 
   current = CONSTRUCTOR;
-  Language::publicconstructorDeclaration(n);
+  Language::constructorHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::publicdestructorDeclaration()
+ * RUBY::destructorHandler()
  * -------------------------------------------------------------------- */
 
-int RUBY::publicdestructorDeclaration(Node *n) {
+int RUBY::destructorHandler(Node *n) {
   char *name = GetChar(n,"name");
   current = DESTRUCTOR;
-  Language::publicdestructorDeclaration(n);
+  Language::destructorHandler(n);
 
     String *freefunc = NewString("");
     String *freeproto = NewString("");
@@ -1007,54 +1007,54 @@ int RUBY::publicdestructorDeclaration(Node *n) {
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::membervariableDeclaration()
+ * void RUBY::membervariableHandler()
  *
  * This creates a pair of functions to set/get the variable of a member.
  * -------------------------------------------------------------------- */
 
 int
-RUBY::membervariableDeclaration(Node *n) {
+RUBY::membervariableHandler(Node *n) {
   current = MEMBER_VAR;
-  Language::membervariableDeclaration(n);
+  Language::membervariableHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------
- * void RUBY::staticmemberfunctionDeclaration()
+ * void RUBY::staticmemberfunctionHandler()
  *
  * Wrap a static C++ function
  * ---------------------------------------------------------------------- */
 
-int RUBY::staticmemberfunctionDeclaration(Node *n) {
+int RUBY::staticmemberfunctionHandler(Node *n) {
   current = STATIC_FUNC;
-  Language::staticmemberfunctionDeclaration(n);
+  Language::staticmemberfunctionHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
 
 /* ----------------------------------------------------------------------
- * void RUBY::memberconstantDeclaration()
+ * void RUBY::memberconstantHandler()
  *
  * Create a C++ constant
  * --------------------------------------------------------------------- */
 
 
-int RUBY::memberconstantDeclaration(Node *n) {
+int RUBY::memberconstantHandler(Node *n) {
 
   current = CLASS_CONST;
-  Language::memberconstantDeclaration(n);
+  Language::memberconstantHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
 
 /* ---------------------------------------------------------------------
- * void RUBY::staticmembervariableDeclaration()
+ * void RUBY::staticmembervariableHandler()
  * --------------------------------------------------------------------- */
 
-int RUBY::staticmembervariableDeclaration(Node *n) {
+int RUBY::staticmembervariableHandler(Node *n) {
   current = STATIC_VAR;
-  Language::staticmembervariableDeclaration(n);
+  Language::staticmembervariableHandler(n);
   current = NO_CPP;
   return SWIG_OK;
 }
