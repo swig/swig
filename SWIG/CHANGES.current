@@ -1,5 +1,11 @@
 Version 1.3.20 (In progress)
 ============================
+08/11/2003: beazley
+            Fixed [ 775989 ] numeric template parameters.   There were
+            some errors in template expansion related to the use of
+            arrays where the array dimension was a template parameter.
+            It should work now.  Reported by Bryan Green.
+
 08/10/2003: mrose (Mark Rose)
             Added a director typemap (outv) for return by value and cleaned up up a few 
 	    of the commented director typemaps.
