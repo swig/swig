@@ -2729,7 +2729,7 @@ type_right     : TYPE_INT { $$ = $1; }
 		       $$ = NewStringf("%s%s",ty,$2);
 		     }
 		   }
-		   if (!$$ && templatename) {
+		   if (!$$ && templatename && (Len($2))) {
 		     if (Cmp($1,templateiname) == 0) {
 		       $$ = NewStringf("%s%s", templatename, $2);
 		     }
