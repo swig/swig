@@ -41,11 +41,6 @@
 
 /* Directives for callback functions */
 
-/*
-#define %callback(x) %pragma(swig) callback=`x`;
-#define %nocallback  %pragma(swig) nocallback;
-*/
-
 /* Experimental */
 
 #define %callback(x) %feature("callback") `x`;
@@ -63,8 +58,11 @@
 
 /* Generation of default constructors/destructors */
 
-#define %nodefault     %pragma nodefault
-#define %makedefault   %pragma makedefault
+#define %nodefault     %feature("nodefault","1")
+#define %makedefault   %feature("nodefault")
+
+//#define %nodefault     %pragma nodefault
+//#define %makedefault   %pragma makedefault
 
 /* Common features */
 
