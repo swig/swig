@@ -396,6 +396,21 @@ Swig_typemap_apply(ParmList *src, ParmList *dest) {
     /* See if there is a matching typemap in this scope */
     sm = Swig_typemap_get(type,name,ts);
 
+    /* if there is not matching, look for a typemap in the
+       original typedef, if any, like in:
+
+         typedef unsigned long size_t;
+	...
+	%apply(size_t) {my_size};  ==>  %apply(unsigned long) {my_size};
+    */
+    if (!sm) {
+      SwigType *ntype = SwigType_typedef_resolve(type);
+      if (Cmp(ntype,type) != 0) {
+	sm = Swig_typemap_get(ntype,name,ts);
+      }
+      Delete(ntype);
+    }
+    
     if (sm) {
       /* Got a typemap.  Need to only merge attributes for methods that match our signature */
       Iterator ki;
