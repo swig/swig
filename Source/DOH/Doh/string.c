@@ -25,8 +25,6 @@ typedef struct String {
     int            hashkey;                   /* Hash key value     */
     int            sp;                        /* Current position   */
     char          *str;                       /* String data        */
-    char           pb[4];                     /* Pushback data      */
-    int            pbi;
 } String;
 
 /* Forward references */
@@ -153,7 +151,6 @@ NewString(const DOH *so)
     DohXInit(str);
     str->hashkey = -1;
     str->sp = 0;
-    str->pbi = 0;
     str->line = 1;
     str->file = 0;
     max = INIT_MAXSIZE;
@@ -208,7 +205,6 @@ CopyString(DOH *so) {
   str->line = s->line;
   str->file = s->file;
   if (str->file) Incref(str->file);
-  str->pbi = 0;
   max = s->maxsize;
   str->str = (char *) DohMalloc(max);
   memmove(str->str, s->str, max);
@@ -383,7 +379,6 @@ String_clear(DOH *so)
   *(s->str) = 0;
   s->sp = 0;
   s->line = 1;
-  s->pbi = 0;
 }
 
 void
@@ -495,18 +490,12 @@ String_read(DOH *so, void *buffer, int len) {
   int    reallen, retlen;
   char   *cb;
   String *s = (String *) so;
-  if (((s->sp-s->pbi) + len) > s->len) reallen = (s->len - (s->sp-s->pbi));
+  if ((s->sp + len) > s->len) reallen = (s->len - s->sp);
   else reallen = len;
 
   cb = (char *) buffer;
   retlen = reallen;
 
-  /* Read the push-back buffer contents first */
-  while (reallen > 0) {
-    if (s->pbi <= 0) break;
-    *(cb++) = (char) s->pb[--s->pbi];
-    reallen--;
-  }
   if (reallen > 0) {
     memmove(cb, s->str+s->sp, reallen);
     s->sp += reallen;
@@ -534,7 +523,6 @@ String_write(DOH *so, void *buffer, int len) {
   if ((s->sp+len) > s->len) s->len = s->sp + len;
   memmove(s->str+s->sp,buffer,len);
   s->sp += len;
-  s->pbi = 0;
   return len;
 }
 
@@ -577,8 +565,6 @@ String_seek(DOH *so, long offset, int whence) {
   s->sp = nsp;
 #endif
   assert (s->sp >= 0);
-
-  s->pbi = 0;
   return 0;
 }
 
@@ -590,7 +576,7 @@ String_seek(DOH *so, long offset, int whence) {
 long
 String_tell(DOH *so) {
   String *s = (String *) so;
-  return (long) (s->sp - s->pbi);
+  return (long) (s->sp);
 }
 
 /* -----------------------------------------------------------------------------
@@ -612,7 +598,6 @@ String_putc(DOH *so, int ch) {
   if (ch == '\n') s->line++;
 #endif
   }
-  s->pbi = 0;
   return ch;
 }
 
@@ -626,10 +611,7 @@ int String_getc(DOH *so) {
   int c;
   String *s = (String *) so;
 
-  if (s->pbi) {
-    c = (int) s->pb[--s->pbi];
-  }
-  else if (s->sp >= s->len)
+  if (s->sp >= s->len)
     c = EOF;
   else
     c = (int) s->str[s->sp++];
@@ -647,15 +629,8 @@ int String_getc(DOH *so) {
 int String_ungetc(DOH *so, int ch) {
   String *s = (String *) so;
   if (ch == EOF) return ch;
-  if ((s->sp - s->pbi) <= 0) return EOF;
-  if (s->pbi == 4) {
-    s->pb[0] = s->pb[1];
-    s->pb[1] = s->pb[2];
-    s->pb[2] = s->pb[3];
-    s->pb[3] = (char) ch;
-  } else {
-    s->pb[s->pbi++] = (char) ch;
-  }
+  if (s->sp <= 0) return EOF;
+  s->sp--;
 #ifdef DOH_STRING_UPDATE_LINES
   if (ch == '\n') s->line--;
 #endif
@@ -829,6 +804,5 @@ String_chop(DOH *s) {
   }
   assert (str->sp >= 0);
   str->hashkey = -1;
-  str->pbi = 0;
 }
 
