@@ -436,7 +436,7 @@ TCL8::variableWrapper(Node *n) {
       Printf(setf->code,"}\n");
       if (setf) Wrapper_print(setf,f_wrappers);  
     } else {
-      Printf(stderr,"%s:%d. Warning. Variable %s will be read-only without a varset typemap.\n", input_file, line_number, name);
+      Printf(stderr,"%s:%d. Warning. Variable %s will be read-only without a varin typemap.\n", input_file, line_number, name);
       readonly = 1;
     }
     DelWrapper(setf);
