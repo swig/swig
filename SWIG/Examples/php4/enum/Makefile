@@ -10,6 +10,6 @@ all::
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php4_cpp
 
 clean::
-	$(MAKE) -f $(TOP)/Makefile php4_clean
+	rm -f *_wrap* *.o core *~ *.so *.php
 
 check: all
