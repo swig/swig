@@ -361,8 +361,6 @@ $ <b>swig -c++ -python -dump_tags example.i</b>
  . top . include . insert (/r0/beazley/Projects/lib/swig1.3/python/python.swg:7)
  . top . include . insert (/r0/beazley/Projects/lib/swig1.3/python/python.swg:8)
  . top . include . typemap (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
- . top . include . typemap . typemapitem (/r0/beazley/Projects/lib/swig1.3/python/python.swg:19)
 ...
  . top . include (example.i:6)
  . top . include . module (example.i:2)
@@ -1312,7 +1310,7 @@ common to see small code fragments of code generated using code like this:
 /* Print into a string */
 String *s = NewString("");
 Printf(s,"Hello\n");
-for (i = 0; i < 10; i++) {
+for (i = 0; i &lt; 10; i++) {
     Printf(s,"%d\n", i);
 }
 ...
@@ -2155,7 +2153,7 @@ command line options, simply use code similar to this:
 <blockquote>
 <pre>
 void Language::main(int argc, char *argv[]) {
-  for (int i = 1; i < argc; i++) {
+  for (int i = 1; i &lt; argc; i++) {
       if (argv[i]) {
           if(strcmp(argv[i],"-interface") == 0) {
             if (argv[i+1]) {
@@ -2293,8 +2291,8 @@ int Python::top(Node *n) {
 
    return SWIG_OK;
 }
-</blockquote>
 </pre>
+</blockquote>
 
 <a name="n37"></a><H3>26.10.6 Module I/O and wrapper skeleton</H3>
 
@@ -2380,7 +2378,7 @@ might rely on it.<p>
 Here is where you may also define an alias (but then you'll need to
 kludge --- don't do this):<p>
 
-<blockquote<tt>
+<blockquote><tt>
 skip-qux = $(skip-qux99)
 </tt></blockquote><p>
 

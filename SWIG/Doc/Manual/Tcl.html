@@ -1284,7 +1284,8 @@ If declarations such as these appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
-example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int) at example.i:11.
+example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
+at example.i:11.
 </pre>
 </blockquote>
 
@@ -2376,7 +2377,7 @@ used as a <tt>char **</tt> object.<p>
         return TCL_ERROR;
      }
      $1 = (char **) malloc((nitems+1)*sizeof(char *));
-     for (i = 0; i < nitems; i++) {
+     for (i = 0; i &lt; nitems; i++) {
         $1[i] = Tcl_GetStringFromObj(listobjv[i],0);
      }
      $1[i] = 0;
@@ -2496,10 +2497,13 @@ void      Tcl_AppendToObj(Tcl_Obj *obj, char *str, int len);
 Tcl_Obj  *Tcl_NewListObj(int objc, Tcl_Obj *objv);
 int       Tcl_ListObjAppendList(Tcl_Interp *, Tcl_Obj *listPtr, Tcl_Obj *elemListPtr);
 int       Tcl_ListObjAppendElement(Tcl_Interp *, Tcl_Obj *listPtr, Tcl_Obj *element);
-int       Tcl_ListObjGetElements(Tcl_Interp *, Tcl_Obj *listPtr, int *objcPtr, Tcl_Obj ***objvPtr);
+int       Tcl_ListObjGetElements(Tcl_Interp *, Tcl_Obj *listPtr, int *objcPtr,
+                                 Tcl_Obj ***objvPtr);
 int       Tcl_ListObjLength(Tcl_Interp *, Tcl_Obj *listPtr, int *intPtr);
-int       Tcl_ListObjIndex(Tcl_Interp *, Tcl_Obj *listPtr, int index, Tcl_Obj_Obj **objptr);
-int       Tcl_ListObjReplace(Tcl_Interp *, Tcl_Obj *listPtr, int first, int count, int objc, Tcl_Obj *objv);
+int       Tcl_ListObjIndex(Tcl_Interp *, Tcl_Obj *listPtr, int index,
+                           Tcl_Obj_Obj **objptr);
+int       Tcl_ListObjReplace(Tcl_Interp *, Tcl_Obj *listPtr, int first, int count,
+                             int objc, Tcl_Obj *objv);
 </pre>
 </blockquote>
 

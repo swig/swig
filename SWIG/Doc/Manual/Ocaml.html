@@ -172,7 +172,7 @@ a '+= b</td>
 <tr><th colspan=2>Note that because camlp4 always recognizes &lt;&lt; 
 and &gt;&gt;, they are replaced by lsl and lsr in operator names.
 <tr><td>
-<i>'unop</i> object as in</br>
+<i>'unop</i> object as in<br>
 '! a
 </td><td>
 (invoke a) "!" C_void</td></tr>
@@ -474,7 +474,7 @@ into this type of function convenient.
 void printfloats( float *tab, int len ) {
 	int i;
 
-	for( i = 0; i < len; i++ ) {
+	for( i = 0; i &lt; len; i++ ) {
 		printf( "%f ", tab[i] );
 	}
 
@@ -487,7 +487,7 @@ void printfloats( float *tab, int len ) {
     /* $*1_type */
     $2 = caml_array_len($input);
     $1 = ($*1_type *)malloc( $2 * sizeof( float ) );
-    for( i = 0; i < $2; i++ ) {
+    for( i = 0; i &lt; $2; i++ ) {
         $1[i] = caml_double_val(caml_array_nth($input,i));
     }
 }

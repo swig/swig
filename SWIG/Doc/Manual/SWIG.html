@@ -2310,7 +2310,7 @@ _wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp,
     struct Vector *arg1 ;
     double result ;
     
-    if (SWIG_GetArgs(interp, objc, objv,"p:Vector_x_get self ",&arg0,
+    if (SWIG_GetArgs(interp, objc, objv,"p:Vector_x_get self ",&amp;arg0,
                      SWIGTYPE_p_Vector) == TCL_ERROR)
          return TCL_ERROR;
     result = (double ) (arg1->x);

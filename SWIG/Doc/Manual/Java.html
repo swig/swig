@@ -364,7 +364,8 @@ The following exception is indicative of this:
 
 <blockquote><pre>
 $ java main
-Exception in thread "main" java.lang.UnsatisfiedLinkError: libexample.so: undefined symbol: fact
+Exception in thread "main" java.lang.UnsatisfiedLinkError: libexample.so: undefined
+symbol: fact
         at java.lang.ClassLoader$NativeLibrary.load(Native Method)
         at java.lang.ClassLoader.loadLibrary0(ClassLoader.java, Compiled Code)
         at java.lang.ClassLoader.loadLibrary(ClassLoader.java, Compiled Code)
@@ -398,7 +399,8 @@ compiler.  For example:
 <p>
 <blockquote><pre>% swig -c++ -java example.i
 % g++ -c -fpic example.cxx
-% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/j2sdk1.4.1/include/linux
+% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/
+j2sdk1.4.1/include/linux
 % g++ -shared example.o example_wrap.o -o libexample.so
 </pre></blockquote>
 
@@ -560,7 +562,7 @@ Details of all these generated classes will unfold as you read this section.
 <p>
 
 The JNI (C/C++) code is generated into a file which also contains the module name, for example <tt>example_wrap.cxx</tt>
-or </tt>example_wrap.c</tt>. These C or C++ files complete the contents of the module.
+or <tt>example_wrap.c</tt>. These C or C++ files complete the contents of the module.
 <p>
 
 The generated Java classes can be placed into a Java package by using the <tt>-package</tt> commandline option.
@@ -1514,7 +1516,8 @@ If declarations such as these appear, you will get a warning message like this:
 
 <blockquote>
 <pre>
-example.i:12: Warning(515): Overloaded method spam(unsigned short) ignored. Method spam(int) at example.i:11 used.
+example.i:12: Warning(515): Overloaded method spam(unsigned short) ignored.
+Method spam(int) at example.i:11 used.
 </pre>
 </blockquote>
 
@@ -1774,10 +1777,14 @@ JNI functions. The JNI functions have to follow a particular naming convention s
 <blockquote>
 <pre>
 JNIEXPORT jlong JNICALL Java_exampleJNI_new_1Foo(JNIEnv *jenv, jclass jcls);
-JNIEXPORT void JNICALL Java_exampleJNI_delete_1Foo(JNIEnv *jenv, jclass jcls, jlong jarg1);
-JNIEXPORT void JNICALL Java_exampleJNI_set_1Foo_1x(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2);
-JNIEXPORT jint JNICALL Java_exampleJNI_get_1Foo_1x(JNIEnv *jenv, jclass jcls, jlong jarg1);
-JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jlong jarg3);
+JNIEXPORT void JNICALL Java_exampleJNI_delete_1Foo(JNIEnv *jenv, jclass jcls,
+                                                   jlong jarg1);
+JNIEXPORT void JNICALL Java_exampleJNI_set_1Foo_1x(JNIEnv *jenv, jclass jcls,
+                                                   jlong jarg1, jint jarg2);
+JNIEXPORT jint JNICALL Java_exampleJNI_get_1Foo_1x(JNIEnv *jenv, jclass jcls,
+                                                   jlong jarg1);
+JNIEXPORT jint JNICALL Java_exampleJNI_Foo_1spam(JNIEnv *jenv, jclass jcls,
+                                                 jlong jarg1, jint jarg2, jlong jarg3);
 JNIEXPORT void JNICALL Java_exampleJNI_egg(JNIEnv *jenv, jclass jcls, jlong jarg1);
 </pre>
 </blockquote>
@@ -1857,7 +1864,8 @@ The pragma code appears in the generated intermediary JNI class where you would 
 <blockquote>
 <pre>
 [ jniclassimports pragma ]
-[ jniclassmodifiers pragma ] jniclassname extends [ jniclassbase pragma ] implements [ jniclassinterfaces pragma ] {
+[ jniclassmodifiers pragma ] jniclassname extends [ jniclassbase pragma ]
+                                          implements [ jniclassinterfaces pragma ] {
 [ jniclasscode pragma ]
 ... SWIG generated native methods ...
 }
@@ -1955,7 +1963,8 @@ The pragma code appears in the generated module class like this:
 <blockquote>
 <pre>
 [ moduleimports pragma ]
-[ modulemodifiers pragma ] modulename extends [ modulebase pragma ] implements [ moduleinterfaces pragma ] {
+[ modulemodifiers pragma ] modulename extends [ modulebase pragma ]
+                                      implements [ moduleinterfaces pragma ] {
 [ modulecode pragma ]
 ... SWIG generated wrapper functions ...
 }
@@ -1992,7 +2001,7 @@ public class Foo {
   }
 
   public void delete() {
-    if(swigCPtr != 0 && swigCMemOwn) {
+    if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Foo(swigCPtr);
       swigCMemOwn = false;
     }
@@ -2173,7 +2182,7 @@ Obj obj = Factory.createObj();   // obj.swigCMemOwn = true;
 <a name="n42"></a><H4>17.4.3.2 Inheritance</H4>
 
 
-Java proxy classes will mirror C++ inheritance chains. For example, given the base class <tt>Base</tt> and its derived class </tt>Derived</tt>:
+Java proxy classes will mirror C++ inheritance chains. For example, given the base class <tt>Base</tt> and its derived class <tt>Derived</tt>:
 
 <blockquote><pre>
 class Base {
@@ -2208,7 +2217,7 @@ public class Base {
   }
 
   public void delete() {
-    if(swigCPtr != 0 && swigCMemOwn) {
+    if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Base(swigCPtr);
       swigCMemOwn = false;
     }
@@ -2245,7 +2254,7 @@ public class Derived extends Base {
   }
 
   public void delete() {
-    if(swigCPtr != 0 && swigCMemOwn) {
+    if(swigCPtr != 0 &amp;&amp; swigCMemOwn) {
       exampleJNI.delete_Derived(swigCPtr);
       swigCMemOwn = false;
     }
@@ -2399,7 +2408,9 @@ The Java function generated is:
 
 <blockquote>
 <pre>
-public static void spam(SWIGTYPE_p_Snazzy x, SWIGTYPE_p_Snazzy y, SWIGTYPE_p_Snazzy z) { ... }
+public static void spam(SWIGTYPE_p_Snazzy x, SWIGTYPE_p_Snazzy y, SWIGTYPE_p_Snazzy z) {
+ ...
+}
 </pre>
 </blockquote>
 
@@ -2463,12 +2474,13 @@ public final class Beverage {
   }
 
   public static Beverage swigToEnum(int swigValue) {
-    if (swigValue < swigValues.length && swigValues[swigValue].swigValue == swigValue)
+    if (swigValue &lt; swigValues.length &amp;&amp; swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
-    for (int i = 0; i < swigValues.length; i++)
+    for (int i = 0; i &lt; swigValues.length; i++)
       if (swigValues[i].swigValue == swigValue)
         return swigValues[i];
-    throw new IllegalArgumentException("No enum " + Beverage.class + " with value " + swigValue);
+    throw new IllegalArgumentException("No enum " + Beverage.class + " with value " +
+                                                                         swigValue);
   }
 
   private Beverage(String swigName) {
@@ -2528,12 +2540,13 @@ public enum Beverage {
 
   public static Beverage swigToEnum(int swigValue) {
     Beverage[] swigValues = Beverage.class.getEnumConstants();
-    if (swigValue < swigValues.length && swigValues[swigValue].swigValue == swigValue)
+    if (swigValue &lt; swigValues.length &amp;&amp; swigValues[swigValue].swigValue == swigValue)
       return swigValues[swigValue];
     for (Beverage swigEnum : swigValues)
       if (swigEnum.swigValue == swigValue)
         return swigEnum;
-    throw new IllegalArgumentException("No enum " + Beverage.class + " with value " + swigValue);
+    throw new IllegalArgumentException("No enum " + Beverage.class +
+                                       " with value " + swigValue);
   }
 
   private Beverage() {
@@ -2741,7 +2754,6 @@ void callup(DirectorBase *director) {
 The following <code>directorDerived</code> Java class is derived from the Java proxy class <code>DirectorBase</code> and overrides <code>upcall_method()</code>.
 When C++ code invokes <code>upcall_method()</code>, the SWIG-generated C++ code redirects the call via JNI to the Java <code>directorDerived</code> subclass.
 Naturally, the SWIG generated C++ code and the generated Java intermediate class marshall and convert arguments between C++ and Java when needed.
-</p>
 
 <blockquote>
 <pre>
@@ -3484,7 +3496,7 @@ The following table lists the default type mapping from Java to C/C++.<p>
 </tr>
 
 <tr>
-<td>bool<br> const bool & </td>
+<td>bool<br> const bool &amp; </td>
 <td>boolean</td>
 <td>jboolean</td>
 </tr>
@@ -3583,19 +3595,21 @@ Also note that all const references to primitive types are treated as if they ar
 Given the following C function:
 <blockquote> <pre>
 void func(unsigned short a, char *b, const long &c, unsigned long long d);
-</blockquote> </pre>
+</pre> </blockquote>
 The module class method would be:
 <blockquote> <pre>
 public static void func(int a, String b, int c, java.math.BigInteger d) {...}
-</blockquote> </pre>
+</pre> </blockquote>
 The intermediary JNI class would use the same types:
 <blockquote> <pre>
-public final static native void func(int jarg1, String jarg2, int jarg3, java.math.BigInteger jarg4);
-</blockquote> </pre>
+public final static native void func(int jarg1, String jarg2, int jarg3,
+                                     java.math.BigInteger jarg4);
+</pre> </blockquote>
 and the JNI function would look like this:
 <blockquote> <pre>
-JNIEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls, jint jarg1, jstring jarg2, jint jarg3, jobject jarg4) {...}
-</blockquote> </pre>
+JNIEXPORT void JNICALL Java_exampleJNI_func(JNIEnv *jenv, jclass jcls,
+                jint jarg1, jstring jarg2, jint jarg3, jobject jarg4) {...}
+</pre> </blockquote>
 <p>
 
 The mappings for C <tt>int</tt> and C <tt>long</tt> are appropriate for 32 bit applications which are used in the 32 bit JVMs. 
@@ -3793,7 +3807,7 @@ The most important of these implement the mapping of C/C++ types to Java types:
 
 <p>
 If you are writing your own typemaps to handle a particular type, you will normally have to write a collection of them. 
-The default typemaps are in "<tt>java.swg</tt>" and so might be a good place for finding typemaps to base any new ones on.</li>
+The default typemaps are in "<tt>java.swg</tt>" and so might be a good place for finding typemaps to base any new ones on.
 
 <p>
 The "jni", "jtype" and "jstype" typemaps are usually defined together to handle the Java to C/C++ type mapping.
@@ -4158,7 +4172,8 @@ In summary the contents of the typemaps make up a proxy class like this:
 <blockquote>
 <pre>
 [ javaimports typemap ]
-[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ] implements [ javainterfaces typemap ] {
+[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ]
+                                             implements [ javainterfaces typemap ] {
 [ javabody or javabody_derived typemap ]
 [ javafinalize typemap ]
 public void <i>delete</i>() [ javadestruct OR javadestruct_derived typemap ]
@@ -4176,7 +4191,8 @@ The type wrapper class is similar in construction:
 <blockquote>
 <pre>
 [ javaimports typemap ]
-[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ] implements [ javainterfaces typemap ] {
+[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ]
+                                             implements [ javainterfaces typemap ] {
 [ javabody typemap ]
 [ javacode typemap ]
 }
@@ -4187,7 +4203,8 @@ The enum class is also similar in construction:
 <blockquote>
 <pre>
 [ javaimports typemap ]
-[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ] implements [ javainterfaces typemap ] {
+[ javaclassmodifiers typemap ] javaclassname extends [ javabase typemap ]
+                                             implements [ javainterfaces typemap ] {
 ... Enum values ...
 [ javabody typemap ]
 [ javacode typemap ]
@@ -4391,7 +4408,8 @@ Practically speaking, you should create a separate SWIG interface file, which is
 
 <blockquote>
 <pre>
-%typemap("javapackage") SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp; "package.for.most.classes";
+%typemap("javapackage") SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;
+                                            "package.for.most.classes";
 
 %typemap("javapackage") Package_2_class_one "package.for.other.classes";
 %typemap("javapackage") Package_3_class_two "package.for.another.set";
@@ -4400,7 +4418,6 @@ Practically speaking, you should create a separate SWIG interface file, which is
 </blockquote>
 
 The basic strategy here is to provide a default package typemap for the majority of the classes, only providing "javapackage" typemaps for the exceptions.
-</p>
 
 </blockquote>
 
@@ -4498,7 +4515,7 @@ Let's consider a simple file class <tt>SimpleFile</tt> and an exception class <t
 class FileException {
   std::string message;
 public:
-  FileException(const std::string& msg) : message(msg) {}
+  FileException(const std::string&amp; msg) : message(msg) {}
   std::string what() {
     return message;
   }
@@ -4507,7 +4524,7 @@ public:
 class SimpleFile {
   std::string filename;
 public:
-  SimpleFile(const std::string& filename) : filename(filename) {}
+  SimpleFile(const std::string&amp; filename) : filename(filename) {}
   void open() throw(FileException) {
   ...
   }
@@ -4522,7 +4539,8 @@ The default generic "throws" typemap looks like this:
 <blockquote>
 <pre>
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] %{
-  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
+                          "C++ $1_type exception thrown");
   return $null;
 %}
 </pre>
@@ -4616,7 +4634,8 @@ To validate every <tt>float</tt> being passed to C++, we could preceed the code 
 %module example
 %typemap(javain) float "$module.CheckForNaN($javainput)"
 %pragma(java) modulecode=%{
-  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  /** Simply returns the input value unless it is not a number,
+      whereupon an exception is thrown. */
   static protected float CheckForNaN(float num) {
     if (Float.isNaN(num))
       throw new RuntimeException("Not a number");
@@ -4634,7 +4653,8 @@ The following shows the generated code of interest:
 public class example {
   ...
 
-  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  /** Simply returns the input value unless it is not a number,
+      whereupon an exception is thrown. */
   static protected float CheckForNaN(float num) {
     if (Float.isNaN(num))
       throw new RuntimeException("Not a number");
@@ -4659,7 +4679,8 @@ Thus we can modify the pragma and the typemap for the throws clause:
 <pre>
 %typemap(javain, throws="java.lang.Exception") float "$module.CheckForNaN($javainput)"
 %pragma(java) modulecode=%{
-  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  /** Simply returns the input value unless it is not a number,
+      whereupon an exception is thrown. */
   static protected float CheckForNaN(float num) throws java.lang.Exception {
     if (Float.isNaN(num))
       throw new RuntimeException("Not a number");
@@ -4677,7 +4698,8 @@ the throws clause contains a single instance of <tt>java.lang.Exception</tt>:
 public class example {
   ...
 
-  /** Simply returns the input value unless it is not a number, whereupon an exception is thrown. */
+  /** Simply returns the input value unless it is not a number,
+      whereupon an exception is thrown. */
   static protected float CheckForNaN(float num) throws java.lang.Exception {
     if (Float.isNaN(num))
       throw new RuntimeException("Not a number");
@@ -4704,7 +4726,8 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 <blockquote><pre>
 %module example
 
-/* This tells SWIG to treat char ** as a special case when used as a parameter in a function call */
+/* This tells SWIG to treat char ** as a special case when used as a parameter
+   in a function call */
 %typemap(in) char ** (jint size) {
     int i = 0;
     size = (*jenv)-&gt;GetArrayLength(jenv, $input);
@@ -4752,7 +4775,8 @@ The following SWIG interface file allows a Java String array to be used as a <tt
 %typemap(jtype) char ** "String[]"
 %typemap(jstype) char ** "String[]"
 
-/* These 2 typemaps handle the conversion of the jtype to jstype typemap type and visa versa */
+/* These 2 typemaps handle the conversion of the jtype to jstype typemap type
+   and visa versa */
 %typemap(javain) char ** "$javainput"
 %typemap(javaout) char ** {
     return $jnicall;
@@ -5025,10 +5049,10 @@ class Ambulance : public Vehicle {
 public:
     Ambulance(string volume) : vol(volume) {}
     virtual void start() {
-        cout << "Ambulance started" << endl;
+        cout &lt;&lt; "Ambulance started" &lt;&lt; endl;
     }
     void sound_siren() {
-        cout << vol << " siren sounded!" << endl;
+        cout &lt;&lt; vol &lt;&lt; " siren sounded!" &lt;&lt; endl;
     }
 ...
 };
@@ -5111,10 +5135,10 @@ class FireEngine : public Vehicle {
 public:
     FireEngine() {}
     virtual void start() {
-        cout << "FireEngine started" << endl;
+        cout &lt;&lt; "FireEngine started" &lt;&lt; endl;
     }
     void roll_out_hose() {
-        cout << "Hose rolled out" << endl;
+        cout &lt;&lt; "Hose rolled out" &lt;&lt; endl;
     }
  ...
 };
@@ -5173,11 +5197,11 @@ Note that in this case, the Java class is constructed using JNI code rather than
         }
     }
     else {
-        cout << "Unexpected type " << endl;
+        cout &lt;&lt; "Unexpected type " &lt;&lt; endl;
     }
 
     if (!$result)
-        cout << "Failed to create new java object" << endl;
+        cout &lt;&lt; "Failed to create new java object" &lt;&lt; endl;
 }
 </pre></blockquote>
 
@@ -5304,7 +5328,6 @@ This example contains some useful functionality which you may want in your code.
 %template(VectorOfInt) std::vector<int>;
 </pre>
 </blockquote>
-  </p>
 
   <li><i>When I pass class pointers or references through a C++ upcall and I
   try to type cast them, Java complains with a ClassCastException. What am I
@@ -5328,7 +5351,8 @@ public static void MyClass_method_upcall(MyClass self, long jarg1)
 
 <blockquote>
 <pre>
-public static void MyClass_method_upcall(MyClass self, long jarg1, Foo jarg1_object)
+public static void MyClass_method_upcall(MyClass self, long jarg1,
+                                         Foo jarg1_object)
 {
   Foo darg1 = (jarg1_object != null ? jarg1_object : new Foo(jarg1, false));
 
@@ -5337,6 +5361,7 @@ public static void MyClass_method_upcall(MyClass self, long jarg1, Foo jarg1_obj
 </pre>
 </blockquote>
 
+  <p>
   When you import a SWIG interface file containing class definitions, the classes you want to be director-enabled must be have the <code>feature("director")</code> enabled for type symmetry to work.
   This applies even when the class being wrapped isn't a director-enabled class but takes parameters that are director-enabled classes.
   </p>
@@ -5362,7 +5387,8 @@ public static void MyClass_method_upcall(MyClass self, long jarg1, Foo jarg1_obj
 public class MyClassDerived {
   public void method_upcall(Foo foo_object)
   {
-    FooDerived    derived = (foo_object != null ? (FooDerived) Foo.downcastFoo(foo_object) : null);
+    FooDerived    derived = (foo_object != null ?
+                 (FooDerived) Foo.downcastFoo(foo_object) : null);
     /* rest of your code here */
   }
 }
@@ -5437,7 +5463,6 @@ public abstract class UserVisibleFoo extends Foo {
 </pre>
 </blockquote>
   This doesn't prevent the user from creating subclasses derived from Foo, however, UserVisibleFoo provides the safety net that reminds the user to override the <code>method_upcall()</code> method.
-  </p>
 </ol>
 
 <a name="odds_ends"></a>
@@ -5562,7 +5587,8 @@ For example:
 <blockquote><pre>
 %native (HandRolled) void HandRolled(int, char *);
 %{
-JNIEXPORT void JNICALL Java_packageName_moduleName_HandRolled(JNIEnv *, jclass, jlong, jstring);
+JNIEXPORT void JNICALL Java_packageName_moduleName_HandRolled(JNIEnv *, jclass,
+                                                              jlong, jstring);
 %}
 </pre></blockquote>
 

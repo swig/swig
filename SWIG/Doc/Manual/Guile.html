@@ -48,8 +48,6 @@ This section details guile-specific support in SWIG.
 <a name="n2"></a><H2>16.1 Meaning of "Module"</H2>
 
 
-</a>
-
 <p>
 There are three different concepts of "module" involved, defined
 separately for SWIG, Guile, and Libtool.  To avoid horrible confusion,
@@ -105,8 +103,6 @@ If that happens, there is A LOT less code duplication in the standard typemaps.<
 
 <a name="n4"></a><H2>16.3 Linkage</H2>
 
-
-</a>
 
 <p>
 Guile support is complicated by a lack of user community cohesiveness,
@@ -307,8 +303,6 @@ module with code that is being wrapped. See the
 <a name="n11"></a><H2>16.4 Underscore Folding</H2>
 
 
-</a>  
-
 <p>
 Underscores are converted to dashes in identifiers.  Guile support may
 grow an option to inhibit this folding in the future, but no one has
@@ -320,8 +314,6 @@ functions and variables (see CHANGES).
 
 <a name="n12"></a><H2>16.5 Typemaps</H2>
 
-
-</a>
 
 <p>
 The Guile module handles all types via typemaps. This
@@ -455,8 +447,6 @@ the guile module replaces $owner with 0 or 1 depending on feature:new.</p>
 <a name="n17"></a><H2>16.7 Exception Handling</H2>
 
 
-</a>
-
 <p>
 SWIG code calls <code>scm_error</code> on exception, using the following
 mapping:
@@ -480,8 +470,6 @@ See Lib/exception.i for details.
 
 <a name="n18"></a><H2>16.8 Procedure documentation</H2>
 
-
-</a>
 
 <p>If invoked with the command-line option <code>-procdoc
 <var>file</var></code>, SWIG creates documentation strings for the
@@ -515,8 +503,6 @@ details.
 
 <a name="n19"></a><H2>16.9 Procedures with setters</H2>
 
-
-</a>
 
 <p>For global variables, SWIG creates a single wrapper procedure
 <code>(<var>variable</var> :optional value)</code>, which is used for
@@ -746,7 +732,8 @@ into the GOOPS guile-module.  So if <i>Module-primitive.scm</i> is on the autolo
 <code>%goops</code> directive can be empty.  Otherwise, the <code>%goops</code> directive should contain 
 whatever code is needed to load the <i>Module-primitive.scm</i> file into guile.</li>
 <blockquote><pre>%scheme %{ (load-extension "./foo.so" "scm_init_my_modules_foo_module") %}
-// only include the following definition if (my modules foo) can not be loaded automatically
+// only include the following definition if (my modules foo) cannot
+// be loaded automatically
 %goops %{ 
   (primitive-load "/path/to/foo-primitive.scm") 
   (primitive-load "/path/to/Swig/common.scm")
@@ -760,7 +747,8 @@ Produces the following code at the top of the generated GOOPS guile-module
 (primitive-load "/path/to/Swig/common.scm")
 
 (use-modules (oop goops) (Swig common))
-(use-modules ((my modules foo-primitive) :renamer (symbol-prefix-proc 'primitive:)))
+(use-modules ((my modules foo-primitive) :renamer (symbol-prefix-proc
+                                                       'primitive:)))
 
 </pre></blockquote>
 
@@ -777,7 +765,8 @@ Produces the following code at the top of the generated GOOPS guile-module
 (load-extension "./foo.so" "scm_init_my_modules_foo_module") 
 
 (use-modules (oop goops) (Swig common))
-(use-modules ((my modules foo-primitive) :renamer (symbol-prefix-proc 'primitive:)))
+(use-modules ((my modules foo-primitive) :renamer (symbol-prefix-proc
+                                                         'primitive:)))
 
 </pre></blockquote>
 </ul>

@@ -767,7 +767,10 @@ the <em>is_a?</em> relationship would fail). When SWIG processes this
 interface file,
 you'll see a warning message like:
 <blockquote>
-  <pre>example.i:5: Warning(802): Warning for Derived: Base Base2 ignored. Multiple inheritance is not supported in Ruby.<br></pre>
+<pre>
+example.i:5: Warning(802): Warning for Derived: Base Base2 ignored.
+Multiple inheritance is not supported in Ruby.
+</pre>
 </blockquote>
 Starting with SWIG 1.3.20, the Ruby module for SWIG provides limited
 support
@@ -854,7 +857,10 @@ or
 If declarations such as these appear, you will get a warning message
 like this:
 <blockquote>
-  <pre>example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int) at example.i:11.<br></pre>
+  <pre>
+example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
+at example.i:11.
+  </pre>
 </blockquote>
 To fix this, you either need to ignore or rename one of the methods.
 For example:
@@ -1603,7 +1609,10 @@ somehow extracts the last three arguments (<i>nattributes</i>, <i>names</i>
 and
 <i>values</i>) needed by your C function. Let's start with the basics:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>}<br></pre>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>}
+  </pre>
 </blockquote>
 This <tt>%typemap</tt> directive tells SWIG that we want to match any
 function declaration that
@@ -1622,7 +1631,9 @@ and <i>val</i>) define local variables that our typemap will need.
 next add a check for that:
 </p>
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  <b>Check_Type($input, T_HASH);</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  <b>Check_Type($input, T_HASH);</b>
 }
   </pre>
 </blockquote>
@@ -1640,7 +1651,9 @@ get around that by calling the hash's <i>size</i> method directly and
 converting its result
 to a C <tt>int</tt> value: </p>
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  <b>$1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  <b>$1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));</b>
 }
   </pre>
 </blockquote>
@@ -1650,7 +1663,9 @@ third typemap arguments (i.e. the two C arrays) to <tt>NULL</tt> and
 set the stage
 for extracting the keys and values from the hash:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  <b>$2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>  }</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  <b>$2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>  }</b>
 }
   </pre>
 </blockquote>
@@ -1662,7 +1677,9 @@ method
 the elements
 in that array:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    <b>keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>    }</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    <b>keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>    }</b>
   }
 }
   </pre>
@@ -1672,7 +1689,9 @@ typemap. For each element in the <i>keys_arr</i>
 array, we want to get the key itself, as well as the value
 corresponding to that key in the hash:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      <b>key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      <b>key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);</b>
     }
   }
 }
@@ -1682,7 +1701,9 @@ To be safe, we should again use the <tt>Check_Type()</tt> macro to
 confirm that the
 key is a <tt>String</tt> and the value is a <tt>Fixnum</tt>:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      <b>Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      <b>Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);</b>
     }
   }
 }
@@ -1692,7 +1713,9 @@ Finally, we can convert these Ruby objects into their C equivalents and
 store them
 in our local C arrays:
 <blockquote>
-  <pre>%typemap(in) (int nattributes, const char **names, const int *values) (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);<br>      <b>$2[i] = STR2CSTR(key);<br>      $3[i] = NUM2INT(val);</b>
+  <pre>
+%typemap(in) (int nattributes, const char **names, const int *values)
+                             (VALUE keys_arr, int i, VALUE key, VALUE val) {<br>  Check_Type($input, T_HASH);<br>  $1 = NUM2INT(rb_funcall($input, rb_intern("size"), 0, NULL));<br>  $2 = NULL;<br>  $3 = NULL;<br>  if ($1 &gt; 0) {<br>    $2 = (char **) malloc($1*sizeof(char *));<br>    $3 = (int *) malloc($1*sizeof(int));<br>    keys_arr = rb_funcall($input, rb_intern("keys"), 0, NULL);<br>    for (i = 0; i &lt; $1; i++) {<br>      key = rb_ary_entry(keys_arr, i);<br>      val = rb_hash_aref($input, key);<br>      Check_Type(key, T_STRING);<br>      Check_Type(val, T_FIXNUM);<br>      <b>$2[i] = STR2CSTR(key);<br>      $3[i] = NUM2INT(val);</b>
     }
   }
 }
