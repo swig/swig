@@ -723,14 +723,12 @@ configure_substituted_files=`echo	\
     Examples/guile/Makefile		\
     Makefile				\
     Runtime/Makefile			\
-    Source/Experiment/Makefile		\
     Source/Include/swigconfig.h		\
     Source/Include/swigver.h		\
     Source/LParse/Makefile		\
     Source/Modules/Makefile		\
     Source/Modules1.1/Makefile		\
     Source/Preprocessor/Makefile	\
-    Source/SWIG1.3/Makefile		\
     Source/Swig/Makefile		\
 `
 AC_SUBST(configure_substituted_files)
