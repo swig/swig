@@ -265,6 +265,7 @@ extern void        SwigType_array_setdim(SwigType *t, int n, const String_or_cha
 extern SwigType   *SwigType_array_type(SwigType *t);
 extern String     *SwigType_default(SwigType *t);
 extern void        SwigType_typename_replace(SwigType *t, String *pat, String *rep);
+extern SwigType   *SwigType_alttype(SwigType *t, int ltmap);
 
 /* --- Type-system managment --- */
 extern void        SwigType_typesystem_init();
@@ -428,6 +429,8 @@ extern int        Swig_scopename_check(String *s);
 
 extern void       Swig_init();
 extern void       Swig_warn(const char *filename, int line, const char *msg);
+
+extern int        Swig_value_wrapper_mode(int mode);
 
 
 #define WARNING(msg) Swig_warn(__FILE__,__LINE__,msg)

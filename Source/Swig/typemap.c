@@ -1004,8 +1004,10 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
   p = l;
   while (p) {
     SwigType *pt = Getattr(p,"type");
+    SwigType *at = SwigType_alttype(pt, 1);
     String   *pn = Getattr(p,"name");
     String   *value = Getattr(p,"value");
+    if (at) pt = at;
     if (pn) {
       if (Len(pn) > 0) {
 	String *str;
@@ -1041,6 +1043,7 @@ static void typemap_locals(DOHString *s, ParmList *l, Wrapper *f, int argnum) {
       }
     }
     p = nextSibling(p);
+    Delete(at);
   }
 }
 

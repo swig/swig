@@ -137,7 +137,6 @@ Swig_wrapped_var_assign(SwigType *t, const String_or_char *name) {
  * Emit all of the local variables for a list of parameters.  Returns the
  * number of parameters.
  * ----------------------------------------------------------------------------- */
-
 int Swig_cargs(Wrapper *w, ParmList *p) {
   int   i;
   SwigType *pt;
@@ -157,8 +156,8 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       pname  = Getattr(p,"name");
 /*      pvalue = Getattr(p,"value");*/
       pvalue = 0;
-      altty = Getattr(p,"alttype");
       type  = Getattr(p,"type");
+      altty = SwigType_alttype(type,0);
       tycode = SwigType_type(type);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
@@ -178,6 +177,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	local  = Swig_clocal(pt,lname,pvalue);
       } else {
 	local = Swig_clocal(altty,lname,pvalue);
+	Delete(altty);
       }
       Wrapper_add_localv(w,lname,local,NIL);
       i++;
