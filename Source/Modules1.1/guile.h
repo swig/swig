@@ -19,9 +19,10 @@
  * class GUILE
  *
  * Guile implementation
- * (Caution : This is *somewhat* experimental)
  *
  **************************************************************************/
+
+#include "swig.h"
 
 class GUILE : public Language
 {
@@ -34,6 +35,7 @@ private:
     GUILE_LSTYLE_LTDLMOD,               // "native" guile?
     GUILE_LSTYLE_HOBBIT                 // use (hobbit4d link)
   } linkage;
+  File  *procdoc;
   void   emit_linkage(char *module_name);
 
 public :

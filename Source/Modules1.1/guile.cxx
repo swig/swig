@@ -32,6 +32,7 @@ Guile Options (available with -guile)\n\
      -prefix name    - Use NAME as prefix [default \"gswig_\"]\n\
      -package name   - Set the path of the module [default NULL]\n\
      -Linkage lstyle - Use linkage protocol LSTYLE [default `ltdlmod']\n\
+     -procdoc file   - Output procedure documentation to file\n\
 \n\
   The module option does not create a guile module with a separate name\n\
   space.  It specifies the name of the initialization function and is\n\
@@ -57,6 +58,7 @@ GUILE::GUILE ()
   module = NULL;
   package = NULL;
   linkage = GUILE_LSTYLE_SIMPLE;
+  procdoc = NULL;
 }
 
 // ---------------------------------------------------------------------
@@ -130,9 +132,19 @@ GUILE::parse_args (int argc, char *argv[])
             Swig_arg_error ();
           Swig_mark_arg (i);
           Swig_mark_arg (i + 1);
-          i += 2;
+          i++;
         } else {
           Swig_arg_error();
+        }
+      }
+      else if (strcmp (argv[i], "-procdoc") == 0) {
+	if (argv[i + 1]) {
+	  procdoc = NewFile(argv[i + 1], "w");
+	  Swig_mark_arg (i);
+          Swig_mark_arg (i + 1);
+	  i++;
+	} else {
+	  Swig_arg_error();
         }
       }
     }
@@ -330,6 +342,11 @@ GUILE::close (void)
       strcpy(module_name,module);
   }
   emit_linkage (module_name);
+
+  if (procdoc) {
+    Delete(procdoc);
+    procdoc = NULL;
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -406,8 +423,6 @@ guile_do_typemap(DOHFile *file, const char *op,
     sprintf(argnum_s, "%d", argnum);
     Replace(s,"$argnum", argnum_s, DOH_REPLACE_ANY);
     Replace(s,"$arg",    arg,      DOH_REPLACE_ANY);
-    /* FIXME: Produce all-uppercase version of arg */
-    Replace(s,"$ARG",    arg,      DOH_REPLACE_ANY);
     Replace(s,"$name",   name,     DOH_REPLACE_ANY);
     if (nonewline_p)
       Printv(file, s, 0);
@@ -491,13 +506,15 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 
   Wrapper_add_local (f,"gswig_result", "SCM gswig_result");
 
-  if (!guile_do_typemap(returns, "outdoc", d, name,
-		       (char*)"result", (char*)"gswig_result",
-		       0, proc_name, f, 1)) {
-    String *s = NewString(SwigType_str(d, 0));
-    Chop(s);
-    Printf(returns, "<%s>", s);
-    Delete(s);
+  if (procdoc) {
+    if (!guile_do_typemap(returns, "outdoc", d, name,
+			  (char*)"result", (char*)"gswig_result",
+			  0, proc_name, f, 1)) {
+      String *s = NewString(SwigType_str(d, 0));
+      Chop(s);
+      Printf(returns, "<%s>", s);
+      Delete(s);
+    }
   }
   
   /* Now write code to extract the parameters */
@@ -528,14 +545,16 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
       else {
         throw_unhandled_guile_type_error (pt);
       }
-      /* Add to signature */
-      Printf(signature, " ");
-      if (!guile_do_typemap(signature, "indoc", pt, pn,
-			    source, target, numargs, proc_name, f, 1)) {
-	String *s = NewString(SwigType_str(pt, 0));
-	Chop(s);
-	Printf(signature, "(%s <%s>)", pn, s);
-	Delete(s);
+      if (procdoc) {
+	/* Add to signature */
+	Printf(signature, " ");
+	if (!guile_do_typemap(signature, "indoc", pt, pn,
+			      source, target, numargs, proc_name, f, 1)) {
+	  String *s = NewString(SwigType_str(pt, 0));
+	  Chop(s);
+	  Printf(signature, "(%s <%s>)", pn, s);
+	  Delete(s);
+	}
       }
     }
 
@@ -549,16 +568,18 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     guile_do_typemap(outarg, "argout", pt, pn,
 		     source, target, numargs, proc_name, f, 0);
 
-    /* Document output arguments */
-    Clear(tmp);
-    if (guile_do_typemap(tmp, "argoutdoc", pt, pn,
-			 source, target, numargs, proc_name, f, 1)) {
-      if (Len(returns) == 0) { /* unspecified -> singleton */
-	Printv(returns, tmp, 0);
-      }
-      else { /* append to list */
-	Printv(returns, " ", tmp, 0);
-	returns_list = 1;
+    if (procdoc) {
+      /* Document output arguments */
+      Clear(tmp);
+      if (guile_do_typemap(tmp, "argoutdoc", pt, pn,
+			   source, target, numargs, proc_name, f, 1)) {
+	if (Len(returns) == 0) { /* unspecified -> singleton */
+	  Printv(returns, tmp, 0);
+	}
+	else { /* append to list */
+	  Printv(returns, " ", tmp, 0);
+	  returns_list = 1;
+	}
       }
     }
     
@@ -636,13 +657,15 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printf (f_init, "\t gh_new_procedure(\"%s\", %s, %d, %d, 0);\n",
              proc_name, wname, numargs-numopt, numopt);
   }
-  /* Register procedure documentation */
-  Printv(signature, "Returns ", 0);
-  if (Len(returns)==0) Printv(signature, "unspecified", 0);
-  else if (returns_list) Printv(signature, "list (", returns, ")", 0);
-  else Printv(signature, returns, 0);
-  Printv(signature, "\n", 0);
-  printf("%s\n", Char(signature));
+  if (procdoc) {
+    /* Write out procedure documentation */
+    Printv(signature, "Returns ", 0);
+    if (Len(returns)==0) Printv(signature, "unspecified", 0);
+    else if (returns_list) Printv(signature, "list (", returns, ")", 0);
+    else Printv(signature, returns, 0);
+    Printv(signature, "\n", 0);
+    Printv(procdoc, "\f\n", signature, 0);
+  }
     
   Delete(proc_name);
   Delete(outarg);
