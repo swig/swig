@@ -17,29 +17,31 @@ This distribution represents the latest development release of SWIG,
 aiming to replace versions 1.1p5 and 1.1-883. The guilty parties
 working on this are:
 
+Active Developers:
  Dave Beazley (beazley@cs.uchicago.edu)                 (SWIG core, Python, Tcl, Perl)
  William Fulton (wsf@fultondesigns.co.uk)               (Java, C#, Windows, Cygwin)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile/MzScheme)
  Jason Stewart (jason@openinformatics.com)              (Perl5)
  Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
- Richard Palmer (richard@magicality.org)                (PHP)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
- Sam Liddicott (saml@liddicott.com)                     (PHP)
  Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
- Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
+ Mark Rose (mrose@stm.lbl.gov)                          (Directors)
  
 Major contributors include:
+ Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
+ Richard Palmer (richard@magicality.org)                (PHP)
+ Sam Liddicott (saml@liddicott.com)                     (PHP)
  Shibukawa Yoshiki                                      (Japanese Translation)
  Marcelo Matus                                          (Evil C++ testing)
  Loic Dachary                                           (Perl5)
  Masaki Fukushima                                       (Ruby)
- James Michael DuPont(mdupont777@yahoo.com)             (C#/PNet Support with the original code from Neil Cawse)
- John Lenz						(Guile, MzScheme updates)
+ John Lenz                                              (Guile, MzScheme updates)
+ Scott Michel (scottm@cs.ucla.edu)                      (Java directors)
  
 Past contributors include:
- Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
+ James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
  Kovuk, Gary Holt, David Fletcher, Oleg Tolmatcev, Harco de Hilster.
  (See CHANGES for a more complete list).
 
@@ -87,6 +89,9 @@ The most notable changes since SWIG1.1 include the following:
 
    - Java, Ruby, MzScheme, PHP4, OCAML, Pike, CHICKEN, XML and C# modules
      added.  Guile module improved.
+
+   - Director support - upcalls for C++ virtual functions into the target 
+     language proxy class.
 
    - Better code generation.   SWIG is better able to make optimizations
      in order to generate less code.
