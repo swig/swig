@@ -29,6 +29,7 @@ void   yyerror (char *s);
 #include "preprocessor.h"
 
 static DOH      *top = 0;
+static Hash     *class_hash = 0;
 
 /* Pre-created attribute name objects.  Used to improve parsing performance */
 
@@ -46,6 +47,8 @@ static DOH      *ATTR_STORAGE = 0;
 static DOH      *TAG_ENUMVALUE = 0;
 static DOH      *TAG_FUNCTION = 0;
 static DOH      *TAG_VARIABLE = 0;
+
+static int       pure_virtual = 0;
 
  /* Set parent node of a collection of children */
  static void setparent(DOH *parent, DOH *child) {
@@ -112,6 +115,7 @@ static DOH      *TAG_VARIABLE = 0;
    }
    LParse_push(str);
    top = 0;
+   class_hash = NewHash();
    tp = NewHash();
    Setattr(tp, "tag", "swig:top");
    Setattr(tp, ATTR_NAME, Getfile(str));
@@ -119,6 +123,20 @@ static DOH      *TAG_VARIABLE = 0;
    Setattr(tp, ATTR_CHILD, top);
    setparent(tp,top);
    create_backlinks(tp);
+
+   {
+     DOH *key;
+     key = Firstkey(class_hash);
+     while (key) {
+       DOH *node, *tag;
+       node = Getattr(class_hash,key);
+       tag = Gettag(node);
+       if (Cmp(tag,"swig:addmethods") == 0) {
+	 Printf(stderr,"%s:%d. Warning. Added methods for '%s' ignored.\n", Getfile(node),Getline(node),Getname(node));
+       }
+       key = Nextkey(class_hash);
+     }
+   }
    return tp;
  }
 
@@ -233,7 +251,7 @@ static int promote(int t1, int t2) {
 /* SWIG directives */
 %token <tok> ADDMETHODS APPLY CLEAR CONSTANT ECHO EXCEPT SCOPE
 %token <tok> ILLEGAL FILEDIRECTIVE INLINE MACRO MODULE NAME PRAGMA INSERT
-%token <tok> TYPEMAP
+%token <tok> TYPEMAP TYPES
 
 /* Operators */
 %left <tok> LOR
@@ -258,7 +276,7 @@ static int promote(int t1, int t2) {
 %type <tmname> tm_name
 %type <tok>    tm_method
 %type <node>   statement swig_directive c_declaration
-%type <node>   file_include code_block except_directive pragma_directive typemap_directive scope_directive
+%type <node>   file_include code_block except_directive pragma_directive typemap_directive scope_directive type_directive
 %type <node>   variable_decl function_decl enum_decl typedef_decl stail edecl typedeflist
 %type <nodelist>   enumlist interface
 %type <node>   inherit base_list
@@ -361,9 +379,11 @@ swig_directive : MODULE idstring {
 		    break;
 		  case LPARSE_T_CHAR:
 		    Setattr($$,ATTR_TYPE,"char");
+		    Delitem($3.text,0);
+		    Delitem($3.text,DOH_END);
 		    break;
 		  case LPARSE_T_STRING:
-		    Setattr($$,ATTR_TYPE,"*.char");
+		    Setattr($$,ATTR_TYPE,"p.char");
 		    break;
 		  default:
 		    break;
@@ -376,6 +396,7 @@ swig_directive : MODULE idstring {
                | pragma_directive { $$ = $1; }
                | typemap_directive { $$ = $1; }
                | scope_directive {$$ = $1; }
+               | type_directive { $$ = $1; }
                ;
 
 scope_directive: SCOPE LBRACE interface RBRACE {
@@ -385,12 +406,12 @@ scope_directive: SCOPE LBRACE interface RBRACE {
 		   setparent($$,$3.node);
 		 }
                }
-               | SCOPE LPAREN idstring RPAREN interface RBRACE {
+               | SCOPE LPAREN idstring RPAREN LBRACE interface RBRACE {
                  $$ = new_node("swig:scope",$1.filename,$1.line);
-                 if ($5.node) {
-                   Setattr($$,ATTR_CHILD,$5.node);
+                 if ($6.node) {
+                   Setattr($$,ATTR_CHILD,$6.node);
 		   Setattr($$,ATTR_NAME,$3.text);
-                   setparent($$,$5.node);
+                   setparent($$,$6.node);
                  }
                }
                ;
@@ -742,6 +763,11 @@ tm_args         : LPAREN parms RPAREN {
                 }
                 ;
 
+type_directive  : TYPES LPAREN parms RPAREN SEMI {
+                   $$ = new_node("swig:types",$1.filename,$1.line);
+		   Setattr($$,"parms",$3);
+                }
+                ;
 /* =============================================================================
  *                       -- C Declarations -- 
  * ============================================================================= */
@@ -835,6 +861,10 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		  }
 		  if ($7.text)
 		    Setattr($$,"code",$7.text);
+		  if (pure_virtual) {
+		    SetInt($$,"abstract",1);
+		    pure_virtual = 0;
+		  }
 		}
 
 /* Possibly a constructor */
@@ -859,12 +889,15 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		if ($6.text) {
 		  Setattr($$,"code",$6.text);
 		}
+		if (pure_virtual) {
+		  SetInt($$,"abstract",1);
+		  pure_virtual = 0;
+		}
 	      }
               | NOT ID LPAREN parms RPAREN cpp_const SEMI {
 		$$ = new_node("c:destructor",$2.filename,$2.line);
 		Setattr($$,ATTR_NAME,$2.text);
 	      }
-
               ;
 
 /* Allow lists of variables and functions to be built up */
@@ -922,7 +955,7 @@ cpp_const      : CONST {}
 
 enum_decl      : storage_spec ENUM ename LBRACE enumlist RBRACE SEMI {
                     $$ = new_node("c:enum", $2.filename,$2.line);
-		    Setattr($$,ATTR_NAME,$2.text);
+		    Setattr($$,ATTR_NAME,$3.text);
 		    Setattr($$,ATTR_CHILD,$5.node);
 		    setparent($$,$5.node);
 		    /* Add typename */
@@ -1055,7 +1088,34 @@ typedeflist   : COMMA declaration typedeflist {
  *                        -- Feeble C++ (yuck) Parsing --
  * ============================================================================= */
 
-cpp_decl     : cpp_class { $$ = $1; }
+cpp_decl     : cpp_class { 
+		String *name;
+		DOH    *cls;
+		$$ = $1; 
+		/* Save a copy of the class */
+		name = Getattr($$,"altname");
+		if (!name) {
+		  name = Getname($$);
+		}
+		cls = Getattr(class_hash,name);
+		if (cls) {
+		  /* We already saw this class.  If the previous class really was a class,
+                     we'll generate an error.  If the class was an added method instead,
+                     we'll add those methods to our class */
+		  String *tag = Gettag(cls);
+		  if (Cmp(tag,"c:class") == 0) {
+		    /* Already saw this */
+		    Printf(stderr,"%s:%d. Class '%s' previously defined.\n", Getfile($$),Getline($$),name);
+		    $$ = 0;
+		  } else {
+		    /* Hmmm. Must have been an added method.  Attach to the end of my children */
+		    Swig_node_append_child($$,cls);
+		    Setattr(class_hash,name,$$);
+		  }
+		} else {
+		  Setattr(class_hash,name,$$);
+		}
+             }
              | cpp_other { $$ = $1; }
              ;
   
@@ -1180,12 +1240,15 @@ access_specifier :  PUBLIC { $$.text = NewString("public"); }
 
 cpp_end        : cpp_const LBRACE {  
                    $$.text = LParse_skip_balanced('{','}');
+		   pure_virtual = 0;
                }
                | EQUAL definetype SEMI {
                    $$.text = 0;
+		   pure_virtual = 1;
     	       }
 /*               | cpp_const { 
                    $$.text = 0;
+		   pure_virtual = 0;
    	       }
 */
                ;
@@ -1224,11 +1287,11 @@ cpp_other    :/* A dummy class name */
 	     }
              | PRIVATE COLON { 
                  $$ = new_node("c:access",$1.filename,$1.line);
-                 Setattr($$,ATTR_NAME,"public");
+                 Setattr($$,ATTR_NAME,"private");
              }
              | PROTECTED COLON {
                  $$ = new_node("c:access",$1.filename,$1.line);
-                 Setattr($$,ATTR_NAME,"public");
+                 Setattr($$,ATTR_NAME,"protected");
              }
 
              | FRIEND {
@@ -1254,13 +1317,36 @@ cpp_other    :/* A dummy class name */
 
              | ADDMETHODS opt_id LBRACE interface RBRACE { 
 	        $$ = new_node("swig:addmethods",$1.filename,$1.line);
-		if ($1.text)
-		  Setattr($$,ATTR_NAME,$1.text);
  		if ($4.node) {
 		  Setattr($$,ATTR_CHILD,$4.node);
 		  setparent($$,$4.node);
 		}
-             }
+		if ($2.text) {
+		  DOH *cls;
+		  Setattr($$,ATTR_NAME,$2.text);
+		  /* A named addmethods directive.   If not in a class. We have to save */
+		  cls = Getattr(class_hash,$2.text);
+		  if (cls) {
+		    /* Hmmm. A class or addmethods directive was already found */
+		    String *tag = Gettag(cls);
+		    if (Cmp(tag,"swig:addmethods") == 0) {
+		      /* We need to append our methods to previous methods */
+		      Swig_node_append_child(cls,$4.node);
+		      setparent(cls,$4.node);
+		      $$ = 0;
+		    } else {
+		      /* No. This must be a class.  We'll add ourselves to it */
+		      Swig_node_append_child(cls,$$);
+		      $$ = 0;
+		    }
+		  } else {
+		    /* Nothing previously defined. Save ourselves */
+		    Setattr(class_hash,$2.text,$$);
+		    $$ = 0;
+		  }
+		}
+	     }
+             ;
 
 opt_id       : ID { $$ = $1; }
              | empty { $$.text = 0; }
@@ -1475,7 +1561,7 @@ type           : TYPE_INT {  $$ = NewString("int"); }
 		 $$ = NewStringf("%s %s", $1.text, $2.text);
 	       }
                | ID DCOLON ID {
-		 $$ = NewStringf("%s::%s",$1.text,$2.text);
+		 $$ = NewStringf("%s::%s",$1.text,$3.text);
                }
 /* This declaration causes a shift-reduce conflict.  Unresolved for now */
                | DCOLON ID {
@@ -1706,12 +1792,12 @@ expr           :  NUM_INT {
 		 }
 		 $$.ivalue = LPARSE_T_INT;
 	       }
-               |  MINUS expr %prec UMINUS {
+               | MINUS expr %prec UMINUS {
 		 $$.text = NewString("");
 		 Printf($$.text,"-%s", $2.text);
 		 $$.ivalue = $2.ivalue;
 	       }
-               |  NOT expr {
+               | NOT expr {
 		 $$.text = NewString("");
 		 Printf($$.text,"~%s", $2.text);
 		 if ($2.ivalue == LPARSE_T_DOUBLE) {

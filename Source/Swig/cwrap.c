@@ -524,7 +524,6 @@ Swig_cfunction_wrapper(String_or_char *funcname,
   l = CopyParmList(parms);
   fix_parm_names(l);
   Printf(w,"%s %s(%s) {\n", SwigType_str(rtype,0), funcname, ParmList_str(l));
-  Printf(w,"$locals\n");
   if (code) {
     Printv(w, code, "\n", 0);
   }
@@ -571,7 +570,6 @@ Swig_cmethod_wrapper(String_or_char *classname,
   fix_parm_names(l);
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(rtype,0), Swig_name_member(classname, methodname), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -628,7 +626,6 @@ Swig_cconstructor_wrapper(String_or_char *classname,
   fix_parm_names(l);
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -673,7 +670,6 @@ Swig_cppconstructor_wrapper(String_or_char *classname,
   fix_parm_names(l);
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(t,0), Swig_name_construct(classname), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -731,7 +727,6 @@ Swig_cdestructor_wrapper(String_or_char *classname,
   t = NewString("void");
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -778,7 +773,6 @@ Swig_cppdestructor_wrapper(String_or_char *classname,
   t = NewString("void");
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(t,0), Swig_name_destroy(classname), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -828,7 +822,6 @@ Swig_cmemberset_wrapper(String_or_char *classname,
   Setnext(l,p);
   
   Printf(w,"void %s(%s) {\n", Getname(w), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -878,7 +871,6 @@ Swig_cmemberget_wrapper(String_or_char *classname,
 
   lt = Swig_clocal_type(type);
   Printf(w,"%s %s(%s) {\n", SwigType_str(lt,0), Getname(w), ParmList_str(l));
-  Printf(w,"$locals\n");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -920,7 +912,6 @@ Swig_cvarset_wrapper(String_or_char *varname,
   l = p;
   
   Printf(w,"%s %s(%s) {\n", SwigType_str(lt,0), Getname(w), ParmList_str(l));
-  Printf(w,"$locals");
 
   if (!code) {
     /* No code supplied.  Write a function manually */
@@ -964,7 +955,6 @@ Swig_cvarget_wrapper(String_or_char *varname,
   lt = Swig_clocal_type(type);
 
   Printf(w,"%s %s(%s) {\n", SwigType_str(lt,0), Getname(w), ParmList_str(l));
-  Printf(w,"$locals");
 
   if (!code) {
     /* No code supplied.  Write a function manually */

@@ -71,7 +71,7 @@ Swig_typemap_pop_scope() {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_register(char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals) {
+Swig_typemap_register(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *code, ParmList *locals) {
   char *key;
   Hash *tm;
   Hash *tm1;
@@ -148,7 +148,7 @@ Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname, 
+Swig_typemap_copy(const String_or_char *op, SwigType *stype, String_or_char *sname, 
 		  SwigType *ttype, String_or_char *tname) {
 
   Hash *tm=0, *tm1;
@@ -173,7 +173,7 @@ Swig_typemap_copy(char *op, SwigType *stype, String_or_char *sname,
  * ----------------------------------------------------------------------------- */
 
 void
-Swig_typemap_clear(char *op, SwigType *type, String_or_char *name) {
+Swig_typemap_clear(const String_or_char *op, SwigType *type, String_or_char *name) {
   Hash *tm;
 
   tm = Swig_typemap_get(type,name,tm_scope);
@@ -269,7 +269,7 @@ static SwigType *strip_arrays(SwigType *type) {
  * ----------------------------------------------------------------------------- */
 
 Hash *
-Swig_typemap_search(char *op, SwigType *type, String_or_char *name) {
+Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *name) {
   Hash *result = 0, *tm, *tm1, *tma;
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
@@ -397,7 +397,7 @@ static void typemap_locals(SwigType *t, String_or_char *pname, DOHString *s, Par
  * Perform a typemap lookup (ala SWIG1.1)
  * ----------------------------------------------------------------------------- */
 
-char *Swig_typemap_lookup(char *op, SwigType *type, String_or_char *pname, String_or_char *source,
+char *Swig_typemap_lookup(const String_or_char *op, SwigType *type, String_or_char *pname, String_or_char *source,
 			  String_or_char *target, Wrapper *f) 
 {
   Hash   *tm;

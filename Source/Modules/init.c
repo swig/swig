@@ -12,9 +12,11 @@
 #include "swig.h"
 
 extern void testmodule();
+extern void pythonmodule();
 
 static void (*modules[])(void) = {
   testmodule,
+  pythonmodule,
   0
 };
 

@@ -319,7 +319,7 @@ yylex1(void) {
       LParse_error(0,0,"Illegal character '%s'\n", text);
       return yylex1();
     }
-    if (l1 == STRING) {
+    if ((l1 == STRING) || (l1 == CHARCONST)) {
       yylval.tok.text = NewString(yytext+1);
       Delitem(yylval.tok.text,DOH_END);
     }
@@ -404,10 +404,14 @@ yylex1(void) {
 	if (strcmp(yytext,"%apply") == 0) return(APPLY);
 	if (strcmp(yytext,"%clear") == 0) return(CLEAR);
 	if (strcmp(yytext,"%scope") == 0) return(SCOPE);
+	if (strcmp(yytext,"%types") == 0) return(TYPES);
       }
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */
       yylval.tok.text = NewString(yytext);
+      Setfile(yylval.tok.text, yylval.tok.filename);
+      Setline(yylval.tok.text, yylval.tok.line);
+
       /*      if (strict_type && LParse_typedef_check(yylval.tok.text)) {
 	return TYPE_TYPEDEF;
 	}*/

@@ -1084,14 +1084,32 @@ static void init_scopes() {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(SwigType *type, String_or_char *name) {
+  int i;
+  String *qname;
   init_scopes();
   if (Getattr(scopes[scope_level],name)) return -1;
   if (Cmp(type,name) == 0) {
     return 0;
   }
+  i = scope_level;
+  qname = NewString(name);
+  while (i >= 0) {
+    String *sname;
+    Printf(stdout,"Adding typedef [%d] : '%s' -> '%s'\n", i, qname, type);
+    Setattr(scopes[i],qname,type);
+    if (i > 0) {
+      sname = scopenames[i];
+      if (sname) {
+	qname = NewStringf("%s::%s",sname,qname);
+      }
+    }
+    i--;
+  }
 
-  Setattr(scopes[scope_level],name,type);
-  if (default_cache)
+  /*  Setattr(scopes[scope_level],name,type); */
+  /* Need to modify this to include all scopes */
+
+  if (default_cache) 
     Delattr(default_cache,type);
   return 0;
 }
@@ -1169,8 +1187,7 @@ void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
 /* -----------------------------------------------------------------------------
  * SwigType_pop_scope()
  *
- * Pop off the last scope and perform a merge operation.  Returns the hash
- * table for the scope that was popped off.
+ * Pop off the last scope.  Returns the hash table for the scope that was popped off.
  * ----------------------------------------------------------------------------- */
 
 Hash *SwigType_pop_scope() {
@@ -1180,7 +1197,8 @@ Hash *SwigType_pop_scope() {
   if (scope_level == 0) return 0;
   prefix = scopenames[scope_level];
   s = scopes[scope_level--];
-  SwigType_merge_scope(s,prefix);
+  /*  SwigType_merge_scope(s,prefix); */
+  /*   Printf(stdout,"****\n%s\n", scopes[scope_level]); */
   return s;
 }
 
@@ -1199,7 +1217,6 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
 
   init_scopes();
   base = SwigType_base(t);
-
   level = scope_level;
   while (level >= 0) {
     /* See if we know about this type */
