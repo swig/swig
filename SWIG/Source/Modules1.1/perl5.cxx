@@ -85,7 +85,7 @@ static char cvsroot[] = "$Header$";
  *      loading into Perl.
  ***********************************************************************/
 
-#include "swig11.h"
+#include "mod11.h"
 #include "perl5.h"
 
 static String pragma_include;
