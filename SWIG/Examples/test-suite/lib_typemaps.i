@@ -4,6 +4,7 @@
 
 %inline %{
 
+bool in_bool(bool *INPUT) { return *INPUT; }
 int in_int(int *INPUT) { return *INPUT; }
 long in_long(long *INPUT) { return *INPUT; }
 short in_short(short *INPUT) { return *INPUT; }
@@ -14,7 +15,10 @@ unsigned char in_uchar(unsigned char *INPUT) { return *INPUT; }
 signed char in_schar(signed char *INPUT) { return *INPUT; }
 float in_float(float *INPUT) { return *INPUT; }
 double in_double(double *INPUT) { return *INPUT; }
+long long in_longlong(long long *INPUT) { return *INPUT; }
+unsigned long long in_ulonglong(unsigned long long *INPUT) { return *INPUT; }
 
+bool inr_bool(bool &INPUT) { return INPUT; }
 int inr_int(int &INPUT) { return INPUT; }
 long inr_long(long &INPUT) { return INPUT; }
 short inr_short(short &INPUT) { return INPUT; }
@@ -25,7 +29,10 @@ unsigned char inr_uchar(unsigned char &INPUT) { return INPUT; }
 signed char inr_schar(signed char &INPUT) { return INPUT; }
 float inr_float(float &INPUT) { return INPUT; }
 double inr_double(double &INPUT) { return INPUT; }
+long long inr_longlong(long long &INPUT) { return INPUT; }
+unsigned long long inr_ulonglong(unsigned long long &INPUT) { return INPUT; }
 
+void out_bool(bool x, bool *OUTPUT) {  *OUTPUT = x; }
 void out_int(int x, int *OUTPUT) {  *OUTPUT = x; }
 void out_short(short x, short *OUTPUT) {  *OUTPUT = x; }
 void out_long(long x, long *OUTPUT) {  *OUTPUT = x; }
@@ -36,7 +43,10 @@ void out_uchar(unsigned char x, unsigned char *OUTPUT) {  *OUTPUT = x; }
 void out_schar(signed char x, signed char *OUTPUT) {  *OUTPUT = x; }
 void out_float(float x, float *OUTPUT) {  *OUTPUT = x; }
 void out_double(double x, double *OUTPUT) {  *OUTPUT = x; }
+void out_longlong(long long x, long long *OUTPUT) {  *OUTPUT = x; }
+void out_ulonglong(unsigned long long x, unsigned long long *OUTPUT) {  *OUTPUT = x; }
 
+void outr_bool(bool x, bool &OUTPUT) {  OUTPUT = x; }
 void outr_int(int x, int &OUTPUT) {  OUTPUT = x; }
 void outr_short(short x, short &OUTPUT) {  OUTPUT = x; }
 void outr_long(long x, long &OUTPUT) {  OUTPUT = x; }
@@ -47,7 +57,10 @@ void outr_uchar(unsigned char x, unsigned char &OUTPUT) {  OUTPUT = x; }
 void outr_schar(signed char x, signed char &OUTPUT) {  OUTPUT = x; }
 void outr_float(float x, float &OUTPUT) {  OUTPUT = x; }
 void outr_double(double x, double &OUTPUT) {  OUTPUT = x; }
+void outr_longlong(long long x, long long &OUTPUT) {  OUTPUT = x; }
+void outr_ulonglong(unsigned long long x, unsigned long long &OUTPUT) {  OUTPUT = x; }
 
+void inout_bool(bool *INOUT) {  *INOUT = *INOUT; }
 void inout_int(int *INOUT) {  *INOUT = *INOUT; }
 void inout_short(short *INOUT) {  *INOUT = *INOUT; }
 void inout_long(long *INOUT) {  *INOUT = *INOUT; }
@@ -58,7 +71,10 @@ void inout_uchar(unsigned char *INOUT) {  *INOUT = *INOUT; }
 void inout_schar(signed char *INOUT) {  *INOUT = *INOUT; }
 void inout_float(float *INOUT) {  *INOUT = *INOUT; }
 void inout_double(double *INOUT) {  *INOUT = *INOUT; }
+void inout_longlong(long long *INOUT) {  *INOUT = *INOUT; }
+void inout_ulonglong(unsigned long long *INOUT) {  *INOUT = *INOUT; }
 
+void inoutr_bool(bool &INOUT) {  INOUT = INOUT; }
 void inoutr_int(int &INOUT) {  INOUT = INOUT; }
 void inoutr_short(short &INOUT) {  INOUT = INOUT; }
 void inoutr_long(long &INOUT) {  INOUT = INOUT; }
@@ -69,6 +85,8 @@ void inoutr_uchar(unsigned char &INOUT) {  INOUT = INOUT; }
 void inoutr_schar(signed char &INOUT) {  INOUT = INOUT; }
 void inoutr_float(float &INOUT) {  INOUT = INOUT; }
 void inoutr_double(double &INOUT) {  INOUT = INOUT; }
+void inoutr_longlong(long long &INOUT) {  INOUT = INOUT; }
+void inoutr_ulonglong(unsigned long long &INOUT) {  INOUT = INOUT; }
 
 %}
 
