@@ -15,7 +15,7 @@ CC            = @CC@
 AR            = @AR@
 RANLIB        = @RANLIB@
 CFLAGS        = @CFLAGS@
-INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Swig
+INCLUDE       = -I$(srcdir)/. -I$(srcdir)/../DOH/Include -I$(srcdir)/../Swig -I$(srcdir)/../Preprocessor -I$(srcdir)/../LParse
 TARGET        = libmodules.a
 
 .c.o:

@@ -149,6 +149,7 @@ extern int         SwigType_cmp(DOHString_or_char *pat, DOHString_or_char *t);
 extern int         SwigType_array_ndim(DOHString_or_char *t);
 extern DOHString  *SwigType_array_getdim(DOHString_or_char *t, int n);
 extern void        SwigType_array_setdim(DOHString_or_char *t, int n, DOHString_or_char *rep);
+extern DOHString  *SwigType_default(DOHString_or_char *t);
 
 /* --- Parse tree support --- */
 

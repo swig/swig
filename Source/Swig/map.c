@@ -136,6 +136,8 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
   DOH    *bestobj = 0;
   int    bestdepth = -1;
 
+  *nmatch = 0;
+
   /* Get the nameset */
   nameset = Getattr(ruleset,rulename);
   if (!nameset) return 0;
@@ -301,100 +303,20 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
   }
   if (bestobj) {
     *nmatch = bestdepth;
-  }
-  return bestobj;
-}
-
-#ifdef OLD
-
-/* -----------------------------------------------------------------------------
- * Swig_map_match()
- *
- * Perform a longest map for a list of parameters and a set of mapping rules.
- * Returns the corresponding rule object and the number of parameters that
- * were matched.
- * ----------------------------------------------------------------------------- */
-
-/* Internal function used for recursively searching rulesets */
-static DOH *
-Swig_map_match_internal(DOHHash *nameset, DOHHash *parms, int *nmatch) {
-  DOHHash *nn1, *nn2;
-  DOHString *ty;
-  DOHString *name;
-  DOHString *key;
-  int    mlen1 = 0, mlen2 = 0, bestlen = 0;
-  DOH    *obj1 = 0, *obj2 = 0;
-  DOH    *bestobj, *bestn;
-  DOHHash *nextp;
-
-  if (!parms) {
-    bestobj = Getattr(nameset,"*obj*");
-    if (bestobj) *nmatch++;
-    return bestobj;
-  }
-
-  ty = Getattr(parms,"type");
-  name = Getattr(parms,"name");
-  key = NewStringf("%s-%s",name,ty);
-
-  /* See if there is an exact name match */
-  nn1 = Getattr(nameset,key);
-  if (nn1) {
-    mlen1++;
-    obj1 = Swig_map_match_internal(nn1,Swig_next(parms), &mlen1);
-  }
-
-  /* See if there is a generic name match */
-  Clear(key);
-  Printf(key,"-%s",ty);
-  nn2 = Getattr(nameset,key);
-  if (nn2) {
-    mlen2++;
-    obj2 = Swig_map_match_internal(nn2, Swig_next(parms), &mlen2);
-  }
-  /* Pick the best match.  Note: an exact name match is preferred */
-  if (obj1 && obj2) {
-    if (mlen2 > mlen1) {
-      bestlen = mlen2;
-      bestobj = obj2;
-    } else {
-      bestlen = mlen1;
-      bestobj = obj1;
+  } else {
+    /* If there is no match at all.  I guess we can check for a default type */
+    DOH  *rs;
+    DOHString *key, *name;
+    DOHString *dty = SwigType_default(Getattr(parms,"type"));
+    key = NewStringf("-%s",dty);
+    
+    rs = Getattr(nameset,key);
+    if (rs) {
+      bestobj = Getattr(rs,"*obj*");
+      if (bestobj) *nmatch = 1;
     }
-  } else if (obj1) {
-    bestobj = obj1;
-    bestlen = mlen1;
-  } else if (obj2) {
-    bestobj = obj2;
-    bestlen = mlen2;
+    Delete(key);
+    Delete(dty);
   }
-  if (!bestobj) {
-    bestobj = Getattr(nameset,"*obj*");
-    if (bestobj) bestlen = 1;
-  }
-  Delete(key);
-  *nmatch = *nmatch + bestlen;
   return bestobj;
 }
-
-DOH *
-Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, int *nmatch)
-{
-  DOHHash *nameset;
-  int      mlen = 0;
-  DOH     *best;
-
-  /* Get the nameset */
-  nameset = Getattr(ruleset,rulename);
-  if (!nameset) return 0;
-
-  best = Swig_map_match_internal(nameset,parms,&mlen);
-  *nmatch = mlen;
-  return best;
-}
-
-#endif
-
-
-
-
