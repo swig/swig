@@ -70,7 +70,8 @@ Python Options (available with -python)\n\
      -interface <lib>- Set the lib name to <lib>\n\
      -keyword        - Use keyword arguments\n\
      -classic        - Use classic classes only\n\
-     -cpluscast      - Enable new C++ casting operators, useful for debugging\n\
+     -cppcast        - Enable new C++ casting operators, useful for debugging\n\
+     -nortti         - Disable the use of RTTI, useful (sometimes) with directors\n\
      -modern         - Use modern python features only, without compatibility code\n\
      -apply          - Use apply() in proxy classes\n\
      -new_vwm        - New value wrapper mode, use only when everything else fails \n\
@@ -155,9 +156,13 @@ public:
 	  classic = 1;
 	  apply = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i],"-cpluscast") == 0) {
+	} else if (strcmp(argv[i],"-cppcast") == 0) {
 	  /* Turn on new value wrapper mpde */
 	  Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nortti") == 0) {
+	  /* Turn on no RTTI mode */
+	  Preprocessor_define((DOH *) "SWIG_NORTTI", 0);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i],"-modern") == 0) {
 	  apply = 0;
@@ -1375,7 +1380,7 @@ public:
         if (/*directorbase &&*/ !constructor && !destructor 
 	    && isVirtual  && !Getattr(n,"feature:nodirector")) {
           Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-          Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
+          Printf(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
 	  if (dirprot_mode() && !is_public(n)) {
             Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
 	    Printf(f->code, "PyErr_SetString(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
@@ -1434,7 +1439,7 @@ public:
       }
       if (unwrap) {
       	Wrapper_add_local(f, "resultdirector", "Swig::Director *resultdirector = 0");
-	Printf(f->code, "resultdirector = dynamic_cast<Swig::Director *>(result);\n");
+	Printf(f->code, "resultdirector = SWIG_DIRECTOR_CAST(result);\n");
 	Printf(f->code, "if (resultdirector) {\n");
 	Printf(f->code, "  resultobj = resultdirector->swig_get_self();\n");
 	Printf(f->code, "  Py_INCREF(resultobj);\n");
@@ -2691,7 +2696,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    String *director = NewStringf("director_%s", mangle);
 	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
 	    Wrapper_add_localv(w, source, "PyObject *", source, "= 0", NIL);
-	    Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
+	    Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Printf(wrap_args, "} else {\n");
