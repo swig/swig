@@ -3,10 +3,17 @@ Download SWIG
 <img src="images/download.png" alt="Download">
 
 <p>
-SWIG is distributed as source code from the following locations:
+Soureforge is now the primary site for SWIG distributions.
 
 <ul>
-<li> <a href="http://sourceforge.net/project/?group_id=1645">SourceForge</a> (New!)
+<Li><a href="http://sourceforge.net/project/filelist.php?group_id=1645">All releases</a>.
+<li><a href="ftp://swig.sourceforge.net/pub/swig/">Older stuff</a>.
+</ul>
+
+<p>
+SWIG has also been distributed as source code from the following locations:
+
+<ul>
 <li> <a href="ftp://ftp.mcc.ac.uk/pub/mvc/swig">ftp.mcc.ac.uk/pub/mvc/swig</a> (UK)
 <li> <a href="ftp://ftp.rge.com/pub/languages/swig/">ftp.rge.com/pub/languages/swig</a> (New York).
 <li> <a href="ftp://ftp.python.org/pub/python/contrib/System/">ftp.python.org/pub/python/contrib/System</a> (Python contributed software).

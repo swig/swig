@@ -1,9 +1,9 @@
-<table width="100%" height=50 border=0>
+<table width="100%" height=50 cellpadding=0 border=0>
 <tr>
 <td><a href="index.html">Home</a></td>
-<td><a href="download.html">Download</a></td>
-<td><a href="doc.html">Documentation</a></td>
-<td><a href="mail.html">Mailing List</a></td>
-<td><a href="bugs.html">Bug tracking</a></td>
+<td><a href="http://sourceforge.net/project/?group_id=1645">Development</a></td>
+<td><a href="http://www.cs.uchicago.edu/mailman/listinfo/swig">Mailing List</a></td>
+<td><a href="http://sourceforge.net/bugs/?group_id=1645">Bug tracking</a></td>
+<td><a href="http://sourceforge.net/patch/?group_id=1645">Patches</a></td>
 </tr>
 </table>
