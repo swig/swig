@@ -1731,7 +1731,7 @@ as shown.   To work with heap allocated data, the following technique can be use
     PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
     return NULL;
   }
-  $1 = (float) malloc($1_dim0*sizeof(float));
+  $1 = (float *) malloc($1_dim0*sizeof(float));
   for (i = 0; i &lt; $1_dim0; i++) {
     PyObject *o = PySequence_GetItem($input,i);
     if (PyNumber_Check(o)) {
