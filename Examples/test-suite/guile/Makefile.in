@@ -4,7 +4,7 @@
 #######################################################################
 
 LANGUAGE     = guile
-VARIANT      = _passive
+VARIANT      = _gh
 SCRIPTSUFFIX = _runme.scm
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@

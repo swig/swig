@@ -5,7 +5,7 @@
 
 include ../guile/Makefile
 
-VARIANT      = _scm
+VARIANT      =
 # Refer to the guile directory for the run scripts
 SCRIPTPREFIX = ../guile/
 

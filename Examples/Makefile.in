@@ -277,34 +277,29 @@ GUILE_LIB     = @GUILELIB@
 GUILE_SO      = @GUILE_SO@
 GUILE_LIBPREFIX = lib
 
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# ----------------------------------------------------------------
-
-guile: $(SRCS)
-	$(SWIG) -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
-# -----------------------------------------------------------------
-# Build a C++ dynamically loadable module
-# -----------------------------------------------------------------
-
-guile_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
 #------------------------------------------------------------------
 # Build a dynamically loaded module with passive linkage and the scm interface
 #------------------------------------------------------------------
-guile_scm: $(SRCS)
+guile: $(SRCS)
 	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-guile_scm_cpp: $(SRCS)
+guile_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
+
+#------------------------------------------------------------------
+# Build a dynamically loaded module with passive linkage and the gh interface
+#------------------------------------------------------------------
+guile_gh: $(SRCS)
+	$(SWIG) -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
+
+guile_gh_cpp: $(SRCS)
+	$(SWIG) -c++ -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
