@@ -79,7 +79,6 @@ scanner_locator(String *loc) {
   if (c == '@') {
     /* Empty locator.  We pop the last location off */
     if (locs) {
-      delete [] input_file;
       input_file = locs->filename;
       line_number = locs->line_number;
       l = locs->next;
@@ -251,6 +250,10 @@ void retract(int n) {
 
 void start_inline(char *text, int line) {
   InFile *in;
+
+  /* Save current state */
+  in_head->line_number = line_number;
+  in_head->in_file = input_file;
 
   in = (InFile *) malloc(sizeof(InFile));
   in->f = NewString(text);
