@@ -30,6 +30,7 @@ PHP4 Options (available with -php4)\n\
 	-withincs libs	- With -phpfull writes needed incs in config.m4\n\
 	-withlibs libs	- With -phpfull writes needed libs in config.m4\n\n";
 
+static int constructors=0;
 static String *NOTCLASS=NewString("Not a class");
 static Node *classnode=0;
 static String *module = 0;
@@ -1374,6 +1375,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
+    constructors=0;
     //SwigType *t = Getattr(n, "classtype");
     if(class_name) free(class_name);
     class_name = Swig_copy_string(GetChar(n, "name"));
@@ -1443,6 +1445,14 @@ public:
       List *baselist = Getattr(n, "bases");
       Node *base = NULL;
 
+      // If no constructor was generated (abstract class) we had better
+      // generate a constructor that raises an error about instantiating
+      // abstract classes
+      if (! constructors || Getattr(n,"abstract")) {
+        // have to write out fake constructor which raises an error when called
+        abstractConstructorHandler(n);
+      }
+
       if (baselist) base=Firstitem(baselist);
 
       Printf(s_oinit,"// Define class %s\n"
@@ -1460,7 +1470,6 @@ public:
 //        int type;  /* read, write or r/w */
 //        zval *object;
 //        zend_llist *elements_list;
-
 
       key = Firstkey(shadow_set_vars);
       // Print function header; we only need to find property name if there
@@ -1673,10 +1682,7 @@ public:
     cpp_func(iname, d, 0, iname);
     static_flag = 0;
 
-
-    Printf(f_h,"// BBBB\n");
     create_command(iname, Char(Swig_name_wrapper(iname)));
-    Printf(f_h,"// bbbb\n");
 
     f = NewWrapper();
 
@@ -1858,18 +1864,37 @@ public:
     return Swig_copy_string(bigbuf);
   }
 
+  int abstractConstructorHandler(Node *n) {
+    char *iname = GetChar(n, "sym:name");
+    if (shadow) {
+      Wrapper *f;
+      f   = NewWrapper();
+
+      // constructor header
+      if (cs_entry) Printf(cs_entry,
+			   "	ZEND_NAMED_FE(%(lower)s,\n"
+			   "		_wrap_new_%s, NULL)\n", iname,iname);
+      // now constructor body
+      Printf(f_h, "ZEND_NAMED_FUNCTION(_wrap_new_%s);\n",iname);
+      Printf(f->def, "ZEND_NAMED_FUNCTION(_wrap_new_%s) {\n"
+                     "zend_error(E_ERROR,\"Cannot create swig object type: %s as the underlying object is abstract\");\n"
+                     "}\n\n", iname, iname);
+      Wrapper_print(f,s_wrappers);
+      DelWrapper(f);
+    }
+    return SWIG_OK;
+  }
   /* ------------------------------------------------------------
    * constructorHandler()
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-
     char *iname = GetChar(n, "sym:name");
 
     if (shadow) native_constructor = (strcmp(iname, shadow_classname) == 0)?\
 		  NATIVE_CONSTRUCTOR:ALTERNATIVE_CONSTRUCTOR;
     else native_constructor=0;
-
+    constructors++;
     Language::constructorHandler(n);
 
     if(shadow) {
