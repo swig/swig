@@ -1220,7 +1220,7 @@ void RUBY::cpp_close_class() {
  * --------------------------------------------------------------------- */
 
 
-void RUBY::cpp_inherit(List *bases, int mode) {
+void RUBY::cpp_inherit(List *bases) {
   if (!bases) return;
   String *base;
   for (base = Firstitem(bases); base; base = Nextitem(bases)) {

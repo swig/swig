@@ -149,23 +149,6 @@ static int       pure_virtual = 0;
    return o;
  }
 
- /* Take a parameter list and produce a type object */
- static DOH *parmstotype(DOH *parms) {
-   DOH *p, *r;
-   DOHList *ty;
-
-   ty = NewList();
-   p = parms;
-   while (p) {
-     Append(ty,Getattr(p,ATTR_TYPE));
-     p = Getattr(p,ATTR_NEXT);
-   }
-   r = NewString("");
-   SwigType_add_function(r,ty);
-   Delete(ty);
-   return r;
- }
-
 #ifdef NEED_ALLOC
 void *alloca(unsigned n) {
   return((void *) malloc(n));
@@ -428,8 +411,20 @@ scope_directive: SCOPE LBRACE interface RBRACE {
                }
                ;
 
-echo_directive:  ECHO HBLOCK { Printf(stderr,"%s\n", $2.text); }
-               | ECHO STRING { Printf(stderr,"%s\n", $2.text); }
+echo_directive:  ECHO HBLOCK { 
+		 char line[32];
+		 sprintf(line,"%d",Getline($2.text));
+		 Replace($2.text,"$file",Getfile($2.text),DOH_REPLACE_ANY);
+		 Replace($2.text,"$line",line, DOH_REPLACE_ANY);
+		 Printf(stderr,"%s\n", $2.text); 
+                 }
+               | ECHO STRING { 
+		 char line[32];
+		 sprintf(line,"%d",Getline($2.text));
+		 Replace($2.text,"$file",Getfile($2.text),DOH_REPLACE_ANY);
+		 Replace($2.text,"$line",line, DOH_REPLACE_ANY);
+                 Printf(stderr,"%s\n", $2.text);
+                 }
                ;
 
 /* -- File inclusion directives -- */
@@ -1050,7 +1045,7 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
 
                | TYPEDEF type LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("c:typedef", $1.filename,$1.line);
-		 SwigType_push($2,parmstotype($8));
+		 SwigType_add_function($2,$8);
 		 SwigType_push($2,$4);
 		 if ($5.array)
 		   SwigType_push($2,$5.array);
@@ -1063,7 +1058,7 @@ typedef_decl   : TYPEDEF type declaration array2 typedeflist SEMI {
                | TYPEDEF type stars LPAREN stars pname RPAREN LPAREN parms RPAREN SEMI {
 		 $$ = new_node("c:typedef", $1.filename,$1.line);
 		 SwigType_push($2,$3);
-		 SwigType_push($2,parmstotype($9));
+		 SwigType_add_function($2,$9);
 		 SwigType_push($2,$5);
 		 if ($6.array)
 		   SwigType_push($2,$6.array);
@@ -1420,7 +1415,7 @@ parm           : type pname {
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$2.filename, $2.line);
-		  SwigType_push($1,parmstotype($7));
+		  SwigType_add_function($1,$7);
 		  SwigType_push($1,$3);
 		  if ($4.array)
 		    SwigType_push($1,$4.array);
@@ -1432,7 +1427,7 @@ parm           : type pname {
                 | type stars LPAREN stars pname RPAREN LPAREN parms RPAREN {
 		  $$ = new_node("parm",$3.filename, $3.line);
 		  SwigType_push($1,$2);
-		  SwigType_push($1,parmstotype($8));
+		  SwigType_add_function($1,$8);
 		  SwigType_push($1,$4);
 		  if ($5.array)
 		    SwigType_push($1,$5.array);

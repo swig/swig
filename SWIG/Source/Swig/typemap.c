@@ -45,9 +45,14 @@ static char *parm_key(String_or_char *pname) {
  * Create a new typemap scope
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_new_scope() {
+void Swig_typemap_new_scope(Hash *oldscope) {
   tm_scope++;
-  typemaps[tm_scope] = NewHash();
+  if (!oldscope) {
+    typemaps[tm_scope] = NewHash();
+  } else {
+    typemaps[tm_scope] = oldscope;
+    DohIncref(oldscope);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -59,7 +64,12 @@ void Swig_typemap_new_scope() {
 Hash *
 Swig_typemap_pop_scope() {
   if (tm_scope > 0) {
-    return Swig_temp_result(typemaps[tm_scope--]);
+    if (Len(typemaps[tm_scope])) {
+      return typemaps[tm_scope--];
+    } else {
+      Delete(typemaps[tm_scope--]);
+      return 0;
+    }
   }
   return 0;
 }

@@ -34,7 +34,7 @@ public :
   virtual void initialize(String *); 
   virtual void function(DOH *node);
   virtual void variable(DOH *node);
-  virtual void constant(DOH *node);
+  virtual void constant(DOH *node); 
   virtual void nativefunction(DOH *);
   virtual void close(void);
   virtual void create_command(String *, String *);
@@ -47,7 +47,7 @@ public :
   virtual void cpp_destructor(DOH *);
   virtual void cpp_open_class(DOH *);
   virtual void cpp_close_class();
-  virtual void cpp_inherit(List *bases, int mode = INHERIT_ALL);
+  virtual void cpp_inherit(List *bases);
   virtual void cpp_variable(DOH *);
   virtual void cpp_constant(DOH *);
   virtual void cpp_class_decl(DOH *);

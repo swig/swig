@@ -199,16 +199,16 @@ SwigType_add_qualifier(SwigType *t, String *qual) {
  * ----------------------------------------------------------------------------- */
 
 void
-SwigType_add_function(SwigType *t, List *parms) {
+SwigType_add_function(SwigType *t, ParmList *parms) {
   String *pstr;
-  int        i,l;
 
   Insert(t,0,").");
   pstr = NewString("f(");
-  l = Len(parms);
-  for (i = 0; i < l; i++) {
-    Printf(pstr,"%s",Getitem(parms,i));
-    if (i < (l-1))
+
+  while (parms) {
+    Printf(pstr,"%s",Gettype(parms));
+    parms = Getnext(parms);
+    if (parms)
       Putc(',',pstr);
   }
   Insert(t,0,pstr);
@@ -1107,7 +1107,7 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
   qname = NewString(name);
   while (i >= 0) {
     String *sname;
-    Printf(stdout,"Adding typedef [%d] : '%s' -> '%s'\n", i, qname, type);
+    /*    Printf(stdout,"Adding typedef [%d] : '%s' -> '%s'\n", i, qname, type); */
     Setattr(scopes[i],qname,type);
     if (i > 0) {
       sname = scopenames[i];
@@ -1177,7 +1177,7 @@ void SwigType_set_scope_name(String_or_char *name) {
  * Merges the contents of one scope into the current scope.
  * ----------------------------------------------------------------------------- */
 
-void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
+void SwigType_merge_scope(Hash *scope, String *prefix) {
   String *name;
   String *key;
   String *type;
@@ -1191,7 +1191,7 @@ void SwigType_merge_scope(Hash *scope, String_or_char *prefix) {
     } else {
       name = NewString(key);
     }
-    Setattr(scopes[scope_level],name,type);
+    SwigType_typedef(type,name);
     key = Nextkey(scope);
   }
 }
@@ -1209,9 +1209,9 @@ Hash *SwigType_pop_scope() {
   if (scope_level == 0) return 0;
   prefix = scopenames[scope_level];
   s = scopes[scope_level--];
-  /*  SwigType_merge_scope(s,prefix); */
-  /*   Printf(stdout,"****\n%s\n", scopes[scope_level]); */
-  return s;
+  if (Len(s)) return s;
+  Delete(s);
+  return 0;
 }
 
 /* ----------------------------------------------------------------------------- 

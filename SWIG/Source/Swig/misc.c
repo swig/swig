@@ -171,23 +171,16 @@ Swig_proto_cmp(const String_or_char *pat, DOH *node) {
   SwigType *ty;
   SwigType *ct;
   ParmList  *p;
-  List     *tl;
   int       r;
 
   ty = Gettype(node);
   p = Getparms(node);
   if (!ty || !p) return -1;
   ct = Copy(ty);
-  tl = NewList();
-  while (p) {
-    Append(tl,Gettype(p));
-    p = Getnext(p);
-  }
-  SwigType_add_function(ct,tl);
+  SwigType_add_function(ct,p);
   SwigType_strip_qualifiers(ct);
   r = Cmp(pat,ct);
   Delete(ct);
-  Delete(tl);
   return r;
 }
 

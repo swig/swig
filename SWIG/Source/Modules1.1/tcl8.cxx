@@ -40,6 +40,8 @@ static int        have_destructor;
 static String    *class_name = 0;
 static String    *class_type = 0;
 static String    *real_classname = 0;
+static Hash      *class_methods = 0;
+static Hash      *class_attributes = 0;
 static Hash      *repeatcmd = 0;
 
 
@@ -97,9 +99,9 @@ TCL8::initialize(String *modname) {
   mod_init   = NewString("");
   cmd_info   = NewString("");
   var_info   = NewString("");
-  methods    = NewString("");
-  attributes = NewString("");
   repeatcmd  = NewHash();
+  class_methods = NewHash();
+  class_attributes = NewHash();
 
   Swig_banner(f_runtime);
 
@@ -962,13 +964,13 @@ TCL8::cpp_open_class(DOH *node) {
       included_object = 1;
     }
 
-    Clear(attributes);
-    Printf(attributes, "static swig_attribute swig_");
-    Printv(attributes, classname, "_attributes[] = {\n", 0);
+    attributes = NewString("");
+    /*    Printf(attributes, "static swig_attribute swig_");
+	  Printv(attributes, classname, "_attributes[] = {\n", 0); */
 
-    Clear(methods);
-    Printf(methods,"static swig_method swig_");
-    Printv(methods, classname, "_methods[] = {\n", 0);
+    methods = NewString("");
+    /*    Printf(methods,"static swig_method swig_");
+	  Printv(methods, classname, "_methods[] = {\n", 0); */
 
     have_constructor = 0;
     have_destructor = 0;
@@ -1003,12 +1005,18 @@ TCL8::cpp_close_class() {
       Printf(code,"}\n");
     }
 
-    Printf(methods, "    {0,0}\n};\n");
+    Printf(code,"static swig_method swig_");
+    Printv(code, real_classname, "_methods[] = {\n", 0);
     Printv(code,methods,0);
+    Printf(code, "    {0,0}\n};\n");
+    Setattr(class_methods,real_classname,methods);
 
-    Printf(attributes, "    {0,0,0}\n};\n");
+    Printf(code, "static swig_attribute swig_");
+    Printv(code, real_classname, "_attributes[] = {\n", 0);
     Printv(code,attributes,0);
-
+    Printf(code, "    {0,0,0}\n};\n");
+    Setattr(class_attributes,real_classname,attributes);
+    
     Printv(code, "static swig_class _wrap_class_", class_name, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
 
@@ -1092,4 +1100,21 @@ void
 TCL8::cpp_destructor(DOH *node) {
   this->Language::cpp_destructor(node);
   have_destructor = 1;
+}
+
+void
+TCL8::cpp_inherit(List *bases) {
+  String *b;
+  Printf(stdout,"bases = %s\n", bases);
+  for (b = Firstitem(bases); b; b = Nextitem(bases)) {
+    Printf(stdout,"base: %s\n", b);
+    String *s = Getattr(class_methods,b);
+    if (s) {
+      Append(methods,s);
+    }
+    s = Getattr(class_attributes,b);
+    if (s) {
+      Append(attributes,s);
+    }
+  }
 }

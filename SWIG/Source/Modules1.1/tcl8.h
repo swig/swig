@@ -42,6 +42,8 @@ public :
   virtual void cpp_variable(DOH *);
   virtual void cpp_constructor(DOH *);
   virtual void cpp_destructor(DOH *);
+  virtual void cpp_inherit(List *bases);
+
 };
 
 
