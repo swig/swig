@@ -2,7 +2,7 @@
  * -----------------------------------------------------------------------
  * swig_lib/mzscheme/mzrun.swg
  * 
- * Author: John Lenz <jelenz@students.wisc.edu>
+ * Author: John Lenz <lenz@cs.wisc.edu>
  * ----------------------------------------------------------------------- */
 
 #include <stdio.h>
@@ -56,7 +56,7 @@ SWIG_MzScheme_LookupTypePointer(Scheme_Env *env) {
   struct swig_mzscheme_runtime_data *data;
 
   /* first check if pointer already created */
-  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer");
+  symbol = scheme_intern_symbol("swig-runtime-data-type-pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   pointer = scheme_lookup_global(symbol, env);
   if (pointer && SCHEME_CPTRP(pointer)) {
       data = (struct swig_mzscheme_runtime_data *) SCHEME_CPTR_VAL(pointer);
@@ -125,7 +125,7 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
   return 1;
 }
 
-static inline void *
+static SWIGINLINE void *
 SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type, 
                          int argnum, int flags, const char *func_name,
                          int argc, Scheme_Object **argv) {
@@ -136,7 +136,7 @@ SWIG_MzScheme_MustGetPtr(Scheme_Object *s, swig_type_info *type,
   return result;
 }
 
-static inline void *
+static SWIGINLINE void *
 SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   void *p = malloc(size);
   if (p == NULL) {
@@ -144,7 +144,7 @@ SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   } else return p;
 }
 
-static inline Scheme_Object *
+static Scheme_Object *
 SWIG_MzScheme_PackageValues(int num, Scheme_Object **values) {
     /* ignore first value if void */
     if (num > 0 && SCHEME_VOIDP(values[0]))

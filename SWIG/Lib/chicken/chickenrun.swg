@@ -161,7 +161,7 @@ SWIG_Chicken_Barf(int code, C_char *msg, ...)
   }
 }
 
-static inline C_word
+static SWIGINLINE C_word
 SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **data)
 {
   if (ptr == NULL)
@@ -199,7 +199,7 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
   return 1;
 }
 
-static inline void *
+static SWIGINLINE void *
 SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
 {
   void *result;

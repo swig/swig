@@ -175,12 +175,12 @@ static void SWIG_Perl_LookupTypePointer() {
   SV *pointer;
 
   /* first check if pointer already created */
-  pointer = get_sv("swig_runtime_data::type_pointer", FALSE);
+  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE);
   if (pointer && SvOK(pointer)) {
     swig_type_list_handle = INT2PTR(swig_type_info **, SvIV(pointer));
   } else {
     /* create a new pointer */
-    pointer = get_sv("swig_runtime_data::type_pointer", TRUE);
+    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE);
     sv_setiv(pointer, PTR2IV(swig_type_list_handle));
   }
 }
@@ -302,7 +302,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
   }
 }
 
-static inline SV *
+static SWIGINLINE SV *
 SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
@@ -339,17 +339,17 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
   return 0;
 }
 
-static inline void
+static SWIGINLINE void
 SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT const char *error) {
   if (error) sv_setpv(perl_get_sv("@", TRUE), error);
 }
 
-static inline void
+static SWIGINLINE void
 SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT SV *error) {
   if (error) sv_setsv(perl_get_sv("@", TRUE), error);
 }
 
-static inline void
+static void
 SWIG_Perl_SetErrorf(const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);

@@ -30,6 +30,9 @@ Foo *makeFoo() {
 int fooCount() {
     return g_fooCount;
 }
+
+void do_stuff(Foo *f) {
+}
 %}
 
 %extend Foo {

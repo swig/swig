@@ -4,6 +4,25 @@
 
 %init %{
 
+#ifdef SWIG_LINK_RUNTIME
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#  if defined(_MSC_VER) || defined(__GNUC__)
+#    define SWIGIMPORT(a) extern a
+#  else
+#    if defined(__BORLANDC__)
+#      define SWIGIMPORT(a) a _export
+#    else
+#      define SWIGIMPORT(a) a
+#    endif
+#  endif
+#else
+#  define SWIGIMPORT(a) a
+#endif
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT(void *) SWIG_ReturnGlobalTypeList(void *);
+#endif
  
 #ifdef __cplusplus
 extern "C"
@@ -22,7 +41,14 @@ SWIGEXPORT(void) SWIG_init(void) {
   d = PyModule_GetDict(m);
 
   if (!typeinit) {
+#ifdef SWIG_LINK_RUNTIME
+    swig_type_list_handle = (swig_type_info **) SWIG_ReturnGlobalTypeList(swig_type_list_handle);
+#else
+#  ifndef SWIG_STATIC_RUNTIME
     SWIG_Python_LookupTypePointer(&swig_type_list_handle);
+#  endif
+#endif
+    printf("%08x\n", swig_type_list_handle);
     for (i = 0; swig_types_initial[i]; i++) {
       swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
     }
