@@ -25,8 +25,9 @@ AM_CXXFLAGS =	-I$(SOURCE_DIR)/Include		\
 
 AM_YFLAGS = -d
 
-swig_SOURCES = 	CParse/parser.y			\
-		CParse/cscanner.c		\
+BUILT_SOURCES = CParse/parser.h
+swig_SOURCES = 	CParse/cscanner.c		\
+		CParse/parser.y			\
 		CParse/templ.c			\
 		CParse/util.c			\
 		DOH/base.c			\
