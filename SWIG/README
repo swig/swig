@@ -10,7 +10,7 @@ Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
          with scripting languages including Perl, Python, and Tcl.
 
 This distribution represents work in progress towards building a new
-SWIG release.  The guilty parties currently working on this are:
+SWIG release.  The guilty parties working on this are:
 
   -  Dave Beazley (beazley@cs.uchicago.edu)             (SWIG core)
   -  Dustin Mitchell (djmitche@cs.uchicago.edu)         (SWIG core)
@@ -21,24 +21,25 @@ General overview:
 =================
 The primary goal of future development is to make SWIG more modular,
 extensible, and easier to maintain.  To this end, the source code has
-been consolidated into the Source directory.   Within this directory,
-there are a number of different components:
+been consolidated and reorganized with the Source directory.  Within
+this directory, there are a number of different components:
 
       SWIG1.1       - These two directories contain the C++ code
       Modules1.1      corresponding to the SWIG1.1.x series of 
                       releases.  This code is still in use but is
                       slowly being deprecated.
 
-*** Important note: ALL future SWIG development will *NOT* be taking
-place in C++.  Please use ANSI C instead. -- Dave ***
+*** Important note: ALL future SWIG development is taking place
+in ANSI C.  Please avoid C++ if it all possible. -- Dave ***
 
       DOH           - Object framework for the ANSI C core.
       Core          - New SWIG core (ANSI C)
-      Preprocessor  - Simple SWIG preprocessor module
+      Preprocessor  - SWIG preprocessor module
       Dustin        - Some Python stuff Dustin is working on.
 
 Documentation for these components is weak or non-existent at this
-time.   Please bear with us.
+time. However, this should only matter if you are actually hacking
+on SWIG itself. Please bear with us.
 
 Installation
 ============
@@ -54,9 +55,8 @@ the use bison or yacc.
 
 Participate!
 ============
-
 We are looking for people who want to join the effort of getting this
-next release off the ground.  Please send me email.
+next release off the ground.  Please send me email for details.
 
 -- Dave (beazley@cs.uchicago.edu)
 
