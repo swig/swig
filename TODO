@@ -62,6 +62,41 @@ defer  ready to go.  The primary obstacle lies in the target language
 ****   Implement "throws" typemaps for all of the target languages.
        Partly implemented for Tcl, Perl, Python, Ruby, Java.
 
+***    "Nested" typemaps. The basic idea is similar to allowing one to 
+       use $descriptor(T) for any T, rather than just $descriptor
+       for the type currently being typemapped.
+
+       In short (ha!), given a previously defined typemap:
+
+       %typemap(in) Foo {
+           // whatever it takes to initialize $1 from $input
+       }
+
+       it would be possible to inline its code inside another typemap. 
+       While the syntax is still to be defined, the use would be
+       along the lines of:
+
+       template <class T> class vector {
+           %typemap(in) vector<T> {
+               ...
+               for (int i=0; i<N; i++) {
+                   PyObject* x = ... // i-th element
+                   $typemap(in, T, x, $1[i]);
+               }
+               ...
+           }
+           ...
+       }
+
+       i.e., when $typemap(in,Foo,x,y) is encountered, it will
+       be replaced by the code for %typemap(in) Foo; in the latter,
+       x will be replaced for $input and y will be replaced for $1. 
+       As in the case above, x and y themselves might need to be 
+       expanded before or after being substituted in the typemap code.
+       Also, $typemap(what,Foo,x,y,z,...) will be used in case of 
+       multi-arguments typemaps. The same will hold for "out" typemaps
+       and all the others.
+
 ***    Add attributes to the %feature directive. Something like:
 
        %feature("except", throws="OutOfMemoryException")
