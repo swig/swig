@@ -217,38 +217,38 @@ namespace std {
             }
             VALUE keys() {
                 VALUE keyList = rb_ary_new2(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     rb_ary_store(keyList,j,
-                                 SWIG_NewPointerObj((void *) ptr,type,1));
+                                 SWIG_NewPointerObj((void *) ptr,
+                                                    $descriptor(K *),1));
                 }
                 return keyList;
             }
             VALUE values() {
                 VALUE valueList = rb_ary_new2(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     T* ptr = new T(i->second);
                     rb_ary_store(valueList,j,
-                                 SWIG_NewPointerObj((void *) ptr,type,1));
+                                 SWIG_NewPointerObj((void *) ptr,
+                                                    $descriptor(T *),1));
                 }
                 return valueList;
             }
             void each() {
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 for (i=self->begin(); i!=self->end(); ++i) {
                     K* key = new K(i->first);
                     T* val = &(i->second);
                     VALUE entry = rb_ary_new2(2);
-                    VALUE k = SWIG_NewPointerObj((void *) key,k_type,1);
-                    VALUE x = SWIG_NewPointerObj((void *) val,t_type,0);
+                    VALUE k = SWIG_NewPointerObj((void *) key,
+                                                 $descriptor(K *),1);
+                    VALUE x = SWIG_NewPointerObj((void *) val,
+                                                 $descriptor(T *),0);
                     rb_ary_store(entry,0,k);
                     rb_ary_store(entry,1,x);
                     rb_yield(entry);
@@ -431,24 +431,24 @@ namespace std {
             }
             VALUE values() {
                 VALUE valueList = rb_ary_new2(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     T* ptr = new T(i->second);
                     rb_ary_store(valueList,j,
-                                 SWIG_NewPointerObj((void *) ptr,type,1));
+                                 SWIG_NewPointerObj((void *) ptr,
+                                                    $descriptor(T *),1));
                 }
                 return valueList;
             }
             void each() {
-                swig_type_info* t_type = SWIG_TypeQuery(#T " *");
                 std::map<K,T >::iterator i;
                 for (i=self->begin(); i!=self->end(); ++i) {
                     T* val = &(i->second);
                     VALUE entry = rb_ary_new2(2);
                     VALUE k = CONVERT_TO(i->first);
-                    VALUE x = SWIG_NewPointerObj((void *) val,t_type,0);
+                    VALUE x = SWIG_NewPointerObj((void *) val,
+                                                 $descriptor(T *),0);
                     rb_ary_store(entry,0,k);
                     rb_ary_store(entry,1,x);
                     rb_yield(entry);
@@ -619,13 +619,13 @@ namespace std {
             }
             VALUE keys() {
                 VALUE keyList = rb_ary_new2(self->size());
-                swig_type_info* type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 unsigned int j;
                 for (i=self->begin(), j=0; i!=self->end(); ++i, ++j) {
                     K* ptr = new K(i->first);
                     rb_ary_store(keyList,j,
-                                 SWIG_NewPointerObj((void *) ptr,type,1));
+                                 SWIG_NewPointerObj((void *) ptr,
+                                                    $descriptor(K *),1));
                 }
                 return keyList;
             }
@@ -640,12 +640,12 @@ namespace std {
                 return valueList;
             }
             void each() {
-                swig_type_info* k_type = SWIG_TypeQuery(#K " *");
                 std::map<K,T >::iterator i;
                 for (i=self->begin(); i!=self->end(); ++i) {
                     K* key = new K(i->first);
                     VALUE entry = rb_ary_new2(2);
-                    VALUE k = SWIG_NewPointerObj((void *) key,k_type,1);
+                    VALUE k = SWIG_NewPointerObj((void *) key,
+                                                 $descriptor(K *),1);
                     VALUE x = CONVERT_TO(i->second);
                     rb_ary_store(entry,0,k);
                     rb_ary_store(entry,1,x);

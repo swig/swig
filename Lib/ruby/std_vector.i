@@ -203,10 +203,10 @@ namespace std {
                     throw std::out_of_range("vector index out of range");
             }
             void each() {
-                swig_type_info* type = SWIG_TypeQuery(#T " *");
                 for (unsigned int i=0; i<self->size(); i++) {
                     T* x = &((*self)[i]);
-                    rb_yield(SWIG_NewPointerObj((void *) x, type, 0));
+                    rb_yield(SWIG_NewPointerObj((void *) x, 
+                                                $descriptor(T *), 0));
                 }
             }
         }
