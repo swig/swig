@@ -1,5 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
+12/07/2003: cheetah (William Fulton)
+            [Java] Fixed and improved error checking of STRING_OUT typemaps in 
+            various.i.
+
 12/04/2003: mmatus (Marcelo Matus)
 
 	    - Now the virtual members with no explicit declarator
@@ -322,6 +326,11 @@ Version 1.3.20 (In progress)
 11/11/2003: beazley
             Configuration changes to make SWIG work on Mac OSX 10.3.x (Panther).
             Tested with Python, Tcl, Perl, and Ruby---all of which seem to work.
+
+11/08/2003: cheetah (William Fulton)
+            [Java] Fixed the typemaps in various.i which were mostly broken.
+            char **STRING_IN and char **STRING_RET typemaps replaced with 
+            STRING_ARRAY. float *FLOAT_ARRAY_RETURN typemap removed.
 
 11/08/2003: beazley
             [Tcl] Tcl module now emits a safe module initialization function by
