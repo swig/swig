@@ -763,9 +763,6 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   if (td) {
     if ((SwigType_isconst(td) || SwigType_isarray(td) || SwigType_isreference(td))) {
       elements = SwigType_split(td);
-    } else if (SwigType_isenum(td)) {
-      elements = SwigType_split(rs);
-      clear = 0;
     } else {
       elements = SwigType_split(rs);
     } 
@@ -844,12 +841,6 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
       }
       Append(result,")");
       Delete(parms);
-    } else if (SwigType_isenum(element)) {
-      String *bs = SwigType_namestr(element);
-      Insert(result,0," ");
-      Insert(result,0,bs);
-      Delete(bs);
-      clear = 0;
     } else {
       String *bs = SwigType_namestr(element);
       Insert(result,0," ");
