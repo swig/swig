@@ -73,7 +73,7 @@ extern void _SWIG_MakePtr(CPerlObj *, SV *, void *, swig_type_info *);
 #define SWIG_MakePtr(a,b,c) _SWIG_MakePtr(pPerl,a,b,c)
 #endif
 
-#endif
+#else
 
 /* Function for getting a pointer value */
 
@@ -174,6 +174,8 @@ static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (C
   mg->mg_virtual->svt_clear = 0;
   mg->mg_virtual->svt_free = 0;
 }
+
+#endif
 
 #ifdef __cplusplus
 }
