@@ -30,8 +30,8 @@
 %typemap(in) unsigned short  "$1 = NUM2USHRT($input);";
 %typemap(in) long            "$1 = NUM2LONG($input);"; 
 %typemap(in) unsigned long   "$1 = NUM2ULONG($input);"; 
-%typemap(in) signed char     "$1 = (signed char) NUM2INT($input);";
-%typemap(in) unsigned char   "$1 = (unsigned char) NUM2INT($input);";
+%typemap(in) signed char     "$1 = ($1_ltype) NUM2INT($input);";
+%typemap(in) unsigned char   "$1 = ($1_ltype) NUM2INT($input);";
 %typemap(in) char            "$1 = NUM2CHR($input);";
 %typemap(in) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
 %typemap(in) bool            "$1 = RTEST($input);";
@@ -41,8 +41,8 @@
 
 /* Long long.  This is probably broken because it truncates the value */
 
-%typemap(in) long long          "$1 = (long long) NUM2LONG($input);";
-%typemap(in) unsigned long long "$1 = (unsigned long long) NUM2ULONG($input);";
+%typemap(in) long long          "$1 = ($1_ltype) NUM2LONG($input);";
+%typemap(in) unsigned long long "$1 = ($1_ltype) NUM2ULONG($input);";
 
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
@@ -64,6 +64,57 @@
 
 /* Pointer to a class member */
 %typemap(in) SWIGTYPE (CLASS::*) "SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor, 1);";
+
+/* Const primitive references.  Passed by value */
+
+%typemap(in) const int & (int temp),
+             const signed char & (signed char temp),
+             const unsigned char & (unsigned char temp)
+	"temp = ($*1_ltype) NUM2INT($input);
+         $1 = &temp;";
+
+%typemap(in) const short & (short temp)
+	"temp = ($*1_ltype) NUM2SHRT($input);
+         $1 = &temp;";
+
+%typemap(in) const long & (long temp)
+	"temp = ($*1_ltype) NUM2LONG($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned int & (unsigned int temp)
+	"temp = ($*1_ltype) NUM2UINT($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned short & (unsigned short temp)
+	"temp = ($*1_ltype) NUM2USHRT($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned long & (unsigned long temp)
+	"temp = ($*1_ltype) NUM2ULONG($input);
+         $1 = &temp;";
+
+%typemap(in) const bool & (bool temp)
+	"temp = ($*1_ltype) RTEST($input);
+         $1 = &temp;";
+
+%typemap(in) const float & (float temp),
+	     const double & (double temp)
+	"temp = ($*1_ltype) NUM2DBL($input);
+         $1 = &temp;";
+
+%typemap(in) const long long & (long long temp) 
+        "temp = ($*1_ltype) NUM2LONG($input);
+         $1 = &temp;";
+
+%typemap(in) const unsigned long long & (unsigned long long temp) 
+        "temp = ($*1_ltype) NUM2ULONG($input);
+         $1 = &temp;";
+
+%typemap(in) const char &(char temp) {
+        char *stemp = STR2CSTR($input);
+        temp = *stemp;
+        $1 = &temp;
+}
 
 /* --- Output typemaps --- */
 

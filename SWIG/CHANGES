@@ -16,6 +16,10 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/29/2002: ljohnson (Lyle Johnson)
+            [Ruby] Added input typemaps for const references to primitive
+            types (in Lib/ruby/ruby.swg).
+
 05/29/2002: cheetah (William Fulton)
             [Java] The java arrray support functions are enclosed by 
             a SWIG_NOARRAYS #define. Useful if not using arrays and 
