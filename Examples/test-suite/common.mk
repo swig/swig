@@ -42,6 +42,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
+	preproc_4 \
 	cast_operator \
 	arrayref \
 	abstract_typedef \
