@@ -1463,7 +1463,11 @@ int Language::unrollVirtualMethods(Node *n,
 	  (is_public(ni) || (dirprot_mode() && is_protected(ni)))) {
 	String *name = Getattr(ni, "name");
 	String *local_decl = SwigType_typedef_resolve_all(decl);
-	String *method_id = NewStringf("%s|%s", name, local_decl);
+	Node *method_id = NewStringf("%s|%s", name, local_decl);
+	/* Make sure that the new method overwrites the existing: */
+	Hash *exists_item = Getattr(vm, method_id);
+	if (exists_item) Delattr(vm, method_id);
+	/* filling a new method item */
 	String *fqname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
@@ -1487,10 +1491,28 @@ int Language::unrollVirtualMethods(Node *n,
    */
   Iterator k;
   for (k = First(vm); k.key; k = Next(k)) {
-    String *method = Getattr(k.item, "methodNode");
-    if (!Cmp(Getattr(method, "feature:nodirector"), "1"))
+    Node *m = Getattr(k.item, "methodNode");
+    int mdir   = !Cmp(Getattr(m, "feature:director"), "1");    
+    int mnodir = !Cmp(Getattr(m, "feature:nodirector"), "1");
+    /* defines if we need director method */
+    int dir = (mdir || !mnodir);
+    Node *pm = Getattr(m, "parentNode");
+    if (pm != parent) {
+      /* check the method found in vtable against my method features */
+      Node *c = Copy(m);
+      Setattr(c,"parentNode", parent);
+      Setattr(c,"sym:symtab", Getattr(parent,"symtab"));
+      int cdir   = !Cmp(Getattr(c, "feature:director"), "1");    
+      int cnodir = !Cmp(Getattr(c, "feature:nodirector"), "1");
+      dir = (cdir || cnodir) ? (cdir || !cnodir) : dir;
+      Delete(c);
+    }    
+    if (dir) {      
+      if (mnodir) Delattr(m, "feature:nodirector");
+    } else {
       Delattr(vm, k.key);
-  }
+    }
+  }  
 
   return SWIG_OK;
 }
