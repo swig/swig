@@ -643,10 +643,11 @@ SwigType *SwigType_typedef_qualified(SwigType *t)
 	      Clear(isenum);
 	      Printf(isenum, "enum %s", e);
 	      Delete(e);
-	      e = isenum;
 	    }
 	  }
 	}
+	if (isenum) e = isenum;
+
       } else {
 	/* Template.  We need to qualify template parameters as well as the template itself */
 	String *tprefix, *qprefix;
