@@ -8,6 +8,9 @@ public class li_std_vector_runme {
   private static readonly int collectionSize = 20;
   private static readonly int midCollection = collectionSize/2;
 
+  private static DoubleVector myDoubleVector;
+  private static RealVector myRealVector;
+
   public static void Main() {
     // Setup collection
     DoubleVector vect = new DoubleVector();
@@ -163,7 +166,7 @@ public class li_std_vector_runme {
     {
       // Repeat() test
       try {
-        DoubleVector d = DoubleVector.Repeat(77.7, -1);
+        myDoubleVector = DoubleVector.Repeat(77.7, -1);
         throw new Exception("Repeat negative count test failed");
       } catch (ArgumentOutOfRangeException) {
       }
@@ -203,6 +206,7 @@ public class li_std_vector_runme {
       }
 
       // RemoveRange() test
+      vect.RemoveRange(0, 0);
       vect.RemoveRange(midCollection, dvect.Count);
       if (vect.Count != collectionSize)
         throw new Exception("RemoveRange test size failed");
@@ -213,13 +217,22 @@ public class li_std_vector_runme {
       try {
         Console.Error.WriteLine("Fix me (1)"); // goes wrong when leave the new Exception in below ???
         vect.RemoveRange(-1, 0);
-//        throw new Exception("RemoveRange index out of range (1) test failed");
-        Console.Error.WriteLine("RemoveRange not caught -1, 0...");
+        throw new Exception("RemoveRange index out of range (1) test failed");
+      } catch (ArgumentOutOfRangeException) {
+      }
+      try {
+        vect.RemoveRange(0, -1);
+        throw new Exception("RemoveRange count out of range (2) test failed");
       } catch (ArgumentOutOfRangeException) {
       }
       try {
         vect.RemoveRange(collectionSize+1, 0);
-        throw new Exception("RemoveRange index out of range (2) test failed");
+        throw new Exception("RemoveRange index and count out of range (1) test failed");
+      } catch (ArgumentException) {
+      }
+      try {
+        vect.RemoveRange(0, collectionSize+1);
+        throw new Exception("RemoveRange index and count out of range (2) test failed");
       } catch (ArgumentException) {
       }
 
@@ -239,7 +252,8 @@ public class li_std_vector_runme {
 
       // GetRange() test
       int rangeSize = 5;
-      DoubleVector returnedVec = vect.GetRange(midCollection, rangeSize);
+      DoubleVector returnedVec = vect.GetRange(0, 0);
+      returnedVec = vect.GetRange(midCollection, rangeSize);
       if (returnedVec.Count != rangeSize)
         throw new Exception("GetRange test size failed");
       for (int i=0; i<rangeSize; i++) {
@@ -247,15 +261,24 @@ public class li_std_vector_runme {
           throw new Exception("GetRange test " + i + " failed");
       }
       try {
-//        vect.GetRange(-1, 0);
         Console.Error.WriteLine("Fix me (2)"); // goes wrong when leave the new Exception in below ???
-//        throw new Exception("GetRange index out of range (1) test failed");
-        Console.Error.WriteLine("GetRange not caught ...");
-      } catch (ArgumentOutOfRangeException e) {
+        vect.GetRange(-1, 0);
+        throw new Exception("GetRange index out of range (1) test failed");
+      } catch (ArgumentOutOfRangeException) {
+      }
+      try {
+        vect.GetRange(0, -1);
+        throw new Exception("GetRange count out of range (2) test failed");
+      } catch (ArgumentOutOfRangeException) {
       }
       try {
         vect.GetRange(collectionSize+1, 0);
-        throw new Exception("GetRange index out of range (2) test failed");
+        throw new Exception("GetRange index and count out of range (1) test failed");
+      } catch (ArgumentException) {
+      }
+      try {
+        vect.GetRange(0, collectionSize+1);
+        throw new Exception("GetRange index and count out of range (2) test failed");
       } catch (ArgumentException) {
       }
       {
@@ -357,10 +380,9 @@ public class li_std_vector_runme {
     {
       // Capacity test
       try {
-        Console.Error.WriteLine("Fix me (2)"); // goes wrong when leave the new Exception in below ???
-//        DoubleVector dvv = new DoubleVector(-1);
-//        throw new Exception("constructor setting capacity (1) test failed");
-        Console.Error.WriteLine("GetRange not caught ...");
+        Console.Error.WriteLine("Fix me (3)"); // goes wrong when leave the new Exception in below ???
+        myDoubleVector = new DoubleVector(-1);
+        throw new Exception("constructor setting capacity (1) test failed");
       } catch (ArgumentOutOfRangeException) {
       }
 
@@ -386,9 +408,18 @@ public class li_std_vector_runme {
         throw new Exception("SetRange count check test failed");
       for (int i=0; i<collectionSize; i++) {
         if (vect[i] != dv[i])
-          throw new Exception("SetRange test failed, index:" + i);
+          throw new Exception("SetRange test (1) failed, index:" + i);
       }
-        Console.Error.WriteLine("Need some exception checking here...");
+      try {
+        dv.SetRange(-1, vect);
+        throw new Exception("SetRange test (2) failed");
+      } catch (ArgumentOutOfRangeException) {
+      }
+      try {
+        dv.SetRange(1, vect);
+        throw new Exception("SetRange test (3) failed");
+      } catch (ArgumentOutOfRangeException) {
+      }
 
       // Reverse() test
       dv.Reverse();
@@ -404,18 +435,27 @@ public class li_std_vector_runme {
       dv.Reverse(0, 0); // should do nothing!
       for (int i=0; i<collectionSize; i++) {
         if (vect[i] != dv[i])
-          throw new Exception("Reverse test (2) failed, index:" + i);
+          throw new Exception("Reverse test (3) failed, index:" + i);
       }
       try {
+        Console.Error.WriteLine("Fix me (4)"); // goes wrong when leave the new Exception in below ???
         dv.Reverse(-1, 0);
-Console.Error.WriteLine("Fix me (2)"); // goes wrong when leave the new Exception in below ???
-//        throw new Exception("Reverse test (3) failed");
-Console.Error.WriteLine("Reverse not caught ...");
+        throw new Exception("Reverse test (4) failed");
+      } catch (ArgumentOutOfRangeException) {
+      }
+      try {
+        dv.Reverse(0, -1);
+        throw new Exception("Reverse test (5) failed");
       } catch (ArgumentOutOfRangeException) {
       }
       try {
         dv.Reverse(collectionSize+1, 0);
-        throw new Exception("Reverse test (4) failed");
+        throw new Exception("Reverse test (6) failed");
+      } catch (ArgumentException) {
+      }
+      try {
+        dv.Reverse(0, collectionSize+1);
+        throw new Exception("Reverse test (7) failed");
       } catch (ArgumentException) {
       }
     }
@@ -443,8 +483,8 @@ Console.Error.WriteLine("Reverse not caught ...");
       }
 
       double x = li_std_vector.average(iv);
-      double y = li_std_vector.average( new IntVector( new int[] {1, 2, 3, 4} ) );
-      RealVector a = li_std_vector.half( new RealVector( new float[] {10F, 10.5F, 11F, 11.5F} ) );
+      x += li_std_vector.average( new IntVector( new int[] {1, 2, 3, 4} ) );
+      myRealVector = li_std_vector.half( new RealVector( new float[] {10F, 10.5F, 11F, 11.5F} ) );
 
       DoubleVector dvec = new DoubleVector();
       for (int i=0; i<10; i++) {
