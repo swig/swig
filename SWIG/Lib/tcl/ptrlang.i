@@ -8,35 +8,37 @@
 // by the file ../pointer.i
 
 
-#if defined(SWIGTCL8)
-
-// -----------------------------------------------------------------
-// Define a hack for GetPtr on Tcl 8
-//
-// -----------------------------------------------------------------
-
 %{
-
-static char *_SWIG_GetPtr(Tcl_Interp *interp, char *s, void **ptr, char *type) {
-  Tcl_Obj *obj;
-  char *c;
-  obj = Tcl_NewStringObj(s, strlen(s));
-  c = SWIG_GetPointerObj(interp, obj, ptr, type);
-  if (c) {
-    c = strstr(s,c);
-  }
-  Tcl_DecrRefCount(obj);
-  return c;
-}
-
-#define SWIG_GetPtr(a,b,c) _SWIG_GetPtr(interp, a,b,c)
-
-%}
-#endif
-
-%{
-
 #include <ctype.h>
+
+/* Pointer library specific types */
+
+static _swig_type_info _swig_pointer_int_p[] = {{"_int_p",0},{"_int_p",0},{0}};
+static _swig_type_info _swig_pointer_short_p[] = {{"_short_p",0},{"_short_p",0},{0}};
+static _swig_type_info _swig_pointer_long_p[] = {{"_long_p",0},{"_long_p",0},{0}};
+static _swig_type_info _swig_pointer_float_p[] = {{"_float_p",0},{"_float_p",0},{0}};
+static _swig_type_info _swig_pointer_double_p[] = {{"_double_p",0},{"_double_p",0},{0}};
+static _swig_type_info _swig_pointer_char_p[] = {{"_char_p",0},{"_char_p",0},{0}};
+static _swig_type_info _swig_pointer_char_pp[] = {{"_char_pp",0},{"_char_pp",0},{0}};
+
+static _swig_type_info *_swig_pointer_types[] = {
+   _swig_pointer_int_p,
+   _swig_pointer_short_p,
+   _swig_pointer_long_p,
+   _swig_pointer_float_p,
+   _swig_pointer_double_p,
+   _swig_pointer_char_p,
+   _swig_pointer_char_pp,
+   0
+};
+
+#define SWIG_POINTER_int_p     _swig_pointer_types[0]
+#define SWIG_POINTER_short_p   _swig_pointer_types[1]
+#define SWIG_POINTER_long_p    _swig_pointer_types[2]
+#define SWIG_POINTER_float_p   _swig_pointer_types[3]
+#define SWIG_POINTER_double_p  _swig_pointer_types[4]
+#define SWIG_POINTER_char_p    _swig_pointer_types[5]
+#define SWIG_POINTER_char_pp   _swig_pointer_types[6]
 
 /*------------------------------------------------------------------
   ptrcast(value,type)
@@ -50,20 +52,20 @@ static char *_SWIG_GetPtr(Tcl_Interp *interp, char *s, void **ptr, char *type) {
   ptrcast(0,"Vector_p")   
   ------------------------------------------------------------------ */
 
-static int ptrcast(Tcl_Interp *interp, char *_ptrvalue, char *type) {
+static int ptrcast(Tcl_Interp *interp, char *ptrvalue, char *type) {
 
   char *r,*s;
   void *ptr;
   char *typestr,*c;
   int   pv;
   int   error = 0;
+  _swig_type_info sinfo;
 
   /* Produce a "mangled" version of the type string.  */
 
   typestr = (char *) malloc(strlen(type)+2);
-  
+
   /* Go through and munge the typestring */
-  
   r = typestr;
   *(r++) = '_';
   c = type;
@@ -79,36 +81,20 @@ static int ptrcast(Tcl_Interp *interp, char *_ptrvalue, char *type) {
     c++;
   }
   *(r++) = 0;
-
-  /* Check to see what kind of object _PTRVALUE is */
-  if (Tcl_GetInt(interp,_ptrvalue,&pv) == TCL_OK) {
+  
+  sinfo.name = typestr;
+  /* Check to see what kind of object ptrvalue is */
+  if (Tcl_GetInt(interp,ptrvalue,&pv) == TCL_OK) {
     ptr = (void *) pv;
     /* Received a numerical value. Make a pointer out of it */
-    r = (char *) malloc(strlen(typestr)+22);
-    if (ptr) {
-      SWIG_MakePtr(r, ptr, typestr);
-    } else {
-      sprintf(r,"_0%s",typestr);
-    }
-    Tcl_SetResult(interp,r,TCL_VOLATILE);
-    free(r);
+    Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,&sinfo));
   } else {
     /* Have a string.  Try to get the real pointer value */
-    s = _ptrvalue;
-    r = (char *) malloc(strlen(type)+22);
-    
-    /* Now extract the pointer value */
-    if (!SWIG_GetPtr(s,&ptr,0)) {
-      if (ptr) {
-	SWIG_MakePtr(r,ptr,typestr);
-      } else {
-	sprintf(r,"_0%s",typestr);
-      }
-      Tcl_SetResult(interp,r,TCL_VOLATILE);
+    if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0) == TCL_OK) {
+      Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,&sinfo));
     } else {
       error = 1;
     }
-    free(r);
   }
   free(typestr);
   if (error) {
@@ -127,7 +113,7 @@ static int ptrcast(Tcl_Interp *interp, char *_ptrvalue, char *type) {
   builtin C datatypes. 
   ------------------------------------------------------------------ */
 
-static int ptrvalue(Tcl_Interp *interp, char *_ptrvalue, int index, char *type) {
+static int ptrvalue(Tcl_Interp *interp, char *ptrvalue, int index, char *type) {
   void     *ptr;
   char     *s;
   int      error = 0;
@@ -135,32 +121,28 @@ static int ptrvalue(Tcl_Interp *interp, char *_ptrvalue, int index, char *type) 
   if (type) {
     if (strlen(type) == 0) type = 0;
   }
-  s = _ptrvalue;
-  if (SWIG_GetPtr(s,&ptr,0)) {
-    Tcl_SetResult(interp,"Type error in ptrvalue. Argument is not a valid pointer value.",
-		  TCL_STATIC);
+  s = ptrvalue;
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
+    Tcl_SetResult(interp,"Type error in ptrvalue. Argument is not a valid pointer value.", TCL_STATIC);
     return TCL_ERROR;
   }
 
   /* If no datatype was passed, try a few common datatypes first */
-
   if (!type) {
-
     /* No datatype was passed.   Type to figure out if it's a common one */
-
-    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
       type = "char";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_pp")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp) == TCL_OK) {
       type = "char *";
     } else {
       type = "unknown";
@@ -203,35 +185,35 @@ static int ptrvalue(Tcl_Interp *interp, char *_ptrvalue, int index, char *type) 
   a basic C datatype.  Will not create complex objects.
   ------------------------------------------------------------------ */
 
-static int ptrcreate(Tcl_Interp *interp, char *type, char *_ptrvalue, int numelements) {
+static int ptrcreate(Tcl_Interp *interp, char *type, char *ptrvalue, int numelements) {
   void     *ptr;
   int       sz;
-  char     *cast;
+  _swig_type_info *cast = 0;
   char      temp[40];
 
   /* Check the type string against a variety of possibilities */
 
   if (strcmp(type,"int") == 0) {
     sz = sizeof(int)*numelements;
-    cast = "_int_p";
+    cast = SWIG_POINTER_int_p;
   } else if (strcmp(type,"short") == 0) {
     sz = sizeof(short)*numelements;
-    cast = "_short_p";
+    cast = SWIG_POINTER_short_p;
   } else if (strcmp(type,"long") == 0) {
     sz = sizeof(long)*numelements;
-    cast = "_long_p";
+    cast = SWIG_POINTER_long_p;
   } else if (strcmp(type,"double") == 0) {
     sz = sizeof(double)*numelements;
-    cast = "_double_p";
+    cast = SWIG_POINTER_double_p;
   } else if (strcmp(type,"float") == 0) {
     sz = sizeof(float)*numelements;
-    cast = "_float_p";
+    cast = SWIG_POINTER_float_p;
   } else if (strcmp(type,"char") == 0) {
     sz = sizeof(char)*numelements;
-    cast = "_char_p";
+    cast = SWIG_POINTER_char_p;
   } else if (strcmp(type,"char *") == 0) {
     sz = sizeof(char *)*(numelements+1);
-    cast = "_char_pp";
+    cast = SWIG_POINTER_char_pp;
   } else if (strcmp(type,"void") == 0) {
     sz = numelements;
   } else {
@@ -249,31 +231,31 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *_ptrvalue, int numele
 
   /* Now try to set its default value */
 
-  if (_ptrvalue) {
+  if (ptrvalue) {
     if (strcmp(type,"int") == 0) {
       int *ip,i,ivalue;
-      Tcl_GetInt(interp,_ptrvalue,&ivalue);
+      Tcl_GetInt(interp,ptrvalue,&ivalue);
       ip = (int *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
     } else if (strcmp(type,"short") == 0) {
       short *ip;
       int i, ivalue;
-      Tcl_GetInt(interp,_ptrvalue,&ivalue);      
+      Tcl_GetInt(interp,ptrvalue,&ivalue);      
       ip = (short *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = (short) ivalue;
     } else if (strcmp(type,"long") == 0) {
       long *ip;
       int i, ivalue;
-      Tcl_GetInt(interp,_ptrvalue,&ivalue);      
+      Tcl_GetInt(interp,ptrvalue,&ivalue);      
       ip = (long *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = (long) ivalue;
     } else if (strcmp(type,"double") == 0) {
       double *ip,ivalue;
       int i;
-      Tcl_GetDouble(interp,_ptrvalue,&ivalue);
+      Tcl_GetDouble(interp,ptrvalue,&ivalue);
       ip = (double *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = ivalue;
@@ -281,19 +263,19 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *_ptrvalue, int numele
       float *ip;
       double ivalue;
       int i;
-      Tcl_GetDouble(interp,_ptrvalue,&ivalue);
+      Tcl_GetDouble(interp,ptrvalue,&ivalue);
       ip = (float *) ptr;
       for (i = 0; i < numelements; i++)
 	ip[i] = (double) ivalue;
     } else if (strcmp(type,"char") == 0) {
       char *ip,*ivalue;
-      ivalue = (char *) _ptrvalue;
+      ivalue = (char *) ptrvalue;
       ip = (char *) ptr;
       strncpy(ip,ivalue,numelements-1);
     } else if (strcmp(type,"char *") == 0) {
       char **ip, *ivalue;
       int  i;
-      ivalue = (char *) _ptrvalue;
+      ivalue = (char *) ptrvalue;
       ip = (char **) ptr;
       for (i = 0; i < numelements; i++) {
 	if (ivalue) {
@@ -307,9 +289,8 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *_ptrvalue, int numele
     } 
   } 
   /* Create the pointer value */
-  
-  SWIG_MakePtr(temp,ptr,cast);
-  Tcl_SetResult(interp,temp,TCL_VOLATILE);
+
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,cast));
   return TCL_OK;
 }
 
@@ -320,12 +301,12 @@ static int ptrcreate(Tcl_Interp *interp, char *type, char *_ptrvalue, int numele
   given, we will use that type.  Otherwise, we'll guess the datatype.
   ------------------------------------------------------------------ */
 
-static int ptrset(Tcl_Interp *interp, char *_PTRVALUE, char *_VALUE, int index, char *type) {
+static int ptrset(Tcl_Interp *interp, char *ptrvalue, char *value, int index, char *type) {
   void     *ptr;
   char     *s;
 
-  s = _PTRVALUE;
-  if (SWIG_GetPtr(s,&ptr,0)) {
+  s = ptrvalue;
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) != TCL_OK) {
     Tcl_SetResult(interp,"Type error in ptrset. Argument is not a valid pointer value.",
 		  TCL_STATIC);
     return TCL_ERROR;
@@ -336,20 +317,19 @@ static int ptrset(Tcl_Interp *interp, char *_PTRVALUE, char *_VALUE, int index, 
   if (!type) {
 
     /* No datatype was passed.   Type to figure out if it's a common one */
-
-    if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+    if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
       type = "int";
-    } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
       type = "double";
-    } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
       type = "short";
-    } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
       type = "long";
-    } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) {
       type = "float";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
       type = "char";
-    } else if (!SWIG_GetPtr(s,&ptr,"_char_pp")) {
+    } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_pp) == TCL_OK) {
       type = "char *";
     } else {
       type = "unknown";
@@ -364,29 +344,29 @@ static int ptrset(Tcl_Interp *interp, char *_PTRVALUE, char *_VALUE, int index, 
   /* Now we have a datatype.  Try to figure out what to do about it */
   if (strcmp(type,"int") == 0) {
     int ivalue;
-    Tcl_GetInt(interp,_VALUE, &ivalue);
+    Tcl_GetInt(interp,value, &ivalue);
     *(((int *) ptr)+index) = ivalue;
   } else if (strcmp(type,"double") == 0) {
     double ivalue;
-    Tcl_GetDouble(interp,_VALUE, &ivalue);
+    Tcl_GetDouble(interp,value, &ivalue);
     *(((double *) ptr)+index) = (double) ivalue;
   } else if (strcmp(type,"short") == 0) {
     int ivalue;
-    Tcl_GetInt(interp,_VALUE, &ivalue);
+    Tcl_GetInt(interp,value, &ivalue);
     *(((short *) ptr)+index) = (short) ivalue;
   } else if (strcmp(type,"long") == 0) {
     int ivalue;
-    Tcl_GetInt(interp,_VALUE, &ivalue);
+    Tcl_GetInt(interp,value, &ivalue);
     *(((long *) ptr)+index) = (long) ivalue;
   } else if (strcmp(type,"float") == 0) {
     double ivalue;
-    Tcl_GetDouble(interp,_VALUE, &ivalue);
+    Tcl_GetDouble(interp,value, &ivalue);
     *(((float *) ptr)+index) = (float) ivalue;
   } else if (strcmp(type,"char") == 0) {
-    char *c = _VALUE;
+    char *c = value;
     strcpy(((char *) ptr)+index, c);
   } else if (strcmp(type,"char *") == 0) {
-    char *c = _VALUE;
+    char *c = value;
     char **ca = (char **) ptr;
     if (ca[index]) free(ca[index]);
     if (strcmp(c,"NULL") == 0) {
@@ -409,45 +389,46 @@ static int ptrset(Tcl_Interp *interp, char *_PTRVALUE, char *_VALUE, int index, 
   add for basic datatypes.  For other datatypes, will do a byte-add.
   ------------------------------------------------------------------ */
 
-static int ptradd(Tcl_Interp *interp, char *_PTRVALUE, int offset) {
+static int ptradd(Tcl_Interp *interp, char *ptrvalue, int offset) {
 
   char *r,*s;
   void *ptr,*junk;
-  char *type;
+  _swig_type_info *type = 0;
+  _swig_type_info stype;
 
-  /* Check to see what kind of object _PTRVALUE is */
+  /* Check to see what kind of object ptrvalue is */
   
-  s = _PTRVALUE;
+  s = ptrvalue;
 
   /* Try to handle a few common datatypes first */
 
-  if (!SWIG_GetPtr(s,&ptr,"_int_p")) {
+  if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_int_p) == TCL_OK) {
     ptr = (void *) (((int *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_double_p")) {
+    type = SWIG_POINTER_int_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_double_p) == TCL_OK) {
     ptr = (void *) (((double *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_short_p")) {
+    type = SWIG_POINTER_double_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_short_p) == TCL_OK) {
     ptr = (void *) (((short *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_long_p")) {
+    type = SWIG_POINTER_short_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_long_p) == TCL_OK) {
     ptr = (void *) (((long *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_float_p")) {
+    type = SWIG_POINTER_long_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_float_p) == TCL_OK) { 
     ptr = (void *) (((float *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,"_char_p")) {
+    type = SWIG_POINTER_float_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,SWIG_POINTER_char_p) == TCL_OK) {
     ptr = (void *) (((char *) ptr) + offset);
-  } else if (!SWIG_GetPtr(s,&ptr,0)) {
+    type = SWIG_POINTER_char_p;
+  } else if (SWIG_ConvertPtrFromString(interp,s,&ptr,0) == TCL_OK) {
     ptr = (void *) (((char *) ptr) + offset);
+    stype.name = SWIG_PointerTypeFromString(s);
+    type = &stype;
   } else {
     Tcl_SetResult(interp,"Type error in ptradd. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
-  type = SWIG_GetPtr(s,&junk,"INVALID POINTER");
-  r = (char *) malloc(strlen(type)+20);
-  if (ptr) {
-    SWIG_MakePtr(r,ptr,type);
-  } else {
-    sprintf(r,"_0%s",type);
-  }
-  Tcl_SetResult(interp,r,TCL_VOLATILE);
-  free(r);
+  Tcl_SetObjResult(interp,SWIG_NewPointerObj(ptr,type));
   return TCL_OK;
 }
 
@@ -503,8 +484,11 @@ static void ptrmap(char *type1, char *type2) {
     c++;
   }
   *(r++) = 0;
+  /* Currently unsupported
   SWIG_RegisterMapping(typestr1,typestr2,0);
   SWIG_RegisterMapping(typestr2,typestr1,0);
+  */
+  fprintf(stdout,"SWIG: ptrmap currently unimplemented.\n");
 }
 
 /*------------------------------------------------------------------
@@ -513,18 +497,18 @@ static void ptrmap(char *type1, char *type2) {
   Destroys a pointer value
   ------------------------------------------------------------------ */
 
-int ptrfree(Tcl_Interp *interp, char *_PTRVALUE) {
+int ptrfree(Tcl_Interp *interp, char *ptrvalue) {
   void *ptr, *junk;
   char *s;
 
-  s = _PTRVALUE;
-  if (SWIG_GetPtr(s,&ptr,0)) {
+  s = ptrvalue;
+  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&ptr,0) != TCL_OK) {
     Tcl_SetResult(interp,"Type error in ptrfree. Argument is not a valid pointer value.",TCL_STATIC);
     return TCL_ERROR;
   }
 
   /* Check to see if this pointer is a char ** */
-  if (!SWIG_GetPtr(s,&junk,"_char_pp")) {
+  if (SWIG_ConvertPtrFromString(interp,ptrvalue,&junk,SWIG_POINTER_char_pp) == TCL_OK) {
     char **c = (char **) ptr;
     if (c) {
       int i = 0;
@@ -536,20 +520,10 @@ int ptrfree(Tcl_Interp *interp, char *_PTRVALUE) {
   } 
   if (ptr)
     free((char *) ptr);
-
   return TCL_OK;
 }
 %}
 
-%typemap(tcl,out) int ptrcast,
-                  int ptrvalue,
-                  int ptrcreate,
-                  int ptrset,
-                  int ptradd,
-                  int ptrfree  
-{
-  return $source;
-}
 %typemap(tcl8,out) int ptrcast,
                   int ptrvalue,
                   int ptrcreate,
@@ -560,11 +534,6 @@ int ptrfree(Tcl_Interp *interp, char *_PTRVALUE) {
   return $source;
 }
 
-// Ignore the Tcl_Interp * value, but set it to a value
-
-%typemap(tcl,ignore) Tcl_Interp * {
-  $target = interp;
-}
 %typemap(tcl8,ignore) Tcl_Interp * {
   $target = interp;
 }
@@ -683,10 +652,18 @@ void      ptrmap(char *type1, char *type2);
 // weird type-handling bugs.
 
 // Clear the ignore typemap
-    
-%typemap(tcl,ignore) Tcl_Interp *;
-%typemap(tcl8,ignore) Tcl_Interp *;
+//%typemap(tcl,ignore) Tcl_Interp *;
+//%typemap(tcl8,ignore) Tcl_Interp *;
 
+%init %{
+  {
+    int i;
+    for (i = 0; _swig_pointer_types[i]; i++) {
+      _swig_pointer_types[i] = SWIG_TypeRegister(_swig_pointer_types[i]);
+    }
+  }
+
+  %}
     
   
 
