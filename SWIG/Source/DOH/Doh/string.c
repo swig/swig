@@ -880,3 +880,28 @@ NewStringf(const DOH *fmt, ...)
   va_end(ap);
   return (DOHString *) r;
 }
+
+/* -----------------------------------------------------------------------------
+ * Strcmp()
+ * Strncmp()
+ * Strstr()
+ * Strchr()
+ *
+ * Some utility functions.
+ * ----------------------------------------------------------------------------- */
+
+int Strcmp(const DOHString_or_char *s1, const DOHString_or_char *s2) {
+  return strcmp(Char(s1),Char(s2));
+}
+
+int Strncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n) {
+  return strncmp(Char(s1),Char(s2),n);
+}
+
+char *Strstr(const DOHString_or_char *s1, const DOHString_or_char *s2) {
+  return strstr(Char(s1),Char(s2));
+}
+
+char *Strchr(const DOHString_or_char *s1, int ch) {
+  return strchr(Char(s1),ch);
+}
