@@ -6,12 +6,12 @@ require "enum_scope.php";
 
 check::classes("tree");
 check::functions("chops");
-check::equal(0,TreeInt_Oak,"0==TreeInt_Oak");
-check::equal(1,TreeInt_Oak,"0==TreeInt_Fir");
-check::equal(2,TreeInt_Oak,"0==TreeInt_Cedar");
-check::equal(TreeInt_Oak,chops(TreeInt_Oak),"TreeInt_Oak==chops(TreeInt_Oak)");
-check::equal(TreeInt_Fir,chops(TreeInt_Fir),"TreeInt_Fir==chops(TreeInt_Fir)");
-check::equal(TreeInt_Cedar,chops(TreeInt_Cedar),"TreeInt_Cedar==chops(TreeInt_Cedar)");
+check::equal(0,Tree_Oak,"0==Tree_Oak");
+check::equal(1,Tree_Fir,"1==Tree_Fir");
+check::equal(2,Tree_Cedar,"2==Tree_Cedar");
+check::equal(Tree_Oak,chops(Tree_Oak),"Tree_Oak==chops(Tree_Oak)");
+check::equal(Tree_Fir,chops(Tree_Fir),"Tree_Fir==chops(Tree_Fir)");
+check::equal(Tree_Cedar,chops(Tree_Cedar),"Tree_Cedar==chops(Tree_Cedar)");
 
 check::done();
 ?>
