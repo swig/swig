@@ -387,35 +387,7 @@ Guile
 
 **     Support GOOPS shadow classes.
 
-**     Support garbage collection.  Here is a possible design:
-
-       -- %new annotation decides whether a pointer smob can be gc'ed.
-
-       -- New smob type `swig-gc'; instances created with
-          SWIG_Guile_MakeCollectablePtr.  %new versions of the pointer
-          typemaps use this function rather than SWIG_Guile_MakePtr.
-
-       -- New typemaps "destructor", "gcmarker".  Their values are taken
-          as identifiers for functions taking one argument: a pointer to
-          the object to be destroyed, or whose SCM-valued subobjects are
-          to be marked.  After creating the pointer equivalence table,
-          we iterate again over the remembered pointer types, emitting
-          code that puts the functions into our type table.  No
-          additional functions are generated.
-
-       -- The default for all pointer types would be:
-          %typemap(destructor) SWIGPOINTER * "free";
-	  (or "delete" for C++)
-
-       -- A special annotation, e.g. FREED, can be attached to the
-          arguments of destructor functions, so that explicitly freed
-          structs won't be collected by the GC again. Like this:
-
-	   %typemap(argout) SWIGPOINTER *FREED {
-	     smob-tag($source) = swig; /* non-gc */
-	     smob-data($source) = NULL;
-	   }
-	   void free_foo(struct foo *FREED);
+[DONE] Support garbage collection.
 
 **     Make SWIG's types first-class by using a separate smob type for
        SWIG type descriptors; enable reflection on types.  (Maybe
@@ -429,6 +401,8 @@ Guile
 Mzscheme
 --------
 
+**     Port list-vector.i and pointer-in-out.i from Guile.
+
 Pike
 ----
 
@@ -440,6 +414,54 @@ Pike
 
 *      Should investigate the possibility of generating .cmod files
        in addition to straight C/C++ code for extensions.
+
+Common Lisp
+-----------
+
+*      Random thoughts by mkoeppe on supporting Common Lisp implementations:
+
+       There are many different Foreign Function Interfaces (FFI) for
+       the various CL implementations.  Probably SWIG should interface
+       to UFFI, a least-common-denominator FFI that supports many
+       implementations.
+
+       Via the s-expression SWIG module we can export SWIG's parse
+       tree and import it into CL.  It remains to check if all
+       relevant information is dumped (for instance, the type
+       information).  Experimental code is available to generate
+       low-level UFFI declarations from this parse tree.
+
+       However, for wrapping C++, we also need to create C wrappers
+       because most FFIs cannot directly import C++.  A CL SWIG module
+       could be exporting both these wrappers and UFFI declarations.
+       I have experimental code (not checked in yet) that does this.
+
+       This is fine for generating low-level wrappers. But how do we
+       support user typemaps (like converting lists and vectors to C
+       arrays on input)?  We have to generate Lisp code that does the
+       conversion and then calls the low-level wrapper.  If we
+       generate Lisp code, it should be beautiful and readable.
+       Therefore, we need at least a Lisp pretty printer.  A Lisp
+       pretty printer works best when the Lisp program is represented
+       not as text but as Lisp data.  Moreover, typemap writers will
+       feel very much constrained by SWIG's capabilities for
+       generating wrapper code, when compared to writing Lisp macros.
+       Thus we would need half a re-implementation of Lisp in SWIG to
+       make users happy.
+
+       The solution could be the following:
+
+**     Build a SWIG library (again) and load it into a Common Lisp
+       implementation.
+
+       The FFI declarations could be written manually, or this could
+       be bootstrapped via the s-expression module or the primitive
+       UFFI wrappers.  This should be easy because SWIG's API is quite
+       simple. 
+
+       The embedded SWIG would be driven by a CL program.  High-level
+       typemaps would be written as Lisp programs that generate Lisp
+       code.
 
 Documentation
 -------------
