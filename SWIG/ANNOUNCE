@@ -30,17 +30,21 @@ specialization.
 Richard Palmer and Sam Lidicott have continued to improve the PHP4
 module.
 
-* Enhanced Java Module *
-
-William Fulton has continued to make progress on the SWIG-Java module.
-It should provide much better support for typemaps and other advanced
-features.
-
 * Minor parser improvements *
 
 SWIG-1.3.11 includes some minor parsing improvements related to
 integer types.  Also, better support for the C long long type
 has been added.
+
+* Improved support on Cygwin *
+
+The Perl, Python, Tcl, Ruby and Java examples run out of the box on 
+Cygwin.
+
+* Bug fixes *
+
+Further bug fixes in many parts of SWIG. See the CHANGES file for 
+details.
 
 * Updated documentation *
 
