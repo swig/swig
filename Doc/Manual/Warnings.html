@@ -5,7 +5,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<a name="n1"></a><H1>11 Warning Messages</H1>
+<a name="n1"></a><H1>12 Warning Messages</H1>
 <!-- INDEX -->
 <ul>
 <li><a href="#n2">Introduction</a>
@@ -29,7 +29,7 @@
 
 
 
-<a name="n2"></a><H2>11.1 Introduction</H2>
+<a name="n2"></a><H2>12.1 Introduction</H2>
 
 
 During compilation, SWIG may generate a variety of warning messages.  For example:
@@ -45,7 +45,7 @@ Typically, warning messages indicate non-fatal problems with the input
 where the generated wrapper code will probably compile, but it may not
 work like you expect.
 
-<a name="n3"></a><H2>11.2 Warning message suppression</H2>
+<a name="n3"></a><H2>12.2 Warning message suppression</H2>
 
 
 All warning messages have a numeric code that is shown in the warning message itself.
@@ -123,7 +123,7 @@ There is no option to suppress all SWIG warning messages.  The warning messages 
 for a reason---to tell you that something may be <em>broken</em> in
 your interface.  Ignore the warning messages at your own peril.
 
-<a name="n4"></a><H2>11.3 Enabling additional warnings</H2>
+<a name="n4"></a><H2>12.3 Enabling additional warnings</H2>
 
 
 Some warning messages are disabled by default and are generated only
@@ -167,7 +167,7 @@ or
 Note: selective enabling of warnings with <tt>%warnfilter</tt> overrides any global settings you might have
 made using <tt>-w</tt> or <tt>#pragma</tt>.
 
-<a name="n5"></a><H2>11.4 Issuing a warning message</H2>
+<a name="n5"></a><H2>12.4 Issuing a warning message</H2>
 
 
 Warning messages can be issued from an interface file using a number of directives.  The
@@ -205,7 +205,7 @@ Warning messages can be associated with typemaps using the
 
 In this case, the warning message will be printed whenever the typemap is actually used.
 
-<a name="n6"></a><H2>11.5 Commentary</H2>
+<a name="n6"></a><H2>12.5 Commentary</H2>
 
 
 The ability to suppress warning messages is really only provided for
@@ -221,10 +221,10 @@ no obvious recovery.  There is no mechanism for suppressing error
 messages or handling errors as warnings---you must make changes to
 the input file to fix the problem.
 
-<a name="n7"></a><H2>11.6 Warning number reference</H2>
+<a name="n7"></a><H2>12.6 Warning number reference</H2>
 
 
-<a name="n8"></a><H3>11.6.1 Deprecated features (100-199)</H3>
+<a name="n8"></a><H3>12.6.1 Deprecated features (100-199)</H3>
 
 
 <ul>
@@ -250,7 +250,7 @@ the input file to fix the problem.
 <li>120. Deprecated command line option (-c).
 </ul>
 
-<a name="n9"></a><H3>11.6.2 Preprocessor (200-299)</H3>
+<a name="n9"></a><H3>12.6.2 Preprocessor (200-299)</H3>
 
 
 <ul>
@@ -258,7 +258,7 @@ the input file to fix the problem.
 <li>202. Could not evaluate 'expr'.
 </ul>
 
-<a name="n10"></a><H3>11.6.3 C/C++ Parser (300-399)</H3>
+<a name="n10"></a><H3>12.6.3 C/C++ Parser (300-399)</H3>
 
 
 <ul>
@@ -330,7 +330,7 @@ the input file to fix the problem.
 <li>395. operator delete[] ignored.
 </ul>
 
-<a name="n11"></a><H3>11.6.4 Types and typemaps (400-499) </H3>
+<a name="n11"></a><H3>12.6.4 Types and typemaps (400-499) </H3>
 
 
 <ul>
@@ -352,7 +352,7 @@ the input file to fix the problem.
 <li>468. No 'throw' typemap defined for exception type 'type'.
 </ul>
 
-<a name="n12"></a><H3>11.6.5 Code generation (500-599)</H3>
+<a name="n12"></a><H3>12.6.5 Code generation (500-599)</H3>
 
 
 <ul>
@@ -371,7 +371,7 @@ the input file to fix the problem.
 <li>513. Can't generate wrappers for unnamed struct/class.
 </ul>
 
-<a name="n13"></a><H3>11.6.6 Language module specific (800-899) </H3>
+<a name="n13"></a><H3>12.6.6 Language module specific (800-899) </H3>
 
 
 <ul>
@@ -402,12 +402,12 @@ the input file to fix the problem.
 <li>838. No csin typemap defined for <em>type</em>  (C#).
 </ul>
 
-<a name="n14"></a><H3>11.6.7 User defined (900-999)</H3>
+<a name="n14"></a><H3>12.6.7 User defined (900-999)</H3>
 
 
 These numbers can be used by your own application.
 
-<a name="n15"></a><H2>11.7 History</H2>
+<a name="n15"></a><H2>12.7 History</H2>
 
 
 The ability to control warning messages was first added to SWIG-1.3.12.
