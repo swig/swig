@@ -525,7 +525,7 @@ static DohObjInfo HashType = {
  * ----------------------------------------------------------------------------- */
 
 int
-Hash_check(DOH *so) {
+Hash_check(const DOH *so) {
     Hash *h = (Hash *) so;
     if (!h) return 0;
     if (!DohCheck(so)) return 0;

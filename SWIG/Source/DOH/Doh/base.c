@@ -112,14 +112,14 @@ DohIntern(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohCopy(DOH *obj) {
+DohCopy(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohCopy %x\n",obj);
   if (!DohCheck(b)) {
     DohTrace(DOH_UNKNOWN,"Unknown object %x passed to Copy.\n", obj);
     return 0;
   }
-  if (b->objinfo->doh_copy) return (b->objinfo->doh_copy)(obj);
+  if (b->objinfo->doh_copy) return (b->objinfo->doh_copy)(b);
   DohTrace(DOH_UNSUPPORTED,"No copy method defined for type '%s'\n", b->objinfo->objname);
   return 0;
 }
@@ -175,7 +175,7 @@ DohSetScope(DOH *obj, int s) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohStr(DOH *obj) {
+DohStr(const DOH *obj) {
   DOH *s;
   DohBase *b = (DohBase *) obj; 
   DohTrace(DOH_CALLS,"DohStr %x\n",obj);
@@ -200,7 +200,7 @@ DohStr(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int
-DohDump(DOH *obj, DOH *out) {
+DohDump(const DOH *obj, DOH *out) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohDump %x, %x\n",obj,out);
   if (DohCheck(obj)) {
@@ -221,13 +221,13 @@ DohDump(DOH *obj, DOH *out) {
  * is invoked on it.
  * ----------------------------------------------------------------------------- */
 int
-DohLen(DOH *obj) {
+DohLen(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohLen %x\n",obj);
   if (!b) return 0;
   if (DohCheck(b)) {
     if (b->objinfo->doh_len) {
-      return (b->objinfo->doh_len)(obj);
+      return (b->objinfo->doh_len)(b);
     }
     DohTrace(DOH_UNSUPPORTED, "No len method defined for type '%s'\n", b->objinfo->objname);
   } else {
@@ -245,12 +245,12 @@ DohLen(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int
-DohHashval(DOH *obj) {
+DohHashval(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohHashval %x\n",obj);
   if (DohCheck(b)) {
     if (b->objinfo->doh_hash) {
-      return (b->objinfo->doh_hash)(obj);
+      return (b->objinfo->doh_hash)(b);
     }
     DohTrace(DOH_UNSUPPORTED,"No hash method defined for type '%s'\n", b->objinfo->objname);
   } else {
@@ -266,13 +266,13 @@ DohHashval(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 void *
-DohData(DOH *obj) {
+DohData(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohData %x\n",obj);
   if (DohCheck(obj)) {
     if (b->objinfo) {
       if (b->objinfo->doh_data) {
-	return (b->objinfo->doh_data)(obj);
+	return (b->objinfo->doh_data)(b);
       }
     }
     DohTrace(DOH_UNSUPPORTED,"No data method defined for type '%s'\n", b->objinfo->objname);
@@ -294,7 +294,7 @@ DohGetline(DOH *obj) {
   DohTrace(DOH_CALLS,"DohGetline %x\n",obj);
   if (DohCheck(obj)) {
     if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getline) {
-      return (b->objinfo->doh_position->doh_getline)(obj);
+      return (b->objinfo->doh_position->doh_getline)(b);
     } else {
       DohTrace(DOH_UNSUPPORTED,"No getline method defined for type '%s'\n", b->objinfo->objname);
       return -1;
@@ -337,7 +337,7 @@ DohGetfile(DOH *obj) {
   DohTrace(DOH_CALLS,"DohGetfile %x\n",obj);
   if (DohCheck(obj)) {
     if (b->objinfo->doh_position && b->objinfo->doh_position->doh_getfile) {
-      return (b->objinfo->doh_position->doh_getfile)(obj);
+      return (b->objinfo->doh_position->doh_getfile)(b);
     }
     DohTrace(DOH_UNSUPPORTED,"No getfile method defined for type '%s'\n", b->objinfo->objname);
   } else {
@@ -375,7 +375,7 @@ DohSetfile(DOH *obj, DOH *file) {
  * ----------------------------------------------------------------------------- */
  
 int
-DohCmp(DOH *obj1, DOH *obj2) {
+DohCmp(const DOH *obj1, const DOH *obj2) {
   DohBase *b1, *b2;
   DohTrace(DOH_CALLS,"DohCmp %x, %x\n",obj1,obj2);
   b1 = (DohBase *) obj1;
@@ -401,7 +401,7 @@ DohCmp(DOH *obj1, DOH *obj2) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohIsMapping(DOH *obj) {
+DohIsMapping(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
   if (b->objinfo->doh_mapping) return 1;
@@ -415,12 +415,12 @@ DohIsMapping(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 DOH *
-DohGetattr(DOH *obj, DOH *name) {
+DohGetattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohGetattr %x, %x\n",obj,name);
   if (DohIsMapping(b)) {
     if (b->objinfo->doh_mapping->doh_getattr) {
-      return (b->objinfo->doh_mapping->doh_getattr)(obj,name);
+      return (b->objinfo->doh_mapping->doh_getattr)(b,(DOH *) name);
     }
   }
   if (DohCheck(b)) {
@@ -438,12 +438,12 @@ DohGetattr(DOH *obj, DOH *name) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohSetattr(DOH *obj, DOH *name, DOH *value) {
+DohSetattr(DOH *obj, const DOH *name, const DOH *value) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohSetattr %x, %x, %x\n",obj,name, value);
   if (DohIsMapping(b)) {
     if (b->objinfo->doh_mapping->doh_setattr) {
-      return (b->objinfo->doh_mapping->doh_setattr)(obj,name,value);
+      return (b->objinfo->doh_mapping->doh_setattr)(b,(DOH *) name,(DOH *) value);
     }
   }
   if (DohCheck(b)) {
@@ -461,12 +461,12 @@ DohSetattr(DOH *obj, DOH *name, DOH *value) {
  * ----------------------------------------------------------------------------- */
 
 void
-DohDelattr(DOH *obj, DOH *name) {
+DohDelattr(DOH *obj, const DOH *name) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohDelattr %x, %x\n",obj,name);
   if (DohIsMapping(obj)) {
     if (b->objinfo->doh_mapping->doh_delattr) {
-      (b->objinfo->doh_mapping->doh_delattr)(obj,name);
+      (b->objinfo->doh_mapping->doh_delattr)(b,(DOH *) name);
       return;
     }
   }
@@ -530,10 +530,10 @@ DohNextkey(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohGetInt(DOH *obj, DOH *name) {
+DohGetInt(DOH *obj, const DOH *name) {
   DOH *val;
   DohTrace(DOH_CALLS,"DohGetInt %x, %x\n",obj,name);  
-  val = Getattr(obj,name);
+  val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
     return atoi(Data(val));
@@ -548,10 +548,10 @@ DohGetInt(DOH *obj, DOH *name) {
  * ----------------------------------------------------------------------------- */
 
 double
-DohGetDouble(DOH *obj, DOH *name) {
+DohGetDouble(DOH *obj, const DOH *name) {
   DOH *val;
   DohTrace(DOH_CALLS,"DohGetDouble %x, %x\n",obj,name);  
-  val = Getattr(obj,name);
+  val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
     return atof(Data(val));
@@ -566,10 +566,10 @@ DohGetDouble(DOH *obj, DOH *name) {
  * ----------------------------------------------------------------------------- */
 
 char *
-DohGetChar(DOH *obj, DOH *name) {
+DohGetChar(DOH *obj, const DOH *name) {
   DOH *val;
   DohTrace(DOH_CALLS,"DohGetChar %x, %x\n",obj,name);  
-  val = Getattr(obj,name);
+  val = Getattr(obj,(DOH *) name);
   if (!val) return 0;
   if (DohIsString(val)) {
     return (char *) Data(val);
@@ -584,12 +584,12 @@ DohGetChar(DOH *obj, DOH *name) {
  * ----------------------------------------------------------------------------- */
 
 void
-DohSetInt(DOH *obj, DOH *name, int value) {
+DohSetInt(DOH *obj, const DOH *name, int value) {
   DOH *temp;
   DohTrace(DOH_CALLS,"DohSetInt %x, %x, %d\n", obj, name, value);
   temp = NewString("");
   Printf(temp,"%d",value);
-  Setattr(obj,name,temp);
+  Setattr(obj,(DOH *) name,temp);
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -599,12 +599,12 @@ DohSetInt(DOH *obj, DOH *name, int value) {
  * ----------------------------------------------------------------------------- */
 
 void
-DohSetDouble(DOH *obj, DOH *name, double value) {
+DohSetDouble(DOH *obj, const DOH *name, double value) {
   DOH *temp;
   DohTrace(DOH_CALLS,"DohSetDouble %x, %x, %g\n", obj, name, value);
   temp = NewString("");
   Printf(temp,"%0.17f",value);
-  Setattr(obj,name,temp);
+  Setattr(obj,(DOH *) name,temp);
 }
 
 /* -----------------------------------------------------------------------------
@@ -614,11 +614,11 @@ DohSetDouble(DOH *obj, DOH *name, double value) {
  * ----------------------------------------------------------------------------- */
 
 void
-DohSetChar(DOH *obj, DOH *name, char *value) {
+DohSetChar(DOH *obj, const DOH *name, char *value) {
   DOH *temp;
   DohTrace(DOH_CALLS,"DohSetChar %x, %x, %g\n", obj, name, value);
   temp = NewString(value);
-  Setattr(obj,name,temp);
+  Setattr(obj,(DOH *) name,temp);
 }
 
 /* ----------------------------------------------------------------------
@@ -632,7 +632,7 @@ DohSetChar(DOH *obj, DOH *name, char *value) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohIsSequence(DOH *obj) {
+DohIsSequence(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
   if (b->objinfo->doh_sequence) return 1;
@@ -669,12 +669,12 @@ DohGetitem(DOH *obj, int index) {
  * ----------------------------------------------------------------------------- */
    
 int 
-DohSetitem(DOH *obj, int index, DOH *value) {
+DohSetitem(DOH *obj, int index, const DOH *value) {
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohSetitem %x, %d, %x\n",obj,index, value);  
   if (DohIsSequence(obj)) {
     if (b->objinfo->doh_sequence->doh_setitem) {
-      return (b->objinfo->doh_sequence->doh_setitem)(obj,index,value);
+      return (b->objinfo->doh_sequence->doh_setitem)(obj,index,(DOH *) value);
     }
   }
   if (DohCheck(obj)) {
@@ -713,13 +713,13 @@ DohDelitem(DOH *obj, int index) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohInsertitem(DOH *obj, int index, DOH *value) {
+DohInsertitem(DOH *obj, int index, const DOH *value) {
   int  no = 0;
   DohBase *b = (DohBase *) obj;
   DohTrace(DOH_CALLS,"DohInsertitem %x, %d, %x\n",obj,index, value);
   if (DohIsSequence(obj)) {
     if (b->objinfo->doh_sequence->doh_insitem) {
-      return (b->objinfo->doh_sequence->doh_insitem)(obj,index,value);
+      return (b->objinfo->doh_sequence->doh_insitem)(obj,index,(DOH *) value);
     }
   }
   if (DohCheck(obj)) {
@@ -786,7 +786,7 @@ DohNextitem(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohIsFile(DOH *obj) {
+DohIsFile(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
   if (b->objinfo->doh_file) return 1;
@@ -989,7 +989,7 @@ DohClose(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohIsString(DOH *obj) {
+DohIsString(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
   if (b->objinfo->doh_string) return 1;
@@ -1003,12 +1003,12 @@ DohIsString(DOH *obj) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohReplace(DOH *src, DOH *token, DOH *rep, int flags) {
+DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags) {
   DohBase *b = (DohBase *) src;
   DohTrace(DOH_CALLS, "DohReplace %x\n", src);
   if (DohIsString(src)) {
     if (b->objinfo->doh_string->doh_replace) {
-      return (b->objinfo->doh_string->doh_replace)(src,token,rep,flags);
+      return (b->objinfo->doh_string->doh_replace)(src,(DOH *) token, (DOH *) rep,flags);
     }
   }
   if (DohCheck(b)) {
@@ -1052,7 +1052,7 @@ DohChop(DOH *src) {
  * ----------------------------------------------------------------------------- */
 
 int 
-DohIsCallable(DOH *obj) {
+DohIsCallable(const DOH *obj) {
   DohBase *b = (DohBase *) obj;
   if (!DohCheck(b)) return 0;
   if (b->objinfo->doh_callable) return 1;

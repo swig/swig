@@ -182,7 +182,7 @@ NewString(const DOH *so)
  * ----------------------------------------------------------------------------- */
 
 DOH *
-NewStringf(DOH *fmt, ...)
+NewStringf(const DOH *fmt, ...)
 {
   va_list ap;
   DOH *r;
@@ -239,7 +239,7 @@ DelString(DOH *so) {
  * int String_check(DOH *s) - Check if s is a string
  * ----------------------------------------------------------------------------- */
 int
-String_check(DOH *s)
+String_check(const DOH *s)
 {
   char *c = (char *) s;
   if (!s) return 0;

@@ -85,11 +85,11 @@ static DOH *encode(char *name,  DOH *s) {
  * ----------------------------------------------------------------------------- */
 
 int
-DohvPrintf(DOH *so, char *format, va_list ap)
+DohvPrintf(DOH *so, const char *format, va_list ap)
 {
   static char *fmt_codes = "dioxXucsSfeEgGpn";
   int state = 0;
-  char *p = format;
+  const char *p = format;
   char  newformat[256];
   char  obuffer[OBUFLEN];
   char *fmt = 0;
@@ -376,7 +376,7 @@ DohvPrintf(DOH *so, char *format, va_list ap)
  * ----------------------------------------------------------------------------- */
 
 int
-DohPrintf(DOH *obj, char *format, ...) {
+DohPrintf(DOH *obj, const char *format, ...) {
   va_list ap;
   int ret;
   va_start(ap,format);

@@ -139,7 +139,7 @@ typedef struct DohObjInfo {
   extern int     DohObjFreeCheck(DOH *ptr);          /* Check if already free */
   extern void    DohInit(DOH *obj);                  /* Initialize an object  */
   extern void    DohXInit(DOH *obj);                 /* Initialize extended object */
-  extern int     DohCheck(DOH *ptr);                 /* Check if a DOH object */
+  extern int     DohCheck(const DOH *ptr);           /* Check if a DOH object */
   extern int     DohPoolSize(int);                   /* Set memory alloc size */
   extern int     DohNewScope();                      /* Create a new scope    */
   extern void    DohDelScope(int);                   /* Delete a scope        */
@@ -150,35 +150,35 @@ typedef struct DohObjInfo {
   /* Basic object methods.  Common to most objects */
 
   extern void    DohDelete(DOH *obj);                /* Delete an object      */
-  extern DOH    *DohCopy(DOH *obj);
+  extern DOH    *DohCopy(const DOH *obj);
   extern void    DohClear(DOH *obj);
   extern void    DohSetScope(DOH *, int scp);        /* Set scope of object   */
-  extern DOH    *DohStr(DOH *obj);
-  extern void   *DohData(DOH *obj);
-  extern int     DohDump(DOH *obj, DOH *out);
-  extern int     DohLen(DOH *obj);
-  extern int     DohHashval(DOH *obj);
-  extern int     DohCmp(DOH *obj1, DOH *obj2);
+  extern DOH    *DohStr(const DOH *obj);
+  extern void   *DohData(const DOH *obj);
+  extern int     DohDump(const DOH *obj, DOH *out);
+  extern int     DohLen(const DOH *obj);
+  extern int     DohHashval(const DOH *obj);
+  extern int     DohCmp(const DOH *obj1, const DOH *obj2);
 
   /* Mapping methods */
 
-  extern DOH    *DohGetattr(DOH *obj, DOH *name);
-  extern int     DohSetattr(DOH *obj, DOH *name, DOH *value);
-  extern void    DohDelattr(DOH *obj, DOH *name);
+  extern DOH    *DohGetattr(DOH *obj, const DOH *name);
+  extern int     DohSetattr(DOH *obj, const DOH *name, const DOH *value);
+  extern void    DohDelattr(DOH *obj, const DOH *name);
   extern DOH    *DohFirstkey(DOH *obj);
   extern DOH    *DohNextkey(DOH *obj);
-  extern int     DohGetInt(DOH *obj, DOH *name);
-  extern double  DohGetDouble(DOH *obj, DOH *name);
-  extern char   *DohGetChar(DOH *obj, DOH *name);
-  extern void    DohSetInt(DOH *obj, DOH *name, int);
-  extern void    DohSetDouble(DOH *obj, DOH *name, double);
+  extern int     DohGetInt(DOH *obj, const DOH *name);
+  extern double  DohGetDouble(DOH *obj, const DOH *name);
+  extern char   *DohGetChar(DOH *obj, const DOH *name);
+  extern void    DohSetInt(DOH *obj, const DOH *name, int);
+  extern void    DohSetDouble(DOH *obj, const DOH *name, double);
 
   /* Sequence methods */
 
   extern DOH    *DohGetitem(DOH *obj, int index);
-  extern int     DohSetitem(DOH *obj, int index, DOH *value);
+  extern int     DohSetitem(DOH *obj, int index, const DOH *value);
   extern int     DohDelitem(DOH *obj, int index);
-  extern int     DohInsertitem(DOH *obj, int index, DOH *value);
+  extern int     DohInsertitem(DOH *obj, int index, const DOH *value);
   extern DOH    *DohFirstitem(DOH *obj);
   extern DOH    *DohNextitem(DOH *obj);
 
@@ -205,14 +205,14 @@ typedef struct DohObjInfo {
 
   /* String Methods */
 
-  extern int     DohReplace(DOH *src, DOH *token, DOH *rep, int flags);
+  extern int     DohReplace(DOH *src, const DOH *token, const DOH *rep, int flags);
   extern void    DohChop(DOH *src);
 
   /* Utility functions */
 
   extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
-  extern int     DohPrintf(DOH *obj, char *format, ...);
-  extern int     DohvPrintf(DOH *obj, char *format, va_list ap);
+  extern int     DohPrintf(DOH *obj, const char *format, ...);
+  extern int     DohvPrintf(DOH *obj, const char *format, va_list ap);
   extern DOH    *DohReadline(DOH *in);
 
   /* Miscellaneous */
@@ -220,11 +220,11 @@ typedef struct DohObjInfo {
   extern void    DohTrace(int level, char *fmt,...);
   extern void    DohDebug(int d);
 
-  extern int     DohIsMapping(DOH *obj);
-  extern int     DohIsSequence(DOH *obj);
-  extern int     DohIsString(DOH *obj);
-  extern int     DohIsFile(DOH *obj);
-  extern int     DohIsCallable(DOH *obj);
+  extern int     DohIsMapping(const DOH *obj);
+  extern int     DohIsSequence(const DOH *obj);
+  extern int     DohIsString(const DOH *obj);
+  extern int     DohIsFile(const DOH *obj);
+  extern int     DohIsCallable(const DOH *obj);
 
 #ifndef DOH_LONG_NAMES
 /* Macros to invoke the above functions.  Includes the location of
@@ -327,9 +327,9 @@ typedef struct {
  * ----------------------------------------------------------------------------- */
 
 extern DOH   *NewString(const DOH *c);
-extern DOH   *NewStringf(DOH *fmt, ...);
+extern DOH   *NewStringf(const DOH *fmt, ...);
 
-extern int    String_check(DOH *s);
+extern int    String_check(const DOH *s);
 
 /* String replacement flags */
 
@@ -354,7 +354,7 @@ extern int  DohCopyto(DOH *input, DOH *output);
  * ----------------------------------------------------------------------------- */
 
 extern DOH  *NewList();
-extern int  List_check(DOH *);
+extern int  List_check(const DOH *);
 extern void List_sort(DOH *);
 
 /* -----------------------------------------------------------------------------
@@ -362,7 +362,7 @@ extern void List_sort(DOH *);
  * ----------------------------------------------------------------------------- */
 
 extern DOH   *NewHash();
-extern int    Hash_check(DOH *h);
+extern int    Hash_check(const DOH *h);
 extern DOH   *Hash_keys(DOH *);
 
 /* -----------------------------------------------------------------------------

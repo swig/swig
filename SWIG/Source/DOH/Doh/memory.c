@@ -105,7 +105,7 @@ InitPools() {
  * ---------------------------------------------------------------------- */
 
 int 
-DohCheck(DOH *ptr) {
+DohCheck(const DOH *ptr) {
   Pool *p = Pools;
   char *cptr = (char *) ptr;
   while (p) {
