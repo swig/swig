@@ -49,6 +49,7 @@ dnl Checks for library functions.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
 AC_SUBST(CCSHARED)
+AC_SUBST(LINKFORSHARED)
 
 # SO is the extension of shared libraries `(including the dot!)
 # -- usually .so, .sl on HP-UX
@@ -141,6 +142,23 @@ fi
 AC_MSG_RESULT($RPATH)
 AC_SUBST(RPATH)
 
+# LINKFORSHARED are the flags passed to the $(CC) command that links
+# the a few executables -- this is only needed for a few systems
+
+AC_MSG_CHECKING(LINKFORSHARED)
+if test -z "$LINKFORSHARED"
+then
+	case $ac_sys_system/$ac_sys_release in
+	AIX*)	LINKFORSHARED='-Wl,-bE:$(srcdir)/python.exp -lld';;
+	hp*|HP*)
+	    LINKFORSHARED="-Wl,-E -Wl,+s -Wl,+b\$(BINLIBDEST)/lib-dynload";;
+	Linux*) LINKFORSHARED="-Xlinker -export-dynamic";;
+	next/*) LINKFORSHARED="-u libsys_s";;
+	SCO_SV*) LINKFORSHARED="-Bdynamic -dy -Wl,-Bexport";;
+	IRIX*/6*) LINKFORSHARED="-all";;
+	esac
+fi
+AC_MSG_RESULT($LINKFORSHARED)
 
 
 echo ""
@@ -464,4 +482,5 @@ AC_CONFIG_SUBDIRS(Source/SWILL Source/DOH)
 AC_OUTPUT(Makefile Source/Swig/Makefile 
     Source/Preprocessor/Makefile Source/SWIG1.1/Makefile 
     Source/Modules1.1/Makefile Source/LParse/Makefile 
-    Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile Source/Include/swigconfig.h)
+    Source/Experiment/Makefile Source/Swim/Makefile Examples/Makefile Source/Include/swigconfig.h
+    Source/Expat/Makefile Source/Xmlparse/Makefile )
