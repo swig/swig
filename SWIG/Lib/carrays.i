@@ -15,7 +15,7 @@
  * Generates functions for creating and accessing elements of a C array
  * (as pointers).  Creates the following functions:
  *
- *        TYPE *new_NAME(int nelements, TYPE initvalue)
+ *        TYPE *new_NAME(int nelements)
  *        void delete_NAME(TYPE *);
  *        TYPE NAME_getitem(TYPE *, int index);
  *        void NAME_setitem(TYPE *, int index, TYPE value);
