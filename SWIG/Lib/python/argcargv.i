@@ -3,7 +3,7 @@
  * ------------------------------------------------------------ */
 
 %fragment("SWIG_AsArgcArgv","header",
-	  fragment="SWIG_AsCharPtr") %{
+	  fragment="SWIG_AsCharPtr") {
 SWIGINTERN char**
   SWIG_AsArgcArgv(PyObject* input,
 		  swig_type_info* ppchar_info,
@@ -40,7 +40,7 @@ SWIGINTERN char**
     return argv;
   }
 }
-%}
+}
 
 /*
   This typemap works with either a char**, a python list or a python

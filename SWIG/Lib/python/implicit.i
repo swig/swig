@@ -45,8 +45,8 @@
 %define %implicit_frag(...) ,fragment=SWIG_Traits_frag(__VA_ARGS__) %enddef
 
 %define %implicit_code(...)
-  if (swigpy::check<__VA_ARGS__ >(obj)) {
-    if (val) *val = new value_type(swigpy::as<__VA_ARGS__ >(obj));
+  if (swig::check<__VA_ARGS__ >(obj)) {
+    if (val) *val = new value_type(swig::as<__VA_ARGS__ >(obj));
     return SWIG_NEWOBJ;
   }
 %enddef
@@ -60,7 +60,7 @@
 %fragment(SWIG_Traits_frag(Type),"header",
 	  fragment="StdTraits"
           %formacro_1(%implicit_frag,__VA_ARGS__)) %{
-namespace swigpy {
+namespace swig {
   template <>  struct traits<Type > {   
     typedef pointer_category category;
     static const char* type_name() { return "Type"; }
@@ -99,7 +99,7 @@ namespace swigpy {
 %fragment(SWIG_Traits_frag(Type),"header",
 	  fragment="StdTraits",
 	  fragment=SWIG_Traits_frag(Imp1)) %{
-namespace swigpy {
+namespace swig {
   template <>  struct traits< Type > {   
     typedef pointer_category category;
     static const char* type_name() { return "Type"; }
@@ -140,7 +140,7 @@ namespace swigpy {
 	  fragment="StdTraits",
 	  fragment=SWIG_Traits_frag(Imp1),
 	  fragment=SWIG_Traits_frag(Imp2)) %{
-namespace swigpy {
+namespace swig {
   template <>  struct traits< Type > {   
     typedef pointer_category category;
     static const char* type_name() { return "Type"; }
@@ -184,7 +184,7 @@ namespace swigpy {
 	  fragment=SWIG_Traits_frag(Imp1),
 	  fragment=SWIG_Traits_frag(Imp2),
 	  fragment=SWIG_Traits_frag(Imp3)) %{
-namespace swigpy {
+namespace swig {
   template <>  struct traits< Type > {   
     typedef pointer_category category;
     static const char* type_name() { return "Type"; }

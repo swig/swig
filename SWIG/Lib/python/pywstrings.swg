@@ -3,7 +3,7 @@
  *  utility methods for wchar_t strings 
  * ------------------------------------------------------------ */
 
-%fragment("SWIG_AsWCharPtrAndSize","header") %{
+%fragment("SWIG_AsWCharPtrAndSize","header") {
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize)
 {
@@ -37,10 +37,10 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize)
   }
   return 0;
 }
-%}
+}
 
 %fragment("SWIG_AsWCharPtr","header",
-	  fragment="SWIG_AsWCharPtrAndSize") %{
+	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsWCharPtr(PyObject *obj, wchar_t **val)
 {
@@ -55,9 +55,9 @@ SWIG_AsWCharPtr(PyObject *obj, wchar_t **val)
   }
   return 0;
 }
-%}
+}
 
-%fragment("SWIG_FromWCharPtr","header") %{
+%fragment("SWIG_FromWCharPtr","header") {
 SWIGINTERN PyObject *
 SWIG_FromWCharPtr(const wchar_t * cptr)
 { 
@@ -73,10 +73,10 @@ SWIG_FromWCharPtr(const wchar_t * cptr)
   Py_INCREF(Py_None);
   return Py_None;
 }
-%}
+}
 
 %fragment("SWIG_AsNewWCharPtr","header",
-	  fragment="SWIG_AsWCharPtrAndSize") %{
+	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsNewWCharPtr(PyObject *obj, wchar_t **val)
 {
@@ -102,10 +102,10 @@ SWIG_AsNewWCharPtr(PyObject *obj, wchar_t **val)
   }
   return 0;
 }
-%}
+}
 
 %fragment("SWIG_AsWCharArray","header",
-	  fragment="SWIG_AsWCharPtrAndSize") %{
+	  fragment="SWIG_AsWCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsWCharArray(PyObject *obj, wchar_t *val, size_t size)
 { 
@@ -127,9 +127,9 @@ SWIG_AsWCharArray(PyObject *obj, wchar_t *val, size_t size)
   }
   return 0;
 }
-%}
+}
 
-%fragment("SWIG_FromWCharArray","header") %{
+%fragment("SWIG_FromWCharArray","header") {
 SWIGINTERNSHORT PyObject *
 SWIG_FromWCharArray(const wchar_t * carray, size_t size)
 {
@@ -140,7 +140,7 @@ SWIG_FromWCharArray(const wchar_t * carray, size_t size)
     return PyUnicode_FromWideChar(carray, SWIG_numeric_cast(size,int));
   }
 }
-%}
+}
 
 /* ------------------------------------------------------------
  *  The plain wchar_t * handling

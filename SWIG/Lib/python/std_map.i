@@ -1,89 +1,10 @@
-//
-// std::map
-// Python implementation
-
-%include <std_pair.i>
-%include <std_container.i>
-
-%define %std_map_methods_common(map)
-  %std_container_methods(SWIG_arg(map));
-
-  size_type erase(const key_type& x);
-  size_type count(const key_type& x) const;
-
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(iterator position, const value_type& x);
-  void erase(iterator position);
-  void erase(iterator first, iterator last);
-
-  iterator find(const key_type& x);
-  const_iterator find(const key_type& x) const;
-  iterator lower_bound(const key_type& x);
-  const_iterator lower_bound(const key_type& x) const;
-  iterator upper_bound(const key_type& x);
-  const_iterator upper_bound(const key_type& x) const;
-  #endif
-%enddef
-
-%define %std_map_methods(...)
-  %std_map_methods_common(SWIG_arg(__VA_ARGS__));
-
-  #ifdef SWIG_EXPORT_ITERATOR_METHODS
-  iterator insert(const value_type& x);
-  #endif
-%enddef
-
-
-// **** Note ****
-// 
-// If you are going to use a map, you need to instantiate both the 
-// map and the pair class:
-//
-//   %template(pair_ii) std::pair<int, int>;
-//   %template(map_ii) std::map<int, int>;
-//
-// or
-//
-//   %template() std::pair<int, int>;
-//   %template(map_ii) std::map<int, int>;
-//
-// **** Note ****
-// ------------------------------------------------------------------------
-// std::map
-// 
-// The aim of all that follows would be to integrate std::map with 
-// Python as much as possible, namely, to allow the user to pass and 
-// be returned Python tuples or maps.
-// const declarations are used to guess the intent of the function being
-// exported; therefore, the following rationale is applied:
-// 
-//   -- f(std::map<T>), f(const std::map<T>&):
-//      the parameter being read-only, either a Python sequence or a
-//      previously wrapped std::map<T> can be passed.
-//   -- f(std::map<T>&), f(std::map<T>*):
-//      the parameter may be modified; therefore, only a wrapped std::map
-//      can be passed.
-//   -- std::map<T> f(), const std::map<T>& f():
-//      the map is returned by copy; therefore, a Python sequence of T:s 
-//      is returned which is most easily used in other Python functions
-//   -- std::map<T>& f(), std::map<T>* f():
-//      the map is returned by reference; therefore, a wrapped std::map
-//      is returned
-//   -- const std::map<T>* f(), f(const std::map<T>*):
-//      for consistency, they expect and return a plain map pointer.
-// ------------------------------------------------------------------------
-
-%{
-#include <map>
-#include <algorithm>
-#include <stdexcept>
-%}
-
-// exported class
+/*
+  Maps
+*/
 
 %fragment("StdMapTraits","header",fragment="StdSequenceTraits")
 {
-  namespace swigpy {
+  namespace swig {
     template <class PySeq, class K, class T >
     inline void
     assign(const PySeq& pyseq, std::map<K,T > *map) {
@@ -128,8 +49,8 @@
 	PyObject *obj = PyDict_New();
 	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
 	  PyDict_SetItem(obj,
-			 swigpy::from(i->first),
-			 swigpy::from(i->second));
+			 swig::from(i->first),
+			 swig::from(i->second));
 	}
 	return obj;
       }
@@ -137,50 +58,115 @@
   }
 }
 
-namespace std {
+%define %swig_map_methods(Map...)
+  %swig_container_methods(Map)
 
-  template<class K, class T> class map {
-  public:
-    typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
-    typedef K key_type;
-    typedef T mapped_type;
-    typedef std::pair<const K, T> value_type;
-
-    typedef value_type* pointer;
-    typedef const value_type* const_pointer;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
-
-    %traits_swigtype(K);
-    %traits_swigtype(T);	    
-
-    %fragment(SWIG_Traits_frag(std::map<K, T >), "header",
-	      fragment=SWIG_Traits_frag(std::pair<K, T >),
-	      fragment="StdMapTraits") {
-      namespace swigpy {
-	template <>  struct traits<std::map<K, T > > {
-	  typedef pointer_category category;
-	  static const char* type_name() {
-	    return "std::map<" #K "," #T " >";
-	  }
-	};
+  %extend {
+    mapped_type __getitem__(const key_type& key) const {
+      Map::const_iterator i = self->find(key);
+      if (i != self->end())
+	return i->second;
+      else
+	throw std::out_of_range("key not found");
+    }
+    
+    void __setitem__(const key_type& key, const mapped_type& x) {
+      self->insert(Map::value_type(key,x));
+    }
+    
+    void __delitem__(const key_type& key) {
+      Map::iterator i = self->find(key);
+      if (i != self->end())
+	self->erase(i);
+      else
+	throw std::out_of_range("key not found");
+    }
+    
+    bool has_key(const key_type& key) const {
+      Map::const_iterator i = self->find(key);
+      return i != self->end();
+    }
+    
+    PyObject* keys() {
+      Map::size_type size = self->size();
+      int pysize = size <= INT_MAX ? (int) size : 0;
+      if (!pysize) {
+	PyErr_SetString(PyExc_OverflowError,
+			"map size not valid in python");
+	Py_INCREF(Py_None);
+	return Py_None;
       }
+      PyObject* keyList = PyList_New(pysize);
+      Map::const_iterator i = self->begin();
+      for (int j = 0; j < pysize; ++i, ++j) {
+	PyList_SetItem(keyList, j, swig::from(i->first));
+      }
+      return keyList;
+    }
+    
+    PyObject* values() {
+      Map::size_type size = self->size();
+      int pysize = size <= INT_MAX ? (int) size : 0;
+      if (!pysize) {
+	PyErr_SetString(PyExc_OverflowError,
+			"map size not valid in python");
+	Py_INCREF(Py_None);
+	return Py_None;
+      }
+      PyObject* valList = PyTuple_New(pysize);
+      Map::const_iterator i = self->begin();
+      for (int j = 0; j < pysize; ++i, ++j) {
+	PyTuple_SetItem(valList, j, swig::from(i->second));
+      }
+      return valList;
+    }
+    
+    PyObject* items() {
+      Map::size_type size = self->size();
+      int pysize = size <= INT_MAX ? (int) size : 0;
+      if (!pysize) {
+	PyErr_SetString(PyExc_OverflowError,
+			"map size not valid in python");
+	Py_INCREF(Py_None);
+	return Py_None;
+      }    
+      PyObject* itemList = PyTuple_New(pysize);
+      Map::const_iterator i = self->begin();
+      for (int j = 0; j < pysize; ++i, ++j) {
+	PyTuple_SetItem(itemList, j, swig::from(*i));
+      }
+      return itemList;
+    }
+    
+    // Python 2.2 methods
+    bool __contains__(const key_type& key) {
+      return self->find(key) != self->end();
     }
 
-    %typemap_traits_ptr(SWIG_CCode(MAP), std::map<K, T >);
-  
-    %std_map_methods(map);
-    %pydict_methods(SWIG_arg(std::map<K, T >));
-  };
-
-}
-
-%define %std_map_ptypen(...) 
-  %std_extcomp_2(map, __VA_ARGS__);
-  %std_definst_2(map, __VA_ARGS__);
+    PyObject* __iter__() {
+      Map::size_type size = self->size();
+      int pysize = size <= INT_MAX ? (int) size : 0;
+      if (!pysize) {
+	PyErr_SetString(PyExc_OverflowError,
+			"map size not valid in python");
+	Py_INCREF(Py_None);
+	return Py_None;
+      }
+      PyObject* keyTuple = PyTuple_New(pysize);
+      Map::const_iterator i = self->begin();
+      for (int j = 0; j < pysize; ++i, ++j) {
+	PyTuple_SetItem(keyTuple, j, swig::from(i->first));
+      }
+%#if PY_VERSION_HEX >= 0x02020000
+      PyObject* iter = PyObject_GetIter(keyTuple);
+      Py_DECREF(keyTuple);
+      return iter;
+%#else
+      return keyTuple;
+%#endif
+    }
+  }
 %enddef
 
-#if defined(SWIG_STD_EXTEND_COMPARISON)  || defined(SWIG_STD_DEFAULT_INSTANTIATION)
-%apply_cpptypes_2(%std_map_ptypen);
-#endif
+
+%include <std/std_map.i>

@@ -280,19 +280,6 @@ SWIG_Python_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)
     return 0;
   }
 
-  if (PyCFunction_Check(obj)) {
-    /* here we get the method pointer for callbacks.*/
-    c = strstr((((PyCFunctionObject *)obj) -> m_ml -> ml_doc), "swig_ptr: ");
-    if (c) {
-      c += 10;
-      if (*c == '_') {
-	c++;
-	c = SWIG_UnpackData(c,ptr,sizeof(void *));
-	goto type_check;
-      }
-    }
-    goto type_error;
-  }  
 #ifdef SWIG_COBJECT_TYPES
   if (!(PyCObject_Check(obj))) {
     if (!SWIG_this)
@@ -355,6 +342,29 @@ type_check:
 
 type_error:
   PyErr_Clear();
+  if (pyobj && !obj) {    
+    obj = pyobj;
+    if (PyCFunction_Check(obj)) {
+      /* here we get the method pointer for callbacks */
+      c = strstr((((PyCFunctionObject *)obj) -> m_ml -> ml_doc), "swig_ptr: ");
+      if (c) {
+	c += 10;
+	if (*c == '_') {
+	  c++;
+	  c = SWIG_UnpackData(c,ptr,sizeof(void *));
+	  goto type_check;
+	}
+      }
+    }
+    if (PyInt_Check(obj)) {
+      /* here we check for the only accepted zero value */
+      long v = PyInt_AsLong(obj);
+      if (v == 0) {
+	*ptr = 0;
+	return 0;
+      }
+    }
+  }
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty) {
       SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);

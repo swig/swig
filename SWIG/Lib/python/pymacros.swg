@@ -1,33 +1,68 @@
 /* -----------------------------------------------------------------------------
- * Auxiliar swig  macros used to write typemaps
+ * SWIG API. Portion only visible from SWIG
  * ----------------------------------------------------------------------------- */
 
-#define SWIG_arg(...) __VA_ARGS__
-#define SWIG_str(...) #__VA_ARGS__
+#define SWIG_arg(Arg...) Arg
 
-#define SWIG_Mangle(...) #@__VA_ARGS__
-#define SWIG_Descriptor(...) SWIGTYPE_ ## #@__VA_ARGS__
+#define SWIG_str(Type...) #Type
 
-#define SWIG_NameType(Name, ...) SWIG_ ## Name ## _ ## #@__VA_ARGS__
-#define SWIG_StringType(Name, ...)  "SWIG_" #Name "_" {__VA_ARGS__}
+#define SWIG_Mangle(Type...) #@Type
+#define SWIG_Descriptor(Type...) SWIGTYPE_ ## #@Type
 
-#define SWIG_AsVal(...)  SWIG_NameType(AsVal, __VA_ARGS__)
-#define SWIG_AsPtr(...)  SWIG_NameType(AsPtr, __VA_ARGS__)
-#define SWIG_As(...)     SWIG_NameType(As, __VA_ARGS__)
-#define SWIG_From(...)   SWIG_NameType(From, __VA_ARGS__)
-#define SWIG_Check(...)  SWIG_NameType(Check, __VA_ARGS__)
-#define SWIG_CCode(...)       SWIG_NameType(TYPECHECK, __VA_ARGS__)
-#define SWIG_OrderType(...)   SWIG_NameType(OrderType, __VA_ARGS__)
-#define SWIG_EqualType(...)   SWIG_NameType(EqualType, __VA_ARGS__)
+#define SWIG_NameType(Name, Type...) SWIG_ ## Name ## _ ## #@Type
+#define SWIG_StringType(Name, Type...)  "SWIG_" #Name "_" {Type}
 
-#define SWIG_Traits_frag(...)  SWIG_StringType(Traits, __VA_ARGS__)
-#define SWIG_AsPtr_frag(...)   SWIG_StringType(AsPtr, __VA_ARGS__)
-#define SWIG_AsVal_frag(...)   SWIG_StringType(AsVal, __VA_ARGS__)
-#define SWIG_As_frag(...)      SWIG_StringType(As, __VA_ARGS__)
-#define SWIG_From_frag(...)    SWIG_StringType(From, __VA_ARGS__)
-#define SWIG_Check_frag(...)   SWIG_StringType(Check, __VA_ARGS__)
-#define SWIG_CCode_frag(...)   SWIG_StringType(TYPECHECK, __VA_ARGS__)
+#define SWIG_AsVal(Type...)      SWIG_NameType(AsVal, Type) 
+#define SWIG_AsPtr(Type...)  	SWIG_NameType(AsPtr, Type)
+#define SWIG_As(Type...)     	SWIG_NameType(As, Type)   
+#define SWIG_From(Type...)   	SWIG_NameType(From, Type) 
+#define SWIG_Check(Type...)  	SWIG_NameType(Check, Type)
+#define SWIG_CCode(Type...)       SWIG_NameType(TYPECHECK, Type)
+#define SWIG_OrderType(Type...)   SWIG_NameType(OrderType, Type)
+#define SWIG_EqualType(Type...)   SWIG_NameType(EqualType, Type)
 
+#define SWIG_Traits_frag(Type...)  SWIG_StringType(Traits, Type)
+#define SWIG_AsPtr_frag(Type...)   SWIG_StringType(AsPtr, Type)
+#define SWIG_AsVal_frag(Type...)   SWIG_StringType(AsVal, Type)
+#define SWIG_As_frag(Type...)      SWIG_StringType(As, Type)
+#define SWIG_From_frag(Type...)    SWIG_StringType(From, Type)
+#define SWIG_Check_frag(Type...)   SWIG_StringType(Check, Type)
+#define SWIG_CCode_frag(Type...)   SWIG_StringType(TYPECHECK, Type)
+
+/* Internal C/C++ API */
+#ifndef SWIG_NO_CPLUSPLUS_CAST
+/* -----------------------------------------------------------------------------
+ * Enable 'modern' cplusplus casting operators
+ * ----------------------------------------------------------------------------- */
+#ifndef SWIG_CPLUSPLUS_CAST
+#define SWIG_CPLUSPLUS_CAST
+#endif
+#endif
+
+#if defined(__cplusplus) && defined(SWIG_CPLUSPLUS_CAST)
+#define SWIG_new_array(size,Type...) (new Type[(size)])
+#define SWIG_delete(cptr) delete cptr
+#define SWIG_delete_array(cptr) delete[] cptr
+#define SWIG_const_cast(a,Type...) const_cast<Type >(a)
+#define SWIG_static_cast(a,Type...) static_cast<Type >(a)
+#define SWIG_reinterpret_cast(a,Type...) reinterpret_cast<Type >(a)
+#define SWIG_new_copy(ptr,Type...) (new Type(*ptr))
+#define SWIG_numeric_cast(a,Type...) static_cast<Type >(a)
+#else /* C case */
+#define SWIG_new_array(size,Type) ((Type*) malloc((size)*sizeof(Type)))
+#define SWIG_delete(cptr) free((char*)cptr)
+#define SWIG_delete_array(cptr) free((char*)cptr)
+#define SWIG_const_cast(a,Type) (Type)(a)
+#define SWIG_static_cast(a,Type) (Type)(a)
+#define SWIG_reinterpret_cast(a,Type) (Type)(a)
+#define SWIG_numeric_cast(a,Type) (Type)(a)
+#define SWIG_new_copy(ptr,Type)  ((Type*)memcpy(malloc(sizeof(Type)),ptr,sizeof(Type)))
+#endif /* __cplusplus */
+
+
+/* -----------------------------------------------------------------------------
+ * Auxiliar swig  macros used to write typemaps
+ * ----------------------------------------------------------------------------- */
 
 /* define a new macro */
 %define SWIG_define(Def, Val)
