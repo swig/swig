@@ -1,6 +1,7 @@
 /* -*- c -*-
  *  -----------------------------------------------------------------------
  * swig_lib/guile/guiledec.swg
+ * Copyright (C) 2000 Matthias Koeppe
  *
  * Guile configuration file -- declarations
  * ----------------------------------------------------------------------- */
@@ -46,17 +47,21 @@ GSWIG_scm2str (SCM s)
 
 typedef struct SwigPtrType SwigPtrType;
 
-/* Registers a new type-mapping with the type-checker.  origtype is the
-  original datatype and newtype is an equivalent type.  cast is optional
-  pointer to a function to cast pointer values between types (this is
-  typically used to cast pointers from derived classes to base classes in C++) */
+/* Register a new type-mapping with the type-checker.  origtype is the
+   original datatype and newtype is an equivalent type.  cast is optional
+   pointer to a function to cast pointer values between types (this is
+   typically used to cast pointers from derived classes to base classes in
+   C++).  */
 
 SWIGSTATIC
-void SWIG_RegisterMapping(char *origtype, char *newtype,
-			  void *(*cast)(void *));
+void SWIG_RegisterMapping (char *origtype, char *newtype,
+                           void *(*cast)(void *));
 
 SWIGSTATIC
 void SWIG_Guile_Init();
+
+SWIGSTATIC
+void SWIG_init();
 
 /* OBSOLESCENT functions (from swigptr.swg, still used unless -with-smobs) */
 
