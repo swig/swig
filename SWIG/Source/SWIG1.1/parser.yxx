@@ -998,21 +998,15 @@ pragma_lang   : LPAREN ID RPAREN { $$ = $2; }
 
 /* ------------------------------------------------------------
    %constant name = value;
-   %constant(type) name = value;
+   %constant type name = value;
    ------------------------------------------------------------ */
 
-constant_directive : CONSTANT ID EQUAL definetype SEMI {
+constant_directive :  CONSTANT ID EQUAL definetype SEMI {
 		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
 		     init_language();
 		     temp_typeptr = NewSwigType($4.type);
 		     create_constant($2, temp_typeptr, $4.id);
 		     Delete(temp_typeptr);
-		   } else if ($4.type == T_SYMBOL) {
-		     // Add a symbol to the SWIG symbol table
-		     if (add_symbol($2)) {
-		       Printf(stderr,"%s:%d. Warning. Symbol %s already defined.\n",
-			       input_file,line_number, $2);
-		     }
 		   }
 	       }
 
@@ -1024,6 +1018,23 @@ constant_directive : CONSTANT ID EQUAL definetype SEMI {
 		 } 
                }
 
+/* This is bogus. simplify later */
+
+               | CONSTANT type LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
+		 init_language();
+		 List *l = typelist($7);
+		 SwigType_add_function($2,l);
+		 SwigType_push($2,$4.type);
+		 create_constant($4.id,$2,$9.id);
+               }
+               | CONSTANT type abstract_declarator LPAREN declarator RPAREN LPAREN parms RPAREN def_args SEMI {
+		 init_language();
+		 SwigType_push($2,$3);
+		 List *l = typelist($8);
+		 SwigType_add_function($2,l);
+		 SwigType_push($2,$5.type);
+		 create_constant($5.id,$2,$10.id);
+               }
                ;
 
 /* -----------------------------------------------------------------------------
@@ -1332,7 +1343,9 @@ parm_type      : type parameter_declarator {
 		}
 		;
 
-def_args       : EQUAL definetype { $$ = $2; }
+def_args       : EQUAL definetype { 
+                  $$ = $2; 
+               }
                | EQUAL AND ID {
 		 $$.id = (char *) malloc(strlen($3)+2);
 		 $$.id[0] = '&';
@@ -2707,3 +2720,6 @@ empty          :   ;
 /* Called by the parser (yyparse) when an error is found.*/
 void yyerror (char *) {
 }
+
+
+
