@@ -118,8 +118,31 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 #define   SWIG_TOKEN_ILLEGAL      98
 #define   SWIG_TOKEN_LAST         99 
 
+/* --- Simplified string-based type system */
+
+extern void  SwigType_add_pointer(DOH *t);
+extern void  SwigType_add_array(DOH *t, DOH *size);
+extern void  SwigType_add_reference(DOH *t);
+extern void  SwigType_add_qualifier(DOH *t, DOH *qual);
+extern void  SwigType_add_function(DOH *t, DOH *parms);
+extern DOH  *SwigType_split(DOH *t);
+extern DOH  *SwigType_pop(DOH *t);
+extern void  SwigType_push(DOH *t, DOH *s);
+extern DOH  *SwigType_split_parms(DOH *p);
+extern DOH  *SwigType_split_struct(DOH *s);
+extern DOH  *SwigType_cstr(DOH *s, DOH *id);
+extern int   SwigType_ispointer(DOH *t);
+extern int   SwigType_isreference(DOH *t);
+extern int   SwigType_isarray(DOH *t);
+extern int   SwigType_isfunction(DOH *t);
+extern int   SwigType_isstruct(DOH *t);
+extern int   SwigType_isqualifier(DOH *t);
+extern DOH  *SwigType_base(DOH *t);
+
 /* --- NEW Type system --- */
 
+  /* <DB> Names do not follow coding conventions </DB> */
+#ifdef BOGUS_NAMES
    /* constructors */
 DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile, 
 		      int is_signed, int is_unsigned);
@@ -158,6 +181,8 @@ int Swig_Type_GetSigned(DOH *t);
 int Swig_Type_GetUnsigned(DOH *t);
 
    /* Type constants (returned from Swig_Type_GetType) */
+
+  /* <DB> These constants don't follow naming convention </DB> */
 #define Swig_Type_Int 0
 #define Swig_Type_Float 1
 #define Swig_Type_Void 2
@@ -171,36 +196,8 @@ int Swig_Type_GetUnsigned(DOH *t);
 #define Swig_Type_Pointer 10
 
 /* --- OLD Type system --- */
-   /* REMOVE ME SOON */
 
-#define   SWIG_TYPE_BYTE          1
-#define   SWIG_TYPE_UBYTE         2
-#define   SWIG_TYPE_SHORT         3
-#define   SWIG_TYPE_USHORT        4
-#define   SWIG_TYPE_INT           5
-#define   SWIG_TYPE_UINT          6
-#define   SWIG_TYPE_LONG          7
-#define   SWIG_TYPE_ULONG         8
-#define   SWIG_TYPE_LONGLONG      9
-#define   SWIG_TYPE_ULONGLONG    10
-#define   SWIG_TYPE_FLOAT        11
-#define   SWIG_TYPE_DOUBLE       12
-#define   SWIG_TYPE_QUAD         13
-#define   SWIG_TYPE_CHAR         14
-#define   SWIG_TYPE_WCHAR        15
-#define   SWIG_TYPE_VOID         16
-#define   SWIG_TYPE_ENUM         17
-#define   SWIG_TYPE_VARARGS      18
-#define   SWIG_TYPE_TYPEDEF      19
-
-#define   SWIG_TYPE_POINTER      50
-#define   SWIG_TYPE_REFERENCE    51
-#define   SWIG_TYPE_FUNCTION     52
-#define   SWIG_TYPE_ARRAY        53
-#define   SWIG_TYPE_RECORD       54
-#define   SWIG_TYPE_NAME         55
-
-DOH *NewSwigType(int tc, DOH *value);
+#endif
 
 /* --- Misc --- */
 extern char *Swig_copy_string(const char *c);
