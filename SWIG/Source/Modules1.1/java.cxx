@@ -629,7 +629,7 @@ void JAVA::create_command(char *cname, char *iname) {
 
 int JAVA::nativeWrapper(Node *n) {
 
-  Swig_save(&n,"name");
+  Swig_save(&n,"name",0);
   Setattr(n,"name", Getattr(n,"wrap:name"));
   native_func = 1;
   functionWrapper(n);
