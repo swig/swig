@@ -703,29 +703,6 @@ class JAVA : public Language {
       if (!addSymbol(Getattr(n,"sym:name"),n)) return SWIG_ERROR;
     }
 
-    /* 
-     * Generate the proxy class getters/setters for public member variables.
-     * Not for enums and constants.
-     */
-    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
-
-      String *getter_setter_name = NewString("");
-      if(!getter_flag)
-        Printf(getter_setter_name,"set");
-      else 
-        Printf(getter_setter_name,"get");
-      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
-      Printf(getter_setter_name, "%s", Char(variable_name)+1);
-
-      Setattr(n,"proxyfuncname", getter_setter_name);
-      Setattr(n,"imfuncname", symname);
-
-      proxyClassFunctionHandler(n);
-      Delete(getter_setter_name);
-    }
-
     /*
        The rest of this function deals with generating the intermediary class wrapper function (that wraps
        a c/c++ function) and generating the JNI c code. Each Java wrapper function has a 
@@ -970,6 +947,7 @@ class JAVA : public Language {
     /* See if there is any return cleanup code */
     if(!native_function_flag) {
       if ((tm = Swig_typemap_lookup_new("ret", n, "result", 0))) {
+        addThrows(n, "tmap:ret", n);
         Replaceall(tm,"$source","result"); /* deprecated */
         Printf(f->code,"%s\n",tm);
       }
@@ -992,6 +970,9 @@ class JAVA : public Language {
     /* Contract macro modification */
     Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
 
+    /* Exception macro modification */
+    Replaceall(f->code, "SWIG_exception(", "SWIG_exception($null, ");
+
     if(!is_void_return)
       Replaceall(f->code,"$null","0");
     else
@@ -1003,6 +984,29 @@ class JAVA : public Language {
 
     if(!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
+    }
+
+    /* 
+     * Generate the proxy class getters/setters for public member variables.
+     * Not for enums and constants.
+     */
+    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+      if(!getter_flag)
+        Printf(getter_setter_name,"set");
+      else 
+        Printf(getter_setter_name,"get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name)+1);
+
+      Setattr(n,"proxyfuncname", getter_setter_name);
+      Setattr(n,"imfuncname", symname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
     }
 
     Delete(c_return_type);
@@ -1830,6 +1834,7 @@ class JAVA : public Language {
     String    *imcall = NewString("");
     String    *return_type = NewString("");
     String    *function_code = NewString("");
+    bool      setter_flag = false;
 
     if(!proxy_flag) return;
 
@@ -1859,6 +1864,11 @@ class JAVA : public Language {
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, 
           "No jstype typemap defined for %s\n", SwigType_str(t,0));
+    }
+
+    if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // For wrapping member variables (Javabean setter)
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
     }
 
     /* Start generating the proxy function */
@@ -1910,7 +1920,7 @@ class JAVA : public Language {
         if (gencomma)
           Printf(imcall, ", ");
 
-        String *arg = makeParameterName(n, p, i);
+        String *arg = makeParameterName(n, p, i, setter_flag);
 
         // Use typemaps to transform type used in Java proxy wrapper (in proxy class) to type used in JNI function (in intermediary class)
         if ((tm = Getattr(p,"tmap:javain"))) {
@@ -2029,7 +2039,7 @@ class JAVA : public Language {
         if (gencomma)
           Printf(imcall, ", ");
 
-        String *arg = makeParameterName(n, p, i);
+        String *arg = makeParameterName(n, p, i, false);
 
         // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in JNI function (in intermediary class)
         if ((tm = Getattr(p,"tmap:javain"))) {
@@ -2274,7 +2284,7 @@ class JAVA : public Language {
       if (gencomma)
         Printf(imcall, ", ");
 
-      String *arg = makeParameterName(n, p, i);
+      String *arg = makeParameterName(n, p, i, setter_flag);
 
       // Use typemaps to transform type used in Java wrapper function (in proxy class) to type used in JNI function (in intermediary class)
       if ((tm = Getattr(p,"tmap:javain"))) {
@@ -2503,22 +2513,30 @@ class JAVA : public Language {
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
+   *   setter  - set this flag when wrapping member variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
 
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
+  String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) {
 
-    // Use C parameter name unless it is a duplicate or an empty parameter name
-    String   *pn = Getattr(p,"name");
-    int count = 0;
-    ParmList *plist = Getattr(n,"parms");
-    while (plist) {
-      if ((Cmp(pn, Getattr(plist,"name")) == 0))
-        count++;
-      plist = nextSibling(plist);
+    String *arg = 0;
+    String *pn = Getattr(p,"name");
+    if (setter) {
+      // Note that for setters the parameter name is always set but sometimes includes C++ 
+      // scope resolution, so we need to strip off the scope resolution to make a valid name.
+      arg = NewString("value"); //Swig_scopename_last(pn);
+    } else {
+      // Use C parameter name unless it is a duplicate or an empty parameter name
+      int count = 0;
+      ParmList *plist = Getattr(n,"parms");
+      while (plist) {
+        if ((Cmp(pn, Getattr(plist,"name")) == 0))
+          count++;
+        plist = nextSibling(plist);
+      }
+      arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(pn);
     }
-    String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
 
     return arg;
   }
