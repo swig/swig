@@ -942,6 +942,14 @@ insert_directive : HBLOCK {
 		 Setattr($$,"section",$3);
 		 Setattr($$,"code",$5);
                }
+               | INSERT LPAREN idstring RPAREN LBRACE {
+                 skip_balanced('{','}');
+		 $$ = new_node("insert");
+		 Setattr($$,"section",$3);
+		 Delitem(scanner_ccode,0);
+		 Delitem(scanner_ccode,DOH_END);
+		 Setattr($$,"code", Copy(scanner_ccode));
+	       }
                ;
 
 /* ------------------------------------------------------------
