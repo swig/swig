@@ -35,6 +35,12 @@
 %typemap(out) std::string 
 %{ $result = jenv->NewStringUTF($1.c_str()); %}
 
+%typemap(javain) std::string "$javainput"
+
+%typemap(javaout) std::string {
+    return $jnicall;
+  }
+
 %typemap(typecheck) std::string = char *;
 
 // const std::string &
@@ -60,6 +66,12 @@
 
 %typemap(out) const std::string & 
 %{ $result = jenv->NewStringUTF($1->c_str()); %}
+
+%typemap(javain) const std::string & "$javainput"
+
+%typemap(javaout) const std::string & {
+    return $jnicall;
+  }
 
 %typemap(typecheck) const std::string & = char *;
 
@@ -110,6 +122,12 @@
   $result = jenv->NewString(conv_buf, len);
   delete [] conv_buf; %}
 
+%typemap(javain) std::wstring "$javainput"
+
+%typemap(javaout) std::wstring {
+    return $jnicall;
+  }
+
 // const std::wstring &
 %typemap(jni) const std::wstring & "jstring"
 %typemap(jtype) const std::wstring & "String"
@@ -144,6 +162,12 @@
   }
   $result = jenv->NewString(conv_buf, len);
   delete [] conv_buf; %}
+
+%typemap(javain) const std::wstring & "$javainput"
+
+%typemap(javaout) const std::wstring & {
+    return $jnicall;
+  }
 
 // For using std::wstring in the global namespace
 %apply const std::wstring & {const wstring &};
