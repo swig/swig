@@ -44,28 +44,28 @@
 }
 
 %typemap(ocaml,in) SWIGTYPE * {
-    $1 = ($ltype)caml_ptr_val($input,$*1_descriptor);
+    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(ocaml,out) SWIGTYPE * {
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$*1_descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *)$1,$*1_descriptor);
+	$result = caml_val_ptr ((void *)$1,$1_descriptor);
     }
 }
 
 %typemap(ocaml,varin) SWIGTYPE * {
-    $1 = ($ltype)caml_ptr_val($input,$*1_descriptor);
+    $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(ocaml,varout) SWIGTYPE * {
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)$1,$*1_descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *)$1,$1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *)$1,$*1_descriptor);
+	$result = caml_val_ptr ((void *)$1,$1_descriptor);
     }
 }
 
@@ -74,15 +74,15 @@
 #ifdef __cplusplus
 
 %typemap(ocaml,in) SWIGTYPE & {
-    $1 = ($ltype) caml_ptr_val($input,$*1_descriptor);
+    $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
 %typemap(ocaml,out) SWIGTYPE & {
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *) $1,$*1_descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *) $1,$1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *) $1,$*1_descriptor);
+	$result = caml_val_ptr ((void *) $1,$1_descriptor);
     }
 }
 
@@ -92,16 +92,16 @@
 	swig_result =
 	    caml_list_append(swig_result,
 			     callback(*fromval,caml_val_ptr((void *) $1,
-							    $*1_descriptor)));
+							    $1_descriptor)));
     } else {
 	swig_result =
 	    caml_list_append(swig_result,
-			     caml_val_ptr ((void *) $1,$*1_descriptor));
+			     caml_val_ptr ((void *) $1,$1_descriptor));
     }
 }
 
 %typemap(ocaml,in) SWIGTYPE {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor)) ;
+    $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
 %typemap(ocaml,out) SWIGTYPE {
@@ -109,16 +109,16 @@
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     *(($ltype *)temp) = $1;
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *)temp,$descriptor);
+	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
     }
 }
 
 #else
 
 %typemap(ocaml,in) SWIGTYPE {
-    $1 = *(($&1_ltype) caml_ptr_val($input,$descriptor)) ;
+    $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
 %typemap(ocaml,out) SWIGTYPE {
@@ -126,9 +126,9 @@
     value *fromval = caml_named_value("create_$ntype_from_ptr");
     *(($ltype *)temp) = $1;
     if( fromval ) {
-	$result = callback(*fromval,caml_val_ptr((void *)temp,$descriptor));
+	$result = callback(*fromval,caml_val_ptr((void *)temp,$&1_descriptor));
     } else {
-	$result = caml_val_ptr ((void *)temp,$descriptor);
+	$result = caml_val_ptr ((void *)temp,$&1_descriptor);
     }
 }
 

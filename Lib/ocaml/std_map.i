@@ -37,7 +37,6 @@
 // exported class
 
 namespace std {
-
     template<class K, class T> class map {
         // add typemaps here
       public:
@@ -186,5 +185,4 @@ namespace std {
     %enddef
 
     // add specializations here
-
 }
