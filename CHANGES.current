@@ -1,5 +1,8 @@
 Version 1.3.20 (In progress)
 ============================
+11/30/2003: beazley
+            [Tcl] Added support for C++ pointers to members.
+
 11/28/2003: cheetah (William Fulton)
             Fixed [ 848335 ] Directors: #include wrapper .h file - was incorrectly
             adding a directory to the generated #include "foo_wrap.h" statement
