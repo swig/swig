@@ -26,11 +26,6 @@ Director support (virtual method callbacks into C#) has not yet been implemented
 The other missing feature is the lack of typemaps for wrapping STL code as well as a few minor utility typemaps in the various.i library.
 
 <p>
-Currently enums are wrapped with C# integers.
-Be warned that this will change in a forthcoming release.
-C# enums will be generated instead.
-
-<p>
 
 The most noteable differences to Java are the following:
 <ul>
@@ -45,6 +40,14 @@ The <tt>-package</tt> command line option does not exist. The <tt>-namespace &lt
 
 <li>
 C/C++ variables are wrapped with C# properties and not JavaBean style getters and setters.
+</li>
+
+<li>
+Global constants are generated into the module class. There is no constants interface.
+</li>
+
+<li>
+The default enum wrapping approach is proper C# enums, not typesafe enums.
 </li>
 
 <li>
@@ -110,8 +113,6 @@ $jnicall                    -> $imcall
 </li>
 
 </ul>
-An additional special variable, <tt>$module</tt>, is replaced by the module name,
-as specified in the <tt>%module</tt> directive or <tt>-module</tt> command line option.
 The intermediary classname has <tt>PINVOKE</tt> appended after the module name instead of <tt>JNI</tt>, for example <tt>modulenamePINVOKE</tt>.
 
 <p>
