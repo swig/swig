@@ -81,7 +81,7 @@ SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, 
   } else if (SCHEME_TYPE(s) == swig_type) {
     struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) s;
     if (type) {
-      cast = SWIG_TypeCheck((char *)proxy->type->name, type);
+      cast = SWIG_TypeCheckStruct(proxy->type, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, proxy->object);
         return 0;
