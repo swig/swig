@@ -9,6 +9,7 @@ include ../common.mk
 
 # Overridden variables here
 SWIGOPT    = -I$(TOP)/$(TEST_SUITE)
+TARGETPREFIX = php_
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -35,7 +36,7 @@ run_testcase = \
 
 # Clean: remove the generated .php file
 %.clean:
-	@rm -f $*.php4;
+	@rm -f $*.php;
 
 clean:
-	@rm -f *_wrap* *.o *~ *.so *.dll *.php4 .~* core
+	@rm -f *_wrap* *.o *~ *.so *.dll .~* core *.h
