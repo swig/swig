@@ -5,7 +5,8 @@ Version: 1.3 (alpha)
 $Header$
 
 Tagline: SWIG is a compiler that integrates C, C++, and Objective-C
-         with scripting languages including Perl, Python, Tcl, and Guile.
+         with scripting languages including Perl, Python, Tcl, Guile,
+         and Ruby. 
 
 This distribution represents work in progress towards building a new
 SWIG release.  The guilty parties working on this are:
@@ -15,11 +16,13 @@ SWIG release.  The guilty parties working on this are:
  Harco de Hilster (Harco.de.Hilster@ATComputing.nl)     (Java)
  Thien-Thi Nguyen (ttn@glug.org)                        (Testing/Misc)
  Masaki Fukushima (fukusima@goto.info.waseda.ac.jp)     (Ruby)
- Dustin Mitchell (djmitche@cs.uchicago.edu)             (SWIG core)
- Ian Cooke (iancooke@cs.uchicago.edu)                   (SWIG core)
- Catalin Dumitrescu (cldumitr@cs.uchicago.edu)          (SWIG core)
  Matthias Köppe (mkoeppe@saturn.Math.Uni-Magdeburg.DE)  (Guile)
 
+Past contributors (currently incomplete):
+
+ Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran Kovuk, Gary Holt,
+ David Fletcher.
+ 
 ***********************************************************************
 *****       IMPORTANT NOTICE -- READ THIS NOW (OR ELSE)           *****
 ***********************************************************************
@@ -29,19 +32,20 @@ advised that this distribution represents a snapshot of the most
 "stable" part of the SWIG CVS repository.  As this is an unstable
 release, there is a pretty good chance that a number of features are
 broken or under repair.  Currently, SWIG is undergoing a large
-redevelopment effort in which it is being converted from C++ to ANSI
-C.  As a result, the source code is very disorganized at the moment.
-The SWIG1.3 series of releases should be viewed as transitional
-releases leading to the eventual release of SWIG2.0. First-time users
-should probably start with SWIG1.1p5 which is significantly more
-stable (and includes a wider range of documentation and examples).
+redevelopment effort in which it is being converted from C++ to ANSI C
+and restructured to be more extensible.  As a result, the source code
+is very disorganized at the moment. The SWIG1.3 series of releases
+should be viewed as transitional releases leading to the eventual
+release of SWIG2.0. First-time users should probably start with
+SWIG1.1p5 which is significantly more stable (and includes a wider
+range of documentation and examples).
 
 *** WE NEED YOUR HELP! ***
 
 Please report any errors and submit patches (if possible)!  Not only
 are we making radical changes to the system, we only have access to a
-limited variety of hardware (Linux, Solaris, and Windows). All contributions
-help.
+limited variety of hardware (Linux, Solaris, and Windows). All
+contributions help.
 
 *** Backwards Compatibility ***
 
@@ -101,6 +105,10 @@ What's Broken?
      a chance that unusual corner cases might cause SWIG to crash.
      If so, please send us a debugger traceback if possible.
 
+   - The CHANGES file describes in some detail all of the important
+     changes that have been made to the system.  Experienced
+     users would be advised to read this.
+
 Installation
 ============
 To build and install SWIG, simply type the following:
@@ -131,6 +139,12 @@ Notes:
     actually use SWIG on Windows is to build your extensions using Visual C++.
     The SWIG1.1p5 distribution also contains a number of examples configured
     to work with Visual C++ (most of which should also work with SWIG1.3).
+
+Examples
+========
+The Examples directory contains a variety of new examples and it has some
+browsable documentation.  Simply point your browser to the file 
+"Example/index.html".
 
 Documentation
 =============
