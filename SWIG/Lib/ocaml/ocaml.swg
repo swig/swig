@@ -28,6 +28,7 @@ extern "C" {
 #define C_enum 16
 #define C_director_core 17
 
+
 /* Cast a pointer if possible; returns 1 if successful */
     
     SWIGSTATIC int
@@ -242,20 +243,8 @@ extern "C" {
 	    failwith("Need array or list");
     }
 
-#ifdef __cplusplus
-    namespace caml {
-	extern "C"
-#endif 
-	    CAML_VALUE alloc(int,int);
-#ifdef __cplusplus
-    };
-#endif
-
     SWIGSTATIC CAML_VALUE caml_swig_alloc(int x,int y) {
-#ifdef __cplusplus
-	using namespace caml;
-#endif
-	return alloc(x,y);
+	return caml_alloc(x,y);
     }
 
     SWIGSTATIC value caml_array_new( int n ) {
@@ -584,6 +573,16 @@ extern "C" {
 	default:
 	    CAMLreturn(0);
 	}	
+    }
+
+    static void SWIG_Ocaml_LookupTypePointer() {
+      CAML_VALUE mod_pointer, pointer;
+
+      mod_pointer = caml_val_ptr(swig_type_list_handle, NULL);
+      pointer = callback(*caml_named_value("swig_find_type_info"), mod_pointer);
+      if (SWIG_Tag_val(pointer) == C_ptr) {
+        swig_type_list_handle = (swig_type_info **)(void *)(long)SWIG_Int64_val(SWIG_Field(pointer,0));
+      }
     }
 
 #ifdef __cplusplus

@@ -1,3 +1,0 @@
-(* -*- tuareg -*- *)
-
-open Swig

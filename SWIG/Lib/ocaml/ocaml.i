@@ -3,10 +3,6 @@
    This file is parsed by SWIG before reading any other interface
    file. */
 
-/* Insert ML/MLI Common stuff */
-%insert(mli) "mliheading.swg"
-%insert(ml) "mlheading.swg"
-
 /* Insert common stuff */
 %insert(runtime) "common.swg"
 

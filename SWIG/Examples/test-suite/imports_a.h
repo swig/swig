@@ -1,5 +1,8 @@
 enum GlobalEnum { globalenum1=1, globalenum2 };
 
+/* This function should be static as it will be emitted into the code for
+ * every module.  All _static targets would fail here with a multiple 
+ * definition if this is not static. */
 GlobalEnum global_test(GlobalEnum e) { return e; }
 
 class A { 
