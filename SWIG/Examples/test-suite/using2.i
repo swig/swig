@@ -1,5 +1,7 @@
 %module using2
 
+%warnfilter(801) X::_FooImpl;	/* Ruby, wrong class name */
+
 %inline %{
 
 namespace X {

@@ -1,5 +1,8 @@
 %module static_const_member_2
 
+%warnfilter(801) oss::modules::CavityPackFlags::forward_field;
+%warnfilter(801) oss::modules::CavityPackFlags::backward_field;
+%warnfilter(801) oss::modules::Test::current_profile;
 
 %inline %{ 
  namespace oss 

@@ -1,5 +1,7 @@
 %module typemap_ns_using
 
+%warnfilter(801) X::_FooImpl;	/* Ruby, wrong class name */
+
 %inline %{
 namespace X {
   typedef int Integer;
