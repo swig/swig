@@ -1063,7 +1063,9 @@ class JAVA : public Language {
         "" : 
         "  protected boolean swigCMemOwn;\n",
         "\n",
-        "  protected $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
+        "  ",
+        javaTypemapLookup("javaptrconstructormodifiers", shadow_classname, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        " $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
         derived ? 
         "    super($jniclassname.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
         "    swigCMemOwn = cMemoryOwn;\n",
@@ -1978,7 +1980,9 @@ class JAVA : public Language {
         " {\n",
         "  private long swigCPtr;\n",
         "\n",
-        "  protected $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
+        "  ",
+        javaTypemapLookup("javaptrconstructormodifiers", type, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        " $javaclassname(long cPtr, boolean bFutureUse) {\n", // Constructor used for wrapping pointers
         "    swigCPtr = cPtr;\n",
         "  }\n",
         "\n",
@@ -2017,7 +2021,7 @@ class JAVA : public Language {
         Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
     }
 
-    return code;
+    return code ? code : empty_string;
   }
 
 };   /* class JAVA */
