@@ -198,9 +198,9 @@ class TypePass : private Dispatcher {
 	  if (!bcls) {
 	    if (!clsforward) {
 	      if (!Getmeta(bname,"already_warned")) {
-		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname),Getline(bname),"Nothing known about class '%s'. Ignored.\n", SwigType_namestr(bname));
+		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls),Getline(cls),"Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname,'<')) {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
 		}
 		Setmeta(bname,"already_warned","1");
 	      }
