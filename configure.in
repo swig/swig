@@ -245,7 +245,7 @@ esac
 
 AC_SUBST(TCL_SO)
 case $host in
-   *-*-darwin*) TCL_SO=.so;;
+   *-*-darwin*) TCL_SO=.dylib;;
    *) TCL_SO=$SO;;
 esac
 
