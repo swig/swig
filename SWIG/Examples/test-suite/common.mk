@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	typemap_ns_using \
 	abstract_inherit_ok \
 	abstract_inherit \
 	conversion_ns_template \
