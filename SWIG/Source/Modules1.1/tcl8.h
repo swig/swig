@@ -46,8 +46,6 @@ public :
   
   virtual void cpp_inherit(char **bases, int);
 
-  // Module import
-  virtual void import_start(char *modname);
   virtual int  validIdentifier(String *);
 };
 
