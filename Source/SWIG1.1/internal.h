@@ -19,7 +19,7 @@
 extern    Language      *lang;
 extern    int           ForceExtern;
 extern    int           WrapExtern;
-extern    String        CCode;
+extern    void         *CCode;
 extern    int           GenerateDefault;
 extern    int           type_id;
 extern    char         *objc_construct;

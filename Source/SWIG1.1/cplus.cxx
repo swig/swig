@@ -111,12 +111,10 @@ void cplus_inherit_decl(char **);
 // -----------------------------------------------------------------------------
 
 static void add_local_type(char *type, char *classname) {
-  String str;
-  
+  char  str[1024];
   if (!localtypes) return;        // No hash table initialized, ignore this
-
-  str << classname << "::" << type;
-  Setattr(localtypes,type,str.get());
+  sprintf(str,"%s::%s",classname,type);
+  Setattr(localtypes,type,str);
 }
 
 void add_local_type(DataType *type, char *classname) {
@@ -227,8 +225,8 @@ public:
       id = type_id;
     }
     if (AddMethods) {
-      if (strlen(CCode.get()))
-	code = copy_string(CCode.get());
+      if (strlen(Char(CCode)))
+	code = copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -298,8 +296,8 @@ public:
     file = input_file;
     id = type_id;
     if (AddMethods) {
-      if (strlen(CCode.get()))
-	code = copy_string(CCode.get());
+      if (strlen(Char(CCode)))
+	code = copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -344,8 +342,8 @@ public:
     file = input_file;
     id = type_id;
     if (AddMethods) {
-      if (strlen(CCode.get()))
-	code = copy_string(CCode.get());
+      if (strlen(Char(CCode)))
+	code = copy_string(Char(CCode));
       else
 	code = 0;
     } else {
@@ -949,7 +947,9 @@ static DOHHash *convert = 0;                // Hash table of conversion function
 void cplus_generate_types(char **baseclass) {
   CPP_class *bc;
   int        i;
-  String     cfunc, temp1, temp2, temp3;
+  DOHString *cfunc;
+  DOHString *temp3;
+  char temp1[512], temp2[512];
   extern void typeeq_derived(char *, char *, char *);
 
   if (!baseclass) {
@@ -959,55 +959,57 @@ void cplus_generate_types(char **baseclass) {
   if (!convert) convert = NewHash();
 
   // Generate type-conversion functions and type-equivalence
-
+  cfunc = NewString("");
+  temp3 = NewString("");
   i = 0;
   while(baseclass[i]) {
-    cfunc = "";
+    Clear(cfunc);
 
     bc = CPP_class::search(baseclass[i]);
     if (bc) {
       // Generate a conversion function (but only for C++)
 
       if (!current_class->objective_c) {
-	temp3 = "";
-	temp3 << "Swig" << current_class->classname << "To" << bc->classname;
+	Clear(temp3);
+	Printv(temp3, "Swig", current_class->classname, "To", bc->classname,0);
 
-	if (!Getattr(convert,temp3.get())) {
-	  SetVoid(convert,temp3.get(),(void*) 1);
+	if (!Getattr(convert,temp3)) {
+	  SetVoid(convert,temp3,(void*) 1);
 
 	  // Write a function for casting derived type to parent class
 
-	  cfunc << "static void *Swig" << current_class->classname << "To" << bc->classname 
-		<< "(void *ptr) {\n"
-		<< tab4 << current_class->classname << " *src;\n"
-		<< tab4 << bc->classname << " *dest;\n"
-		<< tab4 << "src = (" << current_class->classname << " *) ptr;\n"
-		<< tab4 << "dest = (" << bc->classname << " *) src;\n"
-	    //	    << tab4 << "printf(\"casting...\\n\");\n"
-		<< tab4 << "return (void *) dest;\n"
-		<< "}\n";
+	  Printv(cfunc,
+		 "static void *Swig", current_class->classname, "To", bc->classname, 
+		 "(void *ptr) {\n",
+		 tab4, current_class->classname, " *src;\n",
+		 tab4, bc->classname, " *dest;\n",
+		 tab4, "src = (", current_class->classname, " *) ptr;\n",
+		 tab4, "dest = (", bc->classname, " *) src;\n",
+		 tab4, "return (void *) dest;\n",
+		 "}\n",
+		 0);
 	  
-	  fprintf(f_wrappers,"%s\n",cfunc.get());
+	  fprintf(f_wrappers,"%s\n",Char(cfunc));
 	}
       } else {
-	temp3 = "0";
+	Clear(temp3);
+	Printf(temp3,"0");
       }
       
       // Make a type-equivalence allowing derived classes to be used in functions of the
 
       if (strlen(current_class->classtype) > 0) {
-	temp1 = "";
-	temp1 << current_class->classtype << " " << current_class->classname;
-	temp2 = "";
-	temp2 << bc->classtype << " " << bc->classname;
+	sprintf(temp1,"%s %s", current_class->classtype, current_class->classname);
+	sprintf(temp2,"%s %s", bc->classtype, bc->classname);
+
 	// Add various equivalences to the pointer table
 	
-	typeeq_derived(bc->classname, current_class->classname,temp3.get());
-	typeeq_derived(temp2.get(), current_class->classname,temp3.get());
-	typeeq_derived(temp2.get(), temp1.get(),temp3.get());
-	typeeq_derived(bc->classname, temp1.get(),temp3.get());
+	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
+	typeeq_derived(temp2, current_class->classname,Char(temp3));
+	typeeq_derived(temp2, temp1,Char(temp3));
+	typeeq_derived(bc->classname, temp1,Char(temp3));
       } else {
-	typeeq_derived(bc->classname, current_class->classname,temp3.get());
+	typeeq_derived(bc->classname, current_class->classname,Char(temp3));
       }
       DataType::record_base(current_class->classname, bc->classname);
       // Now traverse the hierarchy some more
@@ -1015,6 +1017,8 @@ void cplus_generate_types(char **baseclass) {
     }
     i++;
   }
+  Delete(temp3);
+  Delete(cfunc);
 }
 
 // -----------------------------------------------------------------------------
@@ -1471,18 +1475,16 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     Parm     *p;
     ParmList *newparms;
     int i;
-    String   wrap;
-    String   cname,iname;
-    String   key;
-    String   argname;
+    DOHString  *wrap;
+    char     cname[512],iname[512];
+    DOHString *key;
     char     *prefix;
     char     *prev_wrap = 0;
     char     *temp_mname;
 
-    cname = "";
-    iname = "";
-    key = "";
+    wrap = NewString("");
 
+    key = NewString("");
     // First generate a proper name for the member function
 
     // Get the base class of this member
@@ -1496,7 +1498,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << Swig_name_member(bc,mname);
+    strcpy(cname, Swig_name_member(bc,mname));
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -1505,23 +1507,22 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       prefix = classname;
 
     if (mrename)
-      iname << Swig_name_member(prefix,mrename);
+      strcpy(iname,Swig_name_member(prefix,mrename));
     else
-      iname << Swig_name_member(prefix,mname);
+      strcpy(iname,Swig_name_member(prefix,mname));
 
     // Now check to see if we have already wrapped a function like this.
     // If so, we'll just use the existing wrapper.
 
-    key << cname << "+";
+    Printf(key,"%s+",cname);
     l->print_types(key);
-    //    printf("key = %s\n", (char *) key);  
-    char *temp = copy_string(iname.get());
+    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
-    if (Getattr(member_hash,key.get())) {
+    if (Getattr(member_hash,key)) {
       delete [] temp;
-      prev_wrap = GetChar(member_hash,key.get());
+      prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key.get(),temp);
+      Setattr(member_hash,key,temp);
       delete [] temp;
     }
     
@@ -1532,9 +1533,8 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       // If mode = 0: Then we go ahead and create a wrapper macro
     
       if (!mode) {
-	cname = "";
-	cname << iname;
-	wrap << "#define " << cname << "(_swigobj";
+	strcpy(cname,iname);
+	Printv(wrap, "#define ", cname, "(_swigobj", 0);
 
 	// Walk down the parameter list and Spit out arguments
 	
@@ -1542,73 +1542,71 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
 	p = l->get_first();
 	while (p != 0) {
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	    wrap << ",_swigarg" << i;
+	    Printf(wrap,",_swigarg%d",i);
 	    i++;
 	  }
 	  p = l->get_next();
 	}
-	
-	wrap << ")  (";
+	Printf(wrap,")  (");
 	
 	if (!ObjCClass) {
-	  wrap << "_swigobj->" << mname << "(";         // C++ invocation
+	  Printv(wrap, "_swigobj->", mname, "(", 0);         // C++ invocation
 	} else { 
-	  wrap << "[ _swigobj " << mname;               // Objective C invocation 
+	  Printv(wrap, "[ _swigobj ", mname, 0);               // Objective C invocation 
 	}
 	i = 0;
 	p = l->get_first();
 	while(p != 0) {
-	  if (ObjCClass) wrap << " " << p->objc_separator;
+	  if (ObjCClass) Printf(wrap," %s", p->objc_separator);
 	  if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	    wrap << "_swigarg" << i;
+	    Printf(wrap,"_swigarg%d",i);
 	    i++;
 	  }
 	  p = l->get_next();
 	  if ((p != 0) && (!ObjCClass)) 
-	    wrap << ",";
+	  Putc(',',wrap);
 	}
 	if (!ObjCClass) 
-	  wrap << "))\n";
+	  Printf(wrap,"))\n");
 	else
-	  wrap << "])\n";
+	  Printf(wrap,"])\n");
 	
 	// Emit it
-	fprintf(f_wrappers,"%s",wrap.get());
+	fprintf(f_wrappers,"%s",Char(wrap));
       } else {
 	if (ccode) {
-	  wrap << "static ";
+	  Printf(wrap,"static ");
 	  if (type->is_reference) {
 	    type->is_pointer--;
 	  }
-	  wrap << type->print_full();
+	  Printf(wrap,"%s", type->print_full());
 	  if (type->is_reference) {
-	    wrap << "&";
+	    Printf(wrap,"&");
 	    type->is_pointer++;
 	  }
-	  wrap << " " << cname << "(" << classtype << classname << " *self";
+	  Printv(wrap, " ", cname, "(", classtype, classname, " *self", 0);
 	  
 	  // Walk down the parameter list and Spit out arguments
 	  
 	  p = l->get_first();
 	  while (p != 0) {
 	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	      wrap << ",";
+	      Printf(wrap,",");
 	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
 		p->t->is_pointer--;
 	      } 
-	      wrap << p->t->print_full();
+	      Printf(wrap, p->t->print_full());
 	      if ((p->call_type & CALL_REFERENCE) || (p->t->is_reference)) {
 		p->t->is_pointer++;
 	           if (p->t->is_reference)
-		wrap << "&";
+		     Printf(wrap,"&");
 	      }
-	      wrap << " " << p->name;
+	      Printf(wrap," %s", p->name);
 	    }
 	    p = l->get_next();
 	  }
-	  
-	  wrap << ") " << ccode; 
-	  fprintf(f_wrappers,"%s\n",wrap.get());
+	  Printf(wrap,") %s", ccode);
+	  fprintf(f_wrappers,"%s\n",Char(wrap));
 	}
       }
 
@@ -1629,12 +1627,14 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       
       // Now wrap the thing.  The name of the function is iname
       
-      lang->create_function(cname.get(), iname.get(), type, newparms);
+      lang->create_function(cname, iname, type, newparms);
       delete newparms;
     } else {
       // Already wrapped this function.   Just patch it up 
-      lang->create_command(prev_wrap, iname.get());
+      lang->create_command(prev_wrap, iname);
     }
+    Delete(key);
+    Delete(wrap);
 }
 
 
@@ -1692,16 +1692,16 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 			    char *mname, char *mrename, DataType *type, ParmList *l,
 			    int mode) {
     Parm     *p;
-    String   wrap;
-    String   cname, iname, key;
+    DOHString  *wrap;
+    char     cname[512], iname[512];
+    DOHString *key;
     int      i;
     char     *prefix;
     char     *prev_wrap = 0;
     char     *temp_mname;
     
-    cname = "";
-    iname = "";
-    key = "";
+    key = NewString("");
+    wrap = NewString("");
 
     // Generate a function name for the member function
     
@@ -1713,9 +1713,9 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     
     // Generate the name of the C wrapper function 
     if ((!mode) && (!ObjCClass)) {
-      cname << bc << "::" << mname;
+      sprintf(cname,"%s::%s", bc, mname);
     } else {
-      cname << Swig_name_member(bc,mname);
+      strcpy(cname,Swig_name_member(bc,mname));
     }
 
     // Generate the scripting name of this function
@@ -1725,28 +1725,28 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
       prefix = classname;
 
     if (mrename) 
-      iname << Swig_name_member(prefix,mrename);
+      strcpy(iname,Swig_name_member(prefix,mrename));
     else
-      iname << Swig_name_member(prefix,mname);
+      strcpy(iname,Swig_name_member(prefix,mname));
 
     // Perform a hash table lookup to see if we've wrapped anything like this before
 
-    key << cname << "+";
+    Printf(key,"%s+",cname);
     l->print_types(key);
-    char *temp = copy_string(iname.get());
+    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
-    if (Getattr(member_hash,key.get())) {
+    if (Getattr(member_hash,key)) {
       delete [] temp;
-      prev_wrap = GetChar(member_hash,key.get());
+      prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key.get(),temp);
+      Setattr(member_hash,key,temp);
       delete [] temp;
     }
 
     if (!prev_wrap) {
       if (!((mode) || (ObjCClass))) {
 	// Not an added method and not objective C, just wrap it
-	lang->create_function(cname.get(),iname.get(), type, l);
+	lang->create_function(cname,iname, type, l);
       } else {
 	// This is either an added method or an objective C class function
 	//
@@ -1754,7 +1754,7 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	// Otherwise, assume the function has been written already and
 	// wrap it.
 	
-	wrap << "static " << type->print_full() << " " << cname << "(";
+	Printv(wrap,"static ", type->print_full(), " ", cname, "(", 0);
 	  
 	// Walk down the parameter list and Spit out arguments
 	p = l->get_first();
@@ -1763,23 +1763,22 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	    if (p->t->is_reference) {
 	      p->t->is_pointer--;
 	    } 
-	    wrap << p->t->print_full();
+	    Printf(wrap, p->t->print_full());
 	    if (p->t->is_reference) {
 	      p->t->is_pointer++;
-	      wrap << "&";
+	      Printf(wrap, "&");
 	    }
-	    wrap << " " << p->name;
+	    Printf(wrap," %s", p->name);
 	  }
 	  p = l->get_next();
-	  if (p) wrap << ",";
+	  if (p) Printf(wrap, ",");
 	}
-	wrap << ") ";
+	Printf(wrap, ") ");
 	if ((mode) && (ccode)) {
-	  wrap << ccode;
+	  Printf(wrap,"%s",ccode);
 	} else if (ObjCClass) {
 	  // This is an objective-C method
-	  
-	  wrap << "{\n" << tab4;
+	  Printf(wrap, "{\n");
 	  
 	  // Emit the function call.  
 	  
@@ -1788,47 +1787,49 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
 	    
 	    if (type->is_reference) {
 	      type->is_pointer--;
-	      wrap << tab4 << type->print_full() << "& _result = ";
+	      Printv(wrap, tab4, type->print_full(), "& _result = ",0);
 	      type->is_pointer++;
 	    } else {
-	      wrap << tab4 << type->print_type() << " _result = " << type->print_cast();
+	      Printv(wrap, tab4, type->print_type(), " _result = ", type->print_cast(), 0);
 	    }
 	  } else {
-	    wrap << tab4;
+	    Printf(wrap,tab4);
 	  }
-	  wrap << "[ " << classname << " " << mname;               // Objective C invocation 
+	  Printv(wrap, "[ ", classname, " ", mname,0);               // Objective C invocation 
 	  i = 0;
 	  p = l->get_first();
 	  while(p != 0) {
-	    wrap << " " << p->objc_separator;
+	    Printf(wrap," %s", p->objc_separator);
 	    if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
 	      if (p->t->is_reference) {
-		wrap << "*";
+		Printf(wrap,"*");
 	      }
-	      wrap << p->name;
+	      Printf(wrap,p->name);
 	      i++;
 	    }
 	    p = l->get_next();
 	  }
-	  wrap << "];\n";
+	  Printf(wrap,"];\n");
 	  
 	  if ((type->type != T_VOID) || (type->is_pointer)) {
 	    if (type->is_reference) {
-	      wrap << tab4 << "return " << type->print_cast() << " &_result;\n";
+	      Printv(wrap, tab4, "return ", type->print_cast(), " &_result;\n",0);
 	    } else {
-	      wrap << tab4 << "return _result;\n";
+	      Printv(wrap, tab4, "return _result;\n",0);
 	    }
 	  }
-	  wrap << "}\n";
+	  Printf(wrap,"}\n");
 	}
 	if (ObjCClass || (mode && ccode)) 
-	  fprintf(f_wrappers,"%s\n",wrap.get());
-	lang->create_function(cname.get(),iname.get(),type,l);
+	  fprintf(f_wrappers,"%s\n",Char(wrap));
+	lang->create_function(cname,iname,type,l);
       }
     } else {
       // Already wrapped this function.   Just hook up to it.
-      lang->create_command(prev_wrap, iname.get());
+      lang->create_command(prev_wrap, iname);
     }
+    Delete(key);
+    Delete(wrap);
 }
 
 // -----------------------------------------------------------------------------
@@ -1870,37 +1871,39 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     Parm *p;
     DataType *type;
     ParmList *l;
-    String    wrap;
-    String    cname,iname;
+    DOHString    *wrap;
+    char      cname[512],iname[512];
     char      *prefix;
 
     // Construct names for the function
+
+    wrap = NewString("");
 
     if (classrename)
       prefix = classrename;
     else
       prefix = classname;
     
-    cname << Swig_name_destroy(classname);
+    strcpy(cname,Swig_name_destroy(classname));
     if (mrename)
-      iname << Swig_name_destroy(mrename);
+      strcpy(iname, Swig_name_destroy(mrename));
     else
-      iname << Swig_name_destroy(prefix);
+      strcpy(iname, Swig_name_destroy(prefix));
     
     if (!mode) {
       // Spit out a helper function for this member function
-      wrap << "#define " << cname << "(_swigobj) (";
+      Printv(wrap, "#define ", cname, "(_swigobj) (",0);
       if (ObjCClass) {
-	wrap << "[_swigobj " << mname << "])\n";   // Name of the member is the destructor
+	Printv(wrap, "[_swigobj ", mname, "])\n", 0);   // Name of the member is the destructor
       } else if (CPlusPlus) 
-	wrap << "delete _swigobj)\n";
+	Printv(wrap, "delete _swigobj)\n",0);
       else
-	wrap << "free ((char *) _swigobj))\n";
-      fprintf(f_wrappers,"%s", wrap.get());
+	Printv(wrap, "free ((char *) _swigobj))\n", 0);
+      fprintf(f_wrappers,"%s", Char(wrap));
     } else {
       if (ccode) {
-	wrap << "static void " << cname << "(" << classtype << classname << " *self) " << ccode;
-	fprintf(f_wrappers,"%s\n",wrap.get());
+	Printv(wrap, "static void ", cname, "(", classtype, classname, " *self) ", ccode,0);
+	fprintf(f_wrappers,"%s\n",Char(wrap));
       }
     }
 
@@ -1925,11 +1928,11 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
 
     // iname is the desired name of the function in the target language
 
-    lang->create_function(cname.get(),iname.get(),type,l);
+    lang->create_function(cname,iname,type,l);
 
     delete type;
     delete l;
-
+    Delete(wrap);
 }
 
 // -----------------------------------------------------------------------------
@@ -1959,9 +1962,12 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     Parm *p;
     int i;
     DataType *type;
-    String  wrap;
-    String  fcall,cname,iname,argname;
+    DOHString *fcall, *wrap;
+    char cname[512],iname[512];
     char    *prefix;
+
+    fcall = NewString("");
+    wrap = NewString("");
 
     // Construct names for the function
 
@@ -1970,11 +1976,11 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     else
       prefix = classname;
     
-    cname << Swig_name_construct(classname);
+    strcpy(cname,Swig_name_construct(classname));
     if (mrename)
-      iname << Swig_name_construct(mrename);
+      strcpy(iname, Swig_name_construct(mrename));
     else
-      iname << Swig_name_construct(prefix);
+      strcpy(iname, Swig_name_construct(prefix));
 
     // Create a return type
 
@@ -1985,16 +1991,14 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
     type->id = cpp_id;
 
     if (!mode) {
-      wrap << "#define " << iname << "(";
-      cname = "";
-      cname << iname;
+      Printv(wrap, "#define ", iname, "(", 0);
+      strcpy(cname,iname);
       if (ObjCClass) {
-	fcall << type->print_cast() << "[" << classname << " " << mname;
+	Printv(fcall, type->print_cast(), "[", classname, " ", mname,0);
       } else if (CPlusPlus) {
-	fcall << "new " << classname << "(";
+	Printv(fcall, "new ", classname, "(", 0);
       } else {
-	fcall << type->print_cast() << " calloc(1,sizeof(" 
-	      << classtype << classname << "))";
+	Printv(fcall, type->print_cast(), " calloc(1,sizeof(", classtype, classname, "))", 0);
       }
 
       // Walk down the parameter list and spit out arguments
@@ -2002,34 +2006,33 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
       i = 0;
       p = l->get_first();
       while (p != 0) {
-	if (ObjCClass) fcall << " " <<  p->objc_separator;
+	if (ObjCClass) Printf(fcall," %s", p->objc_separator);
 	if ((p->t->type != T_VOID) || (p->t->is_pointer)) {
-	  wrap << "_swigarg" << i;
+	  Printf(wrap,"_swigarg%d",i);
 
 	  // Emit an argument in the function call if in C++ mode
 	  
 	  if ((CPlusPlus) || (ObjCClass)) {
-	    fcall << "_swigarg" << i;
+	    Printf(fcall,"_swigarg%d",i);
 	  }
 	}
 	i++;
 	p = l->get_next();
 	if (p) {
-	  wrap << ",";
+	  Printf(wrap,",");
 	  if ((CPlusPlus) && (!ObjCClass))
-	    fcall << ",";
+	    Printf(fcall,",");
 	}
       }
-      
-      wrap << ") ";
-      if (ObjCClass) fcall << "]";
-      else if (CPlusPlus) fcall << ")";
+      Printf(wrap,") ");
+      if (ObjCClass) Printf(fcall,"]");
+      else if (CPlusPlus) Printf(fcall,")");
 
-      wrap << "(" << fcall << ")\n";
-      fprintf(f_wrappers,"%s",wrap.get());
+      Printf(wrap,"(%s)", fcall);
+      fprintf(f_wrappers,"%s",Char(wrap));
     } else {
       if (ccode) {
-	wrap << "static " << classtype << classname << " *" << cname << "(";
+	Printv(wrap, "static ", classtype, classname, " *", cname, "(", 0);
 
 	// Walk down the parameter list and spit out arguments
       
@@ -2039,20 +2042,20 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	    if (p->call_type & CALL_REFERENCE) {
 	      p->t->is_pointer--;
 	    }
-	    wrap << p->t->print_real(p->name);
+	    Printf(wrap, p->t->print_real(p->name));
 	    if (p->call_type & CALL_REFERENCE) {
 	      p->t->is_pointer++;
 	    }
 	    p = l->get_next();
 	    if (p) {
-	      wrap << ",";
+	      Printf(wrap,",");
 	    }
 	  } else {
 	    p = l->get_next();
 	  }
 	}
-	wrap << ") " << ccode << "\n";
-	fprintf(f_wrappers,"%s\n",wrap.get());
+	Printv(wrap,") ", ccode, "\n", 0);
+	fprintf(f_wrappers,"%s\n",Char(wrap));
      }
     }
 
@@ -2068,8 +2071,10 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 
     // We've now created a C wrapper.  We're going to add it to the interpreter
 
-    lang->create_function(cname.get(), iname.get(), type, l);
+    lang->create_function(cname, iname, type, l);
     delete type;
+    Delete(wrap);
+    Delete(fcall);
 }
 
 // -----------------------------------------------------------------------------
@@ -2117,17 +2122,16 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
     Parm     *p;
     ParmList *l;
-    String    wrap;
-    String    cname, iname, key;
+    DOHString  *wrap;
+    char      cname[512],iname[512];
+    char      key[512];
     char      *prefix;
     char      *tm;
-    String    source;
+    char      source[512];
     char     *temp_mname;
     char     *prev_wrap = 0;
 
-    cname = "";
-    iname = "";
-    key = "";
+    wrap = NewString("");
 
     // First generate a proper name for the get function
 
@@ -2142,7 +2146,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << Swig_name_get(Swig_name_member(bc,mname));
+    strcpy(cname, Swig_name_get(Swig_name_member(bc,mname)));
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -2151,20 +2155,20 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       prefix = classname;
 
     if (mrename)
-      iname << Swig_name_get(Swig_name_member(prefix,mrename));
+      strcpy(iname, Swig_name_get(Swig_name_member(prefix,mrename)));
     else
-      iname << Swig_name_get(Swig_name_member(prefix,mname));
+      strcpy(iname, Swig_name_get(Swig_name_member(prefix,mname)));
 
     // Now check to see if we have already wrapped a variable like this.
-
-    key << cname;
-    char *temp = copy_string(iname.get());
+    
+    strcpy(key,cname);
+    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
-    if (Getattr(member_hash,key.get())) {
+    if (Getattr(member_hash,key)) {
       delete [] temp;
-      prev_wrap = GetChar(member_hash,key.get());
+      prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key.get(),temp);
+      Setattr(member_hash,key,temp);
       delete [] temp;
     }
 
@@ -2173,43 +2177,46 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       if (!mode) {
 	// Get any sort of typemap that might exist
 
-	source << "obj->" << mname;
+	sprintf(source,"obj->%s",mname);
 
 	// Now write a function to get the value of the variable
 
-	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source.get(),(char*)"result");
+	tm = typemap_lookup((char*)"memberout",typemap_lang,type,mname,source,(char*)"result");
 
 	if ((type->type == T_USER) && (!type->is_pointer)) {
 	  type->is_pointer++;
 	  if (tm) {
-	    wrap << "static " << type->print_type() << " " << cname << "(" 
-		 << classtype << classname << " *obj) {\n"
-		 << tab4 << type->print_type() << " result;\n"
-		 << tm << "\n"
-		 << tab4 << "return result;\n"
-		 << "}\n";
+	    Printv(wrap, "static ", type->print_type(), " ", cname, "(",  
+		   classtype, classname, " *obj) {\n",
+		   tab4, type->print_type(), " result;\n",
+		   tm, "\n",
+		   tab4, "return result;\n",
+		   "}\n",
+		   0);
 	  } else {
-	    wrap << "#define " << cname << "(_swigobj) "
-		 << "(&_swigobj->" << mname << ")\n";
+	    Printv(wrap, "#define ", cname, "(_swigobj) ",
+		   "(&_swigobj->", mname, ")\n",
+		   0);
 	  }
 	  type->is_pointer--;
 	} else {
 	  if (tm) {
-	    wrap << "static " << type->print_type() << " " << cname << "("
-		 << classtype << classname << " *obj) {\n"
-		 << tab4 << type->print_type() << " result;\n"
-		 << tm << "\n"
-		 << tab4 << "return result;\n"
-		 << "}\n";
+	    Printv(wrap, "static ", type->print_type(), " ", cname, "(",
+		   classtype, classname, " *obj) {\n",
+		   tab4, type->print_type(), " result;\n",
+		   tm, "\n",
+		   tab4, "return result;\n",
+		   "}\n",
+		   0);
 	  } else {
-	    wrap << "#define " << cname << "(_swigobj) (";
-	    if (!type->is_reference) wrap << type->print_cast();
+	    Printv(wrap, "#define ", cname, "(_swigobj) (",0);
+	    if (!type->is_reference) Printf(wrap,type->print_cast());
 	    else
-	      wrap << "&";
-	    wrap << " _swigobj->" << mname << ")\n";
+	      Printf(wrap,"&");
+	    Printv(wrap, " _swigobj->", mname, ")\n",0);
 	  }
 	}
-	fprintf(f_wrappers,"%s",wrap.get());
+	fprintf(f_wrappers,"%s",Char(wrap));
       }
       
       // Wrap this function
@@ -2227,19 +2234,20 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
 
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
-	lang->create_function(cname.get(),iname.get(), type, l);
+	lang->create_function(cname,iname, type, l);
 	type->is_pointer--;
       } else {
 	int is_ref = type->is_reference;
 	type->is_reference = 0;
-	lang->create_function(cname.get(),iname.get(), type, l);
+	lang->create_function(cname,iname, type, l);
 	type->is_reference = is_ref;
       }
       delete l;
     } else {
       // Already wrapped this function.  Just patch it up
-      lang->create_command(prev_wrap,iname.get());
+      lang->create_command(prev_wrap,iname);
     }
+    Delete(wrap);
 
 }
 
@@ -2297,18 +2305,17 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 
     Parm     *p;
     ParmList *l;
-    String    wrap;
+    DOHString   *wrap;
     int       is_user = 0;
     char      *tm;
-    String    target;
-    String    cname, iname, key;
+    char      target[512];
+    char      cname[512], iname[512];
+    char      key[512];
     char      *temp_mname;
     char      *prefix;
     char      *prev_wrap = 0;
 
-    cname = "";
-    iname = "";
-    key = "";
+    wrap = NewString("");
 
     // First generate a proper name for the get function
 
@@ -2323,7 +2330,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     // Generate the name of the C wrapper function (is always the same, regardless
     // of renaming).
 
-    cname << Swig_name_set(Swig_name_member(bc,mname));
+    strcpy(cname, Swig_name_set(Swig_name_member(bc,mname)));
 
     // Generate the scripting name of this function
     if (classrename) 
@@ -2332,20 +2339,20 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       prefix = classname;
 
     if (mrename)
-      iname << Swig_name_set(Swig_name_member(prefix,mrename));
+      strcpy(iname, Swig_name_set(Swig_name_member(prefix,mrename)));
     else
-      iname << Swig_name_set(Swig_name_member(prefix,mname));
+      strcpy(iname, Swig_name_set(Swig_name_member(prefix,mname)));
 
     // Now check to see if we have already wrapped a variable like this.
 
-    key << cname;
-    char *temp = copy_string(iname.get());
+    strcpy(key,cname);
+    char *temp = copy_string(iname);
     if (!member_hash) member_hash = NewHash();
-    if (Getattr(member_hash,key.get())) {
+    if (Getattr(member_hash,key)) {
       delete [] temp;
-      prev_wrap = GetChar(member_hash,key.get());
+      prev_wrap = GetChar(member_hash,key);
     } else {
-      Setattr(member_hash,key.get(),temp);
+      Setattr(member_hash,key,temp);
       delete [] temp;
     }
 
@@ -2354,10 +2361,10 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
     if (!prev_wrap) {
       if (!mode) {
 	
-	target << "obj->" << mname;
+	sprintf(target,"obj->%s",mname);
 	
 	// Lookup any typemaps that might exist
-	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target.get());
+	tm = typemap_lookup((char*)"memberin",typemap_lang,type,mname,(char*)"val",target);
 	
 	// First write a function to set the variable 
 
@@ -2366,66 +2373,72 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	    type->is_pointer++;
 	    is_user = 1;
 	  }
-	  wrap << "static " << type->print_type() << " " << cname << "("
-	       << classtype << classname << " *obj, " << type->print_real((char*)"val") << ") {\n";
+	  Printv(wrap,
+		 "static ", type->print_type(), " ", cname, "(",
+		 classtype, classname, " *obj, ", type->print_real((char*)"val"), ") {\n",
+		 0);
 	  if (is_user) {
 	    type->is_pointer--;
 	  }
-	  wrap << tm << "\n";
+	  Printv(wrap,tm,"\n",0);
 	  // Return the member
 	  if (is_user) type->is_pointer++;
-	  wrap << tab4 << "return " << type->print_cast() << " val;\n";
+	  Printv(wrap, tab4, "return ", type->print_cast(), " val;\n",0);
 	  if (is_user) type->is_pointer--;
-	  wrap << "}\n";
-
+	  Printf(wrap,"}\n");
 	} else {
 	  if ((type->type != T_VOID) || (type->is_pointer)){
 	    if (!type->is_pointer) {
 
-	      wrap << "#define " << cname << "(_swigobj,_swigval) (";	      
+	      Printv(wrap, "#define ", cname, "(_swigobj,_swigval) (",0);	      
 	      // Have a real value here (ie.  not a pointer).  
 	      // If it's a user defined type, we'll do something special.
 	      // Otherwise, just assign it.
 	      
 	      if (type->type != T_USER) {
-		wrap << "_swigobj->" << mname << " = _swigval";
+		Printv(wrap,"_swigobj->",mname," = _swigval",0);
 	      } else {
-		wrap << "_swigobj->" << mname << " = *(_swigval)";
+		Printv(wrap,"_swigobj->",mname, " = *(_swigval)",0);
 	      }
-	      wrap << ",_swigval)\n";
+	      Printf(wrap,",_swigval)\n");
 	    } else {
 	      // Is a pointer type here.  If string, we do something
 	      // special.  Otherwise. No problem.
 	      if ((type->type == T_CHAR) && (type->is_pointer == 1)) {
-		String temp;
-		wrap << "static " << type->print_type() << " " << cname << "("
-		     << classtype << classname << " *obj, " << type->print_real((char*)"val") << ") {\n";
-		temp << "obj->" << mname;
+		char temp[512];
+		Printv(wrap,
+		       "static ", type->print_type(), " ", cname, "(",
+		       classtype, classname, " *obj, ", type->print_real((char*)"val"), ") {\n",
+		       0);
+		sprintf(temp,"obj->%s",mname);
 		if (CPlusPlus) {
-		  wrap << tab4 << "if (" << temp << ") delete [] " << temp << ";\n"
-		       << tab4 << temp << " = new char[strlen(val)+1];\n"
-		       << tab4 << "strcpy((char *)" << temp << ",val);\n";
+		  Printv(wrap,
+			 tab4, "if (", temp, ") delete [] ", temp, ";\n",
+			 tab4, temp, " = new char[strlen(val)+1];\n",
+			 tab4, "strcpy((char *)", temp, ",val);\n",
+			 0);
 		} else {
-		  wrap << tab4 << "if (obj->" << mname << ") free(obj->" << mname << ");\n"
-		       << tab4 << "obj->" << mname << " = (char *) malloc(strlen(val)+1);\n"
-		       << tab4 << "strcpy((char *)obj->" << mname << ",val);\n";
+		  Printv(wrap,
+			 tab4, "if (obj->", mname, ") free(obj->", mname, ");\n",
+			 tab4, "obj->", mname, " = (char *) malloc(strlen(val)+1);\n",
+			 tab4, "strcpy((char *)obj->", mname, ",val);\n",
+			 0);
 		}
-		wrap << tab4 << "return (char *) val;\n";
-		wrap << "}\n";
+		Printv(wrap,tab4, "return (char *) val;\n","}\n",0);
 	      } else {
 		// A normal pointer type of some sort
-		wrap << "#define " << cname << "(_swigobj,_swigval) (";
+		Printv(wrap, "#define ", cname, "(_swigobj,_swigval) (",0);
 		if (type->is_reference) {
-		  wrap << "_swigobj->" << mname << " = *_swigval, _swigval)\n";
+		  Printv(wrap, "_swigobj->", mname, " = *_swigval, _swigval)\n",0);
 		} else {
-		  wrap << "_swigobj->" << mname << " = _swigval,_swigval)\n";
+		  Printv(wrap, "_swigobj->", mname, " = _swigval,_swigval)\n",0);
 		}
 	      }
 	    }
 	  }
 	}
       }
-      fprintf(f_wrappers,"%s",wrap.get());      
+      fprintf(f_wrappers,"%s",Char(wrap));
       // Now wrap it.
       
       l = new ParmList;
@@ -2452,18 +2465,19 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
       
       if ((type->type == T_USER) && (!type->is_pointer)) {
 	type->is_pointer++;
-	lang->create_function(cname.get(),iname.get(), type, l);
+	lang->create_function(cname,iname, type, l);
 	type->is_pointer--;
       } else {
 	int is_ref = type->is_reference;
 	type->is_reference = 0;
-	lang->create_function(cname.get(),iname.get(), type, l);
+	lang->create_function(cname,iname, type, l);
 	type->is_reference = is_ref;
       }
       delete l;
     } else {
-      lang->create_command(prev_wrap,iname.get());
+      lang->create_command(prev_wrap,iname);
     } 
+    Delete(wrap);
 }
 
 // -----------------------------------------------------------------------------
@@ -2536,7 +2550,6 @@ void cplus_inherit_scope(int count, char **baseclass) {
   CPP_class *bc;
   int i;
   char *val;
-  String str;
   DOH  *key;
   if (count && current_class) {
     for (i = 0; i < count; i++) {
@@ -2550,9 +2563,7 @@ void cplus_inherit_scope(int count, char **baseclass) {
 	  key = Firstkey(bc->local);
 	  while (key) {
 	    val = GetChar(bc->local,key);
-	    str = val;
-	    //	    str.replace(bc->classname,current_class->classname);
-	    Setattr(localtypes,key,str.get());
+	    Setattr(localtypes,key,val);
 	    key = Nextkey(bc->local);
 	  }
 	}

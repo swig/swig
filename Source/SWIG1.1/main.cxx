@@ -148,6 +148,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   extern  int check_suffix(char *);
   extern  void scanner_file(FILE *);
   extern  void typemap_initialize(void);
+  extern void parser_init(void);
+
   DOH    *libfiles = 0;
 
 #ifdef MACSWIG
@@ -481,6 +483,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       fprintf (stdout, "Starting language-specific parse...\n");
       fflush (stdout);
     }
+    parser_init();
     lang->parse();
     if (Verbose) {
       fprintf (stdout, "Finished language-specific parse.\n");

@@ -68,31 +68,17 @@ extern "C" {
 struct TypeMap {
   char       *lang;
   DataType   *type;
-  String      code;
+  DOHString  *code;
   int         first;
   int         last;
   TypeMap     *next;
   TypeMap     *previous;                // Previously defined typemap (if any)
   ParmList    *args;                    // Local variables (if any)
 
-  TypeMap(char *l, DataType *t, String &c, ParmList *p = 0) {
-    lang = copy_string(l);
-    type = new DataType(t);
-    code << c;
-    first = type_id;
-    last = INT_MAX;
-    next = 0;
-    previous = 0;
-    if (p) {
-      args = new ParmList(p);
-    } else {
-      args = 0;
-    }
-  }
   TypeMap(char *l, DataType *t, char *c, ParmList *p = 0) {
     lang = copy_string(l);
     type = new DataType(t);
-    code << c;
+    code = NewString(c);
     first = type_id;
     last = INT_MAX;
     next = 0;
@@ -106,7 +92,7 @@ struct TypeMap {
   TypeMap(char *l, char *c) {
     lang = copy_string(l);
     type = 0;
-    code << c;
+    code = NewString(c);
     first = type_id;
     last = INT_MAX;
     next = 0;
@@ -116,7 +102,7 @@ struct TypeMap {
   TypeMap(TypeMap *t) {
     lang = copy_string(t->lang);
     type = new DataType(t->type);
-    code << t->code;
+    code = Copy(t->code);
     first = type_id;
     last = INT_MAX;
     next = 0;
@@ -236,20 +222,21 @@ void typemap_clear_apply(DataType *type, char *pname) {
 // ------------------------------------------------------------------------
 
 static char *typemap_string(char *lang, DataType *type, char *pname, char *ary, char *suffix) {
-  static String str;
+  static DOHString *str = 0;
 
   int old_status;
+  if (!str) str = NewString("");
   old_status = type->status;
   type->status = 0;
-  str = "";
+  Clear(str);
 
   if (ary)
-    str << lang << type->print_type() << pname << ary << suffix;
+    Printv(str, lang, type->print_type(), pname, ary, suffix, 0);
   else
-    str << lang << type->print_type() << pname << suffix;
+    Printv(str, lang, type->print_type(), pname, suffix,0);
 
   type->status = old_status;
-  return str.get();
+  return Char(str);
 }
 
 // ------------------------------------------------------------------------
@@ -292,7 +279,7 @@ void typemap_register(char *op, char *lang, DataType *type, char *pname,
 
     if (type_id < tm_old->last) {
       sprintf(temp,"$%s",op);
-      tm->code.replace(temp,tm_old->code.get());
+      Replace(tm->code,temp,tm_old->code, DOH_REPLACE_ANY);
     }
 
     // If found, we need to attach the old version to the new one
@@ -407,7 +394,7 @@ TypeMap *typemap_search(char *key, int id) {
 }
 
 // ------------------------------------------------------------------------
-// TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, String &str)
+// TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str)
 //
 // Performs a typemap lookup on an array type.  This is abit complicated
 // because we need to look for ANY tags specifying that any array dimension
@@ -415,7 +402,7 @@ TypeMap *typemap_search(char *key, int id) {
 // substituted.
 // ------------------------------------------------------------------------
 
-TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, String &str) {
+TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname, DOHString *str) {
   char      *origarr = type->arraystr;
   char      *key;
   int       ndim,i,j,k,n;
@@ -437,23 +424,22 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 
   if (!tm) {
     // We're going to go search for matches with the ANY tag
-    String  tempastr;
+    DOHString *tempastr = NewString("");
     ndim = type->array_dimensions();             // Get number of dimensions
     j = (1 << ndim) - 1;                         // Status bits
     for (i = 0; i < (1 << ndim); i++) {
       // Form an array string
-      tempastr = "";
+      Clear(tempastr);
       k = j;
       for (n = 0; n < ndim; n++) {
 	if (k & 1) {
-	  tempastr << "[" << type->get_dimension(n) << "]";
+	  Printf(tempastr,"[%s]",type->get_dimension(n));
 	} else {
-	  tempastr << "[ANY]";
+	  Printf(tempastr,"[ANY]");
 	}
 	k = k >> 1;
       }
-      //      printf("checking (%s) : %s\n",origarr,tempastr.get());
-      type->arraystr = tempastr.get();
+      type->arraystr = Char(tempastr);
       key = typemap_string(lang,type,pname,type->arraystr,op);
       tm = typemap_search(key,type->id);
       if (!tm) {
@@ -461,19 +447,23 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 	tm = typemap_search(key,type->id);
       }
       type->arraystr = origarr;
-      if (tm) break;
+      if (tm) {
+	Delete(tempastr);
+	break;
+      }
       j--;
     }
+    Delete(tempastr);
   }      
 	
   if (tm) {
-    str << tm->code;
+    Printf(str,"%s",tm->code);
     ndim = type->array_dimensions();
     sprintf(temp,"%d",ndim);
-    str.replace("$ndim",temp);
+    Replace(str,"$ndim",temp, DOH_REPLACE_ANY);
     for (i = 0; i < ndim; i++) {
       sprintf(temp,"$dim%d",i);
-      str.replace(temp,type->get_dimension(i));
+      Replace(str,temp,type->get_dimension(i), DOH_REPLACE_ANY);
     }
   }
   return tm;
@@ -488,7 +478,7 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
 // Substitutes locals in the string with actual values used.
 // ------------------------------------------------------------------------
 
-static void typemap_locals(DataType *t, char *pname, String &s, ParmList *l, WrapperFunction &f) {
+static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, WrapperFunction &f) {
   Parm *p;
   char *new_name;
   
@@ -496,9 +486,10 @@ static void typemap_locals(DataType *t, char *pname, String &s, ParmList *l, Wra
   while (p) {
     if (p->name) {
       if (strlen(p->name) > 0) {
-	String str;
+	DOHString *str;
 	DataType *tt;
 
+	str = NewString("");
 	// If the user gave us $type as the name of the local variable, we'll use
 	// the passed datatype instead
 
@@ -511,30 +502,30 @@ static void typemap_locals(DataType *t, char *pname, String &s, ParmList *l, Wra
 	// Have a real parameter here
         if (tt->arraystr) {
 	  tt->is_pointer--;
-	  str << p->name << tt->arraystr;
+	  Printf(str,"%s%s",p->name, tt->arraystr);
 	} 
         else {
-	  str << p->name;
+	  Printf(str,"%s",p->name);
 	}
 
 	// Substitute parameter names
-        str.replace("$arg",pname);
+	Replace(str,"$arg",pname, DOH_REPLACE_ANY);
         if (strcmp(p->t->name,"$basetype")==0) {
           // use $basetype
           char temp_ip = tt->is_pointer;
           char temp_ip1 = tt->implicit_ptr;
           tt->is_pointer = 0;
           tt->implicit_ptr = 0;
-          new_name = f.new_local(tt->print_type(),str.get());
+          new_name = f.new_local(tt->print_type(),Char(str));
           tt->is_pointer = temp_ip;
           tt->implicit_ptr = temp_ip1;
         } 
         else 
-          new_name = f.new_local(tt->print_full(),str.get());
+          new_name = f.new_local(tt->print_full(),Char(str));
 
 	if (tt->arraystr) tt->is_pointer++;
 	// Substitute 
-	s.replaceid(p->name,new_name);
+	Replace(s,p->name,new_name,DOH_REPLACE_ID);
       }
     }
     p = l->get_next();
@@ -546,7 +537,7 @@ static void typemap_locals(DataType *t, char *pname, String &s, ParmList *l, Wra
     char temp[10];
     for (int i = 0; i < t->array_dimensions(); i++) {
       sprintf(temp,"$dim%d",i);
-      f.locals.replace(temp,t->get_dimension(i));
+      Replace(f._locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
     }
   }
 
@@ -591,16 +582,17 @@ static char     *realname = 0;   // Real parameter name
 
 char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname, char *source,
                      char *target, WrapperFunction *f) {
-  static String str;
+  static DOHString *str = 0;
   char *key = 0;
   TypeMap *tm = 0;
 
+  if (!str) str = NewString("");
   if (!lang) {
     return 0;
   }
 
   // First check for named array
-  str = "";
+  Clear(str);
   tm = typemap_search_array(op,lang,type,pname,str);
 
   // Check for named argument
@@ -608,7 +600,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     key = typemap_string(lang,type,pname,0,op);
     tm = typemap_search(key,type->id);
     if (tm)
-      str << tm->code;
+      Printf(str,"%s",tm->code);
   }
 
   // Check for unnamed type
@@ -616,19 +608,19 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     key = typemap_string(lang,type,(char*)"",0,op);
     tm = typemap_search(key,type->id);
     if (tm)
-      str << tm->code;
+      Printf(str,"%s", tm->code);
   }
   if (!tm) return 0;
   
   // Now perform character replacements
 
-  str.replace("$source",source);
-  str.replace("$target",target);
-  str.replace("$type", realtype->print_type());
+  Replace(str,"$source",source,DOH_REPLACE_ANY);
+  Replace(str,"$target",target,DOH_REPLACE_ANY);
+  Replace(str,"$type",realtype->print_type(),DOH_REPLACE_ANY);
   if (realname) {
-    str.replace("$parmname", realname);
+    Replace(str,"$parmname",realname,DOH_REPLACE_ANY);
   } else {
-    str.replace("$parmname","");
+    Replace(str,"$parmname","", DOH_REPLACE_ANY);
   }
   // Print base type (without any pointers)
   {
@@ -639,13 +631,13 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
     char *bt = realtype->print_type();
     if (bt[strlen(bt)-1] == ' ') 
       bt[strlen(bt)-1] = 0;
-    str.replace("$basetype",bt);
-    str.replace("$basemangle",realtype->print_mangle());
+    Replace(str,"$basetype",bt,DOH_REPLACE_ANY);
+    Replace(str,"$basemangle",realtype->print_mangle(), DOH_REPLACE_ANY);
     realtype->is_pointer = temp_ip;
     realtype->implicit_ptr = temp_ip1;
   }
   
-  str.replace("$mangle",realtype->print_mangle());
+  Replace(str,"$mangle",realtype->print_mangle(), DOH_REPLACE_ANY);
 
   // If there were locals and a wrapper function, replace
   if ((tm->args) && f) {
@@ -661,7 +653,7 @@ char *typemap_lookup_internal(char *op, char *lang, DataType *type, char *pname,
 
   // Return character string
 
-  return str.get();
+  return Char(str);
 }
 
 // ----------------------------------------------------------
@@ -708,7 +700,8 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 	m = m->next;
 	while (m) {
 	  char *oldary = 0;
-	  static String newarray;
+	  static DOHString *newarray = 0;
+	  if (!newarray) newarray = NewString("");
 	  if (*(m->name)) ppname = m->name;
 	  else ppname = pname;
 	  m->type->is_pointer += drop_pointer;
@@ -722,16 +715,16 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 
 	  if ((m->type->arraystr) && (type->arraystr)) {
 	    // Build up the new array string
-	    newarray = "";
+	    Clear(newarray);
 	    for (int n = 0; n < m->type->array_dimensions(); n++) {
 	      char *d = m->type->get_dimension(n);
 	      if (strcmp(d,"ANY") == 0) {
-		newarray << "[" << type->get_dimension(n) << "]";
+		Printf(newarray,"[%s]", type->get_dimension(n));
 	      } else {
-		newarray << "[" << d << "]";
+		Printf(newarray,"[%s]", d);
 	      }
 	    }
-	    m->type->arraystr = newarray.get();
+	    m->type->arraystr = Char(newarray);
 	  } else if (type->arraystr) {
 	    // If an array string is available for the current datatype,
 	    // make it available.
@@ -785,15 +778,17 @@ char *typemap_lookup(char *op, char *lang, DataType *type, char *pname, char *so
 // ----------------------------------------------------------------------------
 
 char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) {
-  static String str;
+  static DOHString *str = 0;
   char *key = 0;
   TypeMap *tm = 0;
 
+  if (!str) str = NewString("");
   if (!lang) {
     return 0;
   }
   // First check for named array
-  str = "";
+
+  Clear(str);
   tm = typemap_search_array(op,lang,type,pname,str);
 
   // First check for named array
@@ -822,12 +817,11 @@ char *typemap_check_internal(char *op, char *lang, DataType *type, char *pname) 
   }
   if (!tm) return 0;
   
-  str = "";
-  str << tm->code;
+  Clear(str);
+  Printf(str,"%s",tm->code);
 
   // Return character string
-
-  return str.get();
+  Char(str);
 }
 
 // Function for checking with applications
@@ -865,7 +859,8 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	m = m->next;
 	while (m) {
 	  char *oldary = 0;
-	  static String newarray;
+	  static DOHString *newarray = 0;
+	  if (!newarray) newarray = NewString("");
 	  if (*(m->name)) ppname = m->name;
 	  else ppname = pname;
 	  m->type->is_pointer += drop_pointer;
@@ -876,17 +871,17 @@ char *typemap_check(char *op, char *lang, DataType *type, char *pname) {
 	  
 	  if ((m->type->arraystr) && (type->arraystr)) {
 	    // Build up the new array string
-	    newarray = "";
+	    Clear(newarray);
 	    for (int n = 0; n < m->type->array_dimensions(); n++) {
 	      char *d = m->type->get_dimension(n);
 	      if (strcmp(d,"ANY") == 0) {
-		newarray << "[" << type->get_dimension(n) << "]";
+		Printf(newarray,"[%s]", type->get_dimension(n));
 	      } else {
-		newarray << "[" << d << "]";
+		Printf(newarray,"[%s]", d);
 	      }
 	    }
 	    oldary = m->type->arraystr;
-	    m->type->arraystr = newarray.get();
+	    m->type->arraystr = Char(newarray);
 	  } else if (type->arraystr) {
 	    m->type->arraystr = type->arraystr;
 	  }
@@ -982,7 +977,7 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
       SetVoid(typemap_hash,key, tn);
     }
   } else {
-    typemap_register(op,lang,ttype,tname,tm->code.get(),tm->args);
+    typemap_register(op,lang,ttype,tname,Char(tm->code),tm->args);
   }
 }
 
@@ -994,12 +989,9 @@ void typemap_copy(char *op, char *lang, DataType *stype, char *sname,
 // ------------------------------------------------------------------------
 
 static char *fragment_string(char *op, char *lang) {
-  static String str;
-
-  str = "";
-
-  str << "fragment:" << lang << op;
-  return str.get();
+  static char str[512];
+  sprintf(str,"fragment:%s%s", lang, op);
+  return str;
 }
 
 // ------------------------------------------------------------------------
@@ -1027,7 +1019,7 @@ void fragment_register(char *op, char *lang, char *code) {
 
     sprintf(temp,"$%s",op);
     if (type_id < tm_old->last)
-      tm->code.replace(temp,tm_old->code.get());
+      Replace(tm->code,temp,tm_old->code,DOH_REPLACE_ANY);
 
     tm->next = tm_old;
     tm_old->last = type_id;
@@ -1039,7 +1031,7 @@ void fragment_register(char *op, char *lang, char *code) {
   
   // Perform a default chaining operation if needed (defaults to nothing)
   sprintf(temp,"$%s",op);
-  tm->code.replace(temp,"");
+  Replace(tm->code,temp,"", DOH_REPLACE_ANY);
 
   // Add new typemap to the hash table
   SetVoid(typemap_hash,key,tm);
@@ -1059,22 +1051,23 @@ void fragment_register(char *op, char *lang, char *code) {
 // ------------------------------------------------------------------------
 
 char *fragment_lookup(char *op, char *lang, int age) {
-  static String str;
+  static DOHString *str = 0;
   char *key = 0;
   TypeMap *tm = 0;
-
+  
+  if (!str) str = NewString("");
   if (!lang) {
     return 0;
   }
 
-  str = "";
+  Clear(str);
   key = fragment_string(op,lang);
   tm = typemap_search(key,age);
 
   if (!tm) return 0;
 
-  str << tm->code;
-  return str.get();
+  Append(str,tm->code);
+  return Char(str);
 }
 
 // ------------------------------------------------------------------------

@@ -19,6 +19,10 @@ static char cvsroot[] = "$Header$";
 #include <string.h>
 #include <ctype.h>
 
+extern "C" {
+  #include "doh.h"
+}
+
 #define  YYBSIZE  8192
 
 struct InFile {
@@ -44,9 +48,9 @@ InFile  *in_head;
 
 FILE    *LEX_in = NULL;
 
-static String         header;
-static String         comment;
-       String         CCode;              // String containing C code
+static DOHString     *header = 0;
+static DOHString     *comment = 0;
+       DOHString     *CCode = 0;            // String containing C code 
 static char           *yybuffer;
 static int            lex_pos = 0;
 static int            lex_len = 0;         
@@ -83,6 +87,9 @@ void scanner_init() {
 
   yybuffer = (char *) malloc(YYBSIZE);
   scan_init = 1;
+  header = NewString("");
+  comment = NewString("");
+  CCode = NewString("");
 }
 
 /**************************************************************
@@ -299,7 +306,8 @@ void yycomment(char *, int, int) {
 void skip_brace(void) {
 
   char c;
-  CCode = "{";
+  Clear(CCode);
+  Putc('{',CCode);
   while (num_brace > last_brace) {
     if ((c = nextchar()) == 0) {
       fprintf(stderr,"%s : Line %d.  Missing '}'. Reached end of input.\n",
@@ -307,7 +315,7 @@ void skip_brace(void) {
       FatalError();
       return;
     }
-    CCode << c;
+    Putc(c,CCode);
     if (c == '{') num_brace++;
     if (c == '}') num_brace--;
     yylen = 0;
@@ -328,7 +336,8 @@ void skip_brace(void) {
 void skip_template(void) {
 
   char c;
-  CCode = "<";
+  Clear(CCode);
+  Putc('<',CCode);
   int  num_lt = 1;
   while (num_lt > 0) {
     if ((c = nextchar()) == 0) {
@@ -337,7 +346,7 @@ void skip_template(void) {
       FatalError();
       return;
     }
-    CCode << c;
+    Putc(c,CCode);
     if (c == '<') num_lt++;
     if (c == '>') num_lt--;
     yylen = 0;
@@ -689,12 +698,14 @@ int yylook(void) {
 	  if (c == '/') {
 	    comment_start = line_number;
 	    column_start = column;
-	    comment = "  ";
+	    Clear(comment);
+	    Printf(comment,"  ");
 	    state = 10;        // C++ style comment
 	  } else if (c == '*') {
 	    comment_start = line_number;
 	    column_start = column;
-	    comment = "  ";
+	    Clear(comment);
+	    Printf(comment,"  ");
 	    state = 11;   // C style comment
 	  } else {
 	    retract(1);
@@ -708,9 +719,9 @@ int yylook(void) {
 	    return 0;
 	  }
 	  if (c == '\n') {
-	    comment << c;
+	    Putc(c,comment);
 	    // Add the comment to documentation
-	    yycomment(comment.get(),comment_start, column_start);
+	    yycomment(Char(comment),comment_start, column_start);
 	    yylen = 0;
 	    state = 0;
 	    if (in_define == 1) {
@@ -719,7 +730,7 @@ int yylook(void) {
 	    }
 	  } else {
 	    state = 10;
-	    comment << c;
+	    Putc(c,comment);
 	    yylen = 0;
 	  }
 	  break;
@@ -732,7 +743,7 @@ int yylook(void) {
 	  if (c == '*') {
 	    state = 12;
 	  } else {
-	    comment << c;
+	    Putc(c,comment);
 	    yylen = 0;
 	    state = 11;
 	  }
@@ -744,15 +755,16 @@ int yylook(void) {
 	    return 0;
 	  }
 	  if (c == '*') {
-	    comment << c;
+	    Putc(c,comment);
 	    state = 12;
 	  } else if (c == '/') {
-	    comment << "  \n";
-	    yycomment(comment.get(),comment_start,column_start);
+	    Printf(comment,"  \n");
+	    yycomment(Char(comment),comment_start,column_start);
 	    yylen = 0;
 	    state = 0;
 	  } else {
-	    comment << '*' << c;
+	    Putc('*',comment);
+	    Putc(c,comment);
 	    yylen = 0;
 	    state = 11;
 	  }
@@ -794,7 +806,7 @@ int yylook(void) {
 	  if (( c= nextchar()) == 0) return 0;
 	  if (c == '{') {
 	    state = 40;   /* Include block */
-	    header = "";
+	    Clear(header);
 	    start_line = line_number;
 	  }
 	  else if ((isalpha(c)) || (c == '_')) state = 7;
@@ -813,7 +825,7 @@ int yylook(void) {
 	  yylen = 0;
 	  if (c == '%') state = 41;
 	  else {
-	    header << c;
+	    Putc(c,header);
 	    yylen = 0;
 	    state = 40;
 	  }
@@ -825,11 +837,11 @@ int yylook(void) {
 	    return 0;
 	  }
 	  if (c == '}') {
-	    yylval.id = header.get();
+	    yylval.id = Char(header);
 	    return(HBLOCK);
 	  } else {
-	    header << '%';
-	    header << c;
+	    Putc('%',header);
+	    Putc(c,header);
 	    yylen = 0;
 	    state = 40;
 	  }
