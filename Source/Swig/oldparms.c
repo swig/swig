@@ -36,7 +36,7 @@ Parm *NewParm(DataType *type, char *n) {
   p->_name = Swig_copy_string(n);
   p->_lname = 0;
   p->_defvalue = 0;
-  p->ignore = 0;
+  p->_ignore = 0;
   return p;
 }
 
@@ -50,7 +50,7 @@ Parm *CopyParm(Parm *p) {
   np->_name = Swig_copy_string(p->_name);
   np->_defvalue = Swig_copy_string(p->_defvalue);
   np->_lname = Swig_copy_string(p->_lname);
-  np->ignore = p->ignore;
+  np->_ignore = p->_ignore;
   return np;
 }
 
@@ -100,6 +100,14 @@ void Parm_Setvalue(Parm *p, char *v) {
 
 char *Parm_Getvalue(Parm *p) {
   return p->_defvalue;
+}
+
+int Parm_Getignore(Parm *p) {
+  return p->_ignore;
+}
+
+void Parm_Setignore(Parm *p, int i) {
+  p->_ignore = i;
 }
 
 /* ------------------------------------------------------------------
@@ -259,7 +267,7 @@ int ParmList_numarg(ParmList *l) {
   int  n = 0;
   int  i;
   for (i = 0; i < l->nparms; i++) {
-    if (!l->parms[i]->ignore)
+    if (!Parm_Getignore(l->parms[i]))
       n++;
   }
   return n;
@@ -293,7 +301,6 @@ Parm * ParmList_next(ParmList *l) {
 
 void ParmList_print_types(ParmList *l, DOHFile *f) {
 
-  int   is_pointer;
   int   pn;
   DataType *t;
   pn = 0;
@@ -313,7 +320,6 @@ void ParmList_print_types(ParmList *l, DOHFile *f) {
  * ---------------------------------------------------------------------- */
 
 void ParmList_print_args(ParmList *l, DOHFile *f) {
-  int   is_pointer;
   int   pn;
   DataType *t;
   pn = 0;
@@ -324,6 +330,31 @@ void ParmList_print_args(ParmList *l, DOHFile *f) {
     if (pn < l->nparms)
       Printf(f,",");
   }
+}
+
+
+/* ---------------------------------------------------------------------
+ * void ParmList_str()
+ *
+ * Generates a string of parameters
+ * ---------------------------------------------------------------------- */
+
+char *ParmList_str(ParmList *l) {
+  static DOHString *out = 0;
+  int   pn;
+  DataType *t;
+
+  if (!out) out = NewString("");
+  Clear(out);
+  pn = 0;
+  while(pn < l->nparms) {
+    t = Parm_Gettype(l->parms[pn]);
+    Printf(out,"%s", DataType_str(t,Parm_Getname(l->parms[pn])));
+    pn++;
+    if (pn < l->nparms)
+      Printf(out,",");
+  }
+  return Char(out);
 }
 
 

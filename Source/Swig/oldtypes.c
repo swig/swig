@@ -28,19 +28,19 @@ DataType *NewDataType(int t) {
   case T_BOOL:
     strcpy(ty->name,"bool");
     break;
-  case T_INT: case T_SINT:
+  case T_INT:
     strcpy(ty->name,"int");
     break;
   case T_UINT:
     strcpy(ty->name,"unsigned int");
     break;
-  case T_SHORT: case T_SSHORT:
+  case T_SHORT:
     strcpy(ty->name,"short");
     break;
   case T_USHORT:
     strcpy(ty->name,"unsigned short");
     break;
-  case T_LONG: case T_SLONG:
+  case T_LONG: 
     strcpy(ty->name,"long");
     break;
   case T_ULONG:
@@ -130,13 +130,13 @@ void DataType_primitive(DataType *t) {
   case T_BOOL:
     strcpy(t->name,"bool");
     break;
-  case T_INT: case T_SINT:
+  case T_INT:
     strcpy(t->name,"int");
     break;
-  case T_SHORT: case T_SSHORT:
+  case T_SHORT:
     strcpy(t->name,"short");
     break;
-  case T_LONG: case T_SLONG:
+  case T_LONG: 
     strcpy(t->name,"long");
     break;
   case T_CHAR: 
@@ -410,7 +410,6 @@ char *DataType_rcaststr(DataType *ty, DOHString_or_char *name) {
 char *DataType_lcaststr(DataType *ty, DOHString_or_char *name) {
   static char   result[8][256];
   static int    ri = 0;
-  DataType *t = 0;
   ri = ri % 8;
 
   strcpy(result[ri],"");

@@ -82,6 +82,7 @@ char *Swig_name_wrapper(DOHString_or_char *fname) {
 char *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname) {
   static DOHString *r = 0;
   DOHString *f;
+  char   *cname, *c;
 
   if (!r) r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
@@ -92,7 +93,10 @@ char *Swig_name_member(DOHString_or_char *classname, DOHString_or_char *mname) {
   } else {
     Append(r,f);
   }
-  Replace(r,"%c",classname, DOH_REPLACE_ANY);
+  cname = Char(classname);
+  c = strchr(cname, ' ');
+  if (c) cname = c+1;
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
   Replace(r,"%m",mname, DOH_REPLACE_ANY);
   return Char(r);
 }
@@ -152,7 +156,7 @@ char *Swig_name_set(DOHString_or_char *vname) {
 char *Swig_name_construct(DOHString_or_char *classname) {
   static DOHString *r = 0;
   DOHString *f;
-
+  char *cname, *c;
   if (!r) r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   Clear(r);
@@ -162,7 +166,12 @@ char *Swig_name_construct(DOHString_or_char *classname) {
   } else {
     Append(r,f);
   }
-  Replace(r,"%c",classname, DOH_REPLACE_ANY);
+
+  cname = Char(classname);
+  c = strchr(cname, ' ');
+  if (c) cname = c+1;
+
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return Char(r);
 }
   
@@ -176,7 +185,7 @@ char *Swig_name_construct(DOHString_or_char *classname) {
 char *Swig_name_destroy(DOHString_or_char *classname) {
   static DOHString *r = 0;
   DOHString *f;
-
+  char *cname, *c;
   if (!r) r = NewString("");
   if (!naming_hash) naming_hash = NewHash();
   Clear(r);
@@ -186,6 +195,14 @@ char *Swig_name_destroy(DOHString_or_char *classname) {
   } else {
     Append(r,f);
   }
-  Replace(r,"%c",classname, DOH_REPLACE_ANY);
+
+  cname = Char(classname);
+  c = strchr(cname, ' ');
+  if (c) cname = c+1;
+
+  Replace(r,"%c",cname, DOH_REPLACE_ANY);
   return Char(r);
 }
+
+
+

@@ -10,6 +10,8 @@
  * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
+static char cvsroot[] = "$Header$";
+
 #include "swig.h"
 
 /* -----------------------------------------------------------------------------
@@ -223,7 +225,7 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
          related to array indices */
 
       int ndim;
-      int i, j, k, n;
+      int i, j, n;
       int ncheck;
       DOHString  *ntype;
 
@@ -306,7 +308,7 @@ Swig_map_match(DOHHash *ruleset, DOHString_or_char *rulename, DOHHash *parms, in
   } else {
     /* If there is no match at all.  I guess we can check for a default type */
     DOH  *rs;
-    DOHString *key, *name;
+    DOHString *key;
     DOHString *dty = SwigType_default(Getattr(parms,"type"));
     key = NewStringf("-%s",dty);
     
