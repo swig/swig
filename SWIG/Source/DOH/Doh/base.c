@@ -94,7 +94,7 @@ static DOH *find_internal(DOH *co) {
 }
 
 /* Destroy an object */
-void DohDestroy(DOH *obj) {
+void DohDelete(DOH *obj) {
     DohBase *b = (DohBase *) obj;
     DohError(DOH_CALLS,"DohDestroy %x\n",obj);
     if (!DohCheck(b)) return;
