@@ -166,6 +166,19 @@ Swig_symbol_newscope()
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_symbol_setscope()
+ *
+ * Set the current scope.  Returns the previous current scope.
+ * ----------------------------------------------------------------------------- */
+
+Symtab *
+Swig_symbol_setscope(Symtab *sym) {
+  Symtab *ret = current;
+  current = sym;
+  return ret;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_popscope()
  *
  * Pop out of the current scope.  Returns the popped scope
@@ -177,6 +190,17 @@ Swig_symbol_popscope() {
   current = Getattr(current,"$parent");
   assert(current);
   return h;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_current()
+ *
+ * Get current scope
+ * ----------------------------------------------------------------------------- */
+
+Symtab *
+Swig_symbol_current() {
+  return current;
 }
 
 /* ----------------------------------------------------------------------------- 
@@ -232,6 +256,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     Setattr(n,"$symtab",current);
     Setattr(n,"$symname",symname);
     Setattr(cl,"$symnext",n);
+    Setattr(n,"$symprev",cl);
     Setattr(cl,"$overloaded",c);
     Setattr(n,"$overloaded",c);
     return n;
@@ -318,6 +343,43 @@ Swig_symbol_lookup_tag(String_or_char *name) {
     h = Getattr(h,"$parent");
   }
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_remove()
+ *
+ * Remove a symbol 
+ * ----------------------------------------------------------------------------- */
+
+void
+Swig_symbol_remove(Node *n) {
+  Symtab *symtab; 
+  String *symname;
+  Node   *symprev;
+  Node   *symnext;
+  symtab = Getattr(n,"$symtab");
+  symname = Getattr(n,"$symname");
+  symprev = Getattr(n,"$symprev");
+  symnext = Getattr(n,"$symnext");
+
+  /* If previous symbol, just fix the links */
+  if (symprev) {
+    if (symnext) {
+      Setattr(symprev,"$symnext",symnext);
+    } else {
+      Delattr(symprev,"$symnext");
+    }
+  } else {
+    /* If no previous symbol, see if there is a next symbol */
+    if (symnext) {
+      Setattr(symtab,symname,symnext);
+    } else {
+      Delattr(symtab,symname);
+    }
+  }
+  Delattr(n,"$symtab");
+  Delattr(n,"$symprev");
+  Delattr(n,"$symnext");
 }
 
 /* -----------------------------------------------------------------------------

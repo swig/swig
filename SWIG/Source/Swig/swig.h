@@ -236,6 +236,8 @@ extern void    Swig_symbol_setscopename(String_or_char *name);
 extern String *Swig_symbol_getscopename();
 extern String *Swig_symbol_qualifiedscopename(Symtab *symtab);
 extern Symtab *Swig_symbol_newscope();
+extern Symtab *Swig_symbol_setscope(Symtab *);
+extern Symtab *Swig_symbol_current();
 extern Symtab *Swig_symbol_popscope();
 extern Node   *Swig_symbol_add(String_or_char *symname, Node *node);
 extern Node   *Swig_symbol_add_tag(String_or_char *symname, Node *node);
@@ -244,6 +246,7 @@ extern Node   *Swig_symbol_lookup_local(String_or_char *symname);
 extern Node   *Swig_symbol_lookup_tag(String_or_char *symname);
 extern String *Swig_symbol_qualfied(Node *node);
 extern Node   *Swig_symbol_isoverloaded(Node *node);
+extern void    Swig_symbol_remove(Node *node);
 
 /* --- Parameters and Parameter Lists --- */
 

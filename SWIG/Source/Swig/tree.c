@@ -75,7 +75,7 @@ Swig_dump_tree(DOH *obj) {
     while (k) {
       if ((Cmp(k,"tag") == 0) || (Cmp(k,"firstChild") == 0) || (Cmp(k,"lastChild") == 0) ||
 	  (Cmp(k,"parentNode") == 0) || (Cmp(k,"nextSibling") == 0) ||
-	  (Cmp(k,"previousSibling") == 0)) {
+	  (Cmp(k,"previousSibling") == 0) || (Cmp(k,"symtab") == 0) || (*(Char(k)) == '$')) {
 	/* Do nothing */
       } else if (Cmp(k,"parms") == 0) {
 	print_indent(2);
