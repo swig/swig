@@ -183,6 +183,35 @@
 
 %typemap(out) char [ANY] "$result = rb_str_new2($1);";
 
+/* References to primitive types.  Return by value */
+
+%typemap(out) const int &,
+              const short &,
+              const long &,
+              const signed char &
+      "$result = INT2NUM((long) *($1));";
+
+%typemap(out) const unsigned int &,
+              const unsigned short &,
+              const unsigned long &,
+              const unsigned char &
+      "$result = UINT2NUM((unsigned long) *($1));";
+
+%typemap(out) const bool &
+      "$result = *($1) ? Qtrue : Qfalse;";
+
+%typemap(out) const float &, const double & 
+      "$result = rb_float_new((double) *($1));";
+
+%typemap(out) const long long &
+      "$result = INT2NUM((long) *($1));";
+
+%typemap(out) const unsigned long long &
+      "$result = UINT2NUM((unsigned long) *($1));";
+
+%typemap(out) const char &
+      "$result = rb_str_new($1, 1);";
+
 /* --- Variable Input --- */
 
 %typemap(varin) int             "$1 = NUM2INT($input);";
