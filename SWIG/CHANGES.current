@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+04/25/2003: ljohnson (Lyle Johnson)
+            [Ruby] Added the -globalmodule command-line option for the Ruby
+            module, for wrapping stuff into the global module (Kernel) instead
+            of a nested module. Updated documentation accordingly.
+
 04/23/2003: mrose (Mark Rose)
             Fixed symname error in director calls to Python methods
 	    that extend C++ operators.
