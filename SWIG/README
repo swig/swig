@@ -74,6 +74,8 @@ Here are a few missing features
 What's Broken?
 ==============
 
+   - Objective C support doesn't work right now.
+
    - SWIG requires an ANSI C compiler.
 
    - A number of low-level data structures have been converted
