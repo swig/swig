@@ -56,6 +56,7 @@ if test -z "$SO"
 then
 	case $host in
 	*-*-hp*) SO=.sl;;
+	*-*-darwin*) SO=.bundle;;
 	*-*-cygwin* | *-*-mingw*) SO=.dll;;
 	*) SO=.so;;
 	esac
