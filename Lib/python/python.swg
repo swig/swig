@@ -440,12 +440,33 @@
 %typemap(directorin,parse="i") bool "";
 %typemap(directorin,parse="i") enum SWIGTYPE "";
 
-%typemap(directorin,parse="l") unsigned int, unsigned short, unsigned long, unsigned char "(long) $1_name";
+%typemap(directorin,parse="l") unsigned int, unsigned short, 
+  unsigned long, unsigned char "(long) $1_name";
+
         
-%typemap(directorin) long long
-        "$input = PyLong_FromLongLong($1_name);";
-%typemap(directorin) unsigned long long
-        "$input = PyLong_FromUnsignedLongLong($1_name);";
+%typemap(directorin) long long 
+  "$input = PyLong_FromLongLong($1_name);";
+%typemap(directorin) unsigned long long 
+  "$input = PyLong_FromUnsignedLongLong($1_name);";
+
+%typemap(directorin,parse="i") const int& "";
+%typemap(directorin,parse="h") const short& "";
+%typemap(directorin,parse="l") const long& "";
+%typemap(directorin,parse="b") const signed char& "";
+%typemap(directorin,parse="f") const float& "";
+%typemap(directorin,parse="d") const double& "";
+%typemap(directorin,parse="i") const bool& "";
+
+%typemap(directorin,parse="l") const unsigned int&, 
+  const unsigned short&,  const unsigned long&,
+  const unsigned char& "(long) $1_name";
+
+        
+%typemap(directorin) const long long& 
+  "$input = PyLong_FromLongLong($1_name);";
+%typemap(directorin) const unsigned long long& 
+  "$input = PyLong_FromUnsignedLongLong($1_name);";
+
 
 %typemap(directorin, parse="l") int *DIRECTORIN, long* DIRECTORIN, 
                          unsigned int *DIRECTORIN, unsigned long *DIRECTORIN, 
@@ -457,7 +478,7 @@
 
 %typemap(directorin, parse="O") PyObject* "";
 
-%typemap(directorin, parse="l") std::size_t "(long) $input";
+%typemap(directorin, parse="l") std::size_t, const std::size_t& "(long) $input";
 
 /* // this is rather dangerous
 %typemap(directorin) SWIGTYPE  {
@@ -713,6 +734,7 @@ DIRECTOROUT_TYPEMAP(std::size_t, PyInt_AsLong);
 %ignorewarn("362:operator= ignored") operator=;
 %ignorewarn("383:operator++ ignored") operator++;
 %ignorewarn("384:operator-- ignored") operator--;
+%ignorewarn("385:operator! ignored") operator!;
 %ignorewarn("381:operator&& ignored") operator&&;
 %ignorewarn("382:operator|| ignored") operator||;
 %ignorewarn("386:operator->* ignored") operator->*;

@@ -12,6 +12,8 @@
 char cvsroot_python_cxx[] = "$Header$";
 
 #include "swigmod.h"
+#include "utils.h"
+
 
 #ifndef MACSWIG
 #include "swigconfig.h"
@@ -68,6 +70,8 @@ Python Options (available with -python)\n\
      -noexcept       - No automatic exception handling\n\
      -noproxy        - Don't generate proxy classes \n\n";
 
+extern  void Wrapper_director_protected_mode_set(int);
+
 class PYTHON : public Language {
 public:
 
@@ -79,6 +83,8 @@ public:
 
     SWIG_library_directory("python");
   
+    Wrapper_director_protected_mode_set(1);
+
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if(strcmp(argv[i],"-interface") == 0) {
@@ -122,6 +128,8 @@ public:
 	  classic = 0;
           modern = 1;
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i],"-nodirprot") == 0) {
+	  Wrapper_director_protected_mode_set(0);
 	} else if (strcmp(argv[i],"-help") == 0) {
 	  fputs(usage,stderr);
 	} else if (strcmp (argv[i], "-ldflags") == 0) {
@@ -1304,8 +1312,15 @@ public:
     /* declare Python return value */
     Wrapper_add_local(w, "result", "PyObject *result");
 
+
     /* direct call to superclass if _up is set */
-    Printf(w->code, "if (swig_get_up()) {\n");
+    if (is_protected(n)) {
+      Printf(w->code, "PyObject *obj = PyObject_GetAttrString(swig_get_self(), \"%s\");\n",
+	     Getattr(n,"sym:name"));
+      Printf(w->code, "if (!obj) {\n");
+    } else {
+      Printf(w->code, "if (swig_get_up()) {\n");
+    }
     if (pure_virtual) {
     	Printf(w->code, "throw Swig::DirectorPureVirtualException();\n");
     } else {
