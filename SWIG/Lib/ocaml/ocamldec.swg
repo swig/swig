@@ -60,8 +60,8 @@ SWIG_MustGetPtr_ (value v,  swig_type_info *type,
 
 static value _wrap_delete_void( value );
 
-static int enum_to_int( value v );
-static value int_to_enum( int v );
+static int enum_to_int( char *name, value v );
+static value int_to_enum( char *name, int v );
 #ifdef __cplusplus
 }
 #endif

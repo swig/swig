@@ -170,4 +170,3 @@ swig_malloc(size_t size, const char *func_name)
 #ifdef __cplusplus
 }
 #endif
-

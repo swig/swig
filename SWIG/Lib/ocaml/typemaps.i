@@ -88,15 +88,15 @@
 
 /* Enums */
 %typemap(in) enum SWIGTYPE {
-    $1 = enum_to_int($input);
+    $1 = enum_to_int("$type_to_int",$input);
 }
 
 %typemap(varin) enum SWIGTYPE {
-    $1 = enum_to_int($input);
+    $1 = enum_to_int("$type_to_int",$input);
 }
 
-%typemap(out) enum SWIGTYPE "$result = int_to_enum($1);";
-%typemap(varout) enum SWIGTYPE "$result = int_to_enum($1);";
+%typemap(out) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
+%typemap(varout) enum SWIGTYPE "$result = int_to_enum(\"int_to_$type\",$1);";
 
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
    for simple types. */

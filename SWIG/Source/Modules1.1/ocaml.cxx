@@ -33,7 +33,7 @@ static char cvsroot[] = "$Header$";
 #include <ctype.h>
 
 /* Extern items from the swig system */
-extern int SwigType_isenum(SwigType *t);
+extern "C" int SwigType_isenum(SwigType *t);
 extern void emit_one( Node *n );
 
 static void lcase( char *c ) { while( *c ) { *c = tolower( *c ); c++; } }
@@ -184,8 +184,8 @@ class OCAML : public Language {
     }
 
     void print_unseen_type( String *type ) {
-	String *rtype = SwigType_manglestr(SwigType_typedef_resolve_all(type));
-	String *ntype = SwigType_manglestr(type);
+	String *rtype = mangle_type(SwigType_typedef_resolve_all(type));
+	String *ntype = mangle_type(type);
 
 	if( Getattr(seen_types,ntype) ) return;
 	else {
@@ -315,6 +315,19 @@ class OCAML : public Language {
 	if (NoInclude) {
 	    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
 	}
+
+	/* Produce the enum_to_int and int_to_enum functions */
+	Printf( f_wrappers,
+	        "static int enum_to_int( char *nm, value v ) {\n"
+	        "  value *en_to_int_cb = "
+	        "caml_named_value(nm);\n"
+	        "  return Int_val(callback(*en_to_int_cb,v));\n"
+	        "}\n"
+	        "static value int_to_enum( char *nm, int v ) {\n"
+	        "  value *int_to_en_cb = "
+	        "caml_named_value(nm);\n"
+	        "  return callback(*int_to_en_cb,Val_int(v));\n"
+	        "}\n" );
 	
 	Printf( f_init_fn,
 		"#ifdef __cplusplus\n"
@@ -339,19 +352,6 @@ class OCAML : public Language {
 	// *** Polymorphic variant support ***
 	Dump(f_pvariant_from_int,f_module_file);
 	Dump(f_pvariant_to_int,f_module_file);
-	
-	/* Produce the enum_to_int and int_to_enum functions */
-	Printf(f_wrappers,
-	       "static int enum_to_int( value v ) {\n"
-	       "  value *en_to_int_cb = "
-	       "caml_named_value(\"%s_enum_to_int\");\n"
-	       "  return Int_val(callback(*en_to_int_cb,v));\n"
-	       "}\n"
-	       "static value int_to_enum( int v ) {\n"
-	       "  value *int_to_en_cb = "
-	       "caml_named_value(\"%s_int_to_enum\");\n"
-	       "  return callback(*int_to_en_cb,Val_int(v));\n"
-	       "}\n",module,module);
 	
 	/* Close all of the files */
 	if( wrapmod )
@@ -444,7 +444,7 @@ class OCAML : public Language {
     void delete_replacement(SwigType *tm, SwigType *d) {
 	String *delete_fn = NewString("");
 	SwigType *dcaml_deref = Copy(d);
-	String *dcaml_delete = SwigType_manglestr(dcaml_deref);
+	String *dcaml_delete = mangle_type(dcaml_deref);
     
 	if( Getattr(seen_deleters, dcaml_delete) )
 	    Printf( delete_fn, "%s", Getattr(seen_deleters,dcaml_delete) );
@@ -460,22 +460,26 @@ class OCAML : public Language {
 
 /* Return true iff T is a pointer type */
 
-    static int is_a_pointer (SwigType *t) {
+    int is_enum(SwigType *t) {
+	return SwigType_isenum(SwigType_typedef_resolve_all(t));
+    }
+
+    int is_a_pointer (SwigType *t) {
 	return SwigType_ispointer(SwigType_typedef_resolve_all(t)) ||
-	    !strncmp(Char(SwigType_manglestr(t)),"_p",2);
+	    !strncmp(Char(mangle_type(t)),"_p",2);
     }
     
-    static int is_simple (SwigType *t) {
+    int is_simple (SwigType *t) {
 	int i;
-	String *str = SwigType_manglestr(SwigType_typedef_resolve_all(t));
+	String *str = mangle_type(SwigType_typedef_resolve_all(t));
 	
 	for( i = 0; simple_types[i][0]; i++ )
 	    if( !strcmp( Char(str), simple_types[i][0] ) ) return 1;
 	
-	return 0;
+	return is_enum(t);
     }
     
-    static SwigType *process_type( SwigType *t ) { 
+    SwigType *process_type( SwigType *t ) { 
         // Return a SwigType that's liveable for ocaml
 	if( !is_simple(t) && !is_a_pointer(t) ) {
 	    SwigType *tt = Copy(t);
@@ -484,6 +488,30 @@ class OCAML : public Language {
 	} else {
 	    return Copy(t);
 	}
+    }
+
+    String *mangle_type( SwigType *t ) {
+	if( is_enum( t ) ) {
+	    String *s = NewString("");
+
+	    if( !strncmp( Char(t), "enum ", 5 ) ) {
+		Printf(s, "_%s", Char(t)+5);
+	    } else
+		Printf(s, "_%s", t);
+
+	    char *c = strrchr( Char(s), ':' );
+	    if( c ) {
+		c++;
+		Delete(s);
+		s = NewString("");
+		Printf(s, "_%s", c );
+	    }
+
+	    Setattr(seen_types,s,s);
+
+	    return s;
+	} else
+	    return SwigType_manglestr(t);
     }
 
     int closureWrapper(Node *n) {
@@ -532,7 +560,7 @@ class OCAML : public Language {
 	if( !strncmp( vname, "new_", strlen( "new_" ) ) ) {
 	    String *del_vname = NewString("");
 	    SwigType *dcaml_deref = Copy(d);
-	    String *dcaml_delete = SwigType_manglestr(dcaml_deref);
+	    String *dcaml_delete = mangle_type(dcaml_deref);
 
 	    Printf(del_vname,"_wrap_delete_%s",vname+strlen("new_"));
 	    Setattr( seen_deleters, dcaml_delete, del_vname );
@@ -586,7 +614,7 @@ class OCAML : public Language {
 	if( numargs > 0 ) {
 	    SwigType *pt = Getattr(l,"type");
 	    SwigType *ptcaml = process_type(pt);
-	    String *tn = SwigType_manglestr(ptcaml);
+	    String *tn = mangle_type(ptcaml);
 
 	    lcase(Char(tn));
 	    if( !strncmp( Char(tn), "_p_", 3 ) &&
@@ -652,7 +680,7 @@ class OCAML : public Language {
 	
 	    for(p = l; p;) {
 		SwigType *tcaml = process_type(Getattr(p,"type"));
-		Printf(f_module, "%s", SwigType_manglestr(tcaml));
+		Printf(f_module, "%s", mangle_type(tcaml));
 		p = nextSibling(p);
 		if( p ) Printf(f_module," * ");
 		Delete(tcaml);
@@ -661,7 +689,7 @@ class OCAML : public Language {
 	    if( numargs > 1 ) 
 		Printf(f_module,")");
 	
-	    Printf(f_module, " -> %s = \"%s\"\n", SwigType_manglestr(dcaml), 
+	    Printf(f_module, " -> %s = \"%s\"\n", mangle_type(dcaml), 
 		   wname );
 	}
 
@@ -680,17 +708,17 @@ class OCAML : public Language {
 			while( p ) {
 			    SwigType *tcaml = process_type(Getattr(p,"type"));
 			    Printf(f_modclass, "%s", 
-				   SwigType_manglestr(tcaml));
+				   mangle_type(tcaml));
 			    p = nextSibling(p);
 			    if( p ) Printf(f_modclass," * ");
 			    Delete(tcaml);
 			}
 
 			Printf( f_modclass, ") -> %s\n",
-				SwigType_manglestr(dcaml) );
+				mangle_type(dcaml) );
 		    } else {
 			Printf( f_modclass, " : %s\n", 
-				SwigType_manglestr(dcaml) );
+				mangle_type(dcaml) );
 		    }
 		} else {
 		    char x = 'a';
@@ -860,7 +888,7 @@ class OCAML : public Language {
 	String *tm2 = NewString("");
 	String *argnum = NewString("0");
 	String *arg = NewString("Field(args,0)");
-	String *mangled_tcaml = SwigType_manglestr(t);
+	String *mangled_tcaml = mangle_type(t);
 	Wrapper *f;
 	
 	if( Getattr(n,"feature:closure") ) return closureWrapper(n);
@@ -1041,6 +1069,19 @@ class OCAML : public Language {
 
 	if( !name || !strlen(Char(name)) ) return SWIG_OK;
 
+	/* Produce the enum_to_int and int_to_enum functions */
+	Printf(f_wrappers,
+	       "static int _%s_to_int( value v ) {\n"
+	       "  value *en_to_int_cb = "
+	       "caml_named_value(\"%s_to_int\");\n"
+	       "  return Int_val(callback(*en_to_int_cb,v));\n"
+	       "}\n"
+	       "static value int_to_%s( int v ) {\n"
+	       "  value *int_to_en_cb = "
+	       "caml_named_value(\"int_to_%s\");\n"
+	       "  return callback(*int_to_en_cb,Val_int(v));\n"
+	       "}\n",name,name,name,name);
+	
 	if( !mliout ) {
 	    Printf(f_pvariant_to_int,
 		   "let _%s_to_int _v_ =\nmatch _v_ with\n"
@@ -1056,7 +1097,7 @@ class OCAML : public Language {
 
 	if( !mliout ) {
 	    Printf( f_pvariant_to_int,
-		    "let _ = Callback.register \"%s_%s_to_int\" "
+		    "let _ = Callback.register \"%s_to_int\" "
 		    "_%s_to_int\n"
 		    "let _%s_bits _v_ = int_to_%s "
 		    "(List.fold_left (fun a b -> a lor (_%s_to_int b)) "
@@ -1066,7 +1107,7 @@ class OCAML : public Language {
 		    "(_%s_to_int f)\n"
 		    "let bits_%s _v_ f_list = "
 		    "List.filter (fun f -> check_%s_bit f _v_) f_list\n",
-		    module, name, name,
+		    name, name,
 		    name, name,
 		    name,
 		    name,
@@ -1077,9 +1118,9 @@ class OCAML : public Language {
 	    
 	    Printf( f_pvariant_from_int,
 		    "`int _v_\n"
-		    "let _ = Callback.register \"%s_int_to_%s\" "
+		    "let _ = Callback.register \"int_to_%s\" "
 		    "int_to_%s\n",
-		    module, name, name);
+		    name, name);
 	} else {
 	    Printf( f_pvariant_to_int,
 		    "val _%s_to_int : _%s -> int\n"
