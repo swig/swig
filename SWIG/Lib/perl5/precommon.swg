@@ -11,6 +11,7 @@
 #define SWIG_TypeCast        SWIG_Perl_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Perl_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Perl_TypeName
+#define SWIG_TypePrettyName  SWIG_Perl_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Perl_TypeQuery
 #define SWIG_TypeClientData  SWIG_Perl_TypeClientData
 #define SWIG_PackData        SWIG_Perl_PackData 

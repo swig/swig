@@ -11,6 +11,7 @@
 #define SWIG_TypeCast        SWIG_Pike_TypeCast
 #define SWIG_TypeDynamicCast SWIG_Pike_TypeDynamicCast
 #define SWIG_TypeName        SWIG_Pike_TypeName
+#define SWIG_TypePrettyName  SWIG_Pike_TypePrettyName
 #define SWIG_TypeQuery       SWIG_Pike_TypeQuery
 #define SWIG_TypeClientData  SWIG_Pike_TypeClientData
 #define SWIG_PackData        SWIG_Pike_PackData 
