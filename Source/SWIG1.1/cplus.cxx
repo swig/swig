@@ -1561,7 +1561,7 @@ void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
       /* Nah. Just produce a string that does the work for us */
       emit_set_action(Swig_cmethod_call(mname, Wrapper_Getparms(w)));
     }
-    lang->create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+    new_create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     DelWrapper(w);
   } else {
     lang->create_command(prev_wrap, iname);
@@ -1660,15 +1660,15 @@ void cplus_emit_static_func(char *classname, char *, char *classrename,
     if (!prev_wrap) {
       if (!mode) {
 	// Not an added method and not objective C, just wrap it
-	lang->create_function(cname,iname, type, l);
+	new_create_function(cname,iname, type, l);
       } else {
 	if (!ccode) {
 	  strcpy(cname, Char(Swig_name_member(classname,mname)));
-	  lang->create_function(cname,iname, type, l);
+	  new_create_function(cname,iname, type, l);
 	} else {
 	  Wrapper *w = Swig_cfunction_wrapper(cname, type, l, ccode);
 	  Wrapper_print(w,f_wrappers);	  
-	  lang->create_function(cname,iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+	  new_create_function(cname,iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
 	  DelWrapper(w);
 	}
       }
@@ -1735,15 +1735,15 @@ void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
     }
     if (mode && ccode) {
       Wrapper_print(w,f_wrappers);
-      lang->create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+      new_create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else if (mode) {
-      lang->create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
+      new_create_function(Wrapper_Getname(w),iname,Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       if (CPlusPlus) 
 	emit_set_action(Swig_cppdestructor_call());
       else
 	emit_set_action(Swig_cdestructor_call());
-      lang->create_function(cname, iname, Wrapper_Gettype(w), Wrapper_Getparms(w));      
+      new_create_function(cname, iname, Wrapper_Gettype(w), Wrapper_Getparms(w));      
     }
     DelWrapper(w);
 }
@@ -1803,7 +1803,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	Wrapper_print(w,f_wrappers);
       }
     }
-    lang->create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+    new_create_function(Wrapper_Getname(w), iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     DelWrapper(w);
 }
 
@@ -1893,7 +1893,7 @@ void cplus_emit_variable_get(char *classname, char *classtype, char *classrename
       } else if (!mode) {
 	emit_set_action(Swig_cmemberget_call(mname, type));
       }
-      lang->create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+      new_create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       // Already wrapped this function.  Just patch it up
       lang->create_command(prev_wrap,iname);
@@ -2002,7 +2002,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	  emit_set_action(tm);
 	Delete(target);
       }
-      lang->create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
+      new_create_function(Wrapper_Getname(w),iname, Wrapper_Gettype(w), Wrapper_Getparms(w));
     } else {
       lang->create_command(prev_wrap,iname);
     } 

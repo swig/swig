@@ -274,6 +274,7 @@ static char *make_name(char *name) {
 // ----------------------------------------------------------------------
 
 void create_function(int ext, char *name, SwigType *t, ParmList *l) {
+  DOH *n;
   if (Active_static) return;     // Static declaration. Ignore
 
   init_language();
@@ -296,8 +297,13 @@ void create_function(int ext, char *name, SwigType *t, ParmList *l) {
       emit_extern_func(name, t, l, 1, f_header);
     }
 
-    // If this function has been declared inline, produce a function
-    lang->create_function(name, iname, t, l);
+    n = NewHash();
+    Setattr(n,"name", name);
+    Setattr(n,"scriptname", iname);
+    Setattr(n,"type", t);
+    Setattr(n,"parms", l);
+    lang->function(n);
+    Delete(n);
   }
   scanner_clear_start();
 }
@@ -328,7 +334,13 @@ void create_variable(int ext, char *name, SwigType *t) {
     }
 
     // Now dump it out
-    lang->link_variable(name, iname, t);
+    Hash *n;
+    n = NewHash();
+    Setattr(n,"name",name);
+    Setattr(n,"scriptname", iname);
+    Setattr(n,"type",t);
+    lang->variable(n);
+    Delete(n);
   }
   scanner_clear_start();
 }
@@ -362,7 +374,14 @@ void create_constant(char *name, SwigType *type, char *value) {
   } else {
     if (!WrapExtern) {    // Only wrap the constant if not in %extern mode
       String *tval = NewStringf("%(escape)s",value);
-      lang->declare_const(name, name, type, Char(tval));
+      Hash *n;
+      n = NewHash();
+      Setattr(n,"name",name);
+      Setattr(n,"scriptname",name);
+      Setattr(n,"type",type);
+      Setattr(n,"value",tval);
+      lang->constant(n);
+      Delete(n);
       Delete(tval);
     }
   }

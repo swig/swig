@@ -87,93 +87,15 @@ struct Pragma {
   Pragma  *next;
 };
 
-/************************************************************************
- * class language:
- *
- * This class defines the functions that need to be supported by the
- * scripting language being used.    The translator calls these virtual
- * functions to output different types of code for different languages.
- *
- * By implementing this using virtual functions, hopefully it will be
- * easy to support different types of scripting languages.
- *
- * The following functions are used :
- *
- *    parse_args(argc, argv)
- *           Parse the arguments used by this language.
- *
- *    parse()
- *           Entry function that starts parsing of a particular language
- *
- *    create_function(fname, iname, rtype, parmlist)
- *           Creates a function wrappper.
- *
- *    link_variable(vname, iname, type)
- *           Creates a link to a variable.
- *
- *    declare_const(cname, type, value)
- *           Creates a constant (for #define).
- *
- *    initialize(char *fn)
- *           Produces initialization code.
- *
- *    headers()
- *           Produce code for headers
- *
- *    close()
- *           Close up files
- *
- *    usage_var(iname,type,string)
- *           Produces usage string for variable declaration.
- *
- *    usage_func(iname,rttype, parmlist, string)
- *           Produces usage string for function declaration.
- *
- *    usage_const(iname, type, value, string)
- *           Produces usage string for constants
- *
- *    set_module(char *modname)
- *           Sets the name of the module (%module directive)
- *
- *    add_native(char *name, char *funcname);
- *           Adds a native wrapper function to the initialize process
- *
- * --- C++ Functions ---
- *
- *    These functions are optional additions to any of the target
- *    languages.   SWIG handles inheritance, symbol tables, and other
- *    information.
- *
- *    cpp_open_class(char *classname, char *rname)
- *          Open a new C++ class definition.
- *    cpp_close_class(char *)
- *          Close current C++ class
- *    cpp_member_func(char *name, char *rname, SwigType *rt, ParmList *l)
- *          Create a C++ member function
- *    cpp_constructor(char *name, char *iname, ParmList *l)
- *          Create a C++ constructor.
- *    cpp_destructor(char *name, char *iname)
- *          Create a C++ destructor
- *    cpp_variable(char *name, char *iname, SwigType *t)
- *          Create a C++ member data item.
- *    cpp_declare_const(char *name, char *iname, int type, char *value)
- *          Create a C++ constant.
- *    cpp_inherit(char *baseclass)
- *          Inherit data from baseclass.
- *    cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l)
- *          A C++ static member function.
- *    cpp_static_var(char *name, char *iname, SwigType *t)
- *          A C++ static member data variable.
- *
- *************************************************************************/
-
+/* Real Language Class */
 class Language {
 public:
   virtual void parse_args(int argc, char *argv[]) = 0;
   virtual void parse() = 0;
-  virtual void create_function(char *, char *, SwigType *, ParmList *) = 0;
-  virtual void link_variable(char *, char *, SwigType *)  = 0;
-  virtual void declare_const(char *, char *, SwigType *, char *) = 0;
+  virtual void function(DOH *node) = 0;
+  virtual void variable(DOH *node) = 0;
+  virtual void constant(DOH *node) = 0;
+
   virtual void initialize(void) = 0;
   virtual void close(void) = 0;
   virtual void set_module(char *mod_name) = 0;
@@ -215,35 +137,12 @@ public:
 
 /* Emit functions */
 
+extern  void  new_create_function(char *, char *, SwigType *, ParmList *);
 extern  void  emit_func_call(char *, SwigType *, ParmList *, FILE *);
 extern  void  emit_set_get(char *, char *, SwigType *);
 extern  void  emit_set_action(DOHString_or_char *decl);
 
 extern  int   SWIG_main(int, char **, Language *);
-
-// Some functions for emitting some C++ helper code
-
-extern void cplus_emit_member_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, SwigType *type, ParmList *l,
-                                   int mode);
-
-extern void cplus_emit_static_func(char *classname, char *classtype, char *classrename,
-                                   char *mname, char *mrename, SwigType *type, ParmList *l,
-                                   int mode);
-
-extern void cplus_emit_destructor(char *classname, char *classtype, char *classrename,
-                                  char *name, char *iname, int mode);
-
-extern void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
-                                   char *name, char *iname, ParmList *l, int mode);
-
-extern void cplus_emit_variable_get(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, SwigType *type, int mode);
-
-extern void cplus_emit_variable_set(char *classname, char *classtype, char *classrename,
-				    char *name, char *iname, SwigType *type, int mode);
-
-extern char *cplus_base_class(char *name);
 
 /* These are in the new core */
 

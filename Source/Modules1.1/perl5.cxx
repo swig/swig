@@ -498,8 +498,11 @@ PERL5::create_command(char *cname, char *iname) {
  * PERL5::create_function()
  * ----------------------------------------------------------------------------- */
 void
-PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+PERL5::function(DOH *node)
 {
+  char *name, *iname;
+  SwigType *d;
+  ParmList *l;
   Parm *p;
   int   pcount,i,j;
   Wrapper *f;
@@ -508,6 +511,11 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   String *cleanup, *outarg;
   int    numopt = 0;
   int    need_save, num_saved = 0;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  d = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   f       = NewWrapper();
   cleanup = NewString("");
@@ -843,13 +851,19 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
  * PERL5::link_variable()
  * ----------------------------------------------------------------------------- */
 
-void PERL5::link_variable(char *name, char *iname, SwigType *t)
-{
+void PERL5::variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
+
   char  set_name[256];
   char  val_name[256];
   Wrapper  *getf, *setf;
   char  *tm;
   int   setable = 1;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   sprintf(set_name,"_wrap_set_%s",iname);
   sprintf(val_name,"_wrap_val_%s",iname);
@@ -1073,7 +1087,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::declare_const()
+ * PERL5::constant()
  * ----------------------------------------------------------------------------- */
 
 /* Functions used to create constants */
@@ -1131,14 +1145,20 @@ static const char *setrv = "#ifndef PERL_OBJECT\
 \n}\n";
 
 void
-PERL5::declare_const(char *name, char *, SwigType *type, char *value)
+PERL5::constant(DOH *node)
   {
-
+  char   *name;
+  SwigType *type;
+  char   *value;
   char   *tm;
   static  int have_int_func = 0;
   static  int have_double_func = 0;
   static  int have_char_func = 0;
   static  int have_ref_func = 0;
+
+  name = GetChar(node,"name");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
 
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
     Printf(f_init,"%s\n",tm);

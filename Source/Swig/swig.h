@@ -415,6 +415,7 @@ extern void   Swig_except_clear();
 #define Getvalue(x)        Getattr(x,"value")
 #define Getlname(x)        Getattr(x,"lname")
 #define Getignore(x)       GetInt(x,"ignore")
+#define Getparms(x)        Getattr(x,"parms")
 
 #define Settype(x,v)       Setattr(x,"type",x)
 #define Setname(x,v)       Setattr(x,"name",v)

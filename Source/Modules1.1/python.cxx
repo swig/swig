@@ -322,7 +322,11 @@ PYTHON::create_command(char *cname, char *iname) {
  * PYTHON::create_function()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
+PYTHON::function(DOH *node) {
+  char    *name;
+  char    *iname;
+  SwigType *d;
+  ParmList *l;
   Parm    *p;
   int     pcount,i,j;
   char    wname[256];
@@ -339,6 +343,10 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   char     *tm;
   int      numopt = 0;
 
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  d = Getattr(node,"type");
+  l = Getattr(node,"parms");
   f = NewWrapper();
   parse_args = NewString("");
   arglist = NewString("");
@@ -670,14 +678,20 @@ PYTHON::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::link_variable()
+ * PYTHON::variable()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::link_variable(char *name, char *iname, SwigType *t) {
+PYTHON::variable(DOH *node) {
+    char *name, *iname;
+    SwigType *t;
     char   *wname;
     static int have_globals = 0;
     char   *tm;
     Wrapper *getf, *setf;
+
+    name = GetChar(node,"name");
+    iname = GetChar(node,"scriptname");
+    t = Getattr(node,"type");
 
     getf = NewWrapper();
     setf = NewWrapper();
@@ -908,12 +922,19 @@ PYTHON::link_variable(char *name, char *iname, SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * PYTHON::declare_const()
+ * PYTHON::constant()
  * ----------------------------------------------------------------------------- */
 void
-PYTHON::declare_const(char *name, char *, SwigType *type, char *value) {
+PYTHON::constant(DOH *node) {
+  char   *name;
+  SwigType *type;
+  char   *value;
   char   *tm;
 
+  name = GetChar(node,"name");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
+  
   if ((tm = Swig_typemap_lookup((char*)"const",type,name,value,name,0))) {
     Printf(const_code,"%s\n", tm);
   } else {

@@ -427,21 +427,26 @@ void RUBY::create_command(char *cname, char *iname, int argc) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::create_function(char *name, char *iname, SwigType *d, ParmList *l)
+ * RUBY::function()
  *
  * Create a function declaration and register it with the interpreter.
- *              name = Name of real C function
- *              iname = Name of function in scripting language
- *              t = Return datatype
- *              l = Function parameters
  * --------------------------------------------------------------------- */
 
-void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
+void RUBY::function(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
+  ParmList *l;
+
   char source[256], target[256];
   char *tm;
   String *cleanup, *outarg;
   Wrapper *f;
   int i;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
+  l = Getattr(node,"parms");
 
   /* Ruby needs no destructor wrapper */
   if (current == DESTRUCTOR) {
@@ -687,19 +692,23 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::link_variable(char *name, char *iname, SwigType *t)
+ * RUBY::variable()
  *
  * Create a link to a C variable.
- *              name = Name of C variable
- *              iname = Name of variable in scripting language
- *              t = Datatype of the variable
  * --------------------------------------------------------------------- */
 
-void RUBY::link_variable(char *name, char *iname, SwigType *t) {
+void RUBY::variable(DOH *node) {
+  char *name, *iname;
+  SwigType *t;
+
   char *tm, *source;
 
   String *getfname, *setfname;
   Wrapper *getf, *setf;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  t = Getattr(node,"type");
 
   getf = NewWrapper();
   setf = NewWrapper();
@@ -848,17 +857,21 @@ char *RUBY::validate_const_name(char *name) {
 }
 
 /* ---------------------------------------------------------------------
- * RUBY::declare_const(char *name, char *iname, SwigType *type, char *value)
+ * RUBY::constant()
  *
  * Makes a constant.
- *              name = Name of the constant
- *              iname = Scripting language name of constant
- *              type = Datatype of the constant
- *              value = Constant value (as a string)
  * --------------------------------------------------------------------- */
 
-void RUBY::declare_const(char *name, char *iname, SwigType *type, char *value) {
+void RUBY::constant(DOH *node) {
   char *tm;
+  char   *name, *iname;
+  SwigType *type;
+  char   *value;
+
+  name = GetChar(node,"name");
+  iname = GetChar(node,"scriptname");
+  type = Getattr(node,"type");
+  value = GetChar(node,"value");
 
   if (current == CLASS_CONST)
     iname = klass->strip(iname);

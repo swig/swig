@@ -337,8 +337,14 @@ void Language::cpp_declare_const(char *name, char *iname, SwigType *type, char *
   } else {
     new_value = value;
   }
-
-  lang->declare_const(cname,cname,type, new_value);
+  Hash *n;
+  n = NewHash();
+  Setattr(n,"name",cname);
+  Setattr(n,"scriptname",cname);
+  Setattr(n,"type",type);
+  Setattr(n,"value",new_value);
+  lang->constant(n);
+  Delete(n);
   
   if (!value) {
     free(new_value);
@@ -384,7 +390,12 @@ void Language::cpp_static_var(char *name, char *iname, SwigType *t) {
 
   /* Link with this variable */
 
-  lang->link_variable(mname,cname,t);
+  Hash *n = NewHash();
+  Setattr(n,"name",mname);
+  Setattr(n,"scriptname", cname);
+  Setattr(n,"type",t);
+  lang->variable(n);
+  Delete(n);
 }
 
 /* -----------------------------------------------------------------------------
