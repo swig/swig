@@ -1924,7 +1924,7 @@ C++ to Python. In particular, if a C++ class has been extended in Python
 from C++ code. Virtual method calls from C++ are thus not able access
 the lowest implementation in the inheritance chain.
 
-<p> Change have been made to SWIG 1.3.18 to address this problem and
+<p> Changes have been made to SWIG 1.3.18 to address this problem and
 make the relationship between C++ classes and proxy classes more
 symmetric. To achieve this goal, new classes called directors are
 introduced at the bottom of the C++ inheritance chain. The job of the
@@ -2018,14 +2018,14 @@ Python proxy classes.
 For simplicity let's ignore the <tt>__DIRECTOR__</tt> class and refer to the
 original C++ class as the director's base class. By default, a director
 class extends all virtual methods in the inheritance chain of its base
-class (see the preceeding section for how to modify this behavior).
+class (see the preceding section for how to modify this behavior).
 Thus all virtual method calls, whether they originate in C++ or in
 Python via proxy classes, eventually end up in at the implementation in
 the director class. The job of the director methods is to route these
 method calls to the appropriate place in the inheritance chain. By
 "appropriate place" we mean the method that would have been called if
-the C++ base class and its extensions in Python were seemlessly
-integrated. That seemless integration is exactly what the director
+the C++ base class and its extensions in Python were seamlessly
+integrated. That seamless integration is exactly what the director
 classes provide, transparently skipping over all the messy extension API
 glue that binds the two languages together.
 <p>
@@ -2040,7 +2040,7 @@ method resolution in Python automatically finds the right
 implementation).
 <p>
 
-Now how does the director decide which language handle the method call?
+Now how does the director decide which language should handle the method call?
 The basic rule is to handle the method in Python, unless there's a good
 reason not to. The reason for this is simple: Python has the most
 "extended" implementation of the method. This assertion is guaranteed,
@@ -2051,10 +2051,10 @@ If not, the proxy class will route the method call into a C wrapper
 function, expecting that the method will be resolved in C++. The wrapper
 will call the virtual method of the C++ instance, and since the director
 extends this the call will end up right back in the director method. Now
-comes the "good reason not to" part. If the director method blindly
-calls the Python method again, it will create an infinite loop. The way
-that the director method knows not to do this is that the C wrapper
-function tells it. What the C wrapper function does is it compares the
+comes the "good reason not to" part. If the director method were to blindly
+call the Python method again, it would get stuck in an infinite loop. We avoid this
+situation by adding special code to the C wrapper function that tells
+the director method to not do this. The C wrapper function compares the
 pointer to the Python object that called the wrapper function to the
 pointer stored by the director. If these are the same, then the C
 wrapper function tells the director to resolve the method by calling up
@@ -2062,7 +2062,7 @@ the C++ inheritance chain, preventing an infinite loop.
 <p>
 
 One more point needs to be made about the relationship between director
-classes and proxy classe. When a proxy class instance is created in
+classes and proxy classes. When a proxy class instance is created in
 Python, SWIG creates an instance of the original C++ class and assigns
 it to <tt>.this</tt>. This is exactly what happens without directors and
 is true even if directors are enabled for the particular class in
