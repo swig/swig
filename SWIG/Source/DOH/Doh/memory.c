@@ -57,7 +57,6 @@ CreatePool() {
 
 static void 
 InitPools() {
-  int i;
   if (pools_initialized) return;
   CreatePool();                       /* Create initial pool */
   pools_initialized = 1;
@@ -76,7 +75,6 @@ DohCheck(const DOH *ptr) {
   Pool *p = Pools;
   register char *cptr = (char *) ptr;
   register char *pptr;
-  int  d;
   while (p) {
     pptr = (char *) p->ptr;
     if ((cptr >= pptr) && (cptr < (pptr + p->blen))) return 1;

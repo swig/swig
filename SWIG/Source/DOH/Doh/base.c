@@ -65,6 +65,7 @@ DohCopy(const DOH *obj) {
   objinfo = dohtypes[b->type];
   if (objinfo->doh_copy) 
     return (objinfo->doh_copy)(b);
+  return 0;
 }
 
 void
@@ -712,7 +713,7 @@ DOH *
 DohGetfile(DOH *ho) {
   DohBase *h = (DohBase *) ho;
   DohObjInfo *objinfo;
-  if (!h) return;
+  if (!h) return 0;
   objinfo = dohtypes[h->type];
   if (objinfo->doh_getfile) 
     return (objinfo->doh_getfile)(h);
@@ -739,7 +740,7 @@ int
 DohGetline(DOH *ho) {
   DohBase *h = (DohBase *) ho;
   DohObjInfo *objinfo;
-  if (!h) return;
+  if (!h) return 0;
   objinfo = dohtypes[h->type];
   if (objinfo->doh_getline) 
     return (objinfo->doh_getline)(h);
