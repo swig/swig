@@ -259,16 +259,17 @@ class Allocate : public Dispatcher {
     
     Node *c = firstChild(cls);
     String *kind = Getattr(cls,"kind");
-    int mode;
-    if (Strcmp(kind,"class") == 0) mode = PRIVATE;
-    else mode = PUBLIC;
+    int mode = PUBLIC;
+    if (kind && (Strcmp(kind,"class") == 0)) mode = PRIVATE;
     
     while (c) {
       if (Getattr(c,"error") || Getattr(c,"feature:ignore")) {
 	c = nextSibling(c);
 	continue;
       }
-      if (Strcmp(nodeType(c),"cdecl") == 0) {
+      if (Strcmp(nodeType(c),"extend") == 0) {
+	Append(methods,c);
+      } else if (Strcmp(nodeType(c),"cdecl") == 0) {
 	if (!Getattr(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
 	  if (!((Cmp(storage,"typedef") == 0))) {

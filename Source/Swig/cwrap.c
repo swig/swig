@@ -295,8 +295,12 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
     if ((SwigType_type(pt) != T_VOID)) {
       String *pname = Swig_cparm_name(p,i);
       String *rcaststr = SwigType_rcaststr(pt, pname);
-      if (comma) Printf(func,",");
-      Printf(func,"%s", rcaststr);
+      if (comma) {
+	Printf(func, ",%s", rcaststr);
+      } else {
+	Printf(func, "%s", rcaststr);
+      }
+      Delete(pname);
       Delete(rcaststr);
       comma = 1;
       i++;
@@ -716,7 +720,8 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
 
     String *defaultargs = Getattr(n,"defaultargs");
     String *code = Getattr(n,"code");
-    String *membername = Swig_name_member(classname, name);
+    String *cname = Getattr(n,"classname") ? Getattr(n,"classname") : classname;
+    String *membername = Swig_name_member(cname, name);
     String *mangled = Swig_name_mangle(membername);
 
     type = Getattr(n,"type");
@@ -739,9 +744,27 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
       Delete(tmp);
       Delete(body);
     }
-
-    Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
-
+    if (flags & CWRAP_SMART_POINTER) {
+      int i = 0;
+      Parm *pp = p;
+      String *func = NewStringf("%s((%s*)(%s)->operator ->()", mangled, cname, 
+				Swig_cparm_name(pp,i++));
+      while ((pp = nextSibling(pp))) {
+	SwigType *pt = Getattr(pp,"type");
+	if ((SwigType_type(pt) != T_VOID)) {
+	  String *pname = Swig_cparm_name(pp,i++);
+	  String *rcaststr = SwigType_rcaststr(pt, pname);
+	  Printf(func,",%s", rcaststr);
+	  Delete(rcaststr);
+	  Delete(pname);
+	}
+      }
+      Printf(func,")");
+      Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", func));      
+    } else {
+      Setattr(n,"wrap:action", Swig_cresult(Getattr(n,"type"),"result", Swig_cfunction_call(mangled,p)));
+    }
+    
     Delete(membername);
     Delete(mangled);
   }

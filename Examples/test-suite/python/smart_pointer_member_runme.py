@@ -10,10 +10,15 @@ b = Bar(f)
 b.y = 2
 
 if f.y != 2:
+  print f.y
+  print b.y
   raise RuntimeError
 
 if b.x != f.x:
   raise RuntimeError
 
 if b.z != f.z:
+  raise RuntimeError
+
+if b.extension() != f.extension():
   raise RuntimeError

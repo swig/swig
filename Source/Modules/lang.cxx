@@ -1055,6 +1055,9 @@ Language::memberfunctionHandler(Node *n) {
   }
 
   String *fname = Swig_name_member(ClassPrefix, symname);
+  if (Extend && SmartPointer) {
+    Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
+  }
   /* Transformation */
   Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer);
   Setattr(n,"sym:name",fname);
