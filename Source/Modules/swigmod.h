@@ -46,6 +46,7 @@ extern  int       ImportMode;
 extern  int       NoExcept;                         // -no_except option
 extern  int       Abstract;                         // abstract base class
 extern  int       SmartPointer;                     // smart pointer methods being emitted
+extern  int       SwigRuntime;
 
 /* Overload "argc" and "argv" */
 extern String *argv_template_string;

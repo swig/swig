@@ -11,16 +11,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define SWIG_RUNTIME_VERSION "1"
-/* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
-#ifdef SWIG_TYPE_TABLE
-#define SWIG_QUOTE_STRING(x) #x
-#define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
-#define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
-#else
-#define SWIG_TYPE_TABLE_NAME
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,6 +35,14 @@ extern "C" {
     scm_error(gh_symbol2scm("swig-contract-assertion-failed"),	\
 	      (char *) FUNC_NAME, (char *) msg,			\
 	      SCM_EOL, SCM_BOOL_F); else
+
+#if defined(SWIG_NOINCLUDE)
+#	define SWIGSTATIC
+#elif defined(SWIG_GLOBAL)
+#	define SWIGSTATIC
+#else
+#	define SWIGSTATIC static
+#endif
 
 #define GH_NOT_PASSED    SCM_UNDEFINED
 #define GH_UNSPECIFIED   SCM_UNSPECIFIED
@@ -123,7 +121,7 @@ typedef struct swig_type_info {
   int dummy;
 } swig_type_info;
 
-static void
+SWIGSTATIC void
 SWIG_Guile_RegisterTypes (swig_type_info **table,
 			  swig_type_info **init);
 
@@ -133,17 +131,17 @@ SWIG_Guile_RegisterTypes (swig_type_info **table,
    typically used to cast pointers from derived classes to base classes in
    C++).  */
 
-static void
+SWIGSTATIC void
 SWIG_RegisterMapping (const char *origtype, const char *newtype,
                       swig_converter_func cast);
 
 
 /* Dynamic pointer casting. Down an inheritance hierarchy */
-static swig_type_info * 
+SWIGSTATIC swig_type_info * 
 SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr);
 
 /* Register SWIG smobs with Guile.  */
-static void
+SWIGSTATIC void
 SWIG_Guile_Init();
 
 /* Initialization function for this SWIG module; actually renamed by a
@@ -152,21 +150,21 @@ SWIG_Guile_Init();
 
 /* Get a pointer value from a smob.  If there is a type-mismatch,
    return nonzero; on success, return 0.  */
-static int
+SWIGSTATIC int
 SWIG_Guile_GetPtr (SCM s, void **result, swig_type_info *type);
 
 /* Get a pointer value from a smob.  If there is a type-mismatch,
    signal a wrong-type-arg error for the given argument number. */
-static void *
+SWIGSTATIC void *
 SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, const char *func_name);
 
 /* Make a smob from a pointer and typeinfo.  */
-static SCM
+SWIGSTATIC SCM
 SWIG_Guile_MakePtr (void *ptr, swig_type_info *type);
 
 /* Get arguments from an argument list */
-static int
+SWIGSTATIC int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname);
@@ -176,6 +174,11 @@ typedef SCM (*swig_guile_proc)();
 #ifdef __cplusplus
 }
 #endif
+
+/* guiledec.swg ends here */
+
+#ifndef SWIG_NOINCLUDE
+/* SWIG pointer structure */
 
 #ifdef __cplusplus
 extern "C" {
@@ -194,21 +197,19 @@ struct SwigPtrType {
   struct SwigCast    *cast;		  /* List of compatible types       */
 };
 
-struct swig_module_info {
-  int PtrMax;/* Max entries that can be held *//* (may be adjusted dynamically) */
-  int PtrN;/* Current number of entries */
-  int PtrSort;/* Status flag indicating sort */
-  SwigPtrType *PtrList;    /* Table containing types and
+/* Some variables  */
+
+static int SwigPtrMax  = 64;            /* Max entries that can be held */
+                                        /* (may be adjusted dynamically) */
+static int SwigPtrN    = 0;             /* Current number of entries */
+static int SwigPtrSort = 0;             /* Status flag indicating sort */
+
+/* Pointer table */
+static SwigPtrType *SwigPtrList = 0;    /* Table containing types and
 					   equivalences; items will only
                                            be appended */
-  size_t *PtrTbl;/* Sorted indirect table; items will be inserted */
-
-  unsigned long swig_tag;
-
-};
-
-static struct swig_module_info SwigModuleLocal = {64,0,0,0,0,0};
-static struct swig_module_info *SwigModule = &SwigModuleLocal;
+static size_t *SwigPtrTbl = 0;          /* Sorted indirect table; items will
+					   be inserted */
 
 /* Sort comparison function */
 static int
@@ -216,34 +217,34 @@ swigsort (const void *data1, const void *data2)
 {
   size_t index1 = * (size_t *) data1;
   size_t index2 = * (size_t *) data2;
-  return strcmp(SwigModule->PtrList[index1].name, SwigModule->PtrList[index2].name);
+  return strcmp(SwigPtrList[index1].name, SwigPtrList[index2].name);
 }
 
 /* Register a new datatype with the type-checker */
-static size_t
+SWIGSTATIC size_t
 SWIG_RegisterType (const char *type, const char *prettyname)
 {
   int i;
 
   /* Allocate the pointer table if necessary */
-  if (!SwigModule->PtrList) {
-    SwigModule->PtrList = (SwigPtrType *) malloc(SwigModule->PtrMax*sizeof(SwigPtrType));
-    SwigModule->PtrTbl = (size_t *) malloc(SwigModule->PtrMax*sizeof(size_t));
-    SwigModule->PtrN = 0;
+  if (!SwigPtrList) {
+    SwigPtrList = (SwigPtrType *) malloc(SwigPtrMax*sizeof(SwigPtrType));
+    SwigPtrTbl = (size_t *) malloc(SwigPtrMax*sizeof(size_t));
+    SwigPtrN = 0;
   }
   /* Grow the table if necessary */
-  if (SwigModule->PtrN >= SwigModule->PtrMax) {
-    SwigModule->PtrMax = 2*SwigModule->PtrMax;
-    SwigModule->PtrList = (SwigPtrType *) realloc((char *) SwigModule->PtrList,
-					  SwigModule->PtrMax*sizeof(SwigPtrType));
-    SwigModule->PtrTbl = (size_t *) realloc((char *) SwigModule->PtrTbl,
-				    SwigModule->PtrMax*sizeof(size_t));
+  if (SwigPtrN >= SwigPtrMax) {
+    SwigPtrMax = 2*SwigPtrMax;
+    SwigPtrList = (SwigPtrType *) realloc((char *) SwigPtrList,
+					  SwigPtrMax*sizeof(SwigPtrType));
+    SwigPtrTbl = (size_t *) realloc((char *) SwigPtrTbl,
+				    SwigPtrMax*sizeof(size_t));
   }
   /* Look up type */
-  for (i = 0; i < SwigModule->PtrN; i++)
-    if (strcmp(SwigModule->PtrList[i].name,type) == 0) {
+  for (i = 0; i < SwigPtrN; i++)
+    if (strcmp(SwigPtrList[i].name,type) == 0) {
       if (prettyname!=NULL)
-	SwigModule->PtrList[i].prettyname = prettyname;
+	SwigPtrList[i].prettyname = prettyname;
       return i;
     }
   {
@@ -252,20 +253,20 @@ SWIG_RegisterType (const char *type, const char *prettyname)
 #if 0
     fprintf(stderr, "New type: %s\n", type);
 #endif
-    tag = SwigModule->PtrTbl[SwigModule->PtrN] = SwigModule->PtrN;
-    t = &SwigModule->PtrList[tag];
+    tag = SwigPtrTbl[SwigPtrN] = SwigPtrN;
+    t = &SwigPtrList[tag];
     t->name = type;
     t->prettyname = prettyname;
-    t->tag = SwigModule->PtrN;
+    t->tag = SwigPtrN;
     t->cast = NULL;
-    SwigModule->PtrN++;
-    SwigModule->PtrSort = 0; 
+    SwigPtrN++;
+    SwigPtrSort = 0; 
     return tag;
   }
 }
 
 /* Register two data types and their mapping with the type checker. */
-static void
+SWIGSTATIC void
 SWIG_RegisterMapping (const char *origtype, const char *newtype,
 		      swig_converter_func cast)
 {
@@ -275,7 +276,7 @@ SWIG_RegisterMapping (const char *origtype, const char *newtype,
     size_t t1 = SWIG_RegisterType(newtype, NULL);
     struct SwigCast *c;
     /* Check for existing cast */
-    for (c = SwigModule->PtrList[t].cast; c && c->type!=t1; c=c->next) /* nothing */;
+    for (c = SwigPtrList[t].cast; c && c->type!=t1; c=c->next) /* nothing */;
     if (c) {
       if (cast) c->cast = cast;
     }
@@ -283,8 +284,8 @@ SWIG_RegisterMapping (const char *origtype, const char *newtype,
       c = (struct SwigCast *) malloc(sizeof(struct SwigCast));
       c->type = t1;
       c->cast = cast;
-      c->next = SwigModule->PtrList[t].cast;
-      SwigModule->PtrList[t].cast = c;
+      c->next = SwigPtrList[t].cast;
+      SwigPtrList[t].cast = c;
     }
   }
 }
@@ -294,9 +295,9 @@ SWIG_RegisterMapping (const char *origtype, const char *newtype,
 static void
 SWIG_SortTable (void)
 {
-  qsort ((void *) SwigModule->PtrTbl, SwigModule->PtrN, sizeof(size_t), swigsort);
+  qsort ((void *) SwigPtrTbl, SwigPtrN, sizeof(size_t), swigsort);
   /* Indicate that everything is sorted */
-  SwigModule->PtrSort = 1;
+  SwigPtrSort = 1;
 }
 
 /* Look up pointer-type entry in table */
@@ -306,16 +307,16 @@ swigcmp (const void *key, const void *data)
 {
   char *k = (char *) key;
   size_t index = *(size_t *)data;
-  return strcmp(k, SwigModule->PtrList[index].name);
+  return strcmp(k, SwigPtrList[index].name);
 }
 
 static SwigPtrType *
 SWIG_GetPtrType (const char *_t)
 {
   size_t *result;
-  if (!SwigModule->PtrSort) SWIG_SortTable();
-  result = (size_t *) bsearch(_t, SwigModule->PtrTbl, SwigModule->PtrN, sizeof(size_t), swigcmp);
-  if (result!=NULL) return SwigModule->PtrList+*result;
+  if (!SwigPtrSort) SWIG_SortTable();
+  result = (size_t *) bsearch(_t, SwigPtrTbl, SwigPtrN, sizeof(size_t), swigcmp);
+  if (result!=NULL) return SwigPtrList+*result;
   else return NULL;
 }
 
@@ -330,7 +331,7 @@ SWIG_Cast (void *source, size_t source_type,
        mapping table to figure out whether or not we can accept this
        datatype.  */
     struct SwigCast *c;
-    for (c = SwigModule->PtrList[dest_type].cast;
+    for (c = SwigPtrList[dest_type].cast;
 	 c && c->type!=source_type; c = c->next) /* nothing */;
     if (c) {
       /* Get pointer value. */
@@ -350,7 +351,7 @@ SWIG_Cast (void *source, size_t source_type,
 }
 
 /* Dynamic pointer casting. Down an inheritance hierarchy */
-static swig_type_info * 
+SWIGSTATIC swig_type_info * 
 SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) 
 {
   swig_type_info *lastty = ty;
@@ -364,16 +365,18 @@ SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr)
 
 /* Function for getting a pointer value */
 
-static SCM
+static unsigned long swig_tag = 0;
+
+SWIGSTATIC SCM
 SWIG_Guile_MakePtr (void *ptr, swig_type_info *type)
 {
   if (ptr==NULL) return SCM_EOL;
-  SCM_RETURN_NEWSMOB((((unsigned long)type->tag << 16) | SwigModule->swig_tag),
+  SCM_RETURN_NEWSMOB((((unsigned long)type->tag << 16) | swig_tag),
 		     ptr);
 }
 
 /* Return 0 if successful. */
-static int
+SWIGSTATIC int
 SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
 {
   if (SCM_NULLP(s)) {
@@ -381,7 +384,7 @@ SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
     return 0;
   }
   else if (SCM_NIMP(s)
-	   && (unsigned long) SCM_TYP16(s) == SwigModule->swig_tag) {
+	   && (unsigned long) SCM_TYP16(s) == swig_tag) {
     if (type) 
       return !SWIG_Cast((void *) SCM_CDR(s),
 			(long) SCM_CAR(s) >> 16,
@@ -394,7 +397,7 @@ SWIG_Guile_GetPtr(SCM s, void **result, swig_type_info *type)
   return 1;
 }
 
-static void *
+SWIGSTATIC void *
 SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
 		       int argnum, const char *func_name)
 {
@@ -412,9 +415,9 @@ static int
 print_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
 {
   scm_puts((char *) "#<swig ", port);
-  if (SwigModule->PtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname != NULL)
-    scm_puts((char*) SwigModule->PtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname, port);
-  else scm_puts((char*) SwigModule->PtrList[(long) SCM_CAR(swig_smob) >> 16].name, port);
+  if (SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname != NULL)
+    scm_puts((char*) SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].prettyname, port);
+  else scm_puts((char*) SwigPtrList[(long) SCM_CAR(swig_smob) >> 16].name, port);
   scm_puts((char *) " ", port);
   scm_intprint((long) SCM_CDR(swig_smob), 16, port);
   scm_puts((char *) ">", port);
@@ -431,27 +434,18 @@ equalp_swig (SCM A, SCM B)
   else return SCM_BOOL_F;
 }
 
-static void
+SWIGSTATIC void
 SWIG_Guile_Init (void)
 {
-  SCM pointer;
-
-  pointer = gh_lookup("swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-  if (pointer == SCM_UNDEFINED) {
-    pointer = gh_ulong2scm((unsigned long)SwigModule);
-    gh_define("swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, pointer);
-    if (SwigModule->swig_tag == 0) {
-      SwigModule->swig_tag = scm_make_smob_type_mfpe((char *) "swig", 0, NULL, NULL,
+  if (swig_tag == 0) {
+    swig_tag = scm_make_smob_type_mfpe((char *) "swig", 0, NULL, NULL,
 				       print_swig, equalp_swig);
-    }
-  } else {
-   SwigModule = (struct swig_module_info *) gh_scm2ulong(pointer); 
   }
 }
 
 /* Convert datatype table */
 
-static
+SWIGSTATIC
 void SWIG_Guile_RegisterTypes(swig_type_info **table,
 			      swig_type_info **init)
 {
@@ -466,7 +460,7 @@ void SWIG_Guile_RegisterTypes(swig_type_info **table,
   }    
 }
 
-static int
+SWIGSTATIC int
 SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 		    int reqargs, int optargs,
 		    const char *procname)
@@ -494,4 +488,8 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
 
 #ifdef __cplusplus
 }
+#endif
+
+/* guile.swg ends here */
+
 #endif
