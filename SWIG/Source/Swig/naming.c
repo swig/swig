@@ -447,10 +447,47 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     ncdecl++;
   }
 
-  /* Perform a class-based lookup (if class prefix supplied) */
-  if (prefix) {
-    if (Len(prefix)) {
-      tname = NewStringf("%s::%s",prefix,name);
+  if (name) {
+    /* Perform a class-based lookup (if class prefix supplied) */
+    if (prefix) {
+      if (Len(prefix)) {
+	tname = NewStringf("%s::%s",prefix,name);
+	n = Getattr(features,tname);
+	rn = get_object(n,decl);
+	merge_features(rn,node);
+	if (ncdecl) {
+	  rn = get_object(n,ncdecl);
+	  merge_features(rn,node);
+	}
+	rn = get_object(n,0);
+	merge_features(rn,node);
+	Delete(tname);
+      }
+      /* A wildcard-based class lookup */
+      tname = NewStringf("*::%s",name);
+      n = Getattr(features,tname);
+      rn = get_object(n,decl);
+      merge_features(rn,node);
+      if (ncdecl) {
+	rn = get_object(n,ncdecl);
+	merge_features(rn,node);
+      }
+      rn = get_object(n,0);
+      merge_features(rn,node);
+      Delete(tname);
+      
+      /* A class-generic feature */
+      if (Len(prefix)) {
+	tname = NewStringf("%s::",prefix);
+	n = Getattr(features,tname);
+	rn = get_object(n,0);
+	merge_features(rn,node);
+	Delete(tname);
+      }
+      
+    } else {
+      /* Lookup in the global namespace only */
+      tname = NewStringf("::%s",name);
       n = Getattr(features,tname);
       rn = get_object(n,decl);
       merge_features(rn,node);
@@ -462,9 +499,8 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
       merge_features(rn,node);
       Delete(tname);
     }
-    /* A wildcard-based class lookup */
-    tname = NewStringf("*::%s",name);
-    n = Getattr(features,tname);
+    /* Catch-all */
+    n = Getattr(features,name);
     rn = get_object(n,decl);
     merge_features(rn,node);
     if (ncdecl) {
@@ -473,42 +509,7 @@ Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, 
     }
     rn = get_object(n,0);
     merge_features(rn,node);
-    Delete(tname);
-
-    /* A class-generic feature */
-    if (Len(prefix)) {
-      tname = NewStringf("%s::",prefix);
-      n = Getattr(features,tname);
-      rn = get_object(n,0);
-      merge_features(rn,node);
-      Delete(tname);
-    }
-
-  } else {
-    /* Lookup in the global namespace only */
-    tname = NewStringf("::%s",name);
-    n = Getattr(features,tname);
-    rn = get_object(n,decl);
-    merge_features(rn,node);
-    if (ncdecl) {
-      rn = get_object(n,ncdecl);
-      merge_features(rn,node);
-    }
-    rn = get_object(n,0);
-    merge_features(rn,node);
-    Delete(tname);
   }
-  /* Catch-all */
-  n = Getattr(features,name);
-  rn = get_object(n,decl);
-  merge_features(rn,node);
-  if (ncdecl) {
-    rn = get_object(n,ncdecl);
-    merge_features(rn,node);
-  }
-  rn = get_object(n,0);
-  merge_features(rn,node);
-
   /* Global features */
   n = Getattr(features,"");
   rn = get_object(n,0);
