@@ -1,30 +1,58 @@
 *** ANNOUNCE: SWIG 1.3.12 ***
 
+http://www.swig.org
+
 June 1, 2002
 
-We're pleased to announce the next installment of the SWIG development
-effort.  SWIG 1.3.12 is a milestone in SWIG development--it is the
-first release that features a nearly complete C++ type system
-including full support for namespaces, templates, and more.
+We're pleased to announce SWIG 1.3.12, the latest installment in the
+SWIG redevelopment effort.  SWIG 1.3.12 is a milestone in the SWIG
+project--it is the first release that features a nearly complete C++
+type system including full support for namespaces, templates, and
+more.  Simply stated, SWIG-1.3.12 is more capable than ever.
+
+What is SWIG?
+-------------
+SWIG is a software development tool that reads C/C++ header files and
+generates the wrapper code needed to make C and C++ code accessible
+from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
+Guile, and Mzscheme.  Major applications of SWIG include generation of
+scripting language extension modules, rapid prototyping, testing, and
+user interface development for large C/C++ systems.  SWIG has been
+available for more than six years and it is used by thousands of
+developers--primarily in industry.
+
+Although several tools appear to be similar to SWIG on the surface,
+SWIG is much more than a simple C++ declaration parser.  In fact, the
+major advantage of SWIG is that it implements the full C++ type system
+and it is highly customizable.  This allows SWIG to work with real
+applications and it allows SWIG to better understand the relationship
+between different program modules. Furthermore, there are very few
+restrictions on what can be wrapped by SWIG--in fact, it can generate
+bindings for nearly every C/C++ programming construct.
 
 New Features in 1.3.12
 ----------------------
-
 * C++ namespace support *
 
 SWIG-1.3.12 provides full support for C++ namespaces including all C++
 namespace related declarations (using, namespace aliases, nested
 namespaces, etc.).  Namespace support is fully integrated into the
-type system, typemaps, customization features, and every other part of
+type system, typemaps, customization features, and all other parts of
 SWIG.
 
-* New template support */
+* Expanded template support */
 
-Minimal template support was available in earlier SWIG releases.
+Minimal C++ template support was available in earlier SWIG releases.
 SWIG-1.3.12 builds upon this and provides support for templates,
 member templates, template specialization, and template partial
-specialization.  New library files are included for wrapping C++
-strings and STL vectors.
+specialization.  These features have been used to provide new library
+modules for wrapping C++ strings and STL vectors.  More C++ library
+support will appear in later releases.
+
+* Variable length arguments */
+
+New directives and support is provided for wrapping C variable length
+argument functions.  
 
 * Refined PHP4 Module *
 
@@ -36,9 +64,14 @@ module.
 The Perl, Python, Tcl, Ruby and Java examples run out of the box on 
 Cygwin.
 
+* Warning framework *
+
+Most SWIG warning messages can be controlled and error messages have
+been improved.
+
 * Bug fixes *
 
-Further bug fixes in many parts of SWIG. See the CHANGES file for 
+Numerous bug fixes in many parts of SWIG. See the CHANGES file for 
 details.
 
 * Updated documentation *
@@ -59,22 +92,6 @@ Within the next day, a Windows version will also be made available at
 
      http://prdownloads.sourceforge.net/swig/swigwin-1.3.12.zip
 
-What's broken?
---------------
-This release breaks backwards compatibility with SWIG1.1 in a
-substantial manner.  Although we realize that this may be painful,
-these incompatibilities are unavoidable due to corrections that need
-to be made in order to fix semantic errors in the SWIG1.1
-implementation.  However, we hope that these changes are a small price
-to pay for some of SWIG's new features including support for C++
-templates, overloading, and improved parsing.
-
-As this is a work in progress, a number of features are still missing
-or incomplete.  The documentation system is still missing and won't be
-reimplemented for some time.  Programmers who have made extensive use of
-typemaps may encounter broken code due to the reimplementation of the typemap
-system (which has tried to fix a number of subtle problems).
-
 Documentation
 -------------
 This release contains partially updated documentation.  Almost all new
@@ -84,13 +101,13 @@ some additional information.
 
 New Development Process
 -----------------------
-Starting with SWIG1.3, we are adopting an odd/even version numbering
-scheme for SWIG.  Odd version numbers (1.3, 1.5, 1.7, etc...) are
-considered to be unstable development releases.  Even numbers
-(1.4,1.6,1.8) are stable releases.  The current 1.3 effort is working
-to produce a stable 2.0 release.  A stable 2.0 release will not be
-made until it can accompanied by fully updated documentation.  In the
-meantime, we will continue to make periodic 1.3.x releases.
+With SWIG1.3, we are adopting an odd/even version numbering scheme for
+SWIG.  Odd version numbers (1.3, 1.5, 1.7, etc...) are considered to
+be development releases.  Even numbers (1.4,1.6,1.8) are stable
+releases.  The current 1.3 effort is working to produce a stable 2.0
+release.  A stable 2.0 release will not be made until it can
+accompanied by fully updated documentation.  In the meantime, we will
+continue to make periodic 1.3.x releases.
 
 We need your help!
 ------------------
@@ -108,9 +125,9 @@ aspects of SWIG development.  SWIG is an unfunded project that would
 not exist without volunteers.  We are also looking for the developers
 of other SWIG language modules.  If you have developed a SWIG module
 and would like to see it incorporated into the new release, please
-contact us to obtain SWIG developer access.  We are also more than
-willing to help port your module from SWIG1.1 to SWIG1.3.  Please send
-email to beazley@cs.uchicago.edu for further information.
+contact us to obtain SWIG-CVS access.  We are also more than willing
+to help port your module from SWIG1.1 to SWIG1.3.  Please send email
+to beazley@cs.uchicago.edu for further information.
 
 Please report problems with this release to swig-dev@cs.uchicago.edu.
 
