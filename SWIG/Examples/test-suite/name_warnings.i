@@ -29,9 +29,9 @@
   {
     typedef complex None;
     
-    A* clone(int);
+    A* clone(int) { return NULL; }
     
-    virtual ~A();
+    virtual ~A() {}
     virtual int func() = 0;
   private:
      typedef complex False;
@@ -44,9 +44,7 @@
 
   struct B : A
   {
-    B()
-    {
-    }
+    B() {}
   };
   
 }
