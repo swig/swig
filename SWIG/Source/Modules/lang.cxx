@@ -695,6 +695,16 @@ int Language::cDeclaration(Node *n) {
   /* If in import mode, we proceed no further */
   if (ImportMode) return SWIG_NOWRAP;
 
+  /* If we're in extend mode and there is code, replace the $descriptor macros */
+  if (Getattr(n,"feature:extend")) {
+    String *code = Getattr(n,"code");
+    if (code) {
+      Setfile(code,Getfile(n));
+      Setline(code,Getline(n));
+      Swig_cparse_replace_descriptor(code);
+    }
+  }
+
   /* Overloaded symbol check */
   over = Swig_symbol_isoverloaded(n);
   if (!overloading) {
