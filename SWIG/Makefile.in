@@ -108,10 +108,10 @@ check-aliveness:
 	$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	$(skip-ruby) || ./$(TARGET) -ruby -help
 
-TCL_EXAMPLES = class constants enum funcptr pointer reference simple value variables
-PERL5_EXAMPLES = class constants funcptr pointer reference simple value variables
-PYTHON_EXAMPLES = class constants enum funcptr pointer reference shadow simple value variables 
-JAVA_EXAMPLES = class constants enum native reference simple typemap
+TCL_EXAMPLES = class constants enum funcptr import pointer reference simple value variables
+PERL5_EXAMPLES = class constants funcptr import pointer reference shadow simple value variables
+PYTHON_EXAMPLES = class constants enum funcattr funcptr import mpointer pointer reference shadow simple template value variables
+JAVA_EXAMPLES = class constants enum native reference simple template typemap
 GUILE_EXAMPLES = constants matrix simple port 
 MZSCHEME_EXAMPLES = simple
 RUBY_EXAMPLES = class constants enum funcptr pointer reference simple value variables
