@@ -42,6 +42,7 @@ The following methods can be applied to turn a pointer into a simple
 "input" value.  That is, instead of passing a pointer to an object,
 you would use a real value instead.
 
+        bool               *INPUT
         signed char        *INPUT
         unsigned char      *INPUT
         short              *INPUT
@@ -54,7 +55,6 @@ you would use a real value instead.
         unsigned long long *INPUT
         float              *INPUT
         double             *INPUT
-        bool               *INPUT
          
 To use these, suppose you had a C function like this :
 
@@ -79,6 +79,7 @@ In Java you could then use it like this:
 %}
 #endif
 
+%typemap(jni) bool               *INPUT "jboolean"
 %typemap(jni) signed char        *INPUT "jbyte"
 %typemap(jni) unsigned char      *INPUT "jshort"
 %typemap(jni) short              *INPUT "jshort"
@@ -91,8 +92,8 @@ In Java you could then use it like this:
 %typemap(jni) unsigned long long *INPUT "jobject"
 %typemap(jni) float              *INPUT "jfloat"
 %typemap(jni) double             *INPUT "jdouble"
-%typemap(jni) bool               *INPUT "jboolean"
 
+%typemap(jtype) bool               *INPUT "boolean"
 %typemap(jtype) signed char        *INPUT "byte"
 %typemap(jtype) unsigned char      *INPUT "short"
 %typemap(jtype) short              *INPUT "short"
@@ -105,8 +106,8 @@ In Java you could then use it like this:
 %typemap(jtype) unsigned long long *INPUT "java.math.BigInteger"
 %typemap(jtype) float              *INPUT "float"
 %typemap(jtype) double             *INPUT "double"
-%typemap(jtype) bool               *INPUT "boolean"
 
+%typemap(jstype) bool               *INPUT "boolean"
 %typemap(jstype) signed char        *INPUT "byte"
 %typemap(jstype) unsigned char      *INPUT "short"
 %typemap(jstype) short              *INPUT "short"
@@ -119,9 +120,9 @@ In Java you could then use it like this:
 %typemap(jstype) unsigned long long *INPUT "java.math.BigInteger"
 %typemap(jstype) float              *INPUT "float"
 %typemap(jstype) double             *INPUT "double"
-%typemap(jstype) bool               *INPUT "boolean"
 
-%typemap(in) signed char    *INPUT,
+%typemap(in) bool           *INPUT,
+             signed char    *INPUT,
              unsigned char  *INPUT,
              short          *INPUT,
              unsigned short *INPUT,
@@ -131,8 +132,7 @@ In Java you could then use it like this:
              unsigned long  *INPUT,
              long long      *INPUT,
              float          *INPUT,
-             double         *INPUT,
-             bool           *INPUT
+             double         *INPUT
   %{ $1 = ($1_type)&$input; %}
 
 /* Convert from BigInteger using the toByteArray member function */
@@ -185,6 +185,7 @@ any modifications to the array will be picked up in the calling function.
 Note that the array passed in MUST have at least one element, but as the 
 c function does not require any input, the value can be set to anything.
 
+        bool               *OUTPUT
         signed char        *OUTPUT
         unsigned char      *OUTPUT
         short              *OUTPUT
@@ -197,7 +198,6 @@ c function does not require any input, the value can be set to anything.
         unsigned long long *OUTPUT
         float              *OUTPUT
         double             *OUTPUT
-        bool               *OUTPUT
          
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
@@ -225,6 +225,7 @@ value in the single element array. In Java you would use it like this:
 %}
 #endif
 
+%typemap(jni) bool               *OUTPUT "jbooleanArray"
 %typemap(jni) signed char        *OUTPUT "jbyteArray"
 %typemap(jni) unsigned char      *OUTPUT "jshortArray"
 %typemap(jni) short              *OUTPUT "jshortArray"
@@ -237,8 +238,8 @@ value in the single element array. In Java you would use it like this:
 %typemap(jni) unsigned long long *OUTPUT "jobjectArray"
 %typemap(jni) float              *OUTPUT "jfloatArray"
 %typemap(jni) double             *OUTPUT "jdoubleArray"
-%typemap(jni) bool               *OUTPUT "jbooleanArray"
 
+%typemap(jtype) bool               *OUTPUT "boolean[]"
 %typemap(jtype) signed char        *OUTPUT "byte[]"
 %typemap(jtype) unsigned char      *OUTPUT "short[]"
 %typemap(jtype) short              *OUTPUT "short[]"
@@ -251,8 +252,8 @@ value in the single element array. In Java you would use it like this:
 %typemap(jtype) unsigned long long *OUTPUT "java.math.BigInteger[]"
 %typemap(jtype) float              *OUTPUT "float[]"
 %typemap(jtype) double             *OUTPUT "double[]"
-%typemap(jtype) bool               *OUTPUT "boolean[]"
 
+%typemap(jstype) bool               *OUTPUT "boolean[]"
 %typemap(jstype) signed char        *OUTPUT "byte[]"
 %typemap(jstype) unsigned char      *OUTPUT "short[]"
 %typemap(jstype) short              *OUTPUT "short[]"
@@ -265,9 +266,9 @@ value in the single element array. In Java you would use it like this:
 %typemap(jstype) unsigned long long *OUTPUT "java.math.BigInteger[]"
 %typemap(jstype) float              *OUTPUT "float[]"
 %typemap(jstype) double             *OUTPUT "double[]"
-%typemap(jstype) bool               *OUTPUT "boolean[]"
 
-%typemap(in) signed char        *OUTPUT($*1_type temp),
+%typemap(in) bool               *OUTPUT($*1_type temp),
+             signed char        *OUTPUT($*1_type temp),
              unsigned char      *OUTPUT($*1_type temp),
              short              *OUTPUT($*1_type temp),
              unsigned short     *OUTPUT($*1_type temp),
@@ -278,9 +279,9 @@ value in the single element array. In Java you would use it like this:
              long long          *OUTPUT($*1_type temp),
              unsigned long long *OUTPUT($*1_type temp),
              float              *OUTPUT($*1_type temp),
-             double             *OUTPUT($*1_type temp),
-             bool               *OUTPUT($*1_type temp)
-%{if (!$input) {
+             double             *OUTPUT($*1_type temp)
+{
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -288,20 +289,21 @@ value in the single element array. In Java you would use it like this:
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = &temp; %}
+  $1 = &temp; 
+}
 
-%typemap(argout) signed char        *OUTPUT %{ JCALL4(SetByteArrayRegion, jenv, $input, 0, 1, (jbyte *)&temp$argnum); %}
-%typemap(argout) unsigned char      *OUTPUT %{ JCALL4(SetShortArrayRegion, jenv, $input, 0, 1, (jshort *)&temp$argnum); %}
-%typemap(argout) short              *OUTPUT %{ JCALL4(SetShortArrayRegion, jenv, $input, 0, 1, (jshort *)&temp$argnum); %}
-%typemap(argout) unsigned short     *OUTPUT %{ JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); %}
-%typemap(argout) int                *OUTPUT %{ JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); %}
-%typemap(argout) unsigned int       *OUTPUT %{ JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); %}
-%typemap(argout) long               *OUTPUT %{ JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); %}
-%typemap(argout) unsigned long      *OUTPUT %{ JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); %}
-%typemap(argout) long long          *OUTPUT %{ JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); %}
-%typemap(argout) float              *OUTPUT %{ JCALL4(SetFloatArrayRegion, jenv, $input, 0, 1, (jfloat *)&temp$argnum); %}
-%typemap(argout) double             *OUTPUT %{ JCALL4(SetDoubleArrayRegion, jenv, $input, 0, 1, (fdouble *)&temp$argnum); %}
-%typemap(argout) bool               *OUTPUT %{ JCALL4(SetBooleanArrayRegion, jenv, $input, 0, 1, (jboolean *)&temp$argnum); %}
+%typemap(argout) bool               *OUTPUT { JCALL4(SetBooleanArrayRegion, jenv, $input, 0, 1, (jboolean *)&temp$argnum); }
+%typemap(argout) signed char        *OUTPUT { JCALL4(SetByteArrayRegion, jenv, $input, 0, 1, (jbyte *)&temp$argnum); }
+%typemap(argout) unsigned char      *OUTPUT { JCALL4(SetShortArrayRegion, jenv, $input, 0, 1, (jshort *)&temp$argnum); }
+%typemap(argout) short              *OUTPUT { JCALL4(SetShortArrayRegion, jenv, $input, 0, 1, (jshort *)&temp$argnum); }
+%typemap(argout) unsigned short     *OUTPUT { JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); }
+%typemap(argout) int                *OUTPUT { JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); }
+%typemap(argout) unsigned int       *OUTPUT { JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); }
+%typemap(argout) long               *OUTPUT { JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *)&temp$argnum); }
+%typemap(argout) unsigned long      *OUTPUT { JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); }
+%typemap(argout) long long          *OUTPUT { JCALL4(SetLongArrayRegion, jenv, $input, 0, 1, (jlong *)&temp$argnum); }
+%typemap(argout) float              *OUTPUT { JCALL4(SetFloatArrayRegion, jenv, $input, 0, 1, (jfloat *)&temp$argnum); }
+%typemap(argout) double             *OUTPUT { JCALL4(SetDoubleArrayRegion, jenv, $input, 0, 1, (fdouble *)&temp$argnum); }
 
 /* Convert to BigInteger - byte array holds number in 2's complement big endian format */
 /* Use first element in BigInteger array for output */
@@ -337,6 +339,7 @@ an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
 returned as an element in a Java array.
 
+        bool               *INOUT
         signed char        *INOUT
         unsigned char      *INOUT
         short              *INOUT
@@ -349,7 +352,6 @@ returned as an element in a Java array.
         unsigned long long *INOUT
         float              *INOUT
         double             *INOUT
-        bool               *INOUT
          
 For example, suppose you were trying to wrap the following function :
 
@@ -383,6 +385,7 @@ of the function return value. This is due to Java being a typed language.
 %}
 
 #endif
+%typemap(jni) bool               *INOUT = bool               *OUTPUT;
 %typemap(jni) signed char        *INOUT = signed char        *OUTPUT;
 %typemap(jni) unsigned char      *INOUT = unsigned char      *OUTPUT;
 %typemap(jni) short              *INOUT = short              *OUTPUT;
@@ -395,8 +398,8 @@ of the function return value. This is due to Java being a typed language.
 %typemap(jni) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(jni) float              *INOUT = float              *OUTPUT;
 %typemap(jni) double             *INOUT = double             *OUTPUT;
-%typemap(jni) bool               *INOUT = bool               *OUTPUT;
 
+%typemap(jtype) bool               *INOUT = bool               *OUTPUT;
 %typemap(jtype) signed char        *INOUT = signed char        *OUTPUT;
 %typemap(jtype) unsigned char      *INOUT = unsigned char      *OUTPUT;
 %typemap(jtype) short              *INOUT = short              *OUTPUT;
@@ -409,8 +412,8 @@ of the function return value. This is due to Java being a typed language.
 %typemap(jtype) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(jtype) float              *INOUT = float              *OUTPUT;
 %typemap(jtype) double             *INOUT = double             *OUTPUT;
-%typemap(jtype) bool               *INOUT = bool               *OUTPUT;
 
+%typemap(jstype) bool               *INOUT = bool               *OUTPUT;
 %typemap(jstype) signed char        *INOUT = signed char        *OUTPUT;
 %typemap(jstype) unsigned char      *INOUT = unsigned char      *OUTPUT;
 %typemap(jstype) short              *INOUT = short              *OUTPUT;
@@ -423,11 +426,9 @@ of the function return value. This is due to Java being a typed language.
 %typemap(jstype) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(jstype) float              *INOUT = float              *OUTPUT;
 %typemap(jstype) double             *INOUT = double             *OUTPUT;
-%typemap(jstype) bool               *INOUT = bool               *OUTPUT;
 
-/* Note: most of this common code will be put in a function in the near future. */
-%typemap(in) signed char        *INOUT 
-%{if (!$input) {
+%typemap(in) bool               *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -435,10 +436,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetByteArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetBooleanArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) unsigned char      *INOUT 
-%{if (!$input) {
+%typemap(in) signed char        *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -446,10 +448,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetByteArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) short              *INOUT 
-%{if (!$input) {
+%typemap(in) unsigned char      *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -457,10 +460,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) unsigned short     *INOUT 
-%{if (!$input) {
+%typemap(in) short              *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -468,10 +472,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetShortArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) int                *INOUT 
-%{if (!$input) {
+%typemap(in) unsigned short     *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -479,10 +484,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) unsigned int       *INOUT 
-%{if (!$input) {
+%typemap(in) int                *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -490,10 +496,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) long               *INOUT 
-%{if (!$input) {
+%typemap(in) unsigned int       *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -501,10 +508,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) unsigned long      *INOUT 
-%{if (!$input) {
+%typemap(in) long               *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -512,10 +520,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetIntArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) long long          *INOUT 
-%{if (!$input) {
+%typemap(in) unsigned long      *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -523,10 +532,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) float              *INOUT 
-%{if (!$input) {
+%typemap(in) long long          *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -534,10 +544,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetFloatArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetLongArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) double             *INOUT 
-%{if (!$input) {
+%typemap(in) float              *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -545,10 +556,11 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetDoubleArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetFloatArrayElements, jenv, $input, 0); 
+}
 
-%typemap(in) bool               *INOUT 
-%{if (!$input) {
+%typemap(in) double             *INOUT {
+  if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
     return $null;
   }
@@ -556,7 +568,8 @@ of the function return value. This is due to Java being a typed language.
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
     return $null;
   }
-  $1 = ($1_type) JCALL2(GetBooleanArrayElements, jenv, $input, 0); %}
+  $1 = ($1_type) JCALL2(GetDoubleArrayElements, jenv, $input, 0); 
+}
 
 %typemap(in) unsigned long long *INOUT ($*1_type temp) { 
   jobject bigint;
@@ -600,17 +613,17 @@ of the function return value. This is due to Java being a typed language.
   $1 = &temp;
 }
 
-%typemap(argout) signed char        *INOUT %{ JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0); %}
-%typemap(argout) unsigned char      *INOUT %{ JCALL3(ReleaseShortArrayElements, jenv, $input, (jshort *)$1, 0); %}
-%typemap(argout) short              *INOUT %{ JCALL3(ReleaseShortArrayElements, jenv, $input, (jshort *)$1, 0); %}
-%typemap(argout) unsigned short     *INOUT %{ JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); %}
-%typemap(argout) int                *INOUT %{ JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); %}
-%typemap(argout) unsigned int       *INOUT %{ JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); %}
-%typemap(argout) long               *INOUT %{ JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); %}
-%typemap(argout) unsigned long      *INOUT %{ JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); %}
-%typemap(argout) long long          *INOUT %{ JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); %}
-%typemap(argout) float              *INOUT %{ JCALL3(ReleaseFloatArrayElements, jenv, $input, (jfloat *)$1, 0); %}
-%typemap(argout) double             *INOUT %{ JCALL3(ReleaseDoubleArrayElements, jenv, $input, (jdouble *)$1, 0); %}
-%typemap(argout) bool               *INOUT %{ JCALL3(ReleaseBooleanArrayElements, jenv, $input, (jboolean *)$1, 0); %}
+%typemap(argout) bool               *INOUT { JCALL3(ReleaseBooleanArrayElements, jenv, $input, (jboolean *)$1, 0); }
+%typemap(argout) signed char        *INOUT { JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0); }
+%typemap(argout) unsigned char      *INOUT { JCALL3(ReleaseShortArrayElements, jenv, $input, (jshort *)$1, 0); }
+%typemap(argout) short              *INOUT { JCALL3(ReleaseShortArrayElements, jenv, $input, (jshort *)$1, 0); }
+%typemap(argout) unsigned short     *INOUT { JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); }
+%typemap(argout) int                *INOUT { JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); }
+%typemap(argout) unsigned int       *INOUT { JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); }
+%typemap(argout) long               *INOUT { JCALL3(ReleaseIntArrayElements, jenv, $input, (jint *)$1, 0); }
+%typemap(argout) unsigned long      *INOUT { JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); }
+%typemap(argout) long long          *INOUT { JCALL3(ReleaseLongArrayElements, jenv, $input, (jlong *)$1, 0); }
+%typemap(argout) float              *INOUT { JCALL3(ReleaseFloatArrayElements, jenv, $input, (jfloat *)$1, 0); }
+%typemap(argout) double             *INOUT { JCALL3(ReleaseDoubleArrayElements, jenv, $input, (jdouble *)$1, 0); }
 %typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
 

@@ -1,12 +1,8 @@
-#if defined(__GNUC__)
-    typedef long long __int64; /*For gcc on Windows */
-#endif
-#include <jni.h>
-#include <stdlib.h>
-#include <string.h>
 
 /* JNI function calls require different calling conventions for C and C++. These JCALL macros are used so 
- * that the same typemaps can be used to generate code that will compile under both languages. */
+ * that the same typemaps can be used for generating code for both C and C++. The SWIG preprocessor can expand
+ * the macros thereby generating the correct calling convention. It is thus essential that all typemaps that
+ * use the macros are not within %{ %} brackets as they won't be run through the SWIG preprocessor. */
 #ifdef __cplusplus
 #   define JCALL0(func, jenv) jenv->func()
 #   define JCALL1(func, jenv, ar1) jenv->func(ar1)
@@ -21,48 +17,16 @@
 #   define JCALL4(func, jenv, ar1, ar2, ar3, ar4) (*jenv)->func(jenv, ar1, ar2, ar3, ar4)
 #endif
 
-#ifdef SWIG_NOINCLUDE
-void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const char *msg);
-int SWIG_JavaArrayInSchar(JNIEnv *jenv, jbyte **jarr, signed char **carr, jbyteArray input);
-void SWIG_JavaArrayArgoutSchar(JNIEnv *jenv, jbyte *jarr, signed char *carr, jbyteArray input);
-jbyteArray SWIG_JavaArrayOutSchar(JNIEnv *jenv, signed char *result, jsize sz);
-int SWIG_JavaArrayInUchar(JNIEnv *jenv, jshort **jarr, unsigned char **carr, jshortArray input);
-void SWIG_JavaArrayArgoutUchar(JNIEnv *jenv, jshort *jarr, unsigned char *carr, jshortArray input);
-jshortArray SWIG_JavaArrayOutUchar(JNIEnv *jenv, unsigned char *result, jsize sz);
-int SWIG_JavaArrayInShort(JNIEnv *jenv, jshort **jarr, short **carr, jshortArray input);
-void SWIG_JavaArrayArgoutShort(JNIEnv *jenv, jshort *jarr, short *carr, jshortArray input);
-jshortArray SWIG_JavaArrayOutShort(JNIEnv *jenv, short *result, jsize sz);
-int SWIG_JavaArrayInUshort(JNIEnv *jenv, jint **jarr, unsigned short **carr, jintArray input);
-void SWIG_JavaArrayArgoutUshort(JNIEnv *jenv, jint *jarr, unsigned short *carr, jintArray input);
-jintArray SWIG_JavaArrayOutUshort(JNIEnv *jenv, unsigned short *result, jsize sz);
-int SWIG_JavaArrayInInt(JNIEnv *jenv, jint **jarr, int **carr, jintArray input);
-void SWIG_JavaArrayArgoutInt(JNIEnv *jenv, jint *jarr, int *carr, jintArray input);
-jintArray SWIG_JavaArrayOutInt(JNIEnv *jenv, int *result, jsize sz);
-int SWIG_JavaArrayInUint(JNIEnv *jenv, jlong **jarr, unsigned int **carr, jlongArray input);
-void SWIG_JavaArrayArgoutUint(JNIEnv *jenv, jlong *jarr, unsigned int *carr, jlongArray input);
-jlongArray SWIG_JavaArrayOutUint(JNIEnv *jenv, unsigned int *result, jsize sz);
-int SWIG_JavaArrayInLong(JNIEnv *jenv, jint **jarr, long **carr, jintArray input);
-void SWIG_JavaArrayArgoutLong(JNIEnv *jenv, jint *jarr, long *carr, jintArray input);
-jintArray SWIG_JavaArrayOutLong(JNIEnv *jenv, long *result, jsize sz);
-int SWIG_JavaArrayInUlong(JNIEnv *jenv, jlong **jarr, unsigned long **carr, jlongArray input);
-void SWIG_JavaArrayArgoutUlong(JNIEnv *jenv, jlong *jarr, unsigned long *carr, jlongArray input);
-jlongArray SWIG_JavaArrayOutUlong(JNIEnv *jenv, unsigned long *result, jsize sz);
-int SWIG_JavaArrayInLonglong(JNIEnv *jenv, jlong **jarr, jlong **carr, jlongArray input);
-void SWIG_JavaArrayArgoutLonglong(JNIEnv *jenv, jlong *jarr, jlong *carr, jlongArray input);
-jlongArray SWIG_JavaArrayOutLonglong(JNIEnv *jenv, jlong *result, jsize sz);
-int SWIG_JavaArrayInFloat(JNIEnv *jenv, jfloat **jarr, float **carr, jfloatArray input);
-void SWIG_JavaArrayArgoutFloat(JNIEnv *jenv, jfloat *jarr, float *carr, jfloatArray input);
-jfloatArray SWIG_JavaArrayOutFloat(JNIEnv *jenv, float *result, jsize sz);
-int SWIG_JavaArrayInDouble(JNIEnv *jenv, jdouble **jarr, double **carr, jdoubleArray input);
-void SWIG_JavaArrayArgoutDouble(JNIEnv *jenv, jdouble *jarr, double *carr, jdoubleArray input);
-jdoubleArray SWIG_JavaArrayOutDouble(JNIEnv *jenv, double *result, jsize sz);
-#ifdef __cplusplus
-int SWIG_JavaArrayInBool(JNIEnv *jenv, jboolean **jarr, bool **carr, jbooleanArray input);
-void SWIG_JavaArrayArgoutBool(JNIEnv *jenv, jboolean *jarr, bool *carr, jbooleanArray input);
-jbooleanArray SWIG_JavaArrayOutBool(JNIEnv *jenv, bool *result, jsize sz);
+%insert(runtime) %{
+#if defined(__GNUC__)
+    typedef long long __int64; /*For gcc on Windows */
 #endif
+#include <jni.h>
+#include <stdlib.h>
+#include <string.h>
+%}
 
-#else
+%insert(runtime) {
 /* Support for throwing Java exceptions */
 typedef enum {
   SWIG_JavaOutOfMemoryError = 1, 
@@ -103,174 +67,23 @@ void SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionCodes code, const c
     JCALL2(ThrowNew, jenv, excep, msg);
 }
 
-/* Array support is a combination of macros and functions. It may initially do your head in following 
- * it but it reduces code bloat and aids maintainability. */
-#define SWIG_JavaArrayIn(CTYPE, GETARRAYELEMENTS) \
-  int i; \
-  jsize sz; \
-  if (!input) { \
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array"); \
-    return 0; \
-  } \
-  sz = JCALL1(GetArrayLength, jenv, input); \
-  *jarr = JCALL2(GETARRAYELEMENTS, jenv, input, 0); \
-  if (!*jarr) \
-    return 0; \
-  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE)); \
-  if (!*carr) { \
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed"); \
-    return 0; \
-  } \
-  for (i=0; i<sz; i++) \
-    (*carr)[i] = (CTYPE)(*jarr)[i]; \
-  return 1;
-
-#define SWIG_JavaArrayArgout(JTYPE, RELEASEARRAYELEMENTS) \
-  int i; \
-  jsize sz; \
-  sz = JCALL1(GetArrayLength, jenv, input); \
-  for (i=0; i<sz; i++) \
-    jarr[i] = (JTYPE)carr[i]; \
-  JCALL3(RELEASEARRAYELEMENTS, jenv, input, jarr, 0);
-
-#define SWIG_JavaArrayOut(JTYPE, JARRAY, NEWARRAY, GETARRAYELEMENTS, RELEASEARRAYELEMENTS) \
-  JTYPE *arr; \
-  int i; \
-  JARRAY jresult = JCALL1(NEWARRAY, jenv, sz); \
-  if (!jresult) \
-    return NULL; \
-  arr = JCALL2(GETARRAYELEMENTS, jenv, jresult, 0); \
-  if (!arr) \
-    return NULL; \
-  for (i=0; i<sz; i++) \
-    arr[i] = (JTYPE)result[i]; \
-  JCALL3(RELEASEARRAYELEMENTS, jenv, jresult, arr, 0); \
-  return jresult;
-
-/* signed char[] support */
-int SWIG_JavaArrayInSchar(JNIEnv *jenv, jbyte **jarr, signed char **carr, jbyteArray input) {
-  SWIG_JavaArrayIn(signed char, GetByteArrayElements)
-}
-void SWIG_JavaArrayArgoutSchar(JNIEnv *jenv, jbyte *jarr, signed char *carr, jbyteArray input) {
-  SWIG_JavaArrayArgout(jbyte, ReleaseByteArrayElements)
-}
-jbyteArray SWIG_JavaArrayOutSchar(JNIEnv *jenv, signed char *result, jsize sz) {
-  SWIG_JavaArrayOut(jbyte, jbyteArray, NewByteArray, GetByteArrayElements, ReleaseByteArrayElements)
 }
 
-/* unsigned char[] support */
-int SWIG_JavaArrayInUchar(JNIEnv *jenv, jshort **jarr, unsigned char **carr, jshortArray input) {
-  SWIG_JavaArrayIn(unsigned char, GetShortArrayElements)
-}
-void SWIG_JavaArrayArgoutUchar(JNIEnv *jenv, jshort *jarr, unsigned char *carr, jshortArray input) {
-  SWIG_JavaArrayArgout(jshort, ReleaseShortArrayElements)
-}
-jshortArray SWIG_JavaArrayOutUchar(JNIEnv *jenv, unsigned char *result, jsize sz) {
-  SWIG_JavaArrayOut(jshort, jshortArray, NewShortArray, GetShortArrayElements, ReleaseShortArrayElements)
-}
+/* Array support is a combination of SWIG macros and functions in order to reduce code bloat and 
+ * aid maintainability. The SWIG preprocessor expands the macros into functions for inclusion in
+ * the generated code. */
+%define JAVA_ARRAYS_DECL(CTYPE, JTYPE, JAVATYPE, JFUNCNAME)
+%{
+int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE##Array input);
+void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JTYPE *jarr, CTYPE *carr, JTYPE##Array input);
+JTYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz);
+%}
+%enddef
 
-/* short[] support */
-int SWIG_JavaArrayInShort(JNIEnv *jenv, jshort **jarr, short **carr, jshortArray input) {
-  SWIG_JavaArrayIn(short, GetShortArrayElements)
-}
-void SWIG_JavaArrayArgoutShort(JNIEnv *jenv, jshort *jarr, short *carr, jshortArray input) {
-  SWIG_JavaArrayArgout(jshort, ReleaseShortArrayElements)
-}
-jshortArray SWIG_JavaArrayOutShort(JNIEnv *jenv, short *result, jsize sz) {
-  SWIG_JavaArrayOut(jshort, jshortArray, NewShortArray, GetShortArrayElements, ReleaseShortArrayElements)
-}
-
-/* unsigned short[] support */
-int SWIG_JavaArrayInUshort(JNIEnv *jenv, jint **jarr, unsigned short **carr, jintArray input) {
-  SWIG_JavaArrayIn(unsigned short, GetIntArrayElements)
-}
-void SWIG_JavaArrayArgoutUshort(JNIEnv *jenv, jint *jarr, unsigned short *carr, jintArray input) {
-  SWIG_JavaArrayArgout(jint, ReleaseIntArrayElements)
-}
-jintArray SWIG_JavaArrayOutUshort(JNIEnv *jenv, unsigned short *result, jsize sz) {
-  SWIG_JavaArrayOut(jint, jintArray, NewIntArray, GetIntArrayElements, ReleaseIntArrayElements)
-}
-
-/* int[] support */
-int SWIG_JavaArrayInInt(JNIEnv *jenv, jint **jarr, int **carr, jintArray input) {
-  SWIG_JavaArrayIn(int, GetIntArrayElements)
-}
-void SWIG_JavaArrayArgoutInt(JNIEnv *jenv, jint *jarr, int *carr, jintArray input) {
-  SWIG_JavaArrayArgout(jint, ReleaseIntArrayElements)
-}
-jintArray SWIG_JavaArrayOutInt(JNIEnv *jenv, int *result, jsize sz) {
-  SWIG_JavaArrayOut(jint, jintArray, NewIntArray, GetIntArrayElements, ReleaseIntArrayElements)
-}
-
-/* unsigned int[] support */
-int SWIG_JavaArrayInUint(JNIEnv *jenv, jlong **jarr, unsigned int **carr, jlongArray input) {
-  SWIG_JavaArrayIn(unsigned int, GetLongArrayElements)
-}
-void SWIG_JavaArrayArgoutUint(JNIEnv *jenv, jlong *jarr, unsigned int *carr, jlongArray input) {
-  SWIG_JavaArrayArgout(jlong, ReleaseLongArrayElements)
-}
-jlongArray SWIG_JavaArrayOutUint(JNIEnv *jenv, unsigned int *result, jsize sz) {
-  SWIG_JavaArrayOut(jlong, jlongArray, NewLongArray, GetLongArrayElements, ReleaseLongArrayElements)
-}
-
-/* long[] support */
-int SWIG_JavaArrayInLong(JNIEnv *jenv, jint **jarr, long **carr, jintArray input) {
-  SWIG_JavaArrayIn(long, GetIntArrayElements)
-}
-void SWIG_JavaArrayArgoutLong(JNIEnv *jenv, jint *jarr, long *carr, jintArray input) {
-  SWIG_JavaArrayArgout(jint, ReleaseIntArrayElements)
-}
-jintArray SWIG_JavaArrayOutLong(JNIEnv *jenv, long *result, jsize sz) {
-  SWIG_JavaArrayOut(jint, jintArray, NewIntArray, GetIntArrayElements, ReleaseIntArrayElements)
-}
-
-/* unsigned long[] support */
-int SWIG_JavaArrayInUlong(JNIEnv *jenv, jlong **jarr, unsigned long **carr, jlongArray input) {
-  SWIG_JavaArrayIn(unsigned long, GetLongArrayElements)
-}
-void SWIG_JavaArrayArgoutUlong(JNIEnv *jenv, jlong *jarr, unsigned long *carr, jlongArray input) {
-  SWIG_JavaArrayArgout(jlong, ReleaseLongArrayElements)
-}
-jlongArray SWIG_JavaArrayOutUlong(JNIEnv *jenv, unsigned long *result, jsize sz) {
-  SWIG_JavaArrayOut(jlong, jlongArray, NewLongArray, GetLongArrayElements, ReleaseLongArrayElements)
-}
-
-/* long long[] support */
-int SWIG_JavaArrayInLonglong(JNIEnv *jenv, jlong **jarr, jlong **carr, jlongArray input) {
-  SWIG_JavaArrayIn(jlong, GetLongArrayElements)
-}
-void SWIG_JavaArrayArgoutLonglong(JNIEnv *jenv, jlong *jarr, jlong *carr, jlongArray input) {
-  SWIG_JavaArrayArgout(jlong, ReleaseLongArrayElements)
-}
-jlongArray SWIG_JavaArrayOutLonglong(JNIEnv *jenv, jlong *result, jsize sz) {
-  SWIG_JavaArrayOut(jlong, jlongArray, NewLongArray, GetLongArrayElements, ReleaseLongArrayElements)
-}
-
-/* float[] support */
-int SWIG_JavaArrayInFloat(JNIEnv *jenv, jfloat **jarr, float **carr, jfloatArray input) {
-  SWIG_JavaArrayIn(float, GetFloatArrayElements)
-}
-void SWIG_JavaArrayArgoutFloat(JNIEnv *jenv, jfloat *jarr, float *carr, jfloatArray input) {
-  SWIG_JavaArrayArgout(jfloat, ReleaseFloatArrayElements)
-}
-jfloatArray SWIG_JavaArrayOutFloat(JNIEnv *jenv, float *result, jsize sz) {
-  SWIG_JavaArrayOut(jfloat, jfloatArray, NewFloatArray, GetFloatArrayElements, ReleaseFloatArrayElements)
-}
-
-/* double[] support */
-int SWIG_JavaArrayInDouble(JNIEnv *jenv, jdouble **jarr, double **carr, jdoubleArray input) {
-  SWIG_JavaArrayIn(double, GetDoubleArrayElements)
-}
-void SWIG_JavaArrayArgoutDouble(JNIEnv *jenv, jdouble *jarr, double *carr, jdoubleArray input) {
-  SWIG_JavaArrayArgout(jdouble, ReleaseDoubleArrayElements)
-}
-jdoubleArray SWIG_JavaArrayOutDouble(JNIEnv *jenv, double *result, jsize sz) {
-  SWIG_JavaArrayOut(jdouble, jdoubleArray, NewDoubleArray, GetDoubleArrayElements, ReleaseDoubleArrayElements)
-}
-
-#ifdef __cplusplus
-/* bool[] support */
-int SWIG_JavaArrayInBool(JNIEnv *jenv, jboolean **jarr, bool **carr, jbooleanArray input) {
+%define JAVA_ARRAYS_IMPL(CTYPE, JTYPE, JAVATYPE, JFUNCNAME)
+%{
+/* CTYPE[] support */
+int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JTYPE **jarr, CTYPE **carr, JTYPE##Array input) {
   int i;
   jsize sz;
   if (!input) {
@@ -278,25 +91,90 @@ int SWIG_JavaArrayInBool(JNIEnv *jenv, jboolean **jarr, bool **carr, jbooleanArr
     return 0;
   }
   sz = JCALL1(GetArrayLength, jenv, input);
-  *jarr = JCALL2(GetBooleanArrayElements, jenv, input, 0);
+  *jarr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, input, 0);
   if (!*jarr)
     return 0;
-  *carr = (bool*) calloc(sz, sizeof(bool));
+  *carr = (CTYPE*) calloc(sz, sizeof(CTYPE));
   if (!*carr) {
     SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "calloc failed");
     return 0;
   }
   for (i=0; i<sz; i++)
-    (*carr)[i] = ((*jarr)[i] != 0);
+    JAVA_TYPEMAP_ARRAY_ELEMENT_ASSIGN(CTYPE)
   return 1;
 }
-void SWIG_JavaArrayArgoutBool(JNIEnv *jenv, jboolean *jarr, bool *carr, jbooleanArray input) {
-  SWIG_JavaArrayArgout(jboolean, ReleaseBooleanArrayElements)
+
+void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JTYPE *jarr, CTYPE *carr, JTYPE##Array input) {
+  int i;
+  jsize sz;
+  sz = JCALL1(GetArrayLength, jenv, input);
+  for (i=0; i<sz; i++)
+    jarr[i] = (JTYPE)carr[i];
+  JCALL3(Release##JAVATYPE##ArrayElements, jenv, input, jarr, 0);
 }
-jbooleanArray SWIG_JavaArrayOutBool(JNIEnv *jenv, bool *result, jsize sz) {
-  SWIG_JavaArrayOut(jboolean, jbooleanArray, NewBooleanArray, GetBooleanArrayElements, ReleaseBooleanArrayElements)
+
+JTYPE##Array SWIG_JavaArrayOut##JFUNCNAME (JNIEnv *jenv, CTYPE *result, jsize sz) {
+  JTYPE *arr;
+  int i;
+  JTYPE##Array jresult = JCALL1(New##JAVATYPE##Array, jenv, sz);
+  if (!jresult)
+    return NULL;
+  arr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, jresult, 0);
+  if (!arr)
+    return NULL;
+  for (i=0; i<sz; i++)
+    arr[i] = (JTYPE)result[i];
+  JCALL3(Release##JAVATYPE##ArrayElements, jenv, jresult, arr, 0);
+  return jresult;
 }
+%}
+%enddef
+
+%{
+#ifdef SWIG_NOINCLUDE
+%}
+
+#ifdef __cplusplus
+JAVA_ARRAYS_DECL(bool, jboolean, Boolean, Bool)       /* bool[] */
 #endif
 
+JAVA_ARRAYS_DECL(signed char, jbyte, Byte, Schar)     /* signed char[] */
+JAVA_ARRAYS_DECL(unsigned char, jshort, Short, Uchar) /* unsigned char[] */
+JAVA_ARRAYS_DECL(short, jshort, Short, Short)         /* short[] */
+JAVA_ARRAYS_DECL(unsigned short, jint, Int, Ushort)   /* unsigned short[] */
+JAVA_ARRAYS_DECL(int, jint, Int, Int)                 /* int[] */
+JAVA_ARRAYS_DECL(unsigned int, jlong, Long, Uint)     /* unsigned int[] */
+JAVA_ARRAYS_DECL(long, jint, Int, Long)               /* long[] */
+JAVA_ARRAYS_DECL(unsigned long, jlong, Long, Ulong)   /* unsigned long[] */
+JAVA_ARRAYS_DECL(jlong, jlong, Long, Longlong)        /* long long[] */
+JAVA_ARRAYS_DECL(float, jfloat, Float, Float)         /* float[] */
+JAVA_ARRAYS_DECL(double, jdouble, Double, Double)     /* double[] */
+
+%{
+#else
+%}
+
+#ifdef __cplusplus
+/* Bool array element assignment different to other types to keep Visual C++ quiet */
+#define JAVA_TYPEMAP_ARRAY_ELEMENT_ASSIGN(CTYPE) (*carr)[i] = ((*jarr)[i] != 0);
+JAVA_ARRAYS_IMPL(bool, jboolean, Boolean, Bool)       /* bool[] */
+#undef JAVA_TYPEMAP_ARRAY_ELEMENT_ASSIGN
+#endif
+
+#define JAVA_TYPEMAP_ARRAY_ELEMENT_ASSIGN(CTYPE) (*carr)[i] = (CTYPE)(*jarr)[i];
+JAVA_ARRAYS_IMPL(signed char, jbyte, Byte, Schar)     /* signed char[] */
+JAVA_ARRAYS_IMPL(unsigned char, jshort, Short, Uchar) /* unsigned char[] */
+JAVA_ARRAYS_IMPL(short, jshort, Short, Short)         /* short[] */
+JAVA_ARRAYS_IMPL(unsigned short, jint, Int, Ushort)   /* unsigned short[] */
+JAVA_ARRAYS_IMPL(int, jint, Int, Int)                 /* int[] */
+JAVA_ARRAYS_IMPL(unsigned int, jlong, Long, Uint)     /* unsigned int[] */
+JAVA_ARRAYS_IMPL(long, jint, Int, Long)               /* long[] */
+JAVA_ARRAYS_IMPL(unsigned long, jlong, Long, Ulong)   /* unsigned long[] */
+JAVA_ARRAYS_IMPL(jlong, jlong, Long, Longlong)        /* long long[] */
+JAVA_ARRAYS_IMPL(float, jfloat, Float, Float)         /* float[] */
+JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
+
+%{
 #endif /* SWIG_NOINCLUDE */
+%}
 

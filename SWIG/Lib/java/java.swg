@@ -1,5 +1,5 @@
 
-%insert(runtime) "javahead.swg"
+%include "javahead.swg"
 
 /* Java typemaps.
  *
@@ -256,9 +256,9 @@
 }
 
 /* char * - treat as String */
-%typemap(in) char * %{ $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; %}
-%typemap(freearg) char * %{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); %}
-%typemap(out) char * %{ if($1) $result = JCALL1(NewStringUTF, jenv, $1); %}
+%typemap(in) char * { $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; }
+%typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
+%typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
 /* primitive types by reference */
 %typemap(in) bool & (bool temp),
@@ -376,10 +376,10 @@ $1 = &temp;
 %{$result = SWIG_JavaArrayOutBool(jenv, $1, $1_dim0); %}
 
 /* char[ANY] - treat as String */
-%typemap(in) char[ANY] %{ $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; %}
+%typemap(in) char[ANY] { $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; }
 %typemap(argout) char[ANY] ""
-%typemap(freearg) char[ANY] %{ if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); %}
-%typemap(out) char[ANY] %{ if($1) $result = JCALL1(NewStringUTF, jenv, $1); %}
+%typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
+%typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
 /* signed char[ANY] */
 %typemap(in) signed char[ANY] (jbyte *jarr)

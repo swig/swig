@@ -34,17 +34,18 @@
 %typemap(jstype) char **STRING_OUT "String[]"
 %typemap(in) char **STRING_OUT (char *s) 
 %{ $1 = &s; %}
-%typemap(argout) char **STRING_OUT 
-%{ if($1) {
+%typemap(argout) char **STRING_OUT {
+  if($1) {
      JCALL3(SetObjectArrayElement, jenv, $input, 0, JCALL1(NewStringUTF, jenv, *$1)); 
-   } %}
+  }
+}
 
 /* char **STRING_RET - a NULL terminated array of char* */
 %typemap(jni) char **STRING_RET "jarray"
 %typemap(jtype) char **STRING_RET "String[]"
 %typemap(jstype) char **STRING_RET "String[]"
-%typemap(out) char **STRING_RET 
-%{ if($1 != NULL) {
+%typemap(out) char **STRING_RET {
+  if($1 != NULL) {
     char **p = $1;
     jsize size = 0;
     int i = 0;
@@ -59,14 +60,15 @@
       JCALL3(SetObjectArrayElement, jenv, $result, i++, js);
       p++;
     }
-  } %}
+  } 
+}
 
 /* float *FLOAT_ARRAY_RETURN */
 %typemap(jni) float *FLOAT_ARRAY_RETURN "jfloatArray"
 %typemap(jtype) float *FLOAT_ARRAY_RETURN "float[]"
 %typemap(jstype) float *FLOAT_ARRAY_RETURN "float[]"
-%typemap(out) float *FLOAT_ARRAY_RETURN 
-%{ if($1) {
+%typemap(out) float *FLOAT_ARRAY_RETURN {
+  if($1) {
      float *fp = $1;
      jfloat *jfp;
      int size = 0;
@@ -84,17 +86,20 @@
        jfp[i] = (jfloat) $1[i];
 
      JCALL3(ReleaseFloatArrayElements, jenv, $result, jfp, 0);
-   } %}
+   } 
+}
 
 /* char *BYTE */
 %typemap(jni) char *BYTE "jbyteArray"
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
-%typemap(in) char *BYTE 
-%{ $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); %}
+%typemap(in) char *BYTE {
+    $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
+}
 
-%typemap(argout) char *BYTE 
-%{ JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); %}
+%typemap(argout) char *BYTE {
+    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
+}
 
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
