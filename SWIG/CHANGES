@@ -58,6 +58,14 @@ Version 1.3.14 (In progress)
             *** POTENTIAL INCOMPATIBILITY FOR RUBY MODULE ***
 
 07/04/2002: beazley
+            Overloaded functions/methods/constructors now work in many language
+            modules.  The support is completely transparent--just call the
+            function normally and SWIG will dispatch to the correct implementation.
+            There are a variety of issues associated with this.  Please refer
+            to the overloading section of Doc/Manual/SWIGPlus.html for details.
+            *** NEW FEATURE ***
+            
+07/04/2002: beazley
             Fixed a bug with namespaces, enums, and templates.  For example:
 
                namespace hello {
