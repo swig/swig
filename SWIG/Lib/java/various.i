@@ -58,15 +58,6 @@
   }
 %}
 
-%typemap(jni) int *INT_OUT "jintArray"
-%typemap(jtype) int *INT_OUT "int[]"
-%typemap(in) int *INT_OUT (int temp) %{ $1 = (int *)&temp; %}
-
-%typemap(argout) int *INT_OUT %{
-   temp$argnum = (jint) *$1;
-   JCALL4(SetIntArrayRegion, jenv, $input, 0, 1, (jint *) &temp$argnum);
-%}
-
 %typemap(jni) float * FLOAT_ARRAY_RETURN "jfloatArray"
 %typemap(jtype) float * FLOAT_ARRAY_RETURN "float[]"
 %typemap(out) float * FLOAT_ARRAY_RETURN %{
