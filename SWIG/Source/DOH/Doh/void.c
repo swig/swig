@@ -2,7 +2,7 @@
  * void.c
  *
  *     Implements a "void" object that is really just a DOH container around
- *     an arbitrary C/C++ object represented as a void *.
+ *     an arbitrary C object represented as a void *.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -92,8 +92,7 @@ static DohObjInfo DohVoidType = {
 /* -----------------------------------------------------------------------------
  * NewVoid()
  *
- * Creates a new Void object given a void * and a pointer to an optional 
- * destruction function.
+ * Creates a new Void object given a void * and an optional destructor function.
  * ----------------------------------------------------------------------------- */
 
 DOH *

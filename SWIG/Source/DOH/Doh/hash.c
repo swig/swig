@@ -459,7 +459,7 @@ CopyHash(DOH *ho) {
  * type information
  * ----------------------------------------------------------------------------- */
 
-static DohMappingMethods HashMappingMethods = {
+static DohHashMethods HashHashMethods = {
   Hash_getattr,
   Hash_setattr,
   Hash_delattr,
@@ -480,7 +480,7 @@ static DohObjInfo HashType = {
     Hash_len,        /* doh_len */
     0,               /* doh_hash    */
     0,               /* doh_cmp */
-    &HashMappingMethods, /* doh_mapping */
+    &HashHashMethods, /* doh_mapping */
     0,                /* doh_sequence */
     0,                /* doh_file */
     0,                /* doh_string */

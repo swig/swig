@@ -49,16 +49,17 @@ typedef void DOH;
  * These structures define the interface to various categories of objects.
  * ----------------------------------------------------------------------------- */
 
-/* Mapping Objects (i.e., hash tables) */
+  /* Hash objects */
 typedef struct {
   DOH    *(*doh_getattr)(DOH *obj, DOH *name);               /* Get attribute */
   int     (*doh_setattr)(DOH *obj, DOH *name, DOH *value);   /* Set attribute */
   int     (*doh_delattr)(DOH *obj, DOH *name);               /* Del attribute */
   DOH    *(*doh_firstkey)(DOH *obj);                         /* First key     */
   DOH    *(*doh_nextkey)(DOH *obj);                          /* Next key      */
-} DohMappingMethods;
+} DohHashMethods;
 
-/* Sequence methods (i.e., lists) */
+  /* List objects */
+
 typedef struct {
   DOH      *(*doh_getitem)(DOH *obj, int index);             /* Get item      */
   int       (*doh_setitem)(DOH *obj, int index, DOH *value); /* Set item      */
@@ -66,7 +67,7 @@ typedef struct {
   int       (*doh_insitem)(DOH *obj, int index, DOH *value); /* Insert item   */
   DOH      *(*doh_firstitem)(DOH *obj);                      /* Iterators     */
   DOH      *(*doh_nextitem)(DOH *obj);
-} DohSequenceMethods;
+} DohListMethods;
 
 /* File methods */
 typedef struct {
@@ -110,13 +111,13 @@ typedef struct DohObjInfo {
 
   /* Length and hash values */
   int        (*doh_len)(DOH *obj);
-  int        (*doh_hash)(DOH *obj);
+  int        (*doh_hashval)(DOH *obj);
 
   /* Compare */
   int        (*doh_cmp)(DOH *obj1, DOH *obj2);
 
-  DohMappingMethods  *doh_mapping;             /* Mapping methods    */
-  DohSequenceMethods *doh_sequence;            /* Sequence methods   */
+  DohHashMethods     *doh_hash;             /* Mapping methods    */
+  DohListMethods     *doh_list;                /* List methods   */
   DohFileMethods     *doh_file;                /* File methods       */
   DohStringMethods   *doh_string;              /* String methods     */
   void               *reserved2;
@@ -137,12 +138,9 @@ typedef struct DohObjInfo {
   extern void    DohFree(DOH *ptr);                  /* Free memory           */
   extern void   *DohObjMalloc(size_t size);          /* Allocate a DOH object */
   extern void    DohObjFree(DOH *ptr);               /* Free a DOH object     */
-  extern int     DohObjFreeCheck(DOH *ptr);          /* Check if already free */
   extern void    DohInit(DOH *obj);                  /* Initialize an object  */
   extern int     DohCheck(const DOH *ptr);           /* Check if a DOH object */
-  extern int     DohPoolSize(int);                   /* Set memory alloc size */
   extern void    DohIntern(DOH *);                   /* Intern an object      */
-  extern void    DohMemoryInfo();
 
   /* Basic object methods.  Common to most objects */
 
@@ -280,7 +278,6 @@ typedef struct DohObjInfo {
 
 #define  DOHCOMMON      \
    DohObjInfo    *objinfo; \
-   DOH           *nextptr; \
    int            refcount; \
    DOH           *file; \
    int            line; \
@@ -299,6 +296,7 @@ typedef struct {
 /* Flags for various internal operations */
 
 #define DOH_FLAG_PRINT       0x02
+#define DOH_FLAG_DELETED     0x04
 #define DOH_FLAG_INTERN      0x10
 
 /* -----------------------------------------------------------------------------
