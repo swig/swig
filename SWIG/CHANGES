@@ -17,7 +17,167 @@ tree (maybe).
 Version 1.3.12 (In Progress)
 ============================
 
-Changes to Java shadow classes. 
+04/16/2002-
+05/02/2002: beazley
+            SWIG European Tour: Paris-Amsterdam-Bath.
+
+04/23/2002: beazley
+            The %addmethods directive has been renamed to %extend.
+            For example:
+
+                class Foo {
+                ...
+                };
+
+                %extend Foo {
+                   int blah() { ... };
+                   int bar() { ... };
+                   ...
+                };
+
+            Motivation: the %addmethods directive can be used for many
+            other tasks including adding synthesized attributes, constructors,
+            and typemaps. Because of this, "addmethods" is somewhat misleading.
+            %extend more precisely describes this operation---extension of a
+            class or structure.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            %addmethods still works via a macro definition.   However,
+            a warning message may be generated.   Errors involving %addmethods
+            will actually refer to the %extend directive.  
+            
+04/23/2002: beazley
+            Further refinement of the type system.  Typedef now
+            propagates through functions, pointers to functions,
+            and pointers to member functions.
+            For example:
+
+               typedef int Integer;
+               void foo(int (*x)(int), Integer (*y)(Integer));
+
+            In this case, arguments 'x' and 'y' have exactly
+            the same type (and would obviously accept objects
+            of either type).
+
+            Similarly, consider this:
+
+               class Foo {
+               };
+
+               typedef Foo Bar;
+               void bar(int (Foo::*x)(int), int (Bar::*y)(int));
+
+            In this case, arguments x and y are the same 
+            type (via typedef).
+            
+04/22/2002: beazley
+            SWIG now generates a warning message if any part of
+            an expression involves values from a private part of a class.
+            For example:
+
+                class Foo {
+                private:
+                    static int X;
+                public:
+                     void blah(int a, int b = X);   // Warning
+                };
+
+            In this case, the default argument is ignored.  There
+            are workarounds, but they are rather clumsy.  For instance,
+            you might do this:
+
+                    %feature("action") blah(int,int) {
+                       if ($nargs == 1) {
+                          result = blah(arg1);
+                       } else {
+                          result = blah(arg1,arg2);
+                       }
+                    }
+                    void blah(int a, int b = 0);
+
+
+04/21/2002: beazley
+            Use of the %inline directive inside a namespace is
+            forbidden and now generates an error message.   This is
+            not allowed since the inlined code that is emitted is
+            not placed inside a namespace.  This confuses other
+            stages of parsing.
+                    
+04/21/2002: beazley
+            Some bug fixes to casting operations and expression
+            parsing.   Due to some parsing issues, it is not 
+            currently possible to use casts for all possible
+            datatypes.   However, the common cases work.
+
+04/20/2002: beazley (Amsterdam)
+            Member templates now work.  Simply use the %template
+            directive inside a class or %addmethods to create
+            instantiations (see Doc/Manual/SWIGPlus.html).  Supporting
+            this was easy---earlier changes to templates made it
+            possible using only a two-line modification to the parser
+            and a few minor modifications elsewhere.  Hmmm, come to 
+            think of it, the smoke was rather thick in that Internet "cafe".
+            *** NEW FEATURE ***
+            
+04/19/2002: beazley (TGV)
+            Improved handling of non-type template parameters.  For example:
+
+                 vector<int,100>;
+
+            Simple numbers and strings can be used with the %template
+            directive as well.  For example:
+
+                 %template(vecint100) vector<int,100>;
+
+            Note: Arithmetic expressions are not currently allowed.
+            
+            Default template arguments now work and do not have to
+            be given to %template.
+                        
+04/18/2002: beazley (Paris)
+            Change in internal template handling.  Template
+            parameters are now fully integrated into the type
+            system and are aware of typedefs, etc.  This builds
+            upon the change below.   
+
+            *** DEVELOPER WARNING ***
+            Word of caution to language module writers.  The "name"
+            parameter of certain parse tree nodes (classes, functions, etc.)
+            may be parameterized with types.   This parameterization is
+            done using SWIG type-strings and not the underlying C version.
+            For example,
+
+               int max<int *>(int *,int *)  
+
+            has a name of "max<(p.int)>".  If you use the name directly,
+            you may get syntax errors in the generated code.  To fix this,
+            use SwigType_namestr(name) to convert a parameterized name 
+            to a C name with valid syntax.  The internal version is
+            used to reduce template types to a common representation 
+            and to handle issues of typedef.
+            
+04/16/2002: beazley (somewhere over the Atlantic)
+            Enhancement of typedef resolution.  The type system is now
+            aware of template arguments and typedef.  For example:
+
+                  typedef int Integer;
+                 
+                  foo(vector<int> *x, vector<Integer> *y);
+
+            In this case, vector<int> and vector<Integer> are
+            the same type.   There is some interaction between this
+            mechanism and the implementation of typemaps.  For example,
+            a typemap defined for vector<int> * would apply to either type.
+            However, a typemap for vector<Integer> * would only apply to
+            that type.
+
+            Typedefs and typemaps and matched by left-most expansion.
+            For example:
+
+              vector<Integer,Integer> --> 
+              vector<int, Integer> -->
+              vector<int, int>
+
 
 04/24/2002: cheetah (William Fulton)
             [Java] Changes to Java shadow classes.
