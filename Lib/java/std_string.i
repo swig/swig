@@ -57,6 +57,11 @@ class string;
 
 %typemap(typecheck) string = char *;
 
+%typemap(throws) string %{
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
+  return $null;
+%}
+
 // const string &
 %typemap(jni) const string & "jstring"
 %typemap(jtype) const string & "String"
@@ -93,6 +98,11 @@ class string;
   }
 
 %typemap(typecheck) const string & = char *;
+
+%typemap(throws) const string & %{
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
+  return $null;
+%}
 
 }
 
