@@ -151,6 +151,11 @@ General:
 
   -  WAD does not currently support 64 bit applications on any platform.
 
+  -  If executables have been stripped, their symbol tables might not
+     have enough information to recover from errors.  From a practical
+     standpoint, there is no reason to strip executables---besides
+     disk is cheap.
+
 Solaris:
 
   -  No platform specific issues are known at this time.

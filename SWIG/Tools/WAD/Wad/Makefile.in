@@ -28,11 +28,11 @@ PERLOBJS   = wadpl.o
 
 # C Compiler
 CC = @CC@
-CFLAGS = @CCSHARED@
+CFLAGS = #@CCSHARED@
 
 # C++ Compiler
 CXX = @CXX@
-CXXFLAGS = @CXXSHARED@
+CXXFLAGS = #@CXXSHARED@
 
 # Linking options
 CLINK = 
