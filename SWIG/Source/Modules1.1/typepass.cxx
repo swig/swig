@@ -714,8 +714,7 @@ public:
 
 	    String *ntype = nodeType(ns);
 	    if (Strcmp(ntype,"cdecl") == 0) {
-		String *storage = Getattr(ns,"storage");
-		if (Strcmp(storage,"typedef") == 0) {
+	      if (checkAttribute(ns,"storage","typedef")) {
 		    /* A typedef declaration */
 		    /*	  SwigType *ty = Getattr(ns,"type");
 			  SwigType *decl = Getattr(ns,"decl");
