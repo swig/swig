@@ -1,6 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
 12/02/2003: cheetah (William Fulton)
+            [Java] Fix for INOUT and OUTPUT typemaps in typemaps.i for when the JNI type 
+            is bigger than the C type. For example, unsigned long (32bits on most systems)
+            is mapped to jlong (64bits). Returned value was incorrect. Bug reported by 
+            Brian Hawley.
+
+12/02/2003: cheetah (William Fulton)
             [C# and Java] Better fix for entry dated 05/11/2003. Fixes the following
             typemaps:
 
