@@ -65,7 +65,6 @@ int             ImportMode = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
-int             cplus_mode = 0;
 static Node    *CurrentClass = 0;
 int             line_number = 0;
 char           *input_file = 0;
@@ -79,12 +78,6 @@ extern    int           NoExtern;
 
 #define  IMPORT_MODE     1
 #define  IMPORT_MODULE   2
-
-/* C++ access modes */
-
-#define CPLUS_PUBLIC     0
-#define CPLUS_PROTECTED  1
-#define CPLUS_PRIVATE    2
 
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
@@ -398,9 +391,9 @@ int Language::top(Node *n) {
 
 int Language::extendDirective(Node *n) {
   int oldam = Extend;
-  int oldmode = cplus_mode;
+  AccessMode oldmode = cplus_mode;
   Extend = CWRAP_EXTEND;
-  cplus_mode = CPLUS_PUBLIC;
+  cplus_mode = PUBLIC;
 
   emit_children(n);
 
@@ -451,7 +444,7 @@ int Language::clearDirective(Node *n) {
 
 int Language::constantDirective(Node *n) {
 
-  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+  if (CurrentClass && (cplus_mode != PUBLIC)) return SWIG_NOWRAP;
 
   if (!ImportMode) {
     Swig_require("constantDirective",n,"name", "?value",NIL);
@@ -726,7 +719,7 @@ int Language::cDeclaration(Node *n) {
   SwigType *ty, *fullty;
 
   /* discarts nodes following the access control rules */
-  if (cplus_mode != CPLUS_PUBLIC || !is_public(n)) {
+  if (cplus_mode != PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
     int isfriend = storage && (Cmp(storage,"friend") == 0);
     if (!isfriend ) {
@@ -1390,7 +1383,7 @@ int Language::enumDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumvalueDeclaration(Node *n) {
-  if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
+  if (CurrentClass && (cplus_mode != PUBLIC)) return SWIG_NOWRAP;
 
   Swig_require("enumvalueDeclaration",n,"*name", "?value",NIL);
   String *value = Getattr(n,"value");
@@ -1922,9 +1915,9 @@ int Language::classDeclaration(Node *n) {
   Setattr(n,"name",classname);
 
   if (Cmp(kind,"class") == 0) {
-    cplus_mode = CPLUS_PRIVATE;
+    cplus_mode = PRIVATE;
   } else {
-    cplus_mode = CPLUS_PUBLIC;
+    cplus_mode = PUBLIC;
   }
 
   ClassName = NewString(classname);
@@ -2028,7 +2021,7 @@ int Language::classHandler(Node *n) {
   /* Look for smart pointer handling */
   if (Getattr(n,"allocate:smartpointer")) {
     List *methods = Getattr(n,"allocate:smartpointer");
-    cplus_mode = CPLUS_PUBLIC;
+    cplus_mode = PUBLIC;
     SmartPointer = CWRAP_SMART_POINTER;
     Iterator c;
     for (c = First(methods); c.item; c= Next(c)) {
@@ -2037,7 +2030,7 @@ int Language::classHandler(Node *n) {
     SmartPointer = 0;
   }
 
-  cplus_mode = CPLUS_PUBLIC;
+  cplus_mode = PUBLIC;
   if (!ImportMode && (GenerateDefault && !Getattr(n,"feature:nodefault"))) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
@@ -2064,8 +2057,8 @@ int Language::classHandler(Node *n) {
       String* symname = Getattr(n, "sym:name");
       Node *item;
       Iterator k;
-      int old_mode = cplus_mode;
-      cplus_mode =  CPLUS_PROTECTED;
+      AccessMode old_mode = cplus_mode;
+      cplus_mode = PROTECTED;
       for (k = First(vtable); k.key; k = Next(k)) {
 	item = k.item;
 	Node *method = Getattr(item, "methodNode");
@@ -2128,7 +2121,7 @@ int Language::constructorDeclaration(Node *n) {
     Setattr(CurrentClass,"sym:cleanconstructor","1");
   }
   
-  if ((cplus_mode != CPLUS_PUBLIC)) {
+  if ((cplus_mode != PUBLIC)) {
     /* check only for director classes */
     if (!Swig_directorclass(CurrentClass) || !need_nonpublic_ctor(n))
       return SWIG_NOWRAP;
@@ -2270,7 +2263,7 @@ Language::copyconstructorHandler(Node *n) {
 int Language::destructorDeclaration(Node *n) {
 
   if (!CurrentClass) return SWIG_NOWRAP;
-  if (cplus_mode != CPLUS_PUBLIC) return SWIG_NOWRAP;
+  if (cplus_mode != PUBLIC) return SWIG_NOWRAP;
   if (ImportMode) return SWIG_NOWRAP;
 
   Swig_save("destructorDeclaration",n,"name", "sym:name",NIL);
@@ -2327,11 +2320,11 @@ int Language::destructorHandler(Node *n) {
 int Language::accessDeclaration(Node *n) {
   String *kind = Getattr(n,"kind");
   if (Cmp(kind,"public") == 0) {
-    cplus_mode = CPLUS_PUBLIC;
+    cplus_mode = PUBLIC;
   } else if (Cmp(kind,"private") == 0) {
-    cplus_mode = CPLUS_PRIVATE;
+    cplus_mode = PRIVATE;
   } else if (Cmp(kind,"protected") == 0) {
-    cplus_mode = CPLUS_PROTECTED;
+    cplus_mode = PROTECTED;
   }
   return SWIG_OK;
 }
@@ -2361,7 +2354,7 @@ int Language::validIdentifier(String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Language::usingDeclaration(Node *n) {
-  if ((cplus_mode == CPLUS_PUBLIC)) {
+  if ((cplus_mode == PUBLIC)) {
     Node* np = Copy(n);    
     Node *c;
     for (c = firstChild(np); c; c = nextSibling(c)) {

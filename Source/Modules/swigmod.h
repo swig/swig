@@ -60,7 +60,8 @@ extern String *argc_template_string;
 
 class Dispatcher {
  public:
-  
+
+  Dispatcher() : cplus_mode(PUBLIC) {}
   virtual int emit_one(Node *n);
   virtual int emit_children(Node *n);
   virtual int defaultHandler(Node *n);
@@ -101,6 +102,11 @@ class Dispatcher {
   virtual int usingDeclaration(Node *n);
   virtual int namespaceDeclaration(Node *n);
   virtual int templateDeclaration(Node *n);
+
+  enum AccessMode { PUBLIC, PRIVATE, PROTECTED };
+
+protected:
+  AccessMode cplus_mode;
 };
 
 /************************************************************************
@@ -243,7 +249,7 @@ public:
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
 
- protected:
+protected:
   /* Allow multiple-input typemaps */
   void   allow_multiple_input(int val = 1);
 
@@ -286,14 +292,13 @@ public:
   /* Director language module */
   int director_language;
 
- private:
+private:
   Hash   *symbols;
   Hash   *classtypes;
   Hash   *enumtypes;
   int     overloading;
   int     multiinput;
   int     directors;
-  
 };
 
 int   SWIG_main(int, char **, Language *);
