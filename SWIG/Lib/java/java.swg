@@ -300,7 +300,13 @@
 }
 
 /* char * - treat as String */
-%typemap(in) char * { $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; }
+%typemap(in) char * { 
+  $1 = 0;
+  if ($input) {
+    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1) return $null;
+  }
+}
 %typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
 
@@ -453,7 +459,13 @@ JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float)         /* float[ANY] */
 JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* char[ANY] - treat as String */
-%typemap(in) char[ANY] { $1 = ($input) ? ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0) : NULL; }
+%typemap(in) char[ANY] { 
+  $1 = 0;
+  if ($input) {
+    $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1) return $null;
+  }
+}
 %typemap(argout) char[ANY] ""
 %typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
