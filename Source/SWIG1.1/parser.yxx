@@ -133,6 +133,15 @@ static void my_cplus_declare_const(char *name, char *iname, SwigType *type, char
   }
 }
 
+static DOHList *typelist(Parm *p) {
+   DOHList *l = NewList();
+   while (p) {
+     Append(l,Gettype(p));
+     p = Getnext(p);
+   }
+   return l;
+}
+
 static TMParm *NewTMParm() {
   TMParm *tmp = (TMParm *) malloc(sizeof(TMParm));
   tmp->next = 0;
@@ -149,15 +158,23 @@ static void add_pointers(SwigType *t, int npointer) {
 // Emit an external function declaration
 
 static void emit_extern_func(char *decl, SwigType *t, ParmList *L, int extern_type, DOHFile *f) {
-
+  
+  List *tl;
+  SwigType *tc;
+   
   switch(extern_type) {
   case 0:
     Printf(f,"%s", SwigType_str(t,0));
     Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
     break;
   case 1:
-    Printf(f,"extern %s", SwigType_str(t,0));
-    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L));
+    tl = typelist(L);
+    tc = Copy(t);
+    SwigType_add_function(tc,tl);
+    Printf(f,"extern %s;\n", SwigType_str(tc,decl));
+    /*    Printf(f,"%s(%s);\n", decl, ParmList_protostr(L)); */
+    Delete(tc);
+    Delete(tl);
     break;
   case 2:
   /* A C++ --- > C Extern */
@@ -424,15 +441,6 @@ static void dump_nested(char *parent) {
   nested_list = 0;
   Status = oldstatus;
 }
-
- static DOHList *typelist(Parm *p) {
-   DOHList *l = NewList();
-   while (p) {
-     Append(l,Gettype(p));
-     p = Getnext(p);
-   }
-   return l;
- }
 
 %}
 
