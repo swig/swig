@@ -570,12 +570,12 @@ if test -n "$GUILE_CONFIG" ; then
   for i in $dirs ; do
   	if test -r $i/guile/gh.h; then
   		AC_MSG_RESULT($i)
-  		GUILEINCLUDE="-I$i/guile"
+  		GUILEINCLUDE="-I$i"
   		break
   	fi
   done
   if test -z "$GUILEINCLUDE"; then
-  	GUILEINCLUDE="-I/usr/local/include/guile"
+  	GUILEINCLUDE="-I/usr/local/include"
       	AC_MSG_RESULT(not found)
   fi
 
