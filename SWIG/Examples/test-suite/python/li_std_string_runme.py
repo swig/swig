@@ -45,7 +45,9 @@ if li_std_string.test_const_reference(a) != x:
 
 b = li_std_string.string(" world")
 
+s = a + b
 if a + b != "hello world":
+  print a + b
   raise RuntimeError, "bad string mapping"
   
 if a + " world" != "hello world":
@@ -72,3 +74,12 @@ if b.a != "hello":
   raise RuntimeError, "bad string mapping"
 
 
+if li_std_string.test_value_basic1(x) != x:
+  raise RuntimeError, "bad string mapping"
+
+if li_std_string.test_value_basic2(x) != x:
+  raise RuntimeError, "bad string mapping"
+
+
+if li_std_string.test_value_basic3(x) != x:
+  raise RuntimeError, "bad string mapping"

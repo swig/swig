@@ -51,8 +51,8 @@ p = li_std_pair.IntPair(1,10)
 p.first = 1
 
 p = li_std_pair.paircA1(1,a)
-print 'f', p.first
-print 's', p.second
+p.first
+p.second
 
 p = li_std_pair.paircA2(1,a)
 pp = li_std_pair.pairiiA(1,p)

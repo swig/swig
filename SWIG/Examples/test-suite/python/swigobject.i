@@ -17,4 +17,9 @@
   A *a_ptr(A *a){
     return a;
   }
+
+
+  void *v_ptr(void *a){
+    return a;
+  }
 }
