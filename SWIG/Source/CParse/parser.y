@@ -3966,7 +3966,7 @@ base_list      : base_specifier {
 
 base_specifier : opt_virtual idcolon {
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
-                     Swig_error(cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
+                     Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file, cparse_line,"No access specifier given for base class %s (ignored).\n",$2);
    		     $$ = (char *) 0;
                  } else {
 		   $$ = $2;
