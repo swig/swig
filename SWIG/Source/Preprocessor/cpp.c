@@ -825,10 +825,11 @@ Preprocessor_parse(DOH *s)
       break;
       
     case 40:   /* Start of a C preprocessor directive */
-      if (c == ' ') state = 40;       /* Strip off any leading white-space */
-      else if (c == '\n') {
+      if (c == '\n') {
 	Putc('\n',chunk);
 	state = 0;
+      } else if (isspace(c)) {
+	state = 40;
       } else {
 	/* Got the start of a preprocessor directive */
 	Ungetc(c,s);
