@@ -653,6 +653,11 @@ int SwigType_issimple(SwigType *t) {
   return 1;
 }
 
+int SwigType_isvarargs(SwigType *t) {
+  if (Strcmp(t,"v(...)") == 0) return 1;
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * SwigType_base()
  *
