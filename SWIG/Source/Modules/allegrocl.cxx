@@ -252,6 +252,7 @@ int ALLEGROCL :: top(Node *n) {
   }
 
   Swig_register_filebyname("header",f_null);
+  Swig_register_filebyname("runtime",f_null);
   Swig_register_filebyname("wrapper", f_cl);
 
   Printf(f_cl, ";; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :ff :excl))\n\n(in-package :%s)\n", module, module);
