@@ -1,5 +1,6 @@
 <!-- Published by Quadralay WebWorks HTML Lite 1.5.1 -->
 <!-- And munged by Dave's special Python script -->
+<!-- Further modified by Hugh Sasse <hgs@dmu.ac.uk> -->
 <html>
 <head>
 <title>SWIG and Ruby</title>
@@ -20,15 +21,107 @@ Note that this chapter is in its early infant stage and only really has some adv
 <a name="n1"></a><h2> Preliminaries</h2>
 SWIG 1.3 is known to work with Ruby 1.6.4 and Ruby 1.6.5, but should work with other versions. Given the choice, you should use the latest version of Ruby. You should also determine if your system supports shared libraries and dynamic loading. SWIG will work with or without dynamic loading, but the compilation process will vary.<p>
 <a name="n14"></a><h3> Running SWIG</h3>
+<p>
+As described in the <A HREF="Introduction.html">introduction</A>, a
+module is created from an interface file, which contains function
+prototypes and variable declarations.  For <tt>example.c</tt> this would
+conventionally be called <tt>example.i</tt>.  Often it may be
+possible to use the C file itself as if it were a <tt>.i</tt> file,
+as described in the Shortcuts section of the <A
+HREF="Introduction.html">introduction</A>.
+</p>
+<p>
 To build a Ruby module, run SWIG using the <tt>-ruby</tt> option :<p>
 <p>
 <blockquote><pre>%swig -ruby example.i
 </pre></blockquote>
 <p>
+It should be noted that if the <tt>.c</tt> file is used instead of the
+<tt>.i</tt> file, then the <tt>-module Example</tt> must be used on the
+command line:
+</p>
+<blockquote><pre>%swig -ruby -module Example example.i
+</pre></blockquote>
+<p>
+Alternatively, a real <tt>.i</tt> file may be created containing
+</p>
+<blockquote><pre>%module Example 
+</pre></blockquote>
+<p>
+Swig will create <tt>example_wrap.c</tt> which together with
+<tt>example.c</tt> can then be compiled and linked to produce
+<tt>example.so</tt>.  This library can then be handled by Ruby's
+<tt>require</tt> statement.
+</p>
+<p>
+If many <tt>.c</tt> files are to be used together in the same module, then
+several <tt>.i</tt> files may be tied together by creating one overall
+<tt>.i</tt> file
+</P>
+<blockquote><pre>
+%module MyModule
+%include somefuncs.i
+%include someotherfuncs.i
+</pre></blockquote>
+
 
 <a name="n16"></a><h3> Compiling a dynamic module</h3>
-<a name="n18"></a><h3> Using your module</h3>
+<!-- Documentation on how to use/modify the Examples/Makefile needs -->
+<!-- to be added here. This is prefereablt because it holds library -->
+<!-- path information that the user may not remember. -->
+<p>Conventionally with SWIG on Unix the compilation of examples
+is done using the file
+<tt>Example/Makefile</tt>.  This
+makefile performs a manual module compilation which is platform
+specific.  Typically, the steps look like this (Linux):
+</p>
+<blockquote>
+<pre>
+% swig -ruby example.i
+% gcc -fpic -c example_wrap.c -I/usr/local/lib/ruby/1.4/i686-linux
+% gcc -shared example_wrap.o $(OBJS) -o example.so
+</pre>
+</blockquote>
+<p>
+However the politically "correct" way to compile a Ruby extension is to
+follow the steps described <tt>README.EXT</tt> in Ruby distribution:
+</p>
+<ol>
+<li>Create a file called <tt>extconf.rb</tt> that looks like the
+following:</>
+<blockquote>
+<pre>
+require 'mkmf'
+create_makefile('interface')
+</pre>
+</blockquote>
+<li>Type the following to build the extension:</p>
+<blockquote>
+<pre>
+% ruby extconf.rb
+% make
+% make install
+</pre>
+</blockquote>
+</ol>
+Because the compilation step is performed here, there should be no need
+to invoke the SWIG <tt>Examples/Makefile</tt>
 
+<a name="n18"></a><h3> Using your module</h3>
+<p>
+The library produced by SWIG contains a module in the Ruby sense.  Ic
+may be accessed by having statements such as
+</p>
+<blockquote>
+<pre>
+require "Example"
+
+Example.my_function(this, that, other)
+</pre>
+</blockquote>
+<p>
+in the code.
+</p>
 <a name="n2"></a><h2> Building Ruby Extensions under Windows 95/NT</h2>
 Building a SWIG extension to Ruby under Windows 95/NT is roughly similar to the process used with Unix.   Normally, you will want to produce a DLL that can be loaded into the Ruby interpreter.    This section covers the process of using SWIG with Microsoft Visual C++ 6 although the procedure may be similar with other compilers.   In order to build extensions, you will need to download the source distribution to the Ruby package as you will need the Ruby header files.<p>
 <a name="n20"></a><h3> Running SWIG from Developer Studio</h3>
