@@ -1,5 +1,10 @@
 Version 1.3.20 (In progress)
 ============================
+
+09/28/2003: mkoeppe
+	    [Guile with -scm option] Fix typo in generated code for
+	    procedures-with-setters.  Reported by John Lenz.
+
 09/26/2003: beazley
             Fixed [ 812528 ] externs not correct when throw is in signature.
             Reported by Joseph Winston.
