@@ -61,7 +61,7 @@ This chapter describes SWIG's support of Ruby.
 <li> <a href="#n80">Creating Multi-Module Pacakges</a>
 <li> <a href="#n81">Defining Aliases</a>
 <li> <a href="#n82">Predicate Methods</a>
-</ul>
+<li> <a href="#n83">Interacting with Ruby's Garbage Collector</a>
 </ul>
 
 <hr>
@@ -2216,6 +2216,164 @@ Note that the <tt>%predicate</tt> directive is implemented using SWIG's'
 "features" mechanism and so the same name matching rules used for other
 kinds of features apply (see the chapter on <a href="Exceptions.html">"Exceptions,
 Features and other Customizations"</a>) for more details).
+
+<a name="n83"></a><h3>Interacting with Ruby's Garbage Collector</h3>
+
+<b>This section is still unfinished!</b><p>
+
+By default, SWIG ensures that any C++ objects it creates are destroyed when the
+corresponding Ruby instance is garbage-collected. For example, if you have an
+interface like this:
+
+<blockquote>
+<pre>
+class Foo
+{
+public:
+    // Construct a new Foo object
+    Foo();
+};
+</pre>
+</blockquote>
+
+When a user of this extension creates a new <tt>Foo</tt> instance from Ruby, it
+will construct a new C++ <tt>Foo</tt> object behind the scenes, and when that
+Ruby instance is garbage-collected, the same C++ object will be destroyed.<p>
+
+But in the real world, things aren't always that simple.<p>
+
+It is often the case, especially for C++ libraries, that objects contain references
+to other objects. For example, consider a class library that models a zoo and the
+animals in the zoo:
+
+<blockquote>
+<pre>
+%module zoo
+
+%{
+#include <string>
+#include <vector>
+
+#include "zoo.h"
+%}
+
+class Animal
+{
+protected:
+    std::string name;
+    
+public:
+    // Construct an animal with this name
+    Animal(const char* nm) : name(nm) {}
+    
+    // Return the animal's name
+    const char* getName() const { return name.c_str(); }
+};
+
+class Zoo
+{
+protected:
+    std::vector<Animal*> animals;
+    
+public:
+    // Construct an empty zoo
+    Zoo() {}
+    
+    // Add a new animal to the zoo
+    void addAnimal(Animal* animal) { animals.push_back(animal); }
+    
+    // Return the number of animals in the zoo
+    size_t getNumAnimals() const { return animals.size(); }
+    
+    // Return a pointer to the ith animal
+    Animal* getAnimal(size_t i) const { return animals[i]; }
+};
+
+</pre>
+</blockquote>
+
+Basically, a zoo is modeled as a "container" for animals. And we can SWIG this
+set of classes, and at first blush everything seems to be going well:
+
+<blockquote>
+<pre>
+$ <b>irb</b>
+irb(main):001:0> <b>require 'zoo'</b>
+true
+irb(main):002:0> <b>zoo = Zoo::Zoo.new</b>
+#&lt;Zoo::Zoo:0xa090458&gt;
+irb(main):003:0> <b>zoo.addAnimal(Zoo::Animal.new("Lassie"))</b>
+nil
+irb(main):004:0> <b>zoo.addAnimal(Zoo::Animal.new("Felix"))</b>
+nil
+irb(main):005:0> <b>zoo.getNumAnimals()</b>
+2
+irb(main):006:0> <b>zoo.getAnimal(0).getName()</b>
+"Lassie"
+irb(main):007:0> <b>GC.start</b>
+nil
+irb(main):008:0> <b>zoo.getAnimal(0).getName()</b>
+(irb):8: [BUG] Segmentation fault
+ruby 1.7.2 (2002-03-25) [i386-cygwin]
+Aborted (core dumped)
+</pre>
+</blockquote>
+
+Observe that after the garbage collector runs (as a result of our call to
+<tt>GC.start</tt>) the call to <tt>Animal#getName</tt> causes a segmentation
+fault. To understand what went wrong requires a basic understanding of Ruby's
+"mark and sweep" garbage collection scheme.<p>
+
+<em>Add brief discussion of mark and sweep here?</em><p>
+
+So the problem with our previous example is that during the GC "mark" phase,
+Ruby has no way of knowing that our two <tt>Animal</tt> instances
+("Lassie" and "Felix") are still in use. As far as Ruby can tell,
+both of these objects are unreachable and should thus be garbage-collected.
+We'd like to fix things so that when the <tt>Zoo</tt> instance is visited
+during the "mark" phase, that it in turn marks the two animals as in use.<p>
+
+The Ruby/C API provides for this need by allowing extension developers to specify
+customized "mark" functions for data objects like our <tt>Zoo</tt> and <tt>Animal</tt>
+classes. This mark function takes a single argument, which is a pointer to the C++
+object being marked; it should, in turn, call <tt>rb_gc_mark()</tt> for any instances
+that are reachable from the current object. The mark function for our <tt>Zoo</tt>
+class should therefore loop over all of the animals in the zoo and call <tt>rb_gc_mark()</tt>
+for each of the Ruby instances associated with those C++ <tt>Animal</tt> objects:
+
+<blockquote>
+<pre>
+void Zoo_markfunc(void *ptr)
+{
+    Animal *cppAnimal;
+    VALUE   rubyAnimal;
+    Zoo *zoo;
+    
+    zoo = static_cast<Zoo*>(ptr);
+    for (size_t i = 0; i < zoo->getNumAnimals(); i++) {
+        cppAnimal = zoo->getAnimal(i);
+        rubyAnimal = SWIG_RubyInstanceFor(cppAnimal);
+        rb_gc_mark(rubyAnimal);
+    }
+}
+</pre>
+</blockquote>
+
+<em>SWIG_RubyInstanceFor() is an imaginary function that takes a pointer
+to a C/C++ object as its input and returns a <tt>VALUE</tt> corresponding to
+the Ruby instance that wraps this object. Currently, SWIG doesn't keep track
+of this kind of mapping at all.</em><p>
+
+You can use the <tt>%markfunc</tt> directive to associate the name of this function with
+a SWIGged class:
+<blockquote><pre>%markfunc Zoo "Zoo_markfunc";</pre></blockquote>
+
+Note that the <tt>%markfunc</tt> and <tt>%freefunc</tt> directives are
+implemented using SWIG's' "features" mechanism and so the same name matching
+rules used for other kinds of features apply (see the chapter on
+<a href="Exceptions.html">"Exceptions, Features and other Customizations"</a>)
+for more details).
+
 <hr>
 
 <address>SWIG 1.3 - Last Modified : $Date$</address>
