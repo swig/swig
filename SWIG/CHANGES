@@ -16,6 +16,18 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+07/18/2002: beazley
+            Modified wrapping of uninstantiated templates returned by
+            value.  Just to be safe, they are now wrapped by SwigValueWrapper<>
+            just in case they don't define a default constructor.  This
+            would be used if you had code like this
+
+                 Foo<int> blah();
+                 void     moreblah(Foo<int> x);
+
+            but you didn't instantiate Foo<int> using %template.  
+            We should probably add a warning for this.
+
 07/15/2002: beazley
             Fixed bug with %feature/%ignore/%rename and namespaces.
             For example:
