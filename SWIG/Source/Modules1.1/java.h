@@ -26,7 +26,6 @@ public :
   virtual int classHandler(Node *);
   virtual int classDeclaration(Node *);
 
-  virtual void set_module(char *);                 /* Deprecated */
   virtual void pragma(char *lang, char *code, char *value);
 
 private:
@@ -39,7 +38,7 @@ private:
   void emitClassDef();
   void emitShadowClassDef(Node *);
   char *jniCall(DOHString_or_char *func);
-  char *makeValidJniName(const char *name);
+  String *makeValidJniName(const String *name);
   char *javaMethodSignature(SwigType *t, int ret, int inShadow);
   void writeRegisterNatives();
   void javaShadowFunctionHandler(Node* n, int is_virtual);
