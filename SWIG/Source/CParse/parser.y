@@ -390,6 +390,7 @@ static Node *dump_nested(char *parent) {
     retx = new_node("classforward");
     Setattr(retx,"kind",n->kind);
     Setattr(retx,"name",Copy(n->type));
+    Setattr(retx,"sym:name", make_name(Char(n->type),0));
     set_nextSibling(retx,ret);
     ret = retx; 
 
@@ -895,9 +896,14 @@ insert_directive : HBLOCK {
 		 Setattr($$,"code",$1);
 	       }
                | INSERT LPAREN idstring RPAREN string {
+		 String *code = NewString("");
 		 $$ = new_node("insert");
 		 Setattr($$,"section",$3);
-		 Setattr($$,"filename",$5);
+		 Setattr($$,"code",code);
+		 if (Swig_insert_file($5,code) < 0) {
+		   cparse_error(input_file, line_number, "Couldn't find '%s'. Possible installation problem.\n", $5);
+		   $$ = 0;
+		 } 
                }
                | INSERT LPAREN idstring RPAREN HBLOCK {
 		 $$ = new_node("insert");
@@ -1089,6 +1095,7 @@ rename_namewarn : RENAME {
 /* ------------------------------------------------------------
    %feature(featurename) name { val }
    %feature(featurename) name "val";
+   %feature(featurename) name %{ val % }
    %feature(featurename,val) name;
    ------------------------------------------------------------ */
 
@@ -1185,7 +1192,9 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
               ;
 
 stringbracesemi : stringbrace { $$ = $1; }
+                | HBLOCK { $$ = $1; }                
                 | SEMI { $$ = 0; }
+                ;
  
 /* ------------------------------------------------------------
    %typemap(method) type { ... }
@@ -1727,6 +1736,7 @@ cpp_forward_class_decl : storage_class cpptype idcolon template_decl SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
 	       Setattr($$,"name",NewStringf("%s%s",$3,$4));
+	       Setattr($$,"sym:name", make_name(GetChar($$,"name"),0));
 	     }
              ;
 
@@ -2044,7 +2054,7 @@ nested_decl   : declarator { $$ = $1;}
               ;
 
 
-/* Pragma directive */
+/* These directives can be included inside a class definition */
 
 cpp_swig_directive: pragma_directive { $$ = $1; }
 
@@ -2063,6 +2073,7 @@ cpp_swig_directive: pragma_directive { $$ = $1; }
 /* rename directive */
              | rename_directive { $$ = $1; }
              | feature_directive { $$ = $1; }
+             | insert_directive { $$ = $1; }
              ;
 
 cpp_end        : cpp_const SEMI {
@@ -2879,12 +2890,15 @@ base_specifier : opt_virtual ID {
 	         if (strcmp($2,"public") == 0) {
 		   if (classes) {
 		     Node *cls = Getattr(classes,$4);
+		     $$ = cls;
+		     /*
 		     if (cls) {
 		       $$ = new_node("inherits");
 		       Setattr($$,"access",$2);
 		       Setattr($$,"name",$4);
 		       Setattr($$,"class",cls);
 		     }
+		     */
 		   }
 		   if (!$$) {
 		     Printf(stderr,"%s:%d. Nothing known about class '%s' (ignored).\n", 
