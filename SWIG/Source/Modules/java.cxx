@@ -1117,12 +1117,22 @@ class JAVA : public Language {
     }
 
     // C++ destructor is wrapped by the delete method
+    // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
     const String *tm = NULL;
-    if (derived)
-      tm = typemapLookup("javadestruct_derived", classDeclarationName, WARN_NONE);
-    else
-      tm = typemapLookup("javadestruct", classDeclarationName, WARN_NONE);
+    Node *attributes = NewHash();
+    String *destruct_methodname = NULL;
+    if (derived) {
+      tm = typemapLookup("javadestruct_derived", classDeclarationName, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:javadestruct_derived:methodname");
+    } else {
+      tm = typemapLookup("javadestruct", classDeclarationName, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
+    }
+    if (!destruct_methodname) {
+      Swig_error(input_file, line_number, 
+          "No methodname attribute defined in javadestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+    }
 
     // Emit the finalize and delete methods
     if (tm) {
@@ -1139,8 +1149,9 @@ class JAVA : public Language {
       else
         Replaceall(destruct, "$jnicall", "");
       if (*Char(destruct))
-        Printv(proxy_class_def, "\n  ", *Char(destructor_call) ? "public": "protected", " void delete() ", destruct, "\n", NIL);
+        Printv(proxy_class_def, "\n  ", *Char(destructor_call) ? "public": "protected", " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
+    Delete(attributes);
     Delete(destruct);
 
     // Emit various other methods
@@ -1891,12 +1902,14 @@ class JAVA : public Language {
    * typemapLookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(const String *op, String *type, int warning) {
+  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes=NULL) {
     String *tm = NULL;
     const String *code = NULL;
 
     if((tm = Swig_typemap_search(op, type, NULL, NULL))) {
       code = Getattr(tm,"code");
+      if (typemap_attributes)
+        Swig_typemap_attach_kwargs(tm,op,typemap_attributes);
     }
 
     if (!code) {
