@@ -1,7 +1,8 @@
 /* arrays_java.i
  * These typemaps give more natural support for arrays. The typemaps are not efficient
  * as there is a lot of copying of the array values whenever the array is passed to C/C++ 
- * from Java and visa versa.
+ * from Java and visa versa. The Java array is expected to be the same size as the C array.
+ * An exception is thrown if they are not.
 
    Example usage:
    Wrapping:
@@ -63,8 +64,7 @@ int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **carr, JNI
 
 void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JNITYPE *jarr, CTYPE *carr, JNITYPE##Array input) {
   int i;
-  jsize sz;
-  sz = JCALL1(GetArrayLength, jenv, input);
+  jsize sz = JCALL1(GetArrayLength, jenv, input);
   for (i=0; i<sz; i++)
     jarr[i] = (JNITYPE)carr[i];
   JCALL3(Release##JAVATYPE##ArrayElements, jenv, input, jarr, 0);
@@ -185,14 +185,20 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME)
 
+%typemap(in) CTYPE[] (JNITYPE *jarr)
+%{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(in) CTYPE[ANY] (JNITYPE *jarr)
-%{ if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
+%{  if ($input && JCALL1(GetArrayLength, jenv, $input) != $1_size) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
+    return $null;
+  }
+  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
 %typemap(out) CTYPE[ANY] 
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
 %typemap(freearg) CTYPE[ANY] 
-#ifdef __cplusplus
+#if __cplusplus
 %{ delete [] $1; %}
 #else
 %{ free($1); %}
@@ -297,7 +303,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     return $javaclassname.cArrayWrap($jnicall, $owner);
   }
 
-%typemap(in) ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
+%typemap(in) ARRAYSOFCLASSES[] (jlong *jarr, jsize sz)
 {
   int i;
   if (!$input) {
@@ -309,7 +315,37 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   if (!jarr) {
     return $null;
   }
-#ifdef __cplusplus
+#if __cplusplus
+  $1 = new $*1_ltype[sz];
+#else
+  $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
+#endif
+  if (!$1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
+    return $null;
+  }
+  for (i=0; i<sz; i++) {
+    $1[i] = **($&1_ltype)&jarr[i];
+  }
+}
+
+%typemap(in) ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
+{
+  int i;
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
+    return $null;
+  }
+  sz = JCALL1(GetArrayLength, jenv, $input);
+  if (sz != $1_size) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
+    return $null;
+  }
+  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
+  if (!jarr) {
+    return $null;
+  }
+#if __cplusplus
   $1 = new $*1_ltype[sz];
 #else
   $1 = ($1_ltype) calloc(sz, sizeof($*1_ltype));
@@ -353,7 +389,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 }
 
 %typemap(freearg) ARRAYSOFCLASSES[ANY]
-#ifdef __cplusplus
+#if __cplusplus
 %{ delete [] $1; %}
 #else
 %{ free($1); %}
@@ -392,8 +428,15 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
     return $jnicall;
   }
 
-%typemap(in) ARRAYSOFENUMS[ANY] (jint *jarr)
-%{ if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
+%typemap(in) ARRAYSOFENUMS[] (jint *jarr)
+%{  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null; %}
+%typemap(in) ARRAYSOFENUMS[ANY] (jint *jarr) {
+  if ($input && JCALL1(GetArrayLength, jenv, $input) != $1_size) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
+    return $null;
+  }
+  if (!SWIG_JavaArrayInInt(jenv, &jarr, (int**)&$1, $input)) return $null;
+}
 %typemap(argout) ARRAYSOFENUMS[ANY] 
 %{ SWIG_JavaArrayArgoutInt(jenv, jarr$argnum, (int*)$1, $input); %}
 %typemap(out) ARRAYSOFENUMS[ANY] 
