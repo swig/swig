@@ -165,5 +165,5 @@ DllExport void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpStringH
 
 /* Contract support */
 
-#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
+#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_CSharpThrowException(SWIG_CSharpArgumentOutOfRangeException, msg); return nullreturn; } else
 %}
