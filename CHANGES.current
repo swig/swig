@@ -1,6 +1,33 @@
 Version 1.3.20 (In progress)
 ============================
 
+04/03/2003: cheetah (William Fulton)
+            [C#] Improved wrapping of enums and constants. These were previously
+            wrapped as C# variables rather than constants. Either these are wrapped
+            as readonly (runtime) constants or compile time constants, depending on
+            the %javaconst directive (The directive is likely to change name soon).
+            For example wrapping:
+              %javaconst(0);
+              #define ABC 22
+              %javaconst(1) XYZ;
+              #define XYZ 33
+            is now:
+              public static readonly int ABC = examplePINVOKE.get_ABC();
+              public const int XYZ = 33;
+
+04/03/2003: cheetah (William Fulton)
+            [Java] Global constants and enums are put in their own interface called
+            xxxConstants, where xxx is the module name. This is an improvement as 
+            it is possible to derive (implement) a Java class from the xxxConstants
+            interface to improve the syntax; namely when wrapping:
+              enum {ONE=1, TWO, THREE};
+            accessing these from a Java class implementing xxxConstants is neater:
+              int number = ONE;
+            than the previous:
+              int number = xxx.ONE;
+
+            Patch submitted by Dave Dribin.
+
 04/02/2003: cheetah (William Fulton)
             Build improvements for multiple builds. This allows one to build
             the SWIG executable and runtime libraries for different platforms/compilers 
