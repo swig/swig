@@ -103,7 +103,7 @@ class Allocate : public Dispatcher {
             // is, not the virtual method definition in a base class
             Setattr(c, "storage", "virtual");
             Setattr(c, "virtual:derived", "1"); 
-            if (Strcmp(local_type, base_type) == 0) {
+            if ((Strcmp(local_type, base_type) == 0) && is_public(c)) {
 	      // if the types are the same, then we can attemp
 	      // to eliminate the derived virtual method.
               if (virtual_elimination_mode) Setattr(c,"feature:ignore", "1");
