@@ -714,8 +714,6 @@ AC_SUBST(JAVAINC)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 
-AC_SUBST(ROOT_DIR)ROOT_DIR=`pwd`
-
 #----------------------------------------------------------------
 # Look for Guile
 #----------------------------------------------------------------
@@ -1002,6 +1000,15 @@ AC_SUBST(PIKEDYNAMICLINKING)
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
+
+# Root directory
+# Translate path for native Windows compilers on Cygwin for use with 'make check'
+ROOT_DIR=`pwd`
+case $ac_sys_system/$ac_sys_release in
+CYGWIN*) ROOT_DIR=`cygpath --mixed $ROOT_DIR`;;
+esac
+
+AC_SUBST(ROOT_DIR)
 
 # Configure SWIG_LIB path
 
