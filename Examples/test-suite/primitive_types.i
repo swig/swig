@@ -162,7 +162,7 @@
   typedef const char* pcharc;
   typedef int* pint;
 
-  char* const def_pchar = "hello";
+  char* const def_pchar = (char *const)"hello";
   const char* const def_pcharc = "hija";
 
   const namet def_namet = {'h','o',0, 'l','a'};
@@ -277,12 +277,12 @@ macro(size_t,             pfx, sizet)
 %test_prim_types(sct_decl, sct)
 
 %inline {
-  %test_prim_types(val_decl, val);
-  %test_prim_types(ref_decl, ref);
-  %test_prim_types(cct_decl, cct);
-  %test_prim_types(var_decl, var);
+  %test_prim_types(val_decl, val)
+  %test_prim_types(ref_decl, ref)
+  %test_prim_types(cct_decl, cct)
+  %test_prim_types(var_decl, var)
 
-  var_decl(namet, var, namet);
+  var_decl(namet, var, namet)
 
   void var_init() 
   {
@@ -352,9 +352,9 @@ macro(size_t,             pfx, sizet)
    {
    }
    
-   %test_prim_types_stc(stc_decl, stc);
-   %test_prim_types(var_decl, var);
-   var_decl(namet, var, namet);
+   %test_prim_types_stc(stc_decl, stc)
+   %test_prim_types(var_decl, var)
+   var_decl(namet, var, namet)
 
 
    const char* val_namet(namet x) throw(namet)
@@ -377,25 +377,25 @@ macro(size_t,             pfx, sizet)
 #endif
 
    
-   %test_prim_types(val_decl, val);
-   %test_prim_types(ref_decl, ref);
+   %test_prim_types(val_decl, val)
+   %test_prim_types(ref_decl, ref)
 
    int c_check() 
    {
-     %test_prim_types(call_check, val);
-     %test_prim_types(call_check, ref);
+     %test_prim_types(call_check, val)
+     %test_prim_types(call_check, ref)
      return 1;
    }
 
    int v_check() 
    {
-     %test_prim_types_stc(var_check, stc);
-     %test_prim_types(var_check, var);
+     %test_prim_types_stc(var_check, stc)
+     %test_prim_types(var_check, var)
      var_check(namet, var, namet);
      return 1;
    }
 
-   %test_prim_types_ovr(ovr_decl, ovr);
+   %test_prim_types_ovr(ovr_decl, ovr)
 
    int strlen(const char *str, size_t len)
    {
@@ -438,34 +438,34 @@ macro(size_t,             pfx, sizet)
 #endif
 
 
-   %test_prim_types_stc(stc_decl, stc);
-   %test_prim_types(var_decl, var);
-   var_decl(namet, var, namet);
+   %test_prim_types_stc(stc_decl, stc)
+   %test_prim_types(var_decl, var)
+   var_decl(namet, var, namet)
 
-   %test_prim_types(val_decl, val);
-   %test_prim_types(ref_decl, ref);
+   %test_prim_types(val_decl, val)
+   %test_prim_types(ref_decl, ref)
 
-   %test_prim_types(vval_decl, vval);
-   %test_prim_types(vref_decl, vref);
+   %test_prim_types(vval_decl, vval)
+   %test_prim_types(vref_decl, vref)
 
-   %test_prim_types(wrp_decl, vref);
-   %test_prim_types(wrp_decl, vval);
+   %test_prim_types(wrp_decl, vref)
+   %test_prim_types(wrp_decl, vval)
 
    int c_check() 
    {
-     %test_prim_types(call_check, vval);
-     %test_prim_types(call_check, vref);
+     %test_prim_types(call_check, vval)
+     %test_prim_types(call_check, vref)
      return 1;
    }
 
    int v_check() 
    {
-     %test_prim_types_stc(var_check, stc);
-     %test_prim_types(var_check, var);
+     %test_prim_types_stc(var_check, stc)
+     %test_prim_types(var_check, var)
      return 1;
    }
 
-   %test_prim_types_ovr(ovr_decl, ovr);
+   %test_prim_types_ovr(ovr_decl, ovr)
    
 
    virtual Test* vtest(Test* t) const throw (Test)
@@ -478,8 +478,8 @@ macro(size_t,             pfx, sizet)
 
  int v_check() 
  {
-   %test_prim_types(var_check, cct);
-   %test_prim_types(var_check, var);
+   %test_prim_types(var_check, cct)
+   %test_prim_types(var_check, var)
    var_check(namet, var, namet);
    return 1;
  }
