@@ -67,7 +67,7 @@ class CSHARP : public Language {
   String *imclass_cppcasts_code; //C++ casts up inheritance hierarchies intermediary class code
   String *destructor_call; //C++ destructor call if any
 
-  enum type_additions {none, pointer, reference};
+  enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
   public:
 
@@ -790,15 +790,16 @@ class CSHARP : public Language {
     return ret;
   }
 
-/* ----------------------------------------------------------------------
- * enumDeclaration()
- *
- * C/C++ enums are wrapped by a C# enum. A C# enum is treated much like a 
- * C# proxy class in that a global enum is generated into its own file and
- * code can be added to the enum declaration using typemaps. Enums can be
- * wrapped with integers for backwards compatability using the enumint
- * feature.
- * ---------------------------------------------------------------------- */
+  /* ----------------------------------------------------------------------
+   * enumDeclaration()
+   *
+   * C/C++ enums can be mapped in one of 4 ways, depending on the cs:enum feature specified:
+   * 1) Simple enums - simple constant within the proxy class or module class
+   * 2) Typeunsafe enums - simple constant in a C# class (class named after the c++ enum name)
+   * 3) Typesafe enum - typesafe enum pattern (class named after the c++ enum name)
+   * 4) Proper enums - proper C# enum
+   * Anonymous enums always default to 1)
+   * ---------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
 
@@ -808,11 +809,11 @@ class CSHARP : public Language {
       enum_code = NewString("");
       String *symname = Getattr(n,"sym:name");
       String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
-      String *enumint_feature = Getattr(n,"feature:cs:enumint");
-      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
+      EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n,"name");
-      if (!enumint_feature_flag && symname && typemap_lookup_type) {
-        // Wrap (non-anonymous) C/C++ enum with a C# enum
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
         // Pure C# baseclass and interfaces
         const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
@@ -821,14 +822,14 @@ class CSHARP : public Language {
         // Emit the enum
         Printv(enum_code,
             typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers (enum modifiers really)
-            " enum ",
+            " ",
             symname,
-            *Char(pure_baseclass) ? // Bases
+            (*Char(pure_baseclass) || *Char(pure_interfaces)) ?
             " : " : 
             "",
             pure_baseclass,
-            *Char(pure_interfaces) ?  // Interfaces
-            " : " :
+            ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ? // Interfaces
+            ", " :
             "",
             pure_interfaces,
             " {\n",
@@ -842,15 +843,26 @@ class CSHARP : public Language {
       // Emit each enum item
       Language::enumDeclaration(n);
 
-      if (!enumint_feature_flag && symname && typemap_lookup_type) {
-        // Wrap (non-anonymous) C/C++ enum with a C# enum - finish enum declaration. 
-        // Typemaps can be used to add extra code to the enum definition in the same manner as proxy classes.
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
+        // Finish the enum declaration
+        // Typemaps are used to generate the enum definition in a similar manner to proxy classes.
         Printv(enum_code,
-            "\n",
+            (enum_feature == ProperEnum) ? 
+            "\n" :
             typemapLookup("csgetcptr", typemap_lookup_type, WARN_NONE), // getCPtr method (will probably never be used, but what the heck)
             typemapLookup("cscode", typemap_lookup_type, WARN_NONE), // extra C# code
             "}\n",
+            "\n",
             NIL);
+
+        Replaceall(enum_code, "$csclassname", symname);
+
+        // Substitute $enumvalues - intended usage is for typesafe enums
+        if (Getattr(n,"enumvalues"))
+          Replaceall(enum_code, "$enumvalues", Getattr(n,"enumvalues"));
+        else
+          Replaceall(enum_code, "$enumvalues", "");
 
         if (proxy_flag && is_wrapping_class()) {
           // Enums defined within the C++ class are defined within the proxy class
@@ -886,8 +898,12 @@ class CSHARP : public Language {
           Close(f_enum);
         }
       } else {
-        // Wrap C++ enum with integers
-        Printf(constants_code, "\n");
+        // Wrap C++ enum with simple constant
+        Printf(enum_code, "\n");
+        if (proxy_flag && is_wrapping_class())
+          Printv(proxy_class_constants_code, enum_code, NIL);
+        else
+          Printv(module_class_constants_code, enum_code, NIL);
       }
 
       Delete(enum_code); enum_code = NULL;
@@ -907,32 +923,67 @@ class CSHARP : public Language {
     String *value = Getattr(n,"value");
     String *name  = Getattr(n,"name");
     String *tmpValue;
-    
+
+    // Strange hack from parent method
     if (value)
       tmpValue = NewString(value);
     else
       tmpValue = NewString(name);
+    // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
     {
-      String *enumint_feature = Getattr(parentNode(n),"feature:cs:enumint");
-      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
-      if (!enumint_feature_flag && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
-        // Wrap C/C++ enums with C# enums. Emit the enum item.
+      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+
+      if ((enum_feature == ProperEnum) && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
+        // Wrap (non-anonymous) C/C++ enum with a proper C# enum
+        // Emit the enum item.
         if (!Getattr(n,"_last")) // Only the first enum item has this attribute set
           Printf(enum_code, ",\n");
         Printf(enum_code, "  %s", symname);
-        if (Getattr(n,"enumvalue"))
-          Printf(enum_code, " = %s", Getattr(n,"enumvalue"));
+        if (Getattr(n,"enumvalue")) {
+          // Note that the enum value must be a true constant and cannot be set from a PINVOKE call, thus no support for %csconst(0)
+          String *value = Getattr(n,"enumvalue");
+          Printf(enum_code, " = %s", value);
+        }
       } else {
-        // Wrap C/C++ enums with integers.
-        if (!getCurrentClass()) {
-          Setattr(n,"name",tmpValue); /* for wrapping of enums in a namespace when emit_action is used */
-          constantWrapper(n);
+        // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+        const String *parent_name = Getattr(parentNode(n),"name");
+        String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
+        const String *tm = typemapLookup("cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
+        String *return_type = Copy(tm);
+        Delete(typemap_lookup_type); typemap_lookup_type = NULL;
+
+        // The %csconst feature determines how the constant value is obtained
+        String *const_feature = Getattr(n,"feature:cs:const");
+        bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+        if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n),"sym:name") && !Getattr(parentNode(n),"unnamedinstance")) {
+          // Wrap (non-anonymouse) enum using the typesafe enum pattern
+          if (Getattr(n,"enumvalue")) {
+            String *value = enumValue(n);
+            Printf(enum_code, "  public static readonly %s %s = new %s(%s);\n", return_type, symname, return_type, value);
+            Delete(value);
+          } else {
+            Printf(enum_code, "  public static readonly %s %s = new %s();\n", return_type, symname, return_type);
+          }
         } else {
-          memberconstantHandler(n);
+          // Simple integer constants
+          // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+          // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+          const char *const_readonly = const_feature_flag ? "const" : "static readonly";
+          String *value = enumValue(n);
+          Printf(enum_code, "  public %s %s %s = %s;\n", const_readonly, return_type, symname, value);
+          Delete(value);
         }
       }
+
+      // Add the enum value to the comma separated list being constructed in the enum declaration.
+      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      if (!enumvalues)
+        Setattr(parentNode(n), "enumvalues", Copy(symname));
+      else
+        Printv(enumvalues, ", ", symname, NIL);
     }
     
     Delete(tmpValue);
@@ -942,6 +993,12 @@ class CSHARP : public Language {
 
   /* -----------------------------------------------------------------------
    * constantWrapper()
+   * Used for wrapping constants - #define or %constant.
+   * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
+   * C# static const variables are generated for these.
+   * If the %csconst(1) feature is used then the C constant value is used to initialise the C# const variable.
+   * If not, a PINVOKE method is generated to get the C constant value for intialisation of the C# const variable.
+   * Also note that this method might be called for wrapping enum items (when the enum is using %csconst(0)).
    * ------------------------------------------------------------------------ */
 
   virtual int constantWrapper(Node *n) {
@@ -951,7 +1008,6 @@ class CSHARP : public Language {
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    SwigType *original_type = t;
 
     if (!addSymbol(symname,n)) return SWIG_ERROR;
 
@@ -961,7 +1017,8 @@ class CSHARP : public Language {
     String *const_feature = Getattr(n,"feature:cs:const");
     bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
 
-    /* Adjust the enum type for the Swig_typemap_lookup. We want the same cstype typemap for all the enum items.
+    /* Adjust the enum type for the Swig_typemap_lookup.
+     * We want the same cstype typemap for all the enum items so we use the enum type (parent node).
      * The type of each enum item depends on what value it is assigned, but is usually a C int. */
     if (is_enum_item) {
       t = NewStringf("enum %s", Getattr(parentNode(n), "sym:name"));
@@ -994,45 +1051,43 @@ class CSHARP : public Language {
       Setattr(n, "value", new_value);
     }
 
-    // Get the name of the enum item
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-
-    // Constants are wrapped using a public const [cstype] in C#.
     Printf(constants_code, "  public %s %s %s = ", (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
     if (!const_feature_flag) {
-      // Default constant handling will work with any type of C constant and initialises the C# variable from C through a PInvoke call.
+      // Default enum and constant handling will work with any type of C constant and initialises the C# variable from C through a PINVOKE call.
 
-      if(classname_substituted_flag) // This handles function pointers using the %constant directive
-        Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
-      else if (SwigType_isenum(Getattr(n,"type")))
-        Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(symname));
-      else
+      if(classname_substituted_flag) {
+        if (SwigType_isenum(t)) {
+          // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
+          Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(symname));
+        } else {
+          // This handles function pointers using the %constant directive
+          Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(symname));
+        }
+      } else
         Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(symname));
 
       // Each constant and enum value is wrapped with a separate PInvoke function call
       enum_constant_flag = true;
       variableWrapper(n);
       enum_constant_flag = false;
-    } else if (is_enum_item) {
-      // Alternative enum item handling will use the explicit value of the enum item and hope that it compiles as C# code
-      const String *enumvalue = Getattr(n,"enumvalue") ? Getattr(n,"enumvalue") : Getattr(n,"enumvalueex");
-      Printf(constants_code, "%s;\n", enumvalue);
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
       Printf(constants_code, "%s;\n", Getattr(n,"value"));
     }
 
-    if(proxy_flag && wrapping_member_flag)
-      Printv(proxy_class_constants_code, constants_code, NIL);
-    else
-      Printv(module_class_constants_code, constants_code, NIL);
-
-    Swig_restore(n);
-    if (is_enum_item) {
-      Delete(Getattr(n,"type"));
-      Setattr(n,"type", original_type);
+    // Emit the generated code to appropriate place
+    // Enums only emit the intermediate and PINVOKE methods, so no proxy or module class wrapper methods needed
+    if (!is_enum_item) {
+      if(proxy_flag && wrapping_member_flag)
+        Printv(proxy_class_constants_code, constants_code, NIL);
+      else
+        Printv(module_class_constants_code, constants_code, NIL);
     }
+
+    // Cleanup
+    Swig_restore(n);
     Delete(new_value);
     Delete(return_type);
     Delete(constants_code);
@@ -1064,7 +1119,6 @@ class CSHARP : public Language {
    * ----------------------------------------------------------------------------- */
 
   virtual int pragmaDirective(Node *n) {
-
     if (!ImportMode) {
       String *lang = Getattr(n,"lang");
       String *code = Getattr(n,"name");
@@ -1157,6 +1211,7 @@ class CSHARP : public Language {
     if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number, 
           "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", typemap_lookup_type, pure_baseclass);
+      pure_baseclass = empty_string;
     }
 
     // Pure C# interfaces
@@ -1167,11 +1222,11 @@ class CSHARP : public Language {
         typemapLookup("csimports", typemap_lookup_type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $csclassname",       // Class name and bases
+        " class $csclassname",       // Class name and base class
         (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ?
         " : " : 
         "",
-        baseclass,
+        baseclass, // Note only one of these base classes should ever be set as multiple inheritance is not permissible
         pure_baseclass,
         ((derived || *Char(pure_baseclass)) && *Char(pure_interfaces)) ? // Interfaces
         ", " :
@@ -1986,6 +2041,65 @@ class CSHARP : public Language {
     Delete(func_name);
   }
 
+  /*----------------------------------------------------------------------
+   * decodeEnumFeature()
+   * Decode the possible enum features, which are one of:
+   *   %csenum(simple)
+   *   %csenum(typeunsafe) - default
+   *   %csenum(typesafe)
+   *   %csenum(proper)
+   *--------------------------------------------------------------------*/
+
+  EnumFeature decodeEnumFeature(Node *n) {
+      EnumFeature enum_feature = TypeunsafeEnum;
+      String *feature = Getattr(n,"feature:cs:enum");
+      if (feature) {
+        if (Cmp(feature, "simple") == 0)
+          enum_feature = SimpleEnum;
+        else if (Cmp(feature, "typesafe") == 0)
+          enum_feature = TypesafeEnum;
+        else if (Cmp(feature, "proper") == 0)
+          enum_feature = ProperEnum;
+      }
+      return enum_feature;
+  }
+
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in C# generated
+   * code. If the %csconst feature is not used, the string will contain the intermediary
+   * class call to obtain the enum value. The intermediary class and PINVOKE methods to obtain
+   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
+   * is one and hopefully it will compile as C# code - e.g. 20 as in: enum E{e=20};
+   * The caller must delete memory allocated for the returned string.
+   * ------------------------------------------------------------------------ */
+
+  String *enumValue(Node *n) {
+    String *symname = Getattr(n,"sym:name");
+    String *value = NULL;
+
+    // The %csconst feature determines how the constant value is obtained
+    String *const_feature = Getattr(n,"feature:cs:const");
+    bool const_feature_flag = const_feature && Cmp(const_feature, "0") != 0;
+
+    if (const_feature_flag) {
+      // Use the C syntax to make a true C# constant and hope that it compiles as C# code
+      value = Getattr(n,"enumvalue") ? Copy(Getattr(n,"enumvalue")) : Copy(Getattr(n,"enumvalueex"));
+    } else {
+      // Get the enumvalue from a PINVOKE call
+      if (!getCurrentClass()) {
+        // Strange hack to change the name
+        Setattr(n,"name",Getattr(n,"value")); /* for wrapping of enums in a namespace when emit_action is used */
+        constantWrapper(n);
+        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(symname));
+      } else {
+        memberconstantHandler(n);
+        value = NewStringf("%s.%s()", imclass_name, Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+      }
+    }
+    return value;
+  }
+
   /* -----------------------------------------------------------------------------
    * getEnumName()
    * ----------------------------------------------------------------------------- */
@@ -1994,11 +2108,8 @@ class CSHARP : public Language {
     Node *enum_name = NULL;
     Node *n = enumLookup(t);
     if (n) {
-      String *enumint_feature = Getattr(n,"feature:cs:enumint");
-      bool enumint_feature_flag = enumint_feature && Cmp(enumint_feature, "0") != 0;
-
       String *symname = Getattr(n,"sym:name");
-      if (!enumint_feature_flag && symname) {
+      if (symname) {
         // Add in class scope when referencing enum if not a global enum
         String *scopename_prefix = Swig_scopename_prefix(Getattr(n,"name"));
         String *proxyname = 0;
@@ -2067,8 +2178,8 @@ class CSHARP : public Language {
           Setattr(swig_types_hash, descriptor, type);
           Delete(descriptor);
         }
-        substitution_performed = true;
       }
+      substitution_performed = true;
       Delete(type);
       Delete(strippedtype);
     }
@@ -2131,13 +2242,13 @@ class CSHARP : public Language {
         typemapLookup("csimports", type, WARN_NONE), // Import statements
         "\n",
         typemapLookup("csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
-        " class $csclassname",       // Class name and bases
-        *Char(pure_baseclass) ?
+        " class $csclassname",       // Class name and base class
+        (*Char(pure_baseclass) || *Char(pure_interfaces)) ?
         " : " : 
         "",
         pure_baseclass,
-        *Char(pure_interfaces) ?  // Interfaces
-        " : " :
+        ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ? // Interfaces
+        ", " :
         "",
         pure_interfaces,
         " {\n",
