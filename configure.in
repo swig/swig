@@ -14,18 +14,6 @@ dnl Some extra defines for the config file
 AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
-
-/* Values returned by SWIG when invoked with the -ldflags option */
-#define SWIG_GUILE_RUNTIME      "-L" LIBDIR " -lswigguile" RELEASE_SUFFIX
-#define SWIG_GUILESCM_RUNTIME   "-L" LIBDIR " -lswigguilescm" RELEASE_SUFFIX
-#define SWIG_MZSCHEME_RUNTIME   "-L" LIBDIR " -lswigmz" RELEASE_SUFFIX
-#define SWIG_PERL_RUNTIME       "-L" LIBDIR " -lswigpl" RELEASE_SUFFIX
-#define SWIG_PIKE_RUNTIME       "-L" LIBDIR " -lswigpike" RELEASE_SUFFIX
-#define SWIG_PHP_RUNTIME        "-L" LIBDIR " -lswigphp4" RELEASE_SUFFIX
-#define SWIG_PYTHON_RUNTIME     "-L" LIBDIR " -lswigpy" RELEASE_SUFFIX
-#define SWIG_RUBY_RUNTIME       "-L" LIBDIR " -lswigrb" RELEASE_SUFFIX
-#define SWIG_TCL_RUNTIME        "-L" LIBDIR " -lswigtcl" RELEASE_SUFFIX
-#define SWIG_CHICKEN_RUNTIME    "-L" LIBDIR " -lswigchicken" RELEASE_SUFFIX
 ])
 
 dnl Checks for programs.
@@ -37,17 +25,7 @@ AC_OBJEXT
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
-AC_LIBTOOL_WIN32_DLL
 
-# On Mac OS-X, static runtime libraries don't seem to build (and are
-# probably a bad idea anyways).  This turns this off in libtool.
-
-case $host in
-   *-*-darwin*) AC_DISABLE_STATIC;;
-   *);;
-esac
-
-AC_PROG_LIBTOOL
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
@@ -280,15 +258,6 @@ AC_SUBST(TCL_CXXSHARED)
 case $host in
    *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -flat_namespace -undefined suppress";;
    *) TCL_CXXSHARED=$TRYLINKINGWITHCXX;;
-esac
-
-# On Mac OS-X, the -no-defined option to libtool doesn't seem to work.
-# This fixes it
-
-AC_SUBST(LIBTOOL_NO_UNDEFINED)
-case $host in
-   *-*-darwin*) LIBTOOL_NO_UNDEFINED="";;
-   *) LIBTOOL_NO_UNDEFINED="-no-undefined";;
 esac
 
 # Optional CFLAGS used to silence compiler warnings on some platforms.
@@ -1541,20 +1510,13 @@ AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent librari
 # Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
 
 AC_ARG_WITH(release-suffix,
-  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
+  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary. ],
   [release_suffix="$withval"], [release_suffix=""])
 AC_SUBST(release_suffix)
-AC_DEFINE_UNQUOTED(RELEASE_SUFFIX, "$release_suffix", [Executable and runtime libraries release suffix for co-existence with older versions])
-
-release_suffix_libtool=
-if test -n "$release_suffix"; then
-    release_suffix_libtool="-release `echo $release_suffix | sed s/^-//`"
-fi
-AC_SUBST(release_suffix_libtool)
+AC_DEFINE_UNQUOTED(RELEASE_SUFFIX, "$release_suffix", [Executable release suffix for co-existence with older versions])
 
 AC_CONFIG_FILES([			        \
     Makefile				        \
-    Runtime/Makefile			        \
     Source/Makefile			        \
     Examples/Makefile			        \
     Examples/guile/Makefile		        \
