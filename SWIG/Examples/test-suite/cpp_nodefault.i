@@ -20,8 +20,15 @@ Foo create(int x, int y) {
 
 typedef Foo Foo_t;
 
-void consume(Foo f, Foo_t g) {
-}
+void consume(Foo f, Foo_t g) {}
+
+class Bar {
+public:
+    void consume(Foo f, Foo_t g) {}
+    Foo create(int x, int y) {
+        return Foo(x,y);
+    }
+};
 
 
 %}
@@ -31,3 +38,5 @@ Foo gvar = Foo(3,4);
 %}
 
 Foo gvar;
+
+
