@@ -201,7 +201,7 @@ The SWIG macro capability is a very quick and easy way to generate large amounts
 many of SWIG's advanced features and libraries are built using this mechanism (such as C++ template
 support).
 
-<a name="n7"></a><H2>6.6 C99 Extensions</H2>
+<a name="n7"></a><H2>6.6 C99 and GNU Extensions</H2>
 
 
 SWIG-1.3.12 and newer releases support variadic preprocessor macros.  For example:
@@ -231,6 +231,15 @@ To get rid of the extra comma, use <tt>##</tt> like this:
 <blockquote>
 <pre>
 #define DEBUGF(fmt,...)   fprintf(stderr,fmt, ##__VA_ARGS__)
+</pre>
+</blockquote>
+
+<p>
+SWIG also supports GNU-style variadic macros.    For example:
+
+<blockquote>
+<pre>
+#define DEBUGF(fmt, args...)  fprintf(stdout,fmt,args)
 </pre>
 </blockquote>
 
@@ -297,6 +306,6 @@ SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : May 25, 2002</address>
+<address>SWIG 1.3 - Last Modified : March 9, 2003</address>
 </body>
 </html>
