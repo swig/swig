@@ -59,11 +59,24 @@ void Swig_typemap_init() {
 static String *tmop_name(const String_or_char *op) {
   static Hash *names = 0;
   String *s;
+  /* Due to "interesting" object-identity semantics of DOH,
+     we have to make sure that we only intern strings without object
+     identity into the hash table.
+     
+     (Swig_typemap_attach_kwargs calls tmop_name several times with
+     the "same" String *op (i.e., same object identity) but differing
+     string values.)
+
+     Most other callers work around this by using char* rather than
+     String *.
+                  -- mkoeppe, Jun 17, 2003
+  */
+  const char *op_without_object_identity = Char(op);
   if (!names) names = NewHash();
-  s = Getattr(names,op);
+  s = Getattr(names, op_without_object_identity);
   if (s) return s;
   s = NewStringf("tmap:%s",op);
-  Setattr(names,op,s);
+  Setattr(names,op_without_object_identity,s);
   return s;
 }
 
