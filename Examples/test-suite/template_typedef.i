@@ -1,5 +1,5 @@
 #ifdef SWIGPYTHON
-%module("tpltreduc") template_typedef
+%module("templatereduce") template_typedef
 #else
 %module template_typedef
 #endif
