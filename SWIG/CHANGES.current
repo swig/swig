@@ -1,6 +1,21 @@
 Version 1.3.23 (in progress)
 ==================================
 
+10/2/2004: mmatus
+	   [Python]
+	   - More cleaning up and uniformation on the Python Lib
+
+	   - Added Robin's docstring patch, plus some fixes, plus
+	     some extensions, see autodoc.i example in the test-suite,
+	     and try using %feature("autodoc","extended").
+	    
+	     This patch is not a complete solution for the
+	     documentation problem, just enough to inform python about
+	     the parameter list.
+
+	     The expected swig documentation support is far far away yet.
+	     
+
 10/1/2004: mmatus
 	   - Fix the %callback feature (only used in ruby and python examples,
 	     by now, but it should be generic), now member callbacks
