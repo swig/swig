@@ -930,7 +930,7 @@ PHP4::functionWrapper(Node *n) {
 
   if (native_constructor) {
     if (native_constructor==NATIVE_CONSTRUCTOR) Printf(f->code, "// NATIVE Constructor\nint self_constructor=1;\n");
-    else Printf(f->code, "// ALTERNATIVE Constructor: %s\n",shadow_classname);
+    else Printf(f->code, "// ALTERNATIVE Constructor\n");
   }
   Printf(f->code,"// %s %s\n",iname, name);
 
