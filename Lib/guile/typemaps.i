@@ -16,7 +16,7 @@
 %typemap (guile, op) unsigned long  { MK_SIMPLE_MAP (gh_scm2ulong); }   \
 %typemap (guile, op) float          { MK_SIMPLE_MAP (gh_scm2double); }  \
 %typemap (guile, op) double         { MK_SIMPLE_MAP (gh_scm2double); }  \
-%typemap (guile, op) char *         { MK_SIMPLE_MAP (gswig_scm2str); }
+%typemap (guile, op) char *         { MK_SIMPLE_MAP (GSWIG_scm2str); }
 
 #define SIMPLE_OUT_MAP_SET(op)                                          \
 %typemap (guile, op) bool           { MK_SIMPLE_MAP (gh_bool2scm); }    \
