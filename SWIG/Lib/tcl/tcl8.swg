@@ -4,6 +4,7 @@
  * Tcl8 configuration module.
  * ----------------------------------------------------------------------------- */
 
+%runtime "precommon.swg"
 %runtime "common.swg"
 %runtime "swigtcl8.swg"
 

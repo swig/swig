@@ -5,6 +5,7 @@
  * ---------------------------------------------------------------------- */
 
 %runtime "rubyhead.swg"
+%runtime "precommon.swg"
 %runtime "common.swg"
 
 #ifdef SWIG_NOINCLUDE

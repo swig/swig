@@ -5,6 +5,7 @@
  *
  */
 
+%runtime "precommon.swg"
 %runtime "common.swg"		// common type checking code
 %runtime "php4run.swg"		// Php4 runtime functions
 %include "utils.i"		// building blocks
