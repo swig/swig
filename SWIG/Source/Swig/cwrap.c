@@ -269,7 +269,28 @@ Swig_cfunction_call(String_or_char *name, ParmList *parms) {
 
   func = NewString("");
   nname = SwigType_namestr(name);
-  Printf(func,"%s(", nname);
+
+  /*
+    SWIG_TEMPLATE_DESIMBUAGATOR is compiler dependent (common.swg),
+      - SUN Studio 9 requires 'template', 
+      - gcc-3.4 forbids the use of 'template'.
+    the rest seems not caring very much,
+  */
+  if (SwigType_istemplate(name)) {
+    String *prefix = Swig_scopename_prefix(nname);
+    String *last = Swig_scopename_last(nname);
+    if (!prefix || Len(prefix) == 0) {
+      Printf(func,"%s(", last);
+    } else {
+      Printf(func,"%s::SWIG_TEMPLATE_DISAMBIGUATOR %s(", prefix, last);
+    }
+    Delete(prefix);
+    Delete(last);
+  } else {
+    Printf(func,"%s(", nname);
+  }
+
+
   while (p) {
     String *pname;
     pt = Getattr(p,"type");
@@ -324,7 +345,17 @@ Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self) {
     Replaceall(func,"this", SwigType_rcaststr(pt, Swig_cparm_name(p,0)));
   }
 
-  Printf(func,"%s(", nname);
+  /*
+    SWIG_TEMPLATE_DESIMBUAGATOR is compiler dependent (common.swg),
+      - SUN Studio 9 requires 'template', 
+      - gcc-3.4 forbids the use of 'template'.
+    the rest seems not caring very much,
+  */
+  if (SwigType_istemplate(name)) {
+    Printf(func,"SWIG_TEMPLATE_DISAMBIGUATOR %s(", nname);
+  } else {
+    Printf(func,"%s(", nname);
+  }
 
   i++;
   p = nextSibling(p);
