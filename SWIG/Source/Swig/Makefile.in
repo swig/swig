@@ -88,8 +88,22 @@ all: swig
 swig: $(OBJS)
 	for i in $(OBJS); do echo Source/Swig/$$i >> $(OBJS_FILE); done
 
+######################################################################
+# TARGET: experiment
+#####################################################################
+# same as swig
+experiment: swig
+
+######################################################################
+# TARGET: python
+#####################################################################
+# not integrated with the mother ship yet
 python: $(TARGET)		# the python module
 
+######################################################################
+# TARGET: supertest
+#####################################################################
+# not integrated with the mother ship yet
 supertest: super.c		# test the super module
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DSUPER_TEST -c \
 		-o supertest.o super.c
