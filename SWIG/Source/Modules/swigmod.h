@@ -182,13 +182,11 @@ public:
   virtual int classDirector(Node *n);
   virtual int classDirectorInit(Node *n);
   virtual int classDirectorEnd(Node *n);
-  virtual int tagDirectorBases(Node *n);
   virtual int unrollVirtualMethods(Node *n, 
                                    Node *parent, 
                                    Hash *vm, 
                                    int default_director, 
-                                   int &virtual_destructor, 
-                                   int &has_virtual);
+                                   int &virtual_destructor);
   virtual int classDirectorConstructor(Node *n);
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);

@@ -1,5 +1,15 @@
 Version 1.3.18 (In progress)
 ============================
+03/18/2003: mrose (Mark Rose)
+            Removed code related to tagging individual methods for directors.
+	    The concept of having directors for some but not all virtual methods
+	    of a class is deeply flawed.  The %feature("nodirector") tag is also
+	    gone.  
+	    
+	    Directors are off by default.  To enable them for a class, issue
+	    %feature("director") classname; which will create director methods
+	    for every virtual method in the hierarchy of the class.
+
 03/17/2003: beazley
             Fixed a subtle problem with passing arguments of type function.  For
             example:
