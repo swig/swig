@@ -81,7 +81,7 @@ typedef struct swig_const_info {
   not always safe.
 */
 #if !defined(SWIG_NO_COBJECT_TYPES) && !defined(SWIG_COBJECT_TYPES)
-#define SWIG_COBJECT_TYPES
+  //#define SWIG_COBJECT_TYPES
 #endif
 
 /* Flags for pointer conversion */

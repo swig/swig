@@ -1,6 +1,37 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/20/2004: mmatus
+	    - [Python] Initial fix for python/import example. Please
+	      update the Makefile (autoconf, configure, etc, expert),
+	      since now probably is only working with g++, icc and a
+	      few other compilers that have the -shared option.
+
+	      We need to create additional shared libraries for the
+	      virtual destructors. Old and usually forgotten C++
+	      requirement.
+	      
+	      Same fix need to be used in perl, I think.
+
+            - [Python] Fix generation of header file for directors,
+              now directors.swg is also included, so, it can be really
+	      used from C++, and it solves some problem with compiler
+	      that require that, even with the simple swig inclusion.  
+
+            - [Python] Reordering the methods and moving some bodies
+              outside the class declaration. This is needed due to
+              some gcc-2.96 internal compiler errors. It seems the
+              PYTHON class is getting too large to been declared and
+              defined at the same time.
+
+	    - Add the -oh option to change the output header file if
+              needed. 
+
+                 swig -c++ -python test.i -o test.CC -oh test.H
+	      
+              this is mainly to use with directors, if the current
+              default header file name is not good for you.
+
 10/20/2004: wsfulton
             1) Compact default arguments feature added. This feature allows one
               to use the default argument code generation that was used in
