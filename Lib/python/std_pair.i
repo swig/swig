@@ -6,6 +6,7 @@
 // Python implementation
 
 %include std_common.i
+%include exception.i
 
 
 // ------------------------------------------------------------------------
@@ -499,8 +500,8 @@ namespace std {
         }
         %typemap(out) pair<T,U> {
             $result = PyTuple_New(2);
-            PyTuple_SetItem($result,0,CONVERT_T_FROM($1.first));
-            PyTuple_SetItem($result,1,CONVERT_U_FROM($1.second));
+            PyTuple_SetItem($result,0,CONVERT_T_TO($1.first));
+            PyTuple_SetItem($result,1,CONVERT_U_TO($1.second));
         }
         %typecheck(SWIG_TYPECHECK_PAIR) pair<T,U> {
             /* native sequence? */
