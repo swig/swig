@@ -2061,7 +2061,7 @@ void cplus_emit_constructor(char *classname, char *classtype, char *classrename,
 	    if (p->call_type & CALL_REFERENCE) {
 	      pt->is_pointer--;
 	    }
-	    Printf(wrap, DataType_print_real(pt,Parm_Getname(p)));
+	    Printf(wrap, DataType_str(pt,Parm_Getname(p)));
 	    if (p->call_type & CALL_REFERENCE) {
 	      pt->is_pointer++;
 	    }
@@ -2399,7 +2399,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 	  }
 	  Printv(wrap,
 		 "static ", DataType_print_type(type), " ", cname, "(",
-		 classtype, classname, " *obj, ", DataType_print_real(type,(char*)"val"), ") {\n",
+		 classtype, classname, " *obj, ", DataType_str(type,(char*)"val"), ") {\n",
 		 0);
 	  if (is_user) {
 	    type->is_pointer--;
@@ -2432,7 +2432,7 @@ void cplus_emit_variable_set(char *classname, char *classtype, char *classrename
 		char temp[512];
 		Printv(wrap,
 		       "static ", DataType_print_type(type), " ", cname, "(",
-		       classtype, classname, " *obj, ", DataType_print_real(type,(char*)"val"), ") {\n",
+		       classtype, classname, " *obj, ", DataType_str(type,(char*)"val"), ") {\n",
 		       0);
 		sprintf(temp,"obj->%s",mname);
 		if (CPlusPlus) {

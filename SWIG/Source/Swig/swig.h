@@ -235,10 +235,10 @@ extern void  Swig_banner(DOHFile *f);
 typedef struct DataType {
   int         type;            /* SWIG Type code */
   char        name[MAX_NAME];  /* Name of type   */
-  char        is_pointer;      /* Is this a pointer */
-  char        implicit_ptr;    /* Implicit ptr */
-  char        is_reference;    /* A C++ reference type */
-  char        status;          /* Is this datatype read-only? */
+  int         is_pointer;      /* Is this a pointer */
+  int         implicit_ptr;    /* Implicit ptr */
+  int         is_reference;    /* A C++ reference type */
+  int         status;          /* Is this datatype read-only? */
   char        *_qualifier;     /* A qualifier string (ie. const). */
   char        *_arraystr;      /* String containing array part */
   int         id;              /* type identifier (unique for every type). */
@@ -247,6 +247,12 @@ typedef struct DataType {
 extern DataType *NewDataType(int type);
 extern DataType *CopyDataType(DataType *type);
 extern void      DelDataType(DataType *type);
+
+/* -- New type interface -- */
+
+extern char     *DataType_str(DataType *, char *name);  /* Exact datatype */
+
+/* -- Old type interface -- */
 
 extern char     *DataType_qualifier(DataType *);
 extern void      DataType_set_qualifier(DataType *, char *q);
@@ -258,7 +264,6 @@ extern char     *DataType_print_type(DataType *);
 extern char     *DataType_print_full(DataType *);
 extern char     *DataType_print_cast(DataType *);
 extern char     *DataType_print_mangle(DataType *);
-extern char     *DataType_print_real(DataType *, char *local);
 extern char     *DataType_print_arraycast(DataType *);
 extern char     *DataType_print_mangle_default(DataType *);
 extern void      DataType_set_mangle(char *(*m)(DataType *));
