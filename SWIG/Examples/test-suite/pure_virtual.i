@@ -53,18 +53,19 @@ class AA {
 };
 
 /* Multiple inheritance between two abstract classes */
-#ifndef SWIGJAVA
 class E : public C, public AA {
 public:
    virtual void something() { };
 };
 
 /* Fill in method from AA.  This class should be constructable */
+#ifdef SWIGCSHARP
+%ignore F::method2(); // Work around for lack of multiple inheritance support - base AA is ignored.
+#endif
 class F : public E {
    public:
      virtual void method2() { }
 };
-#endif
 
 %}
 
