@@ -1,6 +1,12 @@
 Version 1.3.17 (In progress)
 ============================
 
+11/02/2002: cheetah (William Fulton)
+            [Java] Added patch submitted by Michael Cahill to remove unused parameter
+            warnings for the jenv and cls parameters. This patch also also allows one
+            to use "void" in the jni typemap for any type without code being generated
+            attempting to return a value.
+
 10/29/2002: cheetah (William Fulton)
             [Java] Array handling is different. Arrays of classes are no longer wrapped
             with proxy arrays, eg wrapping
