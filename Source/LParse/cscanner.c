@@ -350,7 +350,7 @@ yylex1(void) {
 	if (strcmp(yytext,"public") == 0) return(PUBLIC);
 	if (strcmp(yytext,"protected") == 0) return(PROTECTED);
 	if (strcmp(yytext,"friend") == 0) return(FRIEND);
-	if (strcmp(yytext,"virtual") == 0) return(VIRTUAL);
+	if (strcmp(yytext,"virtual") == 0) return(lparse_yylex());
 	if (strcmp(yytext,"operator") == 0) return(OPERATOR);
 	if (strcmp(yytext,"throw") == 0) return(THROW);
 	if (strcmp(yytext,"inline") == 0) return(lparse_yylex());
@@ -431,9 +431,9 @@ yylex1(void) {
       /* Have an unknown identifier, as a last step, we'll */
       /* do a typedef lookup on it. */
       yylval.tok.text = NewString(yytext);
-      if (strict_type && LParse_typedef_check(yylval.tok.text)) {
+      /*      if (strict_type && LParse_typedef_check(yylval.tok.text)) {
 	return TYPE_TYPEDEF;
-      }
+	}*/
       return(ID);
     }
     return(l1);

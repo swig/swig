@@ -54,35 +54,6 @@ extern int   LParse_objc(int i);
 #define    LPARSE_T_SYMBOL    98
 #define    LPARSE_T_ERROR     99
 
-/* This is the semi-bogus type structure from SWIG1.1.  It will be replaced someday */
-
-#define    LPARSE_MAX_NAME   96
-
-typedef struct {
-  DOHXCOMMON;
-  int      type;
-  char    *name;
-  char     is_pointer;
-  char     implicit_ptr;
-  char     is_reference;
-  char     status;
-  char    *qualifier;
-  char    *arraystr;
-} LParseType;
-
-extern LParseType *NewLParseType(int t);
-extern void        DelLParseType(DOH *t);
-extern DOH        *CopyLParseType(DOH *t);
-extern int         LParseType_check(DOH *t);
-extern void        LParse_typedef_add(LParseType *t, DOH *tname);
-extern void        LParse_typedef_resolve(LParseType *t, int level);
-extern void        LParse_typedef_replace(LParseType *t);
-extern int         LParse_typedef_check(DOH *tname);
-extern void        LParse_typedef_updatestatus(LParseType *t, int newstatus);
-extern void        LParse_merge_scope(DOH *h);
-extern void        LParse_new_scope(DOH *);
-extern DOH        *LParse_collapse_scope(DOH *prefix);
-
 #ifdef __cplusplus
 }
 #endif
