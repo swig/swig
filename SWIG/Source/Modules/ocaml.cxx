@@ -375,7 +375,7 @@ public:
 
     virtual int top(Node *n) {
 	/* Set comparison with none for ConstructorToFunction */
-	SetNoneComparison( NewString( "argv[0] != Val_unit" ) );
+	setSubclassInstanceCheck(NewString("argv[0] != Val_unit"));
 
 	/* check if directors are enabled for this module.  note: this 
 	 * is a "master" switch, without which no director code will be

@@ -396,7 +396,7 @@ public:
     }
 
     /* Set comparison with none for ConstructorToFunction */
-    SetNoneComparison( NewString( "$arg != Py_None" ) );
+    setSubclassInstanceCheck(NewString("$arg != Py_None"));
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n,"outfile");
@@ -747,7 +747,7 @@ public:
 
       /* Keyword argument handling */
       if (Len(pn)) {
-	Printf(kwargs,"\"%s\",", pn);
+	Printf(kwargs,"(char *) \"%s\",", pn);
       } else {
 	Printf(kwargs,"\"arg%d\",", i+1);
       }
@@ -1935,7 +1935,7 @@ public:
     int   use_director = Swig_directorclass(n);
 
     /* 
-     * If we wrapping the constructor of a C++ director class, prepend a new parameter
+     * If we're wrapping the constructor of a C++ director class, prepend a new parameter
      * to receive the scripting language object (e.g. 'self')
      *
      */
