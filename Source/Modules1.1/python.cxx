@@ -27,6 +27,15 @@ static char cvsroot[] = "$Header$";
 #include "swig11.h"
 #include "python.h"
 
+struct Method {               // Methods list.  Needed to build methods
+  char   *name;               // Array at very end.
+  char   *function;
+  int     kw;
+  Method *next;
+};
+
+Method  *head = 0;
+
 static   String       const_code;
 static   String       shadow_methods;
 
@@ -35,6 +44,7 @@ Python Options (available with -python)\n\
      -globals name   - Set name used to access C global variable ('cvar' by default).\n\
      -module name    - Set module name\n\
      -keyword        - Use keyword arguments\n\
+     -noopt          - No optimized shadows (pre 1.5.2)\n\
      -shadow         - Generate shadow classes. \n\n";
 
 static String pragma_include;
@@ -75,6 +85,9 @@ void PYTHON::parse_args(int argc, char *argv[]) {
 	    }
 	  } else if (strcmp(argv[i],"-shadow") == 0) {
 	    shadow = 1;
+	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-noopt") == 0) {
+	    noopt = 1;
 	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-keyword") == 0) {
 	    use_kw = 1;
@@ -187,12 +200,12 @@ void PYTHON::import(char *filename) {
 }
 
 // ----------------------------------------------------------------------
-// PYTHON::add_method(char *name, char *function)
+// PYTHON::add_method(char *name, char *function, int kw)
 //
 // Add some symbols to the methods table
 // ----------------------------------------------------------------------
 
-void PYTHON::add_method(char *name, char *function) {
+void PYTHON::add_method(char *name, char *function, int kw) {
 
   Method *n;
 
@@ -201,7 +214,7 @@ void PYTHON::add_method(char *name, char *function) {
   strcpy(n->name,name);
   n->function = new char[strlen(function)+1];
   strcpy(n->function, function);
-
+  n->kw = kw;
   n->next = head;
   head = n;
 }
@@ -219,7 +232,7 @@ void PYTHON::print_methods() {
   fprintf(f_wrappers,"static PyMethodDef %sMethods[] = {\n", module);
   n = head;
   while (n) {
-    if (!use_kw) {
+    if (!n->kw) {
       fprintf(f_wrappers,"\t { \"%s\", %s, METH_VARARGS },\n", n->name, n->function);
     } else {
       fprintf(f_wrappers,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", n->name, n->function);
@@ -296,7 +309,8 @@ void PYTHON::initialize(void)
     }
     fprintf(f_shadow,"# This file was created automatically by SWIG.\n");
     fprintf(f_shadow,"import %s\n", module);
-    fprintf(f_shadow,"import new\n");
+    if (!noopt)
+      fprintf(f_shadow,"import new\n");
   }
 
   // Dump out external module declarations
@@ -310,21 +324,7 @@ void PYTHON::initialize(void)
   fprintf(f_wrappers,"#ifdef __cplusplus\n");
   fprintf(f_wrappers,"extern \"C\" {\n");
   fprintf(f_wrappers,"#endif\n");
-  
-  const_code << "typedef struct { \n"
-	     << tab4 << "int  type;\n"
-	     << tab4 << "char *name;\n"
-	     << tab4 << "long lvalue;\n"
-	     << tab4 << "double dvalue;\n"
-	     << tab4 << "void   *pvalue;\n"
-	     << tab4 << "_swig_type_info **ptype;\n"
-	     << "} _swig_const_info;\n";
 
-  const_code << "#define SWIG_PY_INT     1\n"
-	     << "#define SWIG_PY_FLOAT   2\n"
-	     << "#define SWIG_PY_STRING  3\n"
-	     << "#define SWIG_PY_POINTER 4\n";
-  
   const_code << "static _swig_const_info _swig_const_table[] = {\n";
 }
 
@@ -385,7 +385,6 @@ void PYTHON::initialize_cmodule(void)
 
 void PYTHON::close(void)
 {
-
   print_methods();
   close_cmodule();
   if (shadow) {
@@ -426,27 +425,7 @@ void PYTHON::close_cmodule(void)
   }
 #endif
   String cinit;
-  cinit << tab4 << "{\n"
-	<< tab8 << "int i;\n"
-	<< tab8 << "for (i = 0; _swig_const_table[i].type; i++) {\n"
-	<< tab8 << tab4 << "switch(_swig_const_table[i].type) {\n"
-	<< tab8 << tab4 << "case SWIG_PY_INT:\n"
-	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyInt_FromLong(_swig_const_table[i].lvalue));\n"
-	<< tab8 << tab8 << "break;\n"
-	<< tab8 << tab4 << "case SWIG_PY_FLOAT:\n"
-	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyFloat_FromDouble(_swig_const_table[i].dvalue));\n"
-	<< tab8 << tab8 << "break;\n"
-	<< tab8 << tab4 << "case SWIG_PY_STRING:\n"
-	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, PyString_FromString((char *) _swig_const_table[i].pvalue));\n"
-	<< tab8 << tab8 << "break;\n"
-	<< tab8 << tab4 << "case SWIG_PY_POINTER:\n"
-	<< tab8 << tab8 << "PyDict_SetItemString(d,_swig_const_table[i].name, SWIG_NewPointerObj(_swig_const_table[i].pvalue, *(_swig_const_table[i].ptype)));\n"
-	<< tab8 << tab8 << "break;\n"
-	<< tab8 << tab4 << "default:\n"
-	<< tab8 << tab8 << "break;\n"
-	<< tab8 << tab4 << "}\n"
-	<< tab8 << "}\n"
-	<< tab4 << "}\n";
+  cinit << tab4 << "SWIG_InstallConstants(d,_swig_const_table);\n";
 
 #ifdef SHADOW_METHODS
   // Not done yet.  If doing shadows, create a bunch of instancemethod objects for use
@@ -567,7 +546,7 @@ void PYTHON::create_command(char *cname, char *iname) {
 
   // Now register the function with the interpreter.  
 
-  add_method(iname, wname);
+  add_method(iname, wname, use_kw);
 
 }
 
@@ -979,7 +958,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Now register the function with the interpreter.  
 
-  add_method(iname, wname);
+  add_method(iname, wname, use_kw);
 
 #ifdef SHADOW_METHODS
   if (shadow && (shadow & PYSHADOW_MEMBER)) {
@@ -1431,7 +1410,7 @@ char *PYTHON::usage_const(char *iname, DataType *, char *value) {
 // -----------------------------------------------------------------------
 
 void PYTHON::add_native(char *name, char *funcname, DataType *, ParmList *) {
-  add_method(name, funcname);
+  add_method(name, funcname,0);
   if (shadow) {
     func << name << " = " << module << "." << name << "\n\n";
   }

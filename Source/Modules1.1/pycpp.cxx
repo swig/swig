@@ -30,6 +30,8 @@ static char cvsroot[] = "$Header$";
 
 static  String   *setattr;
 static  String   *getattr;
+static  String   *csetattr;
+static  String   *cgetattr;
 static  String   *pyclass;
 static  String   *imethod;
 static  String   *construct;
@@ -65,6 +67,8 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
     
     setattr   = new String();
     getattr   = new String();
+    csetattr  = new String();
+    cgetattr  = new String();
     pyclass   = new String();
     imethod   = new String();
     construct = new String();
@@ -76,8 +80,7 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
 
     
     //  *pyclass << "class " << rname << ":\n";
-    *setattr << tab4 << "def __setattr__(self,name,value):\n";
-    *getattr << tab4 << "def __getattr__(self,name):\n";
+
     have_constructor = 0;
     have_destructor = 0;
     have_getattr = 0;
@@ -97,9 +100,21 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
 
   // Build up the hash table
   hash.add(real_classname,copy_string(class_name));
-  
+
   sprintf(temp,"%s %s", class_type, real_classname);
   hash.add(temp,copy_string(class_name));
+
+  if (shadow) {
+    *setattr << tab4 << "def __setattr__(self,name,value):\n"
+	     << tab8 << "if (name == \"this\") or (name == \"thisown\"): self.__dict__[name] = value; return\n"
+    	     << tab8 << "method = " << class_name << ".__setmethods__.get(name,None)\n"
+	     << tab8 << "if method: return method(self,value)\n";
+    
+    *getattr << tab4 << "def __getattr__(self,name):\n";
+
+    *csetattr << tab4 << "__setmethods__ = {\n";
+    *cgetattr << tab4 << "__getmethods__ = {\n";
+  }
 
 }
 
@@ -144,7 +159,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
       have_repr = 1;
 
 
-    if (!((hash.lookup(t->name)) && (t->is_pointer <=1))) {
+    if (!((hash.lookup(t->name)) && (t->is_pointer <=1)) && !noopt) {
       *imethod << class_name << "."  << realname << " = new.instancemethod(" << module << "." << name_member(realname,class_name) << ", None, " << class_name << ")\n";
       /*       *pyclass << tab4 << realname << " = " << module << ".__shadow__." << name_member(realname,class_name) << "\n"; */
     } else {
@@ -309,18 +324,27 @@ void PYTHON::cpp_close_class() {
     }
 
     //    *getattr << tab8 << "return self.__dict__[name]\n";
+
+    *getattr << tab8 << "method = " << class_name << ".__getmethods__.get(name,None)\n"
+	     << tab8 << "if method: return method(self)\n";
     *getattr << tab8 << "raise AttributeError,name\n";
     *setattr << tab8 << "self.__dict__[name] = value\n";
-
+    *cgetattr << tab4 << "}\n";
+    *csetattr << tab4 << "}\n";
     ptrclass << *cinit 
 	     << *construct << "\n";
 
     classes << ptrclass
 	    << *pyclass;
-    if (have_setattr)
+
+    if (have_setattr) {
+      classes << *csetattr;
       classes << *setattr;
-    if (have_getattr)
+    }
+    if (have_getattr) {
+      classes << *cgetattr;
       classes << *getattr;
+    }
     
     if (!have_repr) {
       // Supply a repr method for this class 
@@ -422,23 +446,18 @@ void PYTHON::cpp_variable(char *name, char *iname, DataType *t) {
     if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) inhash = 1;
     
     // Now write some code to set the variable
-    *setattr << tab8 << "if name == \"" << realname << "\" :\n";
+    *csetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_set(name_member(realname,class_name)) << ",\n";
+
     if (Status & STAT_READONLY) {
-      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n";
+      //      *setattr << tab8 << tab4 << "raise RuntimeError, \'Member is read-only\'\n";
     } else {
-      if (inhash)
-	*setattr << tab8 << tab4 << "value.thisown = 0\n";
-      *setattr << tab8 << tab4 << module << "." << name_set(name_member(realname,class_name)) << "(self,value)\n";
-      *setattr << tab8 << tab4 << "return\n";
     }
-    
     // Write some code to get the variable
-    *getattr << tab8 << "if name == \"" << realname << "\" : \n";
     if (inhash) {
-      *getattr << tab8 << tab4 << "return " << (char *) hash.lookup(t->name) << "Ptr(" << module << "."
-	       << name_get(name_member(realname,class_name)) << "(self))\n";
+      *cgetattr << tab8 << "\"" << realname << "\" : lambda x : " << (char *) hash.lookup(t->name) << "Ptr(" << module << "." << name_get(name_member(realname,class_name)) << "(x)),\n";
+
     } else {
-      *getattr << tab8 << tab4 << "return " << module << "." << name_get(name_member(realname,class_name)) << "(self)\n";
+      *cgetattr << tab8 << "\"" << realname << "\" : " << module << "." << name_get(name_member(realname,class_name)) << ",\n";
     }
   }
 }
