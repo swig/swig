@@ -25,7 +25,7 @@ static char cvsroot[] = "$Header$";
  * Definitions for adding functions to Guile 3.0
  ***********************************************************************/
 
-#include "swig11.h"
+#include "mod11.h"
 #include "guile.h"
 
 static char *guile_usage = "\
