@@ -90,7 +90,7 @@ example:
 
 <blockquote>
 <pre>
-List *make_list(const char *s, ...) {
+List make_list(const char *s, ...) {
     va_list ap;
     List    *x = new List();
     ...
@@ -671,6 +671,66 @@ of a <tt>va_list</tt> structure are closely tied to the underlying
 call-stack.  It's not clear that exporting a <tt>va_list</tt> would
 have any use or that it would work at all.
 
+<h2>C++ Issues</h2>
+
+Wrapping of C++ member functions that accept a variable number of
+arguments presents a number of challenges.   By far, the easiest way to
+handle this is to use the <tt>%varargs</tt> directive.   This is portable
+and it fully supports classes much like the <tt>%rename</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%varargs (10, char * = NULL) Foo::bar;
+
+class Foo {
+public:
+     virtual void bar(char *arg, ...);   // gets varargs above
+};
+
+class Spam: public Foo {
+public:
+     virtual void bar(char *arg, ...);   // gets varargs above
+};
+</pre>
+</blockquote>
+
+<tt>%varargs</tt> also works with constructors, operators, and any
+other C++ programming construct that accepts variable arguments.
+
+<p>
+Doing anything more advanced than this is likely to involve a serious
+world of pain.  In order to use a library like libffi, you will need
+to know the underlying calling conventions and details of the C++ ABI.  For
+instance, the details of how <tt>this</tt> is passed to member
+functions as well as any hidden arguments that might be used to pass
+additional information.  These details are implementation specific and
+may differ between compilers and even different versions of the same
+compiler.  Also, be aware that invoking a member function is further
+complicated if it is a virtual method.  In this case,
+invocation might require a table lookup to obtain the proper function address
+(although you might be able to obtain an address by casting a bound
+pointer to a pointer to function as described in the C++ ARM section
+18.3.4).
+
+<p>
+If you do decide to change the underlying action code, be aware that SWIG
+always places the <tt>this</tt> pointer in <tt>arg1</tt>.   Other arguments
+are placed in <tt>arg2</tt>, <tt>arg3</tt>, and so forth.  For example:
+
+<blockquote>
+<pre>
+%feature("action") Foo::bar {
+   ...
+   result = arg1->bar(arg2, arg3, etc.);
+   ...
+}
+</pre>
+</blockquote>
+
+Given the potential to shoot yourself in the foot, it is probably easier to reconsider your
+design or to provide an alternative interface using a helper function than it is to create a
+fully general wrapper to a varargs C++ member function.
+
 <h2>Discussion</h2>
 
 This chapter has provided a number of techniques that can be used to address the problem of variable length
@@ -741,7 +801,7 @@ this will introduce.  Good luck.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : March 17, 2002</address>
+<address>SWIG 1.3 - Last Modified : March 24, 2002</address>
 </body>
 </html>
 
