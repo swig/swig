@@ -28,5 +28,5 @@
 #define %subsubsection  /##/
 
 #define %text       %insert("doc")
-
+#define %native     %scope("native")
 
