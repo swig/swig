@@ -765,6 +765,15 @@ php4_multi_cpp: $(SRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 # -----------------------------------------------------------------
+# Running a PHP4 example
+# -----------------------------------------------------------------
+
+PHP4=@PHP4@
+
+php4_run: 
+	env LD_LIBRARY_PATH=$(DYNAMIC_LIB_PATH):$$LD_LIBRARY_PATH $(PHP4) -q -d extension_dir=. $(SCRIPT)
+
+# -----------------------------------------------------------------
 # Cleaning the PHP4 examples
 # -----------------------------------------------------------------
 
@@ -847,31 +856,39 @@ pike_clean:
 #
 # -----------------------------------------------------------------
 
+CHICKEN = @CHICKEN@
 CHICKEN_LIBOPTS = @CHICKENLIB@  $(SYSLIBS)
 CHICKEN_SHAREDLIBOPTS = @CHICKENSHAREDLIB@  $(SYSLIBS)
 CHICKEN_CFLAGS = @CHICKENOPTS@
 CHICKEN_SHAREDCFLAGS = @CHICKENSHAREDOPTS@
 CHICKENOPTS = -optimize-level 3 -quiet
 
-chicken: $(INTERFACE)
-	@CHICKEN@ $(INTERFACE) $(CHICKENOPTS) -explicit-use \
+# SWIG produces $(ISRCS) (the C wrapper file) 
+# and $(CHICKEN_GENERATED_SCHEME) (the Scheme wrapper file):
+CHICKEN_GENERATED_SCHEME = `echo $(INTERFACE:.i=.scm) | sed 's/_/-/g'`
+
+# Chicken compiles the Scheme wrapper file into this:
+CHICKEN_COMPILED_SCHEME = $(INTERFACE:.i=_chicken.c)
+
+chicken_chicken: $(INTERFACE)
+	$(CHICKEN) $(INTERFACE) $(CHICKENOPTS) -explicit-use \
 		-output-file $(TARGET)
 
-chicken_c:
+chicken_swig_c:
 	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
 
-chicken_cpp:
+chicken_swig_cpp:
 	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
 
-compile: $(INTERFACE)
+chicken_compile: $(INTERFACE)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(INTERFACE) -o $(TARGET)
 
-cxxcompile: $(INTERFACE)
+chicken_cxxcompile: $(INTERFACE)
 	$(CXX) $(CFLAGS) $(INCLUDE) -c $(INTERFACE) -o $(TARGET)
 
 chicken_csi:
 	X=`pwd` && cd @CHICKENHOME@ && \
-	@CHICKEN@ @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
+	$(CHICKEN) @CHICKENHOME@/src/csi.scm $(CHICKENOPTS) \
 		-include-path @CHICKENHOME@/src \
 		-prologue @CHICKENHOME@/src/build.scm \
 		-prelude "(declare (uses posix $(INTERFACE)))" \
@@ -885,19 +902,33 @@ chicken_clean:
 # Build a CHICKEN dynamically loadable module
 # -----------------------------------------------------------------
 
-chicken_module: $(SRCS) $(CXXSRCS) $(CHICKSRCS)
-	$(CC) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) $(INCLUDE) \
-		$(CHICKEN_INCLUDE) $(CHICKSRCS)
-	test x = "x$(SRCS)" || \
-		$(CC) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
+chicken_module: $(SRCS) $(CHICKSRCS)
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) -explicit-use \
+		-output-file $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(CHICKSRCS)" || \
+		$(CC) -c $(CCSHARED) $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) $(INCLUDE) \
+			$(CHICKEN_INCLUDE) $(CHICKSRCS)
+	test x = "x$(SRCS)$(ISRCS)" || \
+		$(CC) -c $(CCSHARED) $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
 			$(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(ISRCS) $(SRCS)
-	test x = "x$(CXXSRCS)" || \
-		$(CXX) -c $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
+	$(LDSHARED) $(SRCS:.c=.@OBJEXT@) $(CHICKSRCS:.c=.@OBJEXT@) \
+		$(LIBS) $(CHICKEN_SHAREDLIBOPTS) \
+		-o $(TARGET)$(SO)
+
+chicken_module_cpp: $(CXXSRCS) $(CHICKSRCS)
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) -explicit-use \
+		-output-file $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(CHICKSRCS)" || \
+		$(CC) -c $(CCSHARED) $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) $(INCLUDE) \
+			$(CHICKEN_INCLUDE) $(CHICKSRCS)
+	test x = "x$(CXXSRCS)$(ICXXSRCS)" || \
+		$(CXX) -c $(CCSHARED) $(CFLAGS) $(CHICKEN_SHAREDCFLAGS) \
 			$(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(ICXXSRCS) $(CXXSRCS)
-	$(CXXSHARED) $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
-		$(CHICKSRCS:.c=.@OBJEXT@) \
+	$(CXXSHARED) $(CXXSRCS:.cxx=.@OBJEXT@) $(CHICKSRCS:.c=.@OBJEXT@) \
 		$(LIBS) $(CHICKEN_SHAREDLIBOPTS) \
 		-o $(TARGET)$(SO)
 
@@ -905,19 +936,34 @@ chicken_module: $(SRCS) $(CXXSRCS) $(CHICKSRCS)
 # Build statically linked CHICKEN interpreter
 # -----------------------------------------------------------------
 
-chicken_static: csi.c $(SRCS) $(CXXSRCS) $(CHICKSRCS)
-	$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
-		csi.c
-	$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) \
-		$(CHICKEN_INCLUDE) $(CHICKSRCS)
-	test x = "x$(SRCS)" || \
+# The following two targets are also used by the test suite
+chicken_static: $(SRCS) $(CHICKSRCS)
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) -explicit-use \
+		-output-file $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(CHICKSRCS)$(CHICKEN_COMPILED_SCHEME)" || \
+		$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) \
+			$(CHICKEN_INCLUDE) $(CHICKSRCS) $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(SRCS)$(ISRCS)" || \
 		$(CC) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(CHICKEN_CFLAGS) $(ISRCS) $(SRCS)
-	test x = "x$(CXXSRCS)" || \
+	$(CC) $(SRCS:.c=.@OBJEXT@) $(ISRCS:.c=.@OBJEXT@) \
+		$(CHICKEN_COMPILED_SCHEME:.c=.@OBJEXT@) $(CHICKSRCS:.c=.@OBJEXT@) \
+		$(LIBS) $(CHICKEN_LIBOPTS) \
+		-o $(TARGET)
+
+chicken_static_cpp: $(CXXSRCS) $(CHICKSRCS)
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) -explicit-use \
+		-output-file $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(CHICKSRCS)$(CHICKEN_COMPILED_SCHEME)" || \
+		$(CC) -c $(CFLAGS) $(CHICKEN_CFLAGS) $(INCLUDE) \
+			$(CHICKEN_INCLUDE) $(CHICKSRCS) $(CHICKEN_COMPILED_SCHEME)
+	test x = "x$(CXXSRCS)$(ICXXSRCS)" || \
 		$(CXX) -c $(CFLAGS) $(INCLUDE) $(CHICKEN_INCLUDE) \
 			$(CHICKEN_CFLAGS) $(ICXXSRCS) $(CXXSRCS)
-	$(CXX) csi.@OBJEXT@ $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@) \
-		$(CHICKSRCS:.c=.@OBJEXT@) \
+	$(CXX) $(CXXSRCS:.cxx=.@OBJEXT@) $(ICXXSRCS:.cxx=.@OBJEXT@) \
+		$(CHICKEN_COMPILED_SCHEME:.c=.@OBJEXT@) $(CHICKSRCS:.c=.@OBJEXT@) \
 		$(LIBS) $(CHICKEN_LIBOPTS) \
 		-o $(TARGET)
 
