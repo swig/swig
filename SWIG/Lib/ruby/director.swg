@@ -25,28 +25,30 @@ struct swig_body_args
 /* Base class for director exceptions */
 class SWIG_DIRECTOR_EXCEPTION {
 protected:
-  std::string _msg;
-  VALUE _type;
+  VALUE _error;
 protected:
-  SWIG_DIRECTOR_EXCEPTION(const char* msg="") : _type(rb_eRuntimeError) {}
+  SWIG_DIRECTOR_EXCEPTION(VALUE error=Qnil) : _error(error) {}
 public:
-  const char *getMessage() const { return _msg.c_str(); }
-  VALUE getType() const { return _type; }
+  VALUE getType() const  { return CLASS_OF(_error); }
+  VALUE getError() const { return _error; }
   virtual ~SWIG_DIRECTOR_EXCEPTION() {}
 };
 
 /* Type mismatch in the return value from a Ruby method call */
 class SWIG_DIRECTOR_TYPE_MISMATCH : public SWIG_DIRECTOR_EXCEPTION {
 public:
-  SWIG_DIRECTOR_TYPE_MISMATCH(const char* msg="") {
-    _msg = "Swig director type mismatch: ";
-    _msg += msg;
-    _type = rb_eTypeError;
+  SWIG_DIRECTOR_TYPE_MISMATCH(const char *msg="") {
+    VALUE str = rb_str_new2("Swig director type mismatch: ");
+    rb_str_concat(str, rb_str_new2(msg));
+    _error = rb_exc_new3(rb_eTypeError, str);
   }
 };
 
 /* Any Ruby exception that occurs during a director method call */
-class SWIG_DIRECTOR_METHOD_EXCEPTION : public SWIG_DIRECTOR_EXCEPTION {};
+class SWIG_DIRECTOR_METHOD_EXCEPTION : public SWIG_DIRECTOR_EXCEPTION {
+public:
+  SWIG_DIRECTOR_METHOD_EXCEPTION(VALUE error) :SWIG_DIRECTOR_EXCEPTION(error) {}
+};
 
 /* Attempted to call a pure virtual method via a director method */
 class SWIG_DIRECTOR_PURE_VIRTUAL_EXCEPTION : public SWIG_DIRECTOR_EXCEPTION {};
