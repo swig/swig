@@ -15,7 +15,7 @@
     struct B : A<C>
     {
       typedef typename A<C>::size_type size_type;
-      void say_hi(size_type index = nindex) {}
+      void say_hi(size_type index = A<C>::nindex) {}
     };
  
 %}
