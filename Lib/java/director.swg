@@ -18,8 +18,6 @@ class __DIRECTOR__ {
 private:
   /* pointer to java virtual machine */
   JavaVM       *__jvm;
-  /* the default constructor should not be called */
-  __DIRECTOR__();
 
 protected:
   /* pointer to the wrapped java object */
@@ -27,13 +25,11 @@ protected:
   /* Acquire Java VM environment from Java VM */
   JNIEnv *__acquire_jenv() const {
     JNIEnv *env;
-    assert(__jvm);
     __jvm->AttachCurrentThread((void **) &env, NULL);
     return env;
   }
 
 public:
-  /* Default constructor */
   __DIRECTOR__(JNIEnv *jenv):
     __jvm((JavaVM *) NULL),
     __self(NULL)

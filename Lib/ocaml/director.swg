@@ -11,7 +11,6 @@
 
 %insert(runtime) %{
 
-#include <assert.h>
 #ifdef __cplusplus
 
 #include <string>
@@ -61,11 +60,6 @@ private:
 #endif
 
 public:
-    /* the default constructor should not be called */
-    __DIRECTOR__() { 
-	assert(0); 
-    }
-    
     /* wrap a ocaml object, optionally taking ownership */
     __DIRECTOR__(CAML_VALUE self, int disown): _self(self), _disown(disown) {
 	register_global_root(&_self);
@@ -125,7 +119,6 @@ public:
     /* acquire ownership of the wrapped ocaml object (the sense of "disown"
      * is from ocaml) */
     void __disown() const { 
-	assert(_self); 
 	if (!_disown) { 
 	    _disown=1;
 	    callback(*caml_named_value("caml_obj_disown"),_self);
