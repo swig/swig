@@ -1051,11 +1051,14 @@ class JAVA : public Language {
             Printf(f->code, "  jenv->%s(jcls, __SWIG_director_methids[%d], %s);\n",
                    upcall_method, director_methoff, director_uargs);
 
-          if (!recursive_upcall) {
+          if (!recursive_upcall)
             Printf(f->code, "    director->__clear_ricochet(%d);\n", director_methoff);
+
+          Printf(f->code, "if (jenv->ExceptionOccurred()) return $null;\n");
+
+          if (!recursive_upcall) {
             Printf(f->code, "  } else {\n");
 
-            Printf(f->code, "    jenv->ExceptionClear();\n");
             if (!pure_virtual) {
               Printf(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorRicochet,\n");
               Printf(f->code, "      \"Recursive loop into director method %s::%s detected.\");\n",
@@ -2688,7 +2691,6 @@ class JAVA : public Language {
         Delete(super_call);
       }
     } else {
-      Printf(w->code, "jenv->ExceptionClear();\n");
       Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaDirectorPureVirtual,\n");
       Printf(w->code, "      \"Attempted to invoke pure virtual method %s::%s.\");\n",
              c_classname, name);
@@ -2921,6 +2923,8 @@ class JAVA : public Language {
                dirclassname, classmeth_off);
     }
 
+    Printf(w->code, "if (jenv->ExceptionOccurred()) return $null;\n");
+
     if (!is_void) {
       String *jresult_str = NewString("jresult");
       String *result_str = NewString("result");
@@ -2947,7 +2951,6 @@ class JAVA : public Language {
 
     if (!recursive_upcall) {
       Printf(w->code, "} else {\n");
-      Printf(w->code, "    jenv->ExceptionClear();\n");
       Printf(w->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaDirectorRicochet,\n");
       Printf(w->code, "      \"Recursive loop into director method %s::%s detected.\");\n",
              c_classname, name);
@@ -3198,7 +3201,6 @@ class JAVA : public Language {
       Printf(w->code, "  } else\n");
       Printf(w->code, "    __override[i] = false;\n");
       Printf(w->code, "}\n");
-      Printf(w->code, "jenv->ExceptionClear();\n");
     }
 
     Printf(f_directors_h, "};\n\n");
