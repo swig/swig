@@ -614,55 +614,142 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
  * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
-/* Java short */
-%typecheck(10) unsigned char, 
-               short, 
-               const unsigned char &, 
-               const short &
-               ""
 
-/* Java int */
-%typecheck(20) unsigned short, 
-               int, 
-               long, 
-               enum SWIGTYPE, 
-               const unsigned short &, 
-               const int &, const long &
-               ""
+%typecheck(SWIG_TYPECHECK_BOOL) /* Java boolean */
+    jboolean,
+    bool,
+    const bool &
+    ""
 
-/* Java long */
-%typecheck(30) unsigned int, 
-               unsigned long, 
-               long long, 
-               const unsigned int &, 
-               const unsigned long &, 
-               const long long &
-               ""
+%typecheck(SWIG_TYPECHECK_CHAR) /* Java char */
+    jchar,
+    char, 
+    const char &
+    ""
 
-/* Java short[] */
-%typecheck(40) unsigned char[ANY], 
-               short[ANY]
-               ""
+%typecheck(SWIG_TYPECHECK_INT8) /* Java byte */
+    jbyte,
+    signed char,
+    const signed char &
+    ""
 
-/* Java int[] */
-%typecheck(50) unsigned short[ANY], 
-               int[ANY], 
-               long[ANY], 
-               enum SWIGTYPE[ANY]
-               ""
+%typecheck(SWIG_TYPECHECK_INT16) /* Java short */
+    jshort,
+    unsigned char, 
+    short, 
+    const unsigned char &, 
+    const short &
+    ""
 
-/* Java long[] */
-%typecheck(60) unsigned int[ANY], 
-               unsigned long[ANY], 
-               long long[ANY]
-               ""
+%typecheck(SWIG_TYPECHECK_INT32) /* Java int */
+    jint,
+    unsigned short, 
+    int, 
+    long, 
+    const unsigned short &, 
+    const int &, 
+    const long &,
+    enum SWIGTYPE
+    ""
 
-/* Default */
-%typecheck(0) SWIGTYPE, 
-              SWIGTYPE *, 
-              SWIGTYPE &, 
-              SWIGTYPE []
-              ""
+%typecheck(SWIG_TYPECHECK_INT64) /* Java long */
+    jlong,
+    unsigned int, 
+    unsigned long, 
+    long long, 
+    const unsigned int &, 
+    const unsigned long &, 
+    const long long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT128) /* Java BigInteger */
+    unsigned long long
+    ""
+
+%typecheck(SWIG_TYPECHECK_FLOAT) /* Java float */
+    jfloat,
+    float,
+    const float &
+    ""
+
+%typecheck(SWIG_TYPECHECK_DOUBLE) /* Java double */
+    jdouble,
+    double,
+    const double &
+    ""
+
+%typecheck(SWIG_TYPECHECK_STRING) /* Java String */
+    jstring,
+    char *,
+    char[ANY]
+    ""
+
+%define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
+%define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
+%define SWIG_TYPECHECK_INT16_ARRAY       1035    %enddef
+%define SWIG_TYPECHECK_INT32_ARRAY       1045    %enddef
+%define SWIG_TYPECHECK_INT64_ARRAY       1055    %enddef
+%define SWIG_TYPECHECK_INT128_ARRAY      1065    %enddef
+%define SWIG_TYPECHECK_FLOAT_ARRAY       1080    %enddef
+%define SWIG_TYPECHECK_DOUBLE_ARRAY      1090    %enddef
+%define SWIG_TYPECHECK_CHAR_ARRAY        1130    %enddef
+%define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
+
+%typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
+    jbooleanArray,
+    bool[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY) /* Java char[] */
+    jcharArray
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY) /* Java byte[] */
+    jbyteArray,
+    signed char[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY) /* Java short[] */
+    jshortArray,
+    unsigned char[ANY], 
+    short[ANY] 
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
+    jintArray,
+    unsigned short[ANY], 
+    int[ANY], 
+    long[ANY], 
+    enum SWIGTYPE[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
+    jlongArray,
+    unsigned int[ANY], 
+    unsigned long[ANY], 
+    long long[ANY] 
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT128_ARRAY) /* Java BigInteger[] */
+    unsigned long long[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) /* Java float[] */
+    jfloatArray,
+    float[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) /* Java double[] */
+    jdoubleArray,
+    double[ANY]
+    ""
+
+%typecheck(SWIG_TYPECHECK_POINTER) /* Default */
+    SWIGTYPE, 
+    SWIGTYPE *, 
+    SWIGTYPE &, 
+    SWIGTYPE []
+    ""
 
 /* Some ANSI C typemaps */
 

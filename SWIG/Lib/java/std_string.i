@@ -35,6 +35,8 @@
 %typemap(out) std::string 
 %{ $result = jenv->NewStringUTF($1.c_str()); %}
 
+%typemap(typecheck) std::string = char *;
+
 // const std::string &
 %typemap(jni) const std::string & "jstring"
 %typemap(jtype) const std::string & "String"
@@ -58,6 +60,8 @@
 
 %typemap(out) const std::string & 
 %{ $result = jenv->NewStringUTF($1->c_str()); %}
+
+%typemap(typecheck) const std::string & = char *;
 
 // For using std::string in the global namespace
 %apply const std::string & {const string &};

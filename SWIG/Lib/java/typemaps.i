@@ -121,6 +121,20 @@ In Java you could then use it like this:
 %typemap(jstype) float              *INPUT "float"
 %typemap(jstype) double             *INPUT "double"
 
+%typemap(typecheck) bool               *INPUT = bool;
+%typemap(typecheck) signed char        *INPUT = signed char;
+%typemap(typecheck) unsigned char      *INPUT = unsigned char;
+%typemap(typecheck) short              *INPUT = short;
+%typemap(typecheck) unsigned short     *INPUT = unsigned short;
+%typemap(typecheck) int                *INPUT = int;
+%typemap(typecheck) unsigned int       *INPUT = unsigned int;
+%typemap(typecheck) long               *INPUT = long;
+%typemap(typecheck) unsigned long      *INPUT = unsigned long;
+%typemap(typecheck) long long          *INPUT = long long;
+%typemap(typecheck) unsigned long long *INPUT = unsigned long long;
+%typemap(typecheck) float              *INPUT = float;
+%typemap(typecheck) double             *INPUT = double;
+
 %typemap(in) bool           *INPUT,
              signed char    *INPUT,
              unsigned char  *INPUT,
@@ -266,6 +280,20 @@ value in the single element array. In Java you would use it like this:
 %typemap(jstype) unsigned long long *OUTPUT "java.math.BigInteger[]"
 %typemap(jstype) float              *OUTPUT "float[]"
 %typemap(jstype) double             *OUTPUT "double[]"
+
+%typemap(typecheck) bool               *OUTPUT = bool[ANY];
+%typemap(typecheck) signed char        *OUTPUT = signed char[ANY];
+%typemap(typecheck) unsigned char      *OUTPUT = unsigned char[ANY];
+%typemap(typecheck) short              *OUTPUT = short[ANY];
+%typemap(typecheck) unsigned short     *OUTPUT = unsigned short[ANY];
+%typemap(typecheck) int                *OUTPUT = int[ANY];
+%typemap(typecheck) unsigned int       *OUTPUT = unsigned int[ANY];
+%typemap(typecheck) long               *OUTPUT = long[ANY];
+%typemap(typecheck) unsigned long      *OUTPUT = unsigned long[ANY];
+%typemap(typecheck) long long          *OUTPUT = long long[ANY];
+%typemap(typecheck) unsigned long long *OUTPUT = unsigned long long[ANY];
+%typemap(typecheck) float              *OUTPUT = float[ANY];
+%typemap(typecheck) double             *OUTPUT = double[ANY];
 
 %typemap(in) bool               *OUTPUT($*1_type temp),
              signed char        *OUTPUT($*1_type temp),
@@ -426,6 +454,20 @@ of the function return value. This is due to Java being a typed language.
 %typemap(jstype) unsigned long long *INOUT = unsigned long long *OUTPUT;
 %typemap(jstype) float              *INOUT = float              *OUTPUT;
 %typemap(jstype) double             *INOUT = double             *OUTPUT;
+
+%typemap(typecheck) bool               *INOUT = bool               *OUTPUT;
+%typemap(typecheck) signed char        *INOUT = signed char        *OUTPUT;
+%typemap(typecheck) unsigned char      *INOUT = unsigned char      *OUTPUT;
+%typemap(typecheck) short              *INOUT = short              *OUTPUT;
+%typemap(typecheck) unsigned short     *INOUT = unsigned short     *OUTPUT;
+%typemap(typecheck) int                *INOUT = int                *OUTPUT;
+%typemap(typecheck) unsigned int       *INOUT = unsigned int       *OUTPUT;
+%typemap(typecheck) long               *INOUT = long               *OUTPUT;
+%typemap(typecheck) unsigned long      *INOUT = unsigned long      *OUTPUT;
+%typemap(typecheck) long long          *INOUT = long long          *OUTPUT;
+%typemap(typecheck) unsigned long long *INOUT = unsigned long long *OUTPUT;
+%typemap(typecheck) float              *INOUT = float              *OUTPUT;
+%typemap(typecheck) double             *INOUT = double             *OUTPUT;
 
 %typemap(in) bool               *INOUT {
   if (!$input) {
@@ -626,4 +668,6 @@ of the function return value. This is due to Java being a typed language.
 %typemap(argout) float              *INOUT { JCALL3(ReleaseFloatArrayElements, jenv, $input, (jfloat *)$1, 0); }
 %typemap(argout) double             *INOUT { JCALL3(ReleaseDoubleArrayElements, jenv, $input, (jdouble *)$1, 0); }
 %typemap(argout) unsigned long long *INOUT = unsigned long long *OUTPUT;
+
+
 
