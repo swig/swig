@@ -7,13 +7,13 @@
 
 extern int    gcd(int x, int y);
 
-%typemap(java,in) (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
 /* java in typemap int argc, char* argv[] */
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(java,in) (char *bytes, int len) {
+%typemap(in) (char *bytes, int len) {
 /* java in typemap char *bytes, int len */
 }
 
@@ -25,7 +25,7 @@ extern int count(char *bytes, int len, char c);
 /* Since str is modified, we make a copy of the Java object
    so that we don't violate it's mutability */
 
-%typemap(java,in) (char *str, int len) {
+%typemap(in) (char *str, int len) {
 /* java in typemap char* str, int len */
 }
 
@@ -33,7 +33,7 @@ extern int count(char *bytes, int len, char c);
    function takes an object and appends it to the output object
    to create a tuple */
 
-%typemap(java,argout) (char *str, int len) {
+%typemap(argout) (char *str, int len) {
 /* java argout typemap char* str, int len */
 }   
 

@@ -40,13 +40,13 @@ void f2(char *BYTE);
 /* make a StringBuffer typemap to handle this case */
 
 /* what type to use in java source code */
-%typemap(java,jtype) char *SBUF {StringBuffer}
+%typemap(jtype) char *SBUF "StringBuffer"
 
 /* what is the corresponding jni type */
-%typemap(java,jni) char *SBUF {jobject}
+%typemap(jni) char *SBUF "jobject"
 
 /* how to convert java type to requested c type */
-%typemap(java,in) char *SBUF {
+%typemap(in) char *SBUF {
   jclass sbufClass;
   jmethodID toStringID;
   jmethodID setLengthID;
@@ -67,7 +67,7 @@ void f2(char *BYTE);
 }
 
 /* how to convert the c type to the java type */
-%typemap(java,argout) char *SBUF {
+%typemap(argout) char *SBUF {
   jclass sbufClass;
   jmethodID appendStringID;
 
