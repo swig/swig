@@ -311,6 +311,13 @@ c_varfunc_decl(int storage, SwigType *type, char *name, SwigType *decltype, Parm
     if (SwigType_isconst(ty)) {
       Status |= STAT_READONLY;
     }
+    /* If an array and elements are const, then read-only */
+    if (SwigType_isarray(ty)) {
+      SwigType *tya = SwigType_array_type(ty);
+      if (SwigType_isconst(tya)) {
+	Status |= STAT_READONLY;
+      }
+    }
     lang->link_variable(name,iname,ty);
     Status = oldstatus;
   }
@@ -353,6 +360,13 @@ cplus_varfunc_decl(int storage, SwigType *type, char *id, SwigType *decltype, Pa
     int oldstatus = Status;
     if (SwigType_isconst(ty)) {
       Status |= STAT_READONLY;
+    }
+    /* If an array and elements are const, then read-only */
+    if (SwigType_isarray(ty)) {
+      SwigType *tya = SwigType_array_type(ty);
+      if (SwigType_isconst(tya)) {
+	Status |= STAT_READONLY;
+      }
     }
     if (storage == STORAGE_STATIC) {
       cplus_static_var(id,iname,ty);
