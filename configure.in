@@ -696,21 +696,25 @@ AC_CONFIG_SUBDIRS(Source/DOH Tools)
 # We can remove it if `Source' ever has a generated file but not before.
 test -d Source || mkdir Source
 
-AC_OUTPUT(
-    Examples/Makefile
-    Examples/guile/Makefile
-    Makefile
-    Runtime/Makefile
-    Source/Experiment/Makefile
-    Source/Include/swigconfig.h
-    Source/Include/swigver.h
-    Source/LParse/Makefile
-    Source/Modules/Makefile
-    Source/Modules1.1/Makefile
-    Source/Preprocessor/Makefile
-    Source/SWIG1.1/Makefile
-    Source/SWIG1.3/Makefile
-    Source/Swig/Makefile
-    )
+dnl We use the following in `AC_OUTPUT' and "make distclean".
+configure_substituted_files=`echo	\
+    Examples/Makefile			\
+    Examples/guile/Makefile		\
+    Makefile				\
+    Runtime/Makefile			\
+    Source/Experiment/Makefile		\
+    Source/Include/swigconfig.h		\
+    Source/Include/swigver.h		\
+    Source/LParse/Makefile		\
+    Source/Modules/Makefile		\
+    Source/Modules1.1/Makefile		\
+    Source/Preprocessor/Makefile	\
+    Source/SWIG1.1/Makefile		\
+    Source/SWIG1.3/Makefile		\
+    Source/Swig/Makefile		\
+`
+AC_SUBST(configure_substituted_files)
+
+AC_OUTPUT([$configure_substituted_files])
 
 dnl configure.in ends here
