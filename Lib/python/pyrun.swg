@@ -71,27 +71,6 @@ SWIGIMPORT(int)               SWIG_Python_ConvertPacked(PyObject *, void *, int 
 SWIGIMPORT(PyObject *)        SWIG_Python_NewPackedObj(void *, int sz, swig_type_info *);
 SWIGIMPORT(void)              SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]);
 
-/* -----------------------------------------------------------------------------
- *  the needed conversions between C++ and python
- * ----------------------------------------------------------------------------- */
-/* basic types */
-/*
-  utilities
-*/
-SWIGIMPORT(char* )         SWIG_PyObj_AsCharPtr(PyObject *obj, swig_type_info* pchar_info);
-SWIGIMPORT(PyObject *)     SWIG_PyObj_FromCharPtr(const char* cptr);
-SWIGIMPORT(unsigned long)  SWIG_PyObj_AsUnsignedLong(PyObject * obj);
-SWIGIMPORT(long)           SWIG_PyObj_AsLongInRange(PyObject * obj, const char* type,
-						    long min_value, long max_value);
-SWIGIMPORT(unsigned long)  SWIG_PyObj_AsUnsignedLongInRange(PyObject *obj, const char* type,
-							    unsigned long max_value);
-SWIGIMPORT(char *)         SWIG_PyObj_AsNewCharPtr(PyObject *obj, swig_type_info* pchar_info);
-SWIGIMPORT(void)           SWIG_PyObj_AsCharPtrAndSize(PyObject *obj, swig_type_info* pchar_info,
-						       char** cptr, size_t* size);
-SWIGIMPORT(void)           SWIG_PyObj_AsCharArray(PyObject *obj, swig_type_info* pchar_info,
-						  char* carray, size_t size);
-SWIGIMPORT(PyObject *)     SWIG_PyObj_FromCharArray(const char* carray, size_t size);
-SWIGIMPORT(float)          SWIG_PyObj_AsFloatConv(PyObject *obj,  py_objasdbl_conv pyconv);
 
 #else
 
@@ -314,10 +293,10 @@ cobject:
 type_error:
   if (flags & SWIG_POINTER_EXCEPTION) {
     if (ty && c) {
-      char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
-      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);
-      PyErr_SetString(PyExc_TypeError, temp);
-      free((char *) temp);
+      PyObject *err = 
+	PyString_FromFormat("Type error. Got %s, expected %s",c,ty->name);
+      PyErr_SetObject(PyExc_TypeError, err);
+      Py_DECREF(err);
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
@@ -355,10 +334,10 @@ type_error:
 
   if (flags) {
     if (ty && c) {
-      char *temp = (char *) malloc(64+strlen(ty->name)+strlen(c));
-      sprintf(temp,"Type error. Got %s, expected %s", c, ty->name);
-      PyErr_SetString(PyExc_TypeError, temp);
-      free((char *) temp);
+      PyObject *err = 
+	PyString_FromFormat("Type error. Got %s, expected %s",c,ty->name);
+      PyErr_SetObject(PyExc_TypeError, err);
+      Py_DECREF(err);
     } else {
       PyErr_SetString(PyExc_TypeError,"Expected a pointer");
     }
@@ -416,196 +395,6 @@ SWIG_Python_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   return PyString_FromString(result);
 }
 
-/* -----------------------------------------------------------------------------
- *  the needed conversions between C++ and python
- * ----------------------------------------------------------------------------- */
-
-#include <limits.h>
-#include <float.h>
-#include <string.h>
-
-SWIGRUNTIME(unsigned long)
-SWIG_PyObj_AsUnsignedLong(PyObject * obj) 
-{
-  if (PyLong_Check(obj)) {
-    return PyLong_AsUnsignedLong(obj);
-  } else {
-    long i = PyInt_AsLong(obj);
-    if ( !PyErr_Occurred() && (i < 0)) {
-      PyErr_SetString(PyExc_TypeError, "negative value for unsigned type");
-    }
-    return i;
-  }
-}
-
-SWIGRUNTIME(long)
-SWIG_PyObj_AsLongInRange(PyObject * obj, const char* type,
-			 long min_value, long max_value)
-{
-  long value = PyInt_Check(obj) ? PyInt_AsLong(obj) : PyLong_AsLongLong(obj);
-  if (!PyErr_Occurred()) {
-    if (value < min_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is less than '%s' minimum %ld", 
-			    value, type, min_value);
-      
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_XDECREF(err);
-    } else if (value > max_value) {
-      PyObject *err = 
-	PyString_FromFormat("value %ld is greater than '%s' maximum %ld", 
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_XDECREF(err);
-    }
-  }
-  return value;
-}
-
-SWIGRUNTIME(unsigned long)
-SWIG_PyObj_AsUnsignedLongInRange(PyObject *obj, const char* type,
-				 unsigned long max_value) 
-{
-  unsigned long value = SWIG_PyObj_AsUnsignedLong(obj);
-  if (!PyErr_Occurred()) {
-    if (value > max_value) {     
-      PyObject *err =
-	PyString_FromFormat("value %ld is greater than '%s' minimum %ld",
-			    value, type, max_value);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_XDECREF(err);
-    }
-  }
-  return value;
-}
-
-SWIGRUNTIME(float)
-SWIG_PyObj_AsFloatConv(PyObject *obj, py_objasdbl_conv pyconv)
-{
-  double value = pyconv(obj);
-  if (!PyErr_Occurred()) {
-    if (value < FLT_MIN) {
-      PyObject *err = 
-        PyString_FromFormat("value %g is less than float minimum %g", 
-			    value, FLT_MIN);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_XDECREF(err);
-    } else if (value > FLT_MAX) {
-      PyObject *err = 
-        PyString_FromFormat("value %g is greater than float maximum %g", 
-			    value, FLT_MAX);
-      PyErr_SetObject(PyExc_OverflowError, err);
-      Py_XDECREF(err);
-    }
-  }
-  return (float) value;
-}
-
-SWIGRUNTIME(void)
-SWIG_PyObj_AsCharPtrAndSize(PyObject *obj, swig_type_info* pchar_info,
-			    char** cptr, size_t* size)
-{
-  int psize;
-  if ((!pchar_info) || SWIG_ConvertPtr(obj,(void **)cptr, pchar_info, 0) == -1) {
-    if (pchar_info && PyErr_Occurred()) PyErr_Clear();
-    PyString_AsStringAndSize(obj, cptr, &psize);
-    *size = (size_t) psize;
-  } else {
-    /* don't like strlen, but ... */
-    *size = (*cptr) ? (strlen(*cptr) + 1) : 0;
-  }
-}
-
-
-SWIGRUNTIME(char*)
-SWIG_PyObj_AsNewCharPtr(PyObject *obj, swig_type_info* pchar_info)
-{
-  char *res = 0;
-  char* cptr; size_t csize;
-  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &cptr, &csize);
-  if (!PyErr_Occurred() && cptr) {
-    /* we add the '0' terminator if needed */
-    size_t size = (csize  && !(cptr[csize - 1])) ? csize : csize + 1;
-    if (size) {
-#ifdef __cplusplus
-      res = new char[size];
-#else
-      res = malloc(size);
-#endif
-      if (csize) memcpy(res, cptr, csize);
-      if (csize < size) res[csize] = 0;
-    }
-  }
-  return res;
-}
-
-SWIGRUNTIME(PyObject *)
-SWIG_PyObj_FromCharArray(const char* carray, size_t size)
-{
-  if (size > INT_MAX) {
-    PyObject *err =  
-      PyString_FromFormat("a char array of size %d is not allowed in python", 
-			  size);
-    PyErr_SetObject(PyExc_TypeError, err);
-    Py_XDECREF(err);
-    Py_INCREF(Py_None);
-    return Py_None;    
-  } else {
-    int psize = (int) size;
-    return PyString_FromStringAndSize(carray, psize);
-  }
-}
-
-SWIGRUNTIME(void)
-SWIG_PyObj_AsCharArray(PyObject *obj, swig_type_info* pchar_info,
-		       char* carray, size_t size)
-{ 
-  char* cptr; size_t csize;  
-  SWIG_PyObj_AsCharPtrAndSize(obj, pchar_info, &cptr, &csize);
-  if (!PyErr_Occurred()) {
-    /* in C (but not in C++) you can do: 
-
-         char x[5] = "hello"; 
-
-       ie, assing the array using an extra '0' char. Here,
-       we assume the C behavior...
-    */
-    if ((csize == size + 1) && !(cptr[csize-1])) --csize;
-    if (csize > size) {
-      PyObject *err =  
-         PyString_FromFormat("a char array of maximum size %d is expected", 
-			     size);
-      PyErr_SetObject(PyExc_TypeError, err);
-      Py_XDECREF(err);
-    } else {
-      if (csize) memcpy(carray, cptr, csize);
-      if (csize < size) memset(carray + csize, 0, size - csize);
-    }
-  }
-}
-
-SWIGRUNTIME(PyObject *)
-SWIG_PyObj_FromCharPtr(const char* cptr)
-{ 
-  if (cptr) {
-    return PyString_FromString(cptr);
-  } else {
-    Py_INCREF(Py_None);
-    return Py_None;
-  }
-}
-
-SWIGRUNTIME(char* )
-SWIG_PyObj_AsCharPtr(PyObject *obj, swig_type_info* pchar_info)
-{
-  char* ptr;
-  if (SWIG_ConvertPtr(obj,(void **)&ptr, pchar_info, 0) == -1) {
-    if (PyErr_Occurred()) PyErr_Clear();
-    ptr = PyString_AsString(obj);
-  }
-  return ptr;
-}
-
 /* Install Constants */
 SWIGRUNTIME(void)
 SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
@@ -620,7 +409,12 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
       obj = PyFloat_FromDouble(constants[i].dvalue);
       break;
     case SWIG_PY_STRING:
-      obj = SWIG_PyObj_FromCharPtr((char *) constants[i].pvalue);
+      if (constants[i].pvalue) {
+	obj = PyString_FromString((char *) constants[i].pvalue);
+      } else {
+	Py_INCREF(Py_None);
+	obj = Py_None;
+      }
       break;
     case SWIG_PY_POINTER:
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
