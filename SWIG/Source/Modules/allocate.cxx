@@ -507,7 +507,6 @@ public:
 	/* If base class does not allow default destructor, we don't allow it either */
 	if (Getattr(n,"allocate:has_assign")) {
 	  allows_assign = !Getattr(n,"allocate:noassign");
-	  Printf(stderr,"name %s %s\n",Getattr(n,"name"),Getattr(n,"allocate:noassign"));
 	}
       }
       if (!allows_assign) {
