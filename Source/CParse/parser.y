@@ -852,9 +852,6 @@ static String *resolve_node_scope(String *cname) {
 	    /* set the scope to the inner class */
 	    Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
 	    /* and return the node name, including the inner class prefix */
-	    Printf(sname,"::%s",base);
-	    Delete(base);
-	    base = sname;
 	    break;
 	  }
 	  /* here we just populate the namespace tree as usual */
