@@ -1274,7 +1274,8 @@ SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
 	  if ((Strcmp(nodeType(n),"class") == 0) 
 	      && (!Getattr(n,"allocate:default_constructor") 
 		  || (Getattr(n,"allocate:noassign")))) {
-	    use_wrapper = !Getattr(n,"feature:novaluewrapper");
+	    use_wrapper = !Getattr(n,"feature:novaluewrapper") 
+	      || Getattr(n,"feature:nodefault");
 	  }
 	}
       } else {
