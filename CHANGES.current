@@ -1,5 +1,9 @@
 Version 1.3.20 (In progress)
 ============================
+11/11/2003: beazley
+            Configuration changes to make SWIG work on Mac OSX 10.3.x (Panther).
+            Tested with Python, Tcl, Perl, and Ruby---all of which seem to work.
+
 11/08/2003: beazley
             [Tcl] Tcl module now emits a safe module initialization function by
             default.  It can be removed by running 'swig -nosafe'.
