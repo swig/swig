@@ -547,6 +547,16 @@
   SWIG_fail;
 }
 
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [ANY] {
+  Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) "$1_type", -1));
+  SWIG_fail;
+}
+
+%typemap(throws) enum SWIGTYPE {
+  Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) "$1_type", -1));
+  SWIG_fail;
+}
+
 %typemap(throws) char * {
   Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1, -1));
   SWIG_fail;

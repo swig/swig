@@ -63,5 +63,13 @@ namespace std {
         ++argvi;
     }
 
+    %typemap(throws) const string & {
+      SWIG_croak($1.c_str());
+    }
+
+    %typemap(throws) string {
+      SWIG_croak($1.c_str());
+    }
+
 }
 
