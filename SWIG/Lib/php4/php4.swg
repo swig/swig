@@ -49,7 +49,7 @@
   // This bit should go in arginit if arginit support init-ing scripting args
   if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor) < 0) {
     // So... we didn't get a ref or ptr, but we'll accept NULL by reference
-    if ((*$input)->type==IS_NULL) {
+    if ((*$input)->type==IS_NULL && PZVAL_IS_REF(*$input)) {
       #if __cplusplus
       ptr=new $*1_ltype;
       #else
@@ -60,7 +60,7 @@
       force=1;
     } else {  // wasn't a pre/ref/thing, OR anything like an int thing
       force=0;
-      zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or %s or at least NULL passe by reference", $argnum-argbase, $1_descriptor->name,$*1_descriptor->name);
+      zend_error(E_ERROR, "Type error in argument %d of $symname. Expected %s or %s or at least NULL passed by reference", $argnum-argbase, $1_descriptor->name,$*1_descriptor->name);
     }
   } else force=0;
 %}

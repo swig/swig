@@ -29,9 +29,9 @@ $handledata=handle($handle);
 check::equal($handledata,"Here it is","\$handledata != \"Here it is\"");
 
 unset($handle);
-// without reference
-voidhandle($handle);
-check::isnull($handle,'$handle not null');
+// without reference, should fatal error so can't test here
+//voidhandle($handle);
+//check::isnull($handle,'$handle not null');
 
 echo $_SERVER[argv][0]." ok\n";
 ?>

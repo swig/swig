@@ -15,8 +15,5 @@ check::is_a("spam","bar");
 $spam=new spam();
 $_spam=test($spam);
 
-var_dump($spam);
-var_dump($_spam);
-
 check::done();
 ?>
