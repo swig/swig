@@ -1,6 +1,34 @@
 Version 1.3.23 (in progress)
 ==================================
 
+
+09/14/2004: mmatus 
+	    - Support the -I- option.
+
+	    - Differentiate between %include <file> and %include "file".
+	      This fix several corner cases.
+
+	    
+	    [Python] Several patches:
+
+	    - Normalize the Lib file names: 
+		*.swg internal files, 
+		*.i   user files.
+
+	    - Fix Char[ANY] typemaps, so they also delete any extra '\0' chars,
+	      now they behave as before (1.3.21). Still, you can use
+	      the SWIG_PRESERVE_CARRAY_SIZE macro if you need to
+	      preserve the original size (see pystrbase.swg).
+
+	    - Add the Char FIXSIZE[ANY] typemaps, to preserve the
+              original C array sizes (see above). Though, you can't
+              use them yet since %apply and arrays are not working
+              together.
+
+            - Add pyfragments.swg, now the user can add fragments
+	      to override the default ones.
+
+
 09/10/2004: wsfulton
             Patch from Bill Clarke which fixes spurious preprocessor bug which
             shows on Solaris and gcc, eg:
