@@ -222,8 +222,11 @@ static void print(List *l);
 };
 </pre></blockquote>
 
-<a name="n7"></a><H3>5.5.1 Constructors and destructors</H3>
+To generate wrappers for this class, SWIG first reduces the class to a collection of low-level C-style
+accessor functions.   The next few sections describe this process.  Later parts of the chapter decribe a higher
+level interface based on proxy classes.
 
+<a name="n7"></a><H3>5.5.1 Constructors and destructors</H3>
 
 C++ constructors and destructors are translated into accessor
 functions such as the following :<p>
@@ -3458,8 +3461,232 @@ of your project.
 
 <a name="n36"></a><H2>5.25 Proxy classes</H2>
 
+In order to provide a more natural API, many of SWIG's target
+languages also wrap C++ classes with special proxy classes.  These
+proxy classes are typically implemented in the target language itself.
+For example, if you're building a Python module, each C++ class is
+wrapped with Python class.  Or if you're building a Java module, each
+C++ class is wrapped by a Java class.  
 
-Write me.
+<h3>Construction of proxy classes</h3>
+
+Proxy classes are always constructed as an extra layer of wrapping that uses the low-level
+accessor functions described in the previous section.  To illustrate, suppose you had a
+C++ class like this:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+      Foo();
+     ~Foo();
+      int  bar(int x);
+      int  x;
+};
+</pre>
+</blockquote>
+
+Using C++ as pseudocode, a proxy class looks something like this:
+
+<blockquote>
+<pre>
+class FooProxy {
+private:
+      Foo    *self;
+public:
+      FooProxy() {
+            self = new_Foo();
+      }
+     ~FooProxy() {
+            delete_Foo(self);
+      }
+      int bar(int x) {
+            return Foo_bar(self,x);
+      }
+      int x_get() {
+            return Foo_x_get(self);
+      }
+      void x_set(int x) {
+            Foo_x_set(self,x);
+      }
+};
+</pre>
+</blockquote>
+
+Of course, always keep in mind that the real proxy class is written in the target language.
+For example, in Python, the proxy might look roughly like this:
+
+<blockquote>
+<pre>
+class Foo:
+    def __init__(self):
+         self.this = new_Foo()
+    def __del__(self):
+         delete_Foo(self.this)
+    def bar(self,x):
+         return Foo_bar(self.this,x)
+    def __getattr__(self,name):
+         if name == 'x':
+              return Foo_x_get(self.this)
+         ...
+    def __setattr__(self,name,value):
+         if name == 'x':
+              Foo_x_set(self.this,value)
+         ...
+</pre>
+</blockquote>
+
+Again, it's important to emphasize that the low-level accessor functions are always used to construct the
+proxy classes.
+
+<p>
+Whenever possible, proxies try to take advantage of language features that are similar to C++.  This
+might include operator overloading,  exception handling, and other features.
+
+<h3>Resource management in proxies</h3>
+
+A major issue with proxies concerns the memory management of wrapped objects.   Consider the following
+C++ code:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+      Foo();
+     ~Foo();
+      int bar(int x);
+      int x;
+};
+
+class Spam {
+public:
+      Foo *value;
+      ...
+};
+</pre>
+</blockquote>
+
+Now, consider some script code that uses these classes:
+
+<blockquote>
+<pre>
+f = Foo()               # Creates a new Foo
+s = Spam()              # Creates a new Spam
+s.value = f             # Stores a reference to f inside s
+g = s.value             # Returns stored reference
+g = 4                   # Reassign g to some other value
+del f                   # Destroy f 
+</pre>
+</blockquote>
+
+Now, ponder the resulting memory management issues.  When objects are
+created in the script, the objects are wrapped by newly created proxy
+classes.  That is, there is both a new proxy class instance and a new
+instance of the underlying C++ class.  In this example, both
+<tt>f</tt> and <tt>s</tt> are created in this way.  However, the
+statement <tt>s.value</tt> is rather curious---when executed, a
+pointer to <tt>f</tt> is stored inside another object.  This means
+that the scripting proxy class <em>AND</em> another C++ class share a
+reference to the same object.  To make matters even more interesting,
+consider the statement <tt>g = s.value</tt>.  When executed, this
+creates a new proxy class <tt>g</tt> that provides a wrapper around the
+C++ object stored in <tt>s.value</tt>.  In general, there is no way to
+know where this object came from---it could have been created by the
+script, but it could also have been generated internally.  In this
+particular example, the assignment of <tt>g</tt> results in a second
+proxy class for <tt>f</tt>.  In other words, a reference to <tt>f</tt>
+is now shared by two proxy classes <em>and</em> a C++ class.   
+
+<p>
+Finally, consider what happens when objects are destroyed.  In the
+statement, <tt>g=4</tt>, the variable <tt>g</tt> is reassigned.  In
+many languages, this makes the old value of <tt>g</tt> available for
+garbage collection.  Therefore, this causes one of the proxy classes
+to be destroyed.  Later on, the statement <tt>del f</tt> destroys the
+other proxy class.  Of course, there is still a reference to the
+original object stored inside another C++ object.  What happens to it?
+Is it the object still valid?
+
+<P>
+To deal with memory management problems, proxy classes always provide an API
+for controlling ownership.  In C++ pseudocode, ownership control might look
+roughly like this:
+
+<blockquote>
+<pre>
+class FooProxy {
+public:
+      Foo    *self;
+      int     thisown;
+
+      FooProxy() {
+            self = new_Foo();
+            thisown = 1;       // Newly created object
+      }
+     ~FooProxy() {
+            if (thisown) delete_Foo(self);
+      }
+      ...
+      // Ownership control API
+      void disown() {
+           thisown = 0;
+      }
+      void acquire() {
+           thisown = 1;
+      }
+};
+
+class FooPtrProxy: public FooProxy {
+public:
+      FooPtrProxy(Foo *s) {
+          self = s;
+          thisown = 0;
+      }
+};
+
+class SpamProxy {
+     ...
+     FooProxy *value_get() {
+          return FooPtrProxy(Spam_value_get(self));
+     }
+     void value_set(FooProxy *v) {
+          Spam_value_set(self,v->self);
+          v->disown();
+     }
+     ...
+};
+</pre>
+</blockquote>
+
+Looking at this code, there are a few central features:
+
+<ul>
+<li>Each proxy class keeps an extra flag to indicate ownership.  C++ objects are only destroyed
+if the ownership flag is set.
+
+<P>
+<li>When new objects are created in the target language, the ownership flag is set.
+
+<p>
+<li>When a reference to an internal C++ object is returned, it is wrapped by a proxy
+class, but the proxy class does not have ownership.  
+
+<p>
+<li>In certain cases, ownership is adjusted.  For instance, when a value is assigned to the member of
+a class, ownership is lost.
+
+<p>
+<li>Manual ownership control is provided by special <tt>disown()</tt> and <tt>acquire()</tt> methods.
+</ul>
+
+Given the tricky nature of C++ memory management, it is impossible for proxy classes to automatically handle
+every possible memory management problem.  However, proxies do provide a mechanism for manual control that
+can be used (if necessary) to address some of the more tricky memory management problems.
+
+<h3>Language specific details</h3>
+
+Language specific details on proxy classes are contained the chapters describing each target language.  This
+chapter has merely introduced the topic in a very general way.
 
 <a name="n37"></a><H2>5.26 Where to go for more information</H2>
 
@@ -3470,6 +3697,6 @@ is the reference document we use to guide a lot of SWIG's C++ support.
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : May 12, 2002</address>
+<address>SWIG 1.3 - Last Modified : April 3, 2003</address>
 </body>
 </html>
