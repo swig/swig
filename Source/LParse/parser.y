@@ -1268,7 +1268,7 @@ mem_initializer : ID LPAREN { LParse_skip_balanced('(',')'); }
 
 cpp_other    :/* A dummy class name */
              storage_spec cpptype ID SEMI {
-                 DOH *o = new_node("ClassDecl",$4.filename,$4.line);
+                 DOH *o = new_node("classdecl",$4.filename,$4.line);
                  Setattr(o,ATTR_NAME,$3.text);
 	     }   
 
