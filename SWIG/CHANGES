@@ -16,6 +16,7 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+
 05/28/2002: ljohnson
             [Ruby] Modified the name of the wrapper functions for the
 	    "new" singleton method and "initialize" instance method for
@@ -23,10 +24,26 @@ Version 1.3.12 (In Progress)
 	    for the function that implements "new" is alloc_classname and
 	    the wrapper name for the function that implements "initialize"
 	    is new_classname.
+
+
+05/27/2002: beazley
+            Changes to runtime.  Pointer conversion/creation functions
+            now almost always have an extra "flags" argument.  For
+            example:
+
+              SWIG_ConvertPtr(obj, void **, swig_type_info *ty, int flags);
+                                                                ^^^^^^^^^^
+            This extra parameter is reserved for future expansion and will
+            be used for more control over pointers in future versions.
+
+05/27/2002: beazley
+            Fix for C++ classes with private assignment operators.  It
+            is now possible to safely return objects like this by value.
+            Caveat:  the class must provide a copy constructor.
 	    
 05/26/2002: beazley
             -proxy option added to many language modules.  This is the
-            same as -shadow.
+            same as -shadow.  We are merely changing terminology.
             
 05/26/2002: beazley
             [perl] Fixed some inconsistencies in the -package option.
