@@ -17,6 +17,7 @@ arrays_global
 arrays_global_twodim
 arrays_scope
 array_member
+array_typedef_memberin
 bloody_hell
 bools
 bool_default
@@ -54,8 +55,10 @@ director_basic
 director_detect
 director_exception
 director_finalizer
+director_frob
 director_nested
 director_protected
+director_redefined
 director_unroll
 director_wombat
 dynamic_cast
@@ -63,14 +66,19 @@ enums
 enum_plus
 enum_scope
 enum_scope_template
+enum_thorough
+enum_thorough_simple
+enum_thorough_typesafe
 enum_var
 evil_diamond
 evil_diamond_ns
 evil_diamond_prop
+exception_order
 extend_placement
 extend_template
 extend_template_ns
 extern_throws
+friends
 function_typedef
 global_ns_arg
 grouping
@@ -81,15 +89,6 @@ inctest
 inherit_missing
 inherit_void_arg
 inline_initializer
-java_constants
-java_enums
-java_jnitypes
-java_lib_arrays
-java_lib_various
-java_pragmas
-java_throws
-java_typemaps_proxy
-java_typemaps_typewrapper
 kind
 lib_carrays
 lib_cdata
@@ -112,10 +111,12 @@ namespace_extend
 namespace_nested
 namespace_spaces
 namespace_template
+namespace_typedef_class
 namespace_typemap
 namespace_virtual_method
 name_cxx
 name_inherit
+name_warnings
 nested
 newobject1
 newobject2
@@ -130,7 +131,9 @@ pointer_reference
 preproc
 primitive_ref
 private_assign
+protected_rename
 pure_virtual
+redefined
 reference_global_vars
 rename_default
 rename_scope
@@ -190,6 +193,7 @@ template_ns_enum
 template_ns_enum2
 template_ns_inherit
 template_ns_scope
+template_opaque
 template_partial_arg
 template_qualifier
 template_ref_type
@@ -236,7 +240,9 @@ valuewrapper_const
 valuewrapper_default
 varargs
 virtual_destructor
+virtual_poly
 voidtest
+wrapmacro
 
 *runme
 Makefile
