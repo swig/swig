@@ -163,7 +163,7 @@ defer  ready to go.  The primary obstacle lies in the target language
 
 Build
 -----
-****   Fix Python Windows examples.
+[DONE] Fix Python Windows examples.
 
 ****   Upgrade libtool to a more recent version.  Might fix linking on OS-X
        but should definitely help on Cygwin.
