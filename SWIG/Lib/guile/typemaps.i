@@ -1,5 +1,5 @@
 /* typemaps.i --- INPUT/OUTPUT/BOTH typemaps
-   Contributed by Matthias Koeppe <mkoeppe@saturn.Math.Uni-Magdeburg.DE>
+   Copyright (C) 2000 Matthias Koeppe <mkoeppe@saturn.Math.Uni-Magdeburg.DE>
 
    $Header$  */
 
