@@ -432,6 +432,24 @@ Of course, the names of the extra libraries are completely non-portable---you wi
 probably need to do some experimentation.
 
 <p>
+Another possible compile problem comes from recent versions of Perl (5.8.0) and the GNU tools.
+If you see errors having to do with _crypt_struct, that means _GNU_SOURCE is not defined and
+it needs to be.  So you should compile the wrapper like:
+
+<blockquote><pre>
+% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE -D_GNU_SOURCE
+</pre></blockquote>
+
+-D_GNU_SOURCE is also included in the Perl ccflags, which can be found by running
+<blockquote><pre>
+% perl -e 'use Config; print $Config{ccflags};'
+</pre></blockquote>
+So you could also compile the wrapper like
+<blockquote><pre>
+% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE `perl -e 'use Config; print $Config{ccflags}'`
+</pre></blockquote>
+
+<p>
 Sometimes people have suggested that it is necessary to relink the
 Perl interpreter using the C++ compiler to make C++ extension modules work.
 In the experience of this author, this has never actually appeared to be
@@ -472,7 +490,7 @@ erratic program behavior.   Also, be aware that certain C++ features, especially
 can behave strangely when working with multiple modules.
 
 <p>
-Finally, it should be noted that you may get alot of error messages
+It should be noted that you may get alot of error messages
 about the `<tt>bool</tt>' datatype when compiling a C++ Perl module. If
 you experience this problem, you can try the following :<p>
 
@@ -481,6 +499,26 @@ you experience this problem, you can try the following :<p>
 <li>Use <tt>-DHAS_BOOL</tt> when compiling the SWIG wrapper code
 <li>Or use <tt>-Dbool=char</tt> when compiling.
 </ul>
+
+<p>
+Finally, recent versions of Perl (5.8.0) have namespace conflict problems.  Perl defines a bunch
+of short macros to make the Perl API function names shorter.  For example, in 
+/usr/lib/perl/5.8.0/CORE/embed.h there is a line:
+
+<blockquote><pre>
+#define do_open Perl_do_open
+</pre></blockquote>
+
+The problem is, in the &lt;iostream&gt; header from GNU libstdc++v3 there is a private 
+function named do_open.  If &lt;iostream&gt; is included after the perl headers, then
+the Perl macro causes the iostream do_open to be renamed, which causes compile errors.
+Hopefully in the future Perl will support a PERL_NO_SHORT_NAMES flag, but for now the 
+only solution is to undef the macros that conflict.  Lib/perl5/noembed.h in the SWIG 
+source has a list of macros that are known to conflict with either standard headers or
+other headers.  But if you get macro type conflicts from other macros not included
+in Lib/perl5/noembed.h while compiling the wrapper, you will
+have to find the macro that conflicts and add an #undef into the .i file.  Please report
+any conflicting macros you find to <a href="mailto:swig@cs.uchicago.edu">swig@cs.uchicago.edu</a>.
 
 <a name="n10"></a><H3>17.2.7 Compiling for 64-bit platforms</H3>
 
@@ -2460,6 +2498,6 @@ not even sure if it really works). <p>
 
 <p><hr>
 
-<address>SWIG 1.3 - Last Modified : June 2, 2002</address>
+<address>SWIG 1.3 - Last Modified : Feb 13, 2003</address>
 </body>
 </html>

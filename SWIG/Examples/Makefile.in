@@ -178,13 +178,15 @@ PERL5_INCLUDE= @PERL5EXT@
 # Extra Perl specific dynamic linking options
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 
+PERL5_CCFLAGS = @PERL5CCFLAGS@
+
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
 # ----------------------------------------------------------------
 
 perl5: $(SRCS)
 	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACE)
-	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
+	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -193,7 +195,7 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -204,12 +206,12 @@ PERL5_RUNTIME=-L$(RUNTIMEDIR) -lswigpl@release_suffix@
 
 perl5_multi: $(SRCS)
 	$(SWIG) -c -perl5 $(SWIGOPT) $(INTERFACE)
-	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
+	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 perl5_multi_cpp: $(SRCS)
 	$(SWIG) -c -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
