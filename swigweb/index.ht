@@ -7,8 +7,8 @@ Simplified Wrapper and Interface Generator
 <p>
 SWIG is a software development tool that connects programs written in
 C and C++ with a variety of high-level programming
-languages.  SWIG is primarily used with common scripting languages
-such as Perl, Python, Tcl/Tk and Ruby, however the list of 
+languages.  SWIG is used with different types of languages including common scripting languages such as
+Perl, Python, Tcl/Tk and Ruby. The list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
 non-scripting languages such as C#, Common Lisp (Allegro CL), Java, Modula-3 and OCAML. Also several
 interpreted and compiled Scheme implementations (Chicken, Guile, MzScheme)
@@ -30,6 +30,12 @@ and non-commercial use.
 
 <h3>News</h3>
 
+
+<p>
+<b>2004/11/11</b>
+SWIG-1.3.23 has been released.  This release contains additional C++ support in the areas of templates and
+namespaces. Java and C# are added to the list of languages that can create wrappers taking advantage of
+C++ default arguments.  Many other minor bug fixes and enhancements are also included.
 
 <p>
 <b>2004/09/04</b>
@@ -130,7 +136,7 @@ See the <a href="survey.html">download</a> page for release notes
 and versions for Windows and Macintosh.
 
 <p>
-<b>2002/04/03</b> Robert Tolbert has contributed <a href="swigdoc.pdf">PDF</a> and <a href="swigdoc.ps">postscript</a> versions of the SWIG-1.3.11 documentation.  Check it out.
+<b>2002/04/03</b> Robert Tolbert has contributed PDF and postscript versions of the SWIG-1.3.11 documentation.  Check it out.
 
 <p>
 <b>2002/02/01</b> SWIG-1.3.11 has been released.   This is a bug-fix release for SWIG-1.3.10.  The release also
