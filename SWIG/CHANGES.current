@@ -1,5 +1,8 @@
 Version 1.3.20 (In progress)
 ============================
+07/28/2003: beazley
+            Improved run-time error message for pointers in Python module.
+            Contributed by Zooko.
 
 07/10/2003: ballabio (Luigi Ballabio)
             [Almost all languages] Wrappers for std::pair added.
