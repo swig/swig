@@ -1,4 +1,4 @@
-%module template_typedef_ns
+%module("templatereduce") template_typedef_ns
 
 %inline {
   namespace Alpha {
