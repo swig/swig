@@ -46,6 +46,7 @@
       defined in the <i>Revised^5 Report on Scheme</i>.  Its main
       attributes are that it
     </p>
+
       <ol>
 	<li>generates portable C code</li>
 	<li>includes a customizable interpreter</li>
@@ -71,10 +72,9 @@
       CHICKEN support was introduced to SWIG in version 1.3.18.  SWIG
       relies on some recent additions to CHICKEN, which are only
       present in releases of CHICKEN with version number
-      <strong>greater than or equal to <tt>1.40</tt></strong>.
-
-      <br> CHICKEN can be downloaded from <a
-      href="http://www.call-with-current-continuation.org/">http://www.call-with-current-continuation.org/</a>
+      <strong>greater than or equal to 1.89</strong>.  
+      CHICKEN can be downloaded from 
+      <a href="http://www.call-with-current-continuation.org/">http://www.call-with-current-continuation.org/</a>
 
       You may want to look at any of the examples in Examples/chicken/
       or Examples/GIFPlot/Chicken for the basic steps to run SWIG
@@ -93,7 +93,7 @@
       the -chicken option.
       </p>
 
-      <div class="code">
+      <div class="shell">
 	<pre>% swig -chicken example.i</pre>
       </div>
 
@@ -105,7 +105,7 @@
       be compiled to C using your system's CHICKEN compiler.
       </p>
 
-      <div class="code">
+      <div class="shell">
 	<pre>% chicken example.scm -output-file oexample.c</pre>
       </div>
 
@@ -123,7 +123,7 @@
       the -chicken -c++ option.
       </p>
 
-      <div class="code">
+      <div class="shell">
 	<pre>% swig -chicken -c++ example.i</pre>
       </div>
 
@@ -133,7 +133,7 @@
       compiled to C using your system's CHICKEN compiler.
       </p>
 
-      <div class="code">
+      <div class="shell">
 	<pre>% chicken example.scm -output-file oexample.c</pre>
       </div>
 
@@ -156,9 +156,9 @@
       in CHICKEN as an identifier ending with
       <tt>Foo-Bar</tt>.  That is, an underscore is converted
       to a dash.
+    </p>
 
-      <br>
-
+    <p>
       You may control what the CHICKEN identifier will be by using the
       <tt>%rename</tt> SWIG directive in the SWIG interface file.
     </p>
@@ -312,7 +312,7 @@
       in example.i and the C functions being wrapped are in example_impl.c.
     </p>
 
-   <div class="code">
+   <div class="shell">
    <pre>
    $ swig -chicken example.i
    $ csc -svk example.scm example_impl.c example_wrap.c
@@ -336,7 +336,7 @@
 
    <p>Again, we can easily use csc to build a binary.</p>
 
-   <div class="code">
+   <div class="shell">
    <pre>
    $ swig -chicken example.i
    $ csc -vk example.scm example_impl.c example_wrap.c test_script.scm -o example
@@ -393,7 +393,6 @@
       <li>No exception handling.</li>
       <li>No director support.</li>
       <li>No support for c++ standard types like std::vector.</li>
-      <li>No support for automatic garbage collection of wrapped classes and structures. (Planned on adding in SWIG version 1.3.25) </li>
       <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.25) </li>
       <li>Problems with complicated function overloading. (Planned on fixing for 1.3.25)</li>
     </ul>

@@ -61,6 +61,7 @@ static  String       *short_class_name  = 0;
 static  String       *clos_class_methods = 0;
 static  int          in_class = 0;
 static  int          have_constructor = 0;
+static  bool         exporting_destructor = false;
 static int           useclassprefix = 0;
 static String        *closprefix = 0;
 static String        *memberfunction_name = 0;
@@ -81,6 +82,7 @@ public:
   virtual int  memberfunctionHandler(Node *n);
   virtual int  membervariableHandler(Node *n);
   virtual int  constructorHandler(Node *n);
+  virtual int  destructorHandler(Node *n);
   virtual int  validIdentifier(String *s);
   virtual int  staticmembervariableHandler(Node *n);
   virtual int  staticmemberfunctionHandler(Node *n);
@@ -414,7 +416,7 @@ CHICKEN::functionWrapper(Node *n)
 	}
 
 	if (i >= num_required)
-	  Printv(get_pointers, "if (", source, ") {\n", NIL);
+	  Printv(get_pointers, "if (argc-2>", i, " && (", source, ")) {\n", NIL);
 	Printv(get_pointers,tm,"\n", NIL);
 	if (i >= num_required)
 	  Printv(get_pointers, "}\n", NIL);
@@ -466,6 +468,12 @@ CHICKEN::functionWrapper(Node *n)
 
   Printf(f->def,  ") {");
   Printf(declfunc, ")");
+
+  /* First check the number of arguments is correct */
+  if (num_arguments != num_required)
+    Printf(f->code, "if (argc-2<%i || argc-2>%i) C_bad_argc(argc,%i);\n", num_required, num_arguments, num_required+2);
+  else
+    Printf(f->code, "if (argc!=%i) C_bad_argc(argc,%i);\n", num_arguments+2, num_arguments+2);
 
   /* Now piece together the first part of the wrapper function */
   Printv(f->code, get_pointers, NIL);
@@ -572,7 +580,13 @@ CHICKEN::functionWrapper(Node *n)
   /* Now register the function with the interpreter.   */
   int exportclos = 0;
   if (!Getattr(n,"sym:overloaded")) {
-    addMethod(scmname, wname);
+    if (exporting_destructor) {
+      Printf(f_init,
+        "((swig_chicken_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (swig_chicken_destructor) %s;\n",
+        swigtype_ptr, wname);
+    } else {
+      addMethod(scmname, wname);
+    }
     exportclos = 1;
   }
   else {
@@ -688,6 +702,8 @@ CHICKEN::variableWrapper(Node *n)  {
 	    NIL);
       
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
+
+    Printf(f->code, "if (argc!=2||argc!=3) C_bad_argc(argc,2);\n");
 
     /* Check for a setting of the variable value */
     if (!Getattr(n,"feature:immutable")) {
@@ -856,6 +872,8 @@ CHICKEN::constantWrapper(Node *n)
       
     Wrapper_add_local(f, "resultobj", "C_word resultobj");
 
+    Printf(f->code, "if (argc!=2) C_bad_argc(argc,2);\n");
+
     // Return the value of the variable
     if ((tm = Swig_typemap_lookup_new("varout",n,name,0))) {
 
@@ -981,13 +999,11 @@ CHICKEN::classHandler(Node *n)
   Printf(closcode, ")))\n");
 
   String *newmethod = NewStringf("new-%s", short_class_name);
-  String *delmethod = NewStringf("delete-%s", short_class_name);
 
   if (have_constructor) {
       Printv(closcode, "(define-method (initialize (obj ", class_name, ") initargs)\n",
                        "  (call-next-method)\n",
 		       "  (swig-initialize obj initargs ", chickenPrimitiveName(newmethod), ")\n",
-                       //"  (set-finalizer! obj (lambda (x) (", chickenPrimitiveName(delmethod), " (slot-ref x 'swig-this))))",
 		       ")\n",
                        NIL);
   } else {
@@ -998,7 +1014,6 @@ CHICKEN::classHandler(Node *n)
   }
 
   Delete(newmethod);
-  Delete(delmethod);
 
   Printf(closcode, "%s\n", clos_class_methods);
   Delete(clos_class_methods);
@@ -1014,6 +1029,7 @@ CHICKEN::classHandler(Node *n)
       Printv(f_wrappers, "static void ", funcname, "(C_word,C_word,C_word,C_word) C_noret;\n",
                          "static void ", funcname, "(C_word argc, C_word closure, C_word continuation, C_word cl) {\n",
                          "  C_trace(\"", funcname, "\");\n",
+			 "  if (argc!=3) C_bad_argc(argc,3);\n",
 			 "  swig_chicken_clientdata *cdata = (swig_chicken_clientdata *) SWIGTYPE", swigtype_ptr,"->clientdata;\n",
 			 "  cdata->gc_proxy_create = CHICKEN_new_gc_root();\n",
                          "  CHICKEN_gc_root_set(cdata->gc_proxy_create, cl);\n",
@@ -1141,6 +1157,14 @@ CHICKEN::constructorHandler(Node *n)
   have_constructor = 1;
   return SWIG_OK;
 }
+
+int CHICKEN::destructorHandler(Node *n) {
+  exporting_destructor = true;
+  Language::destructorHandler(n);
+  exporting_destructor = false;
+  return SWIG_OK;
+}
+
 
 void 
 CHICKEN::dispatchFunction(Node *n)
