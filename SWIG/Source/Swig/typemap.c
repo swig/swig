@@ -573,7 +573,7 @@ Swig_typemap_search(const String_or_char *op, SwigType *type, String_or_char *na
 	}
       }
       
-      /* No match so far.   If the type is unstripped, we'll strip it's
+      /* No match so far.   If the type is unstripped, we'll strip its
          qualifiers and check.   Otherwise, we'll try to resolve a typedef */
 
       if (!unstripped) {
