@@ -1,13 +1,13 @@
 
-// This is the java_directives runtime testcase. Contrived example checks that the pure Java code from the Java directives compiles.
+// This is the java_typemaps_proxy runtime testcase. Contrived example checks that the pure Java code from the Java typemaps compiles.
 
-import java_directives.*;
+import java_typemaps_proxy.*;
 
-public class java_directives_runme {
+public class java_typemaps_proxy_runme {
 
   static {
     try {
-	System.loadLibrary("java_directives");
+	System.loadLibrary("java_typemaps_proxy");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
