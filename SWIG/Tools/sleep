@@ -1,7 +1,0 @@
-#!/bin/sh
-
-SLEEP=/bin/sleep
-
-if [ -z $NOSLEEP ]; then
-  exec $SLEEP $*
-fi
