@@ -40,4 +40,4 @@ run_testcase = \
 	@rm -f $*.py;
 
 clean:
-	@rm -f *_wrap* *.o *~ *.so *.pyc .~* core
+	@rm -f *_wrap* *.o *~ *.so *.dll *.pyc .~* core

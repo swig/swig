@@ -41,4 +41,4 @@ run_testcase = \
 	@rm -f $*-guile
 
 clean:
-	@rm -f *_wrap* *.o *.so *~ ~* core
+	@rm -f *_wrap* *.o *.so *.dll *~ ~* core

@@ -38,4 +38,4 @@ run_testcase = \
 	@rm -f $*.php3;
 
 clean:
-	@rm -f *_wrap* *.o *~ *.so *.php3 .~* core
+	@rm -f *_wrap* *.o *~ *.so *.dll *.php3 .~* core

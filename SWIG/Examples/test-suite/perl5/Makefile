@@ -39,4 +39,4 @@ run_testcase = \
 	@rm -f $*.pm;
 
 clean:
-	@rm -f *_wrap* *.o *~ *.so *.pm .~* core
+	@rm -f *_wrap* *.o *~ *.so *.dll *.pm .~* core
