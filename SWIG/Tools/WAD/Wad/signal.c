@@ -60,8 +60,6 @@ char wad_sig_stack[STACK_SIZE];
 
 int wad_heap_overflow = 0;
 
-static wad_stacked_signal = 0;
-
 static void (*sig_callback)(int signo, WadFrame *data, char *ret) = 0;
 
 void wad_set_callback(void (*s)(int,WadFrame *,char *ret)) {
@@ -270,6 +268,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   char      *retname = 0;
   unsigned long current_brk;
 
+  /* Reset all of the signals while running WAD */
+  wad_signal_clear();
+
   wad_nlr_func = 0;
 
   context = (ucontext_t *) vcontext;
@@ -330,12 +331,6 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
   if (wad_debug_mode & DEBUG_SIGNAL) {
     wad_printf("fault at address %x, pc = %x, sp = %x, fp = %x\n", addr, p_pc, p_sp, p_fp);
   }
-
-  if (wad_stacked_signal) {
-    wad_printf("Fault in wad at pc = %x, sp = %x\n", p_pc, p_sp);
-    exit(1);
-  }
-  wad_stacked_signal++;
   frame = wad_stack_trace(p_pc, p_sp, p_fp);
 
   if (!frame) {
@@ -422,7 +417,9 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
 #ifdef WAD_SOLARIS
     *(npc) = *(pc) + 4;
 #endif
-    wad_stacked_signal--;
+    if (!(wad_debug_mode & DEBUG_ONESHOT)) {
+      wad_signal_init();
+    }
     return;
   }
   exit(1);
