@@ -238,7 +238,7 @@ c_varfunc_decl(char *storage, SwigType *type, char *name, SwigType *decltype, Pa
     SwigType_push(ty,decltype);
     Delete(SwigType_pop(ty));
     if ((storage) || (ForceExtern)) {
-      emit_extern_func(name,ty,parms,ForceExtern ? "extern" : storage, f_header);
+      emit_extern_func(name,ty,parms,ForceExtern ? (char *) "extern" : storage, f_header);
     }
     if (Callback) {
       String *cbname;
@@ -755,7 +755,7 @@ void generate(Node *top) {
       String *tdname = Getattr(n,"tdname");
       SwigType *tddecl = Getattr(n,"decl");
 
-      start_class(Char(kind), name ? Char(name) : "",bases);
+      start_class(Char(kind), name ? Char(name) : (char *) "",bases);
       generate(Getchild(n));
       end_class(tddecl,Char(tdname));
 
