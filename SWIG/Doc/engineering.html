@@ -420,8 +420,8 @@ prefix the context, e.g., "guile-module".
 Guile support is complicated by a lack of user community cohesiveness, which
 manifests in multiple shared-library usage conventions.  A set of policies
 implementing a usage convention is called a <b>linkage</b>.  The default
-linkage is the simplest; nothing special is done.  In this case `SWIG_init()'
-is provided and users must do something like this:
+linkage is the simplest; nothing special is done.  In this case
+<code>SWIG_init()</code> is provided and users must do something like this:
 
 <blockquote>
 <pre>
@@ -430,8 +430,11 @@ is provided and users must do something like this:
 </pre>
 </blockquote>
 
-At this time, the name `SWIG_init' is hardcoded; this approach does not work
-with multiple swig-modules.
+At this time, the name <code>SWIG_init</code> is hardcoded; this approach does
+not work with multiple swig-modules.  NOTE: The "simple" and "matrix" examples
+under Examples/guile include guilemain.i; the resulting standalone interpreter
+does not require calls to <code>dynamic-link</code> and
+<code>dynamic-call</code>, as shown here.
 
 <p>
 A second linkage creates "libtool dl module" wrappers, and currently is
@@ -440,9 +443,9 @@ convention, since that is not finalized.
 
 <p>
 The only other linkage supported at this time creates shared object libraries
-suitable for use by hobbit's `(hobbit4d link)' guile module.  This is called
-the "hobbit" linkage, and requires also using the "-package" command line
-option to set the part of the module name before the last symbol.  For
+suitable for use by hobbit's <code>(hobbit4d link)</code> guile module.  This
+is called the "hobbit" linkage, and requires also using the "-package" command
+line option to set the part of the module name before the last symbol.  For
 example, both command lines: [checkme:ttn]
 
 <blockquote>
@@ -452,15 +455,15 @@ swig -guile -package my/lib -module foo foo.i
 </pre>
 </blockquote>
 
-would create module `(my lib foo)' (assuming in the first case foo.i declares
-the module to be "foo").  The installed files are my/lib/libfoo.so.X.Y.Z and
-friends.  This scheme is still very experimental; the (hobbit4d link)
-conventions are not well understood.
+would create module <code>(my lib foo)</code> (assuming in the first case
+foo.i declares the module to be "foo").  The installed files are
+my/lib/libfoo.so.X.Y.Z and friends.  This scheme is still very experimental;
+the (hobbit4d link) conventions are not well understood.
 
 <p>
 There are no other linkage types planned, but that could change...  To add a
 new type, add the name to the enum in guile.h and add the case to
-`GUILE::emit_linkage()'.
+<code>GUILE::emit_linkage()</code>.
 
 <h3>Underscore Folding</h3>  
 
@@ -488,13 +491,52 @@ in foo.i.  This may change in the future.
 <h3>Smobs</h3>
 
 <p>
-For pointer types, SWIG can use Guile smobs if given the command-line option
-"-with-smobs".  Ultimately this will be the default (and only) behavior and
-the command-line option will no longer be supported.  Ideally, "-with-smobs"
-will not even make it to beta.
+For pointer types, SWIG can use Guile smobs if given the command-line
+option "-with-smobs".  Ultimately this will be the default (and only)
+behavior and the command-line option will no longer be supported.
+Ideally, "-with-smobs" will not even make it to beta.
 
 <p>
-[insert smob implementation overview here (Matthias Koeppe?)]
+Currently, one wrapper module must be generated without
+<code>-c</code> and compiled with <code>-DSWIG_GLOBAL</code>, all the
+other wrapper modules must be generated with <code>-c</code>.  Maybe
+one should move all the global helper functions that come from
+<code>guile.swg</code> into a library, which is built by <code>make
+runtime</code>. 
+
+<p>
+In earlier versions of SWIG, C pointers were represented as Scheme
+strings containing a hexadecimal rendering of the pointer value and a
+mangled type name.  As Guile allows registering user types, so-called
+"smobs" (small objects), a much cleaner representation has been
+implemented now.  The details will be discussed in the following.
+
+<p>
+A smob is a cons cell where the lower half of the CAR contains the
+smob type tag, while the upper half of the CAR and the whole CDR are
+available.  <code>SWIG_Guile_Init()</code> registers a smob type named
+"swig" with Guile; its type tag is stored in the variable
+<code>swig_tag</code>.  The upper half of the CAR store an index into
+a table of all C pointer types seen so far, to which new types seen
+are appended.  The CDR stores the pointer value.  SWIG smobs print
+like this: <code>#&lt;swig struct xyzzy * 0x1234affe&gt;</code>  Two of
+them are <code>equal?</code> if and only if they have the same type
+and value.
+
+<p>
+To construct a Scheme object from a C pointer, the wrapper code calls
+the function <code>SWIG_Guile_MakePtr_Str()</code>, passing both a
+mangled type string and a pretty type string.  The former is looked up
+in the type table to get the type index to store in the upper half of
+the CAR.  If the type is new, it is appended to type table.
+
+<p>
+To get the pointer represented by a smob, the wrapper code calls the
+function <code>SWIG_Guile_GetPtr_Str</code>, passing the mangled name
+of the expected pointer type, which is used for looking up the type in
+the type table and accessing the list of compatible types.  If the
+Scheme object passed was not a SWIG smob representing a compatible
+pointer, a <code>wrong-type-arg</code> exception is raised.
 
 <h2>11. Miscellaneous </h2>
 
