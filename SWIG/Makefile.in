@@ -28,7 +28,7 @@ TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: Modules1.1 Swig Preprocessor CParse DOH 
+swig: Modules1.1 Swig Preprocessor CParse DOH runtime
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Modules1.1/libmodules11.a \
 	$(SOURCE)/CParse/libcparse.a \
