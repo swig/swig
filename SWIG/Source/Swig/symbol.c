@@ -367,8 +367,8 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
    */
 
   if (!name) return;
-
   cn = Getattr(ccurrent,name);
+
   if (cn && (Getattr(cn,"sym:typename"))) {
     /* The node in the C symbol table is a typename.  Do nothing */
     /* We might append the symbol at the end */
@@ -395,11 +395,15 @@ Swig_symbol_cadd(String_or_char *name, Node *n) {
 
   /* Multiple entries in the C symbol table.   We append to to the symbol table */
   if (append) {
-    Node *fn, *pn;
+    Node *fn, *pn = 0;
     cn = Getattr(ccurrent,name);
     fn = cn;
     while (fn) {
       pn = fn;
+      if (fn == append) {
+	/* already added. Bail */
+	return;
+      }
       fn = Getattr(fn,"csym:nextSibling");
     }
     if (pn) {
