@@ -99,30 +99,32 @@ public:
 
 
 %inline %{
-
-  class DFoo;
-  
-  class DPtrFoo
-  {
-    DFoo *p;
-  public:
-    DPtrFoo(DFoo *ptr) : p(ptr)
-    {
-    }
+  namespace foo {
     
-    DFoo* operator->(void) {return p;};
-  };
- 
-  class DFoo
-  {
-  public:
-    void F(void) {};
-  };
-
+    class DFoo;
+    
+    class DPtrFoo
+    {
+      DFoo *p;
+    public:
+      DPtrFoo(DFoo *ptr) : p(ptr)
+      {
+      }
+      
+      DFoo* operator->(void) {return p;};
+    };
+    
+    class DFoo
+    {
+    public:
+      void F(void) {};
+    };
+  }
 %}
 
 
-%extend DFoo {
+
+%extend foo::DFoo {
   static int SExt(int i = 1) {return i;};
   int Ext(int i = 2) {return i;};
 }
