@@ -1,6 +1,43 @@
 Version 1.3.23 (November 6, 2004)
 =================================
 
+11/04/2004: wsfulton
+            %feature improvements for fine tuning when wrapping methods with
+            default arguments. Any %feature targeting a method with default arguments
+            will apply to all the extra overloaded methods that SWIG generates if the
+            default arguments are specified in the feature. If the default arguments are
+            not specified in the feature, then the feature will match that exact
+            wrapper method only and not the extra overloaded methods that SWIG generates.
+            For example:
+
+              %feature("except") void hello(int i=0, double d=0.0);
+              void hello(int i=0, double d=0.0);
+
+           will apply the feature to all three wrapper methods, that is:
+
+              void hello(int i, double d);
+              void hello(int i);
+              void hello();
+
+           If the default arguments are not specified in the feature:
+
+              %feature("except") void hello(int i, double d);
+              void hello(int i=0, double d=0.0);
+
+           then the feature will only apply to this wrapper method:
+
+              void hello(int i, double d);
+
+           and not these wrapper methods:
+
+              void hello(int i);
+              void hello();
+
+           This has been introduced to make %feature more powerful to ease the migration
+           to new default arguments wrapping approach.
+
+                      *** POTENTIAL INCOMPATIBILITY ***
+
 10/3/2004: wuzzeb (John Lenz)
             [GUILE] The -scm interface is now the default.  The old GH interface can
 	    still be enabled by passing -gh to SWIG.
