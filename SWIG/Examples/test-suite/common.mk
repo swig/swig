@@ -67,6 +67,7 @@ CPP_TEST_CASES += \
 	arrays_global_twodim \
 	arrays_scope \
 	bool_default \
+	bools \
 	casts \
 	class_ignore \
 	const_const_2 \
@@ -132,6 +133,7 @@ CPP_TEST_CASES += \
 	primitive_ref \
 	private_assign \
 	pure_virtual \
+	reference_global_vars \
 	rename_default \
 	rename_default \
 	rename_scope \
