@@ -2,13 +2,15 @@ Simplified Wrapper and Interface Generator
 <p>
 <h2>Welcome to SWIG</h2>
 
+[ <a href="http://swig-jp.dyndns.org">Japanese</a> ]
+
 <p>
 SWIG is a software development tool that connects programs written in
 C and C++ with a variety of high-level programming
 languages.  SWIG is primarily used with common scripting languages
 such as Perl, Python, Tcl/Tk, Ruby, Guile and MzScheme, however the list of 
 <a href="compat.html#SupportedLanguages">supported languages</a> also includes 
-non-scripting languages such as Java and Eiffel. SWIG is most
+non-scripting languages such as Java and OCAML. SWIG is most
 commonly used to create high-level interpreted programming
 environments and as a tool for building user interfaces.  SWIG may be
 freely used, distributed, and modified for commercial and
@@ -36,6 +38,11 @@ an abundance of spare time.
 
 <p>
 <h3>News</h3>
+
+<p>
+<b>2002/07/19</b>
+Shibukawa Yoshiki is working on a Japanese translation of the SWIG documentation.  Check out
+<a href="http://swig-jp.dyndns.org/">swig-jp.dyndns.org</a>.
 
 <p>
 <b>2002/06/17</b>
