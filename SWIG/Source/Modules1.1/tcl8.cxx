@@ -1,12 +1,12 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * tcl8.cxx
  *
  *     Tcl8.0 wrapper module.
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 static char cvsroot[] = "$Header$";
@@ -40,10 +40,10 @@ static int        have_destructor;
 static String    *class_name = 0;
 static String    *class_type = 0;
 static String    *real_classname = 0;
-static Hash      *repeatcmd = 0; 
+static Hash      *repeatcmd = 0;
 
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * TCL8::parse_args()
  * ----------------------------------------------------------------------------- */
 
@@ -95,7 +95,7 @@ TCL8::parse_args(int argc, char *argv[]) {
   SWIG_config_file("tcl8.swg");
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * TCL8::parse()
  * ----------------------------------------------------------------------------- */
 
@@ -110,18 +110,18 @@ TCL8::parse() {
   repeatcmd  = NewHash();
 
   Swig_banner(f_runtime);
-  
+
   /* Include a Tcl configuration file */
   if (NoInclude) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
   /*  if (Swig_insert_file("common.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
   if (Swig_insert_file("swigtcl8.swg",f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error. Unable to locate 'swigtcl8.swg' in SWIG library.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
   */
   yyparse();
@@ -165,11 +165,11 @@ TCL8::initialize() {
 
   if ((!ns_name) && (nspace)) {
     Printf(stderr,"Tcl error.   Must specify a namespace.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
   if (!init_name) {
     Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
   Printf(f_header,"#define SWIG_init    %s\n", init_name);
   if (!module) module = NewString("swig");
@@ -203,7 +203,7 @@ TCL8::initialize() {
   if (nspace) {
     Printf(f_init,"Tcl_Eval(interp,\"namespace eval %s { }\");\n", ns_name);
   }
-  
+
   Printf(cmd_info, "\nstatic _swig_command_info _swig_commands[] = {\n");
   Printf(var_info, "\nstatic _swig_var_info _swig_variables[] = {\n");
   Printv(f_init,
@@ -252,7 +252,7 @@ TCL8::create_command(char *cname, char *iname) {
 
   String *wname = Swig_name_wrapper(cname);
   Printv(cmd_info, tab4, "{ SWIG_prefix \"", iname, "\", ", wname, ", NULL},\n", 0);
-  
+
   /* Add interpreter name to repeatcmd hash table.  This hash is used in C++ code
      generation to try and find repeated wrapper functions. */
 
@@ -263,7 +263,7 @@ TCL8::create_command(char *cname, char *iname) {
  * TCL8::create_function()
  * ----------------------------------------------------------------------------- */
 
-void 
+void
 TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
   Parm            *p;
   int              pcount,i,j;
@@ -314,7 +314,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	Replace(incode,"$arg",source, DOH_REPLACE_ANY);
       } else {
 	switch(SwigType_type(pt)) {
-	case T_INT: 
+	case T_INT:
 	case T_UINT:
 	  Putc('i', argstr);
 	  Printf(args,",&%s",target);
@@ -353,20 +353,20 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  Putc('f',argstr);
 	  Printf(args,",&%s", target);
 	  break;
-	  
+
 	case T_DOUBLE:
 	  Putc('d',argstr);
 	  Printf(args,",&%s", target);
 	  break;
-	  
+
 	case T_CHAR :
 	  Putc('c',argstr);
 	  Printf(args,",&%s",target);
 	  break;
-	  
+
 	case T_VOID :
 	  break;
-	  
+
 	case T_USER:
 	  SwigType_add_pointer(pt);
 	  SwigType_remember(pt);
@@ -374,7 +374,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
 	  SwigType_del_pointer(pt);
 	  break;
-	  
+
 	case T_STRING:
 	  Putc('s',argstr);
 	  Printf(args,",&%s",target);
@@ -385,7 +385,7 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
 	  Putc('p',argstr);
 	  Printv(args, ",&", target, ", SWIGTYPE", SwigType_manglestr(pt), 0);
 	  break;
-	    
+
 	default :
 	  Printf(stderr,"%s : Line %d: Unable to use type %s as a function argument.\n",
 		 input_file, line_number, SwigType_str(pt,0));
@@ -442,29 +442,29 @@ TCL8::create_function(char *name, char *iname, SwigType *d, ParmList *l) {
       case T_UCHAR:
 	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewIntObj((long) result));\n",0);
 	break;
-	
+
 	/* Is a single character.  We return it as a string */
       case T_CHAR :
 	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(&result,1));\n",0);
 	break;
-	
+
       case T_DOUBLE :
       case T_FLOAT :
 	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewDoubleObj((double) result));\n",0);
 	break;
-	
+
       case T_USER :
-	
+
 	/* Okay. We're returning malloced memory at this point.
 	   Probably dangerous, but safe programming is for wimps. */
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
 	Printv(f->code, "Tcl_SetObjResult(interp,SWIG_NewPointerObj((void *) result,SWIGTYPE",
 	       SwigType_manglestr(d), "));\n", 0);
-	
+
 	SwigType_del_pointer(d);
 	break;
-	
+
     case T_STRING:
 	Printv(f->code, "Tcl_SetObjResult(interp,Tcl_NewStringObj(result,-1));\n",0);
 	break;
@@ -620,7 +620,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	     0);
       break;
 
-    case T_CHAR:  
+    case T_CHAR:
       Printv(set->code, "*(addr) = *value;\n",0);
       Wrapper_add_local(get,"temp", "char temp[2]");
       Printv(get->code, "temp[0] = *addr; temp[1] = 0;\n",
@@ -674,7 +674,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	    Printf(set->code, "strncpy(addr,value,%s);\n", dim);
 	    setable = 1;
 	    readonly = Status & STAT_READONLY;
-	  } 
+	  }
 	  Printv(get->code, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
 	} else {
 	  Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
@@ -729,7 +729,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
     DelWrapper(set);
   }
   Printv(var_info, tab4,"{ SWIG_prefix \"", iname, "\", (void *) ", isarray ? "" : "&", name, ",", getname, ",", 0);
-  
+
   if (readonly) {
     static int readonlywrap = 0;
     if (!readonlywrap) {
@@ -753,7 +753,7 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 void
 TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
   int OldStatus = Status;
-  SwigType *t; 
+  SwigType *t;
   char      var_name[256];
   char     *tm;
   String   *rvalue;
@@ -761,7 +761,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
 
   /* Make a static variable */
   sprintf(var_name,"_wrap_const_%s",name);
-  
+
   if (SwigType_type(type) == T_STRING) {
     rvalue = NewStringf("\"%s\"",value);
   } else if (SwigType_type(type) == T_CHAR) {
@@ -788,7 +788,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
 	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
       else
 	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
-      
+
       Printf(f_init,"\t sprintf(%s_char,\"%%ld\", (long) %s);\n", var_name, var_name);
       sprintf(var_name,"%s_char",var_name);
       t = NewString("char");
@@ -807,7 +807,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
 	Printf(f_init,"\t %s_char = new char[32];\n",var_name);
       else
 	Printf(f_init,"\t %s_char = (char *) malloc(32);\n",var_name);
-      
+
       Printf(f_init,"\t sprintf(%s_char,\"%%lu\", (unsigned long) %s);\n", var_name, var_name);
       sprintf(var_name,"%s_char",var_name);
       t = NewSwigType(T_CHAR);
@@ -820,7 +820,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
       Printf(f_header,"static %s %s = (%s) (%s);\n", SwigType_lstr(type,0), var_name, SwigType_lstr(type,0), value);
       link_variable(var_name,name,type);
       break;
-	
+
     case T_CHAR:
       SwigType_add_pointer(type);
       Printf(f_header,"static %s %s = \"%s\";\n", SwigType_lstr(type,0), var_name, value);
@@ -840,7 +840,7 @@ TCL8::declare_const(char *name, char *, SwigType *type, char *value) {
 	Printf(f_init,"\t %s_char = new char[%d];\n",var_name,(int) Len(SwigType_manglestr(type))+ 20);
       else
 	Printf(f_init,"\t %s_char = (char *) malloc(%d);\n",var_name, (int) Len(SwigType_manglestr(type))+ 20);
-      
+
       t = NewSwigType(T_CHAR);
       SwigType_add_pointer(t);
       SwigType_remember(type);
@@ -877,7 +877,7 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   } else {
     Printf(temp,"%s ", iname);
   }
-  
+
   /* Now go through and print parameters */
   i = 0;
   pcount = ParmList_len(l);
@@ -905,8 +905,8 @@ TCL8::usage_string(char *iname, SwigType *, ParmList *l) {
   }
   return Char(temp);
 }
-    
-/* ----------------------------------------------------------------------------- 
+
+/* -----------------------------------------------------------------------------
  * TCL8::add_native()
  * ----------------------------------------------------------------------------- */
 
@@ -927,11 +927,11 @@ TCL8::cpp_open_class(char *classname, char *rename, char *ctype, int strip) {
     if (!included_object) {
       if (Swig_insert_file("object.swg",f_header) == -1) {
 	Printf(stderr,"SWIG : Fatal error. Unable to locate 'object.swg' in SWIG library.\n");
-	SWIG_exit(1);
+	SWIG_exit (EXIT_FAILURE);
       }
       included_object = 1;
     }
-  
+
     Clear(attributes);
     Printf(attributes, "static _swig_attribute _swig_");
     Printv(attributes, classname, "_attributes[] = {\n", 0);
@@ -979,7 +979,7 @@ TCL8::cpp_close_class() {
     Printf(attributes, "    {0,0,0}\n};\n");
     Printv(code,attributes,0);
 
-    Printv(code, "static _swig_class _wrap_class_", class_name, " = { \"", class_name, 
+    Printv(code, "static _swig_class _wrap_class_", class_name, " = { \"", class_name,
 	   "\", &SWIGTYPE", SwigType_manglestr(t), ",",0);
 
     if (have_constructor) {
@@ -1013,7 +1013,7 @@ void TCL8::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     strcpy(temp, Char(Swig_name_member(class_name,realname)));
     rname = Getattr(repeatcmd,temp);
     if (!rname) rname = Swig_name_wrapper(temp);
-    
+
     Printv(methods, tab4, "{\"", realname, "\", ", rname, "}, \n", 0);
   }
 }

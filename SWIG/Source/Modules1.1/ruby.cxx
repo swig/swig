@@ -175,7 +175,7 @@ static void insert_file(char *filename, File *file) {
 	    "SWIG : Fatal error. "
 	    "Unable to locate %s. (Possible installation problem).\n",
 	    filename);
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
 }
 
@@ -358,7 +358,7 @@ String *RUBY::make_wrapper_name(char *cname) {
 /* --------------------------------------------------------------------------
  * RUBY::add_native()
  * -------------------------------------------------------------------------- */
-void 
+void
 RUBY::add_native(char *name, char *funcname, SwigType *, ParmList *) {
   Printf(stderr,"%s : Line %d.  Adding native function %s not supported (ignored).\n", input_file, line_number, funcname);
 }
@@ -678,7 +678,7 @@ void RUBY::create_function(char *name, char *iname, SwigType *t, ParmList *l) {
 
 void RUBY::link_variable(char *name, char *iname, SwigType *t) {
   char *tm;
-  
+
   String *getfname, *setfname;
   Wrapper *getf, *setf;
 
@@ -1217,7 +1217,7 @@ void RUBY::cpp_destructor(char *name, char *newname) {
     Printv(freebody, Swig_name_destroy(name), "(", Swig_cparm_name(0,0), ")", 0);
   } else {
     /* When no addmethods mode, swig emits no destroy function. */
-    if (CPlusPlus) 
+    if (CPlusPlus)
       Printv(freebody, Swig_cppdestructor_call(), 0);
     else
       Printv(freebody, Swig_cdestructor_call(), 0);

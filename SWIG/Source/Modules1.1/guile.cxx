@@ -79,7 +79,7 @@ GUILE::parse_args (int argc, char *argv[])
     if (argv[i]) {
       if (strcmp (argv[i], "-help") == 0) {
 	fputs (guile_usage, stderr);
-	SWIG_exit (0);
+	SWIG_exit (EXIT_SUCCESS);
       }
       // Silent recognition (no side effects) of "-with-smobs" is here
       // as a convenience to users.  This will be removed after 1.3a4
@@ -236,7 +236,7 @@ GUILE::headers (void)
   Printf (f_runtime, "/* Implementation : GUILE */\n\n");
 
   // Write out directives and declarations
-  
+
   if (NoInclude) {
     Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
   }
@@ -382,7 +382,7 @@ is_a_pointer (SwigType *t)
 
 static char *
 guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, String_or_char *source,
-		     String_or_char *target, Wrapper *f) 
+		     String_or_char *target, Wrapper *f)
 {
   char *tm;
   tm = Swig_typemap_lookup((char*) op, type, pname, source, target, f);
@@ -392,7 +392,7 @@ guile_typemap_lookup(const char *op, SwigType *type, String_or_char *pname, Stri
       tm = Swig_typemap_lookup((char*) op, (char*) "int", pname, source, target, f);
   }
   return tm;
-}  
+}
 
 /* Lookup a typemap, replace all relevant parameters and write it to
    the given generalized file. Return 0 if no typemap found. */
@@ -497,7 +497,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 			 0, proc_name, f);
 
   /* Open prototype and signature */
-  
+
   Printv(f->def, "static SCM\n", wname," (", 0);
   Printv(signature, "(", proc_name, 0);
 
@@ -547,7 +547,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 		     source, target, numargs, proc_name, f, 0);
 
     /* Pass output arguments back to the caller. */
-    
+
     guile_do_typemap(outarg, "argout", pt, pn,
 		     source, target, numargs, proc_name, f, 0);
 
@@ -565,7 +565,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
 	}
       }
     }
-    
+
     // free up any memory allocated for the arguments.
 
     guile_do_typemap(cleanup, "freearg", pt, pn,
@@ -573,17 +573,17 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   }
 
   /* Close prototype and signature */
-  
+
   Printv(signature, ")\n", 0);
   Printf(f->def, ")\n{\n");
-  
+
   /* Define the scheme name in C */
   /* FIXME: This is only needed for the code in exception.i since
      typemaps can always use $name. I propose to define a new macro
      SWIG_exception_in(ERROR, MESSAGE, FUNCTION) and use it instead of
      SWIG_exception(ERROR, MESSAGE). */
   Printv(f->def, "#define SCHEME_NAME \"", proc_name, "\"\n", 0);
-  
+
   // Now write code to make the function call
   Printv(f->code, tab4, "gh_defer_ints();\n", 0);
   emit_func_call (name, d, l, f);
@@ -618,7 +618,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
   // Look for any remaining cleanup
 
   if (NewObject) {
-    guile_do_typemap(f->code, "newfree", d, iname, 
+    guile_do_typemap(f->code, "newfree", d, iname,
 		     (char*)"result", (char*)"", 0, proc_name, f, 0);
   }
 
@@ -671,7 +671,7 @@ GUILE::create_function (char *name, char *iname, SwigType *d, ParmList *l)
     Printv(signature, "\n", 0);
     Printv(procdoc, "\f\n", signature, 0);
   }
-    
+
   Delete(proc_name);
   Delete(outarg);
   Delete(cleanup);
@@ -699,7 +699,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
   char  var_name[256];
   char  *tm;
   Wrapper *f;
-  
+
   f = NewWrapper();
   // evaluation function names
 
@@ -730,7 +730,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
 	       "\"Unable to set %s. Variable is read only.\", SCM_EOL);\n",
 	       proc_name, proc_name);
     }
-    else if ((tm = guile_typemap_lookup ("varin", 
+    else if ((tm = guile_typemap_lookup ("varin",
                                    t, name, (char*)"s_0", name, f))) {
       Printf (f_wrappers, "%s\n", tm);
     }
@@ -764,7 +764,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = guile_typemap_lookup ("varout", 
+    if ((tm = guile_typemap_lookup ("varout",
                               t, name, name, (char*)"gswig_result", f))) {
       Printf (f_wrappers, "%s\n", tm);
     }
@@ -791,7 +791,7 @@ GUILE::link_variable (char *name, char *iname, SwigType *t)
     if (procdoc) {
       /* Compute documentation */
       String *signature = NewString("");
-      
+
       if (Status & STAT_READONLY) {
 	Printv(signature, "(", proc_name, ")\n", 0);
 	Printv(signature, "Returns constant ", 0);
@@ -878,7 +878,7 @@ GUILE::declare_const (char *name, char *, SwigType *type, char *value)
     if (SwigType_type(type) == T_STRING) {
       Printf (f_header, "\"%s\";\n", value);
     } else if (SwigType_type(type) == T_CHAR) {
-      Printf (f_header, "\'%s\';\n", value);      
+      Printf (f_header, "\'%s\';\n", value);
     } else {
       Printf (f_header, "%s;\n", value);
     }

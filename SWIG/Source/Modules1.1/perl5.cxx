@@ -1,15 +1,15 @@
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * perl5.cxx
  *
  *     Generate Perl5 wrappers
- * 
+ *
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *             Loic Dachary (loic@ceic.com)
  *             David Fletcher
  *             Gary Holt
  *
  * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
+ * See the file LICENSE for information on usage and redistribution.
  * ----------------------------------------------------------------------------- */
 
 /* DB: I had to take some features related to package naming out of this to
@@ -49,7 +49,7 @@ static int          is_static = 0;
 
 static  int      blessed = 0;                /* Enable object oriented features */
 static  Hash     *classes = 0;               /* A hash table for storing the classes we've seen so far */
-static  Hash     *symbols = 0; 
+static  Hash     *symbols = 0;
 static  int      have_constructor = 0;
 static  int      have_destructor= 0;
 static  int      have_data_members = 0;
@@ -151,7 +151,7 @@ PERL5::parse() {
 
   classes = NewHash();
   symbols = NewHash();
-  
+
   vinit          = NewString("");
   pm             = NewString("");
   func_stubs     = NewString("");
@@ -168,12 +168,12 @@ PERL5::parse() {
 
   if (Swig_insert_file("common.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error.  Unable to locate 'common.swg' in SWIG library.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
 
   if (Swig_insert_file("perl5.swg", f_runtime) == -1) {
     Printf(stderr,"SWIG : Fatal error.  Unable to locate 'perl5.swg' in SWIG library.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
   yyparse();
 }
@@ -182,7 +182,7 @@ PERL5::parse() {
 /* -----------------------------------------------------------------------------
  * PERL5::set_module()
  * ----------------------------------------------------------------------------- */
-void 
+void
 PERL5::set_module(char *mod_name) {
   if (import_file) {
     if (!(Cmp(import_file,input_file+strlen(input_file)-Len(import_file)))) {
@@ -195,7 +195,7 @@ PERL5::set_module(char *mod_name) {
   }
 
   if (module) return;
-  
+
   module = NewString(mod_name);
 
   /* Create a C module name and put it in 'cmodule' */
@@ -215,7 +215,7 @@ PERL5::initialize()
 
   if (!module){
     Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit(1);
+    SWIG_exit (EXIT_FAILURE);
   }
 
   if (!package) {
@@ -231,7 +231,7 @@ PERL5::initialize()
     realpackage = NewString(package);
   }
 
-  /* Create a .pm file 
+  /* Create a .pm file
    * Need to strip off any prefixes that might be found in
    * the module name */
 
@@ -247,7 +247,7 @@ PERL5::initialize()
     sprintf(filen,"%s%s.pm", output_dir,m);
     if ((f_pm = fopen(filen,"w")) == 0) {
       Printf(stderr,"Unable to open %s\n", filen);
-      SWIG_exit(0);
+      SWIG_exit (EXIT_FAILURE);
     }
   }
   if (!blessed) {
@@ -305,7 +305,7 @@ PERL5::initialize()
     Printf(f_pm,"@ISA = qw(Exporter DynaLoader);\n");
   } else {
     Printf(f_pm,"@ISA = qw(Exporter);\n");
-  }    
+  }
 
   /* Start creating magic code */
 
@@ -351,7 +351,7 @@ PERL5::close(void) {
 	 0);
 
   Printf(f_header,"%s\n", magic);
-  
+
   String *type_table = NewString("");
   SwigType_emit_type_table(f_runtime,type_table);
 
@@ -379,7 +379,7 @@ PERL5::close(void) {
   Printv(vinit,tab4, "XSRETURN(1);\n", "}\n", 0);
   Printf(f_wrappers,"%s", vinit);
 
-  Printf(f_pm,"package %s;\n", package);	
+  Printf(f_pm,"package %s;\n", package);
 
   if (!is_static) {
     Printf(f_pm,"bootstrap %s;\n", realpackage);
@@ -410,7 +410,7 @@ PERL5::close(void) {
 	   "}\n\n",
 	   0);
 
-    /* Output a CLEAR method.   This is just a place-holder, but by providing it we 
+    /* Output a CLEAR method.   This is just a place-holder, but by providing it we
      * can make declarations such as
      *     %$u = ( x => 2, y=>3, z =>4 );
      *
@@ -468,9 +468,9 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
 
   /* If we're passing a void pointer, we give the pointer conversion a NULL
      pointer, otherwise pass in the expected type. */
-  
+
   if (SwigType_type(t) == T_VOID) Printf(f, " 0 ) < 0) {\n");
-  else 
+  else
     Printv(f, "SWIGTYPE", SwigType_manglestr(t), ") < 0) {\n",0);
 
   Printv(f,
@@ -492,7 +492,7 @@ PERL5::create_command(char *cname, char *iname) {
   }
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * PERL5::create_function()
  * ----------------------------------------------------------------------------- */
 void
@@ -505,7 +505,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   char  *tm;
   String *cleanup, *outarg;
   int    numopt = 0;
-  int    need_save, num_saved = 0;          
+  int    need_save, num_saved = 0;
 
   f       = NewWrapper();
   cleanup = NewString("");
@@ -560,18 +560,18 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	  Printf(f->code,"    %s = (%s)SvIV(ST(%d));\n", target, SwigType_lstr(pt,0),j);
 	  break;
 	case T_CHAR :
-	  
+
 	  Printf(f->code,"    %s = (char) *SvPV(ST(%d),PL_na);\n", target, j);
 	  break;
-	  
+
 	case T_DOUBLE :
 	case T_FLOAT :
 	  Printf(f->code,"    %s = (%s)SvNV(ST(%d));\n", target, SwigType_lstr(pt,0), j);
 	  break;
-	  
+
 	case T_VOID :
 	  break;
-	  
+
 	case T_USER:
 	  SwigType_add_pointer(pt);
 	  sprintf(temp,"argument %d", i+1);
@@ -595,7 +595,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	}
       }
       /* The source is going to be an array of saved values. */
-      sprintf(temp,"_saved[%d]",num_saved);      
+      sprintf(temp,"_saved[%d]",num_saved);
       if (j>= (pcount-numopt))
 	Printf(f->code,"    } \n");
       j++;
@@ -624,7 +624,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
       Delete(tempstr);
       need_save = 1;
     }
-    /* If we need a saved variable, we need to emit to emit some code for that 
+    /* If we need a saved variable, we need to emit to emit some code for that
        This only applies if the argument actually existed (not ignore) */
     if ((need_save) && (!Getignore(p))) {
       Printv(f->code, tab4, temp, " = ", source, ";\n", 0);
@@ -667,7 +667,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	       tab4, "sv_setpv((SV*)ST(argvi++),ctemp);\n",
 	       0);
 	break;
-	
+
       case T_USER:
 	SwigType_add_pointer(d);
 	SwigType_remember(d);
@@ -675,7 +675,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
 	       tab4, "SWIG_MakePtr(ST(argvi++), (void *) result, SWIGTYPE", SwigType_manglestr(d),");\n", 0);
 	SwigType_del_pointer(d);
 	break;
-	
+
       case T_STRING:
 	Printf(f->code,"    sv_setpv((SV*)ST(argvi++),(char *) result);\n");
 	break;
@@ -693,7 +693,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   }
 
   /* If there were any output args, take care of them. */
-  
+
   Printv(f->code,outarg,0);
 
   /* If there was any cleanup, do that. */
@@ -737,7 +737,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
    * Create a stub for this function, provided it's not a member function
    *
    * Really we only need to create a stub if this function involves
-   * complex datatypes.   If it does, we'll make a small wrapper to 
+   * complex datatypes.   If it does, we'll make a small wrapper to
    * process the arguments.   If it doesn't, we'll just make a symbol
    * table entry.
    * -------------------------------------------------------------------- */
@@ -745,7 +745,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   if ((blessed) && (!member_func)) {
     int    need_stub = 0;
     String *func = NewString("");
-    
+
     /* We'll make a stub since we may need it anyways */
 
     Printv(func, "sub ", iname, " {\n",
@@ -786,7 +786,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
     Printv(func, tab4, "my $result = ", package, "::", iname, "(@args);\n", 0);
 
     /* Now check to see what kind of return result was found.
-     * If this function is returning a result by 'value', SWIG did an 
+     * If this function is returning a result by 'value', SWIG did an
      * implicit malloc/new.   We'll mark the object like it was created
      * in Perl so we can garbage collect it. */
 
@@ -838,7 +838,7 @@ PERL5::create_function(char *name, char *iname, SwigType *d, ParmList *l)
   DelWrapper(f);
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * PERL5::link_variable()
  * ----------------------------------------------------------------------------- */
 
@@ -889,9 +889,9 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
       case T_CHAR :
 	Printv(setf->code, tab4, name, " = (char) *SvPV(sv,PL_na);\n", 0);
 	break;
-	
+
       case T_USER:
-	
+
 	SwigType_add_pointer(t);
 	Wrapper_add_local(setf,"_temp", "void *_temp");
 	get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
@@ -902,7 +902,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
       case T_STRING:
 	Wrapper_add_local(setf,"_a","char *_a");
 	Printf(setf->code,"    _a = (char *) SvPV(sv,PL_na);\n");
-	
+
 	if (CPlusPlus)
 	  Printv(setf->code,
 		 tab4, "if (", name, ") delete [] ", name, ";\n",
@@ -951,11 +951,11 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
     Printf(setf->code,"    return 1;\n}\n");
     Replace(setf->code,"$name",iname, DOH_REPLACE_ANY);
     Wrapper_print(setf,magic);
-    
+
   }
 
   /* Now write a function to evaluate the variable */
-  
+
   Printf(getf->def,"SWIGCLASS_STATIC int %s(SV *sv, MAGIC *mg) {\n", val_name);
   Printv(getf->code,
 	 tab4, "MAGIC_PPERL\n",
@@ -968,7 +968,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
     Printf(getf->code,"%s\n", tm);
   } else {
     switch(SwigType_type(t)) {
-      
+
     case T_INT : case T_BOOL: case T_UINT:
     case T_SHORT : case T_USHORT:
     case T_LONG : case T_ULONG:
@@ -995,11 +995,11 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
 	     0);
-      
+
       Wrapper_add_local(getf,"rsv","SV *rsv");
       Printv(vinit, tab4, "SWIG_MakePtr(sv, (void *) &", name, ",SWIGTYPE", SwigType_manglestr(t), ");\n",0);
       SwigType_del_pointer(t);
-      
+
       break;
 
     case T_STRING:
@@ -1016,7 +1016,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	      Delete(ta);
 	      Delete(aop);
 	      break;
-	    } 
+	    }
 	    Delete(ta);
 	    Delete(aop);
 	  }
@@ -1026,7 +1026,7 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 	     tab4, "rsv = SvRV(sv);\n",
 	     tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
 	     0);
-      
+
       Wrapper_add_local(getf,"rsv","SV *rsv");
       Printv(vinit, tab4, "SWIG_MakePtr(sv,(void *) 1, SWIGTYPE", SwigType_manglestr(t), ");\n",0);
       break;
@@ -1039,19 +1039,19 @@ void PERL5::link_variable(char *name, char *iname, SwigType *t)
 
   Replace(getf->code,"$name",iname, DOH_REPLACE_ANY);
   Wrapper_print(getf,magic);
-  
+
   /* Now add symbol to the PERL interpreter */
   if ((Status & STAT_READONLY) || (!setable)) {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\",MAGIC_CAST MAGIC_CLASS swig_magic_readonly, MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
   } else {
     Printv(vinit, tab4, "swig_create_magic(sv,\"", package, "::", iname, "\", MAGIC_CAST MAGIC_CLASS ", set_name, ", MAGIC_CAST MAGIC_CLASS ", val_name, ");\n",0);
-  }      
-  
+  }
+
   /* If we're blessed, try to figure out what to do with the variable
        1.  If it's a Perl object of some sort, create a tied-hash
            around it.
 	   2.  Otherwise, just hack Perl's symbol table */
-  
+
   if (blessed) {
     if (is_shadow(t)) {
       Printv(var_stubs,
@@ -1182,7 +1182,7 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 	Printf(f_header,"%s\n",setrv);
 	have_ref_func = 1;
       }
-      Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"", 
+      Printv(vinit, tab4, "swig_setrv(\"", package, "::", name, "\", (void *) ", value, ", \"",
 	     SwigType_manglestr(type), "\");\n", 0);
       break;
 
@@ -1210,7 +1210,7 @@ PERL5::declare_const(char *name, char *, SwigType *type, char *value)
 }
 
 /* -----------------------------------------------------------------------------
- * PERL5::usage_func() 
+ * PERL5::usage_func()
  * ----------------------------------------------------------------------------- */
 char *
 PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
@@ -1221,7 +1221,7 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
   if (!temp) temp = NewString("");
   Clear(temp);
   Printf(temp,"%s(",iname);
-  
+
   /* Now go through and print parameters */
   p = l;
   i = 0;
@@ -1244,7 +1244,7 @@ PERL5::usage_func(char *iname, SwigType *, ParmList *l) {
 	  Putc(',',temp);
     } else {
       p = Getnext(p);
-      if (p) 
+      if (p)
 	if ((i>0) && (!Getignore(p)))
 	  Putc(',',temp);
     }
@@ -1267,22 +1267,22 @@ PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
 }
 
 /****************************************************************************
- ***                      OBJECT-ORIENTED FEATURES                        
+ ***                      OBJECT-ORIENTED FEATURES
  ****************************************************************************
- *** These extensions provide a more object-oriented interface to C++     
- *** classes and structures.    The code here is based on extensions      
+ *** These extensions provide a more object-oriented interface to C++
+ *** classes and structures.    The code here is based on extensions
  *** provided by David Fletcher and Gary Holt.
- ***                                                                      
- *** I have generalized these extensions to make them more general purpose   
- *** and to resolve object-ownership problems.                            
  ***
- *** The approach here is very similar to the Python module :             
- ***       1.   All of the original methods are placed into a single      
- ***            package like before except that a 'c' is appended to the  
- ***            package name.                                             
+ *** I have generalized these extensions to make them more general purpose
+ *** and to resolve object-ownership problems.
  ***
- ***       2.   All methods and function calls are wrapped with a new     
- ***            perl function.   While possibly inefficient this allows   
+ *** The approach here is very similar to the Python module :
+ ***       1.   All of the original methods are placed into a single
+ ***            package like before except that a 'c' is appended to the
+ ***            package name.
+ ***
+ ***       2.   All methods and function calls are wrapped with a new
+ ***            perl function.   While possibly inefficient this allows
  ***            us to catch complex function arguments (which are hard to
  ***            track otherwise).
  ***
@@ -1299,7 +1299,7 @@ PERL5::add_native(char *name, char *funcname, SwigType *, ParmList *) {
  ***
  ***       6.   Object ownership is maintained by having a hash table
  ***            within in each package called "this".  It is unlikely
- ***            that C++ program will use this so it's a somewhat 
+ ***            that C++ program will use this so it's a somewhat
  ***            safe variable name.
  ***
  ****************************************************************************/
@@ -1321,7 +1321,7 @@ PERL5::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     Delete(real_classname); real_classname = 0;
     Delete(base_class);     base_class = 0;
     Delete(fullclassname);  fullclassname = 0;
-    
+
     /* If the class is being renamed to something else, use the renaming */
     if (rname) {
       class_name = NewString(rname);
@@ -1366,7 +1366,7 @@ PERL5::cpp_close_class() {
 
     if (Cmp(class_name,realpackage))
       Printv(pm, "@ISA = qw( ",realpackage, 0);
-    else 
+    else
       Printv(pm, "@ISA = qw( ", 0);
 
     if (base_class) {
@@ -1378,7 +1378,7 @@ PERL5::cpp_close_class() {
 
     Printf(pm, "%%OWNER = ();\n");
     if (have_data_members) {
-      Printv(pm, 
+      Printv(pm,
 	     "%BLESSEDMEMBERS = (\n", blessedmembers, ");\n\n",
 	     0);
     }
@@ -1425,7 +1425,7 @@ PERL5::cpp_close_class() {
 	     tab4, "return $val;\n",
 	     "}\n\n",
 	     0);
-      
+
       /* Output a STORE method.   This is also common to all classes (might move to base class) */
 
       Printv(pm,
@@ -1534,16 +1534,16 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     }
     p = Getnext(p);
   }
-  
+
   /* Okay.  We've made argument adjustments, now call into the package */
 
   Printv(func,
 	 tab4, "my $result = ", package, "::", Swig_name_member(class_name,realname),
         "(@args);\n",
 	 0);
-  
+
   /* Now check to see what kind of return result was found.
-   * If this function is returning a result by 'value', SWIG did an 
+   * If this function is returning a result by 'value', SWIG did an
    * implicit malloc/new.   We'll mark the object like it was created
    * in Perl so we can garbage collect it. */
 
@@ -1556,7 +1556,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     need_wrapper = 1;
 
   } else if (is_shadow(t)) {
-    
+
     Printv(func,tab4, "return undef if (!defined($result));\n", 0);
 
     /* If we're returning an object by value, put it's reference
@@ -1579,7 +1579,7 @@ PERL5::cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l) {
     need_wrapper = 1;
   } else {
 
-    /* Hmmm.  This doesn't appear to be anything I know about so just 
+    /* Hmmm.  This doesn't appear to be anything I know about so just
        return it unmodified */
 
     Printv(func, tab4,"return $result;\n", "}\n", 0);
@@ -1621,7 +1621,7 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
   /* Emit a pair of get/set functions for the variable */
 
   member_func = 1;
-  this->Language::cpp_variable(name, iname, t);  
+  this->Language::cpp_variable(name, iname, t);
   member_func = 0;
 
   if (iname) realname = iname;
@@ -1631,10 +1631,10 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
     Printf(cname,"%s::%s", class_name, realname);
     if (Getattr(symbols,cname)) {
       Delete(cname);
-      return; 
+      return;
     }
     Setattr(symbols,cname,cname);
-	
+
     /* Store name of key for future reference */
     Printf(member_keys,"'%s', ", realname);
 
@@ -1642,12 +1642,12 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
 
     if (is_shadow(t)) {
 
-      /* This is a Perl object that we have already seen.  Add an 
+      /* This is a Perl object that we have already seen.  Add an
 	 entry to the members list*/
       Printv(blessedmembers,
 	     tab4, realname, " => '", is_shadow(t), "',\n",
 	     0);
-      
+
      }
   }
   have_data_members++;
@@ -1659,7 +1659,7 @@ void PERL5::cpp_variable(char *name, char *iname, SwigType *t) {
  *
  * Emits a blessed constructor for our class.    In addition to our construct
  * we manage a Perl hash table containing all of the pointers created by
- * the constructor.   This prevents us from accidentally trying to free 
+ * the constructor.   This prevents us from accidentally trying to free
  * something that wasn't necessarily allocated by malloc or new
  * ----------------------------------------------------------------------------- */
 void
@@ -1678,7 +1678,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 
   if (blessed) {
 
-    if (iname) 
+    if (iname)
       realname = iname;
     else {
       if (class_renamed) realname = class_name;
@@ -1692,17 +1692,17 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
     }
     Setattr(symbols,cname, cname);
     if ((Cmp(realname,class_name) == 0) || ((!iname) && (ObjCClass)) ){
-      
+
       /* Emit a blessed constructor  */
 
       Printf(pcode, "sub new {\n");
 
     } else {
-      
+
       /* Constructor doesn't match classname so we'll just use the normal name  */
 
       Printv(pcode, "sub ", Swig_name_construct(realname), " () {\n", 0);
-	
+
     }
 
     Printv(pcode, tab4, "my $self = shift;\n",
@@ -1712,12 +1712,12 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
      * Now we have to go through and patch up the argument list.  If any
      * arguments to our function correspond to other Perl objects, we
      * need to extract them from a tied-hash table object. */
-    
+
     p = l;
     i = 0;
     while(p) {
       SwigType *pt = Gettype(p);
-      
+
       if (is_shadow(pt)) {
 	/* Yep.   This smells alot like an object, patch up the arguments */
 	Printf(pcode, "    $args[%d] = tied(%%{$args[%d]});\n", i, i);
@@ -1725,7 +1725,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
       p = Getnext(p);
       i++;
     }
-    
+
     Printv(pcode,
 	   tab4, "$self = ", package, "::", Swig_name_construct(realname), "(@args);\n",
 	   tab4, "return undef if (!defined($self));\n",
@@ -1747,7 +1747,7 @@ PERL5::cpp_constructor(char *name, char *iname, ParmList *l) {
 /* -----------------------------------------------------------------------------
  * PERL5::cpp_destructor()
  * ----------------------------------------------------------------------------- */
-void 
+void
 PERL5::cpp_destructor(char *name, char *newname) {
   String *realname;
   member_func = 1;
@@ -1764,7 +1764,7 @@ PERL5::cpp_destructor(char *name, char *newname) {
 
     Printv(pcode,
 	   "sub DESTROY {\n",
-           tab4, "return unless $_[0]->isa('HASH');\n",   
+           tab4, "return unless $_[0]->isa('HASH');\n",
 	   tab4, "my $self = tied(%{$_[0]});\n",
            tab4, "delete $ITERATORS{$self};\n",
 	   tab4, "if (exists $OWNER{$self}) {\n",
@@ -1772,9 +1772,9 @@ PERL5::cpp_destructor(char *name, char *newname) {
 	   tab8, "delete $OWNER{$self};\n",
 	   tab4, "}\n}\n\n",
 	   0);
-    
+
     have_destructor = 1;
-    
+
   }
   member_func = 0;
 }
@@ -1782,7 +1782,7 @@ PERL5::cpp_destructor(char *name, char *newname) {
 /* -----------------------------------------------------------------------------
  * PERL5::cpp_static_func()
  * ----------------------------------------------------------------------------- */
-void 
+void
 PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
   this->Language::cpp_static_func(name,iname,t,l);
   char *realname;
@@ -1793,11 +1793,11 @@ PERL5::cpp_static_func(char *name, char *iname, SwigType *t, ParmList *l) {
     Printv(pcode, "*", realname, " = *", realpackage, "::", Swig_name_member(class_name,realname), ";\n", 0);
   }
 }
-  
+
 /* -----------------------------------------------------------------------------
  * PERL5::cpp_inherit()
  * ------------------------------------------------------------------------------ */
-void 
+void
 PERL5::cpp_inherit(char **baseclass, int) {
   char *bc;
   int  i = 0, have_first = 0;
@@ -1806,7 +1806,7 @@ PERL5::cpp_inherit(char **baseclass, int) {
     return;
   }
 
-  /* Inherit variables and constants from base classes, but not 
+  /* Inherit variables and constants from base classes, but not
      functions (since Perl can handle that okay). */
 
   this->Language::cpp_inherit(baseclass, INHERIT_CONST | INHERIT_VAR);
@@ -1830,7 +1830,7 @@ PERL5::cpp_inherit(char **baseclass, int) {
   }
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * PERL5::cpp_declare_const()
  * ----------------------------------------------------------------------------- */
 void
@@ -1838,7 +1838,7 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
   String *realname;
   int   oldblessed = blessed;
   char  cname[256];
-  
+
   /* Create a normal constant */
   blessed = 0;
   this->Language::cpp_declare_const(name, iname, type, value);
@@ -1849,10 +1849,10 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
       realname = name;
     else
       realname = iname;
-    
+
     sprintf(cname,"%s::%s",Char(class_name),Char(realname));
     if (Getattr(symbols, cname)) {
-      return; 
+      return;
     }
     Setattr(symbols, cname,cname);
 
@@ -1864,7 +1864,7 @@ PERL5::cpp_declare_const(char *name, char *iname, SwigType *type, char *value) {
 /* -----------------------------------------------------------------------------
  * PERL5::cpp_class_decl()
  * ----------------------------------------------------------------------------- */
-void 
+void
 PERL5::cpp_class_decl(char *name, char *rename, char *type) {
   String *stype;
   if (blessed) {
@@ -1884,12 +1884,12 @@ PERL5::cpp_class_decl(char *name, char *rename, char *type) {
 /* -----------------------------------------------------------------------------
  * PERL5::add_typedef()
  * ----------------------------------------------------------------------------- */
-void 
+void
 PERL5::add_typedef(SwigType *t, char *name) {
 
   if (!blessed) return;
   if (is_shadow(t)) {
-    cpp_class_decl(name,Char(is_shadow(t)),"");    
+    cpp_class_decl(name,Char(is_shadow(t)),"");
   }
 }
 
