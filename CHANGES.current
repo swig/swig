@@ -1,6 +1,25 @@
 Version 1.3.23 (in progress)
 ============================
 
+10/25/2004: wsfulton
+            [C#] New commandline option -dllimport. This enables one to specify
+            the name of the DLL for the DllImport attribute. Normally this name
+            comes from the module name, so now it is possible to override this:
+
+              swig -csharp -dllimport xyz example.i
+
+            will generate for all the wrapped PInvoke methods:
+
+              [DllImport("xyz", EntryPoint="...")]
+              public static extern ...
+
+            The wrappers from many different SWIG invocations can thus be compiled
+            into one DLL.
+
+            A new special variable $dllimport can also be used in typemaps, pragmas,
+            features etc. This will get translated into the value specified by -dllimport
+            if specified, otherwise the module name.
+
 10/22/2004: wsfulton
             [Java] Patch #1049496 from Scott Michel fixes directors methods with 
             enums when wrapped with typesafe or proper Java enums.
