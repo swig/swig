@@ -13,56 +13,56 @@
 
 %typemap(php4,in) double *INPUT(double temp)
 {
-	temp = (double) Z_DVAL_P($source);
-	$target = &temp;
+	temp = (double) Z_DVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) float  *INPUT(float temp)
 {
-	temp = (float) Z_DVAL_P($source);
-	$target = &temp;
+	temp = (float) Z_DVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) int	*INPUT(int temp)
 {
-	temp = (int) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (int) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) short	*INPUT(short temp)
 {
-	temp = (short) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (short) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) long	*INPUT(long temp)
 {
-	temp = (long) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (long) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) unsigned int	*INPUT(unsigned int temp)
 {
-	temp = (unsigned int) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (unsigned int) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) unsigned short *INPUT(unsigned short temp)
 {
-	temp = (unsigned short) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (unsigned short) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) unsigned long *INPUT(unsigned long temp)
 {
-	temp = (unsigned long) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (unsigned long) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,in) unsigned char *INPUT(unsigned char temp)
 {
-	temp = (unsigned char) Z_LVAL_P($source);
-	$target = &temp;
+	temp = (unsigned char) Z_LVAL_PP($input);
+	$1 = &temp;
 }
 
 %typemap(php4,ignore)	int	*OUTPUT(int temp),
@@ -75,7 +75,7 @@
 			float		*OUTPUT(float temp),
 			double		*OUTPUT(double temp)
 {
-  $target = &temp;
+  $1 = &temp;
 }
 
 %typemap(php4,argout)	int	*OUTPUT,
@@ -87,13 +87,13 @@
 			unsigned char	*OUTPUT
 {
 
-  RETURN_LONG(*($source));
+  RETURN_LONG(*($input));
 }
 
 %typemap(php4,argout)	float	*OUTPUT,
 			double	*OUTPUT
 {
-  RETURN_DOUBLE(*($source));
+  RETURN_DOUBLE(*($input));
 }
 
 %typemap(php4,in) int *INOUT = int *INPUT;
@@ -126,8 +126,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (double) (*$source)->value.dval;
-  $target = &dvalue;
+  dvalue = (double) (*$input)->value.dval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) float *REFERENCE (float dvalue)
@@ -138,8 +138,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (float) (*$source)->value.dval;
-  $target = &dvalue;
+  dvalue = (float) (*$input)->value.dval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) int *REFERENCE (int dvalue)
@@ -150,8 +150,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (int) (*$source)->value.lval;
-  $target = &dvalue;
+  dvalue = (int) (*$input)->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) short *REFERENCE (short dvalue)
@@ -162,8 +162,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (short) (*$source)->value.lval;
-  $target = &dvalue;
+  dvalue = (short) (*$input)->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) long *REFERENCE (long dvalue)
@@ -174,8 +174,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (long) (*$source)->value.lval;
-  $target = &dvalue;
+  dvalue = (long) (*$input)->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) unsigned int *REFERENCE (unsigned int dvalue)
@@ -186,8 +186,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (unsigned int) (*$source)->value.lval;
-  $target = &dvalue;
+  dvalue = (unsigned int) (*$input)->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) unsigned short *REFERENCE (unsigned short dvalue)
@@ -198,8 +198,8 @@
 	RETURN_NULL();
   }
 
-  dvalue = (unsigned short) $source->value.lval;
-  $target = &dvalue;
+  dvalue = (unsigned short) $input->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,in) unsigned long *REFERENCE (unsigned long dvalue)
@@ -210,15 +210,15 @@
 	RETURN_NULL();
   }
 
-  dvalue = (unsigned long) $source->value.lval;
-  $target = &dvalue;
+  dvalue = (unsigned long) $input->value.lval;
+  $1 = &dvalue;
 }
 
 %typemap(php4,argout) double *REFERENCE,
 		      float  *REFERENCE
 {
-  $target->value.dval = (double)(*$arg);
-  $target->type = IS_DOUBLE;
+  $1->value.dval = (double)(*$arg);
+  $1->type = IS_DOUBLE;
 }
 
 %typemap(php4,argout) int	*REFERENCE,
@@ -229,6 +229,6 @@
 		      unsigned long *REFERENCE
 {
 
-  (*$arg)->value.lval = (long)(*$source);
+  (*$arg)->value.lval = (long)(*$input);
   (*$arg)->type = IS_LONG;
 }

@@ -396,7 +396,7 @@ zval *ptrfree(zval *_PTRVALUE) {
 
 %}
 %typemap(php4,in) zval *ptr, zval *value {
-  $target = $source;
+  $1 = *($input);
 }
 
 %typemap(php4,out) zval *ptrcast,
@@ -407,15 +407,15 @@ zval *ptrfree(zval *_PTRVALUE) {
 		     zval *ptrfree
 {
   
-  if($source) {
-  		*return_value = *$source;
+  if($input) {
+  		*return_value = *$input;
 		zval_copy_ctor(return_value);
   }
 
 }
 
 %typemap(php4,ret) int ptrset {
-  if ($source == -1) return NULL;
+  if ($input == -1) return NULL;
 }
 
 zval *ptrvalue(zval *ptr, int index = 0, char *type = 0);
