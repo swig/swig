@@ -277,6 +277,8 @@ Language::Language() :
     default. Each language that need it, has to define it.
   */
   director_prot_ctor_code = 0;
+  director_multiple_inheritance = 1;
+  director_language = 0;
 }
 
 Language::~Language() {
@@ -729,7 +731,7 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend ) {
       /* we check what director needs. If the method is  pure virtual,
 	 it is  always needed. */ 
-      if (!(is_member_director(CurrentClass,n) && need_nonpublic_member(n)))
+      if (!(directorsEnabled() && is_member_director(CurrentClass,n) && need_nonpublic_member(n)))
 	return SWIG_NOWRAP;
     }
   }
@@ -1515,22 +1517,50 @@ int Language::classDirectorDefaultConstructor(Node *n) {
 /* ----------------------------------------------------------------------
  * Language::unrollVirtualMethods()
  * ---------------------------------------------------------------------- */
+static
+String *vtable_method_id(Node *n)
+{
+  String *nodeType = Getattr(n, "nodeType");
+  int is_destructor = (Cmp(nodeType, "destructor") == 0);
+  if (is_destructor) return 0;
+  String *name = Getattr(n, "name");
+  String *decl = Getattr(n, "decl");
+  String *local_decl = SwigType_typedef_resolve_all(decl);
+  Node *method_id = NewStringf("%s|%s", name, local_decl);
+  Delete(local_decl);
+  return method_id;
+}
+
 
 int Language::unrollVirtualMethods(Node *n, 
                                    Node *parent, 
                                    Hash *vm, 
                                    int default_director, 
-                                   int &virtual_destructor) { 
+                                   int &virtual_destructor,
+				   int protectedbase) { 
   Node *ni;
   String *nodeType;
   String *classname;
   String *decl;
+  bool first_base = false;
   // recurse through all base classes to build the vtable
   List* bl = Getattr(n, "bases");
   if (bl) {
     Iterator bi;
     for (bi = First(bl); bi.item; bi = Next(bi)) {
+      if (first_base && !director_multiple_inheritance) break;
       unrollVirtualMethods(bi.item, parent, vm, default_director, virtual_destructor);
+      first_base = true;
+    }
+  }
+  // recurse through all protected base classes to build the vtable, as needed
+  bl = Getattr(n, "protectedbases");
+  if (bl) {
+    Iterator bi;
+    for (bi = First(bl); bi.item; bi = Next(bi)) {
+      if (first_base && !director_multiple_inheritance) break;
+      unrollVirtualMethods(bi.item, parent, vm, default_director, virtual_destructor, 1);
+      first_base = true;
     }
   }
   // find the methods that need directors
@@ -1545,11 +1575,11 @@ int Language::unrollVirtualMethods(Node *n,
       decl = Getattr(ni, "decl");
       /* extra check for function type and proper access */
       if (SwigType_isfunction(decl) 
-	  && (is_public(n) || need_nonpublic_member(n))
-	  && (is_public(ni) || need_nonpublic_member(ni))) {
+	  && (((!protectedbase || dirprot_mode()) && is_public(ni)) 
+	      || need_nonpublic_member(ni))) {
 	String *name = Getattr(ni, "name");
-	String *local_decl = SwigType_typedef_resolve_all(decl);
-	Node *method_id = is_destructor ? NewStringf("~destructor") : NewStringf("%s|%s", name, local_decl);
+	Node *method_id = is_destructor ? 
+	  NewStringf("~destructor") :  vtable_method_id(ni);
 	/* Make sure that the new method overwrites the existing: */
 	Hash *exists_item = Getattr(vm, method_id);
         if (exists_item) {
@@ -1564,7 +1594,8 @@ int Language::unrollVirtualMethods(Node *n,
 	Hash *item = NewHash();
 	Setattr(item, "fqName", fqname);
 	Node *m = Copy(ni);
-	String *mname = NewStringf("%s::%s", Getattr(parent,"name"), name);
+	String *mname = NewStringf("%s::%s", Getattr(parent,"name"),name);
+	/* apply the features of the original method found in the base class */
 	Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m,"decl"), m);
 	Setattr(item, "methodNode", m);
 	Setattr(vm, method_id, item);
@@ -1572,7 +1603,6 @@ int Language::unrollVirtualMethods(Node *n,
 	Delete(fqname);
 	Delete(item);
 	Delete(method_id);
-	Delete(local_decl);
       } 
       if (is_destructor) {
 	virtual_destructor = 1;
@@ -1592,39 +1622,16 @@ int Language::unrollVirtualMethods(Node *n,
     for (k = First(vm); k.key; k = Next(k)) {
       Node *m = Getattr(k.item, "methodNode");
       /* retrieve the director features */
-      int mdir = checkAttribute(m, "feature:director", "1") || director_mode;
+      int mdir = checkAttribute(m, "feature:director", "1");
       int mndir = checkAttribute(m, "feature:nodirector", "1");
       /* 'nodirector' has precedence over 'director' */
       int dir = (mdir || mndir) ? (mdir && !mndir) : 1;
       /* check if the method was found only in a base class */
       Node *p = Getattr(m, "parentNode");
       if (p != n) {
-	/* check for my own features to take precedence, ie, if I only
-	   found Base::method(), look for MySelf::method() features.
-	   
-	   The problem is that MySelf::method() is not declared in the
-	   MySelf class, and appears here through derivation:
-
-	   %feature("nodirector") Base::method();
-	   %feature("director") MySelf::method();
-
-	   struct Base {
-              virtual ~Base(); 
-	      virtual int method();
-	   };
-
-	   struct MySelf : Base {
-	   };
-
-	   *** Ask David, this is not working now!!! *****
-
-	   This is now just giving back the Base::method() features,
-	   maybe we need to look directly in the feature hash
-	   table?... 
-	*/
 	Node *c = Copy(m);
 	Setattr(c, "parentNode", n);
-	int cdir = checkAttribute(c, "feature:director", "1") || director_mode;
+	int cdir = checkAttribute(c, "feature:director", "1");
 	int cndir = checkAttribute(c, "feature:nodirector", "1");
 	dir = (cdir || cndir) ? (cdir && !cndir) : dir;
 	Delete(c);
@@ -1637,7 +1644,7 @@ int Language::unrollVirtualMethods(Node *n,
 	Delattr(vm, k.key);
       }
     }
-  }  
+  }
 
   return SWIG_OK;
 }
@@ -1696,16 +1703,21 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (!Cmp(nodeType, "constructor")) { 
+      Parm   *parms = Getattr(ni,"parms");
       if (is_public(ni)) {
 	/* emit public constructor */
         classDirectorConstructor(ni);
         constructor = 1;
+	if (default_ctor) 
+	  default_ctor = !ParmList_numrequired(parms);
       } else {
 	/* emit protected constructor if needed */
 	if (need_nonpublic_ctor(ni)) {
 	  classDirectorConstructor(ni);
 	  constructor = 1;
 	  protected_ctor = 1;
+	  if (default_ctor) 
+	    default_ctor = !ParmList_numrequired(parms);
 	}
       }
     }
@@ -1840,6 +1852,11 @@ int Language::classDirector(Node *n) {
                    "Director base class %s has no virtual destructor.\n",
 		   classtype);
     }
+  /*
+    since now %feature("nodirector") is working, we check
+    that the director is really not abstract.
+  */
+
     Setattr(n, "vtable", vtable);
     classDirectorInit(n);
     classDirectorConstructors(n);
@@ -1913,19 +1930,21 @@ int Language::classDeclaration(Node *n) {
   InClass = 1;
   CurrentClass = n;
 
-  Abstract = abstractClassTest(n);
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    int ndir = checkAttribute(n, "feature:director", "1") || director_mode;
+    int ndir = checkAttribute(n, "feature:director", "1");
     int nndir = checkAttribute(n, "feature:nodirector", "1");
     /* 'nodirector' has precedence over 'director' */
     int dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     if (directorsEnabled() && dir) {
       classDirector(n);
     }
+    /* check for abstract after resolving directors */
+    Abstract = abstractClassTest(n);
     classHandler(n);
   } else {
+    Abstract = abstractClassTest(n);
     Language::classHandler(n);
   }
 
@@ -1992,6 +2011,7 @@ int Language::classHandler(Node *n) {
   bool hasDirector = Swig_directorclass(n) ? true : false;
 
 
+
   /* Emit all of the class members */
   emit_children(n);
 
@@ -2011,7 +2031,7 @@ int Language::classHandler(Node *n) {
   if (!ImportMode && (GenerateDefault && !Getattr(n,"feature:nodefault"))) {
     if (!Getattr(n,"has_constructor") && !Getattr(n,"allocate:has_constructor") && (Getattr(n,"allocate:default_constructor"))) {
       /* Note: will need to change this to support different kinds of classes */
-      if (!Abstract || hasDirector) {
+      if (!Abstract) {
 	Node *cn = makeConstructor(CurrentClass);
 	constructorHandler(cn);
 	Delete(cn);
@@ -2098,6 +2118,7 @@ int Language::constructorDeclaration(Node *n) {
   }
   /* Only create a constructor if the class is not abstract */
 
+
   if (!Abstract) {
     Node *over;
     over = Swig_symbol_isoverloaded(n);
@@ -2143,22 +2164,51 @@ int Language::constructorDeclaration(Node *n) {
  * Language::constructorHandler()
  * ---------------------------------------------------------------------- */
 
+static String* 
+get_director_ctor_code(Node *n, String *director_ctor_code, 
+		       String *director_prot_ctor_code,
+		       List*& abstract )
+{
+  String *director_ctor = director_ctor_code;
+  int use_director = Swig_directorclass(n);
+  if (use_director) {
+    Node *pn = Swig_methodclass(n);
+    abstract = Getattr(pn,"abstract");
+    if (director_prot_ctor_code) {
+      int is_notabstract = Getattr(pn,"feature:notabstract") ? 1 : 0;
+      int is_abstract = abstract && !is_notabstract;
+      if (is_protected(n) || is_abstract) {
+	director_ctor = director_prot_ctor_code;
+	Delattr(pn,"abstract");
+      } else {
+	if (is_notabstract) {
+	  Delattr(pn,"abstract");
+	} else {
+	  abstract = 0;
+	}
+      }
+    }
+  }
+  return director_ctor;
+}
+
+
 int 
 Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler",n,"?name","*sym:name","?type","?parms",NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_construct(symname);
-  String *director_ctor = director_ctor_code;
-  if (director_prot_ctor_code) {
-    if (is_protected(n) || Getattr(Swig_methodclass(n),"abstract")) {
-      director_ctor = director_prot_ctor_code;
-    }
-  }
-  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
+  List *abstract = 0;
+  String *director_ctor = get_director_ctor_code(n, director_ctor_code,
+						 director_prot_ctor_code,
+						 abstract);
+  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, 
+			     CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
   Swig_restore(n);
+  if (abstract) Setattr(Swig_methodclass(n),"abstract",abstract);
   return SWIG_OK;
 }
 
@@ -2171,18 +2221,17 @@ Language::copyconstructorHandler(Node *n) {
   Swig_require("copyconstructorHandler",n,"?name","*sym:name","?type","?parms", NIL);
   String *symname = Getattr(n,"sym:name");
   String *mrename = Swig_name_copyconstructor(symname);
-  String *director_ctor = director_ctor_code;
-  if (director_prot_ctor_code) {
-    if (is_protected(n) || Getattr(Swig_methodclass(n),"abstract")) {
-      director_ctor = director_prot_ctor_code;
-    }
-  }
+  List *abstract = 0;
+  String *director_ctor = get_director_ctor_code(n, director_ctor_code,
+						 director_prot_ctor_code,
+						 abstract);
   Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor,
 			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
   Swig_restore(n);
+  if (abstract) Setattr(Swig_methodclass(n),"abstract",abstract);
   return SWIG_OK;
 }
 
@@ -2576,7 +2625,7 @@ void Language::allow_directors(int val) {
  * ----------------------------------------------------------------------------- */
  
 int Language::directorsEnabled() const {
-  return (directors || director_mode) && CPlusPlus;
+  return director_language && CPlusPlus && (directors || director_mode);
 }
 
 /* -----------------------------------------------------------------------------
@@ -2731,33 +2780,61 @@ String * Language::getClassType() const {
 /* -----------------------------------------------------------------------------
  * Language::abstractClassTest()
  * ----------------------------------------------------------------------------- */
-
+//#define SWIG_DEBUG
 int Language::abstractClassTest(Node *n) {
   /* check for non public operator new */
+  if (Getattr(n,"feature:notabstract")) return 0;  
   if (Getattr(n,"allocate:nonew")) return 1;
   /* now check for the rest */
   List *abstract = Getattr(n,"abstract");
   if (!abstract) return 0;
+  int labs = Len(abstract);
+#ifdef SWIG_DEBUG
+  List *bases = Getattr(n,"allbases");
+  Printf(stderr,"testing %s %d %d\n",Getattr(n,"name"),labs,Len(bases));
+#endif
+  if (!labs) return 0; /*strange, but need to be fixed */
   if (abstract && !directorsEnabled()) return 1;
-  if (Cmp(Getattr(n, "feature:director"), "1")) return 1;
-  /*
-    since now %feature("noabstract") is working, we check
-    that the director is really not abstract.
-  */
-  int dirabstract = 0;
-  for (int i = 0; i < Len(abstract); i++) {
-    Node *nn = Getitem(abstract,i);
-    if (!is_member_director(n,nn)) {
-      dirabstract = 1;
+  if (!Getattr(n,"feature:director")) return 1;
+
+  Node *dirabstract = 0;  
+  Node *vtable = Getattr(n, "vtable");
+  if (vtable) {
+#ifdef SWIG_DEBUG
+     Printf(stderr,"vtable %s %d %d\n",Getattr(n,"name"),Len(vtable),labs);
+#endif
+    for (int i = 0; i < labs; i++) {
+      Node *ni = Getitem(abstract,i);
+      Node *method_id = vtable_method_id(ni);
+      if (!method_id) continue;
+      Hash *exists_item = Getattr(vtable, method_id);
+#ifdef SWIG_DEBUG
+       Printf(stderr,"method %s %d\n",method_id,exists_item ? 1 : 0);
+#endif
+      Delete(method_id);
+      if (!exists_item) {
+	dirabstract = ni;
+	break;
+      }
     }
+    if (dirabstract) {
+      if (is_public(dirabstract)) {
+	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,Getfile(n),Getline(n),
+		     "Director class '%s' is abstract, abstract method '%s' is not accesible, maybe due to multiple inheritance or 'nodirector' feature\n",
+		     SwigType_namestr(Getattr(n,"name")),
+		     Getattr(dirabstract,"name"));
+      } else {
+	Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,Getfile(n),Getline(n),
+		     "Director class '%s' is abstract, abstract method '%s' is private\n",
+		     SwigType_namestr(Getattr(n,"name")),
+		     Getattr(dirabstract,"name"));
+      }
+      return 1;
+    }
+  } else {
+    return 1;
   }
-  if (dirabstract) {
-    Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,Getfile(n),Getline(n),
-		 "Director class '%s' is abstract\n",
-		 SwigType_namestr(Getattr(n,"name")));
-  }
-  
-  return dirabstract;
+  return dirabstract ? 1 : 0;
 }
 
 void Language::setSubclassInstanceCheck(String *nc) {
