@@ -199,15 +199,15 @@ namespace std {
 /* memberin typemap for arrays.   */
 
 %typemap(memberin) SWIGTYPE [ANY] {
-  int ii;
+  size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
-  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
+  for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
 %typemap(globalin) SWIGTYPE [ANY] {
-  int ii;
+  size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
-  for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
+  for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
 /* Typemap for variable length arguments sentinel value.  Used
