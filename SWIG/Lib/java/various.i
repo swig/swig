@@ -8,6 +8,8 @@
 %typemap(jni) char **STRING_IN "jobjectArray"
 %typemap(jtype) char **STRING_IN "String[]"
 %typemap(jstype) char **STRING_IN "String[]"
+%typemap(directorin) char **STRING_IN "$jniinput"
+%typemap(directorout) char **STRING_IN "$javacall"
 %typemap(in) char **STRING_IN {
   int i;
   jsize sz = JCALL1(GetArrayLength, jenv, $input);
@@ -28,10 +30,15 @@
 %typemap(freearg) char **STRING_IN 
 %{ free($1); %}
 
+%typemap(inv, parse="Ljava/lang/String;") char **STRING_IN
+%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
+
 /* char **STRING_OUT - result must be a null terminated string */
 %typemap(jni) char **STRING_OUT "jobjectArray"
 %typemap(jtype) char **STRING_OUT "String[]"
 %typemap(jstype) char **STRING_OUT "String[]"
+%typemap(directorin) char **STRING_OUT "$jniinput"
+%typemap(directorout) char **STRING_OUT "$javacall"
 %typemap(in) char **STRING_OUT (char *s) 
 %{ $1 = &s; %}
 %typemap(argout) char **STRING_OUT {
@@ -40,10 +47,15 @@
   }
 }
 
+%typemap(inv,parse="Ljava/lang/String;") char **STRING_OUT
+%{ $input = JCALL1(NewStringUTF, jenv, *$1); %}
+
 /* char **STRING_RET - a NULL terminated array of char* */
 %typemap(jni) char **STRING_RET "jarray"
 %typemap(jtype) char **STRING_RET "String[]"
 %typemap(jstype) char **STRING_RET "String[]"
+%typemap(directorin) char **STRING_RET "$jniinput"
+%typemap(directorout) char **STRING_RET "$javacall"
 %typemap(out) char **STRING_RET {
   if($1 != NULL) {
     char **p = $1;
@@ -63,10 +75,15 @@
   } 
 }
 
+%typemap(inv,parse="Ljava/lang/String;") char **STRING_RET
+%{ $input = JCALL1(NewStringUTF, jenv, *$1; %}
+
 /* float *FLOAT_ARRAY_RETURN */
 %typemap(jni) float *FLOAT_ARRAY_RETURN "jfloatArray"
 %typemap(jtype) float *FLOAT_ARRAY_RETURN "float[]"
 %typemap(jstype) float *FLOAT_ARRAY_RETURN "float[]"
+%typemap(directorin) float *FLOAT_ARRAY_RETURN "$jniinput"
+%typemap(directorout) float *FLOAT_ARRAY_RETURN "$javacall"
 %typemap(out) float *FLOAT_ARRAY_RETURN {
   if($1) {
      float *fp = $1;
@@ -89,10 +106,17 @@
    } 
 }
 
+%typemap(inv,parse="[F") float *FLOATARRAYRETURN
+%{
+#error "Need inv typemape for FLOATARRAYRETURN, array input size is unknown."
+%}
+
 /* char *BYTE */
 %typemap(jni) char *BYTE "jbyteArray"
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
+%typemap(directorin) char *BYTE "$jniinput"
+%typemap(directorout) char *BYTE "$javacall"
 %typemap(in) char *BYTE {
     $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
 }
@@ -101,6 +125,10 @@
     JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
 }
 
+%typemap(inv,parse="[B") char *BYTE
+%{
+#error "Need inv typemape for BYTE, array input size is unknown."
+%}
+
 /* Prevent default freearg typemap from being used */
 %typemap(freearg) char *BYTE ""
-

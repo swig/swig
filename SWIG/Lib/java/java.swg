@@ -161,6 +161,9 @@
 %typemap(in) bool
 %{ $1 = $input ? true : false; %}
 
+%typemap(directorin) bool "$jniinput"
+%typemap(directorout) bool "$javacall"
+
 %typemap(in) char, 
              signed char, 
              unsigned char, 
@@ -176,6 +179,51 @@
              enum SWIGTYPE
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(inv, parse="Z") bool             "$input = (jboolean) $1;"
+%typemap(inv, parse="C") char             "$input = (jint) $1;"
+%typemap(inv, parse="B") signed char      "$input = (jbyte) $1;"
+%typemap(inv, parse="S") unsigned char    "$input = (jshort) $1;"
+%typemap(inv, parse="S") short            "$input = (jshort) $1;"
+%typemap(inv, parse="I") unsigned short   "$input = (jint) $1;"
+%typemap(inv, parse="I") int              "$input = (jint) $1;"
+%typemap(inv, parse="J") unsigned int     "$input = (jlong) $1;"
+%typemap(inv, parse="I") long             "$input = (jint) $1;"
+%typemap(inv, parse="J") unsigned long    "$input = (jlong) $1;"
+%typemap(inv, parse="J") long long        "$input = (jlong) $1;"
+%typemap(inv, parse="F") float            "$input = (jfloat) $1;"
+%typemap(inv, parse="D") double           "$input = (jdouble) $1;"
+%typemap(inv, parse="I") enum SWIGTYPE    "$input = (jing) $1;"
+
+%typemap(directorin) char, 
+             signed char, 
+             unsigned char, 
+             short, 
+             unsigned short, 
+             int, 
+             unsigned int, 
+             long, 
+             unsigned long, 
+             long long, 
+             float, 
+             double, 
+             enum SWIGTYPE
+  "$jniinput"
+
+%typemap(directorout) char, 
+             signed char, 
+             unsigned char, 
+             short, 
+             unsigned short, 
+             int, 
+             unsigned int, 
+             long, 
+             unsigned long, 
+             long long, 
+             float, 
+             double, 
+             enum SWIGTYPE
+  "$javacall"
+
 %typemap(out) bool           %{ $result = (jboolean)$1; %}
 %typemap(out) char           %{ $result = (jchar)$1; %}
 %typemap(out) signed char    %{ $result = (jbyte)$1; %}
@@ -190,7 +238,6 @@
 %typemap(out) float          %{ $result = (jfloat)$1; %}
 %typemap(out) double         %{ $result = (jdouble)$1; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
-
 
 /* unsigned long long */
 /* Convert from BigInteger using the toByteArray member function */
@@ -244,6 +291,28 @@
   $result = bigint;
 }
 
+/* Convert to BigInteger (see out typemap) */
+%typemap(inv, parse="Ljava/math/Biginteger;") unsigned long long, const unsigned long long & {
+  jbyteArray ba = JCALL1(NewByteArray, jenv, 9);
+  jbyte* bae = JCALL2(GetByteArrayElements, jenv, ba, 0);
+  jclass clazz = JCALL1(FindClass, jenv, "java/math/BigInteger");
+  jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "([B)V");
+  jobject bigint;
+  int i;
+
+  bae[0] = 0;
+  for(i=1; i<9; i++ ) {
+    bae[i] = (jbyte)($1>>8*(8-i));
+  }
+
+  JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
+  bigint = JCALL3(NewObject, jenv, clazz, mid, ba);
+  $input = bigint;
+}
+
+%typemap(directorin) unsigned long long "$jniinput"
+%typemap(directorout) unsigned long long "$javacall"
+
 /* char * - treat as String */
 %typemap(in) char * { 
   $1 = 0;
@@ -252,15 +321,31 @@
     if (!$1) return $null;
   }
 }
+
+%typemap(inv, parse="Ljava/lang/string;") char * { 
+  $input = 0;
+  if ($1) {
+    $input = JCALL1(NewStringUTF, jenv, $1);
+    if (!$input) return $null;
+  }
+}
 %typemap(freearg) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char * { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(directorin) char * "$jniinput"
+%typemap(directorout) char * "$javacall"
 
 %typemap(out) void ""
+%typemap(directorin) void "$jniinput"
+%typemap(directorout) void "$javacall"
+%typemap(inv, parse="V") void ""
 
 /* primitive types by reference */
 %typemap(in) const bool & (bool temp)
 %{ temp = $input ? true : false; 
    $1 = &temp; %}
+
+%typemap(directorin) const bool & "$jniinput"
+%typemap(directorout) const bool & "$javacall"
 
 %typemap(in) const char & (char temp), 
              const signed char & (signed char temp), 
@@ -276,6 +361,49 @@
              const double & (double temp)
 %{ temp = ($*1_ltype)$input; 
    $1 = &temp; %}
+
+%typemap(inv, parse="Z") const bool &           "$input = (jboolean)$1_name;"
+%typemap(inv, parse="C") const char &           "$input = (jchar)$1_name;"
+%typemap(inv, parse="B") const signed char &    "$input = (jbyte)$1_name;"
+%typemap(inv, parse="S") const unsigned char &  "$input = (jshort)$1_name;"
+%typemap(inv, parse="S") const short &          "$input = (jshort)$1_name;"
+%typemap(inv, parse="I") const unsigned short & "$input = (jint)$1_name;"
+%typemap(inv, parse="I") const int &            "$input = (jint)$1_name;"
+%typemap(inv, parse="J") const unsigned int &   "$input = (jlong)$1_name;"
+%typemap(inv, parse="I") const long &           "$input = (jint)$1_name;"
+%typemap(inv, parse="J") const unsigned long &  "$input = (jlong)$1_name;"
+%typemap(inv, parse="J") const long long &      "$input = (jlong)$1_name;"
+%typemap(inv, parse="F") const float &          "$input = (jfloat)$1_name;"
+%typemap(inv, parse="D") const double &         "$input = (jdouble)$1_name;"
+
+%typemap(directorin) const char & (char temp), 
+             const signed char & (signed char temp), 
+             const unsigned char & (unsigned char temp), 
+             const short & (short temp), 
+             const unsigned short & (unsigned short temp), 
+             const int & (int temp), 
+             const unsigned int & (unsigned int temp), 
+             const long & (long temp), 
+             const unsigned long & (unsigned long temp), 
+             const long long & ($*1_ltype temp), 
+             const float & (float temp), 
+             const double & (double temp)
+  "$jniinput"
+
+%typemap(directorout) const char & (char temp), 
+             const signed char & (signed char temp), 
+             const unsigned char & (unsigned char temp), 
+             const short & (short temp), 
+             const unsigned short & (unsigned short temp), 
+             const int & (int temp), 
+             const unsigned int & (unsigned int temp), 
+             const long & (long temp), 
+             const unsigned long & (unsigned long temp), 
+             const long long & ($*1_ltype temp), 
+             const float & (float temp), 
+             const double & (double temp)
+  "$javacall"
+
 
 %typemap(out) const bool &           %{ $result = (jboolean)*$1; %}
 %typemap(out) const char &           %{ $result = (jchar)*$1; %}
@@ -343,6 +471,9 @@
   $result = bigint;
 }
 
+%typemap(directorin) const unsigned long long & "$jniinput"
+%typemap(directorout) const unsigned long long & "$javacall"
+
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
@@ -351,6 +482,7 @@
      return $null;
    }
    $1 = *argp; %}
+
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 %{*($&1_ltype*)&$result = new $1_ltype(($1_ltype &)$1); %}
@@ -362,6 +494,10 @@
 }
 #endif
 
+%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE "*(($&1_type)&$input) = &$1;"
+%typemap(directorin) SWIGTYPE "new $javaclassname($jniinput, false)"
+%typemap(directorout) SWIGTYPE "$javaclassname.getCPtr($javacall)"
+
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
@@ -369,8 +505,19 @@
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE (CLASS::*) %{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE &
+%{ *($&1_ltype)&$result = $1; %} 
 
+%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & 
+%{ *(($&1_ltype)&$input) = $1; %}
+
+%typemap(inv,parse="L$packagepath/$javaclassname;") SWIGTYPE &, const SWIGTYPE &
+%{ *($&1_ltype)&$input = &$1; %}
+
+%typemap(directorin) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "new $javaclassname($jniinput, false)"
+%typemap(directorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, const SWIGTYPE & "$javaclassname.getCPtr($javacall)"
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
@@ -384,9 +531,14 @@
     if (!$1) return $null;
   }
 }
+
+%typemap(inv,parse="Ljava/lang/String;") char[ANY] "$input = JCALL1(NewStringUTF, jenv, $1_name);"
+
 %typemap(argout) char[ANY] ""
 %typemap(freearg) char[ANY] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, $1); }
 %typemap(out) char[ANY] { if($1) $result = JCALL1(NewStringUTF, jenv, $1); }
+%typemap(directorin) char[ANY] "$jniinput"
+%typemap(directorout) char[ANY] "$javacall"
 
 /* JNI types */
 %typemap(in) jboolean,
@@ -431,6 +583,67 @@
               jobjectArray
 %{ $result = $1; %}
 
+%typemap(inv,parse="Z")  jboolean       "$input = $1;"
+%typemap(inv,parse="C")  jchar          "$input = $1;"
+%typemap(inv,parse="B")  jbyte          "$input = $1;"
+%typemap(inv,parse="S")  jshort         "$input = $1;"
+%typemap(inv,parse="I")  jint           "$input = $1;"
+%typemap(inv,parse="J")  jlong          "$input = $1;"
+%typemap(inv,parse="F")  jfloat         "$input = $1;"
+%typemap(inv,parse="D")  jdouble        "$input = $1;"
+%typemap(inv,parse="Ljava/lang/String;")  jstring        "$input = $1;"
+%typemap(inv,parse="Ljava/lang/Object;")  jobject        "$input = $1;"
+%typemap(inv,parse="[Z")  jbooleanArray "$input = $1;"
+%typemap(inv,parse="[C")  jcharArray    "$input = $1;"
+%typemap(inv,parse="[B")  jbyteArray    "$input = $1;"
+%typemap(inv,parse="[S")  jshortArray   "$input = $1;"
+%typemap(inv,parse="[I")  jintArray     "$input = $1;"
+%typemap(inv,parse="[J")  jlongArray    "$input = $1;"
+%typemap(inv,parse="[F")  jfloatArray   "$input = $1;"
+%typemap(inv,parse="[D")  jdoubleArray  "$input = $1;"
+%typemap(inv,parse="[Ljava/lang/Object;")  jobjectArray  "$input = $1;"
+
+%typemap(directorin) jboolean,
+              jchar,
+              jbyte,
+              jshort,
+              jint,
+              jlong,
+              jfloat,
+              jdouble,
+              jstring,
+              jobject,
+              jbooleanArray,
+              jcharArray,
+              jbyteArray,
+              jshortArray,
+              jintArray,
+              jlongArray,
+              jfloatArray,
+              jdoubleArray,
+              jobjectArray
+  "$jniinput"
+
+%typemap(directorout) jboolean,
+              jchar,
+              jbyte,
+              jshort,
+              jint,
+              jlong,
+              jfloat,
+              jdouble,
+              jstring,
+              jobject,
+              jbooleanArray,
+              jcharArray,
+              jbyteArray,
+              jshortArray,
+              jintArray,
+              jlongArray,
+              jfloatArray,
+              jdoubleArray,
+              jobjectArray
+  "$javacall"
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
  * that cannot be overloaded in Java as more than one C++ type maps to a single Java type */
@@ -534,6 +747,10 @@
 
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) /* Java double[] */
     jdoubleArray
+    ""
+
+%typecheck(SWIG_TYPECHECK_OBJECT_ARRAY) /* Java jobject[] */
+    jobjectArray
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER) /* Default */
