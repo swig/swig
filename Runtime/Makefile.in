@@ -20,8 +20,8 @@ LIBS        = libswigpl$(RELEASESUFFIX).la libswigpy$(RELEASESUFFIX).la \
 	      libswigguile$(RELEASESUFFIX).la libswigocaml$(RELEASESUFFIX).la
 LIB_DIR     = $(exec_prefix)/lib
 
-MKINSTDIRS  = $(top_srcdir)/mkinstalldirs
-INSTALL     = $(top_srcdir)/install-sh -c
+MKINSTDIRS  = $(top_srcdir)/Tools/config/mkinstalldirs
+INSTALL     = $(top_srcdir)/Tools/config/install-sh -c
 
 all:
 	-$(MAKE) perl5
