@@ -9,6 +9,6 @@ if complextest.Conj(a) != a.conjugate():
 v = (complex(1,2), complex(2,3), complex(4,3), 1)
 
 try:
-  print complextest.Copy_h(v)
+  complextest.Copy_h(v)
 except:
   pass

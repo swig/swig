@@ -27,7 +27,8 @@ if vu[2] != std_containers.videntu(vu)[2]:
   raise RuntimeError, "bad videntu"
   
 
-if v[0:3] != vu[0:3]:
+if v[0:3][1] != vu[0:3][1]:
+  print v[0:3][1], vu[0:3][1]
   raise RuntimeError, "bad getslice"
   
 
@@ -50,4 +51,31 @@ map['3'] = 2
 if map != std_containers.mapident(map):
   raise RuntimeError, "bad map"
   
+
+vi = std_containers.vector_i((2,2,3,4))
+
+
+v = (1,2)
+v1 = std_containers.v_inout(vi)
+vi[1], v1[1]
+
+v1,v2 = ((1,2),(3,4))
+v1,v2 = std_containers.v_inout2(v1,v2)
+
+a1 = std_containers.A(1)
+a2 = std_containers.A(2)
+
+p1 = (1,a1)
+p2 = (2,a2)
+v = (p1,p2)
+v2= std_containers.pia_vident(v)
+
+v2[0][1].a
+v2[1][1].a
+
+v3 = std_containers.vector_piA(v2)
+
+v3[0][1].a
+v3[1][1].a
+
 

@@ -2,6 +2,7 @@
 
 %include std_vectora.i
 
+
 %{
 #include <algorithm>
 #include <functional>
@@ -20,7 +21,7 @@
                 std::allocator<std::vector<int,std::allocator<int> > > >
     imatrix;
 
-  std::vector<int> vident(const std::vector<int>& v)
+  std::vector<int> vident(const std::vector<int,std::allocator<int> >& v)
   {
     return v;
   }
@@ -44,12 +45,13 @@ namespace std {
 
 %inline %{
 
-double average(std::vector<int> v) {
+double average(std::vector<int, std::allocator<int> > v) {
     return std::accumulate(v.begin(),v.end(),0.0)/v.size();
 }
 
-std::vector<float> half(const std::vector<float>& v) {
-    std::vector<float> w(v);
+std::vector<Real,std::allocator<Real> >
+half(const std::vector<Real,std::allocator<Real> >& v) {
+    std::vector<Real> w(v);
     for (unsigned int i=0; i<w.size(); i++)
         w[i] /= 2.0;
     return w;

@@ -2,6 +2,7 @@
 
 %include "typemaps.i"
 
+%apply int &INOUT { int &INOUT2 };
 %inline %{
 
 bool in_bool(bool *INPUT) { return *INPUT; }
@@ -87,6 +88,8 @@ void inoutr_float(float &INOUT) {  INOUT = INOUT; }
 void inoutr_double(double &INOUT) {  INOUT = INOUT; }
 void inoutr_longlong(long long &INOUT) {  INOUT = INOUT; }
 void inoutr_ulonglong(unsigned long long &INOUT) {  INOUT = INOUT; }
+
+void inoutr_int2(int &INOUT, int &INOUT2) {  INOUT = INOUT; INOUT2 = INOUT2;}
 
 %}
 

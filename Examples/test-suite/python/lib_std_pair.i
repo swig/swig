@@ -1,6 +1,6 @@
 %module lib_std_pair
 
-%include "std_pair.i"
+%include std_pair.i
 
 %{
   struct A 
@@ -13,12 +13,15 @@
 
 
 namespace std {
+  %template() pair<double, double>;
   %template(IntPair) pair<int, int>;
   %template(AIntPair) pair<A, int>;
 
   %template(ABPair) pair<A, B>;
   %template(IntAPair) pair<int, A>;
 }
+
+%apply std::pair<int,int> *INOUT {std::pair<int,int> *INOUT2};
 
 %inline %{
 
@@ -72,6 +75,44 @@ std::pair<int, int>
   return p;
 }
 
+
+void
+d_inout(double *INOUT) {
+  *INOUT += *INOUT;
+}
+
+void
+d_inout(int *INOUT) {
+  *INOUT += *INOUT;
+}
+
+int
+d_inout2(double *INOUT) {
+  *INOUT += *INOUT;
+  return 1;
+}
+
+void
+p_inout(std::pair<int, int> *INOUT) {
+  std::swap(INOUT->first, INOUT->second);
+}
+
+int
+p_inout2(std::pair<int, int> *INOUT) {
+  std::swap(INOUT->first, INOUT->second);
+  return 1;
+}
+
+void
+  p_inout3(std::pair<int,int> *INOUT, std::pair<int,int> *INOUT2) {
+  std::swap(*INOUT, *INOUT2);
+} 
+
+void
+p_inoutd(std::pair<double, double> *INOUT) {
+  std::swap(INOUT->first, INOUT->second);
+}
+
 #if 0
 std::pair<char, char> 
   p_ident(std::pair<char, char> p, const std::pair<char, char>& q) {
@@ -100,6 +141,8 @@ std::pair<int, int>
   p_ident(std::pair<int, int> p, const std::pair<A, B>& q) {
   return p;
 }
+
+
 #endif
 %}
 
