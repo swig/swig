@@ -166,7 +166,7 @@ static int promote(int t1, int t2) {
 %left <tok> UMINUS NOT LNOT
 %left <tok> DCOLON
 
-%type <tok>    idstring template_decl cpptype expr definetype def_args storage_spec func_end pragma_arg ename
+%type <tok>    idstring template_decl cpptype expr definetype def_args storage_spec pragma_arg ename
 %type <node>   file_include_type parm parms ptail idlist stylelist styletail stars
 %type <node>   array array2
 %type <node>   type strict_type opt_signed opt_unsigned
@@ -179,8 +179,8 @@ static int promote(int t1, int t2) {
 %type <node>   file_include code_block doc_directive except_directive pragma_directive modifier_directive native_directive typemap_directive
 %type <node>   variable_decl function_decl enum_decl typedef_decl stail enumlist edecl typedeflist
 %type <node>   inherit base_list
-%type <tok>    base_specifier access_specifier cpp_end ctor_end
-%type <node>   cpp_decl cpp_class
+%type <tok>    base_specifier access_specifier cpp_end ctor_end opt_id
+%type <node>   cpp_decl cpp_class cpp_other
 
 %%
 
@@ -259,7 +259,43 @@ swig_directive : MODULE idstring {
 		  $$ = new_node("constant",$2.filename, $2.line);
 		  Setattr($$,"name",$2.text);
 		  Setattr($$,"value",$3.text);
-		  SetInt($$,"type",$3.ivalue);
+		  switch($3.ivalue) {
+		  case LPARSE_T_DOUBLE:
+		    Setattr($$,"type","double");
+		    break;
+		  case LPARSE_T_FLOAT:
+		    Setattr($$,"type","float");
+		    break;
+		  case LPARSE_T_ULONG:
+		    Setattr($$,"type","unsigned long");
+		    break;
+		  case LPARSE_T_LONG:
+		    Setattr($$,"type","long");
+		    break;
+		  case LPARSE_T_UINT:
+		    Setattr($$,"type","unsigned int");
+		    break;
+		  case LPARSE_T_INT:
+		    Setattr($$,"type","int");
+		    break;
+		  case LPARSE_T_USHORT:
+		    Setattr($$,"type","unsigned short");
+		    break;
+		  case LPARSE_T_SHORT:
+		    Setattr($$,"type","short");
+		    break;
+		  case LPARSE_T_UCHAR:
+		    Setattr($$,"type","unsigned char");
+		    break;
+		  case LPARSE_T_CHAR:
+		    Setattr($$,"type","char");
+		    break;
+		  case LPARSE_T_STRING:
+		    Setattr($$,"type","*.char");
+		    break;
+		  default:
+		    break;
+		  }
                }
                | echo_directive { $$ = 0; }
                | file_include { $$ = $1; }
@@ -416,12 +452,12 @@ except_directive:  EXCEPT LPAREN ID RPAREN LBRACE {
 	       }
                ; 
 
-pragma_directive :  PRAGMA ID pragma_arg SEMI {
+pragma_directive :  PRAGMA ID pragma_arg {
                   $$ = new_node("pragmadirective",$1.filename,$1.line);
 		  Setattr($$,"name",$2.text);
 		  Setattr($$,"value",$3.text);
     	       }
-               | PRAGMA LPAREN ID RPAREN ID pragma_arg SEMI {
+               | PRAGMA LPAREN ID RPAREN ID pragma_arg {
 		 $$ = new_node("pragmadirective",$1.filename,$1.line);
 		 Setattr($$,"name",$5.text);
 		 Setattr($$,"lang",$3.text);
@@ -445,7 +481,7 @@ native_directive : NATIVE LBRACE interface RBRACE {
 		      if ($3) {
 			Setattr($$,"child",$3);
 		      }
-                  }
+                }
                 ;
 
 
@@ -691,7 +727,7 @@ c_declaration   : variable_decl { $$ = $1; }
                 | function_decl { $$ = $1; }
                 | enum_decl { $$ = $1; }
                 | typedef_decl { $$ = $1; }
-                | cpp_decl { $$ = 0; }
+                | cpp_decl { $$ = $1; }
                 ;
 
 /* A variable declaration */
@@ -765,7 +801,7 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
                
 /* A function declaration with code after it */
 
-                | storage_spec type declaration LPAREN parms RPAREN func_end {
+                | storage_spec type declaration LPAREN parms RPAREN cpp_end {
 		  SwigType_push($2,$3.decl);
 		  $$ = new_node("function",Getfile($3.id),Getline($3.id));
 		  Setattr($$,"name",$3.id);
@@ -801,6 +837,11 @@ function_decl  : storage_spec type declaration LPAREN parms RPAREN cpp_const sta
 		  Setattr($$,"code",$6.text);
 		}
 	      }
+              | NOT ID LPAREN parms RPAREN cpp_const SEMI {
+		$$ = new_node("destructor",$2.filename,$2.line);
+		Setattr($$,"name",$2.text);
+	      }
+
               ;
 
 /* Allow lists of variables and functions to be built up */
@@ -848,8 +889,6 @@ storage_spec    : EXTERN {
                }
                ;
                  
-func_end       : cpp_const LBRACE { $$.text = LParse_skip_balanced('{','}'); }
-               ;
 
 cpp_const      : CONST {} 
                | THROW LPAREN { LParse_skip_balanced('(',')'); }
@@ -1000,22 +1039,60 @@ cpp_decl     : cpp_class { $$ = $1; }
              | cpp_other { $$ = $1; }
              ;
   
-cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE {
+cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE opt_id SEMI {
                    $$ = new_node("class",$3.filename,$3.line);
 		   Setattr($$,"classtype",$2.text);
-		   Setattr($$,"name",$3);
+		   Setattr($$,"name",$3.text);
 		   Setattr($$,"bases", $4);
 		   Setattr($$,"child",$6);
+		   if ($8.text) {
+		     Setattr($$,"variable",$8.text);
+		   }
 	      }
+
+              | storage_spec cpptype LBRACE interface RBRACE opt_id SEMI {
+		  $$ = new_node("class",$3.filename,$3.line);
+		  Setattr($$,"classtype",$2.text);
+		  Setattr($$,"child",$4);
+		  if ($6.text)
+		    Setattr($$,"variable",$6.text);
+              }
 
 /* Class with a typedef */
 		
              | TYPEDEF cpptype ID inherit LBRACE interface RBRACE declaration typedeflist {
 	       $$ = new_node("class",$3.filename,$3.line);
 	       Setattr($$,"classtype",$2.text);
-	       Setattr($$,"name",$3);
+	       Setattr($$,"name",$3.text);
 	       Setattr($$,"bases",$4);
 	       Setattr($$,"child",$6);
+	       if (Len($8.decl) == 0)
+		 Setattr($$,"altname",$8.id);
+	       
+	       {
+		 /* Go add a bunch of typedef declarations */
+		 DOH *o, *t, *prev, *d;
+		 int i;
+		 o = new_node("typedef",$3.filename,$3.line);
+		 Setattr(o,"name",$8.id);
+		 t = Copy($3.text);
+		 SwigType_push(t,$8.decl);
+		 Setattr(o,"type",t);
+		 Setattr($$,"sibling",o);
+		 prev = o;
+		 for (i = 0; i < Len($9); i++) {
+		   d = Getitem($9,i);
+		   o = new_node("typedef",$3.filename,$3.line);
+		   t = Copy($3.text);
+		   SwigType_push(t,Getattr(d,"decl"));
+		   SwigType_push(t,Getattr(d,"array"));
+		   Setattr(o,"type",t);
+		   Setattr(o,"name",Getattr(d,"name"));
+		   Setattr(prev,"sibling",o);
+		   prev = o;
+		 }
+		 Delete($9);
+	       }
 	     } 
 
 /* An unnamed struct with a typedef */
@@ -1024,7 +1101,9 @@ cpp_class    :  storage_spec cpptype ID inherit LBRACE interface RBRACE {
 	       $$ = new_node("class",$3.filename,$3.line);
 	       Setattr($$,"classtype",$2.text);
 	       Setattr($$,"child",$4);
-	     }
+	       if (Len($6.decl) == 0)
+		 Setattr($$,"altname",$6.id);
+	       }
              ;
 
 inherit        : COLON base_list {
@@ -1065,26 +1144,16 @@ access_specifier :  PUBLIC { $$.text = NewString("public"); }
                |    PROTECTED { $$.text = NewString("protected"); }
                ;
 
-cpp_members  : cpp_member cpp_members { }
-             | ADDMETHODS LBRACE cpp_members RBRACE cpp_members {
-
-	     }
-	     | error {
-	       LParse_error(0,0,"Syntax error in class definition.\n");
-	       LParse_skip_decl();
-	     } cpp_members { }
-             | empty { }
-             ;
-
-cpp_end        : cpp_const SEMI { 
-                   $$.text = 0;
-               } 
-               | cpp_const LBRACE {  
+cpp_end        : cpp_const LBRACE {  
                    $$.text = LParse_skip_balanced('{','}');
                }
-               | EQUAL NUM_INT {
+               | EQUAL definetype SEMI {
                    $$.text = 0;
-               }
+    	       }
+/*               | cpp_const { 
+                   $$.text = 0;
+   	       }
+*/
                ;
 
 type_extra    : stars {}
@@ -1122,9 +1191,9 @@ cpp_other    :/* A dummy class name */
 
              | FRIEND {
 	       LParse_skip_decl();
-	     }
+             }
 
-             | type type_extra OPERATOR {
+             | storage_spec type type_extra OPERATOR {
 	       LParse_skip_decl();
              }
 	       
@@ -1141,8 +1210,15 @@ cpp_other    :/* A dummy class name */
 
 /* %addmethods directive */
 
-             | ADDMETHODS ID LBRACE interface RBRACE { }
-             | ADDMETHODS LBRACE interface RBRACE cpp_members { }
+             | ADDMETHODS opt_id LBRACE interface RBRACE { 
+	        $$ = new_node("addmethods",$1.filename,$1.line);
+		if ($1.text)
+		  Setattr($$,"name",$1.text);
+		Setattr($$,"child",$4);
+             }
+
+opt_id       : ID { $$ = $1; }
+             | empty { $$.text = 0; }
              ;
 
 /* =============================================================================
