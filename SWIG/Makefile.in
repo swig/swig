@@ -116,7 +116,7 @@ PYTHON_EXAMPLES = class constants enum funcattr funcptr import multimap mpointer
 JAVA_EXAMPLES = class constants enum multimap native pointer reference simple template typemap variables
 GUILE_EXAMPLES = constants matrix simple port multimap multivalue
 MZSCHEME_EXAMPLES = multimap simple
-RUBY_EXAMPLES = class constants enum funcptr import multimap operator pointer reference simple value variables
+RUBY_EXAMPLES = class constants enum funcptr import import_template multimap operator pointer reference simple template value variables
 
 check-examples: check-tcl-examples check-perl5-examples check-python-examples \
 		check-java-examples check-guile-examples check-mzscheme-examples \
