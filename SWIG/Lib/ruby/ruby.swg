@@ -304,7 +304,7 @@
 	"rb_define_const($module,\"$symname\", INT2NUM($1));";
 
 %typemap(constant) unsigned int, unsigned short, unsigned long, unsigned char
-	"rb_define_const($module,\"$symname\", UINT2NUM($1);";
+	"rb_define_const($module,\"$symname\", UINT2NUM($1));";
 
 %typemap(constant) long long
 	"rb_define_const($module,\"$symname\", INT2NUM((long) $1));";        
