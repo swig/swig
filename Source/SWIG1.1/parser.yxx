@@ -1095,7 +1095,8 @@ statement      : INCLUDE STRING LBRACE {
 		 p = $7;
 		 while (p) {
 		   if (strcmp($3,typemap_lang) == 0) {
-		     Swig_typemap_clear($5,Gettype(p->p),Getname(p->p));
+	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
+/*		     Swig_typemap_clear($5,Gettype(p->p),Getname(p->p)); */
 		   }
 		   p = p->next;
 		 }
@@ -1113,7 +1114,8 @@ statement      : INCLUDE STRING LBRACE {
 		   TMParm *p;
 		   p = $5;
 		   while (p) {
-		     Swig_typemap_clear($3,Gettype(p->p),Getname(p->p));
+	             Printf(stderr,"%s:%d. Warning. Typemap deletion is temporary disabled in this release.\n", input_file, line_number);
+/*		     Swig_typemap_clear($3,Gettype(p->p),Getname(p->p)); */
 		     p = p->next;
 		   }
 		 }
@@ -1175,7 +1177,8 @@ statement      : INCLUDE STRING LBRACE {
 		 TMParm *p;
 		 p = $2;
 		 while (p) {
-		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p));
+		  Printf(stderr,"%s:%d. Warning. %%clear directive is temporarily disabled in this release. Ignored.\n", input_file, line_number);
+/*		   Swig_typemap_clear_apply(Gettype(p->p), Getname(p->p)); */
 		   p = p->next;
 		 }
                }
@@ -1502,7 +1505,6 @@ parm_type      : type pname {
 		  free($3);
 		}
                 | type LPAREN stars pname RPAREN LPAREN parms RPAREN {
-		  FatalError();
 		  $$ = NewParm($1,$4);
 		  SwigType *pt = Gettype($$);
 		  DOHList *l = typelist($7);
