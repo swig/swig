@@ -492,6 +492,7 @@ static void dump_nested(char *parent) {
 %token TYPEMAP EXCEPT ECHO NEW APPLY CLEAR DOCONLY
 %token <ivalue> TITLE SECTION SUBSECTION SUBSUBSECTION
 %token LESSTHAN GREATERTHAN
+%token TYPES
 
 /* Objective C tokens */
 
@@ -1250,6 +1251,17 @@ statement      : INCLUDE STRING LBRACE {
 
                | LOCALSTYLE stylelist {
 	       }
+
+/* %types directive. Used to register types with the type-checker */
+               | TYPES LPAREN parms RPAREN SEMI {
+	            Parm *p = $3;
+                    while (p) {
+		      SwigType *t = Gettype(p);
+		      SwigType_remember(t);
+		      p = Getnext(p);
+		    }
+		    Delete($3);
+               } 
 
 /* Dcumentation disable/enable */
 
