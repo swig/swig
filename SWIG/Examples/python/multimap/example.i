@@ -5,7 +5,7 @@
 
 extern int    gcd(int x, int y);
 
-%typemap(python,in) (int argc, char *argv[]) {
+%typemap(in,fragment="t_output_helper") (int argc, char *argv[]) {
   int i;
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
