@@ -2,8 +2,8 @@
 # $Header$
 #----------------------------------------------------------------
 
-SRCS          = types.c scanner.c include.c getopt.c misc.c super.c type.c
-OBJS          = types.o scanner.o include.o getopt.o misc.o super.o type.o
+SRCS          = types.c scanner.c include.c getopt.c misc.c super.c
+OBJS          = types.o scanner.o include.o getopt.o misc.o super.o
 
 prefix        = @prefix@
 exec_prefix   = @exec_prefix@
@@ -24,10 +24,15 @@ $(TARGET): $(OBJS)
 	$(AR) cr $(TARGET) $(OBJS)
 	$(RANLIB) $(TARGET)
 
-supertest: super.c		# test the super module
+supertest: super.c
 	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DSUPER_TEST -c \
 		-o supertest.o super.c
 	$(CC) supertest.o -ldoh -o supertest
+
+typetest: type.c super.o
+	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -g -DTYPE_TEST -c \
+		-o typetest.o type.c
+	$(CC) typetest.o super.o -ldoh -o typetest
 
 clean:
 	rm -f *.o *~ core *.so *.a *_wrap.*

@@ -120,6 +120,7 @@ extern void     SwigScanner_idstart(SwigScanner *, char *idchar);
 
 /* --- NEW Type system --- */
 
+   /* constructors */
 DOH *Swig_Type_NewInt(int width, int is_const, int is_volatile, 
 		      int is_signed, int is_unsigned);
 DOH *Swig_Type_NewFloat(int width, int exp_width, int is_const,
@@ -136,6 +137,38 @@ DOH *Swig_Type_NewUnion(DOH *name, DOH *body,
 DOH *Swig_Type_NewArray(DOH *size, DOH *parent);
 DOH *Swig_Type_NewFunction(DOH *parameters, DOH *parent);
 DOH *Swig_Type_NewPointer(int is_const, int is_volatile, DOH *parent);
+
+   /* use the sequence methods on a type to step linearly down through
+      the sequence of constructors.  That is, Getitem(t, 2) is t
+      without its outermost two constructors:
+
+      t = Pointer(Pointer(Array(Int())))
+      Getitem(t,2) = Array(Int()) */
+
+   /* accessors -- return information about the outermost
+      constructor. */
+int Swig_Type_GetType(DOH *t);
+DOH *Swig_Type_GetName(DOH *t);
+DOH *Swig_Type_GetAttributes(DOH *t);
+int Swig_Type_GetWidth(DOH *t);
+int Swig_Type_GetExpWidth(DOH *t);
+int Swig_Type_GetConst(DOH *t);
+int Swig_Type_GetVolatile(DOH *t);
+int Swig_Type_GetSigned(DOH *t);
+int Swig_Type_GetUnsigned(DOH *t);
+
+   /* Type constants (returned from Swig_Type_GetType) */
+#define Swig_Type_Int 0
+#define Swig_Type_Float 1
+#define Swig_Type_Void 2
+#define Swig_Type_Char 3
+#define Swig_Type_Name 4
+#define Swig_Type_Enum 5
+#define Swig_Type_Struct 6
+#define Swig_Type_Union 7
+#define Swig_Type_Array 8
+#define Swig_Type_Function 9
+#define Swig_Type_Pointer 10
 
 /* --- OLD Type system --- */
    /* REMOVE ME SOON */
