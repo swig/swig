@@ -101,6 +101,7 @@ libswigpy$(RELEASESUFFIX).la:
 
 PERL5_INCLUDE = -I@PERL5EXT@
 PERL5_RUNTIME = $(SWIGLIB)/perl5/perlrun.swg
+PERL5_CCFLAGS = @PERL5CCFLAGS@
 
 # Perl shared
 
@@ -110,7 +111,7 @@ libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNT
 	@rm -f libperl.c
 #	cat $(srcdir)/perlrun.h >> libperl.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNTIME) >> libperl.c
-	$(LIBTOOL) $(CC) -c $(PERL5_INCLUDE) -DSWIG_GLOBAL -Dbool=char -Dexplicit= libperl.c
+	$(LIBTOOL) $(CC) -c $(PERL5_INCLUDE) -DSWIG_GLOBAL -Dbool=char -Dexplicit= $(PERL5_CCFLAGS) libperl.c
 	$(LIBTOOL) $(CC) -o libswigpl$(RELEASESUFFIX).la libperl.lo -rpath $(LIB_DIR) -avoid-version
 
 # ----------------------------------------------------------------------

@@ -588,6 +588,13 @@ if test -n "$PERL"; then
 		else
 			AC_MSG_RESULT($PERL5LIB)
 		fi
+    AC_MSG_CHECKING(for Perl5 compiler options)
+ 		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}') 2>/dev/null`
+ 		if test "$PERL5CCFLAGS" = "" ; then
+ 			AC_MSG_RESULT(not found)
+ 		else
+ 			AC_MSG_RESULT($PERL5CCFLAGS)
+ 		fi
 	else
 		AC_MSG_RESULT(unable to determine perl5 configuration)
 		PERL5EXT=$PERL5DIR
@@ -606,6 +613,7 @@ esac
 AC_SUBST(PERL5EXT)
 AC_SUBST(PERL5DYNAMICLINKING)
 AC_SUBST(PERL5LIB)
+AC_SUBST(PERL5CCFLAGS)
 
 # kludges to ease naming conventions conformance.
 ( cd Examples ;

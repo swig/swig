@@ -1,5 +1,11 @@
 Version 1.3.18 (In progress)
 ============================
+02/13/2003: lenz
+            Updated Doc/Manual/Perl5.html to talk about C++ compile problems
+            configure.in now checks for PERL5_CCFLAGS
+            Runtime/Makefile.in and Example/Makefile.in now use PERL5_CCFLAGS
+            Added Lib/perl5/noembed.h which contains all the known macro conflicts
+
 02/12/2003: beazley
             Fixed [ 685410 ] C++ Explicit template instantiation causes SWIG to exit.
             Fixes a syntax error with declarations similar to this:

@@ -6,6 +6,7 @@
 
 %runtime "common.swg"         // common type checking code
 %runtime "perlrun.swg"        // Perl runtime functions
+%runtime "noembed.h"          // undefine Perl5 macros
 
 /* Typemaps for input parameters */
 
