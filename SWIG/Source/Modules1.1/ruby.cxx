@@ -1131,12 +1131,14 @@ RUBY::constructorHandler(Node *n) {
   if (!klass->constructor_defined) {
     /* First wrap the new singleton method */
     current = CONSTRUCTOR_NEW;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    // Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "alloc_%c");
     Language::constructorHandler(n);
     
     /* Now do the instance initialize method */
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_initialize");
+    // Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_initialize");
+    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
     Language::constructorHandler(n);
     
     /* Done */

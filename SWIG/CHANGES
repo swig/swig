@@ -16,6 +16,14 @@ tree (maybe).
 
 Version 1.3.12 (In Progress)
 ============================
+05/28/2002: ljohnson
+            [Ruby] Modified the name of the wrapper functions for the
+	    "new" singleton method and "initialize" instance method for
+	    consistency with the other language modules. The wrapper name
+	    for the function that implements "new" is alloc_classname and
+	    the wrapper name for the function that implements "initialize"
+	    is new_classname.
+	    
 05/26/2002: beazley
             -proxy option added to many language modules.  This is the
             same as -shadow.
