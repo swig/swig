@@ -2,7 +2,7 @@
 
 %warnfilter(801) traits<Double, Double>;	/* Ruby, wrong class name */
 
-#pragma SWIG nowarn=320
+%warnfilter(320);
 
 %inline %{
   typedef double Double;

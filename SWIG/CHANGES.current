@@ -1,6 +1,55 @@
 Version 1.3.23 (in progress)
 ==================================
 
+09/26/2004: mmatus
+
+	    - add %feature("exceptionclass") to identify a class used
+	      as exception. Before swig identified and marked a class
+	      using the "cplus:exceptionclass" attribute. However, the
+	      class needed to appear on an throw() statement.  Now
+	      swig keeps trying to identify the exception classes, as
+	      before, but it also allows the user to mark a class by
+	      using the %feature explicitly. (mostly relevant for
+	      python and chicken)
+
+	    [Python]
+
+	    - fix -modern option + exceptions, which mix old class
+	      style with the new one. So, we always need to emit
+	      the "nonmodern" python code.
+
+	    - add the "python:nondynamic" feature and its handler
+
+	      now if you have
+	      
+	      %pythonnondynamic(1) A;
+	      
+	      struct A {
+	       int a;
+	       int b;
+	      };
+
+	      then, in the python side
+	      
+	      aa = A()
+	      
+	      aa.a = 1 # ok
+	      aa.b = 2 # ok
+	      aa.c = 3 # error, the class can not be extended dynamically.
+
+	    
+	    Since this is a feature, you can use
+
+	      %pythonnondynamic(1);
+
+            or 
+
+	      %pythondynamic(0);
+   
+	    to force all the wrapped classes to be "nondynamic" ones.
+
+	    The default, as in regular python, is that all the wrapped
+	    classes are dynamics. So, careful with your spelling.
 
 09/14/2004: mmatus 
 	    - Support the -I- option.

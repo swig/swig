@@ -1,5 +1,8 @@
 %module namespace_virtual_method
 
+%warnfilter(515);
+
+
 %inline %{
 
 namespace A {

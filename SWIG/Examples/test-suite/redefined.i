@@ -3,7 +3,7 @@
 %warnfilter(801) agua;
 
 /* no redundant warnings */
-#pragma SWIG nowarn=-322
+%warnfilter(322);
 
 #if 1
  //

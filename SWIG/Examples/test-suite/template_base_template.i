@@ -2,7 +2,7 @@
 
 %warnfilter(801) traits<double, double>; /* Ruby, wrong class name */
 
-#pragma SWIG nowarn=320
+%warnfilter(320);
 
 %inline %{
   template <class ArgType, class ResType>

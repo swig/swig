@@ -1,6 +1,7 @@
 %module refcount
 
-#pragma SWIG nowarn=362
+#warnfilter(362);
+
 %{ 
 #include <iostream> 
 #include "refcount.h"
