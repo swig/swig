@@ -27,11 +27,14 @@ public class runme {
       if (s.speedTest4(speed) != speed) throw new Exception("speedTest 4 failed");
       if (s.speedTest5(speed) != speed) throw new Exception("speedTest 5 failed");
       if (s.speedTest6(speed) != speed) throw new Exception("speedTest 6 failed");
+      if (s.speedTest7(speed) != speed) throw new Exception("speedTest 7 failed");
+      if (s.speedTest8(speed) != speed) throw new Exception("speedTest 8 failed");
 
       if (enum_thorough.speedTest1(speed) != speed) throw new Exception("speedTest Global 1 failed");
       if (enum_thorough.speedTest2(speed) != speed) throw new Exception("speedTest Global 2 failed");
       if (enum_thorough.speedTest3(speed) != speed) throw new Exception("speedTest Global 3 failed");
       if (enum_thorough.speedTest4(speed) != speed) throw new Exception("speedTest Global 4 failed");
+      if (enum_thorough.speedTest5(speed) != speed) throw new Exception("speedTest Global 5 failed");
     }
     {
       SpeedClass s = new SpeedClass();
@@ -90,6 +93,7 @@ public class runme {
       if (t.scientistsTestG(galileo) != galileo) throw new Exception("scientistsTest G failed");
       if (t.scientistsTestH(galileo) != galileo) throw new Exception("scientistsTest H failed");
       if (t.scientistsTestI(galileo) != galileo) throw new Exception("scientistsTest I failed");
+      if (t.scientistsTestJ(galileo) != galileo) throw new Exception("scientistsTest J failed");
 
       if (enum_thorough.scientistsTest1(galileo) != galileo) throw new Exception("scientistsTest Global 1 failed");
       if (enum_thorough.scientistsTest2(galileo) != galileo) throw new Exception("scientistsTest Global 2 failed");
@@ -98,6 +102,7 @@ public class runme {
       if (enum_thorough.scientistsTest5(galileo) != galileo) throw new Exception("scientistsTest Global 5 failed");
       if (enum_thorough.scientistsTest6(galileo) != galileo) throw new Exception("scientistsTest Global 6 failed");
       if (enum_thorough.scientistsTest7(galileo) != galileo) throw new Exception("scientistsTest Global 7 failed");
+      if (enum_thorough.scientistsTest8(galileo) != galileo) throw new Exception("scientistsTest Global 8 failed");
     }
     {
       TClassInt t = new TClassInt();
@@ -288,6 +293,8 @@ public class runme {
       if (enum_thorough.hairTest8(blonde) != blonde) throw new Exception("hairTest Global 8 failed");
       if (enum_thorough.hairTest9(blonde) != blonde) throw new Exception("hairTest Global 9 failed");
       if (enum_thorough.hairTestA(blonde) != blonde) throw new Exception("hairTest Global A failed");
+      if (enum_thorough.hairTestB(blonde) != blonde) throw new Exception("hairTest Global B failed");
+      if (enum_thorough.hairTestC(blonde) != blonde) throw new Exception("hairTest Global C failed");
 
       if (enum_thorough.hairTestA1(blonde) != blonde) throw new Exception("hairTest Global A1 failed");
       if (enum_thorough.hairTestA2(blonde) != blonde) throw new Exception("hairTest Global A2 failed");
@@ -299,6 +306,8 @@ public class runme {
       if (enum_thorough.hairTestA8(blonde) != blonde) throw new Exception("hairTest Global A8 failed");
       if (enum_thorough.hairTestA9(blonde) != blonde) throw new Exception("hairTest Global A9 failed");
       if (enum_thorough.hairTestAA(blonde) != blonde) throw new Exception("hairTest Global AA failed");
+      if (enum_thorough.hairTestAB(blonde) != blonde) throw new Exception("hairTest Global AB failed");
+      if (enum_thorough.hairTestAC(blonde) != blonde) throw new Exception("hairTest Global AC failed");
 
       if (enum_thorough.hairTestB1(blonde) != blonde) throw new Exception("hairTest Global B1 failed");
       if (enum_thorough.hairTestB2(blonde) != blonde) throw new Exception("hairTest Global B2 failed");
@@ -310,6 +319,8 @@ public class runme {
       if (enum_thorough.hairTestB8(blonde) != blonde) throw new Exception("hairTest Global B8 failed");
       if (enum_thorough.hairTestB9(blonde) != blonde) throw new Exception("hairTest Global B9 failed");
       if (enum_thorough.hairTestBA(blonde) != blonde) throw new Exception("hairTest Global BA failed");
+      if (enum_thorough.hairTestBB(blonde) != blonde) throw new Exception("hairTest Global BB failed");
+      if (enum_thorough.hairTestBC(blonde) != blonde) throw new Exception("hairTest Global BC failed");
 
       if (enum_thorough.hairTestC1(blonde) != blonde) throw new Exception("hairTest Global C1 failed");
       if (enum_thorough.hairTestC2(blonde) != blonde) throw new Exception("hairTest Global C2 failed");
@@ -321,6 +332,8 @@ public class runme {
       if (enum_thorough.hairTestC8(blonde) != blonde) throw new Exception("hairTest Global C8 failed");
       if (enum_thorough.hairTestC9(blonde) != blonde) throw new Exception("hairTest Global C9 failed");
       if (enum_thorough.hairTestCA(blonde) != blonde) throw new Exception("hairTest Global CA failed");
+      if (enum_thorough.hairTestCB(blonde) != blonde) throw new Exception("hairTest Global CB failed");
+      if (enum_thorough.hairTestCC(blonde) != blonde) throw new Exception("hairTest Global CC failed");
     }
     {
       FirStruct f = new FirStruct();
