@@ -3,12 +3,7 @@
 <td><a href="index.html">Home</a></td>
 <td><a href="download.html">Download</a></td>
 <td><a href="doc.html">Documentation</a></td>
-<td><a href="faq.html">FAQ</a></td>
-</tr>
-<tr>
 <td><a href="mail.html">Mailing List</a></td>
 <td><a href="bugs.html">Bug tracking</a></td>
-<td><a href="projects.html">Projects</a></td>
-<td><a href="http://islab.cs.uchicago.edu/swig">Development site</a></td>
 </tr>
 </table>
