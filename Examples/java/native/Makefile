@@ -1,9 +1,9 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SRCS       = example.c
+SWIGOPT    =
+SRCS       = 
 TARGET     = libexample
 INTERFACE  = example.i
-SWIGOPT    = 
 
 all::	java
 
@@ -12,5 +12,6 @@ java::
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java
 
 clean::
-	rm -f *_wrap* *.o core *~ *.so example.java
+	rm -f *_wrap* example.java *.class *.o *~ .~* core *.so *.sl so_locations
+
 
