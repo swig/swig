@@ -44,8 +44,8 @@
 /* These will pass an integer as an unsigned long.  However, the implementation is crippled due
    to limited precision in Tcl */
 
-%typemap(in) long long "$1 = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);";
-%typemap(in) unsigned long long "$1 = (unsigned long long) strtoull(Tcl_GetStringFromObj($input,NULL), 0, 0);";
+%typemap(in) long long "$1 = ($1_ltype) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);";
+%typemap(in) unsigned long long "$1 = ($1_ltype) strtoull(Tcl_GetStringFromObj($input,NULL), 0, 0);";
 
 /* Enum parsing.  Note: internally SWIG converts enums to/from integers so it's okay to use
    the "i" parse code here */
@@ -115,12 +115,12 @@
   $1 = &temp;
 }
 
-%typemap(in) const long long & (long long temp) 
-     "temp = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
+%typemap(in) const long long & ($*1_ltype temp) 
+     "temp = ($*1_ltype) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
       $1 = &temp;";
 
-%typemap(in) const unsigned long long & (unsigned long long temp) 
-        "temp = (unsigned long long) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
+%typemap(in) const unsigned long long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
          $1 = &temp;";
 
 %typemap(in) const char &(char temp) {
@@ -298,8 +298,8 @@
   $1 = temp ? true : false;
 }
 
-%typemap(varin) long long "$1 = (long long) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);";
-%typemap(varin) unsigned long long "$1 = (unsigned long long) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);";
+%typemap(varin) long long "$1 = ($1_ltype) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);";
+%typemap(varin) unsigned long long "$1 = ($1_ltype) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);";
 
 %typemap(varin) double, float {
   double temp;

@@ -107,11 +107,11 @@
 	"temp = ($*1_ltype) NUM2DBL($input);
          $1 = &temp;";
 
-%typemap(in) const long long & (long long temp) 
+%typemap(in) const long long & ($*1_ltype temp) 
         "temp = ($*1_ltype) NUM2LL($input);
          $1 = &temp;";
 
-%typemap(in) const unsigned long long & (unsigned long long temp) 
+%typemap(in) const unsigned long long & ($*1_ltype temp) 
         "temp = ($*1_ltype) NUM2ULL($input);
          $1 = &temp;";
 

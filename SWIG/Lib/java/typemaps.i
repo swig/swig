@@ -94,7 +94,7 @@ INPUT_TYPEMAP(double, jdouble, double);
 
 /* Convert from BigInteger using the toByteArray member function */
 /* Overrides the typemap in the INPUT_TYPEMAP macro */
-%typemap(in) unsigned long long *INPUT($*1_type temp), unsigned long long &INPUT(unsigned long long temp) {
+%typemap(in) unsigned long long *INPUT($*1_ltype temp), unsigned long long &INPUT($*1_ltype temp) {
   jclass clazz;
   jmethodID mid;
   jbyteArray ba;
@@ -192,7 +192,7 @@ value in the single element array. In Java you would use it like this:
 %typemap(jstype) CTYPE &OUTPUT "JTYPE[]"
 %typemap(javain) CTYPE &OUTPUT "$javainput"
 
-%typemap(in) CTYPE *OUTPUT($*1_type temp), CTYPE &OUTPUT(CTYPE temp)
+%typemap(in) CTYPE *OUTPUT($*1_ltype temp), CTYPE &OUTPUT($*1_ltype temp)
 {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
@@ -351,7 +351,7 @@ INOUT_TYPEMAP(double, jdouble, double, Double, jdoubleArray);
 #undef INOUT_TYPEMAP
 
 /* Override the typemap in the INOUT_TYPEMAP macro */
-%typemap(in) unsigned long long *INOUT ($*1_type temp), unsigned long long &INOUT (unsigned long long temp) { 
+%typemap(in) unsigned long long *INOUT ($*1_ltype temp), unsigned long long &INOUT ($*1_ltype temp) { 
   jobject bigint;
   jclass clazz;
   jmethodID mid;

@@ -22,8 +22,8 @@
 %typemap(in)  float, double 
        "$1 = ($1_ltype) SvNV($input);\n";
 
-%typemap(in)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
-%typemap(in)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+%typemap(in)  long long "$1 = ($1_ltype) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(in)  unsigned long long "$1 = ($1_ltype) strtoull(SvPV($input, PL_na), 0, 0);";
 
 %typemap(in) char *
        "if (!SvOK((SV*) $input)) $1 = 0;
@@ -76,12 +76,12 @@
 	"temp = ($*1_ltype) SvNV($input);
          $1 = &temp;";
 
-%typemap(in) const long long & (long long temp) 
-        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+%typemap(in) const long long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) strtoll(SvPV($input,PL_na),0,0);
          $1 = &temp;";
 
-%typemap(in) const unsigned long long & (unsigned long long temp) 
-        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+%typemap(in) const unsigned long long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) strtoull(SvPV($input, PL_na),0,0);
          $1 = &temp;";
 
 %typemap(in) const char &(char temp) {
@@ -223,8 +223,8 @@
 %typemap(varin)  float, double 
        "$1 = ($1_ltype) SvNV($input);\n";
 
-%typemap(varin)  long long "$1 = (long long) strtoll(SvPV($input, PL_na), 0, 0);";
-%typemap(varin)  unsigned long long "$1 = (unsigned long long) strtoull(SvPV($input, PL_na), 0, 0);";
+%typemap(varin)  long long "$1 = ($1_ltype) strtoll(SvPV($input, PL_na), 0, 0);";
+%typemap(varin)  unsigned long long "$1 = ($1_ltype) strtoull(SvPV($input, PL_na), 0, 0);";
 
 %typemap(varin) SWIGTYPE *, SWIGTYPE [] {
         if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor,0) < 0) {
@@ -277,12 +277,12 @@
 	"temp = ($*1_ltype) SvNV($input);
          $1 = &temp;";
 
-%typemap(varin) const long long & (long long temp) 
-        "temp = (long long) strtoll(SvPV($input,PL_na),0,0);
+%typemap(varin) const long long & ($*1_ltype temp) 
+        "temp = ($1_ltype) strtoll(SvPV($input,PL_na),0,0);
          $1 = &temp;";
 
-%typemap(varin) const unsigned long long & (unsigned long long temp) 
-        "temp = (unsigned long long) strtoull(SvPV($input, PL_na),0,0);
+%typemap(varin) const unsigned long long & ($*1_ltype temp) 
+        "temp = ($1_ltype) strtoull(SvPV($input, PL_na),0,0);
          $1 = &temp;";
 
 %typemap(varin) const char &(char temp) {

@@ -156,12 +156,12 @@ OUTV_TYPEMAP(char *, PyString_AsString);
          if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in) long long 
-        "$1 = (long long) PyLong_AsLongLong($input);
+        "$1 = ($1_ltype) PyLong_AsLongLong($input);
          if (PyErr_Occurred()) SWIG_fail;";
 
 
 %typemap(in) unsigned long long 
-        "$1 = (unsigned long long) PyLong_AsUnsignedLongLong($input);
+        "$1 = ($1_ltype) PyLong_AsUnsignedLongLong($input);
          if (PyErr_Occurred()) SWIG_fail;";
 
 %typemap(in,parse="f") float "";
@@ -221,13 +221,13 @@ OUTV_TYPEMAP(char *, PyString_AsString);
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
-%typemap(in) const long long & (long long temp) 
-        "temp = (long long) PyLong_AsLongLong($input);
+%typemap(in) const long long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) PyLong_AsLongLong($input);
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
-%typemap(in) const unsigned long long & (unsigned long long temp) 
-        "temp = (unsigned long long) PyLong_AsUnsignedLongLong($input);
+%typemap(in) const unsigned long long & ($*1_ltype temp) 
+        "temp = ($*1_ltype) PyLong_AsUnsignedLongLong($input);
          if (PyErr_Occurred()) SWIG_fail;
          $1 = &temp;";
 
@@ -333,7 +333,7 @@ OUTV_TYPEMAP(char *, PyString_AsString);
 }
 
 %typemap(varin) long long {
-   long long temp = PyLong_AsLongLong($input);
+   $1_type temp = PyLong_AsLongLong($input);
    if (PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
       return 1;
@@ -342,7 +342,7 @@ OUTV_TYPEMAP(char *, PyString_AsString);
 }
 
 %typemap(varin) unsigned long long {
-   unsigned long long temp = PyLong_AsUnsignedLongLong($input);
+   $1_type temp = PyLong_AsUnsignedLongLong($input);
    if (PyErr_Occurred()) {
       PyErr_SetString(PyExc_TypeError, "C variable '$name ($1_ltype)'");
       return 1;
