@@ -1,5 +1,4 @@
 /* File : example.i */
-
 %module example
 
 %{
@@ -17,6 +16,7 @@ int printf(const char *fmt, ...);
 /* Since passing a format string might be dangerous.  Here is a slightly
    different way of wrapping a printf style function */
 
+#if 1
 /* Replace ... with char *.   */
 %varargs(char *) fprintf;
 
@@ -24,6 +24,13 @@ int printf(const char *fmt, ...);
 %typemap(ignore) const char *fmt {
 	$1 = "%s";
 }
+#else
+/* An alternative approach using typemaps */
+%typemap(in) (const char *fmt, ...) {
+   $1 = "%s";
+   $2 = (void *) PyString_AsString($input);
+}
+#endif
 
 /* Typemap just to make the example work */
 %typemap(in) FILE * "$1 = PyFile_AsFile($input);";
