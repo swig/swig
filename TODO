@@ -420,6 +420,37 @@ Guile
 
 **     In GOOPS mode, maybe make overloaded functions methods. 
 
+**     Increase the safety of destructor functions.  John Lenz suggests:
+
+	  I think the best way of doing this would be to use %feature to mark  
+	  which classes allow for "normal" <swig> smobs to be deleted explicitly.
+
+	  We separate pointers into two classes, those that can be deleted from  
+	  scheme and those that can't.  The pointers that can be deleted use the
+	  <collectable-swig> smob and those that can not be deleted use the  
+	  <swig> smob.  A user can specify which type of each object they want  
+	  with %newobject and the CONSUMED typemap.
+
+	  By default, the exported destructor will only accept <collectable-swig>  
+	  smobs, because by definition, collectable-swig smobs are those that can  
+	  be deleted from scheme.  This allows for the user to implement  
+	  protection.  In the interface file, the user has complete control over  
+	  which objects can and can not be deleted, and can guarantee that  
+	  objects that should not be deleted can not be deleted, and that objects  
+	  that should eventually be deleted will be garbage collected.
+
+	  This protection can then be overridden with a %feature directive,  
+	  something like
+
+	  %feature("guile_allow_destroy_all","1") Foo::~Foo;
+
+	  I don't know what word we want to use, guile_allow_destroy_all is kinda  
+	  bad.  This feature would then allow for a <swig Foo *> smob to be  
+	  deleted by passing it to the destructor.  This would allow users to  
+	  maintain the protection on other classes, only manually overriding the  
+	  protection on the classes that need it.
+
+
 Mzscheme
 --------
 
