@@ -13,4 +13,6 @@
 #define SWIG_TypeName        SWIG_MzScheme_TypeName
 #define SWIG_TypeQuery       SWIG_MzScheme_TypeQuery
 #define SWIG_TypeClientData  SWIG_MzScheme_TypeClientData
+#define SWIG_PackData        SWIG_MzScheme_PackData 
+#define SWIG_UnpackData      SWIG_MzScheme_UnpackData 
 

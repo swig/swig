@@ -13,6 +13,8 @@
 #define SWIG_TypeName        SWIG_Ruby_TypeName
 #define SWIG_TypeQuery       SWIG_Ruby_TypeQuery
 #define SWIG_TypeClientData  SWIG_Ruby_TypeClientData
+#define SWIG_PackData        SWIG_Ruby_PackData 
+#define SWIG_UnpackData      SWIG_Ruby_UnpackData 
 
 /* Also rename all exported symbols from rubydef.swig */
 
