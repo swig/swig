@@ -21,7 +21,7 @@ LIB_DIR  = $(prefix)/lib
 #
 #
 
-SWIGOBJS   = Source/SWIG1.1/*.o Source/Modules1.1/*.o Source/DOH/Doh/*.o Source/Core/*.o Source/Preprocessor/*.o
+SWIGOBJS   = Source/SWIG1.1/*.o Source/Modules1.1/*.o Source/DOH/Doh/*.o Source/Swig/*.o Source/Preprocessor/*.o
 
 swig: objs
 	$(CXX) $(SWIGOBJS) $(LIBS) -o $(TARGET)
