@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------------- */
 
 %insert(runtime) "swigrun.swg";            // Common C API type-checking code
-%insert(runtime) "common.swg";          // Common type-checking code
 %insert(runtime) "pikerun.swg";         // Pike run-time code
 
 %insert(runtime) %{
@@ -319,6 +318,8 @@ extern "C" {
  * The start of the Pike initialization function
  * ------------------------------------------------------------ */
 
+%init "swiginit.swg"
+
 %init %{
 #ifdef __cplusplus
 extern "C"
@@ -331,10 +332,7 @@ extern "C"
 PIKE_MODULE_INIT
 {
     struct program *pr;
-    int i;
-    for (i = 0; swig_types_initial[i]; i++) {
-        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-    }
+    SWIG_InitializeModule(0);
 %}
 
 /* pike keywords */

@@ -28,6 +28,10 @@ extern "C" {
   SWIG_Chicken_NewPointerObj((void*)ptr, type, owner, &known_space)
 #define swig_barf SWIG_Chicken_Barf
 
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_Chicken_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Chicken_SetModule(pointer)
+
 #define C_swig_is_bool(x) C_truep (C_booleanp (x))
 #define C_swig_is_char(x) C_truep (C_charp (x))
 #define C_swig_is_fixnum(x) C_truep (C_fixnump (x))
@@ -186,7 +190,7 @@ SWIG_Chicken_NewPointerObj(void *ptr, swig_type_info *type, int owner, C_word **
 static int
 SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags)
 {
-  swig_type_info *cast;
+  swig_cast_info *cast;
   swig_type_info *from;
 
   if (s == C_SCHEME_FALSE) {
@@ -196,7 +200,7 @@ SWIG_Chicken_ConvertPtr(C_word s, void **result, swig_type_info *type, int flags
     from = (swig_type_info *) C_block_item(s, 1);
     if (!from) return 1;
     if (type) {
-      cast = SWIG_TypeCheck((char*)from->name, type);
+      cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, (void *) C_block_item(s, 0));
         return 0;
@@ -221,6 +225,48 @@ SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
       "Type error in argument %i: expected a %s.", argnum, type->name);
   }
   return result;
+}
+
+static char *chicken_runtimevar_name = "type_pointer" SWIG_TYPE_TABLE_NAME;
+
+static swig_module_info *
+SWIG_Chicken_GetModule() {
+    swig_module_info *ret = 0;
+    C_word sym;
+
+    /* lookup the type pointer... it is stored in it's own symbol table */
+    C_SYMBOL_TABLE *stable = C_find_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION);
+    if (stable != NULL) {
+      sym = SWIG_Chicken_LookupSymbol(chicken_runtimevar_name, stable);
+      if (C_truep(sym) && C_swig_is_ptr(sym)) {
+        ret = (swig_module_info *) C_block_item(sym, 0);
+      }
+    }
+
+    return ret;
+}
+
+static void
+SWIG_Chicken_SetModule(swig_module_info *module) {
+    C_word *a;
+    C_SYMBOL_TABLE *stable;
+    C_word sym;
+    C_word pointer;
+    static C_word *space = 0;
+    
+    /* type pointer is stored in it's own symbol table */
+    stable = C_find_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION);
+    if (stable == NULL) {
+      stable = C_new_symbol_table("swig_runtime_data" SWIG_RUNTIME_VERSION, 16);
+    }
+
+    if (!space) {
+      space = (C_word *) C_malloc((C_SIZEOF_POINTER + C_SIZEOF_INTERNED_SYMBOL(C_strlen(chicken_runtimevar_name))) * sizeof(C_word));
+    }
+    a = space;
+    pointer = C_mpointer(&a, (void *) module);
+    sym = C_intern_in(&a, C_strlen(chicken_runtimevar_name), chicken_runtimevar_name, stable);
+    C_set_block_item(sym, 0, pointer);
 }
 
 #ifdef __cplusplus

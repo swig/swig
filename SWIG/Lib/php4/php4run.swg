@@ -31,6 +31,10 @@ extern "C" {
 }
 #endif
 
+/* Standard SWIG API */
+#define SWIG_GetModule(clientdata) SWIG_Php4_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Php4_SetModule(pointer)
+
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
 typedef struct _swig_object_wrapper {
@@ -106,7 +110,7 @@ static int
 SWIG_ConvertPtr_(char *c, void **ptr, swig_type_info *ty) {
    register int d;
    unsigned long p;
-   swig_type_info *tc;
+   swig_cast_info *tc;
 
    if(c == NULL) {
    	*ptr = 0;
@@ -161,7 +165,7 @@ type_error:
    with the type name hard wired in. */
 static int
 SWIG_ZTS_ConvertResourceData(void * p, int type, const char *type_name, void **ptr, swig_type_info *ty TSRMLS_DC) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
 
   if (ty) {
     if (! type_name) {  
@@ -237,4 +241,23 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty TSRMLS_DC) {
 type_error:
 
     return -1;
+}
+
+static char const_name[] = "swig_runtime_data_type_pointer";
+static swig_module_info *SWIG_Php4_GetModule() {
+  zval *pointer;
+  swig_module_info *ret = 0;
+
+  MAKE_STD_ZVAL(pointer);
+
+  if (zend_get_constant(const_name, sizeof(const_name), pointer)) {
+    if (pointer->type == IS_LONG) {
+      ret = (swig_module_info *) pointer->value.lval;
+    }
+  } 
+  return 0;
+}
+
+static void SWIG_Php4_SetModule(swig_module_info *pointer) {
+  REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }

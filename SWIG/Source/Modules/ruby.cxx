@@ -147,6 +147,7 @@ private:
   File *f_header;
   File *f_wrappers;
   File *f_init;
+  File *f_initbeforefunc;
 
   bool useGlobalModule;
   bool multipleInheritance;
@@ -185,6 +186,7 @@ public:
     f_header = 0;
     f_wrappers = 0;
     f_init = 0;
+    f_initbeforefunc = 0;
     useGlobalModule = false;
     multipleInheritance = false;
     director_prot_ctor_code = NewString("");    
@@ -391,6 +393,7 @@ public:
     f_wrappers = NewString("");
     f_directors_h = NewString("");
     f_directors = NewString("");
+    f_initbeforefunc = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header",f_header);
@@ -399,6 +402,7 @@ public:
     Swig_register_filebyname("init",f_init);
     Swig_register_filebyname("director",f_directors);
     Swig_register_filebyname("director_h",f_directors_h);
+    Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
 
     modvar = 0;
     current = NO_CPP;
@@ -457,9 +461,9 @@ public:
 
     Printv(f_init,
 	   "\n",
-	   "for (i = 0; swig_types_initial[i]; i++) {\n",
-	   "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
-	   "SWIG_define_class(swig_types[i]);\n",
+	   "SWIG_InitializeModule(0);\n",
+	   "for (i = 0; i < swig_module.size; i++) {\n",
+	   "SWIG_define_class(swig_module.types[i]);\n",
 	   "}\n",
 	   NIL);
     Printf(f_init,"\n");
@@ -482,11 +486,13 @@ public:
     }
 
     Dump(f_wrappers,f_runtime);
+    Dump(f_initbeforefunc, f_runtime);
     Wrapper_pretty_print(f_init,f_runtime);
 
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
+    Delete(f_initbeforefunc);
     Close(f_runtime);
     Delete(f_runtime);
 

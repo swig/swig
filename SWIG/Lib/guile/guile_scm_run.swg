@@ -47,6 +47,10 @@ typedef struct swig_guile_clientdata {
     scm_error(scm_str2symbol("swig-contract-assertion-failed"),	\
 	      (char *) FUNC_NAME, (char *) msg,			\
 	      SCM_EOL, SCM_BOOL_F); else
+
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_Guile_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Guile_SetModule(pointer)
   
 static char *
 SWIG_Guile_scm2newstr(SCM str, size_t *len) {
@@ -138,7 +142,7 @@ SWIG_Guile_PointerType(SCM object)
 static int
 SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
 {
-  swig_type_info *cast;
+  swig_cast_info *cast;
   swig_type_info *from;
   SCM smob = SWIG_Guile_GetSmob(s);
 
@@ -150,7 +154,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return 1;
     if (type) {
-      cast = SWIG_TypeCheck((char*)from->name, type);
+      cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob));
         return 0;
@@ -304,12 +308,12 @@ ensure_smob_tag(SCM swig_module,
   }
 }
 
-static void
+static SCM
 SWIG_Guile_Init ()
 {
-  SCM swig_module;
+  static SCM swig_module;
   
-  if (swig_initialized) return;
+  if (swig_initialized) return swig_module;
   swig_initialized = 1;
 
   swig_module = scm_c_resolve_module("Swig swigrun");
@@ -329,19 +333,6 @@ SWIG_Guile_Init ()
     scm_set_smob_print(swig_destroyed_tag, print_destroyed_swig);
     scm_set_smob_equalp(swig_destroyed_tag, equalp_swig);
   }
-  {
-    SCM variable = scm_sym2var(scm_str2symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME),
-			       scm_module_lookup_closure(swig_module),
-			       SCM_BOOL_T);
-    if (SCM_UNBNDP(SCM_VARIABLE_REF(variable))) {
-      SCM_VARIABLE_SET(variable, scm_ulong2num((unsigned long) swig_type_list_handle));
-    }
-    else {
-      swig_type_list_handle
-	= (swig_type_info **) scm_num2ulong(SCM_VARIABLE_REF(variable), 0,
-					    "SWIG_Guile_Init");
-    }
-  }
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
   swig_keyword = scm_permanent_object(scm_c_make_keyword((char*) "init-smob"));
@@ -349,6 +340,41 @@ SWIG_Guile_Init ()
 #ifdef SWIG_INIT_RUNTIME_MODULE
   SWIG_INIT_RUNTIME_MODULE
 #endif
+
+  return swig_module;
+}
+
+static swig_module_info *
+SWIG_Guile_GetModule()
+{
+  SCM module;
+  SCM variable;
+
+  module = SWIG_Guile_Init();
+
+  variable = scm_sym2var(scm_str2symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME),
+			       scm_module_lookup_closure(module),
+			       SCM_BOOL_T);
+  if (SCM_UNBNDP(SCM_VARIABLE_REF(variable))) {
+    return NULL;
+  } else {
+    return (swig_module_info *) scm_num2ulong(SCM_VARIABLE_REF(variable), 0, "SWIG_Guile_Init");
+  }
+}
+
+static void
+SWIG_Guile_SetModule(swig_module_info *swig_module)
+{
+  SCM module;
+  SCM variable;
+
+  module = SWIG_Guile_Init();
+    
+  variable = scm_sym2var(scm_str2symbol("swig-type-list-address" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME),
+			       scm_module_lookup_closure(module),
+			       SCM_BOOL_T);
+
+  SCM_VARIABLE_SET(variable, scm_ulong2num((unsigned long) swig_module));
 }
 
 static int

@@ -5,6 +5,10 @@
   SWIG_Ruby_NewPointerObj(p, type, flags)
 #define SWIG_MustGetPtr(p, type, argnum, flags) \
   SWIG_Ruby_MustGetPtr(p, type, argnum, flags)
+#define SWIG_GetModule(clientdata) \
+  SWIG_Ruby_GetModule()
+#define SWIG_SetModule(clientdata, pointer) \
+  SWIG_Ruby_SetModule(pointer)
 
 /* Ruby-specific SWIG API */
 
@@ -36,22 +40,8 @@ static VALUE swig_runtime_data_type_pointer = Qnil;
 static void
 SWIG_Ruby_InitRuntime(void)
 {
-    VALUE pointer;
-    
     if (_mSWIG == Qnil) {
         _mSWIG = rb_define_module("SWIG");
-    }
-    
-    /* first check if pointer already created */
-    pointer = rb_gv_get("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
-    if (pointer != Qnil) {
-      Data_Get_Struct(pointer, swig_type_info *, swig_type_list_handle);
-    } else {
-      /* register a new class */
-      VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
-      /* create and store the structure pointer to a global variable */
-      swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, swig_type_list_handle);
-      rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
     }
 }
 
@@ -120,7 +110,7 @@ static int
 SWIG_Ruby_ConvertPtr(VALUE obj, void **ptr, swig_type_info *ty, int flags)
 {
   char *c;
-  swig_type_info *tc;
+  swig_cast_info *tc;
 
   /* Grab the pointer */
   if (NIL_P(obj)) {
@@ -190,7 +180,7 @@ SWIG_Ruby_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
 /* Convert a packed value value */
 static void
 SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   const char  *c;
 
   if (TYPE(obj) != T_STRING) goto type_error;
@@ -214,6 +204,26 @@ type_error:
       rb_raise(rb_eTypeError, "Expected a pointer");
     }
   }
+}
+
+static swig_module_info *SWIG_Ruby_GetModule() {
+    VALUE pointer;
+    swig_module_info *ret = 0;
+
+   /* first check if pointer already created */
+    pointer = rb_gv_get("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
+    if (pointer != Qnil) {
+      Data_Get_Struct(pointer, swig_module_info, ret);
+    }
+    return ret;
+}
+
+static void SWIG_Ruby_SetModule(swig_module_info *pointer) {
+      /* register a new class */
+      VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
+      /* create and store the structure pointer to a global variable */
+      swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, pointer);
+      rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
 }
 
 #ifdef __cplusplus

@@ -337,7 +337,7 @@ public:
 	Printf( f_mlibody,
 		"val int_to_enum : c_enum_type -> int -> c_obj\n" );
 	Printf( f_init,
-		"SWIGEXT void f_%s_init() {\n"
+		"#define SWIG_init f_%s_init\n"
 		"%s"
 		"}\n",
 		module, init_func_def );

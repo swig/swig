@@ -377,12 +377,12 @@ public:
       /* Simple linkage; we have to export the SWIG_init function. The user can
 	 rename the function by a #define. */
       Printf (f_runtime, "extern void\nSWIG_init (void)\n;\n");
-      Printf (f_init, "extern void\nSWIG_init (void)\n{\n");
+      Printf (f_init, "#define SWIG_GUILE_INIT_STATIC static\n");
       break;
     default:
       /* Other linkage; we make the SWIG_init function static */
       Printf (f_runtime, "static void\nSWIG_init (void)\n;\n");
-      Printf (f_init, "static void\nSWIG_init (void)\n{\n");
+      Printf (f_init, "#define SWIG_GUILE_INIT_STATIC extern\n");
       break;
     }
     if (CPlusPlus) {

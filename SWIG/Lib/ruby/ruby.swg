@@ -6,8 +6,9 @@
 
 %runtime "rubyhead.swg"
 %runtime "swigrun.swg"       // Common C API type-checking code
-%runtime "common.swg"
 %runtime "rubydef.swg"
+
+%insert(initbeforefunc) "swiginit.swg"
 
 #define %alias %feature("alias")
 #define %freefunc %feature("freefunc")

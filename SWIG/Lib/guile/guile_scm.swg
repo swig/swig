@@ -6,7 +6,6 @@
 #define SWIGGUILE_SCM
 
 %runtime "swigrun.swg"       // Common C API type-checking code
-%runtime "common.swg"
 
 %runtime "guile_scm_run.swg"
 %include "ghinterface.i"
@@ -38,19 +37,12 @@
 
 %}
 
+%insert(init) "swiginit.swg"
+
 %init %{
-  static int _swig_init = 0;
-
-  SWIG_Guile_Init();
-
-  if (!_swig_init) {
-    int i;
-    for (i = 0; swig_types_initial[i]; i++) {
-      swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);
-    }
-    for (i = 0; swig_types_initial[i]; i++) {
-      SWIG_PropagateClientData(swig_types[i]);
-    }
-    _swig_init = 1;
-  }
+SWIG_GUILE_INIT_STATIC void
+SWIG_init(void)
+{
+  SWIG_InitializeModule(0);
+  SWIG_PropagateClientData();
 %}

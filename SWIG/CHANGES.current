@@ -1,6 +1,52 @@
 Version 1.3.25 (In progress)
 ============================
 
+01/31/2005: wuzzeb (John Lenz)
+            - Add DohSortList to DOH
+	    
+	    - Improve the runtime type system:
+               + Speed. Type loading is now O(n log n) instead of O(N^2), which
+	         for large modules is a huge improvement.
+               + A whole bunch of functions in swigrun.swg no longer need the 
+                 swig_type_list_handle passed to them.  The only one left is 
+		 TypeQuery.  This also makes runtime.swg a lot smaller.
+	       + Split up swig_type_info structure into two structures
+	         (swig_type_info and swig_cast_info)
+	       + Store a pointer to a swig_type_info rather than just the type
+	         name string in the linked list of casts. First off, this makes
+	         the guile module a little faster, and second, the
+	         SWIG_TypeClientData() function is faster too. 
+	       + Add the idea of a module into the type system.  Before, all the
+	         types were stored in one huge linked list. Now, another level is
+	         added, and the type system stores a linked list of modules, each
+	         of which stores an array of types associated with it.
+	       + For more information of how the runtime type system now works,
+	         please see Doc/Manual/typemaps.html and Doc/Devel/runtime.txt
+		 
+	    - Update all language modules to use the new type system.  The changes
+	      to each language module are minor.  All languages are now able to
+	      use runtime.swg for external access to the type system.  Before
+	      only python and perl did.
+
+	    - [guile, mzscheme, ocaml, and php4]  These languages opened up the
+	      init function inside the .cxx code, and any code in the .swg files
+	      in the init section was inside this function.  This was a problem
+	      for swiginit.swg, which needs to be inserted before the SWIG_init
+	      function is opened.  Thus I changed these languages to be like
+	      python or perl, where the init function is declared in the .swg
+	      file.
+	      
+	    - [Ruby] Instead of moving the init function to the .swg file, I
+	      added a new section initbeforefunc, and then added
+	      %insert(initbeforefunc) "swiginit.swg"
+
+	    - [MzScheme] Fix enums and fix Examples/Makefile.in so that if
+	      multiple -I arguments are specified in the INCLUDES variable, each
+	      gets a ++ccf.
+
+	    - [Guile GH] Update Guile GH to use the new type system.  See
+	      Doc/Devel/Guile.cxx for how smobs are now used.
+
 01/11/2005: wsfulton
             [C#] New typemap called 'csconstruct'. The code in this typemaps was previously hard
             coded and could not be customised by a user. This typemap contains the code that is

@@ -15,32 +15,32 @@
  
  * -----------------------------------------------------------------------------*/
 
-SWIGRUNTIMEINLINE swig_type_info *
-SWIG_Runtime_TypeQuery(const char *name) {
-  swig_type_info *tl = SWIG_Runtime_GetTypeList();
-  return SWIG_TypeQueryTL(tl, name);
-}
+#ifdef SWIG_MODULE_CLIENTDATA_TYPE
 
 SWIGRUNTIMEINLINE swig_type_info *
-SWIG_Runtime_TypeRegister(swig_type_info *ti) {
-  swig_type_info *tl = SWIG_Runtime_GetTypeList();
-  return SWIG_TypeRegisterTL(&tl, ti);
+SWIG_TypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) {
+  swig_module_info *module = SWIG_Runtime_GetModule(clientdata);
+  return SWIG_TypeQueryModule(module, module, name);
 }
 
-SWIGRUNTIMEINLINE void
-SWIG_Runtime_TypeClientData(swig_type_info *ti, void *clientdata) {
-  swig_type_info *tl = SWIG_Runtime_GetTypeList();
-  SWIG_TypeClientDataTL(tl, ti, clientdata);
+SWIGRUNTIMEINLINE swig_type_info *
+SWIG_MangledTypeQuery(SWIG_MODULE_CLIENTDATA_TYPE clientdata, const char *name) {
+  swig_module_info *module = SWIG_Runtime_GetModule(clientdata);
+  return SWIG_MangledTypeQueryModule(module, module, name);
 }
 
-SWIGRUNTIMEINLINE void
-SWIG_Runtime_PropagateClientData(swig_type_info *type) {
-  swig_type_info *tl = SWIG_Runtime_GetTypeList();
-  SWIG_PropagateClientDataTL(tl, type);
+#else
+
+SWIGRUNTIMEINLINE swig_type_info *
+SWIG_TypeQuery(const char *name) {
+  swig_module_info *module = SWIG_Runtime_GetModule();
+  return SWIG_TypeQueryModule(module, module, name);
 }
 
-#define SWIG_GetTypeList()            SWIG_Runtime_GetTypeList()
-#define SWIG_TypeQuery(name)          SWIG_Runtime_TypeQuery(name)
-#define SWIG_TypeRegister(ti)         SWIG_Runtime_TypeRegister(ti)
-#define SWIG_TypeClientData(ti, cd)   SWIG_Runtime_TypeClientData(ti, cd)
-#define SWIG_PropagateClientData(ti)  SWIG_Runtime_PropagateClientData(ti)
+SWIGRUNTIMEINLINE swig_type_info *
+SWIG_MangledTypeQuery(const char *name) {
+  swig_module_info *module = SWIG_Runtime_GetModule();
+  return SWIG_MangledTypeQueryModule(module, module, name);
+}
+
+#endif

@@ -64,6 +64,7 @@ typedef struct swig_class {
   swig_attribute     *attributes;
   struct swig_class **bases;
   char              **base_names;
+  swig_module_info   *module;
 } swig_class;
 
 typedef struct swig_instance {
@@ -105,22 +106,10 @@ typedef struct swig_instance {
 #define SWIG_MethodCommand SWIG_Tcl_MethodCommand
 #define SWIG_ObjectDelete SWIG_Tcl_ObjectDelete
 
-static void 
-SWIG_Tcl_LookupTypePointer(Tcl_Interp *interp) {
-  char buf[512];
-  char *data;
-  
-  /* first check if pointer already created */
-  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TCL_GLOBAL_ONLY);
-  if (data) {
-    SWIG_UnpackData(data, &swig_type_list_handle, sizeof(swig_type_info **));
-  } else {
-    /* create a new pointer */
-    data = SWIG_PackData(buf, &swig_type_list_handle, sizeof(swig_type_info **));
-    *data = 0;
-    Tcl_SetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
-  }
-}
+/* Runtime API */
+#define SWIG_GetModule(clientdata) SWIG_Tcl_GetModule((Tcl_Interp *) (clientdata))
+#define SWIG_SetModule(clientdata, pointer) SWIG_Tcl_SetModule((Tcl_Interp *) (clientdata), pointer)
+#define SWIG_MODULE_CLIENTDATA_TYPE Tcl_Interp *
 
 /* Object support */
 static Tcl_HashTable  swigobjectTable;
@@ -163,7 +152,7 @@ SWIG_Tcl_Thisown(void *ptr) {
 /* Convert a pointer value */
 static int
 SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   /* Pointer values must start with leading underscore */
   while (*c != '_') {
     *ptr = (void *) 0;
@@ -225,7 +214,7 @@ SWIG_Tcl_PointerTypeFromString(char *c) {
 /* Convert a packed value value */
 static int
 SWIG_Tcl_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int flags) {
-  swig_type_info *tc;
+  swig_cast_info *tc;
   const char  *c;
 
   if (!obj) goto type_error;
@@ -505,7 +494,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     if (bi != -1) {
       if (!cls->bases[bi] && cls->base_names[bi]) {
         /* lookup and cache the base class */
-	swig_type_info *info = SWIG_TypeQuery(cls->base_names[bi]);
+	swig_type_info *info = SWIG_TypeQueryModule(cls->module, cls->module, cls->base_names[bi]);
 	if (info) cls->bases[bi] = (swig_class *) info->clientdata;
       }
       cls = cls->bases[bi];
@@ -749,6 +738,31 @@ typedef struct {
 /* Contract support */
 
 #define SWIG_contract_assert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg, TCL_STATIC ); goto fail; } else
+
+static swig_module_info * 
+SWIG_Tcl_GetModule(Tcl_Interp *interp) {
+  char *data;
+  swig_module_info *ret = 0;
+  
+  /* first check if pointer already created */
+  data = (char *) Tcl_GetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TCL_GLOBAL_ONLY);
+  if (data) {
+    SWIG_UnpackData(data, &ret, sizeof(swig_type_info **));
+  }
+
+  return ret;
+}
+
+static void
+SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
+  char buf[512];
+  char *data;
+
+  /* create a new pointer */
+  data = SWIG_PackData(buf, &module, sizeof(swig_type_info **));
+  *data = 0;
+  Tcl_SetVar(interp, "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
+}
 
 #ifdef __cplusplus
 }
