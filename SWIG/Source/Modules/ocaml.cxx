@@ -1280,8 +1280,10 @@ public:
     
     String *fully_qualify_enum_name( Node *n, String *name ) {
 	Node *parent = 0;
+	String *qualification = NewString("");
 	String *fully_qualified_name = NewString("");
 	String *parent_type = 0;
+	String *normalized_name;
 
 	parent = parentNode(n);
 	while( parent ) {
@@ -1291,16 +1293,21 @@ public:
 		    NewStringf("%s::",Getattr(parent,"name"));
 		if( !Cmp(parent_type,"class") || 
 		    !Cmp(parent_type,"namespace") ) 
-		    Insert(fully_qualified_name,0,parent_copy);
+		    Insert(qualification,0,parent_copy);
 		Delete(parent_copy);
 	    }
 	    if( !Cmp( parent_type, "class" ) ) break;
 	    parent = parentNode(parent);
 	}
 
-	Printf( fully_qualified_name, "%s", name );
+	Printf( fully_qualified_name, "%s%s", qualification, name );
 
-	return normalizeTemplatedClassName(fully_qualified_name);
+	normalized_name = normalizeTemplatedClassName(fully_qualified_name);
+	if( !strncmp(Char(normalized_name),"enum ",5) ) {
+	    Insert(normalized_name,5,qualification);
+	}
+	
+	return normalized_name;
     }
 
     /* Benedikt Grundmann inspired --> Enum wrap styles */
@@ -1370,10 +1377,14 @@ public:
 	     * This would make one of the cases below unnecessary. 
 	     * * * */
 	    Printf( f_mlbody, 
-		    "let _ = Callback.register \"%s_marker\" (`%s)\n"
-		    "let _ = Callback.register \"enum %s_marker\" (`%s)\n",
-		    fully_qualified_name, name,
+		    "let _ = Callback.register \"%s_marker\" (`%s)\n",
 		    fully_qualified_name, name );
+	    if( !strncmp(Char(fully_qualified_name),"enum ",5) ) {
+		String *fq_noenum = NewString(Char(fully_qualified_name) + 5);
+		Printf( f_mlbody,
+			"let _ = Callback.register \"%s_marker\" (`%s)\n",
+			fq_noenum, name );
+	    }
 
 	    Printf( f_enumtypes_type,"| `%s\n", name );
 	    Insert(fully_qualified_name,0,"enum ");
