@@ -258,7 +258,7 @@ esac
 AC_SUBST(TCL_CXXSHARED)
 case $host in
    *-*-darwin*) TCL_CXXSHARED="g++ -dynamiclib -framework Tcl";;
-   *) TCL_CXXSHARED=$CXXSHARED;;
+   *) TCL_CXXSHARED=$TRYLINKINGWITHCXX;;
 esac
 
 # On Mac OS-X, the -no-defined option to libtool doesn't seem to work.
