@@ -159,7 +159,13 @@ _SWIG_MakePtr(CPerlObj *pPerl, SV *sv, void *ptr, swig_type_info *t)
 /* Magic variable code */
 #ifndef PERL_OBJECT
 #define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-static void _swig_create_magic(SV *sv, const char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
+  #ifndef MULTIPLICITY 
+       static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int \
+(*get)(SV *,MAGIC *)) { 
+  #else 
+       static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*,\
+ SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) { 
+  #endif 
 #else
 #define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
 static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
