@@ -1,23 +1,11 @@
 WAD (Wrapped Application Debugger)
 
-Copyright (C) 2001      David M. Beazley
+Copyright (C) 2001   
+University of Chicago
+All Rights Reserved
 
 Author(s):
     David M. Beazley  (beazley@cs.uchicago.edu)
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 $Header$
 
@@ -102,7 +90,9 @@ Notes:
       them in non-traditional locations. 
 
    -  The Linux version has only been tested with 2.2-12 and 2.2-14 kernels
-      and the RedHat 6.x distribution.  Your mileage may vary. 
+      and the RedHat 6.x distribution.  Your mileage may vary.   There
+      may be some compatibility issues related to glibc and other parts
+      of the system as well.
      
 3. Using WAD
 
@@ -211,7 +201,8 @@ General:
 
 Solaris:
 
-  -  No platform specific issues are known at this time.
+  -  WAD is extremely slow at collecting debugging information
+     from large applications. 
 
 Linux:
 
@@ -275,7 +266,7 @@ mechanism.  Standard functions tend to just exit.  The WAD handler
 produces a C stack trace and produces a Perl stack trace using some
 code derived from the sigtrap module.
 
-Note: 3/10/01 - Perl support is currently broken.
+Note: 3/23/01 - Perl support is currently broken.
 
 7. Testing and Examples
 
@@ -360,11 +351,4 @@ ways to contribute.  Here is the short to-do list:
 Please contact me if you are interested in working on any of these projects.
 
 Dave Beazley (beazley@cs.uchicago.edu)
-March 10, 2001
-
-
-
-
-
-
-
+March 23, 2001

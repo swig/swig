@@ -13,6 +13,8 @@
 #include "wad.h"
 #include <signal.h>
 
+static char cvs[] = "$Header$";
+
 /* Handler function */	
 static void handler(int signo, WadFrame *frame, char *ret) {
   static char message[65536];
