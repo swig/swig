@@ -666,15 +666,17 @@ TCL8::link_variable(char *name, char *iname, SwigType *t) {
 	SwigType *ta = Copy(t);
 	aop = SwigType_pop(ta);
 	/*	Printf(stdout,"'%s' '%s'\n", ta, aop);*/
+	setable = 0;
+	readonly = 1;
 	if (SwigType_type(ta) == T_CHAR) {
 	  String *dim = SwigType_array_getdim(aop,0);
 	  if (dim && Len(dim)) {
 	    Printf(set->code, "strncpy(addr,value,%s);\n", dim);
-	  }
+	    setable = 1;
+	    readonly = Status & STAT_READONLY;
+	  } 
 	  Printv(get->code, "Tcl_SetVar2(interp,name1,name2,addr, flags);\n",0);
 	} else {
-	  setable = 0;
-	  readonly = 1;
 	  Printf(stderr,"%s:%d: Array variable '%s' will be read-only.\n", input_file, line_number, name);
 	  Wrapper_add_local(get,"value","Tcl_Obj *value");
 	  SwigType_remember(t);
