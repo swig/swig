@@ -142,14 +142,21 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
       have_repr = 1;
 
     // Now add it to the class
+
+    if (use_kw)
+      *pyclass << tab4 << "def " << realname << "(*_args, **_kwargs):\n";
+    else
+      *pyclass << tab4 << "def " << realname << "(*_args):\n";
     
-    *pyclass << tab4 << "def " << realname << "(self, *_args, **_kwargs):\n";
     // Create a doc string
     if (docstring && doc_entry) {
       *pyclass << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
     }
-    *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",(self,) + _args, _kwargs)\n";
-
+    if (use_kw)
+      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",_args, _kwargs)\n";
+    else
+      *pyclass << tab8 << "val = apply(" << module << "." << name_member(realname,class_name) << ",_args)\n";
+      
     // Check to see if the return type is an object
     if ((hash.lookup(t->name)) && (t->is_pointer <= 1)) {
       if (!typemap_check("out",typemap_lang,t,name_member(realname,class_name))) {
@@ -214,11 +221,18 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
 
       // Create a new constructor 
 
-      *construct << tab4 << "def __init__(self,*_args,**_kwargs):\n";
+      if (use_kw)
+	*construct << tab4 << "def __init__(self,*_args,**_kwargs):\n";
+      else
+	*construct << tab4 << "def __init__(self,*_args):\n";
+
       if (docstring && doc_entry) 
 	*construct << tab8 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
-      
-      *construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",_args,_kwargs)\n";
+
+      if (use_kw)
+	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",_args,_kwargs)\n";
+      else
+	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",_args)\n";
       *construct << tab8 << "self.thisown = 1\n";
       emitAddPragmas(*construct,"__init__",tab8);
       have_constructor = 1;
@@ -227,10 +241,17 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
       // Hmmm. We seem to be creating a different constructor.  We're just going to create a
       // function for it.
 
-      *additional << "def " << realname << "(*_args,**_kwargs):\n";
-      *additional << tab4 << "val = " << class_name << "Ptr(apply(" 
-		  << module << "." << name_construct(realname) << ",_args,_kwargs))\n"
-                  << tab4 << "val.thisown = 1\n"
+      if (use_kw)
+	*additional << "def " << realname << "(*_args,**_kwargs):\n";
+      else
+	*additional << "def " << realname << "(*_args):\n";
+
+      *additional << tab4 << "val = " << class_name << "Ptr(apply(";
+      if (use_kw)
+	*additional << module << "." << name_construct(realname) << ",_args,_kwargs))\n";
+      else
+	*additional << module << "." << name_construct(realname) << ",_args))\n";
+      *additional << tab4 << "val.thisown = 1\n"
 		  << tab4 << "return val\n\n";
     }
     // Patch up the documentation entry
@@ -294,9 +315,12 @@ void PYTHON::cpp_close_class() {
 
     // First, build the pointer base class
     if (base_class) {
-      ptrclass << "class " << class_name << "Ptr(" << *base_class << "):\n";
+      ptrclass << "class " << class_name << "(" << *base_class << "):\n";
     } else {
-    ptrclass << "class " << class_name << "Ptr :\n";
+    ptrclass << "class " << class_name << ":\n";
+    }
+    if (docstring && doc_entry) {
+      classes << tab4 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
     }
 
     //    *getattr << tab8 << "return self.__dict__[name]\n";
@@ -304,9 +328,7 @@ void PYTHON::cpp_close_class() {
     *setattr << tab8 << "self.__dict__[name] = value\n";
 
     ptrclass << *cinit 
-	     << tab4 << "def __init__(self,this):\n"
-	     << tab8 << "self.this = this\n"
-	     << tab8 << "self.thisown = 0\n";
+	     << *construct << "\n";
 
     classes << ptrclass
 	    << *pyclass;
@@ -326,13 +348,12 @@ void PYTHON::cpp_close_class() {
 
     // Now build the real class with a normal constructor
 
-    classes << "class " << class_name << "(" << class_name << "Ptr):\n";
-    
-    if (docstring && doc_entry) {
-      classes << tab4 << "\"\"\"" << add_docstring(doc_entry) << "\"\"\"\n";
-    }
+    classes << "class " << class_name << "Ptr(" << class_name << "):\n";
 
-    classes << *construct << "\n\n"
+    classes << tab4 << "def __init__(self,this):\n"
+	    << tab8 << "self.this = this\n"
+	    << tab8 << "self.thisown = 0\n"
+	    << tab8 << "self.__class__ = " << class_name << "\n"
 	    << "\n" << *additional << "\n";
 
     delete pyclass;
@@ -367,7 +388,7 @@ void PYTHON::cpp_inherit(char **baseclass,int) {
     bc = (char *) hash.lookup(baseclass[i]);
     if (bc) {
       if (first_base) *base_class << ",";
-      *base_class << bc << "Ptr";
+      *base_class << bc;
       first_base = 1;
     }
     i++;
