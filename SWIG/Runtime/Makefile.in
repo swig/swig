@@ -84,6 +84,7 @@ python: libswigpy$(RELEASESUFFIX).la
 
 libswigpy$(RELEASESUFFIX).la:
 	rm -f libpy.c
+	echo '#include "Python.h"' >> libpy.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PYTHON_RUNTIME) >> libpy.c	
 #	-cp $(srcdir)/$(PYTHON_RUNTIME) libpy.c
 	$(LIBTOOL) $(CC) -c $(PYTHON_INCLUDE) -DSWIG_GLOBAL libpy.c
