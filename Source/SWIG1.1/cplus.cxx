@@ -190,7 +190,17 @@ public:
   int            inherited;              // Was this member inherited?
   CPP_member     *next;                  // Next member (for building linked lists)
   int            id;                     // type id when created
+  String        *signature;
 
+  CPP_member() {
+    signature = 0;
+    is_static = 0;
+    is_virtual = 0;
+    base = 0;
+    code = 0;
+    file = 0;
+    next = 0;
+  }
   virtual void   inherit(int) { };       // Inheritance rule (optional)
   virtual void   emit() = 0;             // Emit rule
 };
@@ -220,6 +230,7 @@ public:
     next = 0;
     line = line_number;
     file = input_file;
+    signature = NewStringf("%s(%s)", n, ParmList_str(l));
     id = cpp_id;
     if (AddMethods) {
       if (strlen(Char(CCode)))
@@ -356,7 +367,6 @@ public:
   void inherit(int mode) {
       // Set up the proper addmethods mode and provide C code (if provided)
       int oldaddmethods = AddMethods;
-      int oldnewobject = NewObject;
       AddMethods = new_method;
       Clear(CCode);
       Append(CCode,code);
@@ -1142,7 +1152,21 @@ void cplus_member_func(char *name, char *iname, SwigType *type, ParmList *l,
     
   if (Inherit_mode) {
     CPP_member *m = current_class->search_member(temp_iname);
-    if (m) return;
+    if (m) {
+      /* The current member is already part of the class.  However, we might be
+         able to make some "optimizations" if it's virtual */
+
+      if ((is_virtual) && (m->is_virtual)) {
+	if (m->signature) {
+	  /*	  Printf(stdout,"Member : %s, %d, '%s'\n", m->name, m->is_virtual, m->signature); */
+	  String *ns = NewStringf("%s(%s)", name, ParmList_str(l));
+	  if (Cmp(ns,m->signature) == 0) {
+	    m->base = Swig_copy_string(inherit_base_class);
+	  }
+	}
+      }
+      return;
+    }
   }
   
   // Add it to our C++ class list
