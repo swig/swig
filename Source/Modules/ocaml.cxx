@@ -337,7 +337,7 @@ public:
     /* Swig_director_declaration()
      *
      * Generate the full director class declaration, complete with base classes.
-     * e.g. "class __DIRECTOR__myclass: public myclass, public Swig::Director {"
+     * e.g. "class __DIRECTOR__myclass : public myclass, public Swig::Director {"
      *
      */
   
@@ -346,7 +346,7 @@ public:
 	String *directorname = NewStringf("__DIRECTOR__%s", classname);
 	String *base = Getattr(n, "classtype");
 	String *declaration = Swig_class_declaration(n, directorname);
-	Printf(declaration, ": public %s, public Swig::Director {\n", base);
+	Printf(declaration, " : public %s, public Swig::Director {\n", base);
 	Delete(classname);
 	Delete(directorname);
 	return declaration;
@@ -850,7 +850,7 @@ public:
 		if (/*directorbase &&*/ hasVirtual && !constructor && isVirtual) {
 		    Wrapper_add_local(f, "director", "Swig::Director *director = 0");
 		    Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
-		    Printf(f->code, "if (director && (director->__get_self()==argv[0])) director->__set_up();\n");
+		    Printf(f->code, "if (director && (director->swig_get_self()==argv[0])) director->swig_set_up();\n");
 		}
 	    }
 	}
@@ -1633,7 +1633,7 @@ public:
 			    Printf(wrap_args, "if (!%s) {\n", director);
 			    Printf(wrap_args,   "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 			    Printf(wrap_args, "} else {\n");
-			    Printf(wrap_args,   "%s = %s->__get_self();\n", source, director);
+			    Printf(wrap_args,   "%s = %s->swig_get_self();\n", source, director);
 			    Printf(wrap_args, "}\n");
 			    Delete(director);
 			    Printv(arglist, source, NIL);
@@ -1669,7 +1669,7 @@ public:
 	Printf(w->code,"args = Val_unit;\n");
 
 	/* direct call to superclass if _up is set */
-	Printf(w->code, "if (__get_up()) {\n");
+	Printf(w->code, "if (swig_get_up()) {\n");
 	Printf(w->code,   "CAMLreturn(%s);\n", Swig_method_call(super,l));
 	Printf(w->code, "}\n");
     
@@ -1685,7 +1685,7 @@ public:
 	Printf(w->code, 
 	       "swig_result = "
 	       "callback2(callback(*caml_named_value(\"swig_runmethod\"),"
-	       "__get_self()),copy_string(\"%s\"),args);\n",
+	       "swig_get_self()),copy_string(\"%s\"),args);\n",
 	       Getattr(n,"name"));
 	/* exception handling */
 	tm = Swig_typemap_lookup_new("director:except", n, "result", 0);
@@ -1802,7 +1802,7 @@ public:
 	String *classname = NewString("");
 	Printf(classname, "__DIRECTOR__%s", supername);
 
-	/* insert self and __disown parameters */
+	/* insert self and disown parameters */
 	Parm *p, *ip;
 	ParmList *superparms = CopyParmList(Getattr(n, "parms"));
 	ParmList *parms_in_declaration = CopyParmList(superparms);
@@ -1820,7 +1820,7 @@ public:
 	for (ip = parms_in_declaration; nextSibling(ip); ) 
 	    ip = nextSibling(ip);
 
-	p = NewParm(NewString("int"), NewString("__disown"));
+	p = NewParm(NewString("bool"), NewString("disown"));
 	Setattr(p, "CAML_VALUE", "1");
 	Setattr(n, "director:postfix_args", p);
 	Setattr(p, "args:byname", "1");
@@ -1838,7 +1838,7 @@ public:
 					 0, 0);
 	    call = Swig_csuperclass_call(0, basetype, superparms);
 	    Printf( w->def, 
-		    "%s::%s: %s, Swig::Director(self, __disown) { }", 
+		    "%s::%s: %s, Swig::Director(self, disown) { }", 
 		    classname, target, call );
 	    Delete(target);
 	    Wrapper_print(w, f_directors);
@@ -1871,11 +1871,11 @@ public:
 	classname = Swig_class_name(n);
 	{
 	    Wrapper *w = NewWrapper();
-	    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(CAML_VALUE self, int __disown): Swig::Director(self, __disown) { }", classname, classname);
+	    Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(CAML_VALUE self, bool disown) : Swig::Director(self, disown) { }", classname, classname);
 	    Wrapper_print(w, f_directors);
 	    DelWrapper(w);
 	}
-	Printf(f_directors_h, "    __DIRECTOR__%s(CAML_VALUE self, int __disown = 1);\n", classname);
+	Printf(f_directors_h, "    __DIRECTOR__%s(CAML_VALUE self, bool disown = true);\n", classname);
 	Delete(classname);
 	return Language::classDirectorDefaultConstructor(n);
     }

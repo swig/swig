@@ -348,8 +348,8 @@ class JAVA : public Language {
     /* Emit initial director header and director code: */
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
-      Printf(f_directors_h, "#ifndef __%s_WRAP_H__\n", module);
-      Printf(f_directors_h, "#define __%s_WRAP_H__\n\n", module);
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
       Printf(f_directors_h, "class Swig::Director;\n\n");
 
       Printf(f_directors, "\n\n");
@@ -538,7 +538,7 @@ class JAVA : public Language {
       Dump(f_directors_h, f_runtime_h);
 
       Printf(f_runtime_h, "\n");
-      Printf(f_runtime_h, "#endif /* __%s_WRAP_H__ */\n", module);
+      Printf(f_runtime_h, "#endif\n");
     }
 
     Delete(swig_types_hash); swig_types_hash = NULL;
@@ -711,7 +711,7 @@ class JAVA : public Language {
     bool recursive_upcall = false;
     bool feature_extend = !Cmp(Getattr(n, "feature:extend"), "1");
     String *director_class = NULL;
-    String *director_uargs = NewString("director->__get_self()");
+    String *director_uargs = NewString("director->swig_get_self()");
     String *dirimclass_meth = NewStringf("__DIRECTOR__%s", overloaded_name);
     UpcallData *udata = NULL;
     String *class_methodidx = NULL;
@@ -913,7 +913,7 @@ class JAVA : public Language {
 
       if (director_method && i == 0) {
         Printf(f->code, "director = dynamic_cast<%s *>(arg1);\n", director_class);
-        Printf(f->code, "if (director == NULL || !director->__overrides(%s)) {\n", class_methodidx);
+        Printf(f->code, "if (director == NULL || !director->swig_overrides(%s)) {\n", class_methodidx);
       }
 
       Delete(im_param_type);
@@ -1047,8 +1047,8 @@ class JAVA : public Language {
 
         if (upcall_method != NULL) {
           if (!recursive_upcall) {
-            Printf(f->code, "  if (!director->__get_ricochet(%s)) {\n", class_methodidx);
-            Printf(f->code, "    director->__set_ricochet(%s);\n", class_methodidx);
+            Printf(f->code, "  if (!director->swig_get_ricochet(%s)) {\n", class_methodidx);
+            Printf(f->code, "    director->swig_set_ricochet(%s);\n", class_methodidx);
           }
 
           if (!is_void_return)
@@ -1059,7 +1059,7 @@ class JAVA : public Language {
                    upcall_method, imclass_methodidx, director_uargs);
 
           if (!recursive_upcall)
-            Printf(f->code, "    director->__clear_ricochet(%s);\n", class_methodidx);
+            Printf(f->code, "    director->swig_clear_ricochet(%s);\n", class_methodidx);
 
           Printf(f->code, "if (jenv->ExceptionOccurred()) return $null;\n");
 
@@ -1510,7 +1510,7 @@ class JAVA : public Language {
       Printf(proxy_class_def, "  private final native static void __director_connect(%s self, long cptr);\n\n",
              proxy_class_name);
 
-      Printf(proxy_class_def, "  protected void __director_disconnect()\n");
+      Printf(proxy_class_def, "  protected void swig_director_disconnect()\n");
       Printf(proxy_class_def, "  {\n");
       Printf(proxy_class_def, "    swigCPtr = 0;\n");
       Printf(proxy_class_def, "    swigCMemOwn = false;\n");
@@ -1935,7 +1935,7 @@ class JAVA : public Language {
           Printf(conn_wrap->code, "  __DIRECTOR__%s *director = dynamic_cast<__DIRECTOR__%s *>(obj);\n",
                  Getattr(n, "sym:name"), Getattr(n, "sym:name"));
           Printf(conn_wrap->code, "  if (director) {\n");
-          Printf(conn_wrap->code, "    director->__connect_director(jenv, jself, jenv->GetObjectClass(jself));\n");
+          Printf(conn_wrap->code, "    director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself));\n");
           Printf(conn_wrap->code, "  }\n");
           Printf(conn_wrap->code, "}\n");
 
@@ -2601,7 +2601,7 @@ class JAVA : public Language {
     String     *jniret_desc = NewString("");
     String     *classret_desc = NewString("");
     String     *jniret_type = NULL;
-    String     *jupcall_args = NewString("__get_self()");
+    String     *jupcall_args = NewString("swig_get_self()");
     String     *imclass_dmethod;
     Wrapper    *imw = NewWrapper();
     String     *imcall_args = NewString("");
@@ -2772,8 +2772,8 @@ class JAVA : public Language {
 
     /* Preamble code */
 
-    Printf(w->code, "jenv = __acquire_jenv();\n");
-    Printf(w->code, "if (!__override[%d]) {\n", classmeth_off);
+    Printf(w->code, "jenv = swig_acquire_jenv();\n");
+    Printf(w->code, "if (!swig_override[%d]) {\n", classmeth_off);
 
     if (!pure_virtual) {
       if (is_void) {
@@ -2824,9 +2824,9 @@ class JAVA : public Language {
 
     if (!recursive_upcall) {
       if (!is_const)
-        Printf(w->code, "if (!__get_ricochet(%d)) {\n", classmeth_off);
+        Printf(w->code, "if (!swig_get_ricochet(%d)) {\n", classmeth_off);
       else
-        Printf(w->code, "if (!const_cast<%s *>(this)->__get_ricochet(%d)) {\n",
+        Printf(w->code, "if (!const_cast<%s *>(this)->swig_get_ricochet(%d)) {\n",
                dirclassname, classmeth_off);
     }
 
@@ -3007,9 +3007,9 @@ class JAVA : public Language {
 
     if (!recursive_upcall) {
       if (!is_const)
-        Printf(w->code, "  __set_ricochet(%d);\n", classmeth_off);
+        Printf(w->code, "  swig_set_ricochet(%d);\n", classmeth_off);
       else
-        Printf(w->code, "  const_cast<%s *>(this)->__set_ricochet(%d);\n",
+        Printf(w->code, "  const_cast<%s *>(this)->swig_set_ricochet(%d);\n",
                dirclassname, classmeth_off);
     }
 
@@ -3023,9 +3023,9 @@ class JAVA : public Language {
 
     if (!recursive_upcall) {
       if (!is_const)
-        Printf(w->code, "__clear_ricochet(%d);\n", classmeth_off);
+        Printf(w->code, "swig_clear_ricochet(%d);\n", classmeth_off);
       else
-        Printf(w->code, "  const_cast<%s *>(this)->__clear_ricochet(%d);\n",
+        Printf(w->code, "  const_cast<%s *>(this)->swig_clear_ricochet(%d);\n",
                dirclassname, classmeth_off);
     }
 
@@ -3158,7 +3158,6 @@ class JAVA : public Language {
       String *call = Swig_csuperclass_call(0, basetype, superparms);
 
       Printf(w->def, "%s::%s: %s, Swig::Director(jenv) {", classname, target, call);
-      Printf(w->code, "/* NOP */\n");
       Printf(w->code, "}\n");
       Wrapper_print(w, f_directors);
 
@@ -3191,7 +3190,7 @@ class JAVA : public Language {
     classname = Swig_class_name(n);
     {
       Wrapper *w = NewWrapper();
-      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(JNIEnv *jenv): Swig::Director(jenv) {",
+      Printf(w->def, "__DIRECTOR__%s::__DIRECTOR__%s(JNIEnv *jenv) : Swig::Director(jenv) {",
              classname, classname);
       Printf(w->code, "}\n");
       Wrapper_print(w, f_directors);
@@ -3223,28 +3222,30 @@ class JAVA : public Language {
     Printf(f_directors_h, "%s\n", declaration);
     Printf(f_directors_h, "\npublic:\n");
     Printf(f_directors_h, "  virtual ~%s();\n", director_classname);
-    Printf(f_directors_h, "  void __connect_director(JNIEnv *, jobject, jclass);\n");
-    Printf(f_directors_h, "  inline bool __get_ricochet(int n)\n");
-    Printf(f_directors_h, "  {\n");
-    Printf(f_directors_h, "    bool     __r = __ricochet[n];\n");
-    Printf(f_directors_h, "    __ricochet[n] = false;\n");
-    Printf(f_directors_h, "    return __r;\n");
+    Printf(f_directors_h, "  void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls);\n");
+    Printf(f_directors_h, "  bool swig_get_ricochet(int n) {\n");
+    Printf(f_directors_h, "    bool ric = swig_ricochet[n];\n");
+    Printf(f_directors_h, "    swig_ricochet[n] = false;\n");
+    Printf(f_directors_h, "    return ric;\n");
     Printf(f_directors_h, "  }\n");
-    Printf(f_directors_h, "  inline void __set_ricochet(int n)\n");
-    Printf(f_directors_h, "  { __ricochet[n] = true; }\n");
-    Printf(f_directors_h, "  inline void __clear_ricochet(int n)\n");
-    Printf(f_directors_h, "  { __ricochet[n] = false; }\n");
-    Printf(f_directors_h, "  inline bool __overrides(int n)\n");
-    Printf(f_directors_h, "  { return __override[n]; }\n");
+    Printf(f_directors_h, "  void swig_set_ricochet(int n) {\n");
+    Printf(f_directors_h, "    swig_ricochet[n] = true;\n");
+    Printf(f_directors_h, "  }\n");
+    Printf(f_directors_h, "  void swig_clear_ricochet(int n) {\n");
+    Printf(f_directors_h, "    swig_ricochet[n] = false;\n");
+    Printf(f_directors_h, "  }\n");
+    Printf(f_directors_h, "  bool swig_overrides(int n) {\n");
+    Printf(f_directors_h, "    return swig_override[n];\n");
+    Printf(f_directors_h, "  }\n");
 
     Delete(declaration);
 
     Printf(f_directors, "%s::~%s() {\n", director_classname, director_classname);
     Printf(f_directors, "  jfieldID swigCPtr, swigCMemOwn;\n");
     Printf(f_directors, "  JNIEnv *jenv;\n");
-    Printf(f_directors, "  jobject self = __get_self();\n");
+    Printf(f_directors, "  jobject self = swig_get_self();\n");
     Printf(f_directors, "  jclass jcls;\n");
-    Printf(f_directors, "  jenv = __acquire_jenv();\n");
+    Printf(f_directors, "  jenv = swig_acquire_jenv();\n");
     Printf(f_directors, "  jcls = jenv->GetObjectClass(self);\n");
     Printf(f_directors, "  swigCPtr = jenv->GetFieldID(jcls, \"swigCPtr\", \"J\");\n");
     Printf(f_directors, "  swigCMemOwn = jenv->GetFieldID(jcls, \"swigCMemOwn\", \"Z\");\n");
@@ -3277,7 +3278,7 @@ class JAVA : public Language {
       internal_classname = NewStringf("%s", classname);
 
     Wrapper_add_localv(w, "baseclass", "static jclass baseclass", " = 0", NIL);
-    Printf(w->def, "void %s::__connect_director(JNIEnv *jenv, jobject jself, jclass jcls) {", director_classname);
+    Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls) {", director_classname);
 
     if (first_class_dmethod != curr_class_dmethod) {
       Printf(w->def, "static struct {\n");
@@ -3300,7 +3301,7 @@ class JAVA : public Language {
 
     Wrapper_add_local(w, "derived", "bool derived");
 
-    Printf(w->code, "__set_self(jenv, jself);\n");
+    Printf(w->code, "swig_set_self(jenv, jself);\n");
     Printf(w->code, "if (baseclass == NULL) {\n");
     Printf(w->code, "baseclass = jenv->FindClass(\"%s\");\n", internal_classname);
     Printf(w->code, "if (baseclass == NULL) return;\n");
@@ -3313,20 +3314,20 @@ class JAVA : public Language {
 
       /* Emit the code to look up the class's methods, initialize the override and ricochet arrays */
       Printf(f_directors_h, "protected:\n");
-      Printf(f_directors_h, "  bool __ricochet[%d];\n", n_methods);
-      Printf(f_directors_h, "  bool __override[%d];\n", n_methods);
+      Printf(f_directors_h, "  bool swig_ricochet[%d];\n", n_methods);
+      Printf(f_directors_h, "  bool swig_override[%d];\n", n_methods);
 
       Printf(w->code, "for (int i = 0; i < %d; ++i) {\n", n_methods);
-      Printf(w->code, "  __ricochet[i] = false;\n");
+      Printf(w->code, "  swig_ricochet[i] = false;\n");
       Printf(w->code, "  if (methods[i].base_methid == NULL)\n");
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
       Printf(w->code, "  if (derived) {\n");
       Printf(w->code, "    jmethodID methid;\n");
       Printf(w->code, "    jenv->ExceptionClear();\n");
       Printf(w->code, "    methid = jenv->GetMethodID(jcls, methods[i].mname, methods[i].mdesc);\n");
-      Printf(w->code, "    __override[i] = (jenv->IsSameObject((jobject) methid, (jobject) methods[i].base_methid) ? false : true);\n");
+      Printf(w->code, "    swig_override[i] = (jenv->IsSameObject((jobject) methid, (jobject) methods[i].base_methid) ? false : true);\n");
       Printf(w->code, "  } else\n");
-      Printf(w->code, "    __override[i] = false;\n");
+      Printf(w->code, "    swig_override[i] = false;\n");
       Printf(w->code, "}\n");
     }
 
