@@ -719,7 +719,7 @@ if test -z "$JAVAINCDIR"; then
 
   # Add in default installation directory on Windows for Cygwin
   case $host in
-  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
+  *-*-cygwin* | *-*-mingw*) JAVAINCDIR="c:/Program*Files/Java/jdk*/include d:/Program*Files/Java/jdk*/include c:/j2sdk*/include d:/j2sdk*/include c:/jdk*/include d:/jdk*/include $JAVAINCDIR";;
   *-*-darwin*) JAVAINCDIR="/System/Library/Frameworks/JavaVM.framework/Headers $JAVAINCDIR";;
   *);;
   esac
@@ -727,10 +727,10 @@ fi
 
 JAVAINC=""
 for d in $JAVAINCDIR ; do
-  if test -r $d/jni.h ; then
+  if test -r "$d/jni.h" ; then
     AC_MSG_RESULT($d)
     JAVAINCDIR=$d
-    JAVAINC="-I$d"
+    JAVAINC=-I\"$d\"
     break
   fi
 done
@@ -740,12 +740,12 @@ if test "$JAVAINC" = "" ; then
 else
   # now look for <arch>/jni_md.h
   AC_MSG_CHECKING(for java include file jni_md.h)
-  JAVAMDDIR=`find $JAVAINCDIR -follow -name jni_md.h -print`
+  JAVAMDDIR=`find "$JAVAINCDIR" -follow -name jni_md.h -print`
   if test "$JAVAMDDIR" = "" ; then
     AC_MSG_RESULT(not found)
   else
-    JAVAMDDIR=`dirname $JAVAMDDIR`
-    JAVAINC="${JAVAINC} -I$JAVAMDDIR"
+    JAVAMDDIR=`dirname "$JAVAMDDIR"`
+    JAVAINC="${JAVAINC} -I\"$JAVAMDDIR\""
     AC_MSG_RESULT($JAVAMDDIR)
   fi
 fi
