@@ -158,18 +158,36 @@ wad_search_stab(void *sp, int size, char *stabstr, WadSymbol *wsym, unsigned lon
          one identifies its location for the debugger */
 
       if (debug->nargs > 0) {
-	if (strcmp(debug->parms[debug->nargs-1].name, pname) == 0)
-	  debug->nargs--;
+	/* Need to do some fix up for linux here */
+	int i;
+	for (i = 0; i < debug->nargs; i++) {
+	  if ((strncmp(debug->parms[i].name, pname,len) == 0) && (strlen(debug->parms[i].name) == len)) {
+	    /* We already saw this argument.  Given a choice between a register and a stack
+               argument.  We will choose the stack version */
+	    if (debug->parms[i].loc == PARM_STACK) {
+	      break;
+	    }
+	    /* Go ahead and use the new argument */
+	    if (s->n_type == 0x40)
+	      debug->parms[i].loc = PARM_REGISTER;
+	    else
+	      debug->parms[i].loc = PARM_STACK;
+	    debug->parms[i].value = s->n_value;
+	    break;
+	  }
+	}
+	if (i < debug->nargs) continue;   /* We got an argument match. Just skip to next stab */
       }
+
       strncpy(debug->parms[debug->nargs].name,pname,len);
       debug->parms[debug->nargs].name[len] = 0;
-
       if (s->n_type == 0x40)
 	debug->parms[debug->nargs].loc = PARM_REGISTER;
       else
 	debug->parms[debug->nargs].loc = PARM_STACK;
 
       debug->parms[debug->nargs].value = s->n_value;
+      debug->parms[debug->nargs].type = 0;             /* Not used yet */
       debug->nargs++;
     }
   }

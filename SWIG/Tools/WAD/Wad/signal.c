@@ -133,7 +133,36 @@ void wad_signalhandler(int sig, siginfo_t *si, void *vcontext) {
     /* We're really hosed here */
     return;
   }
-  
+
+  if (wad_debug_mode & DEBUG_STACK) {
+    /* Walk the exception frames and try to find a return point */
+    framedata = (char *) frame;
+    
+    while (frame->size) {
+      int i;
+      WadParm *p;
+      /* Print out detailed stack trace information */
+      printf("::: Stack frame - 0x%08x :::\n", frame);
+      printf("    sp           = %x\n", frame->sp);
+      printf("    fp           = %x\n", frame->fp);
+      printf("    size         = %x\n", frame->stack_size);
+      printf("    pc           = %x\n", frame->pc);
+      printf("    symbol       = '%s'\n", SYMBOL(frame));
+      printf("    srcfile      = '%s'\n", SRCFILE(frame));
+      printf("    objfile      = '%s'\n", OBJFILE(frame));
+      printf("    numargs      = %d\n", frame->nargs);
+      printf("    arguments [\n");
+      p = ARGUMENTS(frame);
+      for (i = 0; i < frame->nargs; i++, p++) {
+	printf("        arg[%d] : name = '%s', loc = %d, type = %d, value = %d\n", i, p->name, p->loc, p->type, p->value);
+      }
+      printf("    ]\n");
+      framedata = framedata + frame->size;
+      frame = (WadFrame *) framedata;
+    }
+    frame = origframe;
+  }
+
   /* Walk the exception frames and try to find a return point */
   framedata = (char *) frame;
 

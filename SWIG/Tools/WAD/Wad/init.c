@@ -54,6 +54,10 @@ void wad_init() {
     wad_debug_mode |= DEBUG_INIT;
   }
 
+  if (getenv("WAD_DEBUG_STACK")) {
+    wad_debug_mode |= DEBUG_STACK;
+  }
+
   if (getenv("WAD_NOSTACK")) {
     wad_debug_mode |= DEBUG_NOSTACK;
   }

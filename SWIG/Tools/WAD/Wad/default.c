@@ -27,16 +27,12 @@ char *wad_arg_string(WadFrame *frame) {
   int     i;
   WadFrame *nf;
 
-#ifdef WAD_LINUX
-  strcat(str,"");
-  return str;
-#endif
-
-  if (frame->size)
+  if (frame->size) {
     nf = (WadFrame *) (((char *) frame) + frame->size);
-  else
+    if (nf->size == 0) nf = 0;
+  } else {
     nf = 0;
-
+  }
   if (nf) 
     nextstack = STACK(nf);
   else
@@ -45,17 +41,25 @@ char *wad_arg_string(WadFrame *frame) {
   str[0] = 0;
   stack = STACK(frame);
 
+#ifdef WAD_LINUX
+  if (!nf) {
+    return "";
+  }
+#endif
+
   if (frame->nargs < 0) {
-    /* No argument information is available.  In this case
-       we will simply dump the %in registers. (assuming we can
-       find them) */
+    /* No argument information is available. If we are on SPARC, we'll dump
+       the %in registers since these usually hold input parameters.  On
+       Linux, we do nothing */
     
+#ifdef WAD_SOLARIS
     for (i = 0; i < 6; i++) {
       sprintf(temp,"0x%x", stack[8+i]);
       strcat(str,temp);
       if (i < 5)
 	strcat(str,",");
     }
+#endif
   } else {
     /* We were able to get some argument information out the debugging table */
     wp = ARGUMENTS(frame);
@@ -80,6 +84,7 @@ char *wad_arg_string(WadFrame *frame) {
 	  }
 	}
       } else if (wp->loc == PARM_REGISTER) {
+#ifdef WAD_SOLARIS
 	if ((wp->value >= 24) && (wp->value < 32)) {
 	  /* Value is located in the %in registers */
 	  sprintf(temp,"0x%x", stack[wp->value - 16]);
@@ -93,6 +98,10 @@ char *wad_arg_string(WadFrame *frame) {
 	  sprintf(temp,"0x%x", frame->regs[wp->value - 16]);
 	  strcat(str,temp);
 	}
+#endif
+#ifdef WAD_LINUX
+	strcat(str,"?");
+#endif
       }
       if (i < (frame->nargs-1)) strcat(str,",");
     }

@@ -89,9 +89,9 @@ extern void wad_elf_debug(WadObjectFile *wo);
 
 typedef struct WadParm {
   char  name[64];
-  int   loc;
-  int   type;
-  int   value;
+  int   loc;           /* Location: register or stack */
+  int   type;          /* Argument type */
+  int   value;         /* Argument position from stabs */
 } WadParm;
 
 /* Debugging information */
@@ -176,6 +176,7 @@ extern WadReturnFunc *wad_check_return(const char *name);
 #define DEBUG_INIT       0x100
 #define DEBUG_NOSTACK    0x200
 #define DEBUG_ONESHOT    0x400
+#define DEBUG_STACK      0x800
 
 extern int wad_debug_mode;
 
