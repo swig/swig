@@ -67,7 +67,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, zend_module_en
     // Which means it must be a resource without a destructor or it 
     // registration code would have been generated when the destructor
     // was written out
-    if (le_swig_runtime=zend_register_list_destructors_ex(SWIG_landfill, NULL, type->name,module_entry->module_number)) 
+    if (le_swig_runtime=zend_register_list_destructors_ex(SWIG_landfill, NULL, (char *)(type->name),module_entry->module_number)) 
       SWIG_TypeClientData(type, (void *)le_swig_runtime);
   }
   //Assert that type->clientdata is not 0

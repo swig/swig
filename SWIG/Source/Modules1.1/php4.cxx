@@ -297,7 +297,7 @@ public:
       if (! CPlusPlus) Printf(f_extra,"LTLIBRARY_SOURCES       = %s\n",Swig_file_filename(outfile));
       else Printf(f_extra,"LTLIBRARY_SOURCES       =\n"
 		  "LTLIBRARY_SOURCES_CPP   = %s\n"
-		  "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo)\n"
+		  "LTLIBRARY_OBJECTS_X = $(LTLIBRARY_SOURCES_CPP:.cpp=.lo) $(LTLIBRARY_SOURCES_CPP:.cxx=.lo)\n"
 		  ,Swig_file_filename(outfile));
       
       Printf(f_extra,"LTLIBRARY_SHARED_NAME   = php_%s.la\n"
@@ -1361,10 +1361,11 @@ public:
       // Now register resource to handle this wrapped class
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", shadow_classname, shadow_classname);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,SWIGTYPE%s->name,module_number);\n",
+	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE_p%s->name),module_number);\n",
 	     shadow_classname, shadow_classname, SwigType_manglestr(t));
+printf(">>> %s => %s\n",shadow_classname,Char(SwigType_manglestr(t)));
       // Now register with swig (clientdata) the resource type
-      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE%s,le_swig_%s)\n",
+      Printf(s_oinit,"SWIG_TypeClientData(SWIGTYPE_p%s,(void *)le_swig_%s);\n",
              SwigType_manglestr(t),shadow_classname);
       Printf(s_oinit,"// End of %s\n\n",shadow_classname);
 
@@ -1372,7 +1373,7 @@ public:
       // Now register resource to handle this wrapped class
       Printf(s_vdecl,"static int le_swig_%s; // handle for %s\n", class_name, class_name);
       Printf(s_oinit,"le_swig_%s=zend_register_list_destructors_ex"
-	     "(_wrap_destroy_%s,NULL,SWIGTYPE%s->name,module_number);\n",
+	     "(_wrap_destroy_%s,NULL,(char *)(SWIGTYPE_p%s->name),module_number);\n",
 	     class_name, class_name, SwigType_manglestr(t));
     }
 
@@ -1592,7 +1593,7 @@ public:
     case T_POINTER:
       Printf(f->code, 
 	     "SWIG_SetPointerZval(return_value, (void *)%s, "
-	     "SWIGTYPE%s);\n", static_name, SwigType_manglestr(d));
+	     "SWIGTYPE_p%s);\n", static_name, SwigType_manglestr(d));
       break;
     case  T_STRING:
       Printf(f->code, "RETURN_STRING(%s, 1);\n", static_name);
