@@ -2,3 +2,5 @@
 *.pm
 *.so
 *.dll
+*.exp
+*.lib
