@@ -29,7 +29,6 @@ char cvsroot_ocaml_cxx[] = "$Header$";
 static const char *usage = (char*)
     ("\n"
      "Ocaml Options (available with -ocaml)\n"
-     "-ldflags        - Print runtime libraries to link with\n"
      "-prefix name    - Set a prefix to be appended to all names\n"
      "\n");
 
