@@ -1,5 +1,7 @@
 #include "swigmod.h"
 
+;; $Id$
+
 class ALLEGROCL : public Language {
 public:
 
@@ -12,6 +14,7 @@ public:
 };
 
 static File *f_cl=0;
+static File *f_null=0;
 
 char *identifier_converter="identifier-convert-null";
 
@@ -106,10 +109,16 @@ void add_defined_foreign_type(String *type) {
 
 
 String *convert_type(SwigType *ty) {
-  char *type_reduced=Char(SwigType_typedef_resolve_all(ty));
+  SwigType *tr=SwigType_typedef_resolve_all(ty);
+  char *type_reduced=Char(tr);
   int i;
 
   //Printf(stdout,"convert_type %s\n", ty);
+  if (SwigType_isconst(tr)) {
+	  SwigType_pop(tr);
+	  type_reduced=Char(tr);
+  }
+
 
   if (SwigType_ispointer(type_reduced) || SwigType_isarray(ty) ||
       !strncmp(type_reduced, "p.f", 3)) {
@@ -148,6 +157,9 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
   SWIG_library_directory("allegrocl"); 
   SWIG_config_file("allegrocl.swg");
 
+  
+  
+  
 
   for(i=1; i<argc; i++) {
     if (!strcmp(argv[i], "-identifier-converter")) {
@@ -191,8 +203,18 @@ void ALLEGROCL :: main(int argc, char *argv[]) {
 int ALLEGROCL :: top(Node *n) {
   String *module=Getattr(n, "name");
   String *output_filename=NewString("");
+  String *devnull=NewString("/dev/null");
+
+  f_null=NewFile(devnull, "w+");
+  if (!f_null) {
+	  perror("Failed to open /dev/null");
+	  SWIG_exit(EXIT_FAILURE);
+  }
+  Delete(devnull);
+
 
   Printf(output_filename, "%s%s.cl", SWIG_output_directory(), module);
+
 
   f_cl=NewFile(output_filename, "w");
   if (!f_cl) {
@@ -200,7 +222,7 @@ int ALLEGROCL :: top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  //Swig_register_filebyname("header",f_cl);
+  Swig_register_filebyname("header",f_null);
   Swig_register_filebyname("wrapper", f_cl);
 
   Printf(f_cl, ";; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :ff :excl))\n\n(in-package :%s)\n", module, module);
@@ -208,7 +230,9 @@ int ALLEGROCL :: top(Node *n) {
   Language::top(n);
 
   Close(f_cl);
-  Delete(f_cl);
+  Delete(f_cl); // Delete the handle, not the file
+  Close(f_null);
+  Delete(f_null);
   
   return SWIG_OK;
 }
