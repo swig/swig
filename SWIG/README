@@ -123,8 +123,8 @@ if you are making extensive use of advanced SWIG features, interfaces
 written for SWIG1.1 may not work.  We apologize for the inconvenience,
 but these changes are needed in order to fix a number of annoying
 "features" in SWIG1.1.  Hopefully the list of new features will
-provide enough incentive for you to upgrade (and that the modifications
-to your interfaces will only be minor).
+provide enough incentive for you to upgrade (and that the
+modifications to your interfaces will only be minor).
 
 In addition, SWIG1.3 makes no attempt to be compatible with SWIG1.1 at
 the C++ API level so language modules written for SWIG1.1 will most
@@ -196,6 +196,11 @@ Notes:
     alarm---the test may be related to some new SWIG feature or a difficult bug
     that we're trying to resolve.  Chances are that SWIG will work just fine
     for you.  
+
+    Note: SWIG's support for C++ is sufficiently advanced that certain
+    tests may fail on older C++ compilers (for instance if your compiler
+    does not support member templates).   These errors are harmless if you 
+    don't intend to use these features in your own programs.
 
 Examples
 ========
