@@ -138,6 +138,7 @@ CPP_TEST_CASES += \
 	namespace_enum \
 	namespace_extend \
 	namespace_nested \
+	namespace_spaces \
 	namespace_template \
 	namespace_typemap \
 	namespace_virtual_method \
