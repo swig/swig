@@ -2477,28 +2477,26 @@ Language::symbolLookup(String *s) {
 Node *
 Language::classLookup(SwigType *s) {
   Node *n = 0;
-  SwigType *lt, *ty1,*ty2;
-  String *base;
-  String *prefix;
-  Symtab  *stab = 0;
 
   /* Look in hash of cached values */
   n = Getattr(classtypes,s);
   if (!n) {
-
-    lt = SwigType_ltype(s);
-    ty1 = SwigType_typedef_resolve_all(lt);
-    ty2 = SwigType_strip_qualifiers(ty1);
+    Symtab  *stab = 0;
+    SwigType *lt = SwigType_ltype(s);
+    SwigType *ty1 = SwigType_typedef_resolve_all(lt);
+    SwigType *ty2 = SwigType_strip_qualifiers(ty1);
     Delete(lt);
     Delete(ty1);
+    lt = 0;
+    ty1 = 0;
 
-    base = SwigType_base(ty2);
+    String *base = SwigType_base(ty2);
 
     Replaceall(base,"class ","");
     Replaceall(base,"struct ","");
     Replaceall(base,"union ","");
 
-    prefix = SwigType_prefix(ty2);
+    String *prefix = SwigType_prefix(ty2);
 
     /* Do a symbol table search on the base type */
     while (!n) {
@@ -2529,7 +2527,6 @@ Language::classLookup(SwigType *s) {
     Delete(ty2);
     Delete(base);
     Delete(prefix);
-
   }
   if (n && (Getattr(n,"feature:ignore"))) {
       n = 0;
@@ -2548,24 +2545,28 @@ Language::classLookup(SwigType *s) {
 Node *
 Language::enumLookup(SwigType *s) {
   Node *n = 0;
-  Symtab *stab = 0;
 
   /* Look in hash of cached values */
   n = Getattr(enumtypes,s);
   if (!n) {
-
-    SwigType *ty1 = SwigType_typedef_resolve_all(s);
+    Symtab *stab = 0;
+    SwigType *lt = SwigType_ltype(s);
+    SwigType *ty1 = SwigType_typedef_resolve_all(lt);
     SwigType *ty2 = SwigType_strip_qualifiers(ty1);
+    Delete(lt);
     Delete(ty1);
+    lt = 0;
     ty1 = 0;
 
-    Replaceall(ty2,"enum ","");
+    String *base = SwigType_base(ty2);
+
+    Replaceall(base,"enum ","");
     String *prefix = SwigType_prefix(ty2);
 
     /* Look for type in symbol table */
     while (!n) {
       Hash *nstab;
-      n = Swig_symbol_clookup(ty2,stab);
+      n = Swig_symbol_clookup(base,stab);
       if (!n) break;
       if (Strcmp(nodeType(n),"enum") == 0) break;
       n = parentNode(n);
@@ -2586,8 +2587,8 @@ Language::enumLookup(SwigType *s) {
       }
     }
     Delete(ty2);
+    Delete(base);
     Delete(prefix);
-
   }
   if (n && (Getattr(n,"feature:ignore"))) {
       n = 0;
