@@ -1,5 +1,20 @@
 %module preproc
 
+/* check __cplusplus case */
+%header
+%{
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
+  /* C code */
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+%}
+
+
 /* This interface file tests whether SWIG's extended C
    preprocessor is working right. 
 
