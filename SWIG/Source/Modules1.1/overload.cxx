@@ -40,12 +40,14 @@ Swig_overload_rank(Node *n) {
   int         nnodes = 0;
   Node *o = Getattr(n,"sym:overloaded");
   Node *c;
+  String *storage;
 
   if (!o) return 0;
 
   c = o;
   while (c) {
-    if (Strcmp(nodeType(c),"template") == 0) {
+    storage = Getattr(c,"storage");
+    if (Cmp(storage,"friend") == 0 || Strcmp(nodeType(c),"template") == 0) {
       c = Getattr(n,"sym:nextSibling");
       continue;
     }
