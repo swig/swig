@@ -91,6 +91,7 @@ CPP_TEST_CASES += \
 	add_link \
 	anonymous_arg \
 	arrays_global \
+	arrays_global_twodim \
 	bool_default \
 	casts \
 	class_ignore \
