@@ -79,7 +79,7 @@ DelList(DOH *lo) {
 
 static void
 List_clear(DOH *lo) {
-    List *l = (List *) lo;
+    List *l = (List *) ObjData(lo);
     int i;
     for (i = 0; i < l->nitems; i++) {
 	Delete(l->items[i]);
