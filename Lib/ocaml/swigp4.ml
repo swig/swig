@@ -109,6 +109,8 @@ EXTEND
     | "'" ; e = expr -> c_ify e loc
     | c = expr ; "as" ; id = LIDENT -> <:expr< $lid:"get_" ^ id$ $c$ >>
     | c = expr ; "to" ; id = LIDENT -> <:expr< $uid:"C_" ^ id$ $c$ >>
+    | "`" ; "`" ; l = LIDENT -> <:expr< C_enum `$lid:l$ >>
+    | "`" ; "`" ; u = UIDENT -> <:expr< C_enum `$uid:u$ >>
     | f = expr ; "'" ; "(" ; args = LIST0 (expr LEVEL "simple") SEP "," ; ")" -> 
 	<:expr< $f$ ($mk_list args loc c_ify$) >>
     ] ] ;
