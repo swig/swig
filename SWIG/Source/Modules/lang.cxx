@@ -45,7 +45,7 @@ int             ImportMode = 0;
 int             IsVirtual = 0;
 static String  *AttributeFunctionGet = 0;
 static String  *AttributeFunctionSet = 0;
-static int      cplus_mode = 0;
+int             cplus_mode = 0;
 static Node    *CurrentClass = 0;
 int             line_number = 0;
 char           *input_file = 0;
@@ -226,13 +226,18 @@ int Dispatcher::usingDeclaration(Node *n) { return defaultHandler(n); }
 int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 
 /* Allocators */
-Language::Language() {
-  symbols = NewHash();
-  classtypes = NewHash();
-  none_comparison = NewString("$arg != 0");
+Language::Language() :
+  none_comparison(NewString("$arg != 0")),
+  director_ctor_code(NewString("")),
+  symbols(NewHash()),
+  classtypes(NewHash()),
+  enumtypes(NewHash()),
+  overloading(0),
+  multiinput(0),
+  directors(0)
+{
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
-  director_ctor_code = NewString("");
 
   /* Default director constructor code, passed to Swig_ConstructorToFunction */
   Printv(director_ctor_code,
@@ -242,14 +247,12 @@ Language::Language() {
       "  $nondirector_new \n",
       "}\n", NIL);
 
-  overloading = 0;
-  multiinput = 0;
-  directors = 0;
 }
 
 Language::~Language() {
   Delete(symbols);
   Delete(classtypes);
+  Delete(enumtypes);
 }
 
 /* ----------------------------------------------------------------------
@@ -1343,7 +1346,7 @@ int Language::enumDeclaration(Node *n) {
 int Language::enumvalueDeclaration(Node *n) {
   if (CurrentClass && (cplus_mode != CPLUS_PUBLIC)) return SWIG_NOWRAP;
 
-  Swig_require("enumvalueDeclaratuon",n,"*name", "?value",NIL);
+  Swig_require("enumvalueDeclaration",n,"*name", "?value",NIL);
   String *value = Getattr(n,"value");
   String *name  = Getattr(n,"name");
   String *tmpValue;
@@ -1930,7 +1933,6 @@ int Language::constructorDeclaration(Node *n) {
       }
     } else {
       if (name && (Cmp(Swig_scopename_last(name),Swig_scopename_last(ClassName))) && !(Getattr(n,"template"))) {
-	Printf(stdout,"name = '%s', ClassName='%s'\n", name, ClassName);
 	Swig_warning(WARN_LANG_RETURN_TYPE, input_file,line_number,"Function %s must have a return type.\n", 
 		     name);
 	Swig_restore(n);
@@ -2276,6 +2278,64 @@ Language::classLookup(SwigType *s) {
     }
     Delete(ty2);
     Delete(base);
+    Delete(prefix);
+
+  }
+  if (n && (Getattr(n,"feature:ignore"))) {
+      n = 0;
+  }
+
+  return n; 
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::enumLookup()
+ *
+ * Finds and returns the Node containing the enum declaration for the (enum) 
+ * type passed in.
+ * ----------------------------------------------------------------------------- */
+
+Node *
+Language::enumLookup(SwigType *s) {
+  Node *n = 0;
+  Symtab *stab = 0;
+
+  /* Look in hash of cached values */
+  n = Getattr(enumtypes,s);
+  if (!n) {
+
+    SwigType *ty1 = SwigType_typedef_resolve_all(s);
+    SwigType *ty2 = SwigType_strip_qualifiers(ty1);
+    Delete(ty1);
+    ty1 = 0;
+
+    Replaceall(ty2,"enum ","");
+    String *prefix = SwigType_prefix(ty2);
+
+    /* Look for type in symbol table */
+    while (!n) {
+      Hash *nstab;
+      n = Swig_symbol_clookup(ty2,stab);
+      if (!n) break;
+      if (Strcmp(nodeType(n),"enum") == 0) break;
+      n = parentNode(n);
+      if (!n) break;
+      nstab = Getattr(n,"sym:symtab");
+      n = 0;
+      if ((!nstab) || (nstab == stab)) {
+        break;
+      }
+      stab = nstab;
+    }
+    if (n) {
+      /* Found a match.  Look at the prefix.  We only allow simple types. */
+      if (Len(prefix) == 0) {                /* Simple type */
+        Setattr(enumtypes,Copy(s),n);
+      } else {
+        n = 0;
+      }
+    }
+    Delete(ty2);
     Delete(prefix);
 
   }

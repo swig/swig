@@ -207,11 +207,11 @@ public:
   virtual int classDirectorDisown(Node *n);
 
   /* Miscellaneous */
-
   virtual  int  validIdentifier(String *s);                 /* valid identifier? */
   virtual  int  addSymbol(const String *s, const Node *n);  /* Add symbol        */
   virtual  Node *symbolLookup(String *s);                   /* Symbol lookup     */
   virtual  Node *classLookup(SwigType *s);                  /* Class lookup      */
+  virtual  Node *enumLookup(SwigType *s);                   /* Enum lookup       */
   virtual  int  abstractClassTest(Node *n);	            /* Is class really abstract? */
   
   /* Allow director related code generation */
@@ -247,10 +247,13 @@ public:
 
   /* Return the node for the current class */
   Node *getCurrentClass() const;
-    
+
+  /* Return C++ mode */
+  int getCPlusMode() const;
+
   /* Return the real name of the current class */
   String *getClassName() const;
-  
+
   /* Return the current class prefix */
   String *getClassPrefix() const;
 
@@ -269,6 +272,7 @@ public:
  private:
   Hash   *symbols;
   Hash   *classtypes;
+  Hash   *enumtypes;
   int     overloading;
   int     multiinput;
   int     directors;
