@@ -603,6 +603,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   int      clear = 1;
   int      firstarray = 1;
   int      isreference = 0;
+  int      isarray = 0;
 
   result = NewString("");
 
@@ -684,6 +685,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
 	Delete(size);
 	clear = 0;
       }
+      isarray = 1;
     } else if (SwigType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
@@ -718,6 +720,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
   }
   if (name) {
     if (isreference) {
+      if (isarray) Clear(cast);
       Append(cast,"*");
     }
     Append(cast,name);
