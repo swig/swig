@@ -1131,13 +1131,10 @@ public:
 
     virtual int constantWrapper(Node *n) {
 	String *name    = Getattr(n,"feature:symname");
-	String *iname   = Getattr(n,"sym:name");
 	SwigType *type  = Getattr(n,"type");
 	String   *value = Getattr(n,"value");
 	String   *rvalue = NewString("");
 	String   *temp = 0;
-	String  *tm;
-	int     have_tm = 0;
 	
 	if( !name ) {
 	    name = mangleNameForCaml(Getattr(n,"name"));
@@ -1145,8 +1142,6 @@ public:
 	    Setattr(n,"feature:symname",name);
 	}
 
-	String *wname = Swig_name_wrapper(iname);
-	
 	// See if there's a typemap
 	
 	Printv(rvalue, value,NIL);
