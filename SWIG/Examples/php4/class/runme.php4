@@ -4,7 +4,7 @@
 # created by SWIG.  In this case, all of our C++ classes
 # get converted into function calls.
 
-dl("libexample.so");
+require("example.php");
 
 # ----- Object creation -----
 

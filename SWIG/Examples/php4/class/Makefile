@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
 CXXSRCS    = example.cxx
-TARGET     = libexample
+TARGET     = php_example
 INTERFACE  = example.i
 LIBS       = -lm
 
