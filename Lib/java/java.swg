@@ -936,3 +936,6 @@
 
 %apply long { size_t };
 
+/* java keywords */
+/* please test and activate */
+//%include "javakw.swg"

@@ -553,9 +553,7 @@
 }
 
 // Some special reserved words in classes
-
-%namewarn("314:cget is a reserved method name") *::cget;
-%namewarn("314:configure is a reserved method name") *::configure;
+%include "tclkw.swg"
 
 /* C++ overloaded operators.
 

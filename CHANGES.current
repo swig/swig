@@ -1,5 +1,94 @@
 Version 1.3.20 (In progress)
 ============================
+12/11/2003: mmatus (Marcelo Matus)
+	    
+	    "All keywords" warning support, through the -DSWIG_ALLKW
+	    option.
+
+            This option allows you to include all the known keywords
+	    for all the supported languages, and can be used as:
+
+                 swig -DSWIG_ALLKW ....
+	    
+	    This will help to the process of adding a test-suite file
+	    that can be compiled in all the swig supported languages,
+	    and it will be also helpful for users who want to create
+	    multi-language libraries.
+	    
+	    These are the changes (mostly addition of files):
+
+	    - For the language that already has some sort of keyword
+	      list warning, move them to an external file kw.swg file:
+	    
+	         move keywords from  python.swg -> pythonkw.swg
+	         move keywords from  chicken.swg -> chickenkw.swg
+ 
+              and include pythonkw.swg from python.swg, and etc.
+	    
+	    - For the language that has no keyword list, and for the
+	      ones that I could find a list, add the kw.swg file, ie:
+
+                 csharp/csharpkw.swg
+                 java/javakw.swg
+                 php4/phpkw.swg
+		 pike/pikekw.swg	 
+		 ruby/rubykw.swg
+
+
+              add a line in java.swg to include javakw.swg, and so on
+	      for all the other languages, but now it is commented!!!,
+	      like in java.swg:
+
+                  /* java keywords */
+                  /* please test and activate */
+                  //%include "javakw.swg"
+
+	      ie, there will be no change in how swig runs normally
+	      until the language mantainer test and uncomment that line.
+	      
+	      So, please check each kw.swg file (I left the link
+	      source of the keyword list), and after testing, allow
+	      its inclusion.
+
+	    - Added the file allkw.swg, which includes all the kw.swg
+              files.
+
+	      For the languages that has no kw.swg file right now, and
+	      if they need one, add it into the language directory,
+	      and add a line into allkw.swg to include it from here.
+
+	    - Includes allkw.swg at the end of swig.swg if the option
+              SWIG_ALLKW is defined. The old -lallkw.swg option
+              couldn't be used since it include the file after it
+              would be needed.
+	      
+
+	    Maybe there is a better name for the option, and been a
+	    defined, it looks kind of ugly. Maybe is better to
+	    translate it into a command line option... any ideas?.
+	    
+	    In any way, the ideal situation will be that this option
+	    is added to the default rules in the related test-suite
+	    Makefiles, so, when creating a new test, swig will always
+	    warn you if you are using a bad name, considering all
+	    the language where it needs to run.
+	    
+	    Right now you can test it by using:
+
+             make check-python-test-suite SWIG="swig -DSWIG_ALLKW"
+
+	    or using your favorite target language.
+
+	    And yes, there are several examples that are using some
+	    reserved keyword, specially from csharp.
+          
+	    Remember: the keyword warnings are not included by default
+	    in any of language that before didn't define its own
+	    keyword list. To enable them as the default behaviour,
+	    the inclusion of the kw.swg file has to be uncommented at
+	    each language.swg file.
+	  
+
 12/11/2003: cheetah (William Fulton)
             SF bug #854634
             Added support for accepting the Unix directory separator '/' on 
