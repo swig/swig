@@ -43,52 +43,55 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
-	name_inherit \
-	namespace_enum \
-	template_ns2 \
-	template_ns \
-	template_qualifier \
-	primitive_ref \
-	typedef_mptr \
-	typedef_funcptr \
-	member_template \
-	default_ref \
-	namespace_template \
-	pure_virtual \
-	class_ignore \
-	namespace_typemap \
-	cpp_namespace \
-	rename_default \
-	dynamic_cast \
-	inherit_missing \
-	typedef_inherit \
 	add_link \
 	anonymous_arg \
 	arrays_global \
 	casts \
-	constover \
+	class_ignore \
 	const_const_2 \
 	constant_pointers \
+	constover \
+	cplusplus_throw \
 	cpp_enum \
 	cpp_enum_scope \
+	cpp_namespace \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
-	cplusplus_throw \
 	default_constructor \
+	default_ref \
+	dynamic_cast \
 	explicit \
+	inherit_missing \
 	kind \
+	lib_carrays \
+	lib_cdata \
+	lib_cpointer \
+	member_template \
 	minherit \
 	name_cxx \
+	name_inherit \
+	namespace_enum \
+	namespace_template \
+	namespace_typemap \
 	pointer_cxx \
 	pointer_reference \
+	primitive_ref \
+	pure_virtual \
+	rename_default \
 	rname \
 	static_array_member \
 	static_const_member \
 	template \
 	template_classes \
 	template_inherit \
+	template_ns \
+	template_ns2 \
+	template_qualifier \
 	template_whitespace \
+	typedef_funcptr \
+	typedef_inherit \
+	typedef_mptr \
 	typedef_scope \
 	typename \
 	virtual_destructor \
@@ -103,6 +106,10 @@ C_TEST_CASES += \
 	defineop \
 	defines \
 	enum \
+	lib_carrays \
+	lib_cdata \
+	lib_cmalloc \
+	lib_cpointer \
 	long_long \
 	macro_2 \
 	name \
