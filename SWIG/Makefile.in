@@ -15,20 +15,16 @@ SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
 TARGET      = swig@release_suffix@@EXEEXT@
 SOURCE      = Source
-RUNTIME     = Runtime
 
 swig: source swig.spec
 
 source:
 	@cd $(SOURCE) && $(MAKE)
 
-runtime:
-	@cd $(RUNTIME) && $(MAKE)
-
 swig.spec: $(srcdir)/swig.spec.in config.status
 	@CONFIG_HEADERS= CONFIG_LINKS= CONFIG_FILES=swig.spec $(SHELL) ./config.status
 
-.PHONY: source runtime
+.PHONY: source
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -56,10 +52,8 @@ skip-modula3	= test -n "@SKIP_MODULA3@"
 ACTION = check
 
 chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
-chk-set-runtimelib	= RUNTIMEDIR=@ROOT_DIR@/$(RUNTIME)/.libs
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
-
-chk-set-env = $(chk-set-swiglib) $(chk-set-swig) $(chk-set-runtimelib)
+chk-set-env = $(chk-set-swiglib) $(chk-set-swig)
 
 chk = $(MAKE) -k -s $(chk-set-env) $(ACTION)
 
@@ -234,16 +228,12 @@ broken-%-test-suite:
 
 clean: clean-objects clean-examples clean-gifplot clean-test-suite
 
-clean-objects: clean-source clean-runtime
+clean-objects: clean-source
 
 clean-source:
 	@echo cleaning Source
 	@cd $(SOURCE) && $(MAKE) -s clean
 	@rm -f $(TARGET)
-
-clean-runtime:
-	@echo cleaning Runtime
-	@cd $(RUNTIME) && $(MAKE) -s clean
 
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
@@ -272,16 +262,12 @@ DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.l
 
 distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite distclean-dead
 
-distclean-objects: distclean-source distclean-runtime
+distclean-objects: distclean-source
 
 distclean-source:
 	@echo dist cleaning Source
 	@cd $(SOURCE) && $(MAKE) -s distclean
 	@rm -f $(TARGET)
-
-distclean-runtime:
-	@echo dist cleaning Runtime
-	@cd $(RUNTIME) && $(MAKE) -s distclean
 
 distclean-test-suite:
 	@echo dist cleaning Examples/test-suite
@@ -366,10 +352,6 @@ install-lib:
 	    done
 
 
-install-runtime:
-	@cd $(RUNTIME) && $(MAKE) install
-
-
 install-m4:
 	@echo "Installing M4 macros"
 	@$(MKINSTDIRS) $(DESTDIR)$(M4_INSTALL_DIR)
@@ -391,9 +373,6 @@ uninstall-main:
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
 	rm -rf $(DESTDIR)$(SWIG_LIB)/
-
-uninstall-runtime:
-	@cd $(RUNTIME) && $(MAKE) uninstall
 
 uninstall-m4:
 	@echo "Uninstalling $(M4_INSTALL_DIR)/swig.m4"
