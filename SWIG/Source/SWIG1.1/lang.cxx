@@ -491,7 +491,7 @@ void Language::cDeclaration(Node *n) {
   SwigType *decl  = Getdecl(n);
   String *storage = Getattr(n,"storage");
   String *code    = Getattr(n,"code");
-  Parm   *parms = Getparms(n);
+  Parm   *parms   = Getparms(n);
   String *value   = Getvalue(n);
   Node   *over;
   CCode = code;
@@ -757,7 +757,6 @@ void Language::classDeclaration(Node *n) {
   char *iname = Char(symname);
   int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
-
   if (Cmp(kind,"class") == 0) {
     cplus_mode = CPLUS_PRIVATE;
   } else {
@@ -781,7 +780,7 @@ void Language::classDeclaration(Node *n) {
   has_destructor = 0;
   private_constructor = 0;
   private_destructor = 0;
-  base_default_constructor = 1;
+  base_default_constructor = Abstract ? 0 : 1;
   has_default_constructor = 0;
 
   /* Inherit type definitions into the class */
