@@ -52,20 +52,20 @@
 <li><a href="#n35">"memberin" typemap</a>
 <li><a href="#n36">"varin" typemap</a>
 <li><a href="#n37">"varout" typemap</a>
-<li><a href="#n371">"throws" typemap</a>
+<li><a href="#n38">"throws" typemap</a>
 </ul>
-<li><a href="#n38">Some typemap examples</a>
+<li><a href="#n39">Some typemap examples</a>
 <ul>
-<li><a href="#n39">Typemaps for arrays</a>
-<li><a href="#n40">Implementing constraints with typemaps</a>
+<li><a href="#n40">Typemaps for arrays</a>
+<li><a href="#n41">Implementing constraints with typemaps</a>
 </ul>
-<li><a href="#n41">Multi-argument typemaps</a>
-<li><a href="#n42">The run-time type checker</a>
-<li><a href="#n43">Typemaps and overloading</a>
-<li><a href="#n44">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="#n45">Reducing wrapper code size</a>
-<li><a href="#n46">Passing data between typemaps</a>
-<li><a href="#n47">Where to go for more information?</a>
+<li><a href="#n42">Multi-argument typemaps</a>
+<li><a href="#n43">The run-time type checker</a>
+<li><a href="#n44">Typemaps and overloading</a>
+<li><a href="#n45">More about <tt>%apply</tt> and <tt>%clear</tt></a>
+<li><a href="#n46">Reducing wrapper code size</a>
+<li><a href="#n47">Passing data between typemaps</a>
+<li><a href="#n48">Where to go for more information?</a>
 </ul>
 <!-- INDEX -->
 
@@ -1876,7 +1876,8 @@ The "varout" typemap is used to convert a C/C++ object to an object in the targe
 language when reading a C/C++ global variable.  This is implementation specific.
 
 <a name="throws_typemap"></a>
-<a name="n371"></a><H3>8.5.13 "throws" typemap</H3>
+<a name="n38"></a><H3>8.5.13 "throws" typemap</H3>
+
 
 The "throws" typemap is only used when SWIG parses a C++ method with an exception specification.
 It provides a default mechanism for handling C++ methods that have declared the exceptions it will throw.
@@ -1915,13 +1916,13 @@ catch(char const *_e) {
 Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
 For a neat way to handle these, see the <a href="Customization.html#exception">Exception handling with %exception</a> section.
 
-<a name="n38"></a><H2>8.6 Some typemap examples</H2>
+<a name="n39"></a><H2>8.6 Some typemap examples</H2>
 
 
 This section contains a few examples.  Consult language module documentation
 for more examples.
 
-<a name="n39"></a><H3>8.6.1 Typemaps for arrays</H3>
+<a name="n40"></a><H3>8.6.1 Typemaps for arrays</H3>
 
 
 A common use of typemaps is to provide support for C arrays appearing both as
@@ -2151,7 +2152,7 @@ Now, you will find that member access is quite nice:
 <b>Compatibility Note:</b>  SWIG1.1 used to provide a special "memberout" typemap.  However, it was mostly
 useless and has since been eliminated.   To return structure members, simply use the "out" typemap.
 
-<a name="n40"></a><H3>8.6.2 Implementing constraints with typemaps</H3>
+<a name="n41"></a><H3>8.6.2 Implementing constraints with typemaps</H3>
 
 
 One particularly interesting application of typemaps is the
@@ -2197,7 +2198,7 @@ rather than blindly passing values to the underlying C/C++ program.<p>
 <p>
 Note: A more advanced constraint checking system is in development.  Stay tuned.
 
-<a name="n41"></a><H2>8.7 Multi-argument typemaps</H2>
+<a name="n42"></a><H2>8.7 Multi-argument typemaps</H2>
 
 
 So far, the typemaps presented have focused on the problem of dealing with
@@ -2433,7 +2434,8 @@ Numeric Python.  However, it should also be stressed that some care is in order.
 when crossing languages you may need to worry about issues such as row-major vs. column-major
 ordering (and perform conversions if needed).
 
-<a name="n42"></a><H2>8.8 The run-time type checker</H2>
+<a name="n43"></a><H2>8.8 The run-time type checker</H2>
+
 
 The run-time type checker is used by many, but not all, of SWIG's supported target languages.
 The run-time type checker features
@@ -2631,7 +2633,7 @@ type-checking.  This code is also included in every generated wrapped file so yo
 probably just look at the output of SWIG to get a better sense for how types are
 managed.
 
-<a name="n43"></a><H2>8.9 Typemaps and overloading</H2>
+<a name="n44"></a><H2>8.9 Typemaps and overloading</H2>
 
 
 In many target languages, SWIG fully supports C++ overloaded methods and functions.   For example,
@@ -2915,7 +2917,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 <Li>Make sure you read the section on overloading in the "<a href="SWIGPlus.html">SWIG and C++</a>" chapter.
 </ul>
 
-<a name="n44"></a><H2>8.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<a name="n45"></a><H2>8.10 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 In order to implement certain kinds of program behavior, it is sometimes necessary to
@@ -2988,7 +2990,7 @@ example:
 </pre>
 </blockquote>
 
-<a name="n45"></a><H2>8.11 Reducing wrapper code size</H2>
+<a name="n46"></a><H2>8.11 Reducing wrapper code size</H2>
 
 
 Since the code supplied to a typemap is inlined directly into wrapper functions, typemaps can result
@@ -3064,7 +3066,7 @@ convert_float_array(PyObject *input, int size) {
 </pre>
 </blockquote>
 
-<a name="n46"></a><H2>8.12 Passing data between typemaps</H2>
+<a name="n47"></a><H2>8.12 Passing data between typemaps</H2>
 
 
 <p>
@@ -3098,7 +3100,7 @@ in this manner should probably be avoided.  At the very least, you should make
 sure that the typemaps sharing information have exactly the same types and names.
 
 
-<a name="n47"></a><H2>8.13 Where to go for more information?</H2>
+<a name="n48"></a><H2>8.13 Where to go for more information?</H2>
 
 
 The
