@@ -88,20 +88,12 @@ class RClass {
 };
 
 
-#ifdef RUBY_SUPPORTS_KEYWORD_ARGS
-static const char *
-usage = "\
-Ruby Options (available with -ruby)\n\
-     -ldflags        - Print runtime libraries to link with\n\
-     -feature name   - Set feature name (used by `require')\n\
-     -keyword        - Use keyword arguments\n";
-#else
 static const char *
 usage = "\
 Ruby Options (available with -ruby)\n\
      -ldflags        - Print runtime libraries to link with\n\
      -feature name   - Set feature name (used by `require')\n";
-#endif
+
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
 #define SET_RCLASS(hash, name, klass) Setattr(hash, name, NewVoid(klass, 0))
@@ -190,9 +182,6 @@ public:
 	} else if (strcmp (argv[i],"-ldflags") == 0) {
 	  printf("%s\n", SWIG_RUBY_RUNTIME);
 	  SWIG_exit (EXIT_SUCCESS);
-	} else if (strcmp(argv[i],"-keyword") == 0) {
-	  use_kw = true;
-	  Swig_mark_arg(i);
 	}
       }
     }
