@@ -12,6 +12,7 @@
 
 #include <limits.h>
 #include <float.h>
+#include <string.h>
 
 #ifdef __cplusplus
 #define SWIG_STATIC_INLINE static inline 
@@ -168,13 +169,30 @@ SWIG_STATIC_INLINE PyObject *
 SPyObj_FromCharPtr(const char* cptr) { 
   return cptr ? PyString_FromString(cptr) : Py_BuildValue((char*)"");
 }
+
+SWIG_STATIC_INLINE PyObject *
+SPyObj_FromCharArray(const char* carray, size_t size) { 
+  return PyString_FromStringAndSize(carray, strnlen(carray, size));
+}
+
+
+SWIG_STATIC_INLINE void
+SPyObj_AsCharArray(PyObject *obj, char* carray, size_t size) { 
+  const char* s = PyString_Check(obj) ? PyString_AsString(obj) : 0;
+  if (!PyErr_Occurred()) {
+    size_t len = strlen(s);
+    if (len > size) {
+      PyErr_SetObject(PyExc_TypeError, 
+		      PyString_FromFormat("a string of maximum size %d is required", size));
+    }
+    strncpy(carray, s, size);
+  }
+}
  
 SWIG_STATIC_INLINE int
 SPyObj_AsBool(PyObject *obj) {
   return SPyObj_AsLongLong(obj) ?  1 : 0;
 }
-
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -539,7 +557,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
       obj = PyFloat_FromDouble(constants[i].dvalue);
       break;
     case SWIG_PY_STRING:
-      obj = PyString_FromString((char *) constants[i].pvalue);
+      obj = SPyObj_FromCharPtr((const char *) constants[i].pvalue);
       break;
     case SWIG_PY_POINTER:
       obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
