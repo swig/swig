@@ -128,7 +128,6 @@ SWIG_MakePtr(char *_c, const void *_ptr, char *type) {
     *_r = '_';
     while (_r >= _result)
       *(_c++) = *(_r--);
-    *(_c++) = '_';
   } else {
     strcpy (_c, "NULL");
   }
@@ -167,7 +166,7 @@ SWIG_GetPtr(char *_c, void **ptr, char *_t)
 	    break;
 	  _c++;
       }
-      _c++;
+
       if (_t) {
 	if (strcmp(_t,_c)) { 
 	  if (!SwigPtrSort) {
