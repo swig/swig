@@ -201,7 +201,7 @@ PySwigObject_GetType() {
     (ternaryfunc)0,			/*tp_call*/
     (reprfunc)PySwigObject_str,		/*tp_str*/
     /* Space for future expansion */
-    0L,0L,0L,0L,
+    0,0,0,0,
     PySwigObject_Type__doc__, 	        /* Documentation string */
 #if PY_VERSION_HEX >= 0x02000000
     0,                                  /* tp_traverse */
@@ -354,7 +354,7 @@ PySwigPacked_GetType() {
     (ternaryfunc)0,			/*tp_call*/
     (reprfunc)PySwigPacked_str,		/*tp_str*/
     /* Space for future expansion */
-    0L,0L,0L,0L,
+    0,0,0,0,
     PySwigPacked_Type__doc__, 	        /* Documentation string */
 #if PY_VERSION_HEX >= 0x02000000
     0,                                  /* tp_traverse */
@@ -605,7 +605,7 @@ type_error:
       char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
       c = doc ? strstr(doc, "swig_ptr: ") : 0;
       if (c) {
-	c = SWIG_UnpackVoidPtr(c + 10, &vptr, ty->name);
+	c = ty ? SWIG_UnpackVoidPtr(c + 10, &vptr, ty->name) : 0;
 	if (!c) goto type_error;
 	goto type_check;
       }
@@ -748,7 +748,7 @@ SWIG_Python_GetModule() {
   return (swig_module_info *) type_pointer;
 }
 
-SWIGINTERN void
+SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
   static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} };/* Sentinel */
 
@@ -758,8 +758,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
   }
-} 
-
+}
 
 #ifdef __cplusplus
 }

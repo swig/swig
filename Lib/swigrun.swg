@@ -12,30 +12,34 @@
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
-#define SWIG_QUOTE_STRING(x) #x
-#define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
-#define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
+# define SWIG_QUOTE_STRING(x) #x
+# define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
+# define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
 #else
-#define SWIG_TYPE_TABLE_NAME
+# define SWIG_TYPE_TABLE_NAME
 #endif
 
-#include <string.h>
+/*
+  We need to define the compiler attributes here again since swigrun.swg
+  can be exported  using -runtime.
+*/
 
+/* inline attribute */
 #ifndef SWIGINLINE
-#if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
-#  define SWIGINLINE inline
-#else
-#  define SWIGINLINE
-#endif
+# if defined(__cplusplus) || (defined(__GNUC__) && !defined(__STRICT_ANSI__))
+#   define SWIGINLINE inline
+# else
+#   define SWIGINLINE
+# endif
 #endif
 
-/* attritbute passed for some compilers to avoid unused method warnings */
+/* attritbute passed for some compilers to avoid 'unused' warnings */
 #ifndef SWIGUNUSED
-#ifdef __GNUC__
-#define SWIGUNUSED __attribute__ ((unused)) 
-#else
-#define SWIGUNUSED 
-#endif
+# ifdef __GNUC__
+#   define SWIGUNUSED __attribute__ ((unused)) 
+# else
+#   define SWIGUNUSED 
+# endif
 #endif
 
 /*
@@ -48,23 +52,14 @@
 */
 
 #ifndef SWIGRUNTIME
-#define SWIGRUNTIME static SWIGUNUSED
+# define SWIGRUNTIME static SWIGUNUSED
 #endif
 
 #ifndef SWIGRUNTIMEINLINE
-#define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
+# define SWIGRUNTIMEINLINE SWIGRUNTIME SWIGINLINE
 #endif
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#  if !defined(STATIC_LINKED)
-#    define SWIGEXPORT(a) __declspec(dllexport) a
-#  else
-#    define SWIGEXPORT(a) a
-#  endif
-#else
-#  define SWIGEXPORT(a) a
-#endif
-
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -116,7 +111,7 @@ SWIG_TypeNameComp(const char *f1, const char *l1,
   for (;(f1 != l1) && (f2 != l2); ++f1, ++f2) {
     while ((*f1 == ' ') && (f1 != l1)) ++f1;
     while ((*f2 == ' ') && (f2 != l2)) ++f2;
-    if (*f1 != *f2) return *f1 - *f2;
+    if (*f1 != *f2) return (int)(*f1 - *f2);
   }
   return (l1 - f1) - (l2 - f2);
 }
@@ -134,7 +129,7 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
     for (nb = ne; *ne; ++ne) {
       if (*ne == '|') break;
     }
-    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
+    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
     if (*ne) ++ne;
   }
   return equiv;
@@ -153,7 +148,7 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
     for (nb = ne; *ne; ++ne) {
       if (*ne == '|') break;
     }
-    equiv = SWIG_TypeNameComp(nb, ne, tb, te) == 0;
+    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
     if (*ne) ++ne;
   }
   return equiv;
@@ -183,8 +178,8 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
       } \
       iter = iter->next; \
     } \
-    return 0; \
-  } while(0)
+  } while(0); \
+  return 0
 
 /*
   Check the typename
@@ -368,9 +363,9 @@ SWIG_PackData(char *c, void *ptr, size_t sz) {
 SWIGRUNTIME const char *
 SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   register unsigned char *u = (unsigned char *) ptr;
-  register const unsigned char *eu =  u + sz;
+  register const unsigned char *eu = u + sz;
   for (; u != eu; ++u) {
-    register int d = *(c++);
+    register char d = *(c++);
     register unsigned char uu = 0;
     if ((d >= '0') && (d <= '9'))
       uu = ((d - '0') << 4);

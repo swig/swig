@@ -121,27 +121,28 @@ SWIGINTERN PyTypeObject varlinktype = {
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = 0;
-  result = PyMem_NEW(swig_varlinkobject,1);
-  varlinktype.ob_type = &PyType_Type;    /* Patch varlinktype into a PyType */
-  result->ob_type = &varlinktype;
-  result->vars = 0;
-  result->ob_refcnt = 0;
-  Py_XINCREF((PyObject *) result);
+  swig_varlinkobject *result = PyMem_NEW(swig_varlinkobject,1);
+  if (result) {
+    varlinktype.ob_type = &PyType_Type;    /* Patch varlinktype into a PyType */
+    result->ob_type = &varlinktype;
+    result->vars = 0;
+    result->ob_refcnt = 0;
+    Py_INCREF((PyObject *) result);
+  }
   return ((PyObject*) result);
 }
 
 SWIGINTERN void 
 SWIG_Python_addvarlink(PyObject *p, char *name, PyObject *(*get_attr)(void), int (*set_attr)(PyObject *p)) {
-  swig_varlinkobject *v;
-  swig_globalvar *gv;
-  v= (swig_varlinkobject *) p;
-  gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
-  gv->name = (char *) malloc(strlen(name)+1);
-  strcpy(gv->name,name);
-  gv->get_attr = get_attr;
-  gv->set_attr = set_attr;
-  gv->next = v->vars;
+  swig_varlinkobject *v = (swig_varlinkobject *) p;
+  swig_globalvar *gv = (swig_globalvar *) malloc(sizeof(swig_globalvar));
+  if (gv) {
+    gv->name = (char *) malloc(strlen(name)+1);
+    strcpy(gv->name,name);
+    gv->get_attr = get_attr;
+    gv->set_attr = set_attr;
+    gv->next = v->vars;
+  }
   v->vars = gv;
 }
 

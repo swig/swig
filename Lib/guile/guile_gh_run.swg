@@ -41,22 +41,24 @@ typedef SCM (*swig_guile_proc)();
 	      (char *) FUNC_NAME, (char *) msg,			\
 	      SCM_EOL, SCM_BOOL_F); else
 
-#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
-#  if defined(_MSC_VER) || defined(__GNUC__)
-#    if defined(STATIC_LINKED)
-#      define SWIGEXPORT(a) a
-#    else
-#      define SWIGEXPORT(a) __declspec(dllexport) a
-#    endif
-#  else
-#    if defined(__BORLANDC__)
-#      define SWIGEXPORT(a) a _export
-#    else
-#      define SWIGEXPORT(a) a
-#    endif
-#  endif
-#else
-#  define SWIGEXPORT(a) a
+#ifndef SWIGEXPORT
+# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#   if defined(_MSC_VER) || defined(__GNUC__)
+#     if defined(STATIC_LINKED)
+#       define SWIGEXPORT(a) a
+#     else
+#       define SWIGEXPORT(a) __declspec(dllexport) a
+#     endif
+#   else
+#     if defined(__BORLANDC__)
+#       define SWIGEXPORT(a) a _export
+#     else
+#       define SWIGEXPORT(a) a
+#     endif
+#   endif
+# else
+#   define SWIGEXPORT(a) a
+# endif
 #endif
 
 /* SCM_CHAR and SCM_CHARP were introduced in Guile 1.4; the following is for
