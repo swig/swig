@@ -99,6 +99,7 @@
 #define DohNewHash         DOH_NAMESPACE(NewHash)
 #define DohNewVoid         DOH_NAMESPACE(NewVoid)
 #define DohSplit           DOH_NAMESPACE(Split)
+#define DohSplitLines      DOH_NAMESPACE(SplitLines)
 #define DohNone            DOH_NAMESPACE(None)
 #define DohCall            DOH_NAMESPACE(Call)
 #define DohObjMalloc       DOH_NAMESPACE(ObjMalloc)
@@ -304,6 +305,7 @@ extern DOHHash   *DohNewHash();
 
 extern DOHVoid  *DohNewVoid(void *ptr, void (*del)(void *));
 extern DOHList  *DohSplit(DOHFile *input, char ch, int nsplits);
+extern DOHList  *DohSplitLines(DOHFile *input);
 extern DOH      *DohNone;
 
 extern void      DohMemoryDebug(void);
@@ -378,6 +380,7 @@ extern void      DohMemoryDebug(void);
 #define Strchr             DohStrchr
 #define Copyto             DohCopyto
 #define Split              DohSplit
+#define SplitLines         DohSplitLines
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
 #define None               DohNone
