@@ -1849,6 +1849,13 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		      }
 		    }
 
+		    if (ns && Namespaceprefix) {
+		      Swig_error(cparse_file,cparse_line,
+				 "Can't instantiate template '%s' inside namespace '%s'.\n"
+				 "Suggest moving %%template outside the namespace.\n", $5, Namespaceprefix);
+
+		    }
+		    
 		    /* Create namespace nodes to enclose the template declaration */
 		    if (ns) {
 		      List *scopes;
