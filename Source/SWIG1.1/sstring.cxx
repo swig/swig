@@ -117,64 +117,6 @@ void format_string(char *str) {
 #define INIT_MAXSIZE  64
 
 // ---------------------------------------------------------------
-// Pools. This is a list of available strings for memory allocation
-// and deletion.
-// ---------------------------------------------------------------
-
-struct StrMem {
-  char  *str;
-  int    len;
-};
-
-#define POOLSIZE 100
-
-static StrMem pool[POOLSIZE];
-static int pool_index = 0;
-
-// Returns an item from the pool that can accomodate len
-static char *get_pool(int len, int &newlen) {
-  int i,j;
-  char *nc;
-  if (pool_index < 1) {
-    newlen = len;
-    return new char[len];
-  }
-  i = pool_index-1;
-  j = 0;
-  while(i >= 0) {
-    if ((pool[i].len >= len) && (pool[i].len <= 4*len)) {
-      nc = pool[i].str;
-      newlen = pool[i].len;
-      pool[i].str = pool[pool_index-1].str;
-      pool[i].len = pool[pool_index-1].len;
-      pool_index--;
-      return nc;
-    }
-    j++;
-    i--;
-  }
-  newlen = len;
-  return new char[len];
-}
-
-// Puts an item onto the pool
-
-static void put_pool(char *str, int len) {
-  if (len < INIT_MAXSIZE) {
-    delete [] str;
-    return;
-  }
-  if (pool_index == POOLSIZE) {
-    delete [] pool[pool_index-1].str;
-    pool_index--;
-  }
-  pool[pool_index].str = str;
-  pool[pool_index].len = len;
-  if (pool_index != POOLSIZE) 
-    pool_index++;
-}
-
-// ---------------------------------------------------------------
 // String::String()
 //
 // Create a new string with nothing in it
@@ -182,7 +124,7 @@ static void put_pool(char *str, int len) {
 
 String::String() {
   maxsize = INIT_MAXSIZE;
-  str = get_pool(maxsize,maxsize);   // May return a pool that is larger
+  str = new char[maxsize];
   str[0] = 0;
   len = 0;
 }
@@ -200,7 +142,7 @@ String::String(const char *s) {
     l = (int) strlen(s);
     if ((l+1) > max) max = l+1;
   }
-  str = get_pool(max,maxsize);
+  str = new char[maxsize];
   if (s) {
     strcpy(str,s);
     len = l;
@@ -217,7 +159,7 @@ String::String(const char *s) {
 // ---------------------------------------------------------------
 
 String::~String() {
-  put_pool(str,maxsize);
+  delete [] str;
 }
 
 // ---------------------------------------------------------------
@@ -237,9 +179,9 @@ void String::add(const char *newstr) {
   if (newlen >= maxsize-1) {
     newmaxsize = 2*maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    nstr = get_pool(newmaxsize,newmaxsize);
+    nstr = new char[newmaxsize];
     strcpy(nstr,str);
-    put_pool(str,maxsize);
+    delete [] str;
     maxsize = newmaxsize;
     str = nstr;
   }
@@ -262,9 +204,9 @@ void String::add(char nc) {
   if (newlen >= maxsize-1) {
     newmaxsize = 2*maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    nstr = get_pool(newmaxsize,newmaxsize);
+    nstr = new char[newmaxsize];
     strcpy(nstr,str);
-    put_pool(str,maxsize);
+    delete [] str;
     maxsize = newmaxsize;
     str = nstr;
   }
@@ -290,9 +232,9 @@ void String::insert(const char *newstr) {
   if (newlen >= maxsize-1) {
     newmaxsize = 2*maxsize;
     if (newlen >= newmaxsize -1) newmaxsize = newlen + 1;
-    nstr = get_pool(newmaxsize,newmaxsize);
+    nstr = new char[newmaxsize];
     strcpy(nstr,str);
-    put_pool(str,maxsize);
+    delete [] str;
     maxsize = newmaxsize;
     str = nstr;
   }
@@ -356,8 +298,8 @@ String &String::operator=(const char *s) {
   if (s) {
     newlen = strlen(s);
     if ((newlen >= maxsize) && (str)) {
-      put_pool(str,maxsize);
-      str = get_pool(newlen+1,maxsize);
+      delete [] str;
+      str = new char[newlen+1];
       maxsize = newlen+1;
     }
     strcpy(str,s);
@@ -406,7 +348,7 @@ void String::untabify() {
   // Reset the internal state of this string
 
   len = 0;
-  str = get_pool(maxsize,maxsize);
+  str = new char[maxsize];
   str[0]= 0;
 
   // Now walk down the old string and expand tabs.  Tabs are usually place
@@ -432,7 +374,7 @@ void String::untabify() {
   }
 
   // Blow away the old string
-  put_pool(s,oldmaxsize);
+  delete [] s;
 }
 
 
@@ -457,7 +399,7 @@ void String::replace(const char *token, const char *rep) {
   t = strstr(c,token);
   if (t) {
     len = 0;
-    str = get_pool(maxsize,maxsize);
+    str = new char[maxsize];
     while (t) {
       // Found a token in string s
       // Dump characters into our string
@@ -480,7 +422,7 @@ void String::replace(const char *token, const char *rep) {
     // Attach rest of the string
     if (*c) 
       this->add(c);
-    put_pool(s,oldmaxsize);
+    delete [] s;
   }
 }
 
@@ -511,7 +453,7 @@ void String::replaceid(const char *token, const char *rep) {
   t = strstr(c,token);
   if (t) {
     len = 0;
-    str = get_pool(maxsize,maxsize);
+    str = new char[maxsize];
     while (t) {
       // Found a token in string s
       // Dump characters into our string
@@ -544,7 +486,7 @@ void String::replaceid(const char *token, const char *rep) {
       this->add(c);
 
     // Delete the old string
-    put_pool(s,oldmaxsize);
+    delete [] s;
   }
 }
 
@@ -563,7 +505,7 @@ void String::strip() {
   int   whitespace = 0;
   int   oldmaxsize = maxsize;
 
-  str = get_pool(maxsize,maxsize);   // Get a new string.
+  str = new char[maxsize];
   len = 0;
 
   c = s;
@@ -584,5 +526,5 @@ void String::strip() {
     }
     c++;
   }
-  put_pool(s,oldmaxsize);
+  delete [] s;
 }
