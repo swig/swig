@@ -401,49 +401,10 @@ you to change the internal representation of Foo without breaking all
 of the other modules or having to recompile the entire universe after
 making your changes.
 
-<h2>10. DOH</h2>
+<h3>10. Miscellaneous </h3>
 
-SWIG uses <a href="http://islab.cs.uchicago.edu/doh.html">DOH</a> to
-store all of its runtime data.  It uses the basic DOH types as well as
-some special types:
 <ul>
-<li>SuperString
+<li> Do not use the ternary ?: operator.  It is unnecessarily error prone,
+hard for people to read, and hard to maintain code that uses it.
 </ul>
-
-<h3>10.1 Reference Counting</h3>
-
-DOH objects are reference counted.  They are not garbage collected
-until their reference count has reached zero.
-
-When a DOH object is created (with a function such as
-<tt>NewString()</tt>), its reference count is one. Use
-<tt>Incref(x)</tt> to increment the reference count on any object to
-which you are storing a reference.  Use <tt>Delete(x)</tt> to
-decrement the reference count.  So, for example:
-
-<blockquote>
-<pre>
-static int foo() {
-   DOH *swig_string = NewString("SWIG");
-   ...
-
-   Delete(swig_string);
-}
-
-static void push(DOH *string) {
-   Incref(string);
-   Swig_some_strings[Swig_num_strings++] = string;
-}
-</pre>
-</blockquote>
-
-<h3>10.2 SuperStrings</h3>
-
-More later.
-
-</body>
-</html>
-
-
-
 
