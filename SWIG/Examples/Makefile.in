@@ -484,41 +484,41 @@ OCC=@OCAMLC@
 NOLINK ?= false
 
 ocaml_static: $(SRCS)
-	$(SWIG) -ocaml -classmod -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) $(INTERFACE)
-	$(OCC) -c -ccopt "$(INCLUDE)" $(ISRCS) $(SRCS)
-	$(OCC) -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -c $(INTERFACE:%.i=%.ml)
+	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
+	$(OCC) -g -c -ccopt "$(INCLUDE)" $(ISRCS) $(SRCS)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -custom -o $(TARGET) \
+	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.o) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_static_cpp: $(SRCS)
-	$(SWIG) -ocaml -c++ -classmod -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
+	$(SWIG) -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -c -ccopt "-xc++ $(INCLUDE)" \
+	$(OCC) -g -c -ccopt "-xc++ $(INCLUDE)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
-	$(OCC) -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -c $(INTERFACE:%.i=%.ml)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
+	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.o) -cclib "$(LIBS)"
 
 ocaml_static_multi_cpp: $(SRCS)
-	$(SWIG) -c -ocaml -c++ -classmod -objects -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
+	$(SWIG) -c -ocaml -c++ $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -c -ccopt "-xc++ $(INCLUDE)" \
+	$(OCC) -g -c -ccopt "-xc++ $(INCLUDE)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
-	$(OCC) -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -c $(INTERFACE:%.i=%.ml)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
-	$(NOLINK) || $(OCC) -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
+	$(NOLINK) || $(OCC) -g -custom -o $(TARGET) $(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.o) -cclib "$(LIBS)"
 
 ocaml_clean:
