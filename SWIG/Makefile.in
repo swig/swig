@@ -27,16 +27,13 @@ TARGET      = swig$(RELEASESUFFIX)
 SOURCE      = Source
 SOURCEDIRS  = `ls $(SOURCE)`
 
-swig: SWIG1.1 Modules1.1 Swig Preprocessor DOH runtime
+swig: Modules1.1 Swig Preprocessor CParse DOH runtime
 	$(CXX) -o $(TARGET) \
 	$(SOURCE)/Modules1.1/libmodules11.a \
-	$(SOURCE)/SWIG1.1/libswig11.a \
+	$(SOURCE)/CParse/libcparse.a \
 	$(SOURCE)/Preprocessor/libcpp.a \
 	$(SOURCE)/Swig/libswig.a \
 	$(SOURCE)/DOH/libdoh.a
-
-SWIG1.1: Source/Include/swigconfig.h
-	@cd $(SOURCE)/SWIG1.1; $(MAKE)
 
 Modules1.1: Source/Include/swigconfig.h
 	@cd $(SOURCE)/Modules1.1; $(MAKE)
@@ -49,6 +46,9 @@ Preprocessor: Source/Include/swigconfig.h
 
 LParse: Source/Include/swigconfig.h
 	@cd $(SOURCE)/LParse; $(MAKE)
+
+CParse: Source/Include/swigconfig.h
+	@cd $(SOURCE)/CParse; $(MAKE)
 
 DOH: Source/Include/swigconfig.h
 	@cd $(SOURCE)/DOH; $(MAKE)
