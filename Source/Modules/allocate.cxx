@@ -250,7 +250,8 @@ class Allocate : public Dispatcher {
 
   /* Grab methods used by smart pointers */
 
-  List *smart_pointer_methods(Node *cls, List *methods, int isconst) {
+  List *smart_pointer_methods(Node *cls, List *methods, int isconst,
+			      String *classname=0) {
     if (!methods) {
       methods = NewList();
     }
@@ -266,7 +267,7 @@ class Allocate : public Dispatcher {
 	continue;
       }
       if (!isconst && (Strcmp(nodeType(c),"extend") == 0)) {
-	methods = smart_pointer_methods(c, methods, isconst);
+	methods = smart_pointer_methods(c, methods, isconst, Getattr(cls,"name"));
       } else if (Strcmp(nodeType(c),"cdecl") == 0) {
 	if (!Getattr(c,"feature:ignore")) {
 	  String *storage = Getattr(c,"storage");
@@ -296,23 +297,30 @@ class Allocate : public Dispatcher {
 	      if (!match) {
 		Node *cc = c;
 		while (cc) {
+		  Node *cp = cc;
+		  if (classname) {
+		    Setattr(cp,"classname",classname);
+		  }
+		  Setattr(cp,"allocate:smartpointeraccess","1");
 		  /* If constant, we have to be careful */
 		  if (isconst) {
-		    SwigType *decl = Getattr(cc,"decl");
+		    SwigType *decl = Getattr(cp,"decl");
 		    if (decl) {
 		      if (SwigType_isfunction(decl)) {   /* If method, we only add if it's a const method */
 			if (SwigType_isconst(decl)) {
-			  Append(methods,cc);
+			  Append(methods,cp);
 			}
 		      } else {
-			Append(methods,cc);
+			Append(methods,cp);
 		      }
 		    } else {
-		      Append(methods,cc);
+		      Setattr(cp,"feature:immutable","1");
+		      Append(methods,cp);
 		    }
 		  } else {
-		    Append(methods,cc);
+		    Append(methods,cp);
 		  }
+		  Delete(cp);
 		  cc = Getattr(cc,"sym:nextSibling");
 		}
 	      }

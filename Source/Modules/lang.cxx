@@ -899,7 +899,8 @@ Language::functionHandler(Node *n) {
     globalfunctionHandler(n);
   } else {
     String *storage   = Getattr(n,"storage");
-    if (Cmp(storage,"static") == 0) {
+    if (Cmp(storage,"static") == 0 &&
+	!(SmartPointer && Getattr(n,"allocate:smartpointeraccess"))) {
       staticmemberfunctionHandler(n);
     } else if (Cmp(storage,"friend") == 0) {
       globalfunctionHandler(n);
@@ -1049,7 +1050,9 @@ Language::memberfunctionHandler(Node *n) {
 
   String *fname = Swig_name_member(ClassPrefix, symname);
   if (Extend && SmartPointer) {
-    Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
+    if (!Getattr(n,"classname")) {
+      Setattr(n,"classname",Getattr(CurrentClass,"allocate:smartpointerbase"));
+    }
   }
   /* Transformation */
   Swig_MethodToFunction(n,ClassType, Getattr(n,"template") ? 0 : Extend | SmartPointer);
@@ -1133,14 +1136,15 @@ Language::variableHandler(Node *n) {
     String *storage = Getattr(n,"storage");
     Swig_save("variableHandler",n,"feature:immutable",NIL);
     if (SmartPointer) {
+      /* If a smart-pointer and it's a constant access, we have to set immutable */
       if (Getattr(CurrentClass,"allocate:smartpointerconst")) {
 	Setattr(n,"feature:immutable","1");
       }
     }
-    if ((Cmp(storage,"static") == 0)) {
+    if ((Cmp(storage,"static") == 0) 
+	&& !(SmartPointer && Getattr(n,"allocate:smartpointeraccess"))) {
       staticmembervariableHandler(n);
     } else {
-      /* If a smart-pointer and it's a constant access, we have to set immutable */
       membervariableHandler(n);
     }
     Swig_restore(n);

@@ -19,3 +19,12 @@ if b.x != f.x:
 
 if b.z != f.z:
   raise RuntimeError
+
+if Foo.z == Bar.z:
+  raise RuntimeError
+
+
+
+
+
+

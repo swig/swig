@@ -9,6 +9,9 @@
     int x[4];
     int y;
     static const int z;
+
+    static int boo() { return 0;}
+    
   };
   
   class Bar {
@@ -16,6 +19,17 @@
   public:
     Bar(Foo *f) : f(f) { }
     Foo *operator->() {
+      return f;
+    }
+
+    static int bua() { return 0;}
+  };
+
+  class CBar {
+    Foo *f;
+  public:
+    CBar(Foo *f) : f(f) { }
+    Foo *operator->() const {
       return f;
     }
   };

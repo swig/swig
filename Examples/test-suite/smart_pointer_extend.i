@@ -1,30 +1,51 @@
 %module smart_pointer_extend
 
 %inline %{
+  namespace hi
+  {
+    struct CBase
+    {
+      static int hello() 
+      {
+	return 1;
+      }      
+    };
 
-class CBase
-{
-};
+    class CDerived : public CBase
+    {
+    };
 
-class CDerived : public CBase
-{
-};
+    class CPtr
+    {
+    public:
+      CDerived* operator->(void) {return 0;};
+    };
 
-class CPtr
-{
-public:
-    CDerived* operator->(void) {return 0;};
-};
+    int get_hello(CPtr ptr)
+    {
+      return ptr->hello();
+    }
 
+    class CPtrConst
+    {
+    public:
+      CDerived* operator->(void) const {return 0;};
+    };
+    
+  }
+  
 %}
 
-%extend CBase {
+%extend hi::CBase {
+  int foo(void) {return 1;};
+  int bar(void) {return 2;};
+  int boo(int i) {return i;};
+}
+
+%extend hi::CDerived {
   int foo(void) {return 1;};
 }
 
-%extend CDerived {
-  int foo(void) {return 2;};
-}
 
 
 %extend Foo
