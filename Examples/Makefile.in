@@ -537,10 +537,11 @@ mzscheme_clean:
 #####                          Ocaml                         #####
 ##################################################################
 
-OCC=@OCAMLC@
+SWIGWHERE=-I `$(SWIG) -ocaml -where`
+OCC=@OCAMLC@ $(SWIGWHERE)
 OCAMLDLGEN=@OCAMLDLGEN@
 OCAMLFIND=@OCAMLFIND@
-OCAMLMKTOP=@OCAMLMKTOP@
+OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 
 ocaml_static: $(SRCS)
@@ -551,6 +552,7 @@ ocaml_static: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
+		swig.cmo \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
@@ -569,6 +571,7 @@ ocaml_dynamic: $(SRCS)
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLFIND) \
 		$(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
+		swig.cmo \
 		-package dl -linkpkg \
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
 
@@ -580,6 +583,7 @@ ocaml_static_toplevel: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) \
+		swig.cmo \
 		-g -ccopt -g -cclib -g -custom -o $(TARGET)_top \
 		$(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
@@ -594,6 +598,7 @@ ocaml_static_cpp: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
+		swig.cmo \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
@@ -609,6 +614,7 @@ ocaml_static_cpp_toplevel: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) \
+		swig.cmo \
 		-g -ccopt -g -cclib -g -custom -o $(TARGET)_top \
 		$(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
@@ -630,6 +636,7 @@ ocaml_dynamic_cpp: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLFIND) \
+		swig.cmo \
 		$(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom \
 		-o $(TARGET) \
 		-package dl -linkpkg \
@@ -646,6 +653,7 @@ ocaml_static_multi_cpp: $(SRCS)
 	test -z "$(PROGFILE)" || test -f "$(PROGFILE)" && \
 		$(OCC) -c $(PROGFILE)
 	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(TARGET) \
+		swig.cmo \
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) -cclib "$(LIBS)" -cc '$(CXX)' 

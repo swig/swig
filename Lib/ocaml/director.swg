@@ -62,7 +62,7 @@ namespace Swig {
 
     public:
       /* wrap a ocaml object, optionally taking ownership */
-      Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
+      Director(CAML_VALUE self, bool disown = false) : swig_self(self), swig_disown_flag(disown) {
         register_global_root(&swig_self);
       }
 
@@ -149,6 +149,20 @@ namespace Swig {
 %}
 
 %insert(ml) %{
+let invoke obj = match obj with C_obj o -> o | _ -> raise (NotObject obj)
+let _ = Callback.register "swig_runmethod" invoke
+
+let fnhelper fin f arg =
+  let args = match arg with C_list l -> l | C_void -> [] | _ -> [ arg ] in
+    match f args with
+	[] -> C_void
+      | [ x ] -> (if fin then Gc.finalise 
+		    (fun x -> ignore ((invoke x) "~" C_void)) x) ; x
+      | lst -> C_list lst
+
+let addr_of obj = (invoke obj) "&" C_void
+let _ = Callback.register "caml_obj_ptr" addr_of
+
 let new_derived_object cfun x_class args =
   begin
     let get_object ob =

@@ -26,19 +26,20 @@ char cvsroot_ocaml_cxx[] = "$Header$";
 
 #include <ctype.h>
 
-static const char *usage = (char*)"\
-Ocaml Options (available with -ocaml)\n\
-     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-\n";
+static const char *usage = (char*)
+    ("Ocaml Options (available with -ocaml)\n"
+     "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
+     "-where          - Emit library location\n"
+     "\n");
 
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
 static int static_member_function = 0;
 static char *prefix=0;
+static char *ocaml_path=(char*)"ocaml";
 static String *classname=0;
 static String *module=0;
-static char *ocaml_path=(char*)"ocaml";
 static String *init_func_def = 0;
 static String *f_classtemplate = 0;
 
@@ -63,148 +64,18 @@ static  File         *f_class_ctors_end = 0;
 static  File         *f_enum_to_int = 0;
 static  File         *f_int_to_enum = 0;
 
+extern String *method_decl(SwigType *s, const String_or_char *id, List *args, 
+			   int strip, int values);
+extern String *Swig_method_call(String_or_char *name, ParmList *parms);
+extern String *Swig_csuperclass_call(String* base, String* method, 
+				     ParmList* l);
+extern String *Swig_class_declaration(Node *n, String *name);
+
 class OCAML : public Language {
 public:
 
     int validIdentifier( String *s ) {
 	return true;
-    }
-
-/* method_decl
- *
- * Misnamed and misappropriated!  Taken from SWIG's type string manipulation 
- * utilities and modified to generate full (or partial) type qualifiers for
- * method declarations, local variable declarations, and return value casting.
- * More importantly, it merges parameter type information with actual
- * parameter names to produce a complete method declaration that fully mirrors
- * the original method declaration.
- *
- * There is almost certainly a saner way to do this.
- *
- * This function needs to be cleaned up and possibly split into several 
- * smaller functions.  For instance, attaching default names to parameters
- * should be done in a separate function.
- *
- */
-
-    String *method_decl(SwigType *s, const String_or_char *id, List *args, int strip, int values) {
-	String *result;
-	List *elements;
-	String *element = 0, *nextelement;
-	int is_const = 0;
-	int nelements, i;
-	int is_func = 0;
-	int arg_idx = 0;
-    
-	if (id) {
-	    result = NewString(Char(id));
-	} else {
-	    result = NewString("");
-	}
-    
-	elements = SwigType_split(s);
-	nelements = Len(elements);
-	if (nelements > 0) {
-	    element = Getitem(elements, 0);
-	}
-	for (i = 0; i < nelements; i++) {
-	    if (i < (nelements - 1)) {
-		nextelement = Getitem(elements, i+1);
-	    } else {
-		nextelement = 0;
-	    }
-	    if (SwigType_isqualifier(element)) {
-		int skip = 0;
-		DOH *q = 0;
-		if (!strip) {
-		    q = SwigType_parm(element);
-		    if (!Cmp(q, "const")) {
-			is_const = 1;
-			is_func = SwigType_isfunction(nextelement);
-			if (is_func) skip = 1;
-			skip = 1;
-		    }
-		    if (!skip) {
-			Insert(result,0," ");
-			Insert(result,0,q);
-		    }
-		    Delete(q);
-		}
-	    } else if (SwigType_ispointer(element)) {
-		Insert(result,0,"*");
-		if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-		    Insert(result,0,"(");
-		    Append(result,")");
-		}
-	    } else if (SwigType_ismemberpointer(element)) {
-		String *q;
-		q = SwigType_parm(element);
-		Insert(result,0,"::*");
-		Insert(result,0,q);
-		if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
-		    Insert(result,0,"(");
-		    Append(result,")");
-		}
-		Delete(q);
-	    }
-	    else if (SwigType_isreference(element)) {
-		Insert(result,0,"&");
-	    }  else if (SwigType_isarray(element)) {
-		DOH *size;
-		Append(result,"[");
-		size = SwigType_parm(element);
-		Append(result,size);
-		Append(result,"]");
-		Delete(size);
-	    } else if (SwigType_isfunction(element)) {
-		Parm *parm;
-		String *p;
-		Append(result,"(");
-		parm = args;
-		while (parm != 0) {
-		    String *type = Getattr(parm, "type");
-		    String* name = Getattr(parm, "name");
-		    if (!name && Cmp(type, "void")) {
-			name = NewString("");
-			Printf(name, "arg%d", arg_idx++);
-			Setattr(parm, "name", name);
-		    }
-		    if (!name) {
-			name = NewString("");
-		    }
-		    p = SwigType_str(type, name);
-		    Append(result,p);
-		    String* value = Getattr(parm, "CAML_VALUE");
-		    if (values && (value != 0)) {
-			Printf(result, " = %s", value);
-		    }
-		    parm = nextSibling(parm);
-		    if (parm != 0) Append(result,", ");
-		}
-		Append(result,")");
-	    } else {
-		if (Strcmp(element,"v(...)") == 0) {
-		    Insert(result,0,"...");
-		} else {
-		    String *bs = SwigType_namestr(element);
-		    Insert(result,0," ");
-		    Insert(result,0,bs);
-		    Delete(bs);
-		}
-	    }
-	    element = nextelement;
-	}
-	Delete(elements);
-	if (is_const) {
-	    if (is_func) {
-		Append(result, " ");
-		Append(result, "const");
-	    } else {
-		Insert(result, 0, "const ");
-	    }
-	}
-	Chop(result);
-	return result;
     }
 
     String *Swig_class_name(Node *n) {
@@ -213,73 +84,11 @@ public:
 	return name;
     }
 
-    String *Swig_method_call(String_or_char *name, ParmList *parms) {
-	String *func;
-	int i = 0;
-	int comma = 0;
-	Parm *p = parms;
-	SwigType *pt;
-	String  *nname;
-    
-	func = NewString("");
-	nname = SwigType_namestr(name);
-	Printf(func,"%s(", nname);
-	while (p) {
-	    String *pname;
-	    pt = Getattr(p,"type");
-	    if ((SwigType_type(pt) != T_VOID)) {
-		if (comma) Printf(func,",");
-		pname = Getattr(p, "name");
-		Printf(func,"%s", pname);
-		comma = 1;
-		i++;
-	    }
-	    p = nextSibling(p);
-	}
-	Printf(func,")");
-	return func;
+    void PrintIncludeArg() {
+	Printv(stdout,SWIG_LIB,SWIG_FILE_DELIMETER,ocaml_path,
+	       "\n",NIL);
     }
 
-    /* Swig_csuperclass_call()
-     *
-     * Generates a fully qualified method call, including the full parameter list.
-     * e.g. "base::method(i, j)"
-     *
-     */
-  
-    String *Swig_csuperclass_call(String* base, String* method, ParmList* l) {
-	String *call = NewString("");
-	Parm *p;
-	if (base) {
-	    Printf(call, "%s::", base);
-	}
-	Printf(call, "%s(", method);
-	for (p=l; p; p = nextSibling(p)) {
-	    String *pname = Getattr(p, "name");
-	    if (p != l) Printf(call, ", ");
-	    Printv(call, pname, NIL);
-	}
-	Printf(call, ")");
-	return call;
-    }
-
-    /* Swig_class_declaration()
-     *
-     * Generate the start of a class/struct declaration.
-     * e.g. "class myclass"
-     *
-     */
-  
-    String *Swig_class_declaration(Node *n, String *name) {
-	if (!name) {
-	    name = Getattr(n, "sym:name");
-	}
-	String *result = NewString("");
-	String *kind = Getattr(n, "kind");
-	Printf(result, "%s %s", kind, name);
-	return result;
-    }
-  
     /* ------------------------------------------------------------
      * main()
      * ------------------------------------------------------------ */
@@ -296,6 +105,9 @@ public:
 	    if (argv[i]) {
 		if (strcmp (argv[i], "-help") == 0) {
 		    fputs (usage, stderr);
+		    SWIG_exit (0);
+		} else if (strcmp (argv[i], "-where") == 0) {
+		    PrintIncludeArg();
 		    SWIG_exit (0);
 		} else if (strcmp (argv[i], "-prefix") == 0) {
 		    if (argv[i + 1]) {
@@ -1443,7 +1255,7 @@ public:
     }
 
     int enumDeclaration(Node *n) {
-	String *name = Getattr(n,"name");
+	String *name = Getattr(n,"type");
 
 	if( name && !Getattr(seen_enums,name) ) {
 	    const_enum = 1;
@@ -1804,43 +1616,29 @@ public:
 
 	/* insert self and disown parameters */
 	Parm *p, *ip;
-	ParmList *superparms = CopyParmList(Getattr(n, "parms"));
-	ParmList *parms_in_declaration = CopyParmList(superparms);
-	ParmList *parms_in_definition = CopyParmList(superparms);
+	ParmList *superparms = Getattr(n, "parms");
+	ParmList *parms = CopyParmList(superparms);
 	String *type = NewString("CAML_VALUE");
-
 	p = NewParm(type, NewString("self"));
-	set_nextSibling(p, parms_in_definition);
-	parms_in_definition = p;
-
-	p = NewParm(type, NewString("self"));
-	set_nextSibling(p, parms_in_declaration);
-	parms_in_declaration = p;
-
-	for (ip = parms_in_definition; nextSibling(ip); ) 
-	    ip = nextSibling(ip);
-#if 0
+	set_nextSibling(p, parms);
+	parms = p;
+	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
 	p = NewParm(NewString("bool"), NewString("disown"));
-	Setattr(p, "CAML_VALUE", "1");
-	Setattr(p, "args:byname", "1");
-	Setattr(p, "value", "0");
+	Setattr(p, "arg:byname", "1");
 	Setattr(n, "director:postfix_args", p);
-#endif
-	/* set_nextSibling(ip, p); */
-
+	Setattr(p, "value", "0");
+	set_nextSibling(ip, p);
 
 	/* constructor */
 	{
 	    Wrapper *w = NewWrapper();
 	    String *call;
 	    String *basetype = Getattr(parent, "classtype");
-	    // SwigType_add_pointer(basetype);
-	    Setattr(n, "parms", parms_in_definition);
-	    String *target = method_decl(decl, classname, parms_in_declaration, 
+	    String *target = method_decl(decl, classname, parms, 
 					 0, 0);
 	    call = Swig_csuperclass_call(0, basetype, superparms);
 	    Printf( w->def, 
-		    "%s::%s: %s, Swig::Director(self) { }", 
+		    "%s::%s: %s, Swig::Director(self, disown) { }", 
 		    classname, target, call );
 	    Delete(target);
 	    Wrapper_print(w, f_directors);
@@ -1851,7 +1649,7 @@ public:
 	/* constructor header */
 	{
 	    String *target = method_decl(decl, classname, 
-					 parms_in_declaration, 0, 1);
+					 parms, 0, 1);
 	    Printf(f_directors_h, "    %s;\n", target);
 	    Delete(target);
 	}
@@ -1859,8 +1657,8 @@ public:
 	Delete(sub);
 	Delete(classname);
 	Delete(supername);
-	Delete(parms_in_definition);
-	/* Setattr(n, "parms", parms_in_definition ); */
+	Delete(parms);
+	
 	return Language::classDirectorConstructor(n);
     }
 
@@ -1871,6 +1669,22 @@ public:
     int classDirectorDefaultConstructor(Node *n) {
 	String *classname;
 	classname = Swig_class_name(n);
+
+	/* insert self and disown parameters */
+	Parm *p, *ip;
+	ParmList *superparms = Getattr(n, "parms");
+	ParmList *parms = CopyParmList(superparms);
+	String *type = NewString("CAML_VALUE");
+	p = NewParm(type, NewString("self"));
+	set_nextSibling(p, parms);
+	parms = p;
+	for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
+	p = NewParm(NewString("bool"), NewString("disown"));
+	Setattr(p, "arg:byname", "1");
+	Setattr(n, "director:postfix_args", p);
+	Setattr(p, "value", "0");
+	set_nextSibling(ip, p);
+
 	{
 	    Wrapper *w = NewWrapper();
 	    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(CAML_VALUE self, bool disown) : Swig::Director(self, disown) { }", classname, classname);

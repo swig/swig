@@ -202,11 +202,13 @@ Language::Language() {
   symbols = NewHash();
   classtypes = NewHash();
   none_comparison = NewString("$arg != 0");
+  argc_template_string = NewString("argc");
+  argv_template_string = NewString("argv[%d]");
   director_ctor_code = NewString("");
 
   /* Default director constructor code, passed to Swig_ConstructorToFunction */
   Printv(director_ctor_code,
-      "if ( $comparison ) { /*subclassed */\n",
+      "if ( $comparison ) { /* subclassed */\n",
       "  $director_new \n",
       "} else {\n",
       "  $nondirector_new \n",
@@ -2196,4 +2198,11 @@ int Language::abstractClassTest(Node *n) {
 
 void Language::setSubclassInstanceCheck(String *nc) {
     none_comparison = nc;
+}
+
+void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
+    Delete(argc_template_string);
+    argc_template_string = Copy(argc);
+    Delete(argv_template_string);
+    argv_template_string = Copy(argv);
 }

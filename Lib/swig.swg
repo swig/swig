@@ -306,6 +306,7 @@ namespace std {
  * known as the "Fulton Transform" :-).
  */
 
+#ifndef SWIGSEXP
 #ifdef __cplusplus
 %insert("runtime") %{
 #ifdef __cplusplus
@@ -324,6 +325,7 @@ private:
 };                                                    
 #endif
 %}
+#endif
 #endif
 
 /* Macro for setting a dynamic cast function */
