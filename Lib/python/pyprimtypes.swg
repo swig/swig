@@ -229,6 +229,7 @@ SWIGINTERN int
 SWIGINTERN int
   SWIG_AsVal(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
+  unsigned long v;
   if (PyLong_Check(obj)) {
     unsigned long long v = PyLong_AsUnsignedLongLong(obj);
     if (!PyErr_Occurred()) {
@@ -239,7 +240,6 @@ SWIGINTERN int
       return 0;
     }
   }
-  unsigned long v;
   if (SWIG_AsVal(unsigned long)(obj,&v)) {
     if (val) *val = v;
     return 1;
