@@ -24,7 +24,7 @@
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@
-CFLAGS     =
+CFLAGS     = @PLATFLAGS@
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
