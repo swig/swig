@@ -789,7 +789,7 @@ check_id(DOH *s)
   SwigScanner_clear(scan);
   SwigScanner_push(scan,Copy(s));
   while ((c = SwigScanner_token(scan))) {
-    if (c == SWIG_TOKEN_ID) return 1;
+    if ((c == SWIG_TOKEN_ID) || (c == SWIG_TOKEN_LBRACE) || (c == SWIG_TOKEN_RBRACE)) return 1;
   }
   return 0;
 
