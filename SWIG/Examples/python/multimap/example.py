@@ -15,7 +15,7 @@ example.gcdmain(["gcdmain","42","105"])
 # Call the count function
 print example.count("Hello World", "l")
 
-# Call the capitize function
+# Call the capitalize function
 
 print example.capitalize("hello world")
 
