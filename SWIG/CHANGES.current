@@ -20,6 +20,13 @@ Version 1.3.20 (In progress)
 	    [Guile] Added run test for reference_global_vars by John Lenz.
 
 09/30/2003: beazley
+            Partial solution to [ 792180 ] C++ smart-pointer/namespace mixup revisited.
+            The problem is not easy to fix (at least it doesn't seem so), but is
+            related to the instantiation of qualified templates inside of other
+            namespaces.   SWIG now generates an error message in this case rather
+            than generating broken wrappers.
+
+09/30/2003: beazley
             Fixed [ 800012 ] ENTER macro from CORE/scope.h clashes with libc search.h.
             Reported by Britton Leo Kerin.
 
