@@ -69,7 +69,7 @@ namespace std {
             throw Swig::DirectorTypeMismatchException("string expected");
     }
     
-  %typemap(directorout,warning="470:Using thread/reentrant unsafe wrapping, consider using a lvalue return type.") const string &  {
+  %typemap(directorout,warning=SWIG_WARN_TYPEMAP_THREAD_UNSAFE) const string &  {
         if (TYPE($input) == T_STRING) {
             static std::string temp = std::string(StringValuePtr($input));
             $result = &temp;
