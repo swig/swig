@@ -235,6 +235,7 @@ typedef struct {
   const char   *name;
   SwigMagicFunc   set;
   SwigMagicFunc   get;
+  swig_type_info  **type;
 } swig_variable_info;
 
 /* Magic variable code */

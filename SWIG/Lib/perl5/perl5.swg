@@ -25,6 +25,9 @@
        "if (!SvOK((SV*) $input)) $1 = 0;
         else $1 = ($1_ltype) SvPV($input, PL_na);";
 
+%typemap(in) char [ANY] 
+       "$1 = SvPV($input,PL_na);\n"; 
+
 %typemap(in) SWIGTYPE *, SWIGTYPE [], SWIGTYPE & {
 	if (SWIG_ConvertPtr($input, (void **) &$1, $1_descriptor) < 0) {
             croak("Type error in argument $argnum of $symname. Expected %s", $1_descriptor->name);
@@ -172,12 +175,17 @@
 %typemap(varout) char *, char [ANY]
     "sv_setpv((SV *) $result, $1);";
 
-%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
-    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
+//%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] 
+//    "SWIG_MakePtr($result, (void *) $1, $1_descriptor);";
 
-%typemap(varout) SWIGTYPE
-    "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
+%typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE &, SWIGTYPE []  
+    "sv_setiv(SvRV($result),(IV) $1);"; 
 
+//%typemap(varout) SWIGTYPE
+//    "SWIG_MakePtr($result, (void *) &$1, $&1_descriptor);";
+
+%typemap(varout,type="$&1_descriptor") SWIGTYPE
+    "sv_setiv(SvRV($result), (IV) &$1);";
 
 /* --- Typemaps for constants --- *
 
@@ -248,8 +256,12 @@ XS(SWIG_init) {
     for (i = 0; swig_variables[i].name; i++) {
       SV *sv;
       sv = perl_get_sv((char*) swig_variables[i].name, TRUE | 0x2);
-      sv_setiv(sv, (IV) 0);
-      swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get);
+      if (swig_variables[i].type) {
+	SWIG_MakePtr(sv,(void *)1, *swig_variables[i].type);
+      } else {
+	sv_setiv(sv,(IV) 0);
+      }
+      swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get); 
     }
 
     /* Install constant */
