@@ -167,6 +167,7 @@ CPP_TEST_CASES += \
 	template_typedef_cplx \
 	template_typedef_cplx2 \
 	template_typedef_cplx3 \
+	template_typedef_cplx4 \
 	template_virtual \
 	template_whitespace \
 	throw_exception \
