@@ -16,6 +16,11 @@ tree (maybe).
 
 Version 1.3.10 (In progress)
 ============================
+11/05/2001:beazley
+           Changed code generation of constants in the Tcl module.  Constants
+           are now stored in a large table that get installed at module startup.
+           There are also no longer any static variables so it should generate
+           somewhat less code.
 
 11/04/2001:beazley
            %typemap directive can now accept nearly arbitrary keyword parameters.
@@ -66,7 +71,7 @@ Version 1.3.10 (In progress)
                }
 
            This change also makes it easy to define typemaps for
-           arbitrary undefined types.  For example, you can this (and it
+           arbitrary undefined types.  For example, you can do this (and it
            will work regardless what int32 is):
 
                %typemap(in) int32 {
