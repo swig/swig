@@ -458,6 +458,7 @@ class JAVA : public Language {
     String    *javaParameterSignature = NewString("");
     int       num_arguments = 0;
     int       num_required = 0;
+    bool      is_void_return;
     String    *overloaded_name = getOverloadedName(n);
 
     if (!Getattr(n,"sym:overloaded")) {
@@ -520,13 +521,17 @@ class JAVA : public Language {
           "No jtype typemap defined for %s\n", SwigType_str(t,0));
     }
 
-    if (SwigType_type(t) != T_VOID) {
+    is_void_return = (Cmp(jnirettype, "void") == 0);
+    if (!is_void_return)
       Wrapper_add_localv(f,"jresult", jnirettype, "jresult = 0",NIL);
-    }
 
     Printf(jniclass_class_code, "  public final static native %s %s(", javarettype, overloaded_name);
 
     Printv(f->def, "JNIEXPORT ", jnirettype, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
+
+    // Usually these function parameters are unused - The code below ensures that compilers do not issue such a warning if configured to do so.
+    Printv(f->code,"    (void)jenv;\n",NIL);
+    Printv(f->code,"    (void)jcls;\n",NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_args(t,l,f);
@@ -713,14 +718,14 @@ class JAVA : public Language {
     Printf(jniclass_class_code, ";\n");
     Printf(f->def,") {");
 
-    if(SwigType_type(t) != T_VOID)
+    if(!is_void_return)
       Printv(f->code, "    return jresult;\n", NIL);
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */
     Replaceall(f->code,"$cleanup",cleanup);
 
-    if(SwigType_type(t) != T_VOID)
+    if(!is_void_return)
       Replaceall(f->code,"$null","0");
     else
       Replaceall(f->code,"$null","");
@@ -1090,7 +1095,9 @@ class JAVA : public Language {
           "JNIEXPORT jlong JNICALL Java_$jnipackage$jnijniclass_SWIG$jniclazznameTo$jnibaseclass",
           "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
           "    jlong baseptr = 0;\n"
-          "    *($cbaseclass **)&baseptr = ($cclass *)*(void**)&jarg1;\n"
+          "    (void)jenv;\n"
+          "    (void)jcls;\n"
+          "    *($cbaseclass **)&baseptr = *($cclass **)&jarg1;\n"
           "    return baseptr;\n"
           "}\n",
           "\n",
@@ -1105,21 +1112,6 @@ class JAVA : public Language {
       Replaceall(wrapper_conversion_code, "$cclass",      c_classname);
       Replaceall(wrapper_conversion_code, "$jnipackage",  jnipackage);
       Replaceall(wrapper_conversion_code, "$jnijniclass", jnijniclass);
-
-      /*
-         if (!proxy_flag) {
-         Printv(module_class_code, 
-         "  public static $baseclass SWIG$javaclassnameTo$baseclass($javaclassname obj) {\n",
-         "    return new $baseclass($jniclassname.SWIG$javaclassnameTo$baseclass($javaclassname.getCPtr(obj)), false);\n",
-         "  }\n",
-         "\n",
-         NIL);
-
-         Replaceall(module_class_code, "$baseclass",   baseclass);
-         Replaceall(module_class_code, "$javaclassname",       shadow_classname);
-         Replaceall(module_class_code, "$jniclassname",    jniclass_name);
-         }
-      */
 
       Delete(jnibaseclass);
       Delete(jniclazzname);
