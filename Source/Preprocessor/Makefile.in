@@ -1,0 +1,24 @@
+# Generated automatically from Makefile.in by configure.
+
+CC          = @CC@
+AR          = @AR@
+RANLIB      = @RANLIB@
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+RPATH       = @RPATH@
+SO          = @SO@
+CCSHARED    = @CCSHARED@
+LDSHARED    = @LDSHARED@
+INCLUDE     = -I. -I../Core -I../DOH/Include
+
+SRCS = expr.c cpp.c
+OBJS = expr.o cpp.o
+
+.c.o: 
+	$(CC) $(CCSHARED) $(INCLUDE) $(CFLAGS) -c -o $*.o $<
+
+all:	$(OBJS)
+
+clean:
+	rm -f *.o *~ core *.so *.a
+
