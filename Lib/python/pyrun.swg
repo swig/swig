@@ -442,7 +442,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
 
 /* Contract support */
 
-#define SWIG_contract_assert(expr, msg) if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg #expr ); goto fail; } else
+#define SWIG_contract_assert(expr, msg) if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg ); goto fail; } else
 
 #ifdef __cplusplus
 }

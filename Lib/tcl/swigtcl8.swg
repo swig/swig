@@ -798,7 +798,7 @@ typedef struct {
 
 /* Contract support */
 
-#define SWIG_contract_assert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg #expr, TCL_STATIC ); goto fail; } else
+#define SWIG_contract_assert(expr, msg)  if (!(expr)) { Tcl_SetResult(interp, (char *) msg, TCL_STATIC ); goto fail; } else
 
 #ifdef __cplusplus
 }
