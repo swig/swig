@@ -13,22 +13,61 @@ extern "C" {
 #endif
 
 #ifdef SWIG_NOINCLUDE
-SWIGEXPORT(int) SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *);
-SWIGEXPORT(int) SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *);
-SWIGEXPORT(void) SWIG_MakePtr(char *, void *, swig_type_info *);
+SWIGEXPORT(char *)    SWIG_PackData(char *c, void *ptr, int sz);
+SWIGEXPORT(char *)    SWIG_UnpackData(char *c, void *ptr, int sz);
+SWIGEXPORT(int)       SWIG_ConvertPtrFromString(Tcl_Interp *, char *, void **, swig_type_info *);
+SWIGEXPORT(int)       SWIG_ConvertPtr(Tcl_Interp *, Tcl_Obj *, void **, swig_type_info *);
+SWIGEXPORT(int)       SWIG_ConvertPacked(Tcl_Interp *, Tcl_Obj *, void *, int sz, swig_type_info *, int);
+SWIGEXPORT(void)      SWIG_MakePtr(char *, void *, swig_type_info *);
 SWIGEXPORT(Tcl_Obj *) SWIG_NewPointerObj(void *, swig_type_info *);
-SWIGEXPORT(int) SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
-SWIGEXPORT(char *) SWIG_PointerTypeFromString(char *c);
+SWIGEXPORT(Tcl_Obj *) SWIG_NewPackedObj(void *, int sz, swig_type_info *);
+SWIGEXPORT(int)       SWIG_GetArgs(Tcl_Interp *, int, Tcl_Obj *CONST [], const char *, ...);
+SWIGEXPORT(char *)    SWIG_PointerTypeFromString(char *c);
 #else
+
+/* Pack binary data into a string */
+SWIGRUNTIME(char *)
+SWIG_PackData(char *c, void *ptr, int sz) {
+  static char hex[17] = "0123456789abcdef";
+  int i;
+  unsigned char *u = (unsigned char *) ptr;
+  register unsigned char uu;
+  for (i = 0; i < sz; i++,u++) {
+    uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+
+/* Unpack binary data from a string */
+SWIGRUNTIME(char *)
+SWIG_UnpackData(char *c, void *ptr, int sz) {
+  register unsigned char uu;
+  register int d;
+  unsigned char *u = (unsigned char *) ptr;
+  int i;
+  for (i = 0; i < sz; i++, u++) {
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    *u = uu;
+  }
+  return c;
+}
 
 /* Convert a pointer value */
 SWIGRUNTIME(int)
 SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_info *ty)
 {
-  unsigned long p;
-  register int d;
   swig_type_info *tc;
-  p = 0;
   /* Pointer values must start with leading underscore */
   if (*c != '_') {
     *ptr = (void *) 0;
@@ -37,17 +76,7 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
     return TCL_ERROR;
   }
   c++;
-  /* Extract hex value from pointer */
-  while ((d = *c)) {
-    if ((d >= '0') && (d <= '9'))
-      p = (p << 4) + (d - '0');
-    else if ((d >= 'a') && (d <= 'f'))
-      p = (p << 4) + (d - ('a'-10));
-    else
-      break; 
-    c++;
-  }
-  *ptr = (void *) p;
+  c = SWIG_UnpackData(c,ptr,sizeof(void *));
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) {
@@ -55,11 +84,10 @@ SWIG_ConvertPtrFromString(Tcl_Interp *interp, char *c, void **ptr, swig_type_inf
       Tcl_AppendElement(interp, (char *) ty->name);
       return TCL_ERROR;
     }
-    *ptr = SWIG_TypeCast(tc,(void *)p);
+    *ptr = SWIG_TypeCast(tc,(void *) *ptr);
   }
   return TCL_OK;
 }
-
 
 /* Convert a pointer value */
 SWIGRUNTIME(int)
@@ -67,7 +95,6 @@ SWIG_ConvertPtr(Tcl_Interp *interp, Tcl_Obj *oc, void **ptr, swig_type_info *ty)
 {
   return SWIG_ConvertPtrFromString(interp, Tcl_GetStringFromObj(oc,NULL), ptr, ty);
 }
-
 
 /* Convert a pointer value */
 SWIGRUNTIME(char *)
@@ -86,37 +113,71 @@ SWIG_PointerTypeFromString(char *c) {
   return c;
 }
 
+/* Convert a packed value value */
+SWIGRUNTIME(int)
+SWIG_ConvertPacked(Tcl_Interp *interp, Tcl_Obj *obj, void *ptr, int sz, swig_type_info *ty, int errors) {
+  swig_type_info *tc;
+  char  *c;
+  
+  if (!obj) goto type_error;
+  c = Tcl_GetStringFromObj(obj,NULL);
+  /* Pointer values must start with leading underscore */
+  if (*c != '_') goto type_error;
+  c++;
+  c = SWIG_UnpackData(c,ptr,sz);
+  if (ty) {
+    tc = SWIG_TypeCheck(c,ty);
+    if (!tc) goto type_error;
+  }
+  return TCL_OK;
+
+type_error:
+
+  if (errors) {
+    if (ty) {
+      Tcl_SetResult(interp, (char *) "Type error. Expect ", TCL_STATIC);
+      Tcl_AppendElement(interp, (char *) ty->name);
+      return TCL_ERROR;
+    } else {
+      Tcl_SetResult(interp, (char *) "Expected packed data.", TCL_STATIC);
+      return TCL_ERROR;
+    }
+  }
+  return TCL_ERROR;
+}
+
+
 /* Take a pointer and convert it to a string */
 SWIGRUNTIME(void) 
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
-  static char hex[17] = "0123456789abcdef";
-  unsigned long p, s;
-  char result[24], *r; 
-  r = result;
-  p = (unsigned long) ptr;
-  if (p > 0) {
-    while (p > 0) {
-      s = p & 0xf;
-      *(r++) = hex[s];
-      p = p >> 4;
-    }
-    *r = '_';
-    while (r >= result)
-      *(c++) = *(r--);
-    strcpy (c, ty->name);
+  *(c++) = '_';
+  if (ptr) {
+    c = SWIG_PackData(c,&ptr,sizeof(void *));
+    strcpy(c,ty->name);
   } else {
-    strcpy (c, "NULL");
+    strcpy(c,(char *)"NULL");
   }
 }
 
 /* Create a new pointer object */
 SWIGRUNTIME(Tcl_Obj *)
 SWIG_NewPointerObj(void *ptr, swig_type_info *type) {
-  char result[256];
   Tcl_Obj *robj;
+  char result[512];
   SWIG_MakePtr(result,ptr,type);
   robj = Tcl_NewStringObj(result,-1);
   return robj;
+}
+
+SWIGRUNTIME(Tcl_Obj *)
+SWIG_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
+  char result[1024];
+  char *r = result;
+  if ((2*sz + 1 + strlen(type->name)) > 1000) return 0;
+  *(r++) = '_';
+  r = SWIG_PackData(r,ptr,sz);
+  strcpy(r,type->name);
+  return Tcl_NewStringObj(result,-1);
 }
 
 /* Get arguments */
@@ -236,4 +297,7 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
+
+
+
 
