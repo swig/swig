@@ -3,6 +3,10 @@ SWIG (Simplified Wrapper and Interface Generator)
 Version 1.3 Alpha 6 (Work in progress)
 ======================================
 
+01/16/01: ttn
+	  Wrote table of contents for Doc/engineering.html.  Added section
+	  on CVS tagging conventions.  Added copyright to other docs.
+
 12/23/00: beazley
           C++ wrappers now always include default constructors and destructors.
           Most people want these anyways.  In addition, this solves some
