@@ -43,6 +43,8 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	evil_diamond \
+	evil_diamond_ns \
 	constructor_explicit \
 	lib_typemaps \
 	typemap_namespace \
