@@ -496,7 +496,7 @@ if test -n "$PYTHON"; then
 
     # Set the include directory
 
-    AC_MSG_CHECKING(for Python header files)		
+    AC_MSG_CHECKING(for Python header files)
     if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/lib/$PYVERSION/config"
     fi
@@ -604,6 +604,11 @@ esac
 AC_SUBST(PERL5EXT)
 AC_SUBST(PERL5DYNAMICLINKING)
 AC_SUBST(PERL5LIB)
+
+# kludges to ease naming conventions conformance.
+( cd Examples ;
+  test -d perl            ||                    ln -s perl5 perl ;
+  test -d test-suite/perl || ( cd test-suite && ln -s perl5 perl ) )
 
 #----------------------------------------------------------------
 # Look for java
@@ -796,7 +801,7 @@ if test -n "$RUBY"; then
 		# Find library and path for linking. Use libruby.a except on Cygwin use the DLL.
 		AC_MSG_CHECKING(for Ruby library)
 		RUBYLIB=""
-		case $ac_sys_system/$ac_sys_release in	
+		case $ac_sys_system/$ac_sys_release in
 		CYGWIN*)
 			rb_libdir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["libdir"]]') 2>/dev/null`
 			rb_bindir=`($RUBY -rrbconfig -e 'print Config::CONFIG[["bindir"]]') 2>/dev/null`
@@ -837,7 +842,7 @@ else
 	RUBYLINK="-lruby -lm"
 fi
 
-case $ac_sys_system/$ac_sys_release in	
+case $ac_sys_system/$ac_sys_release in
 CYGWIN*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
 *)		RUBYDYNAMICLINKING="";;
 esac
@@ -877,19 +882,12 @@ if test -z "$PHP4INC"; then
 fi
 
 AC_SUBST(PHP4INC)
-	
-# Configure SWIG_LIB path
 
-AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="\$(prefix)/lib/swig1.3"])
-AC_SUBST(swig_lib)
-
-# Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
-
-AC_ARG_WITH(release-suffix, 
-  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
-  [release_suffix="$withval"], [release_suffix=""])
-AC_SUBST(release_suffix)
+# kludges to ease naming conventions conformance.
+( cd Examples/GIFPlot ; test -d Php4 || ln -s Php Php4 )
+( cd Examples/php4 ; for dir in `sed '/^#/d' check.list` ; do
+    test -f $dir/Makefile || ( cd $dir ; ln -s ../Makefile.php Makefile )
+  done )
 
 #----------------------------------------------------------------
 # Detect ocaml
@@ -932,19 +930,6 @@ export OCAMLC
 AC_SUBST(OCAMLINC)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(OCAMLC)
-	
-# Configure SWIG_LIB path
-
-AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="\$(prefix)/lib/swig1.3"])
-AC_SUBST(swig_lib)
-
-# Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
-
-AC_ARG_WITH(release-suffix, 
-  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
-  [release_suffix="$withval"], [release_suffix=""])
-AC_SUBST(release_suffix)
 
 #----------------------------------------------------------------
 # Look for Pike
@@ -987,14 +972,28 @@ AC_SUBST(PIKEDYNAMICLINKING)
 # Miscellaneous
 #----------------------------------------------------------------
 
-# These commands are only intended for use in a development environment.
+# Configure SWIG_LIB path
+
+AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
+  [swig_lib="$withval"], [swig_lib="\$(prefix)/lib/swig1.3"])
+AC_SUBST(swig_lib)
+
+# Configure RELEASESUFFIX (for setups having both SWIG 1.1 and 1.3 on a system...)
+
+AC_ARG_WITH(release-suffix,
+  [  --with-release-suffix=SUFFIX    Attach SUFFIX to the binary and the runtime libs. ],
+  [release_suffix="$withval"], [release_suffix=""])
+AC_SUBST(release_suffix)
+
+##########
+# The commands below are only intended for use in a development environment.
 # When one makes a fresh CVS checkout, no 'configure' scripts exist. This
 # Makes the CONFIG_SUBDIRS macro fail below. To fix this, one needs to
 # generate the configure script by calling autoconf manually.  This is
 # not an issue in non-CVS releases--the mkdist.py script creates all
 # of the configure scripts before making a tar-ball. -- beazley 2000/03/01
 
-# All these have been commented out as it turned out that the mkdist.py 
+# All these have been commented out as it turned out that the mkdist.py
 # script was not creating all of the configure files in subdirectories.
 # This required autoconf to be installed on user's machines when installing
 # SWIG - not a good requirement. Developers should run the autogen.sh instead.
@@ -1016,6 +1015,7 @@ AC_SUBST(PIKEDYNAMICLINKING)
 #AC_OUTPUT_COMMANDS(test -f Examples/install-sh || cp install-sh Examples)
 # DB: Maybe I'm missings something, but why is it necessary to put
 # an 'install-sh' script in the Examples directory?
+###########
 
 AC_CONFIG_SUBDIRS(Source/DOH Tools Examples/GIFPlot)
 
