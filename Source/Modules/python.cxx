@@ -1422,7 +1422,6 @@ public:
 	    Printf(wrap_args,   "%s = %s->__get_self();\n", source, director);
 	    Printf(wrap_args,   "Py_INCREF(%s);\n", source);
 	    Printf(wrap_args, "}\n");
-	    Printf(wrap_args, "assert(%s);\n", source);
 	    Delete(director);
 	    Printv(arglist, source, NIL);
 	  } else {
@@ -1470,9 +1469,6 @@ public:
     }
     Printf(w->code, "}\n");
     
-    /* check that have a wrapped Python object */
-    Printv(w->code, "assert(__get_self());\n", NIL);
-
     /* wrap complex arguments to PyObjects */
     Printv(w->code, wrap_args, NIL);
 
