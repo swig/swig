@@ -176,7 +176,7 @@ SWIG_TypeQuery(const char *name) {
 SWIGRUNTIME(void)
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   swig_type_info *tc, *equiv;
-  if (ti->clientdata) return;
+  if (ti->clientdata == clientdata) return;
   ti->clientdata = clientdata;
   equiv = ti->next;
   while (equiv) {
