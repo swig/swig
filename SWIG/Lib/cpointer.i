@@ -50,14 +50,13 @@
 %}
   typedef struct {
      %extend {
-         NAME(TYPE value = 0) {
+         NAME() {
   	     TYPE *self;
 #ifdef __cplusplus
              self = new TYPE();
 #else
-             self = (TYPE *) malloc(sizeof(TYPE));
+             self = (TYPE *) calloc(1, sizeof(TYPE));
 #endif
-	     *self = value;
              return self;
 	 }
 	 ~NAME() {
@@ -80,7 +79,7 @@
 	 TYPE * cast() {
            return self;
 	 }
-	 static NAME * FromPointer(TYPE *t) {
+	 static NAME * frompointer(TYPE *t) {
 	   return (NAME *) t;
          }
      }
@@ -120,9 +119,8 @@ TYPE *new_##NAME(TYPE value) {
 #if __cplusplus
   self = new TYPE();
 #else
-  self = (TYPE *) malloc(sizeof(TYPE));
+  self = (TYPE *) calloc(1,sizeof(TYPE));
 #endif
-  *self = value;
   return self;
 }
 static

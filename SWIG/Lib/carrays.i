@@ -23,19 +23,15 @@
  * ----------------------------------------------------------------------------- */
 
 %define %array_functions(TYPE,NAME)
-%{
+%inline %{
 static
-TYPE *new_##NAME(int nelements, TYPE value) {
+TYPE *new_##NAME(int nelements) {
    TYPE *ary;
-   int i;
 #if __cplusplus
    ary = new TYPE[nelements];
 #else
-   ary = (TYPE *) malloc(sizeof(TYPE)*nelements);
+   ary = (TYPE *) calloc(nelements,sizeof(TYPE));
 #endif
-   for (i = 0; i < nelements; i++) {
-       ary[i] = value;
-   }
    return ary;
 }
 static
@@ -46,7 +42,6 @@ void delete_##NAME(TYPE *ary) {
     free(ary);
 #endif
 }
-
 static
 TYPE NAME##_getitem(TYPE *ary, int index) {
     return ary[index];
@@ -56,11 +51,6 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value) {
     ary[index] = value;
 }
 %}
-
-TYPE  *new_##NAME(int nelements, TYPE value=0);
-void  delete_##NAME(TYPE *ary);
-TYPE  NAME##_getitem(TYPE *ary, int index);
-void  NAME##_setitem(TYPE *ary, int index, TYPE value);
 %enddef
 
 
@@ -83,7 +73,6 @@ void  NAME##_setitem(TYPE *ary, int index, TYPE value);
 typedef TYPE NAME;
 %}
 typedef struct NAME {
-
     /* Put language specific enhancements here */
 
 #if SWIGPYTHON
@@ -92,17 +81,13 @@ typedef struct NAME {
 #endif
 
     %extend {
-	NAME(int nelements, TYPE value=0) {
+	NAME(int nelements) {
 	    TYPE *self;
-	    int   i;
 #if __cplusplus
 	    self = new TYPE[nelements];
 #else
-	    self = (TYPE *) malloc(sizeof(TYPE)*nelements);
+	    self = (TYPE *) calloc(nelements,sizeof(TYPE));
 #endif
-	    for (i = 0; i < nelements; i++) {
-		self[i] = value;
-	    }
 	    return self;
 	}
 	~NAME() {
@@ -118,7 +103,7 @@ typedef struct NAME {
 	void setitem(int index, TYPE value) {
 	    self[index] = value;
 	}
-	static NAME *FromPointer(TYPE *t) {
+	static NAME *frompointer(TYPE *t) {
 	    return (NAME *) t;
 	}
     };
