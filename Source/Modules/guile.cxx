@@ -57,7 +57,7 @@ Guile Options (available with -guile)\n\
                                exports; only with `passive' and `simple' linkage\n\
      -gh                     - Use the gh_ Guile API. (Guile <= 1.8, default) \n\
      -scm                    - Use the scm Guile API. (Guile >= 1.6) \n\
-     -shadow                 - Export GOOPS class definitions\n\
+     -proxy                  - Export GOOPS class definitions\n\
      -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
                                GOOPS classes. (default = \"primitive\")\n\
@@ -232,7 +232,7 @@ public:
           scmstub = true;
           Swig_mark_arg(i);
 	}
-        else if (strcmp (argv[i], "-shadow") == 0) {
+	else if ((strcmp(argv[i],"-shadow") == 0) || ((strcmp(argv[i],"-proxy") == 0))) {
           goops = true;
           Swig_mark_arg(i);
         }
@@ -289,7 +289,7 @@ public:
     }
 
     if (goops) {
-      // -shadow implies -emit-setters
+      // -proxy implies -emit-setters
       emit_setters = 1;
     }
 
