@@ -1,6 +1,33 @@
 Version 1.3.25 (In progress)
 ============================
 
+05/05/2005: mmatus
+	    
+	    Fix several memory leaks around. Even when we survive  knowning
+	    swig is a memory leak factory, it was a little out of
+	    control. To run std_containers.i in the python test-suite,
+	    swig was using ~260MB, now it uses 'only' ~40MB, which is
+	    the same ammount that g++ uses, so, is not that bad.
+	    In the process, I found a couple of extra Deletes, which
+	    in some cases could trigger seg. faults and/or
+	    DOH/asserts.
+	    
+	    [python] Better support for directors + exception. More
+	    verbose errors and added an unexpected exception handler.
+
+	    [python] Fix memory leak for the
+
+	    	    std::vector<std::vector<int> > 
+
+	    case,reported by Bo Peng.
+
+	    [python] Fix SwigPyObject compare problem reporte by
+	    Cameron Patrick. 
+
+	    [python] Fix several warnings in the generated code 
+	    for gnu-gcc, Intel and VC7.1  compilers.
+
+
 02/25/2005: wuzzeb (John Lenz)
 	    Update documentation to use CSS and <div> instead of <blockquote>
 	    I used a script to convert the docs, and it set all the box classes
