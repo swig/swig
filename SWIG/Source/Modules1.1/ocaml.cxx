@@ -394,7 +394,7 @@ class OCAML : public Language {
 		"    free(new_proxy->delete_fn);\n"
 		"  new_proxy->delete_fn = strdup(String_val(f));\n"
 		"  CAMLreturn(Val_unit);\n"
-		"}\n" );
+		"}\n", module );
 	
 	Printf( f_init_fn,
 		"#ifdef __cplusplus\n"
