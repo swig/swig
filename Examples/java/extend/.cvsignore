@@ -1,0 +1,14 @@
+*.class
+*.java
+*_wrap.c
+*_wrap.cxx
+*_wrap.h
+*.dll
+*.dsw
+*.exp
+*.lib
+*.ncb
+*.opt
+*.plg
+Release
+Debug
