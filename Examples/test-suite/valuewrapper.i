@@ -1,5 +1,5 @@
-// value_wrapper.i
-%module value_wrapper
+// valuewrapper.i
+%module valuewrapper
 
 %inline %{
 template <typename T> struct X {
