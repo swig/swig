@@ -204,8 +204,16 @@ public:
     Printv(mlfile,module,".ml",NIL);
     Printv(mlifile,module,".mli",NIL);
 
-    f_mlout = NewFile(mlfile,"w");
-    f_mliout = NewFile(mlifile,"w");
+	String *mlfilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlfile);
+	if ((f_mlout = NewFile(mlfilen,"w")) == 0) {
+		Printf(stderr,"Unable to open %s\n", mlfilen);
+		SWIG_exit (EXIT_FAILURE);
+	}
+	String *mlifilen = NewStringf("%s%s", Swig_file_dirname(outfile),mlifile);
+	if ((f_mliout = NewFile(mlifilen,"w")) == 0) {
+		Printf(stderr,"Unable to open %s\n", mlifilen);
+		SWIG_exit (EXIT_FAILURE);
+	}
 
     Language::top(n);
 

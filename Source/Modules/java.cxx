@@ -61,6 +61,7 @@ class JAVA : public Language {
   String *wrapper_conversion_code; //C++ casts for inheritance hierarchies JNI code
   String *jniclass_cppcasts_code; //C++ casts up inheritance hierarchies JNI class Java code
   String *destructor_call; //Destructor (delete) call if any
+  String *outfile;
 
   enum type_additions {none, pointer, reference};
 
@@ -110,7 +111,8 @@ class JAVA : public Language {
     module_class_modifiers(NULL),
     wrapper_conversion_code(NULL),
     jniclass_cppcasts_code(NULL),
-    destructor_call(NULL)
+    destructor_call(NULL),
+    outfile(NULL)
 
     {
     }
@@ -202,7 +204,7 @@ class JAVA : public Language {
   virtual int top(Node *n) {
 
     /* Initialize all of the output files */
-    String *outfile = Getattr(n,"outfile");
+    outfile = Getattr(n,"outfile");
 
     f_runtime = NewFile(outfile,"w");
     if (!f_runtime) {
@@ -290,7 +292,7 @@ class JAVA : public Language {
 
     // Generate the Java JNI class
     {
-      String *filen = NewStringf("%s.java", jniclass_name);
+      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), jniclass_name);
       File *f_java = NewFile(filen,"w");
       if(!f_java) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -327,7 +329,7 @@ class JAVA : public Language {
 
     // Generate the Java module class
     {
-      String *filen = NewStringf("%s.java", module_class_name);
+      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), module_class_name);
       File *f_module = NewFile(filen,"w");
       if(!f_module) {
         Printf(stderr,"Unable to open %s\n", filen);
@@ -1154,7 +1156,7 @@ class JAVA : public Language {
         SWIG_exit(EXIT_FAILURE);
       }
 
-      String *filen = NewStringf("%s.java", shadow_classname);
+      String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), shadow_classname);
       f_shadow = NewFile(filen,"w");
       if(!f_shadow) {
         Printf(stderr, "Unable to create proxy class file: %s\n", filen);
@@ -1744,7 +1746,7 @@ class JAVA : public Language {
    * ----------------------------------------------------------------------------- */
 
   void emitJavaClass(String *javaclassname, SwigType *type) {
-    String *filen = NewStringf("%s.java", javaclassname);
+    String *filen = NewStringf("%s%s.java", Swig_file_dirname(outfile), javaclassname);
     File *f_swigtype = NewFile(filen,"w");
     String *swigtype = NewString("");
 
