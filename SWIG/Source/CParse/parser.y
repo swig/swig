@@ -378,6 +378,9 @@ void add_symbols_copy(Node *n) {
       Delattr(n,"sym:name");
       add_only_one = 1;
       add_symbols(n);
+      if (Getattr(n,"partialargs")) {
+	Swig_symbol_cadd(Getattr(n,"partialargs"),n);
+      }
       add_only_one = 0;
       name = Getattr(n,"name");
       if (Getattr(n,"requires_symtab")) {
@@ -392,7 +395,6 @@ void add_symbols_copy(Node *n) {
       if (Strcmp(nodeType(n),"extend") == 0) {
 	cplus_mode = emode;
       }
-
       if (Getattr(n,"requires_symtab")) {
 	Setattr(n,"symtab", Swig_symbol_popscope());
 	Delattr(n,"requires_symtab");
@@ -2280,6 +2282,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			    while (p && p1) {
 			      String *pn = Getattr(p,"name");
 			      if (pn) Setattr(p1,"name",pn);
+			      pn = Getattr(p,"type");
+			      if (pn) Setattr(p1,"type",pn);
 			      p = nextSibling(p);
 			      p1 = nextSibling(p1);
 			    }
@@ -2309,14 +2313,21 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN cpp_temp_possib
 			      }
 			      p = nextSibling(p);
 			    }
-			    /*				  Printf(stdout,"Installing '%s'\n", fname); */
+			    Printf(stdout,"Installing '%s'\n", fname);
+			    {
+			      String *partials = Getattr(tempn,"partials");
+			      if (!partials) {
+				partials = NewList();
+				Setattr(tempn,"partials",partials);
+			      }
+			      Append(partials,fname);
+			    }
+			    Setattr($$,"partialargs",fname);
 			    Swig_symbol_cadd(fname,$$);
 			  }
 			  Delete(tlist);
 			  Delete(targs);
 			}
-			
-			$$ = 0; /* Do not place in parse tree, only a template specialization */
 		      }  else {
 			Setattr($$,"templatetype",nodeType($5));
 			set_nodeType($$,"template");
