@@ -8,7 +8,7 @@ namespace AType
    }; 
 } 
 
-void dummy(AType::AType aType = AType::NoType);
+void dummy(AType::AType aType = AType::NoType) {}
 %}
 
  

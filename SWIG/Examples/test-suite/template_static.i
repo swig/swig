@@ -8,6 +8,7 @@ template<class T> class foo {
 public:
     static int test;
 };
+template<class T> int foo<T>::test = 0;
 %}
 
 %template(foo_i) foo<int>;

@@ -9,6 +9,8 @@ public:
    Bar();
    void spam(Foo<Bar> *x);
 };
+Bar::Bar() {}
+void Bar::spam(Foo<Bar> *x) {}
 
 %}
 

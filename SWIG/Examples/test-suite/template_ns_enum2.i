@@ -26,9 +26,10 @@
     struct B 
     { 
       const traits<Hola>::value_type& 
-      eval(const traits<Hola>::value_type& e) const; 
+          eval(const traits<Hola>::value_type& e) const; 
     
     }; 
+    const traits<Hola>::value_type& B::eval(const traits<Hola>::value_type& e) const {}
   } 
  
 %} 
