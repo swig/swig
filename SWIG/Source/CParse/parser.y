@@ -1687,10 +1687,10 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    class Name;
    ------------------------------------------------------------ */
 
-cpp_forward_class_decl : storage_class cpptype ID SEMI {
+cpp_forward_class_decl : storage_class cpptype ID template_decl SEMI {
                $$ = new_node("classforward");
 	       Setattr($$,"kind",$2);
-	       Setattr($$,"name",$3);
+	       Setattr($$,"name",NewStringf("%s%s",$3,$4));
 	     }
              ;
 
