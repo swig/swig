@@ -240,6 +240,10 @@ int RUBY::top(Node *n) {
 
   Swig_banner(f_runtime);
 
+  if (NoInclude) {
+    Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
+  }
+
   /* typedef void *VALUE */
   SwigType *value = NewSwigType(T_VOID);
   SwigType_add_pointer(value);
