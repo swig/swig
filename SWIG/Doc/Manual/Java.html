@@ -94,7 +94,7 @@
 <li><a href="#n63">Adding an equals method to the Java classes</a>
 <li><a href="#n64">Void pointers and a common Java base class</a>
 </ul>
-<li><a href="#n65">Java class polymorphism (aka "directors")</a>
+<li><a href="#n65">Java class polymorphism (aka "directors" and "upcalls")</a>
 <ul>
 <li><a href="#n66">What are directors?</a>
 <li><a href="#n67">Director-specific typemaps</a>
@@ -102,17 +102,19 @@
 <li><a href="#n68">%typemap(directorin)</a>
 <li><a href="#n69">%typemap(javadirectorin)</a>
 <li><a href="#n70">%typemap(javadirectorout)</a>
+<li><a href="#n71">%typemap(javapackage)</a>
 </ul>
-<li><a href="#n71">Director method recursion</a>
+<li><a href="#n72">Director method recursion</a>
+<li><a href="#n73">Living with Java Directors</a>
 </ul>
-<li><a href="#n72">Odds and ends</a>
+<li><a href="#n74">Odds and ends</a>
 <ul>
-<li><a href="#n73">JavaDoc comments</a>
-<li><a href="#n74">Functional interface without proxy classes</a>
-<li><a href="#n75">Using your own JNI functions</a>
-<li><a href="#n76">Performance concerns and hints</a>
+<li><a href="#n75">JavaDoc comments</a>
+<li><a href="#n76">Functional interface without proxy classes</a>
+<li><a href="#n77">Using your own JNI functions</a>
+<li><a href="#n78">Performance concerns and hints</a>
 </ul>
-<li><a href="#n77">Examples</a>
+<li><a href="#n79">Examples</a>
 </ul>
 <!-- INDEX -->
 
@@ -4092,7 +4094,7 @@ This example contains some useful functionality which you may want in your code.
 </ul>
 
 <a name="java_directors"></a>
-<a name="n65"></a><H2>15.9 Java class polymorphism (aka "directors")</H2>
+<a name="n65"></a><H2>15.9 Java class polymorphism (aka "directors" and "upcalls")</H2>
 
 
 <a name="java_directors_intro"></a>
@@ -4100,12 +4102,15 @@ This example contains some useful functionality which you may want in your code.
 
 
 <p>
-Like the Python module, Java supports the "directors" feature. The "directors"
-feature creates an invisible class in the SWIG-generated C++ code that
-redirects a C++ class's virtual methods to a Java subclass. In essence, if
-a Java object is a subclass of the Java proxy class corresponding to an input C++
-class, the SWIG-generated code will "upcall" to the Java subclass object instead
-of the C++ method.
+Like the Python module, Java supports the <i>directors</i> feature. The
+<i>directors</i> feature creates a shadow class in the SWIG-generated C++ code
+that redirects a C++ class's virtual methods to a Java subclass, when the Java
+subclass overrides the method. The shadow class upcalls from C++ to Java when a
+Java object is derived from Java proxy class and the called method is
+overridden by the derived subclass. If the called method isn't overridden by
+the proxy-derived class, the shadow director class will call the original C++
+method or throw a Java Runtime exception if the C++ class is an abstract base
+class.
 
 <p>
 Consider the following SWIG interface file:
@@ -4124,20 +4129,27 @@ public:
 };
 <code></pre>
 
-<p>
-'<code>%module(directors="1") example</code>' enables the directors feature for
-the interface file. '<code>%feature("director") example</code>' enables the
-director feature for the <code>director_example</code> class.
-</p>
+<br>
+Notes:
+<ol>
+  <li><code>%module(directors="1") example</code> enables the directors
+  feature for the interface file. The director feature <b>is not</b> turned on
+  by default.</li>
+  <li><code>%feature("director") example</code> enables the director feature
+  for all classes in the SWIG interface file. The director feature can be
+  enabled for individual classes using <code>%feature("director")
+  director_example</code>
+</ol>
 
 <p>
-Given the following director_derived Java class, the SWIG-generated C++ code
-redirects the call to the C++ <code>director_example::upcall_method()</code> to
-the Java director_derived subclass, converting arguments, as applicable, to
-their corresponding Java counterparts. Thus, the following Java code outputs
-"director_derived::upcall_method() invoked" when the
-<code>director_example</code> <code>upcall_method()</code> is actually
-executed.
+The following <code>director_derived</code> Java class overrides the C++ and
+Java proxy class <code>director_example</code>'s upcall_method() method. When
+C++ code invokes <code>director_example::upcall_method()</code>, the
+SWIG-generated C++ code redirects the call via JNI to the Java
+<code>director_derived</code> subclass. The following code would output
+"director_derived::upcall_method() invoked". Naturally, the SWIG generated C++
+code and the generated Java intermediate class marshall and convert arguments
+between C++ and Java when needed.
 </p>
 
 <pre><code>
@@ -4159,12 +4171,15 @@ public class director_derived extends director_example
 
 <p>
 The Java directors feature requires the <a
-href="#java_directors_inv"><code>%typemap(directorin)</code></a>, the <a
-href="#java_directors_din"><code>%typemap(javadirectorin)</code></a> and the <a
-href="#java_directors_dout"><code>%typemap(javadirectorout)</code></a> type maps in
-order to work properly.
+href="java_director_directorin"><code>%typemap(directorin)</code></a>, the <a
+href="java_director_javadirectorin"><code>%typemap(javadirectorin)</code></a> and the <a
+href="java_director_javadirectorout"><code>%typemap(javadirectorout)</code></a> type maps in order to
+work properly. The <a href="java_director_javapackage"><code>%typemap(javapackage)</code></a>
+is an optional typemap used to identify the Java package path for 
+individual C++/SWIG-generated proxy classes.
 </p>
 
+<a name="java_director_directorin"></a>
 <a name="n68"></a><H4>15.9.2.1 %typemap(directorin)</H4>
 
 
@@ -4197,6 +4212,8 @@ order to work properly.
   Java will generate a "method not found" warning.
 </p>
 
+
+<a name="java_director_javadirectorin"></a>
 <a name="n69"></a><H4>15.9.2.2 %typemap(javadirectorin)</H4>
 
 
@@ -4211,6 +4228,7 @@ order to work properly.
   the corresponding C++ object.
 </p>
 
+<a name="java_director_javadirectorout"></a>
 <a name="n70"></a><H4>15.9.2.3 %typemap(javadirectorout)</H4>
 
 
@@ -4228,8 +4246,75 @@ order to work properly.
   by the derived class's method call and returned back to the C++ code.
 </p>
 
+<a name="java_director_javapackage"></a>
+<a name="n71"></a><H4>15.9.2.4 %typemap(javapackage)</H4>
+
+
+<p>
+  The <code>javapackage</code> typemap is optional; it serves to identify
+  a class's Java package. This typemap should be used in conjunction with
+  classes that are defined outside of the current SWIG interface file.
+  For example:
+<br>
+<code><pre>
+// class Foo is handled in a different interface file:
+%import "Foo.i"
+
+%feature("director") Example;
+
+%inline {
+  class Bar { };
+
+  class Example {
+  public:
+    virtual ~Example();
+    void     ping(Foo *arg1, Bar *arg2);
+  };
+}
+</pre></code>
+<br>
+  Assume that the Foo class is part of the Java package <i>wombat.foo</i> but
+  the above interface file is part of the Java package <i>wombat.example</i>.
+  Without the <code>javapackage</code> typemap, SWIG will assume that the Foo
+  class belongs to <i>wombat.example</i> class. The corrected interface file
+  looks like:
+<br>
+<code><pre>
+// class Foo is handled in a different interface file:
+%import "Foo.i"
+%typemap("javapackage") Foo "wombat.foo";
+%feature("director") Example;
+
+%inline {
+  class Bar { };
+
+  class Example {
+  public:
+    virtual ~Example();
+    void     ping(Foo *arg1, Bar *arg2);
+  };
+}
+</pre></code>
+</p>
+<p>
+  Practically speaking, you should create a separate SWIG interface file, which
+  is %import-ed into each SWIG interface file, when you have multiple Java packages:
+<br>
+<code><pre>
+%typemap("javapackage") SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp; "package.for.most.classes";
+
+%typemap("javapackage") Package_2_class_one "package.for.other.classes";
+%typemap("javapackage") Package_3_class_two "package.for.another.set";
+/* etc */
+</pre></code>
+<br>
+  The basic strategy is to provide a default package typemap for the majority
+  of the classes, only providing <code>javapackage</code> typemaps for the
+  exceptions.
+</p>
+
 <a name="java_director_recursive"></a>
-<a name="n71"></a><H3>15.9.3 Director method recursion</H3>
+<a name="n72"></a><H3>15.9.3 Director method recursion</H3>
 
 
 <p>
@@ -4268,12 +4353,33 @@ or selectively for individual methods:
 </pre>
 </p>
 
+<a name="java_directors_faq"></a>
+<a name="n73"></a><H3>15.9.4 Living with Java Directors</H3>
+
+
+<p>
+  This section is intended to address frequently asked questions and frequently
+  encountered problems when using Java directors.
+</p>
+<ul>
+  <li><i>When my program starts up, it complains that </i>method_foo<i> cannot
+  be found in a Java method called </i>swig_module_init<i>. How do I fix
+  this?</i></li>
+
+  <p> Open up the C++ wrapper source code file and look for
+  <code>"method_foo"</code> (include the double quotes, they are important!)
+  Look at the JNI field descriptor and make sure that each class that occurs in
+  the descriptor has the correct package name in front of it. If the package
+  name is incorrect, put a <code>javapackage</code> typemap in your SWIG
+  interface file.  </p>
+</ul>
+
 <a name="odds_ends"></a>
-<a name="n72"></a><H2>15.10 Odds and ends</H2>
+<a name="n74"></a><H2>15.10 Odds and ends</H2>
 
 
 <a name="javadoc_comments"></a>
-<a name="n73"></a><H3>15.10.1 JavaDoc comments</H3>
+<a name="n75"></a><H3>15.10.1 JavaDoc comments</H3>
 
 
 The SWIG documentation system is currently deprecated. 
@@ -4325,7 +4431,7 @@ public class Barmy {
 
 
 <a name="functional_interface"></a>
-<a name="n74"></a><H3>15.10.2 Functional interface without proxy classes</H3>
+<a name="n76"></a><H3>15.10.2 Functional interface without proxy classes</H3>
 
 
 It is possible to run SWIG in a mode that does not produce proxy classes by using the -noproxy commandline option.
@@ -4377,7 +4483,7 @@ All destructors have to be called manually for example the <tt>delete_Foo(foo)</
 
 
 <a name="using_own_jni_functions"></a>
-<a name="n75"></a><H3>15.10.3 Using your own JNI functions</H3>
+<a name="n77"></a><H3>15.10.3 Using your own JNI functions</H3>
 
 
 You may have some hand written JNI functions that you want to use in addition to the SWIG generated JNI functions.
@@ -4418,7 +4524,7 @@ This directive is only really useful if you want to mix your own hand crafted JN
 
 
 <a name="performance"></a>
-<a name="n76"></a><H3>15.10.4 Performance concerns and hints</H3>
+<a name="n78"></a><H3>15.10.4 Performance concerns and hints</H3>
 
 
 If you're directly manipulating huge arrays of complex objects from Java, performance may suffer greatly when using the array functions in <tt>arrays_java.i</tt>.
@@ -4436,7 +4542,7 @@ This method calls the C++ destructor or <tt>free()</tt> for C code.
 
 
 <a name="java_examples"></a>
-<a name="n77"></a><H2>15.11 Examples</H2>
+<a name="n79"></a><H2>15.11 Examples</H2>
 
 
 The directory Examples/java has a number of further examples. 
