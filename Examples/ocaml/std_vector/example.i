@@ -8,10 +8,8 @@
 
 %include stl.i
 /* instantiate the required template specializations */
-namespace std {
-    %template(IntVector)    std::vector<int>;
-    %template(DoubleVector) std::vector<double>;
-}
+%template(IntVector)    std::vector<int>;
+%template(DoubleVector) std::vector<double>;
 
 /* Let's just grab the original header file here */
 %include "example.h"

@@ -1,5 +1,6 @@
 (* This example was mostly lifted from the guile example directory *)
 
+open Swig
 open Example
 
 (* repeatedly invoke a procedure with v and an index as arguments *)
