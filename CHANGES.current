@@ -1,5 +1,12 @@
 Version 1.3.20 (In progress)
 ============================
+12/11/2003: cheetah (William Fulton)
+            SF bug #854634
+            Added support for accepting the Unix directory separator '/' on 
+            Windows and the Mac in addition to the native one ( '\' on 
+            Windows). This can be used in %import, %include and commandline 
+            options taking a path, for example -I.
+            
 12/10/2003: mmatus (Marcelo Matus)
 
             [python] Implementing the runtime "reprotected" director
