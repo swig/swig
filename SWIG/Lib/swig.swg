@@ -27,7 +27,7 @@
 #define %header      %insert("header")
 #define %runtime     %insert("runtime")
 
-/* Control directives */
+/* Access control directives */
 
 #define %readonly    %pragma(swig) readonly;
 #define %readwrite   %pragma(swig) readwrite;
@@ -39,7 +39,11 @@
 
 /* Directives for attribute functions */
 #define %attributefunc(_x,_y)  %pragma(swig)   attributefunction=`_x`":"`_y`;
-#define %noattributefunc       %pragma(swig) noattributefunction;
+#define %noattributefunc       %pragma(swig)   noattributefunction;
+
+
+/* %ignore directive */
+#define %ignore   %rename($ignore)
 
 /* Set up the typemap for handling new return strings */
 
