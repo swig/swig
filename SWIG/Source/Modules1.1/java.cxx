@@ -679,10 +679,10 @@ class JAVA : public Language {
 
     // Get any Java exception classes in the throw typemap
     if (ParmList *throw_parm_list = Getattr(n,"throws")) {
-      Swig_typemap_attach_parms("throw", throw_parm_list, f);
+      Swig_typemap_attach_parms("throws", throw_parm_list, f);
       for (p = throw_parm_list; p; p=nextSibling(p)) {
-        if ((tm = Getattr(p,"tmap:throw"))) {
-          addThrows(n, "tmap:throw", p);
+        if ((tm = Getattr(p,"tmap:throws"))) {
+          addThrows(n, "tmap:throws", p);
         }
       }
     }

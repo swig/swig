@@ -483,7 +483,7 @@
  * Exception handling
  * ------------------------------------------------------------ */
 
-%typemap("throw") int, 
+%typemap(throws) int, 
                   long, 
                   short, 
                   unsigned int, 
@@ -493,18 +493,18 @@
   SWIG_fail;
 }
 
-%typemap("throw") SWIGTYPE CLASS {
+%typemap(throws) SWIGTYPE CLASS {
   $&1_ltype temp = new $1_ltype($1);
   Tcl_SetObjResult(interp, SWIG_NewInstanceObj(interp, (void *) temp, $&1_descriptor, 1));
   SWIG_fail;
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap(throws) SWIGTYPE {
   Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) "$1_type", -1));
   SWIG_fail;
 }
 
-%typemap("throw") char * {
+%typemap(throws) char * {
   Tcl_SetObjResult(interp, Tcl_NewStringObj((char*) $1, -1));
   SWIG_fail;
 }

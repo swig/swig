@@ -384,7 +384,7 @@ void emit_action(Node *n, Wrapper *f) {
   if (throws) {
     Printf(f->code,"}\n");
     for (Parm *ep = throws; ep; ep = nextSibling(ep)) {
-      String *em = Swig_typemap_lookup_new("throw",ep,"_e",0);
+      String *em = Swig_typemap_lookup_new("throws",ep,"_e",0);
       if (em) {
 	Printf(f->code,"catch(%s) {\n", SwigType_str(Getattr(ep,"type"),"&_e"));
 	Printv(f->code,em,"\n",NIL);

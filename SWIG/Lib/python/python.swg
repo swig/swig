@@ -478,7 +478,7 @@
  * Exception handling
  * ------------------------------------------------------------ */
 
-%typemap("throw") int, 
+%typemap(throws) int, 
                   long, 
                   short, 
                   unsigned int, 
@@ -488,7 +488,7 @@
   SWIG_fail;
 }
 
-%typemap("throw") SWIGTYPE CLASS {
+%typemap(throws) SWIGTYPE CLASS {
   $&1_ltype temp = new $1_ltype($1);
   if ($&1_descriptor->clientdata) {
     PyErr_SetObject((PyObject *) ($&1_descriptor->clientdata), SWIG_NewPointerObj(temp,$&1_descriptor,1));
@@ -498,12 +498,12 @@
   SWIG_fail;
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap(throws) SWIGTYPE {
   PyErr_SetString(PyExc_RuntimeError,"$1_type");
   SWIG_fail;
 }
 
-%typemap("throw") char * {
+%typemap(throws) char * {
   PyErr_SetString(PyExc_RuntimeError, $1);
   SWIG_fail;
 }

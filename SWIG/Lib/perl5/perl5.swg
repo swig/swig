@@ -469,7 +469,7 @@
  * Exception handling
  * ------------------------------------------------------------ */
 
-%typemap("throw") int, 
+%typemap(throws) int, 
                   long, 
                   short, 
                   unsigned int, 
@@ -479,11 +479,11 @@
   SWIG_croak(_swigmsg);
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap(throws) SWIGTYPE {
   SWIG_croak("$1_type");
 }
 
-%typemap("throw") char * {
+%typemap(throws) char * {
   SWIG_croak($1);
   SWIG_fail;
 }

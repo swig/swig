@@ -441,7 +441,7 @@ typedef unsigned long VALUE;
  * Exception handling
  * ------------------------------------------------------------ */
 
-%typemap("throw") int, 
+%typemap(throws) int, 
                   long, 
                   short, 
                   unsigned int, 
@@ -450,7 +450,7 @@ typedef unsigned long VALUE;
   rb_exc_raise(rb_exc_new3(rb_eRuntimeError, INT2NUM($1)));
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap(throws) SWIGTYPE {
   $&1_ltype temp = new $1_ltype($1);
   if ($&1_descriptor->clientdata) {
     rb_exc_raise(rb_exc_new3(((swig_class *) ($&1_descriptor->clientdata))->klass, SWIG_NewPointerObj(temp, $&1_descriptor, 1)));
@@ -459,7 +459,7 @@ typedef unsigned long VALUE;
   }
 }
 
-%typemap("throw") char * {
+%typemap(throws) char * {
   rb_raise(rb_eRuntimeError, $1);
 }
 

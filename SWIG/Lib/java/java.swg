@@ -776,7 +776,7 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
 
 /* Exception handling */
 
-%typemap("throw") int, 
+%typemap(throws) int, 
                   long, 
                   short, 
                   unsigned int, 
@@ -788,12 +788,12 @@ JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double)      /* double[ANY] */
   return $null;
 }
 
-%typemap("throw") SWIGTYPE {
+%typemap(throws) SWIGTYPE {
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
   return $null;
 }
 
-%typemap("throw") char * {
+%typemap(throws) char * {
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
   return $null;
 }
