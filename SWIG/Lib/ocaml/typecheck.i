@@ -112,7 +112,7 @@
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
-      case C_string: $1 = 1;
+      case C_string: $1 = 1; break;
       case C_ptr: {
 	swig_type_info *typeinfo = 
 	    (swig_type_info *)(long)Int64_val(Field($input,1));
@@ -123,8 +123,8 @@
 	     SWIG_TypeCheck("const signed char *",typeinfo) ||
 	     SWIG_TypeCheck("const unsigned char *",typeinfo) ||
 	     SWIG_TypeCheck("std::string",typeinfo);
-      }
-      default: $1 = 0;  
+      } break;
+      default: $1 = 0; break;
       }
   }    
 }
