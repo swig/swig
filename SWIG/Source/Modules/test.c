@@ -6,6 +6,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include "preprocessor.h"
+#include "lparse.h"
 
 /* -------- Module variables ------- */
 
@@ -17,6 +19,8 @@ static DOHFile     *runtime = 0;
 static DOHFile     *headers = 0;     
 static DOHFile     *wrappers = 0;
 static DOHFile     *init = 0;
+
+static DOH         *config_top = 0;
 
 static int          ExternMode = 0;
 static int          ImportMode = 0;
@@ -108,6 +112,13 @@ emit_initblock(DOH *obj, void *clientdata) {
   return 0;
 }
 
+/* %runtime %{ ... %} directive */
+static int
+emit_runtimeblock(DOH *obj, void *clientdata) {
+  Dump(Getattr(obj,"code"),runtime);
+  return 0;
+}
+
 /* ------ Basic C declarations ----- */
 
 /* -----------------------------------------------------------------------------
@@ -141,64 +152,103 @@ emit_function(DOH *obj, void *clientdata) {
   }
 
   wf = NewSwigWrapper();
-  /*  Printf(wf->def,"void %s(args) {\n", Swig_name_wrapper(scriptname));*/
 
   Printv(wf->def, 
 	 "static PyObject *", Swig_name_wrapper(scriptname), "(PyObject *self, PyObject *args) {\n", 
 	 0);
 
-  /* Mapping test */
-
-  {
-    DOH *rules;
-    int  mlen = 0;
-    rules = Swig_map_match(Rules,"input",parms, &mlen);
-    Printf(stdout,"match(%d)\n", mlen);    
-  }
-
   /* Loop over all of the function arguments and build pieces of the wrapper function */
   {
-    DOHString   *formatstr;               /* Format string for parsing arguments */
+    DOHString   *parsestr;               /* Format string for parsing arguments */
     DOHString   *argstr;                  /* List of arguments */
-    formatstr = NewString("");
-    argstr = NewString("");
+    DOHString   *inputstr;
+    DOHString   *checkstr;
+    DOHString   *initstr;
 
-    for (p = parms, i=0; p; p = Swig_next(p), i++) {
-      DOHString *pdecl, *pname, *ptype, *value;
-      pname = NewStringf("_arg%d",i);
+    parsestr = NewString("");
+    argstr    = NewString("");
+    inputstr  = NewString("");
+    checkstr  = NewString("");
+    initstr   = NewString("");
 
-      ptype = Getattr(p,"type");
+    p = parms;
+    i = 0;
+    
+    while (p) {
+      int nmatch = 0;
+      DOHHash  *map;
+      DOHHash  *rules;
 
-      if (SwigType_isarray(ptype)) {
-	int i;
-	int nd;
-	nd = SwigType_array_ndim(ptype);
-	for (i = 0; i < nd; i++) {
-	  Printf(stdout,"array[%d] = %S\n", i, SwigType_array_getdim(ptype,i));
+      map = Swig_map_match(Rules, "argument", p, &nmatch);
+
+      if (!map) {
+	Printf(stderr,"%s:%d. No argument rule for %S\n", Getfile(p),Getline(p),SwigType_cstr(Getattr(p,"type"),Getattr(p,"name")));
+	return;
+      }
+      Printf(stdout,"Got match: %s\n", Getattr(map,"parms"));
+
+      /* Pull out the rules */
+
+      rules = Getattr(map,"rules");
+      if (rules) {
+	DOH *linit;
+	DOH *lparse;
+	DOH *linput;
+	DOH *lcheck;
+
+	linit = Getattr(rules,"init");
+	lparse = Getattr(rules,"parse");
+	linput = Getattr(rules,"input");
+	lcheck = Getattr(rules,"check");
+
+	/* Construct the parse and argument strings */
+
+	if (lparse) {
+	  DOHList *sp;
+	  DOHString  *pstr;
+	  int i;
+	  Seek(lparse,0,SEEK_SET);
+	  sp = DohSplit(lparse,",",-1);
+
+	  Printf(stdout,"*** %s\n", sp);
+
+	  pstr = Getitem(sp,0);
+	  if (pstr) {
+	    char *c = Char(pstr);
+	    while (*c && (*c != '\"')) c++;
+	    c++;
+	    while (*c && (*c != '\"')) {
+	      Putc(*c, parsestr);
+	      c++;
+	    }
+	  }
+	  for (i = 1; i < Len(sp); i++) {
+	    Printf(argstr,",%s",Getitem(sp,i));
+	  }
 	}
+	if (linput) Append(inputstr,linput);
+	if (lcheck) Append(checkstr,lcheck);
+	if (linit) Append(initstr,linit);
       }
 
-      pdecl = SwigType_cstr(ptype,pname);
 
-      if ((value = Getattr(p,"value"))) {
-	Printf(pdecl," = %s", value);
-	numopt++;
-      } else {
-	if (numopt > 0) {
-	  printf("*** Error: Non-optional argument follows optional argument!\n");
-	}
+      while (nmatch > 0) {
+	p = Swig_next(p);
+	nmatch--;
       }
-      SwigWrapper_add_local(wf,pdecl,pname);
-      Printf(argstr,",&%s",pname);
-      
-      Delete(pname);
-      Delete(pdecl);
     }
 
     Printv(wf->code,
-	   "if (!PyParseArgs(\"", formatstr, "\"", argstr, ")) {\n",
-	   "return NULL;\n",
-	   "}\n",
+	   "init:\n",
+	   initstr,
+	   "\nparse:\n",
+	   parsestr,
+	   "\nargstr:\n",
+	   argstr,
+	   "\ninput:\n",
+	   inputstr,
+	   "\ncheck:\n",
+	   checkstr,
 	   0);
   }
 
@@ -454,12 +504,12 @@ void test_emit(DOH *top, void *clientdata) {
   Rules = NewHash();
   RenameHash = NewHash();
 
+  if (config_top)
+    Swig_emit(config_top, clientdata);
+
   Swig_emit(top, clientdata);
 
   Swig_banner(stdout);
-
-  /* Get the runtime library */
-  Swig_insert_file("python.swg",runtime);
 
   Dump(runtime,stdout);
   Dump(headers,stdout);
@@ -479,6 +529,7 @@ static SwigRule rules[] = {
   "headerblock",        emit_headerblock,
   "wrapperblock",       emit_wrapperblock,
   "initblock",          emit_initblock,
+  "runtimeblock",       emit_runtimeblock,
   "scope",              emit_scope,
   "function",           emit_function,
   "variable",           emit_variable,
@@ -512,7 +563,28 @@ static SwigRule rules[] = {
 
 /* Initialize the module */
 void test_init() {
+  DOHString *config;
+  DOHString *pconfig;
+
   Swig_add_rules(rules);
+
+
+  /* Try to get the language specific configuration */
+
+  config = Swig_include("pyconf.swg");
+
+  if (!config) {
+    Printf(stderr,"*** Fatal error. Unable to find pyconf.swg\n");
+    exit(0);
+  }
+
+  /* Run the preprocessor on the configuration file and parse it */
+  Seek(config,0,SEEK_SET);
+  Setline(config,1);
+  pconfig = Preprocessor_parse(config);
+
+  Seek(pconfig,0,SEEK_SET);
+  config_top = LParse_parse(pconfig);
 }
 
 

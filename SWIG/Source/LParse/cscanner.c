@@ -394,6 +394,7 @@ yylex1(void) {
       if (strcmp(yytext,"%type") == 0) return (TYPE);
       if (strcmp(yytext,"%init") == 0)  return(INIT);
       if (strcmp(yytext,"%wrapper") == 0) return(WRAPPER);
+      if (strcmp(yytext,"%runtime") == 0) return(RUNTIME);
       if (strcmp(yytext,"%readonly") == 0) return(READONLY);
       if (strcmp(yytext,"%readwrite") == 0) return(READWRITE);
       if (strcmp(yytext,"%name") == 0) return(NAME);

@@ -234,7 +234,7 @@ static int promote(int t1, int t2) {
 /* SWIG directives */
 %token <tok> ADDMETHODS ALPHA_MODE APPLY CHECKOUT CLEAR CONSTANT DOCONLY DOC_DISABLE DOC_ENABLE ECHO EXCEPT
 %token <tok> ILLEGAL IMPORT INCLUDE INIT INLINE LOCALSTYLE MACRO MODULE NAME NATIVE NEW PRAGMA
-%token <tok> RAW_MODE READONLY READWRITE RENAME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
+%token <tok> RAW_MODE READONLY READWRITE RENAME RUNTIME SECTION STYLE SUBSECTION SUBSUBSECTION TEXT TITLE
 %token <tok> TYPE TYPEMAP USERDIRECTIVE WEXTERN WRAPPER MAP
 
 /* Operators */
@@ -454,6 +454,10 @@ code_block    : HBLOCK {
 		 pp = Preprocessor_parse($2.text);
 		 Seek(pp,0,SEEK_SET);
 		 LParse_push(pp);
+	       }
+               | RUNTIME HBLOCK {
+                 $$ = new_node("runtimeblock",$2.filename,$2.line);
+                 Setattr($$,"code",$2.text);
 	       }
                ;
 
@@ -872,6 +876,9 @@ map_element     :  variable_decl map_element {
                 }
                 | STRING COLON LBRACE {
                     DOH *text = LParse_skip_balanced('{','}');
+		    Delitem(text,0);
+		   Delitem(text,DOH_END);
+
                     $$ = new_node("maprule",$1.filename, $1.line);
 		    Setattr($$,ATTR_NAME,$1.text);
 		    Setattr($$,"code",text);

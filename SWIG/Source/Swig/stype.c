@@ -489,6 +489,42 @@ void SwigType_array_setdim(DOHString_or_char *t, int n, DOHString_or_char *rep) 
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_default()
+ *
+ * Create the default string for this datatype.   This takes a type and strips it
+ * down to its most primitive form--resolving all typedefs and removing operators.
+ *
+ * Rules:
+ *     Pointers:      p.SWIGPOINTER
+ *     References:    r.SWIGREFERENCE
+ *     Arrays:        a().SWIGARRAY
+ *     Types:         SWIGTYPE
+ *
+ * ----------------------------------------------------------------------------- */
+
+DOHString *SwigType_default(DOHString_or_char *t) {
+  DOHString *r1, *def;
+  DOHString *r = NewString(t);
+
+  while ((r1 = SwigType_typedef_resolve(r))) {
+    Delete(r);
+    r = r1;
+  }
+  
+  if (SwigType_ispointer(r)) {
+    def = NewString("p.SWIGPOINTER");
+  } else if (SwigType_isreference(r)) {
+    def = NewString("r.SWIGREFERENCE");
+  } else if (SwigType_isarray(r)) {
+    def = NewString("a().SWIGARRAY");
+  } else {
+    def = NewString("SWIGTYPE");
+  }
+  Delete(r);
+  return def;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_cstr(DOH *s, DOH *id)
  *
  * Create a C string representation of a datatype.
@@ -702,6 +738,7 @@ DOHString *SwigType_typedef_resolve(DOHString_or_char *t) {
   DOHString *r;
   int level;
 
+  init_scopes();
   base = SwigType_base(t);
 
   level = scope_level;
