@@ -148,8 +148,54 @@
 %typemap(out)    enum SWIGTYPE "$result = gh_int2scm($1);";
 %typemap(varout) enum SWIGTYPE "$result = gh_int2scm($1);";
 
+/* The SIMPLE_MAP_WITH_EXPR macro below defines the whole set of
+   typemaps needed for simple types.
+   -- SCM_TO_C_EXPR is a C expression that translates the Scheme value
+      "swig_scm_value" to a C value.
+   -- C_TO_SCM_EXPR is a C expression that translates the C value
+      "swig_c_value" to a Scheme value. */
+
+%define SIMPLE_MAP_WITH_EXPR(C_NAME, SCM_TO_C_EXPR, C_TO_SCM_EXPR, SCM_NAME)
+ %typemap (in,     doc="$NAME is of type <" #SCM_NAME ">") C_NAME
+     { SCM swig_scm_value = $input;
+       $1 = SCM_TO_C_EXPR; }
+ %typemap (varin,  doc="NEW-VALUE is of type <" #SCM_NAME ">") C_NAME
+     { SCM swig_scm_value = $input;
+       $1 = SCM_TO_C_EXPR; }
+ %typemap (out,    doc="<" #SCM_NAME ">") C_NAME
+     { C_NAME swig_c_value = $1;
+       $result = C_TO_SCM_EXPR; }
+ %typemap (varout, doc="<" #SCM_NAME ">") C_NAME
+     { C_NAME swig_c_value = $1;
+       $result = C_TO_SCM_EXPR; }
+ /* INPUT and OUTPUT */
+ %typemap (in, doc="$NAME is of type <" #SCM_NAME ">)")
+     C_NAME *INPUT(C_NAME temp) {
+       SCM swig_scm_value = $input;
+       temp = (C_NAME) SCM_TO_C_EXPR; $1 = &temp; }
+ %typemap (ignore)      C_NAME *OUTPUT (C_NAME temp)
+     {$1 = &temp;}
+ %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT
+     { C_NAME swig_c_value = *$1;
+       SWIG_APPEND_VALUE(C_TO_SCM_EXPR); }
+ %typemap (in)          C_NAME *BOTH = C_NAME *INPUT;
+ %typemap (argout)      C_NAME *BOTH = C_NAME *OUTPUT;
+ %typemap (in)          C_NAME *INOUT = C_NAME *INPUT;
+ %typemap (argout)      C_NAME *INOUT = C_NAME *OUTPUT;
+ /* Const primitive references.  Passed by value */
+ %typemap(in, doc="$NAME is of type <" #SCM_NAME ">") const C_NAME & (C_NAME temp)
+     { SCM swig_scm_value = $input;
+       temp = SCM_TO_C_EXPR;
+       $1 = &temp; }
+ %typemap(out, doc="<" #SCM_NAME ">")  const C_NAME &
+     { C_NAME swig_c_value = *$1;
+       $result = C_TO_SCM_EXPR; }
+%enddef
+
 /* The SIMPLE_MAP macro below defines the whole set of typemaps needed
-   for simple types. */
+   for simple types.  It generates slightly simpler code than the
+   macro above, but it is only suitable for very simple conversion
+   expressions. */
 
 %define SIMPLE_MAP(C_NAME, SCM_TO_C, C_TO_SCM, SCM_NAME)
  %typemap (in,     doc="$NAME is of type <" #SCM_NAME ">")
@@ -198,6 +244,8 @@
  SIMPLE_MAP(double, gh_scm2double, gh_double2scm, real);
 // SIMPLE_MAP(char *, SWIG_scm2str, gh_str02scm, string);
 // SIMPLE_MAP(const char *, SWIG_scm2str, gh_str02scm, string);
+
+/* Strings */
 
  %typemap (in,     doc="$NAME is a string")      char *(int must_free = 0) {
   $1 = SWIG_scm2str($input);
