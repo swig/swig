@@ -104,7 +104,6 @@ void
 PERL5::main(int argc, char *argv[]) {
   int i = 1;
 
-  cmodule = NewString("");
   SWIG_library_directory("perl5");
   for (i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -203,14 +202,11 @@ PERL5::top(Node *n) {
     Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
   }
 
-  set_module(Char(Getattr(n,"name")));
+  module = Copy(Getattr(n,"name"));
+  cmodule = Copy(module);
+  Replaceall(cmodule,":","_");
 
   char filen[256];
-
-  if (!module){
-    Printf(stderr,"*** Error. No module name specified.\n");
-    SWIG_exit (EXIT_FAILURE);
-  }
 
   if (!package) {
     package = NewString(module);
@@ -458,33 +454,6 @@ PERL5::import_end() {
     Delitem(import_stack,Len(import_stack)-1);
   } else {
     import_file = 0;
-  }
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::set_module()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::set_module(char *mod_name) {
-  if (module) return;
-  module = NewString(mod_name);
-
-  /* Create a C module name and put it in 'cmodule' */
-
-  Clear(cmodule);
-  Append(cmodule,module);
-  Replaceall(cmodule,":","_");
-}
-
-/* -----------------------------------------------------------------------------
- * PERL5::create_command()
- * ----------------------------------------------------------------------------- */
-void
-PERL5::create_command(char *cname, char *iname) {
-  /*  Printf(f_init,"\t newXS((char *) \"%s::%s\", %s, file);\n", package, iname, Swig_name_wrapper(cname)); */
-  Printf(command_tab,"{\"%s::%s\", %s},\n", package, iname, Swig_name_wrapper(cname));
-  if (export_all) {
-    Printf(exported,"%s ",iname);
   }
 }
 
@@ -1618,10 +1587,3 @@ void PERL5::pragma(char *lang, char *code, char *value) {
     }
   }
 }
-
-
-
-
-
-
-
