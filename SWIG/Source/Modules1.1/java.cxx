@@ -1045,7 +1045,7 @@ void JAVA::pragma(char *lang, char *code, char *value) {
 }
 
 void JAVA::emitShadowClassDef(Node *n) {
-  String *c_classname = Getattr(n,"name");
+  String *c_classname = SwigType_namestr(Getattr(n,"name"));
   String *c_baseclass = 0;
   String *baseclass = 0;
 
@@ -1055,7 +1055,7 @@ void JAVA::emitShadowClassDef(Node *n) {
     Node *base = Firstitem(baselist);
     baseclass = is_shadow(Getattr(base,"name"));
     if (baseclass){
-      c_baseclass = Getattr(base,"name");
+      c_baseclass = SwigType_namestr(Getattr(base,"name"));
     }
     base = Nextitem(baselist);
     if (base) {
