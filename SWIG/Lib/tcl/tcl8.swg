@@ -263,6 +263,20 @@
 %typemap(consttab) SWIGTYPE (CLASS::*) 
        { SWIG_TCL_BINARY,  (char *)"$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
+
+
+/* ------------------------------------------------------------
+ * ANSI C typemaps 
+ * ------------------------------------------------------------ */
+
+%typemap(in) size_t (int temp) "if (Tcl_GetIntFromObj(interp,$input,&temp) == TCL_ERROR) return TCL_ERROR;
+                               $1 = (size_t) temp;";
+
+%typemap(out)      size_t = long;
+%typemap(varin)    size_t = long;
+%typemap(varout)   size_t = long;
+%typemap(consttab) size_t = long;
+
 // Some special reserved words in classes
 
 %namewarn("cget is a reserved method name") *::cget;

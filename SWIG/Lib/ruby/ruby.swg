@@ -35,6 +35,11 @@
 %typemap(in) char [ANY]      "$1 = STR2CSTR($input);";
 %typemap(in) enum SWIGTYPE   "$1 = ($1_ltype) NUM2INT($input);";
 
+/* Long long.  This is probably broken because it truncates the value */
+
+%typemap(in) long long          "$1 = (long long) NUM2LONG($input);";
+%typemap(in) unsigned long long "$1 = (unsigned long long) NUM2ULONG($input);";
+
 /* Typemaps for pointers.  Note: the SWIG run-time type checker works
    even if a pointer happens to be mapped to a Ruby class */
 
@@ -58,6 +63,12 @@
 
 %typemap(out) unsigned int, unsigned short, unsigned long, unsigned char
 	"$result = UINT2NUM($1);";
+
+
+/* Long long.  Note: broken due to precision problems */
+
+%typemap(out) long long  "$result = INT2NUM((long) $1);";
+%typemap(out) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
 
 %typemap(out) double, float
 	"$result = rb_float_new($1);";
@@ -109,6 +120,9 @@
 %typemap(varin) float, double   "$1 = ($1_ltype) NUM2DBL($input);";
 %typemap(varin) bool            "$1 = RTEST($input);";
 
+%typemap(varin) long long       "$1 = (long long) NUM2LONG($input);";
+%typemap(varin) unsigned long long "$1 = (unsigned long long) NUM2ULONG($input);";
+
 /* A string */
 #ifdef __cplusplus
 %typemap(varin) char * {
@@ -155,6 +169,9 @@
 %typemap(varout) unsigned int, unsigned short, unsigned long, unsigned char
 	"$result = UINT2NUM($1);";
 
+%typemap(varout) long long "$result = INT2NUM((long) $1);";
+%typemap(varout) unsigned long long "$result = UINT2NUM((unsigned long) $1);";
+
 %typemap(varout) double, float
 	"$result = rb_float_new($1);";
 
@@ -184,6 +201,12 @@
 %typemap(constant) unsigned int, unsigned short, unsigned long, unsigned char
 	"rb_define_const($module,\"$symname\", UINT2NUM($1);";
 
+%typemap(constant) long long
+	"rb_define_const($module,\"$symname\", INT2NUM((long) $1));";        
+
+%typemap(constant) unsigned long long
+	"rb_define_const($module,\"$symname\", UINT2NUM((unsigned long) $1));";        
+
 %typemap(constant) double, float
 	"rb_define_const($module,\"$symname\", rb_float_new($1));";
 
@@ -212,5 +235,13 @@ typedef unsigned long VALUE;
 //  if ($target) free((char*)$target);
 //  $target = xmalloc(RSTRING($source)->len + 1);
 //  strncpy((char*)$target, STR2CSTR($source), RSTRING($source)->len + 1);";
+
+/* Some ANSI C typemaps */
+
+%apply long { size_t };
+
+
+
+
 
 

@@ -187,6 +187,13 @@
        { SWIG_BINARY,  (char *) SWIG_prefix "$symname", sizeof($type), 0, (void *)&$value, &$1_descriptor}
 
 
+/* ------------------------------------------------------------
+ * ANSI C typemaps
+ * ------------------------------------------------------------ */
+
+%apply long { size_t };
+
+
 /* Export the SWIG initialization function */
 %header %{
 #ifdef __cplusplus

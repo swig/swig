@@ -204,6 +204,10 @@ typedef unsigned long SCM;
 %typemap (in) SCM "$1=$input;";
 %typemap (out) SCM "$result=$1;";
 
+/* Some ANSI C typemaps */
+
+%apply long { size_t };
+
 /* typemaps.i ends here */
 
 

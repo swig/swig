@@ -107,3 +107,7 @@
 	SWIG_SetPointerChar(&cp, (void*)$value, $descriptor);
 	REGISTER_STRING_CONSTANT("$symname", cp, CONST_CS | CONST_PERSISTENT);
 }
+
+/* Some ANSI C typemaps */
+
+%apply long { size_t };

@@ -285,7 +285,22 @@
 %typemap(constcode) long long "PyDict_SetItemString(d,\"$symname\", PyLong_FromLongLong($value));";
 %typemap(constcode) unsigned long long "PyDict_SetItemString(d,\"$symname\", PyLong_FromUnsignedLongLong($value));";
 
-/* Overloaded operator support */
+/* ------------------------------------------------------------
+ * ANSI C typemaps
+ * ------------------------------------------------------------ */
+
+%typemap(in)     size_t "$1 = (size_t) PyInt_AsLong($input);
+                         if (PyErr_Occurred()) return NULL;";
+
+%typemap(out)      size_t = long;
+%typemap(varin)    size_t = long;
+%typemap(varout)   size_t = long;
+%typemap(consttab) size_t = long;
+
+/* ------------------------------------------------------------
+ * Overloaded operator support
+ * ------------------------------------------------------------ */
+
 #ifdef __cplusplus
 %rename(__add__)      *::operator+;
 %rename(__pos__)      *::operator+();
