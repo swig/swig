@@ -20,6 +20,13 @@
 #define %mixin %feature("mixin")
 #define %predicate %feature("predicate", "1")
 
+%{
+static void SWIG_AsVal(VALUE obj, int *val)
+{
+    *val = (int) NUM2INT(obj);
+}
+%}
+
 /* ----------------------------------------------------------------------
  *                         Standard Typemaps
  * ---------------------------------------------------------------------- */
@@ -235,7 +242,13 @@
 %typemap(varin) long long       "$1 = NUM2LL($input);";
 %typemap(varin) unsigned long long "$1 = NUM2ULL($input);";
 
-%typemap(varin) enum SWIGTYPE   "$1 = ($1_type) NUM2INT($input);";
+%typemap(varin) enum SWIGTYPE {
+    // $1 = ($1_type) NUM2INT($input);
+    if (sizeof(int) != sizeof($1)) {
+        rb_raise(rb_eTypeError, "enum variable '$name' can not be set.");
+    }
+    SWIG_AsVal($input, (int *)(void *) &$1);
+}
 
 /* A string */
 #ifdef __cplusplus
