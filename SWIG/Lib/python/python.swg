@@ -36,6 +36,7 @@
 %include "pyvoid.swg"
 %include "pyobject.swg"
 %include "pystrings.swg"
+%include "pywstrings.swg"
 %include "pyvaltypes.swg"
 %include "pyptrtypes.swg"
 %include "pyprimtypes.swg"

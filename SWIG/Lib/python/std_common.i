@@ -465,8 +465,6 @@ namespace swigpy {
 %swig_equal_type(std::complex<double>);
 
 /* the operators <,>,<=,=> can used with these types */
-%swig_order_type(std::string);
-%swig_order_type(std::basic_string<char>);
 %swig_order_type(signed char);
 %swig_order_type(unsigned char);
 %swig_order_type(short);
@@ -480,6 +478,11 @@ namespace swigpy {
 %swig_order_type(float);
 %swig_order_type(double);
 %swig_order_type(char);
+%swig_order_type(wchar_t);
+%swig_order_type(std::string);
+%swig_order_type(std::basic_string<char>);
+%swig_order_type(std::wstring);
+%swig_order_type(std::basic_string<wchar_t>);
 
 //
 // Backward compatibility

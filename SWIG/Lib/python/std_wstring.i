@@ -82,5 +82,5 @@ SWIGSTATICINLINE(int)
   }
 }
 
-%typemap_asptrfromn(SWIG_CCode(STRING), std::basic_string<wchar_t>);
-%typemap_asptrfromn(SWIG_CCode(STRING), std::wstring);
+%typemap_asptrfromn(SWIG_CCode(UNISTRING), std::basic_string<wchar_t>);
+%typemap_asptrfromn(SWIG_CCode(UNISTRING), std::wstring);
