@@ -15,8 +15,7 @@ all::
 python::
 	cc -c $(INCLUDE) $(SRCS)
 	CC -Kpic -c $(INCLUDE) $(PYINCLUDE) wadpy.cxx
-	CC -G $(OBJS) wadpy.o -o wadmodule.so
-	cp wadmodule.so libwadpy.so
+	CC -G $(OBJS) wadpy.o -o libwadpy.so
 	cp libwadpy.so ..
 
 tcl::
@@ -33,7 +32,7 @@ wc::
 	wc $(SRCS)
 
 semi::
-	egrep ";" $(SRCS) | wc
+	egrep ";" $(SRCS) wadpy.cxx | wc
 
 
 clean::

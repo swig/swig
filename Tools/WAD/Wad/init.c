@@ -38,11 +38,15 @@ void wad_init() {
     sigaddset(&newvec.sa_mask, SIGSEGV);
     sigaddset(&newvec.sa_mask, SIGBUS);
     sigaddset(&newvec.sa_mask, SIGABRT);
-    newvec.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
+    sigaddset(&newvec.sa_mask, SIGILL);
+    sigaddset(&newvec.sa_mask, SIGFPE);
+    newvec.sa_flags = SA_SIGINFO | SA_ONSTACK;
     newvec.sa_sigaction = ((void (*)(int,siginfo_t *, void *)) wad_signalhandler);
     sigaction(SIGSEGV, &newvec, NULL);
     sigaction(SIGBUS, &newvec, NULL);
     sigaction(SIGABRT, &newvec, NULL);
+    sigaction(SIGFPE, &newvec, NULL);
+    sigaction(SIGILL, &newvec, NULL);
   }
   init = 1;
 }

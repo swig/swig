@@ -203,7 +203,7 @@ wad_elf_section_byname(WadObject *wo, char *name) {
 
 
 char *
-wad_elf_find_symbol(WadObject *wo, void *ptr, unsigned base, unsigned long *value) {
+wad_elf_find_symbol(WadObject *wo, void *ptr, unsigned long base, unsigned long *value) {
   int nsymtab;
   int nstrtab;
   int symtab_size;
@@ -228,13 +228,38 @@ wad_elf_find_symbol(WadObject *wo, void *ptr, unsigned base, unsigned long *valu
   nsym = (symtab_size/sizeof(Elf32_Sym));
   for (i = 0; i < nsym; i++) {
     name = str + sym[i].st_name;
+    /*    printf("%s    %x\n", name, sym[i].st_value); */
     if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
       if (value) 
 	*value = sym[i].st_value;
       return name;
     }
-    /*    printf("%s    %x\n", name, sym[i].st_value); */
+
   }
+
+  /* If we didn't find it in the .symtab section. Maybe it's in the .dynsym, .dynstr section */
+  
+  nsymtab = wad_elf_section_byname(wo,".dynsym");
+  if (nsymtab < 0) return 0;
+  nstrtab = wad_elf_section_byname(wo,".dynstr");
+  if (nstrtab < 0) return 0;
+
+  symtab_size = wad_elf_section_size(wo,nsymtab);
+  sym = (Elf32_Sym *) wad_elf_section_data(wo,nsymtab);
+  str = (char *) wad_elf_section_data(wo,nstrtab);
+
+  nsym = (symtab_size/sizeof(Elf32_Sym));
+  for (i = 0; i < nsym; i++) {
+    name = str + sym[i].st_name;
+    /*    printf("%x(%x): %s   %x + %x\n", base, vaddr, name, sym[i].st_value, sym[i].st_size); */
+    if (((base + sym[i].st_value) <= vaddr) && (vaddr < (base+sym[i].st_value + sym[i].st_size))) {
+      if (value) 
+	*value = sym[i].st_value;
+      return name;
+    }
+
+  }
+
   return 0;
 }
 

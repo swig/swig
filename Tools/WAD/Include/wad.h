@@ -17,6 +17,10 @@
 #include <fcntl.h>
 #include <limits.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef MAX_PATH
 #define MAX_PATH 1024
 #endif
@@ -67,9 +71,18 @@ extern void        wad_object_release(WadObject *);
 
 extern void wad_init();
 extern void wad_signalhandler(int, siginfo_t *, void *);
-extern void wad_set_return(char *name, long value);
+extern void wad_set_return(const char *name, long value);
+extern void wad_set_return_value(long value);
+
 extern int  wad_elf_check(WadObject *wo);
 extern void wad_elf_debug(WadObject *wo);
+
+typedef struct WadParm {
+  char  name[64];
+  int   loc;
+  int   type;
+  int   value;
+} WadParm;
 
 /* Debugging information */
 typedef struct WadDebug {
@@ -78,7 +91,11 @@ typedef struct WadDebug {
   char  objfile[1024];       /* Object file */
   int   line_number;         /* Line number */
   int   nargs;               /* Number of function arguments */
+  WadParm parms[100];        /* Parameters */
 } WadDebug;
+
+#define PARM_REGISTER 1
+#define PARM_STACK    2
 
 extern WadDebug *wad_search_stab(void *stab, int size, char *stabstr, char *symbol, unsigned long offset);
 extern WadDebug *wad_debug_info(WadObject *wo, char *symbol, unsigned long offset);
@@ -89,16 +106,52 @@ extern WadDebug *wad_debug_info(WadObject *wo, char *symbol, unsigned long offse
    
 typedef struct WadFrame {
   long     size;                /* Frame size                 */
+  long     lastsize;            /* Size of previous frame     */
+  long     last;                /* Last frame ?               */
   long     frameno;             /* Frame number               */
   long     pc;                  /* Program counter            */
   long     sp;                  /* Stack pointer              */
   long     fp;                  /* Frame pointer              */
+  long     nargs;               /* Number of arguments        */
+  long     arg_off;             /* Argument offset            */
   long     line_number;         /* Source line number         */
   long     sym_base;            /* Symbol base address        */
   long     sym_off;             /* Symbol name offset         */
   long     src_off;             /* Source filename offset     */
   long     obj_off;             /* Object filename offset     */
+  long     stack_off;           /* Stack offset               */
+  long     stack_size;          /* Size of the stack segment  */
+  long     regs[16];            /* Integer registers (%on, %ln) */
+  double   fregs[16];           /* Floating point registers   */
   char     data[8];             /* Frame data                 */
 } WadFrame;
 
+#define SRCFILE(x)  ((char *) x) + x->src_off
+#define SYMBOL(x)   ((char *) x) + x->sym_off
+#define OBJFILE(x)  ((char *) x) + x->obj_off
+#define STACK(x)    (long *) (((char *) x) + x->stack_off)
+#define ARGUMENTS(x) (WadParm *) (((char *) x) + x->arg_off)
+
+extern WadFrame *wad_stack_trace(unsigned long, unsigned long, unsigned long);
+extern char *wad_strip_dir(char *);
+extern void  wad_default_callback(int signo, WadFrame *frame, char *ret);
+extern void wad_set_callback(void (*h)(int, WadFrame *, char *));
+extern char *wad_load_source(char *, int line);
+extern void wad_release_source();
+extern void wad_release_trace();
+extern long wad_steal_arg(WadFrame *f, char *symbol, int argno, int *error);
+extern long wad_steal_outarg(WadFrame *f, char *symbol, int argno, int *error);
+
+extern char *wad_arg_string(WadFrame *f);
+
+typedef struct {
+  const char *name;
+  long        value;
+} WadReturnFunc;
+
+extern void wad_set_returns(WadReturnFunc *rf);
+
+#ifdef __cplusplus
+}
+#endif
 

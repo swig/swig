@@ -63,10 +63,16 @@ char *wad_arg_string(WadFrame *frame) {
 	/* Parameter is located on the call stack */
 	unsigned long argloc = wp->value;    /* Location relative to frame pointer */
 	if ((argloc & 0x3) == 0) {
-	  /* Is word aligned, make some kind of attempt to print this out */
-	  unsigned long *p = (unsigned long *) (((char *) nextstack) + argloc);
-	  sprintf(temp,"0x%x", *p);
-	  strcat(str,temp);
+	  if (argloc >= 0) {
+	    /* Is word aligned, make some kind of attempt to print this out */
+	    unsigned long *p = (unsigned long *) (((char *) nextstack) + argloc);
+	    sprintf(temp,"0x%x", *p);
+	    strcat(str,temp);
+	  } else {
+	    unsigned long *p = (unsigned long *) (((char *) stack) + frame->stack_size + argloc);
+	    sprintf(temp,"0x%x", *p);
+	    strcat(str,temp);
+	  }
 	}
       } else if (wp->loc == PARM_REGISTER) {
 	if ((wp->value >= 24) && (wp->value < 32)) {
@@ -165,6 +171,12 @@ void wad_default_callback(int signo, WadFrame *framedata, char *ret) {
     break;
   case SIGABRT:
     printf("Abort.\n");
+    break;
+  case SIGFPE:
+    printf("Floating point exception.\n");
+    break;
+  case SIGILL:
+    printf("Illegal instruction.\n");
     break;
   default:
     printf("Signal %d\n", signo);
