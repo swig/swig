@@ -19,7 +19,7 @@
 <li><a href="#Php_nn8">Pointers </a>
 <li><a href="#Php_nn9">Structures and C++ classes</a>
 <li><a href="#Php_nn10">Constants</a>
-<li><a href="#Php_nn11">Shadow classes</a>
+<li><a href="#Php_nn11">Proxy classes</a>
 <li><a href="#Php_nn12">Constructors and Destructers</a>
 <li><a href="#Php_nn13">Static Member Variables</a>
 <li><a href="#Php_nn14">PHP4 Pragmas</a>
@@ -43,9 +43,9 @@ still under development so some of the features below may not work properly
 
 <p>
 The PHP4 module has undergone a lot of changes recently affecting the 
-way shadow classes are implemented so you should read this document even 
+way proxy classes are implemented so you should read this document even 
 if you thought you were familiar with what it said.  The major change is 
-that shadow classes are implemented inside the php module in C++ instead 
+that proxy classes are implemented inside the php module in C++ instead 
 of in the generated .php file in php.
 </p>
 
@@ -292,7 +292,7 @@ Vector_magnitude($obj);
 
 </pre></blockquote>
 To use the class, simply use these functions. However, SWIG also has a mechanism
-for creating shadow classes that hides these functions and uses an object 
+for creating proxy classes that hides these functions and uses an object 
 oriented interface instead - see <a href="n7">below</a>
 
 <H3><a name="Php_nn10"></a>24.2.7 Constants</H3>
@@ -404,27 +404,27 @@ both point to the same value, without the case test taking place.
 ( Apologies, this paragraph needs rewritting to make some sense. )
 </p>
 
-<H3><a name="Php_nn11"></a>24.2.8 Shadow classes</H3>
+<H3><a name="Php_nn11"></a>24.2.8 Proxy classes</H3>
 
 
 <p>
 To avoid having to call the various accessor function to get at structures or
 class members, we can turn C structs and C++ classes into PHP classes that
-can be be used directly in PHP scripts as objects and object methods. This is done by writing additional PHP code that builds PHP classes on top of the low-level SWIG interface. These PHP classes "shadow" an underlying C/C++ class.
+can be be used directly in PHP scripts as objects and object methods. This is done by writing additional PHP code that builds PHP classes on top of the low-level SWIG interface. These PHP classes shadow or proxy an underlying C/C++ class.
 </p>
 
 <p>
-To have SWIG create shadow classes, use the <tt>-shadow</tt> option :
+To have SWIG create proxy classes, use the <tt>-proxy</tt> option :
 </p>
 
 <blockquote><pre>
-% swig -php4 -shadow tbc.i
+% swig -php4 -proxy tbc.i
 </pre></blockquote>
 
 <p>
 This will produce the same files as before except that the final module 
 will declare internal PHP classes with the same names as the classes in 
-your .i file.  No longer are the shadow classes defined in 
+your .i file.  No longer are the proxy classes defined in 
 the <tt>.php</tt> file, it will not contain significantly more support PHP 
 code. 
 </p>

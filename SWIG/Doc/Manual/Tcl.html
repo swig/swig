@@ -62,7 +62,7 @@
 <li><a href="#Tcl_nn43">Turning a SWIG module into a Tcl Package.</a>
 <li><a href="#Tcl_nn44">Building new kinds of Tcl interfaces (in Tcl)</a>
 <ul>
-<li><a href="#Tcl_nn45">Shadow classes</a>
+<li><a href="#Tcl_nn45">Proxy classes</a>
 </ul>
 </ul>
 <!-- INDEX -->
@@ -3062,11 +3062,12 @@ danger of blowing something up (although it is easily accomplished
 with an out of bounds array access).
 </p>
 
-<H3><a name="Tcl_nn45"></a>28.9.1 Shadow classes</H3>
+<H3><a name="Tcl_nn45"></a>28.9.1 Proxy classes</H3>
 
 
 <p>
-A similar approach can be applied to shadow classes.  The following
+A similar approach can be applied to proxy classes (also known as
+shadow classes).  The following
 example is provided by Erik Bierwagen and Paul Saxe.  To use it, run
 SWIG with the <tt>-noobject</tt> option (which disables the builtin
 object oriented interface).  When running Tcl, simply source this
@@ -3182,8 +3183,5 @@ short, but clever Tcl script can be combined with SWIG to do many
 interesting things.
 </p>
 
-<hr>
-
-<address>SWIG 1.3 - Last Modified : May 28, 2002</address>
 </body>
 </html>

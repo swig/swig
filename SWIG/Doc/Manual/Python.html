@@ -1782,7 +1782,7 @@ These wrappers can be found in the low-level extension module (e.g., <tt>_exampl
 </p>
 
 <p>
-Using these wrappers, SWIG generates a high-level Python proxy class like this (shown 
+Using these wrappers, SWIG generates a high-level Python proxy class (also known as a shadow class) like this (shown 
 for Python 2.2):
 </p>
 
@@ -3847,14 +3847,11 @@ if ((SWIG_ConvertPtr($input,(void **) &amp;$1, $descriptor(Foo *),
 
 Although the pointer handling functions are primarily intended for
 manipulating low-level pointers, both functions are fully aware of
-Python shadow classes (described shortly).  Specifically,
+Python proxy classes.  Specifically,
 <tt>SWIG_ConvertPtr()</tt> will retrieve a pointer from any object
 that has a <tt>this</tt> attribute.  In addition,
-<tt>SWIG_NewPointerObj()</tt> can automatically generate a shadow
+<tt>SWIG_NewPointerObj()</tt> can automatically generate a proxy
 class object (if applicable).
 
-<hr>
-
-<address>SWIG 1.3 - Last Modified : August 7, 2002</address>
 </body>
 </html>

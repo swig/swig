@@ -81,7 +81,6 @@
 
 
 <p>This chapter describes SWIG's support of Ruby. </p>
-<hr><a name="n2"></a>
 <H2><a name="Ruby_nn2"></a>27.1 Preliminaries</H2>
 
 
@@ -273,7 +272,7 @@ into your extension, e.g.
 <blockquote>
   <pre>require 'mkmf'<br>$libs = append_library($libs, "supc++")<br>create_makefile('example')<br></pre>
 </blockquote>
-<hr>
+
 <H2><a name="Ruby_nn9"></a>27.2 Building Ruby Extensions under Windows 95/NT</H2>
 
 
@@ -390,7 +389,6 @@ Foo = 3.0
   </pre>
 </blockquote>
 
-<hr><a name="n11"></a>
 <H2><a name="Ruby_nn11"></a>27.3 The Ruby-to-C/C++ Mapping</H2>
 
 
@@ -1058,7 +1056,6 @@ using the <tt>rb_rescue2()</tt> function from Ruby's C API. If any
 Ruby exception
 is raised, it will be caught here and a C++ exception is raised in its
 place.
-<hr><a name="n27"></a>
 <H2><a name="Ruby_nn27"></a>27.4 Input and output parameters</H2>
 
 
@@ -1133,7 +1130,6 @@ In Ruby:
 <blockquote>
   <pre>r, c = Example.get_dimensions(m)<br></pre>
 </blockquote>
-<hr>
 <H2><a name="Ruby_nn28"></a>27.5 Simple exception handling </H2>
 
 
@@ -1188,7 +1184,6 @@ the standard
 Ruby exception classes, consult a Ruby reference such as <a
  href="http://www.rubycentral.com/book"><em>Programming Ruby</em></a>.
 </p>
-<hr><a name="n29"></a>
 <H2><a name="Ruby_nn29"></a>27.6 Typemaps</H2>
 
 
@@ -1789,7 +1784,6 @@ wraps that pointer with <tt>Data_Wrap_Struct()</tt> as above.
 from the data object
   <i>obj</i> and assigns that pointer to <i>ptr</i>.
 </blockquote>
-<hr>
 <H2><a name="ruby_operator_overloading"></a>27.7 Operator overloading</H2>
 
 
@@ -2232,7 +2226,6 @@ matching
 rules used for other kinds of features apply (see the chapter on
 <a href="Customization.html#Customization">"Customization Features"</a>)
 for more details).
-<hr>
-<address>SWIG 1.3 - Last Modified : $Date$</address>
+
 </body>
 </html>
