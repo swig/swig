@@ -5,6 +5,7 @@ GlobalEnum global_test(GlobalEnum e) { return e; }
 class A { 
  public: 
   A() {}
+  virtual ~A() {}
   
   void hello() {}
 
