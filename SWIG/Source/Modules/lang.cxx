@@ -1108,7 +1108,6 @@ Language::membervariableHandler(Node *n) {
       if (!Extend) {
 	/* Check for a member in typemap here */
 
-	/* String *tm = Swig_typemap_lookup((char *) "memberin",type,name,target,Swig_cparm_name(0,1),target,0);*/
 	if (!tm) {
 	  if (SwigType_isarray(type)) {
 	    /*	  Printf(stderr,"%s:%d. Warning. Array member %s will be read-only.\n", input_file, line_number, name);*/
