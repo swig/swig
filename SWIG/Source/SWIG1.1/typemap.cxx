@@ -461,6 +461,8 @@ TypeMap *typemap_search_array(char *op, char *lang, DataType *type, char *pname,
   if (tm) {
     str << tm->code;
     ndim = type->array_dimensions();
+    sprintf(temp,"%d",ndim);
+    str.replace("$ndim",temp);
     for (i = 0; i < ndim; i++) {
       sprintf(temp,"$dim%d",i);
       str.replace(temp,type->get_dimension(i));
