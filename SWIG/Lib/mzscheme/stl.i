@@ -11,6 +11,9 @@
 // in order for the user to modify it.
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
+
+%include exception.i
+
 %{
 #include <string>
 %}
@@ -49,6 +52,32 @@ namespace std {
 
 
 // containers
+
+
+%exception ref {
+    try {
+        $action
+    } catch (std::out_of_range& e) {
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    }
+}
+
+%exception set {
+    try {
+        $action
+    } catch (std::out_of_range& e) {
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    }
+}
+
+%exception pop  {
+    try {
+        $action
+    } catch (std::out_of_range& e) {
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
+    }
+}
+
 
 // ------------------------------------------------------------------------
 // std::vector
@@ -166,6 +195,8 @@ namespace std {
         void push_back(const T& x);
         %addmethods {
             T pop() {
+                if (self->size() == 0)
+                    throw std::out_of_range("pop from empty vector");
                 T x = self->back();
                 self->pop_back();
                 return x;
@@ -280,6 +311,8 @@ namespace std {
         void push_back(int x);
         %addmethods {
             int pop() {
+                if (self->size() == 0)
+                    throw std::out_of_range("pop from empty vector");
                 int x = self->back();
                 self->pop_back();
                 return x;
@@ -408,6 +441,8 @@ namespace std {
         void push_back(double x);
         %addmethods {
             double pop() {
+                if (self->size() == 0)
+                    throw std::out_of_range("pop from empty vector");
                 double x = self->back();
                 self->pop_back();
                 return x;

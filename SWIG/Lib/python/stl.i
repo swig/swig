@@ -12,6 +12,9 @@
 // in order for the user to modify it.
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
+
+%include exception.i
+
 %{
 #include <string>
 %}
@@ -57,8 +60,7 @@ namespace std {
     try {
         $action
     } catch (std::out_of_range& e) {
-        PyErr_SetString(PyExc_IndexError,e.what());
-        return NULL;
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }
 
@@ -66,8 +68,7 @@ namespace std {
     try {
         $action
     } catch (std::out_of_range& e) {
-        PyErr_SetString(PyExc_IndexError,e.what());
-        return NULL;
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }
 
@@ -75,8 +76,7 @@ namespace std {
     try {
         $action
     } catch (std::out_of_range& e) {
-        PyErr_SetString(PyExc_IndexError,e.what());
-        return NULL;
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }
 
@@ -84,10 +84,10 @@ namespace std {
     try {
         $action
     } catch (std::out_of_range& e) {
-        PyErr_SetString(PyExc_IndexError,e.what());
-        return NULL;
+        SWIG_exception(SWIG_IndexError,const_cast<char*>(e.what()));
     }
 }
+
 
 // ------------------------------------------------------------------------
 // std::vector
@@ -421,7 +421,7 @@ namespace std {
                 unsigned int size = (PyTuple_Check($input) ?
                                      PyTuple_Size($input) :
                                      PyList_Size($input));
-                $1 = vector<double>(size);
+                $1 = std::vector<double>(size);
                 for (unsigned int i=0; i<size; i++) {
                     PyObject* o = PySequence_GetItem($input,i);
                     if (PyFloat_Check(o)) {
