@@ -75,6 +75,8 @@ SWIG-1.3.24 summary:
 - More runtime library options
 - More bugs fixes for templates and template default arguments, directors
   and other areas.
+- Better smart pointer support, including data members, static members
+  and %extend.
 
 SWIG-1.3.23 summary:
 - Improved support for callbacks
