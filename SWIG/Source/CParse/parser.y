@@ -499,6 +499,12 @@ static void canonical_template(String *s) {
   Replace(s,">"," >", DOH_REPLACE_ANY);
 }
 
+static void patch_template_code(String *s) {
+  if (templatename) {
+    Replace(s, templateiname, templatename, DOH_REPLACE_ID);
+  }
+}
+
 %}
 
 %union {
@@ -1469,6 +1475,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		   Setattr($$,"value",$4.val);
 		   if (!$5) {
 		     if (Len(scanner_ccode)) {
+		       patch_template_code(scanner_ccode);
 		       Setattr($$,"code",Copy(scanner_ccode));
 		     }
 		   } else {
@@ -1499,7 +1506,10 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"parms",$2.parms);
 		 Setattr($$,"value",$3.val);
 		 if (!$4) {
-		   if (Len(scanner_ccode)) Setattr($$,"code",Copy(scanner_ccode));
+		   if (Len(scanner_ccode)) {
+		     patch_template_code(scanner_ccode);
+		     Setattr($$,"code",Copy(scanner_ccode));
+		   }
 		 } else {
 		   set_nextSibling($$,$4);
 		 }
@@ -1578,7 +1588,10 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		     p = nextSibling(p);
 		   }
 		 } else {
-		   if (Len(scanner_ccode)) Setattr(n,"code",Copy(scanner_ccode));
+		   if (Len(scanner_ccode)) {
+		     patch_template_code(scanner_ccode);
+		     Setattr(n,"code",Copy(scanner_ccode));
+		   }
 		 }
 		 set_nextSibling($$,n);
 		 add_tag($$);           /* Add enum to tag space */
@@ -1970,6 +1983,7 @@ cpp_constructor_decl : storage_class ID LPAREN parms RPAREN ctor_end {
 		 SwigType_add_function(decl,$4);
 		 Setattr($$,"decl",decl);
 		 if (Len(scanner_ccode)) {
+		   patch_template_code(scanner_ccode);
 		   Setattr($$,"code",Copy(scanner_ccode));
 		 }
 		 Setattr($$,"feature:new","1");
@@ -1983,6 +1997,7 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
                $$ = new_node("destructor");
 	       Setattr($$,"name",NewStringf("~%s",$2));
 	       if (Len(scanner_ccode)) {
+		 patch_template_code(scanner_ccode);
 		 Setattr($$,"code",Copy(scanner_ccode));
 	       }
 	       add_symbols($$);
@@ -1998,6 +2013,7 @@ cpp_destructor_decl : NOT ID LPAREN parms RPAREN cpp_end {
 		  Setattr($$,"value","0");
 		}
 		if (Len(scanner_ccode)) {
+		  patch_template_code(scanner_ccode);
 		  Setattr($$,"code",Copy(scanner_ccode));
 		}
 		add_symbols($$);
