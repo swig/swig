@@ -2088,7 +2088,9 @@ public:
     parms = p;
     for (ip = parms; nextSibling(ip); ) ip = nextSibling(ip);
     p = NewParm(NewString("int"), NewString("__disown"));
-    Setattr(p, "value", "1");
+    Setattr(p, "arg:byname", "1");
+    Setattr(n, "director:postfix_args", p);
+    Setattr(p, "value", "0");
     set_nextSibling(ip, p);
     
     /* constructor */

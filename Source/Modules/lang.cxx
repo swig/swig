@@ -202,6 +202,16 @@ Language::Language() {
   symbols = NewHash();
   classtypes = NewHash();
   none_comparison = NewString("$arg != 0");
+  director_ctor_code = NewString("");
+
+  /* Default director constructor code, passed to Swig_ConstructorToFunction */
+  Printv(director_ctor_code,
+      "if ( $comparison ) { /*subclassed */\n",
+      "  $director_new \n",
+      "} else {\n",
+      "  $nondirector_new \n",
+      "}\n", NIL);
+
   overloading = 0;
   multiinput = 0;
   directors = 0;
@@ -1609,11 +1619,7 @@ int Language::classDeclaration(Node *n) {
   InClass = 1;
   CurrentClass = n;
 
-  if (Getattr(n,"abstract")) {
-    Abstract = 1;
-  } else {
-    Abstract = 0;
-  }
+  Abstract = (Getattr(n,"abstract") ? 1 : 0);
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -1767,7 +1773,7 @@ Language::constructorHandler(Node *n) {
 
   mrename = Swig_name_construct(symname);
   if (CPlusPlus) patch_parms(parms);
-  Swig_ConstructorToFunction(n, ClassType, none_comparison, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
+  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor_code, CPlusPlus, Getattr(n, "template") ? 0 :Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -1787,7 +1793,7 @@ Language::copyconstructorHandler(Node *n) {
   Parm   *parms = Getattr(n,"parms");
   if (CPlusPlus) patch_parms(parms);
   mrename = Swig_name_copyconstructor(symname);
-  Swig_ConstructorToFunction(n,ClassType, none_comparison,
+  Swig_ConstructorToFunction(n,ClassType, none_comparison, director_ctor_code,
 			     CPlusPlus, Getattr(n,"template") ? 0 : Extend);
   Setattr(n,"sym:name", mrename);
   functionWrapper(n);

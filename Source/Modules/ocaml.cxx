@@ -1826,6 +1826,9 @@ public:
 
 	p = NewParm(NewString("int"), NewString("__disown"));
 	Setattr(p, "CAML_VALUE", "1");
+	Setattr(n, "director:postfix_args", p);
+	Setattr(p, "args:byname", "1");
+	Setattr(p, "value", "0");
 	set_nextSibling(ip, p);
 
 	/* constructor */
