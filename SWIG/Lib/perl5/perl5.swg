@@ -225,7 +225,7 @@
 
 /* Variable input */
 
-%typemap(varin)  int, short, long, signed char, bool, enum SWIGTYPE
+%typemap(varin)  int, short, long, signed char, bool
        "$1 = ($1_ltype) SvIV($input);";
 
 %typemap(varin) unsigned int, unsigned short, unsigned long, unsigned char
@@ -361,8 +361,12 @@
 %typemap(varin,warning="462: Unable to set variable of type char []") char []
      { croak("Variable $symname is read-only."); }
 
-%typemap(varin) enum SWIGTYPE
-     "$1 = ($1_type) SvIV($input);";
+%typemap(varin)  enum SWIGTYPE {
+  if (sizeof(int) != sizeof($1)) {
+    croak("enum variable '$name' can not be set.");
+  }
+  *(int *)(void *)&($1) = SvIV($input);
+}
 
 /* --- Typemaps for variable output --- */
 
