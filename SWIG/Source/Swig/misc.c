@@ -196,6 +196,7 @@ String *Swig_string_typecode(String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_mangle(String *s) {
+#if 0
   String *t = Copy(s);
   char *c = Char(t);
   while (*c) {
@@ -203,6 +204,57 @@ String *Swig_string_mangle(String *s) {
     c++;
   }
   return t;
+#else
+  char *pc;
+  String *b = Copy(s);
+  if (SwigType_istemplate(b)) {
+    String *t = SwigType_namestr(b);
+    Delete(b);
+    b = t ;
+  }
+  pc = Char(b);
+  String *result = NewString("");
+  int space = 0;
+  int state = 0;
+  while (*pc) {
+    char c = *pc;
+    if (isalnum((int)c)) {
+      state = 1;
+      if (space && (space == state)) {
+	Printf(result,"_b");
+      }
+      space = 0;      
+      Printf(result,"%c",c);
+    } else {
+      if (isspace((int)c)) {
+	space = state;
+	++pc;
+	continue;
+      } else {
+	state = 3;
+	space = 0;
+      }
+      if (c == '*') c = 'p';
+      else if (c == '&') c = 'R';
+      else if (c == ':') c = 's';
+      else if (c == ',') c = 'c';
+      else if (c == '<') c = 't';
+      else if (c == '>') c = 'T';
+      else if (c == '[') c = 'a';
+      else if (c == ']') c = 'A';
+      else if (c == '(') c = 'f';
+      else if (c == ')') c = 'F';
+      if (isalpha((int)c)) {
+	Printf(result,"_%c",(int)c);
+      } else{
+	Printf(result,"_%02X",(int)c);
+      }     
+    }
+    ++pc;
+  }
+  Delete(b);
+  return result;
+#endif
 }
 
 /* -----------------------------------------------------------------------------
