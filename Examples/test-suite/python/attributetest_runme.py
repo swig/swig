@@ -11,6 +11,7 @@ if aa.a != 3:
 
 
 if aa.b != 2:
+  print aa.b
   raise RuntimeError
 aa.b = 5
 if aa.b != 5:
@@ -26,3 +27,11 @@ if aa.c != 3:
 #aa.c = 5
 #if aa.c != 3:
 #  raise RuntimeError
+
+pi = attributetest.Param_i(7)
+if pi.value != 7:
+ raise RuntimeError
+
+pi.value=3
+if pi.value != 3:
+ raise RuntimeError
