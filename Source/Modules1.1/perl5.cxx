@@ -766,7 +766,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
   pcount = emit_args(d, l, f);
   numopt = l->numopt();
 
-  Wrapper_add_local(f,(char*)"int",(char*)"argvi = 0",0);
+  Wrapper_add_local(f,"argvi","int argvi = 0");
 
   // Check the number of arguments
 
@@ -917,7 +917,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   if (num_saved) {
     sprintf(temp,"_saved[%d]",num_saved);
-    Wrapper_add_local(f,(char*)"SV *",temp,0);
+    Wrapper_add_localv(f,"_saved","SV *",temp,0);
   }
 
   // Now write code to make the function call
@@ -945,7 +945,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	Printf(f->code,"    sv_setnv(ST(argvi++), (double) _result);\n");
 	break;
       case T_CHAR :
-	Wrapper_add_local(f,(char*)"char", (char*)"_ctemp[2]",0);
+	Wrapper_add_local(f,"_ctemp", "char _ctemp[2]");
 	Printv(f->code,
 	       tab4, "_ctemp[0] = _result;\n",
 	       tab4, "_ctemp[1] = 0;\n",
@@ -1009,7 +1009,7 @@ void PERL5::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   // Add the dXSARGS last
 
-  Wrapper_add_local(f,(char*)"dXSARGS",(char*)"",0);
+  Wrapper_add_local(f,"dXSARGS","dXSARGS");
 
   // Substitute the cleanup code
   Replace(f->code,"$cleanup",cleanup,DOH_REPLACE_ANY);
@@ -1201,7 +1201,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	  // Get as a pointer value
 	  
 	  t->is_pointer++;
-	  Wrapper_add_local(setf,(char*)"void",(char*)"*_temp",0);
+	  Wrapper_add_local(setf,"_temp", "void *_temp");
 	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
 	  Printv(setf->code, tab4, name, " = *(", t->print_cast(), " _temp);\n", 0);
 	  t->is_pointer--;
@@ -1214,7 +1214,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
       } else {
 	// Have some sort of pointer type here, Process it differently
 	if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	  Wrapper_add_local(setf,(char*)"char",(char*)"*_a",0);
+	  Wrapper_add_local(setf,"_a","char *_a");
 	  Printf(setf->code,"    _a = (char *) SvPV(sv,PL_na);\n");
 	  
 	  if (CPlusPlus)
@@ -1231,7 +1231,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	} else {
 	  // Set the value of a pointer
 	  
-	  Wrapper_add_local(setf,(char*)"void",(char*)"*_temp",0);
+	  Wrapper_add_local(setf,"_temp","void *_temp");
 	  get_pointer(iname,(char*)"value",(char*)"sv",(char*)"_temp", t, setf->code, (char*)"return(1)");
 	  Printv(setf->code,tab4, name, " = ", t->print_cast(), " _temp;\n", 0);
 	}
@@ -1273,7 +1273,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	Printv(vinit, tab4, "sv_setnv(sv,(double)", name, ");\n",0);
 	break;
       case T_CHAR :
-	Wrapper_add_local(getf,(char*)"char",(char*)"_ptemp[2]",0);
+	Wrapper_add_local(getf,"_ptemp","char _ptemp[2]");
 	Printv(getf->code,
 	       tab4, "_ptemp[0] = ", name, ";\n",
 	       tab4, "_ptemp[1] = 0;\n",
@@ -1287,7 +1287,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	       tab4, "sv_setiv(rsv,(IV) &", name, ");\n",
 	       0);
 
-	Wrapper_add_local(getf,(char*)"SV",(char*)"*rsv",0);
+	Wrapper_add_local(getf,"rsv","SV *rsv");
 	Printv(vinit, tab4, "sv_setref_pv(sv,\"", t->print_mangle(), "\",(void *) &", name, ");\n",0);
 	t->is_pointer--;
 	
@@ -1307,7 +1307,7 @@ void PERL5::link_variable(char *name, char *iname, DataType *t)
 	       tab4, "sv_setiv(rsv,(IV) ", name, ");\n",
 	       0);
 
-	Wrapper_add_local(getf,(char*)"SV",(char*)"*rsv",0);
+	Wrapper_add_local(getf,"rsv","SV *rsv");
 	Printv(vinit, tab4, "sv_setref_pv(sv,\"", t->print_mangle(), "\",(void *) 1);\n",0);
       }
     }

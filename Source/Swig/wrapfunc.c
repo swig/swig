@@ -19,15 +19,15 @@ static char cvsroot[] = "$Header$";
 #include "swig.h"
 
 /* -----------------------------------------------------------------------------
- * NewSwigWrapper()
+ * NewWrapper()
  *
  * Create a new wrapper function object.
  * ----------------------------------------------------------------------------- */
 
-SwigWrapper *
-NewSwigWrapper() {
-  SwigWrapper *w;
-  w = (SwigWrapper *) malloc(sizeof(SwigWrapper));
+Wrapper *
+NewWrapper() {
+  Wrapper *w;
+  w = (Wrapper *) malloc(sizeof(Wrapper));
   w->localh = NewHash();
   w->locals = NewString("");
   w->code = NewString("");
@@ -36,13 +36,13 @@ NewSwigWrapper() {
 }
 
 /* -----------------------------------------------------------------------------
- * DelSwigWrapper()
+ * DelWrapper()
  *
  * Delete a wrapper function object.
  * ----------------------------------------------------------------------------- */
 
 void
-DelSwigWrapper(SwigWrapper *w) {
+DelWrapper(Wrapper *w) {
   Delete(w->localh);
   Delete(w->locals);
   Delete(w->code);
@@ -51,13 +51,13 @@ DelSwigWrapper(SwigWrapper *w) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigWrapper_print()
+ * Wrapper_print()
  *
  * Print out a wrapper function.  Does pretty printing as well.
  * ----------------------------------------------------------------------------- */
 
 void 
-SwigWrapper_print(SwigWrapper *w, DOHFile *f) {
+Wrapper_print(Wrapper *w, DOHFile *f) {
   DOHString *str, *ts;
   int level = 0;
   int c, i;
@@ -111,17 +111,18 @@ SwigWrapper_print(SwigWrapper *w, DOHFile *f) {
   }
   Delete(ts);
   Delete(str);
+  Printf(f,"\n");
 }
 
 /* -----------------------------------------------------------------------------
- * SwigWrapper_add_local()
+ * Wrapper_add_local()
  *
  * Adds a new local variable declaration to a function. Returns -1 if already
  * present (which may or may not be okay to the caller).
  * ----------------------------------------------------------------------------- */
 
 int
-SwigWrapper_add_local(SwigWrapper *w, DOHString_or_char *decl, DOHString_or_char *name) {
+Wrapper_add_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl) {
   /* See if the local has already been declared */
   if (Getattr(w->localh,name)) {
     return -1;
@@ -131,36 +132,127 @@ SwigWrapper_add_local(SwigWrapper *w, DOHString_or_char *decl, DOHString_or_char
 }
 
 /* -----------------------------------------------------------------------------
- * SwigWrapper_check_local()
+ * Wrapper_add_localv()
+ *
+ * Same as add_local(), but allows a NULL terminated list of strings to be
+ * used as a replacement for decl.   This saves the caller the trouble of having
+ * to manually construct the 'decl' string before calling.
+ * ----------------------------------------------------------------------------- */
+
+int
+Wrapper_add_localv(Wrapper *w, const DOHString_or_char *name, ...) {
+  va_list ap;
+  int     ret;
+  DOHString *decl;
+  DOH       *obj;
+  decl = NewString("");
+  va_start(ap,name);
+
+  obj = va_arg(ap,void *);
+  while (obj) {
+    Printv(decl,obj,0);
+    Putc(' ', decl);
+    obj = va_arg(ap, void *);
+  }
+  va_end(ap);
+
+  ret = Wrapper_add_local(w,name,decl);
+  Delete(decl);
+  return ret;
+}
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_check_local()
  *
  * Check to see if a local name has already been declared
  * ----------------------------------------------------------------------------- */
 
 int
-SwigWrapper_check_local(SwigWrapper *w, DOHString_or_char *name) {
+Wrapper_check_local(Wrapper *w, const DOHString_or_char *name) {
   if (Getattr(w->localh,name)) {
     return 1;
   }
   return 0;
 }
 
+/* ----------------------------------------------------------------------------- 
+ * Wrapper_new_local()
+ *
+ * Adds a new local variable with a guarantee that a unique local name will be
+ * used.  Returns the name that was actually selected.
+ * ----------------------------------------------------------------------------- */
+
+char *
+Wrapper_new_local(Wrapper *w, const DOHString_or_char *name, const DOHString_or_char *decl) {
+  int i;
+  DOHString *nname = NewString(name);
+  DOHString *ndecl = NewString(decl);
+  char      *ret;
+
+  i = 0;
+  while (Wrapper_check_local(w,nname)) {
+    Clear(nname);
+    i++;
+    Printf(nname,"%s%d",name,i);
+  }
+  
+  Replace(ndecl, name, nname, DOH_REPLACE_ID);
+  Setattr(w->localh,nname,ndecl);
+  ret = Char(nname);
+  Delete(nname);
+  Delete(ndecl);
+  return ret;      /* Note: nname should still exists in the w->localh hash */
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Wrapper_add_localv()
+ *
+ * Same as add_local(), but allows a NULL terminated list of strings to be
+ * used as a replacement for decl.   This saves the caller the trouble of having
+ * to manually construct the 'decl' string before calling.
+ * ----------------------------------------------------------------------------- */
+
+char *
+Wrapper_new_localv(Wrapper *w, const DOHString_or_char *name, ...) {
+  va_list ap;
+  char *ret;
+  DOHString *decl;
+  DOH       *obj;
+  decl = NewString("");
+  va_start(ap,name);
+
+  obj = va_arg(ap,void *);
+  while (obj) {
+    Printv(decl,obj,0);
+    Putc(' ',decl);
+    obj = va_arg(ap, void *);
+  }
+  va_end(ap);
+
+  ret = Wrapper_new_local(w,name,decl);
+  Delete(decl);
+  return ret;
+}
+
+
 #ifdef TEST
 int main() {
-  SwigWrapper *w;
-  w = NewSwigWrapper();
+  Wrapper *w;
+  w = NewWrapper();
   Printf(w->def,"int foo_wrap(ClientData clientdata, Tcl_Interp *interp, int argc, char *argv[]) {");
-  SwigWrapper_add_local(w,"int a", "a");
-  SwigWrapper_add_local(w,"int a", "a");
-  SwigWrapper_add_local(w,"int b", "b");
-  SwigWrapper_add_local(w,"char temp[256]","temp");
+  Wrapper_add_local(w,"int a", "a");
+  Wrapper_add_local(w,"int a", "a");
+  Wrapper_add_local(w,"int b", "b");
+  Wrapper_add_local(w,"char temp[256]","temp");
   
   Printf(w->code,"for (i = 0; i < 10; i++) { printf(\"%%d\", i); }\n");
 
   Printf(w->code,"if (1) { foo;\n} else { bar; \n}\n");
 
   Printf(w->code,"}\n");
-  SwigWrapper_print(w,stdout);
-  DelSwigWrapper(w);
+  Wrapper_print(w,stdout);
+  DelWrapper(w);
 }
 #endif
 

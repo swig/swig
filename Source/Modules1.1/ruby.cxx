@@ -470,11 +470,11 @@ void RUBY::create_function(char *name, char *iname, DataType *t, ParmList *l) {
       if (!l->get(i)->ignore) {
 	char s[256];
 	sprintf(s,"varg%d",i);
-	Wrapper_add_local(f,(char*)"VALUE", s,0);
+	Wrapper_add_localv(f,s,"VALUE",s,0);
       }
     }
   }
-  Wrapper_add_local(f,(char*)"VALUE", (char*)"vresult", (char*)"Qnil");
+  Wrapper_add_local(f,"vresult","VALUE vresult = Qnil");
   int pcount = emit_args(t,l,f);
 
 #if 0
@@ -669,7 +669,7 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
   Printv(getf->def, "static VALUE\n", getfname, "(", 0);
   if (mod_attr) Printf(getf->def, "VALUE self");
   Printf(getf->def, ") {");
-  Wrapper_add_local(getf,(char*)"VALUE", (char*)"_val",0);
+  Wrapper_add_local(getf,"_val","VALUE _val");
   tm = ruby_typemap_lookup((char*)"varout",t,name,name,(char*)"_val");
   if (!tm)
     tm = ruby_typemap_lookup((char*)"out",t,name,name,(char*)"_val");
@@ -713,7 +713,7 @@ void RUBY::link_variable(char *name, char *iname, DataType *t) {
       Delete(s);
     } else if (!t->is_pointer && t->type == T_USER) {
       t->is_pointer++;
-      Wrapper_add_local(setf,t->print_type(), (char*)"temp",0);
+      Wrapper_add_localv(setf,"temp",t->print_type(), "temp",0);
       Printv(setf->code, tab4, "temp = (", t->print_type(), ")",
 	     "SWIG_ConvertPtr(_val, \"", t->print_mangle(), "\");\n",
 	     0);

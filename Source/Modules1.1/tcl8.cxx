@@ -548,7 +548,7 @@ void TCL8::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    {
 	      char tb[32];
 	      sprintf(tb,"tempb%d",i);
-	      Wrapper_add_local(f,(char*)"int",tb,0);
+	      Wrapper_add_localv(f,tb,"int",tb,0);
 	      Printf(args,",&%s",tb);
 	      Printv(incode, tab4, target, " = (bool) ", tb, ";\n", 0);
 	    }
@@ -799,13 +799,13 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 
     Printv(get->def, "static char *_swig_", t->print_mangle(), "_get(ClientData clientData, Tcl_Interp *interp, char *name1, char *name2, int flags) {",0);
     t->is_pointer++;
-    Wrapper_add_local(get,t->print_type(),(char*)"addr",0);
-    Wrapper_add_local(set,t->print_type(),(char*)"addr",0);
+    Wrapper_add_localv(get,"addr",t->print_type(),"addr",0);
+    Wrapper_add_localv(set,"addr",t->print_type(),"addr",0);
     Printv(set->code, tab4, "addr = ", t->print_cast(), " clientData;\n", 0);
     Printv(get->code, tab4, "addr = ", t->print_cast(), " clientData;\n", 0);
     t->is_pointer--;
-    Wrapper_add_local(set,(char*)"char *",(char*)"value",0);
-    Wrapper_add_local(get,(char*)"Tcl_Obj *",(char*)"value",0);
+    Wrapper_add_local(set, "value", "char *value");
+    Wrapper_add_local(get, "value", "Tcl_Obj *value");
 
     Printv(set->code, tab4, "value = Tcl_GetVar2(interp, name1, name2, flags);\n",
 	   tab4, "if (!value) return NULL;\n", 0);
@@ -891,7 +891,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       case T_UCHAR:
       case T_SCHAR:
       case T_BOOL:
-	Wrapper_add_local(get,(char*)"Tcl_Obj *",(char*)"value",0);
+	Wrapper_add_local(get,"value","Tcl_Obj *value");
 	Printv(get->code,
 	       tab4, "value = Tcl_NewIntObj((int) *addr);\n",
 	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
@@ -900,7 +900,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	break;
       case T_FLOAT:
       case T_DOUBLE:
-	Wrapper_add_local(get,(char*)"Tcl_Obj *",(char*)"value",0);
+	Wrapper_add_local(get,"value","Tcl_Obj *value");
 	Printv(get->code,
 	       tab4, "value = Tcl_NewDoubleObj((double) *addr);\n",
 	       tab4, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n",
@@ -909,14 +909,14 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
 	break;
 
       case T_CHAR:
-	Wrapper_add_local(get,(char*)"char",(char*)"temp[4]",0);
+	Wrapper_add_local(get,"temp", "char temp[2]");
 	Printv(get->code,tab4, "temp[0] = *addr; temp[1] = 0;\n",
 	       tab4, "Tcl_SetVar2(interp,name1,name2,temp,flags);\n",
 	       0);
 	break;
 
       case T_USER:
-	Wrapper_add_local(get,(char*)"Tcl_Obj *",(char*)"value",0);
+	Wrapper_add_local(get,"value", "Tcl_Obj *value");
 	t->is_pointer++;
 	t->remember();
 	Printv(get->code, tab4, "value = SWIG_NewPointerObj(addr, SWIGTYPE", t->print_mangle(), ");\n",
@@ -932,7 +932,7 @@ void TCL8::link_variable(char *name, char *iname, DataType *t)
       if ((t->is_pointer == 1) && (t->type == T_CHAR)) {
 	Printv(get->code, tab4, "Tcl_SetVar2(interp,name1,name2,*addr, flags);\n",0);
       } else {
-	Wrapper_add_local(get,(char*)"Tcl_Obj *",(char*)"value",0);
+	Wrapper_add_local(get,"value","Tcl_Obj *value");
 	t->remember();
 	Printv(get->code,
 	       tab4, "value = SWIG_NewPointerObj(*addr, SWIGTYPE", t->print_mangle(), ");\n",

@@ -130,7 +130,7 @@ emit_function(DOH *obj, void *clientdata) {
   DOHString   *name, *scriptname, *type, *storage;
   DOHList     *parms;
   DOHHash     *p;
-  SwigWrapper *wf;
+  Wrapper *wf;
   int         numarg = 0, numopt = 0;
   int         i, pn;
 
@@ -151,7 +151,7 @@ emit_function(DOH *obj, void *clientdata) {
     /*    goto function_exit; */
   }
 
-  wf = NewSwigWrapper();
+  wf = NewWrapper();
 
   Printv(wf->def, 
 	 "static PyObject *", Swig_name_wrapper(scriptname), "(PyObject *self, PyObject *args) {\n", 
@@ -265,7 +265,7 @@ emit_function(DOH *obj, void *clientdata) {
 	      if (vvalue) {
 		Printf(local," = %s", vvalue);
 	      }
-	      SwigWrapper_add_local(wf,local,rname);
+	      Wrapper_add_local(wf,rname,local);
 	      Delete(local);
 	      Delete(rname);
 	    }
@@ -306,7 +306,7 @@ emit_function(DOH *obj, void *clientdata) {
   }
 
   Printf(wf->code,"}\n");
-  SwigWrapper_print(wf,wrappers);
+  Wrapper_print(wf,wrappers);
 
  function_exit:
   Delete(NewName);

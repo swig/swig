@@ -15,12 +15,11 @@ RANLIB   = @RANLIB@
 TARGET   = libswig11.a
 
 OBJS     = parser.o main.o scanner.o types.o parms.o \
-           emit.o cplus.o lang.o sstring.o wrapfunc.o \
-           typemap.o
+           emit.o cplus.o lang.o sstring.o typemap.o
 
 SRCS     = main.cxx scanner.cxx types.cxx parms.cxx \
            emit.cxx cplus.cxx lang.cxx \
-           sstring.cxx wrapfunc.cxx typemap.cxx
+           sstring.cxx typemap.cxx
 
 PARSER   = $(srcdir)/parser.yxx
 INCLUDE  = -I$(srcdir)/../Include               \

@@ -560,7 +560,7 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
   }
 
   if(t->type != T_VOID || t->is_pointer) {
-	 Wrapper_add_local(f,jnirettype, (char*)"_jresult", (char*)"0");
+	 Wrapper_add_localv(f,"_jresult", jnirettype, "_jresult = 0",0);
   }
 
   Printf(f_java, "  %s ", method_modifiers);
@@ -654,9 +654,9 @@ void JAVA::create_function(char *name, char *iname, DataType *t, ParmList *l)
 	    DOHString *basic_jniptrtype = NewStringf("%s*",basic_jnitype);
             DOHString *source_length = NewStringf("%s%s)", JNICALL((char*)"GetArrayLength"), source);
 
-            target_copy = Swig_copy_string(Wrapper_new_local(f,Char(basic_jniptrtype), target, NULL));
-            target_length = Swig_copy_string(Wrapper_new_local(f,(char*)"jsize", target, Char(source_length)));
-            if(local_i == NULL) local_i = Swig_copy_string(Wrapper_new_local(f,(char*)"int", (char*)"i", NULL));
+            target_copy = Swig_copy_string(Wrapper_new_localv(f,target,Char(basic_jniptrtype), target, 0));
+            target_length = Swig_copy_string(Wrapper_new_localv(f,target,"jsize", target, "=", Char(source_length),0));
+            if(local_i == NULL) local_i = Swig_copy_string(Wrapper_new_local(f,"i","int i"));
 	    
 	    DOHString *scalarFunc = NewStringf("Get%sArrayElements",scalarType);
 
