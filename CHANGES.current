@@ -1,5 +1,9 @@
 Version 1.3.23 (in progress)
-==================================
+============================
+
+10/04/2004: wsfulton
+            Fixes for %extend and overloaded static methods with default
+            arguments.
 
 10/05/2004: mmatus
 	    - [python] Fix director + method with 'empty' throw, ie
