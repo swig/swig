@@ -10,10 +10,6 @@
 #ifdef __cplusplus
 
 namespace Swig {
-  /* base class for director exceptions */
-  DirectorException::~DirectorException() {
-  }
-
   /* simple thread abstraction for pthreads on win32 */
   Director::~Director() {
     swig_decref(); 
@@ -26,6 +22,23 @@ namespace Swig {
   pthread_t Director::swig_mutex_thread;
   bool Director::swig_mutex_active = false;
 #endif
+
+
+  void UnknownExceptionHandler::handler()  {
+    try {
+      throw;
+    } catch (DirectorException& e) {
+      std::cerr << "Swig Director exception caught: "<< e.getMessage() << std::endl;
+    } catch (std::exception& e) {
+      std::cerr << "std::exception caught: "<< e.what() << std::endl;
+    } catch (...) {
+      std::cerr << "Unknown exception caught." << std::endl;
+    }
+    std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl;
+    std::cerr << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl;
+    std::cerr << "Now your program will probably be terminated, bye." << std::endl;
+    throw;
+  }
 
 }
 

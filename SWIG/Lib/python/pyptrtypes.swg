@@ -65,7 +65,7 @@
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
-      throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
+      Swig::DirectorTypeMismatchException::raise("Error converting Python object when using asptr_meth.");
     temp = *ptr;
     $result = &temp;
     if (res == SWIG_NEWOBJ) delete ptr;
@@ -75,7 +75,7 @@
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
-      throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
+      Swig::DirectorTypeMismatchException::raise("Error converting Python object when using asptr_meth.");
     $result = *ptr;
     if (res == SWIG_NEWOBJ) delete ptr;
   }
@@ -84,7 +84,7 @@
     Type *ptr = 0;
     int res = $input ? asptr_meth($input, &ptr) : 0;
     if (!res || !ptr) 
-      throw Swig::DirectorTypeMismatchException("Error converting Python object using asptr_meth");
+      Swig::DirectorTypeMismatchException::raise("Error converting Python object when using asptr_meth.");
     $result = ptr;
     if (res == SWIG_NEWOBJ) {
       /* Possible thread/reentrant problem here! */

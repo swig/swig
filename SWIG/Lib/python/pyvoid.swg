@@ -42,7 +42,7 @@
 %typemap(directorout) void * {
   if (!$input || (SWIG_ConvertPtr($input,(void **)(&$result),
 	 	       0, SWIG_POINTER_EXCEPTION | $disown )) == -1)
-    throw Swig::DirectorTypeMismatchException("Pointer conversion failed.");
+    Swig::DirectorTypeMismatchException::raise("Pointer conversion failed.");
 }
 
 
