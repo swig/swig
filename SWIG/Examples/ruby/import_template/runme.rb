@@ -3,7 +3,10 @@
 
 puts "Testing the %import directive with templates"
 
-require 'example'
+require 'base'
+require 'foo'
+require 'bar'
+require 'spam'
 
 # Create some objects
 

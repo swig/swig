@@ -3,7 +3,7 @@ This example tests the SWIG run-time libraries and use of the
 unlike the import example, this uses templates to really
 stress test the type-system.
 
-Use 'python runme.py' to run a test.
+Use 'ruby runme.rb' to run a test.
 
 Overview:
 ---------
