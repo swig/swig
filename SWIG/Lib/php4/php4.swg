@@ -50,20 +50,17 @@
 /* Typemap for output values */
 
 %typemap(out) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char, bool, enum SWIGTYPE
-	"RETURN_LONG($1);";
+	"ZVAL_LONG(return_value,$1);";
 
 %typemap(out) float, double
-	"RETURN_DOUBLE($1);";
+	"ZVAL_DOUBLE(return_value,$1);";
 
 %typemap(out) char {
-	"char ctemp[2];
-	ctemp[0] = $1;
-	ctemp[1] = 0;
-	RETURN_STRING(ctemp, 1);";
+	"ZVAL_STRINGL(return_value,$1, 1, 1);";
 }
 
 %typemap(out) char *
-	"RETURN_STRING($1, 1);";
+	"ZVAL_STRING(return_value,$1, 1);";
 
 %typemap(out) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &
 	"SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor);";
@@ -92,9 +89,7 @@
 /* Typemap for character array returns */
 
 %typemap(out) char [ANY] {
-	char *s;
-	s = estrdup($1);
-	RETURN_STRING(s, 1);
+	ZVAL_STRING(return_value,$1, 1);
 }
 
 /* Global variables - add the variable to PHP */
@@ -380,10 +375,10 @@
 /* Typemaps for constants */
 
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-	"REGISTER_LONG_CONSTANT( \"$symname\", $value, CONST_CS);";
+	"REGISTER_LONG_CONSTANT( \"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
 
 %typemap(consttab) float, double
-	"REGISTER_DOUBLE_CONSTANT(\"$symname\", $value, CONST_CS);";
+	"REGISTER_DOUBLE_CONSTANT(\"$symname\", $value, CONST_CS | CONST_PERSISTENT);";
 
 %typemap(consttab) char, char *
 	"REGISTER_STRING_CONSTANT(\"$symname\", \"$value\", CONST_CS | CONST_PERSISTENT);";

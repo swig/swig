@@ -133,8 +133,11 @@ static zval *ptrvalue(zval *_PTRVALUE, int index, char *type) {
   Attempts to create a new object of given type.  Type must be
   a basic C datatype.  Will not create complex objects.
   ------------------------------------------------------------------ */
+#define xxxx
 
-static zval *ptrcreate(char *type, zval *_PYVALUE, int numelements) {
+#define ptrcreate(a,b,c) SWIG_ZTS_ptrcreate(a,b,c, SWIG_module_entry TSRMLS_CC)
+
+static zval *SWIG_ZTS_ptrcreate(char *type, zval *_PYVALUE, int numelements, zend_module_entry* module_entry TSRMLS_DC) {
   void	*ptr;
   zval *z;
   int	sz;

@@ -87,13 +87,13 @@
 			unsigned char	*OUTPUT
 {
 
-  RETURN_LONG(*($input));
+  ZVAL_LONG($result,*($input));
 }
 
 %typemap(php4,argout)	float	*OUTPUT,
 			double	*OUTPUT
 {
-  RETURN_DOUBLE(*($input));
+  ZVAL_DOUBLE($result,*($input));
 }
 
 %typemap(php4,in) int *INOUT = int *INPUT;
