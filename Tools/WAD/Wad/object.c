@@ -14,7 +14,6 @@
 #include "wad.h"
 #include <ar.h>
 
-
 /* Maximum number of files that can be loaded at once */
    
 #define WAD_MAX_FILE         32
@@ -29,7 +28,6 @@ typedef struct WadFile {
 static WadFile      wad_files[WAD_MAX_FILE];    /* Array of file objects */
 
 /* private function to manage the loading of raw files into memory */
-
 static WadFile *
 load_file(const char *path) {
   int i;
@@ -125,7 +123,6 @@ void wad_object_init() {
     wad_files[i].size = 0;
     wad_files[i].path[0] = 0;
   }
-
   wad_obj_nfree = 0;
   for (i = 0; i < WAD_MAX_OBJECT; i++) {
     wad_objects[i].ptr = 0;

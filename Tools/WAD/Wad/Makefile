@@ -1,6 +1,6 @@
 
-SRCS = demangle.c return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
-OBJS = demangle.o return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o main.o
+SRCS = return.c default.c stack.c stab.c elf.c object.c init.c segment.c signal.c
+OBJS = return.o default.o stack.o stab.o elf.o object.o signal.o segment.o init.o main.o
 INCLUDE = -I../Include -I.
 OPT  = -DWAD_SOLARIS
 LIBS = 
@@ -32,6 +32,9 @@ linux::
 
 debug::
 	cc -g debug.c $(INCLUDE) -L. -R. -lwad
+
+plus::
+	CC -g debug.cxx $(INCLUDE) -L. -R. -lwad
 
 wc::
 	wc $(SRCS)
