@@ -296,28 +296,10 @@ data structures used by the system as well as run-time support for dynamic typin
 capabilities.
 
 <p>
-<li><b>LParse</b>. A SWIG1.1 compatible parser generator that can read the older SWIG interface
-files and produce an appropriate parse-tree compatible with the new system.  This parser
-will primarily be used for backwards compatibility as well as issuing appropriate warnings
-to the user about deprecated features.   This parsing module will also be used until the
-CParse module is completed.
-
-<p>
 <li><b>CParse</b>. A completely redesigned C/C++ parser that attempts to fix all of the parsing
 problems in SWIG1.1.  In particular, it will treat C/C++ datatypes correctly and support a
 number of new C++ constructs.   However, it is somewhat unlikely that this parser will
 fully support all of C++ (at least not initially).
-
-<p>
-<li><b>SWIM</b>. The SWIG Monitor.  This is utility module that allows users to browse
-through internal compiler data structures using a web browser.  This is primarily intended
-for development purposes, but may evolve into a general purpose interface browsing
-tool.
-
-<p>
-<li><b>SWILL</b>. The SWIG Web Interface Link Library.  This is a generic library that
-can be used to add a web server to an application.  Although developed independently of
-SWIG, it is used by the SWIM module above.
 
 <p>
 <li><b>XMLParse</b>. A parsing module that can read XML files and turn them into a SWIG parse
