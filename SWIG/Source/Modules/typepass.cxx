@@ -61,7 +61,7 @@ class TypePass : public Dispatcher {
     }
 
     qty = SwigType_typedef_qualified(ty);
-    /*    Printf(stdout,"%s --> %s\n", ty, qty);*/
+    /*    Printf(stdout,"%s --> %s\n", ty, qty); */
     Clear(ty);
     Append(ty,qty);
     Delete(qty);
@@ -73,7 +73,6 @@ class TypePass : public Dispatcher {
     while (p) {
       SwigType *ty = Getattr(p,"type");
       normalize_type(ty);
-
       /* This is a check for a function type */
       {
 	SwigType *qty = SwigType_typedef_resolve_all(ty);

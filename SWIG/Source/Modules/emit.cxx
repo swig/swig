@@ -17,6 +17,7 @@
 char cvsroot_emit_cxx[] = "$Header$";
 
 extern SwigType *cplus_value_type(SwigType *t);
+extern int       Swig_contract_mode_get();
 
 /* -----------------------------------------------------------------------------
  * emit_args()
@@ -429,6 +430,8 @@ void emit_action(Node *n, Wrapper *f) {
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
     /* Modify contracts */
+
+    /* This code is broken.   
     Contracts *a = new Contracts;
     if (Getattr(n, "feature:contract")) {
       a->AssertAddTag(n);
@@ -436,7 +439,8 @@ void emit_action(Node *n, Wrapper *f) {
       a->AssertSetParms(n);
     }
     delete a;
-    
+    */
+
     /* Preassertion */
     tm = Getattr(n, "feature:preassert");
     if (Len(tm)) {
