@@ -32,10 +32,10 @@
 }
 
 %{
-/* ------------------------------------------------------------------------- 
- * An extension type for DOH objects -- we could use shadow classes,
- * but this will be lots faster, and provide a slightly cleaner interface.
- * ------------------------------------------------------------------------- */
+   /* ------------------------------------------------------------------------- 
+    * An extension type for DOH objects -- we could use shadow classes,
+    * but this will be lots faster, and provide a slightly cleaner interface.
+    * ------------------------------------------------------------------------- */
 
    typedef struct PyDOH {
       PyObject_HEAD
@@ -123,7 +123,7 @@
    }
 
    static int Swig_PyDOH_ass_item(PyDOH *self, int index, 
-				   PyObject *v) {
+				  PyObject *v) {
       int result;
       if (v)
 	 result = Setitem(self->doh, index, Swig_PyDOH_as_DOH(v));
@@ -163,7 +163,7 @@
    }
 
    static int Swig_PyDOH_ass_subscript(PyDOH *self, PyObject *k,
-					PyObject *v) {
+				       PyObject *v) {
       int result = 0;
       if (v)
 	 result = Setattr(self->doh, Swig_PyDOH_as_DOH(k),
@@ -189,19 +189,354 @@
    /* named methods
     */
 
+   static PyObject *Swig_PyDOH_Copy(PyDOH *self, PyObject *args) {
+      DOH * _result;
+      
+      if(!PyArg_ParseTuple(args,":Copy")) 
+	 return NULL;
+      _result = (DOH *)DohCopy(self->doh);
+      return Swig_PyDOH_new(_result);
+   }
+
+   static PyObject *Swig_PyDOH_Clear(PyDOH *self, PyObject *args) {
+      if(!PyArg_ParseTuple(args,":Clear")) 
+	 return NULL;
+      DohClear(self->doh);
+      Py_INCREF(Py_None);
+      return Py_None;
+   }
+
+   static PyObject *Swig_PyDOH_SetScope(PyDOH *self, PyObject *args) {
+      int  _arg1;
+
+      if(!PyArg_ParseTuple(args,"i:SetScope",&_arg1)) 
+	 return NULL;
+      DohSetScope(self->doh,_arg1);
+      Py_INCREF(Py_None);
+      return Py_None;
+   }
+
+   static PyObject *Swig_PyDOH_Dump(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      DOH * _arg1;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"O:Dump",&_obj1)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      _result = (int )DohDump(self->doh,_arg1);
+      return PyInt_FromLong(_result);
+   }
+
+   static PyObject *Swig_PyDOH_Firstkey(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _result;
+
+      if(!PyArg_ParseTuple(args,":Firstkey")) 
+	 return NULL;
+      _result = (DOH *)DohFirstkey(self->doh);
+      _resultobj = Swig_PyDOH_new(_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Nextkey(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _result;
+
+      if(!PyArg_ParseTuple(args,":Nextkey")) 
+	 return NULL;
+      _result = (DOH *)DohNextkey(self->doh);
+      _resultobj = Swig_PyDOH_new(_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_GetInt(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      DOH * _arg1;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"O:GetInt",&_obj1)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      _result = (int )DohGetInt(self->doh,_arg1);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_GetDouble(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      double  _result;
+      DOH * _arg1;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"O:GetDouble",&_obj1)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      _result = (double )DohGetDouble(self->doh,_arg1);
+      _resultobj = Py_BuildValue("d",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_GetChar(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      char * _result;
+      DOH * _arg1;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"O:GetChar",&_obj1)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      _result = (char *)DohGetChar(self->doh,_arg1);
+      _resultobj = Py_BuildValue("s", _result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_SetInt(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _arg1;
+      int  _arg2;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"Oi:SetInt",&_obj1,&_arg2)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      DohSetInt(self->doh,_arg1,_arg2);
+      Py_INCREF(Py_None);
+      _resultobj = Py_None;
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_SetDouble(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _arg1;
+      double  _arg2;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"Od:SetDouble",&_obj1,&_arg2)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      DohSetDouble(self->doh,_arg1,_arg2);
+      Py_INCREF(Py_None);
+      _resultobj = Py_None;
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Insertitem(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      int  _arg1;
+      DOH * _arg2;
+      PyObject * _obj2 = 0;
+
+      if(!PyArg_ParseTuple(args,"iO:Insertitem",&_arg1,&_obj2)) 
+	 return NULL;
+      _arg2 = Swig_PyDOH_as_DOH(_obj2);
+      _result = (int )DohInsertitem(self->doh,_arg1,_arg2);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Firstitem(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _result;
+
+      if(!PyArg_ParseTuple(args,":Firstitem")) 
+	 return NULL;
+      _result = (DOH *)DohFirstitem(self->doh);
+      _resultobj = Swig_PyDOH_new(_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Nextitem(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _result;
+
+      if(!PyArg_ParseTuple(args,":Nextitem")) 
+	 return NULL;
+      _result = (DOH *)DohNextitem(self->doh);
+      _resultobj = Swig_PyDOH_new(_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Write(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      int  _arg2;
+      char * _arg1 = 0;
+
+      if(!PyArg_ParseTuple(args,"si:Write",&_arg1,&_arg2)) 
+	 return NULL;
+      _result = (int )DohWrite(self->doh,_arg1,_arg2);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Read(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      int  _arg2;
+      char *buffer;
+
+      if(!PyArg_ParseTuple(args,"i:Read",&_arg2)) 
+	 return NULL;
+      buffer = DohMalloc(_arg2);
+      if (!buffer) {
+	 PyErr_SetString(PyExc_MemoryError, "Not enough memory for Read buffer");
+	 return NULL;
+      }
+      _result = (int )DohRead(self->doh,buffer,_arg2);
+      _resultobj = Py_BuildValue("(is)",_result, buffer);
+      DohFree(buffer);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Seek(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      long  _arg1;
+      int  _arg2;
+
+      if(!PyArg_ParseTuple(args,"li:Seek",&_arg1,&_arg2)) 
+	 return NULL;
+      _result = (int )DohSeek(self->doh,_arg1,_arg2);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Tell(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      long  _result;
+
+      if(!PyArg_ParseTuple(args,":Tell")) 
+	 return NULL;
+      _result = (long )DohTell(self->doh);
+      _resultobj = Py_BuildValue("l",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Getc(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+
+      if(!PyArg_ParseTuple(args,":Getc")) 
+	 return NULL;
+      _result = (int )DohGetc(self->doh);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Putc(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      int  _arg0;
+
+      if(!PyArg_ParseTuple(args,"i:Putc",&_arg0)) 
+	 return NULL;
+      _result = (int )DohPutc(_arg0, self->doh);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Ungetc(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+      int  _arg0;
+
+      if(!PyArg_ParseTuple(args,"iO:Ungetc",&_arg0)) 
+	 return NULL;
+      _result = (int )DohUngetc(_arg0,self->doh);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Getline(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _result;
+
+      if(!PyArg_ParseTuple(args,":Getline")) 
+	 return NULL;
+      _result = (int )DohGetline(self->doh);
+      _resultobj = Py_BuildValue("i",_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Setline(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      int  _arg1;
+
+      if(!PyArg_ParseTuple(args,"i:Setline",&_arg1)) 
+	 return NULL;
+      DohSetline(self->doh,_arg1);
+      Py_INCREF(Py_None);
+      _resultobj = Py_None;
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Getfile(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _result;
+
+      if(!PyArg_ParseTuple(args,":Getfile")) 
+	 return NULL;
+      _result = (DOH *)DohGetfile(self->doh);
+      _resultobj = Swig_PyDOH_new(_result);
+      return _resultobj;
+   }
+
+   static PyObject *Swig_PyDOH_Setfile(PyDOH *self, PyObject *args) {
+      PyObject * _resultobj;
+      DOH * _arg1;
+      PyObject * _obj1 = 0;
+
+      if(!PyArg_ParseTuple(args,"O:Setfile",&_obj1)) 
+	 return NULL;
+      _arg1 = Swig_PyDOH_as_DOH(_obj1);
+      DohSetfile(self->doh,_arg1);
+      Py_INCREF(Py_None);
+      _resultobj = Py_None;
+      return _resultobj;
+   }
+
+   static struct PyMethodDef Swig_PyDOH_methods[] = {
+      {"copy", (PyCFunction)Swig_PyDOH_Copy, METH_VARARGS},
+      {"clear", (PyCFunction)Swig_PyDOH_Clear, METH_VARARGS},
+      {"setscope", (PyCFunction)Swig_PyDOH_SetScope, METH_VARARGS},
+      {"dump", (PyCFunction)Swig_PyDOH_Dump, METH_VARARGS},
+      {"firstkey", (PyCFunction)Swig_PyDOH_Firstkey, METH_VARARGS},
+      {"nextkey", (PyCFunction)Swig_PyDOH_Nextkey, METH_VARARGS},
+      {"getint", (PyCFunction)Swig_PyDOH_GetInt, METH_VARARGS},
+      {"getdouble", (PyCFunction)Swig_PyDOH_GetDouble, METH_VARARGS},
+      {"getchar", (PyCFunction)Swig_PyDOH_GetChar, METH_VARARGS},
+      {"setint", (PyCFunction)Swig_PyDOH_SetInt, METH_VARARGS},
+      {"setdouble", (PyCFunction)Swig_PyDOH_SetDouble, METH_VARARGS},
+      {"insertitem", (PyCFunction)Swig_PyDOH_Insertitem, METH_VARARGS},
+      {"insert", (PyCFunction)Swig_PyDOH_Insertitem, METH_VARARGS},
+      {"firstitem", (PyCFunction)Swig_PyDOH_Firstitem, METH_VARARGS},
+      {"nextitem", (PyCFunction)Swig_PyDOH_Nextitem, METH_VARARGS},
+      {"write", (PyCFunction)Swig_PyDOH_Write, METH_VARARGS},
+      {"read", (PyCFunction)Swig_PyDOH_Read, METH_VARARGS},
+      {"seek", (PyCFunction)Swig_PyDOH_Seek, METH_VARARGS},
+      {"tell", (PyCFunction)Swig_PyDOH_Tell, METH_VARARGS},
+      {"getc", (PyCFunction)Swig_PyDOH_Getc, METH_VARARGS},
+      {"putc", (PyCFunction)Swig_PyDOH_Putc, METH_VARARGS},
+      {"ungetc", (PyCFunction)Swig_PyDOH_Ungetc, METH_VARARGS},
+      {"getline", (PyCFunction)Swig_PyDOH_Getline, METH_VARARGS},
+      {"setline", (PyCFunction)Swig_PyDOH_Setline, METH_VARARGS},
+      {"getfile", (PyCFunction)Swig_PyDOH_Getfile, METH_VARARGS},
+      {"setfile", (PyCFunction)Swig_PyDOH_Setfile, METH_VARARGS},
+      {NULL, NULL}
+   };
 
 
    /* --------------------------------------------------------------------- */
    /* general methods 
     */
+
    static PyObject *Swig_PyDOH_getattr(PyDOH *self, char *name) {
-      DOH *r = Getattr(self->doh, name);
-      if (r)
-	 return Swig_PyDOH_new(r);
-      else {
-	 PyErr_SetString(PyExc_KeyError, name);
-	 return NULL;
-      }
+      return Py_FindMethod(Swig_PyDOH_methods, 
+			   (PyObject *)self, name);
    }
 
    static int Swig_PyDOH_setattr(PyDOH *self, char *name, PyObject *v) {
@@ -210,7 +545,6 @@
    }
 
    static int Swig_PyDOH_cmp(PyDOH *self, PyObject *other) {
-      printf("cmp\n");
       return Cmp(self->doh, Swig_PyDOH_as_DOH(other));
    }
 
@@ -235,6 +569,7 @@
 
    static PyObject *Swig_PyDOH_getattro(PyDOH *self, PyObject *name) {
       DOH *r = Getattr(self->doh, Swig_PyDOH_as_DOH(name));
+      printf("Getattro: %s\n", Char(Swig_PyDOH_as_DOH(name)));
       if (r)
 	 return Swig_PyDOH_new(r);
       else {
@@ -251,7 +586,7 @@
    }
 
    static char PyDOH_docstring[] = 
-"Interface to DOH objects from Python.  DOH objects behave largely\n\
+      "Interface to DOH objects from Python.  DOH objects behave largely\n\
 like Python objects, although some functionality may be different.";
 
    /* Type objects (one for mappings, one for everything else) */
@@ -274,8 +609,8 @@ like Python objects, although some functionality may be different.";
       (hashfunc)Swig_PyDOH_hash,
       (ternaryfunc)0,		/* tp_call */
       (reprfunc)0,		/* tp_str */
-      (getattrofunc)Swig_PyDOH_getattro,
-      (setattrofunc)Swig_PyDOH_setattro,
+      (getattrofunc)0,/*Swig_PyDOH_getattro,*/
+      (setattrofunc)0,/*Swig_PyDOH_setattro,*/
       0,			/* tp_as_buffer */
       0,			/* tp_xxx4 */
       PyDOH_docstring
@@ -300,13 +635,13 @@ like Python objects, although some functionality may be different.";
       (hashfunc)Swig_PyDOH_hash,
       (ternaryfunc)0,		/* tp_call */
       (reprfunc)0,		/* tp_str */
-      (getattrofunc)Swig_PyDOH_getattro,
-      (setattrofunc)Swig_PyDOH_setattro,
+      (getattrofunc)0,/*Swig_PyDOH_getattro,*/
+      (setattrofunc)0,/*Swig_PyDOH_setattro,*/
       0,			/* tp_as_buffer */
       0,			/* tp_xxx4 */
       PyDOH_docstring
    };
-%}
+   %}
 
 %typemap(python,in) DOH * {
    $target = Swig_PyDOH_as_DOH($source);
@@ -395,6 +730,13 @@ extern void  Swig_init_args(int argc, char **argv);
 extern void  Swig_mark_arg(int n);
 extern void  Swig_check_options();
 extern void  Swig_arg_error();
+
+%section "Miscelaneous", after
+
+extern int     DohNewScope();	/* create a new scope    */
+extern void    DohDelScope(int); /* Delete a scope        */
+extern void    DohIntern(DOH *); /* Intern an object      */
+extern void    DohDebug(int d);	/* set debugging level */
 
 %section "Scanner Interface"
 
