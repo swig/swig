@@ -60,7 +60,8 @@
   "if ((SWIG_ConvertPtr($input, (void **) &argp, $&1_descriptor,SWIG_POINTER_EXCEPTION ) != TCL_OK)) SWIG_fail;
   $1 = *argp; ";
 
-
+/* Member pointer */
+%typemap(in) SWIGTYPE (CLASS::*) "if ((SWIG_ConvertPacked($input, (void *) &$1, sizeof($1_type), $1_descriptor, SWIG_POINTER_EXCEPTION)) != TCL_OK) SWIG_fail;";
 
 /* Special constant variations.   These typemaps can be used to parse objects that are both constants
    or values. A Hash table lookup will occur. */
@@ -177,6 +178,9 @@
      Tcl_SetObjResult(interp,SWIG_NewInstanceObj((void *) $1, ty,0));
 }
 
+%typemap(out) SWIGTYPE (CLASS::*) 
+    "Tcl_SetObjResult(interp, SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor, 0));";
+
 %typemap(out) void "";
 
 /* Primitive types--return by value */
@@ -280,6 +284,7 @@
 
 %typemap(varout) SWIGTYPE INSTANCE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
 %typemap(varout) SWIGTYPE "$result = SWIG_NewInstanceObj((void *) &$1, $&1_descriptor,0);";
+%typemap(varout) SWIGTYPE (CLASS::*) "$result = SWIG_NewPackedObj((void *) &$1, sizeof($1_type), $1_descriptor, 0);";
 
 /* -- Variable input --- */
 
@@ -393,6 +398,14 @@
       return (char *)"Type error. Expected $1_ltype";
    }
    memmove((void *) $1,temp,$1_size*sizeof($1_basetype));
+}
+
+%typemap(varin) SWIGTYPE (CLASS::*) {
+   char  temp[sizeof($1_type)];
+   if (SWIG_ConvertPacked($input, temp, sizeof($1_type), $1_descriptor, SWIG_POINTER_EXCEPTION) != TCL_OK) {
+       return (char *) "Type error. Expected $1_ltype";
+   }
+   memmove((void *) &$1, temp, sizeof($1_type));
 }
    
 /* --- Constants --- */
