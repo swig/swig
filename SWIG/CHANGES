@@ -18,6 +18,10 @@ trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 	   * [Java] Efficiency changes: _cPtr used where possible rather than
 	     getCPtr(). Bug fixes for inheritance - derived class sometimes
 	     didn't delete the c memory when _delete() was called.
+	   * The default output file has always been <module>_wrap.c. It is now
+	     <module>_wrap.cxx if the -c++ commandline option is passed to swig.
+	     This has been done as otherwise c++ code would appear in a c file.
+           *** POTENTIAL INCOMPATIBILITY *** 
 
 7/31/2001: beazley
            Modified the %constant directive to be more C-like in syntax.

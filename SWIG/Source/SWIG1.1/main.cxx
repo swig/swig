@@ -340,7 +340,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (!outfile_name) {
-      sprintf(fn_runtime,"%s_wrap.c",infilename);
+      if (CPlusPlus)
+        sprintf(fn_runtime,"%s_wrap.cxx",infilename);
+      else
+        sprintf(fn_runtime,"%s_wrap.c",infilename);
       strcpy(infile,infilename);
       strcpy(output_dir,"");
     } else {

@@ -19,7 +19,7 @@ all::   import.cplusplusruntest
 .i.cplusplustest:
 	@echo Checking Examples/guile/test-suite/$<
 	@$(SWIG) -guile -c++ -lguilemain.i $< || (echo "Examples/guile/test-suite/$<: SWIG FAILED "; exit 1)
-	@$(CXX) $(CFLAGS) $*_wrap.c -o $@-x $(GUILEINCLUDE) $(GUILELINK) || (echo "Examples/guile/test-suite/$<: COMPILE/LINK FAILED"; exit 1)
+	@$(CXX) $(CFLAGS) $*_wrap.cxx -o $@-x $(GUILEINCLUDE) $(GUILELINK) || (echo "Examples/guile/test-suite/$<: COMPILE/LINK FAILED"; exit 1)
 	@echo "Examples/guile/test-suite/$<: PASSED"
 
 .i.runtest:
@@ -32,7 +32,7 @@ all::   import.cplusplusruntest
 .i.cplusplusruntest:
 	@echo Checking Examples/guile/test-suite/$<
 	@$(SWIG) -guile -c++ -lguilemain.i $< || (echo "Examples/guile/test-suite/$<: SWIG FAILED "; exit 1)
-	@$(CXX) $(CFLAGS) $*_wrap.c -o $@-x $(GUILEINCLUDE) $(GUILELINK) || (echo "Examples/guile/test-suite/$<: COMPILE/LINK FAILED"; exit 1)
+	@$(CXX) $(CFLAGS) $*_wrap.cxx -o $@-x $(GUILEINCLUDE) $(GUILELINK) || (echo "Examples/guile/test-suite/$<: COMPILE/LINK FAILED"; exit 1)
 	@./$@-x -l $*.scm || (echo "Examples/guile/test-suite/$<: RUN TEST FAILED"; exit 1)
 	@echo "Examples/guile/test-suite/$<: PASSED"
 
@@ -40,8 +40,8 @@ import.cplusplusruntest:
 	@echo Checking Examples/guile/test-suite/import
 	@$(SWIG) -c++ -guile -Linkage passive -c import-a.i || (echo "Examples/guile/test-suite/import: SWIG FAILED "; exit 1)
 	@$(SWIG) -c++ -guile -Linkage passive import-b.i  || (echo "Examples/guile/test-suite/import: SWIG FAILED "; exit 1)
-	@$(CXX) $(CFLAGS) -DSWIG_GLOBAL -o import-a_wrap.o -c import-a_wrap.c $(GUILEINCLUDE)  || (echo "Examples/guile/test-suite/import: COMPILE FAILED "; exit 1)
-	@$(CXX) $(CFLAGS) -DSWIG_GLOBAL -o import-b_wrap.o -c import-b_wrap.c $(GUILEINCLUDE)|| (echo "Examples/guile/test-suite/import: COMPILE FAILED "; exit 1)
+	@$(CXX) $(CFLAGS) -DSWIG_GLOBAL -o import-a_wrap.o -c import-a_wrap.cxx $(GUILEINCLUDE)  || (echo "Examples/guile/test-suite/import: COMPILE FAILED "; exit 1)
+	@$(CXX) $(CFLAGS) -DSWIG_GLOBAL -o import-b_wrap.o -c import-b_wrap.cxx $(GUILEINCLUDE)|| (echo "Examples/guile/test-suite/import: COMPILE FAILED "; exit 1)
 	@$(CXX) $(CFLAGS) -o $@-x import-a_wrap.o import-b_wrap.o import-main.cc $(GUILEINCLUDE) $(GUILELINK)|| (echo "Examples/guile/test-suite/import: LINK FAILED "; exit 1)
 	@./$@-x -l $*.scm || (echo "Examples/guile/test-suite/import: RUN TEST FAILED"; exit 1)
 	@echo "Examples/guile/test-suite/import: PASSED"

@@ -47,7 +47,10 @@ libtool_link = $(TOP)/../Tools/libtool --mode link
 XLIB       = @XLIBSW@
 XINCLUDE   = @XINCLUDES@
 
-ISRCS      = $(INTERFACE:.i=_wrap.c)
+IWRAP      = $(INTERFACE:.i=_wrap.i)
+ISRCS      = $(IWRAP:.i=.c)
+ICXXSRCS   = $(IWRAP:.i=.cxx)
+IOBJS      = $(IWRAP:.i=.o)
 
 ##################################################################
 # Dynamic loading for C++
@@ -76,7 +79,6 @@ CXXSHARED=      @CXXSHARED@
 @TRYLINKINGWITHCXX@
 
 OBJS      = $(SRCS:.c=.o) $(CXXSRCS:.cxx=.o)
-IOBJS     = $(ISRCS:.c=.o)
 
 ##################################################################
 #####                       Tcl/Tk                          ######
@@ -101,7 +103,7 @@ tclsh: $(SRCS)
 
 tclsh_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
-	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
@@ -116,7 +118,7 @@ wish: $(SRCS)
 
 wish_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
-	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE) \
+	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(TCL_INCLUDE) \
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 # -----------------------------------------------------------
@@ -134,7 +136,7 @@ tcl:  $(SRCS)
 
 tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(TCL_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
@@ -163,7 +165,7 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
@@ -185,7 +187,7 @@ perl5_static: $(SRCS)
 
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+	$(CXX) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
 
 
 ##################################################################
@@ -211,7 +213,7 @@ python: $(SRCS)
 
 python_cpp: $(SRCS)
 	$(SWIG) -c++ -python $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 # -----------------------------------------------------------------
@@ -232,7 +234,7 @@ python_static: $(SRCS)
 
 python_static_cpp: $(SRCS)
 	$(SWIG) -c++ -python -lembed.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 
@@ -259,7 +261,7 @@ guile: $(SRCS)
 
 guile_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) $(SRCS) $(CXXSRCS)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
@@ -276,7 +278,7 @@ guile_static: $(SRCS)
 
 guile_static_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
@@ -287,7 +289,7 @@ guile_simple: $(SRCS)
 
 guile_simple_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 ##################################################################
@@ -315,7 +317,7 @@ java: $(SRCS)
 
 java_cpp: $(SRCS)
 	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ISRCS) $(INCLUDE) $(JAVA_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(JAVA_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
@@ -331,6 +333,11 @@ MZC = test -n "@MZC@" && @MZC@
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
 	$(MZC) --cc $(ISRCS) $(SRCS)
+	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
+
+mzscheme_cpp: $(SRCS)
+	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
+	$(MZC) --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(MZC) --ld $(TARGET)$(SO) $(OBJS) $(IOBJS)
 
 ##################################################################
@@ -359,7 +366,7 @@ ruby: $(SRCS)
 
 ruby_cpp: $(SRCS)
 	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACE)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
 	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) $(RUBY_LIBRUBYARG) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
@@ -376,7 +383,7 @@ ruby_static: $(SRCS)
 
 ruby_cpp_static: $(SRCS)
 	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
-	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
+	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
 

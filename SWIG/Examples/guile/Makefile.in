@@ -12,6 +12,7 @@ GUILELINK	= @GUILELINK@
 SWIGOPT		= 
 
 WRAP		= $(IFILE:.i=_wrap.c)
+CXXWRAP		= $(IFILE:.i=_wrap.cxx)
 
 all:
 	for d in $(subdirs) ; do (cd $$d ; $(MAKE)) ; done
@@ -31,6 +32,6 @@ sub-all::
 
 sub-all-cxx::
 	$(SWIG) -c++ -guile $(SWIGOPT) $(IFILE)
-	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(WRAP) $(GUILEINCLUDE) $(GUILELINK)
+	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(CXXWRAP) $(GUILEINCLUDE) $(GUILELINK)
 
 # Makefile ends here
