@@ -43,11 +43,20 @@
       {
 	val = v;
       }
+
+#ifdef SWIG
+       %typemap(in) Foo* "/* in typemap for Foo, with type T */" 
+#endif
     };  
 %}
 
 %template(Foo_I1) Foo<Integer1>;
 %template(Foo_I2) Foo<Integer2>;
 
+%inline %{
+  int bar(Foo<Integer1> *foo) {
+    return 0;
+  }  
+%}
 
-
+  
