@@ -242,7 +242,7 @@ typedef struct {
 extern void Swig_add_rule(const String_or_char *, int (*action)(DOH *, void *));
 extern void Swig_add_rules(SwigRule ruleset[]);
 extern void Swig_clear_rules();
-extern int  Swig_tag_check(DOH *obj, String_or_char *tagname);
+extern int  Swig_tag_check(DOH *obj, const String_or_char *tagname);
 extern int  Swig_emit(DOH *obj, void *clientdata);
 extern int  Swig_emit_all(DOH *obj, void *clientdata);
 extern void Swig_set_callback(DOH *obj, void (*cb)(void *clientdata), void *clientdata);
