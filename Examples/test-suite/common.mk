@@ -44,7 +44,6 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 CPP_TEST_BROKEN += \
 	namespace_nested \
 	template_default_arg \
-	template_extend_overload_2 \
 	template_specialization_defarg \
 	template_specialization_enum \
 	using_namespace
@@ -182,6 +181,7 @@ CPP_TEST_CASES += \
 	template_enum_typedef \
 	template_explicit \
 	template_extend_overload \
+	template_extend_overload_2 \
 	template_extend1 \
 	template_extend2 \
 	template_forward \
