@@ -21,8 +21,9 @@ static char cvsroot[] = "$Header$";
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-
+extern "C" {
 #include "preprocessor.h"
+}
 
 #ifndef SWIG_LIB
 #define SWIG_LIB "/usr/local/lib/swig1.3"
@@ -61,7 +62,7 @@ static char cvsroot[] = "$Header$";
 
 class SwigException {};
 
-static char *usage = "\
+static char *usage = (char*)"\
 \nGeneral Options\n\
      -c              - Produce raw wrapper code (omit support code)\n\
      -c++            - Enable C++ processing\n\
@@ -450,9 +451,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       DataType *temp_t = new DataType(T_CHAR);
       temp_t->is_pointer++;
       if (CPlusPlus)
-	typemap_register("newfree",typemap_lang,temp_t,"","delete [] $source;\n",0);
+	typemap_register((char*)"newfree",typemap_lang,temp_t,(char*)"",(char*)"delete [] $source;\n",0);
       else
-	typemap_register("newfree",typemap_lang,temp_t,"","free($source);\n",0);
+	typemap_register((char*)"newfree",typemap_lang,temp_t,(char*)"",(char*)"free($source);\n",0);
 
       delete temp_t;
     }
