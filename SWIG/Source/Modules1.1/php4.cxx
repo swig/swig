@@ -4,6 +4,9 @@
  * Richard Palmer
  * richard@magicality.org
  * Nov 2001
+ *
+ * Portions copyright Sun Microsystems (c) 2001
+ * Tim Hockin <thockin@sun.com>
  */
 
 #include <ctype.h>
@@ -14,11 +17,10 @@
 
 #define PHP_READONLY	1<<0
 
-#define PHP_FULL	1<<0
-#define PHP_IZE		1<<1
-
 static String *module = 0;
 static String *cap_module = 0;
+static String *dlname = 0;
+
 static String *f_cinit = 0;
 static String *f_oinit = 0;
 static String *f_init = 0;
@@ -27,18 +29,30 @@ static String *f_entry = 0;
 static char	*c_pkgstr;	// Name of the package
 static char	*php_pkgstr;	// Name of the package
 static char *shadow_classname;
-static FILE *f_shadow = 0;
 
-
-static FILE	*f_h = 0;
 static Wrapper	*f_c;
 static Wrapper  *f_php;
 static int	gen_extra = 1;
 
+static FILE	  *f_shadow= 0;
+
+static File	  *f_runtime = 0;
+static File	  *f_h = 0;
 static File       *f_header  = 0;
 static File       *f_wrappers = 0;
-static File       *f_runtime = 0;
 static File	  *f_vinit = 0;
+static File	  *f_phpmod = 0;
+
+static String	  *s_header;
+static String	  *s_wrappers;
+static String	  *s_init;
+static String	  *s_vinit;
+static String	  *s_cinit;
+static String	  *s_oinit;
+static String	  *s_entry;
+static String	  *pragma_incl;
+static String	  *pragma_code;
+static String	  *pragma_phpinfo;
 
 /* Variables for using PHP classes */
 static String	  *php;		/* Class initialization code */
@@ -82,8 +96,6 @@ static int	  class_renamed = 0;
 static int	  member_func   = 0;
 static int	  shadow	= 0;
 
-static int make_method = PHP_IZE;
-
 /* Test to see if a type corresponds to something wrapped with a shadow class */
 static String *is_shadow(SwigType *t) {
 	String *r;
@@ -124,9 +136,9 @@ get_pointer(char *iname, char *srcname, char *src, char *dest,
   }
 
   Printv(f,
-         "zend_error(E_ERROR, \"Type error in ", srcname, " of ", iname,". Expected %s\", SWIGTYPE",
-         SwigType_manglestr(t), "->name);\n",
-         ret, ";\n",
+         "zend_error(E_ERROR, \"Type error in ", srcname, " of ", iname,
+	 " Expected %s\", SWIGTYPE", SwigType_manglestr(t), "->name);\n", ret,
+	 ";\n",
          "}\n",
          0);
   Delete(lt);
@@ -139,18 +151,21 @@ PHP4::main(int argc, char *argv[]) {
 	SWIG_library_directory("php4");
 	for(i = 1; i < argc; i++) {
 	  if (argv[i]) {
-	    if(strcmp(argv[i], "-noextra") == 0) {
-	      gen_extra = 0;
+	    if(strcmp(argv[i], "-phpfull") == 0) {
+	      gen_extra = 1;
 	      Swig_mark_arg(i);
-	    } else if(strcmp(argv[i], "-phpize") == 0) {
-		    make_method = PHP_IZE;
-		    Swig_mark_arg(i);
- 	    } else if(strcmp(argv[i], "-phpall") == 0) {
-		    make_method = PHP_FULL;
-		    Swig_mark_arg(i);
-	    } else if(strcmp(argv[i], "-shadow") == 0) {
-		    shadow = 1;
-		    Swig_mark_arg(i);
+	    } else if(strcmp(argv[i], "-dlname") == 0) {
+	      if (argv[i+1]) {
+		  dlname = NewString(argv[i+1]);
+		  Swig_mark_arg(i);
+		  Swig_mark_arg(i+1);
+		  i++;
+	       } else {
+		  Swig_arg_error();
+	       }
+	    }  else if(strcmp(argv[i], "-shadow") == 0) {
+		shadow = 1;
+		Swig_mark_arg(i);
 	    }
 	  }
 	}
@@ -161,52 +176,212 @@ PHP4::main(int argc, char *argv[]) {
 	SWIG_config_file("php4.swg");
 }
 
+static
+void create_extra_files(void) {
+	File *f_extra;
 
-static const char *php_header = "/*\
-\n  +----------------------------------------------------------------------+\
-\n  | PHP version 4.0                                                      |\
-\n  +----------------------------------------------------------------------+\
-\n  | Copyright (c) 1997, 1998, 1999, 2000, 2001 The PHP Group             |\
-\n  +----------------------------------------------------------------------+\
-\n  | This source file is subject to version 2.02 of the PHP license,      |\
-\n  | that is bundled with this package in the file LICENSE, and is        |\
-\n  | available at through the world-wide-web at                           |\
-\n  | http://www.php.net/license/2_02.txt.                                 |\
-\n  | If you did not receive a copy of the PHP license and are unable to   |\
-\n  | obtain it through the world-wide-web, please send a note to          |\
-\n  | license@php.net so we can mail you a copy immediately.               |\
-\n  +----------------------------------------------------------------------+\
-\n  | Authors:                                                             |\
-\n  |                                                                      |\
-\n  +----------------------------------------------------------------------+\
-\n */\n";
+	if(gen_extra) {
+		/* Write out Makefile.in */
+        f_extra = NewFile((void *)"Makefile.in", "w");
+        if (!f_extra) {
+		Printf(stderr,"Unable to open Makefile.in\n");
+		SWIG_exit(EXIT_FAILURE);
+	}
+
+	Printf(f_extra,
+	    "# $Id$\n\n");
+	Printf(f_extra, "LTLIBRARY_NAME          = lib%s.la\n", module);
+	Printf(f_extra, "LTLIBRARY_SOURCES       = %s_wrap.c\n", module);
+	Printf(f_extra, "LTLIBRARY_SHARED_NAME   = %s.la\n", module);
+	Printf(f_extra, "LTLIBRARY_SHARED_LIBADD = $(%s_SHARED_LIBADD)\n\n",
+	    cap_module);
+	Printf(f_extra, "include $(top_srcdir)/build/dynlib.mk\n");
+	Close(f_extra);
+
+	/* Now config.m4 */
+	f_extra = NewFile((void *)"config.m4", "w");
+	if (!f_extra) {
+		Printf(stderr, "Unable to open config.m4\n");
+		SWIG_exit(EXIT_FAILURE);
+	}
+
+	Printf(f_extra,
+	    "dnl $Id$\n");
+	Printf(f_extra,
+	    "dnl config.m4 for extension %s\n\n", module);
+	Printf(f_extra,
+	    "dnl Comments in this file start with the string 'dnl'.\n");
+	Printf(f_extra,
+	    "dnl Remove where necessary. This file will not work\n");
+	Printf(f_extra,
+	    "dnl without editing.\n\n");
+
+	Printf(f_extra,
+	    "dnl If your extension references somthing external, use:\n\n");
+	Printf(f_extra,
+	    "dnl PHP_ARG_WITH(%s, for %s support,\n", module, module);
+	Printf(f_extra,
+	    "dnl Make sure that the comment is aligned:\n");
+	Printf(f_extra,
+	    "dnl [  --with-%s           Include %s support])\n\n",
+	    module, module);
+
+	Printf(f_extra,
+	    "dnl Otherwise use enable:\n\n");
+	Printf(f_extra,
+	    "PHP_ARG_ENABLE(%s, whether to enable %s support,\n",
+	        module, module);
+	Printf(f_extra,
+	    "dnl Make sure that the comment is aligned:\n");
+	Printf(f_extra,
+	    "[  --enable-%s     Enable %s support])\n\n", module, module);
+
+	Printf(f_extra,
+	    "if test \"$PHP_%s\" != \"no\"; then\n", cap_module);
+	Printf(f_extra,
+	    "  dnl Write more examples of tests here\n\n");
+	Printf(f_extra,
+	    "  dnl # --with-%s -> check with-path\n", module);
+	Printf(f_extra,
+	    "  dnl # you might want to change this\n"
+	    "  dnl SEARCH_PATH=\"/usr/local /usr\"\n");
+	Printf(f_extra,
+	    "  dnl # you most likely want to change this\n"
+	    "  dnl SEARCH_FOR=\"/include/%s.h\"\n", module);
+	Printf(f_extra,
+	    "  dnl # path given as parameter\n"
+	    "  dnl if test -r $PHP_%s/; then\n", module);
+	Printf(f_extra,
+	    "  dnl   %s_DIR=$PHP_%s\n", cap_module, cap_module);
+	Printf(f_extra,
+	    "  dnl else # search default path list\n");
+	Printf(f_extra,
+	    "  dnl   AC_MSG_CHECKING(for %s files in default path)\n", module);
+	Printf(f_extra,
+	    "  dnl   for i in $SEARCH_PATH; do\n");
+	Printf(f_extra,
+	    "  dnl     if test -r $i/$SEARCH_FOR; then\n");
+	Printf(f_extra,
+	    "  dnl       %s_DIR=$i\n", cap_module);
+	Printf(f_extra,
+	    "  dnl       AC_MSG_RESULT(found in $i)\n");
+	Printf(f_extra,
+	    "  dnl     fi\n");
+	Printf(f_extra,
+	    "  dnl   done\n");
+	Printf(f_extra,
+	    "  dnl fi\n");
+	Printf(f_extra,
+	    "  dnl\n");
+	Printf(f_extra,
+	    "  dnl if test -z \"$%s_DIR\"; then\n", cap_module);
+	Printf(f_extra,
+	    "  dnl   AC_MSG_RESULT(not found)\n");
+	Printf(f_extra,
+	    "  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n",
+	    module);
+	Printf(f_extra,
+	    "  dnl fi\n\n");
+	Printf(f_extra,
+	    "  dnl # --with-%s -> add include path\n", module);
+	Printf(f_extra,
+	    "  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n", cap_module);
+	Printf(f_extra,
+	    "  dnl #--with-%s -> check for lib and symbol presence\n", module);
+	Printf(f_extra,
+	    "  dnl LIBNAME=%s # you may want to change this\n", module);
+	Printf(f_extra,
+	    "  dnl LIBSYMBOL=%s #  you most likely want to change this\n",
+	    module);
+	Printf(f_extra,
+	    "  dnl old_LIBS=$LIBS\n");
+	Printf(f_extra,
+	    "  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n", cap_module);
+	Printf(f_extra,
+	    "  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,[ ])],\n",
+	    cap_module);
+	Printf(f_extra,
+	    "  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n",
+	    module);
+	Printf(f_extra,
+	    "  dnl LIBS=$old_LIBS\n");
+	Printf(f_extra,
+	    "  dnl\n");
+	Printf(f_extra,
+	    "  dnl PHP_SUBST(%s_SHARED_LIBADD)\n", cap_module);
+	Printf(f_extra,
+	    "  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, SAPRFC_SHARED_LIBADD)\n\n",
+	    cap_module);
+	Printf(f_extra,
+	    "  PHP_EXTENSION(%s, $ext_shared)\n", module);
+	Printf(f_extra,"fi\n");
+	Close(f_extra);
+
+	/*  CREDITS */
+	f_extra = NewFile((void *)"CREDITS", "w");
+	if (!f_extra) {
+		Printf(stderr,"Unable to open CREDITS\n");
+		SWIG_exit(EXIT_FAILURE);
+	}
+	Printf(f_extra, "%s\n", module);
+	Close(f_extra);
+  }
+}
+
+static const char *php_header =
+"/*"
+"\n  +----------------------------------------------------------------------+"
+"\n  | PHP version 4.0                                                      |"
+"\n  +----------------------------------------------------------------------+"
+"\n  | Copyright (c) 1997, 1998, 1999, 2000, 2001 The PHP Group             |"
+"\n  +----------------------------------------------------------------------+"
+"\n  | This source file is subject to version 2.02 of the PHP license,      |"
+"\n  | that is bundled with this package in the file LICENSE, and is        |"
+"\n  | available at through the world-wide-web at                           |"
+"\n  | http://www.php.net/license/2_02.txt.                                 |"
+"\n  | If you did not receive a copy of the PHP license and are unable to   |"
+"\n  | obtain it through the world-wide-web, please send a note to          |"
+"\n  | license@php.net so we can mail you a copy immediately.               |"
+"\n  +----------------------------------------------------------------------+"
+"\n  | Authors:                                                             |"
+"\n  |                                                                      |"
+"\n  +----------------------------------------------------------------------+"
+"\n */\n";
 
 int
 PHP4::top(Node *n) {
 
-  FILE *f_m4, *f_credits, *f_make;
-  char filen[256];
+  String *filen;
+  String *outfile;
 
   /* Initialize all of the output files */
-  String *outfile = Getattr(n,"outfile");
+  outfile = Getattr(n,"outfile");
   
+  /* main output file */
   f_runtime = NewFile(outfile,"w");
   if (!f_runtime) {
-    Printf(stderr,"*** Can't open '%s'\n", outfile);
-    SWIG_exit(EXIT_FAILURE);
+	Printf(stderr,"*** Can't open '%s'\n", outfile);
+	SWIG_exit(EXIT_FAILURE);
   }
-  f_init = NewString("");
-  f_header = NewString("");
-  f_wrappers = NewString("");
-  f_vinit = NewString("");
-  f_oinit = NewString("");
   
+  Swig_banner(f_runtime);
+
+  /* sections of the output file */
+  s_init = NewString("/* init section */\n");
+  s_header = NewString("/* header section */\n");
+  s_wrappers = NewString("/* wrapper section */\n");
+  /* subsections of the init section */
+  s_vinit = NewString("/* vinit subsection */\n");
+  s_cinit = NewString("/* cinit subsection */\n");
+  s_oinit = NewString("/* oinit subsection */\n");
+  pragma_phpinfo = NewString("");
+
+
   /* Register file targets with the SWIG file handler */
-  Swig_register_filebyname("header",f_header);
-  Swig_register_filebyname("wrapper",f_wrappers);
   Swig_register_filebyname("runtime",f_runtime);
-  Swig_register_filebyname("init",f_init);
-  Swig_register_filebyname("vinit",f_vinit);
+  Swig_register_filebyname("init",s_init);
+  Swig_register_filebyname("header",s_header);
+  Swig_register_filebyname("wrapper",s_wrappers);
 
   shadow_classes = NewHash();
   shadow_classdef = NewString("");
@@ -217,9 +392,6 @@ PHP4::top(Node *n) {
   all_shadow_import = NewString("");
   all_shadow_baseclass = NewString("");
   
-
-  Swig_banner(f_runtime);
-
   /* Set the module name */
   module = Copy(Getattr(n,"name"));
   cap_module = NewStringf("%(upper)s",module);
@@ -229,25 +401,61 @@ PHP4::top(Node *n) {
 	package = NewStringf("%sc", module);
    }
 
+  /* Set the dlname */
+  if (!dlname) {
+#if defined(_WIN32) || defined(__WIN32__)
+	 dlname = NewStringf("%s.dll", module);
+#else
+	 dlname = NewStringf("lib%s.so", module);
+#endif
+  }
+
+  /* PHP module file */
+  filen = NewString(module);
+  Printf(filen, ".php");
+  f_phpmod = NewFile(filen, "w");
+  if (!f_phpmod) {
+	  Printf(stderr, "*** Can't open '%s'\n", filen);
+	  SWIG_exit(EXIT_FAILURE);
+  }
+  Printf(f_phpmod,
+	"<?php\n\n"
+	"global $%s_LOADED__;\n"
+	"if ($%s_LOADED__) return;\n"
+	"$%s_LOADED__ = true;\n\n"
+	"/* if our extension has not been loaded, do what we can */\n"
+	"if (!extension_loaded(\"%s\")) {\n"
+	"	if (!dl(\"%s\")) return;\n"
+	"}\n\n", cap_module, cap_module, cap_module, module, dlname);
+
+  /* sub-sections of the php file */
+  pragma_code = NewString("");
+  pragma_incl = NewString("");
+
   /* Initialize the rest of the module */
-
-
-  f_cinit = NewString("");
 
   f_c = NewWrapper();
   f_php = NewWrapper();
-
   Printf(f_c->def, "static void Swig_sync_c(void) {\n");
   Printf(f_php->def, "static void Swig_sync_php(void) {\n");
   
-  Printf(f_header, php_header);
-
-  Printf(f_header, "#define SWIG_init	init%s\n\n", module);
-  Printf(f_header, "#define SWIG_name	\"%s\"\n", module);
+  /* start the header section */
+  Printf(s_header, php_header);
+  Printf(s_header,
+      "#define SWIG_init	init%s\n\n"
+      "#define SWIG_name	\"%s\"\n"
+      "#ifdef HAVE_CONFIG_H\n"
+      "#include \"config.g\"\n"
+      "#endif\n\n"
+      "#include \"php.h\"\n"
+      "#include \"php_ini.h\"\n"
+      "#include \"php_%s.h\"\n", module, module, module);
 
   /* Create the .h file too */
-  sprintf(filen,"%sphp_%s.h", Swig_file_dirname(outfile),Char(module));
-  if((f_h = fopen(filen, "w")) == 0) {
+  filen = NewString("");
+  Printv(filen, Swig_file_dirname(outfile), "php_", module, ".h", 0);
+  f_h = NewFile(filen, "w");
+  if (!f_h) {
 	Printf(stderr,"Unable to open %s\n", filen);
 	SWIG_exit(EXIT_FAILURE);
   }
@@ -255,81 +463,95 @@ PHP4::top(Node *n) {
   Swig_banner(f_h);
   Printf(f_h, php_header);
 
-  Printf(f_h, "\n\n#ifndef PHP_%s_H\n", Char(cap_module));
-  Printf(f_h, "#define PHP_%s_H\n\n", Char(cap_module));
-  Printf(f_h, "extern zend_module_entry %s_module_entry;\n", module);
-  Printf(f_h, "#define phpext_%s_ptr &%s_module_entry\n\n", module, module);
-  Printf(f_h, "#ifdef PHP_WIN32\n");
-  Printf(f_h, "#define PHP_%s_API __declspec(dllexport)\n", Char(cap_module));
-  Printf(f_h, "#else\n");
-  Printf(f_h, "#define PHP_%s_API\n", Char(cap_module));
-  Printf(f_h, "#endif\n\n");
+   Printf(f_h, "\n\n"
+      "#ifndef PHP_%s_H\n"
+      "#define PHP_%s_H\n\n"
+      "extern zend_module_entry %s_module_entry;\n"
+      "#define phpext_%s_ptr &%s_module_entry\n\n"
+      "#ifdef PHP_WIN32\n"
+      "# define PHP_%s_API __declspec(dllexport)\n"
+      "#else\n"
+      "# define PHP_%s_API\n"
+      "#endif\n\n"
+      "PHP_MINIT_FUNCTION(%s);\n"
+      "PHP_MSHUTDOWN_FUNCTION(%s);\n"
+      "PHP_RINIT_FUNCTION(%s);\n"
+      "PHP_RSHUTDOWN_FUNCTION(%s);\n"
+      "PHP_MINFO_FUNCTION(%s);\n\n",
+      cap_module, cap_module, module, module, module, cap_module, cap_module,
+      module, module, module, module, module);
 
-  Printf(f_h, "PHP_MINIT_FUNCTION(%s);\n", module);
-  Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module);
-  Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
-  Printf(f_h, "PHP_RSHUTDOWN_FUNCTION(%s);\n", module);
-  Printf(f_h, "PHP_MINFO_FUNCTION(%s);\n\n", module);
+  /* start the function entry section */
+  s_entry = NewString("/* entry subsection */\n");
+  Printf(s_entry, "static void Swig_sync_c(void);\n");
+  Printf(s_entry, "static void Swig_sync_php(void);\n\n");
 
-  Printf(f_header, "#ifdef HAVE_CONFIG_H\n");
-  Printf(f_header, "#include \"config.h\"\n");
-  Printf(f_header, "#endif\n");
-  
-  Printf(f_header, "#include \"php.h\"\n");
-  Printf(f_header, "#include \"php_ini.h\"\n");
-  Printf(f_header, "#include \"php_%s.h\"\n", module);
+  Printf(s_entry,"/* Every user visible function must have an entry */\n");
+  Printf(s_entry,"function_entry %s_functions[] = {\n", module);
 
-  f_entry = NewString("");
-  Printf(f_entry, "static void Swig_sync_c(void);\n");
-  Printf(f_entry, "static void Swig_sync_php(void);\n");
+  /* Start variable init function (to be put in module init function) */
+  Printf(s_cinit,
+	"    int i;\n"
+	"    for (i = 0; swig_types_initial[i]; i++) {\n"
+	"        swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n"
+	"    }\n");
 
-  Printf(f_entry,"/*Every user visible function must have an entry in test_functions[] */\n\n");
+  /* start the init section */
+  if (gen_extra)
+	Printf(s_init,"#ifdef COMPILE_DL_%s\n", cap_module);
+  Printf(s_init,"ZEND_GET_MODULE(%s)\n", module);
+  if (gen_extra)
+	Printf(s_init,"#endif\n\n");
 
-  Printf(f_entry,"function_entry %s_functions[] = {\n", module);
+  Printf(s_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,"    return SUCCESS;\n");
+  Printf(s_init,"}\n");
 
-  /* Start variable init function ( to be put in module init function */
-
-  Printf(f_cinit, "int i;\n");
-  Printv(f_cinit, "for (i = 0; swig_types_initial[i]; i++) {\n",
-		  "swig_types[i] = SWIG_TypeRegister(swig_types_initial[i]);\n",
-		  "}\n", 0);
-
-
-  Printf(f_init,"#ifdef COMPILE_DL_%s\n", cap_module);
-  Printf(f_init,"\tZEND_GET_MODULE(%s)\n", module);
-  Printf(f_init,"#endif\n\n");
-
-  Printf(f_init,"PHP_MINIT_FUNCTION(%s)\n{\n", module);
-  Printf(f_init,"\treturn SUCCESS;\n");
-  Printf(f_init, "}\n");
-
-  Printf(f_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
-  Printf(f_init,"\treturn SUCCESS;\n");
-  Printf(f_init,"}\n");
+  Printf(s_init,"PHP_MSHUTDOWN_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,"    return SUCCESS;\n");
+  Printf(s_init,"}\n");
 
   /* Emit all of the code */
   Language::top(n);
 
-  Printf(f_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
-  Printf(f_init, "%s\n", f_cinit);
-  Printf(f_init, "%s\n", f_vinit);
-  Printf(f_init, "%s\n", f_oinit);
+  /* finish our init section */
+  Printf(s_cinit, "/* end cinit subsection */\n");
+  Printf(s_vinit, "/* end vinit subsection */\n");
+  Printf(s_oinit, "/* end oinit subsection */\n");
+  Printf(s_init,"PHP_RINIT_FUNCTION(%s)\n{\n", module);
+  Printf(s_init, "%s\n%s\n%s\n", s_cinit, s_vinit, s_oinit);
+  Delete(s_cinit);
+  Delete(s_vinit);
 
+  Printf(s_init, "    return SUCCESS;\n");
+  Printf(s_init,"}\n");
+
+  Printf(s_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,"    return SUCCESS;\n");
+  Printf(s_init,"}\n");
+
+  Printf(s_init,"PHP_MINFO_FUNCTION(%s)\n{\n", module);
+  Printf(s_init,"%s", pragma_phpinfo);
+  Printf(s_init,"}\n");
+  Printf(s_init, "/* end init section */\n");
 
   /* Complete header file */
 
-  Printf(f_h,"/*If you declare any globals in php_%s.h uncomment this:\n", module);
+  Printf(f_h,
+    "/*If you declare any globals in php_%s.h uncomment this:\n", module);
   Printf(f_h,"ZEND_BEGIN_MODULE_GLOBALS(%s)\n", module);
   Printf(f_h,"ZEND_END_MODULE_GLOBALS(%s)\n", module);
   Printf(f_h,"*/\n");
 
   Printf(f_h,"#ifdef ZTS\n");
-  Printf(f_h,"#define %s_D  zend_%s_globals *%s_globals\n", cap_module, module, module);
+  Printf(f_h,"#define %s_D  zend_%s_globals *%s_globals\n", cap_module,
+    module, module);
   Printf(f_h,"#define %s_DC  , %s_D\n",  cap_module, cap_module);
   Printf(f_h,"#define %s_C  %s_globals\n", cap_module, module);
   Printf(f_h,"#define %s_CC  , %s_C\n", cap_module, cap_module);
   Printf(f_h,"#define %s_SG(v)  (%s_globals->v)\n", cap_module, module);
-  Printf(f_h,"#define %s_FETCH()  zend_%s_globals *%s_globals = ts_resource(%s_globals_id)\n", cap_module, module, module, module);
+  Printf(f_h,"#define %s_FETCH()  zend_%s_globals *%s_globals "
+    "= ts_resource(%s_globals_id)\n", cap_module, module, module, module);
   Printf(f_h,"#else\n");
   Printf(f_h,"#define %s_D\n", cap_module);  
   Printf(f_h,"#define %s_DC\n", cap_module);
@@ -338,198 +560,61 @@ PHP4::top(Node *n) {
   Printf(f_h,"#define %s_SG(v)  (%s_globals.v)\n", cap_module, module);
   Printf(f_h,"#define %s_FETCH()\n", cap_module);
   Printf(f_h,"#endif\n\n");
-
   Printf(f_h,"#endif /* PHP_%s_H */\n", cap_module);
 	
-  fclose(f_h);
+  Close(f_h);
 
 
-	/* Now finish structures in wrapper file */
+  Printf(s_header, "%s", s_entry);
 
-	Printf(f_header, "%s", f_entry);
+  Printf(s_header,"	{NULL, NULL, NULL}\n};\n\n");
+  Printf(s_header,"zend_module_entry %s_module_entry = {\n", module);
+  Printf(s_header,"#if ZEND_MODULE_API_NO > 20010900\n");
+  Printf(s_header,"    STANDARD_MODULE_HEADER,\n");
+  Printf(s_header,"#endif\n");
+  Printf(s_header,"    \"%s\",\n", module);
+  Printf(s_header,"    %s_functions,\n", module);
+  Printf(s_header,"    PHP_MINIT(%s),\n", module);
+  Printf(s_header,"    PHP_MSHUTDOWN(%s),\n", module);
+  Printf(s_header,"    PHP_RINIT(%s),\n", module);
+  Printf(s_header,"    PHP_RSHUTDOWN(%s),\n", module);
+  Printf(s_header,"    PHP_MINFO(%s),\n", module);
+  Printf(s_header,"#if ZEND_MODULE_API_NO > 20010900\n");
+  Printf(s_header,"    NO_VERSION_YET,\n");
+  Printf(s_header,"#endif\n");
+  Printf(s_header,"    STANDARD_MODULE_PROPERTIES\n");
+  Printf(s_header,"};\n\n");
 
-        Printf(f_header,"\t{NULL, NULL, NULL}\n};\n\n");
-	Printf(f_header,"zend_module_entry %s_module_entry = {\n", module);
-	Printf(f_header,"#if ZEND_MODULE_API_NO > 20010900\n");
-	Printf(f_header,"STANDARD_MODULE_HEADER,\n");
-	Printf(f_header,"#endif\n");
-	Printf(f_header,"\t\"%s\",\n", module);
-	Printf(f_header,"\t%s_functions,\n", module);
-	Printf(f_header,"\tPHP_MINIT(%s),\n", module);
-	Printf(f_header,"\tPHP_MSHUTDOWN(%s),\n", module);
-	Printf(f_header,"\tPHP_RINIT(%s),\n", module);
-	Printf(f_header,"\tPHP_RSHUTDOWN(%s),\n", module);
-	Printf(f_header,"\tPHP_MINFO(%s),\n", module);
-	Printf(f_header,"#if ZEND_MODULE_API_NO > 20010900\n");
-	Printf(f_header,"NO_VERSION_YET,\n");
-	Printf(f_header,"#endif\n");
-	Printf(f_header,"\tSTANDARD_MODULE_PROPERTIES\n");
-	Printf(f_header,"};\n\n");
+  Printv(f_runtime, s_header, 0);
 
-  	String *type_table = NewString("");
-  	SwigType_emit_type_table(f_runtime,type_table);
-  	Printf(f_runtime,"%s",type_table);
-  	Delete(type_table);
+  String *type_table = NewString("");
+  SwigType_emit_type_table(f_runtime,type_table);
+  Printf(f_runtime,"%s",type_table);
+  Delete(type_table);
 
-	Printf(f_init, "return SUCCESS;\n");
-	Printf(f_init,"}\n");
+  Printf(f_c->code, "\n}\n");
+  Printf(f_php->code, "\n}\n");
 
-	Printf(f_init,"PHP_RSHUTDOWN_FUNCTION(%s)\n{\n", module);
-	Printf(f_init,"\treturn SUCCESS;\n");
-	Printf(f_init,"}\n");
-
-	Printf(f_init,"PHP_MINFO_FUNCTION(%s)\n{\n", module);
-	Printf(f_init,"\tphp_info_print_table_start();\n");
-	Printf(f_init,"\tphp_info_print_table_header(2, \"test support\", \"enableed\");\n");
-	Printf(f_init,"\tphp_info_print_table_end();\n");
-	Printf(f_init,"}\n");
-
-	Printf(f_c->code, "\n}\n");
-	Printf(f_php->code, "\n}\n");
-
-	Wrapper_print(f_c, f_wrappers);
-	Wrapper_print(f_php, f_wrappers);
-
-	Printv(f_runtime, f_header, f_wrappers,f_init,0);
-	Delete(f_header);
-	Delete(f_wrappers);
-	Delete(f_init);
-	Close(f_runtime);
-
-	if(!gen_extra) { 
-		return SWIG_OK;
-	}
-
-	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
-		/* Write out Makefile.in and the like */
-
-       	  if((f_make = fopen("Makefile.in", "w")) == 0) {
-		Printf(stderr,"Unable to open Makefile.in\n");
-		SWIG_exit(EXIT_FAILURE);
-  	  }
-
-	  Printf(f_make, "# $Id$\n\n");
-	  Printf(f_make, "LTLIBRARY_NAME\t\t\t= lib%s.la\n", module);
-	  Printf(f_make, "LTLIBRARY_SOURCES\t\t= %s_wrap.c\n", module);
-	  Printf(f_make, "LTLIBRARY_SHARED_NAME\t\t= %s.la\n", module);
-	  Printf(f_make, "LTLIBRARY_SHARED_LIBADD\t\t= $(%s_SHARED_LIBADD)\n\n",
-			cap_module);
-	  Printf(f_make, "include $(top_srcdir)/build/dynlib.mk\n");
-
-	  fclose(f_make);
-	}
-	/*
-	} else if(make_method == PHP_DL) {
-		if((f_make = fopen("Makefile", "w")) == 0) {
-			Printf(stderr, "Unable to open Makefile\n");
-			SWIG_exit(EXIT_FAILURE);
-		}
-
-		Printf(f_make, "CC = cc\n\n");
-		Printf(f_make, "# Add any extra object files here\n");
-		Printf(f_make, "OBJECTS = %s_wrap.o\n\n", module);
-		Printf(f_make, "# Path to PHP directory\n");
-		Printf(f_make, "PHP_INCLUDE = /usr/local/include\n\n");
-		Printf(f_make, "# PHP include directories\n");
-		Printf(f_make, "INCLUDES = -I. -I$(PHP_INCLUDE)/php -I$(PHP_INCLUDE)/php/main -I$(PHP_INCLUDE)/php/Zend -I$(PHP_INCLUDE)/php/TSRM\n\n");
-		Printf(f_make, "# Path to extra libraries\n");
-		Printf(f_make, "LIB_DIRS = -L/usr/local/lib\n\n");
-		Printf(f_make, "# Extra libraries needed\n");
-		Printf(f_make, "LIBS =\n\n");
-		Printf(f_make, "%s.so:	$(OBJECTS)\n", module);
-		Printf(f_make, "\t$(CC) -shared -rdynamic -o %s.so $(OBJECTS) $(LIB_DIRS) $(LIBS)\n\n", module);
-		Printf(f_make, ".c.o:\n");
-		Printf(f_make, "\t$(CC) -fpic -DCOMPILE_DL=1 $(INCLUDES) -c $<\n");
-		fclose(f_make);
-	}
-	*/
+  Wrapper_print(f_c, s_wrappers);
+  Wrapper_print(f_php, s_wrappers);
 
 
-	/* Now config.m4 */
+  Printf(s_header, "/* end header section */\n");
+  Printf(s_wrappers, "/* end wrapper section */\n");
+ 
+  Printv(f_runtime, s_wrappers, s_init, 0);
+  Delete(s_header);
+  Delete(s_wrappers);
+  Delete(s_init);
+  Close(f_runtime);
+  Printf(f_phpmod, "%s\n%s\n?>\n", pragma_incl, pragma_code);
+  Close(f_phpmod);
 
-	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
+  create_extra_files();
 
-	  if((f_m4 = fopen("config.m4", "w")) == 0) {
-		Printf(stderr, "Unable to open config.m4\n");
-		SWIG_exit(EXIT_FAILURE);
-	  }
-
-	  Printf(f_m4,"dnl $Id$\n");
-	  Printf(f_m4,"dnl config.m4 for extension %s\n\n", module);
-	  Printf(f_m4,"dnl Comments in this file start with the string 'dnl'.\n");
-	  Printf(f_m4,"dnl Remove where necessary. This file will not work\n");
-	  Printf(f_m4,"dnl without editing.\n\n");
-
-	  Printf(f_m4,"dnl If your extension references somthing external, use with:\n\n");
-	  Printf(f_m4,"dnl PHP_ARG_WITH(%s, for %s support,\n", module, module);
-	  Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
-	  Printf(f_m4,"dnl [  --with-%s		Include %s support])\n\n", 
-			module, module);
-
-	  Printf(f_m4,"dnl Otherwise use enable:\n\n");
-	  Printf(f_m4,"PHP_ARG_ENABLE(%s, whether to enable %s support,\n", module, module);
-	  Printf(f_m4,"dnl Make sure that the comment is aligned:\n");
-	  Printf(f_m4,"[  --enable-%s	Enable %s support])\n\n",
-			module, module);
-
-	  Printf(f_m4,"if test \"$PHP_%s\" != \"no\"; then\n", cap_module);
-	  Printf(f_m4,"  dnl Write more examples of tests here\n\n");
-	  Printf(f_m4,"  dnl # --with-%s -> check with-path\n", module);
-	  Printf(f_m4,"  dnl SEARCH_PATH=\"/usr/local /usr\"  # you might want to change this\n");
-	  Printf(f_m4,"  dnl SEARCH_FOR=\"/include/%s.h\"  # you most likely want to change this\n", module);
-	  Printf(f_m4,"  dnl if test -r $PHP_%s/; then # path given as parameter\n", module);
-	  Printf(f_m4,"  dnl   %s_DIR=$PHP_%s\n", cap_module, cap_module);
-	  Printf(f_m4,"  dnl else # search default path list\n");
-	  Printf(f_m4,"  dnl   AC_MSG_CHECKING(for %s files in default path)\n",
-			module);
-	  Printf(f_m4,"  dnl   for i in $SEARCH_PATH; do\n");
-	  Printf(f_m4,"  dnl     if test -r $i/$SEARCH_FOR; then\n");
-	  Printf(f_m4,"  dnl       %s_DIR=$i\n", cap_module);
-	  Printf(f_m4,"  dnl       AC_MSG_RESULT(found in $i)\n");
-	  Printf(f_m4,"  dnl     fi\n");
-	  Printf(f_m4,"  dnl   done\n");
-	  Printf(f_m4,"  dnl fi\n");
-	  Printf(f_m4,"  dnl\n");
-	  Printf(f_m4,"  dnl if test -z \"$%s_DIR\"; then\n", cap_module);
-	  Printf(f_m4,"  dnl   AC_MSG_RESULT(not found)\n");
-	  Printf(f_m4,"  dnl   AC_MSG_ERROR(Please reinstall the %s distribution)\n", module);
-	  Printf(f_m4,"  dnl fi\n\n");
-	  Printf(f_m4,"  dnl # --with-%s -> add include path\n", module);
-	  Printf(f_m4,"  dnl PHP_ADD_INCLUDE($%s_DIR/include)\n\n", cap_module);
-	  Printf(f_m4,"  dnl #--with-%s -> check for lib and symbol presence\n",
-			module);
-	  Printf(f_m4,"  dnl LIBNAME=%s # you may want to change this\n", module);
-	  Printf(f_m4,"  dnl LIBSYMBOL=%s #  you most likely want to change this\n", module);
-	  Printf(f_m4,"  dnl old_LIBS=$LIBS\n");
-	  Printf(f_m4,"  dnl LIBS=\"$LIBS -L$%s_DIR/lib -lm -ldl\"\n",cap_module);
-	  Printf(f_m4,"  dnl AC_CHECK_LIB($LIBNAME, $LIBSYMBOL, [AC_DEFINE(HAVE_%sLIB,1,[ ])],\n", cap_module);
-	  Printf(f_m4,"  dnl [AC_MSG_ERROR(wrong %s lib version or lib not found)])\n", module);
-	  Printf(f_m4,"  dnl LIBS=$old_LIBS\n");
-	  Printf(f_m4,"  dnl\n");
-	  Printf(f_m4,"  dnl PHP_SUBST(%s_SHARED_LIBADD)\n", cap_module);
-	  Printf(f_m4,"  dnl PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $%s_DIR/lib, SAPRFC_SHARED_LIBADD)\n\n",cap_module);
-	  Printf(f_m4,"  PHP_EXTENSION(%s, $ext_shared)\n", module);
-	  Printf(f_m4,"fi\n");
-
-	  fclose(f_m4);
-	}
-
-	/*  CREDITS */
-
-	if((make_method == PHP_FULL) || (make_method == PHP_IZE)) {
-
-          if((f_credits = fopen("CREDITS", "w")) == 0) {
-		Printf(stderr,"Unable to open CREDITS\n");
-		SWIG_exit(EXIT_FAILURE);
-  	  }
-
-	  Printf(f_credits, "%s\n", module);
-
-	  fclose(f_credits);
-
-	}
-	return SWIG_OK;
+  return SWIG_OK;
 }
+
 
 #if 0
 void
@@ -567,7 +652,9 @@ PHP4::create_command(char *cname, char *iname) {
 			*c = *c + 32;
 	}
 
-	Printf(f_entry, "\tZEND_NAMED_FE(%s, %s, NULL)\n", lower_cname, iname);
+	Printf(s_entry,
+	    "	ZEND_NAMED_FE(%s,\n"
+	    "		%s, NULL)\n", lower_cname,iname);
 	Printf(f_h, "ZEND_NAMED_FUNCTION(%s);\n", iname);
 
 	free(lower_cname);
@@ -843,7 +930,7 @@ PHP4::functionWrapper(Node *n) {
   Printf(f->code, "\nSwig_sync_php();\n");
   Printf(f->code, "\n}");
   
-  Wrapper_print(f,f_wrappers);
+  Wrapper_print(f,s_wrappers);
   return SWIG_OK;
 }
 
@@ -872,52 +959,75 @@ PHP4::variableWrapper(Node *n) {
   case T_ULONG:
   case T_SCHAR:
   case T_UCHAR:
-	Printf(f_vinit,"{\n\tzval *z_var;\n");
-	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tz_var->type = IS_LONG;\n");
-	Printf(f_vinit, "\tz_var->value.lval = %s;\n", name);
-	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d,(void *)&z_var,sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    z_var->type = IS_LONG;\n"
+	    "    z_var->value.lval = %s;\n"
+	    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, name, strlen(name)+1);
 	break;
 
   case T_DOUBLE:
   case T_FLOAT:
-	Printf(f_vinit, "{\n\tzval *z_var;\n");
-	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tz_var->type = IS_DOUBLE;\n");
-	Printf(f_vinit, "\tz_var->value.dval = %s;\n", name);
-	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var,sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    z_var->type = IS_DOUBLE;\n"
+	    "    z_var->value.dval = %s;\n"
+	    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, name, strlen(name)+1);
 	break;
+
   case T_CHAR:
-	Printf(f_vinit, "{\n\tzval *z_var;\n");
-	Printf(f_vinit, "\tchar c[2];\n");
-	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tc[0] = %s;\n", name);
-	Printf(f_vinit, "\tc[1] = 0;\n");
-	Printf(f_vinit, "\tz_var->type = IS_STRING;\n");
-	Printf(f_vinit, "\tz_var->value.str.val = estrdup(c);\n");
-	Printf(f_vinit, "\tz_var->value.str.len = 2;\n");
-	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var,sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    char c[2];\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    c[0] = %s;\n"
+	    "    c[1] = 0;\n"
+	    "    z_var->type = IS_STRING;\n"
+	    "    z_var->value.str.val = estrdup(c);\n"
+	    "    z_var->value.str.len = 2;\n"
+	    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, name, strlen(name)+1);
 	break;
 
   case T_STRING:
-	Printf(f_vinit, "{\n\tzval *z_var;\n");
-	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tz_var->type = IS_STRING;\n");
-	Printf(f_vinit, "\tif(%s) {\n", name);
-	Printf(f_vinit, "\t\tz_var->value.str.val = estrdup(%s);\n", name);
-	Printf(f_vinit, "\t\tz_var->value.str.len = strlen(%s)+1;\n", name);
-	Printf(f_vinit, "\t} else {\n");
-	Printf(f_vinit, "\t\tz_var->value.str.val = 0;\n");
-	Printf(f_vinit, "\t\tz_var->value.str.len = 0;\n");
-	Printf(f_vinit, "\t}\nzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    z_var->type = IS_STRING;\n"
+	    "    if(%s) {\n"
+	    "        z_var->value.str.val = estrdup(%s);\n"
+	    "        z_var->value.str.len = strlen(%s)+1;\n"
+	    "    } else {\n"
+	    "        z_var->value.str.val = 0;\n"
+	    "        z_var->value.str.len = 0;\n"
+	    "    }\n"
+	    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, name, name, name, strlen(name)+1);
+
 	break;
 
   case T_USER:
 	SwigType_add_pointer(t);
-	Printf(f_vinit, "{\n\tzval *z_var;\n");
-	Printf(f_vinit, "MAKE_STD_ZVAL(z_var);\n");
-	Printf(f_vinit, "\tSWIG_SetPointerZval(z_var, (void*)&%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
-	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    SWIG_SetPointerZval(z_var, (void*)&%s, SWIGTYPE%s);\n"
+	    "    zend_hash_add(&EG(symbol_table), \"%s\", %d, "
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, SwigType_manglestr(t), name, strlen(name)+1);
 	SwigType_del_pointer(t);
 	break;
   case T_ARRAY:
@@ -928,19 +1038,27 @@ PHP4::variableWrapper(Node *n) {
 	aop = SwigType_pop(ta);
 	if(SwigType_type(ta) == T_CHAR) {
 		String *dim = SwigType_array_getdim(aop, 0);
-		Printf(f_vinit, "{\nzval *z_var;\n");
-		Printf(f_vinit, "MAKE_STD_ZVAL(z_var);\n");
-		Printf(f_vinit, "z_var->type = IS_STRING;\n");
-		Printf(f_vinit, "if(%s) {\n", name);
-		Printf(f_vinit,"z_var->value.str.val = estrndup(%s, %s);\n", name, Char(dim));
-		Printf(f_vinit, "z_var->value.str.len = strlen(%s)+1;\n}\n", name);
-		Printf(f_vinit, "zend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	        Printf(s_vinit,
+		    "{\n"
+		    "    zval *z_var;\n"
+		    "    MAKE_STD_ZVAL(z_var);\n"
+		    "    z_var->type = IS_STRING;\n"
+		    "    if(%s) {\n"
+		    "        z_var->value.str.val = estrndup(%s, %s);\n"
+		    "        z_var->value.str.len = strlen(%s)+1;\n"
+		    "    }\n"
+		    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+		    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+		    "}\n", name, name, Char(dim), name, name, strlen(name)+1);
 	} else {
-		Printf(f_vinit,"{\n\tzval *z_var;\n");
-		Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
-		Printf(f_vinit,"\tSWIG_SetPointerZval(z_var, (void *)%s, SWIGTYPE%s);\n", name, SwigType_manglestr(t));
-		Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
-		Printf(f_vinit, "}\n");
+		Printf(s_vinit,
+		    "{\n"
+		    "    zval *z_var;\n"
+		    "    MAKE_STD_ZVAL(z_var);\n"
+		    "    SWIG_SetPointerZval(z_var, (void *)%s, SWIGTYPE%s);\n"
+		    "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+		    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+		    "}\n", name, SwigType_manglestr(t), name, strlen(name)+1);
 	}
 	Delete(ta);
 	Delete(aop);
@@ -952,6 +1070,15 @@ PHP4::variableWrapper(Node *n) {
 	Printf(f_vinit, "\tMAKE_STD_ZVAL(z_var);\n");
 	Printf(f_vinit, "\tSWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n", name,SwigType_manglestr(t));
 	Printf(f_vinit, "\tzend_hash_add(&EG(symbol_table), \"%s\", %d, (void *)&z_var, sizeof(zval *), NULL);\n}\n", name, strlen(name)+1);
+	Printf(s_vinit,
+	    "{\n"
+	    "    zval *z_var;\n"
+	    "    MAKE_STD_ZVAL(z_var);\n"
+	    "    SWIG_SetPointerZval(z_var, (void*)%s, SWIGTYPE%s);\n"
+            "    zend_hash_add(&EG(symbol_table), \"%s\", %d,"
+	    "        (void *)&z_var, sizeof(zval *), NULL);\n"
+	    "}\n", name, SwigType_manglestr(t), name, strlen(name)+1);
+
 	break;
   default:
 	/* error */
@@ -1195,37 +1322,79 @@ PHP4::constantWrapper(Node *n) {
 		case T_SHORT :
 		case T_SCHAR:
 		case T_LONG:
-			Printv(f_cinit, "REGISTER_LONG_CONSTANT(\"", name, "\", ", rval, ", CONST_CS);\n", 0);
-			break;
+		     Printf(s_cinit,
+		     "    REGISTER_LONG_CONSTANT(\"%s\", %s, CONST_CS);\n",
+		     name, rval);
+		     break;
 		case T_DOUBLE: 
 		case T_FLOAT:
-			Printv(f_cinit, "REGISTER_DOUBLE_CONSTANT(\"", name, "\", ", rval, ", CONST_CS);\n", 0);
-			break;
+		     Printf(s_cinit,
+		     "    REGISTER_DOUBLE_CONSTANT(\"%s\", %s, CONST_CS);\n",
+		     name, rval);
+		     break;
 		case T_CHAR:
-			Printv(f_cinit, "{\nchar c[2];\nc[0] = ", rval, ";\nc[1] = '\\0';\n", 0);
-                        Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\" ,  estrdup(c),  CONST_CS | CONST_PERSISTENT);\n", 0);
-                        Printv(f_cinit, "}\n", 0);
-                        break;
+		     Printf(s_cinit,
+		     "{\n"
+		     "    char c[2];\n"
+		     "    c[0] = %s;\n"
+		     "    c[1] = '\\0';\n"
+		     "    REGISTER_STRING_CONSTANT(\"%s\", estrdup(c),"
+		     "        CONST_CS | CONST_PERSISTENT);\n"
+		     "}\n", rval, name);
+                     break;
 		case T_STRING:
-			Printv(f_cinit, "REGISTER_STRING_CONSTANT(\"", name, "\", ", rval, ", CONST_CS | CONST_PERSISTENT);\n", 0);
-			break;
+		     Printf(s_cinit,
+		     "    REGISTER_STRING_CONSTANT(\"%s\", %s,"
+		     "        CONST_CS | CONST_PERSISTENT);\n", name, rval);
+		     break;
 		case T_POINTER:
 		case T_ARRAY:
 		case T_REFERENCE:
-			Printf(f_cinit, "{\n\tchar *cp;\n");
-			Printf(f_cinit, "\tSWIG_SetPointerChar(&cp, (void*)%s, SWIGTYPE%s);\n", value, SwigType_manglestr(type));
-			Printv(f_cinit, "\tREGISTER_STRING_CONSTANT(\"", name, "\", cp,  CONST_CS | CONST_PERSISTENT);\n", 0);
-			Printf(f_cinit, "}\n");
-			break;
+		      Printf(s_cinit,
+		      "{\n"
+		      "    char *cp;\n"
+		      "    SWIG_SetPointerChar(&cp, (void*)%s, SWIGTYPE%s);\n"
+		      "    REGISTER_STRING_CONSTANT(\"%s\", cp,"
+		      "        CONST_CS | CONST_PERSISTENT);\n"
+		      "}\n", value, SwigType_manglestr(type), name);
+		      break;
 		default:
 			break;
 	}
 	return SWIG_OK;
-
 }
+
+/*
+ * PHP4::pragma()
+ *
+ * Pragma directive.
+ *
+ * %pragma(php4) code="String"         # Includes a string in the .php file
+ * %pragma(php4) include="file.pl"     # Includes a file in the .php file
+ */
+void PHP4::pragma(char *lang, char *type, char *value) {
+       if (strcmp(lang,"php4") != 0) {
+               Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
+                       input_file, line_number);
+       }
+       if (strcmp(type, "code") == 0) {
+               if (value)
+                       Printf(pragma_code, "%s\n", value);
+       } else if (strcmp(type, "include") == 0) {
+               if (value)
+                       Printf(pragma_incl, "include \"%s\";\n", value);
+       } else if (strcmp(type, "phpinfo") == 0) {
+               if (value)
+                       Printf(pragma_phpinfo, "%s\n", value);
+       } else {
+	      Printf(stderr, "%s : Line %d. Unrecognized pragma.\n",
+		      input_file, line_number);
+       }
+}
+
 /*
 void
-PHP4::usage_func(char *iname, SwigType *, ParmList *l) {
+PHP4::usiage_func(char *iname, SwigType *, ParmList *l) {
 
 	;
 }
@@ -1383,33 +1552,33 @@ int PHP4::classHandler(Node *n) {
 		} else { // XXX Must be base class ?
 		/* Write out class init code */
 
-		Printf(f_oinit, "{\nzend_class_entry *ce;\n");
-		Printf(f_oinit, "CG(class_entry).type = ZEND_USER_CLASS;\n");
-		Printf(f_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
-		Printf(f_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
-		Printf(f_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
-		Printf(f_oinit, "*CG(class_entry).refcount = 1;\n");
-		Printf(f_oinit, "CG(class_entry).constants_updated = 0;\n");
+		Printf(s_oinit, "{\nzend_class_entry *ce;\n");
+		Printf(s_oinit, "CG(class_entry).type = ZEND_USER_CLASS;\n");
+		Printf(s_oinit, "CG(class_entry).name = estrdup(\"%s\");\n", package);
+		Printf(s_oinit, "CG(class_entry).name_length = strlen(\"%s\");\n", package);
+		Printf(s_oinit, "CG(class_entry).refcount = (int *) emalloc(sizeof(int));\n");
+		Printf(s_oinit, "*CG(class_entry).refcount = 1;\n");
+		Printf(s_oinit, "CG(class_entry).constants_updated = 0;\n");
 
 		/* XXX do this ourselves */
 
-		Printf(f_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
+		Printf(s_oinit, "zend_str_tolower(CG(class_entry).name, CG(class_entry).name_length);\n");
 	
 		/* Init class function hash */
 		
-		Printf(f_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
-		Printf(f_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
+		Printf(s_oinit, "zend_hash_init(&CG(class_entry).function_table, 10, NULL, ZEND_FUNCTION_DTOR, 0);\n");
+		Printf(s_oinit, "zend_hash_init(&CG(class_entry).default_properties, 10, NULL, ZVAL_PTR_DTOR, 0);\n");
 
 		/* XXX Handle inheritance ? */
 
-		Printf(f_oinit, "CG(class_entry).handle_function_call = NULL;\n");
-		Printf(f_oinit, "CG(class_entry).handle_property_set = NULL;\n");
-		Printf(f_oinit, "CG(class_entry).handle_property_get = NULL;\n");
+		Printf(s_oinit, "CG(class_entry).handle_function_call = NULL;\n");
+		Printf(s_oinit, "CG(class_entry).handle_property_set = NULL;\n");
+		Printf(s_oinit, "CG(class_entry).handle_property_get = NULL;\n");
 
 		/* Save class in class table */
-		Printf(f_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
+		Printf(s_oinit, "zend_hash_update(CG(class_table), \"%s\", strlen(\"%s\")+1, &CG(class_entry), sizeof(zend_class_entry), (void **) &CG(active_class_entry));\n", package, package);
 
-		Printf(f_oinit, "}\n");
+		Printf(s_oinit, "}\n");
 
 		}
 
@@ -1434,7 +1603,7 @@ int PHP4::classHandler(Node *n) {
 		free(shadow_classname);
 		shadow_classname = NULL;
 
-		Printf(f_oinit, "CG(active_class_entry) = NULL;\n");
+		Printf(s_oinit, "CG(active_class_entry) = NULL;\n");
 
 		Delete(shadow_enum_code); shadow_enum_code = NULL;
 		Delete(this_shadow_baseclass); this_shadow_baseclass = NULL;
@@ -1462,13 +1631,13 @@ PHP4::memberfunctionHandler(Node *n) {
 		cpp_func(iname, t, l, php_function_name);
 		/*
 
-	Printf(f_oinit, "{\nzend_function function;\n");
-	Printf(f_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-	Printf(f_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-	Printf(f_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(iname));
-	Printf(f_oinit, "internal_function->arg_types = NULL;\n");
-	Printf(f_oinit, "internal_function->function_name = estrdup(\"%s\");\n", Swig_name_wrapper(iname));
-	Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", Swig_name_wrapper(name), strlen(Char(Swig_name_wrapper(name)))+1);
+	Printf(s_oinit, "{\nzend_function function;\n");
+	Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
+	Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
+	Printf(s_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(iname));
+	Printf(s_oinit, "internal_function->arg_types = NULL;\n");
+	Printf(s_oinit, "internal_function->function_name = estrdup(\"%s\");\n", Swig_name_wrapper(iname));
+	Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%s\", %d, &function, sizeof(zend_function), NULL);\n}\n", Swig_name_wrapper(name), strlen(Char(Swig_name_wrapper(name)))+1);
 
 	*/
 	}
@@ -1587,13 +1756,13 @@ int PHP4::constructorHandler(Node *n) {
 		String *php_function_name = NewString(iname);
 		char arg[256];
 
-		 Printf(f_oinit, "{\nzend_function function;\n");
-		 Printf(f_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-		 Printf(f_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-		 Printf(f_oinit, "internal_function->handler = _wrap_new_%s;\n", iname);
-		 Printf(f_oinit, "internal_function->arg_types = NULL;\n");
-		 Printf(f_oinit, "internal_function->function_name = estrdup(\"new_%(lower)s\");\n", php_function_name);
-		 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
+		 Printf(s_oinit, "{\nzend_function function;\n");
+		 Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
+		 Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
+		 Printf(s_oinit, "internal_function->handler = _wrap_new_%s;\n", iname);
+		 Printf(s_oinit, "internal_function->arg_types = NULL;\n");
+		 Printf(s_oinit, "internal_function->function_name = estrdup(\"new_%(lower)s\");\n", php_function_name);
+		 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"new_%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+5);
 		Printf(shadow_code, " function %s(", shadow_classname);
 
 		Printv(nativecall, "$superconstructorcall", 0); // Super call for filling in later.
@@ -1684,11 +1853,6 @@ PHP4::typedefHandler(Node *) {
 		;
 }
 
-void
-PHP4::pragma(char *lang, char *code, char *value) {
-		;
-}
-
 void 
 PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name) {
 	char arg[256];
@@ -1705,13 +1869,13 @@ PHP4::cpp_func(char *iname, SwigType *t, ParmList *l, String *php_function_name)
 	}
 
 	 
-	 Printf(f_oinit, "{\nzend_function function;\n");
-	 Printf(f_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
-	 Printf(f_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
-	 Printf(f_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(php_function_name));
-	 Printf(f_oinit, "internal_function->arg_types = NULL;\n");
-	 Printf(f_oinit, "internal_function->function_name = estrdup(\"%(lower)s\");\n", php_function_name);
-	 Printf(f_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+1);
+	 Printf(s_oinit, "{\nzend_function function;\n");
+	 Printf(s_oinit, "zend_internal_function *internal_function = (zend_internal_function *)&function;\n");
+	 Printf(s_oinit, "internal_function->type= ZEND_INTERNAL_FUNCTION;\n");
+	 Printf(s_oinit, "internal_function->handler = %s;\n", Swig_name_wrapper(php_function_name));
+	 Printf(s_oinit, "internal_function->arg_types = NULL;\n");
+	 Printf(s_oinit, "internal_function->function_name = estrdup(\"%(lower)s\");\n", php_function_name);
+	 Printf(s_oinit, "zend_hash_add(&CG(active_class_entry)->function_table, \"%(lower)s\", %d, &function, sizeof(zend_function), NULL);\n}\n", php_function_name, strlen(Char(php_function_name))+1);
 
 	Printf(shadow_code, "function %s(", iname);
 
