@@ -35,6 +35,7 @@ char cvsroot_guile_cxx[] = "$Header$";
 #endif
 #include <ctype.h>
 
+// Note string broken in half for compilers that can't handle long strings
 static const char *guile_usage = (char*)"\
 Guile Options (available with -guile)\n\
      -ldflags                - Print runtime libraries to link with\n\
@@ -61,7 +62,7 @@ Guile Options (available with -guile)\n\
      -gh                     - Use the gh_ Guile API. (Guile <= 1.8, default) \n\
      -scm                    - Use the scm Guile API.  (Guile >= 1.6) \n\
      -shadow                 - Export GOOPS class definitions\n\
-     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n\
+     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
                                GOOPS classes. (default = \"primitive\")\n\
      -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
