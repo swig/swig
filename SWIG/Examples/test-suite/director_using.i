@@ -1,5 +1,4 @@
-%module(directors="1",dirprot="1") director_nested
- //%module director_nested
+%module(directors="1",dirprot="1") director_using
 
 %{
 #include <string>

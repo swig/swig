@@ -87,3 +87,25 @@ void cparse_normalize_void(Node *n) {
     }
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * int need_protected(Node* n, int dirprot_mode)
+ *
+ * Detects when we need to fully register the protected member.
+ * 
+ * ----------------------------------------------------------------------------- */
+extern int Swig_need_protected();
+
+int need_protected(Node* n, int dirprot_mode)
+{
+  if (!(Swig_need_protected() || dirprot_mode)) return 0;
+
+  /* First, 'n' looks like a function */
+  if (SwigType_isfunction(Getattr(n,"decl"))) {
+    String *storage = Getattr(n,"storage");
+    /* and the function is declared like virtual, or it has no
+       storage. This eliminates typedef, static and so on. */ 
+    return (!storage || (Strcmp(storage,"virtual") == 0));
+  }
+  return 0;
+}

@@ -13,6 +13,8 @@
 %newobject *::create();
 
 %rename(a) Bar::hello;
+%rename(s) Foo::p;
+%rename(q) Foo::r;
 
 %inline {
 class Foo {
@@ -21,7 +23,16 @@ public:
   virtual std::string pong() {
     return "Foo::pong();" + ping();
   }
+
+  int p(){ return 1;}
+  int r(){ return 1;}
+    
+  
 protected:
+  
+  typedef int q(); 
+  static int s(); 
+  
   Foo() {}  
 
   virtual std::string ping() = 0;
