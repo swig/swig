@@ -1,7 +1,6 @@
-//-*-c++-*-
 /*
- * typemaps for standard C++ string and wstring
- * by: Tal Shalif <tal@slt.atr.co.jp>
+ * Typemaps for standard C++ STL string and wstring
+ * Contributed by: Tal Shalif <tal@slt.atr.co.jp>
  */
 /* what type to use in java source code */
 %typemap(jtype) const string & "String"
@@ -11,7 +10,7 @@
 
 /* how to convert the c++ type to the java type */
 %typemap(out) const string & {
- $target = JCALL(NewStringUTF, jenv) $source->c_str());
+ $target = jenv->NewStringUTF($source->c_str());
 }
 
 /* how to convert java type to requested c++ type */
@@ -21,7 +20,7 @@
     /* get the String from the StringBuffer */
     char *p = (char *)jenv->GetStringUTFChars($source, 0); 
     $target =  new string(p);
-    JCALL(ReleaseStringUTFChars, jenv) $source, p);
+    jenv->ReleaseStringUTFChars($source, p);
   }
 }
 /* free resource once finished using */
@@ -48,8 +47,8 @@
   for (unsigned int i = 0; i < len; ++i) {
     conv_buf[i] = (jchar)(*$source)[i];
   }
- $target = JCALL(NewString, jenv) conv_buf, len);
- delete [] conv_buf;
+  $target = jenv->NewString(conv_buf, len);
+  delete [] conv_buf;
 }
 
 /* how to convert java type to requested c++ type */
@@ -68,8 +67,7 @@
        $target =  new wstring(conv_buf, len);
        delete [] conv_buf;
     }
-
-    JCALL(ReleaseStringChars, jenv) $source, jchar_p);
+    jenv->ReleaseStringChars($source, jchar_p);
   }
 }
 
