@@ -307,7 +307,6 @@ typedef struct {
 
 extern DOH   *NewString(char *c);
 extern int    String_check(DOH *s);
-extern int    String_replace(DOH *s, DOH *token, DOH *rep, int flags);
 extern void   String_chop(DOH *s);
 
 /* String replacement flags */
