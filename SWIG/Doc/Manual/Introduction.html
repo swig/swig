@@ -48,7 +48,7 @@ of SWIG include:
 <li>Making a graphical user interface (using Tk for example).
 <li>Testing of C libraries and programs (using scripts).
 <li>Building high performance C modules for scripting languages.
-<li>Making C programming more enjoyable (or tolerable depending on your point of view)
+<li>Making C programming more enjoyable (or tolerable depending on your point of view).
 <li>Impressing your friends.
 <li>Obtaining vast sums of research funding (although obviously not applicable to the author).
 </ul>
@@ -229,7 +229,7 @@ any changes type the following (shown for Solaris):<p>
 <blockquote><pre>unix &gt; <b>swig -perl5 example.i</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
-unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>		# This is for Solaris
+unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b>		# This is for Solaris
 unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";
@@ -274,10 +274,10 @@ it. For example, you could also build a Perl5 module by just running
 SWIG on the C header file and specifying a module name as follows<p>
 
 <p>
-<blockquote><pre>unix&gt; <b>swig -perl5 -module example example.h</b>
+<blockquote><pre>unix &gt; <b>swig -perl5 -module example example.h</b>
 unix &gt; <b>gcc -c example.c example_wrap.c \
 	-I/usr/local/lib/perl5/sun4-solaris/5.003/CORE</b>
-unix&gt; <b>ld -G example.o example_wrap.o -o example.so</b>
+unix &gt; <b>ld -G example.o example_wrap.o -o example.so</b>
 unix &gt; <b>perl5.003
 use example;
 print example::fact(4), "\n";

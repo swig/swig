@@ -264,7 +264,7 @@ Now, compiling (Python):
 <pre>
 $ swig -proxy -python -c++ pair.i
 $ c++ -c pair_wrap.c -I/usr/local/include/python2.1
-$ c++ -shared pair_wrap.c -o paircmodule.so
+$ c++ -shared pair_wrap.o -o paircmodule.so
 $ python
 Python 2.1 (#3, Aug 20 2001, 15:41:42) 
 [GCC 2.95.2 19991024 (release)] on sunos5
