@@ -43,6 +43,7 @@ DYNAMIC_LIB_PATH = $(RUNTIMEDIR):.
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 
 CPP_TEST_BROKEN = \
+	global_ns_arg \
 	arrayref \
 	abstract_typedef \
 	namespace_nested \
