@@ -387,6 +387,30 @@ DohPrintf(DOH *obj, const char *format, ...) {
   return ret;
 }
 
+/* -----------------------------------------------------------------------------
+ * DohPrintv()
+ * 
+ * Print a null-terminated variable length list of DOH objects
+ * ----------------------------------------------------------------------------- */
+
+int DohPrintv(DOHFile *f, ...) {
+  va_list ap;
+  int ret = 0;
+  DOH *obj;
+  va_start(ap,f);
+  while(1) {
+    obj = va_arg(ap,void *);
+    if (!obj) break;
+    if (DohCheck(obj)) {
+      ret += DohDump(obj,f);
+    } else {
+      ret += DohWrite(f,obj,strlen((char *) obj));
+    }
+  }
+  va_end(ap);
+  return ret;
+}
+
 /* ----------------------------------------------------------------------------- 
  * DohCopyto()
  *

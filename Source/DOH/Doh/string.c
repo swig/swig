@@ -846,6 +846,7 @@ NewString(const DOH *so)
     if (s) {
 	strcpy(str->str,s);
 	str->len = l;
+	str->sp = l;
     } else {
 	str->str[0] = 0;
 	str->len = 0;

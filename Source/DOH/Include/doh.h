@@ -120,6 +120,7 @@ extern void    DohChop(DOHString *src);
 extern void    DohEncoding(char *name, DOH *(*fn)(DOH *s));
 extern int     DohPrintf(DOHFile *obj, const char *format, ...);
 extern int     DohvPrintf(DOHFile *obj, const char *format, va_list ap);
+extern int     DohPrintv(DOHFile *obj, ...);
 extern DOH    *DohReadline(DOHFile *in);
 
   /* Miscellaneous */
@@ -163,6 +164,7 @@ extern int     DohIsFile(const DOH *obj);
 #define Seek               DohSeek
 #define Tell               DohTell
 #define Printf             DohPrintf
+#define Printv             DohPrintv
 #define Getc               DohGetc
 #define Putc               DohPutc
 #define Ungetc             DohUngetc
