@@ -174,10 +174,11 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   String *tname;
   String *iname;
   Parm *p;
+  String *tbase;
   patchlist = NewList();
   cpatchlist = NewList();
   typelist = NewList();
-  String *tbase;
+
 
   {
     String *tmp = NewString("");
