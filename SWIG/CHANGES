@@ -14,6 +14,91 @@ http://www.math.uni-magdeburg.de/~mkoeppe/imo-debian).
 Eventually this branch will be merged with the development on the
 trunk of the CVS tree; this merging will occur in the "rel-1-5" branch.
 
+8/18/2001: beazley
+           Added *highly* experimental support for wrapping of C++
+           template declarations.  Since C++ templates are essentially
+           glorified macros and SWIG has a fully operational C 
+           preprocessor with macro support, the parser now converts
+           template declarations to macros.  For example, a function
+           template like this
+
+               template<class T> T max(T a, T b);
+
+           is internally converted into a macro like this:
+
+               %define %_template_max(__name,T)
+               %name(__name) T max(T a, T b);
+               %enddef
+
+           To instantiate a version of the template, a special %template declaration
+           is used like this:
+
+               %template(maxint) max<int>;          
+               %template(maxdouble) max<double>;
+
+           The parameter to the %template directive must be proper C identifier that's
+           used to uniquely name the resulting instantiation.   When used, the
+           the expanded macro looks like this:
+
+              %name(maxint) int max(int a, int b);
+              %name(maxdouble) double max(double a, double b);
+
+           A similar technique is used for template classes.   For instance:
+
+              template<class T> class vector {
+                 T *data;
+                 int sz;
+              public:
+                 vector(int nitems);
+                 T *get(int n);
+                 ...
+              };
+
+           Gets converted into a macro like this:
+
+              %define %_template_vector(__name, T)
+              %{
+              typedef vector<T> __name;
+              %}
+              class __name {
+                 T *data;
+                 int sz;
+              public:
+                 __name(int nitems);
+                 T *get(int n);
+                 ...
+              };
+              typedef __name vector<T>;
+              %enddef
+
+           An a specific instantiation is created in exactly the same way:
+
+             %template(intvec) vector<int>;
+
+           The resulting code parsed by SWIG is then:
+
+              %{
+              typedef vector<int> intvec;
+              %}
+              class intvec {
+                  int *data;
+                  int sz;
+              public:
+                  intvec(int nitems);
+                  int *get(int n);
+                  ...
+              };
+              typedef intvec vector<int>;
+
+           Note: the last typedef is non-standard C and is used by SWIG to provide
+           an association between the name "intvec" and the template type 
+           "vector<int>".
+
+           CAUTION:  This is an experimental feature and the first time SWIG has
+           supported C++ templates.   Error reporting is essential non-existent.
+           It will probably break in certain cases.
+           *** EXPERIMENTAL NEW FEATURE ****
+
 8/15/2001: beazley
            Change to wrapping of multi-dimensional arrays.  Arrays
            are now properly mapped to a pointer to an array of
