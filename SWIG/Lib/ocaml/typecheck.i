@@ -115,7 +115,7 @@
       case C_string: $1 = 1;
       case C_ptr: {
 	swig_type_info *typeinfo = 
-	    (swig_type_info *)(long)Int64_val(Field(Field($input,0),1));
+	    (swig_type_info *)(long)Int64_val(Field($input,1));
 	$1 = SWIG_TypeCheck("char *",typeinfo) ||
 	     SWIG_TypeCheck("signed char *",typeinfo) ||
 	     SWIG_TypeCheck("unsigned char *",typeinfo) ||
