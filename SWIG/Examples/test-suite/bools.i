@@ -16,9 +16,15 @@ bool& rbool = bool2;
 const bool* const_pbool = pbool;
 const bool& const_rbool = rbool;
 
+static int eax()
+{
+  return 1024;  // NOTE: any number > 255 should do
+}
+
 // bool functions
 bool bo(bool b) {
-    return b;
+  eax();
+  return b;
 }
 bool& rbo(bool& b) {
     return b;
