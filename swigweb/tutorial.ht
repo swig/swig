@@ -187,40 +187,6 @@ unix % gcc -c example.c example_wrap.c -I/usr/local/include
 unix % ld -shared example.o example_wrap.o -o example.so
 </pre></tt></blockquote>
 
-<h3> Adding Documentation </h3>
-
-Documentation can be added using C/C++ comments (SWIG 1.1 only, but it is due to return at some point in SWIG 1.3).  For example :
-
-<ul><tt><pre>
-/* example.i */
-
-%title "Simple Example"
-%{
-/* Put header files here */
-%}
-
-%section "My Commands"
-extern double My_variable; // This is an interesting variable
-extern int fact(int n);    // Computes n factorial
-extern int my_mod(int x, int y); // Calculates x % y
-extern char *get_time();
-/* Returns the current time as a string */
-</pre></tt></ul>
-
-We can now run SWIG using : <br>
-<ul> <tt> % swig -tcl -dhtml example.i </tt> </ul>
-
-This will produce a documentation file <a href="tutorial/example_wrap_tcl.html"> <tt> example_wrap.html </tt> </a>. 
-
-<br><br>
-The documentation system produces documentation using the syntax of the
-target language.  Thus, if you used Perl5 instead of Tcl, the documentation
-file might look like <a href="tutorial/example_wrap_perl5.html"> this </a>.  <br> <br>
-
-Documentation can also be produced in ASCII and LaTeX formats.  
-The C/C++ comments containing documentation can span multiple lines and
-can include embedded LaTeX or HTML if desired.
-
 <h3> Running SWIG under Microsoft Windows </h3>
 
 SWIG also works perfectly well under all known 32 bit versions of Windows including 95/98/NT/2000/XP.  SWIG
