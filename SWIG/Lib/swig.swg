@@ -82,6 +82,10 @@
 
 /* Smart pointer handling */
 %rename(__deref__) operator->;
+
+/* Define std namespace */
+namespace std {
+}
 #endif
 
 /* Macro for overload resolution */
