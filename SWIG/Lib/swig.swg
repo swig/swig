@@ -59,9 +59,10 @@
 #define %nodefault     %pragma nodefault
 #define %makedefault   %pragma makedefault
 
-/* New %except directive */
+/* Common features */
 
-#define %exception %feature(except)
+#define %exception %feature("except")
+#define %newobject %feature("new","1")
 
 /* Default handling of certain overloaded operators */
 
