@@ -150,6 +150,7 @@
 #define WARN_LANG_OVERLOAD_SHADOW     509
 #define WARN_LANG_FRIEND_IGNORE       510
 #define WARN_LANG_OVERLOAD_KEYWORD    511
+#define WARN_LANG_OVERLOAD_CONST      512
 
 /* -- Reserved (600-799) -- */
 

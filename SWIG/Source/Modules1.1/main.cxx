@@ -199,8 +199,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Initialize the SWIG core */
   Swig_init();
   
-  /* Suppress warning messages for private inheritance and preprocessor evaluation */
-  Swig_warnfilter("202,309",1);
+  /* Suppress warning messages for private inheritance, preprocessor evaluation, 
+     might be abstract, and overloaded const */
+
+  Swig_warnfilter("202,309,403,512",1);
 
   // Initialize the preprocessor
   Preprocessor_init();

@@ -152,7 +152,6 @@ Swig_overload_rank(Node *n) {
 		differ = 1;
 		break;
 	      }
-
 	    } else if (differ) {
 	      break;
 	    }
@@ -168,11 +167,53 @@ Swig_overload_rank(Node *n) {
 	    }
 	  }
 	  if (!differ) {
+	    /* See if declarations differ by const only */
+	    String *d1 = Getattr(nodes[i].n,"decl");
+	    String *d2 = Getattr(nodes[j].n,"decl");
+	    if (d1 && d2) {
+	      String *dq1 = Copy(d1);
+	      String *dq2 = Copy(d2);
+	      if (SwigType_isconst(d1)) {
+		SwigType_pop(dq1);
+	      }
+	      if (SwigType_isconst(d2)) {
+		SwigType_pop(dq2);
+	      }
+	      if (Strcmp(dq1,dq2) == 0) {
+		
+		if (SwigType_isconst(d1) && !SwigType_isconst(d2)) {
+		  Overloaded t = nodes[i];
+		  nodes[i] = nodes[j];
+		  nodes[j] = t;
+		  differ = 1;
+		  if (!nodes[j].error) {
+		    Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
+				 "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
+				 Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+				 Getfile(nodes[i].n), Getline(nodes[i].n));
+		  }
+		  nodes[j].error = 1;
+		} else if (!SwigType_isconst(d1) && SwigType_isconst(d2)) {
+		  differ = 1;
+		  if (!nodes[j].error) {
+		    Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
+				 "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
+				 Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+				 Getfile(nodes[i].n), Getline(nodes[i].n));
+		  }
+		  nodes[j].error = 1;
+		}
+	      }
+	      Delete(dq1);
+	      Delete(dq2);
+	    }
+	  }
+	  if (!differ) {
 	    if (!nodes[j].error) {
 	      Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
 			   "Overloaded %s(%s) is shadowed by %s(%s) at %s:%d.\n",
-			   Getattr(nodes[j].n,"name"), ParmList_str(Getattr(nodes[j].n,"parms")),
-			   Getattr(nodes[i].n,"name"), ParmList_str(Getattr(nodes[i].n,"parms")),
+			   Getattr(nodes[j].n,"name"), ParmList_protostr(nodes[j].parms),
+			   Getattr(nodes[i].n,"name"), ParmList_protostr(nodes[i].parms),
 			   Getfile(nodes[i].n),Getline(nodes[i].n));
 	      nodes[j].error = 1;
 	    }
@@ -186,7 +227,7 @@ Swig_overload_rank(Node *n) {
     int i;
     for (i = 0; i < nnodes; i++) {
       Append(result,nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_str(nodes[i].parms));
+      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_protostr(nodes[i].parms));
       //      Swig_print_node(nodes[i].n);
     }
   }
