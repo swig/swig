@@ -484,7 +484,7 @@ OCC=@OCAMLC@
 NOLINK ?= false
 
 ocaml_static: $(SRCS)
-	$(SWIG) -ocaml -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml -classmod -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) $(INTERFACE)
 	$(OCC) -c -ccopt "$(INCLUDE)" $(ISRCS) $(SRCS)
 	$(OCC) -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -c $(INTERFACE:%.i=%.ml)
@@ -494,7 +494,7 @@ ocaml_static: $(SRCS)
 		$(INTERFACE:%.i=%_wrap.o) $(OBJS) -cclib "$(LIBS)"
 
 ocaml_static_cpp: $(SRCS)
-	$(SWIG) -ocaml -c++ -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
+	$(SWIG) -ocaml -c++ -nsmod -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -c -ccopt "-xc++ $(INCLUDE)" \
@@ -507,7 +507,7 @@ ocaml_static_cpp: $(SRCS)
 		$(INTERFACE:%.i=%_wrap.o) -cclib "$(LIBS)"
 
 ocaml_static_multi_cpp: $(SRCS)
-	$(SWIG) -c -ocaml -c++ -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
+	$(SWIG) -c -ocaml -c++ -objects -mlout $(INTERFACE:%.i=%.ml) $(SWIGOPT) \
 		$(INTERFACE)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -c -ccopt "-xc++ $(INCLUDE)" \

@@ -6,7 +6,7 @@ open Example
 
 let x = 42
 let y = 105
-let g = gcd(x,y)
+let g = gcd x y
 let _ = Printf.printf "The gcd of %d and %d is %d\n" x y g
 
 (* Manipulate the Foo global variable *)
