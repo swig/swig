@@ -122,8 +122,10 @@ List_scope(DOH *lo, int s) {
   if (l->flags & DOH_FLAG_SETSCOPE) return;
   l->flags = l->flags | DOH_FLAG_SETSCOPE;
   if (s < l->scope) l->scope = (unsigned char) s;
-  for (i = 0; i < l->nitems; i++) {
-    Setscope(l->items[i],s);
+  if (s != l->scope) {
+    for (i = 0; i < l->nitems; i++) {
+      Setscope(l->items[i],s);
+    }
   }
   l->flags = l->flags & ~DOH_FLAG_SETSCOPE;
 }
