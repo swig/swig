@@ -1,5 +1,10 @@
 Failed:
+return_value_scope.cpptest
+template_retvalue.cpptest
+template_ns4.cpptest
 Success:
+template_enum_ns_inherit.cpptest
+template_int_const.cpptest
 template_ns_scope.cpptest
 constructor_exception.cpptest
 template_arg_scope.cpptest
@@ -68,7 +73,6 @@ template_inherit.cpptest
 template_ns.cpptest
 template_ns2.cpptest
 template_ns3.cpptest
-template_ns4.cpptest
 template_ns_inherit.cpptest
 template_qualifier.cpptest
 template_rename.cpptest

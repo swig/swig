@@ -757,11 +757,10 @@ class OCAML : public Language {
 	String *target = NewString("");
 	String *arg = NewString("");
 	String *cleanup = NewString("");
-	String *outarg = NewString("");
+	//String *outarg = NewString("");
 	String *build = NewString("");
 
 	String   *tm;
-	int argout_set = 0;
 	int i = 0;
 	int numargs;
 	int numreq;
@@ -835,9 +834,13 @@ class OCAML : public Language {
 	    String   *ln = Getattr(p,"lname");
 
 	    // Produce names of source and target
-	    Clear(source);
-	    Clear(target);
-	    Clear(arg);
+	    Delete(source);
+	    source = NewString("");
+	    Delete(target);
+	    target = NewString("");
+	    Delete(arg);
+	    arg = NewString("");
+
 	    if( numargs == 1 ) 
 		Printf(source, "args");
 	    else 
@@ -917,18 +920,8 @@ class OCAML : public Language {
 	}
 
 	// Pass output arguments back to the caller.
-	
-	for (p = l; p;) {
-	    if ((tm = Getattr(p,"tmap:argout"))) {
-		Replaceall(tm,"$arg",Getattr(p,"emit:input"));
-		Replaceall(tm,"$input",Getattr(p,"emit:input"));
-		Printv(outarg,tm,"\n",NULL);
-		p = Getattr(p,"tmap:argout:next");
-		argout_set = 1;
-	    } else {
-		p = nextSibling(p);
-	    }
-	}
+
+	// Not quite sure how this should be handled.
 
 	// Free up any memory allocated for the arguments.
 
@@ -959,11 +952,6 @@ class OCAML : public Language {
 	} else {
 	    throw_unhandled_ocaml_type_error (dcaml);
 	}
-
-	Printv(f->code,"/* Mark 2 */\n",0);
-
-	// Dump the argument output code
-	if( argout_set ) Printv(f->code, Char(outarg),0);
 
 	// Dump the argument cleanup code
 	Printv(f->code, Char(cleanup),0);
@@ -998,7 +986,7 @@ class OCAML : public Language {
 	Delete(source);
 	Delete(target);
 	Delete(arg);
-	Delete(outarg);
+	//Delete(outarg);
 	Delete(cleanup);
 	Delete(build);
 	// I am getting a core dump because of this, but dcaml, as I
@@ -1273,7 +1261,7 @@ class OCAML : public Language {
 	if( classname ) Delete(classname);
 	classname = get_ml_class_name(GetChar(n,"name"));
 
-	if( strlen(Char(classname)) && objects ) {
+	if( strlen(Char(classname)) && objects ) {	
 	    classmode = 1;
 
 	    /* Print this pointer type if it hasn't been seen before */
