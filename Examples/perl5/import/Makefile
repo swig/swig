@@ -1,17 +1,19 @@
 TOP        = ../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -noruntime -shadow 
-RUNTIMEDIR = $(TOP)/../Runtime/.libs
+SWIGOPT    = -noruntime
+LIBS       = -L. -lruntime
 
 all::
+	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='-runtime' \
+	LIBPREFIX='lib' TARGET='runtime' INTERFACE='runtime.i' perl5_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='baseclass' INTERFACE='base.i' perl5_multi_cpp
+	LIBS='$(LIBS)' TARGET='baseclass' INTERFACE='base.i' perl5_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='foo' INTERFACE='foo.i' perl5_multi_cpp
+	LIBS='$(LIBS)' TARGET='foo' INTERFACE='foo.i' perl5_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='bar' INTERFACE='bar.i' perl5_multi_cpp
+	LIBS='$(LIBS)' TARGET='bar' INTERFACE='bar.i' perl5_cpp
 	$(MAKE) -f $(TOP)/Makefile SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT)' \
-	RUNTIMEDIR='$(RUNTIMEDIR)' TARGET='spam' INTERFACE='spam.i' perl5_multi_cpp
+	LIBS='$(LIBS)' TARGET='spam' INTERFACE='spam.i' perl5_cpp
 
 
 clean::
