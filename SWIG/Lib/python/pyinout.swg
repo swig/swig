@@ -80,11 +80,7 @@ or you can use the %apply directive :
     res = asptr_meth($input, &$1);
     if (!res) {
       SWIG_type_error("$basetype", $input);
-    } else {
-      if (!$1) {
-	SWIG_null_ref("$basetype");
-      }
-    }    
+    }
     if (SWIG_arg_fail($argnum)) SWIG_fail;
   }
 
