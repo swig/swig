@@ -9,7 +9,7 @@ PYINCLUDE = -I/usr/local/include/python2.0
 TCLINCLUDE = -I/usr/local/include
 
 # Location of your Perl installation
-PERLINCLUDE = -I/usr/perl5/5.00503/sun4-solaris/CORE
+PERLINCLUDE = -I/usr/lib/perl5/5.00503/i386-linux/CORE
 
 all: wad python tcl perl
 

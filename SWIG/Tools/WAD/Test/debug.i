@@ -6,6 +6,3 @@ extern int blowheap_crash();
 extern int overflow_crash();
 extern int abort_crash(int);
 extern int math_crash(int x, int y);
-
-
-
