@@ -2726,10 +2726,13 @@ language (e.g., the name must not match any existing C++ typename,
 class name, or declaration name).
 
 <p>
-Internally, templates are handled by playing some clever tricks with macro
-expansion.  Specifically, the <tt>%template(intList) List&lt;int&gt;</tt>
-declaration gets expanded into the following code which is then parsed to create an
-interface:
+Since most C++ compilers are nothing more than glorified preprocessors
+<em>and</em> C++ purists really hate macros, SWIG internally handles
+templates by converting them into macros and performing expansions
+using the preprocessor.  Specifically, the <tt>%template(intList)
+List&lt;int&gt;</tt> declaration results in a macro expansion that
+generates the following code (which is then parsed to create the
+interface):
 
 <blockquote>
 <pre>
@@ -2788,10 +2791,11 @@ instantiations of the function.
 <p>
 If your goal is to make someone's head explode more than usual, SWIG
 directives such as <tt>%name</tt> and <tt>%addmethods</tt> can be
-included directly in template definitions.  Not only that, since
-template support is built using the preprocessor, standard C
-preprocessor operators such as <tt>#</tt> and <tt>##</tt> can be
-applied to template parameters.  For example:
+included directly in template definitions.  Not only that, since SWIG
+has the advantage of using the preprocessor for template expansion,
+standard C preprocessor operators such as <tt>#</tt> and <tt>##</tt>
+can be applied to template parameters (an obvious oversight of the C++
+standard that SWIG now corrects). For example:
 
 <p>
 <blockquote><pre>// File : list.h
@@ -2842,7 +2846,7 @@ see if the actual contents of the template declaration make any sense.
 Since the C++ compiler will <em>definitely</em> check this when it
 compiles the resulting wrapper file, there is no practical reason for
 SWIG to duplicate this functionality (besides, none of the SWIG
-developers are quite that masochistic).
+developers are masochistic enough to want to do it).
 
 <h3>Pointers to Members</h3>
 
