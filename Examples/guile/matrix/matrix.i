@@ -1,7 +1,6 @@
 //
 // FILE : matrix.i
 
-%init Matrix_init
 %{
 
 void set_m(double **M, int i, int j, double val) {
