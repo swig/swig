@@ -20,14 +20,14 @@ SWIGRUNTIME(void)
 SWIG_define_class(swig_type_info *type)
 {
     VALUE klass;
-    char *klass_name = ALLOCA_N(char, 4 + strlen(type->name) + 1);
-
+    char *klass_name = (char *) malloc(4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
     if (NIL_P(_cSWIG_Pointer)) {
 	_cSWIG_Pointer = rb_define_class_under(_mSWIG, "Pointer", rb_cObject);
 	rb_undef_method(CLASS_OF(_cSWIG_Pointer), "new");
     }
     klass = rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
+    free((void *) klass_name);
 }
 
 /* Create a new pointer object */
@@ -45,9 +45,10 @@ SWIG_NewPointerObj(void *ptr, swig_type_info *type, int own)
       sklass = (swig_class *) type->clientdata;
       return Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), (own ? VOIDFUNC(sklass->destroy) : 0), ptr);
     }
-    klass_name = ALLOCA_N(char, 4 + strlen(type->name) + 1);
+    klass_name = (char *) malloc(4 + strlen(type->name) + 1);
     sprintf(klass_name, "TYPE%s", type->name);
     klass = rb_const_get(_mSWIG, rb_intern(klass_name));
+    free((void *) klass_name);
     return Data_Wrap_Struct(klass, 0, 0, ptr);
 }
 
