@@ -15,12 +15,12 @@ namespace Swig {
   /* base class for director exceptions */
   class DirectorException {
     protected:
-      std::string _msg;
+      std::string swig_msg;
     public:
       DirectorException(const char* msg="") {
       }
-      const char *getMessage() { 
-        return _msg.c_str(); 
+      const char *getMessage() const { 
+        return swig_msg.c_str(); 
       }
       virtual ~DirectorException() {}
   };
@@ -29,8 +29,8 @@ namespace Swig {
   class DirectorTypeMismatchException : public Swig::DirectorException {
     public:
       DirectorTypeMismatchException(const char* msg="") {
-        _msg = "Swig director type mismatch: ";
-        _msg += msg;
+        swig_msg = "Swig director type mismatch: ";
+        swig_msg += msg;
         PyErr_SetString(PyExc_TypeError, msg);
       }
   };
@@ -61,118 +61,117 @@ namespace Swig {
   class Director {
     private:
       /* pointer to the wrapped python object */
-      PyObject* _self;
+      PyObject* swig_self;
       /* flag indicating whether the object is owned by python or c++ */
-      mutable int _disown;
+      mutable bool swig_disown_flag;
       /* shared flag for breaking recursive director calls */
-      static int _up;
+      static bool swig_up;
 
 #ifdef __PTHREAD__
-      /* locks for sharing the _up flag in a threaded environment */
-      static pthread_mutex_t _mutex_up;
-      static int _mutex_active;
-      static pthread_t _mutex_thread;
+      /* locks for sharing the swig_up flag in a threaded environment */
+      static pthread_mutex_t swig_mutex_up;
+      static bool swig_mutex_active;
+      static pthread_t swig_mutex_thread;
 #endif
 
       /* decrement the reference count of the wrapped python object */
-      void __decref() const { 
-        if (_disown) {
-          Py_DECREF(_self); 
+      void swig_decref() const { 
+        if (swig_disown_flag) {
+          Py_DECREF(swig_self); 
         }
       }
 
-      /* reset the _up flag once the routing direction has been determined */
+      /* reset the swig_up flag once the routing direction has been determined */
 #ifdef __PTHREAD__
-      void __clear_up() const { 
-        Swig::Director::_up = 0; 
-        Swig::Director::_mutex_active = 0;
-        pthread_mutex_unlock(&_mutex_up);
+      void swig_clear_up() const { 
+        Swig::Director::swig_up = false; 
+        Swig::Director::swig_mutex_active = false;
+        pthread_mutex_unlock(&swig_mutex_up);
       }
 #else
-      void __clear_up() const { 
-        Swig::Director::_up = 0; 
+      void swig_clear_up() const { 
+        Swig::Director::swig_up = false; 
       }
 #endif
 
     public:
       /* wrap a python object, optionally taking ownership */
-      Director(PyObject* self, int disown): _self(self), _disown(disown) {
-        __incref();
+      Director(PyObject* self, bool disown) : swig_self(self), swig_disown_flag(disown) {
+        swig_incref();
       }
 
       /* discard our reference at destruction */
       virtual ~Director() {
-        __decref(); 
+        swig_decref(); 
       }
 
       /* return a pointer to the wrapped python object */
-      PyObject *__get_self() const { 
-        return _self; 
+      PyObject *swig_get_self() const { 
+        return swig_self; 
       }
 
-
-      /* get the _up flag to determine if the method call should be routed
+      /* get the swig_up flag to determine if the method call should be routed
        * to the c++ base class or through the wrapped python object
        */
 #ifdef __PTHREAD__
-      int __get_up() const { 
-        if (Swig::Director::_mutex_active) {
-          if (pthread_equal(Swig::Director::_mutex_thread, pthread_self())) {
-            int up = _up;
-            __clear_up();
+      bool swig_get_up() const { 
+        if (Swig::Director::swig_mutex_active) {
+          if (pthread_equal(Swig::Director::swig_mutex_thread, pthread_self())) {
+            bool up = swig_up;
+            swig_clear_up();
             return up;
           }
         }
         return 0;
       }
 #else 
-      int __get_up() const { 
-        int up = _up;
-        _up = 0;
+      bool swig_get_up() const { 
+        bool up = swig_up;
+        swig_up = false;
         return up;
       }
 #endif
 
-      /* set the _up flag if the next method call should be directed to
+      /* set the swig_up flag if the next method call should be directed to
        * the c++ base class rather than the wrapped python object
        */
 #ifdef __PTHREAD__
-      void __set_up() const { 
-        pthread_mutex_lock(&Swig::Director::_mutex_up);
-        Swig::Director::_mutex_thread = pthread_self();
-        Swig::Director::_mutex_active = 1;
-        Swig::Director::_up = 1; 
+      void swig_set_up() const { 
+        pthread_mutex_lock(&Swig::Director::swig_mutex_up);
+        Swig::Director::swig_mutex_thread = pthread_self();
+        Swig::Director::swig_mutex_active = true;
+        Swig::Director::swig_up = true; 
       }
 #else 
-      void __set_up() const { 
-        Swig::Director::_up = 1; 
+      void swig_set_up() const { 
+        Swig::Director::swig_up = true; 
       }
 #endif
 
       /* acquire ownership of the wrapped python object (the sense of "disown"
        * is from python) */
-      void __disown() const { 
-        if (!_disown) { 
-          _disown=1;
-          __incref(); 
+      void swig_disown() const { 
+        if (!swig_disown_flag) { 
+          swig_disown_flag=true;
+          swig_incref(); 
         } 
       }
 
       /* increase the reference count of the wrapped python object */
-      void __incref() const { 
-        if (_disown) {
-          Py_INCREF(_self); 
+      void swig_incref() const { 
+        if (swig_disown_flag) {
+          Py_INCREF(swig_self); 
         }
       }
 
   };
 
-  int Swig::Director::_up = 0;
+  bool Swig::Director::swig_up = false;
 
 #ifdef __PTHREAD__
-  MUTEX_INIT(Swig::Director::_mutex_up);
-  pthread_t Swig::Director::_mutex_thread;
-  int Swig::Director::_mutex_active = 0;
+  MUTEX_INIT(Swig::Director::swig_mutex_up);
+  pthread_t Swig::Director::swig_mutex_thread;
+  bool Swig::Director::swig_mutex_active = false;
 #endif
 
 }

@@ -16,50 +16,46 @@ namespace Swig {
   /* director base class */
   class Director {
     private:
-      /* pointer to java virtual machine */
-      JavaVM       *__jvm;
+      /* pointer to Java virtual machine */
+      JavaVM *swig_jvm;
 
     protected:
-      /* pointer to the wrapped java object */
-      jobject __self;
+      /* pointer to the wrapped Java object */
+      jobject swig_self;
+
       /* Acquire Java VM environment from Java VM */
-      JNIEnv *__acquire_jenv() const {
-        JNIEnv *env;
-        __jvm->AttachCurrentThread((void **) &env, NULL);
+      JNIEnv *swig_acquire_jenv() const {
+        JNIEnv *env = NULL;
+        swig_jvm->AttachCurrentThread((void **) &env, NULL);
         return env;
       }
 
     public:
-      Director(JNIEnv *jenv):
-        __jvm((JavaVM *) NULL),
-      __self(NULL) {
+      Director(JNIEnv *jenv) : swig_jvm((JavaVM *) NULL), swig_self(NULL) {
         /* Acquire the Java VM pointer */
-        jenv->GetJavaVM(&__jvm);
+        jenv->GetJavaVM(&swig_jvm);
       }
 
       /* Remove the Java object global lock at destruction */
       virtual ~Director() {
-        if (__self) {
-          JNIEnv           *jenv;
-          jmethodID         disconn_meth;
-
-          jenv = __acquire_jenv();
-          disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(__self), "__director_disconnect", "()V");
+        if (swig_self) {
+          JNIEnv *jenv = swig_acquire_jenv();
+          jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(swig_self), "swig_director_disconnect", "()V");
           if (disconn_meth)
-            jenv->CallVoidMethod(__self, disconn_meth);
-          jenv->DeleteGlobalRef(__self);
-          __self = (jobject) NULL;
+            jenv->CallVoidMethod(swig_self, disconn_meth);
+          jenv->DeleteGlobalRef(swig_self);
+          swig_self = (jobject) NULL;
         }
       }
 
-      /* Set __self and get Java global reference on object */
-      inline void __set_self(JNIEnv *jenv, jobject jself) {
-        __self = jenv->NewGlobalRef(jself);
+      /* Set swig_self and get Java global reference on object */
+      void swig_set_self(JNIEnv *jenv, jobject jself) {
+        swig_self = jenv->NewGlobalRef(jself);
       }
 
-      /* return a pointer to the wrapped java object */
-      inline jobject __get_self() const {
-        return __self; 
+      /* return a pointer to the wrapped Java object */
+      jobject swig_get_self() const {
+        return swig_self; 
       }
   };
 }
