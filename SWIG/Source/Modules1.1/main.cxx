@@ -247,11 +247,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
 
-  sprintf(temp,"%s%sconfig", LibDir, SWIG_FILE_DELIMETER);
-  Swig_add_directory((DOH *) temp);
-  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib" SWIG_FILE_DELIMETER "config");
-  Swig_add_directory((DOH *) LibDir);
-  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib");
+
   
   libfiles = NewList();
 
@@ -378,8 +374,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
       }
   }
-  if (Verbose)
-    printf ("LibDir: %s\n", LibDir);
 
   while (includecount > 0) {
     Swig_add_directory((DOH *) includefiles[--includecount]);
@@ -404,6 +398,24 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     DOH *rl = NewString("");
     Printf(rl,"%s%s%s", SwigLib, SWIG_FILE_DELIMETER, LibDir);
     Swig_add_directory(rl);
+    rl = NewString("");
+    Printf(rl,".%sswig_lib%s%s", SWIG_FILE_DELIMETER, SWIG_FILE_DELIMETER, LibDir);
+    Swig_add_directory(rl);
+  }
+
+  sprintf(temp,"%s%sconfig", SwigLib, SWIG_FILE_DELIMETER);
+  Swig_add_directory((DOH *) temp);
+  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib" SWIG_FILE_DELIMETER "config");
+  Swig_add_directory((DOH *) SwigLib);
+  Swig_add_directory((DOH *) "." SWIG_FILE_DELIMETER "swig_lib");
+
+  if (Verbose) {
+    printf ("LibDir: %s\n", LibDir);
+    List *sp = Swig_search_path();
+    String *s;
+    for (s = Firstitem(sp); s; s = Nextitem(sp)) {
+      Printf(stdout,"   %s\n", s);
+    }
   }
 
   // If we made it this far, looks good. go for it....
