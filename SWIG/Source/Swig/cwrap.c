@@ -236,7 +236,7 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
     Printf(fcall, "%s = ", SwigType_str(t,"_result_ref"));
     break;
   default:
-    Printf(fcall, "%s = %s", name, SwigType_lcaststr(t,""));
+    Printf(fcall,"%s = (%s)", name, SwigType_lstr(t,0));
     break;
   }
 
