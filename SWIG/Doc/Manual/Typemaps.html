@@ -1766,7 +1766,9 @@ int foo(int x, int y, int flags);
 
 The primary use of this typemap is to either change the wrapping of
 default arguments or specify a default argument in a language where
-they aren't supported (like C).  
+they aren't supported (like C). Target languages that do not support
+optional arguments, such as Java and C#, effecively ignore the value specified
+by this typemap as all arguments must be given.
 
 <p>
 Once a default typemap has been applied to an argument, all arguments
