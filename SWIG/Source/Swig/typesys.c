@@ -951,6 +951,8 @@ static Hash *r_resolved = 0;               /* Hash mapping resolved types to man
 static Hash *r_ltype = 0;                  /* Hash mapping mangled names to their local c type   */
 static Hash *r_clientdata = 0;             /* Hash mapping resolved types to client data         */
 
+static void (*r_tracefunc)(SwigType *t, String *mangled, String *clientdata) = 0;
+
 void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata) {
   String *mt;
   SwigType *lt;
@@ -965,6 +967,11 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
   }
 
   mt = SwigType_manglestr(t);               /* Create mangled string */
+
+  if (r_tracefunc) {
+    (*r_tracefunc)(t,mt, (String *) clientdata);
+  }
+
   if (SwigType_istypedef(t))
     lt = Copy(t);
   else
@@ -1010,6 +1017,12 @@ void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata)
 void
 SwigType_remember(SwigType *ty) {
   SwigType_remember_clientdata(ty,0);
+}
+
+void (*SwigType_remember_trace(void (*tf)(SwigType *, String *, String *)))(SwigType *, String *, String *) {
+  void (*o)(SwigType *, String *, String *) = r_tracefunc;
+  r_tracefunc = tf;
+  return o;
 }
 
 /* -----------------------------------------------------------------------------
