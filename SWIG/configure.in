@@ -433,87 +433,93 @@ AC_SUBST(TCLLIB)
 PYINCLUDE=
 PYLIB=
 PYPACKAGE=
-PYLINK="-lModules -lPython -lObjects -lParser"
 
-AC_ARG_WITH(py,[  --with-py=path          Set location of Python],[
-	PYPACKAGE="$withval"], [PYPACKAGE=])
-AC_ARG_WITH(pyincl,[  --with-pyincl=path      Set location of Python include directory],[
-	PYINCLUDE="$withval"], [PYINCLUDE=])
-AC_ARG_WITH(pylib,[  --with-pylib=path       Set location of Python library directory],[
-	PYLIB="$withval"], [PYLIB=])
+# I don't think any of this commented stuff works anymore
 
-if test -z "$PYINCLUDE"; then
-   if test -n "$PYPACKAGE"; then
-	PYINCLUDE="$PYPACKAGE/include"
-   fi
+#PYLINK="-lModules -lPython -lObjects -lParser"
+
+#AC_ARG_WITH(py,[  --with-py=path          Set location of Python],[
+#	PYPACKAGE="$withval"], [PYPACKAGE=])
+#AC_ARG_WITH(pyincl,[  --with-pyincl=path      Set location of Python include directory],[
+#	PYINCLUDE="$withval"], [PYINCLUDE=])
+#AC_ARG_WITH(pylib,[  --with-pylib=path       Set location of Python library directory],[
+#	PYLIB="$withval"], [PYLIB=])
+
+#if test -z "$PYINCLUDE"; then
+#   if test -n "$PYPACKAGE"; then
+#	PYINCLUDE="$PYPACKAGE/include"
+#   fi
+#fi
+
+#if test -z "$PYLIB"; then
+#   if test -n "$PYPACKAGE"; then
+#	PYLIB="$PYPACKAGE/lib"
+#   fi
+#fi
+
+AC_ARG_WITH(python,[  --with-python=path       Set location of Python executable],[ PYBIN="$withval"], [PYBIN=])
+
+# First figure out what the name of the Python executable
+
+if test -z "$PYBIN"; then
+AC_CHECK_PROGS(PYTHON, $prefix/bin/python python python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python)
+else
+PYTHON="$PYBIN"
 fi
 
-if test -z "$PYLIB"; then
-   if test -n "$PYPACKAGE"; then
-	PYLIB="$PYPACKAGE/lib"
-   fi
-fi
+if test -n "$PYTHON"; then
+    AC_MSG_CHECKING(for Python prefix)
+    PYPREFIX=`($PYTHON -c "import sys; print sys.prefix") 2>/dev/null`
+    AC_MSG_RESULT($PYPREFIX)
+    AC_MSG_CHECKING(for Python exec-prefix)
+    PYEPREFIX=`($PYTHON -c "import sys; print sys.exec_prefix") 2>/dev/null`
+    AC_MSG_RESULT($PYEPREFIX)
 
 
-AC_MSG_CHECKING(for Python header files)
+    # Note: I could not think of a standard way to get the version string from different versions.
+    # This trick pulls it out of the file location for a standard library file.
 
-dirs="$PYINCLUDE $PYINCLUDE/python2.1 $PYINCLUDE/python2.0 $PYINCLUDE/python1.6 $PYINCLUDE/python1.5 $PYINCLUDE/python1.4 $PYINCLUDE/Py $prefix/include/python2.1 $prefix/include/python2.0 $prefix/include/python1.6 $prefix/include/python1.5 $prefix/include/python1.4 /usr/local/include/python2.1 /usr/local/include/python2.0 /usr/local/include/python1.6 /usr/local/include/python1.5 /usr/local/include/python1.4 /usr/include/python2.1 /usr/include/python2.0 /usr/include/python1.6 /usr/include/python1.5 /usr/include/python1.4 $prefix/include/Py /usr/local/include/Py /usr/include/Py"
-for i in $dirs ; do
-	if test -r $i/Python.h; then
-		AC_MSG_RESULT($i)
-		PYINCLUDE="-I$i"
-		break
-	fi
-done
-if test -z "$PYINCLUDE"; then
-#	PYINCLUDE="-I/usr/local/include/Py"
-    	AC_MSG_RESULT(not found)
-fi
+    AC_MSG_CHECKING(for Python version)
 
-AC_MSG_CHECKING(for Python library)
-dirs="$PYLIB $PYLIB/config $PYLIB/lib $PYLIB/python2.1/config $PYLIB/python2.0/config $PYLIB/python1.6/config $PYLIB/python1.5/config $PYLIB/python1.4/config $PYLIB/python/lib $prefix/lib/python2.1/config $prefix/lib/python2.0/config $prefix/lib/python1.6/config $prefix/lib/python1.5/config $prefix/lib/python1.4/config $prefix/lib/python/lib /usr/local/lib/python2.1/config /usr/local/lib/python2.0/config /usr/local/lib/python1.6/config /usr/local/lib/python1.5/config /usr/local/lib/python1.4/config /usr/lib/python2.1/config /usr/lib/python2.1 /usr/lib/python2.0/config /usr/lib/python2.0 /usr/lib/python1.6/config /usr/lib/python1.6 /usr/lib/python1.5/config /usr/lib/python1.5 /usr/lib/python1.4/config /usr/lib/python1.4 /usr/local/lib/python/lib /usr/lib/python/lib"
+    # Need to do this hack since autoconf replaces __file__ with the name of the configure file
+    filehack="file__"
+    PYVERSION=`($PYTHON -c "import string,operator; print operator.getitem(string.split(string.__$filehack,'/'),-2)")`
+    AC_MSG_RESULT($PYVERSION)
 
-# cygwin produces "libpython2.1.dll.a" instead of "libpython2.1.a"
-for i in $dirs ; do
-	if ((test -r $i/libpython2.1.a;) || (test -r $i/libpython2.1.dll.a;)) then
-	    AC_MSG_RESULT($i)
-	    PYLIB="$i"
-	    PYINCLUDE="$PYINCLUDE -I$i"
-            PYLINK="-lpython2.1"
-	    break
-	fi
-	if ((test -r $i/libpython2.0.a;) || (test -r $i/libpython2.0.dll.a;)) then
-	    AC_MSG_RESULT($i)
-	    PYLIB="$i"
-	    PYINCLUDE="$PYINCLUDE -I$i"
-            PYLINK="-lpython2.0"
-	    break
-	fi
-	if test -r $i/libpython1.6.a; then
-	    AC_MSG_RESULT($i)
-	    PYLIB="$i"
-	    PYINCLUDE="$PYINCLUDE -I$i"
-            PYLINK="-lpython1.6"
-	    break
-	fi
-	if test -r $i/libpython1.5.a; then
-	    AC_MSG_RESULT($i)
-	    PYLIB="$i"
-	    PYINCLUDE="$PYINCLUDE -I$i"
-            PYLINK="-lpython1.5"
-	    break
-	fi
-	if test -r $i/libPython.a; then
-	    AC_MSG_RESULT($i)
-	    PYLIB="$i"
-	    PYINCLUDE="$PYINCLUDE -I$i"
-	    break
-	fi
-done
-if test -z "$PYLIB"; then
-	AC_MSG_RESULT(not found)
-#	PYLIB="/usr/local/lib/python/lib"
-#	PYINCLUDE="$PYINCLUDE -I$PYLIB"
+    # Set the include directory
+
+    AC_MSG_CHECKING(for Python header files)		
+    if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/lib/$PYVERSION/config"
+    fi
+    if test -z "$PYINCLUDE"; then
+        if test -r $PYPREFIX/include/Py/Python.h; then
+            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/lib/python/lib"
+        fi
+    fi
+    AC_MSG_RESULT($PYINCLUDE)
+
+    # Set the library directory blindly.   This probably won't work with older versions
+    AC_MSG_CHECKING(for Python library)
+    dirs="$PYVERSION/config $PYVERSION/lib python/lib"
+    for i in $dirs; do
+        if test -d $PYEPREFIX/lib/$i; then
+           PYLIB="$PYEPREFIX/lib/$i"
+           break
+        fi
+    done
+    if test -z "$PYLIB"; then
+        AC_MSG_RESULT(Not found)
+    else
+        AC_MSG_RESULT($PYLIB)
+    fi
+
+    # Check for really old versions
+    if test -r $PYLIB/libPython.a; then
+         PYLINK="-lModules -lPython -lObjects -lParser"
+    else
+         PYLINK="-l$PYVERSION"
+    fi
 fi
 
 # Only cygwin (Windows) needs the library for dynamic linking
@@ -539,10 +545,12 @@ AC_ARG_WITH(perl5,[  --with-perl5=path       Set location of Perl5 executable],[
 # First figure out what the name of Perl5 is
 
 if test -z "$PERLBIN"; then
-AC_CHECK_PROGS(PERL, perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
+AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
 else
 PERL="$PERLBIN"
 fi
+
+
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
 	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib};') 2>/dev/null`
