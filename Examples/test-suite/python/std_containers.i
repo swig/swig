@@ -30,7 +30,7 @@
   {
     return c;
   }
-  
+
 }
 
 
@@ -162,5 +162,19 @@ template <class C> struct Param
     return a;
   }  
 
+  struct Foo
+  {
+    Foo(int i) {
+    }
+  };
+  
 }
+
+
+%std_nodefconst_type(Foo);
+
+%template(vector_Foo) std::vector<Foo>;
+%template(deque_Foo) std::deque<Foo>;
+%template(list_Foo) std::list<Foo>;
+
 
