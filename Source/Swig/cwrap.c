@@ -624,6 +624,32 @@ Swig_MethodToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(type);
   p = NewParm(type,"self");
   Setattr(p,"hidden","1");
+  /*
+    Disable the 'this' ownership in 'self' to manage inplace
+    operations like:
+
+    A& A::operator+=(int i) { ...; return *this;}
+     
+    Here the 'self' parameter ownership needs to be disabled since
+    there could be two objects sharing the same 'this' pointer: the
+    input and the result one. And worse, the pointer could be deleted
+    in one of the objects (input), leaving the other (output) with
+    just a seg. fault to happen.
+
+    To avoid the previous problem, use
+
+      %feature("self:disown") *::operator+=;
+      %feature("new") *::operator+=;
+
+    These two lines just transfer the ownership of the 'this' pointer
+    from the input to the output wrapping object.
+    
+    This happens in python, but may also happens in other target
+    languages.
+  */
+  if (Getattr(n,"feature:self:disown")) {
+    Setattr(p,"wrap:disown",Getattr(n,"feature:self:disown"));
+  }
   set_nextSibling(p,parms);
   Delete(type);
   
