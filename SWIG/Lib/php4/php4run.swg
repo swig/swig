@@ -5,9 +5,15 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "zend.h"
 #include "zend_API.h"
 #include "php.h"
+#ifdef __cplusplus
+}
+#endif
 
 SWIGRUNTIME(void)
 SWIG_MakePtr(char *c, void *ptr, swig_type_info *ty) {
