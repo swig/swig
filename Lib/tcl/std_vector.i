@@ -333,7 +333,6 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
             Tcl_Obj **listobjv;
             int       nitems;
-            int       i;
             T         temp;
             std::vector<T> *v;
 
@@ -361,7 +360,6 @@ namespace std {
 	                                      const vector<T>*{
             Tcl_Obj **listobjv;
             int       nitems;
-            int       i;
             T         temp;
             std::vector<T> *v;
 
