@@ -136,17 +136,17 @@ DohObjMalloc(DohObjInfo *type, void *data) {
 
 void 
 DohObjFree(DOH *ptr) {
-  DohBase  *b;
+  DohBase  *b, *meta;
   b = (DohBase *) ptr;
   if (b->flag_intern) return;
+  meta = b->meta;
   b->data = (void *) FreeList;
-  b->refcount = 0;
-  if (b->meta) {
-    Delete(b->meta);
-    b->meta = 0;
-  }
+  b->meta = 0;
   b->type = 0;
   FreeList = b;
+  if (meta) {
+    Delete(meta);
+  }
 }
 
 /* ----------------------------------------------------------------------
