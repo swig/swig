@@ -774,7 +774,21 @@ int Language::cDeclaration(Node *n) {
       if (!NoExtern) {
 	if (f_header) {
 	  if ((Cmp(storage,"extern") == 0) || (ForceExtern && !storage)) {
-	    Printf(f_header,"extern %s;\n", SwigType_str(ty,name));
+	    Printf(f_header,"extern %s", SwigType_str(ty,name));
+
+	    {
+	      DOH *t = Getattr(n,"throws");
+	      if (t) {
+		Printf(f_header,"throw(");
+		while (t) {
+		  Printf(f_header,"%s", Getattr(t,"type"));
+		  t = nextSibling(t);
+		  if (t) Printf(f_header,",");
+		}
+		Printf(f_header,")");
+	      }
+	    }
+	    Printf(f_header,";\n");
 	  } else if (Cmp(storage,"externc") == 0) {
 	    Printf(f_header,"extern \"C\" %s;\n", SwigType_str(ty,name));
 	  }
