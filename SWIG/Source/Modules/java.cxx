@@ -1253,7 +1253,7 @@ class JAVA : public Language {
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
-    String *classDeclarationName = Getattr(n,"classDeclaration:name");
+    String *typemap_lookup_type = Getattr(n,"classtypeobj");
 
     /* Deal with inheritance */
     List *baselist = Getattr(n,"bases");
@@ -1267,7 +1267,7 @@ class JAVA : public Language {
       base = Next(base);
       if (base.item) {
         Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, Getattr(base.item,"name"));
+            "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, Getattr(base.item,"name"));
       }
     }
 
@@ -1276,20 +1276,20 @@ class JAVA : public Language {
       baseclass = NewString("");
 
     // Inheritance from pure Java classes
-    const String *pure_baseclass = typemapLookup("javabase", classDeclarationName, WARN_NONE);
+    const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE);
     if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, input_file, line_number, 
-          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", classDeclarationName, pure_baseclass);
+          "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", typemap_lookup_type, pure_baseclass);
     }
 
     // Pure Java interfaces
-    const String *pure_interfaces = typemapLookup("javainterfaces", classDeclarationName, WARN_NONE);
+    const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
 
     // Start writing the proxy class
     Printv(proxy_class_def,
-        typemapLookup("javaimports", classDeclarationName, WARN_NONE), // Import statements
+        typemapLookup("javaimports", typemap_lookup_type, WARN_NONE), // Import statements
         "\n",
-        typemapLookup("javaclassmodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
+        typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF), // Class modifiers
         " class $javaclassname",       // Class name and bases
         (derived || *Char(pure_baseclass)) ?
         " extends " : 
@@ -1307,7 +1307,7 @@ class JAVA : public Language {
         "  protected boolean swigCMemOwn;\n",
         "\n",
         "  ",
-        typemapLookup("javaptrconstructormodifiers", classDeclarationName, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
+        typemapLookup("javaptrconstructormodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_PTRCONSTMOD_UNDEF), // pointer constructor modifiers
         " $javaclassname(long cPtr, boolean cMemoryOwn) {\n", // Constructor used for wrapping pointers
         derived ? 
         "    super($imclassname.SWIG$javaclassnameTo$baseclass(cPtr), cMemoryOwn);\n" : 
@@ -1332,10 +1332,10 @@ class JAVA : public Language {
     Node *attributes = NewHash();
     String *destruct_methodname = NULL;
     if (derived) {
-      tm = typemapLookup("javadestruct_derived", classDeclarationName, WARN_NONE, attributes);
+      tm = typemapLookup("javadestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct_derived:methodname");
     } else {
-      tm = typemapLookup("javadestruct", classDeclarationName, WARN_NONE, attributes);
+      tm = typemapLookup("javadestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
     }
     if (!destruct_methodname) {
@@ -1348,7 +1348,7 @@ class JAVA : public Language {
       // Finalize method
       if (*Char(destructor_call)) {
         Printv(proxy_class_def, 
-            typemapLookup("javafinalize", classDeclarationName, WARN_NONE),
+            typemapLookup("javafinalize", typemap_lookup_type, WARN_NONE),
             NIL);
       }
       // delete method
@@ -1365,8 +1365,8 @@ class JAVA : public Language {
 
     // Emit various other methods
     Printv(proxy_class_def, 
-        typemapLookup("javagetcptr", classDeclarationName, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
-        typemapLookup("javacode", classDeclarationName, WARN_NONE), // extra Java code
+        typemapLookup("javagetcptr", typemap_lookup_type, WARN_JAVA_TYPEMAP_GETCPTR_UNDEF), // getCPtr method
+        typemapLookup("javacode", typemap_lookup_type, WARN_NONE), // extra Java code
         "\n",
         NIL);
 
