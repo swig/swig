@@ -1137,9 +1137,30 @@ static int is_cfunction(Node *n) {
 static void default_arguments(Node *n) {
   Node *function = n;
 
-  /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
-    (one wrapped method per function irrespective of number of default arguments) */
   if (function) {
+    ParmList *varargs = Getattr(function,"feature:varargs");
+    if (varargs) {
+      /* Handles the %varargs directive by looking for "feature:varargs" and 
+       * substituting ... with an alternative set of arguments.  */
+      Parm     *p = Getattr(function,"parms");
+      Parm     *pp = 0;
+      while (p) {
+	SwigType *t = Getattr(p,"type");
+	if (Strcmp(t,"v(...)") == 0) {
+	  if (pp) {
+	    set_nextSibling(pp,Copy(varargs));
+	  } else {
+	    Setattr(function,"parms", Copy(varargs));
+	  }
+	  break;
+	}
+	pp = p;
+	p = nextSibling(p);
+      }
+    }
+
+    /* Do not add in functions if kwargs is being used or if user wants old default argument wrapping
+      (one wrapped method per function irrespective of number of default arguments) */
     if (compact_default_args 
 	|| is_cfunction(function) 
 	|| Getattr(function,"feature:compactdefaultargs") 
