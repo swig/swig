@@ -253,8 +253,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
 
   SwigLib = Swig_copy_string(LibDir);        // Make a copy of the real library location
-
-
   
   libfiles = NewList();
 
@@ -394,8 +392,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       }
   }
 
-  while (includecount > 0) {
-    Swig_add_directory((DOH *) includefiles[--includecount]);
+  for (i = 0; i < includecount; i++) {
+    Swig_add_directory((DOH *) includefiles[i]);
   }
 
   // Define the __cplusplus symbol
