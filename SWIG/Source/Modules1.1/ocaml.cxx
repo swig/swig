@@ -630,7 +630,7 @@ class OCAML : public Language {
 	if( !is_enum(t) && !is_simple(t) && !is_a_pointer(t) ) {
 	    SwigType *tt = Copy(t);
 	    SwigType_add_pointer(tt);
-	    return tt;
+	    return Copy(tt);
 	} else {
 	    return Copy(t);
 	}
@@ -655,9 +655,9 @@ class OCAML : public Language {
 
 	    Setattr(seen_types,s,s);
 
-	    return s;
+	    return Copy(s);
 	} else
-	    return SwigType_manglestr(t);
+	    return Copy(SwigType_manglestr(t));
     }
 
     /* Output a method version of this function */
@@ -749,7 +749,7 @@ class OCAML : public Language {
     int functionWrapper(Node *n) {
 	// ML function name
 	SwigType *d = Getattr(n,"type");
-	SwigType *dcaml = process_type(d);
+	SwigType *dcaml;
 	ParmList *l = Getattr(n,"parms");
 	Parm *p;
 	Wrapper *f = NewWrapper();
@@ -765,9 +765,13 @@ class OCAML : public Language {
 	int i = 0;
 	int numargs;
 	int numreq;
-	int is_static = 1;
 
-	// if( in_vwrap > VWRAP_GET ) return SWIG_OK;
+	// Potentially, do type substitution
+	if( !d ) dcaml = NewString("int");
+	else dcaml = process_type(d);
+	if( !dcaml ) dcaml = NewString("int");
+
+	// Don't produce a 'set' for an immutable.
 	if( in_vwrap == VWRAP_SET && Getattr(n,"feature:immutable") )
 	    in_vwrap = VWRAP_GET;
 
@@ -784,8 +788,16 @@ class OCAML : public Language {
 	// Set the symbol name
 	Setattr(n,"sym:name",Char(wrap_name));
 	Setattr(n,"funcname",Char(ml_function_name));
-    
+
+	// Output the return type and argument types if they don't
+	// exist already.
 	print_unseen_type( dcaml );
+	for(p = l; p;) {
+	    SwigType *tcaml = process_type(Getattr(p,"type"));
+	    print_unseen_type( tcaml );
+	    p = nextSibling(p);
+	    Delete(tcaml);
+	}
 
 	// writing the function wrapper function
 	Printf(f->def, 
@@ -805,25 +817,14 @@ class OCAML : public Language {
 
 	/* Attach the standard typemaps */
 	emit_attach_parmmaps(l,f);
-
+	
 	numargs = emit_num_arguments(l);
 	numreq  = emit_num_required(l);
-
+	
 	// adds local variables
 	Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
-
+	
 	// Now write code to extract the parameters (this is super ugly)
-
-	if( numargs > 0 ) {
-	    SwigType *pt = Getattr(l,"type");
-	    SwigType *ptcaml = process_type(pt);
-	    String *tn = mangle_type(ptcaml);
-
-	    if( !strncmp( Char(tn), "_p_", 3 ) &&
-		!strcmp( Char(tn) + 3, Char(classname) ) ) is_static = 0;
-
-	    Delete(ptcaml);
-	} else is_static = 1;
 
 	for (i = 0, p = l; i < numargs; i++) {
 	    /* Skip ignored arguments */
@@ -831,11 +832,7 @@ class OCAML : public Language {
 		p = Getattr(p,"tmap:ignore:next");
 	    }
 
-	    SwigType *pt = Getattr(p,"type");
-	    SwigType *ptcaml = process_type(pt);
 	    String   *ln = Getattr(p,"lname");
-
-	    print_unseen_type( ptcaml );
 
 	    // Produce names of source and target
 	    Clear(source);
@@ -860,13 +857,6 @@ class OCAML : public Language {
 		Printf(f->code,"\tfailwith(\"Type error\");\n");
 		p = nextSibling(p);
 	    }
-	}
-
-	for(p = l; p;) {
-	    SwigType *tcaml = process_type(Getattr(p,"type"));
-	    print_unseen_type( tcaml );
-	    p = nextSibling(p);
-	    Delete(tcaml);
 	}
 
 	// Write out signature for function in module file
@@ -927,12 +917,12 @@ class OCAML : public Language {
 	}
 
 	// Pass output arguments back to the caller.
-
+	
 	for (p = l; p;) {
 	    if ((tm = Getattr(p,"tmap:argout"))) {
-		Replace(tm,"$arg",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-		Replace(tm,"$input",Getattr(p,"emit:input"), DOH_REPLACE_ANY);
-		Printv(outarg,tm,"\n",0);
+		Replaceall(tm,"$arg",Getattr(p,"emit:input"));
+		Replaceall(tm,"$input",Getattr(p,"emit:input"));
+		Printv(outarg,tm,"\n",NULL);
 		p = Getattr(p,"tmap:argout:next");
 		argout_set = 1;
 	    } else {
@@ -970,8 +960,10 @@ class OCAML : public Language {
 	    throw_unhandled_ocaml_type_error (dcaml);
 	}
 
+	Printv(f->code,"/* Mark 2 */\n",0);
+
 	// Dump the argument output code
-	Printv(f->code, Char(outarg),0);
+	if( argout_set ) Printv(f->code, Char(outarg),0);
 
 	// Dump the argument cleanup code
 	Printv(f->code, Char(cleanup),0);
@@ -997,6 +989,8 @@ class OCAML : public Language {
 	Printf(f->code, "\tCAMLreturn(swig_result);\n");
 	Printv(f->code, "}\n",0);
 
+	// Slightly ugly wrap-advance for get/set
+
 	if( in_vwrap ) in_vwrap++;
 
 	Wrapper_print(f, f_wrappers);
@@ -1007,7 +1001,10 @@ class OCAML : public Language {
 	Delete(outarg);
 	Delete(cleanup);
 	Delete(build);
-	Delete(dcaml);
+	// I am getting a core dump because of this, but dcaml, as I
+	// understand it is always a Copy().  I may need to rethink the
+	// way I manage these objects.
+	//Delete(dcaml);
 	Delete(ml_function_name);
 	DelWrapper(f);
 
@@ -1150,13 +1147,18 @@ class OCAML : public Language {
     }
 
     int enumDeclaration(Node *n) {
-	String *name = Getattr(n,"name");
+	String *name = get_ml_function_name(n);
+	String *type = NewString("enum ");
+	String *type_str;
+
+	Printf(type,"%s",Getattr(n,"name"));
+	type_str = mangle_type(type);
 
 	if( !name || !strlen(Char(name)) ) return SWIG_OK;
 
 	/* Produce the enum_to_int and int_to_enum functions */
 	Printf(f_wrappers,
-	       "static int _%s_to_int( value v ) {\n"
+	       "static int %s_to_int( value v ) {\n"
 	       "  value *en_to_int_cb = "
 	       "caml_named_value(\"%s_to_int\");\n"
 	       "  return Int_val(callback(*en_to_int_cb,v));\n"
@@ -1169,12 +1171,12 @@ class OCAML : public Language {
 	
 	if( !mliout ) {
 	    Printf(f_pvariant_to_int,
-		   "let _%s_to_int _v_ =\nmatch _v_ with\n"
+		   "let %s_to_int _v_ =\nmatch _v_ with\n"
 		   "`int x -> x\n",name);
 	    Printf(f_pvariant_from_int,"let int_to_%s _v_ =\n",name);
 	}
 	
-	Printf(f_pvariant_def,"type _%s =\n[ `int of int\n",name);
+	Printf(f_pvariant_def,"type %s =\n[ `int of int\n",type_str);
 
 	Language::enumDeclaration(n);
 
@@ -1183,13 +1185,13 @@ class OCAML : public Language {
 	if( !mliout ) {
 	    Printf( f_pvariant_to_int,
 		    "let _ = Callback.register \"%s_to_int\" "
-		    "_%s_to_int\n"
-		    "let _%s_bits _v_ = int_to_%s "
-		    "(List.fold_left (fun a b -> a lor (_%s_to_int b)) "
+		    "%s_to_int\n"
+		    "let %s_bits _v_ = int_to_%s "
+		    "(List.fold_left (fun a b -> a lor (%s_to_int b)) "
 		    "0 _v_)\n"
 		    "let check_%s_bit f _v_ = "
-		    "(_%s_to_int _v_) land (_%s_to_int f) == "
-		    "(_%s_to_int f)\n"
+		    "(%s_to_int _v_) land (%s_to_int f) == "
+		    "(%s_to_int f)\n"
 		    "let bits_%s _v_ f_list = "
 		    "List.filter (fun f -> check_%s_bit f _v_) f_list\n",
 		    name, name,
@@ -1208,16 +1210,16 @@ class OCAML : public Language {
 		    name, name);
 	} else {
 	    Printf( f_pvariant_to_int,
-		    "val _%s_to_int : _%s -> int\n"
-		    "val int_to_%s : int -> _%s\n"
-		    "val _%s_bits : _%s list -> _%s\n"
-		    "val check_%s_bit : _%s -> _%s -> bool\n"
-		    "val bits_%s : _%s -> _%s list -> _%s list\n",
-		    name, name, 
-		    name, name, 
-		    name, name, name,
-		    name, name, name,
-		    name, name, name, name );
+		    "val %s_to_int : %s -> int\n"
+		    "val int_to_%s : int -> %s\n"
+		    "val %s_bits : %s list -> %s\n"
+		    "val check_%s_bit : %s -> %s -> bool\n"
+		    "val bits_%s : %s -> %s list -> %s list\n",
+		    type_str, name, 
+		    name, type_str, 
+		    name, type_str, type_str,
+		    name, type_str, type_str,
+		    name, type_str, type_str, type_str );
 	}
 
 	return SWIG_OK;
@@ -1317,7 +1319,7 @@ class OCAML : public Language {
 
 	    if( !mliout )
 		Printf( f_modclass,
-		        "  method _self_%s : %s = (Obj.magic c_self)\n",
+			"  method _self_%s : %s = (Obj.magic c_self)\n",
 			classname, type_name );
 	    else
 		Printf(f_modclass,
@@ -1379,7 +1381,6 @@ class OCAML : public Language {
     void import_end() {
     }
 };
-
 extern "C" Language *swig_ocaml(void) {
     return new OCAML();
 }
