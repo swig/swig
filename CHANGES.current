@@ -1,6 +1,12 @@
 Version 1.3.25 (In progress)
 ============================
 
+03/29/2005: wsfulton
+            [Java] Patch from Scott Michel for directorout typemaps. Java directors
+            require the directorout typemaps like the other languages now. The new
+            typemaps provide fixes for methods where the return type is returned
+            by reference (this cannot automatically be made thread safe though).
+
 03/22/2005: wsfulton
             Enum casting fixes. Visual C++ didn't like the C type casting SWIG produced
             when wrapping C++ enum references, as reported by Admire Kandawasvika.
