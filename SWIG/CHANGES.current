@@ -1,5 +1,35 @@
 Version 1.3.18 (In progress)
 ============================
+03/06/2003: beazley
+            *** DEVELOPER CHANGE ***
+            Swig module mutation has been changed slightly.  When a language
+            class method wants to save node attributes, it now uses one of the
+            following functions:
+
+                  Swig_require()
+                  Swig_save()
+
+            The first argument to these functions is a namespace in which
+            saved attributes are placed.  For example,this code
+
+                  Node *n;
+                  Swig_save("cDeclaration",n,"type","parms","name",NIL);
+
+            saves the attributes as "cDeclaration:type", "cDeclaration:parms",
+            and so forth.   If necessary, a language module can refer to
+            old values by using this special namespace qualifier.
+
+            In addition to this, a special attribute "view" contains the name
+            of the last namespace used to save attributes.  In the above 
+            example, "view" would have the value "cDeclaration".   The value
+            of "cDeclaration:view" would have the previous view and so forth.
+
+            Swig_restore(n) restores a node to the state before the last
+            Swig_require() or Swig_save() call.
+
+            Note:  This change makes it easier for language modules to refer
+            to old values of attributes.  
+
 
 03/06/2003: mrose (Mark Rose)
             Merged the cross-language polymorphism patch.  When enabled, C++ 
