@@ -323,12 +323,15 @@ Typetab *
 SwigType_find_scope(Typetab *s, String *nameprefix) {
   Typetab *ss;
   String  *nnameprefix = 0;
+  static   int check_parent = 1;
+
+  /*  Printf(stdout,"find_scope: %x '%s'\n", s, nameprefix);*/
 
   if (SwigType_istemplate(nameprefix)) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);
     nameprefix = nnameprefix;
   }
-  
+
   ss = s;
   while (ss) {
     String *full;
@@ -348,6 +351,28 @@ SwigType_find_scope(Typetab *s, String *nameprefix) {
       if (nnameprefix) Delete(nnameprefix);
       return s;
     }
+    if (!s) {
+      /* Check inheritance */
+      List *inherit;
+      inherit = Getattr(ss,"inherit");
+      if (inherit) {
+	Typetab *ttab;
+	int i, len;
+	len = Len(inherit);
+	for (i = 0; i < len; i++) {
+	  int oldcp = check_parent;
+	  ttab = Getitem(inherit,i);
+	  check_parent = 0;
+	  s = SwigType_find_scope(ttab,nameprefix);
+	  check_parent = oldcp;
+	  if (s) {
+	    if (nnameprefix) Delete(nnameprefix);
+	    return s;
+	  }
+	}
+      }
+    }
+    if (!check_parent) break;
     ss = Getattr(ss,"parent");
   }
   if (nnameprefix) Delete(nnameprefix);
@@ -773,23 +798,31 @@ int SwigType_typedef_using(String_or_char *name) {
   String *td;
   String *prefix;
   Typetab *s;
+  Typetab *tt = 0;
+
   String *defined_name = 0;
+
+  /*  Printf(stdout,"using %s\n", name);*/
 
   if (!Swig_scopename_check(name)) return -1;     /* Not properly qualified */
   base   = Swig_scopename_last(name);
 
   /* See if the base is already defined in this scope */
-
   if (Getattr(current_typetab,base)) {
     Delete(base);
     return -1;
   }
-  
+
+  /* See if the using name is a scope */
+  /*  tt = SwigType_find_scope(current_scope,name);
+      Printf(stdout,"tt = %x, name = '%s'\n", tt, name); */
+
   /* We set up a typedef  B --> A::B */
   Setattr(current_typetab,base,name);
 
   /* Find the scope name where the symbol is defined */
   td = SwigType_typedef_resolve(name);
+  /*  Printf(stdout,"td = '%s' %x\n", td, resolved_scope); */
   if (resolved_scope) {
     defined_name = Getattr(resolved_scope,"qname");
     if (defined_name) {
@@ -799,6 +832,9 @@ int SwigType_typedef_using(String_or_char *name) {
     }
   }
   if (td) Delete(td);
+
+  /*  Printf(stdout,"defined_name = '%s'\n", defined_name);*/
+  tt = SwigType_find_scope(current_scope,defined_name);
 
   /* Figure out the scope the using directive refers to */
   {
@@ -811,6 +847,14 @@ int SwigType_typedef_using(String_or_char *name) {
       }
     }
   }
+
+  if (tt) {
+    /* Using directive had it's own scope.  We need to do create a new scope for it */
+    SwigType_new_scope(base);
+    SwigType_inherit_scope(tt);
+    SwigType_pop_scope();
+  }
+
   if (defined_name) Delete(defined_name);
   Delete(prefix);
   Delete(base);
