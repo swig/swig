@@ -4,23 +4,8 @@
  * CSharp typemaps
  * ----------------------------------------------------------------------------- */
 
-//%include "stl.i"
-
 //Initial revision of this module - everything is liable to change!!
-%insert(runtime) %{
-
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef WIN32
-#define DllExport   __declspec( dllexport )
-#else
-/*
-	This is not needed for unix
-*/
-#define DllExport  
-#endif 
-%}
+%include "csharphead.swg"
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 
@@ -173,8 +158,10 @@
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
 /* primitive types */
-%typemap(in) bool,
-             char, 
+%typemap(in) bool
+%{ $1 = $input ? true : false; %}
+
+%typemap(in) char, 
              signed char, 
              unsigned char, 
              short, 
@@ -267,8 +254,11 @@
 %typemap(out) void ""
 
 /* primitive types by reference */
-%typemap(in) const bool & (bool temp),
-             const char & (char temp), 
+%typemap(in) const bool & (bool temp)
+%{ temp = $input ? true : false; 
+   $1 = &temp; %}
+
+%typemap(in) const char & (char temp), 
              const signed char & (signed char temp), 
              const unsigned char & (unsigned char temp), 
              const short & (short temp), 
@@ -352,11 +342,14 @@ $1 = &temp; %}
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
+//     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+     return $null;
+   }
    $1 = *argp; %}
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{$&1_ltype $1ptr = new $1_ltype(($1_ltype &)$1);
-  *($&1_ltype*)&$result = $1ptr; %}
+%{*($&1_ltype*)&$result = new $1_ltype(($1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
