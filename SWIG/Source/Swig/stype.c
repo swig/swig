@@ -1260,7 +1260,8 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
 
   init_scopes();
   if (Getattr(type_scope,name)) return -1;
-  if (Cmp(type,name) == 0) {
+
+  if (Cmp(type,name) == 0) {       /* Can't typedef a name to itself */
     return 0;
   }
   s = type_scope;
@@ -1277,6 +1278,35 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
     s = Getmeta(s,"parentscope");
   }
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_typedef_class()
+ *
+ * Defines a class in the type system
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_typedef_class(String_or_char *name) {
+  String *tdname;
+  String *sname;
+  Hash   *s;
+
+  init_scopes();
+  if (Getattr(type_scope,name)) return;
+  s = type_scope;
+  tdname = NewString(name);
+  while (s) {
+    Setattr(s,Copy(tdname),Copy(tdname));
+    sname = Getmeta(s,"scopename");
+    if (sname) {
+      Insert(tdname,0,"::");
+      Insert(tdname,0,sname);
+    } else {
+      break;
+    }
+    s = Getmeta(s,"parentscope");
+  }
+  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1458,6 +1488,7 @@ SwigType *SwigType_typedef_resolve(SwigType *t) {
     Delitem(base,0);
   }
   type = typedef_resolve(s,base);
+  if (type && (Strcmp(type,base) == 0)) type = 0;
   Delete(base);
   if (!type) return 0;
   r = SwigType_prefix(t);
@@ -1561,7 +1592,11 @@ int SwigType_istypedef(SwigType *t) {
     Delitem(base,0);
     Delitem(base,0);
   }
-  if (typedef_resolve(s,base)) {
+  if ((type = typedef_resolve(s,base))) {
+    if (Strcmp(type,base) == 0) {
+      Delete(base);
+      return 0;
+    }
     Delete(base);
     return 1;
   }

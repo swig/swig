@@ -216,6 +216,7 @@ void show_handler(FILE *f) {
 }
 
 void raw_data(FILE *out, Node *obj) {
+  if (!obj) return;
   if (DohIsMapping(obj)) {
     String *k;
     String *os = NewString("");
@@ -286,6 +287,72 @@ void data_handler(FILE *f) {
   /* Print standard footer */
   Printf(f,"<br><hr></BODY></HTML>\n");
 }
+
+void symbol_handler(FILE *f) {
+  Symtab *sym;
+  char   *name = 0;
+
+  Printf(f,"<HTML><HEAD><TITLE>SWIG-%s</TITLE></HEAD><BODY BGCOLOR=\"#ffffff\">\n", SWIG_VERSION); 
+  Printf(f,"<b>SWIG-%s</b><br>\n", SWIG_VERSION);
+  Printf(f,"[ <a href=\"exit.html\">Exit</a> ]");
+  Printf(f," [ <a href=\"index.html?node=0x%x\">Top</a> ]", tree_top);
+  Printf(f,"<br><hr><p>\n");
+  
+  if (!swill_getargs("p(sym)|s(name)", &sym, &name)) {
+    sym = Swig_symbol_getscope("");
+    name = 0;
+  }
+  if (!sym) {
+    Printf(f,"No symbol table specified!\n");
+    return;
+  }
+  {
+    String *q = Swig_symbol_qualifiedscopename(sym);
+    if (!Len(q)) {
+      Printf(f,"<b>Symbol table: :: (global)</b><br>\n"); 
+    } else {
+      Printf(f,"<b>Symbol table: %s</b><br>\n", q);
+    }
+    Delete(q);
+  }
+  
+  fprintf(f,"<p><form action=\"symbol.html\" method=GET>\n");
+  fprintf(f,"Symbol lookup: <input type=text name=name size=40></input><br>\n");
+  fprintf(f,"<input type=hidden name=sym value=\"0x%x\">\n", sym);
+  fprintf(f,"Submit : <input type=submit></input>\n");
+  fprintf(f,"</form>");
+
+  if (name) {
+    Node *n = Swig_symbol_lookup(name,sym);
+    Printf(f,"Symbol '%s':\n", name);
+    Printf(f,"<blockquote>\n");
+    if (!n) {
+      Printf(f,"Not defined!\n");
+    } else {
+      raw_data(f,n);
+    }
+    Printf(f,"</blockquote>\n");
+  }
+
+  Printf(f,"<p><b>Nested scopes</b><br>\n");
+  Printf(f,"<blockquote><pre>\n");
+  {
+    String *key;
+    Hash   *h;
+    Node   *n;
+    h = firstChild(sym);
+    while (h) {
+      Printf(f,"<a href=\"symbol.html?sym=0x%x\">%s</a>\n", h, Getattr(h,"name"));
+      h = nextSibling(h);
+    }
+  }
+  Printf(f,"</pre></blockquote>\n");
+  
+  Printf(f,"<p><b>Symbol table contents</b></br>\n");
+  raw_data(f,Getattr(sym,"symtab"));
+  Printf(f,"<br><hr></BODY></HTML>\n");
+
+}
 #endif
 
 void
@@ -311,7 +378,7 @@ Swig_browser(Node *top, int port) {
   swill_handle("hide.html", hide_handler,0);
   swill_handle("show.html", show_handler,0);
   swill_handle("data.html", data_handler,0);
-
+  swill_handle("symbol.html", symbol_handler, 0);
   swill_netscape("index.html");
 
   while (!browser_exit) {

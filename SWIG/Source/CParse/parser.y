@@ -1807,7 +1807,7 @@ cpp_class_decl  :
 		       String *n = Getitem($4,i);
 		       /* Try to figure out where this symbol is */
 		       /*		       s = Swig_symbol_lookup_tag(n); */
-		       s = Swig_symbol_lookup(n);
+		       s = Swig_symbol_lookup(n,0);
 		       if (s && (Strcmp(nodeType(s),"class") == 0)) {
 			 String *q = Swig_symbol_qualified(s);
 			 if (q) {
@@ -2149,7 +2149,7 @@ cpp_using_decl : USING idcolon SEMI {
 cpp_namespace_decl : NAMESPACE idcolon LBRACE { 
                 Hash *h;
                 $1 = Swig_symbol_current();
-		h = Swig_symbol_lookup($2);
+		h = Swig_symbol_lookup($2,0);
 		if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		  Swig_symbol_setscope(Getattr(h,"symtab"));
 		} else {
@@ -2165,14 +2165,12 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 		Swig_symbol_setscope($1);
 		$$ = n;
 		Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		if (!Swig_symbol_lookup($2)) {
-		  add_symbols($$);
-		}
+		add_symbols($$);
              } 
              | NAMESPACE LBRACE {
 	       Hash *h;
 	       $1 = Swig_symbol_current();
-	       h = Swig_symbol_lookup("");
+	       h = Swig_symbol_lookup("",0);
 	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		 Swig_symbol_setscope(Getattr(h,"symtab"));
 	       } else {
@@ -2187,9 +2185,7 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 	       Setattr($$,"symtab", Swig_symbol_popscope());
 	       Swig_symbol_setscope($1);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-	       if (!Swig_symbol_lookup("__unnamed__")) {
-		 add_symbols($$);
-	       }
+	       add_symbols($$);
              }
              | NAMESPACE idcolon EQUAL idcolon SEMI {
 	       $$ = new_node("namespace");
@@ -2548,7 +2544,7 @@ def_args       : EQUAL definetype {
                   $$ = $2; 
 		  /* If the value of a default argument is in the symbol table,  we replace it with it's
                      fully qualified name.  Needed for C++ enums and other features */
-		  n = Swig_symbol_lookup($2.val);
+		  n = Swig_symbol_lookup($2.val,0);
 		  if (n) {
 		    String *q = Swig_symbol_qualified(n);
 		    if (q) {
@@ -2560,7 +2556,7 @@ def_args       : EQUAL definetype {
 		  }
                }
                | EQUAL AND idcolon {
-		 Node *n = Swig_symbol_lookup($3);
+		 Node *n = Swig_symbol_lookup($3,0);
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (q) {

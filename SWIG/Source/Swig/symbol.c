@@ -105,6 +105,7 @@ static char cvsroot[] = "$Header$";
 static Hash *current = 0;         /* This current symbol table */
 static Hash *current_symtab = 0;  /* Current symbol table node */
 static Hash *symtabs = 0;         /* Hash of all symbol tables by fully-qualified name */
+static Hash *global_scope = 0;    /* Global scope */
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_new()
@@ -116,12 +117,13 @@ void
 Swig_symbol_init() {
   current = NewHash();
   current_symtab = NewHash();
-  set_nodeType(current_symtab,"sym:symboltable");
+  set_nodeType(current_symtab,"symboltable");
   Setattr(current_symtab,"symtab",current);
 
   /* Set the global scope */
   symtabs = NewHash();
   Setattr(symtabs,"",current_symtab);
+  global_scope = current_symtab;
 }
 
 /* -----------------------------------------------------------------------------
@@ -133,8 +135,12 @@ Swig_symbol_init() {
 void
 Swig_symbol_setscopename(const String_or_char *name) {
   String *qname;
+  Symtab *p;
   assert(!Getattr(current_symtab,"name"));
   Setattr(current_symtab,"name",name);
+
+  /* Set nested scope in parent */
+
   qname = Swig_symbol_qualifiedscopename(current_symtab);
 
   /* Save a reference to this scope */
@@ -208,7 +214,8 @@ Swig_symbol_newscope()
   Hash *hsyms, *h;
   hsyms = NewHash();
   h = NewHash();
-  
+
+  set_nodeType(h,"symboltable");  
   Setattr(h,"symtab",hsyms);
   set_parentNode(h,current_symtab);
   
@@ -287,8 +294,25 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
             In this case, the symbol table entry is set to the class/enum declaration
             itself, not the typedef.   
 
-        (2) Otherwise, overloading is only allowed for functions
+        (2) A conflict between namespaces is okay--namespaces are open
+
+        (3) Otherwise, overloading is only allowed for functions
     */
+
+    /* Check for namespaces */
+    if ((Strcmp(nodeType(n),nodeType(c)) == 0) && ((Strcmp(nodeType(n),"namespace") == 0))) {
+      Node *cl, *pcl = 0;
+      cl = c;
+      while (cl) {
+	pcl = cl;
+	cl = Getattr(cl,"sym:nextSibling");
+      }
+      Setattr(pcl,"sym:nextSibling",n);
+      Setattr(n,"sym:symtab", current_symtab);
+      Setattr(n,"sym:name", symname);
+      Setattr(n,"sym:previousSibling", pcl);
+      return n;
+    }
     if (Getattr(n,"allows_typedef")) nt = 1;
     if (Getattr(c,"allows_typedef")) ct = 1;
     if (nt || ct) {
@@ -323,7 +347,6 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
      
     decl = Getattr(c,"decl");
     ndecl = Getattr(n,"decl");
-
 
     if (Cmp(nodeType(n),nodeType(c))) return c;
     if ((!SwigType_isfunction(decl)) || (!SwigType_isfunction(ndecl))) {
@@ -373,17 +396,160 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * symbol_lookup_qualified()
+ *
+ * Internal function to handle fully qualified symbol table lookups.  This
+ * works from the symbol table supplied in symtab and unwinds its way out
+ * towards the global scope.
+ * ----------------------------------------------------------------------------- */
+
+static Node *
+symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, int local) {
+
+  /* This is a little funky, we search by fully qualified names */
+
+  if (!symtab) return 0;
+  if (!prefix) {
+    Node *n;
+    List *namelist;
+    int   i, len;
+
+    String *nname = NewString(name);
+    Replaceall(nname,"::",":");
+    namelist = Split(nname,":",-1);
+    prefix = NewString("");
+    len = Len(namelist);
+    for (i = 0; i < len - 1; i++) {
+      if (i > 0) Append(prefix,"::");
+      Append(prefix,Getitem(namelist,i));
+    }
+    name = Getitem(namelist,len-1);
+    n = symbol_lookup_qualified(name, symtab, prefix, local);
+    Delete(nname);
+    Delete(namelist);
+    Delete(prefix);
+    return n;
+  } else {
+    String *qname;
+    Symtab *st;
+    Node *n = 0;
+    /* Make qualified name of current scope */
+    qname = Swig_symbol_qualifiedscopename(symtab);
+    if (qname && Len(qname)) {
+      if (Len(prefix)) {
+	Append(qname,"::");
+	Append(qname,prefix);
+      }
+    } else {
+      qname = NewString(prefix);
+    }
+    st = Getattr(symtabs,qname);
+    Delete(qname);
+
+    /* Found a scope match */
+    if (st) {
+      Hash *sym = Getattr(st,"symtab");
+      if (!name) return st;
+      n = Getattr(sym,name);
+    }
+
+    if (!n) {
+      if (!local) {
+	return symbol_lookup_qualified(name,parentNode(symtab), prefix, local);
+      } else {
+	return 0;
+      }
+    }
+    return n;
+  }
+
+#ifdef OLD
+  if (!symtab) return 0;
+
+  if (!namelist) {
+    Node *n;
+    String *nname = NewString(name);
+    Replaceall(nname,"::",":");
+    namelist = Split(nname,":",-1);
+    n = symbol_lookup_qualified(name, symtab, namelist, local);
+    Delete(nname);
+    Delete(namelist);
+    return n;
+  } else {
+    int   i, len;
+    Node *n;
+    Symtab *nsym = symtab;
+    len = Len(namelist);
+
+    /* First, we try to pin down the enclosing scopes */
+    for (i = 0; i < len-1; i++) {
+      String *nm;
+      Hash *sym;
+      if (!nsym) {
+	/* Whoa. No symbol table */
+	if (!local) {
+	  return symbol_lookup_qualified(name, parentNode(symtab), namelist, local);
+	} else {
+	  return 0;
+	}
+      }
+      nm = Getitem(namelist,i);
+      /* See if this scope has any children with the right name */
+      {
+	Symtab *chd = firstChild(nsym);
+	while (chd) {
+	  String *cname = Getattr(chd,"name");
+	  if (cname && (Strcmp(cname,nm) == 0)) break;
+	  chd = nextSibling(chd);
+	}
+	nsym = chd;
+      }
+    }
+    /* If we made it this far, we found all enclosing scopes do a final check */
+    if (nsym) {
+      n = Getattr(nsym, Getitem(namelist,len-1));
+      if (n) return n;
+    }
+    if (!local) {
+      return symbol_lookup_qualified(name,parentNode(symtab),namelist, local);
+    }  else {
+      return 0;
+    }
+  }
+#endif
+
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_lookup()
  *
  * Look up a symbol in the symbol table
  * ----------------------------------------------------------------------------- */
 
 Node *
-Swig_symbol_lookup(String_or_char *name) {
+Swig_symbol_lookup(String_or_char *name, Symtab *n) {
   Hash *h,*hsym;
   Hash *s;
-  h = current;
-  hsym = current_symtab;
+
+  if (!n) {
+    h = current;
+    hsym = current_symtab;
+  } else {
+    if (Strcmp(nodeType(n),"symboltable")) {
+      n = Getattr(n,"sym:symtab");
+    }
+    assert(n);
+    if (n) {
+      hsym = n;
+      h = Getattr(hsym,"symtab");
+    }
+  }
+
+  if (Strstr(name,"::")) {
+    if (Strncmp(name,"::",2) == 0) return symbol_lookup_qualified(Char(name)+2,global_scope,0,0);
+    else return symbol_lookup_qualified(name,hsym,0,0);
+  }
+
   while (h) {
     s = Getattr(h,name);
     if (s) return s;
@@ -395,11 +561,40 @@ Swig_symbol_lookup(String_or_char *name) {
 }
 
 Node *
-Swig_symbol_lookup_local(String_or_char *name) {
-  Hash *s;
-  s = Getattr(current,name);
-  if (s) return s;
-  return 0;
+Swig_symbol_lookup_local(String_or_char *name, Symtab *n) {
+  Hash *h, *hsym;
+  if (!n) {
+    hsym = current_symtab;
+    h = current;
+  } else {
+    if (Strcmp(nodeType(n),"symboltable")) {
+      n = Getattr(n,"sym:symtab");
+    }
+    assert(n);
+    hsym = n;
+    h = Getattr(n,"symtab");
+  }
+
+  if (Strstr(name,"::")) {
+    if ((Strncmp(name,"::",2) == 0)  && (hsym == global_scope)) {
+      return symbol_lookup_qualified(Char(name)+2,hsym,0,1);
+    } else {
+      return symbol_lookup_qualified(name,hsym,0,1);
+    }
+  }
+  return Getattr(h,name);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_scope_lookup()
+ *
+ * Look up a scope name.
+ * ----------------------------------------------------------------------------- */
+
+Symtab *
+Swig_symbol_scope_lookup(String_or_char *name, Symtab *symtab) {
+  if (Strncmp(name,"::",2) == 0) return symbol_lookup_qualified(0, global_scope, name, 0);
+  return symbol_lookup_qualified(0,symtab,name,0);
 }
 
 /* -----------------------------------------------------------------------------

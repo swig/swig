@@ -62,6 +62,10 @@ int Dispatcher::emit_one(Node *n) {
       return SWIG_ERROR;
     }
 
+    /* Do not proceed if marked with an error */
+
+    if (Getattr(n,"error")) return SWIG_OK;
+
     /* ============================================================
      * C/C++ parsing
      * ============================================================ */
@@ -186,12 +190,8 @@ int Dispatcher::namespaceDeclaration(Node *n) { return defaultHandler(n); }
 
 int Language::emit_one(Node *n) {
 
-    String *err;
     Symtab *symtab;
 
-    if ((err = Getattr(n,"error"))) {
-      return SWIG_OK;
-    }
     line_number = Getline(n);
     input_file = Char(Getfile(n));
     symtab = Getattr(n,"symtab");
@@ -630,19 +630,6 @@ int Language::cDeclaration(Node *n) {
       Delete(cname);
       return SWIG_NOWRAP;
     }
-  }
-  
-  if (strstr(Char(name),"::")) {
-    /* Get the class name */
-    char *c;
-    String *tmp = Copy(name);
-    c = strstr(Char(tmp),"::");
-    *c = 0;
-    if (!Getattr(ClassHash,Char(tmp))) {
-      Printf(stderr,"%s:%d. Warning. Nothing known about class %s. Declaration ignored.\n", input_file, line_number, tmp);    
-    }
-    Delete(tmp);
-    return SWIG_NOWRAP;
   }
 
   if (symname && !validIdentifier(symname)) {

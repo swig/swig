@@ -4,7 +4,13 @@
  *     This module builds all of the internal type information by collecting
  *     typedef declarations as well as registering classes, structures, and unions.
  *     This information is need to correctly handle shadow classes and other
- *     advanced features.
+ *     advanced features.   This phase of compilation is also used to perform
+ *     type-expansion.  All types are fully qualified with namespace prefixes
+ *     and other information needed for compilation.
+ *
+ *     This module also handles the %varargs directive by looking for
+ *     "feature:varargs" and substituting ... with an alternative set of
+ *     arguments.
  * 
  * Author(s) : David Beazley (beazley@cs.uchicago.edu)
  *
@@ -24,15 +30,18 @@ class TypePass : public Dispatcher {
   Node   *inclass;
   String *module;
   int    importmode;
+  String *nsname;
+  String *classname;
+  Hash   *classhash;
   List  *normalize;
-  Hash  *classhash;
 
   /* Normalize a parameter list */
 
   void normalize_parms(ParmList *p) {
     while (p) {
       SwigType *ty = Getattr(p,"type");
-      Setattr(p,"type", SwigType_typedef_qualified(ty));
+      SwigType *qty = SwigType_typedef_qualified(ty);
+      Setattr(p,"type", qty);
       p = nextSibling(p);
     }
   }
@@ -55,22 +64,30 @@ class TypePass : public Dispatcher {
 	int     len = Len(nlist);
 	int i;
 	for (i = 0; i < len; i++) {
-	  Node *cls = 0;
+	  Node *bcls = 0;
 	  String *bname = Getitem(nlist,i);
 	  String *sname = bname;
 	  /* Typedef resolve the name */
 	  while (sname) {
-	    cls = Getattr(classhash,sname);
-	    if (cls) {
-	      if (!ilist) ilist = NewList();
-	      Append(ilist,cls);
-	      break;
+	    bcls = Getattr(classhash,sname);
+	    Symtab *bscp = Swig_symbol_scope_lookup(sname, Getattr(cls,"sym:symtab"));
+	    if (bscp) {
+	      String *qname = Swig_symbol_qualifiedscopename(bscp);
+	      if (qname) {
+		bcls = Getattr(classhash,qname);
+		Delete(qname);
+	      }
+	      if (bcls) {
+		if (!ilist) ilist = NewList();
+		Append(ilist,bcls);
+		break;
+	      }
 	    }
 	    String *nname = SwigType_typedef_resolve(sname);
 	    if (sname != bname) Delete(sname);
 	    sname = nname;
 	  }
-	  if (!cls) {
+	  if (!bcls) {
 	    if (!Getmeta(bname,"already_warned")) {
 	      Printf(stderr,"%s:%d. Nothing known about class '%s'. Ignored.\n", Getfile(bname),Getline(bname), bname);
 	      if (Strchr(bname,'<')) {
@@ -107,11 +124,14 @@ class TypePass : public Dispatcher {
   }
 
 public:
+
   virtual int top(Node *n) {
     importmode = 0;
     module = 0;
     inclass = 0;
     normalize = 0;
+    nsname = 0;
+    classname = 0;
     classhash = Getattr(n,"classes");
     emit_children(n);
     return SWIG_OK;
@@ -152,6 +172,8 @@ public:
     char *iname = Char(symname);
     int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
+    SwigType_typedef_class(name);
+
     SwigType_new_scope();
     if (name) SwigType_set_scope_name(name);
 
@@ -187,7 +209,40 @@ public:
     Setattr(n,"module",module);
     return SWIG_OK;
   }
+  virtual int namespaceDeclaration(Node *n) {
+    String *name = Getattr(n,"name");
+    String *alias = Getattr(n,"alias");
+    
+    if (alias) {
+      /* Namespace alias */
+      return SWIG_OK;
 
+    } else {
+      if (name) {
+	Node *nn = Swig_symbol_lookup(name,n);
+	Hash *ts = Getattr(nn,"typescope");
+	if (!ts) {
+	  SwigType_new_scope();
+	  SwigType_set_scope_name(name);
+	} else {
+	  SwigType_push_scope(ts);
+	}
+      }
+      String *oldnsname = nsname;
+      nsname = Swig_symbol_qualified(n);
+
+      emit_children(n);
+
+      Delete(nsname);
+      nsname = oldnsname;
+
+      if (name) {
+	Hash *ts = SwigType_pop_scope();
+	Setattr(n,"typescope",ts);
+      }
+      return SWIG_OK;
+    }
+  }
   virtual int cDeclaration(Node *n) {
     /* Search for var args */
     if (Getattr(n,"feature:varargs")) {
@@ -234,6 +289,25 @@ public:
   }
 
   virtual int constructorDeclaration(Node *n) {
+    /* Search for var args */
+    if (Getattr(n,"feature:varargs")) {
+      ParmList *v = Getattr(n,"feature:varargs");
+      Parm     *p = Getattr(n,"parms");
+      Parm     *pp = 0;
+      while (p) {
+	SwigType *t = Getattr(p,"type");
+	if (Strcmp(t,"v(...)") == 0) {
+	  if (pp) {
+	    set_nextSibling(pp,Copy(v));
+	  } else {
+	    Setattr(n,"parms", Copy(v));
+	  }
+	  break;
+	}
+	pp = p;
+	p = nextSibling(p);
+      }
+    }
     normalize_parms(Getattr(n,"parms"));
     return SWIG_OK;
   }

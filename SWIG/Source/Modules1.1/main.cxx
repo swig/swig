@@ -175,6 +175,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   int     contracts = 0;
   int     browse = 0;
   int     dump_typedef = 0;
+  int     dump_classes = 0;
 
   DOH    *libfiles = 0;
   DOH    *cpps = 0 ;
@@ -340,6 +341,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  } else if (strcmp(argv[i],"-dump_typedef") == 0) {
 	    dump_typedef = 1;
 	    Swig_mark_arg(i);
+	  } else if (strcmp(argv[i],"-dump_classes") == 0) {
+	    dump_classes = 1;
+	    Swig_mark_arg(i);
 	  } else if (strcmp(argv[i],"-help") == 0) {
 	    fputs(usage,stderr);
 	    Swig_mark_arg(i);
@@ -459,6 +463,18 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Node *top = Swig_cparse(cpps);
     Swig_process_types(top);
     Swig_default_allocators(top);
+
+    if (dump_classes) {
+      Hash *classes = Getattr(top,"classes");
+      if (classes) {
+	Printf(stdout,"Classes\n");
+	Printf(stdout,"------------\n");
+	String *key;
+	for (key = Firstkey(classes); key; key = Nextkey(classes)) {
+	  Printf(stdout,"%s\n", key);
+	}
+      }	       
+    }
 
     if (dump_typedef) {
       SwigType_print_scope();
