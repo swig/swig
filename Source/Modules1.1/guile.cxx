@@ -312,8 +312,13 @@ emit_linkage (String &module_name, int linkage)
     "scm_init_" >> module_func;
     fprintf (f_init, "\n/* Linkage: hobbit */\n");
     fprintf (f_init, "SCM\n%s (void)\n{\n", module_func.get());
-    fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
-             module_name.get());
+    {
+      String mod = "";
+      mod << module_name;
+      mod.replace ("/", " ");
+      fprintf (f_init, "    scm_register_module_xxx (\"%s\", SWIG_init);\n",
+               mname.get());
+    }
     fprintf (f_init, "}\n");
     break;
   default:
