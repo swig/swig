@@ -17,6 +17,19 @@ private:
   File *f_wrappers;
   File *f_init;
   String *PrefixPlusUnderscore;
+  int current;
+  
+  // Wrap modes
+  enum {
+    NO_CPP,
+    MEMBER_FUNC,
+    CONSTRUCTOR,
+    DESTRUCTOR,
+    MEMBER_VAR,
+    CLASS_CONST,
+    STATIC_FUNC,
+    STATIC_VAR
+  };
 
 public:
 
@@ -32,6 +45,7 @@ public:
     f_wrappers = 0;
     f_init = 0;
     PrefixPlusUnderscore = 0;
+    current = NO_CPP;
   }
 
   /* ---------------------------------------------------------------------
@@ -106,6 +120,9 @@ public:
     /* Change naming scheme for constructors and destructors */
     Swig_name_register((char *)"construct",(char *)"%c_create");
     Swig_name_register((char *)"destroy",(char *)"%c_destroy");
+    
+    /* Current wrap type */
+    current = NO_CPP;
 
     /* Emit code for children */
     Language::top(n);
@@ -148,7 +165,7 @@ public:
    * name (i.e. "enum_test").
    * ------------------------------------------------------------ */
 
-  String *strip(String *name) {
+  String *strip(const DOHString_or_char *name) {
     String *s = Copy(name);
     if (Strncmp(name, PrefixPlusUnderscore, Len(PrefixPlusUnderscore)) != 0) {
       return s;
@@ -158,37 +175,16 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * is_constructor()
-   * ------------------------------------------------------------ */
-
-  int is_constructor(Node *n) const {
-    return Strcmp(nodeType(n), "constructor") == 0;
-  }
-
-  /* ------------------------------------------------------------
-   * is_member_function()
-   * ------------------------------------------------------------ */
-  
-  int is_member_function(Node *n) const {
-    return CPlusPlus &&
-           getCurrentClass() &&
-	   !is_constructor(n);
-  }
-
-  /* ------------------------------------------------------------
-   * is_member_function()
-   * ------------------------------------------------------------ */
-  
-  int isMemberVariable(Node *n) const {
-    return getCurrentClass() && Cmp(Getattr(n,"storage"),"static") != 0;
-  }
-
-  /* ------------------------------------------------------------
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(Node *n, String *name, String *function, String *description) {
-    String *rename = strip(name);
+  void add_method(Node *n, const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
+    String *rename;
+    if (current != NO_CPP) {
+      rename = strip(name);
+    } else {
+      rename = NewString(name);
+    }
     Printf(f_init, "ADD_FUNCTION(\"%s\", %s, tFunc(%s), 0);\n", rename, function, description);
     Delete(rename);
   }
@@ -232,7 +228,7 @@ public:
     int varargs = emit_isvarargs(l);
     
     /* Which input argument to start with? */
-    int start = is_member_function(n) ? 1 : 0;
+    int start = (current == MEMBER_FUNC || current == MEMBER_VAR || current == DESTRUCTOR) ? 1 : 0;
 
     String *wname = Swig_name_wrapper(iname);
     if (overname) {
@@ -335,7 +331,12 @@ public:
     Printf(f->code, "pop_n_elems(args);\n");
 
     /* Return the function value */
-    if (!is_constructor(n)) {
+    if (current == CONSTRUCTOR) {
+      Printv(f->code, "THIS = (void *) result;\n", NULL);
+      Printv(description, ", tVoid", NULL);
+    } else if (current == DESTRUCTOR) {
+      Printv(description, ", tVoid", NULL);
+    } else {
       Wrapper_add_local(f, "resultobj", "struct object *resultobj");
       Printv(description, ", ", NULL);
       if ((tm = Swig_typemap_lookup_new("out",n,"result",0))) {
@@ -356,9 +357,6 @@ public:
 	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
 		     "Unable to use return type %s in function %s.\n", SwigType_str(d,0), name);
       }
-    } else {
-      Printv(f->code, "THIS = (void *) result;\n", NULL);
-      Printv(description, ", tVoid", NULL);
     }
 
     /* Output argument output code */
@@ -395,7 +393,7 @@ public:
     Wrapper_print(f,f_wrappers);
 
     /* Now register the function with the interpreter. */
-    if (!isMemberVariable(n)) {
+    if (current != MEMBER_VAR) {
       if (!Getattr(n,"sym:overloaded")) {
 	add_method(n, iname, wname, description);
       } else {
@@ -613,7 +611,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
-    return Language::memberfunctionHandler(n);
+    current = MEMBER_FUNC;
+    Language::memberfunctionHandler(n);
+    current = NO_CPP;
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
@@ -623,16 +624,9 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    /* First wrap the new singleton method */
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    current = CONSTRUCTOR;
     Language::constructorHandler(n);
-
-    /* Now do the instance initialize method */
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
-    Language::constructorHandler(n);
-
-    /* Done */
-    Swig_name_unregister((String_or_char *) "construct");
+    current = NO_CPP;
     return SWIG_OK;
   }
 
@@ -641,7 +635,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
-    return Language::destructorHandler(n);
+    current = DESTRUCTOR;
+    Language::destructorHandler(n);
+    current = NO_CPP;
+    return SWIG_OK;
   }
   
   /* ------------------------------------------------------------
@@ -655,6 +652,7 @@ public:
     ParmList *parms;
     Node *n;
     int need_setter;
+    String *funcname;
     
     /* If at least one of them is mutable, we need a setter */
     need_setter = 0;
@@ -673,20 +671,25 @@ public:
       String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
-      Printf(wrapper->locals, "char *name = (char *) STR0(sp[args].u.string);\n");
+      Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
       
       n = Firstitem(membervariables);
       while (n) {
 	if (!Getattr(n, "feature:immutable")) {
 	  name = Getattr(n, "name");
+	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
-	  Printf(wrapper->code, "%s(args);\n", "setter");
+	  Printf(wrapper->code, "stack_dup();\n");
+	  Printf(wrapper->code, "stack_unlink(args);\n");
+	  Printf(wrapper->code, "%s(1);\n", funcname);
 	  Printf(wrapper->code, "}\n");
+	  Delete(funcname);
 	}
 	n = Nextitem(membervariables);
       }
 
       /* Close the function */
+      Printf(wrapper->code, "pop_n_elems(args);\n");
       Printf(wrapper->code, "}\n");
 
       /* Dump wrapper code to the output file */
@@ -694,7 +697,7 @@ public:
       
       /* Register it with Pike */
       String *description = NewString("tStr tFloat, tVoid");
-      add_method(Firstitem(membervariables), setter, wname, description);
+      add_method(Firstitem(membervariables), "`->=", wname, description);
       Delete(description);
 
       /* Clean up */
@@ -708,18 +711,21 @@ public:
     String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NULL);
-    Printf(wrapper->locals, "char *name = (char *) STR0(sp[args].u.string);\n");
+    Printf(wrapper->locals, "char *name = (char *) STR0(sp[0-args].u.string);\n");
 
     n = Firstitem(membervariables);
     while (n) {
       name = Getattr(n, "name");
+      funcname = Swig_name_wrapper(Swig_name_get(Swig_name_member(getClassPrefix(), name)));
       Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
-      Printf(wrapper->code, "%s(args);\n", "getter");
+      Printf(wrapper->code, "%s(args);\n", funcname);
       Printf(wrapper->code, "}\n");
+      Delete(funcname);
       n = Nextitem(membervariables);
     }
 
     /* Close the function */
+    Printf(wrapper->code, "pop_n_elems(args);\n");
     Printf(wrapper->code, "}\n");
 
     /* Dump wrapper code to the output file */
@@ -727,7 +733,7 @@ public:
     
     /* Register it with Pike */
     String *description = NewString("tStr, tMix");
-    add_method(Firstitem(membervariables), getter, wname, description);
+    add_method(Firstitem(membervariables), "`->", wname, description);
     Delete(description);
     
     /* Clean up */
@@ -747,9 +753,25 @@ public:
       Setattr(getCurrentClass(),"membervariables",membervariables);
     }
     Append(membervariables,n);
-    return Language::membervariableHandler(n);
+    current = MEMBER_VAR;
+    Language::membervariableHandler(n);
+    current = NO_CPP;
+    return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   *
+   * Wrap a static C++ function
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmemberfunctionHandler(Node *n) {
+    current = STATIC_FUNC;
+    Language::staticmemberfunctionHandler(n);
+    current = NO_CPP;
+    return SWIG_OK;
+  }
+  
   /* ------------------------------------------------------------
    * memberconstantHandler()
    *
@@ -757,7 +779,21 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    return constantWrapper(n);
+    current = CLASS_CONST;
+    constantWrapper(n);
+    current = NO_CPP;
+    return SWIG_OK;
+  }
+
+  /* ---------------------------------------------------------------------
+   * staticmembervariableHandler()
+   * --------------------------------------------------------------------- */
+
+  virtual int staticmembervariableHandler(Node *n) {
+    current = STATIC_VAR;
+    Language::staticmembervariableHandler(n);
+    current = NO_CPP;
+    return SWIG_OK;
   }
 };
 
