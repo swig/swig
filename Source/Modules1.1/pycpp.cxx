@@ -179,7 +179,7 @@ void PYTHON::cpp_member_func(char *name, char *iname, DataType *t, ParmList *l) 
       
       // Check to see if the return type is an object
       if ((Getattr(hash,t->name)) && (t->is_pointer <= 1)) {
-	if (!typemap_check("out",typemap_lang,t,name_member(realname,class_name))) {
+	if (!typemap_check((char*)"out",typemap_lang,t,name_member(realname,class_name))) {
 	  if (!have_output) {
 	    *pyclass << tab8 << "if val: val = " << GetChar(hash,t->name) << "Ptr(val) ";
 	    if (((Getattr(hash,t->name)) && (t->is_pointer < 1)) ||
@@ -248,7 +248,7 @@ void PYTHON::cpp_constructor(char *name, char *iname, ParmList *l) {
       else
 	*construct << tab8 << "self.this = apply(" << module << "." << name_construct(realname) << ",args)\n";
       *construct << tab8 << "self.thisown = 1\n";
-      emitAddPragmas(*construct,"__init__",tab8);
+      emitAddPragmas(*construct,(char*)"__init__",(char*)tab8);
       have_constructor = 1;
     } else {
 
@@ -292,7 +292,7 @@ void PYTHON::cpp_destructor(char *name, char *newname) {
     }
     
     *pyclass << tab4 << "def __del__(self," << module << "=" << module << "):\n";
-    emitAddPragmas(*pyclass,"__del__",tab8);
+    emitAddPragmas(*pyclass,(char*)"__del__",(char*)tab8);
     *pyclass << tab8 << "if self.thisown == 1 :\n"
 	     << tab8 << tab4 << module << "." << name_destroy(realname) << "(self)\n";
     
@@ -354,7 +354,7 @@ void PYTHON::cpp_close_class() {
 	   << tab8 << "return \"<C " << class_name <<" instance at %s>\" % (self.this,)\n";
 
       classes << repr;
-      emitAddPragmas(classes,"__class__",tab4);
+      emitAddPragmas(classes,(char*)"__class__",(char*)tab4);
     }
 
     // Now build the real class with a normal constructor
