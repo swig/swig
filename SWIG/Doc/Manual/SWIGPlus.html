@@ -49,11 +49,10 @@ wrapping and that material will be useful in understanding this chapter.
 
 <a name="n2"></a><H2>5.1 Comments on C++ Wrapping</H2>
 
-
 Because of its complexity and the fact that C++ can be
 difficult to integrate with itself let alone other languages, SWIG 
 only provides support for a subset of C++ features.   Fortunately, 
-this is an increasingly large subset.
+this is now a rather large subset.  
 
 <p>
 In part, the problem with C++ wrapping is that there is no
@@ -87,11 +86,10 @@ yourself in the foot.  You will just have to be careful.
 
 <a name="n3"></a><H2>5.2 Approach</H2>
 
-
 To wrap C++, SWIG uses a layered approach to code generation.  
 At the lowest level, SWIG generates a collection of procedural ANSI-C style
-wrappers.   These wrappers are responsible for basic type conversion,
-type checking, error handling, and other details of the C++ binding.
+wrappers.   These wrappers take care of basic type conversion,
+type checking, error handling, and other low-level details of the C++ binding.
 These wrappers are also sufficient to bind C++ into any target language
 that supports built-in procedures.   In some sense, you might view this
 layer of wrapping as providing a C library interface to C++.
@@ -126,7 +124,6 @@ for each target language.
 
 <a name="n4"></a><H2>5.3 Supported C++ features</H2>
 
-
 SWIG's currently supports the following C++ features :<p>
 <p>
 <ul>
@@ -135,7 +132,7 @@ SWIG's currently supports the following C++ features :<p>
 <li>Virtual functions
 <li>Public inheritance (including multiple inheritance)
 <li>Static functions
-<li>Function and method overloading (with renaming)
+<li>Function and method overloading.
 <li>Operator overloading for many standard operators
 <li>References
 <li>Templates (including specialization and member templates).
@@ -148,14 +145,14 @@ The following C++ features are not currently supported :<p>
 
 <p>
 <ul>
-<li>Automatic function and method overloading (requires renaming)
 <li>Nested classes
 <li>Overloaded versions of certain operators (new, delete, etc.)
 </ul>
 
 <p>
 SWIG's C++ support is an ongoing project so some of these limitations may be lifted
-in future releases.  However, we make no promises.
+in future releases.  However, we make no promises.  Also, submitting a bug report is a very
+good way to get problems fixed (wink).
 
 <a name="n5"></a><H2>5.4 Command line options and compilation</H2>
 
@@ -290,10 +287,9 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <a name="n8"></a><H3>5.5.2 Copy constructors</H3>
 
-
-If a class defines more than one constructor, SWIG will complain about a name clash (see the
-section on overloading).   However, a copy constructor is handled as a special case. 
-If a class defines a copy constructor like this,
+If a class defines more than one constructor, its behavior depends on the capabilities of the
+target language.  If overloading is supported, the copy constructor is accessible using
+the normal constructor function.  For example, if you have this:
 
 <blockquote>
 <pre>
@@ -306,7 +302,17 @@ public:
 </pre>
 </blockquote>
 
-the copy constructor is mapped into an accessor function like this:
+then the copy constructor can be used as follows:
+
+<blockquote>
+<pre>
+x = new_List()               # Create a list
+y = new_List(x)              # Copy list x
+</pre>
+</blockquote>
+
+If the target language does not support overloading, then the copy constructor is available
+through a special function like this:
 
 <blockquote>
 <pre>
@@ -315,11 +321,6 @@ List *copy_List(List *f) {
 }
 </pre>
 </blockquote>
-
-Depending on the target language module, this function may be further
-incorporated into object wrapping (wrapped a special method for object
-copying for instance).  However, if not, the above copy function will 
-be made available as an ordinary procedure.
 
 <p>
 <b>Note:</b> For a class <tt>X</tt>, SWIG only treats a constructor as
@@ -391,7 +392,6 @@ Usually, static members are accessed as functions with names in which the class 
 prepended with an underscore. For example, <tt>List_print</tt>.
 
 <a name="n11"></a><H3>5.5.5 Member functions and default arguments</H3>
-
 
 SWIG allows member functions to accept default arguments.  For example:
 
@@ -589,8 +589,43 @@ Swig_STOUT = Swig::STOUT
 
 Members declared as <tt>const</tt> are wrapped as read-only members and do not create constants.
 
-<a name="n15"></a><H2>5.8 References and pointers</H2>
+<h2>Friends</h2>
 
+Friend declarations are ignored by SWIG.   For example, if you have this code:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     ...
+     friend void blah(Foo *f);
+     ...
+};
+</pre>
+</blockquote>
+
+then the <tt>friend</tt> declaration does not result in any wrapper code.   On the other hand,
+a declaration of the function itself will work fine.  For instance:
+
+<blockquote>
+<pre>
+class Foo {
+public:
+    ...
+    friend void blah(Foo *f);       // Ignored
+    ...
+};
+
+void blah(Foo *f);       // Generates wrappers
+</pre>
+</blockquote>
+
+Unlike normal member functions or static member functions, a friend
+declaration does not define a method that operates on an instance of
+an object nor does it define a declaration in the scope of the class.  
+Therefore, it would make no sense for SWIG to create wrappers as such.
+
+<a name="n15"></a><H2>5.8 References and pointers</H2>
 
 C++ references are supported, but SWIG transforms them back into pointers. For example,
 a declaration like this :<p>
@@ -1055,14 +1090,11 @@ for a better solution.
 
 <a name="n20"></a><H2>5.13 Wrapping Overloaded Functions and Methods</H2>
 
-
 This section describes the problem of wrapping overloaded C++
-functions and methods.  This has long been a limitation of SWIG that
-has only recently been addressed (primarily because we couldn't quite
-figure out how to do it without causing a head-explosion or
-serious reliability problems).  However, in order to understand the reasoning
-behind the current solution, it is important to better understand the
-problem.
+functions and methods.  SWIG is able to wrap overloaded declarations
+in most target languages.   However, there are a number of restrictions
+on what is supported.  To better understand the SWIG implementation, it is
+useful to better understand a few details about how overloading works.
 
 <p>
 In C++, functions and methods can be overloaded by declaring them with
@@ -1119,11 +1151,8 @@ the types of arguments passed.
 The implementation of overloaded methods in C++ is difficult to
 translate directly to a scripting language environment because it
 relies on static type-checking and compile-time binding of
-methods--neither of which map to the dynamic
-environment of an interpreter.  For example,
-in Python, Perl, and Tcl, it is simply impossible to define three entirely different
-versions of a function with exactly the same name within the same scope.    The repeated
-definitions simply replace previous definitions.
+methods--neither of which map cleanly to the dynamic environment of an
+interpreter.  
 
 <p>
 Therefore, to solve the overloading problem, let's first look at
@@ -1144,10 +1173,12 @@ void foo(int);
 </blockquote>
 
 Although this certainly works, it is extremely annoying to explicitly
-annotate every class with a bunch of <tt>%name</tt> directives like that.  It fact,
-it's so annoying that this really isn't a viable solution at all (except in
-cases where there is very little overloading).  Dave sincerely apologizes for ever
-thinking that this approach was good enough--however, let's try to forget the past and move on.
+annotate every class with a bunch of <tt>%name</tt> directives like
+that.  It fact, it's so annoying that this really isn't a viable
+solution at all (except in cases where there is very little
+overloading).  Dave sincerely apologizes for ever thinking that this
+approach was good enough--however, let's try to forget the past and
+move on.
 
 <p>
 <li><b>Name Mangling</b>.  Another approach to overloading would be to
@@ -1195,114 +1226,8 @@ resolve such a conflict, but this tends to defeat the whole point.  Although thi
 might work in simple cases, there are still a number of obvious problems.
 
 <p>
-<li><b>Numbering</b>.  Another simple solution might be to number all of
-the overloaded methods in order of definition. For example:
-
-<blockquote>
-<pre>
-void foo(int);                  // becomes foo_1(int)
-void foo(double);               // becomes foo_2(int)
-void foo(Bar *, Spam *, int);   // becomes foo_3(int)
-</pre>
-</blockquote>
-
-Unfortunately, the numbering doesn't give any clues about what the
-actual function is.  Also, if the order changes or a new function is
-added, all of the numbers might change--breaking all of the programs
-written against the interface.  There is also a tiny problem
-of naming methods with multiple inheritance:
-
-<blockquote>
-<pre>
-class X {
-public:
-   virtual void foo(int);                // X_foo_1
-   virtual void foo(double);             // X_foo_2
-};
-
-class Y {
-public:
-   virtual void foo(long);               // Y_foo_1
-   virtual void foo(Bar *, Spam *, int); // Y_foo_2
-};
-
-class Z : public X, public Y {
-public:
-   virtual void foo(double);             // Z_foo_1 ??? Mismatch X_foo_2
-   virtual void foo(Bar *, Spam *, int); // Z_foo_2 ??? 
-  // What happens to X_foo_1 and Y_foo_1 here?
-};
-</pre>
-</blockquote>
-
-In this case, the member functions have different names in the base class than they
-do in a derived class!  Clearly this is just bizarre and not particularly 
-obvious to someone who has to maintain the resulting code.
-Again, this doesn't seem to be a viable solution except in very simple cases.
-
-<p>
-<li><b>Dynamic dispatch</b>.  By far, the most powerful approach to the problem
-would be to implement some kind of dynamic dispatch mechanism in the
-code generator.  For example, you might generate some code roughly 
-equivalent to this pseudocode:
-
-<blockquote>
-<pre>
-wrap_foo(args):
-   if len(args) == 3:
-        if (args[0].type == Bar and 
-           args[1].type == Spam and
-           args[2].type == int):
-               foo((Bar *) arg[0], (Spam *) arg[1], (int) arg[2])
-   else if len(args) == 1:
-        if args[0].type == int:
-               foo((int) args[0])
-        else if args[0].type == double:
-               foo((double) args[0])
-   else:
-        raise "Bad arguments to foo"
-</pre>
-</blockquote>
-
-Unfortunately there are serious problems with this approach as
-well. First, the addition of dynamic dispatch code introduces a
-performance hit on the execution time of overloaded methods since the
-arguments to each method call have to first be examined to figure out
-which function to dispatch.  Although the sample code above doesn't
-look too bad, this procedure may involve interaction with the SWIG
-type-checker, typemaps (a SWIG customization scheme), and other more
-advanced parts of the interpreter.  A more nasty problem has to do
-with functions that can accept the same type of scripting object.  For
-example, if you have this,
-
-<blockquote>
-<pre>
-void foo(int);
-void foo(double);
-</pre>
-</blockquote>
-
-the <tt>foo(double)</tt> function will probably accept both a
-scripting language integer and a floating point number as an argument.
-As a result, it's possible for the <tt>foo(double)</tt> function to
-hide the integer function <tt>foo(int)</tt> if arguments aren't
-checked in the correct order.  For instance, if you switch the order
-of the two functions in the interface file, does <tt>foo(int)</tt> suddenly become
-unavailable?  To deal with this problem, you might decide to make all
-of the overloaded functions additionally available through name mangling.  However,
-that now introduces all of the problems of name mangling plus all of
-the problems of dynamic dispatch!  
-
-<p>
-The bottom line is that even though some kind of dynamic dispatch
-scheme may be the "best" way to support overloading, it is 
-difficult to implement and it has some serious shortcomings including
-performance, hiding of functions, and possibly poor interaction with some of
-SWIG's customization features.
-
-<p>
-<li><b>Trial Execution</b>.  An approach that is somewhat similar to dynamic dispatch
-would be to implement a trial execution scheme.   In this case, each overloaded
+<li><b>Trial Execution</b>.  Another approach to overloading is to implement a
+a trial execution scheme.   In this case, each overloaded
 function would generate a unique wrapper function, possibly with a name-mangled name. 
 For example, something like this:
 
@@ -1338,12 +1263,11 @@ wrap_foo(args) {
 }
 </pre>
 </blockquote>
-Like dynamic dispatch, this solution suffers from a 
+Unfortunately, this solution suffers from a 
 performance penalty from trying to start the execution of each
 possible function.  In fact, the impact may be worse since the only
 way to determine the proper function is to try all possibilities until
-no errors occur (dynamic dispatch could make more intelligent
-choices).  Another problem is that a function might throw an ERROR for
+no errors occur. Another problem is that a function might throw an ERROR for
 a different reason than improper arguments (maybe the arguments were
 okay, but something happened during execution).  Therefore, you would
 need to have some kind of special error condition to indicate an error
@@ -1353,18 +1277,15 @@ back to the interpreter (in which case, the above approach won't work like we wa
 Finally, making this approach work with inheritance and all
 of SWIG's customization options is also problematic.
 
-
-<p>
-Of all of the schemes mentioned, trial execution is the most likely
-feature that might be added to SWIG in the future.  However, no such
-support is planned at this time.
-
 <p>
 <li><b>Don't allow overloading</b>.  Easy to implement and extremely annoying to
 C++ programmers, but not particularly useful.
 </ul>
 
 Alas, what to do about overloading?
+
+<p>
+Heuristic for overloading.
 
 <p>
 Although it would be nice to support an advanced wrapping technique
