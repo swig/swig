@@ -895,8 +895,6 @@ AC_SUBST(release_suffix)
 # Detect ocaml
 #----------------------------------------------------------------
 
-OCAMLBIN=
-
 AC_ARG_WITH(ocaml,[  --with-ocaml=path	  Set location of ocaml executable],[ OCAMLBIN="$withval"], [OCAMLBIN=])
 AC_ARG_WITH(ocamlc,[  --with-ocamlc=path  Set location of ocamlc executable],[ OCAMLC="$withval"], [OCAMLC=])
 
@@ -909,7 +907,7 @@ fi
 
 AC_MSG_CHECKING(for Ocaml interpreter)
 if test -z "$OCAMLBIN"; then
-AC_CHECK_PROGS(OCAML, ocaml, ocaml)
+AC_CHECK_PROGS(OCAMLBIN, ocaml, ocaml)
 else
 OCAMLBIN="$OCAMLBIN"
 fi
@@ -926,6 +924,10 @@ done
 if test -z "$OCAMLINC"; then
 	AC_MSG_RESULT(not found)
 fi
+
+export OCAMLINC
+export OCAMLBIN
+export OCAMLC
 
 AC_SUBST(OCAMLINC)
 AC_SUBST(OCAMLBIN)
