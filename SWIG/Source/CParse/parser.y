@@ -245,7 +245,6 @@ static String *make_name(String *name,SwigType *decl) {
     return s;
   }
 
-
   if (!name) return 0;
   /* Check to see if the name is in the hash */
   if (!rename_hash) {
@@ -292,11 +291,9 @@ static int  add_only_one = 0;
 static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
-
-  if (inclass) {
+  if (inclass && n) {
     cparse_normalize_void(n);
   }
-
   while (n) {
     String *symname;
     /* for friends, we need to pop the scope once */
@@ -325,7 +322,14 @@ static void add_symbols(Node *n) {
     }
     decl = Getattr(n,"decl");
     if (!SwigType_isfunction(decl)) {
-      symname = make_name(Getattr(n,"name"),0);
+      String *makename = Getattr(n,"parser:makename");
+      if (makename) {
+        Delattr(n,"parser:makename"); /* temporary information, don't leave it hanging around */
+      } else {
+        makename = Getattr(n,"name");
+      }
+      
+      symname = make_name(makename,0);
       if (!symname) {
 	symname = Getattr(n,"unnamed");
       }
@@ -367,49 +371,45 @@ static void add_symbols(Node *n) {
       if ((wrn) && (Len(wrn))) {
 	Swig_warning(0,Getfile(n),Getline(n), "%s\n", wrn);
       }
-      if (Strcmp(nodeType(n),"enum") != 0) {
-	c = Swig_symbol_add(symname,n);
-	if (c != n) {
-	  if (Getattr(n,"sym:weak")) {
-	    Setattr(n,"sym:name",symname);
-	  } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
-	    Setattr(n,"sym:name",symname);
-	  } else {
-	    String *e = NewString("");
-	    String *en = NewString("");
-	    String *ec = NewString("");
-	    int redefined = need_redefined_warn(n,c,inclass);
-	    if (redefined) {
-	      Printf(en,"Identifier '%s' redefined (ignored)",symname);
-	      Printf(ec,"previous definition of '%s'",symname);
-	    } else {
-	      Printf(en,"Redundant redeclaration of '%s'",symname);
-	      Printf(ec,"previous declaration of '%s'",symname);
-	    }
-	    if (Cmp(symname,Getattr(n,"name"))) {
-	      Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
-	    }
-	    Printf(en,",");
-	    if (Cmp(symname,Getattr(c,"name"))) {
-	      Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
-	    }
-	    Printf(ec,".");
-	    if (redefined) {
-	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
-	      Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
-	    } else if (!is_friend(n) && !is_friend(c)) {
-	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
-	      Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
-	    }
-	    Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
-		   Getfile(c),Getline(c),ec);
-	    Setattr(n,"error",e);
-	    Delete(en);
-	    Delete(ec);
-	  }
-	}
-      } else {
-	Setattr(n,"sym:name", symname);
+      c = Swig_symbol_add(symname,n);
+      if (c != n) {
+        if (Getattr(n,"sym:weak")) {
+          Setattr(n,"sym:name",symname);
+        } else if ((Strcmp(nodeType(n),"template") == 0) && (Strcmp(Getattr(n,"templatetype"),"cdecl") == 0)) {
+          Setattr(n,"sym:name",symname);
+        } else {
+          String *e = NewString("");
+          String *en = NewString("");
+          String *ec = NewString("");
+          int redefined = need_redefined_warn(n,c,inclass);
+          if (redefined) {
+            Printf(en,"Identifier '%s' redefined (ignored)",symname);
+            Printf(ec,"previous definition of '%s'",symname);
+          } else {
+            Printf(en,"Redundant redeclaration of '%s'",symname);
+            Printf(ec,"previous declaration of '%s'",symname);
+          }
+          if (Cmp(symname,Getattr(n,"name"))) {
+            Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
+          }
+          Printf(en,",");
+          if (Cmp(symname,Getattr(c,"name"))) {
+            Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
+          }
+          Printf(ec,".");
+          if (redefined) {
+            Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
+            Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
+          } else if (!is_friend(n) && !is_friend(c)) {
+            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
+            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
+          }
+          Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
+                 Getfile(c),Getline(c),ec);
+          Setattr(n,"error",e);
+          Delete(en);
+          Delete(ec);
+        }
       }
     }
     /* restore the class scope if needed */
@@ -2299,10 +2299,13 @@ initializer   : def_args {
  * ------------------------------------------------------------ */
 
 c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
+		  SwigType *ty = 0;
                   $$ = new_node("enum");
+		  ty = NewStringf("enum %s", $3);
 		  Setattr($$,"name",$3);
+		  Setattr($$,"type",ty);
 		  appendChild($$,$5);
-		  add_symbols($$);           /* Add to tag space */
+		  add_symbols($$);       /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
 	       }
 
@@ -2315,16 +2318,17 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 if ($3) {
 		   Setattr($$,"name",$3);
 		   ty = NewStringf("enum %s", $3);
-		 } else if ($7.id){
+		 } else if ($7.id) {
 		   unnamed = make_unnamed();
 		   ty = NewStringf("enum %s", unnamed);
 		   Setattr($$,"unnamed",unnamed);
-		   /* WF 20/12/2001: Cannot get sym:name and symtab set without setting name - fix!
-		      // I don't think sym:name should be set. */
 		   Setattr($$,"name",$7.id);
-		   Setattr($$,"tdname",$7.id);
 		   Setattr($$,"storage",$1);
 		 }
+		 if ($7.id && Cmp($1,"typedef") == 0) {
+		   Setattr($$,"tdname",$7.id);
+                   Setattr($$,"allows_typedef","1");
+                 }
 		 appendChild($$,$5);
 		 n = new_node("cdecl");
 		 Setattr(n,"type",ty);
@@ -2347,9 +2351,17 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		     Setattr(n,"code",Copy(scanner_ccode));
 		   }
 		 }
-		 add_symbols($$);        /* Add enum to tag space */
+
+                 /* Ensure that typedef enum ABC {foo} XYZ; uses XYZ for sym:name, like structs.
+                  * Note that class_rename/yyrename are bit of a mess so used this simple approach to change the name. */
+                 if ($7.id && $3 && Cmp($1,"typedef") == 0) {
+                   Setattr($$, "parser:makename", NewString($7.id));
+                 }
+
+		 add_symbols($$);       /* Add enum to tag space */
 		 set_nextSibling($$,n);
-		 add_symbols($5);       /* Add to id space */
+
+		 add_symbols($5);       /* Add enum values to id space */
 	         add_symbols(n);
 	       }
                ;
@@ -2538,10 +2550,9 @@ cpp_class_decl  :
 		 yyrename = NewString(class_rename);
 		 Classprefix = 0;
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		 add_symbols($$);
-		 if ($9)
-		   add_symbols($9);
 
+		 add_symbols($$);
+		 add_symbols($9);
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -2560,7 +2571,7 @@ cpp_class_decl  :
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
              } cpp_members RBRACE declarator c_decl_tail {
 	       String *unnamed;
-	       Node *n, *p, *pp = 0;
+	       Node *n;
 	       Classprefix = 0;
 	       inclass = 0;
 	       unnamed = make_unnamed();
@@ -2581,12 +2592,10 @@ cpp_class_decl  :
 	       Setattr(n,"decl",$7.type);
 	       Setattr(n,"parms",$7.parms);
 	       Setattr(n,"storage",$1);
-	       pp = n;
 	       if ($8) {
-		 set_nextSibling(n,$8);
-		 p = $8;
+		 Node *p = $8;
+		 set_nextSibling(n,p);
 		 while (p) {
-		   pp = p;
 		   Setattr(p,"unnamed",unnamed);
 		   Setattr(p,"type",Copy(unnamed));
 		   Setattr(p,"storage",$1);
@@ -2602,7 +2611,6 @@ cpp_class_decl  :
 		     name = $7.id;
 		     Setattr($$,"tdname",name);
 		     Setattr($$,"name",name);
-		     /* if (!class_rename) class_rename = NewString(name); */
 		     Swig_symbol_setscopename(name);
 
 		     /* If a proper name given, we use that as the typedef, not unnamed */
@@ -4300,26 +4308,31 @@ ename          :  ID { $$ = $1; }
                |  empty { $$ = (char *) 0;}
                ;
 
-/* SWIG enum list */
-
 enumlist       :  enumlist COMMA edecl { 
-                   Node *leftSibling = Getattr($1,"_last");
-		   if (!leftSibling) {
-                     leftSibling=$1;
-		   }
-                   set_nextSibling(leftSibling,$3);
-                   Setattr($1,"_last",$3);
-                   if ($3 && !Getattr($3, "enumvalue")) {
-                     /* There is no explicit enum value given, so make one. */
-                     Setattr($3,"enumvalue", NewStringf("%s+1", Getattr(leftSibling,"name")));
-                   }
-		   $$ = $1;
+
+                  /* Ignore if there is a trailing comma in the enum list */
+                  if ($3) {
+                    Node *leftSibling = Getattr($1,"_last");
+                    if (!leftSibling) {
+                      leftSibling=$1;
+                    }
+                    set_nextSibling(leftSibling,$3);
+                    Setattr($1,"_last",$3);
+                    if ($3 && !Getattr($3, "enumvalue")) {
+                      /* There is no explicit enum value given, so make one. */
+                      Setattr($3,"enumvalueex", NewStringf("%s + 1", Getattr(leftSibling,"name")));
+                    }
+                  }
+		  $$ = $1;
                }
                |  edecl { 
                    $$ = $1; 
-                   if (!Getattr($1, "enumvalue")) {
-                     /* first enum item value defaults to 0 */
-                     Setattr($1,"enumvalue", "0");
+                   if ($1) {
+                     Setattr($1,"_last",$1);
+                     if (!Getattr($1, "enumvalue")) {
+                       /* first enum item value defaults to 0 */
+                       Setattr($1,"enumvalueex", "0");
+                     }
                    }
                }
                ;
