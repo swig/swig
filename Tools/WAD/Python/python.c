@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------- 
- * wadpy.cxx
+ * python.c
  *
  *     Dynamically loadable python module for wad.
  * 
@@ -11,7 +11,6 @@
 
 #include "Python.h"
 #include "wad.h"
-#include <signal.h>
 
 /* These are the python exception objects we will add
    SegFault, BusError, AbortError */
@@ -220,7 +219,7 @@ static void handler(int signo, WadFrame *frame, char *ret) {
   PyErr_SetString(type, message);
 }
 
-static void pywadinit() {
+void pywadinit() {
   PyObject *d, *m;
   m = PyImport_ImportModule((char *)"__builtin__");
   d = PyModule_GetDict(m);
@@ -243,23 +242,10 @@ static void pywadinit() {
   wad_set_returns(retpts);
 }
 
-/* This hack is used to auto-initialize wad regardless of whether we are
-   used as an imported module or as a link-library for another module */
-   
-class wadinitializer {
-public:
-  wadinitializer() {
-    pywadinit();
-  }
-};
-
-static wadinitializer wi;
-
 static PyMethodDef wadmethods[] = {
   {0,0},
 };
 
-extern "C"
 void initlibwadpy() {
   Py_InitModule((char *)"libwadpy",wadmethods);
 }
