@@ -138,82 +138,12 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 
 /* The rest of this file has the array typemaps */
 
-/* Arrays of primitive types.
- * These typemaps are applied merely by including this file. */                     
-%typemap(jni) bool[ANY]               "jbooleanArray"
-%typemap(jni) signed char[ANY]        "jbyteArray"
-%typemap(jni) unsigned char[ANY]      "jshortArray"
-%typemap(jni) short[ANY]              "jshortArray"
-%typemap(jni) unsigned short[ANY]     "jintArray"
-%typemap(jni) int[ANY]                "jintArray"
-%typemap(jni) unsigned int[ANY]       "jlongArray"
-%typemap(jni) long[ANY]               "jintArray"
-%typemap(jni) unsigned long[ANY]      "jlongArray"
-%typemap(jni) long long[ANY]          "jlongArray"
-/*%typemap(jni) unsigned long long[ANY] "jobjectArray"*/
-%typemap(jni) float[ANY]              "jfloatArray"
-%typemap(jni) double[ANY]             "jdoubleArray"
-
-%typemap(jtype) bool[ANY]               "boolean[]"
-%typemap(jtype) signed char[ANY]        "byte[]"
-%typemap(jtype) unsigned char[ANY]      "short[]"
-%typemap(jtype) short[ANY]              "short[]"
-%typemap(jtype) unsigned short[ANY]     "int[]"
-%typemap(jtype) int[ANY]                "int[]"
-%typemap(jtype) unsigned int[ANY]       "long[]"
-%typemap(jtype) long[ANY]               "int[]"
-%typemap(jtype) unsigned long[ANY]      "long[]"
-%typemap(jtype) long long[ANY]          "long[]"
-/*%typemap(jtype) unsigned long long[ANY] "java.math.BigInteger[]"*/
-%typemap(jtype) float[ANY]              "float[]"
-%typemap(jtype) double[ANY]             "double[]"
-
-%typemap(jstype) bool[ANY]               "boolean[]"
-%typemap(jstype) signed char[ANY]        "byte[]"
-%typemap(jstype) unsigned char[ANY]      "short[]"
-%typemap(jstype) short[ANY]              "short[]"
-%typemap(jstype) unsigned short[ANY]     "int[]"
-%typemap(jstype) int[ANY]                "int[]"
-%typemap(jstype) unsigned int[ANY]       "long[]"
-%typemap(jstype) long[ANY]               "int[]"
-%typemap(jstype) unsigned long[ANY]      "long[]"
-%typemap(jstype) long long[ANY]          "long[]"
-/*%typemap(jstype) unsigned long long[ANY] "java.math.BigInteger[]"*/
-%typemap(jstype) float[ANY]              "float[]"
-%typemap(jstype) double[ANY]             "double[]"
-
-%typemap(javadirectorin) bool[ANY],
-                         signed char[ANY],
-                         unsigned char[ANY],
-                         short[ANY],
-                         unsigned short[ANY],
-                         int[ANY],
-                         unsigned int[ANY],
-                         long[ANY],
-                         unsigned long[ANY],
-                         long long[ANY],
-                         /* unsigned long long[ANY], */
-                         float[ANY],
-                         double[ANY]
-  "$jniinput"
-
-%typemap(javadirectorout) bool[ANY],
-                          signed char[ANY],
-                          unsigned char[ANY],
-                          short[ANY],
-                          unsigned short[ANY],
-                          int[ANY],
-                          unsigned int[ANY],
-                          long[ANY],
-                          unsigned long[ANY],
-                          long long[ANY],
-                          /* unsigned long long[ANY], */
-                          float[ANY],
-                          double[ANY]
-  "$javacall"
-
 /* Arrays of primitive types use the following macro. The array typemaps use support functions. */
-%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JNITYPE, JFUNCNAME, JNIDESC)
+%define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JNITYPE, JFUNCNAME, JNIDESC)
+
+%typemap(jni) CTYPE[ANY], CTYPE[]               %{JNITYPE##Array%}
+%typemap(jtype) CTYPE[ANY], CTYPE[]             %{JTYPE[]%}
+%typemap(jstype) CTYPE[ANY], CTYPE[]            %{JTYPE[]%}
 
 %typemap(in) CTYPE[] (JNITYPE *jarr)
 %{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
@@ -223,105 +153,81 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
     return $null;
   }
   if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
-%typemap(argout) CTYPE[ANY] 
+%typemap(argout) CTYPE[ANY], CTYPE[] 
 %{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
-%typemap(directorin,descriptor=JNIDESC) CTYPE[ANY] 
+%typemap(directorin,descriptor=JNIDESC) CTYPE[ANY], CTYPE[]
 %{$input = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
-%typemap(out) CTYPE[ANY] 
+%typemap(out) CTYPE[ANY]
 %{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
-%typemap(freearg) CTYPE[ANY] 
+%typemap(out) CTYPE[] 
+%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, FillMeInAsSizeCannotBeDeterminedAutomatically); %}
+%typemap(freearg) CTYPE[ANY], CTYPE[] 
 #ifdef __cplusplus
 %{ delete [] $1; %}
 #else
 %{ free($1); %}
 #endif
-%typemap(director_in) CTYPE[ANY] 
-%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
-%typemap(director_out) CTYPE[] (JNITYPE *jarr)
-%{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
+
+%typemap(javain) CTYPE[ANY], CTYPE[] "$javainput"
+%typemap(javaout) CTYPE[ANY], CTYPE[] {
+    return $jnicall;
+  }
+
+%typemap(javadirectorin) CTYPE[ANY], CTYPE[] "$jniinput"
+%typemap(javadirectorout) CTYPE[ANY], CTYPE[] "$javacall"
 
 %enddef
 
-JAVA_ARRAYS_TYPEMAPS(bool, jboolean, Bool, "[Z")         /* bool[ANY] */
-JAVA_ARRAYS_TYPEMAPS(signed char, jbyte, Schar, "[B")    /* signed char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned char, jshort, Uchar, "[S") /* unsigned char[ANY] */
-JAVA_ARRAYS_TYPEMAPS(short, jshort, Short, "[S")         /* short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned short, jint, Ushort, "[I") /* unsigned short[ANY] */
-JAVA_ARRAYS_TYPEMAPS(int, jint, Int, "[I")               /* int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned int, jlong, Uint, "[J")    /* unsigned int[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long, jint, Long, "[I")             /* long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(unsigned long, jlong, Ulong, "[J")  /* unsigned long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(long long, jlong, Longlong, "[J")   /* long long[ANY] */
-JAVA_ARRAYS_TYPEMAPS(float, jfloat, Float, "[F")         /* float[ANY] */
-JAVA_ARRAYS_TYPEMAPS(double, jdouble, Double, "[D")      /* double[ANY] */
+JAVA_ARRAYS_TYPEMAPS(bool, boolean, jboolean, Bool, "[Z")       /* bool[ANY] */
+JAVA_ARRAYS_TYPEMAPS(signed char, byte, jbyte, Schar, "[B")     /* signed char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned char, short, jshort, Uchar, "[S") /* unsigned char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(short, short, jshort, Short, "[S")         /* short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned short, int, jint, Ushort, "[I")   /* unsigned short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(int, int, jint, Int, "[I")                 /* int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned int, long, jlong, Uint, "[J")     /* unsigned int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long, int, jint, Long, "[I")               /* long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned long, long, jlong, Ulong, "[J")   /* unsigned long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long long, long, jlong, Longlong, "[J")    /* long long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(float, float, jfloat, Float, "[F")         /* float[ANY] */
+JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] */
+
 
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
-    bool[ANY]
+    bool[ANY], bool[]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT8_ARRAY) /* Java byte[] */
-    signed char[ANY]
+    signed char[ANY], signed char[]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT16_ARRAY) /* Java short[] */
-    unsigned char[ANY], 
-    short[ANY] 
+    unsigned char[ANY], unsigned char[],
+    short[ANY], short[]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT32_ARRAY) /* Java int[] */
-    unsigned short[ANY], 
-    int[ANY], 
-    long[ANY]
+    unsigned short[ANY], unsigned short[],
+    int[ANY], int[],
+    long[ANY], long[]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64_ARRAY) /* Java long[] */
-    unsigned int[ANY], 
-    unsigned long[ANY], 
-    long long[ANY] 
+    unsigned int[ANY], unsigned int[],
+    unsigned long[ANY], unsigned long[],
+    long long[ANY], long long[]
     ""
 
 %typecheck(SWIG_TYPECHECK_INT128_ARRAY) /* Java BigInteger[] */
-    unsigned long long[ANY]
+    unsigned long long[ANY], unsigned long long[]
     ""
 
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) /* Java float[] */
-    float[ANY]
+    float[ANY], float[]
     ""
 
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) /* Java double[] */
-    double[ANY]
+    double[ANY], double[]
     ""
-
-%typemap(javain) bool[ANY],
-                 signed char[ANY],
-                 unsigned char[ANY],
-                 short[ANY],
-                 unsigned short[ANY],
-                 int[ANY],
-                 unsigned int[ANY],
-                 long[ANY],
-                 unsigned long[ANY],
-                 long long[ANY],
-/*               unsigned long long[ANY], */
-                 float[ANY],
-                 double[ANY]
-    "$javainput"
-
-%typemap(javaout) bool[ANY],
-                  signed char[ANY],
-                  unsigned char[ANY],
-                  short[ANY],
-                  unsigned short[ANY],
-                  int[ANY],
-                  unsigned int[ANY],
-                  long[ANY],
-                  unsigned long[ANY],
-                  long long[ANY],
-/*                unsigned long long[ANY], */
-                  float[ANY],
-                  double[ANY] {
-    return $jnicall;
-  }
 
 
 /* Arrays of proxy classes. The typemaps in this macro make it possible to treat an array of 
