@@ -15,6 +15,9 @@
 /* Hook the runtime module initialization
    into the shared initialization function SWIG_Guile_Init. */
 #include <libguile.h>
+#ifdef __cplusplus
+extern "C"
+#endif
 SCM scm_init_Swig_swigrun_module (void);
 #define SWIG_INIT_RUNTIME_MODULE scm_init_Swig_swigrun_module();
 %}
