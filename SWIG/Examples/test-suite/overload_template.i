@@ -16,3 +16,4 @@ template<class T>
 
 %template(max) max<int>;
 %template(max) max<double>;
+
