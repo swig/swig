@@ -167,7 +167,7 @@
 %typemap(in) (TYPEMAP, SIZE) {
    $2 = PyInt_AsLong($input);
    if (PyErr_Occurred()) return SWIG_fail;
-#ifdef __cpluscplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[$2+1];
 #else
    $1 = ($1_ltype) malloc($2+1);
@@ -202,12 +202,12 @@
 %typemap(in) (TYPEMAP, SIZE) {
    int n = PyInt_AsLong($input);
    if (PyErr_Occurred()) SWIG_fail;
-#ifdef __cpluscplus
+#ifdef __cplusplus
    $1 = ($1_ltype) new char[n+1];
-   $2 = ($2_ltype) new $*1_ltype;
+   $2 = ($2_ltype) new $*2_ltype;
 #else
    $1 = ($1_ltype) malloc(n+1);
-   $2 = ($2_ltype) malloc(sizeof($*1_ltype));
+   $2 = ($2_ltype) malloc(sizeof($*2_ltype));
 #endif
    *$2 = n;
 }
