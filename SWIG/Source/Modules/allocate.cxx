@@ -229,7 +229,7 @@ class Allocate : public Dispatcher {
 
   /* Grab methods used by smart pointers */
 
-  List *smart_pointer_methods(Node *cls, List *methods) {
+  List *smart_pointer_methods(Node *cls, List *methods, int isconst) {
     if (!methods) {
       methods = NewList();
     }
@@ -273,7 +273,23 @@ class Allocate : public Dispatcher {
 	      if (!match) {
 		Node *cc = c;
 		while (cc) {
-		  Append(methods,cc);
+		  /* If constant, we have to be careful */
+		  if (isconst) {
+		    SwigType *decl = Getattr(cc,"decl");
+		    if (decl) {
+		      if (SwigType_isfunction(decl)) {   /* If method, we only add if it's a const method */
+			if (SwigType_isconst(decl)) {
+			  Append(methods,cc);
+			}
+		      } else {
+			Append(methods,cc);
+		      }
+		    } else {
+		      Append(methods,cc);
+		    }
+		  } else {
+		    Append(methods,cc);
+		  }
 		  cc = Getattr(cc,"sym:nextSibling");
 		}
 	      }
@@ -294,7 +310,7 @@ class Allocate : public Dispatcher {
       Node *bases = Getattr(cls,"bases");
       int k;
       for (k = 0; k < Len(bases); k++) {
-	smart_pointer_methods(Getitem(bases,k),methods);
+	smart_pointer_methods(Getitem(bases,k),methods,isconst);
       }
     }
     /* Remove protected/private members */
@@ -496,7 +512,14 @@ public:
 	      Node *sc = Swig_symbol_clookup(base, 0);
 	      if ((sc) && (Strcmp(nodeType(sc),"class") == 0)) {
 		if (SwigType_check_decl(type,"p.")) {
-		  List *methods = smart_pointer_methods(sc,0);
+		  /* Need to check if type is a const pointer */
+		  int isconst = 0;
+		  SwigType_pop(type);
+		  if (SwigType_isconst(type)) {
+		    isconst = 1;
+		    Setattr(inclass,"allocate:smartpointerconst","1");
+		  }
+		  List *methods = smart_pointer_methods(sc,0,isconst);
 		  Setattr(inclass,"allocate:smartpointer",methods);
 		  break;
 		} else {
