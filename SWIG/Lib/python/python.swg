@@ -157,7 +157,6 @@ SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags) {
   int    newref = 0;
 
   if (!obj || (obj == Py_None)) {
-    *ptr = 0;
     return 0;
   }
 #ifdef SWIG_COBJECT_TYPES
