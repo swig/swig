@@ -794,8 +794,8 @@ public:
     }
     /* Now go through and print parameters */
     i = 0;
-    pcount = ParmList_len(l);
-    numopt = 0; /*check_numopt(l); */
+    pcount = emit_num_arguments(l);
+    numopt = pcount - emit_num_required(l);
     for (p = l; p; p = nextSibling(p)) {
       
       SwigType  *pt = Getattr(p,"type");
