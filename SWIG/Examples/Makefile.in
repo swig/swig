@@ -151,12 +151,12 @@ TCL_RUNTIME=-L$(RUNTIMEDIR) -lswigtcl8@release_suffix@
 tcl_multi:  $(SRCS)
 	$(SWIG) -c -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) $(TCL_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(TCL_RUNTIME) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(TCL_RUNTIME) $(TCL_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 tcl_multi_cpp: $(SRCS)
 	$(SWIG) -c -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) $(TCL_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(TCL_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(TCL_RUNTIME) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 ##################################################################
 #####                       PERL 5                          ######
@@ -198,12 +198,12 @@ PERL5_RUNTIME=-L$(RUNTIMEDIR) -lswigpl@release_suffix@
 perl5_multi: $(SRCS)
 	$(SWIG) -c -perl5 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(PERL5_RUNTIME) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 perl5_multi_cpp: $(SRCS)
 	$(SWIG) -c -perl5 -c++ $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) -Dexplicit= $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDE) -I$(PERL5_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(PERL5_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PERL5_RUNTIME) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a module from existing XS C source code.   (ie. from xsubpp).
@@ -265,12 +265,12 @@ PYTHON_RUNTIME=-L$(RUNTIMEDIR) -lswigpy@release_suffix@
 python_multi: $(SRCS)
 	$(SWIG) -c -python $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_RUNTIME) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) -o $(TARGET)module$(SO)
 
 python_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -python $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PYTHON_RUNTIME) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
 
 
 # -----------------------------------------------------------------
@@ -351,12 +351,12 @@ GUILE_RUNTIME=-L$(RUNTIMEDIR) -lswigguile@release_suffix@
 guile_passive_multi: $(SRCS)
 	$(SWIG) -c -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(LIBS) $(GUILE_RUNTIME) -o lib$(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(GUILE_RUNTIME) $(LIBS) -o lib$(TARGET)$(SO)
 
 guile_passive_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDE) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(LIBS) $(GUILE_RUNTIME) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(GUILE_RUNTIME) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
@@ -513,12 +513,12 @@ RUBY_RUNTIME=-L$(RUNTIMEDIR) -lswigrb@release_suffix@
 ruby_multi: $(SRCS)
 	$(SWIG) -c -ruby $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(RUBY_RUNTIME) -o $(TARGET)$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(RUBY_RUNTIME) $(RUBY_DLNK) $(LIBS) -o $(TARGET)$(SO)
 
 ruby_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -ruby $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(RUBY_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(RUBY_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(RUBY_RUNTIME) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)$(SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Ruby interpreter
@@ -569,9 +569,9 @@ PHP4_RUNTIME=-L$(RUNTIMEDIR) -lswigphp4@release_suffix@
 php4_multi: $(SRCS)
 	$(SWIG) -c -php4 $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDE) $(PHP4_INCLUDE)
-	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_DLNK) $(LIBS) $(PHP4_RUNTIME) -o $(TARGET)module$(SO)
+	$(LDSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) -o $(TARGET)module$(SO)
 
 php4_multi_cpp: $(SRCS)
 	$(SWIG) -c -c++ -php4 $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDE) $(PHP4_INCLUDE)
-	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_DLNK) $(LIBS) $(PHP4_RUNTIME) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
+	$(CXXSHARED) $(OBJS) $(IOBJS) $(PHP4_RUNTIME) $(PHP4_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(TARGET)module$(SO)
