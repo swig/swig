@@ -1180,6 +1180,50 @@ definitions are usually found in the SWIG library in a file such as
 <tt>python.swg</tt>, <tt>tcl8.swg</tt>, etc.
 </p>
 
+<H3>Mixed default typemaps</H3>
+The default typemaps described above can be mixed with <tt>const</tt> and with each other.
+For example the <tt>SWIGTYPE *</tt> typemap is for default pointer handling, but if a <tt>const SWIGTYPE *</tt> typemap
+is defined it will be used instead for constant pointers. Some further examples follow:
+
+<blockquote>
+<pre>
+%typemap(in) enum SWIGTYPE &amp;                    { ... enum references ...                       }
+%typemap(in) const enum SWIGTYPE &amp;              { ... const enum references ...                 }
+%typemap(in) SWIGTYPE *&amp;                        { ... pointers passed by reference ...          }
+%typemap(in) SWIGTYPE * const &amp;                 { ... constant pointers passed by reference ... }
+%typemap(in) SWIGTYPE[ANY][ANY]                 { ... 2D arrays ...                             }
+</pre>
+</blockquote>
+
+<p>
+Note that the the typedef reduction described earlier is also used with these mixed default typemaps.
+For example, say the following typemaps are defined and SWIG is looking for the best match for the enum shown below:
+</p>
+
+<blockquote>
+<pre>
+%typemap(in) const Hello &amp;          { ... }
+%typemap(in) const enum SWIGTYPE &amp;  { ... }
+%typemap(in) enum SWIGTYPE &amp;        { ... }
+%typemap(in) SWIGTYPE &amp;             { ... }
+%typemap(in) SWIGTYPE               { ... }
+
+enum Hello {};
+const Hello &amp;hi;
+</pre>
+</blockquote>
+
+<p>
+The typemap at the top of the list will be chosen, not because it is defined first, but because it is the closest match for the type being wrapped.
+If any of the typemaps in the above list were not defined, then the next one on the list would have precedence.
+In other words the typemap chosen is the closest explicit match.
+</p>
+
+<p>
+<b>Compatibility note: </b> The mixed default typemaps were introduced in SWIG-1.3.23, but were not used much in this version.
+Expect to see them being used more and more within the various libraries in later versions of SWIG.
+</p>
+
 
 <H3><a name="Typemaps_nn20"></a>10.3.4 Multi-arguments typemaps</H3>
 
