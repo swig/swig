@@ -209,6 +209,8 @@ public:
   /* Return true if directors are enabled */
   int directorsEnabled() const;
 
+  /* Set none comparison string */
+  void SetNoneComparison( String *s );
 
  protected:
   /* Patch C++ pass-by-value */
@@ -241,6 +243,7 @@ public:
  private:
   Hash   *symbols;
   Hash   *classtypes;
+  String *none_comparison;
   int     overloading;
   int     multiinput;
   int     directors;
