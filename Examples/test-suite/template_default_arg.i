@@ -77,4 +77,21 @@
 %}
 
 
+// Templated functions
+%inline %{
+  // Templated methods which are overloaded and have default args, and %template which
+  // uses the same name as the C++ functions and overload on the template parameters and
+  // specialization thrown in too. Wow, SWIG can handle this insane stuff!
+  template<typename T, typename U> int ott(T t = 0, const U& u = U()) { return 10; }
+  template<typename T, typename U> int ott(const char *msg, T t = 0, const U& u = U()) { return 20; }
+  int ott(Foo<int>) { return 30; }
+  template<typename T> int ott(Hello<int> h, T t = 0) { return 40; }
+  template<> int ott<int>(Hello<int> h, int t) { return 50; }
+  template<> int ott(Hello<int> h, double t) { return 60; }
+%}
+
+%template(ott) ott<int, int>;
+%template(ott) ott<double>;
+%template(ottint) ott<int>; // default arg requires a rename
+%template(ottstring) ott<const char *>; // default arg requires a rename
 
