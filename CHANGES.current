@@ -1,6 +1,19 @@
 Version 1.3.22 (in progress)
 ==================================
 
+04/25/2004: mkoeppe (Matthias Koeppe)
+	    [Guile] In the generated GOOPS code, don't create methods
+	    that would not specialize any arguments; simply re-export
+	    the primitive functions.  (This is a performance
+	    optimization which reduces load time and execution time.)
+
+	    [Guile] In -gh mode, fix the "too many initializers" error
+	    which was caused by an incompatible swig_type_info layout.
+
+	    [Guile] The typemap for FILE * in ports.i now also accepts
+	    a regular FILE * pointer object.  Also a bug with Scheme
+	    file ports that are open for input and output has been
+	    fixed. 
 
 04/25/2004: wsfulton
             Change entry 03/21/2004 revoked. The change introduced another
