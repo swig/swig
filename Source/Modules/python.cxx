@@ -14,7 +14,6 @@ char cvsroot_python_cxx[] = "$Header$";
 #include "swigmod.h"
 #include "utils.h"
 
-
 #ifndef MACSWIG
 #include "swigconfig.h"
 #endif
@@ -68,6 +67,7 @@ Python Options (available with -python)\n\
      -apply          - Use apply() in proxy classes\n\
      -new_repr       - Use more informative version of __repr__ in proxy classes\n\
      -noexcept       - No automatic exception handling\n\
+     -nodirprot      - Don't wrap director protected members\n\
      -noproxy        - Don't generate proxy classes \n\n";
 
 extern  void Wrapper_director_protected_mode_set(int);
@@ -1311,7 +1311,6 @@ public:
     }
     /* declare Python return value */
     Wrapper_add_local(w, "result", "PyObject *result");
-
 
     /* direct call to superclass if _up is set */
     if (is_protected(n)) {
