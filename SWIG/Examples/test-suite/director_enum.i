@@ -24,10 +24,10 @@ namespace EnumDirector {
     virtual Hello say_hi(Hello h){ return h;}
     virtual Hello say_hello(Hello){ return hello;}
     virtual Hello say_hi(A *a){ return hi;}
-    virtual const Hello & say_hi_ref(const Hello & h){ printf("Foo:say_hi_ref %d\n", h); return h;}
+    virtual const Hello & say_hi_ref(const Hello & h){ return h;}
 
     Hello ping(Hello h){ return say_hi(h);}
-    const Hello & ping_ref(const Hello &h){ printf("Foo::ping_ref %d\n", h); return say_hi_ref(h);}
+    const Hello & ping_ref(const Hello &h){ return say_hi_ref(h);}
   };
 }
 %}
