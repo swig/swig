@@ -1440,22 +1440,37 @@ Setattr(n,"python:docstring", doc);     /* Store docstring */
 </pre>
 </blockquote>
 
+<p>
+A quick way to check the value of an attribute is to use the <tt>checkAttribute()</tt> function like this:
+
+<blockquote>
+<pre>
+if (checkAttribute(n,"storage","virtual")) {
+   /* n is virtual */
+   ...
+}
+</pre>
+</blockquote>
+
+<p>
 Changing the values of existing attributes is allowed and is sometimes done to implement
 node transformations.   However, if a function/method modifies a node, it is required to restore
 modified attributes to their original values.  To simplify the task of saving/restoring attributes,
 the following functions are used:
 
 <p>
-<b><tt>int Swig_save(Node **n, const char *name1, const char *name2, ..., NULL)</tt></b>
+<b><tt>int Swig_save(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)</tt></b>
 <blockquote>
 Saves a copy of attributes <tt>name1</tt>, <tt>name2</tt>, etc. from node <tt>n</tt>. 
-Copies of the attributes are stored internally on a stack in the SWIG core.   If an attribute
-name refers to a non-existent attribute, the function merely records the fact that the attribute
-is missing.
+Copies of the attributes are actually resaved in the node in a different namespace which is 
+set by the <tt>ns</tt> argument.   For example, if you call <tt>Swig_save("foo",n,"type",NIL)</tt>, 
+then the "type" attribute will be copied and saved as "foo:type".  The namespace name itself is stored in 
+the "view" attribute of the node.  If necessary, this can be examined to find out where previous
+values of attributes might have been saved.
 </blockquote>
 
 <p>
-<b><tt>int Swig_restore(Node **n)</tt></b>
+<b><tt>int Swig_restore(Node *n)</tt></b>
 <blockquote>
 Restores the attributes saved by the previous call to <tt>Swig_save()</tt>.  Those
 attributes that were supplied to <tt>Swig_save()</tt> will be restored to their
@@ -1469,7 +1484,7 @@ Calls can be nested if necessary.  Here is an example that shows how the functio
 <blockquote>
 <pre>
 int variableHandler(Node *n) {
-    Swig_save(&n,"type","sym:name",0);
+    Swig_save("variableHandler",n,"type","sym:name",NIL);
     String *symname = Getattr(n,"sym:name");
     SwigType *type  = Getattr(n,"type");
     ...
@@ -1478,14 +1493,14 @@ int variableHandler(Node *n) {
     ...
     generate wrappers
     ...
-    Swig_restore(&n);                  // Restore original values
+    Swig_restore(n);                  // Restore original values
     return SWIG_OK;
 }
 </pre>
 </blockquote>
 
 <p>
-<b><tt>int Swig_require(Node **n, const char *name1, const char *name2, ..., NULL)</tt></b>
+<b><tt>int Swig_require(const char *ns, Node *n, const char *name1, const char *name2, ..., NIL)</tt></b>
 <blockquote>
 This is an enhanced version of <tt>Swig_save()</tt> that adds error checking.  If an attribute
 name is not present in <tt>n</tt>, a failed assertion results and SWIG terminates with a fatal
@@ -1494,11 +1509,6 @@ attribute is saved as with <tt>Swig_save()</tt>.  If an attribute is specified a
 the attribute is optional.   <tt>Swig_restore()</tt> must always be called after using this
 function.
 </blockquote>
-
-The <tt>Swig_save()</tt>, <tt>Swig_require()</tt>, and <tt>Swig_restore()</tt> have
-built-in consistency checks that verify proper nesting of calls.  The node pointer <tt>Node **n</tt>
-must refer to a stack-allocated local variable.  The use of these functions is
-generally only required when performing node transformations. 
 
 <a name="n22"></a><H2>23.8 Type system</H2>
 
