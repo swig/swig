@@ -8,8 +8,7 @@
 #define SWIGPERL
 #define SWIGPERL5
 #ifdef __cplusplus
-/* Needed on some windows machines---since MS plays funny
-   games with the header files under C++ */
+/* Needed on some windows machines---since MS plays funny games with the header files under C++ */
 #include <math.h>
 #include <stdlib.h>
 extern "C" {
@@ -34,21 +33,20 @@ extern "C" {
 /* Macro to call an XS function */
 
 #ifdef PERL_OBJECT 
-#define SWIG_CALLXS(_name) _name(cv,pPerl) 
+#  define SWIG_CALLXS(_name) _name(cv,pPerl) 
 #else 
-#ifndef MULTIPLICITY 
-#define SWIG_CALLXS(_name) _name(cv) 
-#else 
-#define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv) 
-#endif 
+#  ifndef MULTIPLICITY 
+#    define SWIG_CALLXS(_name) _name(cv) 
+#  else 
+#    define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv) 
+#  endif 
 #endif 
 
 /* Contract support */
 
 #define SWIG_contract_assert(expr,msg) if (!(expr)) { SWIG_croak(msg); } else
 
-/* Note: SwigMagicFuncHack is a typedef used to get the C++
-   compiler to just shut up already */
+/* Note: SwigMagicFuncHack is a typedef used to get the C++ compiler to just shut up already */
 
 #ifdef PERL_OBJECT
 #define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
@@ -101,15 +99,15 @@ typedef int (*SwigMagicFuncHack)(struct interpreter *, SV *, MAGIC *);
 /* Modifications for newer Perl 5.005 releases */
 
 #if !defined(PERL_REVISION) || ((PERL_REVISION >= 5) && ((PERL_VERSION < 5) || ((PERL_VERSION == 5) && (PERL_SUBVERSION < 50))))
-#ifndef PL_sv_yes
-#define PL_sv_yes sv_yes
-#endif
-#ifndef PL_sv_undef
-#define PL_sv_undef sv_undef
-#endif
-#ifndef PL_na
-#define PL_na na
-#endif
+#  ifndef PL_sv_yes
+#    define PL_sv_yes sv_yes
+#  endif
+#  ifndef PL_sv_undef
+#    define PL_sv_undef sv_undef
+#  endif
+#  ifndef PL_na
+#    define PL_na na
+#  endif
 #endif
 
 #include <stdlib.h>
@@ -133,7 +131,7 @@ extern "C" {
      SWIG_Perl_ConvertPtr(obj, pp, type, flags)
 #  define SWIG_NewPointerObj(p, type, flags) \
      SWIG_Perl_NewPointerObj(p, type, flags)
-#endif  
+#endif
 
 /* Perl-specific API */
 #ifdef PERL_OBJECT
@@ -156,38 +154,25 @@ extern "C" {
 
 #define SWIG_SetErrorf SWIG_Perl_SetErrorf
 
-  
+
 #ifdef PERL_OBJECT
 #  define SWIG_MAYBE_PERL_OBJECT CPerlObj *pPerl,
 #else
 #  define SWIG_MAYBE_PERL_OBJECT
 #endif
-  
+
 #ifdef SWIG_NOINCLUDE
 
-extern int
-SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
-		     SV *, void **, swig_type_info *, int flags);
-extern void
-SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
-		  SV *, void *, swig_type_info *, int flags);
-extern SV *
-SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
-			void *, swig_type_info *, int flags);
-extern swig_type_info *
-SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
-		      SV *rv, swig_type_info *ty);
+SWIGIMPORT(int)               SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *, void **, swig_type_info *, int flags);
+SWIGIMPORT(void)              SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *, void *, swig_type_info *, int flags);
+SWIGIMPORT(SV *)              SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *, swig_type_info *, int flags);
+SWIGIMPORT(swig_type_info *)  SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty);
+SWIGIMPORT(SV *)              SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT char *);
 
-extern SV *
-SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT
-		   char *);
-       
 #else
- 
+
 SWIGRUNTIME(swig_type_info *)
-SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
-		      SV *rv, swig_type_info *ty)
-{
+SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT SV *rv, swig_type_info *ty) {
   swig_type_info *s;
   if (!ty) return 0;        /* Void pointer */
   s = ty->next;             /* First element always just a name */
@@ -197,26 +182,24 @@ SWIG_Perl_TypeCheckRV(SWIG_MAYBE_PERL_OBJECT
       /* Move s to the top of the linked list */
       s->prev->next = s->next;
       if (s->next) {
-	s->next->prev = s->prev;
+        s->next->prev = s->prev;
       }
       /* Insert s as second element in the list */
       s->next = ty->next;
       if (ty->next) ty->next->prev = s;
       ty->next = s;
-      s->prev = ty;  /**/
+      s->prev = ty;
       return s;
     }
     s = s->next;
   } while (s && (s != ty->next));
-  return 0;  
+  return 0;
 }
 
 /* Function for getting a pointer value */
 
 SWIGRUNTIME(int) 
-SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
-		     SV *sv, void **ptr, swig_type_info *_t, int flags)
-{
+SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
   swig_type_info *tc;
   void *voidptr = (void *)0;
 
@@ -254,16 +237,16 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
     return 0;
   } else if (SvTYPE(sv) == SVt_RV) {  /* Check for NULL pointer */
     *(ptr) = (void *) 0;
-    if (!SvROK(sv)) 
+    if (!SvROK(sv))
       return 0;
     else
       return -1;
   } else {                            /* Don't know what it is */
-      *(ptr) = (void *) 0;
-      return -1;
+    *(ptr) = (void *) 0;
+    return -1;
   }
   if (_t) {
-    /* Now see if the types match */      
+    /* Now see if the types match */
     tc = SWIG_TypeCheckRV(sv,_t);
     if (!tc) {
       *ptr = voidptr;
@@ -277,9 +260,7 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT
 }
 
 SWIGRUNTIME(void)
-SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
-		  SV *sv, void *ptr, swig_type_info *t, int flags)
-{
+SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
   if (ptr && (flags & SWIG_SHADOW)) {
     SV *self;
     SV *obj=newSV(0);
@@ -308,36 +289,28 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT
 }
 
 SWIGRUNTIME(SV *)
-SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT
-			void *ptr, swig_type_info *t, int flags)
-{
+SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
   return result;
 }
 
 SWIGRUNTIME(void)
-SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT
-		   const char *error)
-{
-    if (error) sv_setpv(get_sv("@", TRUE), error);
+SWIG_Perl_SetError(SWIG_MAYBE_PERL_OBJECT const char *error) {
+  if (error) sv_setpv(get_sv("@", TRUE), error);
 }
 
 SWIGRUNTIME(void)
-SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT
-		     SV *error)
-{
-    if (error) sv_setsv(get_sv("@", TRUE), error);
+SWIG_Perl_SetErrorSV(SWIG_MAYBE_PERL_OBJECT SV *error) {
+  if (error) sv_setsv(get_sv("@", TRUE), error);
 }
 
 SWIGRUNTIME(void)
-SWIG_Perl_SetErrorf(const char *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    sv_vsetpvfn(get_sv("@", TRUE), fmt, strlen(fmt), &args,
-		Null(SV**), 0, Null(bool*));
-    va_end(args);
+SWIG_Perl_SetErrorf(const char *fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  sv_vsetpvfn(get_sv("@", TRUE), fmt, strlen(fmt), &args, Null(SV**), 0, Null(bool*));
+  va_end(args);
 }
 
 #endif
@@ -348,7 +321,7 @@ SWIG_Perl_SetErrorf(const char *fmt, ...)
 #define SWIG_croakSV(x) { SWIG_SetErrorSV(x); goto fail; }
 /* most preprocessors do not support vararg macros :-( */
 /* #define SWIG_croakf(x...) { SWIG_SetErrorf(x); goto fail; } */
-                          
+
 
 typedef XS(SwigPerlWrapper);
 typedef SwigPerlWrapper *SwigPerlWrapperPtr;
@@ -392,15 +365,13 @@ typedef struct {
 /* Magic variable code */
 #ifndef PERL_OBJECT
 #define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-  #ifndef MULTIPLICITY 
-       static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int \
-(*get)(SV *,MAGIC *)) { 
-  #else 
-       static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*,\
- SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) { 
-  #endif 
+  #ifndef MULTIPLICITY
+     static void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) {
+  #else
+     static void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) {
+  #endif
 #else
-#define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
 static void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) {
 #endif
   MAGIC *mg;
