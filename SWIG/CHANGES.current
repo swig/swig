@@ -1,5 +1,21 @@
 Version 1.3.20 (In progress)
 ============================
+09/23/2003: cheetah (William Fulton)
+            SWIG was generating a number of symbols that didn't comply with 
+            the ISO C/C++ standard, in particular ISO/IEC 14882:1998(E) 17.4.3.1.2
+            where double underscores are forbidden as well as symbols starting with
+            an underscore followed by an upper case letter. Most of these have
+            been rooted out. See new section added to internals.html development
+            manual 'Symbol Naming Guidelines for Generated C/C++ Code'.
+
+09/23/2003: cheetah (William Fulton)
+            Director typemap name changes:
+            inv     => directorin
+            outv    => directorout
+            argoutv => directorargout
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 09/19/2003: mrose (Mark Rose)
             [Python] Director constructors now default to __disown = 0, 
 	    which is the intended behavior and fixes the director_finalizer 
