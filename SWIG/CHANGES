@@ -16,6 +16,100 @@ tree (maybe).
 
 Version 1.3.14 (In progress)
 ============================
+07/26/2002: beazley
+            Several directives now allow optional configuration parameters.
+            These include:
+
+                %module(name="value", name="value", ...) modulename
+                %import(name="value", ...) "filename.i"
+                %extend(name="value", ...) classname {
+                   ...
+                }
+
+            These currently have no effect and are reserved for
+            future expansion.
+               
+07/26/2002: beazley
+            Enhancements to smart-pointer handling.  SWIG only provides
+            extra support for a smart-pointer if operator->() returns
+            a proper pointer.  For example:
+
+                 Foo *operator->();
+
+            If operator->() returns an object by value or reference,
+            then SWIG examines the returned object to see if it also
+            implements operator->().  If so, SWIG chases operator->()
+            until it can find one that returns a pointer.  This allows
+            cases like this to work:
+
+                 class Foo {
+                 public:
+                     void blah();
+                 };
+
+                 class Bar {
+                   ...
+                   Foo *operator->();
+                   ...
+                 };
+
+                 class Spam {
+                   ...
+                   Bar operator->();
+                   ...
+                 };
+
+            For example:
+
+                 >>> s = Spam()
+                 >>> s.blah()      # Invokes Foo::blah()
+
+            The s.blah() call actually invokes:
+
+                  ((s.operator->()).operator->())->blah();
+ 
+07/26/2002: beazley
+            Fixed a bug with typedef and references.  For example:
+
+                 typedef Foo & FooRef;
+                 FooRef blah();
+
+            Previous versions of SWIG generated code that wouldn't
+            compile.
+
+07/25/2002: beazley
+            Wrapping of static methods has been improved in proxy classes.  In older
+            versions of SWIG, if you had this:
+
+                  class Foo {
+                  public:
+                     static void bar();
+                  };
+
+            The static method was only available as a function Foo_bar().  For example:
+
+                  >>> Foo_bar()
+
+            Now, the static method can also be invoked through an instance like this:
+
+                  >>> f = Foo()
+                  >>> f.bar()        # Invokes static method
+
+            This works with all versions of Python.  Additionally, for Python-2.2,
+            the static method can be invoked as:
+
+                  >>> Foo.bar()
+
+            The old-style function is still support for backwards compatibility. If
+            you care about making your code across different versions of Python,
+            either use Foo_bar() or access the method through an instance.
+ 
+07/25/2002: beazley
+            Changes to the Python module.  Proxy classes now utilize new Python-2.2
+            features including properties and static methods.  However, these features
+            are supported in a way that provides backwards compatibility with older
+            Python versions.  In other words, proxy classes work with all versions
+            of Python and only use new features when running on Python-2.2.
 
 07/24/2002: cheetah (William Fulton)
             [Java] More new typemaps so that the Java proxy classes and type wrapper classes
