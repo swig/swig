@@ -1,5 +1,1 @@
-Makefile
-config.*
-*.tar.gz
-configure
-autom4te.cache
+.deps
