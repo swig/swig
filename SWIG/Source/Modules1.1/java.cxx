@@ -1162,6 +1162,18 @@ These pragmas start with 'allshadow' or 'module'
  allshadowinterface - interface (implements) for all shadow classes
  modulemethodmodifiers    - replaces the generated native calls' default modifiers
 */
+
+/* 
+C++ pragmas: pragmas declared within a class or c struct for the shadow class. 
+These pragmas start with 'shadow'
+Valid pragmas:
+ shadowbase      - base (extends) for all java shadow classes
+ shadowcode      - text (java code) is copied verbatim to the shadow class
+ shadowclassmodifiers  - class modifiers for the shadow class
+ shadowimport    - import statement generation for the shadow class
+ shadowinterface - interfaces (extends) for the shadow class
+*/
+
 void JAVA::pragma(char *lang, char *code, char *value) {
   if(strcmp(lang, "java") != 0) return;
 
@@ -1226,68 +1238,37 @@ void JAVA::pragma(char *lang, char *code, char *value) {
       Printf(stderr,"%s : Line %d. Soon to be deprecated pragma. Please replace with modulemethodmodifiers pragma.\n", input_file, line_number);
     Clear(module_method_modifiers);
     Printv(module_method_modifiers, strvalue, 0);
-  } 
-  else {
+  } else if (shadow) {
+    if (strcmp(code,"shadowcode") == 0) {
+      if (this_shadow_extra_code)
+	Printf(this_shadow_extra_code, "%s\n", strvalue);
+    } 
+    else if (strcmp(code,"shadowimport") == 0) {
+      if (this_shadow_import)
+	Printf(this_shadow_import, "import %s;\n", strvalue);
+    } 
+    else if (strcmp(code,"shadowbase") == 0) {
+      if (this_shadow_baseclass)
+	Printf(this_shadow_baseclass, "%s", strvalue);
+    } 
+    else if (strcmp(code,"shadowinterface") == 0) {
+      if (this_shadow_interfaces) {
+	if (!*Char(this_shadow_interfaces))
+	  Printf(this_shadow_interfaces, "implements %s", strvalue);
+	else
+	  Printf(this_shadow_interfaces, ", %s", strvalue);
+      }
+    } 
+    else if (strcmp(code,"shadowclassmodifiers") == 0) {
+      if (this_shadow_class_modifiers)
+	Printv(this_shadow_class_modifiers, strvalue, 0);
+    }  else {
+      Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+    }
+  } else {
     Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
   }
   Delete(strvalue);
-}
-
-// ---------------------------------------------------------------------
-// C++ Handling
-//
-// The following functions provide some support for C++ classes and
-// C structs.
-// ---------------------------------------------------------------------
-
-/* 
-C++ pragmas: pragmas declared within a class or c struct for the shadow class. 
-These pragmas start with 'shadow'
-Valid pragmas:
- shadowbase      - base (extends) for all java shadow classes
- shadowcode      - text (java code) is copied verbatim to the shadow class
- shadowclassmodifiers  - class modifiers for the shadow class
- shadowimport    - import statement generation for the shadow class
- shadowinterface - interfaces (extends) for the shadow class
-*/
-void JAVA::cpp_pragma(Pragma* plist) {
-  while (plist) {
-    if ( (strcmp(Char(plist->lang),(char*)"java") == 0) && shadow) {
-      String* strvalue = NewString(plist->value);
-      Replace(strvalue,"\\\"", "\"", DOH_REPLACE_ANY);
-
-      if (strcmp(Char(plist->name),"shadowcode") == 0) {
-        if (this_shadow_extra_code)
-          Printf(this_shadow_extra_code, "%s\n", strvalue);
-      } 
-      else if (strcmp(Char(plist->name),"shadowimport") == 0) {
-        if (this_shadow_import)
-          Printf(this_shadow_import, "import %s;\n", strvalue);
-      } 
-      else if (strcmp(Char(plist->name),"shadowbase") == 0) {
-        if (this_shadow_baseclass)
-          Printf(this_shadow_baseclass, "%s", strvalue);
-      } 
-      else if (strcmp(Char(plist->name),"shadowinterface") == 0) {
-        if (this_shadow_interfaces) {
-          if (!*Char(this_shadow_interfaces))
-            Printf(this_shadow_interfaces, "implements %s", strvalue);
-          else
-            Printf(this_shadow_interfaces, ", %s", strvalue);
-        }
-      } 
-      else if (strcmp(Char(plist->name),"shadowclassmodifiers") == 0) {
-        if (this_shadow_class_modifiers)
-          Printv(this_shadow_class_modifiers, strvalue, 0);
-      } 
-      else {
-        Printf(stderr,"%s : Line %d. Unrecognized pragma for shadow class.\n", plist->filename, plist->lineno);
-      }
-
-      Delete(strvalue);
-    }
-    plist = plist->next;
-  }
 }
 
 void JAVA::add_typedef(SwigType *t, char *name) {

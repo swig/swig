@@ -48,7 +48,6 @@ class RUBY : public Language {
 
   /* Pragma directive  */
   virtual void pragma(char *, char *, char *);
-  virtual void cpp_pragma(Pragma *);
 };
 
 /*

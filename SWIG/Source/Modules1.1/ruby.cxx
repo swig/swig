@@ -1541,20 +1541,6 @@ void RUBY::pragma(char *lang, char *cmd, char *value) {
   }
 }
 
-/* -----------------------------------------------------------------------------
- * RUBY::cpp_pragma(Pragma *plist)
- *
- * Handle C++ pragmas
- * ----------------------------------------------------------------------------- */
-
-
-void RUBY::cpp_pragma(Pragma *plist) {
-  while (plist) {
-    pragma(Char(plist->lang), Char(plist->name), Char(plist->value));
-    plist = plist->next;
-  }
-}
-
 /* ---------------------------------------------------------------------
  * RUBY::import(char *filename)
  *

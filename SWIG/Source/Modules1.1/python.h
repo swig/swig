@@ -56,7 +56,6 @@ public :
   virtual void cpp_declare_const(char *name, char *iname, SwigType *type, char *value);
   virtual void cpp_class_decl(char *, char *,char *);
   virtual void pragma(char *, char *, char *);
-  virtual void cpp_pragma(Pragma *);
   virtual void add_typedef(SwigType *t, char *name);
 };
 

@@ -23,7 +23,6 @@ public :
 
   void pragma(char *lang, char *code, char *value);
   void add_typedef(SwigType *t, char *name);
-  void cpp_pragma(Pragma *plist);
   void cpp_open_class(char *classname, char *rename, char *ctype, int strip);
   void cpp_close_class();
   void cpp_member_func(char *name, char *iname, SwigType *t, ParmList *l); 

@@ -1110,12 +1110,30 @@ PYTHON::cpp_class_decl(char *name, char *rename, char *type) {
     }
 }
 
+struct PyPragma {
+  String  *m_method;
+  String  *m_text;
+  PyPragma  *next;
+  PyPragma(char *method, char *text) {
+    m_method = NewString(method);
+    m_text = NewString(text);
+    next = 0;
+  }
+  ~PyPragma() {
+    Delete(m_method);
+    Delete(m_text);
+    if (next) delete next;
+  }
+};
+
+static PyPragma *pragmas = 0;
+
 /* -----------------------------------------------------------------------------
  * PYTHON::pragma()
  * ----------------------------------------------------------------------------- */
 void
 PYTHON::pragma(char *lang, char *cmd, char *value) {
-
+  PyPragma *pyp1 = 0, *pyp2 = 0;
     if (strcmp(lang,(char*)"python") == 0) {
 	if (strcmp(cmd,"CODE") == 0) {
 	  if (shadow) {
@@ -1139,78 +1157,42 @@ PYTHON::pragma(char *lang, char *cmd, char *value) {
 	      }
 	    }
 	  }
-	} else {
-	  Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
-	}
-    }
-}
-
-struct PyPragma {
-  String  *m_method;
-  String  *m_text;
-  PyPragma  *next;
-  PyPragma(char *method, char *text) {
-    m_method = NewString(method);
-    m_text = NewString(text);
-    next = 0;
-  }
-  ~PyPragma() {
-    Delete(m_method);
-    Delete(m_text);
-    if (next) delete next;
-  }
-};
-
-static PyPragma *pragmas = 0;
-
-/* -----------------------------------------------------------------------------
- * PYTHON::cpp_pragma() - Handle C++ pragmas
- * ----------------------------------------------------------------------------- */
-void
-PYTHON::cpp_pragma(Pragma *plist) {
-  PyPragma *pyp1 = 0, *pyp2 = 0;
-  if (pragmas) {
-    delete pragmas;
-    pragmas = 0;
-  }
-  while (plist) {
-    if (strcmp(Char(plist->lang),(char*)"python") == 0) {
-      if (strcmp(Char(plist->name),"addtomethod") == 0) {
+	} else if (strcmp(cmd,"addtomethod") == 0) {
 	/* parse value, expected to be in the form "methodName:line" */
-	String *temp = NewString(plist->value);
-	char* txtptr = strchr(Char(temp), ':');
-	if (txtptr) {
-	  /* add name and line to a list in current_class */
-	  *txtptr = 0;
-	  txtptr++;
-	  pyp1 = new PyPragma(Char(temp),txtptr);
-	  pyp1->next = 0;
-	  if (pyp2) {
+	  String *tvalue = NewString(value);
+	  char* txtptr = strchr(Char(tvalue), ':');
+	  if (txtptr) {
+	    /* add name and line to a list in current_class */
+	    *txtptr = 0;
+	    txtptr++;
+	    pyp1 = new PyPragma(Char(tvalue),txtptr);
+	    pyp1->next = 0;
+	    if (pyp2) {
 	      pyp2->next = pyp1;
 	      pyp2 = pyp1;
+	    } else {
+	      pragmas = pyp1;
+	      pyp2 = pragmas;
+	    }
+	  } else {
+	    Printf(stderr,"%s : Line %d. Malformed addtomethod pragma.  Should be \"methodName:text\"\n",
+		   input_file, line_number);
+	  }
+	  Delete(tvalue);
+	} else if (strcmp(cmd, "addtoclass") == 0) {
+	  pyp1 = new PyPragma((char*)"__class__",Char(value));
+	  pyp1->next = 0;
+	  if (pyp2) {
+	    pyp2->next = pyp1;
+	    pyp2 = pyp1;
 	  } else {
 	    pragmas = pyp1;
 	    pyp2 = pragmas;
 	  }
 	} else {
-	  Printf(stderr,"%s : Line %d. Malformed addtomethod pragma.  Should be \"methodName:text\"\n",
-		  Char(plist->filename),plist->lineno);
+	  Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
 	}
-	Delete(temp);
-      } else if (strcmp(Char(plist->name), "addtoclass") == 0) {
-	pyp1 = new PyPragma((char*)"__class__",Char(plist->value));
-	pyp1->next = 0;
-	if (pyp2) {
-	  pyp2->next = pyp1;
-	  pyp2 = pyp1;
-	} else {
-	  pragmas = pyp1;
-	  pyp2 = pragmas;
-	}
-      }
     }
-    plist = plist->next;
-  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -1301,6 +1283,7 @@ PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip) {
     Printv(csetattr, tab4, "__setmethods__.update({\n", 0);
     Printv(cgetattr, tab4, "__getmethods__.update({\n", 0);
   }
+  pragmas = 0;
 }
 
 /* -----------------------------------------------------------------------------
