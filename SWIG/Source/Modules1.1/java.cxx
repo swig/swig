@@ -1317,7 +1317,7 @@ class JAVA : public Language {
       Printf(shadow_code, "static ");
     Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       Printf(nativecall, "long[] cArray = ");
     }
     else {
@@ -1387,7 +1387,7 @@ class JAVA : public Language {
       p = nextSibling(p);
     }
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       String *array_ret = NewString("");
       Printf(array_ret,");\n");
       Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
@@ -1732,7 +1732,7 @@ class JAVA : public Language {
 
     Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, func_name);
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       Printf(nativecall, "long[] cArray = ");
     }
     else {
@@ -1791,7 +1791,7 @@ class JAVA : public Language {
       Delete(javaparamtype);
     }
 
-    if(SwigType_isarray(t) && is_shadow(getArrayType(t))) {
+    if(SwigType_isarray(t) && is_shadow(getArrayType(t)) && SwigType_array_ndim(t) == 1) {
       String *array_ret = NewString("");
       Printf(array_ret,");\n");
       Printv(array_ret, "    $type[] arrayWrapper = new $type[cArray.length];\n", NULL);
@@ -1855,7 +1855,7 @@ class JAVA : public Language {
     bool is_java_class = false;
     if (Strstr(tm, "$javaclassname") || Strstr(tm,"$&javaclassname")) {
       String *javaclassname = NULL;
-      if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)))
+      if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)) && SwigType_array_ndim(pt) == 1)
         javaclassname = is_shadow(getArrayType(pt));
       else
         javaclassname = is_shadow(pt);
@@ -1929,7 +1929,7 @@ class JAVA : public Language {
     String *arg = (!pn || (count > 1)) ? NewStringf("arg%d",arg_num) : Copy(Getattr(p,"name"));
 
     // Generate code which wraps the JNI long (c pointer) with a Java class
-    if(SwigType_isarray(pt) && is_shadow(getArrayType(pt))) {
+    if(SwigType_isarray(pt) && is_shadow(getArrayType(pt)) && SwigType_array_ndim(pt) == 1) {
       Printv(user_arrays, "    long[] $arg_cArray = new long[$arg.length];\n", NULL);
       Printv(user_arrays, "    for (int i=0; i<$arg.length; i++)\n", NULL);
       Printv(user_arrays, "      $arg_cArray[i] = ",is_shadow(getArrayType(pt)),".getCPtr($arg[i]);\n", NULL);
