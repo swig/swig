@@ -42,6 +42,7 @@
 #define WARN_DEPRECATED_EXCEPT_TM     118
 #define WARN_DEPRECATED_IGNORE_TM     119
 #define WARN_DEPRECATED_OPTC          120
+#define WARN_DEPRECATED_NAME          121
 
 /* -- Preprocessor -- */
 
