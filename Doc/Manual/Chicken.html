@@ -35,9 +35,9 @@
 <li><a href="#Chicken_nn16">Typemaps</a>
 <li><a href="#Chicken_nn17">Pointers</a>
 <ul>
-<li><a href="#Chicken_nn18">Garbage collection</a>
+<li><a href="#collection">Garbage collection</a>
 </ul>
-<li><a href="#Chicken_nn19">Unsupported features and known problems</a>
+<li><a href="#Chicken_nn18">Unsupported features and known problems</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -77,17 +77,15 @@
       relies on some recent additions to CHICKEN, which are only
       present in releases of CHICKEN with version number
       <strong>greater than or equal to 1.89</strong>.  
-      CHICKEN can be downloaded from 
-      <a href="http://www.call-with-current-continuation.org/">http://www.call-with-current-continuation.org/</a>
+      To use a chicken version between 1.40 and 1.89, see the <a href="#collection">Garbage collection</a>
+      section below.
+    </p>
 
+      <p>
       You may want to look at any of the examples in Examples/chicken/
       or Examples/GIFPlot/Chicken for the basic steps to run SWIG
       CHICKEN.
-
-      We will generically refer to the <em>wrapper</em> as the
-      generated files.
-
-    </p>
+      </p>
 
 <H3><a name="Chicken_nn3"></a>17.1.1 Running SWIG in C mode</H3>
 
@@ -268,7 +266,11 @@
      <p>could be run with</p>
 
 <div class="targetlang"><pre>
-(handle-exceptions exvar (if (= exvar 15) (print "Correct!") (print "Threw something else " exvar)) (test-throw 1))
+(handle-exceptions exvar 
+  (if (= exvar 15)
+    (print "Correct!") 
+    (print "Threw something else " exvar))
+  (test-throw 1))
 </pre></div>
 
 
@@ -426,39 +428,43 @@ $ ./example
       type. flags is either zero or SWIG_POINTER_DISOWN (see below).
     </p>
 
-<H3><a name="Chicken_nn18"></a>17.7.1 Garbage collection</H3>
+<H3><a name="collection"></a>17.7.1 Garbage collection</H3>
 
 
-  <p>If the owner flag in the SWIG_NewPointerObj is 1, NewPointerObj will add a
+  <p>If the owner flag passed to <code>SWIG_NewPointerObj</code> is 1, <code>NewPointerObj</code> will add a
      finalizer to the type which will call the destructor or delete method of
      that type.  The destructor and delete functions are no longer exported for
-     use in scheme code, instead SWIG and chicken completly manage pointers.
-  </p>
-
-  <p>In situations where SWIG knows that a function is returning a type that should
+     use in scheme code, instead SWIG and chicken manage pointers.
+  In situations where SWIG knows that a function is returning a type that should
   be garbage collected, SWIG will automaticly set the owner flag to 1.  For other functions,
-  The <code>%newobject</code> directive must be specified for functions whose return values
+  the <code>%newobject</code> directive must be specified for functions whose return values
   should be garbage collected.  See 
   <a href="Customization.html#ownership">Object ownership and %newobject</a> for more information.
   </p>
 
   <p>In situations where a C or C++ function will assume ownership of a pointer, and thus
-  chicken should no longer garbage collect this type, SWIG provides the DISOWN input typemap.
-  After applying this typemap (see the Typemaps chapter for more information on how to apply typemaps),
+  chicken should no longer garbage collect it, SWIG provides the <code>DISOWN</code> input typemap.
+  After applying this typemap (see the <a href="Typemaps.html">Typemaps chapter</a> for more information on how to apply typemaps),
   any pointer that gets passed in will no longer be garbage collected.  
-  An object is disowned by passing the SWIG_POINTER_DISOWN flag to SWIG_ConvertPtr.
+  An object is disowned by passing the <code>SWIG_POINTER_DISOWN</code> flag to <code>SWIG_ConvertPtr</code>.
   <b>Warning:</b> Since the lifetime of the object is now controlled by the underlying code, the object might
   get deleted while the scheme code still holds a pointer to it.  Further use of this pointer
   can lead to a crash.
   </p>
 
-<H2><a name="Chicken_nn19"></a>17.8 Unsupported features and known problems</H2>
+  <p>Adding a finalizer function from C code was added to chicken in the 1.89 release, so garbage collection
+  does not work for chicken versions below 1.89.  If you would like the SWIG generated code to work with
+  chicken 1.40 to 1.89, pass the <code>-nocollection</code> argument to SWIG.  This will not export code
+  inside the _wrap.c file to register finalizers, and will then export destructor functions which
+  must be called manually.
+  </p>
+
+<H2><a name="Chicken_nn18"></a>17.8 Unsupported features and known problems</H2>
 
 
     <ul>
       <li>No director support.</li>
       <li>No support for c++ standard types like std::vector.</li>
-      <li>Importing multiple SWIG modules not working with TinyCLOS. (Planned on fixing for 1.3.25) </li>
     </ul>
 
   </body>

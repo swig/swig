@@ -8,12 +8,24 @@
 <H1><a name="CSharp"></a>16 SWIG and C#</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
+<ul>
+<li><a href="#csharp_introduction">Introduction</a>
+<li><a href="#csharp_differences_java">Differences to the Java module</a>
+<li><a href="#csharp_exceptions">C# Exceptions</a>
+<ul>
+<li><a href="#csharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
+<li><a href="#csharp_exception_example_percent_exception">C# exception example using %exception</a>
+<li><a href="#csharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
+<li><a href="#csharp_custom_application_exception">Custom C# ApplicationException example</a>
+</ul>
+</ul>
 </div>
 <!-- INDEX -->
 
 
 
-<H2><a name="csharp_introduction"></a>Introduction</H2>
+<H2><a name="csharp_introduction"></a>16.1 Introduction</H2>
+
 
 <p>
 The purpose of the C# module is to offer an automated way of accessing existing C/C++ code from .NET languages.
@@ -26,7 +38,9 @@ Swig C# works equally well on non-Microsoft operating systems such as Linux, Sol
 <a href="http://www.mono-project.com/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
 </p>
 
-<H2><a name="csharp_differences_java"></a>Differences to the Java module</H2>
+<H2><a name="csharp_differences_java"></a>16.2 Differences to the Java module</H2>
+
+
 <p>
 The C# module is very similar to the Java module, so until some more complete documentation has been written,
 please use the <a href="Java.html#Java">Java documentation</a> as a guide to using SWIG with C#.
@@ -170,7 +184,9 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="csharp_exceptions"></a>C# Exceptions</H2>
+<H2><a name="csharp_exceptions"></a>16.3 C# Exceptions</H2>
+
+
 <p>
 It is possible to throw a C# Exception from C/C++ code.
 SWIG already provides the framework for throwing C# exceptions if it is able to detect that a C++ exception could be thrown.
@@ -264,7 +280,9 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="csharp_exception_example_check_typemap"></a>C# exception example using "check" typemap</H3>
+<H3><a name="csharp_exception_example_check_typemap"></a>16.3.1 C# exception example using "check" typemap</H3>
+
+
 <p>
 Lets say we have the following simple C++ method:
 </p>
@@ -437,7 +455,9 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="csharp_exception_example_percent_exception"></a>C# exception example using %exception</H3>
+<H3><a name="csharp_exception_example_percent_exception"></a>16.3.2 C# exception example using %exception</H3>
+
+
 <p>
 Let's consider a similar, but more common example that throws a C++ exception from within a wrapped function.
 We can use <tt>%exception</tt> as mentioned in <a href="Customization.html#exception">Exception handling with %exception</a>.
@@ -499,7 +519,8 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="csharp_exception_example_exception_specifications"></a>C# exception example using exception specifications</H3>
+<H3><a name="csharp_exception_example_exception_specifications"></a>16.3.3 C# exception example using exception specifications</H3>
+
 
 <p>
 When C++ exception specifications are used, SWIG is able to detect that the method might throw an exception.
@@ -555,7 +576,8 @@ DllExport void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="csharp_custom_application_exception"></a>Custom C# ApplicationException example</H3>
+<H3><a name="csharp_custom_application_exception"></a>16.3.4 Custom C# ApplicationException example</H3>
+
 
 <p>
 This example involves a user defined exception.
