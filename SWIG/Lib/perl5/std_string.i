@@ -33,7 +33,7 @@ namespace std {
         if (!ptr) {
             SWIG_croak("Undefined variable in argument $argnum of $symname.");
         } else {
-            $1.assign(ptr, len);
+            $1 = std::string(ptr, len);
         }
     }
 
