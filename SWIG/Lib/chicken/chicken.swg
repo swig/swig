@@ -138,7 +138,7 @@ SIMPLE_TYPEMAP(unsigned long long, C_flonum_magnitude, C_flonum, C_swig_is_flonu
 SIMPLE_TYPEMAP(unsigned char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(signed char, C_unfix, C_fix, C_swig_is_fixnum, (int), 0);
 SIMPLE_TYPEMAP(char, C_character_code, C_make_character, C_swig_is_char, (char), 0);
-SIMPLE_TYPEMAP(bool, C_truep, C_mkbool, C_swig_is_bool, (bool), 0);
+SIMPLE_TYPEMAP(bool, C_truep, C_mk_bool, C_swig_is_bool, (bool), 0);
 SIMPLE_TYPEMAP(float, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
 SIMPLE_TYPEMAP(double, C_flonum_magnitude, C_flonum, C_swig_is_flonum, (double), WORDS_PER_FLONUM);
 
