@@ -32,7 +32,7 @@ void f3(char *s) {
 */
 void f1(char *s);
 
-%include typemaps.i
+%include various.i
 
 /* use the BYTE typemap to get around this, but the resulting code is ugly */
 void f2(char *BYTE);
