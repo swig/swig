@@ -2548,7 +2548,7 @@ def_args       : EQUAL definetype {
 		  if (n) {
 		    String *q = Swig_symbol_qualified(n);
 		    if (q) {
-		      $$.val = NewStringf("%s::%s", q,$2.val);
+		      $$.val = NewStringf("%s::%s",q,Getattr(n,"name"));
 		      Delete(q);
 		    } else {
 		      $$.val = NewString($2.val);
@@ -2560,7 +2560,7 @@ def_args       : EQUAL definetype {
 		 if (n) {
 		   String *q = Swig_symbol_qualified(n);
 		   if (q) {
-		     $$.val = NewStringf("&%s::%s", q,$3);
+		     $$.val = NewStringf("&%s::%s", q,Getattr(n,"name"));
 		     Delete(q);
 		   } else {
 		     $$.val = NewStringf("&%s", $3);
