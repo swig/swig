@@ -1900,7 +1900,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		  if (n && (Strcmp(nodeType(n),"template") == 0)) {
 		    Parm *tparms = Getattr(n,"templateparms");
-		    if (!tparms) specialized = 1;
+		    if (!tparms) {
+		      specialized = 1;
+		    }
 		    if (!specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
 		      Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
 		    } else if (!specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
@@ -2632,7 +2634,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    while (p) {
 			      for (i = 0; i < nargs; i++){
 				pn = Getattr(p,"name");
-				if (Strcmp(pn,Getitem(tlist,i)) == 0) {
+				if (Strcmp(pn,SwigType_base(Getitem(tlist,i))) == 0) {
 				  int j;
 				  Parm *p1 = tp;
 				  for (j = 0; j < i; j++) {

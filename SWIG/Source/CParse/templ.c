@@ -214,14 +214,14 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   if (0) {
     Parm *p = tparms;
     while (p) {
-      Printf(stdout,"tparm: '%s' '%s'\n", Getattr(p,"name"), Getattr(p,"value"));
+      Printf(stdout,"tparm: '%s' '%s' '%s'\n", Getattr(p,"name"), Getattr(p,"type"), Getattr(p,"value"));
       p = nextSibling(p);
     }
   }
 
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
   Printf(stdout,"rname = '%s'\n", rname);
-  Printf(stdout,"tname = '%s'\n", tname); */
+  Printf(stdout,"tname = '%s'\n", tname);  */
   cparse_template_expand(n,tname, rname, templateargs, patchlist, typelist, cpatchlist);
 
   /* Set the name */
@@ -237,6 +237,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
   {
     Parm *tp = Getattr(n,"templateparms");
     Parm *p  = tparms;
+    /*    Printf(stdout,"%s\n", ParmList_str(tp)); */
 
     if (tp) {
       while (p && tp) {
@@ -244,6 +245,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	int     sz, i;
 	
 	name = Getattr(tp,"name");
+
 	value = Getattr(p,"value");
 	tydef = Getattr(p,"typedef");
 
@@ -254,6 +256,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  } else {
 	    valuestr = SwigType_namestr(value);
 	  }
+	  /*	  Printf(stdout,"valuestr = '%s'\n", valuestr); */
 	  assert(value);
 	  /* Need to patch default arguments */
 	  {
@@ -275,7 +278,7 @@ Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms) {
 	  for (i = 0; i < sz; i++) {
 	    String *s = Getitem(typelist,i);
 	    /*	    Replace(s,name,value, DOH_REPLACE_ID); */
-	    /*	    Printf(stdout,"name = '%s', s = '%s' --> ", name, s); */
+	    /* Printf(stdout,"name = '%s', s = '%s' --> ", name, s); */
 	    SwigType_typename_replace(s,name,value);
 	    SwigType_typename_replace(s,tbase,iname);
 	    /*	    Printf(stdout,"'%s'\n", s); */
