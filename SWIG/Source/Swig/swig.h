@@ -34,30 +34,39 @@ typedef  DOH     ParmList;
 typedef  DOH     Node;
 
 /* --- Legacy DataType interface.  These type codes are provided solely 
-   for backwards compatibility with older modules --- */
+       for backwards compatibility with older modules --- */
 
-#define   T_INT        1
-#define   T_SHORT      2
-#define   T_LONG       3
-#define   T_UINT       4
+/* --- The ordering of type values is used to determine type-promotion 
+   in the parser.  Do not change */
+
+/* Numeric types */
+
+#define   T_BOOL       1
+#define   T_SCHAR      2
+#define   T_UCHAR      3
+#define   T_SHORT      4
 #define   T_USHORT     5
-#define   T_ULONG      6
-#define   T_UCHAR      7
-#define   T_SCHAR      8
-#define   T_BOOL       9
-#define   T_DOUBLE     10
-#define   T_FLOAT      11
-#define   T_CHAR       12
-#define   T_USER       13
-#define   T_VOID       14
-#define   T_ENUM       15
-#define   T_LONGLONG   16
-#define   T_ULONGLONG  17
-#define   T_STRING     20
-#define   T_POINTER    21
-#define   T_REFERENCE  22
-#define   T_ARRAY      23
-#define   T_FUNCTION   24
+#define   T_ENUM       6
+#define   T_INT        7
+#define   T_UINT       8
+#define   T_LONG       9
+#define   T_ULONG      10
+#define   T_LONGLONG   11
+#define   T_ULONGLONG  12
+#define   T_FLOAT      20
+#define   T_DOUBLE     21
+#define   T_NUMERIC    22
+
+/* non-numeric */
+
+#define   T_CHAR       30
+#define   T_USER       31
+#define   T_VOID       32
+#define   T_STRING     33
+#define   T_POINTER    34
+#define   T_REFERENCE  35
+#define   T_ARRAY      36
+#define   T_FUNCTION   37
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
