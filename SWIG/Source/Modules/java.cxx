@@ -285,7 +285,7 @@ class JAVA : public Language {
 
     Printf(f_wrappers,"#ifdef __cplusplus\n");
     Printf(f_wrappers,"extern \"C\" {\n");
-    Printf(f_wrappers,"#endif\n");
+    Printf(f_wrappers,"#endif\n\n");
 
     /* Emit code */
     Language::top(n);
@@ -482,8 +482,9 @@ class JAVA : public Language {
        */
     if(proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, variable_name))) != 0;
       String *getter_setter_name = NewString("");
-      if(Cmp(symname, Swig_name_set(Swig_name_member(shadow_classname, variable_name))) == 0)
+      if(!getter_flag)
         Printf(getter_setter_name,"set");
       else 
         Printf(getter_setter_name,"get");
@@ -1279,7 +1280,7 @@ class JAVA : public Language {
     int       i;
     String    *nativecall = NewString("");
     String    *shadowrettype = NewString("");
-    String    *user_arrays = NewString("");
+    String    *function_code = NewString("");
 
     if(!proxy_flag) return;
 
@@ -1304,10 +1305,10 @@ class JAVA : public Language {
     }
 
     /* Start generating the shadow function */
-    Printf(shadow_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
+    Printf(function_code, "  %s ", Getattr(n,"feature:java:methodmodifiers"));
     if (static_flag)
-      Printf(shadow_code, "static ");
-    Printf(shadow_code, "%s %s(", shadowrettype, java_shadow_function_name);
+      Printf(function_code, "static ");
+    Printf(function_code, "%s %s(", shadowrettype, java_shadow_function_name);
 
     Printv(nativecall, jniclass_name, ".", java_function_name, "(", NIL);
     if (!static_flag)
@@ -1356,9 +1357,9 @@ class JAVA : public Language {
 
         /* Add to java shadow function header */
         if (gencomma >= 2)
-          Printf(shadow_code, ", ");
+          Printf(function_code, ", ");
         gencomma = 2;
-        Printf(shadow_code, "%s %s", javaparamtype, arg);
+        Printf(function_code, "%s %s", javaparamtype, arg);
 
         Delete(arg);
         Delete(javaparamtype);
@@ -1367,8 +1368,8 @@ class JAVA : public Language {
     }
 
     Printf(nativecall, ")");
-    Printf(shadow_code, ")");
-    generateThrowsClause(n, shadow_code);
+    Printf(function_code, ")");
+    generateThrowsClause(n, function_code);
 
     // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
@@ -1378,15 +1379,17 @@ class JAVA : public Language {
         Replaceall(tm,"$owner","false");
       substituteJavaclassname(t, tm);
       Replaceall(tm, "$jnicall", nativecall);
-      Printf(shadow_code, " %s\n\n", tm);
+      Printf(function_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
           "No javaout typemap defined for %s\n", SwigType_str(t,0));
     }
 
+    Printv(shadow_code, function_code, NIL);
+
+    Delete(function_code);
     Delete(shadowrettype);
     Delete(nativecall);
-    Delete(user_arrays);
   }
 
   /* ----------------------------------------------------------------------
@@ -1399,7 +1402,6 @@ class JAVA : public Language {
     String    *tm;
     Parm      *p;
     int       i;
-    String    *user_arrays = NewString("");
 
     Language::constructorHandler(n);
 
@@ -1469,7 +1471,6 @@ class JAVA : public Language {
       Printf(shadow_code, ")");
       generateThrowsClause(n, shadow_code);
       Printf(shadow_code, " {\n");
-      Printv(shadow_code, user_arrays, NIL);
       Printf(shadow_code, "    %s", nativecall);
       Printf(shadow_code, "  }\n\n");
 
@@ -1479,8 +1480,6 @@ class JAVA : public Language {
       Delete(overloaded_name);
       Delete(nativecall);
     }
-
-    Delete(user_arrays);
 
     return SWIG_OK;
   }
@@ -1568,11 +1567,12 @@ class JAVA : public Language {
     int       i;
     String    *nativecall = NewString("");
     String    *shadowrettype = NewString("");
-    String    *user_arrays = NewString("");
+    String    *function_code = NewString("");
     int       num_arguments = 0;
     int       num_required = 0;
     String    *overloaded_name = getOverloadedName(n);
     String    *func_name = NULL;
+    bool      setter_flag;
 
     if (l) {
       if (SwigType_type(Getattr(l,"type")) == T_VOID) {
@@ -1597,7 +1597,8 @@ class JAVA : public Language {
     if (proxy_flag && global_variable_flag) {
       // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
       func_name = NewString("");
-      if(Cmp(Getattr(n,"sym:name"), Swig_name_set(variable_name)) == 0)
+      setter_flag = (Cmp(Getattr(n,"sym:name"), Swig_name_set(variable_name)) == 0);
+      if(setter_flag)
         Printf(func_name,"set");
       else 
         Printf(func_name,"get");
@@ -1608,7 +1609,7 @@ class JAVA : public Language {
     }
 
     /* Start generating the function */
-    Printf(module_class_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, func_name);
+    Printf(function_code, "  %s static %s %s(", Getattr(n,"feature:java:methodmodifiers"), shadowrettype, func_name);
     Printv(nativecall, jniclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
@@ -1654,9 +1655,9 @@ class JAVA : public Language {
 
       /* Add to java shadow function header */
       if (gencomma >= 2)
-        Printf(module_class_code, ", ");
+        Printf(function_code, ", ");
       gencomma = 2;
-      Printf(module_class_code, "%s %s", javaparamtype, arg);
+      Printf(function_code, "%s %s", javaparamtype, arg);
 
       p = Getattr(p,"tmap:in:next");
       Delete(arg);
@@ -1664,8 +1665,8 @@ class JAVA : public Language {
     }
 
     Printf(nativecall, ")");
-    Printf(module_class_code, ")");
-    generateThrowsClause(n, module_class_code);
+    Printf(function_code, ")");
+    generateThrowsClause(n, function_code);
 
     // Transform return type used in native function (in JNI class) to type used in Java wrapper function (in module class)
     if ((tm = Swig_typemap_lookup_new("javaout",n,"",0))) {
@@ -1675,15 +1676,17 @@ class JAVA : public Language {
         Replaceall(tm,"$owner","false");
       substituteJavaclassname(t, tm);
       Replaceall(tm, "$jnicall", nativecall);
-      Printf(module_class_code, " %s\n\n", tm);
+      Printf(function_code, " %s\n\n", tm);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, 
           "No javaout typemap defined for %s\n", SwigType_str(t,0));
     }
 
+    Printv(module_class_code, function_code, NIL);
+
+    Delete(function_code);
     Delete(shadowrettype);
     Delete(nativecall);
-    Delete(user_arrays);
     Delete(func_name);
   }
 
