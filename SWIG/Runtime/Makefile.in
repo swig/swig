@@ -102,6 +102,7 @@ libswigpl$(RELEASESUFFIX).la: $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(PERL5_RUNT
 
 RUBY_INCLUDE = @RUBYINCLUDE@
 RUBY_RUNTIME = $(SWIGLIB)/ruby/rubyhead.swg
+RUBY_DLNK    = @RUBYDYNAMICLINKING@
 
 # Ruby shared
 
@@ -109,10 +110,9 @@ ruby: libswigrb$(RELEASESUFFIX).la
 
 libswigrb$(RELEASESUFFIX).la:
 	rm -f librb.c
-#	cp $(srcdir)/$(RUBY_RUNTIME) librb.c
 	cat $(srcdir)/$(SWIG_TYPECHECK) $(srcdir)/$(RUBY_RUNTIME) $(SWIGLIB)/ruby/rubydef.swg >> librb.c
 	$(LIBTOOL) $(CC) -c $(RUBY_INCLUDE) -DSWIG_GLOBAL librb.c
-	$(LIBTOOL) $(CC) -o libswigrb$(RELEASESUFFIX).la librb.lo -rpath $(LIB_DIR) -avoid-version 
+	$(LIBTOOL) $(CC) -o libswigrb$(RELEASESUFFIX).la librb.lo -rpath $(LIB_DIR) $(RUBY_DLNK) -avoid-version 
 
 # ----------------------------------------------------------------------
 # Guile run-time library
