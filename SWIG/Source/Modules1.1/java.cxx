@@ -1240,28 +1240,38 @@ void JAVA::pragma(char *lang, char *code, char *value) {
     Printv(module_method_modifiers, strvalue, 0);
   } else if (shadow) {
     if (strcmp(code,"shadowcode") == 0) {
-      if (this_shadow_extra_code)
-	Printf(this_shadow_extra_code, "%s\n", strvalue);
+      if (f_shadow && shadow_code)
+        Printf(shadow_code, "%s\n", strvalue);
+      else
+        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     } 
     else if (strcmp(code,"shadowimport") == 0) {
       if (this_shadow_import)
-	Printf(this_shadow_import, "import %s;\n", strvalue);
+        Printf(this_shadow_import, "import %s;\n", strvalue);
+      else
+        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     } 
     else if (strcmp(code,"shadowbase") == 0) {
       if (this_shadow_baseclass)
-	Printf(this_shadow_baseclass, "%s", strvalue);
+        Printf(this_shadow_baseclass, "%s", strvalue);
+      else
+        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     } 
     else if (strcmp(code,"shadowinterface") == 0) {
       if (this_shadow_interfaces) {
-	if (!*Char(this_shadow_interfaces))
-	  Printf(this_shadow_interfaces, "implements %s", strvalue);
-	else
-	  Printf(this_shadow_interfaces, ", %s", strvalue);
+        if (!*Char(this_shadow_interfaces))
+          Printf(this_shadow_interfaces, "implements %s", strvalue);
+        else
+          Printf(this_shadow_interfaces, ", %s", strvalue);
       }
+      else
+        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     } 
     else if (strcmp(code,"shadowclassmodifiers") == 0) {
       if (this_shadow_class_modifiers)
-	Printv(this_shadow_class_modifiers, strvalue, 0);
+        Printv(this_shadow_class_modifiers, strvalue, 0);
+      else
+        Printf(stderr,"%s : Line %d. Out of scope pragma.\n", input_file, line_number);
     }  else {
       Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
     }
