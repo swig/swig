@@ -11,6 +11,7 @@
 
 %insert(runtime) %{
 
+#include <assert.h>
 #ifdef __cplusplus
 
 #include <string>
