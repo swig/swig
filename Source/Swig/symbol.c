@@ -535,6 +535,7 @@ symbol_head(Node *n)
   return n;
 }
 
+
 Node *
 Swig_symbol_add(String_or_char *symname, Node *n) {
   Hash *c, *cn, *cl = 0;
@@ -721,7 +722,7 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     assert(!Getattr(n,"sym:overname"));
     Setattr(n,"sym:overname", NewStringf("__SWIG_%d", pn));
     /*Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
-    if (Getattr(n,"access")) {
+    if (Getattr(n,"access") && !Getattr(n,"feature:director")) {
       /* add the protected/private members at the top of the overload list*/
       Node *hl = symbol_head(cl);
       Setattr(n,"sym:nextSibling",hl);
@@ -732,7 +733,6 @@ Swig_symbol_add(String_or_char *symname, Node *n) {
     }
     Setattr(cl,"sym:overloaded",c);
     Setattr(n,"sym:overloaded",c);
-    
     return n;
   }
 

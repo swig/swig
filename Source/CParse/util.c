@@ -97,6 +97,7 @@ void cparse_normalize_void(Node *n) {
 int need_protected(Node* n, int dirprot_mode)
 {
   /* First, 'n' looks like a function */
+  if (!dirprot_mode) return 0;
   if ((Strcmp(nodeType(n),"cdecl") == 0) &&
       SwigType_isfunction(Getattr(n,"decl"))) {
     String *storage = Getattr(n,"storage");
