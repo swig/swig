@@ -1,10 +1,15 @@
 // Tests SWIG's *default* handling of varargs.  The default behavior is to simply ignore the varargs.
 %module varargs
 
-%inline %{
+%varargs(int mode = 0) test_def;
 
+%inline %{
 char *test(const char *fmt, ...) {
   return (char *) fmt;
+}
+
+const char *test_def(const char *fmt, ...) {
+  return fmt;
 }
 
 class Foo {
