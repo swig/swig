@@ -131,6 +131,7 @@ CPP_TEST_CASES += \
 	lib_cdata \
 	lib_cpointer \
 	lib_std_deque \
+        lib_std_pair \
 	lib_std_string \
 	lib_std_vector \
 	lib_typemaps \
