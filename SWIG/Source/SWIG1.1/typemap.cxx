@@ -537,7 +537,7 @@ static void typemap_locals(DataType *t, char *pname, DOHString *s, ParmList *l, 
     char temp[10];
     for (int i = 0; i < t->array_dimensions(); i++) {
       sprintf(temp,"$dim%d",i);
-      Replace(f._locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
+      Replace(f.locals,temp,t->get_dimension(i), DOH_REPLACE_ANY);
     }
   }
 

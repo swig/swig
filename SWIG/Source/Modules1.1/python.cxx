@@ -180,9 +180,9 @@ void PYTHON::set_module(char *mod_name, char **mod_list) {
   if (import_file) {
     if (!(strcmp(import_file,input_file+strlen(input_file)-strlen(import_file)))) {
       if (shadow) {
-	fprintf(f_shadow,"\nfrom %s import *\n", mod_name);
+	Printf(f_shadow,"\nfrom %s import *\n", mod_name);
       }
-      delete import_file;
+      free(import_file);
       import_file = 0;
     }
   }
@@ -236,8 +236,8 @@ void PYTHON::set_init(char *iname) {
 //----------------------------------------------------------------------
 
 void PYTHON::import(char *filename) {
-  if (import_file) delete import_file;
-  import_file = copy_string(filename);
+  if (import_file) free(import_file);
+  import_file = Swig_copy_string(filename);
 }
 
 // ----------------------------------------------------------------------
@@ -270,21 +270,21 @@ void PYTHON::print_methods() {
 
   Method *n;
 
-  fprintf(f_wrappers,"static PyMethodDef %sMethods[] = {\n", module);
+  Printf(f_wrappers,"static PyMethodDef %sMethods[] = {\n", module);
   n = head;
   while (n) {
     if (!n->kw) {
-      fprintf(f_wrappers,"\t { \"%s\", %s, METH_VARARGS },\n", n->name, n->function);
+      Printf(f_wrappers,"\t { \"%s\", %s, METH_VARARGS },\n", n->name, n->function);
     } else {
-      fprintf(f_wrappers,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", n->name, n->function);
+      Printf(f_wrappers,"\t { \"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS },\n", n->name, n->function);
     }
     n = n->next;
   }
-  fprintf(f_wrappers,"\t { NULL, NULL }\n");
-  fprintf(f_wrappers,"};\n");
-  fprintf(f_wrappers,"#ifdef __cplusplus\n");
-  fprintf(f_wrappers,"}\n");
-  fprintf(f_wrappers,"#endif\n");
+  Printf(f_wrappers,"\t { NULL, NULL }\n");
+  Printf(f_wrappers,"};\n");
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"}\n");
+  Printf(f_wrappers,"#endif\n");
 }
 
 // ---------------------------------------------------------------------
@@ -297,14 +297,14 @@ void PYTHON::headers(void)
 
   Swig_banner(f_runtime);
 
-  fprintf(f_runtime,"/* Implementation : PYTHON */\n\n");
-  fprintf(f_runtime,"#define SWIGPYTHON\n");
+  Printf(f_runtime,"/* Implementation : PYTHON */\n\n");
+  Printf(f_runtime,"#define SWIGPYTHON\n");
 
   if (NoInclude) 
-    fprintf(f_runtime,"#define SWIG_NOINCLUDE\n");
+    Printf(f_runtime,"#define SWIG_NOINCLUDE\n");
 
   if (Swig_insert_file("python.swg", f_runtime) == -1) {
-    fprintf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
+    Printf(stderr,"SWIG : Fatal error. Unable to locate python.swg. (Possible installation problem).\n");
     SWIG_exit(1);
   }
 }
@@ -326,7 +326,7 @@ void PYTHON::initialize(void)
   char  *oldmodule = 0;
 
   if (!module) {
-    fprintf(stderr,"*** Error. No module name specified.\n");
+    Printf(stderr,"*** Error. No module name specified.\n");
     SWIG_exit(1);
   }
 
@@ -345,13 +345,13 @@ void PYTHON::initialize(void)
   if (shadow) {
     sprintf(filen,"%s%s.py", output_dir, oldmodule);
     if ((f_shadow = fopen(filen,"w")) == 0) {
-      fprintf(stderr,"Unable to open %s\n", filen);
+      Printf(stderr,"Unable to open %s\n", filen);
       SWIG_exit(0);
     }
-    fprintf(f_shadow,"# This file was created automatically by SWIG.\n");
-    fprintf(f_shadow,"import %s\n", module);
+    Printf(f_shadow,"# This file was created automatically by SWIG.\n");
+    Printf(f_shadow,"import %s\n", module);
     if (!noopt)
-      fprintf(f_shadow,"import new\n");
+      Printf(f_shadow,"import new\n");
   }
 
   // Dump out external module declarations
@@ -362,9 +362,9 @@ void PYTHON::initialize(void)
   if (Len(modextern) > 0) {
     Printf(f_header,"%s\n",modextern);
   }
-  fprintf(f_wrappers,"#ifdef __cplusplus\n");
-  fprintf(f_wrappers,"extern \"C\" {\n");
-  fprintf(f_wrappers,"#endif\n");
+  Printf(f_wrappers,"#ifdef __cplusplus\n");
+  Printf(f_wrappers,"extern \"C\" {\n");
+  Printf(f_wrappers,"#endif\n");
 
   Printf(const_code,"static _swig_const_info _swig_const_table[] = {\n");
 }
@@ -378,24 +378,24 @@ void PYTHON::initialize(void)
 void PYTHON::initialize_cmodule(void)
 {
   int i;
-  fprintf(f_header,"#define SWIG_init    init%s\n\n", module);
-  fprintf(f_header,"#define SWIG_name    \"%s\"\n", module);	
+  Printf(f_header,"#define SWIG_init    init%s\n\n", module);
+  Printf(f_header,"#define SWIG_name    \"%s\"\n", module);	
 
   // Output the start of the init function.  
   // Modify this to use the proper return type and arguments used
   // by the target Language
 
-  fprintf(f_init,"static PyObject *SWIG_globals;\n");
+  Printf(f_init,"static PyObject *SWIG_globals;\n");
 
-  fprintf(f_init,"#ifdef __cplusplus\n");
-  fprintf(f_init,"extern \"C\" \n");
-  fprintf(f_init,"#endif\n");
+  Printf(f_init,"#ifdef __cplusplus\n");
+  Printf(f_init,"extern \"C\" \n");
+  Printf(f_init,"#endif\n");
 
-  fprintf(f_init,"SWIGEXPORT(void) init%s(void) {\n",module);
-  fprintf(f_init,"\t PyObject *m, *d;\n");
-  fprintf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
-  fprintf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
-  fprintf(f_init,"\t d = PyModule_GetDict(m);\n");
+  Printf(f_init,"SWIGEXPORT(void) init%s(void) {\n",module);
+  Printf(f_init,"\t PyObject *m, *d;\n");
+  Printf(f_init,"\t SWIG_globals = SWIG_newvarlink();\n");
+  Printf(f_init,"\t m = Py_InitModule(\"%s\", %sMethods);\n", module, module);
+  Printf(f_init,"\t d = PyModule_GetDict(m);\n");
 
   Printv(f_init,
 	 tab4, "{\n",
@@ -540,17 +540,17 @@ PYTHON::get_pointer(char *iname, char *srcname, char *src, char *dest,
 void PYTHON::emit_function_header(WrapperFunction &emit_to, char *wname)
 {
   if (!use_kw) {
-    Printv(emit_to._def,
+    Printv(emit_to.def,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args) {",
 	   0);
   } else {
-    Printv(emit_to._def,
+    Printv(emit_to.def,
 	   "static PyObject *", wname,
 	   "(PyObject *self, PyObject *args, PyObject *kwargs) {",
 	   0);
   }
-  Printf(emit_to._code,"    self = self;\n");
+  Printf(emit_to.code,"    self = self;\n");
 }
 
 // ----------------------------------------------------------------------
@@ -786,7 +786,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	    // Unsupported data type
 	    
 	  default :
-	    fprintf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, p->t->print_type());
+	    Printf(stderr,"%s : Line %d. Unable to use type %s as a function argument.\n",input_file, line_number, p->t->print_type());
 	    break;
 	  }
 	  
@@ -843,7 +843,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   Printf(kwargs," NULL }");
   if (use_kw) {
-    Printv(f._locals,tab4, "char *_kwnames[] = ", kwargs, ";\n", 0);
+    Printv(f.locals,tab4, "char *_kwnames[] = ", kwargs, ";\n", 0);
   }
 
   Printf(parse_args,":%s\"", iname);
@@ -855,7 +855,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   strcpy(self_name,convert_self(f));
 
   /* Now slap the whole first part of the wrapper function together */
-  Printv(f._code, parse_args, get_pointers, check, 0);
+  Printv(f.code, parse_args, get_pointers, check, 0);
 
   // This function emits code to call the real function.  Assuming you read
   // the parameters in correctly, this will work.
@@ -869,7 +869,7 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
   
   if ((tm = typemap_lookup((char*)"out",(char*)"python",d,iname,(char*)"_result",(char*)"_resultobj"))) {
     // Yep.  Use it instead of the default
-    Printf(f._code,"%s\n", tm);
+    Printf(f.code,"%s\n", tm);
   } else {
 
     if ((d->type != T_VOID) || (d->is_pointer)) {
@@ -884,42 +884,42 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	  // Return an integer type
 	  
 	case T_INT: case T_SINT: case T_UINT: case T_BOOL:
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"i\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"i\",_result);\n");
 	  break;
 	case T_SHORT: case T_SSHORT: case T_USHORT:
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"h\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"h\",_result);\n");
 	  break;
 	case T_LONG : case T_SLONG : case T_ULONG:
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"l\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"l\",_result);\n");
 	  break;
 	case T_SCHAR: case T_UCHAR :
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"b\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"b\",_result);\n");
 	  break;
 	  
 	  // Return a floating point value
 	  
 	case T_DOUBLE :
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"d\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"d\",_result);\n");
 	  break;
 	case T_FLOAT :
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"f\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"f\",_result);\n");
 	  break;
 	  
 	  // Return a single ASCII value.  Usually we need to convert
 	  // it to a NULL-terminate string and return that instead.
 	  
 	case T_CHAR :
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"c\",_result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"c\",_result);\n");
 	  break;
 	  
 	case T_USER :
 	  d->is_pointer++;
 	  d->remember();
-	  Printv(f._code,tab4, "_resultobj = SWIG_NewPointerObj((void *)_result, SWIGTYPE", d->print_mangle(), ");\n",0);
+	  Printv(f.code,tab4, "_resultobj = SWIG_NewPointerObj((void *)_result, SWIGTYPE", d->print_mangle(), ");\n",0);
 	  d->is_pointer--;
 	  break;
 	default :
-	  fprintf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
+	  Printf(stderr,"%s: Line %d. Unable to use return type %s in function %s.\n", input_file, line_number, d->print_type(), name);
 	  break;
 	}
       } else {
@@ -931,36 +931,36 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 	if ((d->type == T_CHAR) && (d->is_pointer == 1)) {
 	  
 	  // Return a character string
-	  Printf(f._code,"    _resultobj = Py_BuildValue(\"s\", _result);\n");
+	  Printf(f.code,"    _resultobj = Py_BuildValue(\"s\", _result);\n");
 
 	  // If declared as a new object, free the result
 
 	} else {
 	  // Build a SWIG pointer.
 	  d->remember();
-	  Printv(f._code, tab4, "_resultobj = SWIG_NewPointerObj((void *) _result, SWIGTYPE", d->print_mangle(), ");\n", 0);
+	  Printv(f.code, tab4, "_resultobj = SWIG_NewPointerObj((void *) _result, SWIGTYPE", d->print_mangle(), ");\n", 0);
 	}
       }
     } else {
-      Printf(f._code,"    Py_INCREF(Py_None);\n");
-      Printf(f._code,"    _resultobj = Py_None;\n");
+      Printf(f.code,"    Py_INCREF(Py_None);\n");
+      Printf(f.code,"    _resultobj = Py_None;\n");
     }
   }
 
   // Check to see if there were any output arguments, if so we're going to
   // create a Python list object out of the current result
 
-  Printv(f._code,outarg,0);
+  Printv(f.code,outarg,0);
 
   // If there was any other cleanup needed, do that
 
-  Printv(f._code,cleanup,0);
+  Printv(f.code,cleanup,0);
 
   // Look to see if there is any newfree cleanup code
 
   if (NewObject) {
     if ((tm = typemap_lookup((char*)"newfree",(char*)"python",d,iname,(char*)"_result",(char*)""))) {
-      Printf(f._code,"%s\n",tm);
+      Printf(f.code,"%s\n",tm);
     }
   }
 
@@ -968,16 +968,16 @@ void PYTHON::create_function(char *name, char *iname, DataType *d, ParmList *l)
 
   if ((tm = typemap_lookup((char*)"ret",(char*)"python",d,iname,(char*)"_result",(char*)""))) {
     // Yep.  Use it instead of the default
-    Printf(f._code,"%s\n",tm);
+    Printf(f.code,"%s\n",tm);
   }
   
-  Printf(f._code,"    return _resultobj;\n}\n");
+  Printf(f.code,"    return _resultobj;\n}\n");
 
   // Substitute the cleanup code
-  Replace(f._code,"$cleanup",cleanup, DOH_REPLACE_ANY);
+  Replace(f.code,"$cleanup",cleanup, DOH_REPLACE_ANY);
 
   // Substitute the function name
-  Replace(f._code,"$name",iname, DOH_REPLACE_ANY);
+  Replace(f.code,"$name",iname, DOH_REPLACE_ANY);
 
   // Dump the function out
   f.print(f_wrappers);
@@ -1076,7 +1076,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Python dictionary.
 
     if (!have_globals) {
-      fprintf(f_init,"\t PyDict_SetItemString(d,\"%s\", SWIG_globals);\n",global_name);
+      Printf(f_init,"\t PyDict_SetItemString(d,\"%s\", SWIG_globals);\n",global_name);
       have_globals=1;
       if ((shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printv(vars, global_name, " = ", module, ".", global_name, "\n", 0);
@@ -1091,11 +1091,11 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Create a function for setting the value of the variable
     // ---------------------------------------------------------------------
 
-    Printf(setf._def,"static int %s_set(PyObject *val) {", wname);
+    Printf(setf.def,"static int %s_set(PyObject *val) {", wname);
     if (!(Status & STAT_READONLY)) {
       if ((tm = typemap_lookup((char*)"varin",(char*)"python",t,name,(char*)"val",name))) {
-	Printf(setf._code,"%s\n",tm);
-	Replace(setf._code,"$name",iname, DOH_REPLACE_ANY);
+	Printf(setf.code,"%s\n",tm);
+	Replace(setf.code,"$name",iname, DOH_REPLACE_ANY);
       } else {
 	if ((t->type != T_VOID) || (t->is_pointer)) {
 	  if (!t->is_pointer) {
@@ -1109,7 +1109,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    case T_SCHAR: case T_UCHAR: case T_BOOL:
 	      // Get an integer value
 	      setf.add_local(t->print_type(), (char*)"tval");
-	      Printv(setf._code,
+	      Printv(setf.code,
 		     tab4, "tval = ", t->print_cast(), "PyInt_AsLong(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
 		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -1123,7 +1123,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    case T_FLOAT: case T_DOUBLE:
 	      // Get a floating point value
 	      setf.add_local(t->print_type(), (char*)"tval");
-	      Printv(setf._code,
+	      Printv(setf.code,
 		     tab4, "tval = ", t->print_cast(), "PyFloat_AsDouble(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
 		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -1138,7 +1138,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      
 	    case T_CHAR:
 	      setf.add_local((char*)"char *", (char*)"tval");
-	      Printv(setf._code,
+	      Printv(setf.code,
 		     tab4, "tval = (char *) PyString_AsString(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
 		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -1151,12 +1151,12 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    case T_USER:
 	      t->is_pointer++;
 	      setf.add_local(t->print_type(),(char*)"temp");
-	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf._code,(char*)"1");
-	      Printv(setf._code, tab4, name, " = *temp;\n", 0);
+	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf.code,(char*)"1");
+	      Printv(setf.code, tab4, name, " = *temp;\n", 0);
 	      t->is_pointer--;
 	      break;
 	    default:
-	      fprintf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, t->print_type());
+	      Printf(stderr,"%s : Line %d. Unable to link with type %s.\n", input_file, line_number, t->print_type());
 	    }
 	  } else {
 	    
@@ -1164,7 +1164,7 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    
 	    if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
 	      setf.add_local((char*)"char *", (char*)"tval");
-	      Printv(setf._code,
+	      Printv(setf.code,
 		     tab4, "tval = (char *) PyString_AsString(val);\n",
 		     tab4, "if (PyErr_Occurred()) {\n",
 		     tab8, "PyErr_SetString(PyExc_TypeError,\"C variable '",
@@ -1174,13 +1174,13 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 		     0);
 	      
 	      if (CPlusPlus) {
-		Printv(setf._code,
+		Printv(setf.code,
 		       tab4, "if (", name, ") delete [] ", name, ";\n",
 		       tab4, name, " = new char[strlen(tval)+1];\n",
 		       tab4, "strcpy((char *)", name, ",tval);\n",
 		       0);
 	      } else {
-		Printv(setf._code,
+		Printv(setf.code,
 		       tab4, "if (", name, ") free(", name, ");\n",
 		       tab4, name, " = (char *) malloc(strlen(tval)+1);\n",
 		       tab4, "strcpy((char *)", name, ",tval);\n",
@@ -1191,23 +1191,23 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	      // Is a generic pointer value.
 	      
 	      setf.add_local(t->print_type(),(char*)"temp");
-	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf._code,(char*)"1");
-	      Printv(setf._code,tab4, name, " = temp;\n", 0);
+	      get_pointer(iname,(char*)"value",(char*)"val",(char*)"temp",t,setf.code,(char*)"1");
+	      Printv(setf.code,tab4, name, " = temp;\n", 0);
 	    }
 	  }
 	}
       }
-      Printf(setf._code,"    return 0;\n");
+      Printf(setf.code,"    return 0;\n");
     } else {
       // Is a readonly variable.  Issue an error
-      Printv(setf._code,
+      Printv(setf.code,
 	     tab4, "PyErr_SetString(PyExc_TypeError,\"Variable ", iname,
 	     " is read-only.\");\n",
 	     tab4, "return 1;\n",
 	     0);
     }
     
-    Printf(setf._code,"}\n");
+    Printf(setf.code,"}\n");
     
     // Dump out function for setting value
     
@@ -1217,14 +1217,14 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
     // Create a function for getting the value of a variable
     // ----------------------------------------------------------------
     
-    Printf(getf._def,"static PyObject *%s_get() {", wname);
+    Printf(getf.def,"static PyObject *%s_get() {", wname);
     getf.add_local((char*)"PyObject *",(char*)"pyobj");
     if ((tm = typemap_lookup((char*)"varout",(char*)"python",t,name,name,(char*)"pyobj"))) {
-      Printf(getf._code,"%s\n",tm);
-      Replace(getf._code,"$name",iname, DOH_REPLACE_ANY);
+      Printf(getf.code,"%s\n",tm);
+      Replace(getf.code,"$name",iname, DOH_REPLACE_ANY);
     } else if ((tm = typemap_lookup((char*)"out",(char*)"python",t,name,name,(char*)"pyobj"))) {
-      Printf(getf._code,"%s\n",tm);
-      Replace(getf._code,"$name",iname, DOH_REPLACE_ANY);
+      Printf(getf.code,"%s\n",tm);
+      Replace(getf.code,"$name",iname, DOH_REPLACE_ANY);
     } else {
       if ((t->type != T_VOID) || (t->is_pointer)) {
 	if (!t->is_pointer) {
@@ -1235,14 +1235,14 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	  case T_SHORT: case T_SSHORT: case T_USHORT:
 	  case T_LONG: case T_SLONG: case T_ULONG:
 	  case T_SCHAR: case T_UCHAR: case T_BOOL:
-	    Printv(getf._code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
+	    Printv(getf.code, tab4, "pyobj = PyInt_FromLong((long) ", name, ");\n", 0);
 	    break;
 	  case T_FLOAT: case T_DOUBLE:
-	    Printv(getf._code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
+	    Printv(getf.code, tab4, "pyobj = PyFloat_FromDouble((double) ", name, ");\n", 0);
 	    break;
 	  case T_CHAR:
 	    getf.add_local((char*)"char",(char*)"ptemp[2]");
-	    Printv(getf._code,
+	    Printv(getf.code,
 		   tab4, "ptemp[0] = ", name, ";\n",
 		   tab4, "ptemp[1] = 0;\n",
 		   tab4, "pyobj = PyString_FromString(ptemp);\n",
@@ -1252,28 +1252,28 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
 	    // Hack this into a pointer
 	    t->is_pointer++;
 	    t->remember();
-	    Printv(getf._code,
+	    Printv(getf.code,
 		   tab4, "pyobj = SWIG_NewPointerObj((void *) &", name ,
 		   ", SWIGTYPE", t->print_mangle(), ");\n",
 		   0);
 	    t->is_pointer--;
 	    break;
 	  default:
-	    fprintf(stderr,"Unable to link with type %s\n", t->print_type());
+	    Printf(stderr,"Unable to link with type %s\n", t->print_type());
 	    break;
 	  }
 	} else {
 	  
 	  // Is some sort of pointer value
 	  if ((t->type == T_CHAR) && (t->is_pointer == 1)) {
-	    Printv(getf._code,
+	    Printv(getf.code,
 		   tab4, "if (", name, ")\n",
 		   tab8, "pyobj = PyString_FromString(", name, ");\n",
 		   tab4, "else pyobj = PyString_FromString(\"(NULL)\");\n",
 		   0);
 	  } else {
 	    t->remember();
-	    Printv(getf._code,
+	    Printv(getf.code,
 		   tab4, "pyobj = SWIG_NewPointerObj((void *)", name,
 		   ", SWIGTYPE", t->print_mangle(), ");\n",
 		   0);
@@ -1282,13 +1282,13 @@ void PYTHON::link_variable(char *name, char *iname, DataType *t) {
       }
     }
     
-    Printf(getf._code,"    return pyobj;\n}\n");
+    Printf(getf.code,"    return pyobj;\n}\n");
     
     getf.print(f_wrappers);
     
     // Now add this to the variable linking mechanism
 
-    fprintf(f_init,"\t SWIG_addvarlink(SWIG_globals,\"%s\",%s_get, %s_set);\n", iname, wname, wname);
+    Printf(f_init,"\t SWIG_addvarlink(SWIG_globals,\"%s\",%s_get, %s_set);\n", iname, wname, wname);
 
     // ----------------------------------------------------------
     // Output a shadow variable.  (If applicable and possible)
@@ -1323,7 +1323,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
   } else {
 
     if ((type->type == T_USER) && (!type->is_pointer)) {
-      fprintf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
+      Printf(stderr,"%s : Line %d.  Unsupported constant value.\n", input_file, line_number);
       return;
     }
     
@@ -1343,7 +1343,7 @@ void PYTHON::declare_const(char *name, char *, DataType *type, char *value) {
 	Printv(const_code, tab4, "{ SWIG_PY_STRING,  \"", name, "\", 0, 0, (void *) \"", value, "\", 0},\n", 0);
 	break;
       default:
-	fprintf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
+	Printf(stderr,"%s : Line %d. Unsupported constant value.\n", input_file, line_number);
 	break;
       }
     } else {
@@ -1493,18 +1493,18 @@ void PYTHON::pragma(char *lang, char *cmd, char *value) {
     if (strcmp(lang,(char*)"python") == 0) {
 	if (strcmp(cmd,"CODE") == 0) {
 	  if (shadow) {
-	    fprintf(f_shadow,"%s\n",value);
+	    Printf(f_shadow,"%s\n",value);
 	  }
 	} else if (strcmp(cmd,"code") == 0) {
 	  if (shadow) {
-	    fprintf(f_shadow,"%s\n",value);
+	    Printf(f_shadow,"%s\n",value);
 	  }
 	} else if (strcmp(cmd,"include") == 0) {
 	  if (shadow) {
 	    if (value) {
 	      FILE *f = Swig_open(value);
 	      if (!f) {
-		fprintf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
+		Printf(stderr,"%s : Line %d. Unable to locate file %s\n", input_file, line_number,value);
 	      } else {
 		char buffer[4096];
 		while (fgets(buffer,4095,f)) {
@@ -1514,7 +1514,7 @@ void PYTHON::pragma(char *lang, char *cmd, char *value) {
 	    }
 	  }
 	} else {
-	  fprintf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	  Printf(stderr,"%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
 	}
     }
 }
@@ -1570,7 +1570,7 @@ void PYTHON::cpp_pragma(Pragma *plist) {
 	    pyp2 = pragmas;
 	  }
 	} else {
-	  fprintf(stderr,"%s : Line %d. Malformed addtomethod pragma.  Should be \"methodName:text\"\n",
+	  Printf(stderr,"%s : Line %d. Malformed addtomethod pragma.  Should be \"methodName:text\"\n",
 		  Char(plist->filename),plist->lineno);
 	}
 	Delete(temp);
@@ -1663,16 +1663,16 @@ void PYTHON::cpp_open_class(char *classname, char *rname, char *ctype, int strip
     have_setattr = 0;
     have_repr = 0;
     if (rname) {
-      class_name = copy_string(rname);
+      class_name = Swig_copy_string(rname);
       class_renamed = 1;
     } else {
-      class_name = copy_string(classname);
+      class_name = Swig_copy_string(classname);
       class_renamed = 0;
     }
   }
 
-  real_classname = copy_string(classname);
-  class_type = copy_string(ctype);
+  real_classname = Swig_copy_string(classname);
+  class_type = Swig_copy_string(ctype);
 
   // Build up the hash table
   Setattr(hash,real_classname,class_name);

@@ -36,10 +36,9 @@ extern "C" {
 WrapperFunction::WrapperFunction() {
   h = NewHash();
   localh = NewHash();
-  _def = def.doh();
-  _locals = locals.doh();
-  _code = code.doh();
-  _init = init.doh();
+  def = NewString("");
+  locals = NewString("");
+  code = NewString("");
 }
 
 WrapperFunction::~WrapperFunction() {
@@ -77,32 +76,12 @@ void WrapperFunction::print(DOHFile *f) {
   while (key) {
     s = Getattr(localh,key);
     Delitem(s,DOH_END);
-    Printv(_locals,tab4,s,";\n",0);
+    Printv(locals,tab4,s,";\n",0);
     key = Nextkey(localh);
   }
-  Printf(f,"%s\n",_def);
-  Printf(f,"%s",_locals);
-  Printf(f,"%s\n",_code);
-}
-
-// -------------------------------------------------------------------
-// Print out a wrapper function.
-// -------------------------------------------------------------------
-
-void WrapperFunction::print(String &f) {
-  DOHString *s;
-  DOH *key;
-  key = Firstkey(localh);
-  while (key) {
-    s = Getattr(localh,key);
-    Delitem(s,DOH_END);
-    Printv(_locals,tab4,s,";\n",0);
-    key = Nextkey(localh);
-  }
-
-  f << def << "\n"
-    << locals << "\n"
-    << code << "\n";
+  Printf(f,"%s\n",def);
+  Printf(f,"%s",locals);
+  Printf(f,"%s\n",code);
 }
 
 // -------------------------------------------------------------------
@@ -206,9 +185,9 @@ char *WrapperFunction::new_local(char *type, char *name, char *defarg) {
   Printf(new_name,"%s",c);
   // Successful, write some wrapper code
   if (!defarg)
-    Printv(_locals,tab4,type, " ", new_name, ";\n");
+    Printv(locals,tab4,type, " ", new_name, ";\n");
   else
-    Printv(_locals,tab4,type, " ", new_name, " = ", defarg, ";\n");
+    Printv(locals,tab4,type, " ", new_name, " = ", defarg, ";\n");
 
   // Need to strip off the array symbols now
 
