@@ -53,7 +53,7 @@
       #if __cplusplus
       ptr=new $*1_ltype;
       #else
-      ptr=($*1_ltype) emalloc(sizeof($*1_ltype));
+      ptr=($*1_ltype) calloc(1,sizeof($*1_ltype));
       #endif
       $1=&ptr;
       // have to passback arg$arg too
