@@ -1041,7 +1041,7 @@ SWIG_cpp_parse(DOH *s)
   	  fn = get_filename(value); 
 	  s1 = cpp_include(fn);
 	  if (s1) {
-  	    Printf(ns,"%%include \"%s\" {\n", SWIG_last_file()); 
+  	    Printf(ns,"%%includefile \"%s\" {\n", SWIG_last_file()); 
   	    s2 = SWIG_cpp_parse(s1); 
   	    addline(ns,s2,allow); 
   	    Printf(ns,"\n}\n"); 
@@ -1114,7 +1114,7 @@ SWIG_cpp_parse(DOH *s)
 	    if (s1) {
   	      add_chunk(ns,chunk,allow); 
   	      copy_location(s,chunk); 
-  	      Printf(ns,"%s \"%s\" {\n", decl, SWIG_last_file()); 
+  	      Printf(ns,"%sfile \"%s\" {\n", decl, SWIG_last_file()); 
   	      s2 = SWIG_cpp_parse(s1); 
   	      addline(ns,s2,allow); 
   	      Printf(ns,"\n}\n"); 
