@@ -1296,6 +1296,17 @@ if test -z "$CSHARPBIN" ; then
     AC_CHECK_PROGS(CSHARPCILINTERPRETER, ilrun)
   else
     if test "mcs" = "$CSHARPCOMPILER"; then
+      # Check that mcs is the C# compiler and not the Unix mcs utility by examining the output of 'mcs --version'
+      # The Mono compiler should emit: Mono C# compiler version a.b.c.d
+      csharp_version_raw=`(mcs --version) 2>/dev/null`
+      csharp_version_searched=`(mcs --version | sed -n "/C#\|Mono/p") 2>/dev/null`
+      CSHARPCOMPILER="";
+      if test -n "$csharp_version_raw" ; then
+        if test "$csharp_version_raw" = "$csharp_version_searched" ; then
+          CSHARPCOMPILER="mcs"
+        fi
+      fi
+
       # mono interpreter (ver 0.26 doesn't seem to work on Windows platforms)
       case $host in
       *-*-cygwin* | *-*-mingw*)
