@@ -1090,230 +1090,281 @@ for a better solution.
 
 <a name="n20"></a><H2>5.13 Wrapping Overloaded Functions and Methods</H2>
 
-This section describes the problem of wrapping overloaded C++
-functions and methods.  SWIG is able to wrap overloaded declarations
-in most target languages.   However, there are a number of restrictions
-on what is supported.  To better understand the SWIG implementation, it is
-useful to better understand a few details about how overloading works.
-
-<p>
-In C++, functions and methods can be overloaded by declaring them with
-different type signatures.  For example:
+In many language modules, SWIG provides partial support for overloaded functions, methods, and
+constructors.  For example, if you supply SWIG with overloaded functions like this:
 
 <blockquote>
 <pre>
-void foo(int);
+void foo(int x) {
+   printf("x is %d\n", x);
+}
+void foo(char *x) {
+   printf("x is '%s'\n", x);
+}
+</pre>
+</blockquote>
+
+The function is used in a completely natural way.  For example:
+
+<blockquote>
+<pre>
+>>> foo(3)
+x is 3
+>>> foo("hello")
+x is 'hello'
+>>>
+</pre>
+</blockquote>
+
+Overloading works in a similar manner for methods and constructors.  For example if you have
+this code,
+
+<blockquote>
+<pre>
+class Foo {
+public:
+     Foo();
+     Foo(const Foo &);   // Copy constructor
+     void bar(int x);
+     void bar(char *s, int y);
+};
+</pre>
+</blockquote>
+
+it might be used like this
+
+<blockquote>
+<pre>
+>>> f = Foo()          # Create a Foo
+>>> f.bar(3)
+>>> g = Foo(f)         # Copy Foo
+>>> f.bar("hello",2)
+</pre>
+</blockquote>
+
+<h3>Dispatch function generation</h3>
+
+The implementation of overloaded functions and methods is somewhat
+complicated due to the dynamic nature of scripting languages.  Unlike
+C++, which binds overloaded methods at compile time, SWIG must
+determine the proper function as a runtime check.    This check is
+further complicated by the typeless nature of certain scripting languages. For instance,
+in Tcl, all types are simply strings.  Therefore, if you have two overloaded functions
+like this,
+
+<blockquote>
+<pre>
+void foo(char *x);
+void foo(int x);
+</pre>
+</blockquote>
+
+the order in which the arguments are checked plays a rather critical role.
+
+<p>
+To implement overloading, SWIG generates a dispatch function that checks the
+number of passed arguments and their types.  To create this function, SWIG
+first examines all of the overloaded methods and ranks them according
+to the following rules:
+
+<ol>
+<li><b>Number of required arguments.</b> Methods are sorted by increasing number of
+required arguments.
+<p>
+<li><b>Argument type precedence.</b>  All C++ datatypes are assigned a numeric type precedence value
+(which is determined by the language module).  
+
+<blockquote>
+<pre>
+Type              Precedence
+----------------  ----------
+TYPE *            0     (High)
+void *            20
+Integers          40
+Floating point    60
+char              80
+Strings           100   (Low)
+</pre>
+</blockquote>
+Using these precedence values, overloaded methods with the same number of required arguments are sorted in increased
+order of precedence values.
+</ol>
+
+<p>
+This may sound very confusing, but an example will help.  Consider the following collection of
+overloaded methods:
+
+<blockquote>
+<pre>
 void foo(double);
-void foo(Bar *b, Spam *s, int );
+void foo(int);
+void foo(Bar *);
+void foo();
+void foo(int x, int y, int z, int w);
+void foo(int x, int y, int z = 3);
+void foo(double x, double y);
+void foo(double x, Bar *z);
 </pre>
 </blockquote>
 
-Later, when a call to function <tt>foo()</tt> is made, the
-determination of which function to invoke is made by looking at the types
-of the arguments.  For example:
+The first rule simply ranks the functions by required argument count.
+This would produce the following list:
 
 <blockquote>
 <pre>
-int x;
-double y;
-Bar *b;
-Spam *s;
-int z;
-...
-foo(x);        // Calls foo(int)
-foo(y);        // Calls foo(double)
-foo(b,s,z);    // Calls foo(Bar *, Spam *, int)
+rank
+-----
+[0]   foo()
+[1]   foo(double);
+[2]   foo(int);
+[3]   foo(Bar *);
+[4]   foo(int x, int y, int z = 3);
+[5]   foo(double x, double y)
+[6]   foo(double x, Bar *z)
+[7]   foo(int x, int y, int z, int w);
 </pre>
 </blockquote>
 
-It is important to note that the selection of the overloaded method or
-function is made by the C++ compiler and occurs at <b>compile
-time</b>.  It does not occur as your program runs.
-
-<p>
-Internal to the C++ compiler, overloaded functions are mapped to unique
-identifiers using a name-mangling technique where the arguments are used to create
-a unique type signature that is appended to the name.  This produces 
-three unique function names that might look like this:
+The second rule, simply refines the ranking by looking at argument type precedence values.
 
 <blockquote>
 <pre>
-void foo__Fi(int);
-void foo__Fd(double);
-void foo__FP3BarP4Spami(Bar *, Spam *, int);
+rank
+-----
+[0]   foo()
+[1]   foo(Bar *);
+[2]   foo(int);
+[3]   foo(double);
+[4]   foo(int x, int y, int z = 3);
+[5]   foo(double x, Bar *z)
+[6]   foo(double x, double y)
+[7]   foo(int x, int y, int z, int w);
 </pre>
 </blockquote>
 
-Calls to <tt>foo()</tt> are then mapped to an appropriate version depending on
-the types of arguments passed.
+Finally, to generate the dispatch function, the arguments passed to an overloaded method are simply
+checked in the same order as they appear in this ranking.
 
 <p>
-The implementation of overloaded methods in C++ is difficult to
-translate directly to a scripting language environment because it
-relies on static type-checking and compile-time binding of
-methods--neither of which map cleanly to the dynamic environment of an
-interpreter.  
+If you're still confused, don't worry about it---SWIG is probably doing the right thing.
+
+<h3>Ambiguity in Overloading</h3>
+
+Regrettably, SWIG is not able to support every possible use of valid C++ overloading.  Consider
+the following example:
+
+<blockquote>
+<pre>
+void foo(int x);
+void foo(long x);
+</pre>
+</blockquote>
+
+In C++, this is perfectly legal.  However, in a scripting language, there is generally only one kind of integer
+object.  Therefore, which one of these functions do you pick?   Clearly, there is no way to truly make a distinction 
+just by looking at the value of the integer itself (<tt>int</tt> and <tt>long</tt> may even be the same precision).   
+Therefore, when SWIG encounters this situation, it may generate a warning message like this:
+
+<blockquote>
+<pre>
+example.i:4: Warning(509): Overloaded foo(long) is shadowed by foo(int) at example.i:3.
+</pre>
+</blockquote>
+
+This means that the second overloaded function will be inaccessible
+from the scripting interface---SWIG does not know how to disambiguate
+it from an earlier method.
 
 <p>
-Therefore, to solve the overloading problem, let's first look at
-several approaches that have been proposed as solutions, but which are
-<b>NOT</b> used to solve the overloading problem in SWIG.
+Ambiguity problems are known to arise in the following situations:
 
 <ul>
-<li><b>Explicit renaming</b>.  In earlier versions of SWIG, the only
-way to handle overloading was to explicitly rename overloaded methods
-to a unique name using the <tt>%name</tt> directive.  For example:
-
-<blockquote>
-<pre>
-void foo(int);
-%name(foo_d) foo(double);
-%name(foo_barspam) foo(Bar *, Spam *, int);
-</pre>
-</blockquote>
-
-Although this certainly works, it is extremely annoying to explicitly
-annotate every class with a bunch of <tt>%name</tt> directives like
-that.  It fact, it's so annoying that this really isn't a viable
-solution at all (except in cases where there is very little
-overloading).  Dave sincerely apologizes for ever thinking that this
-approach was good enough--however, let's try to forget the past and
-move on.
+<li>Integer conversions.   Datatypes such as <tt>int</tt>, <tt>long</tt>, and <tt>short</tt>. Shown above.
 
 <p>
-<li><b>Name Mangling</b>.  Another approach to overloading would be to
-automatically generate name-mangled versions of the functions.
-Although this would definitely work, it would also make the scripting
-language interface extremely annoying to use.  For instance, does anyone
-really want to type things like this in their program?
-
-<blockquote>
-<pre>
-foo__FP3BarP4Spami(b,s,i);
-</pre>
-</blockquote>
-
-Needless to say, this approach is not used by SWIG nor has it ever been seriously considered.
+<li>Floating point conversion.  <tt>float</tt> and <tt>double</tt> can not be disambiguated.
 
 <p>
-<li><b>Simplified Name Mangling</b>.  An alternative name mangling
-approach would be to generate a simplified name mangling.  For
-example, maybe you could just take the first letter of each type and
-use it as the signature.  For example:
-
-<blockquote>
-<pre>
-void foo(int);                  // becomes foo_i(int)
-void foo(double);               // becomes foo_d(int)
-void foo(Bar *, Spam *, int);   // becomes foo_BSi(int)
-</pre>
-</blockquote>
-
-Although a lot more readable than the fully mangled version, this now has the
-problem of naming clashes.  For instance, what is supposed to happen with these
-two functions?
-
-<blockquote>
-<pre>
-void foo(int i);               // ?????
-void foo(instance *obj);       // ?????
-</pre>
-</blockquote>
-
-Also, what happens if the mangled version happens to match a legitimate identifier
-name used elsewhere in the program?  One could use the <tt>%name</tt> directive to
-resolve such a conflict, but this tends to defeat the whole point.  Although this
-might work in simple cases, there are still a number of obvious problems.
+<li>Pointers and references. For example, <tt>Foo *</tt> and <tt>Foo &</tt>.
 
 <p>
-<li><b>Trial Execution</b>.  Another approach to overloading is to implement a
-a trial execution scheme.   In this case, each overloaded
-function would generate a unique wrapper function, possibly with a name-mangled name. 
-For example, something like this:
-
-<blockquote>
-<pre>
-wrap_foo_i(args) {
-    ...
-    foo((int) arg[0]);
-    ...
-}
-wrap_foo_d(args) {
-    ...
-    foo((double) arg[0]);
-    ...
-}
-wrap_foo_BSi(args) {
-    ...
-    foo((Bar *) arg[0], (Spam *) arg[1], (int) arg[2]);
-    ...
-}
-</pre>
-</blockquote>
-
-Next, a top-level wrapper could be written like this:
-
-<blockquote>
-<pre>
-wrap_foo(args) {
-   if (wrap_foo_i(args) == SUCCESS) return SUCCESS;
-   if (wrap_foo_d(args) == SUCCESS) return SUCCESS;
-   if (wrap_foo_BSi(args) == SUCCESS) return SUCCESS;
-   return ERROR, "No matching function foo";
-}
-</pre>
-</blockquote>
-Unfortunately, this solution suffers from a 
-performance penalty from trying to start the execution of each
-possible function.  In fact, the impact may be worse since the only
-way to determine the proper function is to try all possibilities until
-no errors occur. Another problem is that a function might throw an ERROR for
-a different reason than improper arguments (maybe the arguments were
-okay, but something happened during execution).  Therefore, you would
-need to have some kind of special error condition to indicate an error
-in argument conversion.  A more subtle problem arises with languages such as
-Ruby and Perl that handle errors by executing a <tt>longjmp()</tt> to return control
-back to the interpreter (in which case, the above approach won't work like we want). 
-Finally, making this approach work with inheritance and all
-of SWIG's customization options is also problematic.
+<li>Pointers and arrays.  For example, <tt>Foo *</tt> and <tt>Foo [4]</tt>.
 
 <p>
-<li><b>Don't allow overloading</b>.  Easy to implement and extremely annoying to
-C++ programmers, but not particularly useful.
+<li>Pointers and instances.  For example, <tt>Foo</tt> and <tt>Foo *</tt>.  Note: SWIG converts all
+instances to pointers.
+
+<p>
+<li>Qualifiers.  For example, <tt>const Foo *</tt> and <tt>Foo *</tt>.
+
+<p>
+<li>Default vs. non default arguments.   For example, <tt>foo(int a, int b)</tt> and <tt>foo(int a, int b = 3)</tt>.
 </ul>
 
-Alas, what to do about overloading?
+When an ambiguity arises, methods are checked in the same order as they appear in the interface file.
+Therefore, earlier methods will shadow methods that appear later.  
 
 <p>
-Heuristic for overloading.
-
-<p>
-Although it would be nice to support an advanced wrapping technique
-such as dynamic dispatch or trial execution, both of these techniques
-are difficult (if not impossible) to implement in a completely general
-manner that would work in all situations and with all combinations of
-SWIG customization features.  Therefore, rather than generate wrappers
-that only work some of the time, SWIG takes a slightly different
-approach.
-
-<p>
-Starting with SWIG-1.3.7, a very simple enhancement has been added to
-the <tt>%rename</tt> directive to help disambiguate overloaded
-functions and methods.  Normally, the <tt>%rename</tt> directive is
-used to rename a declaration everywhere in an interface file.  For
-example, if you write this,
+When wrapping an overloaded function, there is a chance that you will get an error message like this:
 
 <blockquote>
 <pre>
-%rename(foo) bar;
+example.i:3: Warning(467): Overloaded foo(int) not supported (no type checking rule for 'int').
 </pre>
 </blockquote>
 
-all occurences of "bar" will be renamed to "foo" (this feature was
-described a little earlier in this chapter in the section "Renaming
-Declarations").  By itself, this doesn't do anything to help fix
-overloaded methods.  However, the <tt>%rename</tt> directive can now be
-parameterized as shown in this example:
+This error means that the target language module supports overloading,
+but for some reason there is no type-checking rule that can be used to
+generate a working dispatch function.  The resulting behavior is then
+undefined.  You should report this as a bug to
+<tt>swig-dev@cs.uchicago.edu</tt>.
+
+<p>
+If you get an error message such as the following,
+
+<blockquote>
+<pre>
+foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
+foo.i:5. Previous declaration is Spam::foo(int )
+foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *,Spam *,int )
+foo.i:5. Previous declaration is Spam::foo(int )
+</pre>
+</blockquote>
+
+it means that the target language module has not yet implemented support for overloaded
+functions and methods.  The only way to fix the problem is to read the next section.
+
+<h3>Ambiguity resolution and renaming</h3>
+
+If an ambiguity in overload resolution occurs or if a module doesn't
+allow overloading, there are a few strategies for dealing with the
+problem.  First, you can tell SWIG to ignore one of the methods.  This
+is easy---simply use the <tt>%ignore</tt> directive.  For example:
+
+<blockquote>
+<pre>
+%ignore foo(long);
+
+void foo(int);
+void foo(long);       // Ignored.  Oh well.
+</pre>
+</blockquote>
+
+The other alternative is to rename one of the methods.  This can be
+done using <tt>%rename</tt>.  For example:
+
+<blockquote>
+<pre>
+%rename(foo_long) foo(long);
+
+void foo(int);
+void foo(long);       // Accessed as foo_long()
+</pre>
+</blockquote>
+
+The <tt>%ignore</tt> and <tt>%rename</tt> directives are both rather powerful
+in their ability to match declarations.    When used in their simple form, they apply to
+both global functions and methods.  For example:
 
 <blockquote>
 <pre>
@@ -1333,25 +1384,8 @@ public:
 </pre>
 </blockquote>
 
-Since, the <tt>%rename</tt> declaration is used to declare a renaming in advance, it can be
-placed at the start of an interface file.  This makes it possible to apply a consistent name
-resolution without having to modify header files. For example:
-
-<blockquote>
-<pre>
-%module foo
-
-/* Rename these overloaded functions */
-%rename(foo_i) foo(int); 
-%rename(foo_d) foo(double);
-
-%include "header.h"
-</pre>
-</blockquote>
-
-When used in this simple form, the renaming is applied to all global functions and member functions
-that match the prototype.   If you only want the renaming to apply to a certain scope, the C++
-scope resolution operator (::) can be used.  For example:
+If you only want the renaming to apply to a certain scope, the C++ scope resolution operator (::) can be used.
+For example:
 
 <blockquote>
 <pre>
@@ -1394,14 +1428,14 @@ public:
 </pre>
 </blockquote>
 
-Depending on your application, it may make more sense to include <tt>%rename</tt> specifications
-in the class definition. For example:
+It is also possible to include <tt>%rename</tt> specifications in the
+class definition itself. For example:
 
 <blockquote>
 <pre>
 class Spam {
-%rename(foo_i) foo(int);
-%rename(foo_d) foo(double);
+   %rename(foo_i) foo(int);
+   %rename(foo_d) foo(double);
 public:
    virtual void foo(int);      // Renamed to foo_i
    virtual void foo(double);   // Renamed to foo_d
@@ -1437,60 +1471,8 @@ alternative so if you have a better idea, send email to
 swig-dev@cs.uchicago.edu).
 
 <p>
-Although the <tt>%rename</tt> approach does not automatically solve the overloading
-problem for you (you have to supply a name), SWIG's error messages have been improved to help.
-For example, consider this interface file:
-
-<blockquote>
-<pre>
-%module foo
-
-class Spam {
-public:
-   void foo(int);
-   void foo(double);
-   void foo(Bar *, Spam *, int);
-};
-</pre>
-</blockquote>
-
-If you run SWIG on this file, you will get the following error messages:
-
-<blockquote>
-<pre>
-foo.i:6. Overloaded declaration ignored.  Spam::foo(double )
-foo.i:5. Previous declaration is Spam::foo(int )
-foo.i:7. Overloaded declaration ignored.  Spam::foo(Bar *,Spam *,int )
-foo.i:5. Previous declaration is Spam::foo(int )
-</pre>
-</blockquote>
-
-The error messages indicate the problematic functions along with their
-type signature.  In addition, the previous definition is supplied.
-Therefore, you can just look at these errors and decide how you want
-to handle the overloaded functions.  For example:
-
-<blockquote>
-<pre>
-%module foo
-%rename(foo_d)         Spam::foo(double);               // name foo_d
-%rename(foo_barspam)   Spam::foo(Bar *, Spam *, int);   // name foo_barspam
-...
-class Spam { 
-...
-};
-</pre>
-</blockquote>
-
-And again, for a class hierarchy, you may be able to solve all of the
-problems by just renaming members in the base class--those renamings
-automatically propagate to all derived classes.
-
-<p>
-Another way to resolve overloaded methods is to simply eliminate conflicting definitions.
-An easy way to do this is to use the <tt>%ignore</tt> directive.  <tt>%ignore</tt>
-works exactly like <tt>%rename</tt> except that it forces a declaration to disappear.
-For example:
+Although this discussion has primarily focused on <tt>%rename</tt> all of the same rules
+also apply to <tt>%ignore</tt>.  For example:
 
 <blockquote>
 <pre>
@@ -1506,9 +1488,26 @@ to disappear. For example, <tt>%ignore Spam::foo(double)</tt> will eliminate <tt
 <tt>Spam</tt> and all classes derived from <tt>Spam</tt>.
 
 <p>
-A few implementation notes about the enhanced <tt>%rename</tt> directive and <tt>%ignore</tt>:
+<b>Notes on %rename and %ignore:</b>
 
 <ul>
+<li>Since, the <tt>%rename</tt> declaration is used to declare a renaming in advance, it can be
+placed at the start of an interface file.  This makes it possible to apply a consistent name
+resolution without having to modify header files. For example:
+
+<blockquote>
+<pre>
+%module foo
+
+/* Rename these overloaded functions */
+%rename(foo_i) foo(int); 
+%rename(foo_d) foo(double);
+
+%include "header.h"
+</pre>
+</blockquote>
+
+<p>
 <li>The scope qualifier (::) can also be used on simple names.  For example:
 <blockquote>
 <pre>
@@ -1608,16 +1607,22 @@ above:
 %ignore Foo::bar() const;   // Ignore bar() const, but leave other bar() alone
 </pre>
 </blockquote>
-
-<li>SWIG handles overloaded constructors as a special case. If a class
-defines a copy constructor, it is wrapped into a different accessor
-function than an ordinary constructor.  See the section on constructors and destructors
-for details.
-
 </ul>
 
-<a name="n21"></a><H2>5.14 Wrapping overloaded operators</H2>
+<h3>Comments on overloading</h3>
 
+Support for overloaded methods was first added in SWIG-1.3.14.   The implementation
+is somewhat unusual when compared to similar tools.  For instance, the order in which
+declarations appear is largely irrelevant in SWIG.   Furthermore, SWIG does not rely
+upon trial execution or exception handling to figure out which method to invoke. 
+
+<p>
+Internally, the overloading mechanism is completely configurable by the target language
+module.  Therefore, the degree of overloading support may vary from language to language. 
+As a general rule, statically typed languages like Java are able to provide more support
+than dynamically typed languages like Perl, Python, Ruby, and Tcl.
+
+<a name="n21"></a><H2>5.14 Wrapping overloaded operators</H2>
 
 Starting in SWIG-1.3.10, C++ overloaded operator declarations can be wrapped. 
 For example, consider a class like this:
