@@ -1792,13 +1792,14 @@ cpp_class_decl  :
 
 /* A simple class/struct/union definition */
                 storage_class cpptype idcolon inherit LBRACE {
+                   List *bases = 0;
                    class_rename = make_name($3,0);
-		   
 		   Classprefix = NewString($3);
 		   /* Deal with renaming */
 		   if ($4) {
 		     String *derived;
 		     int i;
+		     bases = NewList();
 		     if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix, $3);
 		     else derived = NewString($3);
 		     for (i = 0; i < Len($4); i++) {
@@ -1806,12 +1807,26 @@ cpp_class_decl  :
 		       String *base;
 		       String *n = Getitem($4,i);
 		       /* Try to figure out where this symbol is */
-		       /*		       s = Swig_symbol_lookup_tag(n); */
 		       s = Swig_symbol_clookup(n,0);
-		       if (s && (Strcmp(nodeType(s),"class") == 0)) {
-			 String *q = Swig_symbol_qualified(s);
-			 if (q) {
-			   base = NewStringf("%s::%s", q, n);
+		       if (s) {
+			 while (s && (Strcmp(nodeType(s),"class") != 0)) {
+			   /* Not a class.  Could be a typedef though. */
+			   String *storage = Getattr(s,"storage");
+			   if (storage && (Strcmp(storage,"typedef") == 0)) {
+			     String *nn = Getattr(s,"type");
+			     s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
+			   } else {
+			     break;
+			   }
+			 }
+		         if (s && (Strcmp(nodeType(s),"class") == 0)) {
+			   String *q = Swig_symbol_qualified(s);
+			   Append(bases,s);
+			   if (q) {
+			     base = NewStringf("%s::%s", q, Getattr(s,"name"));
+			   } else {
+			     base = NewString(Getattr(s,"name"));
+			   }
 			 } else {
 			   base = NewString(n);
 			 }
@@ -1830,6 +1845,15 @@ cpp_class_decl  :
 		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
+		   if (bases) {
+		     Node *s;
+		     for (s = Firstitem(bases); s; s = Nextitem(bases)) {
+		       Symtab *st = Getattr(s,"symtab");
+		       if (st) {
+			 Swig_symbol_inherit(st); 
+		       }
+		     }
+		   }
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   start_line = line_number;
 		   inclass = 1;
@@ -1843,7 +1867,6 @@ cpp_class_decl  :
 		 Setattr($$,"kind",$2);
 		 Setattr($$,"baselist",$4);
 		 Setattr($$,"allows_typedef","1");
-
 		 /* Check for pure-abstract class */
 		 if (pure_abstract($7)) {
 		   SetInt($$,"abstract",1);
@@ -2137,12 +2160,45 @@ template_parms  : rawparms {
 /* Namespace support */
 
 cpp_using_decl : USING idcolon SEMI {
-               $$ = new_node("using");
-	       Setattr($$,"name", $2);
+                  Node *n = Swig_symbol_clookup($2,0);
+                  if (!n) {
+		    Printf(stderr,"%s:%d. Nothing known about '%s' (ignored)\n", input_file, line_number, $2);
+		    $$ = 0;
+		  } else {
+		    $$ = new_node("using");
+		    Setattr($$,"name", Copy(Getattr(n,"name")));
+		    Setattr($$,"uname", $2);
+		    while (Strcmp(nodeType(n),"using") == 0) {
+		      n = Getattr(n,"node");
+		    }
+		    Setattr($$,"node", n);
+		    add_symbols($$);
+		  }
              }
              | USING NAMESPACE idcolon SEMI {
-	       $$ = new_node("using");
-	       Setattr($$,"namespace", $3);
+	       Node *n = Swig_symbol_clookup($3,0);
+	       if (!n) {
+		 Printf(stderr,"%s:%d. Nothing known about namespace '%s'\n", input_file,line_number, $3);
+		 $$ = 0;
+	       } else {
+
+		 while (Strcmp(nodeType(n),"using") == 0) {
+		   n = Getattr(n,"node");
+		 }
+		 if (n) {
+		   if (Strcmp(nodeType(n),"namespace") == 0) {
+		     $$ = new_node("using");
+		     Setattr($$,"node",n);
+		     Setattr($$,"namespace", $3);
+		     Swig_symbol_inherit(Getattr(n,"symtab"));
+		   } else {
+		     Printf(stderr,"%s:%d. '%s' is not a namespace.\n", input_file, line_number, $3);
+		     $$ = 0;
+		   }
+		 } else {
+		   $$ = 0;
+		 }
+	       }
              }
              ;
 

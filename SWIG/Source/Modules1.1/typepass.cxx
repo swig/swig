@@ -3,7 +3,7 @@
  *
  *     This module builds all of the internal type information by collecting
  *     typedef declarations as well as registering classes, structures, and unions.
- *     This information is need to correctly handle shadow classes and other
+ *     This information is needed to correctly handle shadow classes and other
  *     advanced features.   This phase of compilation is also used to perform
  *     type-expansion.  All types are fully qualified with namespace prefixes
  *     and other information needed for compilation.
@@ -25,7 +25,6 @@ static char cvsroot[] = "$Header$";
 
 #include "swig11.h"
 
-
 class TypePass : public Dispatcher {
   Node   *inclass;
   String *module;
@@ -37,40 +36,10 @@ class TypePass : public Dispatcher {
   /* Normalize a type. Replaces type with fully qualified version */
 
   void normalize_type(SwigType *ty) {
-#ifdef OLD    
-    /* If the type is qualified, we might have to check for an alias */
-    if (Strstr(ty,"::")) {
-      /* Try to resolve the type by looking in the symbol table    */
-
-      /* Note: All typedef and class definitions are in the symbol table
-         so this is guaranteed to exist if it is a valid type */
-
-      /* Note: There might be some issues with types not processed yet */
-
-      Node *n = Swig_symbol_clookup(ty,0);
-      if (n) {
-	String *name = Getattr(n,"name");
-	if (name) {
-	  Clear(ty);	  
-	  /* If type is fully qualified, we simply use the name */
-	  if (Strstr(name,"::")) {
-	    Append(ty,name);
-	  } else {
-	    /* The type is not fully qualified yet.  We need to use the scope name */
-	    String *qn = Swig_symbol_qualified(n);
-	    if (Len(qn)) {
-	      Printf(ty,"%s::%s",qn,name);
-	    } else {
-	      Append(ty,name);
-	    }
-	  }
-	  return;
-	}
-      }
-    }
-#endif
-    
     SwigType *qty = SwigType_typedef_qualified(ty);
+
+    /* SwigType *qty = Swig_symbol_type_qualify(ty,0);  */
+    /*    Printf(stdout,"%s --> %s\n", ty, qty); */
     Clear(ty);
     Append(ty,qty);
     Delete(qty);
@@ -115,21 +84,31 @@ class TypePass : public Dispatcher {
 	  Node *bcls = 0;
 	  String *bname = Getitem(nlist,i);
 	  String *sname = bname;
-	  /* Typedef resolve the name */
-	  while (sname) {
-	    bcls = Swig_symbol_clookup(sname,0);
+	  /* Try to locate the base class.   We look in the symbol table and we chase 
+             typedef declarations to get to the base class if necessary */
+	  Symtab *st = 0;
+	  while (1) {
+	    bcls = Swig_symbol_clookup(sname,st);
 	    if (bcls) {
 	      if (Strcmp(nodeType(bcls),"class") != 0) {
+		/* Not a class.   The symbol could be a typedef. */
+		String *storage = Getattr(bcls,"storage");
+		if (storage && (Strcmp(storage,"typedef") == 0)) {
+		  SwigType *decl = Getattr(bcls,"decl");
+		  if (!decl || !(Len(decl))) {
+		    sname = Getattr(bcls,"type");
+		    st = Getattr(bcls,"sym:symtab");
+		    continue;
+		  } 
+		}
+		Printf(stderr,"%s:%d. '%s' is not a class. \n", Getfile(bname),Getline(bname), bname);
 		bcls = 0;
 	      } else {
 		if (!ilist) ilist = NewList();
 		Append(ilist,bcls);
-		break;
 	      }
 	    }
-	    String *nname = SwigType_typedef_resolve(sname);
-	    if (sname != bname) Delete(sname);
-	    sname = nname;
+	    break;
 	  }
 	  if (!bcls) {
 	    if (!Getmeta(bname,"already_warned")) {
@@ -161,13 +140,36 @@ class TypePass : public Dispatcher {
 	Delete(btype);
       }
       if (scopes) {
-	SwigType_merge_scope(scopes);
+	SwigType_inherit_scope(scopes);
       }
       cplus_inherit_types(bclass,clsname);
     }
   }
 
 public:
+
+#ifdef OLD
+  virtual int emit_one(Node *n) {
+    Symtab *symtab;
+    Symtab *oldsymtab;
+    int     ret;
+
+    symtab = Getattr(n,"symtab");
+    if (symtab) {
+      oldsymtab = Swig_symbol_current();
+      Swig_symbol_setscope(symtab);
+    }
+    ret = Dispatcher::emit_one(n);
+    if (symtab) {
+      Swig_symbol_setscope(oldsymtab);
+    }
+    return ret;
+  }
+#endif
+
+  /* ------------------------------------------------------------
+   * top()
+   * ------------------------------------------------------------ */ 
 
   virtual int top(Node *n) {
     importmode = 0;
@@ -180,10 +182,19 @@ public:
     return SWIG_OK;
   }
 
+
+  /* ------------------------------------------------------------
+   * moduleDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int moduleDirective(Node *n) {
     module = Getattr(n,"name");
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * importDirective()
+   * ------------------------------------------------------------ */ 
 
   virtual int importDirective(Node *n) { 
     String *oldmodule = module;
@@ -195,9 +206,19 @@ public:
     return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * includeDirective()
+   * externDirective()
+   * addmethodsDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int includeDirective(Node *n) { return emit_children(n); }
   virtual int externDeclaration(Node *n) { return emit_children(n); }
   virtual int addmethodsDirective(Node *n) { return emit_children(n); }
+
+  /* ------------------------------------------------------------
+   * classDeclaration()
+   * ------------------------------------------------------------ */ 
 
   virtual int classDeclaration(Node *n) {
     String *kind = Getattr(n,"kind");
@@ -209,30 +230,39 @@ public:
     String *storage = Getattr(n,"storage");
     Node   *oldinclass = inclass;
     List   *olist = normalize;
+    Symtab *symtab;
+    String *nname = 0;
+
     normalize = NewList();
 
     char *classname = tdname ? Char(tdname) : Char(name);
     char *iname = Char(symname);
     int   strip = (tdname || CPlusPlus) ? 1 : 0;
 
-
-    if (name) SwigType_typedef_class(name);
-
-    SwigType_new_scope();
-    if (name) SwigType_set_scope_name(name);
+    if (name) {
+      SwigType_typedef_class(name);
+      SwigType_new_scope(name);
+    } else {
+      SwigType_new_scope(0);
+    }
 
     /* Need to set up a typedef if unnamed */
     if (unnamed && tdname && (Cmp(storage,"typedef") == 0)) {
       SwigType_typedef(unnamed,tdname);
     }
 
+    if (nsname) {
+      nname = NewStringf("%s::%s", nsname, name);
+    } 
     /* Inherit type definitions into the class */
     if (name) {
-      cplus_inherit_types(n,name);
+      cplus_inherit_types(n, nname ? nname : name);
     }
     
     inclass = n;
+    symtab = Swig_symbol_setscope(Getattr(n,"symtab"));
     emit_children(n);
+    Swig_symbol_setscope(symtab);
 
     /* Normalize deferred types */
     normalize_list();
@@ -245,14 +275,20 @@ public:
     Setattr(n,"module",module);
 
     /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n,"name"));
+    if (nname) {
       Setattr(n,"name",nname);
     }
     return SWIG_OK;
   }
+
+
+  /* ------------------------------------------------------------
+   * namespaceDeclaration()
+   * ------------------------------------------------------------ */ 
+
   virtual int namespaceDeclaration(Node *n) {
     static int warn = 0;
+    Symtab *symtab;
     String *name = Getattr(n,"name");
     String *alias = Getattr(n,"alias");
     List   *olist = normalize;
@@ -264,23 +300,36 @@ public:
     }
 
     if (alias) {
+      Typetab *ts = Getattr(n,"typescope");
+      if (!ts) {
+	Node *ns;
+	/* Create a empty scope for the alias */
+	SwigType_new_scope(name);
+	ns = Getattr(n,"namespace");
+	if (ns) {
+	  SwigType_inherit_scope(Getattr(ns,"typescope"));
+	}
+	ts = SwigType_pop_scope();	  
+	Setattr(n,"typescope",ts);
+      }
       /* Namespace alias */
       return SWIG_OK;
-
     } else {
       if (name) {
 	Node *nn = Swig_symbol_clookup(name,n);
 	Hash *ts = Getattr(nn,"typescope");
 	if (!ts) {
-	  SwigType_new_scope();
-	  SwigType_set_scope_name(name);
+	  SwigType_new_scope(name);
 	} else {
-	  SwigType_push_scope(ts);
+	  SwigType_set_scope(ts);
 	}
       }
       String *oldnsname = nsname;
       nsname = Swig_symbol_qualified(Getattr(n,"symtab"));
+
+      symtab = Swig_symbol_setscope(Getattr(n,"symtab"));
       emit_children(n);
+      Swig_symbol_setscope(symtab);
 
       normalize_list();
       Delete(normalize);
@@ -296,6 +345,11 @@ public:
       return SWIG_OK;
     }
   }
+
+  /* ------------------------------------------------------------
+   * cDeclaration()
+   * ------------------------------------------------------------ */ 
+
   virtual int cDeclaration(Node *n) {
     /* Search for var args */
     if (Getattr(n,"feature:varargs")) {
@@ -348,6 +402,11 @@ public:
     return SWIG_OK;
   }
 
+
+  /* ------------------------------------------------------------
+   * constructorDeclaration()
+   * ------------------------------------------------------------ */ 
+
   virtual int constructorDeclaration(Node *n) {
     /* Search for var args */
     if (Getattr(n,"feature:varargs")) {
@@ -377,6 +436,10 @@ public:
     return SWIG_OK;
   }
 
+  /* ------------------------------------------------------------
+   * destructorDeclaration()
+   * ------------------------------------------------------------ */ 
+
   virtual int destructorDeclaration(Node *n) {
     /* If in a namespace, patch the class name */
     if (nsname) {
@@ -385,6 +448,11 @@ public:
     }
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * constantDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int constantDirective(Node *n) {
     SwigType *ty = Getattr(n,"type");
     if (ty) {
@@ -392,6 +460,11 @@ public:
     }
     return SWIG_OK;
   }
+
+
+  /* ------------------------------------------------------------
+   * enumDeclaration()
+   * ------------------------------------------------------------ */ 
 
   virtual int enumDeclaration(Node *n) {
     String *name = Getattr(n,"name");
@@ -402,6 +475,57 @@ public:
     }
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * usingDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int usingDeclaration(Node *n) {
+    if (Getattr(n,"namespace")) {
+      /* using namespace id */
+
+      /* For a namespace import.   We set up inheritance in the type system */
+      Node *ns = Getattr(n,"node");
+      if (ns) {
+	Typetab *ts = Getattr(ns,"typescope");
+	if (ts) {
+	  SwigType_inherit_scope(ts);
+	}
+      }
+      return SWIG_OK;
+    } else {
+      /* using id */
+
+      /* Only a single symbol is being used.  There are only a few symbols that
+	 we actually care about.  These are typedef, class declarations, and enum */
+
+      Node *ns = Getattr(n,"node");
+      String *ntype = nodeType(ns);
+      if (Strcmp(ntype,"cdecl") == 0) {
+	String *storage = Getattr(ns,"storage");
+	if (Strcmp(storage,"typedef") == 0) {
+	  /* A typedef declaration */
+	  SwigType *ty = Getattr(ns,"type");
+	  SwigType *decl = Getattr(ns,"decl");
+	  SwigType *t = Copy(ty);
+	  SwigType_push(t,decl);
+	  SwigType_typedef(t,Getattr(n,"name"));
+	}
+      } else if (Strcmp(ntype,"class") == 0) {
+	/* We install the using class name as kind of a typedef back to the original class */
+	SwigType *ty = Getattr(ns,"name");
+	SwigType_typedef(ty, Getattr(n,"name"));
+      } else if (Strcmp(ntype,"enum") == 0) {
+	SwigType *ty = NewStringf("enum %s", Getattr(ns,"name"));
+	SwigType_typedef(ty, Getattr(n,"name"));
+	Delete(ty);
+      }
+    }
+    return SWIG_OK;
+  }
+  /* ------------------------------------------------------------
+   * typemapDirective()
+   * ------------------------------------------------------------ */ 
 
   virtual int typemapDirective(Node *n) {
     if (inclass || nsname) {
@@ -416,6 +540,12 @@ public:
     }
     return SWIG_OK;
   }
+
+
+  /* ------------------------------------------------------------
+   * typemapcopyDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int typemapcopyDirective(Node *n) {
     if (inclass) {
       Node *items = firstChild(n);
@@ -429,6 +559,11 @@ public:
     }
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * applyDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int applyDirective(Node *n) {
     if (inclass) {
       ParmList *pattern = Getattr(n,"pattern");
@@ -442,6 +577,11 @@ public:
     }
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * clearDirective()
+   * ------------------------------------------------------------ */ 
+
   virtual int clearDirective(Node *n) {
     if (inclass) {
       Node *p;

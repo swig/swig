@@ -213,6 +213,7 @@ static Parm *nonvoid_parms(Parm *p) {
 /* This is a hack */
 SwigType *cplus_value_type(SwigType *t) {
   Node *n;
+  if (!CPlusPlus) return 0;
   if (!ClassHash) return 0;
   SwigType *td = SwigType_typedef_resolve_all(t);
   if ((n = Getattr(ClassHash,td))) {

@@ -35,6 +35,7 @@ public:
   virtual int importDirective(Node *n) { return emit_children(n); }
   virtual int includeDirective(Node *n) { return emit_children(n); }
   virtual int externDeclaration(Node *n) { return emit_children(n); }
+  virtual int namespaceDeclaration(Node *n) { return emit_children(n); }
 
   virtual int classDeclaration(Node *n) {
     if (!CPlusPlus) {

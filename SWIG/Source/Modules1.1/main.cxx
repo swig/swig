@@ -477,7 +477,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (dump_typedef) {
-      SwigType_print_scope();
+      SwigType_print_scope(0);
     }
 
     if (dump_tags) {
