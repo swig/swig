@@ -402,6 +402,10 @@ Guile
 
 **     Director Support!
 
+**     Cleaner handling of multiple values.
+       Use a typemap keyword argument "numoutputs" of "out" and
+       "argout" to indicate how many values are returned.
+
 [DONE] Support garbage collection.
 
 **     Make SWIG's types first-class by using a separate smob type for
@@ -414,10 +418,14 @@ Guile
 
 **     Provide a clean way to construct type predicates.
 
+**     In GOOPS mode, maybe make overloaded functions methods. 
+
 Mzscheme
 --------
 
 **     Port list-vector.i and pointer-in-out.i from Guile.
+
+**     Add shadow class support for the Swindle system. 
 
 Pike
 ----

@@ -1,5 +1,52 @@
 Version 1.3.20 (In progress)
 ============================
+
+11/18/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Change meaning of configure option --with-guile to
+	    the name of the Guile executable.  The new option --with-guile-prefix 
+	    can be used to specify the tree where Guile is
+	    installed.  (However, usually it suffices to use the
+	    single option --with-guile-config.)  
+	    When running the run tests test-suite, make sure to use the
+	    version of Guile that SWIG was configured for.
+
+11/17/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Improvements to object-ownership management in 
+	    "-scm" mode.  (They do not apply to the default "-gh" mode.)
+	    * Renamed the smob type that indicates that the object can
+	      be garbage collected from "collected swig" to "collectable
+	      swig", which is more precise.  
+	    * Export the destructor functions again.  It is now
+ 	      allowed to explicitly call destructors, even for
+	      garbage-collected pointer objects.  A pointer object
+	      that has been passed to a destructor is marked in a
+	      special way using a new smob type, "destroyed swig".
+	      (This helps avoid nasty memory bugs, where references to
+	      dead C objects are still held in Scheme. Moreover, the
+	      garbage collector will not try to free a destroyed
+	      object once more.)
+	    * Destructor-like functions can also mark their arguments 
+	      as destroyed by applying the typemap SWIGTYPE *DESTROYED.
+	      (It calls the function SWIG_Guile_MarkPointerDestroyed.)
+	    * Functions that "consume" their objects (or that "own"
+	      them after the call) can mark their arguments as
+	      not garbage collectable.  This can be done by applying
+	      the typemap SWIGTYPE *CONSUMED.  (It calls the function
+	      SWIG_Guile_MarkPointerNoncollectable.)
+	    * The macro TYPEMAP_POINTER_INPUT_OUTPUT from library
+	      pointer-in-out.i creates additional typemaps 
+	      PTRTYPE *INPUT_CONSUMED, PTRTYPE *INPUT_DESTROYED.
+	      They mark the passed pointer object likewise.
+	      The typemap PTRTYPE *OUTPUT creates a garbage-collectable
+	      pointer object, like %newobject does for a returned 
+	      pointer.  Use the new typemap PTRTYPE *OUTPUT_NONCOLLECTABLE
+	      to create a pointer object that will not be garbage collected.
+
+11/17/2003: mkoeppe (Matthias Koeppe)
+	    [Guile] Handle $input in "freearg" typemaps.
+	    Never qualify GOOPS slot names with the class name. 
+	    Handle optional arguments properly in the GOOPS methods.
+
 11/16/2003: cheetah (William Fulton)
             Fixes for installation to work with the upcoming Automake-1.8.
             mkinstalldirs was being used by a non-Automake makefile. 
