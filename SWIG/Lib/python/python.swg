@@ -474,6 +474,31 @@
   }
 }
 
+/* ------------------------------------------------------------
+ * Exception handling
+ * ------------------------------------------------------------ */
+
+%typemap("throw") int, 
+                  long, 
+                  short, 
+                  unsigned int, 
+                  unsigned long, 
+                  unsigned short {
+  PyErr_SetObject(PyExc_RuntimeError, PyInt_FromLong((long) $1));
+}
+
+%typemap("throw") SWIGTYPE {
+  $&1_ltype temp = new $1_ltype($1);
+  if ($&1_descriptor->clientdata) {
+    PyErr_SetObject((PyObject *) ($&1_descriptor->clientdata), SWIG_NewPointerObj(temp,$&1_descriptor,1));
+  } else {
+    PyErr_SetObject(PyExc_RuntimeError, SWIG_NewPointerObj(temp,$&1_descriptor,1));
+  }
+}
+
+%typemap("throw") char * {
+  PyErr_SetString(PyExc_RuntimeError, $1);
+}
 
 /* ------------------------------------------------------------
  * Overloaded operator support
