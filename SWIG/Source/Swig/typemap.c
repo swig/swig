@@ -879,7 +879,8 @@ void typemap_replace_vars(String *s, ParmList *locals, SwigType *type, String *p
     replace_local_types(locals,varname,amp_type);
     Delete(ts);
     
-    amp_ltype = SwigType_ltype(amp_type);
+    amp_ltype = SwigType_ltype(type);
+    SwigType_add_pointer(amp_ltype);
     ts = SwigType_str(amp_ltype,0);
     
     if (index == 1) {
