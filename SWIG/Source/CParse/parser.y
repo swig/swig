@@ -4167,18 +4167,23 @@ type_specifier : TYPE_INT {
 
 definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
-		   $$.rawval = 0;
+		   if ($$.type == T_STRING) {
+		     $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
+		   } else {
+		     $$.rawval = 0;
+		   }
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		   scanner_ignore_typedef();
                 }
-                | string {
+/*                | string {
                    $$.val = NewString($1);
 		   $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
                    $$.type = T_STRING;
 		   $$.bitfield = 0;
 		   $$.throws = 0;
 		}
+*/
                 | CHARCONST {
                    $$.val = NewString($1);
 		   /*		   $$.rawval = NewStringf("\'%(escape)s\'",$$.val); */
@@ -4267,6 +4272,10 @@ etype            : expr {
  */
 
 expr           :  exprnum { $$ = $1; }
+               |  string { 
+		    $$.val = NewString($1); 
+                    $$.type = T_STRING; 
+               }
                |  SIZEOF LPAREN type parameter_declarator RPAREN {
   		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
@@ -4300,23 +4309,31 @@ expr           :  exprnum { $$ = $1; }
 
                | LPAREN expr RPAREN expr %prec CAST {
                  $$ = $4;
-		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		 if ($4.type != T_STRING) {
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		 }
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;
-		 SwigType_push($2.val,$3);
-		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
+		 if ($5.type != T_STRING) {
+		   SwigType_push($2.val,$3);
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
+		 }
  	       }
                | LPAREN expr AND RPAREN expr %prec CAST {
                  $$ = $5;
-		 SwigType_add_reference($2.val);
-		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
+		 if ($5.type != T_STRING) {
+		   SwigType_add_reference($2.val);
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
+		 }
  	       }
                | LPAREN expr pointer AND RPAREN expr %prec CAST {
                  $$ = $6;
-		 SwigType_push($2.val,$3);
-		 SwigType_add_reference($2.val);
-		 $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
+		 if ($6.type != T_STRING) {
+		   SwigType_push($2.val,$3);
+		   SwigType_add_reference($2.val);
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
+		 }
  	       }
                ;
 
