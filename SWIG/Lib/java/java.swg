@@ -390,8 +390,11 @@ $1 = &temp; %}
 /* Default handling. Object passed by value. Convert to a pointer */
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
+     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
+     return $null;
+   }
    $1 = *argp; %}
-
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
 %{$&1_ltype $1ptr = new $1_ltype(($1_ltype &)$1);
@@ -405,7 +408,12 @@ $1 = &temp; %}
 #endif
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE & %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE * %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
+  if(!$1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    return $null;
+  } %}
 %typemap(out) SWIGTYPE *, SWIGTYPE & %{ *($&1_ltype)&$result = $1; %} 
 
 
