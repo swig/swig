@@ -4,6 +4,7 @@
 # Usage : mkdist.py dirname 
 
 import sys
+import string
 
 try:
    dirname = sys.argv[1]
@@ -19,44 +20,7 @@ os.system("rm -rf "+dirname)
 # Do a CVS export on the directory name
 
 print "Checking out SWIG"
-os.system("cvs export -D now -r rel-1-3 -d "+dirname+ " SWIG")
-
-# Now clean the source directory
-
-SOURCES = ['DOH','Swig','Preprocessor','CParse','Modules', 'Include']
-
-srcs = [ ]
-for d in SOURCES:
-	srcs.append(dirname+"/Source/"+d)
-
-print "Cleaning the source directory..."
-import glob
-import string
-dirs = glob.glob(dirname+"/Source/*")
-dnames = [ ]
-for d in dirs:
-      if not (d in srcs):
-		print "Removing ", d
-		os.system("rm -rf "+d)
-		dnames.append(string.split(d,"/")[-1])
-
-print "Patching the configure script"
-
-f = open(dirname+"/configure.in")
-s = f.read()
-f.close()
-
-# Remove any dirs not in SOURCES from the configure line
-
-print dnames
-
-for d in dnames:
-	s = string.replace(s,"Source/"+d+"/Makefile","")
-	s = string.replace(s,"Source/"+d,"")
-	
-f = open(dirname+"/configure.in","w")
-f.write(s)
-f.close()
+os.system("cvs export -D now -d "+dirname+ " SWIG")
 
 # Remove the debian directory -- it's not official
 
@@ -69,10 +33,7 @@ os.system("find "+dirname+" -name .cvsignore -exec rm {} \\;");
 
 # Go build the system
 
-os.system("cd "+dirname+"; autoconf")
-os.system("cd "+dirname+"/Source/DOH; autoconf")
-os.system("cd "+dirname+"/Tools; autoconf")
-os.system("cd "+dirname+"/Examples/GIFPlot; autoconf")
+os.system("cd "+dirname+"; ./autogen.sh")
 os.system("cd "+dirname+"/Tools/WAD; autoconf")
 os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h")
 
