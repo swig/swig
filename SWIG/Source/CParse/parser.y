@@ -1403,8 +1403,9 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		    scanner_clear_rename();
               }
               | rename_namewarn LPAREN idstring RPAREN declarator cpp_const SEMI {
+		String *fixname;
 		SwigType *t = $5.type;
-		$5.id = Char(feature_identifier_fix($5.id));
+		fixname = feature_identifier_fix($5.id);
 		if (!Len(t)) t = 0;
 		/* Special declarator check */
 		if (t) {
@@ -1412,7 +1413,7 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  if (SwigType_isfunction(t)) {
 		    SwigType *decl = SwigType_pop_function(t);
 		    if (SwigType_ispointer(t)) {
-		      String *nname = NewStringf("*%s",$5.id);
+		      String *nname = NewStringf("*%s",fixname);
 		      if ($1) {
 			rename_add(Char(nname),decl,$3);
 		      } else {
@@ -1421,13 +1422,13 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		      Delete(nname);
 		    } else {
 		      if ($1) {
-			rename_add($5.id,decl,$3);
+			rename_add(Char(fixname),decl,$3);
 		      } else {
-			namewarn_add($5.id,decl,$3);
+			namewarn_add(Char(fixname),decl,$3);
 		      }
 		    }
 		  } else if (SwigType_ispointer(t)) {
-		    String *nname = NewStringf("*%s",$5.id);
+		    String *nname = NewStringf("*%s",fixname);
 		    if ($1) {
 		      rename_add(Char(nname),0,$3);
 		    } else {
@@ -1437,9 +1438,9 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		  }
 		} else {
 		  if ($1) {
-		    rename_add($5.id,0,$3);
+		    rename_add(Char(fixname),0,$3);
 		  } else {
-		    namewarn_add($5.id,0,$3);
+		    namewarn_add(Char(fixname),0,$3);
 		  }
 		}
                 $$ = 0;
@@ -1476,14 +1477,15 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
                  String *fname;
                  String *val;
 		 String *name;
+		 String *fixname;
 		 SwigType *t;
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 $5.id = Char(feature_identifier_fix($5.id));
+		 fixname = feature_identifier_fix($5.id);
 		 if (Namespaceprefix) {
-		   name = NewStringf("%s::%s",Namespaceprefix, $5.id);
+		   name = NewStringf("%s::%s",Namespaceprefix, fixname);
 		 } else {
-		   name = NewString($5.id);
+		   name = fixname;
 		 }
 		 val = $7 ? Copy($7) : 0;
 		 if ($5.parms) {
@@ -1522,15 +1524,16 @@ feature_directive :  FEATURE LPAREN idstring RPAREN declarator cpp_const stringb
                  String *fname;
                  String *val;
 		 String *name;
+		 String *fixname;
 		 SwigType *t;
 
                  if (!features_hash) features_hash = NewHash();
 		 fname = NewStringf("feature:%s",$3);
-		 $7.id = Char(feature_identifier_fix($7.id));
+		 fixname = feature_identifier_fix($7.id);
 		 if (Namespaceprefix) {
-		   name = NewStringf("%s::%s",Namespaceprefix, $7.id);
+		   name = NewStringf("%s::%s",Namespaceprefix, fixname);
 		 } else {
-		   name = NewString($7.id);
+		   name = fixname;
 		 }
 		 val = NewString($5);
 		 if ($7.parms) {
