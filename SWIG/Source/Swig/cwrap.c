@@ -238,7 +238,14 @@ void Swig_cppresult(Wrapper *w, SwigType *t, String_or_char *name, String_or_cha
   case T_VOID:
     break;
   case T_USER:
-    Printf(fcall, "%s = new %s(", name, SwigType_str(t,0));
+    {
+      SwigType *temp = Copy(t);
+      while (SwigType_isconst(temp)) {
+	SwigType_pop(temp);
+      }
+      Printf(fcall, "%s = new %s(", name, SwigType_str(temp,0));
+      Delete(temp);
+    }
     break;
   case T_REFERENCE:
     Printf(fcall, "%s = ", SwigType_str(t,"_result_ref"));
